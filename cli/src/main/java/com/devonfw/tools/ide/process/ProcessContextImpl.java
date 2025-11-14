@@ -171,15 +171,24 @@ public class ProcessContextImpl implements ProcessContext {
       Process process = this.processBuilder.start();
 
       try {
-        if (processMode == ProcessMode.DEFAULT_CAPTURE) {
+        if (Redirect.PIPE == processMode.getRedirectOutput() || Redirect.PIPE == processMode.getRedirectError()) {
           CompletableFuture<Void> outFut = readInputStream(process.getInputStream(), false, output);
           CompletableFuture<Void> errFut = readInputStream(process.getErrorStream(), true, output);
-          outFut.get();
-          errFut.get();
+          if (Redirect.PIPE == processMode.getRedirectOutput()) {
+            outFut.get();
+            if (this.outputListener != null) {
+              for (OutputMessage msg : output) {
+                this.outputListener.onOutput(msg.message(), msg.error());
+              }
+            }
+          }
 
-          if (this.outputListener != null) {
-            for (OutputMessage msg : output) {
-              this.outputListener.onOutput(msg.message(), msg.error());
+          if (Redirect.PIPE == processMode.getRedirectError()) {
+            errFut.get();
+            if (this.outputListener != null) {
+              for (OutputMessage msg : output) {
+                this.outputListener.onOutput(msg.message(), msg.error());
+              }
             }
           }
         }
@@ -361,9 +370,7 @@ public class ProcessContextImpl implements ProcessContext {
 
   private void modifyArgumentsOnBackgroundProcess(ProcessMode processMode) {
 
-    if (!processMode.isBackground()) {
-      throw new IllegalStateException("Cannot handle non background process mode!");
-    }
+    assert processMode.isBackground() : "Cannot handle non background process mode!";
 
     String bash = this.context.findBash();
     if (bash == null) {

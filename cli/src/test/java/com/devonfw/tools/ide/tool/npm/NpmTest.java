@@ -1,17 +1,16 @@
 package com.devonfw.tools.ide.tool.npm;
 
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.os.SystemInfo;
-import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
  * Integration test of {@link Npm}.
  */
+@WireMockTest
 public class NpmTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_NPM = "npm";
@@ -19,16 +18,13 @@ public class NpmTest extends AbstractIdeContextTest {
   /**
    * Tests if the {@link Npm} install works correctly across all three operating systems.
    *
-   * @param os Operating system
+   * @param wireMockRuntimeInfo wireMock server on a random port
    */
-  @ParameterizedTest
-  @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testNpmInstall(String os) {
+  @Test
+  public void testNpmInstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_NPM);
-    SystemInfo systemInfo = SystemInfoMock.of(os);
-    context.setSystemInfo(systemInfo);
+    IdeTestContext context = newContext(PROJECT_NPM, wireMockRuntimeInfo);
     Npm commandlet = new Npm(context);
 
     // act
@@ -40,42 +36,58 @@ public class NpmTest extends AbstractIdeContextTest {
 
   /**
    * Tests if npm can be run properly.
-   * TODO: Check: <a href="https://github.com/devonfw/IDEasy/issues/700">#700</a> for reference.
    *
-   * @param os Operating System.
+   * @param wireMockRuntimeInfo wireMock server on a random port
    */
-  @Disabled
-  @ParameterizedTest
-  @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testNpmRun(String os) {
+  @Test
+  public void testNpmRun(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_NPM);
-    SystemInfo systemInfo = SystemInfoMock.of(os);
-    context.setSystemInfo(systemInfo);
+    IdeTestContext context = newContext(PROJECT_NPM, wireMockRuntimeInfo);
     Npm commandlet = new Npm(context);
+    commandlet.arguments.setValue("--version");
 
     // act
     commandlet.run();
 
     // assert
-    if (context.getSystemInfo().isWindows()) {
-      assertThat(context).logAtInfo().hasMessage("npmcmdbin ");
-    } else {
-      assertThat(context).logAtInfo().hasMessage("npmcmd ");
-    }
+    assertThat(context).logAtInfo().hasMessageContaining("npm --version");
+    assertThat(context).logAtInfo().hasMessageContaining("npm version: 9.9.2");
+  }
+
+  /**
+   * Tests if the {@link Npm} uninstall works correctly.
+   *
+   * @param wireMockRuntimeInfo wireMock server on a random port
+   */
+  @Test
+  public void testNpmUninstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_NPM, wireMockRuntimeInfo);
+    Npm commandlet = new Npm(context);
+
+    // act I
+    commandlet.install();
+
+    // assert I
+    checkInstallation(context);
+
+    // act II
+    commandlet.uninstall();
+
+    // assert II
+    assertThat(context).logAtInfo().hasNoMessageContaining("npm uninstall -g npm");
+    assertThat(context).logAtInfo().hasMessageContaining("IDEasy does not support uninstalling the tool npm since this will break your installation.\n"
+        + "If you really want to uninstall it, please uninstall the entire node installation:\n"
+        + "ide uninstall node");
+
+    assertThat(context).logAtSuccess().hasMessage("Successfully uninstalled npm");
   }
 
   private void checkInstallation(IdeTestContext context) {
 
-    if (context.getSystemInfo().isWindows()) {
-      assertThat(context.getSoftwarePath().resolve("node/npm")).exists();
-      assertThat(context.getSoftwarePath().resolve("node/npm.cmd")).exists();
-      assertThat(context.getSoftwarePath().resolve("node/npx")).exists();
-      assertThat(context.getSoftwarePath().resolve("node/npx.cmd")).exists();
-    }
-
-    assertThat(context.getSoftwarePath().resolve("npm/.ide.software.version")).exists().hasContent("9.9.2");
     assertThat(context).logAtSuccess().hasMessage("Successfully installed npm in version 9.9.2");
+    assertThat(context).logAtSuccess().hasMessageContaining("Setting npm config prefix to: " + context.getSoftwarePath().resolve("node") + " was successful");
   }
 }
