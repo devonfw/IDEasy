@@ -1392,14 +1392,18 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
         if (bash == null) {
           trace("Bash not found. Trying to search on system PATH.");
           variable = IdeVariables.PATH.getName();
-          Path plainBash = Path.of(BASH);
-          Predicate<Path> pathsToIgnore = p -> checkPathToIgnoreLowercase(p, "AppData\\Local\\Microsoft\\WindowsApps") && checkPathToIgnoreLowercase(p,
-              "Windows\\System32");
-          Path bashPath = getPath().findBinary(plainBash, pathsToIgnore);
-          bash = bashPath.toAbsolutePath().toString();
-          if (bashPath.equals(plainBash)) {
-            warning("Only found windows fake bash that is not usable!");
-            bash = null;
+          if (variable != null) {
+            Path plainBash = Path.of(BASH);
+            Predicate<Path> pathsToIgnore = p -> checkPathToIgnoreLowercase(p, "AppData\\Local\\Microsoft\\WindowsApps") && checkPathToIgnoreLowercase(p,
+                "Windows\\System32");
+            Path bashPath = getPath().findBinary(plainBash, pathsToIgnore);
+            bash = bashPath.toAbsolutePath().toString();
+            if (bashPath.equals(plainBash)) {
+              warning("Only found windows fake bash that is not usable!");
+              bash = null;
+            }
+          } else {
+            debug("{} was not found", IdeVariables.PATH.getName());
           }
         }
         if (bash == null) {
