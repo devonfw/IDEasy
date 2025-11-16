@@ -18,6 +18,8 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 @WireMockTest
 public class InstallCommandletTest extends AbstractIdeContextTest {
 
+  private static final String PROJECT_INSTALL = "install";
+
   /**
    * Test of {@link InstallCommandlet} run, when Installed Version is null.
    *
@@ -27,7 +29,7 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
   public void testInstallCommandletRunWithVersion(WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange
-    IdeContext context = newContext(PROJECT_BASIC, wmRuntimeInfo);
+    IdeContext context = newContext(PROJECT_INSTALL, wmRuntimeInfo);
     InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
     install.tool.setValueAsString("java", context);
     // act
@@ -45,7 +47,7 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
   public void testInstallCommandletRunWithVersionAndVersionIdentifier(WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_BASIC, wmRuntimeInfo);
+    IdeTestContext context = newContext(PROJECT_INSTALL, wmRuntimeInfo);
     InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
     install.tool.setValueAsString("java", context);
     String version17 = "17.0.6";
@@ -108,7 +110,7 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
 
     // arrange - create context and install initial version 17.0.6
     // Note: Test data has 17.0.6 and 17.0.10 available, so "17*" pattern would resolve to 17.0.10
-    IdeTestContext context = newContext(PROJECT_BASIC, wmRuntimeInfo);
+    IdeTestContext context = newContext(PROJECT_INSTALL, wmRuntimeInfo);
     InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
     install.tool.setValueAsString("java", context);
     String installedVersion = "17.0.6";
@@ -147,7 +149,7 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
   public void testInstallCommandletWithSkipUpdatesInstallsWhenNotInstalled(WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange - create context with --skip-updates enabled but tool NOT installed
-    IdeTestContext context = newContext(PROJECT_BASIC, wmRuntimeInfo);
+    IdeTestContext context = newContext(PROJECT_INSTALL, wmRuntimeInfo);
     context.getStartContext().setSkipUpdatesMode(true);
     InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
     install.tool.setValueAsString("java", context);
@@ -174,7 +176,7 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
   public void testInstallCommandletWithSkipUpdatesInstallsWhenVersionMismatch(WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange - install version 17.0.6
-    IdeTestContext context = newContext(PROJECT_BASIC, wmRuntimeInfo);
+    IdeTestContext context = newContext(PROJECT_INSTALL, wmRuntimeInfo);
     InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
     install.tool.setValueAsString("java", context);
     install.version.setValueAsString("17.0.6", context);
