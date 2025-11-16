@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.environment;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -320,6 +319,15 @@ public abstract class VariableLine {
   }
 
   /**
+   * @param value the {@link String} value to check.
+   * @return {@code true} if the value is a bash array (starts with "(" and ends with ")"), {@code false} otherwise.
+   */
+  public static boolean isBashArray(String value) {
+
+    return value.startsWith("(") && value.endsWith(")");
+  }
+
+  /**
    * Returns a list of String Variables.
    *
    * @param value String to parse
@@ -329,8 +337,7 @@ public abstract class VariableLine {
   public static List<String> parseArray(String value) {
     String csv = value;
     String separator = ",";
-    // TODO: refactor with isBashArray method from VariableDefinitionStringList
-    if (value.startsWith("(") && value.endsWith(")")) {
+    if (isBashArray(value)) {
       csv = value.substring(1, value.length() - 1);
       separator = " ";
       // Support comma as separator in bash array syntax for convenience
