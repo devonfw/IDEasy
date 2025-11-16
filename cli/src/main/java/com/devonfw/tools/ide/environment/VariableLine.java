@@ -326,7 +326,7 @@ public abstract class VariableLine {
    * @param context the {@link IdeContext} for logging warnings (may be {@code null}).
    * @return List of variables.
    */
-  public static List<String> parseArray(String value, IdeContext context) {
+  public static List<String> parseArray(String value) {
     String csv = value;
     String separator = ",";
     // TODO: refactor with isBashArray method from VariableDefinitionStringList

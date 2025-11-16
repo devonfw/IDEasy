@@ -6,14 +6,13 @@ import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContextMock;
 
 /**
  * Test of {@link IdeVariables}.
  */
-public class IdeVariablesTest extends AbstractIdeContextTest {
+public class IdeVariablesTest extends Assertions {
 
   /** Test of {@link IdeVariables#IDE_TOOLS}. */
   @Test

@@ -63,7 +63,7 @@ public class VariableDefinitionStringList extends AbstractVariableDefinitionList
   @Override
   protected List<String> parseList(String value, IdeContext context) {
 
-    return Collections.unmodifiableList(VariableLine.parseArray(value, context));
+    return Collections.unmodifiableList(VariableLine.parseArray(value));
   }
 
   @Override
