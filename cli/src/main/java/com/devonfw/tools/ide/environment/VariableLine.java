@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.environment;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.devonfw.tools.ide.context.IdeContext;
@@ -332,18 +333,15 @@ public abstract class VariableLine {
     if (value.startsWith("(") && value.endsWith(")")) {
       csv = value.substring(1, value.length() - 1);
       separator = " ";
-      // Check once for any comma in the bash array string
-      if (context != null && csv.contains(",")) {
-        context.warning("Detected comma in bash array. Bash array syntax uses whitespace as separator, not commas. " +
-            "Please use format like 'IDE_TOOLS=(java maven python)' instead of 'IDE_TOOLS=(java, maven, python)'.");
+      // Support comma as separator in bash array syntax for convenience
+      if (csv.contains(",")) {
+        separator = ",";
       }
     }
-    String[] items = csv.split(separator);
-    List<String> list = new ArrayList<>(items.length);
-    for (String item : items) {
-      list.add(item.trim());
-    }
-    return list;
+    return Arrays.stream(csv.split(separator))
+      .map(String::trim)
+      .filter(s -> !s.isEmpty())
+      .toList();
   }
 
 }

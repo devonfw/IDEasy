@@ -284,7 +284,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     List<String> regularTools = IdeVariables.IDE_TOOLS.get(this.context);
     if (regularTools != null) {
       for (String regularTool : regularTools) {
-        ToolCommandlet toolCommandlet = this.context.getCommandletManager().getRequiredToolCommandlet(regularTool);
+        ToolCommandlet toolCommandlet = this.context.getCommandletManager().getToolCommandlet(regularTool);
         if (toolCommandlet == null) {
           String displayName = (regularTool == null || regularTool.isBlank()) ? "<empty>" : "'" + regularTool + "'";
           this.context.error("Cannot install or update tool '{}''. No matching commandlet found. Please check your IDE_TOOLS configuration.", displayName);

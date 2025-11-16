@@ -148,7 +148,7 @@ public class RepositoryCommandlet extends Commandlet {
     if (buildCmd != null && !buildCmd.isEmpty()) {
       return this.context.newStep("Build repository via: " + buildCmd).run(() -> {
         String[] command = buildCmd.split("\\s+");
-        ToolCommandlet commandlet = this.context.getCommandletManager().getRequiredToolCommandlet(command[0]);
+        ToolCommandlet commandlet = this.context.getCommandletManager().getToolCommandlet(command[0]);
         if (commandlet == null) {
           String displayName = (command[0] == null || command[0].isBlank()) ? "<empty>" : "'" + command[0] + "'";
           this.context.error("Cannot build repository. Required tool '{}' not found. Please check your repository's build_cmd configuration value.", displayName);
@@ -182,7 +182,7 @@ public class RepositoryCommandlet extends Commandlet {
     for (String ide : imports) {
       Step step = this.context.newStep("Importing repository " + repositoryId + " into " + ide);
       step.run(() -> {
-        ToolCommandlet commandlet = this.context.getCommandletManager().getRequiredToolCommandlet(ide);
+        ToolCommandlet commandlet = this.context.getCommandletManager().getToolCommandlet(ide);
         if (commandlet == null) {
           String displayName = (ide == null || ide.isBlank()) ? "<empty>" : "'" + ide + "'";
           step.error("Cannot import repository '{}'. Required IDE '{}' not found. Please check your repository's imports configuration.", repositoryId, displayName);
