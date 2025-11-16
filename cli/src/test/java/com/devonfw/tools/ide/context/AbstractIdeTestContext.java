@@ -19,6 +19,7 @@ import com.devonfw.tools.ide.environment.IdeSystemTestImpl;
 import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
 import com.devonfw.tools.ide.log.IdeLogger;
+import com.devonfw.tools.ide.network.NetworkStatusMock;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.os.WindowsHelperMock;
@@ -55,6 +56,8 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   private Path urlsPath;
 
   protected final WireMockRuntimeInfo wireMockRuntimeInfo;
+
+  private NetworkStatusMock networkStatus;
 
   /**
    * The constructor.
@@ -232,22 +235,12 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   }
 
   @Override
-  public boolean isOnline() {
+  public NetworkStatusMock getNetworkStatus() {
 
-    if (this.wireMockRuntimeInfo == null) {
-      return super.isOnline();
+    if (this.networkStatus == null) {
+      this.networkStatus = new NetworkStatusMock(this, this.wireMockRuntimeInfo);
     }
-    String url = wireMockRuntimeInfo.getHttpBaseUrl() + "/health";
-    return isUrlReachable(url);
-  }
-
-  /**
-   * @param online the mocked {@link #isOnline()} result.
-   */
-  public void setOnline(Boolean online) {
-
-    requireMutable();
-    this.online = online;
+    return this.networkStatus;
   }
 
   @Override
@@ -393,5 +386,10 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
       }
     }
     return null;
+  }
+
+  @Override
+  public String getDefaultWindowsGitPath() {
+    return "";
   }
 }

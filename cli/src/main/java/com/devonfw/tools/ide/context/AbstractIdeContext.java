@@ -2,10 +2,6 @@ package com.devonfw.tools.ide.context;
 
 import static com.devonfw.tools.ide.variable.IdeVariables.IDE_MIN_VERSION;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -48,7 +44,8 @@ import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.migration.IdeMigrator;
-import com.devonfw.tools.ide.network.NetworkProxy;
+import com.devonfw.tools.ide.network.NetworkStatus;
+import com.devonfw.tools.ide.network.NetworkStatusImpl;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.WindowsHelper;
@@ -85,6 +82,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   private static final String LICENSE_URL = "https://github.com/devonfw/IDEasy/blob/main/documentation/LICENSE.adoc";
   public static final String BASH = "bash";
+  private static final String DEFAULT_WINDOWS_GIT_PATH = "C:\\Program Files\\Git\\bin\\bash.exe";
 
   private final IdeStartContextImpl startContext;
 
@@ -140,11 +138,9 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   private StepImpl currentStep;
 
-  protected Boolean online;
+  private NetworkStatus networkStatus;
 
   protected IdeSystem system;
-
-  private NetworkProxy networkProxy;
 
   private WindowsHelper windowsHelper;
 
@@ -423,8 +419,6 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   @Override
   public FileAccess getFileAccess() {
 
-    // currently FileAccess contains download method and requires network proxy to be configured. Maybe download should be moved to its own interface/class
-    configureNetworkProxy();
     return this.fileAccess;
   }
 
@@ -769,45 +763,12 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   @Override
-  public boolean isOnline() {
-    // we currently assume we have only a CLI process that runs shortly
-    // therefore we run this check only once to save resources when this method is called many times
-    String url = "https://www.github.com";
-    return isUrlReachable(url);
-  }
+  public NetworkStatus getNetworkStatus() {
 
-  /**
-   * This method will be used to test the connection to the given url.
-   *
-   * @param url the url to test.
-   */
-  protected boolean isUrlReachable(String url) {
-    if (this.online == null) {
-      configureNetworkProxy();
-      try {
-        int timeout = 1000;
-        //open a connection to github.com and try to retrieve data
-        //getContent fails if there is no connection
-        URLConnection connection = new URL(url).openConnection();
-        connection.setConnectTimeout(timeout);
-        connection.getContent();
-        this.online = Boolean.TRUE;
-      } catch (Exception e) {
-        if (debug().isEnabled()) {
-          debug().log(e, "Error when trying to connect to {}", url);
-        }
-        this.online = Boolean.FALSE;
-      }
+    if (this.networkStatus == null) {
+      this.networkStatus = new NetworkStatusImpl(this);
     }
-    return this.online;
-  }
-
-  private void configureNetworkProxy() {
-
-    if (this.networkProxy == null) {
-      this.networkProxy = new NetworkProxy(this);
-      this.networkProxy.configure();
-    }
+    return this.networkStatus;
   }
 
   @Override
@@ -1410,19 +1371,36 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
     String bash = BASH;
     if (SystemInfoImpl.INSTANCE.isWindows()) {
-      bash = findBashOnWindows();
+      String variable = IdeVariables.BASH_PATH.getName();
+      bash = getVariables().get(variable);
+
+      if (bash != null) {
+        Path bashPathVariable = Path.of(bash);
+        if (Files.exists(bashPathVariable)) {
+          debug("{} variable was found and points to: {}", IdeVariables.BASH_PATH, bashPathVariable);
+        } else {
+          warning("{} variable was found at: {} but is not pointing to an existing file", IdeVariables.BASH_PATH, bashPathVariable);
+          bash = null;
+        }
+      } else {
+        debug("{} variable was not found", IdeVariables.BASH_PATH);
+      }
+
       if (bash == null) {
-        String variable = IdeVariables.BASH_PATH.getName();
-        bash = getVariables().get(variable);
+        bash = findBashOnWindows();
         if (bash == null) {
           trace("Bash not found. Trying to search on system PATH.");
           variable = IdeVariables.PATH.getName();
-          Path plainBash = Path.of(BASH);
-          Path bashPath = getPath().findBinary(plainBash);
-          bash = bashPath.toAbsolutePath().toString();
-          if (bash.contains("AppData\\Local\\Microsoft\\WindowsApps")) {
-            warning("Only found windows fake bash that is not usable!");
-            bash = null;
+          if (variable != null) {
+            Path plainBash = Path.of(BASH);
+            Path bashPath = getPath().findBinary(plainBash);
+            bash = bashPath.toAbsolutePath().toString();
+            if (bash.contains("AppData\\Local\\Microsoft\\WindowsApps")) {
+              warning("Only found windows fake bash that is not usable!");
+              bash = null;
+            }
+          } else {
+            debug("{} was not found", IdeVariables.PATH);
           }
         }
         if (bash == null) {
@@ -1435,52 +1413,29 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   private String findBashOnWindows() {
 
+    trace("Trying to find bash on Windows");
     // Check if Git Bash exists in the default location
-    Path defaultPath = Path.of("C:\\Program Files\\Git\\bin\\bash.exe");
-    if (Files.exists(defaultPath)) {
+    Path defaultPath = Path.of(getDefaultWindowsGitPath());
+    if (!defaultPath.toString().isEmpty() && Files.exists(defaultPath)) {
+      trace("Found default path to git on Windows at: {}", getDefaultWindowsGitPath());
       return defaultPath.toString();
     }
 
     // If not found in the default location, try the registry query
     String[] bashVariants = { "GitForWindows", "Cygwin\\setup" };
     String[] registryKeys = { "HKEY_LOCAL_MACHINE", "HKEY_CURRENT_USER" };
-    String regQueryResult;
     for (String bashVariant : bashVariants) {
       trace("Trying to find bash variant: {}", bashVariant);
       for (String registryKey : registryKeys) {
         trace("Trying to find bash from registry key: {}", registryKey);
         String toolValueName = ("GitForWindows".equals(bashVariant)) ? "InstallPath" : "rootdir";
-        String command = "reg query " + registryKey + "\\Software\\" + bashVariant + "  /v " + toolValueName + " 2>nul";
+        String registryPath = registryKey + "\\Software\\" + bashVariant;
 
-        try {
-          Process process = new ProcessBuilder("cmd.exe", "/c", command).start();
-          try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-            StringBuilder output = new StringBuilder();
-            String line;
-
-            while ((line = reader.readLine()) != null) {
-              output.append(line);
-            }
-
-            int exitCode = process.waitFor();
-            if (exitCode != 0) {
-              warning("Query to windows registry for finding bash failed with exit code {}", exitCode);
-              return null;
-            }
-
-            regQueryResult = output.toString();
-            trace("Result from windows registry was: {}", regQueryResult);
-            int index = regQueryResult.indexOf("REG_SZ");
-            if (index != -1) {
-              String path = regQueryResult.substring(index + "REG_SZ".length()).trim();
-              String bashPath = path + "\\bin\\bash.exe";
-              debug("Found bash at: {}", bashPath);
-              return bashPath;
-            }
-          }
-        } catch (Exception e) {
-          error(e, "Query to windows registry for finding bash failed!");
-          return null;
+        String path = getWindowsHelper().getRegistryValue(registryPath, toolValueName);
+        if (path != null) {
+          String bashPath = path + "\\bin\\bash.exe";
+          debug("Found bash at: {}", bashPath);
+          return bashPath;
         }
       }
     }
@@ -1552,6 +1507,15 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
    */
   protected static record IdeHomeAndWorkspace(Path home, String workspace) {
 
+  }
+
+  /**
+   * Returns the default git path on Windows. Required to be overwritten in tests.
+   *
+   * @return default path to git on Windows.
+   */
+  public String getDefaultWindowsGitPath() {
+    return DEFAULT_WINDOWS_GIT_PATH;
   }
 
 }
