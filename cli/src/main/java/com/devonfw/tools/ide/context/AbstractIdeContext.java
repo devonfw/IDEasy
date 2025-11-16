@@ -82,6 +82,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   private static final String LICENSE_URL = "https://github.com/devonfw/IDEasy/blob/main/documentation/LICENSE.adoc";
   public static final String BASH = "bash";
+  private static final String DEFAULT_WINDOWS_GIT_PATH = "C:\\Program Files\\Git\\bin\\bash.exe";
 
   private final IdeStartContextImpl startContext;
 
@@ -1370,19 +1371,36 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
     String bash = BASH;
     if (SystemInfoImpl.INSTANCE.isWindows()) {
-      bash = findBashOnWindows();
+      String variable = IdeVariables.BASH_PATH.getName();
+      bash = getVariables().get(variable);
+
+      if (bash != null) {
+        Path bashPathVariable = Path.of(bash);
+        if (Files.exists(bashPathVariable)) {
+          debug("{} variable was found and points to: {}", IdeVariables.BASH_PATH, bashPathVariable);
+        } else {
+          warning("{} variable was found at: {} but is not pointing to an existing file", IdeVariables.BASH_PATH, bashPathVariable);
+          bash = null;
+        }
+      } else {
+        debug("{} variable was not found", IdeVariables.BASH_PATH);
+      }
+
       if (bash == null) {
-        String variable = IdeVariables.BASH_PATH.getName();
-        bash = getVariables().get(variable);
+        bash = findBashOnWindows();
         if (bash == null) {
           trace("Bash not found. Trying to search on system PATH.");
           variable = IdeVariables.PATH.getName();
-          Path plainBash = Path.of(BASH);
-          Path bashPath = getPath().findBinary(plainBash);
-          bash = bashPath.toAbsolutePath().toString();
-          if (bash.contains("AppData\\Local\\Microsoft\\WindowsApps")) {
-            warning("Only found windows fake bash that is not usable!");
-            bash = null;
+          if (variable != null) {
+            Path plainBash = Path.of(BASH);
+            Path bashPath = getPath().findBinary(plainBash);
+            bash = bashPath.toAbsolutePath().toString();
+            if (bash.contains("AppData\\Local\\Microsoft\\WindowsApps")) {
+              warning("Only found windows fake bash that is not usable!");
+              bash = null;
+            }
+          } else {
+            debug("{} was not found", IdeVariables.PATH);
           }
         }
         if (bash == null) {
@@ -1395,9 +1413,11 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   private String findBashOnWindows() {
 
+    trace("Trying to find bash on Windows");
     // Check if Git Bash exists in the default location
-    Path defaultPath = Path.of("C:\\Program Files\\Git\\bin\\bash.exe");
-    if (Files.exists(defaultPath)) {
+    Path defaultPath = Path.of(getDefaultWindowsGitPath());
+    if (!defaultPath.toString().isEmpty() && Files.exists(defaultPath)) {
+      trace("Found default path to git on Windows at: {}", getDefaultWindowsGitPath());
       return defaultPath.toString();
     }
 
@@ -1487,6 +1507,15 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
    */
   protected static record IdeHomeAndWorkspace(Path home, String workspace) {
 
+  }
+
+  /**
+   * Returns the default git path on Windows. Required to be overwritten in tests.
+   *
+   * @return default path to git on Windows.
+   */
+  public String getDefaultWindowsGitPath() {
+    return DEFAULT_WINDOWS_GIT_PATH;
   }
 
 }
