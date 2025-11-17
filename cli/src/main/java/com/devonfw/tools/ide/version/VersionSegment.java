@@ -332,7 +332,7 @@ public class VersionSegment implements VersionObject<VersionSegment> {
    * @param keepLetters {@code true} to keep {@link VersionSegment#getLetters() letters} from modified segments, {@code false} to drop them.
    * @return the new {@link VersionSegment}.
    */
-  public VersionSegment increment(int segmentKeepCount, boolean keepLetters) {
+  VersionSegment increment(int segmentKeepCount, boolean keepLetters) {
 
     String separator = this.separator;
     VersionLetters letters = this.letters;
