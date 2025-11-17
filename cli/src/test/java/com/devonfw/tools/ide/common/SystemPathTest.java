@@ -50,10 +50,10 @@ public class SystemPathTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext("find-binary", path, false);
     SystemInfo systemInfo = SystemInfoMock.of("windows");
     context.setSystemInfo(systemInfo);
-    Predicate<Path> ignoreWindowsApps = p -> checkPathToIgnoreLowercase(p, "appdata\\local\\microsoft");
+    Predicate<Path> ignoreWindowsApps = p -> checkPathToIgnoreLowercase(p, "\\appdata\\local\\microsoft");
     List<Path> paths = new ArrayList<>();
-    paths.add(context.getUserHome().resolve("AppData\\Local\\Microsoft\\WindowsApps"));
-    paths.add(context.getUserHome().resolve("PortableGit\\bin"));
+    paths.add(context.getUserHome().resolve("AppData/Local/Microsoft/WindowsApps"));
+    paths.add(context.getUserHome().resolve("PortableGit/bin"));
     SystemPath systemPath = new SystemPath(context, context.getSoftwarePath(), ';', paths);
     Path bash = Path.of("bash");
 
@@ -69,8 +69,6 @@ public class SystemPathTest extends AbstractIdeContextTest {
     // arrange
     String path = "project/workspaces";
     IdeTestContext context = newContext("find-binary", path, false);
-    SystemInfo systemInfo = SystemInfoMock.of("windows");
-    context.setSystemInfo(systemInfo);
     Predicate<Path> ignoreJava = p -> checkPathToIgnoreLowercase(p, "java\\bin");
     SystemPath systemPath = new SystemPath(context, "", context.getIdeRoot(), context.getSoftwarePath(), ';', new ArrayList<>());
     Path java = Path.of("java");
@@ -103,8 +101,6 @@ public class SystemPathTest extends AbstractIdeContextTest {
     // arrange
     String path = "project/workspaces";
     IdeTestContext context = newContext("find-binary", path, false);
-    SystemInfo systemInfo = SystemInfoMock.of("windows");
-    context.setSystemInfo(systemInfo);
     Predicate<Path> ignoreGraalvm = p -> checkPathToIgnoreLowercase(p, "graalvm\\bin");
     SystemPath systemPath = new SystemPath(context, "", context.getIdeRoot(), context.getSoftwarePath(), ';', new ArrayList<>());
     Path java = Path.of("java");
@@ -117,12 +113,10 @@ public class SystemPathTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testfindBinaryFindsJavaBinaryOnWindowsWithoutFilter() {
+  public void testfindBinaryFindsJavaBinaryWithoutFilter() {
     // arrange
     String path = "project/workspaces";
     IdeTestContext context = newContext("find-binary", path, false);
-    SystemInfo systemInfo = SystemInfoMock.of("windows");
-    context.setSystemInfo(systemInfo);
     SystemPath systemPath = new SystemPath(context, "", context.getIdeRoot(), context.getSoftwarePath(), ';', new ArrayList<>());
     Path java = Path.of("java");
 
