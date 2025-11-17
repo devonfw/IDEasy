@@ -57,12 +57,6 @@ public class VersionSegment implements VersionObject<VersionSegment> {
       throw new IllegalArgumentException("Invalid pattern: " + pattern);
     }
     this.pattern = pattern;
-    /*
-     * this.lettersLower = this.letters.toLowerCase(Locale.ROOT); String phaseLetters = this.lettersLower.replace('_',
-     * '-'); if (phaseLetters.startsWith("pre")) { this.prePhase = true; int preLength = 3; if
-     * (phaseLetters.startsWith("pre-")) { preLength = 4; } phaseLetters = phaseLetters.substring(preLength); } else {
-     * this.prePhase = false; } this.phase = VersionPhase.of(phaseLetters);
-     */
     this.digits = digits;
     if (this.digits.isEmpty()) {
       this.number = -1;
@@ -73,6 +67,16 @@ public class VersionSegment implements VersionObject<VersionSegment> {
       assert (!this.letters.isEmpty() || !this.digits.isEmpty() || !this.separator.isEmpty()
           || !this.pattern.isEmpty());
     }
+  }
+
+  private VersionSegment(VersionSegment next, String separator, VersionLetters letters, String digits, int number, String pattern) {
+    super();
+    this.next = next;
+    this.separator = separator;
+    this.letters = letters;
+    this.pattern = pattern;
+    this.digits = digits;
+    this.number = number;
   }
 
   /**
@@ -298,9 +302,9 @@ public class VersionSegment implements VersionObject<VersionSegment> {
 
   /**
    * @return the {@link VersionLetters} that represent a {@link VersionLetters#isDevelopmentPhase() development phase} searching from this
-   * {@link VersionSegment} to all {@link #getNextOrNull() next segments}. Will be {@link VersionPhase#NONE} if no
-   * {@link VersionPhase#isDevelopmentPhase() development phase} was found and {@link VersionPhase#UNDEFINED} if multiple
-   * {@link VersionPhase#isDevelopmentPhase() development phase}s have been found.
+   *     {@link VersionSegment} to all {@link #getNextOrNull() next segments}. Will be {@link VersionPhase#NONE} if no
+   *     {@link VersionPhase#isDevelopmentPhase() development phase} was found and {@link VersionPhase#UNDEFINED} if multiple
+   *     {@link VersionPhase#isDevelopmentPhase() development phase}s have been found.
    * @see VersionIdentifier#getDevelopmentPhase()
    */
   protected VersionLetters getDevelopmentPhase() {
@@ -318,6 +322,60 @@ public class VersionSegment implements VersionObject<VersionSegment> {
       segment = segment.next;
     }
     return result;
+  }
+
+  /**
+   * {@link VersionIdentifier#incrementSegment(int, boolean)}  Increments a version} recursively per {@link VersionSegment}.
+   *
+   * @param segmentKeepCount the number of leading {@link VersionSegment}s to keep untouched. Will be {@code 0} for the segment to increment and negative
+   *     for the segments to set to zero.
+   * @param keepLetters {@code true} to keep {@link VersionSegment#getLetters() letters} from modified segments, {@code false} to drop them.
+   * @return the new {@link VersionSegment}.
+   */
+  public VersionSegment increment(int segmentKeepCount, boolean keepLetters) {
+
+    String separator = this.separator;
+    VersionLetters letters = this.letters;
+    String digits = this.digits;
+    int number = this.number;
+    String pattern = this.pattern;
+    int nextSegmentKeepCount = segmentKeepCount;
+    if (this.number >= 0) {
+      nextSegmentKeepCount--;
+    }
+    if ((segmentKeepCount < 0) || ((segmentKeepCount == 0) && (this.number >= 0))) {
+      if (!keepLetters) {
+        letters = VersionLetters.EMPTY;
+      }
+      if (number >= 0) {
+        if (segmentKeepCount == 0) {
+          number++;
+        } else {
+          number = 0;
+        }
+        int digitsLength = digits.length();
+        digits = Integer.toString(number);
+        int leadingZeros = digitsLength - digits.length();
+        if (leadingZeros > 0) {
+          StringBuilder newDigits = new StringBuilder(digits);
+          while (leadingZeros > 0) {
+            newDigits.insert(0, "0");
+            leadingZeros--;
+          }
+          digits = newDigits.toString();
+        }
+      } else if (!keepLetters) {
+        if (this.next == null) {
+          return null;
+        }
+        return this.next.increment(nextSegmentKeepCount, false);
+      }
+    }
+    VersionSegment nextSegment = null;
+    if (this.next != null) {
+      nextSegment = this.next.increment(nextSegmentKeepCount, keepLetters);
+    }
+    return new VersionSegment(nextSegment, separator, letters, digits, number, pattern);
   }
 
   @Override

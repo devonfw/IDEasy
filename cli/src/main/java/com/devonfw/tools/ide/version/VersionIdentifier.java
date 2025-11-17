@@ -198,6 +198,56 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
     }
   }
 
+  /**
+   * Increment the specified segment.
+   *
+   * @param segmentNumber the index of the {@link VersionSegment} to increment. All segments before will remain untouched and all following segments will be
+   *     set to zero.
+   * @param keepLetters {@code true} to keep {@link VersionSegment#getLetters() letters} from modified segments, {@code false} to drop them.
+   * @return the incremented {@link VersionIdentifier}.
+   */
+  public VersionIdentifier incrementSegment(int segmentNumber, boolean keepLetters) {
+
+    if (isPattern()) {
+      throw new IllegalStateException("Cannot increment version pattern: " + toString());
+    }
+    VersionSegment newStart = this.start.increment(segmentNumber, keepLetters);
+    return new VersionIdentifier(newStart);
+  }
+
+  /**
+   * Increment the first segment (major version).
+   *
+   * @param keepLetters {@code true} to keep {@link VersionSegment#getLetters() letters} from modified segments, {@code false} to drop them.
+   * @return the incremented {@link VersionIdentifier}.
+   * @see #incrementSegment(int, boolean)
+   */
+  public VersionIdentifier incrementMajor(boolean keepLetters) {
+    return incrementSegment(0, keepLetters);
+  }
+
+  /**
+   * Increment the second segment (minor version).
+   *
+   * @param keepLetters {@code true} to keep {@link VersionSegment#getLetters() letters} from modified segments, {@code false} to drop them.
+   * @return the incremented {@link VersionIdentifier}.
+   * @see #incrementSegment(int, boolean)
+   */
+  public VersionIdentifier incrementMinor(boolean keepLetters) {
+    return incrementSegment(1, keepLetters);
+  }
+
+  /**
+   * Increment the first segment (major version).
+   *
+   * @param keepLetters {@code true} to keep {@link VersionSegment#getLetters() letters} from modified segments, {@code false} to drop them.
+   * @return the incremented {@link VersionIdentifier}.
+   * @see #incrementSegment(int, boolean)
+   */
+  public VersionIdentifier incrementPatch(boolean keepLetters) {
+    return incrementSegment(2, keepLetters);
+  }
+
   @Override
   public VersionIdentifier getMin() {
 

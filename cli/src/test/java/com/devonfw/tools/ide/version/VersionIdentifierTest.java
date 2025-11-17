@@ -1,13 +1,13 @@
 package com.devonfw.tools.ide.version;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Test of {@link VersionIdentifier}.
@@ -79,7 +79,7 @@ public class VersionIdentifierTest extends Assertions {
   @ParameterizedTest
   // arrange
   @ValueSource(strings = { "0", "0.0", "1.0.pineapple-pen", "1.0-rc", ".1.0", "1.-0", "RC1", "Beta1", "donut", "8u412b08", "0*.0", "*0", "*.", "17.*alpha",
-    "17*.1" })
+      "17*.1" })
   public void testInvalid(String version) {
 
     // act
@@ -97,7 +97,7 @@ public class VersionIdentifierTest extends Assertions {
   public void testCompare() {
 
     String[] versions = { "0.1", "0.2-SNAPSHOT", "0.2-nb5", "0.2-a", "0.2-alpha1", "0.2-beta", "0.2-b2", "0.2.M1", "0.2M9", "0.2M10", "0.2-rc1", "0.2-RC2",
-      "0.2", "0.2-fix9", "0.2-hf1", "0.3", "0.3.1", "1", "1.0", "10-alpha1" };
+        "0.2", "0.2-fix9", "0.2-hf1", "0.3", "0.3.1", "1", "1.0", "10-alpha1" };
     List<VersionIdentifier> vids = new ArrayList<>(versions.length);
     for (String version : versions) {
       VersionIdentifier vid = VersionIdentifier.of(version);
@@ -282,6 +282,32 @@ public class VersionIdentifierTest extends Assertions {
     assertThat(snapshot_star.isPattern()).isTrue();
     assertThat(snapshot_star.matches(VersionIdentifier.of("2025.03.001-beta-SNAPSHOT"))).isFalse();
     assertThat(snapshot_star.matches(VersionIdentifier.of("2025.03.001-SNAPSHOT"))).isFalse();
+  }
+
+  @Test
+  public void testIncrement() {
+
+    assertIncrement("1.2beta.3-4foo.5bar-SNAPSHOT", 0, false, "2.0.0-0.0");
+    assertIncrement("1.2beta.3-4foo.5bar-SNAPSHOT", 0, true, "2.0beta.0-0foo.0bar-SNAPSHOT");
+    assertIncrement("1.2beta.3-4foo.5bar-SNAPSHOT", 1, false, "1.3.0-0.0");
+    assertIncrement("1.2beta.3-4foo.5bar-SNAPSHOT", 1, true, "1.3beta.0-0foo.0bar-SNAPSHOT");
+    assertIncrement("1.2beta.3-4foo.5bar-SNAPSHOT", 2, false, "1.2beta.4-0.0");
+    assertIncrement("1.2beta.3-4foo.5bar-SNAPSHOT", 2, true, "1.2beta.4-0foo.0bar-SNAPSHOT");
+    assertIncrement("1.2beta.3-4foo.5bar-SNAPSHOT", 3, false, "1.2beta.3-5.0");
+    assertIncrement("1.2beta.3-4foo.5bar-SNAPSHOT", 3, true, "1.2beta.3-5foo.0bar-SNAPSHOT");
+    assertIncrement("1.2beta.3-4foo.5bar-SNAPSHOT", 4, false, "1.2beta.3-4foo.6");
+    assertIncrement("1.2beta.3-4foo.5bar-SNAPSHOT", 4, true, "1.2beta.3-4foo.6bar-SNAPSHOT");
+    assertIncrement("1.2beta.3-4foo.5bar-SNAPSHOT", 5, false, "1.2beta.3-4foo.5bar-SNAPSHOT");
+    assertIncrement("1.2beta.3-4foo.5bar-SNAPSHOT", 5, true, "1.2beta.3-4foo.5bar-SNAPSHOT");
+    assertIncrement("1.2beta.3-4foo.5bar-SNAPSHOT", 6, false, "1.2beta.3-4foo.5bar-SNAPSHOT");
+    assertIncrement("1.2beta.3-4foo.5bar-SNAPSHOT", 6, true, "1.2beta.3-4foo.5bar-SNAPSHOT");
+  }
+
+  private static void assertIncrement(String version, int segment, boolean keepLetters, String expectedVersion) {
+
+    VersionIdentifier identifier = VersionIdentifier.of(version);
+    VersionIdentifier incremented = identifier.incrementSegment(segment, keepLetters);
+    assertThat(incremented).hasToString(expectedVersion);
   }
 
 }
