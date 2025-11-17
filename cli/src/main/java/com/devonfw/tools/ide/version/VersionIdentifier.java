@@ -238,7 +238,7 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
   }
 
   /**
-   * Increment the first segment (major version).
+   * Increment the third segment (patch or micro version).
    *
    * @param keepLetters {@code true} to keep {@link VersionSegment#getLetters() letters} from modified segments, {@code false} to drop them.
    * @return the incremented {@link VersionIdentifier}.
