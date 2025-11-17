@@ -18,8 +18,11 @@ import com.devonfw.tools.ide.tool.ToolCommandlet;
  */
 public class Gradle extends LocalToolCommandlet {
 
-  private static final String BUILD_GRADLE = "build.gradle";
-  private static final String BUILD_GRADLE_KTS = "build.gradle.kts";
+  /** build.gradle file name */
+  public static final String BUILD_GRADLE = "build.gradle";
+
+  /** build.gradle.kts file name */
+  public static final String BUILD_GRADLE_KTS = "build.gradle.kts";
   private static final String GRADLE_WRAPPER_FILENAME = "gradlew";
 
   /**
@@ -50,7 +53,7 @@ public class Gradle extends LocalToolCommandlet {
     Path wrapper = findWrapper(GRADLE_WRAPPER_FILENAME, path -> Files.exists(path.resolve(BUILD_GRADLE)) || Files.exists(path.resolve(BUILD_GRADLE_KTS)));
     pc.executable(Objects.requireNonNullElse(wrapper, gradle));
   }
-  
+
   /**
    * @return the {@link Path} to the gradle configuration folder, creates the folder if it was not existing.
    */

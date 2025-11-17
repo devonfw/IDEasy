@@ -18,8 +18,10 @@ import com.devonfw.tools.ide.merge.xml.XmlMergeDocument;
 import com.devonfw.tools.ide.merge.xml.XmlMerger;
 import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.tool.ToolInstallation;
+import com.devonfw.tools.ide.tool.gradle.Gradle;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeaBasedIdeToolCommandlet;
+import com.devonfw.tools.ide.tool.mvn.Mvn;
 
 /**
  * {@link IdeToolCommandlet} for <a href="https://www.jetbrains.com/idea/">IntelliJ</a>.
@@ -33,6 +35,9 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   private static final String IDEA_BASH_SCRIPT = IDEA + ".sh";
 
   private static final String TEMPLATE_LOCATION = "intellij/workspace/repository/.idea";
+  private static final String GRADLE_XML = "gradle.xml";
+  private static final String MISC_XML = "misc.xml";
+  private static final String IDEA_PROPERTIES = "idea.properties";
 
   /**
    * The constructor.
@@ -64,7 +69,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean extraInstallation) {
 
     super.setEnvironment(environmentContext, toolInstallation, extraInstallation);
-    environmentContext.withEnvVar("IDEA_PROPERTIES", this.context.getWorkspacePath().resolve("idea.properties").toString());
+    environmentContext.withEnvVar("IDEA_PROPERTIES", this.context.getWorkspacePath().resolve(IDEA_PROPERTIES).toString());
   }
 
   private EnvironmentVariables getIntellijEnvironmentVariables(Path projectPath) {
@@ -75,10 +80,10 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   }
 
   private void mergeMisc(Path repositoryPath) throws IOException {
-    Path workspaceMiscPath = getOrCreateWorkspaceXmlFile(repositoryPath, "misc.xml");
+    Path workspaceMiscPath = getOrCreateWorkspaceXmlFile(repositoryPath, MISC_XML);
 
     XmlMerger xmlMerger = new XmlMerger(context);
-    Path templateMiscPath = this.context.getSettingsPath().resolve(TEMPLATE_LOCATION).resolve("misc.xml");
+    Path templateMiscPath = this.context.getSettingsPath().resolve(TEMPLATE_LOCATION).resolve(MISC_XML);
 
     EnvironmentVariables environmentVariables = getIntellijEnvironmentVariables(repositoryPath.getFileName());
 
@@ -91,10 +96,10 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   }
 
   private void mergeGradle(Path repositoryPath) throws IOException {
-    Path workspaceGradlePath = getOrCreateWorkspaceXmlFile(repositoryPath, "gradle.xml");
+    Path workspaceGradlePath = getOrCreateWorkspaceXmlFile(repositoryPath, GRADLE_XML);
 
     XmlMerger xmlMerger = new XmlMerger(this.context);
-    Path templateGradleXmlPath = this.context.getSettingsPath().resolve(TEMPLATE_LOCATION).resolve("gradle.xml");
+    Path templateGradleXmlPath = this.context.getSettingsPath().resolve(TEMPLATE_LOCATION).resolve(GRADLE_XML);
 
     EnvironmentVariables environmentVariables = getIntellijEnvironmentVariables(repositoryPath.getFileName());
     XmlMergeDocument workspaceGradleXml = xmlMerger.load(workspaceGradlePath);
@@ -115,7 +120,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
         break;
       }
     }
-    Path workspaceFilePath = workspaceFolder.resolve(".idea").resolve(fileName);
+    Path workspaceFilePath = workspaceFolder.resolve("." + IDEA).resolve(fileName);
     FileAccess fileAccess = new FileAccessImpl(context);
     if (!fileAccess.isFile(workspaceFilePath)) {
       // xml merger fails when merging an empty file
@@ -131,8 +136,8 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
 
   private boolean importTemplatesExist() {
     Path templatePath = this.context.getSettingsPath().resolve(TEMPLATE_LOCATION);
-    Path miscXml = templatePath.resolve("misc.xml");
-    Path gradleXml = templatePath.resolve("gradle.xml");
+    Path miscXml = templatePath.resolve(MISC_XML);
+    Path gradleXml = templatePath.resolve(GRADLE_XML);
     return Files.exists(miscXml) && Files.exists(gradleXml);
   }
 
@@ -143,7 +148,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
       return;
     }
     // check if pom.xml exists
-    Path pomPath = repositoryPath.resolve("pom.xml");
+    Path pomPath = repositoryPath.resolve(Mvn.POM_XML);
     if (Files.exists(pomPath)) {
       try {
         mergeMisc(repositoryPath);
@@ -152,12 +157,12 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
       }
 
     } else {
-      this.context.debug("no pom.xml found");
+      this.context.debug("no pom.xml found was found in {}", pomPath);
     }
 
     // check if build.gradle exists
-    Path javaGradlePath = repositoryPath.resolve("build.gradle");
-    Path kotlinGradlePath = repositoryPath.resolve("build.gradle.kts");
+    Path javaGradlePath = repositoryPath.resolve(Gradle.BUILD_GRADLE);
+    Path kotlinGradlePath = repositoryPath.resolve(Gradle.BUILD_GRADLE_KTS);
     if (Files.exists(javaGradlePath) || Files.exists(kotlinGradlePath)) {
       try {
         mergeGradle(repositoryPath);
@@ -165,7 +170,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
         this.context.error(e);
       }
     } else {
-      this.context.debug("no build.gradle found");
+      this.context.debug("no build.gradle found in {} and {}", javaGradlePath, kotlinGradlePath);
     }
   }
 
