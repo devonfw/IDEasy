@@ -13,6 +13,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.function.Predicate;
 
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliArgument;
@@ -1371,44 +1372,56 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
     String bash = BASH;
     if (SystemInfoImpl.INSTANCE.isWindows()) {
-      String variable = IdeVariables.BASH_PATH.getName();
-      bash = getVariables().get(variable);
+      String bashPathVariableName = IdeVariables.BASH_PATH.getName();
+      bash = getVariables().get(bashPathVariableName);
 
       if (bash != null) {
         Path bashPathVariable = Path.of(bash);
         if (Files.exists(bashPathVariable)) {
-          debug("{} variable was found and points to: {}", IdeVariables.BASH_PATH, bashPathVariable);
+          debug("{} variable was found and points to: {}", bashPathVariableName, bashPathVariable);
         } else {
-          warning("{} variable was found at: {} but is not pointing to an existing file", IdeVariables.BASH_PATH, bashPathVariable);
+          warning("{} variable was found at: {} but is not pointing to an existing file", bashPathVariableName, bashPathVariable);
           bash = null;
         }
       } else {
-        debug("{} variable was not found", IdeVariables.BASH_PATH);
+        debug("{} variable was not found", bashPathVariableName);
       }
 
       if (bash == null) {
         bash = findBashOnWindows();
         if (bash == null) {
           trace("Bash not found. Trying to search on system PATH.");
-          variable = IdeVariables.PATH.getName();
-          if (variable != null) {
+          String pathVariableName = IdeVariables.PATH.getName();
+          if (pathVariableName != null) {
             Path plainBash = Path.of(BASH);
-            Path bashPath = getPath().findBinary(plainBash);
+            Predicate<Path> pathsToIgnore = p -> checkPathToIgnoreLowercase(p, "\\appdata\\local\\microsoft\\windowsapps") && checkPathToIgnoreLowercase(p,
+                "\\windows\\system32");
+            Path bashPath = getPath().findBinary(plainBash, pathsToIgnore);
             bash = bashPath.toAbsolutePath().toString();
-            if (bash.contains("AppData\\Local\\Microsoft\\WindowsApps")) {
-              warning("Only found windows fake bash that is not usable!");
+            if (bashPath.equals(plainBash)) {
+              warning("Could not find any usable bash on your PATH!");
               bash = null;
             }
           } else {
-            debug("{} was not found", IdeVariables.PATH);
+            debug("{} was not found", pathVariableName);
           }
         }
         if (bash == null) {
-          info("Could not find bash in Windows registry, using bash from {} as fallback: {}", variable, bash);
+          info("Could not find bash in Windows registry, using bash from {} as fallback: {}", bashPathVariableName, bash);
         }
       }
     }
     return bash;
+  }
+
+  /**
+   * @param path the path to check.
+   * @param toIgnore the String sequence which needs to be checked and ignored.
+   * @return {@code true} if the sequence to ignore was not found, {@code false} if the path contained the sequence to ignore.
+   */
+  private boolean checkPathToIgnoreLowercase(Path path, String toIgnore) {
+    String s = path.toAbsolutePath().toString().toLowerCase(Locale.ROOT);
+    return !s.contains(toIgnore);
   }
 
   private String findBashOnWindows() {
