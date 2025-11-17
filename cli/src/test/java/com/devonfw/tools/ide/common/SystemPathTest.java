@@ -61,7 +61,7 @@ public class SystemPathTest extends AbstractIdeContextTest {
     Path result = systemPath.findBinary(bash, ignoreWindowsApps);
 
     // assert
-    assertThat(result).isEqualTo(context.getUserHome().resolve("PortableGit").resolve("bin").resolve("bash.exe"));
+    assertThat(result).isEqualTo(context.getUserHome().resolve("PortableGit").resolve("bin").resolve("bash"));
   }
 
   @Test
@@ -79,7 +79,7 @@ public class SystemPathTest extends AbstractIdeContextTest {
     Path result = systemPath.findBinary(java, ignoreJava);
 
     // assert
-    assertThat(result).isEqualTo(context.getSoftwarePath().resolve("graalvm").resolve("bin").resolve("java.exe"));
+    assertThat(result).isEqualTo(context.getSoftwarePath().resolve("graalvm").resolve("bin").resolve("java"));
   }
 
   @Test
@@ -113,7 +113,7 @@ public class SystemPathTest extends AbstractIdeContextTest {
     Path result = systemPath.findBinary(java, ignoreGraalvm);
 
     // assert
-    assertThat(result).isEqualTo(context.getSoftwarePath().resolve("java").resolve("bin").resolve("java.exe"));
+    assertThat(result).isEqualTo(context.getSoftwarePath().resolve("java").resolve("bin").resolve("java"));
   }
 
   @Test
@@ -130,7 +130,7 @@ public class SystemPathTest extends AbstractIdeContextTest {
     Path result = systemPath.findBinary(java);
 
     // assert
-    assertThat(result).isEqualTo(context.getSoftwarePath().resolve("java").resolve("bin").resolve("java.exe"));
+    assertThat(result).isEqualTo(context.getSoftwarePath().resolve("java").resolve("bin").resolve("java"));
   }
 
   @Test
