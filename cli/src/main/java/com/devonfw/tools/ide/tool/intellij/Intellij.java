@@ -79,35 +79,20 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     return environmentVariables;
   }
 
-  private void mergeMisc(Path repositoryPath) throws IOException {
-    Path workspaceMiscPath = getOrCreateWorkspaceXmlFile(repositoryPath, MISC_XML);
+  private void mergeConfig(Path repositoryPath, String configName) throws IOException {
+    Path workspacePath = getOrCreateWorkspaceXmlFile(repositoryPath, configName);
 
     XmlMerger xmlMerger = new XmlMerger(context);
-    Path templateMiscPath = this.context.getSettingsPath().resolve(TEMPLATE_LOCATION).resolve(MISC_XML);
+    Path templatePath = this.context.getSettingsPath().resolve(TEMPLATE_LOCATION).resolve(configName);
 
     EnvironmentVariables environmentVariables = getIntellijEnvironmentVariables(repositoryPath.getFileName());
 
-    XmlMergeDocument workspaceMisc = xmlMerger.load(workspaceMiscPath);
-    XmlMergeDocument mavenTemplateMisc = xmlMerger.loadAndResolve(templateMiscPath, environmentVariables);
+    XmlMergeDocument workspaceDocument = xmlMerger.load(workspacePath);
+    XmlMergeDocument templateDocument = xmlMerger.loadAndResolve(templatePath, environmentVariables);
 
-    Document mergedMisc = xmlMerger.merge(mavenTemplateMisc, workspaceMisc, false);
+    Document mergedDocument = xmlMerger.merge(templateDocument, workspaceDocument, false);
 
-    xmlMerger.save(mergedMisc, workspaceMiscPath);
-  }
-
-  private void mergeGradle(Path repositoryPath) throws IOException {
-    Path workspaceGradlePath = getOrCreateWorkspaceXmlFile(repositoryPath, GRADLE_XML);
-
-    XmlMerger xmlMerger = new XmlMerger(this.context);
-    Path templateGradleXmlPath = this.context.getSettingsPath().resolve(TEMPLATE_LOCATION).resolve(GRADLE_XML);
-
-    EnvironmentVariables environmentVariables = getIntellijEnvironmentVariables(repositoryPath.getFileName());
-    XmlMergeDocument workspaceGradleXml = xmlMerger.load(workspaceGradlePath);
-    XmlMergeDocument gradleTemplateXml = xmlMerger.loadAndResolve(templateGradleXmlPath, environmentVariables);
-
-    Document mergedMisc = xmlMerger.merge(gradleTemplateXml, workspaceGradleXml, false);
-
-    xmlMerger.save(mergedMisc, workspaceGradlePath);
+    xmlMerger.save(mergedDocument, workspacePath);
   }
 
   private Path getOrCreateWorkspaceXmlFile(Path repositoryPath, String fileName) {
@@ -151,7 +136,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     Path pomPath = repositoryPath.resolve(Mvn.POM_XML);
     if (Files.exists(pomPath)) {
       try {
-        mergeMisc(repositoryPath);
+        mergeConfig(repositoryPath, MISC_XML);
       } catch (IOException e) {
         this.context.error(e);
       }
@@ -165,7 +150,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     Path kotlinGradlePath = repositoryPath.resolve(Gradle.BUILD_GRADLE_KTS);
     if (Files.exists(javaGradlePath) || Files.exists(kotlinGradlePath)) {
       try {
-        mergeGradle(repositoryPath);
+        mergeConfig(repositoryPath, GRADLE_XML);
       } catch (IOException e) {
         this.context.error(e);
       }
