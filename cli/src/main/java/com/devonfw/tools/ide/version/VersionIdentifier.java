@@ -199,7 +199,7 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
   }
 
   /**
-   * Increment the specified segment.
+   * Increment the specified segment. For examples see {@code VersionIdentifierTest.testIncrement()}.
    *
    * @param segmentNumber the index of the {@link VersionSegment} to increment. All segments before will remain untouched and all following segments will be
    *     set to zero.
