@@ -52,7 +52,6 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.io.IOUtils;
 
 import com.devonfw.tools.ide.cli.CliException;
-import com.devonfw.tools.ide.cli.CliOfflineException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.ini.IniComment;
 import com.devonfw.tools.ide.io.ini.IniFile;
@@ -95,9 +94,6 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   @Override
   public void download(String url, Path target) {
 
-    if (this.context.isOffline()) {
-      throw CliOfflineException.ofDownloadViaUrl(url);
-    }
     if (url.startsWith("http")) {
       downloadViaHttp(url, target);
     } else if (url.startsWith("ftp") || url.startsWith("sftp")) {
@@ -142,10 +138,14 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     if (httpVersion == null) {
       this.context.info("Trying to download {} from {}", target.getFileName(), url);
     } else {
-      this.context.info("Trying to download: {} with HTTP protocol version: {}", url, httpVersion);
+      this.context.info("Trying to download {} from {} with HTTP protocol version {}", target.getFileName(), url, httpVersion);
     }
     mkdirs(target.getParent());
-    httpGet(url, httpVersion, (response) -> downloadFileWithProgressBar(url, target, response));
+    this.context.getNetworkStatus().invokeNetworkTask(() ->
+    {
+      httpGet(url, httpVersion, (response) -> downloadFileWithProgressBar(url, target, response));
+      return null;
+    }, url);
   }
 
   /**
@@ -286,8 +286,15 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     } catch (NoSuchFileException e) {
       return false; // file doesn't exist
     } catch (IOException e) {
-      // errors in reading the attributes of the file
-      throw new IllegalStateException("An unexpected error occurred whilst checking if the file: " + path + " is a junction", e);
+      // For broken junctions, reading attributes might fail with various IOExceptions.
+      // In such cases, we should check if the path exists without following links.
+      // If it exists but we can't read its attributes, it's likely a broken junction.
+      if (Files.exists(path, LinkOption.NOFOLLOW_LINKS)) {
+        this.context.debug("Path " + path + " exists but attributes cannot be read, likely a broken junction: " + e.getMessage());
+        return true; // Assume it's a broken junction
+      }
+      // If it doesn't exist at all, it's not a junction
+      return false;
     }
   }
 
@@ -416,7 +423,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   private void deleteLinkIfExists(Path path) {
 
     boolean isJunction = isJunction(path); // since broken junctions are not detected by Files.exists()
-    boolean isSymlink = Files.exists(path) && Files.isSymbolicLink(path);
+    boolean isSymlink = Files.exists(path, LinkOption.NOFOLLOW_LINKS) && Files.isSymbolicLink(path);
 
     assert !(isSymlink && isJunction);
 
@@ -583,7 +590,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       return;
     }
     Path tmpDir = createTempDir("extract-" + archiveFile.getFileName());
-    this.context.trace("Trying to extract the downloaded file {} to {} and move it to {}.", archiveFile, tmpDir, targetDir);
+    this.context.trace("Trying to extract the file {} to {} and move it to {}.", archiveFile, tmpDir, targetDir);
     String filename = archiveFile.getFileName().toString();
     TarCompression tarCompression = TarCompression.of(filename);
     if (tarCompression != null) {

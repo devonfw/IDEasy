@@ -17,6 +17,7 @@ import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarNone;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
+import com.devonfw.tools.ide.network.NetworkStatus;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessContext;
@@ -198,17 +199,27 @@ public interface IdeContext extends IdeStartContext {
   String SETTINGS_REPOSITORY_KEYWORD = "settings";
 
   /**
+   * @return the {@link NetworkStatus} for online check and related operations.
+   */
+  NetworkStatus getNetworkStatus();
+
+  /**
    * @return {@code true} if {@link #isOfflineMode() offline mode} is active or we are NOT {@link #isOnline() online}, {@code false} otherwise.
+   * @deprecated use {@link #getNetworkStatus()}
    */
   default boolean isOffline() {
 
-    return isOfflineMode() || !isOnline();
+    return getNetworkStatus().isOffline();
   }
 
   /**
    * @return {@code true} if we are currently online (Internet access is available), {@code false} otherwise.
+   * @deprecated use {@link #getNetworkStatus()}
    */
-  boolean isOnline();
+  default boolean isOnline() {
+
+    return getNetworkStatus().isOnline();
+  }
 
   /**
    * Print the IDEasy {@link #LOGO logo}.
@@ -655,24 +666,12 @@ public interface IdeContext extends IdeStartContext {
    */
   default Path getMavenConfigurationFolder() {
 
-    Path confPath = getConfPath();
-    Path mvnConfFolder = null;
-    if (confPath != null) {
-      mvnConfFolder = confPath.resolve(Mvn.MVN_CONFIG_FOLDER);
-      if (!Files.isDirectory(mvnConfFolder)) {
-        Path m2LegacyFolder = confPath.resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER);
-        if (Files.isDirectory(m2LegacyFolder)) {
-          mvnConfFolder = m2LegacyFolder;
-        } else {
-          mvnConfFolder = null; // see fallback below
-        }
-      }
+    if (getIdeHome() == null) {
+      // fallback to USER_HOME/.m2 folder if called outside an IDEasy project
+      return getUserHome().resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER);
     }
-    if (mvnConfFolder == null) {
-      // fallback to USER_HOME/.m2 folder
-      mvnConfFolder = getUserHome().resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER);
-    }
-    return mvnConfFolder;
+    Mvn mvn = getCommandletManager().getCommandlet(Mvn.class);
+    return mvn.getMavenConfigurationFolder();
   }
 
   /**

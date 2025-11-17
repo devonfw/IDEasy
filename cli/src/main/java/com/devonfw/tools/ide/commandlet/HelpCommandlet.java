@@ -74,6 +74,9 @@ public final class HelpCommandlet extends Commandlet {
       this.context.info("");
       this.context.info(bundle.getDetail(this.context.getCommandletManager().getCommandlet(HelpCommandlet.class)));
     }
+
+    this.context.info("");
+    this.context.info(bundle.get("icd-hint"));
   }
 
   private void printCommandletHelp(NlsBundle bundle, Commandlet cmd) {

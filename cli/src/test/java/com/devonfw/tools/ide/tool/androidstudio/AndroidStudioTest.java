@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -29,7 +30,12 @@ public class AndroidStudioTest extends AbstractIdeContextTest {
   private static final String ANDROID_STUDIO = "android-studio";
   private static final String MOCKED_PLUGIN_JAR = "mocked-plugin.jar";
 
-  private final IdeTestContext context = newContext(ANDROID_STUDIO);
+  private IdeTestContext context;
+
+  @BeforeEach
+  void setUpContext(WireMockRuntimeInfo wmRuntimeInfo) {
+    this.context = newContext(ANDROID_STUDIO, wmRuntimeInfo);
+  }
 
   /**
    * Tests if {@link AndroidStudio Android Studio IDE} can be installed.

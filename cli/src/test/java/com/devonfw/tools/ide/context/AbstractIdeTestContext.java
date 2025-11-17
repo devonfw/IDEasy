@@ -19,6 +19,7 @@ import com.devonfw.tools.ide.environment.IdeSystemTestImpl;
 import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
 import com.devonfw.tools.ide.log.IdeLogger;
+import com.devonfw.tools.ide.network.NetworkStatusMock;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.os.WindowsHelperMock;
@@ -56,12 +57,14 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
 
   protected final WireMockRuntimeInfo wireMockRuntimeInfo;
 
+  private NetworkStatusMock networkStatus;
+
   /**
    * The constructor.
    *
    * @param logger the {@link IdeLogger}.
    * @param workingDirectory the optional {@link Path} to current working directory.
-   * @param wireMockRuntimeInfo wireMock server on a random port
+   * @param wireMockRuntimeInfo wireMock server on a random port.
    */
   public AbstractIdeTestContext(IdeStartContextImpl logger, Path workingDirectory, WireMockRuntimeInfo wireMockRuntimeInfo) {
 
@@ -70,6 +73,58 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
     this.progressBarMap = new HashMap<>();
     this.systemInfo = super.getSystemInfo();
     this.wireMockRuntimeInfo = wireMockRuntimeInfo;
+  }
+
+  /**
+   * Finds the test project root by looking for common test project markers. Searches upward from the working directory to find the boundary of the test
+   * project.
+   *
+   * @param workingDirectory the starting directory.
+   * @return the test project root or {@code null} if not found.
+   */
+  private Path findTestProjectRoot(Path workingDirectory) {
+
+    if (workingDirectory == null || workingDirectory.equals(PATH_MOCK)) {
+      return null;
+    }
+
+    Path current = workingDirectory.toAbsolutePath();
+    Path testResourcesMarker = Path.of("src", "test", "resources", "ide-projects");
+
+    // Look for the parent of ide-projects test resources
+    while (current != null) {
+      Path ideProjectsPath = current.resolve(testResourcesMarker);
+      if (Files.isDirectory(ideProjectsPath)) {
+        // Found the project root containing test resources
+        return current;
+      }
+      current = current.getParent();
+    }
+
+    // If we can't find test resources, use the working directory's parent as boundary
+    // This provides at least some protection
+    return workingDirectory.getParent();
+  }
+
+  @Override
+  protected IdeHomeAndWorkspace findIdeHome(Path workingDirectory) {
+
+    // Set test boundary to prevent IDE home detection from escaping test projects
+    Path testBoundary = findTestProjectRoot(workingDirectory);
+
+    // Call parent implementation to perform the search
+    IdeHomeAndWorkspace result = super.findIdeHome(workingDirectory);
+
+    // Validate that the detected IDE home (if any) is within test boundaries
+    Path ideHome = result.home();
+    if (ideHome != null && testBoundary != null && !ideHome.startsWith(testBoundary)) {
+      debug("Test isolation violation: Detected IDE home '{}' is outside test boundary '{}'.\n"
+          + "This indicates the test project structure is incomplete or improperly configured.\n"
+          + "A valid IDE home directories is determined by isIdeHome() method.\n"
+          + "Please ensure your test project has the required structure.", ideHome, testBoundary);
+      return null;
+    }
+    return result;
   }
 
   @Override
@@ -179,13 +234,13 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
     return new SystemPath(this, envPath);
   }
 
-  /**
-   * @param online the mocked {@link #isOnline()} result.
-   */
-  public void setOnline(Boolean online) {
+  @Override
+  public NetworkStatusMock getNetworkStatus() {
 
-    requireMutable();
-    this.online = online;
+    if (this.networkStatus == null) {
+      this.networkStatus = new NetworkStatusMock(this, this.wireMockRuntimeInfo);
+    }
+    return this.networkStatus;
   }
 
   @Override
@@ -331,5 +386,10 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
       }
     }
     return null;
+  }
+
+  @Override
+  public String getDefaultWindowsGitPath() {
+    return "";
   }
 }
