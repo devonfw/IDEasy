@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1473[#1473]: option --skip-updates not working
 * https://github.com/devonfw/IDEasy/issues/536[#536]: IDEasy complete tries to match commandlets twice
 * https://github.com/devonfw/IDEasy/issues/1510[#1510]: Make icd more usable
 * https://github.com/devonfw/IDEasy/issues/1169[#1169]: mklink fails if link already exists
