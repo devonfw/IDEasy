@@ -301,6 +301,12 @@ public class VersionIdentifierTest extends Assertions {
     assertIncrement("1.2beta.3-4foo.5bar-SNAPSHOT", 5, true, "1.2beta.3-4foo.5bar-SNAPSHOT");
     assertIncrement("1.2beta.3-4foo.5bar-SNAPSHOT", 6, false, "1.2beta.3-4foo.5bar-SNAPSHOT");
     assertIncrement("1.2beta.3-4foo.5bar-SNAPSHOT", 6, true, "1.2beta.3-4foo.5bar-SNAPSHOT");
+    // devonfw/IDEasy (we are not planning to implement semantic detection that in this case we should start new segments with 1 instead of 0)
+    VersionIdentifier versionIdentifier = VersionIdentifier.of("2025.01.002");
+    assertThat(versionIdentifier.incrementMajor(false)).hasToString("2026.00.000");
+    assertThat(versionIdentifier.incrementMinor(false)).hasToString("2025.02.000");
+    assertThat(versionIdentifier.incrementPatch(false)).hasToString("2025.01.003");
+
   }
 
   private static void assertIncrement(String version, int segment, boolean keepLetters, String expectedVersion) {
