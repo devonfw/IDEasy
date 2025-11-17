@@ -61,9 +61,6 @@ public class WindowsHelperImpl implements WindowsHelper {
       return null;
     }
     List<String> out = result.getOut();
-    if (!result.isSuccessful()) {
-      return null;
-    }
     return retrieveRegString(key, out);
   }
 
