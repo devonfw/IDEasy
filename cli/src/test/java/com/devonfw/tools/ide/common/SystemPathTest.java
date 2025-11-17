@@ -50,7 +50,7 @@ public class SystemPathTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext("find-binary", path, false);
     SystemInfo systemInfo = SystemInfoMock.of("windows");
     context.setSystemInfo(systemInfo);
-    Predicate<Path> ignoreWindowsApps = p -> checkPathToIgnoreLowercase(p, "\\appdata\\local\\microsoft");
+    Predicate<Path> ignoreWindowsApps = p -> checkPathToIgnoreLowercase(p, "/appdata/local/microsoft");
     List<Path> paths = new ArrayList<>();
     paths.add(context.getUserHome().resolve("AppData/Local/Microsoft/WindowsApps"));
     paths.add(context.getUserHome().resolve("PortableGit/bin"));
@@ -69,7 +69,7 @@ public class SystemPathTest extends AbstractIdeContextTest {
     // arrange
     String path = "project/workspaces";
     IdeTestContext context = newContext("find-binary", path, false);
-    Predicate<Path> ignoreJava = p -> checkPathToIgnoreLowercase(p, "java\\bin");
+    Predicate<Path> ignoreJava = p -> checkPathToIgnoreLowercase(p, "java/bin");
     SystemPath systemPath = new SystemPath(context, "", context.getIdeRoot(), context.getSoftwarePath(), ';', new ArrayList<>());
     Path java = Path.of("java");
 
@@ -101,7 +101,7 @@ public class SystemPathTest extends AbstractIdeContextTest {
     // arrange
     String path = "project/workspaces";
     IdeTestContext context = newContext("find-binary", path, false);
-    Predicate<Path> ignoreGraalvm = p -> checkPathToIgnoreLowercase(p, "graalvm\\bin");
+    Predicate<Path> ignoreGraalvm = p -> checkPathToIgnoreLowercase(p, "graalvm/bin");
     SystemPath systemPath = new SystemPath(context, "", context.getIdeRoot(), context.getSoftwarePath(), ';', new ArrayList<>());
     Path java = Path.of("java");
 
@@ -143,7 +143,7 @@ public class SystemPathTest extends AbstractIdeContextTest {
   }
 
   private static boolean checkPathToIgnoreLowercase(Path p, String toIgnore) {
-    String s = p.toAbsolutePath().toString().replace('/', '\\').toLowerCase(Locale.ROOT);
+    String s = p.toAbsolutePath().toString().replace('\\', '/').toLowerCase(Locale.ROOT);
     return !s.contains(toIgnore);
   }
 }
