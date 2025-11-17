@@ -307,7 +307,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       // TODO needs to be called on resolved version instead of configuredVersion!
       VersionIdentifier cveAlternativeVersion = cveCheck(configuredVersion, configuredEdition, processContext, version, true);
       if (cveAlternativeVersion.equals(configuredVersion)) {
-        return install(false, processContext, null);
+        return install(true, processContext, null);
       } else {
         ToolInstallation toolInstallation = installTool(cveAlternativeVersion, processContext);
         return toolInstallation.newInstallation();
@@ -323,10 +323,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
               + " Therefore, we install a compatible version in that range.",
           toolParent, this.tool, version, configuredVersion);
     }
-    VersionIdentifier resolvedVersion = getToolRepository().resolveVersion(this.tool, configuredEdition, version, this);
-    ToolInstallation toolInstallation = null;
-    resolvedVersion = cveCheck(resolvedVersion, configuredEdition, processContext, version, true);
-    toolInstallation = installTool(resolvedVersion, processContext);
+    ToolInstallation toolInstallation = installTool(version, processContext);
     return toolInstallation.newInstallation();
   }
 
