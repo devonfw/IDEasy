@@ -96,9 +96,10 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   private boolean doInstallStep(VersionIdentifier configuredVersion, VersionIdentifier installedVersion, boolean silent, ProcessContext processContext,
       Step step) {
 
+    ToolEdition toolEdition = getToolWithEdition();
     // check if we should skip updates and the configured version matches the installed version
-    if (context.isSkipUpdatesMode() && configuredVersion.matches(installedVersion) && installedVersion != null) {
-      return toolAlreadyInstalled(silent, installedVersion, processContext);
+    if (context.isSkipUpdatesMode() && configuredVersion.matches(installedVersion)) {
+      return toolAlreadyInstalled(silent, toolEdition, installedVersion, processContext, true);
     }
 
     // install configured version of our tool in the software repository if not already installed
@@ -107,7 +108,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     // check if we already have this version installed (linked) locally in IDE_HOME/software
     VersionIdentifier resolvedVersion = installation.resolvedVersion();
     if (resolvedVersion.equals(installedVersion) && !installation.newInstallation()) {
-      return toolAlreadyInstalled(silent, installedVersion, processContext);
+      return toolAlreadyInstalled(silent, toolEdition, installedVersion, processContext, false); // CVEs already checked by installTool above
     }
     FileAccess fileAccess = this.context.getFileAccess();
     boolean ignoreSoftwareRepo = isIgnoreSoftwareRepo();
@@ -154,7 +155,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     // nothing to do by default
   }
 
-  private boolean toolAlreadyInstalled(boolean silent, VersionIdentifier installedVersion, ProcessContext pc) {
+  private boolean toolAlreadyInstalled(boolean silent, ToolEdition toolEdition, VersionIdentifier installedVersion, ProcessContext pc, boolean checkCves) {
     IdeSubLogger logger;
     if (silent) {
       logger = this.context.debug();
@@ -162,6 +163,9 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       logger = this.context.info();
     }
     logger.log("Version {} of tool {} is already installed", installedVersion, getToolWithEdition());
+    if (checkCves) {
+      cveCheck(toolEdition, installedVersion, null, true);
+    }
     postInstall(false, pc);
     return false;
   }
@@ -312,14 +316,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   public boolean installAsDependency(VersionRange versionRange, ProcessContext processContext, ToolEdition toolParent) {
     VersionIdentifier configuredVersion = getConfiguredVersion();
     if (versionRange.contains(configuredVersion)) {
-      ToolEdition toolEdition = getToolWithEdition();
-      VersionIdentifier cveAlternativeVersion = cveCheck(toolEdition, configuredVersion, versionRange, false);
-      if (cveAlternativeVersion.equals(configuredVersion)) {
-        return install(true, processContext, null);
-      } else {
-        ToolInstallation toolInstallation = installTool(cveAlternativeVersion, processContext);
-        return toolInstallation.newInstallation();
-      }
+      // prefer configured version if contained in version range
+      return install(true, processContext, null);
     } else {
       if (isIgnoreSoftwareRepo()) {
         throw new IllegalStateException(
