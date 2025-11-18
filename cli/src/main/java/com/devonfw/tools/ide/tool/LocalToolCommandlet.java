@@ -323,13 +323,13 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     } else {
       if (isIgnoreSoftwareRepo()) {
         throw new IllegalStateException(
-            "Cannot satisfy dependency to " + this.tool + " in versionRange " + versionRange + " since it is conflicting with configured versionRange "
+            "Cannot satisfy dependency to " + this.tool + " in version " + versionRange + " since it is conflicting with configured version "
                 + configuredVersion
                 + " and this tool does not support the software repository.");
       }
       this.context.info(
-          "The tool {} requires {} in the versionRange range {}, but your project uses versionRange {}, which does not match."
-              + " Therefore, we install a compatible versionRange in that range.",
+          "The tool {} requires {} in the version range {}, but your project uses version {}, which does not match."
+              + " Therefore, we install a compatible version in that range.",
           toolParent, this.tool, versionRange, configuredVersion);
     }
     ToolInstallation toolInstallation = installTool(versionRange, processContext);
