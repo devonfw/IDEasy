@@ -1374,14 +1374,15 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     if (SystemInfoImpl.INSTANCE.isWindows()) {
       String bashPathVariableName = IdeVariables.BASH_PATH.getName();
       bash = getVariables().get(bashPathVariableName);
-
+      boolean bashPathValid = true;
       if (bash != null) {
         Path bashPathVariable = Path.of(bash);
         if (Files.exists(bashPathVariable)) {
           debug("{} variable was found and points to: {}", bashPathVariableName, bashPathVariable);
         } else {
-          warning("{} variable was found at: {} but is not pointing to an existing file", bashPathVariableName, bashPathVariable);
+          warning("The {} variable points to: {} but this location does not contain a valid file.", bashPathVariableName, bashPathVariable);
           bash = null;
+          bashPathValid = false;
         }
       } else {
         debug("{} variable was not found", bashPathVariableName);
@@ -1399,15 +1400,19 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
             Path bashPath = getPath().findBinary(plainBash, pathsToIgnore);
             bash = bashPath.toAbsolutePath().toString();
             if (bashPath.equals(plainBash)) {
-              warning("Could not find any usable bash on your PATH!");
+              warning("No usable bash executable was found in your system PATH!");
               bash = null;
             }
           } else {
             debug("{} was not found", pathVariableName);
           }
         }
+        String message = "Could not locate bash in the Windows registry. Attempting to use the fallback from BASH_PATH";
+        if (!bashPathValid) {
+          message += ", but no valid path was provided.";
+        }
         if (bash == null) {
-          info("Could not find bash in Windows registry, using bash from {} as fallback: {}", bashPathVariableName, bash);
+          error(message);
         }
       }
     }
