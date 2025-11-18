@@ -85,6 +85,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   public static final String BASH = "bash";
   private static final String DEFAULT_WINDOWS_GIT_PATH = "C:\\Program Files\\Git\\bin\\bash.exe";
 
+  private static final String OPTION_DETAILS_START = "([";
+
   private final IdeStartContextImpl startContext;
 
   private Path ideHome;
@@ -950,7 +952,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     int i = 0;
     for (O option : options) {
       i++;
-      String key = "" + option;
+      String title = "" + option;
+      String key = computeOptionKey(title);
       addMapping(mapping, key, option);
       String numericKey = Integer.toString(i);
       if (numericKey.equals(key)) {
@@ -958,7 +961,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       } else {
         addMapping(mapping, numericKey, option);
       }
-      interaction("Option " + numericKey + ": " + key);
+      interaction("Option " + numericKey + ": " + title);
     }
     O option = null;
     if (isBatchMode()) {
@@ -976,6 +979,23 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       }
     }
     return option;
+  }
+
+  private static String computeOptionKey(String option) {
+    String key = option;
+    int index = -1;
+    for (char c : OPTION_DETAILS_START.toCharArray()) {
+      int currentIndex = key.indexOf(c);
+      if (currentIndex != -1) {
+        if ((index == -1) || (currentIndex < index)) {
+          index = currentIndex;
+        }
+      }
+    }
+    if (index > 0) {
+      key = key.substring(0, index).trim();
+    }
+    return key;
   }
 
   /**

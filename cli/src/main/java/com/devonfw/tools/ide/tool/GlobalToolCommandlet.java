@@ -130,6 +130,8 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     ToolRepository toolRepository = this.context.getDefaultToolRepository();
     VersionIdentifier configuredVersion = getConfiguredVersion();
     VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, configuredVersion, this);
+    ToolEdition toolEdition = new ToolEdition(this.tool, edition);
+    resolvedVersion = cveCheck(toolEdition, resolvedVersion, null, false);
     // download and install the global tool
     FileAccess fileAccess = this.context.getFileAccess();
     Path target = toolRepository.download(this.tool, edition, resolvedVersion, this);

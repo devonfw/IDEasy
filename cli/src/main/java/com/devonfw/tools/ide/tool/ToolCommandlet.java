@@ -3,6 +3,8 @@ package com.devonfw.tools.ide.tool;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -21,8 +23,12 @@ import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.property.StringProperty;
+import com.devonfw.tools.ide.security.ToolVersionChoice;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
+import com.devonfw.tools.ide.url.model.file.json.Cve;
+import com.devonfw.tools.ide.url.model.file.json.ToolSecurity;
+import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -124,25 +130,11 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
-   * @return the {@link #getName() tool} with its {@link #getConfiguredEdition() edition}. The edition will be omitted if same as tool.
-   * @see #getToolWithEdition(String, String)
+   * @return the {@link ToolEdition} with {@link #getName() tool} with its {@link #getConfiguredEdition() edition}.
    */
-  protected final String getToolWithEdition() {
+  protected final ToolEdition getToolWithEdition() {
 
-    return getToolWithEdition(getName(), getConfiguredEdition());
-  }
-
-  /**
-   * @param tool the tool name.
-   * @param edition the edition.
-   * @return the {@link #getName() tool} with its {@link #getConfiguredEdition() edition}. The edition will be omitted if same as tool.
-   */
-  protected static String getToolWithEdition(String tool, String edition) {
-
-    if (tool.equals(edition)) {
-      return tool;
-    }
-    return tool + "/" + edition;
+    return new ToolEdition(this.tool, getConfiguredEdition());
   }
 
   @Override
@@ -283,6 +275,102 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   protected boolean isExtract() {
 
     return true;
+  }
+
+  /**
+   * Checks a version to be installed for {@link Cve}s. If at least one {@link Cve} is found, we try to find better/safer versions as alternative. If we find
+   * something better, we will suggest this to the user and ask him to make his choice.
+   *
+   * @param toolEdition the {@link ToolEdition}.
+   * @param resolvedVersion the resolved {@link #getConfiguredEdition() version}.
+   * @param allowedVersions a {@link GenericVersionRange} that defines which versions are allowed to consider.
+   * @param skipSuggestions {@code true} to skip suggestions, {@code false} otherwise (try to find alternative suggestions and ask the user).
+   * @return the {@link VersionIdentifier} to install. If there were {@link Cve}s found and better versions available the user made this choice.
+   */
+  protected VersionIdentifier cveCheck(ToolEdition toolEdition, VersionIdentifier resolvedVersion, GenericVersionRange allowedVersions,
+      boolean skipSuggestions) {
+
+    ToolSecurity toolSecurity = this.context.getDefaultToolRepository().findSecurity(this.tool, toolEdition.edition());
+    double minSeverity = IdeVariables.CVE_MIN_SEVERITY.get(context);
+    Collection<Cve> issues = toolSecurity.findCves(resolvedVersion, minSeverity);
+    ToolVersionChoice currentChoice = ToolVersionChoice.ofCurrent(resolvedVersion, issues);
+    if (logCvesAndReturnTrueForNone(toolEdition, resolvedVersion, currentChoice.option(), issues)) {
+      return resolvedVersion;
+    }
+    if (skipSuggestions) {
+      // currently for a transitive dependency it does not make sense to suggest alternative versions, since the choice is not stored anywhere,
+      // and we then would ask the user again every time the tool having this dependency is started. So we only log the problem and the user needs to react
+      // (e.g. upgrade the tool with the dependency that is causing this).
+      return resolvedVersion;
+    }
+    double currentSeveritySum = Cve.severitySum(issues);
+    ToolVersionChoice latest = null;
+    ToolVersionChoice nearest = null;
+    List<VersionIdentifier> toolVersions = getVersions();
+    double latestSeveritySum = currentSeveritySum;
+    double nearestSeveritySum = currentSeveritySum;
+    for (VersionIdentifier version : toolVersions) {
+      if (allowedVersions == null || allowedVersions.contains(version)) {
+        issues = toolSecurity.findCves(version, minSeverity);
+        double newSeveritySum = Cve.severitySum(issues);
+        if (newSeveritySum < latestSeveritySum) {
+          // we found a better/safer version
+          if (version.isGreater(resolvedVersion)) {
+            latest = ToolVersionChoice.ofLatest(version, issues);
+            nearest = null;
+            latestSeveritySum = newSeveritySum;
+          } else {
+            // latest = null;
+            nearest = ToolVersionChoice.ofNearest(version, issues);
+            nearestSeveritySum = newSeveritySum;
+          }
+        } else if (newSeveritySum < nearestSeveritySum) {
+          if (version.isGreater(resolvedVersion)) {
+            nearest = ToolVersionChoice.ofNearest(version, issues);
+          } else if (nearest == null) {
+            nearest = ToolVersionChoice.ofNearest(version, issues);
+          }
+          nearestSeveritySum = newSeveritySum;
+        }
+      }
+    }
+    if ((latest == null) && (nearest == null)) {
+      this.context.warning(
+          "Could not find any other version resolving your CVEs.\nPlease keep attention to this tool and consider updating as soon as security fixes are available.");
+      return resolvedVersion;
+    }
+    List<ToolVersionChoice> choices = new ArrayList<>();
+    choices.add(currentChoice);
+    if (nearest != null) {
+      choices.add(nearest);
+      logCvesAndReturnTrueForNone(toolEdition, nearest.version(), nearest.option(), nearest.issues());
+    }
+    if (latest != null) {
+      choices.add(latest);
+      logCvesAndReturnTrueForNone(toolEdition, latest.version(), latest.option(), latest.issues());
+    }
+    ToolVersionChoice[] choicesArray = choices.toArray(ToolVersionChoice[]::new);
+    ToolVersionChoice answer = this.context.question(choicesArray, "Which version do you want to install?");
+    return answer.version();
+  }
+
+  private boolean logCvesAndReturnTrueForNone(ToolEdition toolEdition, VersionIdentifier version, String option, Collection<Cve> issues) {
+    if (issues.isEmpty()) {
+      this.context.info("No CVEs found for {} version {} of tool {}.", option, version, toolEdition);
+      return true;
+    }
+    this.context.warning("For {} version {} of tool {} we found {} CVE(s):", option, version, toolEdition, issues.size());
+    for (Cve cve : issues) {
+      logCve(cve);
+    }
+    return false;
+  }
+
+  private void logCve(Cve cve) {
+
+    this.context.warning("{} with severity {} and affected versions: {} ", cve.id(), cve.severity(), cve.versions());
+    this.context.warning("https://nvd.nist.gov/vuln/detail/" + cve.id());
+    this.context.info("");
   }
 
   /**
