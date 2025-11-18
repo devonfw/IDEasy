@@ -4,26 +4,40 @@ import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * Test of {@link Pip}.
+ * Integration test of {@link Pip}.
  */
+@WireMockTest
 public class PipTest extends AbstractIdeContextTest {
 
+  private static final String PROJECT_PIP = "pip";
+
   /**
-   * Tests that the {@link Pip} commandlet is properly instantiated and delegates to UV.
+   * Tests that the {@link Pip} commandlet can be installed (delegates to UV).
+   *
+   * @param wireMockRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testPipCommandletCreation() {
+  public void testPipInstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_BASIC);
-    
+    IdeTestContext context = newContext(PROJECT_PIP, wireMockRuntimeInfo);
+    Pip commandlet = new Pip(context);
+
     // act
-    Pip pip = new Pip(context);
+    commandlet.install();
 
     // assert
-    assertThat(pip).isNotNull();
-    assertThat(pip.getName()).isEqualTo("pip");
+    checkInstallation(context);
+  }
+
+  private void checkInstallation(IdeTestContext context) {
+
+    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed uv");
+    // Pip delegates to UV, so we check that UV was installed
+    assertThat(context.getSoftwarePath().resolve("uv")).exists();
   }
 }
