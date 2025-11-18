@@ -6,12 +6,14 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1349[#1349]: Fix XML merge warning message to include file paths for better debugging
 * https://github.com/devonfw/IDEasy/issues/1473[#1473]: option --skip-updates not working
 * https://github.com/devonfw/IDEasy/issues/536[#536]: IDEasy complete tries to match commandlets twice
 * https://github.com/devonfw/IDEasy/issues/1510[#1510]: Make icd more usable
 * https://github.com/devonfw/IDEasy/issues/1169[#1169]: mklink fails if link already exists
 * https://github.com/devonfw/IDEasy/issues/1553[#1553]: IDEasy is slow since 2025.09.001
 * https://github.com/devonfw/IDEasy/issues/1555[#1555]: Handle npm_config_prefix environment variable
+* https://github.com/devonfw/IDEasy/issues/1584[#1584]: IllegalArgumentException on ide update
 * https://github.com/devonfw/IDEasy/issues/1559[#1559]: IDEasy MSI installer creates multiple PATH entries
 * https://github.com/devonfw/IDEasy/issues/1551[#1551]: Display network connection issues in status
 * https://github.com/devonfw/IDEasy/issues/1560[#1560]: Enable trace logging in IDEasy setup script
