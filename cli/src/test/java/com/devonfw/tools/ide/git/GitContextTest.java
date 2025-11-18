@@ -35,7 +35,7 @@ public class GitContextTest extends AbstractIdeContextTest {
 
     IdeTestContext context = newContext(dir);
     context.getNetworkStatus().simulateOnline();
-    this.processContext = new ProcessContextGitMock(dir);
+    this.processContext = new ProcessContextGitMock(context, dir);
     context.setProcessContext(processContext);
     context.setGitContext(new GitContextImpl(context));
     return context;
