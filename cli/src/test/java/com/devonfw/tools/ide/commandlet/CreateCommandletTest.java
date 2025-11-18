@@ -62,7 +62,7 @@ class CreateCommandletTest extends AbstractIdeContextTest {
   @ValueSource(strings = { "some code repository", "some settings repository" })
   public void testWarningWhenRepoDoesNotMeetNamingConvention(String invalidRepo, @TempDir Path tempDir) {
     // arrange
-    ProcessContextGitMock gitMock = new ProcessContextGitMock(tempDir);
+    ProcessContextGitMock gitMock = new ProcessContextGitMock(context, tempDir);
     context.setProcessContext(gitMock);
     CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
     cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
@@ -86,7 +86,7 @@ class CreateCommandletTest extends AbstractIdeContextTest {
   public void testWarningWhenCodeRepoUsingDefaultMark(@TempDir Path tempDir) {
     String invalidCodeRepo = "-";
     // arrange
-    ProcessContextGitMock gitMock = new ProcessContextGitMock(tempDir);
+    ProcessContextGitMock gitMock = new ProcessContextGitMock(context, tempDir);
     context.setProcessContext(gitMock);
     CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
     cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);

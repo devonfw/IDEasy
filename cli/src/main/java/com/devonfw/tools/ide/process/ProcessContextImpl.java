@@ -38,9 +38,9 @@ public class ProcessContextImpl implements ProcessContext {
 
   private final ProcessBuilder processBuilder;
 
-  private final List<String> arguments;
+  protected final List<String> arguments;
 
-  private Path executable;
+  protected Path executable;
 
   private String overriddenPath;
 
