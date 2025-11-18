@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.merge.xml.matcher;
 
+import java.nio.file.Path;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
@@ -53,9 +54,11 @@ public class IdComputer {
    *
    * @param templateElement the template {@link Element} for which to build the {@link XPath} expression.
    * @param workspaceElement the workspace {@link Element} in which to evaluate the {@link XPath} expression.
+   * @param templatePath the {@link Path} to the template XML file.
+   * @param workspacePath the {@link Path} to the workspace XML file.
    * @return the matched Element if found, or {@code null} if not found
    */
-  public Element evaluateExpression(Element templateElement, Element workspaceElement) {
+  public Element evaluateExpression(Element templateElement, Element workspaceElement, Path templatePath, Path workspacePath) {
     XPath xpath = xPathFactory.newXPath();
     xpath.setNamespaceContext(new NamespaceContextFromElement(templateElement));
     String xpathExpr = buildXPathExpression(templateElement);
@@ -68,7 +71,7 @@ public class IdComputer {
       } else if (length == 0) {
         return null;
       } else {
-        String message = length + " matches found for XPath " + xpathExpr + " in workspace XML at " + XmlMergeSupport.getXPath(workspaceElement, true);
+        String message = length + " matches found for XPath " + xpathExpr + " in workspace XML file '" + workspacePath + "' at " + XmlMergeSupport.getXPath(workspaceElement, true) + " for template file '" + templatePath + "'";
         if ("true".equals(this.context.getVariables().get(FAIL_ON_AMBIGOUS_MERGE))) {
           throw new IllegalStateException(message);
         } else {
