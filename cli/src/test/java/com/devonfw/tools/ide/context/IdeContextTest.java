@@ -208,7 +208,8 @@ public class IdeContextTest extends AbstractIdeContextTest {
   @Test
   public void testFindBashOnBashPathOnWindows() {
     // arrange
-    IdeTestContext context = newContext("find-bash", null, true);
+    String path = "project/workspaces";
+    IdeTestContext context = newContext("find-bash", path, true);
     SystemInfo systemInfo = SystemInfoMock.of("windows");
     context.setSystemInfo(systemInfo);
     // act
@@ -229,7 +230,8 @@ public class IdeContextTest extends AbstractIdeContextTest {
   public void testFindBashOnBashPathOnWindowsWithoutExistingFileReturnsProperErrorMessage() {
     // arrange
     // create first context to prepare test data
-    IdeTestContext supportContext = newContext("find-bash", null, true);
+    String path = "project/workspaces";
+    IdeTestContext supportContext = newContext("find-bash", path, true);
     FileAccess fileAccess = supportContext.getFileAccess();
     Path environmentFile = supportContext.getUserHome().resolve("environment.properties");
     fileAccess.touch(environmentFile);
