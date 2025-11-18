@@ -216,10 +216,10 @@ public class IdeContextTest extends AbstractIdeContextTest {
     String bash = context.findBash();
 
     // assert
-    String bashPath = context.getUserHome().resolve("PortableGit").resolve("bin").resolve("bash.exe").toString();
+    Path bashPath = context.getUserHome().resolve("PortableGit").resolve("bin").resolve("bash.exe");
     assertThat(context).logAtDebug().hasMessage("BASH_PATH variable was found and points to: " + bashPath);
 
-    assertThat(bash.replace("/", "\\")).isEqualTo(
+    assertThat(Path.of(bash)).isEqualTo(
         bashPath);
   }
 
