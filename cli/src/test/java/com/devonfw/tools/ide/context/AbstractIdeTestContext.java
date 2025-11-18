@@ -222,7 +222,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   @Override
   public WindowsHelper createWindowsHelper() {
 
-    return new WindowsHelperMock();
+    return new WindowsHelperMock(this);
   }
 
   @Override
