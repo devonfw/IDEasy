@@ -1402,6 +1402,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
             if (bashPath.equals(plainBash)) {
               warning("No usable bash executable was found in your system PATH!");
               bash = null;
+            } else {
+              debug("A proper bash executable was found in the system PATH at: {}", bash);
             }
           } else {
             debug("{} was not found", pathVariableName);

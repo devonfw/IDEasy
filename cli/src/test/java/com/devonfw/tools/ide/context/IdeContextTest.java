@@ -203,7 +203,8 @@ public class IdeContextTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests if the BASH_PATH variable was set and the target is existing, the variable is returned by {@code findBash} and the debug message is correct.
+   * Tests if the BASH_PATH variable was set and the target is existing, the variable is returned by {@code findBash} and the debug message is correct (uses
+   * environment.properties for BASH_PATH and PATH variables).
    */
   @Test
   public void testFindBashOnBashPathOnWindows() {
@@ -252,6 +253,39 @@ public class IdeContextTest extends AbstractIdeContextTest {
         .hasMessage("Could not locate bash in the Windows registry. Attempting to use the fallback from BASH_PATH, but no valid path was provided.");
 
     assertThat(bash).isNull();
+  }
+
+  /**
+   * Tests if the BASH_PATH variable was set and the target is not existing and bash executable was found on the system PATH.
+   */
+  @Test
+  public void testFindBashOnSystemPathOnWindowsWithInvalidBashPathSet() {
+    // arrange
+    // create first context to prepare test data
+    String path = "project/workspaces";
+    IdeTestContext supportContext = newContext("find-bash-git", path, true);
+    FileAccess fileAccess = supportContext.getFileAccess();
+    Path environmentFile = supportContext.getUserHome().resolve("environment.properties");
+    fileAccess.touch(environmentFile);
+    Properties properties = fileAccess.readProperties(environmentFile);
+    Path gitPath = supportContext.getUserHome().resolve("PortableGit").resolve("bin").toAbsolutePath();
+    Path bashExePath = gitPath.resolve("bash.exe");
+    String notExisting = supportContext.getUserHome().resolve("notexisting").toAbsolutePath().toString();
+    properties.put("PATH", gitPath + ";" + supportContext.getUserHome().resolve("AppData/Local/Microsoft/WindowsApps"));
+    properties.put("BASH_PATH", notExisting);
+    fileAccess.writeProperties(properties, environmentFile);
+    // create 2nd context using the modified test project
+    IdeTestContext context = new IdeTestContext(supportContext.getIdeHome(), IdeLogLevel.TRACE, null);
+    SystemInfo systemInfo = SystemInfoMock.of("windows");
+    context.setSystemInfo(systemInfo);
+    // act
+    String bash = context.findBash();
+
+    // assert
+    assertThat(context).logAtDebug()
+        .hasMessage("A proper bash executable was found in the system PATH at: " + bashExePath);
+
+    assertThat(Path.of(bash)).isEqualTo(bashExePath);
   }
 
 }
