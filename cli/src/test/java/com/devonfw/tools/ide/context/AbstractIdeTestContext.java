@@ -392,4 +392,9 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   public String getDefaultWindowsGitPath() {
     return "";
   }
+
+  @Override
+  protected String findBashOnWindows() {
+    return null;
+  }
 }

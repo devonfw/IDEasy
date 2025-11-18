@@ -1429,7 +1429,12 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     return !s.contains(toIgnore);
   }
 
-  private String findBashOnWindows() {
+  /**
+   * Tries to find the bash.exe within the Windows registry.
+   *
+   * @return Path to bash.exe if found in registry, {@code null} if bash.exe was found.
+   */
+  protected String findBashOnWindows() {
 
     trace("Trying to find bash on Windows");
     // Check if Git Bash exists in the default location
