@@ -45,6 +45,34 @@ You can also add the parameter `create-script` to the IDE link:cli.adoc#commandl
 You can have multiple instances of eclipse running for each workspace in parallel.
 To distinguish these instances you will find the workspace name in the title of eclipse.
 
+=== Working with multiple versions of the same tool (extra tools)
+
+For projects that require multiple versions of the same tool (e.g., different Java versions for frontend and backend), IDEasy supports extra tool installations.
+
+To configure an extra tool installation, set the `EXTRA_«TOOL»_VERSION` variable in your `ide.properties` configuration:
+
+```
+JAVA_VERSION=21.0.0
+EXTRA_JAVA_VERSION=11.0.21
+```
+
+When you run `ide install java`, IDEasy will:
+
+1. Install the regular Java version (21.0.0) in `$IDE_HOME/software/java`
+2. Install the extra Java version (11.0.21) in `$IDE_HOME/software/extra/java`
+3. Set the environment variable `EXTRA_JAVA_HOME` to point to the extra installation
+
+The extra tool will NOT be added to your `PATH` environment variable to avoid conflicts with the regular tool.
+
+You can optionally configure a different edition for the extra tool:
+```
+JAVA_EDITION=temurin
+EXTRA_JAVA_VERSION=11.0.21
+EXTRA_JAVA_EDITION=oracle
+```
+
+This feature is supported for most SDK tools (Java, Node.js, Maven, etc.) but not for IDEs or tools that already use the extra path like GraalVM.
+
 == Admin
 
 You can easily customize and link:configuration.adoc[configure] `IDEasy` for the requirements of your project.
