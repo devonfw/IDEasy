@@ -79,5 +79,8 @@ public class GitContextImplMock extends GitContextImpl {
         .forEach(fileAccess::delete);
   }
 
+  @Override
+  public void verifyGitInstalled() {
 
+  }
 }

@@ -19,7 +19,6 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.network.NetworkStatus;
 import com.devonfw.tools.ide.os.SystemInfo;
-import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
@@ -765,7 +764,7 @@ public interface IdeContext extends IdeStartContext {
     String bash = findBash();
     String message = "Git Bash is not installed on your computer but required by IDEasy. Please download and install git:\n"
         + "https://git-scm.com/download/";
-    if (SystemInfoImpl.INSTANCE.isWindows()) {
+    if (getSystemInfo().isWindows()) {
       if (bash == null || !Files.exists(Path.of(bash))) {
         throw new CliException(message);
       }

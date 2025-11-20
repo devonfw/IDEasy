@@ -265,13 +265,18 @@ public class GitContextImpl implements GitContext {
 
     if (SystemInfoImpl.INSTANCE.isWindows()) {
       Path bashPath = Path.of(bashBinary);
-      Path gitPath = bashPath.getParent().resolve("git.exe");
-
-      if (Files.exists(gitPath)) {
-        this.context.trace("Git path was extracted from bash path at: {}", gitPath);
-        SystemPath systemPath = this.context.getPath();
-        systemPath.setPath("git", gitPath);
+      if (Files.exists(bashPath)) {
+        Path gitPath = bashPath.getParent().resolve("git.exe");
+        if (Files.exists(gitPath)) {
+          this.context.trace("Git path was extracted from bash path at: {}", gitPath);
+          SystemPath systemPath = this.context.getPath();
+          systemPath.setPath("git", gitPath);
+        } else {
+          this.context.debug("Git path: {} was extracted from bash path at: {} but it does not exist", gitPath, bashPath);
+          throw new CliException(message);
+        }
       } else {
+        this.context.debug("Bash path was checked at: {} but it does not exist", bashPath);
         throw new CliException(message);
       }
     } else {

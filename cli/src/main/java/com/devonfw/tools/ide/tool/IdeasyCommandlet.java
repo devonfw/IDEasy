@@ -14,8 +14,6 @@ import com.devonfw.tools.ide.commandlet.UpgradeMode;
 import com.devonfw.tools.ide.common.SimpleSystemPath;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.git.GitContext;
-import com.devonfw.tools.ide.git.GitContextImpl;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.ini.IniFile;
 import com.devonfw.tools.ide.io.ini.IniSection;
@@ -236,8 +234,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   }
 
   private void setGitLongpaths() {
-    GitContext gitContext = new GitContextImpl(this.context);
-    gitContext.verifyGitInstalled();
+    this.context.getGitContext().verifyGitInstalled();
     Path configPath = this.context.getUserHome().resolve(".gitconfig");
     FileAccess fileAccess = this.context.getFileAccess();
     IniFile iniFile = fileAccess.readIniFile(configPath);

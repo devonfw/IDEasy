@@ -405,4 +405,9 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   protected String findBashOnWindows() {
     return null;
   }
+
+  @Override
+  public String findBashRequired() {
+    return "bash";
+  }
 }
