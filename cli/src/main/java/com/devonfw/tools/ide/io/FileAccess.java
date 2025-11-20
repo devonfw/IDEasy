@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.io;
 
 import java.io.OutputStream;
 import java.io.Reader;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFilePermission;
@@ -13,6 +14,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.ini.IniFile;
 import com.devonfw.tools.ide.io.ini.IniFileImpl;
 
@@ -557,4 +559,31 @@ public interface FileAccess {
    *     {@link Duration}), {@code false} otherwise.
    */
   boolean isFileAgeRecent(Path path, Duration cacheDuration);
+
+  /**
+   * @param path the tool {@link Path}.
+   * @return a potential "bin" sub-folder or the given {@link Path} itself, if no such sub-folder was found.
+   */
+  default Path getBinPath(Path path) {
+
+    Path binPath = path.resolve(IdeContext.FOLDER_BIN);
+    if (Files.exists(binPath)) {
+      return binPath;
+    }
+    return path;
+  }
+
+  /**
+   * Reverse operation of {@link #getBinPath(Path)}.
+   *
+   * @param binPath the {@link Path} to a potential "bin" sub-folder of a tool {@link Path}.
+   * @return the tool {@link Path} containing the "bin" sub-folder.
+   */
+  default Path getBinParentPath(Path binPath) {
+
+    if (binPath.getFileName().toString().equals(IdeContext.FOLDER_BIN)) {
+      return binPath.getParent();
+    }
+    return binPath;
+  }
 }
