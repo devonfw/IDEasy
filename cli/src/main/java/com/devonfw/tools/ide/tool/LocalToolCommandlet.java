@@ -94,8 +94,12 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       Step step) {
 
     ToolEdition toolEdition = getToolWithEdition();
-    // check if we should skip updates and the configured version matches the installed version
-    if (context.isSkipUpdatesMode() && configuredVersion.matches(installedVersion)) {
+    String installedEdition = getInstalledEdition();
+    // check if we should skip updates and the configured version + edition matches the existing installation
+    if (toolEdition.edition().equals(installedEdition) // edition must match to keep installation
+        && configuredVersion.matches(installedVersion) // version mut match to keep installation
+        && (!configuredVersion.isPattern() // if we have a fixed version we can keep installation
+        || context.isSkipUpdatesMode())) { // or if skip updates option was activated
       return toolAlreadyInstalled(silent, toolEdition, installedVersion, processContext, true);
     }
 
@@ -179,10 +183,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       // TODO this should be discussed...
       allwedVersion = version;
     }
-    resolvedVersion = cveCheck(toolEdition, resolvedVersion, allwedVersion, false);
-    installToolDependencies(resolvedVersion, toolEdition, processContext);
-
-    boolean ignoreSoftwareRepo = isIgnoreSoftwareRepo();
     Path installationPath = getInstallationPath(edition, resolvedVersion);
     VersionIdentifier installedVersion = getInstalledVersion();
     String installedEdition = getInstalledEdition();
@@ -190,6 +190,10 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       this.context.debug("Version {} of tool {} is already installed at {}", resolvedVersion, toolEdition, installationPath);
       return createToolInstallation(installationPath, resolvedVersion, false, processContext, extraInstallation);
     }
+    resolvedVersion = cveCheck(toolEdition, resolvedVersion, allwedVersion, false);
+    installToolDependencies(resolvedVersion, toolEdition, processContext);
+
+    boolean ignoreSoftwareRepo = isIgnoreSoftwareRepo();
     Path toolVersionFile = installationPath.resolve(IdeContext.FILE_SOFTWARE_VERSION);
     FileAccess fileAccess = this.context.getFileAccess();
     if (Files.isDirectory(installationPath)) {

@@ -105,7 +105,6 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(context).logAtError().hasMessage("Step 'Install java' ended with failure.");
-    assertThat(context).logAtError().hasMessage("Step 'Install mvn' ended with failure.");
     assertThat(context).logAtSuccess().hasMessage(SUCCESS_UPDATE_SETTINGS);
     assertThat(context).logAtSuccess().hasMessageContaining(SUCCESS_INSTALL_OR_UPDATE_SOFTWARE);
   }

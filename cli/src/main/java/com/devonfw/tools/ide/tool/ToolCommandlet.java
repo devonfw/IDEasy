@@ -481,7 +481,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
     ToolSecurity toolSecurity = this.context.getDefaultToolRepository().findSecurity(this.tool, toolEdition.edition());
     double minSeverity = IdeVariables.CVE_MIN_SEVERITY.get(context);
-    Collection<Cve> issues = toolSecurity.findCves(resolvedVersion, minSeverity);
+    Collection<Cve> issues = toolSecurity.findCves(resolvedVersion, this.context, minSeverity);
     ToolVersionChoice currentChoice = ToolVersionChoice.ofCurrent(resolvedVersion, issues);
     if (logCvesAndReturnTrueForNone(toolEdition, resolvedVersion, currentChoice.option(), issues)) {
       return resolvedVersion;
@@ -490,6 +490,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       // currently for a transitive dependency it does not make sense to suggest alternative versions, since the choice is not stored anywhere,
       // and we then would ask the user again every time the tool having this dependency is started. So we only log the problem and the user needs to react
       // (e.g. upgrade the tool with the dependency that is causing this).
+      this.context.interaction("Please run 'ide install {}' to check for update suggestions!", this.tool);
       return resolvedVersion;
     }
     double currentSeveritySum = Cve.severitySum(issues);
@@ -500,7 +501,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     double nearestSeveritySum = currentSeveritySum;
     for (VersionIdentifier version : toolVersions) {
       if (allowedVersions == null || allowedVersions.contains(version)) {
-        issues = toolSecurity.findCves(version, minSeverity);
+        issues = toolSecurity.findCves(version, this.context, minSeverity);
         double newSeveritySum = Cve.severitySum(issues);
         if (newSeveritySum < latestSeveritySum) {
           // we found a better/safer version
@@ -526,19 +527,26 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     if ((latest == null) && (nearest == null)) {
       this.context.warning(
           "Could not find any other version resolving your CVEs.\nPlease keep attention to this tool and consider updating as soon as security fixes are available.");
-      return resolvedVersion;
     }
     List<ToolVersionChoice> choices = new ArrayList<>();
     choices.add(currentChoice);
+    List<String> skipCveFixTools = IdeVariables.SKIP_CVE_FIX.get(this.context);
+    boolean addSuggestions = !skipCveFixTools.contains(this.tool);
     if (nearest != null) {
-      choices.add(nearest);
+      if (addSuggestions) {
+        choices.add(nearest);
+      }
       logCvesAndReturnTrueForNone(toolEdition, nearest.version(), nearest.option(), nearest.issues());
     }
     if (latest != null) {
-      choices.add(latest);
+      if (addSuggestions) {
+        choices.add(latest);
+      }
       logCvesAndReturnTrueForNone(toolEdition, latest.version(), latest.option(), latest.issues());
     }
     ToolVersionChoice[] choicesArray = choices.toArray(ToolVersionChoice[]::new);
+    this.context.warning(
+        "Please note that by selecting an unsafe version to install, you accept the risk to be attacked.");
     ToolVersionChoice answer = this.context.question(choicesArray, "Which version do you want to install?");
     return answer.version();
   }

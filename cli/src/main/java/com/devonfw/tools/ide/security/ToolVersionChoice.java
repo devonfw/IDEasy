@@ -54,6 +54,12 @@ public record ToolVersionChoice(VersionIdentifier version, String option, Collec
   @Override
   public String toString() {
 
-    return this.option + " (" + this.version + ")";
+    String state;
+    if (issues.isEmpty()) {
+      state = "safe";
+    } else {
+      state = "unsafe";
+    }
+    return this.option + " (" + this.version + " - " + state + ")";
   }
 }

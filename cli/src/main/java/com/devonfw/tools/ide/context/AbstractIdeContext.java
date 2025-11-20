@@ -942,7 +942,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   @Override
   public <O> O question(O[] options, String question, Object... args) {
 
-    assert (options.length >= 2);
+    assert (options.length > 0);
     interaction(question, args);
     return displayOptionsAndGetAnswer(options);
   }

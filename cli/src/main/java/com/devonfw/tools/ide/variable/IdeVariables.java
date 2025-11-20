@@ -40,6 +40,9 @@ public interface IdeVariables {
   /** {@link VariableDefinition} for list of tools to install by default. */
   VariableDefinitionStringList IDE_TOOLS = new VariableDefinitionStringList("IDE_TOOLS", "DEVON_IDE_TOOLS", c -> List.of("mvn", "npm"));
 
+  /** {@link VariableDefinition} for list of IDE tools where interactive suggestions to fix CVEs should be skipped. */
+  VariableDefinitionStringList SKIP_CVE_FIX = new VariableDefinitionStringList("SKIP_CVE_FIX", null, c -> List.of());
+
   /** {@link VariableDefinition} for list of HTTP protocols to use by default. */
   VariableDefinitionEnumList<Version> HTTP_VERSIONS = new VariableDefinitionEnumList<Version>("HTTP_VERSIONS", Version.class);
 
