@@ -21,6 +21,7 @@ import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
 import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.network.NetworkStatusMock;
 import com.devonfw.tools.ide.os.SystemInfo;
+import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.os.WindowsHelperMock;
 import com.devonfw.tools.ide.process.ProcessContext;
@@ -196,6 +197,13 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
       Path environmentPropertiesFile = home.resolve("environment.properties");
       if (Files.exists(environmentPropertiesFile)) {
         Properties environmentProperties = getFileAccess().readProperties(environmentPropertiesFile);
+        if (SystemInfoImpl.INSTANCE.isWindows()) {
+          String path = environmentProperties.getProperty(IdeVariables.PATH.getName());
+          if (path != null) {
+            path = path.replace(':', ';');
+            environmentProperties.setProperty(IdeVariables.PATH.getName(), path);
+          }
+        }
         return EnvironmentVariablesSystem.of(this, (Map) environmentProperties);
       }
     }

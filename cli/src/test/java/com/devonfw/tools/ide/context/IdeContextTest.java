@@ -264,6 +264,8 @@ public class IdeContextTest extends AbstractIdeContextTest {
     // create first context to prepare test data
     String path = "project/workspaces";
     IdeTestContext supportContext = newContext("find-bash-git", path, true);
+    SystemInfo systemInfo = SystemInfoMock.of("windows");
+    supportContext.setSystemInfo(systemInfo);
     FileAccess fileAccess = supportContext.getFileAccess();
     Path environmentFile = supportContext.getUserHome().resolve("environment.properties");
     fileAccess.touch(environmentFile);
@@ -271,12 +273,11 @@ public class IdeContextTest extends AbstractIdeContextTest {
     Path gitPath = supportContext.getUserHome().resolve("PortableGit").resolve("bin").toAbsolutePath();
     Path bashExePath = gitPath.resolve("bash.exe");
     String notExisting = supportContext.getUserHome().resolve("notexisting").toAbsolutePath().toString();
-    properties.put("PATH", gitPath + ";" + supportContext.getUserHome().resolve("AppData/Local/Microsoft/WindowsApps"));
+    properties.put("PATH", gitPath + ":" + supportContext.getUserHome().resolve("AppData/Local/Microsoft/WindowsApps"));
     properties.put("BASH_PATH", notExisting);
     fileAccess.writeProperties(properties, environmentFile);
     // create 2nd context using the modified test project
     IdeTestContext context = new IdeTestContext(supportContext.getIdeHome(), IdeLogLevel.TRACE, null);
-    SystemInfo systemInfo = SystemInfoMock.of("windows");
     context.setSystemInfo(systemInfo);
     // act
     String bash = context.findBash();
