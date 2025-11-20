@@ -34,8 +34,14 @@ public interface IdeVariables {
   /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getWorkspacePath() WORKSPACE_PATH}. */
   VariableDefinitionPath WORKSPACE_PATH = new VariableDefinitionPath("WORKSPACE_PATH", null, c -> c.getWorkspacePath(), true);
 
+  /** {@link VariableDefinition} for default CVE_MIN_SEVERITY. */
+  VariableDefinitionDouble CVE_MIN_SEVERITY = new VariableDefinitionDouble("CVE_MIN_SEVERITY", null, c -> 0.1);
+
   /** {@link VariableDefinition} for list of tools to install by default. */
   VariableDefinitionStringList IDE_TOOLS = new VariableDefinitionStringList("IDE_TOOLS", "DEVON_IDE_TOOLS", c -> List.of("mvn", "npm"));
+
+  /** {@link VariableDefinition} for list of IDE tools where interactive suggestions to fix CVEs should be skipped. */
+  VariableDefinitionStringList SKIP_CVE_FIX = new VariableDefinitionStringList("SKIP_CVE_FIX", null, c -> List.of());
 
   /** {@link VariableDefinition} for list of HTTP protocols to use by default. */
   VariableDefinitionEnumList<Version> HTTP_VERSIONS = new VariableDefinitionEnumList<Version>("HTTP_VERSIONS", Version.class);

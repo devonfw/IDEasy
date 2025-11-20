@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool;
 
+import java.nio.file.Path;
 import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
@@ -37,8 +38,8 @@ public abstract class DelegatingToolCommandlet<D extends ToolCommandlet> extends
   }
 
   @Override
-  public final boolean install(boolean silent, ProcessContext processContext, Step step) {
-    return getDelegate().install(silent, processContext, step);
+  public final ToolInstallation install(boolean silent, VersionIdentifier version, ProcessContext processContext, Step step) {
+    return getDelegate().install(silent, version, processContext, step);
   }
 
   @Override
@@ -49,6 +50,12 @@ public abstract class DelegatingToolCommandlet<D extends ToolCommandlet> extends
   @Override
   public String getInstalledEdition() {
     return getDelegate().getInstalledEdition();
+  }
+
+  @Override
+  protected Path getInstallationPath(String edition, VersionIdentifier resolvedVersion) {
+
+    return getDelegate().getInstallationPath(edition, resolvedVersion);
   }
 
   @Override

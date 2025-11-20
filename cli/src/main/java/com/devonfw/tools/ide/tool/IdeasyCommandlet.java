@@ -111,13 +111,14 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   }
 
   @Override
-  public boolean install(boolean silent) {
+  public ToolInstallation install(boolean silent) {
 
     this.context.requireOnline("upgrade of IDEasy", true);
 
     if (IdeVersion.isUndefined() && !this.context.isForceMode()) {
-      this.context.warning("You are using IDEasy version {} which indicates local development - skipping upgrade.", IdeVersion.getVersionString());
-      return false;
+      VersionIdentifier version = IdeVersion.getVersionIdentifier();
+      this.context.warning("You are using IDEasy version {} which indicates local development - skipping upgrade.", version);
+      return toolAlreadyInstalled(silent, getToolWithEdition(), version, this.context.newProcess(), false);
     }
     return super.install(silent);
   }
