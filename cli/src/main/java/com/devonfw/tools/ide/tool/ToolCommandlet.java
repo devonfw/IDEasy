@@ -14,6 +14,7 @@ import com.devonfw.tools.ide.common.Tags;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesFiles;
+import com.devonfw.tools.ide.io.FileCopyMode;
 import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.os.MacOsHelper;
@@ -27,6 +28,7 @@ import com.devonfw.tools.ide.security.ToolVersionChoice;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.file.json.Cve;
+import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
 import com.devonfw.tools.ide.url.model.file.json.ToolSecurity;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.GenericVersionRange;
@@ -183,7 +185,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       throw new UnsupportedOperationException("Not implemented yet");
     }
     ProcessContext pc = this.context.newProcess().errorHandling(errorHandling);
-    install(true, pc, null);
+    install(true, getConfiguredVersion(), pc, null);
     return runTool(processMode, errorHandling, pc, args);
   }
 
@@ -240,9 +242,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   /**
    * Installs or updates the managed {@link #getName() tool}.
    *
-   * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
+   * @return the {@link ToolInstallation}.
    */
-  public boolean install() {
+  public ToolInstallation install() {
 
     return install(true);
   }
@@ -251,12 +253,23 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * Performs the installation of the {@link #getName() tool} managed by this {@link com.devonfw.tools.ide.commandlet.Commandlet}.
    *
    * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
-   * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
+   * @return the {@link ToolInstallation}.
    */
-  public boolean install(boolean silent) {
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI);
-    return install(silent, pc, null);
+  public ToolInstallation install(boolean silent) {
+    return install(silent, getConfiguredVersion());
   }
+
+  /**
+   *
+   * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
+   * @param configuredVersion the version to install, typically {@link #getConfiguredVersion()}.
+   * @return the {@link ToolInstallation}.
+   */
+  public ToolInstallation install(boolean silent, VersionIdentifier configuredVersion) {
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI);
+    return install(silent, configuredVersion, pc, null);
+  }
+
 
   /**
    * Installs or updates the managed {@link #getName() tool}.
@@ -265,9 +278,185 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param processContext the {@link ProcessContext} used to
    *     {@link LocalToolCommandlet#setEnvironment(EnvironmentContext, ToolInstallation, boolean) configure environment variables}.
    * @param step the {@link Step} to track the installation. May be {@code null} to fail with {@link Exception} on error.
-   * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
+   * @param configuredVersion the version to install, typically {@link #getConfiguredVersion()}.
+   * @return the {@link ToolInstallation}.
    */
-  public abstract boolean install(boolean silent, ProcessContext processContext, Step step);
+  public abstract ToolInstallation install(boolean silent, VersionIdentifier configuredVersion, ProcessContext processContext, Step step);
+
+  /**
+   * This method is called after a tool was requested to be installed or updated.
+   *
+   * @param newlyInstalled {@code true} if the tool was installed or updated (at least link to software folder was created/updated), {@code false} otherwise
+   *     (configured version was already installed and nothing changed).
+   * @param pc the {@link ProcessContext} to use.
+   */
+  protected void postInstall(boolean newlyInstalled, ProcessContext pc) {
+
+    if (newlyInstalled) {
+      postInstall();
+    }
+  }
+
+  /**
+   * This method is called after the tool has been newly installed or updated to a new version.
+   */
+  protected void postInstall() {
+
+    // nothing to do by default
+  }
+
+  protected abstract Path getInstallationPath(String edition, VersionIdentifier resolvedVersion);
+
+  /**
+   * @param edition the {@link #getConfiguredEdition() edition}.
+   * @param installedVersion the {@link #getConfiguredVersion() version}.
+   * @param environmentContext the {@link EnvironmentContext}.
+   * @param extraInstallation {@code true} if the {@link ToolInstallation} is an additional installation to the
+   *     {@link #getConfiguredVersion() configured version} due to a conflicting version of a {@link ToolDependency}, {@code false} otherwise.
+   * @return the {@link ToolInstallation}.
+   */
+  protected ToolInstallation createExistingToolInstallation(String edition, VersionIdentifier installedVersion, EnvironmentContext environmentContext,
+      boolean extraInstallation) {
+
+    Path installationPath = getInstallationPath(edition, installedVersion);
+    return createToolInstallation(installationPath, installedVersion, false, environmentContext, extraInstallation);
+  }
+
+  /**
+   * @param rootDir the {@link ToolInstallation#rootDir() top-level installation directory}.
+   * @param version the installed {@link VersionIdentifier}.
+   * @param newInstallation {@link ToolInstallation#newInstallation() new installation} flag.
+   * @param environmentContext the {@link EnvironmentContext}.
+   * @param extraInstallation {@code true} if the {@link ToolInstallation} is an additional installation to the
+   *     {@link #getConfiguredVersion() configured version} due to a conflicting version of a {@link ToolDependency}, {@code false} otherwise.
+   * @return the {@link ToolInstallation}.
+   */
+  protected ToolInstallation createToolInstallation(Path rootDir, VersionIdentifier version, boolean newInstallation,
+      EnvironmentContext environmentContext, boolean extraInstallation) {
+
+    Path linkDir = rootDir;
+    Path binDir = rootDir;
+    if (rootDir != null) {
+      linkDir = getMacOsHelper().findLinkDir(rootDir, getBinaryName());
+      binDir = this.context.getFileAccess().getBinPath(linkDir);
+    }
+    return createToolInstallation(rootDir, linkDir, binDir, version, newInstallation, environmentContext, extraInstallation);
+  }
+
+  /**
+   * @param rootDir the {@link ToolInstallation#rootDir() top-level installation directory}.
+   * @param linkDir the {@link ToolInstallation#linkDir() link directory}.
+   * @param binDir the {@link ToolInstallation#binDir() bin directory}.
+   * @param version the installed {@link VersionIdentifier}.
+   * @param newInstallation {@link ToolInstallation#newInstallation() new installation} flag.
+   * @param environmentContext the {@link EnvironmentContext}.
+   * @param extraInstallation {@code true} if the {@link ToolInstallation} is an additional installation to the
+   *     {@link #getConfiguredVersion() configured version} due to a conflicting version of a {@link ToolDependency}, {@code false} otherwise.
+   * @return the {@link ToolInstallation}.
+   */
+  protected ToolInstallation createToolInstallation(Path rootDir, Path linkDir, Path binDir, VersionIdentifier version, boolean newInstallation,
+      EnvironmentContext environmentContext, boolean extraInstallation) {
+
+    if (linkDir != rootDir) {
+      assert (!linkDir.equals(rootDir));
+      Path toolVersionFile = rootDir.resolve(IdeContext.FILE_SOFTWARE_VERSION);
+      if (Files.exists(toolVersionFile)) {
+        this.context.getFileAccess().copy(toolVersionFile, linkDir, FileCopyMode.COPY_FILE_OVERRIDE);
+      }
+    }
+    ToolInstallation toolInstallation = new ToolInstallation(rootDir, linkDir, binDir, version, newInstallation);
+    setEnvironment(environmentContext, toolInstallation, extraInstallation);
+    return toolInstallation;
+  }
+
+  /**
+   * Called if tool is already installed and detected before actual {@link #install() install} method was called.
+   *
+   * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
+   * @param toolEdition the installed {@link ToolEdition}.
+   * @param installedVersion the installed {@link VersionIdentifier}.
+   * @param pc the {@link ProcessContext} to use.
+   * @param extraInstallation {@code true} if the {@link ToolInstallation} is an additional installation to the
+   *     {@link #getConfiguredVersion() configured version} due to a conflicting version of a {@link ToolDependency}, {@code false} otherwise.
+   * @return the {@link ToolInstallation}.
+   */
+  protected ToolInstallation toolAlreadyInstalled(boolean silent, ToolEdition toolEdition, VersionIdentifier installedVersion, ProcessContext pc,
+      boolean extraInstallation) {
+
+    logToolAlreadyInstalled(silent, toolEdition, installedVersion);
+    cveCheck(toolEdition, installedVersion, null, true);
+    postInstall(false, pc);
+    return createExistingToolInstallation(toolEdition.edition(), installedVersion, pc, extraInstallation);
+  }
+
+  /**
+   * Called if tool is already installed and detected before actual {@link #install() install} method was called.
+   *
+   * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
+   * @param toolEdition the installed {@link ToolEdition}.
+   * @param installedVersion the installed {@link VersionIdentifier}.
+   * @param pc the {@link ProcessContext} to use.
+   * @param extraInstallation {@code true} if the {@link ToolInstallation} is an additional installation to the
+   *     {@link #getConfiguredVersion() configured version} due to a conflicting version of a {@link ToolDependency}, {@code false} otherwise.
+   * @return the {@link ToolInstallation}.
+   */
+  protected ToolInstallation toolAlreadyInstalled(boolean silent, Path binPath, ToolEdition toolEdition, VersionIdentifier installedVersion, ProcessContext pc,
+      boolean extraInstallation) {
+
+    logToolAlreadyInstalled(silent, toolEdition, installedVersion);
+    cveCheck(toolEdition, installedVersion, null, true);
+    postInstall(false, pc);
+    Path rootPath = this.context.getFileAccess().getBinParentPath(binPath);
+    return createToolInstallation(rootPath, rootPath, binPath, installedVersion, false, pc, extraInstallation);
+  }
+
+  /**
+   * Log that the tool is already installed.
+   *
+   * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
+   * @param toolEdition the installed {@link ToolEdition}.
+   * @param installedVersion the installed {@link VersionIdentifier}.
+   */
+  protected void logToolAlreadyInstalled(boolean silent, ToolEdition toolEdition, VersionIdentifier installedVersion) {
+    IdeSubLogger logger;
+    if (silent) {
+      logger = this.context.debug();
+    } else {
+      logger = this.context.info();
+    }
+    logger.log("Version {} of tool {} is already installed", installedVersion, toolEdition);
+  }
+
+  /**
+   * Method to get the home path of the given {@link ToolInstallation}.
+   *
+   * @param toolInstallation the {@link ToolInstallation}.
+   * @return the Path to the home of the tool
+   */
+  protected Path getToolHomePath(ToolInstallation toolInstallation) {
+    return toolInstallation.linkDir();
+  }
+
+  /**
+   * Method to set environment variables for the process context.
+   *
+   * @param environmentContext the {@link EnvironmentContext} where to {@link EnvironmentContext#withEnvVar(String, String) set environment variables} for
+   *     this tool.
+   * @param toolInstallation the {@link ToolInstallation}.
+   * @param extraInstallation {@code true} if the {@link ToolInstallation} is an additional installation to the
+   *     {@link #getConfiguredVersion() configured version} due to a conflicting version of a {@link ToolDependency}, {@code false} otherwise.
+   */
+  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean extraInstallation) {
+
+    String pathVariable = EnvironmentVariables.getToolVariablePrefix(this.tool) + "_HOME";
+    Path toolHomePath = getToolHomePath(toolInstallation);
+    if (toolHomePath != null) {
+      environmentContext.withEnvVar(pathVariable, toolHomePath.toString());
+    }
+    if (extraInstallation) {
+      environmentContext.withPathEntry(toolInstallation.binDir());
+    }
+  }
 
   /**
    * @return {@code true} to extract (unpack) the downloaded binary file, {@code false} otherwise.

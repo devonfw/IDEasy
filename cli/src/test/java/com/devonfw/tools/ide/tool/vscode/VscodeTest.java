@@ -49,7 +49,7 @@ public class VscodeTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = newContext(PROJECT_VSCODE);
 
-    // act I
+    // act
     Vscode commandlet = context.getCommandletManager().getCommandlet(Vscode.class);
     commandlet.run();
 
@@ -57,16 +57,16 @@ public class VscodeTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("mockedPlugin"))).exists();
-
-    // act II
-    commandlet.run();
-
-    // assert
-    assertThat(context).logAtDebug().hasMessage("Markerfile for IDE: vscode and active plugin: mockedPlugin already exists.");
-
-    //check plugins folder
     assertThat(context.getIdeHome().resolve("plugins").resolve("vscode")).exists();
-    
+
+    // part 2 of test
+
+    // arrange
+    context.getLogger().getEntries().clear();
+    // act
+    commandlet.run();
+    // assert
+    assertThat(context).logAtDebug().hasNoMessage("Successfully installed plugin: ActivePlugin");
   }
 
 

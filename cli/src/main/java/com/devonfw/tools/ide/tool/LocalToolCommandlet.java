@@ -9,10 +9,7 @@ import java.util.function.Predicate;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.io.FileCopyMode;
-import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
@@ -80,20 +77,20 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   @Override
-  public boolean install(boolean silent, ProcessContext processContext, Step step) {
+  public ToolInstallation install(boolean silent, VersionIdentifier configuredVersion, ProcessContext processContext, Step step) {
 
     installDependencies();
-    VersionIdentifier configuredVersion = getConfiguredVersion();
     // get installed version before installInRepo actually may install the software
     VersionIdentifier installedVersion = getInstalledVersion();
     if (step == null) {
       return doInstallStep(configuredVersion, installedVersion, silent, processContext, step);
     } else {
-      return step.call(() -> doInstallStep(configuredVersion, installedVersion, silent, processContext, step), Boolean.FALSE);
+      return step.call(() -> doInstallStep(configuredVersion, installedVersion, silent, processContext, step),
+          () -> createExistingToolInstallation(getConfiguredEdition(), configuredVersion, EnvironmentContext.getEmpty(), false));
     }
   }
 
-  private boolean doInstallStep(VersionIdentifier configuredVersion, VersionIdentifier installedVersion, boolean silent, ProcessContext processContext,
+  private ToolInstallation doInstallStep(VersionIdentifier configuredVersion, VersionIdentifier installedVersion, boolean silent, ProcessContext processContext,
       Step step) {
 
     ToolEdition toolEdition = getToolWithEdition();
@@ -103,12 +100,13 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     }
 
     // install configured version of our tool in the software repository if not already installed
-    ToolInstallation installation = installTool(configuredVersion, processContext);
+    ToolInstallation installation = installTool(configuredVersion, processContext, toolEdition);
 
     // check if we already have this version installed (linked) locally in IDE_HOME/software
     VersionIdentifier resolvedVersion = installation.resolvedVersion();
     if (resolvedVersion.equals(installedVersion) && !installation.newInstallation()) {
-      return toolAlreadyInstalled(silent, toolEdition, installedVersion, processContext, false); // CVEs already checked by installTool above
+      logToolAlreadyInstalled(silent, toolEdition, installedVersion);
+      return installation;
     }
     FileAccess fileAccess = this.context.getFileAccess();
     boolean ignoreSoftwareRepo = isIgnoreSoftwareRepo();
@@ -130,44 +128,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     } else {
       asSuccess(step).log("Successfully installed {} in version {} replacing previous version {}", this.tool, resolvedVersion, installedVersion);
     }
-    return true;
-  }
-
-  /**
-   * This method is called after a tool was requested to be installed or updated.
-   *
-   * @param newlyInstalled {@code true} if the tool was installed or updated (at least link to software folder was created/updated), {@code false} otherwise
-   *     (configured version was already installed and nothing changed).
-   * @param pc the {@link ProcessContext} to use.
-   */
-  protected void postInstall(boolean newlyInstalled, ProcessContext pc) {
-
-    if (newlyInstalled) {
-      postInstall();
-    }
-  }
-
-  /**
-   * This method is called after the tool has been newly installed or updated to a new version.
-   */
-  protected void postInstall() {
-
-    // nothing to do by default
-  }
-
-  private boolean toolAlreadyInstalled(boolean silent, ToolEdition toolEdition, VersionIdentifier installedVersion, ProcessContext pc, boolean checkCves) {
-    IdeSubLogger logger;
-    if (silent) {
-      logger = this.context.debug();
-    } else {
-      logger = this.context.info();
-    }
-    logger.log("Version {} of tool {} is already installed", installedVersion, getToolWithEdition());
-    if (checkCves) {
-      cveCheck(toolEdition, installedVersion, null, true);
-    }
-    postInstall(false, pc);
-    return false;
+    return installation;
   }
 
   /**
@@ -221,14 +182,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     resolvedVersion = cveCheck(toolEdition, resolvedVersion, allwedVersion, false);
     installToolDependencies(resolvedVersion, toolEdition, processContext);
 
-    Path installationPath;
     boolean ignoreSoftwareRepo = isIgnoreSoftwareRepo();
-    if (ignoreSoftwareRepo) {
-      installationPath = getToolPath();
-    } else {
-      Path softwareRepoPath = this.context.getSoftwareRepositoryPath().resolve(toolRepository.getId()).resolve(this.tool).resolve(edition);
-      installationPath = softwareRepoPath.resolve(resolvedVersion.toString());
-    }
+    Path installationPath = getInstallationPath(edition, resolvedVersion);
     VersionIdentifier installedVersion = getInstalledVersion();
     String installedEdition = getInstalledEdition();
     if (resolvedVersion.equals(installedVersion) && edition.equals(installedEdition)) {
@@ -313,11 +268,11 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * @param toolParent the parent {@link ToolEdition} needing the dependency
    * @return {@code true} if the tool was newly installed, {@code false} otherwise (installation was already present).
    */
-  public boolean installAsDependency(VersionRange versionRange, ProcessContext processContext, ToolEdition toolParent) {
+  public ToolInstallation installAsDependency(VersionRange versionRange, ProcessContext processContext, ToolEdition toolParent) {
     VersionIdentifier configuredVersion = getConfiguredVersion();
     if (versionRange.contains(configuredVersion)) {
       // prefer configured version if contained in version range
-      return install(true, processContext, null);
+      return install(true, configuredVersion, processContext, null);
     } else {
       if (isIgnoreSoftwareRepo()) {
         throw new IllegalStateException(
@@ -331,7 +286,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
           toolParent, this.tool, versionRange, configuredVersion);
     }
     ToolInstallation toolInstallation = installTool(versionRange, processContext);
-    return toolInstallation.newInstallation();
+    return toolInstallation;
   }
 
   /**
@@ -542,57 +497,19 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     this.context.success("Successfully deleted {} from your computer.", repoPath);
   }
 
-
-  private ToolInstallation createToolInstallation(Path rootDir, VersionIdentifier resolvedVersion, boolean newInstallation,
-      EnvironmentContext environmentContext, boolean extraInstallation) {
-
-    Path linkDir = getMacOsHelper().findLinkDir(rootDir, getBinaryName());
-    Path binDir = linkDir;
-    Path binFolder = binDir.resolve(IdeContext.FOLDER_BIN);
-    if (Files.isDirectory(binFolder)) {
-      binDir = binFolder;
-    }
-    if (linkDir != rootDir) {
-      assert (!linkDir.equals(rootDir));
-      Path toolVersionFile = rootDir.resolve(IdeContext.FILE_SOFTWARE_VERSION);
-      if (Files.exists(toolVersionFile)) {
-        this.context.getFileAccess().copy(toolVersionFile, linkDir, FileCopyMode.COPY_FILE_OVERRIDE);
+  protected Path getInstallationPath(String edition, VersionIdentifier resolvedVersion) {
+    Path installationPath;
+    if (isIgnoreSoftwareRepo()) {
+      installationPath = getToolPath();
+    } else {
+      Path softwareRepositoryPath = this.context.getSoftwareRepositoryPath();
+      if (softwareRepositoryPath == null) {
+        return null;
       }
+      Path softwareRepoPath = softwareRepositoryPath.resolve(getToolRepository().getId()).resolve(this.tool).resolve(edition);
+      installationPath = softwareRepoPath.resolve(resolvedVersion.toString());
     }
-    ToolInstallation toolInstallation = new ToolInstallation(rootDir, linkDir, binDir, resolvedVersion, newInstallation);
-    setEnvironment(environmentContext, toolInstallation, extraInstallation);
-    return toolInstallation;
-  }
-
-  /**
-   * Method to set environment variables for the process context.
-   *
-   * @param environmentContext the {@link EnvironmentContext} where to {@link EnvironmentContext#withEnvVar(String, String) set environment variables} for
-   *     this tool.
-   * @param toolInstallation the {@link ToolInstallation}.
-   * @param extraInstallation {@code true} if the {@link ToolInstallation} is an additional installation to the {@link #getConfiguredVersion()} ()
-   *     configured version} due to a conflicting version of a {@link ToolDependency}, {@code false} otherwise.
-   */
-  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean extraInstallation) {
-
-    String pathVariable = EnvironmentVariables.getToolVariablePrefix(this.tool) + "_HOME";
-    Path toolHomePath = getToolHomePath(toolInstallation);
-    if (toolHomePath != null) {
-      environmentContext.withEnvVar(pathVariable, toolHomePath.toString());
-    }
-    if (extraInstallation) {
-      environmentContext.withPathEntry(toolInstallation.binDir());
-    }
-  }
-
-  /**
-   * Method to get the home path of the given {@link ToolInstallation}.
-   *
-   * @param toolInstallation the {@link ToolInstallation}.
-   * @return the Path to the home of the tool
-   */
-  protected Path getToolHomePath(ToolInstallation toolInstallation) {
-    return toolInstallation.linkDir();
+    return installationPath;
   }
 
   /**
