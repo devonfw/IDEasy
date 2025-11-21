@@ -1380,7 +1380,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
         if (Files.exists(bashPathVariable)) {
           debug("{} variable was found and points to: {}", bashPathVariableName, bashPathVariable);
         } else {
-          warning("The {} variable points to: {} but this location does not contain a valid file.", bashPathVariableName, bashPathVariable);
+          warning("The variable {} points to a non existing file: {}", bashPathVariableName, bashPathVariable);
           bash = null;
           bashPathValid = false;
         }
@@ -1400,13 +1400,13 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
             Path bashPath = getPath().findBinary(plainBash, pathsToIgnore);
             bash = bashPath.toAbsolutePath().toString();
             if (bashPath.equals(plainBash)) {
-              warning("No usable bash executable was found in your system PATH!");
+              warning("No usable bash executable was found in your PATH environment variable!");
               bash = null;
             } else {
-              debug("A proper bash executable was found in the system PATH at: {}", bash);
+              debug("A proper bash executable was found in your PATH environment variable at: {}", bash);
             }
           } else {
-            debug("{} was not found", pathVariableName);
+            error("Variable {} was not found", pathVariableName);
           }
         }
         String message = "Could not locate bash in the Windows registry. Attempting to use the fallback from BASH_PATH";
