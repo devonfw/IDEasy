@@ -408,6 +408,6 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
 
   @Override
   public Path findBashRequired() {
-    return null;
+    return Path.of("bash");
   }
 }
