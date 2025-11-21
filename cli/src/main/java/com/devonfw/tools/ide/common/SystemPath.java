@@ -17,7 +17,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
@@ -172,7 +171,7 @@ public class SystemPath {
   private Path findBinaryInOrder(Path path, String tool) {
 
     List<String> extensionPriority = List.of("");
-    if (SystemInfoImpl.INSTANCE.isWindows()) {
+    if (this.context.getSystemInfo().isWindows()) {
       extensionPriority = EXTENSION_PRIORITY;
     }
     for (String extension : extensionPriority) {
