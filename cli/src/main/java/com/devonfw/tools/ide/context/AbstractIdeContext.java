@@ -1368,9 +1368,9 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   @Override
-  public String findBash() {
+  public Path findBash() {
 
-    String bash = BASH;
+    Path bash = Path.of(BASH);
     if (getSystemInfo().isWindows()) {
       bash = findBashOnWindowsBashPath();
       if (bash == null) {
@@ -1389,23 +1389,25 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     return bash;
   }
 
-  private String findBashOnWindowsBashPath() {
-    String bash;
+  private Path findBashOnWindowsBashPath() {
+    trace("Trying to find BASH_PATH environment variable.");
+    Path bash;
     String bashPathVariableName = IdeVariables.BASH_PATH.getName();
-    bash = getVariables().get(bashPathVariableName);
-    if (bash != null) {
-      Path bashPathVariable = Path.of(bash);
-      if (Files.exists(bashPathVariable)) {
-        debug("{} environment variable was found and points to: {}", bashPathVariableName, bashPathVariable);
+    String bashVariable = getVariables().get(bashPathVariableName);
+    if (bashVariable != null) {
+      bash = Path.of(bashVariable);
+      if (Files.exists(bash)) {
+        debug("{} environment variable was found and points to: {}", bashPathVariableName, bash);
+        return bash;
       } else {
         // TODO: Add prompt to correct this user error
-        warning("The environment variable {} points to a non existing file: {}", bashPathVariableName, bashPathVariable);
-        bash = null;
+        warning("The environment variable {} points to a non existing file: {}", bashPathVariableName, bash);
+        return null;
       }
     } else {
       debug("{} environment variable was not found", bashPathVariableName);
+      return null;
     }
-    return bash;
   }
 
   /**
@@ -1423,16 +1425,16 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
    *
    * @return Path to bash.exe if found in PATH environment variable, {@code null} if bash.exe was not found.
    */
-  private String findBashInPath() {
-    trace("Bash not found. Trying to search in PATH environment variable.");
-    String bash;
+  private Path findBashInPath() {
+    trace("Trying to find bash in PATH environment variable.");
+    Path bash;
     String pathVariableName = IdeVariables.PATH.getName();
     if (pathVariableName != null) {
       Path plainBash = Path.of(BASH);
       Predicate<Path> pathsToIgnore = p -> checkPathToIgnoreLowercase(p, "\\appdata\\local\\microsoft\\windowsapps") && checkPathToIgnoreLowercase(p,
           "\\windows\\system32");
       Path bashPath = getPath().findBinary(plainBash, pathsToIgnore);
-      bash = bashPath.toAbsolutePath().toString();
+      bash = bashPath.toAbsolutePath();
       if (bashPath.equals(plainBash)) {
         warning("No usable bash executable was found in your PATH environment variable!");
         bash = null;
@@ -1457,13 +1459,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
    *
    * @return Path to bash.exe if found in registry, {@code null} if bash.exe was found.
    */
-  protected String findBashInWindowsRegistry() {
+  protected Path findBashInWindowsRegistry() {
     trace("Trying to find bash in Windows registry");
-    String defaultPath = findBashOnWindowsDefaultGitPath();
-    if (defaultPath != null) {
-      return defaultPath;
-    }
-
     // If not found in the default location, try the registry query
     String[] bashVariants = { "GitForWindows", "Cygwin\\setup" };
     String[] registryKeys = { "HKEY_LOCAL_MACHINE", "HKEY_CURRENT_USER" };
@@ -1476,9 +1473,16 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
         String path = getWindowsHelper().getRegistryValue(registryPath, toolValueName);
         if (path != null) {
-          String bashPath = path + "\\bin\\bash.exe";
-          debug("Found bash at: {}", bashPath);
-          return bashPath;
+          Path bashPath = Path.of(path + "\\bin\\bash.exe");
+          if (Files.exists(bashPath)) {
+            debug("Found bash at: {}", bashPath);
+            return bashPath;
+          } else {
+            error("Found bash at: {} but it is not pointing to an existing file", bashPath);
+            return null;
+          }
+        } else {
+          info("No bash executable could be found in the Windows registry.");
         }
       }
     }
@@ -1486,13 +1490,13 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     return null;
   }
 
-  private String findBashOnWindowsDefaultGitPath() {
+  private Path findBashOnWindowsDefaultGitPath() {
     // Check if Git Bash exists in the default location
     trace("Trying to find bash on the Windows default git path.");
     Path defaultPath = Path.of(getDefaultWindowsGitPath());
     if (!defaultPath.toString().isEmpty() && Files.exists(defaultPath)) {
       trace("Found default path to git bash on Windows at: {}", getDefaultWindowsGitPath());
-      return defaultPath.toString();
+      return defaultPath;
     }
     debug("No bash was found on the Windows default git path.");
     return null;

@@ -402,12 +402,12 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   }
 
   @Override
-  protected String findBashInWindowsRegistry() {
+  protected Path findBashInWindowsRegistry() {
     return null;
   }
 
   @Override
-  public String findBashRequired() {
-    return "bash";
+  public Path findBashRequired() {
+    return null;
   }
 }

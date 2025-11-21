@@ -259,24 +259,23 @@ public class GitContextImpl implements GitContext {
   @Override
   public void verifyGitInstalled() {
 
-    String bashBinary = this.context.findBashRequired();
+    Path bashBinary = this.context.findBashRequired();
     String message = "Git is not installed on your computer but required by IDEasy. Please download and install git:\n"
         + "https://git-scm.com/download/";
 
     if (SystemInfoImpl.INSTANCE.isWindows()) {
-      Path bashPath = Path.of(bashBinary);
-      if (Files.exists(bashPath)) {
-        Path gitPath = bashPath.getParent().resolve("git.exe");
+      if (Files.exists(bashBinary)) {
+        Path gitPath = bashBinary.getParent().resolve("git.exe");
         if (Files.exists(gitPath)) {
           this.context.trace("Git path was extracted from bash path at: {}", gitPath);
           SystemPath systemPath = this.context.getPath();
           systemPath.setPath("git", gitPath);
         } else {
-          this.context.debug("Git path: {} was extracted from bash path at: {} but it does not exist", gitPath, bashPath);
+          this.context.debug("Git path: {} was extracted from bash path at: {} but it does not exist", gitPath, bashBinary);
           throw new CliException(message);
         }
       } else {
-        this.context.debug("Bash path was checked at: {} but it does not exist", bashPath);
+        this.context.debug("Bash path was checked at: {} but it does not exist", bashBinary);
         throw new CliException(message);
       }
     } else {

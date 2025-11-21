@@ -309,13 +309,13 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     }
 
     try {
-      String bashPath = this.context.findBash();
+      Path bashPath = this.context.findBash();
       if (bashPath == null) {
         this.context.warning("Git Bash not found. Cannot configure Windows Terminal integration.");
         return;
       }
 
-      configureGitBashProfile(settingsPath, bashPath);
+      configureGitBashProfile(settingsPath, bashPath.toString());
       this.context.success("Git Bash has been configured in Windows Terminal.");
     } catch (Exception e) {
       this.context.warning("Failed to configure Git Bash in Windows Terminal: {}", e.getMessage());

@@ -341,7 +341,7 @@ public class ProcessContextImpl implements ProcessContext {
     }
     if (isBashScript) {
       interpreter = "bash";
-      args.add(this.context.findBashRequired());
+      args.add(this.context.findBashRequired().toString());
     }
     if ("msi".equalsIgnoreCase(fileExtension)) {
       args.add(0, "/i");
@@ -372,7 +372,7 @@ public class ProcessContextImpl implements ProcessContext {
 
     assert processMode.isBackground() : "Cannot handle non background process mode!";
 
-    String bash = this.context.findBash();
+    String bash = this.context.findBash().toString();
     if (bash == null) {
       this.context.warning(
           "Cannot start background process via bash because no bash installation was found. Hence, output will be discarded.");

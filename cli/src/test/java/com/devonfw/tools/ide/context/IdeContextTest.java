@@ -214,13 +214,13 @@ public class IdeContextTest extends AbstractIdeContextTest {
     SystemInfo systemInfo = SystemInfoMock.of("windows");
     context.setSystemInfo(systemInfo);
     // act
-    String bash = context.findBash();
+    Path bash = context.findBash();
 
     // assert
     Path bashPath = context.getUserHome().resolve("PortableGit").resolve("bin").resolve("bash.exe");
-    assertThat(context).logAtDebug().hasMessage("BASH_PATH variable was found and points to: " + bashPath);
+    assertThat(context).logAtDebug().hasMessage("BASH_PATH environment variable was found and points to: " + bashPath);
 
-    assertThat(Path.of(bash)).isEqualTo(
+    assertThat(bash).isEqualTo(
         bashPath);
   }
 
@@ -246,11 +246,11 @@ public class IdeContextTest extends AbstractIdeContextTest {
     SystemInfo systemInfo = SystemInfoMock.of("windows");
     context.setSystemInfo(systemInfo);
     // act
-    String bash = context.findBash();
+    Path bash = context.findBash();
 
     // assert
-    assertThat(context).logAtError()
-        .hasMessage("Could not locate bash in the Windows registry. Attempting to use the fallback from BASH_PATH, but no valid path was provided.");
+    assertThat(context).logAtWarning()
+        .hasMessage("The environment variable BASH_PATH points to a non existing file: " + notExisting);
 
     assertThat(bash).isNull();
   }
@@ -280,13 +280,13 @@ public class IdeContextTest extends AbstractIdeContextTest {
     IdeTestContext context = new IdeTestContext(supportContext.getIdeHome(), IdeLogLevel.TRACE, null);
     context.setSystemInfo(systemInfo);
     // act
-    String bash = context.findBash();
+    Path bash = context.findBash();
 
     // assert
     assertThat(context).logAtDebug()
-        .hasMessage("A proper bash executable was found in the system PATH at: " + bashExePath);
+        .hasMessage("A proper bash executable was found in your PATH environment variable at: " + bashExePath);
 
-    assertThat(Path.of(bash)).isEqualTo(bashExePath);
+    assertThat(bash).isEqualTo(bashExePath);
   }
 
 }
