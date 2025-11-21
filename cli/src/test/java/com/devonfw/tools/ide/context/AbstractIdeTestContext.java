@@ -402,7 +402,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   }
 
   @Override
-  protected String findBashOnWindows() {
+  protected String findBashInWindowsRegistry() {
     return null;
   }
 
