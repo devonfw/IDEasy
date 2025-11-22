@@ -792,4 +792,27 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     }
   }
 
+  /**
+   * Test of {@link FileAccess#getBinPath(Path)} and {@link FileAccess#getBinParentPath(Path)}.
+   */
+  @Test
+  public void testBinPath() {
+
+    // arrage
+    FileAccess fileAccess = IdeTestContextMock.get().getFileAccess();
+    Path projects = Path.of("src/test/resources/ide-projects");
+    Path rootPath = projects.resolve("basic/project/software/java");
+    Path binPath = rootPath.resolve("bin");
+
+    // act
+    Path testBinPath = fileAccess.getBinPath(rootPath);
+    Path testRootPath = fileAccess.getBinParentPath(binPath);
+
+    // assert
+    assertThat(testBinPath).isEqualTo(binPath);
+    assertThat(testRootPath).isEqualTo(rootPath);
+    assertThat(fileAccess.getBinPath(projects)).isSameAs(projects);
+    assertThat(fileAccess.getBinParentPath(projects)).isSameAs(projects);
+  }
+
 }
