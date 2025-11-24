@@ -180,7 +180,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, version, this);
     GenericVersionRange allowedVersion = VersionIdentifier.LATEST;
     if (version.isPattern()) {
-      // TODO this should be discussed...
       allowedVersion = version;
     }
     Path installationPath = getInstallationPath(edition, resolvedVersion);
@@ -289,8 +288,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
               + " Therefore, we install a compatible version in that range.",
           toolParent, this.tool, versionRange, configuredVersion);
     }
-    ToolInstallation toolInstallation = installTool(versionRange, processContext);
-    return toolInstallation;
+    return installTool(versionRange, processContext);
   }
 
   /**
