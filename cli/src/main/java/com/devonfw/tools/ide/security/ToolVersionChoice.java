@@ -6,7 +6,7 @@ import com.devonfw.tools.ide.url.model.file.json.Cve;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * Container for an option of a {@link VersionIdentifier version} to chose for a specific tool and edition. Use to suggest updates (or downgrade) of a tool to
+ * Container for an option of a {@link VersionIdentifier version} to choose for a specific tool and edition. Use to suggest updates (or downgrade) of a tool to
  * fix or reduce {@link Cve}s.
  *
  * @param version the suggested {@link VersionIdentifier} to install.
@@ -55,7 +55,7 @@ public record ToolVersionChoice(VersionIdentifier version, String option, Collec
   public String toString() {
 
     String state;
-    if (issues.isEmpty()) {
+    if (this.issues.isEmpty()) {
       state = "safe";
     } else {
       state = "unsafe";

@@ -3,7 +3,7 @@ toc::[]
 
 = Security
 
-IDEasy has build-in support helping you to stay secure.
+IDEasy has built-in support helping you to stay secure.
 Therefore, it scans tools for https://en.wikipedia.org/wiki/Common_Vulnerabilities_and_Exposures[CVE]s automatically.
 
 == Warnings
@@ -41,7 +41,7 @@ IDEasy will still log CVEs that are below the configured threshold but only on I
 
 When you want to install a tool, and the resolved version to be installed is causing a CVE warning as described above, IDEasy will ask you a question before it continues with the installation.
 IDEasy automatically searches for the nearest and the latest version that has no or less CVEs.
-If such alternatives can be found, they will be printed out, and you can make a choice what install.
+If such alternatives can be found, they will be printed out, and you can make a choice what to install.
 Here is an example to make it clear:
 
 ```
