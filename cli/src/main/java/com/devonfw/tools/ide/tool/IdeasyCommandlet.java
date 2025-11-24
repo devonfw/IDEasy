@@ -14,8 +14,6 @@ import com.devonfw.tools.ide.commandlet.UpgradeMode;
 import com.devonfw.tools.ide.common.SimpleSystemPath;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.git.GitContext;
-import com.devonfw.tools.ide.git.GitContextImpl;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.ini.IniFile;
 import com.devonfw.tools.ide.io.ini.IniSection;
@@ -236,8 +234,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   }
 
   private void setGitLongpaths() {
-    GitContext gitContext = new GitContextImpl(this.context);
-    gitContext.verifyGitInstalled();
+    this.context.getGitContext().findGitRequired();
     Path configPath = this.context.getUserHome().resolve(".gitconfig");
     FileAccess fileAccess = this.context.getFileAccess();
     IniFile iniFile = fileAccess.readIniFile(configPath);
@@ -312,13 +309,13 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     }
 
     try {
-      String bashPath = this.context.findBash();
+      Path bashPath = this.context.findBash();
       if (bashPath == null) {
         this.context.warning("Git Bash not found. Cannot configure Windows Terminal integration.");
         return;
       }
 
-      configureGitBashProfile(settingsPath, bashPath);
+      configureGitBashProfile(settingsPath, bashPath.toString());
       this.context.success("Git Bash has been configured in Windows Terminal.");
     } catch (Exception e) {
       this.context.warning("Failed to configure Git Bash in Windows Terminal: {}", e.getMessage());

@@ -1,3 +1,3 @@
-@echo off
-call java jmc
-echo jmc windows %*
+#!/bin/bash
+java "jmc"
+echo "jmc windows $*"

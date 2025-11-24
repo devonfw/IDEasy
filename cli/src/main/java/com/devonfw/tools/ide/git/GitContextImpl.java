@@ -9,6 +9,7 @@ import java.util.Objects;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -22,6 +23,7 @@ public class GitContextImpl implements GitContext {
 
   /** @see #getContext() */
   protected final IdeContext context;
+  private Path git;
 
   /**
    * @param context the {@link IdeContext context}.
@@ -52,9 +54,8 @@ public class GitContextImpl implements GitContext {
   @Override
   public boolean isRepositoryUpdateAvailable(Path repository) {
 
-    verifyGitInstalled();
-    String localFailureMessage = String.format("Failed to get the local commit id of settings repository '%s'.",repository);
-    String remoteFailureMessage = String.format("Failed to get the remote commit id of settings repository '%s', missing remote upstream branch?",repository);
+    String localFailureMessage = String.format("Failed to get the local commit id of settings repository '%s'.", repository);
+    String remoteFailureMessage = String.format("Failed to get the remote commit id of settings repository '%s', missing remote upstream branch?", repository);
     String localCommitId = runGitCommandAndGetSingleOutput(localFailureMessage, repository, ProcessMode.DEFAULT_CAPTURE, "rev-parse", "HEAD");
     String remoteCommitId = runGitCommandAndGetSingleOutput(remoteFailureMessage, repository, ProcessMode.DEFAULT_CAPTURE, "rev-parse", "@{u}");
     if ((localCommitId == null) || (remoteCommitId == null)) {
@@ -66,14 +67,13 @@ public class GitContextImpl implements GitContext {
   @Override
   public boolean isRepositoryUpdateAvailable(Path repository, Path trackedCommitIdPath) {
 
-    verifyGitInstalled();
     String trackedCommitId;
     try {
       trackedCommitId = Files.readString(trackedCommitIdPath);
     } catch (IOException e) {
       return false;
     }
-    String remoteFailureMessage = String.format("Failed to get the remote commit id of settings repository '%s', missing remote upstream branch?",repository);
+    String remoteFailureMessage = String.format("Failed to get the remote commit id of settings repository '%s', missing remote upstream branch?", repository);
     String remoteCommitId = runGitCommandAndGetSingleOutput(remoteFailureMessage, repository, ProcessMode.DEFAULT_CAPTURE, "rev-parse", "@{u}");
     return !trackedCommitId.equals(remoteCommitId);
   }
@@ -135,7 +135,6 @@ public class GitContextImpl implements GitContext {
   @Override
   public void clone(GitUrl gitUrl, Path repository) {
 
-    verifyGitInstalled();
     GitUrlSyntax gitUrlSyntax = IdeVariables.PREFERRED_GIT_PROTOCOL.get(getContext());
     gitUrl = gitUrlSyntax.format(gitUrl);
     if (this.context.isOfflineMode()) {
@@ -162,7 +161,6 @@ public class GitContextImpl implements GitContext {
   @Override
   public void pull(Path repository) {
 
-    verifyGitInstalled();
     if (this.context.isOffline()) {
       this.context.info("Skipping git pull on {} because offline", repository);
       return;
@@ -178,7 +176,6 @@ public class GitContextImpl implements GitContext {
   @Override
   public void fetch(Path repository, String remote, String branch) {
 
-    verifyGitInstalled();
     if (branch == null) {
       branch = determineCurrentBranch(repository);
     }
@@ -196,21 +193,18 @@ public class GitContextImpl implements GitContext {
   @Override
   public String determineCurrentBranch(Path repository) {
 
-    verifyGitInstalled();
     return runGitCommandAndGetSingleOutput("Failed to determine current branch of git repository", repository, "branch", "--show-current");
   }
 
   @Override
   public String determineRemote(Path repository) {
 
-    verifyGitInstalled();
     return runGitCommandAndGetSingleOutput("Failed to determine current origin of git repository.", repository, "remote");
   }
 
   @Override
   public void reset(Path repository, String branchName, String remoteName) {
 
-    verifyGitInstalled();
     if ((remoteName == null) || remoteName.isEmpty()) {
       remoteName = DEFAULT_REMOTE;
     }
@@ -232,7 +226,6 @@ public class GitContextImpl implements GitContext {
   @Override
   public void cleanup(Path repository) {
 
-    verifyGitInstalled();
     // check for untracked files
     ProcessResult result = runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, "ls-files", "--other", "--directory", "--exclude-standard");
     if (!result.getOut().isEmpty()) {
@@ -245,7 +238,6 @@ public class GitContextImpl implements GitContext {
   @Override
   public String retrieveGitUrl(Path repository) {
 
-    verifyGitInstalled();
     return runGitCommandAndGetSingleOutput("Failed to retrieve git URL for repository", repository, "config", "--get", "remote.origin.url");
   }
 
@@ -255,17 +247,73 @@ public class GitContextImpl implements GitContext {
   }
 
   @Override
-  public void verifyGitInstalled() {
+  public Path findGitRequired() {
 
-    this.context.findBashRequired();
-    Path git = Path.of("git");
-    Path binaryGitPath = this.context.getPath().findBinary(git);
-    if (git == binaryGitPath) {
-      String message = "Git is not installed on your computer but required by IDEasy. Please download and install git:\n"
-          + "https://git-scm.com/download/";
+    Path gitPath = findGit();
+    if (gitPath == null) {
+      String message = "Git " + IdeContext.IS_NOT_INSTALLED_BUT_REQUIRED;
+      if (SystemInfoImpl.INSTANCE.isWindows()) {
+        message += IdeContext.PLEASE_DOWNLOAD_AND_INSTALL_GIT + ":\n "
+            + IdeContext.WINDOWS_GIT_DOWNLOAD_URL;
+      }
       throw new CliException(message);
     }
-    this.context.trace("Git is installed");
+    return gitPath;
+  }
+
+  /**
+   * Finds the path to the Git executable.
+   *
+   * @return the {@link Path} to the Git executable, or {@code null} if Git is not found.
+   */
+  public Path findGit() {
+    if (this.git != null) {
+      return this.git;
+    }
+
+    Path gitPath = findGitInPath(Path.of("git"));
+
+    if (gitPath == null) {
+      if (SystemInfoImpl.INSTANCE.isWindows()) {
+        gitPath = findGitOnWindowsViaBash();
+      }
+    }
+
+    if (gitPath != null) {
+      this.git = gitPath;
+      this.context.trace("Found git at: {}", gitPath);
+    }
+
+    return gitPath;
+  }
+
+  private Path findGitOnWindowsViaBash() {
+    Path gitPath;
+    Path bashBinary = this.context.findBashRequired();
+    this.context.trace("Trying to find git path on Windows");
+    if (Files.exists(bashBinary)) {
+      gitPath = bashBinary.getParent().resolve("git.exe");
+      if (Files.exists(gitPath)) {
+        this.context.trace("Git path was extracted from bash path at: {}", gitPath);
+      } else {
+        this.context.error("Git path: {} was extracted from bash path at: {} but it does not exist", gitPath, bashBinary);
+        return null;
+      }
+    } else {
+      this.context.error("Bash path was checked at: {} but it does not exist", bashBinary);
+      return null;
+    }
+    return gitPath;
+  }
+
+  private Path findGitInPath(Path gitPath) {
+    this.context.trace("Trying to find git executable within the PATH environment variable");
+    Path binaryGitPath = this.context.getPath().findBinary(gitPath);
+    if (gitPath == binaryGitPath) {
+      this.context.debug("No git executable could be found within the PATH environment variable");
+      return null;
+    }
+    return binaryGitPath;
   }
 
   private void runGitCommand(Path directory, String... args) {
@@ -285,12 +333,12 @@ public class GitContextImpl implements GitContext {
 
   private String runGitCommandAndGetSingleOutput(String warningOnError, Path directory, String... args) {
 
-    return runGitCommandAndGetSingleOutput(warningOnError,directory, ProcessMode.DEFAULT_CAPTURE, args);
+    return runGitCommandAndGetSingleOutput(warningOnError, directory, ProcessMode.DEFAULT_CAPTURE, args);
   }
 
   private String runGitCommandAndGetSingleOutput(String warningOnError, Path directory, ProcessMode mode, String... args) {
     ProcessErrorHandling errorHandling = ProcessErrorHandling.NONE;
-    if (this.context.debug().isEnabled()){
+    if (this.context.debug().isEnabled()) {
       errorHandling = ProcessErrorHandling.LOG_WARNING;
     }
     ProcessResult result = runGitCommand(directory, mode, errorHandling, args);
@@ -319,10 +367,10 @@ public class GitContextImpl implements GitContext {
     ProcessContext processContext;
 
     if (this.context.isBatchMode()) {
-      processContext = this.context.newProcess().executable("git").withEnvVar("GIT_TERMINAL_PROMPT", "0").withEnvVar("GCM_INTERACTIVE", "never")
+      processContext = this.context.newProcess().executable(findGitRequired()).withEnvVar("GIT_TERMINAL_PROMPT", "0").withEnvVar("GCM_INTERACTIVE", "never")
           .withEnvVar("GIT_ASKPASS", "echo").withEnvVar("SSH_ASKPASS", "echo").errorHandling(errorHandling).directory(directory);
     } else {
-      processContext = this.context.newProcess().executable("git").errorHandling(errorHandling)
+      processContext = this.context.newProcess().executable(findGitRequired()).errorHandling(errorHandling)
           .directory(directory);
     }
 
