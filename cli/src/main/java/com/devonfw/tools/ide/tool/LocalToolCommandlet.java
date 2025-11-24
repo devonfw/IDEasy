@@ -178,10 +178,10 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     ToolRepository toolRepository = getToolRepository();
     String edition = toolEdition.edition();
     VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, version, this);
-    GenericVersionRange allwedVersion = VersionIdentifier.LATEST;
+    GenericVersionRange allowedVersion = VersionIdentifier.LATEST;
     if (version.isPattern()) {
       // TODO this should be discussed...
-      allwedVersion = version;
+      allowedVersion = version;
     }
     Path installationPath = getInstallationPath(edition, resolvedVersion);
     VersionIdentifier installedVersion = getInstalledVersion();
@@ -190,7 +190,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       this.context.debug("Version {} of tool {} is already installed at {}", resolvedVersion, toolEdition, installationPath);
       return createToolInstallation(installationPath, resolvedVersion, false, processContext, extraInstallation);
     }
-    resolvedVersion = cveCheck(toolEdition, resolvedVersion, allwedVersion, false);
+    resolvedVersion = cveCheck(toolEdition, resolvedVersion, allowedVersion, false);
     installToolDependencies(resolvedVersion, toolEdition, processContext);
 
     boolean ignoreSoftwareRepo = isIgnoreSoftwareRepo();
@@ -501,6 +501,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     this.context.success("Successfully deleted {} from your computer.", repoPath);
   }
 
+  @Override
   protected Path getInstallationPath(String edition, VersionIdentifier resolvedVersion) {
     Path installationPath;
     if (isIgnoreSoftwareRepo()) {

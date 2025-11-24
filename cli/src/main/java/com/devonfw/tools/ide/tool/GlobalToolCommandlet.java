@@ -119,6 +119,8 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   public ToolInstallation install(boolean silent, VersionIdentifier configuredVersion, ProcessContext processContext, Step step) {
 
     if (this.context.getSystemInfo().isLinux()) {
+      // on Linux global tools are typically installed via the package manager of the OS
+      // if a global tool implements this method to return at least one PackageManagerCommand, then we install this way.
       List<PackageManagerCommand> commands = getInstallPackageManagerCommands();
       if (!commands.isEmpty()) {
         boolean newInstallation = runWithPackageManager(silent, commands);

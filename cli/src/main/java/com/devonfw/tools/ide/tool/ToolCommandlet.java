@@ -305,7 +305,12 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     // nothing to do by default
   }
 
-  protected abstract Path getInstallationPath(String edition, VersionIdentifier resolvedVersion);
+  /**
+   * @param edition the {@link #getInstalledEdition() edition}.
+   * @param version the {@link #getInstalledVersion() version}.
+   * @return the {@link Path} where this tool is installed (physically) or {@code null} if not available.
+   */
+  protected abstract Path getInstallationPath(String edition, VersionIdentifier version);
 
   /**
    * @param edition the {@link #getConfiguredEdition() edition}.
@@ -337,6 +342,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     Path linkDir = rootDir;
     Path binDir = rootDir;
     if (rootDir != null) {
+      // on MacOS applications have a very strange structure - see JavaDoc of findLinkDir and ToolInstallation.linkDir for details.
       linkDir = getMacOsHelper().findLinkDir(rootDir, getBinaryName());
       binDir = this.context.getFileAccess().getBinPath(linkDir);
     }
