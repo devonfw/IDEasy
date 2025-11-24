@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Objects;
 
 import com.devonfw.tools.ide.cli.CliException;
-import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.process.ProcessContext;
@@ -262,7 +261,7 @@ public class GitContextImpl implements GitContext {
 
     Path gitPath = findGit();
     if (gitPath == null) {
-      String message = "Git " + IdeContext.IS_NOT_INSTALLED;
+      String message = "Git " + IdeContext.IS_NOT_INSTALLED_BUT_REQUIRED;
       if (SystemInfoImpl.INSTANCE.isWindows()) {
         message += IdeContext.PLEASE_DOWNLOAD_AND_INSTALL_GIT + ":\n "
             + IdeContext.WINDOWS_GIT_DOWNLOAD_URL;
@@ -281,16 +280,15 @@ public class GitContextImpl implements GitContext {
     if (this.git != null) {
       return this.git;
     }
-    Path bashBinary = this.context.findBashRequired();
     Path gitPath = Path.of("git");
+    Path binaryGitPath = this.context.getPath().findBinary(gitPath);
     if (SystemInfoImpl.INSTANCE.isWindows()) {
+      Path bashBinary = this.context.findBashRequired();
+      this.context.trace("Trying to find git path on Windows");
       if (Files.exists(bashBinary)) {
         gitPath = bashBinary.getParent().resolve("git.exe");
         if (Files.exists(gitPath)) {
           this.context.trace("Git path was extracted from bash path at: {}", gitPath);
-          gitPath = findGit();
-          SystemPath systemPath = this.context.getPath();
-          systemPath.setPath("git", gitPath);
         } else {
           this.context.error("Git path: {} was extracted from bash path at: {} but it does not exist", gitPath, bashBinary);
           return null;
@@ -300,9 +298,8 @@ public class GitContextImpl implements GitContext {
         return null;
       }
     } else {
-      Path binaryGitPath = this.context.getPath().findBinary(gitPath);
       if (gitPath == binaryGitPath) {
-        this.context.error("Not git executable was found on your system");
+        this.context.error("No git executable was found on your system");
         return null;
       } else {
         gitPath = binaryGitPath;

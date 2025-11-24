@@ -197,7 +197,7 @@ public interface IdeContext extends IdeStartContext {
    * The keyword for project name convention.
    */
   String SETTINGS_REPOSITORY_KEYWORD = "settings";
-  String IS_NOT_INSTALLED = "is not installed on your computer but required by IDEasy.";
+  String IS_NOT_INSTALLED_BUT_REQUIRED = "is not installed on your computer but required by IDEasy.";
   String WINDOWS_GIT_DOWNLOAD_URL = "https://git-scm.com/download/";
   String PLEASE_DOWNLOAD_AND_INSTALL_GIT = "Please download and install git";
 
@@ -766,7 +766,7 @@ public interface IdeContext extends IdeStartContext {
   default Path findBashRequired() {
     Path bash = findBash();
     if (bash == null) {
-      String message = "Bash " + IS_NOT_INSTALLED;
+      String message = "Bash " + IS_NOT_INSTALLED_BUT_REQUIRED;
       if (getSystemInfo().isWindows()) {
         message += " " + PLEASE_DOWNLOAD_AND_INSTALL_GIT + ":\n " + WINDOWS_GIT_DOWNLOAD_URL;
         throw new CliException(message);
