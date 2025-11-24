@@ -116,7 +116,7 @@ public class LocalToolCommandletTest extends AbstractIdeContextTest {
   public void testRunToolWithDependencies() {
     // arrange
     IdeTestContext context = newContext("dependencies");
-    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
 
     // run intellij and ensure it gets installed together with the compatible Java version
     runIntellijAndCheckInstallationWithJavaDependency(context);
