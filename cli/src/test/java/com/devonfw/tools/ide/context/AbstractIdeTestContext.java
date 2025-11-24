@@ -405,9 +405,4 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   protected Path findBashInWindowsRegistry() {
     return null;
   }
-
-  @Override
-  public Path findBashRequired() {
-    return Path.of("bash");
-  }
 }

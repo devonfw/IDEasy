@@ -44,7 +44,8 @@ public class GitContextTest extends AbstractIdeContextTest {
     }
 
     @Override
-    public void verifyGitInstalled() {
+    public Path findGitRequired() {
+      return Path.of("git");
     }
   }
 

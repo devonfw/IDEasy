@@ -147,6 +147,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   private final Map<String, String> privacyMap;
 
+  private Path bash;
+
   /**
    * The constructor.
    *
@@ -1369,27 +1371,28 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   @Override
   public Path findBash() {
-
-    Path bash = Path.of(BASH);
-    if (getSystemInfo().isWindows()) {
-      bash = findBashOnWindowsBashPath();
-      if (bash == null) {
-        bash = findBashOnWindowsDefaultGitPath();
-      }
-      if (bash == null) {
-        bash = findBashInPath();
-      }
-      if (bash == null) {
-        bash = findBashInWindowsRegistry();
-      }
-      if (bash == null) {
-        error("No bash executable could be found on your system.");
+    if (this.bash != null) {
+      return this.bash;
+    }
+    Path bashPath = findBashOnBashPath();
+    if (bashPath == null) {
+      bashPath = findBashInPath();
+      if (bashPath == null && getSystemInfo().isWindows()) {
+        bashPath = findBashOnWindowsDefaultGitPath();
+        if (bashPath == null) {
+          bashPath = findBashInWindowsRegistry();
+        }
       }
     }
-    return bash;
+    if (bashPath == null) {
+      error("No bash executable could be found on your system.");
+    } else {
+      this.bash = bashPath;
+    }
+    return bashPath;
   }
 
-  private Path findBashOnWindowsBashPath() {
+  private Path findBashOnBashPath() {
     trace("Trying to find BASH_PATH environment variable.");
     Path bash;
     String bashPathVariableName = IdeVariables.BASH_PATH.getName();
@@ -1400,8 +1403,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
         debug("{} environment variable was found and points to: {}", bashPathVariableName, bash);
         return bash;
       } else {
-        // TODO: Add prompt to correct this user error
-        warning("The environment variable {} points to a non existing file: {}", bashPathVariableName, bash);
+        error("The environment variable {} points to a non existing file: {}", bashPathVariableName, bash);
         return null;
       }
     } else {

@@ -249,7 +249,7 @@ public class IdeContextTest extends AbstractIdeContextTest {
     Path bash = context.findBash();
 
     // assert
-    assertThat(context).logAtWarning()
+    assertThat(context).logAtError()
         .hasMessage("The environment variable BASH_PATH points to a non existing file: " + notExisting);
 
     assertThat(bash).isNull();

@@ -751,28 +751,26 @@ public interface IdeContext extends IdeStartContext {
   /**
    * Finds the path to the Bash executable.
    *
-   * @return the {@link String} to the Bash executable, or {@code null} if Bash is not found
+   * @return the {@link Path} to the Bash executable, or {@code null} if Bash is not found.
    */
   Path findBash();
 
   /**
    * Finds the path to the Bash executable.
    *
-   * @return the {@link String} to the Bash executable. Throws an {@link IllegalStateException} if no bash was found.
+   * @return the {@link Path} to the Bash executable. Throws a {@link CliException} if no bash was found.
    */
   default Path findBashRequired() {
     Path bash = findBash();
-    String message = "Git Bash is not installed on your computer but required by IDEasy. Please download and install git:\n"
-        + "https://git-scm.com/download/";
-    if (getSystemInfo().isWindows()) {
-      if (bash == null || !Files.exists(bash)) {
+    if (bash == null) {
+      String message = "Bash is not installed on your computer but required by IDEasy.";
+      if (getSystemInfo().isWindows()) {
+        message += " Please download and install git:\n https://git-scm.com/download/";
         throw new CliException(message);
       }
-    } else {
-      if (bash == null) {
-        throw new CliException(message);
-      }
+      bash = Path.of("bash");
     }
+
     return bash;
   }
 

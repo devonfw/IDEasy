@@ -24,6 +24,7 @@ public class GitContextImpl implements GitContext {
 
   /** @see #getContext() */
   protected final IdeContext context;
+  private Path git;
 
   /**
    * @param context the {@link IdeContext context}.
@@ -54,7 +55,7 @@ public class GitContextImpl implements GitContext {
   @Override
   public boolean isRepositoryUpdateAvailable(Path repository) {
 
-    verifyGitInstalled();
+    findGitRequired();
     String localFailureMessage = String.format("Failed to get the local commit id of settings repository '%s'.", repository);
     String remoteFailureMessage = String.format("Failed to get the remote commit id of settings repository '%s', missing remote upstream branch?", repository);
     String localCommitId = runGitCommandAndGetSingleOutput(localFailureMessage, repository, ProcessMode.DEFAULT_CAPTURE, "rev-parse", "HEAD");
@@ -68,7 +69,7 @@ public class GitContextImpl implements GitContext {
   @Override
   public boolean isRepositoryUpdateAvailable(Path repository, Path trackedCommitIdPath) {
 
-    verifyGitInstalled();
+    findGitRequired();
     String trackedCommitId;
     try {
       trackedCommitId = Files.readString(trackedCommitIdPath);
@@ -137,7 +138,7 @@ public class GitContextImpl implements GitContext {
   @Override
   public void clone(GitUrl gitUrl, Path repository) {
 
-    verifyGitInstalled();
+    findGitRequired();
     GitUrlSyntax gitUrlSyntax = IdeVariables.PREFERRED_GIT_PROTOCOL.get(getContext());
     gitUrl = gitUrlSyntax.format(gitUrl);
     if (this.context.isOfflineMode()) {
@@ -164,7 +165,7 @@ public class GitContextImpl implements GitContext {
   @Override
   public void pull(Path repository) {
 
-    verifyGitInstalled();
+    findGitRequired();
     if (this.context.isOffline()) {
       this.context.info("Skipping git pull on {} because offline", repository);
       return;
@@ -180,7 +181,7 @@ public class GitContextImpl implements GitContext {
   @Override
   public void fetch(Path repository, String remote, String branch) {
 
-    verifyGitInstalled();
+    findGitRequired();
     if (branch == null) {
       branch = determineCurrentBranch(repository);
     }
@@ -198,21 +199,21 @@ public class GitContextImpl implements GitContext {
   @Override
   public String determineCurrentBranch(Path repository) {
 
-    verifyGitInstalled();
+    findGitRequired();
     return runGitCommandAndGetSingleOutput("Failed to determine current branch of git repository", repository, "branch", "--show-current");
   }
 
   @Override
   public String determineRemote(Path repository) {
 
-    verifyGitInstalled();
+    findGitRequired();
     return runGitCommandAndGetSingleOutput("Failed to determine current origin of git repository.", repository, "remote");
   }
 
   @Override
   public void reset(Path repository, String branchName, String remoteName) {
 
-    verifyGitInstalled();
+    findGitRequired();
     if ((remoteName == null) || remoteName.isEmpty()) {
       remoteName = DEFAULT_REMOTE;
     }
@@ -234,7 +235,7 @@ public class GitContextImpl implements GitContext {
   @Override
   public void cleanup(Path repository) {
 
-    verifyGitInstalled();
+    findGitRequired();
     // check for untracked files
     ProcessResult result = runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, "ls-files", "--other", "--directory", "--exclude-standard");
     if (!result.getOut().isEmpty()) {
@@ -247,7 +248,7 @@ public class GitContextImpl implements GitContext {
   @Override
   public String retrieveGitUrl(Path repository) {
 
-    verifyGitInstalled();
+    findGitRequired();
     return runGitCommandAndGetSingleOutput("Failed to retrieve git URL for repository", repository, "config", "--get", "remote.origin.url");
   }
 
@@ -257,37 +258,59 @@ public class GitContextImpl implements GitContext {
   }
 
   @Override
-  public void verifyGitInstalled() {
+  public Path findGitRequired() {
 
+    Path gitPath = findGit();
+    if (gitPath == null) {
+      String message = "Git is not installed on your computer but required by IDEasy";
+      if (SystemInfoImpl.INSTANCE.isWindows()) {
+        message += " Please download and install git:\n"
+            + "https://git-scm.com/download/";
+      }
+      throw new CliException(message);
+    }
+    return gitPath;
+  }
+
+  /**
+   * Finds the path to the Git executable.
+   *
+   * @return the {@link Path} to the Git executable, or {@code null} if Git is not found.
+   */
+  public Path findGit() {
+    if (this.git != null) {
+      return this.git;
+    }
     Path bashBinary = this.context.findBashRequired();
-    String message = "Git is not installed on your computer but required by IDEasy. Please download and install git:\n"
-        + "https://git-scm.com/download/";
-
+    Path gitPath = Path.of("git");
     if (SystemInfoImpl.INSTANCE.isWindows()) {
       if (Files.exists(bashBinary)) {
-        Path gitPath = bashBinary.getParent().resolve("git.exe");
+        gitPath = bashBinary.getParent().resolve("git.exe");
         if (Files.exists(gitPath)) {
           this.context.trace("Git path was extracted from bash path at: {}", gitPath);
+          gitPath = findGit();
           SystemPath systemPath = this.context.getPath();
           systemPath.setPath("git", gitPath);
         } else {
-          this.context.debug("Git path: {} was extracted from bash path at: {} but it does not exist", gitPath, bashBinary);
-          throw new CliException(message);
+          this.context.error("Git path: {} was extracted from bash path at: {} but it does not exist", gitPath, bashBinary);
+          return null;
         }
       } else {
-        this.context.debug("Bash path was checked at: {} but it does not exist", bashBinary);
-        throw new CliException(message);
+        this.context.error("Bash path was checked at: {} but it does not exist", bashBinary);
+        return null;
       }
     } else {
-      Path git = Path.of("git");
-      Path binaryGitPath = this.context.getPath().findBinary(git);
-      if (git == binaryGitPath) {
-        throw new CliException(message);
+      Path binaryGitPath = this.context.getPath().findBinary(gitPath);
+      if (gitPath == binaryGitPath) {
+        this.context.error("Not git executable was found on your system");
+        return null;
+      } else {
+        gitPath = binaryGitPath;
       }
     }
-
-    this.context.trace("Using Bash at: {}", bashBinary);
-    this.context.trace("Git is installed");
+    this.git = gitPath;
+    this.context.trace("Found git at: {}", gitPath);
+    return gitPath;
   }
 
   private void runGitCommand(Path directory, String... args) {

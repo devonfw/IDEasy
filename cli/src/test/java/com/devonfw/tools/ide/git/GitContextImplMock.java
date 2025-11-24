@@ -13,7 +13,7 @@ import com.devonfw.tools.ide.io.FileAccess;
 public class GitContextImplMock extends GitContextImpl {
 
   private static final String COMMIT_ID = "commit-id";
-  
+
   private final Path repositoryPath;
 
   /**
@@ -80,7 +80,7 @@ public class GitContextImplMock extends GitContextImpl {
   }
 
   @Override
-  public void verifyGitInstalled() {
-
+  public Path findGitRequired() {
+    return Path.of("git");
   }
 }
