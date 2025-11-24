@@ -56,7 +56,8 @@ public class GitContextMock implements GitContext {
   }
 
   @Override
-  public void verifyGitInstalled() {
+  public Path findGitRequired() {
+    return Path.of("git");
   }
 
   @Override

@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.git;
 
 import java.nio.file.Path;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliOfflineException;
 
 /**
@@ -180,9 +181,11 @@ public interface GitContext {
   String retrieveGitUrl(Path repository);
 
   /**
-   * Checks if there is a git installation and throws an exception if there is none
+   * Finds the {@link Path} to the git installation and throws an exception if there is none.
+   *
+   * @return the {@link Path} to the Git installation. Throws a {@link CliException} if no git was found.
    */
-  void verifyGitInstalled();
+  Path findGitRequired();
 
   /**
    * @param repository the {@link Path} to the folder where the git repository is located.

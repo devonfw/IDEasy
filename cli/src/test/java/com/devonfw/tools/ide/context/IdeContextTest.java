@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.context;
 
 import java.nio.file.Path;
+import java.util.Properties;
 
 import org.junit.jupiter.api.Test;
 
@@ -8,8 +9,11 @@ import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.os.SystemInfo;
+import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.IdeVersion;
 
@@ -196,6 +200,93 @@ public class IdeContextTest extends AbstractIdeContextTest {
         .hasEntries(IdeLogEntry.ofWarning(testWarningMessage), IdeLogEntry.ofWarning(testWarningMessage2), IdeLogEntry.ofInfo(testInfoMessage),
             IdeLogEntry.ofWarning(testWarningMessage3));
     assertThat(context).log().hasNoMessage(testDebugMessage);
+  }
+
+  /**
+   * Tests if the BASH_PATH variable was set and the target is existing, the variable is returned by {@code findBash} and the debug message is correct (uses
+   * environment.properties for BASH_PATH and PATH variables).
+   */
+  @Test
+  public void testFindBashOnBashPathOnWindows() {
+    // arrange
+    String path = "project/workspaces";
+    IdeTestContext context = newContext("find-bash-git", path, true);
+    SystemInfo systemInfo = SystemInfoMock.of("windows");
+    context.setSystemInfo(systemInfo);
+    // act
+    Path bash = context.findBash();
+
+    // assert
+    Path bashPath = context.getUserHome().resolve("PortableGit").resolve("bin").resolve("bash.exe");
+    assertThat(context).logAtDebug().hasMessage("BASH_PATH environment variable was found and points to: " + bashPath);
+
+    assertThat(bash).isEqualTo(
+        bashPath);
+  }
+
+  /**
+   * Tests if the BASH_PATH variable was set and the target is not existing and the error message is correct.
+   */
+  @Test
+  public void testFindBashOnBashPathOnWindowsWithoutExistingFileReturnsProperErrorMessage() {
+    // arrange
+    // create first context to prepare test data
+    String path = "project/workspaces";
+    IdeTestContext supportContext = newContext("find-bash-git", path, true);
+    FileAccess fileAccess = supportContext.getFileAccess();
+    Path environmentFile = supportContext.getUserHome().resolve("environment.properties");
+    fileAccess.touch(environmentFile);
+    Properties properties = fileAccess.readProperties(environmentFile);
+    String notExisting = supportContext.getIdeHome().resolve("notexisting").toAbsolutePath().toString();
+    properties.put("PATH", notExisting);
+    properties.put("BASH_PATH", notExisting);
+    fileAccess.writeProperties(properties, environmentFile);
+    // create 2nd context using the modified test project
+    IdeTestContext context = new IdeTestContext(supportContext.getIdeHome(), IdeLogLevel.TRACE, null);
+    SystemInfo systemInfo = SystemInfoMock.of("windows");
+    context.setSystemInfo(systemInfo);
+    // act
+    Path bash = context.findBash();
+
+    // assert
+    assertThat(context).logAtError()
+        .hasMessage("The environment variable BASH_PATH points to a non existing file: " + notExisting);
+
+    assertThat(bash).isNull();
+  }
+
+  /**
+   * Tests if the BASH_PATH variable was set and the target is not existing and bash executable was found on the system PATH.
+   */
+  @Test
+  public void testFindBashOnSystemPathOnWindowsWithInvalidBashPathSet() {
+    // arrange
+    // create first context to prepare test data
+    String path = "project/workspaces";
+    IdeTestContext supportContext = newContext("find-bash-git", path, true);
+    SystemInfo systemInfo = SystemInfoMock.of("windows");
+    supportContext.setSystemInfo(systemInfo);
+    FileAccess fileAccess = supportContext.getFileAccess();
+    Path environmentFile = supportContext.getUserHome().resolve("environment.properties");
+    fileAccess.touch(environmentFile);
+    Properties properties = fileAccess.readProperties(environmentFile);
+    Path gitPath = supportContext.getUserHome().resolve("PortableGit").resolve("bin").toAbsolutePath();
+    Path bashExePath = gitPath.resolve("bash.exe");
+    String notExisting = supportContext.getUserHome().resolve("notexisting").toAbsolutePath().toString();
+    properties.put("PATH", gitPath + ":" + supportContext.getUserHome().resolve("AppData/Local/Microsoft/WindowsApps"));
+    properties.put("BASH_PATH", notExisting);
+    fileAccess.writeProperties(properties, environmentFile);
+    // create 2nd context using the modified test project
+    IdeTestContext context = new IdeTestContext(supportContext.getIdeHome(), IdeLogLevel.TRACE, null);
+    context.setSystemInfo(systemInfo);
+    // act
+    Path bash = context.findBash();
+
+    // assert
+    assertThat(context).logAtDebug()
+        .hasMessage("A proper bash executable was found in your PATH environment variable at: " + bashExePath);
+
+    assertThat(bash).isEqualTo(bashExePath);
   }
 
 }

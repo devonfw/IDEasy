@@ -31,13 +31,31 @@ public class GitContextTest extends AbstractIdeContextTest {
 
   private ProcessContextGitMock processContext;
 
+  /**
+   * Extra GitContextImpl class with disabled verifyGitInstalled method.
+   */
+  private class GitContextMock extends GitContextImpl {
+
+    /**
+     * @param context the {@link IdeContext context}.
+     */
+    public GitContextMock(IdeContext context) {
+      super(context);
+    }
+
+    @Override
+    public Path findGitRequired() {
+      return Path.of("git");
+    }
+  }
+
   private IdeTestContext newGitContext(Path dir) {
 
     IdeTestContext context = newContext(dir);
     context.getNetworkStatus().simulateOnline();
     this.processContext = new ProcessContextGitMock(context, dir);
     context.setProcessContext(processContext);
-    context.setGitContext(new GitContextImpl(context));
+    context.setGitContext(new GitContextMock(context));
     return context;
   }
 
@@ -246,10 +264,9 @@ public class GitContextTest extends AbstractIdeContextTest {
     outs.add("local_commit_hash");
     outs.add("local_commit_hash"); // same as remote to simulate no updates
     IdeContext context = newGitContext(tempDir);
-    GitContext gitContext = new GitContextImpl(context);
 
     // act
-    boolean result = gitContext.isRepositoryUpdateAvailable(tempDir);
+    boolean result = context.getGitContext().isRepositoryUpdateAvailable(tempDir);
 
     // assert
     assertThat(result).isFalse(); // No updates should be available
