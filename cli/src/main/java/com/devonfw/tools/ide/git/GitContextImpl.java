@@ -270,34 +270,50 @@ public class GitContextImpl implements GitContext {
     if (this.git != null) {
       return this.git;
     }
-    Path gitPath = Path.of("git");
-    Path binaryGitPath = this.context.getPath().findBinary(gitPath);
-    if (SystemInfoImpl.INSTANCE.isWindows()) {
-      Path bashBinary = this.context.findBashRequired();
-      this.context.trace("Trying to find git path on Windows");
-      if (Files.exists(bashBinary)) {
-        gitPath = bashBinary.getParent().resolve("git.exe");
-        if (Files.exists(gitPath)) {
-          this.context.trace("Git path was extracted from bash path at: {}", gitPath);
-        } else {
-          this.context.error("Git path: {} was extracted from bash path at: {} but it does not exist", gitPath, bashBinary);
-          return null;
-        }
+
+    Path gitPath = findGitInPath(Path.of("git"));
+
+    if (gitPath == null) {
+      if (SystemInfoImpl.INSTANCE.isWindows()) {
+        gitPath = findGitOnWindowsViaBash();
+      }
+    }
+
+    if (gitPath != null) {
+      this.git = gitPath;
+      this.context.trace("Found git at: {}", gitPath);
+    }
+
+    return gitPath;
+  }
+
+  private Path findGitOnWindowsViaBash() {
+    Path gitPath;
+    Path bashBinary = this.context.findBashRequired();
+    this.context.trace("Trying to find git path on Windows");
+    if (Files.exists(bashBinary)) {
+      gitPath = bashBinary.getParent().resolve("git.exe");
+      if (Files.exists(gitPath)) {
+        this.context.trace("Git path was extracted from bash path at: {}", gitPath);
       } else {
-        this.context.error("Bash path was checked at: {} but it does not exist", bashBinary);
+        this.context.error("Git path: {} was extracted from bash path at: {} but it does not exist", gitPath, bashBinary);
         return null;
       }
     } else {
-      if (gitPath == binaryGitPath) {
-        this.context.error("No git executable was found on your system");
-        return null;
-      } else {
-        gitPath = binaryGitPath;
-      }
+      this.context.error("Bash path was checked at: {} but it does not exist", bashBinary);
+      return null;
     }
-    this.git = gitPath;
-    this.context.trace("Found git at: {}", gitPath);
     return gitPath;
+  }
+
+  private Path findGitInPath(Path gitPath) {
+    this.context.trace("Trying to find git executable within the PATH environment variable");
+    Path binaryGitPath = this.context.getPath().findBinary(gitPath);
+    if (gitPath == binaryGitPath) {
+      this.context.debug("No git executable could be found within the PATH environment variable");
+      return null;
+    }
+    return binaryGitPath;
   }
 
   private void runGitCommand(Path directory, String... args) {
