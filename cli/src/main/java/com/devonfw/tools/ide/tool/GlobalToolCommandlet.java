@@ -89,7 +89,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
    */
   private boolean executePackageManagerCommand(PackageManagerCommand pmCommand, boolean silent) {
 
-    String bashPath = this.context.findBashRequired();
+    String bashPath = this.context.findBashRequired().toString();
     logPackageManagerCommands(pmCommand);
     for (String command : pmCommand.commands()) {
       ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(bashPath)
