@@ -54,7 +54,6 @@ public class GitContextImpl implements GitContext {
   @Override
   public boolean isRepositoryUpdateAvailable(Path repository) {
 
-    findGitRequired();
     String localFailureMessage = String.format("Failed to get the local commit id of settings repository '%s'.", repository);
     String remoteFailureMessage = String.format("Failed to get the remote commit id of settings repository '%s', missing remote upstream branch?", repository);
     String localCommitId = runGitCommandAndGetSingleOutput(localFailureMessage, repository, ProcessMode.DEFAULT_CAPTURE, "rev-parse", "HEAD");
@@ -68,7 +67,6 @@ public class GitContextImpl implements GitContext {
   @Override
   public boolean isRepositoryUpdateAvailable(Path repository, Path trackedCommitIdPath) {
 
-    findGitRequired();
     String trackedCommitId;
     try {
       trackedCommitId = Files.readString(trackedCommitIdPath);
@@ -137,7 +135,6 @@ public class GitContextImpl implements GitContext {
   @Override
   public void clone(GitUrl gitUrl, Path repository) {
 
-    findGitRequired();
     GitUrlSyntax gitUrlSyntax = IdeVariables.PREFERRED_GIT_PROTOCOL.get(getContext());
     gitUrl = gitUrlSyntax.format(gitUrl);
     if (this.context.isOfflineMode()) {
@@ -164,7 +161,6 @@ public class GitContextImpl implements GitContext {
   @Override
   public void pull(Path repository) {
 
-    findGitRequired();
     if (this.context.isOffline()) {
       this.context.info("Skipping git pull on {} because offline", repository);
       return;
@@ -180,7 +176,6 @@ public class GitContextImpl implements GitContext {
   @Override
   public void fetch(Path repository, String remote, String branch) {
 
-    findGitRequired();
     if (branch == null) {
       branch = determineCurrentBranch(repository);
     }
@@ -198,21 +193,18 @@ public class GitContextImpl implements GitContext {
   @Override
   public String determineCurrentBranch(Path repository) {
 
-    findGitRequired();
     return runGitCommandAndGetSingleOutput("Failed to determine current branch of git repository", repository, "branch", "--show-current");
   }
 
   @Override
   public String determineRemote(Path repository) {
 
-    findGitRequired();
     return runGitCommandAndGetSingleOutput("Failed to determine current origin of git repository.", repository, "remote");
   }
 
   @Override
   public void reset(Path repository, String branchName, String remoteName) {
 
-    findGitRequired();
     if ((remoteName == null) || remoteName.isEmpty()) {
       remoteName = DEFAULT_REMOTE;
     }
@@ -234,7 +226,6 @@ public class GitContextImpl implements GitContext {
   @Override
   public void cleanup(Path repository) {
 
-    findGitRequired();
     // check for untracked files
     ProcessResult result = runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, "ls-files", "--other", "--directory", "--exclude-standard");
     if (!result.getOut().isEmpty()) {
@@ -247,7 +238,6 @@ public class GitContextImpl implements GitContext {
   @Override
   public String retrieveGitUrl(Path repository) {
 
-    findGitRequired();
     return runGitCommandAndGetSingleOutput("Failed to retrieve git URL for repository", repository, "config", "--get", "remote.origin.url");
   }
 
