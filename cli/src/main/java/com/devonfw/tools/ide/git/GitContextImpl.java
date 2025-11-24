@@ -262,10 +262,10 @@ public class GitContextImpl implements GitContext {
 
     Path gitPath = findGit();
     if (gitPath == null) {
-      String message = "Git is not installed on your computer but required by IDEasy";
+      String message = "Git " + IdeContext.IS_NOT_INSTALLED;
       if (SystemInfoImpl.INSTANCE.isWindows()) {
-        message += " Please download and install git:\n"
-            + "https://git-scm.com/download/";
+        message += IdeContext.PLEASE_DOWNLOAD_AND_INSTALL_GIT + ":\n "
+            + IdeContext.WINDOWS_GIT_DOWNLOAD_URL;
       }
       throw new CliException(message);
     }
