@@ -361,10 +361,10 @@ public class GitContextImpl implements GitContext {
     ProcessContext processContext;
 
     if (this.context.isBatchMode()) {
-      processContext = this.context.newProcess().executable("git").withEnvVar("GIT_TERMINAL_PROMPT", "0").withEnvVar("GCM_INTERACTIVE", "never")
+      processContext = this.context.newProcess().executable(findGitRequired()).withEnvVar("GIT_TERMINAL_PROMPT", "0").withEnvVar("GCM_INTERACTIVE", "never")
           .withEnvVar("GIT_ASKPASS", "echo").withEnvVar("SSH_ASKPASS", "echo").errorHandling(errorHandling).directory(directory);
     } else {
-      processContext = this.context.newProcess().executable("git").errorHandling(errorHandling)
+      processContext = this.context.newProcess().executable(findGitRequired()).errorHandling(errorHandling)
           .directory(directory);
     }
 
