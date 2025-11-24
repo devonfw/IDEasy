@@ -66,6 +66,7 @@ public class PluginBasedCommandletTest extends AbstractIdeContextTest {
         new ProcessContextTestImpl(context));
 
     //assert - Check if we skip the markerfile-check because we force the plugins to install
-    assertThat(context).log().hasNoMessage("Markerfile for IDE: eclipse and active plugin: anyedit already exists.");
+    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin anyedit'.");
+    assertThat(context).log().hasNoMessageContaining("Skipping installation of plugin '{}' due to existing marker file: ");
   }
 }

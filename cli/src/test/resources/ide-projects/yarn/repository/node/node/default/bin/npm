@@ -2,5 +2,5 @@
 echo "npm $*"
 
 if [ "$1" == "install" ]; then
-  cp target/test-projects/yarn/repository/yarn/yarn/default/yarn target/test-projects/yarn/project/software/node/bin
+  cp target/ide-projects/yarn/repository/yarn/yarn/default/yarn target/ide-projects/yarn/project/software/node/bin
 fi

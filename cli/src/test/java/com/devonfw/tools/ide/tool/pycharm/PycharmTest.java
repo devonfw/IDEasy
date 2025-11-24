@@ -1,14 +1,15 @@
 package com.devonfw.tools.ide.tool.pycharm;
 
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.tool.intellij.Intellij;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * Integration test of {@link Pycharm}.
@@ -115,8 +116,14 @@ public class PycharmTest extends AbstractIdeContextTest {
     // assert
     assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"))).exists();
 
+    // part 2 of test
+
+    // arrange
+    context.getLogger().getEntries().clear();
+    // act
     commandlet.run();
-    assertThat(context).logAtDebug().hasMessage("Markerfile for IDE: pycharm and active plugin: ActivePlugin already exists.");
+    // assert
+    assertThat(context).logAtDebug().hasNoMessage("Successfully installed plugin: ActivePlugin");
   }
 
   /**
