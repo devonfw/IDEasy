@@ -114,8 +114,14 @@ public class IntellijTest extends AbstractIdeContextTest {
     // assert
     assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"))).exists();
 
+    // part 2 of test
+
+    // arrange
+    context.getLogger().getEntries().clear();
+    // act
     commandlet.run();
-    assertThat(context).logAtDebug().hasMessage("Markerfile for IDE: intellij and active plugin: ActivePlugin already exists.");
+    // assert
+    assertThat(context).logAtDebug().hasNoMessage("Successfully installed plugin: ActivePlugin");
   }
 
   /**

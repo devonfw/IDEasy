@@ -8,6 +8,7 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.EnumProperty;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 
@@ -35,7 +36,7 @@ public class Sonar extends LocalToolCommandlet {
   }
 
   @Override
-  public boolean install(boolean silent) {
+  public ToolInstallation install(boolean silent) {
 
     getCommandlet(Java.class).install();
     return super.install(silent);
