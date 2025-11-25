@@ -38,9 +38,9 @@ public class ProcessContextImpl implements ProcessContext {
 
   private final ProcessBuilder processBuilder;
 
-  private final List<String> arguments;
+  protected final List<String> arguments;
 
-  private Path executable;
+  protected Path executable;
 
   private String overriddenPath;
 
@@ -341,7 +341,7 @@ public class ProcessContextImpl implements ProcessContext {
     }
     if (isBashScript) {
       interpreter = "bash";
-      args.add(this.context.findBashRequired());
+      args.add(this.context.findBashRequired().toString());
     }
     if ("msi".equalsIgnoreCase(fileExtension)) {
       args.add(0, "/i");
@@ -370,11 +370,9 @@ public class ProcessContextImpl implements ProcessContext {
 
   private void modifyArgumentsOnBackgroundProcess(ProcessMode processMode) {
 
-    if (!processMode.isBackground()) {
-      throw new IllegalStateException("Cannot handle non background process mode!");
-    }
+    assert processMode.isBackground() : "Cannot handle non background process mode!";
 
-    String bash = this.context.findBash();
+    Path bash = this.context.findBash();
     if (bash == null) {
       this.context.warning(
           "Cannot start background process via bash because no bash installation was found. Hence, output will be discarded.");
@@ -385,7 +383,7 @@ public class ProcessContextImpl implements ProcessContext {
     String commandToRunInBackground = buildCommandToRunInBackground();
 
     this.arguments.clear();
-    this.arguments.add(bash);
+    this.arguments.add(bash.toString());
     this.arguments.add("-c");
     commandToRunInBackground += " & disown";
     this.arguments.add(commandToRunInBackground);

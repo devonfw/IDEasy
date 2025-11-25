@@ -19,7 +19,9 @@ import com.devonfw.tools.ide.environment.IdeSystemTestImpl;
 import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
 import com.devonfw.tools.ide.log.IdeLogger;
+import com.devonfw.tools.ide.network.NetworkStatusMock;
 import com.devonfw.tools.ide.os.SystemInfo;
+import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.os.WindowsHelperMock;
 import com.devonfw.tools.ide.process.ProcessContext;
@@ -55,6 +57,8 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   private Path urlsPath;
 
   protected final WireMockRuntimeInfo wireMockRuntimeInfo;
+
+  private NetworkStatusMock networkStatus;
 
   /**
    * The constructor.
@@ -152,7 +156,9 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
     if (this.answerIndex >= this.answers.length) {
       throw new IllegalStateException("End of answers reached!");
     }
-    return this.answers[this.answerIndex++];
+    String answer = this.answers[this.answerIndex++];
+    interaction(answer);
+    return answer;
   }
 
   /**
@@ -193,6 +199,13 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
       Path environmentPropertiesFile = home.resolve("environment.properties");
       if (Files.exists(environmentPropertiesFile)) {
         Properties environmentProperties = getFileAccess().readProperties(environmentPropertiesFile);
+        if (SystemInfoImpl.INSTANCE.isWindows()) {
+          String path = environmentProperties.getProperty(IdeVariables.PATH.getName());
+          if (path != null) {
+            path = path.replace(':', ';');
+            environmentProperties.setProperty(IdeVariables.PATH.getName(), path);
+          }
+        }
         return EnvironmentVariablesSystem.of(this, (Map) environmentProperties);
       }
     }
@@ -219,7 +232,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   @Override
   public WindowsHelper createWindowsHelper() {
 
-    return new WindowsHelperMock();
+    return new WindowsHelperMock(this);
   }
 
   @Override
@@ -232,22 +245,12 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   }
 
   @Override
-  public boolean isOnline() {
+  public NetworkStatusMock getNetworkStatus() {
 
-    if (this.wireMockRuntimeInfo == null) {
-      return super.isOnline();
+    if (this.networkStatus == null) {
+      this.networkStatus = new NetworkStatusMock(this, this.wireMockRuntimeInfo);
     }
-    String url = wireMockRuntimeInfo.getHttpBaseUrl() + "/health";
-    return isUrlReachable(url);
-  }
-
-  /**
-   * @param online the mocked {@link #isOnline()} result.
-   */
-  public void setOnline(Boolean online) {
-
-    requireMutable();
-    this.online = online;
+    return this.networkStatus;
   }
 
   @Override
@@ -392,6 +395,16 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
         return ideRoot;
       }
     }
+    return null;
+  }
+
+  @Override
+  public String getDefaultWindowsGitPath() {
+    return "";
+  }
+
+  @Override
+  protected Path findBashInWindowsRegistry() {
     return null;
   }
 }

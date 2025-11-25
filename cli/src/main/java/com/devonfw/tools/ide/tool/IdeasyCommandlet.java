@@ -14,8 +14,6 @@ import com.devonfw.tools.ide.commandlet.UpgradeMode;
 import com.devonfw.tools.ide.common.SimpleSystemPath;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.git.GitContext;
-import com.devonfw.tools.ide.git.GitContextImpl;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.ini.IniFile;
 import com.devonfw.tools.ide.io.ini.IniSection;
@@ -111,13 +109,14 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   }
 
   @Override
-  public boolean install(boolean silent) {
+  public ToolInstallation install(boolean silent) {
 
     this.context.requireOnline("upgrade of IDEasy", true);
 
     if (IdeVersion.isUndefined() && !this.context.isForceMode()) {
-      this.context.warning("You are using IDEasy version {} which indicates local development - skipping upgrade.", IdeVersion.getVersionString());
-      return false;
+      VersionIdentifier version = IdeVersion.getVersionIdentifier();
+      this.context.warning("You are using IDEasy version {} which indicates local development - skipping upgrade.", version);
+      return toolAlreadyInstalled(silent, getToolWithEdition(), version, this.context.newProcess(), false);
     }
     return super.install(silent);
   }
@@ -227,7 +226,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
             + "Otherwise all is correct and you can continue.");
         this.context.askToContinue("Are you sure you want to override your PATH?");
       } else {
-        path.removeEntries(s -> s.endsWith(IDE_BIN));
+        path.removeEntries(s -> s.endsWith(IDE_INSTALLATION_BIN));
       }
       path.getEntries().add(ideasyBinPath.toString());
       helper.setUserEnvironmentValue(IdeVariables.PATH.getName(), path.toString());
@@ -236,8 +235,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   }
 
   private void setGitLongpaths() {
-    GitContext gitContext = new GitContextImpl(this.context);
-    gitContext.verifyGitInstalled();
+    this.context.getGitContext().findGitRequired();
     Path configPath = this.context.getUserHome().resolve(".gitconfig");
     FileAccess fileAccess = this.context.getFileAccess();
     IniFile iniFile = fileAccess.readIniFile(configPath);
@@ -312,13 +310,13 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     }
 
     try {
-      String bashPath = this.context.findBash();
+      Path bashPath = this.context.findBash();
       if (bashPath == null) {
         this.context.warning("Git Bash not found. Cannot configure Windows Terminal integration.");
         return;
       }
 
-      configureGitBashProfile(settingsPath, bashPath);
+      configureGitBashProfile(settingsPath, bashPath.toString());
       this.context.success("Git Bash has been configured in Windows Terminal.");
     } catch (Exception e) {
       this.context.warning("Failed to configure Git Bash in Windows Terminal: {}", e.getMessage());

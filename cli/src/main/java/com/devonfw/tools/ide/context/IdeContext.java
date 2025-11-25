@@ -17,6 +17,7 @@ import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarNone;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
+import com.devonfw.tools.ide.network.NetworkStatus;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessContext;
@@ -196,19 +197,32 @@ public interface IdeContext extends IdeStartContext {
    * The keyword for project name convention.
    */
   String SETTINGS_REPOSITORY_KEYWORD = "settings";
+  String IS_NOT_INSTALLED_BUT_REQUIRED = "is not installed on your computer but required by IDEasy.";
+  String WINDOWS_GIT_DOWNLOAD_URL = "https://git-scm.com/download/";
+  String PLEASE_DOWNLOAD_AND_INSTALL_GIT = "Please download and install git";
+
+  /**
+   * @return the {@link NetworkStatus} for online check and related operations.
+   */
+  NetworkStatus getNetworkStatus();
 
   /**
    * @return {@code true} if {@link #isOfflineMode() offline mode} is active or we are NOT {@link #isOnline() online}, {@code false} otherwise.
+   * @deprecated use {@link #getNetworkStatus()}
    */
   default boolean isOffline() {
 
-    return isOfflineMode() || !isOnline();
+    return getNetworkStatus().isOffline();
   }
 
   /**
    * @return {@code true} if we are currently online (Internet access is available), {@code false} otherwise.
+   * @deprecated use {@link #getNetworkStatus()}
    */
-  boolean isOnline();
+  default boolean isOnline() {
+
+    return getNetworkStatus().isOnline();
+  }
 
   /**
    * Print the IDEasy {@link #LOGO logo}.
@@ -655,24 +669,12 @@ public interface IdeContext extends IdeStartContext {
    */
   default Path getMavenConfigurationFolder() {
 
-    Path confPath = getConfPath();
-    Path mvnConfFolder = null;
-    if (confPath != null) {
-      mvnConfFolder = confPath.resolve(Mvn.MVN_CONFIG_FOLDER);
-      if (!Files.isDirectory(mvnConfFolder)) {
-        Path m2LegacyFolder = confPath.resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER);
-        if (Files.isDirectory(m2LegacyFolder)) {
-          mvnConfFolder = m2LegacyFolder;
-        } else {
-          mvnConfFolder = null; // see fallback below
-        }
-      }
+    if (getIdeHome() == null) {
+      // fallback to USER_HOME/.m2 folder if called outside an IDEasy project
+      return getUserHome().resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER);
     }
-    if (mvnConfFolder == null) {
-      // fallback to USER_HOME/.m2 folder
-      mvnConfFolder = getUserHome().resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER);
-    }
-    return mvnConfFolder;
+    Mvn mvn = getCommandletManager().getCommandlet(Mvn.class);
+    return mvn.getMavenConfigurationFolder();
   }
 
   /**
@@ -752,24 +754,26 @@ public interface IdeContext extends IdeStartContext {
   /**
    * Finds the path to the Bash executable.
    *
-   * @return the {@link String} to the Bash executable, or {@code null} if Bash is not found
+   * @return the {@link Path} to the Bash executable, or {@code null} if Bash is not found.
    */
-  String findBash();
+  Path findBash();
 
   /**
    * Finds the path to the Bash executable.
    *
-   * @return the {@link String} to the Bash executable. Throws an {@link IllegalStateException} if no bash was found.
+   * @return the {@link Path} to the Bash executable. Throws a {@link CliException} if no bash was found.
    */
-  default String findBashRequired() {
-    String bash = findBash();
+  default Path findBashRequired() {
+    Path bash = findBash();
     if (bash == null) {
-      String message = "Could not find bash what is a prerequisite of IDEasy.";
+      String message = "Bash " + IS_NOT_INSTALLED_BUT_REQUIRED;
       if (getSystemInfo().isWindows()) {
-        message = message + "\nPlease install Git for Windows and rerun.";
+        message += " " + PLEASE_DOWNLOAD_AND_INSTALL_GIT + ":\n " + WINDOWS_GIT_DOWNLOAD_URL;
+        throw new CliException(message);
       }
-      throw new IllegalStateException(message);
+      bash = Path.of("bash");
     }
+
     return bash;
   }
 
