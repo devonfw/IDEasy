@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.url.model;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -36,7 +38,7 @@ public class UrlMetadata implements AbstractUrlMetadata {
    */
   public UrlMetadata(IdeContext context) {
 
-    this(context, new UrlRepository(context.getUrlsPath()));
+    this(context, createRepository(context));
   }
 
   /**
@@ -51,6 +53,14 @@ public class UrlMetadata implements AbstractUrlMetadata {
     this.context = context;
     this.repository = urlRepository;
     this.toolEdition2VersionMap = new HashMap<>();
+  }
+
+  private static UrlRepository createRepository(IdeContext context) {
+    Path urlsPath = context.getUrlsPath();
+    if (urlsPath == null) {
+      urlsPath = Paths.get("urls");
+    }
+    return new UrlRepository(urlsPath);
   }
 
   /**
