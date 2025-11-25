@@ -23,6 +23,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class ToolSecurity {
 
+  static final String PROPERTY_ISSUES = "issues";
+
   private static final ObjectMapper MAPPER = JsonMapping.create();
 
   private static final ToolSecurity EMPTY = new ToolSecurity(Collections.emptyList());
