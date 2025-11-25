@@ -261,11 +261,7 @@ public class GitContextImpl implements GitContext {
     return gitPath;
   }
 
-  /**
-   * Finds the path to the Git executable.
-   *
-   * @return the {@link Path} to the Git executable, or {@code null} if Git is not found.
-   */
+  @Override
   public Path findGit() {
     if (this.git != null) {
       return this.git;
