@@ -172,7 +172,7 @@ public class SystemPath {
   private Path findBinaryInOrder(Path path, String tool) {
 
     List<String> extensionPriority = List.of("");
-    if (SystemInfoImpl.INSTANCE.isWindows()) {
+    if (this.context.getSystemInfo().isWindows() || SystemInfoImpl.INSTANCE.isWindows()) {
       extensionPriority = EXTENSION_PRIORITY;
     }
     for (String extension : extensionPriority) {

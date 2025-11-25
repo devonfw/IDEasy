@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.step;
 
 import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
 import com.devonfw.tools.ide.log.IdeSubLogger;
 
@@ -255,23 +256,23 @@ public interface Step {
 
   /**
    * @param stepCode the {@link Callable} to {@link Callable#call() execute} for this {@link Step}.
-   * @param resultOnError the result to be returned in case of a {@link Throwable error}.
+   * @param resultOnErrorSupplier the {@link Supplier} {@link Supplier#get() providing} the result to be returned in case of a {@link Throwable error}.
    * @param <R> type of the return value.
    * @return the value returned from {@link Callable#call()}.
    */
-  default <R> R call(Callable<R> stepCode, R resultOnError) {
+  default <R> R call(Callable<R> stepCode, Supplier<R> resultOnErrorSupplier) {
 
-    return call(stepCode, false, resultOnError);
+    return call(stepCode, false, resultOnErrorSupplier);
   }
 
   /**
    * @param stepCode the {@link Callable} to {@link Callable#call() execute} for this {@link Step}.
    * @param rethrow - {@code true} to rethrow a potential {@link Throwable error}.
-   * @param resultOnError the result to be returned in case of a {@link Throwable error}.
+   * @param resultOnErrorSupplier the {@link Supplier} {@link Supplier#get() providing} the result to be returned in case of a {@link Throwable error}.
    * @param <R> type of the return value.
    * @return the value returned from {@link Callable#call()}.
    */
-  default <R> R call(Callable<R> stepCode, boolean rethrow, R resultOnError) {
+  default <R> R call(Callable<R> stepCode, boolean rethrow, Supplier<R> resultOnErrorSupplier) {
 
     try {
       R result = stepCode.call();
@@ -290,7 +291,7 @@ public interface Step {
           throw new IllegalStateException(e);
         }
       }
-      return resultOnError;
+      return resultOnErrorSupplier.get();
     } finally {
       close();
     }
