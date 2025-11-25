@@ -3,10 +3,12 @@ package com.devonfw.tools.ide.environment;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.devonfw.tools.ide.context.IdeContext;
+
 /**
- * Subclass of {@link EnvironmentVariablesResolved} that resolves variables recursively and allows new variables to be added to the resolver.
+ * Subclass of {@link EnvironmentVariablesMap} that resolves variables recursively and allows new variables to be added to the resolver.
  */
-public class ExtensibleEnvironmentVariables extends EnvironmentVariablesResolved {
+public class ExtensibleEnvironmentVariables extends EnvironmentVariablesMap {
 
   private final Map<String, String> additionalEnvironmentVariables;
 
@@ -14,9 +16,10 @@ public class ExtensibleEnvironmentVariables extends EnvironmentVariablesResolved
    * The constructor.
    *
    * @param parent the parent {@link EnvironmentVariables} to inherit from.
+   * @param context the context to use.
    */
-  public ExtensibleEnvironmentVariables(AbstractEnvironmentVariables parent) {
-    super(parent);
+  public ExtensibleEnvironmentVariables(AbstractEnvironmentVariables parent, IdeContext context) {
+    super(parent, context);
     this.additionalEnvironmentVariables = new HashMap<>();
   }
 
@@ -35,5 +38,15 @@ public class ExtensibleEnvironmentVariables extends EnvironmentVariablesResolved
       return value;
     }
     return super.getValue(name, ignoreDefaultValue);
+  }
+
+  @Override
+  protected Map<String, String> getVariables() {
+    return this.additionalEnvironmentVariables;
+  }
+
+  @Override
+  public EnvironmentVariablesType getType() {
+    return EnvironmentVariablesType.TOOL;
   }
 }

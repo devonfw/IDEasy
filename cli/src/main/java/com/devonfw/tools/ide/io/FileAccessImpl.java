@@ -1026,6 +1026,39 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   }
 
   @Override
+  public Path findAncestorWithFolder(
+      Path start,
+      String folderName,
+      String stopBeforeParentName
+  ) {
+
+    Path current = start.toAbsolutePath().normalize();
+
+    while (current != null) {
+
+      Path candidate = current.resolve(folderName);
+      if (Files.isDirectory(candidate)) {
+        return current;
+      }
+
+      Path parent = current.getParent();
+      if (parent == null) {
+        break;
+      }
+
+      Path parentName = parent.getFileName();
+      if (parentName != null &&
+          parentName.toString().equalsIgnoreCase(stopBeforeParentName)) {
+        break;
+      }
+
+      // Ascend
+      current = parent;
+    }
+    return null;
+  }
+
+  @Override
   public List<Path> listChildrenMapped(Path dir, Function<Path, Path> filter) {
 
     if (!Files.isDirectory(dir)) {

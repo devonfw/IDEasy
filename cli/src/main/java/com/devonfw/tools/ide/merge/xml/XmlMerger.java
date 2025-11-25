@@ -112,8 +112,8 @@ public class XmlMerger extends FileMerger implements XmlMergeSupport {
   public Document merge(XmlMergeDocument templateDocument, XmlMergeDocument workspaceDocument, boolean workspaceFileExists) {
 
     Document resultDocument;
-    Path source = templateDocument.getPath();
-    Path template = workspaceDocument.getPath();
+    Path template = templateDocument.getPath();
+    Path source = workspaceDocument.getPath();
     this.context.debug("Merging {} into {} ...", template, source);
     Element templateRoot = templateDocument.getRoot();
     QName templateQName = XmlMergeSupport.getQualifiedName(templateRoot);
@@ -183,6 +183,19 @@ public class XmlMerger extends FileMerger implements XmlMergeSupport {
     } catch (Exception e) {
       throw new IllegalStateException("Failed to load XML from: " + file, e);
     }
+  }
+
+  /**
+   * Creates an empty but valid xml file.
+   *
+   * @param tagName name of the tag to use for the root node.
+   * @param file Path of the file to create.
+   */
+  public void createValidEmptyXmlFile(String tagName, Path file) {
+    Document document = DOCUMENT_BUILDER.newDocument();
+    Element root = document.createElement(tagName);
+    document.appendChild(root);
+    save(new XmlMergeDocument(document, file));
   }
 
   /**

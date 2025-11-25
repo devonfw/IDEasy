@@ -8,6 +8,7 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFilePermission;
 import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -330,6 +331,23 @@ public interface FileAccess {
    * @return the first child {@link Path} matching the given {@link Predicate} or {@code null} if no match was found.
    */
   Path findFirst(Path dir, Predicate<Path> filter, boolean recursive);
+
+  /**
+   * Searches upward from the given starting path to find the nearest ancestor directory that contains a specific subfolder. The search stops before ascending
+   * into any parent directory whose name matches the provided stop boundary.
+   *
+   * @param start the starting {@link Path} from which to begin the upward traversal. Must not be {@code null}.
+   * @param folderName the name of the subfolder to look for in each ancestor directory (e.g., ".idea"). Must not be {@code null} or empty.
+   * @param stopBeforeParentName the name of a parent directory at which the search should stop (case-insensitive). The method will not ascend into this
+   *     directory. For example, if this is "workspaces", the search will stop at the child of "workspaces" and will not check inside "workspaces" itself.
+   * @return {@link Path} of the ancestor directory that contains the specified subfolder, or {@link Optional#empty()} if no such ancestor is found before
+   *     reaching the stop boundary.
+   */
+  Path findAncestorWithFolder(
+      Path start,
+      String folderName,
+      String stopBeforeParentName
+  );
 
   /**
    * @param dir the {@link Path} to the directory where to list the children.

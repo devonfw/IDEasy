@@ -73,50 +73,44 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   }
 
   private EnvironmentVariables getIntellijEnvironmentVariables(Path projectPath) {
-    ExtensibleEnvironmentVariables environmentVariables = new ExtensibleEnvironmentVariables((AbstractEnvironmentVariables) context.getVariables().getParent());
+    ExtensibleEnvironmentVariables environmentVariables = new ExtensibleEnvironmentVariables(
+        (AbstractEnvironmentVariables) this.context.getVariables().getParent(), this.context);
 
     environmentVariables.addVariableResolver("PROJECT_PATH", projectPath.toString());
-    return environmentVariables;
+    return environmentVariables.resolved();
   }
 
   private void mergeConfig(Path repositoryPath, String configName) throws IOException {
     Path workspacePath = getOrCreateWorkspaceXmlFile(repositoryPath, configName);
 
-    XmlMerger xmlMerger = new XmlMerger(context);
-    Path templatePath = this.context.getSettingsPath().resolve(TEMPLATE_LOCATION).resolve(configName);
+    if (workspacePath != null) {
+      XmlMerger xmlMerger = new XmlMerger(context);
+      Path templatePath = this.context.getSettingsPath().resolve(TEMPLATE_LOCATION).resolve(configName);
 
-    EnvironmentVariables environmentVariables = getIntellijEnvironmentVariables(repositoryPath.getFileName());
+      EnvironmentVariables environmentVariables = getIntellijEnvironmentVariables(repositoryPath.getFileName());
 
-    XmlMergeDocument workspaceDocument = xmlMerger.load(workspacePath);
-    XmlMergeDocument templateDocument = xmlMerger.loadAndResolve(templatePath, environmentVariables);
+      if (!Files.exists(workspacePath)) {
+        xmlMerger.createValidEmptyXmlFile("project", workspacePath);
+      }
+      XmlMergeDocument workspaceDocument = xmlMerger.load(workspacePath);
+      XmlMergeDocument templateDocument = xmlMerger.loadAndResolve(templatePath, environmentVariables);
 
-    Document mergedDocument = xmlMerger.merge(templateDocument, workspaceDocument, false);
+      Document mergedDocument = xmlMerger.merge(templateDocument, workspaceDocument, false);
 
-    xmlMerger.save(mergedDocument, workspacePath);
+      xmlMerger.save(mergedDocument, workspacePath);
+    }
   }
 
   private Path getOrCreateWorkspaceXmlFile(Path repositoryPath, String fileName) {
-    Path workspacesPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES);
-    int repositoryNameCount = repositoryPath.getNameCount();
-    Path workspaceFolder = workspacesPath;
-    for (int i = 0; i < repositoryNameCount; i++) {
-      workspaceFolder = workspacesPath.resolve(repositoryPath.getName(i));
-      if (Files.exists(workspaceFolder)) {
-        break;
-      }
-    }
-    Path workspaceFilePath = workspaceFolder.resolve("." + IDEA).resolve(fileName);
     FileAccess fileAccess = new FileAccessImpl(context);
-    if (!fileAccess.isFile(workspaceFilePath)) {
-      // xml merger fails when merging an empty file
-      // this should probably be fixed in the xml merger, but for now here is a workaround:
-      fileAccess.writeFileContent("""
-          <?xml version="1.0" encoding="UTF-8"?>
-          <project version="4">
-          </project>
-          """, workspaceFilePath, true);
+
+    Path ideaParentPath = fileAccess
+        .findAncestorWithFolder(repositoryPath, "." + IDEA, "workspaces");
+
+    if (ideaParentPath != null) {
+      return ideaParentPath.resolve("." + IDEA).resolve(fileName);
     }
-    return workspaceFilePath;
+    return null;
   }
 
   private boolean importTemplatesExist() {
