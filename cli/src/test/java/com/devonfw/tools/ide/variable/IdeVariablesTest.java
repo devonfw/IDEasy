@@ -40,4 +40,16 @@ public class IdeVariablesTest extends Assertions {
     assertThat(httpVersions2_11).containsExactly(Version.HTTP_2, Version.HTTP_1_1);
   }
 
+  /** Test of {@link IdeVariables#IDE_TOOLS} with bash array syntax using commas. */
+  @Test
+  public void testIdeToolsWithCommasInBashArray() {
+
+    // arrange
+    IdeContext context = IdeTestContextMock.get();
+    // act - using bash array syntax with commas (supported for convenience)
+    List<String> ideTools = IdeVariables.IDE_TOOLS.fromString("(java, maven, python, node)", context);
+    // assert - should parse correctly with comma as separator
+    assertThat(ideTools).containsExactly("java", "maven", "python", "node");
+  }
+
 }

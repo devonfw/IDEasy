@@ -13,6 +13,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.function.Predicate;
 
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliArgument;
@@ -84,6 +85,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   public static final String BASH = "bash";
   private static final String DEFAULT_WINDOWS_GIT_PATH = "C:\\Program Files\\Git\\bin\\bash.exe";
 
+  private static final String OPTION_DETAILS_START = "([";
+
   private final IdeStartContextImpl startContext;
 
   private Path ideHome;
@@ -145,6 +148,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   private WindowsHelper windowsHelper;
 
   private final Map<String, String> privacyMap;
+
+  private Path bash;
 
   /**
    * The constructor.
@@ -939,7 +944,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   @Override
   public <O> O question(O[] options, String question, Object... args) {
 
-    assert (options.length >= 2);
+    assert (options.length > 0);
     interaction(question, args);
     return displayOptionsAndGetAnswer(options);
   }
@@ -949,7 +954,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     int i = 0;
     for (O option : options) {
       i++;
-      String key = "" + option;
+      String title = "" + option;
+      String key = computeOptionKey(title);
       addMapping(mapping, key, option);
       String numericKey = Integer.toString(i);
       if (numericKey.equals(key)) {
@@ -957,7 +963,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       } else {
         addMapping(mapping, numericKey, option);
       }
-      interaction("Option " + numericKey + ": " + key);
+      interaction("Option " + numericKey + ": " + title);
     }
     O option = null;
     if (isBatchMode()) {
@@ -975,6 +981,23 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       }
     }
     return option;
+  }
+
+  private static String computeOptionKey(String option) {
+    String key = option;
+    int index = -1;
+    for (char c : OPTION_DETAILS_START.toCharArray()) {
+      int currentIndex = key.indexOf(c);
+      if (currentIndex != -1) {
+        if ((index == -1) || (currentIndex < index)) {
+          index = currentIndex;
+        }
+      }
+    }
+    if (index > 0) {
+      key = key.substring(0, index).trim();
+    }
+    return key;
   }
 
   /**
@@ -1367,60 +1390,99 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   @Override
-  public String findBash() {
-
-    String bash = BASH;
-    if (SystemInfoImpl.INSTANCE.isWindows()) {
-      String variable = IdeVariables.BASH_PATH.getName();
-      bash = getVariables().get(variable);
-
-      if (bash != null) {
-        Path bashPathVariable = Path.of(bash);
-        if (Files.exists(bashPathVariable)) {
-          debug("{} variable was found and points to: {}", IdeVariables.BASH_PATH, bashPathVariable);
-        } else {
-          warning("{} variable was found at: {} but is not pointing to an existing file", IdeVariables.BASH_PATH, bashPathVariable);
-          bash = null;
+  public Path findBash() {
+    if (this.bash != null) {
+      return this.bash;
+    }
+    Path bashPath = findBashOnBashPath();
+    if (bashPath == null) {
+      bashPath = findBashInPath();
+      if (bashPath == null && getSystemInfo().isWindows()) {
+        bashPath = findBashOnWindowsDefaultGitPath();
+        if (bashPath == null) {
+          bashPath = findBashInWindowsRegistry();
         }
+      }
+    }
+    if (bashPath == null) {
+      error("No bash executable could be found on your system.");
+    } else {
+      this.bash = bashPath;
+    }
+    return bashPath;
+  }
+
+  private Path findBashOnBashPath() {
+    trace("Trying to find BASH_PATH environment variable.");
+    Path bash;
+    String bashPathVariableName = IdeVariables.BASH_PATH.getName();
+    String bashVariable = getVariables().get(bashPathVariableName);
+    if (bashVariable != null) {
+      bash = Path.of(bashVariable);
+      if (Files.exists(bash)) {
+        debug("{} environment variable was found and points to: {}", bashPathVariableName, bash);
+        return bash;
       } else {
-        debug("{} variable was not found", IdeVariables.BASH_PATH);
+        error("The environment variable {} points to a non existing file: {}", bashPathVariableName, bash);
+        return null;
       }
+    } else {
+      debug("{} environment variable was not found", bashPathVariableName);
+      return null;
+    }
+  }
 
-      if (bash == null) {
-        bash = findBashOnWindows();
-        if (bash == null) {
-          trace("Bash not found. Trying to search on system PATH.");
-          variable = IdeVariables.PATH.getName();
-          if (variable != null) {
-            Path plainBash = Path.of(BASH);
-            Path bashPath = getPath().findBinary(plainBash);
-            bash = bashPath.toAbsolutePath().toString();
-            if (bash.contains("AppData\\Local\\Microsoft\\WindowsApps")) {
-              warning("Only found windows fake bash that is not usable!");
-              bash = null;
-            }
-          } else {
-            debug("{} was not found", IdeVariables.PATH);
-          }
-        }
-        if (bash == null) {
-          info("Could not find bash in Windows registry, using bash from {} as fallback: {}", variable, bash);
+  /**
+   * @param path the path to check.
+   * @param toIgnore the String sequence which needs to be checked and ignored.
+   * @return {@code true} if the sequence to ignore was not found, {@code false} if the path contained the sequence to ignore.
+   */
+  private boolean checkPathToIgnoreLowercase(Path path, String toIgnore) {
+    String s = path.toAbsolutePath().toString().toLowerCase(Locale.ROOT);
+    return !s.contains(toIgnore);
+  }
+
+  /**
+   * Tries to find the bash.exe within the PATH environment variable.
+   *
+   * @return Path to bash.exe if found in PATH environment variable, {@code null} if bash.exe was not found.
+   */
+  private Path findBashInPath() {
+    trace("Trying to find bash in PATH environment variable.");
+    Path bash;
+    String pathVariableName = IdeVariables.PATH.getName();
+    if (pathVariableName != null) {
+      Path plainBash = Path.of(BASH);
+      Predicate<Path> pathsToIgnore = p -> checkPathToIgnoreLowercase(p, "\\appdata\\local\\microsoft\\windowsapps") && checkPathToIgnoreLowercase(p,
+          "\\windows\\system32");
+      Path bashPath = getPath().findBinary(plainBash, pathsToIgnore);
+      bash = bashPath.toAbsolutePath();
+      if (bashPath.equals(plainBash)) {
+        warning("No usable bash executable was found in your PATH environment variable!");
+        bash = null;
+      } else {
+        if (Files.exists(bashPath)) {
+          debug("A proper bash executable was found in your PATH environment variable at: {}", bash);
+        } else {
+          bash = null;
+          error("A path to a bash executable was found in your PATH environment variable at: {} but the file is not existing.", bash);
         }
       }
+    } else {
+      bash = null;
+      // this should never happen...
+      error("PATH environment variable was not found");
     }
     return bash;
   }
 
-  private String findBashOnWindows() {
-
-    trace("Trying to find bash on Windows");
-    // Check if Git Bash exists in the default location
-    Path defaultPath = Path.of(getDefaultWindowsGitPath());
-    if (!defaultPath.toString().isEmpty() && Files.exists(defaultPath)) {
-      trace("Found default path to git on Windows at: {}", getDefaultWindowsGitPath());
-      return defaultPath.toString();
-    }
-
+  /**
+   * Tries to find the bash.exe within the Windows registry.
+   *
+   * @return Path to bash.exe if found in registry, {@code null} if bash.exe was found.
+   */
+  protected Path findBashInWindowsRegistry() {
+    trace("Trying to find bash in Windows registry");
     // If not found in the default location, try the registry query
     String[] bashVariants = { "GitForWindows", "Cygwin\\setup" };
     String[] registryKeys = { "HKEY_LOCAL_MACHINE", "HKEY_CURRENT_USER" };
@@ -1433,13 +1495,32 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
         String path = getWindowsHelper().getRegistryValue(registryPath, toolValueName);
         if (path != null) {
-          String bashPath = path + "\\bin\\bash.exe";
-          debug("Found bash at: {}", bashPath);
-          return bashPath;
+          Path bashPath = Path.of(path + "\\bin\\bash.exe");
+          if (Files.exists(bashPath)) {
+            debug("Found bash at: {}", bashPath);
+            return bashPath;
+          } else {
+            error("Found bash at: {} but it is not pointing to an existing file", bashPath);
+            return null;
+          }
+        } else {
+          info("No bash executable could be found in the Windows registry.");
         }
       }
     }
     // no bash found
+    return null;
+  }
+
+  private Path findBashOnWindowsDefaultGitPath() {
+    // Check if Git Bash exists in the default location
+    trace("Trying to find bash on the Windows default git path.");
+    Path defaultPath = Path.of(getDefaultWindowsGitPath());
+    if (!defaultPath.toString().isEmpty() && Files.exists(defaultPath)) {
+      trace("Found default path to git bash on Windows at: {}", getDefaultWindowsGitPath());
+      return defaultPath;
+    }
+    debug("No bash was found on the Windows default git path.");
     return null;
   }
 

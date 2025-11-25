@@ -38,7 +38,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
   protected static final Path TEST_PROJECTS = TEST_RESOURCES.resolve("ide-projects");
 
   // will not use eclipse-target like done in maven via eclipse profile...
-  protected static final Path TEST_PROJECTS_COPY = Path.of("target/test-projects");
+  protected static final Path TEST_PROJECTS_COPY = Path.of("target/ide-projects");
 
   /** Chunk size to use for progress bars **/
   private static final int CHUNK_SIZE = 1024;

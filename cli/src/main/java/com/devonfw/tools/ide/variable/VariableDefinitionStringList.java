@@ -72,17 +72,12 @@ public class VariableDefinitionStringList extends AbstractVariableDefinitionList
     return value;
   }
 
-  private boolean isBashArray(String value) {
-
-    return value.startsWith("(") && value.endsWith(")");
-  }
-
   @Override
   public VariableLine migrateLine(VariableLine line) {
 
     line = super.migrateLine(line);
     String value = line.getValue();
-    if ((value != null) && isBashArray(value)) {
+    if ((value != null) && VariableLine.isBashArray(value)) {
       List<String> list = fromString(value, null);
       line = line.withValue(String.join(", ", list));
     }
