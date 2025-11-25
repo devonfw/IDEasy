@@ -131,7 +131,7 @@ public class StatusCommandlet extends Commandlet {
     GitContext gitContext = this.context.getGitContext();
     Path gitPath = gitContext.findGit();
     if (gitPath != null) {
-      this.context.success("Found git executable at: {}", gitContext.findGit());
+      this.context.success("Found git executable at: {}", gitPath);
     } else {
       this.context.error("No git executable was found on your system!");
     }
