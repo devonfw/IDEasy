@@ -1397,7 +1397,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     Path bashPath = findBashOnBashPath();
     if (bashPath == null) {
       bashPath = findBashInPath();
-      if (bashPath == null && getSystemInfo().isWindows()) {
+      if (bashPath == null && (getSystemInfo().isWindows() || SystemInfoImpl.INSTANCE.isWindows())) {
         bashPath = findBashOnWindowsDefaultGitPath();
         if (bashPath == null) {
           bashPath = findBashInWindowsRegistry();
