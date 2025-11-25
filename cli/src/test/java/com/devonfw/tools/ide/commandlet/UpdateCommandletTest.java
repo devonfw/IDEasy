@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.commandlet;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 
@@ -15,10 +14,13 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.variable.IdeVariables;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
  * Test of {@link UpdateCommandlet}.
  */
+@WireMockTest
 class UpdateCommandletTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_UPDATE = "update";
@@ -75,13 +77,10 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
     assertThat(context).logAtWarning().hasEntries("Templates folder is missing in settings repository.");
   }
 
-  private void deleteTemplatesFolder(IdeContext context) throws IOException {
+  private void deleteTemplatesFolder(IdeContext context) {
 
-    Path templates = context.getSettingsPath().resolve(IdeContext.FOLDER_TEMPLATES).resolve(IdeContext.FOLDER_CONF)
-        .resolve("readme");
-    Files.delete(templates);
-    Files.delete(templates.getParent());
-    Files.delete(templates.getParent().getParent());
+    Path templates = context.getSettingsPath().resolve(IdeContext.FOLDER_TEMPLATES);
+    context.getFileAccess().delete(templates);
   }
 
   /**
@@ -110,11 +109,17 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
     assertThat(context).logAtSuccess().hasMessageContaining(SUCCESS_INSTALL_OR_UPDATE_SOFTWARE);
   }
 
+  /**
+   * Tests if the update process can continue even when the settings were deleted. This test is highly mocked using Wiremock and other classes f.e.
+   * {@link com.devonfw.tools.ide.git.GitContextMock} is responsible for this test to succeed and not use our real repository.
+   *
+   * @param wireMockRuntimeInfo wireMock server on a random port
+   */
   @Test
-  public void testRunUpdateSoftwareDoesNotFailWhenSettingPathIsDeleted() {
+  public void testRunUpdateSoftwareDoesNotFailWhenSettingsPathIsDeleted(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_UPDATE);
+    IdeTestContext context = newContext(PROJECT_UPDATE, wireMockRuntimeInfo);
     Path settingsPath = context.getSettingsPath();
     context.getFileAccess().delete(settingsPath);
     UpdateCommandlet update = context.getCommandletManager().getCommandlet(UpdateCommandlet.class);
@@ -122,7 +127,7 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
 
     // act
     update.run();
-    //
+
     // assert
     assertThat(context).logAtSuccess().hasMessage(SUCCESS_UPDATE_SETTINGS);
     assertThat(context).logAtSuccess().hasMessageContaining(SUCCESS_INSTALL_OR_UPDATE_SOFTWARE);
