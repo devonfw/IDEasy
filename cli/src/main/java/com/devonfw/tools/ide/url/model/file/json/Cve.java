@@ -16,6 +16,12 @@ import com.devonfw.tools.ide.version.VersionRange;
  */
 public record Cve(String id, double severity, List<VersionRange> versions) {
 
+  static final String PROPERTY_ID = "id";
+
+  static final String PROPERTY_SEVERITY = "severity";
+
+  static final String PROPERTY_VERSIONS = "versions";
+
   /**
    * @param cves the {@link Cve}s to summarize.
    * @return the sum of {@link Cve#severity()}.
