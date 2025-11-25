@@ -188,6 +188,13 @@ public interface GitContext {
   Path findGitRequired();
 
   /**
+   * Finds the path to the Git executable.
+   *
+   * @return the {@link Path} to the Git executable, or {@code null} if Git is not found.
+   */
+  Path findGit();
+
+  /**
    * @param repository the {@link Path} to the folder where the git repository is located.
    * @return the name of the current branch.
    */
