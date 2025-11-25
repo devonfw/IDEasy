@@ -156,7 +156,9 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
     if (this.answerIndex >= this.answers.length) {
       throw new IllegalStateException("End of answers reached!");
     }
-    return this.answers[this.answerIndex++];
+    String answer = this.answers[this.answerIndex++];
+    interaction(answer);
+    return answer;
   }
 
   /**
