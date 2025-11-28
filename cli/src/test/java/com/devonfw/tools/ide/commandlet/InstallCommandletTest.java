@@ -68,7 +68,8 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
     install.run();
     // assert
     assertTestInstall(context);
-    assertThat(context).logAtSuccess().hasMessage("Successfully installed java in version " + version21 + " replacing previous version " + version17);
+    assertThat(context).logAtSuccess()
+        .hasMessage("Successfully installed java in version " + version21 + " replacing previous version " + version17 + " of java");
     assertThat(context.getSoftwarePath().resolve("java/.ide.software.version")).exists().hasContent(version21);
 
     // now we install the initial version again that should just change the symlink
@@ -81,7 +82,8 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
     assertTestInstall(context);
     assertThat(context).logAtDebug().hasMessage("Version " + version17 + " of tool java is already installed at " + context.getSoftwareRepositoryPath().resolve(
         DefaultToolRepository.ID_DEFAULT).resolve("java").resolve("java").resolve(version17));
-    assertThat(context).logAtSuccess().hasMessage("Successfully installed java in version " + version17 + " replacing previous version " + version21);
+    assertThat(context).logAtSuccess()
+        .hasMessage("Successfully installed java in version " + version17 + " replacing previous version " + version21 + " of java");
     assertThat(context.getSoftwarePath().resolve("java/.ide.software.version")).exists().hasContent(version17);
   }
 
@@ -96,12 +98,11 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test of {@link InstallCommandlet} with --skip-updates flag. Verifies that when a matching version is already installed, 
-   * no download or update is performed even when a more recent version is available.
+   * Test of {@link InstallCommandlet} with --skip-updates flag. Verifies that when a matching version is already installed, no download or update is performed
+   * even when a more recent version is available.
    * <p>
-   * Test scenario: Install java 17.0.6, then try to install with pattern "17*" (which would match 17.0.10 available in test data).
-   * Without --skip-updates: would download and install 17.0.10 (the latest 17.x version)
-   * With --skip-updates: should skip update and keep 17.0.6 since it matches the pattern
+   * Test scenario: Install java 17.0.6, then try to install with pattern "17*" (which would match 17.0.10 available in test data). Without --skip-updates:
+   * would download and install 17.0.10 (the latest 17.x version) With --skip-updates: should skip update and keep 17.0.6 since it matches the pattern
    *
    * @param wmRuntimeInfo wireMock server on a random port
    */
@@ -117,21 +118,21 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
     install.version.setValueAsString(installedVersion, context);
     install.run();
     assertThat(context.getSoftwarePath().resolve("java/.ide.software.version")).exists().hasContent(installedVersion);
-    
+
     // arrange - enable --skip-updates mode and configure wildcard version pattern
     // Pattern "17*" matches installed 17.0.6 but would normally resolve to latest 17.0.10
     context.getStartContext().setSkipUpdatesMode(true);
     install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
     install.tool.setValueAsString("java", context);
     install.version.setValueAsString("17*", context);
-    
+
     // Record the log entry count before the action
     int logCountBefore = context.getLogger().getEntries().size();
-    
+
     // act - try to install with --skip-updates
     // Should skip the update to 17.0.10 since 17.0.6 matches the pattern
     install.run();
-    
+
     // assert - should NOT download 17.0.10, should stay on 17.0.6
     List<IdeLogEntry> newLogEntries = context.getLogger().getEntries().subList(logCountBefore, context.getLogger().getEntries().size());
     boolean hasDownloadMessage = newLogEntries.stream().anyMatch(e -> e.message().contains("Trying to download"));
@@ -140,8 +141,8 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test of {@link InstallCommandlet} with --skip-updates flag when tool is not yet installed.
-   * Verifies that even with --skip-updates enabled, a tool is still installed if it doesn't exist yet.
+   * Test of {@link InstallCommandlet} with --skip-updates flag when tool is not yet installed. Verifies that even with --skip-updates enabled, a tool is still
+   * installed if it doesn't exist yet.
    *
    * @param wmRuntimeInfo wireMock server on a random port
    */
@@ -154,21 +155,21 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
     InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
     install.tool.setValueAsString("java", context);
     install.version.setValueAsString("17*", context);
-    
+
     // Verify tool is not installed yet
     assertThat(context.getSoftwarePath().resolve("java/.ide.software.version")).doesNotExist();
-    
+
     // act - install with --skip-updates when tool is not installed
     install.run();
-    
+
     // assert - SHOULD download and install because tool was not installed (regardless of --skip-updates)
     assertThat(context.getSoftwarePath().resolve("java/.ide.software.version")).exists();
     assertThat(context).log().hasMessageContaining("Trying to download");
   }
 
   /**
-   * Test of {@link InstallCommandlet} with --skip-updates flag when installed version does NOT match configured version.
-   * Verifies that even with --skip-updates enabled, an update occurs if the installed version doesn't match the pattern.
+   * Test of {@link InstallCommandlet} with --skip-updates flag when installed version does NOT match configured version. Verifies that even with --skip-updates
+   * enabled, an update occurs if the installed version doesn't match the pattern.
    *
    * @param wmRuntimeInfo wireMock server on a random port
    */
@@ -182,19 +183,19 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
     install.version.setValueAsString("17.0.6", context);
     install.run();
     assertThat(context.getSoftwarePath().resolve("java/.ide.software.version")).exists().hasContent("17.0.6");
-    
+
     // arrange - enable --skip-updates and configure version that does NOT match installed version
     // Changing from "17*" to "21*" means installed 17.0.6 does NOT match
     context.getStartContext().setSkipUpdatesMode(true);
     install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
     install.tool.setValueAsString("java", context);
     install.version.setValueAsString("21*", context);
-    
+
     int logCountBefore = context.getLogger().getEntries().size();
-    
+
     // act - install with --skip-updates but with non-matching version
     install.run();
-    
+
     // assert - SHOULD download and install 21.x because installed 17.0.6 does NOT match pattern "21*"
     List<IdeLogEntry> newLogEntries = context.getLogger().getEntries().subList(logCountBefore, context.getLogger().getEntries().size());
     boolean hasDownloadMessage = newLogEntries.stream().anyMatch(e -> e.message().contains("Trying to download") && e.message().contains("21."));
