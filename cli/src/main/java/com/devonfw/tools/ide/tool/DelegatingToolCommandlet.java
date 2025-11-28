@@ -6,8 +6,6 @@ import java.util.Set;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesFiles;
-import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -38,8 +36,13 @@ public abstract class DelegatingToolCommandlet<D extends ToolCommandlet> extends
   }
 
   @Override
-  public final ToolInstallation install(boolean silent, VersionIdentifier version, ProcessContext processContext, Step step) {
-    return getDelegate().install(silent, version, processContext, step);
+  public ToolInstallation install(ToolInstallRequest request) {
+    return getDelegate().install(request);
+  }
+
+  @Override
+  protected ToolInstallation doInstall(ToolInstallRequest request) {
+    return getDelegate().doInstall(request);
   }
 
   @Override

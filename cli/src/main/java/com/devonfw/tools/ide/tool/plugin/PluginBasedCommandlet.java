@@ -14,6 +14,7 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 
 /**
@@ -196,7 +197,9 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
    */
   public void installPlugin(ToolPluginDescriptor plugin, final Step step) {
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI);
-    install(true, getConfiguredVersion(), pc, null);
+    ToolInstallRequest request = new ToolInstallRequest(true);
+    request.setProcessContext(pc);
+    install(request);
     installPlugin(plugin, step, pc);
   }
 
