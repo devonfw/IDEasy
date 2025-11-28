@@ -12,7 +12,6 @@ public class VscodeTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_VSCODE = "vscode";
 
-
   @Test
   public void testVscodeInstall() {
 

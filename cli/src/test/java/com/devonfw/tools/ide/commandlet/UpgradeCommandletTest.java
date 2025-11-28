@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.cli.CliOfflineException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 
@@ -35,7 +36,7 @@ class UpgradeCommandletTest extends AbstractIdeContextTest {
     UpgradeCommandlet upgrade = context.getCommandletManager().getCommandlet(UpgradeCommandlet.class);
 
     // act
-    CliException e = assertThrows(CliException.class, upgrade::run);
+    CliException e = assertThrows(CliOfflineException.class, upgrade::run);
     // assert
     assertThat(e).hasMessage("You are offline but Internet access is required for upgrade of IDEasy");
   }
