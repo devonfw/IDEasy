@@ -152,7 +152,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    */
   public ProcessResult runTool(String... args) {
 
-    return runTool(ProcessMode.DEFAULT, (GenericVersionRange) null, args);
+    return runTool(ProcessMode.DEFAULT, null, args);
   }
 
   /**
