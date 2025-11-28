@@ -15,7 +15,7 @@ public final class ToolInstallRequest {
 
   private final boolean direct;
 
-  private boolean dependency;
+  private boolean cveCheckDone;
 
   private ToolEditionAndVersion requested;
 
@@ -72,6 +72,20 @@ public final class ToolInstallRequest {
   public boolean isDirect() {
 
     return this.direct;
+  }
+
+  /**
+   * @return {@code true} if CVEs have already been checked, {@code false} otherwise.
+   */
+  public boolean isCveCheckDone() {
+
+    return this.cveCheckDone;
+  }
+
+  void setCveCheckDone() {
+
+    assert !this.cveCheckDone;
+    this.cveCheckDone = true;
   }
 
   /**

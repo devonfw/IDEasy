@@ -526,13 +526,17 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   protected VersionIdentifier cveCheck(ToolInstallRequest request, boolean skipSuggestions) {
 
     ToolEditionAndVersion requested = request.getRequested();
-    ToolEdition toolEdition = requested.getEdition();
     VersionIdentifier resolvedVersion = requested.getResolvedVersion();
+    if (request.isCveCheckDone()) {
+      return resolvedVersion;
+    }
+    ToolEdition toolEdition = requested.getEdition();
     GenericVersionRange allowedVersions = requested.getVersion();
     ToolSecurity toolSecurity = this.context.getDefaultToolRepository().findSecurity(this.tool, toolEdition.edition());
     double minSeverity = IdeVariables.CVE_MIN_SEVERITY.get(context);
     Collection<Cve> issues = toolSecurity.findCves(resolvedVersion, this.context, minSeverity);
     ToolVersionChoice currentChoice = ToolVersionChoice.ofCurrent(resolvedVersion, issues);
+    request.setCveCheckDone();
     if (logCvesAndReturnTrueForNone(toolEdition, resolvedVersion, currentChoice.option(), issues)) {
       return resolvedVersion;
     }
