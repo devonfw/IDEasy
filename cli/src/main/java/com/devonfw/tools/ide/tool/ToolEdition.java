@@ -8,6 +8,12 @@ package com.devonfw.tools.ide.tool;
  */
 public record ToolEdition(String tool, String edition) {
 
+  public ToolEdition {
+    if (edition == null) {
+      edition = tool;
+    }
+  }
+
   @Override
   public String toString() {
 

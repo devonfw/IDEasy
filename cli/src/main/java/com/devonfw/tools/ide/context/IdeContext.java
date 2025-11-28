@@ -392,7 +392,11 @@ public interface IdeContext extends IdeStartContext {
    */
   default Path getIdeInstallationPath() {
 
-    return getIdePath().resolve(FOLDER_INSTALLATION);
+    Path idePath = getIdePath();
+    if (idePath == null) {
+      return null;
+    }
+    return idePath.resolve(FOLDER_INSTALLATION);
   }
 
   /**

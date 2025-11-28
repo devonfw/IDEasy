@@ -79,7 +79,7 @@ public abstract class NpmBasedCommandlet extends NodeBasedCommandlet {
     ProcessContext pc = this.context.newProcess().errorHandling(errorHandling);
     Npm npm = this.context.getCommandletManager().getCommandlet(Npm.class);
 
-    return npm.runTool(processMode, null, pc, args);
+    return npm.runTool(pc, processMode, args);
   }
 
 }

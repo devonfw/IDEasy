@@ -13,7 +13,6 @@ import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
-import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -116,29 +115,29 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   }
 
   @Override
-  public ToolInstallation install(boolean silent, VersionIdentifier configuredVersion, ProcessContext processContext, Step step) {
+  protected ToolInstallation doInstall(ToolInstallRequest request) {
 
+    VersionIdentifier resolvedVersion = request.getRequested().getResolvedVersion();
     if (this.context.getSystemInfo().isLinux()) {
       // on Linux global tools are typically installed via the package manager of the OS
       // if a global tool implements this method to return at least one PackageManagerCommand, then we install this way.
       List<PackageManagerCommand> commands = getInstallPackageManagerCommands();
       if (!commands.isEmpty()) {
-        boolean newInstallation = runWithPackageManager(silent, commands);
-        Path rootDir = getInstallationPath(getConfiguredEdition(), configuredVersion);
-        return createToolInstallation(rootDir, configuredVersion, newInstallation, processContext, false);
+        boolean newInstallation = runWithPackageManager(request.isSilent(), commands);
+        Path rootDir = getInstallationPath(getConfiguredEdition(), resolvedVersion);
+        return createToolInstallation(rootDir, resolvedVersion, newInstallation, request.getProcessContext(), request.isAdditionalInstallation());
       }
     }
 
-    ToolEdition toolEdition = getToolWithEdition();
-    Path installationPath = getInstallationPath(toolEdition.edition(), configuredVersion);
+    ToolEdition toolEdition = getToolWithConfiguredEdition();
+    Path installationPath = getInstallationPath(toolEdition.edition(), resolvedVersion);
     // if force mode is enabled, go through with the installation even if the tool is already installed
     if ((installationPath != null) && !this.context.isForceMode()) {
-      return toolAlreadyInstalled(silent, toolEdition, configuredVersion, processContext, false);
+      return toolAlreadyInstalled(request);
     }
     String edition = toolEdition.edition();
     ToolRepository toolRepository = this.context.getDefaultToolRepository();
-    VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, configuredVersion, this);
-    resolvedVersion = cveCheck(toolEdition, resolvedVersion, null, false);
+    resolvedVersion = cveCheck(request, false);
     // download and install the global tool
     FileAccess fileAccess = this.context.getFileAccess();
     Path target = toolRepository.download(this.tool, edition, resolvedVersion, this);
@@ -157,11 +156,11 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
       fileAccess.delete(tmpDir);
     }
     if (exitCode == 0) {
-      asSuccess(step).log("Installation process for {} in version {} has started", this.tool, resolvedVersion);
+      asSuccess(request.getStep()).log("Installation process for {} in version {} has started", this.tool, resolvedVersion);
     } else {
       throw new CliException("Installation process for " + this.tool + " in version " + resolvedVersion + " failed with exit code " + exitCode + "!");
     }
-    installationPath = getInstallationPath(toolEdition.edition(), configuredVersion);
+    installationPath = getInstallationPath(toolEdition.edition(), resolvedVersion);
     if (installationPath == null) {
       this.context.warning("Could not find binary {} on PATH after installation.", getBinaryName());
     }

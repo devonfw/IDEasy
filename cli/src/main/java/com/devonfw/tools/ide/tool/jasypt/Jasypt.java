@@ -6,7 +6,6 @@ import java.util.Set;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.property.EnumProperty;
@@ -60,7 +59,7 @@ public class Jasypt extends LocalToolCommandlet {
   }
 
   @Override
-  public ProcessResult runTool(ProcessMode processMode, ProcessErrorHandling errorHandling, ProcessContext pc, String... args) {
+  public ProcessResult runTool(ProcessContext pc, ProcessMode processMode, String... args) {
 
     return runJasypt(determineJasyptMainClass(), pc, processMode);
   }
