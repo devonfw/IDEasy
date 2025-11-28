@@ -34,6 +34,21 @@ public class PipTest extends AbstractIdeContextTest {
     checkInstallation(context);
   }
 
+  @Test
+  public void testPipRun(WireMockRuntimeInfo wireMockRuntimeInfo) {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_PIP, wireMockRuntimeInfo);
+    Pip commandlet = new Pip(context);
+
+    // act
+    commandlet.run();
+
+    // assert
+    checkInstallation(context);
+    assertThat(context).logAtInfo().hasMessage("pip was run");
+  }
+
   private void checkInstallation(IdeTestContext context) {
 
     assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed uv");
