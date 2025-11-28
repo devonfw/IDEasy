@@ -208,6 +208,6 @@ public final class ToolInstallRequest {
    */
   public static ToolInstallRequest ofDirect() {
 
-    return new ToolInstallRequest(true, true);
+    return new ToolInstallRequest(false, true);
   }
 }
