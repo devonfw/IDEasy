@@ -34,18 +34,90 @@ Such commandlet is typically provided as first argument to the ide command and m
 
 For more details simply call `ide help`.
 
-=== Command-wrapper
+=== Tool commandlets
 
-For many commandlets the `ide` command acts as a wrapper.
-Similar to `mvnw` or `gradlew` you can use it as a proxy command.
-Therefore `ide mvn clean install` will be the same as `mvn clean install`.
-The benefit when using `ide` as wrapper is that it will even work when the command (`mvn`, `node`, `npm`, etc.) is not on your `PATH` variable or even not yet installed.
-Further, it will ensure that the actual command is called with the proper configuration of your project (e.g. in case of `mvn` with the `settings.xml` for your project).
-We see the main benefit in this for writing portable scripts that you may commit to your git repository and that will then run everywhere and will lazily install the required tools on the fly.
+For every tool that we integrated, we offer an according tool commandlet.
+Unlike other commandlets such as `update`, `upgrade`, `install`, `uninstall`, `status`, etc. a tool commandlet is always named exactly as the external tool that we integrate.
+Therefore, we always follow clear and strict principles for the tool `«tool»`:
+
+. To install the tool use this command:
++
+```
+ide install «tool» [«version»]
+```
+. Once the tool is installed, you can run the tool as following:
++
+```
+«tool» «args»
+```
+. However, you can also do the same via `ide` as a tool wrapper what even works if «tool» is not yet installed (in the correct version and edition) or on your `PATH`:
++
+```
+ide «tool» «args»
+```
+This makes IDEasy a superiour tool since it can replace `mvnw` (maven wrapper), `gradlew` (gradle wrapper), `nvm` (node version manager), etc.
+Unlike these tool-specific wrapper scripts, it will even ensure that the actual command is called with the proper configuration of your project (e.g. in case of `mvn` with the `settings.xml` and `settings-security.xml` specific for your project).
+However, if you like such wrapper and IDEasy you can still use both at the same time:
+If you call `ide mvn «args»` and IDEasy will detect a `mvnw` in your working directory or one of its parents, it will use that one instead.
+Open-source projects might love to use IDEasy but have no control over contributors cannot force them to use IDEasy.
+In such case you can combine the approaches to get the best UX and make your life easier.
+However, in teams that closely work together (esp. in enterprises), we believe that the best approach is that all team members (developers, testers, architects, etc.) use IDEasy.
+Via pull-/merge-requests they can all contribute and make suggestions to improve the link:settings.adoc[settings] following an agile approach of continuous improvement.
+We see the main benefit of using `ide` as a wrapper for writing portable scripts that you may commit to your git repository and that will then run everywhere and will lazily install the required tools on the fly.
 In your daily usage there is no need to always type `ide` as prefix to every command.
 Simply assure that you have called `ide` to setup your environment before calling the actual tool.
-
++
 NOTE: For this reason global options have to be provided after `ide` but before the commandlet and further arguments. `ide --help mvn` will print the help of our `mvn` commandlet while `ide mvn --help` will call `mvn --help` what prints the help page of maven.
+. To configure the tool we support the variables `«TOOL»_VERSION` for the version and `«TOOL»_EDITION` for the edition.
+Please note that the defaults are as following:
++
+```
+«TOOL»_VERSION=*
+«TOOL»_EDITION=«tool»
+```
+So by default you always get the latest stable version of the tool and the "standard" edition.
+Some tools support multiple editions.
+E.g. for `Eclipse` there is also a `jee` and a `cpp` edition and if you have an according license for Intellij, you can set the edition to `ultimate`.
+If you want to see available editions, you can simply browser the https://github.com/devonfw/ide-urls/[ide-urls] repository.
+It strictly follows the directory structure `«tool»/«edition»/«version»` and is the regular source for our auto-completion.
+. In case you do not want to manually edit `ide.properties` files you can even use our CLI with auto-completion to configure your project to your personal needs.
+Example:
++
+```
+ide set-edition intellij ultimate
+ide set-version intellij 2025*
+```
+
+=== Local vs. global tool commandlets
+
+When we integrate tools in IDEasy we always try to follow the link:sandbox.adoc[sandbox principle].
+This gives IDEasy the best UX and allows to install and manage different projects on the same computer that have contradicting requirements.
+We call such tool commandlets a `local tool commandlet` since it installs the tool locally into your project and will not interfere with your global operating system and its environment (variables, Windows registry, etc.).
+
+On the other hand, there are some tools where a local installation does not make sense at all.
+A good example is docker (or podman):
+This tool provides a simplified virtualization feature that requires deep integration into your operating system.
+Futher, it will require services running in the background allocating resources like memory.
+It is not reasonable to have multiple installations or even versions of docker on the same computer (maybe in VMs but not on the host).
+Therefore, we integrated `docker` as a global commandlet into IDEasy.
+As a result this will download and run the installer for you if the tool is not already installed.
+Multiple IDEasy projects on your computer that use docker will share the same global docker installation.
+Utilizing containers (via docker oder podman) projects and easily manage their own instance of further services.
+Therefore we decided not to integrate tools like databases, IAM tools like keycloak, etc. into IDEasy.
+Instead each project can create its own `docker compose` configuration to manage the required services.
+
+Also, we do not provide `git` as a local tool but consider it as a pre-requisite.
+For global tools the principle is typically "latest is greates".
+
+== Auto-completion
+
+The `ide` command supports auto-completion if you are using `bash` (or `zsh`):
+Simply press `[Tab]` key to complete a token or press it twice to suggest a next token.
+The auto-completion is smart and context-sensitive.
+Please note that for completing versions, we want to ensure the information is recent and up-to-date.
+Therefore we may have to trigger a `git pull` on the `urls` repository with the tool metadata.
+This can cause that the auto-completion of versions can take a few seconds sometimes.
+However, we implemented a smart caching mechanism so we do not call `git pull` again if already done a minute ago.
 
 == icd
 
