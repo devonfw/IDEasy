@@ -745,10 +745,10 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
             permissions = PathPermissions.of(tae.getMode());
           } else {
             Path parent = entryPath.getParent();
-            String linkName = tae.getLinkName();
-            Path linkTarget = parent.resolve(linkName).normalize();
-            Path link = resolveRelativePathSecure(linkTarget, root, linkName);
-            links.add(new PathLink(link, entryPath, linkType)); // TODO 1st and 2nd argument flipped?
+            String sourcePathString = tae.getLinkName();
+            Path source = parent.resolve(sourcePathString).normalize();
+            source = resolveRelativePathSecure(source, root, sourcePathString);
+            links.add(new PathLink(source, entryPath, linkType));
             mkdirs(parent);
           }
         }
