@@ -90,11 +90,11 @@ public interface FileAccess {
    * of relative.
    *
    * @param source the source {@link Path} to link to, may be relative or absolute.
-   * @param targetLink the {@link Path} where the symbolic link shall be created pointing to {@code source}.
+   * @param link the destination {@link Path} where the symbolic link shall be created pointing to {@code source}.
    */
-  default void symlink(Path source, Path targetLink) {
+  default void symlink(Path source, Path link) {
 
-    symlink(source, targetLink, true);
+    symlink(source, link, true);
   }
 
   /**
@@ -102,43 +102,43 @@ public interface FileAccess {
    * be replaced. In case of missing privileges, Windows mklink may be used as fallback, which must point to absolute paths. In such case the {@code relative}
    * flag will be ignored.
    *
-   * @param target the target {@link Path} to link to, may be relative or absolute.
-   * @param link the {@link Path} where the symbolic link shall be created pointing to {@code target}.
+   * @param source the source {@link Path} to link to, may be relative or absolute.
+   * @param link the destination {@link Path} where the symbolic link shall be created pointing to {@code source}.
    * @param relative - {@code true} if the symbolic link shall be relative, {@code false} if it shall be absolute.
    */
-  default void symlink(Path target, Path link, boolean relative) {
+  default void symlink(Path source, Path link, boolean relative) {
 
-    link(target, link, relative, PathLinkType.SYMBOLIC_LINK);
+    link(source, link, relative, PathLinkType.SYMBOLIC_LINK);
   }
 
   /**
    * Creates a {@link PathLinkType#HARD_LINK hard link}. If the given {@code link} already exists and is a symbolic link or a Windows junction, it will be
    * replaced. In case of missing privileges, Windows mklink may be used as fallback.
    *
-   * @param target the target {@link Path} to link to, may be relative or absolute.
-   * @param link the {@link Path} where the symbolic link shall be created pointing to {@code target}.
+   * @param source the source {@link Path} to link to, may be relative or absolute.
+   * @param link the destination {@link Path} where the symbolic link shall be created pointing to {@code source}.
    */
-  default void hardlink(Path target, Path link) {
+  default void hardlink(Path source, Path link) {
 
-    link(target, link, false, PathLinkType.HARD_LINK);
+    link(source, link, false, PathLinkType.HARD_LINK);
   }
 
   /**
    * Creates a link. If the given {@code link} already exists and is a symbolic link or a Windows junction, it will be replaced. In case of missing privileges,
    * Windows mklink may be used as fallback, which must point to absolute paths. In such case the {@code relative} flag will be ignored.
    *
-   * @param target the target {@link Path} to link to, may be relative or absolute.
-   * @param link the {@link Path} where the symbolic link shall be created pointing to {@code target}.
+   * @param source the source {@link Path} to link to, may be relative or absolute.
+   * @param link the destination {@link Path} where the symbolic link shall be created pointing to {@code source}.
    * @param relative - {@code true} if the symbolic link shall be relative, {@code false} if it shall be absolute.
    * @param type the {@link PathLinkType}.
    */
-  void link(Path target, Path link, boolean relative, PathLinkType type);
+  void link(Path source, Path link, boolean relative, PathLinkType type);
 
   /**
    * @param link the {@link PathLink} to {@link #link(Path, Path, boolean, PathLinkType) create}.
    */
   default void link(PathLink link) {
-    link(link.target(), link.link(), true, link.type());
+    link(link.source(), link.link(), true, link.type());
   }
 
   /**
