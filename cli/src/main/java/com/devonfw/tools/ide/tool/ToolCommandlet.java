@@ -454,7 +454,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   protected ToolInstallation toolAlreadyInstalled(ToolInstallRequest request) {
 
     logToolAlreadyInstalled(request);
-    cveCheck(request, true);
+    cveCheck(request);
     postInstall(false, request.getProcessContext());
     return createExistingToolInstallation(request);
   }
@@ -519,11 +519,10 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * something better, we will suggest this to the user and ask him to make his choice.
    *
    * @param request the {@link ToolInstallRequest}.
-   * @param skipSuggestions {@code true} to skip suggestions, {@code false} otherwise (try to find alternative suggestions and ask the user).
    * @return the {@link VersionIdentifier} to install. The will may be asked (unless {@code skipSuggestions} is {@code true}) and might choose a different
    *     version than the originally requested one.
    */
-  protected VersionIdentifier cveCheck(ToolInstallRequest request, boolean skipSuggestions) {
+  protected VersionIdentifier cveCheck(ToolInstallRequest request) {
 
     ToolEditionAndVersion requested = request.getRequested();
     VersionIdentifier resolvedVersion = requested.getResolvedVersion();
@@ -540,7 +539,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     if (logCvesAndReturnTrueForNone(toolEdition, resolvedVersion, currentChoice.option(), issues)) {
       return resolvedVersion;
     }
-    if (skipSuggestions) {
+    boolean alreadyInstalled = request.isAlreadyInstalled();
+    boolean directForceInstall = this.context.isForceMode() && request.isDirect();
+    if (alreadyInstalled && !directForceInstall) {
       // currently for a transitive dependency it does not make sense to suggest alternative versions, since the choice is not stored anywhere,
       // and we then would ask the user again every time the tool having this dependency is started. So we only log the problem and the user needs to react
       // (e.g. upgrade the tool with the dependency that is causing this).
@@ -581,6 +582,10 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     if ((latest == null) && (nearest == null)) {
       this.context.warning(
           "Could not find any other version resolving your CVEs.\nPlease keep attention to this tool and consider updating as soon as security fixes are available.");
+      if (alreadyInstalled) {
+        // we came here via "ide -f install ..." but no alternative is available
+        return resolvedVersion;
+      }
     }
     List<ToolVersionChoice> choices = new ArrayList<>();
     choices.add(currentChoice);
