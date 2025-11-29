@@ -187,8 +187,21 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       request.setRequested(new ToolEditionAndVersion(toolVersion));
     }
     request.setProcessContext(pc);
+    return runTool(request, processMode, args);
+  }
+
+  /**
+   * Ensures the tool is installed and then runs this tool with the given arguments.
+   *
+   * @param request the {@link ToolInstallRequest}.
+   * @param processMode the {@link ProcessMode}. Should typically be {@link ProcessMode#DEFAULT} or {@link ProcessMode#BACKGROUND}.
+   * @param args the command-line arguments to run the tool.
+   * @return the {@link ProcessResult result}.
+   */
+  public ProcessResult runTool(ToolInstallRequest request, ProcessMode processMode, String... args) {
+
     install(request);
-    return runTool(pc, processMode, args);
+    return runTool(request.getProcessContext(), processMode, args);
   }
 
   /**
@@ -344,21 +357,21 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   /**
    * This method is called after a tool was requested to be installed or updated.
    *
-   * @param newlyInstalled {@code true} if the tool was installed or updated (at least link to software folder was created/updated), {@code false} otherwise
-   *     (configured version was already installed and nothing changed).
-   * @param pc the {@link ProcessContext} to use.
+   * @param request {@code true} the {@link ToolInstallRequest}.
    */
-  protected void postInstall(boolean newlyInstalled, ProcessContext pc) {
+  protected void postInstall(ToolInstallRequest request) {
 
-    if (newlyInstalled) {
-      postInstall();
+    if (!request.isAlreadyInstalled()) {
+      postInstallOnNewInstallation(request);
     }
   }
 
   /**
-   * This method is called after the tool has been newly installed or updated to a new version.
+   * This method is called after a tool was requested to be installed or updated and a new installation was performed.
+   *
+   * @param request {@code true} the {@link ToolInstallRequest}.
    */
-  protected void postInstall() {
+  protected void postInstallOnNewInstallation(ToolInstallRequest request) {
 
     // nothing to do by default
   }
@@ -455,7 +468,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
     logToolAlreadyInstalled(request);
     cveCheck(request);
-    postInstall(false, request.getProcessContext());
+    postInstall(request);
     return createExistingToolInstallation(request);
   }
 

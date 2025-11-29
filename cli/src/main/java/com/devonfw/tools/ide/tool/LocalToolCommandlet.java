@@ -112,7 +112,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     if (installation.binDir() != null) {
       this.context.getPath().setPath(this.tool, installation.binDir());
     }
-    postInstall(true, request.getProcessContext());
+    postInstall(request);
     ToolEditionAndVersion installed = request.getInstalled();
     GenericVersionRange installedVersion = null;
     if (installed != null) {

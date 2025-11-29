@@ -99,12 +99,12 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
   }
 
   @Override
-  protected void postInstall(boolean newlyInstalled, ProcessContext pc) {
+  protected void postInstall(ToolInstallRequest request) {
 
-    super.postInstall(newlyInstalled, pc);
+    super.postInstall(request);
     Path pluginsInstallationPath = getPluginsInstallationPath();
     FileAccess fileAccess = this.context.getFileAccess();
-    if (newlyInstalled) {
+    if (!request.isAlreadyInstalled()) {
       fileAccess.delete(pluginsInstallationPath);
       List<Path> markerFiles = fileAccess.listChildren(this.context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE), Files::isRegularFile);
       for (Path path : markerFiles) {
@@ -115,7 +115,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
       }
     }
     fileAccess.mkdirs(pluginsInstallationPath);
-    installPlugins(pc);
+    installPlugins(request.getProcessContext());
   }
 
   private void installPlugins(ProcessContext pc) {

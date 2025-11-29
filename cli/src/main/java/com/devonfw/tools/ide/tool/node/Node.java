@@ -8,6 +8,7 @@ import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.npm.Npm;
 
 /**
@@ -26,8 +27,9 @@ public class Node extends LocalToolCommandlet {
   }
 
   @Override
-  protected void postInstall() {
-    super.postInstall();
+  protected void postInstallOnNewInstallation(ToolInstallRequest request) {
+
+    super.postInstallOnNewInstallation(request);
     Npm npm = this.context.getCommandletManager().getCommandlet(Npm.class);
     ProcessResult result = npm.runPackageManager("config", "set", "prefix", getToolPath().toString());
     if (result.isSuccessful()) {
