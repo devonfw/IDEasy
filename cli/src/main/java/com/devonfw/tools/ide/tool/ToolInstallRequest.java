@@ -175,11 +175,9 @@ public final class ToolInstallRequest {
   }
 
   /**
-   * @param skipUpdate {@code true} for {@link com.devonfw.tools.ide.context.IdeStartContext#isSkipUpdatesMode() skip update mode}, {@code false}
-   *     otherwise.
    * @return {@code true} if the {@link #getRequested() requested edition and version} matches the {@link #getInstalled() installed edition and version}
    */
-  public boolean isAlreadyInstalled(boolean skipUpdate) {
+  public boolean isAlreadyInstalled() {
 
     if (this.installed == null) {
       return false;
@@ -195,12 +193,7 @@ public final class ToolInstallRequest {
     if (!this.requested.getEdition().equals(installedEdition)) {
       return false;
     }
-    VersionIdentifier resolvedVersion = this.requested.getResolvedVersion();
-    if ((resolvedVersion == null) || skipUpdate) {
-      GenericVersionRange requestedVersion = this.requested.getVersion();
-      return requestedVersion.contains(installedVersion);
-    }
-    return resolvedVersion.equals(installedVersion);
+    return installedVersion.equals(this.requested.getResolvedVersion());
   }
 
   /**
