@@ -116,7 +116,7 @@ public interface FileAccess {
    * replaced. In case of missing privileges, Windows mklink may be used as fallback.
    *
    * @param source the source {@link Path} to link to, may be relative or absolute.
-   * @param link the destination {@link Path} where the symbolic link shall be created pointing to {@code source}.
+   * @param link the destination {@link Path} where the hard link shall be created pointing to {@code source}.
    */
   default void hardlink(Path source, Path link) {
 
@@ -128,8 +128,8 @@ public interface FileAccess {
    * Windows mklink may be used as fallback, which must point to absolute paths. In such case the {@code relative} flag will be ignored.
    *
    * @param source the source {@link Path} to link to, may be relative or absolute.
-   * @param link the destination {@link Path} where the symbolic link shall be created pointing to {@code source}.
-   * @param relative - {@code true} if the symbolic link shall be relative, {@code false} if it shall be absolute.
+   * @param link the destination {@link Path} where the link shall be created pointing to {@code source}.
+   * @param relative - {@code true} if the link shall be relative, {@code false} if it shall be absolute.
    * @param type the {@link PathLinkType}.
    */
   void link(Path source, Path link, boolean relative, PathLinkType type);
