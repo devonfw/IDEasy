@@ -95,7 +95,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
     // check if we already have this version installed (linked) locally in IDE_HOME/software
     VersionIdentifier resolvedVersion = installation.resolvedVersion();
-    if (request.isAlreadyInstalled(this.context.isSkipUpdatesMode())) {
+    if (request.isAlreadyInstalled()) {
       return installation;
     }
     FileAccess fileAccess = this.context.getFileAccess();
@@ -155,22 +155,16 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     ToolEdition toolEdition = requested.getEdition();
     assert (toolEdition.tool().equals(this.tool)) : "Mismatch " + this.tool + " != " + toolEdition.tool();
     String edition = toolEdition.edition();
-    boolean skipSuggestions = false;
-    VersionIdentifier resolvedVersion;
-    if (this.context.isSkipUpdatesMode() && request.isAlreadyInstalled(true)) {
-      requested.setResolvedVersion(request.getInstalled().getResolvedVersion());
-      skipSuggestions = true;
-    }
-    resolvedVersion = cveCheck(request, skipSuggestions);
-    ProcessContext processContext = request.getProcessContext();
+    VersionIdentifier resolvedVersion = cveCheck(request);
     installToolDependencies(request);
 
     // cveCheck might have changed resolvedVersion so let us re-check...
-    if (request.isAlreadyInstalled(this.context.isSkipUpdatesMode())) {
+    if (request.isAlreadyInstalled()) {
       return toolAlreadyInstalled(request);
     }
     Path installationPath = getInstallationPath(edition, resolvedVersion);
 
+    ProcessContext processContext = request.getProcessContext();
     boolean additionalInstallation = request.isAdditionalInstallation();
     boolean ignoreSoftwareRepo = isIgnoreSoftwareRepo();
     Path toolVersionFile = installationPath.resolve(IdeContext.FILE_SOFTWARE_VERSION);
