@@ -21,6 +21,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1560[#1560]: Enable trace logging in IDEasy setup script
 * https://github.com/devonfw/IDEasy/issues/1586[#1586]: Use BASH_PATH when set before searching in registry or PATH
 * https://github.com/devonfw/IDEasy/issues/1564[#1564]: Print path to git bash to IDEasy log
+* https://github.com/devonfw/IDEasy/issues/1599[#1599]: NullPointerException if Repository-Config-Variable "active" is not present
 * https://github.com/devonfw/IDEasy/issues/1561[#1561]: IDEasy can not handle BASH_PATH variable properly
 * https://github.com/devonfw/IDEasy/issues/1608[#1608]: Add git and bash location to status commandlet
 * https://github.com/devonfw/IDEasy/issues/1166[#1166]: Automatic project import for IntelliJ

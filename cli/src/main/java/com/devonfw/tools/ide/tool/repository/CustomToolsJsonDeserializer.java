@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.devonfw.tools.ide.json.JsonMapping;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -43,6 +44,7 @@ public class CustomToolsJsonDeserializer extends JsonDeserializer<CustomToolsJso
         } else {
           // ignore unknown property
           // currently cannot log here due to https://github.com/devonfw/IDEasy/issues/404
+          JsonMapping.skipCurrentField(p);
         }
         token = p.nextToken();
       }

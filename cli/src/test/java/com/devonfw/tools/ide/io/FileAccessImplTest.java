@@ -536,6 +536,23 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     }
   }
 
+  @Test
+  public void testUntarWithGzipCompressionWithSymbolicLink(@TempDir Path tempDir) {
+
+    // arrange
+    IdeContext context = IdeTestContextMock.get();
+    Path linkTarGz = Path.of("src/test/resources/com/devonfw/tools/ide/io/link.tar.gz");
+    FileAccess fileAccess = context.getFileAccess();
+
+    // act
+    fileAccess.extractTar(linkTarGz, tempDir, TarCompression.GZ);
+
+    // assert
+    Path link = tempDir.resolve("link");
+    assertThat(link).hasContent("hi");
+    assertThat(fileAccess.toRealPath(link)).isEqualTo(tempDir.resolve("file"));
+  }
+
   /**
    * Test of {@link FileAccessImpl#generatePermissionString(int)}.
    */
@@ -547,7 +564,6 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     assertThat(generatePermissionString(948)).isEqualTo("rw-rw-r--");
     assertThat(generatePermissionString(509)).isEqualTo("rwxrwxr-x");
     assertThat(generatePermissionString(511)).isEqualTo("rwxrwxrwx");
-
   }
 
   /**

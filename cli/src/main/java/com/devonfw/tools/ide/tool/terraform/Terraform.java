@@ -7,6 +7,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
 
 /**
  * {@link ToolCommandlet} for terraform CLI (terraform).
@@ -24,10 +25,10 @@ public class Terraform extends LocalToolCommandlet {
   }
 
   @Override
-  protected void postInstall() {
+  protected void postInstallOnNewInstallation(ToolInstallRequest request) {
 
-    super.postInstall();
-    runTool(ProcessMode.DEFAULT, null, "-install-autocomplete");
+    super.postInstallOnNewInstallation(request);
+    runTool(request, ProcessMode.DEFAULT, "-install-autocomplete");
   }
 
   @Override

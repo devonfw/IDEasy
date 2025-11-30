@@ -12,8 +12,8 @@ import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.corepack.Corepack;
-import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -84,9 +84,9 @@ public abstract class NodeBasedCommandlet extends LocalToolCommandlet {
   }
 
   @Override
-  protected void performToolInstallation(ToolRepository toolRepository, VersionIdentifier resolvedVersion, Path installationPath, String edition,
-      ProcessContext processContext) {
+  protected void performToolInstallation(ToolInstallRequest request, Path installationPath) {
 
+    VersionIdentifier resolvedVersion = request.getRequested().getResolvedVersion();
     runPackageInstall(getPackageName() + "@" + resolvedVersion);
     this.installedVersion.invalidate();
   }
@@ -178,7 +178,7 @@ public abstract class NodeBasedCommandlet extends LocalToolCommandlet {
   protected ProcessResult runCorepack(ProcessMode processMode, ProcessErrorHandling errorHandling, String... args) {
     ProcessContext pc = this.context.newProcess().errorHandling(errorHandling);
     Corepack corepack = this.context.getCommandletManager().getCommandlet(Corepack.class);
-    return corepack.runTool(processMode, null, pc, args);
+    return corepack.runTool(pc, processMode, args);
   }
 
 

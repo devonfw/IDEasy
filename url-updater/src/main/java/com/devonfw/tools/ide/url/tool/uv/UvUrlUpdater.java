@@ -12,7 +12,7 @@ public class UvUrlUpdater extends GithubUrlUpdater {
   private static final VersionIdentifier MIN_VID = VersionIdentifier.of("0.5.25");
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "uv";
   }
@@ -30,7 +30,7 @@ public class UvUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
-  protected String mapVersion(String version) {
+  public String mapVersion(String version) {
     if (VersionIdentifier.of(version).isLess(MIN_VID)) {
       return null;
     }
