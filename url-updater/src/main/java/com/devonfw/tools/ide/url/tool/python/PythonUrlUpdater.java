@@ -26,7 +26,7 @@ public class PythonUrlUpdater extends JsonUrlUpdater<PythonJsonObject, PythonRel
   private static final Logger logger = LoggerFactory.getLogger(PythonUrlUpdater.class);
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "python";
   }

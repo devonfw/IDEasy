@@ -12,7 +12,7 @@ public class QuarkusUrlUpdater extends GithubUrlUpdater {
   private static final VersionIdentifier MIN_QUARKUS_VID = VersionIdentifier.of("2.5.0");
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "quarkus";
   }
@@ -52,9 +52,4 @@ public class QuarkusUrlUpdater extends GithubUrlUpdater {
     return "quarkus";
   }
 
-  @Override
-  public String mapUrlVersionToCpeVersion(String version) {
-
-    return version.replaceAll("[^\\d.]", "");
-  }
 }

@@ -1,63 +1,34 @@
 package com.devonfw.tools.IDEasy.dev;
 
-import java.io.File;
 import java.math.BigDecimal;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.owasp.dependencycheck.Engine;
-import org.owasp.dependencycheck.analyzer.AbstractAnalyzer;
-import org.owasp.dependencycheck.analyzer.AnalysisPhase;
-import org.owasp.dependencycheck.analyzer.ArchiveAnalyzer;
-import org.owasp.dependencycheck.analyzer.ArtifactoryAnalyzer;
-import org.owasp.dependencycheck.analyzer.AssemblyAnalyzer;
-import org.owasp.dependencycheck.analyzer.CentralAnalyzer;
-import org.owasp.dependencycheck.analyzer.FalsePositiveAnalyzer;
-import org.owasp.dependencycheck.analyzer.FileNameAnalyzer;
-import org.owasp.dependencycheck.analyzer.FileTypeAnalyzer;
-import org.owasp.dependencycheck.analyzer.JarAnalyzer;
-import org.owasp.dependencycheck.analyzer.LibmanAnalyzer;
-import org.owasp.dependencycheck.analyzer.MSBuildProjectAnalyzer;
-import org.owasp.dependencycheck.analyzer.NexusAnalyzer;
-import org.owasp.dependencycheck.analyzer.NodeAuditAnalyzer;
-import org.owasp.dependencycheck.analyzer.NodePackageAnalyzer;
-import org.owasp.dependencycheck.analyzer.NugetconfAnalyzer;
-import org.owasp.dependencycheck.analyzer.NuspecAnalyzer;
-import org.owasp.dependencycheck.analyzer.OpenSSLAnalyzer;
-import org.owasp.dependencycheck.analyzer.PnpmAuditAnalyzer;
-import org.owasp.dependencycheck.analyzer.RetireJsAnalyzer;
-import org.owasp.dependencycheck.analyzer.RubyBundlerAnalyzer;
-import org.owasp.dependencycheck.analyzer.YarnAuditAnalyzer;
-import org.owasp.dependencycheck.dependency.Dependency;
+import org.owasp.dependencycheck.data.nvdcve.CveDB;
 import org.owasp.dependencycheck.dependency.Vulnerability;
 import org.owasp.dependencycheck.dependency.VulnerableSoftware;
-import org.owasp.dependencycheck.exception.ExceptionCollection;
-import org.owasp.dependencycheck.utils.Pair;
 import org.owasp.dependencycheck.utils.Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContextConsole;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.url.model.file.UrlSecurityFile;
 import com.devonfw.tools.ide.url.model.file.json.Cve;
-import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.model.report.UrlFinalReport;
 import com.devonfw.tools.ide.url.updater.AbstractUrlUpdater;
 import com.devonfw.tools.ide.url.updater.UpdateManager;
 import com.devonfw.tools.ide.version.BoundaryType;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
+
+import us.springett.parsers.cpe.Cpe;
+import us.springett.parsers.cpe.CpeBuilder;
 
 /**
  * Scans the IDEasy URL repository for tools, editions, and versions, and checks for known vulnerabilities using the OWASP Dependency-Check engine.
@@ -68,41 +39,66 @@ import com.devonfw.tools.ide.version.VersionRange;
  */
 public class BuildSecurityJsonFiles implements Runnable {
 
-  //Evtl. Suppression.xml für False Positives: https://jeremylong.github.io/DependencyCheck/general/suppression.html
-
-  private static final Set<Class<? extends AbstractAnalyzer>> ANALYZERS_TO_IGNORE = Set.of(ArchiveAnalyzer.class,
-      RubyBundlerAnalyzer.class, FileNameAnalyzer.class, JarAnalyzer.class, CentralAnalyzer.class, NexusAnalyzer.class,
-      ArtifactoryAnalyzer.class, NuspecAnalyzer.class, NugetconfAnalyzer.class, MSBuildProjectAnalyzer.class,
-      AssemblyAnalyzer.class, OpenSSLAnalyzer.class, NodePackageAnalyzer.class, LibmanAnalyzer.class,
-      NodeAuditAnalyzer.class, YarnAuditAnalyzer.class, PnpmAuditAnalyzer.class, RetireJsAnalyzer.class,
-      FalsePositiveAnalyzer.class);
+  private static final Logger LOG = LoggerFactory.getLogger(BuildSecurityJsonFiles.class);
 
   private static final BigDecimal MIN_V_2_SEVERITY = new BigDecimal("0.0");
 
   private static final BigDecimal MIN_V_3_SEVERITY = new BigDecimal("0.0");
 
-  private static final Logger LOG = LoggerFactory.getLogger(BuildSecurityJsonFiles.class);
+  private static final Set<String> DEFAULT_EDITIONS = Set.of("community");
 
-  private final Path urlsPath;
+  private static final Set<String> IGNORED_VALUES = Set.of("*", "windows", "linux", "mac", "aws");
 
   private final UrlMetadata urlMetadata;
 
   private final UpdateManager updateManager;
 
+  private final Engine engine;
+
   private BuildSecurityJsonFiles(Path urlsPath) {
 
     super();
-    this.urlsPath = urlsPath;
     UrlFinalReport report = new UrlFinalReport();
     this.updateManager = new UpdateManager(urlsPath, report, Instant.now());
     IdeContextConsole context = new IdeContextConsole(IdeLogLevel.INFO, null, false);
     this.urlMetadata = new UrlMetadata(context, this.updateManager.getUrlRepository());
+    Settings settings = new Settings();
+    engine = new Engine(settings);
   }
 
   @Override
   public void run() {
-    List<Dependency> dependencies = findDependenciesWithVulnerabilities();
-    processDependenciesWithVulnerabilities(dependencies);
+    try {
+      this.engine.analyzeDependencies();
+
+      CveDB database = engine.getDatabase();
+      for (AbstractUrlUpdater updater : this.updateManager.getUpdaters()) {
+        String tool = updater.getTool();
+        CpeBuilder cpeBuilder = new CpeBuilder();
+        cpeBuilder.vendor(updater.getCpeVendor());
+        cpeBuilder.product(updater.getCpeProduct());
+        Cpe cpe = cpeBuilder.build();
+        List<Vulnerability> vulnerabilities = database.getVulnerabilities(cpe);
+        if ((vulnerabilities == null) || (vulnerabilities.isEmpty())) {
+          LOG.info("No vulnerabilities found for {} with CPE {}", updater.getClass().getSimpleName(), cpe);
+        } else {
+          for (String edition : updater.getEditions()) {
+            UrlSecurityFile securityFile = this.urlMetadata.getEdition(tool, edition).getSecurityFile();
+            securityFile.clearSecurityWarnings(); // pointless parsing of JSON causing waste
+            for (Vulnerability vulnerability : vulnerabilities) {
+              Cve cve = toCve(vulnerability, edition, updater);
+              if (cve != null) {
+                securityFile.addCve(cve);
+              }
+            }
+            securityFile.save();
+          }
+        }
+      }
+      this.engine.close();
+    } catch (Throwable e) {
+      LOG.error("Failed to build security json files", e);
+    }
   }
 
 
@@ -121,154 +117,136 @@ public class BuildSecurityJsonFiles implements Runnable {
     new BuildSecurityJsonFiles(urlsPath).run();
   }
 
-  /**
-   * Processes a list of vulnerable dependencies by updating the corresponding {@link UrlSecurityFile}s. Each vulnerability is mapped to the correct tool and
-   * edition, and saved accordingly.
-   *
-   * @param dependencies the list of vulnerable {@link Dependency} objects.
-   */
-  public void processDependenciesWithVulnerabilities(List<Dependency> dependencies) {
-    Set<Pair<String, String>> foundToolsAndEditions = new HashSet<>();
-
-    for (Dependency dependency : dependencies) {
-      String filePath = dependency.getFilePath();
-      Path parent = Paths.get(filePath).getParent();
-      String tool = parent.getParent().getParent().getFileName().toString();
-      String edition = parent.getParent().getFileName().toString();
-
-      AbstractUrlUpdater urlUpdater = this.updateManager.retrieveUrlUpdater(tool, edition);
-      if (urlUpdater == null) {
-        continue;
-      }
-
-      UrlSecurityFile securityFile = this.urlMetadata.getEdition(tool, edition).getSecurityFile();
-      saveSecurityFile(dependency, foundToolsAndEditions, tool, edition, securityFile, urlUpdater);
-    }
-    printAffectedVersions();
-  }
-
-  /**
-   * Saves vulnerability information to the corresponding {@link UrlSecurityFile}. Clears previous warnings if this is the first time the tool/edition is
-   * processed.
-   *
-   * @param dependency the {@link Dependency} containing vulnerability data.
-   * @param foundToolsAndEditions a set tracking which tool/edition pairs have already been
-   * @param tool the name of the tool (e.g., "java").
-   * @param edition the edition of the tool (e.g., "oracle").
-   * @param securityFile the {@link UrlSecurityFile} to update.
-   * @param urlUpdater the {@link AbstractUrlUpdater} for the tool/edition.
-   */
-  public void saveSecurityFile(Dependency dependency, Set<Pair<String, String>> foundToolsAndEditions, String tool, String edition,
-      UrlSecurityFile securityFile, AbstractUrlUpdater urlUpdater) {
-    boolean newlyAdded = foundToolsAndEditions.add(new Pair<>(tool, edition));
-    if (newlyAdded) {
-      securityFile.clearSecurityWarnings();
-    }
-
-    Map<String, String> cpeToUrlVersion = buildCpeToUrlVersionMap(tool, edition, urlUpdater);
-    Set<Vulnerability> vulnerabilities = dependency.getVulnerabilities(true);
-    for (Vulnerability vulnerability : vulnerabilities) {
-      addVulnerabilityToSecurityFile(vulnerability, securityFile, cpeToUrlVersion, urlUpdater);
-    }
-    securityFile.save();
-  }
-
-  /**
-   * Creates a {@link Map} from CPE Version to {@link UrlVersion#getName() Url Version} containing all versions provided by IDEasy for the given tool and
-   * edition.
-   *
-   * @param tool the tool to get the {@link Map map} for.
-   * @param edition the edition to get the {@link Map map} for.
-   * @param urlUpdater the {@link AbstractUrlUpdater} of the tool to get {@link AbstractUrlUpdater#mapUrlVersionToCpeVersion(String) mapping functions}
-   *     between CPE Version and {@link UrlVersion#getName() Url Version}.
-   * @return the {@link Map} from CPE Version to {@link UrlVersion#getName() Url Version}.
-   */
-  private Map<String, String> buildCpeToUrlVersionMap(String tool, String edition, AbstractUrlUpdater urlUpdater) {
-
-    List<String> sortedVersions = this.urlMetadata.getSortedVersions(tool, edition, null).stream()
-        .map(VersionIdentifier::toString).toList();
-
-    List<String> sortedCpeVersions = sortedVersions.stream().map(urlUpdater::mapUrlVersionToCpeVersion)
-        .toList();
-
-    Map<String, String> cpeToUrlVersion = new HashMap<>();
-    for (int i = 0; i < sortedCpeVersions.size(); i++) {
-      cpeToUrlVersion.put(sortedCpeVersions.get(i), sortedVersions.get(i));
-    }
-
-    return cpeToUrlVersion;
-  }
-
-  /**
-   * Uses the {@link Engine OWASP engine} to scan the {@link AbstractIdeContext#getUrlsPath() ide-url} folder for dependencies and then runs
-   * {@link Engine#analyzeDependencies() analyzes} them to get the {@link Vulnerability vulnerabilities}.
-   *
-   * @return the {@link Dependency dependencies} with associated {@link Vulnerability vulnerabilities}.
-   */
-  private List<Dependency> findDependenciesWithVulnerabilities() {
-
-    Settings settings = new Settings();
-    Engine engine = new Engine(settings);
-
-    FileTypeAnalyzer urlAnalyzer = new UrlAnalyzer(this.updateManager);
-    engine.getFileTypeAnalyzers().add(urlAnalyzer);
-    engine.getAnalyzers(AnalysisPhase.INFORMATION_COLLECTION).add(urlAnalyzer);
-
-    // remove all analyzers that are not needed
-    engine.getMode().getPhases().forEach(
-        phase -> engine.getAnalyzers(phase).removeIf(analyzer -> ANALYZERS_TO_IGNORE.contains(analyzer.getClass())));
-
-    engine.scan(this.updateManager.getUrlRepository().getPath().toString());
-    try {
-      engine.analyzeDependencies();
-    } catch (ExceptionCollection e) {
-      throw new RuntimeException(e);
-    }
-    Dependency[] dependencies = engine.getDependencies();
-    // remove dependencies without vulnerabilities
-    List<Dependency> dependenciesFiltered = Arrays.stream(dependencies)
-        .filter(dependency -> !dependency.getVulnerabilities().isEmpty()).toList();
-    engine.close();
-    return dependenciesFiltered;
-  }
-
-  /**
-   * @param vulnerability the {@link Vulnerability} determined by OWASP dependency check.
-   * @param securityFile the {@link UrlSecurityFile} of the tool and edition to which the vulnerability applies.
-   * @param cpeToUrlVersion a {@link Map} from CPE Version to {@link UrlVersion#getName() Url Version}.
-   * @param urlUpdater the {@link AbstractUrlUpdater} of the tool to get maps between CPE Version and {@link UrlVersion#getName() Url Version} naming.
-   */
-
-  public void addVulnerabilityToSecurityFile(Vulnerability vulnerability, UrlSecurityFile securityFile,
-      Map<String, String> cpeToUrlVersion, AbstractUrlUpdater urlUpdater) {
+  private Cve toCve(Vulnerability vulnerability, String edition, AbstractUrlUpdater urlUpdater) {
 
     String cveName = vulnerability.getName();
 
     BigDecimal severity = getBigDecimalSeverity(vulnerability);
     if (severity == null) {
-      return;
+      return null;
     }
 
     if (vulnerability.getCvssV3() != null) {
       if (severity.compareTo(MIN_V_3_SEVERITY) < 0) {
-        return;
+        return null;
       }
     } else if (severity.compareTo(MIN_V_2_SEVERITY) < 0) {
-      return;
+      return null;
     }
 
-    VersionRange versionRange = getVersionRangeFromVulnerability(vulnerability, cpeToUrlVersion, urlUpdater);
-    if (versionRange == null) {
-      LOG.info(
-          "Vulnerability {} seems to be irrelevant because its affected versions have no overlap with the versions "
-              + "available through IDEasy. If you think the versions should match, see the methode "
-              + "mapUrlVersionToCpeVersion() in the UrlUpdater of the tool.",
-          vulnerability.getName());
-      return;
+    List<VersionRange> versions = toVersions(vulnerability, edition, urlUpdater);
+    if (versions.isEmpty()) {
+      return null;
     }
+    return new Cve(cveName, severity.doubleValue(), versions);
+  }
 
-    Cve cve = new Cve(cveName, severity.doubleValue(), List.of(versionRange));
-    securityFile.addCve(cve);
+  private static List<VersionRange> toVersions(Vulnerability vulnerability, String edition, AbstractUrlUpdater urlUpdater) {
+
+    String id = vulnerability.getName();
+    List<VersionRange> versions = new ArrayList<>();
+    for (VulnerableSoftware range : vulnerability.getVulnerableSoftware()) {
+      VersionRange versionRange = toVersionRange(range, edition, urlUpdater, id);
+      if (versionRange != null) {
+        versions.add(versionRange);
+      }
+    }
+    return versions;
+  }
+
+  private static VersionRange toVersionRange(VulnerableSoftware range, String edition, AbstractUrlUpdater urlUpdater, String id) {
+
+    String cpeEdition = findCpeEdition(range);
+    if (cpeEdition != null) {
+      LOG.debug("Checking {} for CPE edition {} = {} (tool edition).", id, cpeEdition, edition);
+      if (!isEditionMatching(cpeEdition, edition, urlUpdater)) {
+        LOG.info("Ignoring {} of {} because CPE edition {} != {} (tool edition).", range, id, cpeEdition, edition);
+        return null;
+      }
+    }
+    String startIncluding = mapVersion(range.getVersionStartIncluding(), urlUpdater);
+    String startExcluding = mapVersion(range.getVersionStartExcluding(), urlUpdater);
+    String endIncluding = mapVersion(range.getVersionEndIncluding(), urlUpdater);
+    String endExcluding = mapVersion(range.getVersionEndExcluding(), urlUpdater);
+    String singleVersion = mapVersion(range.getVersion(), urlUpdater);
+    if ((endExcluding == null) && (endIncluding == null) && (startExcluding == null) && (startIncluding == null)) {
+      if (singleVersion == null) {
+        LOG.error("Vulnerability {} has no interval of affected versions or single affected version.", id);
+        return null;
+      }
+      VersionIdentifier singleAffectedVersion = VersionIdentifier.of(singleVersion);
+      return VersionRange.of(singleAffectedVersion, singleAffectedVersion, BoundaryType.CLOSED);
+    } else {
+      VersionIdentifier min;
+      boolean leftExclusive;
+      if (startIncluding != null) {
+        assert (startExcluding == null);
+        min = VersionIdentifier.of(startIncluding);
+        leftExclusive = false;
+      } else if (startExcluding != null) {
+        min = VersionIdentifier.of(startExcluding);
+        leftExclusive = true;
+      } else {
+        min = null;
+        leftExclusive = true;
+      }
+      VersionIdentifier max;
+      boolean rightExclusive;
+      if (endIncluding != null) {
+        assert (endExcluding == null);
+        max = VersionIdentifier.of(endIncluding);
+        rightExclusive = false;
+      } else if (endExcluding != null) {
+        max = VersionIdentifier.of(endExcluding);
+        rightExclusive = true;
+      } else {
+        max = null;
+        rightExclusive = true;
+      }
+      return VersionRange.of(min, max, BoundaryType.of(leftExclusive, rightExclusive));
+    }
+  }
+
+  private static boolean isEditionMatching(String cpeEdition, String urlEdition, AbstractUrlUpdater urlUpdater) {
+    if (cpeEdition.equals(urlEdition)) {
+      return true;
+    }
+    if (urlUpdater.getTool().equals(urlEdition)) {
+      if (DEFAULT_EDITIONS.contains(cpeEdition)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static String mapVersion(String cveVersion, AbstractUrlUpdater urlUpdater) {
+
+    if (cveVersion == null) {
+      return null;
+    }
+    return urlUpdater.mapVersion(cveVersion);
+  }
+
+  private static String findCpeEdition(Cpe cpe) {
+
+    String cpeEdition = cpe.getEdition();
+    if (isSpecificValue(cpeEdition)) {
+      return cpeEdition;
+    }
+    cpeEdition = cpe.getSwEdition();
+    if (isSpecificValue(cpeEdition)) {
+      return cpeEdition;
+    }
+    cpeEdition = cpe.getTargetSw();
+    if (isSpecificValue(cpeEdition)) {
+      return cpeEdition;
+    }
+    return null;
+  }
+
+  private static boolean isSpecificValue(String value) {
+
+    return (value != null) && !"*".equals(value) && !IGNORED_VALUES.contains(value);
   }
 
   /**
@@ -292,145 +270,4 @@ public class BuildSecurityJsonFiles implements Runnable {
     return BigDecimal.valueOf(severityDouble);
   }
 
-  /**
-   * From the vulnerability determine the {@link VersionRange versionRange} to which the vulnerability applies.
-   *
-   * @param vulnerability the vulnerability determined by OWASP dependency check.
-   * @param cpeToUrlVersion a {@link Map} from CPE Version to {@link UrlVersion#getName() Url Version}.
-   * @param urlUpdater the {@link AbstractUrlUpdater} of the tool to get mapping functions between CPE Version and *
-   *     {@link UrlVersion#getName() Url Version}. This is used as backup if the {@code cpeToUrlVersion} does not * contain the CPE Version.
-   * @return the {@link VersionRange versionRange} to which the vulnerability applies.
-   */
-  protected static VersionRange getVersionRangeFromVulnerability(Vulnerability vulnerability,
-      Map<String, String> cpeToUrlVersion, AbstractUrlUpdater urlUpdater) {
-
-    VulnerableSoftware matchedVulnerableSoftware = vulnerability.getMatchedVulnerableSoftware();
-
-    String vStartExcluding = matchedVulnerableSoftware.getVersionStartExcluding();
-    String vStartIncluding = matchedVulnerableSoftware.getVersionStartIncluding();
-    String vEndExcluding = matchedVulnerableSoftware.getVersionEndExcluding();
-    String vEndIncluding = matchedVulnerableSoftware.getVersionEndIncluding();
-    String singleVersion = matchedVulnerableSoftware.getVersion();
-
-    vStartExcluding = getUrlVersion(vStartExcluding, cpeToUrlVersion, urlUpdater);
-    vStartIncluding = getUrlVersion(vStartIncluding, cpeToUrlVersion, urlUpdater);
-    vEndExcluding = getUrlVersion(vEndExcluding, cpeToUrlVersion, urlUpdater);
-    vEndIncluding = getUrlVersion(vEndIncluding, cpeToUrlVersion, urlUpdater);
-    singleVersion = getUrlVersion(singleVersion, cpeToUrlVersion, urlUpdater);
-
-    VersionRange affectedRange;
-    try {
-      affectedRange = getVersionRangeFromInterval(vStartIncluding, vStartExcluding, vEndExcluding, vEndIncluding,
-          singleVersion);
-    } catch (IllegalStateException e) {
-      throw new IllegalStateException(
-          "Getting the VersionRange for the vulnerability " + vulnerability.getName() + " failed.", e);
-    }
-    return affectedRange;
-  }
-
-  /**
-   * Maps the CPE Version to the {@link UrlVersion#getName() Url Version}.
-   *
-   * @param cpeVersion the CPE Version to map.
-   * @param cpeToUrlVersion a {@link Map} from CPE Version to {@link UrlVersion#getName() Url Version}.
-   * @param urlUpdater the {@link AbstractUrlUpdater} of the tool to get mapping functions between CPE Version and {@link UrlVersion#getName() Url Version}.
-   *     This is used as backup if the {@code cpeToUrlVersion} does not contain the CPE Version.
-   * @return the {@link UrlVersion#getName() Url Version} of the CPE Version.
-   */
-  private static String getUrlVersion(String cpeVersion, Map<String, String> cpeToUrlVersion, AbstractUrlUpdater urlUpdater) {
-
-    String urlVersion = null;
-    if (cpeVersion != null) {
-      if (cpeToUrlVersion != null && cpeToUrlVersion.containsKey(cpeVersion)) {
-        urlVersion = cpeToUrlVersion.get(cpeVersion);
-      } else {
-        urlVersion = urlUpdater.mapCpeVersionToUrlVersion(cpeVersion);
-      }
-    }
-    return urlVersion;
-  }
-
-  /**
-   * Determines the {@link VersionRange} from the interval provided by OWASP.
-   *
-   * @param startIncluding The {@link String version} of the start of the interval, including this version.
-   * @param startExcluding The {@link String version} of the start of the interval, excluding this version.
-   * @param endExcluding The {@link String version} of the end of the interval, excluding this version.
-   * @param endIncluding The {@link String version} of the end of the interval, including this version.
-   * @param singleVersion If the OWASP vulnerability only affects a single version, this is the {@link String version}.
-   * @return the {@link VersionRange}.
-   * @throws IllegalStateException if all parameters are {@code null}.
-   */
-  public static VersionRange getVersionRangeFromInterval(String startIncluding, String startExcluding,
-      String endExcluding, String endIncluding, String singleVersion) throws IllegalStateException {
-
-    if (endExcluding == null && endIncluding == null && startExcluding == null && startIncluding == null) {
-      if (singleVersion == null) {
-        throw new IllegalStateException(
-            "Vulnerability has no interval of affected versions or single affected version.");
-      }
-      VersionIdentifier singleAffectedVersion = VersionIdentifier.of(singleVersion);
-      return VersionRange.of(singleAffectedVersion, singleAffectedVersion, BoundaryType.CLOSED);
-
-    }
-
-    boolean leftExclusive = startIncluding == null;
-    boolean rightExclusive = endIncluding == null;
-
-    VersionIdentifier min = null;
-    if (startIncluding != null) {
-      min = VersionIdentifier.of(startIncluding);
-    } else if (startExcluding != null) {
-      min = VersionIdentifier.of(startExcluding);
-    }
-
-    VersionIdentifier max = null;
-    if (endIncluding != null) {
-      max = VersionIdentifier.of(endIncluding);
-    } else if (endExcluding != null) {
-      max = VersionIdentifier.of(endExcluding);
-    }
-
-    return VersionRange.of(min, max, BoundaryType.of(leftExclusive, rightExclusive));
-  }
-
-  /**
-   * Prints the affected versions of each tool and edition.
-   */
-  private void printAffectedVersions() {
-
-    for (File tool : this.urlsPath.toFile().listFiles()) {
-      if (!Files.isDirectory(tool.toPath())) {
-        continue;
-      }
-      for (File edition : tool.listFiles()) {
-        if (!edition.isDirectory()) {
-          continue;
-        }
-        List<VersionIdentifier> sortedVersions = this.urlMetadata.getSortedVersions(tool.getName(), edition.getName(), null);
-        UrlSecurityFile securityJsonFile = this.urlMetadata.getEdition(tool.getName(), edition.getName())
-            .getSecurityFile();
-        VersionIdentifier min = null;
-        for (int i = sortedVersions.size() - 1; i >= 0; i--) {
-          VersionIdentifier version = sortedVersions.get(i);
-          if (securityJsonFile.contains(version)) {
-            if (min == null) {
-              min = version;
-            }
-          } else {
-            if (min != null) {
-              LOG.info("Tool '{}' with edition '{}' and versions '{}' are affected by vulnerabilities.",
-                  tool.getName(), edition.getName(), VersionRange.of(min, null, BoundaryType.of(false, true)));
-              min = null;
-            }
-          }
-        }
-        if (min != null) {
-          LOG.info("Tool '{}' with edition '{}' and versions '{}' are affected by vulnerabilities.",
-              tool.getName(), edition.getName(), VersionRange.of(min, null, BoundaryType.of(false, true)));
-        }
-      }
-    }
-  }
 }

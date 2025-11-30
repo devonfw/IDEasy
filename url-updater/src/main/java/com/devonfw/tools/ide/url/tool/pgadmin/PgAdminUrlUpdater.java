@@ -15,7 +15,7 @@ public class PgAdminUrlUpdater extends WebsiteUrlUpdater {
   private static final Pattern VERSION_PATTERN = Pattern.compile("v(\\d{1,2}+\\.\\d+)");
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "pgadmin";
   }
