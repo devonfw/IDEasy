@@ -51,7 +51,6 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.url.model.file.UrlSecurityFile;
 import com.devonfw.tools.ide.url.model.file.json.Cve;
-import com.devonfw.tools.ide.url.model.folder.UrlRepository;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.model.report.UrlFinalReport;
 import com.devonfw.tools.ide.url.updater.AbstractUrlUpdater;
@@ -86,8 +85,6 @@ public class BuildSecurityJsonFiles implements Runnable {
 
   private final Path urlsPath;
 
-  private final UrlRepository urlRepository;
-
   private final UrlMetadata urlMetadata;
 
   private final UpdateManager updateManager;
@@ -96,10 +93,10 @@ public class BuildSecurityJsonFiles implements Runnable {
 
     super();
     this.urlsPath = urlsPath;
-    this.urlRepository = UrlRepository.load(urlsPath);
-    this.urlMetadata = new UrlMetadata(new IdeContextConsole(IdeLogLevel.INFO, null, false));
     UrlFinalReport report = new UrlFinalReport();
     this.updateManager = new UpdateManager(urlsPath, report, Instant.now());
+    IdeContextConsole context = new IdeContextConsole(IdeLogLevel.INFO, null, false);
+    this.urlMetadata = new UrlMetadata(context, this.updateManager.getUrlRepository());
   }
 
   @Override

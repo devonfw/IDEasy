@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.url.model.file.json;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import com.devonfw.tools.ide.json.JsonMapping;
@@ -38,7 +37,9 @@ public class ToolSecurityJsonDeserializer extends JsonDeserializer<ToolSecurity>
         token = p.nextToken();
       }
       assert (issues != null);
-      return new ToolSecurity(Collections.unmodifiableList(issues));
+      ToolSecurity security = new ToolSecurity();
+      security.setIssues(issues);
+      return security;
     } else if (token == JsonToken.VALUE_NULL) {
       return null;
     } else {

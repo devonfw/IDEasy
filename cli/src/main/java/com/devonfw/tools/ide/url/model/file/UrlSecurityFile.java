@@ -2,7 +2,7 @@ package com.devonfw.tools.ide.url.model.file;
 
 import java.io.BufferedWriter;
 import java.nio.file.Files;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -89,10 +89,8 @@ public class UrlSecurityFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?,
     if (this.security == null || this.security == ToolSecurity.getEmpty()) {
       this.security = new ToolSecurity();
     }
-
-    List<Cve> issues = this.security.getIssues();
-    if (!issues.contains(cve)) {
-      issues.add(cve);
+    boolean securityModified = this.security.addIssue(cve);
+    if (securityModified) {
       this.modified = true;
     }
   }
@@ -103,7 +101,7 @@ public class UrlSecurityFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?,
    */
   public void clearSecurityWarnings() {
     if (this.security != null) {
-      this.security.setIssues(new ArrayList<>()); // avoid error on immutable list
+      this.security.clearIssues();
       this.modified = true;
     }
   }
@@ -128,7 +126,7 @@ public class UrlSecurityFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?,
           edition.getName(), edition.getName(), null);
     }
 
-    List<Cve> issues = this.security != null ? this.security.getIssues() : List.of();
+    Collection<Cve> issues = this.security != null ? this.security.getIssues() : List.of();
 
     for (Cve cve : issues) {
       for (VersionRange versionRange : cve.versions()) {
