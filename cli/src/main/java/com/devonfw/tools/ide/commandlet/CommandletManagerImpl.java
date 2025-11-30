@@ -41,6 +41,7 @@ import com.devonfw.tools.ide.tool.node.Node;
 import com.devonfw.tools.ide.tool.npm.Npm;
 import com.devonfw.tools.ide.tool.oc.Oc;
 import com.devonfw.tools.ide.tool.pgadmin.PgAdmin;
+import com.devonfw.tools.ide.tool.pip.Pip;
 import com.devonfw.tools.ide.tool.pycharm.Pycharm;
 import com.devonfw.tools.ide.tool.python.Python;
 import com.devonfw.tools.ide.tool.quarkus.Quarkus;
@@ -138,6 +139,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Uv(context));
     add(new Yarn(context));
     add(new Corepack(context));
+    add(new Pip(context));
   }
 
   /**
