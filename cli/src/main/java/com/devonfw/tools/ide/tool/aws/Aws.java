@@ -73,9 +73,9 @@ public class Aws extends LocalToolCommandlet {
   }
 
   @Override
-  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean extraInstallation) {
+  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
 
-    super.setEnvironment(environmentContext, toolInstallation, extraInstallation);
+    super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
     Path awsConfigDir = this.context.getConfPath().resolve("aws");
     environmentContext.withEnvVar("AWS_CONFIG_FILE", awsConfigDir.resolve("config").toString());
     environmentContext.withEnvVar("AWS_SHARED_CREDENTIALS_FILE", awsConfigDir.resolve("credentials").toString());

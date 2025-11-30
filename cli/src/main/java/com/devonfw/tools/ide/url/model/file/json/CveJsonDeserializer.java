@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.devonfw.tools.ide.json.JsonMapping;
 import com.devonfw.tools.ide.version.VersionRange;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
@@ -34,27 +35,24 @@ public class CveJsonDeserializer extends JsonDeserializer<Cve> {
             assert token == JsonToken.VALUE_STRING;
             assert id == null;
             id = p.getValueAsString();
-            token = p.nextToken();
           }
           case Cve.PROPERTY_SEVERITY -> {
             token = p.nextToken();
             assert token.isNumeric();
             assert severity == 0;
             severity = p.getValueAsDouble();
-            token = p.nextToken();
           }
           case Cve.PROPERTY_VERSIONS -> {
             assert versions == null;
             versions = parseVersions(p);
-            token = p.nextToken();
           }
           default -> {
             // currently cannot log here due to https://github.com/devonfw/IDEasy/issues/404
             //LOG.debug("Ignoring unexpected property {}", property);
-            p.skipChildren();
-            token = p.nextToken();
+            JsonMapping.skipCurrentField(p);
           }
         }
+        token = p.nextToken();
       }
       assert id != null;
       assert severity != 0;

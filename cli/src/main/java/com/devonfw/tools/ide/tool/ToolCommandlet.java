@@ -504,17 +504,17 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param environmentContext the {@link EnvironmentContext} where to {@link EnvironmentContext#withEnvVar(String, String) set environment variables} for
    *     this tool.
    * @param toolInstallation the {@link ToolInstallation}.
-   * @param extraInstallation {@code true} if the {@link ToolInstallation} is an additional installation to the
+   * @param additionalInstallation {@code true} if the {@link ToolInstallation} is an additional installation to the
    *     {@link #getConfiguredVersion() configured version} due to a conflicting version of a {@link ToolDependency}, {@code false} otherwise.
    */
-  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean extraInstallation) {
+  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
 
     String pathVariable = EnvironmentVariables.getToolVariablePrefix(this.tool) + "_HOME";
     Path toolHomePath = getToolHomePath(toolInstallation);
     if (toolHomePath != null) {
       environmentContext.withEnvVar(pathVariable, toolHomePath.toString());
     }
-    if (extraInstallation) {
+    if (additionalInstallation) {
       environmentContext.withPathEntry(toolInstallation.binDir());
     }
   }
