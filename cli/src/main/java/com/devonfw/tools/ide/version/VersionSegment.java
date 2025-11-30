@@ -327,28 +327,28 @@ public class VersionSegment implements VersionObject<VersionSegment> {
   /**
    * {@link VersionIdentifier#incrementSegment(int, boolean)}  Increments a version} recursively per {@link VersionSegment}.
    *
-   * @param segmentKeepCount the number of leading {@link VersionSegment}s to keep untouched. Will be {@code 0} for the segment to increment and negative
-   *     for the segments to set to zero.
+   * @param digitKeepCount the number of leading {@link VersionSegment}s with {@link VersionSegment#getDigits() digits} to keep untouched. Will be {@code 0}
+   *     for the segment to increment and negative for the segments to set to zero.
    * @param keepLetters {@code true} to keep {@link VersionSegment#getLetters() letters} from modified segments, {@code false} to drop them.
    * @return the new {@link VersionSegment}.
    */
-  VersionSegment increment(int segmentKeepCount, boolean keepLetters) {
+  VersionSegment increment(int digitKeepCount, boolean keepLetters) {
 
     String separator = this.separator;
     VersionLetters letters = this.letters;
     String digits = this.digits;
     int number = this.number;
     String pattern = this.pattern;
-    int nextSegmentKeepCount = segmentKeepCount;
+    int nextSegmentKeepCount = digitKeepCount;
     if (this.number >= 0) {
       nextSegmentKeepCount--;
     }
-    if ((segmentKeepCount < 0) || ((segmentKeepCount == 0) && (this.number >= 0))) {
+    if ((digitKeepCount < 0) || ((digitKeepCount == 0) && (this.number >= 0))) {
       if (!keepLetters) {
         letters = VersionLetters.EMPTY;
       }
       if (number >= 0) {
-        if (segmentKeepCount == 0) {
+        if (digitKeepCount == 0) {
           number++;
         } else {
           number = 0;
@@ -376,6 +376,21 @@ public class VersionSegment implements VersionObject<VersionSegment> {
       nextSegment = this.next.increment(nextSegmentKeepCount, keepLetters);
     }
     return new VersionSegment(nextSegment, separator, letters, digits, number, pattern);
+  }
+
+  /**
+   * @return the number of {@link VersionSegment}s with {@link VersionSegment#getDigits() digits}.
+   */
+  int countDigits() {
+
+    int count = 0;
+    if (this.number >= 0) {
+      count = 1;
+    }
+    if (this.next != null) {
+      count = count + this.next.countDigits();
+    }
+    return count;
   }
 
   @Override
