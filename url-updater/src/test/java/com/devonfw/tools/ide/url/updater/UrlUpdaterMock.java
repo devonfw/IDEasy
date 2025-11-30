@@ -27,7 +27,7 @@ public class UrlUpdaterMock extends AbstractUrlUpdater {
   }
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "mocked";
   }

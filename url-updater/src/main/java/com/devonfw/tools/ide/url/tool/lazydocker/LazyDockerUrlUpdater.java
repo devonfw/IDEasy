@@ -14,7 +14,7 @@ public class LazyDockerUrlUpdater extends GithubUrlUpdater {
   private static final VersionIdentifier MIN_ARM_VID = VersionIdentifier.of("0.15.0");
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "lazydocker";
   }

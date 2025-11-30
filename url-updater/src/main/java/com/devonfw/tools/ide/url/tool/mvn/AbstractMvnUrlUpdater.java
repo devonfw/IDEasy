@@ -9,7 +9,7 @@ import com.devonfw.tools.ide.url.updater.WebsiteUrlUpdater;
 public abstract class AbstractMvnUrlUpdater extends WebsiteUrlUpdater {
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "mvn";
   }
@@ -24,7 +24,7 @@ public abstract class AbstractMvnUrlUpdater extends WebsiteUrlUpdater {
   }
 
   @Override
-  protected String mapVersion(String version) {
+  public String mapVersion(String version) {
 
     return version;
   }

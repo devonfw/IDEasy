@@ -24,7 +24,7 @@ public abstract class EclipseUrlUpdater extends WebsiteUrlUpdater {
   private static final Pattern VERSION_PATTERN = Pattern.compile("\\d{4}-\\d{2}");
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "eclipse";
   }
@@ -113,7 +113,7 @@ public abstract class EclipseUrlUpdater extends WebsiteUrlUpdater {
   }
 
   @Override
-  protected String mapVersion(String version) {
+  public String mapVersion(String version) {
 
     // TODO remove this hack and get versions from reliable API
     return super.mapVersion(version.replace(" ", "-"));

@@ -9,7 +9,7 @@ import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
 public class JmcUrlUpdater extends GithubUrlUpdater {
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "jmc";
   }

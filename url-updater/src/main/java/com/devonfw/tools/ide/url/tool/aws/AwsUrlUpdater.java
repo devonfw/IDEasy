@@ -10,7 +10,7 @@ import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
 public class AwsUrlUpdater extends GithubUrlUpdater {
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "aws";
   }
@@ -33,7 +33,7 @@ public class AwsUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
-  protected String mapVersion(String version) {
+  public String mapVersion(String version) {
 
     int majorEnd = 0;
     int len = version.length();

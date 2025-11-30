@@ -18,13 +18,13 @@ public class PycharmUrlUpdater extends IdeaBasedUrlUpdater {
   protected static final ObjectMapper MAPPER = JsonMapping.create();
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "pycharm";
   }
 
   @Override
-  protected List<String> getEditions() {
+  public List<String> getEditions() {
     return EDITIONS;
   }
 

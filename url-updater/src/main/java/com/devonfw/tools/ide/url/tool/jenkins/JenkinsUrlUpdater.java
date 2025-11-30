@@ -13,7 +13,7 @@ public class JenkinsUrlUpdater extends WebsiteUrlUpdater {
   private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d\\.\\d{2,3}\\.\\d)");
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "jenkins";
   }

@@ -11,7 +11,7 @@ public class JasyptUrlUpdater extends MavenBasedUrlUpdater {
   public static final VersionIdentifier MIN_VERSION = VersionIdentifier.of("1.9.3");
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "jasypt";
   }

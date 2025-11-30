@@ -13,7 +13,7 @@ public class AzureUrlUpdater extends GithubUrlUpdater {
   private static final VersionIdentifier MIN_AZURE_VID = VersionIdentifier.of("2.17.0");
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "az";
   }
@@ -44,7 +44,7 @@ public class AzureUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
-  protected String mapVersion(String version) {
+  public String mapVersion(String version) {
 
     version = version.substring(version.lastIndexOf("-") + 1);
     VersionIdentifier vid = VersionIdentifier.of(version);

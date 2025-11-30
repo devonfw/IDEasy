@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 public final class VersionIdentifier implements VersionObject<VersionIdentifier>, GenericVersionRange {
 
   /** {@link VersionIdentifier} "*" that will resolve to the latest stable version. */
-  public static final VersionIdentifier LATEST = VersionIdentifier.of("*");
+  public static final VersionIdentifier LATEST = new VersionIdentifier(VersionSegment.of("*"));
 
   /** {@link VersionIdentifier} "*!" that will resolve to the latest snapshot. */
   public static final VersionIdentifier LATEST_UNSTABLE = VersionIdentifier.of("*!");
@@ -324,7 +324,7 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
 
     if (version == null) {
       return null;
-    } else if (version.equals("latest")) {
+    } else if (version.equals("latest") || version.equals("*")) {
       return VersionIdentifier.LATEST;
     }
     VersionSegment startSegment = VersionSegment.of(version);

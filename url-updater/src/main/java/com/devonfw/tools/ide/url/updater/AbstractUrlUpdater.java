@@ -91,7 +91,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   /**
    * @return the name of the {@link UrlTool tool} handled by this updater.
    */
-  protected abstract String getTool();
+  public abstract String getTool();
 
   /**
    * @return the name of the {@link UrlEdition edition} handled by this updater.
@@ -104,7 +104,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   /**
    * @return the names of the {@link UrlEdition editions} handled by this updater.
    */
-  protected List<String> getEditions() {
+  public List<String> getEditions() {
 
     return List.of(getEdition());
   }
@@ -155,27 +155,6 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   public String getCpeEdition() {
 
     return getTool();
-  }
-
-  /**
-   * @param version the {@link UrlVersion#getName() version} to map to the format or syntax used in the {@link #CPE}.
-   * @return the version as specified in the {@link #CPE}.
-   */
-  public String mapUrlVersionToCpeVersion(String version) {
-
-    return version;
-  }
-
-  /**
-   * This method is only used as fallback if the passed version is not in the expected format or syntax of {@link #mapUrlVersionToCpeVersion(String)}. This
-   * doesn't have to be inverse of {@link #mapUrlVersionToCpeVersion(String)}. It must only be sufficient to get the correct
-   * {@link com.devonfw.tools.ide.version.VersionRange} from the matched vulnerable software.
-   *
-   * @return the mapped version as specified in the {@link #CPE} to the version as specified by the directory name in the url repository.
-   */
-  public String mapCpeVersionToUrlVersion(String version) {
-
-    return version;
   }
 
   /**
@@ -859,7 +838,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    * @param version the original version (e.g. "v1.0").
    * @return the transformed version (e.g. "1.0") or {@code null} to filter and omit the given version.
    */
-  protected String mapVersion(String version) {
+  public String mapVersion(String version) {
 
     String prefix = getVersionPrefixToRemove();
     if ((prefix != null) && version.startsWith(prefix)) {

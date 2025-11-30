@@ -13,7 +13,7 @@ public class GCloudUrlUpdater extends GithubUrlUpdater {
   private static final VersionIdentifier MIN_ARM_GCLOUD_VID = VersionIdentifier.of("366.0.0");
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "gcloud";
   }

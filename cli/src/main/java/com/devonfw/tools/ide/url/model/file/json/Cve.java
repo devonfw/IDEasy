@@ -64,7 +64,11 @@ public record Cve(String id, double severity, List<VersionRange> versions) {
     return new Cve(this.id, this.severity, newVersions);
   }
 
-  private static void mergeVersionRage(List<VersionRange> newVersions, VersionRange versionRange) {
+  /**
+   * @param newVersions the {@link List} of {@link VersionRange}s.
+   * @param versionRange the new {@link VersionRange} to add.
+   */
+  public static void mergeVersionRage(List<VersionRange> newVersions, VersionRange versionRange) {
 
     if (newVersions.isEmpty()) {
       newVersions.add(versionRange);

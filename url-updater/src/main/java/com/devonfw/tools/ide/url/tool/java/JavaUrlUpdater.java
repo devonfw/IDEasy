@@ -11,13 +11,13 @@ import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
 public class JavaUrlUpdater extends JsonUrlUpdater<JavaJsonObject, JavaJsonVersion> {
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "java";
   }
 
   @Override
-  protected String mapVersion(String version) {
+  public String mapVersion(String version) {
 
     // remove the suffix "-LTS", this is necessary for java version 21+35-LTS
     if (version.endsWith("-LTS")) {
