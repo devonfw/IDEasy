@@ -67,7 +67,7 @@ public class UrlAnalyzer extends AbstractFileTypeAnalyzer {
     evidence = new Evidence(ANALYZER_NAME, "CpeProduct", cpeProduct, Confidence.HIGH);
     dependency.addEvidence(EvidenceType.PRODUCT, evidence);
 
-    if (cpeEdition.isBlank()) {
+    if (!cpeEdition.isBlank()) {
 
       evidence = new Evidence(ANALYZER_NAME, "CpeEdition", cpeEdition, Confidence.HIGH);
       dependency.addEvidence(EvidenceType.PRODUCT, evidence);

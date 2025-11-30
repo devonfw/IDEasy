@@ -85,7 +85,8 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
    */
   public UpdateManager(Path pathToRepository, UrlFinalReport urlFinalReport, Instant expirationTime) {
 
-    this.urlRepository = UrlRepository.load(pathToRepository);
+    this.urlRepository = new UrlRepository(pathToRepository);
+    this.urlRepository.load(false);
     this.urlFinalReport = urlFinalReport;
     setExpirationTime(expirationTime);
   }

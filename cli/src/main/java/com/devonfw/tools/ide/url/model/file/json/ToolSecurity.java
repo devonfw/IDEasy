@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.Predicate;
 
 import com.devonfw.tools.ide.json.JsonMapping;
@@ -27,46 +29,74 @@ public class ToolSecurity {
 
   private static final ObjectMapper MAPPER = JsonMapping.create();
 
-  private static final ToolSecurity EMPTY = new ToolSecurity(Collections.emptyList());
+  private static final ToolSecurity EMPTY = new ToolSecurity(Map.of());
 
-  private List<Cve> issues;
+  private final Map<String, Cve> cveMap;
+
+  private final Collection<Cve> issues;
 
   /**
    * The constructor.
    */
   public ToolSecurity() {
-    this(new ArrayList<>());
+    this(new TreeMap<>());
   }
 
-  /**
-   * The constructor.
-   *
-   * @param issues the {@link List} of {@link Cve CVE}s.
-   */
-  public ToolSecurity(List<Cve> issues) {
-
+  private ToolSecurity(Map<String, Cve> cveMap) {
     super();
-    this.issues = issues;
+    this.cveMap = cveMap;
+    this.issues = Collections.unmodifiableCollection(this.cveMap.values());
   }
 
   /**
-   * @return the list of CVEs
+   * @return the {@link Collection} of {@link Cve}s.
    */
-  public List<Cve> getIssues() {
-    return issues;
+  public Collection<Cve> getIssues() {
+    return this.issues;
   }
 
   /**
    * @param issues the list of CVEs
    */
   public void setIssues(List<Cve> issues) {
-    this.issues = issues;
+
+    this.cveMap.clear();
+    for (Cve issue : issues) {
+      addIssue(issue);
+    }
+  }
+
+  /**
+   * @param issue the {@link Cve} to add.
+   * @return {@code true} if this {@link ToolSecurity} was modified (issue added or merged), {@code false} otherwise ({@link Cve} was already contained).
+   */
+  public boolean addIssue(Cve issue) {
+
+    Cve newIssue = issue;
+    String id = issue.id();
+    Cve existingIssue = this.cveMap.get(id);
+    if (existingIssue != null) {
+      newIssue = existingIssue.merge(issue);
+      if (newIssue.equals(existingIssue)) {
+        return false;
+      }
+    }
+    this.cveMap.put(id, newIssue);
+    return true;
+  }
+
+  /**
+   * Clears all issues.
+   */
+  public void clearIssues() {
+    this.cveMap.clear();
   }
 
   /**
    * Finds all {@link Cve}s for the given {@link VersionIdentifier} that also match the given {@link Predicate}.
    *
    * @param version the {@link VersionIdentifier} to check.
+   * @param logger the {@link IdeLogger}.
    * @param predicate the {@link Predicate} deciding which matching {@link Cve}s are {@link Predicate#test(Object) accepted}.
    * @return all {@link Cve}s for the given {@link VersionIdentifier}.
    */
@@ -90,6 +120,7 @@ public class ToolSecurity {
    * Finds all {@link Cve}s for the given {@link VersionIdentifier} and {@code minSeverity}.
    *
    * @param version the {@link VersionIdentifier} to check.
+   * @param logger the {@link IdeLogger}.
    * @param minSeverity the {@link IdeVariables#CVE_MIN_SEVERITY minimum severity}.
    * @return all {@link Cve}s for the given {@link VersionIdentifier}.
    */
