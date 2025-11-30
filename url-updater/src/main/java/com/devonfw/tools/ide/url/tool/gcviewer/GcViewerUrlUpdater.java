@@ -9,7 +9,7 @@ import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
 public class GcViewerUrlUpdater extends GithubUrlUpdater {
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "gcviewer";
   }
@@ -39,7 +39,7 @@ public class GcViewerUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
-  protected String mapVersion(String version) {
+  public String mapVersion(String version) {
 
     if (version.matches("\\d+\\.\\d+(\\.\\d+)?")) {
       return super.mapVersion(version);

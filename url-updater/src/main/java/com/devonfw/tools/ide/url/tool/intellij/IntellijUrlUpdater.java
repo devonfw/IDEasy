@@ -17,13 +17,13 @@ public class IntellijUrlUpdater extends IdeaBasedUrlUpdater {
   protected static final ObjectMapper MAPPER = JsonMapping.create();
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "intellij";
   }
 
   @Override
-  protected List<String> getEditions() {
+  public List<String> getEditions() {
     return EDITIONS;
   }
 

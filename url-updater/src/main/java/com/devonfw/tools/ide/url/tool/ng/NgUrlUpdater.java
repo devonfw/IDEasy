@@ -8,7 +8,7 @@ import com.devonfw.tools.ide.url.updater.NpmBasedUrlUpdater;
 public class NgUrlUpdater extends NpmBasedUrlUpdater {
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "ng";
   }
