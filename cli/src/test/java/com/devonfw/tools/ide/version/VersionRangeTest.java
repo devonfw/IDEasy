@@ -172,6 +172,16 @@ public class VersionRangeTest extends Assertions {
     checkIllegalRange("(1.1,1.0)");
   }
 
+  /** Test of {@link VersionRange#of(String, boolean)} with tolerance. */
+  @Test
+  public void testTolerance() {
+
+    assertThat(VersionRange.of("[*,*]", true)).isEqualTo(VersionRange.UNBOUNDED);
+    assertThat(VersionRange.of("[,)", true)).isEqualTo(VersionRange.UNBOUNDED);
+    assertThat(VersionRange.of("(,]", true)).isEqualTo(VersionRange.UNBOUNDED);
+    assertThat(VersionRange.of("[,]", true)).isEqualTo(VersionRange.UNBOUNDED);
+  }
+
   private void checkIllegalRange(String range) {
 
     try {

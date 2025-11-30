@@ -193,6 +193,16 @@ public final class VersionRange implements Comparable<VersionRange>, GenericVers
    */
   public static VersionRange of(String value) {
 
+    return of(value, false);
+  }
+
+  /**
+   * @param value the {@link #toString() string representation} of a {@link VersionRange} to parse.
+   * @param tolerance {@code true} to enable tolerant parsing so we can read garbage (e.g. form JSON) without failing.
+   * @return the parsed {@link VersionRange}.
+   */
+  public static VersionRange of(String value, boolean tolerance) {
+
     Boolean isleftExclusive = null;
     Boolean isRightExclusive = null;
     if (value.startsWith(BoundaryType.START_EXCLUDING_PREFIX)) {
@@ -219,18 +229,25 @@ public final class VersionRange implements Comparable<VersionRange>, GenericVers
       String minString = value.substring(0, index);
       if (!minString.isBlank()) {
         min = VersionIdentifier.of(minString);
+        if (min == VersionIdentifier.LATEST) {
+          min = null;
+        }
       }
       String maxString = value.substring(index + 1);
       if (!maxString.isBlank()) {
         max = VersionIdentifier.of(maxString);
+        if (max == VersionIdentifier.LATEST) {
+          max = null;
+        }
       }
     }
-    if (isleftExclusive == null) {
+    if ((isleftExclusive == null) || (tolerance && (min == null))) {
       isleftExclusive = min == null;
     }
-    if (isRightExclusive == null) {
+    if ((isRightExclusive == null) || (tolerance && (max == null))) {
       isRightExclusive = max == null;
     }
+
     if ((min == null) && (max == null) && isleftExclusive && isRightExclusive) {
       return UNBOUNDED;
     }

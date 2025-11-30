@@ -49,6 +49,8 @@ public class BuildSecurityJsonFiles implements Runnable {
 
   private static final Set<String> IGNORED_VALUES = Set.of("*", "windows", "linux", "mac", "aws");
 
+  private static final Set<String> IGNORED_VERSIONS = Set.of("*", "-");
+
   private final UrlMetadata urlMetadata;
 
   private final UpdateManager updateManager;
@@ -73,19 +75,23 @@ public class BuildSecurityJsonFiles implements Runnable {
 
       CveDB database = engine.getDatabase();
       for (AbstractUrlUpdater updater : this.updateManager.getUpdaters()) {
+        String updaterName = updater.getClass().getSimpleName();
         String tool = updater.getTool();
+        LOG.info("Processing {} for tool {}", updaterName, tool);
         CpeBuilder cpeBuilder = new CpeBuilder();
         cpeBuilder.vendor(updater.getCpeVendor());
         cpeBuilder.product(updater.getCpeProduct());
         Cpe cpe = cpeBuilder.build();
         List<Vulnerability> vulnerabilities = database.getVulnerabilities(cpe);
         if ((vulnerabilities == null) || (vulnerabilities.isEmpty())) {
-          LOG.info("No vulnerabilities found for {} with CPE {}", updater.getClass().getSimpleName(), cpe);
+          LOG.info("No vulnerabilities found for {} with CPE {}", updaterName, cpe);
         } else {
           for (String edition : updater.getEditions()) {
+            LOG.info("Processing edition {} for tool {}", edition, tool);
             UrlSecurityFile securityFile = this.urlMetadata.getEdition(tool, edition).getSecurityFile();
             securityFile.clearSecurityWarnings(); // pointless parsing of JSON causing waste
             for (Vulnerability vulnerability : vulnerabilities) {
+              LOG.info("Processing vulnerability {} for tool {}", vulnerability.getName(), tool);
               Cve cve = toCve(vulnerability, edition, updater);
               if (cve != null) {
                 securityFile.addCve(cve);
@@ -148,7 +154,7 @@ public class BuildSecurityJsonFiles implements Runnable {
     for (VulnerableSoftware range : vulnerability.getVulnerableSoftware()) {
       VersionRange versionRange = toVersionRange(range, edition, urlUpdater, id);
       if (versionRange != null) {
-        versions.add(versionRange);
+        Cve.mergeVersionRage(versions, versionRange);
       }
     }
     return versions;
@@ -156,6 +162,11 @@ public class BuildSecurityJsonFiles implements Runnable {
 
   private static VersionRange toVersionRange(VulnerableSoftware range, String edition, AbstractUrlUpdater urlUpdater, String id) {
 
+    if (!range.getVendor().equals(urlUpdater.getCpeVendor())) {
+      return null;
+    } else if (!range.getProduct().equals(urlUpdater.getCpeProduct())) {
+      return null;
+    }
     String cpeEdition = findCpeEdition(range);
     if (cpeEdition != null) {
       LOG.debug("Checking {} for CPE edition {} = {} (tool edition).", id, cpeEdition, edition);
@@ -170,7 +181,7 @@ public class BuildSecurityJsonFiles implements Runnable {
     String endExcluding = mapVersion(range.getVersionEndExcluding(), urlUpdater);
     String singleVersion = mapVersion(range.getVersion(), urlUpdater);
     if ((endExcluding == null) && (endIncluding == null) && (startExcluding == null) && (startIncluding == null)) {
-      if (singleVersion == null) {
+      if ((singleVersion == null)) {
         LOG.error("Vulnerability {} has no interval of affected versions or single affected version.", id);
         return null;
       }
@@ -212,16 +223,14 @@ public class BuildSecurityJsonFiles implements Runnable {
       return true;
     }
     if (urlUpdater.getTool().equals(urlEdition)) {
-      if (DEFAULT_EDITIONS.contains(cpeEdition)) {
-        return true;
-      }
+      return DEFAULT_EDITIONS.contains(cpeEdition);
     }
     return false;
   }
 
   private static String mapVersion(String cveVersion, AbstractUrlUpdater urlUpdater) {
 
-    if (cveVersion == null) {
+    if ((cveVersion == null) || IGNORED_VERSIONS.contains(cveVersion)) {
       return null;
     }
     return urlUpdater.mapVersion(cveVersion);
