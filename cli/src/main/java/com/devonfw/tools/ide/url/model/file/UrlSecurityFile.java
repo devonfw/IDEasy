@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.url.model.file;
 
 import java.io.BufferedWriter;
 import java.nio.file.Files;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -23,10 +24,9 @@ public class UrlSecurityFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?,
   /** {@link #getName() Name} of security file. */
   public static final String SECURITY_JSON = "security.json";
 
+  private static final ObjectMapper MAPPER = JsonMapping.create();
 
-  private ToolSecurity security = ToolSecurity.getEmpty();
-
-  private final ObjectMapper MAPPER = JsonMapping.create();
+  private ToolSecurity security;
 
   /**
    * The constructor.
@@ -67,13 +67,13 @@ public class UrlSecurityFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?,
   @Override
   public void doSave() {
 
-    if ((security == null || security.getIssues().isEmpty()) && !Files.exists(getPath())) {
+    if ((this.security == null || this.security.getIssues().isEmpty()) && !Files.exists(getPath())) {
       System.out.println("Skipping save for " + getPath() + " (no warnings and file doesn't exist)");
       return;
     }
 
     try (BufferedWriter writer = Files.newBufferedWriter(getPath())) {
-      MAPPER.writeValue(writer, security);
+      MAPPER.writeValue(writer, this.security);
     } catch (Exception e) {
       throw new IllegalStateException("Failed to save file " + getPath(), e);
     }
@@ -81,17 +81,16 @@ public class UrlSecurityFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?,
   }
 
   /**
-   * Adds a new CVE warning with detailed information, such as severity, CVE ID and a versionRange
+   * Adds a new CVE warning with detailed information, such as severity, CVE ID and a versionRange.
+   *
+   * @param cve the {@link Cve} to add.
    */
-
   public void addCve(Cve cve) {
     if (this.security == null || this.security == ToolSecurity.getEmpty()) {
       this.security = new ToolSecurity();
     }
-
-    List<Cve> issues = this.security.getIssues();
-    if (!issues.contains(cve)) {
-      issues.add(cve);
+    boolean securityModified = this.security.addIssue(cve);
+    if (securityModified) {
       this.modified = true;
     }
   }
@@ -102,7 +101,7 @@ public class UrlSecurityFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?,
    */
   public void clearSecurityWarnings() {
     if (this.security != null) {
-      this.security.getIssues().clear();
+      this.security.clearIssues();
       this.modified = true;
     }
   }
@@ -127,15 +126,15 @@ public class UrlSecurityFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?,
           edition.getName(), edition.getName(), null);
     }
 
-    List<Cve> issues = this.security != null ? this.security.getIssues() : List.of();
+    Collection<Cve> issues = this.security != null ? this.security.getIssues() : List.of();
 
     for (Cve cve : issues) {
       for (VersionRange versionRange : cve.versions()) {
         if (ignoreWarningsThatAffectAllVersions) {
           boolean includesOldestVersion = versionRange.getMin() == null
-              || versionRange.contains(sortedVersions.get(sortedVersions.size() - 1));
+              || versionRange.contains(sortedVersions.getLast());
           boolean includesNewestVersion = versionRange.getMax() == null
-              || versionRange.contains(sortedVersions.get(0));
+              || versionRange.contains(sortedVersions.getFirst());
           if (includesOldestVersion && includesNewestVersion) {
             continue;
           }

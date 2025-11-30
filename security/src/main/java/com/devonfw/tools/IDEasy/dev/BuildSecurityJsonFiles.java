@@ -51,7 +51,6 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.url.model.file.UrlSecurityFile;
 import com.devonfw.tools.ide.url.model.file.json.Cve;
-import com.devonfw.tools.ide.url.model.folder.UrlRepository;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.model.report.UrlFinalReport;
 import com.devonfw.tools.ide.url.updater.AbstractUrlUpdater;
@@ -67,7 +66,7 @@ import com.devonfw.tools.ide.version.VersionRange;
  * <p>Note: Running this class may take a long time due to OWASP database updates.</p>
  * <p> For usage, see the {@link #main(String[]) main method}</p>
  */
-public class BuildSecurityJsonFiles {
+public class BuildSecurityJsonFiles implements Runnable {
 
   //Evtl. Suppression.xml für False Positives: https://jeremylong.github.io/DependencyCheck/general/suppression.html
 
@@ -78,11 +77,34 @@ public class BuildSecurityJsonFiles {
       NodeAuditAnalyzer.class, YarnAuditAnalyzer.class, PnpmAuditAnalyzer.class, RetireJsAnalyzer.class,
       FalsePositiveAnalyzer.class);
 
-  private static BigDecimal minV2Severity = new BigDecimal("0.0");
+  private static final BigDecimal MIN_V_2_SEVERITY = new BigDecimal("0.0");
 
-  private static BigDecimal minV3Severity = new BigDecimal("0.0");
+  private static final BigDecimal MIN_V_3_SEVERITY = new BigDecimal("0.0");
 
   private static final Logger LOG = LoggerFactory.getLogger(BuildSecurityJsonFiles.class);
+
+  private final Path urlsPath;
+
+  private final UrlMetadata urlMetadata;
+
+  private final UpdateManager updateManager;
+
+  private BuildSecurityJsonFiles(Path urlsPath) {
+
+    super();
+    this.urlsPath = urlsPath;
+    UrlFinalReport report = new UrlFinalReport();
+    this.updateManager = new UpdateManager(urlsPath, report, Instant.now());
+    IdeContextConsole context = new IdeContextConsole(IdeLogLevel.INFO, null, false);
+    this.urlMetadata = new UrlMetadata(context, this.updateManager.getUrlRepository());
+  }
+
+  @Override
+  public void run() {
+    List<Dependency> dependencies = findDependenciesWithVulnerabilities();
+    processDependenciesWithVulnerabilities(dependencies);
+  }
+
 
   /**
    * Main entry point for building security JSON files. Loads the URL repository, retrieves dependencies with vulnerabilities, and processes them to
@@ -90,25 +112,13 @@ public class BuildSecurityJsonFiles {
    *
    * @param args command-line arguments; expects the first argument to be the path to the ide-urls repository.
    */
-
   public static void main(String[] args) {
+    if (args.length == 0) {
+      System.err.println("Usage: " + BuildSecurityJsonFiles.class.getSimpleName() + " <path-to-ide-urls>");
+      System.exit(1);
+    }
     Path urlsPath = Path.of(args[0]);
-    UrlRepository urlRepository = UrlRepository.load(urlsPath);
-    UrlFinalReport report = new UrlFinalReport();
-    UpdateManager updateManager = new UpdateManager(urlsPath, report, Instant.now());
-    List<Dependency> dependencies = loadDependenciesWithVulnerabilities(updateManager);
-    processDependenciesWithVulnerabilities(dependencies, updateManager, new UrlMetadata(new IdeContextConsole(IdeLogLevel.INFO, null, false), urlRepository),
-        urlsPath);
-  }
-
-  /**
-   * Loads dependencies that contain known vulnerabilities.
-   *
-   * @param updateManager the {@link UpdateManager} used to access tool metadata.
-   * @return a list of {@link Dependency} objects with associated vulnerabilities.
-   */
-  public static List<Dependency> loadDependenciesWithVulnerabilities(UpdateManager updateManager) {
-    return getDependenciesWithVulnerabilities(updateManager);
+    new BuildSecurityJsonFiles(urlsPath).run();
   }
 
   /**
@@ -116,12 +126,8 @@ public class BuildSecurityJsonFiles {
    * edition, and saved accordingly.
    *
    * @param dependencies the list of vulnerable {@link Dependency} objects.
-   * @param updateManager the {@link UpdateManager} used to retrieve tool updaters.
-   * @param urlMetadata the {@link UrlMetadata} used to resolve tool and version information
-   * @param urlsPath the path to the ide-urls repository.
    */
-  public static void processDependenciesWithVulnerabilities(List<Dependency> dependencies, UpdateManager updateManager, UrlMetadata urlMetadata,
-      Path urlsPath) {
+  public void processDependenciesWithVulnerabilities(List<Dependency> dependencies) {
     Set<Pair<String, String>> foundToolsAndEditions = new HashSet<>();
 
     for (Dependency dependency : dependencies) {
@@ -130,16 +136,15 @@ public class BuildSecurityJsonFiles {
       String tool = parent.getParent().getParent().getFileName().toString();
       String edition = parent.getParent().getFileName().toString();
 
-      AbstractUrlUpdater urlUpdater = updateManager.retrieveUrlUpdater(tool, edition);
+      AbstractUrlUpdater urlUpdater = this.updateManager.retrieveUrlUpdater(tool, edition);
       if (urlUpdater == null) {
         continue;
       }
 
-      UrlSecurityFile securityFile = urlMetadata.getEdition(tool, edition).getSecurityFile();
-      saveSecurityFile(dependency, foundToolsAndEditions, tool, edition, securityFile, urlUpdater, urlMetadata);
+      UrlSecurityFile securityFile = this.urlMetadata.getEdition(tool, edition).getSecurityFile();
+      saveSecurityFile(dependency, foundToolsAndEditions, tool, edition, securityFile, urlUpdater);
     }
-
-    printAffectedVersions(urlMetadata, urlsPath);
+    printAffectedVersions();
   }
 
   /**
@@ -152,19 +157,18 @@ public class BuildSecurityJsonFiles {
    * @param edition the edition of the tool (e.g., "oracle").
    * @param securityFile the {@link UrlSecurityFile} to update.
    * @param urlUpdater the {@link AbstractUrlUpdater} for the tool/edition.
-   * @param urlMetadata the {@link UrlMetadata} used to resolve version and edition information.
    */
-  public static void saveSecurityFile(Dependency dependency, Set<Pair<String, String>> foundToolsAndEditions, String tool, String edition,
-      UrlSecurityFile securityFile, AbstractUrlUpdater urlUpdater, UrlMetadata urlMetadata) {
+  public void saveSecurityFile(Dependency dependency, Set<Pair<String, String>> foundToolsAndEditions, String tool, String edition,
+      UrlSecurityFile securityFile, AbstractUrlUpdater urlUpdater) {
     boolean newlyAdded = foundToolsAndEditions.add(new Pair<>(tool, edition));
     if (newlyAdded) {
       securityFile.clearSecurityWarnings();
     }
 
-    Map<String, String> cpeToUrlVersion = buildCpeToUrlVersionMap(tool, edition, urlUpdater, urlMetadata);
+    Map<String, String> cpeToUrlVersion = buildCpeToUrlVersionMap(tool, edition, urlUpdater);
     Set<Vulnerability> vulnerabilities = dependency.getVulnerabilities(true);
     for (Vulnerability vulnerability : vulnerabilities) {
-      addVulnerabilityToSecurityFile(vulnerability, securityFile, cpeToUrlVersion, urlUpdater, urlMetadata);
+      addVulnerabilityToSecurityFile(vulnerability, securityFile, cpeToUrlVersion, urlUpdater);
     }
     securityFile.save();
   }
@@ -179,10 +183,9 @@ public class BuildSecurityJsonFiles {
    *     between CPE Version and {@link UrlVersion#getName() Url Version}.
    * @return the {@link Map} from CPE Version to {@link UrlVersion#getName() Url Version}.
    */
-  private static Map<String, String> buildCpeToUrlVersionMap(String tool, String edition,
-      AbstractUrlUpdater urlUpdater, UrlMetadata urlMetadata) {
+  private Map<String, String> buildCpeToUrlVersionMap(String tool, String edition, AbstractUrlUpdater urlUpdater) {
 
-    List<String> sortedVersions = urlMetadata.getSortedVersions(tool, edition, null).stream()
+    List<String> sortedVersions = this.urlMetadata.getSortedVersions(tool, edition, null).stream()
         .map(VersionIdentifier::toString).toList();
 
     List<String> sortedCpeVersions = sortedVersions.stream().map(urlUpdater::mapUrlVersionToCpeVersion)
@@ -200,16 +203,14 @@ public class BuildSecurityJsonFiles {
    * Uses the {@link Engine OWASP engine} to scan the {@link AbstractIdeContext#getUrlsPath() ide-url} folder for dependencies and then runs
    * {@link Engine#analyzeDependencies() analyzes} them to get the {@link Vulnerability vulnerabilities}.
    *
-   * @param updateManager the {@link UpdateManager} to use to get the {@link AbstractUrlUpdater} of the tool to get CPE Vendor, CPE Product and CPE edition
-   *     of the tool, as well as the {@link AbstractUrlUpdater#mapCpeVersionToUrlVersion(String) CPE naming of its version}
    * @return the {@link Dependency dependencies} with associated {@link Vulnerability vulnerabilities}.
    */
-  private static List<Dependency> getDependenciesWithVulnerabilities(UpdateManager updateManager) {
+  private List<Dependency> findDependenciesWithVulnerabilities() {
 
     Settings settings = new Settings();
     Engine engine = new Engine(settings);
 
-    FileTypeAnalyzer urlAnalyzer = new UrlAnalyzer(updateManager);
+    FileTypeAnalyzer urlAnalyzer = new UrlAnalyzer(this.updateManager);
     engine.getFileTypeAnalyzers().add(urlAnalyzer);
     engine.getAnalyzers(AnalysisPhase.INFORMATION_COLLECTION).add(urlAnalyzer);
 
@@ -217,7 +218,7 @@ public class BuildSecurityJsonFiles {
     engine.getMode().getPhases().forEach(
         phase -> engine.getAnalyzers(phase).removeIf(analyzer -> ANALYZERS_TO_IGNORE.contains(analyzer.getClass())));
 
-    engine.scan(updateManager.getUrlRepository().getPath().toString());
+    engine.scan(this.updateManager.getUrlRepository().getPath().toString());
     try {
       engine.analyzeDependencies();
     } catch (ExceptionCollection e) {
@@ -236,11 +237,10 @@ public class BuildSecurityJsonFiles {
    * @param securityFile the {@link UrlSecurityFile} of the tool and edition to which the vulnerability applies.
    * @param cpeToUrlVersion a {@link Map} from CPE Version to {@link UrlVersion#getName() Url Version}.
    * @param urlUpdater the {@link AbstractUrlUpdater} of the tool to get maps between CPE Version and {@link UrlVersion#getName() Url Version} naming.
-   * @param urlMetadata the {@link UrlMetadata} used to resolve version and edition information.
    */
 
-  public static void addVulnerabilityToSecurityFile(Vulnerability vulnerability, UrlSecurityFile securityFile,
-      Map<String, String> cpeToUrlVersion, AbstractUrlUpdater urlUpdater, UrlMetadata urlMetadata) {
+  public void addVulnerabilityToSecurityFile(Vulnerability vulnerability, UrlSecurityFile securityFile,
+      Map<String, String> cpeToUrlVersion, AbstractUrlUpdater urlUpdater) {
 
     String cveName = vulnerability.getName();
 
@@ -250,10 +250,10 @@ public class BuildSecurityJsonFiles {
     }
 
     if (vulnerability.getCvssV3() != null) {
-      if (severity.compareTo(minV3Severity) < 0) {
+      if (severity.compareTo(MIN_V_3_SEVERITY) < 0) {
         return;
       }
-    } else if (severity.compareTo(minV2Severity) < 0) {
+    } else if (severity.compareTo(MIN_V_2_SEVERITY) < 0) {
       return;
     }
 
@@ -280,7 +280,7 @@ public class BuildSecurityJsonFiles {
   protected static BigDecimal getBigDecimalSeverity(Vulnerability vulnerability) {
 
     if (vulnerability.getCvssV2() == null && vulnerability.getCvssV3() == null) {
-      LOG.warn("Vulnerability without severity found: " + vulnerability.getName());
+      LOG.warn("Vulnerability without severity found: {}", vulnerability.getName());
       return null;
     }
     double severityDouble;
@@ -338,8 +338,7 @@ public class BuildSecurityJsonFiles {
    *     This is used as backup if the {@code cpeToUrlVersion} does not contain the CPE Version.
    * @return the {@link UrlVersion#getName() Url Version} of the CPE Version.
    */
-  private static String getUrlVersion(String cpeVersion, Map<String, String> cpeToUrlVersion,
-      AbstractUrlUpdater urlUpdater) {
+  private static String getUrlVersion(String cpeVersion, Map<String, String> cpeToUrlVersion, AbstractUrlUpdater urlUpdater) {
 
     String urlVersion = null;
     if (cpeVersion != null) {
@@ -399,9 +398,9 @@ public class BuildSecurityJsonFiles {
   /**
    * Prints the affected versions of each tool and edition.
    */
-  private static void printAffectedVersions(UrlMetadata urlMetadata, Path urlsPath) {
+  private void printAffectedVersions() {
 
-    for (File tool : urlsPath.toFile().listFiles()) {
+    for (File tool : this.urlsPath.toFile().listFiles()) {
       if (!Files.isDirectory(tool.toPath())) {
         continue;
       }
@@ -409,8 +408,8 @@ public class BuildSecurityJsonFiles {
         if (!edition.isDirectory()) {
           continue;
         }
-        List<VersionIdentifier> sortedVersions = urlMetadata.getSortedVersions(tool.getName(), edition.getName(), null);
-        UrlSecurityFile securityJsonFile = urlMetadata.getEdition(tool.getName(), edition.getName())
+        List<VersionIdentifier> sortedVersions = this.urlMetadata.getSortedVersions(tool.getName(), edition.getName(), null);
+        UrlSecurityFile securityJsonFile = this.urlMetadata.getEdition(tool.getName(), edition.getName())
             .getSecurityFile();
         VersionIdentifier min = null;
         for (int i = sortedVersions.size() - 1; i >= 0; i--) {
@@ -419,7 +418,6 @@ public class BuildSecurityJsonFiles {
             if (min == null) {
               min = version;
             }
-
           } else {
             if (min != null) {
               LOG.info("Tool '{}' with edition '{}' and versions '{}' are affected by vulnerabilities.",
