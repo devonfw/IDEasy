@@ -37,24 +37,21 @@ public class Jmc extends LocalToolCommandlet {
   }
 
   @Override
-  public void postInstall() {
+  protected void postExtract(Path extractedDir) {
 
-    super.postInstall();
-
+    super.postExtract(extractedDir);
     if (this.context.getSystemInfo().isWindows() || this.context.getSystemInfo().isLinux()) {
-      Path toolPath = getToolPath();
-      Path oldBinaryPath = toolPath.resolve("JDK Mission Control");
+      Path oldBinaryPath = extractedDir.resolve("JDK Mission Control");
       if (Files.isDirectory(oldBinaryPath)) {
         FileAccess fileAccess = this.context.getFileAccess();
-        moveFilesAndDirs(oldBinaryPath, toolPath);
+        moveFilesAndDirs(oldBinaryPath, extractedDir);
         fileAccess.delete(oldBinaryPath);
       } else {
-        this.context.info(
+        this.context.debug(
             "JMC binary folder not found at {} - ignoring as this legacy problem may be resolved in newer versions.",
             oldBinaryPath);
       }
     }
-
   }
 
   private void moveFilesAndDirs(Path sourceFolder, Path targetFolder) {

@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.url.updater;
 
 import java.nio.file.Path;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -54,18 +53,17 @@ import com.devonfw.tools.ide.url.tool.vscode.VsCodeUrlUpdater;
 
 /**
  * The {@code UpdateManager} class manages the update process for various tools by using a list of {@link AbstractUrlUpdater}s to update the
- * {@link UrlRepository}. The list of {@link AbstractUrlUpdater}s contains crawlers for different tools and services, To use the UpdateManager, simply create an
- * instance with the path to the repository as a parameter and call the {@link #updateAll(UrlFinalReport)} method.
+ * {@link UrlRepository}. Each {@link AbstractUrlUpdater} is responsible for a specific {@link AbstractUrlUpdater#getTool() tool} and typically also edition.
  */
 public class UpdateManager extends AbstractProcessorWithTimeout {
 
-  private static final Logger logger = LoggerFactory.getLogger(AbstractUrlUpdater.class);
+  private static final Logger logger = LoggerFactory.getLogger(UpdateManager.class);
 
   private final UrlRepository urlRepository;
 
   private final UrlFinalReport urlFinalReport;
 
-  private final List<AbstractUrlUpdater> updaters = Arrays.asList(
+  private final List<AbstractUrlUpdater> updaters = List.of(
       new AndroidStudioUrlUpdater(), new AwsUrlUpdater(), new AzureUrlUpdater(), new CorepackUrlUpdater(), new DockerDesktopUrlUpdater(),
       new DotNetUrlUpdater(),
       new EclipseCppUrlUpdater(), new EclipseJeeUrlUpdater(), new EclipseJavaUrlUpdater(), new GCloudUrlUpdater(),
@@ -88,6 +86,14 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
     this.urlRepository = UrlRepository.load(pathToRepository);
     this.urlFinalReport = urlFinalReport;
     setExpirationTime(expirationTime);
+  }
+
+  /**
+   * @return the {@link List} with all registered {@link AbstractUrlUpdater updaters}.
+   */
+  public List<AbstractUrlUpdater> getUpdaters() {
+
+    return this.updaters;
   }
 
   /**

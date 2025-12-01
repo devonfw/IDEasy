@@ -172,6 +172,16 @@ public class VersionRangeTest extends Assertions {
     checkIllegalRange("(1.1,1.0)");
   }
 
+  /** Test of {@link VersionRange#of(String, boolean)} with tolerance. */
+  @Test
+  public void testTolerance() {
+
+    assertThat(VersionRange.of("[*,*]", true)).isEqualTo(VersionRange.UNBOUNDED);
+    assertThat(VersionRange.of("[,)", true)).isEqualTo(VersionRange.UNBOUNDED);
+    assertThat(VersionRange.of("(,]", true)).isEqualTo(VersionRange.UNBOUNDED);
+    assertThat(VersionRange.of("[,]", true)).isEqualTo(VersionRange.UNBOUNDED);
+  }
+
   private void checkIllegalRange(String range) {
 
     try {
@@ -181,4 +191,73 @@ public class VersionRangeTest extends Assertions {
       assertThat(e.getMessage()).isEqualTo(range);
     }
   }
+
+  /** Test of {@link VersionRange#union(VersionRange, VersionRangeRelation)}. */
+  @Test
+  public void testUnion() {
+
+    VersionRange union = VersionRange.of("[2.0,5.0]");
+    assertThat(union("[2.0,5.0)", "(3.0,5.0]")).isEqualTo(union);
+    assertThat(union("[2.0,3.0]", "[3.0,5.0]")).isEqualTo(union);
+    assertThat(union("[2.0,3.0)", "[3.0,5.0]")).isEqualTo(union);
+    assertThat(union("[2.0,3.0)", "[3.0,5.0]", VersionRangeRelation.OVERLAPPING)).isNull();
+    assertThat(union("[2.0,3.0]", "(3.0,5.0]")).isEqualTo(union);
+    assertThat(union("[2.0,3.0]", "(3.0,5.0]", VersionRangeRelation.CONNECTED)).isEqualTo(union);
+    assertThat(union("[2.0,2.2]", "[2.3,5.0]")).isNull();
+    assertThat(union("[2.0,2.2]", "[2.3,5.0]", VersionRangeRelation.CONNECTED_LOOSELY)).isEqualTo(union);
+    assertThat(union("[2.0,3.0]", "[4.0,5.0]", VersionRangeRelation.CONNECTED_LOOSELY)).isNull();
+    assertThat(union("[2.0,3.0]", "[4.0,5.0]", VersionRangeRelation.DISJUNCT)).isEqualTo(union);
+    assertThat(union("[2.0,2.2)", "(2.2,5.0]", VersionRangeRelation.CONNECTED_LOOSELY)).isNull();
+    assertThat(union("[2.0,2.2)", "(2.2,5.0]", VersionRangeRelation.DISJUNCT)).isEqualTo(union);
+    assertThat(union("(,)", "[1.0,1.0]")).isSameAs(VersionRange.UNBOUNDED);
+    assertThat(union("(,1.0)", "[1.0,1.0]")).isEqualTo(VersionRange.of("(,1.0]"));
+    assertThat(union("(1.0,)", "[1.0,1.0]")).isEqualTo(VersionRange.of("[1.0,)"));
+    assertThat(union("(,2.0]", "[1.0,2.0)")).isEqualTo(VersionRange.of("(,2.0]"));
+    assertThat(union("[2.0,)", "(2.0,3.0]")).isEqualTo(VersionRange.of("[2.0,)"));
+  }
+
+  private VersionRange union(String range1, String range2) {
+
+    return union(range1, range2, null);
+  }
+
+  private VersionRange union(String range1, String range2, VersionRangeRelation minRelation) {
+
+    VersionRange r1 = VersionRange.of(range1);
+    VersionRange r2 = VersionRange.of(range2);
+    VersionRange union;
+    VersionRange reverseUnion;
+    if (minRelation == null) {
+      union = r1.union(r2);
+      reverseUnion = r2.union(r1);
+    } else {
+      union = r1.union(r2, minRelation);
+      reverseUnion = r2.union(r1, minRelation);
+    }
+    assertThat(union).as("Union of " + range1 + " and " + range2 + " is symmetric").isEqualTo(reverseUnion);
+    return union;
+  }
+
+
+  /** Test of {@link VersionRange#intersect(VersionRange)}. */
+  @Test
+  public void testIntersection() {
+
+    assertThat(intersection("(,)", "[1.0,5.0]")).isEqualTo(VersionRange.of("[1.0,5.0]"));
+    assertThat(intersection("(2.0,5.0]", "[2.0,5.0)")).isEqualTo(VersionRange.of("(2.0,5.0)"));
+    assertThat(intersection("[2.0,5.0)", "(2.0,5.0]")).isEqualTo(VersionRange.of("(2.0,5.0)"));
+    assertThat(intersection("(2.0,4.0]", "[3.0,5.0]")).isEqualTo(VersionRange.of("[3.0,4.0]"));
+    assertThat(intersection("(2.0,3.0]", "[3.0,5.0]")).isEqualTo(VersionRange.of("[3.0,3.0]"));
+    assertThat(intersection("(2.0,3.0)", "[3.0,5.0]")).isNull();
+  }
+
+  private VersionRange intersection(String range1, String range2) {
+    VersionRange r1 = VersionRange.of(range1);
+    VersionRange r2 = VersionRange.of(range2);
+    VersionRange intersection = r1.intersect(r2);
+    VersionRange reverseIntersection = r2.intersect(r1);
+    assertThat(intersection).as("Intersection of " + range1 + " and " + range2 + " is symmetric").isEqualTo(reverseIntersection);
+    return intersection;
+  }
+
 }

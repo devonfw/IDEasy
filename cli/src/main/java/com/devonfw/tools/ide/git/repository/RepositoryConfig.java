@@ -86,11 +86,14 @@ public record RepositoryConfig(
     return new RepositoryConfig(properties.getProperty(PROPERTY_PATH), properties.getProperty(PROPERTY_WORKING_SETS),
         properties.getProperty(PROPERTY_WORKSPACE), properties.getProperty(PROPERTY_GIT_URL, true), properties.getProperty(PROPERTY_GIT_BRANCH),
         properties.getProperty(PROPERTY_BUILD_PATH), properties.getProperty(PROPERTY_BUILD_CMD), importsSet,
-        parseBoolean(properties.getProperty(PROPERTY_ACTIVE).trim()));
+        parseBoolean(properties.getProperty(PROPERTY_ACTIVE)));
   }
 
   private static boolean parseBoolean(String value) {
 
-    return "true".equals(value);
+    if (value == null) {
+      return true;
+    }
+    return "true".equals(value.trim());
   }
 }

@@ -48,7 +48,9 @@ public interface IdeStartContext extends IdeLogger, ReadOfflineMode {
   boolean isForceRepositories();
 
   /**
-   * @return {@code true} if quickStart mode is activated (-s/--quickStart), {@code false} otherwise.
+   * @return {@code true} if updates should be skipped, {@code false} otherwise. If updates are skipped and the configured version is a
+   *     {@link com.devonfw.tools.ide.version.VersionIdentifier#isPattern() pattern} (e.g. "*" or "21*") and a matching version is already installed (e.g.
+   *     "21.0.3_9"), then updates will be skipped even if they are available (e.g. "21.0.9_10").
    */
   boolean isSkipUpdatesMode();
 
