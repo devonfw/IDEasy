@@ -9,7 +9,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1349[#1349]: Fix XML merge warning message to include file paths for better debugging
 * https://github.com/devonfw/IDEasy/issues/1473[#1473]: option --skip-updates not working
 * https://github.com/devonfw/IDEasy/issues/536[#536]: IDEasy complete tries to match commandlets twice
-* https://github.com/devonfw/IDEasy/issues/1144[#1144]: CVE: adapt IDEasy to consider security.json files to warn user
+* https://github.com/devonfw/IDEasy/issues/1144[#1144]: CVE: adapt IDEasy to consider security.json files to warn user - see https://github.com/devonfw/IDEasy/blob/main/documentation/security.adoc[security] documentation
 * https://github.com/devonfw/IDEasy/issues/1145[#1145]: CVE: suggest version update to user
 * https://github.com/devonfw/IDEasy/issues/1510[#1510]: Make icd more usable
 * https://github.com/devonfw/IDEasy/issues/1169[#1169]: mklink fails if link already exists
