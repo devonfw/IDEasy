@@ -53,12 +53,11 @@ import com.devonfw.tools.ide.url.tool.vscode.VsCodeUrlUpdater;
 
 /**
  * The {@code UpdateManager} class manages the update process for various tools by using a list of {@link AbstractUrlUpdater}s to update the
- * {@link UrlRepository}. The list of {@link AbstractUrlUpdater}s contains crawlers for different tools and services, To use the UpdateManager, simply create an
- * instance with the path to the repository as a parameter and call the {@link #updateAll(UrlFinalReport)} method.
+ * {@link UrlRepository}. Each {@link AbstractUrlUpdater} is responsible for a specific {@link AbstractUrlUpdater#getTool() tool} and typically also edition.
  */
 public class UpdateManager extends AbstractProcessorWithTimeout {
 
-  private static final Logger logger = LoggerFactory.getLogger(AbstractUrlUpdater.class);
+  private static final Logger logger = LoggerFactory.getLogger(UpdateManager.class);
 
   private final UrlRepository urlRepository;
 
@@ -84,8 +83,7 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
    */
   public UpdateManager(Path pathToRepository, UrlFinalReport urlFinalReport, Instant expirationTime) {
 
-    this.urlRepository = new UrlRepository(pathToRepository);
-    this.urlRepository.load(false);
+    this.urlRepository = UrlRepository.load(pathToRepository);
     this.urlFinalReport = urlFinalReport;
     setExpirationTime(expirationTime);
   }

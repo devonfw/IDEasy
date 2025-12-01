@@ -582,10 +582,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
             nearest = ToolVersionChoice.ofNearest(version, issues);
             nearestSeveritySum = newSeveritySum;
           }
-        } else if (newSeveritySum < nearestSeveritySum) {
-          if (version.isGreater(resolvedVersion)) {
-            nearest = ToolVersionChoice.ofNearest(version, issues);
-          } else if (nearest == null) {
+        } else if (newSeveritySum <= nearestSeveritySum) {
+          if ((newSeveritySum < latestSeveritySum) || (nearest == null) || version.isGreater(resolvedVersion)) {
             nearest = ToolVersionChoice.ofNearest(version, issues);
           }
           nearestSeveritySum = newSeveritySum;
