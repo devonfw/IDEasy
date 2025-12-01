@@ -6,13 +6,14 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/39[#39]: Implement ToolCommandlet for pip
+
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/38?closed=1[milestone 2025.12.001].
 
 == 2025.11.001
 
 Release with new features and bugfixes:
 
-* https://github.com/devonfw/IDEasy/issues/39[#39]: Implement ToolCommandlet for pip
 * https://github.com/devonfw/IDEasy/issues/1349[#1349]: Fix XML merge warning message to include file paths for better debugging
 * https://github.com/devonfw/IDEasy/issues/1473[#1473]: option --skip-updates not working
 * https://github.com/devonfw/IDEasy/issues/536[#536]: IDEasy complete tries to match commandlets twice
