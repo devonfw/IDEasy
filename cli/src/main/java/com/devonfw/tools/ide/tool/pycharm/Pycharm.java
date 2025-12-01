@@ -32,9 +32,9 @@ public class Pycharm extends IdeaBasedIdeToolCommandlet {
   }
 
   @Override
-  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean extraInstallation) {
+  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
 
-    super.setEnvironment(environmentContext, toolInstallation, extraInstallation);
+    super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
     environmentContext.withEnvVar("PYCHARM_PROPERTIES", this.context.getWorkspacePath().resolve("pycharm.properties").toString());
   }
 

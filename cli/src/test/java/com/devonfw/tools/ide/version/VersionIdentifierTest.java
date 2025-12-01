@@ -284,6 +284,7 @@ public class VersionIdentifierTest extends Assertions {
     assertThat(snapshot_star.matches(VersionIdentifier.of("2025.03.001-SNAPSHOT"))).isFalse();
   }
 
+  /** Test of {@link VersionIdentifier#incrementSegment(int, boolean)} and related methods. */
   @Test
   public void testIncrement() {
 
@@ -306,13 +307,37 @@ public class VersionIdentifierTest extends Assertions {
     assertThat(versionIdentifier.incrementMajor(false)).hasToString("2026.00.000");
     assertThat(versionIdentifier.incrementMinor(false)).hasToString("2025.02.000");
     assertThat(versionIdentifier.incrementPatch(false)).hasToString("2025.01.003");
-
   }
 
-  private static void assertIncrement(String version, int segment, boolean keepLetters, String expectedVersion) {
+  private static void assertIncrement(String version, int digit, boolean keepLetters, String expectedVersion) {
 
     VersionIdentifier identifier = VersionIdentifier.of(version);
-    VersionIdentifier incremented = identifier.incrementSegment(segment, keepLetters);
+    VersionIdentifier incremented =
+        switch (digit) {
+          case 0 -> identifier.incrementMajor(keepLetters);
+          case 1 -> identifier.incrementMinor(keepLetters);
+          case 2 -> identifier.incrementPatch(keepLetters);
+          default -> identifier.incrementSegment(digit, keepLetters);
+        };
+    assertThat(incremented).hasToString(expectedVersion);
+  }
+
+  /** Test of {@link VersionIdentifier#incrementLastDigit(boolean)}. */
+  @Test
+  public void testIncrementLastDigit() {
+
+    assertIncrementLastDigit("1-beta", false, "2");
+    assertIncrementLastDigit("1-beta", true, "2-beta");
+    assertIncrementLastDigit("1.0-beta", false, "1.1");
+    assertIncrementLastDigit("1.0-alpha", true, "1.1-alpha");
+    assertIncrementLastDigit("3.2.1_rc-SNAPSHOT", false, "3.2.2");
+    assertIncrementLastDigit("3.2.1_rc-SNAPSHOT", true, "3.2.2_rc-SNAPSHOT");
+  }
+
+  private static void assertIncrementLastDigit(String version, boolean keepLetters, String expectedVersion) {
+
+    VersionIdentifier identifier = VersionIdentifier.of(version);
+    VersionIdentifier incremented = identifier.incrementLastDigit(keepLetters);
     assertThat(incremented).hasToString(expectedVersion);
   }
 

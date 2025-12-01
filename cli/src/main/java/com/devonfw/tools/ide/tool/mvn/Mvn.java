@@ -19,6 +19,7 @@ import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.variable.VariableSyntax;
 
@@ -79,8 +80,9 @@ public class Mvn extends LocalToolCommandlet {
   }
 
   @Override
-  public void postInstall() {
+  protected void postInstallOnNewInstallation(ToolInstallRequest request) {
 
+    super.postInstallOnNewInstallation(request);
     // locate templates...
     Path templatesConfMvnFolder = getMavenTemplatesFolder();
     if (templatesConfMvnFolder == null) {

@@ -13,7 +13,7 @@ public class OcUrlUpdater extends WebsiteUrlUpdater {
   private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d\\.\\d\\.\\d*)");
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "oc";
   }
