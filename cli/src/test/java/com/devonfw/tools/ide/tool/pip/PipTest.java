@@ -16,7 +16,7 @@ public class PipTest extends AbstractIdeContextTest {
   private static final String PROJECT_PIP = "pip";
 
   /**
-   * Tests that the {@link Pip} commandlet can be installed (delegates to UV).
+   * Tests that the {@link Pip} commandlet can be installed via uv pip install.
    *
    * @param wireMockRuntimeInfo wireMock server on a random port
    */
@@ -34,25 +34,31 @@ public class PipTest extends AbstractIdeContextTest {
     checkInstallation(context);
   }
 
+  /**
+   * Tests that the {@link Pip} commandlet run works correctly.
+   *
+   * @param wireMockRuntimeInfo wireMock server on a random port
+   */
   @Test
   public void testPipRun(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_PIP, wireMockRuntimeInfo);
     Pip commandlet = new Pip(context);
+    commandlet.arguments.setValue("--version");
 
     // act
     commandlet.run();
 
     // assert
-    checkInstallation(context);
-    assertThat(context).logAtInfo().hasMessage("pip was run");
+    assertThat(context).logAtInfo().hasMessageContaining("pip --version");
   }
 
   private void checkInstallation(IdeTestContext context) {
 
-    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed uv");
-    // Pip delegates to UV, so we check that UV was installed
-    assertThat(context.getSoftwarePath().resolve("uv")).exists();
+    // Pip is installed via uv pip install pip==<version>
+    assertThat(context).logAtInfo().hasMessageContaining("uv pip install pip==");
+
+    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed pip");
   }
 }
