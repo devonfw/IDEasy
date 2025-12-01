@@ -6,6 +6,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.git.repository.RepositoryCommandlet;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
@@ -149,6 +150,23 @@ public class IntellijTest extends AbstractIdeContextTest {
     assertThat(context).logAtDebug()
         .hasEntries("Plugin marker file " + context.getIdeHome().resolve(".ide").resolve("plugin.intellij.intellij.ActivePlugin") + " got deleted.");
     assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"))).exists();
+  }
+
+  /**
+   * Tests if the repository commandlet can trigger an import of a mvn and a gradle project.
+   */
+  @Test
+  public void testIntellijMvnAndGradleRepositoryImport() {
+    // arrange
+    IdeTestContext context = newContext("intellij");
+    RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
+
+    // act
+    rc.run();
+
+    // assert
+    assertThat(context.getWorkspacePath().resolve(".idea").resolve("misc.xml")).exists();
+    assertThat(context.getWorkspacePath().resolve(".idea").resolve("gradle.xml")).exists();
   }
 
 
