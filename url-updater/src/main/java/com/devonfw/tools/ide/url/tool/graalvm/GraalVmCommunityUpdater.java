@@ -30,7 +30,7 @@ public class GraalVmCommunityUpdater extends GraalVmUrlUpdater {
   }
 
   @Override
-  protected String mapVersion(String version) {
+  public String mapVersion(String version) {
 
     if (version.startsWith("jdk")) {
       return super.mapVersion(version);

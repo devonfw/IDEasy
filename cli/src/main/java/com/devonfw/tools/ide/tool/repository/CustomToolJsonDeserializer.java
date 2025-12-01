@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool.repository;
 
 import java.io.IOException;
 
+import com.devonfw.tools.ide.json.JsonMapping;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -48,6 +49,7 @@ public class CustomToolJsonDeserializer extends JsonDeserializer<CustomToolJson>
         } else {
           // ignore unknown property
           // currently cannot log here due to https://github.com/devonfw/IDEasy/issues/404
+          JsonMapping.skipCurrentField(p);
         }
         token = p.nextToken();
       }

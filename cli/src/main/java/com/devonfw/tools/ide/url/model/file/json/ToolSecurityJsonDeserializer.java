@@ -2,9 +2,9 @@ package com.devonfw.tools.ide.url.model.file.json;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
+import com.devonfw.tools.ide.json.JsonMapping;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -29,16 +29,17 @@ public class ToolSecurityJsonDeserializer extends JsonDeserializer<ToolSecurity>
         if (property.equals(ToolSecurity.PROPERTY_ISSUES)) {
           assert (issues == null);
           issues = parseIssues(p);
-          token = p.nextToken();
         } else {
           // currently cannot log here due to https://github.com/devonfw/IDEasy/issues/404
           //LOG.debug("Ignoring unexpected property {}", property);
-          p.skipChildren();
-          token = p.nextToken();
+          JsonMapping.skipCurrentField(p);
         }
+        token = p.nextToken();
       }
       assert (issues != null);
-      return new ToolSecurity(Collections.unmodifiableList(issues));
+      ToolSecurity security = new ToolSecurity();
+      security.setIssues(issues);
+      return security;
     } else if (token == JsonToken.VALUE_NULL) {
       return null;
     } else {

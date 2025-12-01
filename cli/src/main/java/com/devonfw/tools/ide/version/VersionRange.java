@@ -11,13 +11,13 @@ public final class VersionRange implements Comparable<VersionRange>, GenericVers
   /** The unbounded {@link VersionRange} instance. */
   public static final VersionRange UNBOUNDED = new VersionRange(null, null, BoundaryType.OPEN);
 
-  private final VersionIdentifier min;
-
-  private final VersionIdentifier max;
-
-  private final BoundaryType boundaryType;
-
   private static final String VERSION_SEPARATOR = ",";
+
+  final VersionIdentifier min;
+
+  final VersionIdentifier max;
+
+  final BoundaryType boundaryType;
 
   /**
    * The constructor.
@@ -113,6 +113,45 @@ public final class VersionRange implements Comparable<VersionRange>, GenericVers
     }
   }
 
+  /**
+   * @param other the {@link VersionRange} to unite with.
+   * @return the union of this with the given {@link VersionRange} or {@code null} if not {@link VersionRangeRelation#CONNECTED connected} or
+   *     {@link VersionRangeRelation#OVERLAPPING overlapping}.
+   */
+  public VersionRange union(VersionRange other) {
+
+    return union(other, VersionRangeRelation.CONNECTED);
+  }
+
+  /**
+   * @param other the {@link VersionRange} to unite with.
+   * @param minRelation the minimum {@link VersionRangeRelation} required to allow building the union instead of returning {@code null}. So if you want to
+   *     build a strict union, you can pass {@link VersionRangeRelation#OVERLAPPING} so you only get a union that contains exactly what is contained in at least
+   *     one of the two {@link VersionRange}s. However, you can pass {@link VersionRangeRelation#CONNECTED_LOOSELY} in order to get "[2.0,5.0]" as the union of
+   *     "[2.0,2.2]" and "[2.3,5.0]".
+   * @return the union of this with the given {@link VersionRange} or {@code null} if the actual {@link VersionRangeRelation} of the {@link VersionRange}s is
+   *     lower than the given {@code minRelation}.
+   */
+  public VersionRange union(VersionRange other, VersionRangeRelation minRelation) {
+
+    if (other == null) {
+      return this;
+    }
+    return new VersionRangeCombination(this, other).union(minRelation);
+  }
+
+  /**
+   * @param other the {@link VersionRange} to intersect with.
+   * @return the intersection of this with the given {@link VersionRange} or {@code null} for empty intersection.
+   */
+  public VersionRange intersect(VersionRange other) {
+
+    if (other == null) {
+      return this;
+    }
+    return new VersionRangeCombination(this, other).intersection();
+  }
+
   @Override
   public boolean equals(Object obj) {
 
@@ -154,6 +193,16 @@ public final class VersionRange implements Comparable<VersionRange>, GenericVers
    */
   public static VersionRange of(String value) {
 
+    return of(value, false);
+  }
+
+  /**
+   * @param value the {@link #toString() string representation} of a {@link VersionRange} to parse.
+   * @param tolerance {@code true} to enable tolerant parsing so we can read garbage (e.g. form JSON) without failing.
+   * @return the parsed {@link VersionRange}.
+   */
+  public static VersionRange of(String value, boolean tolerance) {
+
     Boolean isleftExclusive = null;
     Boolean isRightExclusive = null;
     if (value.startsWith(BoundaryType.START_EXCLUDING_PREFIX)) {
@@ -180,22 +229,29 @@ public final class VersionRange implements Comparable<VersionRange>, GenericVers
       String minString = value.substring(0, index);
       if (!minString.isBlank()) {
         min = VersionIdentifier.of(minString);
+        if (min == VersionIdentifier.LATEST) {
+          min = null;
+        }
       }
       String maxString = value.substring(index + 1);
       if (!maxString.isBlank()) {
         max = VersionIdentifier.of(maxString);
+        if (max == VersionIdentifier.LATEST) {
+          max = null;
+        }
       }
     }
-    if (isleftExclusive == null) {
-      isleftExclusive = Boolean.valueOf(min == null);
+    if ((isleftExclusive == null) || (tolerance && (min == null))) {
+      isleftExclusive = min == null;
     }
-    if (isRightExclusive == null) {
-      isRightExclusive = Boolean.valueOf(max == null);
+    if ((isRightExclusive == null) || (tolerance && (max == null))) {
+      isRightExclusive = max == null;
     }
+
     if ((min == null) && (max == null) && isleftExclusive && isRightExclusive) {
       return UNBOUNDED;
     }
-    return new VersionRange(min, max, BoundaryType.of(isleftExclusive.booleanValue(), isRightExclusive.booleanValue()));
+    return new VersionRange(min, max, BoundaryType.of(isleftExclusive, isRightExclusive));
   }
 
   /**

@@ -12,7 +12,7 @@ import com.devonfw.tools.ide.url.updater.WebsiteUrlUpdater;
 public class KotlincNativeUrlUpdater extends WebsiteUrlUpdater {
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "kotlinc-native";
   }

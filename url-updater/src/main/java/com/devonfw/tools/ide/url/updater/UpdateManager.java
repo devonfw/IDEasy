@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.url.updater;
 
 import java.nio.file.Path;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -65,7 +64,7 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
 
   private final UrlFinalReport urlFinalReport;
 
-  private final List<AbstractUrlUpdater> updaters = Arrays.asList(
+  private final List<AbstractUrlUpdater> updaters = List.of(
       new AndroidStudioUrlUpdater(), new AwsUrlUpdater(), new AzureUrlUpdater(), new CorepackUrlUpdater(), new DockerDesktopUrlUpdater(),
       new DotNetUrlUpdater(),
       new EclipseCppUrlUpdater(), new EclipseJeeUrlUpdater(), new EclipseJavaUrlUpdater(), new GCloudUrlUpdater(),
@@ -85,9 +84,18 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
    */
   public UpdateManager(Path pathToRepository, UrlFinalReport urlFinalReport, Instant expirationTime) {
 
-    this.urlRepository = UrlRepository.load(pathToRepository);
+    this.urlRepository = new UrlRepository(pathToRepository);
+    this.urlRepository.load(false);
     this.urlFinalReport = urlFinalReport;
     setExpirationTime(expirationTime);
+  }
+
+  /**
+   * @return the {@link List} with all registered {@link AbstractUrlUpdater updaters}.
+   */
+  public List<AbstractUrlUpdater> getUpdaters() {
+
+    return this.updaters;
   }
 
   /**

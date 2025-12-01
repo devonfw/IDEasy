@@ -5,7 +5,8 @@
       "name": "jboss-eap",
       "version": "7.1.4.GA",
       "os-agnostic": true,
-      "arch-agnostic": true
+      "arch-agnostic": true,
+      "unknown-property": "value"
     },
     {
       "name": "firefox",
@@ -14,5 +15,6 @@
       "arch-agnostic": false,
       "url": "https://some-file-server.company.com/projects/my-project2"
     }
-  ]
+  ],
+  "undefined-property": "value"
 }
