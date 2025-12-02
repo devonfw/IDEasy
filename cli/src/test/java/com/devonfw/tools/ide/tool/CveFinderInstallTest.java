@@ -47,9 +47,8 @@ public class CveFinderInstallTest extends AbstractIdeContextTest {
     commandlet.install();
 
     //assert
-    assertThat(context.getSoftwarePath().resolve("intellij").resolve(IdeTestContext.FILE_SOFTWARE_VERSION)).exists().hasContent("2024.2.6");
-    assertThat(context.getSoftwareRepositoryPath().resolve(ToolRepository.ID_DEFAULT).resolve("java").resolve("java").resolve("21.0.6_7")
-        .resolve(IdeTestContext.FILE_SOFTWARE_VERSION)).exists().hasContent("21.0.6_7");
+    assertThat(context.getSoftwarePath().resolve("intellij").resolve(IdeTestContext.FILE_SOFTWARE_VERSION)).exists().hasContent("2022.3.2");
+    assertThat(context.getSoftwarePath().resolve("java").resolve(IdeTestContext.FILE_SOFTWARE_VERSION)).exists().hasContent("17.0.10_7");
   }
 
   /**
