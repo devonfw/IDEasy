@@ -133,6 +133,16 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
     return false;
   }
 
+
+  /**
+   * @return {@code true} if this is a stable version, {@code false} otherwise.
+   * @see VersionLetters#isStable()
+   */
+  public boolean isStable() {
+
+    return this.developmentPhase.isStable();
+  }
+
   /**
    * @return the {@link VersionLetters#isDevelopmentPhase() development phase} of this {@link VersionIdentifier}. Will be {@link VersionLetters#EMPTY} if no
    *     development phase is specified in any {@link VersionSegment} and will be {@link VersionLetters#UNDEFINED} if more than one

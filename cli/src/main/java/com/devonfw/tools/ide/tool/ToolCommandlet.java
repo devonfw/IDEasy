@@ -458,7 +458,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
-   * Called if the tool {@link ToolInstallRequest#isAlreadyInstalled(boolean) is already installed in the correct edition and version} so we can skip the
+   * Called if the tool {@link ToolInstallRequest#isAlreadyInstalled() is already installed in the correct edition and version} so we can skip the
    * installation.
    *
    * @param request the {@link ToolInstallRequest}.
@@ -544,6 +544,10 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     }
     ToolEdition toolEdition = requested.getEdition();
     GenericVersionRange allowedVersions = requested.getVersion();
+    boolean requireStableVersion = true;
+    if (allowedVersions instanceof VersionIdentifier vi) {
+      requireStableVersion = vi.isStable();
+    }
     ToolSecurity toolSecurity = this.context.getDefaultToolRepository().findSecurity(this.tool, toolEdition.edition());
     double minSeverity = IdeVariables.CVE_MIN_SEVERITY.get(context);
     Collection<Cve> issues = toolSecurity.findCves(resolvedVersion, this.context, minSeverity);
@@ -568,7 +572,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     double latestSeveritySum = currentSeveritySum;
     double nearestSeveritySum = currentSeveritySum;
     for (VersionIdentifier version : toolVersions) {
-      if (!allowedVersions.isPattern() || allowedVersions.contains(version)) {
+      if (acceptVersion(version, allowedVersions, requireStableVersion)) {
         issues = toolSecurity.findCves(version, this.context, minSeverity);
         double newSeveritySum = Cve.severitySum(issues);
         if (newSeveritySum < latestSeveritySum) {
@@ -626,6 +630,15 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     VersionIdentifier version = answer.version();
     requested.setResolvedVersion(version);
     return version;
+  }
+
+  private static boolean acceptVersion(VersionIdentifier version, GenericVersionRange allowedVersions, boolean requireStableVersion) {
+    if (allowedVersions.isPattern() && !allowedVersions.contains(version)) {
+      return false;
+    } else if (requireStableVersion && !version.isStable()) {
+      return false;
+    }
+    return true;
   }
 
   private boolean logCvesAndReturnTrueForNone(ToolEdition toolEdition, VersionIdentifier version, String option, Collection<Cve> issues) {

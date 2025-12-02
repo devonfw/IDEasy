@@ -341,4 +341,15 @@ public class VersionIdentifierTest extends Assertions {
     assertThat(incremented).hasToString(expectedVersion);
   }
 
+  /** Test of {@link VersionIdentifier#isStable()}. */
+  @Test
+  public void testIsStable() {
+
+    assertThat(VersionIdentifier.of("2025.01.002").isStable()).isTrue();
+    assertThat(VersionIdentifier.of("1.0-rc1").isStable()).isFalse();
+    assertThat(VersionIdentifier.of("1.0-alpha1.rc2").isStable()).isFalse();
+    assertThat(VersionIdentifier.LATEST.isStable()).isTrue();
+    assertThat(VersionIdentifier.LATEST_UNSTABLE.isStable()).isFalse();
+  }
+
 }
