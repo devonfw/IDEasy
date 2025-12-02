@@ -1,0 +1,16 @@
+[
+  {
+    "origin_name": "java.format_java_code",
+    "ideasy_command": "FORMAT_JAVA_CODE",
+    "description": "Format Java code using a standard comprehensive set of Java formatting recipes.",
+    "url": "https://docs.openrewrite.org/recipes/java/format/autoformat",
+    "raw_cmd": "mvn -U org.openrewrite.maven:rewrite-maven-plugin:run -Drewrite.activeRecipes=org.openrewrite.java.format.AutoFormat -Drewrite.exportDatatables=true"
+  },
+  {
+    "origin_name": "java.remove_blank_lines",
+    "ideasy_command": "REMOVE_BLANK_LINES",
+    "description": "Add and/or remove blank lines.",
+    "url": "https://docs.openrewrite.org/recipes/java/format/blanklines",
+    "raw_cmd": "mvn -U org.openrewrite.maven:rewrite-maven-plugin:run -Drewrite.activeRecipes=org.openrewrite.java.format.BlankLines -Drewrite.exportDatatables=true"
+  }
+]
