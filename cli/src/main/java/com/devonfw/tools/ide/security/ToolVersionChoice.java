@@ -1,65 +1,81 @@
 package com.devonfw.tools.ide.security;
 
-import java.util.Collection;
-
+import com.devonfw.tools.ide.log.IdeLogger;
+import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.url.model.file.json.Cve;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * Container for an option of a {@link VersionIdentifier version} to choose for a specific tool and edition. Use to suggest updates (or downgrade) of a tool to
- * fix or reduce {@link Cve}s.
+ * Container for an option of a {@link VersionIdentifier version} to choose for a specific tool and edition. Used to suggest updates (or downgrades) of a tool
+ * to fix or reduce {@link Cve}s.
  *
- * @param version the suggested {@link VersionIdentifier} to install.
+ * @param toolEditionAndVersion the {@link ToolEditionAndVersion} to install.
  * @param option the logical name of this option to be chosen by the end-user.
- * @param issues the {@link Cve}s of the specified version. Ideally empty.
+ * @param vulnerabilities the {@link Cve}s of the specified version. Ideally empty.
  */
-public record ToolVersionChoice(VersionIdentifier version, String option, Collection<Cve> issues) {
+public record ToolVersionChoice(ToolEditionAndVersion toolEditionAndVersion, String option, ToolVulnerabilities vulnerabilities) {
 
-  /** @see #ofCurrent(VersionIdentifier, Collection) */
+  /** @see #ofCurrent(ToolEditionAndVersion, ToolVulnerabilities) */
   public static final String CVE_OPTION_CURRENT = "current";
 
-  /** @see #ofLatest(VersionIdentifier, Collection) */
+  /** @see #ofLatest(ToolEditionAndVersion, ToolVulnerabilities) */
   public static final String CVE_OPTION_LATEST = "latest";
 
-  /** @see #ofNearest(VersionIdentifier, Collection) */
+  /** @see #ofNearest(ToolEditionAndVersion, ToolVulnerabilities) */
   public static final String CVE_OPTION_NEAREST = "nearest";
 
   /**
-   * @param version the {@link #version() version}.
-   * @param issues the {@link #issues() issues}.
+   * @param toolEditionAndVersion the {@link #toolEditionAndVersion() toolEditionAndVersion}.
+   * @param issues the {@link #vulnerabilities() vulnerabilities}.
    * @return the current {@link ToolVersionChoice}.
    */
-  public static ToolVersionChoice ofCurrent(VersionIdentifier version, Collection<Cve> issues) {
-    return new ToolVersionChoice(version, CVE_OPTION_CURRENT, issues);
+  public static ToolVersionChoice ofCurrent(ToolEditionAndVersion toolEditionAndVersion, ToolVulnerabilities issues) {
+    return new ToolVersionChoice(toolEditionAndVersion, CVE_OPTION_CURRENT, issues);
   }
 
   /**
-   * @param version the {@link #version() version}.
-   * @param issues the {@link #issues() issues}.
+   * @param toolEditionAndVersion the {@link #toolEditionAndVersion() toolEditionAndVersion}.
+   * @param issues the {@link #vulnerabilities() vulnerabilities}.
    * @return the latest {@link ToolVersionChoice}.
    */
-  public static ToolVersionChoice ofLatest(VersionIdentifier version, Collection<Cve> issues) {
-    return new ToolVersionChoice(version, CVE_OPTION_LATEST, issues);
+  public static ToolVersionChoice ofLatest(ToolEditionAndVersion toolEditionAndVersion, ToolVulnerabilities issues) {
+    return new ToolVersionChoice(toolEditionAndVersion, CVE_OPTION_LATEST, issues);
   }
 
   /**
-   * @param version the {@link #version() version}.
-   * @param issues the {@link #issues() issues}.
+   * @param toolEditionAndVersion the {@link #toolEditionAndVersion() toolEditionAndVersion}.
+   * @param issues the {@link #vulnerabilities() vulnerabilities}.
    * @return the nearest {@link ToolVersionChoice}.
    */
-  public static ToolVersionChoice ofNearest(VersionIdentifier version, Collection<Cve> issues) {
-    return new ToolVersionChoice(version, CVE_OPTION_NEAREST, issues);
+  public static ToolVersionChoice ofNearest(ToolEditionAndVersion toolEditionAndVersion, ToolVulnerabilities issues) {
+    return new ToolVersionChoice(toolEditionAndVersion, CVE_OPTION_NEAREST, issues);
+  }
+
+  /**
+   * @param logger the {@link IdeLogger}.
+   * @return {@code true} if {@link ToolVulnerabilities#EMPTY empty} (no vulnerabilities), {@code false} otherwise.
+   */
+  public boolean logAndCheckIfEmpty(IdeLogger logger) {
+
+    String message = this.vulnerabilities.toString(this.toolEditionAndVersion);
+    if (this.vulnerabilities.getIssues().isEmpty()) {
+      logger.success(message);
+      return true;
+    } else {
+      logger.warning(message);
+      return false;
+    }
   }
 
   @Override
   public String toString() {
 
     String state;
-    if (this.issues.isEmpty()) {
+    if (this.vulnerabilities.getIssues().isEmpty()) {
       state = "safe";
     } else {
       state = "unsafe";
     }
-    return this.option + " (" + this.version + " - " + state + ")";
+    return this.option + " (" + this.toolEditionAndVersion.getResolvedVersion() + " - " + state + ")";
   }
 }
