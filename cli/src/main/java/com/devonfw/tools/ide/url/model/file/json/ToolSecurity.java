@@ -13,6 +13,7 @@ import java.util.function.Predicate;
 
 import com.devonfw.tools.ide.json.JsonMapping;
 import com.devonfw.tools.ide.log.IdeLogger;
+import com.devonfw.tools.ide.security.ToolVulnerabilities;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
@@ -100,7 +101,7 @@ public class ToolSecurity {
    * @param predicate the {@link Predicate} deciding which matching {@link Cve}s are {@link Predicate#test(Object) accepted}.
    * @return all {@link Cve}s for the given {@link VersionIdentifier}.
    */
-  public Collection<Cve> findCves(VersionIdentifier version, IdeLogger logger, Predicate<Cve> predicate) {
+  public ToolVulnerabilities findCves(VersionIdentifier version, IdeLogger logger, Predicate<Cve> predicate) {
     List<Cve> cvesOfVersion = new ArrayList<>();
     for (Cve cve : this.issues) {
       for (VersionRange range : cve.versions()) {
@@ -113,7 +114,7 @@ public class ToolSecurity {
         }
       }
     }
-    return cvesOfVersion;
+    return ToolVulnerabilities.of(cvesOfVersion);
   }
 
   /**
@@ -122,9 +123,9 @@ public class ToolSecurity {
    * @param version the {@link VersionIdentifier} to check.
    * @param logger the {@link IdeLogger}.
    * @param minSeverity the {@link IdeVariables#CVE_MIN_SEVERITY minimum severity}.
-   * @return all {@link Cve}s for the given {@link VersionIdentifier}.
+   * @return the {@link ToolVulnerabilities} for the given {@link VersionIdentifier}.
    */
-  public Collection<Cve> findCves(VersionIdentifier version, IdeLogger logger, double minSeverity) {
+  public ToolVulnerabilities findCves(VersionIdentifier version, IdeLogger logger, double minSeverity) {
     return findCves(version, logger, cve -> cve.severity() >= minSeverity);
   }
 

@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.url.model.file.json;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -31,18 +30,6 @@ public record Cve(String id, double severity, List<VersionRange> versions) {
     Objects.requireNonNull(id);
     Objects.requireNonNull(versions);
     assert !versions.isEmpty();
-  }
-
-  /**
-   * @param cves the {@link Cve}s to summarize.
-   * @return the sum of {@link Cve#severity()}.
-   */
-  public static double severitySum(Collection<Cve> cves) {
-    double severitySum = 0;
-    for (Cve cve : cves) {
-      severitySum += cve.severity();
-    }
-    return severitySum;
   }
 
   /**
@@ -90,5 +77,11 @@ public record Cve(String id, double severity, List<VersionRange> versions) {
       }
     }
     newVersions.add(insertIndex, current);
+  }
+
+  @Override
+  public String toString() {
+
+    return this.id + " with severity " + this.severity + " and affected versions: " + this.versions + "\nhttps://nvd.nist.gov/vuln/detail/" + this.id;
   }
 }

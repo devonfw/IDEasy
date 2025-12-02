@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -25,6 +24,7 @@ import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.security.ToolVersionChoice;
+import com.devonfw.tools.ide.security.ToolVulnerabilities;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.file.json.Cve;
@@ -550,10 +550,10 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     }
     ToolSecurity toolSecurity = this.context.getDefaultToolRepository().findSecurity(this.tool, toolEdition.edition());
     double minSeverity = IdeVariables.CVE_MIN_SEVERITY.get(context);
-    Collection<Cve> issues = toolSecurity.findCves(resolvedVersion, this.context, minSeverity);
-    ToolVersionChoice currentChoice = ToolVersionChoice.ofCurrent(resolvedVersion, issues);
+    ToolVulnerabilities currentVulnerabilities = toolSecurity.findCves(resolvedVersion, this.context, minSeverity);
+    ToolVersionChoice currentChoice = ToolVersionChoice.ofCurrent(requested, currentVulnerabilities);
     request.setCveCheckDone();
-    if (logCvesAndReturnTrueForNone(toolEdition, resolvedVersion, currentChoice.option(), issues)) {
+    if (currentChoice.logAndCheckIfEmpty(this.context)) {
       return resolvedVersion;
     }
     boolean alreadyInstalled = request.isAlreadyInstalled();
@@ -565,32 +565,30 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       this.context.interaction("Please run 'ide -f install {}' to check for update suggestions!", this.tool);
       return resolvedVersion;
     }
-    double currentSeveritySum = Cve.severitySum(issues);
     ToolVersionChoice latest = null;
+    ToolVulnerabilities latestVulnerabilities = currentVulnerabilities;
     ToolVersionChoice nearest = null;
+    ToolVulnerabilities nearestVulnerabilities = currentVulnerabilities;
     List<VersionIdentifier> toolVersions = getVersions();
-    double latestSeveritySum = currentSeveritySum;
-    double nearestSeveritySum = currentSeveritySum;
     for (VersionIdentifier version : toolVersions) {
       if (acceptVersion(version, allowedVersions, requireStableVersion)) {
-        issues = toolSecurity.findCves(version, this.context, minSeverity);
-        double newSeveritySum = Cve.severitySum(issues);
-        if (newSeveritySum < latestSeveritySum) {
+        ToolVulnerabilities newVulnerabilities = toolSecurity.findCves(version, this.context, minSeverity);
+        if (newVulnerabilities.isSafer(latestVulnerabilities)) {
           // we found a better/safer version
+          ToolEditionAndVersion toolEditionAndVersion = new ToolEditionAndVersion(toolEdition, version);
           if (version.isGreater(resolvedVersion)) {
-            latest = ToolVersionChoice.ofLatest(version, issues);
+            latestVulnerabilities = newVulnerabilities;
+            latest = ToolVersionChoice.ofLatest(toolEditionAndVersion, latestVulnerabilities);
             nearest = null;
-            latestSeveritySum = newSeveritySum;
           } else {
-            // latest = null;
-            nearest = ToolVersionChoice.ofNearest(version, issues);
-            nearestSeveritySum = newSeveritySum;
+            nearestVulnerabilities = newVulnerabilities;
+            nearest = ToolVersionChoice.ofNearest(toolEditionAndVersion, nearestVulnerabilities);
           }
-        } else if (newSeveritySum <= nearestSeveritySum) {
-          if ((newSeveritySum < latestSeveritySum) || (nearest == null) || version.isGreater(resolvedVersion)) {
-            nearest = ToolVersionChoice.ofNearest(version, issues);
+        } else if (newVulnerabilities.isSaferOrEqual(nearestVulnerabilities)) {
+          if (newVulnerabilities.isSafer(nearestVulnerabilities) || version.isGreater(resolvedVersion)) {
+            nearest = ToolVersionChoice.ofNearest(new ToolEditionAndVersion(toolEdition, version), newVulnerabilities);
           }
-          nearestSeveritySum = newSeveritySum;
+          nearestVulnerabilities = newVulnerabilities;
         }
       }
     }
@@ -615,19 +613,19 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       if (addSuggestions) {
         choices.add(nearest);
       }
-      logCvesAndReturnTrueForNone(toolEdition, nearest.version(), nearest.option(), nearest.issues());
+      nearest.logAndCheckIfEmpty(this.context);
     }
     if (latest != null) {
       if (addSuggestions) {
         choices.add(latest);
       }
-      logCvesAndReturnTrueForNone(toolEdition, latest.version(), latest.option(), latest.issues());
+      latest.logAndCheckIfEmpty(this.context);
     }
     ToolVersionChoice[] choicesArray = choices.toArray(ToolVersionChoice[]::new);
     this.context.warning(
         "Please note that by selecting an unsafe version to install, you accept the risk to be attacked.");
     ToolVersionChoice answer = this.context.question(choicesArray, "Which version do you want to install?");
-    VersionIdentifier version = answer.version();
+    VersionIdentifier version = answer.toolEditionAndVersion().getResolvedVersion();
     requested.setResolvedVersion(version);
     return version;
   }
@@ -639,25 +637,6 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       return false;
     }
     return true;
-  }
-
-  private boolean logCvesAndReturnTrueForNone(ToolEdition toolEdition, VersionIdentifier version, String option, Collection<Cve> issues) {
-    if (issues.isEmpty()) {
-      this.context.info("No CVEs found for {} version {} of tool {}.", option, version, toolEdition);
-      return true;
-    }
-    this.context.warning("For {} version {} of tool {} we found {} CVE(s):", option, version, toolEdition, issues.size());
-    for (Cve cve : issues) {
-      logCve(cve);
-    }
-    return false;
-  }
-
-  private void logCve(Cve cve) {
-
-    this.context.warning("{} with severity {} and affected versions: {} ", cve.id(), cve.severity(), cve.versions());
-    this.context.warning("https://nvd.nist.gov/vuln/detail/" + cve.id());
-    this.context.info("");
   }
 
   /**

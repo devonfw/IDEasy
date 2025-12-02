@@ -37,6 +37,19 @@ public class ToolEditionAndVersion {
   }
 
   /**
+   * The constructor.
+   *
+   * @param edition the {@link #getEdition() edition}.
+   * @param version the {@link #getVersion() version}.
+   */
+  public ToolEditionAndVersion(ToolEdition edition, GenericVersionRange version) {
+    this(version);
+    assert edition != null;
+    assert version != null;
+    this.edition = edition;
+  }
+
+  /**
    * @return the {@link ToolEdition}.
    */
   public ToolEdition getEdition() {
