@@ -63,6 +63,7 @@ import com.devonfw.tools.ide.tool.repository.CustomToolRepositoryImpl;
 import com.devonfw.tools.ide.tool.repository.DefaultToolRepository;
 import com.devonfw.tools.ide.tool.repository.MvnRepository;
 import com.devonfw.tools.ide.tool.repository.NpmRepository;
+import com.devonfw.tools.ide.tool.repository.PipRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.util.DateTimeUtil;
@@ -132,6 +133,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   private MvnRepository mvnRepository;
 
   private NpmRepository npmRepository;
+
+  private PipRepository pipRepository;
 
   private DirectoryMerger workspaceMerger;
 
@@ -256,6 +259,13 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
    */
   protected NpmRepository createNpmRepository() {
     return new NpmRepository(this);
+  }
+
+  /**
+   * @return a new {@link PipRepository}
+   */
+  protected PipRepository createPipRepository() {
+    return new PipRepository(this);
   }
 
   private Path findIdeRoot(Path ideHomePath) {
@@ -453,6 +463,14 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       this.npmRepository = createNpmRepository();
     }
     return this.npmRepository;
+  }
+
+  @Override
+  public PipRepository getPipRepository() {
+    if (this.pipRepository == null) {
+      this.pipRepository = createPipRepository();
+    }
+    return this.pipRepository;
   }
 
   @Override
