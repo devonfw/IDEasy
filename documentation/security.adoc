@@ -45,16 +45,17 @@ If such alternatives can be found, they will be printed out, and you can make a 
 Here is an example to make it clear:
 
 ```
+$ ide install mvn 3.6.2
 For current version 3.6.2 of tool mvn we found 1 CVE(s):
 CVE-2021-26291 with severity 9.1 and affected versions: [(,3.8.1)]
 https://nvd.nist.gov/vuln/detail/CVE-2021-26291
 
-No CVEs found for nearest version 3.9.8 of tool mvn.
-No CVEs found for latest version 3.9.9 of tool mvn.
+No CVEs found for nearest version 3.8.1 of tool mvn.
+No CVEs found for latest version 4.0.0-rc-5 of tool mvn.
 Please note that by selecting an unsafe version to install, you accept the risk to be attacked.
 Which version do you want to install?
 Option 1: current (3.6.2 - unsafe)
-Option 2: nearest (3.9.8 - safe)
+Option 2: nearest (3.8.1 - safe)
 Option 3: latest (3.9.9 - safe)
 ```
 
