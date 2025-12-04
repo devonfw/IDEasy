@@ -67,7 +67,6 @@ public class Pip extends LocalToolCommandlet {
 
     VersionIdentifier resolvedVersion = request.getRequested().getResolvedVersion();
 
-    // Ensure uv is installed first
     Uv uv = this.context.getCommandletManager().getCommandlet(Uv.class);
     uv.install();
 
