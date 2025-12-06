@@ -1,2 +1,10 @@
 #!/bin/bash
 echo "uv $*"
+cd $(dirname $0)
+cd ../../../../../..
+pwd
+if [ "$1" = "pip" ] && [ "$2" = "install" ]; then
+  cp repository/pip/pip/default/bin/pip project/software/python/bin
+elif [ "$1" = "venv" ] && [ "$2" = "--python" ]; then
+  cp -a repository/python/python/default project/software/.venv
+fi

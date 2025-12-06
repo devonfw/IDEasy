@@ -56,7 +56,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   protected boolean runWithPackageManager(boolean silent, List<PackageManagerCommand> pmCommands) {
 
     for (PackageManagerCommand pmCommand : pmCommands) {
-      PackageManager packageManager = pmCommand.packageManager();
+      NativePackageManager packageManager = pmCommand.packageManager();
       Path packageManagerPath = this.context.getPath().findBinary(Path.of(packageManager.getBinaryName()));
       if (packageManagerPath == null || !Files.exists(packageManagerPath)) {
         this.context.debug("{} is not installed", packageManager.toString());

@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
@@ -25,6 +26,7 @@ public class PipTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_PIP, wireMockRuntimeInfo);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
     Pip commandlet = new Pip(context);
 
     // act
@@ -44,6 +46,7 @@ public class PipTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_PIP, wireMockRuntimeInfo);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
     Pip commandlet = new Pip(context);
     commandlet.arguments.setValue("--version");
 

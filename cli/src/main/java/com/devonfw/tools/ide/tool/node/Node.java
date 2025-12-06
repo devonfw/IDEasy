@@ -7,6 +7,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.PackageManagerRequest;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.npm.Npm;
@@ -31,7 +32,9 @@ public class Node extends LocalToolCommandlet {
 
     super.postInstallOnNewInstallation(request);
     Npm npm = this.context.getCommandletManager().getCommandlet(Npm.class);
-    ProcessResult result = npm.runPackageManager("config", "set", "prefix", getToolPath().toString());
+    PackageManagerRequest packageManagerRequest = new PackageManagerRequest("config", this.tool).addArg("config").addArg("set").addArg("prefix")
+        .addArg(getToolPath().toString());
+    ProcessResult result = npm.runPackageManager(packageManagerRequest);
     if (result.isSuccessful()) {
       this.context.success("Setting npm config prefix to: {} was successful", getToolPath());
     }
