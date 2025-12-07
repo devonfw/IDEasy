@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.tool.ide;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -41,7 +40,7 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
     if (customRepo) {
       args.add(plugin.url());
     }
-    ProcessResult result = runTool(pc, ProcessMode.DEFAULT, args.toArray(String[]::new));
+    ProcessResult result = runTool(pc, ProcessMode.DEFAULT, args);
     if (result.isSuccessful()) {
       this.context.success("Successfully installed plugin: {}", plugin.name());
       step.success();
@@ -53,9 +52,8 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
   }
 
   @Override
-  public ProcessResult runTool(String... args) {
-    List<String> extendedArgs = new ArrayList<>(Arrays.asList(args));
-    extendedArgs.add(this.context.getWorkspacePath().toString());
-    return super.runTool(extendedArgs.toArray(new String[0]));
+  public ProcessResult runTool(List<String> args) {
+    args.add(this.context.getWorkspacePath().toString());
+    return super.runTool(args);
   }
 }
