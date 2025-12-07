@@ -86,4 +86,13 @@ public class PipRepository extends ArtifactToolRepository<PipArtifact, PipArtifa
 
     return new PipArtifactMetadata(artifact, tool, edition);
   }
+
+  @Override
+  public List<String> getSortedEditions(String tool) {
+
+    if ("pip".equals(tool)) {
+      return Pip.EDITIONS;
+    }
+    return super.getSortedEditions(tool);
+  }
 }

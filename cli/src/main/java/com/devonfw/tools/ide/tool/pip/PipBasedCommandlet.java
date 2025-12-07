@@ -16,7 +16,6 @@ import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.python.Python;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.tool.uv.Uv;
-import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -49,7 +48,7 @@ public abstract class PipBasedCommandlet extends PackageManagerBasedLocalToolCom
   @SuppressWarnings({ "unchecked", "rawtypes" })
   protected Class<ToolCommandlet> getPackageManagerClass() {
 
-    String edition = IdeVariables.PIP_EDITION.get(this.context);
+    String edition = this.context.getVariables().getToolEdition("pip");
     Class<? extends ToolCommandlet> result =
         switch (edition) {
           case "pip" -> Pip.class;

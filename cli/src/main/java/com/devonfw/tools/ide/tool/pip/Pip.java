@@ -10,7 +10,6 @@ import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.uv.Uv;
-import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
  * {@link ToolCommandlet} for <a href="https://pip.pypa.io/">pip</a>.
@@ -18,6 +17,9 @@ import com.devonfw.tools.ide.variable.IdeVariables;
  * Pip is installed via uv using the command {@code uv pip install pip==<version>}.
  */
 public class Pip extends PipBasedCommandlet {
+
+  /** The available editions of pip. */
+  public static final List<String> EDITIONS = List.of("pip", "uv");
 
   /**
    * The constructor.
@@ -41,9 +43,9 @@ public class Pip extends PipBasedCommandlet {
   @Override
   public ProcessResult runTool(ToolInstallRequest request, ProcessMode processMode, List<String> args) {
 
-    String edition = IdeVariables.PIP_EDITION.get(this.context);
+    String edition = getConfiguredEdition();
     if ("uv".equals(edition) && (request.getRequested() == null)) {
-      // default is PIP_EDITION=uv so "ide pip «args»" should actually do "ide uv pip «args»"
+      // default is PIP_EDITION=uv in settings so "ide pip «args»" should actually do "ide uv pip «args»"
       // this is not possible if the requested edition and version have been preconfigured
       // since that means we want to use a specific version of pip while "uv" would then be installed in that version which most likely does not exist.
       args.addFirst("pip");
