@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -75,7 +76,7 @@ public class Mvn extends LocalToolCommandlet {
   @Override
   protected void configureToolBinary(ProcessContext pc, ProcessMode processMode) {
     Path mvn = Path.of(getBinaryName());
-    Path wrapper = findWrapper(MVN_WRAPPER_FILENAME, path -> Files.exists(path.resolve(POM_XML)));
+    Path wrapper = findWrapper(MVN_WRAPPER_FILENAME);
     pc.executable(Objects.requireNonNullElse(wrapper, mvn));
   }
 
@@ -174,10 +175,10 @@ public class Mvn extends LocalToolCommandlet {
     return encryptedPassword;
   }
 
-  private String retrievePassword(String args, String input) {
+  private String retrievePassword(String option, String input) {
 
-    ProcessResult result = runTool(this.context.newProcess(), ProcessMode.DEFAULT_CAPTURE, args, input,
-        getSettingsSecurityProperty());
+    ProcessResult result = runTool(this.context.newProcess(), ProcessMode.DEFAULT_CAPTURE, List.of(option, input,
+        getSettingsSecurityProperty()));
 
     return result.getSingleOutput(null);
   }
@@ -316,7 +317,7 @@ public class Mvn extends LocalToolCommandlet {
   public void downloadArtifact(MvnArtifact artifact) {
 
     this.context.newStep("Download artifact " + artifact).run(() -> {
-      runTool("dependency:get", "-Dartifact=" + artifact.getKey());
+      runTool(List.of("dependency:get", "-Dartifact=" + artifact.getKey()));
     });
   }
 
@@ -332,5 +333,15 @@ public class Mvn extends LocalToolCommandlet {
       assert (Files.exists(artifactPath));
     }
     return artifactPath;
+  }
+
+  @Override
+  public Path findBuildDescriptor(Path directory) {
+
+    Path buildDescriptor = directory.resolve(POM_XML);
+    if (Files.exists(buildDescriptor)) {
+      return buildDescriptor;
+    }
+    return super.findBuildDescriptor(directory);
   }
 }

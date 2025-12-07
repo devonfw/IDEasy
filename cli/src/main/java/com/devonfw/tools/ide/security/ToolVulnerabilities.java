@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.url.model.file.json.Cve;
+import com.devonfw.tools.ide.version.GenericVersionRange;
 
 /**
  * Container for {@link #getIssues() vulnerabilities} with internal scoring.
@@ -109,7 +110,11 @@ public class ToolVulnerabilities implements Comparable<ToolVulnerabilities> {
       separator = ':';
     }
     if (toolEditionAndVersion != null) {
-      sb.append(" for version ").append(toolEditionAndVersion.getVersion()).append(" of tool ").append(toolEditionAndVersion.getEdition());
+      GenericVersionRange version = toolEditionAndVersion.getResolvedVersion();
+      if (version == null) {
+        version = toolEditionAndVersion.getVersion();
+      }
+      sb.append(" for version ").append(version).append(" of tool ").append(toolEditionAndVersion.getEdition());
     }
     sb.append(separator);
     for (Cve issue : issues) {
