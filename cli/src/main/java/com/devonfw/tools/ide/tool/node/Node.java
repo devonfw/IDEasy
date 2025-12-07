@@ -31,10 +31,14 @@ public class Node extends LocalToolCommandlet {
   protected void postInstallOnNewInstallation(ToolInstallRequest request) {
 
     super.postInstallOnNewInstallation(request);
+    // this code is slightly dangerous: npm has a dependency to node, while here in node we call npm causing a cyclic dependency
+    // the problem is that node package already comes with npm so we already have to configure npm properly here
+    // inside npm we have to guarantee that we will not trigger an installation (again) causing an infinity loop
+    // we would love to get this clean but node and npm are already flawed forcing us to do such hacks...
     Npm npm = this.context.getCommandletManager().getCommandlet(Npm.class);
     PackageManagerRequest packageManagerRequest = new PackageManagerRequest("config", this.tool).addArg("config").addArg("set").addArg("prefix")
         .addArg(getToolPath().toString());
-    ProcessResult result = npm.runPackageManager(packageManagerRequest);
+    ProcessResult result = npm.runPackageManager(packageManagerRequest, true);
     if (result.isSuccessful()) {
       this.context.success("Setting npm config prefix to: {} was successful", getToolPath());
     }

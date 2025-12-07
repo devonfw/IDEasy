@@ -51,8 +51,7 @@ public class NpmTest extends AbstractIdeContextTest {
     commandlet.run();
 
     // assert
-    assertThat(context).logAtInfo().hasMessageContaining("npm --version");
-    assertThat(context).logAtInfo().hasMessageContaining("npm version: 9.9.2");
+    assertThat(context).logAtInfo().hasMessage("9.9.2");
   }
 
   /**

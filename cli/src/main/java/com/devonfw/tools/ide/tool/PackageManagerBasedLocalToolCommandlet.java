@@ -7,6 +7,7 @@ import java.util.Set;
 import com.devonfw.tools.ide.cache.CachedValue;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
@@ -57,11 +58,27 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
    * @return the {@link ProcessResult}.
    */
   public ProcessResult runPackageManager(PackageManagerRequest request) {
+    return runPackageManager(request, false);
+  }
+
+  /**
+   * @param request the {@link PackageManagerRequest}.
+   * @param skipInstallation {@code true} if the caller can guarantee that this package manager tool is already installed, {@code false} otherwise (run
+   *     install method again to ensure the tool is installed).
+   * @return the {@link ProcessResult}.
+   */
+  public ProcessResult runPackageManager(PackageManagerRequest request, boolean skipInstallation) {
 
     completeRequest(request);
-    ToolInstallRequest installRequest = new ToolInstallRequest(true);
-    installRequest.setProcessContext(request.getProcessContext());
-    return request.getPackageManager().runTool(installRequest, request.getProcessMode(), request.getArgs());
+    ProcessContext pc = request.getProcessContext();
+    ToolCommandlet pm = request.getPackageManager();
+    if (skipInstallation) { // See Node.postInstallOnNewInstallation
+      return pm.runTool(pc, request.getProcessMode(), request.getArgs());
+    } else {
+      ToolInstallRequest installRequest = new ToolInstallRequest(true);
+      installRequest.setProcessContext(pc);
+      return pm.runTool(installRequest, request.getProcessMode(), request.getArgs());
+    }
   }
 
   protected void completeRequest(PackageManagerRequest request) {
@@ -148,7 +165,7 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
 
     PackageManagerRequest packageManagerRequest = new PackageManagerRequest(PackageManagerRequest.TYPE_INSTALL, getPackageName())
         .setProcessContext(request.getProcessContext()).setVersion(request.getRequested().getResolvedVersion());
-    runPackageManager(packageManagerRequest).failOnError();
+    runPackageManager(packageManagerRequest, true).failOnError();
     this.installedVersion.invalidate();
   }
 

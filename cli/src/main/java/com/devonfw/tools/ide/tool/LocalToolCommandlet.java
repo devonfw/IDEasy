@@ -163,6 +163,9 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     // cveCheck might have changed resolvedVersion so let us re-check...
     if (request.isAlreadyInstalled()) {
       return toolAlreadyInstalled(request);
+    } else {
+      ToolEditionAndVersion installed = request.getInstalled();
+      this.context.debug("Installation from {} to {}.", installed, requested);
     }
     Path installationPath = getInstallationPath(edition, resolvedVersion);
 
