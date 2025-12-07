@@ -200,7 +200,14 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    */
   public ProcessResult runTool(ToolInstallRequest request, ProcessMode processMode, List<String> args) {
 
-    install(request);
+    if (request.isCveCheckDone()) {
+      // if the CVE check has already been done, we can assume that the install(request) has already been called before
+      // most likely a postInstall* method was overridden calling this method with the same request what is a programming error
+      // we render this warning so the error gets detected and can be fixed but we do not block the user by skipping the installation.
+      this.context.warning().log(new RuntimeException(), "Preventing infinity loop during installation of {}", request.getRequested());
+    } else {
+      install(request);
+    }
     return runTool(request.getProcessContext(), processMode, args);
   }
 
@@ -268,6 +275,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   public ToolInstallation install(ToolInstallRequest request) {
 
     completeRequest(request);
+    if (request.isInstallLoop(this.context)) {
+      return toolAlreadyInstalled(request);
+    }
     return doInstall(request);
   }
 
