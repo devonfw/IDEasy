@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool.terraform;
 
+import java.util.List;
 import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
@@ -28,7 +29,7 @@ public class Terraform extends LocalToolCommandlet {
   protected void postInstallOnNewInstallation(ToolInstallRequest request) {
 
     super.postInstallOnNewInstallation(request);
-    runTool(request, ProcessMode.DEFAULT, "-install-autocomplete");
+    runTool(request, ProcessMode.DEFAULT, List.of("-install-autocomplete"));
   }
 
   @Override

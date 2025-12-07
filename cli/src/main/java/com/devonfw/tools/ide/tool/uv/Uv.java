@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.tool.uv;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -40,13 +39,7 @@ public class Uv extends LocalToolCommandlet {
   public void installPython(Path installationPath, VersionIdentifier resolvedVersion, ProcessContext processContext) {
 
     processContext.directory(installationPath);
-
-    List<String> uvInstallCommands = new ArrayList<>();
-    uvInstallCommands.add("venv");
-    uvInstallCommands.add("--python");
-    uvInstallCommands.add(resolvedVersion.toString());
-
-    ProcessResult result = runTool(processContext, ProcessMode.DEFAULT_CAPTURE, uvInstallCommands.toArray(String[]::new));
+    ProcessResult result = runTool(processContext, ProcessMode.DEFAULT_CAPTURE, List.of("venv", "--python", resolvedVersion.toString()));
     assert result.isSuccessful();
   }
 }

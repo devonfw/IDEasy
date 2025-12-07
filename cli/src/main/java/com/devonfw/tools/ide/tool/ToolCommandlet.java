@@ -142,15 +142,15 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   @Override
   public void run() {
 
-    runTool(this.arguments.asArray());
+    runTool(this.arguments.asList());
   }
 
   /**
    * @param args the command-line arguments to run the tool.
    * @return the {@link ProcessResult result}.
-   * @see ToolCommandlet#runTool(ProcessMode, GenericVersionRange, String...)
+   * @see ToolCommandlet#runTool(ProcessMode, GenericVersionRange, List)
    */
-  public ProcessResult runTool(String... args) {
+  public ProcessResult runTool(List<String> args) {
 
     return runTool(ProcessMode.DEFAULT, null, args);
   }
@@ -164,7 +164,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param args the command-line arguments to run the tool.
    * @return the {@link ProcessResult result}.
    */
-  public final ProcessResult runTool(ProcessMode processMode, GenericVersionRange toolVersion, String... args) {
+  public final ProcessResult runTool(ProcessMode processMode, GenericVersionRange toolVersion, List<String> args) {
 
     return runTool(processMode, toolVersion, ProcessErrorHandling.THROW_CLI, args);
   }
@@ -179,7 +179,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param args the command-line arguments to run the tool.
    * @return the {@link ProcessResult result}.
    */
-  public ProcessResult runTool(ProcessMode processMode, GenericVersionRange toolVersion, ProcessErrorHandling errorHandling, String... args) {
+  public ProcessResult runTool(ProcessMode processMode, GenericVersionRange toolVersion, ProcessErrorHandling errorHandling, List<String> args) {
 
     ProcessContext pc = this.context.newProcess().errorHandling(errorHandling);
     ToolInstallRequest request = new ToolInstallRequest(true);
@@ -198,7 +198,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param args the command-line arguments to run the tool.
    * @return the {@link ProcessResult result}.
    */
-  public ProcessResult runTool(ToolInstallRequest request, ProcessMode processMode, String... args) {
+  public ProcessResult runTool(ToolInstallRequest request, ProcessMode processMode, List<String> args) {
 
     install(request);
     return runTool(request.getProcessContext(), processMode, args);
@@ -210,7 +210,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param args the command-line arguments to run the tool.
    * @return the {@link ProcessResult result}.
    */
-  public ProcessResult runTool(ProcessContext pc, ProcessMode processMode, String... args) {
+  public ProcessResult runTool(ProcessContext pc, ProcessMode processMode, List<String> args) {
 
     if (this.executionDirectory != null) {
       pc.directory(this.executionDirectory);
@@ -232,9 +232,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   /**
    * @param pc the {@link ProcessContext}.
    * @param processMode the {@link ProcessMode}.
-   * @param args the command-line arguments to {@link ProcessContext#addArgs(Object...) add}.
+   * @param args the command-line arguments to {@link ProcessContext#addArgs(List) add}.
    */
-  protected void configureToolArgs(ProcessContext pc, ProcessMode processMode, String... args) {
+  protected void configureToolArgs(ProcessContext pc, ProcessMode processMode, List<String> args) {
 
     pc.addArgs(args);
   }

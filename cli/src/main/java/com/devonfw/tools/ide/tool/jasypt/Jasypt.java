@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.tool.jasypt;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
@@ -59,7 +60,7 @@ public class Jasypt extends LocalToolCommandlet {
   }
 
   @Override
-  public ProcessResult runTool(ProcessContext pc, ProcessMode processMode, String... args) {
+  public ProcessResult runTool(ProcessContext pc, ProcessMode processMode, List<String> args) {
 
     return runJasypt(determineJasyptMainClass(), pc, processMode);
   }

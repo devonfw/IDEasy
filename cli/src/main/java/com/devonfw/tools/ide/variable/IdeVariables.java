@@ -62,8 +62,17 @@ public interface IdeVariables {
   /** {@link VariableDefinition} arguments for maven to set the m2 repo location. */
   VariableDefinitionPath M2_REPO = new VariableDefinitionPath("M2_REPO", null, IdeVariables::getMavenRepositoryPath, false, true);
 
-  /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getWorkspaceName() WORKSPACE}. */
+  /**
+   * {@link VariableDefinition} for {@link com.devonfw.tools.ide.tool.ToolCommandlet#getConfiguredEdition() edition} of
+   * {@link com.devonfw.tools.ide.tool.docker.Docker docker}.
+   */
   VariableDefinitionString DOCKER_EDITION = new VariableDefinitionString("DOCKER_EDITION", null, c -> "rancher");
+
+  /**
+   * {@link VariableDefinition} for {@link com.devonfw.tools.ide.tool.ToolCommandlet#getConfiguredEdition() edition} of
+   * {@link com.devonfw.tools.ide.tool.pip.Pip pip}.
+   */
+  VariableDefinitionString PIP_EDITION = new VariableDefinitionString("PIP_EDITION", null, c -> "uv");
 
   /** {@link VariableDefinition} for default build options of mvn */
   VariableDefinitionString MVN_BUILD_OPTS = new VariableDefinitionString("MVN_BUILD_OPTS", null, c -> "clean install");

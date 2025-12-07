@@ -1,4 +1,8 @@
 #!/bin/bash
+if [ "$1" == "--version" ]; then
+  echo "9.9.2"
+  exit
+fi
 echo "npm $*"
 
 if [ "$1" == "install" ]; then

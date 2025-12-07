@@ -334,9 +334,12 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
 
     if (version == null) {
       return null;
-    } else if (version.equals("latest") || version.equals("*")) {
+    }
+    version = version.trim();
+    if (version.equals("latest") || version.equals("*")) {
       return VersionIdentifier.LATEST;
     }
+    assert !version.contains(" ") && !version.contains("\n") && !version.contains("\t") : version;
     VersionSegment startSegment = VersionSegment.of(version);
     if (startSegment == null) {
       return null;

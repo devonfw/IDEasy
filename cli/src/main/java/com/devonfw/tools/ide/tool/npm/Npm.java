@@ -40,7 +40,6 @@ public class Npm extends NpmBasedCommandlet {
     return null;
   }
 
-
   @Override
   public String getToolHelpArguments() {
 

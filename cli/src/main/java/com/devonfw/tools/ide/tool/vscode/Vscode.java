@@ -59,7 +59,7 @@ public class Vscode extends IdeToolCommandlet {
     extensionsCommands.add("--force");
     extensionsCommands.add("--install-extension");
     extensionsCommands.add(plugin.id());
-    ProcessResult result = runTool(pc, ProcessMode.DEFAULT_CAPTURE, extensionsCommands.toArray(String[]::new));
+    ProcessResult result = runTool(pc, ProcessMode.DEFAULT_CAPTURE, extensionsCommands);
     if (result.isSuccessful()) {
       this.context.success("Successfully installed plugin: {}", plugin.name());
       step.success();
@@ -71,7 +71,7 @@ public class Vscode extends IdeToolCommandlet {
   }
 
   @Override
-  protected void configureToolArgs(ProcessContext pc, ProcessMode processMode, String... args) {
+  protected void configureToolArgs(ProcessContext pc, ProcessMode processMode, List<String> args) {
 
     Path vsCodeConf = this.context.getWorkspacePath().resolve(".vscode/.userdata");
     pc.addArg("--new-window");

@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool.ide;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
@@ -52,7 +53,7 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
   }
 
   @Override
-  public ProcessResult runTool(String... args) {
+  public ProcessResult runTool(List<String> args) {
 
     return runTool(ProcessMode.BACKGROUND, null, args);
   }

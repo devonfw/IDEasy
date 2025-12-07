@@ -9,7 +9,7 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.SystemArchitecture;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
-import com.devonfw.tools.ide.tool.PackageManager;
+import com.devonfw.tools.ide.tool.NativePackageManager;
 import com.devonfw.tools.ide.tool.PackageManagerCommand;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -70,10 +70,10 @@ public class Docker extends GlobalToolCommandlet {
     VersionIdentifier configuredVersion = getConfiguredVersion();
     String resolvedVersion = toolRepository.resolveVersion(this.tool, edition, configuredVersion, this).toString();
 
-    return List.of(new PackageManagerCommand(PackageManager.ZYPPER, List.of(
+    return List.of(new PackageManagerCommand(NativePackageManager.ZYPPER, List.of(
             "sudo zypper addrepo https://download.opensuse.org/repositories/isv:/Rancher:/stable/rpm/isv:Rancher:stable.repo",
             String.format("sudo zypper --no-gpg-checks install rancher-desktop=%s*", resolvedVersion))),
-        new PackageManagerCommand(PackageManager.APT, List.of(
+        new PackageManagerCommand(NativePackageManager.APT, List.of(
             "curl -s https://download.opensuse.org/repositories/isv:/Rancher:/stable/deb/Release.key | gpg --dearmor |"
                 + " sudo dd status=none of=/usr/share/keyrings/isv-rancher-stable-archive-keyring.gpg",
             "echo 'deb [signed-by=/usr/share/keyrings/isv-rancher-stable-archive-keyring.gpg]"
@@ -97,9 +97,9 @@ public class Docker extends GlobalToolCommandlet {
 
     List<PackageManagerCommand> pmCommands = new ArrayList<>();
     pmCommands.add(
-        new PackageManagerCommand(PackageManager.ZYPPER, Arrays.asList("sudo zypper remove rancher-desktop")));
+        new PackageManagerCommand(NativePackageManager.ZYPPER, Arrays.asList("sudo zypper remove rancher-desktop")));
     pmCommands.add(
-        new PackageManagerCommand(PackageManager.APT, Arrays.asList("sudo apt -y autoremove rancher-desktop")));
+        new PackageManagerCommand(NativePackageManager.APT, Arrays.asList("sudo apt -y autoremove rancher-desktop")));
 
     return pmCommands;
   }

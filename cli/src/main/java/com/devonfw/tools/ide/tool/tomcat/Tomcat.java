@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.tool.tomcat;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Set;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -54,12 +55,13 @@ public class Tomcat extends LocalToolCommandlet {
   }
 
   @Override
-  public ProcessResult runTool(ProcessMode processMode, GenericVersionRange toolVersion, ProcessErrorHandling errorHandling, String... args) {
+  public ProcessResult runTool(ProcessMode processMode, GenericVersionRange toolVersion, ProcessErrorHandling errorHandling, List<String> args) {
 
-    if (args.length == 0) {
-      args = new String[] { "run" };
+    if (args.isEmpty()) {
+      args.add("run");
     }
-    boolean startup = args[0].equals("start") || args[0].equals("run");
+    String first = args.getFirst();
+    boolean startup = first.equals("start") || first.equals("run");
     if (startup) {
       processMode = ProcessMode.BACKGROUND;
     }

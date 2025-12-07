@@ -108,4 +108,16 @@ public class ToolEditionAndVersion {
     }
     this.resolvedVersion = resolvedVersion;
   }
+
+  @Override
+  public String toString() {
+
+    if (this.edition == null) {
+      return "<none>";
+    }
+    if ((this.resolvedVersion == null) || (this.resolvedVersion == this.version)) {
+      return this.edition + "@" + this.version;
+    }
+    return this.edition + "@" + this.resolvedVersion + "[" + this.version + "]";
+  }
 }

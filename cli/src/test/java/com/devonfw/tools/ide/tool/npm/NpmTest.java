@@ -51,8 +51,7 @@ public class NpmTest extends AbstractIdeContextTest {
     commandlet.run();
 
     // assert
-    assertThat(context).logAtInfo().hasMessageContaining("npm --version");
-    assertThat(context).logAtInfo().hasMessageContaining("npm version: 9.9.2");
+    assertThat(context).logAtInfo().hasMessage("9.9.2");
   }
 
   /**
@@ -79,7 +78,7 @@ public class NpmTest extends AbstractIdeContextTest {
     // assert II
     assertThat(context).logAtInfo().hasNoMessageContaining("npm uninstall -g npm");
     assertThat(context).logAtInfo().hasMessageContaining("IDEasy does not support uninstalling the tool npm since this will break your installation.\n"
-        + "If you really want to uninstall it, please uninstall the entire node installation:\n"
+        + "If you really want to uninstall it, please uninstall its parent tool via:\n"
         + "ide uninstall node");
 
     assertThat(context).logAtSuccess().hasMessage("Successfully uninstalled npm");

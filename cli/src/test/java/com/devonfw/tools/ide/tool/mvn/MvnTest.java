@@ -94,7 +94,7 @@ public class MvnTest extends AbstractIdeContextTest {
     mvn.run();
 
     // assert
-    assertThat(context).logAtDebug().hasMessage("Using wrapper file at: " + context.getWorkspacePath());
+    assertThat(context).logAtDebug().hasMessage("Using wrapper: " + context.getWorkspacePath().resolve("mvnw"));
     assertThat(context).logAtInfo().hasMessage("mvnw " + "foo bar");
   }
 

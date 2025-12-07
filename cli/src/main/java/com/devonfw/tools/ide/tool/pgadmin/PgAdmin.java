@@ -8,7 +8,7 @@ import java.util.Set;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
-import com.devonfw.tools.ide.tool.PackageManager;
+import com.devonfw.tools.ide.tool.NativePackageManager;
 import com.devonfw.tools.ide.tool.PackageManagerCommand;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -36,7 +36,7 @@ public class PgAdmin extends GlobalToolCommandlet {
     VersionIdentifier configuredVersion = getConfiguredVersion();
     String resolvedVersion = toolRepository.resolveVersion(this.tool, edition, configuredVersion, this).toString();
 
-    PackageManagerCommand packageManagerCommand = new PackageManagerCommand(PackageManager.APT, List.of(
+    PackageManagerCommand packageManagerCommand = new PackageManagerCommand(NativePackageManager.APT, List.of(
         "curl -fsS https://www.pgadmin.org/static/packages_pgadmin_org.pub | "
             + "sudo gpg --yes --dearmor -o /usr/share/keyrings/packages-pgadmin-org.gpg",
         "sudo sh -c 'echo \"deb [signed-by=/usr/share/keyrings/packages-pgadmin-org.gpg] "
@@ -61,7 +61,7 @@ public class PgAdmin extends GlobalToolCommandlet {
 
     List<PackageManagerCommand> pmCommands = new ArrayList<>();
 
-    pmCommands.add(new PackageManagerCommand(PackageManager.APT,
+    pmCommands.add(new PackageManagerCommand(NativePackageManager.APT,
         Arrays.asList("sudo apt -y autoremove pgadmin4 pgadmin4-server pgadmin4-desktop pgadmin4-web")));
 
     return pmCommands;
