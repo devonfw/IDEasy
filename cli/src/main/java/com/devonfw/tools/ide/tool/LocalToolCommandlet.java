@@ -99,6 +99,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     VersionIdentifier resolvedVersion = installation.resolvedVersion();
     if (request.isAlreadyInstalled()) {
       return installation;
+    } else {
+      this.context.debug("Installation from {} to {}.", request.getInstalled(), request.getRequested());
     }
     FileAccess fileAccess = this.context.getFileAccess();
     boolean ignoreSoftwareRepo = isIgnoreSoftwareRepo();
@@ -259,7 +261,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     } else {
       if (isIgnoreSoftwareRepo()) {
         throw new IllegalStateException(
-            "Cannot satisfy dependency to " + this.tool + " in version " + versionRange + " since it is conflicting with configured version "
+            "Cannot satisfy dependency to " + this.tool + " in version " + versionRange + " for " + parentRequest.getRequested()
+                + " since it is conflicting with configured version "
                 + configuredVersion
                 + " and this tool does not support the software repository.");
       }
