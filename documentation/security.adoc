@@ -51,7 +51,7 @@ CVE-2021-26291 with severity 9.1 and affected versions: [(,3.8.1)]
 https://nvd.nist.gov/vuln/detail/CVE-2021-26291
 
 No CVEs found for nearest version 3.8.1 of tool mvn.
-No CVEs found for latest version 4.0.0-rc-5 of tool mvn.
+No CVEs found for latest version 3.9.9 of tool mvn.
 Please note that by selecting an unsafe version to install, you accept the risk to be attacked.
 Which version do you want to install?
 Option 1: current (3.6.2 - unsafe)
