@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool;
 
+import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.version.GenericVersionRange;
@@ -10,6 +11,8 @@ import com.devonfw.tools.ide.version.VersionRange;
  * Container for data related to a tool installation.
  */
 public final class ToolInstallRequest {
+
+  private final ToolInstallRequest parent;
 
   private final boolean silent;
 
@@ -31,7 +34,7 @@ public final class ToolInstallRequest {
    * @param silent the {@link #isSilent() silent} flag.
    */
   public ToolInstallRequest(boolean silent) {
-    this(silent, false);
+    this(null, silent, false);
   }
 
   /**
@@ -40,8 +43,7 @@ public final class ToolInstallRequest {
    * @param parent the parent {@link ToolInstallRequest} (in case of a dependency).
    */
   public ToolInstallRequest(ToolInstallRequest parent) {
-    this(parent.silent, false);
-    this.processContext = parent.processContext;
+    this(parent, parent.silent, false);
   }
 
   /**
@@ -50,10 +52,57 @@ public final class ToolInstallRequest {
    * @param silent the {@link #isSilent() silent} flag.
    * @param direct the {@link #isDirect() direct} flag.
    */
-  private ToolInstallRequest(boolean silent, boolean direct) {
+  private ToolInstallRequest(ToolInstallRequest parent, boolean silent, boolean direct) {
     super();
+    this.parent = parent;
     this.silent = silent;
     this.direct = direct;
+    if (parent != null) {
+      this.processContext = parent.processContext;
+    }
+  }
+
+  /**
+   * @param logger the {@link IdeLogger} used to log an installation loop if found.
+   * @return {@code true} if an installation loop was found and logged, {@code false} otherwise.
+   */
+  public boolean isInstallLoop(IdeLogger logger) {
+
+    if ((this.requested == null) || (this.requested.getEdition() == null)) {
+      throw new IllegalStateException(); // this method was called too early
+    }
+    StringBuilder sb = new StringBuilder();
+    boolean loopFound = detectInstallLoopRecursively(this.requested, sb);
+    if (loopFound) {
+      logger.warning("Found installation loop:\n"
+              + "{}\n"
+              + "This typically indicates an internal bug in IDEasy.\n"
+              + "Please report this bug, when you see this and include this entire warning message.\n"
+              + "We are now trying to prevent an infinity loop and abort the recursive installation.",
+          sb);
+    }
+    return loopFound;
+  }
+
+  private boolean detectInstallLoopRecursively(ToolEditionAndVersion toolEditionAndVersion, StringBuilder sb) {
+
+    if (this.requested != toolEditionAndVersion) {
+      if (this.requested.getEdition().equals(toolEditionAndVersion.getEdition())) {
+        if (this.requested.getResolvedVersion().equals(toolEditionAndVersion.getResolvedVersion())) {
+          sb.append(this.requested);
+          return true;
+        }
+      }
+    }
+    if (this.parent == null) {
+      return false;
+    }
+    boolean loopFound = this.parent.detectInstallLoopRecursively(toolEditionAndVersion, sb);
+    if (loopFound && (sb != null)) {
+      sb.append("-->");
+      sb.append(this.requested);
+    }
+    return loopFound;
   }
 
   /**
@@ -201,6 +250,6 @@ public final class ToolInstallRequest {
    */
   public static ToolInstallRequest ofDirect() {
 
-    return new ToolInstallRequest(false, true);
+    return new ToolInstallRequest(null, false, true);
   }
 }
