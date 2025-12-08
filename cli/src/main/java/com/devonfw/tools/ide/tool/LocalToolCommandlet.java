@@ -155,6 +155,9 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   public ToolInstallation installTool(ToolInstallRequest request) {
 
     completeRequest(request); // most likely already done, but if installTool was called directly and not from install
+    if (request.isInstallLoop(this.context)) {
+      return toolAlreadyInstalled(request);
+    }
     ToolEditionAndVersion requested = request.getRequested();
     ToolEdition toolEdition = requested.getEdition();
     assert (toolEdition.tool().equals(this.tool)) : "Mismatch " + this.tool + " != " + toolEdition.tool();
