@@ -80,7 +80,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     ExtensibleEnvironmentVariables environmentVariables = new ExtensibleEnvironmentVariables(
         (AbstractEnvironmentVariables) this.context.getVariables().getParent(), this.context);
 
-    environmentVariables.setValue("PROJECT_PATH", projectPath.toString());
+    environmentVariables.setValue("PROJECT_PATH", projectPath.toString().replace('\\', '/'));
     return environmentVariables.resolved();
   }
 
@@ -99,7 +99,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
           "Cannot import project into workspace: could not find workspace from " + repositoryPath);
     }
     XmlMerger xmlMerger = new XmlMerger(this.context);
-    EnvironmentVariables environmentVariables = getIntellijEnvironmentVariables(repositoryPath.getFileName());
+    EnvironmentVariables environmentVariables = getIntellijEnvironmentVariables(workspacePath.relativize(repositoryPath));
     Path workspaceFile = workspacePath.resolve(FOLDER_IDEA_CONFIG).resolve(configFilePath);
 
     XmlMergeDocument workspaceDocument = xmlMerger.load(workspaceFile);
