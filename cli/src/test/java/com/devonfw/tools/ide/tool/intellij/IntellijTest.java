@@ -5,6 +5,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.git.repository.RepositoryCommandlet;
 import com.devonfw.tools.ide.os.SystemInfo;
@@ -177,14 +178,14 @@ public class IntellijTest extends AbstractIdeContextTest {
           </component>
         </project>
         """);
-    assertThat(context.getWorkspacePath().resolve(".idea").resolve("gradle.xml")).hasContent("""
+    assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve("test").resolve(".idea").resolve("gradle.xml")).hasContent("""
         <?xml version="1.0" encoding="UTF-8" standalone="no"?>
         <project version="4">
           <component migrationVersion="1" name="GradleMigrationSettings"/>
           <component name="GradleSettings">
             <option name="linkedExternalProjectsSettings">
               <GradleProjectSettings>
-                <option name="externalProjectPath" value="$PROJECT_DIR$/test_gradle"/>
+                <option name="externalProjectPath" value="$PROJECT_DIR$/subfolder/test_gradle"/>
               </GradleProjectSettings>
             </option>
           </component>
