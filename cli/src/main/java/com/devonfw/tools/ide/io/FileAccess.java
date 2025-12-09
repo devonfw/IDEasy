@@ -8,7 +8,6 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFilePermission;
 import java.time.Duration;
 import java.util.List;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -333,21 +332,18 @@ public interface FileAccess {
   Path findFirst(Path dir, Predicate<Path> filter, boolean recursive);
 
   /**
-   * Searches upward from the given starting path to find the nearest ancestor directory that contains a specific subfolder. The search stops before ascending
-   * into any parent directory whose name matches the provided stop boundary.
+   * Example usage:
+   * <pre>
+   * findAncestor(ideHome.resolve("workspaces/test/foo/bar"), ideHome.resolve("workspaces"), 1); // will return ideHome.resolve("workspaces/test")
+   * </pre>
    *
-   * @param start the starting {@link Path} from which to begin the upward traversal. Must not be {@code null}.
-   * @param folderName the name of the subfolder to look for in each ancestor directory (e.g., ".idea"). Must not be {@code null} or empty.
-   * @param stopBeforeParentName the name of a parent directory at which the search should stop (case-insensitive). The method will not ascend into this
-   *     directory. For example, if this is "workspaces", the search will stop at the child of "workspaces" and will not check inside "workspaces" itself.
-   * @return {@link Path} of the ancestor directory that contains the specified subfolder, or {@link Optional#empty()} if no such ancestor is found before
-   *     reaching the stop boundary.
+   * @param path the {@link Path} to the file or directory to find the ancestor from.
+   * @param baseDir the {@link Path} to the base-directory is supposed to be a direct or indirect {@link Path#getParent() parent} of {@code path}.
+   * @param subfolderCount the number of sub-folders of {@code baseDir} to retain from {@code path}.
+   * @return the {@link Path} pointing to {@code subfolderCount} sub-folders from {@code baseDir} that is still equal or a {@link Path#getParent() parent} of
+   *     {@code directory} or {@code null} if no such {@link Path} exists.
    */
-  Path findAncestorWithFolder(
-      Path start,
-      String folderName,
-      String stopBeforeParentName
-  );
+  Path findAncestor(Path path, Path baseDir, int subfolderCount);
 
   /**
    * @param dir the {@link Path} to the directory where to list the children.
@@ -604,4 +600,10 @@ public interface FileAccess {
     }
     return binPath;
   }
+
+  /**
+   * @param file the {@link Path} the potential file.
+   * @return if the given {@code file} exists and is not empty.
+   */
+  boolean isNonEmptyFile(Path file);
 }

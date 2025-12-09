@@ -1026,36 +1026,39 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   }
 
   @Override
-  public Path findAncestorWithFolder(
-      Path start,
-      String folderName,
-      String stopBeforeParentName
-  ) {
+  public Path findAncestor(Path path, Path baseDir, int subfolderCount) {
 
-    Path current = start.toAbsolutePath().normalize();
-
-    while (current != null) {
-
-      Path candidate = current.resolve(folderName);
-      if (Files.isDirectory(candidate)) {
-        return current;
-      }
-
-      Path parent = current.getParent();
-      if (parent == null) {
-        break;
-      }
-
-      Path parentName = parent.getFileName();
-      if (parentName != null &&
-          parentName.toString().equalsIgnoreCase(stopBeforeParentName)) {
-        break;
-      }
-
-      // Ascend
-      current = parent;
+    if ((path == null) || (baseDir == null)) {
+      this.context.debug("Path should not be null for findAncestor.");
+      return null;
     }
-    return null;
+    if (subfolderCount <= 0) {
+      throw new IllegalArgumentException("Subfolder count: " + subfolderCount);
+    }
+    // 1. option relativize
+    // 2. recursive getParent
+    // 3. loop getParent???
+    // 4. getName + getNameCount
+    path = path.toAbsolutePath().normalize();
+    baseDir = baseDir.toAbsolutePath().normalize();
+    int directoryNameCount = path.getNameCount();
+    int baseDirNameCount = baseDir.getNameCount();
+    int delta = directoryNameCount - baseDirNameCount - subfolderCount;
+    if (delta < 0) {
+      return null;
+    }
+    // ensure directory is a sub-folder of baseDir
+    for (int i = 0; i < baseDirNameCount; i++) {
+      if (!path.getName(i).toString().equals(baseDir.getName(i).toString())) {
+        return null;
+      }
+    }
+    Path result = path;
+    while (delta > 0) {
+      result = result.getParent();
+      delta--;
+    }
+    return result;
   }
 
   @Override
@@ -1091,6 +1094,15 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   public boolean isEmptyDir(Path dir) {
 
     return listChildren(dir, f -> true).isEmpty();
+  }
+
+  @Override
+  public boolean isNonEmptyFile(Path file) {
+
+    if (Files.exists(file)) {
+      return (getFileSize(file) > 0);
+    }
+    return false;
   }
 
   private long getFileSize(Path file) {

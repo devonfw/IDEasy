@@ -8,14 +8,13 @@ import java.util.Set;
 
 import org.w3c.dom.Document;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.AbstractEnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.ExtensibleEnvironmentVariables;
-import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.merge.xml.XmlMergeDocument;
 import com.devonfw.tools.ide.merge.xml.XmlMerger;
 import com.devonfw.tools.ide.process.EnvironmentContext;
@@ -37,7 +36,8 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
 
   private static final String IDEA_BASH_SCRIPT = IDEA + ".sh";
 
-  private static final String TEMPLATE_LOCATION = "intellij/workspace/repository/.idea";
+  private static final String FOLDER_IDEA_CONFIG = ".idea";
+  private static final String TEMPLATE_LOCATION = "intellij/workspace/repository/" + FOLDER_IDEA_CONFIG;
   private static final String GRADLE_XML = "gradle.xml";
   private static final String MISC_XML = "misc.xml";
   private static final String IDEA_PROPERTIES = "idea.properties";
@@ -84,52 +84,34 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     return environmentVariables.resolved();
   }
 
-  private void mergeConfig(Path repositoryPath, String configName) {
-    Path workspacePath = getOrCreateWorkspaceXmlFile(repositoryPath, configName);
-
-    if (workspacePath != null) {
-      XmlMerger xmlMerger = new XmlMerger(context);
-      Path templatePath = this.context.getSettingsPath().resolve(TEMPLATE_LOCATION).resolve(configName);
-
-      EnvironmentVariables environmentVariables = getIntellijEnvironmentVariables(repositoryPath.getFileName());
-
-      if (!Files.exists(workspacePath)) {
-        xmlMerger.createValidEmptyXmlFile("project", workspacePath);
-      }
-      XmlMergeDocument workspaceDocument = xmlMerger.load(workspacePath);
-      XmlMergeDocument templateDocument = xmlMerger.loadAndResolve(templatePath, environmentVariables);
-
-      Document mergedDocument = xmlMerger.merge(templateDocument, workspaceDocument, false);
-
-      xmlMerger.save(mergedDocument, workspacePath);
-    }
-  }
-
-  private Path getOrCreateWorkspaceXmlFile(Path repositoryPath, String fileName) {
-    FileAccess fileAccess = new FileAccessImpl(context);
-
-    Path ideaParentPath = fileAccess
-        .findAncestorWithFolder(repositoryPath, "." + IDEA, "workspaces");
-
-    if (ideaParentPath != null) {
-      return ideaParentPath.resolve("." + IDEA).resolve(fileName);
-    }
-    return null;
-  }
-
-  private boolean importTemplatesExist() {
+  private void mergeConfig(Path repositoryPath, String configFilePath) {
     Path templatePath = this.context.getSettingsPath().resolve(TEMPLATE_LOCATION);
-    Path miscXml = templatePath.resolve(MISC_XML);
-    Path gradleXml = templatePath.resolve(GRADLE_XML);
-    return Files.exists(miscXml) && Files.exists(gradleXml);
+    Path templateFile = templatePath.resolve(configFilePath);
+    if (!Files.exists(templateFile)) {
+      throw new CliException(
+          "Cannot import project into workspace: template file not found at " + templateFile + "\n"
+              + "Please do an upstream merge of your settings git repository.");
+    }
+    Path workspacesPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES);
+    Path workspacePath = this.context.getFileAccess().findAncestor(repositoryPath, workspacesPath, 1);
+    if (workspacePath == null) {
+      throw new CliException(
+          "Cannot import project into workspace: could not find workspace from " + repositoryPath);
+    }
+    XmlMerger xmlMerger = new XmlMerger(this.context);
+    EnvironmentVariables environmentVariables = getIntellijEnvironmentVariables(repositoryPath.getFileName());
+    Path workspaceFile = workspacePath.resolve(FOLDER_IDEA_CONFIG).resolve(configFilePath);
+
+    XmlMergeDocument workspaceDocument = xmlMerger.load(workspaceFile);
+    XmlMergeDocument templateDocument = xmlMerger.loadAndResolve(templateFile, environmentVariables);
+
+    Document mergedDocument = xmlMerger.merge(templateDocument, workspaceDocument, false);
+
+    xmlMerger.save(mergedDocument, workspaceFile);
   }
 
   @Override
   public void importRepository(Path repositoryPath) {
-    if (!importTemplatesExist()) {
-      this.context.warning("Could not automatically import repository due to missing template files.");
-      return;
-    }
     CommandletManager commandletManager = this.context.getCommandletManager();
     for (Entry<Class<? extends LocalToolCommandlet>, String> entry : BUILD_TOOL_TO_IJ_TEMPLATE.entrySet()) {
       LocalToolCommandlet buildTool = commandletManager.getCommandlet(entry.getKey());

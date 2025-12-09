@@ -165,8 +165,31 @@ public class IntellijTest extends AbstractIdeContextTest {
     rc.run();
 
     // assert
-    assertThat(context.getWorkspacePath().resolve(".idea").resolve("misc.xml")).exists();
-    assertThat(context.getWorkspacePath().resolve(".idea").resolve("gradle.xml")).exists();
+    assertThat(context.getWorkspacePath().resolve(".idea").resolve("misc.xml")).hasContent("""
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+        <project version="4">
+          <component name="MavenProjectsManager">
+            <option name="originalFiles">
+              <list>
+                <option value="$PROJECT_DIR$/test_mvn/pom.xml"/>
+              </list>
+            </option>
+          </component>
+        </project>
+        """);
+    assertThat(context.getWorkspacePath().resolve(".idea").resolve("gradle.xml")).hasContent("""
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+        <project version="4">
+          <component migrationVersion="1" name="GradleMigrationSettings"/>
+          <component name="GradleSettings">
+            <option name="linkedExternalProjectsSettings">
+              <GradleProjectSettings>
+                <option name="externalProjectPath" value="$PROJECT_DIR$/test_gradle"/>
+              </GradleProjectSettings>
+            </option>
+          </component>
+        </project>
+        """);
   }
 
 

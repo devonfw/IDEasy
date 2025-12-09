@@ -17,6 +17,7 @@ import java.util.Set;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.assertj.core.api.AbstractPathAssert;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.EnabledOnOs;
@@ -831,108 +832,50 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     assertThat(fileAccess.getBinParentPath(projects)).isSameAs(projects);
   }
 
-  /**
-   * Tests if {@link FileAccess#findAncestorWithFolder} finds the correct path to the parent folder of the given folder name to search for.
-   *
-   * @param tempDir the temporary directory to use.
-   */
   @Test
-  public void testFindAncestorWithFolder(@TempDir Path tempDir) {
+  void testFindAncestor() {
+
+    verifyFindAncestor("projects/myproject/workspaces/test/foo/bar", "projects/myproject/workspaces", 1, "projects/myproject/workspaces/test");
+    verifyFindAncestor("projects/myproject/workspaces/test/foo", "projects/myproject/workspaces", 2, "projects/myproject/workspaces/test/foo");
+    verifyFindAncestor("projects/_ide/software/default/intellij/ultimate/2025.3/Contents/MacOS/bin/idea.sh", "projects/_ide/software/default/intellij", 2,
+        "projects/_ide/software/default/intellij/ultimate/2025.3");
+    verifyFindAncestor("projects/myproject/workspaces/test/foo/bar", "projects/otherproject/workspaces", 1, null);
+    verifyFindAncestor(null, null, 1, null);
+  }
+
+  private void verifyFindAncestor(String path, String baseDir, int subfolderCount, String expectedResult) {
+
+    FileAccess fileAccess = IdeTestContextMock.get().getFileAccess();
+    Path result = fileAccess.findAncestor(asPath(path), asPath(baseDir), subfolderCount);
+    AbstractPathAssert<?> assertion = assertThat(result).as("findAncestor(" + path + ", " + baseDir + ", " + subfolderCount);
+    if (expectedResult == null) {
+      assertion.isNull();
+    } else {
+      assertion.isEqualTo(Path.of(expectedResult).toAbsolutePath());
+    }
+  }
+
+  private static Path asPath(String path) {
+    if (path == null) {
+      return null;
+    }
+    return Path.of(path);
+  }
+
+  @Test
+  void testIsNonEmptyFile(@TempDir Path tempDir) throws IOException {
+
     // arrange
     FileAccess fileAccess = IdeTestContextMock.get().getFileAccess();
-    Path projects = tempDir.resolve("projects");
-    Path workspaces = projects.resolve("workspaces");
-    Path mainWorkspace = workspaces.resolve("main");
-    Path testWorkspace = mainWorkspace.resolve("test");
-    Path ideaPath = mainWorkspace.resolve(".idea");
-    fileAccess.mkdirs(testWorkspace);
-    fileAccess.mkdirs(ideaPath);
 
-    // act
-    Path foundPath = fileAccess.findAncestorWithFolder(testWorkspace, ".idea", "workspaces");
-
-    // assert
-    assertThat(foundPath).isEqualTo(mainWorkspace);
+    // act + assert
+    assertThat(fileAccess.isNonEmptyFile(tempDir)).isFalse();
+    assertThat(fileAccess.isNonEmptyFile(tempDir.resolve("non-existing-file"))).isFalse();
+    Path existingFile = tempDir.resolve("existing-file");
+    Files.createFile(existingFile);
+    assertThat(fileAccess.isNonEmptyFile(existingFile)).isFalse();
+    Files.writeString(existingFile, "content");
+    assertThat(fileAccess.isNonEmptyFile(existingFile)).isTrue();
   }
-
-  /**
-   * Tests if {@link FileAccess#findAncestorWithFolder} returns the starting path if it contains the folder.
-   */
-  @Test
-  public void testFindAncestorWithFolderFolderExistsAtStart(@TempDir Path tempDir) {
-    // arrange
-    FileAccess fileAccess = IdeTestContextMock.get().getFileAccess();
-    Path start = tempDir.resolve("start");
-    Path ideaPath = start.resolve(".idea");
-    fileAccess.mkdirs(start);
-    fileAccess.mkdirs(ideaPath);
-
-    // act
-    Path result = fileAccess.findAncestorWithFolder(start, ".idea", "workspaces");
-
-    // assert
-    assertThat(result).isEqualTo(start);
-  }
-
-  /**
-   * Tests if {@link FileAccess#findAncestorWithFolder} returns null when starting at root and folder is not found.
-   */
-  @Test
-  public void testFindAncestorWithFolderStopsAtRootPath(@TempDir Path tempDir) {
-    FileAccess fileAccess = IdeTestContextMock.get().getFileAccess();
-    Path root = tempDir.getRoot();
-
-    Path result = fileAccess.findAncestorWithFolder(root, ".idea", "workspaces");
-
-    assertThat(result).isNull();
-  }
-
-  /**
-   * Tests if {@link FileAccess#findAncestorWithFolder} returns null if the folder to find is located above the stop boundary.
-   */
-  @Test
-  public void testFindAncestorWithFolderAboveStopBoundary(@TempDir Path tempDir) {
-    // arrange
-    FileAccess fileAccess = IdeTestContextMock.get().getFileAccess();
-    Path projects = tempDir.resolve("projects");
-    Path workspaces = projects.resolve("workspaces");
-    Path mainWorkspace = workspaces.resolve("main");
-    Path testWorkspace = mainWorkspace.resolve("test");
-    Path ideaPath = projects.resolve(".idea"); // above stop boundary
-    fileAccess.mkdirs(testWorkspace);
-    fileAccess.mkdirs(ideaPath);
-
-    // act
-    Path result = fileAccess.findAncestorWithFolder(testWorkspace, ".idea", "workspaces");
-
-    // assert
-    assertThat(result).isNull(); // should not climb above workspaces
-  }
-
-
-  /**
-   * Tests if {@link FileAccess#findAncestorWithFolder} returns the nearest ancestor containing the folder when multiple exist.
-   */
-  @Test
-  public void testFindAncestorWithFolderReturnsNearestAncestor(@TempDir Path tempDir) {
-    // arrange
-    FileAccess fileAccess = IdeTestContextMock.get().getFileAccess();
-    Path projects = tempDir.resolve("projects");
-    Path workspaces = projects.resolve("workspaces");
-    Path mainWorkspace = workspaces.resolve("main");
-    Path testWorkspace = mainWorkspace.resolve("test");
-    Path ideaPathMain = mainWorkspace.resolve(".idea");
-    Path ideaPathProjects = projects.resolve(".idea");
-    fileAccess.mkdirs(testWorkspace);
-    fileAccess.mkdirs(ideaPathMain);
-    fileAccess.mkdirs(ideaPathProjects);
-
-    // act
-    Path result = fileAccess.findAncestorWithFolder(testWorkspace, ".idea", "workspaces");
-
-    // assert
-    assertThat(result).isEqualTo(mainWorkspace); // nearest ancestor wins
-  }
-
 
 }
