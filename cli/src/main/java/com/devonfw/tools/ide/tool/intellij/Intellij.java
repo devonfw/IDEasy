@@ -1,12 +1,14 @@
 package com.devonfw.tools.ide.tool.intellij;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.w3c.dom.Document;
 
+import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.AbstractEnvironmentVariables;
@@ -17,6 +19,7 @@ import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.merge.xml.XmlMergeDocument;
 import com.devonfw.tools.ide.merge.xml.XmlMerger;
 import com.devonfw.tools.ide.process.EnvironmentContext;
+import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
@@ -38,6 +41,8 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   private static final String GRADLE_XML = "gradle.xml";
   private static final String MISC_XML = "misc.xml";
   private static final String IDEA_PROPERTIES = "idea.properties";
+
+  private static final Map<Class<? extends LocalToolCommandlet>, String> BUILD_TOOL_TO_IJ_TEMPLATE = Map.of(Mvn.class, MISC_XML, Gradle.class, GRADLE_XML);
 
   /**
    * The constructor.
@@ -75,11 +80,11 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     ExtensibleEnvironmentVariables environmentVariables = new ExtensibleEnvironmentVariables(
         (AbstractEnvironmentVariables) this.context.getVariables().getParent(), this.context);
 
-    environmentVariables.addVariableResolver("PROJECT_PATH", projectPath.toString());
+    environmentVariables.setValue("PROJECT_PATH", projectPath.toString());
     return environmentVariables.resolved();
   }
 
-  private void mergeConfig(Path repositoryPath, String configName) throws IOException {
+  private void mergeConfig(Path repositoryPath, String configName) {
     Path workspacePath = getOrCreateWorkspaceXmlFile(repositoryPath, configName);
 
     if (workspacePath != null) {
@@ -125,31 +130,18 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
       this.context.warning("Could not automatically import repository due to missing template files.");
       return;
     }
-    // check if pom.xml exists
-    Path pomPath = repositoryPath.resolve(Mvn.POM_XML);
-    if (Files.exists(pomPath)) {
-      try {
-        mergeConfig(repositoryPath, MISC_XML);
-      } catch (IOException e) {
-        this.context.error(e);
+    CommandletManager commandletManager = this.context.getCommandletManager();
+    for (Entry<Class<? extends LocalToolCommandlet>, String> entry : BUILD_TOOL_TO_IJ_TEMPLATE.entrySet()) {
+      LocalToolCommandlet buildTool = commandletManager.getCommandlet(entry.getKey());
+      Path buildDescriptor = buildTool.findBuildDescriptor(repositoryPath);
+      if (buildDescriptor != null) {
+        String templateFilename = entry.getValue();
+        this.context.debug("Found build descriptor {} so merging template {}", buildDescriptor, templateFilename);
+        mergeConfig(repositoryPath, templateFilename);
+        return;
       }
-
-    } else {
-      this.context.debug("no pom.xml found was found in {}", pomPath);
     }
-
-    // check if build.gradle exists
-    Path javaGradlePath = repositoryPath.resolve(Gradle.BUILD_GRADLE);
-    Path kotlinGradlePath = repositoryPath.resolve(Gradle.BUILD_GRADLE_KTS);
-    if (Files.exists(javaGradlePath) || Files.exists(kotlinGradlePath)) {
-      try {
-        mergeConfig(repositoryPath, GRADLE_XML);
-      } catch (IOException e) {
-        this.context.error(e);
-      }
-    } else {
-      this.context.debug("no build.gradle found in {} and {}", javaGradlePath, kotlinGradlePath);
-    }
+    this.context.warning("No supported build descriptor was found for project import in {}", repositoryPath);
   }
 
 }

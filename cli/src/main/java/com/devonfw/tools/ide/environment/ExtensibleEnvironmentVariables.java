@@ -10,7 +10,7 @@ import com.devonfw.tools.ide.context.IdeContext;
  */
 public class ExtensibleEnvironmentVariables extends EnvironmentVariablesMap {
 
-  private final Map<String, String> additionalEnvironmentVariables;
+  private final Map<String, String> variables;
 
   /**
    * The constructor.
@@ -20,20 +20,20 @@ public class ExtensibleEnvironmentVariables extends EnvironmentVariablesMap {
    */
   public ExtensibleEnvironmentVariables(AbstractEnvironmentVariables parent, IdeContext context) {
     super(parent, context);
-    this.additionalEnvironmentVariables = new HashMap<>();
+    this.variables = new HashMap<>();
   }
 
   /**
-   * @param name the variable string to be resolved
-   * @param value the string the variable should be resolved into
+   * @param name the name of the variable to set.
+   * @param value the value of the variable to set.
    */
-  public void addVariableResolver(String name, String value) {
-    this.additionalEnvironmentVariables.put(name, value);
+  public void setValue(String name, String value) {
+    this.variables.put(name, value);
   }
 
   @Override
   protected String getValue(String name, boolean ignoreDefaultValue) {
-    String value = this.additionalEnvironmentVariables.get(name);
+    String value = this.variables.get(name);
     if (value != null) {
       return value;
     }
@@ -42,7 +42,7 @@ public class ExtensibleEnvironmentVariables extends EnvironmentVariablesMap {
 
   @Override
   protected Map<String, String> getVariables() {
-    return this.additionalEnvironmentVariables;
+    return this.variables;
   }
 
   @Override
