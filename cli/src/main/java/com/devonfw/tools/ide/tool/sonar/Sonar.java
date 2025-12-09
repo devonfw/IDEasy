@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.tool.sonar;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
@@ -54,7 +55,7 @@ public class Sonar extends LocalToolCommandlet {
 
     switch (command) {
       case ANALYZE:
-        getCommandlet(Mvn.class).runTool("sonar:sonar");
+        getCommandlet(Mvn.class).runTool(List.of("sonar:sonar"));
         break;
       case START:
         printSonarWebPort();

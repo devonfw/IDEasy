@@ -37,6 +37,19 @@ public class ToolEditionAndVersion {
   }
 
   /**
+   * The constructor.
+   *
+   * @param edition the {@link #getEdition() edition}.
+   * @param version the {@link #getVersion() version}.
+   */
+  public ToolEditionAndVersion(ToolEdition edition, GenericVersionRange version) {
+    this(version);
+    assert edition != null;
+    assert version != null;
+    this.edition = edition;
+  }
+
+  /**
    * @return the {@link ToolEdition}.
    */
   public ToolEdition getEdition() {
@@ -94,5 +107,17 @@ public class ToolEditionAndVersion {
       throw new IllegalStateException();
     }
     this.resolvedVersion = resolvedVersion;
+  }
+
+  @Override
+  public String toString() {
+
+    if (this.edition == null) {
+      return "<none>";
+    }
+    if ((this.resolvedVersion == null) || (this.resolvedVersion == this.version)) {
+      return this.edition + "@" + this.version;
+    }
+    return this.edition + "@" + this.resolvedVersion + "[" + this.version + "]";
   }
 }

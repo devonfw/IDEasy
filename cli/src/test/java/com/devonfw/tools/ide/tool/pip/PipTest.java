@@ -1,0 +1,67 @@
+package com.devonfw.tools.ide.tool.pip;
+
+import org.junit.jupiter.api.Test;
+
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+
+/**
+ * Integration test of {@link Pip}.
+ */
+@WireMockTest
+public class PipTest extends AbstractIdeContextTest {
+
+  private static final String PROJECT_PIP = "pip";
+
+  /**
+   * Tests that the {@link Pip} commandlet can be installed via uv pip install.
+   *
+   * @param wireMockRuntimeInfo wireMock server on a random port
+   */
+  @Test
+  public void testPipInstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_PIP, wireMockRuntimeInfo);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    Pip commandlet = new Pip(context);
+
+    // act
+    commandlet.install();
+
+    // assert
+    checkInstallation(context);
+  }
+
+  /**
+   * Tests that the {@link Pip} commandlet run works correctly.
+   *
+   * @param wireMockRuntimeInfo wireMock server on a random port
+   */
+  @Test
+  public void testPipRun(WireMockRuntimeInfo wireMockRuntimeInfo) {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_PIP, wireMockRuntimeInfo);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    Pip commandlet = new Pip(context);
+    commandlet.arguments.setValue("--version");
+
+    // act
+    commandlet.run();
+
+    // assert
+    assertThat(context).logAtInfo().hasMessageContaining("pip --version");
+  }
+
+  private void checkInstallation(IdeTestContext context) {
+
+    // Pip is installed via uv pip install pip==<version>
+    assertThat(context).logAtInfo().hasMessageContaining("uv pip install pip==");
+
+    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed pip");
+  }
+}

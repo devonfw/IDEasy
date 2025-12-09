@@ -49,7 +49,7 @@ public class Gradle extends LocalToolCommandlet {
   @Override
   protected void configureToolBinary(ProcessContext pc, ProcessMode processMode) {
     Path gradle = Path.of(getBinaryName());
-    Path wrapper = findWrapper(GRADLE_WRAPPER_FILENAME, path -> Files.exists(path.resolve(BUILD_GRADLE)) || Files.exists(path.resolve(BUILD_GRADLE_KTS)));
+    Path wrapper = findWrapper(GRADLE_WRAPPER_FILENAME);
     pc.executable(Objects.requireNonNullElse(wrapper, gradle));
   }
 
@@ -66,4 +66,17 @@ public class Gradle extends LocalToolCommandlet {
     return gradleConfigFolder;
   }
 
+  @Override
+  public Path findBuildDescriptor(Path directory) {
+
+    Path buildDescriptor = directory.resolve(BUILD_GRADLE);
+    if (Files.exists(buildDescriptor)) {
+      return buildDescriptor;
+    }
+    buildDescriptor = directory.resolve(BUILD_GRADLE_KTS);
+    if (Files.exists(buildDescriptor)) {
+      return buildDescriptor;
+    }
+    return super.findBuildDescriptor(directory);
+  }
 }

@@ -5,7 +5,6 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Set;
-import java.util.function.Predicate;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -51,8 +50,11 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   public Path getToolBinPath() {
 
     Path toolPath = getToolPath();
-    Path binPath = this.context.getFileAccess().findFirst(toolPath, path -> path.getFileName().toString().equals("bin"), false);
-    if ((binPath != null) && Files.isDirectory(binPath)) {
+    if (toolPath == null) {
+      return null;
+    }
+    Path binPath = toolPath.resolve(IdeContext.FOLDER_BIN);
+    if (Files.isDirectory(binPath)) {
       return binPath;
     }
     return toolPath;
@@ -97,6 +99,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     VersionIdentifier resolvedVersion = installation.resolvedVersion();
     if (request.isAlreadyInstalled()) {
       return installation;
+    } else {
+      this.context.debug("Installation from {} to {}.", request.getInstalled(), request.getRequested());
     }
     FileAccess fileAccess = this.context.getFileAccess();
     boolean ignoreSoftwareRepo = isIgnoreSoftwareRepo();
@@ -151,6 +155,9 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   public ToolInstallation installTool(ToolInstallRequest request) {
 
     completeRequest(request); // most likely already done, but if installTool was called directly and not from install
+    if (request.isInstallLoop(this.context)) {
+      return toolAlreadyInstalled(request);
+    }
     ToolEditionAndVersion requested = request.getRequested();
     ToolEdition toolEdition = requested.getEdition();
     assert (toolEdition.tool().equals(this.tool)) : "Mismatch " + this.tool + " != " + toolEdition.tool();
@@ -161,6 +168,9 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     // cveCheck might have changed resolvedVersion so let us re-check...
     if (request.isAlreadyInstalled()) {
       return toolAlreadyInstalled(request);
+    } else {
+      ToolEditionAndVersion installed = request.getInstalled();
+      this.context.debug("Installation from {} to {}.", installed, requested);
     }
     Path installationPath = getInstallationPath(edition, resolvedVersion);
 
@@ -254,7 +264,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     } else {
       if (isIgnoreSoftwareRepo()) {
         throw new IllegalStateException(
-            "Cannot satisfy dependency to " + this.tool + " in version " + versionRange + " since it is conflicting with configured version "
+            "Cannot satisfy dependency to " + this.tool + " in version " + versionRange + " for " + parentRequest.getRequested()
+                + " since it is conflicting with configured version "
                 + configuredVersion
                 + " and this tool does not support the software repository.");
       }
@@ -509,21 +520,27 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * Searches for a wrapper file in valid projects (containing a build file f.e. build.gradle or pom.xml) and returns its path.
    *
    * @param wrapperFileName the name of the wrapper file
-   * @param filter the {@link Predicate} to match
    * @return Path of the wrapper file or {@code null} if none was found.
    */
-  protected Path findWrapper(String wrapperFileName, Predicate<Path> filter) {
-    Path dir = context.getCwd();
-    // traverse the cwd directory containing a build file up till a wrapper file was found
-    while ((dir != null) && filter.test(dir)) {
-      if (Files.exists(dir.resolve(wrapperFileName))) {
-        context.debug("Using wrapper file at: {}", dir);
-        return dir.resolve(wrapperFileName);
+  protected Path findWrapper(String wrapperFileName) {
+    Path dir = this.context.getCwd();
+    // traverse the cwd directory containing a build descriptor up till a wrapper file was found
+    while ((dir != null) && (findBuildDescriptor(dir) != null)) {
+      Path wrapper = dir.resolve(wrapperFileName);
+      if (Files.exists(wrapper)) {
+        context.debug("Using wrapper: {}", wrapper);
+        return wrapper;
       }
       dir = dir.getParent();
     }
     return null;
   }
 
-
+  /**
+   * @param directory the {@link Path} to the build directory.
+   * @return the build configuration file for this tool or {@code null} if not found (or this is not a build tool).
+   */
+  public Path findBuildDescriptor(Path directory) {
+    return null;
+  }
 }

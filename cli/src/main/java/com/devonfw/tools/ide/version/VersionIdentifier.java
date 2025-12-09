@@ -133,6 +133,16 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
     return false;
   }
 
+
+  /**
+   * @return {@code true} if this is a stable version, {@code false} otherwise.
+   * @see VersionLetters#isStable()
+   */
+  public boolean isStable() {
+
+    return this.developmentPhase.isStable();
+  }
+
   /**
    * @return the {@link VersionLetters#isDevelopmentPhase() development phase} of this {@link VersionIdentifier}. Will be {@link VersionLetters#EMPTY} if no
    *     development phase is specified in any {@link VersionSegment} and will be {@link VersionLetters#UNDEFINED} if more than one
@@ -324,9 +334,12 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
 
     if (version == null) {
       return null;
-    } else if (version.equals("latest") || version.equals("*")) {
+    }
+    version = version.trim();
+    if (version.equals("latest") || version.equals("*")) {
       return VersionIdentifier.LATEST;
     }
+    assert !version.contains(" ") && !version.contains("\n") && !version.contains("\t") : version;
     VersionSegment startSegment = VersionSegment.of(version);
     if (startSegment == null) {
       return null;

@@ -51,9 +51,14 @@ public class VersionSegment implements VersionObject<VersionSegment> {
 
     super();
     this.separator = separator;
-    this.letters = VersionLetters.of(letters);
-    if (!pattern.isEmpty() && !PATTERN_MATCH_ANY_STABLE_VERSION.equals(pattern)
-        && !PATTERN_MATCH_ANY_VERSION.equals(pattern)) {
+    boolean isAnyPattern = PATTERN_MATCH_ANY_VERSION.equals(pattern);
+    if (isAnyPattern && letters.isEmpty()) {
+      this.letters = VersionLetters.UNSTABLE;
+    } else {
+      this.letters = VersionLetters.of(letters);
+    }
+    if (!pattern.isEmpty() && !isAnyPattern
+        && !PATTERN_MATCH_ANY_STABLE_VERSION.equals(pattern)) {
       throw new IllegalArgumentException("Invalid pattern: " + pattern);
     }
     this.pattern = pattern;
