@@ -5,7 +5,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.git.repository.RepositoryCommandlet;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
@@ -149,6 +151,46 @@ public class IntellijTest extends AbstractIdeContextTest {
     assertThat(context).logAtDebug()
         .hasEntries("Plugin marker file " + context.getIdeHome().resolve(".ide").resolve("plugin.intellij.intellij.ActivePlugin") + " got deleted.");
     assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"))).exists();
+  }
+
+  /**
+   * Tests if the repository commandlet can trigger an import of a mvn and a gradle project.
+   */
+  @Test
+  public void testIntellijMvnAndGradleRepositoryImport() {
+    // arrange
+    IdeTestContext context = newContext("intellij");
+    RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
+
+    // act
+    rc.run();
+
+    // assert
+    assertThat(context.getWorkspacePath().resolve(".idea").resolve("misc.xml")).hasContent("""
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+        <project version="4">
+          <component name="MavenProjectsManager">
+            <option name="originalFiles">
+              <list>
+                <option value="$PROJECT_DIR$/test_mvn/pom.xml"/>
+              </list>
+            </option>
+          </component>
+        </project>
+        """);
+    assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve("test").resolve(".idea").resolve("gradle.xml")).hasContent("""
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+        <project version="4">
+          <component migrationVersion="1" name="GradleMigrationSettings"/>
+          <component name="GradleSettings">
+            <option name="linkedExternalProjectsSettings">
+              <GradleProjectSettings>
+                <option name="externalProjectPath" value="$PROJECT_DIR$/subfolder/test_gradle"/>
+              </GradleProjectSettings>
+            </option>
+          </component>
+        </project>
+        """);
   }
 
 

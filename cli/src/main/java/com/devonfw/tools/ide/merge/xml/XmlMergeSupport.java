@@ -163,6 +163,9 @@ public interface XmlMergeSupport {
    */
   static QName getQualifiedName(Element element) {
 
+    if (element == null) {
+      return null;
+    }
     String namespaceURI = element.getNamespaceURI();
     String localName = element.getLocalName();
     if (localName == null) {

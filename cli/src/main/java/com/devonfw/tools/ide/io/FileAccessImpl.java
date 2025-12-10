@@ -1026,6 +1026,42 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   }
 
   @Override
+  public Path findAncestor(Path path, Path baseDir, int subfolderCount) {
+
+    if ((path == null) || (baseDir == null)) {
+      this.context.debug("Path should not be null for findAncestor.");
+      return null;
+    }
+    if (subfolderCount <= 0) {
+      throw new IllegalArgumentException("Subfolder count: " + subfolderCount);
+    }
+    // 1. option relativize
+    // 2. recursive getParent
+    // 3. loop getParent???
+    // 4. getName + getNameCount
+    path = path.toAbsolutePath().normalize();
+    baseDir = baseDir.toAbsolutePath().normalize();
+    int directoryNameCount = path.getNameCount();
+    int baseDirNameCount = baseDir.getNameCount();
+    int delta = directoryNameCount - baseDirNameCount - subfolderCount;
+    if (delta < 0) {
+      return null;
+    }
+    // ensure directory is a sub-folder of baseDir
+    for (int i = 0; i < baseDirNameCount; i++) {
+      if (!path.getName(i).toString().equals(baseDir.getName(i).toString())) {
+        return null;
+      }
+    }
+    Path result = path;
+    while (delta > 0) {
+      result = result.getParent();
+      delta--;
+    }
+    return result;
+  }
+
+  @Override
   public List<Path> listChildrenMapped(Path dir, Function<Path, Path> filter) {
 
     if (!Files.isDirectory(dir)) {
@@ -1058,6 +1094,15 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   public boolean isEmptyDir(Path dir) {
 
     return listChildren(dir, f -> true).isEmpty();
+  }
+
+  @Override
+  public boolean isNonEmptyFile(Path file) {
+
+    if (Files.isRegularFile(file)) {
+      return (getFileSize(file) > 0);
+    }
+    return false;
   }
 
   private long getFileSize(Path file) {
