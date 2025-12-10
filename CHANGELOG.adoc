@@ -4,6 +4,9 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 == 2025.12.001
 
+* https://github.com/devonfw/IDEasy/issues/1166[#1166]: Automatic project import for IntelliJ
+* https://github.com/devonfw/IDEasy/issues/1508[#1508]: xml merger fails when merging empty file
+
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/39[#39]: Implement ToolCommandlet for pip
