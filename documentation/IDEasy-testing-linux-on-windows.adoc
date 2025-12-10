@@ -1,0 +1,155 @@
+:toc: macro
+toc::[]
+:idprefix:
+:idseparator: -
+
+= IDEasy Installation on Ubuntu in WSL2 (Windows Subsystem for Linux)
+
+== Preparation
+
+=== Install WSL
+
+WSL for Windows can be installed through the Windows terminal (PowerShell, Git Bash, or CMD) using the following command:
+
+----
+wsl --install
+----
+
+For more details, refer to: https://learn.microsoft.com/en-us/windows/wsl/install[WSL Installation (Microsoft Documentation)]
+
+=== Install Ubuntu from Microsoft Store
+
+Download Ubuntu from the Microsoft Store:
+https://apps.microsoft.com/detail/9PDXGNCFSCZV?hl=en-us&gl=DE&ocid=pdpshare[Microsoft Store]
+
+== IDEasy Setup via Ubuntu Terminal
+
+=== Prerequisite
+
+Ensure Git is installed on your system.
+Check by running:
+
+```
+
+git --version
+
+```
+
+If Git is not installed, use the following command:
+
+```
+
+sudo apt install git
+
+```
+
+=== Download and Setup IDEasy
+
+Refer to the detailed setup guide: link:setup.adoc[Setup Instructions].
+
+To install IDEasy for Linux via the terminal:
+
+1. Copy the Maven link for the latest release.
+2. Download the file using `wget`:
+
+```
+
+wget «link-to-repo»
+
+```
+
+Verify the downloaded file using:
+
+```
+
+ls
+
+```
+
+Create a new directory and extract the downloaded file:
+
+```
+
+mkdir «destination-folder-name»
+tar xzf «file-name» -C «destination-folder-name»
+
+```
+
+This extracts the contents into the specified folder.
+Run the setup script inside the extracted folder:
+
+```
+
+./«destination-folder-name»/setup
+
+```
+
+For example, if the folder name is `IDEasy`:
+
+```
+
+./IDEasy/setup
+
+```
+
+Follow the instructions in the terminal.
+After installation, reboot the system:
+
+```
+
+sudo reboot
+
+```
+
+IDEasy is now installed on your Ubuntu system.
+A new directory called `projects` will be created.
+
+== IDEasy Installation for Developers
+
+=== Prerequisites: Guidelines and Getting Started
+
+Please review these documents before proceeding:
+
+* link:IDEasy-contribution-rules-and-guidelines.adoc[Rules and Guidelines]
+* link:IDEasy-contribution-getting-started.adoc[Getting Started]
+
+=== Create an IDEasy Project
+
+Run the following command to create an IDEasy project:
+
+```
+
+ide create IDEasy -
+
+```
+
+Navigate to the workspace directory:
+
+```
+
+cd projects/IDEasy/workspaces/main
+
+```
+
+Clone your forked project into this directory:
+
+```
+
+git clone «forked-project-url»
+
+```
+
+Now you can open the project in your preferred IDE using the `ide` command.
+For IntelliJ:
+
+```
+
+ide intellij
+
+```
+
+In IntelliJ, select the `pom.xml` file and right-click → **Add as Maven Project**.
+
+*Tip:* If the Maven button is hidden or not visible, press `Alt + 7` to open the **Structure** window below the project explorer.
+Scroll down in the explorer to make the `pom.xml` file appear higher, enabling the option to be clicked.
+Alternatively, use the keyboard arrows to navigate to the bottom of the right-click menu.
