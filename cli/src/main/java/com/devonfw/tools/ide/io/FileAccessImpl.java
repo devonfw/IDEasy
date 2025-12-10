@@ -1099,7 +1099,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   @Override
   public boolean isNonEmptyFile(Path file) {
 
-    if (Files.exists(file)) {
+    if (Files.isRegularFile(file)) {
       return (getFileSize(file) > 0);
     }
     return false;
