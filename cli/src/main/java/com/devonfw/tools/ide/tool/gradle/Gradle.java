@@ -17,8 +17,11 @@ import com.devonfw.tools.ide.tool.ToolCommandlet;
  */
 public class Gradle extends LocalToolCommandlet {
 
-  private static final String BUILD_GRADLE = "build.gradle";
-  private static final String BUILD_GRADLE_KTS = "build.gradle.kts";
+  /** build.gradle file name */
+  public static final String BUILD_GRADLE = "build.gradle";
+
+  /** build.gradle.kts file name */
+  public static final String BUILD_GRADLE_KTS = "build.gradle.kts";
   private static final String GRADLE_WRAPPER_FILENAME = "gradlew";
 
   /**
