@@ -26,130 +26,76 @@ https://apps.microsoft.com/detail/9PDXGNCFSCZV?hl=en-us&gl=DE&ocid=pdpshare[Micr
 
 === Prerequisite
 
-Ensure Git is installed on your system.
-Check by running:
+Ensure `Git` is installed on your system.
+Check by opening Ubuntu via Windows Terminal or directly from the Windows Start menu and running:
 
 ```
-
 git --version
-
 ```
 
-If Git is not installed, use the following command:
+If `Git` is not installed, use the following command to install `git`:
 
 ```
-
 sudo apt install git
-
 ```
 
 === Download and Setup IDEasy
 
 Refer to the detailed setup guide: link:setup.adoc[Setup Instructions].
 
-To install IDEasy for Linux via the terminal:
+*Tip:* It is recommended to install and use Windows Terminal to manage multiple terminal instances.
+First, open Ubuntu using Windows Terminal or directly from the Windows Start menu.
 
-1. Copy the Maven link for the latest release.
+.Opening Ubuntu from Windows Start Menu
+image::images/wsl_guide/WindowsSearch.jpg["WindowsSearch"]
+
+You should now be able to access the Ubuntu terminal on your system.
+
+.Ubuntu Terminal
+image::images/wsl_guide/UbuntuTerminal.jpg["UbuntuTerminal"]
+
+Next, open Ubuntu To install IDEasy via the opened terminal:
+
+1. Copy the Maven link for the latest IDEasy release for Linux.
 2. Download the file using `wget`:
 
 ```
-
 wget «link-to-repo»
-
 ```
 
-Verify the downloaded file using:
+Verify the download with the `ls` command; the file should appear if downloaded correctly.
 
 ```
-
 ls
-
 ```
 
-Create a new directory and extract the downloaded file:
+.Download and verify files with wget and ls
+image::images/wsl_guide/wget.jpg["wget"]
+
+Create a new directory `IDEasy` and extract the downloaded file:
 
 ```
-
-mkdir «destination-folder-name»
-tar xzf «file-name» -C «destination-folder-name»
-
+mkdir IDEasy
+tar xzf «downloaded-file-name» -C IDEasy
 ```
 
-This extracts the contents into the specified folder.
-Run the setup script inside the extracted folder:
+This extracts the contents into the IDEasy folder.
+Run the setup script inside the IDEasy folder:
 
 ```
-
-./«destination-folder-name»/setup
-
-```
-
-For example, if the folder name is `IDEasy`:
-
-```
-
 ./IDEasy/setup
-
 ```
 
 Follow the instructions in the terminal.
 After installation, reboot the system:
 
 ```
-
 sudo reboot
-
 ```
 
 IDEasy is now installed on your Ubuntu system.
-A new directory called `projects` will be created.
+A new directory called `projects` will be automatically created.
 
 == IDEasy Installation for Developers
 
-=== Prerequisites: Guidelines and Getting Started
-
-Please review these documents before proceeding:
-
-* link:IDEasy-contribution-rules-and-guidelines.adoc[Rules and Guidelines]
-* link:IDEasy-contribution-getting-started.adoc[Getting Started]
-
-=== Create an IDEasy Project
-
-Run the following command to create an IDEasy project:
-
-```
-
-ide create IDEasy -
-
-```
-
-Navigate to the workspace directory:
-
-```
-
-cd projects/IDEasy/workspaces/main
-
-```
-
-Clone your forked project into this directory:
-
-```
-
-git clone «forked-project-url»
-
-```
-
-Now you can open the project in your preferred IDE using the `ide` command.
-For IntelliJ:
-
-```
-
-ide intellij
-
-```
-
-In IntelliJ, select the `pom.xml` file and right-click → **Add as Maven Project**.
-
-*Tip:* If the Maven button is hidden or not visible, press `Alt + 7` to open the **Structure** window below the project explorer.
-Scroll down in the explorer to make the `pom.xml` file appear higher, enabling the option to be clicked.
-Alternatively, use the keyboard arrows to navigate to the bottom of the right-click menu.
+To set up the development environment, simply follow the guide at link:IDEasy-contribution-getting-started.adoc#installation[Getting started as developer contributing to IDEasy].

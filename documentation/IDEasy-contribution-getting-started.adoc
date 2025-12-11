@@ -3,12 +3,46 @@ toc::[]
 
 = Getting started as developer contributing to IDEasy
 
+[#installation]
 == Installation
 
 To start developing IDEasy, you must first install it on your computer.
 Therefore, simply follow the link:setup.adoc[setup] guide.
 It is important to notice that this installation gives you the latest published version of IDEasy with which you can execute commands like eclipse or docker whose scripts are located inside the "${IDE_HOME}$/scripts/command, but for committing code we use a differing folder structure.
 This will be addressed under xref:Contribution[Contribution].
+
+== Setup the Development Environment
+
+To set up the IDEasy development environment, run the following command at the Terminal after installation to create a project:
+
+```
+ide create IDEasy -
+```
+
+Navigate to the workspace directory:
+
+```
+cd projects/IDEasy/workspaces/main
+```
+
+Clone your forked project into this directory:
+
+```
+git clone «forked-project-url»
+```
+
+Now you can open the project in your preferred IDE using the `ide` command.
+For IntelliJ:
+
+```
+ide intellij
+```
+
+In IntelliJ, select the `pom.xml` file and right-click → **Add as Maven Project**.
+
+*Tip:* If the Maven button is hidden or not visible, press `Alt + 7` to open the **Structure** window below the project explorer.
+Scroll down in the explorer to make the `pom.xml` file appear higher, enabling the option to be clicked.
+Alternatively, use the keyboard arrows to navigate to the bottom of the right-click menu.
 
 == Contribution
 
@@ -74,7 +108,6 @@ The Name needs to be equal to the one of both the tool and the commandlet.
 There are four available parent classes of url-updaters, that can be used.
 They mainly differentiate in the way, available versions are detected.
 
-  
 * https://github.com/devonfw/IDEasy/blob/main/cli/src/main/java/com/devonfw/tools/ide/url/updater/GithubUrlUpdater.java[`GithubUrlUpdater`]
 
 * https://github.com/devonfw/IDEasy/blob/main/cli/src/main/java/com/devonfw/tools/ide/url/updater/JsonUrlUpdater.java[`JsonUrlUpdater`]
@@ -97,10 +130,7 @@ Use an existing commandlet like https://github.com/devonfw/IDEasy/blob/main/cli/
 Create a sub-package and a class with the name of the tool.
 
 TODO explain:
-* Properties
-* run Method
-* Dependencies
-* Commandlet class hierarchy
+* Properties * run Method * Dependencies * Commandlet class hierarchy
 
 === LICENSE
 
