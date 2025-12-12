@@ -47,12 +47,12 @@ Refer to the detailed setup guide: link:setup.adoc[Setup Instructions].
 First, open Ubuntu using Windows Terminal or directly from the Windows Start menu.
 
 .Opening Ubuntu from Windows Start Menu
-image::images/wsl_guide/WindowsSearch.jpg["WindowsSearch"]
+image::images/wsl_guide/WindowsSearch.png[WindowsSearch]
 
 You should now be able to access the Ubuntu terminal on your system.
 
 .Ubuntu Terminal
-image::images/wsl_guide/UbuntuTerminal.jpg["UbuntuTerminal"]
+image::images/wsl_guide/UbuntuTerminal.png[UbuntuTerminal]
 
 Next, open Ubuntu To install IDEasy via the opened terminal:
 
@@ -70,7 +70,7 @@ ls
 ```
 
 .Download and verify files with wget and ls
-image::images/wsl_guide/wget.jpg["wget"]
+image::images/wsl_guide/wget.png["wget"]
 
 Create a new directory `IDEasy` and extract the downloaded file:
 

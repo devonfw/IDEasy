@@ -3,7 +3,6 @@ toc::[]
 
 = Getting started as developer contributing to IDEasy
 
-[#installation]
 == Installation
 
 To start developing IDEasy, you must first install it on your computer.
@@ -22,7 +21,7 @@ ide create IDEasy -
 Navigate to the workspace directory:
 
 ```
-cd projects/IDEasy/workspaces/main
+icd -p IDEasy -w
 ```
 
 Clone your forked project into this directory:
@@ -128,9 +127,6 @@ Once a day, the `UpdateInitiator` will run the updaters through GitHub Actions a
 
 Use an existing commandlet like https://github.com/devonfw/IDEasy/blob/main/cli/src/main/java/com/devonfw/tools/ide/tool/java/Java.java[Java] as a reference.
 Create a sub-package and a class with the name of the tool.
-
-TODO explain:
-* Properties * run Method * Dependencies * Commandlet class hierarchy
 
 === LICENSE
 
