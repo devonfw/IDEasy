@@ -107,7 +107,7 @@ Therefore we decided not to integrate tools like databases, IAM tools like keycl
 Instead each project can create its own `docker compose` configuration to manage the required services.
 
 Also, we do not provide `git` as a local tool but consider it as a pre-requisite.
-For global tools the principle is typically "latest is greates".
+For global tools the principle is typically "latest is greatest".
 
 == Auto-completion
 
