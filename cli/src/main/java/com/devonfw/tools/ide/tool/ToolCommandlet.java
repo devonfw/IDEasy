@@ -401,13 +401,15 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
     ToolEditionAndVersion installed = request.getInstalled();
 
-    ToolEdition toolEdition = installed.getEdition();
     String edition = this.tool;
-    if (toolEdition != null) {
-      edition = toolEdition.edition();
+    VersionIdentifier resolvedVersion = VersionIdentifier.LATEST;
+
+    if (!"<none>".equals(installed.toString()) && installed.getEdition() != null && installed.getResolvedVersion() != null) {
+      edition = installed.getEdition().edition();
+      resolvedVersion = installed.getResolvedVersion();
     }
 
-    return createExistingToolInstallation(edition, installed.getResolvedVersion(), request.getProcessContext(),
+    return createExistingToolInstallation(edition, resolvedVersion, request.getProcessContext(),
         request.isAdditionalInstallation());
   }
 
