@@ -49,5 +49,6 @@ Therefore, add proper help texts for all supported languages https://github.com/
 If that license is not yet included, the full license text needs to be added.
 ** [ ] The new commandlet installs potential dependencies automatically (e.g. `getCommandlet(«DependentTool».class).install()` in overridden `install` method).
 ** [ ] The variables `«TOOL»_VERSION` and `«TOOL»_EDITION` are honored by your commandlet so if present that edition and version will be downloaded and installed (happens by default but important if you implement custom installation logic).
+** [ ] If the tool uses JSON APIs, all JSON model classes are registered in `reflect-config.json` (validated by `GraalVmReflectionConfigTest`). See link:graalvm-build-guide.adoc#reflection-configuration[GraalVM Reflection Configuration].
 ** [ ] The new commandlet is tested on all platforms it is available for.
 Assuming you are using Windows, testing for Linux can be done with WSL or Virtual Box and for macOS we have a virtual cloud instance.

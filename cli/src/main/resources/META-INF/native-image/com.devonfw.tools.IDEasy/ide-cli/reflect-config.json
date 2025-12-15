@@ -18,7 +18,28 @@
     ]
   },
   {
+    "name": "com.devonfw.tools.ide.github.GithubTag",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.devonfw.tools.ide.github.GithubTags",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true
+  },
+  {
     "name": "com.devonfw.tools.ide.npm.NpmJsonObject",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.devonfw.tools.ide.pip.PypiJsonObject",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
     "allDeclaredFields": true,

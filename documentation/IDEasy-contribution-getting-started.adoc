@@ -89,6 +89,27 @@ The updaters use the function `doAddVersion()`, where the downloadUrl, OS and ar
 
 `VersionIdentifiers` can also be used if e.g. the downloadUrl changed after a specific version, or certain versions are not intended to be available. https://github.com/devonfw/IDEasy/blob/071e732e6c74aed7b12ccc1d522faf1c4a015dad/cli/src/main/java/com/devonfw/tools/ide/tool/helm/HelmUrlUpdater.java#L12[Example]
 
+*JSON Deserialization and GraalVM*
+
+If your `UrlUpdater` or tool implementation uses JSON deserialization with Jackson (e.g., extending `JsonRepository` or fetching JSON from external APIs):
+
+1. Ensure all JSON model classes implement `JsonObject` or `JsonVersionItem` interfaces
+2. Run the reflection configuration validation test:
++
+```
+mvn test -Dtest=GraalVmReflectionConfigTest
+```
++
+3. If the test fails, it will display the exact JSON snippet needed. Copy this snippet and add it to:
++
+```
+cli/src/main/resources/META-INF/native-image/com.devonfw.tools.IDEasy/ide-cli/reflect-config.json
+```
++
+4. Re-run the test to verify it passes
+
+This is required for native image builds to work correctly. For detailed instructions, see link:graalvm-build-guide.adoc#reflection-configuration[GraalVM Reflection Configuration].
+
 Once a day, the `UpdateInitiator` will run the updaters through GitHub Actions and fill the https://github.com/devonfw/ide-urls[ide-URL] repository with new version/tools that are identified by the Updaters.
 
 === Commandlet
