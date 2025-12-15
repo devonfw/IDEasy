@@ -2,6 +2,8 @@ package com.devonfw.tools.ide.json;
 
 import java.io.IOException;
 
+import com.devonfw.tools.ide.tool.pip.PypiObject;
+import com.devonfw.tools.ide.tool.pip.PypiObjectJsonDeserializer;
 import com.devonfw.tools.ide.tool.repository.CustomToolJson;
 import com.devonfw.tools.ide.tool.repository.CustomToolJsonDeserializer;
 import com.devonfw.tools.ide.tool.repository.CustomToolJsonSerializer;
@@ -49,6 +51,8 @@ public class JsonMapping {
     customModule.addDeserializer(ToolDependency.class, new ToolDependencyDeserializer());
     customModule.addDeserializer(ToolSecurity.class, new ToolSecurityJsonDeserializer());
     customModule.addDeserializer(Cve.class, new CveJsonDeserializer());
+
+    customModule.addDeserializer(PypiObject.class, new PypiObjectJsonDeserializer());
 
     customModule.addDeserializer(CustomToolJson.class, new CustomToolJsonDeserializer());
     customModule.addSerializer(CustomToolJson.class, new CustomToolJsonSerializer());

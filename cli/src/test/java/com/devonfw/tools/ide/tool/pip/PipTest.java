@@ -1,10 +1,13 @@
 package com.devonfw.tools.ide.tool.pip;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
@@ -55,6 +58,26 @@ public class PipTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(context).logAtInfo().hasMessageContaining("pip --version");
+  }
+
+  /**
+   * Test {@link Pip#getVersions()} works correctly via {@link com.devonfw.tools.ide.tool.repository.PipRepository}.
+   *
+   * @param wireMockRuntimeInfo wireMock server on a random port
+   */
+  @Test
+  public void testPipVersions(WireMockRuntimeInfo wireMockRuntimeInfo) {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_PIP, wireMockRuntimeInfo);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    Pip commandlet = new Pip(context);
+
+    // act
+    List<VersionIdentifier> versions = commandlet.getVersions();
+
+    // assert
+    assertThat(versions).containsExactly(VersionIdentifier.of("24.2"), VersionIdentifier.of("24.1"), VersionIdentifier.of("24.0"));
   }
 
   private void checkInstallation(IdeTestContext context) {
