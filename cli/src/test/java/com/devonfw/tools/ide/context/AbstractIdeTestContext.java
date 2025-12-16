@@ -36,7 +36,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 public class AbstractIdeTestContext extends AbstractIdeContext {
 
   /** {@link Path} to use as workingDirectory for mocking. */
-  protected static final Path PATH_MOCK = Path.of("/");
+  public static final Path PATH_MOCK = Path.of("/");
 
   private String[] answers;
 
