@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
@@ -581,6 +582,12 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     ToolVulnerabilities nearestVulnerabilities = currentVulnerabilities;
     List<VersionIdentifier> toolVersions = getVersions();
     for (VersionIdentifier version : toolVersions) {
+
+      // Skip the entire iteration when versions match
+      if (Objects.equals(version, resolvedVersion)) {
+        continue;
+      }
+      // All code below will be skipped for the matching version
       if (acceptVersion(version, allowedVersions, requireStableVersion)) {
         ToolVulnerabilities newVulnerabilities = toolSecurity.findCves(version, this.context, minSeverity);
         if (newVulnerabilities.isSafer(latestVulnerabilities)) {
