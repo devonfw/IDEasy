@@ -56,7 +56,7 @@ image::images/wsl_guide/UbuntuTerminal.png[UbuntuTerminal]
 
 Next, open Ubuntu To install IDEasy via the opened terminal:
 
-1. Copy the Maven link for the latest IDEasy release for Linux.
+1. Copy the Maven link for the *latest* IDEasy release for Linux.
 2. Download the file using `wget`:
 
 ```
@@ -69,7 +69,7 @@ Verify the download with the `ls` command; the file should appear if downloaded 
 ls
 ```
 
-.Download and verify files with wget and ls
+.Download and verify files with wget and ls (with an example of link:https://github.com/devonfw/IDEasy/releases/tag/release%2F2025.11.001[2025.11.00 release])
 image::images/wsl_guide/wget.png["wget"]
 
 Create a new directory `IDEasy` and extract the downloaded file:
