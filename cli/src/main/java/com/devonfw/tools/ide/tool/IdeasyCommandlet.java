@@ -132,9 +132,11 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
    */
   public VersionIdentifier getLatestVersion() {
 
-    VersionIdentifier currentVersion = IdeVersion.getVersionIdentifier();
-    if (IdeVersion.isUndefined()) {
-      return currentVersion;
+    if (!this.context.isForceMode()) {
+      VersionIdentifier currentVersion = IdeVersion.getVersionIdentifier();
+      if (IdeVersion.isUndefined()) {
+        return currentVersion;
+      }
     }
     VersionIdentifier configuredVersion = getConfiguredVersion();
     return getToolRepository().resolveVersion(this.tool, getConfiguredEdition(), configuredVersion, this);

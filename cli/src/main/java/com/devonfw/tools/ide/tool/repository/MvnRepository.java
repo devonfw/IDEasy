@@ -18,6 +18,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.os.SystemArchitecture;
@@ -278,12 +279,14 @@ public class MvnRepository extends ArtifactToolRepository<MvnArtifact, MvnArtifa
   private Document fetchXmlMetadata(String url) {
 
     try {
-      URL xmlUrl = new URL(url);
-      try (InputStream is = xmlUrl.openStream()) {
-        return documentBuilder.parse(is);
-      }
+      return this.context.getNetworkStatus().invokeNetworkTask(() -> {
+        URL xmlUrl = new URL(url);
+        try (InputStream is = xmlUrl.openStream()) {
+          return documentBuilder.parse(is);
+        }
+      }, url);
     } catch (Exception e) {
-      throw new IllegalStateException("Failed to fetch XML metadata from " + url, e);
+      throw new CliException("Failed to determine the latest version from " + url, e);
     }
   }
 

@@ -62,15 +62,22 @@ public class MvnRepositoryMock extends MvnRepository {
 
   @Override
   protected String getMavenUrl(MvnArtifact artifact) {
-    return artifact.getDownloadUrl().replace(MvnRepository.MAVEN_CENTRAL, this.wmRuntimeInfo.getHttpBaseUrl());
+    return this.wmRuntimeInfo.getHttpBaseUrl() + "/" + artifact.getPath();
   }
 
   private void mockMvnMetadataResponses(WireMockRuntimeInfo wireMockRuntimeInfo) {
-    Path mvnRoot = this.context.getIdeHome()
-        .getParent()
-        .resolve("repository")
-        .resolve("mvn");
-
+    Path ideHome = this.context.getIdeHome();
+    if (ideHome == null) {
+      return;
+    }
+    Path parent = ideHome.getParent();
+    if (parent == null) {
+      return;
+    }
+    Path mvnRoot = parent.resolve("repository").resolve("mvn");
+    if (!Files.exists(mvnRoot)) {
+      return;
+    }
     try (Stream<Path> files = Files.walk(mvnRoot)) {
       files.filter(p -> Files.isRegularFile(p) && p.getFileName().toString().endsWith(".xml"))
           .forEach(xmlFile -> {

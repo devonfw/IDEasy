@@ -30,7 +30,7 @@ class TomcatUrlUpdaterTest extends AbstractUrlUpdaterTest {
   @Test
   void testTomcatUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     // given
-    stubFor(get(urlMatching("/tomcat/tags")).willReturn(aResponse().withStatus(200)
+    stubFor(get(urlMatching("/repos/apache/tomcat/git/refs/tags")).willReturn(aResponse().withStatus(200)
         .withBody(Files.readAllBytes(PATH_INTEGRATION_TEST.resolve("TomcatUrlUpdater").resolve("tomcat-tags.json")))));
     stubFor(head(urlMatching("/dist/tomcat/tomcat-.*/v.*/bin/apache-tomcat-.*\\.tar.gz")).willReturn(aResponse().withStatus(200)));
     stubFor(get(urlMatching("/dist/tomcat/tomcat-.*/v.*/bin/apache-tomcat-.*\\.tar.gz")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
