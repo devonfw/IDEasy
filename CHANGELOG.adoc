@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 * https://github.com/devonfw/IDEasy/issues/1166[#1166]: Automatic project import for IntelliJ
 * https://github.com/devonfw/IDEasy/issues/1508[#1508]: xml merger fails when merging empty file
+* https://github.com/devonfw/IDEasy/issues/1660[#1660]: ide status still failing
 
 Release with new features and bugfixes:
 
