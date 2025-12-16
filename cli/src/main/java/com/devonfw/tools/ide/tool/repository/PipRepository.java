@@ -1,16 +1,14 @@
 package com.devonfw.tools.ide.tool.repository;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.json.JsonMapping;
-import com.devonfw.tools.ide.pip.PypiJsonObject;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.pip.Pip;
 import com.devonfw.tools.ide.tool.pip.PipArtifact;
 import com.devonfw.tools.ide.tool.pip.PipArtifactMetadata;
+import com.devonfw.tools.ide.tool.pip.PypiObject;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -62,13 +60,8 @@ public class PipRepository extends ArtifactToolRepository<PipArtifact, PipArtifa
     String url = getRegistryUrl() + artifact.getName() + "/json";
     String json = this.context.getFileAccess().download(url);
     try {
-      PypiJsonObject pypiJsonObject = MAPPER.readValue(json, PypiJsonObject.class);
-      Set<String> versionSet = pypiJsonObject.releases().keySet();
-      List<VersionIdentifier> versions = new ArrayList<>(versionSet.size());
-      for (String version : versionSet) {
-        versions.add(VersionIdentifier.of(version));
-      }
-      return versions;
+      PypiObject pypiObject = MAPPER.readValue(json, PypiObject.class);
+      return pypiObject.releases();
     } catch (JsonProcessingException e) {
       throw new RuntimeException("Failed to process JSON from " + url, e);
     }

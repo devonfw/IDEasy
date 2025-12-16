@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 * https://github.com/devonfw/IDEasy/issues/1166[#1166]: Automatic project import for IntelliJ
 * https://github.com/devonfw/IDEasy/issues/1508[#1508]: xml merger fails when merging empty file
+* https://github.com/devonfw/IDEasy/issues/1660[#1660]: ide status still failing
 
 Release with new features and bugfixes:
 
@@ -13,6 +14,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1633[#1633]: CVE suggestions show unstable versions
 * https://github.com/devonfw/IDEasy/issues/1636[#1636]: CVE suggestion scoring more reasonable
 * https://github.com/devonfw/IDEasy/issues/1640[#1640]: StackOverflowError: Infinity loop whilst installing terraform
+* https://github.com/devonfw/IDEasy/issues/1645[#1645]: Fix for the NullPointerException while installing docker / kubectl
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/38?closed=1[milestone 2025.12.001].
 
