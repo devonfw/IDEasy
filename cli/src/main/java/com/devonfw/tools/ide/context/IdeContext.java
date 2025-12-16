@@ -29,6 +29,7 @@ import com.devonfw.tools.ide.tool.npm.Npm;
 import com.devonfw.tools.ide.tool.repository.CustomToolRepository;
 import com.devonfw.tools.ide.tool.repository.MvnRepository;
 import com.devonfw.tools.ide.tool.repository.NpmRepository;
+import com.devonfw.tools.ide.tool.repository.PipRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
@@ -349,6 +350,11 @@ public interface IdeContext extends IdeStartContext {
   NpmRepository getNpmRepository();
 
   /**
+   * @return the {@link PipRepository}.
+   */
+  PipRepository getPipRepository();
+
+  /**
    * @return the {@link Path} to the IDE instance directory. You can have as many IDE instances on the same computer as independent tenants for different
    *     isolated projects.
    * @see com.devonfw.tools.ide.variable.IdeVariables#IDE_HOME
@@ -392,7 +398,11 @@ public interface IdeContext extends IdeStartContext {
    */
   default Path getIdeInstallationPath() {
 
-    return getIdePath().resolve(FOLDER_INSTALLATION);
+    Path idePath = getIdePath();
+    if (idePath == null) {
+      return null;
+    }
+    return idePath.resolve(FOLDER_INSTALLATION);
   }
 
   /**

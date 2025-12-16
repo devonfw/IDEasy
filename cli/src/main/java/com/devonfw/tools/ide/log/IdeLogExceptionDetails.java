@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.log;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Set;
 
 /**
  * {@link Enum} with the available details logged for an {@link Throwable error}.
@@ -24,6 +25,9 @@ public enum IdeLogExceptionDetails {
     @Override
     void format(Throwable error, StringWriter sw) {
 
+      if (isEmpty(error)) {
+        return;
+      }
       sw.append(error.toString());
     }
   },
@@ -33,8 +37,14 @@ public enum IdeLogExceptionDetails {
     @Override
     void format(Throwable error, StringWriter sw) {
 
+      if (isEmpty(error)) {
+        return;
+      }
       String errorMessage = error.getMessage();
       if ((errorMessage == null) || errorMessage.isBlank()) {
+        if (error instanceof RuntimeException) {
+          return;
+        }
         errorMessage = error.getClass().getName();
       }
       sw.append(errorMessage);
@@ -53,6 +63,8 @@ public enum IdeLogExceptionDetails {
 
     }
   };
+
+  private static final Set<Class<?>> GENERIC_EXCEPTIONS = Set.of(RuntimeException.class, Throwable.class);
 
   private final int capacityOffset;
 
@@ -97,6 +109,16 @@ public enum IdeLogExceptionDetails {
       case WARNING -> TO_STRING;
       default -> MESSAGE;
     };
+  }
+
+  private static boolean isEmpty(Throwable error) {
+
+    String message = error.getMessage();
+    if ((message != null) && !message.isEmpty()) {
+      return false;
+    }
+    // if we have a generic exception with no message, we assume it is only thrown to get the stacktrace
+    return GENERIC_EXCEPTIONS.contains(error.getClass());
   }
 
 }

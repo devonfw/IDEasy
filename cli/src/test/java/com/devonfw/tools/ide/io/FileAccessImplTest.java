@@ -17,6 +17,7 @@ import java.util.Set;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.assertj.core.api.AbstractPathAssert;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.EnabledOnOs;
@@ -536,6 +537,23 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     }
   }
 
+  @Test
+  public void testUntarWithGzipCompressionWithSymbolicLink(@TempDir Path tempDir) {
+
+    // arrange
+    IdeContext context = IdeTestContextMock.get();
+    Path linkTarGz = Path.of("src/test/resources/com/devonfw/tools/ide/io/link.tar.gz");
+    FileAccess fileAccess = context.getFileAccess();
+
+    // act
+    fileAccess.extractTar(linkTarGz, tempDir, TarCompression.GZ);
+
+    // assert
+    Path link = tempDir.resolve("link");
+    assertThat(link).hasContent("hi");
+    assertThat(fileAccess.toRealPath(link)).isEqualTo(tempDir.resolve("file"));
+  }
+
   /**
    * Test of {@link FileAccessImpl#generatePermissionString(int)}.
    */
@@ -547,7 +565,6 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     assertThat(generatePermissionString(948)).isEqualTo("rw-rw-r--");
     assertThat(generatePermissionString(509)).isEqualTo("rwxrwxr-x");
     assertThat(generatePermissionString(511)).isEqualTo("rwxrwxrwx");
-
   }
 
   /**
@@ -798,7 +815,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
   @Test
   public void testBinPath() {
 
-    // arrage
+    // arrange
     FileAccess fileAccess = IdeTestContextMock.get().getFileAccess();
     Path projects = Path.of("src/test/resources/ide-projects");
     Path rootPath = projects.resolve("basic/project/software/java");
@@ -813,6 +830,52 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     assertThat(testRootPath).isEqualTo(rootPath);
     assertThat(fileAccess.getBinPath(projects)).isSameAs(projects);
     assertThat(fileAccess.getBinParentPath(projects)).isSameAs(projects);
+  }
+
+  @Test
+  void testFindAncestor() {
+
+    verifyFindAncestor("projects/myproject/workspaces/test/foo/bar", "projects/myproject/workspaces", 1, "projects/myproject/workspaces/test");
+    verifyFindAncestor("projects/myproject/workspaces/test/foo", "projects/myproject/workspaces", 2, "projects/myproject/workspaces/test/foo");
+    verifyFindAncestor("projects/_ide/software/default/intellij/ultimate/2025.3/Contents/MacOS/bin/idea.sh", "projects/_ide/software/default/intellij", 2,
+        "projects/_ide/software/default/intellij/ultimate/2025.3");
+    verifyFindAncestor("projects/myproject/workspaces/test/foo/bar", "projects/otherproject/workspaces", 1, null);
+    verifyFindAncestor(null, null, 1, null);
+  }
+
+  private void verifyFindAncestor(String path, String baseDir, int subfolderCount, String expectedResult) {
+
+    FileAccess fileAccess = IdeTestContextMock.get().getFileAccess();
+    Path result = fileAccess.findAncestor(asPath(path), asPath(baseDir), subfolderCount);
+    AbstractPathAssert<?> assertion = assertThat(result).as("findAncestor(" + path + ", " + baseDir + ", " + subfolderCount);
+    if (expectedResult == null) {
+      assertion.isNull();
+    } else {
+      assertion.isEqualTo(Path.of(expectedResult).toAbsolutePath());
+    }
+  }
+
+  private static Path asPath(String path) {
+    if (path == null) {
+      return null;
+    }
+    return Path.of(path);
+  }
+
+  @Test
+  void testIsNonEmptyFile(@TempDir Path tempDir) throws IOException {
+
+    // arrange
+    FileAccess fileAccess = IdeTestContextMock.get().getFileAccess();
+
+    // act + assert
+    assertThat(fileAccess.isNonEmptyFile(tempDir)).isFalse();
+    assertThat(fileAccess.isNonEmptyFile(tempDir.resolve("non-existing-file"))).isFalse();
+    Path existingFile = tempDir.resolve("existing-file");
+    Files.createFile(existingFile);
+    assertThat(fileAccess.isNonEmptyFile(existingFile)).isFalse();
+    Files.writeString(existingFile, "content");
+    assertThat(fileAccess.isNonEmptyFile(existingFile)).isTrue();
   }
 
 }

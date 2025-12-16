@@ -15,63 +15,75 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 
 public class RepositoryCommandletTest extends AbstractIdeContextTest {
 
+  private static final String PROJECT_REPOSITORY = "repository";
+
   private static final String PROPERTIES_FILE = "test.properties";
   private static final String TEST_WORKSPACE = "test-workspace";
   private static final String TEST_BRANCH = "test-branch";
   public static final String TEST_REPO = "test-repo";
   public static final String TEST_GIT_REPO = "test-git-repo";
 
-  /** {@link Properties} of the repository to test. */
-  private final Properties properties;
+  /**
+   * Creates default test properties for repository configuration.
+   *
+   * @return the {@link Properties} with default test values.
+   */
+  private Properties createDefaultProperties() {
 
-  private final IdeTestContext context;
-
-  private final Path repositoryTestProperties;
+    Properties properties = new Properties();
+    properties.setProperty("path", TEST_REPO);
+    properties.setProperty("workingsets", "test");
+    properties.setProperty("workspace", TEST_WORKSPACE);
+    properties.setProperty("git_url", "https://github.com/devonfw/" + TEST_GIT_REPO + ".git");
+    properties.setProperty("git_branch", TEST_BRANCH);
+    properties.setProperty("build_path", ".");
+    properties.setProperty("build_cmd", "");
+    properties.setProperty("active", "false");
+    return properties;
+  }
 
   /**
-   * The constructor.
+   * Saves the given properties to the test properties file.
+   *
+   * @param context the {@link IdeTestContext}.
+   * @param properties the {@link Properties} to save.
    */
-  public RepositoryCommandletTest() {
-    super();
-    // actually this should be done in JUnit BeforeAll (setup)
-    // the best way is to avoid such state and just use local variables and private methods in test methods.
-    this.properties = new Properties();
-    this.properties.setProperty("path", TEST_REPO);
-    this.properties.setProperty("workingsets", "test");
-    this.properties.setProperty("workspace", TEST_WORKSPACE);
-    this.properties.setProperty("git_url", "https://github.com/devonfw/" + TEST_GIT_REPO + ".git");
-    this.properties.setProperty("git_branch", TEST_BRANCH);
-    this.properties.setProperty("build_path", ".");
-    this.properties.setProperty("build_cmd", "");
-    this.properties.setProperty("active", "false");
-    this.context = newContext(PROJECT_BASIC);
-    this.repositoryTestProperties = this.context.getSettingsPath().resolve(IdeContext.FOLDER_REPOSITORIES).resolve(PROPERTIES_FILE);
+  private void saveProperties(IdeTestContext context, Properties properties) {
+
+    Path repositoryTestProperties = context.getSettingsPath().resolve(IdeContext.FOLDER_REPOSITORIES).resolve(PROPERTIES_FILE);
+    FileAccess fileAccess = context.getFileAccess();
+    fileAccess.mkdirs(repositoryTestProperties.getParent());
+    fileAccess.writeProperties(properties, repositoryTestProperties);
   }
 
   @Test
   public void testSetupSpecificRepository() {
 
     // arrange
-    RepositoryCommandlet rc = this.context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
-    saveProperties();
-    rc.repository.setValueAsString("test", this.context);
+    IdeTestContext context = newContext(PROJECT_REPOSITORY);
+    Properties properties = createDefaultProperties();
+    RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
+    saveProperties(context, properties);
+    rc.repository.setValueAsString("test", context);
     // act
     rc.run();
     // assert
     assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(TEST_WORKSPACE).resolve(TEST_REPO)).isDirectory();
-    assertThat(this.context).logAtSuccess().hasMessage("Successfully ended step 'Setup of repository test'.");
+    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Setup of repository test'.");
   }
 
   @Test
   public void testSetupAllRepositoriesInactive() {
 
     // arrange
-    RepositoryCommandlet rc = this.context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
-    saveProperties();
+    IdeTestContext context = newContext(PROJECT_REPOSITORY);
+    Properties properties = createDefaultProperties();
+    RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
+    saveProperties(context, properties);
     // act
     rc.run();
     // assert
-    assertThat(this.context).log().hasEntries(new IdeLogEntry(IdeLogLevel.STEP, "Start: Setup of repository test"),
+    assertThat(context).log().hasEntries(new IdeLogEntry(IdeLogLevel.STEP, "Start: Setup of repository test"),
         new IdeLogEntry(IdeLogLevel.INFO, "Skipping repository test because it is not active - use --force to setup all repositories ..."));
   }
 
@@ -79,63 +91,70 @@ public class RepositoryCommandletTest extends AbstractIdeContextTest {
   public void testSetupSpecificRepositoryWithoutPath() {
 
     // arrange
-    RepositoryCommandlet rc = this.context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
-    this.properties.setProperty("path", "");
-    saveProperties();
-    rc.repository.setValueAsString(PROPERTIES_FILE, this.context);
+    IdeTestContext context = newContext(PROJECT_REPOSITORY);
+    Properties properties = createDefaultProperties();
+    properties.setProperty("path", "");
+    RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
+    saveProperties(context, properties);
+    rc.repository.setValueAsString(PROPERTIES_FILE, context);
     // act
     rc.run();
     // assert
-    assertThat(this.context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(TEST_WORKSPACE).resolve("test")).isDirectory();
+    assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(TEST_WORKSPACE).resolve("test")).isDirectory();
   }
 
   @Test
   public void testSetupSpecificRepositoryFailsWithoutGitUrl() {
 
     // arrange
-    RepositoryCommandlet rc = this.context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
-    this.properties.setProperty("git_url", "");
-    saveProperties();
-    rc.repository.setValueAsString(PROPERTIES_FILE, this.context);
+    IdeTestContext context = newContext(PROJECT_REPOSITORY);
+    Properties properties = createDefaultProperties();
+    properties.setProperty("git_url", "");
+    Path repositoryTestProperties = context.getSettingsPath().resolve(IdeContext.FOLDER_REPOSITORIES).resolve(PROPERTIES_FILE);
+    RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
+    saveProperties(context, properties);
+    rc.repository.setValueAsString(PROPERTIES_FILE, context);
     // act
     rc.run();
     // assert
-    assertThat(this.context).logAtError()
-        .hasMessage("The properties file " + this.repositoryTestProperties + " must have a non-empty value for the required property git_url");
+    assertThat(context).logAtError()
+        .hasMessage("The properties file " + repositoryTestProperties + " must have a non-empty value for the required property git_url");
   }
 
   @Test
   public void testRunNoRepositoriesOrProjectsFolderFound() {
 
     // arrange
-    RepositoryCommandlet rc = this.context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
-    Path repositoriesPath = this.context.getSettingsPath().resolve(IdeContext.FOLDER_REPOSITORIES);
-    this.context.getFileAccess().delete(repositoriesPath);
+    IdeTestContext context = newContext(PROJECT_REPOSITORY);
+    RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
+    Path repositoriesPath = context.getSettingsPath().resolve(IdeContext.FOLDER_REPOSITORIES);
+    context.getFileAccess().delete(repositoriesPath);
     // act
     rc.run();
     // assert
-    assertThat(this.context).logAtWarning().hasMessage("Cannot find folder 'repositories' nor 'projects' in your settings.");
+    assertThat(context).logAtWarning().hasMessage("Cannot find folder 'repositories' nor 'projects' in your settings.");
   }
 
   @Test
   public void testSetupSpecificRepositoryWithForceOption() {
 
     // arrange
-    this.context.getStartContext().setForceRepositories(true);
-    RepositoryCommandlet rc = this.context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
-    saveProperties();
-    rc.repository.setValueAsString("test", this.context);
+    IdeTestContext context = newContext(PROJECT_REPOSITORY);
+    Properties properties = createDefaultProperties();
+    context.getStartContext().setForceRepositories(true);
+    RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
+    saveProperties(context, properties);
+    rc.repository.setValueAsString("test", context);
     rc.repository.setValue(null, 0); //Overwrite the repository path to check if repositories should be forced
 
     // act
     rc.run();
 
     // assert
-    assertThat(this.context).log().hasMessage("Setup of repository test is forced, hence proceeding ...");
+    assertThat(context).log().hasMessage("Setup of repository test is forced, hence proceeding ...");
     assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(TEST_WORKSPACE).resolve(TEST_REPO)).isDirectory();
-    assertThat(this.context).logAtSuccess().hasMessage("Successfully ended step 'Setup of repository test'.");
+    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Setup of repository test'.");
   }
-
   @Test
   public void testSetupRepositoryWithMultipleWorkspaces() {
 
@@ -200,5 +219,22 @@ public class RepositoryCommandletTest extends AbstractIdeContextTest {
     FileAccess fileAccess = this.context.getFileAccess();
     fileAccess.mkdirs(this.repositoryTestProperties.getParent());
     fileAccess.writeProperties(this.properties, this.repositoryTestProperties);
+  }
+
+  @Test
+  public void testSetupRepositoryWithoutActiveProperty() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_REPOSITORY);
+    Properties properties = createDefaultProperties();
+    properties.remove("active"); // Remove the active property to test default behavior
+    RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
+    saveProperties(context, properties);
+    rc.repository.setValueAsString("test", context);
+    // act
+    rc.run();
+    // assert - repository should be set up as if active=true was specified
+    assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(TEST_WORKSPACE).resolve(TEST_REPO)).isDirectory();
+    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Setup of repository test'.");
   }
 }

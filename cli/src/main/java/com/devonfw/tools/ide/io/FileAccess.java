@@ -90,11 +90,11 @@ public interface FileAccess {
    * of relative.
    *
    * @param source the source {@link Path} to link to, may be relative or absolute.
-   * @param targetLink the {@link Path} where the symbolic link shall be created pointing to {@code source}.
+   * @param link the destination {@link Path} where the symbolic link shall be created pointing to {@code source}.
    */
-  default void symlink(Path source, Path targetLink) {
+  default void symlink(Path source, Path link) {
 
-    symlink(source, targetLink, true);
+    symlink(source, link, true);
   }
 
   /**
@@ -102,43 +102,43 @@ public interface FileAccess {
    * be replaced. In case of missing privileges, Windows mklink may be used as fallback, which must point to absolute paths. In such case the {@code relative}
    * flag will be ignored.
    *
-   * @param target the target {@link Path} to link to, may be relative or absolute.
-   * @param link the {@link Path} where the symbolic link shall be created pointing to {@code target}.
+   * @param source the source {@link Path} to link to, may be relative or absolute.
+   * @param link the destination {@link Path} where the symbolic link shall be created pointing to {@code source}.
    * @param relative - {@code true} if the symbolic link shall be relative, {@code false} if it shall be absolute.
    */
-  default void symlink(Path target, Path link, boolean relative) {
+  default void symlink(Path source, Path link, boolean relative) {
 
-    link(target, link, relative, PathLinkType.SYMBOLIC_LINK);
+    link(source, link, relative, PathLinkType.SYMBOLIC_LINK);
   }
 
   /**
    * Creates a {@link PathLinkType#HARD_LINK hard link}. If the given {@code link} already exists and is a symbolic link or a Windows junction, it will be
    * replaced. In case of missing privileges, Windows mklink may be used as fallback.
    *
-   * @param target the target {@link Path} to link to, may be relative or absolute.
-   * @param link the {@link Path} where the symbolic link shall be created pointing to {@code target}.
+   * @param source the source {@link Path} to link to, may be relative or absolute.
+   * @param link the destination {@link Path} where the hard link shall be created pointing to {@code source}.
    */
-  default void hardlink(Path target, Path link) {
+  default void hardlink(Path source, Path link) {
 
-    link(target, link, false, PathLinkType.HARD_LINK);
+    link(source, link, false, PathLinkType.HARD_LINK);
   }
 
   /**
    * Creates a link. If the given {@code link} already exists and is a symbolic link or a Windows junction, it will be replaced. In case of missing privileges,
    * Windows mklink may be used as fallback, which must point to absolute paths. In such case the {@code relative} flag will be ignored.
    *
-   * @param target the target {@link Path} to link to, may be relative or absolute.
-   * @param link the {@link Path} where the symbolic link shall be created pointing to {@code target}.
-   * @param relative - {@code true} if the symbolic link shall be relative, {@code false} if it shall be absolute.
+   * @param source the source {@link Path} to link to, may be relative or absolute.
+   * @param link the destination {@link Path} where the link shall be created pointing to {@code source}.
+   * @param relative - {@code true} if the link shall be relative, {@code false} if it shall be absolute.
    * @param type the {@link PathLinkType}.
    */
-  void link(Path target, Path link, boolean relative, PathLinkType type);
+  void link(Path source, Path link, boolean relative, PathLinkType type);
 
   /**
    * @param link the {@link PathLink} to {@link #link(Path, Path, boolean, PathLinkType) create}.
    */
   default void link(PathLink link) {
-    link(link.target(), link.link(), true, link.type());
+    link(link.source(), link.link(), true, link.type());
   }
 
   /**
@@ -154,8 +154,8 @@ public interface FileAccess {
   /**
    * @param source the source {@link Path file or folder} to copy.
    * @param target the {@link Path} to copy {@code source} to. Unlike the Linux {@code cp} command this method will not take the filename of {@code source}
-   *     and copy that to {@code target} in case that is an existing folder. Instead it will always be simple and stupid and just copy from {@code source} to
-   *     {@code target}. Therefore the result is always clear and easy to predict and understand. Also you can easily rename a file to copy. While
+   *     and copy that to {@code target} in case that is an existing folder. Instead, it will always be simple and stupid and just copy from {@code source} to
+   *     {@code target}. Therefore, the result is always clear and easy to predict and understand. Also, you can easily rename a file to copy. While
    *     {@code cp my-file target} may lead to a different result than {@code cp my-file target/} this method will always ensure that in the end you will find
    *     the same content of {@code source} in {@code target}.
    * @param mode the {@link FileCopyMode}.
@@ -168,8 +168,8 @@ public interface FileAccess {
   /**
    * @param source the source {@link Path file or folder} to copy.
    * @param target the {@link Path} to copy {@code source} to. Unlike the Linux {@code cp} command this method will not take the filename of {@code source}
-   *     and copy that to {@code target} in case that is an existing folder. Instead it will always be simple and stupid and just copy from {@code source} to
-   *     {@code target}. Therefore the result is always clear and easy to predict and understand. Also you can easily rename a file to copy. While
+   *     and copy that to {@code target} in case that is an existing folder. Instead, it will always be simple and stupid and just copy from {@code source} to
+   *     {@code target}. Therefore, the result is always clear and easy to predict and understand. Also, you can easily rename a file to copy. While
    *     {@code cp my-file target} may lead to a different result than {@code cp my-file target/} this method will always ensure that in the end you will find
    *     the same content of {@code source} in {@code target}.
    * @param mode the {@link FileCopyMode}.
@@ -330,6 +330,20 @@ public interface FileAccess {
    * @return the first child {@link Path} matching the given {@link Predicate} or {@code null} if no match was found.
    */
   Path findFirst(Path dir, Predicate<Path> filter, boolean recursive);
+
+  /**
+   * Example usage:
+   * <pre>
+   * findAncestor(ideHome.resolve("workspaces/test/foo/bar"), ideHome.resolve("workspaces"), 1); // will return ideHome.resolve("workspaces/test")
+   * </pre>
+   *
+   * @param path the {@link Path} to the file or directory to find the ancestor from.
+   * @param baseDir the {@link Path} to the base-directory is supposed to be a direct or indirect {@link Path#getParent() parent} of {@code path}.
+   * @param subfolderCount the number of sub-folders of {@code baseDir} to retain from {@code path}.
+   * @return the {@link Path} pointing to {@code subfolderCount} sub-folders from {@code baseDir} that is still equal or a {@link Path#getParent() parent} of
+   *     {@code directory} or {@code null} if no such {@link Path} exists.
+   */
+  Path findAncestor(Path path, Path baseDir, int subfolderCount);
 
   /**
    * @param dir the {@link Path} to the directory where to list the children.
@@ -510,7 +524,7 @@ public interface FileAccess {
   /**
    * @param properties the {@link Properties} to save.
    * @param file the {@link Path} to the file where to save the properties.
-   * @param createParentDir if {@code true}, the parent directory will created if it does not already exist, {@code false} otherwise (fail if parent does
+   * @param createParentDir if {@code true}, the parent directory will be created if it does not already exist, {@code false} otherwise (fail if parent does
    *     not exist).
    */
   void writeProperties(Properties properties, Path file, boolean createParentDir);
@@ -586,4 +600,10 @@ public interface FileAccess {
     }
     return binPath;
   }
+
+  /**
+   * @param file the {@link Path} the potential file.
+   * @return if the given {@code file} exists and is not empty.
+   */
+  boolean isNonEmptyFile(Path file);
 }

@@ -14,25 +14,25 @@ import com.devonfw.tools.ide.git.GitUrlSyntax;
 public interface IdeVariables {
 
   /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getIdeHome() IDE_HOME}. */
-  VariableDefinitionPath IDE_HOME = new VariableDefinitionPath("IDE_HOME", "DEVON_IDE_HOME", c -> c.getIdeHome(), true);
+  VariableDefinitionPath IDE_HOME = new VariableDefinitionPath("IDE_HOME", "DEVON_IDE_HOME", IdeContext::getIdeHome, true);
 
   /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getIdeRoot() IDE_ROOT}. */
-  VariableDefinitionPath IDE_ROOT = new VariableDefinitionPath("IDE_ROOT", null, c -> c.getIdeRoot());
+  VariableDefinitionPath IDE_ROOT = new VariableDefinitionPath("IDE_ROOT", null, IdeContext::getIdeRoot);
 
   /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getUserHome() HOME}. */
-  VariableDefinitionPath HOME = new VariableDefinitionPath("HOME", null, c -> c.getUserHome(), true);
+  VariableDefinitionPath HOME = new VariableDefinitionPath("HOME", null, IdeContext::getUserHome, true);
 
   /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getWorkspaceName() WORKSPACE}. */
-  VariableDefinitionString WORKSPACE = new VariableDefinitionString("WORKSPACE", null, c -> c.getWorkspaceName(), true);
+  VariableDefinitionString WORKSPACE = new VariableDefinitionString("WORKSPACE", null, IdeContext::getWorkspaceName, true);
 
   /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getPath() PATH}. */
-  VariableDefinitionSystemPath PATH = new VariableDefinitionSystemPath("PATH", null, c -> c.getPath(), true, true);
+  VariableDefinitionSystemPath PATH = new VariableDefinitionSystemPath("PATH", null, IdeContext::getPath, true, true);
 
   /** {@link VariableDefinition} for {@link IdeContext#findBash()} path to bash} (fallback if not found otherwise). */
   VariableDefinitionPath BASH_PATH = new VariableDefinitionPath("BASH_PATH", null);
 
   /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getWorkspacePath() WORKSPACE_PATH}. */
-  VariableDefinitionPath WORKSPACE_PATH = new VariableDefinitionPath("WORKSPACE_PATH", null, c -> c.getWorkspacePath(), true);
+  VariableDefinitionPath WORKSPACE_PATH = new VariableDefinitionPath("WORKSPACE_PATH", null, IdeContext::getWorkspacePath, true);
 
   /** {@link VariableDefinition} for default CVE_MIN_SEVERITY. */
   VariableDefinitionDouble CVE_MIN_SEVERITY = new VariableDefinitionDouble("CVE_MIN_SEVERITY", null, c -> 0.1);
@@ -50,7 +50,6 @@ public interface IdeVariables {
   VariableDefinitionStringList CREATE_START_SCRIPTS = new VariableDefinitionStringList("CREATE_START_SCRIPTS", "DEVON_CREATE_START_SCRIPTS");
 
   /** {@link VariableDefinition} for minimum IDE product version. */
-  // TODO define initial IDEasy version as default value
   VariableDefinitionVersion IDE_MIN_VERSION = new VariableDefinitionVersion("IDE_MIN_VERSION");
 
   /** {@link VariableDefinition} for version of maven (mvn). */
@@ -62,15 +61,17 @@ public interface IdeVariables {
   /** {@link VariableDefinition} arguments for maven to set the m2 repo location. */
   VariableDefinitionPath M2_REPO = new VariableDefinitionPath("M2_REPO", null, IdeVariables::getMavenRepositoryPath, false, true);
 
-  /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getWorkspaceName() WORKSPACE}. */
+  /**
+   * {@link VariableDefinition} for {@link com.devonfw.tools.ide.tool.ToolCommandlet#getConfiguredEdition() edition} of
+   * {@link com.devonfw.tools.ide.tool.docker.Docker docker}.
+   */
   VariableDefinitionString DOCKER_EDITION = new VariableDefinitionString("DOCKER_EDITION", null, c -> "rancher");
 
   /** {@link VariableDefinition} for default build options of mvn */
   VariableDefinitionString MVN_BUILD_OPTS = new VariableDefinitionString("MVN_BUILD_OPTS", null, c -> "clean install");
 
   /** {@link VariableDefinition} for default build options of npm */
-  // TODO: add default build options, see: https://github.com/devonfw/IDEasy/issues/441
-  VariableDefinitionString NPM_BUILD_OPTS = new VariableDefinitionString("NPM_BUILD_OPTS", null, c -> "");
+  VariableDefinitionString NPM_BUILD_OPTS = new VariableDefinitionString("NPM_BUILD_OPTS", null, c -> "run build");
 
   /** {@link VariableDefinition} for NPM_CONFIG_USERCONFIG. */
   VariableDefinitionPath NPM_CONFIG_USERCONFIG = new VariableDefinitionPath("NPM_CONFIG_USERCONFIG", null, IdeContext::getNpmConfigUserConfig, false, true);
@@ -81,15 +82,14 @@ public interface IdeVariables {
   VariableDefinitionPath GRADLE_USER_HOME = new VariableDefinitionPath("GRADLE_USER_HOME", null, IdeContext::getGradleUserHome, false, true);
 
   /** {@link VariableDefinition} for default build options of yarn */
-  // TODO: add default build options, see: https://github.com/devonfw/IDEasy/issues/441
-  VariableDefinitionString YARN_BUILD_OPTS = new VariableDefinitionString("YARN_BUILD_OPTS", null, c -> "");
+  VariableDefinitionString YARN_BUILD_OPTS = new VariableDefinitionString("YARN_BUILD_OPTS", null, c -> "run build");
 
   /** {@link VariableDefinition} for options of jasypt */
   VariableDefinitionString JASYPT_OPTS = new VariableDefinitionString("JASYPT_OPTS", null,
       c -> "algorithm=PBEWITHHMACSHA512ANDAES_256 ivGeneratorClassName=org.jasypt.iv.RandomIvGenerator");
 
   /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getProjectName() PROJECT_NAME}. */
-  VariableDefinitionString PROJECT_NAME = new VariableDefinitionString("PROJECT_NAME", null, c -> c.getProjectName());
+  VariableDefinitionString PROJECT_NAME = new VariableDefinitionString("PROJECT_NAME", null, IdeContext::getProjectName);
 
   /** Preferred Git protocol (HTTPS/SSH) as defined by {@link GitUrlSyntax}. */
   VariableDefinitionEnum<GitUrlSyntax> PREFERRED_GIT_PROTOCOL = new VariableDefinitionEnum<>("PREFERRED_GIT_PROTOCOL", null, GitUrlSyntax.class,

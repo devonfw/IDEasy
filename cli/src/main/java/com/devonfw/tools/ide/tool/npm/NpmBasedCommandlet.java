@@ -6,11 +6,10 @@ import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.PackageManagerRequest;
 import com.devonfw.tools.ide.tool.node.NodeBasedCommandlet;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -18,7 +17,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 /**
  * {@link LocalToolCommandlet} for tools based on <a href="https://www.npmjs.com/">npm</a>.
  */
-public abstract class NpmBasedCommandlet extends NodeBasedCommandlet {
+public abstract class NpmBasedCommandlet extends NodeBasedCommandlet<Npm> {
 
   /**
    * The constructor.
@@ -33,15 +32,15 @@ public abstract class NpmBasedCommandlet extends NodeBasedCommandlet {
   }
 
   @Override
-  public ToolRepository getToolRepository() {
+  protected Class<Npm> getPackageManagerClass() {
 
-    return this.context.getNpmRepository();
+    return Npm.class;
   }
 
   @Override
-  protected boolean isIgnoreMissingSoftwareVersionFile() {
+  public ToolRepository getToolRepository() {
 
-    return true;
+    return this.context.getNpmRepository();
   }
 
   @Override
@@ -49,12 +48,14 @@ public abstract class NpmBasedCommandlet extends NodeBasedCommandlet {
     return runPackageManagerGetInstalledVersion(getPackageName());
   }
 
-  protected VersionIdentifier runPackageManagerGetInstalledVersion(String npmPackage) {
+  private VersionIdentifier runPackageManagerGetInstalledVersion(String npmPackage) {
     if (!Files.isDirectory(this.context.getSoftwarePath().resolve("node"))) {
       this.context.trace("Since node is not installed, also package {} for tool {} cannot be installed.", npmPackage, this.tool);
       return null;
     }
-    ProcessResult result = runPackageManager(ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.NONE, "list", "-g", npmPackage, "--depth=0");
+    PackageManagerRequest request = new PackageManagerRequest("list", npmPackage).addArg("-g").addArg(npmPackage).addArg("--depth=0")
+        .setProcessMode(ProcessMode.DEFAULT_CAPTURE);
+    ProcessResult result = runPackageManager(request);
     if (result.isSuccessful()) {
       List<String> versions = result.getOut();
       String parsedVersion = null;
@@ -71,15 +72,6 @@ public abstract class NpmBasedCommandlet extends NodeBasedCommandlet {
       this.context.debug("The npm package {} for tool {} is not installed.", npmPackage, this.tool);
     }
     return null;
-  }
-
-  @Override
-  protected ProcessResult runPackageManager(ProcessMode processMode, ProcessErrorHandling errorHandling, String... args) {
-
-    ProcessContext pc = this.context.newProcess().errorHandling(errorHandling);
-    Npm npm = this.context.getCommandletManager().getCommandlet(Npm.class);
-
-    return npm.runTool(processMode, null, pc, args);
   }
 
 }

@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -25,6 +24,7 @@ import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.security.ToolVersionChoice;
+import com.devonfw.tools.ide.security.ToolVulnerabilities;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.file.json.Cve;
@@ -134,7 +134,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   /**
    * @return the {@link ToolEdition} with {@link #getName() tool} with its {@link #getConfiguredEdition() edition}.
    */
-  protected final ToolEdition getToolWithEdition() {
+  protected final ToolEdition getToolWithConfiguredEdition() {
 
     return new ToolEdition(this.tool, getConfiguredEdition());
   }
@@ -142,15 +142,15 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   @Override
   public void run() {
 
-    runTool(this.arguments.asArray());
+    runTool(this.arguments.asList());
   }
 
   /**
    * @param args the command-line arguments to run the tool.
    * @return the {@link ProcessResult result}.
-   * @see ToolCommandlet#runTool(ProcessMode, GenericVersionRange, String...)
+   * @see ToolCommandlet#runTool(ProcessMode, GenericVersionRange, List)
    */
-  public ProcessResult runTool(String... args) {
+  public ProcessResult runTool(List<String> args) {
 
     return runTool(ProcessMode.DEFAULT, null, args);
   }
@@ -164,7 +164,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param args the command-line arguments to run the tool.
    * @return the {@link ProcessResult result}.
    */
-  public final ProcessResult runTool(ProcessMode processMode, GenericVersionRange toolVersion, String... args) {
+  public final ProcessResult runTool(ProcessMode processMode, GenericVersionRange toolVersion, List<String> args) {
 
     return runTool(processMode, toolVersion, ProcessErrorHandling.THROW_CLI, args);
   }
@@ -179,39 +179,59 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param args the command-line arguments to run the tool.
    * @return the {@link ProcessResult result}.
    */
-  public ProcessResult runTool(ProcessMode processMode, GenericVersionRange toolVersion, ProcessErrorHandling errorHandling, String... args) {
+  public ProcessResult runTool(ProcessMode processMode, GenericVersionRange toolVersion, ProcessErrorHandling errorHandling, List<String> args) {
 
-    if (toolVersion != null) {
-      throw new UnsupportedOperationException("Not implemented yet");
-    }
     ProcessContext pc = this.context.newProcess().errorHandling(errorHandling);
-    install(true, getConfiguredVersion(), pc, null);
-    return runTool(processMode, errorHandling, pc, args);
+    ToolInstallRequest request = new ToolInstallRequest(true);
+    if (toolVersion != null) {
+      request.setRequested(new ToolEditionAndVersion(toolVersion));
+    }
+    request.setProcessContext(pc);
+    return runTool(request, processMode, args);
   }
 
   /**
+   * Ensures the tool is installed and then runs this tool with the given arguments.
+   *
+   * @param request the {@link ToolInstallRequest}.
    * @param processMode the {@link ProcessMode}. Should typically be {@link ProcessMode#DEFAULT} or {@link ProcessMode#BACKGROUND}.
-   * @param errorHandling the {@link ProcessErrorHandling}.
-   * @param pc the {@link ProcessContext}.
    * @param args the command-line arguments to run the tool.
    * @return the {@link ProcessResult result}.
    */
-  public ProcessResult runTool(ProcessMode processMode, ProcessErrorHandling errorHandling, ProcessContext pc, String... args) {
+  public ProcessResult runTool(ToolInstallRequest request, ProcessMode processMode, List<String> args) {
+
+    if (request.isCveCheckDone()) {
+      // if the CVE check has already been done, we can assume that the install(request) has already been called before
+      // most likely a postInstall* method was overridden calling this method with the same request what is a programming error
+      // we render this warning so the error gets detected and can be fixed but we do not block the user by skipping the installation.
+      this.context.warning().log(new RuntimeException(), "Preventing infinity loop during installation of {}", request.getRequested());
+    } else {
+      install(request);
+    }
+    return runTool(request.getProcessContext(), processMode, args);
+  }
+
+  /**
+   * @param pc the {@link ProcessContext}.
+   * @param processMode the {@link ProcessMode}. Should typically be {@link ProcessMode#DEFAULT} or {@link ProcessMode#BACKGROUND}.
+   * @param args the command-line arguments to run the tool.
+   * @return the {@link ProcessResult result}.
+   */
+  public ProcessResult runTool(ProcessContext pc, ProcessMode processMode, List<String> args) {
 
     if (this.executionDirectory != null) {
       pc.directory(this.executionDirectory);
     }
-    configureToolBinary(pc, processMode, errorHandling);
-    configureToolArgs(pc, processMode, errorHandling, args);
+    configureToolBinary(pc, processMode);
+    configureToolArgs(pc, processMode, args);
     return pc.run(processMode);
   }
 
   /**
    * @param pc the {@link ProcessContext}.
    * @param processMode the {@link ProcessMode}.
-   * @param errorHandling the {@link ProcessErrorHandling}.
    */
-  protected void configureToolBinary(ProcessContext pc, ProcessMode processMode, ProcessErrorHandling errorHandling) {
+  protected void configureToolBinary(ProcessContext pc, ProcessMode processMode) {
 
     pc.executable(Path.of(getBinaryName()));
   }
@@ -219,24 +239,11 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   /**
    * @param pc the {@link ProcessContext}.
    * @param processMode the {@link ProcessMode}.
-   * @param errorHandling the {@link ProcessErrorHandling}.
-   * @param args the command-line arguments to {@link ProcessContext#addArgs(Object...) add}.
+   * @param args the command-line arguments to {@link ProcessContext#addArgs(List) add}.
    */
-  protected void configureToolArgs(ProcessContext pc, ProcessMode processMode, ProcessErrorHandling errorHandling, String... args) {
+  protected void configureToolArgs(ProcessContext pc, ProcessMode processMode, List<String> args) {
 
     pc.addArgs(args);
-  }
-
-  /**
-   * Creates a new {@link ProcessContext} from the given executable with the provided arguments attached.
-   *
-   * @param binaryPath path to the binary executable for this process
-   * @param args the command-line arguments for this process
-   * @return {@link ProcessContext}
-   */
-  protected ProcessContext createProcessContext(Path binaryPath, String... args) {
-
-    return this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_ERR).executable(binaryPath).addArgs(args);
   }
 
   /**
@@ -256,51 +263,125 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @return the {@link ToolInstallation}.
    */
   public ToolInstallation install(boolean silent) {
-    return install(silent, getConfiguredVersion());
+    return install(new ToolInstallRequest(silent));
   }
 
   /**
+   * Performs the installation (install, update, downgrade) of the {@link #getName() tool} managed by this {@link ToolCommandlet}.
    *
-   * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
-   * @param configuredVersion the version to install, typically {@link #getConfiguredVersion()}.
+   * @param request the {@link ToolInstallRequest}.
    * @return the {@link ToolInstallation}.
    */
-  public ToolInstallation install(boolean silent, VersionIdentifier configuredVersion) {
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI);
-    return install(silent, configuredVersion, pc, null);
+  public ToolInstallation install(ToolInstallRequest request) {
+
+    completeRequest(request);
+    if (request.isInstallLoop(this.context)) {
+      return toolAlreadyInstalled(request);
+    }
+    return doInstall(request);
   }
 
-
   /**
-   * Installs or updates the managed {@link #getName() tool}.
+   * Performs the installation (install, update, downgrade) of the {@link #getName() tool} managed by this {@link ToolCommandlet}.
    *
-   * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
-   * @param processContext the {@link ProcessContext} used to
-   *     {@link LocalToolCommandlet#setEnvironment(EnvironmentContext, ToolInstallation, boolean) configure environment variables}.
-   * @param step the {@link Step} to track the installation. May be {@code null} to fail with {@link Exception} on error.
-   * @param configuredVersion the version to install, typically {@link #getConfiguredVersion()}.
+   * @param request the {@link ToolInstallRequest}.
    * @return the {@link ToolInstallation}.
    */
-  public abstract ToolInstallation install(boolean silent, VersionIdentifier configuredVersion, ProcessContext processContext, Step step);
+  protected abstract ToolInstallation doInstall(ToolInstallRequest request);
 
   /**
-   * This method is called after a tool was requested to be installed or updated.
-   *
-   * @param newlyInstalled {@code true} if the tool was installed or updated (at least link to software folder was created/updated), {@code false} otherwise
-   *     (configured version was already installed and nothing changed).
-   * @param pc the {@link ProcessContext} to use.
+   * @param request the {@link ToolInstallRequest} to complete (fill values that are currently {@code null}).
    */
-  protected void postInstall(boolean newlyInstalled, ProcessContext pc) {
+  protected void completeRequest(ToolInstallRequest request) {
 
-    if (newlyInstalled) {
-      postInstall();
+    completeRequestInstalled(request);
+    completeRequestRequested(request); // depends on completeRequestInstalled
+    completeRequestProcessContext(request);
+  }
+
+  private void completeRequestProcessContext(ToolInstallRequest request) {
+    if (request.getProcessContext() == null) {
+      ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI);
+      request.setProcessContext(pc);
+    }
+  }
+
+  private void completeRequestInstalled(ToolInstallRequest request) {
+
+    ToolEditionAndVersion installedToolVersion = request.getInstalled();
+    if (installedToolVersion == null) {
+      installedToolVersion = new ToolEditionAndVersion((GenericVersionRange) null);
+      request.setInstalled(installedToolVersion);
+    }
+    if (installedToolVersion.getVersion() == null) {
+      VersionIdentifier installedVersion = getInstalledVersion();
+      if (installedVersion == null) {
+        return;
+      }
+      installedToolVersion.setVersion(installedVersion);
+    }
+    if (installedToolVersion.getEdition() == null) {
+      installedToolVersion.setEdition(new ToolEdition(this.tool, getInstalledEdition()));
+    }
+    assert installedToolVersion.getResolvedVersion() != null;
+  }
+
+  private void completeRequestRequested(ToolInstallRequest request) {
+
+    ToolEdition edition;
+    ToolEditionAndVersion requested = request.getRequested();
+    if (requested == null) {
+      edition = new ToolEdition(this.tool, getConfiguredEdition());
+      requested = new ToolEditionAndVersion(edition);
+      request.setRequested(requested);
+    } else {
+      edition = requested.getEdition();
+      if (edition == null) {
+        edition = new ToolEdition(this.tool, getConfiguredEdition());
+        requested.setEdition(edition);
+      }
+    }
+    GenericVersionRange version = requested.getVersion();
+    if (version == null) {
+      version = getConfiguredVersion();
+      requested.setVersion(version);
+    }
+    VersionIdentifier resolvedVersion = requested.getResolvedVersion();
+    if (resolvedVersion == null) {
+      if (this.context.isSkipUpdatesMode()) {
+        ToolEditionAndVersion installed = request.getInstalled();
+        if (installed != null) {
+          VersionIdentifier installedVersion = installed.getResolvedVersion();
+          if (version.contains(installedVersion)) {
+            resolvedVersion = installedVersion;
+          }
+        }
+      }
+      if (resolvedVersion == null) {
+        resolvedVersion = getToolRepository().resolveVersion(this.tool, edition.edition(), version, this);
+      }
+      requested.setResolvedVersion(resolvedVersion);
     }
   }
 
   /**
-   * This method is called after the tool has been newly installed or updated to a new version.
+   * This method is called after a tool was requested to be installed or updated.
+   *
+   * @param request {@code true} the {@link ToolInstallRequest}.
    */
-  protected void postInstall() {
+  protected void postInstall(ToolInstallRequest request) {
+
+    if (!request.isAlreadyInstalled()) {
+      postInstallOnNewInstallation(request);
+    }
+  }
+
+  /**
+   * This method is called after a tool was requested to be installed or updated and a new installation was performed.
+   *
+   * @param request {@code true} the {@link ToolInstallRequest}.
+   */
+  protected void postInstallOnNewInstallation(ToolInstallRequest request) {
 
     // nothing to do by default
   }
@@ -311,6 +392,30 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @return the {@link Path} where this tool is installed (physically) or {@code null} if not available.
    */
   protected abstract Path getInstallationPath(String edition, VersionIdentifier version);
+
+  /**
+   * @param request the {@link ToolInstallRequest}.
+   * @return the existing {@link ToolInstallation}.
+   */
+  protected ToolInstallation createExistingToolInstallation(ToolInstallRequest request) {
+
+    ToolEditionAndVersion installed = request.getInstalled();
+
+    String edition = this.tool;
+    VersionIdentifier resolvedVersion = VersionIdentifier.LATEST;
+
+    if (installed != null) {
+      if (installed.getEdition() != null) {
+        edition = installed.getEdition().edition();
+      }
+      if (installed.getResolvedVersion() != null) {
+        resolvedVersion = installed.getResolvedVersion();
+      }
+    }
+
+    return createExistingToolInstallation(edition, resolvedVersion, request.getProcessContext(),
+        request.isAdditionalInstallation());
+  }
 
   /**
    * @param edition the {@link #getConfiguredEdition() edition}.
@@ -332,12 +437,12 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param version the installed {@link VersionIdentifier}.
    * @param newInstallation {@link ToolInstallation#newInstallation() new installation} flag.
    * @param environmentContext the {@link EnvironmentContext}.
-   * @param extraInstallation {@code true} if the {@link ToolInstallation} is an additional installation to the
+   * @param additionalInstallation {@code true} if the {@link ToolInstallation} is an additional installation to the
    *     {@link #getConfiguredVersion() configured version} due to a conflicting version of a {@link ToolDependency}, {@code false} otherwise.
    * @return the {@link ToolInstallation}.
    */
   protected ToolInstallation createToolInstallation(Path rootDir, VersionIdentifier version, boolean newInstallation,
-      EnvironmentContext environmentContext, boolean extraInstallation) {
+      EnvironmentContext environmentContext, boolean additionalInstallation) {
 
     Path linkDir = rootDir;
     Path binDir = rootDir;
@@ -346,7 +451,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       linkDir = getMacOsHelper().findLinkDir(rootDir, getBinaryName());
       binDir = this.context.getFileAccess().getBinPath(linkDir);
     }
-    return createToolInstallation(rootDir, linkDir, binDir, version, newInstallation, environmentContext, extraInstallation);
+    return createToolInstallation(rootDir, linkDir, binDir, version, newInstallation, environmentContext, additionalInstallation);
   }
 
   /**
@@ -356,12 +461,12 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param version the installed {@link VersionIdentifier}.
    * @param newInstallation {@link ToolInstallation#newInstallation() new installation} flag.
    * @param environmentContext the {@link EnvironmentContext}.
-   * @param extraInstallation {@code true} if the {@link ToolInstallation} is an additional installation to the
+   * @param additionalInstallation {@code true} if the {@link ToolInstallation} is an additional installation to the
    *     {@link #getConfiguredVersion() configured version} due to a conflicting version of a {@link ToolDependency}, {@code false} otherwise.
    * @return the {@link ToolInstallation}.
    */
   protected ToolInstallation createToolInstallation(Path rootDir, Path linkDir, Path binDir, VersionIdentifier version, boolean newInstallation,
-      EnvironmentContext environmentContext, boolean extraInstallation) {
+      EnvironmentContext environmentContext, boolean additionalInstallation) {
 
     if (linkDir != rootDir) {
       assert (!linkDir.equals(rootDir));
@@ -371,66 +476,39 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       }
     }
     ToolInstallation toolInstallation = new ToolInstallation(rootDir, linkDir, binDir, version, newInstallation);
-    setEnvironment(environmentContext, toolInstallation, extraInstallation);
+    setEnvironment(environmentContext, toolInstallation, additionalInstallation);
     return toolInstallation;
   }
 
   /**
-   * Called if tool is already installed and detected before actual {@link #install() install} method was called.
+   * Called if the tool {@link ToolInstallRequest#isAlreadyInstalled() is already installed in the correct edition and version} so we can skip the
+   * installation.
    *
-   * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
-   * @param toolEdition the installed {@link ToolEdition}.
-   * @param installedVersion the installed {@link VersionIdentifier}.
-   * @param pc the {@link ProcessContext} to use.
-   * @param extraInstallation {@code true} if the {@link ToolInstallation} is an additional installation to the
-   *     {@link #getConfiguredVersion() configured version} due to a conflicting version of a {@link ToolDependency}, {@code false} otherwise.
+   * @param request the {@link ToolInstallRequest}.
    * @return the {@link ToolInstallation}.
    */
-  protected ToolInstallation toolAlreadyInstalled(boolean silent, ToolEdition toolEdition, VersionIdentifier installedVersion, ProcessContext pc,
-      boolean extraInstallation) {
+  protected ToolInstallation toolAlreadyInstalled(ToolInstallRequest request) {
 
-    logToolAlreadyInstalled(silent, toolEdition, installedVersion);
-    cveCheck(toolEdition, installedVersion, null, true);
-    postInstall(false, pc);
-    return createExistingToolInstallation(toolEdition.edition(), installedVersion, pc, extraInstallation);
-  }
-
-  /**
-   * Called if tool is already installed and detected before actual {@link #install() install} method was called.
-   *
-   * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
-   * @param toolEdition the installed {@link ToolEdition}.
-   * @param installedVersion the installed {@link VersionIdentifier}.
-   * @param pc the {@link ProcessContext} to use.
-   * @param extraInstallation {@code true} if the {@link ToolInstallation} is an additional installation to the
-   *     {@link #getConfiguredVersion() configured version} due to a conflicting version of a {@link ToolDependency}, {@code false} otherwise.
-   * @return the {@link ToolInstallation}.
-   */
-  protected ToolInstallation toolAlreadyInstalled(boolean silent, Path binPath, ToolEdition toolEdition, VersionIdentifier installedVersion, ProcessContext pc,
-      boolean extraInstallation) {
-
-    logToolAlreadyInstalled(silent, toolEdition, installedVersion);
-    cveCheck(toolEdition, installedVersion, null, true);
-    postInstall(false, pc);
-    Path rootPath = this.context.getFileAccess().getBinParentPath(binPath);
-    return createToolInstallation(rootPath, rootPath, binPath, installedVersion, false, pc, extraInstallation);
+    logToolAlreadyInstalled(request);
+    cveCheck(request);
+    postInstall(request);
+    return createExistingToolInstallation(request);
   }
 
   /**
    * Log that the tool is already installed.
    *
-   * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
-   * @param toolEdition the installed {@link ToolEdition}.
-   * @param installedVersion the installed {@link VersionIdentifier}.
+   * @param request the {@link ToolInstallRequest}.
    */
-  protected void logToolAlreadyInstalled(boolean silent, ToolEdition toolEdition, VersionIdentifier installedVersion) {
+  protected void logToolAlreadyInstalled(ToolInstallRequest request) {
     IdeSubLogger logger;
-    if (silent) {
+    if (request.isSilent()) {
       logger = this.context.debug();
     } else {
       logger = this.context.info();
     }
-    logger.log("Version {} of tool {} is already installed", installedVersion, toolEdition);
+    ToolEditionAndVersion installed = request.getInstalled();
+    logger.log("Version {} of tool {} is already installed", installed.getVersion(), installed.getEdition());
   }
 
   /**
@@ -449,17 +527,17 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param environmentContext the {@link EnvironmentContext} where to {@link EnvironmentContext#withEnvVar(String, String) set environment variables} for
    *     this tool.
    * @param toolInstallation the {@link ToolInstallation}.
-   * @param extraInstallation {@code true} if the {@link ToolInstallation} is an additional installation to the
+   * @param additionalInstallation {@code true} if the {@link ToolInstallation} is an additional installation to the
    *     {@link #getConfiguredVersion() configured version} due to a conflicting version of a {@link ToolDependency}, {@code false} otherwise.
    */
-  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean extraInstallation) {
+  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
 
     String pathVariable = EnvironmentVariables.getToolVariablePrefix(this.tool) + "_HOME";
     Path toolHomePath = getToolHomePath(toolInstallation);
     if (toolHomePath != null) {
       environmentContext.withEnvVar(pathVariable, toolHomePath.toString());
     }
-    if (extraInstallation) {
+    if (additionalInstallation) {
       environmentContext.withPathEntry(toolInstallation.binDir());
     }
   }
@@ -476,104 +554,112 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * Checks a version to be installed for {@link Cve}s. If at least one {@link Cve} is found, we try to find better/safer versions as alternative. If we find
    * something better, we will suggest this to the user and ask him to make his choice.
    *
-   * @param toolEdition the {@link ToolEdition}.
-   * @param resolvedVersion the resolved {@link #getConfiguredEdition() version}.
-   * @param allowedVersions a {@link GenericVersionRange} that defines which versions are allowed to consider.
-   * @param skipSuggestions {@code true} to skip suggestions, {@code false} otherwise (try to find alternative suggestions and ask the user).
-   * @return the {@link VersionIdentifier} to install. If there were {@link Cve}s found and better versions available the user made this choice.
+   * @param request the {@link ToolInstallRequest}.
+   * @return the {@link VersionIdentifier} to install. The will may be asked (unless {@code skipSuggestions} is {@code true}) and might choose a different
+   *     version than the originally requested one.
    */
-  protected VersionIdentifier cveCheck(ToolEdition toolEdition, VersionIdentifier resolvedVersion, GenericVersionRange allowedVersions,
-      boolean skipSuggestions) {
+  protected VersionIdentifier cveCheck(ToolInstallRequest request) {
 
-    ToolSecurity toolSecurity = this.context.getDefaultToolRepository().findSecurity(this.tool, toolEdition.edition());
-    double minSeverity = IdeVariables.CVE_MIN_SEVERITY.get(context);
-    Collection<Cve> issues = toolSecurity.findCves(resolvedVersion, this.context, minSeverity);
-    ToolVersionChoice currentChoice = ToolVersionChoice.ofCurrent(resolvedVersion, issues);
-    if (logCvesAndReturnTrueForNone(toolEdition, resolvedVersion, currentChoice.option(), issues)) {
+    ToolEditionAndVersion requested = request.getRequested();
+    VersionIdentifier resolvedVersion = requested.getResolvedVersion();
+    if (request.isCveCheckDone()) {
       return resolvedVersion;
     }
-    if (skipSuggestions) {
+    ToolEdition toolEdition = requested.getEdition();
+    GenericVersionRange allowedVersions = requested.getVersion();
+    boolean requireStableVersion = true;
+    if (allowedVersions instanceof VersionIdentifier vi) {
+      requireStableVersion = vi.isStable();
+    }
+    ToolSecurity toolSecurity = this.context.getDefaultToolRepository().findSecurity(this.tool, toolEdition.edition());
+    double minSeverity = IdeVariables.CVE_MIN_SEVERITY.get(context);
+    ToolVulnerabilities currentVulnerabilities = toolSecurity.findCves(resolvedVersion, this.context, minSeverity);
+    ToolVersionChoice currentChoice = ToolVersionChoice.ofCurrent(requested, currentVulnerabilities);
+    request.setCveCheckDone();
+    if (currentChoice.logAndCheckIfEmpty(this.context)) {
+      return resolvedVersion;
+    }
+    boolean alreadyInstalled = request.isAlreadyInstalled();
+    boolean directForceInstall = this.context.isForceMode() && request.isDirect();
+    if (alreadyInstalled && !directForceInstall) {
       // currently for a transitive dependency it does not make sense to suggest alternative versions, since the choice is not stored anywhere,
       // and we then would ask the user again every time the tool having this dependency is started. So we only log the problem and the user needs to react
       // (e.g. upgrade the tool with the dependency that is causing this).
-      this.context.interaction("Please run 'ide install {}' to check for update suggestions!", this.tool);
+      this.context.interaction("Please run 'ide -f install {}' to check for update suggestions!", this.tool);
       return resolvedVersion;
     }
-    double currentSeveritySum = Cve.severitySum(issues);
     ToolVersionChoice latest = null;
+    ToolVulnerabilities latestVulnerabilities = currentVulnerabilities;
     ToolVersionChoice nearest = null;
+    ToolVulnerabilities nearestVulnerabilities = currentVulnerabilities;
     List<VersionIdentifier> toolVersions = getVersions();
-    double latestSeveritySum = currentSeveritySum;
-    double nearestSeveritySum = currentSeveritySum;
     for (VersionIdentifier version : toolVersions) {
-      if (allowedVersions == null || allowedVersions.contains(version)) {
-        issues = toolSecurity.findCves(version, this.context, minSeverity);
-        double newSeveritySum = Cve.severitySum(issues);
-        if (newSeveritySum < latestSeveritySum) {
+      if (acceptVersion(version, allowedVersions, requireStableVersion)) {
+        ToolVulnerabilities newVulnerabilities = toolSecurity.findCves(version, this.context, minSeverity);
+        if (newVulnerabilities.isSafer(latestVulnerabilities)) {
           // we found a better/safer version
+          ToolEditionAndVersion toolEditionAndVersion = new ToolEditionAndVersion(toolEdition, version);
           if (version.isGreater(resolvedVersion)) {
-            latest = ToolVersionChoice.ofLatest(version, issues);
+            latestVulnerabilities = newVulnerabilities;
+            latest = ToolVersionChoice.ofLatest(toolEditionAndVersion, latestVulnerabilities);
             nearest = null;
-            latestSeveritySum = newSeveritySum;
           } else {
-            // latest = null;
-            nearest = ToolVersionChoice.ofNearest(version, issues);
-            nearestSeveritySum = newSeveritySum;
+            nearestVulnerabilities = newVulnerabilities;
+            nearest = ToolVersionChoice.ofNearest(toolEditionAndVersion, nearestVulnerabilities);
           }
-        } else if (newSeveritySum < nearestSeveritySum) {
-          if (version.isGreater(resolvedVersion)) {
-            nearest = ToolVersionChoice.ofNearest(version, issues);
-          } else if (nearest == null) {
-            nearest = ToolVersionChoice.ofNearest(version, issues);
+        } else if (newVulnerabilities.isSaferOrEqual(nearestVulnerabilities)) {
+          if (newVulnerabilities.isSafer(nearestVulnerabilities) || version.isGreater(resolvedVersion)) {
+            nearest = ToolVersionChoice.ofNearest(new ToolEditionAndVersion(toolEdition, version), newVulnerabilities);
           }
-          nearestSeveritySum = newSeveritySum;
+          nearestVulnerabilities = newVulnerabilities;
         }
       }
     }
     if ((latest == null) && (nearest == null)) {
       this.context.warning(
           "Could not find any other version resolving your CVEs.\nPlease keep attention to this tool and consider updating as soon as security fixes are available.");
+      if (alreadyInstalled) {
+        // we came here via "ide -f install ..." but no alternative is available
+        return resolvedVersion;
+      }
     }
     List<ToolVersionChoice> choices = new ArrayList<>();
     choices.add(currentChoice);
-    List<String> skipCveFixTools = IdeVariables.SKIP_CVE_FIX.get(this.context);
-    boolean addSuggestions = !skipCveFixTools.contains(this.tool);
+    boolean addSuggestions;
+    if (this.context.isForceMode() && request.isDirect()) {
+      addSuggestions = true;
+    } else {
+      List<String> skipCveFixTools = IdeVariables.SKIP_CVE_FIX.get(this.context);
+      addSuggestions = !skipCveFixTools.contains(this.tool);
+    }
     if (nearest != null) {
       if (addSuggestions) {
         choices.add(nearest);
       }
-      logCvesAndReturnTrueForNone(toolEdition, nearest.version(), nearest.option(), nearest.issues());
+      nearest.logAndCheckIfEmpty(this.context);
     }
     if (latest != null) {
       if (addSuggestions) {
         choices.add(latest);
       }
-      logCvesAndReturnTrueForNone(toolEdition, latest.version(), latest.option(), latest.issues());
+      latest.logAndCheckIfEmpty(this.context);
     }
     ToolVersionChoice[] choicesArray = choices.toArray(ToolVersionChoice[]::new);
     this.context.warning(
         "Please note that by selecting an unsafe version to install, you accept the risk to be attacked.");
     ToolVersionChoice answer = this.context.question(choicesArray, "Which version do you want to install?");
-    return answer.version();
+    VersionIdentifier version = answer.toolEditionAndVersion().getResolvedVersion();
+    requested.setResolvedVersion(version);
+    return version;
   }
 
-  private boolean logCvesAndReturnTrueForNone(ToolEdition toolEdition, VersionIdentifier version, String option, Collection<Cve> issues) {
-    if (issues.isEmpty()) {
-      this.context.info("No CVEs found for {} version {} of tool {}.", option, version, toolEdition);
-      return true;
+  private static boolean acceptVersion(VersionIdentifier version, GenericVersionRange allowedVersions, boolean requireStableVersion) {
+    if (allowedVersions.isPattern() && !allowedVersions.contains(version)) {
+      return false;
+    } else if (requireStableVersion && !version.isStable()) {
+      return false;
     }
-    this.context.warning("For {} version {} of tool {} we found {} CVE(s):", option, version, toolEdition, issues.size());
-    for (Cve cve : issues) {
-      logCve(cve);
-    }
-    return false;
-  }
-
-  private void logCve(Cve cve) {
-
-    this.context.warning("{} with severity {} and affected versions: {} ", cve.id(), cve.severity(), cve.versions());
-    this.context.warning("https://nvd.nist.gov/vuln/detail/" + cve.id());
-    this.context.info("");
+    return true;
   }
 
   /**

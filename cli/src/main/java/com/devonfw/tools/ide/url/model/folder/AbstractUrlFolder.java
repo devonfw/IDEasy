@@ -139,6 +139,7 @@ public abstract class AbstractUrlFolder<C extends UrlArtifactWithParent<?>> exte
   public void load(boolean recursive) {
 
     if (!this.loaded) {
+      LOG.trace("Loading url folder {}", this);
       Path path = getPath();
       if (Files.isDirectory(path)) {
         try (Stream<Path> childStream = Files.list(path)) {

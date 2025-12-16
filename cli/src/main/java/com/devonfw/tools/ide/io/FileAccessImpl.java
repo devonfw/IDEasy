@@ -491,13 +491,13 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   }
 
   @Override
-  public void link(Path target, Path link, boolean relative, PathLinkType type) {
+  public void link(Path source, Path link, boolean relative, PathLinkType type) {
 
     final Path finalTarget;
     try {
-      finalTarget = adaptPath(target, link, relative);
+      finalTarget = adaptPath(source, link, relative);
     } catch (Exception e) {
-      throw new IllegalStateException("Failed to adapt target (" + target + ") for link (" + link + ") and relative (" + relative + ")", e);
+      throw new IllegalStateException("Failed to adapt target (" + source + ") for link (" + link + ") and relative (" + relative + ")", e);
     }
     String relativeOrAbsolute = finalTarget.isAbsolute() ? "absolute" : "relative";
     this.context.debug("Creating {} {} at {} pointing to {}", relativeOrAbsolute, type, link, finalTarget);
@@ -521,7 +521,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
         throw new RuntimeException(e);
       }
     } catch (IOException e) {
-      throw new IllegalStateException("Failed to create a " + relativeOrAbsolute + " " + type + " at " + link + " pointing to " + target, e);
+      throw new IllegalStateException("Failed to create a " + relativeOrAbsolute + " " + type + " at " + link + " pointing to " + source, e);
     }
   }
 
@@ -745,10 +745,10 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
             permissions = PathPermissions.of(tae.getMode());
           } else {
             Path parent = entryPath.getParent();
-            String linkName = tae.getLinkName();
-            Path linkTarget = parent.resolve(linkName).normalize();
-            Path target = resolveRelativePathSecure(linkTarget, root, linkName);
-            links.add(new PathLink(entryPath, target, linkType));
+            String sourcePathString = tae.getLinkName();
+            Path source = parent.resolve(sourcePathString).normalize();
+            source = resolveRelativePathSecure(source, root, sourcePathString);
+            links.add(new PathLink(source, entryPath, linkType));
             mkdirs(parent);
           }
         }
@@ -1026,6 +1026,42 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   }
 
   @Override
+  public Path findAncestor(Path path, Path baseDir, int subfolderCount) {
+
+    if ((path == null) || (baseDir == null)) {
+      this.context.debug("Path should not be null for findAncestor.");
+      return null;
+    }
+    if (subfolderCount <= 0) {
+      throw new IllegalArgumentException("Subfolder count: " + subfolderCount);
+    }
+    // 1. option relativize
+    // 2. recursive getParent
+    // 3. loop getParent???
+    // 4. getName + getNameCount
+    path = path.toAbsolutePath().normalize();
+    baseDir = baseDir.toAbsolutePath().normalize();
+    int directoryNameCount = path.getNameCount();
+    int baseDirNameCount = baseDir.getNameCount();
+    int delta = directoryNameCount - baseDirNameCount - subfolderCount;
+    if (delta < 0) {
+      return null;
+    }
+    // ensure directory is a sub-folder of baseDir
+    for (int i = 0; i < baseDirNameCount; i++) {
+      if (!path.getName(i).toString().equals(baseDir.getName(i).toString())) {
+        return null;
+      }
+    }
+    Path result = path;
+    while (delta > 0) {
+      result = result.getParent();
+      delta--;
+    }
+    return result;
+  }
+
+  @Override
   public List<Path> listChildrenMapped(Path dir, Function<Path, Path> filter) {
 
     if (!Files.isDirectory(dir)) {
@@ -1058,6 +1094,15 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   public boolean isEmptyDir(Path dir) {
 
     return listChildren(dir, f -> true).isEmpty();
+  }
+
+  @Override
+  public boolean isNonEmptyFile(Path file) {
+
+    if (Files.isRegularFile(file)) {
+      return (getFileSize(file) > 0);
+    }
+    return false;
   }
 
   private long getFileSize(Path file) {

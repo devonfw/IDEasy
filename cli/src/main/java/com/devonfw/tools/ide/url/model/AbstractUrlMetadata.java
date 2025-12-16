@@ -8,6 +8,9 @@ import com.devonfw.tools.ide.url.model.folder.UrlTool;
 import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
+/**
+ * Interface providing the API to access tool metadata.
+ */
 public interface AbstractUrlMetadata {
 
   /**

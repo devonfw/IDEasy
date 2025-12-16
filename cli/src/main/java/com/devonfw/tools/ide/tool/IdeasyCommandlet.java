@@ -79,6 +79,12 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   }
 
   @Override
+  public String getInstalledEdition() {
+
+    return this.tool;
+  }
+
+  @Override
   public String getConfiguredEdition() {
 
     return this.tool;
@@ -109,16 +115,16 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   }
 
   @Override
-  public ToolInstallation install(boolean silent) {
+  protected ToolInstallation doInstall(ToolInstallRequest request) {
 
     this.context.requireOnline("upgrade of IDEasy", true);
 
     if (IdeVersion.isUndefined() && !this.context.isForceMode()) {
       VersionIdentifier version = IdeVersion.getVersionIdentifier();
       this.context.warning("You are using IDEasy version {} which indicates local development - skipping upgrade.", version);
-      return toolAlreadyInstalled(silent, getToolWithEdition(), version, this.context.newProcess(), false);
+      return toolAlreadyInstalled(request);
     }
-    return super.install(silent);
+    return super.doInstall(request);
   }
 
   /**

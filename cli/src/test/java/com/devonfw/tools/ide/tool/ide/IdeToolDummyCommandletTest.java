@@ -20,6 +20,7 @@ import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.process.ProcessResultImpl;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 import com.devonfw.tools.ide.version.GenericVersionRange;
 
@@ -73,11 +74,11 @@ public class IdeToolDummyCommandletTest extends AbstractIdeContextTest {
     }
 
     @Override
-    public ProcessResult runTool(ProcessMode processMode, GenericVersionRange toolVersion, ProcessErrorHandling errorHandling, String... args) {
+    public ProcessResult runTool(ProcessMode processMode, GenericVersionRange toolVersion, ProcessErrorHandling errorHandling, List<String> args) {
 
       // skip installation but trigger postInstall to test mocked plugin installation
       ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI);
-      postInstall(true, pc);
+      postInstall(new ToolInstallRequest(true));
       return new ProcessResultImpl(this.tool, this.tool, 0, List.of());
     }
 
