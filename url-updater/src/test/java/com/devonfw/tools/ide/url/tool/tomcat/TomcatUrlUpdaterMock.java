@@ -19,5 +19,10 @@ public class TomcatUrlUpdaterMock extends TomcatUrlUpdater {
     return this.baseUrl;
   }
 
+  @Override
+  protected String doGetVersionUrl() {
+
+    return this.baseUrl + "/repos/" + getGithubOrganization() + "/" + getGithubRepository() + "/git/refs/tags";
+  }
 }
 
