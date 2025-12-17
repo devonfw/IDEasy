@@ -921,6 +921,14 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
+   * @param command the binary that will be searched in the PATH e.g. docker
+   * @return true if the command is available to use
+   */
+  protected boolean isCommandAvailable(String command) {
+    return this.context.getPath().hasBinaryOnPath(command);
+  }
+
+  /**
    * @param step the {@link Step} to get {@link Step#asSuccess() success logger} from. May be {@code null}.
    * @return the {@link IdeSubLogger} from {@link Step#asSuccess()} or {@link IdeContext#success()} as fallback.
    */
