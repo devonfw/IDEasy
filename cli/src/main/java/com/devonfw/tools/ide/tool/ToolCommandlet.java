@@ -596,11 +596,10 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     List<VersionIdentifier> toolVersions = getVersions();
     for (VersionIdentifier version : toolVersions) {
 
-      // Skip the entire iteration when versions match
       if (Objects.equals(version, resolvedVersion)) {
-        continue;
+        continue; // Skip the entire iteration for resolvedVersion
       }
-      // All code below will be skipped for the matching version
+
       if (acceptVersion(version, allowedVersions, requireStableVersion)) {
         ToolVulnerabilities newVulnerabilities = toolSecurity.findCves(version, this.context, minSeverity);
         if (newVulnerabilities.isSafer(latestVulnerabilities)) {
