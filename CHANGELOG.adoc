@@ -7,7 +7,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 * https://github.com/devonfw/IDEasy/issues/1166[#1166]: Automatic project import for IntelliJ
 * https://github.com/devonfw/IDEasy/issues/1508[#1508]: xml merger fails when merging empty file
 * https://github.com/devonfw/IDEasy/issues/1660[#1660]: ide status still failing
-
+* https://github.com/devonfw/IDEasy/issues/1646[#1646]: Duplicated options from CVE update suggestion
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/39[#39]: Implement ToolCommandlet for pip
