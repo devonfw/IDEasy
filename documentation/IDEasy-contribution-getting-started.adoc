@@ -10,8 +10,6 @@ To begin, read through the https://github.com/devonfw/IDEasy/blob/main/documenta
 To start developing IDEasy, you must first install it on your computer.
 Therefore, simply follow the link:setup.adoc[setup] guide.
 
-*Important*: This installation provides the latest published version of IDEasy, allowing you to execute commands like eclipse or docker, whose scripts are located inside `${IDE_HOME}$/scripts/command`.
-However, for committing code, we use a different folder structure.
 This will be addressed under xref:Contribution[Contribution].
 
 == Setup the Development Environment
