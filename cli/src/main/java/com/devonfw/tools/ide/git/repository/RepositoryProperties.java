@@ -1,7 +1,11 @@
 package com.devonfw.tools.ide.git.repository;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -112,6 +116,35 @@ final class RepositoryProperties {
     } else {
       return Set.of();
     }
+  }
+
+  /**
+   * @return the workspaces where to clone the repository. Returns a set containing "main" as default if not specified.
+   */
+  public List<String> getWorkspaces() {
+
+    String workspaceProperty = this.properties.getProperty(RepositoryConfig.PROPERTY_WORKSPACES);
+    if (workspaceProperty == null) {
+      workspaceProperty = this.properties.getProperty("workspace");
+      if (workspaceProperty != null) {
+        this.context.debug("Property workspace is legacy, please change property name to workspaces in {}", this.file);
+      }
+    }
+    if ((workspaceProperty != null) && !workspaceProperty.isEmpty()) {
+      List<String> list = new ArrayList<>();
+      Set<String> set = new HashSet<>();
+      for (String workspace : workspaceProperty.split(",")) {
+        workspace = workspace.trim();
+        boolean added = set.add(workspace);
+        if (added) {
+          list.add(workspace);
+        } else {
+          this.context.warning("Ignoring duplicate workspace {} from {}", workspace, workspaceProperty);
+        }
+      }
+      return Collections.unmodifiableList(list);
+    }
+    return List.of(IdeContext.WORKSPACE_MAIN);
   }
 
 }

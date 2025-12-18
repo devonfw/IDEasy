@@ -13,6 +13,9 @@ import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 
+/**
+ * Test of {@link RepositoryCommandlet}.
+ */
 public class RepositoryCommandletTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_REPOSITORY = "repository";
@@ -153,6 +156,71 @@ public class RepositoryCommandletTest extends AbstractIdeContextTest {
     // assert
     assertThat(context).log().hasMessage("Setup of repository test is forced, hence proceeding ...");
     assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(TEST_WORKSPACE).resolve(TEST_REPO)).isDirectory();
+    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Setup of repository test'.");
+  }
+
+  @Test
+  public void testSetupRepositoryWithMultipleWorkspaces() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_REPOSITORY);
+    Properties properties = createDefaultProperties();
+    String workspace1 = "workspace1";
+    String workspace2 = "workspace2";
+    properties.setProperty("workspaces", workspace1 + "," + workspace2);
+    RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
+    saveProperties(context, properties);
+    rc.repository.setValueAsString("test", context);
+
+    // act
+    rc.run();
+
+    // assert
+    assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(workspace1).resolve(TEST_REPO)).isDirectory();
+    assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(workspace2).resolve(TEST_REPO)).isDirectory();
+    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Setup of repository test'.");
+  }
+
+  @Test
+  public void testSetupRepositoryWithMultipleWorkspacesWithSpaces() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_REPOSITORY);
+    Properties properties = createDefaultProperties();
+    String workspace1 = "workspace1";
+    String workspace2 = "workspace2";
+    String workspace3 = "workspace3";
+    properties.setProperty("workspaces", workspace1 + " , " + workspace2 + ", " + workspace3);
+    RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
+    saveProperties(context, properties);
+    rc.repository.setValueAsString("test", context);
+
+    // act
+    rc.run();
+
+    // assert
+    assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(workspace1).resolve(TEST_REPO)).isDirectory();
+    assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(workspace2).resolve(TEST_REPO)).isDirectory();
+    assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(workspace3).resolve(TEST_REPO)).isDirectory();
+    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Setup of repository test'.");
+  }
+
+  @Test
+  public void testSetupRepositoryWithEmptyWorkspaceDefaultsToMain() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_REPOSITORY);
+    Properties properties = createDefaultProperties();
+    properties.setProperty("workspace", "");
+    RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
+    saveProperties(context, properties);
+    rc.repository.setValueAsString("test", context);
+
+    // act
+    rc.run();
+
+    // assert
+    assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN).resolve(TEST_REPO)).isDirectory();
     assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Setup of repository test'.");
   }
 
