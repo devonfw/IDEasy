@@ -8,17 +8,22 @@ import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliOfflineException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
  * Test of {@link UpgradeCommandlet}.
  */
+@WireMockTest
 class UpgradeCommandletTest extends AbstractIdeContextTest {
 
+  private static final String PROJECT_NAME = "upgrade";
+
   @Test
-  public void testSnapshotVersionComparisons() {
+  public void testSnapshotVersionComparisons(WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange
-    IdeTestContext context = new IdeTestContext();
+    IdeTestContext context = newContext(PROJECT_NAME, wmRuntimeInfo);
     UpgradeCommandlet upgrade = context.getCommandletManager().getCommandlet(UpgradeCommandlet.class);
 
     // act
@@ -29,9 +34,9 @@ class UpgradeCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testUpgradeWhenOffline() {
+  public void testUpgradeWhenOffline(WireMockRuntimeInfo wmRuntimeInfo) {
     // arrange
-    IdeTestContext context = new IdeTestContext();
+    IdeTestContext context = newContext(PROJECT_NAME, wmRuntimeInfo);
     context.getNetworkStatus().simulateNetworkError();
     UpgradeCommandlet upgrade = context.getCommandletManager().getCommandlet(UpgradeCommandlet.class);
 
