@@ -8,23 +8,55 @@ touch "${HOME}"/.ide/.license.agreement
 
 source "$(dirname "${0}")"/all-tests-functions.sh
 
-MATRIX_OS="$1"
+# Remove side-effects
+BAK_IDE_ROOT="${IDE_ROOT}"
+BAK_PATH="${PATH}"
+DEBUG_INTEGRATION_TEST_PREFIX="${HOME}/tmp/ideasy-integration-test-debug"
+
+# Create backups of shell RC files to prevent destroying user's existing configuration
+BAK_BASHRC=""
+BAK_ZSHRC=""
+if [ -f "$HOME/.bashrc" ]; then
+  BAK_BASHRC="$HOME/.bashrc.ideasy-test-backup"
+  cp "$HOME/.bashrc" "$BAK_BASHRC"
+fi
+if [ -f "$HOME/.zshrc" ]; then
+  BAK_ZSHRC="$HOME/.zshrc.ideasy-test-backup"
+  cp "$HOME/.zshrc" "$BAK_ZSHRC"
+fi
+
+trap "export PATH=\"${BAK_PATH}\" && export IDE_ROOT=\"${BAK_IDE_ROOT}\" && rm -rf \"${DEBUG_INTEGRATION_TEST_PREFIX}\" && doRestoreRcFiles && echo \"PATH, IDE_ROOT, and shell RC files restored\"" EXIT
+
+function doRestoreRcFiles() {
+  # Restore shell RC files from backups to preserve user's existing configuration
+  if [ -n "$BAK_BASHRC" ] && [ -f "$BAK_BASHRC" ]; then
+    mv "$BAK_BASHRC" "$HOME/.bashrc"
+    echo "Restored ~/.bashrc from backup"
+  fi
+  if [ -n "$BAK_ZSHRC" ] && [ -f "$BAK_ZSHRC" ]; then
+    mv "$BAK_ZSHRC" "$HOME/.zshrc"
+    echo "Restored ~/.zshrc from backup"
+  fi
+}
+
+function doResetVariables() {
+  IDE_HOME="${DEBUG_INTEGRATION_TEST}/home-dir"
+  export IDE_ROOT="${IDE_HOME}/projects"
+  IDEASY_DIR="${IDE_ROOT}/_ide"
+  FUNCTIONS="${IDEASY_DIR}/installation/functions"
+  IDE="${DEBUG_INTEGRATION_TEST}/home-dir/projects/_ide/bin/${BINARY_FILE_NAME}"
+  TEST_RESULTS_FILE="${IDE_ROOT}/testResults"
+}
+
 # Switch IDEasy binary file name based on github workflow matrix.os name (first argument of all-tests.sh)
 BINARY_FILE_NAME="ideasy"
-if [ "${MATRIX_OS}" == "windows-latest" ]; then
+if doIsWindows; then
   BINARY_FILE_NAME="ideasy.exe"
 fi
 
 START_TIME=$(date '+%Y-%m-%d_%H-%M-%S')
-
-DEBUG_INTEGRATION_TEST_PREFIX="${HOME}/tmp/ideasy-integration-test-debug"
 DEBUG_INTEGRATION_TEST="${DEBUG_INTEGRATION_TEST_PREFIX}-${START_TIME}"
-IDE_HOME="${DEBUG_INTEGRATION_TEST}/home-dir"
-export IDE_ROOT="${IDE_HOME}/projects"
-IDEASY_DIR="${IDE_ROOT}/_ide"
-FUNCTIONS="${IDEASY_DIR}/installation/functions"
-IDE="${DEBUG_INTEGRATION_TEST}/home-dir/projects/_ide/bin/${BINARY_FILE_NAME}"
-TEST_RESULTS_FILE="${IDE_ROOT}/testResults"
+doResetVariables
 
 test_files_directory=$(realpath "$0" | xargs dirname)
 
@@ -35,6 +67,7 @@ total=0
 function doTestsInner() {
   # Note: requires var test_files_directory to be set.
   for testpath in "${test_files_directory:?}/integration-tests"/*; do
+    doResetVariables
     testcase="${testpath/*\//}"
     echo "Running test #${total}: ${testcase} (${testpath})"
 
@@ -68,8 +101,6 @@ function doTestsInner() {
 function doDisplayResults() {
   while read -r line; do echo -e "${line}"; done < "${TEST_RESULTS_FILE}"
 }
-
-
 
 function doTests () {
   doTestsInner
@@ -114,11 +145,22 @@ function main () {
 
   # upgrade to latest snapshot
   echo "Upgrading IDEasy to latest SNAPSHOT"
-  $IDE -d --batch upgrade --mode=snapshot
+  $IDE -d --batch upgrade --mode=snapshot || echo "Upgrade failed, continuing with downloaded version"
 
   # source functions (resets IDEasy)
   echo "Sourcing functions to: ${FUNCTIONS}"
-  source "${FUNCTIONS:?}"
+  # Add IDE bin to PATH so ideasy command can be found
+  export PATH="${IDEASY_DIR}/bin:$PATH"
+  # Try installation path first, then fall back to root
+  if [ -f "${FUNCTIONS:?}" ]; then
+    source "${FUNCTIONS:?}"
+  elif [ -f "${IDEASY_DIR}/functions" ]; then
+    echo "Using functions from root: ${IDEASY_DIR}/functions"
+    source "${IDEASY_DIR}/functions"
+  else
+    echo "ERROR: Could not find functions file"
+    exit 1
+  fi
 
   echo "Checking version after upgrade"
   ide -v
