@@ -96,27 +96,48 @@ public class RepositoryCommandlet extends Commandlet {
       return;
     }
     this.context.debug("Repository configuration: {}", repositoryConfig);
-    Path repositoryPath = getRepositoryPath(repositoryConfig, repositoryId);
-    if (Files.isDirectory(repositoryPath.resolve(GitContext.GIT_FOLDER))) {
-      this.context.info("Repository {} already exists at {}", repositoryId, repositoryPath);
-      if (!(this.context.isForceMode() || this.context.isForceRepositories())) {
-        this.context.info("Ignoring repository {} - use --force or --force-repositories to rerun setup.", repositoryId);
-        return;
-      }
+    List<String> workspaces = repositoryConfig.workspaces();
+    String repositoryRelativePath = repositoryConfig.path();
+    if (repositoryRelativePath == null) {
+      repositoryRelativePath = repositoryId;
     }
     Path ideStatusDir = this.context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE);
-    this.context.getFileAccess().mkdirs(ideStatusDir);
-    Path repositoryCreatedStatusFile = ideStatusDir.resolve("repository." + repositoryId);
-    if (Files.exists(repositoryCreatedStatusFile)) {
-      if (!(this.context.isForceMode() || this.context.isForceRepositories())) {
-        this.context.info("Ignoring repository {} because it was already setup before - use --force or --force-repositories for recreation.", repository);
-        return;
+    FileAccess fileAccess = this.context.getFileAccess();
+    fileAccess.mkdirs(ideStatusDir);
+
+    Path firstRepository = null;
+    for (String workspaceName : workspaces) {
+      Path workspacePath = this.context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(workspaceName);
+      Path repositoryPath = workspacePath.resolve(repositoryRelativePath);
+      if (Files.isDirectory(repositoryPath.resolve(GitContext.GIT_FOLDER))) {
+        if (firstRepository == null) {
+          firstRepository = repositoryPath;
+        }
+        this.context.info("Repository {} already exists in workspace {} at {}", repositoryId, workspaceName, repositoryPath);
+        if (!(this.context.isForceMode() || this.context.isForceRepositories())) {
+          this.context.info("Ignoring repository {} in workspace {} - use --force or --force-repositories to rerun setup.", repositoryId, workspaceName);
+          continue;
+        }
       }
-    }
-    boolean success = cloneOrPullRepository(repositoryPath, gitUrl, repositoryCreatedStatusFile);
-    if (success) {
-      buildRepository(repositoryConfig, repositoryPath);
-      importRepository(repositoryConfig, repositoryPath, repositoryId);
+      Path repositoryCreatedStatusFile = ideStatusDir.resolve("repository." + repositoryId + "." + workspaceName);
+      if (Files.exists(repositoryCreatedStatusFile)) {
+        if (!(this.context.isForceMode() || this.context.isForceRepositories())) {
+          this.context.info("Ignoring repository {} in workspace {} because it was already setup before - use --force or --force-repositories for recreation.",
+              repositoryId, workspaceName);
+          continue;
+        }
+      }
+      if (firstRepository == null) {
+        boolean success = cloneOrPullRepository(repositoryPath, gitUrl, repositoryCreatedStatusFile);
+        if (success) {
+          firstRepository = repositoryPath;
+          buildRepository(repositoryConfig, repositoryPath);
+          importRepository(repositoryConfig, repositoryPath, repositoryId);
+        }
+      } else {
+        fileAccess.mkdirs(repositoryPath.getParent());
+        fileAccess.symlink(firstRepository, repositoryPath);
+      }
     }
   }
 
@@ -128,19 +149,6 @@ public class RepositoryCommandlet extends Commandlet {
       this.context.getGitContext().pullOrClone(gitUrl, repositoryPath);
       fileAccess.touch(repositoryCreatedStatusFile);
     });
-  }
-
-  private Path getRepositoryPath(RepositoryConfig repositoryConfig, String repositoryId) {
-    String workspace = repositoryConfig.workspace();
-    if (workspace == null) {
-      workspace = IdeContext.WORKSPACE_MAIN;
-    }
-    Path workspacePath = this.context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(workspace);
-    String repositoryRelativePath = repositoryConfig.path();
-    if (repositoryRelativePath == null) {
-      repositoryRelativePath = repositoryId;
-    }
-    return workspacePath.resolve(repositoryRelativePath);
   }
 
   private boolean buildRepository(RepositoryConfig repositoryConfig, Path repositoryPath) {
