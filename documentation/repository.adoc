@@ -23,6 +23,9 @@ import=eclipse
 active=true
 ```
 
+NOTE: To clone a repository into multiple workspaces, simply provide comma-separated workspace names like `workspace=main,test,feature`.
+This will clone the repository into each specified workspace during project setup.
+
 .Variables of repository import
 [options="header"]
 |===
@@ -32,7 +35,8 @@ This path is relative to the workspace.
 |`working sets`|e.g. `ws1,ws2`|(optional) This will create working sets (in eclipse).
 Each module (eclipse project) of this project will be part of all these working sets.
 Working sets will be automatically created if necessary.
-|`workspace`|`main`|Workspace to use for checkout and import.
+|`workspace`|`main`|Workspace(s) to use for checkout and import.
+Supports comma-separated values to clone the repository into multiple workspaces (e.g., `main,test,feature`).
 Default is `main`.
 |`git_url`|e.g. `http://github.com/someorg/someproject`|(required) Git URL to use for cloning the project.
 |`git_branch`|e.g. `develop`|(optional) Git branch to checkout.

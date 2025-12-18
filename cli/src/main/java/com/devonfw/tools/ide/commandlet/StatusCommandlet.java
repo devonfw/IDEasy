@@ -38,6 +38,8 @@ public class StatusCommandlet extends Commandlet {
   public void run() {
     Step step = this.context.newStep(true, "Show IDE_ROOT and IDE_HOME");
     step.run(this.context::logIdeHomeAndRootStatus);
+    step = this.context.newStep(true, "Check for updates of IDEasy");
+    step.run(this::checkForUpdate);
     step = this.context.newStep(true, "Show online status");
     step.run(this::logOnlineStatus);
     step = this.context.newStep(true, "Show git and bash location");
@@ -51,8 +53,6 @@ public class StatusCommandlet extends Commandlet {
       step = this.context.newStep(true, "Show migration status");
       step.run(this::logMigrationStatus);
     }
-    step = this.context.newStep(true, "Check for updates of IDEasy");
-    step.run(this::checkForUpdate);
   }
 
   private void checkForUpdate() {
