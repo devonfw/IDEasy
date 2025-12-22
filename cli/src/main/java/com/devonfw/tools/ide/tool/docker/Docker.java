@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -23,6 +24,13 @@ public class Docker extends GlobalToolCommandlet {
 
   private static final String PODMAN = "podman";
 
+
+  private static final Pattern RDCTL_CLIENT_VERSION_PATTERN = Pattern.compile("client version:\\s*v([\\d.]+)", Pattern.CASE_INSENSITIVE);
+
+  private static final Pattern DOCKER_DESKTOP_WINDOWS_VERSION_PATTERN = Pattern.compile("DisplayVersion\\s+REG_SZ\\s+([0-9]+(?:\\.[0-9]+){2})");
+
+  private static final Pattern DOCKER_DESKTOP_LINUX_VERSION_PATTERN = Pattern.compile("^([0-9]+(?:\\.[0-9]+){1,2})");
+
   /**
    * The constructor.
    *
@@ -38,6 +46,14 @@ public class Docker extends GlobalToolCommandlet {
     return detectContainerRuntime();
   }
 
+  private boolean isDockerInstalled() {
+    return isCommandAvailable("docker");
+  }
+
+  private boolean isRancherDesktopInstalled() {
+    return isCommandAvailable("rdctl");
+  }
+
   private String detectContainerRuntime() {
     if (isCommandAvailable(this.tool)) {
       return this.tool;
@@ -46,10 +62,6 @@ public class Docker extends GlobalToolCommandlet {
     } else {
       return this.tool;
     }
-  }
-
-  private boolean isCommandAvailable(String command) {
-    return this.context.getPath().hasBinaryOnPath(command);
   }
 
   @Override
@@ -80,6 +92,68 @@ public class Docker extends GlobalToolCommandlet {
                 + " https://download.opensuse.org/repositories/isv:/Rancher:/stable/deb/ ./' |"
                 + " sudo dd status=none of=/etc/apt/sources.list.d/isv-rancher-stable.list", "sudo apt update",
             String.format("sudo apt install -y --allow-downgrades rancher-desktop=%s*", resolvedVersion))));
+  }
+
+  @Override
+  public VersionIdentifier getInstalledVersion() {
+
+    if (!isDockerInstalled()) {
+      this.context.error("Couldn't get installed version of " + this.getName());
+      return null;
+    }
+
+    if (isRancherDesktopInstalled()) {
+      return getRancherDesktopClientVersion();
+    } else {
+      VersionIdentifier parsedVersion = switch (this.context.getSystemInfo().getOs()) {
+        case WINDOWS -> getDockerDesktopVersionWindows();
+        case LINUX -> getDockerDesktopVersionLinux();
+        default -> null;
+      };
+
+      if (parsedVersion == null) {
+        this.context.error("Couldn't get installed version of " + this.getName());
+      }
+
+      return parsedVersion;
+    }
+  }
+
+  private VersionIdentifier getDockerDesktopVersionWindows() {
+
+    String dockerDesktopVersionWindowsCommand = "reg query \"HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Docker Desktop\" /v DisplayVersion";
+
+    List<String> outputs = this.context.newProcess().runAndGetOutput("cmd.exe", "/c", dockerDesktopVersionWindowsCommand);
+    String singleLineOutput = String.join(" ", outputs);
+    return super.resolveVersionWithPattern(singleLineOutput, DOCKER_DESKTOP_WINDOWS_VERSION_PATTERN);
+  }
+
+  private VersionIdentifier getDockerDesktopVersionLinux() {
+
+    String dockerDesktopVersionLinuxCommand = "apt list --installed | grep docker-desktop | awk '{print $2}'";
+    String output = this.context.newProcess().runAndGetSingleOutput("bash", "-lc", dockerDesktopVersionLinuxCommand);
+    return super.resolveVersionWithPattern(output, DOCKER_DESKTOP_LINUX_VERSION_PATTERN);
+  }
+
+  private VersionIdentifier getRancherDesktopClientVersion() {
+
+    String output = this.context.newProcess().runAndGetSingleOutput("rdctl", "version");
+    return super.resolveVersionWithPattern(output, RDCTL_CLIENT_VERSION_PATTERN);
+  }
+
+  @Override
+  public String getInstalledEdition() {
+
+    if (!isDockerInstalled()) {
+      this.context.error("Couldn't get installed edition of " + this.getName());
+      return null;
+    }
+
+    if (isRancherDesktopInstalled()) {
+      return "rancher";
+    } else {
+      return "desktop";
+    }
   }
 
   @Override
