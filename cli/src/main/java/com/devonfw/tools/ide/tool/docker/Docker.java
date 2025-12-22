@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.devonfw.tools.ide.common.Tag;
@@ -28,10 +27,9 @@ public class Docker extends GlobalToolCommandlet {
 
   private static final Pattern RDCTL_CLIENT_VERSION_PATTERN = Pattern.compile("client version:\\s*v([\\d.]+)", Pattern.CASE_INSENSITIVE);
 
-  private static final Pattern DOCKER_DESKTOP_SERVER_VERSION_PATTERN = Pattern.compile("(?m)^\\s*Server:\\s*Docker Desktop\\s*([\\d.]+)\\b");
+  private static final Pattern DOCKER_DESKTOP_WINDOWS_VERSION_PATTERN = Pattern.compile("DisplayVersion\\s+REG_SZ\\s+([0-9]+(?:\\.[0-9]+){2})");
 
-  private static final Pattern DOCKER_STATUS_RUNNING_PATTERN = Pattern.compile("(?m)^\\s*Status\\s+running\\b", Pattern.CASE_INSENSITIVE);
-
+  private static final Pattern DOCKER_DESKTOP_LINUX_VERSION_PATTERN = Pattern.compile("^([0-9]+(?:\\.[0-9]+){1,2})");
 
   /**
    * The constructor.
@@ -107,60 +105,45 @@ public class Docker extends GlobalToolCommandlet {
     if (isRancherDesktopInstalled()) {
       return getRancherDesktopClientVersion();
     } else {
-      boolean isDockerDesktopPreviouslyRunning = isDockerDesktopRunning();
+      VersionIdentifier parsedVersion = switch (this.context.getSystemInfo().getOs()) {
+        case WINDOWS -> getDockerDesktopVersionWindows();
+        case LINUX -> getDockerDesktopVersionLinux();
+        default -> null;
+      };
 
-      if (!isDockerDesktopPreviouslyRunning) {
-        this.context.newProcess().run("docker", "desktop", "start");
+      if (parsedVersion == null) {
+        this.context.error("Couldn't get installed version of " + this.getName());
       }
 
-      try {
-        return getDockerDesktopServerVersion();
-      } finally {
-        if (!isDockerDesktopPreviouslyRunning) {
-          this.context.newProcess().run("docker", "desktop", "stop");
-        }
-      }
+      return parsedVersion;
     }
+  }
+
+  private VersionIdentifier getDockerDesktopVersionWindows() {
+
+    String dockerDesktopVersionWindowsCommand = "reg query \"HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Docker Desktop\" /v DisplayVersion";
+
+    List<String> outputs = this.context.newProcess().runAndGetOutput("cmd.exe", "/c", dockerDesktopVersionWindowsCommand);
+    String singleLineOutput = String.join(" ", outputs);
+    return super.resolveVersionWithPattern(singleLineOutput, DOCKER_DESKTOP_WINDOWS_VERSION_PATTERN);
+  }
+
+  private VersionIdentifier getDockerDesktopVersionLinux() {
+
+    String dockerDesktopVersionLinuxCommand = "apt list --installed | grep docker-desktop | awk '{print $2}'";
+    String output = this.context.newProcess().runAndGetSingleOutput("bash", "-lc", dockerDesktopVersionLinuxCommand);
+    return super.resolveVersionWithPattern(output, DOCKER_DESKTOP_LINUX_VERSION_PATTERN);
   }
 
   private VersionIdentifier getRancherDesktopClientVersion() {
 
     String output = this.context.newProcess().runAndGetSingleOutput("rdctl", "version");
-    Matcher matcher = RDCTL_CLIENT_VERSION_PATTERN.matcher(output);
-
-    if (matcher.find()) {
-      String version = matcher.group(1);
-      return VersionIdentifier.of(version);
-    } else {
-      this.context.error("Couldn't get installed version of " + this.getName());
-      return null;
-    }
+    return super.resolveVersionWithPattern(output, RDCTL_CLIENT_VERSION_PATTERN);
   }
-
-  private boolean isDockerDesktopRunning() {
-
-    List<String> outputs = this.context.newProcess().runAndGetOutput("docker", "desktop", "status");
-    String singleLineOutput = String.join("\n", outputs);
-    Matcher matcher = DOCKER_STATUS_RUNNING_PATTERN.matcher(singleLineOutput);
-
-    return matcher.find();
-  }
-
-  private VersionIdentifier getDockerDesktopServerVersion() {
-    List<String> outputs = this.context.newProcess().runAndGetOutput("docker", "version");
-    String singleLineOutput = String.join("\n", outputs);
-    Matcher matcher = DOCKER_DESKTOP_SERVER_VERSION_PATTERN.matcher(singleLineOutput);
-
-    if (matcher.find()) {
-      String version = matcher.group(1);
-      return VersionIdentifier.of(version);
-    }
-    return null;
-  }
-
 
   @Override
   public String getInstalledEdition() {
+
     if (!isDockerInstalled()) {
       this.context.error("Couldn't get installed edition of " + this.getName());
       return null;

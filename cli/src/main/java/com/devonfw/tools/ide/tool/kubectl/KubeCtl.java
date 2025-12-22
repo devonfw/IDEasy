@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.tool.kubectl;
 
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.devonfw.tools.ide.common.Tag;
@@ -38,14 +37,7 @@ public class KubeCtl extends DelegatingToolCommandlet {
     List<String> outputs = this.context.newProcess().runAndGetOutput(this.tool, "version", "--client");
     String singleLineOutput = String.join("\n", outputs);
 
-    Matcher matcher = KUBECTL_VERSION_PATTERN.matcher(singleLineOutput);
-    if (matcher.find()) {
-      String version = matcher.group(1);
-      this.context.info("Installation found: kubectl v" + version);
-      return VersionIdentifier.of(version);
-    } else {
-      return super.getInstalledVersion();
-    }
+    return super.resolveVersionWithPattern(singleLineOutput, KUBECTL_VERSION_PATTERN);
 
   }
 
