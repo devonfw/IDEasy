@@ -2,17 +2,26 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
-== 2025.12.001
-
-* https://github.com/devonfw/IDEasy/issues/1166[#1166]: Automatic project import for IntelliJ
-* https://github.com/devonfw/IDEasy/issues/1508[#1508]: xml merger fails when merging empty file
+== 2026.01.001
 
 Release with new features and bugfixes:
 
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/39?closed=1[milestone 2026.01.001].
+
+== 2025.12.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1166[#1166]: Automatic project import for IntelliJ
+* https://github.com/devonfw/IDEasy/issues/1508[#1508]: xml merger fails when merging empty file
+* https://github.com/devonfw/IDEasy/issues/1660[#1660]: ide status still failing
+* https://github.com/devonfw/IDEasy/issues/1646[#1646]: Duplicated options from CVE update suggestion
 * https://github.com/devonfw/IDEasy/issues/39[#39]: Implement ToolCommandlet for pip
 * https://github.com/devonfw/IDEasy/issues/1633[#1633]: CVE suggestions show unstable versions
 * https://github.com/devonfw/IDEasy/issues/1636[#1636]: CVE suggestion scoring more reasonable
 * https://github.com/devonfw/IDEasy/issues/1640[#1640]: StackOverflowError: Infinity loop whilst installing terraform
+* https://github.com/devonfw/IDEasy/issues/1645[#1645]: Fix for the NullPointerException while installing docker / kubectl
+* https://github.com/devonfw/IDEasy/pull/1596[#1596] Add support for comma-separated workspace values in repository configuration
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/38?closed=1[milestone 2025.12.001].
 

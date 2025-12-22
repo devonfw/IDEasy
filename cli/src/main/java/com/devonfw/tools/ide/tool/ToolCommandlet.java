@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -402,7 +403,20 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   protected ToolInstallation createExistingToolInstallation(ToolInstallRequest request) {
 
     ToolEditionAndVersion installed = request.getInstalled();
-    return createExistingToolInstallation(installed.getEdition().edition(), installed.getResolvedVersion(), request.getProcessContext(),
+
+    String edition = this.tool;
+    VersionIdentifier resolvedVersion = VersionIdentifier.LATEST;
+
+    if (installed != null) {
+      if (installed.getEdition() != null) {
+        edition = installed.getEdition().edition();
+      }
+      if (installed.getResolvedVersion() != null) {
+        resolvedVersion = installed.getResolvedVersion();
+      }
+    }
+
+    return createExistingToolInstallation(edition, resolvedVersion, request.getProcessContext(),
         request.isAdditionalInstallation());
   }
 
@@ -583,6 +597,11 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     ToolVulnerabilities nearestVulnerabilities = currentVulnerabilities;
     List<VersionIdentifier> toolVersions = getVersions();
     for (VersionIdentifier version : toolVersions) {
+
+      if (Objects.equals(version, resolvedVersion)) {
+        continue; // Skip the entire iteration for resolvedVersion
+      }
+
       if (acceptVersion(version, allowedVersions, requireStableVersion)) {
         ToolVulnerabilities newVulnerabilities = toolSecurity.findCves(version, this.context, minSeverity);
         if (newVulnerabilities.isSafer(latestVulnerabilities)) {
