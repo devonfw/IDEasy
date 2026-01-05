@@ -9,6 +9,8 @@ import java.util.regex.Pattern;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.SystemArchitecture;
+import com.devonfw.tools.ide.os.WindowsHelper;
+import com.devonfw.tools.ide.os.WindowsHelperImpl;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.NativePackageManager;
 import com.devonfw.tools.ide.tool.PackageManagerCommand;
@@ -26,9 +28,7 @@ public class Docker extends GlobalToolCommandlet {
 
 
   private static final Pattern RDCTL_CLIENT_VERSION_PATTERN = Pattern.compile("client version:\\s*v([\\d.]+)", Pattern.CASE_INSENSITIVE);
-
-  private static final Pattern DOCKER_DESKTOP_WINDOWS_VERSION_PATTERN = Pattern.compile("DisplayVersion\\s+REG_SZ\\s+([0-9]+(?:\\.[0-9]+){2})");
-
+  
   private static final Pattern DOCKER_DESKTOP_LINUX_VERSION_PATTERN = Pattern.compile("^([0-9]+(?:\\.[0-9]+){1,2})");
 
   /**
@@ -121,11 +121,12 @@ public class Docker extends GlobalToolCommandlet {
 
   private VersionIdentifier getDockerDesktopVersionWindows() {
 
-    String dockerDesktopVersionWindowsCommand = "reg query \"HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Docker Desktop\" /v DisplayVersion";
+    String registryPath = "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Docker Desktop";
 
-    List<String> outputs = this.context.newProcess().runAndGetOutput("cmd.exe", "/c", dockerDesktopVersionWindowsCommand);
-    String singleLineOutput = String.join(" ", outputs);
-    return super.resolveVersionWithPattern(singleLineOutput, DOCKER_DESKTOP_WINDOWS_VERSION_PATTERN);
+    WindowsHelper windowsHelper = new WindowsHelperImpl(this.context);
+    String version = windowsHelper.getRegistryValue(registryPath, "DisplayVersion");
+
+    return VersionIdentifier.of(version);
   }
 
   private VersionIdentifier getDockerDesktopVersionLinux() {
