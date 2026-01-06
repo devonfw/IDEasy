@@ -24,6 +24,17 @@ https://apps.microsoft.com/detail/9PDXGNCFSCZV?hl=en-us&gl=DE&ocid=pdpshare[Micr
 
 == IDEasy Setup via Ubuntu Terminal
 
+Open an Ubuntu shell on your system.
+Ideally you do this via Windows Terminal or by typing `Ubuntu` in the Windows start menu.
+
+.Opening Ubuntu from Windows Start Menu
+image::images/wsl_guide/WindowsSearch.png[WindowsSearch]
+
+*All the following steps and commands need to happen inside this Ubuntu terminal.*
+
+.Ubuntu Terminal
+image::images/wsl_guide/UbuntuTerminal.png[UbuntuTerminal]
+
 === Prerequisite
 
 Ensure `Git` is installed on your system.
@@ -42,53 +53,40 @@ sudo apt install git
 === Download and Setup IDEasy
 
 Refer to the detailed setup guide: link:setup.adoc[Setup Instructions].
-
-*Tip:* It is recommended to install and use Windows Terminal to manage multiple terminal instances.
-First, open Ubuntu using Windows Terminal or directly from the Windows Start menu.
-
-.Opening Ubuntu from Windows Start Menu
-image::images/wsl_guide/WindowsSearch.png[WindowsSearch]
-
-You should now be able to access the Ubuntu terminal on your system.
-
-.Ubuntu Terminal
-image::images/wsl_guide/UbuntuTerminal.png[UbuntuTerminal]
-
-Next, open Ubuntu To install IDEasy via the opened terminal:
+So inside your Ubuntu shell install IDEasy via the following steps:
 
 1. Copy the Maven link for the *latest* IDEasy release for Linux.
 2. Download the file using `wget`:
-
++
 ```
 wget «link-to-repo»
 ```
-
++
 Verify the download with the `ls` command; the file should appear if downloaded correctly.
-
++
 ```
 ls
 ```
-
++
 .Download and verify files with wget and ls (with an example of link:https://github.com/devonfw/IDEasy/releases/tag/release%2F2025.11.001[2025.11.00 release])
 image::images/wsl_guide/wget.png["wget"]
-
-Create a new directory `IDEasy` and extract the downloaded file:
-
+3. Create a new directory `IDEasy` and extract the downloaded file:
++
 ```
 mkdir IDEasy
 tar xzf «downloaded-file-name» -C IDEasy
 ```
-
++
 This extracts the contents into the IDEasy folder.
-Run the setup script inside the IDEasy folder:
-
+4. Run the setup script inside the IDEasy folder:
++
 ```
 ./IDEasy/setup
 ```
-
++
 Follow the instructions in the terminal.
-After installation, reboot the system:
-
+5. After installation, reboot the system:
++
 ```
 sudo reboot
 ```
