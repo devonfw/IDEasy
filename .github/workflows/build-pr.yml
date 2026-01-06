@@ -11,6 +11,7 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v2
         with:
+          distribution: 'temurin'
           java-version: '21'
       - name: Build project with Maven
         run: mvn -B -ntp -Dstyle.color=always install
