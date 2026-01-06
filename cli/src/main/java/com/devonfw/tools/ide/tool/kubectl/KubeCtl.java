@@ -36,9 +36,7 @@ public class KubeCtl extends DelegatingToolCommandlet {
 
     List<String> outputs = this.context.newProcess().runAndGetOutput(this.tool, "version", "--client");
     String singleLineOutput = String.join("\n", outputs);
-
-    return super.resolveVersionWithPattern(singleLineOutput, KUBECTL_VERSION_PATTERN);
-
+    return resolveVersionWithPattern(singleLineOutput, KUBECTL_VERSION_PATTERN);
   }
 
 }

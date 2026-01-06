@@ -123,7 +123,7 @@ public class Docker extends GlobalToolCommandlet {
 
     String registryPath = "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Docker Desktop";
 
-    WindowsHelper windowsHelper = new WindowsHelperImpl(this.context);
+    WindowsHelper windowsHelper = ((com.devonfw.tools.ide.context.AbstractIdeContext) this.context).getWindowsHelper();
     String version = windowsHelper.getRegistryValue(registryPath, "DisplayVersion");
 
     return VersionIdentifier.of(version);
