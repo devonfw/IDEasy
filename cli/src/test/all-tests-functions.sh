@@ -43,20 +43,38 @@ function doDownloadSnapshot () {
     local url
     # Change OS type based on github workflow matrix.os name
     local osType
-    if [ "${MATRIX_OS}" == "windows-latest" ]; then
-      osType="windows-x64"
-    elif [ "${MATRIX_OS}" == "ubuntu-latest" ]; then
-      osType="linux-x64"
-    elif [ "${MATRIX_OS}" == "macos-latest" ]; then
-      osType="mac-arm64"
-    elif [ "${MATRIX_OS}" == "macos-13" ]; then
-      osType="mac-x64"
-    fi
-    url=$(grep "href=\"https://.*${osType}.tar.gz" "$pageHtmlLocal" | grep -o "https://.*${osType}.tar.gz" | cut -f1 -d"\"")
+    osType=$(doGetOsType)
+    url=$(grep "href=\"https://.*${osType}.tar.gz" "$pageHtmlLocal" | grep -o "https://[^\"]*${osType}.tar.gz" | head -1)
     echo "Trying to download IDEasy for OS: ${osType} from: ${url} to: ${IDEASY_COMPRESSED_FILE:?} ..."
     curl -o "${IDEASY_COMPRESSED_FILE:?}" "$url"
     rm "${pageHtmlLocal:?}"
   fi
+}
+
+function doGetOsType() {
+  local osType
+  case "$OSTYPE" in
+    msys*|cygwin*|win32*)
+      osType="windows-x64"
+      ;;
+    linux*|gnu*)
+      osType="linux-x64"
+      ;;
+    darwin*|macos*)
+      # Try to distinguish between Apple Silicon and Intel Macs
+      if sysctl -n machdep.cpu.brand_string 2>/dev/null | grep -qi "Apple"; then
+        osType="mac-arm64"
+      else
+        osType="mac-x64"
+      fi
+      ;;
+    *)
+      echo "Unknown OSTYPE: $OSTYPE. Falling back to windows (most common developer machine)." >&2
+      osType="windows-x64"
+      ;;
+  esac
+  echo "Detected OS type: ${osType}" >&2
+  echo "$osType"
 }
 
 
@@ -86,7 +104,8 @@ function doError() {
 }
 
 function doIsMacOs() {
-  if [ "${OSTYPE:0:6}" = "darwin" ]
+  local osType=$(doGetOsType)
+  if [ "$osType" = "mac-arm64" ] || [ "$osType" = "mac-x64" ]
   then
     return
   fi
@@ -94,7 +113,8 @@ function doIsMacOs() {
 }
 
 function doIsWindows() {
-  if [ "${OSTYPE}" = "cygwin" ] || [ "${OSTYPE}" = "msys" ]
+  local osType=$(doGetOsType)
+  if [ "$osType" = "windows-x64" ]
   then
     return
   fi
