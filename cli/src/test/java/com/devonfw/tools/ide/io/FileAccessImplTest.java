@@ -188,6 +188,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
   public void testSymlinkWindowsJunctionsCanNotPointToFiles(@TempDir Path tempDir) throws IOException {
 
     // arrange
+    WindowsSymlinkTestHelper.assumeSymlinksSupported();
     IdeContext context = IdeTestContextMock.get();
     FileAccess fileAccess = context.getFileAccess();
     Path file = tempDir.resolve("file");
@@ -541,6 +542,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
   public void testUntarWithGzipCompressionWithSymbolicLink(@TempDir Path tempDir) {
 
     // arrange
+    WindowsSymlinkTestHelper.assumeSymlinksSupported();
     IdeContext context = IdeTestContextMock.get();
     Path linkTarGz = Path.of("src/test/resources/com/devonfw/tools/ide/io/link.tar.gz");
     FileAccess fileAccess = context.getFileAccess();
