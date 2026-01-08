@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.common.Tag;
@@ -937,6 +939,29 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   public void reset() {
     super.reset();
     this.executionDirectory = null;
+  }
+
+  /**
+   * @param command the binary that will be searched in the PATH e.g. docker
+   * @return true if the command is available to use
+   */
+  protected boolean isCommandAvailable(String command) {
+    return this.context.getPath().hasBinaryOnPath(command);
+  }
+
+  /**
+   * @param output the raw output string from executed command e.g. 'docker version'
+   * @param pattern Regular Expression pattern that filters out the unnecessary texts.
+   * @return version that has been processed.
+   */
+  protected VersionIdentifier resolveVersionWithPattern(String output, Pattern pattern) {
+    Matcher matcher = pattern.matcher(output);
+
+    if (matcher.find()) {
+      return VersionIdentifier.of(matcher.group(1));
+    } else {
+      return null;
+    }
   }
 
   /**
