@@ -14,7 +14,7 @@ The standard configuration of the IDEasy is maintained in the repository https:/
 
 ## Test Execution
 
-- All tests can be executed by `mvn clean test`
+- All tests can be executed by `mvn clean test` in the module of interest, e.g. the `cli` folder
 - All integration tests can be executed by executing the script `cli/src/test/all-tests.sh`
 
 ## Commit Messages

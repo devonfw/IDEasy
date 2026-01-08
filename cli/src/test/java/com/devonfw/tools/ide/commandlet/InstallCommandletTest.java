@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import com.devonfw.tools.ide.cli.CliOfflineException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
@@ -11,6 +12,8 @@ import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.tool.repository.DefaultToolRepository;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Integration test of {@link InstallCommandlet}.
@@ -202,4 +205,99 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
     assertThat(hasDownloadMessage).as("Should download when --skip-updates is enabled but version does not match").isTrue();
     assertThat(context.getSoftwarePath().resolve("java/.ide.software.version")).exists().hasContent("21.0.8_9");
   }
+
+  /**
+   * Test of {@link InstallCommandlet} when offline but tool version is already downloaded. Verifies that the tool can be installed from cached download even
+   * when offline.
+   *
+   * @param wmRuntimeInfo wireMock server on a random port
+   */
+  @Test
+  public void testInstallCommandletOfflineWithCachedDownload(WireMockRuntimeInfo wmRuntimeInfo) {
+
+    // arrange - install java while online to ensure it's downloaded
+    IdeTestContext context = newContext(PROJECT_INSTALL, wmRuntimeInfo);
+    InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
+    install.tool.setValueAsString("java", context);
+    String version = "17.0.6";
+    install.version.setValueAsString(version, context);
+    install.run();
+    assertThat(context.getSoftwarePath().resolve("java/.ide.software.version")).exists().hasContent(version);
+
+    // arrange - delete the installed tool but keep the cached download
+    context.getFileAccess().delete(context.getSoftwarePath().resolve("java"));
+    context.getFileAccess().delete(context.getSoftwareRepositoryPath().resolve(DefaultToolRepository.ID_DEFAULT).resolve("java"));
+
+    // arrange - simulate offline mode
+    context.getNetworkStatus().simulateNetworkError();
+
+    // act - try to install again while offline
+    install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
+    install.tool.setValueAsString("java", context);
+    install.version.setValueAsString(version, context);
+    install.run();
+
+    // assert - should successfully install from cached download
+    assertThat(context.getSoftwarePath().resolve("java/.ide.software.version")).exists().hasContent(version);
+    assertThat(context).logAtDebug().hasMessage("Using cached download of java in version " + version + " from " 
+        + context.getDownloadPath().resolve("default").resolve("java-" + version + "-windows-x64.zip") + " (offline mode)");
+  }
+
+  /**
+   * Test of {@link InstallCommandlet} when offline and tool version is not cached. Verifies that installation fails with appropriate exception when tool is not
+   * available locally and we are offline.
+   *
+   * @param wmRuntimeInfo wireMock server on a random port
+   */
+  @Test
+  public void testInstallCommandletOfflineWithoutCachedDownload(WireMockRuntimeInfo wmRuntimeInfo) {
+
+    // arrange - create context without pre-installing anything
+    IdeTestContext context = newContext(PROJECT_INSTALL, wmRuntimeInfo);
+    context.getNetworkStatus().simulateNetworkError();
+    InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
+    install.tool.setValueAsString("java", context);
+    String version = "17.0.6";
+    install.version.setValueAsString(version, context);
+
+    // act & assert - should fail with CliOfflineException
+    CliOfflineException e = assertThrows(CliOfflineException.class, install::run);
+    assertThat(e).hasMessageContaining("Not able to download tool java");
+    assertThat(e).hasMessageContaining("because we are offline");
+  }
+
+  /**
+   * Test of {@link InstallCommandlet} when offline and trying to update to a version that is not cached. Verifies that IDEasy continues using the currently
+   * installed version instead of blocking the user.
+   *
+   * @param wmRuntimeInfo wireMock server on a random port
+   */
+  @Test
+  public void testInstallCommandletOfflineUpdateWithoutCachedDownload(WireMockRuntimeInfo wmRuntimeInfo) {
+
+    // arrange - install java 17.0.6 while online
+    IdeTestContext context = newContext(PROJECT_INSTALL, wmRuntimeInfo);
+    InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
+    install.tool.setValueAsString("java", context);
+    String installedVersion = "17.0.6";
+    install.version.setValueAsString(installedVersion, context);
+    install.run();
+    assertThat(context.getSoftwarePath().resolve("java/.ide.software.version")).exists().hasContent(installedVersion);
+
+    // arrange - try to update to 17.0.10 while offline (version not cached)
+    context.getNetworkStatus().simulateNetworkError();
+    install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
+    install.tool.setValueAsString("java", context);
+    String targetVersion = "17.0.10";
+    install.version.setValueAsString(targetVersion, context);
+
+    // act - try to install/update while offline
+    install.run();
+
+    // assert - should continue using the old version and log a warning
+    assertThat(context.getSoftwarePath().resolve("java/.ide.software.version")).exists().hasContent(installedVersion);
+    assertThat(context).logAtWarning().hasMessage("Cannot download java in version " + targetVersion 
+        + " because we are offline. Continuing with already installed version " + installedVersion + ".");
+  }
 }
+
