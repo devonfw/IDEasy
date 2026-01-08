@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Set;
 
+import com.devonfw.tools.ide.cli.CliOfflineException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
@@ -198,8 +199,13 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
         }
       }
     }
-    performToolInstallation(request, installationPath);
-    return createToolInstallation(installationPath, resolvedVersion, true, processContext, additionalInstallation);
+    VersionIdentifier actualInstalledVersion = performToolInstallation(request, installationPath, resolvedVersion);
+    // If offline and could not download, actualInstalledVersion will be the old version, not resolvedVersion
+    // In that case, we need to recalculate the installation path for the actually installed version
+    if (!actualInstalledVersion.equals(resolvedVersion)) {
+      installationPath = getInstallationPath(edition, actualInstalledVersion);
+    }
+    return createToolInstallation(installationPath, actualInstalledVersion, true, processContext, additionalInstallation);
   }
 
   /**
@@ -211,13 +217,29 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    *
    * @param request the {@link ToolInstallRequest}.
    * @param installationPath the target {@link Path} where the {@link #getName() tool} should be installed.
+   * @param resolvedVersion the {@link VersionIdentifier} that should be installed.
+   * @return the {@link VersionIdentifier} of the version that was actually installed. In offline scenarios where download fails, this may be different from
+   *     {@code resolvedVersion} (returning the existing installed version instead).
    */
-  protected void performToolInstallation(ToolInstallRequest request, Path installationPath) {
+  protected VersionIdentifier performToolInstallation(ToolInstallRequest request, Path installationPath, VersionIdentifier resolvedVersion) {
 
     FileAccess fileAccess = this.context.getFileAccess();
     ToolEditionAndVersion requested = request.getRequested();
-    VersionIdentifier resolvedVersion = requested.getResolvedVersion();
-    Path downloadedToolFile = downloadTool(requested.getEdition().edition(), resolvedVersion);
+    Path downloadedToolFile;
+    try {
+      downloadedToolFile = downloadTool(requested.getEdition().edition(), resolvedVersion);
+    } catch (CliOfflineException e) {
+      // If we are offline and cannot download, check if we can continue with an existing installation
+      ToolEditionAndVersion installed = request.getInstalled();
+      if ((installed != null) && (installed.getResolvedVersion() != null)) {
+        this.context.warning("Cannot download {} in version {} because we are offline. Continuing with already installed version {}.",
+            this.tool, resolvedVersion, installed.getResolvedVersion());
+        // Return the existing installed version to indicate fallback
+        return installed.getResolvedVersion();
+      }
+      // No existing installation available, re-throw the exception
+      throw e;
+    }
     boolean extract = isExtract();
     if (!extract) {
       this.context.trace("Extraction is disabled for '{}' hence just moving the downloaded file {}.", this.tool, downloadedToolFile);
@@ -233,6 +255,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     fileAccess.extract(downloadedToolFile, installationPath, this::postExtract, extract);
     this.context.writeVersionFile(resolvedVersion, installationPath);
     this.context.debug("Installed {} in version {} at {}", this.tool, resolvedVersion, installationPath);
+    return resolvedVersion;
   }
 
   /**
