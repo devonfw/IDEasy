@@ -3,18 +3,54 @@ toc::[]
 
 = Getting started as developer contributing to IDEasy
 
+To begin, read through the https://github.com/devonfw/IDEasy/blob/main/documentation/IDEasy-contribution-rules-and-guidelines.adoc[Contribution Guidelines], which you should be sure to follow.
+
 == Installation
 
 To start developing IDEasy, you must first install it on your computer.
 Therefore, simply follow the link:setup.adoc[setup] guide.
-It is important to notice that this installation gives you the latest published version of IDEasy with which you can execute commands like eclipse or docker whose scripts are located inside the "${IDE_HOME}$/scripts/command, but for committing code we use a differing folder structure.
+
 This will be addressed under xref:Contribution[Contribution].
+
+== Setup the Development Environment
+
+After IDEasy installation, run the following command in the terminal to create a project:
+
+```
+ide create IDEasy -
+```
+
+Next, fork the https://github.com/devonfw/ideasy[IDEasy] repository.
+Steps for forking or cloning repositories, creating branches, and using Git commands can be found in the  https://github.com/firstcontributions/first-contributions[first contributions guideline].
+To contribute code or documentation for IDEasy, first fork the  https://github.com/devonfw/ideasy[IDEasy] repository, then clone your fork into the  `workspaces/main` folder in your IDEasy installation.
+
+Navigate to the `workspaces/main` directory:
+
+```
+icd -p IDEasy -w
+```
+
+Clone your forked project into this directory:
+
+```
+git clone «forked-project-url»
+```
+
+Now you can open the project in your preferred IDE using the `ide` command.
+For IntelliJ:
+
+```
+ide intellij
+```
+
+In IntelliJ, select the `pom.xml` file and right-click → **Add as Maven Project**.
+
+*Tip:* If the Maven button is hidden or not visible, press `Alt + 7` to open the **Structure** window below the project explorer.
+Scroll down in the explorer to make the `pom.xml` file appear higher, enabling the option to be clicked.
+Alternatively, use the keyboard arrows to navigate to the bottom of the right-click menu.
 
 == Contribution
 
-To begin, read through the https://github.com/devonfw/IDEasy/blob/main/documentation/IDEasy-contribution-rules-and-guidelines.adoc[Contribution Guidelines], which you should be sure to follow.
-First steps regarding forks or cloning of repos and creating branches, as well as some git commands, can be found in the https://github.com/firstcontributions/first-contributions[first contributions guideline].
-To contribute code or documentation regarding IDEasy at first you need to fork the https://github.com/devonfw/ideasy[IDEasy] repository and then you can clone your fork into the folder `workspaces/main` in your IDEasy installation.
 Open git-bash in the cloned fork at `workspaces/main/IDEasy` and run the following command:
 
 ```
@@ -74,7 +110,6 @@ The Name needs to be equal to the one of both the tool and the commandlet.
 There are four available parent classes of url-updaters, that can be used.
 They mainly differentiate in the way, available versions are detected.
 
-  
 * https://github.com/devonfw/IDEasy/blob/main/cli/src/main/java/com/devonfw/tools/ide/url/updater/GithubUrlUpdater.java[`GithubUrlUpdater`]
 
 * https://github.com/devonfw/IDEasy/blob/main/cli/src/main/java/com/devonfw/tools/ide/url/updater/JsonUrlUpdater.java[`JsonUrlUpdater`]
@@ -95,12 +130,6 @@ Once a day, the `UpdateInitiator` will run the updaters through GitHub Actions a
 
 Use an existing commandlet like https://github.com/devonfw/IDEasy/blob/main/cli/src/main/java/com/devonfw/tools/ide/tool/java/Java.java[Java] as a reference.
 Create a sub-package and a class with the name of the tool.
-
-TODO explain:
-* Properties
-* run Method
-* Dependencies
-* Commandlet class hierarchy
 
 === LICENSE
 
