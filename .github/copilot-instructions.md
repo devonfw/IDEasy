@@ -15,6 +15,8 @@ The standard configuration of the IDEasy is maintained in the repository https:/
 ## Test Execution
 
 - All tests can be executed by `mvn clean test`
+- Run `mvn test` in the root folder RARELY as it triggers unnecessary long-running documentation generation (ide-doc module)
+- Execute specific test classes by using your IDE or the command line `mvn -Dtest=ClassName test` in the module folder of interest, e.g. the `cli` folder respectively `ide-cli` maven module folder. 
 - All integration tests can be executed by executing the script `cli/src/test/all-tests.sh`
 
 ## Commit Messages
