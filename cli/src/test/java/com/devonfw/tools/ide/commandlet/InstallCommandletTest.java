@@ -239,8 +239,11 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
 
     // assert - should successfully install from cached download
     assertThat(context.getSoftwarePath().resolve("java/.ide.software.version")).exists().hasContent(version);
+    // Determine the correct file extension and OS name based on the current OS
+    String fileExtension = context.getSystemInfo().isWindows() ? "zip" : "tgz";
+    String osName = context.getSystemInfo().getOs().toString().toLowerCase();
     assertThat(context).logAtDebug().hasMessage("Using cached download of java in version " + version + " from " 
-        + context.getDownloadPath().resolve("default").resolve("java-" + version + "-windows-x64.zip") + " (offline mode)");
+        + context.getDownloadPath().resolve("default").resolve("java-" + version + "-" + osName + "-x64." + fileExtension) + " (offline mode)");
   }
 
   /**
