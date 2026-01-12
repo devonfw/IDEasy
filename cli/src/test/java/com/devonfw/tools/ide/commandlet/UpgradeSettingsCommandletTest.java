@@ -7,9 +7,9 @@ import org.junit.jupiter.api.Test;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.tool.repository.CustomToolJson;
-import com.devonfw.tools.ide.tool.repository.CustomToolsJson;
-import com.devonfw.tools.ide.tool.repository.CustomToolsJsonMapper;
+import com.devonfw.tools.ide.tool.custom.CustomToolJson;
+import com.devonfw.tools.ide.tool.custom.CustomToolsJson;
+import com.devonfw.tools.ide.tool.custom.CustomToolsJsonMapper;
 
 /**
  * Integration test of {@link UpgradeSettingsCommandlet} .

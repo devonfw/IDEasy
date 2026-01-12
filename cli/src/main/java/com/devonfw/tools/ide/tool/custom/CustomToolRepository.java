@@ -1,6 +1,8 @@
-package com.devonfw.tools.ide.tool.repository;
+package com.devonfw.tools.ide.tool.custom;
 
 import java.util.Collection;
+
+import com.devonfw.tools.ide.tool.repository.ToolRepository;
 
 /**
  * Interface for the custom {@link ToolRepository}.
