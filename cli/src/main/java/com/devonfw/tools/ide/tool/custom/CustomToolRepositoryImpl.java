@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.tool.repository;
+package com.devonfw.tools.ide.tool.custom;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -13,6 +13,7 @@ import java.util.Map;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.repository.AbstractToolRepository;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
 import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
 import com.devonfw.tools.ide.url.model.file.json.ToolSecurity;

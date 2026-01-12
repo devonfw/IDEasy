@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.tool.repository;
+package com.devonfw.tools.ide.tool.npm;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +9,8 @@ import com.devonfw.tools.ide.json.JsonMapping;
 import com.devonfw.tools.ide.npm.NpmJsonObject;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.node.NodeBasedCommandlet;
-import com.devonfw.tools.ide.tool.npm.NpmArtifact;
+import com.devonfw.tools.ide.tool.repository.AbstractToolRepository;
+import com.devonfw.tools.ide.tool.repository.ArtifactToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
