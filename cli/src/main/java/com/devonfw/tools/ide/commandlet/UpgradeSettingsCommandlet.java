@@ -14,9 +14,9 @@ import com.devonfw.tools.ide.environment.EnvironmentVariablesPropertiesFile;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
+import com.devonfw.tools.ide.tool.custom.CustomToolsJson;
+import com.devonfw.tools.ide.tool.custom.CustomToolsJsonMapper;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
-import com.devonfw.tools.ide.tool.repository.CustomToolsJson;
-import com.devonfw.tools.ide.tool.repository.CustomToolsJsonMapper;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.variable.VariableDefinition;
 

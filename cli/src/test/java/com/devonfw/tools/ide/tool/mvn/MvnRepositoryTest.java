@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.tool.repository;
+package com.devonfw.tools.ide.tool.mvn;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;

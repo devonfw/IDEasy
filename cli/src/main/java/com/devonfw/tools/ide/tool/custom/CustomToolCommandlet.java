@@ -1,7 +1,7 @@
-package com.devonfw.tools.ide.tool;
+package com.devonfw.tools.ide.tool.custom;
 
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.tool.repository.CustomToolMetadata;
+import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 

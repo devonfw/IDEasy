@@ -61,7 +61,7 @@ public class PipTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test {@link Pip#getVersions()} works correctly via {@link com.devonfw.tools.ide.tool.repository.PipRepository}.
+   * Test {@link Pip#getVersions()} works correctly via {@link PipRepository}.
    *
    * @param wireMockRuntimeInfo wireMock server on a random port
    */

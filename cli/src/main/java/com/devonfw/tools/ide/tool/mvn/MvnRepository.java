@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.tool.repository;
+package com.devonfw.tools.ide.tool.mvn;
 
 import java.io.InputStream;
 import java.net.URL;
@@ -24,8 +24,8 @@ import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.os.SystemArchitecture;
 import com.devonfw.tools.ide.tool.IdeasyCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
-import com.devonfw.tools.ide.tool.mvn.MvnArtifact;
-import com.devonfw.tools.ide.tool.mvn.MvnBasedLocalToolCommandlet;
+import com.devonfw.tools.ide.tool.repository.AbstractToolRepository;
+import com.devonfw.tools.ide.tool.repository.ArtifactToolRepository;
 import com.devonfw.tools.ide.url.model.file.UrlChecksums;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
 import com.devonfw.tools.ide.url.model.file.UrlGenericChecksum;
@@ -298,6 +298,12 @@ public class MvnRepository extends ArtifactToolRepository<MvnArtifact, MvnArtifa
    */
   protected String getMavenUrl(MvnArtifact artifact) {
     return artifact.getDownloadUrl();
+  }
+
+  @Override
+  protected MvnArtifactMetadata getMetadata(String tool, String edition, VersionIdentifier version, ToolCommandlet toolCommandlet) {
+
+    return super.getMetadata(tool, edition, version, toolCommandlet);
   }
 
   private class UrlLazyChecksums implements UrlChecksums {

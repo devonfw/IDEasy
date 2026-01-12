@@ -20,9 +20,9 @@ import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.step.Step;
-import com.devonfw.tools.ide.tool.CustomToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
-import com.devonfw.tools.ide.tool.repository.CustomToolMetadata;
+import com.devonfw.tools.ide.tool.custom.CustomToolCommandlet;
+import com.devonfw.tools.ide.tool.custom.CustomToolMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**

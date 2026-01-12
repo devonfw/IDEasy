@@ -2,14 +2,14 @@ package com.devonfw.tools.ide.json;
 
 import java.io.IOException;
 
+import com.devonfw.tools.ide.tool.custom.CustomToolJson;
+import com.devonfw.tools.ide.tool.custom.CustomToolJsonDeserializer;
+import com.devonfw.tools.ide.tool.custom.CustomToolJsonSerializer;
+import com.devonfw.tools.ide.tool.custom.CustomToolsJson;
+import com.devonfw.tools.ide.tool.custom.CustomToolsJsonDeserializer;
+import com.devonfw.tools.ide.tool.custom.CustomToolsJsonSerializer;
 import com.devonfw.tools.ide.tool.pip.PypiObject;
 import com.devonfw.tools.ide.tool.pip.PypiObjectJsonDeserializer;
-import com.devonfw.tools.ide.tool.repository.CustomToolJson;
-import com.devonfw.tools.ide.tool.repository.CustomToolJsonDeserializer;
-import com.devonfw.tools.ide.tool.repository.CustomToolJsonSerializer;
-import com.devonfw.tools.ide.tool.repository.CustomToolsJson;
-import com.devonfw.tools.ide.tool.repository.CustomToolsJsonDeserializer;
-import com.devonfw.tools.ide.tool.repository.CustomToolsJsonSerializer;
 import com.devonfw.tools.ide.url.model.file.json.Cve;
 import com.devonfw.tools.ide.url.model.file.json.CveJsonDeserializer;
 import com.devonfw.tools.ide.url.model.file.json.ToolDependency;

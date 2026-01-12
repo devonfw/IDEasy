@@ -11,7 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
-import com.devonfw.tools.ide.tool.repository.NpmRepository;
+import com.devonfw.tools.ide.tool.npm.NpmRepository;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 
 /**
