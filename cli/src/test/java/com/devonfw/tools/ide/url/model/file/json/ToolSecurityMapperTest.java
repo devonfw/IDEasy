@@ -13,7 +13,7 @@ import com.devonfw.tools.ide.version.VersionRange;
 /**
  * Test of {@link ToolSecurityMapper}.
  */
-public class ToolSecurityMapperTest extends Assertions {
+class ToolSecurityMapperTest extends Assertions {
 
   @Test
   void testLoadAndSaveJson(@TempDir Path tmpDir) {

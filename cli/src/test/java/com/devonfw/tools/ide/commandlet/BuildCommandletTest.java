@@ -17,7 +17,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
  * Test of {@link BuildCommandlet}.
  */
 @WireMockTest
-public class BuildCommandletTest extends AbstractIdeContextTest {
+class BuildCommandletTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_BUILD = "build";
 
@@ -27,7 +27,7 @@ public class BuildCommandletTest extends AbstractIdeContextTest {
    * Tests a {@link com.devonfw.tools.ide.tool.mvn.Mvn} build without arguments and expects defaults to be taken from ide.properties.
    */
   @Test
-  public void testMvnBuildWithoutProvidedArgumentsUsesDefaultOptions() {
+  void testMvnBuildWithoutProvidedArgumentsUsesDefaultOptions() {
 
     IdeTestContext context = newContext(PROJECT_BUILD);
     BuildCommandlet buildCommandlet = context.getCommandletManager().getCommandlet(BuildCommandlet.class);
@@ -43,7 +43,7 @@ public class BuildCommandletTest extends AbstractIdeContextTest {
    * Tests a {@link com.devonfw.tools.ide.tool.mvn.Mvn} build with provided arguments.
    */
   @Test
-  public void testMvnBuildWithProvidedArguments() {
+  void testMvnBuildWithProvidedArguments() {
 
     IdeTestContext context = newContext(PROJECT_BUILD);
     BuildCommandlet buildCommandlet = context.getCommandletManager().getCommandlet(BuildCommandlet.class);
@@ -60,7 +60,7 @@ public class BuildCommandletTest extends AbstractIdeContextTest {
    * Tests a {@link com.devonfw.tools.ide.tool.gradle.Gradle} build with provided arguments.
    */
   @Test
-  public void testGradleBuildWithProvidedArguments() {
+  void testGradleBuildWithProvidedArguments() {
 
     IdeTestContext context = newContext(PROJECT_BUILD);
     BuildCommandlet buildCommandlet = context.getCommandletManager().getCommandlet(BuildCommandlet.class);
@@ -79,7 +79,7 @@ public class BuildCommandletTest extends AbstractIdeContextTest {
    * @param wireMockRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testNpmBuildWithProvidedArguments(WireMockRuntimeInfo wireMockRuntimeInfo) {
+  void testNpmBuildWithProvidedArguments(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     SystemInfo systemInfo = SystemInfoMock.of("linux");
     IdeTestContext context = newContext(PROJECT_BUILD, wireMockRuntimeInfo);
@@ -98,23 +98,23 @@ public class BuildCommandletTest extends AbstractIdeContextTest {
    * Tests a build with no cwd.
    */
   @Test
-  public void testBuildWithNoCwd() {
+  void testBuildWithNoCwd() {
 
     IdeTestContext context = newContext(PROJECT_BUILD);
     BuildCommandlet buildCommandlet = context.getCommandletManager().getCommandlet(BuildCommandlet.class);
     context.setCwd(null, context.getWorkspacePath().toString(), context.getIdeHome());
-    assertThrows(CliException.class, () -> buildCommandlet.run());
+    assertThrows(CliException.class, buildCommandlet::run);
   }
 
   /**
    * Tests a build with an empty workspace.
    */
   @Test
-  public void testBuildWithNoBuildFile() {
+  void testBuildWithNoBuildFile() {
 
     IdeTestContext context = newContext(PROJECT_BUILD);
     BuildCommandlet buildCommandlet = context.getCommandletManager().getCommandlet(BuildCommandlet.class);
     context.setCwd(context.getWorkspacePath().resolve("empty"), context.getWorkspacePath().toString(), context.getIdeHome());
-    assertThrows(CliException.class, () -> buildCommandlet.run());
+    assertThrows(CliException.class, buildCommandlet::run);
   }
 }

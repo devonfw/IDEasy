@@ -13,14 +13,14 @@ import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 
 /**
- * Integration test of {@link Jmc}.
+ * Test of {@link Jmc}.
  */
-public class JmcTest extends AbstractIdeContextTest {
+class JmcTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_JMC = "jmc";
 
   @Test
-  public void testJmcInstallCommandlet() throws IOException {
+  void testJmcInstallCommandlet() throws IOException {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_JMC);
@@ -34,7 +34,7 @@ public class JmcTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testJmcInstall() {
+  void testJmcInstall() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_JMC);
@@ -50,7 +50,7 @@ public class JmcTest extends AbstractIdeContextTest {
 
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testJmcRun(String os) {
+  void testJmcRun(String os) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_JMC);

@@ -18,7 +18,7 @@ import com.devonfw.tools.ide.io.ini.IniSection;
 /**
  * Test of {@link IniFileImpl}
  */
-public class IniFileImplTest extends AbstractIdeContextTest {
+class IniFileImplTest extends AbstractIdeContextTest {
 
   String iniContent = """
       [filter "lfs"]
@@ -62,7 +62,7 @@ public class IniFileImplTest extends AbstractIdeContextTest {
    * @throws IOException if the temporary ini file couldn't be created
    */
   @Test
-  public void testGetSectionNames() throws IOException {
+  void testGetSectionNames() throws IOException {
     // arrange
     IdeContext context = IdeTestContextMock.get();
     IniFile iniFileA = getIniFile(context, iniContentWithInitialProperties);
@@ -86,7 +86,7 @@ public class IniFileImplTest extends AbstractIdeContextTest {
    * @throws IOException if the temporary ini file couldn't be created
    */
   @Test
-  public void testRemoveSection() throws IOException {
+  void testRemoveSection() throws IOException {
     // arrange
     IdeContext context = IdeTestContextMock.get();
     IniFile iniFileA = getIniFile(context, iniContentWithInitialProperties);
@@ -111,7 +111,7 @@ public class IniFileImplTest extends AbstractIdeContextTest {
    * @throws IOException if the temporary ini file couldn't be created
    */
   @Test
-  public void testGetSection() throws IOException {
+  void testGetSection() throws IOException {
     // arrange
     IdeContext context = IdeTestContextMock.get();
     IniFile iniFileA = getIniFile(context, iniContentWithInitialProperties);
@@ -141,7 +141,7 @@ public class IniFileImplTest extends AbstractIdeContextTest {
    * @throws IOException if the temporary ini file couldn't be created
    */
   @Test
-  public void testGetOrCreateSection() throws IOException {
+  void testGetOrCreateSection() throws IOException {
     // arrange
     IdeContext context = IdeTestContextMock.get();
     IniFile iniFileA = getIniFile(context, iniContentWithInitialProperties);
@@ -184,7 +184,7 @@ public class IniFileImplTest extends AbstractIdeContextTest {
    * @throws IOException if the temporary ini file couldn't be created
    */
   @Test
-  public void testToString() throws IOException {
+  void testToString() throws IOException {
     // arrange
     IdeContext context = IdeTestContextMock.get();
     IniFile iniFileA = getIniFile(context, iniContentWithInitialProperties);
@@ -205,7 +205,7 @@ public class IniFileImplTest extends AbstractIdeContextTest {
    * @throws IOException if the temporary ini file couldn't be created
    */
   @Test
-  public void testAddProperty() throws IOException {
+  void testAddProperty() throws IOException {
     // arrange
     IdeContext context = IdeTestContextMock.get();
     IniFile iniFileB = getIniFile(context, iniContent);

@@ -13,10 +13,10 @@ import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * Integration test of {@link Intellij}.
+ * Test of {@link Intellij}.
  */
 @WireMockTest
-public class IntellijTest extends AbstractIdeContextTest {
+class IntellijTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_INTELLIJ = "intellij";
   private final IdeTestContext context = newContext(PROJECT_INTELLIJ);
@@ -28,7 +28,7 @@ public class IntellijTest extends AbstractIdeContextTest {
    */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testIntellijInstall(String os) {
+  void testIntellijInstall(String os) {
 
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of(os);
@@ -53,7 +53,7 @@ public class IntellijTest extends AbstractIdeContextTest {
    */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testIntellijUninstallPluginAfterwards(String os) {
+  void testIntellijUninstallPluginAfterwards(String os) {
 
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of(os);
@@ -82,7 +82,7 @@ public class IntellijTest extends AbstractIdeContextTest {
    */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testIntellijRun(String os) {
+  void testIntellijRun(String os) {
 
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of(os);
@@ -103,7 +103,7 @@ public class IntellijTest extends AbstractIdeContextTest {
    * Tests if after the installation of intellij the expected plugin marker file is existing.
    */
   @Test
-  public void testCheckPluginInstallation() {
+  void testCheckPluginInstallation() {
     // arrange
     IdeTestContext context = newContext("intellij");
 
@@ -130,7 +130,7 @@ public class IntellijTest extends AbstractIdeContextTest {
    * Tests by using 2 installations of intellij with different editions, if the plugins get re-installed and if all marker files get re-initialized properly.
    */
   @Test
-  public void testCheckEditionConflictInstallation() {
+  void testCheckEditionConflictInstallation() {
     // arrange
     IdeTestContext context = newContext("intellij");
     SystemInfo systemInfo = SystemInfoMock.of("windows");
@@ -157,7 +157,7 @@ public class IntellijTest extends AbstractIdeContextTest {
    * Tests if the repository commandlet can trigger an import of a mvn and a gradle project.
    */
   @Test
-  public void testIntellijMvnAndGradleRepositoryImport() {
+  void testIntellijMvnAndGradleRepositoryImport() {
     // arrange
     IdeTestContext context = newContext("intellij");
     RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);

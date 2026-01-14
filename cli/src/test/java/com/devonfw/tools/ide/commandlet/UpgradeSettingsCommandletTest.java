@@ -12,9 +12,9 @@ import com.devonfw.tools.ide.tool.custom.CustomTools;
 import com.devonfw.tools.ide.tool.custom.CustomToolsMapper;
 
 /**
- * Integration test of {@link UpgradeSettingsCommandlet} .
+ * Test of {@link UpgradeSettingsCommandlet} .
  */
-public class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
+class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_UPGRADE_SETTINGS = "upgrade-settings";
   private final IdeTestContext context = newContext(PROJECT_UPGRADE_SETTINGS);
@@ -22,11 +22,9 @@ public class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
 
   /**
    * Test of {@link UpgradeSettingsCommandlet}.
-   *
-   * @throws Exception on error.
    */
   @Test
-  public void testUpdateSettings() throws Exception {
+  void testUpdateSettings() {
     // arrange
     UpgradeSettingsCommandlet upgradeSettingsCommandlet = new UpgradeSettingsCommandlet(context);
     // act
@@ -37,10 +35,7 @@ public class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
     verifyUpdateWorkspaceTemplates();
   }
 
-  /**
-   * @throws Exception on error.
-   */
-  private void verifyUpdateProperties() throws Exception {
+  private void verifyUpdateProperties() {
 
     assertThat(UPGRADE_SETTINGS_PATH.resolve("home/.ide/ide.properties")).exists();
     assertThat(UPGRADE_SETTINGS_PATH.resolve("settings/ide.properties")).exists().content().contains("INTELLIJ_EDITION=ultimate")
@@ -57,7 +52,7 @@ public class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
     verifyCustomToolsJson();
   }
 
-  private void verifyCustomToolsJson() throws Exception {
+  private void verifyCustomToolsJson() {
     // arrange
     UpgradeSettingsCommandlet upgradeSettingsCommandlet = new UpgradeSettingsCommandlet(context);
     CustomToolsMapper mapper = CustomToolsMapper.get();

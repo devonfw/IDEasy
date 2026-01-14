@@ -20,13 +20,13 @@ import com.devonfw.tools.ide.version.IdeVersion;
 /**
  * Test of {@link IdeContext}.
  */
-public class IdeContextTest extends AbstractIdeContextTest {
+class IdeContextTest extends AbstractIdeContextTest {
 
   /**
    * Test of {@link IdeContext} initialization from basic project.
    */
   @Test
-  public void testBasicProjectEnvironment() {
+  void testBasicProjectEnvironment() {
 
     // arrange
     String path = "project/workspaces/foo-test/my-git-repo";
@@ -82,7 +82,7 @@ public class IdeContextTest extends AbstractIdeContextTest {
    * See: <a href="https://github.com/devonfw/IDEasy/issues/466">#466</a>
    */
   @Test
-  public void testWorkspacePathFallsBackToMainWorkspace() {
+  void testWorkspacePathFallsBackToMainWorkspace() {
     // arrange
     String path = "project/workspaces";
     // act
@@ -102,7 +102,7 @@ public class IdeContextTest extends AbstractIdeContextTest {
    * See: <a href="https://github.com/devonfw/IDEasy/issues/466">#466</a>
    */
   @Test
-  public void testProjectPathFallsBackToMainWorkspace() {
+  void testProjectPathFallsBackToMainWorkspace() {
     // arrange
     String path = "project";
     // act
@@ -122,7 +122,7 @@ public class IdeContextTest extends AbstractIdeContextTest {
    * See: <a href="https://github.com/devonfw/IDEasy/issues/466">#466</a>
    */
   @Test
-  public void testCurrentWorkspacePathIsUsed() {
+  void testCurrentWorkspacePathIsUsed() {
     // arrange
     String path = "project/workspaces/foo-test";
     // act
@@ -138,7 +138,7 @@ public class IdeContextTest extends AbstractIdeContextTest {
 
   // hier test einfügen mit idetestcontext
   @Test
-  public void testIdeVersionTooSmall() {
+  void testIdeVersionTooSmall() {
     // arrange
     String path = "project/workspaces/foo-test";
     IdeTestContext context = newContext(PROJECT_BASIC, path, false);
@@ -157,7 +157,7 @@ public class IdeContextTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testIdeVersionOk() {
+  void testIdeVersionOk() {
     // arrange
     String path = "project/workspaces/foo-test";
     IdeTestContext context = newContext(PROJECT_BASIC, path, false);
@@ -172,7 +172,7 @@ public class IdeContextTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testRunWithoutLogging() {
+  void testRunWithoutLogging() {
 
     // arrange
     String testWarningMessage = "Test warning message";
@@ -207,7 +207,7 @@ public class IdeContextTest extends AbstractIdeContextTest {
    * environment.properties for BASH_PATH and PATH variables).
    */
   @Test
-  public void testFindBashOnBashPathOnWindows() {
+  void testFindBashOnBashPathOnWindows() {
     // arrange
     String path = "project/workspaces";
     IdeTestContext context = newContext("find-bash-git", path, true);
@@ -228,7 +228,7 @@ public class IdeContextTest extends AbstractIdeContextTest {
    * Tests if the BASH_PATH variable was set and the target is not existing and the error message is correct.
    */
   @Test
-  public void testFindBashOnBashPathOnWindowsWithoutExistingFileReturnsProperErrorMessage() {
+  void testFindBashOnBashPathOnWindowsWithoutExistingFileReturnsProperErrorMessage() {
     // arrange
     // create first context to prepare test data
     String path = "project/workspaces";
@@ -259,7 +259,7 @@ public class IdeContextTest extends AbstractIdeContextTest {
    * Tests if the BASH_PATH variable was set and the target is not existing and bash executable was found on the system PATH.
    */
   @Test
-  public void testFindBashOnSystemPathOnWindowsWithInvalidBashPathSet() {
+  void testFindBashOnSystemPathOnWindowsWithInvalidBashPathSet() {
     // arrange
     // create first context to prepare test data
     String path = "project/workspaces";

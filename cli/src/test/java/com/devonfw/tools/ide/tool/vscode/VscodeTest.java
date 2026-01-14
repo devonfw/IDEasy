@@ -8,12 +8,12 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 /**
  * Test of {@link Vscode} class.
  */
-public class VscodeTest extends AbstractIdeContextTest {
+class VscodeTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_VSCODE = "vscode";
 
   @Test
-  public void testVscodeInstall() {
+  void testVscodeInstall() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_VSCODE);
@@ -27,7 +27,7 @@ public class VscodeTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testVscodeRun() {
+  void testVscodeRun() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_VSCODE);
@@ -44,7 +44,7 @@ public class VscodeTest extends AbstractIdeContextTest {
    * Tests if after the installation of vscode the expected plugin marker file is existing.
    */
   @Test
-  public void testCheckPluginInstallation() {
+  void testCheckPluginInstallation() {
     // arrange
     IdeTestContext context = newContext(PROJECT_VSCODE);
 
@@ -67,7 +67,6 @@ public class VscodeTest extends AbstractIdeContextTest {
     // assert
     assertThat(context).logAtDebug().hasNoMessage("Successfully installed plugin: ActivePlugin");
   }
-
 
   private void checkInstallation(IdeTestContext context) {
 

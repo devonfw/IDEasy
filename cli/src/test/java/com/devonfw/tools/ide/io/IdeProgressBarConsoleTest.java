@@ -13,7 +13,7 @@ import com.devonfw.tools.ide.os.SystemInfoImpl;
  */
 // disabled on Windows - see https://github.com/devonfw/IDEasy/issues/618
 @DisabledOnOs({ OS.WINDOWS })
-public class IdeProgressBarConsoleTest extends AbstractIdeContextTest {
+class IdeProgressBarConsoleTest extends AbstractIdeContextTest {
 
   private IdeProgressBarConsole newProgressBar(long maxSize) {
     SystemInfo systemInfo = SystemInfoImpl.INSTANCE;
@@ -21,7 +21,7 @@ public class IdeProgressBarConsoleTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testProgressBarMaxSizeUnknownStepBy() throws Exception {
+  void testProgressBarMaxSizeUnknownStepBy() throws Exception {
     // arrange
     long stepSize = 10000L;
     IdeProgressBarConsole progressBarConsole = newProgressBar(-1);
@@ -37,7 +37,7 @@ public class IdeProgressBarConsoleTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testProgressBarMaxSizeUnknownDoStepTo() throws Exception {
+  void testProgressBarMaxSizeUnknownDoStepTo() throws Exception {
     // arrange
     long stepSize = 10000L;
     IdeProgressBarConsole progressBarConsole = newProgressBar(-1);
@@ -55,7 +55,7 @@ public class IdeProgressBarConsoleTest extends AbstractIdeContextTest {
 
 
   @Test
-  public void testProgressBarMaxSizeKnownStepBy() throws Exception {
+  void testProgressBarMaxSizeKnownStepBy() throws Exception {
     // arrange
     long maxSize = 10000L;
     IdeProgressBarConsole progressBarConsole = newProgressBar(maxSize);
@@ -71,7 +71,7 @@ public class IdeProgressBarConsoleTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testProgressBarMaxSizeKnownDoStepTo() throws Exception {
+  void testProgressBarMaxSizeKnownDoStepTo() throws Exception {
     // arrange
     long maxSize = 10000L;
     IdeProgressBarConsole progressBarConsole = newProgressBar(maxSize);
@@ -87,7 +87,7 @@ public class IdeProgressBarConsoleTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testProgressBarMaxSizeKnownIncompleteSteps() throws Exception {
+  void testProgressBarMaxSizeKnownIncompleteSteps() throws Exception {
     // arrange
     long maxSize = 10000L;
     IdeProgressBarConsole progressBarConsole = newProgressBar(maxSize);
@@ -103,7 +103,7 @@ public class IdeProgressBarConsoleTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testProgressBarMaxOverflow() throws Exception {
+  void testProgressBarMaxOverflow() throws Exception {
     // arrange
     long maxSize = 10000L;
     IdeProgressBarConsole progressBarConsole = newProgressBar(maxSize);

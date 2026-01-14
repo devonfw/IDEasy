@@ -12,9 +12,9 @@ import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 
 /**
- * Integration test of {@link DotNet}.
+ * Test of {@link DotNet}.
  */
-public class DotNetTest extends AbstractIdeContextTest {
+class DotNetTest extends AbstractIdeContextTest {
 
   private static final Path PROJECTS_TARGET_PATH = Path.of("target/test-projects");
 
@@ -26,7 +26,7 @@ public class DotNetTest extends AbstractIdeContextTest {
 
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void dotnetShouldInstallSuccessful(String os) {
+  void dotnetShouldInstallSuccessful(String os) {
 
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of(os);
@@ -53,7 +53,7 @@ public class DotNetTest extends AbstractIdeContextTest {
 
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void dotnetShouldRunExecutableSuccessful(String os) {
+  void dotnetShouldRunExecutableSuccessful(String os) {
 
     // TODO: Check: https://github.com/devonfw/IDEasy/issues/701 for reference.
     if (SystemInfoImpl.INSTANCE.isWindows()) {

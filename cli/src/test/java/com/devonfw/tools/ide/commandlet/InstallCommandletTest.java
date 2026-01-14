@@ -13,10 +13,10 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * Integration test of {@link InstallCommandlet}.
+ * Test of {@link InstallCommandlet}.
  */
 @WireMockTest
-public class InstallCommandletTest extends AbstractIdeContextTest {
+class InstallCommandletTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_INSTALL = "install";
 
@@ -26,7 +26,7 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
    * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testInstallCommandletRunWithVersion(WireMockRuntimeInfo wmRuntimeInfo) {
+  void testInstallCommandletRunWithVersion(WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange
     IdeContext context = newContext(PROJECT_INSTALL, wmRuntimeInfo);
@@ -44,7 +44,7 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
    * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testInstallCommandletRunWithVersionAndVersionIdentifier(WireMockRuntimeInfo wmRuntimeInfo) {
+  void testInstallCommandletRunWithVersionAndVersionIdentifier(WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_INSTALL, wmRuntimeInfo);
@@ -107,7 +107,7 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
    * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testInstallCommandletWithSkipUpdates(WireMockRuntimeInfo wmRuntimeInfo) {
+  void testInstallCommandletWithSkipUpdates(WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange - create context and install initial version 17.0.6
     // Note: Test data has 17.0.6 and 17.0.10 available, so "17*" pattern would resolve to 17.0.10
@@ -147,7 +147,7 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
    * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testInstallCommandletWithSkipUpdatesInstallsWhenNotInstalled(WireMockRuntimeInfo wmRuntimeInfo) {
+  void testInstallCommandletWithSkipUpdatesInstallsWhenNotInstalled(WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange - create context with --skip-updates enabled but tool NOT installed
     IdeTestContext context = newContext(PROJECT_INSTALL, wmRuntimeInfo);
@@ -174,7 +174,7 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
    * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testInstallCommandletWithSkipUpdatesInstallsWhenVersionMismatch(WireMockRuntimeInfo wmRuntimeInfo) {
+  void testInstallCommandletWithSkipUpdatesInstallsWhenVersionMismatch(WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange - install version 17.0.6
     IdeTestContext context = newContext(PROJECT_INSTALL, wmRuntimeInfo);

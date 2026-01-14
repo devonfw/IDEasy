@@ -20,7 +20,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
  * Test of {@link IdeProgressBar}.
  */
 @WireMockTest
-public class IdeProgressBarTest extends AbstractIdeContextTest {
+class IdeProgressBarTest extends AbstractIdeContextTest {
 
   private static final int MAX_LENGTH = 10_000;
 
@@ -33,7 +33,7 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
    * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testProgressBarDownloadWithValidContentLength(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
+  void testProgressBarDownloadWithValidContentLength(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     stubFor(any(urlMatching("/os/.*")).willReturn(
         aResponse().withStatus(200).withBody(new byte[MAX_LENGTH]).withHeader("Content-Length", String.valueOf(MAX_LENGTH))));
@@ -52,7 +52,7 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
    * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testProgressBarDownloadWithMissingContentLength(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
+  void testProgressBarDownloadWithMissingContentLength(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     //arrange
     String taskName = "Downloading";

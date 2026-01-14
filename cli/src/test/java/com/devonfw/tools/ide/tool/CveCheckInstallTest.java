@@ -10,9 +10,9 @@ import com.devonfw.tools.ide.tool.intellij.Intellij;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 
 /**
- * Test for method cveCheck in {@link LocalToolCommandlet}.
+ * Test of {@link com.devonfw.tools.ide.url.model.file.json.Cve} checks in {@link LocalToolCommandlet}.
  */
-public class CveFinderInstallTest extends AbstractIdeContextTest {
+class CveCheckInstallTest extends AbstractIdeContextTest {
 
   protected static final Path URLS_PATH = Path.of("src/test/resources/urls");
   private static final String PROJECT_INTELLIJ = "intellij";
@@ -22,7 +22,7 @@ public class CveFinderInstallTest extends AbstractIdeContextTest {
    * Install Intellij version currently configured, regardless of CVEs.
    */
   @Test
-  public void testInstallToolCurrent() {
+  void testInstallToolCurrent() {
     //arrange
     context.setUrlsPath(URLS_PATH);
     Intellij commandlet = new Intellij(this.context);
@@ -37,7 +37,7 @@ public class CveFinderInstallTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testInstallToolNearest() {
+  void testInstallToolNearest() {
     //arrange
     context.setUrlsPath(URLS_PATH);
     Intellij commandlet = new Intellij(this.context);
@@ -55,7 +55,7 @@ public class CveFinderInstallTest extends AbstractIdeContextTest {
    * Install Intellij latest version to avoid CVEs. This will install an extra java version not compatible with the project as dependency.
    */
   @Test
-  public void testInstallToolLatest() {
+  void testInstallToolLatest() {
     //arrange
     context.setUrlsPath(URLS_PATH);
     Intellij commandlet = new Intellij(this.context);

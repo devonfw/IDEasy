@@ -16,7 +16,7 @@ public class IdeasyTest extends AbstractIdeContextTest {
    * Test of {@link Ideasy#run(String...)} so that {@link CliExitException} is thrown and ensure it is not logged.
    */
   @Test
-  public void testEnvOutsideProjectDoesNotLogCliExitException() {
+  void testEnvOutsideProjectDoesNotLogCliExitException() {
 
     // arrange
     IdeTestContext context = newContext(Path.of("/"));

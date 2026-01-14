@@ -28,7 +28,7 @@ class EnvironmentVariablesPropertiesFileTest extends AbstractIdeContextTest {
    * Test of {@link EnvironmentVariablesPropertiesFile} including legacy support.
    */
   @Test
-  public void testLoad() {
+  void testLoad() {
 
     // arrange
     Path propertiesFilePath = ENV_VAR_PATH.resolve("devon.properties");

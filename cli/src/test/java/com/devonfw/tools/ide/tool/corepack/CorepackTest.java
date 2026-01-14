@@ -8,10 +8,10 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * Integration test of {@link Corepack}.
+ * Test of {@link Corepack}.
  */
 @WireMockTest
-public class CorepackTest extends AbstractIdeContextTest {
+class CorepackTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_COREPACK = "corepack";
 
@@ -21,7 +21,7 @@ public class CorepackTest extends AbstractIdeContextTest {
    * @param wireMockRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testCorepackInstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
+  void testCorepackInstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_COREPACK, wireMockRuntimeInfo);
@@ -40,7 +40,7 @@ public class CorepackTest extends AbstractIdeContextTest {
    * @param wireMockRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testCorepackUninstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
+  void testCorepackUninstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_COREPACK, wireMockRuntimeInfo);
@@ -70,7 +70,7 @@ public class CorepackTest extends AbstractIdeContextTest {
    * @param wireMockRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testCorepackRun(WireMockRuntimeInfo wireMockRuntimeInfo) {
+  void testCorepackRun(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_COREPACK, wireMockRuntimeInfo);

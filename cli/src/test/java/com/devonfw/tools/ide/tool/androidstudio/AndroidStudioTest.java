@@ -6,7 +6,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -25,7 +24,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
  * Test class for {@link AndroidStudio Android Studio IDE} tests.
  */
 @WireMockTest
-public class AndroidStudioTest extends AbstractIdeContextTest {
+class AndroidStudioTest extends AbstractIdeContextTest {
 
   private static final String ANDROID_STUDIO = "android-studio";
   private static final String MOCKED_PLUGIN_JAR = "mocked-plugin.jar";
@@ -45,7 +44,7 @@ public class AndroidStudioTest extends AbstractIdeContextTest {
    */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testAndroidStudioInstall(String os, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  void testAndroidStudioInstall(String os, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     // arrange
     setupMockedPlugin(wmRuntimeInfo);
     SystemInfo systemInfo = SystemInfoMock.of(os);
@@ -67,7 +66,7 @@ public class AndroidStudioTest extends AbstractIdeContextTest {
    */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testAndroidStudioRun(String os, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  void testAndroidStudioRun(String os, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     // arrange
     setupMockedPlugin(wmRuntimeInfo);
     SystemInfo systemInfo = SystemInfoMock.of(os);
@@ -94,8 +93,8 @@ public class AndroidStudioTest extends AbstractIdeContextTest {
   private void setupMockedPlugin(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
 
     String content = "plugin_id=mockedPlugin\nplugin_active=true\nplugin_url=" + wmRuntimeInfo.getHttpBaseUrl() + "/mockedPlugin";
-    Files.write(this.context.getSettingsPath().resolve("android-studio").resolve("plugins").resolve("MockedPlugin.properties"),
-        content.getBytes(StandardCharsets.UTF_8));
+    Files.writeString(this.context.getSettingsPath().resolve("android-studio").resolve("plugins").resolve("MockedPlugin.properties"),
+        content);
 
     Path mockedPlugin = this.context.getIdeRoot().resolve("repository").resolve(MOCKED_PLUGIN_JAR);
     byte[] contentBytes = Files.readAllBytes(mockedPlugin);

@@ -10,13 +10,16 @@ import com.devonfw.tools.ide.context.IdeTestContextMock;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.property.VersionProperty;
 
+/**
+ * Test of {@link CompletionCandidateCollectorDefault}.
+ */
 class CompletionCandidateCollectorDefaultTest extends AbstractIdeContextTest {
 
   /**
    * Test of {@link CompletionCandidateCollectorDefault#addAllMatches(String, String[], Property, Commandlet)}
    */
   @Test
-  public void testAddAllMatches() {
+  void testAddAllMatches() {
 
     // arrange
     String[] sortedCandidates = { "1", "2.0", "2.1", "3", "20", "30", "200" };
@@ -36,12 +39,11 @@ class CompletionCandidateCollectorDefaultTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testAddAllMatchesEmptyInput() {
+  void testAddAllMatchesEmptyInput() {
 
     // arrange
     String[] sortedCandidates = { "1", "2.0", "2.1", "3", "20", "30", "200" };
     String input = "";
-    String[] expectedCandidates = sortedCandidates;
 
     VersionProperty versionProperty = new VersionProperty("", false, "version");
     IdeContext context = IdeTestContextMock.get();
@@ -51,12 +53,12 @@ class CompletionCandidateCollectorDefaultTest extends AbstractIdeContextTest {
     int matches = collector.addAllMatches(input, sortedCandidates, versionProperty, new VersionCommandlet(context));
 
     // assert
-    assertThat(matches).isEqualTo(expectedCandidates.length);
-    assertThat(collector.getCandidates().stream().map(CompletionCandidate::text)).containsExactly(expectedCandidates);
+    assertThat(matches).isEqualTo(sortedCandidates.length);
+    assertThat(collector.getCandidates().stream().map(CompletionCandidate::text)).containsExactly(sortedCandidates);
   }
 
   @Test
-  public void testClearCandidates() {
+  void testClearCandidates() {
 
     // arrange
     String[] sortedCandidates = { "11" };

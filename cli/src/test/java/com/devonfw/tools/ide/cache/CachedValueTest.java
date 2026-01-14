@@ -8,13 +8,13 @@ import org.junit.jupiter.api.Test;
 /**
  * Test of {@link CachedValue}.
  */
-public class CachedValueTest extends Assertions {
+class CachedValueTest extends Assertions {
 
   /**
    * Test that {@link CachedValue#get()} updates only if retention expired or invalidated.
    */
   @Test
-  public void testFlow() throws Exception {
+  void testFlow() throws Exception {
 
     // arrange
     Sequence sequence = new Sequence();

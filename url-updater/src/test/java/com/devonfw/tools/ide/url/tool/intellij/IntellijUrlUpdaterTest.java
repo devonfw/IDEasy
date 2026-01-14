@@ -21,10 +21,10 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * Test class for integrations of the {@link IntellijUrlUpdater}
+ * Test of {@link IntellijUrlUpdater}
  */
 @WireMockTest
-public class IntellijUrlUpdaterTest extends AbstractUrlUpdaterTest {
+class IntellijUrlUpdaterTest extends AbstractUrlUpdaterTest {
 
   private static String intellijVersionJson;
   private static String intellijVersionWithoutChecksumJson;
@@ -37,7 +37,7 @@ public class IntellijUrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @throws IOException on error.
    */
   @BeforeAll
-  public static void setupTestVersionJson(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  static void setupTestVersionJson(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     //preparing test data with dynamic port
     Path testDataPath = PATH_INTEGRATION_TEST.resolve("IntellijUrlUpdater");
     intellijVersionJson = readAndResolve(testDataPath.resolve("intellij-version.json"), wmRuntimeInfo);
@@ -51,7 +51,7 @@ public class IntellijUrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testIntellijJsonUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
+  void testIntellijJsonUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange
     stubFor(get(urlMatching("/products.*")).willReturn(aResponse().withStatus(200).withBody(intellijVersionJson)));
@@ -86,7 +86,7 @@ public class IntellijUrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testIntellijJsonUrlUpdaterWithMissingDownloadsDoesNotCreateVersionFolder(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
+  void testIntellijJsonUrlUpdaterWithMissingDownloadsDoesNotCreateVersionFolder(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange
     stubFor(get(urlMatching("/products.*")).willReturn(aResponse().withStatus(200).withBody(intellijVersionJson)));
@@ -113,7 +113,7 @@ public class IntellijUrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testIntellijJsonUrlUpdaterWithMissingChecksumGeneratesChecksum(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
+  void testIntellijJsonUrlUpdaterWithMissingChecksumGeneratesChecksum(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange
     stubFor(get(urlMatching("/products.*")).willReturn(aResponse().withStatus(200).withBody(intellijVersionWithoutChecksumJson)));

@@ -17,7 +17,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
  * Test of {@link Java}.
  */
 @WireMockTest
-public class JavaTest extends AbstractIdeContextTest {
+class JavaTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_JAVA = "java";
 
@@ -27,7 +27,7 @@ public class JavaTest extends AbstractIdeContextTest {
    * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testJavaInstallAndRun(WireMockRuntimeInfo wmRuntimeInfo) {
+  void testJavaInstallAndRun(WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_JAVA, wmRuntimeInfo);

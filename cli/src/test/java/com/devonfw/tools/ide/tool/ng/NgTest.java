@@ -8,10 +8,10 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * Integration test of {@link Ng}.
+ * Test of {@link Ng}.
  */
 @WireMockTest
-public class NgTest extends AbstractIdeContextTest {
+class NgTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_NG = "ng";
 
@@ -21,7 +21,7 @@ public class NgTest extends AbstractIdeContextTest {
    * @param wireMockRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testNgInstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
+  void testNgInstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_NG, wireMockRuntimeInfo);
@@ -40,7 +40,7 @@ public class NgTest extends AbstractIdeContextTest {
    * @param wireMockRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testNgUninstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
+  void testNgUninstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_NG, wireMockRuntimeInfo);
@@ -67,7 +67,7 @@ public class NgTest extends AbstractIdeContextTest {
    * @param wireMockRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testNgRun(WireMockRuntimeInfo wireMockRuntimeInfo) {
+  void testNgRun(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_NG, wireMockRuntimeInfo);

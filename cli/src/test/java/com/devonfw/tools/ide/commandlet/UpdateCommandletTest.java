@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.commandlet;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
 
@@ -28,7 +27,7 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
   private static final String SUCCESS_INSTALL_OR_UPDATE_SOFTWARE = "Install or update software";
 
   @Test
-  public void testRunPullSettingsAndUpdateSoftware() {
+  void testRunPullSettingsAndUpdateSoftware() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_UPDATE);
@@ -45,7 +44,7 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
 
   @ParameterizedTest
   @ValueSource(strings = { "", "eclipse", "intellij", "eclipse,intellij", "intellij , vscode", "eclipse, intellij,vscode" })
-  public void testIdeUpdateCreatesStartScripts(String createStartScripts) {
+  void testIdeUpdateCreatesStartScripts(String createStartScripts) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_UPDATE);
@@ -63,7 +62,7 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testRunTemplatesNotFound() throws IOException {
+  void testRunTemplatesNotFound() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_UPDATE);
@@ -89,7 +88,7 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
    * See: <a href="https://github.com/devonfw/IDEasy/issues/628">#628</a> for reference.
    */
   @Test
-  public void testRunUpdateSoftwareDoesNotFailOnFailedSoftwareInstallations() {
+  void testRunUpdateSoftwareDoesNotFailOnFailedSoftwareInstallations() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_UPDATE);
@@ -116,7 +115,7 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
    * @param wireMockRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testRunUpdateSoftwareDoesNotFailWhenSettingsPathIsDeleted(WireMockRuntimeInfo wireMockRuntimeInfo) {
+  void testRunUpdateSoftwareDoesNotFailWhenSettingsPathIsDeleted(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_UPDATE, wireMockRuntimeInfo);

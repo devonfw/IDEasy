@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * Test of {@link PypiObjectJsonDeserializer} and {@link PypiObjectJsonSerializer}.
  */
-public class PypiObjectJsonTest extends Assertions {
+class PypiObjectJsonTest extends Assertions {
 
   private static final String JSON = """
       {
@@ -147,7 +147,7 @@ public class PypiObjectJsonTest extends Assertions {
    * @throws Exception on error.
    */
   @Test
-  public void testDeserialize() throws Exception {
+  void testMapJson() throws Exception {
     // arrange
     ObjectMapper mapper = JsonMapping.create();
 

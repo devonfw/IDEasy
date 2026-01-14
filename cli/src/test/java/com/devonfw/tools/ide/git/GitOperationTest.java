@@ -14,7 +14,7 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 /**
  * Test of {@link GitOperation}.
  */
-public class GitOperationTest extends AbstractIdeContextTest {
+class GitOperationTest extends AbstractIdeContextTest {
 
   private static final String URL = "https://github.com/devonfw/IDEasy.git";
   private static final String REMOTE = "origin";
@@ -22,7 +22,7 @@ public class GitOperationTest extends AbstractIdeContextTest {
   private static final GitUrl GIT_URL = new GitUrl(URL, BRANCH);
 
   @Test
-  public void testFetchSkippedIfTimestampFileUpToDate(@TempDir Path tempDir) throws Exception {
+  void testFetchSkippedIfTimestampFileUpToDate(@TempDir Path tempDir) throws Exception {
 
     // arrange
     GitOperation operation = GitOperation.FETCH;
@@ -39,7 +39,7 @@ public class GitOperationTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testFetchCalledIfTimestampFileNotPresent(@TempDir Path tempDir) throws Exception {
+  void testFetchCalledIfTimestampFileNotPresent(@TempDir Path tempDir) throws Exception {
 
     // arrange
     GitOperation operation = GitOperation.FETCH;
@@ -56,7 +56,7 @@ public class GitOperationTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testFetchCalledIfTimestampFileOutdated(@TempDir Path tempDir) throws Exception {
+  void testFetchCalledIfTimestampFileOutdated(@TempDir Path tempDir) throws Exception {
 
     // arrange
     GitOperation operation = GitOperation.FETCH;
@@ -73,7 +73,7 @@ public class GitOperationTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testFetchCalledIfTimestampFileUpToDateButForceMode(@TempDir Path tempDir) throws Exception {
+  void testFetchCalledIfTimestampFileUpToDateButForceMode(@TempDir Path tempDir) throws Exception {
 
     // arrange
     GitOperation operation = GitOperation.FETCH;
@@ -91,7 +91,7 @@ public class GitOperationTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testFetchSkippedIfTimestampFileNotPresentButOfflineMode(@TempDir Path tempDir) throws Exception {
+  void testFetchSkippedIfTimestampFileNotPresentButOfflineMode(@TempDir Path tempDir) throws Exception {
 
     // arrange
     GitOperation operation = GitOperation.FETCH;
@@ -109,7 +109,7 @@ public class GitOperationTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testPullOrCloneSkippedIfTimestampFileUpToDate(@TempDir Path tempDir) throws Exception {
+  void testPullOrCloneSkippedIfTimestampFileUpToDate(@TempDir Path tempDir) throws Exception {
 
     // arrange
     GitOperation operation = GitOperation.PULL_OR_CLONE;
@@ -126,7 +126,7 @@ public class GitOperationTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testPullOrCloneCalledIfTimestampFileNotPresent(@TempDir Path tempDir) throws Exception {
+  void testPullOrCloneCalledIfTimestampFileNotPresent(@TempDir Path tempDir) throws Exception {
 
     // arrange
     GitOperation operation = GitOperation.PULL_OR_CLONE;
@@ -143,7 +143,7 @@ public class GitOperationTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testPullOrCloneCalledIfTimestampFileOutdated(@TempDir Path tempDir) throws Exception {
+  void testPullOrCloneCalledIfTimestampFileOutdated(@TempDir Path tempDir) throws Exception {
 
     // arrange
     GitOperation operation = GitOperation.PULL_OR_CLONE;
@@ -160,7 +160,7 @@ public class GitOperationTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testPullOrCloneCalledIfTimestampFileUpToDateButForceMode(@TempDir Path tempDir) throws Exception {
+  void testPullOrCloneCalledIfTimestampFileUpToDateButForceMode(@TempDir Path tempDir) throws Exception {
 
     // arrange
     GitOperation operation = GitOperation.PULL_OR_CLONE;
@@ -178,7 +178,7 @@ public class GitOperationTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testPullOrCloneSkippedIfTimestampFileNotPresentButOfflineMode(@TempDir Path tempDir) throws Exception {
+  void testPullOrCloneSkippedIfTimestampFileNotPresentButOfflineMode(@TempDir Path tempDir) throws Exception {
 
     // arrange
     GitOperation operation = GitOperation.PULL_OR_CLONE;
@@ -196,7 +196,7 @@ public class GitOperationTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testPullOrCloneSkippedIfRepoNotInitializedAndOfflineMode(@TempDir Path tempDir) throws Exception {
+  void testPullOrCloneSkippedIfRepoNotInitializedAndOfflineMode(@TempDir Path tempDir) throws Exception {
 
     // arrange
     GitOperation operation = GitOperation.PULL_OR_CLONE;

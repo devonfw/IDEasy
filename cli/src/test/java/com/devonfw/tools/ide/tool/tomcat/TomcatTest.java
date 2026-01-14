@@ -13,12 +13,12 @@ import com.devonfw.tools.ide.tool.java.Java;
 /**
  * Test of {@link Tomcat}.
  */
-public class TomcatTest extends AbstractIdeContextTest {
+class TomcatTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_TOMCAT = "tomcat";
 
   @Test
-  public void testTomcat() {
+  void testTomcat() {
 
     // in the tomcat project we have JAVA_VERSION=8u402b06 and TOMCAT_VERSION=10.1.14
     // that tomcat version requires Java but in version range [11,21_35] what is incompatible

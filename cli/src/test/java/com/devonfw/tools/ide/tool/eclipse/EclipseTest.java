@@ -13,7 +13,7 @@ import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.tool.intellij.Intellij;
 
 /**
- * Integration test of {@link Eclipse}.
+ * Test of {@link Eclipse}.
  */
 public class EclipseTest extends AbstractIdeContextTest {
 
@@ -27,7 +27,7 @@ public class EclipseTest extends AbstractIdeContextTest {
    */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testEclipse(String os) throws IOException {
+  void testEclipse(String os) throws IOException {
 
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of(os);
