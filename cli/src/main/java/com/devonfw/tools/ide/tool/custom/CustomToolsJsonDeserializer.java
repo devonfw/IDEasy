@@ -7,10 +7,9 @@ import com.devonfw.tools.ide.json.JsonBuilder;
 import com.devonfw.tools.ide.json.JsonObjectDeserializer;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
 
 /**
- * {@link JsonDeserializer} for {@link CustomTools}.
+ * {@link JsonObjectDeserializer} for {@link CustomTools}.
  */
 public class CustomToolsJsonDeserializer extends JsonObjectDeserializer<CustomTools> {
 
