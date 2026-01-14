@@ -6,7 +6,6 @@ import java.util.Set;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.json.JsonMapping;
-import com.devonfw.tools.ide.npm.NpmJsonObject;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.node.NodeBasedCommandlet;
 import com.devonfw.tools.ide.tool.repository.AbstractToolRepository;
@@ -64,8 +63,8 @@ public class NpmRepository extends ArtifactToolRepository<NpmArtifact, NpmArtifa
     String url = getRegistryUrl() + artifact.getName();
     String json = this.context.getFileAccess().download(url);
     try {
-      NpmJsonObject npmJsonObject = MAPPER.readValue(json, NpmJsonObject.class);
-      Set<String> versionSet = npmJsonObject.versions().getVersionMap().keySet();
+      NpmJs npmJs = MAPPER.readValue(json, NpmJs.class);
+      Set<String> versionSet = npmJs.versions().getVersionMap().keySet();
       List<VersionIdentifier> versions = new ArrayList<>(versionSet.size());
       for (String version : versionSet) {
         versions.add(VersionIdentifier.of(version));

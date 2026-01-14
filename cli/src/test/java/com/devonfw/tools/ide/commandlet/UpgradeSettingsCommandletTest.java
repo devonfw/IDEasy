@@ -7,9 +7,9 @@ import org.junit.jupiter.api.Test;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.tool.custom.CustomToolJson;
-import com.devonfw.tools.ide.tool.custom.CustomToolsJson;
-import com.devonfw.tools.ide.tool.custom.CustomToolsJsonMapper;
+import com.devonfw.tools.ide.tool.custom.CustomTool;
+import com.devonfw.tools.ide.tool.custom.CustomTools;
+import com.devonfw.tools.ide.tool.custom.CustomToolsMapper;
 
 /**
  * Integration test of {@link UpgradeSettingsCommandlet} .
@@ -60,18 +60,19 @@ public class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
   private void verifyCustomToolsJson() throws Exception {
     // arrange
     UpgradeSettingsCommandlet upgradeSettingsCommandlet = new UpgradeSettingsCommandlet(context);
+    CustomToolsMapper mapper = CustomToolsMapper.get();
     // act
     upgradeSettingsCommandlet.run();
     // assert
 
-    Path customToolsJsonFile = UPGRADE_SETTINGS_PATH.resolve("settings").resolve(IdeContext.FILE_CUSTOM_TOOLS);
+    Path customToolsJsonFile = UPGRADE_SETTINGS_PATH.resolve("settings").resolve(mapper.getStandardFilename());
     // assert that ide-custom-tools.json exists
     assertThat(customToolsJsonFile).exists();
-    CustomToolsJson customToolsJson = CustomToolsJsonMapper.loadJson(customToolsJsonFile);
+    CustomTools customTools = mapper.loadJson(customToolsJsonFile);
     //assert that ide-custom-tools.json has the correct content
-    assertThat(customToolsJson.url()).isEqualTo("https://host.tld/projects/my-project");
-    assertThat(customToolsJson.tools()).containsExactly(new CustomToolJson("jboss-eap", "7.1.4.GA", true, true, null),
-        new CustomToolJson("firefox", "70.0.1", false, false, null));
+    assertThat(customTools.url()).isEqualTo("https://host.tld/projects/my-project");
+    assertThat(customTools.tools()).containsExactly(new CustomTool("jboss-eap", "7.1.4.GA", true, true, null),
+        new CustomTool("firefox", "70.0.1", false, false, null));
   }
 
   private void verifyUpdateLegacyFolders() {

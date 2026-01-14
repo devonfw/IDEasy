@@ -179,9 +179,11 @@ public final class VersionRange implements Comparable<VersionRange>, GenericVers
     if (this.min != null) {
       sb.append(this.min);
     }
-    sb.append(VERSION_SEPARATOR);
-    if (this.max != null) {
-      sb.append(this.max);
+    if (this.max == null || !this.max.equals(this.min)) { // [1.0] instead of [1.0,1.0]
+      sb.append(VERSION_SEPARATOR);
+      if (this.max != null) {
+        sb.append(this.max);
+      }
     }
     sb.append(this.boundaryType.getSuffix());
     return sb.toString();
