@@ -5,11 +5,10 @@ import java.util.List;
 
 import com.devonfw.tools.ide.json.JsonObjectSerializer;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
 /**
- * {@link JsonSerializer} for {@link ExtraTools}.
+ * {@link JsonObjectSerializer} for {@link ExtraTools}.
  */
 public class ExtraToolsJsonSerializer extends JsonObjectSerializer<ExtraTools> {
 

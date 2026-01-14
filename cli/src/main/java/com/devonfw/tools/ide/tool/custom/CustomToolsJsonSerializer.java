@@ -3,22 +3,17 @@ package com.devonfw.tools.ide.tool.custom;
 import java.io.IOException;
 import java.util.List;
 
+import com.devonfw.tools.ide.json.JsonObjectSerializer;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
 /**
- * {@link JsonDeserializer} for {@link CustomTools}.
+ * {@link JsonObjectSerializer} for {@link CustomTools}.
  */
-public class CustomToolsJsonSerializer extends JsonSerializer<CustomTools> {
+public class CustomToolsJsonSerializer extends JsonObjectSerializer<CustomTools> {
 
   @Override
-  public void serialize(CustomTools customTools, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
-    if (customTools == null) {
-      return;
-    }
-    jgen.writeStartObject();
+  protected void serializeProperties(CustomTools customTools, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
     jgen.writeFieldName(CustomTools.PROPERTY_URL);
     jgen.writeString(customTools.url());
     jgen.writeFieldName(CustomTools.PROPERTY_TOOLS);
@@ -28,7 +23,6 @@ public class CustomToolsJsonSerializer extends JsonSerializer<CustomTools> {
       jgen.writeObject(tool);
     }
     jgen.writeEndArray();
-    jgen.writeEndObject();
   }
 
 }

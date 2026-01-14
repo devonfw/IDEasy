@@ -8,10 +8,9 @@ import com.devonfw.tools.ide.json.JsonObjectDeserializer;
 import com.devonfw.tools.ide.version.VersionRange;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
 
 /**
- * {@link JsonDeserializer} for {@link Cve}.
+ * {@link JsonObjectDeserializer} for {@link Cve}.
  */
 public class CveJsonDeserializer extends JsonObjectDeserializer<Cve> {
 

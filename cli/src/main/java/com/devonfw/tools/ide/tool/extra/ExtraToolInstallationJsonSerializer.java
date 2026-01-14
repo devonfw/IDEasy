@@ -4,11 +4,10 @@ import java.io.IOException;
 
 import com.devonfw.tools.ide.json.JsonObjectSerializer;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
 /**
- * {@link JsonSerializer} for {@link ExtraToolInstallation}.
+ * {@link JsonObjectSerializer} for {@link ExtraToolInstallation}.
  */
 public class ExtraToolInstallationJsonSerializer extends JsonObjectSerializer<ExtraToolInstallation> {
 

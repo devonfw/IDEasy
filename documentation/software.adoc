@@ -19,7 +19,7 @@ Therefore, you can run `ide cleanup` to find and release old tool versions and f
 
 == Extra Tool Installations
 
-Assuming you needs multiple versions of the same tool (SDK), you can make IDEasy installation additional versions.
+Assuming you needs multiple versions of the same tool (SDK), you can make IDEasy install additional versions.
 There is always a main installation of a tool used by your project configured via `«TOOL»_VERSION` and `«TOOL»_EDITION`.
 This main installation will be located in `$IDE_HOME/software/«tool»` and is automatically added to your `PATH`.
 Extra tool installations will be installed in `$IDE_HOME/software/extra/«tool»/«name»`.
