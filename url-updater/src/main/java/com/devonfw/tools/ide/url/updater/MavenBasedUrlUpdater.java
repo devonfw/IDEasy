@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.devonfw.tools.ide.maven.MavenMetadata;
+import com.devonfw.tools.ide.tool.mvn.MvnMetadata;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
@@ -84,7 +84,7 @@ public abstract class MavenBasedUrlUpdater extends AbstractUrlUpdater {
     try {
       String response = doGetResponseBodyAsString(url);
       XmlMapper mapper = new XmlMapper();
-      MavenMetadata metaData = mapper.readValue(response, MavenMetadata.class);
+      MvnMetadata metaData = mapper.readValue(response, MvnMetadata.class);
       for (String version : metaData.getVersioning().getVersions()) {
         if (isValidVersion(version)) {
           addVersion(version, versions);

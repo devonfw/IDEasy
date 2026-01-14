@@ -12,13 +12,13 @@ import org.junit.jupiter.params.provider.ValueSource;
 /**
  * Test of {@link VersionIdentifier}.
  */
-public class VersionIdentifierTest extends Assertions {
+class VersionIdentifierTest extends Assertions {
 
   /**
    * Test of {@link VersionIdentifier#of(String)}.
    */
   @Test
-  public void testOf() {
+  void testOf() {
 
     // test exotic version number
     // given
@@ -62,7 +62,7 @@ public class VersionIdentifierTest extends Assertions {
   @ParameterizedTest
   // arrange
   @ValueSource(strings = { "1.0", "0.1", "2023.08.001", "2023-06-M1", "11.0.4_11.4", "5.2.23.RELEASE" })
-  public void testValid(String version) {
+  void testValid(String version) {
 
     // act
     VersionIdentifier vid = VersionIdentifier.of(version);
@@ -80,7 +80,7 @@ public class VersionIdentifierTest extends Assertions {
   // arrange
   @ValueSource(strings = { "0", "0.0", "1.0.pineapple-pen", "1.0-rc", ".1.0", "1.-0", "RC1", "Beta1", "donut", "8u412b08", "0*.0", "*0", "*.", "17.*alpha",
       "17*.1" })
-  public void testInvalid(String version) {
+  void testInvalid(String version) {
 
     // act
     VersionIdentifier vid = VersionIdentifier.of(version);
@@ -94,7 +94,7 @@ public class VersionIdentifierTest extends Assertions {
    * Test of {@link VersionIdentifier} with canonical version numbers and safe order.
    */
   @Test
-  public void testCompare() {
+  void testCompare() {
 
     String[] versions = { "0.1", "0.2-SNAPSHOT", "0.2-nb5", "0.2-a", "0.2-alpha1", "0.2-beta", "0.2-b2", "0.2.M1", "0.2M9", "0.2M10", "0.2-rc1", "0.2-RC2",
         "0.2", "0.2-fix9", "0.2-hf1", "0.3", "0.3.1", "1", "1.0", "10-alpha1" };
@@ -117,7 +117,7 @@ public class VersionIdentifierTest extends Assertions {
    * Test of {@link VersionIdentifier#compareVersion(VersionIdentifier)} with {@link VersionComparisonResult#isUnsafe() unsafe results} and other edge-cases.
    */
   @Test
-  public void testCompareSpecial() {
+  void testCompareSpecial() {
 
     assertThat(VersionIdentifier.LATEST.compareVersion(VersionIdentifier.of("2.0"))).isSameAs(VersionComparisonResult.LESS_UNSAFE);
     assertThat(VersionIdentifier.of("2").compareVersion(VersionIdentifier.of("2.0"))).isSameAs(VersionComparisonResult.LESS);
@@ -128,7 +128,7 @@ public class VersionIdentifierTest extends Assertions {
    * Test of {@link VersionIdentifier#matches(VersionIdentifier)} with {@link VersionSegment#PATTERN_MATCH_ANY_STABLE_VERSION}.
    */
   @Test
-  public void testMatchStable() {
+  void testMatchStable() {
 
     VersionIdentifier pattern = VersionIdentifier.LATEST;
     assertThat(pattern.isValid()).isFalse();
@@ -199,7 +199,7 @@ public class VersionIdentifierTest extends Assertions {
    * Test of {@link VersionIdentifier#matches(VersionIdentifier)} with {@link VersionSegment#PATTERN_MATCH_ANY_VERSION}.
    */
   @Test
-  public void testMatchAny() {
+  void testMatchAny() {
 
     VersionIdentifier pattern = VersionIdentifier.of("17*!");
     assertThat(pattern.isValid()).isFalse();
@@ -250,7 +250,7 @@ public class VersionIdentifierTest extends Assertions {
   }
 
   @Test
-  public void testCompareJavaVersions() {
+  void testCompareJavaVersions() {
 
     VersionIdentifier v21_35 = VersionIdentifier.of("21_35");
     VersionIdentifier v21_0_2_13 = VersionIdentifier.of("21.0.2_13");
@@ -264,7 +264,7 @@ public class VersionIdentifierTest extends Assertions {
    * Tests if unstable SNAPSHOT versions can be detected properly. See: <a href="https://github.com/devonfw/IDEasy/issues/1159">1159</a>
    */
   @Test
-  public void testSnapshotStarFindsUnstableVersions() {
+  void testSnapshotStarFindsUnstableVersions() {
     VersionIdentifier snapshot_star = VersionIdentifier.of("*!-SNAPSHOT");
     assertThat(snapshot_star.isValid()).isFalse();
     assertThat(snapshot_star.isPattern()).isTrue();
@@ -276,7 +276,7 @@ public class VersionIdentifierTest extends Assertions {
    * Tests if unstable versions will not match. See: <a href="https://github.com/devonfw/IDEasy/issues/1159">1159</a>
    */
   @Test
-  public void testSnapshotStarNotMatchingUnstableVersions() {
+  void testSnapshotStarNotMatchingUnstableVersions() {
     VersionIdentifier snapshot_star = VersionIdentifier.of("*-SNAPSHOT");
     assertThat(snapshot_star.isValid()).isFalse();
     assertThat(snapshot_star.isPattern()).isTrue();
@@ -286,7 +286,7 @@ public class VersionIdentifierTest extends Assertions {
 
   /** Test of {@link VersionIdentifier#incrementSegment(int, boolean)} and related methods. */
   @Test
-  public void testIncrement() {
+  void testIncrement() {
 
     assertIncrement("1.2beta.3-4foo.5bar-SNAPSHOT", 0, false, "2.0.0-0.0");
     assertIncrement("1.2beta.3-4foo.5bar-SNAPSHOT", 0, true, "2.0beta.0-0foo.0bar-SNAPSHOT");
@@ -324,7 +324,7 @@ public class VersionIdentifierTest extends Assertions {
 
   /** Test of {@link VersionIdentifier#incrementLastDigit(boolean)}. */
   @Test
-  public void testIncrementLastDigit() {
+  void testIncrementLastDigit() {
 
     assertIncrementLastDigit("1-beta", false, "2");
     assertIncrementLastDigit("1-beta", true, "2-beta");
@@ -343,7 +343,7 @@ public class VersionIdentifierTest extends Assertions {
 
   /** Test of {@link VersionIdentifier#isStable()}. */
   @Test
-  public void testIsStable() {
+  void testIsStable() {
 
     assertThat(VersionIdentifier.of("2025.01.002").isStable()).isTrue();
     assertThat(VersionIdentifier.of("1.0-rc1").isStable()).isFalse();

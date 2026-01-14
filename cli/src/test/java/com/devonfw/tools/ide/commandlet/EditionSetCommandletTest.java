@@ -11,12 +11,12 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesFiles;
 
-/** Integration test of {@link EditionSetCommandlet}. */
-public class EditionSetCommandletTest extends AbstractIdeContextTest {
+/** Test of {@link EditionSetCommandlet}. */
+class EditionSetCommandletTest extends AbstractIdeContextTest {
 
   /** Test of {@link VersionSetCommandlet} run. */
   @Test
-  public void testEditionSetCommandletRun() {
+  void testEditionSetCommandletRun() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
@@ -44,7 +44,7 @@ public class EditionSetCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testEditionSetCommandletRunOverridenEdition() throws IOException {
+  void testEditionSetCommandletRunOverridenEdition() throws IOException {
 
     IdeTestContext context = newContext(PROJECT_BASIC);
 

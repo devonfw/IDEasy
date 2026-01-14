@@ -1,58 +1,46 @@
 package com.devonfw.tools.ide.tool.custom;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
-import com.devonfw.tools.ide.json.JsonMapping;
+import com.devonfw.tools.ide.json.JsonBuilder;
+import com.devonfw.tools.ide.json.JsonObjectDeserializer;
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
 
 /**
- * {@link JsonDeserializer} for {@link CustomToolsJson}.
+ * {@link JsonObjectDeserializer} for {@link CustomTools}.
  */
-public class CustomToolsJsonDeserializer extends JsonDeserializer<CustomToolsJson> {
-
-  private static final String INVALID_CUSTOM_TOOLS = "Invalid JSON for custom tools!";
+public class CustomToolsJsonDeserializer extends JsonObjectDeserializer<CustomTools> {
 
   @Override
-  public CustomToolsJson deserialize(JsonParser p, DeserializationContext context) throws IOException {
+  protected JsonBuilder<CustomTools> createBuilder() {
 
-    JsonToken token = p.getCurrentToken();
-    if (token == JsonToken.START_OBJECT) {
-      token = p.nextToken();
-      String url = null;
-      List<CustomToolJson> tools = new ArrayList<>();
-      while (token == JsonToken.FIELD_NAME) {
-        String property = p.currentName();
-        if (property.equals(CustomToolsJson.PROPERTY_URL)) {
-          token = p.nextToken();
-          assert token == JsonToken.VALUE_STRING;
-          url = p.getValueAsString();
-        } else if (property.equals(CustomToolsJson.PROPERTY_TOOLS)) {
-          token = p.nextToken();
-          if (token == JsonToken.START_ARRAY) {
-            token = p.nextToken();
-            while (token != JsonToken.END_ARRAY) {
-              CustomToolJson customToolJson = p.readValueAs(CustomToolJson.class);
-              tools.add(customToolJson);
-              token = p.nextToken();
-            }
-          }
-        } else {
-          // ignore unknown property
-          // currently cannot log here due to https://github.com/devonfw/IDEasy/issues/404
-          JsonMapping.skipCurrentField(p);
-        }
-        token = p.nextToken();
-      }
-      if ((url != null) && !tools.isEmpty()) {
-        return new CustomToolsJson(url, tools);
+    return new CustomToolsBuilder();
+  }
+
+  private class CustomToolsBuilder extends JsonBuilder<CustomTools> {
+
+    private String url;
+    private List<CustomTool> tools;
+
+    @Override
+    public void setProperty(String property, JsonParser p, DeserializationContext ctxt) throws IOException {
+
+      if (property.equals(CustomTools.PROPERTY_URL)) {
+        this.url = readValueAsString(p, property, this.url);
+      } else if (property.equals(CustomTools.PROPERTY_TOOLS)) {
+        this.tools = readArray(p, CustomTool.class, property, this.tools);
+      } else {
+        super.setProperty(property, p, ctxt);
       }
     }
-    throw new IllegalStateException(INVALID_CUSTOM_TOOLS);
+
+    @Override
+    public CustomTools build() {
+
+      return new CustomTools(this.url, this.tools);
+    }
   }
 
 }

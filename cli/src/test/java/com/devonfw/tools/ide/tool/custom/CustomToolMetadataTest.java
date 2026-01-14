@@ -11,13 +11,10 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 /**
  * Test of {@link CustomToolMetadata}.
  */
-public class CustomToolMetadataTest extends Assertions {
+class CustomToolMetadataTest extends Assertions {
 
-  /**
-   * Test of {@link CustomToolMetadata}.
-   */
   @Test
-  public void testAgnostic() {
+  void testAgnostic() {
 
     // arrange
     String name = "jboss-eap";
@@ -39,11 +36,8 @@ public class CustomToolMetadataTest extends Assertions {
     assertThat(tool.getRepositoryUrl()).isEqualTo(repositoryUrl);
   }
 
-  /**
-   * Test of {@link CustomToolMetadata}.
-   */
   @Test
-  public void testSpecific() {
+  void testSpecific() {
 
     // arrange
     String name = "firefox";

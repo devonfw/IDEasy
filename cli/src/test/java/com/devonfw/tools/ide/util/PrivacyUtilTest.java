@@ -6,13 +6,13 @@ import org.junit.jupiter.api.Test;
 /**
  * Test of {@link PrivacyUtil}.
  */
-public class PrivacyUtilTest extends Assertions {
+class PrivacyUtilTest extends Assertions {
 
   /**
    * Test of {@link PrivacyUtil#removeSensitivePathInformation(String)} with un-sensitive Windows path.
    */
   @Test
-  public void testUnsensitiveWindowsPath() {
+  void testUnsensitiveWindowsPath() {
 
     String string = "C:\\Windows\\System32\\drivers\\etc\\hosts";
     String result = "C:/Windows/System32/drivers/etc/hosts";
@@ -23,7 +23,7 @@ public class PrivacyUtilTest extends Assertions {
    * Test of {@link PrivacyUtil#removeSensitivePathInformation(String)} with a path containing sensitive and un-sensitive segments.
    */
   @Test
-  public void testMixedPathWithStrangeStuff() {
+  void testMixedPathWithStrangeStuff() {
 
     String string = "C:\\Windows\\Users\\hohwille/\\projects/IDEasy/../other-project/./settings/intellij/workspaces/update/.intellij/file.txt";
     String result = "C:/Windows/Users/********//projects/******/../*****-project/./settings/intellij/workspaces/update/.intellij/file.txt";
@@ -37,7 +37,7 @@ public class PrivacyUtilTest extends Assertions {
    * in reviews and by tests.
    */
   @Test
-  public void testTextMixedWithMultiplePaths() {
+  void testTextMixedWithMultiplePaths() {
 
     String string = "In project /projects/myproject the file ~/projects/myproject/secret-module/src/main/java/com/secret_company/secret_project/common/data\\SecretClass.java could not be deleted.";
     String result = "In project /projects/********* the file ~/projects/*********/******-module/src/main/java/com/******_*******/******_project/common/data/***********.java could not be deleted.";
@@ -48,7 +48,7 @@ public class PrivacyUtilTest extends Assertions {
    * Test of {@link PrivacyUtil#removeSensitivePathInformation(String)} with a variant from StatusCommandletTest that failed on GitHub for no logical reason.
    */
   @Test
-  public void testPathWithUsername() {
+  void testPathWithUsername() {
 
     String string = "/mnt/c/Users/testuser/projects/project";
     String result = "/mnt/c/Users/********/projects/project";

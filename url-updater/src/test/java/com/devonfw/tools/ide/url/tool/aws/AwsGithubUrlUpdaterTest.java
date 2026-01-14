@@ -19,15 +19,10 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * Test class for integrations of the {@link AwsUrlUpdater}
+ * Test of {@link AwsUrlUpdater}.
  */
 @WireMockTest
-public class AwsGithubUrlUpdaterTest extends AbstractUrlUpdaterTest {
-
-  /**
-   * Test resource location
-   */
-  private final static String TEST_DATA_ROOT = "src/test/resources/integrationtest/AwsUrlUpdater";
+class AwsGithubUrlUpdaterTest extends AbstractUrlUpdaterTest {
 
   /**
    * Test of {@link JsonUrlUpdater} for the creation of {@link AwsUrlUpdater} download URLs and checksums.
@@ -37,7 +32,7 @@ public class AwsGithubUrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @throws IOException test fails
    */
   @Test
-  public void testAwsGithubUrlUpdater(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  void testAwsGithubUrlUpdater(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
 
     // arrange
     stubFor(get(urlMatching("/repos/.*")).willReturn(aResponse().withStatus(200)

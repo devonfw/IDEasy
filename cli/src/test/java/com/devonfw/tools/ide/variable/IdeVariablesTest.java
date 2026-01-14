@@ -12,11 +12,11 @@ import com.devonfw.tools.ide.context.IdeTestContextMock;
 /**
  * Test of {@link IdeVariables}.
  */
-public class IdeVariablesTest extends Assertions {
+class IdeVariablesTest extends Assertions {
 
   /** Test of {@link IdeVariables#IDE_TOOLS}. */
   @Test
-  public void testIdeTools() {
+  void testIdeTools() {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();
@@ -28,7 +28,7 @@ public class IdeVariablesTest extends Assertions {
 
   /** Test of {@link IdeVariables#HTTP_VERSIONS}. */
   @Test
-  public void testHttpProtocols() {
+  void testHttpProtocols() {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();
@@ -42,7 +42,7 @@ public class IdeVariablesTest extends Assertions {
 
   /** Test of {@link IdeVariables#IDE_TOOLS} with bash array syntax using commas. */
   @Test
-  public void testIdeToolsWithCommasInBashArray() {
+  void testIdeToolsWithCommasInBashArray() {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();

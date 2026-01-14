@@ -12,10 +12,10 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * Integration test of {@link Pip}.
+ * Test of {@link Pip}.
  */
 @WireMockTest
-public class PipTest extends AbstractIdeContextTest {
+class PipTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_PIP = "pip";
 
@@ -25,7 +25,7 @@ public class PipTest extends AbstractIdeContextTest {
    * @param wireMockRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testPipInstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
+  void testPipInstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_PIP, wireMockRuntimeInfo);
@@ -45,7 +45,7 @@ public class PipTest extends AbstractIdeContextTest {
    * @param wireMockRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testPipRun(WireMockRuntimeInfo wireMockRuntimeInfo) {
+  void testPipRun(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_PIP, wireMockRuntimeInfo);
@@ -66,7 +66,7 @@ public class PipTest extends AbstractIdeContextTest {
    * @param wireMockRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testPipVersions(WireMockRuntimeInfo wireMockRuntimeInfo) {
+  void testPipVersions(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_PIP, wireMockRuntimeInfo);
