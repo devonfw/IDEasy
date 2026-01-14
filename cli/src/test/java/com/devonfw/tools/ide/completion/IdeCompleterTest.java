@@ -6,7 +6,7 @@ import com.devonfw.tools.ide.cli.AutocompletionReaderTestSupport;
 import com.devonfw.tools.ide.context.IdeTestContext;
 
 /**
- * Integration test of {@link IdeCompleter}.
+ * Test of {@link IdeCompleter}.
  */
 class IdeCompleterTest extends AutocompletionReaderTestSupport {
 

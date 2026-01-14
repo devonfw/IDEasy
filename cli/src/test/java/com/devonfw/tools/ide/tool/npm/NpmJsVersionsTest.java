@@ -1,13 +1,9 @@
-package com.devonfw.tools.ide.npm;
+package com.devonfw.tools.ide.tool.npm;
 
 import java.util.Map;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import com.devonfw.tools.ide.tool.npm.NpmJsDist;
-import com.devonfw.tools.ide.tool.npm.NpmJsVersion;
-import com.devonfw.tools.ide.tool.npm.NpmJsVersions;
 
 /**
  * Test of {@link NpmJsVersions}.

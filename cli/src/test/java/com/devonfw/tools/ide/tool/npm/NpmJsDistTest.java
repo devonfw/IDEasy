@@ -1,9 +1,7 @@
-package com.devonfw.tools.ide.npm;
+package com.devonfw.tools.ide.tool.npm;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import com.devonfw.tools.ide.tool.npm.NpmJsDist;
 
 /**
  * Test of {@link NpmJsDist}.
