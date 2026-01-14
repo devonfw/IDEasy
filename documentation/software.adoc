@@ -17,6 +17,53 @@ This has the following benefits:
 However, we keep previous tool version on updates what can also waste disc-space.
 Therefore, you can run `ide cleanup` to find and release old tool versions and free disc-space.
 
+== Extra Tool Installations
+
+Assuming you needs multiple versions of the same tool (SDK), you can make IDEasy installation additional versions.
+There is always a main installation of a tool used by your project configured via `«TOOL»_VERSION` and `«TOOL»_EDITION`.
+This main installation will be located in `$IDE_HOME/software/«tool»` and is automatically added to your `PATH`.
+Extra tool installations will be installed in `$IDE_HOME/software/extra/«tool»/«name»`.
+Extra tools can be configured via `settings/ide-extra-tools.json`.
+Here is an example of such a file:
+
+```json
+{
+  "dotnet": {
+    "legacy": {
+      "version": "6.0.428"
+    }
+  },
+  "java": {
+    "client": {
+      "version": "11.0.27_6",
+      "edition": "azul"
+    },
+    "process-engine": {
+      "version": "21.*"
+    }
+  }
+}
+```
+
+As a result you will get the following created below the folder `$IDE_HOME/software/extra`:
+
+.File structure of extra installations
+[subs=+macros]
+----
+/ $IDE_HOME/software/extra
+├──/ dotnet/
+|  └──/ legacy/ -> 6.0.428
+└──/ java
+   ├──/ client/ -> 11.0.27_6
+   └──/ process-engine/ -> 21.0.9_10
+----
+
+NOTE: If you have multiple sub-projects that requite different SDKs it is easier and better to separate them into individual git repos and create an IDEasy settings repository for each of them.
+Then you can run build tools easily.
+
+However, this feature can be helpful for monolithic projects that e.g. use a legacy rich client that does not run with the same SDK major version as the backend.
+You can then build everything with the main SDK version but create a launch config to run the legacy client with the older SDK version.
+
 == Custom Tools
 
 In some cases, a project might need (proprietary) tools that are not directly supported by `IDEasy`.
