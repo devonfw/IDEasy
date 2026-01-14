@@ -7,14 +7,14 @@ import org.junit.jupiter.api.Test;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.tool.custom.CustomToolJson;
-import com.devonfw.tools.ide.tool.custom.CustomToolsJson;
-import com.devonfw.tools.ide.tool.custom.CustomToolsJsonMapper;
+import com.devonfw.tools.ide.tool.custom.CustomTool;
+import com.devonfw.tools.ide.tool.custom.CustomTools;
+import com.devonfw.tools.ide.tool.custom.CustomToolsMapper;
 
 /**
- * Integration test of {@link UpgradeSettingsCommandlet} .
+ * Test of {@link UpgradeSettingsCommandlet} .
  */
-public class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
+class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_UPGRADE_SETTINGS = "upgrade-settings";
   private final IdeTestContext context = newContext(PROJECT_UPGRADE_SETTINGS);
@@ -22,11 +22,9 @@ public class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
 
   /**
    * Test of {@link UpgradeSettingsCommandlet}.
-   *
-   * @throws Exception on error.
    */
   @Test
-  public void testUpdateSettings() throws Exception {
+  void testUpdateSettings() {
     // arrange
     UpgradeSettingsCommandlet upgradeSettingsCommandlet = new UpgradeSettingsCommandlet(context);
     // act
@@ -37,10 +35,7 @@ public class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
     verifyUpdateWorkspaceTemplates();
   }
 
-  /**
-   * @throws Exception on error.
-   */
-  private void verifyUpdateProperties() throws Exception {
+  private void verifyUpdateProperties() {
 
     assertThat(UPGRADE_SETTINGS_PATH.resolve("home/.ide/ide.properties")).exists();
     assertThat(UPGRADE_SETTINGS_PATH.resolve("settings/ide.properties")).exists().content().contains("INTELLIJ_EDITION=ultimate")
@@ -57,21 +52,22 @@ public class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
     verifyCustomToolsJson();
   }
 
-  private void verifyCustomToolsJson() throws Exception {
+  private void verifyCustomToolsJson() {
     // arrange
     UpgradeSettingsCommandlet upgradeSettingsCommandlet = new UpgradeSettingsCommandlet(context);
+    CustomToolsMapper mapper = CustomToolsMapper.get();
     // act
     upgradeSettingsCommandlet.run();
     // assert
 
-    Path customToolsJsonFile = UPGRADE_SETTINGS_PATH.resolve("settings").resolve(IdeContext.FILE_CUSTOM_TOOLS);
+    Path customToolsJsonFile = UPGRADE_SETTINGS_PATH.resolve("settings").resolve(mapper.getStandardFilename());
     // assert that ide-custom-tools.json exists
     assertThat(customToolsJsonFile).exists();
-    CustomToolsJson customToolsJson = CustomToolsJsonMapper.loadJson(customToolsJsonFile);
+    CustomTools customTools = mapper.loadJson(customToolsJsonFile);
     //assert that ide-custom-tools.json has the correct content
-    assertThat(customToolsJson.url()).isEqualTo("https://host.tld/projects/my-project");
-    assertThat(customToolsJson.tools()).containsExactly(new CustomToolJson("jboss-eap", "7.1.4.GA", true, true, null),
-        new CustomToolJson("firefox", "70.0.1", false, false, null));
+    assertThat(customTools.url()).isEqualTo("https://host.tld/projects/my-project");
+    assertThat(customTools.tools()).containsExactly(new CustomTool("jboss-eap", "7.1.4.GA", true, true, null),
+        new CustomTool("firefox", "70.0.1", false, false, null));
   }
 
   private void verifyUpdateLegacyFolders() {

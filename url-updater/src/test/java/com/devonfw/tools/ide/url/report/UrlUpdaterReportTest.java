@@ -22,10 +22,10 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * Test of {@link UrlUpdaterReport} and {@link UrlFinalReport} using wiremock to simulate network downloads.
+ * Test of {@link UrlUpdaterReport} and {@link UrlFinalReport}.
  */
 @WireMockTest
-public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
+class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
 
   private UrlRepository urlRepository;
   private UrlUpdaterMock updater;
@@ -37,7 +37,7 @@ public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
    * @param wmRuntimeInfo wireMock server on a random port
    */
   @BeforeEach
-  public void setup(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
+  void setup(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     urlRepository = UrlRepository.load(tempDir);
     updater = new UrlUpdaterMock(wmRuntimeInfo);
@@ -47,7 +47,7 @@ public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
    * Test report on the first (initial) run when all URLs are successful
    */
   @Test
-  public void testReportOnInitialRunWithAllUrlsSuccessful() {
+  void testReportOnInitialRunWithAllUrlsSuccessful() {
 
     // assign
     stubSuccessfulUrlRequest();
@@ -67,7 +67,7 @@ public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
    * Test report on the first (initial) run when all URLs are failing
    */
   @Test
-  public void testReportOnInitialRunWithAllUrlsFailing() {
+  void testReportOnInitialRunWithAllUrlsFailing() {
 
     // assign
     stubFailedUrlRequest();
@@ -86,7 +86,7 @@ public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
    * Test report on first (initial) run when urls for mac_x64 and mac_arm64 are failing
    */
   @Test
-  public void testReportOnInitialRunWithFailedUrlsForMac() {
+  void testReportOnInitialRunWithFailedUrlsForMac() {
 
     // assign
     stubSuccessfulUrlRequest();
@@ -107,7 +107,7 @@ public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
    * Test report on second run with existing versions already verified within the timeframe
    */
   @Test
-  public void testReportOnSecondRunWithExistVersionsAlreadyVerifiedInTime() {
+  void testReportOnSecondRunWithExistVersionsAlreadyVerifiedInTime() {
 
     // assign
     stubSuccessfulUrlRequest();
@@ -127,7 +127,7 @@ public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
    * Test report on second run when an url is removed from one version
    */
   @Test
-  public void testReportOnSecondRunAfterOneVersionIsRemoved() throws IOException {
+  void testReportOnSecondRunAfterOneVersionIsRemoved() throws IOException {
 
     // assign
     stubSuccessfulUrlRequest();
@@ -151,7 +151,7 @@ public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
    * Test report total additions and verifications operations
    */
   @Test
-  public void testReportTotalAdditionsAndVerificationsOperations() {
+  void testReportTotalAdditionsAndVerificationsOperations() {
 
     // assign
     int addVersionSuccess = 5;
@@ -169,7 +169,7 @@ public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
    * Test report increment operations for additions and verifications
    */
   @Test
-  public void testReportIncrementOperations() {
+  void testReportIncrementOperations() {
 
     // assign
     int addVersionSuccess = 5;
@@ -195,7 +195,7 @@ public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
    * Test report error rate operations for additions and verifications
    */
   @Test
-  public void testReportErrorRateOperations() {
+  void testReportErrorRateOperations() {
 
     // assign
     int addVersionSuccess = 20;
@@ -220,7 +220,6 @@ public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
     assertThat(errorRateWithoutNullAdd).isEqualTo(20.0);
     assertThat(errorRateWithoutNullVer).isEqualTo(50.0);
   }
-
 
   // some utils
   private void stubSuccessfulUrlRequest() {

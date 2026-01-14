@@ -6,11 +6,11 @@ import org.junit.jupiter.api.Test;
 /**
  * Test of {@link GitUrl}.
  */
-public class GitUrlTest extends Assertions {
+class GitUrlTest extends Assertions {
 
   /** Test {@link GitUrl#of(String)} with url having branch. */
   @Test
-  public void testOfUrlWithBranch() {
+  void testOfUrlWithBranch() {
 
     // arrange
     String url = "https://github.com/devonfw/IDEasy.git";
@@ -26,7 +26,7 @@ public class GitUrlTest extends Assertions {
 
   /** Test {@link GitUrl#of(String)} with url having no branch. */
   @Test
-  public void testOfUrlWithoutBranch() {
+  void testOfUrlWithoutBranch() {
 
     // arrange
     String url = "https://github.com/devonfw/IDEasy.git";
@@ -40,7 +40,7 @@ public class GitUrlTest extends Assertions {
 
   /** Test {@link GitUrl#GitUrl(String, String)} with invalid URL. */
   @Test
-  public void testInvalidUrl() {
+  void testInvalidUrl() {
 
     // arrange
     String url = "invalid#url";

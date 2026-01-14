@@ -16,15 +16,15 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 /**
  * Test of {@link RepositoryCommandlet}.
  */
-public class RepositoryCommandletTest extends AbstractIdeContextTest {
+class RepositoryCommandletTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_REPOSITORY = "repository";
 
   private static final String PROPERTIES_FILE = "test.properties";
   private static final String TEST_WORKSPACE = "test-workspace";
   private static final String TEST_BRANCH = "test-branch";
-  public static final String TEST_REPO = "test-repo";
-  public static final String TEST_GIT_REPO = "test-git-repo";
+  private static final String TEST_REPO = "test-repo";
+  private static final String TEST_GIT_REPO = "test-git-repo";
 
   /**
    * Creates default test properties for repository configuration.
@@ -60,7 +60,7 @@ public class RepositoryCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testSetupSpecificRepository() {
+  void testSetupSpecificRepository() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_REPOSITORY);
@@ -76,7 +76,7 @@ public class RepositoryCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testSetupAllRepositoriesInactive() {
+  void testSetupAllRepositoriesInactive() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_REPOSITORY);
@@ -91,7 +91,7 @@ public class RepositoryCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testSetupSpecificRepositoryWithoutPath() {
+  void testSetupSpecificRepositoryWithoutPath() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_REPOSITORY);
@@ -107,7 +107,7 @@ public class RepositoryCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testSetupSpecificRepositoryFailsWithoutGitUrl() {
+  void testSetupSpecificRepositoryFailsWithoutGitUrl() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_REPOSITORY);
@@ -125,7 +125,7 @@ public class RepositoryCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testRunNoRepositoriesOrProjectsFolderFound() {
+  void testRunNoRepositoriesOrProjectsFolderFound() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_REPOSITORY);
@@ -139,7 +139,7 @@ public class RepositoryCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testSetupSpecificRepositoryWithForceOption() {
+  void testSetupSpecificRepositoryWithForceOption() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_REPOSITORY);
@@ -160,7 +160,7 @@ public class RepositoryCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testSetupRepositoryWithMultipleWorkspaces() {
+  void testSetupRepositoryWithMultipleWorkspaces() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_REPOSITORY);
@@ -182,7 +182,7 @@ public class RepositoryCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testSetupRepositoryWithMultipleWorkspacesWithSpaces() {
+  void testSetupRepositoryWithMultipleWorkspacesWithSpaces() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_REPOSITORY);
@@ -206,7 +206,7 @@ public class RepositoryCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testSetupRepositoryWithEmptyWorkspaceDefaultsToMain() {
+  void testSetupRepositoryWithEmptyWorkspaceDefaultsToMain() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_REPOSITORY);
@@ -225,7 +225,7 @@ public class RepositoryCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testSetupRepositoryWithoutActiveProperty() {
+  void testSetupRepositoryWithoutActiveProperty() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_REPOSITORY);

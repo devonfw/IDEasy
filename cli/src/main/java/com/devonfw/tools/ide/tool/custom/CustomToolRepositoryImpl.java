@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.tool.custom;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -169,16 +168,12 @@ public class CustomToolRepositoryImpl extends AbstractToolRepository implements 
   public static CustomToolRepository of(IdeContext context) {
 
     Path settingsPath = context.getSettingsPath();
-    Path customToolsJsonFile = null;
-    if (settingsPath != null) {
-      customToolsJsonFile = settingsPath.resolve(IdeContext.FILE_CUSTOM_TOOLS);
-    }
     List<CustomToolMetadata> tools;
-    if ((customToolsJsonFile != null) && Files.exists(customToolsJsonFile)) {
-      CustomToolsJson customToolsJson = CustomToolsJsonMapper.loadJson(customToolsJsonFile);
-      tools = CustomToolsJsonMapper.convert(customToolsJson, context);
-    } else {
+    CustomTools customTools = CustomToolsMapper.get().loadJsonFromFolder(settingsPath);
+    if (customTools == null) {
       tools = new ArrayList<>();
+    } else {
+      tools = CustomToolsMapper.convert(customTools, context);
     }
     return new CustomToolRepositoryImpl(context, tools);
   }

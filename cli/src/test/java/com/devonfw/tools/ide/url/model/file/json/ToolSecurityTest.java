@@ -14,10 +14,10 @@ import com.devonfw.tools.ide.version.VersionRange;
 /**
  * Test of {@link ToolSecurity} and {@link AbstractUrlToolOrEdition#getSecurityFile()}.
  */
-public class ToolSecurityTest extends AbstractUrlModelTest {
+class ToolSecurityTest extends AbstractUrlModelTest {
 
   @Test
-  public void testSecurity() {
+  void testSecurity() {
 
     // arrange
     IdeContext context = newContext();

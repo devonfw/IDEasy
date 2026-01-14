@@ -4,14 +4,16 @@ import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.log.IdeLogEntry;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * Integration test of {@link Spring}.
+ * Test of {@link Spring}.
  */
 @WireMockTest
-public class SpringTest extends AbstractIdeContextTest {
+class SpringTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_SPRING = "spring";
 
@@ -21,13 +23,13 @@ public class SpringTest extends AbstractIdeContextTest {
    * @param wireMockRuntimeInfo wireMock server on a random port.
    */
   @Test
-  public void testSpringInstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
+  void testSpringInstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_SPRING, wireMockRuntimeInfo);
     Spring commandlet = new Spring(context);
     context.info("Starting testSpringInstall");
-    
+
     // act
     commandlet.install();
 
@@ -41,7 +43,7 @@ public class SpringTest extends AbstractIdeContextTest {
    * @param wireMockRuntimeInfo wireMock server on a random port.
    */
   @Test
-  public void testSpringRun(WireMockRuntimeInfo wireMockRuntimeInfo) {
+  void testSpringRun(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_SPRING, wireMockRuntimeInfo);
@@ -60,7 +62,8 @@ public class SpringTest extends AbstractIdeContextTest {
   private void checkInstallation(IdeTestContext context) {
 
     assertThat(context.getSoftwarePath().resolve("spring/.ide.software.version")).exists().hasContent("2.4.0");
-    assertThat(context).logAtSuccess().hasEntries("Successfully installed java in version 17.0.10_7",
-        "Successfully installed spring in version 2.4.0");
+    assertThat(context).log().hasEntries(
+        new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed java in version 17.0.10_7", true),
+        new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed spring in version 2.4.0", true));
   }
 }

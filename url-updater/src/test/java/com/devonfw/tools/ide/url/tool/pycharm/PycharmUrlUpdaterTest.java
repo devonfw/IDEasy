@@ -20,10 +20,10 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * Test class for integrations of the {@link PycharmUrlUpdater}
+ * Test of {@link PycharmUrlUpdater}
  */
 @WireMockTest
-public class PycharmUrlUpdaterTest extends AbstractUrlUpdaterTest {
+class PycharmUrlUpdaterTest extends AbstractUrlUpdaterTest {
 
   private static final String VERSION_2024_3_4 = "2024.3.4";
   private static final String VERSION_2024_3_5 = "2024.3.5";
@@ -39,7 +39,7 @@ public class PycharmUrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @throws IOException test fails.
    */
   @BeforeAll
-  public static void setupTestVersionJson(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  static void setupTestVersionJson(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     //preparing test data with dynamic port
     Path testDataPath = PATH_INTEGRATION_TEST.resolve("PycharmUrlUpdater");
     pycharmVersionJson = readAndResolve(testDataPath.resolve("pycharm-version.json"), wmRuntimeInfo);
@@ -53,7 +53,7 @@ public class PycharmUrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testPycharmJsonUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
+  void testPycharmJsonUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange
     stubFor(any(urlMatching("/products.*")).willReturn(aResponse().withStatus(200).withBody(pycharmVersionJson)));
@@ -88,7 +88,7 @@ public class PycharmUrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testPycharmJsonUrlUpdaterWithMissingDownloadsDoesNotCreateVersionFolder(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
+  void testPycharmJsonUrlUpdaterWithMissingDownloadsDoesNotCreateVersionFolder(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // given
     stubFor(any(urlMatching("/products.*")).willReturn(aResponse().withStatus(200).withBody(pycharmVersionJson)));
@@ -116,7 +116,7 @@ public class PycharmUrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testPycharmJsonUrlUpdaterWithMissingChecksumGeneratesChecksum(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
+  void testPycharmJsonUrlUpdaterWithMissingChecksumGeneratesChecksum(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange
     stubFor(any(urlMatching("/products.*")).willReturn(aResponse().withStatus(200).withBody(pycharmVersionWithoutChecksumJson)));

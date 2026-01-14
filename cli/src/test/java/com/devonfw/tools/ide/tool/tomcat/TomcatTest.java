@@ -13,12 +13,12 @@ import com.devonfw.tools.ide.tool.java.Java;
 /**
  * Test of {@link Tomcat}.
  */
-public class TomcatTest extends AbstractIdeContextTest {
+class TomcatTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_TOMCAT = "tomcat";
 
   @Test
-  public void testTomcat() {
+  void testTomcat() {
 
     // in the tomcat project we have JAVA_VERSION=8u402b06 and TOMCAT_VERSION=10.1.14
     // that tomcat version requires Java but in version range [11,21_35] what is incompatible
@@ -48,13 +48,13 @@ public class TomcatTest extends AbstractIdeContextTest {
     assertThat(context.getSoftwarePath().resolve("tomcat/.ide.software.version")).exists().hasContent(tomcatVersion);
     assertThat(javaTomcatPath.resolve(".ide.software.version")).exists().hasContent(javaVersionTomcat);
     assertThat(context).log().hasEntries(
-        new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed java in version " + javaVersionProject),
+        new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed java in version " + javaVersionProject, true),
         new IdeLogEntry(IdeLogLevel.INFO, "OpenJDK version " + javaVersionProject),
         new IdeLogEntry(IdeLogLevel.INFO,
             "The tool tomcat requires java in the version range [11,22), but your project uses version 8u402b06, which does not match."
                 + " Therefore, we install a compatible version in that range."),
         new IdeLogEntry(IdeLogLevel.DEBUG, "Installed java in version " + javaVersionTomcat + " at ", true),
-        new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed tomcat in version " + tomcatVersion),
+        new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed tomcat in version " + tomcatVersion, true),
         new IdeLogEntry(IdeLogLevel.INFO, "OpenJDK version " + javaVersionTomcat),
         new IdeLogEntry(IdeLogLevel.INFO, "JAVA_HOME=" + javaTomcatPath),
         new IdeLogEntry(IdeLogLevel.INFO, "tomcat run"),

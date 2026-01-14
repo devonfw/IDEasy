@@ -22,7 +22,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
  * Test of {@link JavaUrlUpdater}.
  */
 @WireMockTest
-public class JavaUrlUpdaterTest extends AbstractUrlUpdaterTest {
+class JavaUrlUpdaterTest extends AbstractUrlUpdaterTest {
 
   /**
    * Test of {@link JsonUrlUpdater} for the creation of {@link JavaUrlUpdater} download URLs and checksums.
@@ -32,7 +32,7 @@ public class JavaUrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @throws IOException test fails
    */
   @Test
-  public void testJavaUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  void testJavaUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
 
     // given
     stubFor(get(urlMatching("/versions/")).willReturn(aResponse().withStatus(200)

@@ -2,36 +2,30 @@ package com.devonfw.tools.ide.tool.custom;
 
 import java.io.IOException;
 
+import com.devonfw.tools.ide.json.JsonObjectSerializer;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
 /**
- * {@link JsonDeserializer} for {@link CustomToolJson}.
+ * {@link JsonObjectSerializer} for {@link CustomTool}.
  */
-public class CustomToolJsonSerializer extends JsonSerializer<CustomToolJson> {
+public class CustomToolJsonSerializer extends JsonObjectSerializer<CustomTool> {
 
   @Override
-  public void serialize(CustomToolJson customToolJson, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
-    if (customToolJson == null) {
-      return;
-    }
-    jgen.writeStartObject();
-    jgen.writeFieldName(CustomToolJson.PROPERTY_NAME);
-    jgen.writeString(customToolJson.name());
-    jgen.writeFieldName(CustomToolJson.PROPERTY_VERSION);
-    jgen.writeString(customToolJson.version());
-    jgen.writeFieldName(CustomToolJson.PROPERTY_OS_AGNOSTIC);
-    jgen.writeBoolean(customToolJson.osAgnostic());
-    jgen.writeFieldName(CustomToolJson.PROPERTY_ARCH_AGNOSTIC);
-    jgen.writeBoolean(customToolJson.archAgnostic());
-    String url = customToolJson.url();
+  protected void serializeProperties(CustomTool customTool, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
+    jgen.writeFieldName(CustomTool.PROPERTY_NAME);
+    jgen.writeString(customTool.name());
+    jgen.writeFieldName(CustomTool.PROPERTY_VERSION);
+    jgen.writeString(customTool.version());
+    jgen.writeFieldName(CustomTool.PROPERTY_OS_AGNOSTIC);
+    jgen.writeBoolean(customTool.osAgnostic());
+    jgen.writeFieldName(CustomTool.PROPERTY_ARCH_AGNOSTIC);
+    jgen.writeBoolean(customTool.archAgnostic());
+    String url = customTool.url();
     if ((url != null) && !url.isBlank()) {
-      jgen.writeFieldName(CustomToolJson.PROPERTY_URL);
+      jgen.writeFieldName(CustomTool.PROPERTY_URL);
       jgen.writeString(url);
     }
-    jgen.writeEndObject();
   }
 
 }

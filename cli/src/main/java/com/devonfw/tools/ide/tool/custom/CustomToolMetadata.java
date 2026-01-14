@@ -103,7 +103,7 @@ public final class CustomToolMetadata implements UrlDownloadFileMetadata {
   }
 
   /**
-   * @return the {@link CustomToolsJson#url() repository base URL}.
+   * @return the {@link CustomTools#url() repository base URL}.
    */
   @JsonIgnore
   public String getRepositoryUrl() {

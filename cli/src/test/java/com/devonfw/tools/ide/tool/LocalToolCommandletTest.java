@@ -17,9 +17,9 @@ import com.devonfw.tools.ide.tool.repository.ToolRepository;
 /**
  * Test of {@link LocalToolCommandlet}.
  */
-public class LocalToolCommandletTest extends AbstractIdeContextTest {
+class LocalToolCommandletTest extends AbstractIdeContextTest {
 
-  public static final String JAVA_VERSION_FOR_INTELLIJ = "17.0.10_7";
+  static final String JAVA_VERSION_FOR_INTELLIJ = "17.0.10_7";
 
   /**
    * Dummy commandlet extending {@link LocalToolCommandlet} for testing.
@@ -36,7 +36,7 @@ public class LocalToolCommandletTest extends AbstractIdeContextTest {
    * Test {@link LocalToolCommandlet#getValidInstalledSoftwareRepoPath(Path, Path)} with a long installation path, as commonly encountered on macOS systems.
    */
   @Test
-  public void testGetValidInstalledSoftwareRepoPathWithLongPath() {
+  void testGetValidInstalledSoftwareRepoPathWithLongPath() {
     // arrange
     Path installPath = Path.of("/projects/_ide/software/default/java/java/21.0.7_6/Contents/Resources/app/");
     Path softwareRepoPath = Path.of("/projects/_ide/software/");
@@ -55,7 +55,7 @@ public class LocalToolCommandletTest extends AbstractIdeContextTest {
    * Test {@link LocalToolCommandlet#getValidInstalledSoftwareRepoPath(Path, Path)} with a valid installation path.
    */
   @Test
-  public void testGetValidInstalledSoftwareRepoPathWithValidPath() {
+  void testGetValidInstalledSoftwareRepoPathWithValidPath() {
     // arrange
     Path installPath = Path.of("/projects/_ide/software/default/java/java/21.0.7_6/");
     Path softwareRepoPath = Path.of("/projects/_ide/software/");
@@ -73,7 +73,7 @@ public class LocalToolCommandletTest extends AbstractIdeContextTest {
    * Test {@link LocalToolCommandlet#getValidInstalledSoftwareRepoPath(Path, Path)} with an installation path that is too short.
    */
   @Test
-  public void testGetValidInstalledSoftwareRepoPathWithShortPath() {
+  void testGetValidInstalledSoftwareRepoPathWithShortPath() {
     // arrange
     Path installPath = Path.of("/projects/_ide/software/default/java/java/");
     Path softwareRepoPath = Path.of("/projects/_ide/software/");
@@ -93,7 +93,7 @@ public class LocalToolCommandletTest extends AbstractIdeContextTest {
    * repository path.
    */
   @Test
-  public void testGetValidInstalledSoftwareRepoPathWithWrongPath() {
+  void testGetValidInstalledSoftwareRepoPathWithWrongPath() {
     // arrange
     Path installPath = Path.of("/projects/IDEasy/workspaces/main/IDEasy/software/java/");
     Path softwareRepoPath = Path.of("/projects/_ide/software/");
@@ -113,7 +113,7 @@ public class LocalToolCommandletTest extends AbstractIdeContextTest {
    * the project and has been removed after initial installation.
    */
   @Test
-  public void testRunToolWithDependencies() {
+  void testRunToolWithDependencies() {
     // arrange
     IdeTestContext context = newContext("dependencies");
     context.setSystemInfo(SystemInfoMock.WINDOWS_X64);

@@ -8,10 +8,10 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * Integration test of {@link Yarn}.
+ * Test of {@link Yarn}.
  */
 @WireMockTest
-public class YarnTest extends AbstractIdeContextTest {
+class YarnTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_YARN = "yarn";
 
@@ -21,7 +21,7 @@ public class YarnTest extends AbstractIdeContextTest {
    * @param wireMockRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testYarnInstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
+  void testYarnInstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_YARN, wireMockRuntimeInfo);
@@ -40,7 +40,7 @@ public class YarnTest extends AbstractIdeContextTest {
    * @param wireMockRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testYarnUninstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
+  void testYarnUninstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_YARN, wireMockRuntimeInfo);
@@ -67,7 +67,7 @@ public class YarnTest extends AbstractIdeContextTest {
    * @param wireMockRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testYarnRun(WireMockRuntimeInfo wireMockRuntimeInfo) {
+  void testYarnRun(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_YARN, wireMockRuntimeInfo);
@@ -86,6 +86,6 @@ public class YarnTest extends AbstractIdeContextTest {
 
     assertThat(context).logAtInfo().hasMessageContaining("npm install -gf yarn@2.4.3");
     assertThat(context).logAtSuccess().hasMessageContaining("Setting npm config prefix to: " + context.getSoftwarePath().resolve("node") + " was successful");
-    assertThat(context).logAtSuccess().hasMessage("Successfully installed yarn in version 2.4.3");
+    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed yarn in version 2.4.3");
   }
 }

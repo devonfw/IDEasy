@@ -14,8 +14,8 @@ import com.devonfw.tools.ide.environment.EnvironmentVariablesPropertiesFile;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
-import com.devonfw.tools.ide.tool.custom.CustomToolsJson;
-import com.devonfw.tools.ide.tool.custom.CustomToolsJsonMapper;
+import com.devonfw.tools.ide.tool.custom.CustomTools;
+import com.devonfw.tools.ide.tool.custom.CustomToolsMapper;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.variable.VariableDefinition;
@@ -96,9 +96,9 @@ public class UpgradeSettingsCommandlet extends Commandlet {
     // updates DEVON_IDE_CUSTOM_TOOLS to new ide-custom-tools.json
     String devonCustomTools = IdeVariables.DEVON_IDE_CUSTOM_TOOLS.get(this.context);
     if (devonCustomTools != null) {
-      CustomToolsJson customToolsJson = CustomToolsJsonMapper.parseCustomToolsFromLegacyConfig(devonCustomTools, context);
-      if (customToolsJson != null) {
-        CustomToolsJsonMapper.saveJson(customToolsJson, this.context.getSettingsPath().resolve(IdeContext.FILE_CUSTOM_TOOLS));
+      CustomTools customTools = CustomToolsMapper.parseCustomToolsFromLegacyConfig(devonCustomTools, context);
+      if (customTools != null) {
+        CustomToolsMapper.get().saveJsonToFolder(customTools, this.context.getSettingsPath());
       }
     }
 

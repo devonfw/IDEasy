@@ -177,9 +177,6 @@ public interface IdeContext extends IdeStartContext {
   /** The default folder name for {@link #getIdeRoot() IDE_ROOT}. */
   String FOLDER_PROJECTS = "projects";
 
-  /** The filename of the configuration file in the settings for this {@link CustomToolRepository}. */
-  String FILE_CUSTOM_TOOLS = "ide-custom-tools.json";
-
   /**
    * file containing the current local commit hash of the settings repository.
    */

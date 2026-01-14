@@ -12,6 +12,9 @@ import com.devonfw.tools.ide.completion.CompletionCandidateCollectorDefault;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContextMock;
 
+/**
+ * Test of {@link EnumProperty}.
+ */
 class EnumPropertyTest {
 
   /**
@@ -22,15 +25,15 @@ class EnumPropertyTest {
   }
 
   @Test
-  public void testGetValueType() {
-    EnumProperty enumProp = new EnumProperty("", false, "", TestEnum.class);
+  void testGetValueType() {
+    EnumProperty<TestEnum> enumProp = new EnumProperty<>("", false, "", TestEnum.class);
     assertThat(enumProp.getValueType()).isEqualTo(TestEnum.class);
   }
 
   @Test
-  public void testParse() {
+  void testParse() {
     IdeContext context = IdeTestContextMock.get();
-    EnumProperty enumProp = new EnumProperty("", false, "", TestEnum.class);
+    EnumProperty<TestEnum> enumProp = new EnumProperty<>("", false, "", TestEnum.class);
 
     assertThat(enumProp.parse("elementzero", context)).isEqualTo(TestEnum.ELEMENTZERO);
     assertThrows(IllegalArgumentException.class, () -> enumProp.parse(null, context));
@@ -38,13 +41,13 @@ class EnumPropertyTest {
   }
 
   @Test
-  public void testCompleteValue() {
+  void testCompleteValue() {
     IdeContext context = IdeTestContextMock.get();
     String[] expectedCandidates = { "elementzero", "elementone", "elementtwo" };
     String input = "ele";
     CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context);
 
-    EnumProperty enumProp = new EnumProperty("", false, "", TestEnum.class);
+    EnumProperty<TestEnum> enumProp = new EnumProperty<>("", false, "", TestEnum.class);
     enumProp.completeValue(input, context, new ContextCommandlet(), collector);
 
     assertThat(collector.getCandidates().stream().map(CompletionCandidate::text)).containsExactly(expectedCandidates);

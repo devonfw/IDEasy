@@ -8,15 +8,17 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.git.repository.RepositoryCommandlet;
+import com.devonfw.tools.ide.log.IdeLogEntry;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * Integration test of {@link Intellij}.
+ * Test of {@link Intellij}.
  */
 @WireMockTest
-public class IntellijTest extends AbstractIdeContextTest {
+class IntellijTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_INTELLIJ = "intellij";
   private final IdeTestContext context = newContext(PROJECT_INTELLIJ);
@@ -28,7 +30,7 @@ public class IntellijTest extends AbstractIdeContextTest {
    */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testIntellijInstall(String os) {
+  void testIntellijInstall(String os) {
 
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of(os);
@@ -53,7 +55,7 @@ public class IntellijTest extends AbstractIdeContextTest {
    */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testIntellijUninstallPluginAfterwards(String os) {
+  void testIntellijUninstallPluginAfterwards(String os) {
 
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of(os);
@@ -82,7 +84,7 @@ public class IntellijTest extends AbstractIdeContextTest {
    */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testIntellijRun(String os) {
+  void testIntellijRun(String os) {
 
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of(os);
@@ -103,7 +105,7 @@ public class IntellijTest extends AbstractIdeContextTest {
    * Tests if after the installation of intellij the expected plugin marker file is existing.
    */
   @Test
-  public void testCheckPluginInstallation() {
+  void testCheckPluginInstallation() {
     // arrange
     IdeTestContext context = newContext("intellij");
 
@@ -130,7 +132,7 @@ public class IntellijTest extends AbstractIdeContextTest {
    * Tests by using 2 installations of intellij with different editions, if the plugins get re-installed and if all marker files get re-initialized properly.
    */
   @Test
-  public void testCheckEditionConflictInstallation() {
+  void testCheckEditionConflictInstallation() {
     // arrange
     IdeTestContext context = newContext("intellij");
     SystemInfo systemInfo = SystemInfoMock.of("windows");
@@ -157,7 +159,7 @@ public class IntellijTest extends AbstractIdeContextTest {
    * Tests if the repository commandlet can trigger an import of a mvn and a gradle project.
    */
   @Test
-  public void testIntellijMvnAndGradleRepositoryImport() {
+  void testIntellijMvnAndGradleRepositoryImport() {
     // arrange
     IdeTestContext context = newContext("intellij");
     RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
@@ -198,9 +200,10 @@ public class IntellijTest extends AbstractIdeContextTest {
 
     assertThat(context.getSoftwarePath().resolve("intellij/.ide.software.version")).exists().hasContent("2023.3.3");
     assertThat(context.getWorkspacePath().resolve("idea.properties")).exists();
-    assertThat(context).logAtSuccess().hasEntries("Successfully installed java in version 17.0.10_7",
-        "Successfully installed intellij in version 2023.3.3");
-    assertThat(context).logAtDebug().hasEntries("Omitting installation of inactive plugin InactivePlugin (inactivePlugin).");
+    assertThat(context).log().hasEntries(
+        new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed java in version 17.0.10_7", true),
+        new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed intellij in version 2023.3.3", true));
+    assertThat(context).logAtDebug().hasMessage("Omitting installation of inactive plugin InactivePlugin (inactivePlugin).");
     assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin ActivePlugin'.");
   }
 

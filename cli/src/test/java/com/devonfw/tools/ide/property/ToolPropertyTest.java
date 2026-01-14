@@ -14,10 +14,13 @@ import com.devonfw.tools.ide.context.IdeTestContextMock;
 import com.devonfw.tools.ide.tool.intellij.Intellij;
 import com.devonfw.tools.ide.tool.java.Java;
 
+/**
+ * Test of {@link ToolProperty}.
+ */
 class ToolPropertyTest {
 
   @Test
-  public void testCompleteValue() {
+  void testCompleteValue() {
     IdeContext context = IdeTestContextMock.get();
     String[] expectedCandidates = { "az", "android-studio", "aws" };
     String input = "a";
@@ -30,7 +33,7 @@ class ToolPropertyTest {
   }
 
   @Test
-  public void testParse() {
+  void testParse() {
     IdeContext context = IdeTestContextMock.get();
     ToolProperty toolProp = new ToolProperty("", false, "");
 

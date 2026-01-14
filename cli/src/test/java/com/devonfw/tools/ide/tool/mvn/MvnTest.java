@@ -16,9 +16,9 @@ import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
- * Integration test of {@link Mvn}.
+ * Test of {@link Mvn}.
  */
-public class MvnTest extends AbstractIdeContextTest {
+class MvnTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_MVN = "mvn";
 
@@ -30,7 +30,7 @@ public class MvnTest extends AbstractIdeContextTest {
    * @throws IOException if an I/O error occurs during the installation process
    */
   @Test
-  public void testMvnInstall() throws IOException {
+  void testMvnInstall() throws IOException {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_MVN);
@@ -50,7 +50,7 @@ public class MvnTest extends AbstractIdeContextTest {
    * @throws IOException if an I/O error occurs during the installation process
    */
   @Test
-  public void testMvnRun() throws IOException {
+  void testMvnRun() throws IOException {
     // arrange
     IdeTestContext context = newContext(PROJECT_MVN);
     context.setAnswers("testLogin", "testPassword");
@@ -70,7 +70,7 @@ public class MvnTest extends AbstractIdeContextTest {
    * Tests if mvn run will use a mvn wrapper file if it was found within a valid cwd containing a pom.xml.
    */
   @Test
-  public void testMvnRunWithFoundWrapper() {
+  void testMvnRunWithFoundWrapper() {
     // arrange
     IdeTestContext context = newContext(PROJECT_MVN);
     context.setAnswers("testLogin", "testPassword");
@@ -103,7 +103,7 @@ public class MvnTest extends AbstractIdeContextTest {
     assertThat(context.getSoftwarePath().resolve("java/bin/java")).exists();
 
     assertThat(context.getSoftwarePath().resolve("mvn/.ide.software.version")).exists().hasContent("3.9.7");
-    assertThat(context).logAtSuccess().hasMessage("Successfully installed mvn in version 3.9.7");
+    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed mvn in version 3.9.7");
 
     Path settingsFile = context.getConfPath().resolve(Mvn.MVN_CONFIG_FOLDER).resolve(Mvn.SETTINGS_FILE);
     assertThat(settingsFile).exists();
@@ -120,7 +120,7 @@ public class MvnTest extends AbstractIdeContextTest {
    * See: <a href="https://github.com/devonfw/IDEasy/issues/463">#463</a>
    */
   @Test
-  public void testMavenRepositoryPathFallsBackToUserHome() {
+  void testMavenRepositoryPathFallsBackToUserHome() {
     // arrange
     String path = "project/workspaces";
     // act

@@ -21,7 +21,7 @@ public class PythonUrlUpdater extends JsonUrlUpdater<PythonJsonObject, PythonRel
 
   private static final String VERSION_FILENAME = "actions/python-versions/main/versions-manifest.json";
 
-  private static final ObjectMapper MAPPER = JsonMapping.create();
+  private static final ObjectMapper MAPPER = JsonMapping.createWithReflectionSupportForUrlUpdaters();
 
   private static final Logger logger = LoggerFactory.getLogger(PythonUrlUpdater.class);
 

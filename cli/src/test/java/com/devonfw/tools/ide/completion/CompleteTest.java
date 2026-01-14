@@ -19,13 +19,13 @@ import com.devonfw.tools.ide.property.Property;
 /**
  * Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion}.
  */
-public class CompleteTest extends AbstractIdeContextTest {
+class CompleteTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_COMPLETION = "completion";
 
   /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for empty input. */
   @Test
-  public void testCompleteEmpty() {
+  void testCompleteEmpty() {
 
     // arrange
     boolean includeContextOptions = true;
@@ -42,7 +42,7 @@ public class CompleteTest extends AbstractIdeContextTest {
 
   /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for long option. */
   @Test
-  public void testCompleteLongOptionBatch() {
+  void testCompleteLongOptionBatch() {
 
     // arrange
     boolean includeContextOptions = true;
@@ -59,7 +59,7 @@ public class CompleteTest extends AbstractIdeContextTest {
 
   /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for empty input. */
   @Test
-  public void testCompleteEmptyNoCtxOptions() {
+  void testCompleteEmptyNoCtxOptions() {
 
     // arrange
     boolean includeContextOptions = false;
@@ -76,7 +76,7 @@ public class CompleteTest extends AbstractIdeContextTest {
 
   /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for input "h". */
   @Test
-  public void testCompleteCommandletFirstLetter() {
+  void testCompleteCommandletFirstLetter() {
 
     // arrange
     AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
@@ -89,7 +89,7 @@ public class CompleteTest extends AbstractIdeContextTest {
 
   /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for input "-f". */
   @Test
-  public void testCompleteShortOptsCombined() {
+  void testCompleteShortOptsCombined() {
 
     // arrange
     AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
@@ -103,7 +103,7 @@ public class CompleteTest extends AbstractIdeContextTest {
 
   /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for input "-fbdoqt". */
   @Test
-  public void testCompleteShortOptsCombinedAllButVersion() {
+  void testCompleteShortOptsCombinedAllButVersion() {
 
     // arrange
     AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
@@ -116,7 +116,7 @@ public class CompleteTest extends AbstractIdeContextTest {
 
   /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for input "help", "". */
   @Test
-  public void testCompleteHelpEmptyArgs() {
+  void testCompleteHelpEmptyArgs() {
 
     // arrange
     AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
@@ -131,7 +131,7 @@ public class CompleteTest extends AbstractIdeContextTest {
 
   /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for input "help", "". */
   @Test
-  public void testCompleteVersionNoMoreArgs() {
+  void testCompleteVersionNoMoreArgs() {
 
     // arrange
     AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
@@ -144,7 +144,7 @@ public class CompleteTest extends AbstractIdeContextTest {
 
   /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for an option inside a commandlet. */
   @Test
-  public void testCompleteCommandletOption() {
+  void testCompleteCommandletOption() {
 
     // arrange
     AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
@@ -190,7 +190,7 @@ public class CompleteTest extends AbstractIdeContextTest {
    * Test to verify that completion candidates are not duplicated for various input scenarios.
    */
   @Test
-  public void testCompletionNoDuplicates() {
+  void testCompletionNoDuplicates() {
 
     // arrange
     AbstractIdeContext context = newContext(PROJECT_COMPLETION, null, false);
@@ -219,11 +219,11 @@ public class CompleteTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test the specific scenario from issue <a href="https://github.com/devonfw/IDEasy/issues/536">#536</a>: completion for "in" should not produce duplicates and should contain
-   * expected candidates.
+   * Test the specific scenario from issue <a href="https://github.com/devonfw/IDEasy/issues/536">#536</a>: completion for "in" should not produce duplicates
+   * and should contain expected candidates.
    */
   @Test
-  public void testCompletionForInPrefix() {
+  void testCompletionForInPrefix() {
 
     // arrange
     AbstractIdeContext context = newContext(PROJECT_COMPLETION, null, false);
@@ -247,7 +247,7 @@ public class CompleteTest extends AbstractIdeContextTest {
    * Test completion for empty string to ensure context options are included without duplicates.
    */
   @Test
-  public void testCompletionEmptyInput() {
+  void testCompletionEmptyInput() {
 
     // arrange
     AbstractIdeContext context = newContext(PROJECT_COMPLETION, null, false);

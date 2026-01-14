@@ -14,7 +14,7 @@ import com.devonfw.tools.ide.os.SystemInfoMock;
 /**
  * Test of {@link EnvironmentCommandlet}.
  */
-public class EnvironmentCommandletTest extends AbstractIdeContextTest {
+class EnvironmentCommandletTest extends AbstractIdeContextTest {
 
   private static final String ENVIRONMENT_COMMANDLET = "environment";
 
@@ -22,7 +22,7 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
    * Test of {@link EnvironmentCommandlet} run with DEBUG logging (partitioning per type/source).
    */
   @Test
-  public void testRunDebugLogging() {
+  void testRunDebugLogging() {
 
     // arrange
     String path = "project/workspaces/foo-test";
@@ -94,7 +94,7 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
    * Test of {@link EnvironmentCommandlet} run with INFO logging (plain variables without source).
    */
   @Test
-  public void testRunInfoLogging() {
+  void testRunInfoLogging() {
 
     // arrange
     String path = "project/workspaces/foo-test/my-git-repo";

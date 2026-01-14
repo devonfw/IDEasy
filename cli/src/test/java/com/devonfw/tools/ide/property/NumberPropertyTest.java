@@ -8,17 +8,23 @@ import org.junit.jupiter.api.Test;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContextMock;
 
+/**
+ * Test of {@link NumberProperty}.
+ */
 class NumberPropertyTest {
 
   @Test
-  public void testParse() {
+  void testParse() {
+    // arrange
     IdeContext context = IdeTestContextMock.get();
+
+    // act
     NumberProperty numberProp = new NumberProperty("", false, "");
 
+    // assert
     assertThat(numberProp.parse("12345", context)).isEqualTo(12345);
     assertThrows(IllegalArgumentException.class, () -> numberProp.parse(null, context));
     assertThrows(IllegalArgumentException.class, () -> numberProp.parse("notanumber", context));
-
   }
 
 

@@ -8,13 +8,13 @@ import org.junit.jupiter.api.Test;
 /**
  * Test of {@link VariableSyntax}.
  */
-public class VariableSyntaxTest extends Assertions {
+class VariableSyntaxTest extends Assertions {
 
   /**
    * Test of {@link VariableSyntax#CURLY}.
    */
   @Test
-  public void testCurly() {
+  void testCurly() {
 
     // arrange
     VariableSyntax syntax = VariableSyntax.CURLY;
@@ -30,7 +30,7 @@ public class VariableSyntaxTest extends Assertions {
    * Test of {@link VariableSyntax#CURLY}.
    */
   @Test
-  public void testSquare() {
+  void testSquare() {
 
     // arrange
     VariableSyntax syntax = VariableSyntax.SQUARE;

@@ -9,10 +9,10 @@ import org.junit.jupiter.api.Test;
 /**
  * Test of {@link StatusJson}.
  */
-public class StatusJsonTest extends Assertions {
+class StatusJsonTest extends Assertions {
 
   @Test
-  public void testHashCollision() {
+  void testHashCollision() {
 
     // arrange
     Set<String> urls = Set.of("https://archive.eclipse.org/technology/epp/downloads/release/2022-09/R/eclipse-cpp-2022-09-R-linux-gtk-aarch64.tar.gz",
