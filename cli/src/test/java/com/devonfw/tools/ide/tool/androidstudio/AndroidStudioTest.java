@@ -21,7 +21,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * Test class for {@link AndroidStudio Android Studio IDE} tests.
+ * Test of {@link AndroidStudio}.
  */
 @WireMockTest
 class AndroidStudioTest extends AbstractIdeContextTest {

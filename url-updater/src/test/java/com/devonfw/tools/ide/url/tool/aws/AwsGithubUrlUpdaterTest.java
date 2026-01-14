@@ -19,7 +19,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * Test class for integrations of the {@link AwsUrlUpdater}
+ * Test of {@link AwsUrlUpdater}.
  */
 @WireMockTest
 class AwsGithubUrlUpdaterTest extends AbstractUrlUpdaterTest {
