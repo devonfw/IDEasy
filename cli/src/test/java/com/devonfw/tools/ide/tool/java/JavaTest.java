@@ -40,7 +40,7 @@ class JavaTest extends AbstractIdeContextTest {
     // assert
     assertThat(context.getSoftwarePath().resolve("java/bin/java")).exists();
     assertThat(context.getSoftwarePath().resolve("java/.ide.software.version")).exists().hasContent("17.0.10_7");
-    assertThat(context).logAtSuccess().hasMessage("Successfully installed java in version 17.0.10_7");
+    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed java in version 17.0.10_7");
     assertThat(context).logAtInfo().hasMessage("java --version");
   }
 

@@ -12,6 +12,8 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.tool.java.Java;
+import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
@@ -31,15 +33,37 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_UPDATE);
+    Path extraPath = context.getSoftwareExtraPath();
     UpdateCommandlet uc = context.getCommandletManager().getCommandlet(UpdateCommandlet.class);
+    Java java = context.getCommandletManager().getCommandlet(Java.class);
+    Mvn mvn = context.getCommandletManager().getCommandlet(Mvn.class);
     // act
     uc.run();
+    java.arguments.addValue("--version");
+    java.run();
+    mvn.arguments.addValue("-v");
+    mvn.run();
+    Path javaClient = extraPath.resolve("java/client/bin/java");
+    context.newProcess().executable(javaClient).addArg("--client").run();
+    Path javaProcessEngine = extraPath.resolve("java/process-engine/bin/java");
+    context.newProcess().executable(javaProcessEngine).addArg("--process-engine").run();
+    Path mvnM4 = extraPath.resolve("mvn/m4/bin/mvn");
+    context.newProcess().executable(mvnM4).addArg("--m4").run();
 
     // assert
     assertThat(context).logAtSuccess().hasMessage(SUCCESS_UPDATE_SETTINGS);
+    assertThat(context).log().hasNoMessageContaining(" ended with failure");
     assertThat(context.getConfPath()).exists();
     assertThat(context.getSoftwarePath().resolve("java")).exists();
     assertThat(context.getSoftwarePath().resolve("mvn")).exists();
+    assertThat(context).logAtInfo().hasMessage("java 17.0.6 --version");
+    assertThat(context).logAtInfo().hasMessage("mvn 3.2.1 -v");
+    assertThat(context).logAtInfo().hasMessage("java 11.0.27_6 --client");
+    assertThat(context).logAtInfo().hasMessage("java 21.0.9_10 --process-engine");
+    assertThat(context).logAtInfo().hasMessage("mvn 4.0.0-rc-5 --m4");
+    assertThat(javaClient).exists();
+    assertThat(javaProcessEngine).exists();
+    assertThat(mvnM4).exists();
   }
 
   @ParameterizedTest

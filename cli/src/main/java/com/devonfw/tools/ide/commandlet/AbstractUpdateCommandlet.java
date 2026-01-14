@@ -25,16 +25,13 @@ import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolEdition;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
-import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.custom.CustomToolCommandlet;
 import com.devonfw.tools.ide.tool.custom.CustomToolMetadata;
 import com.devonfw.tools.ide.tool.extra.ExtraToolInstallation;
 import com.devonfw.tools.ide.tool.extra.ExtraTools;
 import com.devonfw.tools.ide.tool.extra.ExtraToolsMapper;
 import com.devonfw.tools.ide.variable.IdeVariables;
-import com.devonfw.tools.ide.version.BoundaryType;
 import com.devonfw.tools.ide.version.VersionIdentifier;
-import com.devonfw.tools.ide.version.VersionRange;
 
 /**
  * Abstract {@link Commandlet} base-class for both {@link UpdateCommandlet} and {@link CreateCommandlet}.
@@ -342,12 +339,11 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       }
       ToolEdition toolEdition = new ToolEdition(tool, edition);
       VersionIdentifier version = extraInstallation.version();
-      request.setRequested(new ToolEditionAndVersion(toolEdition, VersionRange.of(version, version, BoundaryType.CLOSED)));
-      ToolInstallation toolInstallation = toolCommandlet.install(request);
+      request.setRequested(new ToolEditionAndVersion(toolEdition, version));
       Path extraToolPath = extraPath.resolve(tool);
-      Path targetFolder = extraToolPath.resolve(extraInstallation.name());
-      fileAccess.mkdirs(extraToolPath);
-      fileAccess.symlink(toolInstallation.linkDir(), targetFolder);
+      Path toolPath = extraToolPath.resolve(extraInstallation.name());
+      request.setToolPathForExtraInstallation(toolPath);
+      toolCommandlet.install(request);
     }
   }
 

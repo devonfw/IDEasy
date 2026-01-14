@@ -79,6 +79,6 @@ class JmcTest extends AbstractIdeContextTest {
       assertThat(context.getSoftwarePath().resolve("jmc/jmc")).exists();
     }
     assertThat(context.getSoftwarePath().resolve("jmc/.ide.software.version")).exists().hasContent("8.3.0");
-    assertThat(context).logAtSuccess().hasMessage("Successfully installed jmc in version 8.3.0");
+    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed jmc in version 8.3.0");
   }
 }

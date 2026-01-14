@@ -48,7 +48,7 @@ class DotNetTest extends AbstractIdeContextTest {
     assertThat(this.context.getSoftwarePath().resolve("dotnet/.ide.software.version")).exists();
     assertThat(this.context.getSoftwarePath().resolve("dotnet/.ide.software.version")).hasContent("6.0.419");
 
-    assertThat(this.context).logAtSuccess().hasMessage("Successfully installed dotnet in version 6.0.419");
+    assertThat(this.context).logAtSuccess().hasMessageContaining("Successfully installed dotnet in version 6.0.419");
   }
 
   @ParameterizedTest

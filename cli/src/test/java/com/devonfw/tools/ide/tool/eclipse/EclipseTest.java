@@ -8,6 +8,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.log.IdeLogEntry;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.tool.intellij.Intellij;
@@ -42,8 +44,9 @@ public class EclipseTest extends AbstractIdeContextTest {
     // assert
     Path eclipsePath = context.getSoftwarePath().resolve("eclipse");
     assertThat(eclipsePath.resolve(".ide.software.version")).exists().hasContent("2024-09");
-    assertThat(context).logAtSuccess().hasEntries("Successfully installed java in version 17.0.10_7",
-        "Successfully installed eclipse in version 2024-09");
+    assertThat(context).log().hasEntries(
+        new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed java in version 17.0.10_7", true),
+        new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed eclipse in version 2024-09", true));
     assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin anyedit'.");
     assertThat(context.getPluginsPath().resolve("eclipse")).isDirectory();
     assertThat(eclipsePath.resolve("eclipsetest")).hasContent(

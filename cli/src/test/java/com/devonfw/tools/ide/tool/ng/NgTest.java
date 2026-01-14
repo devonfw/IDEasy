@@ -85,7 +85,7 @@ class NgTest extends AbstractIdeContextTest {
 
     assertThat(context).logAtInfo().hasMessageContaining("npm install -gf @angular/cli@18.0.1");
 
-    assertThat(context).logAtSuccess().hasMessage("Successfully installed ng in version 18.0.1");
+    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed ng in version 18.0.1");
   }
 
 }

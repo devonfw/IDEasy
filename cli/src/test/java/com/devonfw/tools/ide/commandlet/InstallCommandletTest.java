@@ -56,7 +56,7 @@ class InstallCommandletTest extends AbstractIdeContextTest {
     install.run();
     // assert
     assertTestInstall(context);
-    assertThat(context).logAtSuccess().hasMessage("Successfully installed java in version " + version17);
+    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed java in version " + version17);
     assertThat(context.getSoftwarePath().resolve("java/.ide.software.version")).exists().hasContent(version17);
 
     // now we install a different version
@@ -69,7 +69,7 @@ class InstallCommandletTest extends AbstractIdeContextTest {
     // assert
     assertTestInstall(context);
     assertThat(context).logAtSuccess()
-        .hasMessage("Successfully installed java in version " + version21 + " replacing previous version " + version17 + " of java");
+        .hasMessageContaining("Successfully installed java in version " + version21 + " replacing previous version " + version17 + " of java");
     assertThat(context.getSoftwarePath().resolve("java/.ide.software.version")).exists().hasContent(version21);
 
     // now we install the initial version again that should just change the symlink
@@ -83,7 +83,7 @@ class InstallCommandletTest extends AbstractIdeContextTest {
     assertThat(context).logAtDebug().hasMessage("Version " + version17 + " of tool java is already installed at " + context.getSoftwareRepositoryPath().resolve(
         DefaultToolRepository.ID_DEFAULT).resolve("java").resolve("java").resolve(version17));
     assertThat(context).logAtSuccess()
-        .hasMessage("Successfully installed java in version " + version17 + " replacing previous version " + version21 + " of java");
+        .hasMessageContaining("Successfully installed java in version " + version17 + " replacing previous version " + version21 + " of java");
     assertThat(context.getSoftwarePath().resolve("java/.ide.software.version")).exists().hasContent(version17);
   }
 

@@ -104,7 +104,7 @@ class AwsTest extends AbstractIdeContextTest {
   private void checkInstallation(IdeTestContext context) {
 
     assertThat(context.getSoftwarePath().resolve("aws/.ide.software.version")).exists().hasContent("2.24.15");
-    assertThat(context).logAtSuccess().hasMessage("Successfully installed aws in version 2.24.15");
+    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed aws in version 2.24.15");
     assertThat(context.getConfPath().resolve(PROJECT_AWS)).exists();
   }
 

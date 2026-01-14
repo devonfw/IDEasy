@@ -103,7 +103,7 @@ class MvnTest extends AbstractIdeContextTest {
     assertThat(context.getSoftwarePath().resolve("java/bin/java")).exists();
 
     assertThat(context.getSoftwarePath().resolve("mvn/.ide.software.version")).exists().hasContent("3.9.7");
-    assertThat(context).logAtSuccess().hasMessage("Successfully installed mvn in version 3.9.7");
+    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed mvn in version 3.9.7");
 
     Path settingsFile = context.getConfPath().resolve(Mvn.MVN_CONFIG_FOLDER).resolve(Mvn.SETTINGS_FILE);
     assertThat(settingsFile).exists();

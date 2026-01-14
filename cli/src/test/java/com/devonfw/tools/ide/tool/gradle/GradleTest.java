@@ -97,7 +97,7 @@ class GradleTest extends AbstractIdeContextTest {
     assertThat(context.getSoftwarePath().resolve("java/bin/java")).exists();
 
     assertThat(context.getSoftwarePath().resolve("gradle/.ide.software.version")).exists().hasContent(GRADLE_VERSION);
-    assertThat(context).logAtSuccess().hasMessage("Successfully installed gradle in version " + GRADLE_VERSION);
+    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed gradle in version " + GRADLE_VERSION);
 
   }
 }

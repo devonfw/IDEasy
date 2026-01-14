@@ -104,6 +104,6 @@ class JasyptTest extends AbstractIdeContextTest {
     // commandlet - jasypt
     assertThat(context.getSoftwarePath().resolve("jasypt/jasypt-1.9.3.jar")).hasContent("This is a jar file.");
     assertThat(context.getSoftwarePath().resolve("jasypt/.ide.software.version")).exists().hasContent("1.9.3");
-    assertThat(context).logAtSuccess().hasMessage("Successfully installed jasypt in version 1.9.3");
+    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed jasypt in version 1.9.3");
   }
 }

@@ -86,7 +86,7 @@ class NpmTest extends AbstractIdeContextTest {
 
   private void checkInstallation(IdeTestContext context) {
 
-    assertThat(context).logAtSuccess().hasMessage("Successfully installed npm in version 9.9.2");
+    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed npm in version 9.9.2");
     assertThat(context).logAtSuccess().hasMessageContaining("Setting npm config prefix to: " + context.getSoftwarePath().resolve("node") + " was successful");
   }
 }
