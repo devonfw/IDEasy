@@ -12,7 +12,7 @@ import com.devonfw.tools.ide.url.model.folder.UrlRepository;
 /**
  * Abstract class for all tests of {@link UrlArtifact}s and {@link UrlRepository}.
  */
-public class AbstractUrlModelTest extends Assertions {
+public abstract class AbstractUrlModelTest extends Assertions {
 
   /** {@link Path} to {@link com.devonfw.tools.ide.url.model.folder.UrlRepository} with test-data. */
   protected static final Path URLS_PATH = Path.of("src/test/resources/urls");

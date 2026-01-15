@@ -13,33 +13,33 @@ import com.devonfw.tools.ide.tool.python.Python;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * Test suite for {@link UrlMetadata}
+ * Test of {@link UrlMetadata}
  */
-public class UrlMetadataTest extends AbstractUrlModelTest {
+class UrlMetadataTest extends AbstractUrlModelTest {
 
   /**
    * Tests if versions are excluded from version list in case, the version does not come with any download url for the needed OS
    */
   @Test
-  public void testGetSortedVersions_versionNotAvailableForOs() {
+  void testGetSortedVersions_versionNotAvailableForOs() {
 
     IdeContext context = newContext();
     ((AbstractIdeTestContext) context).setSystemInfo(new SystemInfoImpl(OS.WINDOWS.toString(), "11", SystemArchitecture.ARM64.toString()));
     UrlMetadata urlMetadata = new UrlMetadata(context);
     List<VersionIdentifier> sortedVersions = urlMetadata.getSortedVersions("python", "python", new Python(context));
-    assertThat(sortedVersions).extracting(e -> e.toString()).containsExactly("3.11.9");
+    assertThat(sortedVersions).extracting(VersionIdentifier::toString).containsExactly("3.11.9");
   }
 
   /**
    * Tests if versions are retrieved in correct order
    */
   @Test
-  public void testGetSortedVersions_versionAvailableForOs() {
+  void testGetSortedVersions_versionAvailableForOs() {
 
     IdeContext context = newContext();
     ((AbstractIdeTestContext) context).setSystemInfo(new SystemInfoImpl(OS.LINUX.toString(), "12", SystemArchitecture.ARM64.toString()));
     UrlMetadata urlMetadata = new UrlMetadata(context);
     List<VersionIdentifier> sortedVersions = urlMetadata.getSortedVersions("python", "python", new Python(context));
-    assertThat(sortedVersions).extracting(e -> e.toString()).containsExactly("3.11.10", "3.11.9");
+    assertThat(sortedVersions).extracting(VersionIdentifier::toString).containsExactly("3.11.10", "3.11.9");
   }
 }

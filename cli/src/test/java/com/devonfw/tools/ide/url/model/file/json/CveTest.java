@@ -10,10 +10,10 @@ import com.devonfw.tools.ide.version.VersionRange;
 /**
  * Test of {@link Cve}.
  */
-public class CveTest extends Assertions {
+class CveTest extends Assertions {
 
   @Test
-  public void testMerge() {
+  void testMerge() {
 
     // arrange
     Cve cve1 = new Cve("CVE-2012-0845", 5.0,

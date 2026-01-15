@@ -1,23 +1,22 @@
 package com.devonfw.tools.ide.git;
 
-import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeTestContext;
-
 import org.junit.jupiter.api.Test;
 
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
 
 /**
- * Test class for verifying the behavior of Git URL conversions
+ * Test of {@link GitUrlSyntax}.
  */
-public class GitUrlSyntaxTest extends AbstractIdeContextTest {
+class GitUrlSyntaxTest extends AbstractIdeContextTest {
 
   /**
    * Tests the reading of property PREFERRED_GIT_PROTOCOL from ide.properties is done successfully
    */
   @Test
-  public void testPreferredGitProtocolIsReadAsSsh() {
+  void testPreferredGitProtocolIsReadAsSsh() {
     // Read the PREFERRED_GIT_PROTOCOL from the config file
     IdeTestContext context = newContext("git");
     GitUrlSyntax preferredProtocol = IdeVariables.PREFERRED_GIT_PROTOCOL.get(context);
@@ -32,7 +31,7 @@ public class GitUrlSyntaxTest extends AbstractIdeContextTest {
    * Given a Git URL in HTTPS format, this test ensures that it is correctly converted to the SSH format using the {@link GitUrl#convert(GitUrlSyntax)} method.
    */
   @Test
-  public void testConvertGitUrlFromHttpsToSsh() {
+  void testConvertGitUrlFromHttpsToSsh() {
     String url = "https://testgitdomain.com/devonfw/IDEasy.git";
     GitUrl gitUrl = new GitUrl(url, null);
 
@@ -49,7 +48,7 @@ public class GitUrlSyntaxTest extends AbstractIdeContextTest {
    * Given a Git URL in SSH format, this test ensures that it is correctly converted to the HTTPS format using the {@link GitUrl#convert(GitUrlSyntax)} method.
    */
   @Test
-  public void testConvertGitUrlFromSshToHttps() {
+  void testConvertGitUrlFromSshToHttps() {
     String url = "git@testgitdomain.com:devonfw/IDEasy.git";
     GitUrl gitUrl = new GitUrl(url, null);
 
@@ -66,7 +65,7 @@ public class GitUrlSyntaxTest extends AbstractIdeContextTest {
    * This test ensures that the Git URL for github.com stays in HTTPS format, even if SSH is specified as the preferred protocol.
    */
   @Test
-  public void testConvertGitUrlGitHubDomain() {
+  void testConvertGitUrlGitHubDomain() {
     String url = "https://github.com/devonfw/IDEasy.git";
     GitUrl gitUrl = new GitUrl(url, null);
 

@@ -15,9 +15,9 @@ import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 
 /**
- * Integration test of {@link Aws}.
+ * Test of {@link Aws}.
  */
-public class AwsTest extends AbstractIdeContextTest {
+class AwsTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_AWS = "aws";
   private final IdeTestContext context = newContext(PROJECT_AWS);
@@ -29,7 +29,7 @@ public class AwsTest extends AbstractIdeContextTest {
    */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac" })
-  public void testAwsInstall(String os) {
+  void testAwsInstall(String os) {
 
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of(os);
@@ -56,7 +56,7 @@ public class AwsTest extends AbstractIdeContextTest {
    */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac" })
-  public void testAwsSetEnvironment(String os) {
+  void testAwsSetEnvironment(String os) {
 
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of(os);
@@ -87,7 +87,7 @@ public class AwsTest extends AbstractIdeContextTest {
    * Tests if the output of {@link Aws#printHelp(NlsBundle)} is correct.
    */
   @Test
-  public void testAwsPrintHelp() {
+  void testAwsPrintHelp() {
 
     // arrange
     HelpCommandlet helpCommandlet = new HelpCommandlet(context);
@@ -104,7 +104,7 @@ public class AwsTest extends AbstractIdeContextTest {
   private void checkInstallation(IdeTestContext context) {
 
     assertThat(context.getSoftwarePath().resolve("aws/.ide.software.version")).exists().hasContent("2.24.15");
-    assertThat(context).logAtSuccess().hasMessage("Successfully installed aws in version 2.24.15");
+    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed aws in version 2.24.15");
     assertThat(context.getConfPath().resolve(PROJECT_AWS)).exists();
   }
 

@@ -12,6 +12,7 @@ import java.util.TreeMap;
 import java.util.function.Predicate;
 
 import com.devonfw.tools.ide.json.JsonMapping;
+import com.devonfw.tools.ide.json.JsonObject;
 import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.security.ToolVulnerabilities;
 import com.devonfw.tools.ide.variable.IdeVariables;
@@ -24,7 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  * @see com.devonfw.tools.ide.url.model.file.UrlSecurityFile
  */
-public class ToolSecurity {
+public class ToolSecurity implements JsonObject {
 
   static final String PROPERTY_ISSUES = "issues";
 
@@ -43,6 +44,16 @@ public class ToolSecurity {
     this(new TreeMap<>());
   }
 
+  /**
+   * The constructor.
+   *
+   * @param issues the list of {@link Cve}s.
+   */
+  public ToolSecurity(List<Cve> issues) {
+    this();
+    setIssues(issues);
+  }
+
   private ToolSecurity(Map<String, Cve> cveMap) {
     super();
     this.cveMap = cveMap;
@@ -57,7 +68,7 @@ public class ToolSecurity {
   }
 
   /**
-   * @param issues the list of CVEs
+   * @param issues the list of {@link Cve}s.
    */
   public void setIssues(List<Cve> issues) {
 

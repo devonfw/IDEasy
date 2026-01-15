@@ -19,12 +19,12 @@ import com.devonfw.tools.ide.os.SystemInfoMock;
 /**
  * Test of {@link StatusCommandlet}.
  */
-public class StatusCommandletTest extends AbstractIdeContextTest {
+class StatusCommandletTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_BASIC = "basic";
 
   @Test
-  public void testStatusOutsideOfHome() {
+  void testStatusOutsideOfHome() {
     //arrange
     IdeTestContext context = new IdeTestContext();
     StatusCommandlet status = context.getCommandletManager().getCommandlet(StatusCommandlet.class);
@@ -40,7 +40,7 @@ public class StatusCommandletTest extends AbstractIdeContextTest {
    * Tests the output if {@link StatusCommandlet} is run in enforced offline mode.
    */
   @Test
-  public void testStatusWhenOfflineMode() {
+  void testStatusWhenOfflineMode() {
 
     // arrange
     IdeTestContext context = new IdeTestContext();
@@ -60,7 +60,7 @@ public class StatusCommandletTest extends AbstractIdeContextTest {
    * Tests the output if {@link StatusCommandlet} is run without internet connection.
    */
   @Test
-  public void testStatusWhenOffline() {
+  void testStatusWhenOffline() {
 
     // arrange
     IdeTestContext context = new IdeTestContext();
@@ -80,7 +80,7 @@ public class StatusCommandletTest extends AbstractIdeContextTest {
    * Tests the output if {@link StatusCommandlet} is run with TLS issue.
    */
   @Test
-  public void testStatusWhenTlsIssue() throws Exception {
+  void testStatusWhenTlsIssue() throws Exception {
 
     // arrange
     IdeTestContext context = new IdeTestContext();
@@ -110,7 +110,7 @@ public class StatusCommandletTest extends AbstractIdeContextTest {
    */
   @ParameterizedTest
   @MethodSource("providePrivacyModeTestCases")
-  public void testStatusWhenInPrivacyMode(String os, Path ideHome, Path ideRoot, Path userHome) {
+  void testStatusWhenInPrivacyMode(String os, Path ideHome, Path ideRoot, Path userHome) {
     // arrange
     IdeTestContext context = new IdeTestContext();
     StatusCommandlet status = context.getCommandletManager().getCommandlet(StatusCommandlet.class);

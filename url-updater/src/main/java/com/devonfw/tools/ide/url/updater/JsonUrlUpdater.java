@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersionItem> extends AbstractUrlUpdater {
 
-  private static final ObjectMapper MAPPER = JsonMapping.create();
+  private static final ObjectMapper MAPPER = JsonMapping.createWithReflectionSupportForUrlUpdaters();
   private static final Logger logger = LoggerFactory.getLogger(JsonUrlUpdater.class);
 
   /**
@@ -59,7 +59,6 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
   protected Set<String> getVersions() {
 
     throw new IllegalStateException();
-
   }
 
   /**
