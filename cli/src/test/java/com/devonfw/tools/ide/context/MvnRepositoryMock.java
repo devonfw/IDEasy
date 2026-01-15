@@ -13,8 +13,8 @@ import java.nio.file.Path;
 import java.util.stream.Stream;
 
 import com.devonfw.tools.ide.tool.mvn.MvnArtifact;
-import com.devonfw.tools.ide.tool.repository.MvnArtifactMetadata;
-import com.devonfw.tools.ide.tool.repository.MvnRepository;
+import com.devonfw.tools.ide.tool.mvn.MvnArtifactMetadata;
+import com.devonfw.tools.ide.tool.mvn.MvnRepository;
 import com.devonfw.tools.ide.url.model.file.UrlChecksums;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 

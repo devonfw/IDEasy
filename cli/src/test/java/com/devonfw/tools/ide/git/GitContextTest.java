@@ -24,7 +24,7 @@ import com.devonfw.tools.ide.process.OutputMessage;
 /**
  * Test of {@link GitContext}.
  */
-public class GitContextTest extends AbstractIdeContextTest {
+class GitContextTest extends AbstractIdeContextTest {
 
   private static final String CONTENT_ORIGINAL = "original";
   private static final String CONTENT_CHANGED = "changed";
@@ -65,7 +65,7 @@ public class GitContextTest extends AbstractIdeContextTest {
    * @param tempDir a {@link TempDir} {@link Path}.
    */
   @Test
-  public void testRunGitCloneInOfflineModeThrowsException(@TempDir Path tempDir) {
+  void testRunGitCloneInOfflineModeThrowsException(@TempDir Path tempDir) {
 
     // arrange
     String gitRepoUrl = "https://github.com/test";
@@ -88,7 +88,7 @@ public class GitContextTest extends AbstractIdeContextTest {
    * @param tempDir a {@link TempDir} {@link Path}.
    */
   @Test
-  public void testRunGitClone(@TempDir Path tempDir) {
+  void testRunGitClone(@TempDir Path tempDir) {
 
     // arrange
     String gitRepoUrl = "https://github.com/test";
@@ -107,7 +107,7 @@ public class GitContextTest extends AbstractIdeContextTest {
    * @param tempDir a {@link TempDir} {@link Path}.
    */
   @Test
-  public void testRunGitPullWithoutForce(@TempDir Path tempDir) {
+  void testRunGitPullWithoutForce(@TempDir Path tempDir) {
 
     // arrange
     String gitRepoUrl = "https://github.com/test";
@@ -129,7 +129,7 @@ public class GitContextTest extends AbstractIdeContextTest {
    * @param tempDir a {@link TempDir} {@link Path}.
    */
   @Test
-  public void testRunGitPullWithForceStartsReset(@TempDir Path tempDir) {
+  void testRunGitPullWithForceStartsReset(@TempDir Path tempDir) {
 
     // arrange
     String gitRepoUrl = "https://github.com/test";
@@ -160,7 +160,7 @@ public class GitContextTest extends AbstractIdeContextTest {
    * @param tempDir a {@link TempDir} {@link Path}.
    */
   @Test
-  public void testRunGitPullWithForceStartsCleanup(@TempDir Path tempDir) {
+  void testRunGitPullWithForceStartsCleanup(@TempDir Path tempDir) {
 
     // arrange
     String gitRepoUrl = "https://github.com/test";
@@ -189,7 +189,7 @@ public class GitContextTest extends AbstractIdeContextTest {
    * @param tempDir a {@link TempDir} {@link Path}.
    */
   @Test
-  public void testFetchIfNeededOffline(@TempDir Path tempDir) {
+  void testFetchIfNeededOffline(@TempDir Path tempDir) {
     // arrange
     String repoUrl = "https://github.com/test";
     String remoteName = "origin";
@@ -210,7 +210,7 @@ public class GitContextTest extends AbstractIdeContextTest {
    * @param tempDir a {@link TempDir} {@link Path}.
    */
   @Test
-  public void testFetchIfNeededOnline(@TempDir Path tempDir) {
+  void testFetchIfNeededOnline(@TempDir Path tempDir) {
     // arrange
     String repoUrl = "https://github.com/test";
     String remoteName = "origin";
@@ -231,7 +231,7 @@ public class GitContextTest extends AbstractIdeContextTest {
    * @param tempDir a {@link TempDir} {@link Path}.
    */
   @Test
-  public void testFetchIfNeededRecentFetchHead(@TempDir Path tempDir) throws IOException {
+  void testFetchIfNeededRecentFetchHead(@TempDir Path tempDir) throws IOException {
     // arrange
     String repoUrl = "https://github.com/test";
     String remoteName = "origin";
@@ -257,7 +257,7 @@ public class GitContextTest extends AbstractIdeContextTest {
    * @param tempDir a {@link TempDir} {@link Path}.
    */
   @Test
-  public void testIsRepositoryUpdateAvailableNoUpdates(@TempDir Path tempDir) {
+  void testIsRepositoryUpdateAvailableNoUpdates(@TempDir Path tempDir) {
     // arrange
     List<String> errors = new ArrayList<>();
     List<String> outs = new ArrayList<>();
@@ -279,7 +279,7 @@ public class GitContextTest extends AbstractIdeContextTest {
    * @param tempDir a {@link TempDir} {@link Path}.
    */
   @Test
-  public void testRunGitReset(@TempDir Path tempDir) {
+  void testRunGitReset(@TempDir Path tempDir) {
 
     // arrange
     String gitRepoUrl = "https://github.com/test";

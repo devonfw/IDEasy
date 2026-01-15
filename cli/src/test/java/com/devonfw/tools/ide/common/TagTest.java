@@ -11,13 +11,13 @@ import org.junit.jupiter.api.Test;
 /**
  * Test of {@link Tag}.
  */
-public class TagTest extends Assertions {
+class TagTest extends Assertions {
 
   /**
    * Test various predefined {@link Tag}s.
    */
   @Test
-  public void testTags() {
+  void testTags() {
 
     checkTag(Tag.ROOT, "<root>", null, true);
     checkTag(Tag.MACHINE_LEARNING, "machine-learning", Tag.ROOT);
@@ -41,7 +41,7 @@ public class TagTest extends Assertions {
    * Test of {@link Tag#of(String)}.
    */
   @Test
-  public void testOf() {
+  void testOf() {
 
     checkOf(Tag.ROOT);
     checkOf(Tag.MACHINE_LEARNING, "ml", "machinelearning");
@@ -60,7 +60,7 @@ public class TagTest extends Assertions {
    * Test of {@link Tag#of(String)} with new tag that do not yet exist.
    */
   @Test
-  public void testOfNew() {
+  void testOfNew() {
 
     // arrange
     String id = "undefined";
@@ -74,7 +74,7 @@ public class TagTest extends Assertions {
    * Test of {@link Tag#of(String)} with new tags that do not yet exist and given parent.
    */
   @Test
-  public void testOfNewWithParent() {
+  void testOfNewWithParent() {
 
     // arrange
     String id = "brandnew";
@@ -88,7 +88,7 @@ public class TagTest extends Assertions {
    * Test of {@link Tag#getAll()}.
    */
   @Test
-  public void testGetAll() {
+  void testGetAll() {
 
     // act
     Collection<Tag> tags = Tag.getAll();
@@ -101,7 +101,7 @@ public class TagTest extends Assertions {
    * Test of {@link Tag#parseCsv(String)}.
    */
   @Test
-  public void testParseCsv() {
+  void testParseCsv() {
 
     // arrange
     String csv = " c,c++, c# "; // also test trimming
@@ -115,7 +115,7 @@ public class TagTest extends Assertions {
    * Test of {@link Tag#parseCsv(String)} with empty CSV.
    */
   @Test
-  public void testParseCsvEmpty() {
+  void testParseCsvEmpty() {
 
     assertThat(Tag.parseCsv(null)).isEmpty();
     assertThat(Tag.parseCsv("")).isEmpty();
@@ -126,7 +126,7 @@ public class TagTest extends Assertions {
    * Test of {@link Tag#getParent(int)} and {@link Tag#getParentCount()}.
    */
   @Test
-  public void testGetParents() {
+  void testGetParents() {
 
     assertThat(Tag.ROOT.getParentCount()).isZero();
     assertThat(Tag.DOCUMENTATION.getParentCount()).isOne();
@@ -140,7 +140,7 @@ public class TagTest extends Assertions {
    * Test of {@link Tag#isAncestorOf(Tag)}.
    */
   @Test
-  public void testIsAncestorOf() {
+  void testIsAncestorOf() {
 
     assertThat(Tag.QUARKUS.isAncestorOf(Tag.ROOT)).isTrue();
     assertThat(Tag.QUARKUS.isAncestorOf(Tag.FRAMEWORK)).isTrue();
@@ -154,7 +154,7 @@ public class TagTest extends Assertions {
   }
 
   @Test
-  public void testCreateSimple() {
+  void testCreateSimple() {
     String newTagId = "new-tag";
     Tag newTag = Tag.create(newTagId, Tag.ROOT);
 
@@ -164,15 +164,14 @@ public class TagTest extends Assertions {
   }
 
   @Test
-  public void testCreateDuplicateThrowsException() {
+  void testCreateDuplicateThrowsException() {
 
     Tag.create("duplicate-tag", Tag.ROOT);
-
     assertThrows(IllegalStateException.class, () -> Tag.create("duplicate-tag", Tag.ROOT));
   }
 
   @Test
-  public void testCreateWithSynonym() {
+  void testCreateWithSynonym() {
     String newTagId = "new-tag-with-synonym";
     Tag newTag = Tag.create(newTagId, Tag.ROOT, false, "synonym-of-new-tag");
 

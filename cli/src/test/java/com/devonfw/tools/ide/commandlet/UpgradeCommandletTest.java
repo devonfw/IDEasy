@@ -20,7 +20,7 @@ class UpgradeCommandletTest extends AbstractIdeContextTest {
   private static final String PROJECT_NAME = "upgrade";
 
   @Test
-  public void testSnapshotVersionComparisons(WireMockRuntimeInfo wmRuntimeInfo) {
+  void testSnapshotVersionComparisons(WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_NAME, wmRuntimeInfo);
@@ -34,7 +34,7 @@ class UpgradeCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testUpgradeWhenOffline(WireMockRuntimeInfo wmRuntimeInfo) {
+  void testUpgradeWhenOffline(WireMockRuntimeInfo wmRuntimeInfo) {
     // arrange
     IdeTestContext context = newContext(PROJECT_NAME, wmRuntimeInfo);
     context.getNetworkStatus().simulateNetworkError();

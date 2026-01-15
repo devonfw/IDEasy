@@ -8,10 +8,10 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * Integration test of {@link Npm}.
+ * Test of {@link Npm}.
  */
 @WireMockTest
-public class NpmTest extends AbstractIdeContextTest {
+class NpmTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_NPM = "npm";
 
@@ -21,7 +21,7 @@ public class NpmTest extends AbstractIdeContextTest {
    * @param wireMockRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testNpmInstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
+  void testNpmInstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_NPM, wireMockRuntimeInfo);
@@ -40,7 +40,7 @@ public class NpmTest extends AbstractIdeContextTest {
    * @param wireMockRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testNpmRun(WireMockRuntimeInfo wireMockRuntimeInfo) {
+  void testNpmRun(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_NPM, wireMockRuntimeInfo);
@@ -60,7 +60,7 @@ public class NpmTest extends AbstractIdeContextTest {
    * @param wireMockRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testNpmUninstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
+  void testNpmUninstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_NPM, wireMockRuntimeInfo);
@@ -86,7 +86,7 @@ public class NpmTest extends AbstractIdeContextTest {
 
   private void checkInstallation(IdeTestContext context) {
 
-    assertThat(context).logAtSuccess().hasMessage("Successfully installed npm in version 9.9.2");
+    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed npm in version 9.9.2");
     assertThat(context).logAtSuccess().hasMessageContaining("Setting npm config prefix to: " + context.getSoftwarePath().resolve("node") + " was successful");
   }
 }

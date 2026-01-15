@@ -22,7 +22,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
  * Test of {@link PythonUrlUpdater}.
  */
 @WireMockTest
-public class PythonUrlUpdaterTest extends AbstractUrlUpdaterTest {
+class PythonUrlUpdaterTest extends AbstractUrlUpdaterTest {
 
   private static String pythonVersionJson;
 
@@ -34,7 +34,7 @@ public class PythonUrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @throws IOException
    */
   @BeforeAll
-  public static void setupTestVersionJson(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  static void setupTestVersionJson(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     //preparing test data with dynamic port
     pythonVersionJson = readAndResolve(PATH_INTEGRATION_TEST.resolve("PythonUrlUpdater").resolve("python-version.json"), wmRuntimeInfo);
   }
@@ -47,7 +47,7 @@ public class PythonUrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testPythonURl(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
+  void testPythonURl(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // given
     stubFor(get(urlMatching("/actions/python-versions/main/.*")).willReturn(aResponse().withStatus(200).withBody(pythonVersionJson)));

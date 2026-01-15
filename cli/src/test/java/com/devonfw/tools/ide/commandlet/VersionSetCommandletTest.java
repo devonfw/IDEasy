@@ -10,9 +10,9 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesFiles;
 
 /**
- * Integration test of {@link VersionSetCommandlet}.
+ * Test of {@link VersionSetCommandlet}.
  */
-public class VersionSetCommandletTest extends AbstractIdeContextTest {
+class VersionSetCommandletTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_SETTINGS = "settings";
 
@@ -22,7 +22,7 @@ public class VersionSetCommandletTest extends AbstractIdeContextTest {
    * @throws IOException on error.
    */
   @Test
-  public void testVersionSetCommandletRun() {
+  void testVersionSetCommandletRun() {
 
     // arrange
     IdeContext context = newContext(PROJECT_BASIC);
@@ -47,11 +47,9 @@ public class VersionSetCommandletTest extends AbstractIdeContextTest {
 
   /**
    * Test of {@link VersionSetCommandlet} run.
-   *
-   * @throws IOException on error.
    */
   @Test
-  public void testVersionSetCommandletConfRun() {
+  void testVersionSetCommandletConfRun() {
 
     // arrange
     IdeContext context = newContext(PROJECT_SETTINGS);
@@ -71,7 +69,7 @@ public class VersionSetCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testVersionSetCommandletWorkspaceRun() {
+  void testVersionSetCommandletWorkspaceRun() {
 
     // arrange
     IdeContext context = newContext(PROJECT_SETTINGS);
@@ -91,7 +89,7 @@ public class VersionSetCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testVersionSetCommandletUserRun() {
+  void testVersionSetCommandletUserRun() {
 
     // arrange
     IdeContext context = newContext(PROJECT_SETTINGS);
@@ -111,7 +109,7 @@ public class VersionSetCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testVersionSetCommandletSettingsRun() {
+  void testVersionSetCommandletSettingsRun() {
 
     // arrange
     IdeContext context = newContext(PROJECT_SETTINGS);

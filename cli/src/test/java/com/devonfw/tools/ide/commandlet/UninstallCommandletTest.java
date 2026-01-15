@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.commandlet;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
@@ -23,9 +22,9 @@ import com.devonfw.tools.ide.tool.node.Node;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
- * Integration test of {@link UninstallCommandlet}.
+ * Test of {@link UninstallCommandlet}.
  */
-public class UninstallCommandletTest extends AbstractIdeContextTest {
+class UninstallCommandletTest extends AbstractIdeContextTest {
 
   private static final String PROJECT = "edition-version-get-uninstall";
 
@@ -47,7 +46,7 @@ public class UninstallCommandletTest extends AbstractIdeContextTest {
    * Test of {@link UninstallCommandlet} run.
    */
   @Test
-  public void testUninstallMvnAndDotnetButDotNetNotInstalled() {
+  void testUninstallMvnAndDotnetButDotNetNotInstalled() {
 
     // arrange
     String mvn = "mvn";
@@ -71,7 +70,7 @@ public class UninstallCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testUninstallEclipseFailsWhenNotInstalled() {
+  void testUninstallEclipseFailsWhenNotInstalled() {
 
     // arrange
     String eclipse = "eclipse";
@@ -84,11 +83,11 @@ public class UninstallCommandletTest extends AbstractIdeContextTest {
     uninstallCommandlet.run();
     // assert
     assertThat(context).logAtWarning().hasMessage("Couldn't uninstall " + eclipse + " because we could not find an installation");
-    assertThat(Files.notExists(context.getSoftwarePath().resolve(eclipse)));
+    assertThat(context.getSoftwarePath().resolve(eclipse)).doesNotExist();
   }
 
   @Test
-  public void testUninstallNode() {
+  void testUninstallNode() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
@@ -107,7 +106,7 @@ public class UninstallCommandletTest extends AbstractIdeContextTest {
   /** Test of {@link UninstallCommandlet} run with --force. */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testForceUninstallAzure(String os) {
+  void testForceUninstallAzure(String os) {
 
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of(os);
@@ -136,7 +135,7 @@ public class UninstallCommandletTest extends AbstractIdeContextTest {
   /** Test {@link UninstallCommandlet} without arguments uninstalls IDEasy. */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testUninstallIdeasy(String os) {
+  void testUninstallIdeasy(String os) {
 
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of(os);

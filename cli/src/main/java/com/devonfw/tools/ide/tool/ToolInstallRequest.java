@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.tool;
 
+import java.nio.file.Path;
+
 import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
@@ -25,6 +27,10 @@ public final class ToolInstallRequest {
   private ToolEditionAndVersion installed;
 
   private ProcessContext processContext;
+
+  private Path toolPath;
+
+  private boolean extraInstallation;
 
   private Step step;
 
@@ -190,6 +196,44 @@ public final class ToolInstallRequest {
       throw new IllegalStateException();
     }
     this.processContext = processContext;
+  }
+
+  /**
+   * @return the {@link Path} inside the project where the tool installation should be linked to.
+   */
+  public Path getToolPath() {
+
+    return this.toolPath;
+  }
+
+  /**
+   * @param toolPath new value of {@link #getToolPath()}.
+   */
+  public void setToolPath(Path toolPath) {
+
+    if (this.toolPath != null) {
+      throw new IllegalStateException();
+    }
+    this.toolPath = toolPath;
+  }
+
+  /**
+   * Called to trigger an extra installation with a custom tool path.
+   *
+   * @param toolPath new value of {@link #getToolPath()}.
+   */
+  public void setToolPathForExtraInstallation(Path toolPath) {
+
+    setToolPath(toolPath);
+    this.extraInstallation = true;
+  }
+
+  /**
+   * @return {@code true} if this is an extra installation, {@code false} otherwise (standard installation).
+   */
+  public boolean isExtraInstallation() {
+
+    return this.extraInstallation;
   }
 
   /**

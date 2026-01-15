@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
+import com.devonfw.tools.ide.json.JsonObject;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
 import com.devonfw.tools.ide.version.VersionRangeRelation;
@@ -18,7 +19,7 @@ import com.devonfw.tools.ide.version.VersionRangeRelation;
  *     "[2.0,2.2)". Should never be {@code null} or {@link List#isEmpty() empty}.
  * @see ToolSecurity
  */
-public record Cve(String id, double severity, List<VersionRange> versions) {
+public record Cve(String id, double severity, List<VersionRange> versions) implements JsonObject {
 
   static final String PROPERTY_ID = "id";
 

@@ -9,9 +9,9 @@ import com.devonfw.tools.ide.git.GitContextMock;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeTestLogger;
 import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.tool.repository.MvnRepository;
-import com.devonfw.tools.ide.tool.repository.NpmRepository;
-import com.devonfw.tools.ide.tool.repository.PipRepository;
+import com.devonfw.tools.ide.tool.mvn.MvnRepository;
+import com.devonfw.tools.ide.tool.npm.NpmRepository;
+import com.devonfw.tools.ide.tool.pip.PipRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepositoryMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 

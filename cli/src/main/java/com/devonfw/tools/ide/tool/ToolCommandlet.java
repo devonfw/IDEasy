@@ -300,6 +300,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     completeRequestInstalled(request);
     completeRequestRequested(request); // depends on completeRequestInstalled
     completeRequestProcessContext(request);
+    completeRequestToolPath(request);
   }
 
   private void completeRequestProcessContext(ToolInstallRequest request) {
@@ -316,15 +317,27 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       installedToolVersion = new ToolEditionAndVersion((GenericVersionRange) null);
       request.setInstalled(installedToolVersion);
     }
+    Path toolPath = request.getToolPath();
     if (installedToolVersion.getVersion() == null) {
-      VersionIdentifier installedVersion = getInstalledVersion();
+      VersionIdentifier installedVersion;
+      if ((toolPath != null) && (this instanceof LocalToolCommandlet ltc)) {
+        installedVersion = ltc.getInstalledVersion(toolPath);
+      } else {
+        installedVersion = getInstalledVersion();
+      }
       if (installedVersion == null) {
         return;
       }
       installedToolVersion.setVersion(installedVersion);
     }
     if (installedToolVersion.getEdition() == null) {
-      installedToolVersion.setEdition(new ToolEdition(this.tool, getInstalledEdition()));
+      String installedEdition;
+      if ((toolPath != null) && (this instanceof LocalToolCommandlet ltc)) {
+        installedEdition = ltc.getInstalledEdition(toolPath);
+      } else {
+        installedEdition = getInstalledEdition();
+      }
+      installedToolVersion.setEdition(new ToolEdition(this.tool, installedEdition));
     }
     assert installedToolVersion.getResolvedVersion() != null;
   }
@@ -365,6 +378,23 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       }
       requested.setResolvedVersion(resolvedVersion);
     }
+  }
+
+  private void completeRequestToolPath(ToolInstallRequest request) {
+
+    Path toolPath = request.getToolPath();
+    if (toolPath == null) {
+      toolPath = getToolPath();
+      request.setToolPath(toolPath);
+    }
+  }
+
+  /**
+   * @return the {@link Path} where the tool is located (installed). Will be {@code null} for global tools that do not know the {@link Path} since it is
+   *     determined by the installer.
+   */
+  public Path getToolPath() {
+    return null;
   }
 
   /**

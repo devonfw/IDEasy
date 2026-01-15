@@ -8,11 +8,13 @@ import org.junit.jupiter.api.Test;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContextMock;
 
+/**
+ * Test of {@link BooleanProperty}.
+ */
 class BooleanPropertyTest {
 
-
   @Test
-  public void testParse() {
+  void testParse() {
     IdeContext context = IdeTestContextMock.get();
     BooleanProperty boolProp = new BooleanProperty("name", false, "alias");
 

@@ -10,8 +10,8 @@ import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 
 /**
- * Helper utility for symlink-related tests on Windows. Provides methods to detect symlink capabilities and skip tests
- * gracefully when the required permissions are not available.
+ * Helper utility for symlink-related tests on Windows. Provides methods to detect symlink capabilities and skip tests gracefully when the required permissions
+ * are not available.
  */
 public class WindowsSymlinkTestHelper {
 
@@ -26,8 +26,8 @@ public class WindowsSymlinkTestHelper {
       + "See documentation/symlink.adoc or https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for details on enabling symlink permissions.";
 
   /**
-   * Checks if the current environment supports creating symbolic links. On Windows, this requires either administrator
-   * privileges or Developer Mode to be enabled. On other operating systems, this typically returns {@code true}.
+   * Checks if the current environment supports creating symbolic links. On Windows, this requires either administrator privileges or Developer Mode to be
+   * enabled. On other operating systems, this typically returns {@code true}.
    *
    * @return {@code true} if symbolic links can be created, {@code false} otherwise.
    */
@@ -63,17 +63,17 @@ public class WindowsSymlinkTestHelper {
   }
 
   /**
-   * Assumes that symbolic links can be created in the current environment. If not, the calling test will be skipped
-   * with a standard message explaining the requirement.
+   * Assumes that symbolic links can be created in the current environment. If not, the calling test will be skipped with a standard message explaining the
+   * requirement.
    * <p>
-   * Use this method at the beginning of tests that require symbolic link creation to ensure they fail gracefully on
-   * Windows systems without proper permissions.
+   * Use this method at the beginning of tests that require symbolic link creation to ensure they fail gracefully on Windows systems without proper
+   * permissions.
    * <p>
    * Example usage:
-   * 
+   *
    * <pre>
    * &#64;Test
-   * public void testSymlinkFeature(&#64;TempDir Path tempDir) {
+   * void testSymlinkFeature(&#64;TempDir Path tempDir) {
    *   WindowsSymlinkTestHelper.assumeSymlinksSupported();
    *   // ... test code that creates symlinks ...
    * }

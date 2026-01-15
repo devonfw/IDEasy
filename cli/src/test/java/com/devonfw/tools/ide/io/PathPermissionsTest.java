@@ -10,13 +10,13 @@ import org.junit.jupiter.api.Test;
 /**
  * Test of {@link PathPermissions}.
  */
-public class PathPermissionsTest extends Assertions {
+class PathPermissionsTest extends Assertions {
 
   /**
    * Test of {@link PathPermissions#of(int)} and {@link PathPermissions#toString()}.
    */
   @Test
-  public void testOfMode() {
+  void testOfMode() {
 
     assertThat(PathPermissions.of(0b000000000)).hasToString("---------");
     assertThat(PathPermissions.of(0b000000001)).hasToString("--------x");
@@ -35,7 +35,7 @@ public class PathPermissionsTest extends Assertions {
    * Test of {@link PathPermissions#of(Set)} and {@link PathPermissions#toString()}.
    */
   @Test
-  public void testOfPosix() {
+  void testOfPosix() {
 
     assertThat(PathPermissions.of(Set.of())).hasToString("---------");
     assertThat(PathPermissions.of(Set.of(PosixFilePermission.OTHERS_EXECUTE))).hasToString("--------x");
@@ -54,7 +54,7 @@ public class PathPermissionsTest extends Assertions {
    * Test of {@link PathPermissions#of(Set)} and {@link PathPermissions#toString()}.
    */
   @Test
-  public void testToPosix() {
+  void testToPosix() {
 
     assertThat(PathPermissions.of(0b000000000).toPosix()).isEmpty();
     assertThat(PathPermissions.of(0b000000001).toPosix()).containsExactly(PosixFilePermission.OTHERS_EXECUTE);
@@ -73,7 +73,7 @@ public class PathPermissionsTest extends Assertions {
    * Test of {@link PathPermissions#makeExecutable()}
    */
   @Test
-  public void testMakeExecutable() {
+  void testMakeExecutable() {
 
     PathPermissions permissions = PathPermissions.of(0b110100010);
     assertThat(permissions).hasToString("rw-r---w-");

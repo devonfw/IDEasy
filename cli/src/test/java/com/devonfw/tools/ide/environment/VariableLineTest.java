@@ -12,7 +12,7 @@ import com.devonfw.tools.ide.log.IdeSlf4jRootLogger;
 /**
  * Test of {@link VariableLine}.
  */
-public class VariableLineTest extends Assertions {
+class VariableLineTest extends Assertions {
 
   private static final IdeSlf4jRootLogger LOGGER = IdeSlf4jRootLogger.of();
 
@@ -25,7 +25,7 @@ public class VariableLineTest extends Assertions {
    * Test that comments are parsed properly.
    */
   @Test
-  public void testComment() {
+  void testComment() {
 
     checkComment("# this is a comment ");
     checkComment(" #this is a comment");
@@ -46,7 +46,7 @@ public class VariableLineTest extends Assertions {
    * Test empty lines.
    */
   @Test
-  public void testEmpty() {
+  void testEmpty() {
 
     checkEmtpy("");
     checkEmtpy(" ");
@@ -67,7 +67,7 @@ public class VariableLineTest extends Assertions {
    * Test regular variable lines.
    */
   @Test
-  public void testVariable() {
+  void testVariable() {
 
     checkVariable("TOOL_VERSION=47.11", false, "TOOL_VERSION", "47.11");
     checkVariable("TOOL_VERSION = 47.11", false, "TOOL_VERSION", "47.11");
@@ -98,7 +98,7 @@ public class VariableLineTest extends Assertions {
    * Test garbage lines.
    */
   @Test
-  public void testGarbage() {
+  void testGarbage() {
 
     checkGarbage("TOOL_VERSION 47.11");
   }
