@@ -35,9 +35,8 @@ public class Python extends LocalToolCommandlet {
   }
 
   @Override
-  protected void performToolInstallation(ToolInstallRequest request, Path installationPath) {
+  protected VersionIdentifier performToolInstallation(ToolInstallRequest request, Path installationPath, VersionIdentifier resolvedVersion) {
 
-    VersionIdentifier resolvedVersion = request.getRequested().getResolvedVersion();
     if (resolvedVersion.compareVersion(PYTHON_MIN_VERSION).isLess()) {
       throw new CliException("Python version must be at least " + this.PYTHON_MIN_VERSION);
     }
@@ -53,7 +52,7 @@ public class Python extends LocalToolCommandlet {
     renameVenvFolderToPython(fileAccess, softwarePath, installationPath);
     this.context.writeVersionFile(resolvedVersion, installationPath);
     createWindowsSymlinkBinFolder(fileAccess, installationPath);
-    this.context.debug("Installed {} in version {} at {}", this.tool, resolvedVersion, installationPath);
+    return resolvedVersion;
   }
 
   @Override

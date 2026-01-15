@@ -161,12 +161,13 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
   }
 
   @Override
-  protected final void performToolInstallation(ToolInstallRequest request, Path installationPath) {
+  protected final VersionIdentifier performToolInstallation(ToolInstallRequest request, Path installationPath, VersionIdentifier resolvedVersion) {
 
     PackageManagerRequest packageManagerRequest = new PackageManagerRequest(PackageManagerRequest.TYPE_INSTALL, getPackageName())
-        .setProcessContext(request.getProcessContext()).setVersion(request.getRequested().getResolvedVersion());
+        .setProcessContext(request.getProcessContext()).setVersion(resolvedVersion);
     runPackageManager(packageManagerRequest, true).failOnError();
     this.installedVersion.invalidate();
+    return resolvedVersion;
   }
 
   /**
