@@ -23,13 +23,13 @@ import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.corepack.Corepack;
+import com.devonfw.tools.ide.tool.custom.CustomToolRepository;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
+import com.devonfw.tools.ide.tool.mvn.MvnRepository;
 import com.devonfw.tools.ide.tool.npm.Npm;
-import com.devonfw.tools.ide.tool.repository.CustomToolRepository;
-import com.devonfw.tools.ide.tool.repository.MvnRepository;
-import com.devonfw.tools.ide.tool.repository.NpmRepository;
-import com.devonfw.tools.ide.tool.repository.PipRepository;
+import com.devonfw.tools.ide.tool.npm.NpmRepository;
+import com.devonfw.tools.ide.tool.pip.PipRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
@@ -176,9 +176,6 @@ public interface IdeContext extends IdeStartContext {
 
   /** The default folder name for {@link #getIdeRoot() IDE_ROOT}. */
   String FOLDER_PROJECTS = "projects";
-
-  /** The filename of the configuration file in the settings for this {@link CustomToolRepository}. */
-  String FILE_CUSTOM_TOOLS = "ide-custom-tools.json";
 
   /**
    * file containing the current local commit hash of the settings repository.

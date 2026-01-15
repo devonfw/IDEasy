@@ -19,10 +19,10 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * Test of {@link PipUrlUpdater} based on Wiremock.
+ * Test of {@link PipUrlUpdater}.
  */
 @WireMockTest
-public class PipUrlUpdaterTest extends AbstractUrlUpdaterTest {
+class PipUrlUpdaterTest extends AbstractUrlUpdaterTest {
 
   /**
    * Tests if the {@link PipUrlUpdater} will successfully resolve a server with a Content-Type:text header response.
@@ -33,7 +33,7 @@ public class PipUrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testPipUrlUpdaterWithTextContentTypeWillSucceed(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
+  void testPipUrlUpdaterWithTextContentTypeWillSucceed(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrage
     stubFor(any(urlMatching("/pip/.*"))
@@ -60,6 +60,5 @@ public class PipUrlUpdaterTest extends AbstractUrlUpdaterTest {
     Instant successTimestamp = urlStatus.getSuccess().getTimestamp();
 
     assertThat(successTimestamp).isNotNull();
-
   }
 }

@@ -6,13 +6,13 @@ import org.junit.jupiter.api.Test;
 /**
  * Test of {@link VersionSegment}.
  */
-public class VersionSegmentTest extends Assertions {
+class VersionSegmentTest extends Assertions {
 
   /**
    * Test of {@link VersionSegment#ofEmpty()} and {@link VersionSegment#isEmpty()}.
    */
   @Test
-  public void testEmpty() {
+  void testEmpty() {
 
     // given + when
     VersionSegment segment = VersionSegment.ofEmpty();
@@ -34,7 +34,7 @@ public class VersionSegmentTest extends Assertions {
    * Test of constructor and getters with "01".
    */
   @Test
-  public void testOne() {
+  void testOne() {
 
     VersionSegment segment = new VersionSegment("", "", "01");
     assertThat(segment.getSeparator()).isEmpty();
@@ -52,7 +52,7 @@ public class VersionSegmentTest extends Assertions {
    * Test of constructor and getters with ".rc1".
    */
   @Test
-  public void testDotRc2() {
+  void testDotRc2() {
 
     VersionSegment segment = new VersionSegment(".", "rc", "1");
     assertThat(segment.getSeparator()).isEqualTo(".");
@@ -70,7 +70,7 @@ public class VersionSegmentTest extends Assertions {
    * Test of constructor and getters with ".17*".
    */
   @Test
-  public void testPattern() {
+  void testPattern() {
 
     VersionSegment segment = new VersionSegment(".", "", "17", "*");
     assertThat(segment.getSeparator()).isEqualTo(".");

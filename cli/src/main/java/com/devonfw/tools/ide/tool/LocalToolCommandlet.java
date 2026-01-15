@@ -38,6 +38,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   /**
    * @return the {@link Path} where the tool is located (installed).
    */
+  @Override
   public Path getToolPath() {
     if (this.context.getSoftwarePath() == null) {
       return null;
@@ -105,8 +106,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     }
     FileAccess fileAccess = this.context.getFileAccess();
     boolean ignoreSoftwareRepo = isIgnoreSoftwareRepo();
+    Path toolPath = request.getToolPath();
     if (!ignoreSoftwareRepo) {
-      Path toolPath = getToolPath();
       // we need to link the version or update the link.
       if (Files.exists(toolPath, LinkOption.NOFOLLOW_LINKS)) {
         fileAccess.backup(toolPath);
@@ -114,7 +115,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       fileAccess.mkdirs(toolPath.getParent());
       fileAccess.symlink(installation.linkDir(), toolPath);
     }
-    if (installation.binDir() != null) {
+    if (!request.isExtraInstallation() && (installation.binDir() != null)) {
       this.context.getPath().setPath(this.tool, installation.binDir());
     }
     postInstall(request);
@@ -127,10 +128,10 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     ToolEdition toolEdition = requested.getEdition();
     Step step = request.getStep();
     if (installedVersion == null) {
-      asSuccess(step).log("Successfully installed {} in version {}", toolEdition, resolvedVersion);
+      asSuccess(step).log("Successfully installed {} in version {} at {}", toolEdition, resolvedVersion, toolPath);
     } else {
-      asSuccess(step).log("Successfully installed {} in version {} replacing previous version {} of {}", toolEdition, resolvedVersion,
-          installedVersion, installed.getEdition());
+      asSuccess(step).log("Successfully installed {} in version {} replacing previous version {} of {} at {}", toolEdition, resolvedVersion,
+          installedVersion, installed.getEdition(), toolPath);
     }
     return installation;
   }
@@ -370,7 +371,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    *     to the passed {@link Path path} must be the name of the edition.
    * @return the installed edition of this tool or {@code null} if not installed.
    */
-  private String getInstalledEdition(Path toolPath) {
+  protected String getInstalledEdition(Path toolPath) {
     if (isToolNotInstalled(toolPath)) {
       return null;
     }

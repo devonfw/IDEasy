@@ -1,0 +1,2 @@
+#!/bin/bash
+echo java 17.0.6 $*

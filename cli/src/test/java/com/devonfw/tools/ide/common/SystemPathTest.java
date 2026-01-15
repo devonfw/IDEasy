@@ -16,15 +16,15 @@ import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 
 /**
- * Unit tests of {@link SystemPath}.
+ * Tests of {@link SystemPath}.
  */
-public class SystemPathTest extends AbstractIdeContextTest {
+class SystemPathTest extends AbstractIdeContextTest {
 
   @ParameterizedTest
   // arrange
   @ValueSource(strings = { "C:\\Users\\User\\Documents\\My Pictures\\photo.jpg",
       "C:\\Windows\\System32\\drivers\\etc.sys", "D:\\Projects\\ProjectA\\source\\main.py" })
-  public void systemPathShouldRecognizeWindowsPaths(String pathStringToTest) {
+  void systemPathShouldRecognizeWindowsPaths(String pathStringToTest) {
 
     // act
     boolean testResult = SystemPath.isValidWindowsPath(pathStringToTest);
@@ -35,7 +35,7 @@ public class SystemPathTest extends AbstractIdeContextTest {
   @ParameterizedTest
   // arrange
   @ValueSource(strings = { "-kill", "none", "--help", "/usr/local/bin/firefox.exe" })
-  public void systemPathShouldRecognizeNonWindowsPaths(String pathStringToTest) {
+  void systemPathShouldRecognizeNonWindowsPaths(String pathStringToTest) {
 
     // act
     boolean testResult = SystemPath.isValidWindowsPath(pathStringToTest);
@@ -44,7 +44,7 @@ public class SystemPathTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testfindBinaryFindsBashBinaryOnWindowsUsingFilterExcludingWindowsAppsInPath() {
+  void testFindBinaryFindsBashBinaryOnWindowsUsingFilterExcludingWindowsAppsInPath() {
     // arrange
     String path = "project/workspaces";
     IdeTestContext context = newContext("find-binary", path, false);
@@ -65,7 +65,7 @@ public class SystemPathTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testfindBinaryFindsGraalvmBinaryOnWindowsUsingFilterExcludingJava() {
+  void testFindBinaryFindsGraalvmBinaryOnWindowsUsingFilterExcludingJava() {
     // arrange
     String path = "project/workspaces";
     IdeTestContext context = newContext("find-binary", path, false);
@@ -81,7 +81,7 @@ public class SystemPathTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testfindBinaryFindsNothingUsingFilterIgnoringEverything() {
+  void testFindBinaryFindsNothingUsingFilterIgnoringEverything() {
     // arrange
     String path = "project/workspaces";
     IdeTestContext context = newContext("find-binary", path, false);
@@ -97,7 +97,7 @@ public class SystemPathTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testfindBinaryFindsJavaBinaryOnWindowsUsingFilterExcludingGraalvm() {
+  void testFindBinaryFindsJavaBinaryOnWindowsUsingFilterExcludingGraalvm() {
     // arrange
     String path = "project/workspaces";
     IdeTestContext context = newContext("find-binary", path, false);
@@ -113,7 +113,7 @@ public class SystemPathTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testfindBinaryFindsJavaBinaryWithoutFilter() {
+  void testFindBinaryFindsJavaBinaryWithoutFilter() {
     // arrange
     String path = "project/workspaces";
     IdeTestContext context = newContext("find-binary", path, false);
@@ -128,7 +128,7 @@ public class SystemPathTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testfindBinaryFindsNothingWithoutFilter() {
+  void testFindBinaryFindsNothingWithoutFilter() {
     // arrange
     String path = "project/workspaces";
     IdeTestContext context = newContext("find-binary", path, false);

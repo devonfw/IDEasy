@@ -26,9 +26,8 @@ Extract the contents of the downloaded archive (`ide-cli-*.tar.gz`) to a new fol
 
 On MacOS please study link:mac-gatekeeper.adoc[Gatekeeper problem and workaround] in order to use IDEasy.
 
-To get started read the link:usage.adoc[usage].
-After the installation process, you can create a new project by typing in bash: `ide create <project>`, replace `<project>` with your project name.
-Switch to the project folder e.g. `cd <project>` and install or configure tools for your project as needed (for further details click link:project.adoc[here]).
+Once installed, you want to link:project.adoc[create a project].
+As next step read the link:usage.adoc[usage].
 
 === Tweak installation location
 

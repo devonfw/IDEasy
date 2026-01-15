@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1298[#1298]: Support for extra tool version
 * https://github.com/devonfw/IDEasy/issues/1653[#1653]: Implementation of getEdition and getVersion for Docker
 * https://github.com/devonfw/IDEasy/issues/1602[#1602]: Being offline can block ide startup
 

@@ -13,11 +13,10 @@ import com.devonfw.tools.ide.version.VersionRange;
 /**
  * Test of {@link ToolDependencies} and {@link AbstractUrlToolOrEdition#getDependencyFile()}.
  */
-public class ToolDependenciesTest extends AbstractUrlModelTest {
-
-
+class ToolDependenciesTest extends AbstractUrlModelTest {
+  
   @Test
-  public void testEditionSpecific() {
+  void testEditionSpecific() {
 
     // arrange
     IdeContext context = newContext();
@@ -31,7 +30,7 @@ public class ToolDependenciesTest extends AbstractUrlModelTest {
   }
 
   @Test
-  public void testEditionFallback() {
+  void testEditionFallback() {
 
     // arrange
     IdeContext context = newContext();
@@ -46,7 +45,7 @@ public class ToolDependenciesTest extends AbstractUrlModelTest {
   }
 
   @Test
-  public void testEditionUnspecific() {
+  void testEditionUnspecific() {
 
     // arrange
     IdeContext context = newContext();
