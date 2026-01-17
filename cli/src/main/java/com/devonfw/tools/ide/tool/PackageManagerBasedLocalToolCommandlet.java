@@ -52,7 +52,7 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
       return false;
     }
 
-    // Check if the binary exists in the tool bin path
+    // Check if the tool binary folder exists
     Path toolBinPath = getToolBinPath();
     if (toolBinPath == null || !Files.isDirectory(toolBinPath)) {
       return false;
