@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.tool;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
@@ -52,18 +51,8 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
       return false;
     }
 
-    // Check if the tool binary folder exists
-    Path toolBinPath = getToolBinPath();
-    if (toolBinPath == null || !Files.isDirectory(toolBinPath)) {
-      return false;
-    }
-
-    // Use SystemPath to properly resolve binary with platform-specific extensions (.exe, .cmd, .bat on Windows)
-    Path binaryPath = toolBinPath.resolve(getBinaryName());
-    Path resolvedBinary = this.context.getPath().findBinary(binaryPath);
-    
-    // findBinary returns the original path if not found, so check if it actually exists
-    return Files.exists(resolvedBinary);
+    // Check if the tool binary is found
+    return getBinaryExecutable() != null;
   }
 
   protected abstract Class<P> getPackageManagerClass();
@@ -176,9 +165,8 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
   /**
    * @return the computed value of the {@link #getInstalledVersion() installed version}.
    * @implNote Implementations of this method should NOT trigger any tool installation or download. If you need to call
-   *     {@link #runPackageManager(PackageManagerRequest)}, make sure to use
-   *     {@link #runPackageManager(PackageManagerRequest, boolean)} with {@code skipInstallation=true} to avoid
-   *     inadvertently triggering installations when only checking the version.
+   *     {@link #runPackageManager(PackageManagerRequest)}, make sure to use {@link #runPackageManager(PackageManagerRequest, boolean)} with
+   *     {@code skipInstallation=true} to avoid inadvertently triggering installations when only checking the version.
    */
   protected abstract VersionIdentifier computeInstalledVersion();
 
