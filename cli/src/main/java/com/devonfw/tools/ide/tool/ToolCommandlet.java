@@ -96,6 +96,19 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     return this.tool;
   }
 
+  /**
+   * @return the {@link Path} to the installed {@link #getBinaryName() binary} or {@code null} if not found on the
+   *     {@link com.devonfw.tools.ide.common.SystemPath}.
+   */
+  protected Path getBinaryExecutable() {
+
+    Path binary = this.context.getPath().findBinaryPathByName(getBinaryName());
+    if (binary.getParent() == null) {
+      return null;
+    }
+    return binary;
+  }
+
   @Override
   public final Set<Tag> getTags() {
 
