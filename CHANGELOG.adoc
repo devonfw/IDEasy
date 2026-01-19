@@ -10,6 +10,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1653[#1653]: Implementation of getEdition and getVersion for Docker
 * https://github.com/devonfw/IDEasy/issues/1602[#1602]: Being offline can block ide startup
 * https://github.com/devonfw/IDEasy/issues/1667[#1667]: ide command without arguments triggers download and installation
+* https://github.com/devonfw/IDEasy/issues/1677[#1677]: Add release for linux-arm architecture
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/39?closed=1[milestone 2026.01.001].
 
