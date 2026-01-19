@@ -42,6 +42,19 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
     return true;
   }
 
+  @Override
+  public boolean isInstalled() {
+
+    // Check if parent tool is installed first - if not, this tool cannot be installed
+    LocalToolCommandlet parentTool = getParentTool();
+    if (!parentTool.isInstalled()) {
+      return false;
+    }
+
+    // Check if the tool binary is found
+    return getBinaryExecutable() != null;
+  }
+
   protected abstract Class<P> getPackageManagerClass();
 
   /**
@@ -151,6 +164,9 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
 
   /**
    * @return the computed value of the {@link #getInstalledVersion() installed version}.
+   * @implNote Implementations of this method should NOT trigger any tool installation or download. If you need to call
+   *     {@link #runPackageManager(PackageManagerRequest)}, make sure to use {@link #runPackageManager(PackageManagerRequest, boolean)} with
+   *     {@code skipInstallation=true} to avoid inadvertently triggering installations when only checking the version.
    */
   protected abstract VersionIdentifier computeInstalledVersion();
 

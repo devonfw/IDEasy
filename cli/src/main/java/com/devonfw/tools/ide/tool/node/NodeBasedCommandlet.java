@@ -40,12 +40,6 @@ public abstract class NodeBasedCommandlet<P extends ToolCommandlet> extends Pack
   }
 
   @Override
-  public boolean isInstalled() {
-
-    return hasNodeBinary(this.tool);
-  }
-
-  @Override
   public String getInstalledEdition() {
 
     if (getInstalledVersion() != null) {
