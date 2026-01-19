@@ -183,7 +183,6 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
         .setProcessContext(request.getProcessContext()).setVersion(request.getRequested().getResolvedVersion());
     runPackageManager(packageManagerRequest, true).failOnError();
     this.installedVersion.invalidate();
-    return resolvedVersion;
   }
 
   /**
