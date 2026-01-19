@@ -35,8 +35,9 @@ public class Python extends LocalToolCommandlet {
   }
 
   @Override
-  protected VersionIdentifier performToolInstallation(ToolInstallRequest request, Path installationPath, VersionIdentifier resolvedVersion) {
+  protected void performToolInstallation(ToolInstallRequest request, Path installationPath) {
 
+    VersionIdentifier resolvedVersion = request.getRequested().getResolvedVersion();
     if (resolvedVersion.compareVersion(PYTHON_MIN_VERSION).isLess()) {
       throw new CliException("Python version must be at least " + this.PYTHON_MIN_VERSION);
     }

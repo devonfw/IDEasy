@@ -222,25 +222,12 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * @return the {@link VersionIdentifier} of the version that was actually installed. In offline scenarios where download fails, this may be different from
    *     {@code resolvedVersion} (returning the existing installed version instead).
    */
-  protected VersionIdentifier performToolInstallation(ToolInstallRequest request, Path installationPath, VersionIdentifier resolvedVersion) {
+  protected void performToolInstallation(ToolInstallRequest request, Path installationPath) {
 
     FileAccess fileAccess = this.context.getFileAccess();
     ToolEditionAndVersion requested = request.getRequested();
-    Path downloadedToolFile;
-    try {
-      downloadedToolFile = downloadTool(requested.getEdition().edition(), resolvedVersion);
-    } catch (CliOfflineException e) {
-      // If we are offline and cannot download, check if we can continue with an existing installation
-      ToolEditionAndVersion installed = request.getInstalled();
-      if ((installed != null) && (installed.getResolvedVersion() != null)) {
-        this.context.warning("Cannot download {} in version {} because we are offline. Continuing with already installed version {}.",
-            this.tool, resolvedVersion, installed.getResolvedVersion());
-        // Return the existing installed version to indicate fallback
-        return installed.getResolvedVersion();
-      }
-      // No existing installation available, re-throw the exception
-      throw e;
-    }
+    VersionIdentifier resolvedVersion = requested.getResolvedVersion();
+    Path downloadedToolFile = downloadTool(requested.getEdition().edition(), resolvedVersion);
     boolean extract = isExtract();
     if (!extract) {
       this.context.trace("Extraction is disabled for '{}' hence just moving the downloaded file {}.", this.tool, downloadedToolFile);
