@@ -53,7 +53,7 @@ public class Python extends LocalToolCommandlet {
     renameVenvFolderToPython(fileAccess, softwarePath, installationPath);
     this.context.writeVersionFile(resolvedVersion, installationPath);
     createWindowsSymlinkBinFolder(fileAccess, installationPath);
-    return resolvedVersion;
+    this.context.debug("Installed {} in version {} at {}", this.tool, resolvedVersion, installationPath);
   }
 
   @Override
