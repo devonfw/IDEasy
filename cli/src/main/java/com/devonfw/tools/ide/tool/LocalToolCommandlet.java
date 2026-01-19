@@ -200,6 +200,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
         }
       }
     }
+    VersionIdentifier actualInstalledVersion = resolvedVersion;
     try {
       performToolInstallation(request, installationPath);
     } catch (CliOfflineException e) {
@@ -209,7 +210,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
         this.context.warning("Cannot download {} in version {} because we are offline. Continuing with already installed version {}.", this.tool, resolvedVersion, installed.getResolvedVersion());
         // If offline and could not download, actualInstalledVersion will be the old version, not resolvedVersion
         // In that case, we need to recalculate the installation path for the actually installed version
-        installationPath = getInstallationPath(edition, installed.getResolvedVersion());
+        actualInstalledVersion = installed.getResolvedVersion();
+        installationPath = getInstallationPath(edition, actualInstalledVersion);
       } else {
         // No existing installation available, re-throw the exception
         throw e;
