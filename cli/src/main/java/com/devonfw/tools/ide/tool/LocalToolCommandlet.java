@@ -252,7 +252,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     fileAccess.extract(downloadedToolFile, installationPath, this::postExtract, extract);
     this.context.writeVersionFile(resolvedVersion, installationPath);
     this.context.debug("Installed {} in version {} at {}", this.tool, resolvedVersion, installationPath);
-    return resolvedVersion;
   }
 
   /**
