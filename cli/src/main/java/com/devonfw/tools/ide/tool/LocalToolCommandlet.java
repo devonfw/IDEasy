@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Set;
 
+import com.devonfw.tools.ide.cli.CliOfflineException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
@@ -199,8 +200,24 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
         }
       }
     }
-    performToolInstallation(request, installationPath);
-    return createToolInstallation(installationPath, resolvedVersion, true, processContext, additionalInstallation);
+    VersionIdentifier actualInstalledVersion = resolvedVersion;
+    try {
+      performToolInstallation(request, installationPath);
+    } catch (CliOfflineException e) {
+      // If we are offline and cannot download, check if we can continue with an existing installation
+      ToolEditionAndVersion installed = request.getInstalled();
+      if ((installed != null) && (installed.getResolvedVersion() != null)) {
+        this.context.warning("Cannot download {} in version {} because we are offline. Continuing with already installed version {}.", this.tool, resolvedVersion, installed.getResolvedVersion());
+        // If offline and could not download, actualInstalledVersion will be the old version, not resolvedVersion
+        // In that case, we need to recalculate the installation path for the actually installed version
+        actualInstalledVersion = installed.getResolvedVersion();
+        installationPath = getInstallationPath(edition, actualInstalledVersion);
+      } else {
+        // No existing installation available, re-throw the exception
+        throw e;
+      }
+    }
+    return createToolInstallation(installationPath, actualInstalledVersion, true, processContext, additionalInstallation);
   }
 
   /**
