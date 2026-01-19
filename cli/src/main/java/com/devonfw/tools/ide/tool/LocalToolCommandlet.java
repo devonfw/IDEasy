@@ -229,9 +229,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    *
    * @param request the {@link ToolInstallRequest}.
    * @param installationPath the target {@link Path} where the {@link #getName() tool} should be installed.
-   * @param resolvedVersion the {@link VersionIdentifier} that should be installed.
-   * @return the {@link VersionIdentifier} of the version that was actually installed. In offline scenarios where download fails, this may be different from
-   *     {@code resolvedVersion} (returning the existing installed version instead).
    */
   protected void performToolInstallation(ToolInstallRequest request, Path installationPath) {
 
