@@ -53,7 +53,7 @@ public abstract class NpmBasedCommandlet extends NodeBasedCommandlet<Npm> {
       this.context.trace("Since node is not installed, also package {} for tool {} cannot be installed.", npmPackage, this.tool);
       return null;
     }
-    PackageManagerRequest request = new PackageManagerRequest("list", npmPackage).addArg("-g").addArg(npmPackage).addArg("--depth=0")
+    PackageManagerRequest request = new PackageManagerRequest("list", npmPackage).addArg("list").addArg("-g").addArg(npmPackage).addArg("--depth=0")
         .setProcessMode(ProcessMode.DEFAULT_CAPTURE);
     ProcessResult result = runPackageManager(request);
     if (result.isSuccessful()) {
