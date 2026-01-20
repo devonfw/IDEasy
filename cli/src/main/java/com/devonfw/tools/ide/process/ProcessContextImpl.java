@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import com.devonfw.tools.ide.cli.CliProcessException;
@@ -32,6 +33,7 @@ import com.devonfw.tools.ide.variable.IdeVariables;
 public class ProcessContextImpl implements ProcessContext {
 
   private static final String PREFIX_USR_BIN_ENV = "/usr/bin/env ";
+  private static final Predicate<Integer> EXIT_CODE_ACCEPTOR = rc -> rc == ProcessResult.SUCCESS;
 
   /** The owning {@link IdeContext}. */
   protected final IdeContext context;
@@ -49,6 +51,8 @@ public class ProcessContextImpl implements ProcessContext {
   private ProcessErrorHandling errorHandling;
 
   private OutputListener outputListener;
+
+  private Predicate<Integer> exitCodeAcceptor;
 
   /**
    * The constructor.
@@ -69,6 +73,18 @@ public class ProcessContextImpl implements ProcessContext {
     }
     this.arguments = new ArrayList<>();
     this.extraPathEntries = new ArrayList<>();
+    this.exitCodeAcceptor = EXIT_CODE_ACCEPTOR;
+  }
+
+  private ProcessContextImpl(ProcessContextImpl parent) {
+
+    super();
+    this.context = parent.context;
+    this.processBuilder = parent.processBuilder;
+    this.errorHandling = ProcessErrorHandling.THROW_ERR;
+    this.arguments = new ArrayList<>();
+    this.extraPathEntries = parent.extraPathEntries;
+    this.exitCodeAcceptor = EXIT_CODE_ACCEPTOR;
   }
 
   @Override
@@ -127,6 +143,19 @@ public class ProcessContextImpl implements ProcessContext {
 
     this.extraPathEntries.add(path);
     return this;
+  }
+
+  @Override
+  public ProcessContext withExitCodeAcceptor(Predicate<Integer> exitCodeAcceptor) {
+
+    this.exitCodeAcceptor = exitCodeAcceptor;
+    return this;
+  }
+
+  @Override
+  public ProcessContext createChild() {
+
+    return new ProcessContextImpl(this);
   }
 
   @Override
@@ -202,7 +231,8 @@ public class ProcessContextImpl implements ProcessContext {
         }
 
         List<OutputMessage> finalOutput = new ArrayList<>(output);
-        ProcessResult result = new ProcessResultImpl(this.executable.getFileName().toString(), command, exitCode, finalOutput);
+        boolean success = this.exitCodeAcceptor.test(exitCode);
+        ProcessResult result = new ProcessResultImpl(this.executable.getFileName().toString(), command, exitCode, success, finalOutput);
 
         performLogging(result, exitCode, interpreter);
 

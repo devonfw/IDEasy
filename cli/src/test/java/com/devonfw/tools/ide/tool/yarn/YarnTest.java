@@ -36,7 +36,7 @@ class YarnTest extends AbstractIdeContextTest {
   }
 
   @Test
-  void testYarnInstallWhenNpmInstalled(WireMockRuntimeInfo wireMockRuntimeInfo) {
+  void testYarnInstallWhenNodeInstalled(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_YARN, wireMockRuntimeInfo);
@@ -50,6 +50,7 @@ class YarnTest extends AbstractIdeContextTest {
     // assert
     assertThat(context).logAtDebug()
         .hasMessageContaining("npm' using bash with arguments 'list' '-g' 'yarn' '--depth=0'"); // since npm was installed this should be called
+    assertThat(context).log().hasNoMessageContaining("-- yarn@");
     checkInstallation(context);
   }
 

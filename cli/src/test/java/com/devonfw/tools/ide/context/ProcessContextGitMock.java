@@ -61,6 +61,12 @@ public class ProcessContextGitMock extends ProcessContextImpl {
   }
 
   @Override
+  public ProcessContext createChild() {
+
+    return this;
+  }
+
+  @Override
   public ProcessResult run(ProcessMode processMode) {
 
     if (!this.executable.getFileName().toString().equals("git")) {

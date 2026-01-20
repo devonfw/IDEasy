@@ -85,13 +85,12 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
     completeRequest(request);
     ProcessContext pc = request.getProcessContext();
     ToolCommandlet pm = request.getPackageManager();
-    if (skipInstallation) { // See Node.postInstallOnNewInstallation
-      return pm.runTool(pc, request.getProcessMode(), request.getArgs());
-    } else {
+    if (!skipInstallation) { // See Node.postInstallOnNewInstallation
       ToolInstallRequest installRequest = new ToolInstallRequest(true);
-      installRequest.setProcessContext(pc);
-      return pm.runTool(installRequest, request.getProcessMode(), request.getArgs());
+      installRequest.setProcessContext(pc.createChild());
+      pm.install(installRequest);
     }
+    return pm.runTool(pc, request.getProcessMode(), request.getArgs());
   }
 
   protected void completeRequest(PackageManagerRequest request) {

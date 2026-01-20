@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.process;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 import com.devonfw.tools.ide.cli.CliProcessException;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -60,7 +61,9 @@ public interface ProcessResult {
   int getExitCode();
 
   /**
-   * @return {@code true} if the {@link #getExitCode() exit code} indicates {@link #SUCCESS}, {@code false} otherwise (an error occurred).
+   * @return {@code true} if the process execution was successful, {@code false} otherwise (an error occurred). By default, success means the
+   *     {@link #getExitCode() exit code} was {@link #SUCCESS}.
+   * @see ProcessContext#withExitCodeAcceptor(Predicate)
    */
   default boolean isSuccessful() {
 
