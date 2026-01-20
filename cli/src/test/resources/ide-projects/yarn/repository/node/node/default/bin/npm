@@ -1,6 +1,10 @@
 #!/bin/bash
-if [ "${1}" == "--version" ]; then
+if [ "$1" = "--version" ]; then
   echo "9.9.2"
+  exit
+elif [ "$1" = "list" ] && [ "$2" = "-g" ]; then
+  echo $IDE_HOME/software/node
+  echo "-- $3@9.9.2"
   exit
 fi
 echo "npm $*"
