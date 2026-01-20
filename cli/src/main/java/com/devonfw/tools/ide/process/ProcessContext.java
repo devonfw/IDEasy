@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.process;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 
 import com.devonfw.tools.ide.log.IdeSubLogger;
 
@@ -118,6 +119,20 @@ public interface ProcessContext extends EnvironmentContext {
   ProcessContext withPathEntry(Path path);
 
   /**
+   * @param exitCodeAcceptor the {@link Predicate} that {@link Predicate#test(Object) tests} which {@link ProcessResult#getExitCode() exit codes} should be
+   *     accepted as {@link ProcessResult#isSuccessful() success}.
+   * @return this {@link ProcessContext} for fluent API calls.
+   */
+  ProcessContext withExitCodeAcceptor(Predicate<Integer> exitCodeAcceptor);
+
+  /**
+   * @return a new child {@link ProcessContext} connected with this {@link ProcessContext} sharing the same {@link #withEnvVar(String, String) environment} and
+   *     {@link #withPathEntry(Path) PATH} but not specific things like {@link #withExitCodeAcceptor(Predicate) exitCodeAcceptor} or
+   *     {@link #errorHandling(ProcessErrorHandling) errorHandling}.
+   */
+  ProcessContext createChild();
+
+  /**
    * Runs the previously configured {@link #executable(Path) command} with the configured {@link #addArgs(String...) arguments}. Will reset the
    * {@link #addArgs(String...) arguments} but not the {@link #executable(Path) command} for sub-sequent calls.
    *
@@ -224,5 +239,6 @@ public interface ProcessContext extends EnvironmentContext {
   default void setOutputListener(OutputListener listener) {
 
   }
+
 
 }
