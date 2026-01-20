@@ -304,6 +304,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     if ((fileOrFolder != null) && (Files.isSymbolicLink(fileOrFolder) || isJunction(fileOrFolder))) {
       delete(fileOrFolder);
     } else if ((fileOrFolder != null) && Files.exists(fileOrFolder)) {
+      this.context.trace("Going to backup {}", fileOrFolder);
       LocalDateTime now = LocalDateTime.now();
       String date = DateTimeUtil.formatDate(now, true);
       String time = DateTimeUtil.formatTime(now);

@@ -15,18 +15,18 @@ function doIdeCreate () {
   ide --batch -d create "${TEST_PROJECT_NAME}" "${settings_url}"
 
   echo "Switching to directory: ${IDE_ROOT}/${TEST_PROJECT_NAME}"
-  cd "${IDE_ROOT}/${TEST_PROJECT_NAME}" || exit
+  cd "${IDE_ROOT}/${TEST_PROJECT_NAME}" || exit 1
 }
 
 function doIdeCreateCleanup () {
   rm -rf "${IDE_ROOT:?}/${TEST_PROJECT_NAME}"
 }
 
-function doDownloadSnapshot () {
+function doDownloadRelease () {
   mkdir -p "$WORK_DIR_INTEG_TEST"
   if [ "$1" != "" ]; then
     if [ -f "$1" ] && [[ $1 == *.tar.gz ]]; then
-      echo "Local snapshot given. Copying to directory: ${WORK_DIR_INTEG_TEST}"
+      echo "Local release given. Copying to directory: ${WORK_DIR_INTEG_TEST}"
       cp "$1" "$IDEASY_COMPRESSED_FILE"
     else
       echo "Expected a file ending with tar.gz - Given: ${1}"
@@ -77,14 +77,17 @@ function doGetOsType() {
   echo "$osType"
 }
 
-
-function doExtract() {
-  echo "Extracting IDEasy archive: ${IDEASY_COMPRESSED_FILE} to: ${IDEASY_DIR}"
-  if [ -f "${IDEASY_COMPRESSED_FILE:?}" ]; then
-    tar xfz "${IDEASY_COMPRESSED_FILE:?}" --directory "${IDEASY_DIR:?}" || exit 1
-  else
-    echo "Could not find and extract release ${IDEASY_COMPRESSED_FILE:?}"
+# doCreateLink <source> <target-link>
+function doCreateLink() {
+  echo "creating link from $1 to $2 in $PWD"
+  if [ ! -e "$1" ]; then
+    echo "Source file to link does not exist!"
     exit 1
+  fi
+  if doIsWindows; then
+    cmd //c "mklink /J $(cygpath -w $2) $(cygpath -w $1)" || exit 1
+  else
+    ln -s "$1" "$2"
   fi
 }
 
@@ -104,8 +107,7 @@ function doError() {
 }
 
 function doIsMacOs() {
-  local osType=$(doGetOsType)
-  if [ "$osType" = "mac-arm64" ] || [ "$osType" = "mac-x64" ]
+  if [ "${OSTYPE:0:6}" = "darwin" ]
   then
     return
   fi
@@ -113,8 +115,7 @@ function doIsMacOs() {
 }
 
 function doIsWindows() {
-  local osType=$(doGetOsType)
-  if [ "$osType" = "windows-x64" ]
+  if [ "${OSTYPE}" = "cygwin" ] || [ "${OSTYPE}" = "msys" ]
   then
     return
   fi
