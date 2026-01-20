@@ -181,27 +181,28 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     Path ideasySoftwarePath = idePath.resolve(IdeContext.FOLDER_SOFTWARE).resolve(MvnRepository.ID).resolve(IdeasyCommandlet.TOOL_NAME)
         .resolve(IdeasyCommandlet.TOOL_NAME);
     Path ideasyVersionPath = ideasySoftwarePath.resolve(IdeVersion.getVersionString());
-    if (Files.isDirectory(ideasyVersionPath)) {
-      throw new CliException("IDEasy is already installed at " + ideasyVersionPath + " - if your installation is broken, delete it manually and rerun setup!");
-    }
     FileAccess fileAccess = this.context.getFileAccess();
-    List<Path> installationArtifacts = new ArrayList<>();
-    boolean success = true;
-    success &= addInstallationArtifact(cwd, "bin", true, installationArtifacts);
-    success &= addInstallationArtifact(cwd, "functions", true, installationArtifacts);
-    success &= addInstallationArtifact(cwd, "internal", true, installationArtifacts);
-    success &= addInstallationArtifact(cwd, "system", true, installationArtifacts);
-    success &= addInstallationArtifact(cwd, "IDEasy.pdf", true, installationArtifacts);
-    success &= addInstallationArtifact(cwd, "setup", true, installationArtifacts);
-    success &= addInstallationArtifact(cwd, "setup.bat", false, installationArtifacts);
-    if (!success) {
-      throw new CliException("IDEasy release is inconsistent at " + cwd);
+    if (Files.isDirectory(ideasyVersionPath)) {
+      this.context.error("IDEasy is already installed at {} - if your installation is broken, delete it manually and rerun setup!", ideasyVersionPath);
+    } else {
+      List<Path> installationArtifacts = new ArrayList<>();
+      boolean success = true;
+      success &= addInstallationArtifact(cwd, "bin", true, installationArtifacts);
+      success &= addInstallationArtifact(cwd, "functions", true, installationArtifacts);
+      success &= addInstallationArtifact(cwd, "internal", true, installationArtifacts);
+      success &= addInstallationArtifact(cwd, "system", true, installationArtifacts);
+      success &= addInstallationArtifact(cwd, "IDEasy.pdf", true, installationArtifacts);
+      success &= addInstallationArtifact(cwd, "setup", true, installationArtifacts);
+      success &= addInstallationArtifact(cwd, "setup.bat", false, installationArtifacts);
+      if (!success) {
+        throw new CliException("IDEasy release is inconsistent at " + cwd);
+      }
+      fileAccess.mkdirs(ideasyVersionPath);
+      for (Path installationArtifact : installationArtifacts) {
+        fileAccess.copy(installationArtifact, ideasyVersionPath);
+      }
+      this.context.writeVersionFile(IdeVersion.getVersionIdentifier(), ideasyVersionPath);
     }
-    fileAccess.mkdirs(ideasyVersionPath);
-    for (Path installationArtifact : installationArtifacts) {
-      fileAccess.copy(installationArtifact, ideasyVersionPath);
-    }
-    this.context.writeVersionFile(IdeVersion.getVersionIdentifier(), ideasyVersionPath);
     fileAccess.symlink(ideasyVersionPath, installationPath);
     addToShellRc(BASHRC, ideRoot, null);
     addToShellRc(ZSHRC, ideRoot, "autoload -U +X bashcompinit && bashcompinit");
