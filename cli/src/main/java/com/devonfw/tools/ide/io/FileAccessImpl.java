@@ -308,7 +308,11 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       String date = DateTimeUtil.formatDate(now, true);
       String time = DateTimeUtil.formatTime(now);
       String filename = fileOrFolder.getFileName().toString();
-      Path backupPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_BACKUPS).resolve(date).resolve(time + "_" + filename);
+      Path backupBaseDir = this.context.getIdeHome();
+      if (backupBaseDir == null) {
+        backupBaseDir = this.context.getIdePath();
+      }
+      Path backupPath = backupBaseDir.resolve(IdeContext.FOLDER_BACKUPS).resolve(date).resolve(time + "_" + filename);
       backupPath = appendParentPath(backupPath, fileOrFolder.getParent(), 2);
       mkdirs(backupPath);
       Path target = backupPath.resolve(filename);
