@@ -6,8 +6,6 @@ import java.util.Set;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
-import com.devonfw.tools.ide.tool.repository.MvnArtifactMetadata;
-import com.devonfw.tools.ide.tool.repository.MvnRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -47,7 +45,7 @@ public abstract class MvnBasedLocalToolCommandlet extends LocalToolCommandlet {
   }
 
   @Override
-  protected Path downloadTool(String edition, ToolRepository toolRepository, VersionIdentifier resolvedVersion) {
+  protected Path downloadTool(String edition, VersionIdentifier resolvedVersion) {
 
     MvnRepository mvnRepository = this.context.getMvnRepository();
     MvnArtifact mavenArtifact = getArtifact(edition);

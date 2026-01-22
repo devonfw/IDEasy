@@ -6,8 +6,8 @@ package com.devonfw.tools.ide.io;
 public enum PathLinkType {
 
   /**
-   * A symbolic link stores the path to a target file or folder. If that target is renamed or deleted, the link gets broken. On the other hand, the target can
-   * be replaced by something else and the link will point to that.
+   * A symbolic link stores the path to the linked file or folder. If that link target is renamed or deleted, the link gets broken. On the other hand, the
+   * target can be replaced by something else and the link will point to that.
    */
   SYMBOLIC_LINK("symbolic link", "/d"),
 

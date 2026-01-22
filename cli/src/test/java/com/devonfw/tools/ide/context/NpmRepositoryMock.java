@@ -11,7 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
-import com.devonfw.tools.ide.tool.repository.NpmRepository;
+import com.devonfw.tools.ide.tool.npm.NpmRepository;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 
 /**
@@ -52,28 +52,30 @@ public class NpmRepositoryMock extends NpmRepository {
         .resolve("repository")
         .resolve("npmjs");
 
-    try (Stream<Path> files = Files.walk(npmRoot)) {
-      files.filter(p -> Files.isRegularFile(p) && p.getFileName().toString().endsWith(".json"))
-          .forEach(jsonFile -> {
-            // Derive package path from relative file path, e.g.
-            //   <root>/@angular/cli.json  -> "/@angular/cli"
-            //   <root>/yarn.json          -> "/yarn"
-            Path rel = npmRoot.relativize(jsonFile);
-            String packagePath = "/" + rel.toString()
-                .replace(File.separatorChar, '/')
-                .replaceAll("\\.json$", "");
+    if (Files.isDirectory(npmRoot)) {
+      try (Stream<Path> files = Files.walk(npmRoot)) {
+        files.filter(p -> Files.isRegularFile(p) && p.getFileName().toString().endsWith(".json"))
+            .forEach(jsonFile -> {
+              // Derive package path from relative file path, e.g.
+              //   <root>/@angular/cli.json  -> "/@angular/cli"
+              //   <root>/yarn.json          -> "/yarn"
+              Path rel = npmRoot.relativize(jsonFile);
+              String packagePath = "/" + rel.toString()
+                  .replace(File.separatorChar, '/')
+                  .replaceAll("\\.json$", "");
 
-            String body = IdeTestContext.readAndResolveBaseUrl(jsonFile, wireMockRuntimeInfo);
+              String body = IdeTestContext.readAndResolveBaseUrl(jsonFile, wireMockRuntimeInfo);
 
-            stubFor(get(urlPathEqualTo(packagePath))
-                .willReturn(aResponse()
-                    .withStatus(200)
-                    .withHeader("Content-Type", "application/json")
-                    .withBody(body)));
+              stubFor(get(urlPathEqualTo(packagePath))
+                  .willReturn(aResponse()
+                      .withStatus(200)
+                      .withHeader("Content-Type", "application/json")
+                      .withBody(body)));
 
-          });
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+            });
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
     }
   }
 }

@@ -14,7 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * Test of {@link JsonMapping}.
  */
-public class JsonMappingTest extends Assertions {
+class JsonMappingTest extends Assertions {
 
   private static final String INSTANT_VALUE_STRING = "2001-12-31T23:59:59.987654321Z";
 
@@ -28,7 +28,7 @@ public class JsonMappingTest extends Assertions {
    * @throws Exception in case of an error.
    */
   @Test
-  public void testReadInstant() throws Exception {
+  void testReadInstant() throws Exception {
 
     // arrange
     String value = INSTANT_VALUE_JSON;
@@ -45,7 +45,7 @@ public class JsonMappingTest extends Assertions {
    * @throws Exception in case of an error.
    */
   @Test
-  public void testWriteInstant() throws Exception {
+  void testWriteInstant() throws Exception {
 
     // arrange
     Instant value = INSTANT_VALUE;
@@ -57,7 +57,7 @@ public class JsonMappingTest extends Assertions {
   }
 
   @Test
-  public void testReadDependencies() throws Exception {
+  void testReadDependencies() throws Exception {
 
     // arrange
     String json = "{\"tool\": \"java\",\"versionRange\": \"[11,21_35]\"}";

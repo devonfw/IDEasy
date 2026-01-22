@@ -8,7 +8,7 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 /**
  * Test of {@link NetworkProxy}.
  */
-public class NetworkProxyTest extends AbstractIdeContextTest {
+class NetworkProxyTest extends AbstractIdeContextTest {
 
   private static final String PROXY_DOCUMENTATION_PAGE = "https://github.com/devonfw/IDEasy/blob/main/documentation/proxy-support.adoc";
 
@@ -16,7 +16,7 @@ public class NetworkProxyTest extends AbstractIdeContextTest {
    * Verifies that when the HTTP_PROXY variable contains a malformed URL, {@link NetworkProxy#configure()} does not configure proxy properties.
    */
   @Test
-  public void testHttpProxyMalformedUrl() {
+  void testHttpProxyMalformedUrl() {
 
     // arrange
     IdeTestContext context = new IdeTestContext();
@@ -38,7 +38,7 @@ public class NetworkProxyTest extends AbstractIdeContextTest {
    * Verifies that in an environment where no proxy variables are set, {@link NetworkProxy#configure()} does not configure proxy properties.
    */
   @Test
-  public void testNoProxy() {
+  void testNoProxy() {
 
     // arrange
     IdeTestContext context = new IdeTestContext();
@@ -55,7 +55,7 @@ public class NetworkProxyTest extends AbstractIdeContextTest {
    * Verifies that in an environment where a HTTP_PROXY variable is set, {@link NetworkProxy#configure()} configures the according Java proxy properties.
    */
   @Test
-  public void testHttpProxyUpperCase() {
+  void testHttpProxyUpperCase() {
 
     // arrange
     IdeTestContext context = new IdeTestContext();
@@ -78,7 +78,7 @@ public class NetworkProxyTest extends AbstractIdeContextTest {
    * Verifies that in an environment where a http_proxy variable is set, {@link NetworkProxy#configure()} configures the according Java proxy properties.
    */
   @Test
-  public void testHttpProxyLowercase() {
+  void testHttpProxyLowercase() {
 
     // arrange
     IdeTestContext context = new IdeTestContext();
@@ -102,7 +102,7 @@ public class NetworkProxyTest extends AbstractIdeContextTest {
    * object.
    */
   @Test
-  public void testHttpsProxyUpperCase() {
+  void testHttpsProxyUpperCase() {
 
     // arrange
     IdeTestContext context = new IdeTestContext();
@@ -126,7 +126,7 @@ public class NetworkProxyTest extends AbstractIdeContextTest {
    * object.
    */
   @Test
-  public void testAllProxyLowerCase() {
+  void testAllProxyLowerCase() {
 
     // arrange
     IdeTestContext context = new IdeTestContext();
@@ -153,7 +153,7 @@ public class NetworkProxyTest extends AbstractIdeContextTest {
    * object.
    */
   @Test
-  public void testAllProxyUpperCase() {
+  void testAllProxyUpperCase() {
 
     // arrange
     IdeTestContext context = new IdeTestContext();

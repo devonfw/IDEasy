@@ -15,11 +15,11 @@ import com.devonfw.tools.ide.context.IdeTestContextMock;
 /**
  * Test of {@link LocaleProperty}.
  */
-public class LocalePropertyTest extends Assertions {
+class LocalePropertyTest extends Assertions {
 
   /** Test of {@link LocaleProperty#setValueAsString(String, IdeContext)}. */
   @Test
-  public void testGermany() {
+  void testGermany() {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();
@@ -36,7 +36,7 @@ public class LocalePropertyTest extends Assertions {
    * {@link LocaleProperty#completeValue(String, IdeContext, com.devonfw.tools.ide.commandlet.Commandlet, CompletionCandidateCollector) auto-completion}.
    */
   @Test
-  public void testCompletion() {
+  void testCompletion() {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();

@@ -14,16 +14,16 @@ public class IntellijUrlUpdater extends IdeaBasedUrlUpdater {
 
   private static final String JSON_URL = "products?code=IIU%2CIIC&release.type=release";
   protected static final List<String> EDITIONS = List.of("ultimate", "intellij");
-  protected static final ObjectMapper MAPPER = JsonMapping.create();
+  protected static final ObjectMapper MAPPER = JsonMapping.createWithReflectionSupportForUrlUpdaters();
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "intellij";
   }
 
   @Override
-  protected List<String> getEditions() {
+  public List<String> getEditions() {
     return EDITIONS;
   }
 

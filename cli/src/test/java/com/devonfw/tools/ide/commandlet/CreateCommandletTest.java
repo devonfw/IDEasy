@@ -40,7 +40,7 @@ class CreateCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testCreateCommandletRun() {
+  void testCreateCommandletRun() {
 
     // arrange
     CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
@@ -60,9 +60,9 @@ class CreateCommandletTest extends AbstractIdeContextTest {
 
   @ParameterizedTest
   @ValueSource(strings = { "some code repository", "some settings repository" })
-  public void testWarningWhenRepoDoesNotMeetNamingConvention(String invalidRepo, @TempDir Path tempDir) {
+  void testWarningWhenRepoDoesNotMeetNamingConvention(String invalidRepo, @TempDir Path tempDir) {
     // arrange
-    ProcessContextGitMock gitMock = new ProcessContextGitMock(tempDir);
+    ProcessContextGitMock gitMock = new ProcessContextGitMock(context, tempDir);
     context.setProcessContext(gitMock);
     CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
     cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
@@ -83,10 +83,10 @@ class CreateCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testWarningWhenCodeRepoUsingDefaultMark(@TempDir Path tempDir) {
+  void testWarningWhenCodeRepoUsingDefaultMark(@TempDir Path tempDir) {
     String invalidCodeRepo = "-";
     // arrange
-    ProcessContextGitMock gitMock = new ProcessContextGitMock(tempDir);
+    ProcessContextGitMock gitMock = new ProcessContextGitMock(context, tempDir);
     context.setProcessContext(gitMock);
     CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
     cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
@@ -107,7 +107,7 @@ class CreateCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testIdeVersionTooSmall() {
+  void testIdeVersionTooSmall() {
     // arrange
     CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
     cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
@@ -125,7 +125,7 @@ class CreateCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testIdeVersionOk() {
+  void testIdeVersionOk() {
     // arrange
     CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
     cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
@@ -159,7 +159,7 @@ class CreateCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testWelcomeMessageDisplayed() {
+  void testWelcomeMessageDisplayed() {
 
     // arrange - create a new project
     GitContextImplMock gitContextImplMock = new GitContextImplMock(context, TEST_RESOURCES.resolve("settings"));

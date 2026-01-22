@@ -9,7 +9,7 @@ import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
 public class DockerRancherDesktopUrlUpdater extends GithubUrlUpdater {
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "docker";
   }

@@ -2,21 +2,59 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2026.01.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1298[#1298]: Support for extra tool version
+* https://github.com/devonfw/IDEasy/issues/1653[#1653]: Implementation of getEdition and getVersion for Docker
+* https://github.com/devonfw/IDEasy/issues/1602[#1602]: Being offline can block ide startup
+* https://github.com/devonfw/IDEasy/issues/1667[#1667]: ide command without arguments triggers download and installation
+* https://github.com/devonfw/IDEasy/issues/1677[#1677]: Add release for linux-arm architecture
+* https://github.com/devonfw/IDEasy/issues/1679[#1679]: Npm based commandlets fail to determine installed version of npm tool
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/39?closed=1[milestone 2026.01.001].
+
+== 2025.12.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1166[#1166]: Automatic project import for IntelliJ
+* https://github.com/devonfw/IDEasy/issues/1508[#1508]: xml merger fails when merging empty file
+* https://github.com/devonfw/IDEasy/issues/1660[#1660]: ide status still failing
+* https://github.com/devonfw/IDEasy/issues/1646[#1646]: Duplicated options from CVE update suggestion
+* https://github.com/devonfw/IDEasy/issues/39[#39]: Implement ToolCommandlet for pip
+* https://github.com/devonfw/IDEasy/issues/1633[#1633]: CVE suggestions show unstable versions
+* https://github.com/devonfw/IDEasy/issues/1636[#1636]: CVE suggestion scoring more reasonable
+* https://github.com/devonfw/IDEasy/issues/1640[#1640]: StackOverflowError: Infinity loop whilst installing terraform
+* https://github.com/devonfw/IDEasy/issues/1645[#1645]: Fix for the NullPointerException while installing docker / kubectl
+* https://github.com/devonfw/IDEasy/pull/1596[#1596] Add support for comma-separated workspace values in repository configuration
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/38?closed=1[milestone 2025.12.001].
+
 == 2025.11.001
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1349[#1349]: Fix XML merge warning message to include file paths for better debugging
 * https://github.com/devonfw/IDEasy/issues/1473[#1473]: option --skip-updates not working
 * https://github.com/devonfw/IDEasy/issues/536[#536]: IDEasy complete tries to match commandlets twice
+* https://github.com/devonfw/IDEasy/issues/1144[#1144]: CVE: adapt IDEasy to consider security.json files to warn user - see https://github.com/devonfw/IDEasy/blob/main/documentation/security.adoc[security] documentation
+* https://github.com/devonfw/IDEasy/issues/1145[#1145]: CVE: suggest version update to user
 * https://github.com/devonfw/IDEasy/issues/1510[#1510]: Make icd more usable
 * https://github.com/devonfw/IDEasy/issues/1169[#1169]: mklink fails if link already exists
 * https://github.com/devonfw/IDEasy/issues/1553[#1553]: IDEasy is slow since 2025.09.001
 * https://github.com/devonfw/IDEasy/issues/1555[#1555]: Handle npm_config_prefix environment variable
+* https://github.com/devonfw/IDEasy/issues/1584[#1584]: IllegalArgumentException on ide update
 * https://github.com/devonfw/IDEasy/issues/1559[#1559]: IDEasy MSI installer creates multiple PATH entries
 * https://github.com/devonfw/IDEasy/issues/1551[#1551]: Display network connection issues in status
 * https://github.com/devonfw/IDEasy/issues/1560[#1560]: Enable trace logging in IDEasy setup script
 * https://github.com/devonfw/IDEasy/issues/1586[#1586]: Use BASH_PATH when set before searching in registry or PATH
 * https://github.com/devonfw/IDEasy/issues/1564[#1564]: Print path to git bash to IDEasy log
+* https://github.com/devonfw/IDEasy/issues/1601[#1601]: icd command failing with -w
+* https://github.com/devonfw/IDEasy/issues/1599[#1599]: NullPointerException if Repository-Config-Variable "active" is not present
+* https://github.com/devonfw/IDEasy/issues/1561[#1561]: IDEasy can not handle BASH_PATH variable properly
+* https://github.com/devonfw/IDEasy/issues/1608[#1608]: Add git and bash location to status commandlet
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/37?closed=1[milestone 2025.11.001].
 

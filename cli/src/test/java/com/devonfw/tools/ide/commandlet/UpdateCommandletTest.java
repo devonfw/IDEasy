@@ -1,7 +1,5 @@
 package com.devonfw.tools.ide.commandlet;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 
@@ -14,11 +12,16 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.tool.java.Java;
+import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.variable.IdeVariables;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
  * Test of {@link UpdateCommandlet}.
  */
+@WireMockTest
 class UpdateCommandletTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_UPDATE = "update";
@@ -26,24 +29,46 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
   private static final String SUCCESS_INSTALL_OR_UPDATE_SOFTWARE = "Install or update software";
 
   @Test
-  public void testRunPullSettingsAndUpdateSoftware() {
+  void testRunPullSettingsAndUpdateSoftware() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_UPDATE);
+    Path extraPath = context.getSoftwareExtraPath();
     UpdateCommandlet uc = context.getCommandletManager().getCommandlet(UpdateCommandlet.class);
+    Java java = context.getCommandletManager().getCommandlet(Java.class);
+    Mvn mvn = context.getCommandletManager().getCommandlet(Mvn.class);
     // act
     uc.run();
+    java.arguments.addValue("--version");
+    java.run();
+    mvn.arguments.addValue("-v");
+    mvn.run();
+    Path javaClient = extraPath.resolve("java/client/bin/java");
+    context.newProcess().executable(javaClient).addArg("--client").run();
+    Path javaProcessEngine = extraPath.resolve("java/process-engine/bin/java");
+    context.newProcess().executable(javaProcessEngine).addArg("--process-engine").run();
+    Path mvnM4 = extraPath.resolve("mvn/m4/bin/mvn");
+    context.newProcess().executable(mvnM4).addArg("--m4").run();
 
     // assert
     assertThat(context).logAtSuccess().hasMessage(SUCCESS_UPDATE_SETTINGS);
+    assertThat(context).log().hasNoMessageContaining(" ended with failure");
     assertThat(context.getConfPath()).exists();
     assertThat(context.getSoftwarePath().resolve("java")).exists();
     assertThat(context.getSoftwarePath().resolve("mvn")).exists();
+    assertThat(context).logAtInfo().hasMessage("java 17.0.6 --version");
+    assertThat(context).logAtInfo().hasMessage("mvn 3.2.1 -v");
+    assertThat(context).logAtInfo().hasMessage("java 11.0.27_6 --client");
+    assertThat(context).logAtInfo().hasMessage("java 21.0.9_10 --process-engine");
+    assertThat(context).logAtInfo().hasMessage("mvn 4.0.0-rc-5 --m4");
+    assertThat(javaClient).exists();
+    assertThat(javaProcessEngine).exists();
+    assertThat(mvnM4).exists();
   }
 
   @ParameterizedTest
   @ValueSource(strings = { "", "eclipse", "intellij", "eclipse,intellij", "intellij , vscode", "eclipse, intellij,vscode" })
-  public void testIdeUpdateCreatesStartScripts(String createStartScripts) {
+  void testIdeUpdateCreatesStartScripts(String createStartScripts) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_UPDATE);
@@ -61,7 +86,7 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testRunTemplatesNotFound() throws IOException {
+  void testRunTemplatesNotFound() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_UPDATE);
@@ -75,13 +100,10 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
     assertThat(context).logAtWarning().hasEntries("Templates folder is missing in settings repository.");
   }
 
-  private void deleteTemplatesFolder(IdeContext context) throws IOException {
+  private void deleteTemplatesFolder(IdeContext context) {
 
-    Path templates = context.getSettingsPath().resolve(IdeContext.FOLDER_TEMPLATES).resolve(IdeContext.FOLDER_CONF)
-        .resolve("readme");
-    Files.delete(templates);
-    Files.delete(templates.getParent());
-    Files.delete(templates.getParent().getParent());
+    Path templates = context.getSettingsPath().resolve(IdeContext.FOLDER_TEMPLATES);
+    context.getFileAccess().delete(templates);
   }
 
   /**
@@ -90,7 +112,7 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
    * See: <a href="https://github.com/devonfw/IDEasy/issues/628">#628</a> for reference.
    */
   @Test
-  public void testRunUpdateSoftwareDoesNotFailOnFailedSoftwareInstallations() {
+  void testRunUpdateSoftwareDoesNotFailOnFailedSoftwareInstallations() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_UPDATE);
@@ -110,11 +132,17 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
     assertThat(context).logAtSuccess().hasMessageContaining(SUCCESS_INSTALL_OR_UPDATE_SOFTWARE);
   }
 
+  /**
+   * Tests if the update process can continue even when the settings were deleted. This test is highly mocked using Wiremock and other classes f.e.
+   * {@link com.devonfw.tools.ide.git.GitContextMock} is responsible for this test to succeed and not use our real repository.
+   *
+   * @param wireMockRuntimeInfo wireMock server on a random port
+   */
   @Test
-  public void testRunUpdateSoftwareDoesNotFailWhenSettingPathIsDeleted() {
+  void testRunUpdateSoftwareDoesNotFailWhenSettingsPathIsDeleted(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_UPDATE);
+    IdeTestContext context = newContext(PROJECT_UPDATE, wireMockRuntimeInfo);
     Path settingsPath = context.getSettingsPath();
     context.getFileAccess().delete(settingsPath);
     UpdateCommandlet update = context.getCommandletManager().getCommandlet(UpdateCommandlet.class);
@@ -122,7 +150,7 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
 
     // act
     update.run();
-    //
+
     // assert
     assertThat(context).logAtSuccess().hasMessage(SUCCESS_UPDATE_SETTINGS);
     assertThat(context).logAtSuccess().hasMessageContaining(SUCCESS_INSTALL_OR_UPDATE_SOFTWARE);

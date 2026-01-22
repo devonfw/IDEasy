@@ -8,7 +8,7 @@ import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
 public abstract class GraalVmUrlUpdater extends GithubUrlUpdater {
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "graalvm";
   }

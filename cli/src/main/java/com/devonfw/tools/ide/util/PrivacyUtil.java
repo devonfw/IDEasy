@@ -11,12 +11,13 @@ import java.util.Set;
 public final class PrivacyUtil {
 
   private static final Set<String> UNSENSITIVE_SEGMENTS = Set.of("project", "projects", "workspace", "workspaces", "conf", "settings", "software", "plugins",
-      "setup", "update", "templates", "urls", "ide", "intellij", "eclipse", "vscode", "java", "mvn", "maven", "tmp", "backups", "bakup", "bak", "src", "target",
-      "main", "test", "master", "resource", "resources", "text", "txt", "less", "more", "com", "org", "javax", "groovy", "scala", "cpp", "common", "data",
-      "doc", "documentation", "generated", "web", "public", "dataaccess", "persistence", "logic", "general", "git", "lock", "jpa", "tar", "tgz", "bz2", "tbz2",
-      "zip", "compress", "compression", "global", "value", "code", "branch", "string", "long", "number", "numeric", "apache", "commons", "hibernate", "storage",
-      "db", "spring", "springframework", "boot", "quarkus", "mnt", "usr", "user", "users", "windows", "etc", "var", "log", "lib", "drivers", "system",
-      "system32", "appdata", "module", "info", "sha1", "md5", "sha256", "sha512", "pkcs", "p12", "cert", "file");
+      "setup", "update", "templates", "urls", "ide", "intellij", "eclipse", "vscode", "java", "mvn", "maven", "tmp", "backups", "backup", "bak", "src",
+      "target", "main", "test", "master", "resource", "resources", "text", "txt", "less", "more", "com", "org", "javax", "groovy", "scala", "cpp", "common",
+      "data", "doc", "documentation", "generated", "web", "public", "dataaccess", "persistence", "logic", "general", "git", "lock", "jpa", "tar", "tgz", "bz2",
+      "tbz2", "zip", "compress", "compression", "global", "value", "code", "branch", "string", "long", "number", "numeric", "apache", "commons", "hibernate",
+      "storage", "db", "spring", "springframework", "boot", "quarkus", "mnt", "usr", "user", "users", "windows", "etc", "var", "log", "lib", "drivers",
+      "system", "system32", "appdata", "module", "info", "sha1", "md5", "sha256", "sha512", "pkcs", "p12", "cert", "file", "files", "bin", "bash", "program",
+      "mingw64");
 
   // construction forbidden
   private PrivacyUtil() {

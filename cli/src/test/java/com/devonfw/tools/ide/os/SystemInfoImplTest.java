@@ -6,11 +6,11 @@ import org.junit.jupiter.api.Test;
 /**
  * Test of {@link SystemInfoImpl}.
  */
-public class SystemInfoImplTest extends Assertions {
+class SystemInfoImplTest extends Assertions {
 
-  /** Test {@link SystemInfoImpl#SystemInfoImpl()}. */
+  /** Test {@link SystemInfoImpl#INSTANCE}. */
   @Test
-  public void testDefaultConstructor() {
+  void testDefaultConstructor() {
 
     // arrange
     String osName = System.getProperty("os.name");
@@ -26,7 +26,7 @@ public class SystemInfoImplTest extends Assertions {
 
   /** Test {@link SystemInfoMock#WINDOWS_X64}. */
   @Test
-  public void testWindowsDetection() {
+  void testWindowsDetection() {
 
     // arrange
     OperatingSystem os = OperatingSystem.WINDOWS;
@@ -41,7 +41,7 @@ public class SystemInfoImplTest extends Assertions {
 
   /** Test {@link SystemInfoMock#MAC_X64}. */
   @Test
-  public void testMacDetection() {
+  void testMacDetection() {
 
     // arrange
     OperatingSystem os = OperatingSystem.MAC;
@@ -56,7 +56,7 @@ public class SystemInfoImplTest extends Assertions {
 
   /** Test {@link SystemInfoMock#MAC_ARM64}. */
   @Test
-  public void testMacArmDetection() {
+  void testMacArmDetection() {
 
     // arrange
     OperatingSystem os = OperatingSystem.MAC;
@@ -71,7 +71,7 @@ public class SystemInfoImplTest extends Assertions {
 
   /** Test {@link SystemInfoMock#LINUX_X64}. */
   @Test
-  public void testLinuxDetection() {
+  void testLinuxDetection() {
 
     // arrange
     OperatingSystem os = OperatingSystem.LINUX;

@@ -3,18 +3,54 @@ toc::[]
 
 = Getting started as developer contributing to IDEasy
 
+To begin, read through the https://github.com/devonfw/IDEasy/blob/main/documentation/IDEasy-contribution-rules-and-guidelines.adoc[Contribution Guidelines], which you should be sure to follow.
+
 == Installation
 
 To start developing IDEasy, you must first install it on your computer.
 Therefore, simply follow the link:setup.adoc[setup] guide.
-It is important to notice that this installation gives you the latest published version of IDEasy with which you can execute commands like eclipse or docker whose scripts are located inside the "${IDE_HOME}$/scripts/command, but for committing code we use a differing folder structure.
+
 This will be addressed under xref:Contribution[Contribution].
+
+== Setup the Development Environment
+
+After IDEasy installation, run the following command in the terminal to create a project:
+
+```
+ide create IDEasy -
+```
+
+Next, fork the https://github.com/devonfw/ideasy[IDEasy] repository.
+Steps for forking or cloning repositories, creating branches, and using Git commands can be found in the  https://github.com/firstcontributions/first-contributions[first contributions guideline].
+To contribute code or documentation for IDEasy, first fork the  https://github.com/devonfw/ideasy[IDEasy] repository, then clone your fork into the  `workspaces/main` folder in your IDEasy installation.
+
+Navigate to the `workspaces/main` directory:
+
+```
+icd -p IDEasy -w
+```
+
+Clone your forked project into this directory:
+
+```
+git clone «forked-project-url»
+```
+
+Now you can open the project in your preferred IDE using the `ide` command.
+For IntelliJ:
+
+```
+ide intellij
+```
+
+In IntelliJ, select the `pom.xml` file and right-click → **Add as Maven Project**.
+
+*Tip:* If the Maven button is hidden or not visible, press `Alt + 7` to open the **Structure** window below the project explorer.
+Scroll down in the explorer to make the `pom.xml` file appear higher, enabling the option to be clicked.
+Alternatively, use the keyboard arrows to navigate to the bottom of the right-click menu.
 
 == Contribution
 
-To begin, read through the https://github.com/devonfw/IDEasy/blob/main/documentation/IDEasy-contribution-rules-and-guidelines.adoc[Contribution Guidelines], which you should be sure to follow.
-First steps regarding forks or cloning of repos and creating branches, as well as some git commands, can be found in the https://github.com/firstcontributions/first-contributions[first contributions guideline].
-To contribute code or documentation regarding IDEasy at first you need to fork the https://github.com/devonfw/ideasy[IDEasy] repository and then you can clone your fork into the folder `workspaces/main` in your IDEasy installation.
 Open git-bash in the cloned fork at `workspaces/main/IDEasy` and run the following command:
 
 ```
@@ -74,7 +110,6 @@ The Name needs to be equal to the one of both the tool and the commandlet.
 There are four available parent classes of url-updaters, that can be used.
 They mainly differentiate in the way, available versions are detected.
 
-  
 * https://github.com/devonfw/IDEasy/blob/main/cli/src/main/java/com/devonfw/tools/ide/url/updater/GithubUrlUpdater.java[`GithubUrlUpdater`]
 
 * https://github.com/devonfw/IDEasy/blob/main/cli/src/main/java/com/devonfw/tools/ide/url/updater/JsonUrlUpdater.java[`JsonUrlUpdater`]
@@ -96,12 +131,6 @@ Once a day, the `UpdateInitiator` will run the updaters through GitHub Actions a
 Use an existing commandlet like https://github.com/devonfw/IDEasy/blob/main/cli/src/main/java/com/devonfw/tools/ide/tool/java/Java.java[Java] as a reference.
 Create a sub-package and a class with the name of the tool.
 
-TODO explain:
-* Properties
-* run Method
-* Dependencies
-* Commandlet class hierarchy
-
 === LICENSE
 
 Find the license for the new tool and add the tool to the table of `Third party components` of the link:LICENSE.adoc[LICENSE].
@@ -116,71 +145,14 @@ In the configuration files many link:variables.adoc[variables] can be defined.
 
 == Tips and tricks
 
-The following sub-sections give you some tips and tricks to boost your productivity when developing features for `IDEasy`.
-
-== Symbolic Links
-
-With link:advanced-tooling-windows.adoc##create-symbolic-links[symbolic links] you can use one file or folder that is located inside one directory in one or multiple other directories, without copying the whole file or folder into the other directories.
-The file is still only saved at the initial location, but can be accessed through the created links in a much more comfortable way.
-So you are actually just linked to the original file and therefore don't have to worry about differing versions of the file in your directories.
-This is very helpful for testing our IDEasy, because e.g. the commandlets folder for testing is not the same as the commandlets folder for git-commits.
-Install https://schinagl.priv.at/nt/hardlinkshellext/linkshellextension.html[link shell extension] and follow the instructions for installation and usage first.
-Later on you can make symbolic links of files or folder from your "git folder" and add them into the folder in which the testing is supposed to take place:
-
-So select the folder `${IDE_HOME}/workspaces/ide/scripts/src/main/resources/scripts/command/` and choose `Pick Link Source` and then go to `${IDE_HOME}/scripts/` delete the `command` folder and re-create it as symbolic link via `Drop as... > Symbolic link`.
-Do the same also for `functions`, `functions-core`, `commandlet-cli`, `environment-project`, `environment-project.bat`, `devon`, `devon.bat`, `autocomplete`, and `devon-autocomplete`.
-Now changes you make in the first mentioned file will directly be available in your testing environment through the created file-link in the testing environment.
-
-=== developer tools
-
 Have a look at https://github.com/devonfw/IDEasy/blob/main/documentation/advanced-tooling-generic.adoc[advanced-tooling-generic.adoc] for some helpful developer tools.
-
-=== Bash (Linux's Borne Again Shell)
-
-**For beginners:**
-
-You probably know this black box on Windows (the Command Prompt) that accepts commands like 'dir' that shows the content of the directory you are currently in, or 'cd' with which you can change the directory you are currently in and many more commands that allow you to interact with your Windows Operating System in a more direct and eventually faster way.
-Now for users of a Linux Distribution there is something similar, but way more powerful, usually called "Bourne Again Shell", or in short Bash.
-This Command Line Interface or "Shell" is what we use most often when implementing something new for our Command-Line-Tool with the name IDEasy.  https://www.youtube.com/watch?v=I4EWvMFj37g[Have a look at Bash in 150 Seconds.]
-For MacOS you often also use BASH.
-That's why it is often enough to implement code for Mac or Linux (at least to some extent as you'll see soon enough) to be able to use it on both Operating Systems.
-
-Let's get to the practical part of the Bash-usage.
-
-**If you are using Windows**, make sure that you have git-bash installed, so you can execute the Bash commands mentioned in this introduction. (https://git-scm.com/download/win[Here you can find git for windows]).
-In some cases later on you may want or need to use WSL.
-Our project team's standard way is to install WSL via Rancher Desktop, which is easily installable with the IDEasy by using the command `ide install docker`.
-If you don't have the IDEasy yet, then you can follow (https://github.com/devonfw/IDEasy/blob/main/documentation/setup.adoc[this guide])
-
-The https://www.youtube.com/watch?v=oxuRxtrO2Ag[following video] gives you some important and helpful basics, still you don't need to know all of these commands directly by heart.
-Instead under the video you'll find a list with the commands mentioned in the video to make a command return to your mind.
-Also directly play around with those commands while watching the video to learn faster.
-
-When you used to program in some other languages, you for sure know how helpful a google search in combination with the results on stackexchange can be.
-If not, then google your question regarding Bash as usual and mostly you'll find a way to get together the code you want.
-Sometimes it needs more patience to get an acceptable result or to find out that a command you already knew includes what you need, if you add the proper tag to its execution.
-Take the commands and some of their tags mentioned in https://www.freecodecamp.org/news/linux-command-line-Bash-tutorial/[this rather brief tutorial] as an example.
-Also definitely try to use the help function from time to time, e.g. type in `ls --help` and you'll see how much more the command `ls` can offer.
-On the other side, especially at the beginning, it is better to get an overview of available tags by googling e.g.
-*ls tags Bash* to get a way prettier overview plus examples regarding a commands tags like https://www.tecmint.com/15-basic-ls-command-examples-in-linux/[here] for `ls`.
-
-**If you have some experience with the Bash or directly want to see more:**
-
-The meaning of a tag or a sign combination (like `$*`, `$#`, or `$()`) can be hard to guess and also less easy to find during a google-search, because google won't directly search for signs.
-Then a syntax cheatsheet https://www.pcwdld.com/bash-cheat-sheet[like this] or https://devhints.io/bash[like that one] can spare you some searching time.
-If you don't know what a positional parameter like `$1` is in Bash, then have a look at https://www.gnu.org/software/bash/manual/html_node/Shell-Parameters.html[the documentation for bash].
-It's definitively worth knowing the basics about positional parameters if you want to make some more advanced Bash-scripts.
-There are a few more topics that I want to mention to you as you may come across them regularly in Bash-scripting.
-The first one concerns regular expressions, which you will find during various coding situations.
-Therefore have a look at https://tldp.org/LDP/abs/html/x17129.html[this rather short introduction on regex] if you are unfamiliar with the so called regex.
-Another one is about if-statements and square brackets for testing expressions by comparing them in different ways.
-Maybe you'll find something new or helpful https://ryanstutorials.net/bash-scripting-tutorial/bash-if-statements.php[here].
-Finally, to possibly increase your knowledge while scripting bash-files, try out https://www.shellcheck.net/[this spellchecker] that can give you many details on how to improve your code.
-
-**Directly regarding our project:**
-
-There are also some basic exercises related to our project that are not official yet, but you can ask for if you want to try some of them out to learn and challenge yourself a bit.
 
 == Documentation
 
-Scroll down on https://github.com/devonfw/IDEasy[this site] to get an overview of the documentation sections for the IDEasy, e.g. Home, Features, Download & Setup or have a look at https://github.com/devonfw/ideasy/tree/main/documentation[the documentation files folder].
+When reading this guide online on GitHub, see the directory tree on the left side-bar to navigate and browse the `documentation` folder.
+In case you are reading this from your cloned git repository locally, use your IDE of file explorer to browes it.
+Please study the documentation that explains many important aspects of IDEasy.
+As a developer it is espcially important to study the link:coding-conventions.adoc[coding-conventions] and link:DoD.adoc[Definition of Done].
+Further, please browse the JavaDoc of the source-code to understand the different types and structures of our project.
+To get started see our link:images/design.puml[design diagram] that needs PlantUml support to be viewed (e.g. via IntelliJ with according plugin).
+This diagram gives you a good overview of the most important types in the code-base.

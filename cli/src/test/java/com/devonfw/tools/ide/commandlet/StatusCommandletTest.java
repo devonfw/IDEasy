@@ -19,12 +19,12 @@ import com.devonfw.tools.ide.os.SystemInfoMock;
 /**
  * Test of {@link StatusCommandlet}.
  */
-public class StatusCommandletTest extends AbstractIdeContextTest {
+class StatusCommandletTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_BASIC = "basic";
 
   @Test
-  public void testStatusOutsideOfHome() {
+  void testStatusOutsideOfHome() {
     //arrange
     IdeTestContext context = new IdeTestContext();
     StatusCommandlet status = context.getCommandletManager().getCommandlet(StatusCommandlet.class);
@@ -40,7 +40,7 @@ public class StatusCommandletTest extends AbstractIdeContextTest {
    * Tests the output if {@link StatusCommandlet} is run in enforced offline mode.
    */
   @Test
-  public void testStatusWhenOfflineMode() {
+  void testStatusWhenOfflineMode() {
 
     // arrange
     IdeTestContext context = new IdeTestContext();
@@ -51,16 +51,16 @@ public class StatusCommandletTest extends AbstractIdeContextTest {
     status.run();
 
     // assert
-    assertThat(context).log().hasEntries(IdeLogEntry.ofWarning("You are offline because you have enabled offline mode via CLI option."),
-        IdeLogEntry.ofSuccess("Your version of IDEasy is SNAPSHOT."),
-        IdeLogEntry.ofWarning("Skipping check for newer version of IDEasy because you are offline."));
+    assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("Your version of IDEasy is SNAPSHOT."),
+        IdeLogEntry.ofWarning("Skipping check for newer version of IDEasy because you are offline."),
+        IdeLogEntry.ofWarning("You are offline because you have enabled offline mode via CLI option."));
   }
 
   /**
    * Tests the output if {@link StatusCommandlet} is run without internet connection.
    */
   @Test
-  public void testStatusWhenOffline() {
+  void testStatusWhenOffline() {
 
     // arrange
     IdeTestContext context = new IdeTestContext();
@@ -71,16 +71,16 @@ public class StatusCommandletTest extends AbstractIdeContextTest {
     status.run();
 
     // assert
-    assertThat(context).log().hasEntries(new IdeLogEntry(IdeLogLevel.ERROR, "You are offline because of the following error:", null, null, error, false),
-        IdeLogEntry.ofInteraction("Please check potential proxy settings, ensure you are properly connected to the internet and retry this operation."),
-        IdeLogEntry.ofWarning("Skipping check for newer version of IDEasy because you are offline."));
+    assertThat(context).log().hasEntries(IdeLogEntry.ofWarning("Skipping check for newer version of IDEasy because you are offline."),
+        new IdeLogEntry(IdeLogLevel.ERROR, "You are offline because of the following error:", null, null, error, false),
+        IdeLogEntry.ofInteraction("Please check potential proxy settings, ensure you are properly connected to the internet and retry this operation."));
   }
 
   /**
    * Tests the output if {@link StatusCommandlet} is run with TLS issue.
    */
   @Test
-  public void testStatusWhenTlsIssue() throws Exception {
+  void testStatusWhenTlsIssue() throws Exception {
 
     // arrange
     IdeTestContext context = new IdeTestContext();
@@ -93,11 +93,11 @@ public class StatusCommandletTest extends AbstractIdeContextTest {
     status.run();
 
     // assert
-    assertThat(context).log().hasEntries(new IdeLogEntry(IdeLogLevel.ERROR, "You are offline because of the following error:", null, null, error, false),
+    assertThat(context).log().hasEntries(IdeLogEntry.ofWarning("Skipping check for newer version of IDEasy because you are offline."),
+        new IdeLogEntry(IdeLogLevel.ERROR, "You are offline because of the following error:", null, null, error, false),
         IdeLogEntry.ofWarning(
             "You are having TLS issues. We guess you are forced to use a VPN tool breaking end-to-end encryption causing this effect. As a workaround you can create and configure a truststore as described here:"),
-        IdeLogEntry.ofInteraction("https://github.com/devonfw/IDEasy/blob/main/documentation/proxy-support.adoc#tls-certificate-issues"),
-        IdeLogEntry.ofWarning("Skipping check for newer version of IDEasy because you are offline."));
+        IdeLogEntry.ofInteraction("https://github.com/devonfw/IDEasy/blob/main/documentation/proxy-support.adoc#tls-certificate-issues"));
   }
 
   /**
@@ -110,7 +110,7 @@ public class StatusCommandletTest extends AbstractIdeContextTest {
    */
   @ParameterizedTest
   @MethodSource("providePrivacyModeTestCases")
-  public void testStatusWhenInPrivacyMode(String os, Path ideHome, Path ideRoot, Path userHome) {
+  void testStatusWhenInPrivacyMode(String os, Path ideHome, Path ideRoot, Path userHome) {
     // arrange
     IdeTestContext context = new IdeTestContext();
     StatusCommandlet status = context.getCommandletManager().getCommandlet(StatusCommandlet.class);

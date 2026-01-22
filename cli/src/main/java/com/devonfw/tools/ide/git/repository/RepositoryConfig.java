@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.git.repository;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
@@ -12,7 +13,7 @@ import com.devonfw.tools.ide.git.GitUrl;
  *
  * @param path Path into which the project is cloned. This path is relative to the workspace.
  * @param workingSets The working sets associated with the repository.
- * @param workspace Workspace to use for checkout and import. Default is main.
+ * @param workspaces Workspaces to use for checkout and import. Supports comma-separated values. Default is main.
  * @param gitUrl Git URL to use for cloning the project.
  * @param gitBranch Git branch to checkout. Git default branch is default.
  * @param buildPath The build path for the repository.
@@ -23,7 +24,7 @@ import com.devonfw.tools.ide.git.GitUrl;
 public record RepositoryConfig(
     String path,
     String workingSets,
-    String workspace,
+    List<String> workspaces,
     String gitUrl,
     String gitBranch,
     String buildPath,
@@ -37,8 +38,8 @@ public record RepositoryConfig(
   /** {@link RepositoryProperties#getProperty(String) Property name} for {@link #workingSets()}. */
   public static final String PROPERTY_WORKING_SETS = "workingsets";
 
-  /** {@link RepositoryProperties#getProperty(String) Property name} for {@link #workspace()}. */
-  public static final String PROPERTY_WORKSPACE = "workspace";
+  /** {@link RepositoryProperties#getProperty(String) Property name} for {@link #workspaces()}. */
+  public static final String PROPERTY_WORKSPACES = "workspaces";
 
   /** {@link RepositoryProperties#getProperty(String) Property name} for {@link #gitUrl()}. */
   public static final String PROPERTY_GIT_URL = "git_url";
@@ -61,6 +62,12 @@ public record RepositoryConfig(
   /** Legacy {@link RepositoryProperties#getProperty(String) property name} for {@link #imports()}. */
   public static final String PROPERTY_ECLIPSE = "eclipse";
 
+  public RepositoryConfig {
+    if (workspaces == null || workspaces.isEmpty()) {
+      throw new IllegalArgumentException("workspaces cannot be empty");
+    }
+  }
+
   /**
    * @return the {@link GitUrl} from {@link #gitUrl()} and {@link #gitBranch()}.
    */
@@ -82,15 +89,19 @@ public record RepositoryConfig(
     RepositoryProperties properties = new RepositoryProperties(filePath, context);
 
     Set<String> importsSet = properties.getImports();
+    List<String> workspaces = properties.getWorkspaces();
 
     return new RepositoryConfig(properties.getProperty(PROPERTY_PATH), properties.getProperty(PROPERTY_WORKING_SETS),
-        properties.getProperty(PROPERTY_WORKSPACE), properties.getProperty(PROPERTY_GIT_URL, true), properties.getProperty(PROPERTY_GIT_BRANCH),
+        workspaces, properties.getProperty(PROPERTY_GIT_URL, true), properties.getProperty(PROPERTY_GIT_BRANCH),
         properties.getProperty(PROPERTY_BUILD_PATH), properties.getProperty(PROPERTY_BUILD_CMD), importsSet,
-        parseBoolean(properties.getProperty(PROPERTY_ACTIVE).trim()));
+        parseBoolean(properties.getProperty(PROPERTY_ACTIVE)));
   }
 
   private static boolean parseBoolean(String value) {
 
-    return "true".equals(value);
+    if (value == null) {
+      return true;
+    }
+    return "true".equals(value.trim());
   }
 }

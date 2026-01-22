@@ -16,7 +16,7 @@ public class NodeUrlUpdater extends GithubUrlUpdater {
   private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.of("v15.9.9");
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "node";
   }
@@ -76,13 +76,7 @@ public class NodeUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
-  public String mapUrlVersionToCpeVersion(String version) {
-
-    return version.replaceAll("[^\\d.]", "");
-  }
-
-  @Override
-  protected String mapVersion(String version) {
+  public String mapVersion(String version) {
 
     return super.mapVersion("v" + version);
   }

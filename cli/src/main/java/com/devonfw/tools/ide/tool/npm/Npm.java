@@ -40,7 +40,6 @@ public class Npm extends NpmBasedCommandlet {
     return null;
   }
 
-
   @Override
   public String getToolHelpArguments() {
 
@@ -61,8 +60,8 @@ public class Npm extends NpmBasedCommandlet {
   }
 
   @Override
-  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean extraInstallation) {
-    super.setEnvironment(environmentContext, toolInstallation, extraInstallation);
+  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
+    super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
     environmentContext.withEnvVar("npm_config_prefix", this.context.getSoftwarePath().resolve("node").toString());
   }
 }

@@ -8,10 +8,10 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * Integration test of {@link Corepack}.
+ * Test of {@link Corepack}.
  */
 @WireMockTest
-public class CorepackTest extends AbstractIdeContextTest {
+class CorepackTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_COREPACK = "corepack";
 
@@ -21,7 +21,7 @@ public class CorepackTest extends AbstractIdeContextTest {
    * @param wireMockRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testCorepackInstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
+  void testCorepackInstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_COREPACK, wireMockRuntimeInfo);
@@ -40,7 +40,7 @@ public class CorepackTest extends AbstractIdeContextTest {
    * @param wireMockRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testCorepackUninstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
+  void testCorepackUninstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_COREPACK, wireMockRuntimeInfo);
@@ -58,7 +58,7 @@ public class CorepackTest extends AbstractIdeContextTest {
     // assert II
     assertThat(context).logAtInfo().hasNoMessageContaining("npm uninstall -g corepack");
     assertThat(context).logAtInfo().hasMessageContaining("IDEasy does not support uninstalling the tool corepack since this will break your installation.\n"
-        + "If you really want to uninstall it, please uninstall the entire node installation:\n"
+        + "If you really want to uninstall it, please uninstall its parent tool via:\n"
         + "ide uninstall node");
 
     assertThat(context).logAtSuccess().hasMessage("Successfully uninstalled corepack");
@@ -70,7 +70,7 @@ public class CorepackTest extends AbstractIdeContextTest {
    * @param wireMockRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testCorepackRun(WireMockRuntimeInfo wireMockRuntimeInfo) {
+  void testCorepackRun(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_COREPACK, wireMockRuntimeInfo);
@@ -89,6 +89,6 @@ public class CorepackTest extends AbstractIdeContextTest {
 
     assertThat(context).logAtInfo().hasMessageContaining("npm install -gf corepack@0.34.0");
     assertThat(context).logAtSuccess().hasMessageContaining("Setting npm config prefix to: " + context.getSoftwarePath().resolve("node") + " was successful");
-    assertThat(context).logAtSuccess().hasMessage("Successfully installed corepack in version 0.34.0");
+    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed corepack in version 0.34.0");
   }
 }

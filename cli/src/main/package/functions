@@ -77,14 +77,40 @@ function icd() {
     esac
   done
   local icd_path=${IDE_ROOT}
+  
+  # Determine the project to use
   if [ "${icd_project}" != "" ]; then
+    # Project explicitly specified
     icd_path=${icd_path}/${icd_project}
+  elif [ "${icd_workspace}" != "" ]; then
+    # Workspace specified without project - infer project from current directory or IDE_HOME
+    local current_project=""
+    local current_dir="$(pwd)"
+    if [[ "${current_dir}" == "${IDE_ROOT}"/* ]]; then
+      # Extract project from current directory
+      local relative_path="${current_dir#${IDE_ROOT}/}"
+      current_project="${relative_path%%/*}"
+    elif [ "${IDE_HOME}" != "" ] && [[ "${IDE_HOME}" == "${IDE_ROOT}"/* ]]; then
+      # Fall back to extracting project from IDE_HOME
+      local relative_path="${IDE_HOME#${IDE_ROOT}/}"
+      current_project="${relative_path%%/*}"
+    fi
+    
+    if [ "${current_project}" != "" ]; then
+      icd_path=${IDE_ROOT}/${current_project}
+    elif [ "${IDE_HOME}" != "" ]; then
+      icd_path=${IDE_HOME}
+    fi
   elif [ "${IDE_HOME}" != "" ]; then
+    # No project or workspace specified - use IDE_HOME
     icd_path=${IDE_HOME}
   fi
+  
+  # Append workspace path if specified
   if [ "${icd_workspace}" != "" ]; then
     icd_path=${icd_path}/workspaces/${icd_workspace}
   fi
+  
   cd "${icd_path}" || return 1
   ide
   return

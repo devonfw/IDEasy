@@ -20,13 +20,14 @@ import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.process.ProcessResultImpl;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 import com.devonfw.tools.ide.version.GenericVersionRange;
 
 /**
  * Test of {@link IdeToolCommandlet} using {@link IdeToolDummyCommandlet}.
  */
-public class IdeToolDummyCommandletTest extends AbstractIdeContextTest {
+class IdeToolDummyCommandletTest extends AbstractIdeContextTest {
 
   /**
    * Run the dummy commandlet and test that only active plugins are passed to installPlugin method.
@@ -34,7 +35,7 @@ public class IdeToolDummyCommandletTest extends AbstractIdeContextTest {
    * @param tempDir the {@link TempDir}.
    */
   @Test
-  public void testDummyCommandlet(@TempDir Path tempDir) {
+  void testDummyCommandlet(@TempDir Path tempDir) {
 
     AbstractIdeTestContext context = new IdeSlf4jContext();
     context.setPluginsPath(tempDir);
@@ -48,7 +49,7 @@ public class IdeToolDummyCommandletTest extends AbstractIdeContextTest {
     assertThat(dummy).isSameAs(dummyCommandlet);
     dummy.run();
     assertThat(dummyCommandlet.installedPlugins).hasSize(1);
-    ToolPluginDescriptor plugin = dummyCommandlet.installedPlugins.get(0);
+    ToolPluginDescriptor plugin = dummyCommandlet.installedPlugins.getFirst();
     assertThat(plugin.id()).isEqualTo("plugin1-id");
     assertThat(plugin.url()).isEqualTo("https://dummy.com/plugins/plugin1-url");
   }
@@ -73,11 +74,10 @@ public class IdeToolDummyCommandletTest extends AbstractIdeContextTest {
     }
 
     @Override
-    public ProcessResult runTool(ProcessMode processMode, GenericVersionRange toolVersion, ProcessErrorHandling errorHandling, String... args) {
+    public ProcessResult runTool(ProcessMode processMode, GenericVersionRange toolVersion, ProcessErrorHandling errorHandling, List<String> args) {
 
       // skip installation but trigger postInstall to test mocked plugin installation
-      ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI);
-      postInstall(true, pc);
+      postInstall(new ToolInstallRequest(true));
       return new ProcessResultImpl(this.tool, this.tool, 0, List.of());
     }
 

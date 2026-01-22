@@ -19,11 +19,11 @@ import com.devonfw.tools.ide.os.WindowsPathSyntax;
 /**
  * Test of {@link IdeasyCommandlet}.
  */
-public class IdeasyCommandletTest extends AbstractIdeContextTest {
+class IdeasyCommandletTest extends AbstractIdeContextTest {
 
   /** Test of {@link IdeasyCommandlet#removeObsoleteEntryFromWindowsPath(String)}. */
   @Test
-  public void testRemoveObsoleteEntryFromWindowsPath() {
+  void testRemoveObsoleteEntryFromWindowsPath() {
 
     assertThat(IdeasyCommandlet.removeObsoleteEntryFromWindowsPath("C:\\projects\\_ide\\bin;C:\\Windows\\System32;C:\\Program Files\\Git\\cmd")).isEqualTo(
         "C:\\Windows\\System32;C:\\Program Files\\Git\\cmd");
@@ -43,7 +43,7 @@ public class IdeasyCommandletTest extends AbstractIdeContextTest {
    * <a href="https://github.com/devonfw/IDEasy/issues/1559">#1559</a> for reference.
    */
   @Test
-  public void testInstallDoesNotAddPathEntryTwiceOnWindows() {
+  void testInstallDoesNotAddPathEntryTwiceOnWindows() {
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of("windows");
     IdeTestContext context = newContext("install");
@@ -67,7 +67,7 @@ public class IdeasyCommandletTest extends AbstractIdeContextTest {
    */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testInstallIdeasy(String os) {
+  void testInstallIdeasy(String os) {
 
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of(os);
@@ -115,7 +115,7 @@ public class IdeasyCommandletTest extends AbstractIdeContextTest {
 
   /** Test of {@link IdeasyCommandlet#configureWindowsTerminalGitBash()}. */
   @Test
-  public void testConfigureWindowsTerminalGitBash() {
+  void testConfigureWindowsTerminalGitBash() {
 
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of("windows");

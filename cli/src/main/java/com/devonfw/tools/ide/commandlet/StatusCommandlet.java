@@ -38,8 +38,12 @@ public class StatusCommandlet extends Commandlet {
   public void run() {
     Step step = this.context.newStep(true, "Show IDE_ROOT and IDE_HOME");
     step.run(this.context::logIdeHomeAndRootStatus);
+    step = this.context.newStep(true, "Check for updates of IDEasy");
+    step.run(this::checkForUpdate);
     step = this.context.newStep(true, "Show online status");
     step.run(this::logOnlineStatus);
+    step = this.context.newStep(true, "Show git and bash location");
+    step.run(this::logGitBashLocationStatus);
 
     if (this.context.getIdeHome() != null) {
       step = this.context.newStep(true, "Show git status");
@@ -49,8 +53,6 @@ public class StatusCommandlet extends Commandlet {
       step = this.context.newStep(true, "Show migration status");
       step.run(this::logMigrationStatus);
     }
-    step = this.context.newStep(true, "Check for updates of IDEasy");
-    step.run(this::checkForUpdate);
   }
 
   private void checkForUpdate() {
@@ -116,6 +118,22 @@ public class StatusCommandlet extends Commandlet {
     if (projectVersion.isLess(targetVersion)) {
       this.context.interaction("Your project is on IDEasy version {} and needs an update to version {}!\nPlease run 'ide update' to migrate your project",
           projectVersion, targetVersion);
+    }
+  }
+
+  private void logGitBashLocationStatus() {
+    Path bashPath = this.context.findBash();
+    if (bashPath != null) {
+      this.context.success("Found bash executable at: {}", bashPath);
+    } else {
+      this.context.error("No bash executable was found on your system!");
+    }
+    GitContext gitContext = this.context.getGitContext();
+    Path gitPath = gitContext.findGit();
+    if (gitPath != null) {
+      this.context.success("Found git executable at: {}", gitPath);
+    } else {
+      this.context.error("No git executable was found on your system!");
     }
   }
 

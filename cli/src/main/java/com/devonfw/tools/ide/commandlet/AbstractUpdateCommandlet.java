@@ -20,10 +20,18 @@ import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.step.Step;
-import com.devonfw.tools.ide.tool.CustomToolCommandlet;
+import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
-import com.devonfw.tools.ide.tool.repository.CustomToolMetadata;
+import com.devonfw.tools.ide.tool.ToolEdition;
+import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
+import com.devonfw.tools.ide.tool.custom.CustomToolCommandlet;
+import com.devonfw.tools.ide.tool.custom.CustomToolMetadata;
+import com.devonfw.tools.ide.tool.extra.ExtraToolInstallation;
+import com.devonfw.tools.ide.tool.extra.ExtraTools;
+import com.devonfw.tools.ide.tool.extra.ExtraToolsMapper;
 import com.devonfw.tools.ide.variable.IdeVariables;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * Abstract {@link Commandlet} base-class for both {@link UpdateCommandlet} and {@link CreateCommandlet}.
@@ -270,11 +278,12 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
   private void doUpdateSoftwareStep(Step step) {
 
     Set<ToolCommandlet> toolCommandlets = new HashSet<>();
+    CommandletManager commandletManager = this.context.getCommandletManager();
     // installed tools in IDE_HOME/software
     List<Path> softwarePaths = this.context.getFileAccess().listChildren(this.context.getSoftwarePath(), Files::isDirectory);
     for (Path softwarePath : softwarePaths) {
       String toolName = softwarePath.getFileName().toString();
-      ToolCommandlet toolCommandlet = this.context.getCommandletManager().getToolCommandlet(toolName);
+      ToolCommandlet toolCommandlet = commandletManager.getToolCommandlet(toolName);
       if (toolCommandlet != null) {
         toolCommandlets.add(toolCommandlet);
       }
@@ -284,7 +293,13 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     List<String> regularTools = IdeVariables.IDE_TOOLS.get(this.context);
     if (regularTools != null) {
       for (String regularTool : regularTools) {
-        toolCommandlets.add(this.context.getCommandletManager().getRequiredToolCommandlet(regularTool));
+        ToolCommandlet toolCommandlet = commandletManager.getToolCommandlet(regularTool);
+        if (toolCommandlet == null) {
+          String displayName = (regularTool == null || regularTool.isBlank()) ? "<empty>" : "'" + regularTool + "'";
+          this.context.error("Cannot install or update tool '{}''. No matching commandlet found. Please check your IDE_TOOLS configuration.", displayName);
+        } else {
+          toolCommandlets.add(toolCommandlet);
+        }
       }
     }
 
@@ -297,6 +312,38 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     // update/install the toolCommandlets
     for (ToolCommandlet toolCommandlet : toolCommandlets) {
       this.context.newStep("Install " + toolCommandlet.getName()).run(() -> toolCommandlet.install(false));
+    }
+
+    ExtraTools extraTools = ExtraToolsMapper.get().loadJsonFromFolder(this.context.getSettingsPath());
+    if (extraTools != null) {
+      List<String> toolNames = extraTools.getSortedToolNames();
+      this.context.info("Found extra installation of the following tools: {}", toolNames);
+      for (String tool : toolNames) {
+        List<ExtraToolInstallation> installations = extraTools.getExtraInstallations(tool);
+        this.context.newStep("Install extra version(s) of " + tool).run(() -> installExtraToolInstallations(tool, installations));
+      }
+    }
+  }
+
+  private void installExtraToolInstallations(String tool, List<ExtraToolInstallation> extraInstallations) {
+
+    CommandletManager commandletManager = this.context.getCommandletManager();
+    FileAccess fileAccess = this.context.getFileAccess();
+    Path extraPath = this.context.getSoftwareExtraPath();
+    LocalToolCommandlet toolCommandlet = commandletManager.getRequiredLocalToolCommandlet(tool);
+    for (ExtraToolInstallation extraInstallation : extraInstallations) {
+      ToolInstallRequest request = new ToolInstallRequest(false);
+      String edition = extraInstallation.edition();
+      if (edition == null) {
+        edition = toolCommandlet.getConfiguredEdition();
+      }
+      ToolEdition toolEdition = new ToolEdition(tool, edition);
+      VersionIdentifier version = extraInstallation.version();
+      request.setRequested(new ToolEditionAndVersion(toolEdition, version));
+      Path extraToolPath = extraPath.resolve(tool);
+      Path toolPath = extraToolPath.resolve(extraInstallation.name());
+      request.setToolPathForExtraInstallation(toolPath);
+      toolCommandlet.install(request);
     }
   }
 

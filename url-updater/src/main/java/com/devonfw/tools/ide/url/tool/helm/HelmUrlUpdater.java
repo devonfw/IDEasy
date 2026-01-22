@@ -12,7 +12,7 @@ public class HelmUrlUpdater extends GithubUrlUpdater {
   private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.of("3.4.0");
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "helm";
   }
@@ -48,18 +48,6 @@ public class HelmUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
-  public String mapUrlVersionToCpeVersion(String version) {
-
-    return version.substring(getVersionPrefixToRemove().length());
-  }
-
-  @Override
-  public String mapCpeVersionToUrlVersion(String version) {
-
-    return getVersionPrefixToRemove() + version;
-  }
-
-  @Override
   protected void addVersion(UrlVersion urlVersion) {
 
     VersionIdentifier vid = urlVersion.getVersionIdentifier();
@@ -74,7 +62,7 @@ public class HelmUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
-  protected String mapVersion(String version) {
+  public String mapVersion(String version) {
 
     return super.mapVersion("v" + version);
   }

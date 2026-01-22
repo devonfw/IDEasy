@@ -6,15 +6,15 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.property.FlagProperty;
 
 /**
- * Test class for {@link ContextCommandlet}.
+ * Test of {@link ContextCommandlet}.
  */
-public class ContextCommandletTest extends AbstractIdeContextTest {
+class ContextCommandletTest extends AbstractIdeContextTest {
 
   /**
    * Test of {@link ContextCommandlet} has name context.
    */
   @Test
-  public void testNameIsContext() {
+  void testNameIsContext() {
     //arrange
     ContextCommandlet cxt = new ContextCommandlet();
     //act & assert
@@ -25,7 +25,7 @@ public class ContextCommandletTest extends AbstractIdeContextTest {
    * Test of {@link ContextCommandlet} does not require home.
    */
   @Test
-  public void testThatHomeIsNotRequired() {
+  void testThatHomeIsNotRequired() {
 
     // arrange
     ContextCommandlet cxt = new ContextCommandlet();
@@ -37,7 +37,7 @@ public class ContextCommandletTest extends AbstractIdeContextTest {
    * Test of {@link ContextCommandlet} run.
    */
   @Test
-  public void testRun() {
+  void testRun() {
 
     // arrange
     ContextCommandlet cxt = new ContextCommandlet();
@@ -56,7 +56,7 @@ public class ContextCommandletTest extends AbstractIdeContextTest {
    * Test of {@link ContextCommandlet} run with all flag options enabled
    */
   @Test
-  public void testRunWithOptions() {
+  void testRunWithOptions() {
 
     // arrange
     ContextCommandlet cxt = new ContextCommandlet();

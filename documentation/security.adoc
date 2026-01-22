@@ -1,0 +1,89 @@
+:toc:
+toc::[]
+
+= Security
+
+IDEasy has built-in support helping you to stay secure.
+Therefore, it scans tools for https://en.wikipedia.org/wiki/Common_Vulnerabilities_and_Exposures[CVE]s automatically.
+
+== Warnings
+
+First of all before installing or running a tool, it will detect CVEs and if found log a detailed warning to inform you about the problem.
+Every CVE has a https://en.wikipedia.org/wiki/Common_Vulnerability_Scoring_System[severity] as a decimal number greater than zero and less or equal to `10.0`.
+The higher this number the more critical the issue and the higher the risk that you get attacked and damaged.
+Since sometimes CVEs exist with low criticality and do not put you at a real risc when using the according tool, you can configure a severity threshold via the link:variables.adoc[variable] `CVE_MIN_SEVERITY`.
+Example:
+
+```
+CVE_MIN_SEVERITY=4.0
+```
+
+The default value of this variable is `0.1`.
+If your project has no high security demands, and you are annoyed by CVEs that you already evaluated carefully and consider as negligible or false-positives, you can increase this threshold.
+Please note the following severity ranges:
+
+[options="header"]
+|=======================
+|CVSS v4.0 Rating|Severity|
+|0.0             |None    |
+|0.1-3.9         |Low     |
+|4.0-6.9         |Medium  |
+|7.0-8.9         |High    |
+|9.0-10.0        |Critical|
+|=======================
+
+Hence, setting the variable to `7.0` or higher will put you at a high risk and should never be done.
+On the other hand setting it to `4.0` in a non-sensitive project can still be reasonable.
+
+IDEasy will still log CVEs that are below the configured threshold but only on INFO level and not count them as CVEs that will trigger a warning.
+
+== Suggestions
+
+When you want to install a tool, and the resolved version to be installed is causing a CVE warning as described above, IDEasy will ask you a question before it continues with the installation.
+IDEasy automatically searches for the nearest and the latest version that has no or less CVEs.
+If such alternatives can be found, they will be printed out, and you can make a choice what to install.
+Here is an example to make it clear:
+
+```
+$ ide install mvn 3.6.2
+For current version 3.6.2 of tool mvn we found 1 CVE(s):
+CVE-2021-26291 with severity 9.1 and affected versions: [(,3.8.1)]
+https://nvd.nist.gov/vuln/detail/CVE-2021-26291
+
+No CVEs found for nearest version 3.8.1 of tool mvn.
+No CVEs found for latest version 3.9.9 of tool mvn.
+Please note that by selecting an unsafe version to install, you accept the risk to be attacked.
+Which version do you want to install?
+Option 1: current (3.6.2 - unsafe)
+Option 2: nearest (3.8.1 - safe)
+Option 3: latest (3.9.9 - safe)
+```
+
+You can make your choice by entering the option number or its label so e.g. both `3` or `latest` would install the version `3.9.9`.
+Whenever you make a choice for an unsafe option, you are responsible for the potential risks of installing and using the tool.
+
+=== Security vs. Usability
+
+We know that there is always a trade-off:
+In a perfect world we would prevent installing tools with CVEs and there is always a patch level version upgrade available for your tool to resolve the CVEs.
+However, reality is different: We sometimes have critical CVEs and the developers did not yet have the time to provide a fix.
+Maybe your project is using a tool or SDK and fixes are only available when doing major version upgrades that would break your project.
+
+IDEasy wants to support you regarding security without getting in the way.
+We know that when you are building a release late in the night that has to be delivered by tomorrow, you do not want IDEasy to block you from getting your important work done.
+
+Therefore, we log warnings and may ask you questions but never block you from proceeding.
+
+Now, lets assume you have to use a specific major version of an SDK like Java Development Kit and this ran out of support.
+Your team is already working on the upgrade to the next major version but somehow this took longer than planned so you ended up in this problematic situation.
+If you then do not want to get bothered with questions suggesting to upgrade to a new major version, you can disable CVE upgrade suggestions for specific tools via configuration.
+The link:variables.adoc[variable] `SKIP_CVE_FIX` allows you to configure one or multiple tools where to skip upgrade suggestions to fix CVEs.
+Example:
+
+```
+SKIP_CVE_FIX=java,npm
+```
+
+After resolving such upgrade blockers, please do not forget to remove the tool from this variable.
+
+With great flexibility comes great responsibility so use this feature wisely.

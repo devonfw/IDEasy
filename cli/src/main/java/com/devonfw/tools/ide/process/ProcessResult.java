@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.process;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 import com.devonfw.tools.ide.cli.CliProcessException;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -60,7 +61,9 @@ public interface ProcessResult {
   int getExitCode();
 
   /**
-   * @return {@code true} if the {@link #getExitCode() exit code} indicates {@link #SUCCESS}, {@code false} otherwise (an error occurred).
+   * @return {@code true} if the process execution was successful, {@code false} otherwise (an error occurred). By default, success means the
+   *     {@link #getExitCode() exit code} was {@link #SUCCESS}.
+   * @see ProcessContext#withExitCodeAcceptor(Predicate)
    */
   default boolean isSuccessful() {
 
@@ -68,18 +71,24 @@ public interface ProcessResult {
   }
 
   /**
-   * @param logger the {@link IdeSubLogger logger} to use.
    * @return the first captured standard out. Will be {@code null} if not captured but redirected.
-   * @throws IllegalStateException if more than one output was captured and the {@link IdeSubLogger logger} was null.
    */
-  String getSingleOutput(IdeSubLogger logger) throws IllegalStateException;
+  default String getSingleOutput() {
+
+    return getSingleOutput(null);
+  }
 
   /**
    * @param logger the {@link IdeSubLogger logger} to use.
    * @return the first captured standard out. Will be {@code null} if not captured but redirected.
-   * @throws IllegalStateException if the {@link IdeSubLogger logger} was null.
    */
-  List<String> getOutput(IdeSubLogger logger) throws IllegalStateException;
+  String getSingleOutput(IdeSubLogger logger);
+
+  /**
+   * @param logger the {@link IdeSubLogger logger} to use.
+   * @return the first captured standard out. Will be {@code null} if not captured but redirected.
+   */
+  List<String> getOutput(IdeSubLogger logger);
 
   /**
    * @return the {@link List} with the lines captured on standard out. Will be {@code null} if not captured but redirected.
