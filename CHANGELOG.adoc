@@ -2,6 +2,13 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2026.02.001
+
+Release with new features and bugfixes:
+
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/40?closed=1[milestone 2026.02.001].
+
 == 2026.01.001
 
 Release with new features and bugfixes:
