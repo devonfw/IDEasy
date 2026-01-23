@@ -57,7 +57,6 @@ public final class Ideasy {
     int exitStatus;
     try {
       exitStatus = runOrThrow(args);
-      throw new RuntimeException("This error message was forced as a test!"); // for testing purposes - to delete
     } catch (CliException error) {
       exitStatus = error.getExitCode();
       String errorMessage = error.getMessage();
@@ -76,7 +75,6 @@ public final class Ideasy {
           + "We are sorry for the inconvenience.\n" //
           + "Please check the error below, resolve it and try again.\n" //
           + "If the error is not on your end (network connectivity, lack of permissions, etc.) please file a bug:\n" //
-          //+ "https://github.com/devonfw/IDEasy/issues/new?assignees=&labels=bug&projects=&template=bug.md&title="
           + "https://github.com/devonfw/IDEasy/issues/new?template=bug_report.yml&title="
           + URLEncoder.encode(title, StandardCharsets.UTF_8);
       context().error(error, message);
