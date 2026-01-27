@@ -8,6 +8,7 @@ These environment variables are described by the following table.
 Those variables printed *bold* are automatically exported in your shell (except for windows CMD that does not have such concept).
 Variables with the value `-` are not set by default but may be set via link:configuration.adoc[configuration] to override defaults.
 Please note that we are trying to minimize any potential side-effect from `IDEasy` to the outside world by reducing the number of variables and only exporting those that are required.
+See also: an link:https://github.com/devonfw/IDEasy/blob/main/cli/src/main/java/com/devonfw/tools/ide/variable/IdeVariables.java[Interface] that defines all the available variables. 
 
 .Variables of IDEasy
 [options="header"]
