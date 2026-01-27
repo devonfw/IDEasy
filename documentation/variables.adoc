@@ -39,4 +39,6 @@ no_proxy=.domain.com,localhost`|General options that will be applied to each cal
 |`CVE_MIN_SEVERITY`|`0.1`|The severity threshold for CVEs. See link:security.adoc[security].
 |`SKIP_CVE_FIX`|e.g. `SKIP_CVE_FIX=java,npm`|Coma separated list of tools where to skip upgrade suggestions to fix CVEs. See link:security.adoc[security].
 |`HTTP_VERSIONS`|e.g. `HTTP 3, HTTP 2, HTTP 1.1`| The optional list of HTTP versions to try in the given order (e.g. "HTTP_2, HTTP_1_1"). This can be used as a workaround for network/VPN related issues - see issue https://github.com/devonfw/IDEasy/issues/1393[#1393].
+|`JASYPT_OPTS`|e.g. `PBEWITHHMACSHA512ANDAES_256`|Options of jasypt.
+|`IDE_XML_MERGE_LEGACY_SUPPORT_ENABLED`|e.g. `false`|Support of legacy xml templates without XML merge namespace.
 |=======================
