@@ -104,19 +104,19 @@ For creating a contribution also check the link:DoD.adoc[Definition of Done] (Do
 
 Many programs have a download link that depends on the operating system.
 
-For a new tool, create an url-updater in the https://github.com/devonfw/IDEasy/tree/main/cli/src/main/java/com/devonfw/tools/ide/url/updater[updater] folder in the current repository.
+For a new tool, create an url-updater in the https://github.com/devonfw/IDEasy/tree/main/url-updater/src/main/java/com/devonfw/tools/ide/url/updater[updater] folder in the current repository.
 The Name needs to be equal to the one of both the tool and the commandlet.
 
 There are four available parent classes of url-updaters, that can be used.
 They mainly differentiate in the way, available versions are detected.
 
-* https://github.com/devonfw/IDEasy/blob/main/cli/src/main/java/com/devonfw/tools/ide/url/updater/GithubUrlUpdater.java[`GithubUrlUpdater`]
+* https://github.com/devonfw/IDEasy/blob/main/url-updater/src/main/java/com/devonfw/tools/ide/url/updater/GithubUrlUpdater.java[`GithubUrlUpdater`]
 
-* https://github.com/devonfw/IDEasy/blob/main/cli/src/main/java/com/devonfw/tools/ide/url/updater/JsonUrlUpdater.java[`JsonUrlUpdater`]
+* https://github.com/devonfw/IDEasy/blob/main/url-updater/src/main/java/com/devonfw/tools/ide/url/updater/JsonUrlUpdater.java[`JsonUrlUpdater`]
 
-* https://github.com/devonfw/IDEasy/blob/main/cli/src/main/java/com/devonfw/tools/ide/url/updater/MavenBasedUrlUpdater.java[`MavenBasedUrlUpdater`]
+* https://github.com/devonfw/IDEasy/blob/main/url-updater/src/main/java/com/devonfw/tools/ide/url/updater/MavenBasedUrlUpdater.java[`MavenBasedUrlUpdater`]
 
-* https://github.com/devonfw/IDEasy/blob/main/cli/src/main/java/com/devonfw/tools/ide/url/updater/WebsiteUrlUpdater.java[`WebsiteUrlUpdater`]
+* https://github.com/devonfw/IDEasy/blob/main/url-updater/src/main/java/com/devonfw/tools/ide/url/updater/WebsiteUrlUpdater.java[`WebsiteUrlUpdater`]
 
 Note: The `WebsiteUrlUpdater` should not be used if other viable options are available.
 
