@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1562[#1562]: Update documentation regarding environmental variables
 * https://github.com/devonfw/IDEasy/issues/1691[#1691]: Update references to UrlUpdaters in the documentation
 * https://github.com/devonfw/IDEasy/issues/1683[#1683]: Updated the link for bug-ticket creation that's shown when en error is encountered
 
