@@ -16,9 +16,7 @@ See also link:https://github.com/devonfw/IDEasy/blob/main/cli/src/main/java/com/
 |*Variable*|*Value*|*Meaning*
 |`IDE_ROOT`|e.g. `~/projects/` or `C:\projects`|The installation root directory of `IDEasy` - see link:structure.adoc[structure] for details.
 |`IDE_HOME`|e.g. `/projects/my-project`|The top level directory of your `IDEasy` project.
-|`IDE_OPTIONS`|e.g. `http_proxy=http://proxy.host.com:8888
-https_proxy=https://proxy.host.com:8443
-no_proxy=.domain.com,localhost`|General options that will be applied to each call of `IDEasy`. Should typically be used for JVM options like link:proxy-support.adoc[proxy-support].
+|`IDE_OPTIONS`|e.g. `-Dhttps.proxyUser=$USERNAME -Dhttps.proxyPassword=«password»`|General options that will be applied to each call of `IDEasy`. Should typically be used for JVM options like link:proxy-support.adoc[proxy-support].
 |*`PATH`*|`$IDE_HOME/software/«tool»:...:$PATH`|Your system path is adjusted by `ide` link:cli.adoc[command].
 |`BASH_PATH`|e.g. `C:\Program Files\Git\usr\bin\bash.exe`|Absolute path to your bash. Only used as fallback on Windows if bash could not be found from registry.
 |`IDE_TOOLS`|`(java mvn node npm)`|List of tools that should be installed by default on project creation.
