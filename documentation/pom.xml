@@ -34,10 +34,6 @@
     <docgen.eruby>erb</docgen.eruby>
     <buildtime>${maven.build.timestamp}</buildtime>
     <maven.build.timestamp.format>yyyy-MM-dd_HH.mm.ss</maven.build.timestamp.format>
-    <asciidoctor.maven.plugin.version>3.2.0</asciidoctor.maven.plugin.version>
-    <asciidoctorj.pdf.version>1.5.0-alpha.18</asciidoctorj.pdf.version>
-    <jruby.version>9.2.6.0</jruby.version>
-    <asciidoctor.skip>false</asciidoctor.skip>
     <revision>dev-SNAPSHOT</revision>
   </properties>
 
@@ -218,19 +214,6 @@
       <plugin>
         <groupId>org.asciidoctor</groupId>
         <artifactId>asciidoctor-maven-plugin</artifactId>
-        <version>${asciidoctor.maven.plugin.version}</version>
-        <dependencies>
-          <dependency>
-            <groupId>org.asciidoctor</groupId>
-            <artifactId>asciidoctorj-pdf</artifactId>
-            <version>${asciidoctorj.pdf.version}</version>
-          </dependency>
-          <dependency>
-            <groupId>org.jruby</groupId>
-            <artifactId>jruby-complete</artifactId>
-            <version>${jruby.version}</version>
-          </dependency>
-        </dependencies>
         <configuration>
           <skip>${asciidoctor.skip}</skip>
           <sourceDirectory>${docgen.asciidoc.target}</sourceDirectory>
@@ -274,7 +257,6 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
-        <version>3.6.0</version>
         <executions>
           <execution>
             <id>attach-doc</id>
@@ -316,7 +298,7 @@
             </goals>
           </execution>
         </executions>
-      </plugin>      
+      </plugin>
     </plugins>
   </build>
 

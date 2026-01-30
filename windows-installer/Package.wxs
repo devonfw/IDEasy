@@ -17,7 +17,7 @@
 		</Feature>
 
 		<MediaTemplate EmbedCab="yes" />
-		<WixVariable Id="WixUILicenseRtf" Value=".\assets\LICENSE.rtf" />
+		<WixVariable Id="WixUILicenseRtf" Value="..\cli\target\generated-docs\LICENSE.rtf" />
 		<WixVariable Id="WixUIBannerBmp" Value=".\assets\banner.bmp" />
 
 		<Property Id="INSTALLTYPE" Value="USERHOME" />
