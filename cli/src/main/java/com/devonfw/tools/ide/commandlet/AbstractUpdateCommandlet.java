@@ -178,14 +178,13 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
         this.context.info("Skipping git pull in settings due to code repository. Use --force-pull to enforce pulling.");
       }
     } else {
-      String repositoryUrl = getOrAskSettingsUrl();
-      GitUrl gitUrl = GitUrl.of(repositoryUrl);
+      GitUrl gitUrl = getOrAskSettingsUrl();
       checkProjectNameConvention(gitUrl.getProjectName());
       initializeRepository(gitUrl);
     }
   }
 
-  private String getOrAskSettingsUrl() {
+  private GitUrl getOrAskSettingsUrl() {
 
     String repository = this.settingsRepo.getValue();
     repository = handleDefaultRepository(repository);
@@ -204,7 +203,14 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       repository = this.context.askForInput(userPromt, defaultUrl);
       repository = handleDefaultRepository(repository);
     }
-    return repository;
+    GitUrl gitUrl = GitUrl.of(repository);
+    while (!gitUrl.isValid()) {
+      this.context.warning("The input URL is not valid, please try again:");
+      repository = this.context.askForInput(userPromt, defaultUrl);
+      repository = handleDefaultRepository(repository);
+      gitUrl = GitUrl.of(repository);
+    }
+    return gitUrl;
   }
 
   private String handleDefaultRepository(String repository) {
