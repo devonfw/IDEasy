@@ -13,9 +13,9 @@ public final class IdeVersion {
 
   private static final IdeVersion INSTANCE = new IdeVersion();
 
-  private final String version;
+  private String version;
 
-  private final VersionIdentifier versionIdentifier;
+  private VersionIdentifier versionIdentifier;
 
   // most simple solution would be maven filtering but that is kind of tricky for java files
   // http://www.mojohaus.org/templating-maven-plugin/examples/source-filtering.html
@@ -66,6 +66,24 @@ public final class IdeVersion {
    */
   public static boolean isSnapshot() {
     return getVersionString().contains("SNAPSHOT");
+  }
+
+  /*
+   * For testing purposes only:
+   *  function to set the current version to a mock version (e.g. 2024.01.002).
+   */
+  public static void setMockVersionForTesting(String mockVersion) {
+    INSTANCE.version = mockVersion;
+    INSTANCE.versionIdentifier = VersionIdentifier.of(mockVersion);
+  }
+
+  /*
+   * For testing purposes only:
+   *  function to set the current version back to SNAPSHOT.
+   */
+  public static void setSnapshotVersionForTesting() {
+    INSTANCE.version = VERSION_UNDEFINED;
+    INSTANCE.versionIdentifier = VersionIdentifier.of(VERSION_UNDEFINED);
   }
 
 }

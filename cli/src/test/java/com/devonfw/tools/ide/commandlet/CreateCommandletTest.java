@@ -9,6 +9,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
@@ -107,21 +108,47 @@ class CreateCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  void testIdeVersionTooSmall() {
+  void testIdeVersionTooOldOnProjectCreation() {
     // arrange
     CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
     cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
     cc.settingsRepo.setValue(IdeContext.DEFAULT_SETTINGS_REPO_URL);
     cc.skipTools.setValue(true);
     EnvironmentVariables variables = context.getVariables();
+    String ideMinVersion = "2026.01.001"; // mocks the minimum required version
+    IdeVersion.setMockVersionForTesting("2024.01.001"); // mocks the current version (instead of using SNAPSHOT)
+    String ideCurrentVersion = IdeVersion.getVersionString();
     String errorMessage = String.format("Your version of IDEasy is currently %s\n"
         + "However, this is too old as your project requires at latest version %s\n"
         + "Please run the following command to update to the latest version of IDEasy and fix the problem:\n"
-        + "ide upgrade", IdeVersion.getVersionIdentifier().toString(), String.valueOf(Integer.MAX_VALUE));
+        + "ide upgrade", ideCurrentVersion, ideMinVersion);
     // act
-    variables.getByType(EnvironmentVariablesType.CONF).set("IDE_MIN_VERSION", String.valueOf(Integer.MAX_VALUE));
+    variables.getByType(EnvironmentVariablesType.CONF).set("IDE_MIN_VERSION", ideMinVersion);
     // assert
     assertThatThrownBy(() -> cc.run()).hasMessage(errorMessage);
+    IdeVersion.setSnapshotVersionForTesting(); // reset current version back to SNAPSHOT so further tests don't fail
+  }
+
+  @Test
+  void testIdeVersionTooOldForExistingProject() {
+    // arrange
+    String path = "project/workspaces/foo-test";
+    IdeTestContext context = newContext(PROJECT_BASIC, path, false);
+    EnvironmentVariables variables = context.getVariables();
+    String ideMinVersion = "2026.01.001"; // mocks the minimum required version
+    variables.getByType(EnvironmentVariablesType.CONF).set("IDE_MIN_VERSION", ideMinVersion);
+    IdeVersion.setMockVersionForTesting("2024.01.001"); // mocks the current version (instead of using SNAPSHOT)
+    String ideCurrentVersion = IdeVersion.getVersionString();
+    CliArguments args = new CliArguments();
+    String warningMessage = String.format("Your version of IDEasy is currently %s\n"
+        + "However, this is too old as your project requires at latest version %s\n"
+        + "Please run the following command to update to the latest version of IDEasy and fix the problem:\n"
+        + "ide upgrade", ideCurrentVersion, ideMinVersion);
+    // act
+    context.run(args);
+    IdeVersion.setSnapshotVersionForTesting(); // reset current version back to SNAPSHOT so further tests don't fail
+    // assert
+    assertThat(context).logAtWarning().hasMessage(warningMessage);
   }
 
   @Test

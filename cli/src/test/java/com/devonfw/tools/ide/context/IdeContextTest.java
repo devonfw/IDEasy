@@ -136,26 +136,6 @@ class IdeContextTest extends AbstractIdeContextTest {
     assertThat(workspaceName).isEqualTo("foo-test");
   }
 
-  // hier test einfügen mit idetestcontext
-  @Test
-  void testIdeVersionTooSmall() {
-    // arrange
-    String path = "project/workspaces/foo-test";
-    IdeTestContext context = newContext(PROJECT_BASIC, path, false);
-    EnvironmentVariables variables = context.getVariables();
-    String ideMinVersion = String.valueOf(Integer.MAX_VALUE);
-    variables.getByType(EnvironmentVariablesType.CONF).set("IDE_MIN_VERSION", ideMinVersion);
-    CliArguments args = new CliArguments();
-    String warningMessage = String.format("Your version of IDEasy is currently %s\n"
-        + "However, this is too old as your project requires at latest version %s\n"
-        + "Please run the following command to update to the latest version of IDEasy and fix the problem:\n"
-        + "ide upgrade", IdeVersion.getVersionIdentifier().toString(), ideMinVersion);
-    // act
-    context.run(args);
-    // assert
-    assertThat(context).logAtWarning().hasMessage(warningMessage);
-  }
-
   @Test
   void testIdeVersionOk() {
     // arrange
