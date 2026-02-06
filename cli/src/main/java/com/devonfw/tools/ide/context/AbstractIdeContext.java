@@ -1254,7 +1254,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       String message = String.format("Your version of IDEasy is currently %s\n"
           + "However, this is too old as your project requires at latest version %s\n"
           + "Please run the following command to update to the latest version of IDEasy and fix the problem:\n"
-          + "ide upgrade", versionIdentifier.toString(), minVersion.toString());
+          + "ide upgrade", versionIdentifier, minVersion);
       if (throwException) {
         throw new CliException(message);
       } else {
