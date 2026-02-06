@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.git;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -38,7 +40,7 @@ class GitUrlTest extends Assertions {
     assertThat(gitUrl).hasToString(url);
   }
 
-  /** Test {@link GitUrl#GitUrl(String, String)} with invalid URL. */
+  /** Test {@link GitUrl#GitUrl(String, String)} with invalid URL (containing #). */
   @Test
   void testInvalidUrl() {
 
@@ -49,6 +51,27 @@ class GitUrlTest extends Assertions {
     assertThatThrownBy(() -> {
       new GitUrl(url, branch);
     }).isInstanceOf(AssertionError.class).hasMessage("Invalid git URL " + url);
+  }
+
+  /** Test {@link GitUrl#GitUrl(String, String)} with invalid URL (not starting with http, https or ssh). */
+  @Test
+  void testUrlWithoutHttpsOrSsh() {
+    // arrange
+    String url = "htps:/url-with-typo";
+    String branch = null;
+    // act and assert
+    assertThatThrownBy(() -> {
+      new GitUrl(url, branch);
+    }).isInstanceOf(AssertionError.class).hasMessage("Invalid git URL - has to start with https, http or ssh: " + url);
+  }
+
+  @Test
+  void testValidURL() {
+    // arrange
+    String url = "https://some-valid.url";
+    String branch = null;
+    // act and assert
+    assertDoesNotThrow(() -> new GitUrl(url, branch));
   }
 
 }

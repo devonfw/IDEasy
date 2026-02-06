@@ -1249,11 +1249,12 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     if (minVersion == null) {
       return;
     }
-    if (IdeVersion.getVersionIdentifier().compareVersion(minVersion).isLess()) {
+    VersionIdentifier versionIdentifier = IdeVersion.getVersionIdentifier();
+    if (versionIdentifier.compareVersion(minVersion).isLess() && !IdeVersion.isUndefined()) {
       String message = String.format("Your version of IDEasy is currently %s\n"
           + "However, this is too old as your project requires at latest version %s\n"
           + "Please run the following command to update to the latest version of IDEasy and fix the problem:\n"
-          + "ide upgrade", IdeVersion.getVersionIdentifier().toString(), minVersion.toString());
+          + "ide upgrade", versionIdentifier, minVersion);
       if (throwException) {
         throw new CliException(message);
       } else {
