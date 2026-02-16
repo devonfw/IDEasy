@@ -200,13 +200,15 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       this.context.info(MESSAGE_SETTINGS_REPO_URL, this.context.getSettingsPath());
     }
     GitUrl gitUrl = null;
-    while (gitUrl == null) {
+    if (repository != null) {
+      gitUrl = GitUrl.of(repository);
+    }
+    while ((gitUrl != null) && !gitUrl.isValid()) {
       repository = this.context.askForInput(userPromt, defaultUrl);
       repository = handleDefaultRepository(repository);
       gitUrl = GitUrl.of(repository);
       if (!gitUrl.isValid()) {
-        this.context.warning("The input URL is not valid, please try again:");
-        gitUrl = null;
+        this.context.warning("The input URL is not valid, please try again.");
       }
     }
     return gitUrl;
