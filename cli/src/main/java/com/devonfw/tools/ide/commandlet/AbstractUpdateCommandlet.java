@@ -203,7 +203,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     if (repository != null) {
       gitUrl = GitUrl.of(repository);
     }
-    while ((gitUrl != null) && !gitUrl.isValid()) {
+    while ((gitUrl == null) || !gitUrl.isValid()) {
       repository = this.context.askForInput(userPromt, defaultUrl);
       repository = handleDefaultRepository(repository);
       gitUrl = GitUrl.of(repository);
