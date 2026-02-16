@@ -199,18 +199,17 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       defaultUrl = IdeContext.DEFAULT_SETTINGS_REPO_URL;
       this.context.info(MESSAGE_SETTINGS_REPO_URL, this.context.getSettingsPath());
     }
-    while (repository == null || repository.isBlank()) {
-      repository = this.context.askForInput(userPromt, defaultUrl);
-      repository = handleDefaultRepository(repository);
-    }
-    GitUrl gitUrl = GitUrl.of(repository);
-    while (!gitUrl.isValid()) {
-      this.context.warning("The input URL is not valid, please try again:");
+    GitUrl gitUrl = null;
+    while (gitUrl == null) {
       repository = this.context.askForInput(userPromt, defaultUrl);
       repository = handleDefaultRepository(repository);
       gitUrl = GitUrl.of(repository);
+      if (!gitUrl.isValid()) {
+        this.context.warning("The input URL is not valid, please try again:");
+        gitUrl = null;
+      }
     }
-    return gitUrl;
+    return gitUrl;    
   }
 
   private String handleDefaultRepository(String repository) {
