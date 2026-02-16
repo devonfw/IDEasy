@@ -209,7 +209,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
         gitUrl = null;
       }
     }
-    return gitUrl;    
+    return gitUrl;
   }
 
   private String handleDefaultRepository(String repository) {
