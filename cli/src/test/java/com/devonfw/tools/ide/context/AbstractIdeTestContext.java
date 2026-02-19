@@ -216,7 +216,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   public IdeSystemTestImpl getSystem() {
 
     if (this.system == null) {
-      this.system = new IdeSystemTestImpl(this);
+      this.system = new IdeSystemTestImpl();
     }
     return (IdeSystemTestImpl) this.system;
   }

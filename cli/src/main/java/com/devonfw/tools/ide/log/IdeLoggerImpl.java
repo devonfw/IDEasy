@@ -12,6 +12,8 @@ public class IdeLoggerImpl implements IdeLogger {
 
   protected final IdeLogListener listener;
 
+  private static IdeLogger instance;
+
   /**
    * @param minLogLevel the minimum enabled {@link IdeLogLevel}.
    * @param factory the factory to create active {@link IdeSubLogger} instances.
@@ -30,6 +32,7 @@ public class IdeLoggerImpl implements IdeLogger {
     }
     this.listener = listener;
     setLogLevel(minLogLevel);
+    IdeLoggerImpl.instance = this;
   }
 
   @Override
@@ -117,6 +120,14 @@ public class IdeLoggerImpl implements IdeLogger {
     for (AbstractIdeSubLogger logger : this.loggers) {
       logger.setArgFormatter(argFormatter);
     }
+  }
+
+  /**
+   * @return the current {@link IdeLogger} instance.
+   */
+  static IdeLogger getInstance() {
+
+    return instance;
   }
 
 }

@@ -80,10 +80,13 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatter {
 
+  /** The default shell bash (Bourne Again SHell). */
+  public static final String BASH = "bash";
+
   private static final GitUrl IDE_URLS_GIT = new GitUrl("https://github.com/devonfw/ide-urls.git", null);
 
   private static final String LICENSE_URL = "https://github.com/devonfw/IDEasy/blob/main/documentation/LICENSE.adoc";
-  public static final String BASH = "bash";
+
   private static final String DEFAULT_WINDOWS_GIT_PATH = "C:\\Program Files\\Git\\bin\\bash.exe";
 
   private static final String OPTION_DETAILS_START = "([";
@@ -152,9 +155,6 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   private final Map<String, String> privacyMap;
 
-  /** Context used for logging */
-  private static IdeContext loggingContext;
-  
   private Path bash;
 
   /**
@@ -209,7 +209,6 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       }
     }
     this.defaultToolRepository = new DefaultToolRepository(this);
-    loggingContext = this;
   }
 
   /**
@@ -855,7 +854,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   public IdeSystem getSystem() {
 
     if (this.system == null) {
-      this.system = new IdeSystemImpl(this);
+      this.system = new IdeSystemImpl();
     }
     return this.system;
   }
@@ -1601,16 +1600,6 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     assert (Files.isDirectory(installationPath));
     Path versionFile = installationPath.resolve(FILE_SOFTWARE_VERSION);
     getFileAccess().writeFileContent(version.toString(), versionFile);
-  }
-
-  /**
-   * Gets the logging context.
-   *
-   * @return {@link IdeContext}.
-   */
-  public static IdeContext getLoggingContext() {
-
-    return loggingContext;
   }
 
   /*

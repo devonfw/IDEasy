@@ -4,31 +4,30 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import com.devonfw.tools.ide.log.IdeLogger;
-
 /**
  * Extends {@link IdeSystemImpl} for testing. It will not modify your {@link System} and allows to modify environment variables for testing.
  */
 public class IdeSystemTestImpl extends IdeSystemImpl {
 
   /**
-   * @param logger the {@link IdeLogger}.
+   * The constructor.
    */
-  public IdeSystemTestImpl(IdeLogger logger) {
+  public IdeSystemTestImpl() {
 
-    this(logger, new Properties(), new HashMap<>());
+    this(new Properties(), new HashMap<>());
     this.environmentVariables.put("PATH", System.getenv("PATH"));
   }
 
   /**
-   * @param logger the {@link IdeLogger}.
+   * The constructor.
+   *
    * @param systemProperties the {@link System#getProperties() system properties} for testing.
    * @param environmentVariables the {@link System#getenv() environment variables} for testing.
    */
-  public IdeSystemTestImpl(IdeLogger logger, Properties systemProperties,
+  public IdeSystemTestImpl(Properties systemProperties,
       Map<String, String> environmentVariables) {
 
-    super(logger, systemProperties, environmentVariables);
+    super(systemProperties, environmentVariables);
   }
 
   /**
@@ -49,11 +48,10 @@ public class IdeSystemTestImpl extends IdeSystemImpl {
   }
 
   /**
-   * @param logger the {@link IdeLogger}.
    * @return a new instance of {@link IdeSystemTestImpl} initialized with {@link System} values but decoupled so changes do not affect {@link System}.
    */
-  public static IdeSystemTestImpl ofSystemDefaults(IdeLogger logger) {
+  public static IdeSystemTestImpl ofSystemDefaults() {
 
-    return new IdeSystemTestImpl(logger, new Properties(System.getProperties()), new HashMap<>(System.getenv()));
+    return new IdeSystemTestImpl(new Properties(System.getProperties()), new HashMap<>(System.getenv()));
   }
 }

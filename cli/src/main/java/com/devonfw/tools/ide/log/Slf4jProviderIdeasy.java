@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.serviceprovider;
+package com.devonfw.tools.ide.log;
 
 import org.slf4j.ILoggerFactory;
 import org.slf4j.IMarkerFactory;
@@ -9,16 +9,22 @@ import org.slf4j.spi.SLF4JServiceProvider;
 /**
  * Implementation of {@link SLF4JServiceProvider}.
  */
-public class TestProviderImpl implements SLF4JServiceProvider {
+public class Slf4jProviderIdeasy implements SLF4JServiceProvider {
 
-  private final String REQUESTED_API_VERSION = "2.0.12";
-  private TestLoggerFactoryImpl testLoggerFactory;
-  
+  private final Slf4jLoggerFactoryIdeasy loggerFactory;
+
+  /**
+   * The constructor.
+   */
+  public Slf4jProviderIdeasy() {
+    super();
+    this.loggerFactory = new Slf4jLoggerFactoryIdeasy();
+  }
 
   @Override
   public ILoggerFactory getLoggerFactory() {
 
-    return testLoggerFactory;
+    return this.loggerFactory;
   }
 
   @Override
@@ -36,11 +42,11 @@ public class TestProviderImpl implements SLF4JServiceProvider {
   @Override
   public String getRequestedApiVersion() {
 
-    return REQUESTED_API_VERSION;
+    return "2.0.12";
   }
 
   @Override
   public void initialize() {
-    testLoggerFactory = new TestLoggerFactoryImpl();
+    // nothing to do...
   }
 }
