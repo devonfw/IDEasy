@@ -1,0 +1,13 @@
+#!/bin/bash
+if [ "$1" = "--version" ]; then
+  echo "9.9.2"
+  exit
+elif [ "$1" = "list" ] && [ "$2" = "-g" ]; then
+  echo $IDE_HOME/software/node
+  echo "-- $3@9.9.2"
+  exit 1
+fi
+echo "npm $*"
+if [ "$1" == "install" ]; then
+  cp target/ide-projects/yarn/repository/yarn/yarn/default/yarn target/ide-projects/yarn/project/software/node/bin
+fi

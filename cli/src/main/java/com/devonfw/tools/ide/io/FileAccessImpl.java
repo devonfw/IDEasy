@@ -52,7 +52,6 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.io.IOUtils;
 
 import com.devonfw.tools.ide.cli.CliException;
-import com.devonfw.tools.ide.cli.CliOfflineException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.ini.IniComment;
 import com.devonfw.tools.ide.io.ini.IniFile;
@@ -95,9 +94,6 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   @Override
   public void download(String url, Path target) {
 
-    if (this.context.isOffline()) {
-      throw CliOfflineException.ofDownloadViaUrl(url);
-    }
     if (url.startsWith("http")) {
       downloadViaHttp(url, target);
     } else if (url.startsWith("ftp") || url.startsWith("sftp")) {
@@ -142,10 +138,14 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     if (httpVersion == null) {
       this.context.info("Trying to download {} from {}", target.getFileName(), url);
     } else {
-      this.context.info("Trying to download: {} with HTTP protocol version: {}", url, httpVersion);
+      this.context.info("Trying to download {} from {} with HTTP protocol version {}", target.getFileName(), url, httpVersion);
     }
     mkdirs(target.getParent());
-    httpGet(url, httpVersion, (response) -> downloadFileWithProgressBar(url, target, response));
+    this.context.getNetworkStatus().invokeNetworkTask(() ->
+    {
+      httpGet(url, httpVersion, (response) -> downloadFileWithProgressBar(url, target, response));
+      return null;
+    }, url);
   }
 
   /**
@@ -286,8 +286,15 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     } catch (NoSuchFileException e) {
       return false; // file doesn't exist
     } catch (IOException e) {
-      // errors in reading the attributes of the file
-      throw new IllegalStateException("An unexpected error occurred whilst checking if the file: " + path + " is a junction", e);
+      // For broken junctions, reading attributes might fail with various IOExceptions.
+      // In such cases, we should check if the path exists without following links.
+      // If it exists but we can't read its attributes, it's likely a broken junction.
+      if (Files.exists(path, LinkOption.NOFOLLOW_LINKS)) {
+        this.context.debug("Path " + path + " exists but attributes cannot be read, likely a broken junction: " + e.getMessage());
+        return true; // Assume it's a broken junction
+      }
+      // If it doesn't exist at all, it's not a junction
+      return false;
     }
   }
 
@@ -297,11 +304,16 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     if ((fileOrFolder != null) && (Files.isSymbolicLink(fileOrFolder) || isJunction(fileOrFolder))) {
       delete(fileOrFolder);
     } else if ((fileOrFolder != null) && Files.exists(fileOrFolder)) {
+      this.context.trace("Going to backup {}", fileOrFolder);
       LocalDateTime now = LocalDateTime.now();
       String date = DateTimeUtil.formatDate(now, true);
       String time = DateTimeUtil.formatTime(now);
       String filename = fileOrFolder.getFileName().toString();
-      Path backupPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_BACKUPS).resolve(date).resolve(time + "_" + filename);
+      Path backupBaseDir = this.context.getIdeHome();
+      if (backupBaseDir == null) {
+        backupBaseDir = this.context.getIdePath();
+      }
+      Path backupPath = backupBaseDir.resolve(IdeContext.FOLDER_BACKUPS).resolve(date).resolve(time + "_" + filename);
       backupPath = appendParentPath(backupPath, fileOrFolder.getParent(), 2);
       mkdirs(backupPath);
       Path target = backupPath.resolve(filename);
@@ -416,7 +428,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   private void deleteLinkIfExists(Path path) {
 
     boolean isJunction = isJunction(path); // since broken junctions are not detected by Files.exists()
-    boolean isSymlink = Files.exists(path) && Files.isSymbolicLink(path);
+    boolean isSymlink = Files.exists(path, LinkOption.NOFOLLOW_LINKS) && Files.isSymbolicLink(path);
 
     assert !(isSymlink && isJunction);
 
@@ -484,13 +496,13 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   }
 
   @Override
-  public void link(Path target, Path link, boolean relative, PathLinkType type) {
+  public void link(Path source, Path link, boolean relative, PathLinkType type) {
 
     final Path finalTarget;
     try {
-      finalTarget = adaptPath(target, link, relative);
+      finalTarget = adaptPath(source, link, relative);
     } catch (Exception e) {
-      throw new IllegalStateException("Failed to adapt target (" + target + ") for link (" + link + ") and relative (" + relative + ")", e);
+      throw new IllegalStateException("Failed to adapt target (" + source + ") for link (" + link + ") and relative (" + relative + ")", e);
     }
     String relativeOrAbsolute = finalTarget.isAbsolute() ? "absolute" : "relative";
     this.context.debug("Creating {} {} at {} pointing to {}", relativeOrAbsolute, type, link, finalTarget);
@@ -514,7 +526,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
         throw new RuntimeException(e);
       }
     } catch (IOException e) {
-      throw new IllegalStateException("Failed to create a " + relativeOrAbsolute + " " + type + " at " + link + " pointing to " + target, e);
+      throw new IllegalStateException("Failed to create a " + relativeOrAbsolute + " " + type + " at " + link + " pointing to " + source, e);
     }
   }
 
@@ -583,7 +595,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       return;
     }
     Path tmpDir = createTempDir("extract-" + archiveFile.getFileName());
-    this.context.trace("Trying to extract the downloaded file {} to {} and move it to {}.", archiveFile, tmpDir, targetDir);
+    this.context.trace("Trying to extract the file {} to {} and move it to {}.", archiveFile, tmpDir, targetDir);
     String filename = archiveFile.getFileName().toString();
     TarCompression tarCompression = TarCompression.of(filename);
     if (tarCompression != null) {
@@ -738,10 +750,10 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
             permissions = PathPermissions.of(tae.getMode());
           } else {
             Path parent = entryPath.getParent();
-            String linkName = tae.getLinkName();
-            Path linkTarget = parent.resolve(linkName).normalize();
-            Path target = resolveRelativePathSecure(linkTarget, root, linkName);
-            links.add(new PathLink(entryPath, target, linkType));
+            String sourcePathString = tae.getLinkName();
+            Path source = parent.resolve(sourcePathString).normalize();
+            source = resolveRelativePathSecure(source, root, sourcePathString);
+            links.add(new PathLink(source, entryPath, linkType));
             mkdirs(parent);
           }
         }
@@ -827,9 +839,9 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   }
 
   @Override
-  public void compress(Path dir, OutputStream out, String format) {
+  public void compress(Path dir, OutputStream out, String path) {
 
-    String extension = FilenameUtil.getExtension(format);
+    String extension = FilenameUtil.getExtension(path);
     TarCompression tarCompression = TarCompression.of(extension);
     if (tarCompression != null) {
       compressTar(dir, out, tarCompression);
@@ -1019,6 +1031,42 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   }
 
   @Override
+  public Path findAncestor(Path path, Path baseDir, int subfolderCount) {
+
+    if ((path == null) || (baseDir == null)) {
+      this.context.debug("Path should not be null for findAncestor.");
+      return null;
+    }
+    if (subfolderCount <= 0) {
+      throw new IllegalArgumentException("Subfolder count: " + subfolderCount);
+    }
+    // 1. option relativize
+    // 2. recursive getParent
+    // 3. loop getParent???
+    // 4. getName + getNameCount
+    path = path.toAbsolutePath().normalize();
+    baseDir = baseDir.toAbsolutePath().normalize();
+    int directoryNameCount = path.getNameCount();
+    int baseDirNameCount = baseDir.getNameCount();
+    int delta = directoryNameCount - baseDirNameCount - subfolderCount;
+    if (delta < 0) {
+      return null;
+    }
+    // ensure directory is a sub-folder of baseDir
+    for (int i = 0; i < baseDirNameCount; i++) {
+      if (!path.getName(i).toString().equals(baseDir.getName(i).toString())) {
+        return null;
+      }
+    }
+    Path result = path;
+    while (delta > 0) {
+      result = result.getParent();
+      delta--;
+    }
+    return result;
+  }
+
+  @Override
   public List<Path> listChildrenMapped(Path dir, Function<Path, Path> filter) {
 
     if (!Files.isDirectory(dir)) {
@@ -1051,6 +1099,15 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   public boolean isEmptyDir(Path dir) {
 
     return listChildren(dir, f -> true).isEmpty();
+  }
+
+  @Override
+  public boolean isNonEmptyFile(Path file) {
+
+    if (Files.isRegularFile(file)) {
+      return (getFileSize(file) > 0);
+    }
+    return false;
   }
 
   private long getFileSize(Path file) {
@@ -1148,7 +1205,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
         if (confirm) {
           boolean yesContinue = this.context.question(
               "We want to execute {} but this command seems to lack executable permissions!\n"
-                  + "Most probably the tool vendor did forgot to add x-flags in the binary release package.\n"
+                  + "Most probably the tool vendor did forget to add x-flags in the binary release package.\n"
                   + "Before running the command, we suggest to set executable permissions to the file:\n"
                   + "{}\n"
                   + "For security reasons we ask for your confirmation so please check this request.\n"

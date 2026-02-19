@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import com.devonfw.tools.ide.cli.CliProcessException;
@@ -32,15 +33,16 @@ import com.devonfw.tools.ide.variable.IdeVariables;
 public class ProcessContextImpl implements ProcessContext {
 
   private static final String PREFIX_USR_BIN_ENV = "/usr/bin/env ";
+  private static final Predicate<Integer> EXIT_CODE_ACCEPTOR = rc -> rc == ProcessResult.SUCCESS;
 
   /** The owning {@link IdeContext}. */
   protected final IdeContext context;
 
   private final ProcessBuilder processBuilder;
 
-  private final List<String> arguments;
+  protected final List<String> arguments;
 
-  private Path executable;
+  protected Path executable;
 
   private String overriddenPath;
 
@@ -49,6 +51,8 @@ public class ProcessContextImpl implements ProcessContext {
   private ProcessErrorHandling errorHandling;
 
   private OutputListener outputListener;
+
+  private Predicate<Integer> exitCodeAcceptor;
 
   /**
    * The constructor.
@@ -69,6 +73,18 @@ public class ProcessContextImpl implements ProcessContext {
     }
     this.arguments = new ArrayList<>();
     this.extraPathEntries = new ArrayList<>();
+    this.exitCodeAcceptor = EXIT_CODE_ACCEPTOR;
+  }
+
+  private ProcessContextImpl(ProcessContextImpl parent) {
+
+    super();
+    this.context = parent.context;
+    this.processBuilder = parent.processBuilder;
+    this.errorHandling = ProcessErrorHandling.THROW_ERR;
+    this.arguments = new ArrayList<>();
+    this.extraPathEntries = parent.extraPathEntries;
+    this.exitCodeAcceptor = EXIT_CODE_ACCEPTOR;
   }
 
   @Override
@@ -130,6 +146,19 @@ public class ProcessContextImpl implements ProcessContext {
   }
 
   @Override
+  public ProcessContext withExitCodeAcceptor(Predicate<Integer> exitCodeAcceptor) {
+
+    this.exitCodeAcceptor = exitCodeAcceptor;
+    return this;
+  }
+
+  @Override
+  public ProcessContext createChild() {
+
+    return new ProcessContextImpl(this);
+  }
+
+  @Override
   public void setOutputListener(OutputListener listener) {
     this.outputListener = listener;
   }
@@ -171,15 +200,24 @@ public class ProcessContextImpl implements ProcessContext {
       Process process = this.processBuilder.start();
 
       try {
-        if (processMode == ProcessMode.DEFAULT_CAPTURE) {
+        if (Redirect.PIPE == processMode.getRedirectOutput() || Redirect.PIPE == processMode.getRedirectError()) {
           CompletableFuture<Void> outFut = readInputStream(process.getInputStream(), false, output);
           CompletableFuture<Void> errFut = readInputStream(process.getErrorStream(), true, output);
-          outFut.get();
-          errFut.get();
+          if (Redirect.PIPE == processMode.getRedirectOutput()) {
+            outFut.get();
+            if (this.outputListener != null) {
+              for (OutputMessage msg : output) {
+                this.outputListener.onOutput(msg.message(), msg.error());
+              }
+            }
+          }
 
-          if (this.outputListener != null) {
-            for (OutputMessage msg : output) {
-              this.outputListener.onOutput(msg.message(), msg.error());
+          if (Redirect.PIPE == processMode.getRedirectError()) {
+            errFut.get();
+            if (this.outputListener != null) {
+              for (OutputMessage msg : output) {
+                this.outputListener.onOutput(msg.message(), msg.error());
+              }
             }
           }
         }
@@ -193,7 +231,8 @@ public class ProcessContextImpl implements ProcessContext {
         }
 
         List<OutputMessage> finalOutput = new ArrayList<>(output);
-        ProcessResult result = new ProcessResultImpl(this.executable.getFileName().toString(), command, exitCode, finalOutput);
+        boolean success = this.exitCodeAcceptor.test(exitCode);
+        ProcessResult result = new ProcessResultImpl(this.executable.getFileName().toString(), command, exitCode, success, finalOutput);
 
         performLogging(result, exitCode, interpreter);
 
@@ -332,7 +371,7 @@ public class ProcessContextImpl implements ProcessContext {
     }
     if (isBashScript) {
       interpreter = "bash";
-      args.add(this.context.findBashRequired());
+      args.add(this.context.findBashRequired().toString());
     }
     if ("msi".equalsIgnoreCase(fileExtension)) {
       args.add(0, "/i");
@@ -361,11 +400,9 @@ public class ProcessContextImpl implements ProcessContext {
 
   private void modifyArgumentsOnBackgroundProcess(ProcessMode processMode) {
 
-    if (!processMode.isBackground()) {
-      throw new IllegalStateException("Cannot handle non background process mode!");
-    }
+    assert processMode.isBackground() : "Cannot handle non background process mode!";
 
-    String bash = this.context.findBash();
+    Path bash = this.context.findBash();
     if (bash == null) {
       this.context.warning(
           "Cannot start background process via bash because no bash installation was found. Hence, output will be discarded.");
@@ -376,7 +413,7 @@ public class ProcessContextImpl implements ProcessContext {
     String commandToRunInBackground = buildCommandToRunInBackground();
 
     this.arguments.clear();
-    this.arguments.add(bash);
+    this.arguments.add(bash.toString());
     this.arguments.add("-c");
     commandToRunInBackground += " & disown";
     this.arguments.add(commandToRunInBackground);

@@ -19,10 +19,10 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * Test class for integrations of the {@link NpmUrlUpdater}
+ * Test of {@link NpmUrlUpdater}
  */
 @WireMockTest
-public class NpmUrlUpdaterTest extends AbstractUrlUpdaterTest {
+class NpmUrlUpdaterTest extends AbstractUrlUpdaterTest {
 
   /**
    * Test of {@link JsonUrlUpdater} for the creation of {@link NpmUrlUpdater} download URLs and checksums.
@@ -32,7 +32,7 @@ public class NpmUrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @throws IOException test fails
    */
   @Test
-  public void testNpmJsonUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  void testNpmJsonUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
 
     // arrange
     stubFor(get(urlMatching("/npm")).willReturn(
@@ -62,7 +62,7 @@ public class NpmUrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @throws IOException test fails
    */
   @Test
-  public void testNpmJsonUrlUpdaterWithMissingDownloadsDoesNotCreateVersionFolder(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo)
+  void testNpmJsonUrlUpdaterWithMissingDownloadsDoesNotCreateVersionFolder(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo)
       throws IOException {
 
     // arrange
@@ -89,7 +89,7 @@ public class NpmUrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @throws IOException test fails
    */
   @Test
-  public void testNpmJsonUrlUpdaterFilteredVersionCreateVersionFolder(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  void testNpmJsonUrlUpdaterFilteredVersionCreateVersionFolder(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
 
     // arrange
     stubFor(get(urlMatching("/npm")).willReturn(
@@ -117,7 +117,7 @@ public class NpmUrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @throws IOException test fails
    */
   @Test
-  public void testNpmJsonUrlUpdaterGeneratesChecksum(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  void testNpmJsonUrlUpdaterGeneratesChecksum(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
 
     // arrange
     stubFor(get(urlMatching("/npm")).willReturn(

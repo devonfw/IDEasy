@@ -1,25 +1,25 @@
 package com.devonfw.tools.ide.tool.node;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
 
-import com.devonfw.tools.ide.cache.CachedValue;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.process.ProcessErrorHandling;
-import com.devonfw.tools.ide.process.ProcessMode;
-import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
-import com.devonfw.tools.ide.tool.repository.ToolRepository;
-import com.devonfw.tools.ide.version.VersionIdentifier;
+import com.devonfw.tools.ide.tool.PackageManagerBasedLocalToolCommandlet;
+import com.devonfw.tools.ide.tool.PackageManagerRequest;
+import com.devonfw.tools.ide.tool.ToolCommandlet;
 
 /**
  * {@link LocalToolCommandlet} for tools based on <a href="https://www.npmjs.com/">npm</a>.
+ *
+ * @param <P> type of the {@link ToolCommandlet} acting as {@link #getPackageManagerClass() package manager}.
  */
-public abstract class NodeBasedCommandlet extends LocalToolCommandlet {
+public abstract class NodeBasedCommandlet<P extends ToolCommandlet> extends PackageManagerBasedLocalToolCommandlet<P> {
 
-  private final CachedValue<VersionIdentifier> installedVersion;
+  /** File name of the {@link #findBuildDescriptor(Path) build descriptor} . */
+  public static final String PACKAGE_JSON = "package.json";
 
   /**
    * The constructor.
@@ -31,43 +31,12 @@ public abstract class NodeBasedCommandlet extends LocalToolCommandlet {
   public NodeBasedCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
     super(context, tool, tags);
-    this.installedVersion = new CachedValue<>(this::computeInstalledVersion);
-  }
-
-  /**
-   * @return the computed value of the {@link #getInstalledVersion() installed version}.
-   */
-  protected abstract VersionIdentifier computeInstalledVersion();
-
-  @Override
-  protected boolean isIgnoreSoftwareRepo() {
-
-    // node and node.js are messy - see https://github.com/devonfw/IDEasy/issues/352
-    return true;
-  }
-
-  /**
-   * @return the package of this tool from the NPM registry.
-   */
-  public String getPackageName() {
-
-    return this.tool;
   }
 
   @Override
-  public Path getToolPath() {
+  protected Node getParentTool() {
 
-    Path toolPath = this.context.getSoftwarePath().resolve("node");
-    if (!this.context.getSystemInfo().isWindows()) {
-      toolPath = toolPath.resolve("bin");
-    }
-    return toolPath;
-  }
-
-  @Override
-  public VersionIdentifier getInstalledVersion() {
-
-    return this.installedVersion.get();
+    return this.context.getCommandletManager().getCommandlet(Node.class);
   }
 
   @Override
@@ -79,61 +48,40 @@ public abstract class NodeBasedCommandlet extends LocalToolCommandlet {
     return null;
   }
 
-  @Override
-  protected void performToolInstallation(ToolRepository toolRepository, VersionIdentifier resolvedVersion, Path installationPath, String edition,
-      ProcessContext processContext) {
-
-    runPackageInstall(getPackageName() + "@" + resolvedVersion);
-    this.installedVersion.invalidate();
-  }
-
-  @Override
-  protected void performUninstall(Path toolPath) {
-
-    runPackageUninstall(getPackageName());
-    this.installedVersion.invalidate();
-  }
-
   /**
-   * Performs a global npm uninstall.
+   * Checks if a provided binary can be found within node.
    *
-   * @param npmPackage the npm package to uninstall.
+   * @param binary name of the binary.
+   * @return {@code true} if a binary was found in the node installation, {@code false} if not.
    */
-  protected void runPackageUninstall(String npmPackage) {
-    runPackageManager("uninstall", "-g", npmPackage).failOnError();
+  protected boolean hasNodeBinary(String binary) {
+
+    return Files.exists(getToolBinPath().resolve(binary));
   }
 
-  /**
-   * Performs a global npm install.
-   *
-   * @param npmPackage the npm package to install.
-   * @return the {@link ProcessResult} of the npm execution.
-   */
-  protected ProcessResult runPackageInstall(String npmPackage) {
+  @Override
+  protected String completeRequestOption(PackageManagerRequest request) {
 
-    return runPackageManager("install", "-g", npmPackage);
+    return switch (request.getType()) {
+      case PackageManagerRequest.TYPE_INSTALL -> "-gf";
+      case PackageManagerRequest.TYPE_UNINSTALL -> "-g";
+      default -> null;
+    };
   }
-
-  /**
-   * @param args the arguments for the package manager.
-   * @return the {@link ProcessResult}.
-   */
-  protected ProcessResult runPackageManager(String... args) {
-
-    return runPackageManager(ProcessMode.DEFAULT, ProcessErrorHandling.THROW_CLI, args);
-  }
-
-  /**
-   * @param processMode the {@link ProcessMode}.
-   * @param errorHandling the {@link ProcessErrorHandling}.
-   * @param args the arguments for the package manager.
-   * @return the {@link ProcessResult}.
-   */
-  protected abstract ProcessResult runPackageManager(ProcessMode processMode, ProcessErrorHandling errorHandling, String... args);
 
   @Override
   public String getToolHelpArguments() {
 
     return "--help";
+  }
+
+  @Override
+  public Path findBuildDescriptor(Path directory) {
+
+    Path buildDescriptor = directory.resolve(PACKAGE_JSON);
+    if (Files.exists(buildDescriptor)) {
+      return buildDescriptor;
+    }
+    return super.findBuildDescriptor(directory);
   }
 }

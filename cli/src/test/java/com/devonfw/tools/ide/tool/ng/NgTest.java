@@ -1,33 +1,30 @@
 package com.devonfw.tools.ide.tool.ng;
 
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.os.SystemInfo;
-import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * Integration test of {@link Ng}.
+ * Test of {@link Ng}.
  */
-public class NgTest extends AbstractIdeContextTest {
+@WireMockTest
+class NgTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_NG = "ng";
 
   /**
-   * Tests if the {@link Ng} install works correctly across all three operating systems.
+   * Tests if the {@link Ng} install works correctly on linux.
    *
-   * @param os Operating system
+   * @param wireMockRuntimeInfo wireMock server on a random port
    */
-  @ParameterizedTest
-  @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testNgInstall(String os) {
+  @Test
+  void testNgInstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_NG);
-    SystemInfo systemInfo = SystemInfoMock.of(os);
-    context.setSystemInfo(systemInfo);
+    IdeTestContext context = newContext(PROJECT_NG, wireMockRuntimeInfo);
     Ng commandlet = new Ng(context);
 
     // act
@@ -38,18 +35,15 @@ public class NgTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests if the {@link Ng} uninstall works correctly across all three operating systems.
+   * Tests if the {@link Ng} uninstall works correctly on linux.
    *
-   * @param os Operating system
+   * @param wireMockRuntimeInfo wireMock server on a random port
    */
-  @ParameterizedTest
-  @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testNgUninstall(String os) {
+  @Test
+  void testNgUninstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_NG);
-    SystemInfo systemInfo = SystemInfoMock.of(os);
-    context.setSystemInfo(systemInfo);
+    IdeTestContext context = newContext(PROJECT_NG, wireMockRuntimeInfo);
     Ng commandlet = new Ng(context);
 
     // act I
@@ -62,24 +56,21 @@ public class NgTest extends AbstractIdeContextTest {
     commandlet.uninstall();
 
     // assert II
-    assertThat(context).logAtInfo().hasMessageContaining("npm " + getOs(context) + " uninstall -g @angular/cli");
+    assertThat(context).logAtInfo().hasMessageContaining("npm uninstall -g @angular/cli");
 
     assertThat(context).logAtSuccess().hasMessage("Successfully uninstalled ng");
   }
 
   /**
-   * Tests if {@link Ng} run works correctly across all three operating systems.
+   * Tests if {@link Ng} run works correctly on linux.
    *
-   * @param os Operating system
+   * @param wireMockRuntimeInfo wireMock server on a random port
    */
-  @ParameterizedTest
-  @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testNgRun(String os) {
+  @Test
+  void testNgRun(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_NG);
-    SystemInfo systemInfo = SystemInfoMock.of(os);
-    context.setSystemInfo(systemInfo);
+    IdeTestContext context = newContext(PROJECT_NG, wireMockRuntimeInfo);
     Ng commandlet = new Ng(context);
     commandlet.arguments.setValue("--version");
 
@@ -87,25 +78,14 @@ public class NgTest extends AbstractIdeContextTest {
     commandlet.run();
 
     // assert
-    assertThat(context).logAtInfo().hasMessageContaining("ng " + getOs(context) + " --version");
+    assertThat(context).logAtInfo().hasMessageContaining("ng --version");
   }
 
   private void checkInstallation(IdeTestContext context) {
 
-    assertThat(context).logAtInfo().hasMessageContaining("npm " + getOs(context) + " install -g @angular/cli@18.0.1");
+    assertThat(context).logAtInfo().hasMessageContaining("npm install -gf @angular/cli@18.0.1");
 
-    assertThat(context).logAtSuccess().hasMessage("Successfully installed ng in version 18.0.1");
-  }
-
-  private String getOs(IdeTestContext context) {
-    if (context.getSystemInfo().isWindows()) {
-      return "windows";
-    } else if (context.getSystemInfo().isLinux()) {
-      return "linux";
-    } else if (context.getSystemInfo().isMac()) {
-      return "mac";
-    }
-    return "";
+    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed ng in version 18.0.1");
   }
 
 }

@@ -1,33 +1,30 @@
 package com.devonfw.tools.ide.tool.npm;
 
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.os.SystemInfo;
-import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * Integration test of {@link Npm}.
+ * Test of {@link Npm}.
  */
-public class NpmTest extends AbstractIdeContextTest {
+@WireMockTest
+class NpmTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_NPM = "npm";
 
   /**
    * Tests if the {@link Npm} install works correctly across all three operating systems.
    *
-   * @param os Operating system
+   * @param wireMockRuntimeInfo wireMock server on a random port
    */
-  @ParameterizedTest
-  @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testNpmInstall(String os) {
+  @Test
+  void testNpmInstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_NPM);
-    SystemInfo systemInfo = SystemInfoMock.of(os);
-    context.setSystemInfo(systemInfo);
+    IdeTestContext context = newContext(PROJECT_NPM, wireMockRuntimeInfo);
     Npm commandlet = new Npm(context);
 
     // act
@@ -40,16 +37,13 @@ public class NpmTest extends AbstractIdeContextTest {
   /**
    * Tests if npm can be run properly.
    *
-   * @param os Operating System.
+   * @param wireMockRuntimeInfo wireMock server on a random port
    */
-  @ParameterizedTest
-  @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testNpmRun(String os) {
+  @Test
+  void testNpmRun(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_NPM);
-    SystemInfo systemInfo = SystemInfoMock.of(os);
-    context.setSystemInfo(systemInfo);
+    IdeTestContext context = newContext(PROJECT_NPM, wireMockRuntimeInfo);
     Npm commandlet = new Npm(context);
     commandlet.arguments.setValue("--version");
 
@@ -57,23 +51,42 @@ public class NpmTest extends AbstractIdeContextTest {
     commandlet.run();
 
     // assert
-    assertThat(context).logAtInfo().hasMessageContaining("npm " + getOs(context) + " --version");
+    assertThat(context).logAtInfo().hasMessage("9.9.2");
+  }
+
+  /**
+   * Tests if the {@link Npm} uninstall works correctly.
+   *
+   * @param wireMockRuntimeInfo wireMock server on a random port
+   */
+  @Test
+  void testNpmUninstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_NPM, wireMockRuntimeInfo);
+    Npm commandlet = new Npm(context);
+
+    // act I
+    commandlet.install();
+
+    // assert I
+    checkInstallation(context);
+
+    // act II
+    commandlet.uninstall();
+
+    // assert II
+    assertThat(context).logAtInfo().hasNoMessageContaining("npm uninstall -g npm");
+    assertThat(context).logAtInfo().hasMessageContaining("IDEasy does not support uninstalling the tool npm since this will break your installation.\n"
+        + "If you really want to uninstall it, please uninstall its parent tool via:\n"
+        + "ide uninstall node");
+
+    assertThat(context).logAtSuccess().hasMessage("Successfully uninstalled npm");
   }
 
   private void checkInstallation(IdeTestContext context) {
 
-    assertThat(context.getSoftwarePath().resolve("npm/.ide.software.version")).exists().hasContent("9.9.2");
-    assertThat(context).logAtSuccess().hasMessage("Successfully installed npm in version 9.9.2");
-  }
-
-  private String getOs(IdeTestContext context) {
-    if (context.getSystemInfo().isWindows()) {
-      return "windows";
-    } else if (context.getSystemInfo().isLinux()) {
-      return "linux";
-    } else if (context.getSystemInfo().isMac()) {
-      return "mac";
-    }
-    return "";
+    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed npm in version 9.9.2");
+    assertThat(context).logAtSuccess().hasMessageContaining("Setting npm config prefix to: " + context.getSoftwarePath().resolve("node") + " was successful");
   }
 }

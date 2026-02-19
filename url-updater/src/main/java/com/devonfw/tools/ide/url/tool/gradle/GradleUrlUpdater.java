@@ -15,7 +15,7 @@ public class GradleUrlUpdater extends WebsiteUrlUpdater {
   private static final String HASHSUM_GRAB_PATTERN = "((.*)\\s){5}";
 
   private static final Pattern VERSION_PATTERN = Pattern.compile("release-checksums#v(\\d\\.\\d[\\.\\d]*)\"");
-  
+
   private static final Pattern SHA256_PATTERN = Pattern.compile("[a-fA-F0-9]{64}");
 
   private String responseBody;
@@ -45,7 +45,7 @@ public class GradleUrlUpdater extends WebsiteUrlUpdater {
   }
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "gradle";
   }
@@ -72,7 +72,7 @@ public class GradleUrlUpdater extends WebsiteUrlUpdater {
   }
 
   @Override
-  protected String mapVersion(String version) {
+  public String mapVersion(String version) {
 
     version = version.replace("release-checksums#v", "").replace("\"", "");
     return super.mapVersion(version);

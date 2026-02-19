@@ -3,13 +3,14 @@ package com.devonfw.tools.ide.context;
 import java.util.Locale;
 
 import com.devonfw.tools.ide.log.IdeLogger;
+import com.devonfw.tools.ide.network.ReadOfflineMode;
 
 /**
  * Extends {@link IdeLogger} with the options configurable via {@link com.devonfw.tools.ide.cli.Ideasy} CLI (see
  * {@link com.devonfw.tools.ide.commandlet.ContextCommandlet}). The {@link IdeStartContext} is therefore the object configured at bootstrapping and then used to
  * create the actual {@link IdeContext} from it.
  */
-public interface IdeStartContext extends IdeLogger {
+public interface IdeStartContext extends IdeLogger, ReadOfflineMode {
 
   /**
    * @return {@code true} in case of quiet mode (reduced output), {@code false} otherwise.
@@ -47,12 +48,9 @@ public interface IdeStartContext extends IdeLogger {
   boolean isForceRepositories();
 
   /**
-   * @return {@code true} if offline mode is activated (-o/--offline), {@code false} otherwise.
-   */
-  boolean isOfflineMode();
-
-  /**
-   * @return {@code true} if quickStart mode is activated (-s/--quickStart), {@code false} otherwise.
+   * @return {@code true} if updates should be skipped, {@code false} otherwise. If updates are skipped and the configured version is a
+   *     {@link com.devonfw.tools.ide.version.VersionIdentifier#isPattern() pattern} (e.g. "*" or "21*") and a matching version is already installed (e.g.
+   *     "21.0.3_9"), then updates will be skipped even if they are available (e.g. "21.0.9_10").
    */
   boolean isSkipUpdatesMode();
 

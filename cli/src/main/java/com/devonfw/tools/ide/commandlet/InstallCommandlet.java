@@ -8,6 +8,9 @@ import com.devonfw.tools.ide.property.ToolProperty;
 import com.devonfw.tools.ide.property.VersionProperty;
 import com.devonfw.tools.ide.tool.IdeasyCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
+import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -72,10 +75,20 @@ public class InstallCommandlet extends Commandlet {
     }
     ToolCommandlet commandlet = this.tool.getValue();
     VersionIdentifier versionIdentifier = this.version.getValue();
+    VersionIdentifier version = versionIdentifier;
+    if (version == null) {
+      version = commandlet.getConfiguredVersion();
+    }
+    ToolInstallRequest request = ToolInstallRequest.ofDirect();
+    request.setRequested(new ToolEditionAndVersion(version));
+    ToolInstallation installation = commandlet.install(request);
     if (versionIdentifier != null) {
+      VersionIdentifier installedVersion = installation.resolvedVersion();
+      if (!versionIdentifier.isPattern() || !versionIdentifier.matches(installedVersion)) {
+        versionIdentifier = installedVersion;
+      }
       commandlet.setVersion(versionIdentifier, false);
     }
-    commandlet.install(false);
   }
 
   @Override

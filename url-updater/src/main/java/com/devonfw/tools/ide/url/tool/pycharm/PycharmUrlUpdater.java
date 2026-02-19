@@ -15,16 +15,16 @@ public class PycharmUrlUpdater extends IdeaBasedUrlUpdater {
 
   private static final String JSON_URL = "products?code=PCP%2CPCC&release.type=release";
   private static final List<String> EDITIONS = List.of("professional", "pycharm");
-  protected static final ObjectMapper MAPPER = JsonMapping.create();
+  protected static final ObjectMapper MAPPER = JsonMapping.createWithReflectionSupportForUrlUpdaters();
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "pycharm";
   }
 
   @Override
-  protected List<String> getEditions() {
+  public List<String> getEditions() {
     return EDITIONS;
   }
 

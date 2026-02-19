@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.commandlet;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
@@ -18,13 +17,14 @@ import com.devonfw.tools.ide.property.ToolProperty;
 import com.devonfw.tools.ide.tool.az.Azure;
 import com.devonfw.tools.ide.tool.dotnet.DotNet;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
-import com.devonfw.tools.ide.tool.npm.Npm;
+import com.devonfw.tools.ide.tool.mvn.Mvn;
+import com.devonfw.tools.ide.tool.node.Node;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
- * Integration test of {@link UninstallCommandlet}.
+ * Test of {@link UninstallCommandlet}.
  */
-public class UninstallCommandletTest extends AbstractIdeContextTest {
+class UninstallCommandletTest extends AbstractIdeContextTest {
 
   private static final String PROJECT = "edition-version-get-uninstall";
 
@@ -46,31 +46,31 @@ public class UninstallCommandletTest extends AbstractIdeContextTest {
    * Test of {@link UninstallCommandlet} run.
    */
   @Test
-  public void testUninstallNpmAndDontButDotNetNotInstalled() {
+  void testUninstallMvnAndDotnetButDotNetNotInstalled() {
 
     // arrange
-    String npm = "npm";
+    String mvn = "mvn";
     String dotnet = "dotnet";
     IdeTestContext context = newContext(PROJECT_BASIC);
     CommandletManager commandletManager = context.getCommandletManager();
     UninstallCommandlet uninstallCommandlet = commandletManager.getCommandlet(UninstallCommandlet.class);
-    Npm npmCommandlet = commandletManager.getCommandlet(Npm.class);
+    Mvn mvnCommandlet = commandletManager.getCommandlet(Mvn.class);
     DotNet dotnetCommandlet = commandletManager.getCommandlet(DotNet.class);
 
     ToolProperty tools = uninstallCommandlet.tools;
-    tools.addValue(npmCommandlet);
+    tools.addValue(mvnCommandlet);
     tools.addValue(dotnetCommandlet);
 
     // act
     uninstallCommandlet.run();
     // assert
-    assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("Successfully uninstalled " + npm),
+    assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("Successfully uninstalled " + mvn),
         IdeLogEntry.ofWarning("Couldn't uninstall " + dotnet + " because we could not find an installation"));
-    assertThat(context.getSoftwarePath().resolve(npm)).doesNotExist();
+    assertThat(context.getSoftwarePath().resolve("mvn")).doesNotExist();
   }
 
   @Test
-  public void testUninstallEclipseFailsWhenNotInstalled() {
+  void testUninstallEclipseFailsWhenNotInstalled() {
 
     // arrange
     String eclipse = "eclipse";
@@ -83,30 +83,30 @@ public class UninstallCommandletTest extends AbstractIdeContextTest {
     uninstallCommandlet.run();
     // assert
     assertThat(context).logAtWarning().hasMessage("Couldn't uninstall " + eclipse + " because we could not find an installation");
-    assertThat(Files.notExists(context.getSoftwarePath().resolve(eclipse)));
+    assertThat(context.getSoftwarePath().resolve(eclipse)).doesNotExist();
   }
 
   @Test
-  public void testUninstallNpm() {
+  void testUninstallNode() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
 
     CommandletManager commandletManager = context.getCommandletManager();
     UninstallCommandlet uninstallCommandlet = commandletManager.getCommandlet(UninstallCommandlet.class);
-    Npm npmCommandlet = commandletManager.getCommandlet(Npm.class);
-    uninstallCommandlet.tools.addValue(npmCommandlet);
+    Node nodeCommandlet = commandletManager.getCommandlet(Node.class);
+    uninstallCommandlet.tools.addValue(nodeCommandlet);
 
     // act
     uninstallCommandlet.run();
     //assert
-    assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("Successfully uninstalled npm"));
+    assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("Successfully uninstalled node"));
   }
 
   /** Test of {@link UninstallCommandlet} run with --force. */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testForceUninstallAzure(String os) {
+  void testForceUninstallAzure(String os) {
 
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of(os);
@@ -135,7 +135,7 @@ public class UninstallCommandletTest extends AbstractIdeContextTest {
   /** Test {@link UninstallCommandlet} without arguments uninstalls IDEasy. */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testUninstallIdeasy(String os) {
+  void testUninstallIdeasy(String os) {
 
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of(os);

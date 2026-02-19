@@ -20,7 +20,7 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
   private static final Pattern VERSION_PATTERN = Pattern.compile("(4\\.\\d{1,4}+\\.\\d+)");
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "docker";
   }

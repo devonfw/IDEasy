@@ -9,7 +9,7 @@ import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
 public class DotNetUrlUpdater extends GithubUrlUpdater {
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "dotnet";
   }
@@ -54,7 +54,7 @@ public class DotNetUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
-  protected String mapVersion(String version) {
+  public String mapVersion(String version) {
     if (version.matches("v\\d+\\.\\d+\\.\\d+")) {
       return super.mapVersion(version);
     } else {

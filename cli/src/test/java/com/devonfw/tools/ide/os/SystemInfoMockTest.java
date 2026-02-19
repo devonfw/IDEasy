@@ -3,11 +3,14 @@ package com.devonfw.tools.ide.os;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class SystemInfoMockTest extends Assertions {
+/**
+ * Test of {@link SystemInfoMock}.
+ */
+class SystemInfoMockTest extends Assertions {
 
   /** Test {@link SystemInfoMock#of(String)} for windows. */
   @Test
-  public void testOfWindows() {
+  void testOfWindows() {
 
     // arrange
     String name = "windows";
@@ -19,7 +22,7 @@ public class SystemInfoMockTest extends Assertions {
 
   /** Test {@link SystemInfoMock#of(String)} for mac. */
   @Test
-  public void testOfMac() {
+  void testOfMac() {
 
     // arrange
     String name = "Mac";
@@ -31,7 +34,7 @@ public class SystemInfoMockTest extends Assertions {
 
   /** Test {@link SystemInfoMock#of(String)} for linux. */
   @Test
-  public void testOfLinux() {
+  void testOfLinux() {
 
     // arrange
     String name = "linux";

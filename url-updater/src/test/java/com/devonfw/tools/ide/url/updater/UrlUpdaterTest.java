@@ -31,14 +31,11 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * Test of {@link UrlUpdater} using wiremock to simulate network downloads.
+ * Test of {@link UrlUpdater}.
  */
 @WireMockTest
-public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
+class UrlUpdaterTest extends AbstractUrlUpdaterTest {
 
-  /**
-   * Test resource location
-   */
   private final static String TEST_DATA_ROOT = "src/test/resources/integrationtest/UrlUpdaterTest";
 
   /**
@@ -49,7 +46,7 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @throws IOException test fails
    */
   @Test
-  public void testUrlUpdaterMissingOsGetsAddedAutomatically(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  void testUrlUpdaterMissingOsGetsAddedAutomatically(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
 
     stubFor(any(urlMatching("/os/.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
 
@@ -85,7 +82,7 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
   }
 
   @Test
-  public void testUrlUpdaterIsNotUpdatingWhenStatusManualIsTrue(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
+  void testUrlUpdaterIsNotUpdatingWhenStatusManualIsTrue(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange
     stubFor(any(urlMatching("/os/.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
@@ -112,7 +109,7 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testStatusJsonUpdateOnFirstError(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
+  void testStatusJsonUpdateOnFirstError(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange
     String toolName = "mocked";
@@ -163,7 +160,7 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testSuccessStateUpdatedAfterError(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
+  void testSuccessStateUpdatedAfterError(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange
     String toolName = "mocked";
@@ -215,7 +212,7 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testVersionRemovedIfErrorPersists(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
+  void testVersionRemovedIfErrorPersists(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange
     String toolName = "mocked";
@@ -262,7 +259,7 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testUrlUpdaterWithTextContentTypeWillNotCreateStatusJson(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
+  void testUrlUpdaterWithTextContentTypeWillNotCreateStatusJson(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // given
     stubFor(any(urlMatching("/os/.*")).willReturn(aResponse().withStatus(200).withHeader("Content-Type", "text/plain").withBody("aBody")));
@@ -287,7 +284,7 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testUrlUpdaterWithOnlyLatestVersion(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
+  void testUrlUpdaterWithOnlyLatestVersion(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
     //given
     stubFor(any(urlMatching("/os/.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
     UrlRepository urlRepository = UrlRepository.load(tempDir);

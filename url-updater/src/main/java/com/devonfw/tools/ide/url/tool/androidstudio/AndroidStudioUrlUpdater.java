@@ -34,7 +34,7 @@ public class AndroidStudioUrlUpdater extends JsonUrlUpdater<AndroidJsonObject, A
   }
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "android-studio";
   }
@@ -84,6 +84,6 @@ public class AndroidStudioUrlUpdater extends JsonUrlUpdater<AndroidJsonObject, A
 
   @Override
   public String getCpeProduct() {
-    return "android studio";
+    return "android_studio";
   }
 }

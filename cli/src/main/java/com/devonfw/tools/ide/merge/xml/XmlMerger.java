@@ -112,12 +112,26 @@ public class XmlMerger extends FileMerger implements XmlMergeSupport {
   public Document merge(XmlMergeDocument templateDocument, XmlMergeDocument workspaceDocument, boolean workspaceFileExists) {
 
     Document resultDocument;
-    Path source = templateDocument.getPath();
-    Path template = workspaceDocument.getPath();
+    Path template = templateDocument.getPath();
+    Path source = workspaceDocument.getPath();
     this.context.debug("Merging {} into {} ...", template, source);
     Element templateRoot = templateDocument.getRoot();
     QName templateQName = XmlMergeSupport.getQualifiedName(templateRoot);
+    Document document = workspaceDocument.getDocument();
     Element workspaceRoot = workspaceDocument.getRoot();
+    if (workspaceRoot == null) {
+      workspaceRoot = (Element) document.importNode(templateRoot, false);
+      NamedNodeMap attributes = workspaceRoot.getAttributes();
+      int length = attributes.getLength();
+      for (int i = 0; i < length; i++) {
+        Attr attribute = (Attr) attributes.item(i);
+        if (XmlMergeSupport.hasMergeNamespace(attribute)) {
+          workspaceRoot.removeAttributeNode(attribute);
+        }
+      }
+      workspaceRoot.removeAttributeNS(XmlMergeSupport.MERGE_NS_URI, "xmlns:xsi");
+      document.appendChild(workspaceRoot);
+    }
     QName workspaceQName = XmlMergeSupport.getQualifiedName(workspaceRoot);
     if (templateQName.equals(workspaceQName)) {
       XmlMergeStrategy strategy = XmlMergeSupport.getMergeStrategy(templateRoot);
@@ -137,9 +151,9 @@ public class XmlMerger extends FileMerger implements XmlMergeSupport {
                   + "proceed correctly.", source);
         }
       }
-      ElementMatcher elementMatcher = new ElementMatcher(this.context);
+      ElementMatcher elementMatcher = new ElementMatcher(this.context, templateDocument.getPath(), workspaceDocument.getPath());
       strategy.merge(templateRoot, workspaceRoot, elementMatcher);
-      resultDocument = workspaceDocument.getDocument();
+      resultDocument = document;
     } else {
       this.context.error("Cannot merge XML template {} with root {} into XML file {} with root {} as roots do not match.", templateDocument.getPath(),
           templateQName, workspaceDocument.getPath(), workspaceQName);
@@ -177,12 +191,17 @@ public class XmlMerger extends FileMerger implements XmlMergeSupport {
    */
   public XmlMergeDocument load(Path file) {
 
-    try (InputStream in = Files.newInputStream(file)) {
-      Document document = DOCUMENT_BUILDER.parse(in);
-      return new XmlMergeDocument(document, file);
-    } catch (Exception e) {
-      throw new IllegalStateException("Failed to load XML from: " + file, e);
+    Document document;
+    if (this.context.getFileAccess().isNonEmptyFile(file)) {
+      try (InputStream in = Files.newInputStream(file)) {
+        document = DOCUMENT_BUILDER.parse(in);
+      } catch (Exception e) {
+        throw new IllegalStateException("Failed to load XML from: " + file, e);
+      }
+    } else {
+      document = DOCUMENT_BUILDER.newDocument();
     }
+    return new XmlMergeDocument(document, file);
   }
 
   /**

@@ -14,8 +14,6 @@ import com.devonfw.tools.ide.commandlet.UpgradeMode;
 import com.devonfw.tools.ide.common.SimpleSystemPath;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.git.GitContext;
-import com.devonfw.tools.ide.git.GitContextImpl;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.ini.IniFile;
 import com.devonfw.tools.ide.io.ini.IniSection;
@@ -25,7 +23,7 @@ import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.mvn.MvnArtifact;
 import com.devonfw.tools.ide.tool.mvn.MvnBasedLocalToolCommandlet;
-import com.devonfw.tools.ide.tool.repository.MvnRepository;
+import com.devonfw.tools.ide.tool.mvn.MvnRepository;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.IdeVersion;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -81,6 +79,12 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   }
 
   @Override
+  public String getInstalledEdition() {
+
+    return this.tool;
+  }
+
+  @Override
   public String getConfiguredEdition() {
 
     return this.tool;
@@ -111,15 +115,16 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   }
 
   @Override
-  public boolean install(boolean silent) {
+  protected ToolInstallation doInstall(ToolInstallRequest request) {
 
     this.context.requireOnline("upgrade of IDEasy", true);
 
     if (IdeVersion.isUndefined() && !this.context.isForceMode()) {
-      this.context.warning("You are using IDEasy version {} which indicates local development - skipping upgrade.", IdeVersion.getVersionString());
-      return false;
+      VersionIdentifier version = IdeVersion.getVersionIdentifier();
+      this.context.warning("You are using IDEasy version {} which indicates local development - skipping upgrade.", version);
+      return toolAlreadyInstalled(request);
     }
-    return super.install(silent);
+    return super.doInstall(request);
   }
 
   /**
@@ -127,9 +132,11 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
    */
   public VersionIdentifier getLatestVersion() {
 
-    VersionIdentifier currentVersion = IdeVersion.getVersionIdentifier();
-    if (IdeVersion.isUndefined()) {
-      return currentVersion;
+    if (!this.context.isForceMode()) {
+      VersionIdentifier currentVersion = IdeVersion.getVersionIdentifier();
+      if (IdeVersion.isUndefined()) {
+        return currentVersion;
+      }
     }
     VersionIdentifier configuredVersion = getConfiguredVersion();
     return getToolRepository().resolveVersion(this.tool, getConfiguredEdition(), configuredVersion, this);
@@ -174,27 +181,28 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     Path ideasySoftwarePath = idePath.resolve(IdeContext.FOLDER_SOFTWARE).resolve(MvnRepository.ID).resolve(IdeasyCommandlet.TOOL_NAME)
         .resolve(IdeasyCommandlet.TOOL_NAME);
     Path ideasyVersionPath = ideasySoftwarePath.resolve(IdeVersion.getVersionString());
-    if (Files.isDirectory(ideasyVersionPath)) {
-      throw new CliException("IDEasy is already installed at " + ideasyVersionPath + " - if your installation is broken, delete it manually and rerun setup!");
-    }
     FileAccess fileAccess = this.context.getFileAccess();
-    List<Path> installationArtifacts = new ArrayList<>();
-    boolean success = true;
-    success &= addInstallationArtifact(cwd, "bin", true, installationArtifacts);
-    success &= addInstallationArtifact(cwd, "functions", true, installationArtifacts);
-    success &= addInstallationArtifact(cwd, "internal", true, installationArtifacts);
-    success &= addInstallationArtifact(cwd, "system", true, installationArtifacts);
-    success &= addInstallationArtifact(cwd, "IDEasy.pdf", true, installationArtifacts);
-    success &= addInstallationArtifact(cwd, "setup", true, installationArtifacts);
-    success &= addInstallationArtifact(cwd, "setup.bat", false, installationArtifacts);
-    if (!success) {
-      throw new CliException("IDEasy release is inconsistent at " + cwd);
+    if (Files.isDirectory(ideasyVersionPath)) {
+      this.context.error("IDEasy is already installed at {} - if your installation is broken, delete it manually and rerun setup!", ideasyVersionPath);
+    } else {
+      List<Path> installationArtifacts = new ArrayList<>();
+      boolean success = true;
+      success &= addInstallationArtifact(cwd, "bin", true, installationArtifacts);
+      success &= addInstallationArtifact(cwd, "functions", true, installationArtifacts);
+      success &= addInstallationArtifact(cwd, "internal", true, installationArtifacts);
+      success &= addInstallationArtifact(cwd, "system", true, installationArtifacts);
+      success &= addInstallationArtifact(cwd, "IDEasy.pdf", true, installationArtifacts);
+      success &= addInstallationArtifact(cwd, "setup", true, installationArtifacts);
+      success &= addInstallationArtifact(cwd, "setup.bat", false, installationArtifacts);
+      if (!success) {
+        throw new CliException("IDEasy release is inconsistent at " + cwd);
+      }
+      fileAccess.mkdirs(ideasyVersionPath);
+      for (Path installationArtifact : installationArtifacts) {
+        fileAccess.copy(installationArtifact, ideasyVersionPath);
+      }
+      this.context.writeVersionFile(IdeVersion.getVersionIdentifier(), ideasyVersionPath);
     }
-    fileAccess.mkdirs(ideasyVersionPath);
-    for (Path installationArtifact : installationArtifacts) {
-      fileAccess.copy(installationArtifact, ideasyVersionPath);
-    }
-    this.context.writeVersionFile(IdeVersion.getVersionIdentifier(), ideasyVersionPath);
     fileAccess.symlink(ideasyVersionPath, installationPath);
     addToShellRc(BASHRC, ideRoot, null);
     addToShellRc(ZSHRC, ideRoot, "autoload -U +X bashcompinit && bashcompinit");
@@ -227,7 +235,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
             + "Otherwise all is correct and you can continue.");
         this.context.askToContinue("Are you sure you want to override your PATH?");
       } else {
-        path.removeEntries(s -> s.endsWith(IDE_BIN));
+        path.removeEntries(s -> s.endsWith(IDE_INSTALLATION_BIN));
       }
       path.getEntries().add(ideasyBinPath.toString());
       helper.setUserEnvironmentValue(IdeVariables.PATH.getName(), path.toString());
@@ -236,8 +244,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   }
 
   private void setGitLongpaths() {
-    GitContext gitContext = new GitContextImpl(this.context);
-    gitContext.verifyGitInstalled();
+    this.context.getGitContext().findGitRequired();
     Path configPath = this.context.getUserHome().resolve(".gitconfig");
     FileAccess fileAccess = this.context.getFileAccess();
     IniFile iniFile = fileAccess.readIniFile(configPath);
@@ -312,13 +319,13 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     }
 
     try {
-      String bashPath = this.context.findBash();
+      Path bashPath = this.context.findBash();
       if (bashPath == null) {
         this.context.warning("Git Bash not found. Cannot configure Windows Terminal integration.");
         return;
       }
 
-      configureGitBashProfile(settingsPath, bashPath);
+      configureGitBashProfile(settingsPath, bashPath.toString());
       this.context.success("Git Bash has been configured in Windows Terminal.");
     } catch (Exception e) {
       this.context.warning("Failed to configure Git Bash in Windows Terminal: {}", e.getMessage());

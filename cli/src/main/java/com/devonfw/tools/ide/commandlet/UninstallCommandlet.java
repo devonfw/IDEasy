@@ -53,7 +53,7 @@ public class UninstallCommandlet extends Commandlet {
     }
     for (int i = 0; i < valueCount; i++) {
       ToolCommandlet toolCommandlet = this.tools.getValue(i);
-      if (toolCommandlet.getInstalledVersion() != null) {
+      if (toolCommandlet.isInstalled()) {
         toolCommandlet.uninstall();
       } else {
         this.context.warning("Couldn't uninstall " + toolCommandlet.getName() + " because we could not find an installation");

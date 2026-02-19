@@ -2,7 +2,9 @@ package com.devonfw.tools.ide.completion;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
@@ -17,11 +19,13 @@ import com.devonfw.tools.ide.property.Property;
 /**
  * Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion}.
  */
-public class CompleteTest extends AbstractIdeContextTest {
+class CompleteTest extends AbstractIdeContextTest {
+
+  private static final String PROJECT_COMPLETION = "completion";
 
   /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for empty input. */
   @Test
-  public void testCompleteEmpty() {
+  void testCompleteEmpty() {
 
     // arrange
     boolean includeContextOptions = true;
@@ -38,7 +42,7 @@ public class CompleteTest extends AbstractIdeContextTest {
 
   /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for long option. */
   @Test
-  public void testCompleteLongOptionBatch() {
+  void testCompleteLongOptionBatch() {
 
     // arrange
     boolean includeContextOptions = true;
@@ -55,7 +59,7 @@ public class CompleteTest extends AbstractIdeContextTest {
 
   /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for empty input. */
   @Test
-  public void testCompleteEmptyNoCtxOptions() {
+  void testCompleteEmptyNoCtxOptions() {
 
     // arrange
     boolean includeContextOptions = false;
@@ -72,7 +76,7 @@ public class CompleteTest extends AbstractIdeContextTest {
 
   /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for input "h". */
   @Test
-  public void testCompleteCommandletFirstLetter() {
+  void testCompleteCommandletFirstLetter() {
 
     // arrange
     AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
@@ -85,7 +89,7 @@ public class CompleteTest extends AbstractIdeContextTest {
 
   /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for input "-f". */
   @Test
-  public void testCompleteShortOptsCombined() {
+  void testCompleteShortOptsCombined() {
 
     // arrange
     AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
@@ -99,7 +103,7 @@ public class CompleteTest extends AbstractIdeContextTest {
 
   /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for input "-fbdoqt". */
   @Test
-  public void testCompleteShortOptsCombinedAllButVersion() {
+  void testCompleteShortOptsCombinedAllButVersion() {
 
     // arrange
     AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
@@ -112,7 +116,7 @@ public class CompleteTest extends AbstractIdeContextTest {
 
   /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for input "help", "". */
   @Test
-  public void testCompleteHelpEmptyArgs() {
+  void testCompleteHelpEmptyArgs() {
 
     // arrange
     AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
@@ -127,7 +131,7 @@ public class CompleteTest extends AbstractIdeContextTest {
 
   /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for input "help", "". */
   @Test
-  public void testCompleteVersionNoMoreArgs() {
+  void testCompleteVersionNoMoreArgs() {
 
     // arrange
     AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
@@ -140,7 +144,7 @@ public class CompleteTest extends AbstractIdeContextTest {
 
   /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for an option inside a commandlet. */
   @Test
-  public void testCompleteCommandletOption() {
+  void testCompleteCommandletOption() {
 
     // arrange
     AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
@@ -180,5 +184,86 @@ public class CompleteTest extends AbstractIdeContextTest {
     }
     Collections.sort(expectedCandidates);
     return expectedCandidates;
+  }
+
+  /**
+   * Test to verify that completion candidates are not duplicated for various input scenarios.
+   */
+  @Test
+  void testCompletionNoDuplicates() {
+
+    // arrange
+    AbstractIdeContext context = newContext(PROJECT_COMPLETION, null, false);
+
+    // Test various completion scenarios that could potentially produce duplicates
+    String[] testInputs = { "i", "in", "install", "h", "help", "j", "java" };
+
+    for (String input : testInputs) {
+      // act
+      CliArguments args = CliArguments.ofCompletion(input);
+      List<CompletionCandidate> candidates = context.complete(args, false);
+
+      // assert
+      Map<String, Integer> textCounts = new HashMap<>();
+      for (CompletionCandidate candidate : candidates) {
+        String text = candidate.text();
+        textCounts.put(text, textCounts.getOrDefault(text, 0) + 1);
+      }
+
+      // Check for duplicates
+      long uniqueCount = candidates.stream().map(CompletionCandidate::text).distinct().count();
+
+      assertThat(candidates.size()).as("Input '%s' should not have duplicate candidates", input)
+          .isEqualTo(uniqueCount);
+    }
+  }
+
+  /**
+   * Test the specific scenario from issue <a href="https://github.com/devonfw/IDEasy/issues/536">#536</a>: completion for "in" should not produce duplicates
+   * and should contain expected candidates.
+   */
+  @Test
+  void testCompletionForInPrefix() {
+
+    // arrange
+    AbstractIdeContext context = newContext(PROJECT_COMPLETION, null, false);
+    CliArguments args = CliArguments.ofCompletion("in");
+
+    // act
+    List<CompletionCandidate> candidates = context.complete(args, true);
+
+    // assert - verify no duplicates
+    long totalCandidates = candidates.size();
+    long uniqueCandidates = candidates.stream().map(CompletionCandidate::text).distinct().count();
+
+    assertThat(totalCandidates).as("Should not have duplicate completion candidates").isEqualTo(uniqueCandidates);
+
+    // Additional verification - check that expected candidates are present
+    List<String> candidateTexts = candidates.stream().map(CompletionCandidate::text).toList();
+    assertThat(candidateTexts).contains("install", "install-plugin", "intellij");
+  }
+
+  /**
+   * Test completion for empty string to ensure context options are included without duplicates.
+   */
+  @Test
+  void testCompletionEmptyInput() {
+
+    // arrange
+    AbstractIdeContext context = newContext(PROJECT_COMPLETION, null, false);
+    CliArguments args = CliArguments.ofCompletion("");
+    args.next(); // move to first argument
+
+    // act
+    List<CompletionCandidate> candidates = context.complete(args, true);
+
+    // assert - verify no duplicates
+    long totalCandidates = candidates.size();
+    long uniqueCandidates = candidates.stream().map(CompletionCandidate::text).distinct().count();
+
+    assertThat(totalCandidates).as("Should not have duplicate completion candidates").isEqualTo(uniqueCandidates);
+
+    // Should include both context options and commandlets
+    assertThat(candidates).isNotEmpty();
   }
 }

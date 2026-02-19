@@ -16,7 +16,7 @@ import com.devonfw.tools.ide.context.ProcessContextTestImpl;
 /**
  * Test of {@link PluginBasedCommandlet}.
  */
-public class PluginBasedCommandletTest extends AbstractIdeContextTest {
+class PluginBasedCommandletTest extends AbstractIdeContextTest {
 
   private final String ANY_EDIT_PLUGIN_PATH = "eclipse/plugins/anyedit.properties";
   private final String TOOL = "eclipse";
@@ -66,6 +66,7 @@ public class PluginBasedCommandletTest extends AbstractIdeContextTest {
         new ProcessContextTestImpl(context));
 
     //assert - Check if we skip the markerfile-check because we force the plugins to install
-    assertThat(context).log().hasNoMessage("Markerfile for IDE: eclipse and active plugin: anyedit already exists.");
+    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin anyedit'.");
+    assertThat(context).log().hasNoMessageContaining("Skipping installation of plugin '{}' due to existing marker file: ");
   }
 }

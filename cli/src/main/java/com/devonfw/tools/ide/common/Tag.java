@@ -445,7 +445,6 @@ public final class Tag {
   /**
    * @param id the {@link #getId() ID} of the tag.
    * @param parent the {@link #getParent() parent tag}.
-   * @param isAbstract the {@link #isAbstract() abstract flag}.
    * @return the new {@link Tag}.
    */
   static Tag create(String id, Tag parent) {

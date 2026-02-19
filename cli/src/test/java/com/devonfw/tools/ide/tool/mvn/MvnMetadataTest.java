@@ -1,0 +1,34 @@
+package com.devonfw.tools.ide.tool.mvn;
+
+import java.util.Arrays;
+
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Test;
+
+/**
+ * Test of {@link MvnMetadata}.
+ */
+class MvnMetadataTest extends Assertions {
+
+  /**
+   * Test of constructors, getters, and setters of {@link MvnMetadata}.
+   */
+  @Test
+  void testMavenMetadata() {
+    MvnVersioning versioning = new MvnVersioning("1.2.3", "1.2.2", Arrays.asList("1.2.1", "1.2.2", "1.2.3"), "20250729");
+    MvnMetadata metadata = new MvnMetadata("com.example", "demo-artifact", versioning);
+    assertThat(metadata.getGroupId()).isEqualTo("com.example");
+    assertThat(metadata.getArtifactId()).isEqualTo("demo-artifact");
+    assertThat(metadata.getVersioning()).isEqualTo(versioning);
+
+    // Test setters
+    metadata.setGroupId("org.test");
+    metadata.setArtifactId("test-artifact");
+    MvnVersioning v2 = new MvnVersioning();
+    metadata.setVersioning(v2);
+    assertThat(metadata.getGroupId()).isEqualTo("org.test");
+    assertThat(metadata.getArtifactId()).isEqualTo("test-artifact");
+    assertThat(metadata.getVersioning()).isEqualTo(v2);
+  }
+}
+

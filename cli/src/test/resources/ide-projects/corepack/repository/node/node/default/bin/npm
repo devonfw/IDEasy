@@ -1,0 +1,11 @@
+#!/bin/bash
+if [ "$1" == "--version" ]; then
+  echo "9.9.2"
+  exit
+fi
+echo "npm $*"
+
+if [ "$1" == "install" ]; then
+  cp target/ide-projects/corepack/repository/corepack/corepack/default/corepack target/ide-projects/corepack/project/software/node/bin
+  cp target/ide-projects/corepack/repository/corepack/corepack/default/corepack target/ide-projects/corepack/project/software/node
+fi

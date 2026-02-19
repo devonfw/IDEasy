@@ -21,15 +21,15 @@ import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 
 /**
- * Integration test of {@link HelpCommandlet}.
+ * Test of {@link HelpCommandlet}.
  */
-public class HelpCommandletTest extends AbstractIdeContextTest {
+class HelpCommandletTest extends AbstractIdeContextTest {
 
   /**
    * Test of {@link HelpCommandlet} does not require home.
    */
   @Test
-  public void testThatHomeIsNotRequired() {
+  void testThatHomeIsNotRequired() {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();
@@ -43,7 +43,7 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
    * Test of {@link HelpCommandlet} run.
    */
   @Test
-  public void testRun() {
+  void testRun() {
 
     // arrange
     IdeTestContext context = IdeTestContext.of();
@@ -59,14 +59,32 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
     for (Commandlet cmd : context.getCommandletManager().getCommandlets()) {
       assertThat(context).log().hasMessageContaining(cmd.getName());
     }
+    assertThat(context).logAtInfo().hasMessageContaining("Hint: Use 'icd' command to easily navigate");
     assertOptionLogMessages(context);
+  }
+
+  /**
+   * Test of {@link HelpCommandlet} includes icd hint in English.
+   */
+  @Test
+  void testIcdHint() {
+
+    // arrange
+    IdeTestContext context = IdeTestContext.of();
+    context.getStartContext().setLocale(Locale.ENGLISH);
+    HelpCommandlet help = new HelpCommandlet(context);
+
+    // act
+    help.run();
+    // assert
+    assertThat(context).logAtInfo().hasMessageContaining("Hint: Use 'icd' command to easily navigate");
   }
 
   /**
    * Test of {@link HelpCommandlet} run with a Commandlet.
    */
   @Test
-  public void testRunWithCommandlet() {
+  void testRunWithCommandlet() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
@@ -89,7 +107,7 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
    */
   @ParameterizedTest
   @ValueSource(strings = { "", "de" })
-  public void testEnsureAllNlsPropertiesPresent(String locale) throws IOException {
+  void testEnsureAllNlsPropertiesPresent(String locale) throws IOException {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();

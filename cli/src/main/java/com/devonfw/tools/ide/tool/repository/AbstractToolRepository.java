@@ -71,10 +71,6 @@ public abstract class AbstractToolRepository implements ToolRepository {
    */
   public Path download(UrlDownloadFileMetadata metadata) {
 
-    VersionIdentifier version = metadata.getVersion();
-    if (context.isOffline()) {
-      throw CliOfflineException.ofDownloadOfTool(metadata.getTool(), metadata.getEdition(), version);
-    }
     Set<String> urlCollection = metadata.getUrls();
     if (urlCollection.isEmpty()) {
       throw new IllegalStateException("Invalid download metadata with empty urls file for " + metadata);
@@ -92,9 +88,19 @@ public abstract class AbstractToolRepository implements ToolRepository {
     Path downloadCache = this.context.getDownloadPath().resolve(getId());
     this.context.getFileAccess().mkdirs(downloadCache);
     Path target = downloadCache.resolve(downloadFilename);
+    
     if (Files.exists(target)) {
-      this.context.interaction("Artifact already exists at {}\nTo force update please delete the file and run again.", target);
+      // File is already cached
+      if (this.context.getNetworkStatus().isOffline()) {
+        this.context.debug("Using cached download of {} in version {} from {} (offline mode)", 
+            metadata.getTool(), metadata.getVersion(), target);
+      } else {
+        this.context.interaction("Artifact already exists at {}\nTo force update please delete the file and run again.", target);
+      }
     } else {
+      if (this.context.getNetworkStatus().isOffline()) {
+        throw CliOfflineException.ofDownloadOfTool(metadata.getTool(), metadata.getEdition(), metadata.getVersion());
+      }
       target = download(metadata, target);
     }
     return target;
@@ -127,7 +133,7 @@ public abstract class AbstractToolRepository implements ToolRepository {
         this.context.error(error, "Failed to download from " + url);
       }
     }
-    throw new CliException("Download of " + target.getFileName() + " failed after trying " + size + " URL(s).", error);
+    throw new IllegalStateException("Download of " + target.getFileName() + " failed after trying " + size + " URL(s).", error);
   }
 
   /**
