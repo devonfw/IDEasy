@@ -8,6 +8,7 @@ These environment variables are described by the following table.
 Those variables printed *bold* are automatically exported in your shell (except for windows CMD that does not have such concept).
 Variables with the value `-` are not set by default but may be set via link:configuration.adoc[configuration] to override defaults.
 Please note that we are trying to minimize any potential side-effect from `IDEasy` to the outside world by reducing the number of variables and only exporting those that are required.
+See also link:https://github.com/devonfw/IDEasy/blob/main/cli/src/main/java/com/devonfw/tools/ide/variable/IdeVariables.java[IdeVariables.java] that defines all the available variables. 
 
 .Variables of IDEasy
 [options="header"]
@@ -15,26 +16,28 @@ Please note that we are trying to minimize any potential side-effect from `IDEas
 |*Variable*|*Value*|*Meaning*
 |`IDE_ROOT`|e.g. `~/projects/` or `C:\projects`|The installation root directory of `IDEasy` - see link:structure.adoc[structure] for details.
 |`IDE_HOME`|e.g. `/projects/my-project`|The top level directory of your `IDEasy` project.
-|`IDE_OPTIONS`| |General options that will be applied to each call of `IDEasy`. Should typically be used for JVM options like link:proxy-support.adoc[proxy-support].
+|`IDE_OPTIONS`|e.g. `-Dhttps.proxyUser=$USERNAME -Dhttps.proxyPassword=«password»`|General options that will be applied to each call of `IDEasy`. Should typically be used for JVM options like link:proxy-support.adoc[proxy-support].
 |*`PATH`*|`$IDE_HOME/software/«tool»:...:$PATH`|Your system path is adjusted by `ide` link:cli.adoc[command].
-|`BASH_PATH`| |Absolute path to your bash. Only used as fallback on Windows if bash could not be found from registry.
+|`BASH_PATH`|e.g. `C:\Program Files\Git\usr\bin\bash.exe`|Absolute path to your bash. Only used as fallback on Windows if bash could not be found from registry.
 |`IDE_TOOLS`|`(java mvn node npm)`|List of tools that should be installed by default on project creation.
-|`CREATE_START_SCRIPTS`| |List of IDEs that shall be used by developers in the project and therefore start-scripts are created on setup. E.g. `(eclipse intellij vscode)`
+|`CREATE_START_SCRIPTS`|e.g. `eclipse, intellij, vscode`|List of IDEs that shall be used by developers in the project and therefore start-scripts are created on setup. E.g. `(eclipse intellij vscode)`
 |`WORKSPACE`|`main`|The link:workspaces.adoc[workspace] you are currently in. Defaults to `main` if you are not inside a link:workspaces.adoc[workspace]. Never set this variable in any `ide.properties` file.
 |`WORKSPACE_PATH`|`$IDE_HOME/workspaces/$WORKSPACE`|Absolute path to current link:workspaces.adoc[workspace]. Never set this variable in any `ide.properties` file.
 |`«TOOL»_VERSION`|`*`|The version of the tool `«TOOL»` to install and use (e.g. `ECLIPSE_VERSION` or `MVN_VERSION`).
 |`«TOOL»_EDITION`|`«tool»`|The edition of the tool `«TOOL»` to install and use (e.g. `ECLIPSE_EDITION`, `INTELLIJ_EDITION` or `DOCKER_EDITION`). Default of `DOCKER_EDITION` is `rancher`.
 |*`«TOOL»_HOME`*|`$IDE_HOME/software/«tool»`|Path to installation of «tool» (e.g. MVN_HOME for maven)
-|`«TOOL»_BUILD_OPTS`| |The arguments provided to the build-tool `«TOOL»` in order to run a build. E.g.`clean install`
-|`«TOOL»_RELEASE_OPTS`| |The arguments provided to the build-tool `«TOOL»` in order to perform a release build. E.g.`clean deploy -Dchangelist= -Pdeploy`
+|`«TOOL»_BUILD_OPTS`|`clean install`|The arguments provided to the build-tool `«TOOL»` in order to run a build. E.g.`clean install`
+|`«TOOL»_RELEASE_OPTS`|e.g. `clean deploy -Dchangelist= -Pdeploy`|The arguments provided to the build-tool `«TOOL»` in order to perform a release build. E.g.`clean deploy -Dchangelist= -Pdeploy`
 |*`M2_REPO`*|`$IDE_HOME/conf/mvn/repository`|Path to your local maven repository. For projects without high security demands, you may change this to the maven default `~/.m2/repository` and share your repository among multiple projects.
 |*`MAVEN_ARGS`*|`-s $IDE_HOME/conf/mvn/settings.xml`|Maven arguments. This variable is set just if the `settings.xml` file in link:conf.adoc[conf] is found.
 |`IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED`|`true`|Enable/disable legacy support for devonfw-ide link:configurator.adoc[configuration templates] in IDE workspace folders.
 |`ECLIPSE_VMARGS`|`-Xms128M -Xmx768M -XX:MaxPermSize=256M`|JVM options for Eclipse
-|`PREFERRED_GIT_PROTOCOL`| |Allows to enforce a specific protocol for git. Options are `ssh` (for SSH) and `https`. If set any git URL will automatically be converted to the preferred protocol before IDEasy clones it. This option should only be set for individual users in `$IDE_HOME/conf/ide.properties` or `~/.ide/ide.properties` (and not in shared `settings`).
-|`FAIL_ON_AMBIGOUS_MERGE`| |If set to `true` the link:configurator.adoc#element-identification[merge:id] is ambiguous and the resulting XPath expression matches multiple elements. Typically, the link:usage.adoc#admin[IDE admin] did something wrong in the workspace template configuration. However, we decided to log a warning if that happens and use the first match by default to prevent our users from being blocked or annoyed in case of such configuration error. With this property you can enforce that this is handled as error aborting the merge. If that happens the user sees the stacktrace of the error and gets asked if he or she wants to continue in order to launch his IDE (IntelliJ, Eclipse, VSCode, etc.).
-|`IDE_MIN_VERSION`| | The minimum version of IDEasy that is required by your project. Causes `ide create` to fail if violated, otherwise renders a warning
+|`PREFERRED_GIT_PROTOCOL`|e.g. `ssh` |Allows to enforce a specific protocol for git. Options are `ssh` (for SSH) and `https`. If set any git URL will automatically be converted to the preferred protocol before IDEasy clones it. This option should only be set for individual users in `$IDE_HOME/conf/ide.properties` or `~/.ide/ide.properties` (and not in shared `settings`).
+|`FAIL_ON_AMBIGOUS_MERGE`|e.g. `true`|If set to `true` the link:configurator.adoc#element-identification[merge:id] is ambiguous and the resulting XPath expression matches multiple elements. Typically, the link:usage.adoc#admin[IDE admin] did something wrong in the workspace template configuration. However, we decided to log a warning if that happens and use the first match by default to prevent our users from being blocked or annoyed in case of such configuration error. With this property you can enforce that this is handled as error aborting the merge. If that happens the user sees the stacktrace of the error and gets asked if he or she wants to continue in order to launch his IDE (IntelliJ, Eclipse, VSCode, etc.).
+|`IDE_MIN_VERSION`|e.g. `2024.12.002`| The minimum version of IDEasy that is required by your project. Causes `ide create` to fail if violated, otherwise renders a warning
 |`CVE_MIN_SEVERITY`|`0.1`|The severity threshold for CVEs. See link:security.adoc[security].
-|`SKIP_CVE_FIX`| |Coma separated list of tools where to skip upgrade suggestions to fix CVEs. See link:security.adoc[security].
-|`HTTP_VERSIONS`| | The optional list of HTTP versions to try in the given order (e.g. "HTTP_2, HTTP_1_1"). This can be used as a workaround for network/VPN related issues - see issue https://github.com/devonfw/IDEasy/issues/1393[#1393].
+|`SKIP_CVE_FIX`|e.g. `SKIP_CVE_FIX=java,npm`|Coma separated list of tools where to skip upgrade suggestions to fix CVEs. See link:security.adoc[security].
+|`HTTP_VERSIONS`|e.g. `HTTP_2, HTTP_1_1`| The optional list of HTTP versions to try in the given order (e.g. "HTTP_2, HTTP_1_1"). This can be used as a workaround for network/VPN related issues - see issue https://github.com/devonfw/IDEasy/issues/1393[#1393].
+|`JASYPT_OPTS`|`algorithm=PBEWITHHMACSHA512ANDAES_256 ivGeneratorClassName=org.jasypt.iv.RandomIvGenerator`|Options of jasypt.
+|`IDE_XML_MERGE_LEGACY_SUPPORT_ENABLED`|e.g. `false`|Support of legacy xml templates without XML merge namespace.
 |=======================

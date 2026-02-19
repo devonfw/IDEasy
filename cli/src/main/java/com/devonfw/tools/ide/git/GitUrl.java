@@ -17,10 +17,15 @@ public record GitUrl(String url, String branch) {
   /**
    * The constructor.
    */
-  public GitUrl {
+  public GitUrl(String url, String branch) {
+    this.url = url;
+    this.branch = branch;
     if (url.contains("#")) {
       String message = "Invalid git URL " + url;
       assert false : message;
+    }
+    if (!isValid()) {
+      assert false : "Invalid git URL - has to start with https, http or ssh: " + url;
     }
   }
 
@@ -52,6 +57,16 @@ public record GitUrl(String url, String branch) {
       path = path.substring(0, path.length() - 4);
     }
     return path;
+  }
+
+  /**
+   * @return {@code true} if the URL starts with http://, https://, ssh:// or git@ - otherwise returns {@code false}.
+   */
+  public boolean isValid() {
+    if (url == null || url.isBlank()) {
+      return false;
+    }
+    return url.startsWith("http://") || url.startsWith("https://") || url.startsWith("ssh://") || url.startsWith("git@");
   }
 
   @Override
