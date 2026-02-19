@@ -24,7 +24,7 @@ public class Slf4jLoggerAdapter implements Logger {
   public Slf4jLoggerAdapter(String name) {
 
     this.name = name;
-    if (name.startsWith("com.devon.tools.ide.")) {
+    if (name.startsWith("com.devonfw.tools.ide.")) {
       this.ideLogger = IdeLogger.get();
       this.julLogger = null;
     } else {
