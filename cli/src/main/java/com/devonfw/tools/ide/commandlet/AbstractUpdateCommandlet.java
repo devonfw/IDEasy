@@ -85,7 +85,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
   }
 
   @Override
-  public void run() {
+  protected void doRun() {
 
     IdeStartContextImpl startContext = ((AbstractIdeContext) this.context).getStartContext();
     startContext.setForcePull(forcePull.isTrue());

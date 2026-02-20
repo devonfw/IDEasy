@@ -94,6 +94,9 @@ public interface IdeContext extends IdeStartContext {
   /** The name of the backups folder for backup. */
   String FOLDER_BACKUPS = "backups";
 
+  /** The name of the logs folder for log-files (in {@link #FOLDER_UNDERSCORE_IDE}). */
+  String FOLDER_LOGS = "logs";
+
   /** The name of the downloads folder. */
   String FOLDER_DOWNLOADS = "Downloads";
 

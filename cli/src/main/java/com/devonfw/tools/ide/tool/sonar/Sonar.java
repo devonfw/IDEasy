@@ -44,7 +44,7 @@ public class Sonar extends LocalToolCommandlet {
   }
 
   @Override
-  public void run() {
+  protected void doRun() {
 
     SonarCommand command = this.command.getValue();
 

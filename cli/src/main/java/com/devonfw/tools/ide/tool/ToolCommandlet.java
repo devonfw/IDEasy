@@ -156,7 +156,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   @Override
-  public void run() {
+  protected void doRun() {
 
     runTool(this.arguments.asList());
   }

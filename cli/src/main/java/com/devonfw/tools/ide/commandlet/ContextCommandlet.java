@@ -67,7 +67,13 @@ public class ContextCommandlet extends Commandlet {
   }
 
   @Override
-  public void run() {
+  protected boolean isActivateJaveUtilLogging() {
+
+    return false;
+  }
+
+  @Override
+  protected void doRun() {
 
     IdeLogLevel logLevel = determineLogLevel();
     if (this.startContext == null) {

@@ -2,6 +2,9 @@ package com.devonfw.tools.ide.context;
 
 import static com.devonfw.tools.ide.variable.IdeVariables.IDE_MIN_VERSION;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -13,7 +16,15 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.function.Predicate;
+import java.util.logging.LogManager;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
+import org.slf4j.event.Level;
+import org.slf4j.spi.LoggingEventBuilder;
 
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliArgument;
@@ -79,6 +90,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * Abstract base implementation of {@link IdeContext}.
  */
 public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatter {
+
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractIdeContext.class);
 
   /** The default shell bash (Bourne Again SHell). */
   public static final String BASH = "bash";
@@ -156,6 +169,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   private final Map<String, String> privacyMap;
 
   private Path bash;
+
+  private boolean julConfigured;
 
   /**
    * The constructor.
@@ -871,7 +886,44 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   @Override
   public IdeSubLogger level(IdeLogLevel level) {
 
-    return this.startContext.level(level);
+    return new IdeSubLogger() {
+      @Override
+      public String log(Throwable error, String message, Object... args) {
+
+        LoggingEventBuilder builder = LOG.atLevel(level.getSlf4jLevel());
+        Marker marker = level.getSlf4jMarker();
+        if (marker != null) {
+          builder = builder.addMarker(marker);
+        }
+        if (error != null) {
+          builder = builder.setCause(error);
+        }
+        if ((args != null) && (args.length > 0)) {
+          builder.log(message, args);
+        } else {
+          builder.log(message);
+        }
+        return message;
+      }
+
+      @Override
+      public boolean isEnabled() {
+
+        Level slf4jLevel = level.getSlf4jLevel();
+        Marker marker = level.getSlf4jMarker();
+        if (marker != null) {
+          assert slf4jLevel == Level.INFO;
+          return LOG.isInfoEnabled(marker);
+        }
+        return LOG.isEnabledForLevel(slf4jLevel);
+      }
+
+      @Override
+      public IdeLogLevel getLevel() {
+
+        return level;
+      }
+    };
   }
 
   @Override
@@ -1112,6 +1164,90 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     }
   }
 
+  public void configureJavaUtilLogging() {
+
+    if (this.julConfigured) {
+      return;
+    }
+    Properties properties = createJavaUtilLoggingProperties();
+    if (properties == null) {
+      return;
+    }
+    try {
+      ByteArrayOutputStream out = new ByteArrayOutputStream(512);
+      properties.store(out, null);
+      out.flush();
+      ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+      LogManager.getLogManager().readConfiguration(in);
+      this.julConfigured = true;
+    } catch (IOException e) {
+      error(e);
+    }
+  }
+
+  protected Properties createJavaUtilLoggingProperties() {
+    boolean logfile = false;
+    Boolean writeLogfile = IdeVariables.IDE_WRITE_LOGFILE.get(this);
+    if (Boolean.TRUE.equals(writeLogfile)) {
+      logfile = true;
+      this.startContext.setWriteLogfile(true);
+    }
+    return createJavaUtilLoggingProperties(false, logfile);
+  }
+
+  protected final Properties createJavaUtilLoggingProperties(boolean console, boolean file) {
+
+    Path idePath = getIdePath();
+    if (file && (idePath == null)) {
+      file = false;
+      error("Cannot enable --logfile option since IDE_ROOT is undefined.");
+    }
+    if (!console && !file) {
+      return null;
+    }
+    Properties properties = new Properties();
+    String level = "FINE";
+    if (trace().isEnabled()) {
+      level = "FINER";
+    }
+    // java.util.logging is so flawed: We cannot set the root level to a higher threshold than our own logger, instead we need to list all potential loggers
+    properties.setProperty(".level", level);
+    String extLevel = "WARNING";
+    properties.setProperty("org.level", extLevel);
+    properties.setProperty("java.level", extLevel);
+    properties.setProperty("java.lang.level", extLevel);
+    properties.setProperty("java.lang.FooBar.level", extLevel);
+    // properties.setProperty("java.lang.ProcessBuilder.level", extLevel);
+    properties.setProperty("jdk.level", extLevel);
+    properties.setProperty("net.level", extLevel);
+    properties.setProperty("io.level", extLevel);
+    properties.setProperty("sf.level", extLevel);
+    properties.setProperty("sun.level", extLevel);
+    if (file && console) {
+      properties.setProperty("handlers", "java.util.logging.ConsoleHandler,java.util.logging.FileHandler");
+    } else if (file) {
+      properties.setProperty("handlers", "java.util.logging.FileHandler");
+    } else {
+      properties.setProperty("handlers", "java.util.logging.ConsoleHandler");
+    }
+    if (file) {
+      properties.setProperty("java.util.logging.FileHandler.level", level);
+      properties.setProperty("java.util.logging.FileHandler.formatter", "java.util.logging.SimpleFormatter");
+      properties.setProperty("java.util.logging.FileHandler.encoding", "UTF-8");
+      LocalDateTime now = LocalDateTime.now();
+      Path logsPath = idePath.resolve(FOLDER_LOGS).resolve(DateTimeUtil.formatDate(now, true));
+      getFileAccess().mkdirs(logsPath);
+      properties.setProperty("java.util.logging.FileHandler.pattern", logsPath.resolve("ideasy-" + DateTimeUtil.formatTime(now) + ".log").toString());
+    }
+    if (console) {
+      properties.setProperty("java.util.logging.ConsoleHandler.level", level);
+      properties.setProperty("java.util.logging.ConsoleHandler.formatter", "java.util.logging.SimpleFormatter");
+      properties.setProperty("java.util.logging.ConsoleHandler.encoding", "UTF-8");
+    }
+    properties.setProperty("java.util.logging.SimpleFormatter.format", "%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS.%1$tL [%4$s] [%3$s] %5$s%6$s%n");
+    return properties;
+  }
+
   @Override
   public void runWithoutLogging(Runnable lambda, IdeLogLevel threshold) {
 
@@ -1160,7 +1296,6 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
               if (isSettingsRepositorySymlinkOrJunction()) {
                 interaction(
                     "Updates are available for the settings repository. Please pull the latest changes by yourself or by calling \"ide -f update\" to apply them.");
-
               } else {
                 interaction(
                     "Updates are available for the settings repository. If you want to apply the latest changes, call \"ide update\"");
@@ -1172,8 +1307,12 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
         if (!success) {
           return ValidationResultValid.get();
         }
+        if (!cmd.isProcessableOutput() && !(cmd instanceof HelpCommandlet)) {
+          configureJavaUtilLogging();
+        }
         cmd.run();
       } finally {
+        this.julConfigured = false;
         if (previousLogLevel != null) {
           this.startContext.setLogLevel(previousLogLevel);
         }

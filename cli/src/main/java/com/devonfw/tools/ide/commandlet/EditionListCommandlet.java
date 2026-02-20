@@ -33,7 +33,7 @@ public class EditionListCommandlet extends Commandlet {
   }
 
   @Override
-  public void run() {
+  protected void doRun() {
 
     ToolCommandlet commandlet = this.tool.getValue();
     commandlet.listEditions();

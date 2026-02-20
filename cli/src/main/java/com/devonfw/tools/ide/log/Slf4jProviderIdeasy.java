@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.log;
 
 import org.slf4j.ILoggerFactory;
 import org.slf4j.IMarkerFactory;
+import org.slf4j.helpers.BasicMarkerFactory;
 import org.slf4j.helpers.NOPMDCAdapter;
 import org.slf4j.spi.MDCAdapter;
 import org.slf4j.spi.SLF4JServiceProvider;
@@ -30,7 +31,7 @@ public class Slf4jProviderIdeasy implements SLF4JServiceProvider {
   @Override
   public IMarkerFactory getMarkerFactory() {
 
-    return null;
+    return new BasicMarkerFactory();
   }
 
   @Override

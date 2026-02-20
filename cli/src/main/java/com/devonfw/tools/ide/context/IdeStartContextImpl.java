@@ -33,6 +33,8 @@ public class IdeStartContextImpl extends IdeLoggerImpl implements IdeStartContex
 
   private boolean noColorsMode;
 
+  private boolean writeLogfile;
+
   private Locale locale;
 
   /**
@@ -104,18 +106,6 @@ public class IdeStartContextImpl extends IdeLoggerImpl implements IdeStartContex
     return this.forcePull;
   }
 
-  @Override
-  public boolean isForcePlugins() {
-
-    return this.forcePlugins;
-  }
-
-  @Override
-  public boolean isForceRepositories() {
-
-    return this.forceRepositories;
-  }
-
   /**
    * @param forcePull new value of {@link #isForcePull()}.
    */
@@ -124,12 +114,24 @@ public class IdeStartContextImpl extends IdeLoggerImpl implements IdeStartContex
     this.forcePull = forcePull;
   }
 
+  @Override
+  public boolean isForcePlugins() {
+
+    return this.forcePlugins;
+  }
+
   /**
    * @param forcePlugins new value of {@link #isForcePlugins()}.
    */
   public void setForcePlugins(boolean forcePlugins) {
 
     this.forcePlugins = forcePlugins;
+  }
+
+  @Override
+  public boolean isForceRepositories() {
+
+    return this.forceRepositories;
   }
 
   /**
@@ -196,4 +198,20 @@ public class IdeStartContextImpl extends IdeLoggerImpl implements IdeStartContex
     this.noColorsMode = noColoursMode;
     setLogColors(!noColoursMode);
   }
+
+  /**
+   * @return {@code true} to write a logfile to disc, {@code false} otherwise.
+   */
+  public boolean isWriteLogfile() {
+
+    return this.writeLogfile;
+  }
+
+  /**
+   * @param writeLogfile new value of {@link #isWriteLogfile()}.
+   */
+  public void setWriteLogfile(boolean writeLogfile) {
+    this.writeLogfile = writeLogfile;
+  }
+
 }

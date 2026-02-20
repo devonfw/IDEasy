@@ -43,7 +43,7 @@ public class RepositoryCommandlet extends Commandlet {
   }
 
   @Override
-  public void run() {
+  protected void doRun() {
 
     Path repositoryFile = this.repository.getValue();
 

@@ -60,7 +60,7 @@ public final class EnvironmentCommandlet extends Commandlet {
   }
 
   @Override
-  public void run() {
+  protected void doRun() {
     if (this.context.getIdeHome() == null) {
       throw new CliExitException();
     }

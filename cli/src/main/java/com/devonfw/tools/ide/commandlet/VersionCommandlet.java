@@ -39,7 +39,7 @@ public class VersionCommandlet extends Commandlet {
   }
 
   @Override
-  public void run() {
+  protected void doRun() {
 
     this.context.level(IdeLogLevel.PROCESSABLE).log(IdeVersion.getVersionString());
   }

@@ -63,7 +63,7 @@ public final class ShellCommandlet extends Commandlet {
   }
 
   @Override
-  public void run() {
+  protected void doRun() {
 
     try {
       Parser parser = new DefaultParser();

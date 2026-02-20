@@ -46,9 +46,14 @@ public final class HelpCommandlet extends Commandlet {
     return false;
   }
 
+  @Override
+  protected boolean isActivateJaveUtilLogging() {
+
+    return false;
+  }
 
   @Override
-  public void run() {
+  protected void doRun() {
 
     this.context.printLogo();
     NlsBundle bundle = NlsBundle.of(this.context);

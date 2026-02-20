@@ -43,7 +43,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
   }
 
   @Override
-  public void run() {
+  protected void doRun() {
     updateLegacyFolders();
     updateProperties();
     updateWorkspaceTemplates();

@@ -40,7 +40,7 @@ public class InstallPluginCommandlet extends Commandlet {
   }
 
   @Override
-  public void run() {
+  protected void doRun() {
     ToolCommandlet commandlet = this.tool.getValue();
     String plugin = this.plugin.getValue();
 

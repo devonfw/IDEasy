@@ -407,4 +407,10 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   protected Path findBashInWindowsRegistry() {
     return null;
   }
+
+  @Override
+  protected Properties createJavaUtilLoggingProperties() {
+
+    return createJavaUtilLoggingProperties(true, false);
+  }
 }

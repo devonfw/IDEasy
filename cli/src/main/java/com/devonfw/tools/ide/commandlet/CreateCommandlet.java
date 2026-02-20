@@ -47,7 +47,7 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
   }
 
   @Override
-  public void run() {
+  protected void doRun() {
 
     String newProjectName = this.newProject.getValue();
     Path newProjectPath = this.context.getIdeRoot().resolve(newProjectName);

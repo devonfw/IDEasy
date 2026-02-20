@@ -68,7 +68,7 @@ public abstract class AbstractVersionOrEditionGetCommandlet extends Commandlet {
   protected abstract Object getInstalledValue(ToolCommandlet commandlet);
 
   @Override
-  public void run() {
+  protected void doRun() {
 
     ToolCommandlet commandlet = this.tool.getValue();
     IdeSubLogger logger = this.context.level(IdeLogLevel.PROCESSABLE);

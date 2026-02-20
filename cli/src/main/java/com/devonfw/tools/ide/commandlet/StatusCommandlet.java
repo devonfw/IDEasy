@@ -35,7 +35,7 @@ public class StatusCommandlet extends Commandlet {
   }
 
   @Override
-  public void run() {
+  protected void doRun() {
     Step step = this.context.newStep(true, "Show IDE_ROOT and IDE_HOME");
     step.run(this.context::logIdeHomeAndRootStatus);
     step = this.context.newStep(true, "Check for updates of IDEasy");
