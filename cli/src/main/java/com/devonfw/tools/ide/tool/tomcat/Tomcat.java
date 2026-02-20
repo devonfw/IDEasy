@@ -9,6 +9,8 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -29,6 +31,8 @@ import com.devonfw.tools.ide.version.GenericVersionRange;
  * {@link ToolCommandlet} for <a href="https://tomcat.apache.org/">tomcat</a>.
  */
 public class Tomcat extends LocalToolCommandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(Tomcat.class);
 
   private static final String CATALINA = "catalina";
   private static final String CATALINA_BAT = CATALINA + ".bat";
@@ -83,8 +87,8 @@ public class Tomcat extends LocalToolCommandlet {
 
     String portNumber = findTomcatPort();
     if (!portNumber.isEmpty()) {
-      this.context.info("Tomcat is running at localhost on HTTP port {}:", portNumber);
-      this.context.info("http://localhost:{}", portNumber);
+      LOG.info("Tomcat is running at localhost on HTTP port {}:", portNumber);
+      LOG.info("http://localhost:{}", portNumber);
     }
   }
 
@@ -102,14 +106,14 @@ public class Tomcat extends LocalToolCommandlet {
           Element ConnectorElement = (Element) connectorNodes.item(0);
           portNumber = ConnectorElement.getAttribute("port");
         } else {
-          this.context.warning("Port element not found in server.xml");
+          LOG.warn("Port element not found in server.xml");
         }
       } catch (ParserConfigurationException | IOException | SAXException e) {
-        this.context.error(e);
+        LOG.error(e.toString(), e);
       }
     }
     if (portNumber.isEmpty()) {
-      this.context.warning("Could not find HTTP port in {}", tomcatPropertiesPath);
+      LOG.warn("Could not find HTTP port in {}", tomcatPropertiesPath);
     }
     return portNumber;
   }

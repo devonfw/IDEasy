@@ -2,8 +2,12 @@ package com.devonfw.tools.ide.tool.node;
 
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
@@ -16,6 +20,8 @@ import com.devonfw.tools.ide.tool.npm.Npm;
  * {@link ToolCommandlet} for <a href="https://nodejs.org/">node</a>.
  */
 public class Node extends LocalToolCommandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(Node.class);
 
   /**
    * The constructor.
@@ -40,14 +46,14 @@ public class Node extends LocalToolCommandlet {
         .addArg(getToolPath().toString());
     ProcessResult result = npm.runPackageManager(packageManagerRequest, true);
     if (result.isSuccessful()) {
-      this.context.success("Setting npm config prefix to: {} was successful", getToolPath());
+      LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "Setting npm config prefix to: {} was successful", getToolPath());
     }
   }
 
   @Override
   public void printHelp(NlsBundle bundle) {
 
-    this.context.info("For a list of supported options and arguments, use \"node --help\"");
+    LOG.info("For a list of supported options and arguments, use \"node --help\"");
   }
 
   @Override

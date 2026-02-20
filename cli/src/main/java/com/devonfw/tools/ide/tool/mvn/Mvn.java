@@ -10,6 +10,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
@@ -29,14 +32,12 @@ import com.devonfw.tools.ide.variable.VariableSyntax;
  */
 public class Mvn extends LocalToolCommandlet {
 
-  /**
-   * The name of the mvn folder
-   */
+  private static final Logger LOG = LoggerFactory.getLogger(Mvn.class);
+
+  /** The name of the mvn folder. */
   public static final String MVN_CONFIG_FOLDER = "mvn";
 
-  /**
-   * The name of the m2 repository
-   */
+  /** The name of the m2 repository. */
   public static final String MVN_CONFIG_LEGACY_FOLDER = ".m2";
 
   /** The name of the settings-security.xml */
@@ -48,9 +49,7 @@ public class Mvn extends LocalToolCommandlet {
   /** The pom.xml file name. */
   public static final String POM_XML = "pom.xml";
 
-  /**
-   * The name of the settings.xml
-   */
+  /** The name of the file settings.xml. */
   public static final String SETTINGS_FILE = "settings.xml";
 
   private static final String DOCUMENTATION_PAGE_CONF = "https://github.com/devonfw/IDEasy/blob/main/documentation/conf.adoc";
@@ -135,7 +134,7 @@ public class Mvn extends LocalToolCommandlet {
       return;
     }
     if (!Files.exists(settingsTemplateFile)) {
-      this.context.warning("Missing maven settings template at {}. ", settingsTemplateFile);
+      LOG.warn("Missing maven settings template at {}. ", settingsTemplateFile);
       return;
     }
     Step step = this.context.newStep("Create mvn settings file at " + settingsFile);
@@ -150,7 +149,7 @@ public class Mvn extends LocalToolCommandlet {
       GitContext gitContext = this.context.getGitContext();
       String gitSettingsUrl = gitContext.retrieveGitUrl(this.context.getSettingsPath());
       if (gitSettingsUrl == null) {
-        this.context.warning("Failed to determine git remote URL for settings folder.");
+        LOG.warn("Failed to determine git remote URL for settings folder.");
       } else if (!gitSettingsUrl.equals(GitContext.DEFAULT_SETTINGS_GIT_URL) && Files.exists(settingsSecurityFile)) {
         Set<String> variables = findVariables(content);
         for (String variable : variables) {
@@ -170,7 +169,7 @@ public class Mvn extends LocalToolCommandlet {
     String input = this.context.askForInput("Please enter secret value for variable " + variable + ":");
 
     String encryptedPassword = retrievePassword("--encrypt-password", input);
-    this.context.info("Encrypted as " + encryptedPassword);
+    LOG.info("Encrypted as {}", encryptedPassword);
 
     return encryptedPassword;
   }
@@ -214,7 +213,7 @@ public class Mvn extends LocalToolCommandlet {
     if (!Files.isDirectory(templatesConfMvnFolder)) {
       Path templatesConfMvnLegacyFolder = templatesConfFolder.resolve(MVN_CONFIG_LEGACY_FOLDER);
       if (!Files.isDirectory(templatesConfMvnLegacyFolder)) {
-        this.context.warning("No maven templates found neither in {} nor in {} - configuration broken", templatesConfMvnFolder,
+        LOG.warn("No maven templates found neither in {} nor in {} - configuration broken", templatesConfMvnFolder,
             templatesConfMvnLegacyFolder);
         return null;
       }

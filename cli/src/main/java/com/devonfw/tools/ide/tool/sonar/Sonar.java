@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.EnumProperty;
@@ -13,8 +16,14 @@ import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 
+/**
+ * {@link LocalToolCommandlet} for <a href="https://sonarqube.org/">SonarQube</a>.
+ */
 public class Sonar extends LocalToolCommandlet {
 
+  private static final Logger LOG = LoggerFactory.getLogger(Sonar.class);
+
+  /** The {@link SonarCommand} to run. */
   public final EnumProperty<SonarCommand> command;
 
   /**
@@ -88,13 +97,13 @@ public class Sonar extends LocalToolCommandlet {
 
   private void printSonarWebPort() {
 
-    this.context.info("SonarQube is running at localhost on the following port (default 9000):");
+    LOG.info("SonarQube is running at localhost on the following port (default 9000):");
     Path sonarPropertiesPath = getToolPath().resolve("conf/sonar.properties");
 
     Properties sonarProperties = this.context.getFileAccess().readProperties(sonarPropertiesPath);
     String sonarWebPort = sonarProperties.getProperty("sonar.web.port");
     if (sonarWebPort != null) {
-      this.context.info(sonarWebPort);
+      LOG.info(sonarWebPort);
     }
   }
 }

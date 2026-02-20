@@ -1277,9 +1277,6 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
         if (!success) {
           return ValidationResultValid.get();
         }
-        if (!cmd.isProcessableOutput() && !(cmd instanceof HelpCommandlet)) {
-          configureJavaUtilLogging();
-        }
         cmd.run();
       } finally {
         this.julConfigured = false;

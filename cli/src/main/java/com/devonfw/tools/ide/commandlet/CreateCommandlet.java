@@ -4,8 +4,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Predicate;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.version.IdeVersion;
@@ -14,6 +18,8 @@ import com.devonfw.tools.ide.version.IdeVersion;
  * {@link Commandlet} to create a new IDEasy instance
  */
 public class CreateCommandlet extends AbstractUpdateCommandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(CreateCommandlet.class);
 
   /** {@link StringProperty} for the name of the new project */
   public final StringProperty newProject;
@@ -52,7 +58,7 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
     String newProjectName = this.newProject.getValue();
     Path newProjectPath = this.context.getIdeRoot().resolve(newProjectName);
 
-    this.context.info("Creating new IDEasy project in {}", newProjectPath);
+    LOG.info("Creating new IDEasy project in {}", newProjectPath);
     if (!this.context.getFileAccess().isEmptyDir(newProjectPath)) {
       this.context.askToContinue("Directory " + newProjectPath + " already exists. Do you want to continue?");
     } else {
@@ -62,10 +68,10 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
     initializeProject(newProjectPath);
     this.context.setIdeHome(newProjectPath);
     this.context.verifyIdeMinVersion(true);
-    super.run();
+    super.doRun();
     this.context.verifyIdeMinVersion(true);
     this.context.getFileAccess().writeFileContent(IdeVersion.getVersionString(), newProjectPath.resolve(IdeContext.FILE_SOFTWARE_VERSION));
-    this.context.success("Successfully created new project '{}'.", newProjectName);
+    LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "Successfully created new project '{}'.", newProjectName);
 
     logWelcomeMessage();
   }
@@ -95,7 +101,7 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
       Predicate<Path> welcomePredicate = path -> String.valueOf(path.getFileName()).startsWith("welcome.");
       Path welcomeFilePath = this.context.getFileAccess().findFirst(settingsFolder, welcomePredicate, false);
       if (welcomeFilePath != null) {
-        this.context.info(this.context.getFileAccess().readFileContent(welcomeFilePath));
+        LOG.info(this.context.getFileAccess().readFileContent(welcomeFilePath));
       }
     }
   }

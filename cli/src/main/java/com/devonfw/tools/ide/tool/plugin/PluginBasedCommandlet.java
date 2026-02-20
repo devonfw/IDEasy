@@ -42,7 +42,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
   public ToolPlugins getPlugins() {
 
     if (this.plugins == null) {
-      ToolPlugins toolPlugins = new ToolPlugins(this.context);
+      ToolPlugins toolPlugins = new ToolPlugins();
 
       // Load project-specific plugins
       Path pluginsPath = getPluginsConfigPath();
