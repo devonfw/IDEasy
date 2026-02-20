@@ -37,8 +37,12 @@ public class Slf4jLoggerAdapter extends AbstractLogger {
     return this.name;
   }
 
-  private String compose(String message, Object... args) {
-    if ((args == null) || args.length == 0) {
+  static boolean isEmpty(Object[] args) {
+    return (args == null) || (args.length == 0);
+  }
+
+  static String compose(String message, Object... args) {
+    if (isEmpty(args)) {
       return message;
     }
     return AbstractIdeSubLogger.compose(IdeLogArgFormatter.DEFAULT, InvalidLogMessageHandler.NONE, message, args);

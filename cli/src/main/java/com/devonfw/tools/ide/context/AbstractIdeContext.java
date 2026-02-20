@@ -22,9 +22,6 @@ import java.util.logging.LogManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Marker;
-import org.slf4j.event.Level;
-import org.slf4j.spi.LoggingEventBuilder;
 
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliArgument;
@@ -54,6 +51,7 @@ import com.devonfw.tools.ide.log.IdeLogArgFormatter;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.log.IdeSubLogger;
+import com.devonfw.tools.ide.log.IdeSubLoggerAdapter;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.migration.IdeMigrator;
 import com.devonfw.tools.ide.network.NetworkStatus;
@@ -172,6 +170,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   private boolean julConfigured;
 
+  private final IdeSubLogger[] loggers;
+
   /**
    * The constructor.
    *
@@ -181,6 +181,13 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   public AbstractIdeContext(IdeStartContextImpl startContext, Path workingDirectory) {
 
     super();
+    // init sub loggers
+    IdeLogLevel[] levels = IdeLogLevel.values();
+    this.loggers = new IdeSubLogger[levels.length];
+    for (IdeLogLevel level : levels) {
+      this.loggers[level.ordinal()] = new IdeSubLoggerAdapter(level, LOG);
+    }
+
     this.startContext = startContext;
     this.startContext.setArgFormatter(this);
     this.privacyMap = new HashMap<>();
@@ -886,44 +893,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   @Override
   public IdeSubLogger level(IdeLogLevel level) {
 
-    return new IdeSubLogger() {
-      @Override
-      public String log(Throwable error, String message, Object... args) {
-
-        LoggingEventBuilder builder = LOG.atLevel(level.getSlf4jLevel());
-        Marker marker = level.getSlf4jMarker();
-        if (marker != null) {
-          builder = builder.addMarker(marker);
-        }
-        if (error != null) {
-          builder = builder.setCause(error);
-        }
-        if ((args != null) && (args.length > 0)) {
-          builder.log(message, args);
-        } else {
-          builder.log(message);
-        }
-        return message;
-      }
-
-      @Override
-      public boolean isEnabled() {
-
-        Level slf4jLevel = level.getSlf4jLevel();
-        Marker marker = level.getSlf4jMarker();
-        if (marker != null) {
-          assert slf4jLevel == Level.INFO;
-          return LOG.isInfoEnabled(marker);
-        }
-        return LOG.isEnabledForLevel(slf4jLevel);
-      }
-
-      @Override
-      public IdeLogLevel getLevel() {
-
-        return level;
-      }
-    };
+    return this.loggers[level.ordinal()];
   }
 
   @Override
