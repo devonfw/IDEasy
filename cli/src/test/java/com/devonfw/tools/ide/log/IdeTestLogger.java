@@ -24,7 +24,7 @@ public class IdeTestLogger extends IdeStartContextImpl {
 
   private IdeTestLogger(List<IdeLogEntry> entries, IdeLogLevel minLogLevel, IdeLogListenerCollector collector) {
 
-    super(minLogLevel, level -> new IdeSubLoggerSlf4j(level, collector));
+    super(minLogLevel, level -> new IdeSubLoggerOut(level, null, true, minLogLevel, collector));
     this.collector = collector;
   }
 

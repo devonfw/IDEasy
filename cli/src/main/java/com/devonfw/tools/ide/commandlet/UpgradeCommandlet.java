@@ -38,7 +38,7 @@ public class UpgradeCommandlet extends Commandlet {
   }
 
   @Override
-  public void run() {
+  protected void doRun() {
 
     IdeasyCommandlet ideasy = new IdeasyCommandlet(this.context, this.mode.getValue());
     ToolInstallation installation = ideasy.install(false);

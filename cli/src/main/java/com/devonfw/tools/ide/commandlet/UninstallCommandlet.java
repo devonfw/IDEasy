@@ -38,7 +38,7 @@ public class UninstallCommandlet extends Commandlet {
   }
 
   @Override
-  public void run() {
+  protected void doRun() {
 
     int valueCount = this.tools.getValueCount();
     if (valueCount == 0) {

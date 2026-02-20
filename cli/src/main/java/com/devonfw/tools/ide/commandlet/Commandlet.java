@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.property.KeywordProperty;
@@ -212,10 +213,22 @@ public abstract class Commandlet {
     return false;
   }
 
+  protected boolean isActivateJaveUtilLogging() {
+    return !isProcessableOutput();
+  }
+
   /**
    * Runs this {@link Commandlet}.
    */
-  public abstract void run();
+  public final void run() {
+
+    if (isActivateJaveUtilLogging()) {
+      ((AbstractIdeContext) this.context).configureJavaUtilLogging();
+    }
+    doRun();
+  }
+
+  protected abstract void doRun();
 
   /**
    * @return {@code true} if this {@link Commandlet} is the valid candidate to be {@link #run()}, {@code false} otherwise.

@@ -40,8 +40,16 @@ public class ContextCommandlet extends Commandlet {
    * The constructor.
    */
   public ContextCommandlet() {
+    this(null);
+  }
+
+  /**
+   * The constructor.
+   */
+  public ContextCommandlet(IdeStartContextImpl startContext) {
 
     super(null);
+    this.startContext = startContext;
     this.batch = add(new FlagProperty("--batch", false, "-b"));
     this.force = add(new FlagProperty("--force", false, "-f"));
     this.trace = add(new FlagProperty("--trace", false, "-t"));
@@ -67,7 +75,13 @@ public class ContextCommandlet extends Commandlet {
   }
 
   @Override
-  public void run() {
+  protected boolean isActivateJaveUtilLogging() {
+
+    return false;
+  }
+
+  @Override
+  protected void doRun() {
 
     IdeLogLevel logLevel = determineLogLevel();
     if (this.startContext == null) {

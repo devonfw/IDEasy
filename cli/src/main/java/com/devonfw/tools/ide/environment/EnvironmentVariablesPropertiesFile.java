@@ -13,6 +13,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.variable.VariableDefinition;
@@ -21,6 +24,8 @@ import com.devonfw.tools.ide.variable.VariableDefinition;
  * Implementation of {@link EnvironmentVariables}.
  */
 public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariablesMap {
+
+  private static final Logger LOG = LoggerFactory.getLogger(EnvironmentVariablesPropertiesFile.class);
 
   private static final String NEWLINE = "\n";
 
@@ -117,10 +122,10 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
       return false;
     }
     if (!Files.exists(file)) {
-      this.context.trace("Properties not found at {}", file);
+      LOG.trace("Properties not found at {}", file);
       return false;
     }
-    this.context.trace("Loading properties from {}", file);
+    LOG.trace("Loading properties from {}", file);
     boolean legacyProperties = file.getFileName().toString().equals(LEGACY_PROPERTIES);
     try (BufferedReader reader = Files.newBufferedReader(file)) {
       String line;
@@ -132,14 +137,14 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
           if (name != null) {
             VariableLine migratedVariableLine = migrateLine(variableLine, false);
             if (migratedVariableLine == null) {
-              this.context.warning("Illegal variable definition: {}", variableLine);
+              LOG.warn("Illegal variable definition: {}", variableLine);
               continue;
             }
             String migratedName = migratedVariableLine.getName();
             String migratedValue = migratedVariableLine.getValue();
             boolean legacyVariable = IdeVariables.isLegacyVariable(name);
             if (legacyVariable && !legacyProperties) {
-              this.context.warning("Legacy variable name is used to define variable {} in {} - please cleanup your configuration.", variableLine,
+              LOG.warn("Legacy variable name is used to define variable {} in {} - please cleanup your configuration.", variableLine,
                   file);
             }
             String oldValue = this.variables.get(migratedName);
@@ -147,10 +152,10 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
               VariableDefinition<?> variableDefinition = IdeVariables.get(name);
               if (legacyVariable) {
                 // if the legacy name was configured we do not want to override the official variable!
-                this.context.warning("Both legacy variable {} and official variable {} are configured in {} - ignoring legacy variable declaration!",
+                LOG.warn("Both legacy variable {} and official variable {} are configured in {} - ignoring legacy variable declaration!",
                     variableDefinition.getLegacyName(), variableDefinition.getName(), file);
               } else {
-                this.context.warning("Duplicate variable definition {} with old value '{}' and new value '{}' in {}", name, oldValue, migratedValue,
+                LOG.warn("Duplicate variable definition {} with old value '{}' and new value '{}' in {}", name, oldValue, migratedValue,
                     file);
                 this.variables.put(migratedName, migratedValue);
               }
@@ -174,13 +179,13 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
 
     boolean isLegacy = Boolean.TRUE.equals(this.legacyConfiguration);
     if (this.modifiedVariables.isEmpty() && !isLegacy) {
-      this.context.trace("No changes to save in properties file {}", this.propertiesFilePath);
+      LOG.trace("No changes to save in properties file {}", this.propertiesFilePath);
       return;
     }
 
     Path file = this.propertiesFilePath;
     if (isLegacy) {
-      this.context.info("Converting legacy properties to {}", this.propertiesFilePath);
+      LOG.info("Converting legacy properties to {}", this.propertiesFilePath);
       file = this.legacyPropertiesFilePath;
     }
 
@@ -192,10 +197,10 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
       for (VariableLine line : lines) {
         VariableLine newLine = migrateLine(line, true);
         if (newLine == null) {
-          this.context.debug("Removed variable line '{}' from {}", line, this.propertiesFilePath);
+          LOG.debug("Removed variable line '{}' from {}", line, this.propertiesFilePath);
         } else {
           if (newLine != line) {
-            this.context.debug("Changed variable line from '{}' to '{}' in {}", line, newLine, this.propertiesFilePath);
+            LOG.debug("Changed variable line from '{}' to '{}' in {}", line, newLine, this.propertiesFilePath);
           }
           writer.append(newLine.toString());
           writer.append(NEWLINE);
@@ -209,7 +214,7 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
       for (String name : this.modifiedVariables) {
         String value = this.variables.get(name);
         if (value == null) {
-          this.context.trace("Internal error: removed variable {} was not found in {}", name, this.propertiesFilePath);
+          LOG.trace("Internal error: removed variable {} was not found in {}", name, this.propertiesFilePath);
         } else {
           boolean export = this.exportedVariables.contains(name);
           VariableLine line = VariableLine.of(export, name, value);
@@ -228,7 +233,7 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
     List<VariableLine> lines = new ArrayList<>();
     if (!Files.exists(file)) {
       // Skip reading if the file does not exist
-      this.context.debug("Properties file {} does not exist, skipping read.", file);
+      LOG.debug("Properties file {} does not exist, skipping read.", file);
       return lines;
     }
     try (BufferedReader reader = Files.newBufferedReader(file)) {

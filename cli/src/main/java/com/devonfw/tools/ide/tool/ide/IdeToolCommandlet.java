@@ -48,8 +48,8 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
   }
 
   @Override
-  public final void run() {
-    super.run();
+  protected final void doRun() {
+    super.doRun();
   }
 
   @Override

@@ -216,7 +216,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   public IdeSystemTestImpl getSystem() {
 
     if (this.system == null) {
-      this.system = new IdeSystemTestImpl(this);
+      this.system = new IdeSystemTestImpl();
     }
     return (IdeSystemTestImpl) this.system;
   }
@@ -406,5 +406,11 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   @Override
   protected Path findBashInWindowsRegistry() {
     return null;
+  }
+
+  @Override
+  protected Properties createJavaUtilLoggingProperties() {
+
+    return createJavaUtilLoggingProperties(true, false);
   }
 }

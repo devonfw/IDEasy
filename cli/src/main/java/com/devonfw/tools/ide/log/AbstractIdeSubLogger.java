@@ -61,7 +61,7 @@ public abstract class AbstractIdeSubLogger implements IdeSubLogger {
   }
 
   void setColored(boolean colored) {
-    
+
     this.colored = colored;
   }
 
@@ -73,11 +73,22 @@ public abstract class AbstractIdeSubLogger implements IdeSubLogger {
    * @return the resolved message with the parameters filled in.
    */
   protected String compose(String message, Object... args) {
+    return compose(this.argFormatter, this::invalidMessage, message, args);
+  }
+
+  /**
+   * Should only be used internally by logger implementation.
+   *
+   * @param message the message template.
+   * @param args the dynamic arguments to fill in.
+   * @return the resolved message with the parameters filled in.
+   */
+  static String compose(IdeLogArgFormatter formatter, InvalidLogMessageHandler handler, String message, Object... args) {
 
     int pos = message.indexOf("{}");
     if (pos < 0) {
       if (args.length > 0) {
-        invalidMessage(message, false, args);
+        handler.invalidMessage(message, false, args);
       }
       return message;
     }
@@ -87,11 +98,11 @@ public abstract class AbstractIdeSubLogger implements IdeSubLogger {
     StringBuilder sb = new StringBuilder(length + 48);
     while (pos >= 0) {
       sb.append(message, start, pos);
-      sb.append(this.argFormatter.formatArgument(args[argIndex++]));
+      sb.append(formatter.formatArgument(args[argIndex++]));
       start = pos + 2;
       pos = message.indexOf("{}", start);
       if ((argIndex >= args.length) && (pos > 0)) {
-        invalidMessage(message, true, args);
+        handler.invalidMessage(message, true, args);
         pos = -1;
       }
     }
@@ -100,7 +111,7 @@ public abstract class AbstractIdeSubLogger implements IdeSubLogger {
       sb.append(rest);
     }
     if (argIndex < args.length) {
-      invalidMessage(message, false, args);
+      handler.invalidMessage(message, false, args);
     }
     return sb.toString();
   }

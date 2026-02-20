@@ -239,4 +239,12 @@ public interface IdeLogger {
     error().log(error, message, args);
   }
 
+  /**
+   * @return the current {@link IdeLogger} instance.
+   */
+  static IdeLogger get() {
+
+    return IdeLoggerImpl.getInstance();
+  }
+
 }

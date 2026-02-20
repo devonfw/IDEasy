@@ -97,7 +97,11 @@ public final class Ideasy {
 
   private void initContext(CliArguments arguments) {
 
-    ContextCommandlet contextCommandlet = new ContextCommandlet();
+    IdeStartContextImpl startContext = null;
+    if (this.context != null) {
+      startContext = this.context.getStartContext();
+    }
+    ContextCommandlet contextCommandlet = new ContextCommandlet(startContext);
     while (arguments.hasNext()) {
       CliArgument current = arguments.next();
       String key = current.getKey();
@@ -118,7 +122,7 @@ public final class Ideasy {
     }
     contextCommandlet.run();
     if (this.context == null) {
-      IdeStartContextImpl startContext = contextCommandlet.getStartContext();
+      startContext = contextCommandlet.getStartContext();
       this.context = new IdeContextConsole(startContext);
     }
   }
