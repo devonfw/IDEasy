@@ -1176,23 +1176,13 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       return null;
     }
     Properties properties = new Properties();
-    String level = "FINE";
+    String intLevel = "FINE";
     if (trace().isEnabled()) {
-      level = "FINER";
+      intLevel = "FINER";
     }
-    // java.util.logging is so flawed: We cannot set the root level to a higher threshold than our own logger, instead we need to list all potential loggers
-    properties.setProperty(".level", level);
     String extLevel = "WARNING";
-    properties.setProperty("org.level", extLevel);
-    properties.setProperty("java.level", extLevel);
-    properties.setProperty("java.lang.level", extLevel);
-    properties.setProperty("java.lang.FooBar.level", extLevel);
-    // properties.setProperty("java.lang.ProcessBuilder.level", extLevel);
-    properties.setProperty("jdk.level", extLevel);
-    properties.setProperty("net.level", extLevel);
-    properties.setProperty("io.level", extLevel);
-    properties.setProperty("sf.level", extLevel);
-    properties.setProperty("sun.level", extLevel);
+    properties.setProperty(".level", extLevel);
+    properties.setProperty("com.devonfw.tools.ide.level", intLevel);
     if (file && console) {
       properties.setProperty("handlers", "java.util.logging.ConsoleHandler,java.util.logging.FileHandler");
     } else if (file) {
@@ -1201,7 +1191,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       properties.setProperty("handlers", "java.util.logging.ConsoleHandler");
     }
     if (file) {
-      properties.setProperty("java.util.logging.FileHandler.level", level);
+      properties.setProperty("java.util.logging.FileHandler.level", intLevel);
       properties.setProperty("java.util.logging.FileHandler.formatter", "java.util.logging.SimpleFormatter");
       properties.setProperty("java.util.logging.FileHandler.encoding", "UTF-8");
       LocalDateTime now = LocalDateTime.now();
@@ -1210,7 +1200,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       properties.setProperty("java.util.logging.FileHandler.pattern", logsPath.resolve("ideasy-" + DateTimeUtil.formatTime(now) + ".log").toString());
     }
     if (console) {
-      properties.setProperty("java.util.logging.ConsoleHandler.level", level);
+      properties.setProperty("java.util.logging.ConsoleHandler.level", intLevel);
       properties.setProperty("java.util.logging.ConsoleHandler.formatter", "java.util.logging.SimpleFormatter");
       properties.setProperty("java.util.logging.ConsoleHandler.encoding", "UTF-8");
     }
