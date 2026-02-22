@@ -1169,7 +1169,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     }
     Properties properties = new Properties();
     String intLevel = getLogLevel().getJulLevel().getName();
-    String extLevel = "WARNING";
+    String extLevel = "INFO"; // actually we want "WARNING" but there is a bug in JUL that the root level is applied to all loggers and "com.devonfw.tools.ide.level" then gets ignored.
     properties.setProperty(".level", extLevel);
     properties.setProperty("com.devonfw.tools.ide.level", intLevel);
     if (file) {
