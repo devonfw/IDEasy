@@ -20,8 +20,6 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
  */
 public class IdeTestContext extends AbstractIdeTestContext {
 
-  private final IdeTestStartContext logger;
-
   private GitContext gitContext;
 
   /**
@@ -58,7 +56,6 @@ public class IdeTestContext extends AbstractIdeTestContext {
   private IdeTestContext(IdeTestStartContext startContext, Path workingDirectory, WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     super(startContext, workingDirectory, wireMockRuntimeInfo);
-    this.logger = startContext;
     this.gitContext = new GitContextMock();
   }
 
@@ -92,9 +89,9 @@ public class IdeTestContext extends AbstractIdeTestContext {
   /**
    * @return the {@link IdeTestStartContext}.
    */
-  public IdeTestStartContext getLogger() {
+  public IdeTestStartContext getTestStartContext() {
 
-    return logger;
+    return (IdeTestStartContext) getStartContext();
   }
 
   /**
