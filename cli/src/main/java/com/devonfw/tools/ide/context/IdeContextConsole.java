@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarConsole;
+import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.log.IdeLogListenerNone;
 
 /**
  * Default implementation of {@link IdeContext} using the console.
@@ -16,6 +18,13 @@ public class IdeContextConsole extends AbstractIdeContext {
   private static final Logger LOG = LoggerFactory.getLogger(IdeContextConsole.class);
 
   private final Scanner scanner;
+
+  /**
+   * The constructor.
+   */
+  public IdeContextConsole() {
+    this(new IdeStartContextImpl(IdeLogLevel.INFO, IdeLogListenerNone.INSTANCE));
+  }
 
   /**
    * The constructor.
