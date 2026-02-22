@@ -54,7 +54,7 @@ public final class HelpCommandlet extends Commandlet {
   }
 
   @Override
-  protected boolean isActivateJaveUtilLogging() {
+  public boolean isWriteLogFile() {
 
     return false;
   }

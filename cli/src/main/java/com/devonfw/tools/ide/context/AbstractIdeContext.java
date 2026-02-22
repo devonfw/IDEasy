@@ -1129,6 +1129,11 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     }
   }
 
+  /**
+   * Configures the logging system (JUL).
+   *
+   * @param logfile value of {@link Commandlet#isWriteLogFile()}.
+   */
   public void configureJavaUtilLogging(boolean logfile) {
 
     if (this.julConfigured) {
@@ -1144,7 +1149,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       this.julConfigured = true;
       this.startContext.activateLogging();
     } catch (IOException e) {
-      LOG.error("Failed to configure logging: " + e, e);
+      LOG.error("Failed to configure logging: {}", e.toString(), e);
     }
   }
 
@@ -1157,15 +1162,15 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       }
     }
     this.startContext.setWriteLogfile(logfile);
-    return createJavaUtilLoggingProperties(false, logfile);
+    return doCreateJavaUtilLoggingProperties(logfile);
   }
 
-  protected final Properties createJavaUtilLoggingProperties(boolean console, boolean file) {
+  protected final Properties doCreateJavaUtilLoggingProperties(boolean file) {
 
     Path idePath = getIdePath();
     if (file && (idePath == null)) {
       file = false;
-      LOG.error("Cannot enable --logfile option since IDE_ROOT is undefined.");
+      LOG.error("Cannot enable log-file since IDE_ROOT is undefined.");
     }
     Properties properties = new Properties();
     String intLevel = getLogLevel().getJulLevel().getName();
@@ -1174,10 +1179,6 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     properties.setProperty("com.devonfw.tools.ide.level", intLevel);
     if (file) {
       properties.setProperty("handlers", "com.devonfw.tools.ide.log.JulConsoleHandler,java.util.logging.FileHandler");
-    } else {
-      properties.setProperty("handlers", "com.devonfw.tools.ide.log.JulConsoleHandler");
-    }
-    if (file) {
       properties.setProperty("java.util.logging.FileHandler.level", intLevel);
       properties.setProperty("java.util.logging.FileHandler.formatter", "java.util.logging.SimpleFormatter");
       properties.setProperty("java.util.logging.FileHandler.encoding", "UTF-8");
@@ -1185,6 +1186,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       Path logsPath = idePath.resolve(FOLDER_LOGS).resolve(DateTimeUtil.formatDate(now, true));
       getFileAccess().mkdirs(logsPath);
       properties.setProperty("java.util.logging.FileHandler.pattern", logsPath.resolve("ideasy-" + DateTimeUtil.formatTime(now) + ".log").toString());
+    } else {
+      properties.setProperty("handlers", "com.devonfw.tools.ide.log.JulConsoleHandler");
     }
     properties.setProperty("com.devonfw.tools.ide.log.JulConsoleHandler.level", intLevel);
     properties.setProperty("java.util.logging.SimpleFormatter.format", "%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS.%1$tL [%4$s] [%3$s] %5$s%6$s%n");

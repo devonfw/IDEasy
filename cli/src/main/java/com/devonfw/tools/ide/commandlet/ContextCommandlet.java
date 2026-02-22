@@ -74,7 +74,7 @@ public class ContextCommandlet extends Commandlet {
   }
 
   @Override
-  protected boolean isActivateJaveUtilLogging() {
+  public boolean isWriteLogFile() {
 
     return false;
   }

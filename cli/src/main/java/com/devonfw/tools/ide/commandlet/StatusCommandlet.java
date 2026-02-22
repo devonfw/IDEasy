@@ -41,7 +41,7 @@ public class StatusCommandlet extends Commandlet {
   }
 
   @Override
-  protected boolean isActivateJaveUtilLogging() {
+  public boolean isWriteLogFile() {
 
     return false;
   }

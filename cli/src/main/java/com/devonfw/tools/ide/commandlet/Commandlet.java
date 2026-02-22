@@ -213,7 +213,11 @@ public abstract class Commandlet {
     return false;
   }
 
-  protected boolean isActivateJaveUtilLogging() {
+  /**
+   * @return {@code true} to write a logfile (unless disabled via {@link com.devonfw.tools.ide.variable.IdeVariables#IDE_WRITE_LOGFILE}), {@code false}
+   *     otherwise.
+   */
+  public boolean isWriteLogFile() {
     return !isProcessableOutput();
   }
 
@@ -223,7 +227,7 @@ public abstract class Commandlet {
   public final void run() {
 
     if (this.context != null) { // for ContextCommandlet we do not have a context yet
-      ((AbstractIdeContext) this.context).configureJavaUtilLogging(isActivateJaveUtilLogging());
+      ((AbstractIdeContext) this.context).configureJavaUtilLogging(isWriteLogFile());
     }
     doRun();
   }

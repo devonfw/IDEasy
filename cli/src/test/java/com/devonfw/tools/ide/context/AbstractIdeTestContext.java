@@ -416,6 +416,6 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   @Override
   protected Properties createJavaUtilLoggingProperties(boolean logfile) {
 
-    return createJavaUtilLoggingProperties(true, false);
+    return doCreateJavaUtilLoggingProperties(false);
   }
 }
