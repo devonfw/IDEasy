@@ -5,7 +5,6 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeLogListenerBuffer;
-import com.devonfw.tools.ide.log.IdeSubLoggerOut;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.LocaleProperty;
 
@@ -86,7 +85,7 @@ public class ContextCommandlet extends Commandlet {
     IdeLogLevel logLevel = determineLogLevel();
     if (this.startContext == null) {
       IdeLogListenerBuffer listener = new IdeLogListenerBuffer();
-      this.startContext = new IdeStartContextImpl(logLevel, level -> new IdeSubLoggerOut(level, null, true, logLevel, listener));
+      this.startContext = new IdeStartContextImpl(logLevel, listener);
     } else if (this.context != null) {
       IdeStartContextImpl newStartContext = ((AbstractIdeContext) this.context).getStartContext();
       assert (this.startContext == newStartContext); // fast fail during development via assert

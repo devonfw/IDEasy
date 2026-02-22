@@ -7,18 +7,15 @@ import com.devonfw.tools.ide.environment.VariableLine.Comment;
 import com.devonfw.tools.ide.environment.VariableLine.Empty;
 import com.devonfw.tools.ide.environment.VariableLine.Garbage;
 import com.devonfw.tools.ide.environment.VariableLine.Variable;
-import com.devonfw.tools.ide.log.IdeSlf4jRootLogger;
 
 /**
  * Test of {@link VariableLine}.
  */
 class VariableLineTest extends Assertions {
 
-  private static final IdeSlf4jRootLogger LOGGER = IdeSlf4jRootLogger.of();
-
   private VariableLine line(String line) {
 
-    return VariableLine.of(line, LOGGER, new VariableSource(EnvironmentVariablesType.RESOLVED, null));
+    return VariableLine.of(line, new VariableSource(EnvironmentVariablesType.RESOLVED, null));
   }
 
   /**

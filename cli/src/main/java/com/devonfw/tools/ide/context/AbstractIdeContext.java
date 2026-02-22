@@ -49,9 +49,7 @@ import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.log.IdeLogArgFormatter;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.log.IdeLogger;
-import com.devonfw.tools.ide.log.IdeSubLogger;
-import com.devonfw.tools.ide.log.IdeSubLoggerAdapter;
+import com.devonfw.tools.ide.log.IdeLogListener;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.migration.IdeMigrator;
 import com.devonfw.tools.ide.network.NetworkStatus;
@@ -89,7 +87,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatter {
 
-  private static final Logger LOG = LoggerFactory.getLogger(AbstractIdeContext.class);
+  static final Logger LOG = LoggerFactory.getLogger(AbstractIdeContext.class);
 
   /** The default shell bash (Bourne Again SHell). */
   public static final String BASH = "bash";
@@ -170,23 +168,15 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   private boolean julConfigured;
 
-  private final IdeSubLogger[] loggers;
-
   /**
    * The constructor.
    *
-   * @param startContext the {@link IdeLogger}.
+   * @param startContext the {@link IdeStartContextImpl}.
    * @param workingDirectory the optional {@link Path} to current working directory.
    */
   public AbstractIdeContext(IdeStartContextImpl startContext, Path workingDirectory) {
 
     super();
-    // init sub loggers
-    IdeLogLevel[] levels = IdeLogLevel.values();
-    this.loggers = new IdeSubLogger[levels.length];
-    for (IdeLogLevel level : levels) {
-      this.loggers[level.ordinal()] = new IdeSubLoggerAdapter(level, LOG);
-    }
 
     this.startContext = startContext;
     this.startContext.setArgFormatter(this);
@@ -205,7 +195,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     if (Files.isDirectory(workingDirectory)) {
       workingDirectory = this.fileAccess.toCanonicalPath(workingDirectory);
     } else {
-      warning("Current working directory does not exist: {}", workingDirectory);
+      LOG.warn("Current working directory does not exist: {}", workingDirectory);
     }
     this.cwd = workingDirectory;
     // detect IDE_HOME and WORKSPACE
@@ -249,7 +239,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     Path ideRootPath = getIdeRootPathFromEnv(false);
 
     while (currentDir != null) {
-      trace("Looking for IDE_HOME in {}", currentDir);
+      LOG.trace("Looking for IDE_HOME in {}", currentDir);
       if (isIdeHome(currentDir)) {
         if (FOLDER_WORKSPACES.equals(name1) && !name2.isEmpty()) {
           workspace = name2;
@@ -299,7 +289,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       Path ideRootPathFromEnv = getIdeRootPathFromEnv(true);
       ideRootPath = ideHomePath.getParent();
       if ((ideRootPathFromEnv != null) && !ideRootPath.toString().equals(ideRootPathFromEnv.toString())) {
-        warning(
+        LOG.warn(
             "Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.\n"
                 + "Please check your 'user.dir' or working directory setting and make sure that it matches your IDE_ROOT variable.",
             ideRootPathFromEnv,
@@ -330,19 +320,19 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
               String rootName = rootPath.getName(nameIndex).toString();
               String absoluteRootName = absoluteRootPath.getName(nameIndex + delta).toString();
               if (!rootName.equals(absoluteRootName)) {
-                warning("IDE_ROOT is set to {} but was expanded to absolute path {} and does not match for segment {} and {} - fix your IDEasy installation!",
+                LOG.warn("IDE_ROOT is set to {} but was expanded to absolute path {} and does not match for segment {} and {} - fix your IDEasy installation!",
                     rootPath, absoluteRootPath, rootName, absoluteRootName);
                 break;
               }
             }
           } else {
-            warning("IDE_ROOT is set to {} but was expanded to a shorter absolute path {}", rootPath,
+            LOG.warn("IDE_ROOT is set to {} but was expanded to a shorter absolute path {}", rootPath,
                 absoluteRootPath);
           }
         }
         return absoluteRootPath;
       } else if (withSanityCheck) {
-        warning("IDE_ROOT is set to {} that is not an existing directory - fix your IDEasy installation!", rootPath);
+        LOG.warn("IDE_ROOT is set to {} that is not an existing directory - fix your IDEasy installation!", rootPath);
       }
     }
     return null;
@@ -622,7 +612,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     Path settingsPath = getSettingsPath();
     // check whether the settings path has a .git folder only if its not a symbolic link or junction
     if ((settingsPath != null) && !Files.exists(settingsPath.resolve(".git")) && !isSettingsRepositorySymlinkOrJunction()) {
-      error("Settings repository exists but is not a git repository.");
+      LOG.error("Settings repository exists but is not a git repository.");
       return null;
     }
     return settingsPath;
@@ -838,7 +828,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   /**
-   * @return the {@link #getDefaultExecutionDirectory() default execution directory} in which a command process is executed.
+   * @return the default execution directory in which a command process is executed.
    */
   @Override
   public Path getDefaultExecutionDirectory() {
@@ -891,20 +881,26 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   @Override
-  public IdeSubLogger level(IdeLogLevel level) {
+  public IdeLogLevel getLogLevel() {
 
-    return this.loggers[level.ordinal()];
+    return this.startContext.getLogLevel();
+  }
+
+  @Override
+  public IdeLogListener getLogListener() {
+
+    return this.startContext.getLogListener();
   }
 
   @Override
   public void logIdeHomeAndRootStatus() {
     if (this.ideRoot != null) {
-      success("IDE_ROOT is set to {}", this.ideRoot);
+      LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "IDE_ROOT is set to {}", this.ideRoot);
     }
     if (this.ideHome == null) {
-      warning(getMessageNotInsideIdeProject());
+      LOG.warn(getMessageNotInsideIdeProject());
     } else {
-      success("IDE_HOME is set to {}", this.ideHome);
+      LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "IDE_HOME is set to {}", this.ideHome);
     }
   }
 
@@ -962,7 +958,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
     while (true) {
       if (!message.isBlank()) {
-        interaction(message);
+        LOG.info(IdeLogLevel.INTERACTION.getSlf4jMarker(), message);
       }
       if (isBatchMode()) {
         if (isForceMode()) {
@@ -982,12 +978,11 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     }
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   public <O> O question(O[] options, String question, Object... args) {
 
     assert (options.length > 0);
-    interaction(question, args);
+    LOG.info(IdeLogLevel.INTERACTION.getSlf4jMarker(), question, args);
     return displayOptionsAndGetAnswer(options);
   }
 
@@ -1001,24 +996,24 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       addMapping(mapping, key, option);
       String numericKey = Integer.toString(i);
       if (numericKey.equals(key)) {
-        trace("Options should not be numeric: " + key);
+        LOG.trace("Options should not be numeric: " + key);
       } else {
         addMapping(mapping, numericKey, option);
       }
-      interaction("Option " + numericKey + ": " + title);
+      LOG.info(IdeLogLevel.INTERACTION.getSlf4jMarker(), "Option " + numericKey + ": " + title);
     }
     O option = null;
     if (isBatchMode()) {
       if (isForceMode()) {
         option = options[0];
-        interaction("" + option);
+        LOG.info(IdeLogLevel.INTERACTION.getSlf4jMarker(), "" + option);
       }
     } else {
       while (option == null) {
         String answer = readLine();
         option = mapping.get(answer);
         if (option == null) {
-          warning("Invalid answer: '" + answer + "' - please try again.");
+          LOG.warn("Invalid answer: '" + answer + "' - please try again.");
         }
       }
     }
@@ -1082,7 +1077,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       if (this.currentStep != null) {
         currentStepName = this.currentStep.getName();
       }
-      warning("endStep called with wrong step '{}' but expected '{}'", step.getName(), currentStepName);
+      LOG.warn("endStep called with wrong step '{}' but expected '{}'", step.getName(), currentStepName);
     }
   }
 
@@ -1114,7 +1109,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       this.startContext.activateLogging();
       verifyIdeMinVersion(false);
       if (result != null) {
-        error(result.getErrorMessage());
+        LOG.error(result.getErrorMessage());
       }
       step.error("Invalid arguments: {}", current.getArgs());
       HelpCommandlet help = this.commandletManager.getCommandlet(HelpCommandlet.class);
@@ -1134,15 +1129,12 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     }
   }
 
-  public void configureJavaUtilLogging() {
+  public void configureJavaUtilLogging(boolean logfile) {
 
     if (this.julConfigured) {
       return;
     }
-    Properties properties = createJavaUtilLoggingProperties();
-    if (properties == null) {
-      return;
-    }
+    Properties properties = createJavaUtilLoggingProperties(logfile);
     try {
       ByteArrayOutputStream out = new ByteArrayOutputStream(512);
       properties.store(out, null);
@@ -1150,18 +1142,21 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
       LogManager.getLogManager().readConfiguration(in);
       this.julConfigured = true;
+      this.startContext.activateLogging();
     } catch (IOException e) {
-      error(e);
+      LOG.error("Failed to configure logging: " + e, e);
     }
   }
 
-  protected Properties createJavaUtilLoggingProperties() {
-    boolean logfile = false;
-    Boolean writeLogfile = IdeVariables.IDE_WRITE_LOGFILE.get(this);
-    if (Boolean.TRUE.equals(writeLogfile)) {
-      logfile = true;
-      this.startContext.setWriteLogfile(true);
+  protected Properties createJavaUtilLoggingProperties(boolean logfile) {
+
+    if (logfile) {
+      Boolean writeLogfile = IdeVariables.IDE_WRITE_LOGFILE.get(this);
+      if (Boolean.FALSE.equals(writeLogfile)) {
+        logfile = false;
+      }
     }
+    this.startContext.setWriteLogfile(logfile);
     return createJavaUtilLoggingProperties(false, logfile);
   }
 
@@ -1170,25 +1165,17 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     Path idePath = getIdePath();
     if (file && (idePath == null)) {
       file = false;
-      error("Cannot enable --logfile option since IDE_ROOT is undefined.");
-    }
-    if (!console && !file) {
-      return null;
+      LOG.error("Cannot enable --logfile option since IDE_ROOT is undefined.");
     }
     Properties properties = new Properties();
-    String intLevel = "FINE";
-    if (trace().isEnabled()) {
-      intLevel = "FINER";
-    }
+    String intLevel = getLogLevel().getJulLevel().getName();
     String extLevel = "WARNING";
     properties.setProperty(".level", extLevel);
     properties.setProperty("com.devonfw.tools.ide.level", intLevel);
-    if (file && console) {
-      properties.setProperty("handlers", "java.util.logging.ConsoleHandler,java.util.logging.FileHandler");
-    } else if (file) {
-      properties.setProperty("handlers", "java.util.logging.FileHandler");
+    if (file) {
+      properties.setProperty("handlers", "com.devonfw.tools.ide.log.JulConsoleHandler,java.util.logging.FileHandler");
     } else {
-      properties.setProperty("handlers", "java.util.logging.ConsoleHandler");
+      properties.setProperty("handlers", "com.devonfw.tools.ide.log.JulConsoleHandler");
     }
     if (file) {
       properties.setProperty("java.util.logging.FileHandler.level", intLevel);
@@ -1199,11 +1186,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       getFileAccess().mkdirs(logsPath);
       properties.setProperty("java.util.logging.FileHandler.pattern", logsPath.resolve("ideasy-" + DateTimeUtil.formatTime(now) + ".log").toString());
     }
-    if (console) {
-      properties.setProperty("java.util.logging.ConsoleHandler.level", intLevel);
-      properties.setProperty("java.util.logging.ConsoleHandler.formatter", "java.util.logging.SimpleFormatter");
-      properties.setProperty("java.util.logging.ConsoleHandler.encoding", "UTF-8");
-    }
+    properties.setProperty("com.devonfw.tools.ide.log.JulConsoleHandler.level", intLevel);
     properties.setProperty("java.util.logging.SimpleFormatter.format", "%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS.%1$tL [%4$s] [%3$s] %5$s%6$s%n");
     return properties;
   }
@@ -1230,7 +1213,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       result = cmd.validate();
     }
     if (result.isValid()) {
-      debug("Running commandlet {}", cmd);
+      LOG.debug("Running commandlet {}", cmd);
       if (cmd.isIdeHomeRequired() && (this.ideHome == null)) {
         throw new CliException(getMessageNotInsideIdeProject(), ProcessResult.NO_IDE_HOME);
       } else if (cmd.isIdeRootRequired() && (this.ideRoot == null)) {
@@ -1238,28 +1221,26 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       }
       try {
         if (cmd.isProcessableOutput()) {
-          if (!debug().isEnabled()) {
+          if (!LOG.isDebugEnabled()) {
             // unless --debug or --trace was supplied, processable output commandlets will disable all log-levels except INFO to prevent other logs interfere
             previousLogLevel = this.startContext.setLogLevel(IdeLogLevel.PROCESSABLE);
           }
-          this.startContext.activateLogging();
         } else {
-          this.startContext.activateLogging();
           if (cmd.isIdeHomeRequired()) {
-            debug(getMessageIdeHomeFound());
+            LOG.debug(getMessageIdeHomeFound());
           }
           Path settingsRepository = getSettingsGitRepository();
           if (settingsRepository != null) {
             if (getGitContext().isRepositoryUpdateAvailable(settingsRepository, getSettingsCommitIdPath()) || (
                 getGitContext().fetchIfNeeded(settingsRepository) && getGitContext().isRepositoryUpdateAvailable(
                     settingsRepository, getSettingsCommitIdPath()))) {
+              String msg;
               if (isSettingsRepositorySymlinkOrJunction()) {
-                interaction(
-                    "Updates are available for the settings repository. Please pull the latest changes by yourself or by calling \"ide -f update\" to apply them.");
+                msg = "Updates are available for the settings repository. Please pull the latest changes by yourself or by calling \"ide -f update\" to apply them.";
               } else {
-                interaction(
-                    "Updates are available for the settings repository. If you want to apply the latest changes, call \"ide update\"");
+                msg = "Updates are available for the settings repository. If you want to apply the latest changes, call \"ide update\"";
               }
+              LOG.info(IdeLogLevel.INTERACTION.getSlf4jMarker(), msg);
             }
           }
         }
@@ -1275,7 +1256,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
         }
       }
     } else {
-      trace("Commandlet did not match");
+      LOG.trace("Commandlet did not match");
     }
     return result;
   }
@@ -1296,13 +1277,11 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       // printing anything anymore in such case.
       return false;
     }
-    boolean logLevelInfoDisabled = !this.startContext.info().isEnabled();
-    if (logLevelInfoDisabled) {
-      this.startContext.setLogLevel(IdeLogLevel.INFO, true);
-    }
-    boolean logLevelInteractionDisabled = !this.startContext.interaction().isEnabled();
-    if (logLevelInteractionDisabled) {
-      this.startContext.setLogLevel(IdeLogLevel.INTERACTION, true);
+    IdeLogLevel oldLogLevel = this.startContext.getLogLevel();
+    IdeLogLevel newLogLevel = oldLogLevel;
+    if (oldLogLevel.ordinal() > IdeLogLevel.INFO.ordinal()) {
+      newLogLevel = IdeLogLevel.INFO;
+      this.startContext.setLogLevel(newLogLevel);
     }
     StringBuilder sb = new StringBuilder(1180);
     sb.append(LOGO).append("""
@@ -1320,7 +1299,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       sb.append("\n\nAlso it is included in the documentation that you can find here:\n").
           append(getIdePath().resolve("IDEasy.pdf").toString()).append("\n");
     }
-    info(sb.toString());
+    LOG.info(sb.toString());
     askToContinue("Do you accept these terms of use and all license agreements?");
 
     sb.setLength(0);
@@ -1332,11 +1311,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     } catch (Exception e) {
       throw new RuntimeException("Failed to save license agreement!", e);
     }
-    if (logLevelInfoDisabled) {
-      this.startContext.setLogLevel(IdeLogLevel.INFO, false);
-    }
-    if (logLevelInteractionDisabled) {
-      this.startContext.setLogLevel(IdeLogLevel.INTERACTION, false);
+    if (oldLogLevel != newLogLevel) {
+      this.startContext.setLogLevel(oldLogLevel);
     }
     return true;
   }
@@ -1355,7 +1331,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       if (throwException) {
         throw new CliException(message);
       } else {
-        warning(message);
+        LOG.warn(message);
       }
     }
   }
@@ -1395,7 +1371,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   private void completeCommandlet(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
 
-    trace("Trying to match arguments for auto-completion for commandlet {}", cmd.getName());
+    LOG.trace("Trying to match arguments for auto-completion for commandlet {}", cmd.getName());
     Iterator<Property<?>> valueIterator = cmd.getValues().iterator();
     valueIterator.next(); // skip first property since this is the keyword property that already matched to find the commandlet
     List<Property<?>> properties = cmd.getProperties();
@@ -1408,7 +1384,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     }
     CliArgument currentArgument = arguments.current();
     while (!currentArgument.isEnd()) {
-      trace("Trying to match argument '{}'", currentArgument);
+      LOG.trace("Trying to match argument '{}'", currentArgument);
       if (currentArgument.isOption() && !arguments.isEndOptions()) {
         if (currentArgument.isCompletion()) {
           Iterator<Property<?>> optionIterator = optionProperties.iterator();
@@ -1430,7 +1406,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
             }
           }
           if (option == null) {
-            trace("No such option was found.");
+            LOG.trace("No such option was found.");
             return;
           }
         }
@@ -1439,11 +1415,11 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
           Property<?> valueProperty = valueIterator.next();
           boolean success = valueProperty.apply(arguments, this, cmd, collector);
           if (!success) {
-            trace("Completion cannot match any further.");
+            LOG.trace("Completion cannot match any further.");
             return;
           }
         } else {
-          trace("No value left for completion.");
+          LOG.trace("No value left for completion.");
           return;
         }
       }
@@ -1459,7 +1435,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
    */
   public ValidationResult apply(CliArguments arguments, Commandlet cmd) {
 
-    trace("Trying to match arguments to commandlet {}", cmd.getName());
+    LOG.trace("Trying to match arguments to commandlet {}", cmd.getName());
     CliArgument currentArgument = arguments.current();
     Iterator<Property<?>> propertyIterator = cmd.getValues().iterator();
     Property<?> property = null;
@@ -1467,7 +1443,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       property = propertyIterator.next();
     }
     while (!currentArgument.isEnd()) {
-      trace("Trying to match argument '{}'", currentArgument);
+      LOG.trace("Trying to match argument '{}'", currentArgument);
       Property<?> currentProperty = property;
       if (!arguments.isEndOptions()) {
         Property<?> option = cmd.getOption(currentArgument.getKey());
@@ -1476,12 +1452,12 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
         }
       }
       if (currentProperty == null) {
-        trace("No option or next value found");
+        LOG.trace("No option or next value found");
         ValidationState state = new ValidationState(null);
         state.addErrorMessage("No matching property found");
         return state;
       }
-      trace("Next property candidate to match argument is {}", currentProperty);
+      LOG.trace("Next property candidate to match argument is {}", currentProperty);
       if (currentProperty == property) {
         if (!property.isMultiValued()) {
           if (propertyIterator.hasNext()) {
@@ -1521,7 +1497,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       }
     }
     if (bashPath == null) {
-      error("No bash executable could be found on your system.");
+      LOG.error("No bash executable could be found on your system.");
     } else {
       this.bash = bashPath;
     }
@@ -1529,21 +1505,21 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   private Path findBashOnBashPath() {
-    trace("Trying to find BASH_PATH environment variable.");
+    LOG.trace("Trying to find BASH_PATH environment variable.");
     Path bash;
     String bashPathVariableName = IdeVariables.BASH_PATH.getName();
     String bashVariable = getVariables().get(bashPathVariableName);
     if (bashVariable != null) {
       bash = Path.of(bashVariable);
       if (Files.exists(bash)) {
-        debug("{} environment variable was found and points to: {}", bashPathVariableName, bash);
+        LOG.debug("{} environment variable was found and points to: {}", bashPathVariableName, bash);
         return bash;
       } else {
-        error("The environment variable {} points to a non existing file: {}", bashPathVariableName, bash);
+        LOG.error("The environment variable {} points to a non existing file: {}", bashPathVariableName, bash);
         return null;
       }
     } else {
-      debug("{} environment variable was not found", bashPathVariableName);
+      LOG.debug("{} environment variable was not found", bashPathVariableName);
       return null;
     }
   }
@@ -1564,7 +1540,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
    * @return Path to bash.exe if found in PATH environment variable, {@code null} if bash.exe was not found.
    */
   private Path findBashInPath() {
-    trace("Trying to find bash in PATH environment variable.");
+    LOG.trace("Trying to find bash in PATH environment variable.");
     Path bash;
     String pathVariableName = IdeVariables.PATH.getName();
     if (pathVariableName != null) {
@@ -1574,20 +1550,20 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       Path bashPath = getPath().findBinary(plainBash, pathsToIgnore);
       bash = bashPath.toAbsolutePath();
       if (bashPath.equals(plainBash)) {
-        warning("No usable bash executable was found in your PATH environment variable!");
+        LOG.warn("No usable bash executable was found in your PATH environment variable!");
         bash = null;
       } else {
         if (Files.exists(bashPath)) {
-          debug("A proper bash executable was found in your PATH environment variable at: {}", bash);
+          LOG.debug("A proper bash executable was found in your PATH environment variable at: {}", bash);
         } else {
           bash = null;
-          error("A path to a bash executable was found in your PATH environment variable at: {} but the file is not existing.", bash);
+          LOG.error("A path to a bash executable was found in your PATH environment variable at: {} but the file is not existing.", bash);
         }
       }
     } else {
       bash = null;
       // this should never happen...
-      error("PATH environment variable was not found");
+      LOG.error("PATH environment variable was not found");
     }
     return bash;
   }
@@ -1598,14 +1574,14 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
    * @return Path to bash.exe if found in registry, {@code null} if bash.exe was found.
    */
   protected Path findBashInWindowsRegistry() {
-    trace("Trying to find bash in Windows registry");
+    LOG.trace("Trying to find bash in Windows registry");
     // If not found in the default location, try the registry query
     String[] bashVariants = { "GitForWindows", "Cygwin\\setup" };
     String[] registryKeys = { "HKEY_LOCAL_MACHINE", "HKEY_CURRENT_USER" };
     for (String bashVariant : bashVariants) {
-      trace("Trying to find bash variant: {}", bashVariant);
+      LOG.trace("Trying to find bash variant: {}", bashVariant);
       for (String registryKey : registryKeys) {
-        trace("Trying to find bash from registry key: {}", registryKey);
+        LOG.trace("Trying to find bash from registry key: {}", registryKey);
         String toolValueName = ("GitForWindows".equals(bashVariant)) ? "InstallPath" : "rootdir";
         String registryPath = registryKey + "\\Software\\" + bashVariant;
 
@@ -1613,14 +1589,14 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
         if (path != null) {
           Path bashPath = Path.of(path + "\\bin\\bash.exe");
           if (Files.exists(bashPath)) {
-            debug("Found bash at: {}", bashPath);
+            LOG.debug("Found bash at: {}", bashPath);
             return bashPath;
           } else {
-            error("Found bash at: {} but it is not pointing to an existing file", bashPath);
+            LOG.error("Found bash at: {} but it is not pointing to an existing file", bashPath);
             return null;
           }
         } else {
-          info("No bash executable could be found in the Windows registry.");
+          LOG.info("No bash executable could be found in the Windows registry.");
         }
       }
     }
@@ -1630,13 +1606,13 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   private Path findBashOnWindowsDefaultGitPath() {
     // Check if Git Bash exists in the default location
-    trace("Trying to find bash on the Windows default git path.");
+    LOG.trace("Trying to find bash on the Windows default git path.");
     Path defaultPath = Path.of(getDefaultWindowsGitPath());
     if (!defaultPath.toString().isEmpty() && Files.exists(defaultPath)) {
-      trace("Found default path to git bash on Windows at: {}", getDefaultWindowsGitPath());
+      LOG.trace("Found default path to git bash on Windows at: {}", getDefaultWindowsGitPath());
       return defaultPath;
     }
-    debug("No bash was found on the Windows default git path.");
+    LOG.debug("No bash was found on the Windows default git path.");
     return null;
   }
 

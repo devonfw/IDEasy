@@ -1,5 +1,8 @@
 package com.devonfw.tools.ide.commandlet;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.version.IdeVersion;
@@ -8,6 +11,8 @@ import com.devonfw.tools.ide.version.IdeVersion;
  * Prints the IDEasy version and exits
  */
 public class VersionCommandlet extends Commandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(VersionCommandlet.class);
 
   /**
    * The constructor.
@@ -41,6 +46,6 @@ public class VersionCommandlet extends Commandlet {
   @Override
   protected void doRun() {
 
-    this.context.level(IdeLogLevel.PROCESSABLE).log(IdeVersion.getVersionString());
+    LOG.info(IdeLogLevel.PROCESSABLE.getSlf4jMarker(), IdeVersion.getVersionString());
   }
 }

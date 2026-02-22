@@ -7,9 +7,11 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 
@@ -18,14 +20,14 @@ import com.devonfw.tools.ide.tool.repository.ToolRepository;
  */
 public final class MacOsHelper {
 
+  private static final Logger LOG = LoggerFactory.getLogger(MacOsHelper.class);
+
   private static final Set<String> INVALID_LINK_FOLDERS = Set.of(IdeContext.FOLDER_CONTENTS,
       IdeContext.FOLDER_RESOURCES, IdeContext.FOLDER_BIN);
 
   private final FileAccess fileAccess;
 
   private final SystemInfo systemInfo;
-
-  private final IdeLogger logger;
 
   /**
    * The constructor.
@@ -34,7 +36,7 @@ public final class MacOsHelper {
    */
   public MacOsHelper(IdeContext context) {
 
-    this(context.getFileAccess(), context.getSystemInfo(), context);
+    this(context.getFileAccess(), context.getSystemInfo());
   }
 
   /**
@@ -42,14 +44,12 @@ public final class MacOsHelper {
    *
    * @param fileAccess the {@link FileAccess} instance.
    * @param systemInfo the {@link SystemInfo} instance.
-   * @param logger the {@link IdeLogger} instance.
    */
-  public MacOsHelper(FileAccess fileAccess, SystemInfo systemInfo, IdeLogger logger) {
+  public MacOsHelper(FileAccess fileAccess, SystemInfo systemInfo) {
 
     super();
     this.fileAccess = fileAccess;
     this.systemInfo = systemInfo;
-    this.logger = logger;
   }
 
   /**
@@ -100,7 +100,7 @@ public final class MacOsHelper {
 
   private Path findLinkDir(Path contentsDir, Path rootDir, String tool) {
 
-    this.logger.debug("Found MacOS app in {}", contentsDir);
+    LOG.debug("Found MacOS app in {}", contentsDir);
     Path resourcesAppBin = contentsDir.resolve(IdeContext.FOLDER_RESOURCES).resolve(IdeContext.FOLDER_APP)
         .resolve(IdeContext.FOLDER_BIN);
     if (Files.isDirectory(resourcesAppBin)) {

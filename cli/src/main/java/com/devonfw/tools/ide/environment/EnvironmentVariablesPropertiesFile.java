@@ -132,7 +132,7 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
       do {
         line = reader.readLine();
         if (line != null) {
-          VariableLine variableLine = VariableLine.of(line, this.context, getSource());
+          VariableLine variableLine = VariableLine.of(line, getSource());
           String name = variableLine.getName();
           if (name != null) {
             VariableLine migratedVariableLine = migrateLine(variableLine, false);
@@ -241,7 +241,7 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
       do {
         line = reader.readLine();
         if (line != null) {
-          VariableLine variableLine = VariableLine.of(line, this.context, getSource());
+          VariableLine variableLine = VariableLine.of(line, getSource());
           lines.add(variableLine);
         }
       } while (line != null);
@@ -341,9 +341,9 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
     String oldValue = this.variables.put(name, value);
     boolean flagChanged = export != this.exportedVariables.contains(name);
     if (Objects.equals(value, oldValue) && !flagChanged) {
-      this.context.trace("Set variable '{}={}' caused no change in {}", name, value, this.propertiesFilePath);
+      LOG.trace("Set variable '{}={}' caused no change in {}", name, value, this.propertiesFilePath);
     } else {
-      this.context.debug("Set variable '{}={}' in {}", name, value, this.propertiesFilePath);
+      LOG.debug("Set variable '{}={}' in {}", name, value, this.propertiesFilePath);
       this.modifiedVariables.add(name);
       if (export && (value != null)) {
         this.exportedVariables.add(name);
@@ -364,7 +364,7 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
     if (oldValue != null) {
       this.modifiedVariables.add(name);
       this.exportedVariables.remove(name);
-      this.context.debug("Removed variable name of '{}' in {}", name, this.propertiesFilePath);
+      LOG.debug("Removed variable name of '{}' in {}", name, this.propertiesFilePath);
     }
   }
 

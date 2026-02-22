@@ -10,6 +10,9 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 
@@ -18,11 +21,11 @@ import com.devonfw.tools.ide.context.IdeContext;
  */
 final class RepositoryProperties {
 
+  private static final Logger LOG = LoggerFactory.getLogger(RepositoryProperties.class);
+
   private final Path file;
 
   private final Properties properties;
-
-  private final IdeContext context;
 
   /**
    * The constructor.
@@ -31,19 +34,17 @@ final class RepositoryProperties {
    * @param context the {@link IdeContext}.
    */
   public RepositoryProperties(Path file, IdeContext context) {
-    this(file, context, context.getFileAccess().readProperties(file));
+    this(file, context.getFileAccess().readProperties(file));
   }
 
   /**
    * @param file the {@link Path} to the properties file.
-   * @param context the {@link IdeContext}.
    * @param properties the actual {@link Properties} loaded from the file.
    */
-  RepositoryProperties(Path file, IdeContext context, Properties properties) {
+  RepositoryProperties(Path file, Properties properties) {
     super();
     this.file = file;
     this.properties = properties;
-    this.context = context;
   }
 
   /**
@@ -90,7 +91,7 @@ final class RepositoryProperties {
 
     String value = this.properties.getProperty(legacyName);
     if (value != null) {
-      this.context.warning("The properties file {} uses the legacy property {} instead of {}", this.file, legacyName, name);
+      LOG.warn("The properties file {} uses the legacy property {} instead of {}", this.file, legacyName, name);
     }
     return value;
   }
@@ -110,7 +111,7 @@ final class RepositoryProperties {
 
     String legacyImportProperty = getLegacyProperty(RepositoryConfig.PROPERTY_ECLIPSE, RepositoryConfig.PROPERTY_IMPORT);
     if ("import".equals(legacyImportProperty)) {
-      this.context.warning("Property {} is deprecated and should be replaced with {} (invert key and value).", RepositoryConfig.PROPERTY_ECLIPSE,
+      LOG.warn("Property {} is deprecated and should be replaced with {} (invert key and value).", RepositoryConfig.PROPERTY_ECLIPSE,
           RepositoryConfig.PROPERTY_IMPORT);
       return Set.of("eclipse");
     } else {
@@ -127,7 +128,7 @@ final class RepositoryProperties {
     if (workspaceProperty == null) {
       workspaceProperty = this.properties.getProperty("workspace");
       if (workspaceProperty != null) {
-        this.context.debug("Property workspace is legacy, please change property name to workspaces in {}", this.file);
+        LOG.debug("Property workspace is legacy, please change property name to workspaces in {}", this.file);
       }
     }
     if ((workspaceProperty != null) && !workspaceProperty.isEmpty()) {
@@ -139,7 +140,7 @@ final class RepositoryProperties {
         if (added) {
           list.add(workspace);
         } else {
-          this.context.warning("Ignoring duplicate workspace {} from {}", workspace, workspaceProperty);
+          LOG.warn("Ignoring duplicate workspace {} from {}", workspace, workspaceProperty);
         }
       }
       return Collections.unmodifiableList(list);

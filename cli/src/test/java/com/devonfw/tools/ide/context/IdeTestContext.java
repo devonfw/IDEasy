@@ -7,7 +7,7 @@ import java.nio.file.Path;
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.git.GitContextMock;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.log.IdeTestLogger;
+import com.devonfw.tools.ide.log.IdeTestStartContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.tool.mvn.MvnRepository;
 import com.devonfw.tools.ide.tool.npm.NpmRepository;
@@ -20,7 +20,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
  */
 public class IdeTestContext extends AbstractIdeTestContext {
 
-  private final IdeTestLogger logger;
+  private final IdeTestStartContext logger;
 
   private GitContext gitContext;
 
@@ -52,13 +52,13 @@ public class IdeTestContext extends AbstractIdeTestContext {
    */
   public IdeTestContext(Path workingDirectory, IdeLogLevel logLevel, WireMockRuntimeInfo wireMockRuntimeInfo) {
 
-    this(new IdeTestLogger(logLevel), workingDirectory, wireMockRuntimeInfo);
+    this(new IdeTestStartContext(logLevel), workingDirectory, wireMockRuntimeInfo);
   }
 
-  private IdeTestContext(IdeTestLogger logger, Path workingDirectory, WireMockRuntimeInfo wireMockRuntimeInfo) {
+  private IdeTestContext(IdeTestStartContext startContext, Path workingDirectory, WireMockRuntimeInfo wireMockRuntimeInfo) {
 
-    super(logger, workingDirectory, wireMockRuntimeInfo);
-    this.logger = logger;
+    super(startContext, workingDirectory, wireMockRuntimeInfo);
+    this.logger = startContext;
     this.gitContext = new GitContextMock();
   }
 
@@ -90,9 +90,9 @@ public class IdeTestContext extends AbstractIdeTestContext {
   }
 
   /**
-   * @return the {@link IdeTestLogger}.
+   * @return the {@link IdeTestStartContext}.
    */
-  public IdeTestLogger getLogger() {
+  public IdeTestStartContext getLogger() {
 
     return logger;
   }

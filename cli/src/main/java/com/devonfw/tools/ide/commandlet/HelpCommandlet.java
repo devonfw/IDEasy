@@ -6,11 +6,12 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
+import org.slf4j.event.Level;
 
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.property.CommandletProperty;
 import com.devonfw.tools.ide.property.KeywordProperty;
@@ -243,9 +244,16 @@ public final class HelpCommandlet extends Commandlet {
 
     void print(IdeLogLevel level) {
 
-      IdeSubLogger logger = HelpCommandlet.this.context.level(level);
       for (Arg arg : get()) {
-        logger.log(format(arg));
+        String message = format(arg);
+        Level slf4jLevel = level.getSlf4jLevel();
+        Marker marker = level.getSlf4jMarker();
+        if (marker == null) {
+          LOG.atLevel(slf4jLevel).log(message);
+        } else {
+          assert slf4jLevel == Level.INFO;
+          LOG.info(marker, message);
+        }
       }
     }
 

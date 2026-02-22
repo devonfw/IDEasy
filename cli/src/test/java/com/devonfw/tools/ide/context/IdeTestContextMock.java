@@ -1,17 +1,24 @@
 package com.devonfw.tools.ide.context;
 
+import java.nio.file.Path;
+
+import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.log.IdeLogListenerNone;
+
 /**
  * Mock instance of {@link com.devonfw.tools.ide.context.IdeContext}.
  *
  * @see #get()
  */
-public class IdeTestContextMock extends IdeSlf4jContext {
+public class IdeTestContextMock extends AbstractIdeTestContext {
 
   private static final IdeTestContextMock INSTANCE = new IdeTestContextMock();
 
+  private static final Path PATH_MOCK = Path.of("/");
+
   private IdeTestContextMock() {
 
-    super();
+    super(new IdeStartContextImpl(IdeLogLevel.TRACE, IdeLogListenerNone.INSTANCE), PATH_MOCK, null);
   }
 
   @Override

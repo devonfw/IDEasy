@@ -24,6 +24,9 @@ import jakarta.json.JsonWriter;
 import jakarta.json.JsonWriterFactory;
 import jakarta.json.stream.JsonGenerator;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.fasterxml.jackson.core.util.DefaultIndenter;
@@ -38,6 +41,8 @@ import com.fasterxml.jackson.databind.node.TextNode;
  * Implementation of {@link FileMerger} for JSON.
  */
 public class JsonMerger extends FileMerger {
+
+  private static final Logger LOG = LoggerFactory.getLogger(JsonMerger.class);
 
   /**
    * The constructor.
@@ -76,9 +81,9 @@ public class JsonMerger extends FileMerger {
     JsonStructure result = (JsonStructure) mergeAndResolve(json, mergeJson, variables, status, template.toString());
     if (status.updated) {
       save(result, workspace);
-      this.context.debug("Saved created/updated file {}", workspace);
+      LOG.debug("Saved created/updated file {}", workspace);
     } else {
-      this.context.trace("No changes for file {}", workspace);
+      LOG.trace("No changes for file {}", workspace);
     }
   }
 
@@ -125,9 +130,9 @@ public class JsonMerger extends FileMerger {
         workspace.getFileName());
     if (status.updated) {
       save(result, updateFile);
-      this.context.debug("Saved changes from {} to {}", workspace.getFileName(), updateFile);
+      LOG.debug("Saved changes from {} to {}", workspace.getFileName(), updateFile);
     } else {
-      this.context.trace("No changes for {}", updateFile);
+      LOG.trace("No changes for {}", updateFile);
     }
   }
 
@@ -150,7 +155,7 @@ public class JsonMerger extends FileMerger {
         case STRING -> mergeAndResolveString((JsonString) json, (JsonString) mergeJson, variables, status, src);
         case NUMBER, FALSE, TRUE, NULL -> mergeAndResolveNativeType(json, mergeJson, variables, status);
         default -> {
-          this.context.error("Undefined JSON type {}", json.getClass());
+          LOG.error("Undefined JSON type {}", json.getClass());
           yield null;
         }
       };
@@ -286,7 +291,7 @@ public class JsonMerger extends FileMerger {
       if (migratedChild != child) {
         result = null;
         if (migratedChild != null) {
-          jsonObject.put(fieldName, migratedChild);
+          jsonObject.set(fieldName, migratedChild);
         }
       }
     }

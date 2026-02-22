@@ -1,5 +1,8 @@
 package com.devonfw.tools.ide.commandlet;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.PluginProperty;
 import com.devonfw.tools.ide.property.ToolProperty;
@@ -12,6 +15,8 @@ import com.devonfw.tools.ide.tool.plugin.PluginBasedCommandlet;
  * @see ToolCommandlet#install()
  */
 public class UninstallPluginCommandlet extends Commandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(UninstallPluginCommandlet.class);
 
   /** The tool to install. */
   public final ToolProperty tool;
@@ -46,7 +51,7 @@ public class UninstallPluginCommandlet extends Commandlet {
     if (commandlet instanceof PluginBasedCommandlet cmd) {
       cmd.uninstallPlugin(cmd.getPlugin(plugin));
     } else {
-      context.warning("Tool {} does not support plugins.", tool.getName());
+      LOG.warn("Tool {} does not support plugins.", tool.getName());
     }
   }
 

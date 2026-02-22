@@ -89,7 +89,7 @@ class StepTest extends AbstractIdeContextTest {
       step.success("The Test-Step succeeded as expected");
       throw new IllegalStateException("unexpected situation!");
     } catch (IllegalStateException e) {
-      step.error(e);
+      step.error(e, e.toString());
     } finally {
       step.close();
     }

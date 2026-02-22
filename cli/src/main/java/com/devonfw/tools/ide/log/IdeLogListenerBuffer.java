@@ -3,12 +3,19 @@ package com.devonfw.tools.ide.log;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
+import org.slf4j.spi.LoggingEventBuilder;
+
 /**
  * Implements {@link IdeLogListener} to buffer log events during bootstrapping and then flush them once the logger is properly configured.
  *
  * @see com.devonfw.tools.ide.context.IdeContext#runWithoutLogging(Runnable)
  */
 public class IdeLogListenerBuffer implements IdeLogListener {
+
+  private static final Logger LOG = LoggerFactory.getLogger(IdeLogListenerBuffer.class);
 
   protected final List<IdeLogEntry> buffer;
 
@@ -49,26 +56,33 @@ public class IdeLogListenerBuffer implements IdeLogListener {
   }
 
   /**
-   * This method is supposed to be called once after the {@link IdeLogger} has been properly initialized or after invocation of
-   * {@link #startBuffering(IdeLogLevel)}.
-   *
-   * @param logger the initialized {@link IdeLogger}.
+   * This method is supposed to be called once after invocation of {@link #startBuffering(IdeLogLevel)}.
    */
-  public void flushAndEndBuffering(IdeLogger logger) {
+  public void flushAndEndBuffering() {
 
     // disable buffering further log events
     this.buffering = false;
     // write all cached log events to the logger again for processing
     for (IdeLogEntry entry : this.buffer) {
-      logger.level(entry.level()).log(entry.error(), entry.message());
+      IdeLogLevel level = entry.level();
+      LoggingEventBuilder builder = LOG.atLevel(level.getSlf4jLevel());
+      Marker marker = level.getSlf4jMarker();
+      if (marker != null) {
+        builder = builder.addMarker(marker);
+      }
+      builder = builder.setCause(entry.error());
+      if (entry.args() != null) {
+        builder.log(entry.rawMessage(), entry.args());
+      } else {
+        builder.log(entry.rawMessage());
+      }
     }
     this.buffer.clear();
     this.threshold = IdeLogLevel.TRACE;
   }
 
   /**
-   * Re-enables the buffering of the logger so nothing gets logged and log messages are only collected until {@link #flushAndEndBuffering(IdeLogger)} is
-   * called.
+   * Re-enables the buffering of the logger so nothing gets logged and log messages are only collected until {@link #flushAndEndBuffering()} is called.
    *
    * @param threshold the {@link IdeLogLevel} acting as threshold.
    * @see com.devonfw.tools.ide.context.IdeContext#runWithoutLogging(Runnable, IdeLogLevel)

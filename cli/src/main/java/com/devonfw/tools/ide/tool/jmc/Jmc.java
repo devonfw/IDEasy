@@ -7,6 +7,9 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
@@ -19,6 +22,8 @@ import com.devonfw.tools.ide.tool.ToolCommandlet;
  * managing, monitoring, profiling, and troubleshooting Java applications.
  */
 public class Jmc extends LocalToolCommandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(Jmc.class);
 
   /**
    * The constructor.
@@ -47,9 +52,7 @@ public class Jmc extends LocalToolCommandlet {
         moveFilesAndDirs(oldBinaryPath, extractedDir);
         fileAccess.delete(oldBinaryPath);
       } else {
-        this.context.debug(
-            "JMC binary folder not found at {} - ignoring as this legacy problem may be resolved in newer versions.",
-            oldBinaryPath);
+        LOG.debug("JMC binary folder not found at {} - ignoring as this legacy problem may be resolved in newer versions.", oldBinaryPath);
       }
     }
   }

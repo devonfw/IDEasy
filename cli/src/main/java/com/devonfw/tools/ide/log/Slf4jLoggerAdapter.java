@@ -1,16 +1,20 @@
 package com.devonfw.tools.ide.log;
 
-import org.slf4j.Logger;
+import java.util.List;
+import java.util.logging.Logger;
+
 import org.slf4j.Marker;
 import org.slf4j.event.Level;
+import org.slf4j.event.LoggingEvent;
 import org.slf4j.helpers.AbstractLogger;
+import org.slf4j.spi.LoggingEventAware;
 
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
 
 /**
- * Implementation of {@link Logger}.
+ * Implementation of SLF4J {@link AbstractLogger} for IDEasy.
  */
-public class Slf4jLoggerAdapter extends AbstractLogger {
+public class Slf4jLoggerAdapter extends AbstractLogger implements LoggingEventAware {
 
   /** Package prefix of IDEasy: {@value} */
   public static final String IDEASY_PACKAGE_PREFIX = "com.devonfw.tools.ide.";
@@ -18,7 +22,7 @@ public class Slf4jLoggerAdapter extends AbstractLogger {
 
   private final boolean internal;
 
-  private java.util.logging.Logger julLogger;
+  private Logger julLogger;
 
   /**
    * The constructor.
@@ -29,6 +33,7 @@ public class Slf4jLoggerAdapter extends AbstractLogger {
 
     this.name = name;
     this.internal = name.startsWith(IDEASY_PACKAGE_PREFIX);
+    this.julLogger = Logger.getLogger(name);
   }
 
   @Override
@@ -41,11 +46,74 @@ public class Slf4jLoggerAdapter extends AbstractLogger {
     return (args == null) || (args.length == 0);
   }
 
-  static String compose(String message, Object... args) {
+  /**
+   * Should only be used internally by logger implementation.
+   *
+   * @param message the message template.
+   * @param args the dynamic arguments to fill in.
+   * @return the resolved message with the parameters filled in.
+   */
+  private String compose(IdeLogArgFormatter formatter, String message, Object... args) {
+
     if (isEmpty(args)) {
       return message;
     }
-    return AbstractIdeSubLogger.compose(IdeLogArgFormatter.DEFAULT, InvalidLogMessageHandler.NONE, message, args);
+    int pos = message.indexOf("{}");
+    if (pos < 0) {
+      if (args.length > 0) {
+        invalidMessage(message, false, args);
+      }
+      return message;
+    }
+    int argIndex = 0;
+    int start = 0;
+    int length = message.length();
+    StringBuilder sb = new StringBuilder(length + 48);
+    while (pos >= 0) {
+      sb.append(message, start, pos);
+      sb.append(formatter.formatArgument(args[argIndex++]));
+      start = pos + 2;
+      pos = message.indexOf("{}", start);
+      if ((argIndex >= args.length) && (pos > 0)) {
+        invalidMessage(message, true, args);
+        pos = -1;
+      }
+    }
+    if (start < length) {
+      String rest = message.substring(start);
+      sb.append(rest);
+    }
+    if (argIndex < args.length) {
+      invalidMessage(message, false, args);
+    }
+    return sb.toString();
+  }
+
+  private void invalidMessage(String message, boolean more, Object[] args) {
+
+    warning("Invalid log message with " + args.length + " argument(s) but " + (more ? "more" : "less")
+        + " placeholders: " + message);
+  }
+
+  private void warning(String message) {
+
+    boolean colored = isColored();
+    if (colored) {
+      System.err.print(IdeLogLevel.ERROR.getEndColor());
+      System.err.print(IdeLogLevel.ERROR.getStartColor());
+    }
+    System.err.println(message);
+    if (colored) {
+      System.err.print(IdeLogLevel.ERROR.getEndColor());
+    }
+  }
+
+  static boolean isColored() {
+    IdeStartContextImpl startContext = IdeStartContextImpl.get();
+    if (startContext != null) {
+      return !startContext.isNoColorsMode();
+    }
+    return false;
   }
 
   @Override
@@ -54,67 +122,49 @@ public class Slf4jLoggerAdapter extends AbstractLogger {
     return null;
   }
 
-  private java.util.logging.Logger getJulLogger() {
-
-    if (this.julLogger == null) {
-      IdeLogger ideLogger = IdeLogger.get();
-      if (ideLogger == null) {
-        return null; // initialization issue, logging happens too early
-      } else {
-        boolean create = false;
-        if (ideLogger instanceof IdeStartContextImpl startContext) {
-          boolean prod = (ideLogger.getClass() == IdeStartContextImpl.class);
-          if (startContext.isWriteLogfile()) {
-            create = this.internal || !prod;
-          } else if (!prod) {
-            create = !this.internal; // in test we create external loggers, for prod we suppress them
-          }
-        }
-        if (create) {
-          this.julLogger = java.util.logging.Logger.getLogger(name);
-        }
-      }
-    }
-    return this.julLogger;
-  }
-
-  private IdeLogger getIdeLogger() {
-
-    if (this.internal) {
-      return IdeLogger.get();
-    }
-    return null;
-  }
-
   @Override
   protected void handleNormalizedLoggingCall(Level level, Marker marker, String message, Object[] args, Throwable error) {
     IdeLogLevel ideLevel = IdeLogLevel.of(level, marker);
-    IdeLogger intLogger = getIdeLogger();
-    if (intLogger != null) {
-      intLogger.level(ideLevel).log(error, message, args);
+    IdeLogListener listener = IdeLogListenerNone.INSTANCE;
+    IdeStartContextImpl startContext = IdeStartContextImpl.get();
+    IdeLogArgFormatter argFormatter = IdeLogArgFormatter.DEFAULT;
+    if (startContext != null) {
+      listener = startContext.getLogListener();
+      argFormatter = startContext.getArgFormatter();
     }
-    java.util.logging.Logger extLogger = getJulLogger();
-    if (extLogger != null) {
+    String composedMessage = compose(argFormatter, message, args);
+    boolean accept = listener.onLog(ideLevel, composedMessage, message, args, error);
+    if (accept) {
       java.util.logging.Level julLevel = ideLevel.getJulLevel();
-      if (extLogger.isLoggable(julLevel)) {
-        extLogger.log(julLevel, compose(message, args), error);
-      }
+      this.julLogger.log(julLevel, composedMessage, error);
     }
+  }
+
+  @Override
+  public void log(LoggingEvent event) {
+
+    List<Marker> markers = event.getMarkers();
+    Marker marker = null;
+    if ((markers != null) && !markers.isEmpty()) {
+      assert markers.size() == 1;
+      marker = markers.getFirst();
+    }
+    handleNormalizedLoggingCall(event.getLevel(), marker, event.getMessage(), event.getArgumentArray(), event.getThrowable());
   }
 
   private boolean isLevelEnabled(Level level, Marker marker) {
     IdeLogLevel ideLevel = IdeLogLevel.of(level, marker);
-    IdeLogger intLogger = getIdeLogger();
-    if (intLogger != null) {
-      if (intLogger.level(ideLevel).isEnabled()) {
-        return true;
-      }
+    IdeLogLevel threshold = getLogLevel();
+    return ideLevel.ordinal() >= threshold.ordinal();
+  }
+
+  static IdeLogLevel getLogLevel() {
+    IdeLogLevel threshold = IdeLogLevel.TRACE;
+    IdeStartContextImpl startContext = IdeStartContextImpl.get();
+    if (startContext != null) {
+      threshold = startContext.getLogLevel();
     }
-    java.util.logging.Logger extLogger = getJulLogger();
-    if (extLogger != null) {
-      return extLogger.isLoggable(ideLevel.getJulLevel());
-    }
-    return false;
+    return threshold;
   }
 
   @Override

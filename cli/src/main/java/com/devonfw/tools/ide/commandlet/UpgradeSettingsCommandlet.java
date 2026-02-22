@@ -102,7 +102,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
     // updates DEVON_IDE_CUSTOM_TOOLS to new ide-custom-tools.json
     String devonCustomTools = IdeVariables.DEVON_IDE_CUSTOM_TOOLS.get(this.context);
     if (devonCustomTools != null) {
-      CustomTools customTools = CustomToolsMapper.parseCustomToolsFromLegacyConfig(devonCustomTools, context);
+      CustomTools customTools = CustomToolsMapper.parseCustomToolsFromLegacyConfig(devonCustomTools);
       if (customTools != null) {
         CustomToolsMapper.get().saveJsonToFolder(customTools, this.context.getSettingsPath());
       }

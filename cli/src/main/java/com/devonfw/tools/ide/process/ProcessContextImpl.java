@@ -17,6 +17,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.cli.CliProcessException;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -31,6 +34,8 @@ import com.devonfw.tools.ide.variable.IdeVariables;
  * Implementation of {@link ProcessContext}.
  */
 public class ProcessContextImpl implements ProcessContext {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ProcessContextImpl.class);
 
   private static final String PREFIX_USR_BIN_ENV = "/usr/bin/env ";
   private static final Predicate<Integer> EXIT_CODE_ACCEPTOR = rc -> rc == ProcessResult.SUCCESS;
@@ -101,7 +106,7 @@ public class ProcessContextImpl implements ProcessContext {
     if (directory != null) {
       this.processBuilder.directory(directory.toFile());
     } else {
-      this.context.debug(
+      LOG.debug(
           "Could not set the process builder's working directory! Directory of the current java process is used.");
     }
 
@@ -132,7 +137,7 @@ public class ProcessContextImpl implements ProcessContext {
     if (IdeVariables.PATH.getName().equals(key)) {
       this.overriddenPath = value;
     } else {
-      this.context.trace("Setting process environment variable {}={}", key, value);
+      LOG.trace("Setting process environment variable {}={}", key, value);
       this.processBuilder.environment().put(key, value);
     }
     return this;
@@ -175,16 +180,16 @@ public class ProcessContextImpl implements ProcessContext {
       systemPath = systemPath.withPath(this.overriddenPath, this.extraPathEntries);
     }
     String path = systemPath.toString();
-    this.context.trace("Setting PATH for process execution of {} to {}", this.executable.getFileName(), path);
+    LOG.trace("Setting PATH for process execution of {} to {}", this.executable.getFileName(), path);
     this.executable = systemPath.findBinary(this.executable);
     this.processBuilder.environment().put(IdeVariables.PATH.getName(), path);
     List<String> args = new ArrayList<>(this.arguments.size() + 4);
     String interpreter = addExecutable(args);
     args.addAll(this.arguments);
     String command = createCommand();
-    if (this.context.debug().isEnabled()) {
+    if (LOG.isDebugEnabled()) {
       String message = createCommandMessage(interpreter, " ...");
-      this.context.debug(message);
+      LOG.debug(message);
     }
 
     try {
@@ -374,8 +379,8 @@ public class ProcessContextImpl implements ProcessContext {
       args.add(this.context.findBashRequired().toString());
     }
     if ("msi".equalsIgnoreCase(fileExtension)) {
-      args.add(0, "/i");
-      args.add(0, "msiexec");
+      args.addFirst("/i");
+      args.addFirst("msiexec");
     }
     args.add(this.executable.toString());
     return interpreter;
@@ -387,8 +392,8 @@ public class ProcessContextImpl implements ProcessContext {
       IdeLogLevel ideLogLevel = this.errorHandling.getLogLevel();
       String message = createCommandMessage(interpreter, "\nfailed with exit code " + exitCode + "!");
 
-      context.level(ideLogLevel).log(message);
-      result.log(ideLogLevel, context);
+      LOG.atLevel(ideLogLevel.getSlf4jLevel()).log(message);
+      result.log(ideLogLevel);
 
       if (this.errorHandling == ProcessErrorHandling.THROW_CLI) {
         throw new CliProcessException(message, result);
@@ -404,8 +409,7 @@ public class ProcessContextImpl implements ProcessContext {
 
     Path bash = this.context.findBash();
     if (bash == null) {
-      this.context.warning(
-          "Cannot start background process via bash because no bash installation was found. Hence, output will be discarded.");
+      LOG.warn("Cannot start background process via bash because no bash installation was found. Hence, output will be discarded.");
       this.processBuilder.redirectOutput(Redirect.DISCARD).redirectError(Redirect.DISCARD);
       return;
     }

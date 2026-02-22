@@ -2,7 +2,9 @@ package com.devonfw.tools.ide.tool;
 
 import java.nio.file.Path;
 
-import com.devonfw.tools.ide.log.IdeLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.version.GenericVersionRange;
@@ -13,6 +15,8 @@ import com.devonfw.tools.ide.version.VersionRange;
  * Container for data related to a tool installation.
  */
 public final class ToolInstallRequest {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ToolInstallRequest.class);
 
   private final ToolInstallRequest parent;
 
@@ -69,10 +73,9 @@ public final class ToolInstallRequest {
   }
 
   /**
-   * @param logger the {@link IdeLogger} used to log an installation loop if found.
    * @return {@code true} if an installation loop was found and logged, {@code false} otherwise.
    */
-  public boolean isInstallLoop(IdeLogger logger) {
+  public boolean isInstallLoop() {
 
     if ((this.requested == null) || (this.requested.getEdition() == null)) {
       throw new IllegalStateException(); // this method was called too early
@@ -80,7 +83,7 @@ public final class ToolInstallRequest {
     StringBuilder sb = new StringBuilder();
     boolean loopFound = detectInstallLoopRecursively(this.requested, sb);
     if (loopFound) {
-      logger.warning("Found installation loop:\n"
+      LOG.warn("Found installation loop:\n"
               + "{}\n"
               + "This typically indicates an internal bug in IDEasy.\n"
               + "Please report this bug, when you see this and include this entire warning message.\n"

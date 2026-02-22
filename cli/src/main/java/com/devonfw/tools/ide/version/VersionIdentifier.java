@@ -3,8 +3,10 @@ package com.devonfw.tools.ide.version;
 import java.util.List;
 import java.util.Objects;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.cli.CliException;
-import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -14,6 +16,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
  * {@link VersionIdentifier}s.
  */
 public final class VersionIdentifier implements VersionObject<VersionIdentifier>, GenericVersionRange {
+
+  private static final Logger LOG = LoggerFactory.getLogger(VersionIdentifier.class);
 
   /** {@link VersionIdentifier} "*" that will resolve to the latest stable version. */
   public static final VersionIdentifier LATEST = new VersionIdentifier(VersionSegment.of("*"));
@@ -64,24 +68,23 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
    * @param versions the
    *     {@link com.devonfw.tools.ide.tool.repository.ToolRepository#getSortedVersions(String, String, ToolCommandlet) available versions, sorted in descending
    *     order}.
-   * @param logger the {@link IdeLogger}.
    * @return the resolved version
    */
-  public static VersionIdentifier resolveVersionPattern(GenericVersionRange version, List<VersionIdentifier> versions, IdeLogger logger) {
+  public static VersionIdentifier resolveVersionPattern(GenericVersionRange version, List<VersionIdentifier> versions) {
     if (version == null) {
       version = LATEST;
     }
     if (!version.isPattern()) {
       for (VersionIdentifier vi : versions) {
         if (vi.equals(version)) {
-          logger.debug("Resolved version {} to version {}", version, vi);
+          LOG.debug("Resolved version {} to version {}", version, vi);
           return vi;
         }
       }
     }
     for (VersionIdentifier vi : versions) {
       if (version.contains(vi)) {
-        logger.debug("Resolved version pattern {} to version {}", version, vi);
+        LOG.debug("Resolved version pattern {} to version {}", version, vi);
         return vi;
       }
     }

@@ -1,6 +1,9 @@
 package com.devonfw.tools.ide.security;
 
-import com.devonfw.tools.ide.log.IdeLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.url.model.file.json.Cve;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -14,6 +17,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * @param vulnerabilities the {@link Cve}s of the specified version. Ideally empty.
  */
 public record ToolVersionChoice(ToolEditionAndVersion toolEditionAndVersion, String option, ToolVulnerabilities vulnerabilities) {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ToolVersionChoice.class);
 
   /** @see #ofCurrent(ToolEditionAndVersion, ToolVulnerabilities) */
   public static final String CVE_OPTION_CURRENT = "current";
@@ -52,17 +57,16 @@ public record ToolVersionChoice(ToolEditionAndVersion toolEditionAndVersion, Str
   }
 
   /**
-   * @param logger the {@link IdeLogger}.
    * @return {@code true} if {@link ToolVulnerabilities#EMPTY empty} (no vulnerabilities), {@code false} otherwise.
    */
-  public boolean logAndCheckIfEmpty(IdeLogger logger) {
+  public boolean logAndCheckIfEmpty() {
 
     String message = this.vulnerabilities.toString(this.toolEditionAndVersion);
     if (this.vulnerabilities.getIssues().isEmpty()) {
-      logger.success(message);
+      LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), message);
       return true;
     } else {
-      logger.warning(message);
+      LOG.warn(message);
       return false;
     }
   }

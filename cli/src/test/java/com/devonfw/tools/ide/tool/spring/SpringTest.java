@@ -28,7 +28,6 @@ class SpringTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = newContext(PROJECT_SPRING, wireMockRuntimeInfo);
     Spring commandlet = new Spring(context);
-    context.info("Starting testSpringInstall");
 
     // act
     commandlet.install();
@@ -48,7 +47,6 @@ class SpringTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = newContext(PROJECT_SPRING, wireMockRuntimeInfo);
     Spring commandlet = new Spring(context);
-    context.info("Starting testSpringRun");
     commandlet.arguments.addValue("foo");
 
     // act

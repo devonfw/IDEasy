@@ -798,7 +798,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
       fileAccess.symlink(newSource, brokenLink, false);
       assertThat(brokenLink.toRealPath()).isEqualTo(newSource);
     } else {
-      context.info("Test adapted for Windows environment - testing basic junction functionality");
+      System.out.println("Test adapted for Windows environment - testing basic junction functionality");
       // On Windows, just test that basic junction functionality works
       Path sourceDir = tempDir.resolve("source");
       Path junctionLink = tempDir.resolve("junction");

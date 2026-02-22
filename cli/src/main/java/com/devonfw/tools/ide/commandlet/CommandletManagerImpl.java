@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
@@ -57,6 +60,8 @@ import com.devonfw.tools.ide.tool.yarn.Yarn;
  * Implementation of {@link CommandletManager}.
  */
 public class CommandletManagerImpl implements CommandletManager {
+
+  private static final Logger LOG = LoggerFactory.getLogger(CommandletManagerImpl.class);
 
   private final IdeContext context;
 
@@ -184,7 +189,7 @@ public class CommandletManagerImpl implements CommandletManager {
 
     Commandlet duplicate = this.firstKeywordMap.putIfAbsent(keyword, commandlet);
     if (duplicate != null) {
-      this.context.debug("Duplicate keyword {} already used by {} so it cannot be associated also with {}", keyword, duplicate, commandlet);
+      LOG.debug("Duplicate keyword {} already used by {} so it cannot be associated also with {}", keyword, duplicate, commandlet);
     }
   }
 
@@ -288,7 +293,7 @@ public class CommandletManagerImpl implements CommandletManager {
           if (properties.isEmpty()) {
             assert false : cmd.getClass().getSimpleName() + " has no properties!";
           } else {
-            Property<?> property = properties.get(0);
+            Property<?> property = properties.getFirst();
             if (property instanceof KeywordProperty) {
               boolean matches = property.apply(arguments.copy(), context, cmd, this.collector);
               if (matches) {

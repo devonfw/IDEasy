@@ -6,7 +6,7 @@ import org.assertj.core.api.Assertions;
 
 import com.devonfw.tools.ide.context.AbstractIdeTestContext;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.context.IdeSlf4jContext;
+import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
 
 /**
@@ -30,7 +30,7 @@ public abstract class AbstractUrlModelTest extends Assertions {
    */
   protected IdeContext newContext() {
 
-    AbstractIdeTestContext context = new IdeSlf4jContext(Path.of(""));
+    AbstractIdeTestContext context = new IdeTestContext();
     context.setUrlsPath(URLS_PATH);
     return context;
   }

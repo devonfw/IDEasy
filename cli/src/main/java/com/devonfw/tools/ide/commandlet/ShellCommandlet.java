@@ -19,6 +19,8 @@ import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.widget.AutosuggestionWidgets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
@@ -34,6 +36,8 @@ import com.devonfw.tools.ide.property.Property;
  * {@link Commandlet} for internal interactive shell with build-in auto-completion and help.
  */
 public final class ShellCommandlet extends Commandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ShellCommandlet.class);
 
   private static final int AUTOCOMPLETER_MAX_RESULTS = 50;
 
@@ -173,7 +177,7 @@ public final class ShellCommandlet extends Commandlet {
    */
   private boolean apply(CliArgument argument, Commandlet commandlet) {
 
-    this.context.trace("Trying to match arguments to commandlet {}", commandlet.getName());
+    LOG.trace("Trying to match arguments to commandlet {}", commandlet.getName());
     CliArgument currentArgument = argument;
     Iterator<Property<?>> valueIterator = commandlet.getValues().iterator();
     Property<?> currentProperty = null;
@@ -183,7 +187,7 @@ public final class ShellCommandlet extends Commandlet {
         endOpts = true;
       } else {
         String arg = currentArgument.get();
-        this.context.trace("Trying to match argument '{}'", currentArgument);
+        LOG.trace("Trying to match argument '{}'", currentArgument);
         if ((currentProperty != null) && (currentProperty.isExpectValue())) {
           currentProperty.setValueAsString(arg, this.context);
           if (!currentProperty.isMultiValued()) {
@@ -196,17 +200,17 @@ public final class ShellCommandlet extends Commandlet {
           }
           if (property == null) {
             if (!valueIterator.hasNext()) {
-              this.context.trace("No option or next value found");
+              LOG.trace("No option or next value found");
               return false;
             }
             currentProperty = valueIterator.next();
-            this.context.trace("Next value candidate is {}", currentProperty);
+            LOG.trace("Next value candidate is {}", currentProperty);
             if (currentProperty instanceof KeywordProperty keyword) {
               if (keyword.matches(arg)) {
                 keyword.setValue(Boolean.TRUE);
-                this.context.trace("Keyword matched");
+                LOG.trace("Keyword matched");
               } else {
-                this.context.trace("Missing keyword");
+                LOG.trace("Missing keyword");
                 return false;
               }
             } else {
@@ -219,7 +223,7 @@ public final class ShellCommandlet extends Commandlet {
               currentProperty = null;
             }
           } else {
-            this.context.trace("Found option by name");
+            LOG.trace("Found option by name");
             String value = currentArgument.getValue();
             if (value != null) {
               property.setValueAsString(value, this.context);

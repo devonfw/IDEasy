@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.AbstractIdeTestContext;
-import com.devonfw.tools.ide.context.IdeSlf4jContext;
+import com.devonfw.tools.ide.context.IdeTestContextMock;
 
 /**
  * Tests for {@link WindowsHelperImpl}.
@@ -20,7 +20,7 @@ class WindowsHelperImplTest extends AbstractIdeContextTest {
   @Test
   void testWindowsHelperParseRegString() {
     // arrange
-    AbstractIdeTestContext context = new IdeSlf4jContext();
+    AbstractIdeTestContext context = IdeTestContextMock.get();
     WindowsHelperImpl helper = new WindowsHelperImpl(context);
     List<String> output = new ArrayList<>();
     output.add("");
@@ -39,7 +39,7 @@ class WindowsHelperImplTest extends AbstractIdeContextTest {
   @Test
   void testWindowsHelperParseEmptyRegStringReturnsNull() {
     // arrange
-    AbstractIdeTestContext context = new IdeSlf4jContext();
+    AbstractIdeTestContext context = IdeTestContextMock.get();
     WindowsHelperImpl helper = new WindowsHelperImpl(context);
     List<String> output = new ArrayList<>();
     // act

@@ -2,6 +2,9 @@ package com.devonfw.tools.ide.environment;
 
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 
@@ -9,6 +12,8 @@ import com.devonfw.tools.ide.os.WindowsPathSyntax;
  * Implementation of {@link EnvironmentVariables}.
  */
 abstract class EnvironmentVariablesMap extends AbstractEnvironmentVariables {
+
+  private static final Logger LOG = LoggerFactory.getLogger(EnvironmentVariablesMap.class);
 
   /**
    * The constructor.
@@ -31,14 +36,14 @@ abstract class EnvironmentVariablesMap extends AbstractEnvironmentVariables {
 
     String value = getVariables().get(name);
     if (value == null) {
-      this.context.trace("{}: Variable {} is undefined.", getSource(), name);
+      LOG.trace("{}: Variable {} is undefined.", getSource(), name);
     } else {
-      this.context.trace("{}: Variable {}={}", getSource(), name, value);
+      LOG.trace("{}: Variable {}={}", getSource(), name, value);
       WindowsPathSyntax pathSyntax = this.context.getPathSyntax();
       if (pathSyntax != null) {
         String normalized = pathSyntax.normalize(value);
         if (!value.equals(normalized)) {
-          this.context.trace("Normalized {} using {} to {}", value, pathSyntax, normalized);
+          LOG.trace("Normalized {} using {} to {}", value, pathSyntax, normalized);
           value = normalized;
         }
       }

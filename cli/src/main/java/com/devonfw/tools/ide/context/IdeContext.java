@@ -230,7 +230,7 @@ public interface IdeContext extends IdeStartContext {
    */
   default void printLogo() {
 
-    info(LOGO);
+    AbstractIdeContext.LOG.info(LOGO);
   }
 
   /**
@@ -538,7 +538,8 @@ public interface IdeContext extends IdeStartContext {
       if (Files.isDirectory(templatesFolderLegacy)) {
         templatesFolder = templatesFolderLegacy;
       } else {
-        warning("No templates found in settings git repo neither in {} nor in {} - configuration broken", templatesFolder, templatesFolderLegacy);
+        AbstractIdeContext.LOG.warn("No templates found in settings git repo neither in {} nor in {} - configuration broken", templatesFolder,
+            templatesFolderLegacy);
         return null;
       }
     }
@@ -831,4 +832,5 @@ public interface IdeContext extends IdeStartContext {
     Npm npm = getCommandletManager().getCommandlet(Npm.class);
     return npm.getOrCreateNpmConfigUserConfig();
   }
+
 }

@@ -4,8 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
@@ -17,6 +21,8 @@ import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
  * {@link com.devonfw.tools.ide.tool.androidstudio.AndroidStudio Android Studio}.
  */
 public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(IdeaBasedIdeToolCommandlet.class);
 
   /**
    * The constructor.
@@ -42,7 +48,7 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
     }
     ProcessResult result = runTool(pc, ProcessMode.DEFAULT, args);
     if (result.isSuccessful()) {
-      this.context.success("Successfully installed plugin: {}", plugin.name());
+      LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "Successfully installed plugin: {}", plugin.name());
       step.success();
       return true;
     } else {

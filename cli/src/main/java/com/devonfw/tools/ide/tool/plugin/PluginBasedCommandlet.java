@@ -6,6 +6,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -21,6 +24,8 @@ import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
  * Base class for {@link LocalToolCommandlet}s that support plugins. It can automatically install configured plugins for the tool managed by this commandlet.
  */
 public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(PluginBasedCommandlet.class);
 
   private ToolPlugins plugins;
 
@@ -109,7 +114,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
       List<Path> markerFiles = fileAccess.listChildren(this.context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE), Files::isRegularFile);
       for (Path path : markerFiles) {
         if (path.getFileName().toString().startsWith("plugin." + getName())) {
-          this.context.debug("Plugin marker file {} got deleted.", path);
+          LOG.debug("Plugin marker file {} got deleted.", path);
           fileAccess.delete(path);
         }
       }
@@ -133,14 +138,14 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
       Path pluginMarkerFile = retrievePluginMarkerFilePath(plugin);
       boolean pluginMarkerFileExists = pluginMarkerFile != null && Files.exists(pluginMarkerFile);
       if (pluginMarkerFileExists) {
-        this.context.debug("Markerfile for IDE {} and plugin '{}' already exists.", getName(), plugin.name());
+        LOG.debug("Markerfile for IDE {} and plugin '{}' already exists.", getName(), plugin.name());
       }
       if (plugin.active()) {
         if (this.context.isForcePlugins() || !pluginMarkerFileExists) {
           Step step = this.context.newStep("Install plugin " + plugin.name());
           step.run(() -> doInstallPluginStep(plugin, step, pc));
         } else {
-          this.context.debug("Skipping installation of plugin '{}' due to existing marker file: {}", plugin.name(), pluginMarkerFile);
+          LOG.debug("Skipping installation of plugin '{}' due to existing marker file: {}", plugin.name(), pluginMarkerFile);
         }
       } else {
         if (!pluginMarkerFileExists) {
@@ -211,22 +216,22 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     boolean error = false;
     Path pluginsPath = getPluginsInstallationPath();
     if (!Files.isDirectory(pluginsPath)) {
-      this.context.debug("Omitting to uninstall plugin {} ({}) as plugins folder does not exist at {}",
+      LOG.debug("Omitting to uninstall plugin {} ({}) as plugins folder does not exist at {}",
           plugin.name(), plugin.id(), pluginsPath);
       error = true;
     }
     FileAccess fileAccess = this.context.getFileAccess();
     Path match = fileAccess.findFirst(pluginsPath, p -> p.getFileName().toString().startsWith(plugin.id()), false);
     if (match == null) {
-      this.context.debug("Omitting to uninstall plugin {} ({}) as plugins folder does not contain a match at {}",
+      LOG.debug("Omitting to uninstall plugin {} ({}) as plugins folder does not contain a match at {}",
           plugin.name(), plugin.id(), pluginsPath);
       error = true;
     }
     if (error) {
-      context.error("Could not uninstall plugin " + plugin + " because we could not find an installation");
+      LOG.error("Could not uninstall plugin {} because we could not find an installation", plugin);
     } else {
       fileAccess.delete(match);
-      context.info("Successfully uninstalled plugin " + plugin);
+      LOG.info("Successfully uninstalled plugin {}", plugin);
     }
   }
 
@@ -257,6 +262,6 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
    */
   protected void handleInstallForInactivePlugin(ToolPluginDescriptor plugin) {
 
-    this.context.debug("Omitting installation of inactive plugin {} ({}).", plugin.name(), plugin.id());
+    LOG.debug("Omitting installation of inactive plugin {} ({}).", plugin.name(), plugin.id());
   }
 }

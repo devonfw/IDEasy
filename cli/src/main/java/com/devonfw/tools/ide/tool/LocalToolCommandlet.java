@@ -134,10 +134,13 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     ToolEdition toolEdition = requested.getEdition();
     Step step = request.getStep();
     if (installedVersion == null) {
-      asSuccess(step).log("Successfully installed {} in version {} at {}", toolEdition, resolvedVersion, toolPath);
+      LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "Successfully installed {} in version {} at {}", toolEdition, resolvedVersion, toolPath);
     } else {
-      asSuccess(step).log("Successfully installed {} in version {} replacing previous version {} of {} at {}", toolEdition, resolvedVersion,
-          installedVersion, installed.getEdition(), toolPath);
+      LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "Successfully installed {} in version {} replacing previous version {} of {} at {}", toolEdition,
+          resolvedVersion, installedVersion, installed.getEdition(), toolPath);
+    }
+    if (step != null) {
+      step.success(true);
     }
     return installation;
   }
@@ -163,7 +166,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   public ToolInstallation installTool(ToolInstallRequest request) {
 
     completeRequest(request); // most likely already done, but if installTool was called directly and not from install
-    if (request.isInstallLoop(this.context)) {
+    if (request.isInstallLoop()) {
       return toolAlreadyInstalled(request);
     }
     ToolEditionAndVersion requested = request.getRequested();

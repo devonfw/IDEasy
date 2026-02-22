@@ -4,6 +4,9 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
@@ -20,6 +23,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * {@link LocalToolCommandlet} for tools based on <a href="https://www.npmjs.com/">npm</a>.
  */
 public abstract class NpmBasedCommandlet extends NodeBasedCommandlet<Npm> {
+
+  private static final Logger LOG = LoggerFactory.getLogger(NpmBasedCommandlet.class);
 
   /**
    * The constructor.
@@ -52,7 +57,7 @@ public abstract class NpmBasedCommandlet extends NodeBasedCommandlet<Npm> {
 
   private VersionIdentifier runPackageManagerGetInstalledVersion(String npmPackage) {
     if (!Files.isDirectory(this.context.getSoftwarePath().resolve("node"))) {
-      this.context.trace("Since node is not installed, also package {} for tool {} cannot be installed.", npmPackage, this.tool);
+      LOG.trace("Since node is not installed, also package {} for tool {} cannot be installed.", npmPackage, this.tool);
       return null;
     }
     PackageManagerRequest request = new PackageManagerRequest("list", npmPackage).addArg("list").addArg("-g").addArg(npmPackage).addArg("--depth=0")
@@ -74,7 +79,7 @@ public abstract class NpmBasedCommandlet extends NodeBasedCommandlet<Npm> {
         return VersionIdentifier.of(parsedVersion);
       }
     } else {
-      this.context.debug("The npm package {} for tool {} is not installed.", npmPackage, this.tool);
+      LOG.debug("The npm package {} for tool {} is not installed.", npmPackage, this.tool);
     }
     return null;
   }

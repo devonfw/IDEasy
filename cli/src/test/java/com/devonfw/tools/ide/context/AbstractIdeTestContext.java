@@ -6,6 +6,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.commandlet.TestCommandletManager;
@@ -18,7 +21,7 @@ import com.devonfw.tools.ide.environment.IdeSystem;
 import com.devonfw.tools.ide.environment.IdeSystemTestImpl;
 import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
-import com.devonfw.tools.ide.log.IdeLogger;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.network.NetworkStatusMock;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
@@ -34,6 +37,8 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
  * Implementation of {@link IdeContext} for testing.
  */
 public class AbstractIdeTestContext extends AbstractIdeContext {
+
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractIdeTestContext.class);
 
   /** {@link Path} to use as workingDirectory for mocking. */
   public static final Path PATH_MOCK = Path.of("/");
@@ -63,13 +68,13 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   /**
    * The constructor.
    *
-   * @param logger the {@link IdeLogger}.
+   * @param startContext the {@link IdeStartContextImpl}.
    * @param workingDirectory the optional {@link Path} to current working directory.
    * @param wireMockRuntimeInfo wireMock server on a random port.
    */
-  public AbstractIdeTestContext(IdeStartContextImpl logger, Path workingDirectory, WireMockRuntimeInfo wireMockRuntimeInfo) {
+  public AbstractIdeTestContext(IdeStartContextImpl startContext, Path workingDirectory, WireMockRuntimeInfo wireMockRuntimeInfo) {
 
-    super(logger, workingDirectory);
+    super(startContext, workingDirectory);
     this.answers = new String[0];
     this.progressBarMap = new HashMap<>();
     this.systemInfo = super.getSystemInfo();
@@ -119,7 +124,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
     // Validate that the detected IDE home (if any) is within test boundaries
     Path ideHome = result.home();
     if (ideHome != null && testBoundary != null && !ideHome.startsWith(testBoundary)) {
-      debug("Test isolation violation: Detected IDE home '{}' is outside test boundary '{}'.\n"
+      LOG.debug("Test isolation violation: Detected IDE home '{}' is outside test boundary '{}'.\n"
           + "This indicates the test project structure is incomplete or improperly configured.\n"
           + "A valid IDE home directories is determined by isIdeHome() method.\n"
           + "Please ensure your test project has the required structure.", ideHome, testBoundary);
@@ -157,7 +162,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
       throw new IllegalStateException("End of answers reached!");
     }
     String answer = this.answers[this.answerIndex++];
-    interaction(answer);
+    LOG.info(IdeLogLevel.INTERACTION.getSlf4jMarker(), answer);
     return answer;
   }
 
@@ -409,7 +414,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   }
 
   @Override
-  protected Properties createJavaUtilLoggingProperties() {
+  protected Properties createJavaUtilLoggingProperties(boolean logfile) {
 
     return createJavaUtilLoggingProperties(true, false);
   }

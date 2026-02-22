@@ -87,7 +87,7 @@ public abstract class AbstractVersionOrEditionGetCommandlet extends Commandlet {
     if (getInstalledValue == getConfiguredValue) {
       if (getInstalledValue) { // both --configured and --installed
         logToolInfo(commandlet, configuredValue, installedValue);
-      } else if (this.context.debug().isEnabled()) {
+      } else if (LOG.isDebugEnabled()) {
         logToolInfo(commandlet, configuredValue, installedValue);
       } else {
         if (installedValue == null) {

@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.commandlet.Commandlet;
@@ -26,6 +29,8 @@ import com.devonfw.tools.ide.validation.ValidationState;
  * @param <V> the {@link #getValueType() value type}.
  */
 public abstract class Property<V> {
+
+  private static final Logger LOG = LoggerFactory.getLogger(Property.class);
 
   private static final String INVALID_ARGUMENT = "Invalid CLI argument '{}' for property '{}' of commandlet '{}'";
 
@@ -186,7 +191,7 @@ public abstract class Property<V> {
     if (this.value.isEmpty()) {
       return null;
     } else {
-      return this.value.get(0);
+      return this.value.getFirst();
     }
   }
 
@@ -306,9 +311,9 @@ public abstract class Property<V> {
       return true;
     } catch (Exception e) {
       if (e instanceof IllegalArgumentException) {
-        context.warning(INVALID_ARGUMENT, valueAsString, getNameOrAlias(), commandlet.getName());
+        LOG.warn(INVALID_ARGUMENT, valueAsString, getNameOrAlias(), commandlet.getName());
       } else {
-        context.warning(INVALID_ARGUMENT_WITH_EXCEPTION_MESSAGE, valueAsString, getNameOrAlias(), commandlet.getName(), e.getMessage());
+        LOG.warn(INVALID_ARGUMENT_WITH_EXCEPTION_MESSAGE, valueAsString, getNameOrAlias(), commandlet.getName(), e.getMessage());
       }
       return false;
     }

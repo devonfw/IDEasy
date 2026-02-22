@@ -7,6 +7,8 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -17,6 +19,8 @@ import com.devonfw.tools.ide.merge.xml.XmlMergeSupport;
  * The IdComputer class is responsible for building XPath expressions and evaluating those expressions to match elements in a target document.
  */
 public class IdComputer {
+
+  private static final Logger LOG = LoggerFactory.getLogger(IdComputer.class);
 
   /** Name of the {@link com.devonfw.tools.ide.environment.EnvironmentVariables variable} to fail on ambiguous merge. */
   public static final String FAIL_ON_AMBIGOUS_MERGE = "FAIL_ON_AMBIGOUS_MERGE";
@@ -71,11 +75,13 @@ public class IdComputer {
       } else if (length == 0) {
         return null;
       } else {
-        String message = length + " matches found for XPath " + xpathExpr + " in workspace XML file '" + workspacePath + "' at " + XmlMergeSupport.getXPath(workspaceElement, true) + " for template file '" + templatePath + "'";
+        String message =
+            length + " matches found for XPath " + xpathExpr + " in workspace XML file '" + workspacePath + "' at " + XmlMergeSupport.getXPath(workspaceElement,
+                true) + " for template file '" + templatePath + "'";
         if ("true".equals(this.context.getVariables().get(FAIL_ON_AMBIGOUS_MERGE))) {
           throw new IllegalStateException(message);
         } else {
-          this.context.warning(message);
+          LOG.warn(message);
         }
         return (Element) nodeList.item(0);
       }

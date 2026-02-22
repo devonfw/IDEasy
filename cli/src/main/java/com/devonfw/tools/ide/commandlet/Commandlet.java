@@ -222,8 +222,8 @@ public abstract class Commandlet {
    */
   public final void run() {
 
-    if (isActivateJaveUtilLogging()) {
-      ((AbstractIdeContext) this.context).configureJavaUtilLogging();
+    if (this.context != null) { // for ContextCommandlet we do not have a context yet
+      ((AbstractIdeContext) this.context).configureJavaUtilLogging(isActivateJaveUtilLogging());
     }
     doRun();
   }

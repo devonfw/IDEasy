@@ -4,7 +4,7 @@ import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 
 /**
- * Implementation of {@link ILoggerFactory}.
+ * Implementation of SLF4J {@link ILoggerFactory} for IDEasy.
  */
 public class Slf4jLoggerFactoryIdeasy implements ILoggerFactory {
 

@@ -10,6 +10,10 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
+
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.common.Tags;
@@ -17,7 +21,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesFiles;
 import com.devonfw.tools.ide.io.FileCopyMode;
-import com.devonfw.tools.ide.log.IdeSubLogger;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.os.MacOsHelper;
 import com.devonfw.tools.ide.process.EnvironmentContext;
@@ -41,6 +45,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * {@link Commandlet} for a tool integrated into the IDE.
  */
 public abstract class ToolCommandlet extends Commandlet implements Tags {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ToolCommandlet.class);
 
   /** @see #getName() */
   protected final String tool;
@@ -220,7 +226,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       // if the CVE check has already been done, we can assume that the install(request) has already been called before
       // most likely a postInstall* method was overridden calling this method with the same request what is a programming error
       // we render this warning so the error gets detected and can be fixed but we do not block the user by skipping the installation.
-      this.context.warning().log(new RuntimeException(), "Preventing infinity loop during installation of {}", request.getRequested());
+      LOG.warn("Preventing infinity loop during installation of {}", request.getRequested(), new RuntimeException());
     } else {
       install(request);
     }
@@ -291,7 +297,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   public ToolInstallation install(ToolInstallRequest request) {
 
     completeRequest(request);
-    if (request.isInstallLoop(this.context)) {
+    if (request.isInstallLoop()) {
       return toolAlreadyInstalled(request);
     }
     return doInstall(request);
@@ -547,14 +553,14 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param request the {@link ToolInstallRequest}.
    */
   protected void logToolAlreadyInstalled(ToolInstallRequest request) {
-    IdeSubLogger logger;
+    Level level;
     if (request.isSilent()) {
-      logger = this.context.debug();
+      level = Level.DEBUG;
     } else {
-      logger = this.context.info();
+      level = Level.INFO;
     }
     ToolEditionAndVersion installed = request.getInstalled();
-    logger.log("Version {} of tool {} is already installed", installed.getVersion(), installed.getEdition());
+    LOG.atLevel(level).log("Version {} of tool {} is already installed", installed.getVersion(), installed.getEdition());
   }
 
   /**
@@ -619,10 +625,10 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     }
     ToolSecurity toolSecurity = this.context.getDefaultToolRepository().findSecurity(this.tool, toolEdition.edition());
     double minSeverity = IdeVariables.CVE_MIN_SEVERITY.get(context);
-    ToolVulnerabilities currentVulnerabilities = toolSecurity.findCves(resolvedVersion, this.context, minSeverity);
+    ToolVulnerabilities currentVulnerabilities = toolSecurity.findCves(resolvedVersion, minSeverity);
     ToolVersionChoice currentChoice = ToolVersionChoice.ofCurrent(requested, currentVulnerabilities);
     request.setCveCheckDone();
-    if (currentChoice.logAndCheckIfEmpty(this.context)) {
+    if (currentChoice.logAndCheckIfEmpty()) {
       return resolvedVersion;
     }
     boolean alreadyInstalled = request.isAlreadyInstalled();
@@ -631,7 +637,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       // currently for a transitive dependency it does not make sense to suggest alternative versions, since the choice is not stored anywhere,
       // and we then would ask the user again every time the tool having this dependency is started. So we only log the problem and the user needs to react
       // (e.g. upgrade the tool with the dependency that is causing this).
-      this.context.interaction("Please run 'ide -f install {}' to check for update suggestions!", this.tool);
+      LOG.info(IdeLogLevel.INTERACTION.getSlf4jMarker(), "Please run 'ide -f install {}' to check for update suggestions!", this.tool);
       return resolvedVersion;
     }
     ToolVersionChoice latest = null;
@@ -646,7 +652,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       }
 
       if (acceptVersion(version, allowedVersions, requireStableVersion)) {
-        ToolVulnerabilities newVulnerabilities = toolSecurity.findCves(version, this.context, minSeverity);
+        ToolVulnerabilities newVulnerabilities = toolSecurity.findCves(version, minSeverity);
         if (newVulnerabilities.isSafer(latestVulnerabilities)) {
           // we found a better/safer version
           ToolEditionAndVersion toolEditionAndVersion = new ToolEditionAndVersion(toolEdition, version);
@@ -667,7 +673,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       }
     }
     if ((latest == null) && (nearest == null)) {
-      this.context.warning(
+      LOG.warn(
           "Could not find any other version resolving your CVEs.\nPlease keep attention to this tool and consider updating as soon as security fixes are available.");
       if (alreadyInstalled) {
         // we came here via "ide -f install ..." but no alternative is available
@@ -687,17 +693,16 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       if (addSuggestions) {
         choices.add(nearest);
       }
-      nearest.logAndCheckIfEmpty(this.context);
+      nearest.logAndCheckIfEmpty();
     }
     if (latest != null) {
       if (addSuggestions) {
         choices.add(latest);
       }
-      latest.logAndCheckIfEmpty(this.context);
+      latest.logAndCheckIfEmpty();
     }
     ToolVersionChoice[] choicesArray = choices.toArray(ToolVersionChoice[]::new);
-    this.context.warning(
-        "Please note that by selecting an unsafe version to install, you accept the risk to be attacked.");
+    LOG.warn("Please note that by selecting an unsafe version to install, you accept the risk to be attacked.");
     ToolVersionChoice answer = this.context.question(choicesArray, "Which version do you want to install?");
     VersionIdentifier version = answer.toolEditionAndVersion().getResolvedVersion();
     requested.setResolvedVersion(version);
@@ -762,7 +767,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
     List<String> editions = getToolRepository().getSortedEditions(getName());
     for (String edition : editions) {
-      this.context.info(edition);
+      LOG.info(edition);
     }
   }
 
@@ -773,7 +778,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
     List<VersionIdentifier> versions = getToolRepository().getSortedVersions(getName(), getConfiguredEdition(), this);
     for (VersionIdentifier vi : versions) {
-      this.context.info(vi.toString());
+      LOG.info(vi.toString());
     }
   }
 
@@ -797,7 +802,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     }
     VersionIdentifier configuredVersion = VersionIdentifier.of(version);
     if (!configuredVersion.isPattern() && !configuredVersion.isValid()) {
-      this.context.warning("Version {} seems to be invalid", version);
+      LOG.warn("Version {} seems to be invalid", version);
     }
     setVersion(configuredVersion, true);
   }
@@ -838,12 +843,12 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     settingsVariables.save();
     EnvironmentVariables declaringVariables = variables.findVariable(name);
     if ((declaringVariables != null) && (declaringVariables != settingsVariables)) {
-      this.context.warning("The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.", name,
+      LOG.warn("The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.", name,
           declaringVariables.getSource());
     }
     if (hint) {
-      this.context.info("To install that version call the following command:");
-      this.context.info("ide install {}", this.tool);
+      LOG.info("To install that version call the following command:");
+      LOG.info("ide install {}", this.tool);
     }
   }
 
@@ -887,7 +892,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     }
 
     if (!getToolRepository().getSortedEditions(this.tool).contains(edition)) {
-      this.context.warning("Edition {} seems to be invalid", edition);
+      LOG.warn("Edition {} seems to be invalid", edition);
     }
     EnvironmentVariables variables = this.context.getVariables();
     EnvironmentVariables settingsVariables = variables.getByType(destination.toType());
@@ -895,15 +900,15 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     settingsVariables.set(name, edition, false);
     settingsVariables.save();
 
-    this.context.info("{}={} has been set in {}", name, edition, settingsVariables.getSource());
+    LOG.info("{}={} has been set in {}", name, edition, settingsVariables.getSource());
     EnvironmentVariables declaringVariables = variables.findVariable(name);
     if ((declaringVariables != null) && (declaringVariables != settingsVariables)) {
-      this.context.warning("The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.", name,
+      LOG.warn("The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.", name,
           declaringVariables.getSource());
     }
     if (hint) {
-      this.context.info("To install that edition call the following command:");
-      this.context.info("ide install {}", this.tool);
+      LOG.info("To install that edition call the following command:");
+      LOG.info("ide install {}", this.tool);
     }
   }
 
@@ -1008,29 +1013,16 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
-   * @param step the {@link Step} to get {@link Step#asSuccess() success logger} from. May be {@code null}.
-   * @return the {@link IdeSubLogger} from {@link Step#asSuccess()} or {@link IdeContext#success()} as fallback.
+   * @deprecated directly log success message and then report success on step if not null.
    */
-  protected IdeSubLogger asSuccess(Step step) {
+  @Deprecated
+  protected void success(Step step, String message, Object... args) {
 
     if (step == null) {
-      return this.context.success();
+      LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), message, args);
     } else {
-      return step.asSuccess();
+      step.success(message, args);
     }
   }
 
-
-  /**
-   * @param step the {@link Step} to get {@link Step#asError() error logger} from. May be {@code null}.
-   * @return the {@link IdeSubLogger} from {@link Step#asError()} or {@link IdeContext#error()} as fallback.
-   */
-  protected IdeSubLogger asError(Step step) {
-
-    if (step == null) {
-      return this.context.error();
-    } else {
-      return step.asError();
-    }
-  }
 }

@@ -4,45 +4,43 @@ import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 import org.slf4j.event.Level;
 
-import com.devonfw.tools.ide.context.IdeContext;
-
 /**
- * {@link Enum} with the available log-levels.
+ * {@link Enum} with the available log-levels for IDEasy.
  *
- * @see IdeContext#level(IdeLogLevel)
+ * @see Slf4jLoggerAdapter
  */
 public enum IdeLogLevel {
 
   /** {@link IdeLogLevel} for tracing (very detailed and verbose logging). */
-  TRACE("\033[38;5;240m", Level.TRACE, null, java.util.logging.Level.FINER),
+  TRACE("\033[38;5;240m", Level.TRACE, null, JulLogLevel.TRACE),
 
   /** {@link IdeLogLevel} for debugging (more detailed logging). */
-  DEBUG("\033[90m", Level.DEBUG, null, java.util.logging.Level.FINE),
+  DEBUG("\033[90m", Level.DEBUG, null, JulLogLevel.DEBUG),
 
   /** {@link IdeLogLevel} for general information (regular logging). */
-  INFO(null, Level.INFO, null, java.util.logging.Level.INFO),
+  INFO(null, Level.INFO, null, JulLogLevel.INFO),
 
   /**
    * {@link IdeLogLevel} for a step (logs the step name and groups the following log statements until the next step).
    */
-  STEP("\033[35m", Level.INFO, MarkerFactory.getMarker("step"), java.util.logging.Level.INFO),
+  STEP("\033[35m", Level.INFO, MarkerFactory.getMarker("STEP"), JulLogLevel.STEP),
 
   /** {@link IdeLogLevel} for user interaction (e.g. questions or options). */
-  INTERACTION("\033[96m", Level.INFO, MarkerFactory.getMarker("interaction"), java.util.logging.Level.INFO),
+  INTERACTION("\033[96m", Level.INFO, MarkerFactory.getMarker("INTERACTION"), JulLogLevel.INTERACTION),
 
   /** {@link IdeLogLevel} for success (an important aspect has been completed successfully). */
-  SUCCESS("\033[92m", Level.INFO, MarkerFactory.getMarker("success"), java.util.logging.Level.INFO),
+  SUCCESS("\033[92m", Level.INFO, MarkerFactory.getMarker("SUCCESS"), JulLogLevel.SUCCESS),
 
   /** {@link IdeLogLevel} for a warning (something unexpected or abnormal happened but can be compensated). */
-  WARNING("\033[93m", Level.WARN, null, java.util.logging.Level.WARNING),
+  WARNING("\033[93m", Level.WARN, null, JulLogLevel.WARNING),
 
   /**
    * {@link IdeLogLevel} for an error (something failed and we cannot proceed or the user has to continue with extreme care).
    */
-  ERROR("\033[91m", Level.ERROR, null, java.util.logging.Level.SEVERE),
+  ERROR("\033[91m", Level.ERROR, null, JulLogLevel.ERROR),
 
   /** {@link IdeLogLevel} for {@link com.devonfw.tools.ide.commandlet.Commandlet#isProcessableOutput() processable output} */
-  PROCESSABLE(null, Level.INFO, MarkerFactory.getMarker("processable"), java.util.logging.Level.INFO);
+  PROCESSABLE(null, Level.INFO, MarkerFactory.getMarker("PROCESSABLE"), JulLogLevel.PROCESSABLE);
 
   private final String color;
 
@@ -148,19 +146,16 @@ public enum IdeLogLevel {
   }
 
   /**
-   * @param level the SLF4J log {@link Level}.
-   * @param marker the SLF4J {@link Marker}.
+   * @param level the JUL {@link Level}.
    * @return the {@link IdeLogLevel}.
    */
-  public static java.util.logging.Level convertLevelFromSlf4jToJul(Level level, Marker marker) {
+  public static IdeLogLevel of(java.util.logging.Level level) {
 
-    return switch (level) {
-      case ERROR -> java.util.logging.Level.SEVERE;
-      case WARN -> java.util.logging.Level.WARNING;
-      case INFO -> java.util.logging.Level.INFO;
-      case DEBUG -> java.util.logging.Level.FINE;
-      case TRACE -> java.util.logging.Level.FINER;
-      default -> throw new IllegalStateException("" + level);
-    };
+    for (IdeLogLevel ideLevel : values()) {
+      if (ideLevel.julLevel == level) {
+        return ideLevel;
+      }
+    }
+    throw new IllegalStateException("" + level);
   }
 }
