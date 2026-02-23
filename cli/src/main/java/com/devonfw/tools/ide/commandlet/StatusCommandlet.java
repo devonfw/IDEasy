@@ -108,7 +108,7 @@ public class StatusCommandlet extends Commandlet {
           LOG.warn("Your settings are not up-to-date, please run 'ide update'.");
         }
       } else {
-        LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "Your settings are up-to-date.");
+        IdeLogLevel.SUCCESS.log(LOG, "Your settings are up-to-date.");
       }
       String branch = gitContext.determineCurrentBranch(settingsPath);
       LOG.debug("Your settings branch is {}", branch);
@@ -128,7 +128,7 @@ public class StatusCommandlet extends Commandlet {
     VersionIdentifier projectVersion = this.context.getProjectVersion();
     VersionIdentifier targetVersion = migrator.getTargetVersion();
     if (projectVersion.isLess(targetVersion)) {
-      LOG.info(IdeLogLevel.INTERACTION.getSlf4jMarker(),
+      IdeLogLevel.INTERACTION.log(LOG,
           "Your project is on IDEasy version {} and needs an update to version {}!\nPlease run 'ide update' to migrate your project",
           projectVersion, targetVersion);
     }
@@ -137,14 +137,14 @@ public class StatusCommandlet extends Commandlet {
   private void logGitBashLocationStatus() {
     Path bashPath = this.context.findBash();
     if (bashPath != null) {
-      LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "Found bash executable at: {}", bashPath);
+      IdeLogLevel.SUCCESS.log(LOG, "Found bash executable at: {}", bashPath);
     } else {
       LOG.error("No bash executable was found on your system!");
     }
     GitContext gitContext = this.context.getGitContext();
     Path gitPath = gitContext.findGit();
     if (gitPath != null) {
-      LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "Found git executable at: {}", gitPath);
+      IdeLogLevel.SUCCESS.log(LOG, "Found git executable at: {}", gitPath);
     } else {
       LOG.error("No git executable was found on your system!");
     }

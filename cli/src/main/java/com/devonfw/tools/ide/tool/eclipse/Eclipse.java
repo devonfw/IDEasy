@@ -98,7 +98,7 @@ public class Eclipse extends IdeToolCommandlet {
     if (result.isSuccessful()) {
       for (String line : result.getOut()) {
         if (line.contains("Overall install request is satisfiable")) {
-          LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "Successfully installed plugin: {}", plugin.name());
+          IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {}", plugin.name());
           step.success();
           return true;
         }

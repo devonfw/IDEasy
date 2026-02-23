@@ -8,7 +8,6 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Marker;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
@@ -80,12 +79,12 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
 
   private void logPackageManagerCommands(PackageManagerCommand pmCommand) {
 
-    Marker marker = IdeLogLevel.INTERACTION.getSlf4jMarker();
-    LOG.info(marker, "We need to run the following privileged command(s):");
+    IdeLogLevel level = IdeLogLevel.INTERACTION;
+    level.log(LOG, "We need to run the following privileged command(s):");
     for (String command : pmCommand.commands()) {
-      LOG.info(marker, command);
+      level.log(LOG, command);
     }
-    LOG.info(marker, "This will require root permissions!");
+    level.log(LOG, "This will require root permissions!");
   }
 
   /**
@@ -110,7 +109,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     }
 
     if (!silent) {
-      LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "Successfully installed {}", this.tool);
+      IdeLogLevel.SUCCESS.log(LOG, "Successfully installed {}", this.tool);
     }
     return true;
   }
@@ -165,7 +164,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
       fileAccess.delete(tmpDir);
     }
     if (exitCode == 0) {
-      LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "Installation process for {} in version {} has started", this.tool, resolvedVersion);
+      IdeLogLevel.SUCCESS.log(LOG, "Installation process for {} in version {} has started", this.tool, resolvedVersion);
       Step step = request.getStep();
       if (step != null) {
         step.success(true);

@@ -103,7 +103,7 @@ public class NetworkStatusImpl implements NetworkStatus {
     }
     Throwable error = getError();
     if (error == null) {
-      LOG.info(IdeLogLevel.INTERACTION.getSlf4jMarker(), "You are online.");
+      IdeLogLevel.INTERACTION.log(LOG, "You are online.");
       return;
     }
     String message = "You are offline because of the following error:";
@@ -116,10 +116,9 @@ public class NetworkStatusImpl implements NetworkStatus {
     if (error instanceof SSLException) {
       LOG.warn(
           "You are having TLS issues. We guess you are forced to use a VPN tool breaking end-to-end encryption causing this effect. As a workaround you can create and configure a truststore as described here:");
-      LOG.info(IdeLogLevel.INTERACTION.getSlf4jMarker(), "https://github.com/devonfw/IDEasy/blob/main/documentation/proxy-support.adoc#tls-certificate-issues");
+      IdeLogLevel.INTERACTION.log(LOG, "https://github.com/devonfw/IDEasy/blob/main/documentation/proxy-support.adoc#tls-certificate-issues");
     } else {
-      LOG.info(IdeLogLevel.INTERACTION.getSlf4jMarker(),
-          "Please check potential proxy settings, ensure you are properly connected to the internet and retry this operation.");
+      IdeLogLevel.INTERACTION.log(LOG, "Please check potential proxy settings, ensure you are properly connected to the internet and retry this operation.");
     }
   }
 

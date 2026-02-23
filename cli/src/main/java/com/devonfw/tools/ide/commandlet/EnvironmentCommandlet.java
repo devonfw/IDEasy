@@ -104,7 +104,7 @@ public final class EnvironmentCommandlet extends Commandlet {
               LOG.debug("from {}:", line.getSource());
               sourcePrinted = true;
             }
-            LOG.info(IdeLogLevel.PROCESSABLE.getSlf4jMarker(), format(line, winCmd));
+            IdeLogLevel.PROCESSABLE.log(LOG, format(line, winCmd));
           }
         }
       }
@@ -112,7 +112,7 @@ public final class EnvironmentCommandlet extends Commandlet {
       List<VariableLine> variables = new ArrayList<>(variableMap.values());
       sortVariables(variables);
       for (VariableLine line : variables) {
-        LOG.info(IdeLogLevel.PROCESSABLE.getSlf4jMarker(), format(line, winCmd));
+        IdeLogLevel.PROCESSABLE.log(LOG, format(line, winCmd));
       }
     }
   }

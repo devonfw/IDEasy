@@ -125,7 +125,7 @@ public class GitContextImpl implements GitContext {
       String message = "Failed to update git repository at " + targetRepository;
       if (this.context.isOfflineMode()) {
         LOG.warn(message);
-        LOG.info(IdeLogLevel.INTERACTION.getSlf4jMarker(), "Continuing as we are in offline mode - results may be outdated!");
+        IdeLogLevel.INTERACTION.log(LOG, "Continuing as we are in offline mode - results may be outdated!");
       } else {
         LOG.error(message);
         if (this.context.isOnline()) {

@@ -6,8 +6,6 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Marker;
-import org.slf4j.event.Level;
 
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -64,7 +62,7 @@ public final class HelpCommandlet extends Commandlet {
 
     this.context.printLogo();
     NlsBundle bundle = NlsBundle.of(this.context);
-    LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), bundle.get("version-banner"), IdeVersion.getVersionString());
+    IdeLogLevel.SUCCESS.log(LOG, bundle.get("version-banner"), IdeVersion.getVersionString());
     Commandlet cmd = this.commandlet.getValue();
     if (cmd == null) {
       String usage = bundle.get("usage") + " ide [option]* [[commandlet] [arg]*]";
@@ -246,14 +244,7 @@ public final class HelpCommandlet extends Commandlet {
 
       for (Arg arg : get()) {
         String message = format(arg);
-        Level slf4jLevel = level.getSlf4jLevel();
-        Marker marker = level.getSlf4jMarker();
-        if (marker == null) {
-          LOG.atLevel(slf4jLevel).log(message);
-        } else {
-          assert slf4jLevel == Level.INFO;
-          LOG.info(marker, message);
-        }
+        level.log(LOG, message);
       }
     }
 

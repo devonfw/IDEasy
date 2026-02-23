@@ -71,7 +71,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
       try {
         if (!Files.exists(newFolder)) {
           fileAccess.move(legacyFolder, newFolder, StandardCopyOption.REPLACE_EXISTING);
-          LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "Successfully renamed folder '{}' to '{}' in {}.", legacyName, newName, folder);
+          IdeLogLevel.SUCCESS.log(LOG, "Successfully renamed folder '{}' to '{}' in {}.", legacyName, newName, folder);
         }
       } catch (IllegalStateException e) {
         LOG.error("Error renaming folder {} to {} in {}", legacyName, newName, folder, e);
@@ -233,7 +233,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
     if (updated) {
       try {
         Files.write(filePath, lines, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
-        LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "Successfully updated repository configuration file {}", filePath);
+        IdeLogLevel.SUCCESS.log(LOG, "Successfully updated repository configuration file {}", filePath);
       } catch (IOException e) {
         LOG.error("Failed to write updated repository configuration file {}", filePath);
         throw e;

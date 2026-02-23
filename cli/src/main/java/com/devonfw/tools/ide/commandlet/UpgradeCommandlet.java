@@ -49,7 +49,7 @@ public class UpgradeCommandlet extends Commandlet {
     IdeasyCommandlet ideasy = new IdeasyCommandlet(this.context, this.mode.getValue());
     ToolInstallation installation = ideasy.install(false);
     if (installation.newInstallation()) {
-      LOG.info(IdeLogLevel.INTERACTION.getSlf4jMarker(), "It is recommended to run 'ide update' on your IDEasy projects now.");
+      IdeLogLevel.INTERACTION.log(LOG, "It is recommended to run 'ide update' on your IDEasy projects now.");
     }
   }
 

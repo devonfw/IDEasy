@@ -155,7 +155,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
    */
   public boolean checkIfUpdateIsAvailable() {
     VersionIdentifier installedVersion = getInstalledVersion();
-    LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "Your version of IDEasy is {}.", installedVersion);
+    IdeLogLevel.SUCCESS.log(LOG, "Your version of IDEasy is {}.", installedVersion);
     if (IdeVersion.isSnapshot()) {
       LOG.warn("You are using a SNAPSHOT version of IDEasy. For stability consider switching to a stable release via 'ide upgrade --mode=stable'");
     }
@@ -165,10 +165,10 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     }
     VersionIdentifier latestVersion = getLatestVersion();
     if (installedVersion.equals(latestVersion)) {
-      LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "Your are using the latest version of IDEasy and no update is available.");
+      IdeLogLevel.SUCCESS.log(LOG, "Your are using the latest version of IDEasy and no update is available.");
       return false;
     } else {
-      LOG.info(IdeLogLevel.INTERACTION.getSlf4jMarker(),
+      IdeLogLevel.INTERACTION.log(LOG,
           "Your version of IDEasy is {} but version {} is available. Please run the following command to upgrade to the latest version:\n"
               + "ide upgrade", installedVersion, latestVersion);
       return true;
@@ -214,7 +214,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     addToShellRc(BASHRC, ideRoot, null);
     addToShellRc(ZSHRC, ideRoot, "autoload -U +X bashcompinit && bashcompinit");
     installIdeasyWindowsEnv(ideRoot, installationPath);
-    LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "IDEasy has been installed successfully on your system.");
+    IdeLogLevel.SUCCESS.log(LOG, "IDEasy has been installed successfully on your system.");
     LOG.warn("IDEasy has been setup for new shells but it cannot work in your current shell(s).\n"
         + "Reboot or open a new terminal to make it work.");
   }
@@ -306,7 +306,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
           .addArgs("install", "Microsoft.WindowsTerminal")
           .run(ProcessMode.DEFAULT);
       if (result.isSuccessful()) {
-        LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "Windows Terminal has been installed successfully.");
+        IdeLogLevel.SUCCESS.log(LOG, "Windows Terminal has been installed successfully.");
       } else {
         LOG.warn("Failed to install Windows Terminal. Please install it manually from Microsoft Store.");
       }
@@ -333,7 +333,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       }
 
       configureGitBashProfile(settingsPath, bashPath.toString());
-      LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "Git Bash has been configured in Windows Terminal.");
+      IdeLogLevel.SUCCESS.log(LOG, "Git Bash has been configured in Windows Terminal.");
     } catch (Exception e) {
       LOG.warn("Failed to configure Git Bash in Windows Terminal: {}", e.getMessage());
     }
@@ -600,8 +600,8 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     uninstallIdeasyWindowsEnv(ideRoot);
     uninstallIdeasyIdePath(idePath);
     deleteDownloadCache();
-    LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "IDEasy has been uninstalled from your system.");
-    LOG.info(IdeLogLevel.INTERACTION.getSlf4jMarker(), "ATTENTION:\n"
+    IdeLogLevel.SUCCESS.log(LOG, "IDEasy has been uninstalled from your system.");
+    IdeLogLevel.INTERACTION.log(LOG, "ATTENTION:\n"
         + "In order to prevent data-loss, we do not delete your projects and git repositories!\n"
         + "To entirely get rid of IDEasy, also check your IDE_ROOT folder at:\n"
         + "{}", ideRoot);
@@ -617,7 +617,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     if (this.context.getSystemInfo().isWindows()) {
       this.context.newProcess().executable("bash").addArgs("-c",
           "sleep 10 && rm -rf \"" + WindowsPathSyntax.MSYS.format(idePath) + "\"").run(ProcessMode.BACKGROUND);
-      LOG.info(IdeLogLevel.INTERACTION.getSlf4jMarker(),
+      IdeLogLevel.INTERACTION.log(LOG,
           "To prevent windows file locking errors, we perform an asynchronous deletion of {} in background now.\n"
               + "Please close all terminals and wait a minute for the deletion to complete before running other commands.", idePath);
     } else {

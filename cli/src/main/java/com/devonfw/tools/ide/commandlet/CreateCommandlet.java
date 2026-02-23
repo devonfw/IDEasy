@@ -71,7 +71,7 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
     super.doRun();
     this.context.verifyIdeMinVersion(true);
     this.context.getFileAccess().writeFileContent(IdeVersion.getVersionString(), newProjectPath.resolve(IdeContext.FILE_SOFTWARE_VERSION));
-    LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "Successfully created new project '{}'.", newProjectName);
+    IdeLogLevel.SUCCESS.log(LOG, "Successfully created new project '{}'.", newProjectName);
 
     logWelcomeMessage();
   }

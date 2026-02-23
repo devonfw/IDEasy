@@ -5,8 +5,6 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Marker;
-import org.slf4j.spi.LoggingEventBuilder;
 
 /**
  * Implements {@link IdeLogListener} to buffer log events during bootstrapping and then flush them once the logger is properly configured.
@@ -65,17 +63,7 @@ public class IdeLogListenerBuffer implements IdeLogListener {
     // write all cached log events to the logger again for processing
     for (IdeLogEntry entry : this.buffer) {
       IdeLogLevel level = entry.level();
-      LoggingEventBuilder builder = LOG.atLevel(level.getSlf4jLevel());
-      Marker marker = level.getSlf4jMarker();
-      if (marker != null) {
-        builder = builder.addMarker(marker);
-      }
-      builder = builder.setCause(entry.error());
-      if (entry.args() != null) {
-        builder.log(entry.rawMessage(), entry.args());
-      } else {
-        builder.log(entry.rawMessage());
-      }
+      level.log(LOG, entry.error(), entry.rawMessage(), entry.args());
     }
     this.buffer.clear();
     this.threshold = IdeLogLevel.TRACE;

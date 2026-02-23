@@ -637,7 +637,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       // currently for a transitive dependency it does not make sense to suggest alternative versions, since the choice is not stored anywhere,
       // and we then would ask the user again every time the tool having this dependency is started. So we only log the problem and the user needs to react
       // (e.g. upgrade the tool with the dependency that is causing this).
-      LOG.info(IdeLogLevel.INTERACTION.getSlf4jMarker(), "Please run 'ide -f install {}' to check for update suggestions!", this.tool);
+      IdeLogLevel.INTERACTION.log(LOG, "Please run 'ide -f install {}' to check for update suggestions!", this.tool);
       return resolvedVersion;
     }
     ToolVersionChoice latest = null;
@@ -1019,7 +1019,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   protected void success(Step step, String message, Object... args) {
 
     if (step == null) {
-      LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), message, args);
+      IdeLogLevel.SUCCESS.log(LOG, message, args);
     } else {
       step.success(message, args);
     }

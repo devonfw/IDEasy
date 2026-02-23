@@ -162,7 +162,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
       throw new IllegalStateException("End of answers reached!");
     }
     String answer = this.answers[this.answerIndex++];
-    LOG.info(IdeLogLevel.INTERACTION.getSlf4jMarker(), answer);
+    IdeLogLevel.INTERACTION.log(LOG, answer);
     return answer;
   }
 

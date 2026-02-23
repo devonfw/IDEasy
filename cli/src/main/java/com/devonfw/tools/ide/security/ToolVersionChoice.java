@@ -63,7 +63,7 @@ public record ToolVersionChoice(ToolEditionAndVersion toolEditionAndVersion, Str
 
     String message = this.vulnerabilities.toString(this.toolEditionAndVersion);
     if (this.vulnerabilities.getIssues().isEmpty()) {
-      LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), message);
+      IdeLogLevel.SUCCESS.log(LOG, message);
       return true;
     } else {
       LOG.warn(message);

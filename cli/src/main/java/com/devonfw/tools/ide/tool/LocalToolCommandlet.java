@@ -134,9 +134,9 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     ToolEdition toolEdition = requested.getEdition();
     Step step = request.getStep();
     if (installedVersion == null) {
-      LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "Successfully installed {} in version {} at {}", toolEdition, resolvedVersion, toolPath);
+      IdeLogLevel.SUCCESS.log(LOG, "Successfully installed {} in version {} at {}", toolEdition, resolvedVersion, toolPath);
     } else {
-      LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "Successfully installed {} in version {} replacing previous version {} of {} at {}", toolEdition,
+      IdeLogLevel.SUCCESS.log(LOG, "Successfully installed {} in version {} replacing previous version {} of {} at {}", toolEdition,
           resolvedVersion, installedVersion, installed.getEdition(), toolPath);
     }
     if (step != null) {
@@ -490,7 +490,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
         uninstallFromSoftwareRepository(toolPath);
       }
       performUninstall(toolPath);
-      LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "Successfully uninstalled {}", this.tool);
+      IdeLogLevel.SUCCESS.log(LOG, "Successfully uninstalled {}", this.tool);
     } catch (Exception e) {
       LOG.error("Failed to uninstall {}", this.tool, e);
     }
@@ -516,7 +516,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     }
     LOG.info("Physically deleting {} as requested by the user via force mode.", repoPath);
     this.context.getFileAccess().delete(repoPath);
-    LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "Successfully deleted {} from your computer.", repoPath);
+    IdeLogLevel.SUCCESS.log(LOG, "Successfully deleted {} from your computer.", repoPath);
   }
 
   @Override

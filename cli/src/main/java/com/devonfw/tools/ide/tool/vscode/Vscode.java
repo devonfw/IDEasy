@@ -67,7 +67,7 @@ public class Vscode extends IdeToolCommandlet {
     extensionsCommands.add(plugin.id());
     ProcessResult result = runTool(pc, ProcessMode.DEFAULT_CAPTURE, extensionsCommands);
     if (result.isSuccessful()) {
-      LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "Successfully installed plugin: {}", plugin.name());
+      IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {}", plugin.name());
       step.success();
       return true;
     } else {

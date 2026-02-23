@@ -48,7 +48,7 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
     }
     ProcessResult result = runTool(pc, ProcessMode.DEFAULT, args);
     if (result.isSuccessful()) {
-      LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "Successfully installed plugin: {}", plugin.name());
+      IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {}", plugin.name());
       step.success();
       return true;
     } else {

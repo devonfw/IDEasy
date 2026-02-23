@@ -46,6 +46,6 @@ public class VersionCommandlet extends Commandlet {
   @Override
   protected void doRun() {
 
-    LOG.info(IdeLogLevel.PROCESSABLE.getSlf4jMarker(), IdeVersion.getVersionString());
+    IdeLogLevel.PROCESSABLE.log(LOG, IdeVersion.getVersionString());
   }
 }

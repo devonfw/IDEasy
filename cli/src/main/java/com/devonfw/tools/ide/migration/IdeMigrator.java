@@ -90,7 +90,7 @@ public class IdeMigrator implements IdeMigration {
       }
     }
     if (migrationCount > 0) {
-      LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "Successfully applied {} migration(s) to project {}", migrationCount, context.getProjectName());
+      IdeLogLevel.SUCCESS.log(LOG, "Successfully applied {} migration(s) to project {}", migrationCount, context.getProjectName());
     } else {
       LOG.debug("No migration to apply to project {}", context.getProjectName());
     }

@@ -46,7 +46,7 @@ public class Node extends LocalToolCommandlet {
         .addArg(getToolPath().toString());
     ProcessResult result = npm.runPackageManager(packageManagerRequest, true);
     if (result.isSuccessful()) {
-      LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "Setting npm config prefix to: {} was successful", getToolPath());
+      IdeLogLevel.SUCCESS.log(LOG, "Setting npm config prefix to: {} was successful", getToolPath());
     }
   }
 

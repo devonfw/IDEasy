@@ -4,7 +4,6 @@ import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Marker;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -76,7 +75,7 @@ public abstract class AbstractVersionOrEditionGetCommandlet extends Commandlet {
   protected void doRun() {
 
     ToolCommandlet commandlet = this.tool.getValue();
-    Marker marker = IdeLogLevel.PROCESSABLE.getSlf4jMarker();
+    IdeLogLevel level = IdeLogLevel.PROCESSABLE;
     Object configuredValue = getConfiguredValue(commandlet);
     Object installedValue = getInstalledValue(commandlet);
     boolean getInstalledValue = this.installed.isTrue();
@@ -91,9 +90,9 @@ public abstract class AbstractVersionOrEditionGetCommandlet extends Commandlet {
         logToolInfo(commandlet, configuredValue, installedValue);
       } else {
         if (installedValue == null) {
-          LOG.info(marker, configuredValue.toString());
+          level.log(LOG, configuredValue.toString());
         } else {
-          LOG.info(marker, installedValue.toString());
+          level.log(LOG, installedValue.toString());
         }
       }
     } else {
@@ -101,10 +100,10 @@ public abstract class AbstractVersionOrEditionGetCommandlet extends Commandlet {
         if (installedValue == null) {
           logToolInfo(commandlet, configuredValue, null);
         } else {
-          LOG.info(marker, installedValue.toString());
+          level.log(LOG, installedValue.toString());
         }
       } else {
-        LOG.info(marker, configuredValue.toString());
+        level.log(LOG, configuredValue.toString());
       }
     }
   }
@@ -113,16 +112,16 @@ public abstract class AbstractVersionOrEditionGetCommandlet extends Commandlet {
 
     String property = getPropertyToGet();
     String toolName = commandlet.getName();
-    Marker marker = IdeLogLevel.PROCESSABLE.getSlf4jMarker();
+    IdeLogLevel level = IdeLogLevel.PROCESSABLE;
     if (installedValue == null) {
-      LOG.info(marker, "No installation of tool {} was found.", toolName);
+      level.log(LOG, "No installation of tool {} was found.", toolName);
     } else {
-      LOG.info(marker, "The installed {} for tool {} is {}", property, toolName, installedValue);
+      level.log(LOG, "The installed {} for tool {} is {}", property, toolName, installedValue);
     }
-    LOG.info(marker, "The configured {} for tool {} is {}", property, toolName, configuredValue);
+    level.log(LOG, "The configured {} for tool {} is {}", property, toolName, configuredValue);
     if (!Objects.equals(configuredValue, installedValue)) {
-      LOG.info(marker, "To install the configured {} call the following command:", property);
-      LOG.info(marker, "ide install {}", toolName);
+      level.log(LOG, "To install the configured {} call the following command:", property);
+      level.log(LOG, "ide install {}", toolName);
     }
   }
 

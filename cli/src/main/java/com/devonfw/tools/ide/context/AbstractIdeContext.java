@@ -895,12 +895,12 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   @Override
   public void logIdeHomeAndRootStatus() {
     if (this.ideRoot != null) {
-      LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "IDE_ROOT is set to {}", this.ideRoot);
+      IdeLogLevel.SUCCESS.log(LOG, "IDE_ROOT is set to {}", this.ideRoot);
     }
     if (this.ideHome == null) {
       LOG.warn(getMessageNotInsideIdeProject());
     } else {
-      LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "IDE_HOME is set to {}", this.ideHome);
+      IdeLogLevel.SUCCESS.log(LOG, "IDE_HOME is set to {}", this.ideHome);
     }
   }
 
@@ -958,7 +958,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
     while (true) {
       if (!message.isBlank()) {
-        LOG.info(IdeLogLevel.INTERACTION.getSlf4jMarker(), message);
+        IdeLogLevel.INTERACTION.log(LOG, message);
       }
       if (isBatchMode()) {
         if (isForceMode()) {
@@ -982,7 +982,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   public <O> O question(O[] options, String question, Object... args) {
 
     assert (options.length > 0);
-    LOG.info(IdeLogLevel.INTERACTION.getSlf4jMarker(), question, args);
+    IdeLogLevel.INTERACTION.log(LOG, question, args);
     return displayOptionsAndGetAnswer(options);
   }
 
@@ -996,24 +996,24 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       addMapping(mapping, key, option);
       String numericKey = Integer.toString(i);
       if (numericKey.equals(key)) {
-        LOG.trace("Options should not be numeric: " + key);
+        LOG.trace("Options should not be numeric: {}", key);
       } else {
         addMapping(mapping, numericKey, option);
       }
-      LOG.info(IdeLogLevel.INTERACTION.getSlf4jMarker(), "Option " + numericKey + ": " + title);
+      IdeLogLevel.INTERACTION.log(LOG, "Option {}: {}", numericKey, title);
     }
     O option = null;
     if (isBatchMode()) {
       if (isForceMode()) {
         option = options[0];
-        LOG.info(IdeLogLevel.INTERACTION.getSlf4jMarker(), "" + option);
+        IdeLogLevel.INTERACTION.log(LOG, "" + option);
       }
     } else {
       while (option == null) {
         String answer = readLine();
         option = mapping.get(answer);
         if (option == null) {
-          LOG.warn("Invalid answer: '" + answer + "' - please try again.");
+          LOG.warn("Invalid answer: '{}' - please try again.", answer);
         }
       }
     }
@@ -1254,7 +1254,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
               } else {
                 msg = "Updates are available for the settings repository. If you want to apply the latest changes, call \"ide update\"";
               }
-              LOG.info(IdeLogLevel.INTERACTION.getSlf4jMarker(), msg);
+              IdeLogLevel.INTERACTION.log(LOG, msg);
             }
           }
         }

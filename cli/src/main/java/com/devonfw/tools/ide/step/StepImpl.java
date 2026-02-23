@@ -68,7 +68,7 @@ public final class StepImpl implements Step {
       LOG.trace("Starting step {} with params {}...", name, Arrays.toString(params));
     }
     if (!this.silent) {
-      LOG.info(IdeLogLevel.STEP.getSlf4jMarker(), "Start: {}", name);
+      IdeLogLevel.STEP.log(LOG, "Start: {}", name);
     }
   }
 
@@ -160,9 +160,9 @@ public final class StepImpl implements Step {
     if (newSuccess.booleanValue()) {
       assert (error == null);
       if (message != null) {
-        LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), message, args);
+        IdeLogLevel.SUCCESS.log(LOG, message, args);
       } else if (!this.silent) {
-        LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "Successfully ended step '{}'.", this.name);
+        IdeLogLevel.SUCCESS.log(LOG, "Successfully ended step '{}'.", this.name);
       }
       LOG.debug("Step '{}' ended successfully.", this.name);
     } else {
@@ -217,7 +217,7 @@ public final class StepImpl implements Step {
     logErrorSummary(0, summary);
     if (summary.getError() == 0) {
       if (!suppressSuccess) {
-        LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "Successfully completed {}", getNameWithParams());
+        IdeLogLevel.SUCCESS.log(LOG, "Successfully completed {}", getNameWithParams());
       }
     } else {
       LOG.error(summary.toString());

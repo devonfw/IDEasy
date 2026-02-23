@@ -101,7 +101,7 @@ public abstract class AbstractToolRepository implements ToolRepository {
         LOG.debug("Using cached download of {} in version {} from {} (offline mode)",
             metadata.getTool(), metadata.getVersion(), target);
       } else {
-        LOG.info(IdeLogLevel.INTERACTION.getSlf4jMarker(), "Artifact already exists at {}\nTo force update please delete the file and run again.", target);
+        IdeLogLevel.INTERACTION.log(LOG, "Artifact already exists at {}\nTo force update please delete the file and run again.", target);
       }
     } else {
       if (this.context.getNetworkStatus().isOffline()) {
@@ -280,7 +280,7 @@ public abstract class AbstractToolRepository implements ToolRepository {
     String hashAlgorithm = expectedChecksum.getHashAlgorithm();
     String actualChecksum = this.context.getFileAccess().checksum(file, hashAlgorithm);
     if (expectedChecksum.getChecksum().equals(actualChecksum)) {
-      LOG.info(IdeLogLevel.SUCCESS.getSlf4jMarker(), "{} checksum {} is correct.", hashAlgorithm, actualChecksum);
+      IdeLogLevel.SUCCESS.log(LOG, "{} checksum {} is correct.", hashAlgorithm, actualChecksum);
     } else {
       throw new CliException("Downloaded file " + file + " has the wrong " + hashAlgorithm + " checksum!\n" //
           + "Expected " + expectedChecksum + "\n" //
