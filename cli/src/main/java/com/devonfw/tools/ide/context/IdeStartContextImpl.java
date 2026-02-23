@@ -16,7 +16,11 @@ public class IdeStartContextImpl implements IdeStartContext {
 
   protected final IdeLogListener logListener;
 
-  private IdeLogLevel logLevel;
+  protected final IdeLogListenerBuffer logListenerBuffer;
+
+  private IdeLogLevel logLevelConsole;
+
+  private IdeLogLevel logLevelLogger;
 
   private IdeLogArgFormatter argFormatter;
 
@@ -45,16 +49,21 @@ public class IdeStartContextImpl implements IdeStartContext {
   private Locale locale;
 
   /**
-   * @param logLevel the minimum enabled {@link #getLogLevel() log level}.
+   * @param logLevelConsole the minimum enabled {@link #getLogLevelConsole() log level}.
    * @param logListener the {@link #getLogListener() logListener}.
    */
-  public IdeStartContextImpl(IdeLogLevel logLevel, IdeLogListener logListener) {
+  public IdeStartContextImpl(IdeLogLevel logLevelConsole, IdeLogListener logListener) {
 
     super();
-    this.logLevel = logLevel;
+    this.logLevelConsole = logLevelConsole;
     this.logListener = logListener;
     this.argFormatter = IdeLogArgFormatter.DEFAULT;
     IdeStartContextImpl.instance = this;
+    if (logListener instanceof IdeLogListenerBuffer buffer) {
+      this.logListenerBuffer = buffer;
+    } else {
+      this.logListenerBuffer = null;
+    }
   }
 
   @Override
@@ -64,25 +73,43 @@ public class IdeStartContextImpl implements IdeStartContext {
   }
 
   @Override
-  public IdeLogLevel getLogLevel() {
+  public IdeLogLevel getLogLevelConsole() {
 
-    return this.logLevel;
+    return this.logLevelConsole;
   }
 
   /**
-   * Sets the log level.
-   *
-   * @param logLevel {@link IdeLogLevel}
+   * @param logLevelConsole the new {@link IdeLogLevel} for the console.
    * @return the previous set logLevel {@link IdeLogLevel}
    */
-  public IdeLogLevel setLogLevel(IdeLogLevel logLevel) {
+  public IdeLogLevel setLogLevelConsole(IdeLogLevel logLevelConsole) {
 
-    IdeLogLevel previousLogLevel = this.logLevel;
+    IdeLogLevel previousLogLevel = this.logLevelConsole;
     if ((previousLogLevel == null) || (previousLogLevel.ordinal() > IdeLogLevel.INFO.ordinal())) {
       previousLogLevel = IdeLogLevel.INFO;
     }
-    this.logLevel = logLevel;
+    this.logLevelConsole = logLevelConsole;
     return previousLogLevel;
+  }
+
+  @Override
+  public IdeLogLevel getLogLevelLogger() {
+
+    if (this.logLevelLogger == null) {
+      if ((this.logListenerBuffer != null) && (this.logListenerBuffer.isBuffering())) {
+        return IdeLogLevel.TRACE;
+      }
+      return this.logLevelConsole;
+    }
+    return this.logLevelLogger;
+  }
+
+  /**
+   * @param logLevelLogger the new {@link #getLogLevelLogger() loglevel for the logger}.
+   */
+  public void setLogLevelLogger(IdeLogLevel logLevelLogger) {
+
+    this.logLevelLogger = logLevelLogger;
   }
 
   /**

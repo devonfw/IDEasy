@@ -883,9 +883,15 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   @Override
-  public IdeLogLevel getLogLevel() {
+  public IdeLogLevel getLogLevelConsole() {
 
-    return this.startContext.getLogLevel();
+    return this.startContext.getLogLevelConsole();
+  }
+
+  @Override
+  public IdeLogLevel getLogLevelLogger() {
+
+    return this.startContext.getLogLevelLogger();
   }
 
   @Override
@@ -1139,9 +1145,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
    */
   private void activateLogging(Commandlet cmd) {
 
-    if (!this.julConfigured) {
-      configureJavaUtilLogging(cmd);
-    }
+    configureJavaUtilLogging(cmd);
     this.startContext.activateLogging();
   }
 
@@ -1187,13 +1191,12 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       LOG.error("Cannot enable log-file since IDE_ROOT is undefined.");
     }
     Properties properties = new Properties();
-    String intLevel = getLogLevel().getJulLevel().getName();
-    String extLevel = "INFO"; // actually we want "WARNING" but there is a bug in JUL that the root level is applied to all loggers and "com.devonfw.tools.ide.level" then gets ignored.
-    properties.setProperty(".level", extLevel);
-    properties.setProperty("com.devonfw.tools.ide.level", intLevel);
+    // prevent 3rd party (e.g. java.lang.ProcessBuilder) logging into our console via JUL
+    // see JulLogLevel for the trick we did to workaround JUL flaws
+    properties.setProperty(".level", "SEVERE");
     if (writeLogfile) {
+      this.startContext.setLogLevelLogger(IdeLogLevel.TRACE);
       properties.setProperty("handlers", "com.devonfw.tools.ide.log.JulConsoleHandler,java.util.logging.FileHandler");
-      properties.setProperty("java.util.logging.FileHandler.level", intLevel);
       properties.setProperty("java.util.logging.FileHandler.formatter", "java.util.logging.SimpleFormatter");
       properties.setProperty("java.util.logging.FileHandler.encoding", "UTF-8");
       this.logfile = createLogfilePath(idePath, cmd);
@@ -1202,7 +1205,6 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     } else {
       properties.setProperty("handlers", "com.devonfw.tools.ide.log.JulConsoleHandler");
     }
-    properties.setProperty("com.devonfw.tools.ide.log.JulConsoleHandler.level", intLevel);
     properties.setProperty("java.util.logging.SimpleFormatter.format", "%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS.%1$tL [%4$s] [%3$s] %5$s%6$s%n");
     return properties;
   }
@@ -1259,7 +1261,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
         if (cmd.isProcessableOutput()) {
           if (!LOG.isDebugEnabled()) {
             // unless --debug or --trace was supplied, processable output commandlets will disable all log-levels except INFO to prevent other logs interfere
-            previousLogLevel = this.startContext.setLogLevel(IdeLogLevel.PROCESSABLE);
+            previousLogLevel = this.startContext.setLogLevelConsole(IdeLogLevel.PROCESSABLE);
           }
         } else {
           if (cmd.isIdeHomeRequired()) {
@@ -1286,9 +1288,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
         }
         cmd.run();
       } finally {
-        this.julConfigured = false;
         if (previousLogLevel != null) {
-          this.startContext.setLogLevel(previousLogLevel);
+          this.startContext.setLogLevelConsole(previousLogLevel);
         }
       }
     } else {
@@ -1313,11 +1314,11 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       // printing anything anymore in such case.
       return false;
     }
-    IdeLogLevel oldLogLevel = this.startContext.getLogLevel();
+    IdeLogLevel oldLogLevel = this.startContext.getLogLevelConsole();
     IdeLogLevel newLogLevel = oldLogLevel;
     if (oldLogLevel.ordinal() > IdeLogLevel.INFO.ordinal()) {
       newLogLevel = IdeLogLevel.INFO;
-      this.startContext.setLogLevel(newLogLevel);
+      this.startContext.setLogLevelConsole(newLogLevel);
     }
     StringBuilder sb = new StringBuilder(1180);
     sb.append(LOGO).append("""
@@ -1348,7 +1349,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       throw new RuntimeException("Failed to save license agreement!", e);
     }
     if (oldLogLevel != newLogLevel) {
-      this.startContext.setLogLevel(oldLogLevel);
+      this.startContext.setLogLevelConsole(oldLogLevel);
     }
     return true;
   }

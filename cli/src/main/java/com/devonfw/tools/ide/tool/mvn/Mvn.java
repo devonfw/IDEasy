@@ -167,7 +167,6 @@ public class Mvn extends LocalToolCommandlet {
   private String getEncryptedPassword(String variable) {
 
     String input = this.context.askForInput("Please enter secret value for variable " + variable + ":");
-
     String encryptedPassword = retrievePassword("--encrypt-password", input);
     LOG.info("Encrypted as {}", encryptedPassword);
 

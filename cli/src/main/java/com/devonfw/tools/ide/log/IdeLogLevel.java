@@ -189,7 +189,7 @@ public enum IdeLogLevel {
     IdeLogLevel threshold = IdeLogLevel.TRACE;
     IdeStartContextImpl startContext = IdeStartContextImpl.get();
     if (startContext != null) {
-      threshold = startContext.getLogLevel();
+      threshold = startContext.getLogLevelLogger();
     }
     return threshold;
   }

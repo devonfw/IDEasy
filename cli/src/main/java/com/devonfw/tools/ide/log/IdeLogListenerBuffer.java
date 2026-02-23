@@ -49,7 +49,7 @@ public class IdeLogListenerBuffer implements IdeLogListener {
   /**
    * @return {@code true} if this collector is currently buffering all logs, {@code false} otherwise (regular logging).
    */
-  protected boolean isBuffering() {
+  public boolean isBuffering() {
     return this.buffering;
   }
 
@@ -58,6 +58,9 @@ public class IdeLogListenerBuffer implements IdeLogListener {
    */
   public void flushAndEndBuffering() {
 
+    if (!this.buffering) {
+      return; // buffering already ended
+    }
     // disable buffering further log events
     this.buffering = false;
     // write all cached log events to the logger again for processing

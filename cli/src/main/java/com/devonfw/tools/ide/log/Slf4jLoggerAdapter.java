@@ -149,12 +149,22 @@ public class Slf4jLoggerAdapter extends AbstractLogger implements LoggingEventAw
       assert markers.size() == 1;
       marker = markers.getFirst();
     }
-    handleNormalizedLoggingCall(event.getLevel(), marker, event.getMessage(), event.getArgumentArray(), event.getThrowable());
+    Level level = event.getLevel();
+    IdeLogLevel ideLogLevel = IdeLogLevel.of(level, marker);
+    if (ideLogLevel.isEnabled()) {
+      handleNormalizedLoggingCall(level, marker, event.getMessage(), event.getArgumentArray(), event.getThrowable());
+    }
   }
 
   private boolean isLevelEnabled(Level level, Marker marker) {
     IdeLogLevel ideLevel = IdeLogLevel.of(level, marker);
-    return ideLevel.isEnabled();
+    if (!ideLevel.isEnabled()) {
+      return false;
+    }
+    if (!this.internal) {
+      return level.toInt() >= Level.INFO.toInt(); // 3rd party is limited to INFO logging to avoid potential log spam
+    }
+    return true;
   }
 
   @Override

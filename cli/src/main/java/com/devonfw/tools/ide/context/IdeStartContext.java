@@ -20,9 +20,15 @@ public interface IdeStartContext extends ReadOfflineMode {
   IdeLogListener getLogListener();
 
   /**
-   * @return the minimum allowed {@link IdeLogLevel} (threshold).
+   * @return the minimum allowed {@link IdeLogLevel} (threshold) for console output (see --debug and --trace options).
    */
-  IdeLogLevel getLogLevel();
+  IdeLogLevel getLogLevelConsole();
+
+  /**
+   * @return the minimum allowed {@link IdeLogLevel} (threshold) for SLF4J and JUL logger (can be lower than {@link #getLogLevelConsole()} for finer details in
+   *     logfile).
+   */
+  IdeLogLevel getLogLevelLogger();
 
   /**
    * @return {@code true} in case of quiet mode (reduced output), {@code false} otherwise.
