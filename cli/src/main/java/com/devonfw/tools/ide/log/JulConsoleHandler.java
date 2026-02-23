@@ -28,7 +28,7 @@ public class JulConsoleHandler extends Handler {
       }
     }
     if (error != null) {
-      message = IdeLogExceptionDetails.of(ideLevel, Slf4jLoggerAdapter.getLogLevel()).format(message, error);
+      message = IdeLogExceptionDetails.of(ideLevel, IdeLogLevel.getLogLevel()).format(message, error);
     }
     out.append(message);
     if (startColor != null) {

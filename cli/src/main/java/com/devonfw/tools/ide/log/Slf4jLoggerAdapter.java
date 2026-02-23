@@ -154,17 +154,7 @@ public class Slf4jLoggerAdapter extends AbstractLogger implements LoggingEventAw
 
   private boolean isLevelEnabled(Level level, Marker marker) {
     IdeLogLevel ideLevel = IdeLogLevel.of(level, marker);
-    IdeLogLevel threshold = getLogLevel();
-    return ideLevel.ordinal() >= threshold.ordinal();
-  }
-
-  static IdeLogLevel getLogLevel() {
-    IdeLogLevel threshold = IdeLogLevel.TRACE;
-    IdeStartContextImpl startContext = IdeStartContextImpl.get();
-    if (startContext != null) {
-      threshold = startContext.getLogLevel();
-    }
-    return threshold;
+    return ideLevel.isEnabled();
   }
 
   @Override

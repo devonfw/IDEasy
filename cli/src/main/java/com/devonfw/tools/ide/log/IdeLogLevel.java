@@ -1,8 +1,12 @@
 package com.devonfw.tools.ide.log;
 
+import org.slf4j.Logger;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 import org.slf4j.event.Level;
+import org.slf4j.spi.LoggingEventBuilder;
+
+import com.devonfw.tools.ide.context.IdeStartContextImpl;
 
 /**
  * {@link Enum} with the available log-levels for IDEasy.
@@ -106,7 +110,88 @@ public enum IdeLogLevel {
    */
   public boolean isCustom() {
 
-    return (this == STEP) || (this == INTERACTION) || (this == SUCCESS) || (this == PROCESSABLE);
+    return (this.slf4jMarker != null);
+  }
+
+  /**
+   * @param logger the SLF4J {@link Logger}.
+   * @param error the {@link Throwable} with the error to log. Must not be {@code null}.
+   */
+  public void log(Logger logger, Throwable error) {
+
+    log(logger, error, null, (Object[]) null);
+  }
+
+  /**
+   * @param logger the SLF4J {@link Logger}.
+   * @param error the optional {@link Throwable} with the error to log or {@code null} for no error.
+   * @param message the message (template) to log.
+   */
+  public void log(Logger logger, Throwable error, String message) {
+
+    log(logger, error, message, (Object[]) null);
+  }
+
+  /**
+   * @param logger the SLF4J {@link Logger}.
+   * @param message the message (template) to log.
+   */
+  public void log(Logger logger, String message) {
+
+    log(logger, null, message, (Object[]) null);
+  }
+
+  /**
+   * @param logger the SLF4J {@link Logger}.
+   * @param message the message (template) to log.
+   * @param args the optional arguments to fill into the {@code message}. May be {@code null} or empty for no parameters.
+   */
+  public void log(Logger logger, String message, Object... args) {
+
+    log(logger, null, message, args);
+  }
+
+  /**
+   * @param logger the SLF4J {@link Logger}.
+   * @param error the optional {@link Throwable} with the error to log or {@code null} for no error.
+   * @param message the message (template) to log.
+   * @param args the optional arguments to fill into the {@code message}. May be {@code null} or empty for no parameters.
+   */
+  public void log(Logger logger, Throwable error, String message, Object... args) {
+
+    LoggingEventBuilder builder = logger.atLevel(this.slf4jLevel).setCause(error);
+    if (this.slf4jMarker != null) {
+      builder = builder.addMarker(this.slf4jMarker);
+    }
+    if (Slf4jLoggerAdapter.isEmpty(args)) {
+      builder.log(message, args);
+    } else if (message == null) {
+      String msg = error.getMessage();
+      if (msg == null) {
+        msg = error.toString();
+      }
+      builder.log(msg);
+    } else {
+      builder.log(message);
+    }
+  }
+
+  /**
+   * @return {@code true} if this {@link IdeLogLevel} is enabled (globally), {@code false} otherwise.
+   */
+  public boolean isEnabled() {
+
+    IdeLogLevel threshold = getLogLevel();
+    return ordinal() >= threshold.ordinal();
+  }
+
+  static IdeLogLevel getLogLevel() {
+    IdeLogLevel threshold = IdeLogLevel.TRACE;
+    IdeStartContextImpl startContext = IdeStartContextImpl.get();
+    if (startContext != null) {
+      threshold = startContext.getLogLevel();
+    }
+    return threshold;
   }
 
   /**
@@ -158,4 +243,5 @@ public enum IdeLogLevel {
     }
     throw new IllegalStateException("" + level);
   }
+
 }
