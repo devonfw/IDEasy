@@ -60,7 +60,7 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
 
     LOG.info("Creating new IDEasy project in {}", newProjectPath);
     if (!this.context.getFileAccess().isEmptyDir(newProjectPath)) {
-      this.context.askToContinue("Directory " + newProjectPath + " already exists. Do you want to continue?");
+      this.context.askToContinue("Directory {} already exists. Do you want to continue?", newProjectPath);
     } else {
       this.context.getFileAccess().mkdirs(newProjectPath);
     }

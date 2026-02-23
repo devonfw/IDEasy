@@ -17,7 +17,7 @@ public final class PrivacyUtil {
       "tbz2", "zip", "compress", "compression", "global", "value", "code", "branch", "string", "long", "number", "numeric", "apache", "commons", "hibernate",
       "storage", "db", "spring", "springframework", "boot", "quarkus", "mnt", "usr", "user", "users", "windows", "etc", "var", "log", "lib", "drivers",
       "system", "system32", "appdata", "module", "info", "sha1", "md5", "sha256", "sha512", "pkcs", "p12", "cert", "file", "files", "bin", "bash", "program",
-      "mingw64");
+      "mingw64", "dummy");
 
   // construction forbidden
   private PrivacyUtil() {
@@ -72,7 +72,7 @@ public final class PrivacyUtil {
       }
       index = indexOfSlash(arg, index);
       if (index < 0) {
-        result.append(arg, start, length); // append rest
+        appendSegment(arg, result, start, length); // append rest
       }
     }
     return result.toString();
