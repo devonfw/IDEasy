@@ -1106,7 +1106,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
           return ProcessResult.SUCCESS;
         }
       }
-      this.startContext.activateLogging();
+      activateLogging();
       verifyIdeMinVersion(false);
       if (result != null) {
         LOG.error(result.getErrorMessage());
@@ -1119,7 +1119,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       help.run();
       return 1;
     } catch (Throwable t) {
-      this.startContext.activateLogging();
+      activateLogging();
       step.error(t, true);
       throw t;
     } finally {
@@ -1127,6 +1127,17 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       assert (this.currentStep == null);
       step.logSummary(supressStepSuccess);
     }
+  }
+
+  /**
+   * Ensure the logging system is initialized.
+   */
+  public void activateLogging() {
+
+    if (!this.julConfigured) {
+      configureJavaUtilLogging(false);
+    }
+    this.startContext.activateLogging();
   }
 
   /**
