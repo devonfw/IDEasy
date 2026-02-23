@@ -414,8 +414,9 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   }
 
   @Override
-  protected Properties createJavaUtilLoggingProperties(boolean logfile, Commandlet cmd) {
+  protected boolean isWriteLogfile(Commandlet cmd) {
 
-    return doCreateJavaUtilLoggingProperties(false, cmd);
+    return false;
   }
+
 }

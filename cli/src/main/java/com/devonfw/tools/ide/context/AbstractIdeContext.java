@@ -168,6 +168,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   private boolean julConfigured;
 
+  private Path logfile;
+
   /**
    * The constructor.
    *
@@ -1121,6 +1123,9 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     } catch (Throwable t) {
       activateLogging(cmd);
       step.error(t, true);
+      if (this.logfile != null) {
+        System.err.println("Logfile can be found at " + this.logfile); // do not use logger
+      }
       throw t;
     } finally {
       step.close();
@@ -1135,7 +1140,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   private void activateLogging(Commandlet cmd) {
 
     if (!this.julConfigured) {
-      configureJavaUtilLogging(false, cmd);
+      configureJavaUtilLogging(cmd);
     }
     this.startContext.activateLogging();
   }
@@ -1143,15 +1148,16 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   /**
    * Configures the logging system (JUL).
    *
-   * @param logfile value of {@link Commandlet#isWriteLogFile()}.
    * @param cmd the {@link Commandlet} to be called. May be {@code null}.
    */
-  public void configureJavaUtilLogging(boolean logfile, Commandlet cmd) {
+  public void configureJavaUtilLogging(Commandlet cmd) {
 
     if (this.julConfigured) {
       return;
     }
-    Properties properties = createJavaUtilLoggingProperties(logfile, cmd);
+    boolean writeLogfile = isWriteLogfile(cmd);
+    this.startContext.setWriteLogfile(writeLogfile);
+    Properties properties = createJavaUtilLoggingProperties(writeLogfile, cmd);
     try {
       ByteArrayOutputStream out = new ByteArrayOutputStream(512);
       properties.store(out, null);
@@ -1165,23 +1171,19 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     }
   }
 
-  protected Properties createJavaUtilLoggingProperties(boolean logfile, Commandlet cmd) {
-
-    if (logfile) {
-      Boolean writeLogfile = IdeVariables.IDE_WRITE_LOGFILE.get(this);
-      if (Boolean.FALSE.equals(writeLogfile)) {
-        logfile = false;
-      }
+  protected boolean isWriteLogfile(Commandlet cmd) {
+    if (!cmd.isWriteLogFile()) {
+      return false;
     }
-    this.startContext.setWriteLogfile(logfile);
-    return doCreateJavaUtilLoggingProperties(logfile, cmd);
+    Boolean writeLogfile = IdeVariables.IDE_WRITE_LOGFILE.get(this);
+    return Boolean.TRUE.equals(writeLogfile);
   }
 
-  protected final Properties doCreateJavaUtilLoggingProperties(boolean file, Commandlet cmd) {
+  private Properties createJavaUtilLoggingProperties(boolean writeLogfile, Commandlet cmd) {
 
     Path idePath = getIdePath();
-    if (file && (idePath == null)) {
-      file = false;
+    if (writeLogfile && (idePath == null)) {
+      writeLogfile = false;
       LOG.error("Cannot enable log-file since IDE_ROOT is undefined.");
     }
     Properties properties = new Properties();
@@ -1189,14 +1191,14 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     String extLevel = "INFO"; // actually we want "WARNING" but there is a bug in JUL that the root level is applied to all loggers and "com.devonfw.tools.ide.level" then gets ignored.
     properties.setProperty(".level", extLevel);
     properties.setProperty("com.devonfw.tools.ide.level", intLevel);
-    if (file) {
+    if (writeLogfile) {
       properties.setProperty("handlers", "com.devonfw.tools.ide.log.JulConsoleHandler,java.util.logging.FileHandler");
       properties.setProperty("java.util.logging.FileHandler.level", intLevel);
       properties.setProperty("java.util.logging.FileHandler.formatter", "java.util.logging.SimpleFormatter");
       properties.setProperty("java.util.logging.FileHandler.encoding", "UTF-8");
-      Path logfile = createLogfilePath(idePath, cmd);
-      getFileAccess().mkdirs(logfile.getParent());
-      properties.setProperty("java.util.logging.FileHandler.pattern", logfile.toString());
+      this.logfile = createLogfilePath(idePath, cmd);
+      getFileAccess().mkdirs(this.logfile.getParent());
+      properties.setProperty("java.util.logging.FileHandler.pattern", this.logfile.toString());
     } else {
       properties.setProperty("handlers", "com.devonfw.tools.ide.log.JulConsoleHandler");
     }
