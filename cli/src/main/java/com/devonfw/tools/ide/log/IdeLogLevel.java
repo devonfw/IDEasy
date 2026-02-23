@@ -163,7 +163,7 @@ public enum IdeLogLevel {
     if (this.slf4jMarker != null) {
       builder = builder.addMarker(this.slf4jMarker);
     }
-    if (Slf4jLoggerAdapter.isEmpty(args)) {
+    if (!Slf4jLoggerAdapter.isEmpty(args)) {
       builder.log(message, args);
     } else if (message == null) {
       String msg = error.getMessage();
