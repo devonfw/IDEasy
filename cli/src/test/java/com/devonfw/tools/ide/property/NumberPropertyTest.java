@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.context.IdeTestContextMock;
+import com.devonfw.tools.ide.context.IdeTestContext;
 
 /**
  * Test of {@link NumberProperty}.
@@ -16,7 +16,7 @@ class NumberPropertyTest {
   @Test
   void testParse() {
     // arrange
-    IdeContext context = IdeTestContextMock.get();
+    IdeContext context = new IdeTestContext();
 
     // act
     NumberProperty numberProp = new NumberProperty("", false, "");

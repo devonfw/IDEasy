@@ -11,7 +11,6 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.context.IdeTestContextMock;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -80,7 +79,7 @@ class EnvironmentVariablesPropertiesFileTest extends AbstractIdeContextTest {
     assertThat(lines).containsExactlyElementsOf(linesToWrite);
 
     EnvironmentVariablesPropertiesFile variables = new EnvironmentVariablesPropertiesFile(null, TYPE,
-        propertiesFilePath, IdeTestContextMock.get());
+        propertiesFilePath, new IdeTestContext());
 
     // act
     variables.set("var5", "5", true);
@@ -125,7 +124,7 @@ class EnvironmentVariablesPropertiesFileTest extends AbstractIdeContextTest {
     Path propertiesFilePath = tempDir.resolve("test.properties");
 
     EnvironmentVariablesPropertiesFile variables = new EnvironmentVariablesPropertiesFile(null, TYPE,
-        propertiesFilePath, IdeTestContextMock.get());
+        propertiesFilePath, new IdeTestContext());
 
     // act
     variables.set("var1", "1.0", false);

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogEntry;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 
 /**
  * Test of {@link Step}.
@@ -15,7 +16,7 @@ class StepTest extends AbstractIdeContextTest {
   void testValidUsageSuccess() {
 
     // arrage
-    IdeTestContext context = newContext(PROJECT_BASIC, "project", false);
+    IdeTestContext context = newContext(PROJECT_BASIC, "project", false, null, IdeLogLevel.TRACE);
     // act
     Step step = context.newStep("Test-Step");
     try {
@@ -36,7 +37,7 @@ class StepTest extends AbstractIdeContextTest {
   void testValidUsageSuccessSilent() {
 
     // arrage
-    IdeTestContext context = newContext(PROJECT_BASIC, "project", false);
+    IdeTestContext context = newContext(PROJECT_BASIC, "project", false, null, IdeLogLevel.TRACE);
     // act
     Step step = context.newStep(true, "Test-Step", "arg1", "arg2");
     try {
@@ -61,7 +62,7 @@ class StepTest extends AbstractIdeContextTest {
   void testValidUsageError() {
 
     // arrage
-    IdeTestContext context = newContext(PROJECT_BASIC, "project", false);
+    IdeTestContext context = newContext(PROJECT_BASIC, "project", false, null, IdeLogLevel.TRACE);
     // act
     Step step = context.newStep("Test-Step");
     try {
@@ -82,7 +83,7 @@ class StepTest extends AbstractIdeContextTest {
   void testInvalidUsageSuccessError() {
 
     // arrage
-    IdeTestContext context = newContext(PROJECT_BASIC, "project", false);
+    IdeTestContext context = newContext(PROJECT_BASIC, "project", false, null, IdeLogLevel.TRACE);
     // act
     Step step = context.newStep("Test-Step");
     try {
@@ -107,7 +108,7 @@ class StepTest extends AbstractIdeContextTest {
   void testInvalidUsageErrorSuccess() {
 
     // arrage
-    IdeTestContext context = newContext(PROJECT_BASIC, "project", false);
+    IdeTestContext context = newContext(PROJECT_BASIC, "project", false, null, IdeLogLevel.TRACE);
     // act
     Step step = context.newStep("Test-Step");
     try {

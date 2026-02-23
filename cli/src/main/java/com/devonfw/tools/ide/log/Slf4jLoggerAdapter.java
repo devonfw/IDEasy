@@ -162,7 +162,7 @@ public class Slf4jLoggerAdapter extends AbstractLogger implements LoggingEventAw
       return false;
     }
     if (!this.internal) {
-      return level.toInt() >= Level.INFO.toInt(); // 3rd party is limited to INFO logging to avoid potential log spam
+      return level.toInt() >= Level.WARN.toInt(); // 3rd party is limited to INFO logging to avoid potential log spam
     }
     return true;
   }

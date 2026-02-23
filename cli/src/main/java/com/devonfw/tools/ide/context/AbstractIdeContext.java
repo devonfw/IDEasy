@@ -179,11 +179,13 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   public AbstractIdeContext(IdeStartContextImpl startContext, Path workingDirectory) {
 
     super();
-
     this.startContext = startContext;
     this.startContext.setArgFormatter(this);
     this.privacyMap = new HashMap<>();
     this.systemInfo = SystemInfoImpl.INSTANCE;
+    if (isTest()) {
+      configureJavaUtilLogging(null);
+    }
     this.commandletManager = new CommandletManagerImpl(this);
     this.fileAccess = new FileAccessImpl(this);
     String userHomeProperty = getSystem().getProperty("user.home");

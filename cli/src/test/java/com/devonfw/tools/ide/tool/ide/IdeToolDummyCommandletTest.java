@@ -13,7 +13,7 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.AbstractIdeTestContext;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.context.IdeTestContextMock;
+import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -37,7 +37,7 @@ class IdeToolDummyCommandletTest extends AbstractIdeContextTest {
   @Test
   void testDummyCommandlet(@TempDir Path tempDir) {
 
-    AbstractIdeTestContext context = IdeTestContextMock.get();
+    AbstractIdeTestContext context = new IdeTestContext();
     context.setPluginsPath(tempDir);
     context.setIdeHome(tempDir);
     context.setSettingsPath(Path.of("src/test/resources/settings/dummy"));

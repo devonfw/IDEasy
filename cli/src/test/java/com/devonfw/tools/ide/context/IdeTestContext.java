@@ -38,7 +38,7 @@ public class IdeTestContext extends AbstractIdeTestContext {
    */
   public IdeTestContext(Path workingDirectory, WireMockRuntimeInfo wireMockRuntimeInfo) {
 
-    this(workingDirectory, IdeLogLevel.TRACE, wireMockRuntimeInfo);
+    this(workingDirectory, IdeLogLevel.DEBUG, wireMockRuntimeInfo);
   }
 
   /**

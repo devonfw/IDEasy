@@ -17,7 +17,6 @@ import org.xmlunit.assertj3.XmlAssert;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.context.IdeTestContextMock;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesPropertiesMock;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
@@ -51,7 +50,7 @@ class XmlMergerTest extends AbstractIdeContextTest {
     Path targetPath = tempDir.resolve(TARGET_XML);
     Path resultPath = folder.resolve(RESULT_XML);
     Files.copy(folder.resolve(TARGET_XML), targetPath, REPLACE_EXISTING);
-    IdeTestContextMock context = IdeTestContextMock.get();
+    IdeTestContext context = new IdeTestContext();
     EnvironmentVariablesPropertiesMock mockVariables = new EnvironmentVariablesPropertiesMock(null, EnvironmentVariablesType.SETTINGS, context);
     mockVariables.set("JAVA_HOME", "/projects/myproject", false);
     mockVariables.set("JAVA_VERSION", "21", false);

@@ -25,9 +25,7 @@ import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.context.IdeTestContextMock;
 
 /**
  * Test of {@link FileAccessImpl}.
@@ -43,7 +41,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
     // relative links are checked in testRelativeLinksWorkAfterMoving
 
     // arrange
-    IdeContext context = IdeTestContextMock.get();
+    IdeTestContext context = new IdeTestContext();
     FileAccess fileAccess = new FileAccessImpl(context);
     Path dir = tempDir.resolve("parent");
     createDirs(fileAccess, dir);
@@ -65,7 +63,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
   void testSymlinkAbsolutePassingRelativeSource(@TempDir Path tempDir) {
 
     // arrange
-    IdeContext context = IdeTestContextMock.get();
+    IdeTestContext context = new IdeTestContext();
     FileAccess fileAccess = new FileAccessImpl(context);
     Path dir = tempDir.resolve("parent");
     createDirs(fileAccess, dir);
@@ -89,7 +87,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
   void testSymlinkAbsoluteAsFallback(@TempDir Path tempDir) {
 
     // arrange
-    IdeContext context = IdeTestContextMock.get();
+    IdeTestContext context = new IdeTestContext();
     FileAccess fileAccess = new FileAccessImpl(context);
     Path dir = tempDir.resolve("parent");
     createDirs(fileAccess, dir);
@@ -112,7 +110,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
   void testSymlinkAbsoluteBreakAfterMoving(@TempDir Path tempDir) throws IOException {
 
     // arrange
-    IdeContext context = IdeTestContextMock.get();
+    IdeTestContext context = new IdeTestContext();
     FileAccess fileAccess = new FileAccessImpl(context);
     Path dir = tempDir.resolve("parent");
     createDirs(fileAccess, dir);
@@ -138,7 +136,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
   void testSymlinkRelativeWorkAfterMovingPassingRelativeSource(@TempDir Path tempDir) {
 
     // arrange
-    IdeContext context = IdeTestContextMock.get();
+    IdeTestContext context = new IdeTestContext();
     FileAccess fileAccess = new FileAccessImpl(context);
     Path dir = tempDir.resolve("parent");
     createDirs(fileAccess, dir);
@@ -163,7 +161,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
   void testSymlinkRelativeWorkAfterMoving(@TempDir Path tempDir) {
 
     // arrange
-    IdeContext context = IdeTestContextMock.get();
+    IdeTestContext context = new IdeTestContext();
     FileAccess fileAccess = new FileAccessImpl(context);
     Path dir = tempDir.resolve("parent");
     createDirs(fileAccess, dir);
@@ -189,7 +187,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
 
     // arrange
     WindowsSymlinkTestHelper.assumeSymlinksSupported();
-    IdeContext context = IdeTestContextMock.get();
+    IdeTestContext context = new IdeTestContext();
     FileAccess fileAccess = context.getFileAccess();
     Path file = tempDir.resolve("file");
     Files.createFile(file);
@@ -210,7 +208,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
   void testSymlinkShortcutPaths(@TempDir Path tempDir) {
 
     // arrange
-    IdeContext context = IdeTestContextMock.get();
+    IdeTestContext context = new IdeTestContext();
     FileAccess fileAccess = new FileAccessImpl(context);
     Path dir = tempDir.resolve("parent");
     createDirs(fileAccess, dir);
@@ -447,7 +445,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
   void testUnzip(@TempDir Path tempDir) {
 
     // arrange
-    IdeContext context = IdeTestContextMock.get();
+    IdeTestContext context = new IdeTestContext();
 
     // act
     context.getFileAccess()
@@ -467,7 +465,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
   void testUntarWithNoneCompressionWithFilePermissions(@TempDir Path tempDir) {
 
     // arrange
-    IdeContext context = IdeTestContextMock.get();
+    IdeTestContext context = new IdeTestContext();
     if (context.getSystemInfo().isWindows()) {
       return;
     }
@@ -489,7 +487,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
   void testUntarWithGzCompressionWithFilePermissions(@TempDir Path tempDir) {
 
     // arrange
-    IdeContext context = IdeTestContextMock.get();
+    IdeTestContext context = new IdeTestContext();
     if (context.getSystemInfo().isWindows()) {
       return;
     }
@@ -512,7 +510,8 @@ class FileAccessImplTest extends AbstractIdeContextTest {
   void testUntarWithBzip2CompressionWithFilePermissions(@TempDir Path tempDir) {
 
     // arrange
-    IdeContext context = IdeTestContextMock.get();
+    IdeTestContext context = new IdeTestContext();
+    new IdeTestContext();
     if (context.getSystemInfo().isWindows()) {
       return;
     }
@@ -543,7 +542,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
 
     // arrange
     WindowsSymlinkTestHelper.assumeSymlinksSupported();
-    IdeContext context = IdeTestContextMock.get();
+    IdeTestContext context = new IdeTestContext();
     Path linkTarGz = Path.of("src/test/resources/com/devonfw/tools/ide/io/link.tar.gz");
     FileAccess fileAccess = context.getFileAccess();
 
@@ -577,7 +576,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
   @Test
   void testDisabledExtractMovesArchive(@TempDir Path tempDir) {
     // arrange
-    IdeContext context = IdeTestContextMock.get();
+    IdeTestContext context = new IdeTestContext();
     FileAccessImpl fileAccess = new FileAccessImpl(context);
     Path downloadArchive = tempDir.resolve("downloaded.zip");
     fileAccess.touch(downloadArchive);
@@ -600,7 +599,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
   @Test
   void testExtractTgzArchive(@TempDir Path tempDir) throws IOException {
     // arrange
-    IdeContext context = IdeTestContextMock.get();
+    IdeTestContext context = new IdeTestContext();
     FileAccessImpl fileAccess = new FileAccessImpl(context);
     Path downloadedTgz = tempDir.resolve("downloaded.tgz");
     fileAccess.touch(downloadedTgz);
@@ -642,7 +641,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
    */
   @Test
   void testFindExistingFileInFolders(@TempDir Path tempDir) {
-    IdeContext context = IdeTestContextMock.get();
+    IdeTestContext context = new IdeTestContext();
     FileAccessImpl fileAccess = new FileAccessImpl(context);
     Path subfolder1 = tempDir.resolve("subfolder1");
     fileAccess.mkdirs(subfolder1);
@@ -728,7 +727,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
   void testSymlinkOverwritesBrokenJunction(@TempDir Path tempDir) throws IOException {
 
     // arrange
-    IdeContext context = IdeTestContextMock.get();
+    IdeTestContext context = new IdeTestContext();
     FileAccess fileAccess = new FileAccessImpl(context);
     Path sourceDir = tempDir.resolve("source");
     Path targetLink = tempDir.resolve("junction");
@@ -768,7 +767,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
   void testIsJunctionHandlesBrokenLinks(@TempDir Path tempDir) throws IOException {
 
     // arrange
-    IdeContext context = IdeTestContextMock.get();
+    IdeTestContext context = new IdeTestContext();
     FileAccess fileAccess = new FileAccessImpl(context);
 
     if (!context.getSystemInfo().isWindows()) {
@@ -818,7 +817,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
   void testBinPath() {
 
     // arrange
-    FileAccess fileAccess = IdeTestContextMock.get().getFileAccess();
+    FileAccess fileAccess = new IdeTestContext().getFileAccess();
     Path projects = Path.of("src/test/resources/ide-projects");
     Path rootPath = projects.resolve("basic/project/software/java");
     Path binPath = rootPath.resolve("bin");
@@ -847,7 +846,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
 
   private void verifyFindAncestor(String path, String baseDir, int subfolderCount, String expectedResult) {
 
-    FileAccess fileAccess = IdeTestContextMock.get().getFileAccess();
+    FileAccess fileAccess = new IdeTestContext().getFileAccess();
     Path result = fileAccess.findAncestor(asPath(path), asPath(baseDir), subfolderCount);
     AbstractPathAssert<?> assertion = assertThat(result).as("findAncestor(" + path + ", " + baseDir + ", " + subfolderCount);
     if (expectedResult == null) {
@@ -868,7 +867,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
   void testIsNonEmptyFile(@TempDir Path tempDir) throws IOException {
 
     // arrange
-    FileAccess fileAccess = IdeTestContextMock.get().getFileAccess();
+    FileAccess fileAccess = new IdeTestContext().getFileAccess();
 
     // act + assert
     assertThat(fileAccess.isNonEmptyFile(tempDir)).isFalse();

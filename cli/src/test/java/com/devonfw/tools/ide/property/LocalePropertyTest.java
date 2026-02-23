@@ -10,7 +10,7 @@ import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollectorDefault;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.context.IdeTestContextMock;
+import com.devonfw.tools.ide.context.IdeTestContext;
 
 /**
  * Test of {@link LocaleProperty}.
@@ -22,7 +22,7 @@ class LocalePropertyTest extends Assertions {
   void testGermany() {
 
     // arrange
-    IdeContext context = IdeTestContextMock.get();
+    IdeContext context = new IdeTestContext();
     Locale germany = Locale.GERMANY;
     // act
     LocaleProperty property = new LocaleProperty("--locale", true, null);
@@ -39,7 +39,7 @@ class LocalePropertyTest extends Assertions {
   void testCompletion() {
 
     // arrange
-    IdeContext context = IdeTestContextMock.get();
+    IdeTestContext context = new IdeTestContext();
     String[] expectedCandidates = { "de", "de-AT", "de-BE", "de-CH", "de-DE", "de-IT", "de-LI", "de-LU", "de-Latn-DE" };
     String input = "de";
     CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context);

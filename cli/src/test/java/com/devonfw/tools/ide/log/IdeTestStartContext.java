@@ -11,14 +11,19 @@ public class IdeTestStartContext extends IdeStartContextImpl {
 
   private final IdeLogListenerCollector collector;
 
-  public IdeTestStartContext(IdeLogLevel logLevel) {
+  /**
+   * The constructor.
+   *
+   * @param logLevelConsole the {@link IdeLogLevel} acting as threshold for the console.
+   */
+  public IdeTestStartContext(IdeLogLevel logLevelConsole) {
 
-    this(logLevel, new IdeLogListenerCollector());
+    this(logLevelConsole, new IdeLogListenerCollector());
   }
 
-  private IdeTestStartContext(IdeLogLevel minLogLevel, IdeLogListenerCollector logListener) {
+  private IdeTestStartContext(IdeLogLevel logLevelConsole, IdeLogListenerCollector logListener) {
 
-    super(minLogLevel, logListener);
+    super(logLevelConsole, logListener);
     this.collector = logListener;
   }
 
