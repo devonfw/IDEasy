@@ -40,5 +40,5 @@ See also link:https://github.com/devonfw/IDEasy/blob/main/cli/src/main/java/com/
 |`HTTP_VERSIONS`|e.g. `HTTP_2, HTTP_1_1`| The optional list of HTTP versions to try in the given order (e.g. "HTTP_2, HTTP_1_1"). This can be used as a workaround for network/VPN related issues - see issue https://github.com/devonfw/IDEasy/issues/1393[#1393].
 |`JASYPT_OPTS`|`algorithm=PBEWITHHMACSHA512ANDAES_256 ivGeneratorClassName=org.jasypt.iv.RandomIvGenerator`|Options of jasypt.
 |`IDE_XML_MERGE_LEGACY_SUPPORT_ENABLED`|e.g. `false`|Support of legacy xml templates without XML merge namespace.
-|`IDE_WRITE_LOGFILE`|`true`|Automatically write logfiles to `$IDE_ROOT/_ide/logs/YYYY/MM/dd/ideasy-HH-mm-ss.log`.
+|`IDE_WRITE_LOGFILE`|`true`|Automatically write logfiles to `$IDE_ROOT/_ide/logs/YYYY/MM/dd/«project»-ide-«command»-HH-mm-ss.log`. If you are not inside an IDEasy project or your command is not related to a project then `«project»` will be `_ide`. The logfile structure is designed in a way that allows you to quickly find and cleanup based on date but also based on details like the project and sub-command.
 |=======================
