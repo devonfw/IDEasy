@@ -1,17 +1,28 @@
 package com.devonfw.tools.ide.context;
 
 import java.util.Locale;
-import java.util.function.Function;
 
-import com.devonfw.tools.ide.log.AbstractIdeSubLogger;
+import com.devonfw.tools.ide.log.IdeLogArgFormatter;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.log.IdeLoggerImpl;
-import com.devonfw.tools.ide.log.IdeSubLogger;
+import com.devonfw.tools.ide.log.IdeLogListener;
+import com.devonfw.tools.ide.log.IdeLogListenerBuffer;
 
 /**
  * Implementation of {@link IdeStartContext}.
  */
-public class IdeStartContextImpl extends IdeLoggerImpl implements IdeStartContext {
+public class IdeStartContextImpl implements IdeStartContext {
+
+  private static IdeStartContextImpl instance;
+
+  protected final IdeLogListener logListener;
+
+  protected final IdeLogListenerBuffer logListenerBuffer;
+
+  private IdeLogLevel logLevelConsole;
+
+  private IdeLogLevel logLevelLogger;
+
+  private IdeLogArgFormatter argFormatter;
 
   private boolean skipUpdatesMode;
 
@@ -33,15 +44,116 @@ public class IdeStartContextImpl extends IdeLoggerImpl implements IdeStartContex
 
   private boolean noColorsMode;
 
+  private boolean writeLogfile;
+
   private Locale locale;
 
   /**
-   * @param minLogLevel the minimum enabled {@link IdeLogLevel}.
-   * @param factory the factory to create active {@link IdeSubLogger} instances.
+   * @param logLevelConsole the minimum enabled {@link #getLogLevelConsole() log level}.
+   * @param logListener the {@link #getLogListener() logListener}.
    */
-  public IdeStartContextImpl(IdeLogLevel minLogLevel, Function<IdeLogLevel, AbstractIdeSubLogger> factory) {
+  public IdeStartContextImpl(IdeLogLevel logLevelConsole, IdeLogListener logListener) {
 
-    super(minLogLevel, factory);
+    super();
+    this.logLevelConsole = logLevelConsole;
+    this.logListener = logListener;
+    this.argFormatter = IdeLogArgFormatter.DEFAULT;
+    IdeStartContextImpl.instance = this;
+    if (logListener instanceof IdeLogListenerBuffer buffer) {
+      this.logListenerBuffer = buffer;
+    } else {
+      this.logListenerBuffer = null;
+    }
+  }
+
+  @Override
+  public IdeLogListener getLogListener() {
+
+    return this.logListener;
+  }
+
+  @Override
+  public IdeLogLevel getLogLevelConsole() {
+
+    return this.logLevelConsole;
+  }
+
+  /**
+   * @param logLevelConsole the new {@link IdeLogLevel} for the console.
+   * @return the previous set logLevel {@link IdeLogLevel}
+   */
+  public IdeLogLevel setLogLevelConsole(IdeLogLevel logLevelConsole) {
+
+    IdeLogLevel previousLogLevel = this.logLevelConsole;
+    if ((previousLogLevel == null) || (previousLogLevel.ordinal() > IdeLogLevel.INFO.ordinal())) {
+      previousLogLevel = IdeLogLevel.INFO;
+    }
+    this.logLevelConsole = logLevelConsole;
+    return previousLogLevel;
+  }
+
+  @Override
+  public IdeLogLevel getLogLevelLogger() {
+
+    if (this.logLevelLogger == null) {
+      if ((this.logListenerBuffer != null) && (this.logListenerBuffer.isBuffering())) {
+        return IdeLogLevel.TRACE;
+      }
+      return this.logLevelConsole;
+    }
+    return this.logLevelLogger;
+  }
+
+  /**
+   * @param logLevelLogger the new {@link #getLogLevelLogger() loglevel for the logger}.
+   */
+  public void setLogLevelLogger(IdeLogLevel logLevelLogger) {
+
+    this.logLevelLogger = logLevelLogger;
+  }
+
+  /**
+   * @return the {@link IdeLogArgFormatter}.
+   */
+  public IdeLogArgFormatter getArgFormatter() {
+
+    return this.argFormatter;
+  }
+
+  /**
+   * Internal method to set the {@link IdeLogArgFormatter}.
+   *
+   * @param argFormatter the new {@link IdeLogArgFormatter}.
+   */
+  public void setArgFormatter(IdeLogArgFormatter argFormatter) {
+
+    this.argFormatter = argFormatter;
+  }
+
+  /**
+   * Ensure the logging system is initialized.
+   */
+  public void activateLogging() {
+
+    if (this.logListener instanceof IdeLogListenerBuffer buffer) {
+      // https://github.com/devonfw/IDEasy/issues/754
+      buffer.flushAndEndBuffering();
+    }
+  }
+
+  /**
+   * Disables the logging system (temporary).
+   *
+   * @param threshold the {@link IdeLogLevel} acting as threshold.
+   * @see com.devonfw.tools.ide.context.IdeContext#runWithoutLogging(Runnable, IdeLogLevel)
+   */
+  public void deactivateLogging(IdeLogLevel threshold) {
+
+    if (this.logListener instanceof IdeLogListenerBuffer buffer) {
+      buffer.startBuffering(threshold);
+    } else {
+      throw new IllegalStateException();
+    }
   }
 
   @Override
@@ -104,18 +216,6 @@ public class IdeStartContextImpl extends IdeLoggerImpl implements IdeStartContex
     return this.forcePull;
   }
 
-  @Override
-  public boolean isForcePlugins() {
-
-    return this.forcePlugins;
-  }
-
-  @Override
-  public boolean isForceRepositories() {
-
-    return this.forceRepositories;
-  }
-
   /**
    * @param forcePull new value of {@link #isForcePull()}.
    */
@@ -124,12 +224,24 @@ public class IdeStartContextImpl extends IdeLoggerImpl implements IdeStartContex
     this.forcePull = forcePull;
   }
 
+  @Override
+  public boolean isForcePlugins() {
+
+    return this.forcePlugins;
+  }
+
   /**
    * @param forcePlugins new value of {@link #isForcePlugins()}.
    */
   public void setForcePlugins(boolean forcePlugins) {
 
     this.forcePlugins = forcePlugins;
+  }
+
+  @Override
+  public boolean isForceRepositories() {
+
+    return this.forceRepositories;
   }
 
   /**
@@ -194,6 +306,29 @@ public class IdeStartContextImpl extends IdeLoggerImpl implements IdeStartContex
   public void setNoColorsMode(boolean noColoursMode) {
 
     this.noColorsMode = noColoursMode;
-    setLogColors(!noColoursMode);
   }
+
+  /**
+   * @return {@code true} to write a logfile to disc, {@code false} otherwise.
+   */
+  public boolean isWriteLogfile() {
+
+    return this.writeLogfile;
+  }
+
+  /**
+   * @param writeLogfile new value of {@link #isWriteLogfile()}.
+   */
+  public void setWriteLogfile(boolean writeLogfile) {
+    this.writeLogfile = writeLogfile;
+  }
+
+  /**
+   * @return the current {@link IdeStartContextImpl} instance.
+   */
+  public static IdeStartContextImpl get() {
+
+    return instance;
+  }
+
 }

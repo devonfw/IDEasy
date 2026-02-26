@@ -94,6 +94,9 @@ public interface IdeContext extends IdeStartContext {
   /** The name of the backups folder for backup. */
   String FOLDER_BACKUPS = "backups";
 
+  /** The name of the logs folder for log-files (in {@link #FOLDER_UNDERSCORE_IDE}). */
+  String FOLDER_LOGS = "logs";
+
   /** The name of the downloads folder. */
   String FOLDER_DOWNLOADS = "Downloads";
 
@@ -227,7 +230,7 @@ public interface IdeContext extends IdeStartContext {
    */
   default void printLogo() {
 
-    info(LOGO);
+    AbstractIdeContext.LOG.info(LOGO);
   }
 
   /**
@@ -535,7 +538,8 @@ public interface IdeContext extends IdeStartContext {
       if (Files.isDirectory(templatesFolderLegacy)) {
         templatesFolder = templatesFolderLegacy;
       } else {
-        warning("No templates found in settings git repo neither in {} nor in {} - configuration broken", templatesFolder, templatesFolderLegacy);
+        AbstractIdeContext.LOG.warn("No templates found in settings git repo neither in {} nor in {} - configuration broken", templatesFolder,
+            templatesFolderLegacy);
         return null;
       }
     }
@@ -828,4 +832,5 @@ public interface IdeContext extends IdeStartContext {
     Npm npm = getCommandletManager().getCommandlet(Npm.class);
     return npm.getOrCreateNpmConfigUserConfig();
   }
+
 }

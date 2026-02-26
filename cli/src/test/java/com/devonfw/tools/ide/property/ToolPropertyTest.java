@@ -10,7 +10,7 @@ import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollectorDefault;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.context.IdeTestContextMock;
+import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.tool.intellij.Intellij;
 import com.devonfw.tools.ide.tool.java.Java;
 
@@ -21,7 +21,7 @@ class ToolPropertyTest {
 
   @Test
   void testCompleteValue() {
-    IdeContext context = IdeTestContextMock.get();
+    IdeContext context = new IdeTestContext();
     String[] expectedCandidates = { "az", "android-studio", "aws" };
     String input = "a";
     CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context);
@@ -34,7 +34,7 @@ class ToolPropertyTest {
 
   @Test
   void testParse() {
-    IdeContext context = IdeTestContextMock.get();
+    IdeContext context = new IdeTestContext();
     ToolProperty toolProp = new ToolProperty("", false, "");
 
     assertThat(toolProp.parse("intellij", context)).isInstanceOf(Intellij.class);

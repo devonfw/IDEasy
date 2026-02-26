@@ -7,8 +7,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
+
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.variable.VariableDefinition;
 import com.devonfw.tools.ide.variable.VariableSyntax;
@@ -18,6 +21,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * Abstract base implementation of {@link EnvironmentVariables}.
  */
 public abstract class AbstractEnvironmentVariables implements EnvironmentVariables {
+
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractEnvironmentVariables.class);
 
   /**
    * When we replace variable expressions with their value the resulting {@link String} can change in size (shrink or grow). By adding a bit of extra capacity
@@ -225,15 +230,15 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
       String variableName = syntax.getVariable(matcher);
       String variableValue = resolvedVars.getValue(variableName, false);
       if (variableValue == null) {
-        IdeLogLevel logLevel = IdeLogLevel.WARNING;
+        Level logLevel = Level.WARN;
         if (context.legacySupport && (syntax == VariableSyntax.CURLY)) {
-          logLevel = IdeLogLevel.INFO;
+          logLevel = Level.INFO;
         }
         String var = matcher.group();
         if (recursion > 1) {
-          this.context.level(logLevel).log("Undefined variable {} in '{}' at '{}={}'", var, context.rootSrc, src, value);
+          LOG.atLevel(logLevel).log("Undefined variable {} in '{}' at '{}={}'", var, context.rootSrc, src, value);
         } else {
-          this.context.level(logLevel).log("Undefined variable {} in '{}'", var, src);
+          LOG.atLevel(logLevel).log("Undefined variable {} in '{}'", var, src);
         }
         continue;
       }
@@ -265,8 +270,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
     } while (matcher.find());
     matcher.appendTail(sb);
 
-    String resolved = sb.toString();
-    return resolved;
+    return sb.toString();
   }
 
   /**
@@ -307,7 +311,6 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   public String inverseResolve(String string, Object src, VariableSyntax syntax) {
 
     String result = string;
-    // TODO add more variables to IdeVariables like JAVA_HOME
     for (VariableDefinition<?> variable : IdeVariables.VARIABLES) {
       if (variable != IdeVariables.PATH) {
         String name = variable.getName();
@@ -321,7 +324,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
       }
     }
     if (!result.equals(string)) {
-      this.context.trace("Inverse resolved '{}' to '{}' from {}.", string, result, src);
+      LOG.trace("Inverse resolved '{}' to '{}' from {}.", string, result, src);
     }
     return result;
   }
@@ -334,7 +337,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
     if (value == null) {
       return VersionIdentifier.LATEST;
     } else if (value.isEmpty()) {
-      this.context.warning("Variable {} is configured with empty value, please fix your configuration.", variable);
+      LOG.warn("Variable {} is configured with empty value, please fix your configuration.", variable);
       return VersionIdentifier.LATEST;
     }
     VersionIdentifier version = VersionIdentifier.of(value);

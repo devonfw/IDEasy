@@ -5,6 +5,9 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
@@ -19,6 +22,8 @@ import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
  * {@link Commandlet} to setup one or multiple GIT repositories for development.
  */
 public class RepositoryCommandlet extends Commandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(RepositoryCommandlet.class);
 
   /** the repository to setup. */
   public final RepositoryProperty repository;
@@ -43,7 +48,7 @@ public class RepositoryCommandlet extends Commandlet {
   }
 
   @Override
-  public void run() {
+  protected void doRun() {
 
     Path repositoryFile = this.repository.getValue();
 
@@ -54,7 +59,7 @@ public class RepositoryCommandlet extends Commandlet {
       // If no specific repository is provided, check for repositories folder
       Path repositoriesPath = this.context.getRepositoriesPath();
       if (repositoriesPath == null) {
-        this.context.warning("Cannot find folder 'repositories' nor 'projects' in your settings.");
+        LOG.warn("Cannot find folder 'repositories' nor 'projects' in your settings.");
         return;
       }
       List<Path> propertiesFiles = this.context.getFileAccess()
@@ -84,9 +89,9 @@ public class RepositoryCommandlet extends Commandlet {
     RepositoryConfig repositoryConfig = RepositoryConfig.loadProperties(repositoryFile, this.context);
     if (!repositoryConfig.active()) {
       if (forceMode) {
-        this.context.info("Setup of repository {} is forced, hence proceeding ...", repositoryId);
+        LOG.info("Setup of repository {} is forced, hence proceeding ...", repositoryId);
       } else {
-        this.context.info("Skipping repository {} because it is not active - use --force to setup all repositories ...", repositoryId);
+        LOG.info("Skipping repository {} because it is not active - use --force to setup all repositories ...", repositoryId);
         return;
       }
     }
@@ -95,7 +100,7 @@ public class RepositoryCommandlet extends Commandlet {
       // error was already logged.
       return;
     }
-    this.context.debug("Repository configuration: {}", repositoryConfig);
+    LOG.debug("Repository configuration: {}", repositoryConfig);
     List<String> workspaces = repositoryConfig.workspaces();
     String repositoryRelativePath = repositoryConfig.path();
     if (repositoryRelativePath == null) {
@@ -113,16 +118,16 @@ public class RepositoryCommandlet extends Commandlet {
         if (firstRepository == null) {
           firstRepository = repositoryPath;
         }
-        this.context.info("Repository {} already exists in workspace {} at {}", repositoryId, workspaceName, repositoryPath);
+        LOG.info("Repository {} already exists in workspace {} at {}", repositoryId, workspaceName, repositoryPath);
         if (!(this.context.isForceMode() || this.context.isForceRepositories())) {
-          this.context.info("Ignoring repository {} in workspace {} - use --force or --force-repositories to rerun setup.", repositoryId, workspaceName);
+          LOG.info("Ignoring repository {} in workspace {} - use --force or --force-repositories to rerun setup.", repositoryId, workspaceName);
           continue;
         }
       }
       Path repositoryCreatedStatusFile = ideStatusDir.resolve("repository." + repositoryId + "." + workspaceName);
       if (Files.exists(repositoryCreatedStatusFile)) {
         if (!(this.context.isForceMode() || this.context.isForceRepositories())) {
-          this.context.info("Ignoring repository {} in workspace {} because it was already setup before - use --force or --force-repositories for recreation.",
+          LOG.info("Ignoring repository {} in workspace {} because it was already setup before - use --force or --force-repositories for recreation.",
               repositoryId, workspaceName);
           continue;
         }
@@ -159,7 +164,8 @@ public class RepositoryCommandlet extends Commandlet {
         ToolCommandlet commandlet = this.context.getCommandletManager().getToolCommandlet(command[0]);
         if (commandlet == null) {
           String displayName = (command[0] == null || command[0].isBlank()) ? "<empty>" : "'" + command[0] + "'";
-          this.context.error("Cannot build repository. Required tool '{}' not found. Please check your repository's build_cmd configuration value.", displayName);
+          LOG.error("Cannot build repository. Required tool '{}' not found. Please check your repository's build_cmd configuration value.",
+              displayName);
           return;
         }
         commandlet.reset();
@@ -175,7 +181,7 @@ public class RepositoryCommandlet extends Commandlet {
         commandlet.run();
       });
     } else {
-      this.context.debug("Build command not set. Skipping build for repository.");
+      LOG.debug("Build command not set. Skipping build for repository.");
       return true;
     }
   }
@@ -184,7 +190,7 @@ public class RepositoryCommandlet extends Commandlet {
 
     Set<String> imports = repositoryConfig.imports();
     if ((imports == null) || imports.isEmpty()) {
-      this.context.debug("Repository {} has no IDE configured for import.", repositoryId);
+      LOG.debug("Repository {} has no IDE configured for import.", repositoryId);
       return;
     }
     for (String ide : imports) {
@@ -193,7 +199,8 @@ public class RepositoryCommandlet extends Commandlet {
         ToolCommandlet commandlet = this.context.getCommandletManager().getToolCommandlet(ide);
         if (commandlet == null) {
           String displayName = (ide == null || ide.isBlank()) ? "<empty>" : "'" + ide + "'";
-          step.error("Cannot import repository '{}'. Required IDE '{}' not found. Please check your repository's imports configuration.", repositoryId, displayName);
+          step.error("Cannot import repository '{}'. Required IDE '{}' not found. Please check your repository's imports configuration.", repositoryId,
+              displayName);
         } else if (commandlet instanceof IdeToolCommandlet ideCommandlet) {
           ideCommandlet.importRepository(repositoryPath);
         } else {

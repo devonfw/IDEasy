@@ -14,9 +14,9 @@ import java.util.Set;
 import org.assertj.core.api.Assertions;
 
 import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.io.FileCopyMode;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
+import com.devonfw.tools.ide.io.IdeProgressBarTestImpl.ProgressEvent;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.tool.repository.ToolRepositoryMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
@@ -99,7 +99,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
    */
   protected static IdeTestContext newContext(String testProject, String projectPath, boolean copyForMutation, WireMockRuntimeInfo wmRuntimeInfo) {
 
-    return newContext(testProject, projectPath, copyForMutation, wmRuntimeInfo, IdeLogLevel.TRACE);
+    return newContext(testProject, projectPath, copyForMutation, wmRuntimeInfo, IdeLogLevel.DEBUG);
   }
 
   /**
@@ -118,7 +118,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
     Path ideRoot = TEST_PROJECTS.resolve(testProject);
     if (copyForMutation) {
       Path ideRootCopy = TEST_PROJECTS_COPY.resolve(testProject);
-      FileAccess fileAccess = new FileAccessImpl(IdeTestContextMock.get());
+      FileAccess fileAccess = new IdeTestContext().getFileAccess();
       fileAccess.delete(ideRootCopy);
       fileAccess.mkdirs(TEST_PROJECTS_COPY);
       fileAccess.copy(ideRoot, TEST_PROJECTS_COPY, FileCopyMode.COPY_TREE_OVERRIDE_TREE);
@@ -158,11 +158,11 @@ public abstract class AbstractIdeContextTest extends Assertions {
     return new IdeTestContextAssertion(context);
   }
 
-  private static List<IdeProgressBarTestImpl.ProgressEvent> assertProgressEventsAndSize(AbstractIdeTestContext context, String taskName, int chunkCount,
+  private static List<ProgressEvent> assertProgressEventsAndSize(AbstractIdeTestContext context, String taskName, int chunkCount,
       long maxSize) {
     IdeProgressBarTestImpl progressBar = context.getProgressBarMap().get(taskName);
     assertThat(progressBar).as(taskName).isNotNull();
-    List<IdeProgressBarTestImpl.ProgressEvent> eventList = progressBar.getEventList();
+    List<ProgressEvent> eventList = progressBar.getEventList();
     assertThat(eventList).hasSize(chunkCount + 1);
     // extra case for unknown file size (indefinite progress bar)
     if (progressBar.getMaxSize() != -1L) {

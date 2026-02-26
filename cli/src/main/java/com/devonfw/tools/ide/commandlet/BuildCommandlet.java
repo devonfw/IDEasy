@@ -42,7 +42,7 @@ public class BuildCommandlet extends Commandlet {
   }
 
   @Override
-  public void run() {
+  protected void doRun() {
 
     Path buildPath = this.context.getCwd();
 

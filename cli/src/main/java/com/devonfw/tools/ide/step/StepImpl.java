@@ -5,15 +5,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
+
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.log.IdeSubLogger;
 
 /**
  * Regular implementation of {@link Step}.
  */
 public final class StepImpl implements Step {
+
+  private static final Logger LOG = LoggerFactory.getLogger(StepImpl.class);
 
   private final AbstractIdeContext context;
 
@@ -58,12 +63,12 @@ public final class StepImpl implements Step {
       parent.children.add(this);
     }
     if (params.length == 0) {
-      this.context.trace("Starting step {}...", name);
+      LOG.trace("Starting step {}...", name);
     } else {
-      this.context.trace("Starting step {} with params {}...", name, Arrays.toString(params));
+      LOG.trace("Starting step {} with params {}...", name, Arrays.toString(params));
     }
     if (!this.silent) {
-      this.context.step("Start: {}", name);
+      IdeLogLevel.STEP.log(LOG, "Start: {}", name);
     }
   }
 
@@ -119,60 +124,9 @@ public final class StepImpl implements Step {
   }
 
   @Override
-  public IdeSubLogger asSuccess() {
-
-    return new IdeSubLogger() {
-      @Override
-      public String log(Throwable error, String message, Object... args) {
-
-        assert (error == null);
-        success(message, args);
-        return message;
-      }
-
-      @Override
-      public boolean isEnabled() {
-
-        return true;
-      }
-
-      @Override
-      public IdeLogLevel getLevel() {
-
-        return IdeLogLevel.SUCCESS;
-      }
-    };
-  }
-
-  @Override
   public void error(Throwable error, boolean suppress, String message, Object... args) {
 
     end(Boolean.FALSE, error, suppress, message, args);
-  }
-
-  @Override
-  public IdeSubLogger asError() {
-
-    return new IdeSubLogger() {
-      @Override
-      public String log(Throwable error, String message, Object... args) {
-
-        error(error, message, args);
-        return message;
-      }
-
-      @Override
-      public boolean isEnabled() {
-
-        return true;
-      }
-
-      @Override
-      public IdeLogLevel getLevel() {
-
-        return IdeLogLevel.ERROR;
-      }
-    };
   }
 
   @Override
@@ -187,7 +141,7 @@ public final class StepImpl implements Step {
     if (!firstCallOfEnd) {
       assert (this.duration > 0);
       if ((newSuccess != null) && (newSuccess != this.success)) {
-        this.context.warning("Step '{}' already ended with {} and now ended again with {}.", this.name, this.success, newSuccess);
+        LOG.warn("Step '{}' already ended with {} and now ended again with {}.", this.name, this.success, newSuccess);
       } else {
         return;
       }
@@ -206,13 +160,13 @@ public final class StepImpl implements Step {
     if (newSuccess.booleanValue()) {
       assert (error == null);
       if (message != null) {
-        this.context.success(message, args);
+        IdeLogLevel.SUCCESS.log(LOG, message, args);
       } else if (!this.silent) {
-        this.context.success("Successfully ended step '{}'.", this.name);
+        IdeLogLevel.SUCCESS.log(LOG, "Successfully ended step '{}'.", this.name);
       }
-      this.context.debug("Step '{}' ended successfully.", this.name);
+      LOG.debug("Step '{}' ended successfully.", this.name);
     } else {
-      IdeSubLogger logger;
+      Level level;
       if ((message != null) || (error != null)) {
         if (suppress) {
           if (error != null) {
@@ -220,19 +174,26 @@ public final class StepImpl implements Step {
           } else {
             this.errorMessage = message;
           }
-          logger = this.context.debug();
+          level = Level.DEBUG;
         } else {
-          this.errorMessage = this.context.error().log(error, message, args);
-          if (error == null) {
-            logger = this.context.debug();
+          if (message == null) {
+            message = error.getMessage();
+          }
+          if (args == null) {
+            LOG.atError().setCause(error).log(message);
           } else {
-            logger = this.context.error();
+            LOG.atError().setCause(error).log(message, args);
+          }
+          if (error == null) {
+            level = Level.DEBUG;
+          } else {
+            level = Level.ERROR;
           }
         }
       } else {
-        logger = this.context.info();
+        level = Level.INFO;
       }
-      logger.log("Step '{}' ended with failure.", this.name);
+      LOG.atLevel(level).log("Step '{}' ended with failure.", this.name);
     }
     if (firstCallOfEnd) {
       this.context.endStep(this);
@@ -246,8 +207,8 @@ public final class StepImpl implements Step {
    */
   public void logSummary(boolean suppressSuccess) {
 
-    if (this.context.trace().isEnabled()) {
-      this.context.trace(toString());
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(toString());
     }
     if (this.context.isQuietMode() || (this.children.isEmpty())) {
       return;
@@ -256,10 +217,10 @@ public final class StepImpl implements Step {
     logErrorSummary(0, summary);
     if (summary.getError() == 0) {
       if (!suppressSuccess) {
-        this.context.success("Successfully completed {}", getNameWithParams());
+        IdeLogLevel.SUCCESS.log(LOG, "Successfully completed {}", getNameWithParams());
       }
     } else {
-      this.context.error(summary.toString());
+      LOG.error(summary.toString());
     }
   }
 
@@ -272,7 +233,7 @@ public final class StepImpl implements Step {
       if (error == null) {
         error = "unexpected error";
       }
-      this.context.error("{}Step '{}' failed: {}", getIndent(depth), getNameWithParams(), error);
+      LOG.error("{}Step '{}' failed: {}", getIndent(depth), getNameWithParams(), error);
     }
     depth++;
     for (StepImpl child : this.children) {

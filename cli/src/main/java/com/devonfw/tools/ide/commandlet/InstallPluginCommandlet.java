@@ -1,5 +1,8 @@
 package com.devonfw.tools.ide.commandlet;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.PluginProperty;
 import com.devonfw.tools.ide.property.ToolProperty;
@@ -13,6 +16,8 @@ import com.devonfw.tools.ide.tool.plugin.PluginBasedCommandlet;
  * @see ToolCommandlet#install()
  */
 public class InstallPluginCommandlet extends Commandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(InstallPluginCommandlet.class);
 
   /** The tool to install. */
   public final ToolProperty tool;
@@ -40,7 +45,7 @@ public class InstallPluginCommandlet extends Commandlet {
   }
 
   @Override
-  public void run() {
+  protected void doRun() {
     ToolCommandlet commandlet = this.tool.getValue();
     String plugin = this.plugin.getValue();
 
@@ -48,7 +53,7 @@ public class InstallPluginCommandlet extends Commandlet {
       Step step = context.newStep("Install plugin: " + plugin);
       step.run(() -> cmd.installPlugin(cmd.getPlugin(plugin), step));
     } else {
-      context.warning("Tool {} does not support installation of plugins.", commandlet.getName());
+      LOG.warn("Tool {} does not support installation of plugins.", commandlet.getName());
     }
 
   }

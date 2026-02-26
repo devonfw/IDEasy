@@ -4,6 +4,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
@@ -23,6 +26,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * <p>
  */
 public abstract class PipBasedCommandlet extends PackageManagerBasedLocalToolCommandlet<ToolCommandlet> {
+
+  private static final Logger LOG = LoggerFactory.getLogger(PipBasedCommandlet.class);
 
   private static final String PIP_SHOW_VERSION_PREFIX = "Version:";
 
@@ -54,7 +59,7 @@ public abstract class PipBasedCommandlet extends PackageManagerBasedLocalToolCom
           case "pip" -> Pip.class;
           case "uv" -> Uv.class;
           default -> {
-            this.context.warning("Undefined value: PIP_EDITION={}", edition);
+            LOG.warn("Undefined value: PIP_EDITION={}", edition);
             yield Pip.class;
           }
         };
@@ -115,8 +120,8 @@ public abstract class PipBasedCommandlet extends PackageManagerBasedLocalToolCom
         }
       }
     }
-    this.context.debug("Could not find version from pip show output:");
-    processResult.log(IdeLogLevel.DEBUG, this.context);
+    LOG.debug("Could not find version from pip show output:");
+    processResult.log(IdeLogLevel.DEBUG);
     return null;
   }
 

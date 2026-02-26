@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeTestContext;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.context.IdeSlf4jContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.os.SystemArchitecture;
@@ -43,7 +42,7 @@ class CustomToolsMapperTest extends Assertions {
     IdeContext context = new IdeTestContext();
     String legacyProperties = "(jboss-eap:7.1.4.GA:all:https://host.tld/projects/my-project firefox:70.0.1:all:)";
     // act
-    CustomTools customTools = CustomToolsMapper.parseCustomToolsFromLegacyConfig(legacyProperties, context);
+    CustomTools customTools = CustomToolsMapper.parseCustomToolsFromLegacyConfig(legacyProperties);
     // assert
     assertThat(customTools.url()).isEqualTo("https://host.tld/projects/my-project");
     assertThat(customTools.tools()).containsExactly(new CustomTool("jboss-eap", "7.1.4.GA", true, true,
@@ -57,7 +56,7 @@ class CustomToolsMapperTest extends Assertions {
     IdeContext context = new IdeTestContext();
     String legacyProperties = "()";
     // act
-    CustomTools customTools = CustomToolsMapper.parseCustomToolsFromLegacyConfig(legacyProperties, context);
+    CustomTools customTools = CustomToolsMapper.parseCustomToolsFromLegacyConfig(legacyProperties);
     // assert
     assertThat(customTools).isNull();
   }
@@ -68,7 +67,7 @@ class CustomToolsMapperTest extends Assertions {
     IdeContext context = new IdeTestContext();
     String legacyProperties = "(jboss-eap:7.1.4.GA:all)";
     // act
-    CustomTools customTools = CustomToolsMapper.parseCustomToolsFromLegacyConfig(legacyProperties, context);
+    CustomTools customTools = CustomToolsMapper.parseCustomToolsFromLegacyConfig(legacyProperties);
     // assert
     assertThat(customTools).isNull();
   }
@@ -80,7 +79,7 @@ class CustomToolsMapperTest extends Assertions {
   void testProperConvertFromCustomToolsJsonToCustomToolMetaData() {
 
     // arrange
-    AbstractIdeTestContext context = new IdeSlf4jContext(Path.of(""));
+    AbstractIdeTestContext context = new IdeTestContext();
     context.setSystemInfo(SystemInfoMock.LINUX_X64);
     String name = "jboss-eap";
     String version = "7.4.5.GA";

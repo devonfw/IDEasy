@@ -10,7 +10,7 @@ import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollectorDefault;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.context.IdeTestContextMock;
+import com.devonfw.tools.ide.context.IdeTestContext;
 
 /**
  * Test of {@link EnumProperty}.
@@ -32,7 +32,7 @@ class EnumPropertyTest {
 
   @Test
   void testParse() {
-    IdeContext context = IdeTestContextMock.get();
+    IdeContext context = new IdeTestContext();
     EnumProperty<TestEnum> enumProp = new EnumProperty<>("", false, "", TestEnum.class);
 
     assertThat(enumProp.parse("elementzero", context)).isEqualTo(TestEnum.ELEMENTZERO);
@@ -42,7 +42,7 @@ class EnumPropertyTest {
 
   @Test
   void testCompleteValue() {
-    IdeContext context = IdeTestContextMock.get();
+    IdeContext context = new IdeTestContext();
     String[] expectedCandidates = { "elementzero", "elementone", "elementtwo" };
     String input = "ele";
     CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context);

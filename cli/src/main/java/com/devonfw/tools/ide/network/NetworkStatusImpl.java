@@ -6,14 +6,20 @@ import java.net.URLConnection;
 import java.util.concurrent.Callable;
 import javax.net.ssl.SSLException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.cache.CachedValue;
 import com.devonfw.tools.ide.cli.CliOfflineException;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 
 /**
  * Implementation of {@link NetworkStatus}.
  */
 public class NetworkStatusImpl implements NetworkStatus {
+
+  private static final Logger LOG = LoggerFactory.getLogger(NetworkStatusImpl.class);
 
   private final AbstractIdeContext context;
 
@@ -73,8 +79,8 @@ public class NetworkStatusImpl implements NetworkStatus {
       connection.getContent();
       return null;
     } catch (Exception e) {
-      if (this.context.debug().isEnabled()) {
-        this.context.debug().log(e, "Error when trying to connect to {}", this.onlineCheckUrl);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Error when trying to connect to {}", this.onlineCheckUrl, e);
       }
       return e;
     }
@@ -92,27 +98,27 @@ public class NetworkStatusImpl implements NetworkStatus {
   public void logStatusMessage() {
 
     if (isOfflineMode()) {
-      this.context.warning("You are offline because you have enabled offline mode via CLI option.");
+      LOG.warn("You are offline because you have enabled offline mode via CLI option.");
       return;
     }
     Throwable error = getError();
     if (error == null) {
-      this.context.success("You are online.");
+      IdeLogLevel.INTERACTION.log(LOG, "You are online.");
       return;
     }
     String message = "You are offline because of the following error:";
-    if (this.context.debug().isEnabled()) {
-      this.context.error(error, message);
+    if (LOG.isDebugEnabled()) {
+      LOG.error(message, error);
     } else {
-      this.context.error(message);
-      this.context.error(error.toString());
+      LOG.error(message);
+      LOG.error(error.toString());
     }
     if (error instanceof SSLException) {
-      this.context.warning(
+      LOG.warn(
           "You are having TLS issues. We guess you are forced to use a VPN tool breaking end-to-end encryption causing this effect. As a workaround you can create and configure a truststore as described here:");
-      this.context.interaction("https://github.com/devonfw/IDEasy/blob/main/documentation/proxy-support.adoc#tls-certificate-issues");
+      IdeLogLevel.INTERACTION.log(LOG, "https://github.com/devonfw/IDEasy/blob/main/documentation/proxy-support.adoc#tls-certificate-issues");
     } else {
-      this.context.interaction("Please check potential proxy settings, ensure you are properly connected to the internet and retry this operation.");
+      IdeLogLevel.INTERACTION.log(LOG, "Please check potential proxy settings, ensure you are properly connected to the internet and retry this operation.");
     }
   }
 

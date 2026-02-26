@@ -2,6 +2,9 @@ package com.devonfw.tools.ide.os;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
@@ -12,6 +15,8 @@ import com.devonfw.tools.ide.process.ProcessResult;
  * Implementation of {@link WindowsHelper}.
  */
 public class WindowsHelperImpl implements WindowsHelper {
+
+  private static final Logger LOG = LoggerFactory.getLogger(WindowsHelperImpl.class);
 
   /** Registry key for the users environment variables. */
   public static final String HKCU_ENVIRONMENT = "HKCU\\Environment";
@@ -40,9 +45,9 @@ public class WindowsHelperImpl implements WindowsHelper {
     ProcessResult result = this.context.newProcess().executable("reg").addArgs("delete", HKCU_ENVIRONMENT, "/v", key, "/f")
         .errorHandling(ProcessErrorHandling.LOG_WARNING).run(ProcessMode.DEFAULT_CAPTURE);
     if (result.isSuccessful()) {
-      this.context.debug("Removed environment variable {}", key);
+      LOG.debug("Removed environment variable {}", key);
     } else {
-      result.log(IdeLogLevel.WARNING, this.context);
+      result.log(IdeLogLevel.WARNING);
     }
   }
 

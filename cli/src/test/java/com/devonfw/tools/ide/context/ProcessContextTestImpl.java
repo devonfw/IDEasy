@@ -32,7 +32,7 @@ public class ProcessContextTestImpl extends ProcessContextImpl {
     ProcessResult result = super.run(ProcessMode.DEFAULT_CAPTURE);
     // this hack is still required to capture test script output
     if (result.isSuccessful() && (processMode == ProcessMode.DEFAULT || processMode == ProcessMode.BACKGROUND)) {
-      result.log(IdeLogLevel.INFO, context);
+      result.log(IdeLogLevel.INFO);
     }
     return result;
   }

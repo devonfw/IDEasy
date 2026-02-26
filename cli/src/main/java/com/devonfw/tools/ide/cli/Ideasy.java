@@ -3,12 +3,15 @@ package com.devonfw.tools.ide.cli;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeContextConsole;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
-import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.log.JulLogLevel;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.Property;
 
@@ -16,6 +19,8 @@ import com.devonfw.tools.ide.property.Property;
  * The main program of the CLI (command-line-interface).
  */
 public final class Ideasy {
+
+  private static final Logger LOG = LoggerFactory.getLogger(Ideasy.class);
 
   private AbstractIdeContext context;
 
@@ -37,15 +42,6 @@ public final class Ideasy {
     this.context = context;
   }
 
-  private IdeContext context() {
-
-    if (this.context == null) {
-      // fallback in case of exception before initialization
-      return new IdeContextConsole(IdeLogLevel.INFO, null, false);
-    }
-    return this.context;
-  }
-
   /**
    * Non-static variant of {@link #main(String...) main method} without invoking {@link System#exit(int)} so it can be tested.
    *
@@ -61,7 +57,7 @@ public final class Ideasy {
       exitStatus = error.getExitCode();
       String errorMessage = error.getMessage();
       if ((errorMessage != null) && !errorMessage.isBlank()) {
-        context().error(errorMessage);
+        LOG.error(errorMessage);
       }
     } catch (Throwable error) {
       exitStatus = 255;
@@ -77,7 +73,7 @@ public final class Ideasy {
           + "If the error is not on your end (network connectivity, lack of permissions, etc.) please file a bug:\n" //
           + "https://github.com/devonfw/IDEasy/issues/new?template=bug_report.yml&title="
           + URLEncoder.encode(title, StandardCharsets.UTF_8);
-      context().error(error, message);
+      LOG.error(message, error);
     }
     return exitStatus;
   }
@@ -97,7 +93,11 @@ public final class Ideasy {
 
   private void initContext(CliArguments arguments) {
 
-    ContextCommandlet contextCommandlet = new ContextCommandlet();
+    IdeStartContextImpl startContext = null;
+    if (this.context != null) {
+      startContext = this.context.getStartContext();
+    }
+    ContextCommandlet contextCommandlet = new ContextCommandlet(startContext);
     while (arguments.hasNext()) {
       CliArgument current = arguments.next();
       String key = current.getKey();
@@ -118,7 +118,7 @@ public final class Ideasy {
     }
     contextCommandlet.run();
     if (this.context == null) {
-      IdeStartContextImpl startContext = contextCommandlet.getStartContext();
+      startContext = contextCommandlet.getStartContext();
       this.context = new IdeContextConsole(startContext);
     }
   }
@@ -130,6 +130,7 @@ public final class Ideasy {
    */
   public static void main(String... args) {
 
+    JulLogLevel.init();
     int exitStatus = new Ideasy().run(args);
     System.exit(exitStatus);
   }

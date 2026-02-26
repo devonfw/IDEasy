@@ -13,6 +13,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -31,6 +33,8 @@ import com.devonfw.tools.ide.variable.IdeVariables;
  * {@link FileMerger} for XML files.
  */
 public class XmlMerger extends FileMerger implements XmlMergeSupport {
+
+  private static final Logger LOG = LoggerFactory.getLogger(XmlMerger.class);
 
   private static final DocumentBuilder DOCUMENT_BUILDER;
 
@@ -114,7 +118,7 @@ public class XmlMerger extends FileMerger implements XmlMergeSupport {
     Document resultDocument;
     Path template = templateDocument.getPath();
     Path source = workspaceDocument.getPath();
-    this.context.debug("Merging {} into {} ...", template, source);
+    LOG.debug("Merging {} into {} ...", template, source);
     Element templateRoot = templateDocument.getRoot();
     QName templateQName = XmlMergeSupport.getQualifiedName(templateRoot);
     Document document = workspaceDocument.getDocument();
@@ -146,7 +150,7 @@ public class XmlMerger extends FileMerger implements XmlMergeSupport {
             strategy = XmlMergeStrategy.KEEP;
           }
         } else {
-          this.context.warning(
+          LOG.warn(
               "XML merge namespace not found in file {}. If you are working in a legacy devonfw-ide project, please set IDE_XML_MERGE_LEGACY_SUPPORT_ENABLED=true to "
                   + "proceed correctly.", source);
         }
@@ -155,7 +159,7 @@ public class XmlMerger extends FileMerger implements XmlMergeSupport {
       strategy.merge(templateRoot, workspaceRoot, elementMatcher);
       resultDocument = document;
     } else {
-      this.context.error("Cannot merge XML template {} with root {} into XML file {} with root {} as roots do not match.", templateDocument.getPath(),
+      LOG.error("Cannot merge XML template {} with root {} into XML file {} with root {} as roots do not match.", templateDocument.getPath(),
           templateQName, workspaceDocument.getPath(), workspaceQName);
       return null;
     }
@@ -369,7 +373,7 @@ public class XmlMerger extends FileMerger implements XmlMergeSupport {
         }
       }
     }
-    this.context.warning(
+    LOG.warn(
         "The XML file {} does not contain the XML merge namespace and seems outdated. For details see:\n"
             + "https://github.com/devonfw/IDEasy/blob/main/documentation/configurator.adoc#xml-merger", workspaceFile);
   }

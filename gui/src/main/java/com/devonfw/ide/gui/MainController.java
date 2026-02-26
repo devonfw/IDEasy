@@ -12,7 +12,6 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeLogListenerBuffer;
-import com.devonfw.tools.ide.log.IdeSubLoggerOut;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
@@ -22,14 +21,19 @@ public class MainController {
 
   @FXML
   private ComboBox<String> selectedProject;
+
   @FXML
   private ComboBox<String> selectedWorkspace;
+
   @FXML
   private Button androidStudioOpen;
+
   @FXML
   private Button eclipseOpen;
+
   @FXML
   private Button intellijOpen;
+
   @FXML
   private Button vsCodeOpen;
 
@@ -130,7 +134,7 @@ public class MainController {
 
     final IdeLogListenerBuffer buffer = new IdeLogListenerBuffer();
     IdeLogLevel logLevel = IdeLogLevel.INFO;
-    IdeStartContextImpl startContext = new IdeStartContextImpl(logLevel, level -> new IdeSubLoggerOut(level, null, true, logLevel, buffer));
+    IdeStartContextImpl startContext = new IdeStartContextImpl(logLevel, buffer);
     IdeGuiContext context = new IdeGuiContext(startContext, Path.of(this.directoryPath).resolve(this.projectValue).resolve(this.workspaceValue));
     context.getCommandletManager().getCommandlet(inIde).run();
   }

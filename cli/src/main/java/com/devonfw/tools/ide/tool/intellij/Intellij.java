@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
 import com.devonfw.tools.ide.cli.CliException;
@@ -29,6 +31,8 @@ import com.devonfw.tools.ide.tool.mvn.Mvn;
  * {@link IdeToolCommandlet} for <a href="https://www.jetbrains.com/idea/">IntelliJ</a>.
  */
 public class Intellij extends IdeaBasedIdeToolCommandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(Intellij.class);
 
   private static final String IDEA = "idea";
 
@@ -118,12 +122,12 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
       Path buildDescriptor = buildTool.findBuildDescriptor(repositoryPath);
       if (buildDescriptor != null) {
         String templateFilename = entry.getValue();
-        this.context.debug("Found build descriptor {} so merging template {}", buildDescriptor, templateFilename);
+        LOG.debug("Found build descriptor {} so merging template {}", buildDescriptor, templateFilename);
         mergeConfig(repositoryPath, templateFilename);
         return;
       }
     }
-    this.context.warning("No supported build descriptor was found for project import in {}", repositoryPath);
+    LOG.warn("No supported build descriptor was found for project import in {}", repositoryPath);
   }
 
 }

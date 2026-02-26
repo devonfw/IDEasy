@@ -5,6 +5,9 @@ import java.nio.file.Path;
 import java.util.Properties;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.SortedProperties;
@@ -14,6 +17,8 @@ import com.devonfw.tools.ide.io.FileAccess;
  * Implementation of {@link FileMerger} for {@link Properties} files.
  */
 public class PropertiesMerger extends FileMerger {
+
+  private static final Logger LOG = LoggerFactory.getLogger(PropertiesMerger.class);
 
   /**
    * The constructor.
@@ -34,7 +39,7 @@ public class PropertiesMerger extends FileMerger {
     Path template = setup;
     if (Files.exists(workspace)) {
       if (!updateFileExists) {
-        this.context.trace("Nothing to do as update file does not exist: {}", update);
+        LOG.trace("Nothing to do as update file does not exist: {}", update);
         return; // nothing to do ...
       }
       fileAccess.readProperties(workspace, properties);
@@ -47,7 +52,7 @@ public class PropertiesMerger extends FileMerger {
     }
     resolve(properties, resolver, template.toString());
     fileAccess.writeProperties(properties, workspace, true);
-    this.context.trace("Saved merged properties to: {}", workspace);
+    LOG.trace("Saved merged properties to: {}", workspace);
   }
 
   private void resolve(Properties properties, EnvironmentVariables variables, Object src) {
@@ -63,11 +68,11 @@ public class PropertiesMerger extends FileMerger {
   public void inverseMerge(Path workspace, EnvironmentVariables variables, boolean addNewProperties, Path update) {
 
     if (!Files.exists(workspace)) {
-      this.context.trace("Workspace file does not exist: {}", workspace);
+      LOG.trace("Workspace file does not exist: {}", workspace);
       return;
     }
     if (!Files.exists(update)) {
-      this.context.trace("Update file does not exist: {}", update);
+      LOG.trace("Update file does not exist: {}", update);
       return;
     }
     Object src = workspace.getFileName();
@@ -94,9 +99,9 @@ public class PropertiesMerger extends FileMerger {
     }
     if (updated) {
       fileAccess.writeProperties(mergedProperties, update);
-      this.context.debug("Saved changes from: {} to: {}", workspace.getFileName(), update);
+      LOG.debug("Saved changes from: {} to: {}", workspace.getFileName(), update);
     } else {
-      this.context.trace("No changes for: {}", update);
+      LOG.trace("No changes for: {}", update);
     }
   }
 

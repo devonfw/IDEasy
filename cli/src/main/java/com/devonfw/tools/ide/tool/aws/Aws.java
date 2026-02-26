@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
@@ -18,6 +21,8 @@ import com.devonfw.tools.ide.tool.ToolInstallation;
  * {@link LocalToolCommandlet} for <a href="https://docs.aws.amazon.com/cli/">AWS CLI</a> (Amazon Web Services Command Line Interface).
  */
 public class Aws extends LocalToolCommandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(Aws.class);
 
   /**
    * The constructor.
@@ -69,7 +74,7 @@ public class Aws extends LocalToolCommandlet {
   @Override
   public void printHelp(NlsBundle bundle) {
 
-    this.context.info("To get detailed help about the usage of the AWS CLI, use \"aws help\"");
+    LOG.info("To get detailed help about the usage of the AWS CLI, use \"aws help\"");
   }
 
   @Override

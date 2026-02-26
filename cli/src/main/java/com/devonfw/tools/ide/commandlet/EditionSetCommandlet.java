@@ -41,7 +41,7 @@ public class EditionSetCommandlet extends Commandlet {
   }
 
   @Override
-  public void run() {
+  protected void doRun() {
 
     ToolCommandlet commandlet = this.tool.getValue();
     String edition = this.edition.getValue();

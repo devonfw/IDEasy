@@ -61,7 +61,7 @@ class VscodeTest extends AbstractIdeContextTest {
     // part 2 of test
 
     // arrange
-    context.getLogger().getEntries().clear();
+    context.getTestStartContext().getEntries().clear();
     // act
     commandlet.run();
     // assert

@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.context.IdeTestContextMock;
+import com.devonfw.tools.ide.context.IdeTestContext;
 
 /**
  * Test of {@link BooleanProperty}.
@@ -15,7 +15,7 @@ class BooleanPropertyTest {
 
   @Test
   void testParse() {
-    IdeContext context = IdeTestContextMock.get();
+    IdeContext context = new IdeTestContext();
     BooleanProperty boolProp = new BooleanProperty("name", false, "alias");
 
     assertThat(boolProp.parse("true", context)).isTrue();

@@ -4,6 +4,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.context.IdeContext;
 
 /**
@@ -34,6 +37,8 @@ public enum GitOperation {
       return true;
     }
   };
+
+  private static final Logger LOG = LoggerFactory.getLogger(GitOperation.class);
 
   private final String name;
 
@@ -127,12 +132,12 @@ public enum GitOperation {
         try {
           context.getFileAccess().touch(timestampPath);
         } catch (IllegalStateException e) {
-          context.warning(e.getMessage());
+          LOG.warn(e.getMessage());
         }
       }
       return result;
     } else {
-      context.trace("Skipped git {}.", this.name);
+      LOG.trace("Skipped git {}.", this.name);
       return false;
     }
   }
@@ -146,16 +151,16 @@ public enum GitOperation {
       return true;
     }
     if (context.isOffline()) {
-      context.info("Skipping git {} on {} because we are offline.", this.name, targetRepository);
+      LOG.info("Skipping git {} on {} because we are offline.", this.name, targetRepository);
       return false;
     } else if (context.isForceMode() || context.isForcePull()) {
-      context.debug("Enforcing git {} on {} because force mode is active.", this.name, targetRepository);
+      LOG.debug("Enforcing git {} on {} because force mode is active.", this.name, targetRepository);
       return true;
     }
     if (!hasGitDirectory) {
       if (isRequireGitFolder()) {
         if (context.getSettingsGitRepository() == null) {
-          context.warning("Missing .git folder in {}.", targetRepository);
+          LOG.warn("Missing .git folder in {}.", targetRepository);
         }
       } else {
         logEnforceGitOperationBecauseGitFolderNotPresent(targetRepository, context);
@@ -164,17 +169,17 @@ public enum GitOperation {
     }
     Path timestampFilePath = gitDirectory.resolve(this.timestampFilename);
     if (context.getFileAccess().isFileAgeRecent(timestampFilePath, this.cacheDuration)) {
-      context.debug("Skipping git {} on {} because last fetch was just recently to avoid overhead.", this.name,
+      LOG.debug("Skipping git {} on {} because last fetch was just recently to avoid overhead.", this.name,
           targetRepository);
       return false;
     } else {
-      context.debug("Will need to do git {} on {} because last fetch was some time ago.", this.name, targetRepository);
+      LOG.debug("Will need to do git {} on {} because last fetch was some time ago.", this.name, targetRepository);
       return true;
     }
   }
 
   private void logEnforceGitOperationBecauseGitFolderNotPresent(Path targetRepository, IdeContext context) {
-    context.debug("Enforcing git {} on {} because .git folder is not present.", this.name, targetRepository);
+    LOG.debug("Enforcing git {} on {} because .git folder is not present.", this.name, targetRepository);
   }
 
 }

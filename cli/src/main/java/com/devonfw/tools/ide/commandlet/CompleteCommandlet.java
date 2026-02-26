@@ -47,7 +47,7 @@ public final class CompleteCommandlet extends Commandlet {
   }
 
   @Override
-  public void run() {
+  protected void doRun() {
 
     CliArguments arguments = CliArguments.ofCompletion(this.args.asArray());
     List<CompletionCandidate> candidates = ((AbstractIdeContext) this.context).complete(arguments, true);

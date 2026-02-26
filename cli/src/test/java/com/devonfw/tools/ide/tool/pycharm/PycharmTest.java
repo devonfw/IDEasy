@@ -88,7 +88,7 @@ class PycharmTest extends AbstractIdeContextTest {
     SystemInfo systemInfo = SystemInfoMock.of(os);
     this.context.setSystemInfo(systemInfo);
     Pycharm commandlet = new Pycharm(this.context);
-    this.context.info("Starting testPycharmRun on {}", os);
+    System.out.println("Starting testPycharmRun on " + os);
 
     // act
     commandlet.run();
@@ -119,7 +119,7 @@ class PycharmTest extends AbstractIdeContextTest {
     // part 2 of test
 
     // arrange
-    context.getLogger().getEntries().clear();
+    context.getTestStartContext().getEntries().clear();
     // act
     commandlet.run();
     // assert

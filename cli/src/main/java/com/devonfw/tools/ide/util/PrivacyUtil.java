@@ -17,11 +17,22 @@ public final class PrivacyUtil {
       "tbz2", "zip", "compress", "compression", "global", "value", "code", "branch", "string", "long", "number", "numeric", "apache", "commons", "hibernate",
       "storage", "db", "spring", "springframework", "boot", "quarkus", "mnt", "usr", "user", "users", "windows", "etc", "var", "log", "lib", "drivers",
       "system", "system32", "appdata", "module", "info", "sha1", "md5", "sha256", "sha512", "pkcs", "p12", "cert", "file", "files", "bin", "bash", "program",
-      "mingw64");
+      "mingw64", "dummy", "hosts");
 
   // construction forbidden
   private PrivacyUtil() {
 
+  }
+
+  private static int indexOfSlash(String arg, int start) {
+    int index = arg.indexOf('/', start);
+    int index2 = arg.indexOf('\\', start);
+    if (index2 < 0) {
+      return index;
+    } else if ((index < 0) || (index2 < index)) {
+      return index2;
+    }
+    return index;
   }
 
   /**
@@ -72,21 +83,22 @@ public final class PrivacyUtil {
       }
       index = indexOfSlash(arg, index);
       if (index < 0) {
-        result.append(arg, start, length); // append rest
+        // append rest
+        int end = start;
+        while (end < length) {
+          int cp = arg.codePointAt(end);
+          if ((cp == ' ') || (cp == '"') || (cp == '\'')) {
+            break;
+          }
+          end++;
+        }
+        appendSegment(arg, result, start, end);
+        if (end < length) {
+          result.append(arg, end, length);
+        }
       }
     }
     return result.toString();
-  }
-
-  private static int indexOfSlash(String arg, int start) {
-    int index = arg.indexOf('/', start);
-    int index2 = arg.indexOf('\\', start);
-    if (index2 < 0) {
-      return index;
-    } else if ((index < 0) || (index2 < index)) {
-      return index2;
-    }
-    return index;
   }
 
   private static void appendSegment(String arg, StringBuilder result, int start, int index) {

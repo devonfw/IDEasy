@@ -5,6 +5,9 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
@@ -23,6 +26,8 @@ import com.devonfw.tools.ide.tool.vscode.Vscode;
  * {@link ToolCommandlet} for an IDE (integrated development environment) such as {@link Eclipse}, {@link Vscode}, or {@link Intellij}.
  */
 public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(IdeToolCommandlet.class);
 
   /**
    * The constructor.
@@ -48,8 +53,8 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
   }
 
   @Override
-  public final void run() {
-    super.run();
+  protected final void doRun() {
+    super.doRun();
   }
 
   @Override
@@ -73,7 +78,7 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
     FileAccess fileAccess = this.context.getFileAccess();
     Path workspaceFolder = this.context.getWorkspacePath();
     if (!fileAccess.isExpectedFolder(workspaceFolder)) {
-      this.context.warning("Current workspace does not exist: {}", workspaceFolder);
+      LOG.warn("Current workspace does not exist: {}", workspaceFolder);
       return; // should actually never happen...
     }
     Step step = this.context.newStep("Configuring workspace " + workspaceFolder.getFileName() + " for IDE " + this.tool);
@@ -110,10 +115,10 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
     Path setupFolder = templatesFolder.resolve(IdeContext.FOLDER_SETUP);
     Path updateFolder = templatesFolder.resolve(IdeContext.FOLDER_UPDATE);
     if (!Files.isDirectory(setupFolder) && !Files.isDirectory(updateFolder)) {
-      this.context.trace("Skipping empty or non-existing workspace template folder {}.", templatesFolder);
+      LOG.trace("Skipping empty or non-existing workspace template folder {}.", templatesFolder);
       return errors;
     }
-    this.context.debug("Merging workspace templates from {}...", templatesFolder);
+    LOG.debug("Merging workspace templates from {}...", templatesFolder);
     return errors + this.context.getWorkspaceMerger().merge(setupFolder, updateFolder, this.context.getVariables(), workspaceFolder);
   }
 

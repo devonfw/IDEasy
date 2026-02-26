@@ -3,14 +3,16 @@ package com.devonfw.tools.ide.environment;
 import java.util.Arrays;
 import java.util.List;
 
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.log.IdeLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Container that represents a line from a properties (ide.properties) file. We do not use {@link java.util.Properties} as we need support for exported
  * variables, lists/arrays, and saving changes without loosing comments, etc.
  */
 public abstract class VariableLine {
+
+  private static final Logger LOG = LoggerFactory.getLogger(VariableLine.class);
 
   /**
    * @return {@code true} if the variable is exported (e.g. "export MAVEN_OPTS=-Xmx20248m"), {@code false} otherwise.
@@ -81,7 +83,7 @@ public abstract class VariableLine {
 
   static final class Variable extends VariableLine {
 
-    private boolean export;
+    private final boolean export;
 
     private final String name;
 
@@ -239,11 +241,10 @@ public abstract class VariableLine {
    * Parses a {@link VariableLine} from {@link String}.
    *
    * @param line the {@link VariableLine} as {@link String} to parse.
-   * @param logger the {@link IdeLogger}.
    * @param source the source where the given {@link String} to parse is from (e.g. the file path).
    * @return the parsed {@link VariableLine}.
    */
-  public static VariableLine of(String line, IdeLogger logger, VariableSource source) {
+  public static VariableLine of(String line, VariableSource source) {
 
     int len = line.length();
     int start = 0;
@@ -291,7 +292,7 @@ public abstract class VariableLine {
       }
       end++;
     }
-    logger.warning("Ignoring corrupted line '{}' in {}", line, source);
+    LOG.warn("Ignoring corrupted line '{}' in {}", line, source);
     return new Garbage(line);
   }
 
@@ -331,7 +332,6 @@ public abstract class VariableLine {
    * Returns a list of String Variables.
    *
    * @param value String to parse
-   * @param context the {@link IdeContext} for logging warnings (may be {@code null}).
    * @return List of variables.
    */
   public static List<String> parseArray(String value) {
@@ -346,9 +346,9 @@ public abstract class VariableLine {
       }
     }
     return Arrays.stream(csv.split(separator))
-      .map(String::trim)
-      .filter(s -> !s.isEmpty())
-      .toList();
+        .map(String::trim)
+        .filter(s -> !s.isEmpty())
+        .toList();
   }
 
 }

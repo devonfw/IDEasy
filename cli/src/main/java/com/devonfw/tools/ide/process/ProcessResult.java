@@ -4,9 +4,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import com.devonfw.tools.ide.cli.CliProcessException;
-import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.log.IdeSubLogger;
 
 /**
  * Result of a {@link Process} execution.
@@ -79,16 +77,16 @@ public interface ProcessResult {
   }
 
   /**
-   * @param logger the {@link IdeSubLogger logger} to use.
+   * @param logLevel the {@link IdeLogLevel} to use.
    * @return the first captured standard out. Will be {@code null} if not captured but redirected.
    */
-  String getSingleOutput(IdeSubLogger logger);
+  String getSingleOutput(IdeLogLevel logLevel);
 
   /**
-   * @param logger the {@link IdeSubLogger logger} to use.
+   * @param logLevel the {@link IdeLogLevel} to use.
    * @return the first captured standard out. Will be {@code null} if not captured but redirected.
    */
-  List<String> getOutput(IdeSubLogger logger);
+  List<String> getOutput(IdeLogLevel logLevel);
 
   /**
    * @return the {@link List} with the lines captured on standard out. Will be {@code null} if not captured but redirected.
@@ -110,18 +108,16 @@ public interface ProcessResult {
    * Logs output and error messages on the provided log level.
    *
    * @param level the {@link IdeLogLevel} to use e.g. IdeLogLevel.ERROR.
-   * @param context the {@link IdeContext} to use.
    */
-  void log(IdeLogLevel level, IdeContext context);
+  void log(IdeLogLevel level);
 
   /**
    * Logs output and error messages on the provided log level.
    *
    * @param outLevel the {@link IdeLogLevel} to use for {@link #getOut()}.
-   * @param context the {@link IdeContext} to use.
    * @param errorLevel the {@link IdeLogLevel} to use for {@link #getErr()}.
    */
-  void log(IdeLogLevel outLevel, IdeContext context, IdeLogLevel errorLevel);
+  void log(IdeLogLevel outLevel, IdeLogLevel errorLevel);
 
   /**
    * Throws a {@link CliProcessException} if not {@link #isSuccessful() successful} and otherwise does nothing.

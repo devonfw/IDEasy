@@ -4,6 +4,9 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.cache.CachedValue;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -19,6 +22,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * @param <P> type of the {@link ToolCommandlet} acting as {@link #getPackageManagerClass() package manager}.
  */
 public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolCommandlet> extends LocalToolCommandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(PackageManagerBasedLocalToolCommandlet.class);
 
   private final CachedValue<VersionIdentifier> installedVersion;
 
@@ -156,7 +161,7 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
     try {
       return computeInstalledVersion();
     } catch (Exception e) {
-      this.context.debug().log(e, "Failed to compute installed version of {}", this.tool);
+      LOG.debug("Failed to compute installed version of {}", this.tool, e);
       return null;
     }
   }
@@ -198,7 +203,7 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
       runPackageManager(request).failOnError();
       this.installedVersion.invalidate();
     } else {
-      this.context.info("IDEasy does not support uninstalling the tool {} since this will break your installation.\n"
+      LOG.info("IDEasy does not support uninstalling the tool {} since this will break your installation.\n"
           + "If you really want to uninstall it, please uninstall its parent tool via:\n"
           + "ide uninstall {}", this.tool, getParentTool().getName());
     }

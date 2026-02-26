@@ -4,6 +4,8 @@ import java.nio.file.Path;
 import java.util.Properties;
 
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.common.SystemPath;
@@ -21,6 +23,8 @@ import com.devonfw.tools.ide.version.IdeVersion;
  * Test of {@link IdeContext}.
  */
 class IdeContextTest extends AbstractIdeContextTest {
+
+  private static final Logger LOG = LoggerFactory.getLogger(IdeContextTest.class);
 
   /**
    * Test of {@link IdeContext} initialization from basic project.
@@ -182,19 +186,19 @@ class IdeContextTest extends AbstractIdeContextTest {
     String testDebugMessage = "Test debug message that will be suppressed because of threshold";
     IdeTestContext context = newContext(PROJECT_BASIC, null, false);
     // act
-    context.warning(testWarningMessage);
+    LOG.warn(testWarningMessage);
     // assert
     assertThat(context).logAtWarning().hasMessage(testWarningMessage);
     // and act
     context.runWithoutLogging(() -> {
-      context.warning(testWarningMessage2);
-      context.info(testInfoMessage);
-      context.debug(testDebugMessage);
+      LOG.warn(testWarningMessage2);
+      LOG.info(testInfoMessage);
+      LOG.debug(testDebugMessage);
       assertThat(context).log().hasNoMessage(testWarningMessage2);
       assertThat(context).log().hasNoMessage(testInfoMessage);
       assertThat(context).log().hasNoMessage(testDebugMessage);
     }, IdeLogLevel.INFO);
-    context.warning(testWarningMessage3);
+    LOG.warn(testWarningMessage3);
 
     assertThat(context).log()
         .hasEntries(IdeLogEntry.ofWarning(testWarningMessage), IdeLogEntry.ofWarning(testWarningMessage2), IdeLogEntry.ofInfo(testInfoMessage),
