@@ -22,7 +22,6 @@ Feel free to try these tools as well and make your choice and see what fits best
 
 * https://mise.jdx.dev/[mise-en-place] - cross platform software installer as CLI
 * https://sdkman.io/[SDKMan] - cross platform software installer as CLI
-* https://mise.jdx.dev/[mise] - cross platform software installer as CLI
 * https://chocolatey.org/[Chocolatey] - Windows software installer as CLI, started early on before WinGet or Scoop were born
 * https://github.com/microsoft/winget-cli[WinGet] - Windows software installer as CLI, driven by Microsoft and therefore widely accepted, frontends and other integrations available.
 * https://scoop.sh/[Scoop] - Windows software installer as CLI, open and collaborative via buckets as git repos
