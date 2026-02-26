@@ -29,7 +29,10 @@ Feel free to try these tools as well and make your choice and see what fits best
 * https://nixos.org/[Nix] - sort of cross platform software packager, also available as its own Linux based operating system NixOS, but can be used on any Linux or Mac and on Windows in WSL2.
 * https://flatpak.org/[Flatpak] - a distro independent linux package manager, packages ship with all required dependencies and can be installed and started on any Linux.
 
-== Tool wrappers
+== Tool wrappers or version managers
 
 * https://maven.apache.org/wrapper/[mvnw] - Wrapper script for maven (mvn), allows to configure your maven version in git and the wrapper will download and run it for you
 * https://docs.gradle.org/current/userguide/gradle_wrapper.html[gradlew] - Wrapper script for gradle, allows to configure your gradle version in git and the wrapper script will download and run it for you
+* https://github.com/nvm-sh/nvm?tab=readme-ov-file#intro[nvm] - version manager for https://nodejs.org/[node.js]
+* https://github.com/pyenv/pyenv[pyenv] - version manager for python, see also https://docs.python.org/3/library/venv.html[venv]
+
