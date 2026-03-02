@@ -49,9 +49,7 @@ Create a fork by expanding the split button (left of the repo name, between *Wat
 +
 NOTE: Steps for forking or cloning repositories, creating branches, and using Git commands can be found in the https://github.com/firstcontributions/first-contributions[first contributions guideline].
 
-. Inside the IDEasy folder in `projects\IDEasy`, navigate to `workspaces/main` in Windows Explorer. +
-Right‑click on it and choose *Open Git Bash here* (on Windows 11 use *More options → Open Git Bash here*). +
-Run this command:
+. Start a bash terminal (on Windows open `Git Bash` from the Start Menu) and run the following command:
 +
 ```
 icd -p IDEasy -w
