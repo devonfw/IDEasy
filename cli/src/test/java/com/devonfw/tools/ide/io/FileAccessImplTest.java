@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.io;
 
 import static com.devonfw.tools.ide.io.FileAccessImpl.generatePermissionString;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -18,47 +17,28 @@ import java.util.Set;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.assertj.core.api.AbstractPathAssert;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.context.IdeTestContextMock;
 
 /**
  * Test of {@link FileAccessImpl}.
  */
-public class FileAccessImplTest extends AbstractIdeContextTest {
-
-  /**
-   * Checks if Windows junctions are used.
-   *
-   * @param context the {@link IdeContext} to get system info and file access from.
-   * @param dir the {@link Path} to the directory which is used as temp directory.
-   * @return {@code true} if Windows junctions are used, {@code false} otherwise.
-   */
-  private boolean windowsJunctionsAreUsed(IdeContext context, Path dir) {
-
-    if (!context.getSystemInfo().isWindows()) {
-      return false;
-    }
-
-    Path source = dir.resolve("checkIfWindowsJunctionsAreUsed");
-    Path link = dir.resolve("checkIfWindowsJunctionsAreUsedLink");
-    context.getFileAccess().mkdirs(source);
-    try {
-      Files.createSymbolicLink(link, source);
-      return false;
-    } catch (IOException e) {
-      return true;
-    }
-  }
+class FileAccessImplTest extends AbstractIdeContextTest {
 
   /**
    * Test of {@link FileAccessImpl#symlink(Path, Path, boolean)} with "relative = false". Passing absolute paths as source.
    */
   @Test
-  public void testSymlinkAbsolute(@TempDir Path tempDir) {
+  void testSymlinkAbsolute(@TempDir Path tempDir) {
 
     // relative links are checked in testRelativeLinksWorkAfterMoving
 
@@ -67,7 +47,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     FileAccess fileAccess = new FileAccessImpl(context);
     Path dir = tempDir.resolve("parent");
     createDirs(fileAccess, dir);
-    boolean readLinks = !windowsJunctionsAreUsed(context, tempDir);
+    boolean readLinks = !context.getSystemInfo().isWindows();
     boolean relative = false;
 
     // act
@@ -82,14 +62,14 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
    * Test of {@link FileAccessImpl#symlink(Path, Path, boolean)} with "relative = false". Passing relative paths as source.
    */
   @Test
-  public void testSymlinkAbsolutePassingRelativeSource(@TempDir Path tempDir) {
+  void testSymlinkAbsolutePassingRelativeSource(@TempDir Path tempDir) {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();
     FileAccess fileAccess = new FileAccessImpl(context);
     Path dir = tempDir.resolve("parent");
     createDirs(fileAccess, dir);
-    boolean readLinks = !windowsJunctionsAreUsed(context, tempDir);
+    boolean readLinks = !context.getSystemInfo().isWindows();
     boolean relative = false;
 
     // act
@@ -105,16 +85,11 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
    * to absolute paths is tested.
    */
   @Test
-  public void testSymlinkAbsoluteAsFallback(@TempDir Path tempDir) {
+  @EnabledOnOs(OS.WINDOWS)
+  void testSymlinkAbsoluteAsFallback(@TempDir Path tempDir) {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();
-    if (!windowsJunctionsAreUsed(context, tempDir)) {
-      context.info(
-          "Can not check the Test: testSymlinkAbsoluteAsFallback since windows junctions are not used and fallback "
-              + "from relative to absolute paths as link target is not used.");
-      return;
-    }
     FileAccess fileAccess = new FileAccessImpl(context);
     Path dir = tempDir.resolve("parent");
     createDirs(fileAccess, dir);
@@ -134,7 +109,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
    * them.
    */
   @Test
-  public void testSymlinkAbsoluteBreakAfterMoving(@TempDir Path tempDir) throws IOException {
+  void testSymlinkAbsoluteBreakAfterMoving(@TempDir Path tempDir) throws IOException {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();
@@ -143,7 +118,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     createDirs(fileAccess, dir);
     boolean relative = false;
     createSymlinks(fileAccess, dir, relative);
-    boolean readLinks = !windowsJunctionsAreUsed(context, tempDir);
+    boolean readLinks = !context.getSystemInfo().isWindows();
 
     // act
     Path sibling = dir.resolveSibling("parent2");
@@ -159,14 +134,11 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
    * Passing relative paths as source.
    */
   @Test
-  public void testSymlinkRelativeWorkAfterMovingPassingRelativeSource(@TempDir Path tempDir) {
+  @DisabledOnOs(OS.WINDOWS)
+  void testSymlinkRelativeWorkAfterMovingPassingRelativeSource(@TempDir Path tempDir) {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();
-    if (windowsJunctionsAreUsed(context, tempDir)) {
-      context.info("Can not check the Test: testRelativeLinksWorkAfterMoving since windows junctions are used.");
-      return;
-    }
     FileAccess fileAccess = new FileAccessImpl(context);
     Path dir = tempDir.resolve("parent");
     createDirs(fileAccess, dir);
@@ -187,14 +159,11 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
    * Test of {@link FileAccessImpl#symlink(Path, Path, boolean)} with "relative = true". Furthermore, it is tested that the links still work after moving them.
    */
   @Test
-  public void testSymlinkRelativeWorkAfterMoving(@TempDir Path tempDir) {
+  @DisabledOnOs(OS.WINDOWS)
+  void testSymlinkRelativeWorkAfterMoving(@TempDir Path tempDir) {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();
-    if (windowsJunctionsAreUsed(context, tempDir)) {
-      context.info("Can not check the Test: testRelativeLinksWorkAfterMoving since windows junctions are used.");
-      return;
-    }
     FileAccess fileAccess = new FileAccessImpl(context);
     Path dir = tempDir.resolve("parent");
     createDirs(fileAccess, dir);
@@ -215,24 +184,22 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
    * Test of {@link FileAccessImpl#symlink(Path, Path, boolean)} when Windows junctions are used and the source is a file.
    */
   @Test
-  public void testSymlinkWindowsJunctionsCanNotPointToFiles(@TempDir Path tempDir) throws IOException {
+  @EnabledOnOs(OS.WINDOWS)
+  void testSymlinkWindowsJunctionsCanNotPointToFiles(@TempDir Path tempDir) throws IOException {
 
     // arrange
+    WindowsSymlinkTestHelper.assumeSymlinksSupported();
     IdeContext context = IdeTestContextMock.get();
-    if (!windowsJunctionsAreUsed(context, tempDir)) {
-      context.info(
-          "Can not check the Test: testWindowsJunctionsCanNotPointToFiles since windows junctions are not used.");
-      return;
-    }
+    FileAccess fileAccess = context.getFileAccess();
     Path file = tempDir.resolve("file");
     Files.createFile(file);
-    FileAccess fileAccess = new FileAccessImpl(context);
+    Path linkToFile = tempDir.resolve("linkToFile");
 
-    // act & assert
-    IllegalStateException e1 = assertThrows(IllegalStateException.class, () -> {
-      fileAccess.symlink(file, tempDir.resolve("linkToFile"));
-    });
-    assertThat(e1).hasMessageContaining("These junctions can only point to directories or other junctions");
+    // act
+    fileAccess.symlink(file, linkToFile);
+
+    // assert
+    assertThat(linkToFile.toRealPath()).isEqualTo(file.toRealPath());
   }
 
   /**
@@ -240,7 +207,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
    * {@link Path#toRealPath(LinkOption...)}.
    */
   @Test
-  public void testSymlinkShortcutPaths(@TempDir Path tempDir) {
+  void testSymlinkShortcutPaths(@TempDir Path tempDir) {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();
@@ -248,7 +215,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     Path dir = tempDir.resolve("parent");
     createDirs(fileAccess, dir);
     fileAccess.mkdirs(dir.resolve("d3"));
-    boolean readLinks = !windowsJunctionsAreUsed(context, tempDir);
+    boolean readLinks = !context.getSystemInfo().isWindows();
 
     // act
     fileAccess.symlink(dir.resolve("d3/../d1"), dir.resolve("link1"), false);
@@ -477,7 +444,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
    * Test of {@link FileAccessImpl#extractZip(Path, Path)}
    */
   @Test
-  public void testUnzip(@TempDir Path tempDir) {
+  void testUnzip(@TempDir Path tempDir) {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();
@@ -497,7 +464,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
    * Unix.
    */
   @Test
-  public void testUntarWithNoneCompressionWithFilePermissions(@TempDir Path tempDir) {
+  void testUntarWithNoneCompressionWithFilePermissions(@TempDir Path tempDir) {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();
@@ -519,7 +486,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
    * Test of {@link FileAccessImpl#extractTar(Path, Path, TarCompression)} with {@link TarCompression#GZ} and checks if file permissions are preserved on Unix.
    */
   @Test
-  public void testUntarWithGzCompressionWithFilePermissions(@TempDir Path tempDir) {
+  void testUntarWithGzCompressionWithFilePermissions(@TempDir Path tempDir) {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();
@@ -542,7 +509,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
    * Unix.
    */
   @Test
-  public void testUntarWithBzip2CompressionWithFilePermissions(@TempDir Path tempDir) {
+  void testUntarWithBzip2CompressionWithFilePermissions(@TempDir Path tempDir) {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();
@@ -571,18 +538,35 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     }
   }
 
+  @Test
+  void testUntarWithGzipCompressionWithSymbolicLink(@TempDir Path tempDir) {
+
+    // arrange
+    WindowsSymlinkTestHelper.assumeSymlinksSupported();
+    IdeContext context = IdeTestContextMock.get();
+    Path linkTarGz = Path.of("src/test/resources/com/devonfw/tools/ide/io/link.tar.gz");
+    FileAccess fileAccess = context.getFileAccess();
+
+    // act
+    fileAccess.extractTar(linkTarGz, tempDir, TarCompression.GZ);
+
+    // assert
+    Path link = tempDir.resolve("link");
+    assertThat(link).hasContent("hi");
+    assertThat(fileAccess.toRealPath(link)).isEqualTo(tempDir.resolve("file"));
+  }
+
   /**
    * Test of {@link FileAccessImpl#generatePermissionString(int)}.
    */
   @Test
-  public void testGeneratePermissionString() {
+  void testGeneratePermissionString() {
 
     assertThat(generatePermissionString(0)).isEqualTo("---------");
     assertThat(generatePermissionString(436)).isEqualTo("rw-rw-r--");
     assertThat(generatePermissionString(948)).isEqualTo("rw-rw-r--");
     assertThat(generatePermissionString(509)).isEqualTo("rwxrwxr-x");
     assertThat(generatePermissionString(511)).isEqualTo("rwxrwxrwx");
-
   }
 
   /**
@@ -591,7 +575,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
    * @param tempDir temporary directory to use.
    */
   @Test
-  public void testDisabledExtractMovesArchive(@TempDir Path tempDir) {
+  void testDisabledExtractMovesArchive(@TempDir Path tempDir) {
     // arrange
     IdeContext context = IdeTestContextMock.get();
     FileAccessImpl fileAccess = new FileAccessImpl(context);
@@ -601,7 +585,8 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     Path targetPath = installationPath.resolve("downloaded.zip");
     boolean extract = false;
     // act
-    fileAccess.extract(downloadArchive, installationPath, this::postExtract, extract);
+    fileAccess.extract(downloadArchive, installationPath, f -> {
+    }, extract);
     // assert
     assertThat(targetPath).exists();
   }
@@ -613,7 +598,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
    * @throws IOException when a file could not be created.
    */
   @Test
-  public void testExtractTgzArchive(@TempDir Path tempDir) throws IOException {
+  void testExtractTgzArchive(@TempDir Path tempDir) throws IOException {
     // arrange
     IdeContext context = IdeTestContextMock.get();
     FileAccessImpl fileAccess = new FileAccessImpl(context);
@@ -656,7 +641,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
    * @param tempDir temporary directory to use.
    */
   @Test
-  public void testFindExistingFileInFolders(@TempDir Path tempDir) {
+  void testFindExistingFileInFolders(@TempDir Path tempDir) {
     IdeContext context = IdeTestContextMock.get();
     FileAccessImpl fileAccess = new FileAccessImpl(context);
     Path subfolder1 = tempDir.resolve("subfolder1");
@@ -672,8 +657,227 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     assertThat(foundFile).exists();
   }
 
-  private void postExtract(Path path) {
+
+  /**
+   * Tests if {@link FileAccess#download(String, Path)} of a file path as URL will copy the file and use a progress-bar if the file size is bigger than 100Kb.
+   *
+   * @param tempDir temporary directory to use.
+   */
+  @Test
+  void testDownloadLargeFileWithProgressBar(@TempDir Path tempDir) throws IOException {
+
+    //arrange
+    String taskName = "Copying";
+    IdeTestContext context = newContext(tempDir);
+    Path tempFile = tempDir.resolve("tempFile");
+    Path archiveFile = tempDir.resolve("targetFolder");
+    FileAccess fileAccess = context.getFileAccess();
+    String line = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
+    List<String> lines = new ArrayList<>();
+    for (int i = 0; i < 1000; i++) {
+      lines.add(line);
+    }
+    fileAccess.writeFileLines(lines, tempFile);
+    long fileSize = Files.size(tempFile);
+    String source = tempFile.toString();
+
+    //act
+    fileAccess.download(source, archiveFile);
+
+    //assert
+    assertProgressBar(context, "Copying", fileSize);
+    assertThat(archiveFile).hasSize(fileSize).hasSameBinaryContentAs(tempFile);
+    IdeProgressBarTestImpl progressBar = context.getProgressBarMap().get(taskName);
+    assertThat(progressBar.getMaxSize()).isEqualTo(fileSize);
   }
 
+
+  /**
+   * Tests if {@link FileAccess#download(String, Path)} of a file path as URL will copy the file and not use a progress-bar if the file size is small.
+   *
+   * @param tempDir temporary directory to use.
+   */
+  @Test
+  void testDownloadSmallFileWithoutProgressBar(@TempDir Path tempDir) throws IOException {
+
+    //arrange
+    String taskName = "Copying";
+    IdeTestContext context = newContext(tempDir);
+    Path tempFile = tempDir.resolve("tempFile");
+    Path archiveFile = tempDir.resolve("targetFolder");
+    FileAccess fileAccess = context.getFileAccess();
+    String line = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
+    fileAccess.writeFileContent(line, tempFile);
+    long fileSize = 100;
+    String source = tempFile.toString();
+
+    //act
+    fileAccess.download(source, archiveFile);
+
+    //assert
+    assertThat(context.getProgressBarMap()).isEmpty();
+    assertThat(archiveFile).hasSize(fileSize).hasSameBinaryContentAs(tempFile);
+  }
+
+  /**
+   * Test of {@link FileAccessImpl#symlink(Path, Path, boolean)} when broken junctions exist. This simulates the scenario described in issue #1169 where mklink
+   * fails with "Cannot create a file when that file already exists" when trying to create a junction over a broken junction.
+   */
+  @Test
+  @EnabledOnOs(OS.WINDOWS)
+  void testSymlinkOverwritesBrokenJunction(@TempDir Path tempDir) throws IOException {
+
+    // arrange
+    IdeContext context = IdeTestContextMock.get();
+    FileAccess fileAccess = new FileAccessImpl(context);
+    Path sourceDir = tempDir.resolve("source");
+    Path targetLink = tempDir.resolve("junction");
+
+    // Create initial source directory and junction
+    fileAccess.mkdirs(sourceDir);
+    fileAccess.symlink(sourceDir, targetLink, false);
+
+    // Verify junction was created and works
+    assertThat(targetLink).existsNoFollowLinks();
+    assertThat(targetLink.toRealPath()).isEqualTo(sourceDir);
+
+    // Simulate the scenario: delete the source directory to break the junction
+    fileAccess.delete(sourceDir);
+
+    // Verify the junction is now broken (exists but points to non-existent target)
+    assertThat(targetLink).existsNoFollowLinks(); // junction still exists
+    assertThat(sourceDir).doesNotExist(); // but target is gone
+
+    // Create a new source directory at different location
+    Path newSourceDir = tempDir.resolve("newSource");
+    fileAccess.mkdirs(newSourceDir);
+
+    // act - This should not fail even though a broken junction exists at targetLink
+    fileAccess.symlink(newSourceDir, targetLink, false);
+
+    // assert - The junction should now point to the new source
+    assertThat(targetLink).existsNoFollowLinks();
+    assertThat(targetLink.toRealPath()).isEqualTo(newSourceDir);
+  }
+
+  /**
+   * Test of enhanced {@link FileAccessImpl#isJunction(Path)} method to ensure it handles broken junctions gracefully. This simulates the enhanced logic for
+   * detecting broken junctions on non-Windows systems.
+   */
+  @Test
+  void testIsJunctionHandlesBrokenLinks(@TempDir Path tempDir) throws IOException {
+
+    // arrange
+    IdeContext context = IdeTestContextMock.get();
+    FileAccess fileAccess = new FileAccessImpl(context);
+
+    if (!context.getSystemInfo().isWindows()) {
+      // On non-Windows, create a broken symlink to simulate a broken junction
+      Path sourceDir = tempDir.resolve("source");
+      Path brokenLink = tempDir.resolve("brokenLink");
+
+      fileAccess.mkdirs(sourceDir);
+      fileAccess.symlink(sourceDir, brokenLink, false);
+
+      // Verify link works initially
+      assertThat(brokenLink).existsNoFollowLinks();
+      assertThat(brokenLink.toRealPath()).isEqualTo(sourceDir);
+
+      // Delete the source to break the link
+      fileAccess.delete(sourceDir);
+
+      // The broken symlink should still exist but point to nothing
+      assertThat(brokenLink).existsNoFollowLinks();
+      assertThat(sourceDir).doesNotExist();
+
+      // act & assert - the enhanced symlink method should handle the broken link
+      Path newSource = tempDir.resolve("newSource");
+      fileAccess.mkdirs(newSource);
+
+      // This should not fail, even with the broken symlink
+      fileAccess.symlink(newSource, brokenLink, false);
+      assertThat(brokenLink.toRealPath()).isEqualTo(newSource);
+    } else {
+      context.info("Test adapted for Windows environment - testing basic junction functionality");
+      // On Windows, just test that basic junction functionality works
+      Path sourceDir = tempDir.resolve("source");
+      Path junctionLink = tempDir.resolve("junction");
+
+      fileAccess.mkdirs(sourceDir);
+      fileAccess.symlink(sourceDir, junctionLink, false);
+
+      assertThat(junctionLink).existsNoFollowLinks();
+      assertThat(junctionLink.toRealPath()).isEqualTo(sourceDir);
+    }
+  }
+
+  /**
+   * Test of {@link FileAccess#getBinPath(Path)} and {@link FileAccess#getBinParentPath(Path)}.
+   */
+  @Test
+  void testBinPath() {
+
+    // arrange
+    FileAccess fileAccess = IdeTestContextMock.get().getFileAccess();
+    Path projects = Path.of("src/test/resources/ide-projects");
+    Path rootPath = projects.resolve("basic/project/software/java");
+    Path binPath = rootPath.resolve("bin");
+
+    // act
+    Path testBinPath = fileAccess.getBinPath(rootPath);
+    Path testRootPath = fileAccess.getBinParentPath(binPath);
+
+    // assert
+    assertThat(testBinPath).isEqualTo(binPath);
+    assertThat(testRootPath).isEqualTo(rootPath);
+    assertThat(fileAccess.getBinPath(projects)).isSameAs(projects);
+    assertThat(fileAccess.getBinParentPath(projects)).isSameAs(projects);
+  }
+
+  @Test
+  void testFindAncestor() {
+
+    verifyFindAncestor("projects/myproject/workspaces/test/foo/bar", "projects/myproject/workspaces", 1, "projects/myproject/workspaces/test");
+    verifyFindAncestor("projects/myproject/workspaces/test/foo", "projects/myproject/workspaces", 2, "projects/myproject/workspaces/test/foo");
+    verifyFindAncestor("projects/_ide/software/default/intellij/ultimate/2025.3/Contents/MacOS/bin/idea.sh", "projects/_ide/software/default/intellij", 2,
+        "projects/_ide/software/default/intellij/ultimate/2025.3");
+    verifyFindAncestor("projects/myproject/workspaces/test/foo/bar", "projects/otherproject/workspaces", 1, null);
+    verifyFindAncestor(null, null, 1, null);
+  }
+
+  private void verifyFindAncestor(String path, String baseDir, int subfolderCount, String expectedResult) {
+
+    FileAccess fileAccess = IdeTestContextMock.get().getFileAccess();
+    Path result = fileAccess.findAncestor(asPath(path), asPath(baseDir), subfolderCount);
+    AbstractPathAssert<?> assertion = assertThat(result).as("findAncestor(" + path + ", " + baseDir + ", " + subfolderCount);
+    if (expectedResult == null) {
+      assertion.isNull();
+    } else {
+      assertion.isEqualTo(Path.of(expectedResult).toAbsolutePath());
+    }
+  }
+
+  private static Path asPath(String path) {
+    if (path == null) {
+      return null;
+    }
+    return Path.of(path);
+  }
+
+  @Test
+  void testIsNonEmptyFile(@TempDir Path tempDir) throws IOException {
+
+    // arrange
+    FileAccess fileAccess = IdeTestContextMock.get().getFileAccess();
+
+    // act + assert
+    assertThat(fileAccess.isNonEmptyFile(tempDir)).isFalse();
+    assertThat(fileAccess.isNonEmptyFile(tempDir.resolve("non-existing-file"))).isFalse();
+    Path existingFile = tempDir.resolve("existing-file");
+    Files.createFile(existingFile);
+    assertThat(fileAccess.isNonEmptyFile(existingFile)).isFalse();
+    Files.writeString(existingFile, "content");
+    assertThat(fileAccess.isNonEmptyFile(existingFile)).isTrue();
+  }
 
 }

@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.url.model;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -36,10 +38,29 @@ public class UrlMetadata implements AbstractUrlMetadata {
    */
   public UrlMetadata(IdeContext context) {
 
+    this(context, createRepository(context));
+  }
+
+  /**
+   * The constructor.
+   *
+   * @param context the owning {@link IdeContext}.
+   * @param urlRepository the {@link UrlRepository} to use for loading tool metadata.
+   */
+  public UrlMetadata(IdeContext context, UrlRepository urlRepository) {
+
     super();
     this.context = context;
-    this.repository = new UrlRepository(this.context.getUrlsPath());
+    this.repository = urlRepository;
     this.toolEdition2VersionMap = new HashMap<>();
+  }
+
+  private static UrlRepository createRepository(IdeContext context) {
+    Path urlsPath = context.getUrlsPath();
+    if (urlsPath == null) {
+      urlsPath = Paths.get("urls");
+    }
+    return new UrlRepository(urlsPath);
   }
 
   /**
@@ -87,7 +108,7 @@ public class UrlMetadata implements AbstractUrlMetadata {
       try {
         urlVersion.getMatchingUrls(sys.getOs(), sys.getArchitecture());
         list.add(versionIdentifier);
-      } catch (IllegalStateException e) {
+      } catch (CliException e) {
         // ignore, but do not add versionIdentifier as there is no download available for the current system
       }
     }

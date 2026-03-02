@@ -1,8 +1,9 @@
 package com.devonfw.tools.ide.environment;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogger;
 
 /**
@@ -318,25 +319,36 @@ public abstract class VariableLine {
   }
 
   /**
+   * @param value the {@link String} value to check.
+   * @return {@code true} if the value is a bash array (starts with "(" and ends with ")"), {@code false} otherwise.
+   */
+  public static boolean isBashArray(String value) {
+
+    return value.startsWith("(") && value.endsWith(")");
+  }
+
+  /**
    * Returns a list of String Variables.
    *
    * @param value String to parse
+   * @param context the {@link IdeContext} for logging warnings (may be {@code null}).
    * @return List of variables.
    */
   public static List<String> parseArray(String value) {
     String csv = value;
     String separator = ",";
-    // TODO: refactor with isBashArray method from VariableDefinitionStringList
-    if (value.startsWith("(") && value.endsWith(")")) {
+    if (isBashArray(value)) {
       csv = value.substring(1, value.length() - 1);
       separator = " ";
+      // Support comma as separator in bash array syntax for convenience
+      if (csv.contains(",")) {
+        separator = ",";
+      }
     }
-    String[] items = csv.split(separator);
-    List<String> list = new ArrayList<>(items.length);
-    for (String item : items) {
-      list.add(item.trim());
-    }
-    return list;
+    return Arrays.stream(csv.split(separator))
+      .map(String::trim)
+      .filter(s -> !s.isEmpty())
+      .toList();
   }
 
 }

@@ -1,20 +1,21 @@
 package com.devonfw.tools.ide.tool.pycharm;
 
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.tool.intellij.Intellij;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 /**
- * Integration test of {@link Pycharm}.
+ * Test of {@link Pycharm}.
  */
 @WireMockTest
-public class PycharmTest extends AbstractIdeContextTest {
+class PycharmTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_PYCHARM = "pycharm";
 
@@ -27,7 +28,7 @@ public class PycharmTest extends AbstractIdeContextTest {
    */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testPycharmInstall(String os) {
+  void testPycharmInstall(String os) {
 
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of(os);
@@ -52,7 +53,7 @@ public class PycharmTest extends AbstractIdeContextTest {
    */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testPycharmUninstallPluginAfterwards(String os) {
+  void testPycharmUninstallPluginAfterwards(String os) {
 
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of(os);
@@ -81,7 +82,7 @@ public class PycharmTest extends AbstractIdeContextTest {
    */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testPycharmRun(String os) {
+  void testPycharmRun(String os) {
 
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of(os);
@@ -102,7 +103,7 @@ public class PycharmTest extends AbstractIdeContextTest {
    * Tests if after the installation of pycharm the expected plugin marker file is existing.
    */
   @Test
-  public void testCheckPluginInstallation() {
+  void testCheckPluginInstallation() {
     // arrange
     IdeTestContext context = newContext("pycharm");
 
@@ -115,15 +116,21 @@ public class PycharmTest extends AbstractIdeContextTest {
     // assert
     assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"))).exists();
 
+    // part 2 of test
+
+    // arrange
+    context.getLogger().getEntries().clear();
+    // act
     commandlet.run();
-    assertThat(context).logAtDebug().hasMessage("Markerfile for IDE: pycharm and active plugin: ActivePlugin already exists.");
+    // assert
+    assertThat(context).logAtDebug().hasNoMessage("Successfully installed plugin: ActivePlugin");
   }
 
   /**
    * Tests by using 2 installations of pycharm with different editions, if the plugins get re-installed and if all marker files get re-initialized properly.
    */
   @Test
-  public void testCheckEditionConflictInstallation() {
+  void testCheckEditionConflictInstallation() {
     // arrange
     IdeTestContext context = newContext("pycharm");
     SystemInfo systemInfo = SystemInfoMock.of("windows");
@@ -149,8 +156,8 @@ public class PycharmTest extends AbstractIdeContextTest {
   private void checkInstallation(IdeTestContext context) {
 
     assertThat(context.getSoftwarePath().resolve("pycharm/.ide.software.version")).exists().hasContent("2024.3.5");
-    assertThat(context).logAtSuccess().hasEntries("Successfully installed pycharm in version 2024.3.5");
-    assertThat(context).logAtDebug().hasEntries("Omitting installation of inactive plugin InactivePlugin (inactivePlugin).");
+    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed pycharm in version 2024.3.5");
+    assertThat(context).logAtDebug().hasMessage("Omitting installation of inactive plugin InactivePlugin (inactivePlugin).");
     assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin ActivePlugin'.");
   }
 

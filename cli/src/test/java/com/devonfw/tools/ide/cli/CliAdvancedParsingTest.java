@@ -8,7 +8,7 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 /**
  * Integration test of {@link com.devonfw.tools.ide.context.AbstractIdeContext#run(CliArguments) CLI parsing}.
  */
-public class CliAdvancedParsingTest extends AbstractIdeContextTest {
+class CliAdvancedParsingTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_MVN = "mvn";
 
@@ -16,7 +16,7 @@ public class CliAdvancedParsingTest extends AbstractIdeContextTest {
    * Test that implicit end-options is triggered for multi-valued arguments to prevent splitting odd-formatted short-options like "-version".
    */
   @Test
-  public void testPreventShortOptionsForMultivaluedArguments() {
+  void testPreventShortOptionsForMultivaluedArguments() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_MVN);
@@ -34,7 +34,7 @@ public class CliAdvancedParsingTest extends AbstractIdeContextTest {
    * See: <a href="https://github.com/devonfw/IDEasy/issues/537">#537</a>
    */
   @Test
-  public void testRunRepositorySetupWithoutArgumentWillSucceed() {
+  void testRunRepositorySetupWithoutArgumentWillSucceed() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_MVN);

@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.tool.sonar;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
@@ -8,6 +9,7 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.EnumProperty;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 
@@ -35,7 +37,7 @@ public class Sonar extends LocalToolCommandlet {
   }
 
   @Override
-  public boolean install(boolean silent) {
+  public ToolInstallation install(boolean silent) {
 
     getCommandlet(Java.class).install();
     return super.install(silent);
@@ -53,7 +55,7 @@ public class Sonar extends LocalToolCommandlet {
 
     switch (command) {
       case ANALYZE:
-        getCommandlet(Mvn.class).runTool("sonar:sonar");
+        getCommandlet(Mvn.class).runTool(List.of("sonar:sonar"));
         break;
       case START:
         printSonarWebPort();

@@ -5,11 +5,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 
-import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 
-import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -23,7 +20,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
  * Test of {@link IdeProgressBar}.
  */
 @WireMockTest
-public class IdeProgressBarTest extends AbstractIdeContextTest {
+class IdeProgressBarTest extends AbstractIdeContextTest {
 
   private static final int MAX_LENGTH = 10_000;
 
@@ -36,7 +33,7 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
    * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testProgressBarDownloadWithValidContentLength(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
+  void testProgressBarDownloadWithValidContentLength(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     stubFor(any(urlMatching("/os/.*")).willReturn(
         aResponse().withStatus(200).withBody(new byte[MAX_LENGTH]).withHeader("Content-Length", String.valueOf(MAX_LENGTH))));
@@ -55,7 +52,7 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
    * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testProgressBarDownloadWithMissingContentLength(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
+  void testProgressBarDownloadWithMissingContentLength(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     //arrange
     String taskName = "Downloading";
@@ -76,33 +73,4 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
     assertThat(progressBar.getMaxSize()).isEqualTo(-1);
   }
 
-  /**
-   * Tests if {@link FileAccess#download(String, Path)} copy process with known file size is working properly.
-   *
-   * @param tempDir temporary directory to use.
-   */
-  @Test
-  public void testProgressBarCopyWithKnownFileSize(@TempDir Path tempDir) {
-
-    //arrange
-    String taskName = "Copying";
-    IdeTestContext context = newContext(tempDir);
-    long maxSize = MAX_LENGTH;
-    FileAccessTestImpl impl = new FileAccessTestImpl(context);
-    try {
-      FileUtils.writeByteArrayToFile(new File(tempDir.resolve("tempFile").toAbsolutePath().toString()), new byte[MAX_LENGTH]);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    String source = tempDir.resolve("tempFile").toString();
-
-    //act
-    impl.download(source, tempDir.resolve("windows_x64_url.tgz"));
-
-    //assert
-    assertProgressBar(context, "Copying", maxSize);
-    assertThat(tempDir.resolve("windows_x64_url.tgz")).exists();
-    IdeProgressBarTestImpl progressBar = context.getProgressBarMap().get(taskName);
-    assertThat(progressBar.getMaxSize()).isEqualTo(maxSize);
-  }
 }

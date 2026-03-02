@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.git;
 
 import java.nio.file.Path;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliOfflineException;
 
 /**
@@ -17,6 +18,12 @@ public interface GitContext {
 
   /** The name of the internal metadata folder of a git repository. */
   String GIT_FOLDER = ".git";
+
+  /** The name of the HEAD file inside {@link #GIT_FOLDER}. */
+  String FILE_HEAD = "HEAD";
+
+  /** The name of the FETCH_HEAD file inside {@link #GIT_FOLDER}. */
+  String FILE_FETCH_HEAD = "FETCH_HEAD";
 
   /**
    * Checks if the Git repository in the specified target folder needs an update by inspecting the modification time of a magic file.
@@ -174,9 +181,18 @@ public interface GitContext {
   String retrieveGitUrl(Path repository);
 
   /**
-   * Checks if there is a git installation and throws an exception if there is none
+   * Finds the {@link Path} to the git installation and throws an exception if there is none.
+   *
+   * @return the {@link Path} to the Git installation. Throws a {@link CliException} if no git was found.
    */
-  void verifyGitInstalled();
+  Path findGitRequired();
+
+  /**
+   * Finds the path to the Git executable.
+   *
+   * @return the {@link Path} to the Git executable, or {@code null} if Git is not found.
+   */
+  Path findGit();
 
   /**
    * @param repository the {@link Path} to the folder where the git repository is located.

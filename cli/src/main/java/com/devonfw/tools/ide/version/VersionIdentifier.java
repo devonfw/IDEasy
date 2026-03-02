@@ -6,6 +6,8 @@ import java.util.Objects;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
  * Data-type to represent a {@link VersionIdentifier} in a structured way and allowing {@link #compareVersion(VersionIdentifier) comparison} of
@@ -14,7 +16,7 @@ import com.devonfw.tools.ide.tool.ToolCommandlet;
 public final class VersionIdentifier implements VersionObject<VersionIdentifier>, GenericVersionRange {
 
   /** {@link VersionIdentifier} "*" that will resolve to the latest stable version. */
-  public static final VersionIdentifier LATEST = VersionIdentifier.of("*");
+  public static final VersionIdentifier LATEST = new VersionIdentifier(VersionSegment.of("*"));
 
   /** {@link VersionIdentifier} "*!" that will resolve to the latest snapshot. */
   public static final VersionIdentifier LATEST_UNSTABLE = VersionIdentifier.of("*!");
@@ -70,7 +72,12 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
       version = LATEST;
     }
     if (!version.isPattern()) {
-      return (VersionIdentifier) version;
+      for (VersionIdentifier vi : versions) {
+        if (vi.equals(version)) {
+          logger.debug("Resolved version {} to version {}", version, vi);
+          return vi;
+        }
+      }
     }
     for (VersionIdentifier vi : versions) {
       if (version.contains(vi)) {
@@ -124,6 +131,16 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
       segment = segment.getNextOrNull();
     }
     return false;
+  }
+
+
+  /**
+   * @return {@code true} if this is a stable version, {@code false} otherwise.
+   * @see VersionLetters#isStable()
+   */
+  public boolean isStable() {
+
+    return this.developmentPhase.isStable();
   }
 
   /**
@@ -191,6 +208,68 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
     }
   }
 
+  /**
+   * Increment the specified segment. For examples see {@code VersionIdentifierTest.testIncrement()}.
+   *
+   * @param digitNumber the index of the {@link VersionSegment} to increment. All segments before will remain untouched and all following segments will be
+   *     set to zero.
+   * @param keepLetters {@code true} to keep {@link VersionSegment#getLetters() letters} from modified segments, {@code false} to drop them.
+   * @return the incremented {@link VersionIdentifier}.
+   */
+  public VersionIdentifier incrementSegment(int digitNumber, boolean keepLetters) {
+
+    if (isPattern()) {
+      throw new IllegalStateException("Cannot increment version pattern: " + toString());
+    }
+    VersionSegment newStart = this.start.increment(digitNumber, keepLetters);
+    return new VersionIdentifier(newStart);
+  }
+
+  /**
+   * Increment the first digit (major version).
+   *
+   * @param keepLetters {@code true} to keep {@link VersionSegment#getLetters() letters} from modified segments, {@code false} to drop them.
+   * @return the incremented {@link VersionIdentifier}.
+   * @see #incrementSegment(int, boolean)
+   */
+  public VersionIdentifier incrementMajor(boolean keepLetters) {
+    return incrementSegment(0, keepLetters);
+  }
+
+  /**
+   * Increment the second digit (minor version).
+   *
+   * @param keepLetters {@code true} to keep {@link VersionSegment#getLetters() letters} from modified segments, {@code false} to drop them.
+   * @return the incremented {@link VersionIdentifier}.
+   * @see #incrementSegment(int, boolean)
+   */
+  public VersionIdentifier incrementMinor(boolean keepLetters) {
+    return incrementSegment(1, keepLetters);
+  }
+
+  /**
+   * Increment the third digit (patch or micro version).
+   *
+   * @param keepLetters {@code true} to keep {@link VersionSegment#getLetters() letters} from modified segments, {@code false} to drop them.
+   * @return the incremented {@link VersionIdentifier}.
+   * @see #incrementSegment(int, boolean)
+   */
+  public VersionIdentifier incrementPatch(boolean keepLetters) {
+    return incrementSegment(2, keepLetters);
+  }
+
+  /**
+   * Increment the last segment.
+   *
+   * @param keepLetters {@code true} to keep {@link VersionSegment#getLetters() letters} from modified segments, {@code false} to drop them.
+   * @return the incremented {@link VersionIdentifier}.
+   * @see #incrementSegment(int, boolean)
+   */
+  public VersionIdentifier incrementLastDigit(boolean keepLetters) {
+
+    return incrementSegment(this.start.countDigits() - 1, keepLetters);
+  }
+
   @Override
   public VersionIdentifier getMin() {
 
@@ -234,6 +313,7 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
   }
 
   @Override
+  @JsonSerialize
   public String toString() {
 
     StringBuilder sb = new StringBuilder();
@@ -249,18 +329,46 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
    * @param version the {@link #toString() string representation} of the {@link VersionIdentifier} to parse.
    * @return the parsed {@link VersionIdentifier}.
    */
+  @JsonCreator
   public static VersionIdentifier of(String version) {
 
     if (version == null) {
       return null;
-    } else if (version.equals("latest")) {
+    }
+    version = version.trim();
+    if (version.equals("latest") || version.equals("*")) {
       return VersionIdentifier.LATEST;
     }
+    assert !version.contains(" ") && !version.contains("\n") && !version.contains("\t") : version;
     VersionSegment startSegment = VersionSegment.of(version);
     if (startSegment == null) {
       return null;
     }
     return new VersionIdentifier(startSegment);
+  }
+
+  /**
+   * @param v1 the first {@link VersionIdentifier}.
+   * @param v2 the second {@link VersionIdentifier}.
+   * @param treatNullAsNegativeInfinity {@code true} to treat {@code null} as negative infinity, {@code false} otherwise (positive infinity).
+   * @return the null-safe {@link #compareVersion(VersionIdentifier) comparison} of the two {@link VersionIdentifier}s.
+   */
+  public static VersionComparisonResult compareVersion(VersionIdentifier v1, VersionIdentifier v2, boolean treatNullAsNegativeInfinity) {
+
+    if (v1 == null) {
+      if (v2 == null) {
+        return VersionComparisonResult.EQUAL;
+      } else if (treatNullAsNegativeInfinity) {
+        return VersionComparisonResult.LESS;
+      }
+      return VersionComparisonResult.GREATER;
+    } else if (v2 == null) {
+      if (treatNullAsNegativeInfinity) {
+        return VersionComparisonResult.GREATER;
+      }
+      return VersionComparisonResult.LESS;
+    }
+    return v1.compareVersion(v2);
   }
 
 }

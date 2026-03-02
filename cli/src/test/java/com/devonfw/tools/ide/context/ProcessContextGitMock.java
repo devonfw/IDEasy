@@ -10,7 +10,7 @@ import java.util.List;
 
 import com.devonfw.tools.ide.process.OutputMessage;
 import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.process.ProcessErrorHandling;
+import com.devonfw.tools.ide.process.ProcessContextImpl;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.process.ProcessResultImpl;
@@ -18,54 +18,41 @@ import com.devonfw.tools.ide.process.ProcessResultImpl;
 /**
  * Mocks the {@link ProcessContext}.
  */
-public class ProcessContextGitMock implements ProcessContext {
-
-  private final List<String> arguments;
+public class ProcessContextGitMock extends ProcessContextImpl {
 
   private final LocalDateTime now;
 
   private final Path directory;
 
-  private List<OutputMessage> outputMessages;
+  private final List<OutputMessage> outputMessages;
+
+  private final List<ProcessResult> results;
 
   /**
    * @param directory the {@link Path} to the git repository.
    */
-  public ProcessContextGitMock(Path directory) {
+  public ProcessContextGitMock(IdeContext context, Path directory) {
 
-    this.arguments = new ArrayList<>();
+    super(context);
     this.directory = directory;
     this.now = LocalDateTime.now();
-    this.outputMessages = new ArrayList<OutputMessage>();
+    this.outputMessages = new ArrayList<>();
+    this.results = new ArrayList<>();
   }
 
+  /**
+   * @param message the {@link OutputMessage} to add.
+   */
   public void addOutputMessage(OutputMessage message) {
     this.outputMessages.add(message);
   }
 
-  @Override
-  public ProcessContext errorHandling(ProcessErrorHandling handling) {
+  /**
+   * @return the {@link List} of collected {@link ProcessResult}s.
+   */
+  public List<ProcessResult> getResults() {
 
-    return this;
-  }
-
-  @Override
-  public ProcessContext directory(Path newDirectory) {
-
-    return this;
-  }
-
-  @Override
-  public ProcessContext executable(Path executable) {
-
-    return this;
-  }
-
-  @Override
-  public ProcessContext addArg(String arg) {
-
-    this.arguments.add(arg);
-    return this;
+    return this.results;
   }
 
   public LocalDateTime getNow() {
@@ -74,13 +61,7 @@ public class ProcessContextGitMock implements ProcessContext {
   }
 
   @Override
-  public ProcessContext withEnvVar(String key, String value) {
-
-    return this;
-  }
-
-  @Override
-  public ProcessContext withPathEntry(Path path) {
+  public ProcessContext createChild() {
 
     return this;
   }
@@ -88,6 +69,9 @@ public class ProcessContextGitMock implements ProcessContext {
   @Override
   public ProcessResult run(ProcessMode processMode) {
 
+    if (!this.executable.getFileName().toString().equals("git")) {
+      return super.run(processMode);
+    }
     int exitCode = ProcessResult.SUCCESS;
     StringBuilder command = new StringBuilder("git");
     for (String arg : this.arguments) {
@@ -149,7 +133,9 @@ public class ProcessContextGitMock implements ProcessContext {
     this.arguments.clear();
     List<OutputMessage> outputMessagesCopy = List.copyOf(this.outputMessages);
     this.outputMessages.clear();
-    return new ProcessResultImpl("git", command.toString(), exitCode, outputMessagesCopy);
+    ProcessResultImpl result = new ProcessResultImpl("git", command.toString(), exitCode, outputMessagesCopy);
+    this.results.add(result);
+    return result;
   }
 
 }

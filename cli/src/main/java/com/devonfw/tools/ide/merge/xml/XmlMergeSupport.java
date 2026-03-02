@@ -163,6 +163,9 @@ public interface XmlMergeSupport {
    */
   static QName getQualifiedName(Element element) {
 
+    if (element == null) {
+      return null;
+    }
     String namespaceURI = element.getNamespaceURI();
     String localName = element.getLocalName();
     if (localName == null) {
@@ -284,7 +287,7 @@ public interface XmlMergeSupport {
     for (int i = 0; i < attributeCount; i++) {
       Attr attribute = (Attr) attributes.item(i);
       if (!hasMergeNamespace(attribute)) {
-        if (id != XPATH_ELEMENT_NAME) {
+        if (id == XPATH_ELEMENT_NAME) {
           id = "@" + attribute.getName();
         } else {
           id = null;

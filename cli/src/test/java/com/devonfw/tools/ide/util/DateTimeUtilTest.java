@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Test of {@link DateTimeUtil}.
  */
-public class DateTimeUtilTest extends Assertions {
+class DateTimeUtilTest extends Assertions {
 
   private static final Instant INSTANT_1999_12_31 = Instant.parse("1999-12-31T23:59:59.987654321Z");
 
@@ -21,7 +21,7 @@ public class DateTimeUtilTest extends Assertions {
    * Test of {@link DateTimeUtil#isAfter(Instant, Instant)}.
    */
   @Test
-  public void testIsAfter() {
+  void testIsAfter() {
 
     assertThat(DateTimeUtil.isAfter(INSTANT_2000_01_02, INSTANT_1999_12_31)).isTrue();
     assertThat(DateTimeUtil.isAfter(INSTANT_2000_01_02, INSTANT_2000_01_02)).isFalse();
@@ -32,7 +32,7 @@ public class DateTimeUtilTest extends Assertions {
    * Test of {@link DateTimeUtil#isAfter(Instant, Instant)}.
    */
   @Test
-  public void testIsBefore() {
+  void testIsBefore() {
 
     assertThat(DateTimeUtil.isBefore(INSTANT_2000_01_02, INSTANT_1999_12_31)).isFalse();
     assertThat(DateTimeUtil.isBefore(INSTANT_2000_01_02, INSTANT_2000_01_02)).isFalse();
@@ -43,7 +43,7 @@ public class DateTimeUtilTest extends Assertions {
    * Test of {@link DateTimeUtil#compareDuration(Instant, Instant, java.time.Duration)}.
    */
   @Test
-  public void testCompareDuration() {
+  void testCompareDuration() {
 
     assertThat(DateTimeUtil.compareDuration(INSTANT_1999_12_31, INSTANT_2000_01_02, TWO_DAYS)).isEqualTo(0);
     // 1 nano second longer

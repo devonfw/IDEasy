@@ -55,7 +55,11 @@ public class WindowsHelperImpl implements WindowsHelper {
   @Override
   public String getRegistryValue(String path, String key) {
 
-    ProcessResult result = this.context.newProcess().executable("reg").addArgs("query", path, "/v", key).run(ProcessMode.DEFAULT_CAPTURE);
+    ProcessResult result = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable("reg").addArgs("query", path, "/v", key)
+        .run(ProcessMode.DEFAULT_CAPTURE);
+    if (!result.isSuccessful()) {
+      return null;
+    }
     List<String> out = result.getOut();
     return retrieveRegString(key, out);
   }

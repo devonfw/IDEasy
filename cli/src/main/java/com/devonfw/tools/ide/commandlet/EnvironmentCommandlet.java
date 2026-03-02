@@ -135,11 +135,16 @@ public final class EnvironmentCommandlet extends Commandlet {
     // installed tools in IDE_HOME/software
     for (Commandlet commandlet : this.context.getCommandletManager().getCommandlets()) {
       if (commandlet instanceof LocalToolCommandlet tool) {
-        VersionIdentifier installedVersion = tool.getInstalledVersion();
-        if (installedVersion != null) {
-          ToolInstallation toolInstallation = new ToolInstallation(tool.getToolPath(), tool.getToolPath(),
-              tool.getToolBinPath(), installedVersion, false);
-          tool.setEnvironment(environmentContext, toolInstallation, false);
+        try {
+          if (tool.isInstalled()) {
+            // for performance optimization, we do a hack here and assume that the installedVersion is never used by any setEnvironment method implementation.
+            VersionIdentifier installedVersion = VersionIdentifier.LATEST;
+            ToolInstallation toolInstallation = new ToolInstallation(tool.getToolPath(), tool.getToolPath(),
+                tool.getToolBinPath(), installedVersion, false);
+            tool.setEnvironment(environmentContext, toolInstallation, false);
+          }
+        } catch (Exception e) {
+          this.context.warning("An error occurred while setting the environment variables in local tools:", e);
         }
       }
     }

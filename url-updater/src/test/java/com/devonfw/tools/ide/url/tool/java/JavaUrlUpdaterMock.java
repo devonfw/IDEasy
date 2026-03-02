@@ -16,14 +16,20 @@ public class JavaUrlUpdaterMock extends JavaUrlUpdater {
   }
 
   @Override
-  protected String getMirror() {
+  protected String getDownloadBaseUrl() {
 
-    return this.baseUrl + "/downloads/";
+    return this.baseUrl;
+  }
+
+  @Override
+  protected String getVersionBaseUrl() {
+
+    return this.baseUrl;
   }
 
   @Override
   protected String doGetVersionUrl() {
 
-    return this.baseUrl + "/versions/";
+    return getVersionBaseUrl() + "/versions/";
   }
 }

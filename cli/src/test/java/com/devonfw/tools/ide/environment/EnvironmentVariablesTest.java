@@ -12,7 +12,7 @@ import com.devonfw.tools.ide.variable.IdeVariables;
 /**
  * Test of {@link EnvironmentVariables}.
  */
-public class EnvironmentVariablesTest extends AbstractIdeContextTest {
+class EnvironmentVariablesTest extends AbstractIdeContextTest {
 
   private static final String ENVIRONMENT_PROJECT = "environment";
 
@@ -20,7 +20,7 @@ public class EnvironmentVariablesTest extends AbstractIdeContextTest {
    * Test of {@link EnvironmentVariables#resolve(String, Object)} with self referencing variables.
    */
   @Test
-  public void testProperEvaluationOfVariables() {
+  void testProperEvaluationOfVariables() {
 
     // arrange
     String path = "project/workspaces/foo-test/my-git-repo";
@@ -69,7 +69,7 @@ public class EnvironmentVariablesTest extends AbstractIdeContextTest {
    * Test of {@link EnvironmentVariables#getToolVersionVariable(String)} and {@link EnvironmentVariables#getToolEditionVariable(String)}.
    */
   @Test
-  public void testGetToolVariable() {
+  void testGetToolVariable() {
 
     assertThat(EnvironmentVariables.getToolVersionVariable("android-studio")).isEqualTo("ANDROID_STUDIO_VERSION");
     assertThat(EnvironmentVariables.getToolEditionVariable("android-studio")).isEqualTo("ANDROID_STUDIO_EDITION");
@@ -79,7 +79,7 @@ public class EnvironmentVariablesTest extends AbstractIdeContextTest {
    * Test of {@link EnvironmentVariablesSystem} not inheriting specific environment variables leaking values from other projects into the current one.
    */
   @Test
-  public void testSpecificEnvironmentVariablesNotInheritedFromOtherProject() {
+  void testSpecificEnvironmentVariablesNotInheritedFromOtherProject() {
 
     // arrange
     IdeTestContext context = newContext(ENVIRONMENT_PROJECT, null, false);

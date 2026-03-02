@@ -14,10 +14,13 @@ import com.devonfw.tools.ide.context.IdeTestContextMock;
 import com.devonfw.tools.ide.tool.helm.Helm;
 import com.devonfw.tools.ide.tool.intellij.Intellij;
 
+/**
+ * Test of {@link CommandletProperty}.
+ */
 class CommandletPropertyTest {
 
   @Test
-  public void testCompleteValue() {
+  void testCompleteValue() {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();
@@ -34,7 +37,7 @@ class CommandletPropertyTest {
   }
 
   @Test
-  public void testParse() {
+  void testParse() {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();

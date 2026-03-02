@@ -10,11 +10,9 @@ import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
-import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -58,7 +56,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   protected boolean runWithPackageManager(boolean silent, List<PackageManagerCommand> pmCommands) {
 
     for (PackageManagerCommand pmCommand : pmCommands) {
-      PackageManager packageManager = pmCommand.packageManager();
+      NativePackageManager packageManager = pmCommand.packageManager();
       Path packageManagerPath = this.context.getPath().findBinary(Path.of(packageManager.getBinaryName()));
       if (packageManagerPath == null || !Files.exists(packageManagerPath)) {
         this.context.debug("{} is not installed", packageManager.toString());
@@ -90,7 +88,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
    */
   private boolean executePackageManagerCommand(PackageManagerCommand pmCommand, boolean silent) {
 
-    String bashPath = this.context.findBashRequired();
+    String bashPath = this.context.findBashRequired().toString();
     logPackageManagerCommands(pmCommand);
     for (String command : pmCommand.commands()) {
       ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(bashPath)
@@ -117,19 +115,29 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   }
 
   @Override
-  public boolean install(boolean silent, ProcessContext processContext, Step step) {
+  protected ToolInstallation doInstall(ToolInstallRequest request) {
 
-    Path binaryPath = this.context.getPath().findBinary(Path.of(getBinaryName()));
-    // if force mode is enabled, go through with the installation even if the tool is already installed
-    if (binaryPath != null && Files.exists(binaryPath) && !this.context.isForceMode()) {
-      IdeLogLevel level = silent ? IdeLogLevel.DEBUG : IdeLogLevel.INFO;
-      this.context.level(level).log("{} is already installed at {}", this.tool, binaryPath);
-      return false;
+    VersionIdentifier resolvedVersion = request.getRequested().getResolvedVersion();
+    if (this.context.getSystemInfo().isLinux()) {
+      // on Linux global tools are typically installed via the package manager of the OS
+      // if a global tool implements this method to return at least one PackageManagerCommand, then we install this way.
+      List<PackageManagerCommand> commands = getInstallPackageManagerCommands();
+      if (!commands.isEmpty()) {
+        boolean newInstallation = runWithPackageManager(request.isSilent(), commands);
+        Path rootDir = getInstallationPath(getConfiguredEdition(), resolvedVersion);
+        return createToolInstallation(rootDir, resolvedVersion, newInstallation, request.getProcessContext(), request.isAdditionalInstallation());
+      }
     }
-    String edition = getConfiguredEdition();
+
+    ToolEdition toolEdition = getToolWithConfiguredEdition();
+    Path installationPath = getInstallationPath(toolEdition.edition(), resolvedVersion);
+    // if force mode is enabled, go through with the installation even if the tool is already installed
+    if ((installationPath != null) && !this.context.isForceMode()) {
+      return toolAlreadyInstalled(request);
+    }
+    String edition = toolEdition.edition();
     ToolRepository toolRepository = this.context.getDefaultToolRepository();
-    VersionIdentifier configuredVersion = getConfiguredVersion();
-    VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, configuredVersion, this);
+    resolvedVersion = cveCheck(request);
     // download and install the global tool
     FileAccess fileAccess = this.context.getFileAccess();
     Path target = toolRepository.download(this.tool, edition, resolvedVersion, this);
@@ -148,11 +156,23 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
       fileAccess.delete(tmpDir);
     }
     if (exitCode == 0) {
-      asSuccess(step).log("Installation process for {} in version {} has started", this.tool, resolvedVersion);
+      asSuccess(request.getStep()).log("Installation process for {} in version {} has started", this.tool, resolvedVersion);
     } else {
       throw new CliException("Installation process for " + this.tool + " in version " + resolvedVersion + " failed with exit code " + exitCode + "!");
     }
-    return true;
+    installationPath = getInstallationPath(toolEdition.edition(), resolvedVersion);
+    if (installationPath == null) {
+      this.context.warning("Could not find binary {} on PATH after installation.", getBinaryName());
+    }
+    return createToolInstallation(installationPath, resolvedVersion, true, pc, false);
+  }
+
+  /**
+   * @return the {@link List} of {@link PackageManagerCommand}s to use on Linux to install this tool. If empty, no package manager installation will be
+   *     triggered on Linux.
+   */
+  protected List<PackageManagerCommand> getInstallPackageManagerCommands() {
+    return List.of();
   }
 
   @Override
@@ -167,6 +187,21 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     //TODO: handle "get-edition <globaltool>"
     this.context.error("Couldn't get installed edition of " + this.getName());
     return null;
+  }
+
+  @Override
+  protected Path getInstallationPath(String edition, VersionIdentifier resolvedVersion) {
+
+    Path toolBinary = Path.of(getBinaryName());
+    Path binaryPath = this.context.getPath().findBinary(toolBinary);
+    if ((binaryPath == toolBinary) || !Files.exists(binaryPath)) {
+      return null;
+    }
+    Path binPath = binaryPath.getParent();
+    if (binPath == null) {
+      return null;
+    }
+    return this.context.getFileAccess().getBinParentPath(binPath);
   }
 
   @Override

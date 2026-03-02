@@ -12,11 +12,11 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 /**
  * Test of {@link IdeMigrator}.
  */
-public class IdeMigratorTest extends AbstractIdeContextTest {
+class IdeMigratorTest extends AbstractIdeContextTest {
 
   /** Test that no migration is executed when outside of project. */
   @Test
-  public void testDoesNothingWithoutIdeHome() {
+  void testDoesNothingWithoutIdeHome() {
 
     // arrage
     IdeTestContext context = new IdeTestContext();
@@ -29,7 +29,7 @@ public class IdeMigratorTest extends AbstractIdeContextTest {
 
   /** Test that all versions are properly in order. */
   @Test
-  public void testVerifyAllMigrations() {
+  void testVerifyAllMigrations() {
 
     // arrange
     IdeTestContext context = newContext("migration");
@@ -43,7 +43,7 @@ public class IdeMigratorTest extends AbstractIdeContextTest {
 
   /** Test that required migrations are properly applied and older migrations are not. */
   @Test
-  public void testRunAllDummyMigrations() {
+  void testRunAllDummyMigrations() {
 
     // arrange
     IdeTestContext context = newContext("migration");

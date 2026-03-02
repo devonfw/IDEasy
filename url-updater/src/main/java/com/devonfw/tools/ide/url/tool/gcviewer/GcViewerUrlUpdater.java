@@ -8,10 +8,8 @@ import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
  */
 public class GcViewerUrlUpdater extends GithubUrlUpdater {
 
-  private static final String BASE_URL = "https://sourceforge.net";
-
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "gcviewer";
   }
@@ -19,7 +17,7 @@ public class GcViewerUrlUpdater extends GithubUrlUpdater {
   @Override
   protected void addVersion(UrlVersion urlVersion) {
 
-    doAddVersion(urlVersion, getBaseUrl() + "/projects/gcviewer/files/gcviewer-${version}.jar");
+    doAddVersion(urlVersion, getDownloadBaseUrl() + "/projects/gcviewer/files/gcviewer-${version}.jar");
   }
 
   @Override
@@ -35,13 +33,13 @@ public class GcViewerUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
-  protected String getBaseUrl() {
+  protected String getDownloadBaseUrl() {
 
-    return BASE_URL;
+    return "https://sourceforge.net";
   }
 
   @Override
-  protected String mapVersion(String version) {
+  public String mapVersion(String version) {
 
     if (version.matches("\\d+\\.\\d+(\\.\\d+)?")) {
       return super.mapVersion(version);

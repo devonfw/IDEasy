@@ -6,14 +6,14 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 
 /**
- * Integration test of {@link GraalVm}.
+ * Test of {@link GraalVm}.
  */
-public class GraalVmTest extends AbstractIdeContextTest {
+class GraalVmTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_GRAALVM = "graalvm";
 
   @Test
-  public void testGraalVmInstallInDirectoryExtra() {
+  void testGraalVmInstallInDirectoryExtra() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_GRAALVM);
