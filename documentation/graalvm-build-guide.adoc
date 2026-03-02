@@ -2,48 +2,11 @@
 
 *1. Setup Graalvm*
 
-* Update the file under e.g. C\Projects\IDEasy\settings and add
-
-[width="100%",cols="100%",options="header",]
-|===
-a|
-GRAALVM_EDITION=community
-|===
-
-This is necessary as the community edition of graalvm is delivered with a pre-installed native image.
-
-* Open a command-line interface inside your IDEasy installation e.g. C\Projects\IDEasy\workspaces\main
-
-* Install Graalvm using the IDEasy with
-
-[width="100%",cols="100%",options="header",]
-|===
-a|
+```
+icd IDEasy
 ide install graalvm
-|===
-
+```
 When the installation is complete, the GRAALVM_HOME environment variable is automatically set to the graalvm installation path e.g. C/Projects/IDEasy/software/extra/graalvm
-
-* Add *$GRAALVM_HOME/bin* to your *PATH* environment variable
-
-Bash:
-
-[width="100%",cols="100%",options="header",]
-|===
-a|
-export PATH=$GRAALVM_HOME\bin:$PATH
-|===
-
-Powershell (run as Admin):
-
-[width="100%",cols="100%",options="header",]
-|===
-a|
-$path = [System.Environment]::GetEnvironmentVariable("Path",[System.EnvironmentVariableTarget]::Machine) +
-$newPath = "$env:GRAALVM_HOME\bin;" + $path +
-[System.Environment]::SetEnvironmentVariable("Path", $newPath,
-[System.EnvironmentVariableTarget]::Machine)
-|===
 
 *2. Install Dependencies*
 
@@ -61,61 +24,22 @@ Then select the C++ workload and click on install.
 
 Install the zlib development package on your system:
 
-[width="100%",cols="100%",options="header",]
-|===
-a|
+```
 sudo apt-get update +
 sudo apt-get install zlib1g-dev
-|===
+```
 
 *3. Build Your Application*
 
 Run the following Maven command inside Intellij to compile your application and create an executable:
 
-[width="100%",cols="100%",options="header",]
-|===
-a|
--B -ntp -Pnative -DskipTests=true package
-|===
+```
+icd -w main
+cd IDEasy/cli
+mvn -B -ntp -Pnative -DskipTests=true package
+```
 
 image:images/graalvmMvnArgs.png[image]
-
-*Alternatively you can build the project using a cli:*
-
-* Open *PowerShell* and check the java version with
-
-[width="100%",cols="100%",options="header",]
-|===
-a|
-java --version
-|===
-
-If the java version is below 17, you need to specify a JDK with version >=17.
-e.g.
-
-[width="100%",cols="100%",options="header",]
-|===
-a|
-$env:JAVA_HOME = "C:\Projects\IDEasy\software\java\"
-|===
-
-This command sets the *JAVA_HOME* variable temporarily for the session and will be re-set after you close the shell.
-
-* Run the following Maven command in your project directory where the pom.xml is located to compile your application and create an executable:
-
-[width="100%",cols="100%",options="header",]
-|===
-a|
-PATH/TO/MVN/mvn -B -ntp -Pnative -DskipTests=true package
-|===
-
-Example:
-
-[width="100%",cols="100%",options="header",]
-|===
-a|
-C:\Projects\IDEasy\workspaces\main\IDEasy> C:\Projects\IDEasy\software\mvn\bin\mvn -B -ntp -Pnative -DskipTests=true package
-|===
 
 Building the application might take up to 10 minutes depending on your machine.
 

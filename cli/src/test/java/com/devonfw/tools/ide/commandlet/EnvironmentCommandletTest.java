@@ -14,7 +14,7 @@ import com.devonfw.tools.ide.os.SystemInfoMock;
 /**
  * Test of {@link EnvironmentCommandlet}.
  */
-public class EnvironmentCommandletTest extends AbstractIdeContextTest {
+class EnvironmentCommandletTest extends AbstractIdeContextTest {
 
   private static final String ENVIRONMENT_COMMANDLET = "environment";
 
@@ -22,7 +22,7 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
    * Test of {@link EnvironmentCommandlet} run with DEBUG logging (partitioning per type/source).
    */
   @Test
-  public void testRunDebugLogging() {
+  void testRunDebugLogging() {
 
     // arrange
     String path = "project/workspaces/foo-test";
@@ -73,9 +73,12 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
         IdeLogEntry.ofProcessable("TEST_ARGSc=\" user1 settings1 workspace1 conf1 userc settingsc confc\""), //
 
         IdeLogEntry.ofDebug("from RESOLVED:"), //
+        IdeLogEntry.ofProcessable("export GRADLE_USER_HOME=\"" + normalize(context.getGradleUserHome()) + "\""), //
         IdeLogEntry.ofProcessable("HOME=\"" + normalize(context.getUserHome()) + "\""), //
         IdeLogEntry.ofProcessable("IDE_HOME=\"" + normalize(context.getIdeHome()) + "\""), //
         IdeLogEntry.ofProcessable("export M2_REPO=\"" + context.getUserHome() + "/.m2/repository\""), //
+        new IdeLogEntry(IdeLogLevel.PROCESSABLE, "export MAVEN_ARGS=\"-s ", true), //
+        IdeLogEntry.ofProcessable("export NPM_CONFIG_USERCONFIG=\"" + normalize(context.getNpmConfigUserConfig()) + "\""), //
         new IdeLogEntry(IdeLogLevel.PROCESSABLE, "export PATH=", true), //
         IdeLogEntry.ofProcessable("WORKSPACE=\"foo-test\""), //
         IdeLogEntry.ofProcessable("WORKSPACE_PATH=\"" + normalize(context.getWorkspacePath()) + "\""), //
@@ -83,8 +86,7 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
         IdeLogEntry.ofDebug("from TOOL@" + softwarePath + ":"), //
         IdeLogEntry.ofProcessable(
             "export JAVA_HOME=\"" + context.getSoftwarePath() + FileSystems.getDefault().getSeparator() + "java\""), //
-        IdeLogEntry.ofProcessable("export MVN_HOME=\"" + context.getSoftwarePath() + FileSystems.getDefault().getSeparator() + "mvn\""), //
-        IdeLogEntry.ofProcessable("export NPM_HOME=\"" + context.getSoftwarePath() + FileSystems.getDefault().getSeparator() + "npm\"") //
+        IdeLogEntry.ofProcessable("export MVN_HOME=\"" + context.getSoftwarePath() + FileSystems.getDefault().getSeparator() + "mvn\"") //
     );
   }
 
@@ -92,11 +94,11 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
    * Test of {@link EnvironmentCommandlet} run with INFO logging (plain variables without source).
    */
   @Test
-  public void testRunInfoLogging() {
+  void testRunInfoLogging() {
 
     // arrange
     String path = "project/workspaces/foo-test/my-git-repo";
-    IdeTestContext context = newContext(ENVIRONMENT_COMMANDLET, path, false, IdeLogLevel.INFO);
+    IdeTestContext context = newContext(ENVIRONMENT_COMMANDLET, path, false, null, IdeLogLevel.INFO);
     context.setSystemInfo(SystemInfoMock.MAC_ARM64);
     EnvironmentCommandlet env = context.getCommandletManager().getCommandlet(EnvironmentCommandlet.class);
     Path softwarePath = context.getSoftwarePath();
@@ -110,6 +112,7 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
         IdeLogEntry.ofProcessable("DOCKER_EDITION=\"docker\""), //
         IdeLogEntry.ofProcessable("ECLIPSE_VERSION=\"2023-03\""), //
         IdeLogEntry.ofProcessable("FOO=\"foo-bar-some-${UNDEFINED}\""), //
+        IdeLogEntry.ofProcessable("export GRADLE_USER_HOME=\"" + normalize(context.getGradleUserHome()) + "\""), //
         IdeLogEntry.ofProcessable("HOME=\"" + normalize(context.getUserHome()) + "\""), //
         IdeLogEntry.ofProcessable("IDE_HOME=\"" + normalize(context.getIdeHome()) + "\""), //
         IdeLogEntry.ofProcessable("IDE_TOOLS=\"mvn,eclipse\""), //
@@ -118,9 +121,10 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
             "export JAVA_HOME=\"" + context.getSoftwarePath() + FileSystems.getDefault().getSeparator() + "java\""), //
         IdeLogEntry.ofProcessable("JAVA_VERSION=\"17*\""), //
         IdeLogEntry.ofProcessable("export M2_REPO=\"" + context.getUserHome() + "/.m2/repository\""), //
-        IdeLogEntry.ofProcessable("export MVN_HOME=\"" + softwarePath + FileSystems.getDefault().getSeparator() + "mvn\""),
+        new IdeLogEntry(IdeLogLevel.PROCESSABLE, "export MAVEN_ARGS=\"-s ", true), //
+        IdeLogEntry.ofProcessable("export MVN_HOME=\"" + softwarePath.resolve("mvn") + "\""),
         IdeLogEntry.ofProcessable("MVN_VERSION=\"3.9.1\""), //
-        IdeLogEntry.ofProcessable("export NPM_HOME=\"" + softwarePath + FileSystems.getDefault().getSeparator() + "npm\""), //
+        IdeLogEntry.ofProcessable("export NPM_CONFIG_USERCONFIG=\"" + normalize(context.getNpmConfigUserConfig()) + "\""), //
         new IdeLogEntry(IdeLogLevel.PROCESSABLE, "export PATH=", true), //
         IdeLogEntry.ofProcessable("SOME=\"some-${UNDEFINED}\""), //
         IdeLogEntry.ofProcessable("TEST_ARGS1=\" user1 settings1 workspace1 conf1\""), //

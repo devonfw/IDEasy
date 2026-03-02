@@ -1,18 +1,18 @@
 package com.devonfw.tools.ide.tool.jmc;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.stream.Stream;
-
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * {@link ToolCommandlet} for <a href="https://www.oracle.com/java/technologies/jdk-mission-control.html">JDK Mission Control</a>, An advanced set of tools for
@@ -33,28 +33,25 @@ public class Jmc extends LocalToolCommandlet {
   @Override
   public void run() {
 
-    runTool(ProcessMode.BACKGROUND, null, this.arguments.asArray());
+    runTool(ProcessMode.BACKGROUND, null, this.arguments.asList());
   }
 
   @Override
-  public void postInstall() {
+  protected void postExtract(Path extractedDir) {
 
-    super.postInstall();
-
+    super.postExtract(extractedDir);
     if (this.context.getSystemInfo().isWindows() || this.context.getSystemInfo().isLinux()) {
-      Path toolPath = getToolPath();
-      Path oldBinaryPath = toolPath.resolve("JDK Mission Control");
+      Path oldBinaryPath = extractedDir.resolve("JDK Mission Control");
       if (Files.isDirectory(oldBinaryPath)) {
         FileAccess fileAccess = this.context.getFileAccess();
-        moveFilesAndDirs(oldBinaryPath, toolPath);
+        moveFilesAndDirs(oldBinaryPath, extractedDir);
         fileAccess.delete(oldBinaryPath);
       } else {
-        this.context.info(
+        this.context.debug(
             "JMC binary folder not found at {} - ignoring as this legacy problem may be resolved in newer versions.",
             oldBinaryPath);
       }
     }
-
   }
 
   private void moveFilesAndDirs(Path sourceFolder, Path targetFolder) {

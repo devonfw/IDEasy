@@ -7,7 +7,7 @@ toc::[]
 The configuration of the link:cli.adoc[ide] command and environment variables takes place via `ide.properties` files.
 The following list shows these configuration folders in the order they are loaded so files can override configurations:
 
-1. build in defaults (for `MAVEN_ARGS`, `IDE_TOOLS`, etc.)
+1. built-in defaults (for `MAVEN_ARGS`, `IDE_TOOLS`, etc.)
 2. `~/.ide/` - user specific global defaults (on Windows in `%USERPROFILE%/.ide/`)
 3. `https://github.com/devonfw/ide-settings/blob/main/[settings/]` - project specific configurations from link:settings.adoc[settings].
 4. `workspaces/${WORKSPACE}/` - optional workspace specific configurations.
@@ -24,19 +24,19 @@ The `ide.properties` files allow to define environment variables in a simple and
 * `variable_name=${predefined_variable}/folder_name`
 +
 Variable values can refer to other variables that are already defined, which will be resolved to their value.
-You have to used `${...}` syntax to make it work on all platforms (never use `%...%`, `$...`, or `$(...)` syntax in `ide.properties` files.
+You have to use `${...}` syntax to make it work on all platforms (never use `%...%`, `$...`, or `$(...)` syntax in `ide.properties` files.
 * `export exported_variable=this value will be exported in bash, in windows CMD the export prefix is ignored`
 * `variable_name=`
 +
 This will unset the specified variable
 * `variable_name=~/some/path/and.file`
 +
-Tilde is resolved to your personal home directory on any OS including windows.
+Tilde is resolved to your personal home directory on any OS, including windows.
 * `array_variable=value1,value2,value3`
 +
 See link:variables.adoc[variables] for candidates that support array values.
 * Please never surround values with quotes (`var="value"`)
-* This format is similar to Java `*.properties` but does not support advanced features as unicode literals, multi-lined values, etc.
+* This format is similar to Java `*.properties` but does not support advanced features like unicode literals, multi-lined values, etc.
 
 In order to know what to configure, have a look at the available link:variables.adoc[variables].
 

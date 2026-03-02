@@ -9,10 +9,10 @@ import com.devonfw.tools.ide.log.IdeLogEntry;
 /**
  * Test of {@link Step}.
  */
-public class StepTest extends AbstractIdeContextTest {
+class StepTest extends AbstractIdeContextTest {
 
   @Test
-  public void testValidUsageSuccess() {
+  void testValidUsageSuccess() {
 
     // arrage
     IdeTestContext context = newContext(PROJECT_BASIC, "project", false);
@@ -33,7 +33,7 @@ public class StepTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testValidUsageSuccessSilent() {
+  void testValidUsageSuccessSilent() {
 
     // arrage
     IdeTestContext context = newContext(PROJECT_BASIC, "project", false);
@@ -58,7 +58,7 @@ public class StepTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testValidUsageError() {
+  void testValidUsageError() {
 
     // arrage
     IdeTestContext context = newContext(PROJECT_BASIC, "project", false);
@@ -79,7 +79,7 @@ public class StepTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testInvalidUsageSuccessError() {
+  void testInvalidUsageSuccessError() {
 
     // arrage
     IdeTestContext context = newContext(PROJECT_BASIC, "project", false);
@@ -100,11 +100,11 @@ public class StepTest extends AbstractIdeContextTest {
         IdeLogEntry.ofStep("Start: Test-Step"),
         IdeLogEntry.ofWarning("Step 'Test-Step' already ended with true and now ended again with false."),
         IdeLogEntry.ofError("java.lang.IllegalStateException: unexpected situation!"),
-        IdeLogEntry.ofDebug("Step 'Test-Step' ended with failure."));
+        IdeLogEntry.ofError("Step 'Test-Step' ended with failure."));
   }
 
   @Test
-  public void testInvalidUsageErrorSuccess() {
+  void testInvalidUsageErrorSuccess() {
 
     // arrage
     IdeTestContext context = newContext(PROJECT_BASIC, "project", false);

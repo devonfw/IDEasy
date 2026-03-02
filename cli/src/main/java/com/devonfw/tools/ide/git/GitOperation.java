@@ -14,7 +14,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 public enum GitOperation {
 
   /** {@link GitOperation} for {@link GitContext#fetch(Path, String, String)}. */
-  FETCH("fetch", "FETCH_HEAD", Duration.ofMinutes(5)) {
+  FETCH("fetch", GitContext.FILE_FETCH_HEAD, Duration.ofMinutes(5)) {
     @Override
     protected boolean execute(IdeContext context, GitUrl gitUrl, Path targetRepository, String remote) {
 
@@ -26,7 +26,7 @@ public enum GitOperation {
   },
 
   /** {@link GitOperation} for {@link GitContext#clone(GitUrl, Path)}. */
-  PULL_OR_CLONE("pull/clone", "HEAD", Duration.ofMinutes(30)) {
+  PULL_OR_CLONE("pull/clone", GitContext.FILE_HEAD, Duration.ofMinutes(30)) {
     @Override
     protected boolean execute(IdeContext context, GitUrl gitUrl, Path targetRepository, String remote) {
 

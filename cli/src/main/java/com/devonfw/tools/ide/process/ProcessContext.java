@@ -1,10 +1,11 @@
 package com.devonfw.tools.ide.process;
 
-import com.devonfw.tools.ide.log.IdeSubLogger;
-
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
+
+import com.devonfw.tools.ide.log.IdeSubLogger;
 
 /**
  * Wrapper for {@link ProcessBuilder} to simplify its usage and avoid common mistakes and pitfalls.
@@ -26,8 +27,9 @@ public interface ProcessContext extends EnvironmentContext {
   /**
    * Sets the executable command to be {@link #run()}.
    *
-   * @param executable the {@link Path} to the command to be executed by {@link #run()}. Depending on your operating system and the extension of the executable
-   * or OS specific conventions. So e.g. a *.cmd or *.bat file will be called via CMD shell on windows while a *.sh file will be called via Bash, etc.
+   * @param executable the {@link Path} to the command to be executed by {@link #run()}. Depending on your operating system and the extension of the
+   *     executable or OS specific conventions. So e.g. a *.cmd or *.bat file will be called via CMD shell on windows while a *.sh file will be called via Bash,
+   *     etc.
    * @return this {@link ProcessContext} for fluent API calls.
    */
   ProcessContext executable(Path executable);
@@ -117,6 +119,20 @@ public interface ProcessContext extends EnvironmentContext {
   ProcessContext withPathEntry(Path path);
 
   /**
+   * @param exitCodeAcceptor the {@link Predicate} that {@link Predicate#test(Object) tests} which {@link ProcessResult#getExitCode() exit codes} should be
+   *     accepted as {@link ProcessResult#isSuccessful() success}.
+   * @return this {@link ProcessContext} for fluent API calls.
+   */
+  ProcessContext withExitCodeAcceptor(Predicate<Integer> exitCodeAcceptor);
+
+  /**
+   * @return a new child {@link ProcessContext} connected with this {@link ProcessContext} sharing the same {@link #withEnvVar(String, String) environment} and
+   *     {@link #withPathEntry(Path) PATH} but not specific things like {@link #withExitCodeAcceptor(Predicate) exitCodeAcceptor} or
+   *     {@link #errorHandling(ProcessErrorHandling) errorHandling}.
+   */
+  ProcessContext createChild();
+
+  /**
    * Runs the previously configured {@link #executable(Path) command} with the configured {@link #addArgs(String...) arguments}. Will reset the
    * {@link #addArgs(String...) arguments} but not the {@link #executable(Path) command} for sub-sequent calls.
    *
@@ -154,6 +170,38 @@ public interface ProcessContext extends EnvironmentContext {
   }
 
   /**
+   * Runs the given {@code executable} with the given {@code arguments} and returns the output from its {@link ProcessResult#getOut() standard output}.
+   *
+   * @param executable the executable program.
+   * @param arguments the program arguments.
+   * @return the output printed from the command.
+   * @throws IllegalStateException if the command failed.
+   */
+  default List<String> runAndGetOutput(String executable, String... arguments) {
+
+    return runAndGetOutput(null, executable, arguments);
+  }
+
+  /**
+   * Runs the given {@code executable} with the given {@code arguments} and returns the output from its {@link ProcessResult#getOut() standard output}.
+   *
+   * @param logger the {@link IdeSubLogger} used to log errors instead of throwing an exception.
+   * @param executable the executable program.
+   * @param arguments the program arguments.
+   * @return the output printed from the command.
+   * @throws IllegalStateException if the command failed.
+   */
+  default List<String> runAndGetOutput(IdeSubLogger logger, String executable, String... arguments) {
+
+    executable(executable).addArgs(arguments);
+    if (logger == null) {
+      errorHandling(ProcessErrorHandling.THROW_ERR);
+    }
+    ProcessResult result = run(ProcessMode.DEFAULT_CAPTURE);
+    return result.getOutput(logger);
+  }
+
+  /**
    * Runs the given {@code executable} with the given {@code arguments} and returns the expected single line from its
    * {@link ProcessResult#getOut() standard output}.
    *
@@ -165,41 +213,12 @@ public interface ProcessContext extends EnvironmentContext {
    */
   default String runAndGetSingleOutput(IdeSubLogger logger, String executable, String... arguments) {
 
-    String errorMessage;
     executable(executable).addArgs(arguments);
     if (logger == null) {
       errorHandling(ProcessErrorHandling.THROW_ERR);
     }
     ProcessResult result = run(ProcessMode.DEFAULT_CAPTURE);
-    if (result.isSuccessful()) {
-      List<String> out = result.getOut();
-      int size = out.size();
-      if (size == 1) {
-        return out.get(0);
-      } else if (size == 0) {
-        errorMessage = "No output received from " + result.getCommand();
-      } else {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Expected single line of output but received ");
-        sb.append(size);
-        sb.append(" lines from ");
-        sb.append(result.getCommand());
-        sb.append(":");
-        for (String line : out) {
-          sb.append("\n");
-          sb.append(line);
-        }
-        errorMessage = sb.toString();
-      }
-    } else {
-      errorMessage = "Command " + result.getCommand() + " failed with exit code " + result.getExitCode();
-    }
-    if (logger == null) {
-      throw new IllegalStateException(errorMessage);
-    } else {
-      logger.log(errorMessage);
-      return null;
-    }
+    return result.getSingleOutput(logger);
   }
 
   /**
@@ -210,5 +229,16 @@ public interface ProcessContext extends EnvironmentContext {
    * @return the {@link ProcessResult}.
    */
   ProcessResult run(ProcessMode processMode);
+
+  /**
+   * Sets the {@link OutputListener} that will receive output events. This method is intended to be used by subclasses that support output listening. The
+   * default implementation does nothing.
+   *
+   * @param listener the {@code OutputListener} to receive output events
+   */
+  default void setOutputListener(OutputListener listener) {
+
+  }
+
 
 }

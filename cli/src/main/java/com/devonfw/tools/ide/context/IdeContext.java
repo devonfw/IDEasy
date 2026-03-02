@@ -15,17 +15,25 @@ import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarNone;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
+import com.devonfw.tools.ide.network.NetworkStatus;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.corepack.Corepack;
+import com.devonfw.tools.ide.tool.custom.CustomToolRepository;
+import com.devonfw.tools.ide.tool.gradle.Gradle;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
-import com.devonfw.tools.ide.tool.repository.CustomToolRepository;
-import com.devonfw.tools.ide.tool.repository.MavenRepository;
+import com.devonfw.tools.ide.tool.mvn.MvnRepository;
+import com.devonfw.tools.ide.tool.npm.Npm;
+import com.devonfw.tools.ide.tool.npm.NpmRepository;
+import com.devonfw.tools.ide.tool.pip.PipRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
+import com.devonfw.tools.ide.version.IdeVersion;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -169,9 +177,6 @@ public interface IdeContext extends IdeStartContext {
   /** The default folder name for {@link #getIdeRoot() IDE_ROOT}. */
   String FOLDER_PROJECTS = "projects";
 
-  /** The filename of the configuration file in the settings for this {@link CustomToolRepository}. */
-  String FILE_CUSTOM_TOOLS = "ide-custom-tools.json";
-
   /**
    * file containing the current local commit hash of the settings repository.
    */
@@ -187,17 +192,35 @@ public interface IdeContext extends IdeStartContext {
       """.replace('╲', '\\');
 
   /**
+   * The keyword for project name convention.
+   */
+  String SETTINGS_REPOSITORY_KEYWORD = "settings";
+  String IS_NOT_INSTALLED_BUT_REQUIRED = "is not installed on your computer but required by IDEasy.";
+  String WINDOWS_GIT_DOWNLOAD_URL = "https://git-scm.com/download/";
+  String PLEASE_DOWNLOAD_AND_INSTALL_GIT = "Please download and install git";
+
+  /**
+   * @return the {@link NetworkStatus} for online check and related operations.
+   */
+  NetworkStatus getNetworkStatus();
+
+  /**
    * @return {@code true} if {@link #isOfflineMode() offline mode} is active or we are NOT {@link #isOnline() online}, {@code false} otherwise.
+   * @deprecated use {@link #getNetworkStatus()}
    */
   default boolean isOffline() {
 
-    return isOfflineMode() || !isOnline();
+    return getNetworkStatus().isOffline();
   }
 
   /**
    * @return {@code true} if we are currently online (Internet access is available), {@code false} otherwise.
+   * @deprecated use {@link #getNetworkStatus()}
    */
-  boolean isOnline();
+  default boolean isOnline() {
+
+    return getNetworkStatus().isOnline();
+  }
 
   /**
    * Print the IDEasy {@link #LOGO logo}.
@@ -211,7 +234,7 @@ public interface IdeContext extends IdeStartContext {
    * Asks the user for a single string input.
    *
    * @param message The information message to display.
-   * @param defaultValue The default value to return when no input is provided.
+   * @param defaultValue The default value to return when no input is provided or {@code null} to keep asking until the user entered a non empty value.
    * @return The string input from the user, or the default value if no input is provided.
    */
   String askForInput(String message, String defaultValue);
@@ -220,18 +243,21 @@ public interface IdeContext extends IdeStartContext {
    * Asks the user for a single string input.
    *
    * @param message The information message to display.
-   * @return The string input from the user, or the default value if no input is provided.
+   * @return The string input from the user.
    */
-  String askForInput(String message);
+  default String askForInput(String message) {
+    return askForInput(message, null);
+  }
 
   /**
    * @param question the question to ask.
+   * @param args arguments for filling the templates
    * @return {@code true} if the user answered with "yes", {@code false} otherwise ("no").
    */
-  default boolean question(String question) {
+  default boolean question(String question, Object... args) {
 
     String yes = "yes";
-    String option = question(question, yes, "no");
+    String option = question(new String[] { yes, "no" }, question, args);
     if (yes.equals(option)) {
       return true;
     }
@@ -240,23 +266,23 @@ public interface IdeContext extends IdeStartContext {
 
   /**
    * @param <O> type of the option. E.g. {@link String}.
-   * @param question the question to ask.
    * @param options the available options for the user to answer. There should be at least two options given as otherwise the question cannot make sense.
+   * @param question the question to ask.
    * @return the option selected by the user as answer.
    */
   @SuppressWarnings("unchecked")
-  <O> O question(String question, O... options);
+  <O> O question(O[] options, String question, Object... args);
 
   /**
    * Will ask the given question. If the user answers with "yes" the method will return and the process can continue. Otherwise if the user answers with "no" an
    * exception is thrown to abort further processing.
    *
-   * @param question the yes/no question to {@link #question(String) ask}.
+   * @param questionTemplate the yes/no question to {@link #question(String, Object...) ask}.
+   * @param args the arguments to fill the placeholders in the question template.
    * @throws CliAbortException if the user answered with "no" and further processing shall be aborted.
    */
-  default void askToContinue(String question) {
-
-    boolean yesContinue = question(question);
+  default void askToContinue(String questionTemplate, Object... args) {
+    boolean yesContinue = question(questionTemplate, args);
     if (!yesContinue) {
       throw new CliAbortException();
     }
@@ -264,12 +290,19 @@ public interface IdeContext extends IdeStartContext {
 
   /**
    * @param purpose the purpose why Internet connection is required.
+   * @param explicitOnlineCheck if {@code true}, perform an explicit {@link #isOffline()} check; if {@code false} use {@link #isOfflineMode()}.
    * @throws CliException if you are {@link #isOffline() offline}.
    */
-  default void requireOnline(String purpose) {
+  default void requireOnline(String purpose, boolean explicitOnlineCheck) {
 
-    if (isOfflineMode()) {
-      throw CliOfflineException.ofPurpose(purpose);
+    if (explicitOnlineCheck) {
+      if (isOffline()) {
+        throw CliOfflineException.ofPurpose(purpose);
+      }
+    } else {
+      if (isOfflineMode()) {
+        throw CliOfflineException.ofPurpose(purpose);
+      }
     }
   }
 
@@ -304,9 +337,19 @@ public interface IdeContext extends IdeStartContext {
   CustomToolRepository getCustomToolRepository();
 
   /**
-   * @return the {@link MavenRepository}.
+   * @return the {@link MvnRepository}.
    */
-  MavenRepository getMavenToolRepository();
+  MvnRepository getMvnRepository();
+
+  /**
+   * @return the {@link NpmRepository}.
+   */
+  NpmRepository getNpmRepository();
+
+  /**
+   * @return the {@link PipRepository}.
+   */
+  PipRepository getPipRepository();
 
   /**
    * @return the {@link Path} to the IDE instance directory. You can have as many IDE instances on the same computer as independent tenants for different
@@ -352,7 +395,11 @@ public interface IdeContext extends IdeStartContext {
    */
   default Path getIdeInstallationPath() {
 
-    return getIdePath().resolve(FOLDER_INSTALLATION);
+    Path idePath = getIdePath();
+    if (idePath == null) {
+      return null;
+    }
+    return idePath.resolve(FOLDER_INSTALLATION);
   }
 
   /**
@@ -573,6 +620,14 @@ public interface IdeContext extends IdeStartContext {
   }
 
   /**
+   * @param size the {@link IdeProgressBar#getMaxSize() expected maximum} plugin count.
+   * @return the new {@link IdeProgressBar} to use.
+   */
+  default IdeProgressBar newProgressBarForPlugins(long size) {
+    return newProgressBar(IdeProgressBar.TITLE_INSTALL_PLUGIN, size, IdeProgressBar.UNIT_NAME_PLUGIN, IdeProgressBar.UNIT_SIZE_PLUGIN);
+  }
+
+  /**
    * @return the {@link DirectoryMerger} used to configure and merge the workspace for an {@link com.devonfw.tools.ide.tool.ide.IdeToolCommandlet IDE}.
    */
   DirectoryMerger getWorkspaceMerger();
@@ -605,28 +660,28 @@ public interface IdeContext extends IdeStartContext {
   }
 
   /**
+   * @return the path for the variable GRADLE_USER_HOME, or null if called outside an IDEasy installation.
+   */
+  default Path getGradleUserHome() {
+
+    if (getIdeHome() == null) {
+      return null;
+    }
+    Gradle gradle = getCommandletManager().getCommandlet(Gradle.class);
+    return gradle.getOrCreateGradleConfFolder();
+  }
+
+  /**
    * @return the {@link Path} pointing to the maven configuration directory (where "settings.xml" or "settings-security.xml" are located).
    */
   default Path getMavenConfigurationFolder() {
 
-    Path confPath = getConfPath();
-    Path mvnConfFolder = null;
-    if (confPath != null) {
-      mvnConfFolder = confPath.resolve(Mvn.MVN_CONFIG_FOLDER);
-      if (!Files.isDirectory(mvnConfFolder)) {
-        Path m2LegacyFolder = confPath.resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER);
-        if (Files.isDirectory(m2LegacyFolder)) {
-          mvnConfFolder = m2LegacyFolder;
-        } else {
-          mvnConfFolder = null; // see fallback below
-        }
-      }
+    if (getIdeHome() == null) {
+      // fallback to USER_HOME/.m2 folder if called outside an IDEasy project
+      return getUserHome().resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER);
     }
-    if (mvnConfFolder == null) {
-      // fallback to USER_HOME/.m2 folder
-      mvnConfFolder = getUserHome().resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER);
-    }
-    return mvnConfFolder;
+    Mvn mvn = getCommandletManager().getCommandlet(Mvn.class);
+    return mvn.getMavenConfigurationFolder();
   }
 
   /**
@@ -665,6 +720,24 @@ public interface IdeContext extends IdeStartContext {
   Step newStep(boolean silent, String name, Object... parameters);
 
   /**
+   * @param lambda the {@link Runnable} to {@link Runnable#run() run} while the {@link com.devonfw.tools.ide.log.IdeLogger logging} is entirely disabled.
+   *     After this the logging will be enabled again. Collected log messages will then be logged at the end.
+   */
+  default void runWithoutLogging(Runnable lambda) {
+
+    runWithoutLogging(lambda, IdeLogLevel.TRACE);
+  }
+
+  /**
+   * @param lambda the {@link Runnable} to {@link Runnable#run() run} while the {@link com.devonfw.tools.ide.log.IdeLogger logging} is entirely disabled.
+   *     After this the logging will be enabled again. Collected log messages will then be logged at the end.
+   * @param threshold the {@link IdeLogLevel} to use as threshold for filtering logs while logging is disabled and log messages are collected. Use
+   *     {@link IdeLogLevel#TRACE} to collect all logs and ensure nothing gets lost (will still not log anything that is generally not active in regular
+   *     logging) and e.g. use {@link IdeLogLevel#ERROR} to discard all logs except errors.
+   */
+  void runWithoutLogging(Runnable lambda, IdeLogLevel threshold);
+
+  /**
    * Updates the current working directory (CWD) and configures the environment paths according to the specified parameters. This method is central to changing
    * the IDE's notion of where it operates, affecting where configurations, workspaces, settings, and other resources are located or loaded from.
    *
@@ -688,24 +761,26 @@ public interface IdeContext extends IdeStartContext {
   /**
    * Finds the path to the Bash executable.
    *
-   * @return the {@link String} to the Bash executable, or {@code null} if Bash is not found
+   * @return the {@link Path} to the Bash executable, or {@code null} if Bash is not found.
    */
-  String findBash();
+  Path findBash();
 
   /**
    * Finds the path to the Bash executable.
    *
-   * @return the {@link String} to the Bash executable. Throws an {@link IllegalStateException} if no bash was found.
+   * @return the {@link Path} to the Bash executable. Throws a {@link CliException} if no bash was found.
    */
-  default String findBashRequired() {
-    String bash = findBash();
+  default Path findBashRequired() {
+    Path bash = findBash();
     if (bash == null) {
-      String message = "Could not find bash what is a prerequisite of IDEasy.";
+      String message = "Bash " + IS_NOT_INSTALLED_BUT_REQUIRED;
       if (getSystemInfo().isWindows()) {
-        message = message + "\nPlease install Git for Windows and rerun.";
+        message += " " + PLEASE_DOWNLOAD_AND_INSTALL_GIT + ":\n " + WINDOWS_GIT_DOWNLOAD_URL;
+        throw new CliException(message);
       }
-      throw new IllegalStateException(message);
+      bash = Path.of("bash");
     }
+
     return bash;
   }
 
@@ -719,4 +794,38 @@ public interface IdeContext extends IdeStartContext {
    */
   void logIdeHomeAndRootStatus();
 
+  /**
+   * @param version the {@link VersionIdentifier} to write.
+   * @param installationPath the {@link Path directory} where to write the version to a {@link #FILE_SOFTWARE_VERSION version file}.
+   */
+  void writeVersionFile(VersionIdentifier version, Path installationPath);
+
+  /**
+   * Verifies that current {@link IdeVersion} satisfies {@link IdeVariables#IDE_MIN_VERSION}.
+   *
+   * @param throwException whether to throw a {@link CliException} or just log a warning.
+   */
+  void verifyIdeMinVersion(boolean throwException);
+
+  /**
+   * @return the path for the variable COREPACK_HOME, or null if called outside an IDEasy installation.
+   */
+  default Path getCorePackHome() {
+    if (getIdeHome() == null) {
+      return null;
+    }
+    Corepack corepack = getCommandletManager().getCommandlet(Corepack.class);
+    return corepack.getOrCreateCorepackHomeFolder();
+  }
+
+  /**
+   * @return the path for the variable NPM_CONFIG_USERCONFIG, or null if called outside an IDEasy installation.
+   */
+  default Path getNpmConfigUserConfig() {
+    if (getIdeHome() == null) {
+      return null;
+    }
+    Npm npm = getCommandletManager().getCommandlet(Npm.class);
+    return npm.getOrCreateNpmConfigUserConfig();
+  }
 }

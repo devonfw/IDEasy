@@ -8,10 +8,8 @@ import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
  */
 public class VsCodeUrlUpdater extends GithubUrlUpdater {
 
-  private static final String BASE_URL = "https://update.code.visualstudio.com";
-
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "vscode";
   }
@@ -23,22 +21,22 @@ public class VsCodeUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
-  protected String getBaseUrl() {
+  protected String getDownloadBaseUrl() {
 
-    return BASE_URL;
+    return "https://update.code.visualstudio.com";
   }
 
   @Override
   protected void addVersion(UrlVersion urlVersion) {
 
-    String baseUrl = getBaseUrl() + "/${version}/";
+    String baseUrl = getDownloadBaseUrl() + "/${version}/";
     doAddVersion(urlVersion, baseUrl + "win32-x64-archive/stable", WINDOWS);
     doAddVersion(urlVersion, baseUrl + "linux-x64/stable", LINUX);
     doAddVersion(urlVersion, baseUrl + "darwin/stable", MAC);
   }
 
   @Override
-  protected String mapVersion(String version) {
+  public String mapVersion(String version) {
 
     if (version.matches("\\d+\\.\\d+\\.\\d+")) {
       return super.mapVersion(version);

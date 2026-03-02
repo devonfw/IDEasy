@@ -1,0 +1,13 @@
+{
+  "bundles": [
+    {
+      "name": "com.sun.org.apache.xpath.internal.res.XPATHErrorResources",
+      "locales": [
+        "en",
+        "de",
+        "es",
+        "it"
+      ]
+    }
+  ]
+}

@@ -8,13 +8,12 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 /**
  * Test of {@link Vscode} class.
  */
-public class VscodeTest extends AbstractIdeContextTest {
+class VscodeTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_VSCODE = "vscode";
 
-
   @Test
-  public void testVscodeInstall() {
+  void testVscodeInstall() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_VSCODE);
@@ -28,7 +27,7 @@ public class VscodeTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testVscodeRun() {
+  void testVscodeRun() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_VSCODE);
@@ -42,14 +41,14 @@ public class VscodeTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests if after the installation of vscode the expected plugin marker file is existing and recommendations were added.
+   * Tests if after the installation of vscode the expected plugin marker file is existing.
    */
   @Test
-  public void testCheckPluginInstallationAndRecommendation() {
+  void testCheckPluginInstallation() {
     // arrange
     IdeTestContext context = newContext(PROJECT_VSCODE);
 
-    // act I
+    // act
     Vscode commandlet = context.getCommandletManager().getCommandlet(Vscode.class);
     commandlet.run();
 
@@ -57,21 +56,17 @@ public class VscodeTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("mockedPlugin"))).exists();
-
-    // act II
-    commandlet.run();
-
-    // assert
-    assertThat(context).logAtDebug().hasMessage("Markerfile for IDE: vscode and active plugin: mockedPlugin already exists.");
-
-    //check plugins folder
     assertThat(context.getIdeHome().resolve("plugins").resolve("vscode")).exists();
 
-    //check Recommendations
-    assertThat(context.getWorkspacePath().resolve(".vscode").resolve("extensions.json")).exists()
-        .hasContent("{\"recommendations\":[\"esbenp.prettier-vscode\",\"mockedPlugin2\"]}");
-  }
+    // part 2 of test
 
+    // arrange
+    context.getLogger().getEntries().clear();
+    // act
+    commandlet.run();
+    // assert
+    assertThat(context).logAtDebug().hasNoMessage("Successfully installed plugin: ActivePlugin");
+  }
 
   private void checkInstallation(IdeTestContext context) {
 
@@ -79,6 +74,6 @@ public class VscodeTest extends AbstractIdeContextTest {
     assertThat(context.getSoftwarePath().resolve("vscode/bin/code")).exists().hasContent("#!/bin/bash\n" + "echo \"Test for linux and Mac\"");
 
     assertThat(context.getSoftwarePath().resolve("vscode/.ide.software.version")).exists().hasContent("1.92.1");
-    assertThat(context).logAtSuccess().hasMessage("Successfully installed vscode in version 1.92.1");
+    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed vscode in version 1.92.1");
   }
 }

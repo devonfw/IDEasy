@@ -43,25 +43,79 @@ Then you need to manually configure your account details like in the following e
 export IDE_OPTIONS="-Dhttps.proxyUser=$USERNAME -Dhttps.proxyPassword=«password»"
 ```
 
-=== Truststore
+=== TLS Certificate issues
 
 Some strange VPN tools have the bad habit to break up and sniff TLS encrypted connections.
-Therefore, they create their own TLS connection with a self-made certificate that is typically installed into the certificate trust store of the OS during installation.
-However, tools like Java or Firefox do not use the OS trust store but bring their own and therefore may reveal this hack.
+Therefore, they create their own TLS connection with a self-made certificate that is typically installed into the certificate trust store of the OS during installation (and also to Firefox, etc.).
+This way the VPN tool can hide this hack and that it is breaking your end-to-end encryption.
+You may want to carefully observe the certificate in your browser from clicking on the lock icon.
+If that certificate belongs to your VPN tool and not to the website you are browsing, then you are affected by this problem.
+
 In IDEasy (or Eclipse Marketplace) you may therefore end up with the following error:
 
 ```
 javax.net.ssl.SSLHandshakeException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
 ```
 
-So in other words, you may want to create a proper https://www.baeldung.com/java-keystore-truststore-difference#java-truststore[truststore] and configure IDEasy like this:
-
-```
-export IDE_OPTIONS="-Djavax.net.ssl.trustStore=/path/to/another/truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit"
-```
-
-Sorry, that we cannot support you automatically on this use-case.
-Ask your VPN tool vendor for support and why this is all required.
-In general encryption should be end-to-end and your data should be protected.
+This is not a bug of IDEasy but actually showing that it is working correct and keeping you safe.
 You may also want to visit https://badssl.com/ while your VPN tool is active and click the certificate tests like https://pinning-test.badssl.com/[pinning-test].
 If you then do not get an error in your browser (like "Secure connection failed") but a red warning page, your VPN tools is putting you at risk with breaking your TLS connections.
+
+However, if you are forced by your company to use such VPN tool and cannot exit from the VPN connection, you are entirely blocked.
+From IDEasy we want to still support you and not leave you alone in the rain with this problem even though this is actually a problem of your VPN tool and your company is rather putting you at risk than keeping you safe.
+Therefore, we provide you with a workaround so you can use IDEasy even in your environment.
+
+=== Truststore
+
+So if you are affected by TLS cerificate validation errors as described above, you need to do the following things:
+
+1. Open the failing HTTPS URL in your browser (e.g. from an error such as `java.lang.IllegalStateException: Failed to fetch XML metadata from https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/maven-metadata.xml ... PKIX path building failed`)
+2. Click on the `lock` icon left to the URL address bar.
+3. Depending on your browser, you need to click different things to get to the popup showing the TLS certificate details (see https://www.ssl2buy.com/wiki/how-to-view-ssl-certificate-details-in-chrome-firefox-ie-microsoft-edge-vivaldi[cross-browser documentation] or for https://support.mozilla.org/en-US/kb/secure-website-certificate#w_viewing-a-certificate[Firefox], or https://serverfault.com/questions/1168555/export-full-chain-of-site-with-openssl-similar-to-what-chrome-would-do[for CLI geeks]).
+4. Export the entire certificate chain (or at least the root CA) to `$IDE_HOME/settings/myvpn.cer`.
+5. Open a bash terminal and ensure you are in your project home directory (`$IDE_HOME`).
++
+```
+icd -p «name-of-your-project»
+```
+6. Ensure you have (a recent version of) Java installed in your project
++
+```
+ide install java
+```
+7. Copy the Java truststore to your settings:
++
+```
+cp software/java/lib/security/cacerts settings/truststore.p12
+```
+8. Import the exported certificate from step 4. into the new truststore:
++
+```
+keytool -alias myvpn -import -keystore settings/truststore.p12 -storepass changeit -file settings/myvpn.cer
+```
+9. Configure this truststore for IDEasy:
++
+```
+export IDE_OPTIONS="-Djavax.net.ssl.trustStore=$IDE_HOME/settings/truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit"
+```
+10. Verify that the TLS issues are resolved:
++
+```
+ide status
+```
+This should not cause errors but say that you are online and tell you if updates of IDEasy are available or you are up-to-date.
+11. If that is now working fine, make this setting persistent:
++
+```
+touch ~/.ide/ide.properties
+echo 'export IDE_OPTIONS="-Djavax.net.ssl.trustStore=$IDE_HOME/settings/truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit"' >> ~/.ide/ide.properties
+```
+12. Open a new shell and try if `ide` commands (like `ide status`) are still working.
+13. You are now all set. Commit and push the `truststore.p12` file to your settings git repo to share it with your team.
+14. Provide a wiki page for your team with only step 11. and share it.
+15. If everybody in your team is affected by this VPN/TLS issue, you can even add the line directly to the https://github.com/devonfw/ide-settings/blob/main/templates/conf/ide.properties[conf/ide.properties template in your settings repo].
+
+Sorry, that we cannot support you automatically in this scenario.
+Ask your VPN tool vendor for support and why this is all required.
+In general encryption should be end-to-end and your data should be protected.
+But if you are not in a sane environment we have provided you with a nice workaround.

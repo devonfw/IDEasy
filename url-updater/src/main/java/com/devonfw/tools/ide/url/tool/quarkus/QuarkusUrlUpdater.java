@@ -12,7 +12,7 @@ public class QuarkusUrlUpdater extends GithubUrlUpdater {
   private static final VersionIdentifier MIN_QUARKUS_VID = VersionIdentifier.of("2.5.0");
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "quarkus";
   }
@@ -30,17 +30,11 @@ public class QuarkusUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
-  protected String getBaseUrl() {
-
-    return GITHUB_BASE_URL;
-  }
-
-  @Override
   protected void addVersion(UrlVersion urlVersion) {
 
     VersionIdentifier vid = urlVersion.getVersionIdentifier();
     if (vid.compareVersion(MIN_QUARKUS_VID).isGreater()) {
-      String baseUrl = getBaseUrl() + "/quarkusio/quarkus/releases/download/${version}/quarkus-cli-${version}";
+      String baseUrl = getDownloadBaseUrl() + "/quarkusio/quarkus/releases/download/${version}/quarkus-cli-${version}";
       doAddVersion(urlVersion, baseUrl + ".zip", WINDOWS);
       doAddVersion(urlVersion, baseUrl + ".tar.gz");
     }
@@ -58,9 +52,4 @@ public class QuarkusUrlUpdater extends GithubUrlUpdater {
     return "quarkus";
   }
 
-  @Override
-  public String mapUrlVersionToCpeVersion(String version) {
-
-    return version.replaceAll("[^\\d.]", "");
-  }
 }

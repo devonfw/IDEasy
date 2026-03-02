@@ -6,7 +6,7 @@
   <parent>
     <groupId>com.devonfw</groupId>
     <artifactId>maven-parent</artifactId>
-    <version>13</version>
+    <version>14</version>
   </parent>
   <groupId>com.devonfw.tools.IDEasy.dev</groupId>
   <artifactId>ide</artifactId>
@@ -30,7 +30,7 @@
     <native.maven.plugin.version>0.10.6</native.maven.plugin.version>
     <assembly.maven.plugin.version>3.7.1</assembly.maven.plugin.version>
     <build.helper.maven.plugin.version>3.6.0</build.helper.maven.plugin.version>
-    <graalvm.version>24.2.0</graalvm.version>
+    <graalvm.version>24.2.1</graalvm.version>
   </properties>
 
   <dependencyManagement>
@@ -73,7 +73,7 @@
       <dependency>
         <groupId>org.junit.jupiter</groupId>
         <artifactId>junit-jupiter</artifactId>
-        <version>5.12.1</version>
+        <version>5.12.2</version>
       </dependency>
       <dependency>
         <groupId>org.assertj</groupId>
@@ -114,7 +114,7 @@
         <!-- required for advanced mocking -->
         <groupId>net.bytebuddy</groupId>
         <artifactId>byte-buddy</artifactId>
-        <version>1.17.2</version>
+        <version>1.17.5</version>
       </dependency>
       <dependency>
         <groupId>org.xmlunit</groupId>
@@ -129,7 +129,7 @@
       <dependency>
         <groupId>org.wiremock</groupId>
         <artifactId>wiremock</artifactId>
-        <version>3.11.0</version>
+        <version>3.13.0</version>
       </dependency>
       <dependency>
         <groupId>org.testfx</groupId>
@@ -165,6 +165,7 @@
     <module>cli</module>
     <module>gui</module>
     <module>url-updater</module>
+    <module>security</module>
   </modules>
 
   <build>
@@ -199,12 +200,12 @@
       <plugin>
         <groupId>org.pitest</groupId>
         <artifactId>pitest-maven</artifactId>
-        <version>1.19.0</version>
+        <version>1.19.1</version>
         <dependencies>
           <dependency>
             <groupId>org.pitest</groupId>
             <artifactId>pitest-junit5-plugin</artifactId>
-            <version>1.2.1</version>
+            <version>1.2.2</version>
           </dependency>
         </dependencies>
       </plugin>

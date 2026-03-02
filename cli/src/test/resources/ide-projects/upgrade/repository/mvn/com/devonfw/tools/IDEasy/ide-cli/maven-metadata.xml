@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<metadata modelVersion="1.1.0">
+  <groupId>com.devonfw.tools.IDEasy</groupId>
+  <artifactId>ide-cli</artifactId>
+  <versioning>
+    <latest>2025.12.001-SNAPSHOT</latest>
+    <versions>
+      <version>2025.09.001-SNAPSHOT</version>
+      <version>2025.10.001-SNAPSHOT</version>
+      <version>2025.10.002-SNAPSHOT</version>
+      <version>2025.11.001-SNAPSHOT</version>
+      <version>2025.12.001-SNAPSHOT</version>
+    </versions>
+    <lastUpdated>20251213032809</lastUpdated>
+  </versioning>
+</metadata>

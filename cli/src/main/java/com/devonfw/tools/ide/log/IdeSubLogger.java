@@ -52,12 +52,4 @@ public interface IdeSubLogger {
    */
   IdeLogLevel getLevel();
 
-  /**
-   * ATTENTION: When using static mock implementations via {@code IdeTestContextMock}, this value should never be asserted since it is accumulated over JVM
-   * lifetime.
-   *
-   * @return the number of {@code log} method calls that have been tracked by this {@link IdeSubLogger}.
-   */
-  int getCount();
-
 }

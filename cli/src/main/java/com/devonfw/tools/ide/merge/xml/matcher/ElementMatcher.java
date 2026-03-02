@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.merge.xml.matcher;
 
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import javax.xml.namespace.QName;
@@ -20,14 +21,22 @@ public class ElementMatcher {
 
   private final Map<String, IdComputer> id2ComputerMap;
 
+  private final Path templatePath;
+
+  private final Path workspacePath;
+
   /**
    * The constructor.
    *
    * @param context the {@link IdeContext}.
+   * @param templatePath the {@link Path} to the template XML file.
+   * @param workspacePath the {@link Path} to the workspace XML file.
    */
-  public ElementMatcher(IdeContext context) {
+  public ElementMatcher(IdeContext context, Path templatePath, Path workspacePath) {
 
     this.context = context;
+    this.templatePath = templatePath;
+    this.workspacePath = workspacePath;
     this.qName2IdMap = new HashMap<>();
     this.id2ComputerMap = new HashMap<>();
   }
@@ -58,6 +67,6 @@ public class ElementMatcher {
   public Element matchElement(Element templateElement, Element workspaceElement) {
 
     IdComputer idComputer = getIdComputer(templateElement);
-    return idComputer.evaluateExpression(templateElement, workspaceElement);
+    return idComputer.evaluateExpression(templateElement, workspaceElement, this.templatePath, this.workspacePath);
   }
 }

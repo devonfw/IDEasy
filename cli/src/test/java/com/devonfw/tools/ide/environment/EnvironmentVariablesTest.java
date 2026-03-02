@@ -1,14 +1,18 @@
 package com.devonfw.tools.ide.environment;
 
+import java.nio.file.Path;
+
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.tool.mvn.Mvn;
+import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
  * Test of {@link EnvironmentVariables}.
  */
-public class EnvironmentVariablesTest extends AbstractIdeContextTest {
+class EnvironmentVariablesTest extends AbstractIdeContextTest {
 
   private static final String ENVIRONMENT_PROJECT = "environment";
 
@@ -16,7 +20,7 @@ public class EnvironmentVariablesTest extends AbstractIdeContextTest {
    * Test of {@link EnvironmentVariables#resolve(String, Object)} with self referencing variables.
    */
   @Test
-  public void testProperEvaluationOfVariables() {
+  void testProperEvaluationOfVariables() {
 
     // arrange
     String path = "project/workspaces/foo-test/my-git-repo";
@@ -65,9 +69,34 @@ public class EnvironmentVariablesTest extends AbstractIdeContextTest {
    * Test of {@link EnvironmentVariables#getToolVersionVariable(String)} and {@link EnvironmentVariables#getToolEditionVariable(String)}.
    */
   @Test
-  public void testGetToolVariable() {
+  void testGetToolVariable() {
 
     assertThat(EnvironmentVariables.getToolVersionVariable("android-studio")).isEqualTo("ANDROID_STUDIO_VERSION");
     assertThat(EnvironmentVariables.getToolEditionVariable("android-studio")).isEqualTo("ANDROID_STUDIO_EDITION");
+  }
+
+  /**
+   * Test of {@link EnvironmentVariablesSystem} not inheriting specific environment variables leaking values from other projects into the current one.
+   */
+  @Test
+  void testSpecificEnvironmentVariablesNotInheritedFromOtherProject() {
+
+    // arrange
+    IdeTestContext context = newContext(ENVIRONMENT_PROJECT, null, false);
+    EnvironmentVariables variables = context.getVariables();
+
+    // act
+    String mavenArgs = IdeVariables.MAVEN_ARGS.get(context);
+    Path m2Repo = IdeVariables.M2_REPO.get(context);
+    String javaHome = variables.get("JAVA_HOME");
+    String npmVersion = variables.get("NPM_VERSION");
+    String otherVariable = variables.get("OTHER_VARIABLE");
+
+    // assert
+    assertThat(mavenArgs).isEqualTo("-s " + context.getConfPath().resolve(Mvn.MVN_CONFIG_FOLDER).resolve(Mvn.SETTINGS_FILE));
+    assertThat(javaHome).isNotEqualTo("/usr/share/java");
+    assertThat(npmVersion).isNull();
+    assertThat(m2Repo).isEqualTo(context.getUserHome().resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER).resolve("repository"));
+    assertThat(otherVariable).isEqualTo("other value");
   }
 }

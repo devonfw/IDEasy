@@ -63,6 +63,16 @@ public class IdeLoggerImpl implements IdeLogger {
   }
 
   /**
+   * @param colored the new {@link AbstractIdeSubLogger#isColored() colored flag}.
+   */
+  protected void setLogColors(boolean colored) {
+
+    for (IdeLogLevel level : IdeLogLevel.values()) {
+      this.loggers[level.ordinal()].setColored(colored);
+    }
+  }
+
+  /**
    * @param logLevel the {@link IdeLogLevel} to modify.
    * @param enabled - {@code true} to enable, {@code false} to disable.
    */
@@ -78,7 +88,34 @@ public class IdeLoggerImpl implements IdeLogger {
 
     if (this.listener instanceof IdeLogListenerBuffer buffer) {
       // https://github.com/devonfw/IDEasy/issues/754
-      buffer.flushAndDisable(this);
+      buffer.flushAndEndBuffering(this);
+    }
+  }
+
+  /**
+   * Disables the logging system (temporary).
+   *
+   * @param threshold the {@link IdeLogLevel} acting as threshold.
+   * @see com.devonfw.tools.ide.context.IdeContext#runWithoutLogging(Runnable, IdeLogLevel)
+   */
+  public void deactivateLogging(IdeLogLevel threshold) {
+
+    if (this.listener instanceof IdeLogListenerBuffer buffer) {
+      buffer.startBuffering(threshold);
+    } else {
+      throw new IllegalStateException();
+    }
+  }
+
+  /**
+   * Internal method to set the {@link IdeLogArgFormatter}.
+   *
+   * @param argFormatter the {@link IdeLogArgFormatter}.
+   */
+  public void setArgFormatter(IdeLogArgFormatter argFormatter) {
+
+    for (AbstractIdeSubLogger logger : this.loggers) {
+      logger.setArgFormatter(argFormatter);
     }
   }
 

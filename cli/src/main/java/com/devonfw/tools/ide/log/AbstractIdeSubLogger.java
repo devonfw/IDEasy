@@ -14,22 +14,26 @@ public abstract class AbstractIdeSubLogger implements IdeSubLogger {
 
   final IdeLogListener listener;
 
-  protected final boolean colored;
+  protected boolean colored;
 
   private boolean enabled;
 
-  private int count;
+  private IdeLogArgFormatter argFormatter;
 
   /**
    * The constructor.
    *
    * @param level the {@link #getLevel() log-level}.
+   * @param colored - see {@link #isColored()}.
+   * @param exceptionDetails the {@link IdeLogExceptionDetails} configuring how to handle exceptions.
+   * @param listener the {@link IdeLogListener} to send log-events to.
    */
   public AbstractIdeSubLogger(IdeLogLevel level, boolean colored, IdeLogExceptionDetails exceptionDetails, IdeLogListener listener) {
 
     super();
     this.level = level;
     this.exceptionDetails = exceptionDetails;
+    this.argFormatter = IdeLogArgFormatter.DEFAULT;
     if (listener == null) {
       this.listener = IdeLogListenerNone.INSTANCE;
     } else {
@@ -56,11 +60,9 @@ public abstract class AbstractIdeSubLogger implements IdeSubLogger {
     this.enabled = enabled;
   }
 
-
-  @Override
-  public int getCount() {
-
-    return this.count;
+  void setColored(boolean colored) {
+    
+    this.colored = colored;
   }
 
   /**
@@ -85,7 +87,7 @@ public abstract class AbstractIdeSubLogger implements IdeSubLogger {
     StringBuilder sb = new StringBuilder(length + 48);
     while (pos >= 0) {
       sb.append(message, start, pos);
-      sb.append(args[argIndex++]);
+      sb.append(this.argFormatter.formatArgument(args[argIndex++]));
       start = pos + 2;
       pos = message.indexOf("{}", start);
       if ((argIndex >= args.length) && (pos > 0)) {
@@ -134,7 +136,6 @@ public abstract class AbstractIdeSubLogger implements IdeSubLogger {
   public String log(Throwable error, String message, Object... args) {
 
     if (!this.enabled) {
-      this.count++;
       // performance optimization: do not fill in arguments if disabled
       return message;
     }
@@ -158,7 +159,6 @@ public abstract class AbstractIdeSubLogger implements IdeSubLogger {
     }
     boolean accept = this.listener.onLog(this.level, actualMessage, message, args, error);
     if (accept) {
-      this.count++;
       doLog(actualMessage, error);
     }
     return actualMessage;
@@ -174,6 +174,14 @@ public abstract class AbstractIdeSubLogger implements IdeSubLogger {
    * @param error the optional {@link Throwable} to log or {@code null} for no error.
    */
   protected abstract void doLog(String message, Throwable error);
+
+  /**
+   * @param argFormatter the new {@link IdeLogArgFormatter} to use.
+   */
+  void setArgFormatter(IdeLogArgFormatter argFormatter) {
+
+    this.argFormatter = argFormatter;
+  }
 
   @Override
   public String toString() {

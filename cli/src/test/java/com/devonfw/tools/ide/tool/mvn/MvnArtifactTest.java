@@ -6,13 +6,13 @@ import org.junit.jupiter.api.Test;
 /**
  * Test of {@link MvnArtifact}.
  */
-public class MvnArtifactTest extends Assertions {
+class MvnArtifactTest extends Assertions {
 
   /**
    * Test of {@link MvnArtifact#ofIdeasyCli(String, String, String)}.
    */
   @Test
-  public void testIdeasyCli() {
+  void testIdeasyCli() {
 
     // arrange
     String version = "2025.12.001";
@@ -40,7 +40,7 @@ public class MvnArtifactTest extends Assertions {
    * Test of {@link MvnArtifact#ofIdeasyCli(String, String, String)} with SNAPSHOT version.
    */
   @Test
-  public void testIdeasyCliSnapshot() {
+  void testIdeasyCliSnapshot() {
 
     // arrange
     String version = "2025.01.003-beta-20250130.023001-3";
@@ -59,7 +59,7 @@ public class MvnArtifactTest extends Assertions {
         "com/devonfw/tools/IDEasy/ide-cli/2025.01.003-beta-SNAPSHOT/ide-cli-2025.01.003-beta-20250130.023001-3-windows-x64.tar.gz");
     assertThat(artifact).hasToString("com.devonfw.tools.IDEasy:ide-cli:2025.01.003-beta-20250130.023001-3:tar.gz:windows-x64");
     assertThat(artifact.getDownloadUrl()).isEqualTo(
-        "https://s01.oss.sonatype.org/content/repositories/snapshots/com/devonfw/tools/IDEasy/ide-cli/2025.01.003-beta-SNAPSHOT/ide-cli-2025.01.003-beta-20250130.023001-3-windows-x64.tar.gz");
+        "https://central.sonatype.com/repository/maven-snapshots/com/devonfw/tools/IDEasy/ide-cli/2025.01.003-beta-SNAPSHOT/ide-cli-2025.01.003-beta-20250130.023001-3-windows-x64.tar.gz");
     assertThat(artifact.getKey()).isEqualTo(artifact.toString());
     assertThat(artifact).isEqualTo(equal);
     assertThat(artifact.hashCode()).isEqualTo(equal.hashCode());
@@ -69,7 +69,7 @@ public class MvnArtifactTest extends Assertions {
    * Test of {@link MvnArtifact#withMavenMetadata()}.
    */
   @Test
-  public void testMetadata() {
+  void testMetadata() {
 
     // arrange
     String groupId = "org.apache.maven.plugins";
@@ -98,7 +98,7 @@ public class MvnArtifactTest extends Assertions {
    * Test of {@link MvnArtifact#withMavenMetadata()}.
    */
   @Test
-  public void testMetadataWithSnapshot() {
+  void testMetadataWithSnapshot() {
 
     // arrange
     String groupId = "org.apache.maven.plugins";
@@ -118,7 +118,7 @@ public class MvnArtifactTest extends Assertions {
     assertThat(artifact).hasToString("org.apache.maven.plugins:maven-clean-plugin:*-SNAPSHOT:xml");
     assertThat(artifact.getKey()).isEqualTo(artifact.toString());
     assertThat(artifact.getDownloadUrl()).isEqualTo(
-        "https://s01.oss.sonatype.org/content/repositories/snapshots/org/apache/maven/plugins/maven-clean-plugin/maven-metadata.xml");
+        "https://central.sonatype.com/repository/maven-snapshots/org/apache/maven/plugins/maven-clean-plugin/maven-metadata.xml");
     assertThat(artifact).isEqualTo(equal);
     assertThat(artifact.hashCode()).isEqualTo(equal.hashCode());
   }

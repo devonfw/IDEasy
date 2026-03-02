@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Test of {@link CliArgument}.
  */
-public class CliArgumentTest extends Assertions {
+class CliArgumentTest extends Assertions {
 
   private CliArgument of(String... args) {
 
@@ -25,7 +25,7 @@ public class CliArgumentTest extends Assertions {
    * Test of {@link CliArgument} with simple usage.
    */
   @Test
-  public void testSimple() {
+  void testSimple() {
 
     // arrange
     String[] args = { "one", "two", "three" };
@@ -52,7 +52,7 @@ public class CliArgumentTest extends Assertions {
    * Test of {@link CliArgument} with combined options.
    */
   @Test
-  public void testCombinedOptions() {
+  void testCombinedOptions() {
 
     // arrange
     boolean split = true;
@@ -91,7 +91,7 @@ public class CliArgumentTest extends Assertions {
    * Test of {@link CliArgument} with combined options.
    */
   @Test
-  public void testCombinedOptionsNoSplit() {
+  void testCombinedOptionsNoSplit() {
 
     // arrange
     String[] args = { "-abc", "-xyz", "--abc", "abc" };
@@ -117,7 +117,7 @@ public class CliArgumentTest extends Assertions {
    * Test of {@link CliArgument} with key-value arguments.
    */
   @Test
-  public void testKeyValue() {
+  void testKeyValue() {
 
     // arrange
     boolean split = true;
@@ -154,7 +154,7 @@ public class CliArgumentTest extends Assertions {
   }
 
   @Test
-  public void testIsOption() {
+  void testIsOption() {
 
     CliArgument empty = of("");
     CliArgument notanoption = of("arg");
@@ -173,7 +173,7 @@ public class CliArgumentTest extends Assertions {
   }
 
   @Test
-  public void testIsLongOption() {
+  void testIsLongOption() {
 
     CliArgument empty = of("");
     CliArgument notanoption = of("arg");
@@ -191,7 +191,7 @@ public class CliArgumentTest extends Assertions {
   }
 
   @Test
-  public void testIsShortOption() {
+  void testIsShortOption() {
 
     CliArgument empty = of("");
     CliArgument notanoption = of("arg");
@@ -209,7 +209,7 @@ public class CliArgumentTest extends Assertions {
   }
 
   @Test
-  public void testIsCombinedShortOption() {
+  void testIsCombinedShortOption() {
 
     CliArgument empty = of("");
     CliArgument notanoption = of("arg");
@@ -227,7 +227,7 @@ public class CliArgumentTest extends Assertions {
   }
 
   @Test
-  public void testToString() {
+  void testToString() {
 
     // arrange
     String[] args = { "one", "two", "-s", "--long", "-combined" };

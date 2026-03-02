@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Test of {@link CliArguments}.
  */
-public class CliArgumentsTest extends Assertions {
+class CliArgumentsTest extends Assertions {
 
   private CliArguments of(String... args) {
 
@@ -19,7 +19,7 @@ public class CliArgumentsTest extends Assertions {
    * Test of {@link CliArgument}s toString method.
    */
   @Test
-  public void testToString() {
+  void testToString() {
 
     // arrange
     String[] args = { "one", "-two", "--three" };
@@ -36,7 +36,7 @@ public class CliArgumentsTest extends Assertions {
    * Test of {@link CliArgument} with simple usage.
    */
   @Test
-  public void testSimple() {
+  void testSimple() {
 
     // arrange
     String[] args = { "one", "two", "three" };
@@ -62,7 +62,7 @@ public class CliArgumentsTest extends Assertions {
    * Test of {@link CliArgument} with combined options.
    */
   @Test
-  public void testCombinedOptions() {
+  void testCombinedOptions() {
 
     // arrange
     String[] args = { "-abc", "-xyz", "--abc", "abc" };
@@ -103,7 +103,7 @@ public class CliArgumentsTest extends Assertions {
    * Test of {@link CliArgument} with combined options.
    */
   @Test
-  public void testCombinedOptionsNoSplit() {
+  void testCombinedOptionsNoSplit() {
 
     // arrange
     String[] args = { "-abc", "-xyz", "--abc", "abc" };
@@ -133,7 +133,7 @@ public class CliArgumentsTest extends Assertions {
    * Test of {@link CliArgument} with key-value arguments.
    */
   @Test
-  public void testKeyValue() {
+  void testKeyValue() {
 
     // arrange
     String[] args = { "--locale=de", "time=23:59:59", "key=", "=value", "key==", "==value" };
