@@ -16,9 +16,6 @@ Install Git: https://git-scm.com/download/ (only if you do not already have Git 
 * *A GitHub account* +
 Send your GitHub login name/ID via Teams chat to the IDEasy team so they can grant you additional permissions (or to *hohwille*, i.e., https://github.com/hohwille/).
 
-* *IDE* of your choice +
-We recommend *IntelliJ*. Install it from: https://www.jetbrains.com/idea/download/?section=windows
-
 NOTE: Please note that the following installation and setup steps are described primarily for *Windows* and *IntelliJ*. Other operating systems or IDEs may require slightly different steps.
 
 
