@@ -15,20 +15,19 @@ Install Git: https://git-scm.com/download/ (only if you do not already have Git 
 
 * *A GitHub account* +
 Send your GitHub login name/ID via Teams chat to the IDEasy team so they can grant you additional permissions (or to *hohwille*, i.e., https://github.com/hohwille/).
-
-NOTE: Please note that the following installation and setup steps are described primarily for *Windows* and *IntelliJ*. Other operating systems or IDEs may require slightly different steps.
-
++
+NOTE: Make sure your Git configuration matches your GitHub account:
++
+```
+git config user.name "«my_github_name»"
+git config user.email "«my_github_user_email»"
+```
 
 == Installation of IDEasy
 
-To start developing IDEasy, you must first install it on your computer.
+Before you continue, please install IDEasy on your system.
 
-*Quick start*: +
-Download the latest release of IDEasy https://github.com/devonfw/IDEasy/releases[here]. +
-Extract the contents of the downloaded archive (`ide-cli-*.tar.gz`) to a new folder and run `setup` in this folder (on Windows, double-click `setup.bat`).
-
-For details, see the link:setup.adoc[setup guide].
-
+For detailed, step‑by‑step installation instructions, including platform‑specific notes, see the link:setup.adoc[setup guide].
 
 == Set up the Development Environment
 
@@ -37,9 +36,9 @@ For details, see the link:setup.adoc[setup guide].
 ```
 ide create IDEasy -
 ```
-Wait until this process has finished (this will take several minutes). +
-This should create an IDEasy folder inside your `projects` folder (e.g., `D:\projects\IDEasy`) populated with the project. +
-On Windows, for example, under `C:\Users\«username»\projects`. If the `projects` folder does not exist, IDEasy will create it automatically and store the project there.
+Wait until this process has finished (this will take several minutes).
+This will create an `IDEasy` folder inside your `projects` directory, for example:
+`C:\Users\«username»\projects\IDEasy` on Windows and populate it with the project.
 
 . Fork the https://github.com/devonfw/ideasy[IDEasy] repository. +
 Create a fork by expanding the split button (left of the repo name, between *Watch* and *Star*) and choosing *Create a new fork*, so you get your own copy of IDEasy on GitHub. +
@@ -65,12 +64,12 @@ git remote add upstream https://github.com/devonfw/ideasy.git
 git fetch upstream
 ```
 +
-NOTE: Make sure your Git configuration matches your GitHub account:
+. Build the project and download all dependencies:
 +
 ```
-git config user.name "«my_github_login»"
-git config user.email "«my_github_user_email»"
+ide mvn clean install
 ```
++
 
 . Now you can open the project in your preferred IDE using the `ide` command. +
 For IntelliJ:
@@ -85,19 +84,13 @@ In IntelliJ, navigate to the IDEasy folder inside your main workspace directory,
 +
 TIP: If the Maven button is hidden or not visible, press `Alt+7` to open the **Structure** window below the project explorer. +
 Scroll down in the explorer to make the `pom.xml` file appear higher, enabling the option to be clicked. +
-Alternatively, use the keyboard arrows to navigate to the bottom of the right‑click menu.
 
-. To build the project and download all dependencies, run:
-+
-```
-ide mvn clean install
-```
-+
-You can run this in any terminal, or directly in your IDE’s terminal. +
-In IntelliJ, click the **Terminal** tab at the bottom (or press `Alt+F12`). +
-Make sure your terminal’s current directory is `workspaces/main/IDEasy` before running the command.
+Optional, for Windows user: +
+If you are developing on Windows, we strongly recommend reading the guide
+link:IDEasy-testing-linux-on-windows.adoc[Testing IDEasy Linux on Windows].
+It explains how to ensure a stable and performant environment when running Linux-based tools on Windows and is useful for every developer.
 
-Your setup is now complete. Before you start contributing, we recommend reviewing the documentation to get familiar with the IDEasy project. Afterwards, you can continue with the  https://github.com/devonfw/IDEasy/blob/main/documentation/IDEasy-contribution-rules-and-guidelines.adoc[Contribution Guidelines].
+Your setup is now complete. Before you start contributing, we recommend reviewing the documentation to get familiar with the IDEasy project. Afterwards, you can continue with the link:IDEasy-contribution-rules-and-guidelines.adoc[Contribution Guidelines].
 
 == Documentation
 
