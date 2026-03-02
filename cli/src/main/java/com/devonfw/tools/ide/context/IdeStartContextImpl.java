@@ -31,6 +31,8 @@ public class IdeStartContextImpl extends IdeLoggerImpl implements IdeStartContex
 
   private boolean privacyMode;
 
+  private boolean noColorsMode;
+
   private Locale locale;
 
   /**
@@ -114,19 +116,25 @@ public class IdeStartContextImpl extends IdeLoggerImpl implements IdeStartContex
     return this.forceRepositories;
   }
 
-  @Override
+  /**
+   * @param forcePull new value of {@link #isForcePull()}.
+   */
   public void setForcePull(boolean forcePull) {
 
     this.forcePull = forcePull;
   }
 
-  @Override
+  /**
+   * @param forcePlugins new value of {@link #isForcePlugins()}.
+   */
   public void setForcePlugins(boolean forcePlugins) {
 
     this.forcePlugins = forcePlugins;
   }
 
-  @Override
+  /**
+   * @param forceRepositories new value of {@link #isForceRepositories()}.
+   */
   public void setForceRepositories(boolean forceRepositories) {
 
     this.forceRepositories = forceRepositories;
@@ -153,7 +161,7 @@ public class IdeStartContextImpl extends IdeLoggerImpl implements IdeStartContex
   }
 
   /**
-   * @param skipUpdatesMode new value of {@link #isSkipUpdatesMode()} ()}.
+   * @param skipUpdatesMode new value of {@link #isSkipUpdatesMode()}.
    */
   public void setSkipUpdatesMode(boolean skipUpdatesMode) {
 
@@ -166,7 +174,6 @@ public class IdeStartContextImpl extends IdeLoggerImpl implements IdeStartContex
     return this.locale;
   }
 
-
   /**
    * @param locale new value of {@link #getLocale()}.
    */
@@ -175,4 +182,18 @@ public class IdeStartContextImpl extends IdeLoggerImpl implements IdeStartContex
     this.locale = locale;
   }
 
+  @Override
+  public boolean isNoColorsMode() {
+
+    return this.noColorsMode;
+  }
+
+  /**
+   * @param noColoursMode new value of {@link #isNoColorsMode()}.
+   */
+  public void setNoColorsMode(boolean noColoursMode) {
+
+    this.noColorsMode = noColoursMode;
+    setLogColors(!noColoursMode);
+  }
 }

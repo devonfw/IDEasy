@@ -24,7 +24,7 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 /**
  * Unit tests of {@link ProcessContextImpl}.
  */
-public class ProcessContextImplTest extends AbstractIdeContextTest {
+class ProcessContextImplTest extends AbstractIdeContextTest {
 
   private ProcessContextImpl processContextUnderTest;
 
@@ -35,7 +35,7 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
   private IdeTestContext context;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  void setUp() throws Exception {
 
     this.mockProcessBuilder = mock(ProcessBuilder.class);
     this.context = newContext(PROJECT_BASIC, null, false);
@@ -69,7 +69,7 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void missingExecutableShouldThrowIllegalState() throws Exception {
+  void missingExecutableShouldThrowIllegalState() throws Exception {
 
     // arrange
     String expectedMessage = "Missing executable to run process!";
@@ -91,7 +91,7 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void onSuccessfulProcessStartReturnSuccessResult() throws Exception {
+  void onSuccessfulProcessStartReturnSuccessResult() throws Exception {
 
     // arrange
 
@@ -111,7 +111,7 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void enablingCaptureShouldRedirectAndCaptureStreamsCorrectly() throws Exception {
+  void enablingCaptureShouldRedirectAndCaptureStreamsCorrectly() throws Exception {
 
     // arrange
     when(this.processMock.waitFor()).thenReturn(ProcessResult.SUCCESS);
@@ -142,7 +142,7 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
 
   @ParameterizedTest
   @EnumSource(value = ProcessMode.class, names = { "BACKGROUND", "BACKGROUND_SILENT" })
-  public void enablingBackgroundProcessShouldNotBeAwaitedAndShouldNotPassStreams(ProcessMode processMode)
+  void enablingBackgroundProcessShouldNotBeAwaitedAndShouldNotPassStreams(ProcessMode processMode)
       throws Exception {
 
     // arrange
@@ -174,7 +174,7 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void unsuccessfulProcessShouldThrowIllegalState() throws Exception {
+  void unsuccessfulProcessShouldThrowIllegalState() throws Exception {
 
     // arrange
     when(this.processMock.waitFor()).thenReturn(ProcessResult.TOOL_NOT_INSTALLED);
@@ -190,7 +190,7 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
 
   @ParameterizedTest
   @EnumSource(value = ProcessErrorHandling.class, names = { "LOG_WARNING", "LOG_ERROR" })
-  public void processWarningAndErrorShouldBeLogged(ProcessErrorHandling processErrorHandling) throws Exception {
+  void processWarningAndErrorShouldBeLogged(ProcessErrorHandling processErrorHandling) throws Exception {
 
     // arrange
     when(this.processMock.waitFor()).thenReturn(ProcessResult.TOOL_NOT_INSTALLED);
@@ -205,7 +205,7 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void enablingCaptureShouldRedirectAndCaptureStreamsWithErrorsCorrectly() {
+  void enablingCaptureShouldRedirectAndCaptureStreamsWithErrorsCorrectly() {
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC, null, false);
 
@@ -222,7 +222,7 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void defaultCaptureShouldCaptureStreamsWithCorrectOrder() {
+  void defaultCaptureShouldCaptureStreamsWithCorrectOrder() {
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC, null, false);
 
@@ -240,6 +240,22 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
       case LOG_WARNING -> IdeLogLevel.WARNING;
       case LOG_ERROR -> IdeLogLevel.ERROR;
     };
+  }
+
+  @Test
+  void testModifyArgumentsOnBackgroundProcessWithBackgroundMode() throws Exception {
+
+    // This test verifies that modifyArgumentsOnBackgroundProcess works correctly
+    // with background process modes (it should not throw an exception or fail an assert)
+
+    // arrange
+    when(this.processMock.waitFor()).thenReturn(ProcessResult.SUCCESS);
+
+    // act & assert - this should not throw any exception
+    ProcessResult result = this.processContextUnderTest.run(ProcessMode.BACKGROUND);
+
+    // verify the result is successful
+    assertThat(result.isSuccessful()).isTrue();
   }
 
 }

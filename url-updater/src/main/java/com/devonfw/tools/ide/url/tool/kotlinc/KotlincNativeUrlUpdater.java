@@ -8,18 +8,25 @@ import com.devonfw.tools.ide.url.updater.WebsiteUrlUpdater;
 /**
  * {@link WebsiteUrlUpdater} for kotlinc-native.
  */
+// TODO refactor me to GithubUrlUpdater
 public class KotlincNativeUrlUpdater extends WebsiteUrlUpdater {
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "kotlinc-native";
   }
 
   @Override
+  protected String getDownloadBaseUrl() {
+
+    return "https://github.com";
+  }
+
+  @Override
   protected void addVersion(UrlVersion urlVersion) {
 
-    String baseUrl = "https://github.com/JetBrains/kotlin/releases/download/v${version}/kotlin-native-";
+    String baseUrl = getDownloadBaseUrl() + "/JetBrains/kotlin/releases/download/v${version}/kotlin-native-";
     doAddVersion(urlVersion, baseUrl + "windows-x86_64-${version}.zip", WINDOWS, X64);
     doAddVersion(urlVersion, baseUrl + "linux-x86_64-${version}.tar.gz", LINUX, X64);
     doAddVersion(urlVersion, baseUrl + "macos-x86_64-${version}.tar.gz", MAC, X64);
@@ -29,7 +36,13 @@ public class KotlincNativeUrlUpdater extends WebsiteUrlUpdater {
   @Override
   protected String getVersionUrl() {
 
-    return "https://api.github.com/repos/JetBrains/kotlin/releases";
+    return getVersionBaseUrl() + "/repos/JetBrains/kotlin/releases";
+  }
+
+  @Override
+  protected String getVersionBaseUrl() {
+
+    return "https://api.github.com";
   }
 
   @Override

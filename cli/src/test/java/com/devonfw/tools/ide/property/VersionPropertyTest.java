@@ -14,10 +14,13 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContextMock;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
+/**
+ * Test of {@link VersionProperty}.
+ */
 class VersionPropertyTest {
 
   @Test
-  public void testParse() {
+  void testParse() {
     IdeContext context = IdeTestContextMock.get();
     VersionProperty versionProp = new VersionProperty("", false, "");
 
@@ -30,7 +33,7 @@ class VersionPropertyTest {
    * versions is provided as argument, we except on versions as candidates to be returned.
    */
   @Test
-  public void testCompleteValueUnfitCommandlet() {
+  void testCompleteValueUnfitCommandlet() {
     IdeContext context = IdeTestContextMock.get();
     CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context);
     VersionProperty versionProp = new VersionProperty("", false, "");
@@ -45,7 +48,7 @@ class VersionPropertyTest {
    * completed, we expect this argument to be kept as is, and given as the sole candidate.
    */
   @Test
-  public void testCompleteValuePatternGiven() {
+  void testCompleteValuePatternGiven() {
     IdeContext context = IdeTestContextMock.get();
     String anyVersion = "*";
     String anyVersionAfter2 = "2.*";

@@ -26,8 +26,7 @@ public class UpdateCommandlet extends AbstractUpdateCommandlet {
 
   @Override
   public void run() {
-
-    super.run();
     new IdeMigrator().run(this.context);
+    super.run();
   }
 }

@@ -63,6 +63,16 @@ public class IdeLoggerImpl implements IdeLogger {
   }
 
   /**
+   * @param colored the new {@link AbstractIdeSubLogger#isColored() colored flag}.
+   */
+  protected void setLogColors(boolean colored) {
+
+    for (IdeLogLevel level : IdeLogLevel.values()) {
+      this.loggers[level.ordinal()].setColored(colored);
+    }
+  }
+
+  /**
    * @param logLevel the {@link IdeLogLevel} to modify.
    * @param enabled - {@code true} to enable, {@code false} to disable.
    */

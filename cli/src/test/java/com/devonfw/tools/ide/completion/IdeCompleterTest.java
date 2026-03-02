@@ -6,15 +6,15 @@ import com.devonfw.tools.ide.cli.AutocompletionReaderTestSupport;
 import com.devonfw.tools.ide.context.IdeTestContext;
 
 /**
- * Integration test of {@link IdeCompleter}.
+ * Test of {@link IdeCompleter}.
  */
-public class IdeCompleterTest extends AutocompletionReaderTestSupport {
+class IdeCompleterTest extends AutocompletionReaderTestSupport {
 
   /**
    * Test of 1st level auto-completion (commandlet name). As suggestions are sorted alphabetically "helm" will be the first match.
    */
   @Test
-  public void testIdeCompleterHelp() {
+  void testIdeCompleterHelp() {
 
     this.reader.setCompleter(newCompleter());
     assertBuffer("helm", new TestBuffer("he").tab().tab());
@@ -25,7 +25,7 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
    * has a long-option style.
    */
   @Test
-  public void testIdeCompleterVersion() {
+  void testIdeCompleterVersion() {
 
     this.reader.setCompleter(newCompleter());
     assertBuffer("--version ", new TestBuffer("--vers").tab());
@@ -36,7 +36,7 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
    * has a long-option style.
    */
   @Test
-  public void testIdeCompleterBatch() {
+  void testIdeCompleterBatch() {
 
     this.reader.setCompleter(newCompleter());
     assertBuffer("--batch ", new TestBuffer("--b").tab());
@@ -46,7 +46,7 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
    * Test of 2nd level auto-completion with tool property of {@link com.devonfw.tools.ide.commandlet.InstallCommandlet}.
    */
   @Test
-  public void testIdeCompleterInstall() {
+  void testIdeCompleterInstall() {
 
     this.reader.setCompleter(newCompleter());
     assertBuffer("install mvn ", new TestBuffer("install m").tab());
@@ -56,7 +56,7 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
    * Test of 2nd level auto-completion with commandlet property of {@link com.devonfw.tools.ide.commandlet.HelpCommandlet}.
    */
   @Test
-  public void testIdeCompleterHelpWithToolCompletion() {
+  void testIdeCompleterHelpWithToolCompletion() {
 
     this.reader.setCompleter(newCompleter());
     assertBuffer("help mvn ", new TestBuffer("help m").tab().tab());
@@ -66,11 +66,10 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
    * Test of second option completion that is already present as short-option.
    */
   @Test
-  public void testIdeCompleterDuplicatedOptions() {
+  void testIdeCompleterDuplicatedOptions() {
 
     this.reader.setCompleter(newCompleter());
     assertBuffer("-t --t", new TestBuffer("-t --t").tab());
-
   }
 
   /**
@@ -78,7 +77,7 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
    * version "3.2.1" is the latest one from the mocked "basic" project configured for the tool "mvn".
    */
   @Test
-  public void testIdeCompleterThirdLayerVersions() {
+  void testIdeCompleterThirdLayerVersions() {
 
     IdeTestContext ideContext = newContext(PROJECT_BASIC, null, false);
     this.reader.setCompleter(new IdeCompleter(ideContext));
@@ -89,7 +88,7 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
    * Test that 2nd level completion of undefined commandlet has no effect.
    */
   @Test
-  public void testIdeCompleterNonExistentCommand() {
+  void testIdeCompleterNonExistentCommand() {
 
     this.reader.setCompleter(newCompleter());
     assertBuffer("cd ", new TestBuffer("cd ").tab().tab().tab());
@@ -100,7 +99,7 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
    * Test that no options are completed on 2nd level for {@link com.devonfw.tools.ide.commandlet.VersionGetCommandlet} that has no options.
    */
   @Test
-  public void testIdeCompleterPreventsOptionsAfterCommandWithMinus() {
+  void testIdeCompleterPreventsOptionsAfterCommandWithMinus() {
 
     this.reader.setCompleter(newCompleter());
     assertBuffer("get-version --configured ", new TestBuffer("get-version -").tab().tab());
@@ -112,7 +111,7 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
    * Test that completion with invalid options does not trigger suggestions.
    */
   @Test
-  public void testIdeCompleterWithInvalidInputDoesNothing() {
+  void testIdeCompleterWithInvalidInputDoesNothing() {
 
     this.reader.setCompleter(newCompleter());
     assertBuffer("get-version -t ", new TestBuffer("get-version -t ").tab().tab());
@@ -124,7 +123,7 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
    * Test of 2nd level completion of tool property for {@link com.devonfw.tools.ide.commandlet.VersionGetCommandlet}.
    */
   @Test
-  public void testIdeCompleterHandlesOptionsBeforeCommand() {
+  void testIdeCompleterHandlesOptionsBeforeCommand() {
 
     this.reader.setCompleter(newCompleter());
     assertBuffer("get-version mvn ", new TestBuffer("get-version mv").tab().tab());
@@ -134,7 +133,7 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
    * Test of completion of options after commandlets.
    */
   @Test
-  public void testIdeCompleterWithOptionAfterCommandletWorks() {
+  void testIdeCompleterWithOptionAfterCommandletWorks() {
 
     this.reader.setCompleter(newCompleter());
     assertBuffer("env --bash ", new TestBuffer("env --ba").tab().tab());
@@ -144,7 +143,7 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
    * Test of completion of repository.
    */
   @Test
-  public void testIdeCompleterWithRepository() {
+  void testIdeCompleterWithRepository() {
 
     this.reader.setCompleter(newCompleter());
     assertBuffer("repository setup ", new TestBuffer("repository ").tab().tab());
@@ -154,7 +153,7 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
    * Test of completion of options and arguments after commandlets.
    */
   @Test
-  public void testIdeCompleterWithOptionAndArguments() {
+  void testIdeCompleterWithOptionAndArguments() {
 
     this.reader.setCompleter(newCompleter());
     assertBuffer("get-version --configured ", new TestBuffer("get-version --c").tab().tab());

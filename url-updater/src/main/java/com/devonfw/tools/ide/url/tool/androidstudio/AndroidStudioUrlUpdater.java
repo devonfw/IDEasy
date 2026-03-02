@@ -21,16 +21,20 @@ public class AndroidStudioUrlUpdater extends JsonUrlUpdater<AndroidJsonObject, A
 
   private static final Logger logger = LoggerFactory.getLogger(AndroidStudioUrlUpdater.class);
 
-  /**
-   * @return String of version base URL
-   */
+  @Override
   protected String getVersionBaseUrl() {
 
     return VERSION_BASE_URL;
   }
 
   @Override
-  protected String getTool() {
+  protected String getDownloadBaseUrl() {
+
+    return "undefined-taken-from-JSON";
+  }
+
+  @Override
+  public String getTool() {
 
     return "android-studio";
   }
@@ -80,6 +84,6 @@ public class AndroidStudioUrlUpdater extends JsonUrlUpdater<AndroidJsonObject, A
 
   @Override
   public String getCpeProduct() {
-    return "android studio";
+    return "android_studio";
   }
 }

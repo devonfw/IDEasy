@@ -10,7 +10,7 @@ import com.devonfw.tools.ide.environment.VariableLine;
 /**
  * Implementation of {@link VariableDefinition} for a variable with the {@link #getValueType() value type} {@link String}.
  */
-public class VariableDefinitionStringList extends AbstractVariableDefinition<List<String>> {
+public class VariableDefinitionStringList extends AbstractVariableDefinitionList<String> {
 
   /**
    * The constructor.
@@ -60,27 +60,16 @@ public class VariableDefinitionStringList extends AbstractVariableDefinition<Lis
     super(name, legacyName, defaultValueFactory, forceDefaultValue);
   }
 
-  @SuppressWarnings({ "unchecked", "rawtypes" })
   @Override
-  public Class<List<String>> getValueType() {
+  protected List<String> parseList(String value, IdeContext context) {
 
-    return (Class) List.class;
+    return Collections.unmodifiableList(VariableLine.parseArray(value));
   }
 
   @Override
-  public List<String> fromString(String value, IdeContext context) {
+  protected String parseValue(String value, IdeContext context) {
 
-    if (value.isEmpty()) {
-      return Collections.emptyList();
-    }
-    List<String> list = VariableLine.parseArray(value);
-    list = Collections.unmodifiableList(list);
-    return list;
-  }
-
-  private boolean isBashArray(String value) {
-
-    return value.startsWith("(") && value.endsWith(")");
+    return value;
   }
 
   @Override
@@ -88,26 +77,11 @@ public class VariableDefinitionStringList extends AbstractVariableDefinition<Lis
 
     line = super.migrateLine(line);
     String value = line.getValue();
-    if ((value != null) && isBashArray(value)) {
+    if ((value != null) && VariableLine.isBashArray(value)) {
       List<String> list = fromString(value, null);
       line = line.withValue(String.join(", ", list));
     }
     return line;
   }
 
-  @Override
-  public String toString(List<String> value, IdeContext context) {
-
-    if (value == null) {
-      return "";
-    }
-    StringBuilder sb = new StringBuilder(value.size() * 5);
-    for (Object element : value) {
-      if (sb.length() > 0) {
-        sb.append(',');
-      }
-      sb.append(element);
-    }
-    return sb.toString();
-  }
 }

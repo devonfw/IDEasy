@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.context;
 
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessContextImpl;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
@@ -18,6 +19,12 @@ public class ProcessContextTestImpl extends ProcessContextImpl {
   public ProcessContextTestImpl(IdeContext context) {
 
     super(context);
+  }
+
+  @Override
+  public ProcessContext createChild() {
+
+    return this;
   }
 
   @Override

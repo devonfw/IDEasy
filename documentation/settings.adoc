@@ -84,7 +84,9 @@ The settings folder has to follow this file structure:
 │  ├──/ ...
 │  └──/ https://github.com/devonfw/ide-settings/blob/main/repositories/README.adoc[README.adoc]
 ├──/ ...
-└── https://github.com/devonfw/ide-settings/blob/main/ide.properties[ide.properties]
+├── https://github.com/devonfw/ide-settings/blob/main/ide.properties[ide.properties]
+└── https://github.com/devonfw/ide-settings/blob/main/welcome.txt[welcome.txt]
+
 ----
 
 As you can see, the `settings` folder contains various configurations to customize IDEasy to your project needs.
@@ -111,3 +113,9 @@ However, every team member can contribute changes as pull-/merge-requests.
 You may also create new sub-folders in `settings` and put individual items according to your needs.
 E.g. you could add scripts for https://addons.mozilla.org/de/firefox/addon/greasemonkey[greasemonkey] or https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo[tampermonkey], as well as scripts for your database or whatever may be useful and worth to share in your team.
 However, to share and maintain knowledge we recommend to use a wiki.
+
+== Welcome message
+
+Simply add a file `welcome.txt` (or any other textual extension like `adoc` or `md`) to the root of your settings repository.
+The content of this file will be displayed as plain text to the end-user after creating a project from your settings with IDEasy (`ide create «project-name» «settings-url»`) in order to welcome the user.
+This is very helpful both for a warm welcome of your developers as well as for further project specific details such as internal wiki links or specific scripts or commands.

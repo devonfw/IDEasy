@@ -2,19 +2,21 @@ package com.devonfw.tools.ide.os;
 
 import java.util.Properties;
 
+import com.devonfw.tools.ide.context.IdeContext;
+
 /**
  * Mock implementation of {@link WindowsHelper} for testing.
  */
-public class WindowsHelperMock implements WindowsHelper {
+public class WindowsHelperMock extends WindowsHelperImpl {
 
   private final Properties env;
 
   /**
    * The constructor.
    */
-  public WindowsHelperMock() {
+  public WindowsHelperMock(IdeContext context) {
 
-    super();
+    super(context);
     this.env = new Properties();
     this.env.setProperty("IDE_ROOT", "C:\\projects");
     this.env.setProperty("PATH",
@@ -44,6 +46,8 @@ public class WindowsHelperMock implements WindowsHelper {
 
     if (WindowsHelperImpl.HKCU_ENVIRONMENT.equals(path)) {
       return getUserEnvironmentValue(key);
+    } else if (path.contains("GitForWindows")) {
+      return super.getRegistryValue(path, key);
     }
     return null;
   }

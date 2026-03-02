@@ -2,10 +2,6 @@ package com.devonfw.tools.ide.context;
 
 import static com.devonfw.tools.ide.variable.IdeVariables.IDE_MIN_VERSION;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -17,6 +13,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.function.Predicate;
 
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliArgument;
@@ -48,7 +45,8 @@ import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.migration.IdeMigrator;
-import com.devonfw.tools.ide.network.NetworkProxy;
+import com.devonfw.tools.ide.network.NetworkStatus;
+import com.devonfw.tools.ide.network.NetworkStatusImpl;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.WindowsHelper;
@@ -60,10 +58,12 @@ import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.step.StepImpl;
-import com.devonfw.tools.ide.tool.repository.CustomToolRepository;
-import com.devonfw.tools.ide.tool.repository.CustomToolRepositoryImpl;
+import com.devonfw.tools.ide.tool.custom.CustomToolRepository;
+import com.devonfw.tools.ide.tool.custom.CustomToolRepositoryImpl;
+import com.devonfw.tools.ide.tool.mvn.MvnRepository;
+import com.devonfw.tools.ide.tool.npm.NpmRepository;
+import com.devonfw.tools.ide.tool.pip.PipRepository;
 import com.devonfw.tools.ide.tool.repository.DefaultToolRepository;
-import com.devonfw.tools.ide.tool.repository.MavenRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.util.DateTimeUtil;
@@ -83,6 +83,10 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   private static final GitUrl IDE_URLS_GIT = new GitUrl("https://github.com/devonfw/ide-urls.git", null);
 
   private static final String LICENSE_URL = "https://github.com/devonfw/IDEasy/blob/main/documentation/LICENSE.adoc";
+  public static final String BASH = "bash";
+  private static final String DEFAULT_WINDOWS_GIT_PATH = "C:\\Program Files\\Git\\bin\\bash.exe";
+
+  private static final String OPTION_DETAILS_START = "([";
 
   private final IdeStartContextImpl startContext;
 
@@ -126,7 +130,11 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   private CustomToolRepository customToolRepository;
 
-  private final MavenRepository mavenRepository;
+  private MvnRepository mvnRepository;
+
+  private NpmRepository npmRepository;
+
+  private PipRepository pipRepository;
 
   private DirectoryMerger workspaceMerger;
 
@@ -136,15 +144,15 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   private StepImpl currentStep;
 
-  protected Boolean online;
+  private NetworkStatus networkStatus;
 
   protected IdeSystem system;
-
-  private NetworkProxy networkProxy;
 
   private WindowsHelper windowsHelper;
 
   private final Map<String, String> privacyMap;
+
+  private Path bash;
 
   /**
    * The constructor.
@@ -165,7 +173,6 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     if (userHomeProperty != null) {
       this.userHome = Path.of(userHomeProperty);
     }
-    String workspace = WORKSPACE_MAIN;
     if (workingDirectory == null) {
       workingDirectory = Path.of(System.getProperty("user.dir"));
     }
@@ -177,10 +184,46 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     }
     this.cwd = workingDirectory;
     // detect IDE_HOME and WORKSPACE
+    String workspace = null;
+    Path ideHomeDir = null;
+    IdeHomeAndWorkspace ideHomeAndWorkspace = findIdeHome(workingDirectory);
+    if (ideHomeAndWorkspace != null) {
+      ideHomeDir = ideHomeAndWorkspace.home();
+      workspace = ideHomeAndWorkspace.workspace();
+    }
+
+    // detection completed, initializing variables
+    this.ideRoot = findIdeRoot(ideHomeDir);
+
+    setCwd(workingDirectory, workspace, ideHomeDir);
+
+    if (this.ideRoot != null) {
+      Path tempDownloadPath = getTempDownloadPath();
+      if (Files.isDirectory(tempDownloadPath)) {
+        // TODO delete all files older than 1 day here...
+      } else {
+        this.fileAccess.mkdirs(tempDownloadPath);
+      }
+    }
+
+    this.defaultToolRepository = new DefaultToolRepository(this);
+  }
+
+  /**
+   * Searches for the IDE home directory by traversing up the directory tree from the given working directory. This method can be overridden in test contexts to
+   * add additional validation or boundary checks.
+   *
+   * @param workingDirectory the starting directory for the search.
+   * @return an instance of {@link IdeHomeAndWorkspace} where the IDE_HOME was found or {@code null} if not found.
+   */
+  protected IdeHomeAndWorkspace findIdeHome(Path workingDirectory) {
+
     Path currentDir = workingDirectory;
     String name1 = "";
     String name2 = "";
+    String workspace = WORKSPACE_MAIN;
     Path ideRootPath = getIdeRootPathFromEnv(false);
+
     while (currentDir != null) {
       trace("Looking for IDE_HOME in {}", currentDir);
       if (isIdeHome(currentDir)) {
@@ -201,22 +244,28 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       }
     }
 
-    // detection completed, initializing variables
-    this.ideRoot = findIdeRoot(currentDir);
+    return new IdeHomeAndWorkspace(currentDir, workspace);
+  }
 
-    setCwd(workingDirectory, workspace, currentDir);
+  /**
+   * @return a new {@link MvnRepository}
+   */
+  protected MvnRepository createMvnRepository() {
+    return new MvnRepository(this);
+  }
 
-    if (this.ideRoot != null) {
-      Path tempDownloadPath = getTempDownloadPath();
-      if (Files.isDirectory(tempDownloadPath)) {
-        // TODO delete all files older than 1 day here...
-      } else {
-        this.fileAccess.mkdirs(tempDownloadPath);
-      }
-    }
+  /**
+   * @return a new {@link NpmRepository}
+   */
+  protected NpmRepository createNpmRepository() {
+    return new NpmRepository(this);
+  }
 
-    this.defaultToolRepository = new DefaultToolRepository(this);
-    this.mavenRepository = new MavenRepository(this);
+  /**
+   * @return a new {@link PipRepository}
+   */
+  protected PipRepository createPipRepository() {
+    return new PipRepository(this);
   }
 
   private Path findIdeRoot(Path ideHomePath) {
@@ -345,7 +394,13 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     return new SystemPath(this);
   }
 
-  private boolean isIdeHome(Path dir) {
+  /**
+   * Checks if the given directory is a valid IDE home by verifying it contains both 'workspaces' and 'settings' directories.
+   *
+   * @param dir the directory to check.
+   * @return {@code true} if the directory is a valid IDE home, {@code false} otherwise.
+   */
+  protected boolean isIdeHome(Path dir) {
 
     if (!Files.isDirectory(dir.resolve("workspaces"))) {
       return false;
@@ -379,8 +434,6 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   @Override
   public FileAccess getFileAccess() {
 
-    // currently FileAccess contains download method and requires network proxy to be configured. Maybe download should be moved to its own interface/class
-    configureNetworkProxy();
     return this.fileAccess;
   }
 
@@ -397,9 +450,27 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   @Override
-  public MavenRepository getMavenToolRepository() {
+  public MvnRepository getMvnRepository() {
+    if (this.mvnRepository == null) {
+      this.mvnRepository = createMvnRepository();
+    }
+    return this.mvnRepository;
+  }
 
-    return this.mavenRepository;
+  @Override
+  public NpmRepository getNpmRepository() {
+    if (this.npmRepository == null) {
+      this.npmRepository = createNpmRepository();
+    }
+    return this.npmRepository;
+  }
+
+  @Override
+  public PipRepository getPipRepository() {
+    if (this.pipRepository == null) {
+      this.pipRepository = createPipRepository();
+    }
+    return this.pipRepository;
   }
 
   @Override
@@ -709,37 +780,18 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   @Override
-  public boolean isOnline() {
+  public boolean isNoColorsMode() {
 
-    if (this.online == null) {
-      configureNetworkProxy();
-      // we currently assume we have only a CLI process that runs shortly
-      // therefore we run this check only once to save resources when this method is called many times
-      String url = "https://www.github.com";
-      try {
-        int timeout = 1000;
-        //open a connection to github.com and try to retrieve data
-        //getContent fails if there is no connection
-        URLConnection connection = new URL(url).openConnection();
-        connection.setConnectTimeout(timeout);
-        connection.getContent();
-        this.online = Boolean.TRUE;
-      } catch (Exception e) {
-        if (debug().isEnabled()) {
-          debug().log(e, "Error when trying to connect to {}", url);
-        }
-        this.online = Boolean.FALSE;
-      }
-    }
-    return this.online.booleanValue();
+    return this.startContext.isNoColorsMode();
   }
 
-  private void configureNetworkProxy() {
+  @Override
+  public NetworkStatus getNetworkStatus() {
 
-    if (this.networkProxy == null) {
-      this.networkProxy = new NetworkProxy(this);
-      this.networkProxy.configure();
+    if (this.networkStatus == null) {
+      this.networkStatus = new NetworkStatusImpl(this);
     }
+    return this.networkStatus;
   }
 
   @Override
@@ -884,37 +936,33 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   @Override
   public String askForInput(String message, String defaultValue) {
 
-    if (!message.isBlank()) {
-      info(message);
-    }
-    if (isBatchMode()) {
-      if (isForceMode() || isForcePull()) {
-        return defaultValue;
+    while (true) {
+      if (!message.isBlank()) {
+        interaction(message);
+      }
+      if (isBatchMode()) {
+        if (isForceMode()) {
+          return defaultValue;
+        } else {
+          throw new CliAbortException();
+        }
+      }
+      String input = readLine().trim();
+      if (!input.isEmpty()) {
+        return input;
       } else {
-        throw new CliAbortException();
+        if (defaultValue != null) {
+          return defaultValue;
+        }
       }
     }
-    String input = readLine().trim();
-    return input.isEmpty() ? defaultValue : input;
-  }
-
-  @Override
-  public String askForInput(String message) {
-
-    String input;
-    do {
-      info(message);
-      input = readLine().trim();
-    } while (input.isEmpty());
-
-    return input;
   }
 
   @SuppressWarnings("unchecked")
   @Override
   public <O> O question(O[] options, String question, Object... args) {
 
-    assert (options.length >= 2);
+    assert (options.length > 0);
     interaction(question, args);
     return displayOptionsAndGetAnswer(options);
   }
@@ -924,7 +972,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     int i = 0;
     for (O option : options) {
       i++;
-      String key = "" + option;
+      String title = "" + option;
+      String key = computeOptionKey(title);
       addMapping(mapping, key, option);
       String numericKey = Integer.toString(i);
       if (numericKey.equals(key)) {
@@ -932,11 +981,11 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       } else {
         addMapping(mapping, numericKey, option);
       }
-      interaction("Option " + numericKey + ": " + key);
+      interaction("Option " + numericKey + ": " + title);
     }
     O option = null;
     if (isBatchMode()) {
-      if (isForceMode() || isForcePull()) {
+      if (isForceMode()) {
         option = options[0];
         interaction("" + option);
       }
@@ -950,6 +999,23 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       }
     }
     return option;
+  }
+
+  private static String computeOptionKey(String option) {
+    String key = option;
+    int index = -1;
+    for (char c : OPTION_DETAILS_START.toCharArray()) {
+      int currentIndex = key.indexOf(c);
+      if (currentIndex != -1) {
+        if ((index == -1) || (currentIndex < index)) {
+          index = currentIndex;
+        }
+      }
+    }
+    if (index > 0) {
+      key = key.substring(0, index).trim();
+    }
+    return key;
   }
 
   /**
@@ -1342,64 +1408,137 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   @Override
-  public String findBash() {
-
-    String bash = "bash";
-    if (SystemInfoImpl.INSTANCE.isWindows()) {
-      bash = findBashOnWindows();
+  public Path findBash() {
+    if (this.bash != null) {
+      return this.bash;
     }
+    Path bashPath = findBashOnBashPath();
+    if (bashPath == null) {
+      bashPath = findBashInPath();
+      if (bashPath == null && (getSystemInfo().isWindows() || SystemInfoImpl.INSTANCE.isWindows())) {
+        bashPath = findBashOnWindowsDefaultGitPath();
+        if (bashPath == null) {
+          bashPath = findBashInWindowsRegistry();
+        }
+      }
+    }
+    if (bashPath == null) {
+      error("No bash executable could be found on your system.");
+    } else {
+      this.bash = bashPath;
+    }
+    return bashPath;
+  }
 
+  private Path findBashOnBashPath() {
+    trace("Trying to find BASH_PATH environment variable.");
+    Path bash;
+    String bashPathVariableName = IdeVariables.BASH_PATH.getName();
+    String bashVariable = getVariables().get(bashPathVariableName);
+    if (bashVariable != null) {
+      bash = Path.of(bashVariable);
+      if (Files.exists(bash)) {
+        debug("{} environment variable was found and points to: {}", bashPathVariableName, bash);
+        return bash;
+      } else {
+        error("The environment variable {} points to a non existing file: {}", bashPathVariableName, bash);
+        return null;
+      }
+    } else {
+      debug("{} environment variable was not found", bashPathVariableName);
+      return null;
+    }
+  }
+
+  /**
+   * @param path the path to check.
+   * @param toIgnore the String sequence which needs to be checked and ignored.
+   * @return {@code true} if the sequence to ignore was not found, {@code false} if the path contained the sequence to ignore.
+   */
+  private boolean checkPathToIgnoreLowercase(Path path, String toIgnore) {
+    String s = path.toAbsolutePath().toString().toLowerCase(Locale.ROOT);
+    return !s.contains(toIgnore);
+  }
+
+  /**
+   * Tries to find the bash.exe within the PATH environment variable.
+   *
+   * @return Path to bash.exe if found in PATH environment variable, {@code null} if bash.exe was not found.
+   */
+  private Path findBashInPath() {
+    trace("Trying to find bash in PATH environment variable.");
+    Path bash;
+    String pathVariableName = IdeVariables.PATH.getName();
+    if (pathVariableName != null) {
+      Path plainBash = Path.of(BASH);
+      Predicate<Path> pathsToIgnore = p -> checkPathToIgnoreLowercase(p, "\\appdata\\local\\microsoft\\windowsapps") && checkPathToIgnoreLowercase(p,
+          "\\windows\\system32");
+      Path bashPath = getPath().findBinary(plainBash, pathsToIgnore);
+      bash = bashPath.toAbsolutePath();
+      if (bashPath.equals(plainBash)) {
+        warning("No usable bash executable was found in your PATH environment variable!");
+        bash = null;
+      } else {
+        if (Files.exists(bashPath)) {
+          debug("A proper bash executable was found in your PATH environment variable at: {}", bash);
+        } else {
+          bash = null;
+          error("A path to a bash executable was found in your PATH environment variable at: {} but the file is not existing.", bash);
+        }
+      }
+    } else {
+      bash = null;
+      // this should never happen...
+      error("PATH environment variable was not found");
+    }
     return bash;
   }
 
-  private String findBashOnWindows() {
-
-    // Check if Git Bash exists in the default location
-    Path defaultPath = Path.of("C:\\Program Files\\Git\\bin\\bash.exe");
-    if (Files.exists(defaultPath)) {
-      return defaultPath.toString();
-    }
-
+  /**
+   * Tries to find the bash.exe within the Windows registry.
+   *
+   * @return Path to bash.exe if found in registry, {@code null} if bash.exe was found.
+   */
+  protected Path findBashInWindowsRegistry() {
+    trace("Trying to find bash in Windows registry");
     // If not found in the default location, try the registry query
     String[] bashVariants = { "GitForWindows", "Cygwin\\setup" };
     String[] registryKeys = { "HKEY_LOCAL_MACHINE", "HKEY_CURRENT_USER" };
-    String regQueryResult;
     for (String bashVariant : bashVariants) {
+      trace("Trying to find bash variant: {}", bashVariant);
       for (String registryKey : registryKeys) {
+        trace("Trying to find bash from registry key: {}", registryKey);
         String toolValueName = ("GitForWindows".equals(bashVariant)) ? "InstallPath" : "rootdir";
-        String command = "reg query " + registryKey + "\\Software\\" + bashVariant + "  /v " + toolValueName + " 2>nul";
+        String registryPath = registryKey + "\\Software\\" + bashVariant;
 
-        try {
-          Process process = new ProcessBuilder("cmd.exe", "/c", command).start();
-          try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-            StringBuilder output = new StringBuilder();
-            String line;
-
-            while ((line = reader.readLine()) != null) {
-              output.append(line);
-            }
-
-            int exitCode = process.waitFor();
-            if (exitCode != 0) {
-              return null;
-            }
-
-            regQueryResult = output.toString();
-            if (regQueryResult != null) {
-              int index = regQueryResult.indexOf("REG_SZ");
-              if (index != -1) {
-                String path = regQueryResult.substring(index + "REG_SZ".length()).trim();
-                return path + "\\bin\\bash.exe";
-              }
-            }
-
+        String path = getWindowsHelper().getRegistryValue(registryPath, toolValueName);
+        if (path != null) {
+          Path bashPath = Path.of(path + "\\bin\\bash.exe");
+          if (Files.exists(bashPath)) {
+            debug("Found bash at: {}", bashPath);
+            return bashPath;
+          } else {
+            error("Found bash at: {} but it is not pointing to an existing file", bashPath);
+            return null;
           }
-        } catch (Exception e) {
-          return null;
+        } else {
+          info("No bash executable could be found in the Windows registry.");
         }
       }
     }
     // no bash found
+    return null;
+  }
+
+  private Path findBashOnWindowsDefaultGitPath() {
+    // Check if Git Bash exists in the default location
+    trace("Trying to find bash on the Windows default git path.");
+    Path defaultPath = Path.of(getDefaultWindowsGitPath());
+    if (!defaultPath.toString().isEmpty() && Files.exists(defaultPath)) {
+      trace("Found default path to git bash on Windows at: {}", getDefaultWindowsGitPath());
+      return defaultPath;
+    }
+    debug("No bash was found on the Windows default git path.");
     return null;
   }
 
@@ -1459,6 +1598,23 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     assert (Files.isDirectory(installationPath));
     Path versionFile = installationPath.resolve(FILE_SOFTWARE_VERSION);
     getFileAccess().writeFileContent(version.toString(), versionFile);
+  }
+
+  /**
+   * @param home the IDE_HOME directory.
+   * @param workspace the name of the active workspace folder.
+   */
+  protected static record IdeHomeAndWorkspace(Path home, String workspace) {
+
+  }
+
+  /**
+   * Returns the default git path on Windows. Required to be overwritten in tests.
+   *
+   * @return default path to git on Windows.
+   */
+  public String getDefaultWindowsGitPath() {
+    return DEFAULT_WINDOWS_GIT_PATH;
   }
 
 }

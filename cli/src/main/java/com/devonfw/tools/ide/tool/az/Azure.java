@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool.az;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
 
@@ -27,10 +28,17 @@ public class Azure extends LocalToolCommandlet {
   }
 
   @Override
-  public void postInstall() {
+  protected void postExtract(Path extractedDir) {
 
-    super.postInstall();
-    this.context.getFileAccess().symlink(Path.of("wbin"), getToolPath().resolve("bin"));
+    super.postExtract(extractedDir);
+    Path bin = extractedDir.resolve("bin");
+    if (Files.isDirectory(bin)) {
+      return;
+    }
+    Path wbin = extractedDir.resolve("wbin");
+    if (Files.isDirectory(wbin)) {
+      this.context.getFileAccess().symlink(wbin, bin);
+    }
   }
 
   @Override
@@ -40,9 +48,9 @@ public class Azure extends LocalToolCommandlet {
   }
 
   @Override
-  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean extraInstallation) {
+  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
 
-    super.setEnvironment(environmentContext, toolInstallation, extraInstallation);
+    super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
     environmentContext.withEnvVar("AZURE_CONFIG_DIR", this.context.getConfPath().resolve(".azure").toString());
   }
 }

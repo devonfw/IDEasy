@@ -6,11 +6,11 @@ import org.junit.jupiter.api.Test;
 /**
  * Test of {@link TarCompression}.
  */
-public class TarCompressionTest extends Assertions {
+class TarCompressionTest extends Assertions {
 
   /** Test of {@link TarCompression#of(String)}. */
   @Test
-  public void testOf() {
+  void testOf() {
 
     assertThat(TarCompression.of(".tar")).isSameAs(TarCompression.NONE);
     assertThat(TarCompression.of("tar")).isSameAs(TarCompression.NONE);
