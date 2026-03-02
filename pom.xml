@@ -24,7 +24,7 @@
     <jansi.version>2.4.1</jansi.version>
     <jackson.version>2.21.1</jackson.version>
     <xmlunit.version>2.10.0</xmlunit.version>
-    <wiremock.version>3.13.2</wiremock.version>
+    <wiremock.version>4.0.0-beta.29</wiremock.version>
     <javafx.version>21</javafx.version>
     <testfx.version>4.0.18</testfx.version>
     <native.maven.plugin.version>0.10.6</native.maven.plugin.version>
