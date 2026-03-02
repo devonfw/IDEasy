@@ -108,12 +108,7 @@ Please study the documentation, as it explains many important aspects of IDEasy.
 As a developer, it is especially important to read the link:coding-conventions.adoc[coding conventions] and link:DoD.adoc[Definition of Done].
 
 Further, browsing the JavaDoc of the source code will help you understand the different types and structures of the project.
-For an architectural overview, see the link:images/design.puml[design diagram] (requires PlantUML support, e.g., via IntelliJ plugin). +
-The screenshot below shows the UML diagram as of *2026‑02‑19*:
-
-image::images/design-uml-overview-2026-02.png[IDEasy UML Overview, width=800]
-
-
+For an architectural overview, see the link:images/design.puml[design diagram] (requires PlantUML support, e.g., via IntelliJ plugin).
 
 Getting started in IDEasy +
 Welcome to the IDEasy project and team!
