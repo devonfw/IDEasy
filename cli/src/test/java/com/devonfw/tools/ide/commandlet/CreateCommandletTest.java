@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.commandlet;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -38,6 +39,14 @@ class CreateCommandletTest extends AbstractIdeContextTest {
       context.getFileAccess().delete(newProjectPath);
     }
     this.context = context;
+  }
+
+  /**
+   * Reset the current version back to SNAPSHOT so further tests don't fail
+   */
+  @AfterEach
+  void tearDown() {
+    IdeVersion.setSnapshotVersionForTesting();
   }
 
   @Test
@@ -122,11 +131,12 @@ class CreateCommandletTest extends AbstractIdeContextTest {
         + "However, this is too old as your project requires at latest version %s\n"
         + "Please run the following command to update to the latest version of IDEasy and fix the problem:\n"
         + "ide upgrade", ideCurrentVersion, ideMinVersion);
+
     // act
     variables.getByType(EnvironmentVariablesType.CONF).set("IDE_MIN_VERSION", ideMinVersion);
+
     // assert
     assertThatThrownBy(() -> cc.run()).hasMessage(errorMessage);
-    IdeVersion.setSnapshotVersionForTesting(); // reset current version back to SNAPSHOT so further tests don't fail
   }
 
   @Test
@@ -144,9 +154,10 @@ class CreateCommandletTest extends AbstractIdeContextTest {
         + "However, this is too old as your project requires at latest version %s\n"
         + "Please run the following command to update to the latest version of IDEasy and fix the problem:\n"
         + "ide upgrade", ideCurrentVersion, ideMinVersion);
+
     // act
     context.run(args);
-    IdeVersion.setSnapshotVersionForTesting(); // reset current version back to SNAPSHOT so further tests don't fail
+
     // assert
     assertThat(context).logAtWarning().hasMessage(warningMessage);
   }
