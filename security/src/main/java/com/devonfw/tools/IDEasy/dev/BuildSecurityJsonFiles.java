@@ -16,7 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.context.IdeContextConsole;
-import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.url.model.file.UrlSecurityFile;
 import com.devonfw.tools.ide.url.model.file.json.Cve;
@@ -62,7 +61,7 @@ public class BuildSecurityJsonFiles implements Runnable {
     super();
     UrlFinalReport report = new UrlFinalReport();
     this.updateManager = new UpdateManager(urlsPath, report, Instant.now());
-    IdeContextConsole context = new IdeContextConsole(IdeLogLevel.INFO, null, false);
+    IdeContextConsole context = new IdeContextConsole();
     this.urlMetadata = new UrlMetadata(context, this.updateManager.getUrlRepository());
     Settings settings = new Settings();
     engine = new Engine(settings);

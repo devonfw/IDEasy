@@ -1,7 +1,7 @@
 package com.devonfw.tools.ide.log;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Implementation of {@link IdeLogListener} that collects all events as {@link IdeLogEntry}.
@@ -15,7 +15,7 @@ public class IdeLogListenerCollector extends IdeLogListenerBuffer {
    */
   public IdeLogListenerCollector() {
     super(false);
-    this.entries = new ArrayList<>(512);
+    this.entries = new CopyOnWriteArrayList<>();
   }
 
   /**

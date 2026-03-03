@@ -32,7 +32,7 @@ public class GcViewer extends LocalToolCommandlet {
   }
 
   @Override
-  public void run() {
+  protected void doRun() {
 
     getCommandlet(Java.class).install();
     install(true);

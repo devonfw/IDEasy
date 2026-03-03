@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.commandlet;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -12,8 +14,6 @@ import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.tool.repository.DefaultToolRepository;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Test of {@link InstallCommandlet}.
@@ -130,14 +130,14 @@ class InstallCommandletTest extends AbstractIdeContextTest {
     install.version.setValueAsString("17*", context);
 
     // Record the log entry count before the action
-    int logCountBefore = context.getLogger().getEntries().size();
+    int logCountBefore = context.getTestStartContext().getEntries().size();
 
     // act - try to install with --skip-updates
     // Should skip the update to 17.0.10 since 17.0.6 matches the pattern
     install.run();
 
     // assert - should NOT download 17.0.10, should stay on 17.0.6
-    List<IdeLogEntry> newLogEntries = context.getLogger().getEntries().subList(logCountBefore, context.getLogger().getEntries().size());
+    List<IdeLogEntry> newLogEntries = context.getTestStartContext().getEntries().subList(logCountBefore, context.getTestStartContext().getEntries().size());
     boolean hasDownloadMessage = newLogEntries.stream().anyMatch(e -> e.message().contains("Trying to download"));
     assertThat(hasDownloadMessage).as("Should not download when --skip-updates is enabled and version matches pattern").isFalse();
     assertThat(context.getSoftwarePath().resolve("java/.ide.software.version")).exists().hasContent(installedVersion);
@@ -194,13 +194,13 @@ class InstallCommandletTest extends AbstractIdeContextTest {
     install.tool.setValueAsString("java", context);
     install.version.setValueAsString("21*", context);
 
-    int logCountBefore = context.getLogger().getEntries().size();
+    int logCountBefore = context.getTestStartContext().getEntries().size();
 
     // act - install with --skip-updates but with non-matching version
     install.run();
 
     // assert - SHOULD download and install 21.x because installed 17.0.6 does NOT match pattern "21*"
-    List<IdeLogEntry> newLogEntries = context.getLogger().getEntries().subList(logCountBefore, context.getLogger().getEntries().size());
+    List<IdeLogEntry> newLogEntries = context.getTestStartContext().getEntries().subList(logCountBefore, context.getTestStartContext().getEntries().size());
     boolean hasDownloadMessage = newLogEntries.stream().anyMatch(e -> e.message().contains("Trying to download") && e.message().contains("21."));
     assertThat(hasDownloadMessage).as("Should download when --skip-updates is enabled but version does not match").isTrue();
     assertThat(context.getSoftwarePath().resolve("java/.ide.software.version")).exists().hasContent("21.0.8_9");
@@ -242,7 +242,7 @@ class InstallCommandletTest extends AbstractIdeContextTest {
     // Determine the correct file extension and OS name based on the current OS
     String fileExtension = context.getSystemInfo().isWindows() ? "zip" : "tgz";
     String osName = context.getSystemInfo().getOs().toString().toLowerCase();
-    assertThat(context).logAtDebug().hasMessage("Using cached download of java in version " + version + " from " 
+    assertThat(context).logAtDebug().hasMessage("Using cached download of java in version " + version + " from "
         + context.getDownloadPath().resolve("default").resolve("java-" + version + "-" + osName + "-x64." + fileExtension) + " (offline mode)");
   }
 
@@ -299,7 +299,7 @@ class InstallCommandletTest extends AbstractIdeContextTest {
 
     // assert - should continue using the old version and log a warning
     assertThat(context.getSoftwarePath().resolve("java/.ide.software.version")).exists().hasContent(installedVersion);
-    assertThat(context).logAtWarning().hasMessage("Cannot download java in version " + targetVersion 
+    assertThat(context).logAtWarning().hasMessage("Cannot download java in version " + targetVersion
         + " because we are offline. Continuing with already installed version " + installedVersion + ".");
   }
 }
