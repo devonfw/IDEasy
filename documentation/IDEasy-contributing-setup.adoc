@@ -6,7 +6,8 @@ toc::[]
 
 Before you can contribute to IDEasy, you need to set up your local development environment.
 This section guides you through all required steps — from installation to project initialization — so you can start developing immediately.
-Once your setup is complete and everything works as expected, continue with https://github.com/devonfw/IDEasy/blob/main/documentation/IDEasy-contribution-rules-and-guidelines.adoc[Contribution Guidelines] to learn how to work with issues, branches, and pull requests.
+//Todo change to new doku link:IDEasy-contribution-process.adoc after merge in #1707
+Once your setup is complete and everything works as expected, continue with link:IDEasy-contribution-rules-and-guidelines.adoc[Contribution Guidelines] to learn how to work with issues, branches, and pull requests.
 
 == Prerequisites
 
@@ -89,7 +90,7 @@ Optional, for Windows user: +
 If you are developing on Windows, we strongly recommend reading the guide
 link:IDEasy-testing-linux-on-windows.adoc[Testing IDEasy Linux on Windows].
 It explains how to ensure a stable and performant environment when running Linux-based tools on Windows and is useful for every developer.
-
+//Todo change to new doku link:IDEasy-contribution-process.adoc after merge in #1707
 Your setup is now complete. Before you start contributing, we recommend reviewing the documentation to get familiar with the IDEasy project. Afterwards, you can continue with the link:IDEasy-contribution-rules-and-guidelines.adoc[Contribution Guidelines].
 
 == Documentation
