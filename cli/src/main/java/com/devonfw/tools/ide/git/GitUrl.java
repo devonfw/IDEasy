@@ -25,8 +25,7 @@ public record GitUrl(String url, String branch) {
       assert false : message;
     }
     if (!isValid()) {
-      String message = "Invalid git URL - has to start with https, http or ssh: " + url;
-      assert false : message;
+      assert false : "Invalid git URL - has to start with https, http or ssh: " + url;
     }
   }
 
@@ -61,9 +60,7 @@ public record GitUrl(String url, String branch) {
   }
 
   /**
-   * Checks that the input URL starts with http://, https://, ssh:// or git@.
-   *
-   * @return true if the URL starts with http://, https://, ssh:// or git@ - otherwise returns false.
+   * @return {@code true} if the URL starts with http://, https://, ssh:// or git@ - otherwise returns {@code false}.
    */
   public boolean isValid() {
     if (url == null || url.isBlank()) {
