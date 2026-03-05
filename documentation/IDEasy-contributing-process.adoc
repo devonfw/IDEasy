@@ -91,44 +91,63 @@ git push -u origin feature/«issue-id»-«brief-feature-description»
 
 Now you can create the xref:pull-request[Pull request] (PR) from your new feature.
 
-For further development and testing, it is recommended to link:symlink.adoc[symlink]
-the modified scripts into your IDEasy installation.
-Alternatively, the scripts can be adapted in the installation folder and then committed to the project.
-For creating a contribution also check the link:DoD.adoc[Definition of Done] (DoD).
 
 [[pull-request]]
 == Pull Request
+
+// I’d like to move the explanatory parts (Draft Mode, Review & Conversations, and the CLA details) into a separate PR documentation file.
+// This page should only keep the actionable step‑by‑step flow, and link to the new PR doc for background information.
+// Here, I’d just add a short note reminding contributors to sign the CLA on their first PR. Does that approach work for you?
 
 Once your feature branch is complete and all changes are committed, you can open a Pull Request.
 Therefore, open
 https://github.com/devonfw/ideasy/pulls and click on the right green `Compare & pull request`-Button.
 
-A PR template link:DoD.adoc[Definition-of-Done] (DoD) will automatically be added to the PR description.
-You must complete this template:
+Please follow the provided PR template and the link:DoD.adoc[Definition-of-Done] checklist.
+Additionally, make sure to:
 
-* The **PR title** must start with `#«issue-id»` followed by a short description.
-* The **description** must:
-** refer to the related issue
-** Provide a short summary of what the PR does
-** include: `Closes #«issue-id»` if the PR completes the issue
-** optionally include additional context or explanations of changed files
-** In addition, other issues or PRs can be linked (for help see link:https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue[link an Issue]), most commonly with keyword like:
-*** *Blocked by*
-*** *Related*
-*** *Merge first*
-* Ensure the **DoD checklist** items are checked or adjusted accordingly
-* If your change **does not introduce a new commandlet**, delete the lower part of the DoD template that refers to commandlet creation.
+* Start the **PR title** with `#«issue-id»` followed by a short description.
+* Complete all relevant items in the **DoD checklist**
+** Hint: Check the checkboxes after the PR is created, as you can simply click them instead of manually adding an “X” into [ ]
+* If your change **does not introduce a new commandlet**, remove the section of the DoD template that refers to commandlet creation
+
+
+If you want to create the Pull Request *in draft mode* instead of submitting it directly, click the small arrow next to the `Create pull request` button and select `Create draft pull request`.
+See section xref:draft-mode[Draft Mode] for more details and when to use this option.
+Once the description is complete and all DoD items are addressed, scroll to the bottom of the PR and click `Create pull request`.
+
+Afterwards:
+
 * **Assign yourself** to the PR (you are responsible until review is complete).
 * **Assign a reviewer** (usually a developer or the teammate responsible for the area).
 * Move your PR on the IDEasy Project Board to:
 +
 `Status → Team Review`
 
-Once, all checks of the DoD are addressed, you can go to the very bottom of the PR and click on `Ready for review` what will take the PR out of the draft mode.
+[[draft-mode]]
+=== Draft Mode
 
-FYI: If you forgot the upstream merge (`git pull upstream/main`) or the upstream changed again while your PR is still open, you will see `This branch is out-of-date with the base branch` at the bottom of your PR and can click on `Update branch`.
+A Pull Request can also be created in *draft mode* if your changes are not yet ready for review (e.g., Work in Progress).
+Creating a draft PR can be helpful when:
+
+* you want to receive _early feedback_
+* you are working on a _larger feature_ and need intermediate visibility
+* your work may need to be _handed over_ unexpectedly (e.g., sickness), so teammates can continue with your current progress
+
+If the PR *was created as a draft*, then once the description is complete and all DoD items are addressed, scroll to the bottom of the PR and click `Ready for review`.
+This will move the PR out of draft mode.
+
+=== Example
+To illustrate how a **Pull Request** should look, see the example screenshot below:
+
+image::images/pr-example.png[Example Pull Request, width=800]
+
 
 === Sign the Contributor License Agreement (CLA)
+
+// The CLA only needs to be completed once, but it can only be signed after the first PR, since the GitHub bot provides the link automatically.
+// Because it’s such a small step, it likely doesn’t need its own page—adding a short note right after the PR section makes the most
+// sense, as it’s only possible (and required) at that point. Would you prefer to keep this brief note there, or should we remove it entirely?
 
 For your **first contribution** to IDEasy, you **must sign the Contributor License Agreement (CLA)**.
 This will be requested **automatically by GitHub** after you create your **first Pull Request**.
@@ -158,8 +177,13 @@ This shows who is currently responsible.
 * A PR **must not be in draft mode during review**.
 A reviewer should only review finished work.
 
+=== Upstream Updates
+If you forgot the upstream merge (`git pull upstream/main`) or the upstream changed again while your PR is still open, you will see `This branch is out-of-date with the base branch` at the bottom of your PR and can click on `Update branch`.
+
+
 [[commit]]
 == Commit
+// This can be moved into a separate AsciiDoc file, since it is only an explanation of how to formulate a commit message. A simple link should be sufficient here.
 
 * Commit messages should always start with the issue number and a hashtag to automatically link the corresponding issue.
 * The title of a commit should be kept short and informative.
@@ -243,7 +267,7 @@ Create a sub-package and a class with the name of the tool.
 
 [[project-board]]
 == Project Board
-
+// This could be moved into a separate AsciiDoc file, since it provides conceptual background for understanding the Project Board, but it is not an actionable or recurring step in the workflow.
 The IDEasy *Project Board* organizes the workflow using several columns.
 Each column represents a specific state in the lifecycle of an issue or pull request:
 
