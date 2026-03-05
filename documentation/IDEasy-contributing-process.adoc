@@ -1,0 +1,307 @@
+= IDEasy Contributing Process
+:toc:
+toc::[]
+
+This document describes the complete step-by-step workflow for contributing to IDEasy
+
+If you are contributing for the first time and have not set up your local development environment yet,
+please first follow the instructions in the
+//TODO set link to IDEasy-contribution-setup.adoc in #1707
+link:IDEasy-contribution-getting-started.adoc[IDEasy Contributing Setup].
+Once your setup is completed, return to this document to continue with selecting and implementing an issue.
+
+== How to select an Issue
+
+Open the https://github.com/orgs/devonfw/projects/5[IDEasy Project Board].
+This board lists all available issues you can work on.
+
+Below is an example view of the board to help you identify the most important fields:
+
+* *Priority* (green) +
+* *Status* (red) +
+* *Assignees* (purple) +
+* *Size* (blue) +
+
+image::images/story-board-example.png[IDEasy board example]
+
+When choosing an issue, follow these guidelines:
+
+. Make sure the issue has **no assignee** (purple). Otherwise, someone else is already working on it.
+. Check that the issue’s **Status** (red) is set to **New**.
+. Check the **Priority** (green) and **Size** (blue).
+As shown in the example, you can sort the board by priority or size to help you decide which issue to pick.
+. If the issue was not created by `jan-vcapgemini` or `hohwille`, and there are **no comments or refinement details**, please ask the team before working on it.
+. Double‑click the issue to open it and view more information.
+. Check the **Development** section on the right.
+If a pull request is already linked, someone started working on the issue but did not finish it.
+In this case, continue from the existing PR instead of starting from scratch.
+. Once you decide to work on the issue, **assign it to yourself** (`Assign yourself` on the right side) and move it to **In Progress** via:
+`Projects → IDEasy Board → Status → In Progress`.
+
+For detailed descriptions of each status, see xref:project-board[Project Board].
+
+== Start Working on an Issue
+
+Once you have chosen an issue from the IDEasy Project Board and assigned it to yourself, follow the steps below to start working on it.
+
+- Open a terminal inside your IDEasy development workspace (`projects\IDEasy\workspaces\main\IDEasy`) and ensure you are on the latest `main` branch:
++
+```
+git checkout main
+git pull upstream main
+git push
+```
++
+This updates your local fork with the newest changes from the official IDEasy repository.
+
+
+- Create a new branch from `main`. +
+The branch name must contain the issue ID and a short description:
++
+```
+git checkout -b feature/«issue-id»-«brief-feature-description»
+```
+
+Now you can implement your fixes, improvements, or features inside this branch.
+
+- Before you test or commit, if several days have passed, you should merge changes that may have happened on the official `IDEasy` repository:
++
+```
+git pull upstream main
+```
+
+- Now you should test and build your implementation
++
+```
+mvn clean install
+```
+
+- Once your changes are tested and seem to work, you can commit them. For more details, see xref:commit[Commit]:
++
+```
+git commit -m "#«issue-id»: «description»"
+```
+
+- Once you are complete and everything is merged and committed, you can push your local feature branch and make it a remote branch of your fork on GitHub:
++
+```
+git push -u origin feature/«issue-id»-«brief-feature-description»
+```
+
+
+Now you can create the xref:pull-request[Pull request] (PR) from your new feature.
+
+
+[[pull-request]]
+== Pull Request
+
+// I’d like to move the explanatory parts (Draft Mode, Review & Conversations, and the CLA details) into a separate PR documentation file.
+// This page should only keep the actionable step‑by‑step flow, and link to the new PR doc for background information.
+// Here, I’d just add a short note reminding contributors to sign the CLA on their first PR. Does that approach work for you?
+
+Once your feature branch is complete and all changes are committed, you can open a Pull Request.
+Therefore, open
+https://github.com/devonfw/ideasy/pulls and click on the right green `Compare & pull request`-Button.
+
+Please follow the provided PR template and the link:DoD.adoc[Definition-of-Done] checklist.
+Additionally, make sure to:
+
+* Start the **PR title** with `#«issue-id»` followed by a short description.
+* Complete all relevant items in the **DoD checklist**
+** Hint: Check the checkboxes after the PR is created, as you can simply click them instead of manually adding an “X” into [ ]
+* If your change **does not introduce a new commandlet**, remove the section of the DoD template that refers to commandlet creation
+
+
+If you want to create the Pull Request *in draft mode* instead of submitting it directly, click the small arrow next to the `Create pull request` button and select `Create draft pull request`.
+See section xref:draft-mode[Draft Mode] for more details and when to use this option.
+Once the description is complete and all DoD items are addressed, scroll to the bottom of the PR and click `Create pull request`.
+
+Afterwards:
+
+* **Assign yourself** to the PR (you are responsible until review is complete).
+* **Assign a reviewer** (usually a developer or the teammate responsible for the area).
+* Move your PR on the IDEasy Project Board to:
++
+`Status → Team Review`
+
+[[draft-mode]]
+=== Draft Mode
+
+A Pull Request can also be created in *draft mode* if your changes are not yet ready for review (e.g., Work in Progress).
+Creating a draft PR can be helpful when:
+
+* you want to receive _early feedback_
+* you are working on a _larger feature_ and need intermediate visibility
+* your work may need to be _handed over_ unexpectedly (e.g., sickness), so teammates can continue with your current progress
+
+If the PR *was created as a draft*, then once the description is complete and all DoD items are addressed, scroll to the bottom of the PR and click `Ready for review`.
+This will move the PR out of draft mode.
+
+=== Example
+To illustrate how a **Pull Request** should look, see the example screenshot below:
+
+image::images/pr-example.png[Example Pull Request, width=800]
+
+
+=== Sign the Contributor License Agreement (CLA)
+
+// The CLA only needs to be completed once, but it can only be signed after the first PR, since the GitHub bot provides the link automatically.
+// Because it’s such a small step, it likely doesn’t need its own page—adding a short note right after the PR section makes the most
+// sense, as it’s only possible (and required) at that point. Would you prefer to keep this brief note there, or should we remove it entirely?
+
+For your **first contribution** to IDEasy, you **must sign the Contributor License Agreement (CLA)**.
+This will be requested **automatically by GitHub** after you create your **first Pull Request**.
+
+A **bot will add a comment** to your PR with a **link to the CLA**.
+Please **open the link**, **read the agreement**, and **confirm it**.
+
+**Without signing the CLA, your PR cannot be merged!**
+
+This step only needs to be completed **once**.
+For all future contributions, **your signature will automatically be recognized**.
+
+=== Review & Conversations
+
+After creating the Pull Request and completing the link:DoD.adoc[DoD], the review process begins.
+Please follow these rules to ensure a smooth and transparent collaboration:
+
+* **Requested changes and conversations** should only be marked as *Resolved* by the person who started them, not by the PR creator.
+**Exception:** If permissions do not allow this, the PR creator may add a final comment like *“This can be resolved now”*.
+
+* **Conversations must always be answered by the PR owner** to show whether the suggestion was implemented or acknowledged.
+
+* The **PR should always have the correct assignees**:
+**the owner of the PR and the reviewer**.
+This shows who is currently responsible.
+
+* A PR **must not be in draft mode during review**.
+A reviewer should only review finished work.
+
+=== Upstream Updates
+If you forgot the upstream merge (`git pull upstream/main`) or the upstream changed again while your PR is still open, you will see `This branch is out-of-date with the base branch` at the bottom of your PR and can click on `Update branch`.
+
+
+[[commit]]
+== Commit
+// This can be moved into a separate AsciiDoc file, since it is only an explanation of how to formulate a commit message. A simple link should be sufficient here.
+
+* Commit messages should always start with the issue number and a hashtag to automatically link the corresponding issue.
+* The title of a commit should be kept short and informative.
+* The description of a commit message can be used to elaborate on the title.
+* Always commit your changes in small logical units associated with an issue (see above section) using the commit message format:
+
+[source]
+#«issue-id»: «describe your change»
+
+* Then GitHub will automatically link the commit with the issue.
+* Example:
+
+[source]
+#1: added REST service for tablemanagement
+Implemented REST TableManagement class
+Added unit tests for TableManagement class
+
+* In case you worked on an issue from a different repository (e.g. change in `ide-settings` due to an issue in `IDEasy`), we use this commit message format:
+
+[source]
+«organization»/«repository»#«issue-id»: «describe your change»
+
+* Example:
+
+[source]
+devonfw/IDEasy#5: added REST service for tablemanagement
+
+== Add an Issue
+
+* Issues should be written clearly and easy to comprehend.
+* Issues should use the existing template.
+* The goal or requirements of the issue should be explained first.
+* Potential or desired implementations can or should be described after the preview point.
+* A very good practice and nice to have, are acceptance criteria for the issue.
+* Other issues can be linked using a hashtag and the issue number, most commonly used keywords:
+** Related to
+** Blocked by
+
+== Review
+
+* The reviewer should be assigned to the PR, if a review is needed, or the requested changes need to be checked and conversations need to be resolved.
+* After completing the review, the owner of the PR should be assigned.
+* After the team review is finished, the PO (hohwille) should be assigned.
+* While reviewing a useful tool is the web ide provided by GitHub.
+Simply open the `files changed` tab and press `.` on the keyboard.
+* Another useful tool is to use the feature “insert a suggestion” while writing a comment (for more detail see
+https://haacked.com/archive/2019/06/03/suggested-changes/) (This feature does not reformat the code, so be aware that you need to manually add the spaces etc.)
+
+== Create a new commandlet
+
+=== Urls
+
+Many programs have a download link that depends on the operating system.
+
+For a new tool, create an url-updater in the https://github.com/devonfw/IDEasy/tree/main/url-updater/src/main/java/com/devonfw/tools/ide/url/updater[updater] folder in the current repository.
+The Name needs to be equal to the one of both the tool and the commandlet.
+
+There are four available parent classes of url-updaters, that can be used.
+They mainly differentiate in the way, available versions are detected.
+
+* https://github.com/devonfw/IDEasy/blob/main/url-updater/src/main/java/com/devonfw/tools/ide/url/updater/GithubUrlUpdater.java[`GithubUrlUpdater`]
+
+* https://github.com/devonfw/IDEasy/blob/main/url-updater/src/main/java/com/devonfw/tools/ide/url/updater/JsonUrlUpdater.java[`JsonUrlUpdater`]
+
+* https://github.com/devonfw/IDEasy/blob/main/url-updater/src/main/java/com/devonfw/tools/ide/url/updater/MavenBasedUrlUpdater.java[`MavenBasedUrlUpdater`]
+
+* https://github.com/devonfw/IDEasy/blob/main/url-updater/src/main/java/com/devonfw/tools/ide/url/updater/WebsiteUrlUpdater.java[`WebsiteUrlUpdater`]
+
+Note: The `WebsiteUrlUpdater` should not be used if other viable options are available.
+
+The updaters use the function `doAddVersion()`, where the downloadUrl, OS and architecture can be specified for each version. https://github.com/devonfw/IDEasy/blob/071e732e6c74aed7b12ccc1d522faf1c4a015dad/cli/src/main/java/com/devonfw/tools/ide/tool/oc/OcUrlUpdater.java#L20[Example]
+
+`VersionIdentifiers` can also be used if e.g. the downloadUrl changed after a specific version, or certain versions are not intended to be available. https://github.com/devonfw/IDEasy/blob/071e732e6c74aed7b12ccc1d522faf1c4a015dad/cli/src/main/java/com/devonfw/tools/ide/tool/helm/HelmUrlUpdater.java#L12[Example]
+
+Once a day, the `UpdateInitiator` will run the updaters through GitHub Actions and fill the https://github.com/devonfw/ide-urls[ide-URL] repository with new version/tools that are identified by the Updaters.
+
+=== Commandlet
+
+Use an existing commandlet like https://github.com/devonfw/IDEasy/blob/main/cli/src/main/java/com/devonfw/tools/ide/tool/java/Java.java[Java] as a reference.
+Create a sub-package and a class with the name of the tool.
+
+[[project-board]]
+== Project Board
+// This could be moved into a separate AsciiDoc file, since it provides conceptual background for understanding the Project Board, but it is not an actionable or recurring step in the workflow.
+The IDEasy *Project Board* organizes the workflow using several columns.
+Each column represents a specific state in the lifecycle of an issue or pull request:
+
+* *New*:
+[.underline]#Issues# that are available in the backlog and have not been started yet.
+They usually have the key metadata set:
+- **Priority**: Indicates how important or urgent the issue is.
+Issues with higher `Priority` should typically be addressed first.
+- **Size**: Represents the estimated complexity or effort (e.g., Small, Medium, Large).
+Issues with higher `Size` are typically more complex. Depending on your experience consider if you want to deal with the story or check if easier tasks are therefore you to work on first.
+
+
+* *Research*:
+[.underline]#Issues# or [.underline]#Pull requests# that are blocked or require deeper analysis before implementation can continue.
+These items often involve unclear requirements or technical challenges.
+
+* *In Progress*:
+[.underline]#Issues# that are actively being worked on.
+An issue in this column should have at least one assignee.
+If a pull request exists for the issue, it will be linked here.
+If no PR exists yet, the implementation is still ongoing.
+
+* *Team Review*:
+[.underline]#Pull requests# that are currently under review by a member of the development team.
+The reviewer and the PR author are both listed as assignees.
+Once all review comments are resolved, the reviewer moves the PR to *In Review*.
+
+* *In Review*:
+[.underline]#Pull requests# awaiting or undergoing final review.
+Typically performed by the Project Owner (currently `hohwille`) or a senior team member.
+Both reviewer and author remain assigned to the PR.
+
+* *Done*:
+[.underline]#Issues# or [.underline]#Pull requests# that have been fully completed and merged.
+
+NOTE: To keep the board clean and avoid overload, **only pull requests** are allowed in the review columns.
+Issues stay in *In Progress* until their corresponding pull request has been merged.
