@@ -59,7 +59,7 @@ class CreateCommandletTest extends AbstractIdeContextTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = { "some code repository", "some settings repository" })
+  @ValueSource(strings = { "https://some-code-repository", "ssh://some-settings-repository" })
   void testWarningWhenRepoDoesNotMeetNamingConvention(String invalidRepo, @TempDir Path tempDir) {
     // arrange
     ProcessContextGitMock gitMock = new ProcessContextGitMock(context, tempDir);
@@ -93,7 +93,7 @@ class CreateCommandletTest extends AbstractIdeContextTest {
     cc.settingsRepo.setValue(invalidCodeRepo);
     cc.codeRepositoryFlag.setValue(true);
     cc.skipTools.setValue(true);
-    context.setAnswers("some code repository");
+    context.setAnswers("https://some-code-repository");
     // act
     cc.run();
     // assert
