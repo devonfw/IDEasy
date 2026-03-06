@@ -1,13 +1,13 @@
 package com.devonfw.tools.ide.url.tool.gcloud;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link GithubUrlUpdater} for GCloud CLI.
+ * {@link GithubUrlTagUpdater} for GCloud CLI.
  */
-public class GCloudUrlUpdater extends GithubUrlUpdater {
+public class GCloudUrlUpdater extends GithubUrlTagUpdater {
 
   private static final VersionIdentifier MIN_GCLOUD_VID = VersionIdentifier.of("299.0.0");
   private static final VersionIdentifier MIN_ARM_GCLOUD_VID = VersionIdentifier.of("366.0.0");

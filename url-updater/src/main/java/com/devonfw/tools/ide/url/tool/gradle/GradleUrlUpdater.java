@@ -1,47 +1,37 @@
 package com.devonfw.tools.ide.url.tool.gradle;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.WebsiteUrlUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlReleaseUpdater;
 
 /**
- * {@link WebsiteUrlUpdater} for Gradle.
+ * {@link GithubUrlReleaseUpdater} for Gradle.
  */
-public class GradleUrlUpdater extends WebsiteUrlUpdater {
+public class GradleUrlUpdater extends GithubUrlReleaseUpdater {
 
   private static final String HASHSUM_GRAB_PATTERN = "((.*)\\s){5}";
-
-  private static final Pattern VERSION_PATTERN = Pattern.compile("release-checksums#v(\\d\\.\\d[\\.\\d]*)\"");
 
   private static final Pattern SHA256_PATTERN = Pattern.compile("[a-fA-F0-9]{64}");
 
   private String responseBody;
 
-  @Override
-  protected String getVersionUrl() {
 
-    return getVersionBaseUrl() + "/releases";
+  @Override
+  protected String getGithubOrganization() {
+    return "gradle";
   }
 
   @Override
-  protected String getVersionBaseUrl() {
+  protected String getGithubRepository() {
 
-    return "https://gradle.org";
+    return "gradle";
   }
 
   @Override
   protected String getDownloadBaseUrl() {
 
     return "https://services.gradle.org";
-  }
-
-  @Override
-  protected Pattern getVersionPattern() {
-
-    return VERSION_PATTERN;
   }
 
   @Override
@@ -54,7 +44,7 @@ public class GradleUrlUpdater extends WebsiteUrlUpdater {
   protected void addVersion(UrlVersion urlVersion) {
 
     if (this.responseBody == null) {
-      this.responseBody = doGetResponseBodyAsString(getVersionBaseUrl() + "/release-checksums");
+      this.responseBody = doGetResponseBodyAsString(getVersionBaseUrl() + "release-checksums");
     }
 
     String hashSum = "";
@@ -99,19 +89,6 @@ public class GradleUrlUpdater extends WebsiteUrlUpdater {
     }
     return "";
   }
-
-  @Override
-  protected Set<String> doGetRegexMatchesAsList(String htmlBody) {
-
-    Set<String> versions = new HashSet<>();
-    var matcher = getVersionPattern().matcher(htmlBody);
-    while (matcher.find()) {
-      String version = matcher.group();
-      addVersion(version, versions);
-    }
-    return versions;
-  }
-
 
   @Override
   public String getCpeVendor() {

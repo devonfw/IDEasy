@@ -1,13 +1,13 @@
 package com.devonfw.tools.ide.url.tool.lazydocker;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link GithubUrlUpdater} for lazydocker.
+ * {@link GithubUrlTagUpdater} for lazydocker.
  */
-public class LazyDockerUrlUpdater extends GithubUrlUpdater {
+public class LazyDockerUrlUpdater extends GithubUrlTagUpdater {
 
   private static final VersionIdentifier MIN_WIN_VID = VersionIdentifier.of("0.7.4");
 
