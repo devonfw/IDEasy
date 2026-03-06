@@ -1,12 +1,12 @@
 package com.devonfw.tools.ide.url.tool.dotnet;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
 
 /**
- * {@link GithubUrlUpdater} for Microsoft .NET core.
+ * {@link GithubUrlTagUpdater} for Microsoft .NET core.
  */
-public class DotNetUrlUpdater extends GithubUrlUpdater {
+public class DotNetUrlUpdater extends GithubUrlTagUpdater {
 
   @Override
   public String getTool() {

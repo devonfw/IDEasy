@@ -8,7 +8,7 @@ import com.devonfw.tools.ide.github.GithubTags;
 /**
  * {@link JsonUrlUpdater} for GitHub projects.
  */
-public abstract class GithubUrlUpdater extends JsonUrlUpdater<GithubTags, GithubTag> {
+public abstract class GithubUrlTagUpdater extends JsonUrlUpdater<GithubTags, GithubTag> {
 
   /**
    * The default GitHub base url.
