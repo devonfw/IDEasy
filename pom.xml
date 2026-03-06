@@ -20,7 +20,7 @@
     <github.repository>IDEasy</github.repository>
     <ide_version>${revision}</ide_version>
     <java.version>21</java.version>
-    <jline.version>3.24.1</jline.version>
+    <jline.version>3.30.6</jline.version>
     <jansi.version>2.4.1</jansi.version>
     <jackson.version>2.18.3</jackson.version>
     <xmlunit.version>2.10.0</xmlunit.version>
@@ -93,7 +93,17 @@
       <dependency>
         <groupId>me.tongfei</groupId>
         <artifactId>progressbar</artifactId>
-        <version>0.10.1</version>
+        <version>0.10.2</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jline</groupId>
+        <artifactId>jline-terminal</artifactId>
+        <version>${jline.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jline</groupId>
+        <artifactId>jline-native</artifactId>
+        <version>${jline.version}</version>
       </dependency>
       <dependency>
         <groupId>org.jline</groupId>
