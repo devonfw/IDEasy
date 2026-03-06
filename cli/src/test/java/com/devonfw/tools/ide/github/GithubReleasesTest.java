@@ -4,31 +4,39 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test of {@link GithubTags}.
+ * Test of {@link GithubReleases}.
  */
-class GithubTagsTest extends Assertions {
+class GithubReleasesTest extends Assertions {
 
   /**
-   * Test adding and retrieving tags from the GithubTags collection.
+   * Test adding and retrieving releases from the GithubReleases collection.
    */
   @Test
-  void testAddAndRetrieveTags() {
-    GithubTags tags = new GithubTags();
-    GithubTag tag1 = new GithubTag("refs/tags/v1.0.0");
-    GithubTag tag2 = new GithubTag("refs/tags/v2.0.0");
-    tags.add(tag1);
-    tags.add(tag2);
-    assertThat(tags).hasSize(2);
-    assertThat(tags.get(0).version()).isEqualTo("v1.0.0");
-    assertThat(tags.get(1).version()).isEqualTo("v2.0.0");
+  void testAddAndRetrieveReleases() {
+    // arrange
+    GithubReleases releases = new GithubReleases();
+    GithubRelease release1 = new GithubRelease("v1.0.0");
+    GithubRelease release2 = new GithubRelease("v2.0.0");
+
+    // act
+    releases.add(release1);
+    releases.add(release2);
+
+    // assert
+    assertThat(releases).hasSize(2);
+    assertThat(releases.get(0).version()).isEqualTo("1.0.0");
+    assertThat(releases.get(1).version()).isEqualTo("2.0.0");
   }
 
   /**
-   * Test that a new GithubTags collection is empty.
+   * Test that a new GithubReleases collection is empty.
    */
   @Test
-  void testEmptyTags() {
-    GithubTags tags = new GithubTags();
-    assertThat(tags).isEmpty();
+  void testEmptyReleases() {
+    // arrange
+    GithubReleases releases = new GithubReleases();
+
+    // assert
+    assertThat(releases).isEmpty();
   }
 }

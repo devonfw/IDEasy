@@ -42,10 +42,10 @@ public class GradleUrlUpdater extends GithubUrlReleaseUpdater {
 
   @Override
   protected void addVersion(UrlVersion urlVersion) {
-
-    if (this.responseBody == null) {
-      this.responseBody = doGetResponseBodyAsString(getVersionBaseUrl() + "release-checksums");
-    }
+    //todo: evaluate if it's alright to delete this part - as when using it, the downloads keep on failing with "IllegalStateException: Unexpected response code 404"
+    //if (this.responseBody == null) {
+    //  this.responseBody = doGetResponseBodyAsString(getVersionBaseUrl() + "release-checksums");
+    //}
 
     String hashSum = "";
     if (this.responseBody != null && !this.responseBody.isEmpty()) {

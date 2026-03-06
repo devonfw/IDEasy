@@ -4,18 +4,18 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test of {@link GithubTag}.
+ * Test of {@link GithubRelease}.
  */
-class GithubTagTest extends Assertions {
+class GithubReleaseTest extends Assertions {
 
   /**
-   * Test that the ref and version are correctly extracted from a typical tag ref string.
+   * Test that the ref and version are correctly extracted from a typical release ref string.
    */
   @Test
   void testRefAndVersion() {
-    GithubTag tag = new GithubTag("refs/tags/v1.2.3");
-    assertThat(tag.ref()).isEqualTo("refs/tags/v1.2.3");
-    assertThat(tag.version()).isEqualTo("v1.2.3");
+    GithubRelease release = new GithubRelease("v1.2.3");
+    assertThat(release.ref()).isEqualTo("v1.2.3");
+    assertThat(release.version()).isEqualTo("1.2.3");
   }
 
   /**
@@ -23,7 +23,7 @@ class GithubTagTest extends Assertions {
    */
   @Test
   void testVersionWithNoPrefix() {
-    GithubTag tag = new GithubTag("v2.0.0");
-    assertThat(tag.version()).isEqualTo("v2.0.0");
+    GithubRelease release = new GithubRelease("2.0.0");
+    assertThat(release.version()).isEqualTo("2.0.0");
   }
 }
