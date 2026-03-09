@@ -103,7 +103,7 @@ public class NetworkStatusImpl implements NetworkStatus {
     }
     Throwable error = getError();
     if (error == null) {
-      IdeLogLevel.INTERACTION.log(LOG, "You are online.");
+      IdeLogLevel.SUCCESS.log(LOG, "You are online.");
       return;
     }
     String message = "You are offline because of the following error:";

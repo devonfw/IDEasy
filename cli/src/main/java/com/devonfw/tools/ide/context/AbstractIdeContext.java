@@ -18,7 +18,9 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.function.Predicate;
+import java.util.logging.FileHandler;
 import java.util.logging.LogManager;
+import java.util.logging.SimpleFormatter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +52,7 @@ import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.log.IdeLogArgFormatter;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeLogListener;
+import com.devonfw.tools.ide.log.JulConsoleHandler;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.migration.IdeMigrator;
 import com.devonfw.tools.ide.network.NetworkStatus;
@@ -1198,16 +1201,17 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     properties.setProperty(".level", "SEVERE");
     if (writeLogfile) {
       this.startContext.setLogLevelLogger(IdeLogLevel.TRACE);
-      properties.setProperty("handlers", "com.devonfw.tools.ide.log.JulConsoleHandler,java.util.logging.FileHandler");
-      properties.setProperty("java.util.logging.FileHandler.formatter", "java.util.logging.SimpleFormatter");
-      properties.setProperty("java.util.logging.FileHandler.encoding", "UTF-8");
+      String fileHandlerName = FileHandler.class.getName();
+      properties.setProperty("handlers", JulConsoleHandler.class.getName() + "," + fileHandlerName);
+      properties.setProperty(fileHandlerName + ".formatter", SimpleFormatter.class.getName());
+      properties.setProperty(fileHandlerName + ".encoding", "UTF-8");
       this.logfile = createLogfilePath(idePath, cmd);
       getFileAccess().mkdirs(this.logfile.getParent());
-      properties.setProperty("java.util.logging.FileHandler.pattern", this.logfile.toString());
+      properties.setProperty(fileHandlerName + ".pattern", this.logfile.toString());
     } else {
-      properties.setProperty("handlers", "com.devonfw.tools.ide.log.JulConsoleHandler");
+      properties.setProperty("handlers", JulConsoleHandler.class.getName());
     }
-    properties.setProperty("java.util.logging.SimpleFormatter.format", "%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS.%1$tL [%4$s] [%3$s] %5$s%6$s%n");
+    properties.setProperty(SimpleFormatter.class.getName() + ".format", "%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS.%1$tL [%4$s] [%3$s] %5$s%6$s%n");
     return properties;
   }
 
