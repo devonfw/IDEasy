@@ -7,8 +7,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
@@ -20,6 +24,8 @@ import com.devonfw.tools.ide.variable.IdeVariables;
  * Implements the {@link GitContext}.
  */
 public class GitContextImpl implements GitContext {
+
+  private static final Logger LOG = LoggerFactory.getLogger(GitContextImpl.class);
 
   /** @see #getContext() */
   protected final IdeContext context;
@@ -118,14 +124,14 @@ public class GitContextImpl implements GitContext {
     if (!result.isSuccessful()) {
       String message = "Failed to update git repository at " + targetRepository;
       if (this.context.isOfflineMode()) {
-        this.context.warning(message);
-        this.context.interaction("Continuing as we are in offline mode - results may be outdated!");
+        LOG.warn(message);
+        IdeLogLevel.INTERACTION.log(LOG, "Continuing as we are in offline mode - results may be outdated!");
       } else {
-        this.context.error(message);
+        LOG.error(message);
         if (this.context.isOnline()) {
-          this.context.error("See above error for details. If you have local changes, please stash or revert and retry.");
+          LOG.error("See above error for details. If you have local changes, please stash or revert and retry.");
         } else {
-          this.context.error("It seems you are offline - please ensure Internet connectivity and retry or activate offline mode (-o or --offline).");
+          LOG.error("It seems you are offline - please ensure Internet connectivity and retry or activate offline mode (-o or --offline).");
         }
         this.context.askToContinue("Typically you should abort and fix the problem. Do you want to continue anyways?");
       }
@@ -162,13 +168,13 @@ public class GitContextImpl implements GitContext {
   public void pull(Path repository) {
 
     if (this.context.isOffline()) {
-      this.context.info("Skipping git pull on {} because offline", repository);
+      LOG.info("Skipping git pull on {} because offline", repository);
       return;
     }
     ProcessResult result = runGitCommand(repository, ProcessMode.DEFAULT, "--no-pager", "pull", "--quiet");
     if (!result.isSuccessful()) {
       String branchName = determineCurrentBranch(repository);
-      this.context.warning("Git pull on branch {} failed for repository {}.", branchName, repository);
+      LOG.warn("Git pull on branch {} failed for repository {}.", branchName, repository);
       handleErrors(repository, result);
     }
   }
@@ -186,7 +192,7 @@ public class GitContextImpl implements GitContext {
     ProcessResult result = runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, "fetch", Objects.requireNonNullElse(remote, "origin"), branch);
 
     if (!result.isSuccessful()) {
-      this.context.warning("Git fetch for '{}/{} failed.'.", remote, branch);
+      LOG.warn("Git fetch for '{}/{} failed.'.", remote, branch);
     }
   }
 
@@ -214,10 +220,10 @@ public class GitContextImpl implements GitContext {
     ProcessResult result = runGitCommand(repository, ProcessMode.DEFAULT, "diff-index", "--quiet", "HEAD");
     if (!result.isSuccessful()) {
       // reset to origin/master
-      this.context.warning("Git has detected modified files -- attempting to reset {} to '{}/{}'.", repository, remoteName, branchName);
+      LOG.warn("Git has detected modified files -- attempting to reset {} to '{}/{}'.", repository, remoteName, branchName);
       result = runGitCommand(repository, ProcessMode.DEFAULT, "reset", "--hard", remoteName + "/" + branchName);
       if (!result.isSuccessful()) {
-        this.context.warning("Git failed to reset {} to '{}/{}'.", remoteName, branchName, repository);
+        LOG.warn("Git failed to reset {} to '{}/{}'.", remoteName, branchName, repository);
         handleErrors(repository, result);
       }
     }
@@ -230,7 +236,7 @@ public class GitContextImpl implements GitContext {
     ProcessResult result = runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, "ls-files", "--other", "--directory", "--exclude-standard");
     if (!result.getOut().isEmpty()) {
       // delete untracked files
-      this.context.warning("Git detected untracked files in {} and is attempting a cleanup.", repository);
+      LOG.warn("Git detected untracked files in {} and is attempting a cleanup.", repository);
       runGitCommand(repository, "clean", "-df");
     }
   }
@@ -277,7 +283,7 @@ public class GitContextImpl implements GitContext {
 
     if (gitPath != null) {
       this.git = gitPath;
-      this.context.trace("Found git at: {}", gitPath);
+      LOG.trace("Found git at: {}", gitPath);
     }
 
     return gitPath;
@@ -286,27 +292,27 @@ public class GitContextImpl implements GitContext {
   private Path findGitOnWindowsViaBash() {
     Path gitPath;
     Path bashBinary = this.context.findBashRequired();
-    this.context.trace("Trying to find git path on Windows");
+    LOG.trace("Trying to find git path on Windows");
     if (Files.exists(bashBinary)) {
       gitPath = bashBinary.getParent().resolve("git.exe");
       if (Files.exists(gitPath)) {
-        this.context.trace("Git path was extracted from bash path at: {}", gitPath);
+        LOG.trace("Git path was extracted from bash path at: {}", gitPath);
       } else {
-        this.context.error("Git path: {} was extracted from bash path at: {} but it does not exist", gitPath, bashBinary);
+        LOG.error("Git path: {} was extracted from bash path at: {} but it does not exist", gitPath, bashBinary);
         return null;
       }
     } else {
-      this.context.error("Bash path was checked at: {} but it does not exist", bashBinary);
+      LOG.error("Bash path was checked at: {} but it does not exist", bashBinary);
       return null;
     }
     return gitPath;
   }
 
   private Path findGitInPath(Path gitPath) {
-    this.context.trace("Trying to find git executable within the PATH environment variable");
+    LOG.trace("Trying to find git executable within the PATH environment variable");
     Path binaryGitPath = this.context.getPath().findBinary(gitPath);
     if (gitPath == binaryGitPath) {
-      this.context.debug("No git executable could be found within the PATH environment variable");
+      LOG.debug("No git executable could be found within the PATH environment variable");
       return null;
     }
     return binaryGitPath;
@@ -334,7 +340,7 @@ public class GitContextImpl implements GitContext {
 
   private String runGitCommandAndGetSingleOutput(String warningOnError, Path directory, ProcessMode mode, String... args) {
     ProcessErrorHandling errorHandling = ProcessErrorHandling.NONE;
-    if (this.context.debug().isEnabled()) {
+    if (LOG.isDebugEnabled()) {
       errorHandling = ProcessErrorHandling.LOG_WARNING;
     }
     ProcessResult result = runGitCommand(directory, mode, errorHandling, args);
@@ -342,14 +348,14 @@ public class GitContextImpl implements GitContext {
       List<String> out = result.getOut();
       int size = out.size();
       if (size == 1) {
-        return out.get(0);
+        return out.getFirst();
       } else if (size == 0) {
         warningOnError += " - No output received from " + result.getCommand();
       } else {
         warningOnError += " - Expected single line of output but received " + size + " lines from " + result.getCommand();
       }
     }
-    this.context.warning(warningOnError);
+    LOG.warn(warningOnError);
     return null;
   }
 
@@ -378,10 +384,10 @@ public class GitContextImpl implements GitContext {
   public void saveCurrentCommitId(Path repository, Path trackedCommitIdPath) {
 
     if ((repository == null) || (trackedCommitIdPath == null)) {
-      this.context.warning("Invalid usage of saveCurrentCommitId with null value");
+      LOG.warn("Invalid usage of saveCurrentCommitId with null value");
       return;
     }
-    this.context.trace("Saving commit Id of {} into {}", repository, trackedCommitIdPath);
+    LOG.trace("Saving commit Id of {} into {}", repository, trackedCommitIdPath);
     String currentCommitId = determineCurrentCommitId(repository);
     if (currentCommitId != null) {
       try {

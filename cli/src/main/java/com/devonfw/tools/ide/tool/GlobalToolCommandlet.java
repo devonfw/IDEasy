@@ -6,13 +6,18 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -20,6 +25,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * {@link ToolCommandlet} that is installed globally.
  */
 public abstract class GlobalToolCommandlet extends ToolCommandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(GlobalToolCommandlet.class);
 
   /**
    * The constructor.
@@ -59,7 +66,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
       NativePackageManager packageManager = pmCommand.packageManager();
       Path packageManagerPath = this.context.getPath().findBinary(Path.of(packageManager.getBinaryName()));
       if (packageManagerPath == null || !Files.exists(packageManagerPath)) {
-        this.context.debug("{} is not installed", packageManager.toString());
+        LOG.debug("{} is not installed", packageManager.toString());
         continue; // Skip to the next package manager command
       }
 
@@ -72,11 +79,12 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
 
   private void logPackageManagerCommands(PackageManagerCommand pmCommand) {
 
-    this.context.interaction("We need to run the following privileged command(s):");
+    IdeLogLevel level = IdeLogLevel.INTERACTION;
+    level.log(LOG, "We need to run the following privileged command(s):");
     for (String command : pmCommand.commands()) {
-      this.context.interaction(command);
+      level.log(LOG, command);
     }
-    this.context.interaction("This will require root permissions!");
+    level.log(LOG, "This will require root permissions!");
   }
 
   /**
@@ -95,13 +103,13 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
           .addArgs("-c", command);
       int exitCode = pc.run();
       if (exitCode != 0) {
-        this.context.warning("{} command did not execute successfully", command);
+        LOG.warn("{} command did not execute successfully", command);
         return false;
       }
     }
 
     if (!silent) {
-      this.context.success("Successfully installed {}", this.tool);
+      IdeLogLevel.SUCCESS.log(LOG, "Successfully installed {}", this.tool);
     }
     return true;
   }
@@ -156,13 +164,17 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
       fileAccess.delete(tmpDir);
     }
     if (exitCode == 0) {
-      asSuccess(request.getStep()).log("Installation process for {} in version {} has started", this.tool, resolvedVersion);
+      IdeLogLevel.SUCCESS.log(LOG, "Installation process for {} in version {} has started", this.tool, resolvedVersion);
+      Step step = request.getStep();
+      if (step != null) {
+        step.success(true);
+      }
     } else {
       throw new CliException("Installation process for " + this.tool + " in version " + resolvedVersion + " failed with exit code " + exitCode + "!");
     }
     installationPath = getInstallationPath(toolEdition.edition(), resolvedVersion);
     if (installationPath == null) {
-      this.context.warning("Could not find binary {} on PATH after installation.", getBinaryName());
+      LOG.warn("Could not find binary {} on PATH after installation.", getBinaryName());
     }
     return createToolInstallation(installationPath, resolvedVersion, true, pc, false);
   }
@@ -178,14 +190,14 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   @Override
   public VersionIdentifier getInstalledVersion() {
     //TODO: handle "get-version <globaltool>"
-    this.context.error("Couldn't get installed version of " + this.getName());
+    LOG.error("Couldn't get installed version of " + this.getName());
     return null;
   }
 
   @Override
   public String getInstalledEdition() {
     //TODO: handle "get-edition <globaltool>"
-    this.context.error("Couldn't get installed edition of " + this.getName());
+    LOG.error("Couldn't get installed edition of " + this.getName());
     return null;
   }
 
@@ -207,6 +219,6 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   @Override
   public void uninstall() {
     //TODO: handle "uninstall <globaltool>"
-    this.context.error("Couldn't uninstall " + this.getName());
+    LOG.error("Couldn't uninstall " + this.getName());
   }
 }

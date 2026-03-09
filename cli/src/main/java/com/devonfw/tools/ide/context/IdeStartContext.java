@@ -2,15 +2,33 @@ package com.devonfw.tools.ide.context;
 
 import java.util.Locale;
 
-import com.devonfw.tools.ide.log.IdeLogger;
+import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.log.IdeLogListener;
 import com.devonfw.tools.ide.network.ReadOfflineMode;
 
 /**
- * Extends {@link IdeLogger} with the options configurable via {@link com.devonfw.tools.ide.cli.Ideasy} CLI (see
- * {@link com.devonfw.tools.ide.commandlet.ContextCommandlet}). The {@link IdeStartContext} is therefore the object configured at bootstrapping and then used to
- * create the actual {@link IdeContext} from it.
+ * Contains the options configurable via {@link com.devonfw.tools.ide.cli.Ideasy} CLI. The {@link IdeStartContext} is therefore the object configured at
+ * bootstrapping and then used to create the actual {@link IdeContext} from it.
+ *
+ * @see com.devonfw.tools.ide.commandlet.ContextCommandlet
  */
-public interface IdeStartContext extends IdeLogger, ReadOfflineMode {
+public interface IdeStartContext extends ReadOfflineMode {
+
+  /**
+   * @return the {@link IdeLogListener}.
+   */
+  IdeLogListener getLogListener();
+
+  /**
+   * @return the minimum allowed {@link IdeLogLevel} (threshold) for console output (see --debug and --trace options).
+   */
+  IdeLogLevel getLogLevelConsole();
+
+  /**
+   * @return the minimum allowed {@link IdeLogLevel} (threshold) for SLF4J and JUL logger (can be lower than {@link #getLogLevelConsole()} for finer details in
+   *     logfile).
+   */
+  IdeLogLevel getLogLevelLogger();
 
   /**
    * @return {@code true} in case of quiet mode (reduced output), {@code false} otherwise.
