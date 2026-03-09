@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1351[#1729]: Jline update fix. Installed version of Jline: 3.30.6 ProgressBar version changed to 0.10.2 Dependencies jline-terminal and jline-native were added explicitly.
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/41?closed=1[milestone 2026.03.001].
 
