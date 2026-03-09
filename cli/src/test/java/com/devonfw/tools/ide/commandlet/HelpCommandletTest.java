@@ -15,7 +15,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.context.IdeTestContextMock;
 import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
@@ -32,7 +31,7 @@ class HelpCommandletTest extends AbstractIdeContextTest {
   void testThatHomeIsNotRequired() {
 
     // arrange
-    IdeContext context = IdeTestContextMock.get();
+    IdeContext context = new IdeTestContext();
     // act
     HelpCommandlet help = new HelpCommandlet(context);
     // assert
@@ -110,7 +109,7 @@ class HelpCommandletTest extends AbstractIdeContextTest {
   void testEnsureAllNlsPropertiesPresent(String locale) throws IOException {
 
     // arrange
-    IdeContext context = IdeTestContextMock.get();
+    IdeContext context = new IdeTestContext();
     NlsBundle bundleRoot = new NlsBundle(context, Locale.ROOT);
     NlsBundle bundle = new NlsBundle(context, Locale.forLanguageTag(locale));
     SoftAssertions soft = new SoftAssertions();

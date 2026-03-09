@@ -81,7 +81,6 @@ class DotNetTest extends AbstractIdeContextTest {
 
     SystemInfo systemInfo = SystemInfoMock.of(operatingSystem);
     this.context.setSystemInfo(systemInfo);
-    this.context.info("Running dotnet binary from: {}", this.commandlet.getToolBinPath());
     this.commandlet.run();
   }
 

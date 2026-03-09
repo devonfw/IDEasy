@@ -3,6 +3,9 @@ package com.devonfw.tools.ide.tool.custom;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.VariableLine;
 import com.devonfw.tools.ide.json.JsonMapping;
@@ -16,6 +19,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * Mapper of {@link CustomTools} from/to JSON or legacy properties.
  */
 public class CustomToolsMapper extends StandardJsonObjectMapper<CustomTools> {
+
+  private static final Logger LOG = LoggerFactory.getLogger(CustomToolsMapper.class);
 
   private static final CustomToolsMapper INSTANCE = new CustomToolsMapper();
 
@@ -101,10 +106,9 @@ public class CustomToolsMapper extends StandardJsonObjectMapper<CustomTools> {
    * Retrieves custom tools from a devonfw-ide legacy config.
    *
    * @param customToolsContent String of custom tools
-   * @param context the {@link IdeContext}.
    * @return {@link CustomTools}.
    */
-  public static CustomTools parseCustomToolsFromLegacyConfig(String customToolsContent, IdeContext context) {
+  public static CustomTools parseCustomToolsFromLegacyConfig(String customToolsContent) {
     List<String> customToolEntries = VariableLine.parseArray(customToolsContent);
     if (customToolEntries.isEmpty()) {
       return null;
@@ -114,12 +118,12 @@ public class CustomToolsMapper extends StandardJsonObjectMapper<CustomTools> {
     for (String customToolConfig : customToolEntries) {
       CustomTool customTool = parseCustomToolFromLegacyConfig(customToolConfig);
       if (customTool == null) {
-        context.warning("Invalid custom tool entry: {}", customToolConfig);
+        LOG.warn("Invalid custom tool entry: {}", customToolConfig);
       } else {
         String url = customTool.url();
         if (defaultUrl == null) {
           if ((url == null) || url.isEmpty()) {
-            context.warning("First custom tool entry has no URL specified: {}", customToolConfig);
+            LOG.warn("First custom tool entry has no URL specified: {}", customToolConfig);
           } else {
             defaultUrl = url;
             customTool = customTool.withoutUrl();

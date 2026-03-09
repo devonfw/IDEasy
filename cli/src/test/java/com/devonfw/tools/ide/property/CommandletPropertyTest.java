@@ -10,7 +10,7 @@ import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollectorDefault;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.context.IdeTestContextMock;
+import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.tool.helm.Helm;
 import com.devonfw.tools.ide.tool.intellij.Intellij;
 
@@ -23,7 +23,7 @@ class CommandletPropertyTest {
   void testCompleteValue() {
 
     // arrange
-    IdeContext context = IdeTestContextMock.get();
+    IdeContext context = new IdeTestContext();
     String[] expectedCandidates = { "help", "helm" };
     String input = "he";
     CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context);
@@ -40,7 +40,7 @@ class CommandletPropertyTest {
   void testParse() {
 
     // arrange
-    IdeContext context = IdeTestContextMock.get();
+    IdeContext context = new IdeTestContext();
 
     // act
     CommandletProperty cmdProp = new CommandletProperty("", false, "");

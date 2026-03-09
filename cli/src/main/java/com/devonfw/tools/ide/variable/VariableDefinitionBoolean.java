@@ -3,12 +3,17 @@ package com.devonfw.tools.ide.variable;
 import java.util.Locale;
 import java.util.function.Function;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.context.IdeContext;
 
 /**
  * Implementation of {@link VariableDefinition} for a variable with the {@link #getValueType() value type} {@link Boolean}.
  */
 public class VariableDefinitionBoolean extends AbstractVariableDefinition<Boolean> {
+
+  private static final Logger LOG = LoggerFactory.getLogger(VariableDefinitionBoolean.class);
 
   /**
    * The constructor.
@@ -85,7 +90,7 @@ public class VariableDefinitionBoolean extends AbstractVariableDefinition<Boolea
       case "true", "yes" -> Boolean.TRUE;
       case "false", "no" -> Boolean.FALSE;
       default -> {
-        context.warning("Variable {} has invalid boolean value {} - using false as fallback");
+        LOG.warn("Variable {} has invalid boolean value {} - using false as fallback", getName(), value);
         yield Boolean.FALSE;
       }
     };

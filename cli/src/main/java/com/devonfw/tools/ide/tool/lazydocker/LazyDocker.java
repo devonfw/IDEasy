@@ -54,7 +54,7 @@ public class LazyDocker extends LocalToolCommandlet {
     // we have this pattern a lot that we want to get a single line output of a successful ProcessResult.
     // we should create a generic method in ProcessResult for this use-case.
     if (!result.isSuccessful()) {
-      result.log(IdeLogLevel.WARNING, this.context);
+      result.log(IdeLogLevel.WARNING);
     }
     if (result.getOut().isEmpty()) {
       throw new CliException("Docker is not installed, but required for lazydocker.\n" //
