@@ -1,16 +1,17 @@
 package com.devonfw.tools.ide.tool.docker;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.SystemArchitecture;
 import com.devonfw.tools.ide.os.WindowsHelper;
-import com.devonfw.tools.ide.os.WindowsHelperImpl;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.NativePackageManager;
 import com.devonfw.tools.ide.tool.PackageManagerCommand;
@@ -24,11 +25,12 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class Docker extends GlobalToolCommandlet {
 
+  private static final Logger LOG = LoggerFactory.getLogger(Docker.class);
+
   private static final String PODMAN = "podman";
 
-
   private static final Pattern RDCTL_CLIENT_VERSION_PATTERN = Pattern.compile("client version:\\s*v([\\d.]+)", Pattern.CASE_INSENSITIVE);
-  
+
   private static final Pattern DOCKER_DESKTOP_LINUX_VERSION_PATTERN = Pattern.compile("^([0-9]+(?:\\.[0-9]+){1,2})");
 
   /**
@@ -98,7 +100,7 @@ public class Docker extends GlobalToolCommandlet {
   public VersionIdentifier getInstalledVersion() {
 
     if (!isDockerInstalled()) {
-      this.context.error("Couldn't get installed version of " + this.getName());
+      LOG.error("Couldn't get installed version of " + this.getName());
       return null;
     }
 
@@ -112,7 +114,7 @@ public class Docker extends GlobalToolCommandlet {
       };
 
       if (parsedVersion == null) {
-        this.context.error("Couldn't get installed version of " + this.getName());
+        LOG.error("Couldn't get installed version of " + this.getName());
       }
 
       return parsedVersion;
@@ -146,7 +148,7 @@ public class Docker extends GlobalToolCommandlet {
   public String getInstalledEdition() {
 
     if (!isDockerInstalled()) {
-      this.context.error("Couldn't get installed edition of " + this.getName());
+      LOG.error("Couldn't get installed edition of {}", this.getName());
       return null;
     }
 
@@ -172,9 +174,9 @@ public class Docker extends GlobalToolCommandlet {
 
     List<PackageManagerCommand> pmCommands = new ArrayList<>();
     pmCommands.add(
-        new PackageManagerCommand(NativePackageManager.ZYPPER, Arrays.asList("sudo zypper remove rancher-desktop")));
+        new PackageManagerCommand(NativePackageManager.ZYPPER, List.of("sudo zypper remove rancher-desktop")));
     pmCommands.add(
-        new PackageManagerCommand(NativePackageManager.APT, Arrays.asList("sudo apt -y autoremove rancher-desktop")));
+        new PackageManagerCommand(NativePackageManager.APT, List.of("sudo apt -y autoremove rancher-desktop")));
 
     return pmCommands;
   }

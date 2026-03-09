@@ -5,6 +5,9 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -21,6 +24,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * {@link ToolCommandlet} for <a href="https://www.python.org/">python</a>.
  */
 public class Python extends LocalToolCommandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(Python.class);
 
   private final VersionIdentifier PYTHON_MIN_VERSION = VersionIdentifier.of("3.8.2");
 
@@ -53,7 +58,7 @@ public class Python extends LocalToolCommandlet {
     renameVenvFolderToPython(fileAccess, softwarePath, installationPath);
     this.context.writeVersionFile(resolvedVersion, installationPath);
     createWindowsSymlinkBinFolder(fileAccess, installationPath);
-    this.context.debug("Installed {} in version {} at {}", this.tool, resolvedVersion, installationPath);
+    LOG.debug("Installed {} in version {} at {}", this.tool, resolvedVersion, installationPath);
   }
 
   @Override

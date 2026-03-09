@@ -8,8 +8,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.json.JsonMapping;
-import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -21,6 +23,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @see com.devonfw.tools.ide.url.model.file.UrlDependencyFile
  */
 public class ToolDependencies {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ToolDependencies.class);
 
   private static final ObjectMapper MAPPER = JsonMapping.create();
 
@@ -40,7 +44,7 @@ public class ToolDependencies {
    * @param version the {@link VersionIdentifier} of the tool to install.
    * @return The {@link List} of {@link ToolDependency}s for the given tool version.
    */
-  public List<ToolDependency> findDependencies(VersionIdentifier version, IdeLogger logger) {
+  public List<ToolDependency> findDependencies(VersionIdentifier version) {
 
     for (Map.Entry<VersionRange, List<ToolDependency>> entry : this.dependencies.entrySet()) {
       VersionRange versionRange = entry.getKey();
@@ -50,7 +54,7 @@ public class ToolDependencies {
     }
     int size = dependencies.size();
     if (size > 0) {
-      logger.warning("No match for version {} while {} version ranges are configured in {} - configuration error?!", version, size, this.path);
+      LOG.warn("No match for version {} while {} version ranges are configured in {} - configuration error?!", version, size, this.path);
     }
     return Collections.emptyList();
   }
