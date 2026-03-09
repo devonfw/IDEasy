@@ -16,7 +16,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1699[#1699]: Add function to verify that the provided git URL is valid
 * https://github.com/devonfw/IDEasy/issues/1562[#1562]: Update documentation regarding environmental variables
 * https://github.com/devonfw/IDEasy/issues/1691[#1691]: Update references to UrlUpdaters in the documentation
-* https://github.com/devonfw/IDEasy/issues/1683[#1683]: Updated the link for bug-ticket creation that's shown when en error is encountered
+* https://github.com/devonfw/IDEasy/issues/1683[#1683]: Updated the link for bug-ticket creation that's shown when an error is encountered
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/40?closed=1[milestone 2026.02.001].
 
