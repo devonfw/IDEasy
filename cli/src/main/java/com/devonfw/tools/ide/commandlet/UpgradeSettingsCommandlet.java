@@ -8,11 +8,15 @@ import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.function.Function;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesPropertiesFile;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.tool.custom.CustomTools;
 import com.devonfw.tools.ide.tool.custom.CustomToolsMapper;
@@ -24,6 +28,8 @@ import com.devonfw.tools.ide.variable.VariableDefinition;
  * {@link Commandlet} to upgrade settings after a migration from devonfw-ide to IDEasy.
  */
 public class UpgradeSettingsCommandlet extends Commandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(UpgradeSettingsCommandlet.class);
 
   /**
    * The constructor.
@@ -43,14 +49,14 @@ public class UpgradeSettingsCommandlet extends Commandlet {
   }
 
   @Override
-  public void run() {
+  protected void doRun() {
     updateLegacyFolders();
     updateProperties();
     updateWorkspaceTemplates();
   }
 
   private void updateLegacyFolders() {
-    this.context.info("Updating legacy folders if present...");
+    LOG.info("Updating legacy folders if present...");
     Path settingsPath = context.getSettingsPath();
     updateLegacyFolder(settingsPath, IdeContext.FOLDER_LEGACY_REPOSITORIES, IdeContext.FOLDER_REPOSITORIES);
     updateLegacyFolder(settingsPath, IdeContext.FOLDER_LEGACY_TEMPLATES, IdeContext.FOLDER_TEMPLATES);
@@ -65,16 +71,16 @@ public class UpgradeSettingsCommandlet extends Commandlet {
       try {
         if (!Files.exists(newFolder)) {
           fileAccess.move(legacyFolder, newFolder, StandardCopyOption.REPLACE_EXISTING);
-          this.context.success("Successfully renamed folder '{}' to '{}' in {}.", legacyName, newName, folder);
+          IdeLogLevel.SUCCESS.log(LOG, "Successfully renamed folder '{}' to '{}' in {}.", legacyName, newName, folder);
         }
       } catch (IllegalStateException e) {
-        this.context.error(e, "Error renaming folder {} to {} in {}", legacyName, newName, folder);
+        LOG.error("Error renaming folder {} to {} in {}", legacyName, newName, folder, e);
       }
     }
   }
 
   private void updateWorkspaceTemplates() {
-    this.context.info("Updating workspace templates (replace legacy variables and change variable syntax)...");
+    LOG.info("Updating workspace templates (replace legacy variables and change variable syntax)...");
 
     FileAccess fileAccess = this.context.getFileAccess();
     DirectoryMerger merger = this.context.getWorkspaceMerger();
@@ -96,7 +102,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
     // updates DEVON_IDE_CUSTOM_TOOLS to new ide-custom-tools.json
     String devonCustomTools = IdeVariables.DEVON_IDE_CUSTOM_TOOLS.get(this.context);
     if (devonCustomTools != null) {
-      CustomTools customTools = CustomToolsMapper.parseCustomToolsFromLegacyConfig(devonCustomTools, context);
+      CustomTools customTools = CustomToolsMapper.parseCustomToolsFromLegacyConfig(devonCustomTools);
       if (customTools != null) {
         CustomToolsMapper.get().saveJsonToFolder(customTools, this.context.getSettingsPath());
       }
@@ -154,7 +160,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
       case "U" -> "ultimate";
       case "C" -> "intellij";
       default -> {
-        this.context.warning("Undefined legacy edition {}", legacyEdition);
+        LOG.warn("Undefined legacy edition {}", legacyEdition);
         yield "intellij";
       }
     };
@@ -167,7 +173,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
       case "jee" -> "jee";
       case "cpp" -> "cpp";
       default -> {
-        this.context.warning("Undefined legacy edition {}", legacyEdition);
+        LOG.warn("Undefined legacy edition {}", legacyEdition);
         yield "eclipse";
       }
     };
@@ -187,7 +193,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
   }
 
   private void cleanupLegacyProperties() {
-    this.context.info("Cleaning up legacy properties...");
+    LOG.info("Cleaning up legacy properties...");
 
     Path settingsPath = context.getSettingsPath();
     Path repositoriesPath = settingsPath.resolve(IdeContext.FOLDER_REPOSITORIES);
@@ -227,9 +233,9 @@ public class UpgradeSettingsCommandlet extends Commandlet {
     if (updated) {
       try {
         Files.write(filePath, lines, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
-        this.context.success("Successfully updated repository configuration file {}", filePath);
+        IdeLogLevel.SUCCESS.log(LOG, "Successfully updated repository configuration file {}", filePath);
       } catch (IOException e) {
-        this.context.error("Failed to write updated repository configuration file {}", filePath);
+        LOG.error("Failed to write updated repository configuration file {}", filePath);
         throw e;
       }
     }
