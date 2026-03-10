@@ -28,7 +28,7 @@ In this case, continue from the existing PR instead of starting from scratch.
 . Once you decide to work on the issue, **assign it to yourself** (`Assign yourself` on the right side) and move it to **In Progress** via:
 `Projects → IDEasy Board → Status → In Progress`.
 
-For detailed descriptions of each board status and an example of the board layout, see link:project-board.adoc[Project Board].
+For detailed descriptions of each board status and an example of the board layout, see link:IDEasy-project-board.adoc[Project Board].
 
 == Start Working on an Issue
 
@@ -66,7 +66,7 @@ git pull upstream main
 mvn clean install
 ```
 
-- Once your changes are tested and seem to work, you can commit them. For more details, see link:commit.adoc[Commit]:
+- Once your changes are tested and seem to work, you can commit them. For more details, see link:IDEasy-commit.adoc[Commit]:
 +
 ```
 git commit -m "#«issue-id»: «description»"
@@ -98,7 +98,7 @@ Additionally, make sure to:
 * If your change **does not introduce a new commandlet**, remove the section of the DoD template that refers to commandlet creation
 
 
-If you want to create the Pull Request in link:pull-request.adoc#draft-mode[Draft Mode] instead of submitting it directly, click the small arrow next to the `Create pull request` button and select `Create draft pull request`.
+If you want to create the Pull Request in link:IDEasy-pull-request.adoc#draft-mode[Draft Mode] instead of submitting it directly, click the small arrow next to the `Create pull request` button and select `Create draft pull request`.
 
 Once the description is complete and all DoD items are addressed, scroll to the bottom of the PR and click `Create pull request`.
 
@@ -110,7 +110,7 @@ Afterwards:
 +
 `Status → Team Review`
 
-* If its your first PR make sure you **sign the Contributor License Agreement (link:pull-request.adoc#cla[CLA])**!
+* If its your first PR make sure you **sign the Contributor License Agreement (link:IDEasy-pull-request.adoc#cla[CLA])**!
 
 === Upstream Updates
 If you forgot the upstream merge (`git pull upstream/main`) or the upstream changed again while your PR is still open, you will see `This branch is out-of-date with the base branch` at the bottom of your PR and can click on `Update branch`.
