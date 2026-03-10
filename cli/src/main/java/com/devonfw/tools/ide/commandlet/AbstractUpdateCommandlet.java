@@ -177,8 +177,12 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     // here we do not use pullOrClone to prevent asking a pointless question for repository URL...
     if (Files.isDirectory(settingsPath) && !this.context.getFileAccess().isEmptyDir(settingsPath)) {
       if (this.context.isForcePull() || this.context.isForceMode() || Files.isDirectory(settingsPath.resolve(GitContext.GIT_FOLDER))) {
-        gitContext.pull(settingsPath);
-        this.context.getGitContext().saveCurrentCommitId(settingsPath, this.context.getSettingsCommitIdPath());
+        if (gitContext.repoHasUntrackedFiles(settingsPath)) {
+          gitContext.pullSafelyWithStash(settingsPath);
+        } else {
+          gitContext.pull(settingsPath);
+          this.context.getGitContext().saveCurrentCommitId(settingsPath, this.context.getSettingsCommitIdPath());
+        }
       } else {
         LOG.info("Skipping git pull in settings due to code repository. Use --force-pull to enforce pulling.");
       }
@@ -248,8 +252,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
             Therefore we assume that you forgot to add the '--code' option to the ide project creation.
             Do you really want to create the project?""";
       }
-      this.context.askToContinue(warningTemplate, projectName,
-          IdeContext.SETTINGS_REPOSITORY_KEYWORD);
+      this.context.askToContinue(warningTemplate, projectName, IdeContext.SETTINGS_REPOSITORY_KEYWORD);
     }
   }
 
@@ -423,16 +426,9 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     }
     String scriptContent;
     if (windows) {
-      scriptContent = "@echo off\r\n"
-          + "pushd %~dp0\r\n"
-          + "cd workspaces/" + workspace + "\r\n"
-          + "call ide " + ide + "\r\n"
-          + "popd\r\n";
+      scriptContent = "@echo off\r\n" + "pushd %~dp0\r\n" + "cd workspaces/" + workspace + "\r\n" + "call ide " + ide + "\r\n" + "popd\r\n";
     } else {
-      scriptContent = "#!/usr/bin/env bash\n"
-          + "cd \"$(dirname \"$0\")\"\n"
-          + "cd workspaces/" + workspace + "\n"
-          + "ideasy " + ide + "\n";
+      scriptContent = "#!/usr/bin/env bash\n" + "cd \"$(dirname \"$0\")\"\n" + "cd workspaces/" + workspace + "\n" + "ideasy " + ide + "\n";
     }
     FileAccess fileAccess = this.context.getFileAccess();
     fileAccess.writeFileContent(scriptContent, scriptPath);
