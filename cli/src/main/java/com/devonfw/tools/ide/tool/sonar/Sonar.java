@@ -85,7 +85,7 @@ public class Sonar extends LocalToolCommandlet {
   protected String getBinaryName() {
     SonarCommand command = this.command.getValue();
     if (this.context.getSystemInfo().isWindows()) {
-      if (command.equals(SonarCommand.STOP)) {
+      if (command != null && command.equals(SonarCommand.STOP)) {
         return "windows-x86-64/SonarService.bat";
 
       } else {
