@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-import com.devonfw.tools.ide.log.IdeSubLogger;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 
 /**
  * Wrapper for {@link ProcessBuilder} to simplify its usage and avoid common mistakes and pitfalls.
@@ -185,40 +185,40 @@ public interface ProcessContext extends EnvironmentContext {
   /**
    * Runs the given {@code executable} with the given {@code arguments} and returns the output from its {@link ProcessResult#getOut() standard output}.
    *
-   * @param logger the {@link IdeSubLogger} used to log errors instead of throwing an exception.
+   * @param logLevel the {@link IdeLogLevel} used to log errors instead of throwing an exception.
    * @param executable the executable program.
    * @param arguments the program arguments.
    * @return the output printed from the command.
    * @throws IllegalStateException if the command failed.
    */
-  default List<String> runAndGetOutput(IdeSubLogger logger, String executable, String... arguments) {
+  default List<String> runAndGetOutput(IdeLogLevel logLevel, String executable, String... arguments) {
 
     executable(executable).addArgs(arguments);
-    if (logger == null) {
+    if (logLevel == null) {
       errorHandling(ProcessErrorHandling.THROW_ERR);
     }
     ProcessResult result = run(ProcessMode.DEFAULT_CAPTURE);
-    return result.getOutput(logger);
+    return result.getOutput(logLevel);
   }
 
   /**
    * Runs the given {@code executable} with the given {@code arguments} and returns the expected single line from its
    * {@link ProcessResult#getOut() standard output}.
    *
-   * @param logger the {@link IdeSubLogger} used to log errors instead of throwing an exception.
+   * @param logLevel the {@link IdeLogLevel} used to log errors instead of throwing an exception.
    * @param executable the executable program.
    * @param arguments the program arguments.
    * @return the single line printed from the command.
    * @throws IllegalStateException if the command did not print a single line as expected.
    */
-  default String runAndGetSingleOutput(IdeSubLogger logger, String executable, String... arguments) {
+  default String runAndGetSingleOutput(IdeLogLevel logLevel, String executable, String... arguments) {
 
     executable(executable).addArgs(arguments);
-    if (logger == null) {
+    if (logLevel == null) {
       errorHandling(ProcessErrorHandling.THROW_ERR);
     }
     ProcessResult result = run(ProcessMode.DEFAULT_CAPTURE);
-    return result.getSingleOutput(logger);
+    return result.getSingleOutput(logLevel);
   }
 
   /**

@@ -3,6 +3,8 @@ package com.devonfw.tools.ide.migration;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -13,6 +15,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * Test of {@link IdeMigrator}.
  */
 class IdeMigratorTest extends AbstractIdeContextTest {
+
+  private static final Logger LOG = LoggerFactory.getLogger(IdeMigratorTest.class);
 
   /** Test that no migration is executed when outside of project. */
   @Test
@@ -77,7 +81,7 @@ class IdeMigratorTest extends AbstractIdeContextTest {
 
     @Override
     public void run(IdeContext context) {
-      context.info("202501002 migration was done");
+      LOG.info("202501002 migration was done");
     }
   }
 
@@ -90,7 +94,7 @@ class IdeMigratorTest extends AbstractIdeContextTest {
 
     @Override
     public void run(IdeContext context) {
-      context.info("202502003 migration completed");
+      LOG.info("202502003 migration completed");
     }
   }
 

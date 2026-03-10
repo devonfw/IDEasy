@@ -33,7 +33,13 @@ public class EditionListCommandlet extends Commandlet {
   }
 
   @Override
-  public void run() {
+  public boolean isWriteLogFile() {
+
+    return false;
+  }
+
+  @Override
+  protected void doRun() {
 
     ToolCommandlet commandlet = this.tool.getValue();
     commandlet.listEditions();

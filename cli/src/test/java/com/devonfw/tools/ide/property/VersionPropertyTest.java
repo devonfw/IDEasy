@@ -11,7 +11,7 @@ import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollectorDefault;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.context.IdeTestContextMock;
+import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -21,7 +21,7 @@ class VersionPropertyTest {
 
   @Test
   void testParse() {
-    IdeContext context = IdeTestContextMock.get();
+    IdeContext context = new IdeTestContext();
     VersionProperty versionProp = new VersionProperty("", false, "");
 
     assertThat(versionProp.parse("1", context)).isEqualTo(VersionIdentifier.of("1"));
@@ -34,7 +34,7 @@ class VersionPropertyTest {
    */
   @Test
   void testCompleteValueUnfitCommandlet() {
-    IdeContext context = IdeTestContextMock.get();
+    IdeContext context = new IdeTestContext();
     CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context);
     VersionProperty versionProp = new VersionProperty("", false, "");
 
@@ -49,7 +49,7 @@ class VersionPropertyTest {
    */
   @Test
   void testCompleteValuePatternGiven() {
-    IdeContext context = IdeTestContextMock.get();
+    IdeContext context = new IdeTestContext();
     String anyVersion = "*";
     String anyVersionAfter2 = "2.*";
     CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context);

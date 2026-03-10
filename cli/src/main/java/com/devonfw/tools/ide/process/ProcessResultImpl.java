@@ -4,15 +4,18 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.cli.CliProcessException;
-import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.log.IdeSubLogger;
 
 /**
  * Implementation of {@link ProcessResult}.
  */
 public class ProcessResultImpl implements ProcessResult {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ProcessResultImpl.class);
 
   private final String executable;
 
@@ -74,7 +77,7 @@ public class ProcessResultImpl implements ProcessResult {
   }
 
   @Override
-  public String getSingleOutput(IdeSubLogger logger) throws IllegalStateException {
+  public String getSingleOutput(IdeLogLevel logLevel) throws IllegalStateException {
     String errorMessage;
     if (this.isSuccessful()) {
       List<String> out = this.getOut();
@@ -99,16 +102,16 @@ public class ProcessResultImpl implements ProcessResult {
     } else {
       errorMessage = "Command " + this.getCommand() + " failed with exit code " + this.getExitCode();
     }
-    if (logger == null) {
+    if (logLevel == null) {
       throw new IllegalStateException(errorMessage);
     } else {
-      logger.log(errorMessage);
+      doLog(logLevel, errorMessage);
       return null;
     }
   }
 
   @Override
-  public List<String> getOutput(IdeSubLogger logger) throws IllegalStateException {
+  public List<String> getOutput(IdeLogLevel logLevel) throws IllegalStateException {
     String errorMessage;
     if (this.isSuccessful()) {
       List<String> out = this.getOut();
@@ -116,10 +119,10 @@ public class ProcessResultImpl implements ProcessResult {
     } else {
       errorMessage = "Command " + this.getCommand() + " failed with exit code " + this.getExitCode();
     }
-    if (logger == null) {
+    if (logLevel == null) {
       throw new IllegalStateException(errorMessage);
     } else {
-      logger.log(errorMessage);
+      doLog(logLevel, errorMessage);
       return null;
     }
   }
@@ -149,30 +152,30 @@ public class ProcessResultImpl implements ProcessResult {
   }
 
   @Override
-  public void log(IdeLogLevel level, IdeContext context) {
-    log(level, context, level);
+  public void log(IdeLogLevel level) {
+    log(level, level);
   }
 
   @Override
-  public void log(IdeLogLevel outLevel, IdeContext context, IdeLogLevel errorLevel) {
+  public void log(IdeLogLevel outLevel, IdeLogLevel errorLevel) {
 
     if (!this.outputMessages.isEmpty()) {
       for (OutputMessage outputMessage : this.outputMessages) {
         if (outputMessage.error()) {
-          doLog(errorLevel, outputMessage.message(), context);
+          doLog(errorLevel, outputMessage.message());
         } else {
-          doLog(outLevel, outputMessage.message(), context);
+          doLog(outLevel, outputMessage.message());
         }
       }
     }
   }
 
-  private void doLog(IdeLogLevel level, String message, IdeContext context) {
+  private void doLog(IdeLogLevel level, String message) {
     // remove !MESSAGE from log message
     if (message.startsWith("!MESSAGE ")) {
       message = message.substring(9);
     }
-    context.level(level).log(message);
+    LOG.atLevel(level.getSlf4jLevel()).log(message);
   }
 
   @Override

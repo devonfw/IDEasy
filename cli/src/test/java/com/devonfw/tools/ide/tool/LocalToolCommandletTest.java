@@ -131,7 +131,7 @@ class LocalToolCommandletTest extends AbstractIdeContextTest {
 
   private static void runIntellijAndCheckInstallationWithJavaDependency(IdeTestContext context) {
     // arrange
-    context.getLogger().getEntries().clear(); // clear logs from previous run(s)
+    context.getTestStartContext().getEntries().clear(); // clear logs from previous run(s)
     Intellij intellij = context.getCommandletManager().getCommandlet(Intellij.class);
     // act
     intellij.run();
