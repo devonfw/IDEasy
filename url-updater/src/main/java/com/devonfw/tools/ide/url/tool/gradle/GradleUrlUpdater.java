@@ -10,18 +10,18 @@ public class GradleUrlUpdater extends GithubUrlReleaseUpdater {
 
 
   @Override
-  public String getGithubOrganization() {
+  protected String getGithubOrganization() {
     return "gradle";
   }
 
   @Override
-  public String getGithubRepository() {
+  protected String getGithubRepository() {
 
     return "gradle";
   }
 
   @Override
-  public String getDownloadBaseUrl() {
+  protected String getDownloadBaseUrl() {
 
     return "https://services.gradle.org";
   }
