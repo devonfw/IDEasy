@@ -13,6 +13,9 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFile;
@@ -25,6 +28,8 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
  * Implementation of {@link ToolRepository} for testing.
  */
 public class ToolRepositoryMock extends DefaultToolRepository {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ToolRepositoryMock.class);
 
   private static final String VERSION_DEFAULT = "default";
 
@@ -63,7 +68,7 @@ public class ToolRepositoryMock extends DefaultToolRepository {
     String versionString = version.toString();
     Path versionFolder = editionFolder.resolve(versionString);
     if (!Files.isDirectory(versionFolder)) {
-      this.context.debug("Could not find version {} so using 'default' for {}/{}", version, tool, edition);
+      LOG.debug("Could not find version {} so using 'default' for {}/{}", version, tool, edition);
       versionString = VERSION_DEFAULT;
       versionFolder = editionFolder.resolve(versionString);
     }
@@ -82,7 +87,7 @@ public class ToolRepositoryMock extends DefaultToolRepository {
           Path child = iterator.next();
           if (Files.isRegularFile(child) && child.getFileName().startsWith("content.")) {
             contentArchive = child;
-            this.context.debug("Using compressed archive {} for mock download of {}/{}", child.getFileName(), tool,
+            LOG.debug("Using compressed archive {} for mock download of {}/{}", child.getFileName(), tool,
                 edition);
           } else {
             break;

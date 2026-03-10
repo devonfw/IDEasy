@@ -5,27 +5,24 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.devonfw.tools.ide.context.IdeContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A wrapper class for holding two maps of plugin descriptors: one keyed by plugin ID and the other keyed by plugin name.
  */
 public class ToolPlugins {
 
+  private static final Logger LOG = LoggerFactory.getLogger(ToolPlugins.class);
+
   private final Map<String, ToolPluginDescriptor> mapById;
   private final Map<String, ToolPluginDescriptor> mapByName;
 
-
-  private final IdeContext context;
-
   /**
    * The constructor.
-   *
-   * @param context the {@link IdeContext}.
    */
-  public ToolPlugins(IdeContext context) {
+  public ToolPlugins() {
     super();
-    this.context = context;
     this.mapById = new HashMap<>();
     this.mapByName = new HashMap<>();
   }
@@ -72,7 +69,7 @@ public class ToolPlugins {
   private void put(String key, ToolPluginDescriptor descriptor, Map<String, ToolPluginDescriptor> map) {
     ToolPluginDescriptor duplicate = map.put(key, descriptor);
     if (duplicate != null) {
-      this.context.info("Plugin with key {} was {} but got overridden by {}", key, duplicate, descriptor);
+      LOG.info("Plugin with key {} was {} but got overridden by {}", key, duplicate, descriptor);
     }
   }
 }

@@ -4,9 +4,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.property.CommandletProperty;
 import com.devonfw.tools.ide.property.KeywordProperty;
@@ -18,6 +21,8 @@ import com.devonfw.tools.ide.version.IdeVersion;
  * {@link Commandlet} to print the environment variables.
  */
 public final class HelpCommandlet extends Commandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(HelpCommandlet.class);
 
   /** The optional commandlet to get help about. */
   public final CommandletProperty commandlet;
@@ -46,37 +51,43 @@ public final class HelpCommandlet extends Commandlet {
     return false;
   }
 
+  @Override
+  public boolean isWriteLogFile() {
+
+    return false;
+  }
 
   @Override
-  public void run() {
+  protected void doRun() {
 
     this.context.printLogo();
     NlsBundle bundle = NlsBundle.of(this.context);
-    this.context.success(bundle.get("version-banner"), IdeVersion.getVersionString());
+    IdeLogLevel.SUCCESS.log(LOG, bundle.get("version-banner"), IdeVersion.getVersionString());
     Commandlet cmd = this.commandlet.getValue();
     if (cmd == null) {
-      this.context.info(bundle.get("usage") + " ide [option]* [[commandlet] [arg]*]");
-      this.context.info("");
+      String usage = bundle.get("usage") + " ide [option]* [[commandlet] [arg]*]";
+      LOG.info(usage);
+      LOG.info("");
       printCommandlets(bundle);
     } else {
       printCommandletHelp(bundle, cmd);
     }
-    this.context.info("");
-    this.context.info(bundle.get("options"));
+    LOG.info("");
+    LOG.info(bundle.get("options"));
     Args options = new Args();
-    ContextCommandlet cxtCmd = new ContextCommandlet();
+    ContextCommandlet cxtCmd = new ContextCommandlet(((AbstractIdeContext) this.context).getStartContext());
     collectOptions(options, cxtCmd, bundle);
     if (cmd != null) {
       collectOptions(options, cmd, bundle);
     }
     options.print();
     if (cmd == null) {
-      this.context.info("");
-      this.context.info(bundle.getDetail(this.context.getCommandletManager().getCommandlet(HelpCommandlet.class)));
+      LOG.info("");
+      LOG.info(bundle.getDetail(this.context.getCommandletManager().getCommandlet(HelpCommandlet.class)));
     }
 
-    this.context.info("");
-    this.context.info(bundle.get("icd-hint"));
+    LOG.info("");
+    LOG.info(bundle.get("icd-hint"));
   }
 
   private void printCommandletHelp(NlsBundle bundle, Commandlet cmd) {
@@ -108,11 +119,11 @@ public final class HelpCommandlet extends Commandlet {
         }
       }
     }
-    this.context.info(usage.toString());
-    this.context.info(bundle.get(cmd));
-    this.context.info(bundle.getDetail(cmd));
-    this.context.info("");
-    this.context.info(bundle.get("values"));
+    LOG.info(usage.toString());
+    LOG.info(bundle.get(cmd));
+    LOG.info(bundle.getDetail(cmd));
+    LOG.info("");
+    LOG.info(bundle.get("values"));
     values.print();
     cmd.printHelp(bundle);
   }
@@ -137,10 +148,10 @@ public final class HelpCommandlet extends Commandlet {
       }
     }
 
-    this.context.info(bundle.get("commandlets"));
+    LOG.info(bundle.get("commandlets"));
     commandlets.print(IdeLogLevel.INTERACTION);
-    this.context.info("");
-    this.context.info(bundle.get("toolcommandlets"));
+    LOG.info("");
+    LOG.info(bundle.get("toolcommandlets"));
     toolcommandlets.print(IdeLogLevel.INTERACTION);
   }
 
@@ -231,9 +242,9 @@ public final class HelpCommandlet extends Commandlet {
 
     void print(IdeLogLevel level) {
 
-      IdeSubLogger logger = HelpCommandlet.this.context.level(level);
       for (Arg arg : get()) {
-        logger.log(format(arg));
+        String message = format(arg);
+        level.log(LOG, message);
       }
     }
 

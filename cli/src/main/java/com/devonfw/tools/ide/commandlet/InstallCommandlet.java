@@ -2,6 +2,9 @@ package com.devonfw.tools.ide.commandlet;
 
 import java.nio.file.Path;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.cli.GraalVmHelper;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.ToolProperty;
@@ -19,6 +22,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * @see ToolCommandlet#install()
  */
 public class InstallCommandlet extends Commandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(InstallCommandlet.class);
 
   /** The tool to install. */
   public final ToolProperty tool;
@@ -52,18 +57,18 @@ public class InstallCommandlet extends Commandlet {
   }
 
   @Override
-  public void run() {
+  protected void doRun() {
 
     if (this.tool.getValueCount() == 0) {
       IdeasyCommandlet ideasy = new IdeasyCommandlet(this.context);
       GraalVmHelper graalVmHelper = GraalVmHelper.get();
       if (graalVmHelper.isNativeImage()) {
-        this.context.debug("Detected that IDEasy is running as graalvm native image...");
+        LOG.debug("Detected that IDEasy is running as graalvm native image...");
       } else {
-        this.context.debug("Detected that IDEasy is running in JVM...");
+        LOG.debug("Detected that IDEasy is running in JVM...");
       }
       Path cwd = graalVmHelper.getCwd();
-      this.context.info("Installing IDEasy from {}", cwd);
+      LOG.info("Installing IDEasy from {}", cwd);
       if (!this.context.isForceMode()) {
         this.context.askToContinue("Sub-command install without any further arguments will perform the initial installation of IDEasy.\n"
             + "Since this is typically not to be called manually, you may have forgotten to specify the tool to install as extra argument.\n"

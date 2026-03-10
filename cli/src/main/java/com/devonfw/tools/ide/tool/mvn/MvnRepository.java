@@ -199,7 +199,7 @@ public class MvnRepository extends ArtifactToolRepository<MvnArtifact, MvnArtifa
       artifact = artifact.withVersion(versionString);
     }
     List<VersionIdentifier> versions = fetchVersions(artifact);
-    VersionIdentifier resolvedVersion = VersionIdentifier.resolveVersionPattern(version, versions, this.context);
+    VersionIdentifier resolvedVersion = VersionIdentifier.resolveVersionPattern(version, versions);
     versionString = resolvedVersion.toString();
     if (versionString.endsWith("-SNAPSHOT")) {
       artifact = artifact.withVersion(versionString);

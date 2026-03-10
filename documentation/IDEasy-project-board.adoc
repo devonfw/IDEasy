@@ -1,0 +1,51 @@
+= Project Board
+
+The IDEasy *Project Board* organizes the workflow using several columns.
+Each column represents a specific state in the lifecycle of an issue or pull request:
+
+* *New*:
+[.underline]#Issues# that are available in the backlog and have not been started yet.
+They usually have the key metadata set:
+- **Priority**: Indicates how important or urgent the issue is.
+Issues with higher `Priority` should typically be addressed first.
+- **Size**: Represents the estimated complexity or effort (e.g., Small, Medium, Large).
+Issues with higher `Size` are typically more complex. Depending on your experience consider if you want to deal with the story or check if easier tasks are therefore you to work on first.
+
+
+* *Research*:
+[.underline]#Issues# or [.underline]#Pull requests# that are blocked or require deeper analysis before implementation can continue.
+These items often involve unclear requirements or technical challenges.
+
+* *In Progress*:
+[.underline]#Issues# that are actively being worked on.
+An issue in this column should have at least one assignee.
+If a pull request exists for the issue, it will be linked here.
+If no PR exists yet, the implementation is still ongoing.
+
+* *Team Review*:
+[.underline]#Pull requests# that are currently under review by a member of the development team.
+The reviewer and the PR author are both listed as assignees.
+Once all review comments are resolved, the reviewer moves the PR to *In Review*.
+
+* *In Review*:
+[.underline]#Pull requests# awaiting or undergoing final review.
+Typically performed by the Project Owner (currently `hohwille`) or a senior team member.
+Both reviewer and author remain assigned to the PR.
+
+* *Done*:
+[.underline]#Issues# or [.underline]#Pull requests# that have been fully completed and merged.
+
+NOTE: To keep the board clean and avoid overload, **only pull requests** are allowed in the review columns.
+Issues stay in *In Progress* until their corresponding pull request has been merged.
+Example of Project Board
+
+
+=== Example Project Board
+Below is an example view of the board to help you identify the most important fields:
+
+* *Priority* (green) +
+* *Status* (red) +
+* *Assignees* (purple) +
+* *Size* (blue) +
+
+image::images/story-board-example.png[IDEasy board example]

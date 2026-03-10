@@ -44,5 +44,19 @@
     "allPublicConstructors": true,
     "allDeclaredFields": true,
     "allDeclaredMethods": true
+  },
+  {
+    "name": "com.devonfw.tools.ide.log.JulConsoleHandler",
+    "allDeclaredConstructors": false,
+    "allPublicConstructors": true,
+    "allDeclaredFields": false,
+    "allDeclaredMethods": false
+  },
+  {
+    "name": "java.util.logging.FileHandler",
+    "allDeclaredConstructors": false,
+    "allPublicConstructors": true,
+    "allDeclaredFields": false,
+    "allDeclaredMethods": false
   }
 ]

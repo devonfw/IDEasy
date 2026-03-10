@@ -7,12 +7,17 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.context.IdeContext;
 
 /**
  * Implementation of {@link EnvironmentVariables} for testing.
  */
 public final class EnvironmentVariablesPropertiesMock extends EnvironmentVariablesMap {
+
+  private static final Logger LOG = LoggerFactory.getLogger(EnvironmentVariablesPropertiesMock.class);
 
   private static final Path PROPERTIES_FILE_PATH = Path.of(DEFAULT_PROPERTIES);
 
@@ -49,7 +54,7 @@ public final class EnvironmentVariablesPropertiesMock extends EnvironmentVariabl
   public void save() {
 
     if (this.modifiedVariables.isEmpty()) {
-      this.context.trace("No changes to save in properties file {}", getPropertiesFilePath());
+      LOG.trace("No changes to save in properties file {}", getPropertiesFilePath());
       return;
     }
     this.modifiedVariables.clear();
@@ -103,9 +108,9 @@ public final class EnvironmentVariablesPropertiesMock extends EnvironmentVariabl
     String oldValue = this.variables.put(name, value);
     boolean flagChanged = export != this.exportedVariables.contains(name);
     if (Objects.equals(value, oldValue) && !flagChanged) {
-      this.context.trace("Set variable '{}={}' caused no change in {}", name, value, getPropertiesFilePath());
+      LOG.trace("Set variable '{}={}' caused no change in {}", name, value, getPropertiesFilePath());
     } else {
-      this.context.debug("Set variable '{}={}' in {}", name, value, getPropertiesFilePath());
+      LOG.debug("Set variable '{}={}' in {}", name, value, getPropertiesFilePath());
       this.modifiedVariables.add(name);
       if (export && (value != null)) {
         this.exportedVariables.add(name);

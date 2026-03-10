@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.cli.CliExitException;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -12,7 +15,6 @@ import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.environment.VariableLine;
 import com.devonfw.tools.ide.environment.VariableSource;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.EnvironmentVariableCollectorContext;
@@ -25,6 +27,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * {@link Commandlet} to print the environment variables.
  */
 public final class EnvironmentCommandlet extends Commandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(EnvironmentCommandlet.class);
 
   /** {@link FlagProperty} to enable Bash (MSys) path conversion on Windows. */
   public final FlagProperty bash;
@@ -60,14 +64,13 @@ public final class EnvironmentCommandlet extends Commandlet {
   }
 
   @Override
-  public void run() {
+  protected void doRun() {
     if (this.context.getIdeHome() == null) {
       throw new CliExitException();
     }
 
     boolean winCmd = false;
     WindowsPathSyntax pathSyntax = null;
-    IdeSubLogger logger = this.context.level(IdeLogLevel.PROCESSABLE);
     if (this.context.getSystemInfo().isWindows()) {
       if (this.bash.isTrue()) {
         pathSyntax = WindowsPathSyntax.MSYS;
@@ -85,11 +88,11 @@ public final class EnvironmentCommandlet extends Commandlet {
         new VariableSource(EnvironmentVariablesType.TOOL, this.context.getSoftwarePath()), pathSyntax);
     setEnvironmentVariablesInLocalTools(environmentVariableCollectorContext);
 
-    printLines(variableMap, logger, winCmd);
+    printLines(variableMap, winCmd);
   }
 
-  private void printLines(Map<String, VariableLine> variableMap, IdeSubLogger logger, boolean winCmd) {
-    if (this.context.debug().isEnabled()) {
+  private void printLines(Map<String, VariableLine> variableMap, boolean winCmd) {
+    if (LOG.isDebugEnabled()) {
       Map<EnvironmentVariablesType, List<VariableLine>> type2lines = variableMap.values().stream().collect(Collectors.groupingBy(l -> l.getSource().type()));
       for (EnvironmentVariablesType type : EnvironmentVariablesType.values()) {
         List<VariableLine> lines = type2lines.get(type);
@@ -98,10 +101,10 @@ public final class EnvironmentCommandlet extends Commandlet {
           sortVariables(lines);
           for (VariableLine line : lines) {
             if (!sourcePrinted) {
-              this.context.debug("from {}:", line.getSource());
+              LOG.debug("from {}:", line.getSource());
               sourcePrinted = true;
             }
-            logger.log(format(line, winCmd));
+            IdeLogLevel.PROCESSABLE.log(LOG, format(line, winCmd));
           }
         }
       }
@@ -109,7 +112,7 @@ public final class EnvironmentCommandlet extends Commandlet {
       List<VariableLine> variables = new ArrayList<>(variableMap.values());
       sortVariables(variables);
       for (VariableLine line : variables) {
-        logger.log(format(line, winCmd));
+        IdeLogLevel.PROCESSABLE.log(LOG, format(line, winCmd));
       }
     }
   }
@@ -144,7 +147,7 @@ public final class EnvironmentCommandlet extends Commandlet {
             tool.setEnvironment(environmentContext, toolInstallation, false);
           }
         } catch (Exception e) {
-          this.context.warning("An error occurred while setting the environment variables in local tools:", e);
+          LOG.warn("An error occurred while setting the environment variables in local tools:", e);
         }
       }
     }
