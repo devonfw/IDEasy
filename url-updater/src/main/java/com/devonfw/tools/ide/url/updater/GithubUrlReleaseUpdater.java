@@ -6,26 +6,9 @@ import com.devonfw.tools.ide.github.GithubRelease;
 import com.devonfw.tools.ide.github.GithubReleases;
 
 /**
- * {@link JsonUrlUpdater} for GitHub projects.
+ * {@link AbstractGithubUrlUpdater} for GitHub projects.
  */
-public abstract class GithubUrlReleaseUpdater extends JsonUrlUpdater<GithubReleases, GithubRelease> {
-
-  /**
-   * The default GitHub base url.
-   */
-  protected static final String GITHUB_BASE_URL = "https://github.com";
-
-  @Override
-  protected String getDownloadBaseUrl() {
-
-    return GITHUB_BASE_URL;
-  }
-
-  @Override
-  protected String getVersionBaseUrl() {
-
-    return "https://api.github.com/repos/";
-  }
+public abstract class GithubUrlReleaseUpdater extends AbstractGithubUrlUpdater<GithubReleases, GithubRelease> {
 
   @Override
   protected String doGetVersionUrl() {
@@ -38,19 +21,6 @@ public abstract class GithubUrlReleaseUpdater extends JsonUrlUpdater<GithubRelea
   protected Class<GithubReleases> getJsonObjectType() {
 
     return GithubReleases.class;
-  }
-
-  /**
-   * @return the github organization- or user-name (e.g. "devonfw").
-   */
-  protected abstract String getGithubOrganization();
-
-  /**
-   * @return the github repository name.
-   */
-  protected String getGithubRepository() {
-
-    return getTool();
   }
 
   @Override

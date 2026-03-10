@@ -6,11 +6,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * JSON data object for a github release ref.
  */
-public record GithubRelease(@JsonProperty("tag_name") String ref) implements JsonVersionItem {
+public record GithubRelease(@JsonProperty("name") String ref) implements JsonVersionItem {
 
   @Override
   public String version() {
-
-    return ref().replace("v", "");
+    return ref();
   }
 }

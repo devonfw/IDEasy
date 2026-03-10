@@ -13,9 +13,12 @@ class GithubReleaseTest extends Assertions {
    */
   @Test
   void testRefAndVersion() {
-    GithubRelease release = new GithubRelease("v1.2.3");
-    assertThat(release.ref()).isEqualTo("v1.2.3");
-    assertThat(release.version()).isEqualTo("1.2.3");
+    // arrange
+    GithubRelease release = new GithubRelease("1.2.3 RC1");
+
+    // assert
+    assertThat(release.ref()).isEqualTo("1.2.3 RC1");
+    assertThat(release.version()).isEqualTo("1.2.3 RC1");
   }
 
   /**
@@ -23,7 +26,10 @@ class GithubReleaseTest extends Assertions {
    */
   @Test
   void testVersionWithNoPrefix() {
+    // arrange
     GithubRelease release = new GithubRelease("2.0.0");
+
+    // assert
     assertThat(release.version()).isEqualTo("2.0.0");
   }
 }

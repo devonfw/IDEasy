@@ -15,8 +15,8 @@ class GithubReleasesTest extends Assertions {
   void testAddAndRetrieveReleases() {
     // arrange
     GithubReleases releases = new GithubReleases();
-    GithubRelease release1 = new GithubRelease("v1.0.0");
-    GithubRelease release2 = new GithubRelease("v2.0.0");
+    GithubRelease release1 = new GithubRelease("1.0.0");
+    GithubRelease release2 = new GithubRelease("2.0.0");
 
     // act
     releases.add(release1);
