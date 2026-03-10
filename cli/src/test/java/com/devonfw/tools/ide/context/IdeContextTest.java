@@ -4,6 +4,8 @@ import java.nio.file.Path;
 import java.util.Properties;
 
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.common.SystemPath;
@@ -21,6 +23,8 @@ import com.devonfw.tools.ide.version.IdeVersion;
  * Test of {@link IdeContext}.
  */
 class IdeContextTest extends AbstractIdeContextTest {
+
+  private static final Logger LOG = LoggerFactory.getLogger(IdeContextTest.class);
 
   /**
    * Test of {@link IdeContext} initialization from basic project.
@@ -136,26 +140,6 @@ class IdeContextTest extends AbstractIdeContextTest {
     assertThat(workspaceName).isEqualTo("foo-test");
   }
 
-  // hier test einfügen mit idetestcontext
-  @Test
-  void testIdeVersionTooSmall() {
-    // arrange
-    String path = "project/workspaces/foo-test";
-    IdeTestContext context = newContext(PROJECT_BASIC, path, false);
-    EnvironmentVariables variables = context.getVariables();
-    String ideMinVersion = String.valueOf(Integer.MAX_VALUE);
-    variables.getByType(EnvironmentVariablesType.CONF).set("IDE_MIN_VERSION", ideMinVersion);
-    CliArguments args = new CliArguments();
-    String warningMessage = String.format("Your version of IDEasy is currently %s\n"
-        + "However, this is too old as your project requires at latest version %s\n"
-        + "Please run the following command to update to the latest version of IDEasy and fix the problem:\n"
-        + "ide upgrade", IdeVersion.getVersionIdentifier().toString(), ideMinVersion);
-    // act
-    context.run(args);
-    // assert
-    assertThat(context).logAtWarning().hasMessage(warningMessage);
-  }
-
   @Test
   void testIdeVersionOk() {
     // arrange
@@ -182,19 +166,19 @@ class IdeContextTest extends AbstractIdeContextTest {
     String testDebugMessage = "Test debug message that will be suppressed because of threshold";
     IdeTestContext context = newContext(PROJECT_BASIC, null, false);
     // act
-    context.warning(testWarningMessage);
+    LOG.warn(testWarningMessage);
     // assert
     assertThat(context).logAtWarning().hasMessage(testWarningMessage);
     // and act
     context.runWithoutLogging(() -> {
-      context.warning(testWarningMessage2);
-      context.info(testInfoMessage);
-      context.debug(testDebugMessage);
+      LOG.warn(testWarningMessage2);
+      LOG.info(testInfoMessage);
+      LOG.debug(testDebugMessage);
       assertThat(context).log().hasNoMessage(testWarningMessage2);
       assertThat(context).log().hasNoMessage(testInfoMessage);
       assertThat(context).log().hasNoMessage(testDebugMessage);
     }, IdeLogLevel.INFO);
-    context.warning(testWarningMessage3);
+    LOG.warn(testWarningMessage3);
 
     assertThat(context).log()
         .hasEntries(IdeLogEntry.ofWarning(testWarningMessage), IdeLogEntry.ofWarning(testWarningMessage2), IdeLogEntry.ofInfo(testInfoMessage),

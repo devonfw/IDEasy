@@ -3,8 +3,6 @@ package com.devonfw.tools.ide.step;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
-import com.devonfw.tools.ide.log.IdeSubLogger;
-
 /**
  * Interface for a {@link Step} of the process. Allows to split larger processes into smaller steps that are traced and measured. Also prevents that if one step
  * fails, the overall process can still continue so a sub-step (e.g. "plugin installation" or "git update") does not automatically block the entire process. At
@@ -72,6 +70,15 @@ public interface Step {
 
   /**
    * Should be called to end this {@link Step} {@link #getSuccess() successfully}. May be called only once.
+   *
+   * @param silent to suppress the success message from being logged.
+   */
+  default void success(boolean silent) {
+    success();
+  }
+
+  /**
+   * Should be called to end this {@link Step} {@link #getSuccess() successfully}. May be called only once.
    */
   default void success() {
 
@@ -95,11 +102,6 @@ public interface Step {
    * @param args the optional arguments to fill as placeholder into the {@code message}.
    */
   void success(String message, Object... args);
-
-  /**
-   * @return the {@link IdeSubLogger} for success messages allowing generic code sharing logger fallback.
-   */
-  IdeSubLogger asSuccess();
 
   /**
    * Ensures this {@link Step} is properly ended. Has to be called from a finally block. Do not call manually but always use {@link #run(Runnable)} or
@@ -133,7 +135,7 @@ public interface Step {
    * Should be called to end this {@link Step} as {@link #isFailure() failure} with an explicit error message and/or {@link Throwable exception}. May be called
    * only once.
    *
-   * @param error the catched {@link Throwable}.
+   * @param error the caught {@link Throwable}.
    */
   default void error(Throwable error) {
 
@@ -144,7 +146,7 @@ public interface Step {
    * Should be called to end this {@link Step} as {@link #isFailure() failure} with an explicit error message and/or {@link Throwable exception}. May be called
    * only once.
    *
-   * @param error the catched {@link Throwable}.
+   * @param error the caught {@link Throwable}.
    * @param suppress to suppress the error logging (if error will be rethrown and duplicated error messages shall be avoided).
    */
   default void error(Throwable error, boolean suppress) {
@@ -169,7 +171,7 @@ public interface Step {
    * Should be called to end this {@link Step} as {@link #isFailure() failure} with an explicit error message and/or {@link Throwable exception}. May be called
    * only once.
    *
-   * @param error the catched {@link Throwable}. May be {@code null} if only a {@code message} is provided.
+   * @param error the caught {@link Throwable}. May be {@code null} if only a {@code message} is provided.
    * @param message the explicit message to log as error.
    * @param args the optional arguments to fill as placeholder into the {@code message}.
    */
@@ -182,17 +184,12 @@ public interface Step {
    * Should be called to end this {@link Step} as {@link #isFailure() failure} with an explicit error message and/or {@link Throwable exception}. May be called
    * only once.
    *
-   * @param error the catched {@link Throwable}. May be {@code null} if only a {@code message} is provided.
+   * @param error the caught {@link Throwable}. May be {@code null} if only a {@code message} is provided.
    * @param suppress to suppress the error logging (if error will be rethrown and duplicated error messages shall be avoided).
    * @param message the explicit message to log as error.
    * @param args the optional arguments to fill as placeholder into the {@code message}.
    */
   void error(Throwable error, boolean suppress, String message, Object... args);
-
-  /**
-   * @return the {@link IdeSubLogger} for error messages allowing generic code sharing logger fallback.
-   */
-  IdeSubLogger asError();
 
   /**
    * @return the parent {@link Step} or {@code null} if there is no parent.

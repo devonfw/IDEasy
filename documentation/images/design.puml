@@ -11,7 +11,6 @@ class Ideasy {
 class CliArgument
 class Property
 
-interface IdeLogger
 interface IdeContext
 
 interface CommandletManager
@@ -50,8 +49,6 @@ Ideasy ..> Property
 Ideasy ..> Commandlet
 Ideasy ..> IdeContext
 
-IdeLogger <|-- IdeContext : extends
-
 IdeContext ..> CommandletManager
 IdeContext ..> EnvironmentVariables
 IdeContext ..> FileAccess
@@ -65,7 +62,6 @@ UrlMetadata ..> UrlArtifact
 
 AbstractIdeContext ..|> IdeContext : implements
 IdeContextConsole --|> AbstractIdeContext : extends
-IdeLoggerImpl ..|> IdeLogger : implements
 
 GitContextImpl ..|> GitContext  : implements
 

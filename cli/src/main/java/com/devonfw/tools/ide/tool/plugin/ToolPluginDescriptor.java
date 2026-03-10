@@ -5,10 +5,12 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.common.Tags;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.log.IdeLogger;
 
 /**
  * Implementation of {@link ToolPluginDescriptor}.
@@ -20,6 +22,8 @@ import com.devonfw.tools.ide.log.IdeLogger;
  * @param tags the {@link #tags () tags}.
  */
 public record ToolPluginDescriptor(String id, String name, String url, boolean active, Set<Tag> tags) implements Tags {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ToolPluginDescriptor.class);
 
   @Override
   public Set<Tag> getTags() {
@@ -42,16 +46,15 @@ public record ToolPluginDescriptor(String id, String name, String url, boolean a
     String id = getString(properties, "id", "plugin_id");
     String url = getString(properties, "url", "plugin_url");
     if (needUrl && ((url == null) || url.isBlank())) {
-      context.warning("Missing plugin URL in {}", propertiesFile);
+      LOG.warn("Missing plugin URL in {}", propertiesFile);
     }
-    boolean active = getBoolean(properties, "active", "plugin_active", propertiesFile, context);
+    boolean active = getBoolean(properties, "active", "plugin_active", propertiesFile);
     String tagsCsv = getString(properties, "tags", "plugin_tags");
     Set<Tag> tags = Tag.parseCsv(tagsCsv);
     return new ToolPluginDescriptor(id, name, url, active, tags);
   }
 
-  private static boolean getBoolean(Properties properties, String key, String legacyKey, Path propertiesFile,
-      IdeLogger logger) {
+  private static boolean getBoolean(Properties properties, String key, String legacyKey, Path propertiesFile) {
 
     String value = getString(properties, key, legacyKey);
     if (value == null) {
@@ -63,7 +66,7 @@ public record ToolPluginDescriptor(String id, String name, String url, boolean a
     } else if ("false".equals(lower)) {
       return false;
     }
-    logger.warning("Invalid boolean value '{}' for property '{}' in {}", value, key, propertiesFile);
+    LOG.warn("Invalid boolean value '{}' for property '{}' in {}", value, key, propertiesFile);
     return false;
   }
 
