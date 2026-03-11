@@ -19,6 +19,7 @@ public abstract class AbstractGithubUrlUpdater<J extends JsonObject, JVI extends
     return GITHUB_BASE_URL;
   }
 
+  @Override
   protected String getVersionBaseUrl() {
 
     return "https://api.github.com/repos/";
