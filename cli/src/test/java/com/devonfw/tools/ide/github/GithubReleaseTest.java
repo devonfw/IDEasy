@@ -17,7 +17,7 @@ class GithubReleaseTest extends Assertions {
     GithubRelease release = new GithubRelease("1.2.3 RC1");
 
     // assert
-    assertThat(release.ref()).isEqualTo("1.2.3 RC1");
+    assertThat(release.name()).isEqualTo("1.2.3 RC1");
     assertThat(release.version()).isEqualTo("1.2.3 RC1");
   }
 
