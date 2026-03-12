@@ -1143,7 +1143,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
         LOG.error(result.getErrorMessage());
       }
       step.error("Invalid arguments: {}", current.getArgs());
-      IdeLogLevel.INTERACTION.log(LOG, "For additional details run ide help {}", cmd == null ? "" : cmd);
+      IdeLogLevel.INTERACTION.log(LOG, "For additional details run ide help {}", cmd == null ? "" : cmd.getName());
       return 1;
     } catch (Throwable t) {
       activateLogging(cmd);
