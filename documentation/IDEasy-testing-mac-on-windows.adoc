@@ -35,9 +35,10 @@ Roughly, the steps involve:
 docker run -it --rm --name macos -e "VERSION=14" -p 8006:8006 --device=/dev/kvm --device=/dev/net/tun --cap-add NET_ADMIN -v "${PWD:-.}/macos:/storage" --stop-timeout 120 docker.io/dockurr/macos
 ```
 +
-The current command be found https://github.com/dockur/macos?tab=readme-ov-file#via-docker-cli[here]
+The current command can be found https://github.com/dockur/macos?tab=readme-ov-file#via-docker-cli[here].
 +
-To avoid the container being deleted after stopping it, simply skip using the `--rm` flag. Using the `--rm` flag doesn't affect the macOS session, i.e. when running the previous command (`docker run ...`) again, the macOS session will be restored.
+To avoid the container being deleted after stopping it, simply skip using the `--rm` flag.
+Using the `--rm` flag doesn't affect the macOS session, i.e. when running the previous command (`docker run ...`) again, the macOS session will be restored.
 
 2. To access the macOS VM: navigate to http://127.0.0.1:8006/ on a web browser.
 
@@ -46,7 +47,8 @@ To avoid the container being deleted after stopping it, simply skip using the `-
 == Setup IDEasy in the macOS VM
 
 Refer to the detailed setup guide: link:setup.adoc[Setup Instructions].
-So inside the macOS VM (accessible through the web browser) install IDEasy via the following steps:
+
+So, inside the macOS VM (accessible through the web browser) install IDEasy via the following steps:
 
 1. Install `homebrew`. In the terminal, run:
 +
@@ -67,7 +69,7 @@ For more details, here's the official guide: https://git-scm.com/install/mac[Git
 +
 The latest release of `IDEasy` can be downloaded from https://github.com/devonfw/IDEasy/releases[here].
 4. Extract the contents of the downloaded archive (`ide-cli-*.tar.gz`) to a new folder.
-5. Refer to link:mac-gatekeeper.adoc[Gatekeeper problem and workaround] in order to allow installation of IDEasy.
+5. Refer to link:mac-gatekeeper.adoc[Gatekeeper problem and workaround] in order to allow the installation of IDEasy.
 6. Install IDEasy by running `setup`.
 
 IDEasy is now installed on your macOS VM!
