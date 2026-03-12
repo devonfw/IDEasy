@@ -1,14 +1,12 @@
 package com.devonfw.tools.ide.url.updater;
 
-import java.util.Collection;
-
-import com.devonfw.tools.ide.github.GithubTag;
-import com.devonfw.tools.ide.github.GithubTags;
+import com.devonfw.tools.ide.json.JsonObject;
+import com.devonfw.tools.ide.json.JsonVersionItem;
 
 /**
  * {@link JsonUrlUpdater} for GitHub projects.
  */
-public abstract class GithubUrlUpdater extends JsonUrlUpdater<GithubTags, GithubTag> {
+public abstract class AbstractGithubUrlUpdater<J extends JsonObject, JVI extends JsonVersionItem> extends JsonUrlUpdater<J, JVI> {
 
   /**
    * The default GitHub base url.
@@ -27,19 +25,6 @@ public abstract class GithubUrlUpdater extends JsonUrlUpdater<GithubTags, Github
     return "https://api.github.com/repos/";
   }
 
-  @Override
-  protected String doGetVersionUrl() {
-
-    return getVersionBaseUrl() + getGithubOrganization() + "/" + getGithubRepository() + "/git/refs/tags";
-
-  }
-
-  @Override
-  protected Class<GithubTags> getJsonObjectType() {
-
-    return GithubTags.class;
-  }
-
   /**
    * @return the github organization- or user-name (e.g. "devonfw").
    */
@@ -52,11 +37,4 @@ public abstract class GithubUrlUpdater extends JsonUrlUpdater<GithubTags, Github
 
     return getTool();
   }
-
-  @Override
-  protected Collection<GithubTag> getVersionItems(GithubTags jsonObject) {
-
-    return jsonObject;
-  }
-
 }

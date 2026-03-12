@@ -1,12 +1,12 @@
 package com.devonfw.tools.ide.url.tool.jmc;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
 
 /**
- * {@link GithubUrlUpdater} for java mission control.
+ * {@link GithubUrlTagUpdater} for java mission control.
  */
-public class JmcUrlUpdater extends GithubUrlUpdater {
+public class JmcUrlUpdater extends GithubUrlTagUpdater {
 
   @Override
   public String getTool() {

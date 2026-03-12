@@ -1,13 +1,13 @@
 package com.devonfw.tools.ide.url.tool.uv;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link GithubUrlUpdater} for uv.
+ * {@link GithubUrlTagUpdater} for uv.
  */
-public class UvUrlUpdater extends GithubUrlUpdater {
+public class UvUrlUpdater extends GithubUrlTagUpdater {
 
   private static final VersionIdentifier MIN_VID = VersionIdentifier.of("0.5.25");
 

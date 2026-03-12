@@ -22,7 +22,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
  * Test of {@link AwsUrlUpdater}.
  */
 @WireMockTest
-class AwsGithubUrlUpdaterTest extends AbstractUrlUpdaterTest {
+class AwsGithubUrlTagUpdaterTest extends AbstractUrlUpdaterTest {
 
   /**
    * Test of {@link JsonUrlUpdater} for the creation of {@link AwsUrlUpdater} download URLs and checksums.
