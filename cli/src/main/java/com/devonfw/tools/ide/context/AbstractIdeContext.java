@@ -34,7 +34,6 @@ import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.commandlet.CommandletManagerImpl;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
 import com.devonfw.tools.ide.commandlet.EnvironmentCommandlet;
-import com.devonfw.tools.ide.commandlet.HelpCommandlet;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
@@ -1144,11 +1143,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
         LOG.error(result.getErrorMessage());
       }
       step.error("Invalid arguments: {}", current.getArgs());
-      HelpCommandlet help = this.commandletManager.getCommandlet(HelpCommandlet.class);
-      if (cmd != null) {
-        help.commandlet.setValue(cmd);
-      }
-      help.run();
+      IdeLogLevel.INTERACTION.log(LOG, "For additional details run ide help {}", cmd == null ? "" : cmd);
       return 1;
     } catch (Throwable t) {
       activateLogging(cmd);
@@ -1200,7 +1195,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   protected boolean isWriteLogfile(Commandlet cmd) {
-    if (!cmd.isWriteLogFile()) {
+    if ((cmd == null) || !cmd.isWriteLogFile()) {
       return false;
     }
     Boolean writeLogfile = IdeVariables.IDE_WRITE_LOGFILE.get(this);
