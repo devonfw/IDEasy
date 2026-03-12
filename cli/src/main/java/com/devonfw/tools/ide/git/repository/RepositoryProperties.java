@@ -8,12 +8,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 
 /**
@@ -23,9 +23,27 @@ final class RepositoryProperties {
 
   private static final Logger LOG = LoggerFactory.getLogger(RepositoryProperties.class);
 
+  private static final String PROPERTY_PATH = "path";
+  private static final String PROPERTY_WORKING_SETS = "workingsets";
+  private static final String PROPERTY_WORKSPACES = "workspaces";
+  private static final String PROPERTY_GIT_URL = "git_url";
+  private static final String PROPERTY_BUILD_PATH = "build_path";
+  private static final String PROPERTY_BUILD_CMD = "build_cmd";
+  private static final String PROPERTY_ACTIVE = "active";
+  private static final String PROPERTY_GIT_BRANCH = "git_branch";
+  private static final String PROPERTY_IMPORT = "import";
+  private static final String PROPERTY_LINK = "link";
+  private static final String PROPERTY_ECLIPSE = "eclipse";
+
+  private static final Pattern PATH_PATTERN = Pattern.compile("[a-zA-Z0-9_.$/-]+");
+
+  private static final Pattern WORKSPACE_PATTERN = Pattern.compile("[a-zA-Z][a-zA-Z0-9_.-]+");
+
   private final Path file;
 
   private final Properties properties;
+
+  private boolean invalid;
 
   /**
    * The constructor.
@@ -62,22 +80,48 @@ final class RepositoryProperties {
    */
   public String getProperty(String name, boolean required) {
 
-    String value = this.properties.getProperty(name);
-    if (value == null) {
-      String legacyName = name.replace("_", ".");
-      if (!legacyName.equals(name)) {
-        value = getLegacyProperty(legacyName, name);
-        if (value == null) {
-          legacyName = name.replace("_", "-");
-          value = getLegacyProperty(legacyName, name);
-        }
-      }
-    }
+    return getProperty(name, null, required);
+  }
+
+  /**
+   * @param name the name of the requested property.
+   * @param legacyName the optional legacy property name.
+   * @param required - {@code true} if the requested property is required, {@code false} otherwise.
+   * @return the value of the requested property or {@code null} if undefined.
+   */
+  public String getProperty(String name, String legacyName, boolean required) {
+
+    String value = doGetProperty(name, legacyName);
     if (isEmpty(value)) {
       if (required) {
-        throw new CliException("The properties file " + this.file + " must have a non-empty value for the required property " + name);
+        LOG.error("The properties file {} is invalid because the required property {} is not present. Ignoring this file.", this.file, name);
+        this.invalid = true;
       }
       return null;
+    }
+    return value;
+  }
+
+  private String doGetProperty(String name, String legacyName) {
+
+    String value = this.properties.getProperty(name);
+    if (value != null) {
+      return value;
+    }
+    if (legacyName != null) {
+      value = getLegacyProperty(legacyName, name);
+      if (value != null) {
+        return value;
+      }
+    }
+    legacyName = name.replace("_", ".");
+    if (!legacyName.equals(name)) {
+      value = getLegacyProperty(legacyName, name);
+      if (value != null) {
+        return value;
+      }
+      legacyName = name.replace("_", "-");
+      value = getLegacyProperty(legacyName, name);
     }
     return value;
   }
@@ -91,9 +135,74 @@ final class RepositoryProperties {
 
     String value = this.properties.getProperty(legacyName);
     if (value != null) {
-      LOG.warn("The properties file {} uses the legacy property {} instead of {}", this.file, legacyName, name);
+      LOG.warn("In the properties file {} please replace the legacy property {} with the official property {}", this.file, legacyName, name);
     }
     return value;
+  }
+
+  /**
+   * @return {@code true} if these properties have been marked as invalid because a required property was requested that is not available, {@code false}
+   *     otherwise.
+   */
+  public boolean isInvalid() {
+
+    return this.invalid;
+  }
+
+  /**
+   * @return the {@link RepositoryConfig#path() path}.
+   */
+  public String getPath() {
+
+    return sanatizeRelativePath(getProperty(PROPERTY_PATH));
+  }
+
+  /**
+   * @return the {@link RepositoryConfig#workingSets() working sets}.
+   */
+  public String getWorkingSets() {
+
+    return getProperty(PROPERTY_WORKING_SETS);
+  }
+
+  /**
+   * @return the {@link RepositoryConfig#gitUrl()}  git url}.
+   */
+  public String getGitUrl() {
+
+    return getProperty(PROPERTY_GIT_URL, true);
+  }
+
+  /**
+   * @return the {@link RepositoryConfig#gitBranch()}  git branch}.
+   */
+  public String getGitBranch() {
+
+    return getProperty(PROPERTY_GIT_BRANCH);
+  }
+
+  /**
+   * @return the {@link RepositoryConfig#buildPath() build path}.
+   */
+  public String getBuildPath() {
+
+    return getProperty(PROPERTY_BUILD_PATH);
+  }
+
+  /**
+   * @return the {@link RepositoryConfig#buildCmd() build command}.
+   */
+  public String getBuildCmd() {
+
+    return getProperty(PROPERTY_BUILD_CMD);
+  }
+
+  /**
+   * @return the {@link RepositoryConfig#active() active flag}.
+   */
+  public boolean isActive() {
+
+    return parseBoolean(getProperty(PROPERTY_ACTIVE));
   }
 
   /**
@@ -101,7 +210,7 @@ final class RepositoryProperties {
    */
   public Set<String> getImports() {
 
-    String importProperty = this.properties.getProperty(RepositoryConfig.PROPERTY_IMPORT);
+    String importProperty = getProperty(PROPERTY_IMPORT);
     if (importProperty != null) {
       if (importProperty.isEmpty()) {
         return Set.of();
@@ -109,10 +218,10 @@ final class RepositoryProperties {
       return Arrays.stream(importProperty.split(",")).map(String::trim).collect(Collectors.toUnmodifiableSet());
     }
 
-    String legacyImportProperty = getLegacyProperty(RepositoryConfig.PROPERTY_ECLIPSE, RepositoryConfig.PROPERTY_IMPORT);
+    String legacyImportProperty = getLegacyProperty(PROPERTY_ECLIPSE, PROPERTY_IMPORT);
     if ("import".equals(legacyImportProperty)) {
-      LOG.warn("Property {} is deprecated and should be replaced with {} (invert key and value).", RepositoryConfig.PROPERTY_ECLIPSE,
-          RepositoryConfig.PROPERTY_IMPORT);
+      LOG.warn("Property {} is deprecated and should be replaced with {} (invert key and value).", PROPERTY_ECLIPSE,
+          PROPERTY_IMPORT);
       return Set.of("eclipse");
     } else {
       return Set.of();
@@ -124,23 +233,24 @@ final class RepositoryProperties {
    */
   public List<String> getWorkspaces() {
 
-    String workspaceProperty = this.properties.getProperty(RepositoryConfig.PROPERTY_WORKSPACES);
-    if (workspaceProperty == null) {
-      workspaceProperty = this.properties.getProperty("workspace");
-      if (workspaceProperty != null) {
-        LOG.debug("Property workspace is legacy, please change property name to workspaces in {}", this.file);
+    String workspaceProperty = getProperty(PROPERTY_WORKSPACES, "workspace", false);
+    if (!isEmpty(workspaceProperty)) {
+      if (RepositoryConfig.WORKSPACE_NAME_ALL.equals(workspaceProperty)) {
+        return List.of(workspaceProperty);
       }
-    }
-    if ((workspaceProperty != null) && !workspaceProperty.isEmpty()) {
       List<String> list = new ArrayList<>();
       Set<String> set = new HashSet<>();
       for (String workspace : workspaceProperty.split(",")) {
         workspace = workspace.trim();
-        boolean added = set.add(workspace);
-        if (added) {
-          list.add(workspace);
+        if (WORKSPACE_PATTERN.matcher(workspace).matches()) {
+          boolean added = set.add(workspace);
+          if (added) {
+            list.add(workspace);
+          } else {
+            LOG.warn("Ignoring duplicate workspace {} from {}", workspace, workspaceProperty);
+          }
         } else {
-          LOG.warn("Ignoring duplicate workspace {} from {}", workspace, workspaceProperty);
+          LOG.warn("Ignoring illegal workspace {} from {}", workspace, workspaceProperty);
         }
       }
       return Collections.unmodifiableList(list);
@@ -148,4 +258,47 @@ final class RepositoryProperties {
     return List.of(IdeContext.WORKSPACE_MAIN);
   }
 
+  public List<RepositoryLink> getLinks() {
+
+    String link = getProperty(PROPERTY_LINK);
+    if (isEmpty(link)) {
+      return List.of();
+    }
+    List<RepositoryLink> links = new ArrayList<>();
+    for (String linkItem : link.split(",")) {
+      String linkPath = linkItem;
+      String linkTarget = "";
+      int eqIndex = linkItem.indexOf('=');
+      if (eqIndex > 0) {
+        linkPath = linkItem.substring(0, eqIndex);
+        linkTarget = linkItem.substring(eqIndex + 1);
+      }
+      linkPath = sanatizeRelativePath(linkPath);
+      linkTarget = sanatizeRelativePath(linkTarget);
+      if (linkPath != null) {
+        links.add(new RepositoryLink(linkPath, linkTarget));
+      }
+    }
+    return List.copyOf(links); // make immutable for record
+  }
+
+  private String sanatizeRelativePath(String path) {
+    if (path == null) {
+      return null;
+    }
+    String normalized = path.trim().replace('\\', '/');
+    if (normalized.contains("..") || !PATH_PATTERN.matcher(normalized).matches()) {
+      LOG.warn("Invalid path {} from {}", path, this.file);
+      return null;
+    }
+    return normalized;
+  }
+
+  private static boolean parseBoolean(String value) {
+
+    if (value == null) {
+      return true;
+    }
+    return "true".equals(value.trim());
+  }
 }

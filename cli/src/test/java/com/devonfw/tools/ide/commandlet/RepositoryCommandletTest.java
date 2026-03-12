@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.commandlet;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Properties;
 
 import org.junit.jupiter.api.Test;
@@ -8,10 +9,9 @@ import org.junit.jupiter.api.Test;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.git.GitContextImplMock;
 import com.devonfw.tools.ide.git.repository.RepositoryCommandlet;
 import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.log.IdeLogEntry;
-import com.devonfw.tools.ide.log.IdeLogLevel;
 
 /**
  * Test of {@link RepositoryCommandlet}.
@@ -45,15 +45,14 @@ class RepositoryCommandletTest extends AbstractIdeContextTest {
     return properties;
   }
 
-  /**
-   * Saves the given properties to the test properties file.
-   *
-   * @param context the {@link IdeTestContext}.
-   * @param properties the {@link Properties} to save.
-   */
   private void saveProperties(IdeTestContext context, Properties properties) {
 
-    Path repositoryTestProperties = context.getSettingsPath().resolve(IdeContext.FOLDER_REPOSITORIES).resolve(PROPERTIES_FILE);
+    saveProperties(context, properties, PROPERTIES_FILE);
+  }
+
+  private void saveProperties(IdeTestContext context, Properties properties, String filename) {
+
+    Path repositoryTestProperties = context.getSettingsPath().resolve(IdeContext.FOLDER_REPOSITORIES).resolve(filename);
     FileAccess fileAccess = context.getFileAccess();
     fileAccess.mkdirs(repositoryTestProperties.getParent());
     fileAccess.writeProperties(properties, repositoryTestProperties);
@@ -86,8 +85,7 @@ class RepositoryCommandletTest extends AbstractIdeContextTest {
     // act
     rc.run();
     // assert
-    assertThat(context).log().hasEntries(new IdeLogEntry(IdeLogLevel.STEP, "Start: Setup of repository test"),
-        new IdeLogEntry(IdeLogLevel.INFO, "Skipping repository test because it is not active - use --force to setup all repositories ..."));
+    assertThat(context).logAtInfo().hasMessage("Skipping repository test because it is not active, use --force-repositories to setup all repositories ...");
   }
 
   @Test
@@ -121,7 +119,8 @@ class RepositoryCommandletTest extends AbstractIdeContextTest {
     rc.run();
     // assert
     assertThat(context).logAtError()
-        .hasMessage("The properties file " + repositoryTestProperties + " must have a non-empty value for the required property git_url");
+        .hasMessage(
+            "The properties file " + repositoryTestProperties + " is invalid because the required property git_url is not present. Ignoring this file.");
   }
 
   @Test
@@ -179,6 +178,42 @@ class RepositoryCommandletTest extends AbstractIdeContextTest {
     assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(workspace1).resolve(TEST_REPO)).isDirectory();
     assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(workspace2).resolve(TEST_REPO)).isDirectory();
     assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Setup of repository test'.");
+  }
+
+  @Test
+  void testSetupRepositoryWithAllWorkspacesAndLinks() {
+
+    // arrange
+    String expectedSkillContent = "# dummy for testing link feature with AI use-case\n";
+    IdeTestContext context = newContext(PROJECT_REPOSITORY);
+    context.setGitContext(new GitContextImplMock(context, context.getIdeHome().getParent().resolve("repository/ai-repo")));
+    Properties properties = createDefaultProperties();
+    String workspace1 = "workspace1";
+    String workspace2 = "workspace2";
+    properties.setProperty("workspaces", workspace1 + "," + workspace2);
+    properties.setProperty("active", "true");
+    saveProperties(context, properties);
+    Properties propertiesAllWorkspacesAndLinks = createDefaultProperties();
+    propertiesAllWorkspacesAndLinks.remove("path");
+    propertiesAllWorkspacesAndLinks.setProperty("git_url", "https://github.com/devonfw/ai-repo.git");
+    propertiesAllWorkspacesAndLinks.setProperty("workspaces", "*");
+    propertiesAllWorkspacesAndLinks.setProperty("link", ".github,.claude/powers=skills");
+    propertiesAllWorkspacesAndLinks.setProperty("active", "true");
+    saveProperties(context, propertiesAllWorkspacesAndLinks, "ai.properties");
+    RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
+
+    // act
+    rc.run();
+
+    // assert
+    assertThat(context.getWorkspacePath(workspace1).resolve(TEST_REPO)).isDirectory();
+    assertThat(context.getWorkspacePath(workspace2).resolve(TEST_REPO)).isDirectory();
+    for (String workspace : List.of("main", "foo-test", workspace1, workspace2)) {
+      assertThat(context.getWorkspacePath(workspace1).resolve(".github/skills/skill.md")).hasContent(expectedSkillContent);
+      assertThat(context.getWorkspacePath(workspace1).resolve(".claude/powers/skill.md")).hasContent(expectedSkillContent);
+    }
+    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Setup of repository test'.");
+    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Setup of repository ai'.");
   }
 
   @Test
