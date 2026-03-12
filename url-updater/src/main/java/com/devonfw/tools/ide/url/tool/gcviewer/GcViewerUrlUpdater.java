@@ -1,12 +1,12 @@
 package com.devonfw.tools.ide.url.tool.gcviewer;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
 
 /**
- * {@link GithubUrlUpdater} for GCViewer.
+ * {@link GithubUrlTagUpdater} for GCViewer.
  */
-public class GcViewerUrlUpdater extends GithubUrlUpdater {
+public class GcViewerUrlUpdater extends GithubUrlTagUpdater {
 
   @Override
   public String getTool() {

@@ -1,13 +1,13 @@
 package com.devonfw.tools.ide.url.tool.gh;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link GithubUrlUpdater} for "gh" (github CLI).
+ * {@link GithubUrlTagUpdater} for "gh" (github CLI).
  */
-public class GhUrlUpdater extends GithubUrlUpdater {
+public class GhUrlUpdater extends GithubUrlTagUpdater {
 
   private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.of("2.23.0");
 

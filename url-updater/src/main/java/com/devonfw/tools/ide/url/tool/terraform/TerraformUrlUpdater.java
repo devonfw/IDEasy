@@ -1,13 +1,13 @@
 package com.devonfw.tools.ide.url.tool.terraform;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link GithubUrlUpdater} for terraform.
+ * {@link GithubUrlTagUpdater} for terraform.
  */
-public class TerraformUrlUpdater extends GithubUrlUpdater {
+public class TerraformUrlUpdater extends GithubUrlTagUpdater {
 
   private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.of("1.1.0");
 

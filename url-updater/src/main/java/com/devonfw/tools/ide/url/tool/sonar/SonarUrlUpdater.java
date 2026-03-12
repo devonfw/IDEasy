@@ -1,12 +1,12 @@
 package com.devonfw.tools.ide.url.tool.sonar;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
 
 /**
- * {@link GithubUrlUpdater} for sonar (sonarqube).
+ * {@link GithubUrlTagUpdater} for sonar (sonarqube).
  */
-public class SonarUrlUpdater extends GithubUrlUpdater {
+public class SonarUrlUpdater extends GithubUrlTagUpdater {
 
   @Override
   public String getTool() {

@@ -13,7 +13,10 @@ class GithubTagTest extends Assertions {
    */
   @Test
   void testRefAndVersion() {
+    // arrange
     GithubTag tag = new GithubTag("refs/tags/v1.2.3");
+
+    // assert
     assertThat(tag.ref()).isEqualTo("refs/tags/v1.2.3");
     assertThat(tag.version()).isEqualTo("v1.2.3");
   }
@@ -23,7 +26,10 @@ class GithubTagTest extends Assertions {
    */
   @Test
   void testVersionWithNoPrefix() {
+    // arrange
     GithubTag tag = new GithubTag("v2.0.0");
+
+    // assert
     assertThat(tag.version()).isEqualTo("v2.0.0");
   }
 }
