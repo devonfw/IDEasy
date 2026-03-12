@@ -553,10 +553,22 @@ public interface IdeContext extends IdeStartContext {
   Path getConfPath();
 
   /**
+   * @return the {@link Path} to the workspaces base folder containing the individual {@link #getWorkspacePath(String) workspaces}.
+   * @see #getWorkspacePath(String)
+   */
+  Path getWorkspacesBasePath();
+
+  /**
    * @return the {@link Path} to the workspace.
    * @see #getWorkspaceName()
    */
   Path getWorkspacePath();
+
+  /**
+   * @param workspace the specific workspace name.
+   * @return the {@link Path} to the specified workspace.
+   */
+  Path getWorkspacePath(String workspace);
 
   /**
    * @return the name of the workspace. Defaults to {@link #WORKSPACE_MAIN}.

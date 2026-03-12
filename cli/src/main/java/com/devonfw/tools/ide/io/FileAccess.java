@@ -346,6 +346,33 @@ public interface FileAccess {
   Path findAncestor(Path path, Path baseDir, int subfolderCount);
 
   /**
+   * @param path the {@link Path} to get the rest from the given starting position.
+   * @param nameEnd the end position in the range from 0 to {@link Path#getNameCount() nameCount}-1.
+   * @return the requested start of the {@link Path} including all {@link Path#getName(int) name segments} from the start to the given position (inclusive). If
+   *     an {@link Path#isAbsolute() absolute} {@link Path} was given, then also an {@link Path#isAbsolute() absolute} {@link Path} will be returned.
+   */
+  Path getPathStart(Path path, int nameEnd);
+
+  /**
+   * @param path the {@link Path} to get the rest from the given starting position.
+   * @param nameStart the starting position in the range from 0 to {@link Path#getNameCount() nameCount}-1.
+   * @return the requested end of the {@link Path}. This will always be a relative {@link Path} even if the given {@link Path} was
+   *     {@link Path#isAbsolute() absolute}.
+   */
+  Path getPathEnd(Path path, int nameStart);
+
+  /**
+   * @param path1 the first {@link Path} to compare.
+   * @param path2 the second {@link Path} to compare.
+   * @return the first {@link Path#getName(int) name index} for which the {@link Path#getName(int) segments} of both given {@link Path}s differ. Will be
+   *     {@code -1} if a given {@link Path} was {@code null} or both {@link Path} do not even share the same {@link Path#getRoot() roots} (e.g. different
+   *     Windows drives or one {@link Path} is {@link Path#isAbsolute() absolute} and one is relative). Otherwise, will be {@code 0} if already the first
+   *     segments differ or positive for the number of common segments. So the returned number is the index of the first {@link Path#getName(int) name segment}
+   *     that does not match (or is not present).
+   */
+  int getCommonNameCount(Path path1, Path path2);
+
+  /**
    * @param dir the {@link Path} to the directory where to list the children.
    * @param filter the {@link Predicate} used to {@link Predicate#test(Object) decide} which children to include (if {@code true} is returned).
    * @return all children of the given {@link Path} that match the given {@link Predicate}. Will be the empty list of the given {@link Path} is not an existing
@@ -606,4 +633,5 @@ public interface FileAccess {
    * @return if the given {@code file} exists and is not empty.
    */
   boolean isNonEmptyFile(Path file);
+
 }
