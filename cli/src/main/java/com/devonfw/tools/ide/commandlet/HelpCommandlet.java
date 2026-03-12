@@ -64,23 +64,7 @@ public final class HelpCommandlet extends Commandlet {
     NlsBundle bundle = NlsBundle.of(this.context);
     IdeLogLevel.SUCCESS.log(LOG, bundle.get("version-banner"), IdeVersion.getVersionString());
     Commandlet cmd = this.commandlet.getValue();
-    if (cmd == null) {
-      String usage = bundle.get("usage") + " ide [option]* [[commandlet] [arg]*]";
-      LOG.info(usage);
-      LOG.info("");
-      printCommandlets(bundle);
-    } else {
-      printCommandletHelp(bundle, cmd);
-    }
-    LOG.info("");
-    LOG.info(bundle.get("options"));
-    Args options = new Args();
-    ContextCommandlet cxtCmd = new ContextCommandlet(((AbstractIdeContext) this.context).getStartContext());
-    collectOptions(options, cxtCmd, bundle);
-    if (cmd != null) {
-      collectOptions(options, cmd, bundle);
-    }
-    options.print();
+    printCommandletHelp(bundle, cmd);
     if (cmd == null) {
       LOG.info("");
       LOG.info(bundle.getDetail(this.context.getCommandletManager().getCommandlet(HelpCommandlet.class)));
@@ -92,40 +76,78 @@ public final class HelpCommandlet extends Commandlet {
 
   private void printCommandletHelp(NlsBundle bundle, Commandlet cmd) {
 
+    Args values = null;
+    Args options = null;
     StringBuilder usage = new StringBuilder();
-    Args values = new Args();
     usage.append(bundle.get("usage"));
-    usage.append(" ide [option]*");
-    for (Property<?> property : cmd.getProperties()) {
-      if (property.isValue() || property.isRequired()) {
-        usage.append(" ");
-        if (!property.isRequired()) {
-          usage.append('[');
-        }
-        String name = property.getName();
-        if (name.isEmpty()) {
-          assert !(property instanceof KeywordProperty);
-          String key = "<" + property.getAlias() + ">";
-          usage.append(key);
-          values.add(key, bundle.get(cmd, property));
-        } else {
-          usage.append(name);
-        }
-        if (property.isMultiValued()) {
-          usage.append('*');
-        }
-        if (!property.isRequired()) {
+    usage.append(" ide [global-option]*");
+    if (cmd == null) {
+      usage.append(" [[commandlet] [local-option]* [arg]*]");
+    } else {
+      values = new Args();
+      options = new Args();
+      for (Property<?> property : cmd.getProperties()) {
+        if (property.isValue() || property.isRequired()) {
+          usage.append(" ");
+          if (!property.isRequired()) {
+            usage.append('[');
+          }
+          String name = property.getName();
+          if (name.isEmpty()) {
+            assert !(property instanceof KeywordProperty);
+            String key = "<" + property.getAlias() + ">";
+            usage.append(key);
+            values.add(key, bundle.get(cmd, property));
+          } else {
+            usage.append(name);
+          }
+          if (property.isMultiValued()) {
+            usage.append('*');
+          }
+          if (!property.isRequired()) {
+            usage.append(']');
+          }
+        } else if (property.isOption() && !property.isRequired()) {
+          String id = property.getAlias();
+          String name = property.getName();
+          if (id == null) {
+            id = name;
+          } else {
+            id = id + " | " + name;
+          }
+          String description = bundle.get(cmd, property);
+          options.add(id, description);
+          usage.append(" [");
+          usage.append(id);
           usage.append(']');
         }
       }
     }
     LOG.info(usage.toString());
-    LOG.info(bundle.get(cmd));
-    LOG.info(bundle.getDetail(cmd));
-    LOG.info("");
-    LOG.info(bundle.get("values"));
-    values.print();
-    cmd.printHelp(bundle);
+    if (cmd == null) {
+      printCommandlets(bundle);
+    } else {
+      LOG.info(bundle.get(cmd));
+      LOG.info(bundle.getDetail(cmd));
+      printArgs(options, bundle, "options.local");
+      printArgs(values, bundle, "values");
+    }
+    options = new Args();
+    ContextCommandlet cxtCmd = new ContextCommandlet(((AbstractIdeContext) this.context).getStartContext());
+    collectOptions(options, cxtCmd, bundle);
+    printArgs(options, bundle, "options.global");
+    if (cmd != null) {
+      cmd.printHelp(bundle);
+    }
+  }
+
+  private void printArgs(Args args, NlsBundle bundle, String bundleKey) {
+    if (!args.get().isEmpty()) {
+      LOG.info("");
+      LOG.info(bundle.get(bundleKey));
+      args.print();
+    }
+
   }
 
   private void printCommandlets(NlsBundle bundle) {

@@ -54,7 +54,7 @@ class HelpCommandletTest extends AbstractIdeContextTest {
     // assert
     assertLogoMessage(context);
     assertThat(context).logAtSuccess().hasMessageContaining("Current version of IDE is");
-    assertThat(context).logAtInfo().hasMessage("Usage: ide [option]* [[commandlet] [arg]*]");
+    assertThat(context).logAtInfo().hasMessage("Usage: ide [global-option]* [[commandlet] [local-option]* [arg]*]");
     for (Commandlet cmd : context.getCommandletManager().getCommandlets()) {
       assertThat(context).log().hasMessageContaining(cmd.getName());
     }
@@ -95,7 +95,7 @@ class HelpCommandletTest extends AbstractIdeContextTest {
     // assert
     assertLogoMessage(context);
     assertThat(context).logAtInfo()
-        .hasEntries("Usage: ide [option]* mvn [<args>*]", "Tool commandlet for Maven (Build-Tool).", "usage: mvn [options] [<goal(s)>] [<phase(s)>]");
+        .hasEntries("Usage: ide [global-option]* mvn [<args>*]", "Tool commandlet for Maven (Build-Tool).", "usage: mvn [options] [<goal(s)>] [<phase(s)>]");
     assertOptionLogMessages(context);
   }
 
