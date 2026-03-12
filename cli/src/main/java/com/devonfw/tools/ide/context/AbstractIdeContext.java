@@ -119,6 +119,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   private Path workspacePath;
 
+  private Path workspacesBasePath;
+
   private String workspaceName;
 
   private Path cwd;
@@ -352,12 +354,14 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     this.workspaceName = workspace;
     this.ideHome = ideHome;
     if (ideHome == null) {
+      this.workspacesBasePath = null;
       this.workspacePath = null;
       this.confPath = null;
       this.settingsPath = null;
       this.pluginsPath = null;
     } else {
-      this.workspacePath = this.ideHome.resolve(FOLDER_WORKSPACES).resolve(this.workspaceName);
+      this.workspacesBasePath = this.ideHome.resolve(FOLDER_WORKSPACES);
+      this.workspacePath = this.workspacesBasePath.resolve(this.workspaceName);
       this.confPath = this.ideHome.resolve(FOLDER_CONF);
       this.settingsPath = this.ideHome.resolve(FOLDER_SETTINGS);
       this.settingsCommitIdPath = this.ideHome.resolve(IdeContext.SETTINGS_COMMIT_ID);
@@ -689,9 +693,24 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   @Override
+  public Path getWorkspacesBasePath() {
+
+    return this.workspacesBasePath;
+  }
+
+  @Override
   public Path getWorkspacePath() {
 
     return this.workspacePath;
+  }
+
+  @Override
+  public Path getWorkspacePath(String workspace) {
+
+    if (this.workspacesBasePath == null) {
+      throw new IllegalStateException("Failed to access workspace " + workspace + " without IDE_HOME in " + this.cwd);
+    }
+    return this.workspacesBasePath.resolve(workspace);
   }
 
   @Override
