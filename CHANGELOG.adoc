@@ -11,6 +11,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1351[#1729]: Update Jline to 3.30.6 and ProgressBar to 0.10.2
 * https://github.com/devonfw/IDEasy/issues/1735[#1735]: Add repositories symlink feature for advanced AI usage
 * https://github.com/devonfw/IDEasy/issues/1713[#1713]: Advanced logging and writing logfiles
+* https://github.com/devonfw/IDEasy/issues/1642[#1642]: improve help output
 * https://github.com/devonfw/IDEasy/issues/1731[#1731]: Fixed SonarQube installation path resolution
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/41?closed=1[milestone 2026.03.001].
