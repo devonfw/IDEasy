@@ -1,0 +1,5 @@
+#!/bin/bash
+
+exit 0
+echo "java version 17.0.10"
+# Mock java binary for testing
