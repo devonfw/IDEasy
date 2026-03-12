@@ -38,7 +38,7 @@ However, common AI tools expect them in configuration folders directly in your w
 Even worse there is no common standard yet and every AI tool has its own naming conventions.
 To avoid anti-patterns and still give you high flexibility and usability, we created a special feature to automatically create additional symbolic links after cloning of a link:repository.adoc[repository].
 
-The following example for some repository configuration in `$IDE_HOME/settings/repositories/illustrates the idea:
+The following repository configuration in `$IDE_HOME/settings/repositories/ai.properties` illustrates the idea as example:
 
 ```
 path=ai
