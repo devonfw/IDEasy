@@ -278,7 +278,7 @@ final class RepositoryProperties {
       if (!linkTarget.isEmpty()) {
         linkTarget = sanatizeRelativePath(linkTarget, PROPERTY_LINK_TARGET);
       }
-      if (linkPath != null) {
+      if ((linkPath != null) && (linkTarget != null)) {
         links.add(new RepositoryLink(linkPath, linkTarget));
       }
     }
