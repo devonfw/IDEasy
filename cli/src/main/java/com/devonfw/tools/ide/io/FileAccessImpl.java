@@ -493,17 +493,12 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       int count = getCommonNameCount(source, link);
       if (count < 1) {
         LOG.error("Cannot create relative link at {} pointing to {} - falling back to absolute link", link, source);
-        relative = false;
       } else {
         Path cwd = getPathStart(source, count - 1);
         finalSource = getPathEnd(source, count);
         finalLink = getPathEnd(link, count);
         pc.directory(cwd);
       }
-    }
-    Path parent = link.getParent();
-    if (parent == null) {
-      parent = Path.of(".");
     }
     if (type == PathLinkType.SYMBOLIC_LINK && Files.isDirectory(source)) {
       pc = pc.addArg("/j");
@@ -569,8 +564,10 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   public Path getPathEnd(Path path, int nameStart) {
 
     int count = path.getNameCount();
-    if (nameStart >= count) {
+    if (nameStart > count) {
       throw new IllegalArgumentException("Cannot get end after segment " + nameStart + " from path " + path + " that has only " + count + " segments.");
+    } else if (nameStart == count) {
+      return Path.of(".");
     }
     Path result = path.getName(nameStart++);
     while (nameStart < count) {
