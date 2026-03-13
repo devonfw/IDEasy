@@ -84,7 +84,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
    */
   @Test
   @EnabledOnOs(OS.WINDOWS)
-  void testSymlinkAbsoluteAsFallback(@TempDir Path tempDir) {
+  void testSymlinkFallback(@TempDir Path tempDir) {
 
     // arrange
     IdeTestContext context = new IdeTestContext();
