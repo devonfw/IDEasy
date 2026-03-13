@@ -33,6 +33,7 @@ final class RepositoryProperties {
   private static final String PROPERTY_GIT_BRANCH = "git_branch";
   private static final String PROPERTY_IMPORT = "import";
   private static final String PROPERTY_LINK = "link";
+  private static final String PROPERTY_LINK_TARGET = "link (=<target>)";
   private static final String PROPERTY_ECLIPSE = "eclipse";
 
   private static final Pattern PATH_PATTERN = Pattern.compile("[a-zA-Z0-9_.$/-]+");
@@ -154,7 +155,7 @@ final class RepositoryProperties {
    */
   public String getPath() {
 
-    return sanatizeRelativePath(getProperty(PROPERTY_PATH));
+    return sanatizeRelativePath(getProperty(PROPERTY_PATH), PROPERTY_PATH);
   }
 
   /**
@@ -273,8 +274,10 @@ final class RepositoryProperties {
         linkPath = linkItem.substring(0, eqIndex);
         linkTarget = linkItem.substring(eqIndex + 1);
       }
-      linkPath = sanatizeRelativePath(linkPath);
-      linkTarget = sanatizeRelativePath(linkTarget);
+      linkPath = sanatizeRelativePath(linkPath, PROPERTY_LINK);
+      if (!linkTarget.isEmpty()) {
+        linkTarget = sanatizeRelativePath(linkTarget, PROPERTY_LINK_TARGET);
+      }
       if (linkPath != null) {
         links.add(new RepositoryLink(linkPath, linkTarget));
       }
@@ -282,13 +285,13 @@ final class RepositoryProperties {
     return List.copyOf(links); // make immutable for record
   }
 
-  private String sanatizeRelativePath(String path) {
+  private String sanatizeRelativePath(String path, String propertyName) {
     if (path == null) {
       return null;
     }
     String normalized = path.trim().replace('\\', '/');
     if (normalized.contains("..") || !PATH_PATTERN.matcher(normalized).matches()) {
-      LOG.warn("Invalid path {} from {}", path, this.file);
+      LOG.warn("Invalid path {} from property {} of {}", path, propertyName, this.file);
       return null;
     }
     return normalized;
