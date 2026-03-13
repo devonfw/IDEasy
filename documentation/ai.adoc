@@ -71,6 +71,12 @@ This will result in the following structure in each of your workspaces:
 
 This is just an example.
 Typically, you will only need support for a single type of AI.
+If you have the AI tool specific folder already in your git repository, simply configure something like this:
+```
+link=.github=.github
+```
+This will create a symbolic link called `.githib` pointing to the `.github` folder inside your git repository (e.g. `ai/.github`).
+
 However, you can even configure links like:
 
 ```
