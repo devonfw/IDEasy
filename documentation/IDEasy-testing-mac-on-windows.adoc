@@ -19,7 +19,12 @@ For more details, refer to: https://learn.microsoft.com/en-us/windows/wsl/instal
 
 === Install Docker
 
-Download and install `Docker Desktop for Windows` following the official guide: https://docs.docker.com/desktop/setup/install/windows-install/[Install Docker Desktop on Windows]
+To install Docker, use the command:
+----
+ide install docker
+----
+
+Alternatevly, refer to Docker's official guide: https://docs.docker.com/desktop/setup/install/windows-install/[Install Docker Desktop on Windows]
 
 - In order to use the `docker` commands, `Docker Desktop for Windows` should remain open.
 
@@ -29,16 +34,21 @@ Setup the macOS container following the official guide: https://github.com/docku
 
 Roughly, the steps involve:
 
-1. Creating and initializing the macOS docker container. In WSL, run:
+1. Creating and initializing the macOS docker container. In WSL, run the command (for example):
 +
 ```
-docker run -it --rm --name macos -e "VERSION=14" -p 8006:8006 --device=/dev/kvm --device=/dev/net/tun --cap-add NET_ADMIN -v "${PWD:-.}/macos:/storage" --stop-timeout 120 docker.io/dockurr/macos
+docker run -it --rm --name macos -e "VERSION=15" -p 8006:8006 --device=/dev/kvm --device=/dev/net/tun --cap-add NET_ADMIN -v "${PWD:-.}/macos:/storage" --stop-timeout 120 docker.io/dockurr/macos
 ```
 +
-The current command can be found https://github.com/dockur/macos?tab=readme-ov-file#via-docker-cli[here].
-+
-To avoid the container being deleted after stopping it, simply skip using the `--rm` flag.
+Notes:
+
+- The command can be adapted to fit your needs, e.g. set macOS to 14 instead of 15 with `-e "VERSION=14"`
+
+- To avoid the container being deleted after stopping it, simply skip using the `--rm` flag.
 Using the `--rm` flag doesn't affect the macOS session, i.e. when running the previous command (`docker run ...`) again, the macOS session will be restored.
+
+- For further details, refer to the official documentation: https://github.com/dockur/macos[dockurr/macos].
++
 
 2. To access the macOS VM: navigate to http://127.0.0.1:8006/ on a web browser.
 
