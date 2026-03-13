@@ -22,6 +22,7 @@ import com.devonfw.tools.ide.url.tool.eclipse.EclipseJeeUrlUpdater;
 import com.devonfw.tools.ide.url.tool.gcloud.GCloudUrlUpdater;
 import com.devonfw.tools.ide.url.tool.gcviewer.GcViewerUrlUpdater;
 import com.devonfw.tools.ide.url.tool.gh.GhUrlUpdater;
+import com.devonfw.tools.ide.url.tool.go.GoUrlUpdater;
 import com.devonfw.tools.ide.url.tool.graalvm.GraalVmCommunityUpdater;
 import com.devonfw.tools.ide.url.tool.graalvm.GraalVmOracleUrlUpdater;
 import com.devonfw.tools.ide.url.tool.gradle.GradleUrlUpdater;
@@ -73,7 +74,7 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
       new KotlincNativeUrlUpdater(), new LazyDockerUrlUpdater(), new MvnUrlUpdater(), new Mvn4UrlUpdater(),
       new NgUrlUpdater(), new NodeUrlUpdater(), new NpmUrlUpdater(), new OcUrlUpdater(), new PgAdminUrlUpdater(), new PipUrlUpdater(), new PycharmUrlUpdater(),
       new PythonUrlUpdater(), new QuarkusUrlUpdater(), new DockerRancherDesktopUrlUpdater(), new SonarUrlUpdater(),
-      new TerraformUrlUpdater(), new TomcatUrlUpdater(), new UvUrlUpdater(), new VsCodeUrlUpdater());
+      new TerraformUrlUpdater(), new TomcatUrlUpdater(), new UvUrlUpdater(), new VsCodeUrlUpdater(), new GoUrlUpdater());
 
   /**
    * The constructor.
