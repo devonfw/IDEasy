@@ -93,6 +93,71 @@ public class GitContextImpl implements GitContext {
   }
 
   @Override
+  public void pullSafelyWithStash(Path repository) {
+    String token = "autostash:pull:" + java.util.UUID.randomUUID();
+    LOG.debug("Untracked files found. Creating temporary stash with token '{}'", token);
+    ProcessResult stashRes = runGitCommand(repository, ProcessMode.DEFAULT, "--no-pager", "stash", "push", "--include-untracked", "-m", token, "--quiet");
+    if (!stashRes.isSuccessful()) {
+      LOG.warn("Failed to create stash before pull on {}", repository);
+      handleErrors(repository, stashRes);
+    }
+
+    ProcessResult listRes = runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, "--no-pager", "stash", "list");
+    if (!listRes.isSuccessful()) {
+      LOG.warn("Failed to list stash after creating temporary stash on {}", repository);
+      handleErrors(repository, listRes);
+    }
+
+    String stashRef = findStashRefByMessage(listRes.getOut(), token);
+    if (stashRef == null) {
+      LOG.warn("Could not find created stash by token '{}'. Leaving stash untouched.", token);
+    } else {
+      LOG.debug("Created stash identified as '{}'", stashRef);
+    }
+
+    pull(repository);
+
+    if (stashRef != null) {
+      ProcessResult popRes = runGitCommand(repository, ProcessMode.DEFAULT, "--no-pager", "stash", "pop", stashRef, "--quiet");
+      if (!popRes.isSuccessful()) {
+        LOG.warn("Applying stash {} failed after successful pull on {}.", stashRef, repository);
+        handleErrors(repository, popRes);
+      } else {
+        LOG.debug("Stash {} successfully popped after pull.", stashRef);
+      }
+    } else {
+      LOG.warn("Skipping stash pop because stashRef is unknown (token '{}'). Stash remains on the stack.", token);
+    }
+  }
+
+  @Override
+  public boolean repoHasUntrackedFiles(Path repository) {
+    ProcessResult status = runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, "--no-pager", "status", "--porcelain", "-uall");
+    if (!status.isSuccessful()) {
+      handleErrors(repository, status);
+      return false;
+    }
+    List<String> out = status.getOut();
+    return !out.isEmpty();
+  }
+
+  private String findStashRefByMessage(List<String> stashList, String needle) {
+    if (stashList.isEmpty()) {
+      return null;
+    }
+    for (String line : stashList) {
+      if (line.contains(needle)) {
+        int idx = line.indexOf(':');
+        if (idx > 0) {
+          return line.substring(0, idx).trim();
+        }
+      }
+    }
+    return null;
+  }
+
+
+  @Override
   public void pullOrClone(GitUrl gitUrl, Path repository) {
 
     Objects.requireNonNull(repository);
@@ -259,8 +324,7 @@ public class GitContextImpl implements GitContext {
     if (gitPath == null) {
       String message = "Git " + IdeContext.IS_NOT_INSTALLED_BUT_REQUIRED;
       if (SystemInfoImpl.INSTANCE.isWindows()) {
-        message += IdeContext.PLEASE_DOWNLOAD_AND_INSTALL_GIT + ":\n "
-            + IdeContext.WINDOWS_GIT_DOWNLOAD_URL;
+        message += IdeContext.PLEASE_DOWNLOAD_AND_INSTALL_GIT + ":\n " + IdeContext.WINDOWS_GIT_DOWNLOAD_URL;
       }
       throw new CliException(message);
     }
@@ -372,8 +436,7 @@ public class GitContextImpl implements GitContext {
       processContext = this.context.newProcess().executable(findGitRequired()).withEnvVar("GIT_TERMINAL_PROMPT", "0").withEnvVar("GCM_INTERACTIVE", "never")
           .withEnvVar("GIT_ASKPASS", "echo").withEnvVar("SSH_ASKPASS", "echo").errorHandling(errorHandling).directory(directory);
     } else {
-      processContext = this.context.newProcess().executable(findGitRequired()).errorHandling(errorHandling)
-          .directory(directory);
+      processContext = this.context.newProcess().executable(findGitRequired()).errorHandling(errorHandling).directory(directory);
     }
 
     processContext.addArgs(args);
