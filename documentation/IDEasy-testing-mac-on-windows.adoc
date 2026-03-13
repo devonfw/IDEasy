@@ -60,14 +60,14 @@ Refer to the detailed setup guide: link:setup.adoc[Setup Instructions].
 
 So, inside the macOS VM (accessible through the web browser) install IDEasy via the following steps:
 
-1. Install `homebrew`. In the terminal, run:
+1. Install `homebrew`. In macOS' terminal, run:
 +
 ```
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 +
 For more details, here's the official guide: https://brew.sh/[brew.sh]
-2. Install `Git for macOS`. In the terminal, run:
+2. Install `Git for macOS`. In macOS' terminal, run:
 +
 ```
 brew install git
