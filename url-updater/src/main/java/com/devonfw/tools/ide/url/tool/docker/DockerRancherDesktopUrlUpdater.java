@@ -1,12 +1,12 @@
 package com.devonfw.tools.ide.url.tool.docker;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
 
 /**
- * {@link GithubUrlUpdater} for the docker edition Rancher-Desktop.
+ * {@link GithubUrlTagUpdater} for the docker edition Rancher-Desktop.
  */
-public class DockerRancherDesktopUrlUpdater extends GithubUrlUpdater {
+public class DockerRancherDesktopUrlUpdater extends GithubUrlTagUpdater {
 
   @Override
   public String getTool() {

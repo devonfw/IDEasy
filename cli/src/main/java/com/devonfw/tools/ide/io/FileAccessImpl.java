@@ -33,6 +33,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -450,51 +451,64 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
    * Adapts the given {@link Path} to be relative or absolute depending on the given {@code relative} flag. Additionally, {@link Path#toRealPath(LinkOption...)}
    * is applied to {@code target}.
    *
-   * @param target the {@link Path} the link should point to and that is to be adapted.
-   * @param link the {@link Path} to the link. It is used to calculate the relative path to the {@code target} if {@code relative} is set to {@code true}.
+   * @param link the {@link Path} the link should point to and that is to be adapted.
+   * @param source the {@link Path} to the link. It is used to calculate the relative path to the {@code target} if {@code relative} is set to
+   *     {@code true}.
    * @param relative the {@code relative} flag.
    * @return the adapted {@link Path}.
    * @see #symlink(Path, Path, boolean)
    */
-  private Path adaptPath(Path target, Path link, boolean relative) {
+  private Path adaptPath(Path source, Path link, boolean relative) {
 
-    if (!target.isAbsolute()) {
-      target = link.resolveSibling(target);
+    if (!source.isAbsolute()) {
+      source = link.resolveSibling(source);
     }
     try {
-      target = target.toRealPath(LinkOption.NOFOLLOW_LINKS); // to transform ../d1/../d2 to ../d2
+      source = source.toRealPath(LinkOption.NOFOLLOW_LINKS); // to transform ../d1/../d2 to ../d2
     } catch (IOException e) {
-      throw new RuntimeException("Failed to get real path of " + target, e);
+      throw new RuntimeException("Failed to get real path of " + source, e);
     }
     if (relative) {
-      target = link.getParent().relativize(target);
+      source = link.getParent().relativize(source);
       // to make relative links like this work: dir/link -> dir
-      target = (target.toString().isEmpty()) ? Path.of(".") : target;
+      source = (source.toString().isEmpty()) ? Path.of(".") : source;
     }
-    return target;
+    return source;
   }
 
   /**
    * Creates a Windows link using mklink at {@code link} pointing to {@code target}.
    *
-   * @param target the {@link Path} the link will point to.
+   * @param source the {@link Path} the link will point to.
    * @param link the {@link Path} where to create the link.
    * @param type the {@link PathLinkType}.
    */
-  private void mklinkOnWindows(Path target, Path link, PathLinkType type) {
+  private void mklinkOnWindows(Path source, Path link, PathLinkType type, boolean relative) {
 
-    LOG.trace("Creating a Windows {} at {} pointing to {}", type, link, target);
+    LOG.trace("Creating a Windows {} at {} pointing to {}", type, link, source);
     ProcessContext pc = this.context.newProcess().executable("cmd").addArgs("/c", "mklink", type.getMklinkOption());
+    Path finalSource = source;
+    Path finalLink = link;
+    if (relative) {
+      int count = getCommonNameCount(source, link);
+      if (count < 1) {
+        LOG.error("Cannot create relative link at {} pointing to {} - falling back to absolute link", link, source);
+        relative = false;
+      } else {
+        Path cwd = getPathStart(source, count - 1);
+        finalSource = getPathEnd(source, count);
+        finalLink = getPathEnd(link, count);
+        pc.directory(cwd);
+      }
+    }
     Path parent = link.getParent();
     if (parent == null) {
       parent = Path.of(".");
     }
-    Path absolute = parent.resolve(target).toAbsolutePath().normalize();
-    if (type == PathLinkType.SYMBOLIC_LINK && Files.isDirectory(absolute)) {
+    if (type == PathLinkType.SYMBOLIC_LINK && Files.isDirectory(source)) {
       pc = pc.addArg("/j");
-      target = absolute;
     }
-    pc = pc.addArgs(link.toString(), target.toString());
+    pc = pc.addArgs(finalLink.toString(), finalSource.toString());
     ProcessResult result = pc.run(ProcessMode.DEFAULT);
     result.failOnError();
   }
@@ -502,20 +516,21 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   @Override
   public void link(Path source, Path link, boolean relative, PathLinkType type) {
 
-    final Path finalTarget;
+    Path finalSource;
     try {
-      finalTarget = adaptPath(source, link, relative);
+      finalSource = adaptPath(source, link, relative);
     } catch (Exception e) {
       throw new IllegalStateException("Failed to adapt target (" + source + ") for link (" + link + ") and relative (" + relative + ")", e);
     }
-    String relativeOrAbsolute = finalTarget.isAbsolute() ? "absolute" : "relative";
-    LOG.debug("Creating {} {} at {} pointing to {}", relativeOrAbsolute, type, link, finalTarget);
+    String relativeOrAbsolute = relative ? "absolute" : "relative";
+    LOG.debug("Creating {} {} at {} pointing to {}", relativeOrAbsolute, type, finalSource, source);
     deleteLinkIfExists(link);
     try {
+      // Attention: JavaDoc and position of path arguments can be very confusing - see comment in #1736
       if (type == PathLinkType.SYMBOLIC_LINK) {
-        Files.createSymbolicLink(link, finalTarget);
+        Files.createSymbolicLink(link, finalSource);
       } else if (type == PathLinkType.HARD_LINK) {
-        Files.createLink(link, finalTarget);
+        Files.createLink(link, finalSource);
       } else {
         throw new IllegalStateException("" + type);
       }
@@ -525,13 +540,62 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
             "Due to lack of permissions, Microsoft's mklink with junction had to be used to create a Symlink. See\n"
                 + "https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for further details. Error was: "
                 + e.getMessage());
-        mklinkOnWindows(finalTarget, link, type);
+        mklinkOnWindows(source, link, type, relative);
       } else {
         throw new RuntimeException(e);
       }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to create a " + relativeOrAbsolute + " " + type + " at " + link + " pointing to " + source, e);
     }
+  }
+
+  @Override
+  public Path getPathStart(Path path, int nameEnd) {
+
+    int count = path.getNameCount();
+    int delta = count - nameEnd - 1;
+    if (delta < 0) {
+      throw new IllegalArgumentException("Cannot get start before segment " + nameEnd + " from path " + path + " that has only " + count + " segments.");
+    }
+    Path result = path;
+    while (delta > 0) {
+      result = result.getParent();
+      delta--;
+    }
+    return result;
+  }
+
+  @Override
+  public Path getPathEnd(Path path, int nameStart) {
+
+    int count = path.getNameCount();
+    if (nameStart >= count) {
+      throw new IllegalArgumentException("Cannot get end after segment " + nameStart + " from path " + path + " that has only " + count + " segments.");
+    }
+    Path result = path.getName(nameStart++);
+    while (nameStart < count) {
+      result = result.resolve(path.getName(nameStart++));
+    }
+    return result;
+  }
+
+  @Override
+  public int getCommonNameCount(Path path1, Path path2) {
+
+    if ((path1 == null) || (path2 == null) || !Objects.equals(path1.getRoot(), path2.getRoot())) {
+      return -1;
+    }
+    int minNameCount = Math.min(path1.getNameCount(), path2.getNameCount());
+    int i = 0;
+    while (i < minNameCount) {
+      Path segment1 = path1.getName(i);
+      Path segment2 = path2.getName(i);
+      if (!segment1.equals(segment2)) {
+        break;
+      }
+      i++;
+    }
+    return i;
   }
 
   @Override
@@ -1162,6 +1226,9 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   @Override
   public boolean setWritable(Path file, boolean writable) {
 
+    if (!Files.exists(file)) {
+      return false;
+    }
     try {
       // POSIX
       PosixFileAttributeView posix = Files.getFileAttributeView(file, PosixFileAttributeView.class);

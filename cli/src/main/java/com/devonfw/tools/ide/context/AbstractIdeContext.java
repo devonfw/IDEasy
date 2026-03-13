@@ -34,7 +34,6 @@ import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.commandlet.CommandletManagerImpl;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
 import com.devonfw.tools.ide.commandlet.EnvironmentCommandlet;
-import com.devonfw.tools.ide.commandlet.HelpCommandlet;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
@@ -118,6 +117,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   protected Path pluginsPath;
 
   private Path workspacePath;
+
+  private Path workspacesBasePath;
 
   private String workspaceName;
 
@@ -352,12 +353,14 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     this.workspaceName = workspace;
     this.ideHome = ideHome;
     if (ideHome == null) {
+      this.workspacesBasePath = null;
       this.workspacePath = null;
       this.confPath = null;
       this.settingsPath = null;
       this.pluginsPath = null;
     } else {
-      this.workspacePath = this.ideHome.resolve(FOLDER_WORKSPACES).resolve(this.workspaceName);
+      this.workspacesBasePath = this.ideHome.resolve(FOLDER_WORKSPACES);
+      this.workspacePath = this.workspacesBasePath.resolve(this.workspaceName);
       this.confPath = this.ideHome.resolve(FOLDER_CONF);
       this.settingsPath = this.ideHome.resolve(FOLDER_SETTINGS);
       this.settingsCommitIdPath = this.ideHome.resolve(IdeContext.SETTINGS_COMMIT_ID);
@@ -689,9 +692,24 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   @Override
+  public Path getWorkspacesBasePath() {
+
+    return this.workspacesBasePath;
+  }
+
+  @Override
   public Path getWorkspacePath() {
 
     return this.workspacePath;
+  }
+
+  @Override
+  public Path getWorkspacePath(String workspace) {
+
+    if (this.workspacesBasePath == null) {
+      throw new IllegalStateException("Failed to access workspace " + workspace + " without IDE_HOME in " + this.cwd);
+    }
+    return this.workspacesBasePath.resolve(workspace);
   }
 
   @Override
@@ -1125,11 +1143,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
         LOG.error(result.getErrorMessage());
       }
       step.error("Invalid arguments: {}", current.getArgs());
-      HelpCommandlet help = this.commandletManager.getCommandlet(HelpCommandlet.class);
-      if (cmd != null) {
-        help.commandlet.setValue(cmd);
-      }
-      help.run();
+      IdeLogLevel.INTERACTION.log(LOG, "For additional details run ide help {}", cmd == null ? "" : cmd.getName());
       return 1;
     } catch (Throwable t) {
       activateLogging(cmd);
@@ -1181,7 +1195,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   protected boolean isWriteLogfile(Commandlet cmd) {
-    if (!cmd.isWriteLogFile()) {
+    if ((cmd == null) || !cmd.isWriteLogFile()) {
       return false;
     }
     Boolean writeLogfile = IdeVariables.IDE_WRITE_LOGFILE.get(this);

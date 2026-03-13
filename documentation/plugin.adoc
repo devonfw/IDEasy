@@ -1,0 +1,32 @@
+:toc:
+toc::[]
+
+= Plugins
+
+`IDEasy` supports to automatically install plugins for your IDE(s).
+For each plugin you want to configure, simply create a properties file in your link:settings.adoc[settings] at the following path:
+
+```
+$IDE_HOME/settings/«ide»/plugins/«plugin».properties
+```
+
+For example the `Anyedit` plugin for `Eclipse` is configured
+https://github.com/devonfw/ide-settings/blob/main/eclipse/plugins/anyedit.properties[here].
+
+Please consider that plugins will be created in alphabetical order.
+Therefore, if you want to install a plugin that depends on another plugin, ensure the filenames will be listed in the proper order.
+
+The properties that can be configured per plugin can be found in the following table.
+
+.Variables of repository import
+[options="header"]
+|===
+|*Variable*|*Value*|*Meaning*
+|`id`|e.g. `AnyEditTools.feature.group` |(required) This is the unique identifier of the plugin.
+For all JetBrains based IDEs like `IntelliJ` simply open `Settings`, navigate to `Plugins`, Select your desired plugin, click on `Plugin homepage` and scroll to the bottom of the page where you find it as `Plugin ID` (for example see https://plugins.jetbrains.com/plugin/7391-asciidoc[org.asciidoctor.intellij.asciidoc]).
+For `Eclipse` this is the technical ID of the plugin(s) and/or feature(s) to install as comma separated list. You still need to configure an `url` for `Eclipse`.
+For `VisualStudio Code`,  this is the extension ID you can directly get from the URL parameter of the marketplace such as https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-java-pack[vscjava.vscode-java-pack].
+|`url`|Eclipse Update-Site URL|(optional) Only required for Eclipse to specify the URL of the update-site where the metadata and plugin can be downloaded from.
+|`active`|`true`|(optional) `true` to tell IDEasy that this plugin shall be installed automatically for everybody in your team. Default is `false`. If not auto-installed, it can still be installed via `ide install-plugin «ide» «plugin»`.
+|`tags`|e.g. `java,spring,ai`|(optional) Tags to classify the plugin. Will be used by the GUI of IDEasy for selection by tag.
+|===
