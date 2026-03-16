@@ -25,6 +25,7 @@ public class Go extends LocalToolCommandlet {
   @Override
   public String getToolHelpArguments() {
 
-    return "--help";
+    return "help";
   }
+  
 }
