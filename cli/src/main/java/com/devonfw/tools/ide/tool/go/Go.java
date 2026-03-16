@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.tool.go.java;
+package com.devonfw.tools.ide.tool.go;
 
 import java.util.Set;
 
@@ -19,7 +19,7 @@ public class Go extends LocalToolCommandlet {
    */
   public Go(IdeContext context) {
 
-    super(context, "go", Set.of(Tag.JAVA, Tag.RUNTIME));
+    super(context, "go", Set.of(Tag.GO));
   }
 
   @Override
@@ -27,5 +27,5 @@ public class Go extends LocalToolCommandlet {
 
     return "help";
   }
-  
+
 }
