@@ -80,5 +80,5 @@ public class NodeUrlUpdater extends GithubUrlTagUpdater {
 
     return super.mapVersion("v" + version);
   }
-
+  
 }
