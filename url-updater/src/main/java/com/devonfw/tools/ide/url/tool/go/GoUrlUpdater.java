@@ -66,5 +66,10 @@ public class GoUrlUpdater extends GithubUrlTagUpdater {
   public String mapVersion(String version) {
     return super.mapVersion(version);
   }
+
+  @Override
+  protected String getCustomVersionFilter() {
+    return "rc";
+  }
 }
 
