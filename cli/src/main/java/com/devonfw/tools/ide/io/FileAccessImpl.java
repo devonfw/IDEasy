@@ -485,27 +485,52 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
    */
   private void mklinkOnWindows(Path source, Path link, PathLinkType type, boolean relative) {
 
-    LOG.trace("Creating a Windows {} at {} pointing to {}", type, link, source);
-    ProcessContext pc = this.context.newProcess().executable("cmd").addArgs("/c", "mklink", type.getMklinkOption());
-    Path finalSource = source;
+    Path absoluteSource = source.isAbsolute() ? source : link.getParent().resolve(source).normalize();
+    Path finalSource = absoluteSource;
     Path finalLink = link;
+    Path cwd = null;
     if (relative) {
-      int count = getCommonNameCount(source, link);
+      int count = getCommonNameCount(absoluteSource, link);
       if (count < 1) {
-        LOG.error("Cannot create relative link at {} pointing to {} - falling back to absolute link", link, source);
+        LOG.error("Cannot create relative link at {} pointing to {} - falling back to absolute link", link, absoluteSource);
       } else {
-        Path cwd = getPathStart(source, count - 1);
-        finalSource = getPathEnd(source, count);
+        cwd = getPathStart(absoluteSource, count - 1);
+        finalSource = getPathEnd(absoluteSource, count);
         finalLink = getPathEnd(link, count);
-        pc.directory(cwd);
       }
     }
-    if (type == PathLinkType.SYMBOLIC_LINK && Files.isDirectory(source)) {
-      pc = pc.addArg("/j");
+
+    if (type == PathLinkType.SYMBOLIC_LINK) {
+      boolean directoryTarget = Files.isDirectory(absoluteSource, LinkOption.NOFOLLOW_LINKS);
+      if (directoryTarget && runMklink(finalSource, finalLink, cwd, "/j")) {
+        return;
+      }
+      if (runMklink(finalSource, finalLink, cwd, "/d")) {
+        return;
+      }
+      throw new IllegalStateException("Failed to create Windows link at " + link + " pointing to " + source);
     }
-    pc = pc.addArgs(finalLink.toString(), finalSource.toString());
-    ProcessResult result = pc.run(ProcessMode.DEFAULT);
-    result.failOnError();
+
+    if (!runMklink(finalSource, finalLink, cwd, type.getMklinkOption())) {
+      throw new IllegalStateException("Failed to create Windows link at " + link + " pointing to " + source);
+    }
+  }
+
+  private boolean runMklink(Path source, Path link, Path cwd, String option) {
+
+    LOG.trace("Creating a Windows link with mklink {} at {} pointing to {}", option, link, source);
+    ProcessContext pc = this.context.newProcess().executable("cmd").addArgs("/c", "mklink", option);
+    if (cwd != null) {
+      pc.directory(cwd);
+    }
+    ProcessResult result = pc.addArgs(link.toString(), source.toString()).run(ProcessMode.DEFAULT);
+    try {
+      result.failOnError();
+      return true;
+    } catch (RuntimeException e) {
+      LOG.debug("mklink {} failed for {} -> {}: {}", option, link, source, e.getMessage());
+      return false;
+    }
   }
 
   @Override
@@ -535,7 +560,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
             "Due to lack of permissions, Microsoft's mklink with junction had to be used to create a Symlink. See\n"
                 + "https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for further details. Error was: "
                 + e.getMessage());
-        mklinkOnWindows(source, link, type, relative);
+        mklinkOnWindows(finalSource, link, type, relative);
       } else {
         throw new RuntimeException(e);
       }
