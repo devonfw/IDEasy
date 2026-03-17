@@ -20,7 +20,8 @@ public class UpdateInitiator {
 
   /**
    * @param args the command-line arguments. arg[0] points to the {@code ide-urls} repository. arg[1] defines a timeout for GitHub actions in Duration
-   *     string format.
+   *     string format and arg[2] can be used to specify a single tool to update instead of all tools. The timeout is used to prevent the GitHub action from
+   *     running into a timeout error due to too long execution time.
    */
   public static void main(String[] args) {
 
