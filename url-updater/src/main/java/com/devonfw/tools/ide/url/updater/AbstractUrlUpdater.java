@@ -70,8 +70,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   protected static final SystemArchitecture ARM64 = SystemArchitecture.ARM64;
 
   /** List of URL file names dependent on OS which need to be checked for existence */
-  private static final Set<String> URL_FILENAMES_PER_OS = Set.of("linux_x64.urls", "mac_arm64.urls", "mac_x64.urls",
-      "windows_x64.urls");
+  private static final Set<String> URL_FILENAMES_PER_OS = Set.of("linux_x64.urls", "mac_arm64.urls", "mac_x64.urls", "windows_x64.urls");
 
   /** List of URL file name independent of OS which need to be checked for existence */
   private static final Set<String> URL_FILENAMES_OS_INDEPENDENT = Set.of("urls");
@@ -255,8 +254,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    * @param architecture the optional {@link SystemArchitecture}.
    * @return {@code true} if the version was successfully added, {@code false} otherwise.
    */
-  protected boolean doAddVersion(UrlVersion urlVersion, String downloadUrl, OperatingSystem os,
-      SystemArchitecture architecture) {
+  protected boolean doAddVersion(UrlVersion urlVersion, String downloadUrl, OperatingSystem os, SystemArchitecture architecture) {
 
     return doAddVersion(getEdition(), urlVersion, downloadUrl, os, architecture, "");
   }
@@ -271,8 +269,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    * @param architecture the optional {@link SystemArchitecture}.
    * @return {@code true} if the version was successfully added, {@code false} otherwise.
    */
-  protected boolean doAddVersion(String edition, UrlVersion urlVersion, String downloadUrl, OperatingSystem os,
-      SystemArchitecture architecture) {
+  protected boolean doAddVersion(String edition, UrlVersion urlVersion, String downloadUrl, OperatingSystem os, SystemArchitecture architecture) {
 
     return doAddVersion(edition, urlVersion, downloadUrl, os, architecture, "");
   }
@@ -303,8 +300,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    * @param checksum the existing checksum (e.g. from JSON metadata) or the empty {@link String} if not available and computation needed.
    * @return {@code true} if the version was successfully added, {@code false} otherwise.
    */
-  protected boolean doAddVersion(String edition, UrlVersion urlVersion, String url, OperatingSystem os, SystemArchitecture architecture,
-      String checksum) {
+  protected boolean doAddVersion(String edition, UrlVersion urlVersion, String url, OperatingSystem os, SystemArchitecture architecture, String checksum) {
 
     UrlStatusFile status = urlVersion.getStatus();
     if ((status != null) && status.getStatusJson().isManual()) {
@@ -347,14 +343,13 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    * @param url the URL the checksum belongs to.
    * @return {@code true} if update of checksum was successful, {@code false} otherwise.
    */
-  private static boolean isChecksumStillValid(String checksum, UrlChecksum urlChecksum,
-      String toolWithEdition, String version, String url) {
+  private static boolean isChecksumStillValid(String checksum, UrlChecksum urlChecksum, String toolWithEdition, String version, String url) {
 
     String existingChecksum = urlChecksum.getChecksum();
 
     if ((existingChecksum != null) && !existingChecksum.equals(checksum)) {
-      logger.error("For tool {} and version {} the download URL {} results in checksum {} but expected {}.",
-          toolWithEdition, version, url, checksum, existingChecksum);
+      logger.error("For tool {} and version {} the download URL {} results in checksum {} but expected {}.", toolWithEdition, version, url, checksum,
+          existingChecksum);
       return false;
     } else {
       urlChecksum.setChecksum(checksum);
@@ -377,8 +372,8 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
       String contentType = response.headers().firstValue("content-type").orElse("undefined");
       boolean isValidContentType = isValidContentType(contentType);
       if (!isValidContentType) {
-        logger.error("For toolWithEdition {} and version {} the download has an invalid content type {} for URL {}", toolWithEdition, version,
-            contentType, url);
+        logger.error("For toolWithEdition {} and version {} the download has an invalid content type {} for URL {}", toolWithEdition, version, contentType,
+            url);
         return false;
       }
       return true;
@@ -412,8 +407,8 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    * @param checksum the existing checksum (e.g. from JSON metadata) or the empty {@link String} if not available and computation needed.
    * @return {@code true} if the download was checked successfully, {@code false} otherwise.
    */
-  private boolean doAddVersionUrlIfNewAndValid(String edition, String url, UrlVersion urlVersion, OperatingSystem os,
-      SystemArchitecture architecture, String checksum) {
+  private boolean doAddVersionUrlIfNewAndValid(String edition, String url, UrlVersion urlVersion, OperatingSystem os, SystemArchitecture architecture,
+      String checksum) {
 
     UrlDownloadFile urlDownloadFile = urlVersion.getUrls(os, architecture);
     if (urlDownloadFile != null) {
@@ -471,8 +466,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    * @param version the {@link UrlVersion version} identifier.
    * @return checksum of input stream as hex string
    */
-  private String doGenerateChecksum(HttpResponse<InputStream> response, String url, String edition, String version,
-      String contentType) {
+  private String doGenerateChecksum(HttpResponse<InputStream> response, String url, String edition, String version, String contentType) {
 
     logger.info("Computing checksum for download with URL {}", url);
     try (InputStream inputStream = response.body()) {
@@ -490,9 +484,8 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
       }
       byte[] digestBytes = md.digest();
       String checksum = HexUtil.toHexString(digestBytes);
-      logger.info(
-          "For tool {} and version {} we received {} bytes with content-type {} and computed SHA256 {} from URL {}",
-          getToolWithEdition(edition), version, Long.valueOf(size), contentType, checksum, url);
+      logger.info("For tool {} and version {} we received {} bytes with content-type {} and computed SHA256 {} from URL {}", getToolWithEdition(edition),
+          version, Long.valueOf(size), contentType, checksum, url);
       return checksum;
     } catch (IOException e) {
       throw new IllegalStateException("Failed to read body of download " + url, e);
@@ -513,8 +506,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     HttpRequest request = null;
     try {
       uri = URI.create(url);
-      request = HttpRequest.newBuilder().uri(uri)
-          .method("HEAD", HttpRequest.BodyPublishers.noBody()).timeout(Duration.ofSeconds(5)).build();
+      request = HttpRequest.newBuilder().uri(uri).method("HEAD", HttpRequest.BodyPublishers.noBody()).timeout(Duration.ofSeconds(5)).build();
 
       return this.client.send(request, HttpResponse.BodyHandlers.ofString());
     } catch (Exception e) {
@@ -580,8 +572,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
         modified = true;
       }
 
-      logger.info("For tool {} and version {} the download verification succeeded with status code {} for URL {}.", tool,
-          version, code, url);
+      logger.info("For tool {} and version {} the download verification succeeded with status code {} for URL {}.", tool, version, code, url);
       getUrlUpdaterReport().incrementVerificationSuccess();
     } else {
       if (status != null) {
@@ -589,8 +580,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
           modified = true;
         } else {
           if (!Objects.equals(code, errorStatus.getCode())) {
-            logger.warn("For tool {} and version {} the error status-code changed from {} to {} for URL {}.", tool,
-                version, code, errorStatus.getCode(), url);
+            logger.warn("For tool {} and version {} the error status-code changed from {} to {} for URL {}.", tool, version, code, errorStatus.getCode(), url);
             modified = true;
           } else if (isErrorCodeForAutomaticUrlRemoval(code)) {
             boolean urlBroken;
@@ -624,8 +614,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
           status.setError(errorStatus);
         }
       }
-      logger.warn("For tool {} and version {} the download verification failed with status code {} for URL {}.", tool,
-          version, code, url);
+      logger.warn("For tool {} and version {} the download verification failed with status code {} for URL {}.", tool, version, code, url);
 
       getUrlUpdaterReport().incrementVerificationFailure();
     }
@@ -639,13 +628,11 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
 
   private static void removeUrl(String url, UrlDownloadFile downloadFile, String tool, String version, Integer code, UrlStatusFile urlStatusFile,
       UrlStatus status) {
-    logger.warn("For tool {} and version {} the the URL {} is broken (status code {}) for a long time and will be removed.", tool,
-        version, code, url);
+    logger.warn("For tool {} and version {} the the URL {} is broken (status code {}) for a long time and will be removed.", tool, version, code, url);
     downloadFile.removeUrl(url);
     if (downloadFile.getUrls().isEmpty()) {
       Path downloadPath = downloadFile.getPath();
-      logger.warn("For tool {} and version {} all URLs have been removed so the download file {} will be removed.", tool,
-          version, downloadPath);
+      logger.warn("For tool {} and version {} all URLs have been removed so the download file {} will be removed.", tool, version, downloadPath);
       downloadFile.delete();
       UrlChecksum urlChecksum = downloadFile.getParent().getChecksum(downloadFile.getName());
       if (urlChecksum == null) {
@@ -768,8 +755,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
         UrlStatusFile urlStatusFile = urlVersion.getOrCreateStatus();
         StatusJson statusJson = urlStatusFile.getStatusJson();
         if (statusJson.isManual()) {
-          logger.info("For tool {} the version {} is set to manual, hence skipping update", getToolWithEdition(edition.getName()),
-              version);
+          logger.info("For tool {} the version {} is set to manual, hence skipping update", getToolWithEdition(edition.getName()), version);
         } else {
           updateExistingVersion(edition.getName(), version, urlVersion, statusJson, urlStatusFile);
           if (urlVersion.getChildren().isEmpty()) {
@@ -783,8 +769,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     }
   }
 
-  private void updateExistingVersion(String edition, String version, UrlVersion urlVersion, StatusJson statusJson,
-      UrlStatusFile urlStatusFile) {
+  private void updateExistingVersion(String edition, String version, UrlVersion urlVersion, StatusJson statusJson, UrlStatusFile urlStatusFile) {
 
     String toolWithEdition = getToolWithEdition(edition);
     Instant now = Instant.now();
@@ -844,22 +829,37 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     if ((prefix != null) && version.startsWith(prefix)) {
       version = version.substring(prefix.length());
     }
+
     String vLower = version.toLowerCase(Locale.ROOT);
-    if (vLower.contains("alpha") || vLower.contains("beta") || vLower.contains("dev") || vLower.contains("snapshot")
-        || vLower.contains("preview") || vLower.contains("test") || vLower.contains("tech-preview") //
+    if (vLower.contains("alpha") || vLower.contains("beta") || vLower.contains("dev") || vLower.contains("snapshot") || vLower.contains("preview")
+        || vLower.contains("test") || vLower.contains("tech-preview") //
         || vLower.contains("-pre") || vLower.startsWith("ce-") || vLower.contains("-next") || vLower.contains("-rc")
         // vscode nonsense
-        || vLower.startsWith("bad") || vLower.contains("vsda-") || vLower.contains("translation/") || vLower.contains(
-        "-insiders")) {
+        || vLower.startsWith("bad") || vLower.contains("vsda-") || vLower.contains("translation/") || vLower.contains("-insiders")) {
+      return null;
+    }
+
+    String filter = getCustomVersionFilter();
+    if ((filter != null) && version.contains(filter)) {
       return null;
     }
     return version;
   }
 
+
   /**
    * @return the optional version prefix that has to be removed (e.g. "v").
    */
   protected String getVersionPrefixToRemove() {
+
+    return null;
+  }
+
+
+  /**
+   * @return the generic filters applied in {@link #filterVersion(String)}. Example: a tool might want to exclude versions containing "rc" or "beta".
+   */
+  protected String getCustomVersionFilter() {
 
     return null;
   }
