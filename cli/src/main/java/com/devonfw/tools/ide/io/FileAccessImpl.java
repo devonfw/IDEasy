@@ -1025,8 +1025,8 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     }
     LOG.debug("Deleting {} ...", path);
     try {
-      if (Files.isSymbolicLink(path) || isJunction(path)) {
-        Files.delete(path);
+      if (isDirectoryLink(path)) {
+        deletePath(path);
       } else {
         deleteRecursive(path);
       }
@@ -1037,7 +1037,12 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
 
   private void deleteRecursive(Path path) throws IOException {
 
-    if (Files.isDirectory(path)) {
+    if (Files.isSymbolicLink(path) || isJunction(path)) {
+      LOG.trace("Deleting link {} ...", path);
+      Files.delete(path);
+      return;
+    }
+    if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
       try (Stream<Path> childStream = Files.list(path)) {
         Iterator<Path> iterator = childStream.iterator();
         while (iterator.hasNext()) {
@@ -1046,6 +1051,16 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
         }
       }
     }
+    deletePath(path);
+  }
+
+  private boolean isDirectoryLink(Path path) {
+
+    return Files.isSymbolicLink(path) || isJunction(path);
+  }
+
+  private void deletePath(Path path) throws IOException {
+
     LOG.trace("Deleting {} ...", path);
     boolean isSetWritable = setWritable(path, true);
     if (!isSetWritable) {
