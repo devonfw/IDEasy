@@ -11,11 +11,11 @@ public class GoUrlUpdater extends GithubUrlTagUpdater {
 
   private static final String GO_BASE_URL = "https://go.dev/dl/";
 
-  private static final VersionIdentifier MIN_GO_VID = VersionIdentifier.of("go1.2.2");
+  private static final VersionIdentifier MIN_GO_VID = VersionIdentifier.of("1.2.2");
 
-  private static final VersionIdentifier MIN_WIN_ARM_VID = VersionIdentifier.of("go1.17");
+  private static final VersionIdentifier MIN_WIN_ARM_VID = VersionIdentifier.of("1.17");
 
-  private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.of("go1.16");
+  private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.of("1.16");
 
   @Override
   public String getTool() {
@@ -44,7 +44,7 @@ public class GoUrlUpdater extends GithubUrlTagUpdater {
 
   @Override
   protected void addVersion(UrlVersion urlVersion) {
-    String baseUrl = getDownloadBaseUrl() + "${version}.";
+    String baseUrl = getDownloadBaseUrl() + "go${version}.";
     VersionIdentifier vid = urlVersion.getVersionIdentifier();
 
     if (vid.compareVersion(MIN_GO_VID).isGreater()) {
@@ -61,9 +61,10 @@ public class GoUrlUpdater extends GithubUrlTagUpdater {
     }
   }
 
+
   @Override
   public String mapVersion(String version) {
-    return super.mapVersion("go" + version);
+    return super.mapVersion(version);
   }
 }
 
