@@ -9,7 +9,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class GoUrlUpdater extends GithubUrlTagUpdater {
 
-  private static final String GO_BASE_URL = "https://go.dev/dl/";
+  private static final String GO_BASE_URL = "https://go.dev";
 
   private static final VersionIdentifier MIN_GO_VID = VersionIdentifier.of("1.2.2");
 
@@ -44,7 +44,7 @@ public class GoUrlUpdater extends GithubUrlTagUpdater {
 
   @Override
   protected void addVersion(UrlVersion urlVersion) {
-    String baseUrl = getDownloadBaseUrl() + "go${version}.";
+    String baseUrl = getDownloadBaseUrl() + "/dl/go${version}.";
     VersionIdentifier vid = urlVersion.getVersionIdentifier();
 
     if (vid.compareVersion(MIN_GO_VID).isGreater()) {
@@ -61,11 +61,6 @@ public class GoUrlUpdater extends GithubUrlTagUpdater {
     }
   }
 
-
-  @Override
-  public String mapVersion(String version) {
-    return super.mapVersion(version);
-  }
 
   @Override
   protected String getCustomVersionFilter() {
