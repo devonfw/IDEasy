@@ -131,7 +131,7 @@ public class GitContextImpl implements GitContext {
   }
 
   @Override
-  public boolean repoHasUntrackedFiles(Path repository) {
+  public boolean hasUntrackedFiles(Path repository) {
     ProcessResult status = runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, "--no-pager", "status", "--porcelain", "-uall");
     if (!status.isSuccessful()) {
       handleErrors(repository, status);

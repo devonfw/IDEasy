@@ -114,7 +114,7 @@ public interface GitContext {
    *     where git will by default create a sub-folder by default on clone but the final folder that will contain the ".git" subfolder.
    * @return {@code true} if the local repository contains untracked changes. {@code false} if no untracked files are present or if the Git command fails.
    */
-  boolean repoHasUntrackedFiles(Path repository);
+  boolean hasUntrackedFiles(Path repository);
 
   /**
    * Runs a git pull or a git clone.

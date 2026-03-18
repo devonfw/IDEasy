@@ -177,12 +177,12 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     // here we do not use pullOrClone to prevent asking a pointless question for repository URL...
     if (Files.isDirectory(settingsPath) && !this.context.getFileAccess().isEmptyDir(settingsPath)) {
       if (this.context.isForcePull() || this.context.isForceMode() || Files.isDirectory(settingsPath.resolve(GitContext.GIT_FOLDER))) {
-        if (gitContext.repoHasUntrackedFiles(settingsPath)) {
+        if (gitContext.hasUntrackedFiles(settingsPath)) {
           gitContext.pullSafelyWithStash(settingsPath);
         } else {
           gitContext.pull(settingsPath);
-          this.context.getGitContext().saveCurrentCommitId(settingsPath, this.context.getSettingsCommitIdPath());
         }
+        this.context.getGitContext().saveCurrentCommitId(settingsPath, this.context.getSettingsCommitIdPath());
       } else {
         LOG.info("Skipping git pull in settings due to code repository. Use --force-pull to enforce pulling.");
       }

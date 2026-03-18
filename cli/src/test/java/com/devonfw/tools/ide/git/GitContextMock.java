@@ -21,11 +21,11 @@ public class GitContextMock implements GitContext {
 
   @Override
   public void pullSafelyWithStash(Path repository) {
-    
+
   }
 
   @Override
-  public boolean repoHasUntrackedFiles(Path repository) {
+  public boolean hasUntrackedFiles(Path repository) {
     return false;
   }
 

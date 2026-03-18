@@ -152,7 +152,7 @@ class PullSafelyWithStashTest extends AbstractIdeContextTest {
     this.gitContextMock.setSimulateUntrackedFiles(true);
 
     // act
-    boolean hasUntrackedFiles = this.context.getGitContext().repoHasUntrackedFiles(this.testRepository);
+    boolean hasUntrackedFiles = this.context.getGitContext().hasUntrackedFiles(this.testRepository);
 
     // assert
     assertThat(hasUntrackedFiles).isTrue();
@@ -167,7 +167,7 @@ class PullSafelyWithStashTest extends AbstractIdeContextTest {
     this.gitContextMock.setSimulateUntrackedFiles(false);
 
     // act
-    boolean hasUntrackedFiles = this.context.getGitContext().repoHasUntrackedFiles(this.testRepository);
+    boolean hasUntrackedFiles = this.context.getGitContext().hasUntrackedFiles(this.testRepository);
 
     // assert
     assertThat(hasUntrackedFiles).isFalse();
@@ -274,7 +274,7 @@ class PullSafelyWithStashTest extends AbstractIdeContextTest {
     this.gitContextMock.setSimulateUntrackedFiles(untrackedFilesExist);
 
     // act
-    boolean result = this.context.getGitContext().repoHasUntrackedFiles(this.testRepository);
+    boolean result = this.context.getGitContext().hasUntrackedFiles(this.testRepository);
 
     // assert
     assertThat(result).isEqualTo(untrackedFilesExist);
@@ -369,7 +369,7 @@ class PullSafelyWithStashTest extends AbstractIdeContextTest {
     this.gitContextMock.setSimulateUntrackedFiles(false);
 
     // act
-    boolean hasUntracked = this.context.getGitContext().repoHasUntrackedFiles(this.testRepository);
+    boolean hasUntracked = this.context.getGitContext().hasUntrackedFiles(this.testRepository);
 
     // assert
     assertThat(hasUntracked).isFalse();
@@ -413,7 +413,7 @@ class PullSafelyWithStashTest extends AbstractIdeContextTest {
     this.gitContextMock.setSimulateUntrackedFiles(false);
 
     // assert - second state should be applied
-    boolean hasUntracked = this.context.getGitContext().repoHasUntrackedFiles(this.testRepository);
+    boolean hasUntracked = this.context.getGitContext().hasUntrackedFiles(this.testRepository);
     assertThat(hasUntracked).isFalse();
   }
 }

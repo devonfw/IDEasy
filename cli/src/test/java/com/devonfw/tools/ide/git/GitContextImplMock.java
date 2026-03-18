@@ -150,7 +150,7 @@ public class GitContextImplMock extends GitContextImpl {
   }
 
   @Override
-  public boolean repoHasUntrackedFiles(Path repository) {
+  public boolean hasUntrackedFiles(Path repository) {
     return this.simulateUntrackedFiles;
   }
 
