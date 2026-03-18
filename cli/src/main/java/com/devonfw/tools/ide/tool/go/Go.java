@@ -44,23 +44,48 @@ public class Go extends LocalToolCommandlet {
   }
 
   private void runGoBootstrapIfPresent(Path installationPath) {
-    Path makeBash = installationPath.resolve("make.bash");
-    Path workingDir = installationPath;
-    if (!Files.isRegularFile(makeBash)) {
-      workingDir = installationPath.resolve("src");
-      makeBash = workingDir.resolve("make.bash");
-    }
-    if (!Files.isRegularFile(makeBash)) {
-      LOG.debug("No make.bash found in {} or {} - skipping source bootstrap.", installationPath, installationPath.resolve("src"));
+    Path makeScript = findGoBootstrapScript(installationPath);
+    if (makeScript == null) {
+      LOG.debug("No Go bootstrap script found in {} or {} - skipping source bootstrap.", installationPath,
+          installationPath.resolve("src"));
       return;
     }
+    runGoBootstrapScript(makeScript, makeScript.getParent());
+  }
 
-    LOG.info("Running Go bootstrap script {}", makeBash);
-    if (this.context.getSystemInfo().isWindows()) {
+  private Path findGoBootstrapScript(Path installationPath) {
+
+    Path script = findGoBootstrapScript(installationPath, "make.bash");
+    if ((script == null) && this.context.getSystemInfo().isWindows()) {
+      script = findGoBootstrapScript(installationPath, "make.bat");
+    }
+    return script;
+  }
+
+  private Path findGoBootstrapScript(Path installationPath, String fileName) {
+
+    Path rootScript = installationPath.resolve(fileName);
+    if (Files.isRegularFile(rootScript)) {
+      return rootScript;
+    }
+    Path srcScript = installationPath.resolve("src").resolve(fileName);
+    if (Files.isRegularFile(srcScript)) {
+      return srcScript;
+    }
+    return null;
+  }
+
+  protected void runGoBootstrapScript(Path makeScript, Path workingDir) {
+
+    LOG.info("Running Go bootstrap script {}", makeScript);
+    String scriptName = makeScript.getFileName().toString();
+    if ("make.bat".equals(scriptName)) {
+      this.context.newProcess().executable(makeScript).directory(workingDir).run(ProcessMode.DEFAULT);
+    } else if (this.context.getSystemInfo().isWindows()) {
       Path bash = this.context.findBashRequired();
       this.context.newProcess().executable(bash).directory(workingDir).addArgs("./make.bash").run(ProcessMode.DEFAULT);
     } else {
-      this.context.newProcess().executable(makeBash).directory(workingDir).run(ProcessMode.DEFAULT);
+      this.context.newProcess().executable(makeScript).directory(workingDir).run(ProcessMode.DEFAULT);
     }
   }
 
