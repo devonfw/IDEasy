@@ -59,7 +59,7 @@
         <Double fx:id="buttonContainerWidth" fx:value="150.0" />
       </fx:define>
       <children>
-        <VBox maxHeight="1.7976931348623157E308" prefHeight="231.0" spacing="12.0">
+        <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="231.0" spacing="12.0">
           <children>
             <HBox alignment="CENTER_LEFT" layoutX="20.0" layoutY="204.0" prefHeight="100.0" prefWidth="150.0" spacing="20.0" stylesheets="@style/center.css" styleClass="ideElement">
               <children>
