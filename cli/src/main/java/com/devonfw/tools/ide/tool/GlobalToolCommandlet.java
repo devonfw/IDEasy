@@ -14,6 +14,7 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.os.MacOsHelper;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -99,8 +100,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     String bashPath = this.context.findBashRequired().toString();
     logPackageManagerCommands(pmCommand);
     for (String command : pmCommand.commands()) {
-      ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(bashPath)
-          .addArgs("-c", command);
+      ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(bashPath).addArgs("-c", command);
       int exitCode = pc.run();
       if (exitCode != 0) {
         LOG.warn("{} command did not execute successfully", command);
@@ -151,14 +151,46 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     Path target = toolRepository.download(this.tool, edition, resolvedVersion, this);
     Path executable = target;
     Path tmpDir = null;
+    Path downloadBinaryPath = null;
     boolean extract = isExtract();
     if (extract) {
       tmpDir = fileAccess.createTempDir(getName());
-      Path downloadBinaryPath = tmpDir.resolve(target.getFileName());
+      downloadBinaryPath = tmpDir.resolve(target.getFileName());
       fileAccess.extract(target, downloadBinaryPath);
       executable = fileAccess.findFirst(downloadBinaryPath, Files::isExecutable, false);
     }
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(executable);
+    ProcessContext pc;
+    if (this.context.getSystemInfo().isMac() && downloadBinaryPath != null) {
+      MacOsHelper macOsHelper = new MacOsHelper(this.context);
+      Path appDir = macOsHelper.findAppDir(downloadBinaryPath);
+      if (appDir != null) {
+        Path appDestination = Path.of("/Applications").resolve(appDir.getFileName());
+        fileAccess.delete(appDestination);
+        fileAccess.copy(appDir, appDestination.getParent());
+        pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING)
+            .executable(Path.of("open"))
+            .addArg(appDestination.toString());
+        int exitCode = pc.run(ProcessMode.DEFAULT).getExitCode();
+        if (tmpDir != null) {
+          fileAccess.delete(tmpDir);
+        }
+        if (exitCode == 0) {
+          IdeLogLevel.SUCCESS.log(LOG, "Installation process for {} in version {} has started", this.tool, resolvedVersion);
+          Step step = request.getStep();
+          if (step != null) {
+            step.success(true);
+          }
+        } else {
+          throw new CliException("Installation process for " + this.tool + " in version " + resolvedVersion + " failed with exit code " + exitCode + "!");
+        }
+        installationPath = getInstallationPath(toolEdition.edition(), resolvedVersion);
+        if (installationPath == null) {
+          LOG.warn("Could not find binary {} on PATH after installation.", getBinaryName());
+        }
+        return createToolInstallation(installationPath, resolvedVersion, true, pc, false);
+      }
+    }
+    pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(executable);
     int exitCode = pc.run(ProcessMode.BACKGROUND).getExitCode();
     if (tmpDir != null) {
       fileAccess.delete(tmpDir);

@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.tool.docker;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -84,11 +86,10 @@ public class Docker extends GlobalToolCommandlet {
     VersionIdentifier configuredVersion = getConfiguredVersion();
     String resolvedVersion = toolRepository.resolveVersion(this.tool, edition, configuredVersion, this).toString();
 
-    return List.of(new PackageManagerCommand(NativePackageManager.ZYPPER, List.of(
-            "sudo zypper addrepo https://download.opensuse.org/repositories/isv:/Rancher:/stable/rpm/isv:Rancher:stable.repo",
-            String.format("sudo zypper --no-gpg-checks install rancher-desktop=%s*", resolvedVersion))),
-        new PackageManagerCommand(NativePackageManager.APT, List.of(
-            "curl -s https://download.opensuse.org/repositories/isv:/Rancher:/stable/deb/Release.key | gpg --dearmor |"
+    return List.of(new PackageManagerCommand(NativePackageManager.ZYPPER,
+        List.of("sudo zypper addrepo https://download.opensuse.org/repositories/isv:/Rancher:/stable/rpm/isv:Rancher:stable.repo",
+            String.format("sudo zypper --no-gpg-checks install rancher-desktop=%s*", resolvedVersion))), new PackageManagerCommand(NativePackageManager.APT,
+        List.of("curl -s https://download.opensuse.org/repositories/isv:/Rancher:/stable/deb/Release.key | gpg --dearmor |"
                 + " sudo dd status=none of=/usr/share/keyrings/isv-rancher-stable-archive-keyring.gpg",
             "echo 'deb [signed-by=/usr/share/keyrings/isv-rancher-stable-archive-keyring.gpg]"
                 + " https://download.opensuse.org/repositories/isv:/Rancher:/stable/deb/ ./' |"
@@ -160,6 +161,24 @@ public class Docker extends GlobalToolCommandlet {
   }
 
   @Override
+  protected Path getInstallationPath(String edition, VersionIdentifier resolvedVersion) {
+    // On macOS, Rancher Desktop installs CLI tools to ~/.rd/bin/
+    if (this.context.getSystemInfo().isMac()) {
+      Path rdBinPath = Path.of(System.getProperty("user.home"), ".rd", "bin");
+      Path dockerBinary = rdBinPath.resolve("docker");
+      if (Files.exists(dockerBinary)) {
+        // Only consider it installed if the version matches what was requested
+        VersionIdentifier installedVersion = getInstalledVersion();
+        if (installedVersion != null && installedVersion.equals(resolvedVersion)) {
+          return rdBinPath.getParent();
+        }
+      }
+      return null;
+    }
+    return super.getInstallationPath(edition, resolvedVersion);
+  }
+
+  @Override
   public void uninstall() {
 
     if (this.context.getSystemInfo().isLinux()) {
@@ -173,10 +192,8 @@ public class Docker extends GlobalToolCommandlet {
   private List<PackageManagerCommand> getPackageManagerCommandsUninstall() {
 
     List<PackageManagerCommand> pmCommands = new ArrayList<>();
-    pmCommands.add(
-        new PackageManagerCommand(NativePackageManager.ZYPPER, List.of("sudo zypper remove rancher-desktop")));
-    pmCommands.add(
-        new PackageManagerCommand(NativePackageManager.APT, List.of("sudo apt -y autoremove rancher-desktop")));
+    pmCommands.add(new PackageManagerCommand(NativePackageManager.ZYPPER, List.of("sudo zypper remove rancher-desktop")));
+    pmCommands.add(new PackageManagerCommand(NativePackageManager.APT, List.of("sudo apt -y autoremove rancher-desktop")));
 
     return pmCommands;
   }

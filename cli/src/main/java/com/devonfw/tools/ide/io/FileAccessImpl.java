@@ -61,6 +61,7 @@ import com.devonfw.tools.ide.io.ini.IniFile;
 import com.devonfw.tools.ide.io.ini.IniSection;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.util.DateTimeUtil;
@@ -146,8 +147,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       LOG.info("Trying to download {} from {} with HTTP protocol version {}", target.getFileName(), url, httpVersion);
     }
     mkdirs(target.getParent());
-    this.context.getNetworkStatus().invokeNetworkTask(() ->
-    {
+    this.context.getNetworkStatus().invokeNetworkTask(() -> {
       httpGet(url, httpVersion, (response) -> downloadFileWithProgressBar(url, target, response));
       return null;
     }, url);
@@ -171,10 +171,9 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     boolean fileComplete = false;
     int count;
 
-    try (InputStream body = response.body();
-        FileOutputStream fileOutput = new FileOutputStream(target.toFile());
-        BufferedOutputStream bufferedOut = new BufferedOutputStream(fileOutput, data.length);
-        IdeProgressBar pb = this.context.newProgressBarForDownload(contentLength)) {
+    try (InputStream body = response.body(); FileOutputStream fileOutput = new FileOutputStream(
+        target.toFile()); BufferedOutputStream bufferedOut = new BufferedOutputStream(fileOutput,
+        data.length); IdeProgressBar pb = this.context.newProgressBarForDownload(contentLength)) {
       while (!fileComplete) {
         count = body.read(data);
         if (count <= 0) {
@@ -531,10 +530,8 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       }
     } catch (FileSystemException e) {
       if (SystemInfoImpl.INSTANCE.isWindows()) {
-        LOG.info(
-            "Due to lack of permissions, Microsoft's mklink with junction had to be used to create a Symlink. See\n"
-                + "https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for further details. Error was: "
-                + e.getMessage());
+        LOG.info("Due to lack of permissions, Microsoft's mklink with junction had to be used to create a Symlink. See\n"
+            + "https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for further details. Error was: " + e.getMessage());
         mklinkOnWindows(source, link, type, relative);
       } else {
         throw new RuntimeException(e);
@@ -720,6 +717,13 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
 
   @Override
   public void extractZip(Path file, Path targetDir) {
+    // On macOS, the Java ZIP FileSystem does not preserve symlinks stored in zip archives.
+    // macOS .app bundles rely heavily on symlinks (e.g. Electron Framework versioned structure).
+    // Therefore on macOS we delegate to the native `unzip` command which handles symlinks correctly.
+    if (this.context.getSystemInfo().isMac()) {
+      extractZipNative(file, targetDir);
+      return;
+    }
 
     LOG.info("Extracting ZIP file {} to {}", file, targetDir);
     URI uri = URI.create("jar:" + file.toUri());
@@ -736,6 +740,22 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     } catch (IOException e) {
       throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
     }
+  }
+
+  private void extractZipNative(Path file, Path targetDir) {
+
+    LOG.info("Extracting ZIP file {} to {} using native unzip (macOS symlink preservation)", file, targetDir);
+    mkdirs(targetDir);
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(Path.of("unzip")).addArg("-o").addArg("-q")
+        .addArg(file.toString()).addArg("-d").addArg(targetDir.toString());
+    int exitCode = pc.run(ProcessMode.DEFAULT).getExitCode();
+    if (exitCode != 0) {
+      throw new IllegalStateException("Failed to extract " + file + " to " + targetDir + " using native unzip (exit code " + exitCode + ")");
+    }
+
+    LOG.debug("Removing quarantine attribute from extracted content in {}", targetDir);
+    this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(Path.of("xattr")).addArg("-dr").addArg("com.apple.quarantine")
+        .addArg(targetDir.toString()).run(ProcessMode.DEFAULT);
   }
 
   @SuppressWarnings("unchecked")
@@ -793,9 +813,8 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     LOG.info("Extracting TAR file {} to {}", file, targetDir);
 
     final List<PathLink> links = new ArrayList<>();
-    try (InputStream is = Files.newInputStream(file);
-        ArchiveInputStream<?> ais = unpacker.apply(is);
-        IdeProgressBar pb = this.context.newProgressbarForExtracting(getFileSize(file))) {
+    try (InputStream is = Files.newInputStream(file); ArchiveInputStream<?> ais = unpacker.apply(
+        is); IdeProgressBar pb = this.context.newProgressbarForExtracting(getFileSize(file))) {
 
       final Path root = targetDir.toAbsolutePath().normalize();
 
@@ -1271,14 +1290,11 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       boolean update = (executablePermissions != existingPermissions);
       if (update) {
         if (confirm) {
-          boolean yesContinue = this.context.question(
-              "We want to execute {} but this command seems to lack executable permissions!\n"
-                  + "Most probably the tool vendor did forget to add x-flags in the binary release package.\n"
-                  + "Before running the command, we suggest to set executable permissions to the file:\n"
-                  + "{}\n"
-                  + "For security reasons we ask for your confirmation so please check this request.\n"
-                  + "Changing permissions from {} to {}.\n"
-                  + "Do you confirm to make the command executable before running it?", path.getFileName(), path, existingPermissions, executablePermissions);
+          boolean yesContinue = this.context.question("We want to execute {} but this command seems to lack executable permissions!\n"
+              + "Most probably the tool vendor did forget to add x-flags in the binary release package.\n"
+              + "Before running the command, we suggest to set executable permissions to the file:\n" + "{}\n"
+              + "For security reasons we ask for your confirmation so please check this request.\n" + "Changing permissions from {} to {}.\n"
+              + "Do you confirm to make the command executable before running it?", path.getFileName(), path, existingPermissions, executablePermissions);
           if (!yesContinue) {
             return;
           }
