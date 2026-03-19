@@ -9,7 +9,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix: # ATTENTION: see also release.yml, image name are referenced in cli/src/main/assembly/*.xml files, on update do not forget to also update there
-        os: [ windows-latest, ubuntu-latest, ubuntu-22.04-arm, macos-latest, macos-15 ]
+        os: [ windows-latest, ubuntu-latest, ubuntu-22.04-arm, macos-latest, macos-15-intel ]
     steps:
       - uses: actions/checkout@v3
         with:
