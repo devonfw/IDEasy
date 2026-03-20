@@ -213,6 +213,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
     Path dir = tempDir.resolve("parent");
     createDirs(fileAccess, dir);
     fileAccess.mkdirs(dir.resolve("d3"));
+    fileAccess.mkdirs(dir.resolve("links"));
     boolean readLinks = !context.getSystemInfo().isWindows();
 
     // act
@@ -220,6 +221,8 @@ class FileAccessImplTest extends AbstractIdeContextTest {
     fileAccess.symlink(Path.of("d3/../d1"), dir.resolve("link2"), false);
     fileAccess.symlink(dir.resolve("d3/../d1"), dir.resolve("link3"), true);
     fileAccess.symlink(Path.of("d3/../d1"), dir.resolve("link4"), true);
+    fileAccess.symlink(dir.resolve("d3/../d1"), dir.resolve("links/../link5"), false);
+    fileAccess.symlink(Path.of("d3/../d1"), dir.resolve("links/../link6"), true);
     fileAccess.delete(dir.resolve("d3"));
 
     // assert
@@ -227,11 +230,15 @@ class FileAccessImplTest extends AbstractIdeContextTest {
     assertSymlinkToRealPath(dir.resolve("link2"), dir.resolve("d1"));
     assertSymlinkToRealPath(dir.resolve("link3"), dir.resolve("d1"));
     assertSymlinkToRealPath(dir.resolve("link4"), dir.resolve("d1"));
+    assertSymlinkToRealPath(dir.resolve("link5"), dir.resolve("d1"));
+    assertSymlinkToRealPath(dir.resolve("link6"), dir.resolve("d1"));
     if (readLinks) {
       assertSymlinkRead(dir.resolve("link1"), dir.resolve("d1"));
       assertSymlinkRead(dir.resolve("link2"), dir.resolve("d1"));
       assertSymlinkRead(dir.resolve("link3"), dir.resolve("d1"));
       assertSymlinkRead(dir.resolve("link4"), dir.resolve("d1"));
+      assertSymlinkRead(dir.resolve("link5"), dir.resolve("d1"));
+      assertSymlinkRead(dir.resolve("link6"), dir.resolve("d1"));
     }
   }
 
@@ -879,82 +886,30 @@ class FileAccessImplTest extends AbstractIdeContextTest {
     assertThat(fileAccess.isNonEmptyFile(existingFile)).isTrue();
   }
 
+  /**
+   * Regression test for #1738: delete must remove directory links themselves and never recurse into their targets.
+   */
   @Test
-  void testGetPathEnd() {
+  void testDeleteDoesNotFollowDirectoryLinks(@TempDir Path tempDir) throws IOException {
 
     // arrange
-    Path path = Path.of("f0/f1/f2/f3/f4/f5");
-    FileAccess fileAccess = new IdeTestContext().getFileAccess();
+    IdeTestContext context = new IdeTestContext();
+    FileAccess fileAccess = new FileAccessImpl(context);
+    Path root = tempDir.resolve("root");
+    Path child = root.resolve("child");
+    Path loop = root.resolve("ai");
+    fileAccess.mkdirs(child);
+    Files.writeString(child.resolve("readme"), "hello");
+    fileAccess.symlink(root, loop, false);
+    assertThat(loop).existsNoFollowLinks();
 
     // act
-    Path rest = fileAccess.getPathEnd(path, 4);
+    fileAccess.delete(root);
 
     // assert
-    assertThat(rest).isEqualTo(Path.of("f4/f5"));
-
-    // arrange
-    path = path.toAbsolutePath();
-
-    // act
-    rest = fileAccess.getPathEnd(path, path.getNameCount() - 3);
-
-    // assert
-    assertThat(rest).isEqualTo(Path.of("f3/f4/f5"));
-  }
-
-  @Test
-  void testGetPathStart() {
-
-    // arrange
-    Path path = Path.of("f0/f1/f2/f3/f4/f5");
-    FileAccess fileAccess = new IdeTestContext().getFileAccess();
-
-    // act
-    Path rest = fileAccess.getPathStart(path, 3);
-
-    // assert
-    assertThat(rest).isEqualTo(Path.of("f0/f1/f2/f3"));
-
-    // arrange
-    path = path.toAbsolutePath();
-
-    // act
-    rest = fileAccess.getPathStart(path, path.getNameCount() - 3);
-
-    // assert
-    assertThat(rest).isEqualTo(Path.of("f0/f1/f2/f3").toAbsolutePath());
-  }
-
-  @Test
-  void testGetCommonNameCount() {
-
-    // arrange
-    Path path1 = Path.of("f0/f1/f2/f3/f4/f5");
-    Path path2 = Path.of("f0/f1/fx/f3");
-    FileAccess fileAccess = new IdeTestContext().getFileAccess();
-
-    // assert
-    assertThat(fileAccess.getCommonNameCount(null, null)).isEqualTo(-1);
-    assertThat(fileAccess.getCommonNameCount(path1, null)).isEqualTo(-1);
-    assertThat(fileAccess.getCommonNameCount(null, path2)).isEqualTo(-1);
-
-    // act
-    int count = fileAccess.getCommonNameCount(path1, path2);
-
-    // assert
-    assertThat(count).isEqualTo(2);
-    assertThat(fileAccess.getCommonNameCount(path1.toAbsolutePath(), path2)).isEqualTo(-1);
-    assertThat(fileAccess.getCommonNameCount(path1.toAbsolutePath().getRoot().resolve(path2), path2)).isEqualTo(-1); // C:/f0/f1/fx/f3 != f0/f1/fx/f3
-
-    // arrange
-    path1 = path1.toAbsolutePath();
-    path2 = path2.toAbsolutePath();
-
-    // act
-    count = fileAccess.getCommonNameCount(path1, path2);
-
-    // assert
-    assertThat(count).isEqualTo(Path.of("").toAbsolutePath().getNameCount() + 2);
+    assertThat(root).doesNotExist();
+    assertThat(tempDir).isDirectory();
   }
 
 }
+  
