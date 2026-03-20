@@ -3,7 +3,11 @@ toc::[]
 :idprefix:
 :idseparator: -
 
-= IDEasy Installation on macOS on Windows
+= IDEasy Installation on a macOS VM
+
+=== Disclaimer
+
+Please be mindful of https://github.com/dockur/macos?tab=readme-ov-file#disclaimer-%EF%B8%8F[dockurr/macos' official disclaimer]: Only run this container on Apple hardware, any other use is not permitted by their EULA.
 
 == Preparation
 
@@ -37,20 +41,28 @@ Roughly, the steps involve:
 1. Creating and initializing the macOS docker container. In WSL, run the command (for example):
 +
 ```
-docker run -it --rm --name macos -e "VERSION=15" -p 8006:8006 --device=/dev/kvm --device=/dev/net/tun --cap-add NET_ADMIN -v "${PWD:-.}/macos:/storage" --stop-timeout 120 docker.io/dockurr/macos
+docker run -it --name macos -e "VERSION=15" -p 8006:8006 --device=/dev/kvm --device=/dev/net/tun --cap-add NET_ADMIN -v "${PWD:-.}/macos:/storage" --stop-timeout 120 docker.io/dockurr/macos
 ```
++
+The expected output will look like this:
++
+image::images/macOS-for-Docker-startup.png[Startup of macOS for Docker]
+
 +
 Notes:
 
-- The command can be adapted to fit your needs, e.g. set macOS to 14 instead of 15 with `-e "VERSION=14"`
-
-- To avoid the container being deleted after stopping it, simply skip using the `--rm` flag.
-Using the `--rm` flag doesn't affect the macOS session, i.e. when running the previous command (`docker run ...`) again, the macOS session will be restored.
+- The command can be adapted to fit your needs, e.g. set macOS to 14 instead of 15 with `-e "VERSION=14"`.
+ 
+- If you plan to reuse the VM, avoid using the `--rm` flag.
 
 - For further details, refer to the official documentation: https://github.com/dockur/macos[dockurr/macos].
 +
 
 2. To access the macOS VM: navigate to http://127.0.0.1:8006/ on a web browser.
++
+On the first startup of the macOS VM, it will look like this:
++
+image::images/macOS-for-Docker-VM-first-startup.png[First startup of macOS VM]
 
 3. Setup macOS following the steps listed in the official guide's https://github.com/dockur/macos?tab=readme-ov-file#faq-[FAQ].
 
@@ -84,7 +96,7 @@ The latest release of `IDEasy` can be downloaded from https://github.com/devonfw
 
 IDEasy is now installed on your macOS VM!
 
-A new directory called `projects` will be automatically created.
+A new directory called `projects` will be created automatically.
 
 == IDEasy Installation for Developers
 
@@ -96,8 +108,8 @@ To stop the macOS VM, open WSL in the host system and run:
 ```
 docker stop macos
 ```
-The container will automatically be deleted (because of the `--rm` flag that was set during `docker run...`), but no information will get lost.
+If you can't recall the container's name, run `docker ps` to see a list of running containers.
 
 === Restart the macOS VM
-- If the `--rm` flag was used: run the full `docker run ...` command again, and the macOS session will be restored.
-- If the `--rm` flag was not used: simply run `docker start macos` and the macOS session will be restored.
+- If the `--rm` flag was used in the `docker run ...` command: simply run `docker start macos` and the macOS session will be restored. If you can't recall the container's name, run `docker ps -a` to see a list of saved containers.
+- If the `--rm` flag was used in the `docker run ...` command: run the full `docker run ...` command again. In this case you may need to setup macOS from scratch.
