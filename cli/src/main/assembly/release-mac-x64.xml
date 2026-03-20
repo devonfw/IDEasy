@@ -15,7 +15,7 @@
   <fileSets>
     <fileSet>
       <!-- references the matrix os image name from .github/workflows/release.yml (and nightly-build.yml) -->
-      <directory>${project.build.directory}/natives-macos-15</directory>
+      <directory>${project.build.directory}/natives-macos-15-intel</directory>
       <outputDirectory>./bin</outputDirectory>
       <fileMode>0755</fileMode>
       <includes>
