@@ -39,6 +39,9 @@ public final class Tag {
   /** {@link Tag} for Java. */
   public static final Tag JAVA = create("java", JVM);
 
+  /** {@link Tag} for Go. */
+  public static final Tag GO = create("go", LANGUAGE);
+
   /** {@link Tag} for Kotlin. */
   public static final Tag KOTLIN = create("kotlin", JVM);
 
