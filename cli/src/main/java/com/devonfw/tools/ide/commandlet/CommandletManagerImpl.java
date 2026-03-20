@@ -30,6 +30,7 @@ import com.devonfw.tools.ide.tool.gh.Gh;
 import com.devonfw.tools.ide.tool.go.Go;
 import com.devonfw.tools.ide.tool.graalvm.GraalVm;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
+import com.devonfw.tools.ide.tool.gui.Gui;
 import com.devonfw.tools.ide.tool.helm.Helm;
 import com.devonfw.tools.ide.tool.intellij.Intellij;
 import com.devonfw.tools.ide.tool.jasypt.Jasypt;
@@ -146,7 +147,6 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Yarn(context));
     add(new Corepack(context));
     add(new Pip(context));
-    add(new Go(context));
   }
 
   /**
