@@ -20,6 +20,16 @@ public class GitContextMock implements GitContext {
   }
 
   @Override
+  public void pullSafelyWithStash(Path repository) {
+
+  }
+
+  @Override
+  public boolean hasUntrackedFiles(Path repository) {
+    return false;
+  }
+
+  @Override
   public void pullOrClone(GitUrl gitUrl, Path repository) {
 
   }
