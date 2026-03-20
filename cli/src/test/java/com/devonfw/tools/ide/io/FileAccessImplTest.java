@@ -213,6 +213,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
     Path dir = tempDir.resolve("parent");
     createDirs(fileAccess, dir);
     fileAccess.mkdirs(dir.resolve("d3"));
+    fileAccess.mkdirs(dir.resolve("links"));
     boolean readLinks = !context.getSystemInfo().isWindows();
 
     // act
@@ -220,6 +221,8 @@ class FileAccessImplTest extends AbstractIdeContextTest {
     fileAccess.symlink(Path.of("d3/../d1"), dir.resolve("link2"), false);
     fileAccess.symlink(dir.resolve("d3/../d1"), dir.resolve("link3"), true);
     fileAccess.symlink(Path.of("d3/../d1"), dir.resolve("link4"), true);
+    fileAccess.symlink(dir.resolve("d3/../d1"), dir.resolve("links/../link5"), false);
+    fileAccess.symlink(Path.of("d3/../d1"), dir.resolve("links/../link6"), true);
     fileAccess.delete(dir.resolve("d3"));
 
     // assert
@@ -227,11 +230,15 @@ class FileAccessImplTest extends AbstractIdeContextTest {
     assertSymlinkToRealPath(dir.resolve("link2"), dir.resolve("d1"));
     assertSymlinkToRealPath(dir.resolve("link3"), dir.resolve("d1"));
     assertSymlinkToRealPath(dir.resolve("link4"), dir.resolve("d1"));
+    assertSymlinkToRealPath(dir.resolve("link5"), dir.resolve("d1"));
+    assertSymlinkToRealPath(dir.resolve("link6"), dir.resolve("d1"));
     if (readLinks) {
       assertSymlinkRead(dir.resolve("link1"), dir.resolve("d1"));
       assertSymlinkRead(dir.resolve("link2"), dir.resolve("d1"));
       assertSymlinkRead(dir.resolve("link3"), dir.resolve("d1"));
       assertSymlinkRead(dir.resolve("link4"), dir.resolve("d1"));
+      assertSymlinkRead(dir.resolve("link5"), dir.resolve("d1"));
+      assertSymlinkRead(dir.resolve("link6"), dir.resolve("d1"));
     }
   }
 
