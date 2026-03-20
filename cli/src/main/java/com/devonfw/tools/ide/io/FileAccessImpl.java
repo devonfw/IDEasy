@@ -500,18 +500,13 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       }
     }
 
+    String option = type.getMklinkOption();
     if (type == PathLinkType.SYMBOLIC_LINK) {
-      boolean directoryTarget = Files.isDirectory(absoluteSource, LinkOption.NOFOLLOW_LINKS);
-      if (directoryTarget && runMklink(finalSource, finalLink, cwd, "/j")) {
-        return;
-      }
-      if (runMklink(finalSource, finalLink, cwd, "/d")) {
-        return;
-      }
-      throw new IllegalStateException("Failed to create Windows link at " + link + " pointing to " + source);
+      boolean directoryTarget = Files.isDirectory(absoluteSource);
+      option = directoryTarget ? "/j" : "/d";
     }
 
-    if (!runMklink(finalSource, finalLink, cwd, type.getMklinkOption())) {
+    if (!runMklink(finalSource, finalLink, cwd, option)) {
       throw new IllegalStateException("Failed to create Windows link at " + link + " pointing to " + source);
     }
   }
@@ -536,21 +531,22 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   @Override
   public void link(Path source, Path link, boolean relative, PathLinkType type) {
 
+    Path finalLink = link.toAbsolutePath().normalize();
     Path finalSource;
     try {
-      finalSource = adaptPath(source, link, relative);
+      finalSource = adaptPath(source, finalLink, relative);
     } catch (Exception e) {
-      throw new IllegalStateException("Failed to adapt target (" + source + ") for link (" + link + ") and relative (" + relative + ")", e);
+      throw new IllegalStateException("Failed to adapt target (" + source + ") for link (" + finalLink + ") and relative (" + relative + ")", e);
     }
-    String relativeOrAbsolute = relative ? "absolute" : "relative";
-    LOG.debug("Creating {} {} at {} pointing to {}", relativeOrAbsolute, type, finalSource, source);
-    deleteLinkIfExists(link);
+    String relativeOrAbsolute = relative ? "relative" : "absolute";
+    LOG.debug("Creating {} {} at {} pointing to {}", relativeOrAbsolute, type, finalLink, finalSource);
+    deleteLinkIfExists(finalLink);
     try {
       // Attention: JavaDoc and position of path arguments can be very confusing - see comment in #1736
       if (type == PathLinkType.SYMBOLIC_LINK) {
-        Files.createSymbolicLink(link, finalSource);
+        Files.createSymbolicLink(finalLink, finalSource);
       } else if (type == PathLinkType.HARD_LINK) {
-        Files.createLink(link, finalSource);
+        Files.createLink(finalLink, finalSource);
       } else {
         throw new IllegalStateException("" + type);
       }
@@ -560,12 +556,12 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
             "Due to lack of permissions, Microsoft's mklink with junction had to be used to create a Symlink. See\n"
                 + "https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for further details. Error was: "
                 + e.getMessage());
-        mklinkOnWindows(finalSource, link, type, relative);
+        mklinkOnWindows(finalSource, finalLink, type, relative);
       } else {
         throw new RuntimeException(e);
       }
     } catch (IOException e) {
-      throw new IllegalStateException("Failed to create a " + relativeOrAbsolute + " " + type + " at " + link + " pointing to " + source, e);
+      throw new IllegalStateException("Failed to create a " + relativeOrAbsolute + " " + type + " at " + finalLink + " pointing to " + source, e);
     }
   }
 
@@ -1050,7 +1046,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     }
     LOG.debug("Deleting {} ...", path);
     try {
-      if (isDirectoryLink(path)) {
+      if (isLink(path)) {
         deletePath(path);
       } else {
         deleteRecursive(path);
@@ -1079,7 +1075,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     deletePath(path);
   }
 
-  private boolean isDirectoryLink(Path path) {
+  private boolean isLink(Path path) {
 
     return Files.isSymbolicLink(path) || isJunction(path);
   }
