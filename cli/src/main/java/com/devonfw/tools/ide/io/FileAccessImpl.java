@@ -172,21 +172,22 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     int count;
 
     try (InputStream body = response.body();
-        FileOutputStream fileOutput = new FileOutputStream(target.toFile());
-        BufferedOutputStream bufferedOut = new BufferedOutputStream(fileOutput, data.length);
-        IdeProgressBar pb = this.context.newProgressBarForDownload(contentLength)) {
-      while (!fileComplete) {
-        count = body.read(data);
-        if (count <= 0) {
-          fileComplete = true;
-        } else {
-          bufferedOut.write(data, 0, count);
-          pb.stepBy(count);
+        try (FileOutputStream fileOutput = new FileOutputStream(target.toFile())) {
+                    BufferedOutputStream bufferedOut = new BufferedOutputStream(fileOutput, data.length);
+                    IdeProgressBar pb = this.context.newProgressBarForDownload(contentLength)) {
+                  while (!fileComplete) {
+                    count = body.read(data);
+                    if (count <= 0) {
+                      fileComplete = true;
+                    } else {
+                      bufferedOut.write(data, 0, count);
+                      pb.stepBy(count);
+                    }
+                  }
+                } catch (Exception e) {
+                  throw new RuntimeException(e);
+                }
         }
-      }
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
   }
 
   private void copyFileWithProgressBar(Path source, Path target) {
