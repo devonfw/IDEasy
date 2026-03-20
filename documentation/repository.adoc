@@ -19,6 +19,7 @@ git_url=http://github.com/someorg/someproject
 git_branch=develop
 build_path=.
 build_cmd=mvn -DskipTests=true -Darchetype.test.skip=true clean install
+link=symlink,folder/link=subfolder-in-repo
 import=eclipse
 active=true
 ```
@@ -48,5 +49,6 @@ For a regular project use `.` to build top-level project.
 |(optional) The _IDEasy_ command to build the project after clone or pull.
 If omitted no build is triggered.
 |`import`|e.g. `eclipse`|(optional) Comma separated list of IDEs to import the repository into.
+|`link`|CSV of `«link»[=«path»]`|(optional) Comma separated list of symbolic links to link the repository into the workspace top-level folder. For a real-world use-case of this feature see link:ai.adoc[AI usage].
 |`active`|`true`|(optional) If set to `false` the repository is skipped during the link:setup.adoc[setup].
 |===

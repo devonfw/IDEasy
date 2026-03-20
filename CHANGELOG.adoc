@@ -2,11 +2,36 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2026.04.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1747[#1747]: Fixed macOS x64 native image build using macos-15-intel runner
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/42?closed=1[milestone 2026.04.001].
+
+== 2026.03.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1726[#1726]: Gradle updates not found by GradleUrlUpdater
+* https://github.com/devonfw/IDEasy/issues/1351[#1729]: Update Jline to 3.30.6 and ProgressBar to 0.10.2
+* https://github.com/devonfw/IDEasy/issues/1735[#1735]: Add repositories symlink feature for advanced AI usage
+* https://github.com/devonfw/IDEasy/issues/1713[#1713]: Advanced logging and writing logfiles
+* https://github.com/devonfw/IDEasy/issues/1642[#1642]: improve help output
+* https://github.com/devonfw/IDEasy/issues/1731[#1731]: Fixed SonarQube installation path resolution
+* https://github.com/devonfw/IDEasy/issues/1737[#1737]: macOS x64 release is broken
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/41?closed=1[milestone 2026.03.001].
+
 == 2026.02.001
 
 Release with new features and bugfixes:
 
-* https://github.com/devonfw/IDEasy/issues/1683[#1683]: Updated the link for bug-ticket creation that's shown when en error is encountered
+* https://github.com/devonfw/IDEasy/issues/1699[#1699]: Add function to verify that the provided git URL is valid
+* https://github.com/devonfw/IDEasy/issues/1562[#1562]: Update documentation regarding environmental variables
+* https://github.com/devonfw/IDEasy/issues/1691[#1691]: Update references to UrlUpdaters in the documentation
+* https://github.com/devonfw/IDEasy/issues/1683[#1683]: Updated the link for bug-ticket creation that's shown when an error is encountered
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/40?closed=1[milestone 2026.02.001].
 

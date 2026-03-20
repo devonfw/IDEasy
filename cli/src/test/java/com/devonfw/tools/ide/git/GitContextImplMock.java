@@ -6,6 +6,7 @@ import java.nio.file.Path;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.io.FileCopyMode;
 
 /**
  * Mock implementation of {@link GitContextImpl}.
@@ -39,7 +40,7 @@ public class GitContextImplMock extends GitContextImpl {
   public void clone(GitUrl gitUrl, Path repository) {
     // Copy the mocked repository to the target repository
     FileAccess fileAccess = this.context.getFileAccess();
-    fileAccess.copy(this.repositoryPath, repository.getParent());
+    fileAccess.copy(this.repositoryPath, repository, FileCopyMode.COPY_TREE_CONTENT);
     try {
       // Create .git/FETCH_HEAD and .git/HEAD files
       Path gitFolder = repository.resolve(GIT_FOLDER);

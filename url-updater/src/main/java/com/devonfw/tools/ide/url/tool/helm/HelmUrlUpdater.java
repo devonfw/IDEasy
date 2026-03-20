@@ -1,13 +1,13 @@
 package com.devonfw.tools.ide.url.tool.helm;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link GithubUrlUpdater} for "helm".
+ * {@link GithubUrlTagUpdater} for "helm".
  */
-public class HelmUrlUpdater extends GithubUrlUpdater {
+public class HelmUrlUpdater extends GithubUrlTagUpdater {
 
   private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.of("3.4.0");
 

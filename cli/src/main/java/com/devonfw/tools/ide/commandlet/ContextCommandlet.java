@@ -5,7 +5,6 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeLogListenerBuffer;
-import com.devonfw.tools.ide.log.IdeSubLoggerOut;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.LocaleProperty;
 
@@ -40,8 +39,16 @@ public class ContextCommandlet extends Commandlet {
    * The constructor.
    */
   public ContextCommandlet() {
+    this(null);
+  }
+
+  /**
+   * The constructor.
+   */
+  public ContextCommandlet(IdeStartContextImpl startContext) {
 
     super(null);
+    this.startContext = startContext;
     this.batch = add(new FlagProperty("--batch", false, "-b"));
     this.force = add(new FlagProperty("--force", false, "-f"));
     this.trace = add(new FlagProperty("--trace", false, "-t"));
@@ -67,12 +74,18 @@ public class ContextCommandlet extends Commandlet {
   }
 
   @Override
-  public void run() {
+  public boolean isWriteLogFile() {
+
+    return false;
+  }
+
+  @Override
+  protected void doRun() {
 
     IdeLogLevel logLevel = determineLogLevel();
     if (this.startContext == null) {
       IdeLogListenerBuffer listener = new IdeLogListenerBuffer();
-      this.startContext = new IdeStartContextImpl(logLevel, level -> new IdeSubLoggerOut(level, null, true, logLevel, listener));
+      this.startContext = new IdeStartContextImpl(logLevel, listener);
     } else if (this.context != null) {
       IdeStartContextImpl newStartContext = ((AbstractIdeContext) this.context).getStartContext();
       assert (this.startContext == newStartContext); // fast fail during development via assert

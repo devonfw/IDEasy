@@ -1,13 +1,13 @@
 package com.devonfw.tools.ide.url.tool.node;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link GithubUrlUpdater} for node.js.
+ * {@link GithubUrlTagUpdater} for node.js.
  */
-public class NodeUrlUpdater extends GithubUrlUpdater {
+public class NodeUrlUpdater extends GithubUrlTagUpdater {
 
   private static final VersionIdentifier MIN_NODE_VID = VersionIdentifier.of("v3.9.9");
 
@@ -80,5 +80,5 @@ public class NodeUrlUpdater extends GithubUrlUpdater {
 
     return super.mapVersion("v" + version);
   }
-
+  
 }

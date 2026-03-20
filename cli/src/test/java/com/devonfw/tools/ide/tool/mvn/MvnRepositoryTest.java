@@ -13,7 +13,6 @@ import org.w3c.dom.Document;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.context.IdeTestContextMock;
 import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.os.SystemArchitecture;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
@@ -221,7 +220,7 @@ class MvnRepositoryTest extends AbstractIdeContextTest {
   void testResolveSnapshotVersion() {
 
     // arrange
-    IdeTestContextMock context = IdeTestContextMock.get();
+    IdeTestContext context = new IdeTestContext();
     MvnRepository mvnRepository = context.getMvnRepository();
     Document metadata = parseXml(XML_SNAPSNOT_METADATA);
 
@@ -237,7 +236,7 @@ class MvnRepositoryTest extends AbstractIdeContextTest {
   void testResolveVersion() {
 
     // arrange
-    IdeTestContextMock context = IdeTestContextMock.get();
+    IdeTestContext context = new IdeTestContext();
     MvnRepository mvnRepository = context.getMvnRepository();
     Document metadata = parseXml(XML_RELEASE_METADATA);
 

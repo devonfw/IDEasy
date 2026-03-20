@@ -2,12 +2,12 @@ package com.devonfw.tools.ide.url.tool.aws;
 
 import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
 
 /**
- * {@link GithubUrlUpdater} for AWS-CLI.
+ * {@link GithubUrlTagUpdater} for AWS-CLI.
  */
-public class AwsUrlUpdater extends GithubUrlUpdater {
+public class AwsUrlUpdater extends GithubUrlTagUpdater {
 
   @Override
   public String getTool() {

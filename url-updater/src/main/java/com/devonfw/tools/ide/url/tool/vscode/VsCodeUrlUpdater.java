@@ -1,12 +1,12 @@
 package com.devonfw.tools.ide.url.tool.vscode;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
 
 /**
- * {@link GithubUrlUpdater} for vscode (Visual Studio Code).
+ * {@link GithubUrlTagUpdater} for vscode (Visual Studio Code).
  */
-public class VsCodeUrlUpdater extends GithubUrlUpdater {
+public class VsCodeUrlUpdater extends GithubUrlTagUpdater {
 
   @Override
   public String getTool() {

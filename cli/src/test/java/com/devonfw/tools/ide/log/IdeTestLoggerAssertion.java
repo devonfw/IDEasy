@@ -21,7 +21,7 @@ public class IdeTestLoggerAssertion {
   }
 
   /**
-   * @param message the expected {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message}.
+   * @param message the expected {@link IdeLogEntry#message() log message}.
    * @return this assertion itself for fluent API calls.
    */
   public IdeTestLoggerAssertion hasMessage(String message) {
@@ -30,8 +30,7 @@ public class IdeTestLoggerAssertion {
   }
 
   /**
-   * @param message the {@link String} expected to be {@link String#contains(CharSequence) contained} in a
-   *     {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message}.
+   * @param message the {@link String} expected to be {@link String#contains(CharSequence) contained} in a {@link IdeLogEntry}.
    * @return this assertion itself for fluent API calls.
    */
   public IdeTestLoggerAssertion hasMessageContaining(String message) {
@@ -40,7 +39,7 @@ public class IdeTestLoggerAssertion {
   }
 
   /**
-   * @param message the {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message} that is not expected and should not have been logged.
+   * @param message the {@link IdeLogEntry#message() log message} that is not expected and should not have been logged.
    * @return this assertion itself for fluent API calls.
    */
   public IdeTestLoggerAssertion hasNoMessage(String message) {
@@ -49,8 +48,7 @@ public class IdeTestLoggerAssertion {
   }
 
   /**
-   * @param message the {@link String} expected not be {@link String#contains(CharSequence) contained} in any
-   *     {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message}.
+   * @param message the {@link String} expected not be {@link String#contains(CharSequence) contained} in any {@link IdeLogEntry}.
    * @return this assertion itself for fluent API calls.
    */
   public IdeTestLoggerAssertion hasNoMessageContaining(String message) {
@@ -69,7 +67,7 @@ public class IdeTestLoggerAssertion {
   }
 
   /**
-   * @param messages the expected {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message}s in order.
+   * @param messages the expected {@link IdeLogEntry#message()}  message}s in order.
    * @return this assertion itself for fluent API calls.
    */
   public IdeTestLoggerAssertion hasEntries(String... messages) {
