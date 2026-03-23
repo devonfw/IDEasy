@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1751[#1751]: Add go-lang CLI Commandlet.
 * https://github.com/devonfw/IDEasy/issues/1732[#1732]: Add stash support for git-pull
 * https://github.com/devonfw/IDEasy/issues/1747[#1747]: Fixed macOS x64 native image build using macos-15-intel runner
 
