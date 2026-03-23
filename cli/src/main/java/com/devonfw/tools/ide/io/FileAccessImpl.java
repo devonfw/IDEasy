@@ -483,10 +483,9 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
    * @param link the {@link Path} where to create the link.
    * @param type the {@link PathLinkType}.
    */
-  private void mklinkOnWindows(Path source, Path link, PathLinkType type, boolean relative) {
+  private void mklinkOnWindows(Path source, Path absoluteSource, Path link, PathLinkType type, boolean relative) {
 
-    Path absoluteSource = source.isAbsolute() ? source : link.getParent().resolve(source).normalize();
-    Path finalSource = absoluteSource;
+    Path finalSource = source;
     Path finalLink = link;
     Path cwd = null;
     if (relative) {
@@ -538,6 +537,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     } catch (Exception e) {
       throw new IllegalStateException("Failed to adapt target (" + source + ") for link (" + finalLink + ") and relative (" + relative + ")", e);
     }
+    Path absoluteSource = finalSource.isAbsolute() ? finalSource : finalLink.getParent().resolve(finalSource).normalize();
     String relativeOrAbsolute = relative ? "relative" : "absolute";
     LOG.debug("Creating {} {} at {} pointing to {}", relativeOrAbsolute, type, finalLink, finalSource);
     deleteLinkIfExists(finalLink);
@@ -556,7 +556,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
             "Due to lack of permissions, Microsoft's mklink with junction had to be used to create a Symlink. See\n"
                 + "https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for further details. Error was: "
                 + e.getMessage());
-        mklinkOnWindows(finalSource, finalLink, type, relative);
+        mklinkOnWindows(finalSource, absoluteSource, finalLink, type, relative);
       } else {
         throw new RuntimeException(e);
       }
