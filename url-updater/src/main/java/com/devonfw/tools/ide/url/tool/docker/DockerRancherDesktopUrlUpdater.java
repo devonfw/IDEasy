@@ -42,7 +42,6 @@ public class DockerRancherDesktopUrlUpdater extends GithubUrlTagUpdater {
   protected void addVersion(UrlVersion urlVersion) {
 
     String baseUrl = getDownloadBaseUrl() + "/rancher-sandbox/rancher-desktop/releases/download/v${version}/";
-
     doAddVersion(urlVersion, baseUrl + "Rancher.Desktop.Setup.${version}.msi", WINDOWS);
     doAddVersion(urlVersion, baseUrl + "Rancher.Desktop-${version}.x86_64.dmg", MAC);
     doAddVersion(urlVersion, baseUrl + "Rancher.Desktop-${version}.aarch64.dmg", MAC, ARM64);
