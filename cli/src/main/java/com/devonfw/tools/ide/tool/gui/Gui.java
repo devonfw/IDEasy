@@ -23,7 +23,7 @@ public class Gui extends MvnBasedLocalToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Gui.class);
 
-  private static final MvnArtifact ARTIFACT = MvnArtifact.ofIdeasy("ide-gui", "*!", "jar", null);
+  private static final MvnArtifact ARTIFACT = new MvnArtifact("ide-gui", "2026.04.001", "jar", "");
 
   private Java java;
 
@@ -39,11 +39,18 @@ public class Gui extends MvnBasedLocalToolCommandlet {
   protected void installToolDependencies(ToolInstallRequest request) {
 
     super.installToolDependencies(request);
-
-    LOG.debug("Installing ide-gui dependencies: {}", request.getToolPath());
+    LOG.info(ARTIFACT.getDownloadUrl());
+    LOG.info("Installing ide-gui dependencies: {}", request.getRequested().getVersion().toString());
 
     java = this.context.getCommandletManager().getCommandlet(Java.class);
     java.installAsDependency(VersionRange.of("25"), request);
+  }
+
+  @Override
+  protected boolean isExtract() {
+
+    //return false to avoid extracting the downloaded GUI jar (as we will run the jar in doRun())
+    return false;
   }
 
   @Override
