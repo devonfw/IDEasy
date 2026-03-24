@@ -23,7 +23,7 @@
     <jline.version>3.30.6</jline.version>
     <jansi.version>2.4.1</jansi.version>
     <jackson.version>2.18.3</jackson.version>
-    <xmlunit.version>2.10.0</xmlunit.version>
+    <xmlunit.version>2.11.0</xmlunit.version>
     <wiremock.version>3.11.0</wiremock.version>
     <javafx.version>21</javafx.version>
     <testfx.version>4.0.18</testfx.version>
