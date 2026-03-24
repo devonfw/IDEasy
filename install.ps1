@@ -1,6 +1,5 @@
 $ErrorActionPreference = "Stop"
 
-$IDEASY_HOME = if ($env:IDEASY_HOME) { $env:IDEASY_HOME } else { Join-Path $env:USERPROFILE ".ideasy" }
 $GITHUB_REPO = "devonfw/IDEasy"
 
 function Write-Status($msg) { Write-Host $msg -ForegroundColor Cyan }
@@ -41,34 +40,23 @@ try {
   Write-Status "Downloading $archive..."
   Invoke-WebRequest -Uri $downloadUrl -OutFile $archivePath -UseBasicParsing
 
-  if (-not (Test-Path $IDEASY_HOME)) {
-    New-Item -ItemType Directory -Path $IDEASY_HOME -Force | Out-Null
-  }
-
-  Write-Status "Extracting to $IDEASY_HOME..."
-  tar xzf $archivePath -C $IDEASY_HOME
+  Write-Status "Extracting..."
+  tar xzf $archivePath -C $tmpDir
 
   Write-Status "Running setup..."
-  $setupBat = Join-Path $IDEASY_HOME "setup.bat"
+  $setupBat = Join-Path $tmpDir "setup.bat"
   if (Test-Path $setupBat) {
     & cmd /c "`"$setupBat`" -b"
   } else {
-    Write-Err "setup.bat not found in $IDEASY_HOME"
-  }
-
-  $binDir = Join-Path $IDEASY_HOME "bin"
-  $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
-  if ($userPath -notlike "*$binDir*") {
-    [Environment]::SetEnvironmentVariable("Path", "$binDir;$userPath", "User")
-    $env:Path = "$binDir;$env:Path"
+    Write-Err "setup.bat not found in extracted archive."
   }
 
   Write-Host ""
   Write-Success "IDEasy $version installed successfully!"
   Write-Host ""
-  Write-Host "  Run 'ide' to get started or 'ide create <project>' to set up a project."
-  Write-Host ""
-  Write-Host "  You may need to restart your terminal for PATH changes to take effect."
+  Write-Host "  Restart your terminal, then run:"
+  Write-Host "    ide create <project>    # set up a new project"
+  Write-Host "    ide --help              # see all commands"
   Write-Host ""
 } finally {
   Remove-Item -Recurse -Force $tmpDir -ErrorAction SilentlyContinue

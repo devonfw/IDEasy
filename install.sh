@@ -1,7 +1,6 @@
 #!/bin/bash
 set -eu
 
-IDEASY_HOME="${IDEASY_HOME:-${HOME}/.ideasy}"
 GITHUB_REPO="devonfw/IDEasy"
 
 red() { printf '\033[1;31m%s\033[0m\n' "$1"; }
@@ -14,7 +13,7 @@ detect_os() {
   case "$(uname -s)" in
     Linux*)  echo "linux" ;;
     Darwin*) echo "mac" ;;
-    *)       abort "Unsupported operating system: $(uname -s). Use the MSI installer on Windows." ;;
+    *)       abort "Unsupported operating system: $(uname -s). Use the PowerShell installer on Windows." ;;
   esac
 }
 
@@ -70,40 +69,24 @@ main() {
   blue "Downloading ${archive}..."
   curl -fSL --progress-bar -o "${tmpdir}/${archive}" "${download_url}"
 
-  mkdir -p "${IDEASY_HOME}"
-  blue "Extracting to ${IDEASY_HOME}..."
-  tar xzf "${tmpdir}/${archive}" -C "${IDEASY_HOME}"
+  blue "Extracting..."
+  tar xzf "${tmpdir}/${archive}" -C "${tmpdir}"
 
   if [ "${os}" = "mac" ]; then
-    xattr -r -d com.apple.quarantine "${IDEASY_HOME}" 2>/dev/null || true
+    xattr -r -d com.apple.quarantine "${tmpdir}" 2>/dev/null || true
   fi
 
   blue "Running setup..."
-  cd "${IDEASY_HOME}"
+  cd "${tmpdir}"
   bash setup
-
-  add_to_path
 
   echo ""
   green "IDEasy ${version} installed successfully!"
   echo ""
-  echo "  Run 'ide' to get started or 'ide create <project>' to set up a project."
+  echo "  Restart your terminal, then run:"
+  echo "    ide create <project>    # set up a new project"
+  echo "    ide --help              # see all commands"
   echo ""
-  echo "  You may need to restart your terminal or run:"
-  echo "    source ~/.bashrc   # or source ~/.zshrc"
-  echo ""
-}
-
-add_to_path() {
-  local bin_dir="${IDEASY_HOME}/bin"
-  if echo "${PATH}" | tr ':' '\n' | grep -qx "${bin_dir}"; then
-    return
-  fi
-  for rc in "${HOME}/.bashrc" "${HOME}/.zshrc"; do
-    if [ -f "${rc}" ] && ! grep -q "/.ideasy/bin" "${rc}" 2>/dev/null; then
-      echo "export PATH=\"\${HOME}/.ideasy/bin:\${PATH}\"" >> "${rc}"
-    fi
-  done
 }
 
 main
