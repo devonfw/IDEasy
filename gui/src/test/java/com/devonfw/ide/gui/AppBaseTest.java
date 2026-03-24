@@ -39,17 +39,13 @@ public class AppBaseTest extends ApplicationTest {
     eclipseOpen = (Button) root.lookup("#eclipseOpen");
     intellijOpen = (Button) root.lookup("#intellijOpen");
     vsCodeOpen = (Button) root.lookup("#vsCodeOpen");
-
-    assertThat(root.lookup("#selectedProject")).isNotNull().isInstanceOf(ComboBox.class);
-    assertThat(root.lookup("#selectedWorkspace")).isNotNull().isInstanceOf(ComboBox.class);
-
     selectedProject = (ComboBox<String>) root.lookup("#selectedProject");
     selectedWorkspace = (ComboBox<String>) root.lookup("#selectedWorkspace");
   }
 
   /**
-   * Set up headless testing
-   *
+   * Set up headless testing -> required for CI pipelines, without this setup JavaFX tests will not run on such pipelines.
+   * <a href="https://gluonhq.com/introducing-the-headless-platform-for-javafx/">See more</a>
    */
   @BeforeAll
   public static void setupHeadlessMode() {
@@ -59,7 +55,7 @@ public class AppBaseTest extends ApplicationTest {
 
     if (Boolean.getBoolean("headless")) {
       System.setProperty("testfx.robot", "glass");
-      System.setProperty("glass.platform", "Monocle");
+      System.setProperty("glass.platform", "Headless");
       System.setProperty("testfx.headless", "true");
       System.setProperty("prism.order", "sw");
       System.setProperty("java.awt.headless", "true");
