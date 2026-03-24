@@ -1,8 +1,11 @@
 package com.devonfw.ide.gui;
 
 import static org.testfx.assertions.api.Assertions.assertThat;
+import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
 import java.io.IOException;
+import java.net.URL;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -25,7 +28,10 @@ public class AppBaseTest extends ApplicationTest {
   @Override
   public void start(Stage stage) throws IOException {
 
-    Parent root = FXMLLoader.load(App.class.getResource("main-view.fxml"));
+    URL mainViewUrl = getClass().getResource("main-view.fxml");
+    assertThat(mainViewUrl).as("Cannot resolve main UI FXML resource!").isNotNull();
+
+    Parent root = FXMLLoader.load(mainViewUrl);
     stage.setScene(new Scene(root));
     stage.show();
 
@@ -33,6 +39,10 @@ public class AppBaseTest extends ApplicationTest {
     eclipseOpen = (Button) root.lookup("#eclipseOpen");
     intellijOpen = (Button) root.lookup("#intellijOpen");
     vsCodeOpen = (Button) root.lookup("#vsCodeOpen");
+
+    assertThat(root.lookup("#selectedProject")).isNotNull().isInstanceOf(ComboBox.class);
+    assertThat(root.lookup("#selectedWorkspace")).isNotNull().isInstanceOf(ComboBox.class);
+
     selectedProject = (ComboBox<String>) root.lookup("#selectedProject");
     selectedWorkspace = (ComboBox<String>) root.lookup("#selectedWorkspace");
   }
@@ -57,7 +67,7 @@ public class AppBaseTest extends ApplicationTest {
   }
 
   /**
-   * This test ensures, that all IDE open buttons are disabled when no project is selected.
+   * This test ensures that all IDE open buttons are disabled when no project is selected.
    */
   @Test
   public void testIdeOpenButtonsDisabledWhenNoProjectSelected() {
@@ -72,7 +82,23 @@ public class AppBaseTest extends ApplicationTest {
   }
 
   /**
-   * Tests that the workspace ComboBox is disabled when no project is selected.
+   * This test ensures that all IDE open buttons are enabled when a project is selected.
+   */
+  @Test
+  public void testIdeOpenButtonsEnabledWhenProjectSelected() {
+
+    // assert that a project is selected
+    Platform.runLater(() -> selectedProject.getSelectionModel().select("test"));
+    waitForFxEvents();
+
+    // assert all IDE open buttons are disabled
+    for (Button button : new Button[] { androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen }) {
+      assertThat(!button.isDisabled()).as(button.getId() + " button should be enabled when a project has been selected").isTrue();
+    }
+  }
+
+  /**
+   * Tests that the workspace {@link ComboBox} is disbaled when no project is selected.
    */
   @Test
   public void testWorkspaceComboBoxDisabledWhenNoProjectSelected() {
@@ -82,5 +108,21 @@ public class AppBaseTest extends ApplicationTest {
     assertThat(selectedWorkspace.isDisabled())
         .as("selectedWorkspace ComboBox should be disabled when no project is selected")
         .isTrue();
+  }
+
+  /**
+   * Tests that the workspace {@link ComboBox} is enabled when a project is selected.
+   */
+  @Test
+  public void testWorkspaceComboboxEnabledEnabledWhenProjectSelected() {
+
+    // assert that a project is selected
+    Platform.runLater(() -> selectedProject.getSelectionModel().select("test"));
+    waitForFxEvents();
+
+    // assert all IDE open buttons are disabled
+    assertThat(selectedWorkspace.isDisabled())
+        .as("selectedWorkspace ComboBox should be enabled when a project is selected")
+        .isFalse();
   }
 }
