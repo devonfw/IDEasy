@@ -216,7 +216,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     installIdeasyWindowsEnv(ideRoot, installationPath);
     IdeLogLevel.SUCCESS.log(LOG, "IDEasy has been installed successfully on your system.");
     LOG.warn("IDEasy has been setup for new shells but it cannot work in your current shell(s).\n"
-        + "Reboot or open a new terminal to make it work.");
+        + "To use it here, run 'source ~/.bashrc' (or your shell config). Otherwise, open a new terminal or reboot.");
   }
 
   private void installIdeasyWindowsEnv(Path ideRoot, Path installationPath) {
