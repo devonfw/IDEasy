@@ -213,6 +213,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
     Path dir = tempDir.resolve("parent");
     createDirs(fileAccess, dir);
     fileAccess.mkdirs(dir.resolve("d3"));
+    fileAccess.mkdirs(dir.resolve("links"));
     boolean readLinks = !context.getSystemInfo().isWindows();
 
     // act
@@ -220,6 +221,8 @@ class FileAccessImplTest extends AbstractIdeContextTest {
     fileAccess.symlink(Path.of("d3/../d1"), dir.resolve("link2"), false);
     fileAccess.symlink(dir.resolve("d3/../d1"), dir.resolve("link3"), true);
     fileAccess.symlink(Path.of("d3/../d1"), dir.resolve("link4"), true);
+    fileAccess.symlink(dir.resolve("d3/../d1"), dir.resolve("links/../link5"), false);
+    fileAccess.symlink(Path.of("d3/../d1"), dir.resolve("links/../link6"), true);
     fileAccess.delete(dir.resolve("d3"));
 
     // assert
@@ -227,11 +230,15 @@ class FileAccessImplTest extends AbstractIdeContextTest {
     assertSymlinkToRealPath(dir.resolve("link2"), dir.resolve("d1"));
     assertSymlinkToRealPath(dir.resolve("link3"), dir.resolve("d1"));
     assertSymlinkToRealPath(dir.resolve("link4"), dir.resolve("d1"));
+    assertSymlinkToRealPath(dir.resolve("link5"), dir.resolve("d1"));
+    assertSymlinkToRealPath(dir.resolve("link6"), dir.resolve("d1"));
     if (readLinks) {
       assertSymlinkRead(dir.resolve("link1"), dir.resolve("d1"));
       assertSymlinkRead(dir.resolve("link2"), dir.resolve("d1"));
       assertSymlinkRead(dir.resolve("link3"), dir.resolve("d1"));
       assertSymlinkRead(dir.resolve("link4"), dir.resolve("d1"));
+      assertSymlinkRead(dir.resolve("link5"), dir.resolve("d1"));
+      assertSymlinkRead(dir.resolve("link6"), dir.resolve("d1"));
     }
   }
 
@@ -877,6 +884,31 @@ class FileAccessImplTest extends AbstractIdeContextTest {
     assertThat(fileAccess.isNonEmptyFile(existingFile)).isFalse();
     Files.writeString(existingFile, "content");
     assertThat(fileAccess.isNonEmptyFile(existingFile)).isTrue();
+  }
+
+  /**
+   * Regression test for #1738: delete must remove directory links themselves and never recurse into their targets.
+   */
+  @Test
+  void testDeleteDoesNotFollowDirectoryLinks(@TempDir Path tempDir) throws IOException {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    FileAccess fileAccess = new FileAccessImpl(context);
+    Path root = tempDir.resolve("root");
+    Path child = root.resolve("child");
+    Path loop = root.resolve("ai");
+    fileAccess.mkdirs(child);
+    Files.writeString(child.resolve("readme"), "hello");
+    fileAccess.symlink(root, loop, false);
+    assertThat(loop).existsNoFollowLinks();
+
+    // act
+    fileAccess.delete(root);
+
+    // assert
+    assertThat(root).doesNotExist();
+    assertThat(tempDir).isDirectory();
   }
 
   @Test
