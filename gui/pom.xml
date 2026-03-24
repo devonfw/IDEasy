@@ -37,12 +37,6 @@
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
-      <artifactId>javafx-maven-plugin</artifactId>
-      <version>${javafx.maven.plugin.version}</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.openjfx</groupId>
       <artifactId>javafx-controls</artifactId>
     </dependency>
     <dependency>
