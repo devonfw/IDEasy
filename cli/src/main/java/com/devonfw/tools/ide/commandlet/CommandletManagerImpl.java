@@ -49,6 +49,7 @@ import com.devonfw.tools.ide.tool.pip.Pip;
 import com.devonfw.tools.ide.tool.pycharm.Pycharm;
 import com.devonfw.tools.ide.tool.python.Python;
 import com.devonfw.tools.ide.tool.quarkus.Quarkus;
+import com.devonfw.tools.ide.tool.rust.Rust;
 import com.devonfw.tools.ide.tool.sonar.Sonar;
 import com.devonfw.tools.ide.tool.spring.Spring;
 import com.devonfw.tools.ide.tool.terraform.Terraform;
@@ -123,6 +124,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Terraform(context));
     add(new Oc(context));
     add(new Quarkus(context));
+    add(new Rust(context));
     add(new Kotlinc(context));
     add(new KotlincNative(context));
     add(new KubeCtl(context));
