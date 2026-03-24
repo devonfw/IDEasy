@@ -29,7 +29,7 @@ detect_arch() {
 fetch_latest_version() {
   local url="https://api.github.com/repos/${GITHUB_REPO}/releases/latest"
   local tag
-  tag=$(curl -fsSL "${url}" | grep '"tag_name"' | sed -E 's/.*"tag_name":\s*"([^"]+)".*/\1/')
+  tag=$(curl -fsSL "${url}" | grep '"tag_name"' | cut -d '"' -f 4)
   if [ -z "${tag}" ]; then
     abort "Failed to determine latest release version."
   fi
