@@ -8,19 +8,20 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @param javaVersion
  */
-public record JavaAzulJsonVersion(@JsonProperty("java_version") int[] javaVersion) implements JsonVersionItem {
+public record JavaAzulJsonVersion(@JsonProperty("java_version") int[] javaVersion, @JsonProperty("openjdk_build_number") int buildNumber) implements
+    JsonVersionItem {
 
   @Override
   public String version() {
     StringBuilder version = new StringBuilder();
-    for (int i = 0; i < javaVersion.length; i++) {
+    int[] javaVersion = javaVersion();
+    for (int i = 0; i < javaVersion.length && i < 3; i++) {
       version.append(javaVersion[i]);
       if (i < javaVersion.length - 1) {
         version.append(".");
       }
     }
-    return version.toString();
+    return version.toString() + buildNumber();
   }
-
 
 }
