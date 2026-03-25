@@ -13,7 +13,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.stage.Stage;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testfx.framework.junit5.ApplicationTest;
 
@@ -25,6 +24,16 @@ public class AppBaseTest extends ApplicationTest {
   private Button androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen;
   private ComboBox<String> selectedProject, selectedWorkspace;
 
+  //setting up for headless testing
+  static {
+    System.setProperty("testfx.robot", "glass");
+    System.setProperty("testfx.headless", "true");
+    System.setProperty("prism.order", "sw");
+    System.setProperty("prism.text", "t2k");
+    System.setProperty("testfx.setup.timeout", "2500");
+    System.setProperty("java.awt.headless", "true");
+  }
+
   @Override
   public void start(Stage stage) throws IOException {
 
@@ -33,6 +42,7 @@ public class AppBaseTest extends ApplicationTest {
 
     Parent root = FXMLLoader.load(mainViewUrl);
     stage.setScene(new Scene(root));
+    stage.requestFocus(); //sometimes needed for headless setup to work
     stage.show();
 
     androidStudioOpen = (Button) root.lookup("#androidStudioOpen");
@@ -41,25 +51,6 @@ public class AppBaseTest extends ApplicationTest {
     vsCodeOpen = (Button) root.lookup("#vsCodeOpen");
     selectedProject = (ComboBox<String>) root.lookup("#selectedProject");
     selectedWorkspace = (ComboBox<String>) root.lookup("#selectedWorkspace");
-  }
-
-  /**
-   * Set up headless testing -> required for CI pipelines, without this setup JavaFX tests will not run on such pipelines.
-   * <a href="https://gluonhq.com/introducing-the-headless-platform-for-javafx/">See more</a>
-   */
-  @BeforeAll
-  public static void setupHeadlessMode() {
-
-    //Enable headless testing. Should be moved as a system property "-Dheadless=true" into workflows to only affect CI
-    System.setProperty("headless", "true");
-
-    if (Boolean.getBoolean("headless")) {
-      System.setProperty("testfx.robot", "glass");
-      System.setProperty("glass.platform", "Headless");
-      System.setProperty("testfx.headless", "true");
-      System.setProperty("prism.order", "sw");
-      System.setProperty("java.awt.headless", "true");
-    }
   }
 
   /**
