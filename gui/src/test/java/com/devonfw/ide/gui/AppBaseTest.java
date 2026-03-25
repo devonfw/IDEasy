@@ -1,13 +1,11 @@
 package com.devonfw.ide.gui;
 
 import static org.testfx.assertions.api.Assertions.assertThat;
-import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
-import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -39,9 +37,10 @@ public class AppBaseTest extends ApplicationTest {
   static {
     System.setProperty("testfx.robot", "glass");
     System.setProperty("testfx.headless", "true");
+    System.setProperty("glass.platform", "Monocle");
     System.setProperty("prism.order", "sw");
     System.setProperty("prism.text", "t2k");
-    System.setProperty("testfx.setup.timeout", "2500");
+    System.setProperty("testfx.setup.timeout", "10000");
     System.setProperty("java.awt.headless", "true");
   }
 
@@ -112,8 +111,7 @@ public class AppBaseTest extends ApplicationTest {
   public void testIdeOpenButtonsEnabledWhenProjectSelected() {
 
     // assert that a project is selected
-    Platform.runLater(() -> selectedProject.getSelectionModel().select("project-1"));
-    waitForFxEvents();
+    interact(() -> selectedProject.getSelectionModel().select("project-1"));
 
     // assert all IDE open buttons are disabled
     for (Button button : new Button[] { androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen }) {
@@ -141,8 +139,7 @@ public class AppBaseTest extends ApplicationTest {
   public void testWorkspaceComboboxEnabledEnabledWhenProjectSelected() {
 
     // assert that a project is selected
-    Platform.runLater(() -> selectedProject.getSelectionModel().select("project-1"));
-    waitForFxEvents();
+    interact(() -> selectedProject.getSelectionModel().select("project-1"));
 
     // assert all IDE open buttons are disabled
     assertThat(selectedWorkspace.isDisabled())
