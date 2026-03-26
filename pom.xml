@@ -31,6 +31,7 @@
     <assembly.maven.plugin.version>3.7.1</assembly.maven.plugin.version>
     <build.helper.maven.plugin.version>3.6.1</build.helper.maven.plugin.version>
     <graalvm.version>24.2.1</graalvm.version>
+    <gui.relative_pom_path>gui-execution</gui.relative_pom_path>
   </properties>
 
   <dependencyManagement>
@@ -174,6 +175,7 @@
     <module>documentation</module>
     <module>cli</module>
     <module>gui</module>
+    <module>gui-launcher</module>
     <module>url-updater</module>
     <module>security</module>
   </modules>
