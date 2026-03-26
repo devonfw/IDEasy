@@ -31,9 +31,13 @@ public class App extends Application {
     primaryStage.getIcons().add(icon);
     primaryStage.setTitle("IDEasy - version " + IdeVersion.getVersionString());
     primaryStage.setScene(scene);
+    primaryStage.setMinWidth(scene.getWidth());
+    primaryStage.setMinHeight(scene.getHeight());
     primaryStage.show();
   }
 
+
+  @SuppressWarnings("MissingJavadoc")
   public static void main(String[] args) {
 
     launch(args);
