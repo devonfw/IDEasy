@@ -12,6 +12,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1747[#1747]: Fixed macOS x64 native image build using macos-15-intel runner
 * https://github.com/devonfw/IDEasy/issues/1738[#1738]: FileAccess.delete no longer follows directory links during recursive delete
 * https://github.com/devonfw/IDEasy/issues/1771[#1771]: Maven version 3.9.1x are now available
+* https://github.com/devonfw/IDEasy/issues/1647[#1647]: Fixed CVE detection for rancher desktop
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/42?closed=1[milestone 2026.04.001].
 
