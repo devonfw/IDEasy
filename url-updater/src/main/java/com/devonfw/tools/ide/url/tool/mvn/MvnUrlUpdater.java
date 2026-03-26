@@ -1,26 +1,52 @@
 package com.devonfw.tools.ide.url.tool.mvn;
 
-import java.util.regex.Pattern;
-
-import com.devonfw.tools.ide.url.updater.WebsiteUrlUpdater;
+import com.devonfw.tools.ide.url.updater.MavenBasedUrlUpdater;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link WebsiteUrlUpdater} for mvn (maven).
+ * {@link MavenBasedUrlUpdater} for mvn (maven).
  */
-public class MvnUrlUpdater extends AbstractMvnUrlUpdater {
+public class MvnUrlUpdater extends MavenBasedUrlUpdater {
 
-  private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d\\.\\d\\.\\d)");
+  public static final VersionIdentifier MIN_VERSION = VersionIdentifier.of("3.0.4");
 
   @Override
-  protected String getMvnVersionFolder() {
+  protected String getMavenGroupIdPath() {
 
-    return "maven-3";
+    return "org/apache/maven";
   }
 
   @Override
-  protected Pattern getVersionPattern() {
+  protected String getMavenArtifcatId() {
 
-    return VERSION_PATTERN;
+    return "maven-core";
   }
 
+  @Override
+  public String getTool() {
+
+    return "mvn";
+  }
+
+  @Override
+  protected boolean isValidVersion(String version) {
+
+    VersionIdentifier artifactVersion = VersionIdentifier.of(version);
+    if (artifactVersion != null) {
+      return artifactVersion.isGreaterOrEqual(MIN_VERSION);
+    }
+    return true;
+  }
+
+  @Override
+  public String getCpeVendor() {
+
+    return "apache";
+  }
+
+  @Override
+  public String getCpeProduct() {
+
+    return "maven";
+  }
 }
