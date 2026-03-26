@@ -23,22 +23,40 @@
 
       <li>
         <div class="row group">
-          <h2>Install IDEasy</h2>
-          <h3>macOS / Linux</h3>
+          <h2>1. Install IDEasy</h2>
           <div class="copyable">
-            <pre><code id="install-cmd-unix">bash -c "$(curl -fsSL https://raw.githubusercontent.com/devonfw/IDEasy/main/install.sh)"</code></pre>
-            <button onclick="copyCommand('install-cmd-unix')" title="Copy to clipboard">&#x1f4cb;</button>
-          </div>
-          <h3>Windows (PowerShell)</h3>
-          <div class="copyable">
-            <pre><code id="install-cmd-win">irm https://raw.githubusercontent.com/devonfw/IDEasy/main/install.ps1 | iex</code></pre>
-            <button onclick="copyCommand('install-cmd-win')" title="Copy to clipboard">&#x1f4cb;</button>
+            <pre><code id="install-cmd">bash -c "$(curl -fsSL https://raw.githubusercontent.com/devonfw/IDEasy/main/install.sh)"</code></pre>
+            <button onclick="copyCommand('install-cmd')" title="Copy to clipboard">&#x1f4cb;</button>
           </div>
           <div class="col-1">
-            <p>Paste the command for your platform into a terminal. The script detects your OS and architecture, downloads the latest release, and runs setup automatically.</p>
+            <p>Run this command in any terminal. Works on <strong>macOS</strong>, <strong>Linux</strong>, and <strong>Windows</strong> (Git Bash or WSL). The script detects your OS and architecture, downloads the latest release, and runs setup automatically.</p>
           </div>
           <div class="col-2">
-            <p>Requires <strong>git</strong>. macOS and Linux also need <strong>curl</strong>. Works on macOS (Intel &amp; Apple Silicon), Linux (x64 &amp; ARM64), and Windows (x64).</p>
+            <p>Requires <strong>git</strong> and <strong>curl</strong>. On Windows, use <a href="https://git-scm.com/download/win">Git Bash</a> or WSL. Native PowerShell alternative:</p>
+            <div class="copyable">
+              <pre><code id="install-cmd-win">irm https://raw.githubusercontent.com/devonfw/IDEasy/main/install.ps1 | iex</code></pre>
+              <button onclick="copyCommand('install-cmd-win')" title="Copy to clipboard">&#x1f4cb;</button>
+            </div>
+          </div>
+        </div>
+      </li>
+
+      <li>
+        <div class="row group">
+          <h2>2. Set Up Your Project</h2>
+          <div class="copyable">
+            <pre><code id="create-cmd">ide create my-project https://github.com/my-org/my-project-settings.git</code></pre>
+            <button onclick="copyCommand('create-cmd')" title="Copy to clipboard">&#x1f4cb;</button>
+          </div>
+          <div class="col-1">
+            <p>After restarting your terminal, create a project with its shared settings repository. IDEasy installs all required tools in the right versions — no manual steps, no "it works on my machine."</p>
+          </div>
+          <div class="col-2">
+            <pre><code>$ ide create my-project
+Setting up project my-project...
+Installing Java 21.0.4...
+Installing Maven 3.9.9...
+Project my-project is ready.</code></pre>
           </div>
         </div>
       </li>
@@ -47,14 +65,19 @@
         <div class="row group">
           <h2>What is IDEasy?</h2>
           <div class="col-1">
-            <p>IDEasy automates the setup and updates of development environments. Create a small git repo with your project's dev config. Every developer runs one command and gets all tools in the right versions — no manual steps, no "it works on my machine."</p>
+            <p>IDEasy automates the setup and updates of development environments. Create a small git repo with your project's dev config. Every developer runs one command and gets all tools in the right versions — fully automated and reproducible.</p>
           </div>
           <div class="col-2">
-            <pre><code>$ ide create my-project
-Setting up project my-project...
-Installing Java 21.0.4...
-Installing Maven 3.9.9...
-Project my-project is ready.</code></pre>
+            <pre><code>my-project-settings/
+├── ide/
+│   ├── java/
+│   │   └── version      # 21.0.4
+│   ├── mvn/
+│   │   └── version      # 3.9.9
+│   └── vscode/
+│       └── plugins.json
+└── workspace/
+    └── formatter.xml</code></pre>
           </div>
         </div>
       </li>
@@ -83,19 +106,14 @@ Java version: 11.0.2</code></pre>
       <li>
         <div class="row group">
           <div class="col-1">
-            <p>Project settings live in a <strong>git repository</strong> your team shares. Code formatters, tool versions, IDE plugins — all configured once and distributed to every developer. Changes go through pull requests. No more diff-wars.</p>
+            <p>Project settings live in a <strong>git repository</strong> your team shares. Tool versions, IDE plugins, code formatters — all configured once and distributed to every developer. Changes go through pull requests. No more diff-wars.</p>
           </div>
           <div class="col-2">
-            <pre><code>my-project-settings/
-├── ide/
-│   ├── java/
-│   │   └── version      # 21.0.4
-│   ├── mvn/
-│   │   └── version      # 3.9.9
-│   └── vscode/
-│       └── plugins.json
-└── workspace/
-    └── formatter.xml</code></pre>
+            <pre><code>$ ide settings:update
+Pulling latest settings...
+Updated Java from 21.0.3 to 21.0.4
+Updated Maven from 3.9.8 to 3.9.9
+Settings are up to date.</code></pre>
           </div>
         </div>
       </li>
