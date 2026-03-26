@@ -26,6 +26,9 @@ Extract the contents of the downloaded archive (`ide-cli-*.tar.gz`) to a new fol
 
 On MacOS please study link:mac-gatekeeper.adoc[Gatekeeper problem and workaround] in order to use IDEasy.
 
+On Linux, run `./setup` to install. Your current terminal session will not recognize the `ide` command immediately. To enable it, run `source ~/.bashrc` (or your shell config). 
+Alternatively, open a new terminal window to load the configuration automatically. For any other existing terminal sessions, you must run the `source` command manually in each.
+
 Once installed, you want to link:project.adoc[create a project].
 As next step read the link:usage.adoc[usage].
 
