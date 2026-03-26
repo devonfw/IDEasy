@@ -10,8 +10,9 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import java.lang.Double?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="515.0" prefWidth="817.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devonfw.ide.gui.MainController">
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" prefHeight="515.0" prefWidth="817.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devonfw.ide.gui.MainController">
   <left>
     <VBox prefHeight="428.0" prefWidth="181.0" spacing="4.0" stylesheets="@style/navigation.css" BorderPane.alignment="CENTER">
       <children>
@@ -52,11 +53,15 @@
     </VBox>
   </left>
   <center>
-    <StackPane prefHeight="150.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+    <StackPane prefHeight="150.0" BorderPane.alignment="CENTER">
+      <fx:define>
+        <Double fx:id="buttonContainerHeight" fx:value="80.0" />
+        <Double fx:id="buttonContainerWidth" fx:value="150.0" />
+      </fx:define>
       <children>
-        <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="231.0" prefWidth="658.0" spacing="12.0">
+        <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="231.0" spacing="12.0">
           <children>
-            <HBox alignment="CENTER_LEFT" layoutX="20.0" layoutY="204.0" prefHeight="100.0" prefWidth="200.0" spacing="20.0" styleClass="ideElement" stylesheets="@style/center.css">
+            <HBox alignment="CENTER_LEFT" layoutX="20.0" layoutY="204.0" prefHeight="100.0" prefWidth="150.0" spacing="20.0" stylesheets="@style/center.css" styleClass="ideElement">
               <children>
                 <ImageView fitHeight="60.0" fitWidth="60.0" pickOnBounds="true" preserveRatio="true">
                   <image>
@@ -67,7 +72,7 @@
                   </HBox.margin>
                 </ImageView>
                 <Label prefHeight="30.0" prefWidth="190.0" styleClass="ideTitle" text="Android-Studio" />
-                <HBox alignment="CENTER_RIGHT" prefHeight="80.0" prefWidth="370.0" spacing="10.0" HBox.hgrow="ALWAYS">
+                <HBox alignment="CENTER_RIGHT" prefHeight="$buttonContainerHeight" prefWidth="$buttonContainerWidth" minWidth="$buttonContainerWidth" spacing="10.0" HBox.hgrow="ALWAYS">
                   <children>
                     <Button fx:id="androidStudioOpen" disable="true" mnemonicParsing="false" onAction="#openAndroidStudio" styleClass="launchButton" text="Open">
                       <HBox.margin>
@@ -78,7 +83,7 @@
                 </HBox>
               </children>
             </HBox>
-            <HBox alignment="CENTER_LEFT" layoutX="20.0" layoutY="120.0" prefHeight="100.0" prefWidth="200.0" spacing="20.0" styleClass="ideElement" stylesheets="@style/center.css">
+            <HBox alignment="CENTER_LEFT" layoutX="20.0" layoutY="120.0" prefHeight="100.0" prefWidth="150.0" spacing="20.0" styleClass="ideElement" stylesheets="@style/center.css">
               <children>
                 <ImageView fitHeight="60.0" fitWidth="60.0" pickOnBounds="true" preserveRatio="true">
                   <image>
@@ -89,7 +94,7 @@
                   </HBox.margin>
                 </ImageView>
                 <Label prefHeight="30.0" prefWidth="114.0" styleClass="ideTitle" text="Eclipse" />
-                <HBox alignment="CENTER_RIGHT" prefHeight="80.0" prefWidth="317.0" spacing="10.0" HBox.hgrow="ALWAYS">
+                <HBox alignment="CENTER_RIGHT" prefHeight="$buttonContainerHeight" prefWidth="$buttonContainerWidth" minWidth="$buttonContainerWidth" HBox.hgrow="ALWAYS">
                   <children>
                     <Button fx:id="eclipseOpen" disable="true" mnemonicParsing="false" onAction="#openEclipse" styleClass="launchButton" text="Open">
                       <HBox.margin>
@@ -100,7 +105,7 @@
                 </HBox>
               </children>
             </HBox>
-            <HBox alignment="CENTER_LEFT" layoutX="20.0" layoutY="20.0" prefHeight="100.0" prefWidth="200.0" spacing="20.0" styleClass="ideElement" stylesheets="@style/center.css">
+            <HBox alignment="CENTER_LEFT" layoutX="20.0" layoutY="20.0" prefHeight="100.0" prefWidth="150.0" spacing="20.0" styleClass="ideElement" stylesheets="@style/center.css">
               <children>
                 <ImageView fitHeight="60.0" fitWidth="60.0" pickOnBounds="true" preserveRatio="true">
                   <image>
@@ -111,7 +116,7 @@
                   </HBox.margin>
                 </ImageView>
                 <Label prefHeight="30.0" prefWidth="100.0" styleClass="ideTitle" text="Intellij" />
-                <HBox alignment="CENTER_RIGHT" prefHeight="80.0" prefWidth="344.0" spacing="10.0" HBox.hgrow="ALWAYS">
+                <HBox alignment="CENTER_RIGHT" prefHeight="$buttonContainerHeight" prefWidth="$buttonContainerWidth" minWidth="$buttonContainerWidth" spacing="10.0" HBox.hgrow="ALWAYS">
                   <children>
                     <Button fx:id="intellijOpen" disable="true" mnemonicParsing="false" onAction="#openIntellij" styleClass="launchButton" text="Open">
                       <HBox.margin>
@@ -122,7 +127,7 @@
                 </HBox>
               </children>
             </HBox>
-            <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="20.0" styleClass="ideElement" stylesheets="@style/center.css">
+            <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="150.0" spacing="20.0" styleClass="ideElement" stylesheets="@style/center.css">
               <children>
                 <ImageView fitHeight="60.0" fitWidth="60.0" pickOnBounds="true" preserveRatio="true">
                   <image>
@@ -133,7 +138,7 @@
                   </HBox.margin>
                 </ImageView>
                 <Label prefHeight="30.0" prefWidth="114.0" styleClass="ideTitle" text="VS Code" />
-                <HBox alignment="CENTER_RIGHT" prefHeight="80.0" prefWidth="231.0" spacing="10.0" HBox.hgrow="ALWAYS">
+                <HBox alignment="CENTER_RIGHT" prefHeight="$buttonContainerHeight" prefWidth="$buttonContainerWidth" minWidth="$buttonContainerWidth" spacing="10.0" HBox.hgrow="ALWAYS">
                   <children>
                     <Button fx:id="vsCodeOpen" disable="true" mnemonicParsing="false" onAction="#openVsCode" styleClass="launchButton" text="Open">
                       <HBox.margin>
