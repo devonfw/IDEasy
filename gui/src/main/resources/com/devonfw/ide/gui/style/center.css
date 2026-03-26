@@ -7,7 +7,7 @@
 
 .ideElement {
 
-  -fx-effect: dropshadow(gaussian , rgba(0, 0, 0, 0.1), 10, 0.2, 0.0, 0.0);
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 10, 0.2, 0.0, 0.0);
   -fx-background-color: #FFF;
 }
 
@@ -30,7 +30,7 @@
 
 .workspaceElement {
 
-  -fx-effect: dropshadow(gaussian , rgba(0, 0, 0, 0.1), 10, 0.2, 0.0, 0.0);
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 10, 0.2, 0.0, 0.0);
   -fx-background-color: #FFF;
   -fx-min-height: 80;
   -fx-alignment: CENTER_LEFT;
@@ -40,4 +40,3 @@
   -fx-border-radius: 10;
   -fx-background-radius: 10;
 }
-
