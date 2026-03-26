@@ -18,31 +18,19 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testfx.framework.junit5.ApplicationTest;
 
 /**
- * Base Test
+ * Basic UI Test
  */
-public class AppBaseTest extends ApplicationTest {
+public class AppBaseTest extends HeadlessApplicationTest {
 
-  private static Logger LOGGER = LoggerFactory.getLogger(ApplicationTest.class);
+  private static Logger LOGGER = LoggerFactory.getLogger(AppBaseTest.class);
 
   private Button androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen;
   private ComboBox<String> selectedProject, selectedWorkspace;
 
   @TempDir
   private static Path temporayProjectDirectoryPath;
-
-  //setting up for headless testing
-  static {
-    System.setProperty("testfx.robot", "glass");
-    System.setProperty("testfx.headless", "true");
-    System.setProperty("glass.platform", "Monocle");
-    System.setProperty("prism.order", "sw");
-    System.setProperty("prism.text", "t2k");
-    System.setProperty("testfx.setup.timeout", "10000");
-    System.setProperty("java.awt.headless", "true");
-  }
 
   @Override
   public void start(Stage stage) throws IOException {
@@ -70,7 +58,7 @@ public class AppBaseTest extends ApplicationTest {
    * to work in the test context. Generates a structure like this: /project-[0..6]/workspaces/main
    */
   @BeforeAll
-  public static void generateProjectFolder() {
+  public static void generateProjectFolderStructure() {
 
     LOGGER.debug("tempDir: {}", temporayProjectDirectoryPath);
     for (int i = 0; i <= 5; i++) {
