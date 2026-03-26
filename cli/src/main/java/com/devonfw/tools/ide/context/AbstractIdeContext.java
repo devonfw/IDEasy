@@ -1302,7 +1302,6 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
             }
           }
         }
-        configureJavaUtilLogging(cmd);
         boolean success = ensureLicenseAgreement(cmd);
         if (!success) {
           return ValidationResultValid.get();
