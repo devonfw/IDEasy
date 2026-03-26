@@ -41,11 +41,11 @@
         <div class="row group">
           <h2>2. Set Up Your Project</h2>
           <div class="copyable">
-            <pre><code id="create-cmd">ide create my-project https://github.com/my-org/my-project-settings.git</code></pre>
+            <pre><code id="create-cmd">ide create my-project</code></pre>
             <button onclick="copyCommand('create-cmd')" title="Copy to clipboard">&#x1f4cb;</button>
           </div>
           <div class="col-1">
-            <p>After restarting your terminal, create a project with its shared settings repository. IDEasy installs all required tools in the right versions — no manual steps, no "it works on my machine."</p>
+            <p>After restarting your terminal, create a project. You will be prompted for your team's settings repository URL, or press Enter to use <a href="https://github.com/devonfw/ide-settings">default settings</a>. IDEasy installs all required tools in the right versions automatically.</p>
           </div>
           <div class="col-2">
             <pre><code>$ ide create my-project
@@ -105,7 +105,7 @@ Java version: 11.0.2</code></pre>
             <p>Project settings live in a <strong>git repository</strong> your team shares. Tool versions, IDE plugins, code formatters — all configured once and distributed to every developer. Changes go through pull requests. No more diff-wars.</p>
           </div>
           <div class="col-2">
-            <pre><code>$ ide settings:update
+            <pre><code>$ ide update
 Pulling latest settings...
 Updated Java from 21.0.3 to 21.0.4
 Updated Maven from 3.9.8 to 3.9.9

@@ -62,9 +62,9 @@ main() {
   blue "Detected: ${os} ${arch}"
   blue "Latest version: ${version}"
 
-  local tmpdir
-  tmpdir=$(mktemp -d)
-  trap 'rm -rf "${tmpdir}"' EXIT
+  TMPDIR_CLEANUP=$(mktemp -d)
+  trap 'rm -rf "${TMPDIR_CLEANUP}"' EXIT
+  local tmpdir="${TMPDIR_CLEANUP}"
 
   blue "Downloading ${archive}..."
   curl -fSL --progress-bar -o "${tmpdir}/${archive}" "${download_url}"
