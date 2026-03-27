@@ -52,11 +52,11 @@ public class DockerRancherDesktopUrlUpdater extends GithubUrlTagUpdater {
 
   @Override
   public String getCpeVendor() {
-    return "docker";
+    return "suse";
   }
 
   @Override
   public String getCpeProduct() {
-    return "docker";
+    return "rancher_desktop";
   }
 }
