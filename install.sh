@@ -1,8 +1,22 @@
 #!/bin/bash
+# One-liner installer for IDEasy.
+# Usage: bash -c "$(curl -fsSL https://raw.githubusercontent.com/devonfw/IDEasy/main/install.sh)"
+#
+# What it does:
+#   1. Detects your OS (mac/linux) and architecture (x64/arm64)
+#   2. Fetches the latest release version from GitHub
+#   3. Downloads and extracts the correct archive to a temp directory
+#   4. Runs the setup script
+#   5. Cleans up the temp directory
+#
+# On Windows use Git Bash (comes with Git for Windows).
+# Prerequisites: git, curl, tar
+
 set -eu
 
 GITHUB_REPO="devonfw/IDEasy"
 
+# colored output helpers
 red() { printf '\033[1;31m%s\033[0m\n' "$1"; }
 green() { printf '\033[1;32m%s\033[0m\n' "$1"; }
 blue() { printf '\033[1;34m%s\033[0m\n' "$1"; }
@@ -25,6 +39,7 @@ detect_arch() {
   esac
 }
 
+# gets the latest release tag from GitHub API and strips the "release/" prefix
 fetch_latest_version() {
   local url="https://api.github.com/repos/${GITHUB_REPO}/releases/latest"
   local tag
@@ -62,6 +77,7 @@ main() {
   blue "Detected: ${os} ${arch}"
   blue "Latest version: ${version}"
 
+  # download to a temp dir that gets cleaned up on exit
   TMPDIR_CLEANUP=$(mktemp -d)
   trap 'rm -rf "${TMPDIR_CLEANUP}"' EXIT
   local tmpdir="${TMPDIR_CLEANUP}"
@@ -72,6 +88,7 @@ main() {
   blue "Extracting..."
   tar xzf "${tmpdir}/${archive}" -C "${tmpdir}"
 
+  # on macOS remove quarantine flag so the binary can run without gatekeeper issues
   if [ "${os}" = "mac" ]; then
     xattr -r -d com.apple.quarantine "${tmpdir}" 2>/dev/null || true
   fi
