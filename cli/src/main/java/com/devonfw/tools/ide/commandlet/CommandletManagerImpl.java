@@ -27,6 +27,7 @@ import com.devonfw.tools.ide.tool.dotnet.DotNet;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
 import com.devonfw.tools.ide.tool.gcviewer.GcViewer;
 import com.devonfw.tools.ide.tool.gh.Gh;
+import com.devonfw.tools.ide.tool.go.Go;
 import com.devonfw.tools.ide.tool.graalvm.GraalVm;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
 import com.devonfw.tools.ide.tool.gui.Gui;
@@ -146,6 +147,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Yarn(context));
     add(new Corepack(context));
     add(new Pip(context));
+    add(new Go(context));
     add(new Gui(context));
   }
 
