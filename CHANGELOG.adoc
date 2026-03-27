@@ -11,6 +11,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1732[#1732]: Add stash support for git-pull
 * https://github.com/devonfw/IDEasy/issues/1747[#1747]: Fixed macOS x64 native image build using macos-15-intel runner
 * https://github.com/devonfw/IDEasy/issues/1738[#1738]: FileAccess.delete no longer follows directory links during recursive delete
+* https://github.com/devonfw/IDEasy/issues/1151[#1151]: Use uname -m for runtime architecture detection on Mac/Linux
 * https://github.com/devonfw/IDEasy/issues/1770[#1770]: Fix setup hanging due to buffered log output during license prompt
 * https://github.com/devonfw/IDEasy/issues/1771[#1771]: Maven version 3.9.1x are now available
 * https://github.com/devonfw/IDEasy/issues/1687[#1687]: Fixed JLine warning about restricted method
