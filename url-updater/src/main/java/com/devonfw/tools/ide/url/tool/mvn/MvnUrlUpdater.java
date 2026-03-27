@@ -55,6 +55,10 @@ public class MvnUrlUpdater extends GithubUrlReleaseUpdater {
     // Workaround to get Release Candidates.
     // A better solution would be a flag or a map to signal which version are wanted.
     String vLower = version.toLowerCase(Locale.ROOT);
+    if (vLower.startsWith("maven ")) {
+      version = version.substring(6);
+      vLower = vLower.substring(6);
+    }
     if (vLower.contains("-rc")) {
       return version;
     } else {
