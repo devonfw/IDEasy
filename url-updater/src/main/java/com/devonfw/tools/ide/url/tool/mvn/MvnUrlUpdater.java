@@ -72,21 +72,8 @@ public class MvnUrlUpdater extends GithubUrlReleaseUpdater {
       // This is just a workaround because apache archive sorts its versions into maven-x folders.
       // A better solution would be to extract the major version of the VersionIdentifier
       // and put that into the String Formatter but no such method exists yet.
-      String majorFolder = versionIdentifier.compareVersion(MAVEN_4_IDENTIFIER).isGreater()
-          ? "maven-3"
-          : "maven-4";
-
-      String downloadUrl = String.format(
-          "%s/dist/maven/%s/%s/binaries/%s-%s-%s-bin.tar.gz",
-          getDownloadBaseUrl(),
-          majorFolder,
-          version,
-          getGithubOrganization(),
-          getGithubRepository(),
-          version
-      );
-
-      doAddVersion(urlVersion, downloadUrl);
+      String majorFolder = versionIdentifier.compareVersion(MAVEN_4_IDENTIFIER).isLess() ? "maven-3" : "maven-4";
+      doAddVersion(urlVersion, getDownloadBaseUrl() + "/dist/maven/" + majorFolder + "/${version}/binaries/apache-maven-${version}-bin.zip");
     }
   }
 }
