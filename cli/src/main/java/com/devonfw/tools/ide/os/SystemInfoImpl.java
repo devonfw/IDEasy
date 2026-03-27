@@ -1,5 +1,8 @@
 package com.devonfw.tools.ide.os;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -35,7 +38,27 @@ public class SystemInfoImpl implements SystemInfo {
   private SystemInfoImpl() {
 
     this(System.getProperty(PROPERTY_OS_NAME).trim(), System.getProperty(PROPERTY_OS_VERSION).trim(),
-        System.getProperty(PROPERTY_OS_ARCHITECTURE).trim());
+        resolveArchitecture());
+  }
+
+  private static String resolveArchitecture() {
+
+    String arch = System.getProperty(PROPERTY_OS_ARCHITECTURE).trim();
+    String osName = System.getProperty(PROPERTY_OS_NAME).trim().toLowerCase(java.util.Locale.ROOT);
+    if (!osName.startsWith("windows")) {
+      try {
+        Process process = new ProcessBuilder("uname", "-m").start();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+          String line = reader.readLine();
+          if (line != null && !line.isBlank()) {
+            arch = line.trim();
+          }
+        }
+      } catch (Exception e) {
+        // fallback to system property
+      }
+    }
+    return arch;
   }
 
   /**
