@@ -50,7 +50,7 @@ public class Gui extends Commandlet {
         "-f",
         IdeVariables.IDE_ROOT.get(context).toString() + "/_ide/installation/" + POM_PATH + "/pom.xml",
         "exec:java",
-        "-Dexec.mainClass=com.devonfw.tools.ide.gui.AppLauncher"
+        "-Dexec.mainClass=com.devonfw.tools.gui.AppLauncher"
     );
 
     mvn.runTool(context.newProcess(), ProcessMode.DEFAULT, args);
