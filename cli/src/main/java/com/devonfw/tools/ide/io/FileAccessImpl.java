@@ -483,49 +483,70 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
    * @param link the {@link Path} where to create the link.
    * @param type the {@link PathLinkType}.
    */
-  private void mklinkOnWindows(Path source, Path link, PathLinkType type, boolean relative) {
+  private void mklinkOnWindows(Path source, Path absoluteSource, Path link, PathLinkType type, boolean relative) {
 
-    LOG.trace("Creating a Windows {} at {} pointing to {}", type, link, source);
-    ProcessContext pc = this.context.newProcess().executable("cmd").addArgs("/c", "mklink", type.getMklinkOption());
     Path finalSource = source;
     Path finalLink = link;
+    Path cwd = null;
     if (relative) {
-      int count = getCommonNameCount(source, link);
+      int count = getCommonNameCount(absoluteSource, link);
       if (count < 1) {
-        LOG.error("Cannot create relative link at {} pointing to {} - falling back to absolute link", link, source);
+        LOG.error("Cannot create relative link at {} pointing to {} - falling back to absolute link", link, absoluteSource);
       } else {
-        Path cwd = getPathStart(source, count - 1);
-        finalSource = getPathEnd(source, count);
+        cwd = getPathStart(absoluteSource, count - 1);
+        finalSource = getPathEnd(absoluteSource, count);
         finalLink = getPathEnd(link, count);
-        pc.directory(cwd);
       }
     }
-    if (type == PathLinkType.SYMBOLIC_LINK && Files.isDirectory(source)) {
-      pc = pc.addArg("/j");
+
+    String option = type.getMklinkOption();
+    if (type == PathLinkType.SYMBOLIC_LINK) {
+      boolean directoryTarget = Files.isDirectory(absoluteSource);
+      option = directoryTarget ? "/j" : "/d";
     }
-    pc = pc.addArgs(finalLink.toString(), finalSource.toString());
-    ProcessResult result = pc.run(ProcessMode.DEFAULT);
-    result.failOnError();
+
+    if (!runMklink(finalSource, finalLink, cwd, option)) {
+      throw new IllegalStateException("Failed to create Windows link at " + link + " pointing to " + source);
+    }
+  }
+
+  private boolean runMklink(Path source, Path link, Path cwd, String option) {
+
+    LOG.trace("Creating a Windows link with mklink {} at {} pointing to {}", option, link, source);
+    ProcessContext pc = this.context.newProcess().executable("cmd").addArgs("/c", "mklink", option);
+    if (cwd != null) {
+      pc.directory(cwd);
+    }
+    ProcessResult result = pc.addArgs(link.toString(), source.toString()).run(ProcessMode.DEFAULT);
+    try {
+      result.failOnError();
+      return true;
+    } catch (RuntimeException e) {
+      LOG.debug("mklink {} failed for {} -> {}: {}", option, link, source, e.getMessage());
+      return false;
+    }
   }
 
   @Override
   public void link(Path source, Path link, boolean relative, PathLinkType type) {
 
+    Path finalLink = link.toAbsolutePath().normalize();
     Path finalSource;
     try {
-      finalSource = adaptPath(source, link, relative);
+      finalSource = adaptPath(source, finalLink, relative);
     } catch (Exception e) {
-      throw new IllegalStateException("Failed to adapt target (" + source + ") for link (" + link + ") and relative (" + relative + ")", e);
+      throw new IllegalStateException("Failed to adapt target (" + source + ") for link (" + finalLink + ") and relative (" + relative + ")", e);
     }
-    String relativeOrAbsolute = relative ? "absolute" : "relative";
-    LOG.debug("Creating {} {} at {} pointing to {}", relativeOrAbsolute, type, finalSource, source);
-    deleteLinkIfExists(link);
+    Path absoluteSource = finalSource.isAbsolute() ? finalSource : finalLink.getParent().resolve(finalSource).normalize();
+    String relativeOrAbsolute = relative ? "relative" : "absolute";
+    LOG.debug("Creating {} {} at {} pointing to {}", relativeOrAbsolute, type, finalLink, finalSource);
+    deleteLinkIfExists(finalLink);
     try {
       // Attention: JavaDoc and position of path arguments can be very confusing - see comment in #1736
       if (type == PathLinkType.SYMBOLIC_LINK) {
-        Files.createSymbolicLink(link, finalSource);
+        Files.createSymbolicLink(finalLink, finalSource);
       } else if (type == PathLinkType.HARD_LINK) {
-        Files.createLink(link, finalSource);
+        Files.createLink(finalLink, finalSource);
       } else {
         throw new IllegalStateException("" + type);
       }
@@ -535,12 +556,12 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
             "Due to lack of permissions, Microsoft's mklink with junction had to be used to create a Symlink. See\n"
                 + "https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for further details. Error was: "
                 + e.getMessage());
-        mklinkOnWindows(source, link, type, relative);
+        mklinkOnWindows(finalSource, absoluteSource, finalLink, type, relative);
       } else {
         throw new RuntimeException(e);
       }
     } catch (IOException e) {
-      throw new IllegalStateException("Failed to create a " + relativeOrAbsolute + " " + type + " at " + link + " pointing to " + source, e);
+      throw new IllegalStateException("Failed to create a " + relativeOrAbsolute + " " + type + " at " + finalLink + " pointing to " + source, e);
     }
   }
 
@@ -1025,8 +1046,8 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     }
     LOG.debug("Deleting {} ...", path);
     try {
-      if (Files.isSymbolicLink(path) || isJunction(path)) {
-        Files.delete(path);
+      if (isLink(path)) {
+        deletePath(path);
       } else {
         deleteRecursive(path);
       }
@@ -1037,7 +1058,12 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
 
   private void deleteRecursive(Path path) throws IOException {
 
-    if (Files.isDirectory(path)) {
+    if (Files.isSymbolicLink(path) || isJunction(path)) {
+      LOG.trace("Deleting link {} ...", path);
+      Files.delete(path);
+      return;
+    }
+    if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
       try (Stream<Path> childStream = Files.list(path)) {
         Iterator<Path> iterator = childStream.iterator();
         while (iterator.hasNext()) {
@@ -1046,6 +1072,16 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
         }
       }
     }
+    deletePath(path);
+  }
+
+  private boolean isLink(Path path) {
+
+    return Files.isSymbolicLink(path) || isJunction(path);
+  }
+
+  private void deletePath(Path path) throws IOException {
+
     LOG.trace("Deleting {} ...", path);
     boolean isSetWritable = setWritable(path, true);
     if (!isSetWritable) {
