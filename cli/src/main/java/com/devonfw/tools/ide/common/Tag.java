@@ -329,8 +329,6 @@ public final class Tag {
   /** {@link #Tag} for encryption. */
   public static final Tag ENCRYPTION = create("encryption", CRYPTO);
 
-  public static final Tag GUI = create("gui", MISC);
-
   private final String id;
 
   private final Tag parent;
