@@ -527,7 +527,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
     Path toolPluginsPath = this.context.getPluginsPath().resolve(this.tool);
     if (!Files.exists(toolPluginsPath)) {
-      LOG.warn("There are no plugins of {} present to delete.", this.tool);
+      LOG.info("There are no plugins of {} present to delete.", this.tool);
       return;
     }
     LOG.info("Physically deleting {} as requested by the user via force mode.", toolPluginsPath);
