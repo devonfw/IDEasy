@@ -10,6 +10,7 @@ import javafx.scene.image.Image;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
+import com.devonfw.ide.gui.modal.IdeDialog;
 import com.devonfw.tools.ide.version.IdeVersion;
 
 /**
@@ -34,6 +35,13 @@ public class App extends Application {
     primaryStage.setMinWidth(scene.getWidth());
     primaryStage.setMinHeight(scene.getHeight());
     primaryStage.show();
+
+    //TODO: Remove this before PR!
+    IdeDialog welcomeDialog = new IdeDialog(IdeDialog.AlertType.INFORMATION);
+    welcomeDialog.setTitle("Welcome to IDEasy");
+    welcomeDialog.setHeaderText("Welcome to IDEasy");
+    welcomeDialog.setContentText("Thank you for using ");
+    welcomeDialog.showAndWait();
   }
 
 
