@@ -7,7 +7,8 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/1702[#1702]: UI Buttons do not scale properly with window resize
-* https://github.com/devonfw/IDEasy/issues/1751[#1751]: Add go-lang CLI Commandlet.
+* https://github.com/devonfw/IDEasy/issues/1751[#1751]: Add go-lang CLI commandlet.
+* https://github.com/devonfw/IDEasy/issues/1724[#1724]: add gui CLI commandlet.
 * https://github.com/devonfw/IDEasy/issues/1732[#1732]: Add stash support for git-pull
 * https://github.com/devonfw/IDEasy/issues/1747[#1747]: Fixed macOS x64 native image build using macos-15-intel runner
 * https://github.com/devonfw/IDEasy/issues/1738[#1738]: FileAccess.delete no longer follows directory links during recursive delete
