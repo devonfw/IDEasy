@@ -19,7 +19,6 @@ public class Gui extends Commandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Gui.class);
 
-  //TODO: implement constant in sync with maven property gui.relative_pom_path
   private static final String POM_PATH = "gui-execution";
 
   /**
@@ -31,13 +30,11 @@ public class Gui extends Commandlet {
     addKeyword("gui");
   }
 
-
   @Override
   public String getName() {
 
     return "gui";
   }
-
 
   @Override
   protected void doRun() {
