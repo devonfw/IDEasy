@@ -12,7 +12,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 public class MvnUrlUpdater extends GithubUrlReleaseUpdater {
 
   private static final VersionIdentifier MIN_VERSION = VersionIdentifier.of("3.0.4");
-  private static final VersionIdentifier MAVEN_4_IDENTIFIER = VersionIdentifier.of("4.0.0");
+  private static final VersionIdentifier MAVEN_4_IDENTIFIER = VersionIdentifier.of("4.0.0-alpha");
 
   @Override
   public String getTool() {
