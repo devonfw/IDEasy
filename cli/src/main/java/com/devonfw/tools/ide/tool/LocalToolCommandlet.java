@@ -484,9 +484,10 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       if (this.context.isForceMode() && !isIgnoreSoftwareRepo()) {
         LOG.warn(
             "You triggered an uninstall of {} in version {} with force mode!\n"
-                + "This will physically delete the currently installed version from the machine.\n"
+                + "This will physically delete the currently installed version including its plugins from the machine.\n"
                 + "This may cause issues with other projects, that use the same version of that tool."
             , this.tool, getInstalledVersion());
+        uninstallPluginsOfTool();
         uninstallFromSoftwareRepository(toolPath);
       }
       performUninstall(toolPath);
@@ -517,6 +518,21 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     LOG.info("Physically deleting {} as requested by the user via force mode.", repoPath);
     this.context.getFileAccess().delete(repoPath);
     IdeLogLevel.SUCCESS.log(LOG, "Successfully deleted {} from your computer.", repoPath);
+  }
+
+  /**
+   * Deletes the installed plugins of the tool from the plugins path.
+   */
+  private void uninstallPluginsOfTool() {
+
+    Path toolPluginsPath = this.context.getPluginsPath().resolve(this.tool);
+    if (!Files.exists(toolPluginsPath)) {
+      LOG.info("There are no plugins of {} present to delete.", this.tool);
+      return;
+    }
+    LOG.info("Physically deleting {} as requested by the user via force mode.", toolPluginsPath);
+    this.context.getFileAccess().delete(toolPluginsPath);
+    IdeLogLevel.SUCCESS.log(LOG, "Successfully deleted {} from your computer.", toolPluginsPath);
   }
 
   @Override
