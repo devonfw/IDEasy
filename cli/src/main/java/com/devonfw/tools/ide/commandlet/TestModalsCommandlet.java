@@ -24,6 +24,8 @@ public class TestModalsCommandlet extends Commandlet {
 
   @Override
   protected void doRun() {
-    context.question("Test Question", "Yes", "No", "Maybe");
+    //context.question("Test Question", "Yes", "No", "Maybe");
+    Object result = context.question(new String[] { "Red", "Green", "Blue", "Yellow" }, "Test Checkbox Question", "Yes", "No", "Maybe");
+    System.out.println(result);
   }
 }

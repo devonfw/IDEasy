@@ -3,28 +3,35 @@ package com.devonfw.ide.gui;
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
+import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.log.IdeLogListenerBuffer;
 
 /**
  * This class has the purpose of enabling the context state management for the IDEasy GUI. It is a thread-safe singleton implementation (Bill Pugh Singleton).
  */
-public class IdeGuiContextManager {
+public class IdeGuiStateManager {
 
-  private String projectDirectory;
+  private static final Logger LOG = LoggerFactory.getLogger(IdeGuiStateManager.class);
+
+  private final String projectDirectory;
 
   /**
    * Project context based on which project the user works in.
    */
   private IdeGuiContext currentContext;
 
-  private IdeGuiContextManager() {
+  private IdeGuiStateManager() {
+    this.projectDirectory = System.getenv("IDE_ROOT");
   }
 
   /**
-   * @return the singleton instance of the {@link IdeGuiContextManager}.
+   * @return the singleton instance of the {@link IdeGuiStateManager}.
    */
-  public static IdeGuiContextManager getInstance() {
-
+  public static IdeGuiStateManager getInstance() {
     return Holder.INSTANCE;
   }
 
@@ -36,14 +43,18 @@ public class IdeGuiContextManager {
    */
   public IdeGuiContext switchContext(String projectName, String workspaceName) throws FileNotFoundException {
 
-    Path workspacePath = Path.of(projectDirectory, projectName, workspaceName);
+    LOG.debug("Switching context to project {} and workspace {}", projectName, workspaceName);
+
+    Path workspacePath = Path.of(projectDirectory, projectName, "workspaces", workspaceName);
 
     if (!workspacePath.toFile().exists()) {
       throw new FileNotFoundException("Workspace " + workspacePath + " does not exist!");
     }
 
-    IdeGuiContext newContext = new IdeGuiContext(IdeStartContextImpl.get(), workspacePath);
-    this.currentContext = newContext;
+    final IdeLogListenerBuffer buffer = new IdeLogListenerBuffer();
+    IdeLogLevel logLevel = IdeLogLevel.DEBUG;
+    IdeStartContextImpl startContext = new IdeStartContextImpl(logLevel, buffer);
+    this.currentContext = new IdeGuiContext(startContext, workspacePath);
     return this.currentContext;
   }
 
@@ -62,6 +73,6 @@ public class IdeGuiContextManager {
    */
   private static class Holder {
 
-    private static final IdeGuiContextManager INSTANCE = new IdeGuiContextManager();
+    private static final IdeGuiStateManager INSTANCE = new IdeGuiStateManager();
   }
 }
