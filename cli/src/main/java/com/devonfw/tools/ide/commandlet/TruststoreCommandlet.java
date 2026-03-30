@@ -11,6 +11,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.truststore.TruststoreUtilImpl;
 
@@ -26,6 +27,8 @@ public class TruststoreCommandlet extends Commandlet {
   private static final String TRUSTSTORE_OPTION_PREFIX = "-Djavax.net.ssl.trustStore=";
 
   private static final String TRUSTSTORE_PASSWORD_OPTION_PREFIX = "-Djavax.net.ssl.trustStorePassword=";
+
+  private static final String DEFAULT_TRUSTSTORE_PASSWORD = "changeit";
 
   private final StringProperty url;
 
@@ -46,26 +49,23 @@ public class TruststoreCommandlet extends Commandlet {
     return "fix-vpn-tls-problem";
   }
 
-  // Steps:
-  // 1. Check if there was an TLS issue before, if not, log and return.
-  //   - Check if there was an SSLHandshakeException with a message like "PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target"
-  // 2. Fetch the URL again and retrieve Certificate Chain and save it
-  // 3. Print the untrusted Certificate including extensions
-  // 4. Ask the user if they want to add the certificate to a custom truststore
-  // 5. If yes, create or update the custom truststore
-  //  - Create
-  //    - Create new Truststore file in IDEasy settings (e.g. settings/truststore/truststore.p12)
-  //    - Retrieve certificates from default truststore (e.g. cacerts) and add them to the new truststore
-  //    - Add the new certificate to the new truststore
-  //     - Create new Alias for the new certificate (e.g. "custom-1", "custom-2", etc.)
-  //  - Update
-  //    - Load existing custom truststore
-  //    - Check if the certificate is already in the truststore, if yes, log and return
-  //    - Add the new certificate to the new truststore
-  //     - Create new Alias for the new certificate (e.g. "custom-1", "custom-2", etc.)
-  // 6. Fetch the URL again with the new truststore and check if the TLS issue is resolved,
-  //  - if yes, log success,
-  //  - if not, log failure and potential next steps (e.g. check if you are behind a corporate proxy and need to configure it in IDEasy).
+  /**
+   * This commandlet tries to fix TLS problems for VPN users by capturing the untrusted certificate from the target endpoint and adding it to a custom
+   * truststore. It also configures IDE_OPTIONS to use the custom truststore by default. The commandlet is idempotent and will not make changes if the endpoint
+   * is already reachable or if the certificate is already trusted.
+   * <p>
+   * The flow is as follows:
+   * <ul>
+   * <li>Parse the input URL/host and port.</li>
+   * <li>Check if a custom truststore already exists and can establish a TLS connection to the endpoint. If yes, exit successfully.</li>
+   * <li>Check if the endpoint is reachable without any certificate changes. If yes, exit successfully.</li>
+   * <li>Try to capture the server certificate from the endpoint. If it fails, log an error and exit.</li>
+   * <li>Show the captured certificate details to the user and ask if they want to add it to the custom truststore.</li>
+   * <li>If the user agrees, ask for a password for the custom truststore and create/update it with the captured certificate.</li>
+   * <li>Configure IDE_OPTIONS to use the custom truststore by default.</li>
+   * <li>Check if the endpoint is now reachable with the custom truststore and log the result.</li>
+   * </ul>
+   */
   @Override
   protected void doRun() {
 
@@ -81,8 +81,7 @@ public class TruststoreCommandlet extends Commandlet {
     int port = endpoint.port();
     Path customTruststorePath = this.context.getSettingsPath().resolve("truststore").resolve("truststore.p12");
 
-    if (TruststoreUtilImpl.isTruststorePresent(customTruststorePath)
-        && TruststoreUtilImpl.isReachable(host, port, customTruststorePath)) {
+    if (TruststoreUtilImpl.isTruststorePresent(customTruststorePath) && TruststoreUtilImpl.isReachable(host, port, customTruststorePath)) {
       IdeLogLevel.SUCCESS.log(LOG, "TLS handshake succeeded with existing custom truststore at {}.", customTruststorePath);
       configureIdeOptions(customTruststorePath);
       return;
@@ -136,14 +135,11 @@ public class TruststoreCommandlet extends Commandlet {
   private void configureIdeOptions(Path customTruststorePath) {
     String truststorePath = customTruststorePath.toAbsolutePath().toString();
     String truststoreOption = TRUSTSTORE_OPTION_PREFIX + truststorePath;
-    String truststorePasswordOption = TRUSTSTORE_PASSWORD_OPTION_PREFIX + "changeit";
+    String truststorePasswordOption = TRUSTSTORE_PASSWORD_OPTION_PREFIX + DEFAULT_TRUSTSTORE_PASSWORD;
 
     EnvironmentVariables confVariables = this.context.getVariables().getByType(EnvironmentVariablesType.CONF);
     if (confVariables == null) {
-      IdeLogLevel.INTERACTION.log(LOG,
-          "Please configure IDE_OPTIONS manually: {} {}",
-          truststoreOption,
-          truststorePasswordOption);
+      IdeLogLevel.INTERACTION.log(LOG, "Please configure IDE_OPTIONS manually: {} {}", truststoreOption, truststorePasswordOption);
       return;
     }
 
@@ -158,13 +154,10 @@ public class TruststoreCommandlet extends Commandlet {
       confVariables.save();
       // Apply directly for the current process as well.
       System.setProperty("javax.net.ssl.trustStore", truststorePath);
-      System.setProperty("javax.net.ssl.trustStorePassword", "changeit");
+      System.setProperty("javax.net.ssl.trustStorePassword", DEFAULT_TRUSTSTORE_PASSWORD);
       IdeLogLevel.SUCCESS.log(LOG, "IDE_OPTIONS configured to use custom truststore by default.");
     } catch (UnsupportedOperationException e) {
-      IdeLogLevel.INTERACTION.log(LOG,
-          "Please configure IDE_OPTIONS manually: {} {}",
-          truststoreOption,
-          truststorePasswordOption);
+      IdeLogLevel.INTERACTION.log(LOG, "Please configure IDE_OPTIONS manually: {} {}", truststoreOption, truststorePasswordOption);
     }
   }
 
@@ -192,5 +185,9 @@ public class TruststoreCommandlet extends Commandlet {
     return options + " " + option;
   }
 
-
+  @Override
+  public void printHelp(NlsBundle bundle) {
+    LOG.info(
+        "This commandlet helps to fix TLS issues for users behind VPNs by capturing untrusted certificates from target endpoints and adding them to a custom truststore. It also configures IDE_OPTIONS to use the custom truststore by default. The commandlet is idempotent and will not make changes if the endpoint is already reachable or if the certificate is already trusted.");
+  }
 }
