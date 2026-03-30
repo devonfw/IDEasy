@@ -135,6 +135,20 @@ class TruststoreUtilImplTest {
   }
 
   @Test
+  void testIsTlsTrustIssue() {
+
+    Throwable pkix = new RuntimeException("PKIX path building failed");
+    Throwable certPath = new RuntimeException("unable to find valid certification path");
+    Throwable handshake = new IllegalStateException("failed", new RuntimeException("SSLHandshakeException"));
+    Throwable unrelated = new RuntimeException("Connection reset");
+
+    assertThat(TruststoreUtilImpl.isTlsTrustIssue(pkix)).isTrue();
+    assertThat(TruststoreUtilImpl.isTlsTrustIssue(certPath)).isTrue();
+    assertThat(TruststoreUtilImpl.isTlsTrustIssue(handshake)).isTrue();
+    assertThat(TruststoreUtilImpl.isTlsTrustIssue(unrelated)).isFalse();
+  }
+
+  @Test
   void testLoadCertificateFromResource() throws Exception {
 
     X509Certificate certificate = loadCertificateFromResource();

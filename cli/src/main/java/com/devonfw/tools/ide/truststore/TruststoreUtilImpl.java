@@ -29,6 +29,12 @@ import javax.net.ssl.X509TrustManager;
  */
 public final class TruststoreUtilImpl {
 
+  private static final String ERROR_TEXT_PKIX = "pkix path building failed";
+
+  private static final String ERROR_TEXT_CERT_PATH = "unable to find valid certification path";
+
+  private static final String ERROR_TEXT_SSL_HANDSHAKE = "sslhandshakeexception";
+
   /**
    * Parsed TLS endpoint with host and port.
    *
@@ -49,6 +55,30 @@ public final class TruststoreUtilImpl {
 
   private TruststoreUtilImpl() {
     // utility class
+  }
+
+  /**
+   * @param throwable the error to inspect.
+   * @return {@code true} if the error indicates a TLS trust/certificate path issue that can be fixed via truststore setup.
+   */
+  public static boolean isTlsTrustIssue(Throwable throwable) {
+    Throwable current = throwable;
+    while (current != null) {
+      String message = current.getMessage();
+      if (containsTlsTrustIndicator(message) || containsTlsTrustIndicator(current.getClass().getSimpleName())) {
+        return true;
+      }
+      current = current.getCause();
+    }
+    return false;
+  }
+
+  private static boolean containsTlsTrustIndicator(String text) {
+    if ((text == null) || text.isBlank()) {
+      return false;
+    }
+    String normalized = text.toLowerCase(Locale.ROOT);
+    return normalized.contains(ERROR_TEXT_PKIX) || normalized.contains(ERROR_TEXT_CERT_PATH) || normalized.contains(ERROR_TEXT_SSL_HANDSHAKE);
   }
 
   /**

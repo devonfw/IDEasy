@@ -96,8 +96,28 @@ class StatusCommandletTest extends AbstractIdeContextTest {
     assertThat(context).log().hasEntries(IdeLogEntry.ofWarning("Skipping check for newer version of IDEasy because you are offline."),
         new IdeLogEntry(IdeLogLevel.ERROR, "You are offline because of the following error:", null, null, error, false),
         IdeLogEntry.ofWarning(
-            "You are having TLS issues. We guess you are forced to use a VPN tool breaking end-to-end encryption causing this effect. As a workaround you can create and configure a truststore as described here:"),
+            "You are having TLS trust issues (PKIX/certificate-path/SSL handshake). As a workaround you can create and configure a truststore via 'ide fix-vpn-tls-problem <url>' (replace <url> with the failing endpoint)."),
         IdeLogEntry.ofInteraction("https://github.com/devonfw/IDEasy/blob/main/documentation/proxy-support.adoc#tls-certificate-issues"));
+  }
+
+  /**
+   * Tests the output if {@link StatusCommandlet} is run and online-check error message contains known PKIX trust issue text.
+   */
+  @Test
+  void testStatusWhenPkixIssueInMessage() {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    IllegalStateException error = new IllegalStateException("unable to find valid certification path to requested target");
+    context.getNetworkStatus().getOnlineCheck().set(error);
+    StatusCommandlet status = context.getCommandletManager().getCommandlet(StatusCommandlet.class);
+
+    // act
+    status.run();
+
+    // assert
+    assertThat(context).logAtWarning().hasMessageContaining("via 'ide fix-vpn-tls-problem <url>'");
+    assertThat(context).logAtInteraction().hasMessageContaining("proxy-support.adoc#tls-certificate-issues");
   }
 
   /**
