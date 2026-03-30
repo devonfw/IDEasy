@@ -72,6 +72,6 @@ public class IdeGuiContext extends AbstractIdeContext {
 
     RadioButton selectedOption = (RadioButton) group.getSelectedToggle();
 
-    return selectedOption == null ? null : (O) selectedOption.getText();
+    return selectedOption == null | dialog.getResult() == ButtonType.CANCEL ? null : (O) selectedOption.getText();
   }
 }

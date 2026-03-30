@@ -9,15 +9,20 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.ide.gui.modal.IdeDialog;
 import com.devonfw.tools.ide.commandlet.TestModalsCommandlet;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
  * Controller of the main screen of the dashboard GUI.
  */
 public class MainController {
+
+  private static Logger LOG = LoggerFactory.getLogger(MainController.class);
+
 
   @FXML
   private ComboBox<String> selectedProject;
@@ -44,8 +49,9 @@ public class MainController {
   /**
    * Constructor
    */
-  public MainController() {
-    this.directoryPath = System.getenv(IdeVariables.IDE_ROOT.getName());
+  public MainController(String directoryPath) {
+    LOG.debug("IDE_ROOT path={}", directoryPath);
+    this.directoryPath = directoryPath;
   }
 
   @FXML
@@ -80,6 +86,8 @@ public class MainController {
 
 
   private void setProjectsComboBox() {
+
+    assert (directoryPath != null) : "directoryPath is null! Please check the setup of your environment variables (IDE_ROOT)";
 
     selectedProject.getItems().clear();
     Path directory = Path.of(directoryPath);
