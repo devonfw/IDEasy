@@ -95,7 +95,7 @@ main() {
 
   blue "Running setup..."
   cd "${tmpdir}"
-  bash setup
+  bash setup </dev/tty
 
   echo ""
   green "IDEasy ${version} installed successfully!"
