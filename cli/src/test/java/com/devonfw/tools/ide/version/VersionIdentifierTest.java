@@ -61,7 +61,7 @@ class VersionIdentifierTest extends Assertions {
    */
   @ParameterizedTest
   // arrange
-  @ValueSource(strings = { "1.0", "0.1", "2023.08.001", "2023-06-M1", "11.0.4_11.4", "5.2.23.RELEASE", "8u412b08" })
+  @ValueSource(strings = { "1.0", "0.1", "2023.08.001", "2023-06-M1", "11.0.4_11.4", "5.2.23.RELEASE" })
   void testValid(String version) {
 
     // act
@@ -78,7 +78,7 @@ class VersionIdentifierTest extends Assertions {
    */
   @ParameterizedTest
   // arrange
-  @ValueSource(strings = { "0", "0.0", "1.0.pineapple-pen", "1.0-rc", ".1.0", "1.-0", "RC1", "Beta1", "donut", "0*.0", "*0", "*.", "17.*alpha",
+  @ValueSource(strings = { "0", "0.0", "1.0.pineapple-pen", "1.0-rc", ".1.0", "1.-0", "RC1", "Beta1", "donut", "8u412b08", "0*.0", "*0", "*.", "17.*alpha",
       "17*.1" })
   void testInvalid(String version) {
 
