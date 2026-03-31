@@ -7,17 +7,18 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/1702[#1702]: UI Buttons do not scale properly with window resize
-* https://github.com/devonfw/IDEasy/issues/1751[#1751]: Add go-lang CLI Commandlet.
+* https://github.com/devonfw/IDEasy/issues/1751[#1751]: Add go commandlet (go-lang support)
 * https://github.com/devonfw/IDEasy/issues/1732[#1732]: Add stash support for git-pull
-* https://github.com/devonfw/IDEasy/issues/1747[#1747]: Fixed macOS x64 native image build using macos-15-intel runner
-* https://github.com/devonfw/IDEasy/issues/1738[#1738]: FileAccess.delete no longer follows directory links during recursive delete
-* https://github.com/devonfw/IDEasy/issues/1151[#1151]: Use uname -m for runtime architecture detection on Mac/Linux
-* https://github.com/devonfw/IDEasy/issues/1770[#1770]: Fix setup hanging due to buffered log output during license prompt
-* https://github.com/devonfw/IDEasy/issues/1771[#1771]: Maven version 3.9.1x are now available
-* https://github.com/devonfw/IDEasy/issues/1647[#1647]: Fixed CVE detection for rancher desktop
-* https://github.com/devonfw/IDEasy/issues/1363[#1363]: Tool uninstallation in force mode now also removes its plugins
-* https://github.com/devonfw/IDEasy/issues/1687[#1687]: Fixed JLine warning about restricted method
-* https://github.com/devonfw/IDEasy/issues/1458[#1458]: ide create now implicitly changes to the new project directory
+* https://github.com/devonfw/IDEasy/issues/1747[#1747]: macOS x64 error during installation: Bad CPU type in executable
+* https://github.com/devonfw/IDEasy/issues/1738[#1738]: FileAccess.delete follows links
+* https://github.com/devonfw/IDEasy/issues/1151[#1151]: Mac on ARM thinks the architecture is x86 and therefore does not download arm64 releases causing poor performance
+* https://github.com/devonfw/IDEasy/issues/1770[#1770]: IDEasy setup is broken (license agreement question not printed)
+* https://github.com/devonfw/IDEasy/issues/1771[#1771]: Maven 3.9.1x versions not available
+* https://github.com/devonfw/IDEasy/issues/1647[#1647]: Wrong CVEs reported for rancher desktop
+* https://github.com/devonfw/IDEasy/issues/1363[#1363]: ide --force uninstall should also remove plugins
+* https://github.com/devonfw/IDEasy/issues/1761[#1761]: Install version pattern not working
+* https://github.com/devonfw/IDEasy/issues/1687[#1687]: JLine causes warning about restricted method
+* https://github.com/devonfw/IDEasy/issues/1458[#1458]: ide create should implicitly icd to projecty
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/42?closed=1[milestone 2026.04.001].
 
