@@ -1334,6 +1334,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       // printing anything anymore in such case.
       return false;
     }
+    activateLogging(cmd);
     IdeLogLevel oldLogLevel = this.startContext.getLogLevelConsole();
     IdeLogLevel newLogLevel = oldLogLevel;
     if (oldLogLevel.ordinal() > IdeLogLevel.INFO.ordinal()) {
