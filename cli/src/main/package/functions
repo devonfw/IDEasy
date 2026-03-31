@@ -10,6 +10,11 @@ function ide() {
       echo -e "\n\033[91mError: IDEasy failed with exit code ${return_code}\033[91m" >&2
       return ${return_code}
     fi
+    local _create_project
+    _create_project="$(_ide_create_project "$@")"
+    if [ -n "${_create_project}" ] && [ -d "${IDE_ROOT}/${_create_project}" ]; then
+      cd "${IDE_ROOT}/${_create_project}" || return 1
+    fi
   fi
   ide_env="$(ideasy ${IDE_OPTIONS} env --bash)"
   if [ $? = 0 ]; then
@@ -114,6 +119,27 @@ function icd() {
   cd "${icd_path}" || return 1
   ide
   return
+}
+
+_ide_create_project()
+{
+  local found_create=false
+  while [ $# != 0 ]; do
+    case "$1" in
+      create)
+        found_create=true
+        ;;
+      -*)
+        ;;
+      *)
+        if [ "${found_create}" = true ]; then
+          echo "$1"
+          return
+        fi
+        ;;
+    esac
+    shift
+  done
 }
 
 _ide_completion()
