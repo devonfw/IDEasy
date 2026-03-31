@@ -94,8 +94,7 @@ class StatusCommandletTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(context).log().hasEntries(IdeLogEntry.ofWarning("Skipping check for newer version of IDEasy because you are offline."),
-        new IdeLogEntry(IdeLogLevel.ERROR, "You are offline because of the following error:", null, null, error, false),
-        IdeLogEntry.ofWarning(
+        new IdeLogEntry(IdeLogLevel.ERROR, "You are offline because of the following error:", null, null, error, false), IdeLogEntry.ofWarning(
             "You are having TLS trust issues (PKIX/certificate-path/SSL handshake). As a workaround you can create and configure a truststore via the following command (replace <url> with the failing endpoint):\nide fix-vpn-tls-problem <url>"),
         IdeLogEntry.ofInteraction("https://github.com/devonfw/IDEasy/blob/main/documentation/proxy-support.adoc#tls-certificate-issues"));
   }
@@ -108,7 +107,7 @@ class StatusCommandletTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = new IdeTestContext();
-    IllegalStateException error = new IllegalStateException("unable to find valid certification path to requested target");
+    IllegalStateException error = new IllegalStateException("PKIX path building failed: unable to find valid certification path to requested target");
     context.getNetworkStatus().getOnlineCheck().set(error);
     StatusCommandlet status = context.getCommandletManager().getCommandlet(StatusCommandlet.class);
 
@@ -116,7 +115,7 @@ class StatusCommandletTest extends AbstractIdeContextTest {
     status.run();
 
     // assert
-    assertThat(context).logAtWarning().hasMessageContaining("'ide fix-vpn-tls-problem <url>'");
+    assertThat(context).logAtWarning().hasMessageContaining("ide fix-vpn-tls-problem <url>");
     assertThat(context).logAtInteraction().hasMessageContaining("proxy-support.adoc#tls-certificate-issues");
   }
 
@@ -151,30 +150,9 @@ class StatusCommandletTest extends AbstractIdeContextTest {
 
   private static Stream<Arguments> providePrivacyModeTestCases() {
     return Stream.of(
-        Arguments.of(
-            "linux",
-            Path.of("/mnt/c/Users/testuser/projects/myproject"),
-            Path.of("/mnt/c/Users/testuser/projects"),
-            Path.of("/mnt/c/projects")
-        ),
-        Arguments.of(
-            "windows",
-            Path.of("C:\\Users\\testuser\\projects\\myproject"),
-            Path.of("C:\\Users\\testuser\\projects"),
-            Path.of("C:\\Users\\testuser")
-        ),
-        Arguments.of(
-            "linux",
-            Path.of("/home/testuser/projects/myproject"),
-            Path.of("/home/testuser/projects"),
-            Path.of("/home/testuser")
-        ),
-        Arguments.of(
-            "mac",
-            Path.of("/Users/testuser/projects/myproject"),
-            Path.of("/Users/testuser/projects"),
-            Path.of("/Users/testuser")
-        )
-    );
+        Arguments.of("linux", Path.of("/mnt/c/Users/testuser/projects/myproject"), Path.of("/mnt/c/Users/testuser/projects"), Path.of("/mnt/c/projects")),
+        Arguments.of("windows", Path.of("C:\\Users\\testuser\\projects\\myproject"), Path.of("C:\\Users\\testuser\\projects"), Path.of("C:\\Users\\testuser")),
+        Arguments.of("linux", Path.of("/home/testuser/projects/myproject"), Path.of("/home/testuser/projects"), Path.of("/home/testuser")),
+        Arguments.of("mac", Path.of("/Users/testuser/projects/myproject"), Path.of("/Users/testuser/projects"), Path.of("/Users/testuser")));
   }
 }
