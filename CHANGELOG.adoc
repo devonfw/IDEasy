@@ -18,6 +18,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1363[#1363]: Tool uninstallation in force mode now also removes its plugins
 * https://github.com/devonfw/IDEasy/issues/1687[#1687]: Fixed JLine warning about restricted method
 * https://github.com/devonfw/IDEasy/issues/1752[#1752]: Fixed JSON merger to support JSONC (JSON with Comments) as used by VSCode settings
+* https://github.com/devonfw/IDEasy/issues/1458[#1458]: ide create now implicitly changes to the new project directory
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/42?closed=1[milestone 2026.04.001].
 
