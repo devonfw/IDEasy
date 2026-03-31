@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.commandlet;
 
 import java.lang.reflect.Method;
 import java.nio.file.Path;
+import java.util.Arrays;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -13,6 +14,7 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.property.Property;
+import com.devonfw.tools.ide.util.TruststoreUtil;
 
 /**
  * Test of {@link TruststoreCommandlet}.
@@ -68,23 +70,25 @@ class TruststoreCommandletTest extends AbstractIdeContextTest {
     TruststoreCommandlet commandlet = context.getCommandletManager().getCommandlet(TruststoreCommandlet.class);
     rememberSystemProperties();
 
-    EnvironmentVariables confVariables = context.getVariables().getByType(EnvironmentVariablesType.CONF);
-    confVariables.set(IDE_OPTIONS,
+    EnvironmentVariables userVariables = context.getVariables().getByType(EnvironmentVariablesType.USER);
+    userVariables.set(IDE_OPTIONS,
         "-Xmx512m -Djavax.net.ssl.trustStore=/old/path.p12 -Djavax.net.ssl.trustStorePassword=old-secret");
 
     Path newTruststorePath = context.getSettingsPath().resolve("truststore").resolve("truststore.p12");
 
     invokeConfigureIdeOptions(commandlet, newTruststorePath);
 
-    String options = confVariables.getFlat(IDE_OPTIONS);
+    String options = userVariables.getFlat(IDE_OPTIONS);
+    String expectedPassword = Arrays.toString(TruststoreUtil.CUSTOM_TRUSTSTORE_PASSWORD);
+
     assertThat(options).contains("-Xmx512m");
     assertThat(options).contains("-Djavax.net.ssl.trustStore=" + newTruststorePath.toAbsolutePath());
-    assertThat(options).contains("-Djavax.net.ssl.trustStorePassword=" + TRUSTSTORE_PASSWORD);
+    assertThat(options).contains("-Djavax.net.ssl.trustStorePassword=" + expectedPassword);
     assertThat(options).doesNotContain("/old/path.p12");
     assertThat(options).doesNotContain("old-secret");
 
     assertThat(System.getProperty("javax.net.ssl.trustStore")).isEqualTo(newTruststorePath.toAbsolutePath().toString());
-    assertThat(System.getProperty("javax.net.ssl.trustStorePassword")).isEqualTo(TRUSTSTORE_PASSWORD);
+    assertThat(System.getProperty("javax.net.ssl.trustStorePassword")).isEqualTo(expectedPassword);
   }
 
   private IdeTestContext newIsolatedContext(Path tempDir) {

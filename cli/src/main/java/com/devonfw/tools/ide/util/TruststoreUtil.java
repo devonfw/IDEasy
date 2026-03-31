@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.truststore;
+package com.devonfw.tools.ide.util;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -27,13 +27,7 @@ import javax.net.ssl.X509TrustManager;
 /**
  * Utility methods for truststore handling and TLS certificate capture.
  */
-public final class TruststoreUtilImpl {
-
-  private static final String ERROR_TEXT_PKIX = "pkix path building failed";
-
-  private static final String ERROR_TEXT_CERT_PATH = "unable to find valid certification path";
-
-  private static final String ERROR_TEXT_SSL_HANDSHAKE = "sslhandshakeexception";
+public final class TruststoreUtil {
 
   /**
    * Parsed TLS endpoint with host and port.
@@ -45,40 +39,29 @@ public final class TruststoreUtilImpl {
 
   }
 
-  public static final char[] DEFAULT_CACERTS_PASSWORD = "changeit".toCharArray();
+  private static final String TRUSTSTORE_PASSWORD = "changeit";
 
-  public static final char[] CUSTOM_TRUSTSTORE_PASSWORD = "changeit".toCharArray();
+  /**
+   * Default password for the JRE cacerts truststore
+   */
+  public static final char[] DEFAULT_CACERTS_PASSWORD = TRUSTSTORE_PASSWORD.toCharArray();
 
-  public static final String DEFAULT_ALIAS_PREFIX = "custom";
+  /**
+   * Password for the custom truststore
+   */
+  public static final char[] CUSTOM_TRUSTSTORE_PASSWORD = TRUSTSTORE_PASSWORD.toCharArray();
+
+  /**
+   * Default prefix for aliases of certificates added to the truststore.
+   */
+  private static final String DEFAULT_ALIAS_PREFIX = "custom";
 
   private static final int DEFAULT_TIMEOUT_MILLIS = 10_000;
 
-  private TruststoreUtilImpl() {
+  private static final String TLS_PROTOCOL = "TLS";
+
+  private TruststoreUtil() {
     // utility class
-  }
-
-  /**
-   * @param throwable the error to inspect.
-   * @return {@code true} if the error indicates a TLS trust/certificate path issue that can be fixed via truststore setup.
-   */
-  public static boolean isTlsTrustIssue(Throwable throwable) {
-    Throwable current = throwable;
-    while (current != null) {
-      String message = current.getMessage();
-      if (containsTlsTrustIndicator(message) || containsTlsTrustIndicator(current.getClass().getSimpleName())) {
-        return true;
-      }
-      current = current.getCause();
-    }
-    return false;
-  }
-
-  private static boolean containsTlsTrustIndicator(String text) {
-    if ((text == null) || text.isBlank()) {
-      return false;
-    }
-    String normalized = text.toLowerCase(Locale.ROOT);
-    return normalized.contains(ERROR_TEXT_PKIX) || normalized.contains(ERROR_TEXT_CERT_PATH) || normalized.contains(ERROR_TEXT_SSL_HANDSHAKE);
   }
 
   /**
@@ -269,25 +252,19 @@ public final class TruststoreUtilImpl {
    */
   public static boolean isReachable(String host, int port) {
     validateEndpoint(host, port, host + ":" + port);
-    SSLSocket socket = null;
     try {
-      SSLContext sslContext = SSLContext.getInstance("TLS");
+      SSLContext sslContext = SSLContext.getInstance(TLS_PROTOCOL);
       sslContext.init(null, null, new SecureRandom());
       SSLSocketFactory factory = sslContext.getSocketFactory();
-      socket = connectTlsSocket(factory, host, port);
-      socket.startHandshake();
+
+      try (SSLSocket socket = connectTlsSocket(factory, host, port)) {
+        socket.startHandshake();
+      }
       return true;
     } catch (Exception e) {
       return false;
-    } finally {
-      if (socket != null) {
-        try {
-          socket.close();
-        } catch (Exception ignored) {
-          // ignore close failure after reachability probe
-        }
-      }
     }
+
   }
 
   /**
@@ -346,16 +323,14 @@ public final class TruststoreUtilImpl {
 
     SavingTrustManager savingTrustManager = new SavingTrustManager();
 
-    SSLContext sslContext = SSLContext.getInstance("TLS");
+    SSLContext sslContext = SSLContext.getInstance(TLS_PROTOCOL);
     sslContext.init(null, new TrustManager[] { savingTrustManager }, new SecureRandom());
 
     SSLSocketFactory factory = sslContext.getSocketFactory();
     try (SSLSocket socket = connectTlsSocket(factory, host, port)) {
-      try {
-        socket.startHandshake();
-      } catch (SSLException e) {
-        // expected: trust manager aborts after capturing the chain
-      }
+      socket.startHandshake();
+    } catch (SSLException e) {
+      // expected: trust manager aborts after capturing the chain
     }
 
     X509Certificate[] chain = savingTrustManager.getChain();
@@ -385,7 +360,7 @@ public final class TruststoreUtilImpl {
     TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
     tmf.init(truststore);
 
-    SSLContext sslContext = SSLContext.getInstance("TLS");
+    SSLContext sslContext = SSLContext.getInstance(TLS_PROTOCOL);
     sslContext.init(null, tmf.getTrustManagers(), new SecureRandom());
 
     SSLSocketFactory socketFactory = sslContext.getSocketFactory();
@@ -403,7 +378,7 @@ public final class TruststoreUtilImpl {
    * @return a human-readable description of the given X.509 certificate.
    */
   public static String describeCertificate(X509Certificate certificate) {
-    String nl = System.lineSeparator();
+    String nl = "\n";
     StringBuilder sb = new StringBuilder();
     sb.append("Subject: ").append(certificate.getSubjectX500Principal()).append(nl);
     sb.append("Issuer : ").append(certificate.getIssuerX500Principal()).append(nl);

@@ -96,7 +96,7 @@ class StatusCommandletTest extends AbstractIdeContextTest {
     assertThat(context).log().hasEntries(IdeLogEntry.ofWarning("Skipping check for newer version of IDEasy because you are offline."),
         new IdeLogEntry(IdeLogLevel.ERROR, "You are offline because of the following error:", null, null, error, false),
         IdeLogEntry.ofWarning(
-            "You are having TLS trust issues (PKIX/certificate-path/SSL handshake). As a workaround you can create and configure a truststore via 'ide fix-vpn-tls-problem <url>' (replace <url> with the failing endpoint)."),
+            "You are having TLS trust issues (PKIX/certificate-path/SSL handshake). As a workaround you can create and configure a truststore via the following command (replace <url> with the failing endpoint):\nide fix-vpn-tls-problem <url>"),
         IdeLogEntry.ofInteraction("https://github.com/devonfw/IDEasy/blob/main/documentation/proxy-support.adoc#tls-certificate-issues"));
   }
 

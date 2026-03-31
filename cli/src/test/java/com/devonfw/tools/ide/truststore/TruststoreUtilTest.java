@@ -16,10 +16,12 @@ import java.util.Enumeration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.devonfw.tools.ide.util.TruststoreUtil;
+
 /**
- * Test of {@link TruststoreUtilImpl}.
+ * Test of {@link TruststoreUtil}.
  */
-class TruststoreUtilImplTest {
+class TruststoreUtilTest {
 
   private static final String PASSWORD = "changeit";
 
@@ -31,7 +33,7 @@ class TruststoreUtilImplTest {
   @Test
   void testParseTlsEndpointFromHttpsUrl() {
 
-    TruststoreUtilImpl.TlsEndpoint endpoint = TruststoreUtilImpl.parseTlsEndpoint("https://github.com/tools/path");
+    TruststoreUtil.TlsEndpoint endpoint = TruststoreUtil.parseTlsEndpoint("https://github.com/tools/path");
 
     assertThat(endpoint.host()).isEqualTo("github.com");
     assertThat(endpoint.port()).isEqualTo(443);
@@ -40,7 +42,7 @@ class TruststoreUtilImplTest {
   @Test
   void testParseTlsEndpointFromHostAndPort() {
 
-    TruststoreUtilImpl.TlsEndpoint endpoint = TruststoreUtilImpl.parseTlsEndpoint("my-host.local:8443");
+    TruststoreUtil.TlsEndpoint endpoint = TruststoreUtil.parseTlsEndpoint("my-host.local:8443");
 
     assertThat(endpoint.host()).isEqualTo("my-host.local");
     assertThat(endpoint.port()).isEqualTo(8443);
@@ -49,8 +51,7 @@ class TruststoreUtilImplTest {
   @Test
   void testParseTlsEndpointRejectsHttp() {
 
-    assertThatThrownBy(() -> TruststoreUtilImpl.parseTlsEndpoint("http://github.com"))
-        .isInstanceOf(IllegalArgumentException.class)
+    assertThatThrownBy(() -> TruststoreUtil.parseTlsEndpoint("http://github.com")).isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("Only HTTPS URLs are supported");
   }
 
@@ -58,11 +59,11 @@ class TruststoreUtilImplTest {
   void testIsTruststorePresent() {
 
     Path path = this.tempDir.resolve("truststore.p12");
-    assertThat(TruststoreUtilImpl.isTruststorePresent(path)).isFalse();
+    assertThat(TruststoreUtil.isTruststorePresent(path)).isFalse();
 
     writeEmptyTruststore(path);
 
-    assertThat(TruststoreUtilImpl.isTruststorePresent(path)).isTrue();
+    assertThat(TruststoreUtil.isTruststorePresent(path)).isTrue();
   }
 
   @Test
@@ -76,7 +77,7 @@ class TruststoreUtilImplTest {
     KeyStore target = KeyStore.getInstance("PKCS12");
     target.load(null, PASSWORD.toCharArray());
 
-    TruststoreUtilImpl.copyTruststore(source, target);
+    TruststoreUtil.copyTruststore(source, target);
 
     assertThat(target.getCertificate("source-cert")).isNotNull();
   }
@@ -89,10 +90,10 @@ class TruststoreUtilImplTest {
 
     X509Certificate certificate = loadCertificateFromResource();
 
-    TruststoreUtilImpl.createOrUpdateTruststore(truststorePath, certificate, "custom");
+    TruststoreUtil.createOrUpdateTruststore(truststorePath, certificate, "custom");
     int countAfterFirstAdd = countCertificateOccurrences(truststorePath, certificate);
 
-    TruststoreUtilImpl.createOrUpdateTruststore(truststorePath, certificate, "custom");
+    TruststoreUtil.createOrUpdateTruststore(truststorePath, certificate, "custom");
     int countAfterSecondAdd = countCertificateOccurrences(truststorePath, certificate);
 
     assertThat(countAfterFirstAdd).isEqualTo(1);
@@ -104,7 +105,7 @@ class TruststoreUtilImplTest {
 
     Path truststorePath = this.tempDir.resolve("nested").resolve("custom-new.p12");
 
-    TruststoreUtilImpl.createOrUpdateTruststore(truststorePath, loadCertificateFromResource(), "custom");
+    TruststoreUtil.createOrUpdateTruststore(truststorePath, loadCertificateFromResource(), "custom");
 
     assertThat(truststorePath).exists();
     KeyStore truststore = loadTruststore(truststorePath);
@@ -116,7 +117,7 @@ class TruststoreUtilImplTest {
 
     X509Certificate certificate = loadCertificateFromResource();
 
-    String description = TruststoreUtilImpl.describeCertificate(certificate);
+    String description = TruststoreUtil.describeCertificate(certificate);
 
     assertThat(description).contains("Subject:");
     assertThat(description).contains("Issuer :");
@@ -127,25 +128,11 @@ class TruststoreUtilImplTest {
   @Test
   void testFetchServerCertificateValidatesInput() {
 
-    assertThatThrownBy(() -> TruststoreUtilImpl.fetchServerCertificate(null, 443)).isInstanceOf(NullPointerException.class);
-    assertThatThrownBy(() -> TruststoreUtilImpl.fetchServerCertificate(" ", 443)).isInstanceOf(IllegalArgumentException.class)
+    assertThatThrownBy(() -> TruststoreUtil.fetchServerCertificate(null, 443)).isInstanceOf(NullPointerException.class);
+    assertThatThrownBy(() -> TruststoreUtil.fetchServerCertificate(" ", 443)).isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("host must not be blank");
-    assertThatThrownBy(() -> TruststoreUtilImpl.fetchServerCertificate("github.com", 0)).isInstanceOf(IllegalArgumentException.class)
+    assertThatThrownBy(() -> TruststoreUtil.fetchServerCertificate("github.com", 0)).isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("port must be between 1 and 65535");
-  }
-
-  @Test
-  void testIsTlsTrustIssue() {
-
-    Throwable pkix = new RuntimeException("PKIX path building failed");
-    Throwable certPath = new RuntimeException("unable to find valid certification path");
-    Throwable handshake = new IllegalStateException("failed", new RuntimeException("SSLHandshakeException"));
-    Throwable unrelated = new RuntimeException("Connection reset");
-
-    assertThat(TruststoreUtilImpl.isTlsTrustIssue(pkix)).isTrue();
-    assertThat(TruststoreUtilImpl.isTlsTrustIssue(certPath)).isTrue();
-    assertThat(TruststoreUtilImpl.isTlsTrustIssue(handshake)).isTrue();
-    assertThat(TruststoreUtilImpl.isTlsTrustIssue(unrelated)).isFalse();
   }
 
   @Test
@@ -158,7 +145,7 @@ class TruststoreUtilImplTest {
 
   private static X509Certificate loadCertificateFromResource() throws Exception {
 
-    try (InputStream in = TruststoreUtilImplTest.class.getResourceAsStream(TEST_CERT_RESOURCE)) {
+    try (InputStream in = TruststoreUtilTest.class.getResourceAsStream(TEST_CERT_RESOURCE)) {
       assertThat(in).as("Test certificate resource must exist: " + TEST_CERT_RESOURCE).isNotNull();
       CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
       return (X509Certificate) certificateFactory.generateCertificate(in);

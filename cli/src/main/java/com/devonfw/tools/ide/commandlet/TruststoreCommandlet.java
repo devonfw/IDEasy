@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.commandlet;
 
 import java.nio.file.Path;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,11 +10,13 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesFiles;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.nls.NlsBundle;
+import com.devonfw.tools.ide.property.EnumProperty;
 import com.devonfw.tools.ide.property.StringProperty;
-import com.devonfw.tools.ide.truststore.TruststoreUtilImpl;
+import com.devonfw.tools.ide.util.TruststoreUtil;
 
 /**
  * {@link Commandlet} to fix the TLS problem for VPN users.
@@ -28,9 +31,9 @@ public class TruststoreCommandlet extends Commandlet {
 
   private static final String TRUSTSTORE_PASSWORD_OPTION_PREFIX = "-Djavax.net.ssl.trustStorePassword=";
 
-  private static final String DEFAULT_TRUSTSTORE_PASSWORD = "changeit";
-
   private final StringProperty url;
+
+  public final EnumProperty<EnvironmentVariablesFiles> cfg;
 
   /**
    * The constructor.
@@ -40,13 +43,18 @@ public class TruststoreCommandlet extends Commandlet {
   public TruststoreCommandlet(IdeContext context) {
     super(context);
     addKeyword(getName());
-    this.url = add(new StringProperty("", true, "url"));
+    this.url = add(new StringProperty("", false, "url"));
+    this.cfg = add(new EnumProperty("--cfg", false, null, EnvironmentVariablesFiles.class));
   }
 
   @Override
   public String getName() {
-
     return "fix-vpn-tls-problem";
+  }
+
+  @Override
+  public boolean isIdeHomeRequired() {
+    return false;
   }
 
   /**
@@ -70,26 +78,38 @@ public class TruststoreCommandlet extends Commandlet {
   protected void doRun() {
 
     String endpointInput = this.url.getValueAsString();
-    TruststoreUtilImpl.TlsEndpoint endpoint;
+    boolean defaultUrlUsed = false;
+
+    if (this.url.getValueAsString() == null || this.url.getValueAsString().isBlank()) {
+      endpointInput = "https://www.github.com";
+      defaultUrlUsed = true;
+    }
+
+    TruststoreUtil.TlsEndpoint endpoint;
     try {
-      endpoint = TruststoreUtilImpl.parseTlsEndpoint(endpointInput);
+      endpoint = TruststoreUtil.parseTlsEndpoint(endpointInput);
     } catch (IllegalArgumentException e) {
       throw new CliException("Invalid target URL/host '" + endpointInput + "': " + e.getMessage(), e);
     }
 
     String host = endpoint.host();
     int port = endpoint.port();
-    Path customTruststorePath = this.context.getSettingsPath().resolve("truststore").resolve("truststore.p12");
+    Path customTruststorePath = this.context.getUserHomeIde().resolve("truststore").resolve("truststore.p12");
 
-    if (TruststoreUtilImpl.isTruststorePresent(customTruststorePath) && TruststoreUtilImpl.isReachable(host, port, customTruststorePath)) {
+    if (TruststoreUtil.isTruststorePresent(customTruststorePath) && TruststoreUtil.isReachable(host, port, customTruststorePath)) {
       IdeLogLevel.SUCCESS.log(LOG, "TLS handshake succeeded with existing custom truststore at {}.", customTruststorePath);
       configureIdeOptions(customTruststorePath);
       return;
     }
 
-    if (TruststoreUtilImpl.isReachable(host, port)) {
-      LOG.info("Successfully connected to {}:{} without certificate changes.", host, port);
+    if (TruststoreUtil.isReachable(host, port)) {
+      IdeLogLevel.SUCCESS.log(LOG, "Successfully connected to {}:{} without certificate changes.", host, port);
       LOG.info("No truststore update is required for the given address.");
+      if (defaultUrlUsed) {
+        LOG.info(
+            "If the issue still occurs try to call the command again and add the url that is causing the problem to the command: \n ide fix-vpn-tls-problem <url>");
+      }
+
       return;
     }
 
@@ -97,7 +117,7 @@ public class TruststoreCommandlet extends Commandlet {
 
     X509Certificate certificate;
     try {
-      certificate = TruststoreUtilImpl.fetchServerCertificate(host, port);
+      certificate = TruststoreUtil.fetchServerCertificate(host, port);
     } catch (Exception e) {
       LOG.error("Failed to capture certificate from {}:{}.", host, port, e);
       IdeLogLevel.INTERACTION.log(LOG,
@@ -106,7 +126,7 @@ public class TruststoreCommandlet extends Commandlet {
     }
 
     LOG.info("Captured untrusted certificate:");
-    LOG.info(TruststoreUtilImpl.describeCertificate(certificate));
+    LOG.info(TruststoreUtil.describeCertificate(certificate));
 
     boolean addToTruststore = this.context.question("Do you want to add this certificate to the custom truststore at {}?", customTruststorePath);
 
@@ -116,7 +136,7 @@ public class TruststoreCommandlet extends Commandlet {
     }
 
     try {
-      TruststoreUtilImpl.createOrUpdateTruststore(customTruststorePath, certificate, "custom");
+      TruststoreUtil.createOrUpdateTruststore(customTruststorePath, certificate, "custom");
       IdeLogLevel.SUCCESS.log(LOG, "Custom truststore updated at {}", customTruststorePath);
     } catch (Exception e) {
       LOG.error("Failed to create or update custom truststore at {}", customTruststorePath, e);
@@ -125,7 +145,7 @@ public class TruststoreCommandlet extends Commandlet {
 
     configureIdeOptions(customTruststorePath);
 
-    if (TruststoreUtilImpl.isReachable(host, port, customTruststorePath)) {
+    if (TruststoreUtil.isReachable(host, port, customTruststorePath)) {
       IdeLogLevel.SUCCESS.log(LOG, "TLS handshake succeeded with custom truststore.");
     } else {
       LOG.warn("TLS handshake still fails even with custom truststore.");
@@ -135,9 +155,10 @@ public class TruststoreCommandlet extends Commandlet {
   private void configureIdeOptions(Path customTruststorePath) {
     String truststorePath = customTruststorePath.toAbsolutePath().toString();
     String truststoreOption = TRUSTSTORE_OPTION_PREFIX + truststorePath;
-    String truststorePasswordOption = TRUSTSTORE_PASSWORD_OPTION_PREFIX + DEFAULT_TRUSTSTORE_PASSWORD;
+    String truststorePasswordOption = TRUSTSTORE_PASSWORD_OPTION_PREFIX + Arrays.toString(TruststoreUtil.CUSTOM_TRUSTSTORE_PASSWORD);
 
-    EnvironmentVariables confVariables = this.context.getVariables().getByType(EnvironmentVariablesType.CONF);
+    EnvironmentVariables confVariables = this.context.getVariables().getByType(EnvironmentVariablesType.USER);
+
     if (confVariables == null) {
       IdeLogLevel.INTERACTION.log(LOG, "Please configure IDE_OPTIONS manually: {} {}", truststoreOption, truststorePasswordOption);
       return;
@@ -154,7 +175,7 @@ public class TruststoreCommandlet extends Commandlet {
       confVariables.save();
       // Apply directly for the current process as well.
       System.setProperty("javax.net.ssl.trustStore", truststorePath);
-      System.setProperty("javax.net.ssl.trustStorePassword", DEFAULT_TRUSTSTORE_PASSWORD);
+      System.setProperty("javax.net.ssl.trustStorePassword", Arrays.toString(TruststoreUtil.CUSTOM_TRUSTSTORE_PASSWORD));
       IdeLogLevel.SUCCESS.log(LOG, "IDE_OPTIONS configured to use custom truststore by default.");
     } catch (UnsupportedOperationException e) {
       IdeLogLevel.INTERACTION.log(LOG, "Please configure IDE_OPTIONS manually: {} {}", truststoreOption, truststorePasswordOption);
