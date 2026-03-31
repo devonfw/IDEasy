@@ -1,26 +1,83 @@
 package com.devonfw.tools.ide.url.tool.mvn;
 
-import java.util.regex.Pattern;
+import java.util.Locale;
 
-import com.devonfw.tools.ide.url.updater.WebsiteUrlUpdater;
+import com.devonfw.tools.ide.url.model.folder.UrlVersion;
+import com.devonfw.tools.ide.url.updater.GithubUrlReleaseUpdater;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link WebsiteUrlUpdater} for mvn (maven).
+ * {@link GithubUrlReleaseUpdater} for mvn (maven).
  */
-public class MvnUrlUpdater extends AbstractMvnUrlUpdater {
+public class MvnUrlUpdater extends GithubUrlReleaseUpdater {
 
-  private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d\\.\\d\\.\\d)");
+  private static final VersionIdentifier MIN_VERSION = VersionIdentifier.of("3.0.4");
+  private static final VersionIdentifier MAVEN_4_IDENTIFIER = VersionIdentifier.of("4.0.0-alpha");
 
   @Override
-  protected String getMvnVersionFolder() {
+  public String getTool() {
 
-    return "maven-3";
+    return "mvn";
   }
 
   @Override
-  protected Pattern getVersionPattern() {
+  public String getCpeVendor() {
 
-    return VERSION_PATTERN;
+    return "apache";
   }
 
+  @Override
+  public String getCpeProduct() {
+
+    return "maven";
+  }
+
+  @Override
+  protected String getGithubOrganization() {
+    return "apache";
+  }
+
+  @Override
+  protected String getGithubRepository() {
+
+    return "maven";
+  }
+
+  @Override
+  protected String getDownloadBaseUrl() {
+
+    return "https://archive.apache.org";
+  }
+
+  @Override
+  public String mapVersion(String version) {
+
+    // Workaround to get Release Candidates.
+    // A better solution would be a flag or a map to signal which version are wanted.
+    String vLower = version.toLowerCase(Locale.ROOT);
+    if (vLower.startsWith("maven ")) {
+      version = version.substring(6);
+      vLower = vLower.substring(6);
+    }
+    if (vLower.contains("-rc")) {
+      return version;
+    } else {
+      return super.mapVersion(version);
+    }
+  }
+
+  @Override
+  protected void addVersion(UrlVersion urlVersion) {
+
+    VersionIdentifier versionIdentifier = urlVersion.getVersionIdentifier();
+    if (versionIdentifier.compareVersion(MIN_VERSION).isGreater()) {
+      String version = mapVersion(urlVersion.getName());
+
+      // This is just a workaround because apache archive sorts its versions into maven-x folders.
+      // A better solution would be to extract the major version of the VersionIdentifier
+      // and put that into the String Formatter but no such method exists yet.
+      String majorFolder = versionIdentifier.compareVersion(MAVEN_4_IDENTIFIER).isLess() ? "maven-3" : "maven-4";
+      doAddVersion(urlVersion, getDownloadBaseUrl() + "/dist/maven/" + majorFolder + "/${version}/binaries/apache-maven-${version}-bin.zip");
+    }
+  }
 }
