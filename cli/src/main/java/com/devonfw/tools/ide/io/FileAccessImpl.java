@@ -706,12 +706,26 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     postExtractHook(postExtractHook, properInstallDir);
     move(properInstallDir, targetDir);
     delete(tmpDir);
+    removeQuarantineAttribute(targetDir);
   }
 
   private void postExtractHook(Consumer<Path> postExtractHook, Path properInstallDir) {
 
     if (postExtractHook != null) {
       postExtractHook.accept(properInstallDir);
+    }
+  }
+
+  private void removeQuarantineAttribute(Path path) {
+
+    if (!this.context.getSystemInfo().isMac()) {
+      return;
+    }
+    LOG.debug("Removing macOS quarantine attribute from {}", path);
+    ProcessResult result = this.context.newProcess().executable("xattr")
+        .addArgs("-r", "-d", "com.apple.quarantine", path).run(ProcessMode.DEFAULT_SILENT);
+    if (!result.isSuccessful()) {
+      LOG.trace("Could not remove quarantine attribute from {} (may not have been set)", path);
     }
   }
 
