@@ -39,6 +39,9 @@ public final class Tag {
   /** {@link Tag} for Java. */
   public static final Tag JAVA = create("java", JVM);
 
+  /** {@link Tag} for Go. */
+  public static final Tag GO = create("go", LANGUAGE);
+
   /** {@link Tag} for Kotlin. */
   public static final Tag KOTLIN = create("kotlin", JVM);
 
@@ -445,7 +448,6 @@ public final class Tag {
   /**
    * @param id the {@link #getId() ID} of the tag.
    * @param parent the {@link #getParent() parent tag}.
-   * @param isAbstract the {@link #isAbstract() abstract flag}.
    * @return the new {@link Tag}.
    */
   static Tag create(String id, Tag parent) {

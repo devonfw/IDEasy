@@ -3,9 +3,13 @@ package com.devonfw.tools.ide.commandlet;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.git.GitContext;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.migration.IdeMigrator;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.step.Step;
@@ -16,6 +20,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * {@link Commandlet} to print a status report about IDEasy.
  */
 public class StatusCommandlet extends Commandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(StatusCommandlet.class);
 
   /**
    * The constructor.
@@ -35,11 +41,21 @@ public class StatusCommandlet extends Commandlet {
   }
 
   @Override
-  public void run() {
+  public boolean isWriteLogFile() {
+
+    return false;
+  }
+
+  @Override
+  protected void doRun() {
     Step step = this.context.newStep(true, "Show IDE_ROOT and IDE_HOME");
     step.run(this.context::logIdeHomeAndRootStatus);
+    step = this.context.newStep(true, "Check for updates of IDEasy");
+    step.run(this::checkForUpdate);
     step = this.context.newStep(true, "Show online status");
     step.run(this::logOnlineStatus);
+    step = this.context.newStep(true, "Show git and bash location");
+    step.run(this::logGitBashLocationStatus);
 
     if (this.context.getIdeHome() != null) {
       step = this.context.newStep(true, "Show git status");
@@ -49,8 +65,6 @@ public class StatusCommandlet extends Commandlet {
       step = this.context.newStep(true, "Show migration status");
       step.run(this::logMigrationStatus);
     }
-    step = this.context.newStep(true, "Check for updates of IDEasy");
-    step.run(this::checkForUpdate);
   }
 
   private void checkForUpdate() {
@@ -60,7 +74,7 @@ public class StatusCommandlet extends Commandlet {
 
   private void logSystemInfo() {
     SystemInfo systemInfo = this.context.getSystemInfo();
-    this.context.info("Your operating system is {}({})@{} [{}@{}]", systemInfo.getOs(), systemInfo.getOsVersion(), systemInfo.getArchitecture(),
+    LOG.info("Your operating system is {}({})@{} [{}@{}]", systemInfo.getOs(), systemInfo.getOsVersion(), systemInfo.getArchitecture(),
         systemInfo.getOsName(), systemInfo.getArchitectureName());
   }
 
@@ -71,12 +85,12 @@ public class StatusCommandlet extends Commandlet {
       Path legacyProperties = variables.getLegacyPropertiesFilePath();
       if (legacyProperties != null && Files.exists(legacyProperties)) {
         hasLegacyProperties = true;
-        this.context.warning("Found legacy properties {}", legacyProperties);
+        LOG.warn("Found legacy properties {}", legacyProperties);
       }
       variables = variables.getParent();
     }
     if (hasLegacyProperties) {
-      this.context.warning(
+      LOG.warn(
           "Your settings are outdated and contain legacy configurations. Please consider upgrading your settings:\nhttps://github.com/devonfw/IDEasy/blob/main/documentation/settings.adoc#upgrade");
     }
   }
@@ -85,33 +99,27 @@ public class StatusCommandlet extends Commandlet {
     Path settingsPath = this.context.getSettingsGitRepository();
     if (settingsPath == null) {
       if (this.context.getIdeHome() != null) {
-        this.context.error("No settings repository was found.");
+        LOG.error("No settings repository was found.");
       }
     } else {
       GitContext gitContext = this.context.getGitContext();
       if (gitContext.isRepositoryUpdateAvailable(settingsPath, this.context.getSettingsCommitIdPath())) {
         if (!this.context.isSettingsRepositorySymlinkOrJunction()) {
-          this.context.warning("Your settings are not up-to-date, please run 'ide update'.");
+          LOG.warn("Your settings are not up-to-date, please run 'ide update'.");
         }
       } else {
-        this.context.success("Your settings are up-to-date.");
+        IdeLogLevel.SUCCESS.log(LOG, "Your settings are up-to-date.");
       }
       String branch = gitContext.determineCurrentBranch(settingsPath);
-      this.context.debug("Your settings branch is {}", branch);
+      LOG.debug("Your settings branch is {}", branch);
       if (!"master".equals(branch) && !"main".equals(branch)) {
-        this.context.warning("Your settings are on a custom branch: {}", branch);
+        LOG.warn("Your settings are on a custom branch: {}", branch);
       }
     }
   }
 
   private void logOnlineStatus() {
-    if (this.context.isOfflineMode()) {
-      this.context.warning("You have configured offline mode via CLI.");
-    } else if (this.context.isOnline()) {
-      this.context.success("You are online.");
-    } else {
-      this.context.warning("You are offline. Check your internet connection and potential proxy settings.");
-    }
+    this.context.getNetworkStatus().logStatusMessage();
   }
 
   private void logMigrationStatus() {
@@ -120,8 +128,25 @@ public class StatusCommandlet extends Commandlet {
     VersionIdentifier projectVersion = this.context.getProjectVersion();
     VersionIdentifier targetVersion = migrator.getTargetVersion();
     if (projectVersion.isLess(targetVersion)) {
-      this.context.interaction("Your project is on IDEasy version {} and needs an update to version {}!\nPlease run 'ide update' to migrate your project",
+      IdeLogLevel.INTERACTION.log(LOG,
+          "Your project is on IDEasy version {} and needs an update to version {}!\nPlease run 'ide update' to migrate your project",
           projectVersion, targetVersion);
+    }
+  }
+
+  private void logGitBashLocationStatus() {
+    Path bashPath = this.context.findBash();
+    if (bashPath != null) {
+      IdeLogLevel.SUCCESS.log(LOG, "Found bash executable at: {}", bashPath);
+    } else {
+      LOG.error("No bash executable was found on your system!");
+    }
+    GitContext gitContext = this.context.getGitContext();
+    Path gitPath = gitContext.findGit();
+    if (gitPath != null) {
+      IdeLogLevel.SUCCESS.log(LOG, "Found git executable at: {}", gitPath);
+    } else {
+      LOG.error("No git executable was found on your system!");
     }
   }
 

@@ -16,11 +16,11 @@ Such code included in this product is either also unter Apache License 2.0 or an
 
 However, our product allows to install and run other software.
 All of this is optional and can be configured as needed.
-Since such software is executed as a seperated process and is fully optional, it is not to be considered as derivative work.
+Since such software is executed as a separated process and is fully optional, it is not to be considered as derivative work.
 Without IDEasy you just install such software manually and the only difference is that we automate this for you.
 However, due to automation you may not explicitly decide and notice what the license of such software is.
 Therefore, we list such software with their licenses explicitly below esp. those that require reproduction of the license text in the distribution.
-Before using our product and installig additional software with it you need to agree to such licenses and be aware of this.
+Before using our product and installing additional software with it you need to agree to such licenses and be aware of this.
 
 NOTE: Please be aware that it is even possible to configure and automatically install some commercial software that is NOT open-source and requires a license to be used (e.g. IntelliJ ultimate edition).
 Hence, only configure and use such software if you have an according license.
@@ -47,6 +47,7 @@ The column `inclusion` indicates the way the component is included:
 |https://www.slf4j.org/[slf4j]|Directly included|https://www.slf4j.org/license.html[MIT]
 |https://logback.qos.ch/[logback-classic]|Directly included|https://logback.qos.ch/license.html[LGPL 2.1]
 |https://openjdk.java.net/[OpenJDK] / https://adoptopenjdk.net/[AdoptOpenJDK] (Java)|Default Setup|https://openjdk.java.net/legal/gplv2+ce.html[GPLv2]
+|https://go.dev[GO]|Optional|https://go.dev/LICENSE[BSD 3-Clause]
 |https://maven.apache.org/[Maven]|Default Setup|https://www.apache.org/licenses/LICENSE-2.0[Apache 2.0]
 |https://code.visualstudio.com/[VS Code]|Optional|https://github.com/Microsoft/vscode/blob/master/LICENSE.txt[MIT] (https://code.visualstudio.com/License/[Terms])
 |https://github.com/devonfw/extension-pack-vscode[extension-pack-vscode] |Optional|https://github.com/devonfw/extension-pack-vscode/blob/master/LICENSE[Apache 2.0]
@@ -54,13 +55,15 @@ The column `inclusion` indicates the way the component is included:
 |https://marketplace.eclipse.org/content/tm-terminal[TM Terminal] |Optional|https://www.eclipse.org/legal/epl-2.0/[EPL 2.0] (see https://marketplace.eclipse.org/content/tm-terminal[here])
 |https://github.com/iloveeclipse/anyedittools/[AnyEdit] |Optional|https://github.com/iloveeclipse/anyedittools/blob/master/LICENSE.md[EPL 1.0]
 |https://checkstyle.org/eclipse-cs/[EclipseCS] |Optional|https://github.com/checkstyle/eclipse-cs/blob/master/LICENSE[LGPL 2.1]
-|https://marketplace.eclipse.org/content/spotbugs-eclipse-plugin[SpotBugs Eclipse plugin] |Optional|https://github.com/spotbugs/spotbugs/blob/master/LICENSE[LGPL 2.1]
 |https://www.eclemma.org/[EclEmma] |Optional|https://www.eclemma.org/license.html[EPL 1.0]
+|https://marketplace.eclipse.org/content/spotbugs-eclipse-plugin[SpotBugs Eclipse plugin] |Optional|https://github.com/spotbugs/spotbugs/blob/master/LICENSE[LGPL 2.1]
 |https://basti1302.github.io/startexplorer/[StartExplorer] |Optional|http://www.wtfpl.net/txt/copying/[WTFPL 2]
 |http://myregexp.com/eclipsePlugin.html[regex tester] |Optional|http://www.gnu.org/licenses/gpl-2.0.html[GPL 2.0] (see https://sourceforge.net/projects/regex-util/[here])
 |https://github.com/m-m-m/eclipse-templatevariables/[eclipse-templatevariables] |Optional|https://github.com/m-m-m/eclipse-templatevariables/blob/master/LICENSE.txt[Apache 2.0]
 |https://nodejs.org/[Node.js] |Default Setup|https://raw.githubusercontent.com/nodejs/node/master/LICENSE[License]
 |https://www.npmjs.com/[NPM] |Default Setup|https://github.com/npm/cli/blob/latest/LICENSE[Artistic License 2.0] (https://www.npmjs.com/policies/terms[Terms])
+|https://www.npmjs.com/package/corepack/[corepack] |Optional|https://github.com/nodejs/corepack/blob/main/LICENSE.md[MIT License]
+|https://yarnpkg.com/[yarnpkg] |Optional|https://github.com/yarnpkg/berry/blob/master/LICENSE.md[BSD 2-Clause License]
 |https://cli.angular.io/[Angular CLI] (ng) |Optional|https://cli.angular.io/license.html[MIT]
 |http://groovy-lang.org/[Groovy]|Optional|https://github.com/apache/groovy/blob/master/LICENSE[Apache 2.0]
 |https://ant.apache.org/[Apache Ant]|Optional|https://github.com/apache/ant/blob/master/LICENSE[Apache 2.0]
@@ -70,9 +73,7 @@ The column `inclusion` indicates the way the component is included:
 |https://github.com/fusesource/jansi[jansi] |Directly included|https://github.com/fusesource/jansi/blob/master/license.txt[Apache 2.0]
 |https://www.sonarsource.com/plans-and-pricing/community/[SonarQube (Community Edition)] |Optional|https://github.com/SonarSource/sonarqube/blob/master/LICENSE.txt[LGPL 3.0]
 |https://www.sonarlint.org/eclipse/[SonarLint] |Optional|https://github.com/SonarSource/sonarlint-eclipse/blob/master/LICENSE.txt[LGPL 3+]
-|https://github.com/devonfw/devon4j[devon4j] |Optional|https://github.com/devonfw/devon4j/blob/develop/LICENSE[Apache 2.0]
-|https://github.com/devonfw/devon4ng[devon4ng] |Optional|https://github.com/devonfw/devon4ng/blob/master/LICENSE.txt[Apache 2.0]
-|https://github.com/devonfw/devon4node[devon4node] |Optional|https://github.com/devonfw/devon4node/blob/develop/LICENSE.txt[Apache 2.0]
+|https://spring.io/projects/spring-boot/[Spring-Boot] |Optional|https://github.com/spring-projects/spring-boot/blob/main/LICENSE.txt[Apache 2.0]
 |https://www.jetbrains.com/idea/[IntelliJ IDEA] |Optional|https://www.jetbrains.com/opensource/idea/[Apache 2.0]
 |https://developer.android.com/studio[Android Studio] |Optional|https://developer.android.com/license[Apache 2.0]
 |https://www.jetbrains.com/pycharm/[Pycharm] |Optional|https://www.jetbrains.com/legal/docs/toolbox/user_community/[Apache 2.0]
@@ -98,6 +99,7 @@ The column `inclusion` indicates the way the component is included:
 |https://www.oracle.com/java/technologies/jdk-mission-control.html[Java Mission Control]|Optional|https://github.com/openjdk/jmc/blob/master/license/LICENSE.txt[UPL 1.0] and https://github.com/openjdk/jmc/blob/master/license/THIRDPARTYREADME.txt[EPL 2.0]
 |https://github.com/ctongfei/progressbar[Progressbar]|Directly included|https://github.com/ctongfei/progressbar/blob/main/LICENSE[MIT]
 |https://www.pgadmin.org/[pgAdmin]|Optional|https://www.pgadmin.org/licence/#postgresql[The PostgreSQL Licence]
+|https://docs.astral.sh/uv/[uv] |Optional|https://docs.astral.sh/uv/reference/policies/license/[Apache 2.0]
 |===
 
 == Apache Software License - Version 2.0
@@ -2307,6 +2309,32 @@ The externally maintained libraries used by Node.js are:
     DAMAGE.
   """
 
+- corepack, located at tools/corepack.js, is licensed as follows:
+  """
+    Copyright © Corepack contributors
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  """
+
+- yarnpkg, located at tools/yarn.js, is licensed as follows:
+  """
+    BSD 2-Clause License
+
+  Copyright (c) 2016-present, Yarn Contributors. All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+    Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+
+    Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  """
+
 - cpplint.py, located at tools/cpplint.py, is licensed as follows:
   """
     Copyright (c) 2009 Google Inc. All rights reserved.
@@ -3412,4 +3440,36 @@ IN NO EVENT SHALL THE PGADMIN DEVELOPMENT TEAM BE LIABLE TO ANY PARTY FOR DIRECT
 
 THE PGADMIN DEVELOPMENT TEAM SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 THE SOFTWARE PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND THE PGADMIN DEVELOPMENT TEAM HAS NO OBLIGATIONS TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+```
+
+== Go License (BSD 3-Clause License)
+
+```
+Copyright 2009 The Go Authors.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+* Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+* Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+* Neither the name of Google LLC nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```

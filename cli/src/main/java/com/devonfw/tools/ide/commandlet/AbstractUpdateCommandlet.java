@@ -9,8 +9,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.git.GitUrl;
 import com.devonfw.tools.ide.git.repository.RepositoryCommandlet;
@@ -18,15 +23,36 @@ import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.step.Step;
-import com.devonfw.tools.ide.tool.CustomToolCommandlet;
+import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
-import com.devonfw.tools.ide.tool.repository.CustomToolMetadata;
+import com.devonfw.tools.ide.tool.ToolEdition;
+import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
+import com.devonfw.tools.ide.tool.custom.CustomToolCommandlet;
+import com.devonfw.tools.ide.tool.custom.CustomToolMetadata;
+import com.devonfw.tools.ide.tool.extra.ExtraToolInstallation;
+import com.devonfw.tools.ide.tool.extra.ExtraTools;
+import com.devonfw.tools.ide.tool.extra.ExtraToolsMapper;
 import com.devonfw.tools.ide.variable.IdeVariables;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * Abstract {@link Commandlet} base-class for both {@link UpdateCommandlet} and {@link CreateCommandlet}.
  */
 public abstract class AbstractUpdateCommandlet extends Commandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractUpdateCommandlet.class);
+
+  private static final String MESSAGE_CODE_REPO_URL = """
+      No code repository was given after '--code'.
+      Further details can be found here: https://github.com/devonfw/IDEasy/blob/main/documentation/settings.adoc
+      Please enter the code repository below that includes your settings folder.""";
+
+  private static final String MESSAGE_SETTINGS_REPO_URL = """
+      No settings found at {} and no SETTINGS_URL is defined.
+      Further details can be found here: https://github.com/devonfw/IDEasy/blob/main/documentation/settings.adoc
+      Please contact the technical lead of your project to get the SETTINGS_URL for your project to enter.
+      In case you just want to test IDEasy you may simply hit return to install the default settings.""";
 
   /** {@link StringProperty} for the settings repository URL. */
   public final StringProperty settingsRepo;
@@ -64,11 +90,12 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
   }
 
   @Override
-  public void run() {
+  protected void doRun() {
 
-    this.context.setForcePull(forcePull.isTrue());
-    this.context.setForcePlugins(forcePlugins.isTrue());
-    this.context.setForceRepositories(forceRepositories.isTrue());
+    IdeStartContextImpl startContext = ((AbstractIdeContext) this.context).getStartContext();
+    startContext.setForcePull(forcePull.isTrue());
+    startContext.setForcePlugins(forcePlugins.isTrue());
+    startContext.setForceRepositories(forceRepositories.isTrue());
 
     if (!this.context.isSettingsRepositorySymlinkOrJunction() || this.context.isForceMode() || forcePull.isTrue()) {
       updateSettings();
@@ -94,7 +121,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       if (Files.exists(legacyTemplatesFolder)) {
         templatesFolder = legacyTemplatesFolder;
       } else {
-        this.context.warning("Templates folder is missing in settings repository.");
+        LOG.warn("Templates folder is missing in settings repository.");
         return;
       }
     }
@@ -119,10 +146,10 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
         setupConf(child, confPath);
       } else if (Files.isRegularFile(child)) {
         if (Files.isRegularFile(confPath)) {
-          this.context.debug("Configuration {} already exists - skipping to copy from {}", confPath, child);
+          LOG.debug("Configuration {} already exists - skipping to copy from {}", confPath, child);
         } else {
           if (!basename.equals("settings.xml")) {
-            this.context.info("Copying template {} to {}.", child, conf);
+            LOG.info("Copying template {} to {}.", child, conf);
             this.context.getFileAccess().copy(child, conf);
           }
         }
@@ -131,46 +158,132 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
   }
 
   /**
-   * Process a repository.
-   * <p>
-   * Default behavior is to use strategy for settings repository.
-   */
-  protected void processRepository() {
-    RepositoryStrategy repositoryStrategy = new SettingsRepositoryStrategy();
-
-    processRepositoryUsingStrategy(repositoryStrategy);
-  }
-
-  /**
    * Updates the settings repository in IDE_HOME/settings by either cloning if no such repository exists or pulling if the repository exists then saves the
    * latest current commit ID in the file ".commit.id".
    */
   protected void updateSettings() {
 
+    this.context.newStep(getStepMessage()).run(this::updateSettingsInStep);
+  }
+
+  protected String getStepMessage() {
+
+    return "update (pull) settings repository";
+  }
+
+  private void updateSettingsInStep() {
     Path settingsPath = this.context.getSettingsPath();
     GitContext gitContext = this.context.getGitContext();
-    Step step = null;
-    try {
-      // here we do not use pullOrClone to prevent asking a pointless question for repository URL...
-      if (Files.isDirectory(settingsPath) && !this.context.getFileAccess().isEmptyDir(settingsPath)) {
-        step = this.context.newStep("Pull settings repository");
-        gitContext.pull(settingsPath);
+    // here we do not use pullOrClone to prevent asking a pointless question for repository URL...
+    if (Files.isDirectory(settingsPath) && !this.context.getFileAccess().isEmptyDir(settingsPath)) {
+      if (this.context.isForcePull() || this.context.isForceMode() || Files.isDirectory(settingsPath.resolve(GitContext.GIT_FOLDER))) {
+        if (gitContext.hasUntrackedFiles(settingsPath)) {
+          gitContext.pullSafelyWithStash(settingsPath);
+        } else {
+          gitContext.pull(settingsPath);
+        }
         this.context.getGitContext().saveCurrentCommitId(settingsPath, this.context.getSettingsCommitIdPath());
-        step.success("Successfully updated settings repository.");
       } else {
-        processRepository();
+        LOG.info("Skipping git pull in settings due to code repository. Use --force-pull to enforce pulling.");
       }
-    } finally {
-      if (step != null) {
-        step.close();
-      }
+    } else {
+      GitUrl gitUrl = getOrAskSettingsUrl();
+      checkProjectNameConvention(gitUrl.getProjectName());
+      initializeRepository(gitUrl);
     }
   }
+
+  private GitUrl getOrAskSettingsUrl() {
+
+    String repository = this.settingsRepo.getValue();
+    repository = handleDefaultRepository(repository);
+    String userPromt;
+    String defaultUrl;
+    if (isCodeRepository()) {
+      userPromt = "Code repository URL:";
+      defaultUrl = null;
+      LOG.info(MESSAGE_CODE_REPO_URL);
+    } else {
+      userPromt = "Settings URL [" + IdeContext.DEFAULT_SETTINGS_REPO_URL + "]:";
+      defaultUrl = IdeContext.DEFAULT_SETTINGS_REPO_URL;
+      LOG.info(MESSAGE_SETTINGS_REPO_URL, this.context.getSettingsPath());
+    }
+    GitUrl gitUrl = null;
+    if (repository != null) {
+      gitUrl = GitUrl.of(repository);
+    }
+    while ((gitUrl == null) || !gitUrl.isValid()) {
+      repository = this.context.askForInput(userPromt, defaultUrl);
+      repository = handleDefaultRepository(repository);
+      gitUrl = GitUrl.of(repository);
+      if (!gitUrl.isValid()) {
+        LOG.warn("The input URL is not valid, please try again.");
+      }
+    }
+    return gitUrl;
+  }
+
+  private String handleDefaultRepository(String repository) {
+    if ("-".equals(repository)) {
+      if (isCodeRepository()) {
+        LOG.warn("'-' is found after '--code'. This is invalid.");
+        repository = null;
+      } else {
+        LOG.info("'-' was found for settings repository, the default settings repository '{}' will be used.", IdeContext.DEFAULT_SETTINGS_REPO_URL);
+        repository = IdeContext.DEFAULT_SETTINGS_REPO_URL;
+      }
+    }
+    return repository;
+  }
+
+  private void checkProjectNameConvention(String projectName) {
+    boolean isSettingsRepo = projectName.contains(IdeContext.SETTINGS_REPOSITORY_KEYWORD);
+    boolean codeRepository = isCodeRepository();
+    if (isSettingsRepo == codeRepository) {
+      String warningTemplate;
+      if (codeRepository) {
+        warningTemplate = """
+            Your git URL is pointing to the project name {} that contains the keyword '{}'.
+            Therefore we assume that you did a mistake by adding the '--code' option to the ide project creation.
+            Do you really want to create the project?""";
+      } else {
+        warningTemplate = """
+            Your git URL is pointing to the project name {} that does not contain the keyword ''{}''.
+            Therefore we assume that you forgot to add the '--code' option to the ide project creation.
+            Do you really want to create the project?""";
+      }
+      this.context.askToContinue(warningTemplate, projectName, IdeContext.SETTINGS_REPOSITORY_KEYWORD);
+    }
+  }
+
+  private void initializeRepository(GitUrl gitUrl) {
+
+    GitContext gitContext = this.context.getGitContext();
+    Path settingsPath = this.context.getSettingsPath();
+    Path repoPath = settingsPath;
+    boolean codeRepository = isCodeRepository();
+    if (codeRepository) {
+      // clone the given code repository into IDE_HOME/workspaces/main
+      repoPath = context.getWorkspacePath().resolve(gitUrl.getProjectName());
+    }
+    gitContext.pullOrClone(gitUrl, repoPath);
+    if (codeRepository) {
+      // check for settings folder and create symlink to IDE_HOME/settings
+      Path settingsFolder = repoPath.resolve(IdeContext.FOLDER_SETTINGS);
+      if (Files.exists(settingsFolder)) {
+        context.getFileAccess().symlink(settingsFolder, settingsPath);
+      } else {
+        throw new CliException("Invalid code repository " + gitUrl + ": missing a settings folder at " + settingsFolder);
+      }
+    }
+    this.context.getGitContext().saveCurrentCommitId(settingsPath, this.context.getSettingsCommitIdPath());
+  }
+
 
   private void updateSoftware() {
 
     if (this.skipTools.isTrue()) {
-      this.context.info("Skipping installation/update of tools as specified by the user.");
+      LOG.info("Skipping installation/update of tools as specified by the user.");
       return;
     }
     Step step = this.context.newStep("Install or update software");
@@ -180,11 +293,12 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
   private void doUpdateSoftwareStep(Step step) {
 
     Set<ToolCommandlet> toolCommandlets = new HashSet<>();
+    CommandletManager commandletManager = this.context.getCommandletManager();
     // installed tools in IDE_HOME/software
     List<Path> softwarePaths = this.context.getFileAccess().listChildren(this.context.getSoftwarePath(), Files::isDirectory);
     for (Path softwarePath : softwarePaths) {
       String toolName = softwarePath.getFileName().toString();
-      ToolCommandlet toolCommandlet = this.context.getCommandletManager().getToolCommandlet(toolName);
+      ToolCommandlet toolCommandlet = commandletManager.getToolCommandlet(toolName);
       if (toolCommandlet != null) {
         toolCommandlets.add(toolCommandlet);
       }
@@ -194,7 +308,13 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     List<String> regularTools = IdeVariables.IDE_TOOLS.get(this.context);
     if (regularTools != null) {
       for (String regularTool : regularTools) {
-        toolCommandlets.add(this.context.getCommandletManager().getRequiredToolCommandlet(regularTool));
+        ToolCommandlet toolCommandlet = commandletManager.getToolCommandlet(regularTool);
+        if (toolCommandlet == null) {
+          String displayName = (regularTool == null || regularTool.isBlank()) ? "<empty>" : "'" + regularTool + "'";
+          LOG.error("Cannot install or update tool '{}''. No matching commandlet found. Please check your IDE_TOOLS configuration.", displayName);
+        } else {
+          toolCommandlets.add(toolCommandlet);
+        }
       }
     }
 
@@ -208,15 +328,47 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     for (ToolCommandlet toolCommandlet : toolCommandlets) {
       this.context.newStep("Install " + toolCommandlet.getName()).run(() -> toolCommandlet.install(false));
     }
+
+    ExtraTools extraTools = ExtraToolsMapper.get().loadJsonFromFolder(this.context.getSettingsPath());
+    if (extraTools != null) {
+      List<String> toolNames = extraTools.getSortedToolNames();
+      LOG.info("Found extra installation of the following tools: {}", toolNames);
+      for (String tool : toolNames) {
+        List<ExtraToolInstallation> installations = extraTools.getExtraInstallations(tool);
+        this.context.newStep("Install extra version(s) of " + tool).run(() -> installExtraToolInstallations(tool, installations));
+      }
+    }
+  }
+
+  private void installExtraToolInstallations(String tool, List<ExtraToolInstallation> extraInstallations) {
+
+    CommandletManager commandletManager = this.context.getCommandletManager();
+    FileAccess fileAccess = this.context.getFileAccess();
+    Path extraPath = this.context.getSoftwareExtraPath();
+    LocalToolCommandlet toolCommandlet = commandletManager.getRequiredLocalToolCommandlet(tool);
+    for (ExtraToolInstallation extraInstallation : extraInstallations) {
+      ToolInstallRequest request = new ToolInstallRequest(false);
+      String edition = extraInstallation.edition();
+      if (edition == null) {
+        edition = toolCommandlet.getConfiguredEdition();
+      }
+      ToolEdition toolEdition = new ToolEdition(tool, edition);
+      VersionIdentifier version = extraInstallation.version();
+      request.setRequested(new ToolEditionAndVersion(toolEdition, version));
+      Path extraToolPath = extraPath.resolve(tool);
+      Path toolPath = extraToolPath.resolve(extraInstallation.name());
+      request.setToolPathForExtraInstallation(toolPath);
+      toolCommandlet.install(request);
+    }
   }
 
   private void updateRepositories() {
 
     if (this.skipRepositories.isTrue()) {
       if (this.forceRepositories.isTrue()) {
-        this.context.warning("Options to skip and force repositories are incompatible and should not be combined. Ignoring --force-repositories to proceed.");
+        LOG.warn("Options to skip and force repositories are incompatible and should not be combined. Ignoring --force-repositories to proceed.");
       }
-      this.context.info("Skipping setup of repositories as specified by the user.");
+      LOG.info("Skipping setup of repositories as specified by the user.");
       return;
     }
     RepositoryCommandlet repositoryCommandlet = this.context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
@@ -228,13 +380,13 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
     List<String> ides = IdeVariables.CREATE_START_SCRIPTS.get(this.context);
     if (ides == null) {
-      this.context.info("Variable CREATE_START_SCRIPTS is undefined - skipping start script creation.");
+      LOG.info("Variable CREATE_START_SCRIPTS is undefined - skipping start script creation.");
       return;
     }
     for (String ide : ides) {
       ToolCommandlet tool = this.context.getCommandletManager().getToolCommandlet(ide);
       if (tool == null) {
-        this.context.error("Undefined IDE '{}' configured in variable CREATE_START_SCRIPTS.");
+        LOG.error("Undefined IDE '{}' configured in variable CREATE_START_SCRIPTS.", ide);
       } else {
         createStartScript(ide);
       }
@@ -243,7 +395,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
   private void createStartScript(String ide) {
 
-    this.context.info("Creating start scripts for {}", ide);
+    LOG.info("Creating start scripts for {}", ide);
     Path workspaces = this.context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES);
     try (Stream<Path> childStream = Files.list(workspaces)) {
       Iterator<Path> iterator = childStream.iterator();
@@ -274,16 +426,9 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     }
     String scriptContent;
     if (windows) {
-      scriptContent = "@echo off\r\n"
-          + "pushd %~dp0\r\n"
-          + "cd workspaces/" + workspace + "\r\n"
-          + "call ide " + ide + "\r\n"
-          + "popd\r\n";
+      scriptContent = "@echo off\r\n" + "pushd %~dp0\r\n" + "cd workspaces/" + workspace + "\r\n" + "call ide " + ide + "\r\n" + "popd\r\n";
     } else {
-      scriptContent = "#!/usr/bin/env bash\n"
-          + "cd \"$(dirname \"$0\")\"\n"
-          + "cd workspaces/" + workspace + "\n"
-          + "ideasy " + ide + "\n";
+      scriptContent = "#!/usr/bin/env bash\n" + "cd \"$(dirname \"$0\")\"\n" + "cd workspaces/" + workspace + "\n" + "ideasy " + ide + "\n";
     }
     FileAccess fileAccess = this.context.getFileAccess();
     fileAccess.writeFileContent(scriptContent, scriptPath);
@@ -299,194 +444,4 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     return false;
   }
 
-  /**
-   * Strategy for handling repository.
-   */
-  protected interface RepositoryStrategy {
-
-    /**
-     * Handler for blank repository, displays warning and asks for input of repository URL.
-     *
-     * @param context ide context
-     * @return repository url from user input
-     */
-    String handleBlankRepository(IdeContext context);
-
-    /**
-     * Handler for default repository "-".
-     *
-     * @param context ide context
-     * @return repository url
-     */
-    String handleDefaultRepository(IdeContext context);
-
-    /**
-     * Check the given project name, displays warning when name does not meet convention.
-     *
-     * @param context ide context
-     * @param projectName the project name of repository
-     */
-    void checkProjectNameConvention(IdeContext context, String projectName);
-
-    /**
-     * Initialize the given Git repository.
-     *
-     * @param context ide context
-     * @param gitUrl URL of the git repository
-     */
-    void initializeRepository(IdeContext context, GitUrl gitUrl);
-
-    /**
-     * Create a new commandlet step.
-     *
-     * @param context ide context
-     * @return the created new commandlet Step
-     */
-    Step createNewStep(IdeContext context);
-
-    /**
-     * Resolve the given commandlet step.
-     *
-     * @param step to resolve
-     */
-    void resolveStep(Step step);
-  }
-
-  /**
-   * Strategy implementation for code repository.
-   */
-  static class CodeRepositoryStrategy implements RepositoryStrategy {
-
-    @Override
-    public String handleBlankRepository(IdeContext context) {
-      String message = """
-          No code repository was given after '--code'.
-          Please give the code repository below that includes your settings folder.
-          Further details can be found here: https://github.com/devonfw/IDEasy/blob/main/documentation/settings.adoc
-          Code repository URL:""";
-      return context.askForInput(message);
-    }
-
-    @Override
-    public String handleDefaultRepository(IdeContext context) {
-      String warning = "'-' is found after '--code'. This is invalid.";
-      context.warning(warning);
-      String message = """
-          Please give the code repository below that includes your settings folder.
-          Further details can be found here: https://github.com/devonfw/IDEasy/blob/main/documentation/settings.adoc
-          Code repository URL:""";
-      return context.askForInput(message);
-    }
-
-    @Override
-    public void checkProjectNameConvention(IdeContext context, String projectName) {
-      if (projectName.contains(IdeContext.SETTINGS_REPOSITORY_KEYWORD)) {
-        String warningTemplate = """
-            Your git URL is pointing to the project name {} that contains the keyword '{}'.
-            Therefore we assume that you did a mistake by adding the '--code' option to the ide project creation.
-            Do you really want to create the project?""";
-        context.askToContinue(warningTemplate, projectName,
-            IdeContext.SETTINGS_REPOSITORY_KEYWORD);
-      }
-    }
-
-    @Override
-    public void initializeRepository(IdeContext context, GitUrl gitUrl) {
-      // clone the given repository into IDE_HOME/workspaces/main
-      Path codeRepoPath = context.getWorkspacePath().resolve(gitUrl.getProjectName());
-      context.getGitContext().pullOrClone(gitUrl, codeRepoPath);
-
-      // check for settings folder and create symlink to IDE_HOME/settings
-      Path settingsFolder = codeRepoPath.resolve(IdeContext.FOLDER_SETTINGS);
-      if (Files.exists(settingsFolder)) {
-        context.getFileAccess().symlink(settingsFolder, context.getSettingsPath());
-        // create a file in IDE_HOME with the current local commit id
-        context.getGitContext().saveCurrentCommitId(codeRepoPath,
-            context.getSettingsCommitIdPath());
-      } else {
-        context.warning("No settings folder was found inside the code repository.");
-      }
-    }
-
-    @Override
-    public Step createNewStep(IdeContext context) {
-      return context.newStep("Clone code repository");
-    }
-
-    @Override
-    public void resolveStep(Step step) {
-      step.success("Successfully updated code repository.");
-    }
-  }
-
-  /**
-   * Strategy implementation for settings repository.
-   */
-  static class SettingsRepositoryStrategy implements RepositoryStrategy {
-
-    @Override
-    public String handleBlankRepository(IdeContext context) {
-      Path settingsPath = context.getSettingsPath();
-      String message = "Missing your settings at " + settingsPath
-          + " and no SETTINGS_URL is defined.\n"
-          + "Further details can be found here: https://github.com/devonfw/IDEasy/blob/main/documentation/settings.adoc\n"
-          + "Please contact the technical lead of your project to get the SETTINGS_URL for your project.\n"
-          + "In case you just want to test IDEasy you may simply hit return to install the default settings.\n"
-          + "Settings URL [" + IdeContext.DEFAULT_SETTINGS_REPO_URL + "]:";
-      return context.askForInput(message, IdeContext.DEFAULT_SETTINGS_REPO_URL);
-    }
-
-    @Override
-    public String handleDefaultRepository(IdeContext context) {
-      String message = "'-' is found for settings repository, the default settings repository '{}' will be used.";
-      context.info(message, IdeContext.DEFAULT_SETTINGS_REPO_URL);
-      return IdeContext.DEFAULT_SETTINGS_REPO_URL;
-    }
-
-    @Override
-    public void checkProjectNameConvention(IdeContext context, String projectName) {
-      if (!projectName.contains(IdeContext.SETTINGS_REPOSITORY_KEYWORD)) {
-        String warningTemplate = """
-            Your git URL is pointing to the project name {} that does not contain the keyword ''{}''.
-            Therefore we assume that you forgot to add the '--code' option to the ide project creation.
-            Do you really want to create the project?""";
-        context.askToContinue(warningTemplate, projectName,
-            IdeContext.SETTINGS_REPOSITORY_KEYWORD);
-      }
-    }
-
-    @Override
-    public void initializeRepository(IdeContext context, GitUrl gitUrl) {
-      Path settingsPath = context.getSettingsPath();
-      GitContext gitContext = context.getGitContext();
-      gitContext.pullOrClone(gitUrl, settingsPath);
-      context.getGitContext().saveCurrentCommitId(settingsPath,
-          context.getSettingsCommitIdPath());
-    }
-
-    @Override
-    public Step createNewStep(IdeContext context) {
-      return context.newStep("Clone settings repository");
-    }
-
-    @Override
-    public void resolveStep(Step step) {
-      step.success("Successfully updated settings repository.");
-    }
-  }
-
-  protected void processRepositoryUsingStrategy(RepositoryStrategy strategy) {
-    Step step = strategy.createNewStep(this.context);
-    String repository = this.settingsRepo.getValue();
-    while (repository == null || repository.isBlank()) {
-      repository = strategy.handleBlankRepository(this.context);
-    }
-    while ("-".equals(repository)) {
-      repository = strategy.handleDefaultRepository(context);
-    }
-    GitUrl gitUrl = GitUrl.of(repository);
-    strategy.checkProjectNameConvention(this.context, gitUrl.getProjectName());
-    strategy.initializeRepository(this.context, gitUrl);
-    strategy.resolveStep(step);
-  }
 }

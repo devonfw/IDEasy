@@ -2,15 +2,21 @@ package com.devonfw.tools.ide.tool.ide;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
+import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
 import com.devonfw.tools.ide.tool.intellij.Intellij;
 import com.devonfw.tools.ide.tool.plugin.PluginBasedCommandlet;
@@ -20,6 +26,8 @@ import com.devonfw.tools.ide.tool.vscode.Vscode;
  * {@link ToolCommandlet} for an IDE (integrated development environment) such as {@link Eclipse}, {@link Vscode}, or {@link Intellij}.
  */
 public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(IdeToolCommandlet.class);
 
   /**
    * The constructor.
@@ -45,21 +53,21 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
   }
 
   @Override
-  public final void run() {
-    super.run();
+  protected final void doRun() {
+    super.doRun();
   }
 
   @Override
-  public void runTool(String... args) {
+  public ProcessResult runTool(List<String> args) {
 
-    runTool(ProcessMode.BACKGROUND, null, args);
+    return runTool(ProcessMode.BACKGROUND, null, args);
   }
 
   @Override
-  public boolean install(boolean silent, ProcessContext processContext, Step step) {
+  public ToolInstallation install(ToolInstallRequest request) {
 
     configureWorkspace();
-    return super.install(silent, processContext, step);
+    return super.install(request);
   }
 
   /**
@@ -70,7 +78,7 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
     FileAccess fileAccess = this.context.getFileAccess();
     Path workspaceFolder = this.context.getWorkspacePath();
     if (!fileAccess.isExpectedFolder(workspaceFolder)) {
-      this.context.warning("Current workspace does not exist: {}", workspaceFolder);
+      LOG.warn("Current workspace does not exist: {}", workspaceFolder);
       return; // should actually never happen...
     }
     Step step = this.context.newStep("Configuring workspace " + workspaceFolder.getFileName() + " for IDE " + this.tool);
@@ -107,10 +115,10 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
     Path setupFolder = templatesFolder.resolve(IdeContext.FOLDER_SETUP);
     Path updateFolder = templatesFolder.resolve(IdeContext.FOLDER_UPDATE);
     if (!Files.isDirectory(setupFolder) && !Files.isDirectory(updateFolder)) {
-      this.context.trace("Skipping empty or non-existing workspace template folder {}.", templatesFolder);
+      LOG.trace("Skipping empty or non-existing workspace template folder {}.", templatesFolder);
       return errors;
     }
-    this.context.debug("Merging workspace templates from {}...", templatesFolder);
+    LOG.debug("Merging workspace templates from {}...", templatesFolder);
     return errors + this.context.getWorkspaceMerger().merge(setupFolder, updateFolder, this.context.getVariables(), workspaceFolder);
   }
 

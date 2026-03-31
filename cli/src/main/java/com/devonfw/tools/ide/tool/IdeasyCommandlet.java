@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.tool;
 
+import java.io.Reader;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -7,30 +9,39 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.commandlet.UpgradeMode;
 import com.devonfw.tools.ide.common.SimpleSystemPath;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.git.GitContext;
-import com.devonfw.tools.ide.git.GitContextImpl;
 import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.io.IniFile;
-import com.devonfw.tools.ide.io.IniSection;
+import com.devonfw.tools.ide.io.ini.IniFile;
+import com.devonfw.tools.ide.io.ini.IniSection;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.mvn.MvnArtifact;
 import com.devonfw.tools.ide.tool.mvn.MvnBasedLocalToolCommandlet;
-import com.devonfw.tools.ide.tool.repository.MavenRepository;
+import com.devonfw.tools.ide.tool.mvn.MvnRepository;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.IdeVersion;
 import com.devonfw.tools.ide.version.VersionIdentifier;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * {@link MvnBasedLocalToolCommandlet} for IDEasy (ide-cli).
  */
 public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(IdeasyCommandlet.class);
 
   /** The {@link MvnArtifact} for IDEasy. */
   public static final MvnArtifact ARTIFACT = MvnArtifact.ofIdeasyCli("*!", "tar.gz", "${os}-${arch}");
@@ -74,6 +85,12 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   }
 
   @Override
+  public String getInstalledEdition() {
+
+    return this.tool;
+  }
+
+  @Override
   public String getConfiguredEdition() {
 
     return this.tool;
@@ -104,15 +121,16 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   }
 
   @Override
-  public boolean install(boolean silent) {
+  protected ToolInstallation doInstall(ToolInstallRequest request) {
 
     this.context.requireOnline("upgrade of IDEasy", true);
 
     if (IdeVersion.isUndefined() && !this.context.isForceMode()) {
-      this.context.warning("You are using IDEasy version {} which indicates local development - skipping upgrade.", IdeVersion.getVersionString());
-      return false;
+      VersionIdentifier version = IdeVersion.getVersionIdentifier();
+      LOG.warn("You are using IDEasy version {} which indicates local development - skipping upgrade.", version);
+      return toolAlreadyInstalled(request);
     }
-    return super.install(silent);
+    return super.doInstall(request);
   }
 
   /**
@@ -120,9 +138,11 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
    */
   public VersionIdentifier getLatestVersion() {
 
-    VersionIdentifier currentVersion = IdeVersion.getVersionIdentifier();
-    if (IdeVersion.isUndefined()) {
-      return currentVersion;
+    if (!this.context.isForceMode()) {
+      VersionIdentifier currentVersion = IdeVersion.getVersionIdentifier();
+      if (IdeVersion.isUndefined()) {
+        return currentVersion;
+      }
     }
     VersionIdentifier configuredVersion = getConfiguredVersion();
     return getToolRepository().resolveVersion(this.tool, getConfiguredEdition(), configuredVersion, this);
@@ -135,21 +155,22 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
    */
   public boolean checkIfUpdateIsAvailable() {
     VersionIdentifier installedVersion = getInstalledVersion();
-    this.context.success("Your version of IDEasy is {}.", installedVersion);
+    IdeLogLevel.SUCCESS.log(LOG, "Your version of IDEasy is {}.", installedVersion);
     if (IdeVersion.isSnapshot()) {
-      this.context.warning("You are using a SNAPSHOT version of IDEasy. For stability consider switching to a stable release via 'ide upgrade --mode=stable'");
+      LOG.warn("You are using a SNAPSHOT version of IDEasy. For stability consider switching to a stable release via 'ide upgrade --mode=stable'");
     }
     if (this.context.isOffline()) {
-      this.context.warning("Skipping check for newer version of IDEasy because you are offline.");
+      LOG.warn("Skipping check for newer version of IDEasy because you are offline.");
       return false;
     }
     VersionIdentifier latestVersion = getLatestVersion();
     if (installedVersion.equals(latestVersion)) {
-      this.context.success("Your are using the latest version of IDEasy and no update is available.");
+      IdeLogLevel.SUCCESS.log(LOG, "Your are using the latest version of IDEasy and no update is available.");
       return false;
     } else {
-      this.context.interaction("Your version of IDEasy is {} but version {} is available. Please run the following command to upgrade to the latest version:\n"
-          + "ide upgrade", installedVersion, latestVersion);
+      IdeLogLevel.INTERACTION.log(LOG,
+          "Your version of IDEasy is {} but version {} is available. Please run the following command to upgrade to the latest version:\n"
+              + "ide upgrade", installedVersion, latestVersion);
       return true;
     }
   }
@@ -164,37 +185,38 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     Path ideRoot = determineIdeRoot(cwd);
     Path idePath = ideRoot.resolve(IdeContext.FOLDER_UNDERSCORE_IDE);
     Path installationPath = idePath.resolve(IdeContext.FOLDER_INSTALLATION);
-    Path ideasySoftwarePath = idePath.resolve(IdeContext.FOLDER_SOFTWARE).resolve(MavenRepository.ID).resolve(IdeasyCommandlet.TOOL_NAME)
+    Path ideasySoftwarePath = idePath.resolve(IdeContext.FOLDER_SOFTWARE).resolve(MvnRepository.ID).resolve(IdeasyCommandlet.TOOL_NAME)
         .resolve(IdeasyCommandlet.TOOL_NAME);
     Path ideasyVersionPath = ideasySoftwarePath.resolve(IdeVersion.getVersionString());
-    if (Files.isDirectory(ideasyVersionPath)) {
-      throw new CliException("IDEasy is already installed at " + ideasyVersionPath + " - if your installation is broken, delete it manually and rerun setup!");
-    }
     FileAccess fileAccess = this.context.getFileAccess();
-    List<Path> installationArtifacts = new ArrayList<>();
-    boolean success = true;
-    success &= addInstallationArtifact(cwd, "bin", true, installationArtifacts);
-    success &= addInstallationArtifact(cwd, "functions", true, installationArtifacts);
-    success &= addInstallationArtifact(cwd, "internal", true, installationArtifacts);
-    success &= addInstallationArtifact(cwd, "system", true, installationArtifacts);
-    success &= addInstallationArtifact(cwd, "IDEasy.pdf", true, installationArtifacts);
-    success &= addInstallationArtifact(cwd, "setup", true, installationArtifacts);
-    success &= addInstallationArtifact(cwd, "setup.bat", false, installationArtifacts);
-    if (!success) {
-      throw new CliException("IDEasy release is inconsistent at " + cwd);
+    if (Files.isDirectory(ideasyVersionPath)) {
+      LOG.error("IDEasy is already installed at {} - if your installation is broken, delete it manually and rerun setup!", ideasyVersionPath);
+    } else {
+      List<Path> installationArtifacts = new ArrayList<>();
+      boolean success = true;
+      success &= addInstallationArtifact(cwd, "bin", true, installationArtifacts);
+      success &= addInstallationArtifact(cwd, "functions", true, installationArtifacts);
+      success &= addInstallationArtifact(cwd, "internal", true, installationArtifacts);
+      success &= addInstallationArtifact(cwd, "system", true, installationArtifacts);
+      success &= addInstallationArtifact(cwd, "IDEasy.pdf", true, installationArtifacts);
+      success &= addInstallationArtifact(cwd, "setup", true, installationArtifacts);
+      success &= addInstallationArtifact(cwd, "setup.bat", false, installationArtifacts);
+      if (!success) {
+        throw new CliException("IDEasy release is inconsistent at " + cwd);
+      }
+      fileAccess.mkdirs(ideasyVersionPath);
+      for (Path installationArtifact : installationArtifacts) {
+        fileAccess.copy(installationArtifact, ideasyVersionPath);
+      }
+      this.context.writeVersionFile(IdeVersion.getVersionIdentifier(), ideasyVersionPath);
     }
-    fileAccess.mkdirs(ideasyVersionPath);
-    for (Path installationArtifact : installationArtifacts) {
-      fileAccess.copy(installationArtifact, ideasyVersionPath);
-    }
-    this.context.writeVersionFile(IdeVersion.getVersionIdentifier(), ideasyVersionPath);
     fileAccess.symlink(ideasyVersionPath, installationPath);
     addToShellRc(BASHRC, ideRoot, null);
     addToShellRc(ZSHRC, ideRoot, "autoload -U +X bashcompinit && bashcompinit");
     installIdeasyWindowsEnv(ideRoot, installationPath);
-    this.context.success("IDEasy has been installed successfully on your system.");
-    this.context.warning("IDEasy has been setup for new shells but it cannot work in your current shell(s).\n"
-        + "Reboot or open a new terminal to make it work.");
+    IdeLogLevel.SUCCESS.log(LOG, "IDEasy has been installed successfully on your system.");
+    LOG.warn("IDEasy has been setup for new shells but it cannot work in your current shell(s).\n"
+        + "To use it here, run 'source ~/.bashrc' (or your shell config). Otherwise, open a new terminal or reboot.");
   }
 
   private void installIdeasyWindowsEnv(Path ideRoot, Path installationPath) {
@@ -205,13 +227,13 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     helper.setUserEnvironmentValue(IdeVariables.IDE_ROOT.getName(), ideRoot.toString());
     String userPath = helper.getUserEnvironmentValue(IdeVariables.PATH.getName());
     if (userPath == null) {
-      this.context.error("Could not read user PATH from registry!");
+      LOG.error("Could not read user PATH from registry!");
     } else {
-      this.context.info("Found user PATH={}", userPath);
+      LOG.info("Found user PATH={}", userPath);
       Path ideasyBinPath = installationPath.resolve("bin");
       SimpleSystemPath path = SimpleSystemPath.of(userPath, ';');
       if (path.getEntries().isEmpty()) {
-        this.context.warning("ATTENTION:\n"
+        LOG.warn("ATTENTION:\n"
             + "Your user specific PATH variable seems to be empty.\n"
             + "You can double check this by pressing [Windows][r] and launch the program SystemPropertiesAdvanced.\n"
             + "Then click on 'Environment variables' and check if 'PATH' is set in the 'user variables' from the upper list.\n"
@@ -220,7 +242,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
             + "Otherwise all is correct and you can continue.");
         this.context.askToContinue("Are you sure you want to override your PATH?");
       } else {
-        path.removeEntries(s -> s.endsWith(IDE_BIN));
+        path.removeEntries(s -> s.endsWith(IDE_INSTALLATION_BIN));
       }
       path.getEntries().add(ideasyBinPath.toString());
       helper.setUserEnvironmentValue(IdeVariables.PATH.getName(), path.toString());
@@ -229,14 +251,199 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   }
 
   private void setGitLongpaths() {
-    GitContext gitContext = new GitContextImpl(this.context);
-    gitContext.verifyGitInstalled();
+    this.context.getGitContext().findGitRequired();
     Path configPath = this.context.getUserHome().resolve(".gitconfig");
     FileAccess fileAccess = this.context.getFileAccess();
     IniFile iniFile = fileAccess.readIniFile(configPath);
     IniSection coreSection = iniFile.getOrCreateSection("core");
-    coreSection.getProperties().put("longpaths", "true");
+    coreSection.setProperty("longpaths", "true");
     fileAccess.writeIniFile(iniFile, configPath);
+  }
+
+  /**
+   * Sets up Windows Terminal with Git Bash integration.
+   */
+  public void setupWindowsTerminal() {
+    if (!this.context.getSystemInfo().isWindows()) {
+      return;
+    }
+    if (!isWindowsTerminalInstalled()) {
+      try {
+        installWindowsTerminal();
+      } catch (Exception e) {
+        LOG.error("Failed to install Windows Terminal!", e);
+      }
+    }
+    configureWindowsTerminalGitBash();
+  }
+
+  /**
+   * Checks if Windows Terminal is installed.
+   *
+   * @return {@code true} if Windows Terminal is installed, {@code false} otherwise.
+   */
+  private boolean isWindowsTerminalInstalled() {
+    try {
+      ProcessResult result = this.context.newProcess()
+          .executable("powershell")
+          .addArgs("-Command", "Get-AppxPackage -Name Microsoft.WindowsTerminal")
+          .run(ProcessMode.DEFAULT_CAPTURE);
+      return result.isSuccessful() && !result.getOut().isEmpty();
+    } catch (Exception e) {
+      LOG.debug("Failed to check Windows Terminal installation.", e);
+      return false;
+    }
+  }
+
+  /**
+   * Installs Windows Terminal using winget.
+   */
+  private void installWindowsTerminal() {
+    try {
+      LOG.info("Installing Windows Terminal...");
+      ProcessResult result = this.context.newProcess()
+          .executable("winget")
+          .addArgs("install", "Microsoft.WindowsTerminal")
+          .run(ProcessMode.DEFAULT);
+      if (result.isSuccessful()) {
+        IdeLogLevel.SUCCESS.log(LOG, "Windows Terminal has been installed successfully.");
+      } else {
+        LOG.warn("Failed to install Windows Terminal. Please install it manually from Microsoft Store.");
+      }
+    } catch (Exception e) {
+      LOG.warn("Failed to install Windows Terminal: {}. Please install it manually from Microsoft Store.", e.toString());
+    }
+  }
+
+  /**
+   * Configures Git Bash integration in Windows Terminal.
+   */
+  protected void configureWindowsTerminalGitBash() {
+    Path settingsPath = getWindowsTerminalSettingsPath();
+    if (settingsPath == null || !Files.exists(settingsPath)) {
+      LOG.warn("Windows Terminal settings file not found. Cannot configure Git Bash integration.");
+      return;
+    }
+
+    try {
+      Path bashPath = this.context.findBash();
+      if (bashPath == null) {
+        LOG.warn("Git Bash not found. Cannot configure Windows Terminal integration.");
+        return;
+      }
+
+      configureGitBashProfile(settingsPath, bashPath.toString());
+      IdeLogLevel.SUCCESS.log(LOG, "Git Bash has been configured in Windows Terminal.");
+    } catch (Exception e) {
+      LOG.warn("Failed to configure Git Bash in Windows Terminal: {}", e.getMessage());
+    }
+  }
+
+  /**
+   * Gets the Windows Terminal settings file path.
+   *
+   * @return the {@link Path} to the Windows Terminal settings file, or {@code null} if not found.
+   */
+  protected Path getWindowsTerminalSettingsPath() {
+    Path localAppData = this.context.getUserHome().resolve("AppData").resolve("Local");
+    Path packagesPath = localAppData.resolve("Packages");
+
+    // Try the new Windows Terminal package first
+    Path newTerminalPath = packagesPath.resolve("Microsoft.WindowsTerminal_8wekyb3d8bbwe")
+        .resolve("LocalState").resolve("settings.json");
+    if (Files.exists(newTerminalPath)) {
+      return newTerminalPath;
+    }
+
+    // Try the old Windows Terminal Preview package
+    Path previewPath = packagesPath.resolve("Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe")
+        .resolve("LocalState").resolve("settings.json");
+    if (Files.exists(previewPath)) {
+      return previewPath;
+    }
+
+    return null;
+  }
+
+  /**
+   * Configures Git Bash profile in Windows Terminal settings.
+   *
+   * @param settingsPath the {@link Path} to the Windows Terminal settings file.
+   * @param bashPath the path to the Git Bash executable.
+   */
+  private void configureGitBashProfile(Path settingsPath, String bashPath) throws Exception {
+
+    ObjectMapper mapper = new ObjectMapper();
+    ObjectNode root;
+    try (Reader reader = Files.newBufferedReader(settingsPath)) {
+      JsonNode rootNode = mapper.readTree(reader);
+      root = (ObjectNode) rootNode;
+    }
+
+    // Get or create profiles object
+    ObjectNode profiles = (ObjectNode) root.get("profiles");
+    if (profiles == null) {
+      profiles = mapper.createObjectNode();
+      root.set("profiles", profiles);
+    }
+
+    // Get or create list array of profiles object
+    JsonNode profilesList = profiles.get("list");
+    if (profilesList == null || !profilesList.isArray()) {
+      profilesList = mapper.createArrayNode();
+      profiles.set("list", profilesList);
+    }
+
+    // Check if Git Bash profile already exists
+    boolean gitBashProfileExists = false;
+    for (JsonNode profile : profilesList) {
+      if (profile.has("name") && profile.get("name").asText().equals("Git Bash")) {
+        gitBashProfileExists = true;
+        break;
+      }
+    }
+
+    // Add Git Bash profile if it doesn't exist
+    if (gitBashProfileExists) {
+      LOG.info("Git Bash profile already exists in {}.", settingsPath);
+    } else {
+      ObjectNode gitBashProfile = mapper.createObjectNode();
+      String newGuid = "{2ece5bfe-50ed-5f3a-ab87-5cd4baafed2b}";
+      String iconPath = getGitBashIconPath(bashPath);
+      String startingDirectory = this.context.getIdeRoot().toString();
+
+      gitBashProfile.put("guid", newGuid);
+      gitBashProfile.put("name", "Git Bash");
+      gitBashProfile.put("commandline", bashPath);
+      gitBashProfile.put("icon", iconPath);
+      gitBashProfile.put("startingDirectory", startingDirectory);
+
+      ((ArrayNode) profilesList).add(gitBashProfile);
+
+      // Set Git Bash as default profile
+      root.put("defaultProfile", newGuid);
+
+      // Write back to file
+      try (Writer writer = Files.newBufferedWriter(settingsPath)) {
+        mapper.writerWithDefaultPrettyPrinter().writeValue(writer, root);
+      }
+    }
+  }
+
+  private String getGitBashIconPath(String bashPathString) {
+    Path bashPath = Path.of(bashPathString);
+    // "C:\\Program Files\\Git\\bin\\bash.exe"
+    // "C:\\Program Files\\Git\\mingw64\\share\\git\\git-for-windows.ico"
+    Path parent = bashPath.getParent();
+    if (parent != null) {
+      Path iconPath = parent.resolve("mingw64/share/git/git-for-windows.ico");
+      if (Files.exists(iconPath)) {
+        LOG.debug("Found git-bash icon at {}", iconPath);
+        return iconPath.toString();
+      }
+      LOG.debug("Git Bash icon not found at {}. Using default icon.", iconPath);
+    }
+    return "ms-appx:///ProfileIcons/{0caa0dad-35be-5f56-a8ff-afceeeaa6101}.png";
   }
 
   static String removeObsoleteEntryFromWindowsPath(String userPath) {
@@ -295,9 +502,9 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   private void modifyShellRc(String filename, Path ideRoot, boolean add, String extraLine) {
 
     if (add) {
-      this.context.info("Configuring IDEasy in {}", filename);
+      LOG.info("Configuring IDEasy in {}", filename);
     } else {
-      this.context.info("Removing IDEasy from {}", filename);
+      LOG.info("Removing IDEasy from {}", filename);
     }
     Path rcFile = this.context.getUserHome().resolve(filename);
     FileAccess fileAccess = this.context.getFileAccess();
@@ -317,7 +524,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       String line = iterator.next();
       line = line.trim();
       if (isObsoleteRcLine(line)) {
-        this.context.info("Removing obsolete line from {}: {}", filename, line);
+        LOG.info("Removing obsolete line from {}: {}", filename, line);
         iterator.remove();
         removeCount++;
       } else if (line.equals(extraLine)) {
@@ -334,7 +541,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       lines.add(BASH_CODE_SOURCE_FUNCTIONS);
     }
     fileAccess.writeFileLines(lines, rcFile);
-    this.context.debug("Successfully updated {}", filename);
+    LOG.debug("Successfully updated {}", filename);
   }
 
   private static boolean isObsoleteRcLine(String line) {
@@ -358,7 +565,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     if (Files.exists(artifactPath)) {
       installationArtifacts.add(artifactPath);
     } else if (required) {
-      this.context.error("Missing required file {}", artifactName);
+      LOG.error("Missing required file {}", artifactName);
       return false;
     }
     return true;
@@ -393,8 +600,8 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     uninstallIdeasyWindowsEnv(ideRoot);
     uninstallIdeasyIdePath(idePath);
     deleteDownloadCache();
-    this.context.success("IDEasy has been uninstalled from your system.");
-    this.context.interaction("ATTENTION:\n"
+    IdeLogLevel.SUCCESS.log(LOG, "IDEasy has been uninstalled from your system.");
+    IdeLogLevel.INTERACTION.log(LOG, "ATTENTION:\n"
         + "In order to prevent data-loss, we do not delete your projects and git repositories!\n"
         + "To entirely get rid of IDEasy, also check your IDE_ROOT folder at:\n"
         + "{}", ideRoot);
@@ -402,7 +609,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
 
   private void deleteDownloadCache() {
     Path downloadPath = this.context.getDownloadPath();
-    this.context.info("Deleting download cache from {}", downloadPath);
+    LOG.info("Deleting download cache from {}", downloadPath);
     this.context.getFileAccess().delete(downloadPath);
   }
 
@@ -410,10 +617,11 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     if (this.context.getSystemInfo().isWindows()) {
       this.context.newProcess().executable("bash").addArgs("-c",
           "sleep 10 && rm -rf \"" + WindowsPathSyntax.MSYS.format(idePath) + "\"").run(ProcessMode.BACKGROUND);
-      this.context.interaction("To prevent windows file locking errors, we perform an asynchronous deletion of {} in background now.\n"
-          + "Please close all terminals and wait a minute for the deletion to complete before running other commands.", idePath);
+      IdeLogLevel.INTERACTION.log(LOG,
+          "To prevent windows file locking errors, we perform an asynchronous deletion of {} in background now.\n"
+              + "Please close all terminals and wait a minute for the deletion to complete before running other commands.", idePath);
     } else {
-      this.context.info("Finally deleting {}", idePath);
+      LOG.info("Finally deleting {}", idePath);
       this.context.getFileAccess().delete(idePath);
     }
   }
@@ -426,9 +634,9 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     helper.removeUserEnvironmentValue(IdeVariables.IDE_ROOT.getName());
     String userPath = helper.getUserEnvironmentValue(IdeVariables.PATH.getName());
     if (userPath == null) {
-      this.context.error("Could not read user PATH from registry!");
+      LOG.error("Could not read user PATH from registry!");
     } else {
-      this.context.info("Found user PATH={}", userPath);
+      LOG.info("Found user PATH={}", userPath);
       String newUserPath = userPath;
       if (!userPath.isEmpty()) {
         SimpleSystemPath path = SimpleSystemPath.of(userPath, ';');
@@ -436,7 +644,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
         newUserPath = path.toString();
       }
       if (newUserPath.equals(userPath)) {
-        this.context.error("Could not find IDEasy in PATH:\n{}", userPath);
+        LOG.error("Could not find IDEasy in PATH:\n{}", userPath);
       } else {
         helper.setUserEnvironmentValue(IdeVariables.PATH.getName(), newUserPath);
       }

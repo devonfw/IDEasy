@@ -6,6 +6,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.commandlet.TestCommandletManager;
@@ -18,22 +21,27 @@ import com.devonfw.tools.ide.environment.IdeSystem;
 import com.devonfw.tools.ide.environment.IdeSystemTestImpl;
 import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
-import com.devonfw.tools.ide.log.IdeLogger;
+import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.network.NetworkStatusMock;
 import com.devonfw.tools.ide.os.SystemInfo;
+import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.os.WindowsHelperMock;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 
 /**
  * Implementation of {@link IdeContext} for testing.
  */
 public class AbstractIdeTestContext extends AbstractIdeContext {
 
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractIdeTestContext.class);
+
   /** {@link Path} to use as workingDirectory for mocking. */
-  protected static final Path PATH_MOCK = Path.of("/");
+  public static final Path PATH_MOCK = Path.of("/");
 
   private String[] answers;
 
@@ -53,24 +61,76 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
 
   private Path urlsPath;
 
-  private boolean forcePull = false;
+  protected final WireMockRuntimeInfo wireMockRuntimeInfo;
 
-  private boolean forcePlugins = false;
-
-  private boolean forceRepositories = false;
+  private NetworkStatusMock networkStatus;
 
   /**
    * The constructor.
    *
-   * @param logger the {@link IdeLogger}.
+   * @param startContext the {@link IdeStartContextImpl}.
    * @param workingDirectory the optional {@link Path} to current working directory.
+   * @param wireMockRuntimeInfo wireMock server on a random port.
    */
-  public AbstractIdeTestContext(IdeStartContextImpl logger, Path workingDirectory) {
+  public AbstractIdeTestContext(IdeStartContextImpl startContext, Path workingDirectory, WireMockRuntimeInfo wireMockRuntimeInfo) {
 
-    super(logger, workingDirectory);
+    super(startContext, workingDirectory);
     this.answers = new String[0];
     this.progressBarMap = new HashMap<>();
     this.systemInfo = super.getSystemInfo();
+    this.wireMockRuntimeInfo = wireMockRuntimeInfo;
+  }
+
+  /**
+   * Finds the test project root by looking for common test project markers. Searches upward from the working directory to find the boundary of the test
+   * project.
+   *
+   * @param workingDirectory the starting directory.
+   * @return the test project root or {@code null} if not found.
+   */
+  private Path findTestProjectRoot(Path workingDirectory) {
+
+    if (workingDirectory == null || workingDirectory.equals(PATH_MOCK)) {
+      return null;
+    }
+
+    Path current = workingDirectory.toAbsolutePath();
+    Path testResourcesMarker = Path.of("src", "test", "resources", "ide-projects");
+
+    // Look for the parent of ide-projects test resources
+    while (current != null) {
+      Path ideProjectsPath = current.resolve(testResourcesMarker);
+      if (Files.isDirectory(ideProjectsPath)) {
+        // Found the project root containing test resources
+        return current;
+      }
+      current = current.getParent();
+    }
+
+    // If we can't find test resources, use the working directory's parent as boundary
+    // This provides at least some protection
+    return workingDirectory.getParent();
+  }
+
+  @Override
+  protected IdeHomeAndWorkspace findIdeHome(Path workingDirectory) {
+
+    // Set test boundary to prevent IDE home detection from escaping test projects
+    Path testBoundary = findTestProjectRoot(workingDirectory);
+
+    // Call parent implementation to perform the search
+    IdeHomeAndWorkspace result = super.findIdeHome(workingDirectory);
+
+    // Validate that the detected IDE home (if any) is within test boundaries
+    Path ideHome = result.home();
+    if (ideHome != null && testBoundary != null && !ideHome.startsWith(testBoundary)) {
+      LOG.debug("Test isolation violation: Detected IDE home '{}' is outside test boundary '{}'.\n"
+          + "This indicates the test project structure is incomplete or improperly configured.\n"
+          + "A valid IDE home directories is determined by isIdeHome() method.\n"
+          + "Please ensure your test project has the required structure.", ideHome, testBoundary);
+      return null;
+    }
+    return result;
   }
 
   @Override
@@ -101,7 +161,9 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
     if (this.answerIndex >= this.answers.length) {
       throw new IllegalStateException("End of answers reached!");
     }
-    return this.answers[this.answerIndex++];
+    String answer = this.answers[this.answerIndex++];
+    IdeLogLevel.INTERACTION.log(LOG, answer);
+    return answer;
   }
 
   /**
@@ -142,6 +204,13 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
       Path environmentPropertiesFile = home.resolve("environment.properties");
       if (Files.exists(environmentPropertiesFile)) {
         Properties environmentProperties = getFileAccess().readProperties(environmentPropertiesFile);
+        if (SystemInfoImpl.INSTANCE.isWindows()) {
+          String path = environmentProperties.getProperty(IdeVariables.PATH.getName());
+          if (path != null) {
+            path = path.replace(':', ';');
+            environmentProperties.setProperty(IdeVariables.PATH.getName(), path);
+          }
+        }
         return EnvironmentVariablesSystem.of(this, (Map) environmentProperties);
       }
     }
@@ -152,7 +221,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   public IdeSystemTestImpl getSystem() {
 
     if (this.system == null) {
-      this.system = new IdeSystemTestImpl(this);
+      this.system = new IdeSystemTestImpl();
     }
     return (IdeSystemTestImpl) this.system;
   }
@@ -168,7 +237,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   @Override
   public WindowsHelper createWindowsHelper() {
 
-    return new WindowsHelperMock();
+    return new WindowsHelperMock(this);
   }
 
   @Override
@@ -180,13 +249,13 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
     return new SystemPath(this, envPath);
   }
 
-  /**
-   * @param online the mocked {@link #isOnline()} result.
-   */
-  public void setOnline(Boolean online) {
+  @Override
+  public NetworkStatusMock getNetworkStatus() {
 
-    requireMutable();
-    this.online = online;
+    if (this.networkStatus == null) {
+      this.networkStatus = new NetworkStatusMock(this, this.wireMockRuntimeInfo);
+    }
+    return this.networkStatus;
   }
 
   @Override
@@ -335,38 +404,19 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   }
 
   @Override
-  public boolean isForcePull() {
-
-    return this.forcePull;
+  public String getDefaultWindowsGitPath() {
+    return "";
   }
 
   @Override
-  public boolean isForcePlugins() {
-
-    return this.forcePlugins;
+  protected Path findBashInWindowsRegistry() {
+    return null;
   }
 
   @Override
-  public boolean isForceRepositories() {
+  protected boolean isWriteLogfile(Commandlet cmd) {
 
-    return this.forceRepositories;
+    return false;
   }
 
-  @Override
-  public void setForcePull(boolean forcePull) {
-
-    this.forcePull = forcePull;
-  }
-
-  @Override
-  public void setForcePlugins(boolean forcePlugins) {
-
-    this.forcePlugins = forcePlugins;
-  }
-
-  @Override
-  public void setForceRepositories(boolean forceRepositories) {
-
-    this.forceRepositories = forceRepositories;
-  }
 }

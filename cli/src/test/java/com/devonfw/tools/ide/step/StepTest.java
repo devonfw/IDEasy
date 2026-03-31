@@ -5,17 +5,18 @@ import org.junit.jupiter.api.Test;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogEntry;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 
 /**
  * Test of {@link Step}.
  */
-public class StepTest extends AbstractIdeContextTest {
+class StepTest extends AbstractIdeContextTest {
 
   @Test
-  public void testValidUsageSuccess() {
+  void testValidUsageSuccess() {
 
     // arrage
-    IdeTestContext context = newContext(PROJECT_BASIC, "project", false);
+    IdeTestContext context = newContext(PROJECT_BASIC, "project", false, null, IdeLogLevel.TRACE);
     // act
     Step step = context.newStep("Test-Step");
     try {
@@ -33,10 +34,10 @@ public class StepTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testValidUsageSuccessSilent() {
+  void testValidUsageSuccessSilent() {
 
     // arrage
-    IdeTestContext context = newContext(PROJECT_BASIC, "project", false);
+    IdeTestContext context = newContext(PROJECT_BASIC, "project", false, null, IdeLogLevel.TRACE);
     // act
     Step step = context.newStep(true, "Test-Step", "arg1", "arg2");
     try {
@@ -58,10 +59,10 @@ public class StepTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testValidUsageError() {
+  void testValidUsageError() {
 
     // arrage
-    IdeTestContext context = newContext(PROJECT_BASIC, "project", false);
+    IdeTestContext context = newContext(PROJECT_BASIC, "project", false, null, IdeLogLevel.TRACE);
     // act
     Step step = context.newStep("Test-Step");
     try {
@@ -79,17 +80,17 @@ public class StepTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testInvalidUsageSuccessError() {
+  void testInvalidUsageSuccessError() {
 
     // arrage
-    IdeTestContext context = newContext(PROJECT_BASIC, "project", false);
+    IdeTestContext context = newContext(PROJECT_BASIC, "project", false, null, IdeLogLevel.TRACE);
     // act
     Step step = context.newStep("Test-Step");
     try {
       step.success("The Test-Step succeeded as expected");
       throw new IllegalStateException("unexpected situation!");
     } catch (IllegalStateException e) {
-      step.error(e);
+      step.error(e, e.toString());
     } finally {
       step.close();
     }
@@ -104,10 +105,10 @@ public class StepTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testInvalidUsageErrorSuccess() {
+  void testInvalidUsageErrorSuccess() {
 
     // arrage
-    IdeTestContext context = newContext(PROJECT_BASIC, "project", false);
+    IdeTestContext context = newContext(PROJECT_BASIC, "project", false, null, IdeLogLevel.TRACE);
     // act
     Step step = context.newStep("Test-Step");
     try {

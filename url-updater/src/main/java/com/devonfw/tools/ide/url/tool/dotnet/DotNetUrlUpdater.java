@@ -1,17 +1,15 @@
 package com.devonfw.tools.ide.url.tool.dotnet;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
 
 /**
- * {@link GithubUrlUpdater} for Microsoft .NET core.
+ * {@link GithubUrlTagUpdater} for Microsoft .NET core.
  */
-public class DotNetUrlUpdater extends GithubUrlUpdater {
-
-  private static final String BASE_URL = "https://dotnetcli.azureedge.net";
+public class DotNetUrlUpdater extends GithubUrlTagUpdater {
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "dotnet";
   }
@@ -25,7 +23,7 @@ public class DotNetUrlUpdater extends GithubUrlUpdater {
   @Override
   protected void addVersion(UrlVersion urlVersion) {
 
-    String baseUrl = getBaseUrl() + "/dotnet/Sdk/${version}/dotnet-sdk-${version}-";
+    String baseUrl = getDownloadBaseUrl() + "/dotnet/Sdk/${version}/dotnet-sdk-${version}-";
     boolean ok1 = doAddVersion(urlVersion, baseUrl + "win-x64.zip", WINDOWS, X64);
     boolean ok2 = doAddVersion(urlVersion, baseUrl + "win-arm64.zip", WINDOWS, ARM64);
     if (!ok1 && !ok2) {
@@ -50,13 +48,13 @@ public class DotNetUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
-  protected String getBaseUrl() {
+  protected String getDownloadBaseUrl() {
 
-    return BASE_URL;
+    return "https://dotnetcli.azureedge.net";
   }
 
   @Override
-  protected String mapVersion(String version) {
+  public String mapVersion(String version) {
     if (version.matches("v\\d+\\.\\d+\\.\\d+")) {
       return super.mapVersion(version);
     } else {

@@ -7,20 +7,20 @@ import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.AbstractIdeTestContext;
-import com.devonfw.tools.ide.context.IdeSlf4jContext;
+import com.devonfw.tools.ide.context.IdeTestContext;
 
 /**
  * Tests for {@link WindowsHelperImpl}.
  */
-public class WindowsHelperImplTest extends AbstractIdeContextTest {
+class WindowsHelperImplTest extends AbstractIdeContextTest {
 
   /**
    * Tests if the USER_PATH registry entry can be parsed properly.
    */
   @Test
-  public void testWindowsHelperParseRegString() {
+  void testWindowsHelperParseRegString() {
     // arrange
-    AbstractIdeTestContext context = new IdeSlf4jContext();
+    AbstractIdeTestContext context = new IdeTestContext();
     WindowsHelperImpl helper = new WindowsHelperImpl(context);
     List<String> output = new ArrayList<>();
     output.add("");
@@ -37,9 +37,9 @@ public class WindowsHelperImplTest extends AbstractIdeContextTest {
    * Tests if an empty list of outputs will result in null.
    */
   @Test
-  public void testWindowsHelperParseEmptyRegStringReturnsNull() {
+  void testWindowsHelperParseEmptyRegStringReturnsNull() {
     // arrange
-    AbstractIdeTestContext context = new IdeSlf4jContext();
+    AbstractIdeTestContext context = new IdeTestContext();
     WindowsHelperImpl helper = new WindowsHelperImpl(context);
     List<String> output = new ArrayList<>();
     // act

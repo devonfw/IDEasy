@@ -2,6 +2,165 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2026.04.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1702[#1702]: UI Buttons do not scale properly with window resize
+* https://github.com/devonfw/IDEasy/issues/1751[#1751]: Add go-lang CLI Commandlet.
+* https://github.com/devonfw/IDEasy/issues/1732[#1732]: Add stash support for git-pull
+* https://github.com/devonfw/IDEasy/issues/1747[#1747]: Fixed macOS x64 native image build using macos-15-intel runner
+* https://github.com/devonfw/IDEasy/issues/1738[#1738]: FileAccess.delete no longer follows directory links during recursive delete
+* https://github.com/devonfw/IDEasy/issues/1151[#1151]: Use uname -m for runtime architecture detection on Mac/Linux
+* https://github.com/devonfw/IDEasy/issues/1770[#1770]: Fix setup hanging due to buffered log output during license prompt
+* https://github.com/devonfw/IDEasy/issues/1771[#1771]: Maven version 3.9.1x are now available
+* https://github.com/devonfw/IDEasy/issues/1647[#1647]: Fixed CVE detection for rancher desktop
+* https://github.com/devonfw/IDEasy/issues/1363[#1363]: Tool uninstallation in force mode now also removes its plugins
+* https://github.com/devonfw/IDEasy/issues/1687[#1687]: Fixed JLine warning about restricted method
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/42?closed=1[milestone 2026.04.001].
+
+== 2026.03.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1726[#1726]: Gradle updates not found by GradleUrlUpdater
+* https://github.com/devonfw/IDEasy/issues/1351[#1729]: Update Jline to 3.30.6 and ProgressBar to 0.10.2
+* https://github.com/devonfw/IDEasy/issues/1735[#1735]: Add repositories symlink feature for advanced AI usage
+* https://github.com/devonfw/IDEasy/issues/1713[#1713]: Advanced logging and writing logfiles
+* https://github.com/devonfw/IDEasy/issues/1642[#1642]: improve help output
+* https://github.com/devonfw/IDEasy/issues/1731[#1731]: Fixed SonarQube installation path resolution
+* https://github.com/devonfw/IDEasy/issues/1737[#1737]: macOS x64 release is broken
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/41?closed=1[milestone 2026.03.001].
+
+== 2026.02.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1699[#1699]: Add function to verify that the provided git URL is valid
+* https://github.com/devonfw/IDEasy/issues/1562[#1562]: Update documentation regarding environmental variables
+* https://github.com/devonfw/IDEasy/issues/1691[#1691]: Update references to UrlUpdaters in the documentation
+* https://github.com/devonfw/IDEasy/issues/1683[#1683]: Updated the link for bug-ticket creation that's shown when an error is encountered
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/40?closed=1[milestone 2026.02.001].
+
+== 2026.01.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1298[#1298]: Support for extra tool version
+* https://github.com/devonfw/IDEasy/issues/1653[#1653]: Implementation of getEdition and getVersion for Docker
+* https://github.com/devonfw/IDEasy/issues/1602[#1602]: Being offline can block ide startup
+* https://github.com/devonfw/IDEasy/issues/1667[#1667]: ide command without arguments triggers download and installation
+* https://github.com/devonfw/IDEasy/issues/1677[#1677]: Add release for linux-arm architecture
+* https://github.com/devonfw/IDEasy/issues/1679[#1679]: Npm based commandlets fail to determine installed version of npm tool
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/39?closed=1[milestone 2026.01.001].
+
+== 2025.12.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1166[#1166]: Automatic project import for IntelliJ
+* https://github.com/devonfw/IDEasy/issues/1508[#1508]: xml merger fails when merging empty file
+* https://github.com/devonfw/IDEasy/issues/1660[#1660]: ide status still failing
+* https://github.com/devonfw/IDEasy/issues/1646[#1646]: Duplicated options from CVE update suggestion
+* https://github.com/devonfw/IDEasy/issues/39[#39]: Implement ToolCommandlet for pip
+* https://github.com/devonfw/IDEasy/issues/1633[#1633]: CVE suggestions show unstable versions
+* https://github.com/devonfw/IDEasy/issues/1636[#1636]: CVE suggestion scoring more reasonable
+* https://github.com/devonfw/IDEasy/issues/1640[#1640]: StackOverflowError: Infinity loop whilst installing terraform
+* https://github.com/devonfw/IDEasy/issues/1645[#1645]: Fix for the NullPointerException while installing docker / kubectl
+* https://github.com/devonfw/IDEasy/pull/1596[#1596] Add support for comma-separated workspace values in repository configuration
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/38?closed=1[milestone 2025.12.001].
+
+== 2025.11.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1349[#1349]: Fix XML merge warning message to include file paths for better debugging
+* https://github.com/devonfw/IDEasy/issues/1473[#1473]: option --skip-updates not working
+* https://github.com/devonfw/IDEasy/issues/536[#536]: IDEasy complete tries to match commandlets twice
+* https://github.com/devonfw/IDEasy/issues/1144[#1144]: CVE: adapt IDEasy to consider security.json files to warn user - see https://github.com/devonfw/IDEasy/blob/main/documentation/security.adoc[security] documentation
+* https://github.com/devonfw/IDEasy/issues/1145[#1145]: CVE: suggest version update to user
+* https://github.com/devonfw/IDEasy/issues/1510[#1510]: Make icd more usable
+* https://github.com/devonfw/IDEasy/issues/1169[#1169]: mklink fails if link already exists
+* https://github.com/devonfw/IDEasy/issues/1553[#1553]: IDEasy is slow since 2025.09.001
+* https://github.com/devonfw/IDEasy/issues/1555[#1555]: Handle npm_config_prefix environment variable
+* https://github.com/devonfw/IDEasy/issues/1584[#1584]: IllegalArgumentException on ide update
+* https://github.com/devonfw/IDEasy/issues/1559[#1559]: IDEasy MSI installer creates multiple PATH entries
+* https://github.com/devonfw/IDEasy/issues/1551[#1551]: Display network connection issues in status
+* https://github.com/devonfw/IDEasy/issues/1560[#1560]: Enable trace logging in IDEasy setup script
+* https://github.com/devonfw/IDEasy/issues/1586[#1586]: Use BASH_PATH when set before searching in registry or PATH
+* https://github.com/devonfw/IDEasy/issues/1564[#1564]: Print path to git bash to IDEasy log
+* https://github.com/devonfw/IDEasy/issues/1601[#1601]: icd command failing with -w
+* https://github.com/devonfw/IDEasy/issues/1599[#1599]: NullPointerException if Repository-Config-Variable "active" is not present
+* https://github.com/devonfw/IDEasy/issues/1561[#1561]: IDEasy can not handle BASH_PATH variable properly
+* https://github.com/devonfw/IDEasy/issues/1608[#1608]: Add git and bash location to status commandlet
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/37?closed=1[milestone 2025.11.001].
+
+== 2025.10.002
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1492[#1492]: Add spring-boot CLI Commandlet.
+* https://github.com/devonfw/IDEasy/issues/1545[#1545]: Yarn can not be installed after corepack
+* https://github.com/devonfw/IDEasy/issues/1549[#1549]: IDEasy omits error messages when a download fails
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/36?closed=1[milestone 2025.10.002].
+
+== 2025.10.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/907[#907]: Implement ToolCommandlet for Yarn
+* https://github.com/devonfw/IDEasy/issues/908[#908]: Get rid of Git error messages when retrieving settings status
+* https://github.com/devonfw/IDEasy/issues/1362[#1362]: ide create fails when creating mvn settings-security file
+* https://github.com/devonfw/IDEasy/issues/1506[#1506]: Create migration for 2025.10.001 to remove software/npm
+* https://github.com/devonfw/IDEasy/issues/1530[#1530]: NPE on ide update with custom tool
+* https://github.com/devonfw/IDEasy/issues/858[#858]: installing kotlincnative does not work
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/35?closed=1[milestone 2025.10.001].
+
+== 2025.09.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1454[#1454]: Support for ng (angular CLI)
+* https://github.com/devonfw/IDEasy/issues/1464[#1464]: IDEasy setup does not find bash
+* https://github.com/devonfw/IDEasy/issues/1476[#1476]: IDEasy does not create links on extraction
+* https://github.com/devonfw/IDEasy/issues/1477[#1477]: IDEasy cannot create link to file on Windows
+* https://github.com/devonfw/IDEasy/issues/1221[#1221]: Improve Windows terminal integration on installation
+* https://github.com/devonfw/IDEasy/issues/1460[#1460]: Prevent strange ansi-codes in logs
+* https://github.com/devonfw/IDEasy/issues/1484[#1484]: Broken error handling: Couldn't uninstall node.
+* https://github.com/devonfw/IDEasy/issues/1515[#1515]: cannot upgrade snapshot release of IDEasy
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/34?closed=1[milestone 2025.09.001].
+
+== 2025.08.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1384[#1384]: Python support not working at all
+* https://github.com/devonfw/IDEasy/issues/1443[#1443]: Tool version is being added to settings even though it does not exist
+* https://github.com/devonfw/IDEasy/issues/1451[#1451]: XmlMerger requires merge:id for single attribute
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/33?closed=1[milestone 2025.08.001].
+
+== 2025.07.002
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1399[#1399]: Welcome message not working on Linux
+* https://github.com/devonfw/IDEasy/issues/1387[#1387]: Hide exception from user when a tool version is not supported
+* https://github.com/devonfw/IDEasy/issues/1389[#1389]: support podman as docker alternative
+* https://github.com/devonfw/IDEasy/issues/1393[#1393]: Support configuring HTTP version downgrade to workaround download errors with ZScaler VPN
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/31?closed=1[milestone 2025.07.002].
+p.s.: Was released on 08.08.2025 but due to technical reasons the version was still on 2025.07.002.
+
 == 2025.07.001
 
 Release with new features and bugfixes:

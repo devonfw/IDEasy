@@ -3,6 +3,8 @@ package com.devonfw.tools.ide.migration;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -12,11 +14,13 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 /**
  * Test of {@link IdeMigrator}.
  */
-public class IdeMigratorTest extends AbstractIdeContextTest {
+class IdeMigratorTest extends AbstractIdeContextTest {
+
+  private static final Logger LOG = LoggerFactory.getLogger(IdeMigratorTest.class);
 
   /** Test that no migration is executed when outside of project. */
   @Test
-  public void testDoesNothingWithoutIdeHome() {
+  void testDoesNothingWithoutIdeHome() {
 
     // arrage
     IdeTestContext context = new IdeTestContext();
@@ -29,7 +33,7 @@ public class IdeMigratorTest extends AbstractIdeContextTest {
 
   /** Test that all versions are properly in order. */
   @Test
-  public void testVerifyAllMigrations() {
+  void testVerifyAllMigrations() {
 
     // arrange
     IdeTestContext context = newContext("migration");
@@ -43,7 +47,7 @@ public class IdeMigratorTest extends AbstractIdeContextTest {
 
   /** Test that required migrations are properly applied and older migrations are not. */
   @Test
-  public void testRunAllDummyMigrations() {
+  void testRunAllDummyMigrations() {
 
     // arrange
     IdeTestContext context = newContext("migration");
@@ -77,7 +81,7 @@ public class IdeMigratorTest extends AbstractIdeContextTest {
 
     @Override
     public void run(IdeContext context) {
-      context.info("202501002 migration was done");
+      LOG.info("202501002 migration was done");
     }
   }
 
@@ -90,7 +94,7 @@ public class IdeMigratorTest extends AbstractIdeContextTest {
 
     @Override
     public void run(IdeContext context) {
-      context.info("202502003 migration completed");
+      LOG.info("202502003 migration completed");
     }
   }
 

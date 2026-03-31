@@ -15,24 +15,23 @@ import org.junit.jupiter.params.provider.ValueSource;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.context.IdeTestContextMock;
 import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 
 /**
- * Integration test of {@link HelpCommandlet}.
+ * Test of {@link HelpCommandlet}.
  */
-public class HelpCommandletTest extends AbstractIdeContextTest {
+class HelpCommandletTest extends AbstractIdeContextTest {
 
   /**
    * Test of {@link HelpCommandlet} does not require home.
    */
   @Test
-  public void testThatHomeIsNotRequired() {
+  void testThatHomeIsNotRequired() {
 
     // arrange
-    IdeContext context = IdeTestContextMock.get();
+    IdeContext context = new IdeTestContext();
     // act
     HelpCommandlet help = new HelpCommandlet(context);
     // assert
@@ -43,7 +42,7 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
    * Test of {@link HelpCommandlet} run.
    */
   @Test
-  public void testRun() {
+  void testRun() {
 
     // arrange
     IdeTestContext context = IdeTestContext.of();
@@ -55,18 +54,36 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
     // assert
     assertLogoMessage(context);
     assertThat(context).logAtSuccess().hasMessageContaining("Current version of IDE is");
-    assertThat(context).logAtInfo().hasMessage("Usage: ide [option]* [[commandlet] [arg]*]");
+    assertThat(context).logAtInfo().hasMessage("Usage: ide [global-option]* [[commandlet] [local-option]* [arg]*]");
     for (Commandlet cmd : context.getCommandletManager().getCommandlets()) {
       assertThat(context).log().hasMessageContaining(cmd.getName());
     }
+    assertThat(context).logAtInfo().hasMessageContaining("Hint: Use 'icd' command to easily navigate");
     assertOptionLogMessages(context);
+  }
+
+  /**
+   * Test of {@link HelpCommandlet} includes icd hint in English.
+   */
+  @Test
+  void testIcdHint() {
+
+    // arrange
+    IdeTestContext context = IdeTestContext.of();
+    context.getStartContext().setLocale(Locale.ENGLISH);
+    HelpCommandlet help = new HelpCommandlet(context);
+
+    // act
+    help.run();
+    // assert
+    assertThat(context).logAtInfo().hasMessageContaining("Hint: Use 'icd' command to easily navigate");
   }
 
   /**
    * Test of {@link HelpCommandlet} run with a Commandlet.
    */
   @Test
-  public void testRunWithCommandlet() {
+  void testRunWithCommandlet() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
@@ -78,7 +95,7 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
     // assert
     assertLogoMessage(context);
     assertThat(context).logAtInfo()
-        .hasEntries("Usage: ide [option]* mvn [<args>*]", "Tool commandlet for Maven (Build-Tool).", "usage: mvn [options] [<goal(s)>] [<phase(s)>]");
+        .hasEntries("Usage: ide [global-option]* mvn [<args>*]", "Tool commandlet for Maven (Build-Tool).", "usage: mvn [options] [<goal(s)>] [<phase(s)>]");
     assertOptionLogMessages(context);
   }
 
@@ -89,10 +106,10 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
    */
   @ParameterizedTest
   @ValueSource(strings = { "", "de" })
-  public void testEnsureAllNlsPropertiesPresent(String locale) throws IOException {
+  void testEnsureAllNlsPropertiesPresent(String locale) throws IOException {
 
     // arrange
-    IdeContext context = IdeTestContextMock.get();
+    IdeContext context = new IdeTestContext();
     NlsBundle bundleRoot = new NlsBundle(context, Locale.ROOT);
     NlsBundle bundle = new NlsBundle(context, Locale.forLanguageTag(locale));
     SoftAssertions soft = new SoftAssertions();

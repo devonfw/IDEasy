@@ -11,6 +11,8 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import org.jline.utils.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
@@ -26,6 +28,8 @@ import com.devonfw.tools.ide.util.FilenameUtil;
  * </ul>
  */
 public class DirectoryMerger extends AbstractWorkspaceMerger {
+
+  private static final Logger LOG = LoggerFactory.getLogger(DirectoryMerger.class);
 
   private final Map<String, FileMerger> extension2mergerMap;
 
@@ -81,9 +85,9 @@ public class DirectoryMerger extends AbstractWorkspaceMerger {
     String filename = file.getFileName().toString();
     String extension = FilenameUtil.getExtension(filename);
     if (extension == null) {
-      this.context.debug("No extension for {}", file);
+      LOG.debug("No extension for {}", file);
     } else {
-      this.context.trace("Extension is {}", extension);
+      LOG.trace("Extension is {}", extension);
       FileMerger merger = this.extension2mergerMap.get(extension);
       if (merger != null) {
         return merger;

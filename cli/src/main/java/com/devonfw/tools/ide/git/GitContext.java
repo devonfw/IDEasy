@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.git;
 
 import java.nio.file.Path;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliOfflineException;
 
 /**
@@ -17,6 +18,12 @@ public interface GitContext {
 
   /** The name of the internal metadata folder of a git repository. */
   String GIT_FOLDER = ".git";
+
+  /** The name of the HEAD file inside {@link #GIT_FOLDER}. */
+  String FILE_HEAD = "HEAD";
+
+  /** The name of the FETCH_HEAD file inside {@link #GIT_FOLDER}. */
+  String FILE_FETCH_HEAD = "FETCH_HEAD";
 
   /**
    * Checks if the Git repository in the specified target folder needs an update by inspecting the modification time of a magic file.
@@ -85,6 +92,29 @@ public interface GitContext {
    * @throws CliOfflineException if offline and cloning is needed.
    */
   void pullOrCloneAndResetIfNeeded(GitUrl gitUrl, Path repository, String remoteName);
+
+  /**
+   * Performs a {@code git pull} operation on the given repository while safely preserving and restoring any local untracked or modified files using a temporary
+   * Git stash.
+   *
+   * @param repository the {@link Path} to the root directory of the Git repository. This must be the directory that directly contains the {@code .git}
+   *     folder.
+   */
+  void pullSafelyWithStash(Path repository);
+
+  /**
+   * Checks whether the given Git repository contains any untracked files.
+   * <p>
+   * This method runs {@code git status --porcelain -uall} to retrieve a machine-readable status of the repository. The {@code -uall} option ensures that all
+   * untracked files, including those in subdirectories, are listed. If the output of the command is non-empty, this method considers the repository to contain
+   * untracked files.
+   * </p>
+   *
+   * @param repository the {@link Path} to the target folder where the git repository should be checked for untracked files. It is not the parent directory
+   *     where git will by default create a sub-folder by default on clone but the final folder that will contain the ".git" subfolder.
+   * @return {@code true} if the local repository contains untracked changes. {@code false} if no untracked files are present or if the Git command fails.
+   */
+  boolean hasUntrackedFiles(Path repository);
 
   /**
    * Runs a git pull or a git clone.
@@ -174,9 +204,18 @@ public interface GitContext {
   String retrieveGitUrl(Path repository);
 
   /**
-   * Checks if there is a git installation and throws an exception if there is none
+   * Finds the {@link Path} to the git installation and throws an exception if there is none.
+   *
+   * @return the {@link Path} to the Git installation. Throws a {@link CliException} if no git was found.
    */
-  void verifyGitInstalled();
+  Path findGitRequired();
+
+  /**
+   * Finds the path to the Git executable.
+   *
+   * @return the {@link Path} to the Git executable, or {@code null} if Git is not found.
+   */
+  Path findGit();
 
   /**
    * @param repository the {@link Path} to the folder where the git repository is located.

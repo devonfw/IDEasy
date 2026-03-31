@@ -5,38 +5,39 @@ import java.nio.file.Path;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
-import com.devonfw.tools.ide.tool.plugin.PluginBasedCommandlet;
-import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.variable.VariableSyntax;
 
 /**
  * {@link ToolCommandlet} for <a href="https://maven.apache.org/">maven</a>.
  */
-public class Mvn extends PluginBasedCommandlet {
+public class Mvn extends LocalToolCommandlet {
 
-  /**
-   * The name of the mvn folder
-   */
+  private static final Logger LOG = LoggerFactory.getLogger(Mvn.class);
+
+  /** The name of the mvn folder. */
   public static final String MVN_CONFIG_FOLDER = "mvn";
 
-  /**
-   * The name of the m2 repository
-   */
+  /** The name of the m2 repository. */
   public static final String MVN_CONFIG_LEGACY_FOLDER = ".m2";
 
   /** The name of the settings-security.xml */
@@ -48,9 +49,7 @@ public class Mvn extends PluginBasedCommandlet {
   /** The pom.xml file name. */
   public static final String POM_XML = "pom.xml";
 
-  /**
-   * The name of the settings.xml
-   */
+  /** The name of the file settings.xml. */
   public static final String SETTINGS_FILE = "settings.xml";
 
   private static final String DOCUMENTATION_PAGE_CONF = "https://github.com/devonfw/IDEasy/blob/main/documentation/conf.adoc";
@@ -74,15 +73,16 @@ public class Mvn extends PluginBasedCommandlet {
   }
 
   @Override
-  protected void configureToolBinary(ProcessContext pc, ProcessMode processMode, ProcessErrorHandling errorHandling) {
+  protected void configureToolBinary(ProcessContext pc, ProcessMode processMode) {
     Path mvn = Path.of(getBinaryName());
-    Path wrapper = findWrapper(MVN_WRAPPER_FILENAME, path -> Files.exists(path.resolve(POM_XML)));
+    Path wrapper = findWrapper(MVN_WRAPPER_FILENAME);
     pc.executable(Objects.requireNonNullElse(wrapper, mvn));
   }
 
   @Override
-  public void postInstall() {
+  protected void postInstallOnNewInstallation(ToolInstallRequest request) {
 
+    super.postInstallOnNewInstallation(request);
     // locate templates...
     Path templatesConfMvnFolder = getMavenTemplatesFolder();
     if (templatesConfMvnFolder == null) {
@@ -134,7 +134,7 @@ public class Mvn extends PluginBasedCommandlet {
       return;
     }
     if (!Files.exists(settingsTemplateFile)) {
-      this.context.warning("Missing maven settings template at {}. ", settingsTemplateFile);
+      LOG.warn("Missing maven settings template at {}. ", settingsTemplateFile);
       return;
     }
     Step step = this.context.newStep("Create mvn settings file at " + settingsFile);
@@ -149,7 +149,7 @@ public class Mvn extends PluginBasedCommandlet {
       GitContext gitContext = this.context.getGitContext();
       String gitSettingsUrl = gitContext.retrieveGitUrl(this.context.getSettingsPath());
       if (gitSettingsUrl == null) {
-        this.context.warning("Failed to determine git remote URL for settings folder.");
+        LOG.warn("Failed to determine git remote URL for settings folder.");
       } else if (!gitSettingsUrl.equals(GitContext.DEFAULT_SETTINGS_GIT_URL) && Files.exists(settingsSecurityFile)) {
         Set<String> variables = findVariables(content);
         for (String variable : variables) {
@@ -167,17 +167,16 @@ public class Mvn extends PluginBasedCommandlet {
   private String getEncryptedPassword(String variable) {
 
     String input = this.context.askForInput("Please enter secret value for variable " + variable + ":");
-
     String encryptedPassword = retrievePassword("--encrypt-password", input);
-    this.context.info("Encrypted as " + encryptedPassword);
+    LOG.info("Encrypted as {}", encryptedPassword);
 
     return encryptedPassword;
   }
 
-  private String retrievePassword(String args, String input) {
+  private String retrievePassword(String option, String input) {
 
-    ProcessResult result = runTool(ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.LOG_WARNING, this.context.newProcess(), args, input,
-        getSettingsSecurityProperty());
+    ProcessResult result = runTool(this.context.newProcess(), ProcessMode.DEFAULT_CAPTURE, List.of(option, input,
+        getSettingsSecurityProperty()));
 
     return result.getSingleOutput(null);
   }
@@ -191,23 +190,6 @@ public class Mvn extends PluginBasedCommandlet {
       variables.add(variableName);
     }
     return variables;
-  }
-
-  @Override
-  public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
-
-    Path mavenPlugin = this.getToolPath().resolve("lib/ext/" + plugin.name() + ".jar");
-    this.context.getFileAccess().download(plugin.url(), mavenPlugin);
-
-    if (Files.exists(mavenPlugin)) {
-      this.context.success("Successfully added {} to {}", plugin.name(), mavenPlugin.toString());
-      step.success();
-      return true;
-    } else {
-      step.error("Plugin {} has wrong properties\n" //
-          + "Please check the plugin properties file in {}", mavenPlugin.getFileName(), mavenPlugin.toAbsolutePath());
-      return false;
-    }
   }
 
   @Override
@@ -230,7 +212,7 @@ public class Mvn extends PluginBasedCommandlet {
     if (!Files.isDirectory(templatesConfMvnFolder)) {
       Path templatesConfMvnLegacyFolder = templatesConfFolder.resolve(MVN_CONFIG_LEGACY_FOLDER);
       if (!Files.isDirectory(templatesConfMvnLegacyFolder)) {
-        this.context.warning("No maven templates found neither in {} nor in {} - configuration broken", templatesConfMvnFolder,
+        LOG.warn("No maven templates found neither in {} nor in {} - configuration broken", templatesConfMvnFolder,
             templatesConfMvnLegacyFolder);
         return null;
       }
@@ -245,6 +227,18 @@ public class Mvn extends PluginBasedCommandlet {
    */
   public Path getMavenConfFolder(boolean legacy) {
 
+    Path mvnConfigFolder = resolveMavenConfFolder(legacy);
+    this.context.getFileAccess().mkdirs(mvnConfigFolder);
+    return mvnConfigFolder;
+  }
+
+  /**
+   * Helper method to resolve maven config folder without creating directories.
+   *
+   * @param legacy - {@code true} to prefer devonfw-ide legacy folder when neither exists, {@code false} to prefer new folder.
+   * @return the {@link Path} to the maven configuration folder that should be used.
+   */
+  private Path resolveMavenConfFolder(boolean legacy) {
     Path confPath = this.context.getConfPath();
     Path mvnConfigFolder = confPath.resolve(MVN_CONFIG_FOLDER);
     if (!Files.isDirectory(mvnConfigFolder)) {
@@ -255,10 +249,27 @@ public class Mvn extends PluginBasedCommandlet {
         if (legacy) {
           mvnConfigFolder = mvnConfigLegacyFolder;
         }
-        this.context.getFileAccess().mkdirs(mvnConfigFolder);
+        // Note: directories are created by the caller if needed
       }
     }
     return mvnConfigFolder;
+  }
+
+  /**
+   * @return the {@link Path} pointing to the maven configuration directory (where "settings.xml" or "settings-security.xml" are located). This method provides
+   *     the same behavior as the original IdeContext.getMavenConfigurationFolder() method.
+   */
+  public Path getMavenConfigurationFolder() {
+    Path confPath = this.context.getConfPath();
+    if (confPath != null) {
+      Path mvnConfigFolder = resolveMavenConfFolder(true);
+      // Only return the path if the directory actually exists
+      if (Files.isDirectory(mvnConfigFolder)) {
+        return mvnConfigFolder;
+      }
+    }
+    // fallback to USER_HOME/.m2 folder
+    return this.context.getUserHome().resolve(MVN_CONFIG_LEGACY_FOLDER);
   }
 
   /**
@@ -271,7 +282,7 @@ public class Mvn extends PluginBasedCommandlet {
     boolean settingsFileExists = Files.exists(mvnSettingsFile);
     boolean securityFileExists = Files.exists(settingsSecurityFile);
     if (!settingsFileExists && !securityFileExists) {
-      return null;
+      return ""; // this clears the MAVEN_ARGS
     }
     StringBuilder sb = new StringBuilder();
     if (settingsFileExists) {
@@ -288,7 +299,7 @@ public class Mvn extends PluginBasedCommandlet {
   }
 
   private String getSettingsSecurityProperty() {
-    return "-Dsettings.security=" + this.context.getMavenConfigurationFolder().resolve(SETTINGS_SECURITY_FILE).toString().replace("\\", "\\\\");
+    return "-Dsettings.security=" + this.getMavenConfigurationFolder().resolve(SETTINGS_SECURITY_FILE).toString().replace("\\", "\\\\");
   }
 
   /**
@@ -304,7 +315,7 @@ public class Mvn extends PluginBasedCommandlet {
   public void downloadArtifact(MvnArtifact artifact) {
 
     this.context.newStep("Download artifact " + artifact).run(() -> {
-      runTool("dependency:get", "-Dartifact=" + artifact.getKey());
+      runTool(List.of("dependency:get", "-Dartifact=" + artifact.getKey()));
     });
   }
 
@@ -320,5 +331,15 @@ public class Mvn extends PluginBasedCommandlet {
       assert (Files.exists(artifactPath));
     }
     return artifactPath;
+  }
+
+  @Override
+  public Path findBuildDescriptor(Path directory) {
+
+    Path buildDescriptor = directory.resolve(POM_XML);
+    if (Files.exists(buildDescriptor)) {
+      return buildDescriptor;
+    }
+    return super.findBuildDescriptor(directory);
   }
 }

@@ -1,11 +1,14 @@
 package com.devonfw.tools.ide.merge.xml.matcher;
 
+import java.nio.file.Path;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -16,6 +19,8 @@ import com.devonfw.tools.ide.merge.xml.XmlMergeSupport;
  * The IdComputer class is responsible for building XPath expressions and evaluating those expressions to match elements in a target document.
  */
 public class IdComputer {
+
+  private static final Logger LOG = LoggerFactory.getLogger(IdComputer.class);
 
   /** Name of the {@link com.devonfw.tools.ide.environment.EnvironmentVariables variable} to fail on ambiguous merge. */
   public static final String FAIL_ON_AMBIGOUS_MERGE = "FAIL_ON_AMBIGOUS_MERGE";
@@ -53,9 +58,11 @@ public class IdComputer {
    *
    * @param templateElement the template {@link Element} for which to build the {@link XPath} expression.
    * @param workspaceElement the workspace {@link Element} in which to evaluate the {@link XPath} expression.
+   * @param templatePath the {@link Path} to the template XML file.
+   * @param workspacePath the {@link Path} to the workspace XML file.
    * @return the matched Element if found, or {@code null} if not found
    */
-  public Element evaluateExpression(Element templateElement, Element workspaceElement) {
+  public Element evaluateExpression(Element templateElement, Element workspaceElement, Path templatePath, Path workspacePath) {
     XPath xpath = xPathFactory.newXPath();
     xpath.setNamespaceContext(new NamespaceContextFromElement(templateElement));
     String xpathExpr = buildXPathExpression(templateElement);
@@ -68,11 +75,13 @@ public class IdComputer {
       } else if (length == 0) {
         return null;
       } else {
-        String message = length + " matches found for XPath " + xpathExpr + " in workspace XML at " + XmlMergeSupport.getXPath(workspaceElement, true);
+        String message =
+            length + " matches found for XPath " + xpathExpr + " in workspace XML file '" + workspacePath + "' at " + XmlMergeSupport.getXPath(workspaceElement,
+                true) + " for template file '" + templatePath + "'";
         if ("true".equals(this.context.getVariables().get(FAIL_ON_AMBIGOUS_MERGE))) {
           throw new IllegalStateException(message);
         } else {
-          this.context.warning(message);
+          LOG.warn(message);
         }
         return (Element) nodeList.item(0);
       }

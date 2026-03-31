@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersionItem> extends AbstractUrlUpdater {
 
-  private static final ObjectMapper MAPPER = JsonMapping.create();
+  private static final ObjectMapper MAPPER = JsonMapping.createWithReflectionSupportForUrlUpdaters();
   private static final Logger logger = LoggerFactory.getLogger(JsonUrlUpdater.class);
 
   /**
@@ -37,8 +37,9 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
   public void update(UrlRepository urlRepository) {
 
     UrlTool tool = urlRepository.getOrCreateChild(getTool());
+    String url = doGetVersionUrl();
     try {
-      String response = doGetResponseBodyAsString(doGetVersionUrl());
+      String response = doGetResponseBodyAsString(url);
       for (String edition : getEditions()) {
         J jsonObj = getJsonObjectFromResponse(response, edition);
         if (jsonObj != null) {
@@ -50,7 +51,7 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
       }
       getUrlFinalReport().addUrlUpdaterReport(getUrlUpdaterReport());
     } catch (Exception e) {
-      throw new IllegalStateException("Error while getting versions from JSON API " + doGetVersionUrl(), e);
+      throw new IllegalStateException("Error while getting versions from JSON API " + url, e);
     }
   }
 
@@ -58,7 +59,6 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
   protected Set<String> getVersions() {
 
     throw new IllegalStateException();
-
   }
 
   /**
@@ -110,7 +110,6 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
    * @param response String from the JSON API request
    * @param edition the data to get from the response corresponding to a specific edition.
    * @return {@link JsonObject} holding the available versions and possibly download urls of the tool.
-   * @throws JsonProcessingException
    */
   protected J getJsonObjectFromResponse(String response, String edition) throws JsonProcessingException {
     return MAPPER.readValue(response, getJsonObjectType());
@@ -146,11 +145,7 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
     addVersion(urlVersion);
   }
 
-  /**
-   * Updates the version of a given URL version.
-   *
-   * @param urlVersion the {@link UrlVersion} to be updated
-   */
+  @Override
   protected void addVersion(UrlVersion urlVersion) {
 
     throw new UnsupportedOperationException();

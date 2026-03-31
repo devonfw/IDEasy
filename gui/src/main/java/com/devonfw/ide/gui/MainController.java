@@ -1,7 +1,5 @@
 package com.devonfw.ide.gui;
 
-import static ch.qos.logback.core.util.OptionHelper.getEnv;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -10,35 +8,50 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeLogListenerBuffer;
-import com.devonfw.tools.ide.log.IdeSubLoggerOut;
-import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
  * Controller of the main screen of the dashboard GUI.
  */
 public class MainController {
 
+  private static Logger LOG = LoggerFactory.getLogger(MainController.class);
+
   @FXML
   private ComboBox<String> selectedProject;
+
   @FXML
   private ComboBox<String> selectedWorkspace;
+
   @FXML
   private Button androidStudioOpen;
+
   @FXML
   private Button eclipseOpen;
+
   @FXML
   private Button intellijOpen;
+
   @FXML
   private Button vsCodeOpen;
 
-  private final String directoryPath = getEnv(IdeVariables.IDE_ROOT.getName());
+  private final String directoryPath;
   private Path projectValue;
   private Path workspaceValue;
 
+  /**
+   * Constructor
+   */
+  public MainController(String directoryPath) {
+    LOG.debug("IDE_ROOT path={}", directoryPath);
+    this.directoryPath = directoryPath;
+  }
 
   @FXML
   private void initialize() {
@@ -73,6 +86,8 @@ public class MainController {
 
   private void setProjectsComboBox() {
 
+    assert (directoryPath != null) : "directoryPath is null! Please check the setup of your environment variables (IDE_ROOT)";
+
     selectedProject.getItems().clear();
     Path directory = Path.of(directoryPath);
 
@@ -92,15 +107,17 @@ public class MainController {
     selectedProject.setOnAction(actionEvent -> {
 
       projectValue = Path.of(selectedProject.getValue()).resolve(IdeContext.FOLDER_WORKSPACES);
-      setWorkspaceValue();
       selectedWorkspace.setDisable(false);
       androidStudioOpen.setDisable(false);
       eclipseOpen.setDisable(false);
       intellijOpen.setDisable(false);
       vsCodeOpen.setDisable(false);
+      selectedWorkspace.setValue("main");
+      this.workspaceValue = Path.of("main");
     });
   }
 
+  @FXML
   private void setWorkspaceValue() {
 
     selectedWorkspace.getItems().clear();
@@ -113,21 +130,19 @@ public class MainController {
             .map(Path::toString)
             .forEach(name -> selectedWorkspace.getItems().add(name));
 
-        selectedWorkspace.setValue("main");
       } catch (IOException e) {
-        e.printStackTrace();
+        throw new RuntimeException("Error occurred while fetching workspace names.", e);
       }
     }
-
-    selectedWorkspace.setOnAction(actionEvent -> workspaceValue = Path.of(selectedWorkspace.getValue()));
+    this.workspaceValue = Path.of(selectedWorkspace.getValue());
   }
 
   private void openIDE(String inIde) {
 
     final IdeLogListenerBuffer buffer = new IdeLogListenerBuffer();
     IdeLogLevel logLevel = IdeLogLevel.INFO;
-    IdeStartContextImpl startContext = new IdeStartContextImpl(logLevel, level -> new IdeSubLoggerOut(level, null, true, logLevel, buffer));
-    IdeGuiContext context = new IdeGuiContext(startContext, Path.of(directoryPath).resolve(projectValue).resolve(workspaceValue));
+    IdeStartContextImpl startContext = new IdeStartContextImpl(logLevel, buffer);
+    IdeGuiContext context = new IdeGuiContext(startContext, Path.of(this.directoryPath).resolve(this.projectValue).resolve(this.workspaceValue));
     context.getCommandletManager().getCommandlet(inIde).run();
   }
 }

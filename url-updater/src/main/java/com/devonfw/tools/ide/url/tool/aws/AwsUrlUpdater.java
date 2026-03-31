@@ -2,17 +2,15 @@ package com.devonfw.tools.ide.url.tool.aws;
 
 import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
 
 /**
- * {@link GithubUrlUpdater} for AWS-CLI.
+ * {@link GithubUrlTagUpdater} for AWS-CLI.
  */
-public class AwsUrlUpdater extends GithubUrlUpdater {
-
-  private static final String BASE_URL = "https://awscli.amazonaws.com";
+public class AwsUrlUpdater extends GithubUrlTagUpdater {
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "aws";
   }
@@ -30,12 +28,12 @@ public class AwsUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
-  protected String getBaseUrl() {
-    return BASE_URL;
+  protected String getDownloadBaseUrl() {
+    return "https://awscli.amazonaws.com";
   }
 
   @Override
-  protected String mapVersion(String version) {
+  public String mapVersion(String version) {
 
     int majorEnd = 0;
     int len = version.length();
@@ -59,7 +57,7 @@ public class AwsUrlUpdater extends GithubUrlUpdater {
   @Override
   protected void addVersion(UrlVersion urlVersion) {
 
-    String baseUrl = getBaseUrl();
+    String baseUrl = getDownloadBaseUrl();
     boolean ok = doAddVersion(urlVersion, baseUrl + "/AWSCLIV2-${version}.msi", OperatingSystem.WINDOWS);
     if (!ok) {
       return;

@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
@@ -18,11 +21,13 @@ import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.tool.androidstudio.AndroidStudio;
 import com.devonfw.tools.ide.tool.aws.Aws;
 import com.devonfw.tools.ide.tool.az.Azure;
+import com.devonfw.tools.ide.tool.corepack.Corepack;
 import com.devonfw.tools.ide.tool.docker.Docker;
 import com.devonfw.tools.ide.tool.dotnet.DotNet;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
 import com.devonfw.tools.ide.tool.gcviewer.GcViewer;
 import com.devonfw.tools.ide.tool.gh.Gh;
+import com.devonfw.tools.ide.tool.go.Go;
 import com.devonfw.tools.ide.tool.graalvm.GraalVm;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
 import com.devonfw.tools.ide.tool.helm.Helm;
@@ -35,22 +40,29 @@ import com.devonfw.tools.ide.tool.kotlinc.KotlincNative;
 import com.devonfw.tools.ide.tool.kubectl.KubeCtl;
 import com.devonfw.tools.ide.tool.lazydocker.LazyDocker;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
+import com.devonfw.tools.ide.tool.ng.Ng;
 import com.devonfw.tools.ide.tool.node.Node;
 import com.devonfw.tools.ide.tool.npm.Npm;
 import com.devonfw.tools.ide.tool.oc.Oc;
 import com.devonfw.tools.ide.tool.pgadmin.PgAdmin;
+import com.devonfw.tools.ide.tool.pip.Pip;
 import com.devonfw.tools.ide.tool.pycharm.Pycharm;
 import com.devonfw.tools.ide.tool.python.Python;
 import com.devonfw.tools.ide.tool.quarkus.Quarkus;
 import com.devonfw.tools.ide.tool.sonar.Sonar;
+import com.devonfw.tools.ide.tool.spring.Spring;
 import com.devonfw.tools.ide.tool.terraform.Terraform;
 import com.devonfw.tools.ide.tool.tomcat.Tomcat;
+import com.devonfw.tools.ide.tool.uv.Uv;
 import com.devonfw.tools.ide.tool.vscode.Vscode;
+import com.devonfw.tools.ide.tool.yarn.Yarn;
 
 /**
  * Implementation of {@link CommandletManager}.
  */
 public class CommandletManagerImpl implements CommandletManager {
+
+  private static final Logger LOG = LoggerFactory.getLogger(CommandletManagerImpl.class);
 
   private final IdeContext context;
 
@@ -100,6 +112,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Gh(context));
     add(new Helm(context));
     add(new Java(context));
+    add(new Ng(context));
     add(new Node(context));
     add(new Npm(context));
     add(new Mvn(context));
@@ -128,6 +141,12 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new LazyDocker(context));
     add(new Python(context));
     add(new Pycharm(context));
+    add(new Spring(context));
+    add(new Uv(context));
+    add(new Yarn(context));
+    add(new Corepack(context));
+    add(new Pip(context));
+    add(new Go(context));
   }
 
   /**
@@ -172,7 +191,7 @@ public class CommandletManagerImpl implements CommandletManager {
 
     Commandlet duplicate = this.firstKeywordMap.putIfAbsent(keyword, commandlet);
     if (duplicate != null) {
-      this.context.debug("Duplicate keyword {} already used by {} so it cannot be associated also with {}", keyword, duplicate, commandlet);
+      LOG.debug("Duplicate keyword {} already used by {} so it cannot be associated also with {}", keyword, duplicate, commandlet);
     }
   }
 
@@ -267,6 +286,7 @@ public class CommandletManagerImpl implements CommandletManager {
     }
 
     private Commandlet findNext() {
+
       while (this.commandletIterator.hasNext()) {
         Commandlet cmd = this.commandletIterator.next();
         if ((cmd != this.firstCandidate) && isSuitable(cmd)) {
@@ -275,7 +295,7 @@ public class CommandletManagerImpl implements CommandletManager {
           if (properties.isEmpty()) {
             assert false : cmd.getClass().getSimpleName() + " has no properties!";
           } else {
-            Property<?> property = properties.get(0);
+            Property<?> property = properties.getFirst();
             if (property instanceof KeywordProperty) {
               boolean matches = property.apply(arguments.copy(), context, cmd, this.collector);
               if (matches) {

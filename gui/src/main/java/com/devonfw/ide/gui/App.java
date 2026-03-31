@@ -10,6 +10,7 @@ import javafx.scene.image.Image;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
+import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.IdeVersion;
 
 /**
@@ -22,7 +23,11 @@ public class App extends Application {
   @Override
   public void start(Stage primaryStage) throws IOException {
 
-    root = FXMLLoader.load(App.class.getResource("main-view.fxml"));
+    FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
+    fxmlLoader.setController(
+        new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()))
+    );
+    root = fxmlLoader.load();
 
     Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
     Scene scene = new Scene(root, bounds.getWidth() / 2, bounds.getHeight() / 2);
@@ -31,9 +36,13 @@ public class App extends Application {
     primaryStage.getIcons().add(icon);
     primaryStage.setTitle("IDEasy - version " + IdeVersion.getVersionString());
     primaryStage.setScene(scene);
+    primaryStage.setMinWidth(scene.getWidth());
+    primaryStage.setMinHeight(scene.getHeight());
     primaryStage.show();
   }
 
+
+  @SuppressWarnings("MissingJavadoc")
   public static void main(String[] args) {
 
     launch(args);

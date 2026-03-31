@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Test of {@link WindowsPathSyntax}.
  */
-public class WindowsPathSyntaxTest extends Assertions {
+class WindowsPathSyntaxTest extends Assertions {
 
   public static final String WINDOWS_HOSTS = "C:\\Windows\\system32\\drivers\\etc\\hosts";
   public static final String MSYS_HOSTS = "/c/Windows/system32/drivers/etc/hosts";
@@ -17,7 +17,7 @@ public class WindowsPathSyntaxTest extends Assertions {
    * Test of {@link WindowsPathSyntax#WINDOWS}.
    */
   @Test
-  public void testWindows() {
+  void testWindows() {
 
     // arrange
     WindowsPathSyntax syntax = WindowsPathSyntax.WINDOWS;
@@ -43,7 +43,7 @@ public class WindowsPathSyntaxTest extends Assertions {
    * Test of {@link WindowsPathSyntax#MSYS}.
    */
   @Test
-  public void testMsys() {
+  void testMsys() {
 
     // arrange
     WindowsPathSyntax syntax = WindowsPathSyntax.MSYS;
@@ -69,7 +69,7 @@ public class WindowsPathSyntaxTest extends Assertions {
    * Test of {@link WindowsPathSyntax#normalize(String, boolean)} for Windows.
    */
   @Test
-  public void testNormalizeWindowsValue2Windows() {
+  void testNormalizeWindowsValue2Windows() {
 
     boolean bash = false;
     assertThat(WindowsPathSyntax.normalize("", bash)).isEqualTo("");
@@ -88,7 +88,7 @@ public class WindowsPathSyntaxTest extends Assertions {
    * Test of {@link WindowsPathSyntax#normalize(String, boolean)} for (Git-)Bash.
    */
   @Test
-  public void testNormalizeWindowsValue2Bash() {
+  void testNormalizeWindowsValue2Bash() {
 
     boolean bash = true;
     assertThat(WindowsPathSyntax.normalize("", bash)).isEqualTo("");
@@ -104,7 +104,7 @@ public class WindowsPathSyntaxTest extends Assertions {
    * Test of {@link WindowsPathSyntax#normalize(String, boolean)} for Windows.
    */
   @Test
-  public void testNormalizeWindowsPath() {
+  void testNormalizeWindowsPath() {
 
     // arrange
     String path = "/c/Windows/system32/drivers/etc/hosts";
@@ -115,7 +115,7 @@ public class WindowsPathSyntaxTest extends Assertions {
   }
 
   @Test
-  public void systemPathShouldConvertWindowsPathToUnixPath() {
+  void systemPathShouldConvertWindowsPathToUnixPath() {
 
     // arrange
     String windowsPathString = "C:\\Users\\User\\test.exe";

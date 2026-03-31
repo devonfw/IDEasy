@@ -1,11 +1,16 @@
 package com.devonfw.tools.ide.url.model;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -23,6 +28,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class UrlMetadata implements AbstractUrlMetadata {
 
+  private static final Logger LOG = LoggerFactory.getLogger(UrlMetadata.class);
+
   private final IdeContext context;
 
   private final UrlRepository repository;
@@ -36,10 +43,29 @@ public class UrlMetadata implements AbstractUrlMetadata {
    */
   public UrlMetadata(IdeContext context) {
 
+    this(context, createRepository(context));
+  }
+
+  /**
+   * The constructor.
+   *
+   * @param context the owning {@link IdeContext}.
+   * @param urlRepository the {@link UrlRepository} to use for loading tool metadata.
+   */
+  public UrlMetadata(IdeContext context, UrlRepository urlRepository) {
+
     super();
     this.context = context;
-    this.repository = new UrlRepository(this.context.getUrlsPath());
+    this.repository = urlRepository;
     this.toolEdition2VersionMap = new HashMap<>();
+  }
+
+  private static UrlRepository createRepository(IdeContext context) {
+    Path urlsPath = context.getUrlsPath();
+    if (urlsPath == null) {
+      urlsPath = Paths.get("urls");
+    }
+    return new UrlRepository(urlsPath);
   }
 
   /**
@@ -59,7 +85,7 @@ public class UrlMetadata implements AbstractUrlMetadata {
     List<String> list = new ArrayList<>();
     UrlTool urlTool = this.repository.getChild(tool);
     if (urlTool == null) {
-      this.context.warning("Can't get sorted editions for tool {} because it does not exist in {}.", tool, this.repository.getPath());
+      LOG.warn("Can't get sorted editions for tool {} because it does not exist in {}.", tool, this.repository.getPath());
     } else {
       for (UrlEdition urlEdition : urlTool.getChildren()) {
         list.add(urlEdition.getName());
@@ -87,7 +113,7 @@ public class UrlMetadata implements AbstractUrlMetadata {
       try {
         urlVersion.getMatchingUrls(sys.getOs(), sys.getArchitecture());
         list.add(versionIdentifier);
-      } catch (IllegalStateException e) {
+      } catch (CliException e) {
         // ignore, but do not add versionIdentifier as there is no download available for the current system
       }
     }
@@ -107,7 +133,7 @@ public class UrlMetadata implements AbstractUrlMetadata {
   public VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version, ToolCommandlet toolCommandlet) {
 
     List<VersionIdentifier> versions = getSortedVersions(tool, edition, toolCommandlet);
-    return VersionIdentifier.resolveVersionPattern(version, versions, this.context);
+    return VersionIdentifier.resolveVersionPattern(version, versions);
   }
 
   /**

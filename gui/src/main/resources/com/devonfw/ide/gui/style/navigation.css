@@ -1,12 +1,12 @@
 VBox {
 
-  -fx-background-color: #B0E0E6;
+  -fx-background-color: #18151e;
 }
 
 .sideNavigationElement {
 
     -fx-border-radius: 0;
-    -fx-background-color: #ADD8E6;
+    -fx-background-color: #CCCCCC;
     -fx-padding: 10;
     -fx-font-size: 16px;
     -fx-text-fill: #000;

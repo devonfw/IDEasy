@@ -11,9 +11,9 @@ import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 
 /**
- * Integration test of {@link VersionGetCommandlet}.
+ * Test of {@link VersionGetCommandlet}.
  */
-public class VersionGetCommandletTest extends AbstractIdeContextTest {
+class VersionGetCommandletTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_SETTINGS = "settings";
   private static final String PROJECT = "edition-version-get-uninstall";
@@ -22,7 +22,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
    * Test of {@link VersionGetCommandlet} run, when Installed Version is null but configured version is set.
    */
   @Test
-  public void testVersionGetCommandletNotInstalledRun() {
+  void testVersionGetCommandletNotInstalledRun() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT, null, false);
@@ -41,7 +41,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
    * Test of {@link VersionGetCommandlet} run, when --installed flag is set, --configured is not set and installed version is null.
    */
   @Test
-  public void testVersionGetCommandletNotInstalledWithInstalledFlagRunThrowsException() {
+  void testVersionGetCommandletNotInstalledWithInstalledFlagRunThrowsException() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT, null, false);
@@ -56,7 +56,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
    * Test of {@link VersionGetCommandlet} run, when --configured flag is set, configured version is not set and installed version is null.
    */
   @Test
-  public void testVersionGetCommandletNotInstalledConfiguredWithConfiguredFlagRun() {
+  void testVersionGetCommandletNotInstalledConfiguredWithConfiguredFlagRun() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_SETTINGS, null, false);
@@ -73,7 +73,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
    * Test of {@link VersionGetCommandlet} run, when --configured flag is set and Installed Version is null.
    */
   @Test
-  public void testVersionGetCommandletNotInstalledWithConfigured() {
+  void testVersionGetCommandletNotInstalledWithConfigured() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT, null, false);
@@ -90,7 +90,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
    * Test of {@link VersionGetCommandlet} run, where "configured" flag is set and the configured version is 3.9.1.
    */
   @Test
-  public void testVersionGetCommandletConfiguredRun() {
+  void testVersionGetCommandletConfiguredRun() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT, null, false);
@@ -107,7 +107,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
    * Test of {@link VersionGetCommandlet} run with the "installed" flag, where the installed version is 3.9.4.
    */
   @Test
-  public void testVersionGetCommandletInstalledRun() {
+  void testVersionGetCommandletInstalledRun() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT, null, false);
@@ -124,7 +124,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
    * Test of {@link VersionGetCommandlet} run with the "configured" flag, where the configured version is "any" (*).
    */
   @Test
-  public void testVersionGetCommandletConfiguredStarRun() {
+  void testVersionGetCommandletConfiguredStarRun() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_SETTINGS, null, false);
@@ -141,7 +141,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
    * Test of {@link VersionGetCommandlet} run with the "configured" and the "installed" flag, where the configured version is "any" (*).
    */
   @Test
-  public void testVersionGetCommandletConfiguredInstalledRun() {
+  void testVersionGetCommandletConfiguredInstalledRun() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_SETTINGS, null, false);
@@ -162,7 +162,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
    * Test of {@link VersionGetCommandlet} run with the "configured" and the "installed" flag, where the configured version is 3.9.1.
    */
   @Test
-  public void testVersionGetCommandletConfiguredInstalledSpecificRun() {
+  void testVersionGetCommandletConfiguredInstalledSpecificRun() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT, null, false);
@@ -183,7 +183,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
    * Test of {@link VersionGetCommandlet} run, where a specific version is installed (mvn 3.9.4) but no specific version is configured (configured version *).
    */
   @Test
-  public void testVersionGetCommandletMatchInstalledToConfiguredStarRun() {
+  void testVersionGetCommandletMatchInstalledToConfiguredStarRun() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_SETTINGS, null, false);

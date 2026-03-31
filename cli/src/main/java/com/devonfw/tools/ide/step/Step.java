@@ -1,8 +1,7 @@
 package com.devonfw.tools.ide.step;
 
 import java.util.concurrent.Callable;
-
-import com.devonfw.tools.ide.log.IdeSubLogger;
+import java.util.function.Supplier;
 
 /**
  * Interface for a {@link Step} of the process. Allows to split larger processes into smaller steps that are traced and measured. Also prevents that if one step
@@ -71,6 +70,15 @@ public interface Step {
 
   /**
    * Should be called to end this {@link Step} {@link #getSuccess() successfully}. May be called only once.
+   *
+   * @param silent to suppress the success message from being logged.
+   */
+  default void success(boolean silent) {
+    success();
+  }
+
+  /**
+   * Should be called to end this {@link Step} {@link #getSuccess() successfully}. May be called only once.
    */
   default void success() {
 
@@ -94,11 +102,6 @@ public interface Step {
    * @param args the optional arguments to fill as placeholder into the {@code message}.
    */
   void success(String message, Object... args);
-
-  /**
-   * @return the {@link IdeSubLogger} for success messages allowing generic code sharing logger fallback.
-   */
-  IdeSubLogger asSuccess();
 
   /**
    * Ensures this {@link Step} is properly ended. Has to be called from a finally block. Do not call manually but always use {@link #run(Runnable)} or
@@ -132,7 +135,7 @@ public interface Step {
    * Should be called to end this {@link Step} as {@link #isFailure() failure} with an explicit error message and/or {@link Throwable exception}. May be called
    * only once.
    *
-   * @param error the catched {@link Throwable}.
+   * @param error the caught {@link Throwable}.
    */
   default void error(Throwable error) {
 
@@ -143,7 +146,7 @@ public interface Step {
    * Should be called to end this {@link Step} as {@link #isFailure() failure} with an explicit error message and/or {@link Throwable exception}. May be called
    * only once.
    *
-   * @param error the catched {@link Throwable}.
+   * @param error the caught {@link Throwable}.
    * @param suppress to suppress the error logging (if error will be rethrown and duplicated error messages shall be avoided).
    */
   default void error(Throwable error, boolean suppress) {
@@ -168,7 +171,7 @@ public interface Step {
    * Should be called to end this {@link Step} as {@link #isFailure() failure} with an explicit error message and/or {@link Throwable exception}. May be called
    * only once.
    *
-   * @param error the catched {@link Throwable}. May be {@code null} if only a {@code message} is provided.
+   * @param error the caught {@link Throwable}. May be {@code null} if only a {@code message} is provided.
    * @param message the explicit message to log as error.
    * @param args the optional arguments to fill as placeholder into the {@code message}.
    */
@@ -181,17 +184,12 @@ public interface Step {
    * Should be called to end this {@link Step} as {@link #isFailure() failure} with an explicit error message and/or {@link Throwable exception}. May be called
    * only once.
    *
-   * @param error the catched {@link Throwable}. May be {@code null} if only a {@code message} is provided.
+   * @param error the caught {@link Throwable}. May be {@code null} if only a {@code message} is provided.
    * @param suppress to suppress the error logging (if error will be rethrown and duplicated error messages shall be avoided).
    * @param message the explicit message to log as error.
    * @param args the optional arguments to fill as placeholder into the {@code message}.
    */
   void error(Throwable error, boolean suppress, String message, Object... args);
-
-  /**
-   * @return the {@link IdeSubLogger} for error messages allowing generic code sharing logger fallback.
-   */
-  IdeSubLogger asError();
 
   /**
    * @return the parent {@link Step} or {@code null} if there is no parent.
@@ -255,23 +253,23 @@ public interface Step {
 
   /**
    * @param stepCode the {@link Callable} to {@link Callable#call() execute} for this {@link Step}.
-   * @param resultOnError the result to be returned in case of a {@link Throwable error}.
+   * @param resultOnErrorSupplier the {@link Supplier} {@link Supplier#get() providing} the result to be returned in case of a {@link Throwable error}.
    * @param <R> type of the return value.
    * @return the value returned from {@link Callable#call()}.
    */
-  default <R> R call(Callable<R> stepCode, R resultOnError) {
+  default <R> R call(Callable<R> stepCode, Supplier<R> resultOnErrorSupplier) {
 
-    return call(stepCode, false, resultOnError);
+    return call(stepCode, false, resultOnErrorSupplier);
   }
 
   /**
    * @param stepCode the {@link Callable} to {@link Callable#call() execute} for this {@link Step}.
    * @param rethrow - {@code true} to rethrow a potential {@link Throwable error}.
-   * @param resultOnError the result to be returned in case of a {@link Throwable error}.
+   * @param resultOnErrorSupplier the {@link Supplier} {@link Supplier#get() providing} the result to be returned in case of a {@link Throwable error}.
    * @param <R> type of the return value.
    * @return the value returned from {@link Callable#call()}.
    */
-  default <R> R call(Callable<R> stepCode, boolean rethrow, R resultOnError) {
+  default <R> R call(Callable<R> stepCode, boolean rethrow, Supplier<R> resultOnErrorSupplier) {
 
     try {
       R result = stepCode.call();
@@ -290,7 +288,7 @@ public interface Step {
           throw new IllegalStateException(e);
         }
       }
-      return resultOnError;
+      return resultOnErrorSupplier.get();
     } finally {
       close();
     }

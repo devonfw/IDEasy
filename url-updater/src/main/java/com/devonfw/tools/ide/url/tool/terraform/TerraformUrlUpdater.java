@@ -1,19 +1,18 @@
 package com.devonfw.tools.ide.url.tool.terraform;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link GithubUrlUpdater} for terraform.
+ * {@link GithubUrlTagUpdater} for terraform.
  */
-public class TerraformUrlUpdater extends GithubUrlUpdater {
+public class TerraformUrlUpdater extends GithubUrlTagUpdater {
 
   private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.of("1.1.0");
-  private static final String BASE_URL = "https://releases.hashicorp.com";
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "terraform";
   }
@@ -25,9 +24,9 @@ public class TerraformUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
-  protected String getBaseUrl() {
+  protected String getDownloadBaseUrl() {
 
-    return BASE_URL;
+    return "https://releases.hashicorp.com";
   }
 
   @Override
@@ -40,7 +39,7 @@ public class TerraformUrlUpdater extends GithubUrlUpdater {
   protected void addVersion(UrlVersion urlVersion) {
 
     VersionIdentifier vid = urlVersion.getVersionIdentifier();
-    String baseUrl = getBaseUrl() + "/terraform/${version}/terraform_${version}_";
+    String baseUrl = getDownloadBaseUrl() + "/terraform/${version}/terraform_${version}_";
     doAddVersion(urlVersion, baseUrl + "windows_amd64.zip", WINDOWS);
     doAddVersion(urlVersion, baseUrl + "linux_amd64.zip", LINUX);
     doAddVersion(urlVersion, baseUrl + "darwin_amd64.zip", MAC);

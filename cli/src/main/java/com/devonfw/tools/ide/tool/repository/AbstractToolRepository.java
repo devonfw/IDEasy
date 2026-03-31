@@ -3,9 +3,14 @@ package com.devonfw.tools.ide.tool.repository;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliOfflineException;
@@ -17,6 +22,11 @@ import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.url.model.file.UrlChecksums;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
 import com.devonfw.tools.ide.url.model.file.UrlGenericChecksum;
+import com.devonfw.tools.ide.url.model.file.json.ToolDependencies;
+import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
+import com.devonfw.tools.ide.url.model.file.json.ToolSecurity;
+import com.devonfw.tools.ide.url.model.folder.UrlEdition;
+import com.devonfw.tools.ide.url.model.folder.UrlTool;
 import com.devonfw.tools.ide.util.FilenameUtil;
 import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -25,6 +35,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * Abstract base implementation of {@link ToolRepository}.
  */
 public abstract class AbstractToolRepository implements ToolRepository {
+
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractToolRepository.class);
 
   private static final int MAX_TEMP_DOWNLOADS = 9;
 
@@ -65,16 +77,11 @@ public abstract class AbstractToolRepository implements ToolRepository {
    */
   public Path download(UrlDownloadFileMetadata metadata) {
 
-    VersionIdentifier version = metadata.getVersion();
-    if (context.isOffline()) {
-      throw CliOfflineException.ofDownloadOfTool(metadata.getTool(), metadata.getEdition(), version);
-    }
     Set<String> urlCollection = metadata.getUrls();
     if (urlCollection.isEmpty()) {
       throw new IllegalStateException("Invalid download metadata with empty urls file for " + metadata);
     }
-    Path target = doDownload(metadata);
-    return target;
+    return doDownload(metadata);
   }
 
   /**
@@ -87,9 +94,19 @@ public abstract class AbstractToolRepository implements ToolRepository {
     Path downloadCache = this.context.getDownloadPath().resolve(getId());
     this.context.getFileAccess().mkdirs(downloadCache);
     Path target = downloadCache.resolve(downloadFilename);
+
     if (Files.exists(target)) {
-      this.context.interaction("Artifact already exists at {}\nTo force update please delete the file and run again.", target);
+      // File is already cached
+      if (this.context.getNetworkStatus().isOffline()) {
+        LOG.debug("Using cached download of {} in version {} from {} (offline mode)",
+            metadata.getTool(), metadata.getVersion(), target);
+      } else {
+        IdeLogLevel.INTERACTION.log(LOG, "Artifact already exists at {}\nTo force update please delete the file and run again.", target);
+      }
     } else {
+      if (this.context.getNetworkStatus().isOffline()) {
+        throw CliOfflineException.ofDownloadOfTool(metadata.getTool(), metadata.getEdition(), metadata.getVersion());
+      }
       target = download(metadata, target);
     }
     return target;
@@ -104,18 +121,25 @@ public abstract class AbstractToolRepository implements ToolRepository {
 
     VersionIdentifier resolvedVersion = metadata.getVersion();
     List<String> urlList = new ArrayList<>(metadata.getUrls());
-    if (urlList.size() > 1) {
+    int size = urlList.size();
+    int max = size - 1;
+    if (size > 1) {
       Collections.shuffle(urlList);
     }
     UrlChecksums checksums = metadata.getChecksums();
-    for (String url : urlList) {
+    Exception error = null;
+    for (int i = 0; i < size; i++) {
+      String url = urlList.get(i);
       try {
         return download(url, target, resolvedVersion, checksums);
       } catch (Exception e) {
-        this.context.error(e, "Failed to download from " + url);
+        error = e;
+      }
+      if (i < max) {
+        LOG.error("Failed to download from " + url, error);
       }
     }
-    throw new CliException("Download of " + target.getFileName() + " failed after trying " + urlList.size() + " URL(s).");
+    throw new IllegalStateException("Download of " + target.getFileName() + " failed after trying " + size + " URL(s).", error);
   }
 
   /**
@@ -160,8 +184,7 @@ public abstract class AbstractToolRepository implements ToolRepository {
       } else {
         extension = "zip";
       }
-      this.context.warning("Could not determine file extension from URL {} - guess was {} but may be incorrect.", url,
-          extension);
+      LOG.warn("Could not determine file extension from URL {} - guess was {} but may be incorrect.", url, extension);
     }
     sb.append(".");
     sb.append(extension);
@@ -238,11 +261,11 @@ public abstract class AbstractToolRepository implements ToolRepository {
       checksumVerified = true;
     }
     if (!checksumVerified) {
-      IdeLogLevel level = IdeLogLevel.WARNING;
+      Level level = Level.WARN;
       if (isLatestVersion(version)) {
-        level = IdeLogLevel.DEBUG;
+        level = Level.DEBUG;
       }
-      this.context.level(level).log("No checksum found for {}", file);
+      LOG.atLevel(level).log("No checksum found for {}", file);
     }
   }
 
@@ -257,7 +280,7 @@ public abstract class AbstractToolRepository implements ToolRepository {
     String hashAlgorithm = expectedChecksum.getHashAlgorithm();
     String actualChecksum = this.context.getFileAccess().checksum(file, hashAlgorithm);
     if (expectedChecksum.getChecksum().equals(actualChecksum)) {
-      this.context.success("{} checksum {} is correct.", hashAlgorithm, actualChecksum);
+      IdeLogLevel.SUCCESS.log(LOG, "{} checksum {} is correct.", hashAlgorithm, actualChecksum);
     } else {
       throw new CliException("Downloaded file " + file + " has the wrong " + hashAlgorithm + " checksum!\n" //
           + "Expected " + expectedChecksum + "\n" //
@@ -273,6 +296,36 @@ public abstract class AbstractToolRepository implements ToolRepository {
   public VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version, ToolCommandlet toolCommandlet) {
 
     List<VersionIdentifier> versions = getSortedVersions(tool, edition, toolCommandlet);
-    return VersionIdentifier.resolveVersionPattern(version, versions, this.context);
+    return VersionIdentifier.resolveVersionPattern(version, versions);
   }
+
+  @Override
+  public Collection<ToolDependency> findDependencies(String tool, String edition, VersionIdentifier version) {
+
+    UrlEdition urlEdition = this.context.getUrls().getEdition(tool, edition);
+    ToolDependencies dependencies = urlEdition.getDependencyFile().getDependencies();
+    if (dependencies == ToolDependencies.getEmpty()) {
+      UrlTool urlTool = urlEdition.getParent();
+      dependencies = urlTool.getDependencyFile().getDependencies();
+    }
+    if (dependencies != ToolDependencies.getEmpty()) {
+      LOG.trace("Found dependencies in {}", dependencies);
+    }
+    return dependencies.findDependencies(version);
+  }
+
+  @Override
+  public ToolSecurity findSecurity(String tool, String edition) {
+    UrlEdition urlEdition = this.context.getUrls().getEdition(tool, edition);
+    ToolSecurity security = urlEdition.getSecurityFile().getSecurity();
+    if (security == ToolSecurity.getEmpty()) {
+      UrlTool urlTool = urlEdition.getParent();
+      security = urlTool.getSecurityFile().getSecurity();
+    }
+    if (security != ToolSecurity.getEmpty()) {
+      LOG.trace("Found CVE information in {}", security);
+    }
+    return security;
+  }
+
 }

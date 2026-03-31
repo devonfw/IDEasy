@@ -11,9 +11,9 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.io.FileAccess;
 
 /**
- * Integration test of {@link Gradle}.
+ * Test of {@link Gradle}.
  */
-public class GradleTest extends AbstractIdeContextTest {
+class GradleTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_GRADLE = "gradle";
   private static final String GRADLE_VERSION = "8.7";
@@ -24,7 +24,7 @@ public class GradleTest extends AbstractIdeContextTest {
    * @throws IOException if an I/O error occurs during the installation process
    */
   @Test
-  public void testgradleInstall() throws IOException {
+  void testGradleInstall() throws IOException {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_GRADLE);
@@ -44,7 +44,7 @@ public class GradleTest extends AbstractIdeContextTest {
    * @throws IOException if an I/O error occurs during the installation process
    */
   @Test
-  public void testGradleRun() throws IOException {
+  void testGradleRun() throws IOException {
     // arrange
     IdeTestContext context = newContext(PROJECT_GRADLE);
     InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
@@ -65,7 +65,7 @@ public class GradleTest extends AbstractIdeContextTest {
    * Tests if gradle run will use a gradle wrapper file if it was found within a valid cwd containing a build.gradle.
    */
   @Test
-  public void testGradleRunWithFoundWrapper() {
+  void testGradleRunWithFoundWrapper() {
     // arrange
     IdeTestContext context = newContext(PROJECT_GRADLE);
     FileAccess fileAccess = context.getFileAccess();
@@ -88,16 +88,16 @@ public class GradleTest extends AbstractIdeContextTest {
     gradle.run();
 
     // assert
-    assertThat(context).logAtDebug().hasMessage("Using wrapper file at: " + context.getWorkspacePath());
+    assertThat(context).logAtDebug().hasMessage("Using wrapper: " + context.getWorkspacePath().resolve("gradlew"));
     assertThat(context).logAtInfo().hasMessage("gradlew " + "foo bar");
   }
 
-  private void checkInstallation(IdeTestContext context) throws IOException {
+  private void checkInstallation(IdeTestContext context) {
 
     assertThat(context.getSoftwarePath().resolve("java/bin/java")).exists();
 
     assertThat(context.getSoftwarePath().resolve("gradle/.ide.software.version")).exists().hasContent(GRADLE_VERSION);
-    assertThat(context).logAtSuccess().hasMessage("Successfully installed gradle in version " + GRADLE_VERSION);
+    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed gradle in version " + GRADLE_VERSION);
 
   }
 }

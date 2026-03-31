@@ -11,6 +11,9 @@ public enum VersionPhase implements AbstractVersionPhase {
   /** A revision number (actually not a development phase like {@link #UNDEFINED}). */
   REVISION(Boolean.TRUE, "revision", "rev"),
 
+  /** Unstable marker - see {@link VersionSegment#PATTERN_MATCH_ANY_VERSION}. */
+  UNSTABLE(Boolean.FALSE, "!"),
+
   /** A snapshot version from development (e.g. "-SNAPSHOT" suffix in maven). */
   SNAPSHOT(Boolean.FALSE, "beta-snapshot", "snapshot", "dev"),
 

@@ -10,7 +10,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 /**
  * Test of {@link MacOsHelper}.
  */
-public class MacOsHelperTest extends AbstractIdeContextTest {
+class MacOsHelperTest extends AbstractIdeContextTest {
 
   private static final IdeContext CONTEXT = newContext(PROJECT_BASIC, null, false);
 
@@ -18,12 +18,12 @@ public class MacOsHelperTest extends AbstractIdeContextTest {
 
   /** Test "java" structure. */
   @Test
-  public void testJava() {
+  void testJava() {
 
     // arrange
     String tool = "java";
     Path rootDir = APPS_DIR.resolve(tool);
-    MacOsHelper helper = new MacOsHelper(CONTEXT.getFileAccess(), SystemInfoMock.MAC_X64, CONTEXT);
+    MacOsHelper helper = new MacOsHelper(CONTEXT.getFileAccess(), SystemInfoMock.MAC_X64);
     // act
     Path linkDir = helper.findLinkDir(rootDir, tool);
     // assert
@@ -32,12 +32,12 @@ public class MacOsHelperTest extends AbstractIdeContextTest {
 
   /** Test "special" structure. */
   @Test
-  public void testSpecial() {
+  void testSpecial() {
 
     // arrange
     String tool = "special";
     Path rootDir = APPS_DIR.resolve(tool);
-    MacOsHelper helper = new MacOsHelper(CONTEXT.getFileAccess(), SystemInfoMock.MAC_X64, CONTEXT);
+    MacOsHelper helper = new MacOsHelper(CONTEXT.getFileAccess(), SystemInfoMock.MAC_X64);
     // act
     Path linkDir = helper.findLinkDir(rootDir, tool);
     // assert
@@ -46,12 +46,12 @@ public class MacOsHelperTest extends AbstractIdeContextTest {
 
   /** Test if OS is not Mac. */
   @Test
-  public void testNotMac() {
+  void testNotMac() {
 
     // arrange
     String tool = "java";
     Path rootDir = APPS_DIR.resolve(tool);
-    MacOsHelper helper = new MacOsHelper(CONTEXT.getFileAccess(), SystemInfoMock.LINUX_X64, CONTEXT);
+    MacOsHelper helper = new MacOsHelper(CONTEXT.getFileAccess(), SystemInfoMock.LINUX_X64);
     // act
     Path linkDir = helper.findLinkDir(rootDir, tool);
     // assert
@@ -60,12 +60,12 @@ public class MacOsHelperTest extends AbstractIdeContextTest {
 
   /** Test "java" structure. */
   @Test
-  public void testJmc() {
+  void testJmc() {
 
     // arrange
     String tool = "jmc";
     Path rootDir = APPS_DIR.resolve(tool);
-    MacOsHelper helper = new MacOsHelper(CONTEXT.getFileAccess(), SystemInfoMock.MAC_X64, CONTEXT);
+    MacOsHelper helper = new MacOsHelper(CONTEXT.getFileAccess(), SystemInfoMock.MAC_X64);
     // act
     Path linkDir = helper.findLinkDir(rootDir, tool);
     // assert

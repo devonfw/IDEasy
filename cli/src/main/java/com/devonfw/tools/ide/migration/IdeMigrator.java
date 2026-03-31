@@ -2,8 +2,13 @@ package com.devonfw.tools.ide.migration;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.migration.v2025.Mig202502001;
+import com.devonfw.tools.ide.migration.v2025.Mig202510001;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.version.IdeVersion;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -12,6 +17,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * The entry point to {@link IdeMigration} that orchestrates all {@link IdeVersionMigration}s.
  */
 public class IdeMigrator implements IdeMigration {
+
+  private static final Logger LOG = LoggerFactory.getLogger(IdeMigrator.class);
 
   /** {@link VersionIdentifier} to use as fallback if {@link IdeContext#FILE_SOFTWARE_VERSION} does not exist. */
   public static final VersionIdentifier START_VERSION = VersionIdentifier.of("2025.01.001-beta");
@@ -24,7 +31,7 @@ public class IdeMigrator implements IdeMigration {
   public IdeMigrator() {
 
     // migrations must be strictly in ascending order (from oldest to newest version)
-    this(List.of(new Mig202502001()));
+    this(List.of(new Mig202502001(), new Mig202510001()));
   }
 
   /**
@@ -52,7 +59,7 @@ public class IdeMigrator implements IdeMigration {
   public void run(IdeContext context) {
 
     if (context.getIdeHome() == null) {
-      context.debug("Skipping migration since IDE_HOME is undefined.");
+      LOG.debug("Skipping migration since IDE_HOME is undefined.");
       return;
     }
     VersionIdentifier currentVersion = context.getProjectVersion();
@@ -79,13 +86,13 @@ public class IdeMigrator implements IdeMigration {
           throw new IllegalStateException("Failed: " + step.getName());
         }
       } else {
-        context.debug("Skipping migration {} since we are already at version {}", targetVersion, currentVersion);
+        LOG.debug("Skipping migration {} since we are already at version {}", targetVersion, currentVersion);
       }
     }
     if (migrationCount > 0) {
-      context.success("Successfully applied {} migration(s) to project {}", migrationCount, context.getProjectName());
+      IdeLogLevel.SUCCESS.log(LOG, "Successfully applied {} migration(s) to project {}", migrationCount, context.getProjectName());
     } else {
-      context.debug("No migration to apply to project {}", context.getProjectName());
+      LOG.debug("No migration to apply to project {}", context.getProjectName());
     }
   }
 }

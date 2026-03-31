@@ -1,18 +1,31 @@
 package com.devonfw.tools.ide.tool.sonar;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.property.EnumProperty;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 
+/**
+ * {@link LocalToolCommandlet} for <a href="https://sonarqube.org/">SonarQube</a>.
+ */
 public class Sonar extends LocalToolCommandlet {
 
+  private static final Logger LOG = LoggerFactory.getLogger(Sonar.class);
+
+  /** The {@link SonarCommand} to run. */
   public final EnumProperty<SonarCommand> command;
 
   /**
@@ -35,14 +48,14 @@ public class Sonar extends LocalToolCommandlet {
   }
 
   @Override
-  public boolean install(boolean silent) {
+  public ToolInstallation install(boolean silent) {
 
     getCommandlet(Java.class).install();
     return super.install(silent);
   }
 
   @Override
-  public void run() {
+  protected void doRun() {
 
     SonarCommand command = this.command.getValue();
 
@@ -53,7 +66,7 @@ public class Sonar extends LocalToolCommandlet {
 
     switch (command) {
       case ANALYZE:
-        getCommandlet(Mvn.class).runTool("sonar:sonar");
+        getCommandlet(Mvn.class).runTool(List.of("sonar:sonar"));
         break;
       case START:
         printSonarWebPort();
@@ -70,13 +83,13 @@ public class Sonar extends LocalToolCommandlet {
 
   @Override
   protected String getBinaryName() {
-
+    SonarCommand command = this.command.getValue();
     if (this.context.getSystemInfo().isWindows()) {
-      SonarCommand command = this.command.getValue();
-      if (command.equals(SonarCommand.START)) {
-        return "windows-x86-64/StartSonar.bat";
-      } else if (command.equals(SonarCommand.STOP)) {
+      if (command != null && command.equals(SonarCommand.STOP)) {
         return "windows-x86-64/SonarService.bat";
+
+      } else {
+        return "windows-x86-64/StartSonar.bat";
       }
     } else if (this.context.getSystemInfo().isMac()) {
       return "macosx-universal-64/sonar.sh";
@@ -84,15 +97,30 @@ public class Sonar extends LocalToolCommandlet {
     return "linux-x86-64/sonar.sh";
   }
 
+  //  Instead of relying on relative Path (which breaks), we directly construct the absolute path
+//  so getToolBinPath would return /software/sonar/bin and .resolve adds x86-x64
+//  ProcessContext can now execute the abs path without any issues.
+//   Worst case, we fall back to the default configureToolBinary, which uses relative path.
+  @Override
+  protected void configureToolBinary(ProcessContext pc, ProcessMode processMode) {
+    Path toolBinPath = getToolBinPath();
+    if (toolBinPath != null) {
+      Path binaryPath = toolBinPath.resolve(getBinaryName());
+      pc.executable(binaryPath);
+    } else {
+      super.configureToolBinary(pc, processMode);
+    }
+  }
+
   private void printSonarWebPort() {
 
-    this.context.info("SonarQube is running at localhost on the following port (default 9000):");
+    LOG.info("SonarQube is running at localhost on the following port (default 9000):");
     Path sonarPropertiesPath = getToolPath().resolve("conf/sonar.properties");
 
     Properties sonarProperties = this.context.getFileAccess().readProperties(sonarPropertiesPath);
     String sonarWebPort = sonarProperties.getProperty("sonar.web.port");
     if (sonarWebPort != null) {
-      this.context.info(sonarWebPort);
+      LOG.info(sonarWebPort);
     }
   }
 }
