@@ -116,7 +116,7 @@ class StatusCommandletTest extends AbstractIdeContextTest {
     status.run();
 
     // assert
-    assertThat(context).logAtWarning().hasMessageContaining("via 'ide fix-vpn-tls-problem <url>'");
+    assertThat(context).logAtWarning().hasMessageContaining("'ide fix-vpn-tls-problem <url>'");
     assertThat(context).logAtInteraction().hasMessageContaining("proxy-support.adoc#tls-certificate-issues");
   }
 
