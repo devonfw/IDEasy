@@ -3,12 +3,15 @@ package com.devonfw.tools.ide.merge;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Reader;
+import java.io.StringReader;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import jakarta.json.Json;
@@ -29,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -43,6 +47,8 @@ import com.fasterxml.jackson.databind.node.TextNode;
 public class JsonMerger extends FileMerger {
 
   private static final Logger LOG = LoggerFactory.getLogger(JsonMerger.class);
+
+  private static final ObjectMapper JSONC_MAPPER = new ObjectMapper().configure(JsonParser.Feature.ALLOW_COMMENTS, true);
 
   /**
    * The constructor.
@@ -60,9 +66,15 @@ public class JsonMerger extends FileMerger {
     JsonStructure json = null;
     Path template = setup;
     boolean updateFileExists = Files.exists(update);
+    Map<String, String> workspaceComments = Collections.emptyMap();
     if (Files.exists(workspace)) {
       if (!updateFileExists) {
         return; // nothing to do ...
+      }
+      try {
+        workspaceComments = extractComments(workspace);
+      } catch (IOException e) {
+        LOG.debug("Failed to extract comments from {}, comments will not be preserved", workspace, e);
       }
       json = load(workspace);
     } else if (Files.exists(setup)) {
@@ -81,17 +93,94 @@ public class JsonMerger extends FileMerger {
     JsonStructure result = (JsonStructure) mergeAndResolve(json, mergeJson, variables, status, template.toString());
     if (status.updated) {
       save(result, workspace);
+      if (!workspaceComments.isEmpty()) {
+        try {
+          injectComments(workspace, workspaceComments);
+        } catch (IOException e) {
+          LOG.debug("Failed to inject comments into {}", workspace, e);
+        }
+      }
       LOG.debug("Saved created/updated file {}", workspace);
     } else {
       LOG.trace("No changes for file {}", workspace);
     }
   }
 
+  /**
+   * Scans a JSONC file and maps each property key to the comment block immediately preceding it.
+   * Only leading-line comments ({@code //} and block comments) are captured; inline trailing comments are ignored.
+   * Blank lines between a comment block and its property are tolerated.
+   *
+   * @param file the JSONC file to scan.
+   * @return map from property key to its preceding comment text (trimmed lines joined with {@code \n}).
+   * @throws IOException on read error.
+   */
+  private static Map<String, String> extractComments(Path file) throws IOException {
+
+    List<String> lines = Files.readAllLines(file);
+    Map<String, String> comments = new HashMap<>();
+    List<String> pendingComments = new ArrayList<>();
+    for (String line : lines) {
+      String trimmed = line.trim();
+      if (trimmed.startsWith("//") || trimmed.startsWith("/*") || trimmed.startsWith("*")) {
+        pendingComments.add(trimmed);
+      } else if (trimmed.startsWith("\"") && !pendingComments.isEmpty()) {
+        int endQuote = trimmed.indexOf('"', 1);
+        if (endQuote > 0) {
+          String key = trimmed.substring(1, endQuote);
+          comments.put(key, String.join("\n", pendingComments));
+        }
+        pendingComments.clear();
+      } else if (!trimmed.isEmpty()) {
+        pendingComments.clear();
+      }
+      // blank lines: leave pendingComments intact so a blank line between comment and property is tolerated
+    }
+    return comments;
+  }
+
+  /**
+   * Re-inserts comment blocks into a clean JSON file above the property each comment was associated with.
+   * The indentation of each injected comment line matches the indentation of the following property line.
+   *
+   * @param file the saved JSON file to rewrite with comments.
+   * @param comments map from property key to its preceding comment text (as returned by {@link #extractComments}).
+   * @throws IOException on read/write error.
+   */
+  private static void injectComments(Path file, Map<String, String> comments) throws IOException {
+
+    List<String> lines = Files.readAllLines(file);
+    StringBuilder sb = new StringBuilder();
+    for (String line : lines) {
+      String trimmed = line.trim();
+      if (trimmed.startsWith("\"")) {
+        int endQuote = trimmed.indexOf('"', 1);
+        if (endQuote > 0) {
+          String key = trimmed.substring(1, endQuote);
+          String comment = comments.get(key);
+          if (comment != null) {
+            int indentLength = line.indexOf('"');
+            String indent = indentLength > 0 ? line.substring(0, indentLength) : "";
+            for (String commentLine : comment.split("\n")) {
+              sb.append(indent).append(commentLine).append('\n');
+            }
+          }
+        }
+      }
+      sb.append(line).append('\n');
+    }
+    Files.writeString(file, sb.toString());
+  }
+
   private static JsonStructure load(Path file) {
 
-    try (Reader reader = Files.newBufferedReader(file)) {
-      JsonReader jsonReader = Json.createReader(reader);
-      return jsonReader.read();
+    try {
+      JsonNode node = JSONC_MAPPER.readTree(file.toFile());
+      String cleanJson = JSONC_MAPPER.writeValueAsString(node);
+      try (Reader reader = new StringReader(cleanJson)) {
+        JsonReader jsonReader = Json.createReader(reader);
+        return jsonReader.read();
+      }
     } catch (Exception e) {
       throw new IllegalStateException("Failed to read JSON from " + file, e);
     }
