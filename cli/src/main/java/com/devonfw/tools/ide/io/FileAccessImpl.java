@@ -722,10 +722,14 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       return;
     }
     LOG.debug("Removing macOS quarantine attribute from {}", path);
-    ProcessResult result = this.context.newProcess().executable("xattr")
-        .addArgs("-r", "-d", "com.apple.quarantine", path).run(ProcessMode.DEFAULT_SILENT);
-    if (!result.isSuccessful()) {
-      LOG.trace("Could not remove quarantine attribute from {} (may not have been set)", path);
+    try {
+      ProcessResult result = this.context.newProcess().executable("xattr")
+          .addArgs("-r", "-d", "com.apple.quarantine", path).run(ProcessMode.DEFAULT_SILENT);
+      if (!result.isSuccessful()) {
+        LOG.trace("Could not remove quarantine attribute from {} (may not have been set)", path);
+      }
+    } catch (Exception e) {
+      LOG.trace("Could not remove quarantine attribute from {} - xattr not available: {}", path, e.getMessage());
     }
   }
 
