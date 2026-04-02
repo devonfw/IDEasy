@@ -47,7 +47,7 @@ public class IntellijUrlUpdater extends IdeaBasedUrlUpdater {
 
   @Override
   public String getCpeProduct() {
-    return "intellij";
+    return "intellij_idea";
   }
 
 
