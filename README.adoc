@@ -43,7 +43,13 @@ All you need before installing IDEasy is https://git-scm.com/download/[git].
 
 === Install
 
-Download the latest version of `IDEasy` from https://github.com/devonfw/IDEasy/releases[here] and install it.
+The fastest way to install IDEasy is the following one-line command for bash (use git-bash on Windows):
+
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/devonfw/IDEasy/main/install.sh)"
+```
+
+For more details see link:documentation/setup.adoc[setup].
 
 === Create projects
 
