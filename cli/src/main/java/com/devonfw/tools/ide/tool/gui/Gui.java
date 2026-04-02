@@ -27,7 +27,7 @@ public class Gui extends Commandlet {
   public Gui(IdeContext context) {
 
     super(context);
-    addKeyword("gui");
+    addKeyword(getName());
   }
 
   @Override
