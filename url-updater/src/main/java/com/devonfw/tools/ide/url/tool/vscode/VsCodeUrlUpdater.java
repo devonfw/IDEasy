@@ -52,7 +52,7 @@ public class VsCodeUrlUpdater extends GithubUrlTagUpdater {
 
   @Override
   public String getCpeProduct() {
-    return "vscode";
+    return "visual_studio_code";
   }
 
 }

@@ -63,6 +63,6 @@ public class AzureUrlUpdater extends GithubUrlTagUpdater {
 
   @Override
   public String getCpeProduct() {
-    return "az";
+    return "azure_command-line_interface";
   }
 }

@@ -50,7 +50,7 @@ public class JenkinsUrlUpdater extends WebsiteUrlUpdater {
 
   @Override
   public String getCpeVendor() {
-    return "jenkinsci";
+    return "jenkins";
   }
 
   @Override

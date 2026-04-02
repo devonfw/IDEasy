@@ -20,17 +20,6 @@ public class MvnUrlUpdater extends GithubUrlReleaseUpdater {
     return "mvn";
   }
 
-  @Override
-  public String getCpeVendor() {
-
-    return "apache";
-  }
-
-  @Override
-  public String getCpeProduct() {
-
-    return "maven";
-  }
 
   @Override
   protected String getGithubOrganization() {
@@ -79,5 +68,17 @@ public class MvnUrlUpdater extends GithubUrlReleaseUpdater {
       String majorFolder = versionIdentifier.compareVersion(MAVEN_4_IDENTIFIER).isLess() ? "maven-3" : "maven-4";
       doAddVersion(urlVersion, getDownloadBaseUrl() + "/dist/maven/" + majorFolder + "/${version}/binaries/apache-maven-${version}-bin.zip");
     }
+  }
+
+  @Override
+  public String getCpeVendor() {
+
+    return "apache";
+  }
+
+  @Override
+  public String getCpeProduct() {
+
+    return "maven";
   }
 }

@@ -29,15 +29,6 @@ public class JavaAzulUrlUpdater extends JsonUrlUpdater<JavaAzulJsonObject, JavaA
     // https://cdn.azul.com/zulu/bin/zulu11.66.15-ca-jre11.0.20-solaris_x64.zip
   }
 
-  @Override
-  public String getCpeVendor() {
-    return "azul";
-  }
-
-  @Override
-  public String getCpeProduct() {
-    return "zulu";
-  }
 
   @Override
   protected String getDownloadBaseUrl() {
@@ -63,5 +54,15 @@ public class JavaAzulUrlUpdater extends JsonUrlUpdater<JavaAzulJsonObject, JavaA
   @Override
   protected Collection<JavaAzulJsonVersion> getVersionItems(JavaAzulJsonObject jsonObject) {
     return jsonObject.versions();
+  }
+
+  @Override
+  public String getCpeVendor() {
+    return "azul";
+  }
+
+  @Override
+  public String getCpeProduct() {
+    return "zulu";
   }
 }
