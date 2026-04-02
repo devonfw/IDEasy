@@ -23,22 +23,8 @@
     </dependency>
   </dependencies>
 
-  <properties>
-    <maven.compiler.source>25</maven.compiler.source>
-    <maven.compiler.target>25</maven.compiler.target>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
-
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>3.1.0</version>
-        <configuration>
-          <mainClass>com.devonfw.ide.gui.AppLauncher</mainClass>
-        </configuration>
-      </plugin>
       <plugin>
         <artifactId>maven-resources-plugin</artifactId>
         <version>3.3.1</version>
