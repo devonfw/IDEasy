@@ -1,0 +1,18 @@
+= Contributor License Agreement
+
+For your **first contribution** to IDEasy, you **must sign the Contributor License Agreement (CLA)**.
+This will be requested **automatically by GitHub** after you create your first link:pull-request.adoc[pull-request].
+
+A **bot will add a comment** to your PR with a **link to the CLA**.
+Please **open the link**, **read the agreement**, and **confirm it**.
+
+NOTE: Pay attention to provide the proper email-address to the CLA form.
+You need to provide the email address that you have configured in git for your commits that should also be the email address you have configured in your GitHub profile (as primary email address).
+If possible avoid mixing multiple email addresses (e.g. private and corporate email).
+Once you have filled the CLA with the "wrong" email address, it gets really hard to fix this.
+So really be careful to provide the correct email address, when you fill out the CLA.
+
+**Without signing the CLA, your PR cannot be merged!**
+
+This step only needs to be completed **once**.
+For all future contributions, **your signature will automatically be recognized**.

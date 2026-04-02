@@ -1,0 +1,20 @@
+= Contributing to IDEasy
+:toc:
+toc::[]
+
+We are happy to see you here considering to contribute to IDEasy.
+Inside this folder you will find internal documentation for developers that like to contribute to IDEasy.
+We do not want to put too much burden onto people that like to help making IDEasy better and therefore live an open and welcoming culture appreciating your link:issue.adoc[issues] and link:pull-request.adoc[PRs].
+
+However, to make our lives easier, make your contribution being accepted faster, to support onboarding and for making things transparent we document our internal conventions and processes here in this folder.
+
+== Setup
+
+To get started as a developer of IDEasy follow the link:setup.adoc[developer setup].
+
+== Testing
+
+To support cross-platform testing also consider link:testing-linux-on-windows.adoc[testing Linux on Windows] and if applicable link:testing-mac-in-vm.adoc[testing Max in VM].
+You may also install Windows or other OS in a VM if you need to test the IDEasy installation process itself and retest it multiple times using VM snapshots without tweaking or even breaking your host OS.
+
+Further, we documented link:junit-testing.adoc[JUnit-testing] and link:integration-testing.adoc[integration-testing] to help you properly testing your new code.
