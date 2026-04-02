@@ -10,11 +10,8 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
-import com.devonfw.tools.ide.environment.EnvironmentVariablesFiles;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.nls.NlsBundle;
-import com.devonfw.tools.ide.property.EnumProperty;
 import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.util.TruststoreUtil;
 
@@ -33,7 +30,6 @@ public class TruststoreCommandlet extends Commandlet {
 
   private final StringProperty url;
 
-  public final EnumProperty<EnvironmentVariablesFiles> cfg;
 
   /**
    * The constructor.
@@ -44,7 +40,6 @@ public class TruststoreCommandlet extends Commandlet {
     super(context);
     addKeyword(getName());
     this.url = add(new StringProperty("", false, "url"));
-    this.cfg = add(new EnumProperty("--cfg", false, null, EnvironmentVariablesFiles.class));
   }
 
   @Override
@@ -80,7 +75,7 @@ public class TruststoreCommandlet extends Commandlet {
     String endpointInput = this.url.getValueAsString();
     boolean defaultUrlUsed = false;
 
-    if (this.url.getValueAsString() == null || this.url.getValueAsString().isBlank()) {
+    if (endpointInput == null || endpointInput.isBlank()) {
       endpointInput = "https://www.github.com";
       defaultUrlUsed = true;
     }
@@ -204,11 +199,5 @@ public class TruststoreCommandlet extends Commandlet {
       return option;
     }
     return options + " " + option;
-  }
-
-  @Override
-  public void printHelp(NlsBundle bundle) {
-    LOG.info(
-        "This commandlet helps to fix TLS issues for users behind VPNs by capturing untrusted certificates from target endpoints and adding them to a custom truststore. It also configures IDE_OPTIONS to use the custom truststore by default. The commandlet is idempotent and will not make changes if the endpoint is already reachable or if the certificate is already trusted.");
   }
 }

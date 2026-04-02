@@ -23,7 +23,6 @@ class TruststoreCommandletTest extends AbstractIdeContextTest {
 
   private static final String IDE_OPTIONS = "IDE_OPTIONS";
 
-  private static final String TRUSTSTORE_PASSWORD = "changeit";
 
   private String previousTruststore;
 
