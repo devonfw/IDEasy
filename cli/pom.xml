@@ -206,6 +206,30 @@
               </execution>
             </executions>
           </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>3.1.0</version>
+            <executions>
+              <execution>
+                <id>copy-gui-pom</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <target>
+                    <mkdir dir="${project.build.directory}/package/${gui.relative_pom_path}"/>
+
+                    <copy
+                      file="${basedir}/../gui-launcher/.flattened-pom.xml"
+                      tofile="${project.build.directory}/package/${gui.relative_pom_path}/pom.xml"
+                      failonerror="true"/>
+                  </target>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
         </plugins>
       </build>
     </profile>
@@ -303,5 +327,4 @@
       </build>
     </profile>
   </profiles>
-
 </project>
