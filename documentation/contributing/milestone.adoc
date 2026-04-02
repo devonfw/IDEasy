@@ -1,0 +1,6 @@
+= Milestone
+
+We are doing our best to give transparency and support traceability to all our link:issue.adoc[issues], link:pull-request.adoc[PRs], link:commit.adoc[commits], etc.
+Therefore, the product-owner will create https://github.com/devonfw/IDEasy/milestones[milestones] for every release.
+He will also assign the release as `milestone` to link:issue.adoc[issues] and link:pull-request.adoc[PRs] to be completed and included in that release.
+Additionally, all implemented issues relevant for end-users get documented in our link:../../CHANGELOG.adoc[CHANGELOG].
