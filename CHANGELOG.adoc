@@ -20,6 +20,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1687[#1687]: JLine causes warning about restricted method
 * https://github.com/devonfw/IDEasy/issues/1458[#1458]: ide create should implicitly icd to projecty
 * https://github.com/devonfw/IDEasy/issues/1752[#1752]: Merging vscode user settings json file throws exception
+* https://github.com/devonfw/IDEasy/issues/1795[#1795]: Create installation script to simplify setup of IDEasy
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/42?closed=1[milestone 2026.04.001].
 
