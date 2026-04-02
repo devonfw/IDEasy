@@ -41,7 +41,14 @@ We surely try to fix bugs as soon as possible but we do not work extra shifts or
 
 All you need before installing IDEasy is https://git-scm.com/download/[git].
 
-=== Install
+=== Quick Install (One-Liner)
+
+The fastest way to install IDEasy - auto-detects your OS and architecture, downloads the latest release, and runs setup.
+
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/devonfw/IDEasy/main/install.sh)"
+```
+=== Manual Install
 
 Download the latest version of `IDEasy` from https://github.com/devonfw/IDEasy/releases[here] and install it.
 
