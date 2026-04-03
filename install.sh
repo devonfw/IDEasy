@@ -3,7 +3,7 @@
 # Usage: bash -c "$(curl -fsSL https://raw.githubusercontent.com/devonfw/IDEasy/main/install.sh)"
 #
 # What it does:
-#   1. Detects your OS (mac/linux) and architecture (x64/arm64)
+#   1. Detects your OS (mac/linux/windows) and architecture (x64/arm64)
 #   2. Fetches the latest release version from GitHub
 #   3. Downloads and extracts the correct archive to a temp directory
 #   4. Runs the setup script
@@ -25,9 +25,10 @@ abort() { red "Error: $1" >&2; exit 1; }
 
 detect_os() {
   case "$(uname -s)" in
-    Linux*)  echo "linux" ;;
-    Darwin*) echo "mac" ;;
-    *)       abort "Unsupported operating system: $(uname -s). Use the PowerShell installer on Windows." ;;
+    Linux*)              echo "linux" ;;
+    Darwin*)             echo "mac" ;;
+    MINGW*|MSYS*|CYGWIN*) echo "windows" ;;
+    *)                   abort "Unsupported operating system: $(uname -s). On Windows use Git Bash." ;;
   esac
 }
 
