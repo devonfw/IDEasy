@@ -1018,6 +1018,13 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   private <O> O displayOptionsAndGetAnswer(O[] options) {
+    if (options.length == 1) {
+      O option = options[0];
+      if (!(option instanceof com.devonfw.tools.ide.security.ToolVersionChoice)) {
+        IdeLogLevel.INTERACTION.log(LOG, "" + option);
+        return option;
+      }
+    }
     Map<String, O> mapping = new HashMap<>(options.length);
     int i = 0;
     for (O option : options) {

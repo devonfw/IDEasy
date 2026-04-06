@@ -4,6 +4,11 @@ import java.nio.file.Path;
 import java.util.Properties;
 
 import org.junit.jupiter.api.Test;
+import com.devonfw.tools.ide.security.ToolVersionChoice;
+import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
+import com.devonfw.tools.ide.security.ToolVulnerabilities;
+import com.devonfw.tools.ide.version.VersionIdentifier;
+import com.devonfw.tools.ide.tool.ToolEdition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -271,6 +276,38 @@ class IdeContextTest extends AbstractIdeContextTest {
         .hasMessage("A proper bash executable was found in your PATH environment variable at: " + bashExePath);
 
     assertThat(bash).isEqualTo(bashExePath);
+  }
+
+  @Test
+  void testQuestionWithMultipleOptions() {
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    String[] options = {"option1", "option2"};
+    context.setAnswers("option1");
+    String result = context.question(options, "Which option?");
+    assertThat(result).isEqualTo("option1");
+  }
+
+  @Test
+  void testQuestionWithSingleOptionShouldSkipPrompt() {
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    String[] options = {"onlyOption"};
+    // No answers set - if it prompts, it will throw an exception in test mode
+    String result = context.question(options, "Which option?");
+    assertThat(result).isEqualTo("onlyOption");
+  }
+
+  @Test
+  void testQuestionWithSingleToolVersionChoiceShouldNotSkipPrompt() {
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    ToolEdition edition = new ToolEdition("java", "oracle");
+    VersionIdentifier version = VersionIdentifier.of("17");
+    ToolVersionChoice choice = new ToolVersionChoice(new ToolEditionAndVersion(edition, version), "current", ToolVulnerabilities.EMPTY);
+    ToolVersionChoice[] options = {choice};
+
+    // We expect the system to ask the user, so if we don't provide an answer, it throws IllegalStateException.
+    assertThatThrownBy(() -> {
+      context.question(options, "Which version?");
+    }).isInstanceOf(IllegalStateException.class).hasMessage("End of answers reached!");
   }
 
 }
