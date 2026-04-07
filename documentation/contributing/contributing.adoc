@@ -1,102 +1,54 @@
-:toc:
-toc::[]
+= Contributing
 
-= Getting started as developer contributing to IDEasy
+Before you start with your contribution, we assume you have completed the link:setup.adoc[developer setup] and picked your first link:issue.adoc[issue].
 
-To begin, read through the https://github.com/devonfw/IDEasy/blob/main/documentation/IDEasy-contribution-rules-and-guidelines.adoc[Contribution Guidelines], which you should be sure to follow.
+Now, to get started with your implementation follow these steps:
 
-== Installation
-
-To start developing IDEasy, you must first install it on your computer.
-Therefore, simply follow the link:setup.adoc[setup] guide.
-
-This will be addressed under xref:Contribution[Contribution].
-
-== Setup the Development Environment
-
-After IDEasy installation, run the following command in the terminal to create a project:
-
-```
-ide create IDEasy -
-```
-
-Next, fork the https://github.com/devonfw/ideasy[IDEasy] repository.
-Steps for forking or cloning repositories, creating branches, and using Git commands can be found in the  https://github.com/firstcontributions/first-contributions[first contributions guideline].
-To contribute code or documentation for IDEasy, first fork the  https://github.com/devonfw/ideasy[IDEasy] repository, then clone your fork into the  `workspaces/main` folder in your IDEasy installation.
-
-Navigate to the `workspaces/main` directory:
-
-```
-icd -p IDEasy -w
-```
-
-Clone your forked project into this directory:
-
-```
-git clone «forked-project-url»
-```
-
-Now you can open the project in your preferred IDE using the `ide` command.
-For IntelliJ:
-
-```
-ide intellij
-```
-
-In IntelliJ, select the `pom.xml` file and right-click → **Add as Maven Project**.
-
-*Tip:* If the Maven button is hidden or not visible, press `Alt + 7` to open the **Structure** window below the project explorer.
-Scroll down in the explorer to make the `pom.xml` file appear higher, enabling the option to be clicked.
-Alternatively, use the keyboard arrows to navigate to the bottom of the right-click menu.
-
-== Contribution
-
-Open git-bash in the cloned fork at `workspaces/main/IDEasy` and run the following command:
-
-```
-git remote add upstream https://github.com/devonfw/ideasy.git
-git fetch upstream
-```
-
-Please also make sure that your git config matches your GitHub account e.g. set:
-
-```
-git config user.name "<your_github_username>"
-git config user.email "<your_github_user_email>"
-```
-
-Whenever you want to implement a new change first do the following things:
-
+. Ensure your fork is in sync:
++
 ```
 git checkout main
 git pull upstream main
 git push
+```
+. Create a new feature branch:
++
+```
 git checkout -b feature/«issue-id»-«brief-feature-description»
 ```
-
-Now you can do the changes, improvements, and fixes.
-Once they are tested and seem to work, you can commit them (`git commit -m "#«issue-id»: «description»"`).
+. Implement your changes, improvements, or fixes.
+. Test your changes:
++
+```
+mvn clean install
+```
++
+If that fails, fix your changes and rerun the tests.
+. Commit your changes:
++
+```
+git add ...
+git commit -m "#«issue-id»: «description»"
+```
++
+. Keep your feature branch up-to-date:
++
 If some days have passed meanwhile you should merge changes that meanwhile happened on the official `IDEasy` repo:
-
++
 ```
 git pull upstream main
 ```
-
+. Push your changes:
 Once you are complete and everything is merged and committed, you can push your local feature branch and make it a remote branch of your fork on github:
-
++
 ```
 git push -u origin feature/«issue-id»-«brief-feature-description»
 ```
-
-Now you can go to https://github.com/devonfw/ideasy/pulls and create the pull-request (PR) from your new feature.
-Therefore, please click on the right down arrow of the green button and choose `Create draft pull request` and then click on `Draft pull request`.
-When the checks have completed you can check the link:DoD.adoc[Definition-of-Done] (DoD).
-Once, all checks of the DoD are addressed, you can go to the very bottom of the PR and click on `Ready for review` what will take the PR out of the draft mode.
-FYI: If you forgot the upstream merge (`git pull upstream/main`) or the upstream changed again while your PR is still open, you will see `This branch is out-of-date with the base branch` at the bottom of your PR and can click on `Update branch`.
-
-For further development and testing, it is recommended to xref:symbolic-links[symlink] the modified scripts into your IDEasy installation.
-Alternatively, the scripts can be adapted in the installation folder and then committed to the project.
-For creating a contribution also check the link:DoD.adoc[Definition of Done] (DoD).
+. Create pull-request:
++
+Now you can go to https://github.com/devonfw/ideasy/pulls and create the link:pull-request.adoc[pull-request] (PR) for your new feature.
+Therefore, watch for the light yellow box at the top and click the green `Compare & pull request` button.
+For further steps and details see link:pull-request.adoc[pull-request documentation].
 
 == Create a new commandlet
 
