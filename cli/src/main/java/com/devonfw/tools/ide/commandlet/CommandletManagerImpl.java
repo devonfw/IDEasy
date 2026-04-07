@@ -147,7 +147,6 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Corepack(context));
     add(new Pip(context));
     add(new Go(context));
-    add(new TestModalsCommandlet(context));
   }
 
   /**

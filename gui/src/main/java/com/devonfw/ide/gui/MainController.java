@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.modal.IdeDialog;
-import com.devonfw.tools.ide.commandlet.TestModalsCommandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 
 /**
@@ -116,9 +115,6 @@ public class MainController {
       selectedWorkspace.setValue("main");
       this.workspaceValue = Path.of("main");
       updateContext(selectedProject.getValue(), selectedWorkspace.getValue());
-
-      //TODO: remove this before PR
-      IdeGuiStateManager.getInstance().getCurrentContext().getCommandletManager().getCommandlet(TestModalsCommandlet.class).run();
     });
   }
 
