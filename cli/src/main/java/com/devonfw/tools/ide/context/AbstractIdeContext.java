@@ -1020,7 +1020,11 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   private <O> O displayOptionsAndGetAnswer(O[] options) {
     if (options.length == 1) {
       O option = options[0];
-      if (!(option instanceof com.devonfw.tools.ide.security.ToolVersionChoice)) {
+      boolean vulnerable = false;
+      if (option instanceof com.devonfw.tools.ide.security.ToolVersionChoice choice) {
+        vulnerable = !choice.vulnerabilities().getIssues().isEmpty();
+      }
+      if (!vulnerable) {
         IdeLogLevel.INTERACTION.log(LOG, "" + option);
         return option;
       }
