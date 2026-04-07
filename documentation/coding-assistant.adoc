@@ -2,6 +2,7 @@
 toc::[]
 
 = Coding Assistant
+
 The Coding Assistant is an AI-powered tool that helps you write and edit code more efficiently.
 It offers features like code suggestions, autocompletion, and error detection, improving productivity and reducing mistakes.
 It can be easily integrated into your development environment for smarter coding support.

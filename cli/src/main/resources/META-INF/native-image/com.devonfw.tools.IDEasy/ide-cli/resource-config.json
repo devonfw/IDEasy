@@ -3,5 +3,8 @@
     "includes": [
       {"pattern": "nls/.*"}
     ]
-  }
+  },
+  "bundles": [
+    {"name": "org.eclipse.parsson.messages"}
+  ]
 }
