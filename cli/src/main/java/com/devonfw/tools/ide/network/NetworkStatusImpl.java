@@ -153,7 +153,7 @@ public class NetworkStatusImpl implements NetworkStatus {
     Throwable current = throwable;
     while (current != null) {
       String message = current.getMessage();
-      if (containsTlsTrustIndicator(message) || containsTlsTrustIndicator(current.getClass().getSimpleName())) {
+      if (containsTlsTrustIndicator(message)) {
         return true;
       }
       current = current.getCause();
