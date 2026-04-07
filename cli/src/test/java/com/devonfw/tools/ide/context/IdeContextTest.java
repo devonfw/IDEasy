@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.context;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Properties;
 
 import org.junit.jupiter.api.Test;
@@ -8,6 +9,8 @@ import com.devonfw.tools.ide.security.ToolVersionChoice;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.security.ToolVulnerabilities;
 import com.devonfw.tools.ide.version.VersionIdentifier;
+import com.devonfw.tools.ide.version.VersionRange;
+import com.devonfw.tools.ide.url.model.file.json.Cve;
 import com.devonfw.tools.ide.tool.ToolEdition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -301,7 +304,8 @@ class IdeContextTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext(PROJECT_BASIC, null, false);
     ToolEdition edition = new ToolEdition("java", "oracle");
     VersionIdentifier version = VersionIdentifier.of("17");
-    ToolVersionChoice choice = new ToolVersionChoice(new ToolEditionAndVersion(edition, version), "current", ToolVulnerabilities.EMPTY);
+    Cve cve = new Cve("CVE-2023-XXXX", 9.8, List.of(VersionRange.of("[17,18)")));
+    ToolVersionChoice choice = new ToolVersionChoice(new ToolEditionAndVersion(edition, version), "current", ToolVulnerabilities.of(List.of(cve)));
     ToolVersionChoice[] options = {choice};
 
     // We expect the system to ask the user, so if we don't provide an answer, it throws IllegalStateException.
