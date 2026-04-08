@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1552[#1552]: Add Commandlet to fix TLS issue
 * https://github.com/devonfw/IDEasy/issues/1775[#1775]: validated and updated CPE's for all products
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/43?closed=1[milestone 2026.04.002].

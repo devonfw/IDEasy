@@ -3,8 +3,8 @@ package com.devonfw.tools.ide.network;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Locale;
 import java.util.concurrent.Callable;
-import javax.net.ssl.SSLException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +28,8 @@ public class NetworkStatusImpl implements NetworkStatus {
   private final String onlineCheckUrl;
 
   protected final CachedValue<Throwable> onlineCheck;
+
+  private static final String ERROR_TEXT_PKIX = "pkix path building failed";
 
   /**
    * @param ideContext the {@link AbstractIdeContext}.
@@ -113,10 +115,8 @@ public class NetworkStatusImpl implements NetworkStatus {
       LOG.error(message);
       LOG.error(error.toString());
     }
-    if (error instanceof SSLException) {
-      LOG.warn(
-          "You are having TLS issues. We guess you are forced to use a VPN tool breaking end-to-end encryption causing this effect. As a workaround you can create and configure a truststore as described here:");
-      IdeLogLevel.INTERACTION.log(LOG, "https://github.com/devonfw/IDEasy/blob/main/documentation/proxy-support.adoc#tls-certificate-issues");
+    if (isTlsTrustIssue(error)) {
+      logTruststoreFixHint();
     } else {
       IdeLogLevel.INTERACTION.log(LOG, "Please check potential proxy settings, ensure you are properly connected to the internet and retry this operation.");
     }
@@ -133,9 +133,40 @@ public class NetworkStatusImpl implements NetworkStatus {
       return callable.call();
     } catch (IOException e) {
       this.onlineCheck.set(e);
+      if (isTlsTrustIssue(e)) {
+        logTruststoreFixHint();
+      }
       throw new IllegalStateException("Network error whilst communicating to " + uri, e);
     } catch (Exception e) {
       throw new IllegalStateException("Unexpected checked exception whilst communicating to " + uri, e);
     }
   }
+
+  private void logTruststoreFixHint() {
+
+    LOG.warn(
+        "You are having TLS trust issues (PKIX/certificate-path/SSL handshake). As a workaround you can create and configure a truststore via the following command (replace <url> with the failing endpoint):\nide fix-vpn-tls-problem <url>");
+    IdeLogLevel.INTERACTION.log(LOG, "https://github.com/devonfw/IDEasy/blob/main/documentation/proxy-support.adoc#tls-certificate-issues");
+  }
+
+  boolean isTlsTrustIssue(Throwable throwable) {
+    Throwable current = throwable;
+    while (current != null) {
+      String message = current.getMessage();
+      if (containsTlsTrustIndicator(message)) {
+        return true;
+      }
+      current = current.getCause();
+    }
+    return false;
+  }
+
+  boolean containsTlsTrustIndicator(String text) {
+    if ((text == null) || text.isBlank()) {
+      return false;
+    }
+    String normalized = text.toLowerCase(Locale.ROOT);
+    return normalized.contains(ERROR_TEXT_PKIX);
+  }
+
 }
