@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.url.tool.squirrelsql;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.updater.GithubUrlReleaseUpdater;
+import com.devonfw.tools.ide.version.VersionComparisonResult;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -60,7 +61,8 @@ public class SquirrelSqlUrlUpdater extends GithubUrlReleaseUpdater {
   protected void addVersion(UrlVersion urlVersion) {
 
     VersionIdentifier versionIdentifier = urlVersion.getVersionIdentifier();
-    if (versionIdentifier.compareVersion(MIN_VERSION).isGreater()) {
+    VersionComparisonResult versionComparisonResult = versionIdentifier.compareVersion(MIN_VERSION);
+    if (versionComparisonResult.isEqual() || versionComparisonResult.isGreater()) {
       doAddVersion(urlVersion, getDownloadBaseUrl() + "/" + versionIdentifier + "-a_plainzip/" + getTool() + "-" + versionIdentifier + "-optional.zip");
     }
   }
