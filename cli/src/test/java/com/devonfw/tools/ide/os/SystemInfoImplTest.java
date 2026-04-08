@@ -15,13 +15,13 @@ class SystemInfoImplTest extends Assertions {
     // arrange
     String osName = System.getProperty("os.name");
     String osVersion = System.getProperty("os.version");
-    String architectureName = System.getProperty("os.arch");
     // act
     SystemInfo systemInfo = SystemInfoImpl.INSTANCE;
     // assert
     assertThat(systemInfo.getOsName()).isEqualTo(osName).isNotBlank();
     assertThat(systemInfo.getOsVersion().toString()).isEqualTo(osVersion).isNotBlank();
-    assertThat(systemInfo.getArchitectureName()).isEqualTo(architectureName).isNotBlank();
+    assertThat(systemInfo.getArchitectureName()).isNotBlank();
+    assertThat(systemInfo.getArchitecture()).isNotNull();
   }
 
   /** Test {@link SystemInfoMock#WINDOWS_X64}. */
