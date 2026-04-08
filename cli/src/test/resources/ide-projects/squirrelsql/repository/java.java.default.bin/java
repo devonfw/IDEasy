@@ -1,0 +1,7 @@
+#!/bin/bash
+if [ "$1" = "--version" ]; then
+  cd $(dirname $0)/..
+  echo "OpenJDK version $(cat .ide.software.version)"
+else
+  echo "java $*"
+fi
