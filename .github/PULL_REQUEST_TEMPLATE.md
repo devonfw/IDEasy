@@ -9,7 +9,7 @@
 ## Checklist for this PR
 
 Make sure everything is checked before merging this PR. For further info please also see
-our [DoD](https://github.com/devonfw/IDEasy/blob/main/documentation/DoD.adoc).
+our [DoD](https://github.com/devonfw/IDEasy/blob/main/documentation/contributing/DoD.adoc).
 
 - [ ] When running `mvn clean test` locally all tests pass and build is successful
 - [ ] PR title is of the form `#«issue-id»: «brief summary»` (e.g. `#921: fixed setup.bat`). If no issue ID exists, title only.

@@ -243,6 +243,7 @@
               </agent>
               <imageName>${imageName}</imageName>
               <buildArgs>
+                <buildArg>--enable-native-access=ALL-UNNAMED</buildArg>
                 <arg>--enable-url-protocols=http,https</arg>
                 <arg>-march=compatibility</arg>
                 <arg>--initialize-at-build-time=org.apache.commons</arg>
