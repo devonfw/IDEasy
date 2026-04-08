@@ -17,12 +17,6 @@ public class JavaUrlUpdater extends JsonUrlUpdater<JavaJsonObject, JavaJsonVersi
   }
 
   @Override
-  protected String getEdition() {
-
-    return "java";
-  }
-
-  @Override
   public String mapVersion(String version) {
 
     // remove the suffix "-LTS", this is necessary for java version 21+35-LTS
