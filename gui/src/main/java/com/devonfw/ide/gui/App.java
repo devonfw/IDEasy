@@ -1,9 +1,6 @@
 package com.devonfw.ide.gui;
 
 import java.io.IOException;
-
-import com.devonfw.tools.ide.variable.IdeVariables;
-
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
@@ -13,6 +10,7 @@ import javafx.scene.image.Image;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
+import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.IdeVersion;
 
 /**

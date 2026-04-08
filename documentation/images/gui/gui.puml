@@ -1,0 +1,87 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+title GUI Structure
+
+
+package "cli" {
+abstract class AbstractIdeContext
+}
+package "gui" {
+  class AppLauncher {
+    +void main(String [])
+  }
+
+  class App {
+    +void main(String [])
+    +void start()
+  }
+
+  class IdeGuiStateManager <<Thread safe singleton>> {
+      -String projectDirectory
+      -IdeGuiContext currentContext
+      --
+      -IdeGuiStateManager()
+      +{static} IdeGuiStateManager getInstance()
+      ..GUI context handling..
+      +IdeGuiContext switchContext(projectName: String, workspaceName: String)
+      +IdeGuiContext getCurrentContext()
+      +void addStateChangeListener(StateChangeListener listener)
+      +void removeStateChangeListener(StateChangeListener listener)
+  }
+
+  -static class "IdeGuiStateManager.Holder" as Holder {
+    -{static} INSTANCE
+  }
+
+  class MainController {
+    -void initialize()
+    ..
+    -void setProjectsCombobox()
+    -void setWorkspaceValue()
+    ..
+    -void updateContext(String projectName, String workspaceName)
+  }
+
+  abstract class "IdeGuiStateManager.StateChangeListener" as StateChangeListener {
+    +void onStateChange(IdeGuiContext newContext)
+  }
+
+  class IdeGuiContext
+
+
+  note right of IdeGuiStateManager
+    In the most basic sense, the GUI state depends on the current project context.
+    This is important to ensure that any commandlets will be executed in the correct project.
+  end note
+  note bottom of StateChangeListener
+    Idea: This listener is implemented by any UI component to get notified of any context changes.
+    Alternative: an abstract StateDependentGuiComponent class that implements the listener and provides an abstract method for handling context changes.
+    Or: restart the app everytime the context changes (probably not the user-friendliest idea)
+  end note
+  note right of App: FXML layout is loaded here
+  note bottom of Holder: simple instance wrapper class for Bill Pugh singleton
+  note right of IdeGuiContext: This will implement modals/progress bars
+  note top of AppLauncher
+    <b>Current considerations regarding the UI state management:</b>
+    - Darf die GUI mehr als einmal offen sein? (Fall: Fenster mit gleichem Projekt parallel offen)
+    - Wie Context-Handling implementieren?
+    - Wie werden Log messages gehandelt?
+  end note
+}
+
+
+'' Relations ''
+
+AppLauncher --> App : launches
+
+IdeGuiContext ..> AbstractIdeContext : extends
+
+IdeGuiStateManager ..> IdeGuiContext : creates/manages instances of
+IdeGuiStateManager --> StateChangeListener : inner class
+IdeGuiStateManager -left> Holder : inner class
+
+App ..> MainController : initializes when loading layout
+MainController ..> IdeGuiStateManager : accesses/interacts with
+
+@enduml

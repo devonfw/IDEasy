@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.HBox?>
+<HBox xmlns="http://javafx.com/javafx"
+  xmlns:fx="http://javafx.com/fxml"
+  fx:controller="com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindowController"
+  prefHeight="200.0" prefWidth="300.0">
+  <ListView fx:id="taskList" prefWidth="300.0" prefHeight="250.0"/>
+</HBox>

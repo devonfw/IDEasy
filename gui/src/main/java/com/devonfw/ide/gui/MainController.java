@@ -4,21 +4,30 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.stream.Stream;
+import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.modal.IdeDialog;
+import com.devonfw.ide.gui.progress.GuiProgressBarHandling;
+import com.devonfw.ide.gui.progress.TaskManager;
+import com.devonfw.ide.gui.progress.TaskManager.ProgressListener;
+import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindow;
 import com.devonfw.tools.ide.context.IdeContext;
 
 /**
  * Controller of the main screen of the dashboard GUI.
  */
-public class MainController {
+public class MainController implements ProgressListener {
 
   private static Logger LOG = LoggerFactory.getLogger(MainController.class);
 
@@ -41,6 +50,13 @@ public class MainController {
   @FXML
   private Button vsCodeOpen;
 
+  @FXML
+  private Label statusLabel;
+
+  @FXML
+  private ProgressBar statusProgressBar;
+  private final double PROGRESSBAR_VISIBLE_WIDTH = 150.0;
+
   private final String directoryPath;
   private Path projectValue;
   private Path workspaceValue;
@@ -49,8 +65,11 @@ public class MainController {
    * Constructor
    */
   public MainController(String directoryPath) {
+
     LOG.debug("IDE_ROOT path={}", directoryPath);
     this.directoryPath = directoryPath;
+
+    TaskManager.getInstance().addListener(this);
   }
 
   @FXML
@@ -141,12 +160,32 @@ public class MainController {
 
   private void openIDE(String inIde) {
 
-    IdeGuiStateManager
-        .getInstance()
-        .getCurrentContext()
-        .getCommandletManager()
-        .getCommandlet(inIde)
-        .run();
+    Task<Void> downloadTask = runIdeCommandTask(inIde);
+
+    new Thread(downloadTask).start();
+  }
+
+  private static Task<Void> runIdeCommandTask(String inIde) {
+    Task<Void> downloadTask = new Task<Void>() {
+      @Override
+      protected Void call() throws Exception {
+        IdeGuiStateManager
+            .getInstance()
+            .getCurrentContext()
+            .getCommandletManager()
+            .getCommandlet(inIde)
+            .run();
+        return null;
+      }
+    };
+
+    downloadTask.setOnFailed(e -> {
+      Platform.runLater(() -> {
+        IdeDialog errorDialog = new IdeDialog(IdeDialog.AlertType.ERROR, "Error occurred while launching " + inIde);
+        errorDialog.showAndWait();
+      });
+    });
+    return downloadTask;
   }
 
   private void updateContext(String selectedProjectName, String selectedWorkspaceName) {
@@ -155,6 +194,75 @@ public class MainController {
     } catch (FileNotFoundException e) {
       IdeDialog errorDialog = new IdeDialog(IdeDialog.AlertType.ERROR, e.getMessage());
       errorDialog.showAndWait();
+    }
+  }
+
+  //TODO: remove after testing
+  public void addTaskTest() {
+
+    LOG.error("Adding task");
+    TaskManager.getInstance().addTask(new GuiProgressBarHandling("Test", 100, "Eggs", 10));
+  }
+
+  //TODO: remove after testing
+  public void removeTaskTest() {
+
+    TaskManager.getInstance().removeLastTask();
+  }
+
+  @Override
+  public void onProgressTaskUpdate(GuiProgressBarHandling task, long stepPosition) {
+
+    LOG.info("Progress update at position {}", stepPosition);
+
+    List<GuiProgressBarHandling> tasks = TaskManager.getInstance().getTasks();
+    updateStatusLabel(tasks);
+    if (tasks.size() == 1) {
+      statusProgressBar.setProgress((double) task.getCurrentProgress() / task.getMaxSize());
+    }
+  }
+
+  @Override
+  public void onProgressTaskAdded(List<GuiProgressBarHandling> updatedTaskList) {
+
+    updateStatusLabel(updatedTaskList);
+  }
+
+  @Override
+  public void onProgressTaskRemoved(List<GuiProgressBarHandling> updatedTaskList) {
+
+    updateStatusLabel(updatedTaskList);
+  }
+
+  private void updateStatusLabel(List<GuiProgressBarHandling> taskList) {
+
+    statusLabel.setOnMouseClicked(e -> new TaskOverviewWindow());
+
+    if (taskList.size() > 1) {
+      statusProgressBar.setVisible(false);
+      statusProgressBar.setPrefWidth(0);
+      statusLabel.setText(taskList.size() + " tasks running...");
+
+      statusLabel.setUnderline(true);
+      statusLabel.setStyle(
+          "-fx-text-fill: blue;"
+              + "-fx-cursor: hand"
+      );
+    } else if (taskList.size() == 1) {
+      GuiProgressBarHandling task = taskList.getFirst();
+      statusLabel.setText(task.getTitle() + " [" + task.getCurrentProgress() + "/" + task.getMaxSize() + " " + task.getUnitName() + "]");
+      statusLabel.setUnderline(false);
+      statusLabel.setStyle("");
+
+      statusProgressBar.setVisible(true);
+      statusProgressBar.setPrefWidth(PROGRESSBAR_VISIBLE_WIDTH);
+    } else {
+      statusLabel.setText("IDEasy is ready.");
+      statusProgressBar.setVisible(false);
+      statusProgressBar.setPrefWidth(0);
+
+      statusLabel.setUnderline(false);
+      statusLabel.setStyle("");
     }
   }
 }
