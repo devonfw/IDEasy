@@ -14,12 +14,28 @@ import com.devonfw.ide.gui.App;
  */
 public class TaskOverviewWindow {
 
-  private Parent root;
+  private final Parent root;
+  private final Stage stage = new Stage();
+
+  private static TaskOverviewWindow INSTANCE;
+
+  /**
+   * @param xPos if the window is not open yet, it will be created at the given x position.
+   * @param yPos if the window is not open yet, it will be created at the given y position.
+   * @return instance of the TaskOverviewWindow.
+   */
+  public static TaskOverviewWindow getInstance(Double xPos, Double yPos) {
+    if (INSTANCE == null) {
+      INSTANCE = new TaskOverviewWindow(xPos, yPos);
+      return INSTANCE;
+    }
+    return INSTANCE;
+  }
 
   /**
    *
    */
-  public TaskOverviewWindow() {
+  private TaskOverviewWindow(Double x, Double y) {
 
     FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("task_overview_window.fxml"));
 
@@ -29,12 +45,20 @@ public class TaskOverviewWindow {
       throw new RuntimeException(e);
     }
 
-    Stage stage = new Stage();
     stage.setResizable(false);
     stage.setAlwaysOnTop(true);
     stage.setTitle("Running tasks");
     stage.setScene(new Scene(root));
     stage.initStyle(StageStyle.UTILITY);
+    stage.setX(x);
+    stage.setY(y);
+  }
+
+  /**
+   * display the TaskOverviewWindow (or put it to the front if it is already open).
+   */
+  public void show() {
     stage.show();
+    stage.requestFocus();
   }
 }

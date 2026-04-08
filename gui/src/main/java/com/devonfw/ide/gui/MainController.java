@@ -166,15 +166,18 @@ public class MainController implements ProgressListener {
   }
 
   private static Task<Void> runIdeCommandTask(String inIde) {
-    Task<Void> downloadTask = new Task<Void>() {
+    GuiProgressBarHandling task = (GuiProgressBarHandling) IdeGuiStateManager.getInstance().getCurrentContext()
+        .newProgressBar("Starting " + inIde, 1, "Task", 1);
+    Task<Void> downloadTask = new Task<>() {
       @Override
-      protected Void call() throws Exception {
+      protected Void call() {
         IdeGuiStateManager
             .getInstance()
             .getCurrentContext()
             .getCommandletManager()
             .getCommandlet(inIde)
             .run();
+        TaskManager.getInstance().removeTask(task);
         return null;
       }
     };
@@ -201,7 +204,7 @@ public class MainController implements ProgressListener {
   public void addTaskTest() {
 
     LOG.error("Adding task");
-    TaskManager.getInstance().addTask(new GuiProgressBarHandling("Test", 100, "Eggs", 10));
+    new GuiProgressBarHandling("Test", 100, "Eggs", 10);
   }
 
   //TODO: remove after testing
@@ -236,7 +239,7 @@ public class MainController implements ProgressListener {
 
   private void updateStatusLabel(List<GuiProgressBarHandling> taskList) {
 
-    statusLabel.setOnMouseClicked(e -> new TaskOverviewWindow());
+    statusLabel.setOnMouseClicked(e -> TaskOverviewWindow.getInstance(e.getSceneX(), e.getSceneY()).show());
 
     if (taskList.size() > 1) {
       statusProgressBar.setVisible(false);

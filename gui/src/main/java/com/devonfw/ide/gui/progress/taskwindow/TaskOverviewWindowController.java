@@ -7,7 +7,6 @@ import javafx.scene.control.ListView;
 import com.devonfw.ide.gui.progress.GuiProgressBarHandling;
 import com.devonfw.ide.gui.progress.TaskManager;
 import com.devonfw.ide.gui.progress.TaskManager.ProgressListener;
-import com.devonfw.ide.gui.progress.TaskWindowCellFactory;
 
 /**
  * Controller for the task overview window, which shows all currently running tasks and their progressbars.

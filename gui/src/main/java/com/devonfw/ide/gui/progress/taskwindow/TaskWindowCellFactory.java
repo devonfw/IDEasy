@@ -1,4 +1,4 @@
-package com.devonfw.ide.gui.progress;
+package com.devonfw.ide.gui.progress.taskwindow;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -10,6 +10,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
+
+import com.devonfw.ide.gui.progress.GuiProgressBarHandling;
 
 public class TaskWindowCellFactory implements Callback<ListView<GuiProgressBarHandling>, ListCell<GuiProgressBarHandling>> {
 
