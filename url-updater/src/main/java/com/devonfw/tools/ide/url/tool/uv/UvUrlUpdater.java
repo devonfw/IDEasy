@@ -53,7 +53,7 @@ public class UvUrlUpdater extends GithubUrlTagUpdater {
 
   @Override
   public String getCpeVendor() {
-    return "astral-sh";
+    return "astral";
   }
 
   @Override

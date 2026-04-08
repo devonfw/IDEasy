@@ -69,6 +69,6 @@ public class DotNetUrlUpdater extends GithubUrlTagUpdater {
 
   @Override
   public String getCpeProduct() {
-    return "dotnet";
+    return ".net";
   }
 }

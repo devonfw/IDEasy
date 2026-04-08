@@ -126,6 +126,6 @@ public abstract class EclipseUrlUpdater extends WebsiteUrlUpdater {
 
   @Override
   public String getCpeProduct() {
-    return "eclipse";
+    return "eclipse_ide";
   }
 }

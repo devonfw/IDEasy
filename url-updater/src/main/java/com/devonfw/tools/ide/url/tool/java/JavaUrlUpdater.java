@@ -26,17 +26,6 @@ public class JavaUrlUpdater extends JsonUrlUpdater<JavaJsonObject, JavaJsonVersi
     return super.mapVersion(version);
   }
 
-  @Override
-  public String getCpeVendor() {
-
-    return "eclipse";
-  }
-
-  @Override
-  public String getCpeProduct() {
-
-    return "temurin";
-  }
 
   @Override
   protected void addVersion(UrlVersion urlVersion) {
@@ -106,5 +95,17 @@ public class JavaUrlUpdater extends JsonUrlUpdater<JavaJsonObject, JavaJsonVersi
   protected Collection<JavaJsonVersion> getVersionItems(JavaJsonObject jsonObject) {
 
     return jsonObject.versions();
+  }
+
+  @Override
+  public String getCpeVendor() {
+
+    return "oracle";
+  }
+
+  @Override
+  public String getCpeProduct() {
+
+    return "jdk";
   }
 }

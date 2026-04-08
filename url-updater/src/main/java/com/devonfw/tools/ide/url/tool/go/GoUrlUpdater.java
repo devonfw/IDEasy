@@ -66,5 +66,15 @@ public class GoUrlUpdater extends GithubUrlTagUpdater {
   protected String getCustomVersionFilter() {
     return "rc";
   }
+
+  @Override
+  public String getCpeVendor() {
+    return "golang";
+  }
+
+  @Override
+  public String getCpeProduct() {
+    return "go";
+  }
 }
 
