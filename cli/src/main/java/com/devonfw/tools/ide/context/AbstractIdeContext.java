@@ -1018,17 +1018,6 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   private <O> O displayOptionsAndGetAnswer(O[] options) {
-    if (options.length == 1) {
-      O option = options[0];
-      boolean vulnerable = false;
-      if (option instanceof com.devonfw.tools.ide.security.ToolVersionChoice choice) {
-        vulnerable = !choice.vulnerabilities().getIssues().isEmpty();
-      }
-      if (!vulnerable) {
-        IdeLogLevel.INTERACTION.log(LOG, "" + option);
-        return option;
-      }
-    }
     Map<String, O> mapping = new HashMap<>(options.length);
     int i = 0;
     for (O option : options) {
@@ -1043,6 +1032,9 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
         addMapping(mapping, numericKey, option);
       }
       IdeLogLevel.INTERACTION.log(LOG, "Option {}: {}", numericKey, title);
+    }
+    if (options.length == 1) {
+      mapping.put("", options[0]);
     }
     O option = null;
     if (isBatchMode()) {

@@ -291,16 +291,16 @@ class IdeContextTest extends AbstractIdeContextTest {
   }
 
   @Test
-  void testQuestionWithSingleOptionShouldSkipPrompt() {
+  void testQuestionWithSingleOptionAndEmptyAnswer() {
     IdeTestContext context = newContext(PROJECT_BASIC, null, false);
     String[] options = {"onlyOption"};
-    // No answers set - if it prompts, it will throw an exception in test mode
+    context.setAnswers(""); // Empty answer (Enter)
     String result = context.question(options, "Which option?");
     assertThat(result).isEqualTo("onlyOption");
   }
 
   @Test
-  void testQuestionWithSingleToolVersionChoiceShouldNotSkipPrompt() {
+  void testQuestionWithSingleToolVersionChoiceAndEmptyAnswer() {
     IdeTestContext context = newContext(PROJECT_BASIC, null, false);
     ToolEdition edition = new ToolEdition("java", "oracle");
     VersionIdentifier version = VersionIdentifier.of("17");
@@ -308,10 +308,9 @@ class IdeContextTest extends AbstractIdeContextTest {
     ToolVersionChoice choice = new ToolVersionChoice(new ToolEditionAndVersion(edition, version), "current", ToolVulnerabilities.of(List.of(cve)));
     ToolVersionChoice[] options = {choice};
 
-    // We expect the system to ask the user, so if we don't provide an answer, it throws IllegalStateException.
-    assertThatThrownBy(() -> {
-      context.question(options, "Which version?");
-    }).isInstanceOf(IllegalStateException.class).hasMessage("End of answers reached!");
+    context.setAnswers(""); // Empty answer (Enter)
+    ToolVersionChoice result = context.question(options, "Which version?");
+    assertThat(result).isSameAs(choice);
   }
 
 }
