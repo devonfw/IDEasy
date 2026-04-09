@@ -204,17 +204,17 @@ public class MainController implements ProgressListener {
   public void addTaskTest() {
 
     LOG.error("Adding task");
-    new GuiProgressBarHandling("Test", 100, "Eggs", 10);
+    new GuiProgressBarHandling(System.currentTimeMillis(), "Test", 100, "Eggs", 10);
   }
 
   //TODO: remove after testing
   public void removeTaskTest() {
 
-    TaskManager.getInstance().removeLastTask();
+    TaskManager.getInstance().removeTask(TaskManager.getInstance().getTasks().getFirst());
   }
 
   @Override
-  public void onProgressTaskUpdate(GuiProgressBarHandling task, long stepPosition) {
+  public void onProgressTaskUpdated(GuiProgressBarHandling task, long stepPosition) {
 
     LOG.info("Progress update at position {}", stepPosition);
 

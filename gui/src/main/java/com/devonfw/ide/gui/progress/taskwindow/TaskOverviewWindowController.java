@@ -29,9 +29,9 @@ public class TaskOverviewWindowController implements ProgressListener {
   }
 
   @Override
-  public void onProgressTaskUpdate(GuiProgressBarHandling task, long stepPosition) {
+  public void onProgressTaskUpdated(GuiProgressBarHandling updatedTask, long stepPosition) {
 
-    taskList.getItems().setAll(TaskManager.getInstance().getTasks());
+    // No need to update the list, as the progress bars are bound to the task properties and will update automatically.
   }
 
   @Override

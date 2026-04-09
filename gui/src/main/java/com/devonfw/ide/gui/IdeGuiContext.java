@@ -32,6 +32,6 @@ public class IdeGuiContext extends AbstractIdeContext {
   @Override
   public IdeProgressBar newProgressBar(String title, long size, String unitName, long unitSize) {
 
-    return new GuiProgressBarHandling(title, size, unitName, unitSize);
+    return new GuiProgressBarHandling(System.currentTimeMillis(), title, size, unitName, unitSize);
   }
 }

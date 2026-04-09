@@ -8,6 +8,10 @@ public class TaskManager {
 
   private static final TaskManager INSTANCE = new TaskManager();
 
+  private final List<GuiProgressBarHandling> tasks = new CopyOnWriteArrayList<>();
+
+  private final List<ProgressListener> listeners = new CopyOnWriteArrayList<>();
+
   public static TaskManager getInstance() {
 
     return INSTANCE;
@@ -23,11 +27,29 @@ public class TaskManager {
     listeners.remove(listener);
   }
 
+  /**
+   * @param task the task to be added to the list of tasks.
+   * @return the TaskManagers internal task ID.
+   */
   public void addTask(GuiProgressBarHandling task) {
 
+    tasks.stream().filter(t -> t.getTaskId() == task.getTaskId()).findFirst().ifPresent(existingTask -> {
+      throw new IllegalArgumentException("Task with ID " + task.getTaskId() + " already exists.");
+    });
     tasks.add(task);
     Platform.runLater(() ->
         listeners.forEach(listener -> listener.onProgressTaskAdded(tasks))
+    );
+  }
+
+  /**
+   * @param taskId the ID of the task to be removed from the list of tasks.
+   */
+  public void removeTask(long taskId) {
+
+    tasks.stream().filter(task -> task.getTaskId() == taskId).findFirst().ifPresent(tasks::remove);
+    Platform.runLater(() ->
+        listeners.forEach(listener -> listener.onProgressTaskRemoved(tasks))
     );
   }
 
@@ -39,28 +61,20 @@ public class TaskManager {
     );
   }
 
+  /**
+   * @return the list of currently running tasks.
+   */
   public List<GuiProgressBarHandling> getTasks() {
 
     return tasks;
   }
 
-  //TODO: remove after testing
-  public void removeLastTask() {
-
-    tasks.removeLast();
-    listeners.forEach(listener -> listener.onProgressTaskRemoved(tasks));
-  }
-
   protected void updateTask(GuiProgressBarHandling task, long stepPosition) {
 
     Platform.runLater(() ->
-        listeners.forEach(listener -> listener.onProgressTaskUpdate(task, stepPosition))
+        listeners.forEach(listener -> listener.onProgressTaskUpdated(task, stepPosition))
     );
   }
-
-  private final List<GuiProgressBarHandling> tasks = new CopyOnWriteArrayList<>();
-
-  private final List<ProgressListener> listeners = new CopyOnWriteArrayList<>();
 
   /**
    * Listener interface for receiving updates about progress tasks. Implement this interface and register it with the TaskManager to receive updates when tasks
@@ -69,10 +83,10 @@ public class TaskManager {
   public interface ProgressListener {
 
     /**
-     * @param task the task that was updated
+     * @param task updated task
      * @param stepPosition the current position of the task (for STEP updates)
      */
-    void onProgressTaskUpdate(GuiProgressBarHandling task, long stepPosition);
+    void onProgressTaskUpdated(GuiProgressBarHandling task, long stepPosition);
 
     /**
      * @param updatedTaskList the updated list of tasks after a task was added

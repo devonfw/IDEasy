@@ -18,34 +18,39 @@ public class TaskWindowCellFactory implements Callback<ListView<GuiProgressBarHa
   @Override
   public ListCell<GuiProgressBarHandling> call(ListView<GuiProgressBarHandling> param) {
     return new ListCell<>() {
+
+      final ProgressBar progressBar = new ProgressBar();
+      final Button cancelButton = new Button("x");
+
       @Override
       public void updateItem(GuiProgressBarHandling progressTask, boolean empty) {
 
+        progressBar.progressProperty().unbind();
+
         super.updateItem(progressTask, empty);
         if (empty || progressTask == null) {
+
           setText(null);
           setGraphic(null);
-          return;
+        } else {
+
+          Label titleLabel = new Label(progressTask.getTitle());
+
+          progressBar.setMaxWidth(Double.MAX_VALUE);
+          progressBar.progressProperty().bind(progressTask.progressProperty());
+
+          cancelButton.setOnAction(event -> {
+            progressTask.close(); // oder deine passende Cancel-Methode
+          });
+
+          VBox contentBox = new VBox(5, titleLabel, progressBar);
+          HBox.setHgrow(contentBox, Priority.ALWAYS);
+
+          HBox root = new HBox(10, contentBox, cancelButton);
+          root.setAlignment(Pos.CENTER_LEFT);
+
+          setGraphic(root);
         }
-
-        Label titleLabel = new Label(progressTask.getTitle());
-
-        ProgressBar progressBar = new ProgressBar();
-        progressBar.setMaxWidth(Double.MAX_VALUE);
-        progressBar.setProgress((double) progressTask.getCurrentProgress() / progressTask.getMaxSize());
-
-        Button cancelButton = new Button("x");
-        cancelButton.setOnAction(event -> {
-          progressTask.close(); // oder deine passende Cancel-Methode
-        });
-
-        VBox contentBox = new VBox(5, titleLabel, progressBar);
-        HBox.setHgrow(contentBox, Priority.ALWAYS);
-
-        HBox root = new HBox(10, contentBox, cancelButton);
-        root.setAlignment(Pos.CENTER_LEFT);
-
-        setGraphic(root);
       }
     };
   }
