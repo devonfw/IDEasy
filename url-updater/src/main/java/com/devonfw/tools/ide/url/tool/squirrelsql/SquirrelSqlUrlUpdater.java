@@ -15,7 +15,7 @@ public class SquirrelSqlUrlUpdater extends GithubUrlReleaseUpdater {
   @Override
   public String getTool() {
 
-    return "squirrelsql";
+    return "squirrel-sql";
   }
 
   @Override
@@ -36,16 +36,6 @@ public class SquirrelSqlUrlUpdater extends GithubUrlReleaseUpdater {
   }
 
   @Override
-  public String getCpeProduct() {
-    return "squirrel_sql";
-  }
-
-  @Override
-  public String getCpeVendor() {
-    return "squirrel_sql";
-  }
-
-  @Override
   public String mapVersion(String version) {
 
     // Squirrel sql versions on GitHub have the suffix "-installer" or "-a_plainzip".
@@ -63,7 +53,7 @@ public class SquirrelSqlUrlUpdater extends GithubUrlReleaseUpdater {
     VersionIdentifier versionIdentifier = urlVersion.getVersionIdentifier();
     VersionComparisonResult versionComparisonResult = versionIdentifier.compareVersion(MIN_VERSION);
     if (versionComparisonResult.isEqual() || versionComparisonResult.isGreater()) {
-      doAddVersion(urlVersion, getDownloadBaseUrl() + "/" + versionIdentifier + "-a_plainzip/" + getTool() + "-" + versionIdentifier + "-optional.zip");
+      doAddVersion(urlVersion, getDownloadBaseUrl() + "/${version}-a_plainzip/squirrelsql-${version}-optional.zip");
     }
   }
 }
