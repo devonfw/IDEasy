@@ -601,6 +601,9 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   protected void setUserHome(Path userHome) {
 
     this.userHome = userHome;
+    this.userHomeIde = userHome.resolve(FOLDER_DOT_IDE);
+    this.downloadPath = userHome.resolve("Downloads/ide");
+    this.variables = null;
     resetPrivacyMap();
   }
 
