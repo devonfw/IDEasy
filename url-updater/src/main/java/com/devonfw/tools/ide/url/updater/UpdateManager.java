@@ -4,8 +4,6 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
 
-import com.devonfw.tools.ide.url.tool.java.JavaAzulUrlUpdater;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,13 +29,13 @@ import com.devonfw.tools.ide.url.tool.gradle.GradleUrlUpdater;
 import com.devonfw.tools.ide.url.tool.helm.HelmUrlUpdater;
 import com.devonfw.tools.ide.url.tool.intellij.IntellijUrlUpdater;
 import com.devonfw.tools.ide.url.tool.jasypt.JasyptUrlUpdater;
+import com.devonfw.tools.ide.url.tool.java.JavaAzulUrlUpdater;
 import com.devonfw.tools.ide.url.tool.java.JavaUrlUpdater;
 import com.devonfw.tools.ide.url.tool.jenkins.JenkinsUrlUpdater;
 import com.devonfw.tools.ide.url.tool.jmc.JmcUrlUpdater;
 import com.devonfw.tools.ide.url.tool.kotlinc.KotlincNativeUrlUpdater;
 import com.devonfw.tools.ide.url.tool.kotlinc.KotlincUrlUpdater;
 import com.devonfw.tools.ide.url.tool.lazydocker.LazyDockerUrlUpdater;
-import com.devonfw.tools.ide.url.tool.mvn.Mvn4UrlUpdater;
 import com.devonfw.tools.ide.url.tool.mvn.MvnUrlUpdater;
 import com.devonfw.tools.ide.url.tool.ng.NgUrlUpdater;
 import com.devonfw.tools.ide.url.tool.node.NodeUrlUpdater;
