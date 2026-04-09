@@ -24,7 +24,6 @@ public class CopilotUrlUpdaterMock extends CopilotUrlUpdater {
 
   @Override
   protected String doGetVersionUrl() {
-    return this.baseUrl + "/repos/" + getGithubOrganization() + "/" + getGithubRepository() + "/releases";
+    return this.baseUrl + "/repos/" + getGithubOrganization() + "/" + getGithubRepository() + "/git/refs/tags";
   }
 }
-
