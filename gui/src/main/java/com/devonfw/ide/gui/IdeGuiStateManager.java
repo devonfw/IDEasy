@@ -17,7 +17,7 @@ public class IdeGuiStateManager {
 
   private static final Logger LOG = LoggerFactory.getLogger(IdeGuiStateManager.class);
 
-  private final String projectDirectory;
+  private String projectDirectory;
 
   /**
    * Project context based on which project the user works in.
@@ -56,6 +56,21 @@ public class IdeGuiStateManager {
     IdeStartContextImpl startContext = new IdeStartContextImpl(logLevel, buffer);
     this.currentContext = new IdeGuiContext(startContext, workspacePath);
     return this.currentContext;
+  }
+
+  /**
+   * This variant of the {@link #switchContext(String, String)} method is used when the IDE_ROOT environment variable has to be set manually. USE WITH CARE.
+   * (e.g. in tests)
+   *
+   * @param rootDirectory root directory for the ide projects.
+   * @param projectName 1st level folder of the project
+   * @param workspaceName used workspace
+   * @return the new {@link IdeGuiContext} for the selected project and workspace.
+   * @throws FileNotFoundException id either the specified project folder or workspace does not exist.
+   */
+  protected IdeGuiContext switchContext(Path rootDirectory, String projectName, String workspaceName) throws FileNotFoundException {
+    this.projectDirectory = rootDirectory.toString();
+    return switchContext(projectName, workspaceName);
   }
 
   /**

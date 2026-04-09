@@ -2,6 +2,7 @@ package com.devonfw.ide.gui;
 
 import static org.testfx.assertions.api.Assertions.assertThat;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
@@ -15,6 +16,7 @@ import javafx.stage.Stage;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.CleanupMode;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +31,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
   private Button androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen;
   private ComboBox<String> selectedProject, selectedWorkspace;
 
-  @TempDir
+  @TempDir(cleanup = CleanupMode.ON_SUCCESS)
   private static Path temporayProjectDirectoryPath;
 
   @Override
@@ -58,7 +60,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
    * to work in the test context. Generates a structure like this: /project-[0..6]/workspaces/main
    */
   @BeforeAll
-  public static void generateProjectFolderStructure() {
+  protected static void generateProjectFolderStructure() throws FileNotFoundException {
 
     LOGGER.debug("tempDir: {}", temporayProjectDirectoryPath);
     for (int i = 0; i <= 5; i++) {
@@ -74,7 +76,10 @@ public class AppBaseTest extends HeadlessApplicationTest {
               "Unable to create mock main workspace directory for mock project " + i)
           .isTrue();
     }
-    LOGGER.debug("project folders: {}", Arrays.toString(temporayProjectDirectoryPath.toFile().list()));
+    LOGGER.info("project folders: {}", Arrays.toString(temporayProjectDirectoryPath.toFile().list()));
+
+    //We set the project root directory to the temporary directory before all tests, so that the IDE can find the projects in the test.
+    IdeGuiStateManager.getInstance().switchContext(temporayProjectDirectoryPath, "project-1", "main");
   }
 
   /**
