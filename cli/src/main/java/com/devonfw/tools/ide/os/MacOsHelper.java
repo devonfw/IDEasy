@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 
@@ -25,6 +27,8 @@ public final class MacOsHelper {
   private static final Set<String> INVALID_LINK_FOLDERS = Set.of(IdeContext.FOLDER_CONTENTS,
       IdeContext.FOLDER_RESOURCES, IdeContext.FOLDER_BIN);
 
+  private final IdeContext context;
+
   private final FileAccess fileAccess;
 
   private final SystemInfo systemInfo;
@@ -36,7 +40,10 @@ public final class MacOsHelper {
    */
   public MacOsHelper(IdeContext context) {
 
-    this(context.getFileAccess(), context.getSystemInfo());
+    super();
+    this.context = context;
+    this.fileAccess = context.getFileAccess();
+    this.systemInfo = context.getSystemInfo();
   }
 
   /**
@@ -48,8 +55,52 @@ public final class MacOsHelper {
   public MacOsHelper(FileAccess fileAccess, SystemInfo systemInfo) {
 
     super();
+    this.context = null;
     this.fileAccess = fileAccess;
     this.systemInfo = systemInfo;
+  }
+
+  /**
+   * Fixes macOS Gatekeeper blocking for downloaded tools. On macOS 15.1+ (Apple Silicon), just removing {@code com.apple.quarantine} is not enough since
+   * unsigned apps still get the "is damaged" error. So we clear all xattrs first, then ad-hoc codesign any {@code .app} bundles. Call this after writing
+   * {@code .ide.software.version} since codesigning seals the bundle.
+   *
+   * @param path the {@link Path} to the installation directory.
+   */
+  public void removeQuarantineAttribute(Path path) {
+
+    if (!this.systemInfo.isMac()) {
+      return;
+    }
+    if (this.context == null) {
+      LOG.debug("Cannot fix Gatekeeper for {} - no context available", path);
+      return;
+    }
+    // clear all extended attributes (quarantine, resource forks, etc.)
+    LOG.debug("Clearing extended attributes from {}", path);
+    try {
+      this.context.newProcess().executable("xattr").addArgs("-cr", path).run(ProcessMode.DEFAULT_SILENT);
+    } catch (Exception e) {
+      LOG.trace("Could not clear extended attributes from {}: {}", path, e.getMessage());
+    }
+    // ad-hoc codesign .app bundles only if they are not already properly signed (e.g. Eclipse is notarized - we must not replace that)
+    Path appDir = findAppDir(path);
+    if (appDir != null) {
+      try {
+        ProcessResult verifyResult = this.context.newProcess().executable("codesign")
+            .addArgs("-v", appDir).run(ProcessMode.DEFAULT_SILENT);
+        if (!verifyResult.isSuccessful()) {
+          LOG.debug("Ad-hoc codesigning {}", appDir);
+          ProcessResult signResult = this.context.newProcess().executable("codesign")
+              .addArgs("--force", "--deep", "--sign", "-", appDir).run(ProcessMode.DEFAULT_SILENT);
+          if (!signResult.isSuccessful()) {
+            LOG.warn("Could not codesign {} - app may be blocked by Gatekeeper", appDir);
+          }
+        }
+      } catch (Exception e) {
+        LOG.trace("Codesign not available for {}: {}", appDir, e.getMessage());
+      }
+    }
   }
 
   /**
@@ -59,6 +110,41 @@ public final class MacOsHelper {
   public Path findAppDir(Path rootDir) {
     return this.fileAccess.findFirst(rootDir,
         p -> p.getFileName().toString().endsWith(".app") && Files.isDirectory(p), false);
+  }
+
+  /**
+   * Finds the directory containing the tool's executables inside a macOS {@code .app} bundle, without requiring the binary name. This method exists separately
+   * from {@link #findLinkDir(Path, String)} because it is called from {@code getToolBinPath()}, which is itself called by {@code getBinaryName()} — using
+   * {@code findLinkDir} there would cause infinite recursion since it requires the binary name.
+   *
+   * @param rootDir the {@link Path} to the root directory that may contain a {@code .app} bundle.
+   * @return the binary directory inside the {@code .app} bundle, or {@code rootDir} if not a {@code .app} structure.
+   */
+  public Path findBinDir(Path rootDir) {
+
+    if (!this.systemInfo.isMac() || Files.isDirectory(rootDir.resolve(IdeContext.FOLDER_BIN))) {
+      return rootDir;
+    }
+    Path contentsDir = rootDir.resolve(IdeContext.FOLDER_CONTENTS);
+    if (!Files.isDirectory(contentsDir)) {
+      Path appDir = findAppDir(rootDir);
+      if (appDir == null) {
+        return rootDir;
+      }
+      contentsDir = appDir.resolve(IdeContext.FOLDER_CONTENTS);
+      if (!Files.isDirectory(contentsDir)) {
+        return rootDir;
+      }
+    }
+    Path resourcesApp = contentsDir.resolve(IdeContext.FOLDER_RESOURCES).resolve(IdeContext.FOLDER_APP);
+    if (Files.isDirectory(resourcesApp)) {
+      return resourcesApp;
+    }
+    Path macosDir = contentsDir.resolve("MacOS");
+    if (Files.isDirectory(macosDir)) {
+      return macosDir;
+    }
+    return rootDir;
   }
 
   /**
