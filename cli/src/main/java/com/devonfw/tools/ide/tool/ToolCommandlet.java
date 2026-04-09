@@ -20,7 +20,6 @@ import com.devonfw.tools.ide.common.Tags;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesFiles;
-import com.devonfw.tools.ide.io.FileCopyMode;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.os.MacOsHelper;
@@ -500,8 +499,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     Path binDir = rootDir;
     if (rootDir != null) {
       // on MacOS applications have a very strange structure - see JavaDoc of findLinkDir and ToolInstallation.linkDir for details.
-      linkDir = getMacOsHelper().findLinkDir(rootDir, getBinaryName());
-      binDir = this.context.getFileAccess().getBinPath(linkDir);
+      binDir = this.context.getFileAccess().getBinPath(getMacOsHelper().findLinkDir(rootDir, getBinaryName()));
     }
     return createToolInstallation(rootDir, linkDir, binDir, version, newInstallation, environmentContext, additionalInstallation);
   }
@@ -520,13 +518,6 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   protected ToolInstallation createToolInstallation(Path rootDir, Path linkDir, Path binDir, VersionIdentifier version, boolean newInstallation,
       EnvironmentContext environmentContext, boolean additionalInstallation) {
 
-    if (linkDir != rootDir) {
-      assert (!linkDir.equals(rootDir));
-      Path toolVersionFile = rootDir.resolve(IdeContext.FILE_SOFTWARE_VERSION);
-      if (Files.exists(toolVersionFile)) {
-        this.context.getFileAccess().copy(toolVersionFile, linkDir, FileCopyMode.COPY_FILE_OVERRIDE);
-      }
-    }
     ToolInstallation toolInstallation = new ToolInstallation(rootDir, linkDir, binDir, version, newInstallation);
     setEnvironment(environmentContext, toolInstallation, additionalInstallation);
     return toolInstallation;

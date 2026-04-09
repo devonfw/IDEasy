@@ -65,6 +65,14 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     if (Files.isDirectory(binPath)) {
       return binPath;
     }
+    // on macOS, toolPath may contain a .app bundle - resolve the actual binary dir (e.g. Contents/MacOS/)
+    if (Files.isDirectory(toolPath)) {
+      Path realPath = this.context.getFileAccess().toRealPath(toolPath);
+      Path macBinDir = this.context.getFileAccess().getBinPath(getMacOsHelper().findBinDir(realPath));
+      if (!macBinDir.equals(realPath)) {
+        return macBinDir;
+      }
+    }
     return toolPath;
   }
 
@@ -260,6 +268,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     fileAccess.mkdirs(installationPath.getParent());
     fileAccess.extract(downloadedToolFile, installationPath, this::postExtract, extract);
     this.context.writeVersionFile(resolvedVersion, installationPath);
+    // fix macOS Gatekeeper blocking - must run after version file is written but before any executables are launched
+    getMacOsHelper().removeQuarantineAttribute(installationPath);
     LOG.debug("Installed {} in version {} at {}", this.tool, resolvedVersion, installationPath);
   }
 
