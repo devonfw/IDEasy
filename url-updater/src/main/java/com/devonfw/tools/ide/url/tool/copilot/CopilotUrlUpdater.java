@@ -56,16 +56,6 @@ public class CopilotUrlUpdater extends GithubUrlTagUpdater {
   }
 
   @Override
-  public String getCpeVendor() {
-    return "github";
-  }
-
-  @Override
-  public String getCpeProduct() {
-    return "copilot-cli";
-  }
-
-  @Override
   protected String getVersionPrefixToRemove() {
     return "v";
   }
