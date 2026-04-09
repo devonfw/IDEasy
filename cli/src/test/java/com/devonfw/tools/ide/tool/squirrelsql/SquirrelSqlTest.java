@@ -20,16 +20,18 @@ public class SquirrelSqlTest extends AbstractIdeContextTest {
   void testSquirrelSqlInstallAndRun(WireMockRuntimeInfo wireMockRuntimeInfo) {
     // arrange
     IdeTestContext context = newContext(PROJECT_SQUIRREL_SQL, wireMockRuntimeInfo);
-    SquirrelSql squirrelSql = context.getCommandletManager().getCommandlet(SquirrelSql.class);
+    SquirrelSql squirrelSqlCommandlet = context.getCommandletManager().getCommandlet(SquirrelSql.class);
 
     // act
-    squirrelSql.run();
+    squirrelSqlCommandlet.install();
 
     // assert
+    checkInstallation(context);
+  }
+
+  private void checkInstallation(IdeTestContext context) {
     assertThat(context.getSoftwarePath().resolve("java/bin/java")).exists();
-    assertThat(context.getSoftwarePath().resolve("squirrelsql/.ide.software.version")).exists().hasContent(SQUIRREL_SQL_VERSION);
-    assertThat(context.getSoftwarePath().resolve("squirrelsql/squirrelsql.sh")).exists();
-    assertThat(context.getSoftwarePath().resolve("squirrelsql/squirrelsql.bat")).exists();
-    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed squirrelsql in version " + SQUIRREL_SQL_VERSION);
+    assertThat(context.getSoftwarePath().resolve("squirrel-sql/.ide.software.version")).exists().hasContent(SQUIRREL_SQL_VERSION);
+    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed squirrel-sql in version " + SQUIRREL_SQL_VERSION);
   }
 }
