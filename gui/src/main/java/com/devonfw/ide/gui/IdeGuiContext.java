@@ -25,12 +25,13 @@ public class IdeGuiContext extends AbstractIdeContext {
 
   @Override
   protected String readLine() {
+
     return "";
   }
 
   @Override
   public IdeProgressBar newProgressBar(String title, long size, String unitName, long unitSize) {
+
     return new IdeProgressBarNone(title, 0, unitName, unitSize);
   }
-
 }

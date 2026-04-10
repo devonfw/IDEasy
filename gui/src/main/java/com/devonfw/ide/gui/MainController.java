@@ -1,5 +1,6 @@
 package com.devonfw.ide.gui;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,10 +12,8 @@ import javafx.scene.control.ComboBox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.ide.gui.modal.IdeDialog;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.context.IdeStartContextImpl;
-import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.log.IdeLogListenerBuffer;
 
 /**
  * Controller of the main screen of the dashboard GUI.
@@ -22,6 +21,7 @@ import com.devonfw.tools.ide.log.IdeLogListenerBuffer;
 public class MainController {
 
   private static Logger LOG = LoggerFactory.getLogger(MainController.class);
+
 
   @FXML
   private ComboBox<String> selectedProject;
@@ -114,6 +114,7 @@ public class MainController {
       vsCodeOpen.setDisable(false);
       selectedWorkspace.setValue("main");
       this.workspaceValue = Path.of("main");
+      updateContext(selectedProject.getValue(), selectedWorkspace.getValue());
     });
   }
 
@@ -135,14 +136,25 @@ public class MainController {
       }
     }
     this.workspaceValue = Path.of(selectedWorkspace.getValue());
+    updateContext(selectedProject.getValue(), selectedWorkspace.getValue());
   }
 
   private void openIDE(String inIde) {
 
-    final IdeLogListenerBuffer buffer = new IdeLogListenerBuffer();
-    IdeLogLevel logLevel = IdeLogLevel.INFO;
-    IdeStartContextImpl startContext = new IdeStartContextImpl(logLevel, buffer);
-    IdeGuiContext context = new IdeGuiContext(startContext, Path.of(this.directoryPath).resolve(this.projectValue).resolve(this.workspaceValue));
-    context.getCommandletManager().getCommandlet(inIde).run();
+    IdeGuiStateManager
+        .getInstance()
+        .getCurrentContext()
+        .getCommandletManager()
+        .getCommandlet(inIde)
+        .run();
+  }
+
+  private void updateContext(String selectedProjectName, String selectedWorkspaceName) {
+    try {
+      IdeGuiStateManager.getInstance().switchContext(selectedProjectName, selectedWorkspaceName);
+    } catch (FileNotFoundException e) {
+      IdeDialog errorDialog = new IdeDialog(IdeDialog.AlertType.ERROR, e.getMessage());
+      errorDialog.showAndWait();
+    }
   }
 }
