@@ -51,7 +51,7 @@ public class SquirrelSqlUpdaterTest extends AbstractUrlUpdaterTest {
     updater.update(urlRepository);
 
     // assert
-    Path squirrelSqlDir = tempDir.resolve("squirrelsql").resolve("squirrelsql");
+    Path squirrelSqlDir = tempDir.resolve("squirrel-sql").resolve("squirrel-sql");
     assertUrlVersion(squirrelSqlDir.resolve("5.1.0"), List.of(""));
     assertUrlVersion(squirrelSqlDir.resolve("4.4.0"), List.of(""));
   }
