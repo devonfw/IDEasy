@@ -8,6 +8,7 @@ Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/1552[#1552]: Add Commandlet to fix TLS issue
 * https://github.com/devonfw/IDEasy/issues/913[#913]: Add support for SQuirrel SQL Client (squirrel-sql commandlet)
+* https://github.com/devonfw/IDEasy/issues/1760[#1760]: Accept empty input for single option
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/43?closed=1[milestone 2026.04.002].
 
