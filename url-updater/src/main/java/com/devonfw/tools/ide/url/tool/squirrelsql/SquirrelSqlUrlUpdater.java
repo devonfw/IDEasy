@@ -6,7 +6,7 @@ import com.devonfw.tools.ide.version.VersionComparisonResult;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link GithubUrlReleaseUpdater} for squirrelsql.
+ * {@link GithubUrlReleaseUpdater} for SQuirreL SQL.
  */
 public class SquirrelSqlUrlUpdater extends GithubUrlReleaseUpdater {
 
