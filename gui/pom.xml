@@ -73,7 +73,6 @@
             </manifest>
           </archive>
         </configuration>
-
       </plugin>
       <plugin>
         <groupId>org.openjfx</groupId>

@@ -73,8 +73,10 @@ public class Gui extends Commandlet {
     List<String> args = List.of(
         "-f",
         Path.of(IdeVariables.IDE_ROOT.get(context).toString(), "_ide", "installation", POM_PATH, "pom.xml").toString(),
-        "exec:java",
-        "-Dexec.mainClass=com.devonfw.ide.gui.AppLauncher"
+        "exec:exec",
+        "-Dexec.executable=java",
+        "-Dexec.classpathScope=compile",
+        "-Dexec.args=-classpath %classpath com.devonfw.ide.gui.AppLauncher"
     );
 
     try {

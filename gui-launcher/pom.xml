@@ -19,7 +19,6 @@
       <groupId>com.devonfw.tools.IDEasy</groupId>
       <artifactId>ide-gui</artifactId>
       <version>${revision}</version>
-      <type>jar</type>
     </dependency>
   </dependencies>
 
