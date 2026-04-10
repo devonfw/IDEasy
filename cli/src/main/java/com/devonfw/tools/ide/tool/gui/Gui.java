@@ -28,7 +28,6 @@ public class Gui extends Commandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Gui.class);
 
-  //TODO: implement constant in sync with maven property gui.relative_pom_path
   private static final String POM_PATH = "gui-execution";
 
   /**
@@ -70,19 +69,21 @@ public class Gui extends Commandlet {
 
     Mvn mvn = context.getCommandletManager().getCommandlet(Mvn.class);
 
+    Path pomPath = Path.of(IdeVariables.IDE_ROOT.get(context).toString(), "_ide", "installation", POM_PATH, "pom.xml");
+    if (!pomPath.toFile().exists()) {
+      LOG.error("Fatal error: The pom.xml file required for launching the IDEasy GUI could not be found in expected location: {}", pomPath);
+      return;
+    }
+
     List<String> args = List.of(
         "-f",
-        Path.of(IdeVariables.IDE_ROOT.get(context).toString(), "_ide", "installation", POM_PATH, "pom.xml").toString(),
+        pomPath.toString(),
         "exec:exec",
         "-Dexec.executable=java",
         "-Dexec.classpathScope=compile",
         "-Dexec.args=-classpath %classpath com.devonfw.ide.gui.AppLauncher"
     );
 
-    try {
-      mvn.runTool(processContext, ProcessMode.DEFAULT, args);
-    } catch (IllegalStateException e) {
-      LOG.error("ERROR WHILE LAUNCHING GUI: Recommended to check if POM file exists in _ide/installation/gui-execution/pom.xml", e);
-    }
+    mvn.runTool(processContext, ProcessMode.DEFAULT, args);
   }
 }
