@@ -9,6 +9,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1552[#1552]: Add Commandlet to fix TLS issue
 * https://github.com/devonfw/IDEasy/issues/1799[#1799]: Add support for file URL in GitUrl validation for local development
 * https://github.com/devonfw/IDEasy/issues/1760[#1760]: Accept empty input for single option
+* https://github.com/devonfw/IDEasy/issues/1815[#1815]: Suppress Update notification while updating
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/43?closed=1[milestone 2026.04.002].
 
