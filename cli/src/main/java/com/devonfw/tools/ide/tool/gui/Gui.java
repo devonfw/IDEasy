@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool.gui;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -16,7 +17,6 @@ import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
-import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.BoundaryType;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
@@ -27,8 +27,6 @@ import com.devonfw.tools.ide.version.VersionRange;
 public class Gui extends Commandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Gui.class);
-
-  private static final String POM_PATH = "gui-execution";
 
   /**
    * @param context the {@link IdeContext}.
