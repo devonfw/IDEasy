@@ -81,7 +81,7 @@ public final class MacOsHelper {
     try {
       this.context.newProcess().executable("xattr").addArgs("-cr", path).run(ProcessMode.DEFAULT_SILENT);
     } catch (Exception e) {
-      LOG.trace("Could not clear extended attributes from {}: {}", path, e.getMessage());
+      LOG.warn("Could not clear extended attributes from {}: {}", path, e.getMessage(), e);
     }
     // ad-hoc codesign .app bundles only if they are not already properly signed (e.g. Eclipse is notarized - we must not replace that)
     Path appDir = findAppDir(path);
