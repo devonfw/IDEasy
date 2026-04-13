@@ -70,7 +70,7 @@ public class Gui extends Commandlet {
     Mvn mvn = context.getCommandletManager().getCommandlet(Mvn.class);
 
     Path pomPath = context.getIdeInstallationPath().resolve("gui/pom.xml");
-    if (!pomPath.toFile().exists()) {
+    if (!Files.exists(pomPath)) {
       LOG.error("Fatal error: The pom.xml file required for launching the IDEasy GUI could not be found in expected location: {}", pomPath);
       return;
     }
