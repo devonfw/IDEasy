@@ -1,9 +1,14 @@
 package com.devonfw.tools.ide.url.tool.java;
 
+import java.util.Arrays;
 import java.util.Collection;
 
+import com.devonfw.tools.ide.json.JsonMapping;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * URL updater for Java Azul (Zulu) edition.
@@ -12,6 +17,7 @@ public class JavaAzulUrlUpdater extends JsonUrlUpdater<JavaAzulJsonObject, JavaA
 
   private static final String JAVA_AZUL_BASE_URL = "https://cdn.azul.com";
   private static final String JAVA_AZUL_VERSION_URL = "https://api.azul.com";
+  private static final ObjectMapper MAPPER = JsonMapping.createWithReflectionSupportForUrlUpdaters();
 
   @Override
   public String getTool() {
@@ -24,9 +30,24 @@ public class JavaAzulUrlUpdater extends JsonUrlUpdater<JavaAzulJsonObject, JavaA
   }
 
   @Override
-  protected void addVersion(UrlVersion urlVersion) {
-    super.addVersion(urlVersion);
-    // https://cdn.azul.com/zulu/bin/zulu11.66.15-ca-jre11.0.20-solaris_x64.zip
+  protected void addVersion(UrlVersion urlVersion, JavaAzulJsonVersion pkg) {
+
+    String url = pkg.getDownloadUrl();
+    if (url == null || url.isBlank()) {
+      return;
+    }
+
+    int lastDash = url.lastIndexOf('-');
+    if (lastDash < 0) {
+      return;
+    }
+    String prefix = url.substring(0, lastDash + 1);
+    doAddVersion(urlVersion, prefix + "win_x64.zip", WINDOWS, X64);
+    doAddVersion(urlVersion, prefix + "win_x64.msi", WINDOWS, X64);
+    doAddVersion(urlVersion, prefix + "linux_x64.tar.gz", LINUX, X64);
+    doAddVersion(urlVersion, prefix + "linux_aarch64.tar.gz", LINUX, ARM64);
+    doAddVersion(urlVersion, prefix + "macosx_x64.tar.gz", MAC, X64);
+    doAddVersion(urlVersion, prefix + "macosx_aarch64.tar.gz", MAC, ARM64);
   }
 
   @Override
@@ -52,12 +73,33 @@ public class JavaAzulUrlUpdater extends JsonUrlUpdater<JavaAzulJsonObject, JavaA
   @Override
   protected String doGetVersionUrl() {
     return getVersionBaseUrl()
-        + "/metadata/v1/zulu/packages?availability_types=ca&release_status=both&page_size=1000&include_fields=java_package_features,release_status,support_term,os,arch,hw_bitness,abi,java_package_type,javafx_bundled,sha256_hash,cpu_gen,size,archive_type,certifications,lib_c_type,crac_supported&page=6&azul_com=true";
+        + "/metadata/v1/zulu/packages"
+        + "?availability_types=CA"
+        + "&java_package_type=jdk"
+        + "&release_status=ga"
+        + "&latest=true"
+        + "&os=linux"
+        + "&arch=x86"
+        + "&archive_type=tar.gz"
+        + "&javafx_bundled=false"
+        + "&crac_supported=false"
+        + "&page_size=100";
   }
 
   @Override
   protected Class<JavaAzulJsonObject> getJsonObjectType() {
     return JavaAzulJsonObject.class;
+  }
+
+  @Override
+  protected JavaAzulJsonObject getJsonObjectFromResponse(String response, String edition) throws JsonProcessingException {
+
+    JsonNode rootNode = MAPPER.readTree(response);
+    if (rootNode.isArray()) {
+      JavaAzulJsonVersion[] versions = MAPPER.treeToValue(rootNode, JavaAzulJsonVersion[].class);
+      return new JavaAzulJsonObject(Arrays.asList(versions));
+    }
+    return MAPPER.treeToValue(rootNode, JavaAzulJsonObject.class);
   }
 
   @Override

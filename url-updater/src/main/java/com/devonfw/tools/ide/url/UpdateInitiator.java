@@ -34,6 +34,7 @@ public class UpdateInitiator {
     String pathToRepo = args[0];
     Instant expirationTime = null;
     String selectedTool = null;
+    String selectedEdition = null;
 
     if (args.length < 2) {
       logger.warn("Timeout was not set, setting timeout to infinite instead.");
@@ -48,6 +49,9 @@ public class UpdateInitiator {
       }
       if (args.length > 2) {
         selectedTool = args[2];
+      }
+      if (args.length > 3) {
+        selectedEdition = args[3];
       }
     }
 
@@ -64,6 +68,9 @@ public class UpdateInitiator {
     if (selectedTool == null) {
       updateManager.updateAll();
     } else {
+      if (selectedEdition != null) {
+        updateManager.update(selectedTool, selectedEdition);
+      }
       updateManager.update(selectedTool);
     }
 

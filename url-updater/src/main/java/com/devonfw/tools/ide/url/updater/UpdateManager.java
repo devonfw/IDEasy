@@ -124,6 +124,23 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
     }
   }
 
+  /**
+   * Update only a single edition of a tool. Mainly used in local development only to test updater only for a tool where changes have been made.
+   *
+   * @param tool the name of the tool to update.
+   * @param edition the name of the edition to update
+   */
+  public void update(String tool, String edition) {
+
+    for (AbstractUrlUpdater updater : this.updaters) {
+      if (updater.getTool().equals(tool)) {
+        if (updater.getClass().getSimpleName().contains(edition) || updater.getEdition().equals(edition)) {
+          update(updater);
+        }
+      }
+    }
+  }
+
   private void update(AbstractUrlUpdater updater) {
     try {
       updater.setExpirationTime(getExpirationTime());
