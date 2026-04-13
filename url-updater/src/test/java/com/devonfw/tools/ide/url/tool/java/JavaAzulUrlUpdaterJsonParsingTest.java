@@ -80,7 +80,7 @@ class JavaAzulUrlUpdaterJsonParsingTest {
   }
 
   @Test
-  void shouldMapLinuxX86ToLinuxX64AndUseChecksum(@TempDir Path tempDir) throws Exception {
+  void shouldBuildUrlMatrixFromDownloadUrl(@TempDir Path tempDir) throws Exception {
 
     // given
     String response =
@@ -105,11 +105,11 @@ class JavaAzulUrlUpdaterJsonParsingTest {
   }
 
   @Test
-  void shouldSkipNonMatchingPackagePattern(@TempDir Path tempDir) throws Exception {
+  void shouldIgnoreMalformedDownloadUrl(@TempDir Path tempDir) throws Exception {
 
     // given
     String response =
-        "[{\"java_version\":[17,0,14],\"openjdk_build_number\":7,\"download_url\":\"https://cdn.azul.com/zulu/bin/zulu17.56.15-ca-crac-jdk17.0.14-linux_ppc64.tar.gz\",\"os\":\"linux\",\"arch\":\"ppc64\"}]";
+        "[{\"java_version\":[17,0,14],\"openjdk_build_number\":7,\"download_url\":\"invalid\",\"os\":\"linux\",\"arch\":\"ppc64\"}]";
     TestableJavaAzulUrlUpdater updater = new TestableJavaAzulUrlUpdater();
     JavaAzulJsonVersion jsonVersion = updater.parse(response).versions().getFirst();
     UrlVersion urlVersion = UrlRepository.load(tempDir).getOrCreateChild("java").getOrCreateChild("azul").getOrCreateChild("17.0.14_7");
