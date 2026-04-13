@@ -1295,13 +1295,19 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
             if (getGitContext().isRepositoryUpdateAvailable(settingsRepository, getSettingsCommitIdPath()) || (
                 getGitContext().fetchIfNeeded(settingsRepository) && getGitContext().isRepositoryUpdateAvailable(
                     settingsRepository, getSettingsCommitIdPath()))) {
-              String msg;
               if (isSettingsRepositorySymlinkOrJunction()) {
-                msg = "Updates are available for the settings repository. Please pull the latest changes by yourself or by calling \"ide -f update\" to apply them.";
+                if (!(arguments.getInitialArgument().get().equals("update") && isForceMode())) {
+                  // Only print the update nag if the user did not explicitly call "ide -f update" to prevent confusion when the user already wants to apply the updates.
+                  String msg = "Updates are available for the settings repository. Please pull the latest changes by yourself or by calling \"ide -f update\" to apply them.";
+                  IdeLogLevel.INTERACTION.log(LOG, msg);
+                }
               } else {
-                msg = "Updates are available for the settings repository. If you want to apply the latest changes, call \"ide update\"";
+                if (!arguments.getInitialArgument().get().equals("update")) {
+                  // Only print the update nag if the user did not explicitly call "ide update" to prevent confusion when the user already wants to apply the updates.
+                  String msg = "Updates are available for the settings repository. If you want to apply the latest changes, call \"ide update\"";
+                  IdeLogLevel.INTERACTION.log(LOG, msg);
+                }
               }
-              IdeLogLevel.INTERACTION.log(LOG, msg);
             }
           }
         }
