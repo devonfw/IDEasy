@@ -60,13 +60,13 @@ public record GitUrl(String url, String branch) {
   }
 
   /**
-   * @return {@code true} if the URL starts with http://, https://, ssh:// or git@ - otherwise returns {@code false}.
+   * @return {@code true} if the URL starts with http://, https://, ssh://, git@ or file:// - otherwise returns {@code false}.
    */
   public boolean isValid() {
     if (url == null || url.isBlank()) {
       return false;
     }
-    return url.startsWith("http://") || url.startsWith("https://") || url.startsWith("ssh://") || url.startsWith("git@");
+    return url.startsWith("http://") || url.startsWith("https://") || url.startsWith("ssh://") || url.startsWith("git@") || url.startsWith("file://");
   }
 
   @Override
