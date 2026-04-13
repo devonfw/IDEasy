@@ -1,27 +1,48 @@
 package com.devonfw.tools.ide.url.tool.java;
 
+import java.util.List;
+
 import com.devonfw.tools.ide.json.JsonVersionItem;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * JSON data object for a version of Java from Azul. We map only properties that we are interested in and let jackson ignore all others.
- *
- * @param javaVersion
+ * JSON item for one Azul Java package release.
  */
-public record JavaAzulJsonVersion(@JsonProperty("java_version") int[] javaVersion, @JsonProperty("openjdk_build_number") int buildNumber) implements
-    JsonVersionItem {
+public class JavaAzulJsonVersion implements JsonVersionItem {
+
+  private final List<Integer> javaVersion;
+  private final Integer buildNumber;
+  private final String downloadUrl;
+
+  public JavaAzulJsonVersion(@JsonProperty("java_version") List<Integer> javaVersion, @JsonProperty("openjdk_build_number") Integer buildNumber,
+      @JsonProperty("download_url") String downloadUrl) {
+
+    this.javaVersion = javaVersion;
+    this.buildNumber = buildNumber;
+    this.downloadUrl = downloadUrl;
+
+  }
+
+  public String getDownloadUrl() {
+    return this.downloadUrl;
+  }
 
   @Override
   public String version() {
-    StringBuilder version = new StringBuilder();
-    int[] javaVersion = javaVersion();
-    for (int i = 0; i < javaVersion.length && i < 3; i++) {
-      version.append(javaVersion[i]);
-      if (i < javaVersion.length - 1) {
-        version.append(".");
-      }
-    }
-    return version.toString() + buildNumber();
-  }
 
+    if (this.javaVersion == null || this.javaVersion.isEmpty()) {
+      return null;
+    }
+    StringBuilder version = new StringBuilder();
+    for (int i = 0; i < this.javaVersion.size(); i++) {
+      if (i > 0) {
+        version.append('.');
+      }
+      version.append(this.javaVersion.get(i));
+    }
+    if (this.buildNumber != null) {
+      version.append('_').append(this.buildNumber);
+    }
+    return version.toString();
+  }
 }
