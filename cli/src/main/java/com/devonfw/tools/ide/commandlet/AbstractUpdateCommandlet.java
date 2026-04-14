@@ -187,6 +187,21 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
         LOG.info("Skipping git pull in settings due to code repository. Use --force-pull to enforce pulling.");
       }
     } else {
+      if (!this.context.getFileAccess().isEmptyDir(settingsPath)) {
+        String answer =
+          this.context.askForInput(
+            "Your settings repository can be updated, but this will override local changes. The "
+            + "settings contents will be backed up. Do you want to proceed?",
+            "Y/n"
+          );
+
+        if (answer.toLowerCase().equals("n")) {
+          return;
+        }
+
+        this.context.getFileAccess().backup(settingsPath);
+      }
+
       GitUrl gitUrl = getOrAskSettingsUrl();
       checkProjectNameConvention(gitUrl.getProjectName());
       initializeRepository(gitUrl);
