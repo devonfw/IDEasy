@@ -153,7 +153,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     }
     String[] defaultVmArgs = defaultVmArgsContent.trim().split("\\s+");
 
-    Path confPath = this.context.getConfPath().resolve("intellij").resolve("idea.vmoptions");
+    Path confPath = this.context.getWorkspacePath().resolve(".idea.vmoptions");
     this.context.getFileAccess().writeFileContent(mergeVmArgs(defaultVmArgs, userVmArgs), confPath, true);
 
     pc.withEnvVar("IDEA_VM_OPTIONS", confPath.toAbsolutePath().toString());
@@ -181,15 +181,10 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
         .resolve("idea64.vmoptions");
   }
 
-  /**
-   * Extracts a key from a jvm option. Only options with clear override semantics are normalized. All other options are treated as atomic flags and returned
-   * unchanged by design.
-   *
-   * @param arg a jvm option (e.g. "-Xmx2048m").
-   * @return a jvm option key.
-   */
   private String extractJvmOptionsKey(String arg) {
 
+    // Only options with clear override semantics are merged.
+    // All other JVM arguments are treated as atomic flags by design.
     if (arg.startsWith("-Xmx")) {
       return "-Xmx";
     }
@@ -204,9 +199,6 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     return arg;
   }
 
-  /**
-   * Compares two jvm options by using {@link #extractJvmOptionsKey(String)}}.
-   */
   private boolean sameJvmKey(String a, String b) {
 
     return extractJvmOptionsKey(a).equals(extractJvmOptionsKey(b));
