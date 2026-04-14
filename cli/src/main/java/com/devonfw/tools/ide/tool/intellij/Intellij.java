@@ -2,6 +2,9 @@ package com.devonfw.tools.ide.tool.intellij;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -20,6 +23,9 @@ import com.devonfw.tools.ide.environment.ExtensibleEnvironmentVariables;
 import com.devonfw.tools.ide.merge.xml.XmlMergeDocument;
 import com.devonfw.tools.ide.merge.xml.XmlMerger;
 import com.devonfw.tools.ide.process.EnvironmentContext;
+import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
@@ -130,4 +136,100 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     LOG.warn("No supported build descriptor was found for project import in {}", repositoryPath);
   }
 
+  @Override
+  public ProcessResult runTool(ProcessContext pc, ProcessMode processMode, List<String> args) {
+
+    String userVmArgsContent = this.context.getVariables().get("INTELLIJ_VM_ARGS");
+    if (userVmArgsContent == null || userVmArgsContent.isEmpty()) {
+      return super.runTool(pc, processMode, args);
+    }
+    String[] userVmArgs = userVmArgsContent.trim().split("\\s+");
+
+    Path defaultVmOptionsPath = resolveDefaultVmOptionsPath(this.context.getSoftwarePath());
+    String defaultVmArgsContent = this.context.getFileAccess().readFileContent(defaultVmOptionsPath);
+    if (defaultVmArgsContent == null || defaultVmArgsContent.isEmpty()) {
+      LOG.debug("Default intellij jvm options not found");
+      return super.runTool(pc, processMode, args);
+    }
+    String[] defaultVmArgs = defaultVmArgsContent.trim().split("\\s+");
+
+    Path confPath = this.context.getConfPath().resolve("intellij").resolve("idea.vmoptions");
+    this.context.getFileAccess().writeFileContent(mergeVmArgs(defaultVmArgs, userVmArgs), confPath, true);
+
+    pc.withEnvVar("IDEA_VM_OPTIONS", confPath.toAbsolutePath().toString());
+    return super.runTool(pc, processMode, args);
+  }
+
+  private Path resolveDefaultVmOptionsPath(Path softwarePath) {
+
+    Path intellijBase = softwarePath.resolve("intellij");
+    if (this.context.getSystemInfo().isWindows()) {
+      return intellijBase
+          .resolve("bin")
+          .resolve("idea64.exe.vmoptions");
+    }
+    if (this.context.getSystemInfo().isMac()) {
+      return intellijBase
+          .resolve("IntelliJ IDEA.app")
+          .resolve("Contents")
+          .resolve("bin")
+          .resolve("idea.vmoptions");
+    }
+
+    return intellijBase // Linux
+        .resolve("bin")
+        .resolve("idea64.vmoptions");
+  }
+
+  /**
+   * Extracts a key from a jvm option. Only options with clear override semantics are normalized. All other options are treated as atomic flags and returned
+   * unchanged by design.
+   *
+   * @param arg a jvm option (e.g. "-Xmx2048m").
+   * @return a jvm option key.
+   */
+  private String extractJvmOptionsKey(String arg) {
+
+    if (arg.startsWith("-Xmx")) {
+      return "-Xmx";
+    }
+    if (arg.startsWith("-Xms")) {
+      return "-Xms";
+    }
+    if (arg.startsWith("-XX:") || arg.startsWith("-D")) {
+      int eq = arg.indexOf('=');
+      return eq > 0 ? arg.substring(0, eq) : arg;
+    }
+
+    return arg;
+  }
+
+  /**
+   * Compares two jvm options by using {@link #extractJvmOptionsKey(String)}}.
+   */
+  private boolean sameJvmKey(String a, String b) {
+
+    return extractJvmOptionsKey(a).equals(extractJvmOptionsKey(b));
+  }
+
+  private String mergeVmArgs(String[] defaults, String[] userArgs) {
+
+    List<String> result = new ArrayList<>(defaults.length + userArgs.length);
+    Collections.addAll(result, defaults);
+    for (String userArg : userArgs) {
+      boolean replaced = false;
+      for (int i = 0; i < result.size(); i++) {
+        if (sameJvmKey(result.get(i), userArg)) {
+          result.set(i, userArg); //override default arg with user defined arg
+          replaced = true;
+          break;
+        }
+      }
+      if (!replaced) { // in case of arg does not exist in default options
+        result.add(userArg);
+      }
+    }
+
+    return String.join(System.lineSeparator(), result);
+  }
 }
