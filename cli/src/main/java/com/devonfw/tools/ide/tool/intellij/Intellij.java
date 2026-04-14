@@ -145,10 +145,10 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     }
     String[] userVmArgs = userVmArgsContent.trim().split("\\s+");
 
-    Path defaultVmOptionsPath = resolveDefaultVmOptionsPath(this.context.getSoftwarePath());
+    Path defaultVmOptionsPath = resolveDefaultVmOptionsPath(this.getToolPath());
     String defaultVmArgsContent = this.context.getFileAccess().readFileContent(defaultVmOptionsPath);
     if (defaultVmArgsContent == null || defaultVmArgsContent.isEmpty()) {
-      LOG.debug("Default intellij jvm options not found");
+      LOG.debug("Default intellij jvm options not found at: {}", defaultVmOptionsPath);
       return super.runTool(pc, processMode, args);
     }
     String[] defaultVmArgs = defaultVmArgsContent.trim().split("\\s+");
@@ -162,21 +162,19 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
 
   private Path resolveDefaultVmOptionsPath(Path softwarePath) {
 
-    Path intellijBase = softwarePath.resolve("intellij");
     if (this.context.getSystemInfo().isWindows()) {
-      return intellijBase
+      return softwarePath
           .resolve("bin")
           .resolve("idea64.exe.vmoptions");
     }
-    if (this.context.getSystemInfo().isMac()) {
-      return intellijBase
-          .resolve("IntelliJ IDEA.app")
-          .resolve("Contents")
-          .resolve("bin")
-          .resolve("idea.vmoptions");
-    }
+//    if (this.context.getSystemInfo().isMac()) {
+//      return softwarePath
+//          .resolve("..")
+//          .resolve("bin")
+//          .resolve("idea.vmoptions");
+//    } TODO: Mac sym links are not linked "too deep"
 
-    return intellijBase // Linux
+    return softwarePath // Linux
         .resolve("bin")
         .resolve("idea64.vmoptions");
   }
