@@ -21,6 +21,8 @@ import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.ide.gui.context.IdeGuiStateManager;
+
 /**
  * Basic UI Test
  */

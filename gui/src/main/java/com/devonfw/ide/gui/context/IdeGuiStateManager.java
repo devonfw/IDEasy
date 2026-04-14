@@ -1,4 +1,4 @@
-package com.devonfw.ide.gui;
+package com.devonfw.ide.gui.context;
 
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
@@ -19,13 +19,22 @@ public class IdeGuiStateManager {
 
   private String projectDirectory;
 
+  private ProjectManager projectManager;
+
   /**
    * Project context based on which project the user works in.
    */
   private IdeGuiContext currentContext;
 
   private IdeGuiStateManager() {
+
     this.projectDirectory = System.getenv("IDE_ROOT");
+
+    if (this.projectDirectory == null) {
+      throw new IllegalStateException("IDE_ROOT environment variable is not set!");
+    }
+
+    this.projectManager = new ProjectManager(Path.of(projectDirectory));
   }
 
   /**
@@ -68,7 +77,7 @@ public class IdeGuiStateManager {
    * @return the new {@link IdeGuiContext} for the selected project and workspace.
    * @throws FileNotFoundException id either the specified project folder or workspace does not exist.
    */
-  protected IdeGuiContext switchContext(Path rootDirectory, String projectName, String workspaceName) throws FileNotFoundException {
+  public IdeGuiContext switchContext(Path rootDirectory, String projectName, String workspaceName) throws FileNotFoundException {
     this.projectDirectory = rootDirectory.toString();
     return switchContext(projectName, workspaceName);
   }
@@ -79,6 +88,10 @@ public class IdeGuiStateManager {
   public IdeGuiContext getCurrentContext() {
 
     return this.currentContext;
+  }
+
+  public ProjectManager getProjectManager() {
+    return projectManager;
   }
 
   /**
