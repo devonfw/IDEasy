@@ -3,6 +3,17 @@ toc::[]
 
 = Setup
 
+=== Quick Install
+
+The fastest way to install IDEasy is the following one-line command for bash (use git-bash on Windows):
+
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/devonfw/IDEasy/main/install.sh)"
+```
+
+This will auto-detect your OS and architecture, download the latest release, and run setup.
+If you prefer a manual installation feel free to read-one.
+
 == Prerequisites
 
 We try to make it as simple as possible for you.
