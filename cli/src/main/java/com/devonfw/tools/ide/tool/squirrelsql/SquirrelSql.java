@@ -23,7 +23,7 @@ public class SquirrelSql extends LocalToolCommandlet {
    */
   public SquirrelSql(IdeContext context) {
 
-    super(context, SQUIRREL_SQL, Set.of(Tag.DB));
+    super(context, SQUIRREL_SQL, Set.of(Tag.DB, Tag.ADMIN));
   }
 
   @Override
