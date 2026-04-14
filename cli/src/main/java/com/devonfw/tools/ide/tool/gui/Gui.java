@@ -17,8 +17,6 @@ import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
-import com.devonfw.tools.ide.version.BoundaryType;
-import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
 
 /**
@@ -48,20 +46,17 @@ public class Gui extends Commandlet {
 
     ProcessContext processContext = new ProcessContextImpl(this.context);
 
-    ToolInstallRequest toolInstallRequest = new ToolInstallRequest(true);
+    ToolInstallRequest toolInstallRequest = new ToolInstallRequest(false);
     toolInstallRequest.setProcessContext(processContext);
     toolInstallRequest.setRequested(
         new ToolEditionAndVersion(
-            new ToolEdition("java", "25"),
-            VersionRange.of(VersionIdentifier.of("25"), VersionIdentifier.of(""), BoundaryType.RIGHT_OPEN)
+            new ToolEdition("java", "java"),
+            VersionRange.of("[25,)")
         )
     );
 
     Java java = this.context.getCommandletManager().getCommandlet(Java.class);
-    java.installAsDependency(
-        (VersionRange) toolInstallRequest.getRequested().getVersion(),
-        toolInstallRequest
-    );
+    java.install(toolInstallRequest);
 
     LOG.debug("Starting GUI via commandlet");
 
