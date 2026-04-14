@@ -1033,6 +1033,9 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       }
       IdeLogLevel.INTERACTION.log(LOG, "Option {}: {}", numericKey, title);
     }
+    if (options.length == 1) {
+      mapping.put("", options[0]);
+    }
     O option = null;
     if (isBatchMode()) {
       if (isForceMode()) {
