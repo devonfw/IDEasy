@@ -31,7 +31,7 @@ public class IdeGuiStateManager {
     this.projectDirectory = System.getenv("IDE_ROOT");
 
     if (this.projectDirectory == null) {
-      throw new IllegalStateException("IDE_ROOT environment variable is not set!");
+      LOG.warn("IDE_ROOT environment variable is not set! Any dependent operation will fail before switchContext is called");
     }
 
     this.projectManager = new ProjectManager(Path.of(projectDirectory));
@@ -78,7 +78,10 @@ public class IdeGuiStateManager {
    * @throws FileNotFoundException id either the specified project folder or workspace does not exist.
    */
   public IdeGuiContext switchContext(Path rootDirectory, String projectName, String workspaceName) throws FileNotFoundException {
+    
     this.projectDirectory = rootDirectory.toString();
+    this.projectManager = new ProjectManager(rootDirectory);
+
     return switchContext(projectName, workspaceName);
   }
 
