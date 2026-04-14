@@ -195,6 +195,33 @@ class IntellijTest extends AbstractIdeContextTest {
         """);
   }
 
+  /**
+   * Tests if the custom jvm options of the ide variable INTELLI_VM_ARGS have been set.
+   */
+  @ParameterizedTest
+  @ValueSource(strings = { "windows", "linux" })
+  void testIntellijRunWithCustomJvmOptions(String os) {
+    // arrange
+    SystemInfo systemInfo = SystemInfoMock.of(os);
+    IdeTestContext context = newContext(PROJECT_INTELLIJ);
+    context.setSystemInfo(systemInfo);
+    Intellij intellij = context.getCommandletManager().getCommandlet(Intellij.class);
+
+    // act
+    intellij.run();
+
+    // assert
+    assertThat(context.getWorkspacePath().resolve(".idea.vmoptions"))
+        .exists()
+        .hasContent("""
+            -Xms256m
+            -Xmx4096m
+            -XX:ReservedCodeCacheSize=512m
+            -ea
+            -Dsun.io.useCanonCaches=false
+            """);
+  }
+
 
   private void checkInstallation(IdeTestContext context) {
 
