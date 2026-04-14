@@ -98,7 +98,7 @@ public final class MacOsHelper {
           }
         }
       } catch (Exception e) {
-        LOG.warn("Codesign not available for {}: {}", appDir, e.getMessage());
+        LOG.warn("Codesign not available for {}: {}", appDir, e.getMessage(), e);
       }
     }
   }
