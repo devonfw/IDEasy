@@ -117,13 +117,16 @@ public interface IdeVariables {
   /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getProjectName() DEVON_IDE_CUSTOM_TOOLS}. */
   VariableDefinitionString DEVON_IDE_CUSTOM_TOOLS = new VariableDefinitionString("DEVON_IDE_CUSTOM_TOOLS");
 
+  /** {@link VariableDefinition} for support of overriding the default intellij jvm options. */
+  VariableDefinitionString INTELLIJ_VM_ARGS = new VariableDefinitionString("INTELLIJ_VM_ARGS", null);
+
   /** A {@link Collection} with all pre-defined {@link VariableDefinition}s. */
   Collection<VariableDefinition<?>> VARIABLES = List.of(PATH, HOME, WORKSPACE_PATH, IDE_HOME, IDE_ROOT, WORKSPACE, IDE_TOOLS, HTTP_VERSIONS,
       CREATE_START_SCRIPTS,
       IDE_MIN_VERSION, MVN_VERSION, M2_REPO, DOCKER_EDITION, MVN_BUILD_OPTS, NPM_BUILD_OPTS, NPM_CONFIG_USERCONFIG, GRADLE_BUILD_OPTS,
       GRADLE_USER_HOME,
       YARN_BUILD_OPTS, JASYPT_OPTS,
-      MAVEN_ARGS,
+      MAVEN_ARGS, INTELLIJ_VM_ARGS,
       PROJECT_NAME, IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED, PREFERRED_GIT_PROTOCOL);
 
   /**

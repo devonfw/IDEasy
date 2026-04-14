@@ -8,7 +8,7 @@ These environment variables are described by the following table.
 Those variables printed *bold* are automatically exported in your shell (except for windows CMD that does not have such concept).
 Variables with the value `-` are not set by default but may be set via link:configuration.adoc[configuration] to override defaults.
 Please note that we are trying to minimize any potential side-effect from `IDEasy` to the outside world by reducing the number of variables and only exporting those that are required.
-See also link:https://github.com/devonfw/IDEasy/blob/main/cli/src/main/java/com/devonfw/tools/ide/variable/IdeVariables.java[IdeVariables.java] that defines all the available variables. 
+See also link:https://github.com/devonfw/IDEasy/blob/main/cli/src/main/java/com/devonfw/tools/ide/variable/IdeVariables.java[IdeVariables.java] that defines all the available variables.
 
 .Variables of IDEasy
 [options="header"]
@@ -41,4 +41,5 @@ See also link:https://github.com/devonfw/IDEasy/blob/main/cli/src/main/java/com/
 |`JASYPT_OPTS`|`algorithm=PBEWITHHMACSHA512ANDAES_256 ivGeneratorClassName=org.jasypt.iv.RandomIvGenerator`|Options of jasypt.
 |`IDE_XML_MERGE_LEGACY_SUPPORT_ENABLED`|e.g. `false`|Support of legacy xml templates without XML merge namespace.
 |`IDE_WRITE_LOGFILE`|`true`|Automatically write logfiles to `$IDE_ROOT/_ide/logs/YYYY/MM/dd/«project»-ide-«command»-HH-mm-ss.log`. If you are not inside an IDEasy project or your command is not related to a project then `«project»` will be `_ide`. The logfile structure is designed in a way that allows you to quickly find and cleanup based on date but also based on details like the project and sub-command.
+|`INTELLIJ_VM_ARGS`|e.g. `-Xms128m -Xmx2048m`|Support of the configuration of IntelliJ JVM options. The specified JVM options extend or overwrite the default JVM options.
 |=======================
