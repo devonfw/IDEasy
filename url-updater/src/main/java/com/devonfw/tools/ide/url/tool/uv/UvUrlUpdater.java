@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.url.tool.uv;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
+import com.devonfw.tools.ide.url.updater.AbstractUrlUpdater;
 import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -40,7 +41,6 @@ public class UvUrlUpdater extends GithubUrlTagUpdater {
   @Override
   protected void addVersion(UrlVersion urlVersion) {
 
-    VersionIdentifier vid = urlVersion.getVersionIdentifier();
     String baseUrl = getDownloadBaseUrl() + "/" + getGithubOrganization() + "/" + getGithubRepository() + "/releases/download/${version}/uv-";
 
     doAddVersion(urlVersion, baseUrl + "x86_64-pc-windows-msvc.zip", WINDOWS, X64);
@@ -59,6 +59,14 @@ public class UvUrlUpdater extends GithubUrlTagUpdater {
   @Override
   public String getCpeProduct() {
     return "uv";
+  }
+
+  @Override
+  protected void initCpe(AbstractUrlUpdater.CpeRegistry cpe) {
+
+    cpe.addVendor("astral")
+        .addVendorInfix("astral-sh")
+        .addProduct("uv");
   }
 
 }

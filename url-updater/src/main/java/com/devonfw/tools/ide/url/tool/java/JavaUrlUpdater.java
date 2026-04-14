@@ -108,4 +108,11 @@ public class JavaUrlUpdater extends JsonUrlUpdater<JavaJsonObject, JavaJsonVersi
 
     return "jdk";
   }
+
+  @Override
+  protected void initCpe(CpeRegistry cpe) {
+    cpe.addVendor("oracle")
+        .addProduct("jdk")
+        .addProduct("java_se");
+  }
 }

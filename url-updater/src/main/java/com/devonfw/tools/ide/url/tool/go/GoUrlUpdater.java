@@ -76,5 +76,7 @@ public class GoUrlUpdater extends GithubUrlTagUpdater {
   public String getCpeProduct() {
     return "go";
   }
+
+
 }
 
