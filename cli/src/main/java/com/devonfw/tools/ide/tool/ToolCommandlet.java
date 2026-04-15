@@ -421,7 +421,6 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   protected ToolEdition adjustRequestedEdition(ToolEditionAndVersion request, ToolEdition edition) {
 
     // default no-op
-    System.out.println("Dummy Function called");
     return edition;
   }
 
