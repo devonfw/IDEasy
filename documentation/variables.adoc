@@ -41,5 +41,7 @@ See also link:https://github.com/devonfw/IDEasy/blob/main/cli/src/main/java/com/
 |`JASYPT_OPTS`|`algorithm=PBEWITHHMACSHA512ANDAES_256 ivGeneratorClassName=org.jasypt.iv.RandomIvGenerator`|Options of jasypt.
 |`IDE_XML_MERGE_LEGACY_SUPPORT_ENABLED`|e.g. `false`|Support of legacy xml templates without XML merge namespace.
 |`IDE_WRITE_LOGFILE`|`true`|Automatically write logfiles to `$IDE_ROOT/_ide/logs/YYYY/MM/dd/«project»-ide-«command»-HH-mm-ss.log`. If you are not inside an IDEasy project or your command is not related to a project then `«project»` will be `_ide`. The logfile structure is designed in a way that allows you to quickly find and cleanup based on date but also based on details like the project and sub-command.
-|`INTELLIJ_VM_ARGS`|e.g. `-Xms128m -Xmx2048m`|Support of the configuration of IntelliJ JVM options. The specified JVM options extend or overwrite the default JVM options.
+|`INTELLIJ_VM_ARGS`|e.g. `-Xms128m -Xmx2048m`|Support for extension or overwrite of default IntelliJ JVM options.
+|`PYCHARM_VM_ARGS`|e.g. `-Xms128m -Xmx2048m`|Support for extension or overwrite of default Pycharm JVM options.
+|`ANDROID_STUDIO_VM_ARGS`|e.g. `-Xms128m -Xmx2048m`|Support for extension or overwrite of default Android Studio JVM options.
 |=======================
