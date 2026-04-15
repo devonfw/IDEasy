@@ -215,9 +215,9 @@ class IntellijTest extends AbstractIdeContextTest {
         .hasContent("""
             -Xms256m
             -Xmx4096m
-            -XX:ReservedCodeCacheSize=512m
+            -XX:ReservedCodeCacheSize=256m
             -ea
-            -Dsun.io.useCanonCaches=false
+            -Dsun.io.useCanonCaches=true
             """);
   }
 
