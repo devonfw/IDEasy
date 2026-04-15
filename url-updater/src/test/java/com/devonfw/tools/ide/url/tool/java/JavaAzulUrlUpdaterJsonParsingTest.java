@@ -66,6 +66,21 @@ class JavaAzulUrlUpdaterJsonParsingTest {
   }
 
   @Test
+  void shouldOmitTrailingZeroSegmentsFromVersion() throws Exception {
+
+    // given
+    String response = "[{\"java_version\":[26,0,0],\"openjdk_build_number\":35}]";
+    TestableJavaAzulUrlUpdater updater = new TestableJavaAzulUrlUpdater();
+
+    // when
+    JavaAzulJsonObject jsonObject = updater.parse(response);
+
+    // then
+    assertThat(jsonObject.versions()).hasSize(1);
+    assertThat(jsonObject.versions().getFirst().version()).isEqualTo("26_35");
+  }
+
+  @Test
   void shouldNotThrowForJsonItemAddVersionPath(@TempDir Path tempDir) throws Exception {
 
     // given

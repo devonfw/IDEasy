@@ -33,8 +33,12 @@ public class JavaAzulJsonVersion implements JsonVersionItem {
     if (this.javaVersion == null || this.javaVersion.isEmpty()) {
       return null;
     }
+    int end = this.javaVersion.size();
+    while ((end > 1) && Integer.valueOf(0).equals(this.javaVersion.get(end - 1))) {
+      end--;
+    }
     StringBuilder version = new StringBuilder();
-    for (int i = 0; i < this.javaVersion.size(); i++) {
+    for (int i = 0; i < end; i++) {
       if (i > 0) {
         version.append('.');
       }
