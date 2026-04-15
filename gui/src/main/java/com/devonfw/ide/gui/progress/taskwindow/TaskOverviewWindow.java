@@ -2,6 +2,8 @@ package com.devonfw.ide.gui.progress.taskwindow;
 
 import java.io.IOException;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Point2D;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -20,13 +22,17 @@ public class TaskOverviewWindow {
   private static TaskOverviewWindow INSTANCE;
 
   /**
-   * @param xPos if the window is not open yet, it will be created at the given x position.
-   * @param yPos if the window is not open yet, it will be created at the given y position.
+   * @param referenceNode reference node to determine the position of the TaskOverviewWindow.
    * @return instance of the TaskOverviewWindow.
    */
-  public static TaskOverviewWindow getInstance(Double xPos, Double yPos) {
+  public static TaskOverviewWindow getInstance(Node referenceNode) {
     if (INSTANCE == null) {
-      INSTANCE = new TaskOverviewWindow(xPos, yPos);
+      Point2D point = referenceNode.localToScreen(0, 0);
+
+      double nodeRightEdge = point.getX() + referenceNode.getBoundsInLocal().getWidth();
+      double nodeTopEdge = point.getY() - referenceNode.getBoundsInLocal().getHeight();
+
+      INSTANCE = new TaskOverviewWindow(nodeRightEdge, nodeTopEdge);
       return INSTANCE;
     }
     return INSTANCE;
@@ -50,8 +56,11 @@ public class TaskOverviewWindow {
     stage.setTitle("Running tasks");
     stage.setScene(new Scene(root));
     stage.initStyle(StageStyle.UTILITY);
-    stage.setX(x);
-    stage.setY(y);
+
+    stage.setOnShown(event -> {
+      stage.setX(x - stage.getScene().getWidth());
+      stage.setY(y - stage.getScene().getHeight());
+    });
   }
 
   /**

@@ -14,11 +14,11 @@ public class GuiProgressBarHandling extends AbstractIdeProgressBar {
   private static final Logger LOG = Logger.getLogger(GuiProgressBarHandling.class.getName());
 
   private boolean isIndeterminate = false;
-  private long taskId = 0;
+  private String taskId = "";
 
   private final DoubleProperty progressProperty = new SimpleDoubleProperty(getCurrentProgress());
 
-  public GuiProgressBarHandling(long taskId, String title, long maxSize, String unitName, long unitSize) {
+  public GuiProgressBarHandling(String taskId, String title, long maxSize, String unitName, long unitSize) {
 
     super(title, maxSize, unitName, unitSize);
     this.taskId = taskId;
@@ -80,7 +80,7 @@ public class GuiProgressBarHandling extends AbstractIdeProgressBar {
     isIndeterminate = indeterminate;
   }
 
-  public long getTaskId() {
+  public String getTaskId() {
     return taskId;
   }
 

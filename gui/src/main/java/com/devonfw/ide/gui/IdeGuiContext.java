@@ -1,6 +1,7 @@
 package com.devonfw.ide.gui;
 
 import java.nio.file.Path;
+import java.util.UUID;
 
 import com.devonfw.ide.gui.progress.GuiProgressBarHandling;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
@@ -32,6 +33,6 @@ public class IdeGuiContext extends AbstractIdeContext {
   @Override
   public IdeProgressBar newProgressBar(String title, long size, String unitName, long unitSize) {
 
-    return new GuiProgressBarHandling(System.currentTimeMillis(), title, size, unitName, unitSize);
+    return new GuiProgressBarHandling(UUID.randomUUID().toString(), title, size, unitName, unitSize);
   }
 }

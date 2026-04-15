@@ -204,7 +204,21 @@ public class MainController implements ProgressListener {
   public void addTaskTest() {
 
     LOG.error("Adding task");
-    new GuiProgressBarHandling(System.currentTimeMillis(), "Test", 100, "Eggs", 10);
+    IdeGuiStateManager.getInstance()
+        .getCurrentContext()
+        .newProgressbarForExtracting(1024);
+
+    IdeGuiStateManager.getInstance()
+        .getCurrentContext()
+        .newProgressbarForCopying(1024);
+
+    IdeGuiStateManager.getInstance()
+        .getCurrentContext()
+        .newProgressBarForDownload(1024);
+
+    IdeGuiStateManager.getInstance()
+        .getCurrentContext()
+        .newProgressBarForPlugins(3);
   }
 
   //TODO: remove after testing
@@ -239,7 +253,7 @@ public class MainController implements ProgressListener {
 
   private void updateStatusLabel(List<GuiProgressBarHandling> taskList) {
 
-    statusLabel.setOnMouseClicked(e -> TaskOverviewWindow.getInstance(e.getSceneX(), e.getSceneY()).show());
+    statusLabel.setOnMouseClicked(e -> TaskOverviewWindow.getInstance(statusLabel).show());
 
     if (taskList.size() > 1) {
       statusProgressBar.setVisible(false);

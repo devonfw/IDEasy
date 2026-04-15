@@ -1,7 +1,6 @@
 package com.devonfw.ide.gui.progress.taskwindow;
 
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -20,7 +19,6 @@ public class TaskWindowCellFactory implements Callback<ListView<GuiProgressBarHa
     return new ListCell<>() {
 
       final ProgressBar progressBar = new ProgressBar();
-      final Button cancelButton = new Button("x");
 
       @Override
       public void updateItem(GuiProgressBarHandling progressTask, boolean empty) {
@@ -34,19 +32,16 @@ public class TaskWindowCellFactory implements Callback<ListView<GuiProgressBarHa
           setGraphic(null);
         } else {
 
-          Label titleLabel = new Label(progressTask.getTitle());
+          Label titleLabel = new Label(String.format("%s [%d/%d %s]", progressTask.getTitle(), progressTask.getCurrentProgress(), progressTask.getMaxSize(),
+              progressTask.getUnitName()));
 
           progressBar.setMaxWidth(Double.MAX_VALUE);
           progressBar.progressProperty().bind(progressTask.progressProperty());
 
-          cancelButton.setOnAction(event -> {
-            progressTask.close(); // oder deine passende Cancel-Methode
-          });
-
           VBox contentBox = new VBox(5, titleLabel, progressBar);
           HBox.setHgrow(contentBox, Priority.ALWAYS);
 
-          HBox root = new HBox(10, contentBox, cancelButton);
+          HBox root = new HBox(10, contentBox);
           root.setAlignment(Pos.CENTER_LEFT);
 
           setGraphic(root);

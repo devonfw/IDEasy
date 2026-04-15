@@ -33,9 +33,14 @@ public class TaskManager {
    */
   public void addTask(GuiProgressBarHandling task) {
 
-    tasks.stream().filter(t -> t.getTaskId() == task.getTaskId()).findFirst().ifPresent(existingTask -> {
-      throw new IllegalArgumentException("Task with ID " + task.getTaskId() + " already exists.");
-    });
+    tasks.stream()
+        .filter(t ->
+            t.getTaskId() == task.getTaskId()
+        )
+        .findFirst()
+        .ifPresent(existingTask -> {
+          throw new IllegalArgumentException("Task with ID " + task.getTaskId() + " already exists.");
+        });
     tasks.add(task);
     Platform.runLater(() ->
         listeners.forEach(listener -> listener.onProgressTaskAdded(tasks))
@@ -45,7 +50,7 @@ public class TaskManager {
   /**
    * @param taskId the ID of the task to be removed from the list of tasks.
    */
-  public void removeTask(long taskId) {
+  public void removeTask(String taskId) {
 
     tasks.stream().filter(task -> task.getTaskId() == taskId).findFirst().ifPresent(tasks::remove);
     Platform.runLater(() ->
