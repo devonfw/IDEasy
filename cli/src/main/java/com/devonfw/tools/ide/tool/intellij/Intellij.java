@@ -167,12 +167,12 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
           .resolve("bin")
           .resolve("idea64.exe.vmoptions");
     }
-//    if (this.context.getSystemInfo().isMac()) {
-//      return softwarePath
-//          .resolve("..")
-//          .resolve("bin")
-//          .resolve("idea.vmoptions");
-//    } TODO: Mac sym links are not linked "too deep"
+    //if (this.context.getSystemInfo().isMac()) {
+    //  return softwarePath
+    //      .resolve("..")
+    //      .resolve("bin")
+    //      .resolve("idea.vmoptions");
+    //} TODO: Mac sym links are linked "too deep"
 
     return softwarePath // Linux
         .resolve("bin")
