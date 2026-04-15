@@ -115,10 +115,14 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
     }
 
     if (this.context.getSystemInfo().isMac()) {
-      return softwarePath.toAbsolutePath()
-          .getParent()
-          .resolve("bin")
-          .resolve(ideProductPrefix + ".vmoptions");
+      try {
+        return softwarePath.toRealPath()
+            .getParent()
+            .resolve("bin")
+            .resolve(ideProductPrefix + ".vmoptions");
+      } catch (Exception e) {
+        LOG.error("Failed to resolve real path for software path: {}", softwarePath, e);
+      }
     }
 
     return softwarePath // Linux
