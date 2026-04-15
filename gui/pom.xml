@@ -56,7 +56,6 @@
     <dependency>
       <groupId>org.testfx</groupId>
       <artifactId>openjfx-monocle</artifactId>
-      <version>21.0.2</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
