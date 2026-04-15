@@ -1,7 +1,10 @@
 package com.devonfw.tools.ide.tool.ide;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -57,9 +60,113 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
     }
   }
 
+  /**
+   * Returns the IDE product prefix used in various files inside the {@code bin} directory, e.g. {@code "idea"} for {@code idea64.exe} or {@code "studio"} for
+   * {@code studio64.vmoptions}.
+   * <p>
+   * By default, this method returns the tool name ({@link #getName()}). Subclasses may override this method if the IDE binary or vmoptions file uses a more
+   * specific or different prefix.
+   *
+   * @return the IDE product prefix
+   */
+  protected String getIdeProductPrefix() {
+
+    return getName();
+  }
+
   @Override
-  public ProcessResult runTool(List<String> args) {
+  public ProcessResult runTool(ProcessContext pc, ProcessMode processMode, List<String> args) {
     args.add(this.context.getWorkspacePath().toString());
-    return super.runTool(args);
+
+    String variableName = getName().toUpperCase(Locale.ROOT).replace("-", "_") + "_VM_ARGS";
+    String userVmArgsContent = this.context.getVariables().get(variableName);
+    if (userVmArgsContent == null || userVmArgsContent.isEmpty()) {
+      return super.runTool(pc, processMode, args);
+    }
+    String[] userVmArgs = userVmArgsContent.trim().split("\\s+");
+
+    String prefix = getIdeProductPrefix();
+    Path defaultVmOptionsPath = resolveDefaultVmOptionsPath(this.getToolPath(), prefix);
+    String defaultVmArgsContent = this.context.getFileAccess().readFileContent(defaultVmOptionsPath);
+    if (defaultVmArgsContent == null || defaultVmArgsContent.isEmpty()) {
+      LOG.debug("Default {} jvm options not found at: {}", getName(), defaultVmOptionsPath);
+      return super.runTool(pc, processMode, args);
+    }
+    String[] defaultVmArgs = defaultVmArgsContent.trim().split("\\s+");
+
+    String userOptionsFileName = "." + prefix + ".vmoptions";
+    Path confPath = this.context.getWorkspacePath().resolve(userOptionsFileName);
+    this.context.getFileAccess().writeFileContent(mergeVmArgs(defaultVmArgs, userVmArgs), confPath, true);
+
+    pc.withEnvVar(prefix.toUpperCase() + "_VM_OPTIONS", confPath.toAbsolutePath().toString());
+    return super.runTool(pc, processMode, args);
+  }
+
+  private Path resolveDefaultVmOptionsPath(Path softwarePath, String ideProductPrefix) {
+    if (ideProductPrefix == null) {
+      LOG.debug("Binary prefix for tool {} is not set", getName());
+      return null;
+    }
+
+    if (this.context.getSystemInfo().isWindows()) {
+      return softwarePath
+          .resolve("bin")
+          .resolve(ideProductPrefix + "64.exe.vmoptions");
+    }
+
+    if (this.context.getSystemInfo().isMac()) {
+      return softwarePath.toAbsolutePath()
+          .getParent()
+          .resolve("bin")
+          .resolve(ideProductPrefix + ".vmoptions");
+    }
+
+    return softwarePath // Linux
+        .resolve("bin")
+        .resolve(ideProductPrefix + "64.vmoptions");
+  }
+
+  private String mergeVmArgs(String[] defaults, String[] userArgs) {
+
+    List<String> result = new ArrayList<>(defaults.length + userArgs.length);
+    Collections.addAll(result, defaults);
+    for (String userArg : userArgs) {
+      boolean replaced = false;
+      for (int i = 0; i < result.size(); i++) {
+        if (sameJvmKey(result.get(i), userArg)) {
+          result.set(i, userArg); //override default arg with user defined arg
+          replaced = true;
+          break;
+        }
+      }
+      if (!replaced) { // in case of arg does not exist in default options
+        result.add(userArg);
+      }
+    }
+
+    return String.join(System.lineSeparator(), result);
+  }
+
+  private String extractJvmOptionsKey(String arg) {
+
+    // Only options with clear override semantics are merged.
+    // All other JVM arguments are treated as atomic flags by design.
+    if (arg.startsWith("-Xmx")) {
+      return "-Xmx";
+    }
+    if (arg.startsWith("-Xms")) {
+      return "-Xms";
+    }
+    if (arg.startsWith("-XX:") || arg.startsWith("-D")) {
+      int eq = arg.indexOf('=');
+      return eq > 0 ? arg.substring(0, eq) : arg;
+    }
+
+    return arg;
+  }
+
+  private boolean sameJvmKey(String a, String b) {
+
+    return extractJvmOptionsKey(a).equals(extractJvmOptionsKey(b));
   }
 }
