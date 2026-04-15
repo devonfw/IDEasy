@@ -12,6 +12,9 @@ import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.devonfw.tools.ide.tool.ToolEdition;
+import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
@@ -162,6 +165,9 @@ class IntellijTest extends AbstractIdeContextTest {
   void testIntellijMvnAndGradleRepositoryImport() {
     // arrange
     IdeTestContext context = newContext("intellij");
+    //Intellij intellij = context.getCommandletManager().getCommandlet(Intellij.class);
+    //intellij.install();
+
     RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
 
     // act
@@ -193,6 +199,59 @@ class IntellijTest extends AbstractIdeContextTest {
           </component>
         </project>
         """);
+  }
+
+  @Test
+  void testAdjustRequestedEditionSwitchesForUltimateWithoutConfiguredVersion() {
+
+    // arrange
+    IdeTestContext context = newContext("intellij");
+    Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
+    commandlet.setEdition("ultimate");
+    commandlet.setVersion("*");
+    ToolEdition original = new ToolEdition("intellij", "ultimate");
+
+    // act
+    ToolEdition adjusted = commandlet.adjustRequestedEdition(null, original);
+
+    // assert
+    assertThat(adjusted.edition()).isEqualTo("intellij");
+  }
+
+  @Test
+  void testAdjustRequestedEditionSwitchesForUltimateWithVersionAboveCutoff() {
+
+    // arrange
+    IdeTestContext context = newContext("intellij");
+    Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
+    ToolEdition requestedEdition = new ToolEdition("intellij", "ultimate");
+    ToolEditionAndVersion requested = new ToolEditionAndVersion(requestedEdition);
+    requested.setVersion(VersionIdentifier.of("2025.3"));
+    requested.setResolvedVersion(VersionIdentifier.of("2025.3"));
+
+    // act
+    ToolEdition adjusted = commandlet.adjustRequestedEdition(requested, requestedEdition);
+
+    // assert
+    assertThat(adjusted.edition()).isEqualTo("intellij");
+  }
+
+  @Test
+  void testAdjustRequestedEditionDoesNotSwitchForUltimateAtCutoffVersion() {
+
+    // arrange
+    IdeTestContext context = newContext("intellij");
+    Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
+    ToolEdition requestedEdition = new ToolEdition("intellij", "ultimate");
+    ToolEditionAndVersion requested = new ToolEditionAndVersion(requestedEdition);
+    requested.setVersion(VersionIdentifier.of("2025.2.6.1"));
+    requested.setResolvedVersion(VersionIdentifier.of("2025.2.6.1"));
+
+    // act
+    ToolEdition adjusted = commandlet.adjustRequestedEdition(requested, requestedEdition);
+
+    // assert
+    assertThat(adjusted.edition()).isEqualTo("ultimate");
   }
 
 
