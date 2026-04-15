@@ -365,7 +365,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
     ToolEdition edition;
     ToolEditionAndVersion requested = request.getRequested();
-        if (requested == null) {
+    if (requested == null) {
       edition = new ToolEdition(this.tool, getConfiguredEdition());
 
       // Adjust edition if necessary based on requested version. This is needed for tools like IntelliJ where we may need to automatically switch editions
