@@ -84,6 +84,32 @@ class AndroidStudioTest extends AbstractIdeContextTest {
         ANDROID_STUDIO + " " + this.context.getSystemInfo().getOs() + " " + this.context.getWorkspacePath());
   }
 
+  /**
+   * Tests if the custom jvm options of the ide variable ANDROID_STUDIO_VM_ARGS have been set.
+   */
+  @ParameterizedTest
+  @ValueSource(strings = { "windows", "mac", "linux" })
+  void testAndroidStudioRunWithCustomJvmOptions(String os) {
+    // arrange
+    SystemInfo systemInfo = SystemInfoMock.of(os);
+    context.setSystemInfo(systemInfo);
+    AndroidStudio androidStudio = context.getCommandletManager().getCommandlet(AndroidStudio.class);
+
+    // act
+    androidStudio.run();
+
+    // assert
+    assertThat(context.getWorkspacePath().resolve(".studio.vmoptions"))
+        .exists()
+        .hasContent("""
+            -Xms256m
+            -Xmx4096m
+            -XX:ReservedCodeCacheSize=512m
+            -ea
+            -Dsun.io.useCanonCaches=false
+            """);
+  }
+
   private void checkInstallation(IdeTestContext context) {
     // commandlet - android-studio
     assertThat(context.getSoftwarePath().resolve("android-studio/.ide.software.version")).exists().hasContent("2024.1.1.1");

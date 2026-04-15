@@ -199,11 +199,10 @@ class IntellijTest extends AbstractIdeContextTest {
    * Tests if the custom jvm options of the ide variable INTELLI_VM_ARGS have been set.
    */
   @ParameterizedTest
-  @ValueSource(strings = { "windows", "linux" })
+  @ValueSource(strings = { "windows", "mac", "linux" })
   void testIntellijRunWithCustomJvmOptions(String os) {
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of(os);
-    IdeTestContext context = newContext(PROJECT_INTELLIJ);
     context.setSystemInfo(systemInfo);
     Intellij intellij = context.getCommandletManager().getCommandlet(Intellij.class);
 
@@ -221,7 +220,6 @@ class IntellijTest extends AbstractIdeContextTest {
             -Dsun.io.useCanonCaches=false
             """);
   }
-
 
   private void checkInstallation(IdeTestContext context) {
 
