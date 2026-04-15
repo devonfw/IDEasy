@@ -165,9 +165,6 @@ class IntellijTest extends AbstractIdeContextTest {
   void testIntellijMvnAndGradleRepositoryImport() {
     // arrange
     IdeTestContext context = newContext("intellij");
-    //Intellij intellij = context.getCommandletManager().getCommandlet(Intellij.class);
-    //intellij.install();
-
     RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
 
     // act
