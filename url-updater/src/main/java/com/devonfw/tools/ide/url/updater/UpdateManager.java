@@ -64,17 +64,14 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
 
   private final UrlFinalReport urlFinalReport;
 
-  private final List<AbstractUrlUpdater> updaters = List.of(
-      new AndroidStudioUrlUpdater(), new AwsUrlUpdater(), new AzureUrlUpdater(), new CorepackUrlUpdater(), new DockerDesktopUrlUpdater(),
-      new DotNetUrlUpdater(),
-      new EclipseCppUrlUpdater(), new EclipseJeeUrlUpdater(), new EclipseJavaUrlUpdater(), new GCloudUrlUpdater(),
-      new GcViewerUrlUpdater(), new GhUrlUpdater(), new GoUrlUpdater(), new GraalVmCommunityUpdater(), new GraalVmOracleUrlUpdater(),
-      new GradleUrlUpdater(), new HelmUrlUpdater(), new IntellijUrlUpdater(), new JasyptUrlUpdater(),
-      new JavaUrlUpdater(), new JavaAzulUrlUpdater(), new JenkinsUrlUpdater(), new JmcUrlUpdater(), new KotlincUrlUpdater(),
-      new KotlincNativeUrlUpdater(), new LazyDockerUrlUpdater(), new MvnUrlUpdater(),
+  private final List<AbstractUrlUpdater> updaters = List.of(new AndroidStudioUrlUpdater(), new AwsUrlUpdater(), new AzureUrlUpdater(), new CorepackUrlUpdater(),
+      new DockerDesktopUrlUpdater(), new DotNetUrlUpdater(), new EclipseCppUrlUpdater(), new EclipseJeeUrlUpdater(), new EclipseJavaUrlUpdater(),
+      new GCloudUrlUpdater(), new GcViewerUrlUpdater(), new GhUrlUpdater(), new GoUrlUpdater(), new GraalVmCommunityUpdater(), new GraalVmOracleUrlUpdater(),
+      new GradleUrlUpdater(), new HelmUrlUpdater(), new IntellijUrlUpdater(), new JasyptUrlUpdater(), new JavaUrlUpdater(), new JavaAzulUrlUpdater(),
+      new JenkinsUrlUpdater(), new JmcUrlUpdater(), new KotlincUrlUpdater(), new KotlincNativeUrlUpdater(), new LazyDockerUrlUpdater(), new MvnUrlUpdater(),
       new NgUrlUpdater(), new NodeUrlUpdater(), new NpmUrlUpdater(), new OcUrlUpdater(), new PgAdminUrlUpdater(), new PipUrlUpdater(), new PycharmUrlUpdater(),
-      new PythonUrlUpdater(), new QuarkusUrlUpdater(), new DockerRancherDesktopUrlUpdater(), new SonarUrlUpdater(),
-      new TerraformUrlUpdater(), new TomcatUrlUpdater(), new UvUrlUpdater(), new VsCodeUrlUpdater());
+      new PythonUrlUpdater(), new QuarkusUrlUpdater(), new DockerRancherDesktopUrlUpdater(), new SonarUrlUpdater(), new TerraformUrlUpdater(),
+      new TomcatUrlUpdater(), new UvUrlUpdater(), new VsCodeUrlUpdater());
 
   /**
    * The constructor.
@@ -113,30 +110,13 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
   /**
    * Update only a single tool. Mainly used in local development only to test updater only for a tool where changes have been made.
    *
-   * @param tool the name of the tool to update.
+   * @param tool the name of the tool to update or the name of a updater class.
    */
   public void update(String tool) {
 
     for (AbstractUrlUpdater updater : this.updaters) {
-      if (updater.getTool().equals(tool)) {
+      if (updater.getTool().equals(tool) || updater.getClass().getSimpleName().equals(tool)) {
         update(updater);
-      }
-    }
-  }
-
-  /**
-   * Update only a single edition of a tool. Mainly used in local development only to test updater only for a tool where changes have been made.
-   *
-   * @param tool the name of the tool to update.
-   * @param edition the name of the edition to update
-   */
-  public void update(String tool, String edition) {
-
-    for (AbstractUrlUpdater updater : this.updaters) {
-      if (updater.getTool().equals(tool)) {
-        if (updater.getClass().getSimpleName().contains(edition) || updater.getEdition().equals(edition)) {
-          update(updater);
-        }
       }
     }
   }

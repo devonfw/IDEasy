@@ -78,12 +78,12 @@ public class JavaAzulUrlUpdater extends JsonUrlUpdater<JavaAzulJsonObject, JavaA
         + "&java_package_type=jdk"
         + "&release_status=ga"
         + "&latest=true"
-        + "&os=linux"
+        + "&os=mac"
         + "&arch=x86"
         + "&archive_type=tar.gz"
         + "&javafx_bundled=false"
         + "&crac_supported=false"
-        + "&page_size=100";
+        + "&page_size=1000";
   }
 
   @Override
