@@ -120,13 +120,19 @@ public interface IdeVariables {
   /** {@link VariableDefinition} for support of overriding the default intellij jvm options. */
   VariableDefinitionString INTELLIJ_VM_ARGS = new VariableDefinitionString("INTELLIJ_VM_ARGS", null);
 
+  /** {@link VariableDefinition} for support of overriding the default android studio jvm options. */
+  VariableDefinitionString ANDROID_STUDIO_VM_ARGS = new VariableDefinitionString("ANDROID_STUDIO_VM_ARGS", null);
+
+  /** {@link VariableDefinition} for support of overriding the default pycharm jvm options. */
+  VariableDefinitionString PYCHARM_VM_ARGS = new VariableDefinitionString("PYCHARM_VM_ARGS", null);
+
   /** A {@link Collection} with all pre-defined {@link VariableDefinition}s. */
   Collection<VariableDefinition<?>> VARIABLES = List.of(PATH, HOME, WORKSPACE_PATH, IDE_HOME, IDE_ROOT, WORKSPACE, IDE_TOOLS, HTTP_VERSIONS,
       CREATE_START_SCRIPTS,
       IDE_MIN_VERSION, MVN_VERSION, M2_REPO, DOCKER_EDITION, MVN_BUILD_OPTS, NPM_BUILD_OPTS, NPM_CONFIG_USERCONFIG, GRADLE_BUILD_OPTS,
       GRADLE_USER_HOME,
       YARN_BUILD_OPTS, JASYPT_OPTS,
-      MAVEN_ARGS, INTELLIJ_VM_ARGS,
+      MAVEN_ARGS, INTELLIJ_VM_ARGS, ANDROID_STUDIO_VM_ARGS, PYCHARM_VM_ARGS,
       PROJECT_NAME, IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED, PREFERRED_GIT_PROTOCOL);
 
   /**
