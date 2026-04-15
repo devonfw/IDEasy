@@ -99,9 +99,10 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
         (!(requested != null && !"*".equals(requested.getVersion().toString())) && "*".equals(getConfiguredVersion().toString()))) { // No version specified (or no request) and no configured version
         
           // Switching to IntelliJ Standard edition
-          LOG.info("Notice: You have configured IDEasy to use the IntelliJ Ultimate Edition. Since version 2025.3, the Ultimate and Community editions of IntelliJ have been unified into a single edition. "
-               + "Since you are attempting to install a verson of IntelliJ that is 2025.3 or newer, we are automatically switching your edition to the unified edition to ensure compatibility. \n"
-               + "To specifically install the last true ultimate version of IntelliJ, please run. \"ide install intellij 2025.2.6.1\".\n");
+        LOG.warn("Notice: You have configured IDEasy to use the IntelliJ Ultimate Edition. Since version 2025.3, the Ultimate and Community editions of IntelliJ have been unified into a single edition.\n"
+               + "Since you are attempting to install a verson of IntelliJ that is 2025.3 or newer, we are automatically switching your edition to the unified edition to ensure compatibility.\n"
+               + "To specifically install the last true ultimate version of IntelliJ, please run \"ide install intellij 2025.2.6.1\".\n"
+               + "Otherwise, we recommend permanently switching to the unified edition by running \"ide set-edition intellij intellij\".");
           //LOG.info("Switching IntelliJ edition from ultimate to intellij for version {} since editions are unified.", getConfiguredVersion());
           return new ToolEdition(this.tool, "intellij"); 
         }
