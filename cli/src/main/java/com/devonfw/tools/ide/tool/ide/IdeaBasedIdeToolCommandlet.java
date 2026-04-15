@@ -143,7 +143,7 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
           break;
         }
       }
-      if (!replaced) { // in case of arg does not exist in default options
+      if (!replaced) { // Extend case: user configured arg does not exist in default options
         result.add(userArg);
       }
     }
@@ -153,17 +153,29 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
 
   private String extractJvmOptionsKey(String arg) {
 
-    // Only options with clear override semantics are merged.
-    // All other JVM arguments are treated as atomic flags by design.
     if (arg.startsWith("-Xmx")) {
       return "-Xmx";
     }
     if (arg.startsWith("-Xms")) {
       return "-Xms";
     }
-    if (arg.startsWith("-XX:") || arg.startsWith("-D")) {
+    if (arg.startsWith("-Xmn")) {
+      return "-Xmn";
+    }
+    if (arg.startsWith("-Xss")) {
+      return "-Xss";
+    }
+    if (arg.startsWith("-D")) {
       int eq = arg.indexOf('=');
       return eq > 0 ? arg.substring(0, eq) : arg;
+    }
+    if (arg.startsWith("-XX:")) {
+      String opt = arg.substring(4);
+      if (opt.startsWith("+") || opt.startsWith("-")) {
+        return "-XX:" + opt.substring(1);
+      }
+      int eq = opt.indexOf('=');
+      return eq > 0 ? "-XX:" + opt.substring(0, eq) : arg;
     }
 
     return arg;
