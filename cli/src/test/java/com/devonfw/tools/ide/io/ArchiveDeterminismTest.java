@@ -25,7 +25,7 @@ public class ArchiveDeterminismTest extends AbstractIdeContextTest {
    * @throws IOException if an I/O error occurs.
    */
   @Test
-  public void testTarGzDeterminism() throws IOException {
+  public void testTarGzDeterminism() throws IOException, InterruptedException {
 
     // arrange
     IdeTestContext context = new IdeTestContext();
@@ -45,11 +45,7 @@ public class ArchiveDeterminismTest extends AbstractIdeContextTest {
       fileAccess.compressTarGz(contentDir, out1);
     }
     // Wait a bit to ensure a non-deterministic MTIME would change (though we zero it out)
-    try {
-      Thread.sleep(1100);
-    } catch (InterruptedException e) {
-      // ignore
-    }
+    Thread.sleep(1100);
     try (OutputStream out2 = Files.newOutputStream(archive2)) {
       fileAccess.compressTarGz(contentDir, out2);
     }
@@ -64,7 +60,7 @@ public class ArchiveDeterminismTest extends AbstractIdeContextTest {
    * @throws IOException if an I/O error occurs.
    */
   @Test
-  public void testZipDeterminism() throws IOException {
+  public void testZipDeterminism() throws IOException, InterruptedException {
 
     // arrange
     IdeTestContext context = new IdeTestContext();
@@ -81,11 +77,7 @@ public class ArchiveDeterminismTest extends AbstractIdeContextTest {
       fileAccess.compressZip(contentDir, out1);
     }
     // Wait a bit to ensure a non-deterministic time would change
-    try {
-      Thread.sleep(1100);
-    } catch (InterruptedException e) {
-      // ignore
-    }
+    Thread.sleep(1100);
     try (OutputStream out2 = Files.newOutputStream(archive2)) {
       fileAccess.compressZip(contentDir, out2);
     }
