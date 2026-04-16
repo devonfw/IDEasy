@@ -27,6 +27,12 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(IdeaBasedIdeToolCommandlet.class);
 
+  private static final String VM_OPTIONS_FILE_EXTENSION = ".vmoptions";
+
+  private static final String VM_ARGS_ENV_SUFFIX = "_VM_ARGS";
+
+  private static final String VM_OPTIONS_ENV_SUFFIX = "_VM_OPTIONS";
+
   /**
    * The constructor.
    *
@@ -78,7 +84,7 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
   public ProcessResult runTool(ProcessContext pc, ProcessMode processMode, List<String> args) {
     args.add(this.context.getWorkspacePath().toString());
 
-    String variableName = getName().toUpperCase(Locale.ROOT).replace("-", "_") + "_VM_ARGS";
+    String variableName = getName().toUpperCase(Locale.ROOT).replace("-", "_") + VM_ARGS_ENV_SUFFIX;
     String userVmArgsContent = this.context.getVariables().get(variableName);
     if (userVmArgsContent == null || userVmArgsContent.isEmpty()) {
       return super.runTool(pc, processMode, args);
@@ -94,11 +100,11 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
     }
     String[] defaultVmArgs = defaultVmArgsContent.trim().split("\\s+");
 
-    String userOptionsFileName = "." + prefix + ".vmoptions";
+    String userOptionsFileName = "." + prefix + VM_OPTIONS_FILE_EXTENSION;
     Path confPath = this.context.getWorkspacePath().resolve(userOptionsFileName);
     this.context.getFileAccess().writeFileContent(mergeVmArgs(defaultVmArgs, userVmArgs), confPath, true);
 
-    pc.withEnvVar(prefix.toUpperCase() + "_VM_OPTIONS", confPath.toAbsolutePath().toString());
+    pc.withEnvVar(prefix.toUpperCase() + VM_OPTIONS_ENV_SUFFIX, confPath.toAbsolutePath().toString());
     return super.runTool(pc, processMode, args);
   }
 
@@ -111,7 +117,7 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
     if (this.context.getSystemInfo().isWindows()) {
       return softwarePath
           .resolve("bin")
-          .resolve(ideProductPrefix + "64.exe.vmoptions");
+          .resolve(ideProductPrefix + "64.exe" + VM_OPTIONS_FILE_EXTENSION);
     }
 
     if (this.context.getSystemInfo().isMac()) {
@@ -119,7 +125,7 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
         return softwarePath.toRealPath()
             .getParent()
             .resolve("bin")
-            .resolve(ideProductPrefix + ".vmoptions");
+            .resolve(ideProductPrefix + VM_OPTIONS_FILE_EXTENSION);
       } catch (Exception e) {
         LOG.error("Failed to resolve real path for software path: {}", softwarePath, e);
       }
@@ -127,7 +133,7 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
 
     return softwarePath // Linux
         .resolve("bin")
-        .resolve(ideProductPrefix + "64.vmoptions");
+        .resolve(ideProductPrefix + "64" + VM_OPTIONS_FILE_EXTENSION);
   }
 
   private String mergeVmArgs(String[] defaults, String[] userArgs) {
@@ -137,7 +143,7 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
     for (String userArg : userArgs) {
       boolean replaced = false;
       for (int i = 0; i < result.size(); i++) {
-        if (sameJvmKey(result.get(i), userArg)) {
+        if (isSameJvmKey(result.get(i), userArg)) {
           result.set(i, userArg); //override default arg with user defined arg
           replaced = true;
           break;
@@ -181,7 +187,7 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
     return arg;
   }
 
-  private boolean isJvmKeySimilar(String a, String b) {
+  private boolean isSameJvmKey(String a, String b) {
 
     return extractJvmOptionsKey(a).equals(extractJvmOptionsKey(b));
   }
