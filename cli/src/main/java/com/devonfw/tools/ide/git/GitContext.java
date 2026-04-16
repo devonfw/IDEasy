@@ -61,6 +61,8 @@ public interface GitContext {
    */
   boolean fetchIfNeeded(Path repository, String remoteName, String branch);
 
+  boolean isGitRepo(Path repository);
+
   /**
    * Checks if there are updates available for the Git repository in the specified target folder by comparing the local commit hash with the remote commit
    * hash.

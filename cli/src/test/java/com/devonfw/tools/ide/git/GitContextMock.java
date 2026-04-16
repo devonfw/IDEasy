@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.git;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
@@ -85,6 +86,11 @@ public class GitContextMock implements GitContext {
   public boolean fetchIfNeeded(Path repository) {
 
     return false;
+  }
+
+  @Override
+  public boolean isGitRepo(Path repository) {
+    return true;
   }
 
   @Override
