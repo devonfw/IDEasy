@@ -289,21 +289,21 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
       value = var.getDefaultValueAsString(this.context);
     } else {
       value = this.parent.get(name, false);
-      if ((value == null) && (var != null)) {
-        String key = var.getName();
-        if (!name.equals(key)) {
-          // try new name (e.g. IDE_TOOLS or IDE_HOME) if no value could be found by given legacy name (e.g.
-          // DEVON_IDE_TOOLS or DEVON_IDE_HOME)
-          value = this.parent.get(key, false);
-        }
+    }
+    if ((value == null) && (var != null)) {
+      String key = var.getName();
+      if (!name.equals(key)) {
+        // try new name (e.g. IDE_TOOLS or IDE_HOME) if no value could be found by given legacy name (e.g.
+        // DEVON_IDE_TOOLS or DEVON_IDE_HOME)
+        value = this.parent.get(key, false);
       }
-      if ((value == null) && (var != null) && !ignoreDefaultValue) {
+      if ((value == null) && !ignoreDefaultValue) {
         value = var.getDefaultValueAsString(this.context);
-      } else if ((value != null) && (var != null) && var.isAppendDefaultValue()) {
-        String defaultValue = var.getDefaultValueAsString(this.context);
-        if (defaultValue != null && !defaultValue.isEmpty()) {
-          value = value + " " + defaultValue;
-        }
+      }
+    } else if ((value != null) && (var != null) && var.isAppendDefaultValue()) {
+      String defaultValue = var.getDefaultValueAsString(this.context);
+      if (defaultValue != null && !defaultValue.isEmpty()) {
+        value = value + " " + defaultValue;
       }
     }
     if ((value != null) && (value.startsWith("~/"))) {
