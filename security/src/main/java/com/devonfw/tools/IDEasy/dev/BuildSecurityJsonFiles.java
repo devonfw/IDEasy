@@ -279,9 +279,13 @@ public class BuildSecurityJsonFiles implements Runnable {
 
     AbstractUrlUpdater.CpeRegistry cpe = updater.getCpeRegistry();
     List<Cpe> searchCpes = new ArrayList<>();
-    addSearchCpe(searchCpes, cpe.getPrimaryVendor(), cpe.getPrimaryProduct());
-    addSearchCpe(searchCpes, cpe.getPrimaryVendor(), "*");
-    addSearchCpe(searchCpes, "*", cpe.getPrimaryProduct());
+    for (String vendor : cpe.getVendors()) {
+      for (String product : cpe.getProducts()) {
+        addSearchCpe(searchCpes, vendor, product);
+        addSearchCpe(searchCpes, vendor, "*");
+        addSearchCpe(searchCpes, "*", product);
+      }
+    }
     return searchCpes;
   }
 

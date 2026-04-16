@@ -51,19 +51,9 @@ public class UvUrlUpdater extends GithubUrlTagUpdater {
     doAddVersion(urlVersion, baseUrl + "aarch64-pc-windows-msvc.zip", WINDOWS, ARM64);
   }
 
-  @Override
-  public String getCpeVendor() {
-    return "astral";
-  }
-
-  @Override
-  public String getCpeProduct() {
-    return "uv";
-  }
 
   @Override
   protected void initCpe(AbstractUrlUpdater.CpeRegistry cpe) {
-
     cpe.addVendor("astral")
         .addVendorInfix("astral-sh")
         .addProduct("uv");
