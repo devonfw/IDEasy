@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
@@ -88,10 +89,12 @@ public final class MacOsHelper {
     if (appDir != null) {
       try {
         ProcessResult verifyResult = this.context.newProcess().executable("codesign")
+            .errorHandling(ProcessErrorHandling.NONE)
             .addArgs("-v", appDir).run(ProcessMode.DEFAULT_SILENT);
         if (!verifyResult.isSuccessful()) {
           LOG.debug("Ad-hoc codesigning {}", appDir);
           ProcessResult signResult = this.context.newProcess().executable("codesign")
+              .errorHandling(ProcessErrorHandling.LOG_WARNING)
               .addArgs("--force", "--deep", "--sign", "-", appDir).run(ProcessMode.DEFAULT_SILENT);
           if (!signResult.isSuccessful()) {
             LOG.warn("Could not codesign {} - app may be blocked by Gatekeeper", appDir);
@@ -110,41 +113,6 @@ public final class MacOsHelper {
   public Path findAppDir(Path rootDir) {
     return this.fileAccess.findFirst(rootDir,
         p -> p.getFileName().toString().endsWith(".app") && Files.isDirectory(p), false);
-  }
-
-  /**
-   * Finds the directory containing the tool's executables inside a macOS {@code .app} bundle, without requiring the binary name. This method exists separately
-   * from {@link #findLinkDir(Path, String)} because it is called from {@code getToolBinPath()}, which is itself called by {@code getBinaryName()} — using
-   * {@code findLinkDir} there would cause infinite recursion since it requires the binary name.
-   *
-   * @param rootDir the {@link Path} to the root directory that may contain a {@code .app} bundle.
-   * @return the binary directory inside the {@code .app} bundle, or {@code rootDir} if not a {@code .app} structure.
-   */
-  public Path findBinDir(Path rootDir) {
-
-    if (!this.systemInfo.isMac() || Files.isDirectory(rootDir.resolve(IdeContext.FOLDER_BIN))) {
-      return rootDir;
-    }
-    Path contentsDir = rootDir.resolve(IdeContext.FOLDER_CONTENTS);
-    if (!Files.isDirectory(contentsDir)) {
-      Path appDir = findAppDir(rootDir);
-      if (appDir == null) {
-        return rootDir;
-      }
-      contentsDir = appDir.resolve(IdeContext.FOLDER_CONTENTS);
-      if (!Files.isDirectory(contentsDir)) {
-        return rootDir;
-      }
-    }
-    Path resourcesApp = contentsDir.resolve(IdeContext.FOLDER_RESOURCES).resolve(IdeContext.FOLDER_APP);
-    if (Files.isDirectory(resourcesApp)) {
-      return resourcesApp;
-    }
-    Path macosDir = contentsDir.resolve("MacOS");
-    if (Files.isDirectory(macosDir)) {
-      return macosDir;
-    }
-    return rootDir;
   }
 
   /**

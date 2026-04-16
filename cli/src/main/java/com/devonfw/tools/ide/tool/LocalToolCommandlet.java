@@ -65,14 +65,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     if (Files.isDirectory(binPath)) {
       return binPath;
     }
-    // on macOS, toolPath may contain a .app bundle - resolve the actual binary dir (e.g. Contents/MacOS/)
-    if (Files.isDirectory(toolPath)) {
-      Path realPath = this.context.getFileAccess().toRealPath(toolPath);
-      Path macBinDir = this.context.getFileAccess().getBinPath(getMacOsHelper().findBinDir(realPath));
-      if (!macBinDir.equals(realPath)) {
-        return macBinDir;
-      }
-    }
     return toolPath;
   }
 
@@ -360,9 +352,13 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     if (isToolNotInstalled(toolPath)) {
       return null;
     }
-    Path toolVersionFile = toolPath.resolve(IdeContext.FILE_SOFTWARE_VERSION);
+    Path versionLookupPath = getInstalledSoftwareRepoPath(toolPath, false);
+    if (versionLookupPath == null) {
+      versionLookupPath = toolPath;
+    }
+    Path toolVersionFile = versionLookupPath.resolve(IdeContext.FILE_SOFTWARE_VERSION);
     if (!Files.exists(toolVersionFile)) {
-      Path legacyToolVersionFile = toolPath.resolve(IdeContext.FILE_LEGACY_SOFTWARE_VERSION);
+      Path legacyToolVersionFile = versionLookupPath.resolve(IdeContext.FILE_LEGACY_SOFTWARE_VERSION);
       if (Files.exists(legacyToolVersionFile)) {
         toolVersionFile = legacyToolVersionFile;
       } else {
@@ -426,13 +422,17 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   private Path getInstalledSoftwareRepoPath(Path toolPath) {
+    return getInstalledSoftwareRepoPath(toolPath, false);
+  }
+
+  private Path getInstalledSoftwareRepoPath(Path toolPath, boolean logIfNotSoftwareRepo) {
     if (isToolNotInstalled(toolPath)) {
       return null;
     }
     Path installPath = this.context.getFileAccess().toRealPath(toolPath);
     // if the installPath changed, a link has been resolved
     if (installPath.equals(toolPath)) {
-      if (!isIgnoreSoftwareRepo()) {
+      if (logIfNotSoftwareRepo && !isIgnoreSoftwareRepo()) {
         LOG.warn("Tool {} is not installed via software repository (maybe from devonfw-ide). Please consider reinstalling it.", this.tool);
       }
       // I do not see any reliable way how we could determine the edition of a tool that does not use software repo or that was installed by devonfw-ide
@@ -520,7 +520,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * Deletes the installed version of the tool from the shared software repository.
    */
   private void uninstallFromSoftwareRepository(Path toolPath) {
-    Path repoPath = getInstalledSoftwareRepoPath(toolPath);
+    Path repoPath = getInstalledSoftwareRepoPath(toolPath, true);
     if ((repoPath == null) || !Files.exists(repoPath)) {
       LOG.warn("An installed version of {} does not exist in software repository.", this.tool);
       return;

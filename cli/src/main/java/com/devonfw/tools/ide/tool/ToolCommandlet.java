@@ -499,7 +499,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     Path binDir = rootDir;
     if (rootDir != null) {
       // on MacOS applications have a very strange structure - see JavaDoc of findLinkDir and ToolInstallation.linkDir for details.
-      binDir = this.context.getFileAccess().getBinPath(getMacOsHelper().findLinkDir(rootDir, getBinaryName()));
+      linkDir = getMacOsHelper().findLinkDir(rootDir, getBinaryName());
+      binDir = this.context.getFileAccess().getBinPath(linkDir);
     }
     return createToolInstallation(rootDir, linkDir, binDir, version, newInstallation, environmentContext, additionalInstallation);
   }
@@ -518,6 +519,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   protected ToolInstallation createToolInstallation(Path rootDir, Path linkDir, Path binDir, VersionIdentifier version, boolean newInstallation,
       EnvironmentContext environmentContext, boolean additionalInstallation) {
 
+    // do not copy the version file into macOS .app bundles: changing the bundle after codesigning breaks the seal.
     ToolInstallation toolInstallation = new ToolInstallation(rootDir, linkDir, binDir, version, newInstallation);
     setEnvironment(environmentContext, toolInstallation, additionalInstallation);
     return toolInstallation;
