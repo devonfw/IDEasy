@@ -57,6 +57,16 @@ public interface VariableDefinition<V> {
   boolean isForceDefaultValue();
 
   /**
+   * @return {@code true} if a user-defined value shall be extended by appending the {@link #getDefaultValue(IdeContext) default value} (separated by a space),
+   * {@code false} otherwise (default, user value fully replaces the default). This allows users to extend a variable like {@code MAVEN_ARGS} without losing
+   * IDEasy's own defaults.
+   */
+  default boolean isAppendDefaultValue() {
+
+    return false;
+  }
+
+  /**
    * @param value the value as {@link String}. May NOT be {@code null}.
    * @param context the {@link IdeContext}.
    * @return the value converted to the {@link #getValueType() value type}.

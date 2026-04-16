@@ -26,6 +26,8 @@ public abstract class AbstractVariableDefinition<V> implements VariableDefinitio
 
   private final boolean export;
 
+  private final boolean appendDefaultValue;
+
   /**
    * The constructor.
    *
@@ -85,18 +87,41 @@ public abstract class AbstractVariableDefinition<V> implements VariableDefinitio
   public AbstractVariableDefinition(String name, String legacyName, Function<IdeContext, V> defaultValueFactory,
       boolean forceDefaultValue, boolean export) {
 
+    this(name, legacyName, defaultValueFactory, forceDefaultValue, export, false);
+  }
+
+  /**
+   * The constructor.
+   *
+   * @param name the {@link #getName() variable name}.
+   * @param legacyName the {@link #getLegacyName() legacy name}.
+   * @param defaultValueFactory the factory {@link Function} for the {@link #getDefaultValue(IdeContext) default value}.
+   * @param forceDefaultValue the {@link #isForceDefaultValue() forceDefaultValue} flag.
+   * @param export the {@link #isExport() export} flag.
+   * @param appendDefaultValue the {@link #isAppendDefaultValue() appendDefaultValue} flag.
+   */
+  public AbstractVariableDefinition(String name, String legacyName, Function<IdeContext, V> defaultValueFactory,
+      boolean forceDefaultValue, boolean export, boolean appendDefaultValue) {
+
     super();
     this.name = name;
     this.legacyName = legacyName;
     this.defaultValueFactory = defaultValueFactory;
     this.forceDefaultValue = forceDefaultValue;
     this.export = export;
+    this.appendDefaultValue = appendDefaultValue;
   }
 
   @Override
   public boolean isForceDefaultValue() {
 
     return this.forceDefaultValue;
+  }
+
+  @Override
+  public boolean isAppendDefaultValue() {
+
+    return this.appendDefaultValue;
   }
 
   @Override
