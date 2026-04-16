@@ -301,6 +301,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
         value = var.getDefaultValueAsString(this.context);
       }
     } else if ((value != null) && (var != null) && var.isAppendDefaultValue()) {
+      // if user has set a value, append IDEasy's default to it instead of replacing it
       String defaultValue = var.getDefaultValueAsString(this.context);
       if (defaultValue != null && !defaultValue.isEmpty()) {
         value = value + " " + defaultValue;
