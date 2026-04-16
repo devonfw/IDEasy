@@ -89,7 +89,7 @@ public class GitContextMock implements GitContext {
   }
 
   @Override
-  public boolean isGitRepo(Path repository) {
+  public boolean isGitRepo(Path directory) {
     return true;
   }
 
