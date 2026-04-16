@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.tool.eclipse;
 
 import java.io.IOException;
-import java.nio.file.Path;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -42,8 +41,7 @@ public class EclipseTest extends AbstractIdeContextTest {
     eclipse.run();
 
     // assert
-    Path eclipsePath = context.getSoftwarePath().resolve("eclipse");
-    assertThat(eclipsePath.resolve(".ide.software.version")).exists().hasContent("2024-09");
+    assertThat(eclipse.getInstalledVersion().toString()).isEqualTo("2024-09");
     assertThat(context).log().hasEntries(
         new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed java in version 17.0.10_7", true),
         new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed eclipse in version 2024-09", true));
