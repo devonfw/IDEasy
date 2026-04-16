@@ -181,7 +181,7 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
     return arg;
   }
 
-  private boolean sameJvmKey(String a, String b) {
+  private boolean isJvmKeySimilar(String a, String b) {
 
     return extractJvmOptionsKey(a).equals(extractJvmOptionsKey(b));
   }
