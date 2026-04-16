@@ -91,22 +91,22 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
 
     // Check if edition is ultimate (any condition must be true)
     if ((!(requested != null && requested.getEdition() != null) && "ultimate".equals(getConfiguredEdition())) || // No edition specified (or no request) but configured edition is ultimate
-    (requested != null && requested.getEdition() != null && requested.getEdition().toString().equals("intellij/ultimate"))) { // Edition specified as ultimate
-        // Check if specified or configured version warrants changes (any condition must be true)
-        if ((!(requested != null && !"*".equals(requested.getVersion().toString())) && getConfiguredVersion().compareVersion(INTELLIJ_LAST_SEPARATE_VERSION) == VersionComparisonResult.GREATER) || // No version specified (or no request) and configured version is > 2025.2.6.1
+      (requested != null && requested.getEdition() != null && requested.getEdition().toString().equals("intellij/ultimate"))) { // Edition specified as ultimate
+
+      // Check if specified or configured version warrants changes (any condition must be true)
+      if ((!(requested != null && !"*".equals(requested.getVersion().toString())) && getConfiguredVersion().compareVersion(INTELLIJ_LAST_SEPARATE_VERSION) == VersionComparisonResult.GREATER) || // No version specified (or no request) and configured version is > 2025.2.6.1
         (requested != null && requested.getVersion() != null && requested.getResolvedVersion().compareVersion(INTELLIJ_LAST_SEPARATE_VERSION) == VersionComparisonResult.GREATER) || // Version specified and is > 2025.2.6.1
         (!(requested != null && !"*".equals(requested.getVersion().toString())) && "*".equals(getConfiguredVersion().toString()))) { // No version specified (or no request) and no configured version
         
-          // Switching to IntelliJ Standard edition
-          LOG.warn("""
+        // Switching to IntelliJ Standard edition
+        LOG.warn("""
                  Notice: You have configured IDEasy to use the IntelliJ Ultimate Edition. Since version 2025.3, the Ultimate and Community editions of IntelliJ have been unified into a single edition.
                  Since you are attempting to install a verson of IntelliJ that is 2025.3 or newer, we are automatically switching your edition to the unified edition to ensure compatibility.
                  To specifically install the last true ultimate version of IntelliJ, please run "ide install intellij 2025.2.6.1".
                  Otherwise, we recommend permanently switching to the unified edition by running "ide set-edition intellij intellij".""");
-          //LOG.info("Switching IntelliJ edition from ultimate to intellij for version {} since editions are unified.", getConfiguredVersion());
-          return new ToolEdition(this.tool, "intellij"); 
-        }
 
+        return new ToolEdition(this.tool, "intellij"); 
+      }
     }
     return edition;
   }
