@@ -79,9 +79,9 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   protected final HttpClient client = HttpClient.newBuilder().followRedirects(Redirect.ALWAYS).build();
 
   /** The GitHub actions token name for api requests. */
-  private static final String GITHUB_API_TOKEN = "GHA_TOKEN";
+  private static final String GITHUB_API_TOKEN_ENV = "GHA_TOKEN";
 
-  /** The GitHub API host to send {@link AbstractUrlUpdater#GITHUB_API_TOKEN} to. */
+  /** The GitHub API host to send {@link AbstractUrlUpdater#GITHUB_API_TOKEN_ENV} to. */
   private static final String GITHUB_API_HOST = "api.github.com";
 
   private static final Logger logger = LoggerFactory.getLogger(AbstractUrlUpdater.class);
@@ -207,7 +207,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     URI uri = URI.create(url);
     HttpRequest.Builder requestBuilder = HttpRequest.newBuilder().uri(uri);
     if (uri.getHost() != null && GITHUB_API_HOST.equalsIgnoreCase(uri.getHost())) {
-      String githubToken = System.getenv(GITHUB_API_TOKEN);
+      String githubToken = System.getenv(GITHUB_API_TOKEN_ENV);
       if (githubToken != null && !githubToken.isBlank()) {
         requestBuilder.header("Authorization", "Bearer " + githubToken);
       }
