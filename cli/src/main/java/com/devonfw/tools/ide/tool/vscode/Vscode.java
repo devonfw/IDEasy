@@ -64,7 +64,12 @@ public class Vscode extends IdeToolCommandlet {
     List<String> extensionsCommands = new ArrayList<>();
     extensionsCommands.add("--force");
     extensionsCommands.add("--install-extension");
-    extensionsCommands.add(plugin.id());
+    String extensionInstallTarget = plugin.id();
+    // If a version number was specified, add it to the extension identifier with the format "extensionId@version"
+    if ((plugin.version() != null) && !plugin.version().isBlank()) {
+      extensionInstallTarget = extensionInstallTarget + "@" + plugin.version();
+    }
+    extensionsCommands.add(extensionInstallTarget);
     ProcessResult result = runTool(pc, ProcessMode.DEFAULT_CAPTURE, extensionsCommands);
     if (result.isSuccessful()) {
       IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {}", plugin.name());

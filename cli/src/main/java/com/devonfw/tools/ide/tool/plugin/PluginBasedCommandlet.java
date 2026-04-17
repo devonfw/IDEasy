@@ -168,10 +168,19 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
    */
   public Path retrievePluginMarkerFilePath(ToolPluginDescriptor plugin) {
     if (this.context.getIdeHome() != null) {
-      return this.context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE)
-          .resolve("plugin" + "." + getName() + "." + getInstalledEdition() + "." + plugin.name());
+      String markerFileName = "plugin" + "." + getName() + "." + getInstalledEdition() + "." + plugin.name();
+      String version = plugin.version();
+      if ((version != null) && !version.isBlank()) {
+        markerFileName = markerFileName + ".version-" + normalizeMarkerFileSegment(version);
+      }
+      return this.context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve(markerFileName);
     }
     return null;
+  }
+
+  private String normalizeMarkerFileSegment(String value) {
+    // replace all characters that are not allowed in filenames with "_"
+    return value.replaceAll("[^A-Za-z0-9._-]", "_");
   }
 
   /**

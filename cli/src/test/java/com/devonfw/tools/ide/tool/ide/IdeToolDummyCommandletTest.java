@@ -51,6 +51,7 @@ class IdeToolDummyCommandletTest extends AbstractIdeContextTest {
     assertThat(dummyCommandlet.installedPlugins).hasSize(1);
     ToolPluginDescriptor plugin = dummyCommandlet.installedPlugins.getFirst();
     assertThat(plugin.id()).isEqualTo("plugin1-id");
+    assertThat(plugin.version()).isEqualTo("1.0.1");
     assertThat(plugin.url()).isEqualTo("https://dummy.com/plugins/plugin1-url");
   }
 
