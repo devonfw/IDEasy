@@ -100,4 +100,23 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
     assertThat(markerFilePath).isNotNull();
     assertThat(markerFilePath.getFileName().toString()).contains("plugin-name.version-1.2.3_build_4");
   }
+
+  @Test
+  void testCreatePluginMarkerFileDeletesOtherVersionMarkers() {
+
+    IdeTestContext localContext = newContext(PROJECT_BASIC, null, false);
+    ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(localContext, TOOL, tags);
+    ToolPluginDescriptor versionA = new ToolPluginDescriptor("plugin-id", "plugin-name", null, "1.0.0", true, Set.of());
+    ToolPluginDescriptor versionB = new ToolPluginDescriptor("plugin-id", "plugin-name", null, "2.0.0", true, Set.of());
+
+    pluginBasedCommandlet.createPluginMarkerFile(versionA);
+    Path markerAPath = pluginBasedCommandlet.retrievePluginMarkerFilePath(versionA);
+    Path markerBPath = pluginBasedCommandlet.retrievePluginMarkerFilePath(versionB);
+    assertThat(markerAPath).exists();
+
+    pluginBasedCommandlet.createPluginMarkerFile(versionB);
+
+    assertThat(markerBPath).exists();
+    assertThat(markerAPath).doesNotExist();
+  }
 }
