@@ -58,8 +58,17 @@ public class IniSection extends IniElement {
    */
   public void setProperty(String content) {
     IniProperty property = new IniProperty(content);
+    String key = property.getKey();
+    for (int i = 0; i < sectionElements.size(); i++) {
+      IniElement element = sectionElements.get(i);
+      if (element instanceof IniProperty existingProperty && key.equals(existingProperty.getKey())) {
+        sectionElements.set(i, property);
+        properties.put(key, property);
+        return;
+      }
+    }
     sectionElements.add(property);
-    properties.put(property.getKey(), property);
+    properties.put(key, property);
   }
 
   /**
