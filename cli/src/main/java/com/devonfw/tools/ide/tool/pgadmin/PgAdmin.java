@@ -165,7 +165,9 @@ public class PgAdmin extends GlobalToolCommandlet {
         Path installationPath = Paths.get(new String(process.getInputStream().readAllBytes()).trim());
         return installationPath.getParent().getParent();
       } catch (Exception e) {
-        LOG.error("Could not resolve installation path of {}", PG_ADMIN, e);
+        // we only log this in debug because a meaningful message already gets logged from a super class
+        // if no installation is found. If the path is simply false the same applies.
+        LOG.debug("Couldn't resolve installation path of {}", PG_ADMIN);
       }
     }
 
