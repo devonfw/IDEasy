@@ -34,6 +34,7 @@ import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.commandlet.CommandletManagerImpl;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
 import com.devonfw.tools.ide.commandlet.EnvironmentCommandlet;
+import com.devonfw.tools.ide.commandlet.UpdateCommandlet;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
@@ -1295,14 +1296,15 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
             if (getGitContext().isRepositoryUpdateAvailable(settingsRepository, getSettingsCommitIdPath()) || (
                 getGitContext().fetchIfNeeded(settingsRepository) && getGitContext().isRepositoryUpdateAvailable(
                     settingsRepository, getSettingsCommitIdPath()))) {
+              
               if (isSettingsRepositorySymlinkOrJunction()) {
-                if (!(arguments.getInitialArgument().get().equals("update") && isForceMode())) {
+                if (!(cmd instanceof UpdateCommandlet) && isForceMode()) {
                   // Only print the update nag if the user did not explicitly call "ide -f update" to prevent confusion when the user already wants to apply the updates.
                   String msg = "Updates are available for the settings repository. Please pull the latest changes by yourself or by calling \"ide -f update\" to apply them.";
                   IdeLogLevel.INTERACTION.log(LOG, msg);
                 }
               } else {
-                if (!arguments.getInitialArgument().get().equals("update")) {
+                if (!(cmd instanceof UpdateCommandlet)) {
                   // Only print the update nag if the user did not explicitly call "ide update" to prevent confusion when the user already wants to apply the updates.
                   String msg = "Updates are available for the settings repository. If you want to apply the latest changes, call \"ide update\"";
                   IdeLogLevel.INTERACTION.log(LOG, msg);
