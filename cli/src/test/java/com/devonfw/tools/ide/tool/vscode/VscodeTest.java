@@ -114,6 +114,10 @@ class VscodeTest extends AbstractIdeContextTest {
     assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed vscode in version 1.92.1");
   }
 
+  /**
+   * Test double for {@link Vscode} that captures CLI arguments passed to {@link #runTool(ProcessContext, ProcessMode, List)}
+   * so tests can assert command construction without spawning an external process.
+   */
   private static class CapturingVscode extends Vscode {
 
     private List<String> lastArgs;
@@ -127,7 +131,9 @@ class VscodeTest extends AbstractIdeContextTest {
     @Override
     public ProcessResult runTool(ProcessContext pc, ProcessMode processMode, List<String> args) {
 
+      // Capture effective CLI args for assertions in unit tests.
       this.lastArgs = new ArrayList<>(args);
+      // Return a successful dummy result to keep tests isolated from real VS Code execution.
       return new ProcessResultImpl("code", "code", 0, List.of());
     }
   }
