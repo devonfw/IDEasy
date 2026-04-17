@@ -121,8 +121,6 @@ public class PgAdmin extends GlobalToolCommandlet {
               .run(ProcessMode.BACKGROUND).getExitCode();
         }
       }
-    } else {
-      super.uninstall();
     }
   }
 
