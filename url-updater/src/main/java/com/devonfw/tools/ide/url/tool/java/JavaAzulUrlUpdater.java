@@ -42,8 +42,8 @@ public class JavaAzulUrlUpdater extends JsonUrlUpdater<JavaAzulJsonObject, JavaA
       return;
     }
     String prefix = url.substring(0, lastDash + 1);
+    doAddVersion(urlVersion, prefix + "win_aarch64.zip", WINDOWS, ARM64);
     doAddVersion(urlVersion, prefix + "win_x64.zip", WINDOWS, X64);
-    doAddVersion(urlVersion, prefix + "win_x64.msi", WINDOWS, X64);
     doAddVersion(urlVersion, prefix + "linux_x64.tar.gz", LINUX, X64);
     doAddVersion(urlVersion, prefix + "linux_aarch64.tar.gz", LINUX, ARM64);
     doAddVersion(urlVersion, prefix + "macosx_x64.tar.gz", MAC, X64);

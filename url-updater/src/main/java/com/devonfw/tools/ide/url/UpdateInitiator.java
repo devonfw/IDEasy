@@ -20,14 +20,15 @@ public class UpdateInitiator {
 
   /**
    * @param args the command-line arguments. arg[0] points to the {@code ide-urls} repository. arg[1] defines a timeout for GitHub actions in Duration
-   *     string format and arg[2] can be used to specify a single tool to update instead of all tools. The timeout is used to prevent the GitHub action from
-   *     running into a timeout error due to too long execution time.
+   *     string format and arg[2] can be used to specify a single tool to update instead of all tools, either by toolname (e.g. java) or using the Classname of
+   *     the Updater (e.g. JavaAzulUrlUpdater). The timeout is used to prevent the GitHub action from running into a timeout error due to too long execution
+   *     time.
    */
   public static void main(String[] args) {
 
     if (args.length == 0) {
       logger.error("Error: Missing path to repository as well as missing timeout as command line arguments.");
-      logger.error("Usage: java UpdateInitiator <path_to_repository> <duration_string_format>");
+      logger.error("Usage: java UpdateInitiator <path_to_repository> <duration_string_format> <tool_to_test|updater_class_name>");
       System.exit(1);
     }
 
