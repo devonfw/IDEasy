@@ -95,7 +95,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
 
       // Check if specified or configured version warrants changes (any condition must be true)
       if ((!(requested != null && !"*".equals(requested.getVersion().toString())) && getConfiguredVersion().compareVersion(INTELLIJ_LAST_SEPARATE_VERSION) == VersionComparisonResult.GREATER) || // No version specified (or no request) and configured version is > 2025.2.6.1
-        (requested != null && requested.getVersion() != null && requested.getResolvedVersion().compareVersion(INTELLIJ_LAST_SEPARATE_VERSION) == VersionComparisonResult.GREATER) || // Version specified and is > 2025.2.6.1
+        (requested != null && requested.getVersion() != null && requested.getResolvedVersion() != null && requested.getResolvedVersion().compareVersion(INTELLIJ_LAST_SEPARATE_VERSION) == VersionComparisonResult.GREATER) || // Version specified and is > 2025.2.6.1
         (!(requested != null && !"*".equals(requested.getVersion().toString())) && "*".equals(getConfiguredVersion().toString()))) { // No version specified (or no request) and no configured version
         
         // Switching to IntelliJ Standard edition
