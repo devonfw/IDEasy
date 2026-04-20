@@ -188,16 +188,10 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       }
     } else {
       if (!this.context.getFileAccess().isEmptyDir(settingsPath)) {
-        String answer =
-          this.context.askForInput(
-            "Your settings repository can be updated, but this will override local changes. The "
-            + "settings contents will be backed up. Do you want to proceed?",
-            "Y/n"
-          );
-
-        if (answer.toLowerCase().equals("n")) {
-          return;
-        }
+        this.context.askToContinue(
+          "Your settings repository can be updated, but this will override local changes. The "
+          + "settings contents will be backed up. Do you want to proceed?"
+        );
 
         this.context.getFileAccess().backup(settingsPath);
       }
