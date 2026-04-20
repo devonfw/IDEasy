@@ -14,6 +14,17 @@ function doRestoreRcFiles() {
   fi
 }
 
+function doRestoreLicenseAgreement() {
+  # Restore license agreement from backup, or remove it if it didn't pre-exist
+  if [ -n "$BAK_LICENSE_AGREEMENT" ] && [ -f "$BAK_LICENSE_AGREEMENT" ]; then
+    mv "$BAK_LICENSE_AGREEMENT" "$LICENSE_AGREEMENT"
+    echo "Restored ~/.ide/.license.agreement from backup"
+  else
+    rm -f "$LICENSE_AGREEMENT"
+    echo "Removed ~/.ide/.license.agreement created by test run"
+  fi
+}
+
 function doResetVariables() {
   IDE_HOME="${DEBUG_INTEGRATION_TEST}"
   export IDE_ROOT="${IDE_HOME}/projects"
@@ -81,8 +92,16 @@ function doTests () {
 }
 
 # Workaround to create license.agreement file and simulate a proper installation.
-mkdir -p "${HOME}"/.ide
-touch "${HOME}"/.ide/.license.agreement
+# Back up any pre-existing file so tests (which may delete it) can't destroy user's state.
+LICENSE_AGREEMENT="${HOME}/.ide/.license.agreement"
+BAK_LICENSE_AGREEMENT=""
+mkdir -p "${HOME}/.ide"
+if [ -f "${LICENSE_AGREEMENT}" ]; then
+  BAK_LICENSE_AGREEMENT="${LICENSE_AGREEMENT}.ideasy-test-backup"
+  cp "${LICENSE_AGREEMENT}" "${BAK_LICENSE_AGREEMENT}"
+else
+  touch "${LICENSE_AGREEMENT}"
+fi
 
 source "$(dirname "${0}")"/all-tests-functions.sh
 
@@ -106,7 +125,7 @@ if [ -f "$HOME/.zshrc" ]; then
   cp "$HOME/.zshrc" "$BAK_ZSHRC"
 fi
 
-trap "export PATH=\"${BAK_PATH}\" && export IDE_ROOT=\"${BAK_IDE_ROOT}\" && doRestoreRcFiles && echo \"PATH, IDE_ROOT, and shell RC files restored\"" EXIT
+trap "export PATH=\"${BAK_PATH}\" && export IDE_ROOT=\"${BAK_IDE_ROOT}\" && doRestoreRcFiles && doRestoreLicenseAgreement && echo \"PATH, IDE_ROOT, and shell RC files restored\"" EXIT
 
 # Switch IDEasy binary file name based on github workflow matrix.os name (first argument of all-tests.sh)
 BINARY_FILE_NAME="ideasy"
