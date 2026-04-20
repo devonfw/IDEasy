@@ -26,7 +26,8 @@ function doRestoreLicenseAgreement() {
 }
 
 function doRestoreWindowsRegistry() {
-  # Restore Windows user environment registry from backup
+  # restore HKCU\Environment on windows
+  # reg import only adds/overwrites, so delete existing values first
   if [ -n "$BAK_HKCU_ENVIRONMENT" ] && [ -f "$BAK_HKCU_ENVIRONMENT" ]; then
     reg delete "HKCU\\Environment" //va //f >/dev/null 2>&1
     reg import "$(cygpath -w "$BAK_HKCU_ENVIRONMENT")" >/dev/null 2>&1
@@ -133,7 +134,7 @@ if [ -f "$HOME/.zshrc" ]; then
   BAK_ZSHRC="$HOME/.zshrc.ideasy-test-backup"
   cp "$HOME/.zshrc" "$BAK_ZSHRC"
 fi
-# On Windows, back up user environment registry before tests
+# backup HKCU\Environment on windows
 BAK_HKCU_ENVIRONMENT=""
 if doIsWindows; then
   BAK_HKCU_ENVIRONMENT="$HOME/hkcu-environment.ideasy-test-backup.reg"
