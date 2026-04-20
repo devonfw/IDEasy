@@ -5,7 +5,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 == 2026.05.001
 
 Release with new features and bugfixes:
-
+* https://github.com/devonfw/IDEasy/issues/1174[#1174]: Add Java Azul edition
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/44?closed=1[milestone 2026.05.001].
 
