@@ -10,7 +10,7 @@ run_test() {
     local input=$1
     local behavior=$2
 
-    echo "Running case: input '$input' should $behavior"
+    echo "Running case: input '$input' should $behavior the license"
 
     rm -f "$LICENSE_FILE"
     output=$(echo "$input" | "$IDE" -f install 2>&1) || true
@@ -47,8 +47,8 @@ run_test() {
 
 echo "Running license agreement required during installation integration test"
 
-run_test "yes" "accept"
-run_test "1"   "accept"
 run_test "no"  "decline"
 run_test "2"   "decline"
+run_test "yes" "accept"
+run_test "1"   "accept"
 
