@@ -53,4 +53,10 @@ public class Pycharm extends IdeaBasedIdeToolCommandlet {
       }
     }
   }
+
+  @Override
+  protected String getIdeProductPrefix() {
+
+    return PYCHARM;
+  }
 }
