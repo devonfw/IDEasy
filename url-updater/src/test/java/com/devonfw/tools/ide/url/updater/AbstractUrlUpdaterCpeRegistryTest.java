@@ -51,6 +51,28 @@ class AbstractUrlUpdaterCpeRegistryTest {
         .hasMessageContaining("CPE vendor");
   }
 
+  @Test
+  void testGetVendorsAndProducts() {
+
+    AliasedCpeUpdater updater = new AliasedCpeUpdater();
+
+    AbstractUrlUpdater.CpeRegistry cpe = updater.getCpeRegistry();
+
+    assertThat(cpe.getVendors()).containsExactly("astral", "astral-sh");
+    assertThat(cpe.getProducts()).containsExactly("uv");
+  }
+
+  @Test
+  void testGetVendorsAndProductsWithMultipleProducts() {
+
+    JavaLikeCpeUpdater updater = new JavaLikeCpeUpdater();
+
+    AbstractUrlUpdater.CpeRegistry cpe = updater.getCpeRegistry();
+
+    assertThat(cpe.getVendors()).containsExactly("oracle");
+    assertThat(cpe.getProducts()).containsExactly("jdk", "java_se");
+  }
+
   private static class DefaultCpeUpdater extends AbstractUrlUpdater {
 
     @Override
@@ -93,15 +115,26 @@ class AbstractUrlUpdaterCpeRegistryTest {
       cpe.addVendorInfix("astral-sh");
       cpe.addProduct("uv");
     }
-  }
+   }
 
-  private static final class BrokenCpeUpdater extends DefaultCpeUpdater {
+   private static final class BrokenCpeUpdater extends DefaultCpeUpdater {
 
-    @Override
-    protected void initCpe(CpeRegistry cpe) {
+     @Override
+     protected void initCpe(CpeRegistry cpe) {
 
-      // intentionally left empty
-    }
-  }
+       // intentionally left empty
+     }
+   }
+
+   private static final class JavaLikeCpeUpdater extends DefaultCpeUpdater {
+
+     @Override
+     protected void initCpe(CpeRegistry cpe) {
+
+       cpe.addVendor("oracle")
+           .addProduct("jdk")
+           .addProduct("java_se");
+     }
+   }
 }
 

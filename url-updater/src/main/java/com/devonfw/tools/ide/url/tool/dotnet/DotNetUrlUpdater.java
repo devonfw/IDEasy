@@ -63,12 +63,7 @@ public class DotNetUrlUpdater extends GithubUrlTagUpdater {
   }
 
   @Override
-  public String getCpeVendor() {
-    return "microsoft";
-  }
-
-  @Override
-  public String getCpeProduct() {
-    return ".net";
+  protected void initCpe(CpeRegistry cpe) {
+    cpe.addVendor("microsoft").addProduct(".net").addProduct(".net_core");
   }
 }

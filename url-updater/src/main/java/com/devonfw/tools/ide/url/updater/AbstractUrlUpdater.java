@@ -247,21 +247,37 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
       return this;
     }
 
-    /**
-     * @return the primary vendor, i.e. the first configured vendor alias.
-     */
-    public String getPrimaryVendor() {
+     /**
+      * @return the primary vendor, i.e. the first configured vendor alias.
+      */
+     public String getPrimaryVendor() {
 
-      return getPrimaryValue(this.vendors, "vendor");
-    }
+       return getPrimaryValue(this.vendors, "vendor");
+     }
 
-    /**
-     * @return the primary product, i.e. the first configured product alias.
-     */
-    public String getPrimaryProduct() {
+     /**
+      * @return the primary product, i.e. the first configured product alias.
+      */
+     public String getPrimaryProduct() {
 
-      return getPrimaryValue(this.products, "product");
-    }
+       return getPrimaryValue(this.products, "product");
+     }
+
+     /**
+      * @return a list of all configured vendor values (both exact and infix matches).
+      */
+     public List<String> getVendors() {
+
+       return this.vendors.stream().map(CpeValue::value).toList();
+     }
+
+     /**
+      * @return a list of all configured product values (both exact and infix matches).
+      */
+     public List<String> getProducts() {
+
+       return this.products.stream().map(CpeValue::value).toList();
+     }
 
     /**
      * @param vendor the vendor to check.
