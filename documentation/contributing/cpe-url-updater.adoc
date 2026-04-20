@@ -15,6 +15,7 @@ Implementation is provided in `AbstractUrlUpdater`:
 * default behavior registers one exact vendor/product pair
 * matching is done via `matchesCpe(vendor, product)`
 * registry supports exact and infix aliases
+* security search uses all configured vendor and product aliases as candidate CPEs
 
 == Minimal Example
 
@@ -51,6 +52,8 @@ protected void initCpe(AbstractUrlUpdater.CpeRegistry cpe) {
 * Legacy CPE variants: add only targeted aliases that are known to occur in NVD data.
 
 Do not add overly broad infix aliases, otherwise unrelated CVEs can match.
+
+The same configured aliases are also used to build search candidates for CVE lookup. This means the first alias is still the primary one, but additional aliases help the security scan find CPEs that are named differently in NVD.
 
 == How NVD Search Is Used During Development
 
