@@ -108,9 +108,9 @@ class EnvironmentVariablesTest extends AbstractIdeContextTest {
   @Test
   void testMavenArgsAppendDefaultValueFlagIsEnabled() {
 
-    assertThat(IdeVariables.MAVEN_ARGS.isAppendDefaultValue()).isTrue();
-    assertThat(IdeVariables.MVN_BUILD_OPTS.isAppendDefaultValue()).isFalse();
-    assertThat(IdeVariables.IDE_HOME.isAppendDefaultValue()).isFalse();
+    assertThat(IdeVariables.MAVEN_ARGS.isDefaultValueAppended()).isTrue();
+    assertThat(IdeVariables.MVN_BUILD_OPTS.isDefaultValueAppended()).isFalse();
+    assertThat(IdeVariables.IDE_HOME.isDefaultValueAppended()).isFalse();
   }
 
   /**

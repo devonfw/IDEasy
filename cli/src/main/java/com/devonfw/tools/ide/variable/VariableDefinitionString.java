@@ -77,7 +77,7 @@ public class VariableDefinitionString extends AbstractVariableDefinition<String>
    * @param defaultValueFactory the factory {@link Function} for the {@link #getDefaultValue(IdeContext) default value}.
    * @param forceDefaultValue the {@link #isForceDefaultValue() forceDefaultValue} flag.
    * @param export the {@link #isExport() export} flag.
-   * @param appendDefaultValue the {@link #isAppendDefaultValue() appendDefaultValue} flag.
+   * @param appendDefaultValue the {@link #isDefaultValueAppended() appendDefaultValue} flag.
    */
   public VariableDefinitionString(String name, String legacyName, Function<IdeContext, String> defaultValueFactory, boolean forceDefaultValue, boolean export,
       boolean appendDefaultValue) {

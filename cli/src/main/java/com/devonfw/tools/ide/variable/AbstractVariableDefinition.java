@@ -98,7 +98,7 @@ public abstract class AbstractVariableDefinition<V> implements VariableDefinitio
    * @param defaultValueFactory the factory {@link Function} for the {@link #getDefaultValue(IdeContext) default value}.
    * @param forceDefaultValue the {@link #isForceDefaultValue() forceDefaultValue} flag.
    * @param export the {@link #isExport() export} flag.
-   * @param appendDefaultValue the {@link #isAppendDefaultValue() appendDefaultValue} flag.
+   * @param appendDefaultValue the {@link #isDefaultValueAppended() appendDefaultValue} flag.
    */
   public AbstractVariableDefinition(String name, String legacyName, Function<IdeContext, V> defaultValueFactory,
       boolean forceDefaultValue, boolean export, boolean appendDefaultValue) {
@@ -119,7 +119,7 @@ public abstract class AbstractVariableDefinition<V> implements VariableDefinitio
   }
 
   @Override
-  public boolean isAppendDefaultValue() {
+  public boolean isDefaultValueAppended() {
 
     return this.appendDefaultValue;
   }

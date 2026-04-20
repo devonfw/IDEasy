@@ -61,7 +61,7 @@ public interface VariableDefinition<V> {
    * {@code false} otherwise (default, user value fully replaces the default). This allows users to extend a variable like {@code MAVEN_ARGS} without losing
    * IDEasy's own defaults.
    */
-  default boolean isAppendDefaultValue() {
+  default boolean isDefaultValueAppended() {
 
     return false;
   }
