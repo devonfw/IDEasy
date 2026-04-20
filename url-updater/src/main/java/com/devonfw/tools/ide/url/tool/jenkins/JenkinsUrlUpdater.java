@@ -49,12 +49,7 @@ public class JenkinsUrlUpdater extends WebsiteUrlUpdater {
   }
 
   @Override
-  public String getCpeVendor() {
-    return "jenkins";
-  }
-
-  @Override
-  public String getCpeProduct() {
-    return "jenkins";
+  protected void initCpe(CpeRegistry cpe) {
+    cpe.addVendor("jenkins").addVendor("jenkinsci").addProduct("jenkins");
   }
 }

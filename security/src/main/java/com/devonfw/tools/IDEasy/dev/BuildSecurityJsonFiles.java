@@ -74,6 +74,9 @@ public class BuildSecurityJsonFiles implements Runnable {
       this.engine.analyzeDependencies();
 
       CveDB database = engine.getDatabase();
+      java.util.Map<String, Integer> cveCountByTool = new java.util.LinkedHashMap<>();
+      int totalCveCount = 0;
+
       for (AbstractUrlUpdater updater : this.updateManager.getUpdaters()) {
         String updaterName = updater.getClass().getSimpleName();
         String tool = updater.getTool();
@@ -82,7 +85,9 @@ public class BuildSecurityJsonFiles implements Runnable {
         if ((vulnerabilities == null) || (vulnerabilities.isEmpty())) {
           LOG.info("No vulnerabilities found for {} with CPE {}:{}", updaterName, updater.getCpeRegistry().getPrimaryVendor(),
               updater.getCpeRegistry().getPrimaryProduct());
+          cveCountByTool.put(tool, 0);
         } else {
+          int cveCountForTool = 0;
           for (String edition : updater.getEditions()) {
             LOG.info("Processing edition {} for tool {}", edition, tool);
             UrlSecurityFile securityFile = this.urlMetadata.getEdition(tool, edition).getSecurityFile();
@@ -92,13 +97,19 @@ public class BuildSecurityJsonFiles implements Runnable {
               Cve cve = toCve(vulnerability, edition, updater);
               if (cve != null) {
                 securityFile.addCve(cve);
+                cveCountForTool++;
               }
             }
             securityFile.save();
           }
+          cveCountByTool.put(tool, cveCountForTool);
+          totalCveCount += cveCountForTool;
         }
       }
       this.engine.close();
+
+      // Print summary of CVEs found
+      printCveSummary(cveCountByTool, totalCveCount);
     } catch (Throwable e) {
       LOG.error("Failed to build security json files", e);
     }
@@ -279,9 +290,26 @@ public class BuildSecurityJsonFiles implements Runnable {
 
     AbstractUrlUpdater.CpeRegistry cpe = updater.getCpeRegistry();
     List<Cpe> searchCpes = new ArrayList<>();
-    addSearchCpe(searchCpes, cpe.getPrimaryVendor(), cpe.getPrimaryProduct());
-    addSearchCpe(searchCpes, cpe.getPrimaryVendor(), "*");
-    addSearchCpe(searchCpes, "*", cpe.getPrimaryProduct());
+
+    // Get all vendors and products from the registry (not just primary)
+    List<String> vendors = cpe.getVendors();
+    List<String> products = cpe.getProducts();
+
+    // Search with all vendor/product combinations
+    for (String vendor : vendors) {
+      for (String product : products) {
+        addSearchCpe(searchCpes, vendor, product);
+      }
+    }
+
+    // Also search with wildcards for better coverage
+    if (!vendors.isEmpty()) {
+      addSearchCpe(searchCpes, vendors.getFirst(), "*");
+    }
+    if (!products.isEmpty()) {
+      addSearchCpe(searchCpes, "*", products.getFirst());
+    }
+
     return searchCpes;
   }
 
@@ -304,6 +332,36 @@ public class BuildSecurityJsonFiles implements Runnable {
     } catch (Exception e) {
       throw new IllegalStateException("Failed to create search CPE for vendor '" + vendor + "' and product '" + product + "'.", e);
     }
+  }
+
+  /**
+   * Prints a summary of CVEs found for each tool.
+   *
+   * @param cveCountByTool map of tool names to CVE counts
+   * @param totalCveCount total number of CVEs found across all tools
+   */
+  private static void printCveSummary(java.util.Map<String, Integer> cveCountByTool, int totalCveCount) {
+
+    LOG.info("");
+    LOG.info("=".repeat(80));
+    LOG.info("CVE SUMMARY");
+    LOG.info("=".repeat(80));
+
+    if (cveCountByTool.isEmpty()) {
+      LOG.info("No tools processed.");
+    } else {
+      for (java.util.Map.Entry<String, Integer> entry : cveCountByTool.entrySet()) {
+        String tool = entry.getKey();
+        int count = entry.getValue();
+        String status = count > 0 ? "✓" : "✗";
+        LOG.info("{} {}: {} CVE(s)", status, tool, count);
+      }
+    }
+
+    LOG.info("-".repeat(80));
+    LOG.info("Total CVEs found: {}", totalCveCount);
+    LOG.info("=".repeat(80));
+    LOG.info("");
   }
 
   /**
