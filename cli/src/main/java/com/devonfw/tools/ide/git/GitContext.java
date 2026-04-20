@@ -62,8 +62,6 @@ public interface GitContext {
   boolean fetchIfNeeded(Path repository, String remoteName, String branch);
 
   /**
-   * Checks if the given `repository` is a valid Git repository.
-   * 
    * @param directory the {@link Path} to the directory to check for repo status
    * @return {@code true} if `directory` is a Git repo, {@code false} otherwise
    */
