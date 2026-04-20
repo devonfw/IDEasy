@@ -58,11 +58,15 @@ public class AzureUrlUpdater extends GithubUrlTagUpdater {
   @Override
   public String getCpeVendor() {
     return "microsoft";
-
   }
 
   @Override
   public String getCpeProduct() {
-    return "azure_command-line_interface";
+    return "az";
+  }
+
+  @Override
+  protected void initCpe(CpeRegistry cpe) {
+    cpe.addVendor("microsoft").addProduct("az").addProduct("azure_cli").addProduct("azure-command-line_interface");
   }
 }

@@ -29,6 +29,7 @@ import com.devonfw.tools.ide.version.VersionRange;
 
 import us.springett.parsers.cpe.Cpe;
 import us.springett.parsers.cpe.CpeBuilder;
+import us.springett.parsers.cpe.values.Part;
 
 /**
  * Scans the IDEasy URL repository for tools, editions, and versions, and checks for known vulnerabilities using the OWASP Dependency-Check engine.
@@ -291,40 +292,32 @@ public class BuildSecurityJsonFiles implements Runnable {
     AbstractUrlUpdater.CpeRegistry cpe = updater.getCpeRegistry();
     List<Cpe> searchCpes = new ArrayList<>();
 
-    // Get all vendors and products from the registry (not just primary)
     List<String> vendors = cpe.getVendors();
     List<String> products = cpe.getProducts();
 
-    // Search with all vendor/product combinations
-    for (String vendor : vendors) {
-      for (String product : products) {
-        addSearchCpe(searchCpes, vendor, product);
+    for (Part part : new Part[] { Part.APPLICATION, Part.OPERATING_SYSTEM }) {
+      for (String vendor : vendors) {
+        for (String product : products) {
+          addSearchCpe(searchCpes, vendor, product, part);
+        }
       }
     }
-
-    // Also search with wildcards for better coverage
-    if (!vendors.isEmpty()) {
-      addSearchCpe(searchCpes, vendors.getFirst(), "*");
-    }
-    if (!products.isEmpty()) {
-      addSearchCpe(searchCpes, "*", products.getFirst());
-    }
-
     return searchCpes;
   }
 
-  private static void addSearchCpe(List<Cpe> searchCpes, String vendor, String product) {
+  private static void addSearchCpe(List<Cpe> searchCpes, String vendor, String product, Part part) {
 
     if ((vendor == null) || (product == null)) {
       return;
     }
     try {
       CpeBuilder cpeBuilder = new CpeBuilder();
+      cpeBuilder.part(part);
       cpeBuilder.vendor(vendor);
       cpeBuilder.product(product);
       Cpe cpe = cpeBuilder.build();
       for (Cpe existing : searchCpes) {
-        if (existing.getVendor().equals(cpe.getVendor()) && existing.getProduct().equals(cpe.getProduct())) {
+        if (existing.getPart().equals(cpe.getPart()) && existing.getVendor().equals(cpe.getVendor()) && existing.getProduct().equals(cpe.getProduct())) {
           return;
         }
       }

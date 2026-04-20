@@ -271,21 +271,6 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
        return this.products.stream().map(CpeValue::value).toList();
      }
 
-    /**
-     * @return all configured vendors in declaration order.
-     */
-    public List<String> getVendors() {
-
-      return getValues(this.vendors);
-    }
-
-    /**
-     * @return all configured products in declaration order.
-     */
-    public List<String> getProducts() {
-
-      return getValues(this.products);
-    }
 
     /**
      * @param vendor the vendor to check.
