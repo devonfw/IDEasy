@@ -149,14 +149,6 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   }
 
   /**
-   * @return the edition as specified in the {@link #CPE}.
-   */
-  public String getCpeEdition() {
-
-    return getTool();
-  }
-
-  /**
    * Configures the CPE aliases used by this updater. The default implementation keeps the existing behavior and registers the current
    * {@link #getCpeVendor() vendor} and {@link #getCpeProduct() product} as exact matches.
    *
@@ -280,6 +272,22 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
      }
 
     /**
+     * @return all configured vendors in declaration order.
+     */
+    public List<String> getVendors() {
+
+      return getValues(this.vendors);
+    }
+
+    /**
+     * @return all configured products in declaration order.
+     */
+    public List<String> getProducts() {
+
+      return getValues(this.products);
+    }
+
+    /**
      * @param vendor the vendor to check.
      * @param product the product to check.
      * @return {@code true} if both values match the configured aliases.
@@ -323,6 +331,11 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
       return values.getFirst().value();
     }
 
+    private static List<String> getValues(List<CpeValue> values) {
+
+      return values.stream().map(CpeValue::value).toList();
+    }
+
     private static boolean matches(String value, List<CpeValue> values) {
 
       if (value == null) {
@@ -341,22 +354,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   /**
    * Single configured CPE value.
    */
-  private static final class CpeValue {
-
-    private final String value;
-
-    private final boolean infix;
-
-    private CpeValue(String value, boolean infix) {
-
-      this.value = value;
-      this.infix = infix;
-    }
-
-    private String value() {
-
-      return this.value;
-    }
+  private record CpeValue(String value, boolean infix) {
 
     private boolean matches(String actualValue) {
 

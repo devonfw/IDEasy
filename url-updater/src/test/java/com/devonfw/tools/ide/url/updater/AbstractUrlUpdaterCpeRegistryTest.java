@@ -21,8 +21,12 @@ class AbstractUrlUpdaterCpeRegistryTest {
 
     AbstractUrlUpdater.CpeRegistry cpe = updater.getCpeRegistry();
 
+    assertThat(updater.getCpeVendor()).isEqualTo("sample");
+    assertThat(updater.getCpeProduct()).isEqualTo("sample");
     assertThat(cpe.getPrimaryVendor()).isEqualTo("sample");
     assertThat(cpe.getPrimaryProduct()).isEqualTo("sample");
+    assertThat(cpe.getVendors()).containsExactly("sample");
+    assertThat(cpe.getProducts()).containsExactly("sample");
     assertThat(updater.matchesCpe("sample", "sample")).isTrue();
     assertThat(updater.matchesCpe("sample", "other")).isFalse();
   }
@@ -36,11 +40,31 @@ class AbstractUrlUpdaterCpeRegistryTest {
 
     assertThat(cpe.getPrimaryVendor()).isEqualTo("astral");
     assertThat(cpe.getPrimaryProduct()).isEqualTo("uv");
+    assertThat(cpe.getVendors()).containsExactly("astral", "astral-sh");
+    assertThat(cpe.getProducts()).containsExactly("uv", "uv-cli");
     assertThat(updater.matchesCpe("astral", "uv")).isTrue();
     assertThat(updater.matchesCpe("astral-sh", "uv")).isTrue();
+    assertThat(updater.matchesCpe("astral", "uv-cli-preview")).isTrue();
     assertThat(updater.matchesCpe("foo", "uv")).isFalse();
     assertThat(updater.matchesCpe("astral-sh", "other")).isFalse();
   }
+
+  @Test
+  void testLegacyRegistryUsesLegacyCpeVendorAndProduct() {
+
+    LegacyCpeUpdater updater = new LegacyCpeUpdater();
+
+    AbstractUrlUpdater.CpeRegistry cpe = updater.getCpeRegistry();
+
+    assertThat(updater.getCpeVendor()).isEqualTo("bar");
+    assertThat(updater.getCpeProduct()).isEqualTo("foo");
+    assertThat(cpe.getPrimaryVendor()).isEqualTo("bar");
+    assertThat(cpe.getPrimaryProduct()).isEqualTo("foo");
+    assertThat(updater.matchesCpe("bar", "foo")).isTrue();
+    assertThat(updater.matchesCpe("BAR", "FOO")).isTrue();
+    assertThat(updater.matchesCpe("bar", "other")).isFalse();
+  }
+
 
   @Test
   void testRegistryFailsWithoutVendorOrProduct() {
@@ -105,7 +129,7 @@ class AbstractUrlUpdaterCpeRegistryTest {
       return "https://example.org";
     }
   }
-
+  
   private static final class AliasedCpeUpdater extends DefaultCpeUpdater {
 
     @Override
@@ -114,6 +138,22 @@ class AbstractUrlUpdaterCpeRegistryTest {
       cpe.addVendor("astral");
       cpe.addVendorInfix("astral-sh");
       cpe.addProduct("uv");
+      cpe.addProductInfix("uv-cli");
+    }
+  }
+
+  private static final class LegacyCpeUpdater extends DefaultCpeUpdater {
+
+    @Override
+    public String getCpeVendor() {
+
+      return "bar";
+    }
+
+    @Override
+    public String getCpeProduct() {
+
+      return "foo";
     }
    }
 
