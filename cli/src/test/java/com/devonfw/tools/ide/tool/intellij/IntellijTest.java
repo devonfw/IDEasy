@@ -198,6 +198,9 @@ class IntellijTest extends AbstractIdeContextTest {
         """);
   }
 
+  /**
+   * Tests whether IDEasy correctly switches editions when no version is specified or configured
+   */
   @Test
   void testAdjustRequestedEditionSwitchesForUltimateWithoutConfiguredVersion() {
 
@@ -215,6 +218,9 @@ class IntellijTest extends AbstractIdeContextTest {
     assertThat(adjusted.edition()).isEqualTo("intellij");
   }
 
+  /**
+   * Tests whether IDEasy correctly switches editions when the specified version is after 2025.2.6.1
+   */
   @Test
   void testAdjustRequestedEditionSwitchesForUltimateWithVersionAboveCutoff() {
 
@@ -233,6 +239,9 @@ class IntellijTest extends AbstractIdeContextTest {
     assertThat(adjusted.edition()).isEqualTo("intellij");
   }
 
+  /**
+   * Tests whether IDEasy correctly remains on the ultimate edition when the specified version is 2025.2.6.1
+   */
   @Test
   void testAdjustRequestedEditionDoesNotSwitchForUltimateAtCutoffVersion() {
 
