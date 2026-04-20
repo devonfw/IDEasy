@@ -259,7 +259,8 @@ class IntellijTest extends AbstractIdeContextTest {
     // assert
     assertThat(adjusted.edition()).isEqualTo("ultimate");
   }
-
+  
+  /**
    * Tests if the custom jvm options of the ide variable INTELLI_VM_ARGS have been set.
    */
   @ParameterizedTest
