@@ -81,6 +81,12 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   }
 
   @Override
+  protected String getIdeProductPrefix() {
+
+    return IDEA;
+  }
+
+  @Override
   public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
     super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
     environmentContext.withEnvVar("IDEA_PROPERTIES", this.context.getWorkspacePath().resolve(IDEA_PROPERTIES).toString());
@@ -160,5 +166,4 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     }
     LOG.warn("No supported build descriptor was found for project import in {}", repositoryPath);
   }
-
 }
