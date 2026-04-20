@@ -8,9 +8,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @see JavaJsonObject#versions()
  */
-public record JavaJsonVersion(
-    @JsonProperty("openjdk_version") String openjdkVersion,
-    @JsonProperty("semver") String semver) implements JsonVersionItem {
+public record JavaJsonVersion(@JsonProperty("openjdk_version") String openjdkVersion, @JsonProperty("semver") String semver) implements JsonVersionItem {
 
   @Override
   public String version() {
