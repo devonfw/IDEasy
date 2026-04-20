@@ -176,7 +176,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     GitContext gitContext = this.context.getGitContext();
     // here we do not use pullOrClone to prevent asking a pointless question for repository URL...
     if (Files.isDirectory(settingsPath) && this.context.getGitContext().isGitRepo(settingsPath)) {
-      if (this.context.isForcePull() || this.context.isForceMode() || Files.isDirectory(settingsPath.resolve(GitContext.GIT_FOLDER))) {
+      if (this.context.isForcePull() || this.context.isForceMode()) {
         if (gitContext.hasUntrackedFiles(settingsPath)) {
           gitContext.pullSafelyWithStash(settingsPath);
         } else {
