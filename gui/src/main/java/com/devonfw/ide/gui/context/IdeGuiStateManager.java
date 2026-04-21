@@ -27,20 +27,20 @@ public class IdeGuiStateManager {
   private IdeGuiContext currentContext;
 
   private IdeGuiStateManager() {
-
-    this.projectDirectory = System.getenv("IDE_ROOT");
-
-    if (this.projectDirectory == null) {
-      LOG.warn("IDE_ROOT environment variable is not set! This might lead to unexpected behavior!");
-    }
-
-    this.projectManager = new ProjectManager(Path.of(projectDirectory));
   }
 
   /**
    * @return the singleton instance of the {@link IdeGuiStateManager}.
    */
   public static IdeGuiStateManager getInstance() {
+    IdeGuiStateManager instance = Holder.INSTANCE;
+    if (instance.projectDirectory == null) {
+      String ideRoot = System.getenv("IDE_ROOT");
+      if (ideRoot == null) {
+        throw new IllegalStateException("IDE_ROOT environment variable is not set!");
+      }
+      instance.projectManager = new ProjectManager(Path.of(ideRoot));
+    }
     return Holder.INSTANCE;
   }
 
@@ -52,8 +52,12 @@ public class IdeGuiStateManager {
    * @return the singleton instance of the {@link IdeGuiStateManager}.
    */
   public static IdeGuiStateManager getInstance(String ideRoot) {
+    if (ideRoot == null) {
+      throw new IllegalArgumentException("ideRoot must not be null!");
+    }
     IdeGuiStateManager instance = Holder.INSTANCE;
     instance.projectDirectory = ideRoot;
+    instance.projectManager = new ProjectManager(Path.of(ideRoot));
     return instance;
   }
 
@@ -107,6 +111,7 @@ public class IdeGuiStateManager {
   }
 
   public ProjectManager getProjectManager() {
+
     return projectManager;
   }
 
@@ -117,6 +122,6 @@ public class IdeGuiStateManager {
    */
   private static class Holder {
 
-    private static final IdeGuiStateManager INSTANCE = new IdeGuiStateManager();
+    private static IdeGuiStateManager INSTANCE = new IdeGuiStateManager();
   }
 }
