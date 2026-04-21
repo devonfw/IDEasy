@@ -31,7 +31,7 @@ public class IdeGuiStateManager {
     this.projectDirectory = System.getenv("IDE_ROOT");
 
     if (this.projectDirectory == null) {
-      LOG.warn("IDE_ROOT environment variable is not set! Any dependent operation will fail before switchContext is called");
+      LOG.warn("IDE_ROOT environment variable is not set! This might lead to unexpected behavior!");
     }
 
     this.projectManager = new ProjectManager(Path.of(projectDirectory));
@@ -42,6 +42,19 @@ public class IdeGuiStateManager {
    */
   public static IdeGuiStateManager getInstance() {
     return Holder.INSTANCE;
+  }
+
+  /**
+   * This method is used in cases where the IDE_ROOT environment variable is not set, e.g. in test contexts on GitHub actions. This method will retrieve the
+   * current instance, set the project directory manually an then return the updated instance. <strong><u>USE WITH CARE.</u></strong>
+   *
+   * @param ideRoot root directory for the ide projects.
+   * @return the singleton instance of the {@link IdeGuiStateManager}.
+   */
+  public static IdeGuiStateManager getInstance(String ideRoot) {
+    IdeGuiStateManager instance = Holder.INSTANCE;
+    instance.projectDirectory = ideRoot;
+    return instance;
   }
 
   /**
@@ -78,7 +91,7 @@ public class IdeGuiStateManager {
    * @throws FileNotFoundException id either the specified project folder or workspace does not exist.
    */
   public IdeGuiContext switchContext(Path rootDirectory, String projectName, String workspaceName) throws FileNotFoundException {
-    
+
     this.projectDirectory = rootDirectory.toString();
     this.projectManager = new ProjectManager(rootDirectory);
 

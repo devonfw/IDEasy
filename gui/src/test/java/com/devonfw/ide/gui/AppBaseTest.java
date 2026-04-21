@@ -5,7 +5,6 @@ import static org.testfx.assertions.api.Assertions.assertThat;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.file.Path;
 import java.util.Arrays;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -16,8 +15,6 @@ import javafx.stage.Stage;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.CleanupMode;
-import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,15 +23,13 @@ import com.devonfw.ide.gui.context.IdeGuiStateManager;
 /**
  * Basic UI Test
  */
-public class AppBaseTest extends HeadlessApplicationTest {
+public class AppBaseTest extends IdeGuiApplicationTest {
 
   private static Logger LOGGER = LoggerFactory.getLogger(AppBaseTest.class);
 
   private Button androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen;
   private ComboBox<String> selectedProject, selectedWorkspace;
 
-  @TempDir(cleanup = CleanupMode.ON_SUCCESS)
-  private static Path temporayProjectDirectoryPath;
 
   @Override
   public void start(Stage stage) throws IOException {
@@ -43,7 +38,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
     assertThat(mainViewUrl).as("Cannot resolve main UI FXML resource!").isNotNull();
 
     FXMLLoader fxmlLoader = new FXMLLoader(mainViewUrl);
-    fxmlLoader.setController(new MainController(temporayProjectDirectoryPath.toString()));
+    fxmlLoader.setController(new MainController(getMockIdeRoot().toString()));
     Parent root = fxmlLoader.load();
     stage.setScene(new Scene(root));
     stage.requestFocus(); //sometimes needed for headless setup to work
@@ -64,24 +59,24 @@ public class AppBaseTest extends HeadlessApplicationTest {
   @BeforeAll
   protected static void generateProjectFolderStructure() throws FileNotFoundException {
 
-    LOGGER.debug("tempDir: {}", temporayProjectDirectoryPath);
+    LOGGER.debug("tempDir: {}", getMockIdeRoot());
     for (int i = 0; i <= 5; i++) {
       String projectFolderName = "project-" + i;
-      assertThat(temporayProjectDirectoryPath.resolve(projectFolderName).toFile().mkdir())
+      assertThat(getMockIdeRoot().resolve(projectFolderName).toFile().mkdir())
           .as("Unable to create mock project directory for mock project " + i)
           .isTrue();
-      assertThat(temporayProjectDirectoryPath.resolve(projectFolderName).resolve("workspaces").toFile().mkdir())
+      assertThat(getMockIdeRoot().resolve(projectFolderName).resolve("workspaces").toFile().mkdir())
           .as("Unable to create mock workspaces directory for mock project " + i)
           .isTrue();
-      assertThat(temporayProjectDirectoryPath.resolve(projectFolderName).resolve("workspaces").resolve("main").toFile().mkdir())
+      assertThat(getMockIdeRoot().resolve(projectFolderName).resolve("workspaces").resolve("main").toFile().mkdir())
           .as(
               "Unable to create mock main workspace directory for mock project " + i)
           .isTrue();
     }
-    LOGGER.info("project folders: {}", Arrays.toString(temporayProjectDirectoryPath.toFile().list()));
+    LOGGER.info("project folders: {}", Arrays.toString(getMockIdeRoot().toFile().list()));
 
     //We set the project root directory to the temporary directory before all tests, so that the IDE can find the projects in the test.
-    IdeGuiStateManager.getInstance().switchContext(temporayProjectDirectoryPath, "project-1", "main");
+    IdeGuiStateManager.getInstance(getMockIdeRoot().toString()).switchContext(getMockIdeRoot(), "project-1", "main");
   }
 
   /**
