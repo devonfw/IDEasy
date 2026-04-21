@@ -76,7 +76,7 @@ public class AppBaseTest extends IdeGuiApplicationTest {
     LOGGER.info("project folders: {}", Arrays.toString(getMockIdeRoot().toFile().list()));
 
     //We set the project root directory to the temporary directory before all tests, so that the IDE can find the projects in the test.
-    IdeGuiStateManager.getInstance(getMockIdeRoot().toString()).switchContext(getMockIdeRoot(), "project-1", "main");
+    IdeGuiStateManager.getInstance(getMockIdeRoot().toString()).switchContext("project-1", "main");
   }
 
   /**

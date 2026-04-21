@@ -85,24 +85,6 @@ public class IdeGuiStateManager {
   }
 
   /**
-   * This variant of the {@link #switchContext(String, String)} method is used when the IDE_ROOT environment variable has to be set manually. USE WITH CARE.
-   * (e.g. in tests)
-   *
-   * @param rootDirectory root directory for the ide projects.
-   * @param projectName 1st level folder of the project
-   * @param workspaceName used workspace
-   * @return the new {@link IdeGuiContext} for the selected project and workspace.
-   * @throws FileNotFoundException id either the specified project folder or workspace does not exist.
-   */
-  public IdeGuiContext switchContext(Path rootDirectory, String projectName, String workspaceName) throws FileNotFoundException {
-
-    this.projectDirectory = rootDirectory.toString();
-    this.projectManager = new ProjectManager(rootDirectory);
-
-    return switchContext(projectName, workspaceName);
-  }
-
-  /**
    * @return the current {@link IdeGuiContext} based on the selected project.
    */
   public IdeGuiContext getCurrentContext() {
