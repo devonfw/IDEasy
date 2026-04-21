@@ -81,17 +81,23 @@ public final class TruststoreUtil {
    * @throws Exception if an error occurs while loading the default truststore.
    */
   public static KeyStore getDefaultTruststore() throws Exception {
-    String javaHome = System.getProperty("java.home");
-    Path cacertsPath = Path.of(javaHome, "lib", "security", "cacerts");
-    if (!Files.exists(cacertsPath)) {
-      throw new IllegalStateException("Default cacerts not found: " + cacertsPath);
-    }
+    TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+    trustManagerFactory.init((KeyStore) null);
 
-    KeyStore cacerts = KeyStore.getInstance(KeyStore.getDefaultType());
-    try (InputStream in = Files.newInputStream(cacertsPath)) {
-      cacerts.load(in, DEFAULT_CACERTS_PASSWORD);
+    for (TrustManager trustManager : trustManagerFactory.getTrustManagers()) {
+      if (trustManager instanceof X509TrustManager x509TrustManager) {
+        KeyStore truststore = KeyStore.getInstance(KeyStore.getDefaultType());
+        truststore.load(null, DEFAULT_CACERTS_PASSWORD);
+
+        int i = 0;
+        for (X509Certificate cert : x509TrustManager.getAcceptedIssuers()) {
+          truststore.setCertificateEntry("cert-" + i, cert);
+          i++;
+        }
+        return truststore;
+      }
     }
-    return cacerts;
+    throw new IllegalStateException("No X509TrustManager found in default TrustManagerFactory");
   }
 
   /**
@@ -369,7 +375,6 @@ public final class TruststoreUtil {
       socket.startHandshake();
     }
   }
-
 
   /**
    * Generates a human-readable description of the given X.509 certificate including subject, issuer, serial number, validity period, signature algorithm, and
