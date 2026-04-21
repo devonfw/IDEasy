@@ -77,18 +77,10 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     return false;
   }
 
-  /**
-   * @deprecated will be removed once all "dependencies.json" are created in ide-urls.
-   */
-  @Deprecated
-  protected void installDependencies() {
-
-  }
 
   @Override
   protected ToolInstallation doInstall(ToolInstallRequest request) {
 
-    installDependencies();
     Step step = request.getStep();
     if (step == null) {
       return doInstallStep(request);
