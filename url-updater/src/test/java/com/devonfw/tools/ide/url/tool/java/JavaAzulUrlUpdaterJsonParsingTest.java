@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.url.tool.java;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatNoException;
+import org.assertj.core.api.Assertions;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -18,7 +17,7 @@ import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 /**
  * Tests JSON response parsing in {@link JavaAzulUrlUpdater}.
  */
-class JavaAzulUrlUpdaterJsonParsingTest {
+class JavaAzulUrlUpdaterJsonParsingTest extends Assertions {
 
   @Test
   void shouldParseRootArrayResponse() throws Exception {
@@ -110,7 +109,7 @@ class JavaAzulUrlUpdaterJsonParsingTest {
     // then
     assertThat(updater.addedUrls).contains(
         "https://cdn.azul.com/zulu/bin/zulu17.56.15-ca-crac-jdk17.0.14-win_x64.zip",
-        "https://cdn.azul.com/zulu/bin/zulu17.56.15-ca-crac-jdk17.0.14-win_x64.msi",
+        "https://cdn.azul.com/zulu/bin/zulu17.56.15-ca-crac-jdk17.0.14-win_aarch64.zip",
         "https://cdn.azul.com/zulu/bin/zulu17.56.15-ca-crac-jdk17.0.14-linux_x64.tar.gz",
         "https://cdn.azul.com/zulu/bin/zulu17.56.15-ca-crac-jdk17.0.14-linux_aarch64.tar.gz",
         "https://cdn.azul.com/zulu/bin/zulu17.56.15-ca-crac-jdk17.0.14-macosx_x64.tar.gz",

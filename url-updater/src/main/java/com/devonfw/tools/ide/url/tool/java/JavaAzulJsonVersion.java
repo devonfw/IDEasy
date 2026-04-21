@@ -31,7 +31,7 @@ public class JavaAzulJsonVersion implements JsonVersionItem {
   public String version() {
 
     if (this.javaVersion == null || this.javaVersion.isEmpty()) {
-      return null;
+      return "";
     }
     int end = this.javaVersion.size();
     while ((end > 1) && Integer.valueOf(0).equals(this.javaVersion.get(end - 1))) {

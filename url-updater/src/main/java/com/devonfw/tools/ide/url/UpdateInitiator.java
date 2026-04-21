@@ -20,7 +20,7 @@ public class UpdateInitiator {
 
   /**
    * @param args the command-line arguments. arg[0] points to the {@code ide-urls} repository. arg[1] defines a timeout for GitHub actions in Duration
-   *     string format and arg[2] can be used to specify a single tool to update instead of all tools, either by toolname (e.g. java) or using the Classname of
+   *     string format and arg[2] (optional) can be used to specify a single tool to update instead of all tools, either by toolname (e.g. java) or using the Classname of
    *     the Updater (e.g. JavaAzulUrlUpdater). The timeout is used to prevent the GitHub action from running into a timeout error due to too long execution
    *     time.
    */

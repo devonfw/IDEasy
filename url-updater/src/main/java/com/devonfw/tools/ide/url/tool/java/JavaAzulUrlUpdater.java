@@ -31,7 +31,6 @@ public class JavaAzulUrlUpdater extends JsonUrlUpdater<JavaAzulJsonObject, JavaA
 
   @Override
   protected void addVersion(UrlVersion urlVersion, JavaAzulJsonVersion pkg) {
-
     String url = pkg.getDownloadUrl();
     if (url == null || url.isBlank()) {
       return;

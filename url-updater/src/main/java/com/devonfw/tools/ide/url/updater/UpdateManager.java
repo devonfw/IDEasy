@@ -120,7 +120,8 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
 
     for (AbstractUrlUpdater updater : this.updaters) {
       if (updater.getTool().equals(tool) || updater.getClass().getSimpleName().equals(tool)) {
-        update(updater);}
+        update(updater);
+      }
     }
   }
 
