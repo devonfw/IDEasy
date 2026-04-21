@@ -164,10 +164,3 @@ class JavaAzulUrlUpdaterJsonParsingTest extends Assertions {
   }
 
 }
-
-
-
-
-
-
-
