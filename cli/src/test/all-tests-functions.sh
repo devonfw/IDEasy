@@ -44,7 +44,8 @@ function doDownloadRelease () {
     # Change OS type based on github workflow matrix.os name
     local osType
     osType=$(doGetOsType)
-    url=$(grep "href=\"https://.*${osType}.tar.gz" "$pageHtmlLocal" | grep -o "https://[^\"]*${osType}.tar.gz" | head -1)
+    architecture=$(doGetArchNameForOs "$osType")
+    url=$(grep "href=\"https://.*${osType}-${architecture}.tar.gz" "$pageHtmlLocal" | grep -o "https://[^\"]*${osType}-${architecture}.tar.gz" | head -1)
     echo "Trying to download IDEasy for OS: ${osType} from: ${url} to: ${IDEASY_COMPRESSED_FILE:?} ..."
     curl -o "${IDEASY_COMPRESSED_FILE:?}" "$url"
     rm "${pageHtmlLocal:?}"
@@ -55,27 +56,84 @@ function doGetOsType() {
   local osType
   case "$OSTYPE" in
     msys*|cygwin*|win32*)
-      osType="windows-x64"
+      osType="windows"
       ;;
     linux*|gnu*)
-      osType="linux-x64"
+      osType="linux"
       ;;
     darwin*|macos*)
-      # Try to distinguish between Apple Silicon and Intel Macs
-      if sysctl -n machdep.cpu.brand_string 2>/dev/null | grep -qi "Apple"; then
-        osType="mac-arm64"
-      else
-        osType="mac-x64"
-      fi
+      osType="mac"
       ;;
     *)
       echo "Unknown OSTYPE: $OSTYPE. Falling back to windows (most common developer machine)." >&2
-      osType="windows-x64"
+      osType="windows"
       ;;
   esac
   echo "Detected OS type: ${osType}" >&2
   echo "$osType"
 }
+
+doGetArchNameForOs() {
+  local machine archEnv archWow
+  local osType="$1"
+
+  case "$osType" in
+    linux|mac)
+      machine="$(uname -m 2>/dev/null || echo "")"
+      case "$machine" in
+        arm64|aarch64)
+          echo "arm64"
+          ;;
+        x86_64|amd64)
+          echo "x64"
+          ;;
+        *)
+          echo "Unknown architecture from uname -m: '$machine' (osType=$osType). Falling back to x64." >&2
+          echo "x64"
+          ;;
+      esac
+      ;;
+
+    windows)
+      # Prefer Windows-native environment variables (more reliable than uname in Git Bash/MSYS/Cygwin).
+      # Normalize to lower-case for comparisons.
+      archEnv="$(printf '%s' "${PROCESSOR_ARCHITECTURE:-}" | tr '[:upper:]' '[:lower:]')"
+      archWow="$(printf '%s' "${PROCESSOR_ARCHITEW6432:-}" | tr '[:upper:]' '[:lower:]')"
+
+      # If running as 32-bit on 64-bit Windows, PROCESSOR_ARCHITEW6432 may reveal the underlying OS arch.
+      case "${archWow:-$archEnv}" in
+        arm64)
+          echo "arm64"
+          ;;
+        amd64|x86_64)
+          echo "x64"
+          ;;
+        *)
+          # Best-effort fallback for environments where env vars aren't available/accurate.
+          machine="$(uname -m 2>/dev/null || echo "")"
+          case "$machine" in
+            arm64|aarch64)
+              echo "arm64"
+              ;;
+            x86_64|amd64)
+              echo "x64"
+              ;;
+            *)
+              echo "Unknown Windows architecture (PROCESSOR_ARCHITECTURE='${archEnv}', PROCESSOR_ARCHITEW6432='${archWow}', uname -m='${machine}'). Falling back to x64." >&2
+              echo "x64"
+              ;;
+          esac
+          ;;
+      esac
+      ;;
+
+    *)
+      echo "Unsupported osType: $osType. Falling back to x64." >&2
+      echo "x64"
+      ;;
+  esac
+}
+
 
 # doCreateLink <source> <target-link>
 function doCreateLink() {
