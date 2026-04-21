@@ -103,7 +103,7 @@ class AwsTest extends AbstractIdeContextTest {
 
   private void checkInstallation(IdeTestContext context) {
 
-    Aws commandlet = new Aws(context);
+    Aws commandlet = context.getCommandletManager().getCommandlet(Aws.class);
     assertThat(commandlet.getInstalledVersion().toString()).isEqualTo("2.24.15");
     assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed aws in version 2.24.15");
     assertThat(context.getConfPath().resolve(PROJECT_AWS)).exists();
