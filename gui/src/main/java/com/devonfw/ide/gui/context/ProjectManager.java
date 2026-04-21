@@ -78,7 +78,9 @@ public class ProjectManager {
    */
   protected void readWorkspaces() {
 
-    assert !projectNames.isEmpty() : "No projects initialized, cannot read workspaces!";
+    if (projectNames.isEmpty()) {
+      Log.info("Project list is empty. Therefore no workspaces can be read.");
+    }
 
     for (String projectName : projectNames) {
       Path projectDirectory = ideRootDirectory.resolve(projectName);

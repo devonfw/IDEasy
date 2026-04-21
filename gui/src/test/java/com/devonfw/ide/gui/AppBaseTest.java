@@ -60,23 +60,11 @@ public class AppBaseTest extends IdeGuiApplicationTest {
   protected static void generateProjectFolderStructure() throws FileNotFoundException {
 
     LOGGER.debug("tempDir: {}", getMockIdeRoot());
-    for (int i = 0; i <= 5; i++) {
-      String projectFolderName = "project-" + i;
-      assertThat(getMockIdeRoot().resolve(projectFolderName).toFile().mkdir())
-          .as("Unable to create mock project directory for mock project " + i)
-          .isTrue();
-      assertThat(getMockIdeRoot().resolve(projectFolderName).resolve("workspaces").toFile().mkdir())
-          .as("Unable to create mock workspaces directory for mock project " + i)
-          .isTrue();
-      assertThat(getMockIdeRoot().resolve(projectFolderName).resolve("workspaces").resolve("main").toFile().mkdir())
-          .as(
-              "Unable to create mock main workspace directory for mock project " + i)
-          .isTrue();
-    }
-    LOGGER.info("project folders: {}", Arrays.toString(getMockIdeRoot().toFile().list()));
+    FakeProjectFolderStructureHelper.createFakeProjectFolderStructure(getMockIdeRoot());
+    LOGGER.debug("project folders: {}", Arrays.toString(getMockIdeRoot().toFile().list()));
 
     //We set the project root directory to the temporary directory before all tests, so that the IDE can find the projects in the test.
-    IdeGuiStateManager.getInstance(getMockIdeRoot().toString()).switchContext("project-1", "main");
+    IdeGuiStateManager.getInstanceOverrideRootDir(getMockIdeRoot().toString()).switchContext("project-1", "main");
   }
 
   /**

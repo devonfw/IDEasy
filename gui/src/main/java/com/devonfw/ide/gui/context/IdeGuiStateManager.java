@@ -17,7 +17,7 @@ public class IdeGuiStateManager {
 
   private static final Logger LOG = LoggerFactory.getLogger(IdeGuiStateManager.class);
 
-  private String projectDirectory;
+  private Path ideRootDir;
 
   private ProjectManager projectManager;
 
@@ -33,13 +33,15 @@ public class IdeGuiStateManager {
    * @return the singleton instance of the {@link IdeGuiStateManager}.
    */
   public static IdeGuiStateManager getInstance() {
+
     IdeGuiStateManager instance = Holder.INSTANCE;
-    if (instance.projectDirectory == null) {
+    if (instance.ideRootDir == null) {
       String ideRoot = System.getenv("IDE_ROOT");
       if (ideRoot == null) {
         throw new IllegalStateException("IDE_ROOT environment variable is not set!");
       }
-      instance.projectManager = new ProjectManager(Path.of(ideRoot));
+      instance.ideRootDir = Path.of(ideRoot);
+      instance.projectManager = new ProjectManager(instance.ideRootDir);
     }
     return Holder.INSTANCE;
   }
@@ -51,13 +53,17 @@ public class IdeGuiStateManager {
    * @param ideRoot root directory for the ide projects.
    * @return the singleton instance of the {@link IdeGuiStateManager}.
    */
-  public static IdeGuiStateManager getInstance(String ideRoot) {
+  public static IdeGuiStateManager getInstanceOverrideRootDir(String ideRoot) {
+
+    IdeGuiStateManager instance = Holder.INSTANCE;
     if (ideRoot == null) {
       throw new IllegalArgumentException("ideRoot must not be null!");
+    } else if (instance.ideRootDir != null) {
+      LOG.warn("ideRootDir is already set. You are overriding it.");
     }
-    IdeGuiStateManager instance = Holder.INSTANCE;
-    instance.projectDirectory = ideRoot;
-    instance.projectManager = new ProjectManager(Path.of(ideRoot));
+
+    instance.ideRootDir = Path.of(ideRoot);
+    instance.projectManager = new ProjectManager(instance.ideRootDir);
     return instance;
   }
 
@@ -69,11 +75,14 @@ public class IdeGuiStateManager {
    */
   public IdeGuiContext switchContext(String projectName, String workspaceName) throws FileNotFoundException {
 
-    LOG.debug("Switching context to project {} and workspace {}", projectName, workspaceName);
+    LOG.debug("Trying to switch context to project {} and workspace {}", projectName, workspaceName);
 
-    Path workspacePath = Path.of(projectDirectory, projectName, "workspaces", workspaceName);
+    Path projectPath = ideRootDir.resolve(projectName);
+    Path workspacePath = projectPath.resolve("workspaces").resolve(workspaceName);
 
-    if (!workspacePath.toFile().exists()) {
+    if (!projectPath.toFile().exists()) {
+      throw new FileNotFoundException("Project " + workspacePath + " does not exist!");
+    } else if (!workspacePath.toFile().exists()) {
       throw new FileNotFoundException("Workspace " + workspacePath + " does not exist!");
     }
 
@@ -85,7 +94,7 @@ public class IdeGuiStateManager {
   }
 
   /**
-   * @return the current {@link IdeGuiContext} based on the selected project.
+   * @return the current {@link IdeGuiContext} based on the selected project. is <code>null</code>, if no context has been set via switchContext.
    */
   public IdeGuiContext getCurrentContext() {
 
