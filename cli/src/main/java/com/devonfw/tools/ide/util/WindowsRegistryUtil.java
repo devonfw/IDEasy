@@ -71,6 +71,28 @@ public final class WindowsRegistryUtil {
         });
   }
 
+  public static Optional<String> getExecutablePath(String displayNameRegex) {
+
+    // DisplayIcon often points directly to an EXE
+    Optional<String> displayIcon = findValue(displayNameRegex, "DisplayIcon")
+        .map(s -> {
+          String value = s.trim();
+          if (value.startsWith("\"")) {
+            int end = value.indexOf('"', 1);
+            return end > 1 ? value.substring(1, end) : null;
+          }
+          int comma = value.indexOf(',');
+          return comma > 0 ? value.substring(0, comma) : value;
+        });
+
+    if (displayIcon.isPresent()) {
+      return displayIcon;
+    }
+
+    // Fallback: return InstallLocation (caller decides which EXE to use)
+    return findValue(displayNameRegex, "InstallLocation");
+  }
+
   private static Optional<String> findValue(String displayNameRegex, String valueName) {
     Pattern pattern = Pattern.compile(displayNameRegex, Pattern.CASE_INSENSITIVE);
 
