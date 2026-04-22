@@ -7,6 +7,9 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/1815[#1815]: Suppress Update notification while updating
+* https://github.com/devonfw/IDEasy/issues/1050[#1050]: Introduce dependencies.json for LazyDocker and remove hardcoded dependency
+* https://github.com/devonfw/IDEasy/issues/1174[#1174]: Add UrlUpdater for Java Azul edition
+* https://github.com/devonfw/IDEasy/issues/451[#451]: Automatically remove macOS quarantine attribute after tool extraction
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/44?closed=1[milestone 2026.05.001].
 

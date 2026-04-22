@@ -76,9 +76,11 @@ class JmcTest extends AbstractIdeContextTest {
       assertThat(context.getSoftwarePath().resolve("jmc/HelloWorld.txt")).hasContent("Hello World!");
       assertThat(context.getSoftwarePath().resolve("jmc/JDK Mission Control")).doesNotExist();
     } else if (context.getSystemInfo().isMac()) {
-      assertThat(context.getSoftwarePath().resolve("jmc/jmc")).exists();
+      Jmc jmc = context.getCommandletManager().getCommandlet(Jmc.class);
+      assertThat(jmc.getToolBinPath().resolve("jmc")).exists();
     }
-    assertThat(context.getSoftwarePath().resolve("jmc/.ide.software.version")).exists().hasContent("8.3.0");
+    Jmc jmcCommandlet = context.getCommandletManager().getCommandlet(Jmc.class);
+    assertThat(jmcCommandlet.getInstalledVersion().toString()).isEqualTo("8.3.0");
     assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed jmc in version 8.3.0");
   }
 }
