@@ -175,7 +175,13 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     } else {
       throw new CliException("Installation process for " + this.tool + " in version " + resolvedVersion + " failed with exit code " + exitCode + "!");
     }
-    installationPath = getInstallationPath(toolEdition.edition(), resolvedVersion);
+    if (this.context.isForceMode()) {
+      // has to be set to null so the already installed tool doesn't open
+      // during the installation process in force mode
+      installationPath = null;
+    } else {
+      installationPath = getInstallationPath(toolEdition.edition(), resolvedVersion);
+    }
     if (installationPath == null) {
       if (request.isDirect()) {
         LOG.warn("The tool {} is about to be installed. Please complete the installation and if required "
