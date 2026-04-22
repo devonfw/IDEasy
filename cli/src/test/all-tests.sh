@@ -29,8 +29,8 @@ function doRestoreWindowsRegistry() {
   # restore HKCU\Environment on windows
   # reg import only adds/overwrites, so delete existing values first
   if [ -n "$BAK_HKCU_ENVIRONMENT" ] && [ -f "$BAK_HKCU_ENVIRONMENT" ]; then
-    reg delete "HKCU\\Environment" //va //f >/dev/null 2>&1
-    reg import "$(cygpath -w "$BAK_HKCU_ENVIRONMENT")" >/dev/null 2>&1
+    reg delete "HKCU\\Environment" //va //f
+    reg import "$(cygpath -w "$BAK_HKCU_ENVIRONMENT")"
     rm -f "$BAK_HKCU_ENVIRONMENT"
     echo "Restored HKCU\\Environment from backup"
   fi
@@ -102,17 +102,6 @@ function doTests () {
   exit 0
 }
 
-# Workaround to create license.agreement file and simulate a proper installation.
-LICENSE_AGREEMENT="${HOME}/.ide/.license.agreement"
-BAK_LICENSE_AGREEMENT=""
-mkdir -p "${HOME}/.ide"
-if [ -f "${LICENSE_AGREEMENT}" ]; then
-  BAK_LICENSE_AGREEMENT="${LICENSE_AGREEMENT}.ideasy-test-backup"
-  cp "${LICENSE_AGREEMENT}" "${BAK_LICENSE_AGREEMENT}"
-else
-  touch "${LICENSE_AGREEMENT}"
-fi
-
 source "$(dirname "${0}")"/all-tests-functions.sh
 
 # Remove side-effects
@@ -134,11 +123,21 @@ if [ -f "$HOME/.zshrc" ]; then
   BAK_ZSHRC="$HOME/.zshrc.ideasy-test-backup"
   cp "$HOME/.zshrc" "$BAK_ZSHRC"
 fi
+# Workaround to create license.agreement file and simulate a proper installation.
+LICENSE_AGREEMENT="${HOME}/.ide/.license.agreement"
+BAK_LICENSE_AGREEMENT=""
+mkdir -p "${HOME}/.ide"
+if [ -f "${LICENSE_AGREEMENT}" ]; then
+  BAK_LICENSE_AGREEMENT="${LICENSE_AGREEMENT}.ideasy-test-backup"
+  cp "${LICENSE_AGREEMENT}" "${BAK_LICENSE_AGREEMENT}"
+else
+  touch "${LICENSE_AGREEMENT}"
+fi
 # backup HKCU\Environment on windows
 BAK_HKCU_ENVIRONMENT=""
 if doIsWindows; then
   BAK_HKCU_ENVIRONMENT="$HOME/hkcu-environment.ideasy-test-backup.reg"
-  reg export "HKCU\\Environment" "$(cygpath -w "$BAK_HKCU_ENVIRONMENT")" //y >/dev/null
+  reg export "HKCU\\Environment" "$(cygpath -w "$BAK_HKCU_ENVIRONMENT")" //y
 fi
 
 trap "export PATH=\"${BAK_PATH}\" && export IDE_ROOT=\"${BAK_IDE_ROOT}\" && doRestoreRcFiles && doRestoreLicenseAgreement && doRestoreWindowsRegistry && echo \"Test environment restored\"" EXIT
