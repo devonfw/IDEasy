@@ -122,6 +122,12 @@ public class PgAdmin extends GlobalToolCommandlet {
         }
       }
     }
+    return "pgadmin";
+  }
+
+  @Override
+  public String getWindowsAppName() {
+    return PG_ADMIN_APP_NAME;
   }
 
   private List<PackageManagerCommand> getPackageManagerCommandsUninstall() {

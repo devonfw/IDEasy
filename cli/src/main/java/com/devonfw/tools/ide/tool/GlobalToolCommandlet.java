@@ -219,6 +219,13 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     return this.context.getFileAccess().getBinParentPath(binPath);
   }
 
+  /**
+   * @return the name of the tool under windows. Usually the start menu folder entry.
+   */
+  public String getWindowsAppName() {
+    return getName();
+  }
+
   @Override
   public abstract void uninstall();
 }
