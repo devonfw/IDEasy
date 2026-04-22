@@ -174,7 +174,13 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     }
     installationPath = getInstallationPath(toolEdition.edition(), resolvedVersion);
     if (installationPath == null) {
-      LOG.warn("Could not find binary {} on PATH after installation.", getBinaryName());
+      if (request.isDirect()) {
+        LOG.warn("The tool {} is about to be installed. Please complete the installation and if required "
+            + "reboot your machine. Then run the command to start the tool.", this.tool);
+      } else {
+        throw new CliException("The tool " + this.tool + " is about to be installed. Please complete the installation and if required "
+            + "reboot your machine. Then rerun the command to start the tool.", 2);
+      }
     }
     return createToolInstallation(installationPath, resolvedVersion, true, pc, false);
   }
