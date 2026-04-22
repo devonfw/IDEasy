@@ -72,9 +72,9 @@ public class GitContextImpl implements GitContext {
 
   @Override
   public boolean isRepositoryUpdateAvailable(Path repository, Path trackedCommitIdPath) {
-    
+
     String trackedCommitId = this.context.getFileAccess().readFileContent(trackedCommitIdPath);
-    if (trackedCommitId == null)
+    if (trackedCommitId == null) {
       return true;
     }
 
