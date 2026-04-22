@@ -1296,19 +1296,11 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
             if (getGitContext().isRepositoryUpdateAvailable(settingsRepository, getSettingsCommitIdPath()) || (
                 getGitContext().fetchIfNeeded(settingsRepository) && getGitContext().isRepositoryUpdateAvailable(
                     settingsRepository, getSettingsCommitIdPath()))) {
-              
-              if (isSettingsRepositorySymlinkOrJunction()) {
-                if (!(cmd instanceof UpdateCommandlet) && isForceMode()) {
-                  // Only print the update nag if the user did not explicitly call "ide -f update" to prevent confusion when the user already wants to apply the updates.
-                  String msg = "Updates are available for the settings repository. Please pull the latest changes by yourself or by calling \"ide -f update\" to apply them.";
-                  IdeLogLevel.INTERACTION.log(LOG, msg);
-                }
-              } else {
-                if (!(cmd instanceof UpdateCommandlet)) {
-                  // Only print the update nag if the user did not explicitly call "ide update" to prevent confusion when the user already wants to apply the updates.
-                  String msg = "Updates are available for the settings repository. If you want to apply the latest changes, call \"ide update\"";
-                  IdeLogLevel.INTERACTION.log(LOG, msg);
-                }
+
+              // Inform the user that an update is available. The update message is suppressed if we are already running the update
+              String msg = determineSettingsUpdateMessage(cmd);
+              if (msg != null) {
+                IdeLogLevel.INTERACTION.log(LOG, msg);
               }
             }
           }
@@ -1327,6 +1319,29 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       LOG.trace("Commandlet did not match");
     }
     return result;
+  }
+
+
+  /**
+   * When an update is available for the settings repository, we log a message to the console, reminding the user to run {@code ide update}.
+   * This method determines the correct message to log, depending on whether the settings repository is a symlink/junction, or not.
+   * Should the user already be running the appropriate {@code ide update} command, the message is suppressed to avoid confusion.
+   *
+   * @param cmd the {@link Commandlet}.
+   * @return {@code msg} to log to the console. {@code null} if the message is suppressed.
+   */
+  private String determineSettingsUpdateMessage(Commandlet cmd) {
+    if (isSettingsRepositorySymlinkOrJunction()) {
+      if ((cmd instanceof UpdateCommandlet) && isForceMode()) {
+        return null;
+      }
+      return "Updates are available for the settings repository. Please pull the latest changes by yourself or by calling \"ide -f update\" to apply them.";
+    } else {
+      if (cmd instanceof UpdateCommandlet) {
+        return null;
+      }
+      return "Updates are available for the settings repository. If you want to apply the latest changes, call \"ide update\"";
+    }
   }
 
   private boolean ensureLicenseAgreement(Commandlet cmd) {
