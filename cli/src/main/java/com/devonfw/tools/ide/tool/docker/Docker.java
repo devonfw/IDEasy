@@ -162,6 +162,8 @@ public class Docker extends GlobalToolCommandlet {
   @Override
   public void uninstall() {
 
+    super.uninstall();
+
     if (this.context.getSystemInfo().isLinux()) {
       runWithPackageManager(false, getPackageManagerCommandsUninstall());
     }
