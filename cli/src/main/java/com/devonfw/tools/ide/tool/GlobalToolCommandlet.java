@@ -197,7 +197,12 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   public abstract VersionIdentifier getInstalledVersion();
 
   @Override
-  public abstract String getInstalledEdition();
+  public String getInstalledEdition() {
+    if (getInstalledVersion() == null) {
+      return null;
+    }
+    return getName();
+  }
 
   @Override
   protected Path getInstallationPath(String edition, VersionIdentifier resolvedVersion) {
