@@ -83,7 +83,13 @@ public class IniSection extends IniElement {
    */
   public void setPropertyLine(String keyValue) {
     IniProperty property = new IniProperty(keyValue);
-    setProperty(property.getKey(), property.getValue());
+    IniProperty existing = properties.get(property.getKey());
+    if (existing == null) {
+      sectionElements.add(property);
+      properties.put(property.getKey(), property);
+    } else {
+      existing.setValue(property.getValue());
+    }
   }
 
   /**
