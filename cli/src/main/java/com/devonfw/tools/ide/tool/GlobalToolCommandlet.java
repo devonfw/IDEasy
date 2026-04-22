@@ -2,8 +2,10 @@ package com.devonfw.tools.ide.tool;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -19,6 +21,7 @@ import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
+import com.devonfw.tools.ide.util.WindowsRegistryUtil;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -210,6 +213,9 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     Path toolBinary = Path.of(getBinaryName());
     Path binaryPath = this.context.getPath().findBinary(toolBinary);
     if ((binaryPath == toolBinary) || !Files.exists(binaryPath)) {
+      if (this.context.getSystemInfo().isWindows()) {
+        return getExecutableFolderFromWindowsRegistry(); // if global tool did not get add to PATH
+      }
       return null;
     }
     Path binPath = binaryPath.getParent();
@@ -227,5 +233,50 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   }
 
   @Override
-  public abstract void uninstall();
+  public void uninstall() {
+
+    Path uninstallExecutable = null;
+    if (this.context.getSystemInfo().isWindows()) {
+      uninstallExecutable = getUninstallationExecutableFromWindowsRegistry();
+    }
+    if (uninstallExecutable != null) {
+      ProcessContext pc = this.context.newProcess()
+          .errorHandling(ProcessErrorHandling.LOG_WARNING)
+          .executable(uninstallExecutable);
+      int exitCode = pc.run(ProcessMode.BACKGROUND).getExitCode();
+      if (exitCode == 0) {
+        IdeLogLevel.SUCCESS.log(LOG, "Uninstallation process for {} in version {} has started", this.tool, getInstalledVersion());
+      } else {
+        throw new CliException("Uninstallation process for " + this.tool + " failed with exit code " + exitCode + "!");
+      }
+    } else {
+      LOG.warn("Uninstaller for tool {} was not found. Please uninstall the tool manually if required.", this.tool);
+    }
+  }
+
+  private Path getExecutableFolderFromWindowsRegistry() {
+
+    Optional<String> executablePathOptional = WindowsRegistryUtil.getExecutablePath(getWindowsAppName());
+    if (executablePathOptional.isPresent()) {
+      Path executablePath = Paths.get(executablePathOptional.get());
+      if (Files.isExecutable(executablePath)) {
+        Path installationDir = executablePath.getParent();
+        this.context.getPath().setPath(getName(), installationDir);
+        return installationDir;
+      }
+    }
+    return null;
+  }
+
+  private Path getUninstallationExecutableFromWindowsRegistry() {
+
+    Optional<String> uninstall = WindowsRegistryUtil.getUninstallString(getWindowsAppName());
+    if (uninstall.isPresent()) {
+      Path uninstallationExecutablePath = Paths.get(uninstall.get());
+      if (Files.isExecutable(uninstallationExecutablePath)) {
+        return uninstallationExecutablePath;
+      }
+    }
+    return null;
+  }
 }
