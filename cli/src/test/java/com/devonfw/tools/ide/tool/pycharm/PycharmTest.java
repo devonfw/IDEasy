@@ -153,9 +153,36 @@ class PycharmTest extends AbstractIdeContextTest {
     assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"))).exists();
   }
 
+  /**
+   * Tests if the custom jvm options of the ide variable PYCHARM_STUDIO_VM_ARGS have been set.
+   */
+  @ParameterizedTest
+  @ValueSource(strings = { "windows", "mac", "linux" })
+  void testPycharmRunWithCustomJvmOptions(String os) {
+    // arrange
+    SystemInfo systemInfo = SystemInfoMock.of(os);
+    context.setSystemInfo(systemInfo);
+    Pycharm pycharm = context.getCommandletManager().getCommandlet(Pycharm.class);
+
+    // act
+    pycharm.run();
+
+    // assert
+    assertThat(context.getWorkspacePath().resolve(".pycharm.vmoptions"))
+        .exists()
+        .hasContent("""
+            -Xms256m
+            -Xmx4096m
+            -XX:ReservedCodeCacheSize=256m
+            -ea
+            -Dsun.io.useCanonCaches=true
+            """);
+  }
+
   private void checkInstallation(IdeTestContext context) {
 
-    assertThat(context.getSoftwarePath().resolve("pycharm/.ide.software.version")).exists().hasContent("2024.3.5");
+    Pycharm commandlet = context.getCommandletManager().getCommandlet(Pycharm.class);
+    assertThat(commandlet.getInstalledVersion().toString()).isEqualTo("2024.3.5");
     assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed pycharm in version 2024.3.5");
     assertThat(context).logAtDebug().hasMessage("Omitting installation of inactive plugin InactivePlugin (inactivePlugin).");
     assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin ActivePlugin'.");
