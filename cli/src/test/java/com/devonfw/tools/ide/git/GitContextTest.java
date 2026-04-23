@@ -183,6 +183,29 @@ class GitContextTest extends AbstractIdeContextTest {
     assertThat(tempDir.resolve("new-folder")).doesNotExist();
   }
 
+  @Test
+  void testGitRepoIsRecognizedCorrectly(@TempDir Path tempDir) {
+    String gitRepoUrl = "https://github.com/test";
+    
+    IdeTestContext context = newGitContext(tempDir);
+    GitContext gitContext = context.getGitContext();
+
+    gitContext.pullOrCloneAndResetIfNeeded(GitUrl.ofMain(gitRepoUrl), tempDir, "origin");
+
+    assertThat(gitContext.isGitRepo(tempDir)).isTrue();
+  }
+
+  @Test
+  void testNormalDirIsNoRepo(@TempDir Path tempDir) {
+    IdeTestContext context = newGitContext(tempDir);
+    GitContext gitContext = context.getGitContext();
+    
+    FileAccess fileAccess = context.getFileAccess();
+    fileAccess.mkdirs(tempDir.resolve("new-folder"));
+
+    assertThat(gitContext.isGitRepo(tempDir)).isFalse();
+  }
+
   /**
    * Test for fetchIfNeeded when the system is offline.
    *
