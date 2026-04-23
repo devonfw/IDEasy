@@ -1,5 +1,8 @@
 package com.devonfw.tools.ide.tool.repository;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,10 +40,10 @@ public class ChecksumVerificationTest extends AbstractIdeContextTest {
     String checksum = context.getFileAccess().checksum(file, "SHA-256");
     UrlGenericChecksum expectedChecksum = new TestUrlGenericChecksum(checksum, "SHA-256");
 
-    // act
-    repo.verifyChecksum(file, expectedChecksum);
-
-    // assert (no exception thrown)
+    // act & assert
+    assertDoesNotThrow(() -> {
+      repo.verifyChecksum(file, expectedChecksum);
+    });
   }
 
   /**
@@ -61,13 +64,11 @@ public class ChecksumVerificationTest extends AbstractIdeContextTest {
     UrlGenericChecksum expectedChecksum = new TestUrlGenericChecksum(wrongChecksum, "SHA-256");
 
     // act & assert
-    try {
+    CliException e = assertThrows(CliException.class, () -> {
       repo.verifyChecksum(file, expectedChecksum);
-      fail("Exception expected");
-    } catch (CliException e) {
-      assertThat(e).hasMessageContaining("has the wrong SHA-256 checksum");
-      assertThat(e).hasMessageContaining("Expected " + wrongChecksum);
-    }
+    });
+    assertThat(e).hasMessageContaining("has the wrong SHA-256 checksum");
+    assertThat(e).hasMessageContaining("Expected " + wrongChecksum);
   }
 
   private static class TestUrlGenericChecksum implements UrlGenericChecksum {
