@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.os;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,13 @@ public class WindowsHelperImpl implements WindowsHelper {
 
   /** Registry key for the users environment variables. */
   public static final String HKCU_ENVIRONMENT = "HKCU\\Environment";
+
+  /** Registry keys for uninstallation of installed applications. */
+  private static final String[] REGISTRY_PATHS = {
+      "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall",
+      "HKLM\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall",
+      "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall"
+  };
 
   private final IdeContext context;
 
@@ -58,6 +66,32 @@ public class WindowsHelperImpl implements WindowsHelper {
   }
 
   @Override
+  public String getRegistryValueBySearch(String displayNameRegex, String key) {
+
+    Pattern pattern = Pattern.compile(displayNameRegex, Pattern.CASE_INSENSITIVE);
+    for (String path : REGISTRY_PATHS) {
+      List<String> output = runReg("query", path, "/s");
+      if (output != null) {
+        String currentPath = null;
+        for (String line : output) {
+          line = line.trim();
+          if (line.startsWith("HKEY_")) {
+            currentPath = line;
+            continue;
+          }
+          if (currentPath != null && line.startsWith("DisplayName")) {
+            String name = extractRegistryValue(line);
+            if (name != null && pattern.matcher(name).find()) {
+              return getRegistryValue(currentPath, key);
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  @Override
   public String getRegistryValue(String path, String key) {
 
     ProcessResult result = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable("reg").addArgs("query", path, "/v", key)
@@ -65,8 +99,24 @@ public class WindowsHelperImpl implements WindowsHelper {
     if (!result.isSuccessful()) {
       return null;
     }
-    List<String> out = result.getOut();
-    return retrieveRegString(key, out);
+    List<String> out = runReg("query", path, "/v", key);
+    if (out != null) {
+      return retrieveRegString(key, out);
+    }
+    return null;
+  }
+
+  private List<String> runReg(String... args) {
+
+    ProcessResult result = this.context.newProcess()
+        .errorHandling(ProcessErrorHandling.LOG_WARNING)
+        .executable("reg")
+        .addArgs(args)
+        .run(ProcessMode.DEFAULT_CAPTURE);
+    if (!result.isSuccessful()) {
+      return null;
+    }
+    return result.getOut();
   }
 
   /**
@@ -108,6 +158,16 @@ public class WindowsHelperImpl implements WindowsHelper {
       i++;
     }
     return i;
+  }
+
+  private static String extractRegistryValue(String line) {
+    int idx = line.indexOf("REG_");
+    if (idx < 0) {
+      return null;
+    }
+    return line.substring(idx)
+        .replaceFirst("REG_\\w+\\s+", "")
+        .trim();
   }
 
 }
