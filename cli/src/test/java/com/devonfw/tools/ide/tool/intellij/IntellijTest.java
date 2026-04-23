@@ -207,36 +207,33 @@ class IntellijTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = newContext("intellij");
     Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
-    commandlet.setEdition("ultimate");
-    commandlet.setVersion("*");
-    ToolEdition original = new ToolEdition("intellij", "ultimate");
+    ToolEditionAndVersion requested = new ToolEditionAndVersion(new ToolEdition("intellij", "ultimate"));
+    requested.setVersion(VersionIdentifier.LATEST);
 
     // act
-    ToolEdition adjusted = commandlet.adjustRequestedEdition(null, original);
+    ToolEditionAndVersion adjusted = commandlet.adjustRequestedEdition(requested);
 
     // assert
-    assertThat(adjusted.edition()).isEqualTo("intellij");
+    assertThat(adjusted.getEdition().edition()).isEqualTo("intellij");
   }
 
   /**
    * Tests whether IDEasy correctly switches editions when the specified version is after 2025.2.6.1
-   */
+   */ 
   @Test
   void testAdjustRequestedEditionSwitchesForUltimateWithVersionAboveCutoff() {
 
     // arrange
     IdeTestContext context = newContext("intellij");
     Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
-    ToolEdition requestedEdition = new ToolEdition("intellij", "ultimate");
-    ToolEditionAndVersion requested = new ToolEditionAndVersion(requestedEdition);
+    ToolEditionAndVersion requested = new ToolEditionAndVersion(new ToolEdition("intellij", "ultimate"));
     requested.setVersion(VersionIdentifier.of("2025.3"));
-    requested.setResolvedVersion(VersionIdentifier.of("2025.3"));
 
     // act
-    ToolEdition adjusted = commandlet.adjustRequestedEdition(requested, requestedEdition);
+    ToolEditionAndVersion adjusted = commandlet.adjustRequestedEdition(requested);
 
     // assert
-    assertThat(adjusted.edition()).isEqualTo("intellij");
+    assertThat(adjusted.getEdition().edition()).isEqualTo("intellij");
   }
 
   /**
@@ -248,16 +245,14 @@ class IntellijTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = newContext("intellij");
     Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
-    ToolEdition requestedEdition = new ToolEdition("intellij", "ultimate");
-    ToolEditionAndVersion requested = new ToolEditionAndVersion(requestedEdition);
+    ToolEditionAndVersion requested = new ToolEditionAndVersion(new ToolEdition("intellij", "ultimate"));
     requested.setVersion(VersionIdentifier.of("2025.2.6.1"));
-    requested.setResolvedVersion(VersionIdentifier.of("2025.2.6.1"));
 
     // act
-    ToolEdition adjusted = commandlet.adjustRequestedEdition(requested, requestedEdition);
+    ToolEditionAndVersion adjusted = commandlet.adjustRequestedEdition(requested);
 
     // assert
-    assertThat(adjusted.edition()).isEqualTo("ultimate");
+    assertThat(adjusted.getEdition().edition()).isEqualTo("ultimate");
   }
   
   /**

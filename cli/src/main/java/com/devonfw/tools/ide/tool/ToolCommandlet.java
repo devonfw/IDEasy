@@ -366,11 +366,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     ToolEditionAndVersion requested = request.getRequested();
     if (requested == null) {
       edition = new ToolEdition(this.tool, getConfiguredEdition());
-
-      // Adjust edition if necessary based on requested version. This is needed for tools like IntelliJ where we may need to automatically switch editions
-      ToolEdition edition_adjusted = adjustRequestedEdition(requested, edition);
-
-      requested = new ToolEditionAndVersion(edition_adjusted);
+      requested = new ToolEditionAndVersion(edition);
       request.setRequested(requested);
     
     } else {
@@ -378,21 +374,20 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       if (edition == null) {
         // If no edition was specified, set it to the configured one
         edition = new ToolEdition(this.tool, getConfiguredEdition());
+        requested.setEdition(edition);
       }
-
-      // Adjust edition if necessary based on requested version. This is needed for tools like IntelliJ where we may need to automatically switch editions
-      ToolEdition edition_adjusted = adjustRequestedEdition(requested, edition);
-      requested.replaceEdition(edition_adjusted);
     }
 
+    // Adjust edition if necessary based on requested version. This is needed for tools like IntelliJ where we may need to automatically switch editions
+    requested = adjustRequestedEdition(requested);
     edition = requested.getEdition();
+  
     GenericVersionRange version = requested.getVersion();
     if (version == null) {
       version = getConfiguredVersion();
       requested.setVersion(version);
     }
     VersionIdentifier resolvedVersion = requested.getResolvedVersion();
-
     if (resolvedVersion == null) {
       if (this.context.isSkipUpdatesMode()) {
         ToolEditionAndVersion installed = request.getInstalled();
@@ -408,19 +403,18 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       }
       requested.setResolvedVersion(resolvedVersion);
     }
-
   }
 
   /**
    * Hook for subclasses to adjust the requested tool edition before the version is finalized.
    *
-   * @param request the install request.
-   * @param requestedVersion the version requested by the user before IDEasy applies defaults. May be {@code null}.
+   * @param requested the requested {@link ToolEditionAndVersion}
+   * @return the given or trgansformed {@link ToolEditionAndVersion}
    */
-  protected ToolEdition adjustRequestedEdition(ToolEditionAndVersion request, ToolEdition edition) {
+  protected ToolEditionAndVersion adjustRequestedEdition(ToolEditionAndVersion requested) {
 
     // default no-op
-    return edition;
+    return requested;
   }
 
 
