@@ -25,7 +25,7 @@ class EnvironmentCommandletGlobalTest extends AbstractIdeContextTest {
     Files.createDirectories(userHomeIde);
     Files.writeString(userHomeIde.resolve("ide.properties"), "export FOO=bar\n");
 
-    IdeTestContext context = new IdeTestContext(tempDir.resolve("cwd"), null);
+    IdeTestContext context = new IdeTestContext(tempDir, null);
     context.setUserHome(userHome);
 
     EnvironmentCommandlet env = context.getCommandletManager().getCommandlet(EnvironmentCommandlet.class);
