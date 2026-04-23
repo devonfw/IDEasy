@@ -528,7 +528,6 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     URI uri = null;
     HttpRequest request = null;
     try {
-      uri = URI.create(url);
       request = createRequestWithOptionalAuth(url).method("HEAD", HttpRequest.BodyPublishers.noBody()).timeout(Duration.ofSeconds(5)).build();
       return this.client.send(request, HttpResponse.BodyHandlers.ofString());
     } catch (Exception e) {
