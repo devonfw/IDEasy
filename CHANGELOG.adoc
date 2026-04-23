@@ -4,10 +4,9 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 == 2026.05.001
 
-* https://github.com/devonfw/IDEasy/issues/1833[#1833]: No settings repo update with missing `.commit.id`
-
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1833[#1833]: No settings repo update with missing `.commit.id`
 * https://github.com/devonfw/IDEasy/issues/1693[#1693]: Fix behavior when there's no settings repo (.../settings/.git)
 * https://github.com/devonfw/IDEasy/issues/1815[#1815]: Suppress Update notification while updating
 * https://github.com/devonfw/IDEasy/issues/1050[#1050]: Introduce dependencies.json for LazyDocker and remove hardcoded dependency
