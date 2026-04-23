@@ -5,7 +5,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -16,12 +15,12 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
-import com.devonfw.tools.ide.util.WindowsRegistryUtil;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -162,7 +161,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
       executable = fileAccess.findFirst(downloadBinaryPath, Files::isExecutable, false);
     }
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(executable);
-    int exitCode = pc.run(ProcessMode.BACKGROUND).getExitCode();
+    int exitCode = pc.run(ProcessMode.BACKGROUND_SILENT).getExitCode();
     if (tmpDir != null) {
       fileAccess.delete(tmpDir);
     }
@@ -241,30 +240,32 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   @Override
   public void uninstall() {
 
-    Path uninstallExecutable = null;
     if (this.context.getSystemInfo().isWindows()) {
-      uninstallExecutable = getUninstallationExecutableFromWindowsRegistry();
-    }
-    if (uninstallExecutable != null) {
-      ProcessContext pc = this.context.newProcess()
-          .errorHandling(ProcessErrorHandling.LOG_WARNING)
-          .executable(uninstallExecutable);
-      int exitCode = pc.run(ProcessMode.BACKGROUND).getExitCode();
-      if (exitCode == 0) {
-        IdeLogLevel.SUCCESS.log(LOG, "Uninstallation process for {} in version {} has started", this.tool, getInstalledVersion());
+      String uninstallString = getUninstallationStringFromWindowsRegistry();
+      if (uninstallString != null) {
+        ProcessContext pc = this.context.newProcess()
+            .errorHandling(ProcessErrorHandling.LOG_WARNING)
+            .executable("cmd")
+            .addArgs("/c", uninstallString);
+        int exitCode = pc.run(ProcessMode.BACKGROUND_SILENT).getExitCode();
+        if (exitCode == 0) {
+          IdeLogLevel.SUCCESS.log(LOG, "Uninstallation process for {} in version {} has started", this.tool, getInstalledVersion());
+        } else {
+          throw new CliException("Uninstallation process for " + this.tool + " failed with exit code " + exitCode + "!");
+        }
       } else {
-        throw new CliException("Uninstallation process for " + this.tool + " failed with exit code " + exitCode + "!");
+        LOG.warn("No uninstaller was found for tool {}. Please uninstall it manually.", this.tool);
       }
-    } else {
-      LOG.warn("Uninstaller for tool {} was not found. Please uninstall the tool manually if required.", this.tool);
     }
+
   }
 
   private Path getExecutableFolderFromWindowsRegistry() {
 
-    Optional<String> executablePathOptional = WindowsRegistryUtil.getExecutablePath(getWindowsAppName());
-    if (executablePathOptional.isPresent()) {
-      Path executablePath = Paths.get(executablePathOptional.get());
+    WindowsHelper windowsHelper = WindowsHelper.get(this.context);
+    String displayIcon = windowsHelper.getRegistryValueBySearch(getWindowsAppName(), "DisplayIcon");
+    if (displayIcon != null) {
+      Path executablePath = Paths.get(displayIcon);
       if (Files.isExecutable(executablePath)) {
         Path installationDir = executablePath.getParent();
         this.context.getPath().setPath(getName(), installationDir);
@@ -274,15 +275,9 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     return null;
   }
 
-  private Path getUninstallationExecutableFromWindowsRegistry() {
+  private String getUninstallationStringFromWindowsRegistry() {
 
-    Optional<String> uninstall = WindowsRegistryUtil.getUninstallString(getWindowsAppName());
-    if (uninstall.isPresent()) {
-      Path uninstallationExecutablePath = Paths.get(uninstall.get());
-      if (Files.isExecutable(uninstallationExecutablePath)) {
-        return uninstallationExecutablePath;
-      }
-    }
-    return null;
+    WindowsHelper windowsHelper = WindowsHelper.get(this.context);
+    return windowsHelper.getRegistryValueBySearch(getWindowsAppName(), "UninstallString");
   }
 }
