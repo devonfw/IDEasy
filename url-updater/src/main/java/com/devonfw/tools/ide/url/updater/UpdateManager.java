@@ -68,7 +68,7 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
   private final UrlFinalReport urlFinalReport;
 
   private final List<AbstractUrlUpdater> updaters = List.of(
-      new AndroidStudioUrlUpdater(), new AwsUrlUpdater(), new AzureUrlUpdater(), new CorepackUrlUpdater(), new DockerDesktopUrlUpdater(),
+      new AndroidStudioUrlUpdater(), new AwsUrlUpdater(), new AzureUrlUpdater(), new CopilotUrlUpdater(), new CorepackUrlUpdater(), new DockerDesktopUrlUpdater(),
       new DotNetUrlUpdater(),
       new EclipseCppUrlUpdater(), new EclipseJeeUrlUpdater(), new EclipseJavaUrlUpdater(), new GCloudUrlUpdater(),
       new GcViewerUrlUpdater(), new GhUrlUpdater(), new GoUrlUpdater(), new GraalVmCommunityUpdater(), new GraalVmOracleUrlUpdater(),
