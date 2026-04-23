@@ -4,6 +4,8 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
 
+import com.devonfw.tools.ide.url.tool.java.JavaAzulUrlUpdater;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +48,7 @@ import com.devonfw.tools.ide.url.tool.pycharm.PycharmUrlUpdater;
 import com.devonfw.tools.ide.url.tool.python.PythonUrlUpdater;
 import com.devonfw.tools.ide.url.tool.quarkus.QuarkusUrlUpdater;
 import com.devonfw.tools.ide.url.tool.sonar.SonarUrlUpdater;
+import com.devonfw.tools.ide.url.tool.squirrelsql.SquirrelSqlUrlUpdater;
 import com.devonfw.tools.ide.url.tool.terraform.TerraformUrlUpdater;
 import com.devonfw.tools.ide.url.tool.tomcat.TomcatUrlUpdater;
 import com.devonfw.tools.ide.url.tool.uv.UvUrlUpdater;
@@ -69,10 +72,10 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
       new EclipseCppUrlUpdater(), new EclipseJeeUrlUpdater(), new EclipseJavaUrlUpdater(), new GCloudUrlUpdater(),
       new GcViewerUrlUpdater(), new GhUrlUpdater(), new GoUrlUpdater(), new GraalVmCommunityUpdater(), new GraalVmOracleUrlUpdater(),
       new GradleUrlUpdater(), new HelmUrlUpdater(), new IntellijUrlUpdater(), new JasyptUrlUpdater(),
-      new JavaUrlUpdater(), new JenkinsUrlUpdater(), new JmcUrlUpdater(), new KotlincUrlUpdater(),
+      new JavaUrlUpdater(), new JavaAzulUrlUpdater(), new JenkinsUrlUpdater(), new JmcUrlUpdater(), new KotlincUrlUpdater(),
       new KotlincNativeUrlUpdater(), new LazyDockerUrlUpdater(), new MvnUrlUpdater(),
       new NgUrlUpdater(), new NodeUrlUpdater(), new NpmUrlUpdater(), new OcUrlUpdater(), new PgAdminUrlUpdater(), new PipUrlUpdater(), new PycharmUrlUpdater(),
-      new PythonUrlUpdater(), new QuarkusUrlUpdater(), new DockerRancherDesktopUrlUpdater(), new SonarUrlUpdater(),
+      new PythonUrlUpdater(), new QuarkusUrlUpdater(), new DockerRancherDesktopUrlUpdater(), new SonarUrlUpdater(), new SquirrelSqlUrlUpdater(),
       new TerraformUrlUpdater(), new TomcatUrlUpdater(), new UvUrlUpdater(), new VsCodeUrlUpdater());
 
   /**
@@ -117,7 +120,7 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
   public void update(String tool) {
 
     for (AbstractUrlUpdater updater : this.updaters) {
-      if (updater.getTool().equals(tool)) {
+      if (updater.getTool().equals(tool) || updater.getClass().getSimpleName().equals(tool)) {
         update(updater);
       }
     }
