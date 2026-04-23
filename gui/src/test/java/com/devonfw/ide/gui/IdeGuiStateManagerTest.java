@@ -9,21 +9,17 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.ide.gui.context.IdeGuiContext;
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
 
-public class IdeGuiStateManagerTest {
+public class IdeGuiStateManagerTest extends IdeGuiMockRootTest {
 
-  @TempDir
-  static Path mockIdeRoot;
-
-  private IdeGuiStateManager guiStateManager = IdeGuiStateManager.getInstanceOverrideRootDir(mockIdeRoot.toString());
+  private IdeGuiStateManager guiStateManager = IdeGuiStateManager.getInstanceOverrideRootDir(getMockIdeRoot().toString());
 
   @BeforeAll
   static void setup() {
-    FakeProjectFolderStructureHelper.createFakeProjectFolderStructure(mockIdeRoot);
+    FakeProjectFolderStructureHelper.createFakeProjectFolderStructure(getMockIdeRoot());
   }
 
   @Test
@@ -56,7 +52,7 @@ public class IdeGuiStateManagerTest {
   @Test
   void testSwitchContext() throws IOException {
 
-    Files.list(mockIdeRoot).forEach((projectPath) -> {
+    Files.list(getMockIdeRoot()).forEach((projectPath) -> {
       try {
         guiStateManager.switchContext(projectPath.getFileName().toString(), "main");
       } catch (FileNotFoundException e) {
@@ -68,7 +64,7 @@ public class IdeGuiStateManagerTest {
   @Test
   void testThrowsIfNonExistantProjectSelected() throws IOException {
 
-    Path fakeProject = mockIdeRoot.resolve("nonExistingProject");
+    Path fakeProject = getMockIdeRoot().resolve("nonExistingProject");
 
     try {
       guiStateManager.switchContext(fakeProject.getFileName().toString(), "main");
@@ -81,7 +77,7 @@ public class IdeGuiStateManagerTest {
   @Test
   void testThrowsIfNonExistantWorkspaceSelected() throws IOException {
 
-    Files.list(mockIdeRoot).forEach((projectPath) -> {
+    Files.list(getMockIdeRoot()).forEach((projectPath) -> {
       try {
         guiStateManager.switchContext(projectPath.getFileName().toString(), "test");
       } catch (FileNotFoundException e) {

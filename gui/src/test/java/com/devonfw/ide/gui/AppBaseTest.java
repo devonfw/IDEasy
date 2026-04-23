@@ -23,7 +23,7 @@ import com.devonfw.ide.gui.context.IdeGuiStateManager;
 /**
  * Basic UI Test
  */
-public class AppBaseTest extends IdeGuiApplicationTest {
+public class AppBaseTest extends HeadlessApplicationTest {
 
   private static Logger LOGGER = LoggerFactory.getLogger(AppBaseTest.class);
 
