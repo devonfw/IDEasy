@@ -201,6 +201,14 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     return List.of();
   }
 
+  /**
+   * @return the {@link List} of {@link PackageManagerCommand}s to use on Linux to uninstall this tool. If empty, no package manager installation will be
+   *     triggered on Linux.
+   */
+  protected List<PackageManagerCommand> getUninstallPackageManagerCommands() {
+    return List.of();
+  }
+
   @Override
   public abstract VersionIdentifier getInstalledVersion();
 
@@ -256,8 +264,14 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
       } else {
         LOG.warn("No uninstaller was found for tool {}. Please uninstall it manually.", this.tool);
       }
+    } else if (this.context.getSystemInfo().isLinux()) {
+      boolean result = runWithPackageManager(false, getUninstallPackageManagerCommands());
+      if (!result) {
+        LOG.warn("Uninstallation failed for tool {}. Try uninstalling it manually.", this.tool);
+      } else {
+        IdeLogLevel.SUCCESS.log(LOG, "Uninstallation of tool {} was successful", this.tool);
+      }
     }
-
   }
 
   private Path getExecutableFolderFromWindowsRegistry() {
