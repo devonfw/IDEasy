@@ -18,7 +18,7 @@ public class IdeGuiStateManagerTest extends IdeGuiMockRootTest {
   private IdeGuiStateManager guiStateManager = IdeGuiStateManager.getInstanceOverrideRootDir(getMockIdeRoot().toString());
 
   @BeforeAll
-  static void setup() {
+  static void setup() throws IOException {
     FakeProjectFolderStructureHelper.createFakeProjectFolderStructure(getMockIdeRoot());
   }
 

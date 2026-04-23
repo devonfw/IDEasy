@@ -2,7 +2,6 @@ package com.devonfw.ide.gui;
 
 import static org.testfx.assertions.api.Assertions.assertThat;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
@@ -57,7 +56,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
    * to work in the test context. Generates a structure like this: /project-[0..6]/workspaces/main
    */
   @BeforeAll
-  protected static void generateProjectFolderStructure() throws FileNotFoundException {
+  protected static void generateProjectFolderStructure() throws IOException {
 
     LOGGER.debug("tempDir: {}", getMockIdeRoot());
     FakeProjectFolderStructureHelper.createFakeProjectFolderStructure(getMockIdeRoot());
