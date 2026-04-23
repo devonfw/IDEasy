@@ -1149,6 +1149,15 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       if (result != null) {
         LOG.error(result.getErrorMessage());
       }
+      if (cmd != null && result instanceof ValidationState res) {
+        final CliArgument arg = res.getCliArgument();
+        if (arg != null) {
+          step.error("Option {} not found for commandlet {}.", arg.get(), cmd.getName());
+          IdeLogLevel.INTERACTION.log(LOG, "To see the available options and arguments call the following command:\n"
+              + "ide {} help", cmd.getName());
+          return 1;
+        }
+      }
       step.error("Invalid arguments: {}", current.getArgs());
       IdeLogLevel.INTERACTION.log(LOG, "For additional details run ide help {}", cmd == null ? "" : cmd.getName());
       return 1;
@@ -1542,6 +1551,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       if (currentProperty == null) {
         LOG.trace("No option or next value found");
         ValidationState state = new ValidationState(null);
+        state.setCliArgument(currentArgument);
         state.addErrorMessage("No matching property found");
         return state;
       }

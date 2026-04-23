@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.validation;
 
+import com.devonfw.tools.ide.cli.CliArgument;
+
 /**
  * Implementation of {@link ValidationResult} as a mutable state that can collect errors dynamically.
  */
@@ -8,6 +10,11 @@ public class ValidationState implements ValidationResult {
   private final String propertyName;
 
   private StringBuilder errorMessage;
+
+  /**
+   * Field for the {@link CliArgument} that was the reason for a failed validation.
+   */
+  private CliArgument cliArgument;
 
   /**
    * The default constructor for no property.
@@ -67,5 +74,19 @@ public class ValidationState implements ValidationResult {
         addErrorMessage(result.getErrorMessage());
       }
     }
+  }
+
+  /**
+   * @param cliArgument The {@link CliArgument} that failed the validation.
+   */
+  public void setCliArgument(CliArgument cliArgument) {
+    this.cliArgument = cliArgument;
+  }
+
+  /**
+   * @return The {@link CliArgument} that failed the validation.
+   */
+  public CliArgument getCliArgument() {
+    return this.cliArgument;
   }
 }
