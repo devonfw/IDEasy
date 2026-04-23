@@ -75,6 +75,7 @@ public class GitContextImpl implements GitContext {
 
     String trackedCommitId = this.context.getFileAccess().readFileContent(trackedCommitIdPath);
     if (trackedCommitId == null) {
+      LOG.warn("Commit ID was not present at {}", trackedCommitIdPath);
       return true;
     }
 
