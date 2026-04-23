@@ -73,12 +73,12 @@ public class GitContextImpl implements GitContext {
   @Override
   public boolean isRepositoryUpdateAvailable(Path repository, Path trackedCommitIdPath) {
 
-    String trackedCommitId;
-    try {
-      trackedCommitId = Files.readString(trackedCommitIdPath);
-    } catch (IOException e) {
-      return false;
+    String trackedCommitId = this.context.getFileAccess().readFileContent(trackedCommitIdPath);
+    if (trackedCommitId == null) {
+      LOG.warn("Commit ID was not present at {}", trackedCommitIdPath);
+      return true;
     }
+
     String remoteFailureMessage = String.format("Failed to get the remote commit id of settings repository '%s', missing remote upstream branch?", repository);
     String remoteCommitId = runGitCommandAndGetSingleOutput(remoteFailureMessage, repository, ProcessMode.DEFAULT_CAPTURE, "rev-parse", "@{u}");
     return !trackedCommitId.equals(remoteCommitId);
