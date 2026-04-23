@@ -352,6 +352,11 @@ public class GitContextImpl implements GitContext {
     return gitPath;
   }
 
+  @Override
+  public boolean isGitRepo(Path directory) {
+    return directory != null && Files.exists(directory.resolve(".git"));
+  }
+
   private Path findGitOnWindowsViaBash() {
     Path gitPath;
     Path bashBinary = this.context.findBashRequired();
