@@ -97,7 +97,13 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     ToolEdition edition = requested.getEdition();
     // Check if edition is set as "ultimate"
     if ("ultimate".equals(edition.edition())) {
-      VersionIdentifier version = VersionIdentifier.of(requested.getVersion().toString());
+      
+      VersionIdentifier version;
+      if (requested.getVersion() != null) {
+        version = VersionIdentifier.of(requested.getVersion().toString());  // <- This can be null!!!
+      } else {
+        version = getConfiguredVersion();
+      }
       // Check whether set version warrants switching editions
       if ((version.isGreater(INTELLIJ_LAST_SEPARATE_VERSION)) || // Specified version is > 2025.2.6.1 **OR** no specified version but configured version is > 2025.2.6.1
         (VersionIdentifier.LATEST.equals(version)) || // No version specified and no configured version
