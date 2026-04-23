@@ -4,10 +4,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.devonfw.tools.ide.cli.CliException;
+
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Test of {@link VersionIdentifier}.
@@ -356,6 +360,36 @@ class VersionIdentifierTest extends Assertions {
     assertThat(VersionIdentifier.of("1.0-alpha1.rc2").isStable()).isFalse();
     assertThat(VersionIdentifier.LATEST.isStable()).isTrue();
     assertThat(VersionIdentifier.LATEST_UNSTABLE.isStable()).isFalse();
+  }
+
+  @Test
+  void testResolveVersionPatternVersionFound() {
+    final VersionIdentifier identifier = VersionIdentifier.of("2025.01.002");
+    final List<VersionIdentifier> availableVersions = List.of(identifier);
+
+    final VersionIdentifier resolvedVersion = VersionIdentifier.resolveVersionPattern(identifier, availableVersions);
+    assertThat(resolvedVersion).isEqualTo(identifier);
+  }
+
+  @Test
+  void testResolveVersionPatternVersionFoundPattern() {
+    final VersionIdentifier identifier = VersionIdentifier.of("2025.01.002");
+    final VersionIdentifier identifierPattern = VersionIdentifier.of("2025.01.*");
+    final List<VersionIdentifier> availableVersions = List.of(identifier);
+
+    final VersionIdentifier resolvedVersion = VersionIdentifier.resolveVersionPattern(identifierPattern, availableVersions);
+    assertThat(resolvedVersion).isEqualTo(identifier);
+  }
+
+  @Test
+  void testResolveVersionPatternNoVersionFound() {
+    final VersionIdentifier identifier = VersionIdentifier.of("2025.01.002");
+    final VersionIdentifier identifierPattern = VersionIdentifier.of("2026.01.*");
+    final List<VersionIdentifier> availableVersions = List.of(identifier);
+
+    final Exception exception = assertThrows(CliException.class, () -> VersionIdentifier.resolveVersionPattern(identifierPattern, availableVersions));
+    assertThat(exception.getMessage()).isEqualTo("Could not find any version matching '" + identifierPattern + "' - there are " + availableVersions.size()
+        + " version(s) available but none matched!\nDid you mean one of: " + identifier + "?");
   }
 
 }

@@ -1146,20 +1146,40 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       }
       activateLogging(cmd);
       verifyIdeMinVersion(false);
-      if (result != null) {
-        LOG.error(result.getErrorMessage());
-      }
+
       if (cmd != null && result instanceof ValidationState res) {
         final CliArgument arg = res.getCliArgument();
         if (arg != null) {
-          step.error("Option {} not found for commandlet {}.", arg.get(), cmd.getName());
+          if (arg.getValue() != null) {
+            // --flag=value with an invalid value: reconstruct the error message here to control order
+            String exMsg = res.getParseExceptionMessage();
+            if (exMsg != null) {
+              step.error(Property.INVALID_ARGUMENT + ": {}", arg.getValue(), arg.getKey(), cmd.getName(), exMsg);
+            } else {
+              step.error(Property.INVALID_ARGUMENT, arg.getValue(), arg.getKey(), cmd.getName());
+            }
+            String hint = res.getParseHint();
+            if (hint != null) {
+              LOG.error(Property.INVALID_ARGUMENT_HELP_MULTIPLE, hint);
+            }
+          } else {
+            // Unknown option flag or positional value with invalid content
+            step.error("Option {} not found for commandlet {}.", arg.get(), cmd.getName());
+            String hint = res.getParseHint();
+            if (hint != null) {
+              LOG.error(Property.INVALID_ARGUMENT_HELP_MULTIPLE, hint);
+            }
+          }
           IdeLogLevel.INTERACTION.log(LOG, "To see the available options and arguments call the following command:\n"
               + "ide {} help", cmd.getName());
           return 1;
         }
       }
-      step.error("Invalid arguments: {}", current.getArgs());
-      IdeLogLevel.INTERACTION.log(LOG, "For additional details run ide help {}", cmd == null ? "" : cmd.getName());
+      if (result != null && (!(result instanceof ValidationState) || ((ValidationState) result).getCliArgument() == null) ) {
+        LOG.error(result.getErrorMessage());
+        step.error("Invalid arguments: {}", current.getArgs());
+        IdeLogLevel.INTERACTION.log(LOG, "For additional details run ide help {}", cmd == null ? "" : cmd.getName());
+      }
       return 1;
     } catch (Throwable t) {
       activateLogging(cmd);
@@ -1572,6 +1592,9 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       if (!matches) {
         ValidationState state = new ValidationState(null);
         state.addErrorMessage("No matching property found");
+        state.setCliArgument(currentArgument);
+        state.setParseHint(currentProperty.getAndClearLastParseHint());
+        state.setParseExceptionMessage(currentProperty.getAndClearLastParseExceptionMessage());
         return state;
       }
       currentArgument = arguments.current();

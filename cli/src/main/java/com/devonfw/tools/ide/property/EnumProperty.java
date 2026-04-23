@@ -1,6 +1,8 @@
 package com.devonfw.tools.ide.property;
 
 import java.util.Locale;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
@@ -46,6 +48,19 @@ public class EnumProperty<V extends Enum<V>> extends Property<V> {
     }
 
     throw new IllegalArgumentException(String.format("Invalid Enum option: %s", valueAsString));
+  }
+
+  /**
+   * @return All possible EnumValues as string, delimited by a comma.
+   */
+  public String getEnumValuesAsString() {
+    return Stream.of(this.valueType.getEnumConstants()).map(c -> String.format("'%s'", c.toString().toLowerCase(Locale.ROOT))).collect(Collectors.joining(", "));
+  }
+
+  @Override
+  protected String getValidValuesErrorHint(IdeContext context, Commandlet commandlet) {
+
+    return getEnumValuesAsString();
   }
 
   @Override

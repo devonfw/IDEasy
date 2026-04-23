@@ -76,6 +76,10 @@ public class ValidationState implements ValidationResult {
     }
   }
 
+  private String parseHint;
+
+  private String parseExceptionMessage;
+
   /**
    * @param cliArgument The {@link CliArgument} that failed the validation.
    */
@@ -88,5 +92,33 @@ public class ValidationState implements ValidationResult {
    */
   public CliArgument getCliArgument() {
     return this.cliArgument;
+  }
+
+  /**
+   * @param parseHint the hint to display when a parse error occurred (e.g. a list of valid values).
+   */
+  public void setParseHint(String parseHint) {
+    this.parseHint = parseHint;
+  }
+
+  /**
+   * @return the hint for the failed parse, or {@code null} if none.
+   */
+  public String getParseHint() {
+    return this.parseHint;
+  }
+
+  /**
+   * @param parseExceptionMessage the message from a non-{@link IllegalArgumentException} parse failure.
+   */
+  public void setParseExceptionMessage(String parseExceptionMessage) {
+    this.parseExceptionMessage = parseExceptionMessage;
+  }
+
+  /**
+   * @return the exception message from a non-{@link IllegalArgumentException} parse failure, or {@code null}.
+   */
+  public String getParseExceptionMessage() {
+    return this.parseExceptionMessage;
   }
 }

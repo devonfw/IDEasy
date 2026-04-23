@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.property;
 
+import java.util.stream.Collectors;
+
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -56,6 +58,15 @@ public class CommandletProperty extends Property<Commandlet> {
         collector.add(cmdName, null, null, cmd);
       }
     }
+  }
+
+  @Override
+  protected String getValidValuesErrorHint(IdeContext context, Commandlet commandlet) {
+
+    return context.getCommandletManager().getCommandlets().stream()
+        .map(Commandlet::getName)
+        .map(n -> "'" + n + "'")
+        .collect(Collectors.joining(", "));
   }
 
   @Override

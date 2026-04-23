@@ -52,4 +52,15 @@ class EnumPropertyTest {
 
     assertThat(collector.getCandidates().stream().map(CompletionCandidate::text)).containsExactly(expectedCandidates);
   }
+
+  @Test
+  void testGetEnumValuesAsString() {
+    final String expectedResult = "'elementzero', 'elementone', 'elementtwo'";
+
+    final EnumProperty<TestEnum> enumProp = new EnumProperty<>("", false, "", TestEnum.class);
+    final String actualResult = enumProp.getEnumValuesAsString();
+
+    assertThat(actualResult).isEqualTo(expectedResult);
+
+  }
 }

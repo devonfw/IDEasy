@@ -1,7 +1,9 @@
 package com.devonfw.tools.ide.version;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,8 +90,31 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
         return vi;
       }
     }
+    List<VersionIdentifier> closest = findClosestVersions(version, versions, 5);
+    String closestStr = closest.stream().map(Object::toString).collect(Collectors.joining(", "));
     throw new CliException(
-        "Could not find any version matching '" + version + "' - there are " + versions.size() + " version(s) available but none matched!");
+        "Could not find any version matching '" + version + "' - there are " + versions.size()
+            + " version(s) available but none matched!\nDid you mean one of: " + closestStr + "?");
+  }
+
+  private static List<VersionIdentifier> findClosestVersions(GenericVersionRange version, List<VersionIdentifier> versions, int maxCount) {
+
+    if (version instanceof VersionIdentifier vi && !vi.isPattern()) {
+      long requestedMajor = vi.getStart().getNumber();
+      List<VersionIdentifier> majorMatches = new ArrayList<>();
+      for (VersionIdentifier v : versions) {
+        if (v.getStart().getNumber() == requestedMajor) {
+          majorMatches.add(v);
+          if (majorMatches.size() >= maxCount) {
+            break;
+          }
+        }
+      }
+      if (!majorMatches.isEmpty()) {
+        return majorMatches;
+      }
+    }
+    return versions.size() <= maxCount ? versions : versions.subList(0, maxCount);
   }
 
   /**

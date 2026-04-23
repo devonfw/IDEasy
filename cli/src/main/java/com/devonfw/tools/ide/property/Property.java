@@ -32,7 +32,8 @@ public abstract class Property<V> {
 
   private static final Logger LOG = LoggerFactory.getLogger(Property.class);
 
-  private static final String INVALID_ARGUMENT = "Invalid CLI argument '{}' for property '{}' of commandlet '{}'";
+  public static final String INVALID_ARGUMENT = "Invalid CLI argument '{}' for property '{}' of commandlet '{}'";
+  public static final String INVALID_ARGUMENT_HELP_MULTIPLE = "Did you mean one of [{}]?";
 
   private static final String INVALID_ARGUMENT_WITH_EXCEPTION_MESSAGE = INVALID_ARGUMENT + ": {}";
 
@@ -52,6 +53,10 @@ public abstract class Property<V> {
 
   /** @see #getValue() */
   protected final List<V> value = new ArrayList<>();
+
+  private String lastParseHint;
+
+  private String lastParseExceptionMessage;
 
   /**
    * The constructor.
@@ -306,17 +311,49 @@ public abstract class Property<V> {
    */
   public final boolean assignValueAsString(String valueAsString, IdeContext context, Commandlet commandlet) {
 
+    this.lastParseHint = null;
+    this.lastParseExceptionMessage = null;
     try {
       setValueAsString(valueAsString, context);
       return true;
     } catch (Exception e) {
-      if (e instanceof IllegalArgumentException) {
-        LOG.warn(INVALID_ARGUMENT, valueAsString, getNameOrAlias(), commandlet.getName());
-      } else {
-        LOG.warn(INVALID_ARGUMENT_WITH_EXCEPTION_MESSAGE, valueAsString, getNameOrAlias(), commandlet.getName(), e.getMessage());
+      if (!(e instanceof IllegalArgumentException)) {
+        this.lastParseExceptionMessage = e.getMessage();
       }
+      this.lastParseHint = getValidValuesErrorHint(context, commandlet);
       return false;
     }
+  }
+
+  /**
+   * @return the hint string for the last failed parse (e.g. "Did you mean one of [...]?"), and clears it. Returns {@code null} if no hint is available.
+   */
+  public String getAndClearLastParseHint() {
+
+    String h = this.lastParseHint;
+    this.lastParseHint = null;
+    return h;
+  }
+
+  /**
+   * @return the exception message from the last failed parse if the exception was not an {@link IllegalArgumentException}, and clears it. Returns {@code null}
+   *     otherwise.
+   */
+  public String getAndClearLastParseExceptionMessage() {
+
+    String m = this.lastParseExceptionMessage;
+    this.lastParseExceptionMessage = null;
+    return m;
+  }
+
+  /**
+   * @param context the {@link IdeContext}.
+   * @param commandlet the {@link Commandlet} owning this property.
+   * @return a formatted string of valid values to show as a hint when an invalid value is given, or {@code null} if no hint is available.
+   */
+  protected String getValidValuesErrorHint(IdeContext context, Commandlet commandlet) {
+
+    return null;
   }
 
   /**

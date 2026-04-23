@@ -82,6 +82,12 @@ public class BooleanProperty extends Property<Boolean> {
   }
 
   @Override
+  protected String getValidValuesErrorHint(IdeContext context, Commandlet commandlet) {
+
+    return "'true', 'yes', 'false', 'no'";
+  }
+
+  @Override
   protected boolean applyValue(String argValue, boolean lookahead, CliArguments args, IdeContext context, Commandlet commandlet,
       CompletionCandidateCollector collector) {
 
