@@ -12,6 +12,9 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
+import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 
@@ -25,6 +28,8 @@ public final class MacOsHelper {
   private static final Set<String> INVALID_LINK_FOLDERS = Set.of(IdeContext.FOLDER_CONTENTS,
       IdeContext.FOLDER_RESOURCES, IdeContext.FOLDER_BIN);
 
+  private final IdeContext context;
+
   private final FileAccess fileAccess;
 
   private final SystemInfo systemInfo;
@@ -36,7 +41,10 @@ public final class MacOsHelper {
    */
   public MacOsHelper(IdeContext context) {
 
-    this(context.getFileAccess(), context.getSystemInfo());
+    super();
+    this.context = context;
+    this.fileAccess = context.getFileAccess();
+    this.systemInfo = context.getSystemInfo();
   }
 
   /**
@@ -48,8 +56,54 @@ public final class MacOsHelper {
   public MacOsHelper(FileAccess fileAccess, SystemInfo systemInfo) {
 
     super();
+    this.context = null;
     this.fileAccess = fileAccess;
     this.systemInfo = systemInfo;
+  }
+
+  /**
+   * Fixes macOS Gatekeeper blocking for downloaded tools. On macOS 15.1+ (Apple Silicon), just removing {@code com.apple.quarantine} is not enough since
+   * unsigned apps still get the "is damaged" error. So we clear all xattrs first, then ad-hoc codesign any {@code .app} bundles. Call this after writing
+   * {@code .ide.software.version} since codesigning seals the bundle.
+   *
+   * @param path the {@link Path} to the installation directory.
+   */
+  public void removeQuarantineAttribute(Path path) {
+
+    if (!this.systemInfo.isMac()) {
+      return;
+    }
+    if (this.context == null) {
+      LOG.debug("Cannot fix Gatekeeper for {} - no context available", path);
+      return;
+    }
+    // clear all extended attributes (quarantine, resource forks, etc.)
+    LOG.debug("Clearing extended attributes from {}", path);
+    try {
+      this.context.newProcess().executable("xattr").addArgs("-cr", path).run(ProcessMode.DEFAULT_SILENT);
+    } catch (Exception e) {
+      LOG.warn("Could not clear extended attributes from {}: {}", path, e.getMessage(), e);
+    }
+    // ad-hoc codesign .app bundles only if they are not already properly signed (e.g. Eclipse is notarized - we must not replace that)
+    Path appDir = findAppDir(path);
+    if (appDir != null) {
+      try {
+        ProcessResult verifyResult = this.context.newProcess().executable("codesign")
+            .errorHandling(ProcessErrorHandling.NONE)
+            .addArgs("-v", appDir).run(ProcessMode.DEFAULT_SILENT);
+        if (!verifyResult.isSuccessful()) {
+          LOG.debug("Ad-hoc codesigning {}", appDir);
+          ProcessResult signResult = this.context.newProcess().executable("codesign")
+              .errorHandling(ProcessErrorHandling.LOG_WARNING)
+              .addArgs("--force", "--deep", "--sign", "-", appDir).run(ProcessMode.DEFAULT_SILENT);
+          if (!signResult.isSuccessful()) {
+            LOG.warn("Could not codesign {} - app may be blocked by Gatekeeper", appDir);
+          }
+        }
+      } catch (Exception e) {
+        LOG.warn("Codesign not available for {}: {}", appDir, e.getMessage(), e);
+      }
+    }
   }
 
   /**
