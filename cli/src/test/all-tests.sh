@@ -14,6 +14,30 @@ function doRestoreRcFiles() {
   fi
 }
 
+function doRestoreLicenseAgreement() {
+  # Restore license agreement file to its pre-test state
+  if [ -n "$BAK_LICENSE_AGREEMENT" ] && [ -f "$BAK_LICENSE_AGREEMENT" ]; then
+    mv "$BAK_LICENSE_AGREEMENT" "$LICENSE_AGREEMENT"
+    echo "Restored ~/.ide/.license.agreement from backup"
+  else
+    rm -f "$LICENSE_AGREEMENT"
+    echo "Removed ~/.ide/.license.agreement created by test run"
+  fi
+}
+
+function doRestoreWindowsRegistry() {
+  # restore HKCU\Environment on windows
+  # reg import only adds/overwrites, so delete existing values first
+  if doIsWindows; then
+    if [ -n "$BAK_HKCU_ENVIRONMENT" ] && [ -f "$BAK_HKCU_ENVIRONMENT" ]; then
+      reg delete "HKCU\\Environment" //va //f
+      reg import "$(cygpath -w "$BAK_HKCU_ENVIRONMENT")"
+      rm -f "$BAK_HKCU_ENVIRONMENT"
+      echo "Restored HKCU\\Environment from backup"
+    fi
+  fi
+}
+
 function doResetVariables() {
   IDE_HOME="${DEBUG_INTEGRATION_TEST}"
   export IDE_ROOT="${IDE_HOME}/projects"
@@ -80,10 +104,6 @@ function doTests () {
   exit 0
 }
 
-# Workaround to create license.agreement file and simulate a proper installation.
-mkdir -p "${HOME}"/.ide
-touch "${HOME}"/.ide/.license.agreement
-
 source "$(dirname "${0}")"/all-tests-functions.sh
 
 # Remove side-effects
@@ -105,8 +125,24 @@ if [ -f "$HOME/.zshrc" ]; then
   BAK_ZSHRC="$HOME/.zshrc.ideasy-test-backup"
   cp "$HOME/.zshrc" "$BAK_ZSHRC"
 fi
+# Workaround to create license.agreement file and simulate a proper installation.
+LICENSE_AGREEMENT="${HOME}/.ide/.license.agreement"
+BAK_LICENSE_AGREEMENT=""
+mkdir -p "${HOME}/.ide"
+if [ -f "${LICENSE_AGREEMENT}" ]; then
+  BAK_LICENSE_AGREEMENT="${LICENSE_AGREEMENT}.ideasy-test-backup"
+  cp "${LICENSE_AGREEMENT}" "${BAK_LICENSE_AGREEMENT}"
+else
+  touch "${LICENSE_AGREEMENT}"
+fi
+# backup HKCU\Environment on windows
+BAK_HKCU_ENVIRONMENT=""
+if doIsWindows; then
+  BAK_HKCU_ENVIRONMENT="$HOME/hkcu-environment.ideasy-test-backup.reg"
+  reg export "HKCU\\Environment" "$(cygpath -w "$BAK_HKCU_ENVIRONMENT")" //y
+fi
 
-trap "export PATH=\"${BAK_PATH}\" && export IDE_ROOT=\"${BAK_IDE_ROOT}\" && doRestoreRcFiles && echo \"PATH, IDE_ROOT, and shell RC files restored\"" EXIT
+trap "export PATH=\"${BAK_PATH}\" && export IDE_ROOT=\"${BAK_IDE_ROOT}\" && doRestoreRcFiles && doRestoreLicenseAgreement && doRestoreWindowsRegistry && echo \"Test environment restored\"" EXIT
 
 # Switch IDEasy binary file name based on github workflow matrix.os name (first argument of all-tests.sh)
 BINARY_FILE_NAME="ideasy"
