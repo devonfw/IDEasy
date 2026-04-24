@@ -6,7 +6,7 @@ package com.devonfw.tools.ide.io.ini;
 public class IniProperty extends IniElement {
 
   private final String key;
-  private final String value;
+  private String value;
 
   /**
    * creates a new IniPropertyImpl with indentation level 0
@@ -35,6 +35,21 @@ public class IniProperty extends IniElement {
    */
   public String getValue() {
     return value;
+  }
+
+  /**
+   * updates the property value and the content
+   *
+   * @param value new property value
+   */
+  public void setValue(String value) {
+    this.value = value;
+    String indentation = this.getIndentation();
+    StringBuilder stringBuilder = new StringBuilder(indentation);
+    stringBuilder.append(this.key);
+    stringBuilder.append(" = ");
+    stringBuilder.append(this.value);
+    this.setContent(stringBuilder.toString());
   }
 
   @Override

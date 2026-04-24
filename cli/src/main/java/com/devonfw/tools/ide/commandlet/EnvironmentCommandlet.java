@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -8,7 +9,6 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.tools.ide.cli.CliExitException;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
@@ -65,9 +65,6 @@ public final class EnvironmentCommandlet extends Commandlet {
 
   @Override
   protected void doRun() {
-    if (this.context.getIdeHome() == null) {
-      throw new CliExitException();
-    }
 
     boolean winCmd = false;
     WindowsPathSyntax pathSyntax = null;
@@ -84,9 +81,12 @@ public final class EnvironmentCommandlet extends Commandlet {
     List<VariableLine> variables = this.context.getVariables().collectVariables();
     Map<String, VariableLine> variableMap = variables.stream().collect(Collectors.toMap(VariableLine::getName, v -> v));
 
-    EnvironmentVariableCollectorContext environmentVariableCollectorContext = new EnvironmentVariableCollectorContext(variableMap,
-        new VariableSource(EnvironmentVariablesType.TOOL, this.context.getSoftwarePath()), pathSyntax);
-    setEnvironmentVariablesInLocalTools(environmentVariableCollectorContext);
+    Path softwarePath = this.context.getSoftwarePath();
+    if (softwarePath != null) {
+      EnvironmentVariableCollectorContext environmentVariableCollectorContext = new EnvironmentVariableCollectorContext(variableMap,
+          new VariableSource(EnvironmentVariablesType.TOOL, softwarePath), pathSyntax);
+      setEnvironmentVariablesInLocalTools(environmentVariableCollectorContext);
+    }
 
     printLines(variableMap, winCmd);
   }
