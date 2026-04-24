@@ -104,18 +104,6 @@ public class JavaUrlUpdater extends JsonUrlUpdater<JavaJsonObject, JavaJsonVersi
   }
 
   @Override
-  public String getCpeVendor() {
-
-    return "oracle";
-  }
-
-  @Override
-  public String getCpeProduct() {
-
-    return "jdk";
-  }
-
-  @Override
   protected void initCpe(CpeRegistry cpe) {
     cpe.addVendor("oracle")
         .addProduct("jdk")
