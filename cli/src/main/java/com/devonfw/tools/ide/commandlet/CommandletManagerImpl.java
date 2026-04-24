@@ -51,6 +51,7 @@ import com.devonfw.tools.ide.tool.python.Python;
 import com.devonfw.tools.ide.tool.quarkus.Quarkus;
 import com.devonfw.tools.ide.tool.sonar.Sonar;
 import com.devonfw.tools.ide.tool.spring.Spring;
+import com.devonfw.tools.ide.tool.squirrelsql.SquirrelSql;
 import com.devonfw.tools.ide.tool.terraform.Terraform;
 import com.devonfw.tools.ide.tool.tomcat.Tomcat;
 import com.devonfw.tools.ide.tool.uv.Uv;
@@ -148,6 +149,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Corepack(context));
     add(new Pip(context));
     add(new Go(context));
+    add(new SquirrelSql(context));
   }
 
   /**
