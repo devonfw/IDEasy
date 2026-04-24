@@ -221,6 +221,14 @@ public class VersionSegment implements VersionObject<VersionSegment> {
     if (other == null) {
       return VersionComparisonResult.GREATER_UNSAFE;
     }
+
+    
+    if (this.letters.isEmpty() && isPattern() && !other.letters.isEmpty()) {
+      return VersionComparisonResult.GREATER_UNSAFE;
+    } else if (other.letters.isEmpty() && other.isPattern() && !this.letters.isEmpty()) {
+      return VersionComparisonResult.LESS_UNSAFE;
+    }
+    
     VersionComparisonResult lettersResult = this.letters.compareVersion(other.letters);
     if (!lettersResult.isEqual()) {
       return lettersResult;
@@ -241,13 +249,30 @@ public class VersionSegment implements VersionObject<VersionSegment> {
 
     if (this.number != other.number) {
       if ((this.number < 0) && isPattern()) {
-        return VersionComparisonResult.LESS_UNSAFE;
-      } else if ((other.number < 0) && other.isPattern()) {
         return VersionComparisonResult.GREATER_UNSAFE;
+      } else if ((other.number < 0) && other.isPattern()) {
+        return VersionComparisonResult.LESS_UNSAFE;
       } else if (this.number < other.number) {
         return VersionComparisonResult.LESS;
       } else {
         return VersionComparisonResult.GREATER;
+      }
+    } else if (this.number < 0 && (isPattern() || other.isPattern())) {
+      // Numbers are equal and one of them is a pattern
+      if (isPattern() && !other.isPattern()) {
+        return VersionComparisonResult.GREATER_UNSAFE;
+      } else if (!isPattern() && other.isPattern()) {
+        return VersionComparisonResult.LESS_UNSAFE;
+      }
+      // Both are patterns
+      else if (this.pattern.equals(PATTERN_MATCH_ANY_STABLE_VERSION) && other.pattern.equals(PATTERN_MATCH_ANY_VERSION)) {
+        return VersionComparisonResult.LESS;
+      } else if (this.pattern.equals(PATTERN_MATCH_ANY_VERSION) && other.pattern.equals(PATTERN_MATCH_ANY_STABLE_VERSION)) {
+        return VersionComparisonResult.GREATER;
+      } else if (this.pattern.equals(other.pattern)) {
+        return VersionComparisonResult.EQUAL;
+      } else {
+        return VersionComparisonResult.EQUAL_UNSAFE;
       }
     } else if (this.separator.equals(other.separator)) {
       return VersionComparisonResult.EQUAL;
