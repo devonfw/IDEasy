@@ -19,7 +19,7 @@ class RustTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_RUST);
-    Rust rust = new RustForTest(context);
+    Rust rust = context.getCommandletManager().getCommandlet(Rust.class);
 
     // act
     rust.install();
@@ -27,20 +27,6 @@ class RustTest extends AbstractIdeContextTest {
     // assert
     assertThat(context.getSoftwarePath().resolve("rust/.ide.software.version")).exists().hasContent(RUST_VERSION);
     assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed rust in version " + RUST_VERSION);
-  }
-
-  private static class RustForTest extends Rust {
-
-    RustForTest(IdeTestContext context) {
-
-      super(context);
-    }
-
-    @Override
-    protected void installDependencies() {
-
-      // Skip heavyweight MSVC installer execution in tests.
-    }
   }
 }
 
