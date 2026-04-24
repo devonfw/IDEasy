@@ -6,9 +6,14 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1833[#1833]: No settings repo update with missing `.commit.id`
+* https://github.com/devonfw/IDEasy/issues/1693[#1693]: Fix behavior when there's no settings repo (.../settings/.git)
+* https://github.com/devonfw/IDEasy/issues/1815[#1815]: Suppress Update notification while updating
 * https://github.com/devonfw/IDEasy/issues/1050[#1050]: Introduce dependencies.json for LazyDocker and remove hardcoded dependency
 * https://github.com/devonfw/IDEasy/issues/1174[#1174]: Add UrlUpdater for Java Azul edition
 * https://github.com/devonfw/IDEasy/issues/451[#451]: Automatically remove macOS quarantine attribute after tool extraction
+* https://github.com/devonfw/IDEasy/issues/1823[#1823]: Fix IDEasy creates duplicate entries in .gitconfig
+* https://github.com/devonfw/IDEasy/issues/1853[#1853]: Add ARM releases for VSCode on Mac
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/44?closed=1[milestone 2026.05.001].
 
@@ -16,10 +21,12 @@ The full list of changes for this release can be found in https://github.com/dev
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1270[#1270]: IDEasy now loads global user settings if outside a project
 * https://github.com/devonfw/IDEasy/issues/1552[#1552]: Add Commandlet to fix TLS issue
+* https://github.com/devonfw/IDEasy/issues/913[#913]: Add support for SQuirrel SQL Client (squirrel-sql commandlet)
 * https://github.com/devonfw/IDEasy/issues/1799[#1799]: Add support for file URL in GitUrl validation for local development
 * https://github.com/devonfw/IDEasy/issues/1760[#1760]: Accept empty input for single option
-* https://github.com/devonfw/IDEasy/issues/906[#906]: Introduce variables INTELLIJ_VM_ARGS, ANDROID_STUDIO_VM_ARGS and PYCHARM_VM_ARGS to configure jvm options for JetBrains
+* https://github.com/devonfw/IDEasy/issues/906[#906]:   Introduce variables INTELLIJ_VM_ARGS, ANDROID_STUDIO_VM_ARGS and PYCHARM_VM_ARGS to configure jvm options for JetBrains
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/43?closed=1[milestone 2026.04.002].
 
