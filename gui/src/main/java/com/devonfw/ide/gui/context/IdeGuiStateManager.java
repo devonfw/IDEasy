@@ -26,7 +26,16 @@ public class IdeGuiStateManager {
    */
   private IdeGuiContext currentContext;
 
+  /**
+   * The {@link IdeStartContextImpl} for the GUI, this stays the same for the whole GUI session, only the {@link IdeGuiContext} changes.
+   */
+  private final IdeStartContextImpl startContext;
+
   private IdeGuiStateManager() {
+
+    final IdeLogListenerBuffer buffer = new IdeLogListenerBuffer();
+    IdeLogLevel logLevel = IdeLogLevel.DEBUG;
+    startContext = new IdeStartContextImpl(logLevel, buffer);
   }
 
   /**
@@ -81,14 +90,11 @@ public class IdeGuiStateManager {
     Path workspacePath = projectPath.resolve("workspaces").resolve(workspaceName);
 
     if (!projectPath.toFile().exists()) {
-      throw new FileNotFoundException("Project " + workspacePath + " does not exist!");
+      throw new FileNotFoundException("Project " + projectPath + " does not exist!");
     } else if (!workspacePath.toFile().exists()) {
       throw new FileNotFoundException("Workspace " + workspacePath + " does not exist!");
     }
 
-    final IdeLogListenerBuffer buffer = new IdeLogListenerBuffer();
-    IdeLogLevel logLevel = IdeLogLevel.DEBUG;
-    IdeStartContextImpl startContext = new IdeStartContextImpl(logLevel, buffer);
     this.currentContext = new IdeGuiContext(startContext, workspacePath);
     return this.currentContext;
   }
@@ -101,6 +107,9 @@ public class IdeGuiStateManager {
     return this.currentContext;
   }
 
+  /**
+   * @return instance of {@link ProjectManager}
+   */
   public ProjectManager getProjectManager() {
 
     return projectManager;
@@ -113,6 +122,6 @@ public class IdeGuiStateManager {
    */
   private static class Holder {
 
-    private static IdeGuiStateManager INSTANCE = new IdeGuiStateManager();
+    private static final IdeGuiStateManager INSTANCE = new IdeGuiStateManager();
   }
 }

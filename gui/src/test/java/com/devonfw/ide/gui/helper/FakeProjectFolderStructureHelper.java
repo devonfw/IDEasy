@@ -1,4 +1,4 @@
-package com.devonfw.ide.gui;
+package com.devonfw.ide.gui.helper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -9,6 +9,8 @@ import java.nio.file.Path;
 /**
  * This class helps to create a fake project folder structure for testing. The projects are named in the format "project-{i}" and the workspaces are named
  * "main".
+ * <p>
+ * This class is supposed to be replaced by enabling ide-cli test dependencies allowing to mock a IdeContext
  */
 public class FakeProjectFolderStructureHelper {
 

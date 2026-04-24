@@ -1,4 +1,4 @@
-package com.devonfw.ide.gui;
+package com.devonfw.ide.gui.context;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -9,17 +9,24 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-import com.devonfw.ide.gui.context.IdeGuiContext;
-import com.devonfw.ide.gui.context.IdeGuiStateManager;
+import com.devonfw.ide.gui.helper.FakeProjectFolderStructureHelper;
 
-public class IdeGuiStateManagerTest extends IdeGuiMockRootTest {
+/**
+ * Tests for {@link IdeGuiStateManager}.
+ */
+public class IdeGuiStateManagerTest {
 
-  private IdeGuiStateManager guiStateManager = IdeGuiStateManager.getInstanceOverrideRootDir(getMockIdeRoot().toString());
+  @TempDir
+  private static Path mockIdeRoot;
+
+  private IdeGuiStateManager guiStateManager = IdeGuiStateManager.getInstanceOverrideRootDir(mockIdeRoot.toString());
 
   @BeforeAll
   static void setup() throws IOException {
-    FakeProjectFolderStructureHelper.createFakeProjectFolderStructure(getMockIdeRoot());
+
+    FakeProjectFolderStructureHelper.createFakeProjectFolderStructure(mockIdeRoot);
   }
 
   @Test
@@ -52,7 +59,7 @@ public class IdeGuiStateManagerTest extends IdeGuiMockRootTest {
   @Test
   void testSwitchContext() throws IOException {
 
-    Files.list(getMockIdeRoot()).forEach((projectPath) -> {
+    Files.list(mockIdeRoot).forEach((projectPath) -> {
       try {
         guiStateManager.switchContext(projectPath.getFileName().toString(), "main");
       } catch (FileNotFoundException e) {
@@ -62,9 +69,9 @@ public class IdeGuiStateManagerTest extends IdeGuiMockRootTest {
   }
 
   @Test
-  void testThrowsIfNonExistantProjectSelected() throws IOException {
+  void testThrowsIfNonExistentProjectSelected() throws IOException {
 
-    Path fakeProject = getMockIdeRoot().resolve("nonExistingProject");
+    Path fakeProject = mockIdeRoot.resolve("nonExistingProject");
 
     try {
       guiStateManager.switchContext(fakeProject.getFileName().toString(), "main");
@@ -75,9 +82,9 @@ public class IdeGuiStateManagerTest extends IdeGuiMockRootTest {
   }
 
   @Test
-  void testThrowsIfNonExistantWorkspaceSelected() throws IOException {
+  void testThrowsIfNonExistentWorkspaceSelected() throws IOException {
 
-    Files.list(getMockIdeRoot()).forEach((projectPath) -> {
+    Files.list(mockIdeRoot).forEach((projectPath) -> {
       try {
         guiStateManager.switchContext(projectPath.getFileName().toString(), "test");
       } catch (FileNotFoundException e) {
