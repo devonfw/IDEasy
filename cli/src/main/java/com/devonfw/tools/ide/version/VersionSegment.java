@@ -222,13 +222,13 @@ public class VersionSegment implements VersionObject<VersionSegment> {
       return VersionComparisonResult.GREATER_UNSAFE;
     }
 
-    
+    // Check if one version segment is * or *! while the other has no pattern
     if (this.letters.isEmpty() && isPattern() && !other.letters.isEmpty()) {
       return VersionComparisonResult.GREATER_UNSAFE;
     } else if (other.letters.isEmpty() && other.isPattern() && !this.letters.isEmpty()) {
       return VersionComparisonResult.LESS_UNSAFE;
     }
-    
+    // Compare letters and phase
     VersionComparisonResult lettersResult = this.letters.compareVersion(other.letters);
     if (!lettersResult.isEqual()) {
       return lettersResult;
@@ -266,9 +266,9 @@ public class VersionSegment implements VersionObject<VersionSegment> {
       }
       // Both are patterns
       else if (this.pattern.equals(PATTERN_MATCH_ANY_STABLE_VERSION) && other.pattern.equals(PATTERN_MATCH_ANY_VERSION)) {
-        return VersionComparisonResult.LESS;
+        return VersionComparisonResult.LESS_UNSAFE;
       } else if (this.pattern.equals(PATTERN_MATCH_ANY_VERSION) && other.pattern.equals(PATTERN_MATCH_ANY_STABLE_VERSION)) {
-        return VersionComparisonResult.GREATER;
+        return VersionComparisonResult.GREATER_UNSAFE;
       } else if (this.pattern.equals(other.pattern)) {
         return VersionComparisonResult.EQUAL;
       } else {
