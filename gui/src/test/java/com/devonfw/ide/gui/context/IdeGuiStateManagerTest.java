@@ -69,14 +69,14 @@ public class IdeGuiStateManagerTest {
   }
 
   @Test
-  void testThrowsIfNonExistentProjectSelected() throws IOException {
+  void testThrowsIfNonExistentProjectSelected() {
 
     Path fakeProject = mockIdeRoot.resolve("nonExistingProject");
 
     try {
       guiStateManager.switchContext(fakeProject.getFileName().toString(), "main");
     } catch (FileNotFoundException e) {
-      assertThat(e.getMessage()).contains("Project " + fakeProject.resolve("workspaces").resolve("main") + " does not exist!")
+      assertThat(e.getMessage()).contains("Project " + fakeProject + " does not exist!")
           .as("GuiStateManager.switchContext should throw an exception, if a non-existent project is selected");
     }
   }
