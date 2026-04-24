@@ -96,7 +96,6 @@ public final class LnCommandlet extends Commandlet {
     try {
       Files.createSymbolicLink(targetPath, sourcePath);
       LOG.info("Created symbolic link {} -> {}", targetPath, sourcePath);
-      return;
     } catch (Exception symlinkError) {
 
       // 2) If Windows blocks symlink creation due to missing privileges:
