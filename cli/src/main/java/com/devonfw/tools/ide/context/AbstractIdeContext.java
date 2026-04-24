@@ -34,6 +34,7 @@ import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.commandlet.CommandletManagerImpl;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
 import com.devonfw.tools.ide.commandlet.EnvironmentCommandlet;
+import com.devonfw.tools.ide.commandlet.UpdateCommandlet;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
@@ -601,6 +602,9 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   protected void setUserHome(Path userHome) {
 
     this.userHome = userHome;
+    this.userHomeIde = userHome.resolve(FOLDER_DOT_IDE);
+    this.downloadPath = userHome.resolve("Downloads/ide");
+    this.variables = null;
     resetPrivacyMap();
   }
 
@@ -1295,13 +1299,12 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
             if (getGitContext().isRepositoryUpdateAvailable(settingsRepository, getSettingsCommitIdPath()) || (
                 getGitContext().fetchIfNeeded(settingsRepository) && getGitContext().isRepositoryUpdateAvailable(
                     settingsRepository, getSettingsCommitIdPath()))) {
-              String msg;
-              if (isSettingsRepositorySymlinkOrJunction()) {
-                msg = "Updates are available for the settings repository. Please pull the latest changes by yourself or by calling \"ide -f update\" to apply them.";
-              } else {
-                msg = "Updates are available for the settings repository. If you want to apply the latest changes, call \"ide update\"";
+
+              // Inform the user that an update is available. The update message is suppressed if we are already running the update
+              String msg = determineSettingsUpdateMessage(cmd);
+              if (msg != null) {
+                IdeLogLevel.INTERACTION.log(LOG, msg);
               }
-              IdeLogLevel.INTERACTION.log(LOG, msg);
             }
           }
         }
@@ -1319,6 +1322,29 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       LOG.trace("Commandlet did not match");
     }
     return result;
+  }
+
+
+  /**
+   * When an update is available for the settings repository, we log a message to the console, reminding the user to run {@code ide update}.
+   * This method determines the correct message to log, depending on whether the settings repository is a symlink/junction, or not.
+   * Should the user already be running the appropriate {@code ide update} command, the message is suppressed to avoid confusion.
+   *
+   * @param cmd the {@link Commandlet}.
+   * @return {@code msg} to log to the console. {@code null} if the message is suppressed.
+   */
+  private String determineSettingsUpdateMessage(Commandlet cmd) {
+    if (isSettingsRepositorySymlinkOrJunction()) {
+      if ((cmd instanceof UpdateCommandlet) && isForceMode()) {
+        return null;
+      }
+      return "Updates are available for the settings repository. Please pull the latest changes by yourself or by calling \"ide -f update\" to apply them.";
+    } else {
+      if (cmd instanceof UpdateCommandlet) {
+        return null;
+      }
+      return "Updates are available for the settings repository. If you want to apply the latest changes, call \"ide update\"";
+    }
   }
 
   private boolean ensureLicenseAgreement(Commandlet cmd) {

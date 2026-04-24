@@ -78,6 +78,12 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   /** The {@link HttpClient} for HTTP requests. */
   protected final HttpClient client = HttpClient.newBuilder().followRedirects(Redirect.ALWAYS).build();
 
+  /** The GitHub actions token name for api requests. */
+  private static final String GITHUB_API_TOKEN_ENV = "GHA_TOKEN";
+
+  /** The GitHub API host to send {@link AbstractUrlUpdater#GITHUB_API_TOKEN_ENV} to. */
+  private static final String GITHUB_API_HOST = "api.github.com";
+
   private static final Logger logger = LoggerFactory.getLogger(AbstractUrlUpdater.class);
 
   /**
@@ -366,7 +372,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   protected String doGetResponseBodyAsString(String url) {
 
     try {
-      HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
+      HttpRequest request = createRequestWithOptionalAuth(url).GET().build();
       HttpResponse<String> response = this.client.send(request, HttpResponse.BodyHandlers.ofString());
       if (response.statusCode() == 200) {
         return response.body();
@@ -384,13 +390,30 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   protected HttpResponse<InputStream> doGetResponseAsStream(String url) {
 
     try {
-      HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
+      HttpRequest request = createRequestWithOptionalAuth(url).GET().build();
       return this.client.send(request, HttpResponse.BodyHandlers.ofInputStream());
     } catch (Exception e) {
       throw new IllegalStateException("Failed to retrieve response from url: " + url, e);
     }
   }
 
+  /**
+   * Creates an {@link HttpRequest.Builder} and adds GitHub API authentication if the target host is {@link AbstractUrlUpdater#GITHUB_API_HOST}
+   *
+   * @param url the url to build the request with.
+   * @return an {@link HttpRequest.Builder} for the given url.
+   */
+  private HttpRequest.Builder createRequestWithOptionalAuth(String url) {
+    URI uri = URI.create(url);
+    HttpRequest.Builder requestBuilder = HttpRequest.newBuilder().uri(uri);
+    if (uri.getHost() != null && GITHUB_API_HOST.equalsIgnoreCase(uri.getHost())) {
+      String githubToken = System.getenv(GITHUB_API_TOKEN_ENV);
+      if (githubToken != null && !githubToken.isBlank()) {
+        requestBuilder.header("Authorization", "Bearer " + githubToken);
+      }
+    }
+    return requestBuilder;
+  }
 
   /**
    * Updates a tool version with the given arguments (OS independent).
@@ -705,9 +728,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     URI uri = null;
     HttpRequest request = null;
     try {
-      uri = URI.create(url);
-      request = HttpRequest.newBuilder().uri(uri).method("HEAD", HttpRequest.BodyPublishers.noBody()).timeout(Duration.ofSeconds(5)).build();
-
+      request = createRequestWithOptionalAuth(url).method("HEAD", HttpRequest.BodyPublishers.noBody()).timeout(Duration.ofSeconds(5)).build();
       return this.client.send(request, HttpResponse.BodyHandlers.ofString());
     } catch (Exception e) {
       logger.error("Failed to perform HEAD request of URL {}", url, e);
