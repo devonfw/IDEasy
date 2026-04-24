@@ -1,7 +1,9 @@
 package com.devonfw.ide.gui.context;
 
 import java.io.FileNotFoundException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,13 +20,14 @@ public class IdeGuiStateManager {
   private static final Logger LOG = LoggerFactory.getLogger(IdeGuiStateManager.class);
 
   private Path ideRootDir;
-
   private ProjectManager projectManager;
+
+  private final CopyOnWriteArrayList<GuiContextChangeListener> listeners = new CopyOnWriteArrayList<>();
 
   /**
    * Project context based on which project the user works in.
    */
-  private IdeGuiContext currentContext;
+  private volatile IdeGuiContext currentContext;
 
   /**
    * The {@link IdeStartContextImpl} for the GUI, this stays the same for the whole GUI session, only the {@link IdeGuiContext} changes.
@@ -56,13 +59,16 @@ public class IdeGuiStateManager {
   }
 
   /**
+   * <strong><u>USE WITH CARE.</u></strong>
    * This method is used in cases where the IDE_ROOT environment variable is not set, e.g. in test contexts on GitHub actions. This method will retrieve the
-   * current instance, set the project directory manually an then return the updated instance. <strong><u>USE WITH CARE.</u></strong>
+   * current instance, set the project directory manually an then return the updated instance.
    *
    * @param ideRoot root directory for the ide projects.
    * @return the singleton instance of the {@link IdeGuiStateManager}.
    */
+  //TODO: remove this method once we have a better solution for the test context, after implementing CLi's test jar.
   public static IdeGuiStateManager getInstanceOverrideRootDir(String ideRoot) {
+    LOG.warn("Using unsafe getInstanceOverrideRootDir method.");
 
     IdeGuiStateManager instance = Holder.INSTANCE;
     if (ideRoot == null) {
@@ -82,20 +88,22 @@ public class IdeGuiStateManager {
    * @return the new {@link IdeGuiContext} for the selected project and workspace.
    * @throws FileNotFoundException if workspace or project does not exist
    */
-  public IdeGuiContext switchContext(String projectName, String workspaceName) throws FileNotFoundException {
+  public synchronized IdeGuiContext switchContext(String projectName, String workspaceName) throws FileNotFoundException {
 
     LOG.debug("Trying to switch context to project {} and workspace {}", projectName, workspaceName);
 
     Path projectPath = ideRootDir.resolve(projectName);
     Path workspacePath = projectPath.resolve("workspaces").resolve(workspaceName);
 
-    if (!projectPath.toFile().exists()) {
+    if (!Files.exists(projectPath)) {
       throw new FileNotFoundException("Project " + projectPath + " does not exist!");
-    } else if (!workspacePath.toFile().exists()) {
+    } else if (!Files.exists(workspacePath)) {
       throw new FileNotFoundException("Workspace " + workspacePath + " does not exist!");
     }
 
     this.currentContext = new IdeGuiContext(startContext, workspacePath);
+    listeners.forEach(listener -> listener.onContextChange(this.currentContext));
+
     return this.currentContext;
   }
 
@@ -113,6 +121,24 @@ public class IdeGuiStateManager {
   public ProjectManager getProjectManager() {
 
     return projectManager;
+  }
+
+  /**
+   * Add a listener to the context change events.
+   *
+   * @param listener the {@link GuiContextChangeListener} to attach to context updates.
+   */
+  public void addGuiContextChangeListener(GuiContextChangeListener listener) {
+    listeners.add(listener);
+  }
+
+  /**
+   * Remove a listener from the context change events.
+   *
+   * @param listener the {@link GuiContextChangeListener} to remove from context updates.
+   */
+  public void removeGuiContextChangeListener(GuiContextChangeListener listener) {
+    listeners.remove(listener);
   }
 
   /**
