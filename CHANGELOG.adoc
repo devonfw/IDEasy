@@ -13,6 +13,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1174[#1174]: Add UrlUpdater for Java Azul edition
 * https://github.com/devonfw/IDEasy/issues/451[#451]: Automatically remove macOS quarantine attribute after tool extraction
 * https://github.com/devonfw/IDEasy/issues/1823[#1823]: Fix IDEasy creates duplicate entries in .gitconfig
+* https://github.com/devonfw/IDEasy/issues/1834[#1834]: Fix fix-vpn-tls-problem failes with NullPointerException
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/44?closed=1[milestone 2026.05.001].
 
