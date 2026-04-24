@@ -34,8 +34,12 @@ class EnvironmentCommandletGlobalTest extends AbstractIdeContextTest {
     env.run();
 
     // assert
+    String expectedEntry = "export FOO=\"bar\"";
+    if (context.getSystemInfo().isWindows()) {
+      expectedEntry = "FOO=bar";
+    }
     assertThat(context).log().hasEntries( //
-        IdeLogEntry.ofProcessable("export FOO=\"bar\"") //
+        IdeLogEntry.ofProcessable(expectedEntry) //
     );
   }
 }
