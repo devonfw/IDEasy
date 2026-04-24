@@ -1524,7 +1524,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       } else {
         int index = line.indexOf('=');
         if (index > 0) {
-          currentIniSection.setProperty(line);
+          currentIniSection.setPropertyLine(line);
         }
       }
     }
