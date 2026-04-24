@@ -31,15 +31,12 @@ class EnvironmentCommandletGlobalTest extends AbstractIdeContextTest {
     EnvironmentCommandlet env = context.getCommandletManager().getCommandlet(EnvironmentCommandlet.class);
 
     // act
+    env.bash.setValue(true);
     env.run();
 
     // assert
-    String expectedEntry = "export FOO=\"bar\"";
-    if (context.getSystemInfo().isWindows()) {
-      expectedEntry = "FOO=bar";
-    }
     assertThat(context).log().hasEntries( //
-        IdeLogEntry.ofProcessable(expectedEntry) //
+        IdeLogEntry.ofProcessable("export FOO=\"bar\"") //
     );
   }
 }
