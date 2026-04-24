@@ -1,0 +1,10 @@
+{
+  "versions": {
+    "11.0.21": {
+      "version": "11.0.21",
+      "dist": {
+        "tarball": "${testbaseurl}/@nestjs/cli/-/cli-11.0.21.tgz"
+      }
+    }
+  }
+}
