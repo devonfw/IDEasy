@@ -101,6 +101,7 @@ The column `inclusion` indicates the way the component is included:
 |https://www.pgadmin.org/[pgAdmin]|Optional|https://www.pgadmin.org/licence/#postgresql[The PostgreSQL Licence]
 |https://docs.astral.sh/uv/[uv] |Optional|https://docs.astral.sh/uv/reference/policies/license/[Apache 2.0]
 |https://github.com/openjdk/jfx[OpenJFX] |Optional|https://github.com/openjdk/jfx/blob/master/LICENSE[GPLv2] (with the “Classpath” Exception)
+|https://squirrel-sql.sourceforge.io/[SQuirreL SQL Client]|Optional|https://github.com/squirrel-sql-client/squirrel-sql-stable-releases/blob/main/LICENSE[LGPL 2.1]
 |===
 
 == Apache Software License - Version 2.0

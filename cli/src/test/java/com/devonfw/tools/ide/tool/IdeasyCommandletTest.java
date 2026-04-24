@@ -132,6 +132,29 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
     assertThat(settingsPath).content().contains("\"guid\" : \"{2ece5bfe-50ed-5f3a-ab87-5cd4baafed2b}\"");
   }
 
+  /**
+   * Tests if the installation on windows did not add a second `longpaths = true` entry to the `.gitconfig` file when installing IDEasy multiple times. See:
+   * <a href="https://github.com/devonfw/IDEasy/issues/1823">#1823</a> for reference.
+   */
+  @Test
+  void testInstallIdeasyTwiceDoesNotDuplicateGitLongpaths() {
+    // arrange
+    SystemInfo systemInfo = SystemInfoMock.of("windows");
+    IdeTestContext context = newContext("install");
+    context.setIdeRoot(null);
+    context.setSystemInfo(systemInfo);
+    context.getStartContext().setForceMode(true);
+    Path gitconfigPath = context.getUserHome().resolve(".gitconfig");
+    IdeasyCommandlet ideasy = new IdeasyCommandlet(context);
+    // act
+    ideasy.installIdeasy(context.getUserHome().resolve("Downloads/ide-cli"));
+    ideasy.installIdeasy(context.getUserHome().resolve("Downloads/ide-cli"));
+    // assert
+    assertThat(gitconfigPath).content().contains("[core]");
+    assertThat(gitconfigPath).content().containsOnlyOnce("longpaths = true");
+    assertThat(gitconfigPath).content().doesNotContain("longpaths = false");
+  }
+
   private void verifyInstallation(Path installationPath) {
 
     assertThat(installationPath).isDirectory();
