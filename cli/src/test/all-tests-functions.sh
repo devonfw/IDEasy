@@ -101,8 +101,8 @@ function doGetArchNameForOs() {
     windows)
       # Prefer Windows-native environment variables (more reliable than uname in Git Bash/MSYS/Cygwin).
       # Normalize to lower-case for comparisons.
-      archEnv="$(printf '%s' "${PROCESSOR_ARCHITECTURE:-}" | tr '[:upper:]' '[:lower:]')"
-      archWow="$(printf '%s' "${PROCESSOR_ARCHITEW6432:-}" | tr '[:upper:]' '[:lower:]')"
+      archEnv="${PROCESSOR_ARCHITECTURE,,}"
+      archWow=${PROCESSOR_ARCHITEW6432,,}"
 
       # If running as 32-bit on 64-bit Windows, PROCESSOR_ARCHITEW6432 may reveal the underlying OS arch.
       case "${archWow:-$archEnv}" in
