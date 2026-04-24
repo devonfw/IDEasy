@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -28,6 +29,7 @@ import com.devonfw.tools.ide.version.VersionRange;
 
 import us.springett.parsers.cpe.Cpe;
 import us.springett.parsers.cpe.CpeBuilder;
+import us.springett.parsers.cpe.values.Part;
 
 /**
  * Scans the IDEasy URL repository for tools, editions, and versions, and checks for known vulnerabilities using the OWASP Dependency-Check engine.
@@ -73,17 +75,15 @@ public class BuildSecurityJsonFiles implements Runnable {
       this.engine.analyzeDependencies();
 
       CveDB database = engine.getDatabase();
+
       for (AbstractUrlUpdater updater : this.updateManager.getUpdaters()) {
         String updaterName = updater.getClass().getSimpleName();
         String tool = updater.getTool();
         LOG.info("Processing {} for tool {}", updaterName, tool);
-        CpeBuilder cpeBuilder = new CpeBuilder();
-        cpeBuilder.vendor(updater.getCpeVendor());
-        cpeBuilder.product(updater.getCpeProduct());
-        Cpe cpe = cpeBuilder.build();
-        List<Vulnerability> vulnerabilities = database.getVulnerabilities(cpe);
+        List<Vulnerability> vulnerabilities = findVulnerabilities(database, updater);
         if ((vulnerabilities == null) || (vulnerabilities.isEmpty())) {
-          LOG.info("No vulnerabilities found for {} with CPE {}", updaterName, cpe);
+          LOG.info("No vulnerabilities found for {} with CPE {}:{}", updaterName, updater.getCpeRegistry().getPrimaryVendor(),
+              updater.getCpeRegistry().getPrimaryProduct());
         } else {
           for (String edition : updater.getEditions()) {
             LOG.info("Processing edition {} for tool {}", edition, tool);
@@ -101,6 +101,7 @@ public class BuildSecurityJsonFiles implements Runnable {
         }
       }
       this.engine.close();
+
     } catch (Throwable e) {
       LOG.error("Failed to build security json files", e);
     }
@@ -161,9 +162,7 @@ public class BuildSecurityJsonFiles implements Runnable {
 
   private static VersionRange toVersionRange(VulnerableSoftware range, String edition, AbstractUrlUpdater urlUpdater, String id) {
 
-    if (!range.getVendor().equals(urlUpdater.getCpeVendor())) {
-      return null;
-    } else if (!range.getProduct().equals(urlUpdater.getCpeProduct())) {
+    if (!urlUpdater.matchesCpe(range.getVendor(), range.getProduct())) {
       return null;
     }
     String cpeEdition = findCpeEdition(range);
@@ -255,6 +254,68 @@ public class BuildSecurityJsonFiles implements Runnable {
   private static boolean isSpecificValue(String value) {
 
     return (value != null) && !"*".equals(value) && !IGNORED_VALUES.contains(value);
+  }
+
+  private static List<Vulnerability> findVulnerabilities(CveDB database, AbstractUrlUpdater updater) {
+
+    List<Cpe> searchCpes = createSearchCpes(updater);
+    List<Vulnerability> vulnerabilities = new ArrayList<>();
+    Set<String> seenNames = new LinkedHashSet<>();
+    for (int i = 0; i < searchCpes.size(); i++) {
+      Cpe cpe = searchCpes.get(i);
+      List<Vulnerability> found = database.getVulnerabilities(cpe);
+      if ((found != null) && !found.isEmpty()) {
+        for (Vulnerability vulnerability : found) {
+          if (seenNames.add(vulnerability.getName())) {
+            vulnerabilities.add(vulnerability);
+          }
+        }
+        if (i == 0) {
+          return vulnerabilities;
+        }
+      }
+    }
+    return vulnerabilities;
+  }
+
+  private static List<Cpe> createSearchCpes(AbstractUrlUpdater updater) {
+
+    AbstractUrlUpdater.CpeRegistry cpe = updater.getCpeRegistry();
+    List<Cpe> searchCpes = new ArrayList<>();
+
+    List<String> vendors = cpe.getVendors();
+    List<String> products = cpe.getProducts();
+
+    for (Part part : new Part[] { Part.APPLICATION, Part.OPERATING_SYSTEM }) {
+      for (String vendor : vendors) {
+        for (String product : products) {
+          addSearchCpe(searchCpes, vendor, product, part);
+        }
+      }
+    }
+    return searchCpes;
+  }
+
+  private static void addSearchCpe(List<Cpe> searchCpes, String vendor, String product, Part part) {
+
+    if ((vendor == null) || (product == null)) {
+      return;
+    }
+    try {
+      CpeBuilder cpeBuilder = new CpeBuilder();
+      cpeBuilder.part(part);
+      cpeBuilder.vendor(vendor);
+      cpeBuilder.product(product);
+      Cpe cpe = cpeBuilder.build();
+      for (Cpe existing : searchCpes) {
+        if (existing.getPart().equals(cpe.getPart()) && existing.getVendor().equals(cpe.getVendor()) && existing.getProduct().equals(cpe.getProduct())) {
+          return;
+        }
+      }
+      searchCpes.add(cpe);
+    } catch (Exception e) {
+      throw new IllegalStateException("Failed to create search CPE for vendor '" + vendor + "' and product '" + product + "'.", e);
+    }
   }
 
   /**
