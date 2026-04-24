@@ -302,14 +302,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
       }
     } else if ((value != null) && (var != null) && var.isDefaultValueAppended()) {
       // if user has set a value, append IDEasy's default to it instead of replacing it
-      String defaultValue = var.getDefaultValueAsString(this.context);
-      if (defaultValue != null && !defaultValue.isEmpty()) {
-        if (defaultValue.contains(value)) {
-          value = defaultValue;
-        } else {
-          value = value + " " + defaultValue;
-        }
-      }
+      value = mergeWithDefault(value, var.getDefaultValueAsString(this.context));
     }
     if ((value != null) && (value.startsWith("~/"))) {
       value = this.context.getUserHome() + value.substring(1);
@@ -374,6 +367,23 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
    */
   private static record ResolveContext(Object rootSrc, String rootValue, boolean legacySupport, VariableSyntax syntax) {
 
+  }
+
+  /**
+   * Merges user value with default, avoiding duplication if default already contains the user value.
+   *
+   * @param value the user-defined value
+   * @param defaultValue IDEasy's default value
+   * @return the merged value, or the user value if defaultValue is null or empty
+   */
+  static String mergeWithDefault(String value, String defaultValue) {
+    if (defaultValue == null || defaultValue.isEmpty()) {
+      return value;
+    }
+    if (defaultValue.contains(value)) {
+      return defaultValue;
+    }
+    return value + " " + defaultValue;
   }
 
 }

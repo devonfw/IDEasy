@@ -129,4 +129,15 @@ class EnvironmentVariablesTest extends AbstractIdeContextTest {
     Path settingsFile = context.getConfPath().resolve(Mvn.MVN_CONFIG_FOLDER).resolve(Mvn.SETTINGS_FILE);
     assertThat(mavenArgs).isEqualTo("-X -e -s " + settingsFile);
   }
+
+  /**
+   * Test that a user-defined value which is already contained in IDEasy's default is not duplicated when merged.
+   */
+  @Test
+  void testUserDefinedMavenArgsAlreadyInIdeasyDefaultsIsNotDuplicated() {
+
+    String defaultValue = "-s /path/to/settings.xml";
+    assertThat(AbstractEnvironmentVariables.mergeWithDefault("-s /path/to/settings.xml", defaultValue)).isEqualTo(defaultValue);
+    assertThat(AbstractEnvironmentVariables.mergeWithDefault("-s", defaultValue)).isEqualTo(defaultValue);
+  }
 }
