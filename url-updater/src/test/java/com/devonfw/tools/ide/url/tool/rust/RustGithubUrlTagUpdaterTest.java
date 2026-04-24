@@ -43,10 +43,3 @@ class RustGithubUrlTagUpdaterTest extends AbstractUrlUpdaterTest {
     assertThat(rustEditionDir.resolve("release-0.7")).doesNotExist();
   }
 }
-
-
-
-
-
-
-
