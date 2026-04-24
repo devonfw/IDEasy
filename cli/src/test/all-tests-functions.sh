@@ -44,8 +44,12 @@ function doDownloadRelease () {
     # Change OS type based on github workflow matrix.os name
     local osType
     osType=$(doGetOsType)
-    architecture=$(doGetArchNameForOs "$osType")
+    local architecture=$(doGetArchNameForOs "$osType")
     url=$(grep "href=\"https://.*${osType}-${architecture}.tar.gz" "$pageHtmlLocal" | grep -o "https://[^\"]*${osType}-${architecture}.tar.gz" | head -1)
+    if [ -z "$url" ]; then
+      doError "No release found for ${osType}-${architecture}"
+      exit 1
+    fi
     echo "Trying to download IDEasy for OS: ${osType} from: ${url} to: ${IDEASY_COMPRESSED_FILE:?} ..."
     curl -o "${IDEASY_COMPRESSED_FILE:?}" "$url"
     rm "${pageHtmlLocal:?}"
@@ -73,7 +77,7 @@ function doGetOsType() {
   echo "$osType"
 }
 
-doGetArchNameForOs() {
+function doGetArchNameForOs() {
   local machine archEnv archWow
   local osType="$1"
 
