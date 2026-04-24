@@ -100,7 +100,6 @@ public class Docker extends GlobalToolCommandlet {
   public VersionIdentifier getInstalledVersion() {
 
     if (!isDockerInstalled()) {
-      LOG.error("Couldn't get installed version of " + this.getName());
       return null;
     }
 
@@ -165,11 +164,12 @@ public class Docker extends GlobalToolCommandlet {
     super.uninstall();
 
     if (this.context.getSystemInfo().isLinux()) {
-      runWithPackageManager(false, getPackageManagerCommandsUninstall());
+      runWithPackageManager(false, getUninstallPackageManagerCommands());
     }
   }
 
-  private List<PackageManagerCommand> getPackageManagerCommandsUninstall() {
+  @Override
+  protected List<PackageManagerCommand> getUninstallPackageManagerCommands() {
 
     List<PackageManagerCommand> pmCommands = new ArrayList<>();
     pmCommands.add(

@@ -3,11 +3,7 @@ package com.devonfw.tools.ide.tool.pgadmin;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -15,15 +11,12 @@ import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.NativePackageManager;
 import com.devonfw.tools.ide.tool.PackageManagerCommand;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
-import com.devonfw.tools.ide.util.WindowsRegistryUtil;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * {@link GlobalToolCommandlet} for <a href="https://www.pgadmin.org/">pgadmin</a>
  */
 public class PgAdmin extends GlobalToolCommandlet {
-
-  private static final Logger LOG = LoggerFactory.getLogger(PgAdmin.class);
 
   private static final String PG_ADMIN_APP_NAME = "pgAdmin 4";
 
@@ -55,32 +48,8 @@ public class PgAdmin extends GlobalToolCommandlet {
             + "> /etc/apt/sources.list.d/pgadmin4.list && apt update'", String.format(
             "sudo apt install -y --allow-downgrades pgadmin4=%1$s pgadmin4-server=%1$s pgadmin4-desktop=%1$s pgadmin4-web=%1$s",
             resolvedVersion)));
-    // does not work for wsl
+    // TODO does not work for wsl
     return List.of(packageManagerCommand);
-  }
-
-  @Override
-  public VersionIdentifier getInstalledVersion() {
-
-    if (this.context.getSystemInfo().isWindows()) {
-      Optional<String> version = WindowsRegistryUtil.getDisplayVersion(PG_ADMIN_APP_NAME);
-      if (version.isPresent()) {
-        return VersionIdentifier.of(version.get());
-      }
-    } else if (this.context.getSystemInfo().isLinux()) {
-
-    }
-    return null;
-  }
-
-  @Override
-  public void uninstall() {
-
-    super.uninstall();
-
-    if (this.context.getSystemInfo().isLinux()) {
-      runWithPackageManager(false, getPackageManagerCommandsUninstall());
-    }
   }
 
   @Override
@@ -89,7 +58,7 @@ public class PgAdmin extends GlobalToolCommandlet {
     if (this.context.getSystemInfo().isWindows()) {
       return PG_ADMIN_EXE;
     }
-    return "pgadmin";
+    return getName();
   }
 
   @Override
@@ -97,7 +66,8 @@ public class PgAdmin extends GlobalToolCommandlet {
     return PG_ADMIN_APP_NAME;
   }
 
-  private List<PackageManagerCommand> getPackageManagerCommandsUninstall() {
+  @Override
+  protected List<PackageManagerCommand> getUninstallPackageManagerCommands() {
 
     List<PackageManagerCommand> pmCommands = new ArrayList<>();
 

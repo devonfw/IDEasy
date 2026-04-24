@@ -210,7 +210,18 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   }
 
   @Override
-  public abstract VersionIdentifier getInstalledVersion();
+  public VersionIdentifier getInstalledVersion() {
+
+    if (this.context.getSystemInfo().isWindows()) {
+      WindowsHelper windowsHelper = WindowsHelper.get(this.context);
+      String displayVersion = windowsHelper.getRegistryValueBySearch(getWindowsAppName(), "DisplayVersion");
+      return VersionIdentifier.of(displayVersion);
+    } else if (this.context.getSystemInfo().isLinux()) {
+      String output = this.context.newProcess().runAndGetSingleOutput(getBinaryName(), "version");
+      return VersionIdentifier.of(output);
+    }
+    return null;
+  }
 
   @Override
   public String getInstalledEdition() {
