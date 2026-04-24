@@ -44,12 +44,12 @@ public final class TruststoreUtil {
   /**
    * Default password for the JRE cacerts truststore
    */
-  public static final char[] DEFAULT_CACERTS_PASSWORD = TRUSTSTORE_PASSWORD.toCharArray();
+  public static final String DEFAULT_CACERTS_PASSWORD = TRUSTSTORE_PASSWORD;
 
   /**
    * Password for the custom truststore
    */
-  public static final char[] CUSTOM_TRUSTSTORE_PASSWORD = TRUSTSTORE_PASSWORD.toCharArray();
+  public static final String CUSTOM_TRUSTSTORE_PASSWORD = TRUSTSTORE_PASSWORD;
 
   /**
    * Default prefix for aliases of certificates added to the truststore.
@@ -87,7 +87,7 @@ public final class TruststoreUtil {
     for (TrustManager trustManager : trustManagerFactory.getTrustManagers()) {
       if (trustManager instanceof X509TrustManager x509TrustManager) {
         KeyStore truststore = KeyStore.getInstance(KeyStore.getDefaultType());
-        truststore.load(null, DEFAULT_CACERTS_PASSWORD);
+        truststore.load(null, DEFAULT_CACERTS_PASSWORD.toCharArray());
 
         int i = 0;
         for (X509Certificate cert : x509TrustManager.getAcceptedIssuers()) {
@@ -154,10 +154,10 @@ public final class TruststoreUtil {
     KeyStore customStore = KeyStore.getInstance("PKCS12");
     if (isTruststorePresent(customTruststorePath)) {
       try (InputStream in = Files.newInputStream(customTruststorePath)) {
-        customStore.load(in, CUSTOM_TRUSTSTORE_PASSWORD);
+        customStore.load(in, CUSTOM_TRUSTSTORE_PASSWORD.toCharArray());
       }
     } else {
-      customStore.load(null, CUSTOM_TRUSTSTORE_PASSWORD);
+      customStore.load(null, CUSTOM_TRUSTSTORE_PASSWORD.toCharArray());
       copyTruststore(getDefaultTruststore(), customStore);
     }
 
@@ -167,7 +167,7 @@ public final class TruststoreUtil {
     }
 
     try (OutputStream out = Files.newOutputStream(customTruststorePath)) {
-      customStore.store(out, CUSTOM_TRUSTSTORE_PASSWORD);
+      customStore.store(out, CUSTOM_TRUSTSTORE_PASSWORD.toCharArray());
     }
   }
 
@@ -360,7 +360,7 @@ public final class TruststoreUtil {
   public static void verifyConnectionWithTruststore(String host, int port, Path truststorePath) throws Exception {
     KeyStore truststore = KeyStore.getInstance("PKCS12");
     try (InputStream in = Files.newInputStream(truststorePath)) {
-      truststore.load(in, CUSTOM_TRUSTSTORE_PASSWORD);
+      truststore.load(in, CUSTOM_TRUSTSTORE_PASSWORD.toCharArray());
     }
 
     TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
