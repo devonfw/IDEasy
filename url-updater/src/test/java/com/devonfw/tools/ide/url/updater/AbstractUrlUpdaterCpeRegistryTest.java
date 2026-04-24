@@ -40,8 +40,10 @@ class AbstractUrlUpdaterCpeRegistryTest {
 
     assertThat(cpe.getPrimaryVendor()).isEqualTo("astral");
     assertThat(cpe.getPrimaryProduct()).isEqualTo("uv");
+    // getVendors/getProducts return all configured values (exact + infix)
     assertThat(cpe.getVendors()).containsExactly("astral", "astral-sh");
     assertThat(cpe.getProducts()).containsExactly("uv", "uv-cli");
+    // matchesCpe uses all patterns for filtering CVE results
     assertThat(updater.matchesCpe("astral", "uv")).isTrue();
     assertThat(updater.matchesCpe("astral-sh", "uv")).isTrue();
     assertThat(updater.matchesCpe("astral", "uv-cli-preview")).isTrue();
@@ -82,8 +84,10 @@ class AbstractUrlUpdaterCpeRegistryTest {
 
     AbstractUrlUpdater.CpeRegistry cpe = updater.getCpeRegistry();
 
+    // getVendors() and getProducts() return all configured values (exact + infix)
+    // Used by createSearchCpes() to query the CVE database
     assertThat(cpe.getVendors()).containsExactly("astral", "astral-sh");
-    assertThat(cpe.getProducts()).containsExactly("uv");
+    assertThat(cpe.getProducts()).containsExactly("uv", "uv-cli");
   }
 
   @Test
@@ -95,6 +99,20 @@ class AbstractUrlUpdaterCpeRegistryTest {
 
     assertThat(cpe.getVendors()).containsExactly("oracle");
     assertThat(cpe.getProducts()).containsExactly("jdk", "java_se");
+  }
+
+  @Test
+  void testCpeMatchingUsesAllPatterns() {
+
+    AliasedCpeUpdater updater = new AliasedCpeUpdater();
+
+    // Matching uses ALL patterns (exact + infix) for filtering CVE results
+    // This is used in toVersionRange() to validate CVE results
+    assertThat(updater.matchesCpe("astral", "uv")).isTrue();
+    assertThat(updater.matchesCpe("astral-sh", "uv")).isTrue();  // Matches infix "astral-sh"
+    assertThat(updater.matchesCpe("astral", "uv-cli-preview")).isTrue();  // Matches infix "uv-cli"
+    assertThat(updater.matchesCpe("foo", "uv")).isFalse();
+    assertThat(updater.matchesCpe("astral-sh", "other")).isFalse();
   }
 
   private static class DefaultCpeUpdater extends AbstractUrlUpdater {
