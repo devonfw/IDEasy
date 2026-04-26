@@ -9,6 +9,9 @@ public class ValidationState implements ValidationResult {
 
   private StringBuilder errorMessage;
 
+  private String invalidOption;
+
+
   /**
    * The default constructor for no property.
    */
@@ -35,6 +38,25 @@ public class ValidationState implements ValidationResult {
     }
     return this.errorMessage.toString();
   }
+
+
+  /**
+   * @return the invalid option that caused the error, if applicable, for enhanced error reporting and suggestions. May be {@code null}.
+   */
+  public String getInvalidOption() {
+    if (this.invalidOption == null) {
+      return null;
+    }
+    return this.invalidOption;
+  }
+
+  /**
+   * @param invalidOption the invalid option that caused the error, if applicable, for enhanced error reporting and suggestions.
+   */
+  public void addInvalidOption(String invalidOption) {
+    this.invalidOption = invalidOption;
+  }
+
 
   /**
    * @param error the error message to add to this {@link ValidationState}.
