@@ -2,6 +2,7 @@ package com.devonfw.ide.gui;
 
 import java.io.IOException;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
@@ -10,6 +11,10 @@ import javafx.scene.image.Image;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.devonfw.ide.gui.modal.IdeDialog;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.IdeVersion;
 
@@ -20,8 +25,16 @@ public class App extends Application {
 
   Parent root;
 
+  private static final Logger LOG = LoggerFactory.getLogger(App.class);
+
   @Override
   public void start(Stage primaryStage) throws IOException {
+
+    Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+          LOG.info("Uncaught exception in thread {}: {}", thread.getName(), throwable.getMessage(), throwable);
+          Platform.runLater(() -> new IdeDialog(IdeDialog.AlertType.ERROR, throwable.getMessage()).showAndWait());
+        }
+    );
 
     FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
     fxmlLoader.setController(
