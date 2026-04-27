@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.property;
 
+import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.validation.PropertyValidator;
 
@@ -49,4 +51,7 @@ public class NumberProperty extends Property<Long> {
     }
   }
 
+  @Override
+  protected void completeValue(String arg, IdeContext contextual, Commandlet commandlet,
+                               CompletionCandidateCollector collector) {}
 }

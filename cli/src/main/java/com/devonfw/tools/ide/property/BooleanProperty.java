@@ -54,6 +54,10 @@ public class BooleanProperty extends Property<Boolean> {
     return result;
   }
 
+  @Override
+  protected void completeValue(String arg, IdeContext contextual, Commandlet commandlet,
+                               CompletionCandidateCollector collector) {}
+
   private Boolean parse(String valueAsString) {
 
     if (valueAsString == null) {

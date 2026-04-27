@@ -472,9 +472,7 @@ public abstract class Property<V> {
    * @param commandlet the {@link Commandlet} owning this {@link Property}.
    * @param collector the {@link CompletionCandidateCollector}.
    */
-  protected void completeValue(String arg, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
-
-  }
+  protected abstract void completeValue(String arg, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector);
 
   /**
    * @param nameOrAlias the potential {@link #getName() name} or {@link #getAlias() alias} to match.
