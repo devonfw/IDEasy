@@ -15,6 +15,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1823[#1823]: Fix IDEasy creates duplicate entries in .gitconfig
 * https://github.com/devonfw/IDEasy/issues/1724[#1724]: Add gui commandlet
 * https://github.com/devonfw/IDEasy/issues/1853[#1853]: Add ARM releases for VSCode on Mac
+* https://github.com/devonfw/IDEasy/issues/1643[#1643]: Improve CLI error messages for unknown options and property values
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/44?closed=1[milestone 2026.05.001].
 
