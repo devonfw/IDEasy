@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.tool.nestjs;
+package com.devonfw.tools.ide.tool.nest;
 
 import java.util.Set;
 
@@ -8,18 +8,18 @@ import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.npm.NpmBasedCommandlet;
 
 /**
- * {@link ToolCommandlet} for <a href="https://docs.nestjs.com/cli/overview">NestJS CLI</a>.
+ * {@link ToolCommandlet} for <a href="https://docs.nestjs.com/cli/overview">Nest CLI</a>.
  */
-public class NestJs extends NpmBasedCommandlet {
+public class Nest extends NpmBasedCommandlet {
 
   /**
    * The constructor.
    *
    * @param context the {@link IdeContext}.
    */
-  public NestJs(IdeContext context) {
+  public Nest(IdeContext context) {
 
-    super(context, "nestjs", Set.of(Tag.TYPE_SCRIPT, Tag.BUILD));
+    super(context, "nest", Set.of(Tag.TYPE_SCRIPT, Tag.BUILD));
   }
 
   @Override

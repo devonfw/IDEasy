@@ -1,15 +1,15 @@
-package com.devonfw.tools.ide.url.tool.nestjs;
+package com.devonfw.tools.ide.url.tool.nest;
 
 import com.devonfw.tools.ide.url.updater.NpmBasedUrlUpdater;
 
 /**
- * {@link NpmBasedUrlUpdater} for nestjs.
+ * {@link NpmBasedUrlUpdater} for nest.
  */
-public class NestJsUrlUpdater extends NpmBasedUrlUpdater {
+public class NestUrlUpdater extends NpmBasedUrlUpdater {
 
   @Override
   public String getTool() {
-    return "nestjs";
+    return "nest";
   }
 
   @Override
@@ -19,11 +19,11 @@ public class NestJsUrlUpdater extends NpmBasedUrlUpdater {
 
   @Override
   public String getCpeVendor() {
-    return "nestjs";
+    return "nest";
   }
 
   @Override
   public String getCpeProduct() {
-    return "nestjs";
+    return "nest";
   }
 }

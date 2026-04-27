@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.url.tool.nestjs;
+package com.devonfw.tools.ide.url.tool.nest;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
@@ -19,20 +19,20 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * Test for {@link NestJsUrlUpdater}.
+ * Test for {@link NestUrlUpdater}.
  */
 @WireMockTest
-class NestJsUrlUpdaterTest extends AbstractUrlUpdaterTest {
+class NestUrlUpdaterTest extends AbstractUrlUpdaterTest {
 
   /**
-   * Test of {@link JsonUrlUpdater} for the creation of {@link NestJsUrlUpdater} download URLs and checksums.
+   * Test of {@link JsonUrlUpdater} for the creation of {@link NestUrlUpdater} download URLs and checksums.
    *
    * @param tempDir Path to a temporary directory
    * @param wmRuntimeInfo the {@link WireMockRuntimeInfo}.
    * @throws IOException test fails
    */
   @Test
-  void testNestJsJsonUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  void testNestonUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
 
     // arrange
     stubFor(get(urlMatching("/@nestjs/cli")).willReturn(
@@ -41,16 +41,16 @@ class NestJsUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(any(urlMatching("/@nestjs/cli/-/cli-[1-9.].*.tgz")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    NestJsUrlUpdaterMock updater = new NestJsUrlUpdaterMock(wmRuntimeInfo);
+    NestUrlUpdaterMock updater = new NestUrlUpdaterMock(wmRuntimeInfo);
 
     // act
     updater.update(urlRepository);
 
     // assert
-    assertUrlVersionAgnostic(tempDir.resolve("nestjs").resolve("nestjs").resolve("11.0.21"));
+    assertUrlVersionAgnostic(tempDir.resolve("nest").resolve("nest").resolve("11.0.21"));
   }
 
   private static String getJsonBody(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
-    return readAndResolve(PATH_INTEGRATION_TEST.resolve("NestJsUrlUpdater").resolve("nestjs-version.json"), wmRuntimeInfo);
+    return readAndResolve(PATH_INTEGRATION_TEST.resolve("NestUrlUpdater").resolve("nest-version.json"), wmRuntimeInfo);
   }
 }
