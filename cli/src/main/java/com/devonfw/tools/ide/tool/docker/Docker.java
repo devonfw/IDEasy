@@ -147,7 +147,6 @@ public class Docker extends GlobalToolCommandlet {
   public String getInstalledEdition() {
 
     if (!isDockerInstalled()) {
-      LOG.error("Couldn't get installed edition of {}", this.getName());
       return null;
     }
 
@@ -155,16 +154,6 @@ public class Docker extends GlobalToolCommandlet {
       return "rancher";
     } else {
       return "desktop";
-    }
-  }
-
-  @Override
-  public void uninstall() {
-
-    super.uninstall();
-
-    if (this.context.getSystemInfo().isLinux()) {
-      runWithPackageManager(false, getUninstallPackageManagerCommands());
     }
   }
 
