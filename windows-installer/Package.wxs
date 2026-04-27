@@ -51,7 +51,7 @@
     <!-- Execution of uninstall command-->
     <SetProperty
       Id="RunUninstallAction"
-			Value='"[%SystemFolder]cmd.exe" /v:on /c "cd /d [%IDE_ROOT]\_ide\installation &amp;&amp; (if not exist "[%USERPROFILE]\.ide\logs" mkdir "[%USERPROFILE]\.ide\logs") &amp;&amp; set ts=%date:/=-%_%time::=-% &amp;&amp; set ts=!ts:,=-! &amp;&amp; bin\ideasy.exe -ft --no-colors uninstall &gt; "[%USERPROFILE]\.ide\logs\uninstall-!ts!.log" 2&gt;&amp;1"'
+      Value='"[%SystemFolder]cmd.exe" /v:on /c "cd /d &quot;[INSTALLFOLDER]&quot; &amp;&amp; (if not exist &quot;[%USERPROFILE]\.ide\logs&quot; mkdir &quot;[%USERPROFILE]\.ide\logs&quot;) &amp;&amp; set ts=%date:/=-%_%time::=-% &amp;&amp; set ts=!ts:,=-! &amp;&amp; bin\ideasy.exe -ft --no-colors uninstall &gt; &quot;[%USERPROFILE]\.ide\logs\uninstall-!ts!.log&quot; 2&gt;&amp;1"'
       Before="RunUninstallAction"
       Sequence="execute"
       />
