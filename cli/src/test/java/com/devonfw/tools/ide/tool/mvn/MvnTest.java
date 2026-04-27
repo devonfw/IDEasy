@@ -4,12 +4,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
+import com.devonfw.tools.ide.cli.CliArguments;
+import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.io.FileAccess;
@@ -137,5 +140,127 @@ class MvnTest extends AbstractIdeContextTest {
     List<String> values = matcher.results().map(matchResult -> matchResult.group(2)).collect(Collectors.toList());
 
     assertThat(values).containsExactlyInAnyOrderElementsOf(expectedValues);
+  }
+
+  @Test
+  public void testEmptyGoalInputSuggestsAllMavenProperties() {
+    String path = "project/workspaces";
+
+    IdeTestContext context = newContext(PROJECT_MVN, path, false);
+    CliArguments args = CliArguments.of(1, "mvn", "");
+
+    List<String> lines = context.complete(args, false).stream()
+                         .map(CompletionCandidate::text).toList();
+    assertThat(lines).contains("clean", "compile", "test", "package", "install", "deploy");
+  }
+
+  @Test
+  public void testEmptyInputSuggestsFlagProperties() {
+    String path = "project/workspaces";
+
+    IdeTestContext context = newContext(PROJECT_MVN, path, false);
+    CliArguments args = CliArguments.of(1, "mvn", "");
+
+    List<String> lines = context.complete(args, false).stream()
+                         .map(CompletionCandidate::text).toList();
+    assertThat(lines).contains("--also-make", "--also-make-dependents", "--fail-at-end",
+        "--fail-fast", "--threads", "-DskipTests", "-DdeployAtEnd");
+  }
+
+  @Test
+  public void testPartialGoalInputFiltersToMatchingGoals() {
+    String path = "project/workspaces";
+
+    IdeTestContext context = newContext(PROJECT_MVN, path, false);
+    CliArguments args = CliArguments.of(1, "mvn", "cl");
+
+    List<String> lines = context.complete(args, false).stream()
+                         .map(CompletionCandidate::text).toList();
+    assertThat(lines).containsExactly("clean");
+  }
+
+  @Test
+  public void testUnmatchedGoalInputReturnsNoSuggestions() {
+    String path = "project/workspaces";
+
+    IdeTestContext context = newContext(PROJECT_MVN, path, false);
+    CliArguments args = CliArguments.of(1, "mvn", "xyz");
+
+    assertThat(context.complete(args, false)).isEmpty();
+  }
+
+  @Test
+  public void testSecondGoalIsCompletedAfterFirstGoal() {
+    String path = "project/workspaces";
+
+    IdeTestContext context = newContext(PROJECT_MVN, path, false);
+    CliArguments args = CliArguments.of(2, "mvn", "clean", "");
+
+    List<String> lines = context.complete(args, false).stream()
+                         .map(CompletionCandidate::text).toList();
+    assertThat(lines).contains("package", "install", "deploy", "test");
+  }
+
+  @Test
+  public void testSecondGoalPartialInputFiltersToMatches() {
+    String path = "project/workspaces";
+
+    IdeTestContext context = newContext(PROJECT_MVN, path, false);
+    CliArguments args = CliArguments.of(2, "mvn", "clean", "pa");
+
+    List<String> lines = context.complete(args, false).stream()
+                         .map(CompletionCandidate::text).toList();
+    assertThat(lines).containsExactly("package");
+  }
+
+  @Test
+  public void testAlsoMakeFlagIsOfferedOnPartialInput() {
+    String path = "project/workspaces";
+
+    IdeTestContext context = newContext(PROJECT_MVN, path, false);
+    CliArguments args = CliArguments.of(1, "mvn", "--also");
+
+    List<String> lines = context.complete(args, false).stream()
+                         .map(CompletionCandidate::text).toList();
+    assertThat(lines).containsExactly("--also-make", "--also-make-dependents");
+  }
+
+  @Test
+  public void testShortAlsoMakeFlagIsOfferedOnPartialInput() {
+    String path = "project/workspaces";
+
+    IdeTestContext context = newContext(PROJECT_MVN, path, false);
+    CliArguments args = CliArguments.of(1, "mvn", "-am");
+
+    List<String> lines = context.complete(args, false).stream()
+                         .map(CompletionCandidate::text).toList();
+    assertThat(lines).containsExactly("-am", "-amd");
+  }
+
+  @Test
+  public void testExecMainClassFlagCandidateIsMarkedIncomplete() {
+    String path = "project/workspaces";
+
+    IdeTestContext context = newContext(PROJECT_MVN, path, false);
+    CliArguments args = CliArguments.of(1, "mvn", "-Dexec.mainClass=");
+
+    Optional<CompletionCandidate> candidate = context.complete(args, false).stream()
+        .filter(c -> c.text().equals("-Dexec.mainClass="))
+        .findFirst();
+
+    assertThat(candidate).isPresent();
+    assertThat(candidate.get().complete()).isFalse();
+  }
+
+  @Test
+  public void testAlsoMakeFlagIsNotOfferedWhenAlreadyUsed() {
+    String path = "project/workspaces";
+
+    IdeTestContext context = newContext(PROJECT_MVN, path, false);
+    CliArguments args = CliArguments.of(2, "mvn", "--also-make", "--al");
+
+    List<String> lines = context.complete(args, false).stream()
+                         .map(CompletionCandidate::text).toList();
+    assertThat(lines).doesNotContain("--also-make");
   }
 }
