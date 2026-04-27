@@ -1442,7 +1442,10 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
         property.apply(arguments, this, cc, collector);
       }
     }
-    Iterator<Commandlet> commandletIterator = this.commandletManager.findCommandlet(arguments, collector);
+
+    this.commandletManager.collectCompletionCandidates(arguments, collector);
+
+    Iterator<Commandlet> commandletIterator = this.commandletManager.findCommandlet(arguments, null);
     CliArgument current = arguments.current();
     if (current.isCompletion() && current.isCombinedShortOption()) {
       collector.add(current.get(), null, null, null);
@@ -1461,6 +1464,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
     LOG.trace("Trying to match arguments for auto-completion for commandlet {}", cmd.getName());
     Iterator<Property<?>> valueIterator = cmd.getValues().iterator();
+    Property<?> lastValueProperty = null;
     valueIterator.next(); // skip first property since this is the keyword property that already matched to find the commandlet
     List<Property<?>> properties = cmd.getProperties();
     // we are creating our own list of options and remove them when matched to avoid duplicate suggestions
@@ -1499,18 +1503,30 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
           }
         }
       } else {
+        if (currentArgument.isCompletion() && currentArgument.get().isEmpty()
+            && !arguments.isEndOptions()) {
+          for (Property<?> option : optionProperties) {
+            option.apply(arguments, this, cmd, collector);
+          }
+        }
+
+        Property<?> valueProperty = null;
         if (valueIterator.hasNext()) {
-          Property<?> valueProperty = valueIterator.next();
+          valueProperty = valueIterator.next();
           boolean success = valueProperty.apply(arguments, this, cmd, collector);
           if (!success) {
             LOG.trace("Completion cannot match any further.");
             return;
           }
+        } else if (lastValueProperty != null && lastValueProperty.isMultiValued()) {
+          valueProperty = lastValueProperty;
         } else {
           LOG.trace("No value left for completion.");
           return;
         }
       }
+
+      arguments.next();
       currentArgument = arguments.current();
     }
   }
