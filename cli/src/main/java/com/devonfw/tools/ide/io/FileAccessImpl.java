@@ -556,7 +556,22 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
             "Due to lack of permissions, Microsoft's mklink with junction had to be used to create a Symlink. See\n"
                 + "https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for further details. Error was: "
                 + e.getMessage());
-        mklinkOnWindows(finalSource, absoluteSource, finalLink, type, relative);
+
+        try {
+          if (Files.exists(finalLink, LinkOption.NOFOLLOW_LINKS)) {
+            delete(finalLink);
+          }
+          mklinkOnWindows(finalSource, absoluteSource, finalLink, type, relative);
+        } catch (IllegalStateException mkEx) {
+          try {
+            LOG.info("Creating a hard link as a fallback for the failed mklink attempt.");
+            Files.createLink(finalLink, finalSource);
+          } catch (IOException linkEx) {
+            throw new IllegalStateException(
+                "mklink failed and hardlink fallback also failed for link=" + finalLink + " source=" + finalSource,
+                linkEx);
+          }
+        }
       } else {
         throw new RuntimeException(e);
       }

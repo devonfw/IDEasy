@@ -35,7 +35,7 @@ class LnCommandletTest extends AbstractIdeContextTest {
     LnCommandlet cmd = new LnCommandlet(context);
     cmd.symbolic.setValueAsString("-s", context);
     cmd.source.setValueAsString("source.txt", context);
-    cmd.target.setValueAsString("link.txt", context);
+    cmd.link.setValueAsString("link.txt", context);
 
     cmd.run();
 
@@ -64,7 +64,7 @@ class LnCommandletTest extends AbstractIdeContextTest {
     LnCommandlet cmd = new LnCommandlet(context);
     cmd.symbolic.setValueAsString("-s", context);
     cmd.source.setValueAsString("source.txt", context);
-    cmd.target.setValueAsString("link.txt", context);
+    cmd.link.setValueAsString("link.txt", context);
 
     cmd.run();
 
