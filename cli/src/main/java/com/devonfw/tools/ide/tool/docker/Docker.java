@@ -29,6 +29,10 @@ public class Docker extends GlobalToolCommandlet {
 
   private static final String PODMAN = "podman";
 
+  private static final String RANCHER_DESKTOP_EDITION = "rancher";
+
+  private static final String DOCKER_DESKTOP_EDITION = "docker";
+
   private static final Pattern RDCTL_CLIENT_VERSION_PATTERN = Pattern.compile("client version:\\s*v([\\d.]+)", Pattern.CASE_INSENSITIVE);
 
   private static final Pattern DOCKER_DESKTOP_LINUX_VERSION_PATTERN = Pattern.compile("^([0-9]+(?:\\.[0-9]+){1,2})");
@@ -46,6 +50,20 @@ public class Docker extends GlobalToolCommandlet {
   @Override
   public String getBinaryName() {
     return detectContainerRuntime();
+  }
+
+  @Override
+  public String getWindowsAppName() {
+    String installedEdition = getInstalledEdition();
+    if (installedEdition != null) {
+      if (installedEdition.equals(RANCHER_DESKTOP_EDITION)) {
+        return "Rancher Desktop";
+      } else if (installedEdition.equals(DOCKER_DESKTOP_EDITION)) {
+        return "Docker Desktop";
+      }
+    }
+
+    return super.getWindowsAppName();
   }
 
   private boolean isDockerInstalled() {
