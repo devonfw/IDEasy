@@ -1,7 +1,7 @@
-﻿<?define ProductName = "IDEasy" ?>
+﻿<?define ProductName = "IDEasy Test" ?>
 <?define Manufacturer = "devonfw" ?>
 <?define ProductVersion = "1.0.0" ?>
-<?define UpgradeCode = "1848091f-6184-451b-ba4c-097662e2cfaa" ?>
+<?define UpgradeCode = "uuidgen" ?>
 
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
 	<Package Name="$(var.ProductName)" Manufacturer="$(var.Manufacturer)" Version="$(var.ProductVersion)" UpgradeCode="$(var.UpgradeCode)">
