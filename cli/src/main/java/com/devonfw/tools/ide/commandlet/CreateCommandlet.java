@@ -56,7 +56,8 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
   protected void doRun() {
 
     String newProjectName = this.newProject.getValue();
-    Path newProjectPath = this.context.getIdeRoot().resolve(newProjectName);
+    //Path newProjectPath = this.context.getIdeRoot().resolve(newProjectName);
+    Path newProjectPath = this.context.getIdeRoot().resolve("_ide/tmp/projects").resolve(newProjectName);
 
     LOG.info("Creating new IDEasy project in {}", newProjectPath);
     if (!this.context.getFileAccess().isEmptyDir(newProjectPath)) {
@@ -69,6 +70,7 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
     this.context.setIdeHome(newProjectPath);
     this.context.verifyIdeMinVersion(true);
     super.doRun();
+    newProjectPath = this.context.getIdeHome();
     this.context.verifyIdeMinVersion(true);
     this.context.getFileAccess().writeFileContent(IdeVersion.getVersionString(), newProjectPath.resolve(IdeContext.FILE_SOFTWARE_VERSION));
     IdeLogLevel.SUCCESS.log(LOG, "Successfully created new project '{}'.", newProjectName);

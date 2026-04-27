@@ -99,6 +99,8 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
     if (!this.context.isSettingsRepositorySymlinkOrJunction() || this.context.isForceMode() || forcePull.isTrue()) {
       updateSettings();
+      analyze_project(); // This will likely break when running "ide update"
+      
     }
     updateConf();
     reloadContext();
@@ -106,6 +108,35 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     updateSoftware();
     updateRepositories();
     createStartScripts();
+  }
+
+  private void analyze_project() {
+    String projectName = this.context.getProjectName();
+    Path actualProjectPath;
+    // Check if the repository is a code repository containing a top-level settings folder
+    if (isCodeRepository() && Files.exists(this.context.getSettingsPath()) && Files.isDirectory(this.context.getSettingsPath())) {
+      actualProjectPath = this.context.getIdeRoot().resolve(projectName).resolve("workspaces/main/").resolve(projectName);
+      moveProject(this.context.getIdeHome(), actualProjectPath);
+      createSettingsLink();
+    } else {
+      actualProjectPath = this.context.getIdeRoot();
+      moveProject(this.context.getIdeHome(), actualProjectPath);
+    }
+    this.context.setIdeHome(actualProjectPath.resolve(projectName));
+
+  }
+
+  private void moveProject(Path oldPath, Path newPath) {
+    try {
+      this.context.getFileAccess().copy(oldPath, newPath);
+      this.context.getFileAccess().delete(oldPath);
+    } catch (Exception e) {
+      LOG.error("Failed to move project from {} to {}. Please move it manually.", oldPath, newPath, e);
+    }
+  }
+
+  private void createSettingsLink() {
+
   }
 
   private void reloadContext() {
