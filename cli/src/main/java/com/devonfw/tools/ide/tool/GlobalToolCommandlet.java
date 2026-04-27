@@ -225,6 +225,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
 
   @Override
   public String getInstalledEdition() {
+
     if (getInstalledVersion() == null) {
       return null;
     }

@@ -82,6 +82,7 @@ public class WindowsHelperImpl implements WindowsHelper {
           if (currentPath != null && line.startsWith("DisplayName")) {
             String name = extractRegistryValue(line);
             if (name != null && pattern.matcher(name).find()) {
+              LOG.debug("Found {} in registry path {}", displayNameRegex, currentPath);
               return getRegistryValue(currentPath, key);
             }
           }
