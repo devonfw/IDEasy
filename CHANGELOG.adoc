@@ -13,6 +13,8 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1174[#1174]: Add UrlUpdater for Java Azul edition
 * https://github.com/devonfw/IDEasy/issues/451[#451]: Automatically remove macOS quarantine attribute after tool extraction
 * https://github.com/devonfw/IDEasy/issues/1823[#1823]: Fix IDEasy creates duplicate entries in .gitconfig
+* https://github.com/devonfw/IDEasy/issues/1724[#1724]: Add gui commandlet
+* https://github.com/devonfw/IDEasy/issues/1853[#1853]: Add ARM releases for VSCode on Mac
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/44?closed=1[milestone 2026.05.001].
 
@@ -25,7 +27,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/913[#913]: Add support for SQuirrel SQL Client (squirrel-sql commandlet)
 * https://github.com/devonfw/IDEasy/issues/1799[#1799]: Add support for file URL in GitUrl validation for local development
 * https://github.com/devonfw/IDEasy/issues/1760[#1760]: Accept empty input for single option
-* https://github.com/devonfw/IDEasy/issues/906[#906]:   Introduce variables INTELLIJ_VM_ARGS, ANDROID_STUDIO_VM_ARGS and PYCHARM_VM_ARGS to configure jvm options for JetBrains
+* https://github.com/devonfw/IDEasy/issues/906[#906]: Introduce variables INTELLIJ_VM_ARGS, ANDROID_STUDIO_VM_ARGS and PYCHARM_VM_ARGS to configure jvm options for JetBrains
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/43?closed=1[milestone 2026.04.002].
 
