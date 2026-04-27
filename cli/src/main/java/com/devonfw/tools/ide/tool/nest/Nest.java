@@ -19,7 +19,7 @@ public class Nest extends NpmBasedCommandlet {
    */
   public Nest(IdeContext context) {
 
-    super(context, "nest", Set.of(Tag.TYPE_SCRIPT, Tag.BUILD));
+    super(context, "nest", Set.of(Tag.NEST, Tag.TYPE_SCRIPT, Tag.BUILD));
   }
 
   @Override
