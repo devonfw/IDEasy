@@ -273,6 +273,19 @@ public class CliArgument {
     return this.arg;
   }
 
+  public static CliArgument of(int completionIdx, String... args) {
+    CliArgument current = END;
+    int last = args.length - 1;
+
+    for (int argsIdx = last; argsIdx >= 0; argsIdx--) {
+      String arg = args[argsIdx];
+      boolean completionArg = argsIdx == completionIdx;
+
+      current = new CliArgument(arg, current, completionArg);
+    }
+
+    return current.createStart();
+  }
   /**
    * @param args the command-line arguments (e.g. from {@code main} method).
    * @return the first {@link CliArgument} of the parsed arguments or {@code null} if for empty arguments.
