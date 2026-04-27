@@ -14,7 +14,12 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 class NestTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_NEST = "nest";
-  
+
+  /**
+   * Tests if the {@link Nest} install works correctly.
+   *
+   * @param wireMockRuntimeInfo wireMock server on a random port
+   */
   @Test
   void testNestInstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
@@ -30,6 +35,11 @@ class NestTest extends AbstractIdeContextTest {
 
   }
 
+  /**
+   * Tests if the {@link Nest} install works correctly.
+   *
+   * @param wireMockRuntimeInfo wireMock server on a random port
+   */
   @Test
   void testNestUninstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
@@ -52,6 +62,11 @@ class NestTest extends AbstractIdeContextTest {
     assertThat(context).logAtSuccess().hasMessage("Successfully uninstalled nest");
   }
 
+  /**
+   * Tests if {@link Nest} run works correctly.
+   *
+   * @param wireMockRuntimeInfo wireMock server on a random port
+   */
   @Test
   void testNestRun(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
