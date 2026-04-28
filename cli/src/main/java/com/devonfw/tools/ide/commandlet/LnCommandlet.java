@@ -37,7 +37,7 @@ public final class LnCommandlet extends Commandlet {
 
     // Treat -s as grammar token
     this.symbolic = add(new FlagProperty("--symbolic", false, "-s"));
-    this.target = add(new StringProperty("", true, "source"));
+    this.target = add(new StringProperty("", true, "target"));
     this.link = add(new StringProperty("", true, "link"));
   }
 
