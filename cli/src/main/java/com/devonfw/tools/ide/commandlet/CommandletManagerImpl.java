@@ -21,6 +21,7 @@ import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.tool.androidstudio.AndroidStudio;
 import com.devonfw.tools.ide.tool.aws.Aws;
 import com.devonfw.tools.ide.tool.az.Azure;
+import com.devonfw.tools.ide.tool.copilot.Copilot;
 import com.devonfw.tools.ide.tool.corepack.Corepack;
 import com.devonfw.tools.ide.tool.docker.Docker;
 import com.devonfw.tools.ide.tool.dotnet.DotNet;
@@ -30,6 +31,7 @@ import com.devonfw.tools.ide.tool.gh.Gh;
 import com.devonfw.tools.ide.tool.go.Go;
 import com.devonfw.tools.ide.tool.graalvm.GraalVm;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
+import com.devonfw.tools.ide.tool.gui.Gui;
 import com.devonfw.tools.ide.tool.helm.Helm;
 import com.devonfw.tools.ide.tool.intellij.Intellij;
 import com.devonfw.tools.ide.tool.jasypt.Jasypt;
@@ -146,9 +148,11 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Spring(context));
     add(new Uv(context));
     add(new Yarn(context));
+    add(new Copilot(context));
     add(new Corepack(context));
     add(new Pip(context));
     add(new Go(context));
+    add(new Gui(context));
     add(new SquirrelSql(context));
   }
 
