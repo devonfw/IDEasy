@@ -31,7 +31,7 @@ public class App extends Application {
   public void start(Stage primaryStage) throws IOException {
 
     Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
-          LOG.info("Uncaught exception in thread {}: {}", thread.getName(), throwable.getMessage(), throwable);
+          LOG.error("Uncaught exception in thread {}: {}", thread.getName(), throwable.getMessage(), throwable);
           Platform.runLater(() -> new IdeDialog(IdeDialog.AlertType.ERROR, throwable.getMessage()).showAndWait());
         }
     );

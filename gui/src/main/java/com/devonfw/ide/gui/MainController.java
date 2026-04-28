@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
 import com.devonfw.ide.gui.context.ProjectManager;
 import com.devonfw.ide.gui.modal.IdeDialog;
-import com.devonfw.tools.ide.context.IdeContext;
 
 /**
  * Controller of the main screen of the dashboard GUI.
@@ -88,7 +87,6 @@ public class MainController {
     openIDE("vscode");
   }
 
-
   private void setProjectsComboBox() {
 
     assert (directoryPath != null) : "directoryPath is null! Please check the setup of your environment variables (IDE_ROOT)";
@@ -100,28 +98,27 @@ public class MainController {
 
     selectedProject.setOnAction(actionEvent -> {
 
-      projectValue = Path.of(selectedProject.getValue()).resolve(IdeContext.FOLDER_WORKSPACES);
+      setWorkspaceComboBox();
+
       selectedWorkspace.setDisable(false);
-      androidStudioOpen.setDisable(false);
-      eclipseOpen.setDisable(false);
-      intellijOpen.setDisable(false);
-      vsCodeOpen.setDisable(false);
-      selectedWorkspace.setValue("main");
-      this.workspaceValue = Path.of("main");
-      updateContext(selectedProject.getValue(), selectedWorkspace.getValue());
     });
   }
 
-  @FXML
-  private void setWorkspaceValue() {
+  private void setWorkspaceComboBox() {
 
     List<String> workspaces = projectManager.getWorkspaceNames(selectedProject.getValue());
 
     selectedWorkspace.getItems().clear();
     selectedWorkspace.getItems().addAll(workspaces);
 
-    this.workspaceValue = Path.of(selectedWorkspace.getValue());
-    updateContext(selectedProject.getValue(), selectedWorkspace.getValue());
+    selectedWorkspace.setOnAction(actionEvent -> {
+      updateContext(selectedProject.getValue(), selectedWorkspace.getValue());
+
+      androidStudioOpen.setDisable(false);
+      eclipseOpen.setDisable(false);
+      intellijOpen.setDisable(false);
+      vsCodeOpen.setDisable(false);
+    });
   }
 
   private void openIDE(String inIde) {
