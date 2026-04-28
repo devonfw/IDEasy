@@ -46,7 +46,7 @@ class ClaudeUrlUpdaterTest extends AbstractUrlUpdaterTest {
 
     // assert
     Path claudeDir = tempDir.resolve("claude").resolve("claude");
-    assertUrlVersionOsX64(claudeDir.resolve("2.1.110"));
+    assertUrlVersionOsX64(claudeDir.resolve("2.1.119"));
   }
 }
 
