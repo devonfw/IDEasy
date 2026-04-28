@@ -8,8 +8,6 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
@@ -18,8 +16,6 @@ import com.devonfw.tools.ide.context.IdeTestContext;
  * Tests for the ProjectManager class.
  */
 public class ProjectManagerTest extends AbstractIdeContextTest {
-
-  private static final Logger LOG = LoggerFactory.getLogger(ProjectManagerTest.class);
 
   private static ProjectManager projectManager;
 

@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,8 +30,8 @@ public class IdeGuiStateManagerTest extends AbstractIdeContextTest {
   @BeforeAll
   static void setup() throws FileNotFoundException {
 
-    context = newContext("testProject", "project");
-    LOG.warn("root: {}", context.getIdeRoot());
+    context = newContext("testProject", "project-0");
+    LOG.debug("root: {}", context.getIdeRoot());
 
     guiStateManager = IdeGuiStateManager.getInstanceOverrideRootDir(context.getIdeRoot().toString());
     projectManager = guiStateManager.getProjectManager();
@@ -96,14 +97,18 @@ public class IdeGuiStateManagerTest extends AbstractIdeContextTest {
   @Test
   void testThrowsIfNonExistentWorkspaceSelected() throws IOException {
 
-    Files.list(context.getIdeRoot()).forEach((projectPath) -> {
-      try {
-        guiStateManager.switchContext(projectPath.getFileName().toString(), "test");
-      } catch (FileNotFoundException e) {
-        assertThat(e.getMessage()).contains("Workspace " + projectPath.resolve("workspaces").resolve("test") + " does not exist!")
-            .as("GuiStateManager.switchContext should throw an exception, if a non-existent workspace is selected");
-      }
-    });
+    try (Stream<Path> stream = Files.list(context.getIdeRoot())) {
+      stream.forEach((projectPath) -> {
+        Path fakeWorkspacePath = projectPath.resolve("workspaces").resolve("nonExistingWorkspace");
+
+        try {
+          guiStateManager.switchContext(projectPath.getFileName().toString(), fakeWorkspacePath.getFileName().toString());
+        } catch (FileNotFoundException e) {
+          assertThat(e.getMessage()).contains("Workspace " + fakeWorkspacePath + " does not exist!")
+              .as("GuiStateManager.switchContext should throw an exception, if a non-existent workspace is selected");
+        }
+      });
+    }
   }
 
 }
