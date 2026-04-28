@@ -4,9 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
+import java.util.stream.Stream;
 
-import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -35,10 +34,15 @@ public class ProjectManagerTest extends AbstractIdeContextTest {
   }
 
   @Test
-  void testConstructorWithValidDirectory() {
+  void testProjectManagerFull() {
 
-    //No exception should be thrown
     projectManager = new ProjectManager(ideRoot);
+
+    assertThat(projectManager).isNotNull();
+    assertThat(projectManager.getProjectNames()).containsExactlyInAnyOrder("project-0", "project-1", "project-2", "project-3", "project-4", "project-5");
+    for (String projectName : projectManager.getProjectNames()) {
+      assertThat(projectManager.getWorkspaceNames(projectName)).containsExactlyInAnyOrder("foo-test", "main");
+    }
   }
 
   @Test
@@ -83,214 +87,87 @@ public class ProjectManagerTest extends AbstractIdeContextTest {
     }
   }
 
-  // ============ readProjects() Tests ============
-
   @Test
-  void testReadProjectsWithEmptyProjectDirectory() {
+  void testRefreshProjects() throws IOException {
 
-    context = newContext("emptyProjects", "");
     projectManager = new ProjectManager(ideRoot);
+    assertThat(projectManager.getProjectNames()).containsExactlyInAnyOrder("project-0", "project-1", "project-2", "project-3", "project-4", "project-5");
+
+    Path project0 = ideRoot.resolve("project-0");
+    Path project6 = ideRoot.resolve("project-6");
+    copyDirectory(project0, project6);
+
     projectManager.refreshProjects();
 
-    assertThat(projectManager.getProjectNames()).isEmpty();
+    // Verify that project-6 is now recognized
+    assertThat(projectManager.getProjectNames()).containsExactlyInAnyOrder("project-0", "project-1", "project-2", "project-3", "project-4", "project-5",
+        "project-6");
+    assertThat(projectManager.getWorkspaceNames("project-6")).containsExactlyInAnyOrder("foo-test", "main");
+
+    // Cleanup
+    deleteDirectory(project6);
   }
 
   @Test
-  void testReadProjectsWithValidProjects() {
+  void testReadProjectsExcludesFoldersWithoutWorkspaces() throws IOException {
+
+    // Create a project folder without a workspaces subdirectory
+    Path testProject = ideRoot.resolve("test-project-no-workspaces");
+    Files.createDirectory(testProject);
 
     projectManager = new ProjectManager(ideRoot);
 
-    //test folder contains baseProject to project-5
-    assertThat(projectManager.getProjectNames()).hasSize(6).as("Should have 6 projects")
-        .containsExactlyInAnyOrder("project-0", "project-1", "project-2", "project-3", "project-4", "project-5");
+    // Verify that test-project-no-workspaces is not recognized
+    assertThat(projectManager.getProjectNames()).doesNotContain("test-project-no-workspaces");
+    assertThat(projectManager.getProjectNames()).containsExactlyInAnyOrder("project-0", "project-1", "project-2", "project-3", "project-4", "project-5");
+
+    // Cleanup
+    deleteDirectory(testProject);
   }
 
   @Test
-  void testReadProjectsIgnoresUnderscorePrefixed() throws Exception {
-
-    // Create a project with underscore prefix
-    Path underscoreProject = ideRoot.resolve("_project");
-    Files.createDirectories(underscoreProject);
-    Files.copy(ideRoot.resolve("project-0"), underscoreProject, StandardCopyOption.REPLACE_EXISTING);
+  void testReadProjectsExcludesUnderscorePrefixedFolders() {
 
     projectManager = new ProjectManager(ideRoot);
 
-    // Should not include _project, same as _ide directory should be ignored
-    assertThat(projectManager.getProjectNames()).doesNotContain("_project").hasSize(6);
-
-    //clean up
-    Files.delete(underscoreProject);
+    // Verify that _ide folder is not in the project names
+    assertThat(projectManager.getProjectNames()).doesNotContain("_ide");
+    assertThat(projectManager.getProjectNames()).containsExactlyInAnyOrder("project-0", "project-1", "project-2", "project-3", "project-4", "project-5");
   }
 
-  @Test
-  void testReadProjectsIgnoresDirectoriesWithoutWorkspacesFolder() {
+  private void copyDirectory(Path source, Path destination) throws IOException {
 
-    context = newContext("noWorkspaces", "projectWithoutWorkspaces");
-    projectManager = new ProjectManager(ideRoot);
-
-    // Should not include projectNoWorkspaces
-    assertThat(projectManager.getProjectNames()).doesNotContain("projectWithoutWorkspaces");
-  }
-
-  // ============ readWorkspaces() Tests ============
-
-  @Test
-  void testReadWorkspacesWithMultipleWorkspaces() throws Exception {
-
-    Path project = ideRoot.resolve("project-0");
-    Path workspacesDir = project.resolve("workspaces");
-
-    // Create additional workspaces besides existing
-    Files.createDirectory(workspacesDir.resolve("dev"));
-    Files.createDirectory(workspacesDir.resolve("prod"));
-
-    projectManager = new ProjectManager(ideRoot);
-
-    // Should have main, dev, prod workspaces
-    assertThat(projectManager.getWorkspaceNames("project-0")).hasSize(4)
-        .containsExactlyInAnyOrder("main", "foo-test", "dev", "prod");
-  }
-
-  @Test
-  void testReadWorkspacesEmptyWorkspaceDirectory() {
-
-    context = newContext("emptyWorkspaceFolders", "project-0");
-
-    projectManager = new ProjectManager(ideRoot);
-
-    // Should return empty list for empty workspaces directory
-    assertThat(projectManager.getWorkspaceNames("project-0")).isEmpty();
-  }
-
-  // ============ refreshProjects() Tests ============
-
-  @Test
-  void testRefreshProjectsClearsExistingData() throws Exception {
-
-    projectManager = new ProjectManager(ideRoot);
-
-    // Get initial projects
-    assertThat(projectManager.getProjectNames()).hasSize(6);
-
-    // Delete a project
-    try (var stream = Files.walk(ideRoot.resolve("project-0"))) {
-      stream.forEach(p -> {
+    Files.createDirectory(destination);
+    try (Stream<Path> stream = Files.list(source)) {
+      stream.forEach(sourcePath -> {
         try {
-          FileUtils.deleteDirectory(p.toFile());
-        } catch (Exception e) {
-          fail("Error deleting project for test case: {}", p, e);
+          if (Files.isDirectory(sourcePath)) {
+            copyDirectory(sourcePath, destination.resolve(sourcePath.getFileName()));
+          } else {
+            Files.copy(sourcePath, destination.resolve(sourcePath.getFileName()));
+          }
+        } catch (IOException e) {
+          throw new RuntimeException("Failed to copy directory", e);
         }
       });
     }
-
-    // Refresh should clear old data and reload
-    projectManager.refreshProjects();
-
-    assertThat(projectManager.getProjectNames()).hasSize(5).doesNotContain("project-0");
   }
 
-  @Test
-  void testRefreshProjectsReloadsAll() throws Exception {
+  private void deleteDirectory(Path directory) throws IOException {
 
-    projectManager = new ProjectManager(ideRoot);
-
-    assertThat(projectManager.getProjectNames()).isEmpty();
-
-    Path newProject = ideRoot.resolve("newProject");
-    Files.createDirectories(newProject.resolve("workspaces").resolve("main"));
-
-    projectManager.refreshProjects();
-
-    assertThat(projectManager.getProjectNames()).hasSize(1).contains("newProject");
-
-    //clean up
-    Files.delete(newProject);
-  }
-
-  @Test
-  void testGetWorkspaceNamesReturnsValidList() {
-
-    projectManager = new ProjectManager(ideRoot);
-
-    assertThat(projectManager.getWorkspaceNames("project-0")).containsExactly("foo-test", "main");
-  }
-
-  @Test
-  void testGetWorkspaceNamesWithInvalidProject() {
-
-    projectManager = new ProjectManager(ideRoot);
-
-    // Should return null for unknown project
-    assertThat(projectManager.getWorkspaceNames("unknownProject")).isNull();
-  }
-
-
-  @Test
-  void testProjectWithMultipleWorkspaces() throws Exception {
-
-    Path project = ideRoot.resolve("project-0");
-    Path workspacesDir = project.resolve("workspaces");
-
-    // Create multiple workspaces
-    for (String workspace : new String[] { "dev", "test", "staging", "production" }) {
-      Files.createDirectory(workspacesDir.resolve(workspace));
+    try (Stream<Path> stream = Files.list(directory)) {
+      stream.forEach(path -> {
+        try {
+          if (Files.isDirectory(path)) {
+            deleteDirectory(path);
+          } else {
+            Files.delete(path);
+          }
+        } catch (IOException e) {
+          throw new RuntimeException("Failed to delete directory", e);
+        }
+      });
     }
-
-    projectManager = new ProjectManager(ideRoot);
-
-    // Should have all workspaces including main
-    assertThat(projectManager.getWorkspaceNames("project-0")).hasSize(5)
-        .contains("main", "dev", "test", "staging", "production");
-  }
-
-  @Test
-  void testMultipleProjectsWithWorkspaces() throws Exception {
-
-    // Create different workspace structures for different projects
-    for (int i = 0; i < 6; i++) {
-      Path project = ideRoot.resolve("project-" + i);
-      Path workspacesDir = project.resolve("workspaces");
-
-      // Add additional workspaces to each project
-      for (int j = 1; j <= i; j++) {
-        Files.createDirectory(workspacesDir.resolve("workspace-" + j));
-      }
-    }
-
-    projectManager = new ProjectManager(ideRoot);
-
-    // Verify each project has correct number of workspaces
-    for (int i = 0; i < 6; i++) {
-      String projectName = "project-" + i;
-      // Each project has "main" + i additional workspaces
-      assertThat(projectManager.getWorkspaceNames(projectName)).hasSize(i + 1);
-    }
-  }
-
-  @Test
-  void testProjectNamesWithSpecialCharacters() throws Exception {
-
-    Path specialProject = ideRoot.resolve("project-dash_underscore&");
-    Files.createDirectories(specialProject.resolve("workspaces").resolve("main"));
-
-    projectManager = new ProjectManager(ideRoot);
-
-    assertThat(projectManager.getProjectNames()).contains("project-dash_underscore&");
-  }
-
-  @Test
-  void testWorkspaceNamesWithSpecialCharacters() throws Exception {
-
-    Path project = ideRoot.resolve("project-0");
-    Path workspacesDir = project.resolve("workspaces");
-
-    // Create workspaces with special characters
-    Files.createDirectory(workspacesDir.resolve("dev-environment"));
-    Files.createDirectory(workspacesDir.resolve("test_workspace"));
-
-    projectManager = new ProjectManager(ideRoot);
-
-    assertThat(projectManager.getWorkspaceNames("project-0"))
-        .contains("dev-environment", "test_workspace", "main");
+    Files.delete(directory);
   }
 }

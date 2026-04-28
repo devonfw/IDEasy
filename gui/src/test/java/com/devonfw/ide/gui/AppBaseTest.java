@@ -75,14 +75,14 @@ public class AppBaseTest extends HeadlessApplicationTest {
    * This test ensures that all IDE open buttons are disabled when no project is selected.
    */
   @Test
-  public void testIdeOpenButtonsDisabledWhenNoProjectSelected() {
+  public void testIdeOpenButtonsDisabledWhenNoWorkspaceSelected() {
 
     // assert that no project is selected
-    assertThat(selectedProject.getValue()).isNull();
+    assertThat(selectedWorkspace.getValue()).isNull();
 
     // assert all IDE open buttons are disabled
     for (Button button : new Button[] { androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen }) {
-      assertThat(button.isDisabled()).as(button.getId() + " button should be disabled when no project has been selected").isTrue();
+      assertThat(button.isDisabled()).as(button.getId() + " button should be disabled when no workspace has been selected").isTrue();
     }
   }
 
@@ -90,14 +90,15 @@ public class AppBaseTest extends HeadlessApplicationTest {
    * This test ensures that all IDE open buttons are enabled when a project is selected.
    */
   @Test
-  public void testIdeOpenButtonsEnabledWhenProjectSelected() {
+  public void testIdeOpenButtonsEnabledWhenWorkspaceSelected() {
 
-    // assert that a project is selected
+    // assert that a project and workspace is selected
     interact(() -> selectedProject.getSelectionModel().select("project-1"));
+    interact(() -> selectedWorkspace.getSelectionModel().select("main"));
 
-    // assert all IDE open buttons are disabled
+    // assert all IDE open buttons are enabled
     for (Button button : new Button[] { androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen }) {
-      assertThat(!button.isDisabled()).as(button.getId() + " button should be enabled when a project has been selected").isTrue();
+      assertThat(button.isDisabled()).as(button.getId() + " button should be enabled when a workspace has been selected").isFalse();
     }
   }
 
@@ -118,7 +119,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
    * Tests that the workspace {@link ComboBox} is enabled when a project is selected.
    */
   @Test
-  public void testWorkspaceComboboxEnabledEnabledWhenProjectSelected() {
+  public void testWorkspaceComboBoxEnabledEnabledWhenProjectSelected() {
 
     // assert that a project is selected
     interact(() -> selectedProject.getSelectionModel().select("project-1"));
