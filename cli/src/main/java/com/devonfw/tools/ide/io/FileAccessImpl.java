@@ -743,6 +743,24 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   public void extractZip(Path file, Path targetDir) {
 
     LOG.info("Extracting ZIP file {} to {}", file, targetDir);
+    if (this.context.getSystemInfo().isMac()) {
+      extractZipWithSystemUnzip(file, targetDir);
+    } else {
+      extractZipWithJava(file, targetDir);
+    }
+  }
+
+  private void extractZipWithSystemUnzip(Path file, Path targetDir) {
+
+    mkdirs(targetDir);
+    ProcessContext pc = this.context.newProcess();
+    pc.executable("/usr/bin/unzip");
+    pc.addArgs("-o", "-q", file, "-d", targetDir);
+    pc.run();
+  }
+
+  private void extractZipWithJava(Path file, Path targetDir) {
+
     URI uri = URI.create("jar:" + file.toUri());
     try (FileSystem fs = FileSystems.newFileSystem(uri, FS_ENV)) {
       long size = 0;
