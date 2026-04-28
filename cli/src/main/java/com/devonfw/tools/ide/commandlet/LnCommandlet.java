@@ -3,12 +3,9 @@ package com.devonfw.tools.ide.commandlet;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.property.KeywordProperty;
+import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.StringProperty;
 
 /**
@@ -19,13 +16,11 @@ import com.devonfw.tools.ide.property.StringProperty;
  */
 public final class LnCommandlet extends Commandlet {
 
-  private static final Logger LOG = LoggerFactory.getLogger(LnCommandlet.class);
-
-  /** Grammar token {@code -s} (required). */
-  public final KeywordProperty symbolic;
+  /** Grammar token {@code -s} (optional). */
+  public final FlagProperty symbolic;
 
   /** The source path to link to. */
-  public final StringProperty source;
+  public final StringProperty target;
 
   /** The target path (the created link). */
   public final StringProperty link;
@@ -41,9 +36,8 @@ public final class LnCommandlet extends Commandlet {
     addKeyword(getName());
 
     // Treat -s as grammar token
-    this.symbolic = add(new KeywordProperty("-s", true, null));
-
-    this.source = add(new StringProperty("", true, "source"));
+    this.symbolic = add(new FlagProperty("--symbolic", false, "-s"));
+    this.target = add(new StringProperty("", true, "source"));
     this.link = add(new StringProperty("", true, "link"));
   }
 
@@ -79,13 +73,16 @@ public final class LnCommandlet extends Commandlet {
       throw new CliException("Missing current working directory!");
     }
 
-    Path sourcePath = cwd.resolve(this.source.getValue()).normalize().toAbsolutePath();
+    Path targetPath = cwd.resolve(this.target.getValue()).normalize().toAbsolutePath();
     Path linkPath = cwd.resolve(this.link.getValue()).normalize().toAbsolutePath();
 
-    if (!Files.exists(sourcePath)) {
-      throw new CliException("Source does not exist: " + sourcePath);
+    if (!Files.exists(targetPath)) {
+      throw new CliException("Source does not exist: " + targetPath);
     }
-    this.context.getFileAccess().symlink(sourcePath, linkPath, false);
+    if (this.symbolic != null && this.symbolic.getValue() != null) {
+      this.context.getFileAccess().symlink(targetPath, linkPath, false);
+    } else {
+      this.context.getFileAccess().hardlink(targetPath, linkPath);
+    }
   }
 }
-

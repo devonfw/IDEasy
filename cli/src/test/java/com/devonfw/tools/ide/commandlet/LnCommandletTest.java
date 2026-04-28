@@ -34,7 +34,7 @@ class LnCommandletTest extends AbstractIdeContextTest {
 
     LnCommandlet cmd = new LnCommandlet(context);
     cmd.symbolic.setValueAsString("-s", context);
-    cmd.source.setValueAsString("source.txt", context);
+    cmd.target.setValueAsString("source.txt", context);
     cmd.link.setValueAsString("link.txt", context);
 
     cmd.run();
@@ -63,7 +63,34 @@ class LnCommandletTest extends AbstractIdeContextTest {
 
     LnCommandlet cmd = new LnCommandlet(context);
     cmd.symbolic.setValueAsString("-s", context);
-    cmd.source.setValueAsString("source.txt", context);
+    cmd.target.setValueAsString("source.txt", context);
+    cmd.link.setValueAsString("link.txt", context);
+
+    cmd.run();
+
+    assertThat(link).exists();
+
+    Files.writeString(source, "B", StandardCharsets.UTF_8);
+    assertThat(Files.readString(link, StandardCharsets.UTF_8)).isEqualTo("B");
+  }
+
+  /**
+   * Tests default link creation (without -s) which should create a hard link.
+   */
+  @Test
+  void testLnCreatesHardLinkByDefault() throws Exception {
+    IdeTestContext context = newContext(PROJECT_BASIC);
+
+    Path testDir = context.getWorkspacePath().resolve("ln-test-hardlink");
+    context.getFileAccess().mkdirs(testDir);
+    context.setCwd(testDir, context.getWorkspaceName(), context.getIdeHome());
+
+    Path source = testDir.resolve("source.txt");
+    Path link = testDir.resolve("link.txt");
+    Files.writeString(source, "A", StandardCharsets.UTF_8);
+
+    LnCommandlet cmd = new LnCommandlet(context);
+    cmd.target.setValueAsString("source.txt", context);
     cmd.link.setValueAsString("link.txt", context);
 
     cmd.run();

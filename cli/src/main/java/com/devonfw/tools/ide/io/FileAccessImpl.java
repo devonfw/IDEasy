@@ -546,7 +546,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       if (type == PathLinkType.SYMBOLIC_LINK) {
         Files.createSymbolicLink(finalLink, finalSource);
       } else if (type == PathLinkType.HARD_LINK) {
-        Files.createLink(finalLink, finalSource);
+        createHardLink(finalSource, finalLink);
       } else {
         throw new IllegalStateException("" + type);
       }
@@ -558,25 +558,35 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
                 + e.getMessage());
 
         try {
-          if (Files.exists(finalLink, LinkOption.NOFOLLOW_LINKS)) {
-            delete(finalLink);
-          }
           mklinkOnWindows(finalSource, absoluteSource, finalLink, type, relative);
         } catch (IllegalStateException mkEx) {
-          try {
-            LOG.info("Creating a hard link as a fallback for the failed mklink attempt.");
-            Files.createLink(finalLink, finalSource);
-          } catch (IOException linkEx) {
-            throw new IllegalStateException(
-                "mklink failed and hardlink fallback also failed for link=" + finalLink + " source=" + finalSource,
-                linkEx);
-          }
+          LOG.info("Creating a hard link as a fallback for the failed mklink attempt.");
+          createHardLink(finalSource, finalLink);
         }
       } else {
         throw new RuntimeException(e);
       }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to create a " + relativeOrAbsolute + " " + type + " at " + finalLink + " pointing to " + source, e);
+    }
+  }
+
+
+  /**
+   * Creates a hard link at {@code link} pointing to {@code source}.
+   *
+   * @param source the {@link Path} the hard link will point to.
+   * @param link the {@link Path} where to create the hard link.
+   */
+  void createHardLink(Path source, Path link) {
+    try {
+      if (Files.exists(link, LinkOption.NOFOLLOW_LINKS)) {
+        delete(link);
+      }
+      Files.createLink(link, source);
+      LOG.info("Created hard link at {} pointing to {}", link, source);
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to create a hardlink for " + source + " at " + link, e);
     }
   }
 
