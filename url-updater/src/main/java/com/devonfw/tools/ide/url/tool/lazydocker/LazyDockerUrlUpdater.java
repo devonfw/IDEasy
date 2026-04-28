@@ -41,7 +41,7 @@ public class LazyDockerUrlUpdater extends GithubUrlTagUpdater {
   protected void addVersion(UrlVersion urlVersion) {
 
     VersionIdentifier vid = urlVersion.getVersionIdentifier();
-    String baseUrl = getDownloadBaseUrl() + "/jesseduffield/lazydocker/releases/download/v${version}/lazydocker_${version}_";
+    String baseUrl = createGithubReleaseDownloadUrl("v${version}", "lazydocker_${version}_");
     if (vid.compareVersion(MIN_WIN_VID).isGreater()) {
       doAddVersion(urlVersion, baseUrl + "Windows_x86_64.zip", WINDOWS, X64);
     }
