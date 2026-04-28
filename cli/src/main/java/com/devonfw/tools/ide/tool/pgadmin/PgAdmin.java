@@ -48,7 +48,6 @@ public class PgAdmin extends GlobalToolCommandlet {
             + "> /etc/apt/sources.list.d/pgadmin4.list && apt update'", String.format(
             "sudo apt install -y --allow-downgrades pgadmin4=%1$s pgadmin4-server=%1$s pgadmin4-desktop=%1$s pgadmin4-web=%1$s",
             resolvedVersion)));
-    // TODO does not work for wsl
     return List.of(packageManagerCommand);
   }
 
