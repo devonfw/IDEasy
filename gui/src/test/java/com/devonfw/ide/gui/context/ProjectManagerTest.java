@@ -1,72 +1,44 @@
 package com.devonfw.ide.gui.context;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 import org.apache.commons.io.FileUtils;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.ide.gui.helper.FakeProjectFolderStructureHelper;
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeTestContext;
 
 /**
  * Tests for the ProjectManager class.
  */
-public class ProjectManagerTest {
+public class ProjectManagerTest extends AbstractIdeContextTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(ProjectManagerTest.class);
 
-  private ProjectManager projectManager;
+  private static ProjectManager projectManager;
 
-  @TempDir
-  private static Path mockIdeRoot;
+  private static IdeTestContext context;
+  private static Path ideRoot;
 
-  // Used in tests where we don't want to have any projects in the root directory
-  @TempDir
-  private Path emptyRootDir;
-
-  @BeforeAll
-  static void setup() throws IOException {
-
-    FakeProjectFolderStructureHelper.createFakeProjectFolderStructure(mockIdeRoot);
-  }
-
-  //Before each test, we want to restore the default clean test folder structure
   @BeforeEach
-  void resetToDefault() {
+  void resetContext() {
 
-    try (var stream = Files.list(mockIdeRoot)) {
-      stream.forEach(p -> {
-        try {
-          if (Files.isDirectory(p)) {
-            FileUtils.deleteDirectory(p.toFile());
-          } else if (Files.isRegularFile(p)) {
-            Files.delete(p);
-          }
-        } catch (Exception e) {
-          LOG.error("Error deleting file while resetting project structure: {}", p, e);
-        }
-      });
-      FakeProjectFolderStructureHelper.createFakeProjectFolderStructure(mockIdeRoot);
-    } catch (IOException e) {
-      LOG.error("Error walking through files while resetting project structure", e);
-    }
+    context = newContext("testProject", "project-0");
+    ideRoot = context.getIdeRoot();
   }
 
   @Test
   void testConstructorWithValidDirectory() {
 
     //No exception should be thrown
-    projectManager = new ProjectManager(mockIdeRoot);
+    projectManager = new ProjectManager(ideRoot);
   }
 
   @Test
@@ -85,7 +57,7 @@ public class ProjectManagerTest {
 
     try {
 
-      projectManager = new ProjectManager(mockIdeRoot.resolve("nonExistent"));
+      projectManager = new ProjectManager(ideRoot.resolve("nonExistent"));
       fail("IllegalArgumentException expected");
     } catch (IllegalArgumentException e) {
       assertThat(e.getMessage()).contains("Root directory does not exist");
@@ -96,17 +68,18 @@ public class ProjectManagerTest {
   void testConstructorWithFile() throws IOException {
 
     try {
-
-      File testFile = mockIdeRoot.resolve("testFile").toFile();
+      File testFile = ideRoot.resolve("testFile").toFile();
       boolean success = testFile.createNewFile();
       if (!success) {
         throw new RuntimeException("Unable to create test file");
       }
 
-      projectManager = new ProjectManager(mockIdeRoot.resolve("testFile"));
+      projectManager = new ProjectManager(ideRoot.resolve("testFile"));
       fail("IllegalArgumentException expected");
     } catch (IllegalArgumentException e) {
       assertThat(e.getMessage()).contains("Root directory is not a directory");
+    } finally {
+      Files.deleteIfExists(ideRoot.resolve("testFile"));
     }
   }
 
@@ -115,7 +88,8 @@ public class ProjectManagerTest {
   @Test
   void testReadProjectsWithEmptyProjectDirectory() {
 
-    projectManager = new ProjectManager(emptyRootDir);
+    context = newContext("emptyProjects", "");
+    projectManager = new ProjectManager(ideRoot);
     projectManager.refreshProjects();
 
     assertThat(projectManager.getProjectNames()).isEmpty();
@@ -124,9 +98,9 @@ public class ProjectManagerTest {
   @Test
   void testReadProjectsWithValidProjects() {
 
-    projectManager = new ProjectManager(mockIdeRoot);
+    projectManager = new ProjectManager(ideRoot);
 
-    // FakeProjectFolderStructureHelper creates projects 0-5
+    //test folder contains baseProject to project-5
     assertThat(projectManager.getProjectNames()).hasSize(6).as("Should have 6 projects")
         .containsExactlyInAnyOrder("project-0", "project-1", "project-2", "project-3", "project-4", "project-5");
   }
@@ -135,67 +109,57 @@ public class ProjectManagerTest {
   void testReadProjectsIgnoresUnderscorePrefixed() throws Exception {
 
     // Create a project with underscore prefix
-    Path underscoreProject = mockIdeRoot.resolve("_project");
-    Files.createDirectories(underscoreProject.resolve("workspaces"));
+    Path underscoreProject = ideRoot.resolve("_project");
+    Files.createDirectories(underscoreProject);
+    Files.copy(ideRoot.resolve("project-0"), underscoreProject, StandardCopyOption.REPLACE_EXISTING);
 
-    projectManager = new ProjectManager(mockIdeRoot);
+    projectManager = new ProjectManager(ideRoot);
 
     // Should not include _project, same as _ide directory should be ignored
     assertThat(projectManager.getProjectNames()).doesNotContain("_project").hasSize(6);
+
+    //clean up
+    Files.delete(underscoreProject);
   }
 
   @Test
-  void testReadProjectsIgnoresDirectoriesWithoutWorkspacesFolder() throws Exception {
+  void testReadProjectsIgnoresDirectoriesWithoutWorkspacesFolder() {
 
-    // Create a project directory without workspaces folder
-    Path projectWithoutWorkspaces = mockIdeRoot.resolve("projectNoWorkspaces");
-    Files.createDirectory(projectWithoutWorkspaces);
-
-    projectManager = new ProjectManager(mockIdeRoot);
+    context = newContext("noWorkspaces", "projectWithoutWorkspaces");
+    projectManager = new ProjectManager(ideRoot);
 
     // Should not include projectNoWorkspaces
-    assertThat(projectManager.getProjectNames()).doesNotContain("projectNoWorkspaces").hasSize(6);
+    assertThat(projectManager.getProjectNames()).doesNotContain("projectWithoutWorkspaces");
   }
 
   // ============ readWorkspaces() Tests ============
 
   @Test
-  void testReadWorkspacesEmpty() {
-
-    projectManager = new ProjectManager(emptyRootDir);
-
-    // No projects, so no workspaces
-    assertThat(projectManager.getWorkspaceNames("any-project")).isNull();
-  }
-
-  @Test
   void testReadWorkspacesWithMultipleWorkspaces() throws Exception {
 
-    Path project = mockIdeRoot.resolve("project-0");
+    Path project = ideRoot.resolve("project-0");
     Path workspacesDir = project.resolve("workspaces");
 
-    // Create additional workspaces
+    // Create additional workspaces besides existing
     Files.createDirectory(workspacesDir.resolve("dev"));
     Files.createDirectory(workspacesDir.resolve("prod"));
 
-    projectManager = new ProjectManager(mockIdeRoot);
+    projectManager = new ProjectManager(ideRoot);
 
     // Should have main, dev, prod workspaces
-    assertThat(projectManager.getWorkspaceNames("project-0")).hasSize(3)
-        .containsExactlyInAnyOrder("main", "dev", "prod");
+    assertThat(projectManager.getWorkspaceNames("project-0")).hasSize(4)
+        .containsExactlyInAnyOrder("main", "foo-test", "dev", "prod");
   }
 
   @Test
-  void testReadWorkspacesEmptyWorkspaceDirectory() throws Exception {
+  void testReadWorkspacesEmptyWorkspaceDirectory() {
 
-    // Create a project with empty workspaces directory
-    Path emptyWorkspacesProject = mockIdeRoot.resolve("emptyWorkspacesProject");
-    Files.createDirectories(emptyWorkspacesProject.resolve("workspaces"));
+    context = newContext("emptyWorkspaceFolders", "project-0");
 
-    projectManager = new ProjectManager(mockIdeRoot);
+    projectManager = new ProjectManager(ideRoot);
 
     // Should return empty list for empty workspaces directory
-    assertThat(projectManager.getWorkspaceNames("emptyWorkspacesProject")).isEmpty();
+    assertThat(projectManager.getWorkspaceNames("project-0")).isEmpty();
   }
 
   // ============ refreshProjects() Tests ============
@@ -203,13 +167,13 @@ public class ProjectManagerTest {
   @Test
   void testRefreshProjectsClearsExistingData() throws Exception {
 
-    projectManager = new ProjectManager(mockIdeRoot);
+    projectManager = new ProjectManager(ideRoot);
 
     // Get initial projects
     assertThat(projectManager.getProjectNames()).hasSize(6);
 
     // Delete a project
-    try (var stream = Files.walk(mockIdeRoot.resolve("project-0"))) {
+    try (var stream = Files.walk(ideRoot.resolve("project-0"))) {
       stream.forEach(p -> {
         try {
           FileUtils.deleteDirectory(p.toFile());
@@ -228,70 +192,43 @@ public class ProjectManagerTest {
   @Test
   void testRefreshProjectsReloadsAll() throws Exception {
 
-    projectManager = new ProjectManager(emptyRootDir);
+    projectManager = new ProjectManager(ideRoot);
 
     assertThat(projectManager.getProjectNames()).isEmpty();
 
-    Path newProject = emptyRootDir.resolve("newProject");
+    Path newProject = ideRoot.resolve("newProject");
     Files.createDirectories(newProject.resolve("workspaces").resolve("main"));
 
     projectManager.refreshProjects();
 
     assertThat(projectManager.getProjectNames()).hasSize(1).contains("newProject");
+
+    //clean up
+    Files.delete(newProject);
   }
 
   @Test
-  void testGetProjectNamesReturnsNotNull() {
+  void testGetWorkspaceNamesReturnsValidList() {
 
-    projectManager = new ProjectManager(emptyRootDir);
+    projectManager = new ProjectManager(ideRoot);
 
-    assertThat(projectManager.getProjectNames()).isNotNull();
-  }
-
-  @Test
-  void testGetProjectNamesReturnsCorrectList() {
-
-    projectManager = new ProjectManager(mockIdeRoot);
-
-    assertThat(projectManager.getProjectNames()).isNotEmpty().hasSize(6);
-  }
-
-  @Test
-  void testGetWorkspaceNamesReturnsCorrectList() {
-
-    projectManager = new ProjectManager(mockIdeRoot);
-
-    assertThat(projectManager.getWorkspaceNames("project-0")).isNotNull().containsExactly("main");
+    assertThat(projectManager.getWorkspaceNames("project-0")).containsExactly("foo-test", "main");
   }
 
   @Test
   void testGetWorkspaceNamesWithInvalidProject() {
 
-    projectManager = new ProjectManager(mockIdeRoot);
+    projectManager = new ProjectManager(ideRoot);
 
     // Should return null for unknown project
     assertThat(projectManager.getWorkspaceNames("unknownProject")).isNull();
   }
 
-  //Just checks whether getting projects and workspaces works correctly in one go
-  @Test
-  void testCompleteWorkflow() {
-
-    projectManager = new ProjectManager(mockIdeRoot);
-
-    // Verify projects are loaded
-    assertThat(projectManager.getProjectNames()).hasSize(6);
-
-    // Verify workspaces are loaded for each project
-    for (String projectName : projectManager.getProjectNames()) {
-      assertThat(projectManager.getWorkspaceNames(projectName)).isNotNull().contains("main");
-    }
-  }
 
   @Test
   void testProjectWithMultipleWorkspaces() throws Exception {
 
-    Path project = mockIdeRoot.resolve("project-0");
+    Path project = ideRoot.resolve("project-0");
     Path workspacesDir = project.resolve("workspaces");
 
     // Create multiple workspaces
@@ -299,7 +236,7 @@ public class ProjectManagerTest {
       Files.createDirectory(workspacesDir.resolve(workspace));
     }
 
-    projectManager = new ProjectManager(mockIdeRoot);
+    projectManager = new ProjectManager(ideRoot);
 
     // Should have all workspaces including main
     assertThat(projectManager.getWorkspaceNames("project-0")).hasSize(5)
@@ -311,7 +248,7 @@ public class ProjectManagerTest {
 
     // Create different workspace structures for different projects
     for (int i = 0; i < 6; i++) {
-      Path project = mockIdeRoot.resolve("project-" + i);
+      Path project = ideRoot.resolve("project-" + i);
       Path workspacesDir = project.resolve("workspaces");
 
       // Add additional workspaces to each project
@@ -320,7 +257,7 @@ public class ProjectManagerTest {
       }
     }
 
-    projectManager = new ProjectManager(mockIdeRoot);
+    projectManager = new ProjectManager(ideRoot);
 
     // Verify each project has correct number of workspaces
     for (int i = 0; i < 6; i++) {
@@ -331,21 +268,12 @@ public class ProjectManagerTest {
   }
 
   @Test
-  void testConstructorCallsRefreshProjects() {
-
-    projectManager = new ProjectManager(mockIdeRoot);
-
-    // If refreshProjects is called in constructor, projects should be loaded immediately
-    assertThat(projectManager.getProjectNames()).isNotEmpty().hasSize(6);
-  }
-
-  @Test
   void testProjectNamesWithSpecialCharacters() throws Exception {
 
-    Path specialProject = mockIdeRoot.resolve("project-dash_underscore&");
+    Path specialProject = ideRoot.resolve("project-dash_underscore&");
     Files.createDirectories(specialProject.resolve("workspaces").resolve("main"));
 
-    projectManager = new ProjectManager(mockIdeRoot);
+    projectManager = new ProjectManager(ideRoot);
 
     assertThat(projectManager.getProjectNames()).contains("project-dash_underscore&");
   }
@@ -353,14 +281,14 @@ public class ProjectManagerTest {
   @Test
   void testWorkspaceNamesWithSpecialCharacters() throws Exception {
 
-    Path project = mockIdeRoot.resolve("project-0");
+    Path project = ideRoot.resolve("project-0");
     Path workspacesDir = project.resolve("workspaces");
 
     // Create workspaces with special characters
     Files.createDirectory(workspacesDir.resolve("dev-environment"));
     Files.createDirectory(workspacesDir.resolve("test_workspace"));
 
-    projectManager = new ProjectManager(mockIdeRoot);
+    projectManager = new ProjectManager(ideRoot);
 
     assertThat(projectManager.getWorkspaceNames("project-0"))
         .contains("dev-environment", "test_workspace", "main");

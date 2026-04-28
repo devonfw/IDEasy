@@ -1,32 +1,44 @@
 package com.devonfw.ide.gui.context;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.devonfw.ide.gui.helper.FakeProjectFolderStructureHelper;
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeTestContext;
 
 /**
  * Tests for {@link IdeGuiStateManager}.
  */
-public class IdeGuiStateManagerTest {
+public class IdeGuiStateManagerTest extends AbstractIdeContextTest {
 
-  @TempDir
-  private static Path mockIdeRoot;
+  private static final Logger LOG = LoggerFactory.getLogger(IdeGuiStateManagerTest.class);
 
-  private IdeGuiStateManager guiStateManager = IdeGuiStateManager.getInstanceOverrideRootDir(mockIdeRoot.toString());
+  private static IdeTestContext context;
+
+  private static IdeGuiStateManager guiStateManager;
+  private static ProjectManager projectManager;
 
   @BeforeAll
-  static void setup() throws IOException {
+  static void setup() throws FileNotFoundException {
 
-    FakeProjectFolderStructureHelper.createFakeProjectFolderStructure(mockIdeRoot);
+    context = newContext("testProject", "project");
+    LOG.warn("root: {}", context.getIdeRoot());
+
+    guiStateManager = IdeGuiStateManager.getInstanceOverrideRootDir(context.getIdeRoot().toString());
+    projectManager = guiStateManager.getProjectManager();
+  }
+
+  @BeforeEach
+  void reset() {
+    IdeGuiStateManager.getInstanceOverrideRootDir(context.getIdeRoot().toString());
   }
 
   @Test
@@ -52,16 +64,16 @@ public class IdeGuiStateManagerTest {
   @Test
   void testGetContext() throws FileNotFoundException {
 
-    IdeGuiContext context = guiStateManager.switchContext("project-0", "main");
+    IdeGuiContext context = guiStateManager.switchContext(projectManager.getProjectNames().getFirst(), "main");
     assertThat(context).isNotNull().as("context was null after switchContext was called"); // When switching to a project, the context should be set.
   }
 
   @Test
-  void testSwitchContext() throws IOException {
+  void testSwitchContext() {
 
-    Files.list(mockIdeRoot).forEach((projectPath) -> {
+    projectManager.getProjectNames().forEach((projectName) -> {
       try {
-        guiStateManager.switchContext(projectPath.getFileName().toString(), "main");
+        guiStateManager.switchContext(projectName, "main");
       } catch (FileNotFoundException e) {
         throw new RuntimeException(e);
       }
@@ -71,7 +83,7 @@ public class IdeGuiStateManagerTest {
   @Test
   void testThrowsIfNonExistentProjectSelected() {
 
-    Path fakeProject = mockIdeRoot.resolve("nonExistingProject");
+    Path fakeProject = context.getIdeRoot().resolve("nonExistingProject");
 
     try {
       guiStateManager.switchContext(fakeProject.getFileName().toString(), "main");
@@ -84,7 +96,7 @@ public class IdeGuiStateManagerTest {
   @Test
   void testThrowsIfNonExistentWorkspaceSelected() throws IOException {
 
-    Files.list(mockIdeRoot).forEach((projectPath) -> {
+    Files.list(context.getIdeRoot()).forEach((projectPath) -> {
       try {
         guiStateManager.switchContext(projectPath.getFileName().toString(), "test");
       } catch (FileNotFoundException e) {
