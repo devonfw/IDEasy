@@ -4,8 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.stream.Stream;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -91,7 +91,7 @@ public class ProjectManagerTest extends AbstractIdeContextTest {
 
     Path project0 = ideRoot.resolve("project-0");
     Path project6 = ideRoot.resolve("project-6");
-    copyDirectory(project0, project6);
+    FileUtils.copyDirectory(project0.toFile(), project6.toFile());
 
     projectManager.refreshProjects();
 
@@ -101,7 +101,7 @@ public class ProjectManagerTest extends AbstractIdeContextTest {
     assertThat(projectManager.getWorkspaceNames("project-6")).containsExactlyInAnyOrder("foo-test", "main");
 
     // Cleanup
-    deleteDirectory(project6);
+    FileUtils.deleteDirectory(project0.toFile());
   }
 
   @Test
@@ -118,7 +118,7 @@ public class ProjectManagerTest extends AbstractIdeContextTest {
     assertThat(projectManager.getProjectNames()).containsExactlyInAnyOrder("project-0", "project-1", "project-2", "project-3", "project-4", "project-5");
 
     // Cleanup
-    deleteDirectory(testProject);
+    FileUtils.deleteDirectory(testProject.toFile());
   }
 
   @Test
@@ -129,41 +129,5 @@ public class ProjectManagerTest extends AbstractIdeContextTest {
     // Verify that _ide folder is not in the project names
     assertThat(projectManager.getProjectNames()).doesNotContain("_ide");
     assertThat(projectManager.getProjectNames()).containsExactlyInAnyOrder("project-0", "project-1", "project-2", "project-3", "project-4", "project-5");
-  }
-
-  private void copyDirectory(Path source, Path destination) throws IOException {
-
-    Files.createDirectory(destination);
-    try (Stream<Path> stream = Files.list(source)) {
-      stream.forEach(sourcePath -> {
-        try {
-          if (Files.isDirectory(sourcePath)) {
-            copyDirectory(sourcePath, destination.resolve(sourcePath.getFileName()));
-          } else {
-            Files.copy(sourcePath, destination.resolve(sourcePath.getFileName()));
-          }
-        } catch (IOException e) {
-          throw new RuntimeException("Failed to copy directory", e);
-        }
-      });
-    }
-  }
-
-  private void deleteDirectory(Path directory) throws IOException {
-
-    try (Stream<Path> stream = Files.list(directory)) {
-      stream.forEach(path -> {
-        try {
-          if (Files.isDirectory(path)) {
-            deleteDirectory(path);
-          } else {
-            Files.delete(path);
-          }
-        } catch (IOException e) {
-          throw new RuntimeException("Failed to delete directory", e);
-        }
-      });
-    }
-    Files.delete(directory);
   }
 }
