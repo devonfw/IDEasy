@@ -20,6 +20,7 @@ import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.git.GitUrl;
 import com.devonfw.tools.ide.git.repository.RepositoryCommandlet;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.io.FileCopyMode;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.step.Step;
@@ -99,8 +100,12 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
     if (!this.context.isSettingsRepositorySymlinkOrJunction() || this.context.isForceMode() || forcePull.isTrue()) {
       updateSettings();
-      analyze_project(); // This will likely break when running "ide update"
       
+      // Check if instance of create commandlet. Only then will we analyze the project
+      if (this instanceof CreateCommandlet) {
+        analyze_project();
+      }
+
     }
     updateConf();
     reloadContext();
@@ -111,16 +116,42 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
   }
 
   private void analyze_project() {
+
+    // Settings repository: ide.properties on top levels (or devon.properties (<- verify file name) for legacy users)
+    // Code repository: settings folder on top level with ide.properties inside (or devon.properties for legacy users)
+    System.out.println("Settings Path: " + this.context.getSettingsPath());
+
     String projectName = this.context.getProjectName();
-    Path actualProjectPath;
-    // Check if the repository is a code repository containing a top-level settings folder
-    if (isCodeRepository() && Files.exists(this.context.getSettingsPath()) && Files.isDirectory(this.context.getSettingsPath())) {
-      actualProjectPath = this.context.getIdeRoot().resolve(projectName).resolve("workspaces/main/").resolve(projectName);
-      moveProject(this.context.getIdeHome(), actualProjectPath);
-      createSettingsLink();
-    } else {
+    Path actualProjectPath = null;
+
+    //Check if a file called ide.properties or devon.properties in settingsPath
+    Path SettingsPath = this.context.getSettingsPath();
+    if (Files.exists(SettingsPath.resolve("ide.properties")) || Files.exists(SettingsPath.resolve("devon.properties"))) {
+      // Repository is a settings repository
+      LOG.info("The repository seems to be a settings repository based on the presence of ide.properties or devon.properties on the top level.");
       actualProjectPath = this.context.getIdeRoot();
       moveProject(this.context.getIdeHome(), actualProjectPath);
+    } else if (Files.exists(SettingsPath.resolve("settings/ide.properties")) || Files.exists(SettingsPath.resolve("settings/devon.properties"))) {
+      // Repository is a code repository
+      LOG.info("ide.properties or devon.properties (legacy) found in settings subfolder. This indicates a code repository with settings folder on the top level.");
+      // Move "settings" folder containing code in workspace/main
+      actualProjectPath = this.context.getIdeRoot().resolve(projectName).resolve("workspaces/main/").resolve(projectName);
+      for (Path child : this.context.getFileAccess().listChildren(SettingsPath, f -> true)) {
+        System.out.println("Child: " + child);
+        moveProject(child, actualProjectPath.resolve(child.getFileName()));
+      }
+      moveProject(SettingsPath, actualProjectPath);
+      // Move remaining folders into IDE_HOME
+      actualProjectPath = this.context.getIdeRoot();
+      moveProject(this.context.getIdeHome(), actualProjectPath);
+
+      // Link settings folder in IDE_HOME to settings folder in code repository
+      createSettingsLink();
+    } else {
+      // Repository seems to be invalid
+      LOG.warn("No ide.properties or devon.properties found in settings repository. Cannot determine if it is a code repository or settings repository. Keeping the current project setup.");
+      // To-Do: print error message and perform cleanup
+      return;
     }
     this.context.setIdeHome(actualProjectPath.resolve(projectName));
 
@@ -128,7 +159,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
   private void moveProject(Path oldPath, Path newPath) {
     try {
-      this.context.getFileAccess().copy(oldPath, newPath);
+      this.context.getFileAccess().copy(oldPath, newPath, FileCopyMode.COPY_TREE_OVERRIDE_FILES);
       this.context.getFileAccess().delete(oldPath);
     } catch (Exception e) {
       LOG.error("Failed to move project from {} to {}. Please move it manually.", oldPath, newPath, e);
