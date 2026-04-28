@@ -53,14 +53,4 @@ public class CopilotUrlUpdater extends GithubUrlTagUpdater {
     return "v";
   }
 
-  @Override
-  public String getCpeVendor() {
-    return "claude-code";
-  }
-
-  @Override
-  public String getCpeProduct() {
-    return "claude-code";
-  }
-
 }
