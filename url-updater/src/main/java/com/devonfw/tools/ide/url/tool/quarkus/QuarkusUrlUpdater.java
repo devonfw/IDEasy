@@ -34,7 +34,7 @@ public class QuarkusUrlUpdater extends GithubUrlTagUpdater {
 
     VersionIdentifier vid = urlVersion.getVersionIdentifier();
     if (vid.compareVersion(MIN_QUARKUS_VID).isGreater()) {
-      String baseUrl = getDownloadBaseUrl() + "/quarkusio/quarkus/releases/download/${version}/quarkus-cli-${version}";
+      String baseUrl = createGithubReleaseDownloadUrl("${version}", "quarkus-cli-${version}");
       doAddVersion(urlVersion, baseUrl + ".zip", WINDOWS);
       doAddVersion(urlVersion, baseUrl + ".tar.gz");
     }
