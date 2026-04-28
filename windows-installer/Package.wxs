@@ -1,4 +1,4 @@
-﻿﻿<?define ProductName = "IDEasy" ?>
+﻿<?define ProductName = "IDEasy" ?>
 <?define Manufacturer = "devonfw" ?>
 <?define ProductVersion = "1.0.0" ?>
 <?define UpgradeCode = "1848091f-6184-451b-ba4c-097662e2cfaa" ?>
