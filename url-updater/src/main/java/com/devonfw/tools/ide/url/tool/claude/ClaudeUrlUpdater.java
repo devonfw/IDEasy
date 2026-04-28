@@ -55,4 +55,14 @@ public class ClaudeUrlUpdater extends GithubUrlTagUpdater {
   protected String getVersionPrefixToRemove() {
     return "v";
   }
+
+  @Override
+  public String getCpeVendor() {
+    return "claude-code";
+  }
+
+  @Override
+  public String getCpeProduct() {
+    return "claude-code";
+  }
 }
