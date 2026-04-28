@@ -1,0 +1,45 @@
+[
+  {
+    "ref": "refs/tags/v1.79.0",
+    "node_id": "MDM6UmVmMTEwMDAxOnJlZnMvdGFncy92MS43OS4w",
+    "url": "${testbaseurl}/repos/rust-lang/rustup/git/refs/tags/v1.79.0",
+    "object": {
+      "sha": "4de6dcf39f4f94c149f002bc0f1477af4f7050f2",
+      "type": "tag",
+      "url": "${testbaseurl}/repos/rust-lang/rustup/git/tags/4de6dcf39f4f94c149f002bc0f1477af4f7050f2"
+    }
+  },
+  {
+    "ref": "refs/tags/release-0.7",
+    "node_id": "MDM6UmVmMTEwMDAxOnJlZnMvdGFncy9yZWxlYXNlLTAuNw==",
+    "url": "${testbaseurl}/repos/rust-lang/rustup/git/refs/tags/release-0.7",
+    "object": {
+      "sha": "1111111111111111111111111111111111111111",
+      "type": "tag",
+      "url": "${testbaseurl}/repos/rust-lang/rustup/git/tags/1111111111111111111111111111111111111111"
+    }
+  },
+  {
+    "ref": "refs/tags/beta",
+    "node_id": "MDM6UmVmMTEwMDAxOnJlZnMvdGFncy9iZXRh",
+    "url": "${testbaseurl}/repos/rust-lang/rustup/git/refs/tags/beta",
+    "object": {
+      "sha": "2222222222222222222222222222222222222222",
+      "type": "tag",
+      "url": "${testbaseurl}/repos/rust-lang/rustup/git/tags/2222222222222222222222222222222222222222"
+    }
+  },
+  {
+    "ref": "refs/tags/v1.80.1",
+    "node_id": "MDM6UmVmMTEwMDAxOnJlZnMvdGFncy92MS44MC4x",
+    "url": "${testbaseurl}/repos/rust-lang/rustup/git/refs/tags/v1.80.1",
+    "object": {
+      "sha": "d607117c5fcd3ccf0ad70f2fd9d2a33580526f5e",
+      "type": "tag",
+      "url": "${testbaseurl}/repos/rust-lang/rustup/git/tags/d607117c5fcd3ccf0ad70f2fd9d2a33580526f5e"
+    }
+  }
+]
+
+
+
