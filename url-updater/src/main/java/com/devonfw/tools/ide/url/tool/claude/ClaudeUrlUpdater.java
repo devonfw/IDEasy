@@ -7,7 +7,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 /**
  * {@link GithubUrlTagUpdater} for GitHub Claude Code CLI.
  * <p>
- * Follows the official installation structure from GitHub's claude-code repository: https://github.com/anthropics/claude-code. Download URL pattern: <a
+ * Follows the official installation structure from GitHub's claude-code repository: https://github.com/anthropics/claude-code.
  * <p>
  * Download URL pattern: https://github.com/anthropics/claude-code/releases/download/v${VERSION}/claude-${PLATFORM}-${ARCH}.tar.gz
  */
