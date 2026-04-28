@@ -13,7 +13,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class ClaudeUrlUpdater extends GithubUrlTagUpdater {
 
-  private static final VersionIdentifier MIN_CLAUDE_VID = VersionIdentifier.of("2.0.73");
+  private static final VersionIdentifier MIN_CLAUDE_VID = VersionIdentifier.of("2.1.118");
 
 
   @Override
