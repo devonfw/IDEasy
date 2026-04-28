@@ -2,10 +2,6 @@ name: Nightly Build (SNAPSHOT release)
 on:
   workflow_dispatch
 
-permissions:
-  contents: read
-  id-token: write
-
 jobs:
   # Builds all native images and uploads each binary as a separate artifact
   build-natives:
@@ -56,30 +52,12 @@ jobs:
           wix extension add WixToolset.UI.wixext/5.0.2
           wix extension add WixToolset.Util.wixext/5.0.2
           wix build Package.wxs WixUI_IDEasySetup.wxs -loc Package.en-us.wxl -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext -o ideasy.msi
-      - name: Upload unsigned MSI
-        if: runner.os == 'Windows'
-        id: upload-msi
-        uses: actions/upload-artifact@v4
-        with:
-          name: msi-unsigned
-          path: windows-installer/ideasy.msi
-      - name: Sign MSI
-        if: runner.os == 'Windows'
-        uses: signpath/github-action-submit-signing-request@v2
-        with:
-          api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
-          organization-id: '428e13ed-ca0c-47ca-8a73-63b76cabb59b'
-          project-slug: 'IDEasy'
-          signing-policy-slug: 'test-signing'
-          github-artifact-id: '${{ steps.upload-msi.outputs.artifact-id }}'
-          wait-for-completion: true
-          output-artifact-directory: 'windows-installer/signed'
       - name: Upload MSI
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
         with:
           name: msi
-          path: windows-installer/signed/ideasy.msi
+          path: windows-installer/ideasy.msi
 
   # Downloads all native image artifacts to cli/target and builds the project using assemblies for final deployment to OSSRH Nexus
   deploy:
