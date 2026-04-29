@@ -38,6 +38,16 @@ public class MvnRepositoryMock extends MvnRepository {
   private final Map<String, String> checksumByPath = new HashMap<>();
 
   /**
+   * Registers an expected SHA-256 checksum for a given artifact path.
+   *
+   * @param path the artifact path (relative to repo root, e.g. "/org/apache/maven/apache-maven/3.8.1/apache-maven-3.8.1-bin.zip").
+   * @param sha256 the expected SHA-256 hash.
+   */
+  public void putExpectedChecksum(String path, String sha256) {
+    this.checksumByPath.put(path, sha256);
+  }
+
+  /**
    * The constructor.
    *
    * @param context the owning {@link IdeContext}.
@@ -60,8 +70,9 @@ public class MvnRepositoryMock extends MvnRepository {
       this.context.getFileAccess().compress(archiveFolder, baos, artifact.getFilename());
       byte[] body = baos.toByteArray();
       // Pre-compute and store the SHA-256 of the archive bytes so verifyChecksum() can check them.
+      // We use putIfAbsent so that a hardcoded 'expected' checksum from a test takes precedence.
       String sha256 = sha256Hex(body);
-      this.checksumByPath.put(path, sha256);
+      this.checksumByPath.putIfAbsent(path, sha256);
       stubFor(get(urlPathEqualTo(path)).willReturn(
           aResponse().withStatus(200).withBody(body)));
     } catch (IOException e) {
@@ -71,7 +82,7 @@ public class MvnRepositoryMock extends MvnRepository {
   }
 
   @Override
-  protected UrlChecksums getChecksums(MvnArtifact artifact) {
+  public UrlChecksums getChecksums(MvnArtifact artifact) {
     String path = artifact.getDownloadUrl().replace(MvnRepositoryMock.MAVEN_CENTRAL, "");
     String sha256 = this.checksumByPath.get(path);
     if (sha256 == null) {
