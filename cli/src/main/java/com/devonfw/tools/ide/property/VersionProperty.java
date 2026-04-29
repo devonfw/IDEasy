@@ -88,7 +88,7 @@ public class VersionProperty extends Property<VersionIdentifier> {
       List<CompletionCandidate> candidates = collector.getCandidates();
       Collections.reverse(candidates);
       CompletionCandidate latest = collector.createCandidate(text + VersionSegment.PATTERN_MATCH_ANY_STABLE_VERSION,
-          "Latest stable matching version", this, commandlet);
+          "Latest stable matching version", this, commandlet, true);
       if (candidates.isEmpty()) {
         candidates.add(latest);
       } else {

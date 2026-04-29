@@ -48,7 +48,8 @@ public class CompletionCandidateCollectorDefault implements CompletionCandidateC
       }
     }
 
-    CompletionCandidate candidate = createCandidate(text, description, property, commandlet);
+    CompletionCandidate candidate = this.createCandidate(text, description, property, commandlet,
+                                    !text.endsWith("="));
     this.candidates.add(candidate);
     LOG.trace("Added {} for auto-completion of property {}.{}", candidate, commandlet, property);
   }

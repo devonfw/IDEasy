@@ -27,12 +27,14 @@ public interface CompletionCandidateCollector {
    * @param commandlet the {@link Commandlet} owning the {@link Property}.
    * @return the {@link CompletionCandidate} for the given parameters.
    */
-  default CompletionCandidate createCandidate(String text, String description, Property<?> property, Commandlet commandlet) {
+  default CompletionCandidate createCandidate(String text, String description,
+      Property<?> property, Commandlet commandlet, boolean complete) {
 
     if (description == null) {
       // compute description from property + commandlet like in HelpCommandlet?
     }
-    CompletionCandidate candidate = new CompletionCandidate(text, description);
+    CompletionCandidate candidate = new CompletionCandidate(Arrays.asList(text.split(" ")),
+        description, complete);
     return candidate;
   }
 

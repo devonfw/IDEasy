@@ -231,6 +231,28 @@ public class CommandletManagerImpl implements CommandletManager {
   }
 
   @Override
+  public void collectCompletionCandidates(CliArguments arguments,
+                                          CompletionCandidateCollector collector) {
+    CliArgument current = arguments.current();
+    if (current.isStart()) {
+      current = current.getNext();
+    }
+    if (current.isEnd()) {
+      return;
+    }
+
+    for (Commandlet cmd : this.getCommandlets()) {
+      if (!cmd.isIdeHomeRequired() || this.context.getIdeHome() != null) {
+        for (Property<?> property : cmd.getProperties()) {
+          if (property instanceof KeywordProperty keyword) {
+            keyword.apply(arguments, this.context, cmd, collector);
+          }
+        }
+      }
+    }
+  }
+
+  @Override
   public Iterator<Commandlet> findCommandlet(CliArguments arguments, CompletionCandidateCollector collector) {
 
     CliArgument current = arguments.current();
