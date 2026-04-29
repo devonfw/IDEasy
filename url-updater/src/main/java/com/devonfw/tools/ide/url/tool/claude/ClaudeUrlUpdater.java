@@ -13,7 +13,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class ClaudeUrlUpdater extends GithubUrlTagUpdater {
 
-  private static final VersionIdentifier MIN_CLAUDE_VID = VersionIdentifier.of("2.1.118");
+  private static final VersionIdentifier MIN_CLAUDE_VID = VersionIdentifier.of("2.1.117");
+  private static final VersionIdentifier EXCLUDED_VERSION = VersionIdentifier.of("2.1.120");
 
 
   @Override
@@ -36,12 +37,10 @@ public class ClaudeUrlUpdater extends GithubUrlTagUpdater {
     String baseUrl = createGithubReleaseDownloadUrl("v${version}", "claude-");
     VersionIdentifier vid = urlVersion.getVersionIdentifier();
 
-    if (vid.compareVersion(MIN_CLAUDE_VID).isGreater()) {
+    if (vid.compareVersion(MIN_CLAUDE_VID).isGreater() && !vid.compareVersion(EXCLUDED_VERSION).isEqual()) {
 
       doAddVersion(urlVersion, baseUrl + "linux-x64.tar.gz", LINUX, X64);
-      doAddVersion(urlVersion, baseUrl + "linux-x64-musl.tar.gz", LINUX, X64);
       doAddVersion(urlVersion, baseUrl + "linux-arm64.tar.gz", LINUX, ARM64);
-      doAddVersion(urlVersion, baseUrl + "linux-arm64-musl.tar.gz", LINUX, ARM64);
 
       doAddVersion(urlVersion, baseUrl + "darwin-x64.tar.gz", MAC, X64);
       doAddVersion(urlVersion, baseUrl + "darwin-arm64.tar.gz", MAC, ARM64);
