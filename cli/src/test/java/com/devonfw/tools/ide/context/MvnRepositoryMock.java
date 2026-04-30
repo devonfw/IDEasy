@@ -10,12 +10,18 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import com.devonfw.tools.ide.tool.mvn.MvnArtifact;
 import com.devonfw.tools.ide.tool.mvn.MvnArtifactMetadata;
 import com.devonfw.tools.ide.tool.mvn.MvnRepository;
 import com.devonfw.tools.ide.url.model.file.UrlChecksums;
+import com.devonfw.tools.ide.url.model.file.UrlGenericChecksum;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 
 /**
@@ -24,6 +30,22 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 public class MvnRepositoryMock extends MvnRepository {
 
   private final WireMockRuntimeInfo wmRuntimeInfo;
+
+  /**
+   * Maps artifact download path to its pre-computed SHA-256 checksum.
+   * Populated when the mock archive is compressed, queried during verification.
+   */
+  private final Map<String, String> checksumByPath = new HashMap<>();
+
+  /**
+   * Registers an expected SHA-256 checksum for a given artifact path.
+   *
+   * @param path the artifact path (relative to repo root, e.g. "/org/apache/maven/apache-maven/3.8.1/apache-maven-3.8.1-bin.zip").
+   * @param sha256 the expected SHA-256 hash.
+   */
+  public void putExpectedChecksum(String path, String sha256) {
+    this.checksumByPath.put(path, sha256);
+  }
 
   /**
    * The constructor.
@@ -47,6 +69,10 @@ public class MvnRepositoryMock extends MvnRepository {
     try (ByteArrayOutputStream baos = new ByteArrayOutputStream(1024)) {
       this.context.getFileAccess().compress(archiveFolder, baos, artifact.getFilename());
       byte[] body = baos.toByteArray();
+      // Pre-compute and store the SHA-256 of the archive bytes so verifyChecksum() can check them.
+      // We use putIfAbsent so that a hardcoded 'expected' checksum from a test takes precedence.
+      String sha256 = sha256Hex(body);
+      this.checksumByPath.putIfAbsent(path, sha256);
       stubFor(get(urlPathEqualTo(path)).willReturn(
           aResponse().withStatus(200).withBody(body)));
     } catch (IOException e) {
@@ -56,8 +82,43 @@ public class MvnRepositoryMock extends MvnRepository {
   }
 
   @Override
-  protected UrlChecksums getChecksums(MvnArtifact artifact) {
-    return null;
+  public UrlChecksums getChecksums(MvnArtifact artifact) {
+    String path = artifact.getDownloadUrl().replace(MvnRepositoryMock.MAVEN_CENTRAL, "");
+    String sha256 = this.checksumByPath.get(path);
+    if (sha256 == null) {
+      // checksum not yet computed (e.g. metadata requests) – skip verification
+      return null;
+    }
+    return new SingleChecksumWrapper(sha256);
+  }
+
+  private static String sha256Hex(byte[] data) {
+    try {
+      MessageDigest digest = MessageDigest.getInstance("SHA-256");
+      byte[] hash = digest.digest(data);
+      StringBuilder sb = new StringBuilder(hash.length * 2);
+      for (byte b : hash) {
+        sb.append(String.format("%02x", b));
+      }
+      return sb.toString();
+    } catch (Exception e) {
+      throw new IllegalStateException("SHA-256 not available", e);
+    }
+  }
+
+  /**
+   * Simple {@link UrlChecksums} wrapper for a single pre-computed checksum.
+   */
+  private record SingleChecksumWrapper(String sha256) implements UrlChecksums {
+
+    @Override
+    public Iterator<UrlGenericChecksum> iterator() {
+      UrlGenericChecksum entry = new UrlGenericChecksum() {
+        @Override public String getChecksum() { return sha256; }
+        @Override public String getHashAlgorithm() { return "SHA-256"; }
+      };
+      return Collections.singletonList(entry).iterator();
+    }
   }
 
   @Override
