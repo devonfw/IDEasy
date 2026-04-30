@@ -115,9 +115,12 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     createStartScripts();
   }
 
+  /**
+   * This method is invoked when a new porject is created. It analyzes the cloned repository to check if it is a valid IDEasy repository. The repository can either be a settings repository (with ide.properties or devon.properties on the top level)
+   * or a code repository (with a settings folder on the top level containing such a file). Otherwise, the project creatio fails and an error message is logged.
+   */
   private void analyze_project() {
-
-    // Settings repository: ide.properties on top levels (or devon.properties (<- verify file name) for legacy users)
+    // Settings repository: ide.properties on top levels (or devon.properties for legacy users)
     // Code repository: settings folder on top level with ide.properties inside (or devon.properties for legacy users)
     String projectName = this.context.getProjectName();
     Path actualProjectPath = null;
@@ -125,16 +128,16 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     //Check if a file called ide.properties or devon.properties in settingsPath
     Path SettingsPath = this.context.getSettingsPath();
     if (Files.exists(SettingsPath.resolve("ide.properties")) || Files.exists(SettingsPath.resolve("devon.properties"))) {
-      // Repository is a settings repository
+      // Repository is a settings repository: ide.properties on top levels (or devon.properties for legacy users)
       LOG.info("The repository seems to be a settings repository based on the presence of ide.properties or devon.properties on the top level.");
 
       actualProjectPath = this.context.getIdeRoot();
       moveProject(this.context.getIdeHome(), actualProjectPath);
     } else if (Files.exists(SettingsPath.resolve("settings/ide.properties")) || Files.exists(SettingsPath.resolve("settings/devon.properties"))) {
-      // Repository is a code repository
+      // Repository is a code repository: settings folder on top level with ide.properties inside (or devon.properties for legacy users)
       LOG.info("ide.properties or devon.properties (legacy) found in settings subfolder. This indicates a code repository with settings folder on the top level.");
 
-      // Move "settings" folder containing code in workspace/main
+      // Move settings folder contents containing code in workspace/main
       actualProjectPath = this.context.getIdeRoot().resolve(projectName).resolve("workspaces/main/").resolve(projectName);
       for (Path child : this.context.getFileAccess().listChildren(SettingsPath, f -> true)) {
         System.out.println("Child: " + child);
@@ -159,9 +162,13 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     }
     // Set IDE_HOME to new (and actual) project location
     this.context.setIdeHome(this.context.getIdeRoot().resolve(projectName));
-
   }
 
+  /**
+   * Moves files of a new projectfrom the temporary location to the final project location.
+   * @param oldPath - The path of the file or directory to be moved.
+   * @param newPath - The path of the destination.
+   */
   private void moveProject(Path oldPath, Path newPath) {
     try {
       this.context.getFileAccess().copy(oldPath, newPath, FileCopyMode.COPY_TREE_OVERRIDE_FILES);
