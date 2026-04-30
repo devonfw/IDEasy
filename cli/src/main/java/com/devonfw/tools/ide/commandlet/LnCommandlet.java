@@ -20,7 +20,7 @@ public final class LnCommandlet extends Commandlet {
   public final FlagProperty symbolic;
 
   /** The source path to link to. */
-  public final StringProperty target;
+  public final StringProperty source;
 
   /** The target path (the created link). */
   public final StringProperty link;
@@ -37,7 +37,7 @@ public final class LnCommandlet extends Commandlet {
 
     // Treat -s as grammar token
     this.symbolic = add(new FlagProperty("--symbolic", false, "-s"));
-    this.target = add(new StringProperty("", true, "target"));
+    this.source = add(new StringProperty("", true, "source"));
     this.link = add(new StringProperty("", true, "link"));
   }
 
@@ -73,16 +73,16 @@ public final class LnCommandlet extends Commandlet {
       throw new CliException("Missing current working directory!");
     }
 
-    Path targetPath = cwd.resolve(this.target.getValue()).normalize().toAbsolutePath();
+    Path sourcePath = cwd.resolve(this.source.getValue()).normalize().toAbsolutePath();
     Path linkPath = cwd.resolve(this.link.getValue()).normalize().toAbsolutePath();
 
-    if (!Files.exists(targetPath)) {
-      throw new CliException("Source does not exist: " + targetPath);
+    if (!Files.exists(sourcePath)) {
+      throw new CliException("Source does not exist: " + sourcePath);
     }
     if (this.symbolic != null && this.symbolic.getValue() != null) {
-      this.context.getFileAccess().symlink(targetPath, linkPath, false);
+      this.context.getFileAccess().symlink(sourcePath, linkPath, false);
     } else {
-      this.context.getFileAccess().hardlink(targetPath, linkPath);
+      this.context.getFileAccess().hardlink(sourcePath, linkPath);
     }
   }
 }

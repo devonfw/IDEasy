@@ -34,7 +34,7 @@ class LnCommandletTest extends AbstractIdeContextTest {
 
     LnCommandlet cmd = new LnCommandlet(context);
     cmd.symbolic.setValueAsString("-s", context);
-    cmd.target.setValueAsString("source.txt", context);
+    cmd.source.setValueAsString("source.txt", context);
     cmd.link.setValueAsString("link.txt", context);
 
     cmd.run();
@@ -63,7 +63,7 @@ class LnCommandletTest extends AbstractIdeContextTest {
 
     LnCommandlet cmd = new LnCommandlet(context);
     cmd.symbolic.setValueAsString("-s", context);
-    cmd.target.setValueAsString("source.txt", context);
+    cmd.source.setValueAsString("source.txt", context);
     cmd.link.setValueAsString("link.txt", context);
 
     cmd.run();
@@ -90,7 +90,7 @@ class LnCommandletTest extends AbstractIdeContextTest {
     Files.writeString(source, "A", StandardCharsets.UTF_8);
 
     LnCommandlet cmd = new LnCommandlet(context);
-    cmd.target.setValueAsString("source.txt", context);
+    cmd.source.setValueAsString("source.txt", context);
     cmd.link.setValueAsString("link.txt", context);
 
     cmd.run();
