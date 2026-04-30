@@ -36,6 +36,7 @@ import com.devonfw.tools.ide.tool.extra.ExtraTools;
 import com.devonfw.tools.ide.tool.extra.ExtraToolsMapper;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.VersionIdentifier;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
 
 /**
  * Abstract {@link Commandlet} base-class for both {@link UpdateCommandlet} and {@link CreateCommandlet}.
@@ -126,15 +127,15 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
     //Check if a file called ide.properties or devon.properties in settingsPath
     Path SettingsPath = this.context.getSettingsPath();
-    if (Files.exists(SettingsPath.resolve("ide.properties")) || Files.exists(SettingsPath.resolve("devon.properties"))) {
+    if (Files.exists(SettingsPath.resolve(EnvironmentVariables.DEFAULT_PROPERTIES)) || Files.exists(SettingsPath.resolve(EnvironmentVariables.LEGACY_PROPERTIES))) {
       // Repository is a settings repository: ide.properties on top levels (or devon.properties for legacy users)
-      LOG.info("The repository seems to be a settings repository based on the presence of ide.properties or devon.properties on the top level.");
+      LOG.info("The repository seems to be a settings repository based on the presence of " + EnvironmentVariables.DEFAULT_PROPERTIES + " or " + EnvironmentVariables.LEGACY_PROPERTIES + " on the top level.");
       actualProjectPath = this.context.getIdeRoot();
       moveProject(this.context.getIdeHome(), actualProjectPath);
 
-    } else if (Files.exists(SettingsPath.resolve("settings/ide.properties")) || Files.exists(SettingsPath.resolve("settings/devon.properties"))) {
+    } else if (Files.exists(SettingsPath.resolve("settings/" + EnvironmentVariables.DEFAULT_PROPERTIES)) || Files.exists(SettingsPath.resolve("settings/" + EnvironmentVariables.LEGACY_PROPERTIES))) {
       // Repository is a code repository: settings folder on top level with ide.properties inside (or devon.properties for legacy users)
-      LOG.info("ide.properties or devon.properties (legacy) found in settings subfolder. This indicates a code repository with settings folder on the top level.");
+      LOG.info(EnvironmentVariables.DEFAULT_PROPERTIES + " or " + EnvironmentVariables.LEGACY_PROPERTIES + " found in settings subfolder. This indicates a code repository with a settings folder on the top level.");
       // Move settings folder contents containing code into workspace/main/<project_name>
       actualProjectPath = this.context.getIdeRoot().resolve(projectName).resolve("workspaces/main/").resolve(projectName);
       for (Path child : fileAccess.listChildren(SettingsPath, f -> true)) {
@@ -154,7 +155,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     } else {
       // Repository seems to be invalid. Clean up temporary location and return error
       fileAccess.delete(this.context.getIdeHome());
-      throw new CliException("This repository does not include an ide.properties file at the top level or a settings folder with such a file. "
+      throw new CliException("This repository does not include an " + EnvironmentVariables.DEFAULT_PROPERTIES + " or " + EnvironmentVariables.LEGACY_PROPERTIES + " file at the top level or a settings folder with such a file. "
       + "The repository does not seem to be a valid IDEasy repository. Please verify the repository and try again.");
     }
     // Set IDE_HOME to new (and actual) project location
