@@ -3,12 +3,25 @@ package com.devonfw.tools.ide.git;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import com.devonfw.tools.ide.context.IdeTestContext;
+
+
 /**
  * Mock implementation of {@link GitContext}.
  */
 public class GitContextMock implements GitContext {
 
   private static final String MOCKED_URL_VALUE = "mocked url value";
+  /** @see #getContext() */
+  protected final IdeTestContext context;
+
+  /**
+   * @param context the {@link IdeTestContext context}.
+   */
+  public GitContextMock(IdeTestContext context) {
+
+    this.context = context;
+  }
 
   @Override
   public void pullOrCloneIfNeeded(GitUrl gitUrl, Path repository) {
@@ -32,7 +45,8 @@ public class GitContextMock implements GitContext {
 
   @Override
   public void pullOrClone(GitUrl gitUrl, Path repository) {
-
+    this.context.getFileAccess().mkdirs(repository);
+    this.context.getFileAccess().touch(repository.resolve("ide.properties"));
   }
 
   @Override

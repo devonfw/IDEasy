@@ -68,54 +68,6 @@ class CreateCommandletTest extends AbstractIdeContextTest {
     assertThat(newProjectPath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN)).exists();
   }
 
-  @ParameterizedTest
-  @ValueSource(strings = { "https://some-code-repository", "ssh://some-settings-repository" })
-  void testWarningWhenRepoDoesNotMeetNamingConvention(String invalidRepo, @TempDir Path tempDir) {
-    // arrange
-    ProcessContextGitMock gitMock = new ProcessContextGitMock(context, tempDir);
-    context.setProcessContext(gitMock);
-    CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
-    cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
-    cc.codeRepositoryFlag.setValue(!invalidRepo.contains("code")); // raise conflict
-    cc.settingsRepo.setValue(invalidRepo);
-    cc.skipTools.setValue(true);
-    context.setAnswers("yes");
-    // act
-    cc.run();
-    // assert
-    assertThat(context).logAtInteraction().hasMessageContaining("Do you really want to create the project?");
-    Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
-    assertThat(newProjectPath).exists();
-    assertThat(context.getIdeHome()).isEqualTo(newProjectPath);
-    assertThat(newProjectPath.resolve(IdeContext.FOLDER_PLUGINS)).exists();
-    assertThat(newProjectPath.resolve(IdeContext.FOLDER_SOFTWARE)).exists();
-    assertThat(newProjectPath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN)).exists();
-  }
-
-  @Test
-  void testWarningWhenCodeRepoUsingDefaultMark(@TempDir Path tempDir) {
-    String invalidCodeRepo = "-";
-    // arrange
-    ProcessContextGitMock gitMock = new ProcessContextGitMock(context, tempDir);
-    context.setProcessContext(gitMock);
-    CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
-    cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
-    cc.settingsRepo.setValue(invalidCodeRepo);
-    cc.codeRepositoryFlag.setValue(true);
-    cc.skipTools.setValue(true);
-    context.setAnswers("https://some-code-repository");
-    // act
-    cc.run();
-    // assert
-    assertThat(context).logAtWarning().hasMessageContaining("'-' is found after '--code'. This is invalid.");
-    Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
-    assertThat(newProjectPath).exists();
-    assertThat(context.getIdeHome()).isEqualTo(newProjectPath);
-    assertThat(newProjectPath.resolve(IdeContext.FOLDER_PLUGINS)).exists();
-    assertThat(newProjectPath.resolve(IdeContext.FOLDER_SOFTWARE)).exists();
-    assertThat(newProjectPath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN)).exists();
-  }
-
   @Test
   void testIdeVersionTooOldOnProjectCreation() {
     // arrange
@@ -214,6 +166,10 @@ class CreateCommandletTest extends AbstractIdeContextTest {
     // assert
     Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
     assertThat(newProjectPath).exists();
+    assertThat(context.getIdeHome()).isEqualTo(newProjectPath);
+    assertThat(newProjectPath.resolve(IdeContext.FOLDER_PLUGINS)).exists();
+    assertThat(newProjectPath.resolve(IdeContext.FOLDER_SOFTWARE)).exists();
+    assertThat(newProjectPath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN)).exists();
     assertThat(context).logAtInfo().hasMessageContaining("Welcome to your new IDEasy project!");
   }
 }

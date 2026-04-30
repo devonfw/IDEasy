@@ -119,8 +119,6 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
     // Settings repository: ide.properties on top levels (or devon.properties (<- verify file name) for legacy users)
     // Code repository: settings folder on top level with ide.properties inside (or devon.properties for legacy users)
-    System.out.println("Settings Path: " + this.context.getSettingsPath());
-
     String projectName = this.context.getProjectName();
     Path actualProjectPath = null;
 

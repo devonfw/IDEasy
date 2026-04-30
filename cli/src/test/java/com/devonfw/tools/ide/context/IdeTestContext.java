@@ -56,7 +56,7 @@ public class IdeTestContext extends AbstractIdeTestContext {
   private IdeTestContext(IdeTestStartContext startContext, Path workingDirectory, WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     super(startContext, workingDirectory, wireMockRuntimeInfo);
-    this.gitContext = new GitContextMock();
+    this.gitContext = new GitContextMock(this);
   }
 
   @Override
