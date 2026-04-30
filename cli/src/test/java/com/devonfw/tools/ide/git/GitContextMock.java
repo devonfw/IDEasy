@@ -44,6 +44,7 @@ public class GitContextMock implements GitContext {
 
   @Override
   public void pullOrClone(GitUrl gitUrl, Path repository) {
+    // Creates required ide.properties file to make repository valid
     this.context.getFileAccess().mkdirs(repository);
     this.context.getFileAccess().touch(repository.resolve("ide.properties"));
   }
