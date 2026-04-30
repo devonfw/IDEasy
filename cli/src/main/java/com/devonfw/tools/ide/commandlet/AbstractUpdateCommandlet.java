@@ -124,17 +124,15 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     String projectName = this.context.getProjectName();
     Path actualProjectPath;
     FileAccess fileAccess = this.context.getFileAccess();
-
-    //Check if a file called ide.properties or devon.properties in settingsPath
     Path SettingsPath = this.context.getSettingsPath();
-    if (Files.exists(SettingsPath.resolve(EnvironmentVariables.DEFAULT_PROPERTIES)) || Files.exists(SettingsPath.resolve(EnvironmentVariables.LEGACY_PROPERTIES))) {
-      // Repository is a settings repository: ide.properties on top levels (or devon.properties for legacy users)
+
+    // Check whether the repository is a valid settings repository, code repository, or neither
+    if (isSettingsRepository(SettingsPath)) {
       LOG.info("The repository seems to be a settings repository based on the presence of " + EnvironmentVariables.DEFAULT_PROPERTIES + " or " + EnvironmentVariables.LEGACY_PROPERTIES + " on the top level.");
       actualProjectPath = this.context.getIdeRoot();
       moveProject(this.context.getIdeHome(), actualProjectPath);
 
-    } else if (Files.exists(SettingsPath.resolve("settings/" + EnvironmentVariables.DEFAULT_PROPERTIES)) || Files.exists(SettingsPath.resolve("settings/" + EnvironmentVariables.LEGACY_PROPERTIES))) {
-      // Repository is a code repository: settings folder on top level with ide.properties inside (or devon.properties for legacy users)
+    } else if (isCodeRepository(SettingsPath)) {
       LOG.info(EnvironmentVariables.DEFAULT_PROPERTIES + " or " + EnvironmentVariables.LEGACY_PROPERTIES + " found in settings subfolder. This indicates a code repository with a settings folder on the top level.");
       // Move settings folder contents containing code into workspace/main/<project_name>
       actualProjectPath = this.context.getIdeRoot().resolve(projectName).resolve("workspaces/main/").resolve(projectName);
@@ -176,6 +174,24 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       LOG.error("Failed to move project from {} to {}. Please move it manually.", oldPath, newPath, e);
     }
   }
+
+  /**
+   * Checks whether te given repository is a settings repository by checking for the presence of ide.properties or devon.properties on the top level.
+   * @param repositoryPath - The path of the repository to be checked.
+   */
+  private boolean isSettingsRepository(Path repositoryPath) {
+    return Files.exists(repositoryPath.resolve(EnvironmentVariables.DEFAULT_PROPERTIES)) || Files.exists(repositoryPath.resolve(EnvironmentVariables.LEGACY_PROPERTIES));
+  }
+
+  /**
+   * Checks whether te given repository is a code repository by checking for the presence of ide.properties or devon.properties within a settings folder on the top level.
+   * @param repositoryPath - The path of the repository to be checked.
+   */
+  private boolean isCodeRepository(Path repositoryPath) {
+    return Files.exists(repositoryPath.resolve("settings").resolve(EnvironmentVariables.DEFAULT_PROPERTIES)) || Files.exists(repositoryPath.resolve("settings").resolve(EnvironmentVariables.LEGACY_PROPERTIES));
+  }
+
+
 
   private void reloadContext() {
 
