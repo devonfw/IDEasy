@@ -155,7 +155,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       // Repository seems to be invalid. Clean up temporary location and return error
       fileAccess.delete(this.context.getIdeHome());
       throw new CliException("This repository does not include an ide.properties file at the top level or a settings folder with such a file. "
-      + "The respository does not seem to be a valid IDEasy repository. Please verify the repository and try again.");
+      + "The repository does not seem to be a valid IDEasy repository. Please verify the repository and try again.");
     }
     // Set IDE_HOME to new (and actual) project location
     this.context.setIdeHome(this.context.getIdeRoot().resolve(projectName));

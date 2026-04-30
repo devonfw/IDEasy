@@ -11,6 +11,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.cli.CliArguments;
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
@@ -66,6 +67,7 @@ class CreateCommandletTest extends AbstractIdeContextTest {
     assertThat(newProjectPath.resolve(IdeContext.FOLDER_PLUGINS)).exists();
     assertThat(newProjectPath.resolve(IdeContext.FOLDER_SOFTWARE)).exists();
     assertThat(newProjectPath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN)).exists();
+    assertThat(context.getIdeRoot().resolve("_ide/tmp/projects").resolve(NEW_PROJECT_NAME)).doesNotExist();
   }
 
   @Test
@@ -170,6 +172,31 @@ class CreateCommandletTest extends AbstractIdeContextTest {
     assertThat(newProjectPath.resolve(IdeContext.FOLDER_PLUGINS)).exists();
     assertThat(newProjectPath.resolve(IdeContext.FOLDER_SOFTWARE)).exists();
     assertThat(newProjectPath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN)).exists();
+    assertThat(context.getIdeRoot().resolve("_ide/tmp/projects").resolve(NEW_PROJECT_NAME)).doesNotExist();
     assertThat(context).logAtInfo().hasMessageContaining("Welcome to your new IDEasy project!");
+  }
+
+  @Test
+  void testProjectWithInvalidRepositoryNotCreated() {
+
+    // arrange - create a new project that is invalid (does not contain ide.properties file)
+    GitContextImplMock gitContextImplMock = new GitContextImplMock(context, TEST_RESOURCES.resolve("pypi"));
+
+    context.setGitContext(gitContextImplMock);
+    CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
+    cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
+    cc.settingsRepo.setValue(IdeContext.DEFAULT_SETTINGS_REPO_URL);
+    cc.skipTools.setValue(true);
+
+    // act - run the create command
+    assertThatThrownBy(() -> cc.run())
+        .isInstanceOf(CliException.class)
+        .hasMessageContaining("This repository does not include an ide.properties file at the top level or a settings folder with such a file.")
+        .hasMessageContaining("The repository does not seem to be a valid IDEasy repository. Please verify the repository and try again.");
+
+    // assert
+    Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
+    assertThat(newProjectPath).doesNotExist();
+    assertThat(context.getIdeRoot().resolve("_ide/tmp/projects").resolve(NEW_PROJECT_NAME)).doesNotExist();
   }
 }
