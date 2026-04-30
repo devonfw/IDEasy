@@ -104,8 +104,6 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       if (this instanceof CreateCommandlet) {
         analyze_project();
       }
-
-
     }
     updateConf();
     reloadContext();
@@ -177,7 +175,6 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       LOG.error("Failed to move project from {} to {}. Please move it manually.", oldPath, newPath, e);
     }
   }
-
 
   private void reloadContext() {
 
@@ -309,18 +306,8 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     Path settingsPath = this.context.getSettingsPath();
     Path repoPath = settingsPath;
     gitContext.pullOrClone(gitUrl, repoPath);
-    /*if (codeRepository) {
-      // check for settings folder and create symlink to IDE_HOME/settings
-      Path settingsFolder = repoPath.resolve(IdeContext.FOLDER_SETTINGS);
-      if (Files.exists(settingsFolder)) {
-        context.getFileAccess().symlink(settingsFolder, settingsPath);
-      } else {
-        throw new CliException("Invalid code repository " + gitUrl + ": missing a settings folder at " + settingsFolder);
-      }
-    }*/
     this.context.getGitContext().saveCurrentCommitId(settingsPath, this.context.getSettingsCommitIdPath());
   }
-
 
   private void updateSoftware() {
 

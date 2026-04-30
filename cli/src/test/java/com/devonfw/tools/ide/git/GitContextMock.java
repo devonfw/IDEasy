@@ -5,7 +5,6 @@ import java.nio.file.Path;
 
 import com.devonfw.tools.ide.context.IdeTestContext;
 
-
 /**
  * Mock implementation of {@link GitContext}.
  */
