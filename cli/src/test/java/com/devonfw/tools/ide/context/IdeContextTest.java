@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.context;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Properties;
 
 import org.junit.jupiter.api.Test;
@@ -16,13 +17,20 @@ import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.devonfw.tools.ide.security.ToolVersionChoice;
+import com.devonfw.tools.ide.security.ToolVulnerabilities;
+import com.devonfw.tools.ide.tool.ToolEdition;
+import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
+import com.devonfw.tools.ide.url.model.file.json.Cve;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.IdeVersion;
+import com.devonfw.tools.ide.version.VersionIdentifier;
+import com.devonfw.tools.ide.version.VersionRange;
 
 /**
  * Test of {@link IdeContext}.
  */
-class IdeContextTest extends AbstractIdeContextTest {
+public class IdeContextTest extends AbstractIdeContextTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(IdeContextTest.class);
 
@@ -271,6 +279,38 @@ class IdeContextTest extends AbstractIdeContextTest {
         .hasMessage("A proper bash executable was found in your PATH environment variable at: " + bashExePath);
 
     assertThat(bash).isEqualTo(bashExePath);
+  }
+
+  @Test
+  void testQuestionWithMultipleOptions() {
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    String[] options = { "option1", "option2" };
+    context.setAnswers("option1");
+    String result = context.question(options, "Which option?");
+    assertThat(result).isEqualTo("option1");
+  }
+
+  @Test
+  void testQuestionWithSingleOptionAndEmptyAnswer() {
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    String[] options = { "onlyOption" };
+    context.setAnswers(""); // Empty answer (Enter)
+    String result = context.question(options, "Which option?");
+    assertThat(result).isEqualTo("onlyOption");
+  }
+
+  @Test
+  void testQuestionWithSingleToolVersionChoiceAndEmptyAnswer() {
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    ToolEdition edition = new ToolEdition("java", "oracle");
+    VersionIdentifier version = VersionIdentifier.of("17");
+    Cve cve = new Cve("CVE-2023-XXXX", 9.8, List.of(VersionRange.of("[17,18)")));
+    ToolVersionChoice choice = new ToolVersionChoice(new ToolEditionAndVersion(edition, version), "current", ToolVulnerabilities.of(List.of(cve)));
+    ToolVersionChoice[] options = { choice };
+
+    context.setAnswers(""); // Empty answer (Enter)
+    ToolVersionChoice result = context.question(options, "Which version?");
+    assertThat(result).isSameAs(choice);
   }
 
 }

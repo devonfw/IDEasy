@@ -1,0 +1,64 @@
+= Issue
+
+An issue is any ticket requesting some change in our project.
+You can create a new issue for IDEasy https://github.com/devonfw/IDEasy/issues/new/choose[here].
+
+We distinguish the following issue types:
+
+* `Bug`:
+Something is not working correctly and features or functionality are therefore not usable as desired.
+* `Feature`:
+You have an idea for a feature to improve the product.
+This may be a new tool that should be integrated and supported by IDEasy, a new CLI option giving some extra flexibility, some enhanced log output, etc.
+* `Task`:
+Is something internal to be done by the IDEasy team that is not directly affecting the product or end-user experience.
+This may be some code-cleanup, a workflow to simplify internal processes, etc.
+* `Security Vulnerability`:
+Is used to report a vulnerability.
+This is technically created as an issue of the type `Bug` labelled with `security`.
+Therefore, the vulnerability will be public visible to *everybody*.
+In case you think you have found an extremely severe and critical vulnerability specific to IDEasy that you do not want to disclose, please get into direct touch e.g. via email or open an issue without the details asking for a way to get in touch.
+
+For each issue type, we have according templates that will guide you to provide the required information.
+Please be as specific as possible and provide details to clarify your intentions and avoiding ambiguity.
+Especially for `Bug` issues, provide error logs, stack-traces and screenshots helping us to trace down the problem.
+
+NOTE: However, strictly avoid to provide personal or commercial project specific data in any way (issues, comments, discussions, PRs, commits, etc.).
+Never ever provide passwords or credentials!
+
+In order to respect your privacy and support you in this regard, we added a privacy option to IDEasy.
+Reproduce your bug providing the option `-p` (or `--privacy`) to the `ide` command.
+Also consider adding `-d` (or `--debug`) to include extra details in your logs.
+Still we recommend to double-check your logs and comments you provide on GitHub before you submit.
+Please also note that IDEasy is automatically writing log-files to `$IDE_ROOT/_ide/logs/YYYY/mm/DD/`.
+So in case you once hit a bug but are unable to reproduce it, there is still a way to get the logs with the error details back - even if you have meanwhile closed your terminal or even shut down your computer.
+
+== Working on an Issue
+
+If you want to contribute to IDEasy and work on an issue, please ensure the following things:
+
+* The issue must not yet have somebody listed under `Assignees`.
+* The issue `Status` should be `New` (see `Projects` and `IDEasy board` to find the `Status`).
+* The issue should have `ready-to-implement` as one of its `Labels`.
+* Read the issue title, summary, and comments to understand the big picture and check if you are suitable for implementing it.
+Also check for comments telling that someone else wants to work on the issue.
+
+If you are part of the IDEasy team (frequent contributor) also check `Priority` and `Size` of the available issues to make a reasonable choice when selecting your next issue from the backlog.
+
+Once you have decided for an issue, simply click on `Assign yourself` directly below `Assignees` to make you the only assignee of the issue and to show others that this issue is now already assigned and taken.
+As the very next step, set the `Status` of the issue from `New` to `In progress` to indicate that you are now working on the issue.
+
+In case you do not have permissions to change the issue accordingly, simply write a comment telling us that you want to work on that issue.
+If you do not get a response to your comment and request within one or two days, feel free to add another comment explicitly mentioning key-players like `@hohwille`.
+
+Once, you are now the assigned person working on the issue, you can start your implementation.
+
+
+== Feedback on an Issue
+
+If you reported and issue, we try to give our best to value your feedback and also report back via comments.
+If you see link:commit.adoc[commits] being associated in your issue, a link:pull-request.adoc[pull-request] gets linked in your issue under `Development`, or a release is assigned as link:milestone.adoc[milestone] you can see that we are working on your issue.
+If your issue gets `closed` it was either implemented and is `done` or it was somehow rejected (e.g. closed as duplicate or invalid).
+In most cases it was implemented, and you will see a release assigned as link:milestone.adoc[milestone].
+Already the next day after the implementing link:pull-request.adoc[pull-request] was merged and your issue being closed, you can already upgrade to the link:../setup.adoc#testing-snapshot-releases[latest snapshot] and test if your issue was properly implemented.
+We highly appreciate if you test this via the snapshot release and report feedback via an issue comment if it was working as expected or not.

@@ -9,7 +9,7 @@ public enum VersionPhase implements AbstractVersionPhase {
   UNDEFINED,
 
   /** A revision number (actually not a development phase like {@link #UNDEFINED}). */
-  REVISION(Boolean.TRUE, "revision", "rev"),
+  REVISION(Boolean.TRUE, "revision", "rev", "u"),
 
   /** Unstable marker - see {@link VersionSegment#PATTERN_MATCH_ANY_VERSION}. */
   UNSTABLE(Boolean.FALSE, "!"),
@@ -77,7 +77,7 @@ public enum VersionPhase implements AbstractVersionPhase {
   @Override
   public boolean isDevelopmentPhase() {
 
-    return (this != UNDEFINED) && (this != NONE) && (this != REVISION) && (this != BUILD);
+    return (this != UNDEFINED) && (this != NONE) && (this != REVISION) && (this != BUILD) && (this != BETA_OR_BUILD);
   }
 
   /**
@@ -97,7 +97,7 @@ public enum VersionPhase implements AbstractVersionPhase {
    */
   public boolean isValid(int number) {
 
-    if ((this == UNDEFINED) || (this == BETA_OR_BUILD)) {
+    if (this == UNDEFINED) {
       return false;
     }
     if (this.hasNumber != null) {

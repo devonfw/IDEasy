@@ -1,0 +1,110 @@
+= Contributing
+
+Before you start with your contribution, we assume you have completed the link:setup.adoc[developer setup] and picked your first link:issue.adoc[issue].
+
+Now, to get started with your implementation follow these steps:
+
+. Ensure your fork is in sync:
++
+```
+git checkout main
+git pull upstream main
+git push
+```
+. Create a new feature branch:
++
+```
+git checkout -b feature/«issue-id»-«brief-feature-description»
+```
+. Implement your changes, improvements, or fixes.
+. Test your changes:
++
+```
+mvn clean install
+```
++
+If that fails, fix your changes and rerun the tests.
+. Commit your changes:
++
+```
+git add ...
+git commit -m "#«issue-id»: «description»"
+```
++
+. Keep your feature branch up-to-date:
++
+If some days have passed meanwhile you should merge changes that meanwhile happened on the official `IDEasy` repo:
++
+```
+git pull upstream main
+```
+. Push your changes:
+Once you are complete and everything is merged and committed, you can push your local feature branch and make it a remote branch of your fork on github:
++
+```
+git push -u origin feature/«issue-id»-«brief-feature-description»
+```
+. Create pull-request:
++
+Now you can go to https://github.com/devonfw/ideasy/pulls and create the link:pull-request.adoc[pull-request] (PR) for your new feature.
+Therefore, watch for the light yellow box at the top and click the green `Compare & pull request` button.
+For further steps and details see link:pull-request.adoc[pull-request documentation].
+
+== Create a new commandlet
+
+=== Urls
+
+Many programs have a download link that depends on the operating system.
+
+For a new tool, create an url-updater in the https://github.com/devonfw/IDEasy/tree/main/url-updater/src/main/java/com/devonfw/tools/ide/url/updater[updater] folder in the current repository.
+The Name needs to be equal to the one of both the tool and the commandlet.
+
+There are four available parent classes of url-updaters, that can be used.
+They mainly differentiate in the way, available versions are detected.
+
+* https://github.com/devonfw/IDEasy/blob/main/url-updater/src/main/java/com/devonfw/tools/ide/url/updater/GithubUrlUpdater.java[`GithubUrlUpdater`]
+
+* https://github.com/devonfw/IDEasy/blob/main/url-updater/src/main/java/com/devonfw/tools/ide/url/updater/JsonUrlUpdater.java[`JsonUrlUpdater`]
+
+* https://github.com/devonfw/IDEasy/blob/main/url-updater/src/main/java/com/devonfw/tools/ide/url/updater/MavenBasedUrlUpdater.java[`MavenBasedUrlUpdater`]
+
+* https://github.com/devonfw/IDEasy/blob/main/url-updater/src/main/java/com/devonfw/tools/ide/url/updater/WebsiteUrlUpdater.java[`WebsiteUrlUpdater`]
+
+Note: The `WebsiteUrlUpdater` should not be used if other viable options are available.
+
+The updaters use the function `doAddVersion()`, where the downloadUrl, OS and architecture can be specified for each version. https://github.com/devonfw/IDEasy/blob/071e732e6c74aed7b12ccc1d522faf1c4a015dad/cli/src/main/java/com/devonfw/tools/ide/tool/oc/OcUrlUpdater.java#L20[Example]
+
+`VersionIdentifiers` can also be used if e.g. the downloadUrl changed after a specific version, or certain versions are not intended to be available. https://github.com/devonfw/IDEasy/blob/071e732e6c74aed7b12ccc1d522faf1c4a015dad/cli/src/main/java/com/devonfw/tools/ide/tool/helm/HelmUrlUpdater.java#L12[Example]
+
+Once a day, the `UpdateInitiator` will run the updaters through GitHub Actions and fill the https://github.com/devonfw/ide-urls[ide-URL] repository with new version/tools that are identified by the Updaters.
+
+=== Commandlet
+
+Use an existing commandlet like https://github.com/devonfw/IDEasy/blob/main/cli/src/main/java/com/devonfw/tools/ide/tool/java/Java.java[Java] as a reference.
+Create a sub-package and a class with the name of the tool.
+
+=== LICENSE
+
+Find the license for the new tool and add the tool to the table of `Third party components` of the link:LICENSE.adoc[LICENSE].
+If the license itself does not exist, add it to the end of the file as a new section.
+
+== Settings
+
+The https://github.com/devonfw/ide-settings[ide-settings] repository allows project-specific configurations of the IDE tools.
+For your own settings, fork the repository, adjust the configuration and specify the repository URL during installation.
+Important notes on configuration and especially configuration files can be found in the link:configuration.adoc[configuration].
+In the configuration files many link:variables.adoc[variables] can be defined.
+
+== Tips and tricks
+
+Have a look at https://github.com/devonfw/IDEasy/blob/main/documentation/advanced-tooling-generic.adoc[advanced-tooling-generic.adoc] for some helpful developer tools.
+
+== Documentation
+
+When reading this guide online on GitHub, see the directory tree on the left side-bar to navigate and browse the `documentation` folder.
+In case you are reading this from your cloned git repository locally, use your IDE of file explorer to browes it.
+Please study the documentation that explains many important aspects of IDEasy.
+As a developer it is espcially important to study the link:coding-conventions.adoc[coding-conventions] and link:DoD.adoc[Definition of Done].
+Further, please browse the JavaDoc of the source-code to understand the different types and structures of our project.
+To get started see our link:images/design.puml[design diagram] that needs PlantUml support to be viewed (e.g. via IntelliJ with according plugin).
+This diagram gives you a good overview of the most important types in the code-base.

@@ -84,9 +84,36 @@ class AndroidStudioTest extends AbstractIdeContextTest {
         ANDROID_STUDIO + " " + this.context.getSystemInfo().getOs() + " " + this.context.getWorkspacePath());
   }
 
+  /**
+   * Tests if the custom jvm options of the ide variable ANDROID_STUDIO_VM_ARGS have been set.
+   */
+  @ParameterizedTest
+  @ValueSource(strings = { "windows", "mac", "linux" })
+  void testAndroidStudioRunWithCustomJvmOptions(String os) {
+    // arrange
+    SystemInfo systemInfo = SystemInfoMock.of(os);
+    context.setSystemInfo(systemInfo);
+    AndroidStudio androidStudio = context.getCommandletManager().getCommandlet(AndroidStudio.class);
+
+    // act
+    androidStudio.run();
+
+    // assert
+    assertThat(context.getWorkspacePath().resolve(".studio.vmoptions"))
+        .exists()
+        .hasContent("""
+            -Xms256m
+            -Xmx4096m
+            -XX:ReservedCodeCacheSize=256m
+            -ea
+            -Dsun.io.useCanonCaches=true
+            """);
+  }
+
   private void checkInstallation(IdeTestContext context) {
     // commandlet - android-studio
-    assertThat(context.getSoftwarePath().resolve("android-studio/.ide.software.version")).exists().hasContent("2024.1.1.1");
+    AndroidStudio commandlet = context.getCommandletManager().getCommandlet(AndroidStudio.class);
+    assertThat(commandlet.getInstalledVersion().toString()).isEqualTo("2024.1.1.1");
     assertThat(context).log().hasEntries(new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully ended step 'Install plugin MockedPlugin'.", true), //
         new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed android-studio in version 2024.1.1.1", true));
     assertThat(context.getPluginsPath().resolve("android-studio").resolve("mockedPlugin").resolve("dev").resolve("MockedClass.class")).exists();

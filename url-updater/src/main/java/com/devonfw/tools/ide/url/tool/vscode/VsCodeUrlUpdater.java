@@ -33,6 +33,7 @@ public class VsCodeUrlUpdater extends GithubUrlTagUpdater {
     doAddVersion(urlVersion, baseUrl + "win32-x64-archive/stable", WINDOWS);
     doAddVersion(urlVersion, baseUrl + "linux-x64/stable", LINUX);
     doAddVersion(urlVersion, baseUrl + "darwin/stable", MAC);
+    doAddVersion(urlVersion, baseUrl + "darwin-arm64/stable", MAC, ARM64);
   }
 
   @Override

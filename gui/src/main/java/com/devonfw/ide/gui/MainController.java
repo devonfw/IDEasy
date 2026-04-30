@@ -17,6 +17,8 @@ import javafx.scene.control.ProgressBar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.ide.gui.context.IdeGuiStateManager;
+import com.devonfw.ide.gui.context.ProjectManager;
 import com.devonfw.ide.gui.modal.IdeDialog;
 import com.devonfw.ide.gui.progress.GuiProgressBarHandling;
 import com.devonfw.ide.gui.progress.TaskManager;
@@ -30,6 +32,8 @@ import com.devonfw.tools.ide.context.IdeContext;
 public class MainController implements ProgressListener {
 
   private static Logger LOG = LoggerFactory.getLogger(MainController.class);
+
+  private ProjectManager projectManager;
 
 
   @FXML
@@ -70,6 +74,8 @@ public class MainController implements ProgressListener {
     this.directoryPath = directoryPath;
 
     TaskManager.getInstance().addListener(this);
+
+    this.projectManager = IdeGuiStateManager.getInstance().getProjectManager();
   }
 
   @FXML
@@ -107,55 +113,34 @@ public class MainController implements ProgressListener {
 
     assert (directoryPath != null) : "directoryPath is null! Please check the setup of your environment variables (IDE_ROOT)";
 
-    selectedProject.getItems().clear();
-    Path directory = Path.of(directoryPath);
+    List<String> projects = projectManager.getProjectNames();
 
-    if (Files.exists(directory) && Files.isDirectory(directory)) {
-      try (Stream<Path> subPaths = Files.list(directory)) {
-        subPaths
-            .filter(Files::isDirectory)
-            .map(Path::getFileName)
-            .map(Path::toString)
-            .filter(name -> !name.startsWith("_"))
-            .forEach(name -> selectedProject.getItems().add(name));
-      } catch (IOException e) {
-        throw new IllegalStateException("Failed to list projects!", e);
-      }
-    }
+    selectedProject.getItems().clear();
+    selectedProject.getItems().addAll(projects);
 
     selectedProject.setOnAction(actionEvent -> {
 
-      projectValue = Path.of(selectedProject.getValue()).resolve(IdeContext.FOLDER_WORKSPACES);
+      setWorkspaceComboBox();
+
       selectedWorkspace.setDisable(false);
+    });
+  }
+
+  private void setWorkspaceComboBox() {
+
+    List<String> workspaces = projectManager.getWorkspaceNames(selectedProject.getValue());
+
+    selectedWorkspace.getItems().clear();
+    selectedWorkspace.getItems().addAll(workspaces);
+
+    selectedWorkspace.setOnAction(actionEvent -> {
+      updateContext(selectedProject.getValue(), selectedWorkspace.getValue());
+
       androidStudioOpen.setDisable(false);
       eclipseOpen.setDisable(false);
       intellijOpen.setDisable(false);
       vsCodeOpen.setDisable(false);
-      selectedWorkspace.setValue("main");
-      this.workspaceValue = Path.of("main");
-      updateContext(selectedProject.getValue(), selectedWorkspace.getValue());
     });
-  }
-
-  @FXML
-  private void setWorkspaceValue() {
-
-    selectedWorkspace.getItems().clear();
-    Path directory = Path.of(directoryPath).resolve(projectValue);
-    if (Files.exists(directory) && Files.isDirectory(directory)) {
-      try (Stream<Path> subPaths = Files.list(directory)) {
-        subPaths
-            .filter(Files::isDirectory)
-            .map(Path::getFileName)
-            .map(Path::toString)
-            .forEach(name -> selectedWorkspace.getItems().add(name));
-
-      } catch (IOException e) {
-        throw new RuntimeException("Error occurred while fetching workspace names.", e);
-      }
-    }
-    this.workspaceValue = Path.of(selectedWorkspace.getValue());
-    updateContext(selectedProject.getValue(), selectedWorkspace.getValue());
   }
 
   private void openIDE(String inIde) {
