@@ -124,19 +124,19 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     String projectName = this.context.getProjectName();
     Path actualProjectPath;
     FileAccess fileAccess = this.context.getFileAccess();
-    Path SettingsPath = this.context.getSettingsPath();
+    Path settingsPath = this.context.getSettingsPath();
 
     // Check whether the repository is a valid settings repository, code repository, or neither
-    if (isSettingsRepository(SettingsPath)) {
+    if (isSettingsRepository(settingsPath)) {
       LOG.info("The repository seems to be a settings repository based on the presence of " + EnvironmentVariables.DEFAULT_PROPERTIES + " or " + EnvironmentVariables.LEGACY_PROPERTIES + " on the top level.");
       actualProjectPath = this.context.getIdeRoot();
       moveProject(this.context.getIdeHome(), actualProjectPath);
 
-    } else if (isCodeRepository(SettingsPath)) {
+    } else if (isCodeRepository(settingsPath)) {
       LOG.info(EnvironmentVariables.DEFAULT_PROPERTIES + " or " + EnvironmentVariables.LEGACY_PROPERTIES + " found in settings subfolder. This indicates a code repository with a settings folder on the top level.");
       // Move settings folder contents containing code into workspace/main/<project_name>
       actualProjectPath = this.context.getIdeRoot().resolve(projectName).resolve("workspaces/main/").resolve(projectName);
-      for (Path child : fileAccess.listChildren(SettingsPath, f -> true)) {
+      for (Path child : fileAccess.listChildren(settingsPath, f -> true)) {
         System.out.println("Child: " + child);
         moveProject(child, actualProjectPath);
       }
