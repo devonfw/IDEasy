@@ -100,11 +100,11 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
     if (!this.context.isSettingsRepositorySymlinkOrJunction() || this.context.isForceMode() || forcePull.isTrue()) {
       updateSettings();
-      
       // Check if instance of create commandlet. Only then will we analyze the project
       if (this instanceof CreateCommandlet) {
         analyze_project();
       }
+
 
     }
     updateConf();
@@ -129,31 +129,38 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     if (Files.exists(SettingsPath.resolve("ide.properties")) || Files.exists(SettingsPath.resolve("devon.properties"))) {
       // Repository is a settings repository
       LOG.info("The repository seems to be a settings repository based on the presence of ide.properties or devon.properties on the top level.");
+
       actualProjectPath = this.context.getIdeRoot();
       moveProject(this.context.getIdeHome(), actualProjectPath);
     } else if (Files.exists(SettingsPath.resolve("settings/ide.properties")) || Files.exists(SettingsPath.resolve("settings/devon.properties"))) {
       // Repository is a code repository
       LOG.info("ide.properties or devon.properties (legacy) found in settings subfolder. This indicates a code repository with settings folder on the top level.");
+
       // Move "settings" folder containing code in workspace/main
       actualProjectPath = this.context.getIdeRoot().resolve(projectName).resolve("workspaces/main/").resolve(projectName);
       for (Path child : this.context.getFileAccess().listChildren(SettingsPath, f -> true)) {
         System.out.println("Child: " + child);
-        moveProject(child, actualProjectPath.resolve(child.getFileName()));
+        moveProject(child, actualProjectPath);
       }
-      moveProject(SettingsPath, actualProjectPath);
       // Move remaining folders into IDE_HOME
       actualProjectPath = this.context.getIdeRoot();
       moveProject(this.context.getIdeHome(), actualProjectPath);
+      // Delete empty settings folder in IDE_ROOT/<project_name> so we can create a symlink in the next step
+      this.context.getFileAccess().delete(actualProjectPath.resolve(projectName).resolve("settings"));
 
       // Link settings folder in IDE_HOME to settings folder in code repository
-      createSettingsLink();
+      this.context.getFileAccess().symlink(actualProjectPath.resolve(projectName).resolve("workspaces/main").resolve(projectName).resolve("settings"), actualProjectPath.resolve(projectName).resolve("settings"));
+
+      // Final cleanup in temp location
+      this.context.getFileAccess().delete(this.context.getIdeHome());
     } else {
-      // Repository seems to be invalid
-      LOG.warn("No ide.properties or devon.properties found in settings repository. Cannot determine if it is a code repository or settings repository. Keeping the current project setup.");
-      // To-Do: print error message and perform cleanup
-      return;
+      // Repository seems to be invalid. Clean up temporary location and return error
+      this.context.getFileAccess().delete(this.context.getIdeHome());
+      throw new CliException("This repository does not include an ide.properties file at the top level or a settings folder with such a file. "
+      + "The respository does not seem to be a valid IDEasy repository. Please verify the repository and try again.");
     }
-    this.context.setIdeHome(actualProjectPath.resolve(projectName));
+    // Set IDE_HOME to new (and actual) project location
+    this.context.setIdeHome(this.context.getIdeRoot().resolve(projectName));
 
   }
 
@@ -166,9 +173,6 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     }
   }
 
-  private void createSettingsLink() {
-
-  }
 
   private void reloadContext() {
 
@@ -259,7 +263,6 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       }
 
       GitUrl gitUrl = getOrAskSettingsUrl();
-      checkProjectNameConvention(gitUrl.getProjectName());
       initializeRepository(gitUrl);
     }
   }
@@ -268,17 +271,10 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
     String repository = this.settingsRepo.getValue();
     repository = handleDefaultRepository(repository);
-    String userPromt;
-    String defaultUrl;
-    if (isCodeRepository()) {
-      userPromt = "Code repository URL:";
-      defaultUrl = null;
-      LOG.info(MESSAGE_CODE_REPO_URL);
-    } else {
-      userPromt = "Settings URL [" + IdeContext.DEFAULT_SETTINGS_REPO_URL + "]:";
-      defaultUrl = IdeContext.DEFAULT_SETTINGS_REPO_URL;
-      LOG.info(MESSAGE_SETTINGS_REPO_URL, this.context.getSettingsPath());
-    }
+    String userPromt = "Repository URL [" + IdeContext.DEFAULT_SETTINGS_REPO_URL + "]:";
+    String defaultUrl = IdeContext.DEFAULT_SETTINGS_REPO_URL;
+    LOG.info(MESSAGE_SETTINGS_REPO_URL, this.context.getSettingsPath());
+
     GitUrl gitUrl = null;
     if (repository != null) {
       gitUrl = GitUrl.of(repository);
@@ -296,35 +292,10 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
   private String handleDefaultRepository(String repository) {
     if ("-".equals(repository)) {
-      if (isCodeRepository()) {
-        LOG.warn("'-' is found after '--code'. This is invalid.");
-        repository = null;
-      } else {
-        LOG.info("'-' was found for settings repository, the default settings repository '{}' will be used.", IdeContext.DEFAULT_SETTINGS_REPO_URL);
-        repository = IdeContext.DEFAULT_SETTINGS_REPO_URL;
-      }
+      LOG.info("'-' was found for the repository, the default settings repository '{}' will be used.", IdeContext.DEFAULT_SETTINGS_REPO_URL);
+      repository = IdeContext.DEFAULT_SETTINGS_REPO_URL;
     }
     return repository;
-  }
-
-  private void checkProjectNameConvention(String projectName) {
-    boolean isSettingsRepo = projectName.contains(IdeContext.SETTINGS_REPOSITORY_KEYWORD);
-    boolean codeRepository = isCodeRepository();
-    if (isSettingsRepo == codeRepository) {
-      String warningTemplate;
-      if (codeRepository) {
-        warningTemplate = """
-            Your git URL is pointing to the project name {} that contains the keyword '{}'.
-            Therefore we assume that you did a mistake by adding the '--code' option to the ide project creation.
-            Do you really want to create the project?""";
-      } else {
-        warningTemplate = """
-            Your git URL is pointing to the project name {} that does not contain the keyword ''{}''.
-            Therefore we assume that you forgot to add the '--code' option to the ide project creation.
-            Do you really want to create the project?""";
-      }
-      this.context.askToContinue(warningTemplate, projectName, IdeContext.SETTINGS_REPOSITORY_KEYWORD);
-    }
   }
 
   private void initializeRepository(GitUrl gitUrl) {
@@ -332,13 +303,8 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     GitContext gitContext = this.context.getGitContext();
     Path settingsPath = this.context.getSettingsPath();
     Path repoPath = settingsPath;
-    boolean codeRepository = isCodeRepository();
-    if (codeRepository) {
-      // clone the given code repository into IDE_HOME/workspaces/main
-      repoPath = context.getWorkspacePath().resolve(gitUrl.getProjectName());
-    }
     gitContext.pullOrClone(gitUrl, repoPath);
-    if (codeRepository) {
+    /*if (codeRepository) {
       // check for settings folder and create symlink to IDE_HOME/settings
       Path settingsFolder = repoPath.resolve(IdeContext.FOLDER_SETTINGS);
       if (Files.exists(settingsFolder)) {
@@ -346,7 +312,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       } else {
         throw new CliException("Invalid code repository " + gitUrl + ": missing a settings folder at " + settingsFolder);
       }
-    }
+    }*/
     this.context.getGitContext().saveCurrentCommitId(settingsPath, this.context.getSettingsCommitIdPath());
   }
 
@@ -505,14 +471,4 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     fileAccess.writeFileContent(scriptContent, scriptPath);
     fileAccess.makeExecutable(scriptPath);
   }
-
-  /**
-   * Judge if the repository is a code repository.
-   *
-   * @return true when the repository is a code repository, otherwise false.
-   */
-  protected boolean isCodeRepository() {
-    return false;
-  }
-
 }

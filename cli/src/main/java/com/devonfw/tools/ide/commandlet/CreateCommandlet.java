@@ -24,9 +24,6 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
   /** {@link StringProperty} for the name of the new project */
   public final StringProperty newProject;
 
-  /** {@link FlagProperty} for creating a project with settings inside a code repository */
-  public final FlagProperty codeRepositoryFlag;
-
   /**
    * The constructor.
    *
@@ -36,7 +33,6 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
 
     super(context);
     this.newProject = add(new StringProperty("", true, "project"));
-    this.codeRepositoryFlag = add(new FlagProperty("--code"));
     add(this.settingsRepo);
   }
 
@@ -56,21 +52,18 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
   protected void doRun() {
 
     String newProjectName = this.newProject.getValue();
-    //Path newProjectPath = this.context.getIdeRoot().resolve(newProjectName);
-    Path newProjectPath = this.context.getIdeRoot().resolve("_ide/tmp/projects").resolve(newProjectName);
+    Path newProjectPath = this.context.getIdeRoot().resolve(newProjectName);
+    Path tempProjectPath = this.context.getIdeRoot().resolve("_ide/tmp/projects").resolve(newProjectName);
 
     LOG.info("Creating new IDEasy project in {}", newProjectPath);
     if (!this.context.getFileAccess().isEmptyDir(newProjectPath)) {
       this.context.askToContinue("Directory {} already exists. Do you want to continue?", newProjectPath);
-    } else {
-      this.context.getFileAccess().mkdirs(newProjectPath);
     }
 
-    initializeProject(newProjectPath);
-    this.context.setIdeHome(newProjectPath);
+    initializeProject(tempProjectPath);
+    this.context.setIdeHome(tempProjectPath);
     this.context.verifyIdeMinVersion(true);
     super.doRun();
-    newProjectPath = this.context.getIdeHome();
     this.context.verifyIdeMinVersion(true);
     this.context.getFileAccess().writeFileContent(IdeVersion.getVersionString(), newProjectPath.resolve(IdeContext.FILE_SOFTWARE_VERSION));
     IdeLogLevel.SUCCESS.log(LOG, "Successfully created new project '{}'.", newProjectName);
@@ -87,14 +80,9 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
   }
 
   @Override
-  protected boolean isCodeRepository() {
-    return this.codeRepositoryFlag.isTrue();
-  }
-
-  @Override
   protected String getStepMessage() {
 
-    return "Create (clone) " + (isCodeRepository() ? "code" : "settings") + " repository";
+    return "Creating (Cloning) repository";
   }
 
   private void logWelcomeMessage() {
