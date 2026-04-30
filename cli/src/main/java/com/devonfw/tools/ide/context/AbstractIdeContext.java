@@ -1160,10 +1160,13 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
           if (getCliSuggester().handleMissingProjectContext(commandletByName, step)) {
             return 1;
           }
-          ValidationState applyResult = (ValidationState) apply(arguments.copy(), commandletByName);
-
-          if (getCliSuggester().handleInvalidOption(applyResult, commandletByName, step)) {
-            return 1;
+          if (cmd == commandletByName && result instanceof ValidationState validationState) {
+            if (getCliSuggester().handleInvalidOption(validationState, commandletByName, step)) {
+              return 1;
+            }
+            if (getCliSuggester().handleInvalidArgument(validationState, commandletByName)) {
+              return 1;
+            }
           }
         } else {
           if (getCliSuggester().handleMissingCommandlet(commandKey, step)) {
@@ -1621,6 +1624,15 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       }
       boolean matches = currentProperty.apply(arguments, this, cmd, null);
       if (!matches) {
+        String invalidValue = currentProperty.getLastInvalidValue();
+        if (invalidValue != null) {
+          ValidationState state = new ValidationState(null);
+          state.addInvalidArgument(invalidValue, currentProperty.getNameOrAlias());
+          state.addErrorMessage(
+              "Invalid CLI argument '" + invalidValue + "' for property '" + currentProperty.getNameOrAlias() + "' of commandlet '" + cmd.getName() + "'");
+          currentProperty.clearLastInvalidValue();
+          return state;
+        }
         ValidationState state = new ValidationState(null);
         state.addErrorMessage("No matching property found");
         return state;

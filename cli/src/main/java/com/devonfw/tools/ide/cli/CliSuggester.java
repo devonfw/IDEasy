@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.cli;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,10 +10,10 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.property.EnumProperty;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.step.StepImpl;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
-import com.devonfw.tools.ide.validation.ValidationResult;
 import com.devonfw.tools.ide.validation.ValidationState;
 
 /**
@@ -68,7 +69,7 @@ public class CliSuggester {
   /**
    * Handles invalid option errors and suggests corrections.
    *
-   * @param result the {@link ValidationResult} from option parsing.
+   * @param result the {@link com.devonfw.tools.ide.validation.ValidationResult} from option parsing.
    * @param commandlet the {@link Commandlet} that was being executed.
    * @param step the current {@link StepImpl} for error reporting.
    * @return {@code true} if handled (suggestion provided), {@code false} otherwise.
@@ -89,10 +90,11 @@ public class CliSuggester {
     List<String> options = getAllOptionNames(commandlet);
     String suggestion = bestSuggestion(invalidOption, options);
 
-    step.error("Invalid option \"{}\".", invalidOption);
+    step.error("Option \"{}\" not found for commandlet \"{}\"", invalidOption, commandlet.getName());
     if (suggestion != null) {
       IdeLogLevel.INTERACTION.log(LOG, "Did you mean \"{}\"?", suggestion);
     }
+    IdeLogLevel.INTERACTION.log(LOG, "Available options are: {}.", String.join(", ", options));
     IdeLogLevel.INTERACTION.log(LOG, "Call \"ide help {}\" for additional details.", commandlet.getName());
     return true;
   }
@@ -127,6 +129,75 @@ public class CliSuggester {
     return false;
   }
 
+
+  /**
+   * Handles invalid argument value errors for properties and suggests corrections.
+   *
+   * @param result the {@link com.devonfw.tools.ide.validation.ValidationResult} from argument parsing.
+   * @param commandlet the {@link Commandlet} that was being executed.
+   * @return {@code true} if handled (suggestion provided), {@code false} otherwise.
+   */
+  public boolean handleInvalidArgument(ValidationState result, Commandlet commandlet) {
+
+    if ((result == null) || (commandlet == null)) {
+      return false;
+    }
+    String invalidValue = result.getInvalidArgument();
+    String invalidProperty = result.getInvalidArgumentProperty();
+    if (invalidValue == null || invalidProperty == null) {
+      return false;
+    }
+    // Find the property in the commandlet
+    Property<?> property = null;
+    for (Property<?> prop : commandlet.getProperties()) {
+      if (prop.getName().equals(invalidProperty) || (prop.getAlias() != null && prop.getAlias().equals(invalidProperty))) {
+        property = prop;
+        break;
+      }
+    }
+    if (property == null) {
+      return false;
+    }
+    // Get valid values for the property
+    List<String> validValues = getValidValuesForProperty(property);
+    if (validValues == null || validValues.isEmpty()) {
+      return false;
+    }
+
+    String suggestion = bestSuggestion(invalidValue, validValues);
+
+    if (suggestion != null) {
+      IdeLogLevel.INTERACTION.log(LOG, "Did you mean \"{}={}\"?", property.getName(), suggestion);
+    }
+    IdeLogLevel.INTERACTION.log(LOG, "Valid values for '{}' are: {}.", invalidProperty, String.join(", ", validValues));
+    IdeLogLevel.INTERACTION.log(LOG, "Call \"ide help {}\" for additional details.", commandlet.getName());
+    return true;
+  }
+
+  //------------------------- Helper methods-------------------------
+
+  /**
+   * Gets valid values for a property (especially for Enum properties).
+   *
+   * @param property the {@link Property}.
+   * @return a {@link List} of valid values, or {@code null} if the property doesn't have a limited set of valid values.
+   */
+  private List<String> getValidValuesForProperty(Property<?> property) {
+
+    List<String> validValues = new ArrayList<>();
+
+    // Check if the property is an EnumProperty
+    if (property instanceof EnumProperty<?> enumProperty) {
+      Enum<?>[] enumConstants = enumProperty.getValueType().getEnumConstants();
+      if (enumConstants != null) {
+        for (Enum<?> enumConstant : enumConstants) {
+          validValues.add(enumConstant.name().toLowerCase(Locale.ROOT));
+        }
+      }
+    }
+
+    return validValues.isEmpty() ? null : validValues;
+  }
 
   /**
    * Gets all option names for a commandlet.

@@ -11,6 +11,10 @@ public class ValidationState implements ValidationResult {
 
   private String invalidOption;
 
+  private String invalidArgument;
+
+  private String invalidArgumentProperty;
+
 
   /**
    * The default constructor for no property.
@@ -55,6 +59,35 @@ public class ValidationState implements ValidationResult {
    */
   public void addInvalidOption(String invalidOption) {
     this.invalidOption = invalidOption;
+  }
+
+  /**
+   * @return the invalid argument value that caused the error, if applicable, for enhanced error reporting and suggestions. May be {@code null}.
+   */
+  public String getInvalidArgument() {
+    if (this.invalidArgument == null) {
+      return null;
+    }
+    return this.invalidArgument;
+  }
+
+  /**
+   * @return the property name associated with the invalid argument, if applicable. May be {@code null}.
+   */
+  public String getInvalidArgumentProperty() {
+    if (this.invalidArgumentProperty == null) {
+      return null;
+    }
+    return this.invalidArgumentProperty;
+  }
+
+  /**
+   * @param invalidArgument the invalid argument value that caused the error, if applicable, for enhanced error reporting and suggestions.
+   * @param propertyName the property name associated with the invalid argument.
+   */
+  public void addInvalidArgument(String invalidArgument, String propertyName) {
+    this.invalidArgument = invalidArgument;
+    this.invalidArgumentProperty = propertyName;
   }
 
 
