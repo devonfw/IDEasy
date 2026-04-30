@@ -39,7 +39,7 @@ public class SquirrelSqlUpdaterTest extends AbstractUrlUpdaterTest {
             .withBody(readAndResolve(PATH_INTEGRATION_TEST.resolve("SquirrelSqlUpdater")
                 .resolve("squirrel-sql-releases.json"), wmRuntimeInfo))));
 
-    stubFor(any(urlMatching("/*.*.*-a_plainzip/squirrelsql-*.*.*-optional.zip"))
+    stubFor(any(urlMatching("/squirrel-sql-client/squirrel-sql-stable-releases/releases/download/.*-a_plainzip/squirrelsql-.*-optional.zip"))
         .willReturn(aResponse()
             .withStatus(200)
             .withBody("aBody")));
