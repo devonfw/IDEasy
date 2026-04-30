@@ -103,7 +103,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       updateSettings();
       // Check if instance of create commandlet. Only then will we analyze the project
       if (this instanceof CreateCommandlet) {
-        analyze_project();
+        analyzeProject();
       }
     }
     updateConf();
@@ -118,7 +118,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
    * This method is invoked when a new porject is created. It analyzes the cloned repository to check if it is a valid IDEasy repository. The repository can either be a settings repository (with ide.properties or devon.properties on the top level)
    * or a code repository (with a settings folder on the top level containing such a file). Otherwise, the project creatio fails and an error message is logged.
    */
-  private void analyze_project() {
+  private void analyzeProject() {
     // Settings repository: ide.properties on top levels (or devon.properties for legacy users)
     // Code repository: settings folder on top level with ide.properties inside (or devon.properties for legacy users)
     String projectName = this.context.getProjectName();
