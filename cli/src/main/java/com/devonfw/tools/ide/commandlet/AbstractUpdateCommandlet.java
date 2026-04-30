@@ -122,39 +122,38 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     // Code repository: settings folder on top level with ide.properties inside (or devon.properties for legacy users)
     String projectName = this.context.getProjectName();
     Path actualProjectPath = null;
+    FileAccess fileAccess = this.context.getFileAccess();
 
     //Check if a file called ide.properties or devon.properties in settingsPath
     Path SettingsPath = this.context.getSettingsPath();
     if (Files.exists(SettingsPath.resolve("ide.properties")) || Files.exists(SettingsPath.resolve("devon.properties"))) {
       // Repository is a settings repository: ide.properties on top levels (or devon.properties for legacy users)
       LOG.info("The repository seems to be a settings repository based on the presence of ide.properties or devon.properties on the top level.");
-
       actualProjectPath = this.context.getIdeRoot();
       moveProject(this.context.getIdeHome(), actualProjectPath);
+
     } else if (Files.exists(SettingsPath.resolve("settings/ide.properties")) || Files.exists(SettingsPath.resolve("settings/devon.properties"))) {
       // Repository is a code repository: settings folder on top level with ide.properties inside (or devon.properties for legacy users)
       LOG.info("ide.properties or devon.properties (legacy) found in settings subfolder. This indicates a code repository with settings folder on the top level.");
-
-      // Move settings folder contents containing code in workspace/main
+      // Move settings folder contents containing code into workspace/main/<project_name>
       actualProjectPath = this.context.getIdeRoot().resolve(projectName).resolve("workspaces/main/").resolve(projectName);
-      for (Path child : this.context.getFileAccess().listChildren(SettingsPath, f -> true)) {
+      for (Path child : fileAccess.listChildren(SettingsPath, f -> true)) {
         System.out.println("Child: " + child);
         moveProject(child, actualProjectPath);
       }
-      // Move remaining folders into IDE_HOME
+      // Move remaining folders into IDE_ROOT/<project_name>
       actualProjectPath = this.context.getIdeRoot();
       moveProject(this.context.getIdeHome(), actualProjectPath);
       // Delete empty settings folder in IDE_ROOT/<project_name> so we can create a symlink in the next step
-      this.context.getFileAccess().delete(actualProjectPath.resolve(projectName).resolve("settings"));
-
+      fileAccess.delete(actualProjectPath.resolve(projectName).resolve("settings"));
       // Link settings folder in IDE_HOME to settings folder in code repository
-      this.context.getFileAccess().symlink(actualProjectPath.resolve(projectName).resolve("workspaces/main").resolve(projectName).resolve("settings"), actualProjectPath.resolve(projectName).resolve("settings"));
-
+      fileAccess.symlink(actualProjectPath.resolve(projectName).resolve("workspaces/main").resolve(projectName).resolve("settings"), actualProjectPath.resolve(projectName).resolve("settings"));
       // Final cleanup in temp location
-      this.context.getFileAccess().delete(this.context.getIdeHome());
+      fileAccess.delete(this.context.getIdeHome());
+
     } else {
       // Repository seems to be invalid. Clean up temporary location and return error
-      this.context.getFileAccess().delete(this.context.getIdeHome());
+      fileAccess.delete(this.context.getIdeHome());
       throw new CliException("This repository does not include an ide.properties file at the top level or a settings folder with such a file. "
       + "The respository does not seem to be a valid IDEasy repository. Please verify the repository and try again.");
     }
@@ -168,9 +167,10 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
    * @param newPath - The path of the destination.
    */
   private void moveProject(Path oldPath, Path newPath) {
+    FileAccess fileAccess = this.context.getFileAccess();
     try {
-      this.context.getFileAccess().copy(oldPath, newPath, FileCopyMode.COPY_TREE_OVERRIDE_FILES);
-      this.context.getFileAccess().delete(oldPath);
+      fileAccess.copy(oldPath, newPath, FileCopyMode.COPY_TREE_OVERRIDE_FILES);
+      fileAccess.delete(oldPath);
     } catch (Exception e) {
       LOG.error("Failed to move project from {} to {}. Please move it manually.", oldPath, newPath, e);
     }
