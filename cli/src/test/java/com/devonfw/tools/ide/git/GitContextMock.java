@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.git;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
 
 import com.devonfw.tools.ide.context.IdeTestContext;
 
@@ -46,7 +47,7 @@ public class GitContextMock implements GitContext {
   public void pullOrClone(GitUrl gitUrl, Path repository) {
     // Creates required ide.properties file to make repository valid
     this.context.getFileAccess().mkdirs(repository);
-    this.context.getFileAccess().touch(repository.resolve("ide.properties"));
+    this.context.getFileAccess().touch(repository.resolve(EnvironmentVariables.DEFAULT_PROPERTIES));
   }
 
   @Override

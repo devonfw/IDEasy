@@ -191,7 +191,7 @@ class CreateCommandletTest extends AbstractIdeContextTest {
     // act - run the create command
     assertThatThrownBy(() -> cc.run())
         .isInstanceOf(CliException.class)
-        .hasMessageContaining("This repository does not include an ide.properties file at the top level or a settings folder with such a file.")
+        .hasMessageContaining("This repository does not include an " + EnvironmentVariables.DEFAULT_PROPERTIES + " or " + EnvironmentVariables.LEGACY_PROPERTIES + " file at the top level or a settings folder with such a file.")
         .hasMessageContaining("The repository does not seem to be a valid IDEasy repository. Please verify the repository and try again.");
 
     // assert
