@@ -546,7 +546,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       if (type == PathLinkType.SYMBOLIC_LINK) {
         Files.createSymbolicLink(finalLink, finalSource);
       } else if (type == PathLinkType.HARD_LINK) {
-        Files.createLink(finalLink, finalSource);
+        createHardLink(finalSource, finalLink);
       } else {
         throw new IllegalStateException("" + type);
       }
@@ -556,12 +556,37 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
             "Due to lack of permissions, Microsoft's mklink with junction had to be used to create a Symlink. See\n"
                 + "https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for further details. Error was: "
                 + e.getMessage());
-        mklinkOnWindows(finalSource, absoluteSource, finalLink, type, relative);
+
+        try {
+          mklinkOnWindows(finalSource, absoluteSource, finalLink, type, relative);
+        } catch (IllegalStateException mkEx) {
+          LOG.info("Creating a hard link as a fallback for the failed mklink attempt.");
+          createHardLink(finalSource, finalLink);
+        }
       } else {
         throw new RuntimeException(e);
       }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to create a " + relativeOrAbsolute + " " + type + " at " + finalLink + " pointing to " + source, e);
+    }
+  }
+
+
+  /**
+   * Creates a hard link at {@code link} pointing to {@code source}.
+   *
+   * @param source the {@link Path} the hard link will point to.
+   * @param link the {@link Path} where to create the hard link.
+   */
+  void createHardLink(Path source, Path link) {
+    try {
+      if (Files.exists(link, LinkOption.NOFOLLOW_LINKS)) {
+        delete(link);
+      }
+      Files.createLink(link, source);
+      LOG.info("Created hard link at {} pointing to {}", link, source);
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to create a hardlink for " + source + " at " + link, e);
     }
   }
 
