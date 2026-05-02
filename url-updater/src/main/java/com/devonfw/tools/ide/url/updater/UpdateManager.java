@@ -4,8 +4,6 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
 
-import com.devonfw.tools.ide.url.tool.java.JavaAzulUrlUpdater;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,6 +12,7 @@ import com.devonfw.tools.ide.url.model.report.UrlFinalReport;
 import com.devonfw.tools.ide.url.tool.androidstudio.AndroidStudioUrlUpdater;
 import com.devonfw.tools.ide.url.tool.aws.AwsUrlUpdater;
 import com.devonfw.tools.ide.url.tool.az.AzureUrlUpdater;
+import com.devonfw.tools.ide.url.tool.claude.ClaudeUrlUpdater;
 import com.devonfw.tools.ide.url.tool.copilot.CopilotUrlUpdater;
 import com.devonfw.tools.ide.url.tool.corepack.CorepackUrlUpdater;
 import com.devonfw.tools.ide.url.tool.docker.DockerDesktopUrlUpdater;
@@ -32,6 +31,7 @@ import com.devonfw.tools.ide.url.tool.gradle.GradleUrlUpdater;
 import com.devonfw.tools.ide.url.tool.helm.HelmUrlUpdater;
 import com.devonfw.tools.ide.url.tool.intellij.IntellijUrlUpdater;
 import com.devonfw.tools.ide.url.tool.jasypt.JasyptUrlUpdater;
+import com.devonfw.tools.ide.url.tool.java.JavaAzulUrlUpdater;
 import com.devonfw.tools.ide.url.tool.java.JavaUrlUpdater;
 import com.devonfw.tools.ide.url.tool.jenkins.JenkinsUrlUpdater;
 import com.devonfw.tools.ide.url.tool.jmc.JmcUrlUpdater;
@@ -69,7 +69,8 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
   private final UrlFinalReport urlFinalReport;
 
   private final List<AbstractUrlUpdater> updaters = List.of(
-      new AndroidStudioUrlUpdater(), new AwsUrlUpdater(), new AzureUrlUpdater(), new CopilotUrlUpdater(), new CorepackUrlUpdater(), new DockerDesktopUrlUpdater(),
+      new AndroidStudioUrlUpdater(), new AwsUrlUpdater(), new AzureUrlUpdater(), new ClaudeUrlUpdater(), new CopilotUrlUpdater(), new CorepackUrlUpdater(),
+      new DockerDesktopUrlUpdater(),
       new DotNetUrlUpdater(),
       new EclipseCppUrlUpdater(), new EclipseJeeUrlUpdater(), new EclipseJavaUrlUpdater(), new GCloudUrlUpdater(),
       new GcViewerUrlUpdater(), new GhUrlUpdater(), new GoUrlUpdater(), new GraalVmCommunityUpdater(), new GraalVmOracleUrlUpdater(),
@@ -77,7 +78,8 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
       new JavaUrlUpdater(), new JavaAzulUrlUpdater(), new JenkinsUrlUpdater(), new JmcUrlUpdater(), new KotlincUrlUpdater(),
       new KotlincNativeUrlUpdater(), new LazyDockerUrlUpdater(), new MvnUrlUpdater(),
       new NgUrlUpdater(), new NodeUrlUpdater(), new NpmUrlUpdater(), new OcUrlUpdater(), new PgAdminUrlUpdater(), new PipUrlUpdater(), new PycharmUrlUpdater(),
-      new PythonUrlUpdater(), new QuarkusUrlUpdater(), new RustUrlUpdater(), new DockerRancherDesktopUrlUpdater(), new SonarUrlUpdater(), new SquirrelSqlUrlUpdater(),
+      new PythonUrlUpdater(), new QuarkusUrlUpdater(), new RustUrlUpdater(), new DockerRancherDesktopUrlUpdater(), new SonarUrlUpdater(),
+      new SquirrelSqlUrlUpdater(),
       new TerraformUrlUpdater(), new TomcatUrlUpdater(), new UvUrlUpdater(), new VsCodeUrlUpdater());
 
   /**
