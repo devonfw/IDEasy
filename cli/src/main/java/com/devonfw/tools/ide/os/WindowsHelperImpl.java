@@ -98,7 +98,7 @@ public class WindowsHelperImpl implements WindowsHelper {
 
     for (String registryBasePath : REGISTRY_BASE_PATHS) {
       List<String> out = runReg("query", registryBasePath, "/s", "/f", appName);
-      if (out != null) {
+      if (out != null && !out.isEmpty()) {
         return retrieveRegString(key, out);
       }
     }
