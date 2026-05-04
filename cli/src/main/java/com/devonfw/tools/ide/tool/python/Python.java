@@ -66,6 +66,7 @@ public class Python extends LocalToolCommandlet {
 
     super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
     environmentContext.withEnvVar("VIRTUAL_ENV", toolInstallation.rootDir().toString());
+    environmentContext.withEnvVar("XDG_BIN_HOME", toolInstallation.binDir().toString());
   }
 
   @Override
