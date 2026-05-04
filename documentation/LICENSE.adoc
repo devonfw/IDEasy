@@ -104,6 +104,7 @@ The column `inclusion` indicates the way the component is included:
 |https://github.com/openjdk/jfx[OpenJFX] |Optional|https://github.com/openjdk/jfx/blob/master/LICENSE[GPLv2] (with the “Classpath” Exception)
 |https://squirrel-sql.sourceforge.io/[SQuirreL SQL Client]|Optional|https://github.com/squirrel-sql-client/squirrel-sql-stable-releases/blob/main/LICENSE[LGPL 2.1]
 |https://docs.nestjs.com/cli/overview[NestJS CLI] |Optional|https://github.com/nestjs/nest-cli/blob/master/LICENSE[MIT License]
+|https://docs.aws.amazon.com/cdk/v2/guide/home.html[AWS CDK CLI] |Optional|https://github.com/aws/aws-cdk-cli[Apache 2.0]
 |===
 
 == Apache Software License - Version 2.0
