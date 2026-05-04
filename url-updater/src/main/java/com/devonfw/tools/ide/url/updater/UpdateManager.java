@@ -54,6 +54,7 @@ import com.devonfw.tools.ide.url.tool.terraform.TerraformUrlUpdater;
 import com.devonfw.tools.ide.url.tool.tomcat.TomcatUrlUpdater;
 import com.devonfw.tools.ide.url.tool.uv.UvUrlUpdater;
 import com.devonfw.tools.ide.url.tool.vscode.VsCodeUrlUpdater;
+import com.devonfw.tools.ide.url.tool.vscode.VsCodiumUrlUpdater;
 
 /**
  * The {@code UpdateManager} class manages the update process for various tools by using a list of {@link AbstractUrlUpdater}s to update the
