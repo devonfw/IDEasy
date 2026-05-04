@@ -202,7 +202,10 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
 
     String markerFilePrefix = "plugin" + "." + getName() + "." + getInstalledEdition() + "." + plugin.name();
     List<Path> markerFiles = fileAccess.listChildren(currentMarkerFilePath.getParent(),
-        p -> Files.isRegularFile(p) && p.getFileName().toString().startsWith(markerFilePrefix));
+        p -> {
+          String fileName = p.getFileName().toString();
+          return Files.isRegularFile(p) && (fileName.equals(markerFilePrefix) || fileName.startsWith(markerFilePrefix + ".version-"));
+        });
     for (Path markerFile : markerFiles) {
       if (!markerFile.equals(currentMarkerFilePath)) {
         fileAccess.delete(markerFile);

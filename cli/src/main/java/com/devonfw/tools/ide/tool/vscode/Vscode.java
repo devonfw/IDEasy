@@ -66,7 +66,7 @@ public class Vscode extends IdeToolCommandlet {
     extensionsCommands.add("--install-extension");
     String extensionInstallTarget = plugin.id();
     // If a version number was specified, add it to the extension identifier with the format "extensionId@version"
-    Boolean versionSpecified = (plugin.version() != null) && !plugin.version().isBlank();
+    boolean versionSpecified = (plugin.version() != null) && !plugin.version().isBlank();
     if (versionSpecified) {
       extensionInstallTarget = extensionInstallTarget + "@" + plugin.version();
     }
