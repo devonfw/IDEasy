@@ -8,64 +8,42 @@ import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.context.MvnRepositoryMock;
-import com.devonfw.tools.ide.url.model.file.UrlChecksums;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * Integration test verifying that the MvnRepositoryMock produces deterministic hashes 
- * that match our hardcoded "Gold Standard" values.
+ * Integration test verifying that the deterministic archives produced by our mock repositories
+ * match our hardcoded "Gold Standard" values.
  */
 @WireMockTest
 class MvnFinalChecksumTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_MVN = "mvn";
 
-  // This is the portable, deterministic hash for the Maven 3.8.1 structure defined below.
-  private static final String EXPECTED_SHA256 = "ee98614a0d93e2f5f0f97bd140eafd747c725d4ee424d15d28c58bfbb45f112d";
 
+
+  /**
+   * Integration test verifying that the tool installation correctly performs and validates 
+   * the checksum from the URL repository (urls.sha256).
+   */
   @Test
-  void testVerifyUsingMvnRepositoryMock(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
-    // 1. Arrange: Use the "mvn" project context
+  void testVerifyUrlChecksum(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+
+    // 1. Arrange: Use the "mvn" project context with WireMock
     IdeTestContext context = newContext(PROJECT_MVN, wmRuntimeInfo);
-    
-    // Create the "mock object" source directory in the test repository
-    // This simulates the files that would be compressed on the fly by the mock.
-    Path repoDir = context.getIdeRoot().resolve("repository/mvn/org.apache.maven/apache-maven");
-    Files.createDirectories(repoDir.resolve("bin"));
-    Files.writeString(repoDir.resolve("bin/mvn"), "#!/bin/bash\necho \"Maven 3.8.1\"");
-    Files.writeString(repoDir.resolve("bin/mvn.cmd"), "@echo off\necho Maven 3.8.1");
-    Files.createDirectories(repoDir.resolve("conf"));
-    Files.writeString(repoDir.resolve("conf/settings.xml"), "<settings/>");
-    Files.createDirectories(repoDir.resolve("lib"));
-    Files.writeString(repoDir.resolve("lib/maven-core-3.8.1.jar"), "dummy jar content");
+    Mvn mvn = context.getCommandletManager().getCommandlet(Mvn.class);
 
-    MvnRepositoryMock mockRepo = (MvnRepositoryMock) context.getMvnRepository();
-    
-    // Register the expected hash for the artifact download path.
-    // If the mock's live compression produces a different hash, the test fails.
-    String downloadPath = "/org/apache/maven/apache-maven/3.8.1/apache-maven-3.8.1-bin.zip";
-    mockRepo.putExpectedChecksum(downloadPath, EXPECTED_SHA256);
+    // Read the expected hash from the URL repository file in the test resources
+    Path urlsSha256Path = context.getIdePath().resolve("urls/mvn/mvn/3.9.7/urls.sha256");
+    String expectedSha256 = Files.readString(urlsSha256Path).trim();
 
-    // 2. Act: Trigger the download flow for a Maven 3.8.1 artifact
-    MvnArtifact artifact = new MvnArtifact("org.apache.maven", "apache-maven", "3.8.1", "zip", "bin");
-    MvnArtifactMetadata metadata = mockRepo.getMetadata(artifact, "mvn", "mvn");
-    
-    // This call triggers MvnRepositoryMock.download() which:
-    // a) Locates the directory we created above.
-    // b) Performs deterministic compression.
-    // c) Computes the live hash.
-    // d) Compares it against our pre-registered EXPECTED_SHA256 (via putIfAbsent).
-    mockRepo.download(metadata);
+    // 2. Act: Trigger the installation of Maven 3.9.7
+    // This will use ToolRepositoryMock which triggers deterministic compression
+    // and verifies it against urls.sha256 in the test resources.
+    mvn.install();
 
-    // 3. Assert: Verify the checksums provided by the mock
-    UrlChecksums checksums = mockRepo.getChecksums(artifact);
-    assertThat(checksums).isNotNull();
-    assertThat(checksums.iterator().next().getChecksum())
-        .as("The live compressed archive MUST match the hardcoded gold standard hash")
-        .isEqualTo(EXPECTED_SHA256);
-    
-    System.out.println("Integration Success: MvnRepositoryMock produced the expected hardcoded hash.");
+    // 3. Assert: Verify the installation and checksum success logs
+    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed mvn in version 3.9.7");
+    assertThat(context).logAtSuccess().hasMessageContaining("SHA-256 checksum " + expectedSha256 + " is correct.");
   }
 }
