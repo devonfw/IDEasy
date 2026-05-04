@@ -195,10 +195,36 @@ class IntellijTest extends AbstractIdeContextTest {
         """);
   }
 
+  /**
+   * Tests if the custom jvm options of the ide variable INTELLI_VM_ARGS have been set.
+   */
+  @ParameterizedTest
+  @ValueSource(strings = { "windows", "mac", "linux" })
+  void testIntellijRunWithCustomJvmOptions(String os) {
+    // arrange
+    SystemInfo systemInfo = SystemInfoMock.of(os);
+    context.setSystemInfo(systemInfo);
+    Intellij intellij = context.getCommandletManager().getCommandlet(Intellij.class);
+
+    // act
+    intellij.run();
+
+    // assert
+    assertThat(context.getWorkspacePath().resolve(".idea.vmoptions"))
+        .exists()
+        .hasContent("""
+            -Xms256m
+            -Xmx4096m
+            -XX:ReservedCodeCacheSize=256m
+            -ea
+            -Dsun.io.useCanonCaches=true
+            """);
+  }
 
   private void checkInstallation(IdeTestContext context) {
 
-    assertThat(context.getSoftwarePath().resolve("intellij/.ide.software.version")).exists().hasContent("2023.3.3");
+    Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
+    assertThat(commandlet.getInstalledVersion().toString()).isEqualTo("2023.3.3");
     assertThat(context.getWorkspacePath().resolve("idea.properties")).exists();
     assertThat(context).log().hasEntries(
         new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed java in version 17.0.10_7", true),
