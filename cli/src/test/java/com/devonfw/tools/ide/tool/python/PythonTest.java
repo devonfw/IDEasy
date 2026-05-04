@@ -36,6 +36,6 @@ public class PythonTest extends AbstractIdeContextTest {
     python.setEnvironment(environmentContext, toolInstallation, false);
 
     // assert
-    assertThat(variables.get("XDG_BIN_HOME").getValue()).isEqualTo(toolInstallation.binDir().toString());
+    assertThat(Path.of(variables.get("XDG_BIN_HOME").getValue())).isEqualTo(toolInstallation.binDir());
   }
 }
