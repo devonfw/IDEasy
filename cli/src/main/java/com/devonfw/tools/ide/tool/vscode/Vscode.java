@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.tool.vscode;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -59,8 +58,6 @@ public class Vscode extends IdeToolCommandlet {
   protected void installPlugins(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
     boolean isVscodium = EDITION_VSCODIUM.equals(getConfiguredEdition());
     if (isVscodium) {
-      // VSCodium does not support all the plugins VSCode offers, therefore we implement 
-      // a custom error handling strategy for plugin installation
       this.vscodiumUnavailablePlugins.clear();
       pc.errorHandling(ProcessErrorHandling.NONE);
     }
@@ -71,11 +68,7 @@ public class Vscode extends IdeToolCommandlet {
           pb.stepBy(1);
         }
       });
-      if (isVscodium) {
-        installPluginsSilently(plugins, pc);
-      } else {
-        super.installPlugins(plugins, pc);
-      }
+      super.installPlugins(plugins, pc);
       pb.close();
     });
     if (isVscodium && !this.vscodiumUnavailablePlugins.isEmpty()) {
@@ -87,45 +80,25 @@ public class Vscode extends IdeToolCommandlet {
     }
   }
 
-  private void installPluginsSilently(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
-    for (ToolPluginDescriptor plugin : plugins) {
-      if (!plugin.active()) {
-        continue;
-      }
-      Path markerFile = retrievePluginMarkerFilePath(plugin);
-      boolean markerExists = markerFile != null && Files.exists(markerFile);
-      if (markerExists && !this.context.isForcePlugins()) {
-        continue;
-      }
-      List<String> args = new ArrayList<>();
-      args.add("--force");
-      args.add("--install-extension");
-      args.add(plugin.id());
-      ProcessResult result = runTool(pc, ProcessMode.DEFAULT_CAPTURE, args);
-      if (result.isSuccessful()) {
-        createPluginMarkerFile(plugin);
-      } else {
-        this.vscodiumUnavailablePlugins.add(plugin.id());
-      }
-    }
-  }
-
   @Override
   public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
 
-    List<String> extensionsCommands = new ArrayList<>();
-    extensionsCommands.add("--force");
-    extensionsCommands.add("--install-extension");
-    extensionsCommands.add(plugin.id());
-    ProcessResult result = runTool(pc, ProcessMode.DEFAULT_CAPTURE, extensionsCommands);
+    List<String> args = new ArrayList<>();
+    args.add("--force");
+    args.add("--install-extension");
+    args.add(plugin.id());
+    ProcessResult result = runTool(pc, ProcessMode.DEFAULT_CAPTURE, args);
     if (result.isSuccessful()) {
       IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {}", plugin.name());
       step.success();
       return true;
-    } else {
-      LOG.warn("An error occurred while installing plugin: {}", plugin.name());
+    }
+    if (EDITION_VSCODIUM.equals(getConfiguredEdition())) {
+      this.vscodiumUnavailablePlugins.add(plugin.id());
       return false;
     }
+    LOG.warn("An error occurred while installing plugin: {}", plugin.name());
+    return false;
   }
 
   @Override
