@@ -83,11 +83,11 @@ public class Vscode extends IdeToolCommandlet {
   @Override
   public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
 
-    List<String> args = new ArrayList<>();
-    args.add("--force");
-    args.add("--install-extension");
-    args.add(plugin.id());
-    ProcessResult result = runTool(pc, ProcessMode.DEFAULT_CAPTURE, args);
+    List<String> extensionsCommands = new ArrayList<>();
+    extensionsCommands.add("--force");
+    extensionsCommands.add("--install-extension");
+    extensionsCommands.add(plugin.id());
+    ProcessResult result = runTool(pc, ProcessMode.DEFAULT_CAPTURE, extensionsCommands);
     if (result.isSuccessful()) {
       IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {}", plugin.name());
       step.success();
