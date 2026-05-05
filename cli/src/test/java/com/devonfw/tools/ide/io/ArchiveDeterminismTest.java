@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -44,8 +45,10 @@ public class ArchiveDeterminismTest extends AbstractIdeContextTest {
     try (OutputStream out1 = Files.newOutputStream(archive1)) {
       fileAccess.compressTarGz(contentDir, out1);
     }
-    // Wait a bit to ensure a non-deterministic MTIME would change (though we zero it out)
-    Thread.sleep(1100);
+    // Modify modification time of a file to ensure it would affect the hash if not normalized
+    Path file1 = contentDir.resolve("file1.txt");
+    FileTime newTime = FileTime.fromMillis(System.currentTimeMillis() + 10000);
+    Files.setLastModifiedTime(file1, newTime);
     try (OutputStream out2 = Files.newOutputStream(archive2)) {
       fileAccess.compressTarGz(contentDir, out2);
     }
@@ -76,8 +79,10 @@ public class ArchiveDeterminismTest extends AbstractIdeContextTest {
     try (OutputStream out1 = Files.newOutputStream(archive1)) {
       fileAccess.compressZip(contentDir, out1);
     }
-    // Wait a bit to ensure a non-deterministic time would change
-    Thread.sleep(1100);
+    // Modify modification time of a file to ensure it would affect the hash if not normalized
+    Path file1 = contentDir.resolve("file1.txt");
+    FileTime newTime = FileTime.fromMillis(System.currentTimeMillis() + 10000);
+    Files.setLastModifiedTime(file1, newTime);
     try (OutputStream out2 = Files.newOutputStream(archive2)) {
       fileAccess.compressZip(contentDir, out2);
     }

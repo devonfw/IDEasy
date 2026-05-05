@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -22,6 +23,7 @@ import com.devonfw.tools.ide.tool.mvn.MvnArtifactMetadata;
 import com.devonfw.tools.ide.tool.mvn.MvnRepository;
 import com.devonfw.tools.ide.url.model.file.UrlChecksums;
 import com.devonfw.tools.ide.url.model.file.UrlGenericChecksum;
+import com.devonfw.tools.ide.util.HexUtil;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 
 /**
@@ -71,7 +73,12 @@ public class MvnRepositoryMock extends MvnRepository {
       byte[] body = baos.toByteArray();
       // Pre-compute and store the SHA-256 of the archive bytes so verifyChecksum() can check them.
       // We use putIfAbsent so that a hardcoded 'expected' checksum from a test takes precedence.
-      String sha256 = sha256Hex(body);
+      String sha256;
+      try {
+        sha256 = HexUtil.toHexString(MessageDigest.getInstance("SHA-256").digest(body));
+      } catch (NoSuchAlgorithmException e) {
+        throw new IllegalStateException("SHA-256 algorithm not found", e);
+      }
       this.checksumByPath.putIfAbsent(path, sha256);
       stubFor(get(urlPathEqualTo(path)).willReturn(
           aResponse().withStatus(200).withBody(body)));
@@ -92,19 +99,6 @@ public class MvnRepositoryMock extends MvnRepository {
     return new SingleChecksumWrapper(sha256);
   }
 
-  private static String sha256Hex(byte[] data) {
-    try {
-      MessageDigest digest = MessageDigest.getInstance("SHA-256");
-      byte[] hash = digest.digest(data);
-      StringBuilder sb = new StringBuilder(hash.length * 2);
-      for (byte b : hash) {
-        sb.append(String.format("%02x", b));
-      }
-      return sb.toString();
-    } catch (Exception e) {
-      throw new IllegalStateException("SHA-256 not available", e);
-    }
-  }
 
   /**
    * Simple {@link UrlChecksums} wrapper for a single pre-computed checksum.
