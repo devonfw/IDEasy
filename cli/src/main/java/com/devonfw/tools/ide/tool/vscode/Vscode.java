@@ -61,6 +61,7 @@ public class Vscode extends IdeToolCommandlet {
       this.vscodiumUnavailablePlugins.clear();
       pc.errorHandling(ProcessErrorHandling.NONE);
     }
+    IdeLogLevel suppressLevel = isVscodium ? IdeLogLevel.WARNING : IdeLogLevel.STEP;
     this.context.runWithoutLogging(() -> {
       IdeProgressBar pb = this.context.newProgressBarForPlugins(plugins.size());
       pc.setOutputListener((msg, err) -> {
@@ -70,7 +71,7 @@ public class Vscode extends IdeToolCommandlet {
       });
       super.installPlugins(plugins, pc);
       pb.close();
-    }, IdeLogLevel.WARNING);
+    }, suppressLevel);
     if (isVscodium && !this.vscodiumUnavailablePlugins.isEmpty()) {
       LOG.warn("{} plugin(s) could not be installed on VSCodium due to not being available on open-vsx or other errors:\n  - {}\n"
               + "For full plugin support, set VSCODE_EDITION=vscode to use Microsoft's distribution.\n"
