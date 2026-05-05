@@ -70,11 +70,11 @@ public class Vscode extends IdeToolCommandlet {
       });
       super.installPlugins(plugins, pc);
       pb.close();
-    });
+    }, IdeLogLevel.WARNING);
     if (isVscodium && !this.vscodiumUnavailablePlugins.isEmpty()) {
-      LOG.warn("{} plugin(s) could not be installed on the VSCodium open-source build, "
-              + "either because they are Microsoft-proprietary or are not published to open-vsx:\n  - {}\n"
-              + "For full plugin support, set VSCODE_EDITION=vscode to use Microsoft's distribution.",
+      LOG.warn("{} plugin(s) could not be installed on VSCodium due to not being available on open-vsx or other errors:\n  - {}\n"
+              + "For full plugin support, set VSCODE_EDITION=vscode to use Microsoft's distribution.\n"
+              + "For more detailed information on why plugins failed to install, check the IDEasy logfile at $IDE_ROOT/_ide/logs/.",
           this.vscodiumUnavailablePlugins.size(),
           String.join("\n  - ", this.vscodiumUnavailablePlugins));
     }
