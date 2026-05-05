@@ -30,3 +30,12 @@ For `VisualStudio Code`,  this is the extension ID you can directly get from the
 |`active`|`true`|(optional) `true` to tell IDEasy that this plugin shall be installed automatically for everybody in your team. Default is `false`. If not auto-installed, it can still be installed via `ide install-plugin «ide» «plugin»`.
 |`tags`|e.g. `java,spring,ai`|(optional) Tags to classify the plugin. Will be used by the GUI of IDEasy for selection by tag.
 |===
+
+
+== Resetting installed plugins
+
+When first installing an IDE using `ide install «ide»`, IDEasy will automatically install all plugins that are configured in the project settings.
+This configuration is intended to serve as a baseline for the entire team.
+However, after the initial setup, you can freely change the plugin configuration for your IDE as you see fit.
+
+To revert to the initial plugin configuration, you can run `ide -f «ide»`, which will give you the option to uninstall all installed plugins and reinstall them as configured in your project settings.
