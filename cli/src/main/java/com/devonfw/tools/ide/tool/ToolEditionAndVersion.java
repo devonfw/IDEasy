@@ -68,6 +68,14 @@ public class ToolEditionAndVersion {
     this.edition = edition;
   }
 
+    /**
+   * @param edition new value of {@link #getEdition()}.
+   */
+  public void replaceEdition(ToolEdition edition) {
+
+    this.edition = edition;
+  }
+
   /**
    * @return the {@link GenericVersionRange} that is installed or configured.
    */
