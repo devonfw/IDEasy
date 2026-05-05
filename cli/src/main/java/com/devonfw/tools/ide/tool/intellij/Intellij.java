@@ -100,7 +100,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
       
       VersionIdentifier version;
       if (requested.getVersion() != null) {
-        version = VersionIdentifier.of(requested.getVersion().toString());  // <- This can be null!!!
+        version = VersionIdentifier.of(requested.getVersion().toString());
       } else {
         version = getConfiguredVersion();
       }
