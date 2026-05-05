@@ -34,7 +34,6 @@ public class EclipseTest extends AbstractIdeContextTest {
     SystemInfo systemInfo = SystemInfoMock.of(os);
     IdeTestContext context = newContext(PROJECT_ECLIPSE, "eclipseproject");
     context.setSystemInfo(systemInfo);
-    //context.getStartContext().setForceMode(true); // #663
     Eclipse eclipse = context.getCommandletManager().getCommandlet(Eclipse.class);
 
     // act
