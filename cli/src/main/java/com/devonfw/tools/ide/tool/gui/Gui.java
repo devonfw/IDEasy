@@ -51,7 +51,7 @@ public class Gui extends Commandlet {
     toolInstallRequest.setRequested(
         new ToolEditionAndVersion(
             new ToolEdition("java", "java"),
-            VersionRange.of("[25,)")
+            VersionRange.of("[25,26)")
         )
     );
 
