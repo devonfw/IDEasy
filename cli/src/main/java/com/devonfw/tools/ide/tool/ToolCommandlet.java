@@ -368,13 +368,20 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       edition = new ToolEdition(this.tool, getConfiguredEdition());
       requested = new ToolEditionAndVersion(edition);
       request.setRequested(requested);
+    
     } else {
       edition = requested.getEdition();
       if (edition == null) {
+        // If no edition was specified, set it to the configured one
         edition = new ToolEdition(this.tool, getConfiguredEdition());
         requested.setEdition(edition);
       }
     }
+
+    // Adjust edition if necessary based on requested version. This is needed for tools like IntelliJ where we may need to automatically switch editions
+    requested = adjustRequestedEdition(requested);
+    edition = requested.getEdition();
+  
     GenericVersionRange version = requested.getVersion();
     if (version == null) {
       version = getConfiguredVersion();
@@ -397,6 +404,19 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       requested.setResolvedVersion(resolvedVersion);
     }
   }
+
+  /**
+   * Hook for subclasses to adjust the requested tool edition before the version is finalized.
+   *
+   * @param requested the requested {@link ToolEditionAndVersion}
+   * @return the given or trgansformed {@link ToolEditionAndVersion}
+   */
+  protected ToolEditionAndVersion adjustRequestedEdition(ToolEditionAndVersion requested) {
+
+    // default no-op
+    return requested;
+  }
+
 
   private void completeRequestToolPath(ToolInstallRequest request) {
 
