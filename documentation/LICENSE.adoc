@@ -48,6 +48,7 @@ The column `inclusion` indicates the way the component is included:
 |https://logback.qos.ch/[logback-classic]|Directly included|https://logback.qos.ch/license.html[LGPL 2.1]
 |https://openjdk.java.net/[OpenJDK] / https://adoptopenjdk.net/[AdoptOpenJDK] (Java)|Default Setup|https://openjdk.java.net/legal/gplv2+ce.html[GPLv2]
 |https://go.dev[GO]|Optional|https://go.dev/LICENSE[BSD 3-Clause]
+|https://github.com/github/copilot-cli[GitHub Copilot CLI]|Optional|https://github.com/github/copilot-cli/blob/main/LICENSE.md[Proprietary]
 |https://maven.apache.org/[Maven]|Default Setup|https://www.apache.org/licenses/LICENSE-2.0[Apache 2.0]
 |https://code.visualstudio.com/[VS Code]|Optional|https://github.com/Microsoft/vscode/blob/master/LICENSE.txt[MIT] (https://code.visualstudio.com/License/[Terms])
 |https://github.com/devonfw/extension-pack-vscode[extension-pack-vscode] |Optional|https://github.com/devonfw/extension-pack-vscode/blob/master/LICENSE[Apache 2.0]
@@ -100,6 +101,8 @@ The column `inclusion` indicates the way the component is included:
 |https://github.com/ctongfei/progressbar[Progressbar]|Directly included|https://github.com/ctongfei/progressbar/blob/main/LICENSE[MIT]
 |https://www.pgadmin.org/[pgAdmin]|Optional|https://www.pgadmin.org/licence/#postgresql[The PostgreSQL Licence]
 |https://docs.astral.sh/uv/[uv] |Optional|https://docs.astral.sh/uv/reference/policies/license/[Apache 2.0]
+|https://github.com/openjdk/jfx[OpenJFX] |Optional|https://github.com/openjdk/jfx/blob/master/LICENSE[GPLv2] (with the “Classpath” Exception)
+|https://squirrel-sql.sourceforge.io/[SQuirreL SQL Client]|Optional|https://github.com/squirrel-sql-client/squirrel-sql-stable-releases/blob/main/LICENSE[LGPL 2.1]
 |===
 
 == Apache Software License - Version 2.0
@@ -3473,3 +3476,8 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
+
+== GitHub Copilot CLI License (Proprietary)
+
+GitHub Copilot CLI is distributed under a proprietary license by GitHub, Inc.
+The full license terms can be found at https://github.com/github/copilot-cli/blob/main/LICENSE.md

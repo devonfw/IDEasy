@@ -78,7 +78,7 @@ class TruststoreCommandletTest extends AbstractIdeContextTest {
     invokeConfigureIdeOptions(commandlet, newTruststorePath);
 
     String options = userVariables.getFlat(IDE_OPTIONS);
-    String expectedPassword = Arrays.toString(TruststoreUtil.CUSTOM_TRUSTSTORE_PASSWORD);
+    String expectedPassword = TruststoreUtil.CUSTOM_TRUSTSTORE_PASSWORD;
 
     assertThat(options).contains("-Xmx512m");
     assertThat(options).contains("-Djavax.net.ssl.trustStore=" + newTruststorePath.toAbsolutePath());
