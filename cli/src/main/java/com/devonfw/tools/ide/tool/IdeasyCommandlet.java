@@ -197,6 +197,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       success &= addInstallationArtifact(cwd, "bin", true, installationArtifacts);
       success &= addInstallationArtifact(cwd, "functions", true, installationArtifacts);
       success &= addInstallationArtifact(cwd, "internal", true, installationArtifacts);
+      success &= addInstallationArtifact(cwd, "gui", true, installationArtifacts);
       success &= addInstallationArtifact(cwd, "system", true, installationArtifacts);
       success &= addInstallationArtifact(cwd, "IDEasy.pdf", true, installationArtifacts);
       success &= addInstallationArtifact(cwd, "setup", true, installationArtifacts);
