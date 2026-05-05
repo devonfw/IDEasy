@@ -190,8 +190,8 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
   }
 
   /**
-   * @return {@code false} if the installation process of this tool should execute , {@code false} to be skipped to avoid infinite loops in case of cyclic
-   *     dependencies between package manager based tools (e.g. node and npm)
+   * @return {@code false} if the underlying {@link #getPackageManagerClass() package manager} should also be installed, {@code false} to skip that additional installation (e.g. to prevent infinite loop in case of cyclic
+   *     dependencies between package manager based tools such as node and npm).
    */
   protected boolean isSkipInstallation() {
     return false;
