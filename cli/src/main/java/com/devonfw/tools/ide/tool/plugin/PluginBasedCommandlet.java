@@ -110,21 +110,21 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     Path pluginsInstallationPath = getPluginsInstallationPath();
     FileAccess fileAccess = this.context.getFileAccess();
     if (!request.isAlreadyInstalled()) {
-      deletePlugins(pluginsInstallationPath);
+      deleteAllPlugins(pluginsInstallationPath);
     } else if (this.context.isForceMode()) {
       // Prompt user if they want to reset all plugins
       boolean resetPlugins = this.context.question(
         "You are launching " + getName() + " in force mode. Do you want to reset all plugins for " + getName() + "? "
         + "This will uninstall all currently installed plugins and reinstall them as configured in your IDEasy project settings.");
       if (resetPlugins) {
-        deletePlugins(pluginsInstallationPath);
+        deleteAllPlugins(pluginsInstallationPath);
       }
     }
     fileAccess.mkdirs(pluginsInstallationPath);
     installPlugins(request.getProcessContext());
   }
 
-  private void deletePlugins(Path pluginsInstallationPath) {
+  private void deleteAllPlugins(Path pluginsInstallationPath) {
 
     FileAccess fileAccess = this.context.getFileAccess();
     fileAccess.delete(pluginsInstallationPath);
