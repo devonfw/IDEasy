@@ -110,7 +110,24 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     Path pluginsInstallationPath = getPluginsInstallationPath();
     FileAccess fileAccess = this.context.getFileAccess();
     if (!request.isAlreadyInstalled()) {
-      fileAccess.delete(pluginsInstallationPath);
+      deletePlugins(pluginsInstallationPath);
+    } else if (this.context.isForceMode()) {
+      // Prompt user if they want to reset all plugins
+      boolean resetPlugins = this.context.question(
+        "You are launching " + getName() + " in force mode. Do you want to reset all plugins for " + getName() + "? "
+        + "This will uninstall all currently installed plugins and reinstall them as configured in your IDEasy project settings.");
+      if (resetPlugins) {
+        deletePlugins(pluginsInstallationPath);
+      }
+    }
+    fileAccess.mkdirs(pluginsInstallationPath);
+    installPlugins(request.getProcessContext());
+  }
+
+  private void deletePlugins(Path pluginsInstallationPath) {
+
+    FileAccess fileAccess = this.context.getFileAccess();
+    fileAccess.delete(pluginsInstallationPath);
       List<Path> markerFiles = fileAccess.listChildren(this.context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE), Files::isRegularFile);
       for (Path path : markerFiles) {
         if (path.getFileName().toString().startsWith("plugin." + getName())) {
@@ -118,9 +135,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
           fileAccess.delete(path);
         }
       }
-    }
-    fileAccess.mkdirs(pluginsInstallationPath);
-    installPlugins(request.getProcessContext());
+
   }
 
   private void installPlugins(ProcessContext pc) {
