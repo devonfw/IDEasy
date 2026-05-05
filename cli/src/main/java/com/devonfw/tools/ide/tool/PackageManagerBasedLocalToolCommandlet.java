@@ -185,8 +185,16 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
 
     PackageManagerRequest packageManagerRequest = new PackageManagerRequest(PackageManagerRequest.TYPE_INSTALL, getPackageName())
         .setProcessContext(request.getProcessContext()).setVersion(request.getRequested().getResolvedVersion());
-    runPackageManager(packageManagerRequest, true).failOnError();
+    runPackageManager(packageManagerRequest, isSkipInstallation()).failOnError();
     this.installedVersion.invalidate();
+  }
+
+  /**
+   * @return {@code false} if the installation process of this tool should execute , {@code false} to be skipped to avoid infinite loops in case of cyclic
+   *     dependencies between package manager based tools (e.g. node and npm)
+   */
+  protected boolean isSkipInstallation() {
+    return false;
   }
 
   /**
