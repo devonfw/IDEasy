@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.tool.vscode;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -59,8 +58,6 @@ public class Vscode extends IdeToolCommandlet {
   protected void installPlugins(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
     boolean isVscodium = EDITION_VSCODIUM.equals(getConfiguredEdition());
     if (isVscodium) {
-      // VSCodium does not support all the plugins VSCode offers, therefore we implement 
-      // a custom error handling strategy for plugin installation
       this.vscodiumUnavailablePlugins.clear();
       pc.errorHandling(ProcessErrorHandling.NONE);
     }
@@ -71,11 +68,7 @@ public class Vscode extends IdeToolCommandlet {
           pb.stepBy(1);
         }
       });
-      if (isVscodium) {
-        installPluginsSilently(plugins, pc);
-      } else {
-        super.installPlugins(plugins, pc);
-      }
+      super.installPlugins(plugins, pc);
       pb.close();
     });
     if (isVscodium && !this.vscodiumUnavailablePlugins.isEmpty()) {
@@ -84,29 +77,6 @@ public class Vscode extends IdeToolCommandlet {
               + "For full plugin support, set VSCODE_EDITION=vscode to use Microsoft's distribution.",
           this.vscodiumUnavailablePlugins.size(),
           String.join("\n  - ", this.vscodiumUnavailablePlugins));
-    }
-  }
-
-  private void installPluginsSilently(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
-    for (ToolPluginDescriptor plugin : plugins) {
-      if (!plugin.active()) {
-        continue;
-      }
-      Path markerFile = retrievePluginMarkerFilePath(plugin);
-      boolean markerExists = markerFile != null && Files.exists(markerFile);
-      if (markerExists && !this.context.isForcePlugins()) {
-        continue;
-      }
-      List<String> args = new ArrayList<>();
-      args.add("--force");
-      args.add("--install-extension");
-      args.add(plugin.id());
-      ProcessResult result = runTool(pc, ProcessMode.DEFAULT_CAPTURE, args);
-      if (result.isSuccessful()) {
-        createPluginMarkerFile(plugin);
-      } else {
-        this.vscodiumUnavailablePlugins.add(plugin.id());
-      }
     }
   }
 
@@ -132,7 +102,12 @@ public class Vscode extends IdeToolCommandlet {
       }
       step.success();
       return true;
-    } else {
+    }
+    if (EDITION_VSCODIUM.equals(getConfiguredEdition())) {
+      this.vscodiumUnavailablePlugins.add(plugin.id());
+      return false;
+    }
+    else {
         if (versionSpecified) {
           IdeLogLevel.ERROR.log(LOG, "Failed to install plugin: {} with version: {}", plugin.name(), plugin.version());
         } else {
