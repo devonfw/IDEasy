@@ -78,7 +78,7 @@ public record ToolPluginDescriptor(String id, String name, String url, String ve
     if (value == null) {
       value = properties.getProperty(legacyKey);
     }
-    return value;
+    return value != null ? value.trim() : null;
   }
 
 }
