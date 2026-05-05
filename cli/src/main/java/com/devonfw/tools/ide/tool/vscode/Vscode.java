@@ -31,7 +31,7 @@ public class Vscode extends IdeToolCommandlet {
   private static final Logger LOG = LoggerFactory.getLogger(Vscode.class);
 
   /** The {@link #getConfiguredEdition() edition} for VSCodium. */
-  public static final String EDITION_VSCODIUM = "vscodium";
+  private static final String EDITION_VSCODIUM = "vscodium";
 
   /** Plugin IDs collected during {@link #installPlugins} that the VSCodium build refused to install. */
   private final List<String> vscodiumUnavailablePlugins = new ArrayList<>();
@@ -59,9 +59,9 @@ public class Vscode extends IdeToolCommandlet {
   protected void installPlugins(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
     boolean isVscodium = EDITION_VSCODIUM.equals(getConfiguredEdition());
     if (isVscodium) {
+      // VSCodium does not support all the plugins VSCode offers, therefore we implement 
+      // a custom error handling strategy for plugin installation
       this.vscodiumUnavailablePlugins.clear();
-      // VSCodium uses open-vsx and is missing some plugins. Bypass the per-plugin Step framework
-      // (no "Start: ..." / "ended ..." logs) and silence per-process errors; we report failures once at the end.
       pc.errorHandling(ProcessErrorHandling.NONE);
     }
     this.context.runWithoutLogging(() -> {
@@ -122,9 +122,10 @@ public class Vscode extends IdeToolCommandlet {
       IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {}", plugin.name());
       step.success();
       return true;
+    } else {
+      LOG.warn("An error occurred while installing plugin: {}", plugin.name());
+      return false;
     }
-    LOG.warn("An error occurred while installing plugin: {}", plugin.name());
-    return false;
   }
 
   @Override
