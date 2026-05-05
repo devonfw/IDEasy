@@ -103,7 +103,7 @@ public class WindowsHelperMock extends WindowsHelperImpl {
     }
 
     // Only return output if searched app matches
-    if (!"TestApp".equalsIgnoreCase(searchValue)) {
+    if (!MOCK_APP_NAME .equalsIgnoreCase(searchValue)) {
       return List.of(); // same behavior as reg.exe: no results
     }
 
