@@ -30,7 +30,7 @@ jobs:
           cd gui-launcher
           mvn -B -ntp -DskipTests clean install
           cd ../cli
-          mvn -B -ntp -Passembly,native -DskipTests=true -Drevision='2026.05.001-SNAPSHOT' package
+          mvn -B -ntp -Passembly,native -DskipTests=true -Drevision=${current_version} package
       - name: Upload native image
         uses: actions/upload-artifact@v4
         with:
