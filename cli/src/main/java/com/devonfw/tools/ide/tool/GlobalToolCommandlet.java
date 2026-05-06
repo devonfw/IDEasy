@@ -14,6 +14,7 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -199,6 +200,10 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   @Override
   public VersionIdentifier getInstalledVersion() {
     //TODO: handle "get-version <globaltool>"
+    String version = WindowsHelper.get(this.context).getDisplayVersionFromRegistry(getWindowsRegistryAppName());
+    if (version != null) {
+      return VersionIdentifier.of(version);
+    }
     return null;
   }
 
