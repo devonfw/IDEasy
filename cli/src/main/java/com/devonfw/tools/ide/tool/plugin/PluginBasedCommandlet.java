@@ -131,8 +131,8 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
       List<Path> markerFiles = fileAccess.listChildren(this.context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE), Files::isRegularFile);
       for (Path path : markerFiles) {
         if (path.getFileName().toString().startsWith("plugin." + getName())) {
-          LOG.debug("Plugin marker file {} got deleted.", path);
           fileAccess.delete(path);
+          LOG.debug("Plugin marker file {} got deleted.", path);
         }
       }
 
