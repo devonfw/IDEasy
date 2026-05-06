@@ -21,6 +21,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/797[#797]: Use system unzip on macOS to preserve symlinks in ZIP extraction
 * https://github.com/devonfw/IDEasy/issues/1723[#1723]: Add commandlet for GitHub Copilot CLI
 * https://github.com/devonfw/IDEasy/issues/1880[#1880]: Reinstall all plugins for IDE in force mode
+* https://github.com/devonfw/IDEasy/issues/1685[#1685]: Add Nest CLI to IDEasy commandlets
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/44?closed=1[milestone 2026.05.001].
 
