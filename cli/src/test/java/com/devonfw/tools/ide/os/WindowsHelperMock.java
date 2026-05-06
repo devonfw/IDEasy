@@ -93,26 +93,42 @@ public class WindowsHelperMock extends WindowsHelperImpl {
   @Override
   protected List<String> runReg(String... args) {
 
-    // simulate reg.exe filtering: "/f <appName>"
-    String searchValue = null;
+    String searchValue = extractFilterValue(args);
+    // Case: reg query <basePath> /s /f <appName>
+    if (searchValue != null) {
+      if (!"TestApp".equalsIgnoreCase(searchValue)) {
+        return List.of();
+      }
+      return List.of(
+          "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\TestApp",
+          "    DisplayName    REG_SZ    TestApp"
+      );
+    }
+    // Case: reg query <exactKey>
+    if (args.length >= 2 &&
+        args[0].equalsIgnoreCase("query") &&
+        args[1].endsWith("\\Uninstall\\TestApp")) {
+
+      return List.of(
+          "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\TestApp",
+          "    DisplayName    REG_SZ    TestApp",
+          "    DisplayVersion    REG_SZ    1.1.1",
+          "    DisplayIcon    REG_SZ    C:\\Program Files\\TestApp\\testapp.exe,0",
+          "    InstallLocation    REG_SZ    C:\\Program Files\\TestApp",
+          "    UninstallString    REG_SZ    \"C:\\Program Files\\TestApp\\uninstall.exe\""
+      );
+    }
+
+    return List.of();
+  }
+
+  private static String extractFilterValue(String[] args) {
+
     for (int i = 0; i < args.length - 1; i++) {
       if ("/f".equalsIgnoreCase(args[i])) {
-        searchValue = args[i + 1];
-        break;
+        return args[i + 1];
       }
     }
-
-    // Only return output if searched app matches
-    if (!MOCK_APP_NAME.equalsIgnoreCase(searchValue)) {
-      return List.of(); // same behavior as reg.exe: no results
-    }
-
-    return List.of(
-        "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\TestApp",
-        "    DisplayName    REG_SZ    1.1.1",
-        "    DisplayIcon    REG_SZ    C:\\Program Files\\TestApp\\testapp.exe,0",
-        "    InstallLocation    REG_SZ    C:\\Program Files\\TestApp",
-        "    UninstallString    REG_SZ    \"C:\\Program Files\\TestApp\\uninstall.exe\""
-    );
+    return null;
   }
 }
