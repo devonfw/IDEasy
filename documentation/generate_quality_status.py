@@ -49,7 +49,7 @@ from datetime import datetime, timezone
 
 REPO = "devonfw/IDEasy"
 API_BASE = "https://api.github.com"
-TOOL_FOLDER_PATH = "url-updater/src/main/java/com/devonfw/tools/ide/url/tool"
+TOOL_FOLDER_PATH = "cli/src/main/java/com/devonfw/tools/ide/tool"
 
 OS_LABELS = {"windows": "windows", "linux": "linux", "mac": "macOS"}
 OS_ORDER = ["windows", "linux", "mac"]
@@ -64,55 +64,95 @@ BLOCKER_LABEL = "blocker"
 # display  → human-readable name
 # labels   → extra GitHub label names that also map to this tool
 TOOLS: dict[str, dict] = {
-  "android-studio": {"display": "Android Studio"},
-  "aws": {"display": "AWS CLI"},
-  "az": {"display": "Azure CLI"},
-  "copilot": {"display": "GitHub Copilot"},
-  "corepack": {"display": "Corepack"},
-  "docker": {"display": "Docker", "labels": ["docker", "rancher"]},
-  "dotnet": {"display": "dotnet"},
+  # ── IDEs & editors ────────────────────────────────────────────────────────
+  "androidstudio": {"display": "Android Studio", "labels": ["android-studio"]},
   "eclipse": {"display": "Eclipse"},
-  "gcloud": {"display": "gcloud CLI"},
-  "gcviewer": {"display": "GCViewer"},
-  "gh": {"display": "GitHub CLI"},
-  "git": {"display": "git"},
+  "intellij": {"display": "IntelliJ IDEA", "labels": ["intellij-idea"]},
+  "pycharm": {"display": "PyCharm"},
+  "vscode": {"display": "VS Code", "labels": ["vsc"]},
+  # ── JVM / build tools ─────────────────────────────────────────────────────
+  "java": {"display": "Java (JDK)", "labels": ["jdk"]},
+  "graalvm": {"display": "GraalVM"},
+  "kotlinc": {"display": "Kotlin Compiler"},
+  "mvn": {"display": "Maven", "labels": ["maven"]},
   "gradle": {"display": "Gradle"},
-  "helm": {"display": "Helm"},
-  "intellij": {"display": "IntelliJ IDEA"},
-  "jackson": {"display": "Jackson"},
-  "java": {"display": "Java (JDK)"},
+  "spring": {"display": "Spring Boot CLI"},
+  "quarkus": {"display": "Quarkus CLI"},
+  "tomcat": {"display": "Apache Tomcat"},
   "jasypt": {"display": "Jasypt"},
   "jmc": {"display": "JDK Mission Control"},
-  "kubectl": {"display": "kubectl"},
-  "mvn": {"display": "Maven"},
-  "node": {"display": "Node.js / npm", "labels": ["nodejs", "npm"]},
-  "oc": {"display": "OpenShift CLI"},
-  "pip": {"display": "pip"},
+  "gcviewer": {"display": "GCViewer"},
+  # ── Python ────────────────────────────────────────────────────────────────
   "python": {"display": "Python"},
-  "quarkus": {"display": "Quarkus CLI"},
-  "sonar": {"display": "SonarQube"},
+  "pip": {"display": "pip"},
+  "uv": {"display": "uv (Python package mgr)"},
+  # ── JavaScript / Node.js ─────────────────────────────────────────────────
+  "node": {"display": "Node.js", "labels": ["nodejs"]},
+  "npm": {"display": "npm"},
+  "ng": {"display": "Angular CLI"},
+  "yarn": {"display": "Yarn"},
+  "corepack": {"display": "Corepack"},
+  # ── Go ────────────────────────────────────────────────────────────────────
+  "go": {"display": "Go"},
+  # ── Container / cloud / DevOps ────────────────────────────────────────────
+  "docker": {"display": "Docker", "labels": ["rancher", "docker"]},
+  "lazydocker": {"display": "Lazydocker"},
+  "kubectl": {"display": "kubectl"},
+  "oc": {"display": "OpenShift CLI"},
+  "helm": {"display": "Helm"},
   "terraform": {"display": "Terraform"},
-  "vscode": {"display": "VS Code"},
+  "aws": {"display": "AWS CLI"},
+  "az": {"display": "Azure CLI", "labels": ["azure-cli"]},
+  "dotnet": {"display": "dotnet"},
+  # ── Developer tools ───────────────────────────────────────────────────────
+  "gh": {"display": "GitHub CLI"},
+  "copilot": {"display": "GitHub Copilot", "labels": ["github-copilot"]},
+  "sonar": {"display": "SonarQube", "labels": ["sonarqube"]},
+  # ── Database & data ───────────────────────────────────────────────────────
+  "pgadmin": {"display": "pgAdmin"},
+  "squirrelsql": {"display": "SQuirreL SQL"},
+  # ── IDEasy tool mechanisms ────────────────────────────────────────────────
+  "custom": {"display": "Custom tool support"},
+  "extra": {"display": "Extra tools"},
+  "gui": {"display": "GUI / IDE launcher", "labels": ["GUI"]},
+  # ── Manually maintained (no CLI folder but label exists on issues) ─────────
+  "git": {"display": "git"},
 }
 
 # ── Commandlet / core-feature registry ────────────────────────────────────────
 COMMANDLETS: dict[str, dict] = {
-  "ide": {"display": "IDEasy (general)"},
+  # ── Core IDEasy functionality ──────────────────────────────────────────────
+  "ide": {"display": "IDEasy (general)", "labels": ["CLI", "commandlet", "integration"]},
+  "core": {"display": "Core / Runtime", "labels": ["progressbar"]},
   "install": {"display": "ide install"},
   "uninstall": {"display": "ide uninstall"},
   "update": {"display": "ide update"},
   "create-project": {"display": "ide create-project", "labels": ["create"]},
   "build": {"display": "ide build"},
-  "shell": {"display": "Shell integration"},
-  "completion": {"display": "Shell completion"},
-  "settings": {"display": "Settings / Properties", "labels": ["configuration"]},
-  "security": {"display": "Security / Credentials"},
-  "repository": {"display": "Repository management"},
-  "env": {"display": "Environment variables"},
-  "plugin": {"display": "Plugin management"},
-  "migration": {"display": "Migration (devonfw-ide → IDEasy)"},
   "status": {"display": "ide status"},
   "version": {"display": "Version management"},
+  # ── Configuration & settings ───────────────────────────────────────────────
+  "settings": {"display": "Settings / Properties", "labels": ["configuration", "json", "upgrade-settings"]},
+  "icd": {"display": "IDE Configuration Doc"},
+  "merger": {"display": "Settings merger"},
+  "env": {"display": "Environment variables"},
+  # ── Download & installation pipeline ──────────────────────────────────────
+  "download": {"display": "Download & Extraction", "labels": ["unpack", "urls"]},
+  # ── Shell & terminal ───────────────────────────────────────────────────────
+  "shell": {"display": "Shell integration", "labels": ["PowerShell"]},
+  "completion": {"display": "Shell completion"},
+  # ── Infrastructure & networking ────────────────────────────────────────────
+  "proxy": {"display": "Proxy / Network"},
+  "security": {"display": "Security / Credentials"},
+  # ── Repository & workspace ─────────────────────────────────────────────────
+  "repository": {"display": "Repository management", "labels": ["SCM"]},
+  "workspace": {"display": "Workspace management"},
+  # ── Plugin management (also a CLI folder) ─────────────────────────────────
+  "plugin": {"display": "Plugin management", "labels": ["plugins"]},
+  # ── Observability ─────────────────────────────────────────────────────────
+  "logging": {"display": "Logging / Debug output"},
+  # ── Migration ─────────────────────────────────────────────────────────────
+  "migration": {"display": "Migration (devonfw-ide → IDEasy)"},
 }
 
 # ── Derived lookups (do not edit) ─────────────────────────────────────────────
@@ -129,9 +169,17 @@ LABEL_ALIASES: dict[str, str] = {
   for alias in cfg.get("labels", [])
 }
 _SKIP_LABELS: frozenset[str] = frozenset({
-  BLOCKER_LABEL, "bug", "enhancement", "feature", "task", "question",
-  "duplicate", "wontfix", "invalid", "help wanted", "good first issue",
-  "documentation", "dependencies", "refactoring", "testing",
+  # issue types
+  BLOCKER_LABEL, "bug", "bugfix", "enhancement", "feature", "task",
+  # workflow / triage status
+  "Epic", "ready-to-implement", "waiting for feedback", "release",
+  # meta / project management
+  "AI", "ARM", "claude", "internal", "process", "rewrite", "software", "workflow",
+  # testing
+  "test", "integration-tests", "testing",
+  # other infra
+  "question", "duplicate", "wontfix", "invalid", "help wanted",
+  "good first issue", "documentation", "dependencies", "refactoring",
   *OS_LABELS.values(),
 })
 
@@ -432,15 +480,19 @@ _Generated: {date} · {total} issues · {matched} assigned · {unassigned} unass
 
 
 def generate_adoc(issues: list[dict], tool_names: list[str]) -> str:
+  # Merge API-fetched names with statically registered TOOLS so that tools
+  # present in the registry but not (yet) in the url-updater source tree
+  # (e.g. git, kubectl) are still recognised and shown.
+  all_tool_names = sorted(set(tool_names) | set(TOOLS.keys()))
   tool_rows: list[tuple[str, str]] = [
     (n, TOOL_DISPLAY_OVERRIDES.get(n, n.replace("-", " ").title()))
-    for n in tool_names
+    for n in all_tool_names
   ]
   cmd_rows: list[tuple[str, str]] = [
     (n, COMMANDLET_DISPLAY_OVERRIDES[n]) for n in COMMANDLETS
   ]
 
-  tool_keys = {r[0] for r in tool_rows}
+  tool_keys = {r[0] for r in tool_rows}  # merged fetched + static
   commandlet_keys = {r[0] for r in cmd_rows}
   tool_data, cmd_data, unassigned = classify_issues(issues, tool_keys, commandlet_keys)
 
@@ -496,7 +548,8 @@ def main() -> None:
     sys.exit(1)
   print(f"  {len(issues)} issues loaded.", file=sys.stderr)
 
-  tool_keys = set(tool_names)
+  # Merge fetched names with statically registered TOOLS (same logic as generate_adoc)
+  tool_keys = set(tool_names) | set(TOOLS.keys())
   commandlet_keys = set(COMMANDLETS.keys())
   _, _, unassigned = classify_issues(issues, tool_keys, commandlet_keys)
   matched = len(issues) - len(unassigned)
