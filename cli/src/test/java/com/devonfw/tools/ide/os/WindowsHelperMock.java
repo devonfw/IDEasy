@@ -14,7 +14,7 @@ public class WindowsHelperMock extends WindowsHelperImpl {
 
   private static final String MOCK_APP_NAME = "TestApp";
 
-  private static final String MOCK_DISPLAY_NAME = "Test Application";
+  private static final String MOCK_DISPLAY_VERSION = "1.1.1";
 
   private static final String MOCK_INSTALL_LOCATION = "C:\\Program Files\\TestApp";
 
@@ -55,8 +55,8 @@ public class WindowsHelperMock extends WindowsHelperImpl {
   }
 
   @Override
-  public String getDisplayNameFromRegistry(String appName) {
-    return matchesApp(appName) ? MOCK_DISPLAY_NAME : null;
+  public String getDisplayVersionFromRegistry(String appName) {
+    return matchesApp(appName) ? MOCK_DISPLAY_VERSION : null;
   }
 
   @Override
@@ -103,13 +103,13 @@ public class WindowsHelperMock extends WindowsHelperImpl {
     }
 
     // Only return output if searched app matches
-    if (!MOCK_APP_NAME .equalsIgnoreCase(searchValue)) {
+    if (!MOCK_APP_NAME.equalsIgnoreCase(searchValue)) {
       return List.of(); // same behavior as reg.exe: no results
     }
 
     return List.of(
         "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\TestApp",
-        "    DisplayName    REG_SZ    Test Application",
+        "    DisplayName    REG_SZ    1.1.1",
         "    DisplayIcon    REG_SZ    C:\\Program Files\\TestApp\\testapp.exe,0",
         "    InstallLocation    REG_SZ    C:\\Program Files\\TestApp",
         "    UninstallString    REG_SZ    \"C:\\Program Files\\TestApp\\uninstall.exe\""

@@ -62,13 +62,13 @@ class WindowsHelperImplTest extends AbstractIdeContextTest {
     WindowsHelperImpl helper = new WindowsHelperImplTestable(context);
 
     // act
-    String displayName = helper.getDisplayNameFromRegistry(TEST_APP_NAME);
+    String displayVersion = helper.getDisplayVersionFromRegistry(TEST_APP_NAME);
     String icon = helper.getDisplayIconFromRegistry(TEST_APP_NAME);
     String uninstall = helper.getUninstallStringFromRegistry(TEST_APP_NAME);
     String location = helper.getInstallLocationFromRegistry(TEST_APP_NAME);
 
     // assert
-    assertThat(displayName).isEqualTo("Test Application");
+    assertThat(displayVersion).isEqualTo("1.1.1");
     assertThat(icon).isEqualTo("C:\\Program Files\\TestApp\\testapp.exe,0");
     assertThat(uninstall).isEqualTo("\"C:\\Program Files\\TestApp\\uninstall.exe\"");
     assertThat(location).isEqualTo("C:\\Program Files\\TestApp");
@@ -84,13 +84,13 @@ class WindowsHelperImplTest extends AbstractIdeContextTest {
     WindowsHelperImpl helper = new WindowsHelperImplTestable(context);
 
     // act
-    String displayName = helper.getDisplayNameFromRegistry(UNKNOWN_TEST_APP_NAME);
+    String displayVersion = helper.getDisplayVersionFromRegistry(UNKNOWN_TEST_APP_NAME);
     String icon = helper.getDisplayIconFromRegistry(UNKNOWN_TEST_APP_NAME);
     String uninstall = helper.getUninstallStringFromRegistry(UNKNOWN_TEST_APP_NAME);
     String location = helper.getInstallLocationFromRegistry(UNKNOWN_TEST_APP_NAME);
 
     // assert
-    assertThat(displayName).isNull();
+    assertThat(displayVersion).isNull();
     assertThat(icon).isNull();
     assertThat(uninstall).isNull();
     assertThat(location).isNull();

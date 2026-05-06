@@ -75,8 +75,8 @@ public class WindowsHelperImpl implements WindowsHelper {
   }
 
   @Override
-  public String getDisplayNameFromRegistry(String appName) {
-    return getRegistryValueBySearch(appName, "DisplayName");
+  public String getDisplayVersionFromRegistry(String appName) {
+    return getRegistryValueBySearch(appName, "DisplayVersion");
   }
 
   @Override
