@@ -188,6 +188,14 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     return List.of();
   }
 
+  /**
+   * @return the app name to look for in the Windows registry
+   */
+  public String getWindowsRegistryAppName() {
+
+    return this.tool;
+  }
+
   @Override
   public VersionIdentifier getInstalledVersion() {
     //TODO: handle "get-version <globaltool>"
