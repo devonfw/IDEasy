@@ -6,12 +6,16 @@
 
 == Overview
 
-This document gives an overview of the quality and support status of IDEasy tools across
-operating systems.
+This document gives an overview of the quality and support status of IDEasy tools
+and commandlets across operating systems.
 It is *automatically generated* from open GitHub issues in the
 https://github.com/devonfw/IDEasy[devonfw/IDEasy] repository.
 The tool list is discovered dynamically from the source tree, so it stays
 accurate as new tools are added.
+
+*OS label behaviour:* Issues labelled with a specific OS appear only in that OS
+section. Issues with *no OS label* are treated as cross-platform and appear in
+*every* OS section (Windows, Linux, macOS).
 
 Legend:
 
@@ -25,12 +29,192 @@ Legend:
 | 🚨 | At least one *blocker* (fully prevents users from working)
 |===
 
-_Last generated: 2026-05-06 08:11 UTC_
+_Last generated: 2026-05-06 09:19 UTC — 186 issues loaded, 89 assigned, 97 unassigned_
 
+
+== Summary
+
+Quick overview of the most critical open issues across all platforms.
+
+=== 🚨 Active Blockers
+
+Issues labelled `blocker` that currently prevent users from working.
+
+_No active blockers_ 🎉
+
+=== Status Matrix — Tools
+
+Only tools with at least one open issue are shown.
+
+[cols="3,1,1,1", options="header"]
+|===
+| Tool | Windows | Linux | macOS
+| AWS CLI
+| 🟡
+| 🟡
+| 🔴
+
+| Azure CLI
+| 🔴
+| 🔴
+| 🔴
+
+| GitHub Copilot
+| 🟡
+| 🟡
+| 🟡
+
+| Docker
+| 🔴
+| 🔴
+| 🔴
+
+| Eclipse
+| 🟡
+| 🟡
+| 🔴
+
+| gcloud CLI
+| 🟡
+| 🟡
+| 🟡
+
+| GCViewer
+| 🟡
+| 🟡
+| 🔴
+
+| IntelliJ IDEA
+| 🔴
+| 🔴
+| 🔴
+
+| Kotlinc
+| 🔴
+| 🔴
+| 🔴
+
+| Maven
+| 🔴
+| 🟢
+| 🟢
+
+| Node.js / npm
+| 🔴
+| 🔴
+| 🔴
+
+| Npm
+| 🔴
+| 🔴
+| 🔴
+
+| Pgadmin
+| 🔴
+| 🔴
+| 🔴
+
+| Python
+| 🔴
+| 🔴
+| 🔴
+
+| Rust
+| 🟡
+| 🟡
+| 🟡
+
+| SonarQube
+| 🟢
+| 🟢
+| 🔴
+
+| Terraform
+| 🔴
+| 🔴
+| 🔴
+
+| Uv
+| 🔴
+| 🔴
+| 🔴
+
+| VS Code
+| 🟡
+| 🔴
+| 🔴
+
+|===
+
+=== Status Matrix — Commandlets & Core Features
+
+Only commandlets with at least one open issue are shown.
+
+[cols="3,1,1,1", options="header"]
+|===
+| Commandlet / Feature | Windows | Linux | macOS
+| ide install
+| 🔴
+| 🔴
+| 🔴
+
+| ide uninstall
+| 🔴
+| 🟡
+| 🟡
+
+| ide update
+| 🔴
+| 🔴
+| 🔴
+
+| ide create-project
+| 🟡
+| 🟡
+| 🟡
+
+| Shell integration
+| 🔴
+| 🔴
+| 🔴
+
+| Shell completion
+| 🔴
+| 🔴
+| 🔴
+
+| Settings / Properties
+| 🔴
+| 🔴
+| 🔴
+
+| Security / Credentials
+| 🔴
+| 🔴
+| 🔴
+
+| Repository management
+| 🟡
+| 🟡
+| 🟡
+
+| ide status
+| 🔴
+| 🔴
+| 🔴
+
+| Version management
+| 🟡
+| 🟡
+| 🟡
+
+|===
 
 == Windows
 
-Open issues labelled `windows` (or without any OS label — those affect all platforms).
+Open issues labelled `windows` *or without any OS label*.
+
+NOTE: Issues without an OS label are cross-platform and therefore appear in every OS section.
 
 === Tools
 
@@ -234,9 +418,98 @@ Open issues labelled `windows` (or without any OS label — those affect all pla
 
 |===
 
+=== Commandlets & Core Features
+
+[cols="2,1,4,5", options="header"]
+|===
+| Commandlet / Feature | Status | Issues | Notes
+| IDEasy (general)
+| 🟢
+| -
+| No open issues
+
+| ide install
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/421[#421] link:https://github.com/devonfw/IDEasy/issues/422[#422] link:https://github.com/devonfw/IDEasy/issues/594[#594] link:https://github.com/devonfw/IDEasy/issues/703[#703] link:https://github.com/devonfw/IDEasy/issues/714[#714] link:https://github.com/devonfw/IDEasy/issues/861[#861] link:https://github.com/devonfw/IDEasy/issues/1056[#1056] link:https://github.com/devonfw/IDEasy/issues/1102[#1102] link:https://github.com/devonfw/IDEasy/issues/1227[#1227] link:https://github.com/devonfw/IDEasy/issues/1232[#1232] link:https://github.com/devonfw/IDEasy/issues/1517[#1517] link:https://github.com/devonfw/IDEasy/issues/1518[#1518] link:https://github.com/devonfw/IDEasy/issues/1558[#1558] link:https://github.com/devonfw/IDEasy/issues/1579[#1579] link:https://github.com/devonfw/IDEasy/issues/1659[#1659] link:https://github.com/devonfw/IDEasy/issues/1694[#1694] link:https://github.com/devonfw/IDEasy/issues/1763[#1763] link:https://github.com/devonfw/IDEasy/issues/1868[#1868]
+| #421: Allow installation of IDEasy via winget; #422: Allow installation of IDEasy via Windows Store; #594: Still windows file locking problems; #703: Support AWS CDK; #714: Improve UX for settings repository; #861: install of pgadmin throws an IllegalStateException when the install wizzard...; #1056: Add Conversion of LICENSE.adoc to RTF Format; #1102: IDEasy MSI installer not working (unsigned); #1227: Guide windows user after installation; #1232: MSI Repair broken; #1517: IDEasy setup does not install Windows Terminal; #1518: uv tools are installed globally; #1558: Add install.log path to msi installer window; #1579: IDEasy uninstall after a failed MSI installation does not work; #1659: Global tools run tool while installation is running in background; #1694: Fix behavior when providing a wrong git URL; #1763: Improve installation/testing of SNAPSHOT releases; #1868: Revision of the functionality of global tool commandlets
+
+| ide uninstall
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/785[#785] link:https://github.com/devonfw/IDEasy/issues/1456[#1456] link:https://github.com/devonfw/IDEasy/issues/1868[#1868] link:https://github.com/devonfw/IDEasy/issues/1872[#1872]
+| #785: Re-introduce workspace reverse options from devonfw-ide; #1456: Uninstall via Windows settings not working; #1868: Revision of the functionality of global tool commandlets; #1872: Implement generic uninstall implementation for global tools under windows
+
+| ide update
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/594[#594] link:https://github.com/devonfw/IDEasy/issues/639[#639] link:https://github.com/devonfw/IDEasy/issues/714[#714] link:https://github.com/devonfw/IDEasy/issues/945[#945] link:https://github.com/devonfw/IDEasy/issues/1333[#1333] link:https://github.com/devonfw/IDEasy/issues/1548[#1548] link:https://github.com/devonfw/IDEasy/issues/1694[#1694]
+| #594: Still windows file locking problems; #639: Improve step success logic for sub steps; #714: Improve UX for settings repository; #945: Improve ide update with smart dependency handling; #1333: Step 'Install or update software' already ended with false and now ended ag...; #1548: Windows file locking error on update with plugins; #1694: Fix behavior when providing a wrong git URL
+
+| ide create-project
+| 🟡
+| link:https://github.com/devonfw/IDEasy/issues/714[#714] link:https://github.com/devonfw/IDEasy/issues/1695[#1695]
+| #714: Improve UX for settings repository; #1695: Clone settings to temporary directory, analyse, and then move
+
+| ide build
+| 🟢
+| -
+| No open issues
+
+| Shell integration
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/821[#821] link:https://github.com/devonfw/IDEasy/issues/822[#822] link:https://github.com/devonfw/IDEasy/issues/836[#836] link:https://github.com/devonfw/IDEasy/issues/1746[#1746] link:https://github.com/devonfw/IDEasy/issues/1842[#1842]
+| #821: Allow User to remove "ide " prefix in ide shell for non-IDEasy command; #822: Handle long CWD paths in shell prompt; #836: Exit is completed in wrong places; #1746: ide shell broken; #1842: Infinite completion of exit subcommand
+
+| Shell completion
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/551[#551] link:https://github.com/devonfw/IDEasy/issues/1392[#1392] link:https://github.com/devonfw/IDEasy/issues/1842[#1842]
+| #551: Autocompletion and list-versions make OS-agnostic suggestions ; #1392: Smart completion; #1842: Infinite completion of exit subcommand
+
+| Settings / Properties
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/449[#449] link:https://github.com/devonfw/IDEasy/issues/714[#714] link:https://github.com/devonfw/IDEasy/issues/735[#735] link:https://github.com/devonfw/IDEasy/issues/785[#785] link:https://github.com/devonfw/IDEasy/issues/987[#987] link:https://github.com/devonfw/IDEasy/issues/989[#989] link:https://github.com/devonfw/IDEasy/issues/992[#992] link:https://github.com/devonfw/IDEasy/issues/1063[#1063] link:https://github.com/devonfw/IDEasy/issues/1214[#1214] link:https://github.com/devonfw/IDEasy/issues/1518[#1518] link:https://github.com/devonfw/IDEasy/issues/1676[#1676] link:https://github.com/devonfw/IDEasy/issues/1694[#1694] link:https://github.com/devonfw/IDEasy/issues/1695[#1695] link:https://github.com/devonfw/IDEasy/issues/1715[#1715] link:https://github.com/devonfw/IDEasy/issues/1880[#1880]
+| #449: Consider integration of continue GenAI coding assistant; #714: Improve UX for settings repository; #735: Enhance workspace configuration with generic overlay from settings/workspac...; #785: Re-introduce workspace reverse options from devonfw-ide; #987: conditional templates; #989: allow expressions in template variable definitions; #992: Support multiple attributes for merge:id; #1063: User specific configurations are not working as described; #1214: preserve EOL style in upgrade-settings; #1518: uv tools are installed globally; #1676: Import extra SDKs automatically into IDE; #1694: Fix behavior when providing a wrong git URL; #1695: Clone settings to temporary directory, analyse, and then move; #1715: Adapt settings to inject java runtime future proove into vscode; #1880: Reinstall all plugins for IDE in force mode
+
+| Security / Credentials
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/98[#98] link:https://github.com/devonfw/IDEasy/issues/772[#772] link:https://github.com/devonfw/IDEasy/issues/1628[#1628] link:https://github.com/devonfw/IDEasy/issues/1775[#1775]
+| #98: Ability to secure downloads from custom repository; #772: CVE-2023-7272 in org.eclipse.parsson 1.1.7; #1628: Support for OS specific CVEs; #1775: Validate and Fix CPE Vendor/Product Identifiers for All Tools
+
+| Repository management
+| 🟡
+| link:https://github.com/devonfw/IDEasy/issues/1164[#1164] link:https://github.com/devonfw/IDEasy/issues/1165[#1165] link:https://github.com/devonfw/IDEasy/issues/1167[#1167]
+| #1164: Automatic project import; #1165: Automatic project import for Eclipse; #1167: Automatic project import for VSCode
+
+| Environment variables
+| 🟢
+| -
+| No open issues
+
+| Plugin management
+| 🟢
+| -
+| No open issues
+
+| Migration (devonfw-ide → IDEasy)
+| 🟢
+| -
+| No open issues
+
+| ide status
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/1209[#1209] link:https://github.com/devonfw/IDEasy/issues/1255[#1255]
+| #1209: migration version message is confusing; #1255: ide status does not recognize snapshot version correctly
+
+| Version management
+| 🟡
+| link:https://github.com/devonfw/IDEasy/issues/1178[#1178] link:https://github.com/devonfw/IDEasy/issues/1868[#1868]
+| #1178: Revisit VersionPhase detection; #1868: Revision of the functionality of global tool commandlets
+
+|===
+
 == Linux
 
-Open issues labelled `linux` (or without any OS label — those affect all platforms).
+Open issues labelled `linux` *or without any OS label*.
+
+NOTE: Issues without an OS label are cross-platform and therefore appear in every OS section.
 
 === Tools
 
@@ -440,9 +713,98 @@ Open issues labelled `linux` (or without any OS label — those affect all platf
 
 |===
 
+=== Commandlets & Core Features
+
+[cols="2,1,4,5", options="header"]
+|===
+| Commandlet / Feature | Status | Issues | Notes
+| IDEasy (general)
+| 🟢
+| -
+| No open issues
+
+| ide install
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/703[#703] link:https://github.com/devonfw/IDEasy/issues/714[#714] link:https://github.com/devonfw/IDEasy/issues/861[#861] link:https://github.com/devonfw/IDEasy/issues/1517[#1517] link:https://github.com/devonfw/IDEasy/issues/1518[#1518] link:https://github.com/devonfw/IDEasy/issues/1659[#1659] link:https://github.com/devonfw/IDEasy/issues/1694[#1694] link:https://github.com/devonfw/IDEasy/issues/1763[#1763] link:https://github.com/devonfw/IDEasy/issues/1868[#1868]
+| #703: Support AWS CDK; #714: Improve UX for settings repository; #861: install of pgadmin throws an IllegalStateException when the install wizzard...; #1517: IDEasy setup does not install Windows Terminal; #1518: uv tools are installed globally; #1659: Global tools run tool while installation is running in background; #1694: Fix behavior when providing a wrong git URL; #1763: Improve installation/testing of SNAPSHOT releases; #1868: Revision of the functionality of global tool commandlets
+
+| ide uninstall
+| 🟡
+| link:https://github.com/devonfw/IDEasy/issues/785[#785] link:https://github.com/devonfw/IDEasy/issues/1868[#1868]
+| #785: Re-introduce workspace reverse options from devonfw-ide; #1868: Revision of the functionality of global tool commandlets
+
+| ide update
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/639[#639] link:https://github.com/devonfw/IDEasy/issues/714[#714] link:https://github.com/devonfw/IDEasy/issues/945[#945] link:https://github.com/devonfw/IDEasy/issues/1333[#1333] link:https://github.com/devonfw/IDEasy/issues/1694[#1694]
+| #639: Improve step success logic for sub steps; #714: Improve UX for settings repository; #945: Improve ide update with smart dependency handling; #1333: Step 'Install or update software' already ended with false and now ended ag...; #1694: Fix behavior when providing a wrong git URL
+
+| ide create-project
+| 🟡
+| link:https://github.com/devonfw/IDEasy/issues/714[#714] link:https://github.com/devonfw/IDEasy/issues/1695[#1695]
+| #714: Improve UX for settings repository; #1695: Clone settings to temporary directory, analyse, and then move
+
+| ide build
+| 🟢
+| -
+| No open issues
+
+| Shell integration
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/821[#821] link:https://github.com/devonfw/IDEasy/issues/822[#822] link:https://github.com/devonfw/IDEasy/issues/836[#836] link:https://github.com/devonfw/IDEasy/issues/1746[#1746] link:https://github.com/devonfw/IDEasy/issues/1842[#1842]
+| #821: Allow User to remove "ide " prefix in ide shell for non-IDEasy command; #822: Handle long CWD paths in shell prompt; #836: Exit is completed in wrong places; #1746: ide shell broken; #1842: Infinite completion of exit subcommand
+
+| Shell completion
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/551[#551] link:https://github.com/devonfw/IDEasy/issues/1392[#1392] link:https://github.com/devonfw/IDEasy/issues/1842[#1842]
+| #551: Autocompletion and list-versions make OS-agnostic suggestions ; #1392: Smart completion; #1842: Infinite completion of exit subcommand
+
+| Settings / Properties
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/449[#449] link:https://github.com/devonfw/IDEasy/issues/714[#714] link:https://github.com/devonfw/IDEasy/issues/735[#735] link:https://github.com/devonfw/IDEasy/issues/785[#785] link:https://github.com/devonfw/IDEasy/issues/987[#987] link:https://github.com/devonfw/IDEasy/issues/989[#989] link:https://github.com/devonfw/IDEasy/issues/992[#992] link:https://github.com/devonfw/IDEasy/issues/1063[#1063] link:https://github.com/devonfw/IDEasy/issues/1214[#1214] link:https://github.com/devonfw/IDEasy/issues/1518[#1518] link:https://github.com/devonfw/IDEasy/issues/1676[#1676] link:https://github.com/devonfw/IDEasy/issues/1694[#1694] link:https://github.com/devonfw/IDEasy/issues/1695[#1695] link:https://github.com/devonfw/IDEasy/issues/1715[#1715] link:https://github.com/devonfw/IDEasy/issues/1880[#1880]
+| #449: Consider integration of continue GenAI coding assistant; #714: Improve UX for settings repository; #735: Enhance workspace configuration with generic overlay from settings/workspac...; #785: Re-introduce workspace reverse options from devonfw-ide; #987: conditional templates; #989: allow expressions in template variable definitions; #992: Support multiple attributes for merge:id; #1063: User specific configurations are not working as described; #1214: preserve EOL style in upgrade-settings; #1518: uv tools are installed globally; #1676: Import extra SDKs automatically into IDE; #1694: Fix behavior when providing a wrong git URL; #1695: Clone settings to temporary directory, analyse, and then move; #1715: Adapt settings to inject java runtime future proove into vscode; #1880: Reinstall all plugins for IDE in force mode
+
+| Security / Credentials
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/98[#98] link:https://github.com/devonfw/IDEasy/issues/772[#772] link:https://github.com/devonfw/IDEasy/issues/1628[#1628] link:https://github.com/devonfw/IDEasy/issues/1775[#1775]
+| #98: Ability to secure downloads from custom repository; #772: CVE-2023-7272 in org.eclipse.parsson 1.1.7; #1628: Support for OS specific CVEs; #1775: Validate and Fix CPE Vendor/Product Identifiers for All Tools
+
+| Repository management
+| 🟡
+| link:https://github.com/devonfw/IDEasy/issues/1164[#1164] link:https://github.com/devonfw/IDEasy/issues/1165[#1165] link:https://github.com/devonfw/IDEasy/issues/1167[#1167]
+| #1164: Automatic project import; #1165: Automatic project import for Eclipse; #1167: Automatic project import for VSCode
+
+| Environment variables
+| 🟢
+| -
+| No open issues
+
+| Plugin management
+| 🟢
+| -
+| No open issues
+
+| Migration (devonfw-ide → IDEasy)
+| 🟢
+| -
+| No open issues
+
+| ide status
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/1209[#1209] link:https://github.com/devonfw/IDEasy/issues/1255[#1255]
+| #1209: migration version message is confusing; #1255: ide status does not recognize snapshot version correctly
+
+| Version management
+| 🟡
+| link:https://github.com/devonfw/IDEasy/issues/1178[#1178] link:https://github.com/devonfw/IDEasy/issues/1868[#1868]
+| #1178: Revisit VersionPhase detection; #1868: Revision of the functionality of global tool commandlets
+
+|===
+
 == macOS
 
-Open issues labelled `macOS` (or without any OS label — those affect all platforms).
+Open issues labelled `macOS` *or without any OS label*.
+
+NOTE: Issues without an OS label are cross-platform and therefore appear in every OS section.
 
 === Tools
 
@@ -486,8 +848,8 @@ Open issues labelled `macOS` (or without any OS label — those affect all platf
 
 | Eclipse
 | 🔴
-| link:https://github.com/devonfw/IDEasy/issues/1165[#1165] link:https://github.com/devonfw/IDEasy/issues/1187[#1187] link:https://github.com/devonfw/IDEasy/issues/1525[#1525]
-| #1165: Automatic project import for Eclipse; #1187: Eclipse plugin installation on mac is not working; #1525: lombok not correctly installed in eclipse
+| link:https://github.com/devonfw/IDEasy/issues/868[#868] link:https://github.com/devonfw/IDEasy/issues/1165[#1165] link:https://github.com/devonfw/IDEasy/issues/1187[#1187] link:https://github.com/devonfw/IDEasy/issues/1525[#1525]
+| #868: Eclipse does not work on Mac x64; #1165: Automatic project import for Eclipse; #1187: Eclipse plugin installation on mac is not working; #1525: lombok not correctly installed in eclipse
 
 | gcloud CLI
 | 🟡
@@ -495,9 +857,9 @@ Open issues labelled `macOS` (or without any OS label — those affect all platf
 | #19: Implement ToolCommandlet for Google Cloud CLI
 
 | GCViewer
-| 🟡
-| link:https://github.com/devonfw/IDEasy/issues/825[#825]
-| #825: Consider adding GC Log Analyzer
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/825[#825] link:https://github.com/devonfw/IDEasy/issues/869[#869]
+| #825: Consider adding GC Log Analyzer; #869: gcviewer logs errors on Mac X64
 
 | GitHub CLI
 | 🟢
@@ -586,8 +948,8 @@ Open issues labelled `macOS` (or without any OS label — those affect all platf
 
 | Pgadmin
 | 🔴
-| link:https://github.com/devonfw/IDEasy/issues/798[#798] link:https://github.com/devonfw/IDEasy/issues/861[#861] link:https://github.com/devonfw/IDEasy/issues/1868[#1868]
-| #798: pgadmin not working on Mac; #861: install of pgadmin throws an IllegalStateException when the install wizzard...; #1868: Revision of the functionality of global tool commandlets
+| link:https://github.com/devonfw/IDEasy/issues/798[#798] link:https://github.com/devonfw/IDEasy/issues/861[#861] link:https://github.com/devonfw/IDEasy/issues/878[#878] link:https://github.com/devonfw/IDEasy/issues/1868[#1868]
+| #798: pgadmin not working on Mac; #861: install of pgadmin throws an IllegalStateException when the install wizzard...; #878: pgadmin does not work on Mac x64; #1868: Revision of the functionality of global tool commandlets
 
 | pip
 | 🟢
@@ -640,16 +1002,510 @@ Open issues labelled `macOS` (or without any OS label — those affect all platf
 | #1518: uv tools are installed globally
 
 | VS Code
-| 🟡
-| link:https://github.com/devonfw/IDEasy/issues/787[#787] link:https://github.com/devonfw/IDEasy/issues/1167[#1167] link:https://github.com/devonfw/IDEasy/issues/1715[#1715] link:https://github.com/devonfw/IDEasy/issues/1754[#1754] link:https://github.com/devonfw/IDEasy/issues/1849[#1849]
-| #787: Provide variable to disable open new workspace; #1167: Automatic project import for VSCode; #1715: Adapt settings to inject java runtime future proove into vscode; #1754: Add version support to vscode settings .plugin files; #1849: Support VSCodium
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/787[#787] link:https://github.com/devonfw/IDEasy/issues/862[#862] link:https://github.com/devonfw/IDEasy/issues/1167[#1167] link:https://github.com/devonfw/IDEasy/issues/1715[#1715] link:https://github.com/devonfw/IDEasy/issues/1754[#1754] link:https://github.com/devonfw/IDEasy/issues/1849[#1849]
+| #787: Provide variable to disable open new workspace; #862: vscode does not work on Mac; #1167: Automatic project import for VSCode; #1715: Adapt settings to inject java runtime future proove into vscode; #1754: Add version support to vscode settings .plugin files; #1849: Support VSCodium
 
 |===
 
-== How to contribute
+=== Commandlets & Core Features
 
-*Adding a new tool* is automatic: as soon as a new folder is added under
+[cols="2,1,4,5", options="header"]
+|===
+| Commandlet / Feature | Status | Issues | Notes
+| IDEasy (general)
+| 🟢
+| -
+| No open issues
+
+| ide install
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/377[#377] link:https://github.com/devonfw/IDEasy/issues/423[#423] link:https://github.com/devonfw/IDEasy/issues/703[#703] link:https://github.com/devonfw/IDEasy/issues/714[#714] link:https://github.com/devonfw/IDEasy/issues/861[#861] link:https://github.com/devonfw/IDEasy/issues/1517[#1517] link:https://github.com/devonfw/IDEasy/issues/1518[#1518] link:https://github.com/devonfw/IDEasy/issues/1659[#1659] link:https://github.com/devonfw/IDEasy/issues/1694[#1694] link:https://github.com/devonfw/IDEasy/issues/1763[#1763] link:https://github.com/devonfw/IDEasy/issues/1868[#1868]
+| #377: Support Homebrew for installation on macOS; #423: Create installer for MacOS; #703: Support AWS CDK; #714: Improve UX for settings repository; #861: install of pgadmin throws an IllegalStateException when the install wizzard...; #1517: IDEasy setup does not install Windows Terminal; #1518: uv tools are installed globally; #1659: Global tools run tool while installation is running in background; #1694: Fix behavior when providing a wrong git URL; #1763: Improve installation/testing of SNAPSHOT releases; #1868: Revision of the functionality of global tool commandlets
+
+| ide uninstall
+| 🟡
+| link:https://github.com/devonfw/IDEasy/issues/785[#785] link:https://github.com/devonfw/IDEasy/issues/1868[#1868]
+| #785: Re-introduce workspace reverse options from devonfw-ide; #1868: Revision of the functionality of global tool commandlets
+
+| ide update
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/639[#639] link:https://github.com/devonfw/IDEasy/issues/714[#714] link:https://github.com/devonfw/IDEasy/issues/945[#945] link:https://github.com/devonfw/IDEasy/issues/1333[#1333] link:https://github.com/devonfw/IDEasy/issues/1694[#1694]
+| #639: Improve step success logic for sub steps; #714: Improve UX for settings repository; #945: Improve ide update with smart dependency handling; #1333: Step 'Install or update software' already ended with false and now ended ag...; #1694: Fix behavior when providing a wrong git URL
+
+| ide create-project
+| 🟡
+| link:https://github.com/devonfw/IDEasy/issues/714[#714] link:https://github.com/devonfw/IDEasy/issues/1695[#1695]
+| #714: Improve UX for settings repository; #1695: Clone settings to temporary directory, analyse, and then move
+
+| ide build
+| 🟢
+| -
+| No open issues
+
+| Shell integration
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/821[#821] link:https://github.com/devonfw/IDEasy/issues/822[#822] link:https://github.com/devonfw/IDEasy/issues/836[#836] link:https://github.com/devonfw/IDEasy/issues/1746[#1746] link:https://github.com/devonfw/IDEasy/issues/1842[#1842]
+| #821: Allow User to remove "ide " prefix in ide shell for non-IDEasy command; #822: Handle long CWD paths in shell prompt; #836: Exit is completed in wrong places; #1746: ide shell broken; #1842: Infinite completion of exit subcommand
+
+| Shell completion
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/551[#551] link:https://github.com/devonfw/IDEasy/issues/1392[#1392] link:https://github.com/devonfw/IDEasy/issues/1842[#1842]
+| #551: Autocompletion and list-versions make OS-agnostic suggestions ; #1392: Smart completion; #1842: Infinite completion of exit subcommand
+
+| Settings / Properties
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/449[#449] link:https://github.com/devonfw/IDEasy/issues/714[#714] link:https://github.com/devonfw/IDEasy/issues/735[#735] link:https://github.com/devonfw/IDEasy/issues/785[#785] link:https://github.com/devonfw/IDEasy/issues/987[#987] link:https://github.com/devonfw/IDEasy/issues/989[#989] link:https://github.com/devonfw/IDEasy/issues/992[#992] link:https://github.com/devonfw/IDEasy/issues/1063[#1063] link:https://github.com/devonfw/IDEasy/issues/1214[#1214] link:https://github.com/devonfw/IDEasy/issues/1518[#1518] link:https://github.com/devonfw/IDEasy/issues/1676[#1676] link:https://github.com/devonfw/IDEasy/issues/1694[#1694] link:https://github.com/devonfw/IDEasy/issues/1695[#1695] link:https://github.com/devonfw/IDEasy/issues/1715[#1715] link:https://github.com/devonfw/IDEasy/issues/1880[#1880]
+| #449: Consider integration of continue GenAI coding assistant; #714: Improve UX for settings repository; #735: Enhance workspace configuration with generic overlay from settings/workspac...; #785: Re-introduce workspace reverse options from devonfw-ide; #987: conditional templates; #989: allow expressions in template variable definitions; #992: Support multiple attributes for merge:id; #1063: User specific configurations are not working as described; #1214: preserve EOL style in upgrade-settings; #1518: uv tools are installed globally; #1676: Import extra SDKs automatically into IDE; #1694: Fix behavior when providing a wrong git URL; #1695: Clone settings to temporary directory, analyse, and then move; #1715: Adapt settings to inject java runtime future proove into vscode; #1880: Reinstall all plugins for IDE in force mode
+
+| Security / Credentials
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/98[#98] link:https://github.com/devonfw/IDEasy/issues/772[#772] link:https://github.com/devonfw/IDEasy/issues/1628[#1628] link:https://github.com/devonfw/IDEasy/issues/1775[#1775]
+| #98: Ability to secure downloads from custom repository; #772: CVE-2023-7272 in org.eclipse.parsson 1.1.7; #1628: Support for OS specific CVEs; #1775: Validate and Fix CPE Vendor/Product Identifiers for All Tools
+
+| Repository management
+| 🟡
+| link:https://github.com/devonfw/IDEasy/issues/1164[#1164] link:https://github.com/devonfw/IDEasy/issues/1165[#1165] link:https://github.com/devonfw/IDEasy/issues/1167[#1167]
+| #1164: Automatic project import; #1165: Automatic project import for Eclipse; #1167: Automatic project import for VSCode
+
+| Environment variables
+| 🟢
+| -
+| No open issues
+
+| Plugin management
+| 🟢
+| -
+| No open issues
+
+| Migration (devonfw-ide → IDEasy)
+| 🟢
+| -
+| No open issues
+
+| ide status
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/1209[#1209] link:https://github.com/devonfw/IDEasy/issues/1255[#1255]
+| #1209: migration version message is confusing; #1255: ide status does not recognize snapshot version correctly
+
+| Version management
+| 🟡
+| link:https://github.com/devonfw/IDEasy/issues/1178[#1178] link:https://github.com/devonfw/IDEasy/issues/1868[#1868]
+| #1178: Revisit VersionPhase detection; #1868: Revision of the functionality of global tool commandlets
+
+|===
+
+== Unassigned Issues
+
+The following 97 issue(s) could not be matched to any known tool or commandlet. Add the appropriate label on GitHub, or extend `TOOLS`, `COMMANDLETS`, or their `"labels"` lists in this script.
+
+[cols="1,4,3", options="header"]
+|===
+| Issue | Title | Labels
+| link:https://github.com/devonfw/IDEasy/issues/45[#45]
+| Add compression for native images
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/72[#72]
+| Add further editions of java
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/75[#75]
+| Consider integration of oracle XE
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/162[#162]
+| Difficulty to find the right spot in the documentation
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/169[#169]
+| Check if we want to utilize TailTipWidgets for the autocompleter
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/190[#190]
+| Improve #103: security warning for CVEs in file tool/edition/security
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/218[#218]
+| Add possibility to start a command in a new window with the process builder
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/370[#370]
+| Create local github actions for tests
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/378[#378]
+| Missing comprehensive "Getting started guide" causing fail in getting start...
+| documentation
+
+| link:https://github.com/devonfw/IDEasy/issues/379[#379]
+| Rename default branch of repo ide-urls from master to main
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/399[#399]
+| Handle uninstall of global tool commandlets
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/412[#412]
+| consider integration of lama
+| enhancement, AI
+
+| link:https://github.com/devonfw/IDEasy/issues/492[#492]
+| Use Maven dependency cache to optimize workflow running times
+| enhancement, SCM
+
+| link:https://github.com/devonfw/IDEasy/issues/516[#516]
+| IdeToolCommandlet: add option and support for import of project(s)
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/599[#599]
+| Add release for windows-arm architecture
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/607[#607]
+| Test for environment variables of process contexts  
+| enhancement, test, process
+
+| link:https://github.com/devonfw/IDEasy/issues/611[#611]
+| Git pull on settings with local branch and without remote throws exception
+| —
+
+| link:https://github.com/devonfw/IDEasy/issues/629[#629]
+| Recycle devonfw-ide documentation
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/690[#690]
+| UpdateUrls workflow timeout not working
+| urls, SCM
+
+| link:https://github.com/devonfw/IDEasy/issues/694[#694]
+| Add linux support to dotnet tool
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/700[#700]
+| Add Npm run test
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/701[#701]
+| Fix Dotnet tests on our CI
+| enhancement, internal
+
+| link:https://github.com/devonfw/IDEasy/issues/726[#726]
+| Replace hardcoded dependencies with dependencies.json in ide-urls
+| enhancement, Epic
+
+| link:https://github.com/devonfw/IDEasy/issues/741[#741]
+| Add a warning message for legacy devonfw-ide settings users
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/756[#756]
+| Implement CustomToolRepositoryTest
+| enhancement, test, custom
+
+| link:https://github.com/devonfw/IDEasy/issues/768[#768]
+| Improve IntelliJ configuration (annotation processing, auto-import, maven a...
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/771[#771]
+| Check URL Updater issues
+| urls
+
+| link:https://github.com/devonfw/IDEasy/issues/780[#780]
+| Create IDEasy service
+| enhancement, Epic, CLI
+
+| link:https://github.com/devonfw/IDEasy/issues/788[#788]
+| Add more starting flags to IDE commandlets
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/795[#795]
+| Setup not working properly on Mac (and zsh)
+| duplicate, macOS
+
+| link:https://github.com/devonfw/IDEasy/issues/840[#840]
+| git fetch does not work with multiple remotes
+| —
+
+| link:https://github.com/devonfw/IDEasy/issues/854[#854]
+| Kubectl not working on linux
+| linux
+
+| link:https://github.com/devonfw/IDEasy/issues/863[#863]
+| Mac x64 android-studio 2024 releases missing
+| enhancement, android-studio, macOS
+
+| link:https://github.com/devonfw/IDEasy/issues/864[#864]
+| AWS is not working on Mac x64
+| macOS
+
+| link:https://github.com/devonfw/IDEasy/issues/865[#865]
+| Az is not working on Mac x64
+| macOS
+
+| link:https://github.com/devonfw/IDEasy/issues/867[#867]
+| Docker (Rancher Desktop) not working on Linux
+| invalid, rancher, linux
+
+| link:https://github.com/devonfw/IDEasy/issues/871[#871]
+| Add progressbar to *.dmg extract process
+| enhancement, macOS, progressbar
+
+| link:https://github.com/devonfw/IDEasy/issues/882[#882]
+| Skip step if no installation was required
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/891[#891]
+| Improve Url Updater Report Overview
+| enhancement, urls
+
+| link:https://github.com/devonfw/IDEasy/issues/892[#892]
+| Improve GitContextTest tests to actually test something
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/897[#897]
+| HTTP Proxy with TLS termination causing errors
+| download, proxy
+
+| link:https://github.com/devonfw/IDEasy/issues/930[#930]
+| Refactor `JsonPrettyPrinter` to be usable in CustomToolJson
+| custom, json
+
+| link:https://github.com/devonfw/IDEasy/issues/943[#943]
+| XmlMerger: Rework Combine Text Nodes
+| merger
+
+| link:https://github.com/devonfw/IDEasy/issues/1031[#1031]
+| Integration of OpenRewrite
+| enhancement, rewrite
+
+| link:https://github.com/devonfw/IDEasy/issues/1041[#1041]
+| native image has globbing active
+| CLI, core
+
+| link:https://github.com/devonfw/IDEasy/issues/1054[#1054]
+| Incorrect interpretation of trailling and leading spaces in version range p...
+| core, dependencies
+
+| link:https://github.com/devonfw/IDEasy/issues/1059[#1059]
+| Improve and fix dependency mechanism
+| enhancement, dependencies
+
+| link:https://github.com/devonfw/IDEasy/issues/1134[#1134]
+| IDEasy autocompletion gets stuck if license agreement file was not found
+| blocker
+
+| link:https://github.com/devonfw/IDEasy/issues/1135[#1135]
+| IDEasy does not set env variables on Windows PowerShell
+| enhancement, PowerShell
+
+| link:https://github.com/devonfw/IDEasy/issues/1150[#1150]
+| Full ARM support
+| enhancement, Epic, ARM
+
+| link:https://github.com/devonfw/IDEasy/issues/1155[#1155]
+| Improve IntelliJ layout
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/1185[#1185]
+| icd on mac does not work in zshell
+| macOS, icd, ready-to-implement
+
+| link:https://github.com/devonfw/IDEasy/issues/1206[#1206]
+| java.util.zip.ZipException when opening Android Studio archives from versio...
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/1215[#1215]
+| nightly build not executing tests anymore
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/1216[#1216]
+| Release workflow should only deploy artifacts after all tests passed
+| enhancement, SCM, release, workflow
+
+| link:https://github.com/devonfw/IDEasy/issues/1225[#1225]
+| Create new IDEasy introduction videos
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/1263[#1263]
+| Fix android-studio workspace templates
+| android-studio, plugins
+
+| link:https://github.com/devonfw/IDEasy/issues/1295[#1295]
+| IDEasy Dashboard Epic
+| enhancement, Epic, GUI
+
+| link:https://github.com/devonfw/IDEasy/issues/1296[#1296]
+| Implement IdeContext properly for Dashboard
+| enhancement, GUI
+
+| link:https://github.com/devonfw/IDEasy/issues/1311[#1311]
+| improve IDE_MIN_VERSION support
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/1329[#1329]
+| Add minikube tool commandlet
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/1422[#1422]
+| Refactor tests to remove windowsJunctionsAreUsed
+| test, internal, ready-to-implement
+
+| link:https://github.com/devonfw/IDEasy/issues/1447[#1447]
+| Cover checksum verification in JUnit
+| enhancement, test, download, internal, ready-to-implement
+
+| link:https://github.com/devonfw/IDEasy/issues/1453[#1453]
+| Allow co-authored commits in cla assistant
+| enhancement, waiting for feedback
+
+| link:https://github.com/devonfw/IDEasy/issues/1457[#1457]
+| Improve CLI error messages on invalid args or commandlets not available in ...
+| enhancement, CLI, ready-to-implement
+
+| link:https://github.com/devonfw/IDEasy/issues/1493[#1493]
+| Analyze Scoop Windows CLI installer
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/1580[#1580]
+| Implement cleanup
+| enhancement, commandlet, ready-to-implement
+
+| link:https://github.com/devonfw/IDEasy/issues/1585[#1585]
+| Add Insomnia CLI support to IDEasy
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/1594[#1594]
+| implement ReleaseCommandlet
+| enhancement, commandlet, ready-to-implement
+
+| link:https://github.com/devonfw/IDEasy/issues/1634[#1634]
+| UrlUpdater creates error entries for HTTP status 200
+| urls, workflow
+
+| link:https://github.com/devonfw/IDEasy/issues/1651[#1651]
+| Move status.json files out of ide-urls to own repo
+| enhancement, urls, workflow, ready-to-implement
+
+| link:https://github.com/devonfw/IDEasy/issues/1688[#1688]
+| Remove unnecessary message in the CLI when installing a new tool
+| enhancement, logging, ready-to-implement
+
+| link:https://github.com/devonfw/IDEasy/issues/1689[#1689]
+| Fix user commnication when switching the Java version from the default to t...
+| enhancement, logging
+
+| link:https://github.com/devonfw/IDEasy/issues/1701[#1701]
+| Implement Mise-en-place
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/1716[#1716]
+| Add claude-cli as software package
+| enhancement, AI, ready-to-implement, claude
+
+| link:https://github.com/devonfw/IDEasy/issues/1720[#1720]
+| Integrate SoapUI
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/1721[#1721]
+| Integrate ruby
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/1748[#1748]
+| Improve IDEasy status documentation
+| documentation, enhancement, ready-to-implement
+
+| link:https://github.com/devonfw/IDEasy/issues/1784[#1784]
+| Implement JavaFX based progress bars for the GUI
+| enhancement, GUI
+
+| link:https://github.com/devonfw/IDEasy/issues/1785[#1785]
+| Implemenent confirmation modals using JavaFX
+| enhancement, GUI, ready-to-implement
+
+| link:https://github.com/devonfw/IDEasy/issues/1787[#1787]
+| tracking yarn versions broken
+| urls, yarn, software
+
+| link:https://github.com/devonfw/IDEasy/issues/1788[#1788]
+| Add ln commandlet to create links
+| enhancement, ready-to-implement
+
+| link:https://github.com/devonfw/IDEasy/issues/1802[#1802]
+| Enable state management for the IdeContext in the GUI.
+| enhancement, GUI
+
+| link:https://github.com/devonfw/IDEasy/issues/1808[#1808]
+| icd is not navigating into single available workspace on icd -p project
+| invalid, icd
+
+| link:https://github.com/devonfw/IDEasy/issues/1814[#1814]
+| IDEasy still reports updates for settings are available after any number of...
+| upgrade-settings
+
+| link:https://github.com/devonfw/IDEasy/issues/1821[#1821]
+| Back up and restore user state before/after integration tests
+| enhancement, test, integration, internal, integration-tests, ready-to-implement
+
+| link:https://github.com/devonfw/IDEasy/issues/1840[#1840]
+| Management of tool installations in the GUI
+| enhancement, GUI
+
+| link:https://github.com/devonfw/IDEasy/issues/1846[#1846]
+| Mac Gatekeeper workaround causing errors
+| macOS, bugfix
+
+| link:https://github.com/devonfw/IDEasy/issues/1866[#1866]
+| Create ClaudeUrlUpdater
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/1867[#1867]
+| Create Claude commandlet
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/1869[#1869]
+| Improve WindowsHelper to search in windows registry
+| enhancement, windows, internal, ready-to-implement
+
+| link:https://github.com/devonfw/IDEasy/issues/1870[#1870]
+| Implement generic get-version implementation for global tools under windows
+| enhancement, windows
+
+| link:https://github.com/devonfw/IDEasy/issues/1873[#1873]
+| Implement generic get-edition implementation for global tools under windows
+| enhancement, windows
+
+| link:https://github.com/devonfw/IDEasy/issues/1882[#1882]
+| Create AWS CDK commandlet
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/1884[#1884]
+| Implement proper ZIP extraction
+| enhancement, unpack, ready-to-implement
+
+| link:https://github.com/devonfw/IDEasy/issues/1892[#1892]
+| pom.xml required for launching gui not included in release/native builds
+| GUI, internal
+
+| link:https://github.com/devonfw/IDEasy/issues/1893[#1893]
+| Fix Failing Integration Tests workflow
+| integration-tests
+
+|===
+
+== How to Contribute
+
+=== Adding a new tool
+Adding a new tool is automatic: as soon as a new folder is added under
 `url-updater/src/main/java/com/devonfw/tools/ide/url/tool/` and issues are
 labelled with that folder name, the tool appears in the next generated document.
-To add a nicer display name, add an entry to `TOOL_DISPLAY_OVERRIDES` in this script.
-To map a non-standard label name to a tool, add an entry to `LABEL_ALIASES`.
+To override the display name, add an entry to `TOOLS` in this script.
+
+=== Adding a new commandlet
+Add an entry to the `COMMANDLETS` dict in this script. The key is the GitHub
+label name; `"display"` is the human-readable name; `"labels"` lists any
+alternative label names that should also map to this commandlet.
+
+=== Mapping a non-standard label
+If a GitHub label does not match any key in `TOOLS` or `COMMANDLETS`, add the
+label name to the `"labels"` list of the appropriate registry entry.
+Any remaining unmatched issues will appear in the *Unassigned Issues* section.
