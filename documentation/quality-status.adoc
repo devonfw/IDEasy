@@ -1,0 +1,655 @@
+= Quality Status
+:toc: left
+:toclevels: 2
+:icons: font
+:source-highlighter: rouge
+
+== Overview
+
+This document gives an overview of the quality and support status of IDEasy tools across
+operating systems.
+It is *automatically generated* from open GitHub issues in the
+https://github.com/devonfw/IDEasy[devonfw/IDEasy] repository.
+The tool list is discovered dynamically from the source tree, so it stays
+accurate as new tools are added.
+
+Legend:
+
+[cols="1,4"]
+|===
+| Symbol | Meaning
+
+| 🟢 | No known open issues
+| 🟡 | Open feature requests / enhancements only (no bugs)
+| 🔴 | At least one open bug
+| 🚨 | At least one *blocker* (fully prevents users from working)
+|===
+
+_Last generated: 2026-05-06 08:11 UTC_
+
+
+== Windows
+
+Open issues labelled `windows` (or without any OS label — those affect all platforms).
+
+=== Tools
+
+[cols="2,1,4,5", options="header"]
+|===
+| Tool | Status | Issues | Notes
+| Androidstudio
+| 🟢
+| -
+| No open issues
+
+| AWS CLI
+| 🟡
+| link:https://github.com/devonfw/IDEasy/issues/703[#703]
+| #703: Support AWS CDK
+
+| Azure CLI
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/855[#855]
+| #855: ide az config not working
+
+| GitHub Copilot
+| 🟡
+| link:https://github.com/devonfw/IDEasy/issues/1717[#1717]
+| #1717: Add github-copliot-cli as software package
+
+| Corepack
+| 🟢
+| -
+| No open issues
+
+| Docker
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/44[#44] link:https://github.com/devonfw/IDEasy/issues/1181[#1181] link:https://github.com/devonfw/IDEasy/issues/1659[#1659] link:https://github.com/devonfw/IDEasy/issues/1868[#1868]
+| #44: DockerUrlUpdater not finding/adding specific versions; #1181: Improve url updater for docker desktop to pull all necessary versions; #1659: Global tools run tool while installation is running in background; #1868: Revision of the functionality of global tool commandlets
+
+| dotnet
+| 🟢
+| -
+| No open issues
+
+| Eclipse
+| 🟡
+| link:https://github.com/devonfw/IDEasy/issues/1165[#1165] link:https://github.com/devonfw/IDEasy/issues/1525[#1525]
+| #1165: Automatic project import for Eclipse; #1525: lombok not correctly installed in eclipse
+
+| gcloud CLI
+| 🟡
+| link:https://github.com/devonfw/IDEasy/issues/19[#19]
+| #19: Implement ToolCommandlet for Google Cloud CLI
+
+| GCViewer
+| 🟡
+| link:https://github.com/devonfw/IDEasy/issues/825[#825]
+| #825: Consider adding GC Log Analyzer
+
+| GitHub CLI
+| 🟢
+| -
+| No open issues
+
+| Go
+| 🟢
+| -
+| No open issues
+
+| Graalvm
+| 🟢
+| -
+| No open issues
+
+| Gradle
+| 🟢
+| -
+| No open issues
+
+| Helm
+| 🟢
+| -
+| No open issues
+
+| IntelliJ IDEA
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/120[#120] link:https://github.com/devonfw/IDEasy/issues/717[#717] link:https://github.com/devonfw/IDEasy/issues/992[#992] link:https://github.com/devonfw/IDEasy/issues/1501[#1501]
+| #120: intellij does not use our settings when we create a new project within inte...; #717: IDEasy does not start Intellij if license was not accepted; #992: Support multiple attributes for merge:id; #1501: Starting intellij leads to error popup
+
+| Jasypt
+| 🟢
+| -
+| No open issues
+
+| Java (JDK)
+| 🟢
+| -
+| No open issues
+
+| Jenkins
+| 🟢
+| -
+| No open issues
+
+| JDK Mission Control
+| 🟢
+| -
+| No open issues
+
+| Kotlinc
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/857[#857]
+| #857: kotlinc bash does not get keyboard inputs
+
+| Lazydocker
+| 🟢
+| -
+| No open issues
+
+| Maven
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/594[#594]
+| #594: Still windows file locking problems
+
+| Ng
+| 🟢
+| -
+| No open issues
+
+| Node.js / npm
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/859[#859]
+| #859: node shell not starting
+
+| Npm
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/1886[#1886]
+| #1886: NpmBasedCommandlet shows wrong tool version after install
+
+| OpenShift CLI
+| 🟢
+| -
+| No open issues
+
+| Pgadmin
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/861[#861] link:https://github.com/devonfw/IDEasy/issues/1868[#1868]
+| #861: install of pgadmin throws an IllegalStateException when the install wizzard...; #1868: Revision of the functionality of global tool commandlets
+
+| pip
+| 🟢
+| -
+| No open issues
+
+| Pycharm
+| 🟢
+| -
+| No open issues
+
+| Python
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/1124[#1124]
+| #1124: Ensure latest version of Python is installed
+
+| Quarkus CLI
+| 🟢
+| -
+| No open issues
+
+| Rust
+| 🟡
+| link:https://github.com/devonfw/IDEasy/issues/1719[#1719]
+| #1719: Integrate rust
+
+| SonarQube
+| 🟢
+| -
+| No open issues
+
+| Squirrelsql
+| 🟢
+| -
+| No open issues
+
+| Terraform
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/1391[#1391]
+| #1391: bashrc messed with terraform completions
+
+| Tomcat
+| 🟢
+| -
+| No open issues
+
+| Uv
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/1518[#1518]
+| #1518: uv tools are installed globally
+
+| VS Code
+| 🟡
+| link:https://github.com/devonfw/IDEasy/issues/787[#787] link:https://github.com/devonfw/IDEasy/issues/1167[#1167] link:https://github.com/devonfw/IDEasy/issues/1715[#1715] link:https://github.com/devonfw/IDEasy/issues/1754[#1754] link:https://github.com/devonfw/IDEasy/issues/1849[#1849]
+| #787: Provide variable to disable open new workspace; #1167: Automatic project import for VSCode; #1715: Adapt settings to inject java runtime future proove into vscode; #1754: Add version support to vscode settings .plugin files; #1849: Support VSCodium
+
+|===
+
+== Linux
+
+Open issues labelled `linux` (or without any OS label — those affect all platforms).
+
+=== Tools
+
+[cols="2,1,4,5", options="header"]
+|===
+| Tool | Status | Issues | Notes
+| Androidstudio
+| 🟢
+| -
+| No open issues
+
+| AWS CLI
+| 🟡
+| link:https://github.com/devonfw/IDEasy/issues/703[#703]
+| #703: Support AWS CDK
+
+| Azure CLI
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/802[#802] link:https://github.com/devonfw/IDEasy/issues/855[#855]
+| #802: az not working on Mac; #855: ide az config not working
+
+| GitHub Copilot
+| 🟡
+| link:https://github.com/devonfw/IDEasy/issues/1717[#1717]
+| #1717: Add github-copliot-cli as software package
+
+| Corepack
+| 🟢
+| -
+| No open issues
+
+| Docker
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/44[#44] link:https://github.com/devonfw/IDEasy/issues/950[#950] link:https://github.com/devonfw/IDEasy/issues/1181[#1181] link:https://github.com/devonfw/IDEasy/issues/1659[#1659] link:https://github.com/devonfw/IDEasy/issues/1868[#1868]
+| #44: DockerUrlUpdater not finding/adding specific versions; #950: avoid --no-gpg-checks for docker installation on SUSE Linux; #1181: Improve url updater for docker desktop to pull all necessary versions; #1659: Global tools run tool while installation is running in background; #1868: Revision of the functionality of global tool commandlets
+
+| dotnet
+| 🟢
+| -
+| No open issues
+
+| Eclipse
+| 🟡
+| link:https://github.com/devonfw/IDEasy/issues/1165[#1165] link:https://github.com/devonfw/IDEasy/issues/1525[#1525]
+| #1165: Automatic project import for Eclipse; #1525: lombok not correctly installed in eclipse
+
+| gcloud CLI
+| 🟡
+| link:https://github.com/devonfw/IDEasy/issues/19[#19]
+| #19: Implement ToolCommandlet for Google Cloud CLI
+
+| GCViewer
+| 🟡
+| link:https://github.com/devonfw/IDEasy/issues/825[#825]
+| #825: Consider adding GC Log Analyzer
+
+| GitHub CLI
+| 🟢
+| -
+| No open issues
+
+| Go
+| 🟢
+| -
+| No open issues
+
+| Graalvm
+| 🟢
+| -
+| No open issues
+
+| Gradle
+| 🟢
+| -
+| No open issues
+
+| Helm
+| 🟢
+| -
+| No open issues
+
+| IntelliJ IDEA
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/120[#120] link:https://github.com/devonfw/IDEasy/issues/717[#717] link:https://github.com/devonfw/IDEasy/issues/992[#992] link:https://github.com/devonfw/IDEasy/issues/1501[#1501]
+| #120: intellij does not use our settings when we create a new project within inte...; #717: IDEasy does not start Intellij if license was not accepted; #992: Support multiple attributes for merge:id; #1501: Starting intellij leads to error popup
+
+| Jasypt
+| 🟢
+| -
+| No open issues
+
+| Java (JDK)
+| 🟢
+| -
+| No open issues
+
+| Jenkins
+| 🟢
+| -
+| No open issues
+
+| JDK Mission Control
+| 🟢
+| -
+| No open issues
+
+| Kotlinc
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/857[#857]
+| #857: kotlinc bash does not get keyboard inputs
+
+| Lazydocker
+| 🟢
+| -
+| No open issues
+
+| Maven
+| 🟢
+| -
+| No open issues
+
+| Ng
+| 🟢
+| -
+| No open issues
+
+| Node.js / npm
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/859[#859]
+| #859: node shell not starting
+
+| Npm
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/1886[#1886]
+| #1886: NpmBasedCommandlet shows wrong tool version after install
+
+| OpenShift CLI
+| 🟢
+| -
+| No open issues
+
+| Pgadmin
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/861[#861] link:https://github.com/devonfw/IDEasy/issues/1868[#1868]
+| #861: install of pgadmin throws an IllegalStateException when the install wizzard...; #1868: Revision of the functionality of global tool commandlets
+
+| pip
+| 🟢
+| -
+| No open issues
+
+| Pycharm
+| 🟢
+| -
+| No open issues
+
+| Python
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/1046[#1046] link:https://github.com/devonfw/IDEasy/issues/1124[#1124]
+| #1046: Add Support for Python on Linux; #1124: Ensure latest version of Python is installed
+
+| Quarkus CLI
+| 🟢
+| -
+| No open issues
+
+| Rust
+| 🟡
+| link:https://github.com/devonfw/IDEasy/issues/1719[#1719]
+| #1719: Integrate rust
+
+| SonarQube
+| 🟢
+| -
+| No open issues
+
+| Squirrelsql
+| 🟢
+| -
+| No open issues
+
+| Terraform
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/1391[#1391]
+| #1391: bashrc messed with terraform completions
+
+| Tomcat
+| 🟢
+| -
+| No open issues
+
+| Uv
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/1518[#1518]
+| #1518: uv tools are installed globally
+
+| VS Code
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/787[#787] link:https://github.com/devonfw/IDEasy/issues/1167[#1167] link:https://github.com/devonfw/IDEasy/issues/1352[#1352] link:https://github.com/devonfw/IDEasy/issues/1715[#1715] link:https://github.com/devonfw/IDEasy/issues/1754[#1754] link:https://github.com/devonfw/IDEasy/issues/1844[#1844] link:https://github.com/devonfw/IDEasy/issues/1849[#1849]
+| #787: Provide variable to disable open new workspace; #1167: Automatic project import for VSCode; #1352: VSCode WSL warning prompt blocking VSCode plugin installation; #1715: Adapt settings to inject java runtime future proove into vscode; #1754: Add version support to vscode settings .plugin files; #1844: `ide install vscode` or `ide vscode` freezes at "installing plugins" step o...; #1849: Support VSCodium
+
+|===
+
+== macOS
+
+Open issues labelled `macOS` (or without any OS label — those affect all platforms).
+
+=== Tools
+
+[cols="2,1,4,5", options="header"]
+|===
+| Tool | Status | Issues | Notes
+| Androidstudio
+| 🟢
+| -
+| No open issues
+
+| AWS CLI
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/703[#703] link:https://github.com/devonfw/IDEasy/issues/796[#796]
+| #703: Support AWS CDK; #796: cannot install aws on Mac
+
+| Azure CLI
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/802[#802] link:https://github.com/devonfw/IDEasy/issues/855[#855]
+| #802: az not working on Mac; #855: ide az config not working
+
+| GitHub Copilot
+| 🟡
+| link:https://github.com/devonfw/IDEasy/issues/1717[#1717]
+| #1717: Add github-copliot-cli as software package
+
+| Corepack
+| 🟢
+| -
+| No open issues
+
+| Docker
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/44[#44] link:https://github.com/devonfw/IDEasy/issues/1181[#1181] link:https://github.com/devonfw/IDEasy/issues/1659[#1659] link:https://github.com/devonfw/IDEasy/issues/1868[#1868]
+| #44: DockerUrlUpdater not finding/adding specific versions; #1181: Improve url updater for docker desktop to pull all necessary versions; #1659: Global tools run tool while installation is running in background; #1868: Revision of the functionality of global tool commandlets
+
+| dotnet
+| 🟢
+| -
+| No open issues
+
+| Eclipse
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/1165[#1165] link:https://github.com/devonfw/IDEasy/issues/1187[#1187] link:https://github.com/devonfw/IDEasy/issues/1525[#1525]
+| #1165: Automatic project import for Eclipse; #1187: Eclipse plugin installation on mac is not working; #1525: lombok not correctly installed in eclipse
+
+| gcloud CLI
+| 🟡
+| link:https://github.com/devonfw/IDEasy/issues/19[#19]
+| #19: Implement ToolCommandlet for Google Cloud CLI
+
+| GCViewer
+| 🟡
+| link:https://github.com/devonfw/IDEasy/issues/825[#825]
+| #825: Consider adding GC Log Analyzer
+
+| GitHub CLI
+| 🟢
+| -
+| No open issues
+
+| Go
+| 🟢
+| -
+| No open issues
+
+| Graalvm
+| 🟢
+| -
+| No open issues
+
+| Gradle
+| 🟢
+| -
+| No open issues
+
+| Helm
+| 🟢
+| -
+| No open issues
+
+| IntelliJ IDEA
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/120[#120] link:https://github.com/devonfw/IDEasy/issues/717[#717] link:https://github.com/devonfw/IDEasy/issues/992[#992] link:https://github.com/devonfw/IDEasy/issues/1501[#1501] link:https://github.com/devonfw/IDEasy/issues/1512[#1512]
+| #120: intellij does not use our settings when we create a new project within inte...; #717: IDEasy does not start Intellij if license was not accepted; #992: Support multiple attributes for merge:id; #1501: Starting intellij leads to error popup; #1512: Cannot run Intellij on Mac due to file permission error
+
+| Jasypt
+| 🟢
+| -
+| No open issues
+
+| Java (JDK)
+| 🟢
+| -
+| No open issues
+
+| Jenkins
+| 🟢
+| -
+| No open issues
+
+| JDK Mission Control
+| 🟢
+| -
+| No open issues
+
+| Kotlinc
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/857[#857]
+| #857: kotlinc bash does not get keyboard inputs
+
+| Lazydocker
+| 🟢
+| -
+| No open issues
+
+| Maven
+| 🟢
+| -
+| No open issues
+
+| Ng
+| 🟢
+| -
+| No open issues
+
+| Node.js / npm
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/859[#859]
+| #859: node shell not starting
+
+| Npm
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/801[#801] link:https://github.com/devonfw/IDEasy/issues/1886[#1886]
+| #801: npm not working on Mac; #1886: NpmBasedCommandlet shows wrong tool version after install
+
+| OpenShift CLI
+| 🟢
+| -
+| No open issues
+
+| Pgadmin
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/798[#798] link:https://github.com/devonfw/IDEasy/issues/861[#861] link:https://github.com/devonfw/IDEasy/issues/1868[#1868]
+| #798: pgadmin not working on Mac; #861: install of pgadmin throws an IllegalStateException when the install wizzard...; #1868: Revision of the functionality of global tool commandlets
+
+| pip
+| 🟢
+| -
+| No open issues
+
+| Pycharm
+| 🟢
+| -
+| No open issues
+
+| Python
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/1124[#1124]
+| #1124: Ensure latest version of Python is installed
+
+| Quarkus CLI
+| 🟢
+| -
+| No open issues
+
+| Rust
+| 🟡
+| link:https://github.com/devonfw/IDEasy/issues/1719[#1719]
+| #1719: Integrate rust
+
+| SonarQube
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/800[#800]
+| #800: sonar not working on Mac
+
+| Squirrelsql
+| 🟢
+| -
+| No open issues
+
+| Terraform
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/1391[#1391]
+| #1391: bashrc messed with terraform completions
+
+| Tomcat
+| 🟢
+| -
+| No open issues
+
+| Uv
+| 🔴
+| link:https://github.com/devonfw/IDEasy/issues/1518[#1518]
+| #1518: uv tools are installed globally
+
+| VS Code
+| 🟡
+| link:https://github.com/devonfw/IDEasy/issues/787[#787] link:https://github.com/devonfw/IDEasy/issues/1167[#1167] link:https://github.com/devonfw/IDEasy/issues/1715[#1715] link:https://github.com/devonfw/IDEasy/issues/1754[#1754] link:https://github.com/devonfw/IDEasy/issues/1849[#1849]
+| #787: Provide variable to disable open new workspace; #1167: Automatic project import for VSCode; #1715: Adapt settings to inject java runtime future proove into vscode; #1754: Add version support to vscode settings .plugin files; #1849: Support VSCodium
+
+|===
+
+== How to contribute
+
+*Adding a new tool* is automatic: as soon as a new folder is added under
+`url-updater/src/main/java/com/devonfw/tools/ide/url/tool/` and issues are
+labelled with that folder name, the tool appears in the next generated document.
+To add a nicer display name, add an entry to `TOOL_DISPLAY_OVERRIDES` in this script.
+To map a non-standard label name to a tool, add an entry to `LABEL_ALIASES`.
