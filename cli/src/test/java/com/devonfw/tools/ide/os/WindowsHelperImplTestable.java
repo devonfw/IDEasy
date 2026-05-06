@@ -39,7 +39,7 @@ public class WindowsHelperImplTestable extends WindowsHelperImpl {
     }
     return List.of(
         "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\TestApp",
-        "    DisplayName    REG_SZ    Test Application",
+        "    DisplayVersion    REG_SZ    1.1.1",
         "    DisplayIcon    REG_SZ    C:\\Program Files\\TestApp\\testapp.exe,0",
         "    InstallLocation    REG_SZ    C:\\Program Files\\TestApp",
         "    UninstallString    REG_SZ    \"C:\\Program Files\\TestApp\\uninstall.exe\""
