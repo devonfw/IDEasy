@@ -96,13 +96,33 @@ public class WindowsHelperImpl implements WindowsHelper {
 
   private String getRegistryValueBySearch(String appName, String key) {
 
+    String uninstallKey = findUninstallKey(appName);
+    if (uninstallKey == null) {
+      return null;
+    }
+    List<String> out = runReg("query", uninstallKey);
+    if (out != null) {
+      return retrieveRegString(key, out);
+    }
+    return null;
+  }
+
+  private String findUninstallKey(String appName) {
+
     for (String registryBasePath : REGISTRY_BASE_PATHS) {
       List<String> out = runReg("query", registryBasePath, "/s", "/f", appName);
-      if (out != null && !out.isEmpty()) {
-        return retrieveRegString(key, out);
+      if (out == null) {
+        continue;
+      }
+      for (String line : out) {
+        line = line.trim();
+        if (line.startsWith("HKEY_")) {
+          return line; // exact registry path (key) for tool
+        }
       }
     }
     return null;
+
   }
 
   /**
