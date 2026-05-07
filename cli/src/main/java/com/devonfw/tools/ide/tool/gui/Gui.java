@@ -12,8 +12,11 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessContextImpl;
 import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * {@link Commandlet} to launch the IDEasy GUI.
@@ -42,9 +45,15 @@ public class Gui extends Commandlet {
 
     ProcessContext processContext = new ProcessContextImpl(this.context);
 
+    ToolInstallRequest toolInstallRequest = new ToolInstallRequest(false);
+    toolInstallRequest.setProcessContext(processContext);
+    toolInstallRequest.setRequested(
+        new ToolEditionAndVersion(VersionIdentifier.of("25.*"))
+    );
+
     Java java = this.context.getCommandletManager().getCommandlet(Java.class);
     Mvn mvn = this.context.getCommandletManager().getCommandlet(Mvn.class);
-    java.install(false);
+    java.install(toolInstallRequest);
     mvn.install(false);
 
     LOG.debug("Starting GUI via commandlet");

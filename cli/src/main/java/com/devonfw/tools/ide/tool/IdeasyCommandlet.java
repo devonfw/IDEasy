@@ -207,9 +207,9 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
           "setup.bat", false)
       );
 
-      for (Map.Entry<String, Boolean> entry : requiredArtifacts.entrySet()) {
-        String artifactName = entry.getKey();
-        boolean required = entry.getValue();
+      for (Map.Entry<String, Boolean> artifactEntry : requiredArtifacts.entrySet()) {
+        String artifactName = artifactEntry.getKey();
+        boolean required = artifactEntry.getValue();
         boolean success = addInstallationArtifact(cwd, artifactName, required, installationArtifacts);
         if (!success) {
           throw new CliException("IDEasy release is inconsistent at %s [artifact=%s]".formatted(cwd, artifactName));
