@@ -22,6 +22,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1723[#1723]: Add commandlet for GitHub Copilot CLI
 * https://github.com/devonfw/IDEasy/issues/1688[#1688]: Remove unnecessary message in the CLI when installing a new tool
 * https://github.com/devonfw/IDEasy/issues/1685[#1685]: Add Nest CLI to IDEasy commandlets
+* https://github.com/devonfw/IDEasy/issues/1886[#1886]: Fix NpmBasedCommandlet shows wrong tool version after install
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/44?closed=1[milestone 2026.05.001].
 
