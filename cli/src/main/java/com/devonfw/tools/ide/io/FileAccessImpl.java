@@ -743,7 +743,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   public void extractZip(Path file, Path targetDir) {
 
     LOG.info("Extracting ZIP file {} to {}", file, targetDir);
-    if (this.context.getSystemInfo().isMac()) {
+    if (SystemInfoImpl.INSTANCE.isMac()) {
       extractZipWithSystemUnzip(file, targetDir);
     } else {
       extractZipWithJava(file, targetDir);
