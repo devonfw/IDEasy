@@ -7,6 +7,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
@@ -60,8 +61,7 @@ public class Gui extends Commandlet {
 
     Path pomPath = context.getIdeInstallationPath().resolve("gui/pom.xml");
     if (!Files.exists(pomPath)) {
-      LOG.error("Fatal error: The pom.xml file required for launching the IDEasy GUI could not be found in expected location: {}", pomPath);
-      return;
+      throw new CliException("Fatal error: The pom.xml file required for launching the IDEasy GUI could not be found in expected location: " + pomPath);
     }
 
     List<String> args = List.of(
