@@ -26,6 +26,8 @@ class VscodeTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_VSCODE = "vscode";
 
+  private static final String PROJECT_VSCODIUM = "vscodium";
+
   @Test
   void testVscodeInstall() {
 
@@ -146,6 +148,35 @@ class VscodeTest extends AbstractIdeContextTest {
     assertThat(pc.getEnvVar("DONT_PROMPT_WSL_INSTALL")).isNull();
   }
 
+  @Test
+  void testVscodiumInstall() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODIUM);
+    Vscode vscodeCommandlet = new Vscode(context);
+
+    // install
+    vscodeCommandlet.install();
+
+    // assert
+    checkVscodiumInstallation(context);
+  }
+
+  @Test
+  void testVscodiumRun() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODIUM);
+    Vscode vscodeCommandlet = new Vscode(context);
+
+    // install
+    vscodeCommandlet.run();
+
+    // assert
+    checkVscodiumInstallation(context);
+  }
+
+
   /**
    * Test double for {@link Vscode} that captures CLI arguments passed to {@link #runTool(ProcessContext, ProcessMode, List)}
    * so tests can assert command construction without spawning an external process.
@@ -193,5 +224,14 @@ class VscodeTest extends AbstractIdeContextTest {
 
       return this.capturedEnvVars.get(key);
     }
+  }
+
+  private void checkVscodiumInstallation(IdeTestContext context) {
+
+    assertThat(context.getSoftwarePath().resolve("vscode/bin/codium.cmd")).exists().hasContent("@echo test for windows");
+    assertThat(context.getSoftwarePath().resolve("vscode/bin/codium")).exists().hasContent("#!/bin/bash\n" + "echo \"Test for linux and Mac\"");
+
+    assertThat(context.getSoftwarePath().resolve("vscode/.ide.software.version")).exists().hasContent("1.116.02821");
+    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed vscode/vscodium in version 1.116.02821");
   }
 }
