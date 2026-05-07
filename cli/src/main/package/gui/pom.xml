@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- This file is copied into the installation to launch the gui from -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -10,15 +11,15 @@
   </parent>
   <groupId>com.devonfw.tools.IDEasy</groupId>
   <artifactId>ide-gui-launcher</artifactId>
-  <version>${revision}</version>
+  <version>$[project.version]</version>
   <packaging>pom</packaging>
-  <description>Launcher for IDEasy GUI</description>
+  <description>Launcher POM for IDEasy GUI</description>
 
   <dependencies>
     <dependency>
       <groupId>com.devonfw.tools.IDEasy</groupId>
       <artifactId>ide-gui</artifactId>
-      <version>${revision}</version>
+      <version>$[project.version]</version>
     </dependency>
   </dependencies>
 
