@@ -36,7 +36,8 @@ public class UvTest extends AbstractIdeContextTest {
     uv.setEnvironment(environmentContext, toolInstallation, false);
 
     // assert
-    Path expectedPythonBinPath = context.getSoftwarePath().resolve("python").resolve("bin");
-    assertThat(Path.of(variables.get("XDG_BIN_HOME").getValue())).isEqualTo(expectedPythonBinPath);
+    Path expectedPythonPath = context.getSoftwarePath().resolve("python");
+    assertThat(Path.of(variables.get("UV_TOOL_DIR").getValue())).isEqualTo(expectedPythonPath.resolve("tools"));
+    assertThat(Path.of(variables.get("UV_TOOL_BIN_DIR").getValue())).isEqualTo(expectedPythonPath.resolve("bin"));
   }
 }
