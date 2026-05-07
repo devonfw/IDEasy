@@ -200,9 +200,11 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   @Override
   public VersionIdentifier getInstalledVersion() {
     //TODO: handle "get-version <globaltool>"
-    String version = WindowsHelper.get(this.context).getDisplayVersionFromRegistry(getWindowsRegistryAppName());
-    if (version != null) {
-      return VersionIdentifier.of(version);
+    if (this.context.getSystemInfo().isWindows()) {
+      String version = WindowsHelper.get(this.context).getDisplayVersionFromRegistry(getWindowsRegistryAppName());
+      if (version != null) {
+        return VersionIdentifier.of(version);
+      }
     }
     return null;
   }
