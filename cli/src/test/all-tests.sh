@@ -27,10 +27,8 @@ function doRestoreLicenseAgreement() {
 
 function doRestoreWindowsRegistry() {
   # restore HKCU\Environment on windows
-  # reg import only adds/overwrites, so delete existing values first
   if doIsWindows; then
     if [ -n "$BAK_HKCU_ENVIRONMENT" ] && [ -f "$BAK_HKCU_ENVIRONMENT" ]; then
-      reg delete "HKCU\\Environment" //va //f
       reg import "$(cygpath -w "$BAK_HKCU_ENVIRONMENT")"
       rm -f "$BAK_HKCU_ENVIRONMENT"
       echo "Restored HKCU\\Environment from backup"
