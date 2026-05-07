@@ -5,6 +5,7 @@ import java.nio.file.Path;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.io.PathLinkType;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.StringProperty;
 
@@ -18,6 +19,9 @@ public final class LnCommandlet extends Commandlet {
 
   /** Grammar token {@code -s} (optional). */
   public final FlagProperty symbolic;
+
+  /** Grammar token {@code -f} (optional). */
+  public final FlagProperty force;
 
   /** The source path to link to. */
   public final StringProperty source;
@@ -35,8 +39,8 @@ public final class LnCommandlet extends Commandlet {
     super(context);
     addKeyword(getName());
 
-    // Treat -s as grammar token
     this.symbolic = add(new FlagProperty("--symbolic", false, "-s"));
+    this.force = add(new FlagProperty("--force", false, "-f"));
     this.source = add(new StringProperty("", true, "source"));
     this.link = add(new StringProperty("", true, "link"));
   }
@@ -73,16 +77,19 @@ public final class LnCommandlet extends Commandlet {
       throw new CliException("Missing current working directory!");
     }
 
-    Path sourcePath = cwd.resolve(this.source.getValue()).normalize().toAbsolutePath();
+    Path resolvedSource = cwd.resolve(this.source.getValue()).normalize();
     Path linkPath = cwd.resolve(this.link.getValue()).normalize().toAbsolutePath();
 
-    if (!Files.exists(sourcePath)) {
-      throw new CliException("Source does not exist: " + sourcePath);
+    if (!Files.exists(resolvedSource)) {
+      throw new CliException("Source does not exist: " + resolvedSource);
     }
-    if (this.symbolic != null && this.symbolic.getValue() != null) {
-      this.context.getFileAccess().symlink(sourcePath, linkPath, false);
+
+    if (this.symbolic.isTrue()) {
+      Path target = Path.of(this.source.getValue());
+      boolean relative = !target.isAbsolute();
+      this.context.getFileAccess().link(target, linkPath, relative, PathLinkType.SYMBOLIC_LINK, this.force.isTrue());
     } else {
-      this.context.getFileAccess().hardlink(sourcePath, linkPath);
+      this.context.getFileAccess().link(resolvedSource, linkPath, false, PathLinkType.HARD_LINK, this.force.isTrue());
     }
   }
 }

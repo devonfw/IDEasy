@@ -528,7 +528,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   }
 
   @Override
-  public void link(Path source, Path link, boolean relative, PathLinkType type) {
+  public void link(Path source, Path link, boolean relative, PathLinkType type, boolean overrideHardLink) {
 
     Path finalLink = link.toAbsolutePath().normalize();
     Path finalSource;
@@ -546,7 +546,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       if (type == PathLinkType.SYMBOLIC_LINK) {
         Files.createSymbolicLink(finalLink, finalSource);
       } else if (type == PathLinkType.HARD_LINK) {
-        createHardLink(finalSource, finalLink);
+        createHardLink(finalSource, finalLink, overrideHardLink);
       } else {
         throw new IllegalStateException("" + type);
       }
@@ -560,8 +560,8 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
         try {
           mklinkOnWindows(finalSource, absoluteSource, finalLink, type, relative);
         } catch (IllegalStateException mkEx) {
-          LOG.info("Creating a hard link as a fallback for the failed mklink attempt.");
-          createHardLink(finalSource, finalLink);
+             LOG.info("Creating a hard link as a fallback for the failed mklink attempt.");
+            createHardLink(absoluteSource, finalLink, overrideHardLink);
         }
       } else {
         throw new RuntimeException(e);
@@ -577,14 +577,15 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
    *
    * @param source the {@link Path} the hard link will point to.
    * @param link the {@link Path} where to create the hard link.
+   * @param override - {@code true} to override existing links, {@code false} otherwise.
    */
-  void createHardLink(Path source, Path link) {
+  void createHardLink(Path source, Path link, boolean override) {
+    if (override && Files.exists(link, LinkOption.NOFOLLOW_LINKS)) {
+      delete(link);
+    }
     try {
-      if (Files.exists(link, LinkOption.NOFOLLOW_LINKS)) {
-        delete(link);
-      }
       Files.createLink(link, source);
-      LOG.info("Created hard link at {} pointing to {}", link, source);
+      LOG.trace("Created hard link at {} pointing to {}", link, source);
     } catch (IOException e) {
       throw new RuntimeException("Failed to create a hardlink for " + source + " at " + link, e);
     }
