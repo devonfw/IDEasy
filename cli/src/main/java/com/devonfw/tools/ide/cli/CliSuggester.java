@@ -42,7 +42,7 @@ public class CliSuggester {
    * @param step the current {@link StepImpl} for error reporting.
    * @return {@code true} if handled (message printed), {@code false} otherwise.
    */
-  public boolean handleMissingProjectContext(Commandlet commandlet, StepImpl step) {
+  public boolean isMissingProjectContextHandled(Commandlet commandlet, StepImpl step) {
 
     if (commandlet == null) {
       return false;
@@ -57,7 +57,6 @@ public class CliSuggester {
 
     String name = commandlet.getName();
 
-    // Match your expected output wording (project, not project root)
     step.error("The {} commandlet requires to be an IDEasy project to work.", name);
     IdeLogLevel.INTERACTION.log(LOG, "Please run \"icd <project-name>\" before calling \"ide {}\".", name);
     IdeLogLevel.INTERACTION.log(LOG, "Call \"ide help\" for additional details.");
@@ -74,7 +73,7 @@ public class CliSuggester {
    * @param step the current {@link StepImpl} for error reporting.
    * @return {@code true} if handled (suggestion provided), {@code false} otherwise.
    */
-  public boolean handleInvalidOption(ValidationState result, Commandlet commandlet, StepImpl step) {
+  public boolean isInvalidOptionHandled(ValidationState result, Commandlet commandlet, StepImpl step) {
 
     if ((result == null) || (commandlet == null)) {
       return false;
@@ -107,7 +106,7 @@ public class CliSuggester {
    * @param step the current {@link StepImpl} for error reporting.
    * @return {@code true} if handled (suggestion provided), {@code false} otherwise.
    */
-  public boolean handleMissingCommandlet(String commandKey, StepImpl step) {
+  public boolean isMissingCommandletHandled(String commandKey, StepImpl step) {
 
     // Try to find a suggestion among commandlets
     List<String> commandletNames = getAllCommandletNames();
@@ -137,7 +136,7 @@ public class CliSuggester {
    * @param commandlet the {@link Commandlet} that was being executed.
    * @return {@code true} if handled (suggestion provided), {@code false} otherwise.
    */
-  public boolean handleInvalidArgument(ValidationState result, Commandlet commandlet) {
+  public boolean isInvalidArgumentHandled(ValidationState result, Commandlet commandlet) {
 
     if ((result == null) || (commandlet == null)) {
       return false;

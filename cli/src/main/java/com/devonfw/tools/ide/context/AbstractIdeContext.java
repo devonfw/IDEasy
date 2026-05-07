@@ -1154,29 +1154,35 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       activateLogging(cmd);
       verifyIdeMinVersion(false);
       String commandKey = current.getKey();
-      if (commandKey != null && !commandKey.isBlank()) {
-        Commandlet commandletByName = findCommandletByName(commandKey);
-        if (commandletByName != null) {
-          if (getCliSuggester().handleMissingProjectContext(commandletByName, step)) {
-            return 1;
-          }
-          if (cmd == commandletByName && result instanceof ValidationState validationState) {
-            if (getCliSuggester().handleInvalidOption(validationState, commandletByName, step)) {
-              return 1;
-            }
-            if (getCliSuggester().handleInvalidArgument(validationState, commandletByName)) {
-              return 1;
-            }
-          }
-        } else {
-          if (getCliSuggester().handleMissingCommandlet(commandKey, step)) {
-            return 1;
-          }
+
+      if (commandKey == null || commandKey.isBlank()) {
+        return 0;
+      }
+      Commandlet commandletByName = findCommandletByName(commandKey);
+      // Missing commandlet
+      if (commandletByName == null) {
+        if (getCliSuggester().isMissingCommandletHandled(commandKey, step)) {
+          return 1;
         }
+        return 0;
       }
-      if (result != null) {
-        LOG.error(result.getErrorMessage());
+      // Missing project context
+      if (getCliSuggester().isMissingProjectContextHandled(commandletByName, step)) {
+        return 1;
       }
+      // Only validate options/arguments if same commandlet and proper type
+      if (cmd != commandletByName || !(result instanceof ValidationState validationState)) {
+        return 0;
+      }
+      // Invalid option
+      if (getCliSuggester().isInvalidOptionHandled(validationState, commandletByName, step)) {
+        return 1;
+      }
+      // Invalid argument
+      if (getCliSuggester().isInvalidArgumentHandled(validationState, commandletByName)) {
+        return 1;
+      }
+      LOG.error(result.getErrorMessage());
       step.error("Invalid arguments: {}", current.getArgs());
       IdeLogLevel.INTERACTION.log(LOG, "For additional details run ide help {}", cmd == null ? "" : cmd.getName());
       return 1;
