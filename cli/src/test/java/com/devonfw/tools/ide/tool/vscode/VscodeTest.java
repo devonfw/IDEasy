@@ -113,6 +113,6 @@ class VscodeTest extends AbstractIdeContextTest {
     assertThat(context.getSoftwarePath().resolve("vscode/bin/codium")).exists().hasContent("#!/bin/bash\n" + "echo \"Test for linux and Mac\"");
 
     assertThat(context.getSoftwarePath().resolve("vscode/.ide.software.version")).exists().hasContent("1.116.02821");
-    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed vscode in version 1.116.02821");
+    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed vscode/vscodium in version 1.116.02821");
   }
 }
