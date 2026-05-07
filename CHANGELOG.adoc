@@ -20,6 +20,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1853[#1853]: Add ARM releases for VSCode on Mac
 * https://github.com/devonfw/IDEasy/issues/797[#797]: Use system unzip on macOS to preserve symlinks in ZIP extraction
 * https://github.com/devonfw/IDEasy/issues/1723[#1723]: Add commandlet for GitHub Copilot CLI
+* https://github.com/devonfw/IDEasy/issues/1688[#1688]: Remove unnecessary message in the CLI when installing a new tool
 * https://github.com/devonfw/IDEasy/issues/1685[#1685]: Add Nest CLI to IDEasy commandlets
 * https://github.com/devonfw/IDEasy/issues/1882[#1882]: Add AWS CDK to IDEasy commandlets
 
