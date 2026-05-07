@@ -30,9 +30,7 @@ jobs:
           current_version="${maven_config/#*-Drevision=}"
           current_version="${current_version/ */}"
           next_version="${current_version/-SNAPSHOT/}"
-          cd gui-launcher
-          mvn -B -ntp -DskipTests clean install
-          cd ../cli
+          cd cli
           mvn -B -ntp -Drevision=${next_version} -Passembly,native -DskipTests=true package
       - name: Upload native image
         uses: actions/upload-artifact@v4
