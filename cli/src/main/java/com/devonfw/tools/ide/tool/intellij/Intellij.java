@@ -20,8 +20,6 @@ import com.devonfw.tools.ide.environment.ExtensibleEnvironmentVariables;
 import com.devonfw.tools.ide.merge.xml.XmlMergeDocument;
 import com.devonfw.tools.ide.merge.xml.XmlMerger;
 import com.devonfw.tools.ide.process.EnvironmentContext;
-import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolEdition;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
@@ -29,9 +27,7 @@ import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeaBasedIdeToolCommandlet;
-import com.devonfw.tools.ide.tool.ide.IdeaPluginDownloader;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
-import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -101,7 +97,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     ToolEdition edition = requested.getEdition();
     // Check if edition is set as "ultimate"
     if ("ultimate".equals(edition.edition())) {
-
+      
       VersionIdentifier version;
       if (requested.getVersion() != null) {
         version = VersionIdentifier.of(requested.getVersion().toString());
@@ -109,16 +105,15 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
         version = getConfiguredVersion();
       }
       // Check whether set version warrants switching editions
-      if ((version.isGreater(INTELLIJ_LAST_SEPARATE_VERSION)) ||
-          // Specified version is > 2025.2.6.1 **OR** no specified version but configured version is > 2025.2.6.1
-          (VersionIdentifier.LATEST.equals(version)) || // No version specified and no configured version
-          (VersionIdentifier.LATEST_UNSTABLE.equals(version))) { // No version specified and no configured version
+      if ((version.isGreater(INTELLIJ_LAST_SEPARATE_VERSION)) || // Specified version is > 2025.2.6.1 **OR** no specified version but configured version is > 2025.2.6.1
+        (VersionIdentifier.LATEST.equals(version)) || // No version specified and no configured version
+        (VersionIdentifier.LATEST_UNSTABLE.equals(version))) { // No version specified and no configured version
         // Switching to IntelliJ Standard edition
         LOG.warn("""
-            Notice: You have configured IDEasy to use the IntelliJ Ultimate Edition. Since version 2025.3, the Ultimate and Community editions of IntelliJ have been unified into a single edition.
-            Since you are attempting to install a version of IntelliJ that is 2025.3 or newer, we are automatically switching your edition to the unified edition to ensure compatibility.
-            To specifically install the last true ultimate version of IntelliJ, please run "ide install intellij 2025.2.6.1".
-            Otherwise, we recommend permanently switching to the unified edition by running "ide set-edition intellij intellij".""");
+                 Notice: You have configured IDEasy to use the IntelliJ Ultimate Edition. Since version 2025.3, the Ultimate and Community editions of IntelliJ have been unified into a single edition.
+                 Since you are attempting to install a version of IntelliJ that is 2025.3 or newer, we are automatically switching your edition to the unified edition to ensure compatibility.
+                 To specifically install the last true ultimate version of IntelliJ, please run "ide install intellij 2025.2.6.1".
+                 Otherwise, we recommend permanently switching to the unified edition by running "ide set-edition intellij intellij".""");
         edition = new ToolEdition(this.tool, "intellij");
         requested.replaceEdition(edition);
       }
@@ -174,11 +169,5 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
       }
     }
     LOG.warn("No supported build descriptor was found for project import in {}", repositoryPath);
-  }
-
-  @Override
-  public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
-    IdeaPluginDownloader ideaPluginDownloader = new IdeaPluginDownloader(this.context, this);
-    return ideaPluginDownloader.installPlugin(plugin, step, pc);
   }
 }
