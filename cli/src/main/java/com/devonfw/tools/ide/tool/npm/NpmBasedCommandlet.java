@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.tool.npm;
 
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
@@ -48,6 +49,17 @@ public abstract class NpmBasedCommandlet extends NodeBasedCommandlet<Npm> {
   public ToolRepository getToolRepository() {
 
     return this.context.getNpmRepository();
+  }
+
+  /**
+   * Override to ignore the toolPath parameter and use npm package manager to detect the actual installed version of the tool.
+   *
+   * @param toolPath the installation {@link Path} where to find the version file.
+   * @return the installed version or null if not installed.
+   */
+  @Override
+  protected VersionIdentifier getInstalledVersion(Path toolPath) {
+    return computeInstalledVersion();
   }
 
   @Override
