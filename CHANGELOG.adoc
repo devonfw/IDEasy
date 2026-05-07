@@ -23,6 +23,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1688[#1688]: Remove unnecessary message in the CLI when installing a new tool
 * https://github.com/devonfw/IDEasy/issues/861[#861]: Fix install of pgadmin throws IllegalStateException when the install wizard starts
 * https://github.com/devonfw/IDEasy/issues/1685[#1685]: Add Nest CLI to IDEasy commandlets
+* https://github.com/devonfw/IDEasy/issues/1870[#1870]: Add generic get-version implementation for global tools under windows
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/44?closed=1[milestone 2026.05.001].
 
