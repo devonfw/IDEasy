@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/796[#796]: cannot install aws on Mac
 * https://github.com/devonfw/IDEasy/issues/1800[#1800]: IDEasy will automatically switch to IntelliJ standard edition when installing newer ultimate edition versions
 * https://github.com/devonfw/IDEasy/issues/1552[#1552]: User-defined MAVEN_ARGS appends and no longer overwrites IDEasy's defaults
 * https://github.com/devonfw/IDEasy/issues/1833[#1833]: No settings repo update with missing `.commit.id`
@@ -21,6 +22,8 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/797[#797]: Use system unzip on macOS to preserve symlinks in ZIP extraction
 * https://github.com/devonfw/IDEasy/issues/1723[#1723]: Add commandlet for GitHub Copilot CLI
 * https://github.com/devonfw/IDEasy/issues/1880[#1880]: Reinstall all plugins for IDE in force mode
+* https://github.com/devonfw/IDEasy/issues/1456[#1456]: Uninstall via Windows settings not working
+* https://github.com/devonfw/IDEasy/issues/1688[#1688]: Remove unnecessary message in the CLI when installing a new tool
 * https://github.com/devonfw/IDEasy/issues/1685[#1685]: Add Nest CLI to IDEasy commandlets
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/44?closed=1[milestone 2026.05.001].
