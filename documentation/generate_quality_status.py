@@ -32,6 +32,7 @@ Usage::
 
 import argparse
 import json
+import logging
 import os
 import sys
 import urllib.error
@@ -39,12 +40,19 @@ import urllib.parse
 import urllib.request
 from collections import defaultdict
 from datetime import datetime, timezone
+from typing import Any, NamedTuple
 
-# ─── Repository configuration ─────────────────────────────────────────────────
+log = logging.getLogger(__name__)
+
+# --- Repository configuration ---
 
 REPO = "devonfw/IDEasy"
 API_BASE = "https://api.github.com"
 TOOL_FOLDER_PATH = "cli/src/main/java/com/devonfw/tools/ide/tool"
+
+GITHUB_ACCEPT_HEADER = "application/vnd.github+json"
+GITHUB_API_VERSION = "2022-11-28"
+GITHUB_PAGE_SIZE = 100
 
 OS_LABELS = {"windows": "windows", "linux": "linux", "mac": "macOS"}
 OS_ORDER = ["windows", "linux", "mac"]
@@ -54,7 +62,10 @@ OS_SHORT = {"windows": "Win", "linux": "Linux", "mac": "macOS"}
 BUG_TYPE_NAMES = {"Bug", "bug"}
 BLOCKER_LABEL = "blocker"
 
-# ─── Tool registry ────────────────────────────────────────────────────────────
+# Number of columns in the status tables, used for AsciiDoc column spanning.
+TABLE_COLSPAN = 3
+
+# --- Tool registry ---
 # Each key is the canonical tool folder name under TOOL_FOLDER_PATH, which is
 # also the default GitHub label.  "display" is the human-readable table name.
 # "labels" lists any additional GitHub label names that map to this entry.
@@ -115,7 +126,7 @@ TOOLS: dict[str, dict] = {
   "rancher": {"display": "Rancher Desktop"},
 }
 
-# ─── Commandlet / core-feature registry ───────────────────────────────────────
+# --- Commandlet / core-feature registry ---
 # Same structure as TOOLS.  The key is the GitHub label for that functional area.
 
 COMMANDLETS: dict[str, dict] = {
@@ -153,7 +164,7 @@ COMMANDLETS: dict[str, dict] = {
   "migration": {"display": "Migration (devonfw-ide to IDEasy)"},
 }
 
-# ─── Category groupings ────────────────────────────────────────────────────────
+# --- Category groupings ---
 # Ordered list of (category_label, [canonical_keys]).  Controls the spanning
 # header rows and row order in the rendered status tables.
 
@@ -184,11 +195,11 @@ COMMANDLET_CATEGORIES: list[tuple[str, list[str]]] = [
   ("Migration", ["migration"]),
 ]
 
-# ─── Derived lookups ──────────────────────────────────────────────────────────
-# These are computed from the registries above and must not be edited directly.
+# --- Derived lookups ---
+# Computed from the registries above — do not edit directly.
 
-TOOL_DISPLAY: dict[str, str] = {n: c["display"] for n, c in TOOLS.items()}
-CMD_DISPLAY: dict[str, str] = {n: c["display"] for n, c in COMMANDLETS.items()}
+TOOL_DISPLAY: dict[str, str] = {name: cfg["display"] for name, cfg in TOOLS.items()}
+CMD_DISPLAY: dict[str, str] = {name: cfg["display"] for name, cfg in COMMANDLETS.items()}
 
 LABEL_ALIASES: dict[str, str] = {
   alias: name
@@ -197,7 +208,7 @@ LABEL_ALIASES: dict[str, str] = {
   for alias in cfg.get("labels", [])
 }
 
-_SKIP_LABELS: frozenset[str] = frozenset({
+SKIP_LABELS: frozenset[str] = frozenset({
   BLOCKER_LABEL, "bug", "bugfix", "enhancement", "feature", "task",
   "Epic", "ready-to-implement", "waiting for feedback", "release",
   "AI", "ARM", "claude", "internal", "process", "rewrite", "software", "workflow",
@@ -208,29 +219,31 @@ _SKIP_LABELS: frozenset[str] = frozenset({
 })
 
 
-# ─── GitHub API helpers ───────────────────────────────────────────────────────
+# --- Data model ---
 
-def _get(path: str, token: str | None, params: dict | None = None) -> object:
-  """Send an authenticated GET request to the GitHub REST API.
+class IssueRef(NamedTuple):
+  """Classified issue record used throughout the rendering pipeline."""
+  number: int
+  title: str
+  url: str
+  bug: bool
+  blocker: bool
+  os_keys: list[str]
 
-  Args:
-    path:   API path relative to API_BASE, e.g. "/repos/owner/repo/issues".
-    token:  Personal access token.  When ``None`` requests are unauthenticated
-            and subject to a 60 req/hour rate limit.
-    params: Optional query-string parameters.
 
-  Returns:
-    The parsed JSON response body.
+# --- GitHub API helpers ---
 
-  Raises:
-    urllib.error.HTTPError: When the server returns a 4xx or 5xx status.
+def _get(path: str, token: str | None, params: dict | None = None) -> Any:
+  """Send an authenticated GET to the GitHub REST API and return parsed JSON.
+
+  Raises urllib.error.HTTPError on 4xx/5xx responses.
   """
   url = f"{API_BASE}{path}"
   if params:
     url += "?" + urllib.parse.urlencode(params)
   req = urllib.request.Request(url)
-  req.add_header("Accept", "application/vnd.github+json")
-  req.add_header("X-GitHub-Api-Version", "2022-11-28")
+  req.add_header("Accept", GITHUB_ACCEPT_HEADER)
+  req.add_header("X-GitHub-Api-Version", GITHUB_API_VERSION)
   if token:
     req.add_header("Authorization", f"Bearer {token}")
   with urllib.request.urlopen(req) as resp:
@@ -238,123 +251,90 @@ def _get(path: str, token: str | None, params: dict | None = None) -> object:
 
 
 def fetch_tool_names(token: str | None) -> list[str]:
-  """Return the sorted list of tool folder names from the source tree.
+  """Return sorted tool folder names from the source tree.
 
-  Queries the GitHub Contents API for the sub-directories of TOOL_FOLDER_PATH.
-  Each directory name corresponds to a tool and is also its default issue label.
-  Returns an empty list and prints a warning if the request fails.
-
-  Args:
-    token: GitHub personal access token.
+  Queries the GitHub Contents API for sub-directories of TOOL_FOLDER_PATH.
+  Each directory name is also its default issue label.  Returns an empty list
+  if the request fails so the rest of the pipeline can still run.
   """
   try:
     entries = _get(f"/repos/{REPO}/contents/{TOOL_FOLDER_PATH}", token)
     return sorted(
-      e["name"] for e in entries
-      if isinstance(e, dict) and e.get("type") == "dir"
+      entry["name"] for entry in entries
+      if isinstance(entry, dict) and entry.get("type") == "dir"
     )
   except urllib.error.HTTPError as exc:
     hint = "" if token else " Set GITHUB_TOKEN to avoid rate limiting."
-    print(
-      f"WARNING: Could not fetch tool list ({exc.code} {exc.reason}). "
-      f"Only commandlet sections will be generated.{hint}",
-      file=sys.stderr,
+    log.warning(
+      "Could not fetch tool list from %s (%s %s). "
+      "Only commandlet sections will be generated.%s",
+      TOOL_FOLDER_PATH, exc.code, exc.reason, hint,
     )
     return []
-  except Exception as exc:
-    print(f"WARNING: Could not fetch tool list ({exc}).", file=sys.stderr)
+  except (urllib.error.URLError, json.JSONDecodeError) as exc:
+    log.warning("Could not fetch tool list from %s: %s", TOOL_FOLDER_PATH, exc, exc_info=True)
     return []
 
 
 def fetch_all_issues(token: str | None, state: str = "open") -> list[dict]:
-  """Fetch all non-pull-request issues from the repository with pagination.
-
-  Args:
-    token: GitHub personal access token.
-    state: Issue state filter — ``"open"`` or ``"all"``.
-
-  Returns:
-    A flat list of issue objects as returned by the GitHub API.
-  """
-  issues, page = [], 1
+  """Fetch all non-pull-request issues from the repository, handling pagination."""
+  issues: list[dict] = []
+  page = 1
   while True:
     batch = _get(
       f"/repos/{REPO}/issues", token,
-      {"state": state, "per_page": 100, "page": page},
+      {"state": state, "per_page": GITHUB_PAGE_SIZE, "page": page},
     )
     if not isinstance(batch, list) or not batch:
       break
-    issues.extend(i for i in batch if "pull_request" not in i)
-    if len(batch) < 100:
+    issues.extend(item for item in batch if "pull_request" not in item)
+    if len(batch) < GITHUB_PAGE_SIZE:
       break
     page += 1
   return issues
 
 
-# ─── Issue classification ─────────────────────────────────────────────────────
+# --- Issue classification ---
 
 def label_names(issue: dict) -> set[str]:
-  """Return the set of label name strings attached to an issue."""
-  return {lbl["name"] for lbl in issue.get("labels", [])}
+  return {label["name"] for label in issue.get("labels", [])}
 
 
 def is_bug(issue: dict, labels: set[str]) -> bool:
-  """Return True if the issue is classified as a bug.
+  """Check whether the issue counts as a bug.
 
-  Detection priority:
-  1. GitHub issue type field (``issue["type"]["name"]``).
-  2. Legacy ``"bug"`` label, predating GitHub issue types.
-  3. ``"blocker"`` label — implies a severe bug by definition.
+  Detection: GitHub issue type field first, then legacy "bug" label,
+  then "blocker" (which implies a severe bug by definition).
   """
-  t = issue.get("type")
-  if isinstance(t, dict) and t.get("name") in BUG_TYPE_NAMES:
+  issue_type = issue.get("type")
+  if isinstance(issue_type, dict) and issue_type.get("name") in BUG_TYPE_NAMES:
     return True
   return "bug" in labels or BLOCKER_LABEL in labels
 
 
 def is_blocker(labels: set[str]) -> bool:
-  """Return True if the issue carries the ``"blocker"`` label."""
   return BLOCKER_LABEL in labels
 
 
 def os_keys_for_issue(labels: set[str]) -> list[str]:
-  """Return the OS keys an issue applies to.
-
-  Issues labelled with a specific OS (e.g. ``"windows"``) are scoped to that
-  OS only.  Issues without any OS label are treated as cross-platform and
-  return all keys from OS_ORDER.
-  """
-  found = [k for k, lbl in OS_LABELS.items() if lbl in labels]
+  """Determine which OS keys apply.  No OS label means cross-platform."""
+  found = [key for key, label in OS_LABELS.items() if label in labels]
   return found if found else list(OS_ORDER)
 
 
 def topic_matches(labels: set[str], known: set[str]) -> list[str]:
-  """Return the canonical topic keys matched by the given label set.
+  """Return canonical topic keys matched by the given label set.
 
-  Checks both exact matches against ``known`` and indirect matches via
-  LABEL_ALIASES, enabling non-standard label names to map to canonical keys.
-
-  Args:
-    labels: Label names attached to an issue.
-    known:  Canonical key set to match against (tool keys or commandlet keys).
-
-  Returns:
-    Sorted list of matching canonical keys.
+  Checks both direct matches against ``known`` and indirect matches via
+  LABEL_ALIASES so that non-standard label names resolve to canonical keys.
   """
   matched: set[str] = set()
-  for lbl in labels:
-    if lbl in known:
-      matched.add(lbl)
-    elif lbl in LABEL_ALIASES and LABEL_ALIASES[lbl] in known:
-      matched.add(LABEL_ALIASES[lbl])
+  for label in labels:
+    if label in known:
+      matched.add(label)
+    elif label in LABEL_ALIASES and LABEL_ALIASES[label] in known:
+      matched.add(LABEL_ALIASES[label])
   return sorted(matched)
-
-
-# ─── Data model ───────────────────────────────────────────────────────────────
-
-#: Immutable record for a classified issue.
-#: Fields: (number, title, url, is_bug, is_blocker, os_keys)
-IssueRef = tuple[int, str, str, bool, bool, list[str]]
 
 
 def classify_issues(
@@ -371,16 +351,10 @@ def classify_issues(
   An issue may match multiple topics and multiple OS sections simultaneously.
   Issues without an OS label are inserted into every OS bucket.
 
-  Args:
-    issues:    Raw issue objects from the GitHub API.
-    tool_keys: Canonical tool key set used for label matching.
-    cmd_keys:  Canonical commandlet key set used for label matching.
-
-  Returns:
-    A three-tuple of:
-    - ``tool_data[os_key][topic]``  — IssueRef lists for tool rows
-    - ``cmd_data[os_key][topic]``   — IssueRef lists for commandlet rows
-    - ``unassigned``                — issues that matched no known topic
+  Returns a three-tuple of:
+  - tool_data[os_key][topic]  — IssueRef lists for tool rows
+  - cmd_data[os_key][topic]   — IssueRef lists for commandlet rows
+  - unassigned                — issues that matched no known topic
   """
   tool_data: dict = defaultdict(lambda: defaultdict(list))
   cmd_data: dict = defaultdict(lambda: defaultdict(list))
@@ -391,139 +365,138 @@ def classify_issues(
     bug = is_bug(issue, labels)
     blocker = is_blocker(labels)
     os_keys = os_keys_for_issue(labels)
-    ref: IssueRef = (
-      issue["number"], issue["title"], issue["html_url"], bug, blocker, os_keys
+    ref = IssueRef(
+      number=issue["number"],
+      title=issue["title"],
+      url=issue["html_url"],
+      bug=bug,
+      blocker=blocker,
+      os_keys=os_keys,
     )
-    t_hits = topic_matches(labels, tool_keys)
-    c_hits = topic_matches(labels, cmd_keys)
+    tool_matches = topic_matches(labels, tool_keys)
+    cmd_matches = topic_matches(labels, cmd_keys)
 
-    if not t_hits and not c_hits:
+    if not tool_matches and not cmd_matches:
       unassigned.append(issue)
       continue
 
-    for ok in os_keys:
-      for t in t_hits:
-        tool_data[ok][t].append(ref)
-      for c in c_hits:
-        cmd_data[ok][c].append(ref)
+    for os_key in os_keys:
+      for tool_key in tool_matches:
+        tool_data[os_key][tool_key].append(ref)
+      for cmd_key in cmd_matches:
+        cmd_data[os_key][cmd_key].append(ref)
 
   return dict(tool_data), dict(cmd_data), unassigned
 
 
-# ─── AsciiDoc rendering helpers ───────────────────────────────────────────────
+# --- AsciiDoc rendering helpers ---
 
 def _safe(text: str, max_len: int = 72) -> str:
-  """Sanitise text for use inside an AsciiDoc table cell.
+  """Sanitise text for AsciiDoc table cells — escapes pipes, truncates."""
+  sanitised = text.replace("|", "-").replace("\n", " ")
+  if len(sanitised) > max_len:
+    return sanitised[:max_len] + " \u2026"
+  return sanitised
 
-  Replaces pipe characters (which would break cell boundaries) and newlines,
-  then truncates to ``max_len`` characters, appending an ellipsis if needed.
-  """
-  s = text.replace("|", "-").replace("\n", " ")
-  return s[:max_len] + (" \u2026" if len(s) > max_len else "")
+
+def _severity_sort_key(ref: IssueRef) -> tuple:
+  """Sort key: blockers first, then bugs, then enhancements, then by number."""
+  return (0 if ref.blocker else 1 if ref.bug else 2, ref.number)
 
 
 def _severity_label(bug: bool, blocker: bool) -> str:
-  """Return the human-readable severity label for a given bug/blocker pair."""
-  if blocker: return "Blocker"
-  if bug:     return "Bug"
+  if blocker:
+    return "Blocker"
+  if bug:
+    return "Bug"
   return "Enhancement"
 
 
 def _severity_icon(bug: bool, blocker: bool) -> str:
-  """Return the status emoji for a given bug/blocker pair."""
-  if blocker: return "🚨"
-  if bug:     return "🔴"
+  if blocker:
+    return "🚨"
+  if bug:
+    return "🔴"
   return "🟡"
 
 
 def _status_cell(refs: list[IssueRef]) -> str:
-  """Return the worst-case status cell string for a list of issue refs.
-
-  Evaluates blockers before bugs before enhancements, so a single blocker
-  in an otherwise green component produces ``"🚨 Blocker"``.
-  """
-  if not refs:                         return "🟢 OK"
-  if any(r[4] for r in refs):          return "🚨 Blocker"
-  if any(r[3] for r in refs):          return "🔴 Bug"
+  """Return the worst-case status string for a list of issue refs."""
+  if not refs:
+    return "🟢 OK"
+  if any(ref.blocker for ref in refs):
+    return "🚨 Blocker"
+  if any(ref.bug for ref in refs):
+    return "🔴 Bug"
   return "🟡 Enhancement"
 
 
 def _issue_cell(refs: list[IssueRef]) -> str:
-  """Format a list of issue refs as an AsciiDoc line-break-separated cell.
+  """Format issue refs as an AsciiDoc line-break-separated cell.
 
-  Entries are sorted by severity descending (blocker → bug → enhancement),
-  then by issue number ascending.  Each entry renders as:
-  ``<icon> link:<url>[#N] <title>``
+  Sorted by severity descending, then issue number ascending.
   """
   if not refs:
     return "—"
-
-  def _sort_key(r: IssueRef) -> tuple:
-    return (0 if r[4] else 1 if r[3] else 2, r[0])
-
   parts = [
-    f"{_severity_icon(bug, blocker)} link:{url}[#{num}] {_safe(title)}"
-    for num, title, url, bug, blocker, _ in sorted(refs, key=_sort_key)
+    f"{_severity_icon(ref.bug, ref.blocker)} link:{ref.url}[#{ref.number}] {_safe(ref.title)}"
+    for ref in sorted(refs, key=_severity_sort_key)
   ]
   return " +\n".join(parts)
 
 
-# ─── Section renderers ────────────────────────────────────────────────────────
+# --- Section renderers ---
 
 def _bugs_all_platforms_section(
     tool_data: dict,
     cmd_data: dict,
-    tool_disp: dict[str, str],
-    cmd_disp: dict[str, str],
+    tool_display: dict[str, str],
+    cmd_display: dict[str, str],
     unassigned: list[dict],
 ) -> str:
   """Render the global Bugs and Blockers section.
 
-  Collects every bug and blocker from tool_data and cmd_data across all OS
-  buckets, then deduplicates by issue number so each issue appears once.
-  Also includes any bugs or blockers from the unassigned list (e.g. issues
-  labelled only ``"blocker"`` without a tool or commandlet label).
-
-  Enhancements are excluded; they belong in the per-OS and commandlet tables.
-
-  Columns: Issue | Severity | Component | Summary | Win | Linux | macOS
-  Rows sorted: blockers first, then bugs, both ascending by issue number.
-
-  Args:
-    tool_data:  Classified tool issue data from :func:`classify_issues`.
-    cmd_data:   Classified commandlet issue data from :func:`classify_issues`.
-    tool_disp:  Mapping of tool key to display name.
-    cmd_disp:   Mapping of commandlet key to display name.
-    unassigned: Issues that matched no known topic.
+  Collects every bug/blocker from tool and commandlet data across all OS
+  buckets, deduplicates by issue number, and includes unassigned bugs/blockers.
+  Enhancements are excluded — they belong in the per-OS and commandlet tables.
   """
   seen: dict[int, tuple[str, str, IssueRef]] = {}
 
-  for lbl, disp in tool_disp.items():
-    for ok in OS_ORDER:
-      for ref in tool_data.get(ok, {}).get(lbl, []):
-        if (ref[3] or ref[4]) and ref[0] not in seen:
-          seen[ref[0]] = ("Tool", disp, ref)
+  for label, display_name in tool_display.items():
+    for os_key in OS_ORDER:
+      os_bucket = tool_data.get(os_key, {})
+      for ref in os_bucket.get(label, []):
+        if (ref.bug or ref.blocker) and ref.number not in seen:
+          seen[ref.number] = ("Tool", display_name, ref)
 
-  for lbl, disp in cmd_disp.items():
-    for ok in OS_ORDER:
-      for ref in cmd_data.get(ok, {}).get(lbl, []):
-        if (ref[3] or ref[4]) and ref[0] not in seen:
-          seen[ref[0]] = ("Commandlet", disp, ref)
+  for label, display_name in cmd_display.items():
+    for os_key in OS_ORDER:
+      os_bucket = cmd_data.get(os_key, {})
+      for ref in os_bucket.get(label, []):
+        if (ref.bug or ref.blocker) and ref.number not in seen:
+          seen[ref.number] = ("Commandlet", display_name, ref)
 
   for issue in unassigned:
-    lbls = {lbl["name"] for lbl in issue.get("labels", [])}
-    bug = is_bug(issue, lbls)
-    blocker = is_blocker(lbls)
+    labels = {label["name"] for label in issue.get("labels", [])}
+    bug = is_bug(issue, labels)
+    blocker = is_blocker(labels)
     if not (bug or blocker):
       continue
-    num = issue["number"]
-    if num in seen:
+    issue_number = issue["number"]
+    if issue_number in seen:
       continue
-    os_keys = os_keys_for_issue(lbls)
-    ref: IssueRef = (num, issue["title"], issue["html_url"], bug, blocker, os_keys)
-    seen[num] = ("\u2014", "Unassigned", ref)
+    os_keys = os_keys_for_issue(labels)
+    ref = IssueRef(
+      number=issue_number,
+      title=issue["title"],
+      url=issue["html_url"],
+      bug=bug,
+      blocker=blocker,
+      os_keys=os_keys,
+    )
+    seen[issue_number] = ("\u2014", "Unassigned", ref)
 
-  blocker_count = sum(1 for _, _, r in seen.values() if r[4])
+  blocker_count = sum(1 for _, _, ref in seen.values() if ref.blocker)
   bug_count = len(seen) - blocker_count
 
   lines: list[str] = [
@@ -546,18 +519,17 @@ def _bugs_all_platforms_section(
 
   def _row_sort(item: tuple) -> tuple:
     _, _, ref = item
-    return (0 if ref[4] else 1, ref[0])
+    return (0 if ref.blocker else 1, ref.number)
 
-  for _, (_, disp, ref) in sorted(seen.items(), key=lambda x: _row_sort(x[1])):
-    num, title, url, bug, blocker, ref_os = ref
-    sev = f"{_severity_icon(bug, blocker)} {_severity_label(bug, blocker)}"
-    os_checks = ["✓" if ok in ref_os else "—" for ok in OS_ORDER]
+  for _, (_, display_name, ref) in sorted(seen.items(), key=lambda x: _row_sort(x[1])):
+    severity = f"{_severity_icon(ref.bug, ref.blocker)} {_severity_label(ref.bug, ref.blocker)}"
+    os_checks = ["✓" if os_key in ref.os_keys else "—" for os_key in OS_ORDER]
     lines += [
-      f"| link:{url}[#{num}]",
-      f"| {sev}",
-      f"| {disp}",
-      f"| {_safe(title)}",
-      *[f"| {c}" for c in os_checks],
+      f"| link:{ref.url}[#{ref.number}]",
+      f"| {severity}",
+      f"| {display_name}",
+      f"| {_safe(ref.title)}",
+      *[f"| {check}" for check in os_checks],
       "",
     ]
 
@@ -566,19 +538,14 @@ def _bugs_all_platforms_section(
 
 
 def _commandlets_global_table(cmd_data: dict) -> str:
-  """Render the single cross-OS Commandlets and Core Features section.
+  """Render the cross-OS Commandlets and Core Features section.
 
-  Issue refs from all OS buckets are merged and deduplicated per commandlet
-  so that each issue appears only once.  Issues specific to a single OS carry
-  a platform tag in brackets (e.g. ``[win]``); cross-platform issues carry
-  no tag.  Rows are grouped by functional category; components with no open
-  issues are omitted.
-
-  Args:
-    cmd_data: Classified commandlet issue data from :func:`classify_issues`.
+  Issue refs from all OS buckets are merged and deduplicated per commandlet.
+  OS-specific issues carry a platform tag in brackets; cross-platform ones don't.
+  Components with no open issues are omitted.
   """
   all_os = set(OS_ORDER)
-  N = 3
+  line_break = " +\n"
 
   lines = [
     "== Commandlets and Core Features",
@@ -591,40 +558,39 @@ def _commandlets_global_table(cmd_data: dict) -> str:
     "| Commandlet / Feature | Status | Issues",
   ]
 
-  def _sort_key(r: IssueRef) -> tuple:
-    return (0 if r[4] else 1 if r[3] else 2, r[0])
-
   for cat_name, keys in COMMANDLET_CATEGORIES:
     cat_rows = []
     for key in keys:
       if key not in CMD_DISPLAY:
         continue
       merged: dict[int, IssueRef] = {}
-      for ok in OS_ORDER:
-        for ref in cmd_data.get(ok, {}).get(key, []):
-          if ref[0] not in merged:
-            merged[ref[0]] = ref
+      for os_key in OS_ORDER:
+        os_bucket = cmd_data.get(os_key, {})
+        for ref in os_bucket.get(key, []):
+          if ref.number not in merged:
+            merged[ref.number] = ref
       if merged:
         cat_rows.append((key, list(merged.values())))
 
     if not cat_rows:
       continue
 
-    lines += ["", f"{N}+^h| {cat_name}"]
+    lines += ["", f"{TABLE_COLSPAN}+^h| {cat_name}"]
     for key, refs in cat_rows:
       parts = []
-      for r in sorted(refs, key=_sort_key):
-        num, title, url, bug, blocker, ref_os = r
-        icon = _severity_icon(bug, blocker)
+      for ref in sorted(refs, key=_severity_sort_key):
+        icon = _severity_icon(ref.bug, ref.blocker)
         os_tag = (
-          "" if set(ref_os) == all_os
-          else " [" + "/".join(OS_SHORT[k] for k in ref_os) + "]"
+          "" if set(ref.os_keys) == all_os
+          else " [" + "/".join(OS_SHORT[k] for k in ref.os_keys) + "]"
         )
-        parts.append(f"{icon} link:{url}[#{num}]{os_tag} {_safe(title)}")
+        parts.append(f"{icon} link:{ref.url}[#{ref.number}]{os_tag} {_safe(ref.title)}")
+
+      issue_cell = line_break.join(parts)
       lines += [
         f"| {CMD_DISPLAY[key]}",
         f"| {_status_cell(refs)}",
-        f"| {' +' + chr(10) + ''.join(parts[0:1]) if len(parts) == 1 else (' +' + chr(10)).join(parts)}",
+        f"| {issue_cell}",
         "",
       ]
 
@@ -642,23 +608,10 @@ def _os_status_table(
 ) -> list[str]:
   """Render a status table for one OS section.
 
-  Columns: Component | Status | Issues.
-  Components with no open issues are omitted; a note above the table states
-  this explicitly.
-
-  Args:
-    section_heading: AsciiDoc heading text for the sub-section.
-    categories:      Ordered category/key groupings from TOOL_CATEGORIES or
-                     COMMANDLET_CATEGORIES.
-    display_map:     Mapping of canonical key to display name.
-    os_data:         ``{topic: [IssueRef]}`` for the target OS.
-    col_header:      Header label for the first column.
-    grouped:         When ``True``, emit spanning category header rows between
-                     groups (suitable for commandlets).  When ``False``, flatten
-                     all rows and sort alphabetically by display name (suitable
-                     for tools).
+  When grouped is False, rows are flattened and sorted alphabetically
+  (used for tools).  When True, category spanning headers are emitted
+  (used for commandlets).  Components with no open issues are omitted.
   """
-  N = 3
   lines: list[str] = [
     f"=== {section_heading}\n",
     "NOTE: Components with no open issues are omitted from this table.\n",
@@ -671,26 +624,26 @@ def _os_status_table(
     flat = sorted(
       (
         (key, display_map[key])
-        for cat_keys in (k for _, k in categories)
+        for cat_keys in (keys for _, keys in categories)
         for key in cat_keys
         if key in display_map
       ),
-      key=lambda x: x[1].lower(),
+      key=lambda pair: pair[1].lower(),
     )
-    for key, disp in flat:
+    for key, display_name in flat:
       refs = os_data.get(key, [])
       if refs:
-        lines += [f"| {disp}", f"| {_status_cell(refs)}", f"| {_issue_cell(refs)}", ""]
+        lines += [f"| {display_name}", f"| {_status_cell(refs)}", f"| {_issue_cell(refs)}", ""]
   else:
     for cat_name, keys in categories:
       cat_rows = [
-        (k, os_data.get(k, []))
-        for k in keys
-        if k in display_map and os_data.get(k)
+        (key, os_data.get(key, []))
+        for key in keys
+        if key in display_map and os_data.get(key)
       ]
       if not cat_rows:
         continue
-      lines.append(f"\n{N}+^h| {cat_name}")
+      lines.append(f"\n{TABLE_COLSPAN}+^h| {cat_name}")
       for key, refs in cat_rows:
         lines += [f"| {display_map[key]}", f"| {_status_cell(refs)}", f"| {_issue_cell(refs)}", ""]
 
@@ -699,28 +652,19 @@ def _os_status_table(
 
 
 def _os_section(os_key: str, tool_data_for_os: dict[str, list[IssueRef]]) -> str:
-  """Render the Tools status section for one operating system.
-
-  Generates a sub-heading with deduplicated issue counts and delegates to
-  :func:`_os_status_table` for the actual table.  Commandlets are intentionally
-  excluded here; they are covered by the global :func:`_commandlets_global_table`.
-
-  Args:
-    os_key:            One of the keys from OS_ORDER (``"windows"``, etc.).
-    tool_data_for_os:  ``{topic: [IssueRef]}`` pre-filtered for this OS.
-  """
+  """Render the Tools status section for one operating system."""
   os_name = OS_DISPLAY[os_key]
   os_label = OS_LABELS[os_key]
 
-  all_refs = {r[0]: r for refs in tool_data_for_os.values() for r in refs}
-  n_blockers = sum(1 for r in all_refs.values() if r[4])
-  n_bugs = sum(1 for r in all_refs.values() if r[3] and not r[4])
-  n_enhs = sum(1 for r in all_refs.values() if not r[3] and not r[4])
+  all_refs = {ref.number: ref for refs in tool_data_for_os.values() for ref in refs}
+  blocker_count = sum(1 for ref in all_refs.values() if ref.blocker)
+  bug_count = sum(1 for ref in all_refs.values() if ref.bug and not ref.blocker)
+  enhancement_count = sum(1 for ref in all_refs.values() if not ref.bug and not ref.blocker)
 
-  stat_str = (
-    f"{n_blockers} blocker(s), {n_bugs} bug(s), {n_enhs} enhancement(s)"
-    if all_refs else "no open issues"
-  )
+  if all_refs:
+    stat_str = f"{blocker_count} blocker(s), {bug_count} bug(s), {enhancement_count} enhancement(s)"
+  else:
+    stat_str = "no open issues"
 
   lines: list[str] = [
     f"== {os_name} Tools \u2014 {stat_str}\n",
@@ -737,12 +681,8 @@ def _os_section(os_key: str, tool_data_for_os: dict[str, list[IssueRef]]) -> str
 def _unassigned_section(unassigned: list[dict]) -> str:
   """Render the Unassigned Issues section.
 
-  Lists every issue that matched no tool or commandlet label, including its
-  raw label set.  This section guides maintainers in either adding labels to
-  the issues on GitHub or extending the registries in this script.
-
-  Args:
-    unassigned: Issues collected by :func:`classify_issues`.
+  Lists every issue that matched no tool or commandlet label so maintainers
+  can either fix labels on GitHub or extend the registries in this script.
   """
   lines: list[str] = [
     "== Unassigned Issues\n",
@@ -755,21 +695,21 @@ def _unassigned_section(unassigned: list[dict]) -> str:
     return "\n".join(lines)
 
   lines += ['[%header, cols="^1,4,3"]', "|===", "| Issue | Summary | Labels"]
-  for issue in sorted(unassigned, key=lambda i: i["number"]):
-    lbls = ", ".join(lbl["name"] for lbl in issue.get("labels", []))
+  for issue in sorted(unassigned, key=lambda item: item["number"]):
+    label_str = ", ".join(label["name"] for label in issue.get("labels", []))
     lines += [
       f"| link:{issue['html_url']}[#{issue['number']}]",
       f"| {_safe(issue['title'])}",
-      f"| {lbls or '\u2014'}",
+      f"| {label_str or '\u2014'}",
       "",
     ]
   lines.append("|===\n")
   return "\n".join(lines)
 
 
-# ─── Document header template ─────────────────────────────────────────────────
+# --- Document header template ---
 
-_HEADER = """\
+HEADER_TEMPLATE = """\
 = IDEasy Quality Status
 :toc: left
 :toclevels: 3
@@ -813,46 +753,42 @@ _Generated: {date}_
 """
 
 
-# ─── Document assembly ────────────────────────────────────────────────────────
+# --- Document assembly ---
 
 def generate_adoc(issues: list[dict], tool_names: list[str]) -> str:
-  """Assemble and return the complete AsciiDoc quality-status document.
+  """Assemble the complete AsciiDoc quality-status document.
 
-  Merges the dynamically fetched tool folder names with the statically
-  registered TOOLS entries so that tools present in the registry but absent
-  from the source tree (e.g. ``git``, ``rancher``) are still recognised.
-
-  Args:
-    issues:     Raw issue objects from :func:`fetch_all_issues`.
-    tool_names: Tool folder names from :func:`fetch_tool_names`.
-
-  Returns:
-    The rendered AsciiDoc document as a string.
+  Merges dynamically fetched tool folder names with the static TOOLS registry
+  so that tools present in the registry but absent from the source tree
+  (e.g. git, rancher) are still recognised.
   """
   tool_keys = set(tool_names) | set(TOOLS.keys())
   cmd_keys = set(COMMANDLETS.keys())
 
   tool_data, cmd_data, unassigned = classify_issues(issues, tool_keys, cmd_keys)
 
+  # Deduplicate across all OS buckets for global statistics
   seen_refs: dict[int, IssueRef] = {}
-  for ok in OS_ORDER:
-    for refs in (*tool_data.get(ok, {}).values(), *cmd_data.get(ok, {}).values()):
-      for r in refs:
-        if r[0] not in seen_refs:
-          seen_refs[r[0]] = r
+  for os_key in OS_ORDER:
+    tool_bucket = tool_data.get(os_key, {})
+    cmd_bucket = cmd_data.get(os_key, {})
+    for refs in (*tool_bucket.values(), *cmd_bucket.values()):
+      for ref in refs:
+        if ref.number not in seen_refs:
+          seen_refs[ref.number] = ref
 
-  n_blockers = sum(1 for r in seen_refs.values() if r[4])
-  n_bugs = sum(1 for r in seen_refs.values() if r[3] and not r[4])
-  n_enhs = sum(1 for r in seen_refs.values() if not r[3] and not r[4])
+  blocker_count = sum(1 for ref in seen_refs.values() if ref.blocker)
+  bug_count = sum(1 for ref in seen_refs.values() if ref.bug and not ref.blocker)
+  enhancement_count = sum(1 for ref in seen_refs.values() if not ref.bug and not ref.blocker)
 
-  header = _HEADER.format(
+  header = HEADER_TEMPLATE.format(
     repo=REPO,
     tool_path=TOOL_FOLDER_PATH,
     date=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
     total=len(seen_refs),
-    n_blockers=n_blockers,
-    n_bugs=n_bugs,
-    n_enhs=n_enhs,
+    n_blockers=blocker_count,
+    n_bugs=bug_count,
+    n_enhs=enhancement_count,
     unassigned=len(unassigned),
   )
 
@@ -860,10 +796,10 @@ def generate_adoc(issues: list[dict], tool_names: list[str]) -> str:
     header,
     _bugs_all_platforms_section(tool_data, cmd_data, TOOL_DISPLAY, CMD_DISPLAY, unassigned),
     _commandlets_global_table(cmd_data),
-    *[_os_section(ok, tool_data.get(ok, {})) for ok in OS_ORDER],
+    *[_os_section(os_key, tool_data.get(os_key, {})) for os_key in OS_ORDER],
     _unassigned_section(unassigned),
     f"""\
-== How to Contribute
+== How to update this document
 
 === Adding a new tool
 Once a folder is added under `{TOOL_FOLDER_PATH}` and issues use that folder
@@ -885,7 +821,9 @@ Add the label to the ``labels`` list of the matching ``TOOLS`` or
 
 
 def main() -> None:
-  """Parse command-line arguments, fetch data, and write the output file."""
+  """Entry point: parse arguments, fetch data, write the output file."""
+  logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+
   parser = argparse.ArgumentParser(
     description=f"Generate quality-status.adoc for {REPO}",
   )
@@ -898,44 +836,46 @@ def main() -> None:
   args = parser.parse_args()
 
   if not args.token:
-    print("WARNING: No GITHUB_TOKEN — rate-limited to 60 req/hour.", file=sys.stderr)
+    log.warning("No GITHUB_TOKEN set — requests will be rate-limited to 60/hour.")
 
-  print("Fetching tool list from source tree ...", file=sys.stderr)
+  log.info("Fetching tool list from source tree ...")
   tool_names = fetch_tool_names(args.token)
   if tool_names:
-    print(f"  {len(tool_names)} tools found: {', '.join(tool_names)}", file=sys.stderr)
+    log.info("  %d tools found: %s", len(tool_names), ", ".join(tool_names))
   else:
-    print("  No tools found — check token and network.", file=sys.stderr)
+    log.warning("  No tools found — check token permissions and network connectivity.")
 
-  print(f"Fetching {args.state} issues from {REPO} ...", file=sys.stderr)
+  log.info("Fetching %s issues from %s ...", args.state, REPO)
   try:
     issues = fetch_all_issues(args.token, state=args.state)
   except urllib.error.HTTPError as exc:
-    print(f"GitHub API error: HTTP {exc.code} {exc.reason}", file=sys.stderr)
+    log.error("GitHub API request failed: HTTP %s %s", exc.code, exc.reason)
     sys.exit(1)
-  print(f"  {len(issues)} issues loaded.", file=sys.stderr)
+  log.info("  %d issues loaded.", len(issues))
 
+  # Classify once here for stats, then pass issues to generate_adoc which
+  # classifies again internally.  The duplication is minor compared to the
+  # API calls above, and keeps generate_adoc self-contained.
   tool_keys = set(tool_names) | set(TOOLS.keys())
   cmd_keys = set(COMMANDLETS.keys())
   _, _, unassigned = classify_issues(issues, tool_keys, cmd_keys)
   matched = len(issues) - len(unassigned)
   pct = f" ({matched / len(issues) * 100:.1f}%)" if issues else ""
-  print(f"  {matched} assigned{pct}, {len(unassigned)} unassigned.", file=sys.stderr)
+  log.info("  %d assigned%s, %d unassigned.", matched, pct, len(unassigned))
 
   all_known = tool_keys | cmd_keys | set(LABEL_ALIASES)
-  all_labels = {lbl["name"] for issue in issues for lbl in issue.get("labels", [])}
-  unmatched = all_labels - all_known - _SKIP_LABELS
+  all_labels = {label["name"] for issue in issues for label in issue.get("labels", [])}
+  unmatched = all_labels - all_known - SKIP_LABELS
   if unmatched:
-    print(
-      f"  Labels with no mapping (consider adding to TOOLS/COMMANDLETS): "
-      f"{', '.join(sorted(unmatched))}",
-      file=sys.stderr,
+    log.info(
+      "  Labels with no mapping (consider adding to TOOLS/COMMANDLETS): %s",
+      ", ".join(sorted(unmatched)),
     )
 
   adoc = generate_adoc(issues, tool_names)
-  with open(args.output, "w", encoding="utf-8") as fh:
-    fh.write(adoc)
-  print(f"Written to {args.output}", file=sys.stderr)
+  with open(args.output, "w", encoding="utf-8") as output_file:
+    output_file.write(adoc)
+  log.info("Written to %s", args.output)
 
 
 if __name__ == "__main__":
