@@ -12,6 +12,9 @@ import javafx.util.Callback;
 
 import com.devonfw.ide.gui.progress.GuiProgressBarHandling;
 
+/**
+ * Cell factory for displaying a list of tasks in the {@link TaskOverviewWindow}
+ */
 public class TaskWindowCellFactory implements Callback<ListView<GuiProgressBarHandling>, ListCell<GuiProgressBarHandling>> {
 
   @Override
@@ -19,34 +22,44 @@ public class TaskWindowCellFactory implements Callback<ListView<GuiProgressBarHa
     return new ListCell<>() {
 
       final ProgressBar progressBar = new ProgressBar();
+      final Label titleLabel = new Label();
+      final VBox contentBox = new VBox(5, titleLabel, progressBar);
+
+      final HBox root = new HBox(10, contentBox);
+
+      {
+        HBox.setHgrow(contentBox, Priority.ALWAYS);
+        root.setAlignment(Pos.CENTER_LEFT);
+      }
 
       @Override
       public void updateItem(GuiProgressBarHandling progressTask, boolean empty) {
 
-        progressBar.progressProperty().unbind();
-
-        super.updateItem(progressTask, empty);
         if (empty || progressTask == null) {
 
           setText(null);
           setGraphic(null);
         } else {
+          System.out.println("update cell");
 
-          Label titleLabel = new Label(String.format("%s [%d/%d %s]", progressTask.getTitle(), progressTask.getCurrentProgress(), progressTask.getMaxSize(),
-              progressTask.getUnitName()));
+          titleLabel.setText(
+              getLabelValueFormatted(progressTask.getTitle(), progressTask.getCurrentProgress(), progressTask.getMaxSize(), progressTask.getUnitName()));
+
+          if (progressTask.isIndeterminate() && !progressBar.isIndeterminate()) {
+            progressBar.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
+          } else if (!progressTask.isIndeterminate()) {
+            progressBar.setProgress((double) progressTask.getCurrentProgress() / progressTask.getMaxSize());
+          }
 
           progressBar.setMaxWidth(Double.MAX_VALUE);
-          progressBar.progressProperty().bind(progressTask.progressProperty());
-
-          VBox contentBox = new VBox(5, titleLabel, progressBar);
-          HBox.setHgrow(contentBox, Priority.ALWAYS);
-
-          HBox root = new HBox(10, contentBox);
-          root.setAlignment(Pos.CENTER_LEFT);
 
           setGraphic(root);
         }
       }
     };
+  }
+
+  private String getLabelValueFormatted(String title, long _currentProgress, long maxSize, String unitName) {
+    return String.format("%s [%d/%d %s]", title, _currentProgress, maxSize, unitName);
   }
 }

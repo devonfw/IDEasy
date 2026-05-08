@@ -1,11 +1,8 @@
 package com.devonfw.ide.gui;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.stream.Stream;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -24,7 +21,6 @@ import com.devonfw.ide.gui.progress.GuiProgressBarHandling;
 import com.devonfw.ide.gui.progress.TaskManager;
 import com.devonfw.ide.gui.progress.TaskManager.ProgressListener;
 import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindow;
-import com.devonfw.tools.ide.context.IdeContext;
 
 /**
  * Controller of the main screen of the dashboard GUI.
@@ -151,8 +147,9 @@ public class MainController implements ProgressListener {
   }
 
   private static Task<Void> runIdeCommandTask(String inIde) {
+
     GuiProgressBarHandling task = (GuiProgressBarHandling) IdeGuiStateManager.getInstance().getCurrentContext()
-        .newProgressBar("Starting " + inIde, 1, "Task", 1);
+        .newProgressBarIndeterminate("Starting " + inIde);
     Task<Void> downloadTask = new Task<>() {
       @Override
       protected Void call() {
@@ -177,6 +174,7 @@ public class MainController implements ProgressListener {
   }
 
   private void updateContext(String selectedProjectName, String selectedWorkspaceName) {
+
     try {
       IdeGuiStateManager.getInstance().switchContext(selectedProjectName, selectedWorkspaceName);
     } catch (FileNotFoundException e) {
@@ -225,15 +223,15 @@ public class MainController implements ProgressListener {
   }
 
   @Override
-  public void onProgressTaskAdded(List<GuiProgressBarHandling> updatedTaskList) {
+  public void onProgressTaskAdded(GuiProgressBarHandling task) {
 
-    updateStatusLabel(updatedTaskList);
+    updateStatusLabel(TaskManager.getInstance().getTasks());
   }
 
   @Override
-  public void onProgressTaskRemoved(List<GuiProgressBarHandling> updatedTaskList) {
+  public void onProgressTaskRemoved(GuiProgressBarHandling task) {
 
-    updateStatusLabel(updatedTaskList);
+    updateStatusLabel(TaskManager.getInstance().getTasks());
   }
 
   private void updateStatusLabel(List<GuiProgressBarHandling> taskList) {

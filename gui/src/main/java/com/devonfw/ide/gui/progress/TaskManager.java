@@ -43,18 +43,7 @@ public class TaskManager {
         });
     tasks.add(task);
     Platform.runLater(() ->
-        listeners.forEach(listener -> listener.onProgressTaskAdded(tasks))
-    );
-  }
-
-  /**
-   * @param taskId the ID of the task to be removed from the list of tasks.
-   */
-  public void removeTask(String taskId) {
-
-    tasks.stream().filter(task -> task.getTaskId() == taskId).findFirst().ifPresent(tasks::remove);
-    Platform.runLater(() ->
-        listeners.forEach(listener -> listener.onProgressTaskRemoved(tasks))
+        listeners.forEach(listener -> listener.onProgressTaskAdded(task))
     );
   }
 
@@ -62,7 +51,7 @@ public class TaskManager {
 
     tasks.remove(task);
     Platform.runLater(() ->
-        listeners.forEach(listener -> listener.onProgressTaskRemoved(tasks))
+        listeners.forEach(listener -> listener.onProgressTaskRemoved(task))
     );
   }
 
@@ -94,13 +83,13 @@ public class TaskManager {
     void onProgressTaskUpdated(GuiProgressBarHandling task, long stepPosition);
 
     /**
-     * @param updatedTaskList the updated list of tasks after a task was added
+     * @param task task that was added
      */
-    void onProgressTaskAdded(List<GuiProgressBarHandling> updatedTaskList);
+    void onProgressTaskAdded(GuiProgressBarHandling task);
 
     /**
-     * @param updatedTaskList the updated list of tasks after a task was removed
+     * @param task task that was removed
      */
-    void onProgressTaskRemoved(List<GuiProgressBarHandling> updatedTaskList);
+    void onProgressTaskRemoved(GuiProgressBarHandling task);
   }
 }

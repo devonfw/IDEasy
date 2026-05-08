@@ -35,4 +35,13 @@ public class IdeGuiContext extends AbstractIdeContext {
 
     return new GuiProgressBarHandling(UUID.randomUUID().toString(), title, size, unitName, unitSize);
   }
+
+  /**
+   * @param title the title of the progress bar
+   * @return a progress bar implementation that is indeterminate
+   */
+  public IdeProgressBar newProgressBarIndeterminate(String title) {
+
+    return new GuiProgressBarHandling(UUID.randomUUID().toString(), title);
+  }
 }

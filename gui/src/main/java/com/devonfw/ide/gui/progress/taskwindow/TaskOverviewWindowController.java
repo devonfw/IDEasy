@@ -1,6 +1,6 @@
 package com.devonfw.ide.gui.progress.taskwindow;
 
-import java.util.List;
+import java.util.Objects;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
 
@@ -15,10 +15,11 @@ public class TaskOverviewWindowController implements ProgressListener {
 
   @FXML
   public ListView<GuiProgressBarHandling> taskList;
+  private TaskManager taskManager = TaskManager.getInstance();
 
   public TaskOverviewWindowController() {
 
-    TaskManager.getInstance().addListener(this);
+    taskManager.addListener(this);
   }
 
   @FXML
@@ -31,18 +32,24 @@ public class TaskOverviewWindowController implements ProgressListener {
   @Override
   public void onProgressTaskUpdated(GuiProgressBarHandling updatedTask, long stepPosition) {
 
-    // No need to update the list, as the progress bars are bound to the task properties and will update automatically.
+    taskList.getItems().stream()
+        .filter(task -> Objects.equals(task.getTaskId(), updatedTask.getTaskId()))
+        .findFirst()
+        .ifPresent(task -> {
+          int index = taskList.getItems().indexOf(task);
+          taskList.getItems().set(index, updatedTask);
+        });
   }
 
   @Override
-  public void onProgressTaskAdded(List<GuiProgressBarHandling> updatedTaskList) {
+  public void onProgressTaskAdded(GuiProgressBarHandling task) {
 
-    taskList.getItems().setAll(TaskManager.getInstance().getTasks());
+    taskList.getItems().setAll(taskManager.getTasks());
   }
 
   @Override
-  public void onProgressTaskRemoved(List<GuiProgressBarHandling> updatedTaskList) {
+  public void onProgressTaskRemoved(GuiProgressBarHandling task) {
 
-    taskList.getItems().setAll(TaskManager.getInstance().getTasks());
+    taskList.getItems().setAll(taskManager.getTasks());
   }
 }

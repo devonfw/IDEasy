@@ -6,6 +6,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.ButtonType;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
@@ -14,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.modal.IdeDialog;
+import com.devonfw.ide.gui.progress.TaskManager;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.IdeVersion;
 
@@ -30,7 +32,8 @@ public class App extends Application {
   public void start(Stage primaryStage) throws IOException {
 
     Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
-          LOG.error("Uncaught exception in thread {}: {}", thread.getName(), throwable.getMessage(), throwable);
+          System.out.println("Uncaught exception in thread " + thread.getName() + ":" + throwable.getMessage());
+          throwable.printStackTrace();
           Platform.runLater(() -> new IdeDialog(IdeDialog.AlertType.ERROR, throwable.getMessage()).showAndWait());
         }
     );
@@ -49,6 +52,28 @@ public class App extends Application {
     primaryStage.setMinWidth(scene.getWidth());
     primaryStage.setMinHeight(scene.getHeight());
     primaryStage.show();
+
+    primaryStage.setOnCloseRequest(event -> {
+      LOG.info("Closing application");
+      if (!TaskManager.getInstance().getTasks().isEmpty()) {
+        IdeDialog closeConfirm = new IdeDialog(IdeDialog.AlertType.CONFIRMATION, "There are still running tasks. Are you sure you want to exit?",
+            ButtonType.CLOSE, ButtonType.CANCEL);
+        closeConfirm.showAndWait().ifPresent(response -> {
+          if (response == ButtonType.CLOSE) {
+            exitApplication();
+          } else {
+            event.consume();
+          }
+        });
+      } else {
+        exitApplication();
+      }
+    });
+  }
+
+  private void exitApplication() {
+    Platform.exit();
+    System.exit(0);
   }
 
 
