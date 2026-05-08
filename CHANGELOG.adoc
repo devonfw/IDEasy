@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/796[#796]: cannot install aws on Mac
 * https://github.com/devonfw/IDEasy/issues/1800[#1800]: IDEasy will automatically switch to IntelliJ standard edition when installing newer ultimate edition versions
 * https://github.com/devonfw/IDEasy/issues/1552[#1552]: User-defined MAVEN_ARGS appends and no longer overwrites IDEasy's defaults
 * https://github.com/devonfw/IDEasy/issues/1833[#1833]: No settings repo update with missing `.commit.id`
