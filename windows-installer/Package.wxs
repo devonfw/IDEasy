@@ -12,7 +12,7 @@
 			<Files Include="msi-files\**" />
       <Component Id="setEnv" Directory="INSTALLFOLDER" Guid="8bea8575-87ca-4847-8b8b-202b6e34901e">
         <CreateFolder/>
-        <Environment Id="IdeRoot" Name="IDE_ROOT" Value="[IDE_ROOT]" Permanent="yes" Action="set" System="no" />
+        <Environment Id="IdeRoot" Name="IDE_ROOT" Value="[IDE_ROOT]" Permanent="no" Action="set" System="no" />
       </Component>
 		</Feature>
 
@@ -51,7 +51,7 @@
     <!-- Execution of uninstall command-->
     <SetProperty
       Id="RunUninstallAction"
-			Value='"[%SystemFolder]cmd.exe" /c "[%IDE_ROOT]\_ide\installation\bin\ideasy.exe -ft --no-colors uninstall > [%IDE_ROOT]\uninstall.log 2>&amp;1"'
+      Value='"[%SystemFolder]cmd.exe" /v:on /c "cd /d &quot;[INSTALLFOLDER]&quot; &amp;&amp; (if not exist &quot;[%USERPROFILE]\.ide\logs&quot; mkdir &quot;[%USERPROFILE]\.ide\logs&quot;) &amp;&amp; set ts=%date:/=-%_%time::=-% &amp;&amp; set ts=!ts:,=-! &amp;&amp; bin\ideasy.exe -ft --no-colors uninstall &gt; &quot;[%USERPROFILE]\.ide\logs\uninstall-!ts!.log&quot; 2&gt;&amp;1"'
       Before="RunUninstallAction"
       Sequence="execute"
       />

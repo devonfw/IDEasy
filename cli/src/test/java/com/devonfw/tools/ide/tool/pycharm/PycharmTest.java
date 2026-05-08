@@ -181,7 +181,8 @@ class PycharmTest extends AbstractIdeContextTest {
 
   private void checkInstallation(IdeTestContext context) {
 
-    assertThat(context.getSoftwarePath().resolve("pycharm/.ide.software.version")).exists().hasContent("2024.3.5");
+    Pycharm commandlet = context.getCommandletManager().getCommandlet(Pycharm.class);
+    assertThat(commandlet.getInstalledVersion().toString()).isEqualTo("2024.3.5");
     assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed pycharm in version 2024.3.5");
     assertThat(context).logAtDebug().hasMessage("Omitting installation of inactive plugin InactivePlugin (inactivePlugin).");
     assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin ActivePlugin'.");
