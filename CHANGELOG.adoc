@@ -24,6 +24,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1456[#1456]: Uninstall via Windows settings not working
 * https://github.com/devonfw/IDEasy/issues/1688[#1688]: Remove unnecessary message in the CLI when installing a new tool
 * https://github.com/devonfw/IDEasy/issues/1685[#1685]: Add Nest CLI to IDEasy commandlets
+* https://github.com/devonfw/IDEasy/issues/1746[#1746]: Update JLine Version to fix ide shell issues
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/44?closed=1[milestone 2026.05.001].
 
