@@ -7,12 +7,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Writer;
-import java.net.URI;
 import java.net.http.HttpClient.Version;
 import java.net.http.HttpResponse;
-import java.nio.file.FileSystem;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystemException;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
@@ -29,10 +27,10 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
@@ -47,7 +45,9 @@ import org.apache.commons.compress.archivers.ArchiveOutputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
+import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.io.IOUtils;
@@ -80,8 +80,6 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   private static final String WINDOWS_FILE_LOCK_WARNING =
       "On Windows, file operations could fail due to file locks. Please ensure the files in the moved directory are not in use. For further details, see: \n"
           + WINDOWS_FILE_LOCK_DOCUMENTATION_PAGE;
-
-  private static final Map<String, String> FS_ENV = Map.of("encoding", "UTF-8");
 
   private final IdeContext context;
 
@@ -743,57 +741,74 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   public void extractZip(Path file, Path targetDir) {
 
     LOG.info("Extracting ZIP file {} to {}", file, targetDir);
-    if (SystemInfoImpl.INSTANCE.isMac()) {
-      extractZipWithSystemUnzip(file, targetDir);
-    } else {
-      extractZipWithJava(file, targetDir);
-    }
-  }
-
-  private void extractZipWithSystemUnzip(Path file, Path targetDir) {
-
-    mkdirs(targetDir);
-    ProcessContext pc = this.context.newProcess();
-    pc.executable("/usr/bin/unzip");
-    pc.addArgs("-o", "-q", file, "-d", targetDir);
-    pc.run();
+    extractZipWithJava(file, targetDir);
   }
 
   private void extractZipWithJava(Path file, Path targetDir) {
 
-    URI uri = URI.create("jar:" + file.toUri());
-    try (FileSystem fs = FileSystems.newFileSystem(uri, FS_ENV)) {
-      long size = 0;
-      for (Path root : fs.getRootDirectories()) {
-        size += getFileSizeRecursive(root);
-      }
-      try (final IdeProgressBar progressBar = this.context.newProgressbarForExtracting(size)) {
-        for (Path root : fs.getRootDirectories()) {
-          copy(root, targetDir, FileCopyMode.EXTRACT, (s, t, d) -> onFileCopiedFromZip(s, t, d, progressBar));
+    final List<PathLink> links = new ArrayList<>();
+    try (ZipFile zipFile = ZipFile.builder().setPath(file).get();
+        IdeProgressBar pb = this.context.newProgressbarForExtracting(getFileSize(file))) {
+
+      final Path root = targetDir.toAbsolutePath().normalize();
+      Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
+
+      while (entries.hasMoreElements()) {
+        ZipArchiveEntry entry = entries.nextElement();
+        String entryName = entry.getName();
+        Path entryPath = resolveRelativePathSecure(entryName, root);
+
+        if (isZipSymlink(entry)) {
+          try (InputStream entryStream = zipFile.getInputStream(entry)) {
+            String linkTarget = IOUtils.toString(entryStream, StandardCharsets.UTF_8);
+            Path parent = entryPath.getParent();
+            Path source = parent.resolve(linkTarget).normalize();
+            resolveRelativePathSecure(source, root, linkTarget);
+            links.add(new PathLink(source, entryPath, PathLinkType.SYMBOLIC_LINK));
+            mkdirs(parent);
+          }
+        } else if (entry.isDirectory()) {
+          mkdirs(entryPath);
+        } else {
+          mkdirs(entryPath.getParent());
+          try (InputStream entryStream = zipFile.getInputStream(entry)) {
+            Files.copy(entryStream, entryPath, StandardCopyOption.REPLACE_EXISTING);
+          }
+          onFileCopiedFromZip(entry, entryPath);
         }
+        pb.stepBy(Math.max(0L, entry.getSize()));
+      }
+
+      for (PathLink link : links) {
+        link(link);
       }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
     }
   }
 
-  @SuppressWarnings("unchecked")
-  private void onFileCopiedFromZip(Path source, Path target, boolean directory, IdeProgressBar progressBar) {
+  private static int getZipUnixMode(ZipArchiveEntry entry) {
 
-    if (directory) {
-      return;
-    }
+    return (int) ((entry.getExternalAttributes() >> 16) & 0xFFFF);
+  }
+
+  private static boolean isZipSymlink(ZipArchiveEntry entry) {
+
+    return (getZipUnixMode(entry) & 0xF000) == 0xA000; // Unix symlink file type
+  }
+
+  private void onFileCopiedFromZip(ZipArchiveEntry entry, Path target) {
+
     if (!this.context.getSystemInfo().isWindows()) {
       try {
-        Object attribute = Files.getAttribute(source, "zip:permissions");
-        if (attribute instanceof Set<?> permissionSet) {
-          Files.setPosixFilePermissions(target, (Set<PosixFilePermission>) permissionSet);
+        int unixMode = getZipUnixMode(entry);
+        if (unixMode != 0) {
+          Files.setPosixFilePermissions(target, PathPermissions.of(unixMode).toPosix());
         }
       } catch (Exception e) {
         LOG.error("Failed to transfer zip permissions for {}", target, e);
       }
     }
-    progressBar.stepBy(getFileSize(target));
   }
 
   @Override
@@ -1248,24 +1263,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     }
   }
 
-  private long getFileSizeRecursive(Path path) {
 
-    long size = 0;
-    if (Files.isDirectory(path)) {
-      try (Stream<Path> childStream = Files.list(path)) {
-        Iterator<Path> iterator = childStream.iterator();
-        while (iterator.hasNext()) {
-          Path child = iterator.next();
-          size += getFileSizeRecursive(child);
-        }
-      } catch (IOException e) {
-        throw new RuntimeException("Failed to iterate children of folder " + path, e);
-      }
-    } else {
-      size += getFileSize(path);
-    }
-    return size;
-  }
 
   @Override
   public Path findExistingFile(String fileName, List<Path> searchDirs) {

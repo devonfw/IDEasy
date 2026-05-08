@@ -562,6 +562,24 @@ class FileAccessImplTest extends AbstractIdeContextTest {
     assertThat(fileAccess.toRealPath(link)).isEqualTo(tempDir.resolve("file"));
   }
 
+  @Test
+  void testUnzipWithSymbolicLink(@TempDir Path tempDir) {
+
+    // arrange
+    WindowsSymlinkTestHelper.assumeSymlinksSupported();
+    IdeTestContext context = new IdeTestContext();
+    Path linkZip = Path.of("src/test/resources/com/devonfw/tools/ide/io/link.zip");
+    FileAccess fileAccess = context.getFileAccess();
+
+    // act
+    fileAccess.extractZip(linkZip, tempDir);
+
+    // assert
+    Path link = tempDir.resolve("link");
+    assertThat(link).hasContent("hi");
+    assertThat(fileAccess.toRealPath(link)).isEqualTo(tempDir.resolve("file"));
+  }
+
   /**
    * Test of {@link FileAccessImpl#generatePermissionString(int)}.
    */
