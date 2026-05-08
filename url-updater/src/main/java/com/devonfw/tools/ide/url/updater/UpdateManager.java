@@ -4,6 +4,8 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
 
+import com.devonfw.tools.ide.url.tool.inso.InsoUrlUpdater;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,7 +70,7 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
       new DotNetUrlUpdater(),
       new EclipseCppUrlUpdater(), new EclipseJeeUrlUpdater(), new EclipseJavaUrlUpdater(), new GCloudUrlUpdater(),
       new GcViewerUrlUpdater(), new GhUrlUpdater(), new GoUrlUpdater(), new GraalVmCommunityUpdater(), new GraalVmOracleUrlUpdater(),
-      new GradleUrlUpdater(), new HelmUrlUpdater(), new IntellijUrlUpdater(), new JasyptUrlUpdater(),
+      new GradleUrlUpdater(), new HelmUrlUpdater(),new InsoUrlUpdater(), new IntellijUrlUpdater(), new JasyptUrlUpdater(),
       new JavaUrlUpdater(), new JenkinsUrlUpdater(), new JmcUrlUpdater(), new KotlincUrlUpdater(),
       new KotlincNativeUrlUpdater(), new LazyDockerUrlUpdater(), new MvnUrlUpdater(),
       new NgUrlUpdater(), new NodeUrlUpdater(), new NpmUrlUpdater(), new OcUrlUpdater(), new PgAdminUrlUpdater(), new PipUrlUpdater(), new PycharmUrlUpdater(),
