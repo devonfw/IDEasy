@@ -59,11 +59,12 @@ public class InsoUrlUpdater extends GithubUrlTagUpdater {
     VersionIdentifier vid = urlVersion.getVersionIdentifier();
 
     if (vid.compareVersion(MIN_INSO_VID).isGreater()) {
-      //TODO: Refactor with createGithubReleaseDownloadUrl after pulling from main
-     String baseUrl = getDownloadBaseUrl() + "/Kong/insomnia/releases/download/core@${version}/inso-";
 
-    doAddVersion(urlVersion, baseUrl + "linux-x64-${version}.tar.xz", LINUX);
-    doAddVersion(urlVersion, baseUrl + "macos-${version}.zip", MAC);
-    doAddVersion(urlVersion, baseUrl + "windows-${version}.zip", WINDOWS);}
+      String baseUrl = createGithubReleaseDownloadUrl("core@${version}", "inso-");
+
+      doAddVersion(urlVersion, baseUrl + "linux-x64-${version}.tar.xz", LINUX);
+      doAddVersion(urlVersion, baseUrl + "macos-${version}.zip", MAC);
+      doAddVersion(urlVersion, baseUrl + "windows-${version}.zip", WINDOWS);
+    }
   }
 }
