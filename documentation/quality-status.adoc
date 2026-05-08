@@ -32,16 +32,16 @@ OS section.
 |===
 | Scope | Total | Blockers | Bugs | Enhancements
 
-| All platforms (deduplicated) | 137 | 1 | 57 | 79
-| Unassigned (no label match)  | 49 | — | — | —
+| All platforms (deduplicated) | 138 | 1 | 58 | 79
+| Unassigned (no label match)  | 52 | — | — | —
 |===
 
-_Generated: 2026-05-06 11:55 UTC_
+_Generated: 2026-05-08 06:27 UTC_
 
 
 == Bugs and Blockers
 
-All open bugs and blockers across all platforms — 1 blocker(s), 66 bug(s).
+All open bugs and blockers across all platforms — 1 blocker(s), 68 bug(s).
 
 NOTE: Issues without an OS label are cross-platform and marked with a checkmark in every OS column.
 
@@ -448,6 +448,14 @@ NOTE: Issues without an OS label are cross-platform and marked with a checkmark 
 | ✓
 | ✓
 
+| link:https://github.com/devonfw/IDEasy/issues/1512[#1512]
+| 🔴 Bug
+| IntelliJ IDEA
+| Cannot run Intellij on Mac due to file permission error
+| —
+| —
+| ✓
+
 | link:https://github.com/devonfw/IDEasy/issues/1517[#1517]
 | 🔴 Bug
 | ide install
@@ -584,6 +592,14 @@ NOTE: Issues without an OS label are cross-platform and marked with a checkmark 
 | ✓
 | ✓
 
+| link:https://github.com/devonfw/IDEasy/issues/1901[#1901]
+| 🔴 Bug
+| Unassigned
+| HelpCommandletTest.testIcdHelp fails on german systems
+| ✓
+| ✓
+| ✓
+
 |===
 
 == Commandlets and Core Features
@@ -608,14 +624,16 @@ NOTE: Components with no open issues are omitted. OS-specific issues are tagged 
 🟡 link:https://github.com/devonfw/IDEasy/issues/1594[#1594] implement ReleaseCommandlet +
 🟡 link:https://github.com/devonfw/IDEasy/issues/1821[#1821] Back up and restore user state before/after integration tests +
 🟡 link:https://github.com/devonfw/IDEasy/issues/1867[#1867] Create Claude commandlet +
-🟡 link:https://github.com/devonfw/IDEasy/issues/1868[#1868] Revision of the functionality of global tool commandlets
+🟡 link:https://github.com/devonfw/IDEasy/issues/1868[#1868] Revision of the functionality of global tool commandlets +
+🟡 link:https://github.com/devonfw/IDEasy/issues/1902[#1902] Create InsoUrlUpdater +
+🟡 link:https://github.com/devonfw/IDEasy/issues/1903[#1903] Create Inso Commandlet
 
 | Core / Runtime
 | 🔴 Bug
 | 🔴 link:https://github.com/devonfw/IDEasy/issues/1041[#1041] native image has globbing active +
 🔴 link:https://github.com/devonfw/IDEasy/issues/1054[#1054] Incorrect interpretation of trailling and leading spaces in version rang … +
-🟡 link:https://github.com/devonfw/IDEasy/issues/871[#871] [macOS] Add progressbar to *.dmg extract process +
-🟡 link:https://github.com/devonfw/IDEasy/issues/1512[#1512] [macOS] Cannot run Intellij on Mac due to file permission error
+🔴 link:https://github.com/devonfw/IDEasy/issues/1512[#1512] [macOS] Cannot run Intellij on Mac due to file permission error +
+🟡 link:https://github.com/devonfw/IDEasy/issues/871[#871] [macOS] Add progressbar to *.dmg extract process
 
 | ide install
 | 🔴 Bug
@@ -747,8 +765,7 @@ NOTE: Components with no open issues are omitted. OS-specific issues are tagged 
 3+^h| Infrastructure
 | Proxy / Network
 | 🔴 Bug
-|  +
-🔴 link:https://github.com/devonfw/IDEasy/issues/897[#897] HTTP Proxy with TLS termination causing errors
+| 🔴 link:https://github.com/devonfw/IDEasy/issues/897[#897] HTTP Proxy with TLS termination causing errors
 
 | Security / Credentials
 | 🔴 Bug
@@ -771,8 +788,7 @@ NOTE: Components with no open issues are omitted. OS-specific issues are tagged 
 
 | Workspace management
 | 🟡 Enhancement
-|  +
-🟡 link:https://github.com/devonfw/IDEasy/issues/735[#735] Enhance workspace configuration with generic overlay from settings/works …
+| 🟡 link:https://github.com/devonfw/IDEasy/issues/735[#735] Enhance workspace configuration with generic overlay from settings/works …
 
 
 3+^h| Plugin Management
@@ -791,12 +807,11 @@ NOTE: Components with no open issues are omitted. OS-specific issues are tagged 
 3+^h| Observability
 | Logging / Debug output
 | 🟡 Enhancement
-| 🟡 link:https://github.com/devonfw/IDEasy/issues/1688[#1688] Remove unnecessary message in the CLI when installing a new tool +
-🟡 link:https://github.com/devonfw/IDEasy/issues/1689[#1689] Fix user commnication when switching the Java version from the default t …
+| 🟡 link:https://github.com/devonfw/IDEasy/issues/1689[#1689] Fix user commnication when switching the Java version from the default t …
 
 |===
 
-== Windows Tools — 0 blocker(s), 21 bug(s), 39 enhancement(s)
+== Windows Tools — 0 blocker(s), 21 bug(s), 41 enhancement(s)
 
 Open issues labelled `windows` or without any OS label (cross-platform issues appear in every OS section).
 
@@ -932,7 +947,7 @@ NOTE: Components with no open issues are omitted from this table.
 
 |===
 
-== Linux Tools — 0 blocker(s), 22 bug(s), 42 enhancement(s)
+== Linux Tools — 0 blocker(s), 22 bug(s), 44 enhancement(s)
 
 Open issues labelled `linux` or without any OS label (cross-platform issues appear in every OS section).
 
@@ -1070,7 +1085,7 @@ NOTE: Components with no open issues are omitted from this table.
 
 |===
 
-== macOS Tools — 0 blocker(s), 30 bug(s), 41 enhancement(s)
+== macOS Tools — 0 blocker(s), 31 bug(s), 42 enhancement(s)
 
 Open issues labelled `macOS` or without any OS label (cross-platform issues appear in every OS section).
 
@@ -1151,8 +1166,8 @@ NOTE: Components with no open issues are omitted from this table.
 | 🔴 link:https://github.com/devonfw/IDEasy/issues/120[#120] intellij does not use our settings when we create a new project within i … +
 🔴 link:https://github.com/devonfw/IDEasy/issues/717[#717] IDEasy does not start Intellij if license was not accepted +
 🔴 link:https://github.com/devonfw/IDEasy/issues/1501[#1501] Starting intellij leads to error popup +
-🟡 link:https://github.com/devonfw/IDEasy/issues/992[#992] Support multiple attributes for merge:id +
-🟡 link:https://github.com/devonfw/IDEasy/issues/1512[#1512] Cannot run Intellij on Mac due to file permission error
+🔴 link:https://github.com/devonfw/IDEasy/issues/1512[#1512] Cannot run Intellij on Mac due to file permission error +
+🟡 link:https://github.com/devonfw/IDEasy/issues/992[#992] Support multiple attributes for merge:id
 
 | Java (JDK)
 | 🟡 Enhancement
@@ -1220,7 +1235,7 @@ NOTE: Components with no open issues are omitted from this table.
 
 == Unassigned Issues
 
-49 issue(s) matched no known tool or commandlet label. Apply the appropriate label on GitHub, or add an entry to ``TOOLS``, ``COMMANDLETS``, or their ``labels`` list in this script.
+52 issue(s) matched no known tool or commandlet label. Apply the appropriate label on GitHub, or add an entry to ``TOOLS``, ``COMMANDLETS``, or their ``labels`` list in this script.
 
 [%header, cols="^1,4,3"]
 |===
@@ -1419,7 +1434,19 @@ NOTE: Components with no open issues are omitted from this table.
 
 | link:https://github.com/devonfw/IDEasy/issues/1893[#1893]
 | Fix Failing Integration Tests workflow
-| integration-tests
+| internal, integration-tests, ready-to-implement
+
+| link:https://github.com/devonfw/IDEasy/issues/1901[#1901]
+| HelpCommandletTest.testIcdHelp fails on german systems
+| test
+
+| link:https://github.com/devonfw/IDEasy/issues/1904[#1904]
+| Create Inso commandlet
+| enhancement
+
+| link:https://github.com/devonfw/IDEasy/issues/1905[#1905]
+| Create InsoUrlUpdater
+| enhancement
 
 |===
 
