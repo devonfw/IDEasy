@@ -70,7 +70,7 @@ class HelpCommandletTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = IdeTestContext.of();
-    context.getStartContext().setLocale(Locale.ENGLISH);
+    context.getStartContext().setLocale(Locale.ROOT);
     HelpCommandlet help = new HelpCommandlet(context);
 
     // act
