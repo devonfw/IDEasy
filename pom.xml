@@ -30,7 +30,7 @@
     <native.maven.plugin.version>0.10.6</native.maven.plugin.version>
     <assembly.maven.plugin.version>3.7.1</assembly.maven.plugin.version>
     <build.helper.maven.plugin.version>3.6.1</build.helper.maven.plugin.version>
-    <graalvm.version>24.2.1</graalvm.version>
+    <graalvm.version>25.0.3</graalvm.version>
     <gui.relative_pom_path>gui</gui.relative_pom_path>
   </properties>
 

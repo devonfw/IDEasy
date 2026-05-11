@@ -21,11 +21,14 @@ import com.devonfw.tools.ide.merge.xml.XmlMergeDocument;
 import com.devonfw.tools.ide.merge.xml.XmlMerger;
 import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.ToolEdition;
+import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeaBasedIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * {@link IdeToolCommandlet} for <a href="https://www.jetbrains.com/idea/">IntelliJ</a>.
@@ -33,6 +36,8 @@ import com.devonfw.tools.ide.tool.mvn.Mvn;
 public class Intellij extends IdeaBasedIdeToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Intellij.class);
+
+  private static final VersionIdentifier INTELLIJ_LAST_SEPARATE_VERSION = VersionIdentifier.of("2025.2.6.1");
 
   private static final String IDEA = "idea";
 
@@ -84,6 +89,36 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
     super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
     environmentContext.withEnvVar("IDEA_PROPERTIES", this.context.getWorkspacePath().resolve(IDEA_PROPERTIES).toString());
+  }
+
+  @Override
+  protected ToolEditionAndVersion adjustRequestedEdition(ToolEditionAndVersion requested) {
+
+    ToolEdition edition = requested.getEdition();
+    // Check if edition is set as "ultimate"
+    if ("ultimate".equals(edition.edition())) {
+      
+      VersionIdentifier version;
+      if (requested.getVersion() != null) {
+        version = VersionIdentifier.of(requested.getVersion().toString());
+      } else {
+        version = getConfiguredVersion();
+      }
+      // Check whether set version warrants switching editions
+      if ((version.isGreater(INTELLIJ_LAST_SEPARATE_VERSION)) || // Specified version is > 2025.2.6.1 **OR** no specified version but configured version is > 2025.2.6.1
+        (VersionIdentifier.LATEST.equals(version)) || // No version specified and no configured version
+        (VersionIdentifier.LATEST_UNSTABLE.equals(version))) { // No version specified and no configured version
+        // Switching to IntelliJ Standard edition
+        LOG.warn("""
+                 Notice: You have configured IDEasy to use the IntelliJ Ultimate Edition. Since version 2025.3, the Ultimate and Community editions of IntelliJ have been unified into a single edition.
+                 Since you are attempting to install a version of IntelliJ that is 2025.3 or newer, we are automatically switching your edition to the unified edition to ensure compatibility.
+                 To specifically install the last true ultimate version of IntelliJ, please run "ide install intellij 2025.2.6.1".
+                 Otherwise, we recommend permanently switching to the unified edition by running "ide set-edition intellij intellij".""");
+        edition = new ToolEdition(this.tool, "intellij");
+        requested.replaceEdition(edition);
+      }
+    }
+    return requested;
   }
 
   private EnvironmentVariables getIntellijEnvironmentVariables(Path projectPath) {
