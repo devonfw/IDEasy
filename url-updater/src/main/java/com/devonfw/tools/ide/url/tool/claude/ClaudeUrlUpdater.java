@@ -1,21 +1,16 @@
 package com.devonfw.tools.ide.url.tool.claude;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlReleaseUpdater;
+import com.devonfw.tools.ide.version.VersionComparisonResult;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link GithubUrlTagUpdater} for GitHub Claude Code CLI.
- * <p>
- * Follows the official installation structure from GitHub's claude-code repository: https://github.com/anthropics/claude-code.
- * <p>
- * Download URL pattern: https://github.com/anthropics/claude-code/releases/download/v${VERSION}/claude-${PLATFORM}-${ARCH}.tar.gz
+ * {@link GithubUrlReleaseUpdater} for Claude Code CLI.
  */
-public class ClaudeUrlUpdater extends GithubUrlTagUpdater {
+public class ClaudeUrlUpdater extends GithubUrlReleaseUpdater {
 
   private static final VersionIdentifier MIN_CLAUDE_VID = VersionIdentifier.of("2.1.117");
-  private static final VersionIdentifier EXCLUDED_VERSION = VersionIdentifier.of("2.1.120");
-
 
   @Override
   public String getTool() {
@@ -36,8 +31,9 @@ public class ClaudeUrlUpdater extends GithubUrlTagUpdater {
   protected void addVersion(UrlVersion urlVersion) {
     String baseUrl = createGithubReleaseDownloadUrl("v${version}", "claude-");
     VersionIdentifier vid = urlVersion.getVersionIdentifier();
+    VersionComparisonResult versionComparisonResult = vid.compareVersion(MIN_CLAUDE_VID);
 
-    if (vid.compareVersion(MIN_CLAUDE_VID).isGreater() && !vid.compareVersion(EXCLUDED_VERSION).isEqual()) {
+    if (versionComparisonResult.isEqual() || versionComparisonResult.isGreater()) {
 
       doAddVersion(urlVersion, baseUrl + "linux-x64.tar.gz", LINUX, X64);
       doAddVersion(urlVersion, baseUrl + "linux-arm64.tar.gz", LINUX, ARM64);

@@ -33,8 +33,8 @@ class ClaudeUrlUpdaterTest extends AbstractUrlUpdaterTest {
   @Test
   void testClaudeUrlUpdater(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     // arrange
-    stubFor(get(urlMatching("/repos/anthropics/claude-code/git/refs/tags")).willReturn(aResponse().withStatus(200)
-        .withBody(readAndResolve(PATH_INTEGRATION_TEST.resolve("ClaudeUrlUpdater").resolve("claude-tags.json"), wmRuntimeInfo))));
+    stubFor(get(urlMatching("/repos/anthropics/claude-code/releases")).willReturn(aResponse().withStatus(200)
+        .withBody(readAndResolve(PATH_INTEGRATION_TEST.resolve("ClaudeUrlUpdater").resolve("claude-releases.json"), wmRuntimeInfo))));
 
     stubFor(any(urlMatching("/anthropics/claude-code/releases/download/.*")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
@@ -49,5 +49,3 @@ class ClaudeUrlUpdaterTest extends AbstractUrlUpdaterTest {
     assertUrlVersionOsX64(claudeDir.resolve("2.1.118"));
   }
 }
-
-
