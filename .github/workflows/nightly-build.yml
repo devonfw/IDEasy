@@ -20,7 +20,7 @@ jobs:
           submodules: recursive
       - uses: graalvm/setup-graalvm@v1
         with:
-          java-version: '25.0.1'
+          java-version: '25'
           distribution: 'graalvm-community'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
@@ -56,7 +56,7 @@ jobs:
           wix extension add WixToolset.UI.wixext/5.0.2
           wix extension add WixToolset.Util.wixext/5.0.2
           wix build Package.wxs WixUI_IDEasySetup.wxs -loc Package.en-us.wxl -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext -o ideasy.msi
-          
+
       - name: Upload unsigned MSI
         if: runner.os == 'Windows'
         id: upload-msi
