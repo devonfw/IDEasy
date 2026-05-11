@@ -47,9 +47,11 @@ import org.apache.commons.compress.archivers.ArchiveOutputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.apache.commons.compress.compressors.gzip.GzipParameters;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -980,7 +982,9 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   @Override
   public void compressTarGz(Path dir, OutputStream out) {
 
-    try (GzipCompressorOutputStream gzOut = new GzipCompressorOutputStream(out)) {
+    GzipParameters parameters = new GzipParameters();
+    parameters.setModificationTime(0);
+    try (GzipCompressorOutputStream gzOut = new GzipCompressorOutputStream(out, parameters)) {
       compressTarOrThrow(dir, gzOut);
     } catch (IOException e) {
       throw new IllegalStateException("Failed to compress directory " + dir + " to tar.gz file.", e);
@@ -1028,15 +1032,15 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
 
   private <E extends ArchiveEntry> void compressRecursive(Path path, ArchiveOutputStream<E> out, String relativePath) {
 
-    try (Stream<Path> childStream = Files.list(path)) {
+    try (Stream<Path> childStream = Files.list(path).sorted()) {
       Iterator<Path> iterator = childStream.iterator();
       while (iterator.hasNext()) {
         Path child = iterator.next();
         String relativeChildPath = relativePath + "/" + child.getFileName().toString();
         boolean isDirectory = Files.isDirectory(child);
         E archiveEntry = out.createArchiveEntry(child, relativeChildPath);
+        FileTime none = FileTime.fromMillis(0);
         if (archiveEntry instanceof TarArchiveEntry tarEntry) {
-          FileTime none = FileTime.fromMillis(0);
           tarEntry.setCreationTime(none);
           tarEntry.setModTime(none);
           tarEntry.setLastAccessTime(none);
@@ -1047,6 +1051,11 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
           tarEntry.setGroupName("group");
           PathPermissions filePermissions = getFilePermissions(child);
           tarEntry.setMode(filePermissions.toMode());
+        } else if (archiveEntry instanceof ZipArchiveEntry zipEntry) {
+          zipEntry.setCreationTime(none);
+          zipEntry.setLastAccessTime(none);
+          zipEntry.setLastModifiedTime(none);
+          zipEntry.setTime(none);
         }
         out.putArchiveEntry(archiveEntry);
         if (!isDirectory) {
