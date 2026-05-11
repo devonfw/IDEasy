@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
+import org.junit.jupiter.api.io.CleanupMode;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
@@ -563,7 +564,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
   }
 
   @Test
-  void testUnzipWithSymbolicLink(@TempDir Path tempDir) {
+  void testUnzipWithSymbolicLink(@TempDir(cleanup = CleanupMode.NEVER) Path tempDir) {
 
     // arrange
     WindowsSymlinkTestHelper.assumeSymlinksSupported();
@@ -578,6 +579,27 @@ class FileAccessImplTest extends AbstractIdeContextTest {
     Path link = tempDir.resolve("link");
     assertThat(link).hasContent("hi");
     assertThat(fileAccess.toRealPath(link)).isEqualTo(tempDir.resolve("file"));
+  }
+
+  /**
+   * Test of {@link FileAccessImpl#extractZip(Path, Path)} and checks if file permissions are preserved on Unix.
+   */
+  @Test
+  void testUnzipWithFilePermissions(@TempDir(cleanup = CleanupMode.NEVER) Path tempDir) {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    if (context.getSystemInfo().isWindows()) {
+      return;
+    }
+
+    // act
+    context.getFileAccess()
+        .extractZip(Path.of("src/test/resources/com/devonfw/tools/ide/io/executable_and_non_executable.zip"), tempDir);
+
+    // assert
+    assertPosixFilePermissions(tempDir.resolve("executableFile.txt"), "rwxrwxr-x");
+    assertPosixFilePermissions(tempDir.resolve("nonExecutableFile.txt"), "rw-rw-r--");
   }
 
   /**

@@ -744,6 +744,20 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     extractZipWithJava(file, targetDir);
   }
 
+  /**
+   * Extracts a ZIP archive to the given target directory using Java (commons-compress {@link ZipFile}).
+   * <p>
+   * Symlinks are handled in a two-phase approach: all regular files and directories are written first, and symlinks are
+   * collected and created afterwards. This ensures every symlink target already exists on disk before the link is made.
+   * <p>
+   * {@link ZipFile} is used instead of {@link org.apache.commons.compress.archivers.zip.ZipArchiveInputStream} because
+   * Unix file attributes (needed for symlink detection and permission restoration) are stored in the ZIP central
+   * directory at the end of the file. A sequential stream only sees the local file headers, where external attributes
+   * are always zero. {@link ZipFile} reads the central directory via random access, so attributes are always correct.
+   *
+   * @param file the ZIP archive to extract.
+   * @param targetDir the directory to extract into.
+   */
   private void extractZipWithJava(Path file, Path targetDir) {
 
     final List<PathLink> links = new ArrayList<>();
@@ -760,6 +774,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
 
         if (isZipSymlink(entry)) {
           try (InputStream entryStream = zipFile.getInputStream(entry)) {
+            // For symlink entries the file content IS the link target path (Unix zip convention).
             String linkTarget = IOUtils.toString(entryStream, StandardCharsets.UTF_8);
             Path parent = entryPath.getParent();
             Path source = parent.resolve(linkTarget).normalize();
@@ -779,6 +794,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
         pb.stepBy(Math.max(0L, entry.getSize()));
       }
 
+      // Phase 2: create all symlinks now that their targets are guaranteed to exist.
       for (PathLink link : links) {
         link(link);
       }
@@ -787,16 +803,57 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     }
   }
 
+  /**
+   * Returns the Unix file mode stored in the external file attributes of the given ZIP entry.
+   * <p>
+   * The ZIP specification stores platform-specific metadata in a 32-bit external-attributes field. When the archive was
+   * created on a Unix system the layout is:
+   * <ul>
+   *   <li>bits 31–16 (upper 16 bits): Unix file mode (same bit layout as {@code stat.st_mode})</li>
+   *   <li>bits 15–0 (lower 16 bits): MS-DOS attributes (read-only, hidden, …)</li>
+   * </ul>
+   * Shifting right by 16 and masking with {@code 0xFFFF} isolates the Unix mode.
+   *
+   * @param entry the ZIP entry to read.
+   * @return the Unix file mode, or {@code 0} if no Unix attributes are present.
+   */
   private static int getZipUnixMode(ZipArchiveEntry entry) {
 
+    // Right-shift by 16 to move the upper 16 bits (Unix mode) into the lower 16 bits, then
+    // mask with 0xFFFF to discard any sign-extended bits introduced by the cast.
     return (int) ((entry.getExternalAttributes() >> 16) & 0xFFFF);
   }
 
+  /**
+   * Returns {@code true} if the given ZIP entry represents a symbolic link.
+   * <p>
+   * Unix file modes encode the file type in the top 4 bits (bits 15–12) of the mode word. The possible file-type
+   * values are defined in {@code <sys/stat.h>}:
+   * <ul>
+   *   <li>{@code 0x8000} – regular file ({@code S_IFREG})</li>
+   *   <li>{@code 0x4000} – directory ({@code S_IFDIR})</li>
+   *   <li>{@code 0xA000} – symbolic link ({@code S_IFLNK})</li>
+   * </ul>
+   * Masking with {@code 0xF000} isolates those top 4 bits and comparing against {@code 0xA000} identifies symlinks.
+   *
+   * @param entry the ZIP entry to test.
+   * @return {@code true} if the entry is a symbolic link, {@code false} otherwise.
+   */
   private static boolean isZipSymlink(ZipArchiveEntry entry) {
 
-    return (getZipUnixMode(entry) & 0xF000) == 0xA000; // Unix symlink file type
+    // 0xF000 masks the file-type nibble; 0xA000 is the Unix S_IFLNK constant.
+    return (getZipUnixMode(entry) & 0xF000) == 0xA000;
   }
 
+  /**
+   * Applies Unix file permissions stored in a ZIP entry to the extracted file.
+   * <p>
+   * Permissions are only applied on non-Windows systems because POSIX permission bits have no equivalent on Windows.
+   * If the entry carries no Unix attributes (mode is {@code 0}), the call is a no-op.
+   *
+   * @param entry the source ZIP entry carrying the Unix mode.
+   * @param target the extracted file whose permissions should be updated.
+   */
   private void onFileCopiedFromZip(ZipArchiveEntry entry, Path target) {
 
     if (!this.context.getSystemInfo().isWindows()) {
