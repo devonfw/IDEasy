@@ -83,7 +83,7 @@ public final class LnCommandlet extends Commandlet {
     if (this.symbolic.isTrue()) {
       Path target = Path.of(this.source.getValue());
       boolean relative = !target.isAbsolute();
-      this.context.getFileAccess().link(target, linkPath, relative, PathLinkType.SYMBOLIC_LINK, this.context.isForceMode());
+      this.context.getFileAccess().link(target, linkPath, relative, PathLinkType.SYMBOLIC_LINK);
     } else {
       this.context.getFileAccess().link(resolvedSource, linkPath, false, PathLinkType.HARD_LINK, this.context.isForceMode());
     }
