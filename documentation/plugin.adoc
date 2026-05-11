@@ -27,6 +27,7 @@ For all JetBrains based IDEs like `IntelliJ` simply open `Settings`, navigate to
 For `Eclipse` this is the technical ID of the plugin(s) and/or feature(s) to install as comma separated list. You still need to configure an `url` for `Eclipse`.
 For `VisualStudio Code`,  this is the extension ID you can directly get from the URL parameter of the marketplace such as https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-java-pack[vscjava.vscode-java-pack].
 |`url`|Eclipse Update-Site URL|(optional) Only required for Eclipse to specify the URL of the update-site where the metadata and plugin can be downloaded from.
+|`version`|e.g. `1.2.3`|(optional) Plugin version to install. If omitted, IDEasy installs the latest version available.
 |`active`|`true`|(optional) `true` to tell IDEasy that this plugin shall be installed automatically for everybody in your team. Default is `false`. If not auto-installed, it can still be installed via `ide install-plugin «ide» «plugin»`.
 |`tags`|e.g. `java,spring,ai`|(optional) Tags to classify the plugin. Will be used by the GUI of IDEasy for selection by tag.
 |===

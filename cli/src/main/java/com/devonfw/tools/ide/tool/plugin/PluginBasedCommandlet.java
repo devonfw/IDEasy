@@ -183,10 +183,19 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
    */
   public Path retrievePluginMarkerFilePath(ToolPluginDescriptor plugin) {
     if (this.context.getIdeHome() != null) {
-      return this.context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE)
-          .resolve("plugin" + "." + getName() + "." + getInstalledEdition() + "." + plugin.name());
+      String markerFileName = "plugin" + "." + getName() + "." + getInstalledEdition() + "." + plugin.name();
+      String version = plugin.version();
+      if ((version != null) && !version.isBlank()) {
+        markerFileName = markerFileName + ".version-" + normalizeMarkerFileSegment(version);
+      }
+      return this.context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve(markerFileName);
     }
     return null;
+  }
+
+  private String normalizeMarkerFileSegment(String value) {
+    // replace all characters that are not allowed in filenames with "_"
+    return value.replaceAll("[^A-Za-z0-9._-]", "_");
   }
 
   /**
@@ -199,7 +208,24 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     if (pluginMarkerFilePath != null) {
       FileAccess fileAccess = this.context.getFileAccess();
       fileAccess.mkdirs(pluginMarkerFilePath.getParent());
+      deleteExistingPluginMarkerFiles(fileAccess, plugin, pluginMarkerFilePath);
       fileAccess.touch(pluginMarkerFilePath);
+    }
+  }
+
+  private void deleteExistingPluginMarkerFiles(FileAccess fileAccess, ToolPluginDescriptor plugin, Path currentMarkerFilePath) {
+
+    String markerFilePrefix = "plugin" + "." + getName() + "." + getInstalledEdition() + "." + plugin.name();
+    List<Path> markerFiles = fileAccess.listChildren(currentMarkerFilePath.getParent(),
+        p -> {
+          String fileName = p.getFileName().toString();
+          return Files.isRegularFile(p) && (fileName.equals(markerFilePrefix) || fileName.startsWith(markerFilePrefix + ".version-"));
+        });
+    for (Path markerFile : markerFiles) {
+      if (!markerFile.equals(currentMarkerFilePath)) {
+        fileAccess.delete(markerFile);
+        LOG.debug("Deleted stale plugin marker file {} before creating {}.", markerFile, currentMarkerFilePath);
+      }
     }
   }
 
