@@ -10,12 +10,17 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.ide.gui.progress.GuiProgressBarHandling;
 
 /**
  * Cell factory for displaying a list of tasks in the {@link TaskOverviewWindow}
  */
 public class TaskWindowCellFactory implements Callback<ListView<GuiProgressBarHandling>, ListCell<GuiProgressBarHandling>> {
+
+  private static final Logger LOG = LoggerFactory.getLogger(TaskWindowCellFactory.class);
 
   @Override
   public ListCell<GuiProgressBarHandling> call(ListView<GuiProgressBarHandling> param) {
@@ -36,11 +41,10 @@ public class TaskWindowCellFactory implements Callback<ListView<GuiProgressBarHa
       public void updateItem(GuiProgressBarHandling progressTask, boolean empty) {
 
         if (empty || progressTask == null) {
-
           setText(null);
           setGraphic(null);
         } else {
-          System.out.println("update cell");
+          LOG.debug("update cell");
 
           titleLabel.setText(
               getLabelValueFormatted(progressTask.getTitle(), progressTask.getCurrentProgress(), progressTask.getMaxSize(), progressTask.getUnitName()));
