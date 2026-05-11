@@ -1,5 +1,6 @@
 package com.devonfw.ide.gui.progress.taskwindow;
 
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
@@ -13,17 +14,17 @@ import javafx.util.Callback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.ide.gui.progress.GuiProgressBarHandling;
+import com.devonfw.ide.gui.progress.ProgressBarTask;
 
 /**
  * Cell factory for displaying a list of tasks in the {@link TaskOverviewWindow}
  */
-public class TaskWindowCellFactory implements Callback<ListView<GuiProgressBarHandling>, ListCell<GuiProgressBarHandling>> {
+public class TaskWindowCellFactory implements Callback<ListView<ProgressBarTask>, ListCell<ProgressBarTask>> {
 
   private static final Logger LOG = LoggerFactory.getLogger(TaskWindowCellFactory.class);
 
   @Override
-  public ListCell<GuiProgressBarHandling> call(ListView<GuiProgressBarHandling> param) {
+  public ListCell<ProgressBarTask> call(ListView<ProgressBarTask> param) {
     return new ListCell<>() {
 
       final ProgressBar progressBar = new ProgressBar();
@@ -38,27 +39,29 @@ public class TaskWindowCellFactory implements Callback<ListView<GuiProgressBarHa
       }
 
       @Override
-      public void updateItem(GuiProgressBarHandling progressTask, boolean empty) {
+      public void updateItem(ProgressBarTask progressTask, boolean empty) {
 
-        if (empty || progressTask == null) {
-          setText(null);
-          setGraphic(null);
-        } else {
-          LOG.debug("update cell");
+        Platform.runLater(() -> {
+          if (empty || progressTask == null) {
+            setText(null);
+            setGraphic(null);
+          } else {
+            LOG.debug("update cell");
 
-          titleLabel.setText(
-              getLabelValueFormatted(progressTask.getTitle(), progressTask.getCurrentProgress(), progressTask.getMaxSize(), progressTask.getUnitName()));
+            titleLabel.setText(
+                getLabelValueFormatted(progressTask.getTitle(), progressTask.getCurrentProgress(), progressTask.getMaxSize(), progressTask.getUnitName()));
 
-          if (progressTask.isIndeterminate() && !progressBar.isIndeterminate()) {
-            progressBar.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
-          } else if (!progressTask.isIndeterminate()) {
-            progressBar.setProgress((double) progressTask.getCurrentProgress() / progressTask.getMaxSize());
+            if (progressTask.isIndeterminate() && !progressBar.isIndeterminate()) {
+              progressBar.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
+            } else if (!progressTask.isIndeterminate()) {
+              progressBar.setProgress((double) progressTask.getCurrentProgress() / progressTask.getMaxSize());
+            }
+
+            progressBar.setMaxWidth(Double.MAX_VALUE);
+
+            setGraphic(root);
           }
-
-          progressBar.setMaxWidth(Double.MAX_VALUE);
-
-          setGraphic(root);
-        }
+        });
       }
     };
   }

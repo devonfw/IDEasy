@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.nio.file.Path;
 import java.util.List;
 import javafx.application.Platform;
+import javafx.collections.ListChangeListener;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -17,15 +18,14 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
 import com.devonfw.ide.gui.context.ProjectManager;
 import com.devonfw.ide.gui.modal.IdeDialog;
-import com.devonfw.ide.gui.progress.GuiProgressBarHandling;
+import com.devonfw.ide.gui.progress.ProgressBarTask;
 import com.devonfw.ide.gui.progress.TaskManager;
-import com.devonfw.ide.gui.progress.TaskManager.ProgressListener;
 import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindow;
 
 /**
  * Controller of the main screen of the dashboard GUI.
  */
-public class MainController implements ProgressListener {
+public class MainController {
 
   private static Logger LOG = LoggerFactory.getLogger(MainController.class);
 
@@ -69,7 +69,30 @@ public class MainController implements ProgressListener {
     LOG.debug("IDE_ROOT path={}", directoryPath);
     this.directoryPath = directoryPath;
 
-    TaskManager.getInstance().addListener(this);
+    ListChangeListener<ProgressBarTask> taskListChangeListener = change -> {
+      List<ProgressBarTask> tasks = TaskManager.getInstance().getTasks();
+
+      while (change.next()) {
+        if (change.wasAdded()) {
+          LOG.debug("Added: {}", change.getAddedSubList());
+
+          for (ProgressBarTask product : change.getAddedSubList()) {
+            product.currentProgressProperty().addListener((obs, oldVal, newVal) ->
+                updateStatusLabel(tasks)
+            );
+          }
+          updateStatusLabel(tasks);
+        } else if (change.wasRemoved()) {
+          LOG.debug("Removed: {}", change.getRemoved());
+
+          updateStatusLabel(tasks);
+        } else if (change.wasUpdated()) {
+
+          updateStatusLabel(tasks);
+        }
+      }
+    };
+    TaskManager.getInstance().getTasks().addListener(taskListChangeListener);
 
     this.projectManager = IdeGuiStateManager.getInstance().getProjectManager();
   }
@@ -148,7 +171,7 @@ public class MainController implements ProgressListener {
 
   private static Task<Void> runIdeCommandTask(String inIde) {
 
-    GuiProgressBarHandling task = (GuiProgressBarHandling) IdeGuiStateManager.getInstance().getCurrentContext()
+    ProgressBarTask task = (ProgressBarTask) IdeGuiStateManager.getInstance().getCurrentContext()
         .newProgressBarIndeterminate("Starting " + inIde);
     Task<Void> downloadTask = new Task<>() {
       @Override
@@ -210,59 +233,38 @@ public class MainController implements ProgressListener {
     TaskManager.getInstance().removeTask(TaskManager.getInstance().getTasks().getFirst());
   }
 
-  @Override
-  public void onProgressTaskUpdated(GuiProgressBarHandling task, long stepPosition) {
+  private void updateStatusLabel(List<ProgressBarTask> taskList) {
 
-    LOG.info("Progress update at position {}", stepPosition);
+    Platform.runLater(() -> {
+      statusLabel.setOnMouseClicked(e -> TaskOverviewWindow.getInstance(statusLabel).show());
 
-    List<GuiProgressBarHandling> tasks = TaskManager.getInstance().getTasks();
-    updateStatusLabel(tasks);
-    if (tasks.size() == 1) {
-      statusProgressBar.setProgress((double) task.getCurrentProgress() / task.getMaxSize());
-    }
-  }
+      if (taskList.size() > 1) {
+        statusProgressBar.setVisible(false);
+        statusProgressBar.setPrefWidth(0);
+        statusLabel.setText(taskList.size() + " tasks running...");
 
-  @Override
-  public void onProgressTaskAdded(GuiProgressBarHandling task) {
+        statusLabel.setUnderline(true);
+        statusLabel.setStyle(
+            "-fx-text-fill: blue;"
+                + "-fx-cursor: hand"
+        );
+      } else if (taskList.size() == 1) {
+        ProgressBarTask task = taskList.getFirst();
+        statusLabel.setText(task.getTitle() + " [" + task.getCurrentProgress() + "/" + task.getMaxSize() + " " + task.getUnitName() + "]");
+        statusLabel.setUnderline(false);
+        statusLabel.setStyle("");
 
-    updateStatusLabel(TaskManager.getInstance().getTasks());
-  }
+        statusProgressBar.setVisible(true);
+        statusProgressBar.setPrefWidth(PROGRESSBAR_VISIBLE_WIDTH);
+        statusProgressBar.setProgress((double) (task.getCurrentProgress()) / task.getMaxSize());
+      } else {
+        statusLabel.setText("IDEasy is ready.");
+        statusProgressBar.setVisible(false);
+        statusProgressBar.setPrefWidth(0);
 
-  @Override
-  public void onProgressTaskRemoved(GuiProgressBarHandling task) {
-
-    updateStatusLabel(TaskManager.getInstance().getTasks());
-  }
-
-  private void updateStatusLabel(List<GuiProgressBarHandling> taskList) {
-
-    statusLabel.setOnMouseClicked(e -> TaskOverviewWindow.getInstance(statusLabel).show());
-
-    if (taskList.size() > 1) {
-      statusProgressBar.setVisible(false);
-      statusProgressBar.setPrefWidth(0);
-      statusLabel.setText(taskList.size() + " tasks running...");
-
-      statusLabel.setUnderline(true);
-      statusLabel.setStyle(
-          "-fx-text-fill: blue;"
-              + "-fx-cursor: hand"
-      );
-    } else if (taskList.size() == 1) {
-      GuiProgressBarHandling task = taskList.getFirst();
-      statusLabel.setText(task.getTitle() + " [" + task.getCurrentProgress() + "/" + task.getMaxSize() + " " + task.getUnitName() + "]");
-      statusLabel.setUnderline(false);
-      statusLabel.setStyle("");
-
-      statusProgressBar.setVisible(true);
-      statusProgressBar.setPrefWidth(PROGRESSBAR_VISIBLE_WIDTH);
-    } else {
-      statusLabel.setText("IDEasy is ready.");
-      statusProgressBar.setVisible(false);
-      statusProgressBar.setPrefWidth(0);
-
-      statusLabel.setUnderline(false);
-      statusLabel.setStyle("");
-    }
+        statusLabel.setUnderline(false);
+        statusLabel.setStyle("");
+      }
+    });
   }
 }

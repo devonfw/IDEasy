@@ -1,55 +1,40 @@
 package com.devonfw.ide.gui.progress.taskwindow;
 
-import java.util.Objects;
+import javafx.beans.Observable;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
 
-import com.devonfw.ide.gui.progress.GuiProgressBarHandling;
+import com.devonfw.ide.gui.progress.ProgressBarTask;
 import com.devonfw.ide.gui.progress.TaskManager;
-import com.devonfw.ide.gui.progress.TaskManager.ProgressListener;
 
 /**
  * Controller for the task overview window, which shows all currently running tasks and their progressbars.
  */
-public class TaskOverviewWindowController implements ProgressListener {
+public class TaskOverviewWindowController {
 
   @FXML
-  public ListView<GuiProgressBarHandling> taskList;
-  private TaskManager taskManager = TaskManager.getInstance();
-
-  public TaskOverviewWindowController() {
-
-    taskManager.addListener(this);
-  }
+  public ListView<ProgressBarTask> taskList;
+  private final TaskManager taskManager = TaskManager.getInstance();
 
   @FXML
   private void initialize() {
 
     taskList.setCellFactory(new TaskWindowCellFactory());
-    taskList.getItems().addAll(TaskManager.getInstance().getTasks());
-  }
 
-  @Override
-  public void onProgressTaskUpdated(GuiProgressBarHandling updatedTask, long stepPosition) {
+    /* This part...
+       1. connects the task list to the UI, automatically reacting to additions and removals
+       2. also sets an Observable on progress property, so the UI also gets updated in case it changes
+     */
+    ObservableList<ProgressBarTask> tasks = taskManager.getTasks();
+    FXCollections.observableList(
+        tasks,
+        task -> new Observable[] {
+            task.currentProgressProperty()
+        }
+    );
 
-    taskList.getItems().stream()
-        .filter(task -> Objects.equals(task.getTaskId(), updatedTask.getTaskId()))
-        .findFirst()
-        .ifPresent(task -> {
-          int index = taskList.getItems().indexOf(task);
-          taskList.getItems().set(index, updatedTask);
-        });
-  }
-
-  @Override
-  public void onProgressTaskAdded(GuiProgressBarHandling task) {
-
-    taskList.getItems().setAll(taskManager.getTasks());
-  }
-
-  @Override
-  public void onProgressTaskRemoved(GuiProgressBarHandling task) {
-
-    taskList.getItems().setAll(taskManager.getTasks());
+    taskList.setItems(tasks);
   }
 }

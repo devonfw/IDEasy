@@ -1,95 +1,46 @@
 package com.devonfw.ide.gui.progress;
 
-import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
-import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 public class TaskManager {
 
   private static final TaskManager INSTANCE = new TaskManager();
 
-  private final List<GuiProgressBarHandling> tasks = new CopyOnWriteArrayList<>();
-
-  private final List<ProgressListener> listeners = new CopyOnWriteArrayList<>();
+  private final ObservableList<ProgressBarTask> tasks = FXCollections.observableList(new CopyOnWriteArrayList<>());
 
   public static TaskManager getInstance() {
 
     return INSTANCE;
   }
 
-  public void addListener(ProgressListener listener) {
-
-    listeners.add(listener);
-  }
-
-  public void removeListener(ProgressListener listener) {
-
-    listeners.remove(listener);
-  }
-
   /**
    * @param task the task to be added to the list of tasks.
    * @return the TaskManagers internal task ID.
    */
-  public void addTask(GuiProgressBarHandling task) {
 
-    tasks.stream()
-        .filter(t ->
-            t.getTaskId() == task.getTaskId()
-        )
-        .findFirst()
-        .ifPresent(existingTask -> {
-          throw new IllegalArgumentException("Task with ID " + task.getTaskId() + " already exists.");
-        });
+  public void addTask(ProgressBarTask task) {
+    boolean exists = tasks.stream()
+        .anyMatch(t -> Objects.equals(t.getTaskId(), task.getTaskId()));
+    if (exists) {
+      throw new IllegalArgumentException("Task with ID " + task.getTaskId() + " already exists.");
+    }
+
     tasks.add(task);
-    Platform.runLater(() ->
-        listeners.forEach(listener -> listener.onProgressTaskAdded(task))
-    );
   }
 
-  public void removeTask(GuiProgressBarHandling task) {
+  public void removeTask(ProgressBarTask task) {
 
     tasks.remove(task);
-    Platform.runLater(() ->
-        listeners.forEach(listener -> listener.onProgressTaskRemoved(task))
-    );
   }
 
   /**
    * @return the list of currently running tasks.
    */
-  public List<GuiProgressBarHandling> getTasks() {
+  public ObservableList<ProgressBarTask> getTasks() {
 
     return tasks;
-  }
-
-  protected void updateTask(GuiProgressBarHandling task, long stepPosition) {
-
-    Platform.runLater(() ->
-        listeners.forEach(listener -> listener.onProgressTaskUpdated(task, stepPosition))
-    );
-  }
-
-  /**
-   * Listener interface for receiving updates about progress tasks. Implement this interface and register it with the TaskManager to receive updates when tasks
-   * are added, removed, or updated.
-   */
-  public interface ProgressListener {
-
-    /**
-     * @param task updated task
-     * @param stepPosition the current position of the task (for STEP updates)
-     */
-    void onProgressTaskUpdated(GuiProgressBarHandling task, long stepPosition);
-
-    /**
-     * @param task task that was added
-     */
-    void onProgressTaskAdded(GuiProgressBarHandling task);
-
-    /**
-     * @param task task that was removed
-     */
-    void onProgressTaskRemoved(GuiProgressBarHandling task);
   }
 }

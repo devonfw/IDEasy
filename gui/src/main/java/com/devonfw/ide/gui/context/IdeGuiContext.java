@@ -3,7 +3,7 @@ package com.devonfw.ide.gui.context;
 import java.nio.file.Path;
 import java.util.UUID;
 
-import com.devonfw.ide.gui.progress.GuiProgressBarHandling;
+import com.devonfw.ide.gui.progress.ProgressBarTask;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.io.IdeProgressBar;
@@ -33,7 +33,7 @@ public class IdeGuiContext extends AbstractIdeContext {
   @Override
   public IdeProgressBar newProgressBar(String title, long size, String unitName, long unitSize) {
 
-    return new GuiProgressBarHandling(UUID.randomUUID().toString(), title, size, unitName, unitSize);
+    return new ProgressBarTask(UUID.randomUUID().toString(), title, size, unitName, unitSize);
   }
 
   /**
@@ -42,6 +42,6 @@ public class IdeGuiContext extends AbstractIdeContext {
    */
   public IdeProgressBar newProgressBarIndeterminate(String title) {
 
-    return new GuiProgressBarHandling(UUID.randomUUID().toString(), title);
+    return new ProgressBarTask(UUID.randomUUID().toString(), title);
   }
 }

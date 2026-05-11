@@ -1,20 +1,24 @@
 package com.devonfw.ide.gui.progress;
 
 import java.util.logging.Logger;
+import javafx.beans.property.LongProperty;
+import javafx.beans.property.SimpleLongProperty;
 
 import com.devonfw.tools.ide.io.AbstractIdeProgressBar;
 
 /**
  * This is a handler for the progress bars in the GUI
  */
-public class GuiProgressBarHandling extends AbstractIdeProgressBar {
+public class ProgressBarTask extends AbstractIdeProgressBar {
 
-  private static final Logger LOG = Logger.getLogger(GuiProgressBarHandling.class.getName());
+  private static final Logger LOG = Logger.getLogger(ProgressBarTask.class.getName());
 
   private boolean isIndeterminate = false;
   private String taskId = "";
 
-  public GuiProgressBarHandling(String taskId, String title, long maxSize, String unitName, long unitSize) {
+  private final LongProperty progressProperty = new SimpleLongProperty(getCurrentProgress());
+
+  public ProgressBarTask(String taskId, String title, long maxSize, String unitName, long unitSize) {
 
     super(title, maxSize, unitName, unitSize);
     this.taskId = taskId;
@@ -26,7 +30,7 @@ public class GuiProgressBarHandling extends AbstractIdeProgressBar {
    *
    * @param title the title of the progress bar
    */
-  public GuiProgressBarHandling(String taskId, String title) {
+  public ProgressBarTask(String taskId, String title) {
 
     super(title, 100, "%", 1);
     this.isIndeterminate = true;
@@ -37,13 +41,13 @@ public class GuiProgressBarHandling extends AbstractIdeProgressBar {
   protected void doStepBy(long stepSize, long currentProgress) {
     LOG.info("Updating progress bar to " + currentProgress);
 
-    TaskManager.getInstance().updateTask(this, currentProgress + stepSize);
+    progressProperty.setValue(currentProgress);
   }
 
   protected void doStepTo(long stepPosition) {
     LOG.info("Updating progress bar to " + getCurrentProgress());
 
-    TaskManager.getInstance().updateTask(this, stepPosition);
+    progressProperty.setValue(getCurrentProgress());
   }
 
   @Override
@@ -70,5 +74,15 @@ public class GuiProgressBarHandling extends AbstractIdeProgressBar {
 
   public String getTaskId() {
     return taskId;
+  }
+
+  /**
+   * Properties are relevant for dynamically updating the ui.
+   *
+   * @return progress property of this task.
+   * @see LongProperty
+   */
+  public LongProperty currentProgressProperty() {
+    return progressProperty;
   }
 }
