@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.url.tool.az;
 
 import com.devonfw.tools.ide.os.OperatingSystem;
+import com.devonfw.tools.ide.os.SystemArchitecture;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -11,6 +12,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 public class AzureUrlUpdater extends GithubUrlTagUpdater {
 
   private static final VersionIdentifier MIN_AZURE_VID = VersionIdentifier.of("2.17.0");
+
+  private static final VersionIdentifier MIN_AZURE_MAC_VID = VersionIdentifier.of("2.84.0");
 
   @Override
   public String getTool() {
@@ -23,6 +26,13 @@ public class AzureUrlUpdater extends GithubUrlTagUpdater {
 
     doAddVersion(urlVersion, getDownloadBaseUrl() + "/msi/azure-cli-${version}.msi",
         OperatingSystem.WINDOWS);
+    VersionIdentifier vid = urlVersion.getVersionIdentifier();
+    if (vid.compareVersion(MIN_AZURE_MAC_VID).isGreater()) {
+      String macBaseUrl = GITHUB_BASE_URL + "/" + getGithubRepositoryPath()
+          + "/releases/download/azure-cli-${version}/azure-cli-${version}-macos-";
+      doAddVersion(urlVersion, macBaseUrl + "x86_64.tar.gz", OperatingSystem.MAC, SystemArchitecture.X64);
+      doAddVersion(urlVersion, macBaseUrl + "arm64.tar.gz", OperatingSystem.MAC, SystemArchitecture.ARM64);
+    }
   }
 
   @Override
