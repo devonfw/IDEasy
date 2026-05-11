@@ -69,6 +69,22 @@ public class VariableDefinitionString extends AbstractVariableDefinition<String>
     super(name, legacyName, defaultValueFactory, forceDefaultValue, export);
   }
 
+  /**
+   * The constructor.
+   *
+   * @param name the {@link #getName() variable name}.
+   * @param legacyName the {@link #getLegacyName() legacy name}.
+   * @param defaultValueFactory the factory {@link Function} for the {@link #getDefaultValue(IdeContext) default value}.
+   * @param forceDefaultValue the {@link #isForceDefaultValue() forceDefaultValue} flag.
+   * @param export the {@link #isExport() export} flag.
+   * @param appendDefaultValue the {@link #isDefaultValueAppended() appendDefaultValue} flag.
+   */
+  public VariableDefinitionString(String name, String legacyName, Function<IdeContext, String> defaultValueFactory, boolean forceDefaultValue, boolean export,
+      boolean appendDefaultValue) {
+
+    super(name, legacyName, defaultValueFactory, forceDefaultValue, export, appendDefaultValue);
+  }
+
   @Override
   public Class<String> getValueType() {
 

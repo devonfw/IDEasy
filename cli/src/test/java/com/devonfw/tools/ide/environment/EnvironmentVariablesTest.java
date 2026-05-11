@@ -16,6 +16,8 @@ class EnvironmentVariablesTest extends AbstractIdeContextTest {
 
   private static final String ENVIRONMENT_PROJECT = "environment";
 
+  private static final String MAVEN_ARGS_MERGE_PROJECT = "mvn-args";
+
   /**
    * Test of {@link EnvironmentVariables#resolve(String, Object)} with self referencing variables.
    */
@@ -98,5 +100,44 @@ class EnvironmentVariablesTest extends AbstractIdeContextTest {
     assertThat(npmVersion).isNull();
     assertThat(m2Repo).isEqualTo(context.getUserHome().resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER).resolve("repository"));
     assertThat(otherVariable).isEqualTo("other value");
+  }
+
+  /**
+   * Test that {@link IdeVariables#MAVEN_ARGS} has the appendDefaultValue flag enabled, and that other variables do not.
+   */
+  @Test
+  void testMavenArgsAppendDefaultValueFlagIsEnabled() {
+
+    assertThat(IdeVariables.MAVEN_ARGS.isDefaultValueAppended()).isTrue();
+    assertThat(IdeVariables.MVN_BUILD_OPTS.isDefaultValueAppended()).isFalse();
+    assertThat(IdeVariables.IDE_HOME.isDefaultValueAppended()).isFalse();
+  }
+
+  /**
+   * Test that a user-defined {@code MAVEN_ARGS} in {@code conf/ide.properties} is kept and IDEasy's defaults are appended to it, not replaced.
+   */
+  @Test
+  void testUserDefinedMavenArgsIsMergedWithIdeasyDefaults() {
+
+    // arrange
+    IdeTestContext context = newContext(MAVEN_ARGS_MERGE_PROJECT, null, false);
+
+    // act
+    String mavenArgs = IdeVariables.MAVEN_ARGS.get(context);
+
+    // assert
+    Path settingsFile = context.getConfPath().resolve(Mvn.MVN_CONFIG_FOLDER).resolve(Mvn.SETTINGS_FILE);
+    assertThat(mavenArgs).isEqualTo("-X -e -s " + settingsFile);
+  }
+
+  /**
+   * Test that a user-defined value which is already contained in IDEasy's default is not duplicated when merged.
+   */
+  @Test
+  void testUserDefinedMavenArgsAlreadyInIdeasyDefaultsIsNotDuplicated() {
+
+    String defaultValue = "-s /path/to/settings.xml";
+    assertThat(AbstractEnvironmentVariables.mergeWithDefault("-s /path/to/settings.xml", defaultValue)).isEqualTo(defaultValue);
+    assertThat(AbstractEnvironmentVariables.mergeWithDefault("-s", defaultValue)).isEqualTo(defaultValue);
   }
 }
