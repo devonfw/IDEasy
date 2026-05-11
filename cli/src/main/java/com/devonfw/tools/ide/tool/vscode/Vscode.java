@@ -14,6 +14,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
@@ -28,6 +29,12 @@ public class Vscode extends IdeToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Vscode.class);
 
+  /** The {@link #getConfiguredEdition() edition} for VSCodium. */
+  private static final String EDITION_VSCODIUM = "vscodium";
+
+  /** Plugin IDs collected during {@link #installPlugins} that the VSCodium build refused to install. */
+  private final List<String> vscodiumUnavailablePlugins = new ArrayList<>();
+
   /**
    * The constructor.
    *
@@ -41,11 +48,20 @@ public class Vscode extends IdeToolCommandlet {
   @Override
   protected String getBinaryName() {
 
+    if (EDITION_VSCODIUM.equals(getConfiguredEdition())) {
+      return "codium";
+    }
     return "code";
   }
 
   @Override
   protected void installPlugins(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
+    boolean isVscodium = EDITION_VSCODIUM.equals(getConfiguredEdition());
+    if (isVscodium) {
+      this.vscodiumUnavailablePlugins.clear();
+      pc.errorHandling(ProcessErrorHandling.NONE);
+    }
+    IdeLogLevel suppressLevel = isVscodium ? IdeLogLevel.WARNING : IdeLogLevel.STEP;
     this.context.runWithoutLogging(() -> {
       IdeProgressBar pb = this.context.newProgressBarForPlugins(plugins.size());
       pc.setOutputListener((msg, err) -> {
@@ -55,7 +71,14 @@ public class Vscode extends IdeToolCommandlet {
       });
       super.installPlugins(plugins, pc);
       pb.close();
-    });
+    }, suppressLevel);
+    if (isVscodium && !this.vscodiumUnavailablePlugins.isEmpty()) {
+      LOG.warn("{} plugin(s) could not be installed on VSCodium due to not being available on open-vsx or other errors:\n  - {}\n"
+              + "For full plugin support, set VSCODE_EDITION=vscode to use Microsoft's distribution.\n"
+              + "For more detailed information on why plugins failed to install, check the IDEasy logfile at $IDE_ROOT/_ide/logs/.",
+          this.vscodiumUnavailablePlugins.size(),
+          String.join("\n  - ", this.vscodiumUnavailablePlugins));
+    }
   }
 
   @Override
@@ -70,10 +93,13 @@ public class Vscode extends IdeToolCommandlet {
       IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {}", plugin.name());
       step.success();
       return true;
-    } else {
-      LOG.warn("An error occurred while installing plugin: {}", plugin.name());
+    }
+    if (EDITION_VSCODIUM.equals(getConfiguredEdition())) {
+      this.vscodiumUnavailablePlugins.add(plugin.id());
       return false;
     }
+    LOG.warn("An error occurred while installing plugin: {}", plugin.name());
+    return false;
   }
 
   @Override

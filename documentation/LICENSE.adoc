@@ -51,6 +51,7 @@ The column `inclusion` indicates the way the component is included:
 |https://github.com/github/copilot-cli[GitHub Copilot CLI]|Optional|https://github.com/github/copilot-cli/blob/main/LICENSE.md[Proprietary]
 |https://maven.apache.org/[Maven]|Default Setup|https://www.apache.org/licenses/LICENSE-2.0[Apache 2.0]
 |https://code.visualstudio.com/[VS Code]|Optional|https://github.com/Microsoft/vscode/blob/master/LICENSE.txt[MIT] (https://code.visualstudio.com/License/[Terms])
+|https://vscodium.com/[VSCodium]|Optional|https://github.com/VSCodium/vscodium/blob/master/LICENSE[MIT]
 |https://github.com/devonfw/extension-pack-vscode[extension-pack-vscode] |Optional|https://github.com/devonfw/extension-pack-vscode/blob/master/LICENSE[Apache 2.0]
 |https://www.eclipse.org/[Eclipse] |Optional|https://www.eclipse.org/legal/epl-2.0/[EPL 2.0]
 |https://marketplace.eclipse.org/content/tm-terminal[TM Terminal] |Optional|https://www.eclipse.org/legal/epl-2.0/[EPL 2.0] (see https://marketplace.eclipse.org/content/tm-terminal[here])
