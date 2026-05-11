@@ -5,7 +5,6 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +55,19 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   public static final String ZSHRC = ".zshrc";
   public static final String IDE_BIN = "\\_ide\\bin";
   public static final String IDE_INSTALLATION_BIN = "\\_ide\\installation\\bin";
+
+
+  private static final Map<String, Boolean> REQUIRED_INSTALLATION_ARTIFACTS = Map.of(
+      //artifactName: String, required: boolean
+      "bin", true,
+      "functions", true,
+      "internal", true,
+      "gui", true,
+      "system", true,
+      "IDEasy.pdf", true,
+      "setup", true,
+      "setup.bat", false
+  );
 
   private final UpgradeMode mode;
 
@@ -195,19 +207,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       LOG.error("IDEasy is already installed at {} - if your installation is broken, delete it manually and rerun setup!", ideasyVersionPath);
     } else {
       List<Path> installationArtifacts = new ArrayList<>();
-      HashMap<String, Boolean> requiredArtifacts = new HashMap<>(Map.of(
-          //artifactName: String, required: boolean
-          "bin", true,
-          "functions", true,
-          "internal", true,
-          "gui", true,
-          "system", true,
-          "IDEasy.pdf", true,
-          "setup", true,
-          "setup.bat", false)
-      );
-
-      for (Map.Entry<String, Boolean> artifactEntry : requiredArtifacts.entrySet()) {
+      for (Map.Entry<String, Boolean> artifactEntry : REQUIRED_INSTALLATION_ARTIFACTS.entrySet()) {
         String artifactName = artifactEntry.getKey();
         boolean required = artifactEntry.getValue();
         boolean success = addInstallationArtifact(cwd, artifactName, required, installationArtifacts);
@@ -215,6 +215,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
           throw new CliException("IDEasy release is inconsistent at %s [artifact=%s]".formatted(cwd, artifactName));
         }
       }
+
       fileAccess.mkdirs(ideasyVersionPath);
       for (Path installationArtifact : installationArtifacts) {
         fileAccess.copy(installationArtifact, ideasyVersionPath);
