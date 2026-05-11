@@ -7,8 +7,6 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
-
-import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 
@@ -152,7 +150,7 @@ class LnCommandletTest extends AbstractIdeContextTest {
     // Now try with -f flag should succeed
     LnCommandlet cmd3 = new LnCommandlet(context);
     cmd3.symbolic.setValue(Boolean.TRUE);
-    cmd3.force.setValue(Boolean.TRUE);
+    context.getStartContext().setForceMode(true);
     cmd3.source.setValue("source2.txt");
     cmd3.link.setValue("link.txt");
 
@@ -190,7 +188,7 @@ class LnCommandletTest extends AbstractIdeContextTest {
 
     // Override with -f flag
     LnCommandlet cmd2 = new LnCommandlet(context);
-    cmd2.force.setValue(Boolean.TRUE);
+    context.getStartContext().setForceMode(true);
     cmd2.source.setValue("source2.txt");
     cmd2.link.setValue("link.txt");
 

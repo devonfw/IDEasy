@@ -20,9 +20,6 @@ public final class LnCommandlet extends Commandlet {
   /** Grammar token {@code -s} (optional). */
   public final FlagProperty symbolic;
 
-  /** Grammar token {@code -f} (optional). */
-  public final FlagProperty force;
-
   /** The source path to link to. */
   public final StringProperty source;
 
@@ -40,7 +37,6 @@ public final class LnCommandlet extends Commandlet {
     addKeyword(getName());
 
     this.symbolic = add(new FlagProperty("--symbolic", false, "-s"));
-    this.force = add(new FlagProperty("--force", false, "-f"));
     this.source = add(new StringProperty("", true, "source"));
     this.link = add(new StringProperty("", true, "link"));
   }
@@ -87,9 +83,9 @@ public final class LnCommandlet extends Commandlet {
     if (this.symbolic.isTrue()) {
       Path target = Path.of(this.source.getValue());
       boolean relative = !target.isAbsolute();
-      this.context.getFileAccess().link(target, linkPath, relative, PathLinkType.SYMBOLIC_LINK, this.force.isTrue());
+      this.context.getFileAccess().link(target, linkPath, relative, PathLinkType.SYMBOLIC_LINK, this.context.isForceMode());
     } else {
-      this.context.getFileAccess().link(resolvedSource, linkPath, false, PathLinkType.HARD_LINK, this.force.isTrue());
+      this.context.getFileAccess().link(resolvedSource, linkPath, false, PathLinkType.HARD_LINK, this.context.isForceMode());
     }
   }
 }
