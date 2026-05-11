@@ -19,7 +19,7 @@ public class Cdk extends NpmBasedCommandlet {
    */
   public Cdk(IdeContext context) {
 
-    super(context, "cdk", Set.of(Tag.TYPE_SCRIPT, Tag.BUILD));
+    super(context, "cdk", Set.of(Tag.IAC, Tag.CLOUD));
   }
 
   @Override
