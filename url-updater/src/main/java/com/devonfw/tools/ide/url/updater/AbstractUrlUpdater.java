@@ -856,12 +856,14 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     }
 
     String vLower = version.toLowerCase(Locale.ROOT);
-    if (vLower.contains("alpha") || vLower.contains("beta") || vLower.contains("dev") || vLower.contains("snapshot") || vLower.contains("preview")
-        || vLower.contains("test") || vLower.contains("tech-preview") //
-        || vLower.contains("-pre") || vLower.startsWith("ce-") || vLower.contains("-next") || vLower.contains("-rc")
-        // vscode nonsense
-        || vLower.startsWith("bad") || vLower.contains("vsda-") || vLower.contains("translation/") || vLower.contains("-insiders")) {
-      return null;
+    if (isVersionFiltered()) {
+      if (vLower.contains("alpha") || vLower.contains("beta") || vLower.contains("dev") || vLower.contains("snapshot") || vLower.contains("preview")
+          || vLower.contains("test") || vLower.contains("tech-preview") //
+          || vLower.contains("-pre") || vLower.startsWith("ce-") || vLower.contains("-next") || vLower.contains("-rc")
+          // vscode nonsense
+          || vLower.startsWith("bad") || vLower.contains("vsda-") || vLower.contains("translation/") || vLower.contains("-insiders")) {
+        return null;
+      }
     }
 
     String filter = getCustomVersionFilter();
@@ -887,6 +889,17 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   protected String getCustomVersionFilter() {
 
     return null;
+  }
+
+  /**
+   * Defines if we want to filter pre-releases and similar non-stable versions by default in {@link #filterVersion(String)}. Can be overridden to disable this
+   * default filtering.
+   *
+   * @return {@code true} if pre-releases and similar non-stable versions should be filtered by default, {@code false} otherwise.
+   */
+  protected boolean isVersionFiltered() {
+
+    return true;
   }
 
   /**
