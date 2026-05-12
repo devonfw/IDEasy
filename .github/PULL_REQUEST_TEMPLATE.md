@@ -36,4 +36,20 @@ Have you added a new `«tool»` as commandlet? There are the following additiona
 - [ ] Proper help texts for all supported languages are added [here](https://github.com/devonfw/IDEasy/tree/main/cli/src/main/resources/nls)
 - [ ] The new commandlet installs potential dependencies automatically
 - [ ] The variables `«TOOL»_VERSION` and `«TOOL»_EDITION` are honored by your commandlet
+
+### Checklist for tool commandlets
+
+Have you added a new `«tool»` as commandlet? There are the following additional checks:
+
+- [ ] The tool can be installed automatically (during setup via settings) or via the commandlet call
+- [ ] The tool is isolated in its IDEasy project, see [Sandbox Principle](https://github.com/devonfw/IDEasy/blob/main/documentation/sandbox.adoc)
+- [ ] The new tool is added to the table of tools in [LICENSE.asciidoc](https://github.com/devonfw/IDEasy/blob/main/documentation/LICENSE.adoc)
+- [ ] The new commandlet is a [command-wrapper](https://github.com/devonfw/IDEasy/blob/main/documentation/cli.adoc#command-wrapper) for `«tool»`
+- [ ] Proper help texts for all supported languages are added [here](https://github.com/devonfw/IDEasy/tree/main/cli/src/main/resources/nls)
+- [ ] The new commandlet installs potential dependencies automatically
+- [ ] The variables `«TOOL»_VERSION` and `«TOOL»_EDITION` are honored by your commandlet
 - [ ] The new commandlet is tested on all platforms it is available for or tested on all platforms that are in scope of the linked issue
+
+### Testing instructions
+
+Please add conscise, understandable instructions on how a reviewer can test/verify the functionality of your contribution here.
