@@ -155,11 +155,211 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   }
 
   /**
-   * @return the edition as specified in the {@link #CPE}.
+   * Configures the CPE aliases used by this updater. The default implementation keeps the existing behavior and registers the current
+   * {@link #getCpeVendor() vendor} and {@link #getCpeProduct() product} as exact matches.
+   *
+   * @param cpe the registry to configure.
    */
-  public String getCpeEdition() {
+  protected void initCpe(CpeRegistry cpe) {
 
-    return getTool();
+    cpe.addVendor(getCpeVendor()).addProduct(getCpeProduct());
+  }
+
+  /**
+   * @return the configured CPE registry for this updater.
+   */
+  public final CpeRegistry getCpeRegistry() {
+
+    CpeRegistry cpe = new CpeRegistry();
+    initCpe(cpe);
+    cpe.validate();
+    return cpe;
+  }
+
+  /**
+   * Checks if the given vendor/product combination matches this updater's configured CPE aliases.
+   *
+   * @param vendor the CPE vendor.
+   * @param product the CPE product.
+   * @return {@code true} if the CPE matches, {@code false} otherwise.
+   */
+  public final boolean matchesCpe(String vendor, String product) {
+
+    return getCpeRegistry().matches(vendor, product);
+  }
+
+  /**
+   * Registry for CPE aliases of an updater.
+   */
+  public static final class CpeRegistry {
+
+    private final List<CpeValue> vendors = new ArrayList<>();
+
+    private final List<CpeValue> products = new ArrayList<>();
+
+    /**
+     * Adds an exact vendor match.
+     *
+     * @param vendor the vendor value.
+     * @return this registry.
+     */
+    public CpeRegistry addVendor(String vendor) {
+
+      addValue(this.vendors, vendor, false);
+      return this;
+    }
+
+    /**
+     * Adds an infix vendor match.
+     *
+     * @param vendor the vendor infix.
+     * @return this registry.
+     */
+    public CpeRegistry addVendorInfix(String vendor) {
+
+      addValue(this.vendors, vendor, true);
+      return this;
+    }
+
+    /**
+     * Adds an exact product match.
+     *
+     * @param product the product value.
+     * @return this registry.
+     */
+    public CpeRegistry addProduct(String product) {
+
+      addValue(this.products, product, false);
+      return this;
+    }
+
+    /**
+     * Adds an infix product match.
+     *
+     * @param product the product infix.
+     * @return this registry.
+     */
+    public CpeRegistry addProductInfix(String product) {
+
+      addValue(this.products, product, true);
+      return this;
+    }
+
+     /**
+      * @return the primary vendor, i.e. the first configured vendor alias.
+      */
+     public String getPrimaryVendor() {
+
+       return getPrimaryValue(this.vendors, "vendor");
+     }
+
+     /**
+      * @return the primary product, i.e. the first configured product alias.
+      */
+     public String getPrimaryProduct() {
+
+       return getPrimaryValue(this.products, "product");
+     }
+
+     /**
+      * @return a list of all configured vendor values (both exact and infix matches).
+      */
+     public List<String> getVendors() {
+
+       return this.vendors.stream().map(CpeValue::value).toList();
+     }
+
+     /**
+      * @return a list of all configured product values (both exact and infix matches).
+      */
+     public List<String> getProducts() {
+
+       return this.products.stream().map(CpeValue::value).toList();
+     }
+
+
+    /**
+     * @param vendor the vendor to check.
+     * @param product the product to check.
+     * @return {@code true} if both values match the configured aliases.
+     */
+    public boolean matches(String vendor, String product) {
+
+      return matches(vendor, this.vendors) && matches(product, this.products);
+    }
+
+    /**
+     * Validates that at least one vendor and one product have been configured.
+     */
+    public void validate() {
+
+      if (this.vendors.isEmpty()) {
+        throw new IllegalStateException("No CPE vendor configured. Add at least one vendor via initCpe(...).");
+      }
+      if (this.products.isEmpty()) {
+        throw new IllegalStateException("No CPE product configured. Add at least one product via initCpe(...).");
+      }
+    }
+
+    private static void addValue(List<CpeValue> values, String value, boolean infix) {
+
+      String normalized = normalizeCpeValue(value);
+      if (normalized.isEmpty()) {
+        throw new IllegalArgumentException("CPE value must not be empty.");
+      }
+      values.add(new CpeValue(normalized, infix));
+    }
+
+    private CpeRegistry() {
+      super();
+    }
+
+    private static String getPrimaryValue(List<CpeValue> values, String type) {
+
+      if (values.isEmpty()) {
+        throw new IllegalStateException("No CPE " + type + " configured.");
+      }
+      return values.getFirst().value();
+    }
+
+    private static List<String> getValues(List<CpeValue> values) {
+
+      return values.stream().map(CpeValue::value).toList();
+    }
+
+    private static boolean matches(String value, List<CpeValue> values) {
+
+      if (value == null) {
+        return false;
+      }
+      String normalized = normalizeCpeValue(value);
+      for (CpeValue candidate : values) {
+        if (candidate.matches(normalized)) {
+          return true;
+        }
+      }
+      return false;
+    }
+  }
+
+  /**
+   * Single configured CPE value.
+   */
+  private record CpeValue(String value, boolean infix) {
+
+    private boolean matches(String actualValue) {
+
+      if (this.infix) {
+        return actualValue.contains(this.value);
+      }
+      return actualValue.equals(this.value);
+    }
+  }
+
+  private static String normalizeCpeValue(String value) {
+
+    Objects.requireNonNull(value, "CPE value must not be null.");
+    return value.trim().toLowerCase(Locale.ROOT);
   }
 
   /**

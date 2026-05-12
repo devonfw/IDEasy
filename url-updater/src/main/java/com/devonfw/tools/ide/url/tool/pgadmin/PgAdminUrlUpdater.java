@@ -68,12 +68,12 @@ public class PgAdminUrlUpdater extends WebsiteUrlUpdater {
 
   @Override
   public String getCpeVendor() {
-    return "pgadmin-org";
+    return "pgadmin";
   }
 
   @Override
   public String getCpeProduct() {
-    return "pgadmin";
+    return "pgadmin_4";
   }
 
 }

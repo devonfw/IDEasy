@@ -34,6 +34,13 @@ public class PycharmUrlUpdater extends IdeaBasedUrlUpdater {
     return jsonObjects[EDITIONS.indexOf(edition)];
   }
 
+
+  @Override
+  protected String doGetVersionUrl() {
+
+    return getVersionBaseUrl() + "/" + JSON_URL;
+  }
+
   @Override
   public String getCpeVendor() {
     return "jetbrains";
@@ -42,11 +49,5 @@ public class PycharmUrlUpdater extends IdeaBasedUrlUpdater {
   @Override
   public String getCpeProduct() {
     return "pycharm";
-  }
-
-  @Override
-  protected String doGetVersionUrl() {
-
-    return getVersionBaseUrl() + "/" + JSON_URL;
   }
 }

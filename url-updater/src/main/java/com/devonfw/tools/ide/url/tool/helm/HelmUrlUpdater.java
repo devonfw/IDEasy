@@ -35,17 +35,6 @@ public class HelmUrlUpdater extends GithubUrlTagUpdater {
     return "https://get.helm.sh";
   }
 
-  @Override
-  public String getCpeVendor() {
-
-    return "helm";
-  }
-
-  @Override
-  public String getCpeProduct() {
-
-    return "helm";
-  }
 
   @Override
   protected void addVersion(UrlVersion urlVersion) {
@@ -67,5 +56,16 @@ public class HelmUrlUpdater extends GithubUrlTagUpdater {
     return super.mapVersion("v" + version);
   }
 
+  @Override
+  public String getCpeVendor() {
+
+    return "helm";
+  }
+
+  @Override
+  public String getCpeProduct() {
+
+    return "helm";
+  }
 
 }

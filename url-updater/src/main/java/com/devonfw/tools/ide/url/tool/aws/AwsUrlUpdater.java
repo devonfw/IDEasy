@@ -73,7 +73,7 @@ public class AwsUrlUpdater extends GithubUrlTagUpdater {
 
   @Override
   public String getCpeProduct() {
-    return "aws";
+    return "aws_command_line_interface";
   }
 
 }

@@ -21,7 +21,7 @@ public class NpmUrlUpdater extends NpmBasedUrlUpdater {
 
   @Override
   public String getCpeVendor() {
-    return "npm";
+    return "npmjs";
   }
 
   @Override

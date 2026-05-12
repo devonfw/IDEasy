@@ -120,12 +120,9 @@ public abstract class EclipseUrlUpdater extends WebsiteUrlUpdater {
   }
 
   @Override
-  public String getCpeVendor() {
-    return "eclipse";
-  }
-
-  @Override
-  public String getCpeProduct() {
-    return "eclipse";
+  protected void initCpe(CpeRegistry cpe) {
+    cpe.addVendor("eclipse");
+    cpe.addProduct("eclipse_ide");
+    cpe.addProductInfix("eclipse"); // matches cpe:...:eclipse:eclipse:...
   }
 }

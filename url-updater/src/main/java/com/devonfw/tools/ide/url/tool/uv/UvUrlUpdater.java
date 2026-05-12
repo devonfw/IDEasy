@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.url.tool.uv;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
+import com.devonfw.tools.ide.url.updater.AbstractUrlUpdater;
 import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -51,14 +52,12 @@ public class UvUrlUpdater extends GithubUrlTagUpdater {
     doAddVersion(urlVersion, baseUrl + "aarch64-pc-windows-msvc.zip", WINDOWS, ARM64);
   }
 
-  @Override
-  public String getCpeVendor() {
-    return "astral-sh";
-  }
 
   @Override
-  public String getCpeProduct() {
-    return "uv";
+  protected void initCpe(AbstractUrlUpdater.CpeRegistry cpe) {
+    cpe.addVendor("astral")
+        .addVendorInfix("astral-sh")
+        .addProduct("uv");
   }
 
 }

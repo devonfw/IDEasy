@@ -34,16 +34,6 @@ public class OcUrlUpdater extends WebsiteUrlUpdater {
   }
 
   @Override
-  public String getCpeVendor() {
-    return "openshift";
-  }
-
-  @Override
-  public String getCpeProduct() {
-    return "oc";
-  }
-
-  @Override
   protected String getVersionUrl() {
 
     return getVersionBaseUrl() + "/pub/openshift-v4/clients/ocp/";

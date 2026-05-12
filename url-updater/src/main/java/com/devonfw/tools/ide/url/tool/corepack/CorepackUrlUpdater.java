@@ -18,14 +18,5 @@ public class CorepackUrlUpdater extends NpmBasedUrlUpdater {
 
     return "corepack";
   }
-
-  @Override
-  public String getCpeVendor() {
-    return "corepack";
-  }
-
-  @Override
-  public String getCpeProduct() {
-    return "corepack";
-  }
+  
 }

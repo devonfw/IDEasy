@@ -53,15 +53,4 @@ public class LazyDockerUrlUpdater extends GithubUrlTagUpdater {
       doAddVersion(urlVersion, baseUrl + "Darwin_arm64.tar.gz", MAC, ARM64);
     }
   }
-
-  @Override
-  public String getCpeVendor() {
-    return "jesseduffield";
-  }
-
-  @Override
-  public String getCpeProduct() {
-    return "lazydocker";
-  }
-
 }
