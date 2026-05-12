@@ -53,6 +53,9 @@ public abstract class Property<V> {
   /** @see #getValue() */
   protected final List<V> value = new ArrayList<>();
 
+  /** The last invalid value that was attempted to be parsed. */
+  private String lastInvalidValue;
+
   /**
    * The constructor.
    *
@@ -308,8 +311,10 @@ public abstract class Property<V> {
 
     try {
       setValueAsString(valueAsString, context);
+      this.lastInvalidValue = null;
       return true;
     } catch (Exception e) {
+      this.lastInvalidValue = valueAsString;
       if (e instanceof IllegalArgumentException) {
         LOG.warn(INVALID_ARGUMENT, valueAsString, getNameOrAlias(), commandlet.getName());
       } else {
@@ -317,6 +322,20 @@ public abstract class Property<V> {
       }
       return false;
     }
+  }
+
+  /**
+   * @return the last invalid value that was attempted to be parsed, or {@code null} if no invalid value was attempted or the last attempt was successful.
+   */
+  public String getLastInvalidValue() {
+    return this.lastInvalidValue;
+  }
+
+  /**
+   * Clears the last invalid value.
+   */
+  public void clearLastInvalidValue() {
+    this.lastInvalidValue = null;
   }
 
   /**
