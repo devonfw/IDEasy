@@ -1,13 +1,17 @@
 package com.devonfw.tools.ide.tool.vscode;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.AbstractIdeTestContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.context.ProcessContextTestImpl;
+import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
@@ -114,6 +118,34 @@ class VscodeTest extends AbstractIdeContextTest {
     assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed vscode in version 1.92.1");
   }
 
+  @Test
+  void testConfigureToolArgsSetsWslEnvVarOnWsl() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    context.setSystemInfo(SystemInfoMock.LINUX_WSL_X64);
+    Vscode commandlet = new Vscode(context);
+    EnvCapturingProcessContext pc = new EnvCapturingProcessContext(context);
+    // act
+    commandlet.configureToolArgs(pc, ProcessMode.DEFAULT, List.of());
+    // assert
+    assertThat(pc.getEnvVar("DONT_PROMPT_WSL_INSTALL")).isEqualTo("1");
+  }
+
+  @Test
+  void testConfigureToolArgsDoesNotSetWslEnvVarOnNonWsl() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    Vscode commandlet = new Vscode(context);
+    EnvCapturingProcessContext pc = new EnvCapturingProcessContext(context);
+    // act
+    commandlet.configureToolArgs(pc, ProcessMode.DEFAULT, List.of());
+    // assert
+    assertThat(pc.getEnvVar("DONT_PROMPT_WSL_INSTALL")).isNull();
+  }
+
   /**
    * Test double for {@link Vscode} that captures CLI arguments passed to {@link #runTool(ProcessContext, ProcessMode, List)}
    * so tests can assert command construction without spawning an external process.
@@ -135,6 +167,31 @@ class VscodeTest extends AbstractIdeContextTest {
       this.lastArgs = new ArrayList<>(args);
       // Return a successful dummy result to keep tests isolated from real VS Code execution.
       return new ProcessResultImpl("code", "code", 0, List.of());
+    }
+  }
+
+  /**
+   * {@link ProcessContextTestImpl} subclass that captures calls to {@link #withEnvVar(String, String)} for test assertions.
+   */
+  private static class EnvCapturingProcessContext extends ProcessContextTestImpl {
+
+    private final Map<String, String> capturedEnvVars = new HashMap<>();
+
+    private EnvCapturingProcessContext(IdeTestContext context) {
+
+      super(context);
+    }
+
+    @Override
+    public ProcessContext withEnvVar(String key, String value) {
+
+      this.capturedEnvVars.put(key, value);
+      return super.withEnvVar(key, value);
+    }
+
+    String getEnvVar(String key) {
+
+      return this.capturedEnvVars.get(key);
     }
   }
 }

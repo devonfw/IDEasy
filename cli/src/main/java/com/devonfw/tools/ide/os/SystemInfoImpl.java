@@ -32,13 +32,15 @@ public class SystemInfoImpl implements SystemInfo {
 
   private final SystemArchitecture architecture;
 
+  private final boolean wsl;
+
   /**
    * The constructor.
    */
   private SystemInfoImpl() {
 
     this(System.getProperty(PROPERTY_OS_NAME).trim(), System.getProperty(PROPERTY_OS_VERSION).trim(),
-        resolveArchitecture());
+        resolveArchitecture(), System.getenv("WSL_DISTRO_NAME") != null || System.getenv("WSL_INTEROP") != null);
   }
 
   private static String resolveArchitecture() {
@@ -70,12 +72,26 @@ public class SystemInfoImpl implements SystemInfo {
    */
   public SystemInfoImpl(String osName, String osVersion, String architectureName) {
 
+    this(osName, osVersion, architectureName, false);
+  }
+
+  /**
+   * The constructor.
+   *
+   * @param osName the {@link #getOsName() OS name}
+   * @param osVersion the {@link #getOsVersion() OS version}.
+   * @param architectureName the {@link #getArchitectureName() architecture name}.
+   * @param wsl {@code true} if running inside WSL (Windows Subsystem for Linux).
+   */
+  public SystemInfoImpl(String osName, String osVersion, String architectureName, boolean wsl) {
+
     super();
     this.osName = osName;
     this.osVersion = VersionIdentifier.of(osVersion);
     this.architectureName = architectureName;
     this.os = OperatingSystem.ofName(this.osName);
     this.architecture = detectArchitecture(this.architectureName);
+    this.wsl = wsl;
   }
 
   private static SystemArchitecture detectArchitecture(String architectureName) {
@@ -115,6 +131,12 @@ public class SystemInfoImpl implements SystemInfo {
   public SystemArchitecture getArchitecture() {
 
     return this.architecture;
+  }
+
+  @Override
+  public boolean isWsl() {
+
+    return this.wsl;
   }
 
   @Override

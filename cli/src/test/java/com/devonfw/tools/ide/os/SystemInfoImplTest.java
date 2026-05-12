@@ -84,4 +84,26 @@ class SystemInfoImplTest extends Assertions {
     assertThat(systemInfo.toString()).isEqualTo("linux@x64(Linux[3.13.0-74-generic]@x64)");
   }
 
+  /** Test {@link SystemInfoMock#LINUX_WSL_X64} is detected as WSL and Linux. */
+  @Test
+  void testWslDetection() {
+
+    // act
+    SystemInfo systemInfo = SystemInfoMock.LINUX_WSL_X64;
+    // assert
+    assertThat(systemInfo.isWsl()).isTrue();
+    assertThat(systemInfo.isLinux()).isTrue();
+    assertThat(systemInfo.isWindows()).isFalse();
+  }
+
+  /** Test that plain Linux is not detected as WSL. */
+  @Test
+  void testNonWslLinuxIsNotWsl() {
+
+    // act
+    SystemInfo systemInfo = SystemInfoMock.LINUX_X64;
+    // assert
+    assertThat(systemInfo.isWsl()).isFalse();
+  }
+
 }

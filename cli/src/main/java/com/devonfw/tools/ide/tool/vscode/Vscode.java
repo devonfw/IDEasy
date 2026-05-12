@@ -93,6 +93,9 @@ public class Vscode extends IdeToolCommandlet {
   @Override
   protected void configureToolArgs(ProcessContext pc, ProcessMode processMode, List<String> args) {
 
+    if (this.context.getSystemInfo().isWsl()) {
+      pc.withEnvVar("DONT_PROMPT_WSL_INSTALL", "1");
+    }
     Path vsCodeConf = this.context.getWorkspacePath().resolve(".vscode/.userdata");
     pc.addArg("--new-window");
     pc.addArg("--user-data-dir=" + vsCodeConf);
