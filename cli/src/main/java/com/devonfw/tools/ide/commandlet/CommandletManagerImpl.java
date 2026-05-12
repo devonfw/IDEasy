@@ -42,6 +42,7 @@ import com.devonfw.tools.ide.tool.kotlinc.KotlincNative;
 import com.devonfw.tools.ide.tool.kubectl.KubeCtl;
 import com.devonfw.tools.ide.tool.lazydocker.LazyDocker;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
+import com.devonfw.tools.ide.tool.nest.Nest;
 import com.devonfw.tools.ide.tool.ng.Ng;
 import com.devonfw.tools.ide.tool.node.Node;
 import com.devonfw.tools.ide.tool.npm.Npm;
@@ -154,6 +155,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Go(context));
     add(new Gui(context));
     add(new SquirrelSql(context));
+    add(new Nest(context));
   }
 
   /**
