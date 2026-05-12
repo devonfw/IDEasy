@@ -8,7 +8,7 @@ Please **open the link**, **read the agreement**, and **confirm it**.
 
 NOTE: Pay attention to provide the proper email-address to the CLA form.
 You need to provide the email address that you have configured in git for your commits that should also be the email address you have configured in your GitHub profile (as primary email address).
-If possible avoid mixing multiple email addresses (e.g. private and corporate email).
+If possible, avoid mixing multiple email addresses (e.g. private and corporate email).
 Once you have filled the CLA with the "wrong" email address, it gets really hard to fix this.
 So really be careful to provide the correct email address, when you fill out the CLA.
 
