@@ -97,7 +97,7 @@ class VersionIdentifierTest extends Assertions {
   void testCompare() {
 
     String[] versions = { "0.1", "0.2-SNAPSHOT", "0.2-nb5", "0.2-a", "0.2-alpha1", "0.2-beta", "0.2-b2", "0.2.M1", "0.2M9", "0.2M10", "0.2-rc1", "0.2-RC2",
-        "0.2", "0.2-fix9", "0.2-hf1", "0.3", "0.3.1", "1", "1.0", "10-alpha1" };
+        "0.2", "0.2-release", "0.2-fix9", "0.2-hf1", "0.3", "0.3.1", "0.3.*", "0.3.*!", "0.*", "1", "1.0", "10-alpha2", "10-alpha*", "10.*", "*", "*!" };
     List<VersionIdentifier> vids = new ArrayList<>(versions.length);
     for (String version : versions) {
       VersionIdentifier vid = VersionIdentifier.of(version);
@@ -119,9 +119,12 @@ class VersionIdentifierTest extends Assertions {
   @Test
   void testCompareSpecial() {
 
-    assertThat(VersionIdentifier.LATEST.compareVersion(VersionIdentifier.of("2.0"))).isSameAs(VersionComparisonResult.LESS_UNSAFE);
+    assertThat(VersionIdentifier.LATEST.compareVersion(VersionIdentifier.of("2.0"))).isSameAs(VersionComparisonResult.GREATER_UNSAFE);
     assertThat(VersionIdentifier.of("2").compareVersion(VersionIdentifier.of("2.0"))).isSameAs(VersionComparisonResult.LESS);
     assertThat(VersionIdentifier.of("2.0").compareVersion(VersionIdentifier.of("2"))).isSameAs(VersionComparisonResult.GREATER);
+    assertThat(VersionIdentifier.of("2.*").compareVersion(VersionIdentifier.of("2-release"))).isSameAs(VersionComparisonResult.GREATER_UNSAFE);
+    assertThat(VersionIdentifier.of("2.*").compareVersion(VersionIdentifier.of("2.1"))).isSameAs(VersionComparisonResult.GREATER_UNSAFE);
+    assertThat(VersionIdentifier.of("2.*").compareVersion(VersionIdentifier.of("2.*!"))).isSameAs(VersionComparisonResult.LESS_UNSAFE);
   }
 
   /**

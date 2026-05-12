@@ -64,15 +64,29 @@ public class Vscode extends IdeToolCommandlet {
     List<String> extensionsCommands = new ArrayList<>();
     extensionsCommands.add("--force");
     extensionsCommands.add("--install-extension");
-    extensionsCommands.add(plugin.id());
+    String extensionInstallTarget = plugin.id();
+    // If a version number was specified, add it to the extension identifier with the format "extensionId@version"
+    boolean versionSpecified = (plugin.version() != null) && !plugin.version().isBlank();
+    if (versionSpecified) {
+      extensionInstallTarget = extensionInstallTarget + "@" + plugin.version();
+    }
+    extensionsCommands.add(extensionInstallTarget);
     ProcessResult result = runTool(pc, ProcessMode.DEFAULT_CAPTURE, extensionsCommands);
     if (result.isSuccessful()) {
-      IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {}", plugin.name());
+      if (versionSpecified) {
+        IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {} with version: {}", plugin.name(), plugin.version());
+      } else {
+        IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {}", plugin.name());
+      }
       step.success();
       return true;
     } else {
-      LOG.warn("An error occurred while installing plugin: {}", plugin.name());
-      return false;
+        if (versionSpecified) {
+          IdeLogLevel.ERROR.log(LOG, "Failed to install plugin: {} with version: {}", plugin.name(), plugin.version());
+        } else {
+          IdeLogLevel.ERROR.log(LOG, "Failed to install plugin: {}", plugin.name());
+        }
+        return false;
     }
   }
 

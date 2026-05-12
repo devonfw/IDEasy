@@ -46,6 +46,11 @@ public class Npm extends NpmBasedCommandlet {
     return "help";
   }
 
+  @Override
+  protected boolean isSkipInstallation() {
+    return true;
+  }
+
   /**
    * @return the {@link Path} to the npm user configuration file, creates the folder and configuration file if it was not existing.
    */

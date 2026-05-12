@@ -56,7 +56,7 @@ public interface IdeVariables {
   VariableDefinitionVersion MVN_VERSION = new VariableDefinitionVersion("MVN_VERSION", "MAVEN_VERSION");
 
   /** {@link VariableDefinition} arguments for maven to locate the settings file. */
-  VariableDefinitionString MAVEN_ARGS = new VariableDefinitionString("MAVEN_ARGS", null, IdeContext::getMavenArgs, false, true);
+  VariableDefinitionString MAVEN_ARGS = new VariableDefinitionString("MAVEN_ARGS", null, IdeContext::getMavenArgs, false, true, true);
 
   /** {@link VariableDefinition} arguments for maven to set the m2 repo location. */
   VariableDefinitionPath M2_REPO = new VariableDefinitionPath("M2_REPO", null, IdeVariables::getMavenRepositoryPath, false, true);

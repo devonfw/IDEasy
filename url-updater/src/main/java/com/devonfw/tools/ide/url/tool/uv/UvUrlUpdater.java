@@ -41,7 +41,8 @@ public class UvUrlUpdater extends GithubUrlTagUpdater {
   @Override
   protected void addVersion(UrlVersion urlVersion) {
 
-    String baseUrl = getDownloadBaseUrl() + "/" + getGithubOrganization() + "/" + getGithubRepository() + "/releases/download/${version}/uv-";
+    VersionIdentifier vid = urlVersion.getVersionIdentifier();
+    String baseUrl = createGithubReleaseDownloadUrl("${version}", "uv-");
 
     doAddVersion(urlVersion, baseUrl + "x86_64-pc-windows-msvc.zip", WINDOWS, X64);
     doAddVersion(urlVersion, baseUrl + "x86_64-unknown-linux-gnu.tar.gz", LINUX, X64);

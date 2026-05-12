@@ -29,7 +29,7 @@ public class JmcUrlUpdater extends GithubUrlTagUpdater {
   @Override
   protected void addVersion(UrlVersion urlVersion) {
 
-    String baseUrl = getDownloadBaseUrl() + "/adoptium/jmc-build/releases/download/${version}/org.openjdk.jmc-${version}-";
+    String baseUrl = createGithubReleaseDownloadUrl("${version}", "org.openjdk.jmc-${version}-");
 
     doAddVersion(urlVersion, baseUrl + "win32.win32.x86_64.zip", WINDOWS);
     doAddVersion(urlVersion, baseUrl + "macosx.cocoa.x86_64.tar.gz", MAC);

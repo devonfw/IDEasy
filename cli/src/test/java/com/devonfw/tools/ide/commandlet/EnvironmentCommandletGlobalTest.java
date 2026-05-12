@@ -31,6 +31,7 @@ class EnvironmentCommandletGlobalTest extends AbstractIdeContextTest {
     EnvironmentCommandlet env = context.getCommandletManager().getCommandlet(EnvironmentCommandlet.class);
 
     // act
+    env.bash.setValue(true);
     env.run();
 
     // assert

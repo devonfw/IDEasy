@@ -13,7 +13,7 @@ public abstract class GithubUrlReleaseUpdater extends AbstractGithubUrlUpdater<G
   @Override
   protected String doGetVersionUrl() {
 
-    return getVersionBaseUrl() + getGithubOrganization() + "/" + getGithubRepository() + "/releases";
+    return getGithubReleasesApiUrl();
 
   }
 

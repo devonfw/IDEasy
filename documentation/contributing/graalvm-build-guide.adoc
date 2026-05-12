@@ -16,7 +16,7 @@ When the installation is complete, the GRAALVM_HOME environment variable is auto
 
 * During the installation, make sure to include the "Desktop development with CPP" workload, as this includes the necessary C/C++ compiler
 
-image:images/cppInstall.png[image]
+image:../images/cppInstall.png[image]
 * If you already have Visual Studio installed, open the Visual Studio installer and click “modifyˮ on your existing installation.
 Then select the C++ workload and click on install.
 
@@ -39,7 +39,7 @@ cd IDEasy/cli
 mvn -B -ntp -Pnative -DskipTests=true package
 ```
 
-image:images/graalvmMvnArgs.png[image]
+image:../images/graalvmMvnArgs.png[image]
 
 Building the application might take up to 10 minutes depending on your machine.
 
