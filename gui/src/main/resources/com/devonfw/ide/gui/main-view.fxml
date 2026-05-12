@@ -163,8 +163,6 @@
       <padding>
         <Insets right="8.0"/>
       </padding>
-      <Button fx:id="addTaskButton" text="Add" onAction="#addTaskTest"/>
-      <Button fx:id="removeTaskButton" text="Remove" onAction="#removeTaskTest"/>
 
       <Label fx:id="statusLabel" text="IDEasy is ready"/>
       <ProgressBar fx:id="statusProgressBar" prefWidth="0.0" progress="0.0" visible="false"/>

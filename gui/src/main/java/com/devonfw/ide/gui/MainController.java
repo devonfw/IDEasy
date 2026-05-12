@@ -61,6 +61,30 @@ public class MainController {
   private Path projectValue;
   private Path workspaceValue;
 
+  private final ListChangeListener<ProgressBarTask> taskListChangeListener = change -> {
+    List<ProgressBarTask> tasks = TaskManager.getInstance().getTasks();
+
+    while (change.next()) {
+      if (change.wasAdded()) {
+        LOG.debug("Added: {}", change.getAddedSubList());
+
+        for (ProgressBarTask product : change.getAddedSubList()) {
+          product.currentProgressProperty().addListener((obs, oldVal, newVal) ->
+              updateStatusLabel(tasks)
+          );
+        }
+        updateStatusLabel(tasks);
+      } else if (change.wasRemoved()) {
+        LOG.debug("Removed: {}", change.getRemoved());
+
+        updateStatusLabel(tasks);
+      } else if (change.wasUpdated()) {
+
+        updateStatusLabel(tasks);
+      }
+    }
+  };
+
   /**
    * Constructor
    */
@@ -69,29 +93,6 @@ public class MainController {
     LOG.debug("IDE_ROOT path={}", directoryPath);
     this.directoryPath = directoryPath;
 
-    ListChangeListener<ProgressBarTask> taskListChangeListener = change -> {
-      List<ProgressBarTask> tasks = TaskManager.getInstance().getTasks();
-
-      while (change.next()) {
-        if (change.wasAdded()) {
-          LOG.debug("Added: {}", change.getAddedSubList());
-
-          for (ProgressBarTask product : change.getAddedSubList()) {
-            product.currentProgressProperty().addListener((obs, oldVal, newVal) ->
-                updateStatusLabel(tasks)
-            );
-          }
-          updateStatusLabel(tasks);
-        } else if (change.wasRemoved()) {
-          LOG.debug("Removed: {}", change.getRemoved());
-
-          updateStatusLabel(tasks);
-        } else if (change.wasUpdated()) {
-
-          updateStatusLabel(tasks);
-        }
-      }
-    };
     TaskManager.getInstance().getTasks().addListener(taskListChangeListener);
 
     this.projectManager = IdeGuiStateManager.getInstance().getProjectManager();
@@ -204,37 +205,6 @@ public class MainController {
       IdeDialog errorDialog = new IdeDialog(IdeDialog.AlertType.ERROR, e.getMessage());
       errorDialog.showAndWait();
     }
-  }
-
-  //TODO: remove after testing
-  public void addTaskTest() {
-
-    LOG.debug("Adding task");
-    IdeGuiStateManager.getInstance()
-        .getCurrentContext()
-        .newProgressbarForExtracting(1024);
-
-    IdeGuiStateManager.getInstance()
-        .getCurrentContext()
-        .newProgressbarForCopying(1024);
-
-    IdeGuiStateManager.getInstance()
-        .getCurrentContext()
-        .newProgressBarForDownload(1024);
-
-    IdeGuiStateManager.getInstance()
-        .getCurrentContext()
-        .newProgressBarForPlugins(3);
-
-    IdeGuiStateManager.getInstance()
-        .getCurrentContext()
-        .newProgressBarIndeterminate("Custom Task");
-  }
-
-  //TODO: remove after testing
-  public void removeTaskTest() {
-
-    TaskManager.getInstance().removeTask(TaskManager.getInstance().getTasks().getFirst());
   }
 
   private void updateStatusLabel(List<ProgressBarTask> taskList) {
