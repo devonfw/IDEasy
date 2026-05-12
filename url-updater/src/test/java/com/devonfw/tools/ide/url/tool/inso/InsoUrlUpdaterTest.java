@@ -6,7 +6,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 
-import java.io.IOException;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
@@ -25,16 +24,15 @@ class InsoUrlUpdaterTest extends AbstractUrlUpdaterTest {
    *
    * @param tempDir Path to a temporary directory.
    * @param wmRuntimeInfo the {@link WireMockRuntimeInfo}.
-   * @throws IOException test fails
    */
   @Test
-  void testInsoUrlUpdater(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  void testInsoUrlUpdater(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange
-    stubFor(get(urlMatching("/repos/Kong/insomnia/git/refs/tags")).willReturn(aResponse().withStatus(200)
-        .withBody(readAndResolve(PATH_INTEGRATION_TEST.resolve("InsoUrlUpdater").resolve("inso-tags.json"), wmRuntimeInfo))));
+    stubFor(get(urlMatching("/repos/Kong/insomnia/releases")).willReturn(aResponse().withStatus(200)
+        .withBody(readAndResolve(PATH_INTEGRATION_TEST.resolve("InsoUrlUpdater").resolve("inso-releases.json"), wmRuntimeInfo))));
 
-    stubFor(any(urlMatching("/Kong/insomnia/releases/download/core(@|%40).*/inso-.*"))
+    stubFor(any(urlMatching("/Kong/insomnia/releases/download/core(@|%40).*"))
         .willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
