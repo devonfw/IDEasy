@@ -743,7 +743,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   public void extractZip(Path file, Path targetDir) {
 
     LOG.info("Extracting ZIP file {} to {}", file, targetDir);
-    if (this.context.getSystemInfo().isMac()) {
+    if (SystemInfoImpl.INSTANCE.isMac()) {
       extractZipWithSystemUnzip(file, targetDir);
     } else {
       extractZipWithJava(file, targetDir);
@@ -933,13 +933,22 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   public void extractPkg(Path file, Path targetDir) {
 
     LOG.info("Extracting PKG file {} to {}", file, targetDir);
+    assert this.context.getSystemInfo().isMac();
     Path tmpDirPkg = createTempDir("ide-pkg-");
     ProcessContext pc = this.context.newProcess();
-    // we might also be able to use cpio from commons-compression instead of external xar...
     pc.executable("xar").addArgs("-C", tmpDirPkg, "-xf", file).run();
     Path contentPath = findFirst(tmpDirPkg, p -> p.getFileName().toString().equals("Payload"), true);
-    extractTar(contentPath, targetDir, TarCompression.GZ);
+    extractPkgPayloadWithSystemTar(contentPath, targetDir);
     delete(tmpDirPkg);
+  }
+
+  private void extractPkgPayloadWithSystemTar(Path payload, Path targetDir) {
+
+    mkdirs(targetDir);
+    ProcessContext pc = this.context.newProcess();
+    pc.executable("/usr/bin/tar");
+    pc.addArgs("-xf", payload, "-C", targetDir);
+    pc.run();
   }
 
   @Override
