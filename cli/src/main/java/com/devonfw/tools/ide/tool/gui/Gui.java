@@ -7,17 +7,17 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessContextImpl;
 import com.devonfw.tools.ide.process.ProcessMode;
-import com.devonfw.tools.ide.tool.ToolEdition;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
-import com.devonfw.tools.ide.version.VersionRange;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * {@link Commandlet} to launch the IDEasy GUI.
@@ -49,23 +49,19 @@ public class Gui extends Commandlet {
     ToolInstallRequest toolInstallRequest = new ToolInstallRequest(false);
     toolInstallRequest.setProcessContext(processContext);
     toolInstallRequest.setRequested(
-        new ToolEditionAndVersion(
-            new ToolEdition("java", "java"),
-            VersionRange.of("[25,)")
-        )
+        new ToolEditionAndVersion(VersionIdentifier.of("25.*"))
     );
 
     Java java = this.context.getCommandletManager().getCommandlet(Java.class);
+    Mvn mvn = this.context.getCommandletManager().getCommandlet(Mvn.class);
     java.install(toolInstallRequest);
+    mvn.install(false);
 
     LOG.debug("Starting GUI via commandlet");
 
-    Mvn mvn = context.getCommandletManager().getCommandlet(Mvn.class);
-
     Path pomPath = context.getIdeInstallationPath().resolve("gui/pom.xml");
     if (!Files.exists(pomPath)) {
-      LOG.error("Fatal error: The pom.xml file required for launching the IDEasy GUI could not be found in expected location: {}", pomPath);
-      return;
+      throw new CliException("Fatal error: The pom.xml file required for launching the IDEasy GUI could not be found in expected location: " + pomPath);
     }
 
     List<String> args = List.of(
