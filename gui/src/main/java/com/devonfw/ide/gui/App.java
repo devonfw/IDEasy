@@ -33,6 +33,7 @@ public class App extends Application {
 
     Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
           System.out.println("Uncaught exception in thread " + thread.getName() + ":" + throwable.getMessage());
+          //Left this in, because of issues with printing errors when the Fx Application Thread crashes. Needs further research.
           throwable.printStackTrace();
           Platform.runLater(() -> new IdeDialog(IdeDialog.AlertType.ERROR, throwable.getMessage()).showAndWait());
         }
@@ -54,6 +55,7 @@ public class App extends Application {
     primaryStage.show();
 
     primaryStage.setOnCloseRequest(event -> {
+
       LOG.info("Closing application");
       if (!TaskManager.getInstance().getTasks().isEmpty()) {
         IdeDialog closeConfirm = new IdeDialog(IdeDialog.AlertType.CONFIRMATION, "There are still running tasks. Are you sure you want to exit?",
@@ -72,6 +74,7 @@ public class App extends Application {
   }
 
   private void exitApplication() {
+
     Platform.exit();
     System.exit(0);
   }

@@ -209,7 +209,7 @@ public class MainController {
   //TODO: remove after testing
   public void addTaskTest() {
 
-    LOG.error("Adding task");
+    LOG.debug("Adding task");
     IdeGuiStateManager.getInstance()
         .getCurrentContext()
         .newProgressbarForExtracting(1024);
@@ -225,6 +225,10 @@ public class MainController {
     IdeGuiStateManager.getInstance()
         .getCurrentContext()
         .newProgressBarForPlugins(3);
+
+    IdeGuiStateManager.getInstance()
+        .getCurrentContext()
+        .newProgressBarIndeterminate("Custom Task");
   }
 
   //TODO: remove after testing

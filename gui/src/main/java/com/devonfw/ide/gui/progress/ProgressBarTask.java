@@ -1,9 +1,16 @@
 package com.devonfw.ide.gui.progress;
 
-import java.util.logging.Logger;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.LongProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleLongProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.devonfw.ide.gui.FxHelper;
 import com.devonfw.tools.ide.io.AbstractIdeProgressBar;
 
 /**
@@ -11,13 +18,23 @@ import com.devonfw.tools.ide.io.AbstractIdeProgressBar;
  */
 public class ProgressBarTask extends AbstractIdeProgressBar {
 
-  private static final Logger LOG = Logger.getLogger(ProgressBarTask.class.getName());
+  private static final Logger LOG = LoggerFactory.getLogger(ProgressBarTask.class.getName());
 
   private boolean isIndeterminate = false;
-  private String taskId = "";
+  private final String taskId;
 
   private final LongProperty progressProperty = new SimpleLongProperty(getCurrentProgress());
+  //we only set the title on this line, once. title is final in AbstractIdeContext, but we also use a property here, to be consistent and allow dynamic updates if needed in the future.
+  private final StringProperty titleProperty = new SimpleStringProperty(getTitle());
+  private final BooleanProperty indeterminateProperty = new SimpleBooleanProperty(isIndeterminate());
 
+  /**
+   * @param taskId a unique identifier for this task, used for example to prevent duplicate tasks in the TaskManager
+   * @param title title of the task
+   * @param maxSize maximum progress
+   * @param unitName unit of the progress (e.g. %, MB, files, etc.)
+   * @param unitSize unit size (e.g. 1%)
+   */
   public ProgressBarTask(String taskId, String title, long maxSize, String unitName, long unitSize) {
 
     super(title, maxSize, unitName, unitSize);
@@ -33,21 +50,31 @@ public class ProgressBarTask extends AbstractIdeProgressBar {
   public ProgressBarTask(String taskId, String title) {
 
     super(title, 100, "%", 1);
-    this.isIndeterminate = true;
+    setIndeterminate(true);
     this.taskId = taskId;
     TaskManager.getInstance().addTask(this);
   }
 
+  @Override
   protected void doStepBy(long stepSize, long currentProgress) {
-    LOG.info("Updating progress bar to " + currentProgress);
 
-    progressProperty.setValue(currentProgress);
+    LOG.debug("Updating progress bar to {}", currentProgress);
+
+    FxHelper.runFxSafe(() -> progressProperty.setValue(currentProgress));
   }
 
+  @Override
   protected void doStepTo(long stepPosition) {
-    LOG.info("Updating progress bar to " + getCurrentProgress());
 
-    progressProperty.setValue(getCurrentProgress());
+    LOG.debug("Updating progress bar to {}", getCurrentProgress());
+
+    FxHelper.runFxSafe(() -> progressProperty.setValue(getCurrentProgress()));
+  }
+
+  @Override
+  public long getCurrentProgress() {
+
+    return super.getCurrentProgress();
   }
 
   @Override
@@ -70,8 +97,12 @@ public class ProgressBarTask extends AbstractIdeProgressBar {
    */
   public void setIndeterminate(boolean indeterminate) {
     isIndeterminate = indeterminate;
+    indeterminateProperty.set(indeterminate);
   }
 
+  /**
+   * @return id of the current task
+   */
   public String getTaskId() {
     return taskId;
   }
@@ -80,9 +111,22 @@ public class ProgressBarTask extends AbstractIdeProgressBar {
    * Properties are relevant for dynamically updating the ui.
    *
    * @return progress property of this task.
-   * @see LongProperty
    */
   public LongProperty currentProgressProperty() {
     return progressProperty;
+  }
+
+  /**
+   * @return title property of this task.
+   */
+  public StringProperty titleProperty() {
+    return titleProperty;
+  }
+
+  /**
+   * @return indeterminate property of this task.
+   */
+  public BooleanProperty indeterminateProperty() {
+    return indeterminateProperty;
   }
 }

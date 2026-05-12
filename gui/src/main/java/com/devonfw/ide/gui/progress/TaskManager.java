@@ -1,16 +1,26 @@
 package com.devonfw.ide.gui.progress;
 
 import java.util.Objects;
-import java.util.concurrent.CopyOnWriteArrayList;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
+import com.devonfw.ide.gui.FxHelper;
+
+/**
+ * Singleton class that manages all currently running tasks and their progress bars. It provides an {@link ObservableList} of tasks, which can be observed by
+ * components like in the UI.
+ *
+ * @see ProgressBarTask
+ */
 public class TaskManager {
 
   private static final TaskManager INSTANCE = new TaskManager();
 
-  private final ObservableList<ProgressBarTask> tasks = FXCollections.observableList(new CopyOnWriteArrayList<>());
+  private final ObservableList<ProgressBarTask> tasks = FXCollections.observableArrayList();
 
+  /**
+   * @return the singleton instance of the TaskManager.
+   */
   public static TaskManager getInstance() {
 
     return INSTANCE;
@@ -18,9 +28,7 @@ public class TaskManager {
 
   /**
    * @param task the task to be added to the list of tasks.
-   * @return the TaskManagers internal task ID.
    */
-
   public void addTask(ProgressBarTask task) {
     boolean exists = tasks.stream()
         .anyMatch(t -> Objects.equals(t.getTaskId(), task.getTaskId()));
@@ -28,16 +36,19 @@ public class TaskManager {
       throw new IllegalArgumentException("Task with ID " + task.getTaskId() + " already exists.");
     }
 
-    tasks.add(task);
-  }
-
-  public void removeTask(ProgressBarTask task) {
-
-    tasks.remove(task);
+    FxHelper.runFxSafe(() -> tasks.add(task));
   }
 
   /**
-   * @return the list of currently running tasks.
+   * @param task task to be removed
+   */
+  public void removeTask(ProgressBarTask task) {
+
+    FxHelper.runFxSafe(() -> tasks.remove(task));
+  }
+
+  /**
+   * @return the {@link ObservableList} of currently running tasks.
    */
   public ObservableList<ProgressBarTask> getTasks() {
 

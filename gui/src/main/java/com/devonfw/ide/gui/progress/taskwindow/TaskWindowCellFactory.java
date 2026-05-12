@@ -1,6 +1,8 @@
 package com.devonfw.ide.gui.progress.taskwindow;
 
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.StringExpression;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
@@ -40,23 +42,35 @@ public class TaskWindowCellFactory implements Callback<ListView<ProgressBarTask>
 
       @Override
       public void updateItem(ProgressBarTask progressTask, boolean empty) {
+        super.updateItem(progressTask, empty);
 
         Platform.runLater(() -> {
           if (empty || progressTask == null) {
             setText(null);
             setGraphic(null);
           } else {
-            LOG.debug("update cell");
+            LOG.debug("updating task {} '{}'", progressTask.getTaskId(), progressTask.getTitle());
 
-            titleLabel.setText(
-                getLabelValueFormatted(progressTask.getTitle(), progressTask.getCurrentProgress(), progressTask.getMaxSize(), progressTask.getUnitName()));
+            StringExpression formattedLabelText = Bindings.format(
+                "%s [%d/%d %s]",
+                progressTask.titleProperty(),
+                progressTask.currentProgressProperty(),
+                progressTask.getMaxSize(),
+                progressTask.getUnitName()
+            );
 
-            if (progressTask.isIndeterminate() && !progressBar.isIndeterminate()) {
-              progressBar.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
-            } else if (!progressTask.isIndeterminate()) {
-              progressBar.setProgress((double) progressTask.getCurrentProgress() / progressTask.getMaxSize());
-            }
+            titleLabel.textProperty().bind(
+                Bindings.when(progressTask.indeterminateProperty())
+                    .then(progressTask.titleProperty())
+                    .otherwise(formattedLabelText)
+            );
+            progressBar.progressProperty().bind(
+                Bindings.when(progressTask.indeterminateProperty())
+                    .then(-1)
+                    .otherwise(progressTask.currentProgressProperty().divide((double) progressTask.getMaxSize()))
+            );
 
+            //set the size of the progress bar to fill the window completely
             progressBar.setMaxWidth(Double.MAX_VALUE);
 
             setGraphic(root);
@@ -64,9 +78,5 @@ public class TaskWindowCellFactory implements Callback<ListView<ProgressBarTask>
         });
       }
     };
-  }
-
-  private String getLabelValueFormatted(String title, long _currentProgress, long maxSize, String unitName) {
-    return String.format("%s [%d/%d %s]", title, _currentProgress, maxSize, unitName);
   }
 }
