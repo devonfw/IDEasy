@@ -11,10 +11,13 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
+import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
+import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
@@ -29,6 +32,9 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
 
   private ToolPlugins plugins;
 
+  /** {@link FlagProperty} to force the reset and reinstallation of plugins as configured in the project settings. */
+  public FlagProperty forcePluginReinstall;
+
   /**
    * The constructor.
    *
@@ -39,6 +45,12 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
   public PluginBasedCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
     super(context, tool, tags);
+  }
+
+  @Override
+  protected void initProperties() {
+    this.forcePluginReinstall = add(new FlagProperty("--force-plugin-reinstall"));
+    super.initProperties();
   }
 
   /**
@@ -109,33 +121,33 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     super.postInstall(request);
     Path pluginsInstallationPath = getPluginsInstallationPath();
     FileAccess fileAccess = this.context.getFileAccess();
-    if (!request.isAlreadyInstalled()) {
+
+    IdeStartContextImpl startContext = ((AbstractIdeContext) this.context).getStartContext();
+    startContext.setForcePluginReinstall(this.forcePluginReinstall.isTrue());
+
+    if (!request.isAlreadyInstalled() || this.context.isForcePluginReinstall()) {
+      LOG.debug("Deleting all installed plugins...");
       deleteAllPlugins(pluginsInstallationPath);
-    } else if (this.context.isForceMode()) {
-      // Prompt user if they want to reset all plugins
-      boolean resetPlugins = this.context.question(
-        "You are launching " + getName() + " in force mode. Do you want to reset all plugins for " + getName() + "? "
-        + "This will uninstall all currently installed plugins and reinstall them as configured in your IDEasy project settings.");
-      if (resetPlugins) {
-        deleteAllPlugins(pluginsInstallationPath);
-      }
     }
     fileAccess.mkdirs(pluginsInstallationPath);
     installPlugins(request.getProcessContext());
   }
 
+  /**
+   * Deletes all installed plugins for this {@link IdeToolCommandlet} by deleting the plugins installation folder and all plugin marker files.
+   * @param pluginsInstallationPath the {@link Path} to the plugins installation folder.
+   */
   private void deleteAllPlugins(Path pluginsInstallationPath) {
 
     FileAccess fileAccess = this.context.getFileAccess();
     fileAccess.delete(pluginsInstallationPath);
-      List<Path> markerFiles = fileAccess.listChildren(this.context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE), Files::isRegularFile);
-      for (Path path : markerFiles) {
-        if (path.getFileName().toString().startsWith("plugin." + getName())) {
-          fileAccess.delete(path);
-          LOG.debug("Plugin marker file {} got deleted.", path);
-        }
+    List<Path> markerFiles = fileAccess.listChildren(this.context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE), Files::isRegularFile);
+    for (Path path : markerFiles) {
+      if (path.getFileName().toString().startsWith("plugin." + getName())) {
+        fileAccess.delete(path);
+        LOG.debug("Plugin marker file {} got deleted.", path);
       }
-
+    }
   }
 
   private void installPlugins(ProcessContext pc) {

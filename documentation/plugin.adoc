@@ -38,4 +38,4 @@ When first installing an IDE using `ide install «ide»`, IDEasy will automatica
 This configuration is intended to serve as a baseline for the entire team.
 However, after the initial setup, you can freely change the plugin configuration for your IDE as you see fit.
 
-To revert to the initial plugin configuration, you can run `ide -f «ide»`, which will give you the option to uninstall all installed plugins and reinstall them as configured in your project settings.
+To revert to the initial plugin configuration, you can run `ide «ide» --force-plugin-reinstall`, which will uninstall all currently installed plugins and reinstall them as configured in the project settings.
