@@ -23,8 +23,8 @@ public class WindowsHelperImpl implements WindowsHelper {
 
   /** Common Windows registry base paths containing (uninstall) information for installed applications (system-wide and per-user). */
   private static final String[] REGISTRY_BASE_PATHS = {
-      "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall",
       "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall",
+      "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall",
       "HKLM\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall"
   };
 
