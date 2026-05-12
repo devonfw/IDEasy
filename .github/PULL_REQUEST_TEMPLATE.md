@@ -19,6 +19,11 @@ our [DoD](https://github.com/devonfw/IDEasy/blob/main/documentation/contributing
 - [ ] You followed all [coding conventions](https://github.com/devonfw/IDEasy/blob/main/documentation/coding-conventions.adoc)
 - [ ] You have added the issue implemented by your PR in [CHANGELOG.adoc](https://github.com/devonfw/IDEasy/blob/main/CHANGELOG.adoc) unless issue is labeled
   with `internal`
+- [ ] You have formulated clear instructions on how to test your contribution under "Testing instructions"
+
+### Testing instructions
+
+Please add conscise, understandable instructions on how a reviewer can test/verify the functionality of your contribution here.
 
 ### Checklist for tool commandlets
 
