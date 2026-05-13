@@ -50,9 +50,14 @@ public class CompletionCandidateCollectorDefault implements CompletionCandidateC
 
   @Override
   public void add(String text, String description) {
+    for (CompletionCandidate existing : this.candidates) {
+      if (existing.text().equals(text)) {
+        return;
+      }
+    }
 
     CompletionCandidate candidate = this.createCandidate(text, description, !text.endsWith("="));
-    this.add(candidate);
+    this.candidates.add(candidate);
 
     LOG.trace("Added {} for auto-completion.", candidate);
   }
