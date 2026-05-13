@@ -1,0 +1,38 @@
+= Run IDEasy locally
+
+In order to test changes you did locally in your feature branch, there is a need for running IDEasy locally from the branch with the local changes applied.
+To achieve this, there are multiple options. The first would be to run IDEasy from inside Intellij, which also enables debugging with breakpoints and many more features.
+
+== Run IDEasy locally from inside Intellij
+
+The entrypoint for running your local changes of IDEasy is the main-method in the cli-subfolder. Since most of the functionality of IDEasy is located in the cli-submodule, this will cover nearly all the local running/testing needs.
+The main-method is located in `com.devonfw.tools.ide.cli.Ideasy`. Since running the main-method without any arguments is not really useful, it is necessary to create a run configuration
+in Intellij for this module/method.
+
+The easiest way to create such a run configuration is clicking on the "run/play" button to the left of the main-method definition and then click on "Modify run configuration":
+
+image::../images/run_ide_locally_guide/run_button_main_method.png[]
+
+image::../images/run_ide_locally_guide/run_button_menu.png[]
+
+In the window that is then opened, some configurations have to be made (if not set automatically already):
+
+* Set the used SDK to the SDK of the project
+* Set module to `ide-cli`
+* Set Main class to `com.devonfw.tools.ide.cli.Ideasy`
+* In Program arguments, add the cli arguments you want to pass to IDEasy (in the example a call to open vscode with the force-option)
+* Set Working directory to the IDEasy project folder
+
+With this, you should have a working run configuration which starts IDEasy from your local branch with the provided arguments.
+When you want to test other functionality of IDEasy, change the Program arguments in the run configuration accordingly.
+
+This shows an example run configuration for IDEasy:
+
+image::../images/run_ide_locally_guide/run_config_example.png[]
+
+=== Debug IDEasy in Intellij
+
+With the just created run configuration, we can also now use the debugger in Intellij to debug IDEasy using breakpoints.
+
+Just set breakpoints anywhere in the code and then use the "Debug" button with the run configuration.
+
