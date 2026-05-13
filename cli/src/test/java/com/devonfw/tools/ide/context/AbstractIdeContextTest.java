@@ -12,7 +12,12 @@ import java.util.List;
 import java.util.Set;
 
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Test;
 
+import com.devonfw.tools.ide.cli.CliArguments;
+import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
+import com.devonfw.tools.ide.completion.CompletionCandidateCollectorDefault;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileCopyMode;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
@@ -319,4 +324,19 @@ public abstract class AbstractIdeContextTest extends Assertions {
     }
   }
 
+  @Test
+  public void testMvIsCompletedToMvn() {
+    AbstractIdeContext context = new IdeTestContext();
+    CliArguments args = CliArguments.ofCompletion("mv");
+
+    assertThat(context.complete(args, true).getFirst().text()).isEqualTo("mvn");
+  }
+
+  @Test
+  public void testMvIsCompletedToMvnWithoutContextCompletion() {
+    AbstractIdeContext context = new IdeTestContext();
+    CliArguments args = CliArguments.ofCompletion("mv");
+
+    assertThat(context.complete(args, false).getFirst().text()).isEqualTo("mvn");
+  }
 }

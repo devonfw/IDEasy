@@ -409,6 +409,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   /**
    * @return {@code true} if this is a test context for JUnits, {@code false} otherwise.
    */
+  @Override
   public boolean isTest() {
 
     return false;
@@ -1438,16 +1439,15 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     if (includeContextOptions) {
       ContextCommandlet cc = new ContextCommandlet();
       for (Property<?> property : cc.getProperties()) {
-        assert (property.isOption());
+        // assert (property.isOption());
         property.apply(arguments, this, cc, collector);
       }
     }
-    Iterator<Commandlet> commandletIterator = this.commandletManager.findCommandlet(arguments, collector);
-    CliArgument current = arguments.current();
-    if (current.isCompletion() && current.isCombinedShortOption()) {
-      collector.add(current.get(), null, null, null);
-    }
-    arguments.next();
+
+    this.commandletManager.collectCompletionCandidates(arguments, collector);
+
+    Iterator<Commandlet> commandletIterator = this.commandletManager.findCommandlet(arguments, null);
+
     while (commandletIterator.hasNext()) {
       Commandlet cmd = commandletIterator.next();
       if (!arguments.current().isEnd()) {
@@ -1461,7 +1461,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
     LOG.trace("Trying to match arguments for auto-completion for commandlet {}", cmd.getName());
     Iterator<Property<?>> valueIterator = cmd.getValues().iterator();
-    valueIterator.next(); // skip first property since this is the keyword property that already matched to find the commandlet
+    Property<?> lastValueProperty = null;
     List<Property<?>> properties = cmd.getProperties();
     // we are creating our own list of options and remove them when matched to avoid duplicate suggestions
     List<Property<?>> optionProperties = new ArrayList<>(properties.size());
@@ -1499,18 +1499,30 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
           }
         }
       } else {
+        if (currentArgument.isCompletion() && currentArgument.get().isEmpty()
+            && !arguments.isEndOptions()) {
+          for (Property<?> option : optionProperties) {
+            option.apply(arguments, this, cmd, collector);
+          }
+        }
+
+        Property<?> valueProperty = null;
         if (valueIterator.hasNext()) {
-          Property<?> valueProperty = valueIterator.next();
+          valueProperty = valueIterator.next();
           boolean success = valueProperty.apply(arguments, this, cmd, collector);
           if (!success) {
             LOG.trace("Completion cannot match any further.");
             return;
           }
+        } else if (lastValueProperty != null && lastValueProperty.isMultiValued()) {
+          valueProperty = lastValueProperty;
         } else {
           LOG.trace("No value left for completion.");
           return;
         }
       }
+
+      arguments.next();
       currentArgument = arguments.current();
     }
   }

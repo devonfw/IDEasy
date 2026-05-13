@@ -95,6 +95,9 @@ public interface CommandletManager {
     throw new IllegalArgumentException("The commandlet " + name + " is not a LocalToolCommandlet!");
   }
 
+  public abstract void collectCompletionCandidates(CliArguments arguments,
+      CompletionCandidateCollector collector);
+
   /**
    * @param arguments the {@link CliArguments}.
    * @param collector the optional {@link CompletionCandidateCollector}. Will be {@code null} if no argument {@link CliArguments#isCompletion() completion}

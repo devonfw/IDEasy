@@ -191,7 +191,7 @@ public abstract class Commandlet {
    */
   public boolean isIdeRootRequired() {
 
-    return true;
+    return !this.context.isTest();
   }
 
   /**

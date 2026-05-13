@@ -20,6 +20,8 @@ import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
+import com.devonfw.tools.ide.property.FlagProperty;
+import com.devonfw.tools.ide.property.MvnArgProperty;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
@@ -62,6 +64,20 @@ public class Mvn extends LocalToolCommandlet {
 
   private static final VariableSyntax VARIABLE_SYNTAX = VariableSyntax.SQUARE;
 
+  private final FlagProperty alsoMake;
+  private final FlagProperty alsoMakeDependents;
+  private final FlagProperty failAtEnd;
+  private final FlagProperty failFast;
+  private final FlagProperty threads;
+
+  private final FlagProperty skipTests;
+  private final FlagProperty deployAtEnd;
+
+  private final FlagProperty execMainClass;
+  private final FlagProperty execArgs;
+
+  private final MvnArgProperty goals;
+
   /**
    * The constructor.
    *
@@ -70,6 +86,24 @@ public class Mvn extends LocalToolCommandlet {
   public Mvn(IdeContext context) {
 
     super(context, "mvn", Set.of(Tag.JAVA, Tag.BUILD));
+
+    this.alsoMake = this.add(new FlagProperty("--also-make", false, "-am"));
+    this.alsoMakeDependents = this.add(new FlagProperty("--also-make-dependents", false, "-amd"));
+    this.failAtEnd = this.add(new FlagProperty("--fail-at-end", false, "-fae"));
+    this.failFast = this.add(new FlagProperty("--fail-fast", false, "-ff"));
+    this.threads = this.add(new FlagProperty("--threads", false, "-t"));
+
+    this.skipTests = this.add(new FlagProperty("--define skipTests", false, "-DskipTests"));
+    this.deployAtEnd = this.add(new FlagProperty("--define deployAtEnd", false, "-DdeployAtEnd"));
+
+    this.execMainClass = this.add(
+                           new FlagProperty("--define exec.mainClass=", false, "-Dexec.mainClass=")
+                         );
+    this.execArgs = this.add(
+                      new FlagProperty("--define exec.args=", false, "-Dexec.args=")
+                    );
+
+    this.goals = this.add(new MvnArgProperty("goals", ""));
   }
 
   @Override

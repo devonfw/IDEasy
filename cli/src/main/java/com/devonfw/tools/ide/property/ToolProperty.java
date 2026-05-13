@@ -75,7 +75,7 @@ public class ToolProperty extends Property<ToolCommandlet> {
       if (cmd instanceof ToolCommandlet) {
         String cmdName = cmd.getName();
         if (cmdName.startsWith(arg)) {
-          collector.add(cmdName, null, null, cmd);
+          collector.add(cmdName, null);
         }
       }
     }
