@@ -35,7 +35,7 @@ public class MvnArgProperty extends StringProperty {
     );
 
   public MvnArgProperty(String name, String alias) {
-    super(name, true, alias);
+    super(name, true, true, alias);
   }
 
   @Override
