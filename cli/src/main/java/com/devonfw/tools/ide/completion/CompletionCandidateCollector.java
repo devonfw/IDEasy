@@ -13,12 +13,19 @@ import com.devonfw.tools.ide.property.Property;
 public interface CompletionCandidateCollector {
 
   /**
+   * Directly add a {@link CompletionCandidate}.
+   *
+   * @param completion the {@link CompletionCandidate} to add
+   */
+  void add(CompletionCandidate completion);
+
+  /**
    * @param text the suggested word to add to auto-completion.
    * @param description the description of the suggestion candidate or {@code null} to determine automatically form the given parameters.
    * @param property the {@link Property} that triggered this suggestion.
    * @param commandlet the {@link Commandlet} owning the {@link Property}.
    */
-  void add(String text, String description, Property<?> property, Commandlet commandlet);
+  void add(String text, String description);
 
   /**
    * @param text the suggested word to add to auto-completion.
@@ -27,12 +34,11 @@ public interface CompletionCandidateCollector {
    * @param commandlet the {@link Commandlet} owning the {@link Property}.
    * @return the {@link CompletionCandidate} for the given parameters.
    */
-  default CompletionCandidate createCandidate(String text, String description,
-      Property<?> property, Commandlet commandlet, boolean complete) {
-
+  default CompletionCandidate createCandidate(String text, String description, boolean complete) {
     if (description == null) {
       // compute description from property + commandlet like in HelpCommandlet?
     }
+
     CompletionCandidate candidate = new CompletionCandidate(Arrays.asList(text.split(" ")),
         description, complete);
     return candidate;
@@ -49,7 +55,7 @@ public interface CompletionCandidateCollector {
 
     if (text.isEmpty()) {
       for (String candidate : sortedCandidates) {
-        add(candidate, "", property, commandlet);
+        add(candidate, "");
       }
       return sortedCandidates.length;
     }
@@ -58,7 +64,7 @@ public interface CompletionCandidateCollector {
         .collect(Collectors.toList());
 
     for (String match : prefixWords) {
-      add(match, "", property, commandlet);
+      add(match, "");
     }
 
     return prefixWords.size();
