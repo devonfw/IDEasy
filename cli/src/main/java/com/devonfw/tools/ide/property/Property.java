@@ -468,25 +468,6 @@ public abstract class Property<V> {
       return true;
     }
 
-    if (this.alias != null) {
-      if (this.alias.startsWith(arg)) {
-        collector.add(this.alias, null);
-      } else if ((this.alias.length() == 2) && (this.alias.charAt(0) == '-') && argument.isShortOption()) {
-        char opt = this.alias.charAt(1); // e.g. arg="-do" and alias="-f" -complete-> "-dof"
-        if (arg.indexOf(opt) < 0) {
-          collector.add(arg + opt, null);
-        }
-      }
-    }
-
-    String value = argument.getValue();
-    if (value != null) {
-      String key = argument.getKey();
-      if (normalizedName.equals(key) || Objects.equals(this.alias, key)) {
-        completeValue(value, context, commandlet, new CompletionCandidateCollectorAdapter(key + "=", collector));
-      }
-    }
-
     return false;
   }
 
