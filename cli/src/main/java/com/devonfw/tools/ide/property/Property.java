@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollectorAdapter;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -342,8 +343,13 @@ public abstract class Property<V> {
    * @return {@code true} if it matches, {@code false} otherwise.
    */
   public boolean apply(CliArguments args, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
+    boolean match = this.apply(this.name, args, context, commandlet, collector);
 
-    return apply(this.name, args, context, commandlet, collector);
+    if (args.current().isCompletion() && this.alias != null) {
+      match |= this.apply(this.alias, args, context, commandlet, collector);
+    }
+
+    return match;
   }
 
   /**
@@ -358,19 +364,25 @@ public abstract class Property<V> {
 
     CliArgument argument = args.current();
     if (argument.isCompletion()) {
+      if (collector == null) {
+        return false;
+      }
+
       int size = collector.getCandidates().size();
-      complete(normalizedName, argument, args, context, commandlet, collector);
-      return (collector.getCandidates().size() > size);
+      boolean match = this.complete(normalizedName, argument, args, context, commandlet, collector);
+
+      return match;
     }
+
     boolean option = normalizedName.startsWith("-");
-    if (option && !argument.isOption()) {
+    if (option && !argument.isOption() || !option && argument.isOption()
+        && argument.get().length() > 0 && !argument.isEndOptions()) {
       return false;
     }
-    if (!option && argument.isOption() && (argument.get().length() > 1) && args.isSplitShortOpts()) {
-      return false;
-    }
+
     String argValue = null;
     boolean lookahead = false;
+
     if (normalizedName.isEmpty()) {
       argValue = argument.get();
     } else {
@@ -429,32 +441,44 @@ public abstract class Property<V> {
    * @param context the {@link IdeContext}.
    * @param commandlet the {@link Commandlet} owning this {@link Property}.
    * @param collector the {@link CompletionCandidateCollector}.
+   * @return {@code true} if completion succeeded, {@code false} otherwise
    */
-  protected void complete(String normalizedName, CliArgument argument, CliArguments args, IdeContext context, Commandlet commandlet,
-      CompletionCandidateCollector collector) {
-
+  protected boolean complete(
+      String normalizedName, CliArgument argument, CliArguments args, IdeContext context,
+      Commandlet commandlet, CompletionCandidateCollector collector
+  ) {
     String arg = argument.get();
+
     if (normalizedName.isEmpty()) {
       int count = collector.getCandidates().size();
       completeValue(arg, context, commandlet, collector);
+
       if (collector.getCandidates().size() > count) {
-        args.next();
+        return true;
       }
-      return;
+
+      return false;
     }
+
     if (normalizedName.startsWith(arg)) {
-      collector.add(normalizedName, null, this, commandlet);
+      boolean complete = !normalizedName.endsWith("=");
+      CompletionCandidate candidate = collector.createCandidate(normalizedName, null, complete);
+
+      collector.add(candidate);
+      return true;
     }
+
     if (this.alias != null) {
       if (this.alias.startsWith(arg)) {
-        collector.add(this.alias, null, this, commandlet);
+        collector.add(this.alias, null);
       } else if ((this.alias.length() == 2) && (this.alias.charAt(0) == '-') && argument.isShortOption()) {
         char opt = this.alias.charAt(1); // e.g. arg="-do" and alias="-f" -complete-> "-dof"
         if (arg.indexOf(opt) < 0) {
-          collector.add(arg + opt, null, this, commandlet);
+          collector.add(arg + opt, null);
         }
       }
     }
+
     String value = argument.getValue();
     if (value != null) {
       String key = argument.getKey();
@@ -462,6 +486,8 @@ public abstract class Property<V> {
         completeValue(value, context, commandlet, new CompletionCandidateCollectorAdapter(key + "=", collector));
       }
     }
+
+    return false;
   }
 
   /**
