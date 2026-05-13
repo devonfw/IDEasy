@@ -126,7 +126,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     startContext.setForcePluginReinstall(this.forcePluginReinstall.isTrue());
 
     if (!request.isAlreadyInstalled() || this.context.isForcePluginReinstall()) {
-      LOG.debug("Deleting all installed plugins...");
+      LOG.info("Resetting all installed plugins...");
       deleteAllPlugins(pluginsInstallationPath);
     }
     fileAccess.mkdirs(pluginsInstallationPath);
