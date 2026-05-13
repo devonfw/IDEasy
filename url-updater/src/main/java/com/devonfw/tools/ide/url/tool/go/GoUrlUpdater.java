@@ -63,8 +63,8 @@ public class GoUrlUpdater extends GithubUrlTagUpdater {
 
 
   @Override
-  protected String getCustomVersionFilter() {
-    return "rc";
+  protected String[] getCustomVersionFilter() {
+    return new String[] { "rc" };
   }
 }
 

@@ -864,9 +864,13 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
       return null;
     }
 
-    String filter = getCustomVersionFilter();
-    if ((filter != null) && version.contains(filter)) {
-      return null;
+    String[] filters = getCustomVersionFilter();
+    if (filters != null && filters.length > 1) {
+      for (String filter : filters) {
+        if ((filter != null) && version.contains(filter)) {
+          return null;
+        }
+      }
     }
     return version;
   }
@@ -884,7 +888,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   /**
    * @return the generic filters applied in {@link #filterVersion(String)}. Example: a tool might want to exclude versions containing "rc" or "beta".
    */
-  protected String getCustomVersionFilter() {
+  protected String[] getCustomVersionFilter() {
 
     return null;
   }
