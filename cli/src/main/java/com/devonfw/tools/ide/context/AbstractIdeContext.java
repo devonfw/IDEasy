@@ -1465,7 +1465,6 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     LOG.trace("Trying to match arguments for auto-completion for commandlet {}", cmd.getName());
     Iterator<Property<?>> valueIterator = cmd.getValues().iterator();
     Property<?> lastValueProperty = null;
-    valueIterator.next(); // skip first property since this is the keyword property that already matched to find the commandlet
     List<Property<?>> properties = cmd.getProperties();
     // we are creating our own list of options and remove them when matched to avoid duplicate suggestions
     List<Property<?>> optionProperties = new ArrayList<>(properties.size());
