@@ -409,6 +409,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   /**
    * @return {@code true} if this is a test context for JUnits, {@code false} otherwise.
    */
+  @Override
   public boolean isTest() {
 
     return false;

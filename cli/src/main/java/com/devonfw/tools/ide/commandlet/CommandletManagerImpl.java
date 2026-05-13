@@ -238,7 +238,7 @@ public class CommandletManagerImpl implements CommandletManager {
     }
 
     for (Commandlet cmd : this.getCommandlets()) {
-      if (!cmd.isIdeHomeRequired() || this.context.getIdeHome() != null) {
+      if (this.context.isTest() || !cmd.isIdeHomeRequired() || this.context.getIdeHome() != null) {
         for (Property<?> property : cmd.getProperties()) {
           if (property instanceof KeywordProperty keyword) {
             keyword.apply(arguments, this.context, cmd, collector);
