@@ -2,9 +2,6 @@ package com.devonfw.tools.ide.completion;
 
 import java.util.List;
 
-import com.devonfw.tools.ide.commandlet.Commandlet;
-import com.devonfw.tools.ide.property.Property;
-
 /**
  * Implementation of {@link CompletionCandidateCollector} that wraps an existing {@link CompletionCandidateCollector} adding a prefix.
  */
@@ -28,9 +25,13 @@ public class CompletionCandidateCollectorAdapter implements CompletionCandidateC
   }
 
   @Override
-  public void add(String text, String description, Property<?> property, Commandlet commandlet) {
+  public void add(CompletionCandidate completion) {
+    this.delegate.add(this.prefix + completion.text(), completion.description());
+  }
 
-    this.delegate.add(this.prefix + text, description, property, commandlet);
+  @Override
+  public void add(String text, String description) {
+    this.delegate.add(this.prefix + text, description);
   }
 
   @Override
