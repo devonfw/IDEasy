@@ -22,10 +22,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
+import org.junit.jupiter.api.io.CleanupMode;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.os.SystemInfoMock;
 
 /**
  * Test of {@link FileAccessImpl}.
@@ -560,6 +562,203 @@ class FileAccessImplTest extends AbstractIdeContextTest {
     Path link = tempDir.resolve("link");
     assertThat(link).hasContent("hi");
     assertThat(fileAccess.toRealPath(link)).isEqualTo(tempDir.resolve("file"));
+  }
+
+  @Test
+  void testUnzipWithSymbolicLink(@TempDir(cleanup = CleanupMode.NEVER) Path tempDir) {
+
+    // arrange
+    WindowsSymlinkTestHelper.assumeSymlinksSupported();
+    IdeTestContext context = new IdeTestContext();
+    Path linkZip = Path.of("src/test/resources/com/devonfw/tools/ide/io/link.zip");
+    FileAccess fileAccess = context.getFileAccess();
+
+    // act
+    fileAccess.extractZip(linkZip, tempDir);
+
+    // assert
+    Path link = tempDir.resolve("link");
+    assertThat(link).hasContent("hi");
+    assertThat(fileAccess.toRealPath(link)).isEqualTo(tempDir.resolve("file"));
+  }
+
+  /**
+   * Test of {@link FileAccessImpl#extractZip(Path, Path)} and checks if file permissions are preserved on Unix.
+   */
+  @Test
+  void testUnzipWithFilePermissions(@TempDir Path tempDir) {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    if (context.getSystemInfo().isWindows()) {
+      return;
+    }
+
+    // act
+    context.getFileAccess()
+        .extractZip(Path.of("src/test/resources/com/devonfw/tools/ide/io/executable_and_non_executable.zip"), tempDir);
+
+    // assert
+    assertPosixFilePermissions(tempDir.resolve("executableFile.txt"), "rwxrwxr-x");
+    assertPosixFilePermissions(tempDir.resolve("nonExecutableFile.txt"), "rw-rw-r--");
+  }
+
+  /**
+   * Test of {@link FileAccessImpl#extractZip(Path, Path)} with a symlink entry that appears before its target in the ZIP.
+   * Specifically validates the two-phase extraction: symlinks are collected first and created only after all regular files are written.
+   */
+  @Test
+  void testUnzipWithSymbolicLinkBeforeTarget(@TempDir Path tempDir) {
+
+    // arrange
+    WindowsSymlinkTestHelper.assumeSymlinksSupported();
+    IdeTestContext context = new IdeTestContext();
+    FileAccess fileAccess = context.getFileAccess();
+
+    // act
+    fileAccess.extractZip(Path.of("src/test/resources/com/devonfw/tools/ide/io/link_reversed.zip"), tempDir);
+
+    // assert - symlink must resolve correctly even though its entry preceded the target entry in the ZIP
+    Path link = tempDir.resolve("link");
+    assertThat(link).hasContent("hi");
+    assertThat(fileAccess.toRealPath(link)).isEqualTo(tempDir.resolve("file"));
+  }
+
+  /**
+   * Test of {@link FileAccessImpl#extractZip(Path, Path)} with a ZIP that carries no Unix attributes (as produced by Windows tools).
+   * Verifies that extraction succeeds without exceptions and files are written with correct content.
+   */
+  @Test
+  void testUnzipWithoutUnixAttributes(@TempDir Path tempDir) {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+
+    // act - must not throw even though unix mode is 0 for every entry
+    context.getFileAccess()
+        .extractZip(Path.of("src/test/resources/com/devonfw/tools/ide/io/no_unix_attrs.zip"), tempDir);
+
+    // assert
+    assertThat(tempDir.resolve("file.txt")).hasContent("content");
+  }
+
+  /**
+   * Test of {@link FileAccessImpl#extractZip(Path, Path)} with a ZIP containing both an executable file and a symlink pointing to it.
+   * Verifies that file permissions and symlink resolution work correctly together.
+   */
+  @Test
+  void testUnzipWithSymbolicLinkToExecutable(@TempDir Path tempDir) {
+
+    // arrange
+    WindowsSymlinkTestHelper.assumeSymlinksSupported();
+    IdeTestContext context = new IdeTestContext();
+    FileAccess fileAccess = context.getFileAccess();
+
+    // act
+    fileAccess.extractZip(Path.of("src/test/resources/com/devonfw/tools/ide/io/executable_and_symlink.zip"), tempDir);
+
+    // assert - symlink resolves to the executable
+    Path link = tempDir.resolve("link");
+    assertThat(fileAccess.toRealPath(link)).isEqualTo(tempDir.resolve("executable.sh"));
+
+    // assert - executable permission preserved (Unix only)
+    if (!context.getSystemInfo().isWindows()) {
+      assertPosixFilePermissions(tempDir.resolve("executable.sh"), "rwxr-xr-x");
+    }
+  }
+
+  /**
+   * Test of {@link FileAccessImpl#extractZip(Path, Path)} with a symlink that points to a directory.
+   */
+  @Test
+  void testUnzipWithSymbolicLinkToDirectory(@TempDir Path tempDir) {
+
+    // arrange
+    WindowsSymlinkTestHelper.assumeSymlinksSupported();
+    IdeTestContext context = new IdeTestContext();
+    FileAccess fileAccess = context.getFileAccess();
+
+    // act
+    fileAccess.extractZip(Path.of("src/test/resources/com/devonfw/tools/ide/io/symlink_to_dir.zip"), tempDir);
+
+    // assert
+    Path dirlink = tempDir.resolve("dirlink");
+    assertThat(dirlink).isSymbolicLink();
+    assertThat(fileAccess.toRealPath(dirlink)).isEqualTo(tempDir.resolve("subdir"));
+    assertThat(dirlink.resolve("file.txt")).hasContent("hello");
+  }
+
+  /**
+   * Test of {@link FileAccessImpl#extractZip(Path, Path)} with a symlink that uses a relative {@code ../} path to point to a file in a parent directory.
+   */
+  @Test
+  void testUnzipWithRelativeParentSymbolicLink(@TempDir Path tempDir) {
+
+    // arrange
+    WindowsSymlinkTestHelper.assumeSymlinksSupported();
+    IdeTestContext context = new IdeTestContext();
+    FileAccess fileAccess = context.getFileAccess();
+
+    // act
+    fileAccess.extractZip(Path.of("src/test/resources/com/devonfw/tools/ide/io/symlink_relative_parent.zip"), tempDir);
+
+    // assert
+    Path link = tempDir.resolve("subdir").resolve("link");
+    assertThat(link).hasContent("hi");
+    assertThat(fileAccess.toRealPath(link)).isEqualTo(tempDir.resolve("file"));
+  }
+
+  /**
+   * Test of {@link FileAccessImpl#extractZip(Path, Path)} with a simulated Mac OS.
+   * Verifies that file permissions are applied on macOS (same non-Windows code path as Linux).
+   * Disabled on actual Windows because {@link java.nio.file.Files#getPosixFilePermissions} is unavailable there.
+   */
+  @Test
+  @DisabledOnOs(OS.WINDOWS)
+  void testUnzipFilePermissionsOnSimulatedMac(@TempDir Path tempDir) {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    context.setSystemInfo(SystemInfoMock.MAC_X64);
+
+    // act
+    context.getFileAccess()
+        .extractZip(Path.of("src/test/resources/com/devonfw/tools/ide/io/executable_and_non_executable.zip"), tempDir);
+
+    // assert - permissions from ZIP are applied on macOS just like on Linux
+    assertPosixFilePermissions(tempDir.resolve("executableFile.txt"), "rwxrwxr-x");
+    assertPosixFilePermissions(tempDir.resolve("nonExecutableFile.txt"), "rw-rw-r--");
+  }
+
+  /**
+   * Test of {@link FileAccessImpl#extractZip(Path, Path)} with a simulated Windows OS.
+   * Verifies that the {@code isWindows()} guard in onFileCopiedFromZip suppresses the POSIX
+   * permission call, so the executable bit stored in the ZIP is NOT applied to the extracted file.
+   * <p>
+   * This test intentionally runs only on Linux/Mac: the whole point is to verify the guard from a machine where POSIX
+   * permissions are observable via {@link java.nio.file.Files#getPosixFilePermissions}. On actual Windows that API is
+   * unavailable and the guard is trivially always active, so there is nothing meaningful to assert.
+   */
+  @Test
+  @DisabledOnOs(OS.WINDOWS)
+  void testUnzipFilePermissionsSkippedOnSimulatedWindows(@TempDir Path tempDir) {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
+
+    // act
+    context.getFileAccess()
+        .extractZip(Path.of("src/test/resources/com/devonfw/tools/ide/io/executable_and_non_executable.zip"), tempDir);
+
+    // assert - execute bit must NOT be set: the isWindows() guard suppressed setPosixFilePermissions,
+    // and Files.copy never adds execute bits on its own
+    try {
+      Set<PosixFilePermission> perms = Files.getPosixFilePermissions(tempDir.resolve("executableFile.txt"));
+      assertThat(perms).doesNotContain(PosixFilePermission.OWNER_EXECUTE);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   /**
