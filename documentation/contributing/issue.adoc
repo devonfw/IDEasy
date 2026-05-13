@@ -56,7 +56,7 @@ Once, you are now the assigned person working on the issue, you can start your i
 
 == Feedback on an Issue
 
-If you reported and issue, we try to give our best to value your feedback and also report back via comments.
+If you reported an issue, we try to give our best to value your feedback and also report back via comments.
 If you see link:commit.adoc[commits] being associated in your issue, a link:pull-request.adoc[pull-request] gets linked in your issue under `Development`, or a release is assigned as link:milestone.adoc[milestone] you can see that we are working on your issue.
 If your issue gets `closed` it was either implemented and is `done` or it was somehow rejected (e.g. closed as duplicate or invalid).
 In most cases it was implemented, and you will see a release assigned as link:milestone.adoc[milestone].
