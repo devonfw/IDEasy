@@ -10,6 +10,7 @@ import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallation;
+import com.devonfw.tools.ide.tool.python.Python;
 
 /**
  * {@link ToolCommandlet} for azure CLI (azure).
@@ -52,5 +53,10 @@ public class Azure extends LocalToolCommandlet {
 
     super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
     environmentContext.withEnvVar("AZURE_CONFIG_DIR", this.context.getConfPath().resolve(".azure").toString());
+    if (this.context.getSystemInfo().isMac()) {
+      Python python = this.context.getCommandletManager().getCommandlet(Python.class);
+      Path pythonBin = python.getToolBinPath().resolve("python3");
+      environmentContext.withEnvVar("AZ_PYTHON", pythonBin.toString());
+    }
   }
 }
