@@ -1438,7 +1438,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     if (includeContextOptions) {
       ContextCommandlet cc = new ContextCommandlet();
       for (Property<?> property : cc.getProperties()) {
-        assert (property.isOption());
+        // assert (property.isOption());
         property.apply(arguments, this, cc, collector);
       }
     }
@@ -1446,11 +1446,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     this.commandletManager.collectCompletionCandidates(arguments, collector);
 
     Iterator<Commandlet> commandletIterator = this.commandletManager.findCommandlet(arguments, null);
-    CliArgument current = arguments.current();
-    if (current.isCompletion() && current.isCombinedShortOption()) {
-      collector.add(current.get(), null, null, null);
-    }
-    arguments.next();
+
     while (commandletIterator.hasNext()) {
       Commandlet cmd = commandletIterator.next();
       if (!arguments.current().isEnd()) {
