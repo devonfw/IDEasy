@@ -210,19 +210,13 @@ public class ProcessContextImpl implements ProcessContext {
           CompletableFuture<Void> errFut = readInputStream(process.getErrorStream(), true, output);
           if (Redirect.PIPE == processMode.getRedirectOutput()) {
             outFut.get();
-            if (this.outputListener != null) {
-              for (OutputMessage msg : output) {
-                this.outputListener.onOutput(msg.message(), msg.error());
-              }
-            }
           }
-
           if (Redirect.PIPE == processMode.getRedirectError()) {
             errFut.get();
-            if (this.outputListener != null) {
-              for (OutputMessage msg : output) {
-                this.outputListener.onOutput(msg.message(), msg.error());
-              }
+          }
+          if (this.outputListener != null) {
+            for (OutputMessage msg : output) {
+              this.outputListener.onOutput(msg.message(), msg.error());
             }
           }
         }
