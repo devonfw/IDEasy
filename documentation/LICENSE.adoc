@@ -49,6 +49,7 @@ The column `inclusion` indicates the way the component is included:
 |https://openjdk.java.net/[OpenJDK] / https://adoptopenjdk.net/[AdoptOpenJDK] (Java)|Default Setup|https://openjdk.java.net/legal/gplv2+ce.html[GPLv2]
 |https://go.dev[GO]|Optional|https://go.dev/LICENSE[BSD 3-Clause]
 |https://github.com/github/copilot-cli[GitHub Copilot CLI]|Optional|https://github.com/github/copilot-cli/blob/main/LICENSE.md[Proprietary]
+|https://github.com/anthropics/claude-code/tree/main[Claude Code CLI]|Optional|https://github.com/anthropics/claude-code/blob/main/LICENSE.md[LICENSE]
 |https://maven.apache.org/[Maven]|Default Setup|https://www.apache.org/licenses/LICENSE-2.0[Apache 2.0]
 |https://code.visualstudio.com/[VS Code]|Optional|https://github.com/Microsoft/vscode/blob/master/LICENSE.txt[MIT] (https://code.visualstudio.com/License/[Terms])
 |https://github.com/devonfw/extension-pack-vscode[extension-pack-vscode] |Optional|https://github.com/devonfw/extension-pack-vscode/blob/master/LICENSE[Apache 2.0]
@@ -3483,3 +3484,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 GitHub Copilot CLI is distributed under a proprietary license by GitHub, Inc.
 The full license terms can be found at https://github.com/github/copilot-cli/blob/main/LICENSE.md
+
+== Claude Code CLI License
+
+© Anthropic PBC.
+All rights reserved.
+Use is subject to Anthropic's Commercial Terms of Service.
+The full license terms can be found at https://github.com/anthropics/claude-code/blob/main/LICENSE.md

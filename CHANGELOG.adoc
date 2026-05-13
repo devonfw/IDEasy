@@ -29,6 +29,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1685[#1685]: Add Nest CLI to IDEasy commandlets
 * https://github.com/devonfw/IDEasy/issues/1882[#1882]: Add AWS CDK to IDEasy commandlets
 * https://github.com/devonfw/IDEasy/issues/800[#800]: Fix infinite recursion in Sonar start/stop on macOS
+* https://github.com/devonfw/IDEasy/issues/1716[#1716]: Add commandlet for Claude Code CLI
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/44?closed=1[milestone 2026.05.001].
 
