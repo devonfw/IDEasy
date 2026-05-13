@@ -43,7 +43,7 @@ public class MvnArgProperty extends StringProperty {
                                CompletionCandidateCollector collector) {
     for (String goal : MAVEN_GOALS) {
       if (goal.startsWith(arg)) {
-        collector.add(goal, null, this, commandlet);
+        collector.add(goal, null);
       }
     }
   }

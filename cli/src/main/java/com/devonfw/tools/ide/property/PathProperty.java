@@ -129,7 +129,7 @@ public class PathProperty extends Property<Path> {
     if (Files.isDirectory(folder)) {
       try (Stream<Path> children = Files.list(folder)) {
         children.filter(child -> isValidPath(child, filename))
-            .forEach(child -> collector.add(getPathForCompletion(child, context, commandlet), null, this, commandlet));
+            .forEach(child -> collector.add(getPathForCompletion(child, context, commandlet), null));
       } catch (IOException e) {
         throw new IllegalStateException(e);
       }

@@ -53,7 +53,7 @@ public class CommandletProperty extends Property<Commandlet> {
     for (Commandlet cmd : context.getCommandletManager().getCommandlets()) {
       String cmdName = cmd.getName();
       if (cmdName.startsWith(arg)) {
-        collector.add(cmdName, null, null, cmd);
+        collector.add(cmdName, null);
       }
     }
   }

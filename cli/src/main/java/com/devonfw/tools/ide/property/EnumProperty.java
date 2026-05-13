@@ -54,7 +54,7 @@ public class EnumProperty<V extends Enum<V>> extends Property<V> {
     for (V enumConstant : this.valueType.getEnumConstants()) {
       String name = enumConstant.name().toLowerCase(Locale.ROOT);
       if (name.startsWith(arg)) {
-        collector.add(name, null, this, commandlet);
+        collector.add(name, null);
       }
     }
   }

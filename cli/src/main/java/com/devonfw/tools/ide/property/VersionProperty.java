@@ -76,7 +76,7 @@ public class VersionProperty extends Property<VersionIdentifier> {
       } else {
         text = version2complete.toString();
         if (version2complete.isPattern()) {
-          collector.add(text, "Given version pattern.", this, commandlet);
+          collector.add(text, "Given version pattern.");
           return;
         }
       }
@@ -88,13 +88,13 @@ public class VersionProperty extends Property<VersionIdentifier> {
       List<CompletionCandidate> candidates = collector.getCandidates();
       Collections.reverse(candidates);
       CompletionCandidate latest = collector.createCandidate(text + VersionSegment.PATTERN_MATCH_ANY_STABLE_VERSION,
-          "Latest stable matching version", this, commandlet, true);
+          "Latest stable matching version", true);
       if (candidates.isEmpty()) {
         candidates.add(latest);
       } else {
         candidates.add(1, latest);
       }
-      collector.add(text + VersionSegment.PATTERN_MATCH_ANY_VERSION, "Latest matching version including unstable versions", this, commandlet);
+      collector.add(text + VersionSegment.PATTERN_MATCH_ANY_VERSION, "Latest matching version including unstable versions");
     }
   }
 }
