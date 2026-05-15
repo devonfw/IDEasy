@@ -332,6 +332,10 @@ public final class Tag {
   /** {@link Tag} for Nest. */
   public static final Tag NEST = create("nest", FRAMEWORK, false, new String[] { "nestjs", "nestcli" }, TYPE_SCRIPT);
 
+  /** {@link Tag} for Task (Taskfile). */
+  public static final Tag TASK = create("task", BUILD, false, "taskfile", "gotask");
+
+
   private final String id;
 
   private final Tag parent;
