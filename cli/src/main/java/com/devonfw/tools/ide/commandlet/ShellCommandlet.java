@@ -4,18 +4,19 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
+import java.util.List;
 
 import org.fusesource.jansi.AnsiConsole;
+import org.jline.reader.Candidate;
 import org.jline.reader.Completer;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.reader.MaskingCallback;
+import org.jline.reader.ParsedLine;
 import org.jline.reader.Parser;
 import org.jline.reader.UserInterruptException;
 import org.jline.reader.impl.DefaultParser;
-import org.jline.reader.impl.completer.AggregateCompleter;
-import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.widget.AutosuggestionWidgets;
@@ -72,11 +73,23 @@ public final class ShellCommandlet extends Commandlet {
     try {
       Parser parser = new DefaultParser();
       try (Terminal terminal = TerminalBuilder.builder().build()) {
-        // initialize our own completer here and add exit as an autocompletion option
-        Completer completer = new AggregateCompleter(
-            new StringsCompleter("exit"), new IdeCompleter((AbstractIdeContext) this.context));
+        IdeCompleter ideCompleter = new IdeCompleter((AbstractIdeContext) this.context);
 
-        LineReader reader = LineReaderBuilder.builder().terminal(terminal).completer(completer).parser(parser)
+        Completer shellCompleter = new Completer() {
+          @Override
+          public void complete(LineReader reader, ParsedLine commandLine, List<Candidate> candidates) {
+            String currentWord = commandLine.word();
+            int wordIndex = commandLine.wordIndex();
+
+            if (wordIndex == 0 && !currentWord.isEmpty() && "exit".startsWith(currentWord)) {
+              candidates.add(new Candidate("exit"));
+            }
+
+            ideCompleter.complete(reader, commandLine, candidates);
+          }
+        };
+
+        LineReader reader = LineReaderBuilder.builder().terminal(terminal).completer(shellCompleter).parser(parser)
             .variable(LineReader.LIST_MAX, AUTOCOMPLETER_MAX_RESULTS).build();
 
         // Create autosuggestion widgets
@@ -94,10 +107,6 @@ public final class ShellCommandlet extends Commandlet {
           try {
             String prompt = context.getCwd() + "$ ide ";
             line = reader.readLine(prompt, rightPrompt, (MaskingCallback) null, null);
-            line = line.trim();
-            if (line.equals("exit")) {
-              return;
-            }
             reader.getHistory().add(line);
             int rc = runCommand(line);
             if (rc == RC_EXIT) {
