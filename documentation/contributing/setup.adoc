@@ -16,10 +16,11 @@ Send your GitHub login name/ID via Teams chat to https://github.com/hohwille[hoh
 +
 NOTE: Make sure your Git configuration matches your GitHub account:
 +
-```
+[source]
+----
 git config user.name "«my_github_name»"
 git config user.email "«my_github_user_email»"
-```
+----
 
 == Installation of IDEasy
 
@@ -31,9 +32,10 @@ For detailed, step‑by‑step installation instructions, including platform‑s
 
 . After the IDEasy installation, run the following command in the terminal to create a project:
 +
-```
+[source]
+----
 ide create IDEasy -
-```
+----
 +
 Wait until this process has finished (this will take several minutes).
 This will create an `IDEasy` folder inside your `projects` directory, for example:
@@ -46,36 +48,43 @@ NOTE: Steps for forking or cloning repositories, creating branches, and using Gi
 
 . Start a bash terminal (on Windows open `Git Bash` from the Start Menu) and run the following command:
 +
-```
+[source]
+----
 icd -p IDEasy -w
-```
+----
 . Clone your fork in there:
 +
-```
+[source]
+----
 git clone https://github.com/«my-github-login»/IDEasy.git
-```
+----
 . Configure your Git environment and connect your fork to the official IDEasy repository (upstream):
 +
-```
+[source]
+----
 git remote add upstream https://github.com/devonfw/ideasy.git
 git fetch upstream
-```
+----
 . Build the project and download all dependencies:
 +
-```
+[source]
+----
 ide mvn clean install
-```
+----
 . Now you can open the project in your preferred IDE using the `ide` command. +
 For IntelliJ:
 +
-```
+[source]
+----
 ide intellij
-```
+----
 . If your IDE does not automatically detect the Maven project structure, you must add it manually. +
 In IntelliJ, navigate to the IDEasy folder inside your main workspace directory, locate the `pom.xml` file, right‑click it, and select **Add as Maven Project**.
 +
 TIP: If the Maven button is hidden or not visible, press `Alt+7` to open the **Structure** window below the project explorer. +
 Scroll down in the explorer to make the `pom.xml` file appear higher, enabling the option to be clicked. +
+
+. To run IDEasy from your local project with your local changes, follow the instructions in link:run-ideasy-locally.adoc[Run IDEasy locally].
 
 Optional, for Windows user: +
 If you are developing on Windows, we strongly recommend to follow the guide
@@ -108,11 +117,12 @@ Open the class `Ideasy` that is our main entry point of the CLI of IDEasy having
 Run it from your IDE, edit the run configuration and specify some arguments.
 Compare running the following CLI commands in your terminal as well as in your IDE:
 
-```
+[source]
+----
 ide help
 ide -v
 ide status
-```
+----
 
 Also try to set some breakpoint and run it from your IDE in debug mode.
 
