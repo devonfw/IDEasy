@@ -19,6 +19,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 public class InsoUrlUpdater extends GithubUrlReleaseUpdater {
 
   private static final String BASE_URL = "https://github.com";
+  private static final String BOX_EMOJI = "\uD83D\uDCE6";
   private static final VersionIdentifier MIN_INSO_VID = VersionIdentifier.of("11.5.0");
 
   @Override
@@ -44,6 +45,12 @@ public class InsoUrlUpdater extends GithubUrlReleaseUpdater {
   @Override
   protected String getVersionPrefixToRemove() {
     return "core@";
+  }
+
+  @Override
+  public String mapVersion(String version) {
+    String sanitizedVersion = version.replace(BOX_EMOJI, "").trim();
+    return super.mapVersion(sanitizedVersion);
   }
 
   @Override
