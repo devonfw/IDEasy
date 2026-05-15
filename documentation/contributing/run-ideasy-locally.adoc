@@ -44,7 +44,9 @@ Just set breakpoints anywhere in the code and then use the "Debug" button with t
 Running IDEasy from inside Visual Studio Code works similarly to IntelliJ and also supports debugging with breakpoints.
 It requires the https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-java-pack[Extension Pack for Java] to be installed in VS Code.
 
-To create a launch configuration, create or open the file `.vscode/launch.json` in the root of the IDEasy project and add the following configuration:
+To create a launch configuration, open the *Run and Debug* panel (kbd:[Ctrl+Shift+D]) and select *create a launch.json file*. This will automatically create a ready-to-go launch configuration that you can modify with relevant launch arguments.
+
+You can also manually create a launch configuration by creating and opening the file `.vscode/launch.json` in the root of the IDEasy project and adding the following configuration:
 
 [source,json]
 ----
@@ -53,11 +55,11 @@ To create a launch configuration, create or open the file `.vscode/launch.json` 
   "configurations": [
     {
       "type": "java",
-      "name": "IDEasy",
+      "name": "Ideasy",
       "request": "launch",
       "mainClass": "com.devonfw.tools.ide.cli.Ideasy",
       "projectName": "ide-cli",
-      "args": "install mvn",
+      "args": ["install", "mvn"],
       "cwd": "${workspaceFolder}"
     }
   ]
@@ -68,7 +70,7 @@ The relevant settings are:
 
 * `mainClass`: must be set to `com.devonfw.tools.ide.cli.Ideasy`
 * `projectName`: must be set to `ide-cli`
-* `args`: the CLI arguments to pass to IDEasy (in the example, a call to install Maven)
+* `args`: the CLI arguments to pass to IDEasy (in the example, a call to install Maven). Multiple arguments must be passed as a list of Strings.
 * `cwd`: the working directory, set to the IDEasy project root
 
 With this configuration saved, open the *Run and Debug* panel (kbd:[Ctrl+Shift+D]), select *IDEasy* from the dropdown, and click the run button.
