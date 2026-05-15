@@ -21,6 +21,7 @@ import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.tool.androidstudio.AndroidStudio;
 import com.devonfw.tools.ide.tool.aws.Aws;
 import com.devonfw.tools.ide.tool.az.Azure;
+import com.devonfw.tools.ide.tool.cdk.Cdk;
 import com.devonfw.tools.ide.tool.copilot.Copilot;
 import com.devonfw.tools.ide.tool.corepack.Corepack;
 import com.devonfw.tools.ide.tool.docker.Docker;
@@ -156,6 +157,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Gui(context));
     add(new SquirrelSql(context));
     add(new Nest(context));
+    add(new Cdk(context));
   }
 
   /**
