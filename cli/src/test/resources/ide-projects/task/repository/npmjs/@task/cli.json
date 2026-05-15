@@ -1,0 +1,10 @@
+{
+  "versions": {
+    "3.43.3": {
+      "version": "3.43.3",
+      "dist": {
+        "tarball": "${testbaseurl}/@go-task/-/cli-3.43.3.tgz"
+      }
+    }
+  }
+}
