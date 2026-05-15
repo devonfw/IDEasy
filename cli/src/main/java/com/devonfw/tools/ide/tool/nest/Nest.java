@@ -1,30 +1,30 @@
-  package com.devonfw.tools.ide.tool.nest;
+package com.devonfw.tools.ide.tool.nest;
 
-  import java.util.Set;
+import java.util.Set;
 
-  import com.devonfw.tools.ide.common.Tag;
-  import com.devonfw.tools.ide.context.IdeContext;
-  import com.devonfw.tools.ide.tool.ToolCommandlet;
-  import com.devonfw.tools.ide.tool.npm.NpmBasedCommandlet;
+import com.devonfw.tools.ide.common.Tag;
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.npm.NpmBasedCommandlet;
+
+/**
+ * {@link ToolCommandlet} for <a href="https://docs.nestjs.com/cli/overview">Nest CLI</a>.
+ */
+public class Nest extends NpmBasedCommandlet {
 
   /**
-   * {@link ToolCommandlet} for <a href="https://docs.nestjs.com/cli/overview">Nest CLI</a>.
+   * The constructor.
+   *
+   * @param context the {@link IdeContext}.
    */
-  public class Nest extends NpmBasedCommandlet {
+  public Nest(IdeContext context) {
 
-    /**
-     * The constructor.
-     *
-     * @param context the {@link IdeContext}.
-     */
-    public Nest(IdeContext context) {
-
-      super(context, "nest", Set.of(Tag.NEST, Tag.BUILD));
-    }
-
-    @Override
-    public String getPackageName() {
-
-      return "@nestjs/cli";
-    }
+    super(context, "nest", Set.of(Tag.NEST, Tag.BUILD));
   }
+
+  @Override
+  public String getPackageName() {
+
+    return "@nestjs/cli";
+  }
+}
