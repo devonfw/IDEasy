@@ -108,6 +108,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new RepositoryCommandlet(context));
     add(new UninstallCommandlet(context));
     add(new UpdateCommandlet(context));
+    add(new CleanupCommandlet(context));
     add(new UpgradeSettingsCommandlet(context));
     add(new CreateCommandlet(context));
     add(new BuildCommandlet(context));
