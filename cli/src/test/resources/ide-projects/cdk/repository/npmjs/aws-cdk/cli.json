@@ -1,0 +1,10 @@
+{
+  "versions": {
+    "2.1120.0": {
+      "version": "2.1120.0",
+      "dist": {
+        "tarball": "${testbaseurl}/aws-cdk/-/aws-cdk-2.1120.0.tgz"
+      }
+    }
+  }
+}
