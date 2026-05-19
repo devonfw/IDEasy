@@ -50,7 +50,7 @@ public class MvndUrlUpdater extends GithubUrlReleaseUpdater {
     if (mappedVersion != null) {
       // Require minimum version (1.0.2)
       VersionIdentifier vid = VersionIdentifier.of(mappedVersion);
-      if (vid.isValid() && vid.isGreaterOrEqual(MIN_MVND_VID)) {
+      if (vid.isGreaterOrEqual(MIN_MVND_VID)) {
         return mappedVersion;
       }
     }
