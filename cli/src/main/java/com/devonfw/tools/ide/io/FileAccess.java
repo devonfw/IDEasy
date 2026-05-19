@@ -133,12 +133,13 @@ public interface FileAccess {
    * @param type the {@link PathLinkType}.
    */
   default void link(Path source, Path link, boolean relative, PathLinkType type) {
-    link(source, link, relative, type, false);
+    link(source, link, relative, type, true);
   }
 
   /**
-   * Creates a link. If the given {@code link} already exists and is a symbolic link or a Windows junction, it will be replaced if {@code override} is {@code true}.
-   * In case of missing privileges, Windows mklink may be used as fallback, which must point to absolute paths. In such case the {@code relative} flag will be ignored.
+   * Creates a link. If the given {@code link} already exists and is a symbolic link or a Windows junction, it will be replaced if {@code override} is
+   * {@code true}. In case of missing privileges, Windows mklink may be used as fallback, which must point to absolute paths. In such case the {@code relative}
+   * flag will be ignored.
    *
    * @param source the source {@link Path} to link to, may be relative or absolute.
    * @param link the destination {@link Path} where the link shall be created pointing to {@code source}.

@@ -35,8 +35,8 @@ class LnCommandletTest extends AbstractIdeContextTest {
 
     LnCommandlet cmd = new LnCommandlet(context);
     cmd.symbolic.setValue(Boolean.TRUE);
-    cmd.source.setValue("source.txt");
-    cmd.link.setValue("link.txt");
+    cmd.source.setValue(Path.of("source.txt"));
+    cmd.link.setValue(Path.of("link.txt"));
 
     cmd.run();
 
@@ -49,7 +49,7 @@ class LnCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests symbolic link creation on Linux/Mac with -s flag. This should create a true symbolic link with relative path (matching ln default behavior).
+   * Tests symbolic link creation on Linux/Mac with -s -r flags.
    */
   @Test
   @EnabledOnOs({ OS.LINUX, OS.MAC })
@@ -66,14 +66,15 @@ class LnCommandletTest extends AbstractIdeContextTest {
 
     LnCommandlet cmd = new LnCommandlet(context);
     cmd.symbolic.setValue(Boolean.TRUE);
-    cmd.source.setValue("source.txt");
-    cmd.link.setValue("link.txt");
+    cmd.relative.setValue(Boolean.TRUE);
+    cmd.source.setValue(Path.of("source.txt"));
+    cmd.link.setValue(Path.of("link.txt"));
 
     cmd.run();
 
     assertThat(link).exists().isSymbolicLink();
 
-    // Verify link target is relative (PR requirement: relative by default like ln)
+    // Verify link target is relative when --relative is used.
     Path linkTarget = Files.readSymbolicLink(link);
     assertThat(linkTarget.isAbsolute()).isFalse();
     assertThat(linkTarget.toString()).isEqualTo("source.txt");
@@ -98,8 +99,8 @@ class LnCommandletTest extends AbstractIdeContextTest {
     Files.writeString(source, "A", StandardCharsets.UTF_8);
 
     LnCommandlet cmd = new LnCommandlet(context);
-    cmd.source.setValue("source.txt");
-    cmd.link.setValue("link.txt");
+    cmd.source.setValue(Path.of("source.txt"));
+    cmd.link.setValue(Path.of("link.txt"));
 
     cmd.run();
 
@@ -130,8 +131,8 @@ class LnCommandletTest extends AbstractIdeContextTest {
 
     // Create initial hard link to source1
     LnCommandlet cmd1 = new LnCommandlet(context);
-    cmd1.source.setValue("source1.txt");
-    cmd1.link.setValue("link.txt");
+    cmd1.source.setValue(Path.of("source1.txt"));
+    cmd1.link.setValue(Path.of("link.txt"));
     cmd1.run();
 
     assertThat(link).exists();
@@ -140,12 +141,54 @@ class LnCommandletTest extends AbstractIdeContextTest {
     // Override with -f flag
     LnCommandlet cmd2 = new LnCommandlet(context);
     context.getStartContext().setForceMode(true);
-    cmd2.source.setValue("source2.txt");
-    cmd2.link.setValue("link.txt");
+    cmd2.source.setValue(Path.of("source2.txt"));
+    cmd2.link.setValue(Path.of("link.txt"));
 
     cmd2.run();
 
     assertThat(link).exists();
     assertThat(Files.readString(link, StandardCharsets.UTF_8)).isEqualTo("B");
+  }
+
+  /**
+   * Tests that -f overrides an existing symbolic link on Linux/Mac.
+   */
+  @Test
+  @EnabledOnOs({ OS.LINUX, OS.MAC })
+  void testForceOverridesExistingSymbolicLink() throws Exception {
+    IdeTestContext context = newContext(PROJECT_BASIC);
+
+    Path testDir = context.getWorkspacePath().resolve("ln-test-force-symlink");
+    context.getFileAccess().mkdirs(testDir);
+    context.setCwd(testDir, context.getWorkspaceName(), context.getIdeHome());
+
+    Path source1 = testDir.resolve("source1.txt");
+    Path source2 = testDir.resolve("source2.txt");
+    Path link = testDir.resolve("link.txt");
+    Files.writeString(source1, "A", StandardCharsets.UTF_8);
+    Files.writeString(source2, "B", StandardCharsets.UTF_8);
+
+    LnCommandlet cmd1 = new LnCommandlet(context);
+    cmd1.symbolic.setValue(Boolean.TRUE);
+    cmd1.relative.setValue(Boolean.TRUE);
+    cmd1.source.setValue(Path.of("source1.txt"));
+    cmd1.link.setValue(Path.of("link.txt"));
+    cmd1.run();
+
+    assertThat(link).exists().isSymbolicLink();
+    assertThat(Files.readString(link, StandardCharsets.UTF_8)).isEqualTo("A");
+
+    LnCommandlet cmd2 = new LnCommandlet(context);
+    context.getStartContext().setForceMode(true);
+    cmd2.symbolic.setValue(Boolean.TRUE);
+    cmd2.relative.setValue(Boolean.TRUE);
+    cmd2.source.setValue(Path.of("source2.txt"));
+    cmd2.link.setValue(Path.of("link.txt"));
+
+    cmd2.run();
+
+    assertThat(link).exists().isSymbolicLink();
+    assertThat(Files.readString(link, StandardCharsets.UTF_8)).isEqualTo("B");
+    assertThat(Files.readSymbolicLink(link).toString()).isEqualTo("source2.txt");
   }
 }

@@ -528,7 +528,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   }
 
   @Override
-  public void link(Path source, Path link, boolean relative, PathLinkType type, boolean overrideHardLink) {
+  public void link(Path source, Path link, boolean relative, PathLinkType type, boolean override) {
 
     Path finalLink = link.toAbsolutePath().normalize();
     Path finalSource;
@@ -540,13 +540,15 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     Path absoluteSource = finalSource.isAbsolute() ? finalSource : finalLink.getParent().resolve(finalSource).normalize();
     String relativeOrAbsolute = relative ? "relative" : "absolute";
     LOG.debug("Creating {} {} at {} pointing to {}", relativeOrAbsolute, type, finalLink, finalSource);
-    deleteLinkIfExists(finalLink);
+    if (override) {
+      deleteLinkIfExists(finalLink);
+    }
     try {
       // Attention: JavaDoc and position of path arguments can be very confusing - see comment in #1736
       if (type == PathLinkType.SYMBOLIC_LINK) {
         Files.createSymbolicLink(finalLink, finalSource);
       } else if (type == PathLinkType.HARD_LINK) {
-        createHardLink(finalSource, finalLink, overrideHardLink);
+        createHardLink(finalSource, finalLink, override);
       } else {
         throw new IllegalStateException("" + type);
       }
@@ -560,8 +562,8 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
         try {
           mklinkOnWindows(finalSource, absoluteSource, finalLink, type, relative);
         } catch (IllegalStateException mkEx) {
-             LOG.info("Creating a hard link as a fallback for the failed mklink attempt.");
-            createHardLink(absoluteSource, finalLink, overrideHardLink);
+          LOG.info("Creating a hard link as a fallback for the failed mklink attempt.");
+          createHardLink(absoluteSource, finalLink, override);
         }
       } else {
         throw new RuntimeException(e);

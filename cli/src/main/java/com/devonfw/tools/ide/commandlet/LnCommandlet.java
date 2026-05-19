@@ -7,7 +7,7 @@ import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.PathLinkType;
 import com.devonfw.tools.ide.property.FlagProperty;
-import com.devonfw.tools.ide.property.StringProperty;
+import com.devonfw.tools.ide.property.PathProperty;
 
 /**
  * // * Link creation {@link Commandlet} similar to {@code ln -s}.
@@ -20,11 +20,14 @@ public final class LnCommandlet extends Commandlet {
   /** Grammar token {@code -s} (optional). */
   public final FlagProperty symbolic;
 
+  /** Grammar token {@code -r} (optional). */
+  public final FlagProperty relative;
+
   /** The source path to link to. */
-  public final StringProperty source;
+  public final PathProperty source;
 
   /** The target path (the created link). */
-  public final StringProperty link;
+  public final PathProperty link;
 
   /**
    * The constructor.
@@ -37,8 +40,9 @@ public final class LnCommandlet extends Commandlet {
     addKeyword(getName());
 
     this.symbolic = add(new FlagProperty("--symbolic", false, "-s"));
-    this.source = add(new StringProperty("", true, "source"));
-    this.link = add(new StringProperty("", true, "link"));
+    this.relative = add(new FlagProperty("--relative", false, "-r"));
+    this.source = add(new PathProperty("", true, "source", true));
+    this.link = add(new PathProperty("", true, "link", true));
   }
 
   @Override
@@ -73,19 +77,15 @@ public final class LnCommandlet extends Commandlet {
       throw new CliException("Missing current working directory!");
     }
 
-    Path resolvedSource = cwd.resolve(this.source.getValue()).normalize();
-    Path linkPath = cwd.resolve(this.link.getValue()).normalize().toAbsolutePath();
+    Path sourcePath = cwd.resolve(this.source.getValue()).normalize();
+    Path linkPath = cwd.resolve(this.link.getValue()).normalize();
+    boolean relative = this.relative.isTrue();
 
-    if (!Files.exists(resolvedSource)) {
-      throw new CliException("Source does not exist: " + resolvedSource);
+    if (!Files.exists(sourcePath)) {
+      throw new CliException("Source does not exist: " + sourcePath);
     }
 
-    if (this.symbolic.isTrue()) {
-      Path target = Path.of(this.source.getValue());
-      boolean relative = !target.isAbsolute();
-      this.context.getFileAccess().link(target, linkPath, relative, PathLinkType.SYMBOLIC_LINK);
-    } else {
-      this.context.getFileAccess().link(resolvedSource, linkPath, false, PathLinkType.HARD_LINK, this.context.isForceMode());
-    }
+    PathLinkType linkType = this.symbolic.isTrue() ? PathLinkType.SYMBOLIC_LINK : PathLinkType.HARD_LINK;
+    this.context.getFileAccess().link(sourcePath, linkPath, relative, linkType, this.context.isForceMode());
   }
 }
