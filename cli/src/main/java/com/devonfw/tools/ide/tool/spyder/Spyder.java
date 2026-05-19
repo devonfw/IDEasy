@@ -18,10 +18,8 @@ public class Spyder extends PipBasedCommandlet {
   @Override
   public ToolInstallation install(ToolInstallRequest request) {
 
-    PackageManagerRequest pmRequest =
-        new PackageManagerRequest("install", "spyder");
-
-    runPackageManager(pmRequest);
+    // Spyder is a pip package -> delegate installation to pip
+    runPackageManager(new PackageManagerRequest("install", getPackageName()));
 
     return null;
   }
