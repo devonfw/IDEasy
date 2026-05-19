@@ -38,12 +38,6 @@ public class MvndUrlUpdater extends GithubUrlReleaseUpdater {
   }
 
   @Override
-  protected boolean isVersionFiltered() {
-    // Don't filter pre-releases, we'll handle filtering explicitly in mapVersion()
-    return false;
-  }
-
-  @Override
   public String mapVersion(String version) {
     // Accept pre-release versions (rc, beta, alpha, etc.) first
     if (version.contains("-rc") || version.contains("-beta") || version.contains("-alpha")) {
