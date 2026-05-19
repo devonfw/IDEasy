@@ -29,7 +29,7 @@ class IdeasyTest extends AbstractIdeContextTest {
     ideasy.run("--debug", "env");
 
     // assert
-    assertThat(context).logAtDebug().hasMessage("Step 'ide' ended with failure.");
+    assertThat(context).logAtDebug().hasMessage("Step 'ide' ended successfully.");
     assertThat(context).log().hasNoEntryWithException();
   }
 
