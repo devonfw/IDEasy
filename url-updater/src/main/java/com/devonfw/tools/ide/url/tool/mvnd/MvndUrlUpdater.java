@@ -38,18 +38,20 @@ public class MvndUrlUpdater extends GithubUrlReleaseUpdater {
   }
 
   @Override
-  public String mapVersion(String version) {
-    // Accept pre-release versions (rc, beta, alpha, etc.) first
-    if (version.contains("-rc") || version.contains("-beta") || version.contains("-alpha")) {
-      return version;
-    }
+  protected boolean isAcceptPreVersion() {
 
-    // For stable versions, require minimum version 1.0.2
-    VersionIdentifier vid = VersionIdentifier.of(version);
-    if (vid.isValid()) {
-      VersionComparisonResult comparison = vid.compareVersion(MIN_MVND_VID);
-      if (comparison.isGreater() || comparison.isEqual()) {
-        return version;
+    return true;
+  }
+  
+  @Override
+  public String mapVersion(String version) {
+
+    String mappedVersion = super.mapVersion(version);
+    if (mappedVersion != null) {
+      // Require minimum version (1.0.2)
+      VersionIdentifier vid = VersionIdentifier.of(mappedVersion);
+      if (vid.isValid() && vid.isGreaterOrEqual(MIN_MVND_VID)) {
+        return mappedVersion;
       }
     }
     return null;
