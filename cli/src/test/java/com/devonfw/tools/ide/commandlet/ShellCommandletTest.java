@@ -16,6 +16,9 @@ class ShellCommandletTest extends AbstractIdeContextTest {
     IdeTestContext context = new IdeTestContext();
     CliArguments args = CliArguments.of(0, "");
 
+    Commandlet shellCommandlet = context.getCommandletManager().getCommandlet("shell");
+    shellCommandlet.setFirstKeyword("exit");
+
     List<String> lines = context.complete(args, false).stream()
                          .map(CompletionCandidate::text).toList();
     assertThat(lines).contains("exit");
@@ -25,6 +28,9 @@ class ShellCommandletTest extends AbstractIdeContextTest {
   public void testExitIsOfferedOnPartialInput() {
     IdeTestContext context = new IdeTestContext();
     CliArguments args = CliArguments.of(0, "ex");
+
+    Commandlet shellCommandlet = context.getCommandletManager().getCommandlet("shell");
+    shellCommandlet.setFirstKeyword("exit");
 
     List<String> lines = context.complete(args, false).stream()
                          .map(CompletionCandidate::text).toList();
