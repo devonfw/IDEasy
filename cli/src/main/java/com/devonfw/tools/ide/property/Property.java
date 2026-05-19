@@ -391,7 +391,6 @@ public abstract class Property<V> {
       }
       argValue = argument.getValue();
       if (argValue == null) {
-        argument = args.next();
         if (argument.isCompletion()) {
           completeValue(argument.get(), context, commandlet, collector);
           return true;
@@ -419,16 +418,6 @@ public abstract class Property<V> {
       CompletionCandidateCollector collector) {
 
     boolean success = assignValueAsString(argValue, context, commandlet);
-
-    if (success) {
-      if (this.multivalued) {
-        while (success && args.hasNext()) {
-          CliArgument arg = args.next();
-          success = assignValueAsString(arg.get(), context, commandlet);
-        }
-      }
-    }
-    args.next();
     return success;
   }
 
@@ -466,6 +455,15 @@ public abstract class Property<V> {
 
       collector.add(candidate);
       return true;
+    }
+
+    if (this.alias != null) {
+      if (this.alias.length() == 2 && this.alias.charAt(0) == '-' && argument.isShortOption()) {
+        char opt = this.alias.charAt(1);
+        if (arg.indexOf(opt) < 0) {
+          collector.add(arg + opt, null);
+        }
+      }
     }
 
     return false;
