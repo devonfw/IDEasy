@@ -95,7 +95,10 @@ class HelpCommandletTest extends AbstractIdeContextTest {
     // assert
     assertLogoMessage(context);
     assertThat(context).logAtInfo()
-        .hasEntries("Usage: ide [global-option]* mvn [<args>*]", "Tool commandlet for Maven (Build-Tool).", "usage: mvn [options] [<goal(s)>] [<phase(s)>]");
+        .hasEntries(
+            "Usage: ide [global-option]* mvn [-am | --also-make] [-amd | --also-make-dependents] [-fae | --fail-at-end] [-ff | --fail-fast] [-t | --threads] [-DskipTests | --define skipTests] [-DdeployAtEnd | --define deployAtEnd] [-Dexec.mainClass= | --define exec.mainClass=] [-Dexec.args= | --define exec.args=] goals*",
+            "Tool commandlet for Maven (Build-Tool).",
+            "usage: mvn [options] [<goal(s)>] [<phase(s)>]");
     assertOptionLogMessages(context);
   }
 
