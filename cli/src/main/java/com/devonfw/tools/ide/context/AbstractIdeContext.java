@@ -800,12 +800,6 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   @Override
-  public boolean isForcePluginReinstall() {
-    
-    return this.startContext.isForcePluginReinstall();
-  }
-
-  @Override
   public boolean isForceRepositories() {
 
     return this.startContext.isForceRepositories();

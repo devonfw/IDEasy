@@ -34,8 +34,6 @@ public class IdeStartContextImpl implements IdeStartContext {
 
   private boolean forcePlugins;
 
-  private boolean forcePluginReinstall;
-
   private boolean forceRepositories;
 
   private boolean batchMode;
@@ -238,20 +236,6 @@ public class IdeStartContextImpl implements IdeStartContext {
   public void setForcePlugins(boolean forcePlugins) {
 
     this.forcePlugins = forcePlugins;
-  }
-
-  @Override
-  public boolean isForcePluginReinstall() {
-
-    return this.forcePluginReinstall;
-  }
-
-  /**
-   * @param forcePluginReinstall new value of {@link #isForcePluginReinstall()}.
-   */
-  public void setForcePluginReinstall(boolean forcePluginReinstall) {
-
-    this.forcePluginReinstall = forcePluginReinstall;
   }
 
   @Override

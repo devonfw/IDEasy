@@ -61,11 +61,6 @@ public interface IdeStartContext extends ReadOfflineMode {
   boolean isForcePlugins();
 
   /**
-   * @return {@code true} to force plugin reset and reinstallation, {@code false} otherwise.
-   */
-  boolean isForcePluginReinstall();
-
-  /**
    * @return {@code true} to force repositories (including cloning inactive and pull existing ones), {@code false} otherwise.
    */
   boolean isForceRepositories();
