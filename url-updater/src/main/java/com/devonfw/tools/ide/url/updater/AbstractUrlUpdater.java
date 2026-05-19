@@ -856,7 +856,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     }
 
     String vLower = version.toLowerCase(Locale.ROOT);
-    if (!isAcceptVersion(vLower) {
+    if (!isAcceptVersion(vLower)) {
       return null;
     }
 
