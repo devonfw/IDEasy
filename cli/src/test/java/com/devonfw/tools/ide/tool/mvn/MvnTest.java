@@ -234,7 +234,7 @@ class MvnTest extends AbstractIdeContextTest {
 
     List<String> lines = context.complete(args, false).stream()
                          .map(CompletionCandidate::text).toList();
-    assertThat(lines).containsExactly("-am", "-amd");
+    assertThat(lines).containsExactly("-am", "-amd", "-amt");
   }
 
   @Test
