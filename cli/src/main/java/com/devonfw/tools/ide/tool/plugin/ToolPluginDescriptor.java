@@ -18,10 +18,11 @@ import com.devonfw.tools.ide.context.IdeContext;
  * @param id the unique identifier of the plugin.
  * @param name the name of the plugin properties file excluding the extension.
  * @param url the optional plugin URL (download/update site).
+ * @param version the optional plugin version to install.
  * @param active {@code true} if the plugin is active and shall be installed automatically, {@code false} otherwise.
  * @param tags the {@link #tags () tags}.
  */
-public record ToolPluginDescriptor(String id, String name, String url, boolean active, Set<Tag> tags) implements Tags {
+public record ToolPluginDescriptor(String id, String name, String url, String version, boolean active, Set<Tag> tags) implements Tags {
 
   private static final Logger LOG = LoggerFactory.getLogger(ToolPluginDescriptor.class);
 
@@ -45,13 +46,14 @@ public record ToolPluginDescriptor(String id, String name, String url, boolean a
     Properties properties = context.getFileAccess().readProperties(propertiesFile);
     String id = getString(properties, "id", "plugin_id");
     String url = getString(properties, "url", "plugin_url");
+    String version = getString(properties, "version", "plugin_version");
     if (needUrl && ((url == null) || url.isBlank())) {
       LOG.warn("Missing plugin URL in {}", propertiesFile);
     }
     boolean active = getBoolean(properties, "active", "plugin_active", propertiesFile);
     String tagsCsv = getString(properties, "tags", "plugin_tags");
     Set<Tag> tags = Tag.parseCsv(tagsCsv);
-    return new ToolPluginDescriptor(id, name, url, active, tags);
+    return new ToolPluginDescriptor(id, name, url, version, active, tags);
   }
 
   private static boolean getBoolean(Properties properties, String key, String legacyKey, Path propertiesFile) {
@@ -76,7 +78,7 @@ public record ToolPluginDescriptor(String id, String name, String url, boolean a
     if (value == null) {
       value = properties.getProperty(legacyKey);
     }
-    return value;
+    return value != null ? value.trim() : null;
   }
 
 }
