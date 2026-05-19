@@ -856,14 +856,8 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     }
 
     String vLower = version.toLowerCase(Locale.ROOT);
-    if (isVersionFiltered()) {
-      if (vLower.contains("alpha") || vLower.contains("beta") || vLower.contains("dev") || vLower.contains("snapshot") || vLower.contains("preview")
-          || vLower.contains("test") || vLower.contains("tech-preview") //
-          || vLower.contains("-pre") || vLower.startsWith("ce-") || vLower.contains("-next") || vLower.contains("-rc")
-          // vscode nonsense
-          || vLower.startsWith("bad") || vLower.contains("vsda-") || vLower.contains("translation/") || vLower.contains("-insiders")) {
-        return null;
-      }
+    if (!isAcceptVersion(vLower) {
+      return null;
     }
 
     String filter = getCustomVersionFilter();
@@ -873,6 +867,32 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     return version;
   }
 
+  /**
+   * @param version the version to check in lower-case (e.g. "1.0" or "1.0-alpha1").
+   * @return {@code true} if version should be accepted, {@code false} otherwise (to filter and ignore this version).
+   */
+  protected boolean isAcceptVersion(String version) {
+
+    if (vLower.contains("alpha") || vLower.contains("beta") || vLower.contains("dev") || vLower.contains("snapshot") || vLower.contains("preview")
+          || vLower.contains("test") || vLower.contains("tech-preview") //
+          || vLower.startsWith("ce-") || vLower.contains("-next")
+          // vscode nonsense
+          || vLower.startsWith("bad") || vLower.contains("vsda-") || vLower.contains("translation/") || vLower.contains("-insiders")) {
+      return false;
+    }
+    if (vLower.contains("-rc") || vLower.contains("-pre")) {
+      return isAcceptPreVersion();
+    }
+    return true;
+  }
+
+  /**
+   * @return {@code true} to accept release-candidate ("rc") or "pre" versions, {@code false} otherwise (default).
+   */
+  protected boolean isAcceptPreVersion() {
+
+    return false;
+  }
 
   /**
    * @return the optional version prefix that has to be removed (e.g. "v").
@@ -882,24 +902,12 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     return null;
   }
 
-
   /**
    * @return the generic filters applied in {@link #filterVersion(String)}. Example: a tool might want to exclude versions containing "rc" or "beta".
    */
   protected String getCustomVersionFilter() {
 
     return null;
-  }
-
-  /**
-   * Defines if we want to filter pre-releases and similar non-stable versions by default in {@link #filterVersion(String)}. Can be overridden to disable this
-   * default filtering.
-   *
-   * @return {@code true} if pre-releases and similar non-stable versions should be filtered by default, {@code false} otherwise.
-   */
-  protected boolean isVersionFiltered() {
-
-    return true;
   }
 
   /**
