@@ -223,25 +223,18 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   /**
-   * Performs the actual installation of the {@link #getName() tool} by downloading its binary, optionally extracting it, backing up any existing installation,
-   * and writing the version file.
-   * <p>
-   * This method assumes that the version has already been resolved and dependencies installed. It handles the final steps of placing the tool into the
-   * appropriate installation directory.
+   * Performs the actual installation of the {@link #getName() tool}.
    *
    * @param request the {@link ToolInstallRequest}.
    * @param installationPath the target {@link Path} where the {@link #getName() tool} should be installed.
+   * @see #doInstall(ToolInstallRequest, Path)
    */
   protected void performToolInstallation(ToolInstallRequest request, Path installationPath) {
 
+    installDependencies(request);
     FileAccess fileAccess = this.context.getFileAccess();
     ToolEditionAndVersion requested = request.getRequested();
     VersionIdentifier resolvedVersion = requested.getResolvedVersion();
-    Path downloadedToolFile = downloadTool(requested.getEdition().edition(), resolvedVersion);
-    boolean extract = isExtract();
-    if (!extract) {
-      LOG.trace("Extraction is disabled for '{}' hence just moving the downloaded file {}.", this.tool, downloadedToolFile);
-    }
     if (Files.isDirectory(installationPath)) {
       if (this.tool.equals(IdeasyCommandlet.TOOL_NAME)) {
         LOG.warn("Your IDEasy installation is missing the version file.");
@@ -250,11 +243,42 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       }
     }
     fileAccess.mkdirs(installationPath.getParent());
-    fileAccess.extract(downloadedToolFile, installationPath, this::postExtract, extract);
+
+    doInstall(request, installationPath);
+
     this.context.writeVersionFile(resolvedVersion, installationPath);
     // fix macOS Gatekeeper blocking - must run after version file is written but before any executables are launched
     getMacOsHelper().removeQuarantineAttribute(installationPath);
     LOG.debug("Installed {} in version {} at {}", this.tool, resolvedVersion, installationPath);
+  }
+
+  /**
+   * Hook to install dependencies of this tool.
+   *
+   * @param request the {@link ToolInstallRequest}.
+   */
+  protected void installDependencies(ToolInstallRequest request) {
+
+    // nothing to do by default...
+  }
+
+  /**
+   * Hook for the actual installation of the {@link #getName() tool}. The default implementation performs a
+   * {@link #downloadTool(String, VersionIdentifier) download} and {@link FileAccess#extract(Path, Path, java.util.function.Consumer, boolean) extraction}.
+   *
+   * @param request the {@link ToolInstallRequest}.
+   * @param installationPath the target {@link Path} where the {@link #getName() tool} should be installed.
+   */
+  protected void doInstall(ToolInstallRequest request, Path installationPath) {
+
+    ToolEditionAndVersion requested = request.getRequested();
+    VersionIdentifier resolvedVersion = requested.getResolvedVersion();
+    Path downloadedToolFile = downloadTool(requested.getEdition().edition(), resolvedVersion);
+    boolean extract = isExtract();
+    if (!extract) {
+      LOG.trace("Extraction is disabled for '{}' hence just moving the downloaded file {}.", this.tool, downloadedToolFile);
+    }
+    this.context.getFileAccess().extract(downloadedToolFile, installationPath, this::postExtract, extract);
   }
 
   /**

@@ -59,7 +59,8 @@ public class Rust extends LocalToolCommandlet {
     return false;
   }
 
-  private void installDependencies() {
+  @Override
+  protected void installDependencies(ToolInstallRequest request) {
 
     if (this.context.getSystemInfo().isWindows()) {
       installWindowsMsvcBuildTools();
@@ -94,15 +95,11 @@ public class Rust extends LocalToolCommandlet {
   }
 
   @Override
-  protected void performToolInstallation(ToolInstallRequest request, Path installationPath) {
+  protected void doInstall(ToolInstallRequest request, Path installationPath) {
 
-    installDependencies();
     VersionIdentifier resolvedVersion = request.getRequested().getResolvedVersion();
     FileAccess fileAccess = this.context.getFileAccess();
 
-    if (Files.isDirectory(installationPath)) {
-      fileAccess.backup(installationPath);
-    }
     fileAccess.mkdirs(installationPath);
 
     Path cargoHome = installationPath.resolve(".cargo");
@@ -174,9 +171,6 @@ public class Rust extends LocalToolCommandlet {
     if (Files.isDirectory(cargoBin)) {
       fileAccess.symlink(cargoBin, toolBin);
     }
-
-    this.context.writeVersionFile(resolvedVersion, installationPath);
-    LOG.debug("Installed {} in version {} at {}", this.tool, resolvedVersion, installationPath);
   }
 
   private boolean isWindowsExeInstaller(Path installerPath) {
