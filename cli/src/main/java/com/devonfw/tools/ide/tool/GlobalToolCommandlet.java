@@ -159,7 +159,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
       executable = fileAccess.findFirst(downloadBinaryPath, Files::isExecutable, false);
     }
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(executable);
-    int exitCode = pc.run(ProcessMode.BACKGROUND).getExitCode();
+    int exitCode = pc.run(ProcessMode.BACKGROUND_SILENT).getExitCode();
     if (tmpDir != null) {
       fileAccess.delete(tmpDir);
     }
@@ -174,7 +174,8 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     }
     installationPath = getInstallationPath(toolEdition.edition(), resolvedVersion);
     if (installationPath == null) {
-      LOG.warn("Could not find binary {} on PATH after installation.", getBinaryName());
+      throw new CliException("The tool " + this.tool + " is about to be installed. Please complete the installation and if required "
+          + "reboot your machine. Then rerun the command to start the tool.", 2);
     }
     return createToolInstallation(installationPath, resolvedVersion, true, pc, false);
   }
