@@ -1481,21 +1481,12 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
             boolean success = option.apply(arguments, this, cmd, collector);
             if (success) {
               optionIterator.remove();
-              arguments.next();
             }
           }
         } else {
           Property<?> option = cmd.getOption(currentArgument.get());
           if (option != null) {
-            arguments.next();
-            boolean removed = optionProperties.remove(option);
-            if (!removed) {
-              option = null;
-            }
-          }
-          if (option == null) {
-            LOG.trace("No such option was found.");
-            return;
+            optionProperties.remove(option);
           }
         }
       } else {
@@ -1508,17 +1499,14 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
         Property<?> valueProperty = null;
         if (valueIterator.hasNext()) {
-          valueProperty = valueIterator.next();
-          boolean success = valueProperty.apply(arguments, this, cmd, collector);
-          if (!success) {
-            LOG.trace("Completion cannot match any further.");
-            return;
-          }
+          lastValueProperty = valueIterator.next();
+          valueProperty = lastValueProperty;
         } else if (lastValueProperty != null && lastValueProperty.isMultiValued()) {
           valueProperty = lastValueProperty;
-        } else {
-          LOG.trace("No value left for completion.");
-          return;
+        }
+
+        if (valueProperty != null) {
+          valueProperty.apply(arguments, this, cmd, collector);
         }
       }
 
