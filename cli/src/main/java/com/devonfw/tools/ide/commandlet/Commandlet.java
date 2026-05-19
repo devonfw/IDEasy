@@ -98,6 +98,12 @@ public abstract class Commandlet {
     addKeyword(keyword, null);
   }
 
+  /**
+   * Create a new keyword property and set it as the first keyword property.
+   *
+   * @param keyword the string to create the property from
+   * @param alias the alias for the given keyword
+   */
   protected void setFirstKeyword(String keyword, String alias) {
     KeywordProperty property = new KeywordProperty(keyword, true, alias);
 
@@ -105,6 +111,11 @@ public abstract class Commandlet {
     this.add(property);
   }
 
+  /**
+   * Create a new keyword property without an alias and set it as the first keyword property.
+   *
+   * @param keyword the string to create the property from
+   */
   protected void setFirstKeyword(String keyword) {
     this.setFirstKeyword(keyword, null);
   }
