@@ -95,7 +95,7 @@ public class Rust extends LocalToolCommandlet {
   }
 
   @Override
-  protected void doInstall(ToolInstallRequest request, Path installationPath) {
+  protected void doInstall(ToolInstallRequest request, Path installationPath, Path installerScript) {
 
     VersionIdentifier resolvedVersion = request.getRequested().getResolvedVersion();
     FileAccess fileAccess = this.context.getFileAccess();
@@ -107,7 +107,6 @@ public class Rust extends LocalToolCommandlet {
     fileAccess.mkdirs(cargoHome);
     fileAccess.mkdirs(rustupHome);
 
-    Path installerScript = downloadTool(request.getRequested().getEdition().edition(), resolvedVersion);
     if (Files.isDirectory(installerScript)) {
       // ToolRepositoryMock may provide an unpacked folder instead of a single download file.
       installerScript = installerScript.resolve("content.sh");

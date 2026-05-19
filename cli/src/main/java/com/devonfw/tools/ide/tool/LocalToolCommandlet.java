@@ -227,7 +227,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    *
    * @param request the {@link ToolInstallRequest}.
    * @param installationPath the target {@link Path} where the {@link #getName() tool} should be installed.
-   * @see #doInstall(ToolInstallRequest, Path)
+   * @see #doInstall(ToolInstallRequest, Path, Path)
    */
   protected void performToolInstallation(ToolInstallRequest request, Path installationPath) {
 
@@ -235,6 +235,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     FileAccess fileAccess = this.context.getFileAccess();
     ToolEditionAndVersion requested = request.getRequested();
     VersionIdentifier resolvedVersion = requested.getResolvedVersion();
+    Path downloadedToolFile = getDownloadedToolFile(request);
+
     if (Files.isDirectory(installationPath)) {
       if (this.tool.equals(IdeasyCommandlet.TOOL_NAME)) {
         LOG.warn("Your IDEasy installation is missing the version file.");
@@ -244,12 +246,23 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     }
     fileAccess.mkdirs(installationPath.getParent());
 
-    doInstall(request, installationPath);
+    doInstall(request, installationPath, downloadedToolFile);
 
     this.context.writeVersionFile(resolvedVersion, installationPath);
     // fix macOS Gatekeeper blocking - must run after version file is written but before any executables are launched
     getMacOsHelper().removeQuarantineAttribute(installationPath);
     LOG.debug("Installed {} in version {} at {}", this.tool, resolvedVersion, installationPath);
+  }
+
+  /**
+   * @param request the {@link ToolInstallRequest}.
+   * @return the {@link Path} to the downloaded tool file.
+   */
+  protected Path getDownloadedToolFile(ToolInstallRequest request) {
+
+    ToolEditionAndVersion requested = request.getRequested();
+    VersionIdentifier resolvedVersion = requested.getResolvedVersion();
+    return downloadTool(requested.getEdition().edition(), resolvedVersion);
   }
 
   /**
@@ -263,17 +276,15 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   /**
-   * Hook for the actual installation of the {@link #getName() tool}. The default implementation performs a
-   * {@link #downloadTool(String, VersionIdentifier) download} and {@link FileAccess#extract(Path, Path, java.util.function.Consumer, boolean) extraction}.
+   * Hook for the actual installation of the {@link #getName() tool}. The default implementation performs an
+   * {@link FileAccess#extract(Path, Path, java.util.function.Consumer, boolean) extraction}.
    *
    * @param request the {@link ToolInstallRequest}.
    * @param installationPath the target {@link Path} where the {@link #getName() tool} should be installed.
+   * @param downloadedToolFile the {@link Path} to the downloaded tool file.
    */
-  protected void doInstall(ToolInstallRequest request, Path installationPath) {
+  protected void doInstall(ToolInstallRequest request, Path installationPath, Path downloadedToolFile) {
 
-    ToolEditionAndVersion requested = request.getRequested();
-    VersionIdentifier resolvedVersion = requested.getResolvedVersion();
-    Path downloadedToolFile = downloadTool(requested.getEdition().edition(), resolvedVersion);
     boolean extract = isExtract();
     if (!extract) {
       LOG.trace("Extraction is disabled for '{}' hence just moving the downloaded file {}.", this.tool, downloadedToolFile);
