@@ -873,14 +873,14 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    */
   protected boolean isAcceptVersion(String version) {
 
-    if (vLower.contains("alpha") || vLower.contains("beta") || vLower.contains("dev") || vLower.contains("snapshot") || vLower.contains("preview")
-          || vLower.contains("test") || vLower.contains("tech-preview") //
-          || vLower.startsWith("ce-") || vLower.contains("-next")
+    if (version.contains("alpha") || version.contains("beta") || version.contains("dev") || version.contains("snapshot") || version.contains("preview")
+          || version.contains("test") || version.contains("tech-preview") //
+          || version.startsWith("ce-") || version.contains("-next")
           // vscode nonsense
-          || vLower.startsWith("bad") || vLower.contains("vsda-") || vLower.contains("translation/") || vLower.contains("-insiders")) {
+          || version.startsWith("bad") || version.contains("vsda-") || version.contains("translation/") || version.contains("-insiders")) {
       return false;
     }
-    if (vLower.contains("-rc") || vLower.contains("-pre")) {
+    if (version.contains("-rc") || version.contains("-pre")) {
       return isAcceptPreVersion();
     }
     return true;
