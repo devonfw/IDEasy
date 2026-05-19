@@ -1,5 +1,8 @@
 package com.devonfw.tools.ide.tool.pgadmin;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -7,6 +10,7 @@ import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.NativePackageManager;
 import com.devonfw.tools.ide.tool.PackageManagerCommand;
@@ -71,5 +75,31 @@ public class PgAdmin extends GlobalToolCommandlet {
   protected String getBinaryName() {
 
     return "pgadmin4";
+  }
+
+  @Override
+  protected Path getInstallationPath(String edition, VersionIdentifier resolvedVersion) {
+    if (super.getInstallationPath(edition, resolvedVersion) == null) {
+      if (this.context.getSystemInfo().isWindows()) {
+        return getExecutableFolderFromWindowsRegistry();
+      }
+    }
+    return null;
+  }
+
+  private Path getExecutableFolderFromWindowsRegistry() {
+
+    WindowsHelper windowsHelper = WindowsHelper.get(this.context);
+    String registryPath = "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\pgAdmin 4v9_is1";
+    String displayIcon = windowsHelper.getRegistryValue(registryPath, "DisplayIcon");
+    if (displayIcon != null) {
+      Path executablePath = Paths.get(displayIcon);
+      if (Files.isExecutable(executablePath)) {
+        Path installationDir = executablePath.getParent();
+        this.context.getPath().setPath(getName(), installationDir);
+        return installationDir;
+      }
+    }
+    return null;
   }
 }

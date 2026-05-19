@@ -12,6 +12,9 @@ import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.devonfw.tools.ide.tool.ToolEdition;
+import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
@@ -195,6 +198,63 @@ class IntellijTest extends AbstractIdeContextTest {
         """);
   }
 
+  /**
+   * Tests whether IDEasy correctly switches editions when no version is specified or configured
+   */
+  @Test
+  void testAdjustRequestedEditionSwitchesForUltimateWithoutConfiguredVersion() {
+
+    // arrange
+    IdeTestContext context = newContext("intellij");
+    Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
+    ToolEditionAndVersion requested = new ToolEditionAndVersion(new ToolEdition("intellij", "ultimate"));
+    requested.setVersion(VersionIdentifier.LATEST);
+
+    // act
+    ToolEditionAndVersion adjusted = commandlet.adjustRequestedEdition(requested);
+
+    // assert
+    assertThat(adjusted.getEdition().edition()).isEqualTo("intellij");
+  }
+
+  /**
+   * Tests whether IDEasy correctly switches editions when the specified version is after 2025.2.6.1
+   */ 
+  @Test
+  void testAdjustRequestedEditionSwitchesForUltimateWithVersionAboveCutoff() {
+
+    // arrange
+    IdeTestContext context = newContext("intellij");
+    Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
+    ToolEditionAndVersion requested = new ToolEditionAndVersion(new ToolEdition("intellij", "ultimate"));
+    requested.setVersion(VersionIdentifier.of("2025.3"));
+
+    // act
+    ToolEditionAndVersion adjusted = commandlet.adjustRequestedEdition(requested);
+
+    // assert
+    assertThat(adjusted.getEdition().edition()).isEqualTo("intellij");
+  }
+
+  /**
+   * Tests whether IDEasy correctly remains on the ultimate edition when the specified version is 2025.2.6.1
+   */
+  @Test
+  void testAdjustRequestedEditionDoesNotSwitchForUltimateAtCutoffVersion() {
+
+    // arrange
+    IdeTestContext context = newContext("intellij");
+    Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
+    ToolEditionAndVersion requested = new ToolEditionAndVersion(new ToolEdition("intellij", "ultimate"));
+    requested.setVersion(VersionIdentifier.of("2025.2.6.1"));
+
+    // act
+    ToolEditionAndVersion adjusted = commandlet.adjustRequestedEdition(requested);
+
+    // assert
+    assertThat(adjusted.getEdition().edition()).isEqualTo("ultimate");
+  }
+  
   /**
    * Tests if the custom jvm options of the ide variable INTELLI_VM_ARGS have been set.
    */

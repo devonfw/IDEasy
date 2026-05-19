@@ -44,12 +44,12 @@ public final class TruststoreUtil {
   /**
    * Default password for the JRE cacerts truststore
    */
-  public static final char[] DEFAULT_CACERTS_PASSWORD = TRUSTSTORE_PASSWORD.toCharArray();
+  public static final String DEFAULT_CACERTS_PASSWORD = TRUSTSTORE_PASSWORD;
 
   /**
    * Password for the custom truststore
    */
-  public static final char[] CUSTOM_TRUSTSTORE_PASSWORD = TRUSTSTORE_PASSWORD.toCharArray();
+  public static final String CUSTOM_TRUSTSTORE_PASSWORD = TRUSTSTORE_PASSWORD;
 
   /**
    * Default prefix for aliases of certificates added to the truststore.
@@ -81,17 +81,23 @@ public final class TruststoreUtil {
    * @throws Exception if an error occurs while loading the default truststore.
    */
   public static KeyStore getDefaultTruststore() throws Exception {
-    String javaHome = System.getProperty("java.home");
-    Path cacertsPath = Path.of(javaHome, "lib", "security", "cacerts");
-    if (!Files.exists(cacertsPath)) {
-      throw new IllegalStateException("Default cacerts not found: " + cacertsPath);
-    }
+    TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+    trustManagerFactory.init((KeyStore) null);
 
-    KeyStore cacerts = KeyStore.getInstance(KeyStore.getDefaultType());
-    try (InputStream in = Files.newInputStream(cacertsPath)) {
-      cacerts.load(in, DEFAULT_CACERTS_PASSWORD);
+    for (TrustManager trustManager : trustManagerFactory.getTrustManagers()) {
+      if (trustManager instanceof X509TrustManager x509TrustManager) {
+        KeyStore truststore = KeyStore.getInstance(KeyStore.getDefaultType());
+        truststore.load(null, DEFAULT_CACERTS_PASSWORD.toCharArray());
+
+        int i = 0;
+        for (X509Certificate cert : x509TrustManager.getAcceptedIssuers()) {
+          truststore.setCertificateEntry("cert-" + i, cert);
+          i++;
+        }
+        return truststore;
+      }
     }
-    return cacerts;
+    throw new IllegalStateException("No X509TrustManager found in default TrustManagerFactory");
   }
 
   /**
@@ -148,10 +154,10 @@ public final class TruststoreUtil {
     KeyStore customStore = KeyStore.getInstance("PKCS12");
     if (isTruststorePresent(customTruststorePath)) {
       try (InputStream in = Files.newInputStream(customTruststorePath)) {
-        customStore.load(in, CUSTOM_TRUSTSTORE_PASSWORD);
+        customStore.load(in, CUSTOM_TRUSTSTORE_PASSWORD.toCharArray());
       }
     } else {
-      customStore.load(null, CUSTOM_TRUSTSTORE_PASSWORD);
+      customStore.load(null, CUSTOM_TRUSTSTORE_PASSWORD.toCharArray());
       copyTruststore(getDefaultTruststore(), customStore);
     }
 
@@ -161,7 +167,7 @@ public final class TruststoreUtil {
     }
 
     try (OutputStream out = Files.newOutputStream(customTruststorePath)) {
-      customStore.store(out, CUSTOM_TRUSTSTORE_PASSWORD);
+      customStore.store(out, CUSTOM_TRUSTSTORE_PASSWORD.toCharArray());
     }
   }
 
@@ -354,7 +360,7 @@ public final class TruststoreUtil {
   public static void verifyConnectionWithTruststore(String host, int port, Path truststorePath) throws Exception {
     KeyStore truststore = KeyStore.getInstance("PKCS12");
     try (InputStream in = Files.newInputStream(truststorePath)) {
-      truststore.load(in, CUSTOM_TRUSTSTORE_PASSWORD);
+      truststore.load(in, CUSTOM_TRUSTSTORE_PASSWORD.toCharArray());
     }
 
     TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
@@ -369,7 +375,6 @@ public final class TruststoreUtil {
       socket.startHandshake();
     }
   }
-
 
   /**
    * Generates a human-readable description of the given X.509 certificate including subject, issuer, serial number, validity period, signature algorithm, and

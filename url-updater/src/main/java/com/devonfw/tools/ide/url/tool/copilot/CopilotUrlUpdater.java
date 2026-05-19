@@ -13,8 +13,6 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class CopilotUrlUpdater extends GithubUrlTagUpdater {
 
-  private static final String COPILOT_CLI_BASE_URL = "https://github.com";
-
   private static final VersionIdentifier MIN_COPILOT_VID = VersionIdentifier.of("1.0.2");
 
   @Override
@@ -33,13 +31,8 @@ public class CopilotUrlUpdater extends GithubUrlTagUpdater {
   }
 
   @Override
-  protected String getDownloadBaseUrl() {
-    return COPILOT_CLI_BASE_URL;
-  }
-
-  @Override
   protected void addVersion(UrlVersion urlVersion) {
-    String baseUrl = getDownloadBaseUrl() + "/github/copilot-cli/releases/download/v${version}/copilot-";
+    String baseUrl = createGithubReleaseDownloadUrl("v${version}", "copilot-");
     VersionIdentifier vid = urlVersion.getVersionIdentifier();
 
     if (vid.compareVersion(MIN_COPILOT_VID).isGreater()) {

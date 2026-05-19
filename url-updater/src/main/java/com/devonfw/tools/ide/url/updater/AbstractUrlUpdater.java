@@ -525,13 +525,17 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    */
   protected HttpResponse<?> doCheckDownloadViaHeadRequest(String url) {
 
-    URI uri = null;
     HttpRequest request = null;
     try {
       request = createRequestWithOptionalAuth(url).method("HEAD", HttpRequest.BodyPublishers.noBody()).timeout(Duration.ofSeconds(5)).build();
       return this.client.send(request, HttpResponse.BodyHandlers.ofString());
     } catch (Exception e) {
       logger.error("Failed to perform HEAD request of URL {}", url, e);
+      URI uri = null;
+      try {
+        uri = URI.create(url);
+      } catch (Exception ignored) {
+      }
       return new HttpErrorResponse(e, request, uri);
     }
   }
