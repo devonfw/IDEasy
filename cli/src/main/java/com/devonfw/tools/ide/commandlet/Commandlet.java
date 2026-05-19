@@ -98,6 +98,17 @@ public abstract class Commandlet {
     addKeyword(keyword, null);
   }
 
+  protected void setFirstKeyword(String keyword, String alias) {
+    KeywordProperty property = new KeywordProperty(keyword, true, alias);
+
+    this.firstKeyword = property;
+    this.add(property);
+  }
+
+  protected void setFirstKeyword(String keyword) {
+    this.setFirstKeyword(keyword, null);
+  }
+
   /**
    * @param keyword the {@link KeywordProperty keyword} to {@link #add(Property) add}.
    * @param alias the optional {@link KeywordProperty#getAlias() alias}.
