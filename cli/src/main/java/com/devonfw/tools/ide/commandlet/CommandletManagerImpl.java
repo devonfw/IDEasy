@@ -228,7 +228,8 @@ public class CommandletManagerImpl implements CommandletManager {
                                           CompletionCandidateCollector collector) {
     CliArgument current = arguments.current();
     if (current.isStart()) {
-      current = current.getNext();
+      arguments.next();
+      current = arguments.current();
     }
     if (current.isEnd()) {
       return;
@@ -248,6 +249,10 @@ public class CommandletManagerImpl implements CommandletManager {
   public Iterator<Commandlet> findCommandlet(CliArguments arguments, CompletionCandidateCollector collector) {
 
     CliArgument current = arguments.current();
+    if (current.isStart()) {
+      arguments.next();
+      current = arguments.current();
+    }
     if (current.isEnd()) {
       return Collections.emptyIterator();
     }

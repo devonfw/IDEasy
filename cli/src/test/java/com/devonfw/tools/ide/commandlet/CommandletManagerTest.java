@@ -48,7 +48,7 @@ public class CommandletManagerTest {
 
     List<String> lines = collector.getSortedCandidates().stream()
                          .map(CompletionCandidate::text).toList();
-    assertThat(lines).containsExactly("install");
+    assertThat(lines).containsExactlyInAnyOrder("install", "install-plugin");
   }
 
   @Test
