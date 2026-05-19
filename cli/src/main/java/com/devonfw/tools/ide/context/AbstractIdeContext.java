@@ -1439,7 +1439,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     if (includeContextOptions) {
       ContextCommandlet cc = new ContextCommandlet();
       for (Property<?> property : cc.getProperties()) {
-        // assert (property.isOption());
+        assert (property.isOption());
         property.apply(arguments, this, cc, collector);
       }
     }
