@@ -65,7 +65,6 @@ class CompleteTest extends AbstractIdeContextTest {
     boolean includeContextOptions = false;
     AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
     CliArguments args = CliArguments.ofCompletion("");
-    args.next();
     List<String> expectedCandidates = getExpectedCandidates(context, true, includeContextOptions, true);
     // act
     List<CompletionCandidate> candidates = context.complete(args, includeContextOptions);
@@ -111,7 +110,7 @@ class CompleteTest extends AbstractIdeContextTest {
     // act
     List<CompletionCandidate> candidates = context.complete(args, true);
     // assert
-    assertThat(candidates.stream().map(CompletionCandidate::text)).containsExactly("-fbdopqt", "-fbdopqth", "-fbdopqtv");
+    assertThat(candidates.stream().map(CompletionCandidate::text)).containsExactly("-fbdopqth", "-fbdopqtv");
   }
 
   /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for input "help", "". */
