@@ -120,13 +120,12 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
 
     super.postInstall(request);
     Path pluginsInstallationPath = getPluginsInstallationPath();
-    FileAccess fileAccess = this.context.getFileAccess();
 
     if (!request.isAlreadyInstalled() || this.forcePluginReinstall.isTrue()) {
       LOG.info("Resetting all installed plugins...");
       deleteAllPlugins(pluginsInstallationPath);
     }
-    fileAccess.mkdirs(pluginsInstallationPath);
+    this.context.getFileAccess().mkdirs(pluginsInstallationPath);
     installPlugins(request.getProcessContext());
   }
 
