@@ -153,7 +153,7 @@ public interface FileAccess {
    * @param link the {@link PathLink} to {@link #link(Path, Path, boolean, PathLinkType) create}.
    */
   default void link(PathLink link) {
-    link(link.source(), link.link(), true, link.type(), false);
+    link(link.source(), link.link(), true, link.type(), true);
   }
 
   /**
