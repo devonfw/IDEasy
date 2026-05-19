@@ -22,7 +22,7 @@ public class ConsoleWindowController {
   private static final Logger LOG = Logger.getLogger(ConsoleWindowController.class.getName());
 
   @FXML
-  private AnchorPane consolePane;
+  private AnchorPane consolePaneRoot;
 
   @FXML
   private TextArea consoleOutput;

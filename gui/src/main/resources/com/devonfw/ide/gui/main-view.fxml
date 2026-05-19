@@ -62,7 +62,7 @@
   <center>
     <BorderPane>
       <center>
-        <SplitPane fx:id="centerSplitPane" dividerPositions="0.75" BorderPane.alignment="CENTER" orientation="VERTICAL">
+        <SplitPane fx:id="centerSplitPane" dividerPositions="1.0" BorderPane.alignment="CENTER" orientation="VERTICAL">
           <!-- Haupt-Inhaltsbereich -->
           <StackPane prefHeight="150.0">
             <fx:define>
@@ -177,13 +177,12 @@
             </children>
           </StackPane>
 
-          <!-- Console Panel -->
           <VBox prefWidth="Infinity" fillWidth="true">
             <children>
               <TabPane VBox.vgrow="ALWAYS">
                 <tabs>
                   <Tab text="Console">
-                    <fx:include source="console/console_pane.fxml"/>
+                    <fx:include fx:id="consolePane" source="console/console_pane.fxml"/>
                   </Tab>
                 </tabs>
               </TabPane>

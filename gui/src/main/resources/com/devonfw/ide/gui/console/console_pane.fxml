@@ -19,7 +19,7 @@
   style="-fx-background-color: #FFFFF; -fx-border-color: #cccccc; -fx-border-width: 1;"
   AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0"
   AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
-  fx:id="consolePane"
+  fx:id="consolePaneRoot"
 >
 
   <VBox spacing="5" minWidth="-Infinity" style="-fx-border-color: #cccccc; -fx-border-width: 1 0 0 0;" AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0"

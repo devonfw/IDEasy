@@ -13,11 +13,14 @@ import javafx.scene.control.ToggleButton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.ide.gui.console.ConsoleWindowController;
+import com.devonfw.ide.gui.context.GuiOutputListener;
 import com.devonfw.ide.gui.context.IdeGuiContext;
+import com.devonfw.ide.gui.context.IdeGuiLogListener;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.log.IdeLogListenerBuffer;
+import com.devonfw.tools.ide.process.OutputListener;
 
 /**
  * Controller of the main screen of the dashboard GUI.
@@ -50,6 +53,10 @@ public class MainController {
   @FXML
   private ToggleButton consolePaneToggleButton;
 
+  private ConsoleWindowController consoleController;
+  private IdeGuiLogListener guiLogListener;
+  private OutputListener guiOutputListener;
+
   private final String directoryPath;
   private Path projectValue;
   private Path workspaceValue;
@@ -69,6 +76,18 @@ public class MainController {
 
     setProjectsComboBox();
     consolePaneToggleButton.setOnAction(event -> toggleConsole());
+  }
+
+  /**
+   * Sets the console controller for output redirection.
+   *
+   * @param consoleController the console controller
+   */
+  public void setConsoleController(ConsoleWindowController consoleController) {
+    this.consoleController = consoleController;
+    this.guiLogListener = new IdeGuiLogListener(consoleController);
+    this.guiOutputListener = new GuiOutputListener(consoleController);
+    consoleController.setMainController(this);
   }
 
   @FXML
@@ -151,11 +170,32 @@ public class MainController {
 
   private void openIDE(String inIde) {
 
-    final IdeLogListenerBuffer buffer = new IdeLogListenerBuffer();
-    IdeLogLevel logLevel = IdeLogLevel.INFO;
-    IdeStartContextImpl startContext = new IdeStartContextImpl(logLevel, buffer);
-    IdeGuiContext context = new IdeGuiContext(startContext, Path.of(this.directoryPath).resolve(this.projectValue).resolve(this.workspaceValue));
-    context.getCommandletManager().getCommandlet(inIde).run();
+    showConsole();
+
+    //TODO:update this since in PR for progress bars the handling of this will be implemented
+
+    new Thread(() -> {
+      try {
+        IdeStartContextImpl startContext = new IdeStartContextImpl(IdeLogLevel.INFO, guiLogListener);
+        IdeGuiContext context = new IdeGuiContext(startContext,
+            Path.of(this.directoryPath).resolve(this.projectValue).resolve(this.workspaceValue));
+
+        // Set output listener for process output
+        context.setOutputListener(guiOutputListener);
+
+        context.getCommandletManager().getCommandlet(inIde).run();
+
+        if (consoleController != null) {
+          consoleController.setStatus("Completed: " + inIde);
+        }
+      } catch (Exception e) {
+        LOG.error("Failed to open {}", inIde, e);
+        if (consoleController != null) {
+          consoleController.appendOutput("[ERROR] Failed to launch " + inIde + ": " + e.getMessage());
+          consoleController.setStatus("Error");
+        }
+      }
+    }).start();
   }
 
   /**
@@ -168,6 +208,7 @@ public class MainController {
       } else {
         showConsole();
       }
+      consolePaneToggleButton.setSelected(isConsoleVisible);
     }
   }
 
@@ -188,7 +229,11 @@ public class MainController {
    */
   public void showConsole() {
     if (centerSplitPane != null) {
-      centerSplitPane.setDividerPosition(0, lastDividerPosition);
+      if (lastDividerPosition >= 0.9) {
+        centerSplitPane.setDividerPosition(0, 0.75);
+      } else {
+        centerSplitPane.setDividerPosition(0, lastDividerPosition);
+      }
       isConsoleVisible = true;
       LOG.debug("Console shown");
     }
