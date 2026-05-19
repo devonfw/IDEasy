@@ -33,7 +33,7 @@ public class FolderProperty extends PathProperty {
    */
   public FolderProperty(String name, boolean required, String alias, boolean mustExist, PropertyValidator<Path> validator) {
 
-    super(name, required, alias, mustExist, validator);
+    super(name, required, alias, mustExist, false, validator);
   }
 
   @Override

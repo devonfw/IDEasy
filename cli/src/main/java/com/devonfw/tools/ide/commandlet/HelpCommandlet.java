@@ -36,7 +36,7 @@ public final class HelpCommandlet extends Commandlet {
 
     super(context);
     addKeyword("--help", "-h");
-    this.commandlet = add(new CommandletProperty("", false, "commandlet"));
+    this.commandlet = add(new CommandletProperty("", false, "commandlet", false));
   }
 
   @Override

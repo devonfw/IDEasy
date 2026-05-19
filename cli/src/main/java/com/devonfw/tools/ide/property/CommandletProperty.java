@@ -19,7 +19,7 @@ public class CommandletProperty extends Property<Commandlet> {
    */
   public CommandletProperty(String name, boolean required, String alias) {
 
-    this(name, required, alias, null);
+    this(name, required, alias, false);
   }
 
   /**
@@ -28,11 +28,25 @@ public class CommandletProperty extends Property<Commandlet> {
    * @param name the {@link #getName() property name}.
    * @param required the {@link #isRequired() required flag}.
    * @param alias the {@link #getAlias() property alias}.
+   * @param placeholder whether this property is substituted by some value or literal
+   */
+  public CommandletProperty(String name, boolean required, String alias, boolean placeholder) {
+
+    this(name, required, alias, placeholder, null);
+  }
+
+  /**
+   * The constructor.
+   *
+   * @param name the {@link #getName() property name}.
+   * @param required the {@link #isRequired() required flag}.
+   * @param alias the {@link #getAlias() property alias}.
+   * @param placeholder whether this property is substituted by some value or literal
    * @param validator the {@link PropertyValidator} used to {@link #validate() validate} the {@link #getValue() value}.
    */
-  public CommandletProperty(String name, boolean required, String alias, PropertyValidator<Commandlet> validator) {
+  public CommandletProperty(String name, boolean required, String alias, boolean placeholder, PropertyValidator<Commandlet> validator) {
 
-    super(name, required, alias, false, validator);
+    super(name, required, alias, false, placeholder, validator);
   }
 
   @Override
