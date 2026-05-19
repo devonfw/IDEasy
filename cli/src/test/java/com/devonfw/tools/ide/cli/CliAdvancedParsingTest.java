@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.cli;
 
 import org.junit.jupiter.api.Test;
 
+import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 
@@ -44,5 +45,23 @@ class CliAdvancedParsingTest extends AbstractIdeContextTest {
     int success = context.run(args);
     // assert
     assertThat(success).isEqualTo(0);
+  }
+
+  @Test
+  void testMvIsCompletedToMvn() {
+
+    AbstractIdeContext context = new IdeTestContext();
+    CliArguments args = CliArguments.ofCompletion("mv");
+
+    assertThat(context.complete(args, true).getFirst().text()).isEqualTo("mvn");
+  }
+
+  @Test
+  void testMvIsCompletedToMvnWithoutContextCompletion() {
+
+    AbstractIdeContext context = new IdeTestContext();
+    CliArguments args = CliArguments.ofCompletion("mv");
+
+    assertThat(context.complete(args, false).getFirst().text()).isEqualTo("mvn");
   }
 }
