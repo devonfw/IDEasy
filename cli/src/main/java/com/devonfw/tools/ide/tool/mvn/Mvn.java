@@ -107,6 +107,9 @@ public class Mvn extends LocalToolCommandlet {
   }
 
   @Override
+  protected void initProperties() {}
+
+  @Override
   protected void configureToolBinary(ProcessContext pc, ProcessMode processMode) {
     Path mvn = Path.of(getBinaryName());
     Path wrapper = findWrapper(MVN_WRAPPER_FILENAME);
