@@ -95,32 +95,6 @@ For your own settings, fork the repository, adjust the configuration and specify
 Important notes on configuration and especially configuration files can be found in the link:../configuration.adoc[configuration].
 In the configuration files many link:../variables.adoc[variables] can be defined.
 
-== Tips and tricks
-
-Have a look at https://github.com/devonfw/IDEasy/blob/main/documentation/advanced-tooling-generic.adoc[advanced-tooling-generic.adoc] for some helpful developer tools.
-
-=== Known CI Build Errors & Quick Fixes
-
-Committing and pushing changes triggers the CI Build PR / build (pull_request) workflows.
-The workflows can fail due to predictable issues that are easy to resolve.
-Here is a common example:
-
-==== Error: IllegalState End of answers reached!
-
-image:../images/illegal-state-error-example.png[image]
-
-If your CI build fails during PR / build (pull_request) with an error like:
-
-    IllegalState End of answers reached!
-
-especially for a specific test, this often happens due to missing executable permissions on certain scripts or resource files.
-
-*Fix:*
-You can fix this issue by restoring the executable flag using the following command (replace PATH_TO_FILE with the path to the file that needs the executable permission):
-
-    git update-index --chmod=+x PATH_TO_FILE
-
-Commit and push the change, and the CI build should proceed successfully.
 
 == Documentation
 
@@ -129,5 +103,5 @@ In case you are reading this from your cloned git repository locally, use your I
 Please study the documentation that explains many important aspects of IDEasy.
 As a developer it is espcially important to study the link:coding-conventions.adoc[coding-conventions] and link:DoD.adoc[Definition of Done].
 Further, please browse the JavaDoc of the source-code to understand the different types and structures of our project.
-To get started see our link:../images/design.puml[design diagram] that needs PlantUml support to be viewed (e.g. via IntelliJ with according plugin).
+To get started see our link:./design.puml[design diagram] that needs PlantUml support to be viewed (e.g. via IntelliJ with according plugin).
 This diagram gives you a good overview of the most important types in the code-base.
