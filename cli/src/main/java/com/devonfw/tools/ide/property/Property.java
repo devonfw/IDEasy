@@ -395,7 +395,7 @@ public abstract class Property<V> {
 
     boolean option = normalizedName.startsWith("-");
     if (option && !argument.isOption() || !option && argument.isOption()
-        && argument.get().length() > 0 && !argument.isEndOptions()) {
+        && argument.get().length() > 0 && !args.isEndOptions()) {
       return false;
     }
 

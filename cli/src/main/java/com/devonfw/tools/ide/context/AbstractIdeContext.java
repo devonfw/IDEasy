@@ -1555,7 +1555,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
           }
         }
         if ((property != null) && property.isValue() && property.isMultiValued()) {
-          arguments.stopSplitShortOptions();
+          arguments.endOptions();
         }
       }
       boolean matches = currentProperty.apply(arguments, this, cmd, null);
@@ -1564,6 +1564,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
         state.addErrorMessage("No matching property found");
         return state;
       }
+      arguments.next();
       currentArgument = arguments.current();
     }
     return ValidationResultValid.get();
