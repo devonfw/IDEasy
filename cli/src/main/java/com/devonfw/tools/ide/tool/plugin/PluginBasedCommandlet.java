@@ -122,10 +122,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     Path pluginsInstallationPath = getPluginsInstallationPath();
     FileAccess fileAccess = this.context.getFileAccess();
 
-    IdeStartContextImpl startContext = ((AbstractIdeContext) this.context).getStartContext();
-    startContext.setForcePluginReinstall(this.forcePluginReinstall.isTrue());
-
-    if (!request.isAlreadyInstalled() || this.context.isForcePluginReinstall()) {
+    if (!request.isAlreadyInstalled() || this.forcePluginReinstall.isTrue()) {
       LOG.info("Resetting all installed plugins...");
       deleteAllPlugins(pluginsInstallationPath);
     }
