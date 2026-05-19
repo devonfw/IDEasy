@@ -51,6 +51,8 @@ public abstract class Property<V> {
   /** @see #isMultiValued() */
   private final boolean multivalued;
 
+  private final boolean placeholder;
+
   /** @see #getValue() */
   protected final List<V> value = new ArrayList<>();
 
@@ -63,12 +65,7 @@ public abstract class Property<V> {
    */
   public Property(String name, boolean required, String alias) {
 
-    super();
-    this.name = name;
-    this.required = required;
-    this.alias = alias;
-    this.multivalued = false;
-    this.validator = null;
+    this(name, required, alias, false, null);
   }
 
   /**
@@ -81,13 +78,28 @@ public abstract class Property<V> {
    * @param validator the {@link Consumer} used to {@link #validate() validate} the {@link #getValue() value}.
    */
   public Property(String name, boolean required, String alias, boolean multivalued, PropertyValidator<V> validator) {
+    this(name, required, alias, multivalued, false, validator);
+  }
 
+  /**
+   * The constructor.
+   *
+   * @param name the {@link #getName() property name}.
+   * @param required the {@link #isRequired() required flag}.
+   * @param alias the {@link #getAlias() property alias}.
+   * @param multivalued the boolean flag about multiple arguments
+   * @param placeholder whether this property is substituted by some value or literal
+   * @param validator the {@link Consumer} used to {@link #validate() validate} the {@link #getValue() value}.
+   */
+  public Property(String name, boolean required, String alias, boolean multivalued, boolean placeholder, PropertyValidator<V> validator) {
     super();
+
     this.name = name;
     this.required = required;
     this.alias = alias;
-    this.validator = validator;
     this.multivalued = multivalued;
+    this.placeholder = placeholder;
+    this.validator = validator;
   }
 
   /**
@@ -164,6 +176,10 @@ public abstract class Property<V> {
   public boolean isMultiValued() {
 
     return this.multivalued;
+  }
+
+  public boolean isPlaceholder() {
+    return this.placeholder;
   }
 
   /**
@@ -343,6 +359,9 @@ public abstract class Property<V> {
    * @return {@code true} if it matches, {@code false} otherwise.
    */
   public boolean apply(CliArguments args, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
+    if (this.placeholder && args.current().isCompletion()) {
+      return false;
+    }
     boolean match = this.apply(this.name, args, context, commandlet, collector);
 
     if (args.current().isCompletion() && this.alias != null) {

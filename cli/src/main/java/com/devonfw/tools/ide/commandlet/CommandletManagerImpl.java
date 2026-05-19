@@ -237,7 +237,7 @@ public class CommandletManagerImpl implements CommandletManager {
     for (Commandlet cmd : this.getCommandlets()) {
       if (this.context.isTest() || !cmd.isIdeHomeRequired() || this.context.getIdeHome() != null) {
         KeywordProperty firstKeyword = cmd.getFirstKeyword();
-        if (firstKeyword != null) {
+        if (firstKeyword != null && !firstKeyword.isPlaceholder()) {
           firstKeyword.apply(arguments, this.context, cmd, collector);
         }
       }
