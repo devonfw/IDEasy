@@ -164,10 +164,7 @@ public class CommandletManagerImpl implements CommandletManager {
     if (keyword != null) {
       String name = keyword.getName();
       registerKeyword(name, commandlet);
-      String optionName = keyword.getOptionName();
-      if (!optionName.equals(name)) {
-        registerKeyword(optionName, commandlet);
-      }
+
       String alias = keyword.getAlias();
       if (alias != null) {
         registerKeyword(alias, commandlet);
@@ -239,10 +236,9 @@ public class CommandletManagerImpl implements CommandletManager {
 
     for (Commandlet cmd : this.getCommandlets()) {
       if (this.context.isTest() || !cmd.isIdeHomeRequired() || this.context.getIdeHome() != null) {
-        for (Property<?> property : cmd.getProperties()) {
-          if (property instanceof KeywordProperty keyword) {
-            keyword.apply(arguments, this.context, cmd, collector);
-          }
+        KeywordProperty firstKeyword = cmd.getFirstKeyword();
+        if (firstKeyword != null) {
+          firstKeyword.apply(arguments, this.context, cmd, collector);
         }
       }
     }
