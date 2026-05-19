@@ -364,7 +364,7 @@ public abstract class Property<V> {
     }
     boolean match = this.apply(this.name, args, context, commandlet, collector);
 
-    if (args.current().isCompletion() && this.alias != null) {
+    if (args.current().isCompletion() && this.alias != null && !this.name.isEmpty()) {
       match |= this.apply(this.alias, args, context, commandlet, collector);
     }
 
