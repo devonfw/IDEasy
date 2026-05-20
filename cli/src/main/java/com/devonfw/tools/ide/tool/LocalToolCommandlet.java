@@ -77,18 +77,10 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     return false;
   }
 
-  /**
-   * @deprecated will be removed once all "dependencies.json" are created in ide-urls.
-   */
-  @Deprecated
-  protected void installDependencies() {
-
-  }
 
   @Override
   protected ToolInstallation doInstall(ToolInstallRequest request) {
 
-    installDependencies();
     Step step = request.getStep();
     if (step == null) {
       return doInstallStep(request);
@@ -260,6 +252,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     fileAccess.mkdirs(installationPath.getParent());
     fileAccess.extract(downloadedToolFile, installationPath, this::postExtract, extract);
     this.context.writeVersionFile(resolvedVersion, installationPath);
+    // fix macOS Gatekeeper blocking - must run after version file is written but before any executables are launched
+    getMacOsHelper().removeQuarantineAttribute(installationPath);
     LOG.debug("Installed {} in version {} at {}", this.tool, resolvedVersion, installationPath);
   }
 
@@ -350,9 +344,13 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     if (isToolNotInstalled(toolPath)) {
       return null;
     }
-    Path toolVersionFile = toolPath.resolve(IdeContext.FILE_SOFTWARE_VERSION);
+    Path versionLookupPath = getInstalledSoftwareRepoPath(toolPath, false);
+    if (versionLookupPath == null) {
+      versionLookupPath = toolPath;
+    }
+    Path toolVersionFile = versionLookupPath.resolve(IdeContext.FILE_SOFTWARE_VERSION);
     if (!Files.exists(toolVersionFile)) {
-      Path legacyToolVersionFile = toolPath.resolve(IdeContext.FILE_LEGACY_SOFTWARE_VERSION);
+      Path legacyToolVersionFile = versionLookupPath.resolve(IdeContext.FILE_LEGACY_SOFTWARE_VERSION);
       if (Files.exists(legacyToolVersionFile)) {
         toolVersionFile = legacyToolVersionFile;
       } else {
@@ -416,13 +414,17 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   private Path getInstalledSoftwareRepoPath(Path toolPath) {
+    return getInstalledSoftwareRepoPath(toolPath, false);
+  }
+
+  private Path getInstalledSoftwareRepoPath(Path toolPath, boolean logIfNotSoftwareRepo) {
     if (isToolNotInstalled(toolPath)) {
       return null;
     }
     Path installPath = this.context.getFileAccess().toRealPath(toolPath);
     // if the installPath changed, a link has been resolved
     if (installPath.equals(toolPath)) {
-      if (!isIgnoreSoftwareRepo()) {
+      if (logIfNotSoftwareRepo && !isIgnoreSoftwareRepo()) {
         LOG.warn("Tool {} is not installed via software repository (maybe from devonfw-ide). Please consider reinstalling it.", this.tool);
       }
       // I do not see any reliable way how we could determine the edition of a tool that does not use software repo or that was installed by devonfw-ide
@@ -510,7 +512,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * Deletes the installed version of the tool from the shared software repository.
    */
   private void uninstallFromSoftwareRepository(Path toolPath) {
-    Path repoPath = getInstalledSoftwareRepoPath(toolPath);
+    Path repoPath = getInstalledSoftwareRepoPath(toolPath, true);
     if ((repoPath == null) || !Files.exists(repoPath)) {
       LOG.warn("An installed version of {} does not exist in software repository.", this.tool);
       return;
