@@ -107,14 +107,13 @@ public class Vscode extends IdeToolCommandlet {
     if (EDITION_VSCODIUM.equals(getConfiguredEdition())) {
       this.vscodiumUnavailablePlugins.add(plugin.id());
       return false;
-    }
-    else {
-        if (versionSpecified) {
-          IdeLogLevel.ERROR.log(LOG, "Failed to install plugin: {} with version: {}", plugin.name(), plugin.version());
-        } else {
-          IdeLogLevel.ERROR.log(LOG, "Failed to install plugin: {}", plugin.name());
-        }
-        return false;
+    } else {
+      if (versionSpecified) {
+        IdeLogLevel.ERROR.log(LOG, "Failed to install plugin: {} with version: {}", plugin.name(), plugin.version());
+      } else {
+        IdeLogLevel.ERROR.log(LOG, "Failed to install plugin: {}", plugin.name());
+      }
+      return false;
     }
   }
 
