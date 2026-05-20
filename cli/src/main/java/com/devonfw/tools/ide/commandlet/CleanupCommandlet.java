@@ -12,6 +12,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.property.FlagProperty;
+import com.devonfw.tools.ide.step.Step;
 
 public class CleanupCommandlet extends Commandlet{
 
@@ -77,6 +78,14 @@ public class CleanupCommandlet extends Commandlet{
     protected void doRun() {
 
         LOG.debug("Start cleanup commandlet");
+
+        Step step = context.newStep("Identify and remove unused software");
+        step.run(() -> {discoverAndDeleteUnusedSoftware();});
+
+        LOG.debug("Finished cleanup commandlet");
+    }
+
+    private void discoverAndDeleteUnusedSoftware() {
         // Iterate over software in $IDE_ROOT/_ide/software folder and save installed software to a list
         discoverInstalledSoftware(this.context.getIdeRoot().resolve("_ide/software/default"));
 
@@ -89,15 +98,12 @@ public class CleanupCommandlet extends Commandlet{
                 continue;
             }
             discoverUsedSoftware(ideasyProject.resolve("software"), ideasyProject.getFileName().toString());
+            discoverUsedSoftware(ideasyProject.resolve("software/extra"), ideasyProject.getFileName().toString());
         }
 
-        String hello = "hello";
         // Remove unused software
         markUnusedSoftwareForDeletion();
         logSoftwareToBeDeleted();
-        //deleteUnusedSoftware();
-
-
     }
 
     private void discoverInstalledSoftware(Path software_folder) {
@@ -126,46 +132,38 @@ public class CleanupCommandlet extends Commandlet{
         }
     }
 
-    private void discoverUsedSoftware(Path current_folder, String project_name) {
-        current_folder = this.context.getFileAccess().toRealPath(current_folder);
-        // Check if directory contains ".ide.software.version" file. If so, read version and add to list of used software
-        if (Files.exists(current_folder.resolve(".ide.software.version"))) {
-            if (!current_folder.startsWith(this.context.getIdeRoot().resolve("_ide/software/default"))) {
-                // We found a software that is directly installed in an IDEasy project but not in the global software folder. We leave these alone
-                return;
-            }
-            String tool_name = current_folder.getParent().getParent().getFileName().toString();
-            String tool_edition = current_folder.getParent().getFileName().toString();
-            String tool_version = current_folder.getFileName().toString();
-            // Check if software exists in IdeTool list. If so, mark as used
-            for (IdeTool tool : this.installedIdeTools) {
-                if (tool.tool_name.equals(tool_name)) {
-                    tool.used_by.add(project_name);
-                    for (IdeToolEdition edition : tool.editions) {
-                        if (edition.edition_name.equals(tool_edition)) {
-                            edition.used_by.add(project_name);
-                            for (IdeToolEditionVersion version : edition.versions) {
-                                if (version.version_name.equals(tool_version)) {
-                                    version.used_by.add(project_name);
-                                    break;
+    private void discoverUsedSoftware(Path software_folder, String project_name) {
+        List<Path> subfolders = this.context.getFileAccess().listChildren(software_folder, Files::isDirectory);
+        for (Path current_folder : subfolders) {
+            current_folder = this.context.getFileAccess().toRealPath(current_folder);
+            // Check if directory contains ".ide.software.version" file. If so, read version and add to list of used software
+            if (Files.exists(current_folder.resolve(".ide.software.version"))) {
+                if (!current_folder.startsWith(this.context.getIdeRoot().resolve("_ide/software/default"))) {
+                    // We found a software that is directly installed in an IDEasy project but not in the global software folder. We leave these alone
+                    return;
+                }
+                String tool_name = current_folder.getParent().getParent().getFileName().toString();
+                String tool_edition = current_folder.getParent().getFileName().toString();
+                String tool_version = current_folder.getFileName().toString();
+                // Check if software exists in IdeTool list. If so, mark as used
+                for (IdeTool tool : this.installedIdeTools) {
+                    if (tool.tool_name.equals(tool_name)) {
+                        tool.used_by.add(project_name);
+                        for (IdeToolEdition edition : tool.editions) {
+                            if (edition.edition_name.equals(tool_edition)) {
+                                edition.used_by.add(project_name);
+                                for (IdeToolEditionVersion version : edition.versions) {
+                                    if (version.version_name.equals(tool_version)) {
+                                        version.used_by.add(project_name);
+                                        break;
+                                    }
                                 }
+                                break;
                             }
-                            break;
                         }
+                        break;
                     }
-                    break;
                 }
-            }
-        } else {
-            // If not, get all subfolders and recursively iterate over them
-            try {
-                List<Path> subfolders = this.context.getFileAccess().listChildren(current_folder, Files::isDirectory);
-                for (Path subfolder : subfolders) {
-                    discoverUsedSoftware(subfolder, project_name);
-                }
-            } catch (Exception e) {
-                // log error and return
-                return;
             }
         }
     }
@@ -251,7 +249,7 @@ public class CleanupCommandlet extends Commandlet{
             if (tool.delete) {
                 LOG.debug("Deleting tool {} and all its editions and versions in {}", tool.tool_name, tool.path);
                 try {
-                    //fileAccess.delete(tool.path);
+                    fileAccess.delete(tool.path);
                 } catch (Exception e) {
                     LOG.error("Failed to delete {}: {}", tool.path, e.getMessage());
                     failed_deletion++;
@@ -263,7 +261,7 @@ public class CleanupCommandlet extends Commandlet{
                 if (edition.delete) {
                     LOG.debug("Deleting edition {} of tool {} and all its versions in {}", edition.edition_name, tool.tool_name, edition.path);
                     try {
-                        //fileAccess.delete(edition.path);
+                        fileAccess.delete(edition.path);
                     } catch (Exception e) {
                         LOG.error("Failed to delete {}: {}", edition.path, e.getMessage());
                         failed_deletion++;
@@ -275,7 +273,7 @@ public class CleanupCommandlet extends Commandlet{
                     if (version.delete) {
                         LOG.debug("Deleting version {} of edition {} of tool {} in {}", version.version_name, edition.edition_name, tool.tool_name, version.path);
                         try {
-                            //this.context.getFileAccess().delete(version.path);
+                            fileAccess.delete(version.path);
                         } catch (Exception e) {
                             LOG.error("Failed to delete {}: {}", version.path, e.getMessage());
                             failed_deletion++;
