@@ -60,6 +60,9 @@ public class GitContextImpl implements GitContext {
   @Override
   public boolean isRepositoryUpdateAvailable(Path repository) {
 
+    if (!hasUpstream(repository)) {
+      return false;
+    }
     String localFailureMessage = String.format("Failed to get the local commit id of settings repository '%s'.", repository);
     String remoteFailureMessage = String.format("Failed to get the remote commit id of settings repository '%s', missing remote upstream branch?", repository);
     String localCommitId = runGitCommandAndGetSingleOutput(localFailureMessage, repository, ProcessMode.DEFAULT_CAPTURE, "rev-parse", "HEAD");
@@ -78,7 +81,9 @@ public class GitContextImpl implements GitContext {
       LOG.warn("Commit ID was not present at {}", trackedCommitIdPath);
       return true;
     }
-
+    if (!hasUpstream(repository)) {
+      return false;
+    }
     String remoteFailureMessage = String.format("Failed to get the remote commit id of settings repository '%s', missing remote upstream branch?", repository);
     String remoteCommitId = runGitCommandAndGetSingleOutput(remoteFailureMessage, repository, ProcessMode.DEFAULT_CAPTURE, "rev-parse", "@{u}");
     if (remoteCommitId == null) {
@@ -388,6 +393,43 @@ public class GitContextImpl implements GitContext {
       return null;
     }
     return binaryGitPath;
+  }
+
+  private String getOptionalGitConfigValue(Path directory, String key) {
+
+    ProcessResult result = runGitCommand(
+        directory,
+        ProcessMode.DEFAULT_CAPTURE,
+        ProcessErrorHandling.NONE,
+        "config",
+        "--get",
+        key
+    );
+
+    if (result.isSuccessful() && result.getOut().size() == 1) {
+      return result.getOut().getFirst();
+    }
+
+    return null;
+
+  }
+
+  private boolean hasUpstream(Path repository) {
+
+    String branch = determineCurrentBranch(repository);
+    if ((branch == null) || branch.isBlank()) {
+      return false;
+    }
+
+    String remote = getOptionalGitConfigValue(repository, "branch." + branch + ".remote");
+    String merge = getOptionalGitConfigValue(repository, "branch." + branch + ".merge");
+
+    if ((remote == null) || (merge == null)) {
+      LOG.warn("No upstream configured for branch {} in settings repository {}. Please switch to a branch with remote upstream.", branch, repository);
+      return false;
+    }
+
+    return true;
   }
 
   private void runGitCommand(Path directory, String... args) {
