@@ -25,6 +25,16 @@
       <artifactId>ide-cli</artifactId>
       <version>${project.version}</version>
     </dependency>
+
+    <!-- We need the test-jar of the cli module to be able to use the test utilities for testing the GUI. -->
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>ide-cli</artifactId>
+      <classifier>tests</classifier>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
@@ -62,6 +72,18 @@
 
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>com.devonfw.ide.gui.AppLauncher</mainClass>
+              <addClasspath>true</addClasspath>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.openjfx</groupId>
         <artifactId>javafx-maven-plugin</artifactId>

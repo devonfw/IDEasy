@@ -28,7 +28,7 @@ public class GhUrlUpdater extends GithubUrlTagUpdater {
 
     VersionIdentifier vid = urlVersion.getVersionIdentifier();
 
-    String baseUrl = getDownloadBaseUrl() + "/cli/cli/releases/download/v${version}/gh_${version}_";
+    String baseUrl = createGithubReleaseDownloadUrl("v${version}", "gh_${version}_");
     doAddVersion(urlVersion, baseUrl + "windows_amd64.zip", WINDOWS, X64);
     doAddVersion(urlVersion, baseUrl + "linux_amd64.tar.gz", LINUX, X64);
     doAddVersion(urlVersion, baseUrl + "linux_arm64.tar.gz", LINUX, ARM64);

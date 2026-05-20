@@ -54,33 +54,42 @@ public class IniSection extends IniElement {
   /**
    * Add or update a property in the section
    *
-   * @param content the entire file line containing the property
-   */
-  public void setProperty(String content) {
-    IniProperty property = new IniProperty(content);
-    sectionElements.add(property);
-    properties.put(property.getKey(), property);
-  }
-
-  /**
-   * Add or update a property in the section
-   *
    * @param key property key
    * @param value property value
    */
   public void setProperty(String key, String value) {
-    String indentation = this.getIndentation();
-    if (this.getPropertyKeys().contains(key)) {
-      indentation = properties.get(key).getIndentation();
-    } else if (!this.getPropertyKeys().isEmpty()) {
-      indentation = properties.get(this.getPropertyKeys().getFirst()).getIndentation();
+    IniProperty existingProperty = properties.get(key);
+    if (existingProperty == null) {
+      String indentation = this.getIndentation();
+      if (!this.getPropertyKeys().isEmpty()) {
+        indentation = properties.get(this.getPropertyKeys().getFirst()).getIndentation();
+      }
+      StringBuilder stringBuilder = new StringBuilder(indentation);
+      stringBuilder.append(key);
+      stringBuilder.append(" = ");
+      stringBuilder.append(value);
+      IniProperty property = new IniProperty(stringBuilder.toString());
+      sectionElements.add(property);
+      properties.put(key, property);
+    } else {
+      existingProperty.setValue(value);
     }
-    StringBuilder stringBuilder = new StringBuilder(indentation);
-    stringBuilder.append(key);
-    stringBuilder.append(" = ");
-    stringBuilder.append(value);
-    String propertyContent = stringBuilder.toString();
-    setProperty(propertyContent);
+  }
+
+  /**
+   * Add or update a property in the section from a property line
+   *
+   * @param keyValue the property line as it appears in the file
+   */
+  public void setPropertyLine(String keyValue) {
+    IniProperty property = new IniProperty(keyValue);
+    IniProperty existing = properties.get(property.getKey());
+    if (existing == null) {
+      sectionElements.add(property);
+      properties.put(property.getKey(), property);
+    } else {
+      existing.setValue(property.getValue());
+    }
   }
 
   /**

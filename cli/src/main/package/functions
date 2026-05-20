@@ -16,10 +16,12 @@ function ide() {
       cd "${IDE_ROOT}/${_create_project}" || return 1
     fi
   fi
+  unset IDE_HOME
+  unset WORKSPACE
   ide_env="$(ideasy ${IDE_OPTIONS} env --bash)"
   if [ $? = 0 ]; then
     eval "${ide_env}"
-    if [ $# = 0 ]; then
+    if [ $# = 0 ] && [ -n "${IDE_HOME}" ]; then
       echo "IDE environment variables have been set for ${IDE_HOME} in workspace ${WORKSPACE}"
     fi
   fi

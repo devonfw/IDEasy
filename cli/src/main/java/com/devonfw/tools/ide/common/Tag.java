@@ -329,6 +329,9 @@ public final class Tag {
   /** {@link #Tag} for encryption. */
   public static final Tag ENCRYPTION = create("encryption", CRYPTO);
 
+  /** {@link Tag} for Nest. */
+  public static final Tag NEST = create("nest", FRAMEWORK, false, new String[] { "nestjs", "nestcli" }, TYPE_SCRIPT);
+
   private final String id;
 
   private final Tag parent;

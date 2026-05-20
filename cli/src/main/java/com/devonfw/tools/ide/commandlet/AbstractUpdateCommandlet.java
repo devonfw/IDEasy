@@ -175,8 +175,8 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     Path settingsPath = this.context.getSettingsPath();
     GitContext gitContext = this.context.getGitContext();
     // here we do not use pullOrClone to prevent asking a pointless question for repository URL...
-    if (Files.isDirectory(settingsPath) && !this.context.getFileAccess().isEmptyDir(settingsPath)) {
-      if (this.context.isForcePull() || this.context.isForceMode() || Files.isDirectory(settingsPath.resolve(GitContext.GIT_FOLDER))) {
+    if (Files.isDirectory(settingsPath) && this.context.getGitContext().isGitRepo(settingsPath) || this.context.isSettingsRepositorySymlinkOrJunction()) {
+      if (this.context.isForcePull() || this.context.isForceMode()) {
         if (gitContext.hasUntrackedFiles(settingsPath)) {
           gitContext.pullSafelyWithStash(settingsPath);
         } else {
@@ -187,6 +187,15 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
         LOG.info("Skipping git pull in settings due to code repository. Use --force-pull to enforce pulling.");
       }
     } else {
+      if (!this.context.getFileAccess().isEmptyDir(settingsPath)) {
+        this.context.askToContinue(
+          "Your settings repository seems to be broken ('.git' folder not present). We can fix this by moving "
+          + " your settings the backed up. You will be asked for the settings git URL and your settings will be cloned from scratch. Do you want to proceed?"
+        );
+
+        this.context.getFileAccess().backup(settingsPath);
+      }
+
       GitUrl gitUrl = getOrAskSettingsUrl();
       checkProjectNameConvention(gitUrl.getProjectName());
       initializeRepository(gitUrl);

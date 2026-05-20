@@ -62,6 +62,12 @@ public interface GitContext {
   boolean fetchIfNeeded(Path repository, String remoteName, String branch);
 
   /**
+   * @param directory the {@link Path} to the directory to check for repo status
+   * @return {@code true} if `directory` is a Git repo, {@code false} otherwise
+   */
+  boolean isGitRepo(Path directory);
+
+  /**
    * Checks if there are updates available for the Git repository in the specified target folder by comparing the local commit hash with the remote commit
    * hash.
    *
