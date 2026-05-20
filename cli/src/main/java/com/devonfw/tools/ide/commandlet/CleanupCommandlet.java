@@ -21,39 +21,39 @@ public class CleanupCommandlet extends Commandlet{
     private static final Logger LOG = LoggerFactory.getLogger(CleanupCommandlet.class);
 
     private static class IdeToolEditionVersion {
-        String version_name;
+        String versionName;
         private final Path path;
-        private List<String> used_by = new java.util.ArrayList<>();
+        private List<String> usedBy = new java.util.ArrayList<>();
         private boolean delete = false;
 
-        IdeToolEditionVersion(String version_name, Path path) {
-            this.version_name = version_name;
+        IdeToolEditionVersion(String versionName, Path path) {
+            this.versionName = versionName;
             this.path = path;
         }
     }
     
     private static class IdeToolEdition {
-        String edition_name;
+        String editionName;
         private final Path path;
-        private List<String> used_by = new java.util.ArrayList<>();
+        private List<String> usedBy = new java.util.ArrayList<>();
         private boolean delete = false;
         private List<IdeToolEditionVersion> versions = new java.util.ArrayList<>();
 
-        IdeToolEdition(String edition_name, Path path) {
-            this.edition_name = edition_name;
+        IdeToolEdition(String editionName, Path path) {
+            this.editionName = editionName;
             this.path = path;
         }
     }
     
     private static class IdeTool {
-        String tool_name;
+        String toolName;
         private final Path path;
-        private List<String> used_by = new java.util.ArrayList<>();
+        private List<String> usedBy = new java.util.ArrayList<>();
         private boolean delete = false;
         private List<IdeToolEdition> editions = new java.util.ArrayList<>();
 
-        IdeTool(String tool_name, Path path) {
-            this.tool_name = tool_name;
+        IdeTool(String toolName, Path path) {
+            this.toolName = toolName;
             this.path = path;
         }
     }
@@ -147,14 +147,14 @@ public class CleanupCommandlet extends Commandlet{
                 String tool_version = current_folder.getFileName().toString();
                 // Check if software exists in IdeTool list. If so, mark as used
                 for (IdeTool tool : this.installedIdeTools) {
-                    if (tool.tool_name.equals(tool_name)) {
-                        tool.used_by.add(project_name);
+                    if (tool.toolName.equals(tool_name)) {
+                        tool.usedBy.add(project_name);
                         for (IdeToolEdition edition : tool.editions) {
-                            if (edition.edition_name.equals(tool_edition)) {
-                                edition.used_by.add(project_name);
+                            if (edition.editionName.equals(tool_edition)) {
+                                edition.usedBy.add(project_name);
                                 for (IdeToolEditionVersion version : edition.versions) {
-                                    if (version.version_name.equals(tool_version)) {
-                                        version.used_by.add(project_name);
+                                    if (version.versionName.equals(tool_version)) {
+                                        version.usedBy.add(project_name);
                                         break;
                                     }
                                 }
@@ -172,15 +172,15 @@ public class CleanupCommandlet extends Commandlet{
         for (IdeTool tool : this.installedIdeTools) {
             for (IdeToolEdition edition : tool.editions) {
                 for (IdeToolEditionVersion version : edition.versions) {
-                    if (version.used_by.isEmpty()) {
+                    if (version.usedBy.isEmpty()) {
                         version.delete = true;
                     }
                 }
-                if (edition.used_by.isEmpty()) {
+                if (edition.usedBy.isEmpty()) {
                     edition.delete = true;
                 }
             }
-            if (tool.used_by.isEmpty()) {
+            if (tool.usedBy.isEmpty()) {
                 tool.delete = true;
             }
         }
@@ -199,7 +199,7 @@ public class CleanupCommandlet extends Commandlet{
                 int versionsDeleted = 0;
                 for (IdeToolEditionVersion version : edition.versions) {
                     if (version.delete) {
-                        LogOutputVersion += "\t\t - " + version.version_name + "\n";
+                        LogOutputVersion += "\t\t - " + version.versionName + "\n";
                         versionsDeleted++;
                         totalVersionsDeleted++;
                     }
@@ -207,7 +207,7 @@ public class CleanupCommandlet extends Commandlet{
                 if (!LogOutputVersion.isBlank()) {
                     if (versionsDeleted < edition.versions.size()) {
                         LogOutputVersion += "\t\t + " + (edition.versions.size() - versionsDeleted) + " more version(s) of this edition will not be deleted\n";
-                        LogOutputEdition += "\t - " + edition.edition_name + "\n" + LogOutputVersion;
+                        LogOutputEdition += "\t - " + edition.editionName + "\n" + LogOutputVersion;
                     }
                     editionsDeleted++;
                     totalEditionsDeleted++;
@@ -217,7 +217,7 @@ public class CleanupCommandlet extends Commandlet{
                 if (editionsDeleted < tool.editions.size()) {
                     LogOutputEdition += "\t + " + (tool.editions.size() - editionsDeleted) + " more edition(s) of this tool will not be deleted\n";
                 }
-                LogOutput += " - " + tool.tool_name + "\n" + LogOutputEdition;
+                LogOutput += " - " + tool.toolName + "\n" + LogOutputEdition;
                 totalToolsDeleted++;
             }
         }
@@ -247,7 +247,7 @@ public class CleanupCommandlet extends Commandlet{
         // Delete the tool
         for (IdeTool tool : this.installedIdeTools) {
             if (tool.delete) {
-                LOG.debug("Deleting tool {} and all its editions and versions in {}", tool.tool_name, tool.path);
+                LOG.debug("Deleting tool {} and all its editions and versions in {}", tool.toolName, tool.path);
                 try {
                     fileAccess.delete(tool.path);
                 } catch (Exception e) {
@@ -259,7 +259,7 @@ public class CleanupCommandlet extends Commandlet{
             // Delete editions of the tool
             for (IdeToolEdition edition : tool.editions) {
                 if (edition.delete) {
-                    LOG.debug("Deleting edition {} of tool {} and all its versions in {}", edition.edition_name, tool.tool_name, edition.path);
+                    LOG.debug("Deleting edition {} of tool {} and all its versions in {}", edition.editionName, tool.toolName, edition.path);
                     try {
                         fileAccess.delete(edition.path);
                     } catch (Exception e) {
@@ -271,7 +271,7 @@ public class CleanupCommandlet extends Commandlet{
                 // Delete versions of the edition
                 for (IdeToolEditionVersion version : edition.versions) {
                     if (version.delete) {
-                        LOG.debug("Deleting version {} of edition {} of tool {} in {}", version.version_name, edition.edition_name, tool.tool_name, version.path);
+                        LOG.debug("Deleting version {} of edition {} of tool {} in {}", version.versionName, edition.editionName, tool.toolName, version.path);
                         try {
                             fileAccess.delete(version.path);
                         } catch (Exception e) {
