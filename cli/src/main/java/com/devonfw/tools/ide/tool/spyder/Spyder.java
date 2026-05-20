@@ -6,9 +6,16 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.pip.PipBasedCommandlet;
 
-
+/**
+ * {@link PipBasedCommandlet} for <a href="https://www.spyder-ide.org/">Spyder</a>.
+ */
 public class Spyder extends PipBasedCommandlet {
 
+  /**
+   * The constructor.
+   *
+   * @param context the {@link IdeContext}.
+   */
   public Spyder(IdeContext context) {
     super(context, "spyder", Set.of(Tag.SPYDER, Tag.IDE));
   }
