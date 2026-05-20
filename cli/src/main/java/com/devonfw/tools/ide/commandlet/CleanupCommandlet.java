@@ -184,11 +184,12 @@ public class CleanupCommandlet extends Commandlet{
             // Converts the path of the tool installation to the real path by eliminating symlinks. This allows us to determine whether a tool is installed locally for an IDEasy project or is part
             // of the global software installation under $IDE_ROOT/_ide/software/default
             current_folder = this.context.getFileAccess().toRealPath(current_folder);
-            // Check if directory contains ".ide.software.version" file. If so, read version and add to list of used software
-            if (Files.exists(current_folder.resolve(".ide.software.version"))) {
+            // Check if directory contains a software version file. If so, read version and add to list of used software.
+            if (Files.exists(current_folder.resolve(IdeContext.FILE_SOFTWARE_VERSION))
+                || Files.exists(current_folder.resolve(IdeContext.FILE_LEGACY_SOFTWARE_VERSION))) {
                 if (!current_folder.startsWith(this.context.getIdeRoot().resolve("_ide/software/default"))) {
                     // We found a software that is locally installed in an IDEasy project but not in the global software folder. We leave these alone.
-                    return;
+                    continue;
                 }
                 // Get details of the tool (name, edition, version)
                 String tool_name = current_folder.getParent().getParent().getFileName().toString();
@@ -264,8 +265,8 @@ public class CleanupCommandlet extends Commandlet{
                     // If at least one version of the edition should be deleted
                     if (versionsDeleted < edition.versions.size()) {
                         LogOutputVersion += "\t\t + " + (edition.versions.size() - versionsDeleted) + " more version(s) of this edition will not be deleted\n";
-                        LogOutputEdition += "\t - " + edition.editionName + "\n" + LogOutputVersion;
                     }
+                    LogOutputEdition += "\t - " + edition.editionName + "\n" + LogOutputVersion;
                     editionsDeleted++;
                     totalEditionsDeleted++;
                 }
