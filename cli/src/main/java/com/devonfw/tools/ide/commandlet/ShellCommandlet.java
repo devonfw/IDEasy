@@ -4,16 +4,12 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
-import java.util.List;
 
 import org.fusesource.jansi.AnsiConsole;
-import org.jline.reader.Candidate;
-import org.jline.reader.Completer;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.reader.MaskingCallback;
-import org.jline.reader.ParsedLine;
 import org.jline.reader.Parser;
 import org.jline.reader.UserInterruptException;
 import org.jline.reader.impl.DefaultParser;
@@ -44,6 +40,8 @@ public final class ShellCommandlet extends Commandlet {
 
   private static final int RC_EXIT = 987654321;
 
+  private static final String EXIT_COMMAND = "exit";
+
   /**
    * The constructor.
    *
@@ -73,23 +71,9 @@ public final class ShellCommandlet extends Commandlet {
     try {
       Parser parser = new DefaultParser();
       try (Terminal terminal = TerminalBuilder.builder().build()) {
-        IdeCompleter ideCompleter = new IdeCompleter((AbstractIdeContext) this.context);
+        IdeCompleter completer = new IdeCompleter((AbstractIdeContext) this.context);
 
-        Completer shellCompleter = new Completer() {
-          @Override
-          public void complete(LineReader reader, ParsedLine commandLine, List<Candidate> candidates) {
-            String currentWord = commandLine.word();
-            int wordIndex = commandLine.wordIndex();
-
-            if (wordIndex == 0 && !currentWord.isEmpty() && "exit".startsWith(currentWord)) {
-              candidates.add(new Candidate("exit"));
-            }
-
-            ideCompleter.complete(reader, commandLine, candidates);
-          }
-        };
-
-        LineReader reader = LineReaderBuilder.builder().terminal(terminal).completer(shellCompleter).parser(parser)
+        LineReader reader = LineReaderBuilder.builder().terminal(terminal).completer(completer).parser(parser)
             .variable(LineReader.LIST_MAX, AUTOCOMPLETER_MAX_RESULTS).build();
 
         // Create autosuggestion widgets
@@ -107,6 +91,10 @@ public final class ShellCommandlet extends Commandlet {
           try {
             String prompt = context.getCwd() + "$ ide ";
             line = reader.readLine(prompt, rightPrompt, (MaskingCallback) null, null);
+            line = line.trim();
+            if (EXIT_COMMAND.equals(line)) {
+              return;
+            }
             reader.getHistory().add(line);
             int rc = runCommand(line);
             if (rc == RC_EXIT) {
@@ -141,7 +129,7 @@ public final class ShellCommandlet extends Commandlet {
    */
   private int runCommand(String args) {
 
-    if ("exit".equals(args) || "quit".equals(args)) {
+    if (EXIT_COMMAND.equals(args) || "quit".equals(args)) {
       return RC_EXIT;
     }
     String[] arguments = args.split(" ", 0);
