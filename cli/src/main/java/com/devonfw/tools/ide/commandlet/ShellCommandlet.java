@@ -6,7 +6,6 @@ import java.nio.file.Paths;
 import java.util.Iterator;
 
 import org.fusesource.jansi.AnsiConsole;
-import org.jline.reader.Completer;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
@@ -14,8 +13,6 @@ import org.jline.reader.MaskingCallback;
 import org.jline.reader.Parser;
 import org.jline.reader.UserInterruptException;
 import org.jline.reader.impl.DefaultParser;
-import org.jline.reader.impl.completer.AggregateCompleter;
-import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.widget.AutosuggestionWidgets;
@@ -42,6 +39,8 @@ public final class ShellCommandlet extends Commandlet {
   private static final int AUTOCOMPLETER_MAX_RESULTS = 50;
 
   private static final int RC_EXIT = 987654321;
+
+  private static final String EXIT_COMMAND = "exit";
 
   /**
    * The constructor.
@@ -72,9 +71,7 @@ public final class ShellCommandlet extends Commandlet {
     try {
       Parser parser = new DefaultParser();
       try (Terminal terminal = TerminalBuilder.builder().build()) {
-        // initialize our own completer here and add exit as an autocompletion option
-        Completer completer = new AggregateCompleter(
-            new StringsCompleter("exit"), new IdeCompleter((AbstractIdeContext) this.context));
+        IdeCompleter completer = new IdeCompleter((AbstractIdeContext) this.context);
 
         LineReader reader = LineReaderBuilder.builder().terminal(terminal).completer(completer).parser(parser)
             .variable(LineReader.LIST_MAX, AUTOCOMPLETER_MAX_RESULTS).build();
@@ -95,7 +92,7 @@ public final class ShellCommandlet extends Commandlet {
             String prompt = context.getCwd() + "$ ide ";
             line = reader.readLine(prompt, rightPrompt, (MaskingCallback) null, null);
             line = line.trim();
-            if (line.equals("exit")) {
+            if (EXIT_COMMAND.equals(line)) {
               return;
             }
             reader.getHistory().add(line);
@@ -132,7 +129,7 @@ public final class ShellCommandlet extends Commandlet {
    */
   private int runCommand(String args) {
 
-    if ("exit".equals(args) || "quit".equals(args)) {
+    if (EXIT_COMMAND.equals(args) || "quit".equals(args)) {
       return RC_EXIT;
     }
     String[] arguments = args.split(" ", 0);
