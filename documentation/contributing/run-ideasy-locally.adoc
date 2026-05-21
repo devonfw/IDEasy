@@ -42,7 +42,7 @@ Just set breakpoints anywhere in the code and then use the "Debug" button with t
 == Run IDEasy locally from inside Visual Studio Code
 
 Running IDEasy from inside Visual Studio Code works similarly to IntelliJ and also supports debugging with breakpoints.
-It requires the https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-java-pack[Extension Pack for Java] to be installed in VS Code.
+It requires the https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-java-pack[Extension Pack for Java] to be installed in VS Code (This is pre-installed by IDEasy, so if you use Vs-Code from IDEasy, there is nothing to do here!).
 
 To create a launch configuration, open the *Run and Debug* panel (kbd:[Ctrl+Shift+D]) and select *create a launch.json file*. This will automatically create a ready-to-go launch configuration that you can modify with relevant launch arguments.
 
