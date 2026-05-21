@@ -20,9 +20,9 @@ image::../images/run_ide_locally_guide/run_button_menu.png[]
 
 In the window that is then opened, some configurations have to be made (if not set automatically already):
 
-* Set the used SDK to the SDK of the project
-* Set module to `ide-cli`
-* Set Main class to `com.devonfw.tools.ide.cli.Ideasy`
+* Verify that the used SDK is the SDK of the project
+* Verify that module is set to `ide-cli`
+* Verify that Main class is set to `com.devonfw.tools.ide.cli.Ideasy`
 * In Program arguments, add the cli arguments you want to pass to IDEasy (in the example a call to open vscode with the force-option)
 * Set Working directory to the IDEasy project folder
 
