@@ -195,12 +195,11 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   }
 
   /**
-   * Checks if two snapshot versions represent the same day and hour snapshot. This is a KISS heuristic to treat same-day snapshots as equal even if they have
-   * slightly different timestamps.
+   * Checks if two snapshot versions represent the version
    *
-   * @param installed the installed version string (format: base-MM_DD_HH...-SNAPSHOT).
-   * @param latest the latest available version string (format: base-yyyyMMdd.HHmmss...).
-   * @return {@code true} if both versions have the same base version and the same day and hour, {@code false} otherwise.
+   * @param installed the installed version string
+   * @param latest the latest available version string
+   * @return {@code true} if both versions represent the same version, {@code false} otherwise.
    */
   private boolean isSameSnapshotVersion(String installed, String latest) {
     if (installed == null || latest == null) {
@@ -227,9 +226,8 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     if (!baseMatcher_installed.matches() || !baseMatcher_latest.matches()) {
       return false;
     }
-    
+
     String baseYear_installed = baseMatcher_installed.group(1);
-    // installed: base-MM_DD_HH...-SNAPSHOT  -> key = MMDD.HH
     Matcher installedMatcher = Pattern.compile("^" + Pattern.quote(base_installed) + "-(\\d{2})_(\\d{2})_(\\d{2}).*-SNAPSHOT$")
         .matcher(installed);
     if (!installedMatcher.matches()) {
@@ -237,7 +235,6 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     }
     String keyInstalled = installedMatcher.group(1) + installedMatcher.group(2) + "." + installedMatcher.group(3); // MMDD.HH
 
-    // latest: base-yyyyMMdd.HHmmss... -> key = MMDD.HH, and yyyy must match baseYear_installed
     Matcher latestMatcher = Pattern.compile("^" + Pattern.quote(base_installed) + "-(\\d{4})(\\d{2})(\\d{2})\\.(\\d{2})\\d{4}.*$")
         .matcher(latest);
     if (!latestMatcher.matches()) {
