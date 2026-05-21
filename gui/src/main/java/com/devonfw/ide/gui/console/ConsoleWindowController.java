@@ -8,8 +8,6 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
-import javafx.scene.input.KeyCode;
 import javafx.scene.layout.AnchorPane;
 
 import com.devonfw.ide.gui.MainController;
@@ -28,13 +26,7 @@ public class ConsoleWindowController {
   private TextArea consoleOutput;
 
   @FXML
-  private TextField consoleInput;
-
-  @FXML
   private Button clearButton;
-
-  @FXML
-  private Button sendButton;
 
   @FXML
   private Button scrollToBottomButton;
@@ -54,7 +46,6 @@ public class ConsoleWindowController {
   @FXML
   private Label lineCountLabel;
 
-  private ConsoleOutputListener outputListener;
   private MainController mainController;
 
   @FXML
@@ -67,17 +58,10 @@ public class ConsoleWindowController {
    * Richtet die Event-Handler für Buttons und Eingabefeld ein
    */
   private void setupEventHandlers() {
+
     clearButton.setOnAction(event -> clearConsole());
-    sendButton.setOnAction(event -> sendInput());
     scrollToBottomButton.setOnAction(event -> scrollToBottom());
     hideButton.setOnAction(event -> hideConsole());
-
-    // Enter-Taste im Input-Feld
-    consoleInput.setOnKeyPressed(event -> {
-      if (event.getCode() == KeyCode.ENTER) {
-        sendInput();
-      }
-    });
   }
 
   /**
@@ -130,29 +114,6 @@ public class ConsoleWindowController {
   }
 
   /**
-   * Sends input to the ConsoleHandler
-   */
-  private void sendInput() {
-    String input = consoleInput.getText().trim();
-    if (input.isEmpty()) {
-      return;
-    }
-
-    // Eingabe in Konsole anzeigen
-    appendOutput("> " + input);
-
-    // Input leeren
-    consoleInput.clear();
-
-    // Listener benachrichtigen falls vorhanden
-    if (outputListener != null) {
-      outputListener.onInputSubmitted(input);
-    }
-
-    setStatus("Command sent");
-  }
-
-  /**
    * Clears the console
    */
   private void clearConsole() {
@@ -194,28 +155,5 @@ public class ConsoleWindowController {
    */
   public void setMainController(MainController controller) {
     this.mainController = controller;
-  }
-
-  /**
-   * Adds listener for output events
-   *
-   * @param listener the listener
-   */
-  public void setOutputListener(ConsoleOutputListener listener) {
-    this.outputListener = listener;
-  }
-
-  /**
-   * Interface for input events
-   */
-  @FunctionalInterface
-  public interface ConsoleOutputListener {
-
-    /**
-     * Wird aufgerufen, wenn der Benutzer eine Eingabe sendet
-     *
-     * @param input die eingegebene Zeile
-     */
-    void onInputSubmitted(String input);
   }
 }

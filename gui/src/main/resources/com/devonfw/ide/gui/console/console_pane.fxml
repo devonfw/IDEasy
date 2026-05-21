@@ -7,7 +7,6 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextArea?>
-<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
@@ -49,16 +48,6 @@
         editable="false"
         style="-fx-font-family: 'Courier New'; -fx-font-size: 11; -fx-control-inner-background: #f5f5f5;"/>
     </ScrollPane>
-
-    <HBox spacing="5" alignment="CENTER_LEFT">
-      <Label text="Input:" style="-fx-font-size: 11;"/>
-      <TextField fx:id="consoleInput"
-        promptText="Waiting for input stream..."
-        HBox.hgrow="ALWAYS"
-        style="-fx-font-size: 11; -fx-padding: 5;"
-      />
-      <Button fx:id="sendButton" text="Send" prefWidth="70" style="-fx-font-size: 11;"/>
-    </HBox>
 
     <HBox spacing="10" style="-fx-padding: 3; -fx-border-color: #e0e0e0; -fx-border-width: 1 0 0 0;">
       <Label fx:id="statusLabel" text="Ready" style="-fx-font-size: 10; -fx-text-fill: #666666;"/>

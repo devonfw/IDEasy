@@ -27,11 +27,11 @@ public class IdeGuiContext extends AbstractIdeContext {
     super(startContext, workingDirectory);
   }
 
-  //TODO: integrate this with ConsoleController to get inputs
+  //TODO: UPDATE THIS
   @Override
   protected String readLine() {
 
-    return null;
+    return "yes";
   }
 
   @Override
