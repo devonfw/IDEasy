@@ -1,6 +1,5 @@
 package com.devonfw.ide.gui.console;
 
-import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -10,14 +9,13 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.AnchorPane;
 
-import com.devonfw.ide.gui.MainController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Controller für das Konsolenfenster zur Anzeige von Terminal-Ausgaben und Eingabe
+ * Controller that manages an instance if a console.
  */
-public class ConsoleWindowController {
-
-  private static final Logger LOG = Logger.getLogger(ConsoleWindowController.class.getName());
+public class ConsoleController {
 
   @FXML
   private AnchorPane consolePaneRoot;
@@ -46,7 +44,7 @@ public class ConsoleWindowController {
   @FXML
   private Label lineCountLabel;
 
-  private MainController mainController;
+  private static final Logger LOG = LoggerFactory.getLogger(ConsoleController.class);
 
   @FXML
   public void initialize() {
@@ -61,7 +59,6 @@ public class ConsoleWindowController {
 
     clearButton.setOnAction(event -> clearConsole());
     scrollToBottomButton.setOnAction(event -> scrollToBottom());
-    hideButton.setOnAction(event -> hideConsole());
   }
 
   /**
@@ -130,30 +127,10 @@ public class ConsoleWindowController {
   }
 
   /**
-   * Hides the console panel using the MainController
-   */
-  private void hideConsole() {
-    if (mainController != null) {
-      mainController.hideConsole();
-    } else {
-      LOG.warning("MainController not set, cannot hide console");
-    }
-  }
-
-  /**
    * Refreshes the line count
    */
   private void updateLineCount() {
     int lines = consoleOutput.getText().split("\n", -1).length;
     Platform.runLater(() -> lineCountLabel.setText("Lines: " + lines));
-  }
-
-  /**
-   * Sets the MainController for console toggle functionality
-   *
-   * @param controller the MainController
-   */
-  public void setMainController(MainController controller) {
-    this.mainController = controller;
   }
 }

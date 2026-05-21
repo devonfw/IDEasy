@@ -14,7 +14,6 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.ide.gui.console.ConsoleWindowController;
 import com.devonfw.ide.gui.modal.IdeDialog;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.IdeVersion;
@@ -45,12 +44,6 @@ public class App extends Application {
     );
     root = fxmlLoader.load();
 
-    // Get the ConsoleWindowController from the included FXML
-    ConsoleWindowController consoleController = findConsoleController(fxmlLoader);
-    if (consoleController != null) {
-      mainController.setConsoleController(consoleController);
-    }
-
     Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
     Scene scene = new Scene(root, bounds.getWidth() / 2, bounds.getHeight() / 2);
 
@@ -62,24 +55,6 @@ public class App extends Application {
     primaryStage.setMinHeight(scene.getHeight());
     primaryStage.show();
   }
-
-  /**
-   * Finds the ConsoleWindowController from the loaded FXML hierarchy.
-   *
-   * @param mainLoader the main FXMLLoader
-   * @return the ConsoleWindowController or null if not found
-   */
-  private ConsoleWindowController findConsoleController(FXMLLoader mainLoader) {
-    // The console_pane.fxml is included via fx:include, we need to get its controller
-    // This requires adding fx:id to the fx:include element
-    try {
-      return (ConsoleWindowController) mainLoader.getNamespace().get("consolePaneController");
-    } catch (Exception e) {
-      LOG.warn("Could not find ConsoleWindowController", e);
-      return null;
-    }
-  }
-
 
   @SuppressWarnings("MissingJavadoc")
   public static void main(String[] args) {

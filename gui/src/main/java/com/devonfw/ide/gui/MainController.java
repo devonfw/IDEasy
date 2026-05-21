@@ -13,7 +13,8 @@ import javafx.scene.control.ToggleButton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.ide.gui.console.ConsoleWindowController;
+import com.devonfw.ide.gui.console.ConsoleController;
+import com.devonfw.ide.gui.console.ConsolePaneController;
 import com.devonfw.ide.gui.context.GuiOutputListener;
 import com.devonfw.ide.gui.context.IdeGuiContext;
 import com.devonfw.ide.gui.context.IdeGuiLogListener;
@@ -53,7 +54,9 @@ public class MainController {
   @FXML
   private ToggleButton consolePaneToggleButton;
 
-  private ConsoleWindowController consoleController;
+  @FXML
+  private ConsolePaneController consolePaneController;
+
   private IdeGuiLogListener guiLogListener;
   private OutputListener guiOutputListener;
 
@@ -76,18 +79,6 @@ public class MainController {
 
     setProjectsComboBox();
     consolePaneToggleButton.setOnAction(event -> toggleConsole());
-  }
-
-  /**
-   * Sets the console controller for output redirection.
-   *
-   * @param consoleController the console controller
-   */
-  public void setConsoleController(ConsoleWindowController consoleController) {
-    this.consoleController = consoleController;
-    this.guiLogListener = new IdeGuiLogListener(consoleController);
-    this.guiOutputListener = new GuiOutputListener(consoleController);
-    consoleController.setMainController(this);
   }
 
   @FXML
@@ -172,6 +163,11 @@ public class MainController {
 
     showConsole();
 
+    ConsoleController consoleController = consolePaneController.newConsole("Running " + inIde);
+
+    this.guiLogListener = new IdeGuiLogListener(consoleController);
+    this.guiOutputListener = new GuiOutputListener(consoleController);
+
     //TODO:update this since in PR for progress bars the handling of this will be implemented
 
     new Thread(() -> {
@@ -185,15 +181,12 @@ public class MainController {
 
         context.getCommandletManager().getCommandlet(inIde).run();
 
-        if (consoleController != null) {
-          consoleController.setStatus("Completed: " + inIde);
-        }
+        consoleController.appendOutput(inIde + "started successfully.");
       } catch (Exception e) {
         LOG.error("Failed to open {}", inIde, e);
-        if (consoleController != null) {
-          consoleController.appendOutput("[ERROR] Failed to launch " + inIde + ": " + e.getMessage());
-          consoleController.setStatus("Error");
-        }
+        consoleController.appendOutput("[ERROR] Failed to launch " + inIde + ": " + e.getMessage());
+        consoleController.setStatus("Error");
+
       }
     }).start();
   }

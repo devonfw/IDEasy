@@ -2,15 +2,15 @@ package com.devonfw.ide.gui.context;
 
 import javafx.application.Platform;
 
-import com.devonfw.ide.gui.console.ConsoleWindowController;
+import com.devonfw.ide.gui.console.ConsoleController;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeLogListener;
 
 public class IdeGuiLogListener implements IdeLogListener {
 
-  private final ConsoleWindowController consoleController;
+  private final ConsoleController consoleController;
 
-  public IdeGuiLogListener(ConsoleWindowController consoleController) {
+  public IdeGuiLogListener(ConsoleController consoleController) {
 
     this.consoleController = consoleController;
   }

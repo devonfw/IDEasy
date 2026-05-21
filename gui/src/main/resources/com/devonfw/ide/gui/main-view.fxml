@@ -6,8 +6,6 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.SplitPane?>
-<?import javafx.scene.control.Tab?>
-<?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
@@ -179,17 +177,8 @@
               </children>
             </StackPane>
           </ScrollPane>
-          <VBox prefWidth="Infinity" fillWidth="true">
-            <children>
-              <TabPane VBox.vgrow="ALWAYS">
-                <tabs>
-                  <Tab text="Console">
-                    <fx:include fx:id="consolePane" source="console/console_pane.fxml"/>
-                  </Tab>
-                </tabs>
-              </TabPane>
-            </children>
-          </VBox>
+
+          <fx:include fx:id="consolePane" source="console/console_pane.fxml"/>
 
         </SplitPane>
       </center>
