@@ -50,7 +50,6 @@ public abstract class NpmBasedCommandlet extends NodeBasedCommandlet<Npm> {
     return this.context.getNpmRepository();
   }
 
-
   @Override
   protected VersionIdentifier computeInstalledVersion() {
     return runPackageManagerGetInstalledVersion(getPackageName());
