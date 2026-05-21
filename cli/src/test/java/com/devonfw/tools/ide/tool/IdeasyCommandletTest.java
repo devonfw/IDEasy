@@ -15,6 +15,7 @@ import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * Test of {@link IdeasyCommandlet}.
@@ -153,6 +154,66 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
     assertThat(gitconfigPath).content().contains("[core]");
     assertThat(gitconfigPath).content().containsOnlyOnce("longpaths = true");
     assertThat(gitconfigPath).content().doesNotContain("longpaths = false");
+  }
+
+  /**
+   * Test of {@link IdeasyCommandlet#checkIfUpdateIsAvailable()} with same snapshot versions.
+   */
+  @Test
+  void testCheckIfUpdateIsAvailableWithSameSnapshotVersions() {
+
+    // arrange
+    IdeTestContext context = newContext("install");
+    context.getStartContext().setOfflineMode(false);
+    IdeasyCommandlet ideasy = new IdeasyCommandlet(context) {
+      @Override
+      public VersionIdentifier getInstalledVersion() {
+        return VersionIdentifier.of("2025.04.002-04_17_02-SNAPSHOT");
+      }
+
+      @Override
+      public VersionIdentifier getLatestVersion() {
+        return VersionIdentifier.of("2025.04.002-20250417.024201-5");
+      }
+    };
+
+    // act
+    boolean updateAvailable = ideasy.checkIfUpdateIsAvailable();
+
+    // assert
+    assertThat(updateAvailable).isFalse();
+    assertThat(context).logAtSuccess().hasMessage("Your are using the latest Snapshot version of IDEasy and no update is available.");
+  }
+
+  /**
+   * Test of {@link IdeasyCommandlet#checkIfUpdateIsAvailable()} with different snapshot versions.
+   */
+  @Test
+  void testCheckIfUpdateIsAvailableWithDifferentSnapshotVersions() {
+
+    // arrange
+    IdeTestContext context = newContext("install");
+    context.getStartContext().setOfflineMode(false);
+    IdeasyCommandlet ideasy = new IdeasyCommandlet(context) {
+      @Override
+      public VersionIdentifier getInstalledVersion() {
+        return VersionIdentifier.of("2025.04.002-04_17_02-SNAPSHOT");
+      }
+
+      @Override
+      public VersionIdentifier getLatestVersion() {
+        return VersionIdentifier.of("2026.05.001-20260519.032313-17");
+      }
+    };
+
+    // act
+    boolean updateAvailable = ideasy.checkIfUpdateIsAvailable();
+
+    // assert
+    assertThat(updateAvailable).isTrue();
+    assertThat(context).logAtInteraction()
+        .hasMessageContaining("version 2026.05.001-20260519.032313-17 is available. Please run the following command to upgrade to the latest version:\n"
+            + "ide upgrade");
   }
 
   private void verifyInstallation(Path installationPath) {
