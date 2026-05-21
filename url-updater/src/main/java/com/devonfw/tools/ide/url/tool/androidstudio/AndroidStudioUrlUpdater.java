@@ -44,18 +44,22 @@ public class AndroidStudioUrlUpdater extends JsonUrlUpdater<AndroidJsonObject, A
 
     for (AndroidJsonDownload download : jsonVersionItem.download()) {
 
-      // Mac downloads switched from .zip to .dmg starting with Android Studio 2024.x.
-      if (download.link().contains("windows.zip")) {
-        doAddVersion(urlVersion, download.link(), WINDOWS, X64, download.checksum());
-      } else if (download.link().contains("linux.tar.gz")) {
-        doAddVersion(urlVersion, download.link(), LINUX, X64, download.checksum());
-      } else if (download.link().contains("mac_arm.zip") || download.link().contains("mac_arm.dmg")) {
-        doAddVersion(urlVersion, download.link(), MAC, ARM64, download.checksum());
-      } else if (download.link().contains("mac.zip") || download.link().contains("mac.dmg")) {
-        doAddVersion(urlVersion, download.link(), MAC, X64, download.checksum());
+      String link = download.link();
+      // windows.exe would otherwise match the "windows." branch below, but IDEasy cannot extract it
+      if (link.endsWith(".exe")) {
+        continue;
+      }
+      if (link.contains("windows.")) {
+        doAddVersion(urlVersion, link, WINDOWS, X64, download.checksum());
+      } else if (link.contains("linux.")) {
+        doAddVersion(urlVersion, link, LINUX, X64, download.checksum());
+      } else if (link.contains("mac_arm.")) {
+        doAddVersion(urlVersion, link, MAC, ARM64, download.checksum());
+      } else if (link.contains("mac.")) {
+        doAddVersion(urlVersion, link, MAC, X64, download.checksum());
       } else {
         logger.info("Unknown architecture for tool {} version {} and download {}.", getToolWithEdition(),
-            jsonVersionItem.version(), download.link());
+            jsonVersionItem.version(), link);
       }
     }
   }
