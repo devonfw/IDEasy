@@ -306,41 +306,25 @@ public class CleanupCommandlet extends Commandlet{
     */
     private void deleteUnusedSoftware() {
         int failed_deletion = 0;
-        FileAccess fileAccess = this.context.getFileAccess();
         // Delete the tool
         for (IdeTool tool : this.installedIdeTools) {
             if (tool.delete) {
                 LOG.debug("Deleting tool {} and all its editions and versions in {}", tool.toolName, tool.path);
-                try {
-                    fileAccess.delete(tool.path);
-                } catch (Exception e) {
-                    LOG.error("Failed to delete {}: {}", tool.path, e.getMessage());
-                    failed_deletion++;
-                }
+                failed_deletion += deleteFolder(tool.path);
                 continue;
             }
             // Delete editions of the tool
             for (IdeToolEdition edition : tool.editions) {
                 if (edition.delete) {
                     LOG.debug("Deleting edition {} of tool {} and all its versions in {}", edition.editionName, tool.toolName, edition.path);
-                    try {
-                        fileAccess.delete(edition.path);
-                    } catch (Exception e) {
-                        LOG.error("Failed to delete {}: {}", edition.path, e.getMessage());
-                        failed_deletion++;
-                    }
+                    failed_deletion += deleteFolder(edition.path);
                     continue;
                 }
                 // Delete versions of the edition
                 for (IdeToolEditionVersion version : edition.versions) {
                     if (version.delete) {
                         LOG.debug("Deleting version {} of edition {} of tool {} in {}", version.versionName, edition.editionName, tool.toolName, version.path);
-                        try {
-                            fileAccess.delete(version.path);
-                        } catch (Exception e) {
-                            LOG.error("Failed to delete {}: {}", version.path, e.getMessage());
-                            failed_deletion++;
-                        }
+                        failed_deletion += deleteFolder(version.path);
                     }
                 }
             }
@@ -348,9 +332,24 @@ public class CleanupCommandlet extends Commandlet{
         
         // Log completion message
         if (failed_deletion > 0) {
-            LOG.warn("Unused tools have been deleted.\nFailed to delete {} files. Please check the log for details.", failed_deletion);
+            LOG.warn("Unused tools have been deleted.\nFailed to delete {} tools/editions/versions. Please check the log for details.", failed_deletion);
         } else {
             IdeLogLevel.SUCCESS.log(LOG, "Unused tools have been deleted successfully.");
         }
+    }
+
+    /**
+    * Deletes a folder at a given path. Logs an error message if unsuccessful.
+     * @param path The path of the folder to delete
+     * @return 0 if deletion was successful, 1 if deletion failed
+    */
+    private int deleteFolder(Path path) {
+        try {
+            this.context.getFileAccess().delete(path);
+        } catch (Exception e) {
+            LOG.error("Failed to delete {}: {}", path, e.getMessage());
+            return 1;
+        }
+        return 0;
     }
 }
