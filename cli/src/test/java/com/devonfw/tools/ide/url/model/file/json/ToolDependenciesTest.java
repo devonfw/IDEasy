@@ -1,10 +1,6 @@
 package com.devonfw.tools.ide.url.model.file.json;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Collection;
-import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -64,31 +60,19 @@ class ToolDependenciesTest extends AbstractUrlModelTest {
   }
 
   @Test
-  void testDependencyFilteringByOsAndArch() throws IOException {
+  void testDependencyFilteringByOsAndArch() {
 
     // arrange
-    Path file = Files.createTempFile("dependencies", ".json");
-    Files.writeString(file, """
-        {
-          "[1.0,2.0]": [
-            { "tool": "global", "versionRange": "[1.0,2.0]" },
-            { "tool": "mac-only", "versionRange": "[1.0,2.0]", "os": "mac" },
-            { "tool": "linux-only", "versionRange": "[1.0,2.0]", "os": "linux" },
-            { "tool": "arm-only", "versionRange": "[1.0,2.0]", "arch": "arm64" },
-            { "tool": "x64-only", "versionRange": "[1.0,2.0]", "arch": "x64" },
-            { "tool": "mac-arm", "versionRange": "[1.0,2.0]", "os": "mac", "arch": "arm64" },
-            { "tool": "mac-x64", "versionRange": "[1.0,2.0]", "os": "mac", "arch": "x64" }
-          ]
-        }
-        """);
-    ToolDependencies dependencies = ToolDependencies.of(file);
+    IdeContext context = newContext();
+    ToolDependencies dependencies = context.getUrls().getEdition("fixtures", "fixtures").getDependencyFile()
+        .getDependencies();
 
     // act
-    List<ToolDependency> macArmDependencies = dependencies.findDependencies(VersionIdentifier.of("1.5"),
+    Collection<ToolDependency> macArmDependencies = dependencies.findDependencies(VersionIdentifier.of("1.5"),
         new SystemInfoImpl("Mac OS X", "13.0", "arm64"));
-    List<ToolDependency> windowsX64Dependencies = dependencies.findDependencies(VersionIdentifier.of("1.5"),
+    Collection<ToolDependency> windowsX64Dependencies = dependencies.findDependencies(VersionIdentifier.of("1.5"),
         new SystemInfoImpl("Windows 11", "11.0", "amd64"));
-    List<ToolDependency> linuxArmDependencies = dependencies.findDependencies(VersionIdentifier.of("1.5"),
+    Collection<ToolDependency> linuxArmDependencies = dependencies.findDependencies(VersionIdentifier.of("1.5"),
         new SystemInfoImpl("Linux", "5.15", "arm64"));
 
     // assert
