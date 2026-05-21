@@ -9,6 +9,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -178,8 +180,11 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       return false;
     }
     VersionIdentifier latestVersion = getLatestVersion();
-    if (installedVersion.equals(latestVersion)) {
-      IdeLogLevel.SUCCESS.log(LOG, "Your are using the latest version of IDEasy and no update is available.");
+    if (IdeVersion.isSnapshot() && isSameSnapshotVersion(installedVersion.toString(), latestVersion.toString())) {
+      IdeLogLevel.SUCCESS.log(LOG, "Your are using the latest Snapshot version of IDEasy and no update is available.");
+      return false;
+    } else if (installedVersion.equals(latestVersion) && !IdeVersion.isSnapshot()) {
+      IdeLogLevel.SUCCESS.log(LOG, "Your are using the latest Stable version of IDEasy and no update is available.");
       return false;
     } else {
       IdeLogLevel.INTERACTION.log(LOG,
@@ -187,6 +192,66 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
               + "ide upgrade", installedVersion, latestVersion);
       return true;
     }
+  }
+
+  /**
+   * Checks if two snapshot versions represent the same day and hour snapshot. This is a KISS heuristic to treat same-day snapshots as equal even if they have
+   * slightly different timestamps.
+   *
+   * @param installed the installed version string (format: base-MM_DD_HH...-SNAPSHOT).
+   * @param latest the latest available version string (format: base-yyyyMMdd.HHmmss...).
+   * @return {@code true} if both versions have the same base version and the same day and hour, {@code false} otherwise.
+   */
+  private boolean isSameSnapshotVersion(String installed, String latest) {
+    if (installed == null || latest == null) {
+      return false;
+    }
+
+    // base = before first '-'
+    int dash_installed = installed.indexOf('-');
+    int dash_latest = latest.indexOf('-');
+    if (dash_installed <= 0 || dash_latest <= 0) {
+      return false;
+    }
+
+    String base_installed = installed.substring(0, dash_installed);
+    String base_latest = latest.substring(0, dash_latest);
+
+    if (!base_installed.equals(base_latest)) {
+      return false;
+    }
+
+    // extract base year (YYYY)
+    Matcher baseMatcher_installed = Pattern.compile("^(\\d{4})\\.\\d{2}\\.\\d{3}$").matcher(base_installed);
+    Matcher baseMatcher_latest = Pattern.compile("^(\\d{4})\\.\\d{2}\\.\\d{3}$").matcher(base_latest);
+    if (!baseMatcher_installed.matches() || !baseMatcher_latest.matches()) {
+      return false;
+    }
+    
+    String baseYear_installed = baseMatcher_installed.group(1);
+    // installed: base-MM_DD_HH...-SNAPSHOT  -> key = MMDD.HH
+    Matcher installedMatcher = Pattern.compile("^" + Pattern.quote(base_installed) + "-(\\d{2})_(\\d{2})_(\\d{2}).*-SNAPSHOT$")
+        .matcher(installed);
+    if (!installedMatcher.matches()) {
+      return false;
+    }
+    String keyInstalled = installedMatcher.group(1) + installedMatcher.group(2) + "." + installedMatcher.group(3); // MMDD.HH
+
+    // latest: base-yyyyMMdd.HHmmss... -> key = MMDD.HH, and yyyy must match baseYear_installed
+    Matcher latestMatcher = Pattern.compile("^" + Pattern.quote(base_installed) + "-(\\d{4})(\\d{2})(\\d{2})\\.(\\d{2})\\d{4}.*$")
+        .matcher(latest);
+    if (!latestMatcher.matches()) {
+      return false;
+    }
+
+    String latestYear = latestMatcher.group(1);
+    if (!baseYear_installed.equals(latestYear)) {
+      return false;
+    }
+
+    String keyLatest = latestMatcher.group(2) + latestMatcher.group(3) + "." + latestMatcher.group(4); // MMDD.HH
+
+    return keyInstalled.equals(keyLatest);
   }
 
   /**
