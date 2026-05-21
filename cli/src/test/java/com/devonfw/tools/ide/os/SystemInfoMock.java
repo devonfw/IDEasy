@@ -20,7 +20,10 @@ public class SystemInfoMock {
   /** {@link OperatingSystem#LINUX} with {@link SystemArchitecture#X64}. */
   public static final SystemInfo LINUX_X64 = new SystemInfoImpl("Linux", "3.13.0-74-generic", "x64");
 
-  private static final List<SystemInfo> MOCKS = List.of(WINDOWS_X64, MAC_X64, MAC_ARM64, LINUX_X64);
+  /** {@link OperatingSystem#LINUX} with {@link SystemArchitecture#X64} running inside WSL. */
+  public static final SystemInfo LINUX_WSL_X64 = new SystemInfoImpl("Linux", "5.15.153.1-microsoft-standard-WSL2", "x86_64", true);
+
+  private static final List<SystemInfo> MOCKS = List.of(WINDOWS_X64, MAC_X64, MAC_ARM64, LINUX_X64, LINUX_WSL_X64);
 
   public static SystemInfo of(String osString) {
 
