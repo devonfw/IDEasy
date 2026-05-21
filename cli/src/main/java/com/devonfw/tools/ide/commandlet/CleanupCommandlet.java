@@ -82,7 +82,7 @@ public class CleanupCommandlet extends Commandlet{
     
         super(context);
         addKeyword(getName());
-        this.forceDelete = add(new FlagProperty("--fd"));   // Force-Delete flag. Skips confirmation prompts if provided
+        this.forceDelete = add(new FlagProperty("--fd"));   // Force-Delete flag: Skips confirmation prompts if provided
     }
 
     
