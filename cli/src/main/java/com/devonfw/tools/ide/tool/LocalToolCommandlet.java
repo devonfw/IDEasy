@@ -223,7 +223,12 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   /**
-   * Performs the actual installation of the {@link #getName() tool}.
+   * Performs the actual installation of the {@link #getName() tool} by orchestrating the installation steps:
+   * dependency installation, tool-specific placement, versioning, and cleanup.
+   * <p>
+   * This method assumes that the version has already been resolved. It handles the lifecycle of
+   * placing the tool into the appropriate installation directory by delegating the actual bit
+   * placement to {@link #onInstall(ToolInstallRequest, Path, Path)}.
    *
    * @param request the {@link ToolInstallRequest}.
    * @param installationPath the target {@link Path} where the {@link #getName() tool} should be installed.
