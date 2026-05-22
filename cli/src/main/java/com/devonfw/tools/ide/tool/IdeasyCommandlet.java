@@ -73,6 +73,25 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
 
   private final UpgradeMode mode;
 
+  /** Pattern for IDEasy SNAPSHOT versions built locally. */
+  private static final Pattern PATTERN_IDEASY_SNAPSHOT_VERSION = Pattern.compile("^(\\d{4}\\.\\d{2}\\.\\d{3})-(\\d{2})_(\\d{2})_(\\d{2}).*-SNAPSHOT$");
+
+  /** Pattern for Maven/Nexus SNAPSHOT versions from downloads . */
+  private static final Pattern PATTERN_MAVEN_SNAPSHOT_VERSION = Pattern.compile("^(\\d{4}\\.\\d{2}\\.\\d{3})-(\\d{4})(\\d{2})(\\d{2})\\.(\\d{2})\\d{4}.*$");
+
+  // Group numbers for PATTERN_IDEASY_SNAPSHOT_VERSION
+  private static final int GROUP_IDEASY_BASE = 1;
+  private static final int GROUP_IDEASY_MONTH = 2;
+  private static final int GROUP_IDEASY_DAY = 3;
+  private static final int GROUP_IDEASY_HOUR = 4;
+
+  // Group numbers for PATTERN_MAVEN_SNAPSHOT_VERSION
+  private static final int GROUP_MAVEN_BASE = 1;
+  private static final int GROUP_MAVEN_YEAR = 2;
+  private static final int GROUP_MAVEN_MONTH = 3;
+  private static final int GROUP_MAVEN_DAY = 4;
+  private static final int GROUP_MAVEN_HOUR = 5;
+
   /**
    * The constructor.
    *
@@ -207,47 +226,31 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       return false;
     }
 
-    // base = before first '-'
-    int dash_installed = installed.indexOf('-');
-    int dash_latest = latest.indexOf('-');
-    if (dash_installed <= 0 || dash_latest <= 0) {
+    Matcher installedMatcher = PATTERN_IDEASY_SNAPSHOT_VERSION.matcher(installed);
+    Matcher latestMatcher = PATTERN_MAVEN_SNAPSHOT_VERSION.matcher(latest);
+
+    if (!installedMatcher.matches() || !latestMatcher.matches()) {
       return false;
     }
 
-    String base_installed = installed.substring(0, dash_installed);
-    String base_latest = latest.substring(0, dash_latest);
-
-    if (!base_installed.equals(base_latest)) {
+    // Compare base versions
+    String baseInstalled = installedMatcher.group(GROUP_IDEASY_BASE);
+    String baseLatest = latestMatcher.group(GROUP_MAVEN_BASE);
+    if (!baseInstalled.equals(baseLatest)) {
       return false;
     }
 
-    // extract base year (YYYY)
-    Matcher baseMatcher_installed = Pattern.compile("^(\\d{4})\\.\\d{2}\\.\\d{3}$").matcher(base_installed);
-    Matcher baseMatcher_latest = Pattern.compile("^(\\d{4})\\.\\d{2}\\.\\d{3}$").matcher(base_latest);
-    if (!baseMatcher_installed.matches() || !baseMatcher_latest.matches()) {
+    // Compare year
+    String yearLatest = latestMatcher.group(GROUP_MAVEN_YEAR);
+    String baseYear = baseInstalled.split("\\.")[0];
+    if (!baseYear.equals(yearLatest)) {
       return false;
     }
 
-    String baseYear_installed = baseMatcher_installed.group(1);
-    Matcher installedMatcher = Pattern.compile("^" + Pattern.quote(base_installed) + "-(\\d{2})_(\\d{2})_(\\d{2}).*-SNAPSHOT$")
-        .matcher(installed);
-    if (!installedMatcher.matches()) {
-      return false;
-    }
-    String keyInstalled = installedMatcher.group(1) + installedMatcher.group(2) + "." + installedMatcher.group(3); // MMDD.HH
-
-    Matcher latestMatcher = Pattern.compile("^" + Pattern.quote(base_installed) + "-(\\d{4})(\\d{2})(\\d{2})\\.(\\d{2})\\d{4}.*$")
-        .matcher(latest);
-    if (!latestMatcher.matches()) {
-      return false;
-    }
-
-    String latestYear = latestMatcher.group(1);
-    if (!baseYear_installed.equals(latestYear)) {
-      return false;
-    }
-
-    String keyLatest = latestMatcher.group(2) + latestMatcher.group(3) + "." + latestMatcher.group(4); // MMDD.HH
+    // Compare MMDD.HH for both versions
+    String keyInstalled =
+        installedMatcher.group(GROUP_IDEASY_MONTH) + installedMatcher.group(GROUP_IDEASY_DAY) + "." + installedMatcher.group(GROUP_IDEASY_HOUR);
+    String keyLatest = latestMatcher.group(GROUP_MAVEN_MONTH) + latestMatcher.group(GROUP_MAVEN_DAY) + "." + latestMatcher.group(GROUP_MAVEN_HOUR);
 
     return keyInstalled.equals(keyLatest);
   }
