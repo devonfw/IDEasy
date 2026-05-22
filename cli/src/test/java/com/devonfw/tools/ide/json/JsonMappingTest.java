@@ -5,6 +5,8 @@ import java.time.Instant;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.devonfw.tools.ide.os.OperatingSystem;
+import com.devonfw.tools.ide.os.SystemArchitecture;
 import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
 import com.devonfw.tools.ide.version.BoundaryType;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -68,6 +70,21 @@ class JsonMappingTest extends Assertions {
     // assert
     assertThat(dependencyInfo.tool()).isEqualTo("java");
     assertThat(dependencyInfo.versionRange()).isEqualTo(expectedVersionRange);
+  }
+
+  @Test
+  void testReadDependenciesWithOsArchAndUnknownProperty() throws Exception {
+
+    // arrange
+    String json = "{\"tool\": \"python\",\"versionRange\": \"[3.6,3.11)\",\"os\": \"mac\",\"arch\": \"arm64\",\"extra\": \"ignored\"}";
+    // act
+    ObjectMapper mapper = JsonMapping.create();
+    ToolDependency dependencyInfo = mapper.readValue(json, ToolDependency.class);
+    // assert
+    assertThat(dependencyInfo.tool()).isEqualTo("python");
+    assertThat(dependencyInfo.versionRange()).isEqualTo(VersionRange.of("[3.6,3.11)"));
+    assertThat(dependencyInfo.os()).isEqualTo(OperatingSystem.MAC);
+    assertThat(dependencyInfo.arch()).isEqualTo(SystemArchitecture.ARM64);
   }
 
 }
