@@ -234,7 +234,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    */
   protected void performToolInstallation(ToolInstallRequest request, Path installationPath) {
 
-    installDependencies(request);
     FileAccess fileAccess = this.context.getFileAccess();
     ToolEditionAndVersion requested = request.getRequested();
     VersionIdentifier resolvedVersion = requested.getResolvedVersion();
@@ -282,16 +281,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     ToolEditionAndVersion requested = request.getRequested();
     VersionIdentifier resolvedVersion = requested.getResolvedVersion();
     return downloadTool(requested.getEdition().edition(), resolvedVersion);
-  }
-
-  /**
-   * Hook to install dependencies of this tool.
-   *
-   * @param request the {@link ToolInstallRequest}.
-   */
-  protected void installDependencies(ToolInstallRequest request) {
-
-    // nothing to do by default
   }
 
   /**

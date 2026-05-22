@@ -61,14 +61,6 @@ public class Rust extends LocalToolCommandlet {
     return false;
   }
 
-  @Override
-  protected void installDependencies(ToolInstallRequest request) {
-
-    if (this.context.getSystemInfo().isWindows()) {
-      installWindowsMsvcBuildTools();
-    }
-  }
-
   /**
    * Performs the actual installation of the tool bits.
    *
@@ -78,6 +70,10 @@ public class Rust extends LocalToolCommandlet {
    */
   @Override
   protected void onInstall(ToolInstallRequest request, Path installationPath, Path installerScript) {
+
+    if (this.context.getSystemInfo().isWindows()) {
+      installWindowsMsvcBuildTools();
+    }
 
     VersionIdentifier resolvedVersion = request.getRequested().getResolvedVersion();
     FileAccess fileAccess = this.context.getFileAccess();
