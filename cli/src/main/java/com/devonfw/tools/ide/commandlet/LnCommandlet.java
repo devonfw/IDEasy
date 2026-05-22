@@ -42,7 +42,7 @@ public final class LnCommandlet extends Commandlet {
     this.symbolic = add(new FlagProperty("--symbolic", false, "-s"));
     this.relative = add(new FlagProperty("--relative", false, "-r"));
     this.source = add(new PathProperty("", true, "source", true));
-    this.link = add(new PathProperty("", true, "link", true));
+    this.link = add(new PathProperty("", true, "link", false));
   }
 
   @Override
@@ -86,6 +86,6 @@ public final class LnCommandlet extends Commandlet {
     }
 
     PathLinkType linkType = this.symbolic.isTrue() ? PathLinkType.SYMBOLIC_LINK : PathLinkType.HARD_LINK;
-    this.context.getFileAccess().link(sourcePath, linkPath, relative, linkType, this.context.isForceMode());
+    this.context.getFileAccess().link(sourcePath, linkPath, relative, linkType);
   }
 }

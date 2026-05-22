@@ -427,24 +427,22 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   }
 
   /**
-   * Deletes the given {@link Path} if it is a symbolic link or a Windows junction. And throws an {@link IllegalStateException} if there is a file at the given
-   * {@link Path} that is neither a symbolic link nor a Windows junction.
+   * Deletes the given {@link Path} if it is a symbolic link or a Windows junction or hard link. And throws an {@link IllegalStateException} if it fails to
+   * delete the file at the given {@link Path}.
    *
    * @param path the {@link Path} to delete.
    */
   private void deleteLinkIfExists(Path path) {
 
     boolean isJunction = isJunction(path); // since broken junctions are not detected by Files.exists()
-    boolean isSymlink = Files.exists(path, LinkOption.NOFOLLOW_LINKS) && Files.isSymbolicLink(path);
+    boolean exists = Files.exists(path, LinkOption.NOFOLLOW_LINKS);
 
-    assert !(isSymlink && isJunction);
-
-    if (isJunction || isSymlink) {
-      LOG.info("Deleting previous " + (isJunction ? "junction" : "symlink") + " at " + path);
+    if (isJunction || exists) {
+      LOG.info("Deleting previous link or file at " + path);
       try {
         Files.delete(path);
       } catch (IOException e) {
-        throw new IllegalStateException("Failed to delete link at " + path, e);
+        throw new IllegalStateException("Failed to delete link or file at " + path, e);
       }
     }
   }
@@ -530,7 +528,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   }
 
   @Override
-  public void link(Path source, Path link, boolean relative, PathLinkType type, boolean override) {
+  public void link(Path source, Path link, boolean relative, PathLinkType type) {
 
     Path finalLink = link.toAbsolutePath().normalize();
     Path finalSource;
@@ -542,15 +540,13 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     Path absoluteSource = finalSource.isAbsolute() ? finalSource : finalLink.getParent().resolve(finalSource).normalize();
     String relativeOrAbsolute = relative ? "relative" : "absolute";
     LOG.debug("Creating {} {} at {} pointing to {}", relativeOrAbsolute, type, finalLink, finalSource);
-    if (override) {
-      deleteLinkIfExists(finalLink);
-    }
+    deleteLinkIfExists(finalLink);
     try {
       // Attention: JavaDoc and position of path arguments can be very confusing - see comment in #1736
       if (type == PathLinkType.SYMBOLIC_LINK) {
         Files.createSymbolicLink(finalLink, finalSource);
       } else if (type == PathLinkType.HARD_LINK) {
-        createHardLink(finalSource, finalLink, override);
+        createHardLink(finalSource, finalLink);
       } else {
         throw new IllegalStateException("" + type);
       }
@@ -565,7 +561,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
           mklinkOnWindows(finalSource, absoluteSource, finalLink, type, relative);
         } catch (IllegalStateException mkEx) {
           LOG.info("Creating a hard link as a fallback for the failed mklink attempt.");
-          createHardLink(absoluteSource, finalLink, override);
+          createHardLink(absoluteSource, finalLink);
         }
       } else {
         throw new RuntimeException(e);
@@ -581,10 +577,9 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
    *
    * @param source the {@link Path} the hard link will point to.
    * @param link the {@link Path} where to create the hard link.
-   * @param override - {@code true} to override existing links, {@code false} otherwise.
    */
-  void createHardLink(Path source, Path link, boolean override) {
-    if (override && Files.exists(link, LinkOption.NOFOLLOW_LINKS)) {
+  void createHardLink(Path source, Path link) {
+    if (Files.exists(link, LinkOption.NOFOLLOW_LINKS)) {
       delete(link);
     }
     try {

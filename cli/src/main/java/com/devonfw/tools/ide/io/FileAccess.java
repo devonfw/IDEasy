@@ -124,36 +124,21 @@ public interface FileAccess {
   }
 
   /**
-   * Creates a link. If the given {@code link} already exists and is a symbolic link or a Windows junction, it will be replaced. In case of missing privileges,
-   * Windows mklink may be used as fallback, which must point to absolute paths. In such case the {@code relative} flag will be ignored.
+   * Creates a link. If the given {@code link} already exists and is a symbolic link or a Windows junction, it will be replaced. In case of missing
+   * privileges, Windows mklink may be used as fallback, which must point to absolute paths. In such case the {@code relative} flag will be ignored.
    *
    * @param source the source {@link Path} to link to, may be relative or absolute.
    * @param link the destination {@link Path} where the link shall be created pointing to {@code source}.
    * @param relative - {@code true} if the link shall be relative, {@code false} if it shall be absolute.
    * @param type the {@link PathLinkType}.
    */
-  default void link(Path source, Path link, boolean relative, PathLinkType type) {
-    link(source, link, relative, type, true);
-  }
-
-  /**
-   * Creates a link. If the given {@code link} already exists and is a symbolic link or a Windows junction, it will be replaced if {@code override} is
-   * {@code true}. In case of missing privileges, Windows mklink may be used as fallback, which must point to absolute paths. In such case the {@code relative}
-   * flag will be ignored.
-   *
-   * @param source the source {@link Path} to link to, may be relative or absolute.
-   * @param link the destination {@link Path} where the link shall be created pointing to {@code source}.
-   * @param relative - {@code true} if the link shall be relative, {@code false} if it shall be absolute.
-   * @param type the {@link PathLinkType}.
-   * @param override - {@code true} to override existing links, {@code false} otherwise.
-   */
-  void link(Path source, Path link, boolean relative, PathLinkType type, boolean override);
+  void link(Path source, Path link, boolean relative, PathLinkType type);
 
   /**
    * @param link the {@link PathLink} to {@link #link(Path, Path, boolean, PathLinkType) create}.
    */
   default void link(PathLink link) {
-    link(link.source(), link.link(), true, link.type(), true);
+    link(link.source(), link.link(), true, link.type());
   }
 
   /**
