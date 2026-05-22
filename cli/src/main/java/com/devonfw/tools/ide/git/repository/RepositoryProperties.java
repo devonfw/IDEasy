@@ -171,7 +171,7 @@ final class RepositoryProperties {
    */
   public String getGitUrl() {
 
-    return getProperty(PROPERTY_GIT_URL, true);
+    return getProperty(PROPERTY_GIT_URL, false);
   }
 
   /**

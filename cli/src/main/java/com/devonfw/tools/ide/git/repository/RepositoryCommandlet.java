@@ -31,6 +31,9 @@ public class RepositoryCommandlet extends Commandlet {
   /** the repository to setup. */
   public final RepositoryProperty repository;
 
+  // Holds the path of the settings repository used for virtual repositories
+  private Path settingsRepository;
+
   /**
    * The constructor.
    *
@@ -68,8 +71,7 @@ public class RepositoryCommandlet extends Commandlet {
         LOG.warn("Cannot find folder 'repositories' nor 'projects' in your settings.");
         return;
       }
-      List<Path> propertiesFiles = this.context.getFileAccess()
-          .listChildren(repositoriesPath, path -> path.getFileName().toString().endsWith(".properties"));
+      List<Path> propertiesFiles = this.context.getFileAccess().listChildren(repositoriesPath, path -> path.getFileName().toString().endsWith(".properties"));
       boolean forceMode = this.context.isForceMode() || this.context.isForceRepositories();
       Map<Path, RepositoryConfig> repositoryConfigMap = new HashMap<>(propertiesFiles.size());
       for (Path propertiesFile : propertiesFiles) {
@@ -159,26 +161,38 @@ public class RepositoryCommandlet extends Commandlet {
       }
       if (Files.exists(repositoryCreatedStatusFile)) {
         if (!(this.context.isForceMode() || this.context.isForceRepositories())) {
-          LOG.info("Ignoring repository {} in workspace {} because it was already setup before, use --force-repositories for recreation.",
-              config.id(), workspaceName);
+          LOG.info("Ignoring repository {} in workspace {} because it was already setup before, use --force-repositories for recreation.", config.id(),
+              workspaceName);
           createRepository = false;
         }
       }
       if (createRepository) {
         if (firstRepository == null) {
-          GitUrl gitUrl = config.asGitUrl();
-          boolean success = cloneOrPullRepository(repositoryPath, gitUrl, repositoryCreatedStatusFile);
-          if (success) {
-            firstRepository = repositoryPath;
-            buildRepository(config, repositoryPath);
-            importRepository(config, repositoryPath, config.id());
+
+          if (config.gitUrl() == null || config.gitUrl().isBlank()) {
+            LOG.info("Skipping clone for virtual reposetory {}", config.id());
+            if (this.settingsRepository == null) {
+              LOG.error("Settings repository not initialized yet!");
+              return;
+            }
+            firstRepository = this.settingsRepository;
+          } else {
+            boolean success = cloneOrPullRepository(repositoryPath, config.asGitUrl(), repositoryCreatedStatusFile);
+            if (success) {
+              firstRepository = repositoryPath;
+              buildRepository(config, repositoryPath);
+              importRepository(config, repositoryPath, config.id());
+            } else {
+              if (!(config.gitUrl() == null || config.gitUrl().isBlank())) {
+                fileAccess.mkdirs(repositoryPath.getParent());
+                fileAccess.symlink(firstRepository, repositoryPath);
+              }
+
+            }
           }
-        } else {
-          fileAccess.mkdirs(repositoryPath.getParent());
-          fileAccess.symlink(firstRepository, repositoryPath);
         }
       }
-      if (Files.exists(repositoryPath)) {
+      if (Files.exists(repositoryPath) || (config.gitUrl() == null || config.gitUrl().isBlank())) {
         for (RepositoryLink link : config.links()) {
           createRepositoryLink(link, repositoryPath, workspacePath);
         }
@@ -222,8 +236,7 @@ public class RepositoryCommandlet extends Commandlet {
         ToolCommandlet commandlet = this.context.getCommandletManager().getToolCommandlet(command[0]);
         if (commandlet == null) {
           String displayName = (command[0] == null || command[0].isBlank()) ? "<empty>" : "'" + command[0] + "'";
-          LOG.error("Cannot build repository. Required tool '{}' not found. Please check your repository's build_cmd configuration value.",
-              displayName);
+          LOG.error("Cannot build repository. Required tool '{}' not found. Please check your repository's build_cmd configuration value.", displayName);
           return;
         }
         commandlet.reset();
