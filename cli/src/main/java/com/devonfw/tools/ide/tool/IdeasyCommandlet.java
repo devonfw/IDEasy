@@ -180,18 +180,19 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       return false;
     }
     VersionIdentifier latestVersion = getLatestVersion();
-    if (IdeVersion.isSnapshot() && isSameSnapshotVersion(installedVersion.toString(), latestVersion.toString())) {
-      IdeLogLevel.SUCCESS.log(LOG, "Your are using the latest Snapshot version of IDEasy and no update is available.");
+    if (IdeVersion.isSnapshot()) {
+      if (isSameSnapshotVersion(installedVersion.toString(), latestVersion.toString())) {
+        IdeLogLevel.SUCCESS.log(LOG, "Your are using the latest snapshot version of IDEasy and no update is available.");
+        return false;
+      }
+    } else if (installedVersion.equals(latestVersion)) {
+      IdeLogLevel.SUCCESS.log(LOG, "Your are using the latest stable version of IDEasy and no update is available.");
       return false;
-    } else if (installedVersion.equals(latestVersion) && !IdeVersion.isSnapshot()) {
-      IdeLogLevel.SUCCESS.log(LOG, "Your are using the latest Stable version of IDEasy and no update is available.");
-      return false;
-    } else {
-      IdeLogLevel.INTERACTION.log(LOG,
-          "Your version of IDEasy is {} but version {} is available. Please run the following command to upgrade to the latest version:\n"
-              + "ide upgrade", installedVersion, latestVersion);
-      return true;
     }
+    IdeLogLevel.INTERACTION.log(LOG,
+        "Your version of IDEasy is {} but version {} is available. Please run the following command to upgrade to the latest version:\n"
+            + "ide upgrade", installedVersion, latestVersion);
+    return true;
   }
 
   /**

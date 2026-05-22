@@ -182,7 +182,7 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(updateAvailable).isFalse();
-    assertThat(context).logAtSuccess().hasMessage("Your are using the latest Snapshot version of IDEasy and no update is available.");
+    assertThat(context).logAtSuccess().hasMessage("Your are using the latest snapshot version of IDEasy and no update is available.");
   }
 
   /**
