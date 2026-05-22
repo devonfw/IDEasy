@@ -6,7 +6,15 @@
 
 ---
 
-## Checklist for this PR
+### Testing instructions
+
+Please add conscise, understandable instructions on how a reviewer can test/verify the functionality of your contribution here:
+
+1. 
+
+---
+
+### Checklist for this PR
 
 Make sure everything is checked before merging this PR. For further info please also see
 our [DoD](https://github.com/devonfw/IDEasy/blob/main/documentation/contributing/DoD.adoc).
@@ -19,6 +27,7 @@ our [DoD](https://github.com/devonfw/IDEasy/blob/main/documentation/contributing
 - [ ] You followed all [coding conventions](https://github.com/devonfw/IDEasy/blob/main/documentation/coding-conventions.adoc)
 - [ ] You have added the issue implemented by your PR in [CHANGELOG.adoc](https://github.com/devonfw/IDEasy/blob/main/CHANGELOG.adoc) unless issue is labeled
   with `internal`
+- [ ] You have formulated clear instructions on how to test your contribution under "Testing instructions"
 
 ### Checklist for tool commandlets
 
@@ -32,3 +41,4 @@ Have you added a new `«tool»` as commandlet? There are the following additiona
 - [ ] The new commandlet installs potential dependencies automatically
 - [ ] The variables `«TOOL»_VERSION` and `«TOOL»_EDITION` are honored by your commandlet
 - [ ] The new commandlet is tested on all platforms it is available for or tested on all platforms that are in scope of the linked issue
+
