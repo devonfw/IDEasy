@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+import com.devonfw.tools.ide.tool.inso.Inso;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -138,6 +140,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Aws(context));
     add(new Jmc(context));
     add(new DotNet(context));
+    add(new Inso(context));
     add(new Intellij(context));
     add(new Jasypt(context));
     add(new Docker(context));
