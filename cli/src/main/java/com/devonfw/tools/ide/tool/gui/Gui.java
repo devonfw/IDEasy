@@ -58,8 +58,8 @@ public class Gui extends Commandlet {
     ToolInstallRequest mavenToolInstallRequest = new ToolInstallRequest(false);
     mavenToolInstallRequest.setProcessContext(processContext);
 
-    java.install(javaToolInstallRequest);
     mvn.install(mavenToolInstallRequest);
+    java.install(javaToolInstallRequest);
 
     LOG.debug("Starting GUI via commandlet");
 
