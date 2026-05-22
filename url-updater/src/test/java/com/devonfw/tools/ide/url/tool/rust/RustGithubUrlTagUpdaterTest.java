@@ -20,7 +20,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
  * Test of {@link RustUrlUpdater}.
  */
 @WireMockTest
-class RustUrlUpdaterTest extends AbstractUrlUpdaterTest {
+class RustGithubUrlTagUpdaterTest extends AbstractUrlUpdaterTest {
 
   @Test
   void testRustGithubUrlUpdater(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
