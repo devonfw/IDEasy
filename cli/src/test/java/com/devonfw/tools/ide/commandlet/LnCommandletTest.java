@@ -76,6 +76,7 @@ class LnCommandletTest extends AbstractIdeContextTest {
     LnCommandlet cmd1 = new LnCommandlet(context);
     cmd1.source.setValue(Path.of("source1.txt"));
     cmd1.symbolic.setValue(Boolean.TRUE);
+    cmd1.relative.setValue(Boolean.TRUE);
     cmd1.link.setValue(Path.of("link.txt"));
     cmd1.run();
 
@@ -85,6 +86,7 @@ class LnCommandletTest extends AbstractIdeContextTest {
     LnCommandlet cmd2 = new LnCommandlet(context);
     cmd2.source.setValue(Path.of("source2.txt"));
     cmd2.symbolic.setValue(Boolean.TRUE);
+    cmd2.relative.setValue(Boolean.TRUE);
     cmd2.link.setValue(Path.of("link.txt"));
     cmd2.run();
 
