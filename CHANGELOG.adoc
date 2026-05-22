@@ -33,6 +33,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1884[#1884]: Fix java unzipping losing symlink information
 * https://github.com/devonfw/IDEasy/issues/1716[#1716]: Add commandlet for Claude Code CLI
 * https://github.com/devonfw/IDEasy/issues/1844[#1844]: Fix vscode installation hanging indefinitely in WSL Linux environments
+* https://github.com/devonfw/IDEasy/issues/1952[#1952]: Ability for platform specific dependencies
 * https://github.com/devonfw/IDEasy/issues/1950[#1950]: Fix exit autocompletion
 * https://github.com/devonfw/IDEasy/issues/1255[#1255]: Enhance snapshot version recognition in IDEasy
 
