@@ -4,6 +4,8 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
 
+import com.devonfw.tools.ide.url.tool.inso.InsoUrlUpdater;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +41,7 @@ import com.devonfw.tools.ide.url.tool.kotlinc.KotlincNativeUrlUpdater;
 import com.devonfw.tools.ide.url.tool.kotlinc.KotlincUrlUpdater;
 import com.devonfw.tools.ide.url.tool.lazydocker.LazyDockerUrlUpdater;
 import com.devonfw.tools.ide.url.tool.mvn.MvnUrlUpdater;
+import com.devonfw.tools.ide.url.tool.mvnd.MvndUrlUpdater;
 import com.devonfw.tools.ide.url.tool.ng.NgUrlUpdater;
 import com.devonfw.tools.ide.url.tool.node.NodeUrlUpdater;
 import com.devonfw.tools.ide.url.tool.npm.NpmUrlUpdater;
@@ -74,9 +77,9 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
       new DotNetUrlUpdater(),
       new EclipseCppUrlUpdater(), new EclipseJeeUrlUpdater(), new EclipseJavaUrlUpdater(), new GCloudUrlUpdater(),
       new GcViewerUrlUpdater(), new GhUrlUpdater(), new GoUrlUpdater(), new GraalVmCommunityUpdater(), new GraalVmOracleUrlUpdater(),
-      new GradleUrlUpdater(), new HelmUrlUpdater(), new IntellijUrlUpdater(), new JasyptUrlUpdater(),
-      new JavaUrlUpdater(), new JavaAzulUrlUpdater(), new JenkinsUrlUpdater(), new JmcUrlUpdater(), new KotlincUrlUpdater(),
-      new KotlincNativeUrlUpdater(), new LazyDockerUrlUpdater(), new MvnUrlUpdater(),
+      new GradleUrlUpdater(), new HelmUrlUpdater(), new InsoUrlUpdater(), new IntellijUrlUpdater(), new JasyptUrlUpdater(), new JavaAzulUrlUpdater(),
+      new JavaUrlUpdater(), new JenkinsUrlUpdater(), new JmcUrlUpdater(), new KotlincUrlUpdater(),
+      new KotlincNativeUrlUpdater(), new LazyDockerUrlUpdater(), new MvnUrlUpdater(), new MvndUrlUpdater(),
       new NgUrlUpdater(), new NodeUrlUpdater(), new NpmUrlUpdater(), new OcUrlUpdater(), new PgAdminUrlUpdater(), new PipUrlUpdater(), new PycharmUrlUpdater(),
       new PythonUrlUpdater(), new QuarkusUrlUpdater(), new RustUrlUpdater(), new DockerRancherDesktopUrlUpdater(), new SonarUrlUpdater(),
       new SquirrelSqlUrlUpdater(),

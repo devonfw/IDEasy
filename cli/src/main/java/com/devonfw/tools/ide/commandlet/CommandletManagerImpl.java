@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+import com.devonfw.tools.ide.tool.inso.Inso;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +24,7 @@ import com.devonfw.tools.ide.tool.androidstudio.AndroidStudio;
 import com.devonfw.tools.ide.tool.aws.Aws;
 import com.devonfw.tools.ide.tool.az.Azure;
 import com.devonfw.tools.ide.tool.cdk.Cdk;
+import com.devonfw.tools.ide.tool.claude.Claude;
 import com.devonfw.tools.ide.tool.copilot.Copilot;
 import com.devonfw.tools.ide.tool.corepack.Corepack;
 import com.devonfw.tools.ide.tool.docker.Docker;
@@ -137,6 +140,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Aws(context));
     add(new Jmc(context));
     add(new DotNet(context));
+    add(new Inso(context));
     add(new Intellij(context));
     add(new Jasypt(context));
     add(new Docker(context));
@@ -158,6 +162,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new SquirrelSql(context));
     add(new Nest(context));
     add(new Cdk(context));
+    add(new Claude(context));
   }
 
   /**
