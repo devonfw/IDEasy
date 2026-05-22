@@ -12,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.json.JsonMapping;
+import com.devonfw.tools.ide.os.SystemInfo;
+import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -46,10 +48,23 @@ public class ToolDependencies {
    */
   public List<ToolDependency> findDependencies(VersionIdentifier version) {
 
+    return findDependencies(version, SystemInfoImpl.INSTANCE);
+  }
+
+  /**
+   * Same as {@link #findDependencies(VersionIdentifier)} but with an explicit system for deterministic tests.
+   *
+   * @param version the {@link VersionIdentifier} of the tool to install.
+   * @param systemInfo the current system.
+   * @return The {@link List} of {@link ToolDependency}s for the given tool version filtered by os/arch.
+   */
+  public List<ToolDependency> findDependencies(VersionIdentifier version, SystemInfo systemInfo) {
+
     for (Map.Entry<VersionRange, List<ToolDependency>> entry : this.dependencies.entrySet()) {
       VersionRange versionRange = entry.getKey();
       if (versionRange.contains(version)) {
-        return entry.getValue();
+        List<ToolDependency> dependencyValues = entry.getValue();
+        return dependencyValues.stream().filter(dependency -> dependency.appliesTo(systemInfo)).toList();
       }
     }
     int size = dependencies.size();
