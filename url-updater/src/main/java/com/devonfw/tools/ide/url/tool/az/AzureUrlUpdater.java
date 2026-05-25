@@ -28,11 +28,20 @@ public class AzureUrlUpdater extends GithubUrlTagUpdater {
         OperatingSystem.WINDOWS);
     VersionIdentifier vid = urlVersion.getVersionIdentifier();
     if (vid.compareVersion(MIN_AZURE_MAC_VID).isGreater()) {
-      String macBaseUrl = GITHUB_BASE_URL + "/" + getGithubRepositoryPath()
+      String macBaseUrl = getMacDownloadBaseUrl() + "/" + getGithubRepositoryPath()
           + "/releases/download/azure-cli-${version}/azure-cli-${version}-macos-";
       doAddVersion(urlVersion, macBaseUrl + "x86_64.tar.gz", OperatingSystem.MAC, SystemArchitecture.X64);
       doAddVersion(urlVersion, macBaseUrl + "arm64.tar.gz", OperatingSystem.MAC, SystemArchitecture.ARM64);
     }
+  }
+
+  /**
+   * @return base URL for the macOS tarball downloads (GitHub releases). Separate hook from {@link #getDownloadBaseUrl()}
+   *     because Windows MSIs live on Microsoft blob storage while mac tarballs live on GitHub.
+   */
+  protected String getMacDownloadBaseUrl() {
+
+    return GITHUB_BASE_URL;
   }
 
   @Override
