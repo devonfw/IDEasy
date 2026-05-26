@@ -10,7 +10,7 @@ They should have the key metadata set:
 Issues with higher `Priority` should typically be addressed first.
 - **Size**: Represents the estimated complexity or effort (e.g., Small, Medium, Large).
 Issues with higher `Size` are typically more complex.
-Depending on your experience consider if you want to deal with the story or check if easier tasks are therefore you to work on first.
+Depending on your experience, consider if you want to deal with the story or check if easier tasks are there for you to work on first.
 * `Research`:
 **link:issue.adoc[Issues]** or **link:pull-request.adoc[PRs]** that are blocked or require deeper analysis before implementation can continue.
 These items often involve unclear requirements or technical challenges.

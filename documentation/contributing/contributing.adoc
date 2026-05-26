@@ -85,19 +85,16 @@ Create a sub-package and a class with the name of the tool.
 
 === LICENSE
 
-Find the license for the new tool and add the tool to the table of `Third party components` of the link:LICENSE.adoc[LICENSE].
+Find the license for the new tool and add the tool to the table of `Third party components` of the link:../LICENSE.adoc[LICENSE].
 If the license itself does not exist, add it to the end of the file as a new section.
 
 == Settings
 
 The https://github.com/devonfw/ide-settings[ide-settings] repository allows project-specific configurations of the IDE tools.
 For your own settings, fork the repository, adjust the configuration and specify the repository URL during installation.
-Important notes on configuration and especially configuration files can be found in the link:configuration.adoc[configuration].
-In the configuration files many link:variables.adoc[variables] can be defined.
+Important notes on configuration and especially configuration files can be found in the link:../configuration.adoc[configuration].
+In the configuration files many link:../variables.adoc[variables] can be defined.
 
-== Tips and tricks
-
-Have a look at https://github.com/devonfw/IDEasy/blob/main/documentation/advanced-tooling-generic.adoc[advanced-tooling-generic.adoc] for some helpful developer tools.
 
 == Documentation
 
@@ -106,5 +103,5 @@ In case you are reading this from your cloned git repository locally, use your I
 Please study the documentation that explains many important aspects of IDEasy.
 As a developer it is espcially important to study the link:coding-conventions.adoc[coding-conventions] and link:DoD.adoc[Definition of Done].
 Further, please browse the JavaDoc of the source-code to understand the different types and structures of our project.
-To get started see our link:images/design.puml[design diagram] that needs PlantUml support to be viewed (e.g. via IntelliJ with according plugin).
+To get started see our link:./design.puml[design diagram] that needs PlantUml support to be viewed (e.g. via IntelliJ with according plugin).
 This diagram gives you a good overview of the most important types in the code-base.
