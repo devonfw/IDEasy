@@ -6,13 +6,9 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.io.FileCopyMode;
 import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
@@ -25,12 +21,6 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * {@link LocalToolCommandlet} for <a href="https://www.rust-lang.org/">Rust</a>.
  */
 public class Rust extends LocalToolCommandlet {
-
-  private static final Logger LOG = LoggerFactory.getLogger(Rust.class);
-
-  private static final String MSVC_SETUP_URL = "https://aka.ms/vs/17/release/vs_BuildTools.exe";
-
-  private static final String WINDOWS_RUSTUP_INIT_EXE = "rustup-init.exe";
 
   /**
    * The constructor.
@@ -71,10 +61,6 @@ public class Rust extends LocalToolCommandlet {
   @Override
   protected void onInstall(ToolInstallRequest request, Path installationPath, Path installerScript) {
 
-    if (this.context.getSystemInfo().isWindows()) {
-      installWindowsMsvcBuildTools();
-    }
-
     VersionIdentifier resolvedVersion = request.getRequested().getResolvedVersion();
     FileAccess fileAccess = this.context.getFileAccess();
 
@@ -93,12 +79,7 @@ public class Rust extends LocalToolCommandlet {
 
     List<String> installerArgs = List.of("-y", "--no-modify-path", "--profile", "default", "--default-toolchain", resolvedVersion.toString());
 
-    if (isWindowsExeInstaller(installerScript)) {
-      Path installerExecutable = prepareWindowsInstaller(fileAccess, installerScript);
-      process.executable(installerExecutable).addArgs(installerArgs);
-    } else {
-      process.executable(this.context.findBashRequired()).addArgs(installerScript.toAbsolutePath().toString()).addArgs(installerArgs);
-    }
+    process.executable(this.context.findBashRequired()).addArgs(installerScript.toAbsolutePath().toString()).addArgs(installerArgs);
     process.run();
 
     Path cargoBin = cargoHome.resolve("bin");
@@ -120,42 +101,4 @@ public class Rust extends LocalToolCommandlet {
     environmentContext.withEnvVar("RUSTUP_HOME", rootDir.resolve(".rustup").toString());
   }
 
-  private void installWindowsMsvcBuildTools() {
-
-    FileAccess fileAccess = this.context.getFileAccess();
-    Path tempDir = fileAccess.createTempDir("msvc-setup");
-    Path installer = tempDir.resolve("vs_BuildTools.exe");
-    fileAccess.download(MSVC_SETUP_URL, installer);
-
-    this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI).executable(installer)
-        .withExitCodeAcceptor(code -> (code == 0) || (code == 3010))
-        .addArgs("--quiet", "--wait", "--norestart", "--nocache", "--add", "Microsoft.VisualStudio.Workload.VCTools")
-        .run();
-  }
-
-  private Path prepareWindowsInstaller(FileAccess fileAccess, Path installerScript) {
-
-    String fileName = installerScript.getFileName().toString();
-    if (WINDOWS_RUSTUP_INIT_EXE.equalsIgnoreCase(fileName)) {
-      return installerScript;
-    }
-    Path canonicalInstaller = installerScript.resolveSibling(WINDOWS_RUSTUP_INIT_EXE);
-    if (Files.exists(canonicalInstaller, LinkOption.NOFOLLOW_LINKS)) {
-      LOG.info("Found existing installer at {}, checking type", canonicalInstaller);
-      boolean isDirectory = Files.isDirectory(canonicalInstaller, LinkOption.NOFOLLOW_LINKS);
-      LOG.info("Existing installer is {} (directory: {}), deleting it", canonicalInstaller, isDirectory);
-      fileAccess.delete(canonicalInstaller);
-    }
-    fileAccess.copy(installerScript, canonicalInstaller, FileCopyMode.COPY_FILE_TO_TARGET_OVERRIDE);
-    return canonicalInstaller;
-  }
-
-  private boolean isWindowsExeInstaller(Path installerPath) {
-
-    if (!this.context.getSystemInfo().isWindows()) {
-      return false;
-    }
-    Path fileName = installerPath.getFileName();
-    return (fileName != null) && fileName.toString().toLowerCase().endsWith(".exe");
-  }
 }
