@@ -138,6 +138,8 @@
               </archive>
             </configuration>
           </execution>
+
+          <!-- jar for text classes -->
           <execution>
             <id>test-jar</id>
             <goals>

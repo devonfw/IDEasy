@@ -93,7 +93,7 @@ public class ProjectManagerTest extends AbstractIdeContextTest {
     Path project6 = ideRoot.resolve("project-6");
     FileUtils.copyDirectory(project0.toFile(), project6.toFile());
 
-    projectManager.refreshProjects();
+    projectManager.readProjects();
 
     // Verify that project-6 is now recognized
     assertThat(projectManager.getProjectNames()).containsExactlyInAnyOrder("project-0", "project-1", "project-2", "project-3", "project-4", "project-5",
