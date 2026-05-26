@@ -1341,13 +1341,14 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
    * @return {@code msg} to log to the console. {@code null} if the message is suppressed.
    */
   private String determineSettingsUpdateMessage(Commandlet cmd) {
+    boolean update = cmd instanceof UpdateCommandlet;
     if (isSettingsCodeRepository()) {
-      if ((cmd instanceof UpdateCommandlet) && isForceMode()) {
+      if (update && (isForceMode() || isForcePull())) {
         return null;
       }
       return "Updates are available for the settings repository. Please pull the latest changes by yourself or by calling \"ide -f update\" to apply them.";
     } else {
-      if (cmd instanceof UpdateCommandlet) {
+      if (update) {
         return null;
       }
       return "Updates are available for the settings repository. If you want to apply the latest changes, call \"ide update\"";
