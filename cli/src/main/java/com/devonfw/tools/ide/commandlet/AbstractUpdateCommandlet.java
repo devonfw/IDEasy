@@ -97,9 +97,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     startContext.setForcePlugins(forcePlugins.isTrue());
     startContext.setForceRepositories(forceRepositories.isTrue());
 
-    if (!this.context.isSettingsRepositorySymlinkOrJunction() || this.context.isForceMode() || forcePull.isTrue()) {
-      updateSettings();
-    }
+    updateSettings();
     updateConf();
     reloadContext();
 
@@ -163,7 +161,12 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
    */
   protected void updateSettings() {
 
-    this.context.newStep(getStepMessage()).run(this::updateSettingsInStep);
+    boolean codeRepository = this.context.isSettingsCodeRepository();
+    if (codeRepository && !(this.context.isForceMode() || forcePull.isTrue())) {
+      LOG.info("Skipping git pull in settings due to code repository. Use --force-pull to enforce pulling.");
+      return;
+    }
+    this.context.newStep(getStepMessage()).run(() -> updateSettingsInStep(codeRepository));
   }
 
   protected String getStepMessage() {
@@ -171,35 +174,34 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     return "update (pull) settings repository";
   }
 
-  private void updateSettingsInStep() {
+  private void updateSettingsInStep(boolean codeRepository) {
     Path settingsPath = this.context.getSettingsPath();
-    GitContext gitContext = this.context.getGitContext();
-    // here we do not use pullOrClone to prevent asking a pointless question for repository URL...
-    if (Files.isDirectory(settingsPath) && this.context.getGitContext().isGitRepo(settingsPath) || this.context.isSettingsRepositorySymlinkOrJunction()) {
-      if (this.context.isForcePull() || this.context.isForceMode()) {
-        if (gitContext.hasUntrackedFiles(settingsPath)) {
-          gitContext.pullSafelyWithStash(settingsPath);
-        } else {
-          gitContext.pull(settingsPath);
+    if (!codeRepository) {
+      boolean settingsRepository = this.context.getGitContext().isGitRepo(settingsPath);
+      if (!settingsRepository) {
+        if (Files.exists(settingsPath)) {
+          if (!this.context.getFileAccess().isEmptyDir(settingsPath)) {
+            this.context.askToContinue(
+                "Your settings repository seems to be broken ('.git' folder not present). "
+                    + "We can fix this by moving  your settings the backed up. You will be asked for the settings git URL and your settings will be cloned from scratch. "
+                    + "Do you want to proceed?"
+            );
+          }
+          this.context.getFileAccess().backup(settingsPath);
         }
-        this.context.getGitContext().saveCurrentCommitId(settingsPath, this.context.getSettingsCommitIdPath());
-      } else {
-        LOG.info("Skipping git pull in settings due to code repository. Use --force-pull to enforce pulling.");
+        GitUrl gitUrl = getOrAskSettingsUrl();
+        checkProjectNameConvention(gitUrl.getProjectName());
+        initializeRepository(gitUrl);
+        return;
       }
-    } else {
-      if (!this.context.getFileAccess().isEmptyDir(settingsPath)) {
-        this.context.askToContinue(
-          "Your settings repository seems to be broken ('.git' folder not present). We can fix this by moving "
-          + " your settings the backed up. You will be asked for the settings git URL and your settings will be cloned from scratch. Do you want to proceed?"
-        );
-
-        this.context.getFileAccess().backup(settingsPath);
-      }
-
-      GitUrl gitUrl = getOrAskSettingsUrl();
-      checkProjectNameConvention(gitUrl.getProjectName());
-      initializeRepository(gitUrl);
     }
+    GitContext gitContext = this.context.getGitContext();
+    if (gitContext.hasUntrackedFiles(settingsPath)) {
+      gitContext.pullSafelyWithStash(settingsPath);
+    } else {
+      gitContext.pull(settingsPath);
+    }
+    this.context.getGitContext().saveCurrentCommitId(settingsPath, this.context.getSettingsCommitIdPath());
   }
 
   private GitUrl getOrAskSettingsUrl() {
