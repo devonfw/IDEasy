@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.commandlet;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.function.Predicate;
 
 import org.slf4j.Logger;
@@ -10,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
+import com.devonfw.tools.ide.git.GitUrl;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileCopyMode;
 import com.devonfw.tools.ide.log.IdeLogLevel;
@@ -89,39 +91,36 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
   }
 
     /**
-   * This method is invoked when a new porject is created. It analyzes the cloned repository to check if it is a valid IDEasy repository. The repository can either be a settings repository (with ide.properties or devon.properties on the top level)
+   * This method is invoked when a new porject is created. It analyzes the cloned repository to check if it is a valid IDEasy repository.
+   * The repository can either be a settings repository (with ide.properties or devon.properties on the top level)
    * or a code repository (with a settings folder on the top level containing such a file). Otherwise, the project creation fails and an error message is logged.
    */
   private void analyzeProject() {
     // Settings repository: ide.properties on top levels (or devon.properties for legacy users)
     // Code repository: settings folder on top level with ide.properties inside (or devon.properties for legacy users)
     String projectName = this.context.getProjectName();
-    Path actualProjectPath;
+    Path actualProjectPath = this.context.getIdeRoot().resolve(projectName);
     FileAccess fileAccess = this.context.getFileAccess();
     Path settingsPath = this.context.getSettingsPath();
 
     // Check whether the repository is a valid settings repository, code repository, or neither
     if (isSettingsRepository(settingsPath)) {
       LOG.info("The repository seems to be a settings repository based on the presence of " + EnvironmentVariables.DEFAULT_PROPERTIES + " or " + EnvironmentVariables.LEGACY_PROPERTIES + " on the top level.");
-      actualProjectPath = this.context.getIdeRoot();
       moveProject(this.context.getIdeHome(), actualProjectPath);
 
     } else if (isCodeRepository(settingsPath)) {
       LOG.info(EnvironmentVariables.DEFAULT_PROPERTIES + " or " + EnvironmentVariables.LEGACY_PROPERTIES + " found in settings subfolder. This indicates a code repository with a settings folder on the top level.");
-      // Move settings folder contents containing code into workspace/main/<project_name>
-      actualProjectPath = this.context.getIdeRoot().resolve(projectName).resolve("workspaces/main/").resolve(projectName);
-      for (Path child : fileAccess.listChildren(settingsPath, f -> true)) {
-        moveProject(child, actualProjectPath);
-      }
-      // Move remaining folders into IDE_ROOT/<project_name>
-      actualProjectPath = this.context.getIdeRoot();
+      
+      String gitProjectName = GitUrl.of(this.settingsRepo.getValue(0)).getProjectName();
+      Path codeFolderPath = actualProjectPath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN).resolve(gitProjectName);
+      // Move temp project to actual project location $IDE_ROOT/<project_name>
       moveProject(this.context.getIdeHome(), actualProjectPath);
-      // Delete empty settings folder in IDE_ROOT/<project_name> so we can create a symlink in the next step
-      fileAccess.delete(actualProjectPath.resolve(projectName).resolve("settings"));
+
+      // Move settings fodler containing code to $IDE_ROOT/<project_name>/workspaces/main/<git_project_name>
+      moveProject(actualProjectPath.resolve(IdeContext.FOLDER_SETTINGS), codeFolderPath);
+
       // Link settings folder in IDE_HOME to settings folder in code repository
-      fileAccess.symlink(actualProjectPath.resolve(projectName).resolve("workspaces/main").resolve(projectName).resolve("settings"), actualProjectPath.resolve(projectName).resolve("settings"));
-      // Final cleanup in temp location
-      fileAccess.delete(this.context.getIdeHome());
+      fileAccess.symlink(codeFolderPath.resolve(IdeContext.FOLDER_SETTINGS), actualProjectPath.resolve(IdeContext.FOLDER_SETTINGS));
 
     } else {
       // Repository seems to be invalid. Clean up temporary location and return error
@@ -130,7 +129,7 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
       + "The repository does not seem to be a valid IDEasy repository. Please verify the repository and try again.");
     }
     // Set IDE_HOME to new (and actual) project location
-    this.context.setIdeHome(this.context.getIdeRoot().resolve(projectName));
+    this.context.setIdeHome(actualProjectPath);
   }
 
   /**
@@ -141,8 +140,8 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
   private void moveProject(Path oldPath, Path newPath) {
     FileAccess fileAccess = this.context.getFileAccess();
     try {
-      fileAccess.copy(oldPath, newPath, FileCopyMode.COPY_TREE_OVERRIDE_FILES);
-      fileAccess.delete(oldPath);
+      fileAccess.mkdirs(newPath);
+      fileAccess.move(oldPath, newPath, StandardCopyOption.REPLACE_EXISTING);
     } catch (Exception e) {
       LOG.error("Failed to move project from {} to {}. Please move it manually.", oldPath, newPath, e);
     }
