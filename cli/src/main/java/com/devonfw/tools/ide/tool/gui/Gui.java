@@ -58,8 +58,8 @@ public class Gui extends Commandlet {
     );
 
     mvn.installTool(mavenToolInstallRequest);
-    java.installTool(
-        javaToolInstallRequest); //Install java after maven to override mavens java version. This handling should be potentially improved in the future
+    //Install java after maven to override mavens java version. This handling should be potentially improved in the future
+    java.installTool(javaToolInstallRequest);
 
     LOG.debug("Starting GUI via commandlet");
 
