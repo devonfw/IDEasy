@@ -41,6 +41,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1904[#1904]: Add Inso CLI to IDEasy commandlets
 * https://github.com/devonfw/IDEasy/issues/1952[#1952]: Ability for platform specific dependencies
 * https://github.com/devonfw/IDEasy/issues/1950[#1950]: Fix exit autocompletion
+* https://github.com/devonfw/IDEasy/issues/1958[#1958]: Fix git pull on settings with local branch without remote
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/44?closed=1[milestone 2026.05.001].
 
