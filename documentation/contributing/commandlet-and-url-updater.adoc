@@ -1,6 +1,6 @@
 = Creating New Commandlets and UrlUpdaters
 
-== Overview
+== Overviewd
 
 This document explains how to implement new commandlets and UrlUpdaters for IDEasy.
 A commandlet is a CLI command that manages a tool (install, uninstall, run), while a UrlUpdater is responsible for discovering and maintaining available versions of a tool.
@@ -62,7 +62,9 @@ To check if an artifact is available on Maven Central, visit https://mvnreposito
 To check if a package is available on npm, visit https://www.npmjs.com/
 
 **Base classes:**
-- `NodeBasedCommandlet` - For Node.js itself - `NpmBasedCommandlet` - For npm packages
+
+- `NodeBasedCommandlet`: For Node.js itself
+- `NpmBasedCommandlet`: For npm packages
 
 The npm registry provides automatic version discovery via its REST API.
 
@@ -76,3 +78,97 @@ To check if a package is available on PyPI, visit https://pypi.org/
 
 The pip repository provides automatic version discovery via its JSON API.
 
+== UrlUpdaters
+
+For tools that don't use package manager ecosystems, you need to implement an UrlUpdater, which is responsible to:
+
+1. Discover available versions of a tool
+2. Find download URLs for each version
+3. Validate that downloads are accessible
+4. Handle multiple editions (if applicable)
+5. Support multiple OS/architecture combinations
+
+=== Architecture Overview
+
+The main UrlUpdater types are:
+
+* `JsonUrlUpdater`: For REST APIs returning JSON
+** `AbstractGithubUrlUpdater`: Base for GitHub-based updaters
+*** `GithubUrlReleaseUpdater`: Preferred for GitHub releases
+*** `GithubUrlTagUpdater`: Fallback if no releases available
+* `MavenBasedUrlUpdater`: For Maven repository tools
+* `NpmBasedUrlUpdater`: For npm registry tools
+* `WebsiteUrlUpdater`: Last resort, web scraping only (avoid if possible!)
+
+=== JsonUrlUpdater (Recommended for REST APIs)
+
+Use `JsonUrlUpdater` when you have access to a REST API that returns JSON with version information.
+
+**Examples of tools using JsonUrlUpdater:**
+
+* JavaUrlUpdater
+* AndroidStudioUrlUpdater
+* IdeaBasedUrlUpdater: which is used for IntelliJ, Pycharm
+
+**What you need to implement:**
+
+* `getTool()` - Return the tool name
+* `doGetVersionUrl()` - Return the API endpoint URL
+* `getJsonObjectType()` - Return the root JSON class (create with Jackson annotations)
+* `getVersionItems(T)` - Extract version items from the JSON object
+* `addVersion(UrlVersion, V)` - Process each version and call `doAddVersion()` with the download URL
+
+=== GitHub Release Updater (Preferred for GitHub-hosted Tools)
+
+Use `GithubUrlReleaseUpdater` when:
+
+* The tool is hosted on GitHub
+* Releases are published using GitHub's Release feature
+* Release assets contain downloadable binaries
+
+**Examples of tools using GithubUrlReleaseUpdater:**
+
+* Gradle
+* Maven
+* Mvnd
+* Claude
+* SquirrelSQL
+* Inso
+
+**How to identify if a tool uses GitHub Releases:**
+
+1. Check if the GitHub repository has a "Releases" section
+2. Verify that releases contain downloadable artifacts (e.g., .zip, .tar.gz files)
+3. Example: https://api.github.com/repos/anthropics/claude-code/releases/
+
+=== GitHub Tag Updater (When No Releases Available)
+
+Use `GithubUrlTagUpdater` only as a fallback when:
+
+* The tool doesn't use GitHub Releases
+* Releases are not available as downloadable artifacts
+* Version discovery from git tags is the only option
+
+As git tags are less structured than releases and download URLs must be reconstructed manually.
+
+**Examples of tools using GithubUrlTagUpdater:**
+
+* Go
+* Sonar
+* Helm
+* VsCode
+* Uv
+
+=== WebsiteUrlUpdater (To Avoid!)
+
+Use `WebsiteUrlUpdater` only when previous options are not available.
+This UrlUpdater relies on HTML and Minor HTML changes break the updater and require maintenance.
+
+**Examples of tools using WebsiteUrlUpdater (last resort):**
+
+* Docker Desktop
+* Eclipse
+* Jenkins
+* Kotlinc
+* OC (OpenShift Client)
+* PgAdmin
