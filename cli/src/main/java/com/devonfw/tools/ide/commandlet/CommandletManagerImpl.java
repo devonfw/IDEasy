@@ -46,6 +46,7 @@ import com.devonfw.tools.ide.tool.kotlinc.KotlincNative;
 import com.devonfw.tools.ide.tool.kubectl.KubeCtl;
 import com.devonfw.tools.ide.tool.lazydocker.LazyDocker;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
+import com.devonfw.tools.ide.tool.msvc.Msvc;
 import com.devonfw.tools.ide.tool.nest.Nest;
 import com.devonfw.tools.ide.tool.ng.Ng;
 import com.devonfw.tools.ide.tool.node.Node;
@@ -129,6 +130,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Node(context));
     add(new Npm(context));
     add(new Mvn(context));
+    add(new Msvc(context));
     add(new GcViewer(context));
     add(new Gradle(context));
     add(new Eclipse(context));
