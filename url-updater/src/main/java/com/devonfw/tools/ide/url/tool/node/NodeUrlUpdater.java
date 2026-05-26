@@ -65,6 +65,13 @@ public class NodeUrlUpdater extends GithubUrlTagUpdater {
     }
   }
 
+
+  @Override
+  public String mapVersion(String version) {
+
+    return super.mapVersion("v" + version);
+  }
+
   @Override
   public String getCpeVendor() {
     return "nodejs";
@@ -72,13 +79,6 @@ public class NodeUrlUpdater extends GithubUrlTagUpdater {
 
   @Override
   public String getCpeProduct() {
-    return "node";
+    return "node.js";
   }
-
-  @Override
-  public String mapVersion(String version) {
-
-    return super.mapVersion("v" + version);
-  }
-  
 }
