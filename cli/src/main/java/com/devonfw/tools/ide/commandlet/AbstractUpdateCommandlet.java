@@ -179,7 +179,6 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     if (!codeRepository) {
       boolean settingsRepository = this.context.getGitContext().isGitRepo(settingsPath);
       if (!settingsRepository) {
-        FileAccess fileAccess = this.context.getFileAccess();
         if (Files.exists(settingsPath)) {
           if (!this.context.getFileAccess().isEmptyDir(settingsPath)) {
             this.context.askToContinue(
