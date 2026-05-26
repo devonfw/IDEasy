@@ -395,6 +395,13 @@ public class GitContextImpl implements GitContext {
     return binaryGitPath;
   }
 
+  /**
+   * Retrieves an optional git config value from the given repository.
+   *
+   * @param directory the git repository directory.
+   * @param key the git config key.
+   * @return the config value or {@code null} if not available.
+   */
   private String getOptionalGitConfigValue(Path directory, String key) {
 
     ProcessResult result = runGitCommand(
@@ -414,6 +421,12 @@ public class GitContextImpl implements GitContext {
 
   }
 
+  /**
+   * Checks if the current branch has an upstream remote branch configured.
+   *
+   * @param repository the git repository directory.
+   * @return {@code true} if an upstream is configured, {@code false} otherwise.
+   */
   private boolean hasUpstream(Path repository) {
 
     String branch = determineCurrentBranch(repository);
