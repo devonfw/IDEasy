@@ -7,6 +7,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 
+import java.io.IOException;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
@@ -25,21 +26,12 @@ public class GcLogAnalyzerUrlUpdaterTest extends AbstractUrlUpdaterTest {
 
 
   @Test
-  void testGcLogAnalyzerUrlUpdater(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
+  void testGcLogAnalyzerUrlUpdater(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
 
     // arrange
     stubFor(get(urlMatching("/gc-log-analyzer/release-notes"))
-        .willReturn(aResponse().withStatus(200).withHeader("Content-Type", "text/html").withBody("""
-            <html>
-              <body>
-                <table>
-                  <tr><td>GC Log Analyzer 26.04.0</td><td>April 30, 2026</td></tr>
-                  <tr><td>GC Log Analyzer 26.03.0</td><td>April 2, 2026</td></tr>
-                  <tr><td>GC Log Analyzer 24.10.0.0</td><td>October 31, 2024</td></tr>
-                </table>
-              </body>
-            </html>
-            """)));
+        .willReturn(aResponse().withStatus(200).withHeader("Content-Type", "text/html")
+            .withBody(readAndResolve(PATH_INTEGRATION_TEST.resolve("GcLogAnalyzerUrlUpdater").resolve("index.html"), wmRuntimeInfo))));
 
     stubFor(any(urlMatching("/gcla/26\\.04\\.0/GCLogAnalyzer-26\\.04\\.0-ca\\.zip"))
         .willReturn(aResponse().withStatus(200).withHeader("Content-Type", "application/zip").withBody(DOWNLOAD_CONTENT)));
