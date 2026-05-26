@@ -1,0 +1,78 @@
+= Creating New Commandlets and UrlUpdaters
+
+== Overview
+
+This document explains how to implement new commandlets and UrlUpdaters for IDEasy.
+A commandlet is a CLI command that manages a tool (install, uninstall, run), while a UrlUpdater is responsible for discovering and maintaining available versions of a tool.
+
+Not all tools require a UrlUpdater, as tools using certain package manager ecosystems (npm, Maven, pip) don't need one because their package managers provide version discovery automatically.
+
+== Understanding Commandlets
+
+=== What is a Commandlet?
+
+A commandlet is a subcommand of the IDEasy CLI that manages a tool's lifecycle.
+The base class is `Commandlet`, and for tools, the relevant base classes are:
+
+* `ToolCommandlet`: Base class for all tools
+* `LocalToolCommandlet`: For tools installed locally into IDEasy
+* `GlobalToolCommandlet`: For tools installed globally on the system
+
+Each commandlet implements:
+
+* Tool installation and uninstallation
+* Edition and version management
+* Retrieval of installed version information
+* Binary execution and configuration
+
+
+==== Tags
+
+Tags are used to classify and categorize tools.
+When creating a commandlet, you must specify appropriate tags for your tool.
+
+Tags are defined in `cli/src/main/java/com/devonfw/tools/ide/common/Tag.java` as static constants in a hierarchical structure (e.g., `Tag.JAVA`, `Tag.PYTHON`, `Tag.BUILD`, etc.) and can be extended with new tags as needed.
+
+Use tags in your commandlet constructor:
+
+[source,java]
+----
+public MyCommandlet(IdeContext context) {
+  super(context, "mycommandlet", Set.of(Tag.JAVA, Tag.BUILD)); // Use one or more tags
+}
+----
+
+== Package Manager Ecosystems
+
+For tools that are part of established package manager ecosystems, IDEasy provides specialized base classes.
+These ecosystems handle version discovery automatically via the package manager's registry and **no UrlUpdater is needed**.
+
+=== Maven Ecosystem
+
+**When to use:** For tools distributed via Maven Central Repository (or other Maven repositories)
+
+To check if an artifact is available on Maven Central, visit https://mvnrepository.com/
+
+**Base class:** `MvnBasedLocalToolCommandlet`
+
+=== npm Ecosystem
+
+**When to use:** For JavaScript/Node.js tools distributed via npm registry (npmjs.org)
+
+To check if a package is available on npm, visit https://www.npmjs.com/
+
+**Base classes:**
+- `NodeBasedCommandlet` - For Node.js itself - `NpmBasedCommandlet` - For npm packages
+
+The npm registry provides automatic version discovery via its REST API.
+
+=== pip Ecosystem
+
+**When to use:** For Python tools distributed via PyPI (Python Package Index)
+
+To check if a package is available on PyPI, visit https://pypi.org/
+
+**Base class:** `PipBasedCommandlet`
+
+The pip repository provides automatic version discovery via its JSON API.
+
