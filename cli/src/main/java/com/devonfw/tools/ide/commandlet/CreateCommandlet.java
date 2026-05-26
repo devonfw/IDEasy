@@ -119,6 +119,9 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
       // Move settings fodler containing code to $IDE_ROOT/<project_name>/workspaces/main/<git_project_name>
       moveProject(actualProjectPath.resolve(IdeContext.FOLDER_SETTINGS), codeFolderPath);
 
+      // Set IDE_HOME to new (and actual) project location
+      this.context.setIdeHome(actualProjectPath);
+
       // Link settings folder in IDE_HOME to settings folder in code repository
       fileAccess.symlink(codeFolderPath.resolve(IdeContext.FOLDER_SETTINGS), actualProjectPath.resolve(IdeContext.FOLDER_SETTINGS));
 
