@@ -7,12 +7,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Writer;
-import java.net.URI;
 import java.net.http.HttpClient.Version;
 import java.net.http.HttpResponse;
-import java.nio.file.FileSystem;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystemException;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
@@ -29,10 +27,10 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
@@ -47,9 +45,12 @@ import org.apache.commons.compress.archivers.ArchiveOutputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
+import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.apache.commons.compress.compressors.gzip.GzipParameters;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,8 +81,6 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   private static final String WINDOWS_FILE_LOCK_WARNING =
       "On Windows, file operations could fail due to file locks. Please ensure the files in the moved directory are not in use. For further details, see: \n"
           + WINDOWS_FILE_LOCK_DOCUMENTATION_PAGE;
-
-  private static final Map<String, String> FS_ENV = Map.of("encoding", "UTF-8");
 
   private final IdeContext context;
 
@@ -425,24 +424,22 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   }
 
   /**
-   * Deletes the given {@link Path} if it is a symbolic link or a Windows junction. And throws an {@link IllegalStateException} if there is a file at the given
-   * {@link Path} that is neither a symbolic link nor a Windows junction.
+   * Deletes the given {@link Path} if it is a symbolic link or a Windows junction or hard link. And throws an {@link IllegalStateException} if it fails to
+   * delete the file at the given {@link Path}.
    *
    * @param path the {@link Path} to delete.
    */
   private void deleteLinkIfExists(Path path) {
 
     boolean isJunction = isJunction(path); // since broken junctions are not detected by Files.exists()
-    boolean isSymlink = Files.exists(path, LinkOption.NOFOLLOW_LINKS) && Files.isSymbolicLink(path);
+    boolean exists = Files.exists(path, LinkOption.NOFOLLOW_LINKS);
 
-    assert !(isSymlink && isJunction);
-
-    if (isJunction || isSymlink) {
-      LOG.info("Deleting previous " + (isJunction ? "junction" : "symlink") + " at " + path);
+    if (isJunction || exists) {
+      LOG.info("Deleting previous link or file at " + path);
       try {
         Files.delete(path);
       } catch (IOException e) {
-        throw new IllegalStateException("Failed to delete link at " + path, e);
+        throw new IllegalStateException("Failed to delete link or file at " + path, e);
       }
     }
   }
@@ -546,7 +543,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       if (type == PathLinkType.SYMBOLIC_LINK) {
         Files.createSymbolicLink(finalLink, finalSource);
       } else if (type == PathLinkType.HARD_LINK) {
-        Files.createLink(finalLink, finalSource);
+        createHardLink(finalSource, finalLink);
       } else {
         throw new IllegalStateException("" + type);
       }
@@ -556,12 +553,34 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
             "Due to lack of permissions, Microsoft's mklink with junction had to be used to create a Symlink. See\n"
                 + "https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for further details. Error was: "
                 + e.getMessage());
-        mklinkOnWindows(finalSource, absoluteSource, finalLink, type, relative);
+
+        try {
+          mklinkOnWindows(finalSource, absoluteSource, finalLink, type, relative);
+        } catch (IllegalStateException mkEx) {
+          LOG.info("Creating a hard link as a fallback for the failed mklink attempt.");
+          createHardLink(absoluteSource, finalLink);
+        }
       } else {
         throw new RuntimeException(e);
       }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to create a " + relativeOrAbsolute + " " + type + " at " + finalLink + " pointing to " + source, e);
+    }
+  }
+
+
+  /**
+   * Creates a hard link at {@code link} pointing to {@code source}.
+   *
+   * @param source the {@link Path} the hard link will point to.
+   * @param link the {@link Path} where to create the hard link.
+   */
+  void createHardLink(Path source, Path link) {
+    try {
+      Files.createLink(link, source);
+      LOG.trace("Created hard link at {} pointing to {}", link, source);
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to create a hardlink for " + source + " at " + link, e);
     }
   }
 
@@ -743,57 +762,129 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   public void extractZip(Path file, Path targetDir) {
 
     LOG.info("Extracting ZIP file {} to {}", file, targetDir);
-    if (SystemInfoImpl.INSTANCE.isMac()) {
-      extractZipWithSystemUnzip(file, targetDir);
-    } else {
-      extractZipWithJava(file, targetDir);
-    }
+    extractZipWithJava(file, targetDir);
   }
 
-  private void extractZipWithSystemUnzip(Path file, Path targetDir) {
-
-    mkdirs(targetDir);
-    ProcessContext pc = this.context.newProcess();
-    pc.executable("/usr/bin/unzip");
-    pc.addArgs("-o", "-q", file, "-d", targetDir);
-    pc.run();
-  }
-
+  /**
+   * Extracts a ZIP archive to the given target directory using Java (commons-compress {@link ZipFile}).
+   * <p>
+   * Symlinks are handled in a two-phase approach: all regular files and directories are written first, and symlinks are collected and created afterwards. This
+   * ensures every symlink target already exists on disk before the link is made.
+   * <p>
+   * {@link ZipFile} is used instead of {@link org.apache.commons.compress.archivers.zip.ZipArchiveInputStream} because Unix file attributes (needed for symlink
+   * detection and permission restoration) are stored in the ZIP central directory at the end of the file. A sequential stream only sees the local file headers,
+   * where external attributes are always zero. {@link ZipFile} reads the central directory via random access, so attributes are always correct.
+   *
+   * @param file the ZIP archive to extract.
+   * @param targetDir the directory to extract into.
+   */
   private void extractZipWithJava(Path file, Path targetDir) {
 
-    URI uri = URI.create("jar:" + file.toUri());
-    try (FileSystem fs = FileSystems.newFileSystem(uri, FS_ENV)) {
-      long size = 0;
-      for (Path root : fs.getRootDirectories()) {
-        size += getFileSizeRecursive(root);
-      }
-      try (final IdeProgressBar progressBar = this.context.newProgressbarForExtracting(size)) {
-        for (Path root : fs.getRootDirectories()) {
-          copy(root, targetDir, FileCopyMode.EXTRACT, (s, t, d) -> onFileCopiedFromZip(s, t, d, progressBar));
+    final List<PathLink> links = new ArrayList<>();
+    try (ZipFile zipFile = ZipFile.builder().setPath(file).get();
+        IdeProgressBar pb = this.context.newProgressbarForExtracting(getFileSize(file))) {
+
+      final Path root = targetDir.toAbsolutePath().normalize();
+      Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
+
+      while (entries.hasMoreElements()) {
+        ZipArchiveEntry entry = entries.nextElement();
+        String entryName = entry.getName();
+        Path entryPath = resolveRelativePathSecure(entryName, root);
+
+        if (isZipSymlink(entry)) {
+          try (InputStream entryStream = zipFile.getInputStream(entry)) {
+            // For symlink entries the file content IS the link target path (Unix zip convention).
+            String linkTarget = IOUtils.toString(entryStream, StandardCharsets.UTF_8);
+            Path parent = entryPath.getParent();
+            Path source = parent.resolve(linkTarget).normalize();
+            resolveRelativePathSecure(source, root, linkTarget);
+            links.add(new PathLink(source, entryPath, PathLinkType.SYMBOLIC_LINK));
+            mkdirs(parent);
+          }
+        } else if (entry.isDirectory()) {
+          mkdirs(entryPath);
+        } else {
+          mkdirs(entryPath.getParent());
+          try (InputStream entryStream = zipFile.getInputStream(entry)) {
+            Files.copy(entryStream, entryPath, StandardCopyOption.REPLACE_EXISTING);
+          }
+          onFileCopiedFromZip(entry, entryPath);
         }
+        pb.stepBy(Math.max(0L, entry.getSize()));
+      }
+
+      // Phase 2: create all symlinks now that their targets are guaranteed to exist.
+      for (PathLink link : links) {
+        link(link);
       }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
     }
   }
 
-  @SuppressWarnings("unchecked")
-  private void onFileCopiedFromZip(Path source, Path target, boolean directory, IdeProgressBar progressBar) {
+  /**
+   * Returns the Unix file mode stored in the external file attributes of the given ZIP entry.
+   * <p>
+   * The ZIP specification stores platform-specific metadata in a 32-bit external-attributes field. When the archive was created on a Unix system the layout
+   * is:
+   * <ul>
+   *   <li>bits 31–16 (upper 16 bits): Unix file mode (same bit layout as {@code stat.st_mode})</li>
+   *   <li>bits 15–0 (lower 16 bits): MS-DOS attributes (read-only, hidden, …)</li>
+   * </ul>
+   * Shifting right by 16 and masking with {@code 0xFFFF} isolates the Unix mode.
+   *
+   * @param entry the ZIP entry to read.
+   * @return the Unix file mode, or {@code 0} if no Unix attributes are present.
+   */
+  private static int getZipUnixMode(ZipArchiveEntry entry) {
 
-    if (directory) {
-      return;
-    }
+    // Right-shift by 16 to move the upper 16 bits (Unix mode) into the lower 16 bits, then
+    // mask with 0xFFFF to discard any sign-extended bits introduced by the cast.
+    return (int) ((entry.getExternalAttributes() >> 16) & 0xFFFF);
+  }
+
+  /**
+   * Returns {@code true} if the given ZIP entry represents a symbolic link.
+   * <p>
+   * Unix file modes encode the file type in the top 4 bits (bits 15–12) of the mode word. The possible file-type values are defined in {@code <sys/stat.h>}:
+   * <ul>
+   *   <li>{@code 0x8000} – regular file ({@code S_IFREG})</li>
+   *   <li>{@code 0x4000} – directory ({@code S_IFDIR})</li>
+   *   <li>{@code 0xA000} – symbolic link ({@code S_IFLNK})</li>
+   * </ul>
+   * Masking with {@code 0xF000} isolates those top 4 bits and comparing against {@code 0xA000} identifies symlinks.
+   *
+   * @param entry the ZIP entry to test.
+   * @return {@code true} if the entry is a symbolic link, {@code false} otherwise.
+   */
+  private static boolean isZipSymlink(ZipArchiveEntry entry) {
+
+    // 0xF000 masks the file-type nibble; 0xA000 is the Unix S_IFLNK constant.
+    return (getZipUnixMode(entry) & 0xF000) == 0xA000;
+  }
+
+  /**
+   * Applies Unix file permissions stored in a ZIP entry to the extracted file.
+   * <p>
+   * Permissions are only applied on non-Windows systems because POSIX permission bits have no equivalent on Windows. If the entry carries no Unix attributes
+   * (mode is {@code 0}), the call is a no-op.
+   *
+   * @param entry the source ZIP entry carrying the Unix mode.
+   * @param target the extracted file whose permissions should be updated.
+   */
+  private void onFileCopiedFromZip(ZipArchiveEntry entry, Path target) {
+
     if (!this.context.getSystemInfo().isWindows()) {
       try {
-        Object attribute = Files.getAttribute(source, "zip:permissions");
-        if (attribute instanceof Set<?> permissionSet) {
-          Files.setPosixFilePermissions(target, (Set<PosixFilePermission>) permissionSet);
+        int unixMode = getZipUnixMode(entry);
+        if (unixMode != 0) {
+          Files.setPosixFilePermissions(target, PathPermissions.of(unixMode).toPosix());
         }
       } catch (Exception e) {
         LOG.error("Failed to transfer zip permissions for {}", target, e);
       }
     }
-    progressBar.stepBy(getFileSize(target));
   }
 
   @Override
@@ -980,7 +1071,9 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   @Override
   public void compressTarGz(Path dir, OutputStream out) {
 
-    try (GzipCompressorOutputStream gzOut = new GzipCompressorOutputStream(out)) {
+    GzipParameters parameters = new GzipParameters();
+    parameters.setModificationTime(0);
+    try (GzipCompressorOutputStream gzOut = new GzipCompressorOutputStream(out, parameters)) {
       compressTarOrThrow(dir, gzOut);
     } catch (IOException e) {
       throw new IllegalStateException("Failed to compress directory " + dir + " to tar.gz file.", e);
@@ -1028,15 +1121,15 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
 
   private <E extends ArchiveEntry> void compressRecursive(Path path, ArchiveOutputStream<E> out, String relativePath) {
 
-    try (Stream<Path> childStream = Files.list(path)) {
+    try (Stream<Path> childStream = Files.list(path).sorted()) {
       Iterator<Path> iterator = childStream.iterator();
       while (iterator.hasNext()) {
         Path child = iterator.next();
         String relativeChildPath = relativePath + "/" + child.getFileName().toString();
         boolean isDirectory = Files.isDirectory(child);
         E archiveEntry = out.createArchiveEntry(child, relativeChildPath);
+        FileTime none = FileTime.fromMillis(0);
         if (archiveEntry instanceof TarArchiveEntry tarEntry) {
-          FileTime none = FileTime.fromMillis(0);
           tarEntry.setCreationTime(none);
           tarEntry.setModTime(none);
           tarEntry.setLastAccessTime(none);
@@ -1047,6 +1140,11 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
           tarEntry.setGroupName("group");
           PathPermissions filePermissions = getFilePermissions(child);
           tarEntry.setMode(filePermissions.toMode());
+        } else if (archiveEntry instanceof ZipArchiveEntry zipEntry) {
+          zipEntry.setCreationTime(none);
+          zipEntry.setLastAccessTime(none);
+          zipEntry.setLastModifiedTime(none);
+          zipEntry.setTime(none);
         }
         out.putArchiveEntry(archiveEntry);
         if (!isDirectory) {
@@ -1248,24 +1346,6 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     }
   }
 
-  private long getFileSizeRecursive(Path path) {
-
-    long size = 0;
-    if (Files.isDirectory(path)) {
-      try (Stream<Path> childStream = Files.list(path)) {
-        Iterator<Path> iterator = childStream.iterator();
-        while (iterator.hasNext()) {
-          Path child = iterator.next();
-          size += getFileSizeRecursive(child);
-        }
-      } catch (IOException e) {
-        throw new RuntimeException("Failed to iterate children of folder " + path, e);
-      }
-    } else {
-      size += getFileSize(path);
-    }
-    return size;
-  }
 
   @Override
   public Path findExistingFile(String fileName, List<Path> searchDirs) {
