@@ -47,15 +47,4 @@ public class GcViewerUrlUpdater extends GithubUrlTagUpdater {
       return null;
     }
   }
-
-  @Override
-  public String getCpeVendor() {
-    return "chewiebug";
-  }
-
-  @Override
-  public String getCpeProduct() {
-    return "gcviewer";
-  }
-
 }
