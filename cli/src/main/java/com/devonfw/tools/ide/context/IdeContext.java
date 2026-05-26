@@ -517,9 +517,9 @@ public interface IdeContext extends IdeStartContext {
   Path getSettingsGitRepository();
 
   /**
-   * @return {@code true} if the settings repository is a symlink or a junction.
+   * @return {@code true} if the settings repository is a symlink or a junction to a code-repository.
    */
-  boolean isSettingsRepositorySymlinkOrJunction();
+  boolean isSettingsCodeRepository();
 
   /**
    * @return the {@link Path} to the file containing the last tracked commit Id of the settings repository.
