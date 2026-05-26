@@ -29,6 +29,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1456[#1456]: Uninstall via Windows settings not working
 * https://github.com/devonfw/IDEasy/issues/1688[#1688]: Remove unnecessary message in the CLI when installing a new tool
 * https://github.com/devonfw/IDEasy/issues/1685[#1685]: Add Nest CLI to IDEasy commandlets
+* https://github.com/devonfw/IDEasy/issues/1748[#1748]: Improve IDEasy status documentation
 * https://github.com/devonfw/IDEasy/issues/1882[#1882]: Add AWS CDK to IDEasy commandlets
 * https://github.com/devonfw/IDEasy/issues/800[#800]: Fix infinite recursion in Sonar start/stop on macOS
 * https://github.com/devonfw/IDEasy/issues/1886[#1886]: Fix NpmBasedCommandlet shows wrong tool version after install
