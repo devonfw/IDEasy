@@ -139,7 +139,7 @@
             </configuration>
           </execution>
 
-          <!-- jar for text classes -->
+          <!-- jar for test classes -->
           <execution>
             <id>test-jar</id>
             <goals>
