@@ -6,6 +6,9 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Locale;
+
+import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -19,17 +22,20 @@ import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.ide.gui.context.IdeGuiContext;
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
+import com.devonfw.ide.gui.i18n.I18nService;
 
 /**
  * Basic UI Test
  */
 public class AppBaseTest extends HeadlessApplicationTest {
 
-  private static Logger LOGGER = LoggerFactory.getLogger(AppBaseTest.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(AppBaseTest.class);
 
   private Button androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen;
   private ComboBox<String> selectedProject, selectedWorkspace;
+  private ComboBox<String> selectedLanguage;
 
   @TempDir
   private static Path mockIdeRoot;
@@ -38,22 +44,28 @@ public class AppBaseTest extends HeadlessApplicationTest {
   @Override
   public void start(Stage stage) throws IOException {
 
+    // Initialize i18n for tests
+    I18nService.resetInstance();
+    I18nService.getInstance(Locale.ENGLISH);
+
     URL mainViewUrl = getClass().getResource("main-view.fxml");
     assertThat(mainViewUrl).as("Cannot resolve main UI FXML resource!").isNotNull();
 
     FXMLLoader fxmlLoader = new FXMLLoader(mainViewUrl);
+    fxmlLoader.setResources(I18nService.getInstance().getResourceBundle());
     fxmlLoader.setController(new MainController(mockIdeRoot.toString()));
     Parent root = fxmlLoader.load();
     stage.setScene(new Scene(root));
     stage.requestFocus(); //sometimes needed for headless setup to work
     stage.show();
 
-    androidStudioOpen = (Button) root.lookup("#androidStudioOpen");
-    eclipseOpen = (Button) root.lookup("#eclipseOpen");
-    intellijOpen = (Button) root.lookup("#intellijOpen");
-    vsCodeOpen = (Button) root.lookup("#vsCodeOpen");
-    selectedProject = (ComboBox<String>) root.lookup("#selectedProject");
-    selectedWorkspace = (ComboBox<String>) root.lookup("#selectedWorkspace");
+    androidStudioOpen = lookup(root, "#androidStudioOpen");
+    eclipseOpen = lookup(root, "#eclipseOpen");
+    intellijOpen = lookup(root, "#intellijOpen");
+    vsCodeOpen = lookup(root, "#vsCodeOpen");
+    selectedProject = lookup(root, "#selectedProject");
+    selectedWorkspace = lookup(root, "#selectedWorkspace");
+    selectedLanguage = lookup(root, "#selectedLanguage");
   }
 
   /**
@@ -129,4 +141,38 @@ public class AppBaseTest extends HeadlessApplicationTest {
         .as("selectedWorkspace ComboBox should be enabled when a project is selected")
         .isFalse();
   }
+
+  @Test
+  public void testSwitchingLocaleUpdatesTextsWithoutChangingProjectSelection() {
+
+    interact(() -> selectedProject.getSelectionModel().select("project-1"));
+    interact(() -> selectedWorkspace.getSelectionModel().select("main"));
+
+    String projectBefore = selectedProject.getValue();
+    String workspaceBefore = selectedWorkspace.getValue();
+    String buttonTextBefore = androidStudioOpen.getText();
+    IdeGuiContext contextBefore = IdeGuiStateManager.getInstance().getCurrentContext();
+
+    interact(() -> {
+      selectedLanguage.setValue("Deutsch");
+      ActionEvent actionEvent = new ActionEvent(selectedLanguage, null);
+      if (selectedLanguage.getOnAction() != null) {
+        selectedLanguage.getOnAction().handle(actionEvent);
+      }
+    });
+
+    assertThat(selectedProject.getValue()).isEqualTo(projectBefore);
+    assertThat(selectedWorkspace.getValue()).isEqualTo(workspaceBefore);
+    assertThat(IdeGuiStateManager.getInstance().getCurrentContext()).isSameAs(contextBefore);
+    assertThat(selectedLanguage.getValue()).isEqualTo("Deutsch");
+    assertThat(androidStudioOpen.getText()).isNotEqualTo(buttonTextBefore);
+  }
+
+  @SuppressWarnings("unchecked")
+  private static <T> T lookup(Parent root, String selector) {
+
+    return (T) root.lookup(selector);
+  }
+
+
 }

@@ -1,34 +1,48 @@
 package com.devonfw.ide.gui;
 
 import java.io.FileNotFoundException;
-import java.nio.file.Path;
 import java.util.List;
+import java.util.Locale;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
 import com.devonfw.ide.gui.context.ProjectManager;
+import com.devonfw.ide.gui.i18n.I18nService;
 import com.devonfw.ide.gui.modal.IdeDialog;
 
 /**
  * Controller of the main screen of the dashboard GUI.
  */
+@SuppressWarnings("unused")
 public class MainController {
 
-  private static Logger LOG = LoggerFactory.getLogger(MainController.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MainController.class);
 
-  private ProjectManager projectManager;
-
+  private final ProjectManager projectManager;
 
   @FXML
   private ComboBox<String> selectedProject;
 
   @FXML
   private ComboBox<String> selectedWorkspace;
+
+  @FXML
+  private Label labelProject;
+
+  @FXML
+  private Label labelWorkspace;
+
+  @FXML
+  private Label labelLanguage;
+
+  @FXML
+  private ComboBox<String> selectedLanguage;
 
   @FXML
   private Button androidStudioOpen;
@@ -43,8 +57,7 @@ public class MainController {
   private Button vsCodeOpen;
 
   private final String directoryPath;
-  private Path projectValue;
-  private Path workspaceValue;
+
 
   /**
    * Constructor
@@ -59,9 +72,61 @@ public class MainController {
 
   @FXML
   private void initialize() {
-
     setProjectsComboBox();
+    initLanguageComboBox();
+    updateTexts();
+    I18nService.getInstance().addLocaleChangeListener(this::updateTexts);
   }
+
+  @FXML
+  private void dispose() {
+    I18nService.getInstance().removeLocaleChangeListener(this::updateTexts);
+  }
+
+  private void initLanguageComboBox() {
+
+    // Initialize language choices
+    selectedLanguage.getItems().clear();
+    selectedLanguage.getItems().addAll("English", "Deutsch");
+
+    // Select current locale
+    Locale current = I18nService.getInstance().getLocale();
+    if (current != null && "de".equals(current.getLanguage())) {
+      selectedLanguage.setValue("Deutsch");
+    } else {
+      selectedLanguage.setValue("English");
+    }
+
+    selectedLanguage.setOnAction(ev -> {
+      String selection = selectedLanguage.getValue();
+      Locale newLocale = "Deutsch".equals(selection) ? Locale.GERMAN : Locale.ENGLISH;
+      I18nService.getInstance().setLocale(newLocale);
+    });
+  }
+
+  /**
+   * Use this method to update UI texts to change locale when adding new UI Elements. It uses a simple naming convention for the keys in the resource bundle.
+   * Found in message.properties and message_de.properties
+   */
+  private void updateTexts() {
+    I18nService i18n = I18nService.getInstance();
+    // Set Labels
+    labelProject.setText(i18n.get("label.project"));
+    labelWorkspace.setText(i18n.get("label.workspace"));
+    labelLanguage.setText(i18n.get("label.language"));
+
+    // Set ComboBox prompts
+    selectedProject.setPromptText(i18n.get("prompt.chooseProject"));
+    selectedWorkspace.setPromptText(i18n.get("prompt.chooseWorkspace"));
+    selectedLanguage.setPromptText(i18n.get("prompt.chooseLanguage"));
+
+    // Set Button texts
+    androidStudioOpen.setText(i18n.get("button.open"));
+    eclipseOpen.setText(i18n.get("button.open"));
+    intellijOpen.setText(i18n.get("button.open"));
+    vsCodeOpen.setText(i18n.get("button.open"));
+  }
+
 
   @FXML
   private void openAndroidStudio() {
