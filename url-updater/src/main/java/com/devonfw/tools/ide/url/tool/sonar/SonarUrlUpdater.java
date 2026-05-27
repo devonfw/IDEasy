@@ -45,6 +45,6 @@ public class SonarUrlUpdater extends GithubUrlTagUpdater {
 
   @Override
   public String getCpeProduct() {
-    return "sonar";
+    return "sonarqube";
   }
 }

@@ -46,16 +46,20 @@ public class Gui extends Commandlet {
 
     ProcessContext processContext = new ProcessContextImpl(this.context);
 
-    ToolInstallRequest toolInstallRequest = new ToolInstallRequest(false);
-    toolInstallRequest.setProcessContext(processContext);
-    toolInstallRequest.setRequested(
+    Java java = this.context.getCommandletManager().getCommandlet(Java.class);
+    Mvn mvn = this.context.getCommandletManager().getCommandlet(Mvn.class);
+
+    ToolInstallRequest mavenToolInstallRequest = new ToolInstallRequest(false);
+    mavenToolInstallRequest.setProcessContext(processContext);
+
+    ToolInstallRequest javaToolInstallRequest = new ToolInstallRequest(mavenToolInstallRequest);
+    javaToolInstallRequest.setRequested(
         new ToolEditionAndVersion(VersionIdentifier.of("25.*"))
     );
 
-    Java java = this.context.getCommandletManager().getCommandlet(Java.class);
-    Mvn mvn = this.context.getCommandletManager().getCommandlet(Mvn.class);
-    java.install(toolInstallRequest);
-    mvn.install(false);
+    mvn.installTool(mavenToolInstallRequest);
+    //Install java after maven to override mavens java version. This handling should be potentially improved in the future
+    java.installTool(javaToolInstallRequest);
 
     LOG.debug("Starting GUI via commandlet");
 
