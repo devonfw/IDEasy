@@ -56,6 +56,14 @@ public record RepositoryConfig(
   }
 
   /**
+   * @return {@code true} if this is the virtual settings repository using the IDE settings folder instead of a Git URL.
+   */
+  public boolean isSettingsRepository() {
+
+    return IdeContext.SETTINGS_REPOSITORY_KEYWORD.equals(this.id) && ((this.gitUrl == null) || this.gitUrl.isBlank());
+  }
+
+  /**
    * @param filePath the {@link Path} to the {@link Properties} to load.
    * @param context the {@link IdeContext}.
    * @return the parsed {@link RepositoryConfig}.
@@ -70,12 +78,20 @@ public record RepositoryConfig(
     } else {
       id = filename;
     }
-    RepositoryConfig config = new RepositoryConfig(id, properties.getPath(), properties.getWorkingSets(), properties.getWorkspaces(), properties.getGitUrl(),
-        properties.getGitBranch(), properties.getBuildPath(), properties.getBuildCmd(), properties.getImports(), properties.getLinks(), properties.isActive());
+
+    String gitUrl = properties.getGitUrl();
+
+    boolean settingsRepository = IdeContext.SETTINGS_REPOSITORY_KEYWORD.equals(id);
+    if ((gitUrl == null || gitUrl.isBlank()) && !settingsRepository) {
+      properties.getProperty(RepositoryProperties.PROPERTY_GIT_URL, true);
+    }
+
     if (properties.isInvalid()) {
       return null;
     }
-    return config;
+
+    return new RepositoryConfig(id, properties.getPath(), properties.getWorkingSets(), properties.getWorkspaces(), gitUrl,
+        properties.getGitBranch(), properties.getBuildPath(), properties.getBuildCmd(), properties.getImports(), properties.getLinks(), properties.isActive());
   }
 
 }

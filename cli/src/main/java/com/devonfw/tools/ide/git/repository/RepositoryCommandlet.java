@@ -31,9 +31,6 @@ public class RepositoryCommandlet extends Commandlet {
   /** the repository to setup. */
   public final RepositoryProperty repository;
 
-  // Holds the path of the settings repository used for virtual repositories
-  private Path settingsRepository;
-
   /**
    * The constructor.
    *
@@ -59,13 +56,11 @@ public class RepositoryCommandlet extends Commandlet {
     Path repositoryFile = this.repository.getValue();
 
     if (repositoryFile != null) {
-      // Handle the case when a specific repository is provided
       RepositoryConfig config = prepareActiveRepository(repositoryFile, true);
       if (config != null) {
         importRepository(config);
       }
     } else {
-      // If no specific repository is provided, check for repositories folder
       Path repositoriesPath = this.context.getRepositoriesPath();
       if (repositoriesPath == null) {
         LOG.warn("Cannot find folder 'repositories' nor 'projects' in your settings.");
@@ -122,6 +117,7 @@ public class RepositoryCommandlet extends Commandlet {
   }
 
   private void doImportRepository(RepositoryConfig config) {
+
     LOG.debug("Repository configuration: {}", config);
     String repositoryRelativePath = config.path();
     if (repositoryRelativePath == null) {
@@ -143,6 +139,12 @@ public class RepositoryCommandlet extends Commandlet {
       workspaces.remove(IdeContext.WORKSPACE_MAIN);
       workspaces.addFirst(IdeContext.WORKSPACE_MAIN);
     }
+
+    if (config.isSettingsRepository()) {
+      createSettingsRepositoryLinks(config, workspaces);
+      return;
+    }
+
     Path firstRepository = null;
     for (String workspaceName : workspaces) {
       Path workspacePath = this.context.getWorkspacePath(workspaceName);
@@ -168,31 +170,18 @@ public class RepositoryCommandlet extends Commandlet {
       }
       if (createRepository) {
         if (firstRepository == null) {
-
-          if (config.gitUrl() == null || config.gitUrl().isBlank()) {
-            LOG.info("Skipping clone for virtual reposetory {}", config.id());
-            if (this.settingsRepository == null) {
-              LOG.error("Settings repository not initialized yet!");
-              return;
-            }
-            firstRepository = this.settingsRepository;
-          } else {
-            boolean success = cloneOrPullRepository(repositoryPath, config.asGitUrl(), repositoryCreatedStatusFile);
-            if (success) {
-              firstRepository = repositoryPath;
-              buildRepository(config, repositoryPath);
-              importRepository(config, repositoryPath, config.id());
-            } else {
-              if (!(config.gitUrl() == null || config.gitUrl().isBlank())) {
-                fileAccess.mkdirs(repositoryPath.getParent());
-                fileAccess.symlink(firstRepository, repositoryPath);
-              }
-
-            }
+          boolean success = cloneOrPullRepository(repositoryPath, config.asGitUrl(), repositoryCreatedStatusFile);
+          if (success) {
+            firstRepository = repositoryPath;
+            buildRepository(config, repositoryPath);
+            importRepository(config, repositoryPath, config.id());
           }
+        } else {
+          fileAccess.mkdirs(repositoryPath.getParent());
+          fileAccess.symlink(firstRepository, repositoryPath);
         }
       }
-      if (Files.exists(repositoryPath) || (config.gitUrl() == null || config.gitUrl().isBlank())) {
+      if (Files.exists(repositoryPath)) {
         for (RepositoryLink link : config.links()) {
           createRepositoryLink(link, repositoryPath, workspacePath);
         }
@@ -200,7 +189,40 @@ public class RepositoryCommandlet extends Commandlet {
     }
   }
 
+  private void createSettingsRepositoryLinks(RepositoryConfig config, List<String> workspaces) {
+
+    Path settingsPath = this.context.getSettingsPath();
+    if (!Files.isDirectory(settingsPath)) {
+      LOG.error("Cannot create links for virtual settings repository because settings path does not exist: {}", settingsPath);
+      return;
+    }
+
+    FileAccess fileAccess = this.context.getFileAccess();
+    for (String workspaceName : workspaces) {
+      Path workspacePath = this.context.getWorkspacePath(workspaceName);
+      for (RepositoryLink link : config.links()) {
+        Path linkTargetPath = settingsPath.resolve(link.link());
+        if (!Files.exists(linkTargetPath)) {
+          LOG.error("Skipping link from '{}' to '{}' because target does not exist: {}", link.link(), link.target(), linkTargetPath);
+          return;
+        }
+
+        String target = link.target();
+        Path linkPath;
+        if ((target != null) && !target.isBlank()) {
+          linkPath = workspacePath.resolve(target);
+        } else {
+          linkPath = workspacePath.resolve(link.link());
+        }
+
+        fileAccess.mkdirs(linkPath.getParent());
+        fileAccess.symlink(linkTargetPath, linkPath);
+      }
+    }
+  }
+
   private void createRepositoryLink(RepositoryLink link, Path repositoryPath, Path workspacePath) {
+
     Path linkPath = workspacePath.resolve(link.link());
     String target = link.target();
     Path linkTargetPath;
@@ -229,6 +251,7 @@ public class RepositoryCommandlet extends Commandlet {
   }
 
   private boolean buildRepository(RepositoryConfig repositoryConfig, Path repositoryPath) {
+
     String buildCmd = repositoryConfig.buildCmd();
     if (buildCmd != null && !buildCmd.isEmpty()) {
       return this.context.newStep("Build repository via: " + buildCmd).run(() -> {
