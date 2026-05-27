@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.step.Step;
@@ -102,6 +101,9 @@ public class CleanupCommandlet extends Commandlet{
         step.run(() -> {discoverAndDeleteUnusedSoftware();});
 
         LOG.debug("Finished cleanup commandlet");
+
+        // Clear Array Lists so tools are not duplicated when running "ide cleanup" repeatedly in the ide shell
+        this.installedIdeTools.clear();
     }
 
     /**
