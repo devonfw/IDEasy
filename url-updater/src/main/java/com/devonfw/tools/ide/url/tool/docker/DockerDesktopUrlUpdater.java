@@ -83,6 +83,6 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
 
   @Override
   public String getCpeProduct() {
-    return "docker";
+    return "desktop";
   }
 }

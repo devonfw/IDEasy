@@ -49,15 +49,6 @@ public class JavaAzulUrlUpdater extends JsonUrlUpdater<JavaAzulJsonObject, JavaA
     doAddVersion(urlVersion, prefix + "macosx_aarch64.tar.gz", MAC, ARM64);
   }
 
-  @Override
-  public String getCpeVendor() {
-    return "azul";
-  }
-
-  @Override
-  public String getCpeProduct() {
-    return "zulu";
-  }
 
   @Override
   protected String getDownloadBaseUrl() {
@@ -105,4 +96,15 @@ public class JavaAzulUrlUpdater extends JsonUrlUpdater<JavaAzulJsonObject, JavaA
   protected Collection<JavaAzulJsonVersion> getVersionItems(JavaAzulJsonObject jsonObject) {
     return jsonObject.versions();
   }
+
+  @Override
+  public String getCpeVendor() {
+    return "azul";
+  }
+
+  @Override
+  public String getCpeProduct() {
+    return "zulu";
+  }
+
 }
