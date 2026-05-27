@@ -100,10 +100,10 @@ public class CleanupCommandlet extends Commandlet{
         Step step = context.newStep("Identify and remove unused software");
         step.run(() -> {discoverAndDeleteUnusedSoftware();});
 
-        LOG.debug("Finished cleanup commandlet");
-
         // Clear Array Lists so tools are not duplicated when running "ide cleanup" repeatedly in the ide shell
         this.installedIdeTools.clear();
+
+        LOG.debug("Finished cleanup commandlet");
     }
 
     /**
