@@ -10,15 +10,10 @@ import com.devonfw.tools.ide.tool.ToolInstallRequest;
 
 public class Msvc extends LocalToolCommandlet {
 
-  private static final String BUILDTOOLS_URL = "https://aka.ms/vs/17/release/vs_BuildTools.exe";
+  private static final String MSVC_SETUP_URL = "https://aka.ms/vs/17/release/vs_BuildTools.exe";
 
   public Msvc(IdeContext context) {
     super(context, "msvc", Set.of());
-  }
-
-  @Override
-  protected boolean isIgnoreMissingSoftwareVersionFile() {
-    return true;
   }
 
   @Override
@@ -29,7 +24,7 @@ public class Msvc extends LocalToolCommandlet {
     Path installer = this.context.getDownloadPath().resolve("vs_BuildTools.exe");
     this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI)
         .executable("curl.exe")
-        .addArgs("-fSL", "-o", installer.toString(), BUILDTOOLS_URL)
+        .addArgs("-fSL", "-o", installer.toString(), MSVC_SETUP_URL)
         .run();
 
     this.context.writeVersionFile(request.getRequested().getResolvedVersion(), installationPath);
