@@ -223,7 +223,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   /**
-   * Performs the installation of the {@link #getName() tool} by using {@link #onInstall(ToolInstallRequest, Path, Path)}
+   * Performs the installation of the {@link #getName() tool} by using {@link #installDownloadedToolPayload(ToolInstallRequest, Path, Path)}
    * for tool-specific logic, backing up any existing installation, and writing the version file.
    * <p>
    * This method assumes that the version has already been resolved and dependencies installed. It handles the final steps of placing the tool into the
@@ -248,7 +248,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     }
     fileAccess.mkdirs(installationPath.getParent());
 
-    onInstall(request, installationPath, downloadedToolFile);
+    installDownloadedToolPayload(request, installationPath, downloadedToolFile);
 
     this.context.writeVersionFile(resolvedVersion, installationPath);
     // fix macOS Gatekeeper blocking - must run after version file is written but before any executables are launched
@@ -263,7 +263,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * @param installationPath the target {@link Path} where the tool should be installed.
    * @param downloadedToolFile the {@link Path} to the downloaded tool file.
    */
-  protected void onInstall(ToolInstallRequest request, Path installationPath, Path downloadedToolFile) {
+  protected void installDownloadedToolPayload(ToolInstallRequest request, Path installationPath, Path downloadedToolFile) {
 
     boolean extract = isExtract();
     if (!extract) {
