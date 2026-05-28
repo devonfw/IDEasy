@@ -51,15 +51,8 @@ public class Rust extends LocalToolCommandlet {
     return false;
   }
 
-  /**
-   * Performs the actual installation of the tool bits.
-   *
-   * @param request the {@link ToolInstallRequest}.
-   * @param installationPath the target {@link Path} where the tool should be installed.
-   * @param installerScript the {@link Path} to the downloaded tool file.
-   */
   @Override
-  protected void onInstall(ToolInstallRequest request, Path installationPath, Path installerScript) {
+  protected void installDownloadedToolPayload(ToolInstallRequest request, Path installationPath, Path installerScript) {
 
     VersionIdentifier resolvedVersion = request.getRequested().getResolvedVersion();
     FileAccess fileAccess = this.context.getFileAccess();
