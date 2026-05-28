@@ -3,6 +3,7 @@ package com.devonfw.ide.gui.context;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
 
 import org.apache.commons.io.FileUtils;
@@ -30,7 +31,7 @@ public class ProjectManagerTest extends AbstractIdeContextTest {
   }
 
   @Test
-  void testProjectManagerFull() {
+  void testProjectManagerFull() throws NotDirectoryException {
 
     projectManager = new ProjectManager(ideRoot);
 
@@ -92,8 +93,6 @@ public class ProjectManagerTest extends AbstractIdeContextTest {
     Path project0 = ideRoot.resolve("project-0");
     Path project6 = ideRoot.resolve("project-6");
     FileUtils.copyDirectory(project0.toFile(), project6.toFile());
-
-    projectManager.refreshProjects();
 
     // Verify that project-6 is now recognized
     assertThat(projectManager.getProjectNames()).containsExactlyInAnyOrder("project-0", "project-1", "project-2", "project-3", "project-4", "project-5",

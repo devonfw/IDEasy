@@ -1,6 +1,8 @@
 package com.devonfw.ide.gui;
 
 import java.io.FileNotFoundException;
+import java.nio.file.NotDirectoryException;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 import javafx.fxml.FXML;
@@ -171,7 +173,12 @@ public class MainController {
 
   private void setWorkspaceComboBox() {
 
-    List<String> workspaces = projectManager.getWorkspaceNames(selectedProject.getValue());
+    List<String> workspaces = null;
+    try {
+      workspaces = projectManager.getWorkspaceNames(selectedProject.getValue());
+    } catch (NotDirectoryException e) {
+      throw new RuntimeException(e);
+    }
 
     selectedWorkspace.getItems().clear();
     selectedWorkspace.getItems().addAll(workspaces);

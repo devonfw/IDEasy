@@ -28,7 +28,7 @@ public class IdeGuiStateManagerTest extends AbstractIdeContextTest {
   private static ProjectManager projectManager;
 
   @BeforeAll
-  static void setup() throws FileNotFoundException {
+  static void setup() {
 
     context = newContext("testProject", "project-0");
     LOG.debug("root: {}", context.getIdeRoot());
