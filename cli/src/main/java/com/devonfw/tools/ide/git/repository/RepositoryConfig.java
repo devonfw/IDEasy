@@ -20,20 +20,11 @@ import com.devonfw.tools.ide.git.GitUrl;
  * @param buildPath The build path for the repository.
  * @param buildCmd The command to invoke to build the repository after clone or pull. If omitted no build is triggered.
  * @param imports list of IDEs where the repository will be imported to.
+ * @param links list of links to create for this repository.
  * @param active {@code true} to setup the repository during setup, {@code false} to skip.
  */
-public record RepositoryConfig(
-    String id,
-    String path,
-    String workingSets,
-    List<String> workspaces,
-    String gitUrl,
-    String gitBranch,
-    String buildPath,
-    String buildCmd,
-    Set<String> imports,
-    List<RepositoryLink> links,
-    boolean active) {
+public record RepositoryConfig(String id, String path, String workingSets, List<String> workspaces, String gitUrl, String gitBranch, String buildPath,
+                               String buildCmd, Set<String> imports, List<RepositoryLink> links, boolean active) {
 
   /** Wildcard to match all workspaces. */
   public static final String WORKSPACE_NAME_ALL = "*";
@@ -49,7 +40,7 @@ public record RepositoryConfig(
    */
   public GitUrl asGitUrl() {
 
-    if (this.gitUrl == null) {
+    if ((this.gitUrl == null) || this.gitUrl.isBlank()) {
       return null;
     }
     return new GitUrl(this.gitUrl, this.gitBranch);
@@ -58,7 +49,7 @@ public record RepositoryConfig(
   /**
    * @return {@code true} if this is the virtual settings repository using the IDE settings folder instead of a Git URL.
    */
-  public boolean isSettingsRepository() {
+  public boolean isVirtualSettingsRepository() {
 
     return IdeContext.SETTINGS_REPOSITORY_KEYWORD.equals(this.id) && ((this.gitUrl == null) || this.gitUrl.isBlank());
   }
@@ -79,10 +70,11 @@ public record RepositoryConfig(
       id = filename;
     }
 
-    String gitUrl = properties.getGitUrl();
-
     boolean settingsRepository = IdeContext.SETTINGS_REPOSITORY_KEYWORD.equals(id);
-    if ((gitUrl == null || gitUrl.isBlank()) && !settingsRepository) {
+    String gitUrl = properties.getGitUrl();
+    boolean missingGitUrl = (gitUrl == null) || gitUrl.isBlank();
+
+    if (missingGitUrl && !settingsRepository) {
       properties.getProperty(RepositoryProperties.PROPERTY_GIT_URL, true);
     }
 
@@ -90,8 +82,8 @@ public record RepositoryConfig(
       return null;
     }
 
-    return new RepositoryConfig(id, properties.getPath(), properties.getWorkingSets(), properties.getWorkspaces(), gitUrl,
-        properties.getGitBranch(), properties.getBuildPath(), properties.getBuildCmd(), properties.getImports(), properties.getLinks(), properties.isActive());
+    return new RepositoryConfig(id, properties.getPath(), properties.getWorkingSets(), properties.getWorkspaces(), gitUrl, properties.getGitBranch(),
+        properties.getBuildPath(), properties.getBuildCmd(), properties.getImports(), properties.getLinks(), properties.isActive());
   }
 
 }

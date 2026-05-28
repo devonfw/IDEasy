@@ -140,7 +140,7 @@ public class RepositoryCommandlet extends Commandlet {
       workspaces.addFirst(IdeContext.WORKSPACE_MAIN);
     }
 
-    if (config.isSettingsRepository()) {
+    if (config.isVirtualSettingsRepository()) {
       createSettingsRepositoryLinks(config, workspaces);
       return;
     }
@@ -202,9 +202,8 @@ public class RepositoryCommandlet extends Commandlet {
       Path workspacePath = this.context.getWorkspacePath(workspaceName);
       for (RepositoryLink link : config.links()) {
         Path linkTargetPath = settingsPath.resolve(link.link());
-        if (!Files.exists(linkTargetPath)) {
-          LOG.error("Skipping link from '{}' to '{}' because target does not exist: {}", link.link(), link.target(), linkTargetPath);
-          return;
+        if (!linkTargetExists(link, linkTargetPath)) {
+          continue;
         }
 
         String target = link.target();
@@ -221,6 +220,15 @@ public class RepositoryCommandlet extends Commandlet {
     }
   }
 
+  private boolean linkTargetExists(RepositoryLink link, Path linkTargetPath) {
+
+    if (!Files.exists(linkTargetPath)) {
+      LOG.error("Skipping link from '{}' to '{}' because target does not exist: {}", link.link(), link.target(), linkTargetPath);
+      return false;
+    }
+    return true;
+  }
+
   private void createRepositoryLink(RepositoryLink link, Path repositoryPath, Path workspacePath) {
 
     Path linkPath = workspacePath.resolve(link.link());
@@ -228,8 +236,7 @@ public class RepositoryCommandlet extends Commandlet {
     Path linkTargetPath;
     if ((target != null) && !target.isBlank()) {
       linkTargetPath = repositoryPath.resolve(target);
-      if (!Files.exists(linkTargetPath)) {
-        LOG.error("Skipping link from '{}' to '{}' because target does not exist: {}", link.link(), target, linkTargetPath);
+      if (!linkTargetExists(link, linkTargetPath)) {
         return;
       }
     } else {

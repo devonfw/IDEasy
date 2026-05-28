@@ -217,7 +217,7 @@ class RepositoryCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  void testSetupSettingsRepositoryWithLinks() {
+  void testSetupVirtualSettingsRepositoryWithoutGitUrlWithLinks() {
 
     // arrange
     String expectedSkillContent = "# dummy for testing virtual settings repository link feature\n";
