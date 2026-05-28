@@ -172,3 +172,22 @@ This UrlUpdater relies on HTML and Minor HTML changes break the updater and requ
 * Kotlinc
 * OC (OpenShift Client)
 * PgAdmin
+
+== Use Case: Creating a Commandlet and UrlUpdater for a new tool
+
+=== Create an UrlUpdater for the new tool (when needed)
+
+**1. Choose the right base class:**
+
+- If the tool is part of a package manager ecosystem, you don't need a UrlUpdater.
+- If the tool has a REST API with JSON responses, use `JsonUrlUpdater`.
+- If the tool is hosted on GitHub with proper releases, use `GithubUrlReleaseUpdater`.
+- If the tool is hosted on GitHub but only has tags, use `GithubUrlTagUpdater`.
+- Only if none of the above options are available, use `WebsiteUrlUpdater`.
+
+**2. Implement the UrlUpdater:**
+
+- UrlUpdater class: `MyToolUrlUpdater` located in: `url-updater/src/main/java/com/devonfw/tools/ide/url/tool/{tool}/`
+- Implement required methods based on the chosen base class (e.g., `getTool()`, `doGetVersionUrl()`, etc.)
+- Register your updater by adding it to `UpdateManager.updaters` list in in: `url-updater/src/main/java/com/devonfw/tools/ide/url/updater/UpdateManager.java`
+-
