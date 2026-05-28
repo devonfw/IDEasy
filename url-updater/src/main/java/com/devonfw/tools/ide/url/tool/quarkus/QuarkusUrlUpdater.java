@@ -42,13 +42,11 @@ public class QuarkusUrlUpdater extends GithubUrlTagUpdater {
 
   @Override
   public String getCpeVendor() {
-
     return "quarkus";
   }
 
   @Override
   public String getCpeProduct() {
-
     return "quarkus";
   }
 
