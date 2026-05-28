@@ -63,8 +63,8 @@ To check if a package is available on npm, visit https://www.npmjs.com/
 
 **Base classes:**
 
-- `NodeBasedCommandlet`: For Node.js itself
-- `NpmBasedCommandlet`: For npm packages
+* `NodeBasedCommandlet`: For Node.js itself
+* `NpmBasedCommandlet`: For npm packages
 
 The npm registry provides automatic version discovery via its REST API.
 
@@ -179,15 +179,28 @@ This UrlUpdater relies on HTML and Minor HTML changes break the updater and requ
 
 **1. Choose the right base class:**
 
-- If the tool is part of a package manager ecosystem, you don't need a UrlUpdater.
-- If the tool has a REST API with JSON responses, use `JsonUrlUpdater`.
-- If the tool is hosted on GitHub with proper releases, use `GithubUrlReleaseUpdater`.
-- If the tool is hosted on GitHub but only has tags, use `GithubUrlTagUpdater`.
-- Only if none of the above options are available, use `WebsiteUrlUpdater`.
+* If the tool is part of a package manager ecosystem, you don't need a UrlUpdater.
+* If the tool has a REST API with JSON responses, use `JsonUrlUpdater`.
+* If the tool is hosted on GitHub with proper releases, use `GithubUrlReleaseUpdater`.
+* If the tool is hosted on GitHub but only has tags, use `GithubUrlTagUpdater`.
+* Only if none of the above options are available, use `WebsiteUrlUpdater`.
 
 **2. Implement the UrlUpdater:**
 
-- UrlUpdater class: `MyToolUrlUpdater` located in: `url-updater/src/main/java/com/devonfw/tools/ide/url/tool/{tool}/`
-- Implement required methods based on the chosen base class (e.g., `getTool()`, `doGetVersionUrl()`, etc.)
-- Register your updater by adding it to `UpdateManager.updaters` list in in: `url-updater/src/main/java/com/devonfw/tools/ide/url/updater/UpdateManager.java`
--
+* UrlUpdater class: `MyToolUrlUpdater` located in: `url-updater/src/main/java/com/devonfw/tools/ide/url/tool/mytool/`
+* Implement required methods based on the chosen base class (e.g., `getTool()`, `doGetVersionUrl()`, etc.)
+* Register your updater by adding it to `UpdateManager.updaters` list in: `url-updater/src/main/java/com/devonfw/tools/ide/url/updater/UpdateManager.java`
+* Add a test for the created UrlUpdater with a mock class in `src/test/java/com/devonfw/tools/ide/url/tool/mytool/`
+** MyToolUrlUpdaterTest
+** MyToolUrlUpdaterMock: this file test requires a JSON file in `src/test/resources/com/devonfw/tools/ide/url/tool/mytool/` containing a sample response from the API.
+The file format and name depend on the base class used.
+
+
+To test the UrlUpdater, you can run in addition to the unit test the `UpdateInitiator` class located in `url-updater/src/main/java/com/devonfw/tools/ide/url/updater/UpdateInitiator.java` which allows you to run the updater and see the discovered versions and URLs in the console.
+The arguments to pass are:
+
+* Path to ide-urls project (where the url-updater module is located)
+* Time to wait for the updater to finish (e.g., PT1H)
+* Name of the updater to run (e.g., mytool)
+
+=== Create a Commandlet for the new tool
