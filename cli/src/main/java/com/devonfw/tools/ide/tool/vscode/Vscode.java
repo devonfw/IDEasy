@@ -32,7 +32,7 @@ public class Vscode extends IdeToolCommandlet {
   /** The {@link #getConfiguredEdition() edition} for VSCodium. */
   private static final String EDITION_VSCODIUM = "vscodium";
 
-  /** Plugin IDs collected during {@link #installPlugins} that the VSCodium build refused to install. */
+  /** Plugin IDs collected during {@link #installPlugins} that VSCodium was unable to install. */
   private final List<String> vscodiumUnavailablePlugins = new ArrayList<>();
 
   /**

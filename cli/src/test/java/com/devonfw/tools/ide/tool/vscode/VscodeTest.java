@@ -8,7 +8,6 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.AbstractIdeTestContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.context.ProcessContextTestImpl;
 import com.devonfw.tools.ide.os.SystemInfoMock;
@@ -153,10 +152,10 @@ class VscodeTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_VSCODIUM);
-    Vscode vscodeCommandlet = new Vscode(context);
+    Vscode vscode = new Vscode(context);
 
     // install
-    vscodeCommandlet.install();
+    vscode.install();
 
     // assert
     checkVscodiumInstallation(context);
@@ -167,13 +166,16 @@ class VscodeTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_VSCODIUM);
-    Vscode vscodeCommandlet = new Vscode(context);
+    Vscode vscode = new Vscode(context);
 
     // install
-    vscodeCommandlet.run();
+    vscode.run();
 
     // assert
-    checkVscodiumInstallation(context);
+    assertThat(context.getSoftwarePath().resolve("vscode/bin/codium.cmd")).exists().hasContent("@echo test for windows");
+    assertThat(context.getSoftwarePath().resolve("vscode/bin/codium")).exists().hasContent("#!/bin/bash\n" + "echo \"Test for linux and Mac\"");
+    assertThat(context.getSoftwarePath().resolve("vscode/.ide.software.version")).exists().hasContent("1.116.02821");
+    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed vscode/vscodium in version 1.116.02821");
   }
 
 
@@ -224,14 +226,5 @@ class VscodeTest extends AbstractIdeContextTest {
 
       return this.capturedEnvVars.get(key);
     }
-  }
-
-  private void checkVscodiumInstallation(IdeTestContext context) {
-
-    assertThat(context.getSoftwarePath().resolve("vscode/bin/codium.cmd")).exists().hasContent("@echo test for windows");
-    assertThat(context.getSoftwarePath().resolve("vscode/bin/codium")).exists().hasContent("#!/bin/bash\n" + "echo \"Test for linux and Mac\"");
-
-    assertThat(context.getSoftwarePath().resolve("vscode/.ide.software.version")).exists().hasContent("1.116.02821");
-    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed vscode/vscodium in version 1.116.02821");
   }
 }
