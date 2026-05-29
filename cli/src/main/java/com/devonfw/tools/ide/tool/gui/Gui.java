@@ -15,6 +15,7 @@ import com.devonfw.tools.ide.process.ProcessContextImpl;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
+import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -58,8 +59,7 @@ public class Gui extends Commandlet {
     );
 
     mvn.installTool(mavenToolInstallRequest);
-    //Install java after maven to override mavens java version. This handling should be potentially improved in the future
-    java.installTool(javaToolInstallRequest);
+    ToolInstallation javaInstallation = java.installTool(javaToolInstallRequest);
 
     LOG.debug("Starting GUI via commandlet");
 
@@ -77,6 +77,10 @@ public class Gui extends Commandlet {
         "-Dexec.args=-classpath %classpath com.devonfw.ide.gui.AppLauncher"
     );
 
-    mvn.runTool(processContext, ProcessMode.DEFAULT, args);
+    /*
+     * We manually update the PATH entry with our java version, as by default IDEasy includes the SymLink under /projectname/software/java/bin in the PATH
+     * In case of projects using older Java Versions, this is important as the java version of the project could potentially older.
+     */
+    mvn.runTool(processContext.withPathEntry(javaInstallation.binDir()), ProcessMode.DEFAULT, args);
   }
 }
