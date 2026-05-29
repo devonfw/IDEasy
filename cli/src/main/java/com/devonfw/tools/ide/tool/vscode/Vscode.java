@@ -73,11 +73,13 @@ public class Vscode extends IdeToolCommandlet {
       pb.close();
     }, suppressLevel);
     if (isVscodium && !this.vscodiumUnavailablePlugins.isEmpty()) {
-      LOG.warn("{} plugin(s) could not be installed on VSCodium due to not being available on open-vsx or other errors:\n  - {}\n"
+      IdeLogLevel.WARNING.log(LOG,
+          "{} plugin(s) could not be installed on VSCodium due to not being available on open-vsx or other errors:\n  - {}\n"
               + "For full plugin support, set VSCODE_EDITION=vscode to use Microsoft's distribution.\n"
-              + "For more detailed information on why plugins failed to install, check the IDEasy logfile at $IDE_ROOT/_ide/logs/.",
+              + "For more detailed information on why plugins failed to install, check the IDEasy logfile at {}.",
           this.vscodiumUnavailablePlugins.size(),
-          String.join("\n  - ", this.vscodiumUnavailablePlugins));
+          String.join("\n  - ", this.vscodiumUnavailablePlugins),
+          this.context.getIdeRoot().resolve(IdeContext.FOLDER_DOT_IDE).resolve(IdeContext.FOLDER_LOGS));
     }
   }
 
