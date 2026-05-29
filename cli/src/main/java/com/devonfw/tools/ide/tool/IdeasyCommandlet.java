@@ -74,9 +74,11 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   private final UpgradeMode mode;
 
   /** Pattern for IDEasy SNAPSHOT versions built locally. */
+  // ..............................................................................1..........................2........3........4
   private static final Pattern PATTERN_IDEASY_SNAPSHOT_VERSION = Pattern.compile("^(\\d{4}\\.\\d{2}\\.\\d{3})-(\\d{2})_(\\d{2})_(\\d{2}).*-SNAPSHOT$");
 
   /** Pattern for Maven/Nexus SNAPSHOT versions from downloads . */
+  // .............................................................................1..........................2.......3.......4..........5
   private static final Pattern PATTERN_MAVEN_SNAPSHOT_VERSION = Pattern.compile("^(\\d{4}\\.\\d{2}\\.\\d{3})-(\\d{4})(\\d{2})(\\d{2})\\.(\\d{2})\\d{4}.*$");
 
   // Group numbers for PATTERN_IDEASY_SNAPSHOT_VERSION
