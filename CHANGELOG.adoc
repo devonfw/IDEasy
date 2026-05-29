@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1937[#1937]: Link content from settings into workspaces
 * https://github.com/devonfw/IDEasy/issues/1185[#1185]: Fix icd not working in zsh on older macOS
 * https://github.com/devonfw/IDEasy/issues/1754[#1754]: Add version support to vscode plugins
 * https://github.com/devonfw/IDEasy/issues/796[#796]: cannot install aws on Mac
