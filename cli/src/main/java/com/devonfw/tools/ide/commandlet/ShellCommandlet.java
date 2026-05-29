@@ -73,7 +73,7 @@ public final class ShellCommandlet extends Commandlet {
       Parser parser = new DefaultParser();
       try (Terminal terminal = TerminalBuilder.builder().build()) {
         // initialize our own completer here and add exit as an autocompletion option
-        Completer completer = new IdeCompleter((AbstractIdeContext) this.context);
+        IdeCompleter completer = new IdeCompleter((AbstractIdeContext) this.context);
 
         LineReader reader = LineReaderBuilder.builder().terminal(terminal).completer(completer).parser(parser)
             .variable(LineReader.LIST_MAX, AUTOCOMPLETER_MAX_RESULTS).build();
