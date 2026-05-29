@@ -58,6 +58,7 @@ import com.devonfw.tools.ide.url.tool.terraform.TerraformUrlUpdater;
 import com.devonfw.tools.ide.url.tool.tomcat.TomcatUrlUpdater;
 import com.devonfw.tools.ide.url.tool.uv.UvUrlUpdater;
 import com.devonfw.tools.ide.url.tool.vscode.VsCodeUrlUpdater;
+import com.devonfw.tools.ide.url.tool.vscode.VsCodiumUrlUpdater;
 
 /**
  * The {@code UpdateManager} class manages the update process for various tools by using a list of {@link AbstractUrlUpdater}s to update the
@@ -83,7 +84,7 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
       new NgUrlUpdater(), new NodeUrlUpdater(), new NpmUrlUpdater(), new OcUrlUpdater(), new PgAdminUrlUpdater(), new PipUrlUpdater(), new PycharmUrlUpdater(),
       new PythonUrlUpdater(), new QuarkusUrlUpdater(), new RustUrlUpdater(), new DockerRancherDesktopUrlUpdater(), new SonarUrlUpdater(),
       new SquirrelSqlUrlUpdater(),
-      new TerraformUrlUpdater(), new TomcatUrlUpdater(), new UvUrlUpdater(), new VsCodeUrlUpdater());
+      new TerraformUrlUpdater(), new TomcatUrlUpdater(), new UvUrlUpdater(), new VsCodeUrlUpdater(), new VsCodiumUrlUpdater());
 
   /**
    * The constructor.
