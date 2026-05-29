@@ -77,6 +77,6 @@ public class Gui extends Commandlet {
         "-Dexec.args=-classpath %classpath com.devonfw.ide.gui.AppLauncher"
     );
 
-    mvn.runTool(processContext, ProcessMode.DEFAULT, args);
+    mvn.runTool(processContext, ProcessMode.BACKGROUND_SILENT, args);
   }
 }
