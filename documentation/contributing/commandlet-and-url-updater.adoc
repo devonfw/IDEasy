@@ -213,14 +213,14 @@ After merging the changes for the created UrlUpdater (if needed), you can check 
 
 Then you can proceed to create the Commandlet for the new tool:
 
-* Commandlet class: `MyTool.java` located in: `cli/src/main/java/com/devonfw/tools/ide/cli/command/tool/mytool/`
+* Commandlet class: `MyTool.java` located in: `cli/src/main/java/com/devonfw/tools/ide/cli/tool/mytool/`
 * Extend the appropriate base class (`ToolCommandlet`, `LocalToolCommandlet`, or `GlobalToolCommandlet`)
 * Use the tags defined in `Tag.java` to classify your tool
 * Add the new tool to `cli/src/main/java/com/devonfw/tools/ide/commandlet/CommandletManagerImpl.java` by adding it to the `commandlets` list in the constructor.
-* Add a test for the created Commandlet in `src/test/java/com/devonfw/tools/ide/cli/command/tool/mytool/` with name `MyToolTest.java`
-* For the test some resource files are needed in `src/test/resources/com/devonfw/tools/ide/cli/command/tool/mytool/` (depends on the base class used.
+* Add a test for the created Commandlet in `src/test/java/com/devonfw/tools/ide/cli/tool/mytool/` with name `MyToolTest.java`
+* For the test some resource files are needed in `cli/src/test/resources/ide-projects/mytool/` (depends on the base class used.
 For an example of the required files, you can check the tests of other commandlets with the same base class).
-* Proper help texts for all supported languages are added in `cli/src/main/resources/help/` (`help_en.properties`, `help_de.properties`).
+* Proper help texts for all supported languages are added in `cli/src/main/resources/nls/` (`Help.properties`, `Help_de.properties`).
 * The new tool is added to the table of tools in LICENSE.asciidoc with the correct license information and tags.
 
 
