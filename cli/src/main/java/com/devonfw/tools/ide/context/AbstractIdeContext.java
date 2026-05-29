@@ -29,6 +29,7 @@ import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.cli.CliSuggester;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.commandlet.CommandletManagerImpl;
@@ -174,6 +175,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   private boolean julConfigured;
 
   private Path logfile;
+
+  private CliSuggester cliSuggester;
 
   /**
    * The constructor.
@@ -1135,6 +1138,10 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   public int run(CliArguments arguments) {
 
     CliArgument current = arguments.current();
+    if (current.isStart()) {
+      arguments.next();
+      current = arguments.current();
+    }
     assert (this.currentStep == null);
     boolean supressStepSuccess = false;
     StepImpl step = newStep(true, "ide", (Object[]) current.asArray());
@@ -1153,9 +1160,36 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       }
       activateLogging(cmd);
       verifyIdeMinVersion(false);
-      if (result != null) {
-        LOG.error(result.getErrorMessage());
+      String commandKey = current.getKey();
+
+      if (commandKey == null || commandKey.isBlank()) {
+        return 0;
       }
+      Commandlet commandletByName = findCommandletByName(commandKey);
+      // Missing commandlet
+      if (commandletByName == null) {
+        if (getCliSuggester().isMissingCommandletHandled(commandKey, step)) {
+          return 1;
+        }
+        return 0;
+      }
+      // Missing project context
+      if (getCliSuggester().isMissingProjectContextHandled(commandletByName, step)) {
+        return 1;
+      }
+      // Only validate options/arguments if same commandlet and proper type
+      if (cmd != commandletByName || !(result instanceof ValidationState validationState)) {
+        return 0;
+      }
+      // Invalid option
+      if (getCliSuggester().isInvalidOptionHandled(validationState, commandletByName, step)) {
+        return 1;
+      }
+      // Invalid argument
+      if (getCliSuggester().isInvalidArgumentHandled(validationState, commandletByName)) {
+        return 1;
+      }
+      LOG.error(result.getErrorMessage());
       step.error("Invalid arguments: {}", current.getArgs());
       IdeLogLevel.INTERACTION.log(LOG, "For additional details run ide help {}", cmd == null ? "" : cmd.getName());
       return 1;
@@ -1171,6 +1205,34 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       assert (this.currentStep == null);
       step.logSummary(supressStepSuccess);
     }
+  }
+
+  /**
+   * Finds the {@link Commandlet} with the given name.
+   *
+   * @param name the name of the {@link Commandlet} to find.
+   * @return the {@link Commandlet} with the given name or {@code null} if no such {@link Commandlet} exists.
+   */
+  private Commandlet findCommandletByName(String name) {
+    if (name == null) {
+      return null;
+    }
+    for (Commandlet c : this.commandletManager.getCommandlets()) {
+      if (name.equals(c.getName())) {
+        return c;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * @return the {@link CliSuggester} for CLI suggestions.
+   */
+  private CliSuggester getCliSuggester() {
+    if (this.cliSuggester == null) {
+      this.cliSuggester = new CliSuggester(this);
+    }
+    return this.cliSuggester;
   }
 
   /**
@@ -1545,6 +1607,14 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
         Property<?> option = cmd.getOption(currentArgument.getKey());
         if (option != null) {
           currentProperty = option;
+        } else {
+          boolean allowDashedValue = (property != null && property.isValue() && property.isMultiValued());
+          if (!allowDashedValue && currentArgument.isOption()) {
+            ValidationState state = new ValidationState(null);
+            state.addInvalidOption(currentArgument.getKey());
+            state.addErrorMessage("Invalid option \"" + currentArgument.getKey() + "\"");
+            return state;
+          }
         }
       }
       if (currentProperty == null) {
@@ -1568,6 +1638,15 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       }
       boolean matches = currentProperty.apply(arguments, this, cmd, null);
       if (!matches) {
+        String invalidValue = currentProperty.getLastInvalidValue();
+        if (invalidValue != null) {
+          ValidationState state = new ValidationState(null);
+          state.addInvalidArgument(invalidValue, currentProperty.getNameOrAlias());
+          state.addErrorMessage(
+              "Invalid CLI argument '" + invalidValue + "' for property '" + currentProperty.getNameOrAlias() + "' of commandlet '" + cmd.getName() + "'");
+          currentProperty.clearLastInvalidValue();
+          return state;
+        }
         ValidationState state = new ValidationState(null);
         state.addErrorMessage("No matching property found");
         return state;
