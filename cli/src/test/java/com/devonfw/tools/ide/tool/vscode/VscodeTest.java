@@ -152,10 +152,10 @@ class VscodeTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_VSCODIUM);
-    Vscode vscode = new Vscode(context);
+    Vscode vscodium = new Vscode(context);
 
     // install
-    vscode.install();
+    vscodium.install();
 
     // assert
     checkVscodiumInstallation(context);
@@ -166,16 +166,13 @@ class VscodeTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_VSCODIUM);
-    Vscode vscode = new Vscode(context);
+    Vscode vscodium = new Vscode(context);
 
     // install
-    vscode.run();
+    vscodium.run();
 
     // assert
-    assertThat(context.getSoftwarePath().resolve("vscode/bin/codium.cmd")).exists().hasContent("@echo test for windows");
-    assertThat(context.getSoftwarePath().resolve("vscode/bin/codium")).exists().hasContent("#!/bin/bash\n" + "echo \"Test for linux and Mac\"");
-    assertThat(context.getSoftwarePath().resolve("vscode/.ide.software.version")).exists().hasContent("1.116.02821");
-    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed vscode/vscodium in version 1.116.02821");
+    checkVscodiumInstallation(context);
   }
 
 
@@ -226,5 +223,14 @@ class VscodeTest extends AbstractIdeContextTest {
 
       return this.capturedEnvVars.get(key);
     }
+  }
+
+  private void checkVscodiumInstallation(IdeTestContext context) {
+
+    assertThat(context.getSoftwarePath().resolve("vscode/bin/codium.cmd")).exists().hasContent("@echo test for windows");
+    assertThat(context.getSoftwarePath().resolve("vscode/bin/codium")).exists().hasContent("#!/bin/bash\n" + "echo \"Test for linux and Mac\"");
+
+    assertThat(context.getSoftwarePath().resolve("vscode/.ide.software.version")).exists().hasContent("1.116.02821");
+    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed vscode/vscodium in version 1.116.02821");
   }
 }
