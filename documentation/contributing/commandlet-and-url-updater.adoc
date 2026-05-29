@@ -1,6 +1,6 @@
 = Creating New Commandlets and UrlUpdaters
 
-== Overviewd
+== Overview
 
 This document explains how to implement new commandlets and UrlUpdaters for IDEasy.
 A commandlet is a CLI command that manages a tool (install, uninstall, run), while a UrlUpdater is responsible for discovering and maintaining available versions of a tool.
@@ -67,6 +67,8 @@ To check if a package is available on npm, visit https://www.npmjs.com/
 * `NpmBasedCommandlet`: For npm packages
 
 The npm registry provides automatic version discovery via its REST API.
+
+When implementing a new npm-based tool, you extend `NpmBasedCommandlet` (not `NodeBasedCommandlet` directly), as npm is based on Node.js and requires Node.js to be installed.
 
 === pip Ecosystem
 
