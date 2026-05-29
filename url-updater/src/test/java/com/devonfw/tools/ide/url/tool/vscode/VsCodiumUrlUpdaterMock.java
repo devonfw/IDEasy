@@ -22,6 +22,6 @@ public class VsCodiumUrlUpdaterMock extends VsCodiumUrlUpdater {
   @Override
   protected String doGetVersionUrl() {
 
-    return this.baseUrl + "/repos/" + getGithubOrganization() + "/" + getGithubRepository() + "/git/refs/tags";
+    return this.baseUrl + "/repos/" + getGithubOrganization() + "/" + getGithubRepository() + "/releases";
   }
 }

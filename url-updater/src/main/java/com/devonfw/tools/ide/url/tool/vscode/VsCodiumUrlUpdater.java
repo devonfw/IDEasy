@@ -1,12 +1,12 @@
 package com.devonfw.tools.ide.url.tool.vscode;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlReleaseUpdater;
 
 /**
- * {@link GithubUrlTagUpdater} for the "vscodium" edition of vscode (<a href="https://vscodium.com/">VSCodium</a>).
+ * {@link GithubUrlReleaseUpdater} for the "vscodium" edition of vscode (<a href="https://vscodium.com/">VSCodium</a>).
  */
-public class VsCodiumUrlUpdater extends GithubUrlTagUpdater {
+public class VsCodiumUrlUpdater extends GithubUrlReleaseUpdater {
 
   private static final String DOWNLOAD_BASE_URL = "https://github.com/VSCodium/vscodium/releases/download";
 

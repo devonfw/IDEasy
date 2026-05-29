@@ -30,8 +30,8 @@ class VsCodiumUrlUpdaterTest extends AbstractUrlUpdaterTest {
   @Test
   void testVsCodiumUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     // given
-    stubFor(get(urlMatching("/repos/VSCodium/vscodium/git/refs/tags")).willReturn(aResponse().withStatus(200)
-        .withBody(Files.readAllBytes(PATH_INTEGRATION_TEST.resolve("VsCodiumUrlUpdater").resolve("vscodium-tags.json")))));
+    stubFor(get(urlMatching("/repos/VSCodium/vscodium/releases")).willReturn(aResponse().withStatus(200)
+        .withBody(Files.readAllBytes(PATH_INTEGRATION_TEST.resolve("VsCodiumUrlUpdater").resolve("vscodium-releases.json")))));
     stubFor(head(urlMatching("/.*/VSCodium-(linux|darwin|win32)-(x64|arm64)-.*\\.(tar\\.gz|zip)")).willReturn(aResponse().withStatus(200)));
     stubFor(get(urlMatching("/.*/VSCodium-(linux|darwin|win32)-(x64|arm64)-.*\\.(tar\\.gz|zip)")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
