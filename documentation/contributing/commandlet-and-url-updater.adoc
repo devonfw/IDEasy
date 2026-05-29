@@ -203,6 +203,8 @@ The arguments to pass are:
 * Time to wait for the updater to finish (e.g., PT1H)
 * Name of the updater to run (e.g., mytool)
 
+Once a day, the `UpdateInitiator` will run the updaters through GitHub Actions and fill the https://github.com/devonfw/ide-urls[ide-URL] repository with new version/tools that are identified by the Updaters.
+
 === Create a Commandlet for the new tool
 
 After merging the changes for the created UrlUpdater (if needed), you can check in https://github.com/devonfw/ide-urls if the new tool versions have been discovered and added to the `ide-urls` repository.
