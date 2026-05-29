@@ -626,7 +626,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
     Path settingsPath = getSettingsPath();
     // check whether the settings path has a .git folder only if its not a symbolic link or junction
-    if ((settingsPath != null) && !Files.exists(settingsPath.resolve(".git")) && !isSettingsRepositorySymlinkOrJunction()) {
+    if ((settingsPath != null) && !Files.exists(settingsPath.resolve(".git")) && !isSettingsCodeRepository()) {
       LOG.error("Settings repository exists but is not a git repository.");
       return null;
     }
@@ -634,13 +634,20 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   @Override
-  public boolean isSettingsRepositorySymlinkOrJunction() {
+  public boolean isSettingsCodeRepository() {
 
     Path settingsPath = getSettingsPath();
-    if (settingsPath == null) {
-      return false;
+    if (settingsPath != null) {
+      boolean settingsIsLink = Files.isSymbolicLink(settingsPath) || getFileAccess().isJunction(settingsPath);
+      if (settingsIsLink) {
+        Path realPath = getFileAccess().toRealPath(this.settingsPath);
+        if (realPath != null) {
+          return getGitContext().isGitRepo(realPath.getParent());
+        }
+        return true;
+      }
     }
-    return Files.isSymbolicLink(settingsPath) || getFileAccess().isJunction(settingsPath);
+    return false;
   }
 
   @Override
@@ -1327,21 +1334,22 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
 
   /**
-   * When an update is available for the settings repository, we log a message to the console, reminding the user to run {@code ide update}.
-   * This method determines the correct message to log, depending on whether the settings repository is a symlink/junction, or not.
-   * Should the user already be running the appropriate {@code ide update} command, the message is suppressed to avoid confusion.
+   * When an update is available for the settings repository, we log a message to the console, reminding the user to run {@code ide update}. This method
+   * determines the correct message to log, depending on whether the settings repository is a symlink/junction, or not. Should the user already be running the
+   * appropriate {@code ide update} command, the message is suppressed to avoid confusion.
    *
    * @param cmd the {@link Commandlet}.
    * @return {@code msg} to log to the console. {@code null} if the message is suppressed.
    */
   private String determineSettingsUpdateMessage(Commandlet cmd) {
-    if (isSettingsRepositorySymlinkOrJunction()) {
-      if ((cmd instanceof UpdateCommandlet) && isForceMode()) {
+    boolean update = cmd instanceof UpdateCommandlet;
+    if (isSettingsCodeRepository()) {
+      if (update && (isForceMode() || isForcePull())) {
         return null;
       }
       return "Updates are available for the settings repository. Please pull the latest changes by yourself or by calling \"ide -f update\" to apply them.";
     } else {
-      if (cmd instanceof UpdateCommandlet) {
+      if (update) {
         return null;
       }
       return "Updates are available for the settings repository. If you want to apply the latest changes, call \"ide update\"";
