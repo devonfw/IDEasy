@@ -81,6 +81,6 @@ public class Gui extends Commandlet {
      * We manually update the PATH entry with our java version, as by default IDEasy includes the SymLink under /projectname/software/java/bin in the PATH
      * In case of projects using older Java Versions, this is important as the java version of the project could potentially older.
      */
-    mvn.runTool(processContext.withPathEntry(javaInstallation.binDir()), ProcessMode.DEFAULT, args);
+    mvn.runTool(processContext.withPathEntry(javaInstallation.binDir()), ProcessMode.BACKGROUND_SILENT, args);
   }
 }
