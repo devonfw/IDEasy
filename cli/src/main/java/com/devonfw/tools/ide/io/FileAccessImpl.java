@@ -424,24 +424,22 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   }
 
   /**
-   * Deletes the given {@link Path} if it is a symbolic link or a Windows junction. And throws an {@link IllegalStateException} if there is a file at the given
-   * {@link Path} that is neither a symbolic link nor a Windows junction.
+   * Deletes the given {@link Path} if it is a symbolic link or a Windows junction or hard link. And throws an {@link IllegalStateException} if it fails to
+   * delete the file at the given {@link Path}.
    *
    * @param path the {@link Path} to delete.
    */
   private void deleteLinkIfExists(Path path) {
 
     boolean isJunction = isJunction(path); // since broken junctions are not detected by Files.exists()
-    boolean isSymlink = Files.exists(path, LinkOption.NOFOLLOW_LINKS) && Files.isSymbolicLink(path);
+    boolean exists = Files.exists(path, LinkOption.NOFOLLOW_LINKS);
 
-    assert !(isSymlink && isJunction);
-
-    if (isJunction || isSymlink) {
-      LOG.info("Deleting previous " + (isJunction ? "junction" : "symlink") + " at " + path);
+    if (isJunction || exists) {
+      LOG.info("Deleting previous link or file at " + path);
       try {
         Files.delete(path);
       } catch (IOException e) {
-        throw new IllegalStateException("Failed to delete link at " + path, e);
+        throw new IllegalStateException("Failed to delete link or file at " + path, e);
       }
     }
   }
@@ -545,7 +543,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       if (type == PathLinkType.SYMBOLIC_LINK) {
         Files.createSymbolicLink(finalLink, finalSource);
       } else if (type == PathLinkType.HARD_LINK) {
-        Files.createLink(finalLink, finalSource);
+        createHardLink(finalSource, finalLink);
       } else {
         throw new IllegalStateException("" + type);
       }
@@ -555,12 +553,34 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
             "Due to lack of permissions, Microsoft's mklink with junction had to be used to create a Symlink. See\n"
                 + "https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for further details. Error was: "
                 + e.getMessage());
-        mklinkOnWindows(finalSource, absoluteSource, finalLink, type, relative);
+
+        try {
+          mklinkOnWindows(finalSource, absoluteSource, finalLink, type, relative);
+        } catch (IllegalStateException mkEx) {
+          LOG.info("Creating a hard link as a fallback for the failed mklink attempt.");
+          createHardLink(absoluteSource, finalLink);
+        }
       } else {
         throw new RuntimeException(e);
       }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to create a " + relativeOrAbsolute + " " + type + " at " + finalLink + " pointing to " + source, e);
+    }
+  }
+
+
+  /**
+   * Creates a hard link at {@code link} pointing to {@code source}.
+   *
+   * @param source the {@link Path} the hard link will point to.
+   * @param link the {@link Path} where to create the hard link.
+   */
+  void createHardLink(Path source, Path link) {
+    try {
+      Files.createLink(link, source);
+      LOG.trace("Created hard link at {} pointing to {}", link, source);
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to create a hardlink for " + source + " at " + link, e);
     }
   }
 
@@ -748,13 +768,12 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   /**
    * Extracts a ZIP archive to the given target directory using Java (commons-compress {@link ZipFile}).
    * <p>
-   * Symlinks are handled in a two-phase approach: all regular files and directories are written first, and symlinks are
-   * collected and created afterwards. This ensures every symlink target already exists on disk before the link is made.
+   * Symlinks are handled in a two-phase approach: all regular files and directories are written first, and symlinks are collected and created afterwards. This
+   * ensures every symlink target already exists on disk before the link is made.
    * <p>
-   * {@link ZipFile} is used instead of {@link org.apache.commons.compress.archivers.zip.ZipArchiveInputStream} because
-   * Unix file attributes (needed for symlink detection and permission restoration) are stored in the ZIP central
-   * directory at the end of the file. A sequential stream only sees the local file headers, where external attributes
-   * are always zero. {@link ZipFile} reads the central directory via random access, so attributes are always correct.
+   * {@link ZipFile} is used instead of {@link org.apache.commons.compress.archivers.zip.ZipArchiveInputStream} because Unix file attributes (needed for symlink
+   * detection and permission restoration) are stored in the ZIP central directory at the end of the file. A sequential stream only sees the local file headers,
+   * where external attributes are always zero. {@link ZipFile} reads the central directory via random access, so attributes are always correct.
    *
    * @param file the ZIP archive to extract.
    * @param targetDir the directory to extract into.
@@ -807,8 +826,8 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   /**
    * Returns the Unix file mode stored in the external file attributes of the given ZIP entry.
    * <p>
-   * The ZIP specification stores platform-specific metadata in a 32-bit external-attributes field. When the archive was
-   * created on a Unix system the layout is:
+   * The ZIP specification stores platform-specific metadata in a 32-bit external-attributes field. When the archive was created on a Unix system the layout
+   * is:
    * <ul>
    *   <li>bits 31–16 (upper 16 bits): Unix file mode (same bit layout as {@code stat.st_mode})</li>
    *   <li>bits 15–0 (lower 16 bits): MS-DOS attributes (read-only, hidden, …)</li>
@@ -828,8 +847,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   /**
    * Returns {@code true} if the given ZIP entry represents a symbolic link.
    * <p>
-   * Unix file modes encode the file type in the top 4 bits (bits 15–12) of the mode word. The possible file-type
-   * values are defined in {@code <sys/stat.h>}:
+   * Unix file modes encode the file type in the top 4 bits (bits 15–12) of the mode word. The possible file-type values are defined in {@code <sys/stat.h>}:
    * <ul>
    *   <li>{@code 0x8000} – regular file ({@code S_IFREG})</li>
    *   <li>{@code 0x4000} – directory ({@code S_IFDIR})</li>
@@ -849,8 +867,8 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   /**
    * Applies Unix file permissions stored in a ZIP entry to the extracted file.
    * <p>
-   * Permissions are only applied on non-Windows systems because POSIX permission bits have no equivalent on Windows.
-   * If the entry carries no Unix attributes (mode is {@code 0}), the call is a no-op.
+   * Permissions are only applied on non-Windows systems because POSIX permission bits have no equivalent on Windows. If the entry carries no Unix attributes
+   * (mode is {@code 0}), the call is a no-op.
    *
    * @param entry the source ZIP entry carrying the Unix mode.
    * @param target the extracted file whose permissions should be updated.
@@ -1327,7 +1345,6 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       return 0;
     }
   }
-
 
 
   @Override

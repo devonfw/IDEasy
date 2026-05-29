@@ -1,0 +1,72 @@
+= CPE Integration for URL Updaters
+
+This document explains how to configure CPE mapping for new or existing URL updaters in IDEasy.
+
+CPE (Common Platform Enumeration) is used to map a tool to NVD CVE data. A correct mapping is required so security generation can find relevant vulnerabilities.
+
+== Where CPE Is Configured
+
+CPE mapping is configured in the URL updater itself via:
+
+* `initCpe(AbstractUrlUpdater.CpeRegistry cpe)`
+
+Implementation is provided in `AbstractUrlUpdater`:
+
+* default behavior registers one exact vendor/product pair
+* matching is done via `matchesCpe(vendor, product)`
+* registry supports exact and infix aliases
+* security search uses all configured vendor and product aliases as candidate CPEs
+
+== Minimal Example
+
+Example for `GoUrlUpdater`:
+
+[source,java]
+----
+@Override
+protected void initCpe(AbstractUrlUpdater.CpeRegistry cpe) {
+  cpe.addVendor("golang").addProduct("go");
+}
+----
+
+If you migrate to `initCpe`, you can keep `getCpeVendor()` and `getCpeProduct()` temporarily for compatibility and remove them later.
+
+== Alias Example
+
+Use aliases if NVD/CPE uses multiple vendor or product names over time:
+
+[source,java]
+----
+@Override
+protected void initCpe(AbstractUrlUpdater.CpeRegistry cpe) {
+  cpe.addVendor("astral")
+      .addVendorInfix("astral-sh")
+      .addProduct("uv");
+}
+----
+
+== Typical Use Cases
+
+* One-to-one mapping: one exact vendor and one exact product.
+* Vendor rename or alternate naming: keep one primary value and add aliases.
+* Legacy CPE variants: add only targeted aliases that are known to occur in NVD data.
+
+Do not add overly broad infix aliases, otherwise unrelated CVEs can match.
+
+The same configured aliases are also used to build search candidates for CVE lookup. This means the first alias is still the primary one, but additional aliases help the security scan find CPEs that are named differently in NVD.
+
+== How NVD Search Is Used During Development
+
+When building or updating a URL updater, use NVD search first to identify stable CPE values.
+
+1. Search CPE entries by tool name:
++
+`https://nvd.nist.gov/products/cpe/search/results?keyword=<tool>`
+2. Check candidate `cpe:2.3:a:<vendor>:<product>:...` values and pick the primary pair.
+3. If you find additional valid naming variants, add targeted aliases in `initCpe`.
+4. Validate against CVE search:
++
+`https://nvd.nist.gov/vuln/search/results?query=<vendor>%20<product>`
+5. Keep mapping specific and deterministic, then run tests.
+
+

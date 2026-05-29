@@ -14,7 +14,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * Download URL pattern: https://github.com/Kong/insomnia/releases/download/core@${version}/inso-${os}-${version}.${ext} Examples: - <a
  * href="https://github.com/Kong/insomnia/releases/download/core@12.5.0/inso-linux-x64-12.5.0.tar.xz">github.com/Kong/insomnia/releases/download/core@12.5.0/inso-linux-x64-12.5.0.tar.xz</a>
  * - <a
- * href="https://github.com/Kong/insomnia/releases/download/core@12.5.0-beta.0/inso-windows-12.5.0-beta.0.zip">github.com/Kong/insomnia/releases/download/core@12.5.0-beta.0/inso-windows-12.5.0-beta.0.zip</a>
+ * href="https://github.com/Kong/insomnia/releases/download/core@12.5.0/inso-windows-12.5.0.zip">github.com/Kong/insomnia/releases/download/core@12.5.0/inso-windows-12.5.0.zip</a>
  */
 public class InsoUrlUpdater extends GithubUrlReleaseUpdater {
 
