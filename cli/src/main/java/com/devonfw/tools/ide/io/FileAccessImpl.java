@@ -820,8 +820,20 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       // write the symlinks last, with the exact target text from the archive - lets chained links
       // like macOS .framework bundles resolve once the whole bundle is on disk
       for (Map.Entry<Path, String> link : symlinks.entrySet()) {
-        Files.deleteIfExists(link.getKey());
-        Files.createSymbolicLink(link.getKey(), Path.of(link.getValue()));
+        Path linkPath = link.getKey();
+        String rawTarget = link.getValue();
+        Files.deleteIfExists(linkPath);
+        try {
+          Files.createSymbolicLink(linkPath, Path.of(rawTarget));
+        } catch (FileSystemException e) {
+          // on Windows without symlink permission fall back to a junction, same as link() does
+          if (SystemInfoImpl.INSTANCE.isWindows()) {
+            Path absoluteSource = linkPath.getParent().resolve(rawTarget).normalize();
+            mklinkOnWindows(Path.of(rawTarget), absoluteSource, linkPath, PathLinkType.SYMBOLIC_LINK, true);
+          } else {
+            throw e;
+          }
+        }
       }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
