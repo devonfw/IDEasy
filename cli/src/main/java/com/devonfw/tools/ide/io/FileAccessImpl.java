@@ -30,7 +30,9 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
@@ -768,8 +770,9 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   /**
    * Extracts a ZIP archive to the given target directory using Java (commons-compress {@link ZipFile}).
    * <p>
-   * Symlinks are handled in a two-phase approach: all regular files and directories are written first, and symlinks are collected and created afterwards. This
-   * ensures every symlink target already exists on disk before the link is made.
+   * Symlinks are collected during the entry walk and written at the end, using the exact target string from the archive (no canonicalisation, no existence
+   * check). This matches what {@code /usr/bin/unzip} does and is required for macOS {@code .framework} bundles, whose symlinks point through other symlinks
+   * (e.g. {@code Electron Framework -> Versions/Current/Electron Framework}) that may not exist yet at the moment the link is written.
    * <p>
    * {@link ZipFile} is used instead of {@link org.apache.commons.compress.archivers.zip.ZipArchiveInputStream} because Unix file attributes (needed for symlink
    * detection and permission restoration) are stored in the ZIP central directory at the end of the file. A sequential stream only sees the local file headers,
@@ -780,7 +783,8 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
    */
   private void extractZipWithJava(Path file, Path targetDir) {
 
-    final List<PathLink> links = new ArrayList<>();
+    // link path -> raw target string from the archive; LinkedHashMap keeps entry order for deterministic creation
+    final Map<Path, String> symlinks = new LinkedHashMap<>();
     try (ZipFile zipFile = ZipFile.builder().setPath(file).get();
         IdeProgressBar pb = this.context.newProgressbarForExtracting(getFileSize(file))) {
 
@@ -794,13 +798,12 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
 
         if (isZipSymlink(entry)) {
           try (InputStream entryStream = zipFile.getInputStream(entry)) {
-            // For symlink entries the file content IS the link target path (Unix zip convention).
+            // for a symlink entry the file content IS the link target string (Unix zip convention)
             String linkTarget = IOUtils.toString(entryStream, StandardCharsets.UTF_8);
-            Path parent = entryPath.getParent();
-            Path source = parent.resolve(linkTarget).normalize();
-            resolveRelativePathSecure(source, root, linkTarget);
-            links.add(new PathLink(source, entryPath, PathLinkType.SYMBOLIC_LINK));
-            mkdirs(parent);
+            // security: refuse archives whose link would resolve outside the extraction root
+            resolveRelativePathSecure(entryPath.getParent().resolve(linkTarget).normalize(), root, linkTarget);
+            mkdirs(entryPath.getParent());
+            symlinks.put(entryPath, linkTarget);
           }
         } else if (entry.isDirectory()) {
           mkdirs(entryPath);
@@ -814,9 +817,11 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
         pb.stepBy(Math.max(0L, entry.getSize()));
       }
 
-      // Phase 2: create all symlinks now that their targets are guaranteed to exist.
-      for (PathLink link : links) {
-        link(link);
+      // write the symlinks last, with the exact target text from the archive - lets chained links
+      // like macOS .framework bundles resolve once the whole bundle is on disk
+      for (Map.Entry<Path, String> link : symlinks.entrySet()) {
+        Files.deleteIfExists(link.getKey());
+        Files.createSymbolicLink(link.getKey(), Path.of(link.getValue()));
       }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
