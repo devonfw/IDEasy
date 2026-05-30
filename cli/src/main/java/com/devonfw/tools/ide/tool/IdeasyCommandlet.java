@@ -622,7 +622,23 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   private void deleteDownloadCache() {
     Path downloadPath = this.context.getDownloadPath();
     LOG.info("Deleting download cache from {}", downloadPath);
-    this.context.getFileAccess().delete(downloadPath);
+    tryDeleteDownloadCache(downloadPath);
+    // older versions kept the cache under ~/Downloads/ide - clean that up too if it's still around
+    Path legacy = this.context.getUserHome().resolve("Downloads/ide");
+    if (!legacy.equals(downloadPath) && Files.exists(legacy)) {
+      LOG.info("Deleting legacy download cache from {}", legacy);
+      tryDeleteDownloadCache(legacy);
+    }
+  }
+
+  private void tryDeleteDownloadCache(Path path) {
+    try {
+      this.context.getFileAccess().delete(path);
+    } catch (IllegalStateException e) {
+      // best effort - on macOS ~/Downloads can deny access (EPERM), don't fail the whole uninstall over it
+      String cause = (e.getCause() != null) ? e.getCause().getMessage() : e.getMessage();
+      LOG.warn("Could not delete download cache at {} ({}). The folder will be left in place; you can remove it manually via Finder.", path, cause);
+    }
   }
 
   private void uninstallIdeasyIdePath(Path idePath) {
