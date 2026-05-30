@@ -59,6 +59,6 @@ public class GhUrlUpdater extends GithubUrlTagUpdater {
 
   @Override
   public String getCpeProduct() {
-    return "gh";
+    return "cli";
   }
 }

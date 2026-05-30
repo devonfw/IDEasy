@@ -81,14 +81,5 @@ public class AndroidStudioUrlUpdater extends JsonUrlUpdater<AndroidJsonObject, A
 
     return jsonObject.content().item();
   }
-
-  @Override
-  public String getCpeVendor() {
-    return "google";
-  }
-
-  @Override
-  public String getCpeProduct() {
-    return "android_studio";
-  }
+  
 }
