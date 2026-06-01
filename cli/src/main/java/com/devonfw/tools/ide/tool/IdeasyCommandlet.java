@@ -9,6 +9,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,6 +72,27 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   );
 
   private final UpgradeMode mode;
+
+  /** Pattern for IDEasy SNAPSHOT versions built locally. */
+  // ..............................................................................1..........................2........3........4
+  private static final Pattern PATTERN_IDEASY_SNAPSHOT_VERSION = Pattern.compile("^(\\d{4}\\.\\d{2}\\.\\d{3})-(\\d{2})_(\\d{2})_(\\d{2}).*-SNAPSHOT$");
+
+  /** Pattern for Maven/Nexus SNAPSHOT versions from downloads . */
+  // .............................................................................1..........................2.......3.......4..........5
+  private static final Pattern PATTERN_MAVEN_SNAPSHOT_VERSION = Pattern.compile("^(\\d{4}\\.\\d{2}\\.\\d{3})-(\\d{4})(\\d{2})(\\d{2})\\.(\\d{2})\\d{4}.*$");
+
+  // Group numbers for PATTERN_IDEASY_SNAPSHOT_VERSION
+  private static final int GROUP_IDEASY_BASE = 1;
+  private static final int GROUP_IDEASY_MONTH = 2;
+  private static final int GROUP_IDEASY_DAY = 3;
+  private static final int GROUP_IDEASY_HOUR = 4;
+
+  // Group numbers for PATTERN_MAVEN_SNAPSHOT_VERSION
+  private static final int GROUP_MAVEN_BASE = 1;
+  private static final int GROUP_MAVEN_YEAR = 2;
+  private static final int GROUP_MAVEN_MONTH = 3;
+  private static final int GROUP_MAVEN_DAY = 4;
+  private static final int GROUP_MAVEN_HOUR = 5;
 
   /**
    * The constructor.
@@ -178,15 +201,60 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       return false;
     }
     VersionIdentifier latestVersion = getLatestVersion();
-    if (installedVersion.equals(latestVersion)) {
-      IdeLogLevel.SUCCESS.log(LOG, "Your are using the latest version of IDEasy and no update is available.");
+    if (IdeVersion.isSnapshot()) {
+      if (isSameSnapshotVersion(installedVersion.toString(), latestVersion.toString())) {
+        IdeLogLevel.SUCCESS.log(LOG, "Your are using the latest snapshot version of IDEasy and no update is available.");
+        return false;
+      }
+    } else if (installedVersion.equals(latestVersion)) {
+      IdeLogLevel.SUCCESS.log(LOG, "Your are using the latest stable version of IDEasy and no update is available.");
       return false;
-    } else {
-      IdeLogLevel.INTERACTION.log(LOG,
-          "Your version of IDEasy is {} but version {} is available. Please run the following command to upgrade to the latest version:\n"
-              + "ide upgrade", installedVersion, latestVersion);
-      return true;
     }
+    IdeLogLevel.INTERACTION.log(LOG,
+        "Your version of IDEasy is {} but version {} is available. Please run the following command to upgrade to the latest version:\n"
+            + "ide upgrade", installedVersion, latestVersion);
+    return true;
+  }
+
+  /**
+   * Checks if two snapshot versions represent the version
+   *
+   * @param installed the installed version string
+   * @param latest the latest available version string
+   * @return {@code true} if both versions represent the same version, {@code false} otherwise.
+   */
+  private boolean isSameSnapshotVersion(String installed, String latest) {
+    if (installed == null || latest == null) {
+      return false;
+    }
+
+    Matcher installedMatcher = PATTERN_IDEASY_SNAPSHOT_VERSION.matcher(installed);
+    Matcher latestMatcher = PATTERN_MAVEN_SNAPSHOT_VERSION.matcher(latest);
+
+    if (!installedMatcher.matches() || !latestMatcher.matches()) {
+      return false;
+    }
+
+    // Compare base versions
+    String baseInstalled = installedMatcher.group(GROUP_IDEASY_BASE);
+    String baseLatest = latestMatcher.group(GROUP_MAVEN_BASE);
+    if (!baseInstalled.equals(baseLatest)) {
+      return false;
+    }
+
+    // Compare year
+    String yearLatest = latestMatcher.group(GROUP_MAVEN_YEAR);
+    String baseYear = baseInstalled.split("\\.")[0];
+    if (!baseYear.equals(yearLatest)) {
+      return false;
+    }
+
+    // Compare MMDD.HH for both versions
+    String keyInstalled =
+        installedMatcher.group(GROUP_IDEASY_MONTH) + installedMatcher.group(GROUP_IDEASY_DAY) + "." + installedMatcher.group(GROUP_IDEASY_HOUR);
+    String keyLatest = latestMatcher.group(GROUP_MAVEN_MONTH) + latestMatcher.group(GROUP_MAVEN_DAY) + "." + latestMatcher.group(GROUP_MAVEN_HOUR);
+
+    return keyInstalled.equals(keyLatest);
   }
 
   /**
