@@ -56,11 +56,13 @@ public class RepositoryCommandlet extends Commandlet {
     Path repositoryFile = this.repository.getValue();
 
     if (repositoryFile != null) {
+      // Handle the case when a specific repository is provided
       RepositoryConfig config = prepareActiveRepository(repositoryFile, true);
       if (config != null) {
         importRepository(config);
       }
     } else {
+      // If no specific repository is provided, check for repositories folder
       Path repositoriesPath = this.context.getRepositoriesPath();
       if (repositoriesPath == null) {
         LOG.warn("Cannot find folder 'repositories' nor 'projects' in your settings.");
@@ -110,7 +112,6 @@ public class RepositoryCommandlet extends Commandlet {
   }
 
   private void importRepository(RepositoryConfig config) {
-
     this.context.newStep("Setup of repository " + config.id()).run(() -> {
       doImportRepository(config);
     });
@@ -258,7 +259,6 @@ public class RepositoryCommandlet extends Commandlet {
   }
 
   private boolean buildRepository(RepositoryConfig repositoryConfig, Path repositoryPath) {
-
     String buildCmd = repositoryConfig.buildCmd();
     if (buildCmd != null && !buildCmd.isEmpty()) {
       return this.context.newStep("Build repository via: " + buildCmd).run(() -> {

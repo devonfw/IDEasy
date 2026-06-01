@@ -16,15 +16,25 @@ import com.devonfw.tools.ide.git.GitUrl;
  * @param workingSets The working sets associated with the repository (for Eclipse import).
  * @param workspaces Workspaces to use for checkout and import. Supports comma-separated values. Default is main.
  * @param gitUrl Git URL to use for cloning the project.
- * @param gitBranch Git branch to checkout. Git default branch is default.
+ * @param gitBranch Git branch to . Git default branch is default.
  * @param buildPath The build path for the repository.
  * @param buildCmd The command to invoke to build the repository after clone or pull. If omitted no build is triggered.
  * @param imports list of IDEs where the repository will be imported to.
  * @param links list of links to create for this repository.
  * @param active {@code true} to setup the repository during setup, {@code false} to skip.
  */
-public record RepositoryConfig(String id, String path, String workingSets, List<String> workspaces, String gitUrl, String gitBranch, String buildPath,
-                               String buildCmd, Set<String> imports, List<RepositoryLink> links, boolean active) {
+public record RepositoryConfig(
+    String id,
+    String path,
+    String workingSets,
+    List<String> workspaces,
+    String gitUrl,
+    String gitBranch,
+    String buildPath,
+    String buildCmd,
+    Set<String> imports,
+    List<RepositoryLink> links,
+    boolean active) {
 
   /** Wildcard to match all workspaces. */
   public static final String WORKSPACE_NAME_ALL = "*";
@@ -50,7 +60,6 @@ public record RepositoryConfig(String id, String path, String workingSets, List<
    * @return {@code true} if this is the virtual settings repository using the IDE settings folder instead of a Git URL.
    */
   public boolean isVirtualSettingsRepository() {
-
     return IdeContext.SETTINGS_REPOSITORY_KEYWORD.equals(this.id) && ((this.gitUrl == null) || this.gitUrl.isBlank());
   }
 
