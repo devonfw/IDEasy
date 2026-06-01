@@ -55,8 +55,11 @@ public class Azure extends LocalToolCommandlet {
     environmentContext.withEnvVar("AZURE_CONFIG_DIR", this.context.getConfPath().resolve(".azure").toString());
     if (this.context.getSystemInfo().isMac()) {
       Python python = this.context.getCommandletManager().getCommandlet(Python.class);
-      Path pythonBin = python.getToolBinPath().resolve("python3");
-      environmentContext.withEnvVar("AZ_PYTHON", pythonBin.toString());
+      Path pythonBinPath = python.getToolBinPath();
+      if (pythonBinPath != null) {
+        Path pythonBin = pythonBinPath.resolve("python3");
+        environmentContext.withEnvVar("AZ_PYTHON", pythonBin.toString());
+      }
     }
   }
 }
