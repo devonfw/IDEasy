@@ -19,7 +19,7 @@ public class Spyder extends PipBasedCommandlet {
    * @param context the {@link IdeContext}.
    */
   public Spyder(IdeContext context) {
-    super(context, "spyder", Set.of(Tag.SPYDER, Tag.PYTHON));
+    super(context, "spyder", Set.of(Tag.SPYDER));
   }
 
   @Override
