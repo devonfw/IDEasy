@@ -99,6 +99,28 @@ public abstract class Commandlet {
   }
 
   /**
+   * Create a new keyword property and set it as the first keyword property.
+   *
+   * @param keyword the string to create the property from
+   * @param alias the alias for the given keyword
+   */
+  protected void setFirstKeyword(String keyword, String alias) {
+    KeywordProperty property = new KeywordProperty(keyword, true, alias);
+
+    this.firstKeyword = property;
+    this.add(property);
+  }
+
+  /**
+   * Create a new keyword property without an alias and set it as the first keyword property.
+   *
+   * @param keyword the string to create the property from
+   */
+  protected void setFirstKeyword(String keyword) {
+    this.setFirstKeyword(keyword, null);
+  }
+
+  /**
    * @param keyword the {@link KeywordProperty keyword} to {@link #add(Property) add}.
    * @param alias the optional {@link KeywordProperty#getAlias() alias}.
    */
@@ -191,7 +213,7 @@ public abstract class Commandlet {
    */
   public boolean isIdeRootRequired() {
 
-    return true;
+    return !this.context.isTest();
   }
 
   /**

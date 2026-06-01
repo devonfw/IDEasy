@@ -15,6 +15,10 @@ public class CliArguments implements Iterator<CliArgument> {
 
   private boolean splitShortOpts;
 
+  public CliArguments(int completionIdx, String... args) {
+    this(CliArgument.of(completionIdx, args));
+  }
+
   /**
    * The constructor.
    *
@@ -163,6 +167,10 @@ public class CliArguments implements Iterator<CliArgument> {
   public String toString() {
 
     return this.currentArg.getArgs();
+  }
+
+  public static CliArguments of(int completionIdx, String... args) {
+    return new CliArguments(completionIdx, args);
   }
 
   /**

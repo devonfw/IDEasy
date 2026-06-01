@@ -60,7 +60,7 @@ public class PluginProperty extends Property<String> {
       ToolPlugins plugins = pbc.getPlugins();
       for (ToolPluginDescriptor pluginDescriptor : plugins.getPlugins()) {
         if (pluginDescriptor.name().toLowerCase().startsWith(arg.toLowerCase())) {
-          collector.add(pluginDescriptor.name(), null, null, commandlet);
+          collector.add(pluginDescriptor.name(), null);
         }
       }
     }

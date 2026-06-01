@@ -67,10 +67,12 @@ public final class ShellCommandlet extends Commandlet {
 
   @Override
   protected void doRun() {
+    this.setFirstKeyword("exit");
 
     try {
       Parser parser = new DefaultParser();
       try (Terminal terminal = TerminalBuilder.builder().build()) {
+        // initialize our own completer here and add exit as an autocompletion option
         IdeCompleter completer = new IdeCompleter((AbstractIdeContext) this.context);
 
         LineReader reader = LineReaderBuilder.builder().terminal(terminal).completer(completer).parser(parser)

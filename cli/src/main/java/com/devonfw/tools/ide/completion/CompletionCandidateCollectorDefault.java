@@ -38,19 +38,28 @@ public class CompletionCandidateCollectorDefault implements CompletionCandidateC
   }
 
   @Override
-  public void add(String text, String description, Property<?> property, Commandlet commandlet) {
-
-    // Check if this candidate already exists to avoid duplicates
+  public void add(CompletionCandidate completion) {
     for (CompletionCandidate existing : this.candidates) {
-      if (existing.text().equals(text)) {
-        // Duplicate candidate found, do not add
+      if (existing.text().equals(completion.text())) {
         return;
       }
     }
 
-    CompletionCandidate candidate = createCandidate(text, description, property, commandlet);
+    this.candidates.add(completion);
+  }
+
+  @Override
+  public void add(String text, String description) {
+    for (CompletionCandidate existing : this.candidates) {
+      if (existing.text().equals(text)) {
+        return;
+      }
+    }
+
+    CompletionCandidate candidate = this.createCandidate(text, description, !text.endsWith("="));
     this.candidates.add(candidate);
-    LOG.trace("Added {} for auto-completion of property {}.{}", candidate, commandlet, property);
+
+    LOG.trace("Added {} for auto-completion.", candidate);
   }
 
   @Override
@@ -79,5 +88,4 @@ public class CompletionCandidateCollectorDefault implements CompletionCandidateC
 
     return this.candidates.toString();
   }
-
 }

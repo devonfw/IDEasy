@@ -96,6 +96,15 @@ public interface CommandletManager {
   }
 
   /**
+   *  Gather all completion candidates.
+   *
+   *  @param arguments the arguments to complete
+   *  @param collector the collector to store completions
+   */
+  public abstract void collectCompletionCandidates(CliArguments arguments,
+      CompletionCandidateCollector collector);
+
+  /**
    * @param arguments the {@link CliArguments}.
    * @param collector the optional {@link CompletionCandidateCollector}. Will be {@code null} if no argument {@link CliArguments#isCompletion() completion}
    *     shall be performed.

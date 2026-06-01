@@ -409,6 +409,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   /**
    * @return {@code true} if this is a test context for JUnits, {@code false} otherwise.
    */
+  @Override
   public boolean isTest() {
 
     return false;
@@ -1450,12 +1451,11 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
         property.apply(arguments, this, cc, collector);
       }
     }
-    Iterator<Commandlet> commandletIterator = this.commandletManager.findCommandlet(arguments, collector);
-    CliArgument current = arguments.current();
-    if (current.isCompletion() && current.isCombinedShortOption()) {
-      collector.add(current.get(), null, null, null);
-    }
-    arguments.next();
+
+    this.commandletManager.collectCompletionCandidates(arguments, collector);
+
+    Iterator<Commandlet> commandletIterator = this.commandletManager.findCommandlet(arguments, null);
+
     while (commandletIterator.hasNext()) {
       Commandlet cmd = commandletIterator.next();
       if (!arguments.current().isEnd()) {
@@ -1469,7 +1469,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
     LOG.trace("Trying to match arguments for auto-completion for commandlet {}", cmd.getName());
     Iterator<Property<?>> valueIterator = cmd.getValues().iterator();
-    valueIterator.next(); // skip first property since this is the keyword property that already matched to find the commandlet
+    Property<?> lastValueProperty = null;
     List<Property<?>> properties = cmd.getProperties();
     // we are creating our own list of options and remove them when matched to avoid duplicate suggestions
     List<Property<?>> optionProperties = new ArrayList<>(properties.size());
@@ -1489,36 +1489,36 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
             boolean success = option.apply(arguments, this, cmd, collector);
             if (success) {
               optionIterator.remove();
-              arguments.next();
             }
           }
         } else {
           Property<?> option = cmd.getOption(currentArgument.get());
           if (option != null) {
-            arguments.next();
-            boolean removed = optionProperties.remove(option);
-            if (!removed) {
-              option = null;
-            }
-          }
-          if (option == null) {
-            LOG.trace("No such option was found.");
-            return;
+            optionProperties.remove(option);
           }
         }
       } else {
-        if (valueIterator.hasNext()) {
-          Property<?> valueProperty = valueIterator.next();
-          boolean success = valueProperty.apply(arguments, this, cmd, collector);
-          if (!success) {
-            LOG.trace("Completion cannot match any further.");
-            return;
+        if (currentArgument.isCompletion() && currentArgument.get().isEmpty()
+            && !arguments.isEndOptions()) {
+          for (Property<?> option : optionProperties) {
+            option.apply(arguments, this, cmd, collector);
           }
-        } else {
-          LOG.trace("No value left for completion.");
-          return;
+        }
+
+        Property<?> valueProperty = null;
+        if (valueIterator.hasNext()) {
+          lastValueProperty = valueIterator.next();
+          valueProperty = lastValueProperty;
+        } else if (lastValueProperty != null && lastValueProperty.isMultiValued()) {
+          valueProperty = lastValueProperty;
+        }
+
+        if (valueProperty != null) {
+          valueProperty.apply(arguments, this, cmd, collector);
         }
       }
+
+      arguments.next();
       currentArgument = arguments.current();
     }
   }
@@ -1563,7 +1563,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
           }
         }
         if ((property != null) && property.isValue() && property.isMultiValued()) {
-          arguments.stopSplitShortOptions();
+          arguments.endOptions();
         }
       }
       boolean matches = currentProperty.apply(arguments, this, cmd, null);
@@ -1572,6 +1572,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
         state.addErrorMessage("No matching property found");
         return state;
       }
+      arguments.next();
       currentArgument = arguments.current();
     }
     return ValidationResultValid.get();

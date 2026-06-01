@@ -178,10 +178,7 @@ public class CommandletManagerImpl implements CommandletManager {
     if (keyword != null) {
       String name = keyword.getName();
       registerKeyword(name, commandlet);
-      String optionName = keyword.getOptionName();
-      if (!optionName.equals(name)) {
-        registerKeyword(optionName, commandlet);
-      }
+
       String alias = keyword.getAlias();
       if (alias != null) {
         registerKeyword(alias, commandlet);
@@ -241,9 +238,35 @@ public class CommandletManagerImpl implements CommandletManager {
   }
 
   @Override
+  public void collectCompletionCandidates(CliArguments arguments,
+                                          CompletionCandidateCollector collector) {
+    CliArgument current = arguments.current();
+    if (current.isStart()) {
+      arguments.next();
+      current = arguments.current();
+    }
+    if (current.isEnd()) {
+      return;
+    }
+
+    for (Commandlet cmd : this.getCommandlets()) {
+      if (this.context.isTest() || !cmd.isIdeHomeRequired() || this.context.getIdeHome() != null) {
+        KeywordProperty firstKeyword = cmd.getFirstKeyword();
+        if (firstKeyword != null && !firstKeyword.isPlaceholder()) {
+          firstKeyword.apply(arguments, this.context, cmd, collector);
+        }
+      }
+    }
+  }
+
+  @Override
   public Iterator<Commandlet> findCommandlet(CliArguments arguments, CompletionCandidateCollector collector) {
 
     CliArgument current = arguments.current();
+    if (current.isStart()) {
+      arguments.next();
+      current = arguments.current();
+    }
     if (current.isEnd()) {
       return Collections.emptyIterator();
     }

@@ -372,6 +372,8 @@ public interface IdeContext extends IdeStartContext {
    */
   VersionIdentifier getProjectVersion();
 
+  boolean isTest();
+
   /**
    * @param version the new value of {@link #getProjectVersion()}.
    */

@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollectorAdapter;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -50,6 +51,8 @@ public abstract class Property<V> {
   /** @see #isMultiValued() */
   private final boolean multivalued;
 
+  private final boolean placeholder;
+
   /** @see #getValue() */
   protected final List<V> value = new ArrayList<>();
 
@@ -62,12 +65,7 @@ public abstract class Property<V> {
    */
   public Property(String name, boolean required, String alias) {
 
-    super();
-    this.name = name;
-    this.required = required;
-    this.alias = alias;
-    this.multivalued = false;
-    this.validator = null;
+    this(name, required, alias, false, null);
   }
 
   /**
@@ -80,13 +78,28 @@ public abstract class Property<V> {
    * @param validator the {@link Consumer} used to {@link #validate() validate} the {@link #getValue() value}.
    */
   public Property(String name, boolean required, String alias, boolean multivalued, PropertyValidator<V> validator) {
+    this(name, required, alias, multivalued, false, validator);
+  }
 
+  /**
+   * The constructor.
+   *
+   * @param name the {@link #getName() property name}.
+   * @param required the {@link #isRequired() required flag}.
+   * @param alias the {@link #getAlias() property alias}.
+   * @param multivalued the boolean flag about multiple arguments
+   * @param placeholder whether this property is substituted by some value or literal
+   * @param validator the {@link Consumer} used to {@link #validate() validate} the {@link #getValue() value}.
+   */
+  public Property(String name, boolean required, String alias, boolean multivalued, boolean placeholder, PropertyValidator<V> validator) {
     super();
+
     this.name = name;
     this.required = required;
     this.alias = alias;
-    this.validator = validator;
     this.multivalued = multivalued;
+    this.placeholder = placeholder;
+    this.validator = validator;
   }
 
   /**
@@ -163,6 +176,10 @@ public abstract class Property<V> {
   public boolean isMultiValued() {
 
     return this.multivalued;
+  }
+
+  public boolean isPlaceholder() {
+    return this.placeholder;
   }
 
   /**
@@ -342,8 +359,16 @@ public abstract class Property<V> {
    * @return {@code true} if it matches, {@code false} otherwise.
    */
   public boolean apply(CliArguments args, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
+    if (this.placeholder && args.current().isCompletion()) {
+      return false;
+    }
+    boolean match = this.apply(this.name, args, context, commandlet, collector);
 
-    return apply(this.name, args, context, commandlet, collector);
+    if (args.current().isCompletion() && this.alias != null && !this.name.isEmpty()) {
+      match |= this.apply(this.alias, args, context, commandlet, collector);
+    }
+
+    return match;
   }
 
   /**
@@ -358,19 +383,25 @@ public abstract class Property<V> {
 
     CliArgument argument = args.current();
     if (argument.isCompletion()) {
+      if (collector == null) {
+        return false;
+      }
+
       int size = collector.getCandidates().size();
-      complete(normalizedName, argument, args, context, commandlet, collector);
-      return (collector.getCandidates().size() > size);
+      boolean match = this.complete(normalizedName, argument, args, context, commandlet, collector);
+
+      return match;
     }
+
     boolean option = normalizedName.startsWith("-");
-    if (option && !argument.isOption()) {
+    if (option && !argument.isOption() || !option && argument.isOption()
+        && argument.get().length() > 0 && !args.isEndOptions()) {
       return false;
     }
-    if (!option && argument.isOption() && (argument.get().length() > 1) && args.isSplitShortOpts()) {
-      return false;
-    }
+
     String argValue = null;
     boolean lookahead = false;
+
     if (normalizedName.isEmpty()) {
       argValue = argument.get();
     } else {
@@ -379,7 +410,6 @@ public abstract class Property<V> {
       }
       argValue = argument.getValue();
       if (argValue == null) {
-        argument = args.next();
         if (argument.isCompletion()) {
           completeValue(argument.get(), context, commandlet, collector);
           return true;
@@ -407,16 +437,6 @@ public abstract class Property<V> {
       CompletionCandidateCollector collector) {
 
     boolean success = assignValueAsString(argValue, context, commandlet);
-
-    if (success) {
-      if (this.multivalued) {
-        while (success && args.hasNext()) {
-          CliArgument arg = args.next();
-          success = assignValueAsString(arg.get(), context, commandlet);
-        }
-      }
-    }
-    args.next();
     return success;
   }
 
@@ -429,39 +449,43 @@ public abstract class Property<V> {
    * @param context the {@link IdeContext}.
    * @param commandlet the {@link Commandlet} owning this {@link Property}.
    * @param collector the {@link CompletionCandidateCollector}.
+   * @return {@code true} if completion succeeded, {@code false} otherwise
    */
-  protected void complete(String normalizedName, CliArgument argument, CliArguments args, IdeContext context, Commandlet commandlet,
-      CompletionCandidateCollector collector) {
-
+  protected boolean complete(
+      String normalizedName, CliArgument argument, CliArguments args, IdeContext context,
+      Commandlet commandlet, CompletionCandidateCollector collector
+  ) {
     String arg = argument.get();
+
     if (normalizedName.isEmpty()) {
       int count = collector.getCandidates().size();
       completeValue(arg, context, commandlet, collector);
+
       if (collector.getCandidates().size() > count) {
-        args.next();
+        return true;
       }
-      return;
+
+      return false;
     }
+
     if (normalizedName.startsWith(arg)) {
-      collector.add(normalizedName, null, this, commandlet);
+      boolean complete = !normalizedName.endsWith("=");
+      CompletionCandidate candidate = collector.createCandidate(normalizedName, null, complete);
+
+      collector.add(candidate);
+      return true;
     }
+
     if (this.alias != null) {
-      if (this.alias.startsWith(arg)) {
-        collector.add(this.alias, null, this, commandlet);
-      } else if ((this.alias.length() == 2) && (this.alias.charAt(0) == '-') && argument.isShortOption()) {
-        char opt = this.alias.charAt(1); // e.g. arg="-do" and alias="-f" -complete-> "-dof"
+      if (this.alias.length() == 2 && this.alias.charAt(0) == '-' && argument.isShortOption()) {
+        char opt = this.alias.charAt(1);
         if (arg.indexOf(opt) < 0) {
-          collector.add(arg + opt, null, this, commandlet);
+          collector.add(arg + opt, null);
         }
       }
     }
-    String value = argument.getValue();
-    if (value != null) {
-      String key = argument.getKey();
-      if (normalizedName.equals(key) || Objects.equals(this.alias, key)) {
-        completeValue(value, context, commandlet, new CompletionCandidateCollectorAdapter(key + "=", collector));
-      }
-    }
+
+    return false;
   }
 
   /**
@@ -472,9 +496,7 @@ public abstract class Property<V> {
    * @param commandlet the {@link Commandlet} owning this {@link Property}.
    * @param collector the {@link CompletionCandidateCollector}.
    */
-  protected void completeValue(String arg, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
-
-  }
+  protected abstract void completeValue(String arg, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector);
 
   /**
    * @param nameOrAlias the potential {@link #getName() name} or {@link #getAlias() alias} to match.

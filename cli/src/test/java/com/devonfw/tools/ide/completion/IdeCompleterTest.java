@@ -102,8 +102,8 @@ class IdeCompleterTest extends AutocompletionReaderTestSupport {
   void testIdeCompleterPreventsOptionsAfterCommandWithMinus() {
 
     this.reader.setCompleter(newCompleter());
-    assertBuffer("get-version --configured ", new TestBuffer("get-version -").tab().tab());
-    assertBuffer("get-version - ", new TestBuffer("get-version - ").tab().tab());
+    assertBuffer("get-version --configured", new TestBuffer("get-version -").tab().tab());
+    assertBuffer("get-version -- android-studio", new TestBuffer("get-version -- ").tab().tab());
 
   }
 
@@ -114,7 +114,10 @@ class IdeCompleterTest extends AutocompletionReaderTestSupport {
   void testIdeCompleterWithInvalidInputDoesNothing() {
 
     this.reader.setCompleter(newCompleter());
-    assertBuffer("get-version -t ", new TestBuffer("get-version -t ").tab().tab());
+    assertBuffer(
+        "get-version -t android-studio --configured --installed ",
+        new TestBuffer("get-version -t android-studio --configured --installed ").tab().tab()
+    );
     assertBuffer("- get-version ", new TestBuffer("- get-version ").tab().tab());
     assertBuffer(" - get-version", new TestBuffer(" - get-version").tab().tab());
   }
@@ -123,10 +126,10 @@ class IdeCompleterTest extends AutocompletionReaderTestSupport {
    * Test of 2nd level completion of tool property for {@link com.devonfw.tools.ide.commandlet.VersionGetCommandlet}.
    */
   @Test
-  void testIdeCompleterHandlesOptionsBeforeCommand() {
+  void testIdeCompleterAllowsOptionsAfterCommand() {
 
     this.reader.setCompleter(newCompleter());
-    assertBuffer("get-version mvn ", new TestBuffer("get-version mv").tab().tab());
+    assertBuffer("get-version mvn --installed ", new TestBuffer("get-version mvn --in").tab());
   }
 
   /**

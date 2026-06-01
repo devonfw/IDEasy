@@ -29,7 +29,7 @@ public class PathProperty extends Property<Path> {
    */
   public PathProperty(String name, boolean required, String alias, boolean mustExist) {
 
-    this(name, required, alias, mustExist, null);
+    this(name, required, alias, mustExist, false, null);
   }
 
   /**
@@ -39,11 +39,12 @@ public class PathProperty extends Property<Path> {
    * @param required the {@link #isRequired() required flag}.
    * @param alias the {@link #getAlias() property alias}.
    * @param mustExist the {@link #isPathRequiredToExist() required to exist flag}.
+   * @param placeholder whether this property is substituted by some value or literal
    * @param validator the {@link PropertyValidator} used to {@link #validate() validate} the {@link #getValue() value}.
    */
-  public PathProperty(String name, boolean required, String alias, boolean mustExist, PropertyValidator<Path> validator) {
+  public PathProperty(String name, boolean required, String alias, boolean mustExist, boolean placeholder, PropertyValidator<Path> validator) {
 
-    super(name, required, alias, false, validator);
+    super(name, required, alias, false, placeholder, validator);
     this.mustExist = mustExist;
   }
 
@@ -129,7 +130,7 @@ public class PathProperty extends Property<Path> {
     if (Files.isDirectory(folder)) {
       try (Stream<Path> children = Files.list(folder)) {
         children.filter(child -> isValidPath(child, filename))
-            .forEach(child -> collector.add(getPathForCompletion(child, context, commandlet), null, this, commandlet));
+            .forEach(child -> collector.add(getPathForCompletion(child, context, commandlet), null));
       } catch (IOException e) {
         throw new IllegalStateException(e);
       }

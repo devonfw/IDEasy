@@ -41,7 +41,7 @@ public class RepositoryCommandlet extends Commandlet {
     super(context);
     addKeyword(getName());
     addKeyword("setup");
-    this.repository = add(new RepositoryProperty("", false, "repository"));
+    this.repository = add(new RepositoryProperty("", false, "repository", true));
   }
 
   @Override

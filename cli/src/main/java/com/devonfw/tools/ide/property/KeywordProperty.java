@@ -70,7 +70,11 @@ public class KeywordProperty extends BooleanProperty {
     if (args.current().isOption()) {
       normalizedName = this.optionName;
     }
-    return apply(normalizedName, args, context, commandlet, collector);
+    boolean match = apply(normalizedName, args, context, commandlet, collector);
+    if (args.current().isCompletion() && this.alias != null) {
+      match |= apply(this.alias, args, context, commandlet, collector);
+    }
+    return match;
   }
 
   @Override

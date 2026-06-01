@@ -22,9 +22,9 @@ public class RepositoryProperty extends FileProperty {
    * @param required the {@link #isRequired() required flag}.
    * @param alias the {@link #getAlias() property alias}.
    */
-  public RepositoryProperty(String name, boolean required, String alias) {
+  public RepositoryProperty(String name, boolean required, String alias, boolean placeholder) {
 
-    super(name, required, alias, true);
+    super(name, required, alias, true, placeholder);
   }
 
   /**
@@ -37,7 +37,7 @@ public class RepositoryProperty extends FileProperty {
    */
   public RepositoryProperty(String name, boolean required, String alias, PropertyValidator<Path> validator) {
 
-    super(name, required, alias, true, validator);
+    super(name, required, alias, true, false, validator);
   }
 
   @Override
