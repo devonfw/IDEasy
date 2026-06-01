@@ -5,6 +5,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 == 2026.06.001
 
 Release with new features and bugfixes:
+
 * https://github.com/devonfw/IDEasy/issues/797[#797]: Fix VSCode install on macOS   
 * https://github.com/devonfw/IDEasy/issues/1255[#1255]: Enhance snapshot version recognition in IDEasy
 * https://github.com/devonfw/IDEasy/issues/1964[#1964]: Fixed gui not launching with older project java versions
