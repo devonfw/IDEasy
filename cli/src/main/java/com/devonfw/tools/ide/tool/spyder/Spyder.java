@@ -29,9 +29,5 @@ public class Spyder extends PipBasedCommandlet {
     return (Class) Pip.class;
   }
 
-  @Override
-  public String getToolHelpArguments() {
-    return "--help";
-  }
 
 }
