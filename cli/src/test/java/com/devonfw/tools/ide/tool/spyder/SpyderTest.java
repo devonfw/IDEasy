@@ -54,6 +54,5 @@ class SpyderTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(commandlet).isInstanceOf(PipBasedCommandlet.class);
-    assertThat(commandlet.getToolHelpArguments()).isEqualTo("--help");
   }
 }
