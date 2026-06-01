@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/865[#865]: az not working on Mac
 * https://github.com/devonfw/IDEasy/issues/1255[#1255]: Enhance snapshot version recognition in IDEasy
 * https://github.com/devonfw/IDEasy/issues/1964[#1964]: Fixed gui not launching with older project java versions
 * https://github.com/devonfw/IDEasy/issues/1968[#1968]: Fixed gui blocking the terminal session while running.
@@ -22,7 +23,6 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1185[#1185]: Fix icd not working in zsh on older macOS
 * https://github.com/devonfw/IDEasy/issues/1754[#1754]: Add version support to vscode plugins
 * https://github.com/devonfw/IDEasy/issues/796[#796]: cannot install aws on Mac
-* https://github.com/devonfw/IDEasy/issues/865[#865]: az not working on Mac
 * https://github.com/devonfw/IDEasy/issues/1800[#1800]: IDEasy will automatically switch to IntelliJ standard edition when installing newer ultimate edition versions
 * https://github.com/devonfw/IDEasy/issues/1552[#1552]: User-defined MAVEN_ARGS appends and no longer overwrites IDEasy's defaults
 * https://github.com/devonfw/IDEasy/issues/1833[#1833]: No settings repo update with missing `.commit.id`
