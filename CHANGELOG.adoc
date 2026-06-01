@@ -10,6 +10,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1964[#1964]: Fixed gui not launching with older project java versions
 * https://github.com/devonfw/IDEasy/issues/1968[#1968]: Fixed gui blocking the terminal session while running.
 * https://github.com/devonfw/IDEasy/issues/1849[#1849]: Add VSCodium support
+* https://github.com/devonfw/IDEasy/issues/1391[#1391]: Fix bashrc messed with terraform completions
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/45?closed=1[milestone 2026.06.001].
 
@@ -17,7 +18,6 @@ The full list of changes for this release can be found in https://github.com/dev
 
 Release with new features and bugfixes:
 
-* https://github.com/devonfw/IDEasy/issues/1947[#1947]: Create gc log analyzer url updater
 * https://github.com/devonfw/IDEasy/issues/1185[#1185]: Fix icd not working in zsh on older macOS
 * https://github.com/devonfw/IDEasy/issues/1754[#1754]: Add version support to vscode plugins
 * https://github.com/devonfw/IDEasy/issues/796[#796]: cannot install aws on Mac
