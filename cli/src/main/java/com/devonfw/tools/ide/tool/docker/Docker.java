@@ -100,7 +100,6 @@ public class Docker extends GlobalToolCommandlet {
   public VersionIdentifier getInstalledVersion() {
 
     if (!isDockerInstalled()) {
-      LOG.error("Couldn't get installed version of " + this.getName());
       return null;
     }
 
@@ -148,7 +147,6 @@ public class Docker extends GlobalToolCommandlet {
   public String getInstalledEdition() {
 
     if (!isDockerInstalled()) {
-      LOG.error("Couldn't get installed edition of {}", this.getName());
       return null;
     }
 

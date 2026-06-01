@@ -73,15 +73,6 @@ public class PythonUrlUpdater extends JsonUrlUpdater<PythonJsonObject, PythonRel
     return getVersionBaseUrl() + "/" + VERSION_FILENAME;
   }
 
-  @Override
-  public String getCpeVendor() {
-    return "python";
-  }
-
-  @Override
-  public String getCpeProduct() {
-    return "python";
-  }
 
   @Override
   protected Class<PythonJsonObject> getJsonObjectType() {
@@ -103,4 +94,13 @@ public class PythonUrlUpdater extends JsonUrlUpdater<PythonJsonObject, PythonRel
     return jsonObject.getReleases();
   }
 
+  @Override
+  public String getCpeVendor() {
+    return "python";
+  }
+
+  @Override
+  public String getCpeProduct() {
+    return "python";
+  }
 }
