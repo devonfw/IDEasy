@@ -15,6 +15,7 @@ import com.devonfw.tools.ide.process.ProcessContextImpl;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
+import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -46,16 +47,19 @@ public class Gui extends Commandlet {
 
     ProcessContext processContext = new ProcessContextImpl(this.context);
 
-    ToolInstallRequest toolInstallRequest = new ToolInstallRequest(false);
-    toolInstallRequest.setProcessContext(processContext);
-    toolInstallRequest.setRequested(
+    Java java = this.context.getCommandletManager().getCommandlet(Java.class);
+    Mvn mvn = this.context.getCommandletManager().getCommandlet(Mvn.class);
+
+    ToolInstallRequest mavenToolInstallRequest = new ToolInstallRequest(false);
+    mavenToolInstallRequest.setProcessContext(processContext);
+
+    ToolInstallRequest javaToolInstallRequest = new ToolInstallRequest(mavenToolInstallRequest);
+    javaToolInstallRequest.setRequested(
         new ToolEditionAndVersion(VersionIdentifier.of("25.*"))
     );
 
-    Java java = this.context.getCommandletManager().getCommandlet(Java.class);
-    Mvn mvn = this.context.getCommandletManager().getCommandlet(Mvn.class);
-    java.install(toolInstallRequest);
-    mvn.install(false);
+    mvn.installTool(mavenToolInstallRequest);
+    ToolInstallation javaInstallation = java.installTool(javaToolInstallRequest);
 
     LOG.debug("Starting GUI via commandlet");
 
@@ -73,6 +77,10 @@ public class Gui extends Commandlet {
         "-Dexec.args=-classpath %classpath com.devonfw.ide.gui.AppLauncher"
     );
 
-    mvn.runTool(processContext, ProcessMode.DEFAULT, args);
+    /*
+     * We manually update the PATH entry with our java version, as by default IDEasy includes the SymLink under /projectname/software/java/bin in the PATH
+     * In case of projects using older Java Versions, this is important as the java version of the project could potentially older.
+     */
+    mvn.runTool(processContext.withPathEntry(javaInstallation.binDir()), ProcessMode.BACKGROUND_SILENT, args);
   }
 }
