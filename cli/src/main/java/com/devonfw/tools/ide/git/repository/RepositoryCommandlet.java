@@ -68,7 +68,8 @@ public class RepositoryCommandlet extends Commandlet {
         LOG.warn("Cannot find folder 'repositories' nor 'projects' in your settings.");
         return;
       }
-      List<Path> propertiesFiles = this.context.getFileAccess().listChildren(repositoriesPath, path -> path.getFileName().toString().endsWith(".properties"));
+      List<Path> propertiesFiles = this.context.getFileAccess()
+          .listChildren(repositoriesPath, path -> path.getFileName().toString().endsWith(".properties"));
       boolean forceMode = this.context.isForceMode() || this.context.isForceRepositories();
       Map<Path, RepositoryConfig> repositoryConfigMap = new HashMap<>(propertiesFiles.size());
       for (Path propertiesFile : propertiesFiles) {
@@ -112,13 +113,13 @@ public class RepositoryCommandlet extends Commandlet {
   }
 
   private void importRepository(RepositoryConfig config) {
+
     this.context.newStep("Setup of repository " + config.id()).run(() -> {
       doImportRepository(config);
     });
   }
 
   private void doImportRepository(RepositoryConfig config) {
-
     LOG.debug("Repository configuration: {}", config);
     String repositoryRelativePath = config.path();
     if (repositoryRelativePath == null) {
@@ -158,7 +159,8 @@ public class RepositoryCommandlet extends Commandlet {
         }
         LOG.info("Repository {} already exists in workspace {} at {}", config.id(), workspaceName, repositoryPath);
         if (!(this.context.isForceMode() || this.context.isForceRepositories())) {
-          LOG.info("Ignoring repository {} in workspace {}, use --force-repositories to rerun setup.", config.id(), workspaceName);
+          LOG.info("Ignoring repository {} in workspace {}, use --force-repositories to rerun setup.",
+              config.id(), workspaceName);
           createRepository = false;
         }
       }
@@ -171,7 +173,8 @@ public class RepositoryCommandlet extends Commandlet {
       }
       if (createRepository) {
         if (firstRepository == null) {
-          boolean success = cloneOrPullRepository(repositoryPath, config.asGitUrl(), repositoryCreatedStatusFile);
+          GitUrl gitUrl = config.asGitUrl();
+          boolean success = cloneOrPullRepository(repositoryPath, gitUrl, repositoryCreatedStatusFile);
           if (success) {
             firstRepository = repositoryPath;
             buildRepository(config, repositoryPath);
@@ -231,7 +234,6 @@ public class RepositoryCommandlet extends Commandlet {
   }
 
   private void createRepositoryLink(RepositoryLink link, Path repositoryPath, Path workspacePath) {
-
     Path linkPath = workspacePath.resolve(link.link());
     String target = link.target();
     Path linkTargetPath;

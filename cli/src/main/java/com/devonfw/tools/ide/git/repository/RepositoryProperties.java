@@ -26,7 +26,7 @@ final class RepositoryProperties {
   private static final String PROPERTY_PATH = "path";
   private static final String PROPERTY_WORKING_SETS = "workingsets";
   private static final String PROPERTY_WORKSPACES = "workspaces";
-  static final String PROPERTY_GIT_URL = "git_url";
+  private static final String PROPERTY_GIT_URL = "git_url";
   private static final String PROPERTY_BUILD_PATH = "build_path";
   private static final String PROPERTY_BUILD_CMD = "build_cmd";
   private static final String PROPERTY_ACTIVE = "active";
