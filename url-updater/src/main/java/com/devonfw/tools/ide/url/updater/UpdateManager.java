@@ -4,8 +4,6 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
 
-import com.devonfw.tools.ide.url.tool.inso.InsoUrlUpdater;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +21,7 @@ import com.devonfw.tools.ide.url.tool.dotnet.DotNetUrlUpdater;
 import com.devonfw.tools.ide.url.tool.eclipse.EclipseCppUrlUpdater;
 import com.devonfw.tools.ide.url.tool.eclipse.EclipseJavaUrlUpdater;
 import com.devonfw.tools.ide.url.tool.eclipse.EclipseJeeUrlUpdater;
+import com.devonfw.tools.ide.url.tool.gcloganalyzer.GcLogAnalyzerUrlUpdater;
 import com.devonfw.tools.ide.url.tool.gcloud.GCloudUrlUpdater;
 import com.devonfw.tools.ide.url.tool.gcviewer.GcViewerUrlUpdater;
 import com.devonfw.tools.ide.url.tool.gh.GhUrlUpdater;
@@ -31,6 +30,7 @@ import com.devonfw.tools.ide.url.tool.graalvm.GraalVmCommunityUpdater;
 import com.devonfw.tools.ide.url.tool.graalvm.GraalVmOracleUrlUpdater;
 import com.devonfw.tools.ide.url.tool.gradle.GradleUrlUpdater;
 import com.devonfw.tools.ide.url.tool.helm.HelmUrlUpdater;
+import com.devonfw.tools.ide.url.tool.inso.InsoUrlUpdater;
 import com.devonfw.tools.ide.url.tool.intellij.IntellijUrlUpdater;
 import com.devonfw.tools.ide.url.tool.jasypt.JasyptUrlUpdater;
 import com.devonfw.tools.ide.url.tool.java.JavaAzulUrlUpdater;
@@ -41,6 +41,7 @@ import com.devonfw.tools.ide.url.tool.kotlinc.KotlincNativeUrlUpdater;
 import com.devonfw.tools.ide.url.tool.kotlinc.KotlincUrlUpdater;
 import com.devonfw.tools.ide.url.tool.lazydocker.LazyDockerUrlUpdater;
 import com.devonfw.tools.ide.url.tool.mvn.MvnUrlUpdater;
+import com.devonfw.tools.ide.url.tool.mvnd.MvndUrlUpdater;
 import com.devonfw.tools.ide.url.tool.ng.NgUrlUpdater;
 import com.devonfw.tools.ide.url.tool.node.NodeUrlUpdater;
 import com.devonfw.tools.ide.url.tool.npm.NpmUrlUpdater;
@@ -57,6 +58,7 @@ import com.devonfw.tools.ide.url.tool.terraform.TerraformUrlUpdater;
 import com.devonfw.tools.ide.url.tool.tomcat.TomcatUrlUpdater;
 import com.devonfw.tools.ide.url.tool.uv.UvUrlUpdater;
 import com.devonfw.tools.ide.url.tool.vscode.VsCodeUrlUpdater;
+import com.devonfw.tools.ide.url.tool.vscode.VsCodiumUrlUpdater;
 
 /**
  * The {@code UpdateManager} class manages the update process for various tools by using a list of {@link AbstractUrlUpdater}s to update the
@@ -74,15 +76,15 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
       new AndroidStudioUrlUpdater(), new AwsUrlUpdater(), new AzureUrlUpdater(), new ClaudeUrlUpdater(), new CopilotUrlUpdater(), new CorepackUrlUpdater(),
       new DockerDesktopUrlUpdater(),
       new DotNetUrlUpdater(),
-      new EclipseCppUrlUpdater(), new EclipseJeeUrlUpdater(), new EclipseJavaUrlUpdater(), new GCloudUrlUpdater(),
+      new EclipseCppUrlUpdater(), new EclipseJeeUrlUpdater(), new EclipseJavaUrlUpdater(), new GcLogAnalyzerUrlUpdater(), new GCloudUrlUpdater(),
       new GcViewerUrlUpdater(), new GhUrlUpdater(), new GoUrlUpdater(), new GraalVmCommunityUpdater(), new GraalVmOracleUrlUpdater(),
-      new GradleUrlUpdater(), new HelmUrlUpdater(),new InsoUrlUpdater(), new IntellijUrlUpdater(), new JasyptUrlUpdater(),new JavaAzulUrlUpdater(),
+      new GradleUrlUpdater(), new HelmUrlUpdater(), new InsoUrlUpdater(), new IntellijUrlUpdater(), new JasyptUrlUpdater(), new JavaAzulUrlUpdater(),
       new JavaUrlUpdater(), new JenkinsUrlUpdater(), new JmcUrlUpdater(), new KotlincUrlUpdater(),
-      new KotlincNativeUrlUpdater(), new LazyDockerUrlUpdater(), new MvnUrlUpdater(),
+      new KotlincNativeUrlUpdater(), new LazyDockerUrlUpdater(), new MvnUrlUpdater(), new MvndUrlUpdater(),
       new NgUrlUpdater(), new NodeUrlUpdater(), new NpmUrlUpdater(), new OcUrlUpdater(), new PgAdminUrlUpdater(), new PipUrlUpdater(), new PycharmUrlUpdater(),
       new PythonUrlUpdater(), new QuarkusUrlUpdater(), new RustUrlUpdater(), new DockerRancherDesktopUrlUpdater(), new SonarUrlUpdater(),
       new SquirrelSqlUrlUpdater(),
-      new TerraformUrlUpdater(), new TomcatUrlUpdater(), new UvUrlUpdater(), new VsCodeUrlUpdater());
+      new TerraformUrlUpdater(), new TomcatUrlUpdater(), new UvUrlUpdater(), new VsCodeUrlUpdater(), new VsCodiumUrlUpdater());
 
   /**
    * The constructor.
