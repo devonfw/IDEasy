@@ -159,15 +159,14 @@ public class RepositoryCommandlet extends Commandlet {
         }
         LOG.info("Repository {} already exists in workspace {} at {}", config.id(), workspaceName, repositoryPath);
         if (!(this.context.isForceMode() || this.context.isForceRepositories())) {
-          LOG.info("Ignoring repository {} in workspace {}, use --force-repositories to rerun setup.",
-              config.id(), workspaceName);
+          LOG.info("Ignoring repository {} in workspace {}, use --force-repositories to rerun setup.", config.id(), workspaceName);
           createRepository = false;
         }
       }
       if (Files.exists(repositoryCreatedStatusFile)) {
         if (!(this.context.isForceMode() || this.context.isForceRepositories())) {
-          LOG.info("Ignoring repository {} in workspace {} because it was already setup before, use --force-repositories for recreation.", config.id(),
-              workspaceName);
+          LOG.info("Ignoring repository {} in workspace {} because it was already setup before, use --force-repositories for recreation.",
+              config.id(), workspaceName);
           createRepository = false;
         }
       }
@@ -268,7 +267,8 @@ public class RepositoryCommandlet extends Commandlet {
         ToolCommandlet commandlet = this.context.getCommandletManager().getToolCommandlet(command[0]);
         if (commandlet == null) {
           String displayName = (command[0] == null || command[0].isBlank()) ? "<empty>" : "'" + command[0] + "'";
-          LOG.error("Cannot build repository. Required tool '{}' not found. Please check your repository's build_cmd configuration value.", displayName);
+          LOG.error("Cannot build repository. Required tool '{}' not found. Please check your repository's build_cmd configuration value.",
+              displayName);
           return;
         }
         commandlet.reset();
