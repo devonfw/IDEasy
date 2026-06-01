@@ -2,10 +2,22 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2026.06.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1255[#1255]: Enhance snapshot version recognition in IDEasy
+* https://github.com/devonfw/IDEasy/issues/1964[#1964]: Fixed gui not launching with older project java versions
+* https://github.com/devonfw/IDEasy/issues/1968[#1968]: Fixed gui blocking the terminal session while running.
+* https://github.com/devonfw/IDEasy/issues/1849[#1849]: Add VSCodium support
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/45?closed=1[milestone 2026.06.001].
+
 == 2026.05.001
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1947[#1947]: Create gc log analyzer url updater
 * https://github.com/devonfw/IDEasy/issues/1185[#1185]: Fix icd not working in zsh on older macOS
 * https://github.com/devonfw/IDEasy/issues/1754[#1754]: Add version support to vscode plugins
 * https://github.com/devonfw/IDEasy/issues/796[#796]: cannot install aws on Mac
@@ -19,6 +31,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/451[#451]: Automatically remove macOS quarantine attribute after tool extraction
 * https://github.com/devonfw/IDEasy/issues/1846[#1846]: Skip macOS Gatekeeper workaround for installations without a `.app` bundle
 * https://github.com/devonfw/IDEasy/issues/1823[#1823]: Fix IDEasy creates duplicate entries in .gitconfig
+* https://github.com/devonfw/IDEasy/issues/1775[#1775]: validated and updated CPE's for all products
 * https://github.com/devonfw/IDEasy/issues/1834[#1834]: Fix fix-vpn-tls-problem NullPointerException
 * https://github.com/devonfw/IDEasy/issues/1724[#1724]: Add gui commandlet
 * https://github.com/devonfw/IDEasy/issues/1853[#1853]: Add ARM releases for VSCode on Mac
