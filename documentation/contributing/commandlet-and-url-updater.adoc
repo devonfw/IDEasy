@@ -2,7 +2,7 @@
 
 == Overview
 
-This document explains how to implement new commandlets and UrlUpdaters for IDEasy.
+This document explains how to implement a new `Commandlet` and `UrlUpdater` for IDEasy.
 A commandlet is a CLI command that manages a tool (install, uninstall, run), while a UrlUpdater is responsible for discovering and maintaining available versions of a tool.
 
 Not all tools require a UrlUpdater, as tools using certain package manager ecosystems (npm, Maven, pip) don't need one because their package managers provide version discovery automatically.
