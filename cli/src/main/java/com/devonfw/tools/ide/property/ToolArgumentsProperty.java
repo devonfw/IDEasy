@@ -36,7 +36,7 @@ public class ToolArgumentsProperty extends StringProperty {
   protected void completeValue(String arg, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
 
     if (commandlet instanceof ToolCommandlet toolCommandlet) {
-      toolCommandlet.completeToolArguments(arg, context, collector, this);
+      toolCommandlet.completeToolArguments(arg, collector, this);
     }
 
   }

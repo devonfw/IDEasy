@@ -113,12 +113,10 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * Completes tool-specific arguments.
    *
    * @param arg the current argument to complete.
-   * @param context the {@link IdeContext}.
    * @param collector the {@link CompletionCandidateCollector}.
    * @param property the {@link Property} that triggered completion.
    */
-  public void completeToolArguments(String arg, IdeContext context,
-      CompletionCandidateCollector collector, Property<?> property) {
+  public void completeToolArguments(String arg, CompletionCandidateCollector collector, Property<?> property) {
 
     getAutoCompletionRegistry().complete(arg, collector, property, this);
   }
