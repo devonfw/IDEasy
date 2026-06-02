@@ -146,7 +146,6 @@ Use `GithubUrlReleaseUpdater` when:
 Use `GithubUrlTagUpdater` only as a fallback when:
 
 * The tool doesn't use GitHub Releases
-* Releases are not available as downloadable artifacts
 * Version discovery from git tags is the only option
 
 As git tags are less structured than releases and download URLs must be reconstructed manually.
