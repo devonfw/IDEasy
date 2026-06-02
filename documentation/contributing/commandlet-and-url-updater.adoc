@@ -140,7 +140,6 @@ Use `GithubUrlReleaseUpdater` when:
 **How to identify if a tool uses GitHub Releases:**
 
 1. Check if the GitHub repository has a "Releases" section
-2. Verify that releases contain downloadable artifacts (e.g., .zip, .tar.gz files)
 3. Example: https://api.github.com/repos/anthropics/claude-code/releases
 
 === GitHub Tag Updater (When No Releases Available)
