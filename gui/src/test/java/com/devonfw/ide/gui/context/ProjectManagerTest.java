@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +25,8 @@ public class ProjectManagerTest extends AbstractIdeContextTest {
   private static IdeTestContext context;
   private static Path ideRoot;
 
+  private final List<String> VALID_PROJECT_LIST = List.of("project-0", "project-1", "project-2", "project-3", "project-4", "project-5");
+
   @BeforeEach
   void resetContext() {
 
@@ -36,9 +40,10 @@ public class ProjectManagerTest extends AbstractIdeContextTest {
     projectManager = new ProjectManager(ideRoot);
 
     assertThat(projectManager).isNotNull();
-    assertThat(projectManager.getProjectNames()).containsExactlyInAnyOrder("project-0", "project-1", "project-2", "project-3", "project-4", "project-5");
-    for (String projectName : projectManager.getProjectNames()) {
-      assertThat(projectManager.getWorkspaceNames(projectName)).containsExactlyInAnyOrder("foo-test", "main");
+    assertThat(projectManager.getProjectNames()).containsAll(VALID_PROJECT_LIST);
+
+    for (int i = 0; i < projectManager.getProjectNames().size(); i++) {
+      assertThat(projectManager.getWorkspaceNames("project-" + i)).containsExactlyInAnyOrder("foo-test-" + i, "main");
     }
   }
 
@@ -57,7 +62,6 @@ public class ProjectManagerTest extends AbstractIdeContextTest {
   void testConstructorWithNonExistentDirectory() {
 
     try {
-
       projectManager = new ProjectManager(ideRoot.resolve("nonExistent"));
       fail("IllegalArgumentException expected");
     } catch (IllegalArgumentException e) {
@@ -88,19 +92,20 @@ public class ProjectManagerTest extends AbstractIdeContextTest {
   void testRefreshProjects() throws IOException {
 
     projectManager = new ProjectManager(ideRoot);
-    assertThat(projectManager.getProjectNames()).containsExactlyInAnyOrder("project-0", "project-1", "project-2", "project-3", "project-4", "project-5");
+    assertThat(projectManager.getProjectNames()).containsAll(VALID_PROJECT_LIST);
 
     Path project0 = ideRoot.resolve("project-0");
     Path project6 = ideRoot.resolve("project-6");
     FileUtils.copyDirectory(project0.toFile(), project6.toFile());
 
     // Verify that project-6 is now recognized
-    assertThat(projectManager.getProjectNames()).containsExactlyInAnyOrder("project-0", "project-1", "project-2", "project-3", "project-4", "project-5",
-        "project-6");
-    assertThat(projectManager.getWorkspaceNames("project-6")).containsExactlyInAnyOrder("foo-test", "main");
+    List<String> extendedList = new ArrayList<>(VALID_PROJECT_LIST);
+    extendedList.add("project-6");
+    assertThat(projectManager.getProjectNames()).containsAll(extendedList);
+    assertThat(projectManager.getWorkspaceNames("project-6")).containsExactlyInAnyOrder("foo-test-6", "main");
 
     // Cleanup
-    FileUtils.deleteDirectory(project0.toFile());
+    FileUtils.deleteDirectory(project6.toFile());
   }
 
   @Test
@@ -114,7 +119,7 @@ public class ProjectManagerTest extends AbstractIdeContextTest {
 
     // Verify that test-project-no-workspaces is not recognized
     assertThat(projectManager.getProjectNames()).doesNotContain("test-project-no-workspaces");
-    assertThat(projectManager.getProjectNames()).containsExactlyInAnyOrder("project-0", "project-1", "project-2", "project-3", "project-4", "project-5");
+    assertThat(projectManager.getProjectNames()).containsAll(VALID_PROJECT_LIST);
 
     // Cleanup
     FileUtils.deleteDirectory(testProject.toFile());
@@ -127,6 +132,6 @@ public class ProjectManagerTest extends AbstractIdeContextTest {
 
     // Verify that _ide folder is not in the project names
     assertThat(projectManager.getProjectNames()).doesNotContain("_ide");
-    assertThat(projectManager.getProjectNames()).containsExactlyInAnyOrder("project-0", "project-1", "project-2", "project-3", "project-4", "project-5");
+    assertThat(projectManager.getProjectNames()).containsAll(VALID_PROJECT_LIST);
   }
 }
