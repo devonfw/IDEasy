@@ -126,7 +126,6 @@ Use `GithubUrlReleaseUpdater` when:
 
 * The tool is hosted on GitHub
 * Releases are published using GitHub's Release feature
-* Release assets contain downloadable binaries
 
 **Examples of tools using GithubUrlReleaseUpdater:**
 
