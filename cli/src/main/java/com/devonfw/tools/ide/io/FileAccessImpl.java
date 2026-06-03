@@ -1129,7 +1129,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       Iterator<Path> iterator = childStream.iterator();
       while (iterator.hasNext()) {
         Path child = iterator.next();
-        String relativeChildPath = relativePath.isEmpty() ? child.getFileName().toString() : relativePath + "/" + child.getFileName().toString();
+        String relativeChildPath = relativePath + "/" + child.getFileName().toString();
         boolean isDirectory = Files.isDirectory(child);
         E archiveEntry = out.createArchiveEntry(child, relativeChildPath);
         FileTime none = FileTime.fromMillis(0);
