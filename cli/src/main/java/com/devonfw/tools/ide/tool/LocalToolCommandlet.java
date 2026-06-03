@@ -237,7 +237,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     FileAccess fileAccess = this.context.getFileAccess();
     ToolEditionAndVersion requested = request.getRequested();
     VersionIdentifier resolvedVersion = requested.getResolvedVersion();
-    Path downloadedToolFile = getDownloadedToolFile(request);
+    Path downloadedToolFile = downloadTool(requested.getEdition().edition(), resolvedVersion);
 
     if (Files.isDirectory(installationPath)) {
       if (this.tool.equals(IdeasyCommandlet.TOOL_NAME)) {
@@ -270,17 +270,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       LOG.trace("Extraction is disabled for '{}' hence just moving the downloaded file {}.", this.tool, downloadedToolFile);
     }
     this.context.getFileAccess().extract(downloadedToolFile, installationPath, this::postExtract, extract);
-  }
-
-  /**
-   * @param request the {@link ToolInstallRequest}.
-   * @return the {@link Path} to the downloaded tool file.
-   */
-  protected Path getDownloadedToolFile(ToolInstallRequest request) {
-
-    ToolEditionAndVersion requested = request.getRequested();
-    VersionIdentifier resolvedVersion = requested.getResolvedVersion();
-    return downloadTool(requested.getEdition().edition(), resolvedVersion);
   }
 
   /**
