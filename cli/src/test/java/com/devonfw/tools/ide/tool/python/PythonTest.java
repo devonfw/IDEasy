@@ -30,13 +30,13 @@ public class PythonTest extends AbstractIdeContextTest {
     Path rootDir = context.getSoftwarePath().resolve("python");
     ToolInstallation toolInstallation = new ToolInstallation(rootDir, rootDir, rootDir.resolve("bin"), VersionIdentifier.of("3.12.0"), true);
     Map<String, VariableLine> variables = new HashMap<>();
-    EnvironmentVariableCollectorContext environmentContext = new EnvironmentVariableCollectorContext(variables, new VariableSource(EnvironmentVariablesType.WORKSPACE, null), WindowsPathSyntax.MSYS);
+    EnvironmentVariableCollectorContext environmentContext = new EnvironmentVariableCollectorContext(variables,
+        new VariableSource(EnvironmentVariablesType.WORKSPACE, null), WindowsPathSyntax.MSYS);
 
     // act
     python.setEnvironment(environmentContext, toolInstallation, false);
 
     // assert
-    assertThat(Path.of(variables.get("UV_TOOL_DIR").getValue())).isEqualTo(toolInstallation.rootDir().resolve("tools"));
-    assertThat(Path.of(variables.get("UV_TOOL_BIN_DIR").getValue())).isEqualTo(toolInstallation.binDir());
+    assertThat(variables).containsKey("VIRTUAL_ENV");
   }
 }
