@@ -41,6 +41,7 @@ import urllib.request
 from collections import defaultdict
 from datetime import datetime, timezone
 from typing import Any, NamedTuple
+from pathlib import Path
 
 log = logging.getLogger(__name__)
 
@@ -58,6 +59,7 @@ OS_LABELS = {"windows": "windows", "linux": "linux", "mac": "macOS"}
 OS_ORDER = ["windows", "linux", "mac"]
 OS_DISPLAY = {"windows": "Windows", "linux": "Linux", "mac": "macOS"}
 OS_SHORT = {"windows": "Win", "linux": "Linux", "mac": "macOS"}
+OS_FILE_SUFFIX = {"windows": "windows", "linux": "linux", "mac": "macos",}
 
 BUG_TYPE_NAMES = {"Bug", "bug"}
 BLOCKER_LABEL = "blocker"
@@ -752,16 +754,58 @@ _Generated: {date}_
 
 """
 
+# --- Document output helpers ---
 
+def _os_output_path(main_output: Path, os_key: str) -> Path:
+  """Derive the per-OS output file path from the main overview output path."""
+  suffix = OS_FILE_SUFFIX[os_key]
+  return main_output.with_name(f"{main_output.stem}-{suffix}{main_output.suffix}")
+def _os_file_links_section(os_filenames: dict[str, str]) -> str:
+  """Render links from the overview document to the per-OS status documents."""
+  lines = [
+    "== Operating System Status Files",
+    "",
+    "The detailed tool status is split into one generated file per operating system.",
+    "",
+    '[%header, cols="2,4"]',
+    "|===",
+    "| Operating System | Status File",
+  ]
+
+  for os_key in OS_ORDER:
+    filename = os_filenames[os_key]
+    lines += [
+      f"| {OS_DISPLAY[os_key]}",
+      f"| link:{filename}[{filename}]",
+      "",
+    ]
+
+  lines += ["|===", ""]
+  return "\n".join(lines)
+
+def _os_document(os_key: str, tool_data_for_os: dict[str, list[IssueRef]]) -> str:
+  """Render a standalone status document for one operating system."""
+  os_name = OS_DISPLAY[os_key]
+  return "\n".join([
+    f"= IDEasy Quality Status — {os_name}",
+    ":toc: left",
+    ":toclevels: 3",
+    ":icons: font",
+    ":source-highlighter: rouge",
+    ":nofooter:",
+    "",
+    f"Automatically generated tool status for {os_name}.",
+    "",
+    _os_section(os_key, tool_data_for_os),
+  ])
 # --- Document assembly ---
 
-def generate_adoc(issues: list[dict], tool_names: list[str]) -> str:
-  """Assemble the complete AsciiDoc quality-status document.
-
-  Merges dynamically fetched tool folder names with the static TOOLS registry
-  so that tools present in the registry but absent from the source tree
-  (e.g. git, rancher) are still recognised.
-  """
+def generate_documents(
+    issues: list[dict],
+    tool_names: list[str],
+    os_filenames: dict[str, str],
+) -> dict[str, str]:
+  """Assemble the generated AsciiDoc quality-status documents."""
   tool_keys = set(tool_names) | set(TOOLS.keys())
   cmd_keys = set(COMMANDLETS.keys())
 
@@ -792,11 +836,11 @@ def generate_adoc(issues: list[dict], tool_names: list[str]) -> str:
     unassigned=len(unassigned),
   )
 
-  parts = [
+  overview_parts = [
     header,
     _bugs_all_platforms_section(tool_data, cmd_data, TOOL_DISPLAY, CMD_DISPLAY, unassigned),
     _commandlets_global_table(cmd_data),
-    *[_os_section(os_key, tool_data.get(os_key, {})) for os_key in OS_ORDER],
+    _os_file_links_section(os_filenames),
     _unassigned_section(unassigned),
     f"""\
 == How to update this document
@@ -817,8 +861,15 @@ Add the label to the ``labels`` list of the matching ``TOOLS`` or
 *Unassigned Issues* section.
 """,
   ]
-  return "\n".join(parts)
 
+  documents = {
+    "overview": "\n".join(overview_parts),
+  }
+
+  for os_key in OS_ORDER:
+    documents[os_key] = _os_document(os_key, tool_data.get(os_key, {}))
+
+  return documents
 
 def main() -> None:
   """Entry point: parse arguments, fetch data, write the output file."""
@@ -872,10 +923,25 @@ def main() -> None:
       ", ".join(sorted(unmatched)),
     )
 
-  adoc = generate_adoc(issues, tool_names)
-  with open(args.output, "w", encoding="utf-8") as output_file:
-    output_file.write(adoc)
-  log.info("Written to %s", args.output)
+  main_output = Path(args.output)
+  os_output_paths = {
+    os_key: _os_output_path(main_output, os_key)
+    for os_key in OS_ORDER
+  }
+  os_filenames = {
+    os_key: path.name
+    for os_key, path in os_output_paths.items()
+  }
+
+  documents = generate_documents(issues, tool_names, os_filenames)
+
+  main_output.parent.mkdir(parents=True, exist_ok=True)
+  main_output.write_text(documents["overview"], encoding="utf-8")
+  log.info("Written to %s", main_output)
+
+  for os_key, output_path in os_output_paths.items():
+    output_path.write_text(documents[os_key], encoding="utf-8")
+    log.info("Written to %s", output_path)
 
 
 if __name__ == "__main__":
