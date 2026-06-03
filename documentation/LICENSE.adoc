@@ -109,6 +109,8 @@ The column `inclusion` indicates the way the component is included:
 |https://docs.aws.amazon.com/cdk/v2/guide/home.html[AWS CDK CLI] |Optional|https://github.com/aws/aws-cdk-cli/blob/main/LICENSE[Apache 2.0]
 |https://taskfile.dev/[Task CLI] |Optional|https://github.com/go-task/task/blob/main/LICENSE[MIT License]
 |https://developer.konghq.com/inso-cli |Optional|https://github.com/Kong/insomnia/blob/develop/LICENSE[Apache 2.0]
+|https://www.rust-lang.org/[Rust] |Optional|https://www.rust-lang.org/policies/licenses[MIT and Apache 2.0]
+|https://visualstudio.microsoft.com/visual-cpp-build-tools/[MSVC Build Tools] |Optional|https://visualstudio.microsoft.com/license-terms/vs2022-ga-community/[Microsoft Software License Terms]
 |===
 
 == Apache Software License - Version 2.0
