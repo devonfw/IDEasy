@@ -229,7 +229,7 @@ class RepositoryCommandletTest extends AbstractIdeContextTest {
 
     Properties properties = new Properties();
     properties.setProperty("workspaces", IdeContext.WORKSPACE_MAIN);
-    properties.setProperty("link", "ai=.github");
+    properties.setProperty("link", ".github=ai");
     saveProperties(context, properties, "settings.properties");
 
     RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);

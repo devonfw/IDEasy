@@ -142,18 +142,18 @@ public class RepositoryCommandlet extends Commandlet {
       workspaces.addFirst(IdeContext.WORKSPACE_MAIN);
     }
 
+    Path firstRepository = null;
+
     if (config.isVirtualSettingsRepository()) {
-      createSettingsRepositoryLinks(config, workspaces);
-      return;
+      firstRepository = this.context.getSettingsPath();
     }
 
-    Path firstRepository = null;
     for (String workspaceName : workspaces) {
       Path workspacePath = this.context.getWorkspacePath(workspaceName);
       Path repositoryPath = workspacePath.resolve(repositoryRelativePath);
       Path repositoryCreatedStatusFile = ideStatusDir.resolve("repository." + config.id() + "." + workspaceName);
       boolean createRepository = true;
-      if (Files.isDirectory(repositoryPath.resolve(GitContext.GIT_FOLDER))) {
+      if (!config.isVirtualSettingsRepository() && Files.isDirectory(repositoryPath.resolve(GitContext.GIT_FOLDER))) {
         if (firstRepository == null) {
           firstRepository = repositoryPath;
         }
@@ -179,46 +179,16 @@ public class RepositoryCommandlet extends Commandlet {
             buildRepository(config, repositoryPath);
             importRepository(config, repositoryPath, config.id());
           }
-        } else {
+        } else if (!config.isVirtualSettingsRepository()) {
           fileAccess.mkdirs(repositoryPath.getParent());
           fileAccess.symlink(firstRepository, repositoryPath);
         }
       }
-      if (Files.exists(repositoryPath)) {
+      Path linkRepositoryPath = config.isVirtualSettingsRepository() ? firstRepository : repositoryPath;
+      if (Files.exists(linkRepositoryPath)) {
         for (RepositoryLink link : config.links()) {
-          createRepositoryLink(link, repositoryPath, workspacePath);
+          createRepositoryLink(link, linkRepositoryPath, workspacePath);
         }
-      }
-    }
-  }
-
-  private void createSettingsRepositoryLinks(RepositoryConfig config, List<String> workspaces) {
-
-    Path settingsPath = this.context.getSettingsPath();
-    if (!Files.isDirectory(settingsPath)) {
-      LOG.error("Cannot create links for virtual settings repository because settings path does not exist: {}", settingsPath);
-      return;
-    }
-
-    FileAccess fileAccess = this.context.getFileAccess();
-    for (String workspaceName : workspaces) {
-      Path workspacePath = this.context.getWorkspacePath(workspaceName);
-      for (RepositoryLink link : config.links()) {
-        Path linkTargetPath = settingsPath.resolve(link.link());
-        if (!linkTargetExists(link, linkTargetPath)) {
-          continue;
-        }
-
-        String target = link.target();
-        Path linkPath;
-        if ((target != null) && !target.isBlank()) {
-          linkPath = workspacePath.resolve(target);
-        } else {
-          linkPath = workspacePath.resolve(link.link());
-        }
-
-        fileAccess.mkdirs(linkPath.getParent());
-        fileAccess.symlink(linkTargetPath, linkPath);
       }
     }
   }
