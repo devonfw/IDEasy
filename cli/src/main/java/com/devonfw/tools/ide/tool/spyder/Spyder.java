@@ -22,12 +22,5 @@ public class Spyder extends PipBasedCommandlet {
     super(context, "spyder", Set.of(Tag.SPYDER));
   }
 
-  @Override
-  @SuppressWarnings({ "unchecked", "rawtypes" })
-  protected Class<ToolCommandlet> getPackageManagerClass() {
-
-    return (Class) Pip.class;
-  }
-
 
 }
