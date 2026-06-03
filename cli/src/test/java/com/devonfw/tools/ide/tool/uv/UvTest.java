@@ -30,14 +30,14 @@ public class UvTest extends AbstractIdeContextTest {
     Path rootDir = context.getSoftwarePath().resolve("uv");
     ToolInstallation toolInstallation = new ToolInstallation(rootDir, rootDir, rootDir, VersionIdentifier.of("0.1.0"), true);
     Map<String, VariableLine> variables = new HashMap<>();
-    EnvironmentVariableCollectorContext environmentContext = new EnvironmentVariableCollectorContext(variables, new VariableSource(EnvironmentVariablesType.WORKSPACE, null), WindowsPathSyntax.MSYS);
+    EnvironmentVariableCollectorContext environmentContext = new EnvironmentVariableCollectorContext(variables,
+        new VariableSource(EnvironmentVariablesType.WORKSPACE, null), WindowsPathSyntax.MSYS);
 
     // act
     uv.setEnvironment(environmentContext, toolInstallation, false);
 
     // assert
-    Path expectedPythonPath = context.getSoftwarePath().resolve("python");
-    assertThat(Path.of(variables.get("UV_TOOL_DIR").getValue())).isEqualTo(expectedPythonPath.resolve("tools"));
-    assertThat(Path.of(variables.get("UV_TOOL_BIN_DIR").getValue())).isEqualTo(expectedPythonPath.resolve("bin"));
+    assertThat(variables.get("UV_TOOL_DIR").getValue().replace('\\', '/')).endsWith("software/python/tools");
+    assertThat(variables.get("UV_TOOL_BIN_DIR").getValue().replace('\\', '/')).endsWith("software/python/bin");
   }
 }

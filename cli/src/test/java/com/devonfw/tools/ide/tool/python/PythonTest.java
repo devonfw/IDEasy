@@ -37,6 +37,6 @@ public class PythonTest extends AbstractIdeContextTest {
     python.setEnvironment(environmentContext, toolInstallation, false);
 
     // assert
-    assertThat(variables).containsKey("VIRTUAL_ENV");
+    assertThat(variables.get("VIRTUAL_ENV").getValue().replace('\\', '/')).endsWith("/software/python");
   }
 }
