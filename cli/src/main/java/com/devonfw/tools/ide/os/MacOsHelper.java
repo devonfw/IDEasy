@@ -65,6 +65,9 @@ public final class MacOsHelper {
    * Fixes macOS Gatekeeper blocking for downloaded tools. On macOS 15.1+ (Apple Silicon), just removing {@code com.apple.quarantine} is not enough since
    * unsigned apps still get the "is damaged" error. So we clear all xattrs first, then ad-hoc codesign any {@code .app} bundles. Call this after writing
    * {@code .ide.software.version} since codesigning seals the bundle.
+   * <p>
+   * No-op for installations that do not contain a {@code .app} bundle (e.g. tarball/CLI tools like the JDK): Gatekeeper does not block those, and running
+   * {@code xattr -cr} unnecessarily produces noisy warnings on locked-down corporate Macs where the operation is not permitted (see issue #1846).
    *
    * @param path the {@link Path} to the installation directory.
    */
@@ -77,7 +80,12 @@ public final class MacOsHelper {
       LOG.debug("Cannot fix Gatekeeper for {} - no context available", path);
       return;
     }
-    // clear all extended attributes (quarantine, resource forks, etc.)
+    Path appDir = findAppDir(path);
+    if (appDir == null) {
+      LOG.debug("No .app bundle found in {} - skipping Gatekeeper workaround", path);
+      return;
+    }
+    // clear all extended attributes (quarantine, resource forks, etc.) before codesigning
     LOG.debug("Clearing extended attributes from {}", path);
     try {
       this.context.newProcess().executable("xattr").addArgs("-cr", path).run(ProcessMode.DEFAULT_SILENT);
@@ -85,24 +93,21 @@ public final class MacOsHelper {
       LOG.warn("Could not clear extended attributes from {}: {}", path, e.getMessage(), e);
     }
     // ad-hoc codesign .app bundles only if they are not already properly signed (e.g. Eclipse is notarized - we must not replace that)
-    Path appDir = findAppDir(path);
-    if (appDir != null) {
-      try {
-        ProcessResult verifyResult = this.context.newProcess().executable("codesign")
-            .errorHandling(ProcessErrorHandling.NONE)
-            .addArgs("-v", appDir).run(ProcessMode.DEFAULT_SILENT);
-        if (!verifyResult.isSuccessful()) {
-          LOG.debug("Ad-hoc codesigning {}", appDir);
-          ProcessResult signResult = this.context.newProcess().executable("codesign")
-              .errorHandling(ProcessErrorHandling.LOG_WARNING)
-              .addArgs("--force", "--deep", "--sign", "-", appDir).run(ProcessMode.DEFAULT_SILENT);
-          if (!signResult.isSuccessful()) {
-            LOG.warn("Could not codesign {} - app may be blocked by Gatekeeper", appDir);
-          }
+    try {
+      ProcessResult verifyResult = this.context.newProcess().executable("codesign")
+          .errorHandling(ProcessErrorHandling.NONE)
+          .addArgs("-v", appDir).run(ProcessMode.DEFAULT_SILENT);
+      if (!verifyResult.isSuccessful()) {
+        LOG.debug("Ad-hoc codesigning {}", appDir);
+        ProcessResult signResult = this.context.newProcess().executable("codesign")
+            .errorHandling(ProcessErrorHandling.LOG_WARNING)
+            .addArgs("--force", "--deep", "--sign", "-", appDir).run(ProcessMode.DEFAULT_SILENT);
+        if (!signResult.isSuccessful()) {
+          LOG.warn("Could not codesign {} - app may be blocked by Gatekeeper", appDir);
         }
-      } catch (Exception e) {
-        LOG.warn("Codesign not available for {}: {}", appDir, e.getMessage(), e);
       }
+    } catch (Exception e) {
+      LOG.warn("Codesign not available for {}: {}", appDir, e.getMessage(), e);
     }
   }
 
