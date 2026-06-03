@@ -12,6 +12,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1968[#1968]: Fixed gui blocking the terminal session while running.
 * https://github.com/devonfw/IDEasy/issues/1849[#1849]: Add VSCodium support
 * https://github.com/devonfw/IDEasy/issues/1922[#1922]: Add Task CLI to IDEasy commandlets
+* https://github.com/devonfw/IDEasy/issues/1994[#1994]: Improve IDEasy AI documentation
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/45?closed=1[milestone 2026.06.001].
 
