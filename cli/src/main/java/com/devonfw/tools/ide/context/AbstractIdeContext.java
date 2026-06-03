@@ -376,9 +376,21 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       }
     }
     this.userHomeIde = this.userHome.resolve(FOLDER_DOT_IDE);
-    this.downloadPath = this.userHome.resolve("Downloads/ide");
+    this.downloadPath = computeDownloadPath(this.userHome);
     resetPrivacyMap();
     this.path = computeSystemPath();
+  }
+
+  /**
+   * On macOS, {@code ~/Downloads} is protected by the OS (TCC) and the CLI may not be allowed to delete it, so we put the cache under
+   * {@code ~/Library/Caches} instead. Tests still use {@code ~/Downloads/ide} so existing fixtures keep working.
+   */
+  private Path computeDownloadPath(Path home) {
+
+    if (!isTest() && this.systemInfo.isMac()) {
+      return home.resolve("Library/Caches/IDEasy/downloads");
+    }
+    return home.resolve("Downloads/ide");
   }
 
   private String getMessageIdeHomeFound() {
@@ -603,7 +615,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
     this.userHome = userHome;
     this.userHomeIde = userHome.resolve(FOLDER_DOT_IDE);
-    this.downloadPath = userHome.resolve("Downloads/ide");
+    this.downloadPath = computeDownloadPath(userHome);
     this.variables = null;
     resetPrivacyMap();
   }
