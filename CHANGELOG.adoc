@@ -6,10 +6,13 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1906[#1906]: Fixed `ide uninstall` failing on macOS 
+* https://github.com/devonfw/IDEasy/issues/1985[#1985]: Fix path traversal errors when extracting ZIPs on Windows
 * https://github.com/devonfw/IDEasy/issues/1255[#1255]: Enhance snapshot version recognition in IDEasy
 * https://github.com/devonfw/IDEasy/issues/1964[#1964]: Fixed gui not launching with older project java versions
 * https://github.com/devonfw/IDEasy/issues/1968[#1968]: Fixed gui blocking the terminal session while running.
 * https://github.com/devonfw/IDEasy/issues/1849[#1849]: Add VSCodium support
+* https://github.com/devonfw/IDEasy/issues/1391[#1391]: Fix bashrc messed with terraform completions
 * https://github.com/devonfw/IDEasy/issues/1922[#1922]: Add Task CLI to IDEasy commandlets
 * https://github.com/devonfw/IDEasy/issues/1392[#1392]: Add smart completions for mvn
 
