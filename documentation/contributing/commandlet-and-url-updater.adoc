@@ -138,8 +138,8 @@ Use `GithubUrlReleaseUpdater` when:
 
 **How to identify if a tool uses GitHub Releases:**
 
-1. Check if the GitHub repository has a "Releases" section
-3. Example: https://api.github.com/repos/anthropics/claude-code/releases
+* Check if the GitHub repository has a "Releases" section
+* Example: https://api.github.com/repos/anthropics/claude-code/releases
 
 === GitHub Tag Updater (When No Releases Available)
 
