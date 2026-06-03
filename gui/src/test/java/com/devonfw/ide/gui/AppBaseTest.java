@@ -6,6 +6,9 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Locale;
+
+import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -19,38 +22,50 @@ import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.ide.gui.context.IdeGuiContext;
+import com.devonfw.ide.gui.context.IdeGuiStateManager;
+import com.devonfw.ide.gui.i18n.I18nService;
+
 /**
  * Basic UI Test
  */
 public class AppBaseTest extends HeadlessApplicationTest {
 
-  private static Logger LOGGER = LoggerFactory.getLogger(AppBaseTest.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(AppBaseTest.class);
 
   private Button androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen;
   private ComboBox<String> selectedProject, selectedWorkspace;
+  private ComboBox<String> selectedLanguage;
 
   @TempDir
-  private static Path temporayProjectDirectoryPath;
+  private static Path mockIdeRoot;
+
 
   @Override
   public void start(Stage stage) throws IOException {
+
+    // Initialize i18n for tests
+    I18nService.resetInstance();
+    I18nService.getInstance(Locale.ENGLISH);
 
     URL mainViewUrl = getClass().getResource("main-view.fxml");
     assertThat(mainViewUrl).as("Cannot resolve main UI FXML resource!").isNotNull();
 
     FXMLLoader fxmlLoader = new FXMLLoader(mainViewUrl);
-    fxmlLoader.setController(new MainController(temporayProjectDirectoryPath.toString()));
+    fxmlLoader.setResources(I18nService.getInstance().getResourceBundle());
+    fxmlLoader.setController(new MainController(mockIdeRoot.toString()));
     Parent root = fxmlLoader.load();
     stage.setScene(new Scene(root));
     stage.requestFocus(); //sometimes needed for headless setup to work
     stage.show();
 
-    androidStudioOpen = (Button) root.lookup("#androidStudioOpen");
-    eclipseOpen = (Button) root.lookup("#eclipseOpen");
-    intellijOpen = (Button) root.lookup("#intellijOpen");
-    vsCodeOpen = (Button) root.lookup("#vsCodeOpen");
-    selectedProject = (ComboBox<String>) root.lookup("#selectedProject");
-    selectedWorkspace = (ComboBox<String>) root.lookup("#selectedWorkspace");
+    androidStudioOpen = lookup(root, "#androidStudioOpen");
+    eclipseOpen = lookup(root, "#eclipseOpen");
+    intellijOpen = lookup(root, "#intellijOpen");
+    vsCodeOpen = lookup(root, "#vsCodeOpen");
+    selectedProject = lookup(root, "#selectedProject");
+    selectedWorkspace = lookup(root, "#selectedWorkspace");
+    selectedLanguage = lookup(root, "#selectedLanguage");
   }
 
   /**
@@ -58,37 +73,28 @@ public class AppBaseTest extends HeadlessApplicationTest {
    * to work in the test context. Generates a structure like this: /project-[0..6]/workspaces/main
    */
   @BeforeAll
-  public static void generateProjectFolderStructure() {
+  protected static void generateProjectFolderStructure() throws IOException {
 
-    LOGGER.debug("tempDir: {}", temporayProjectDirectoryPath);
-    for (int i = 0; i <= 5; i++) {
-      String projectFolderName = "project-" + i;
-      assertThat(temporayProjectDirectoryPath.resolve(projectFolderName).toFile().mkdir())
-          .as("Unable to create mock project directory for mock project " + i)
-          .isTrue();
-      assertThat(temporayProjectDirectoryPath.resolve(projectFolderName).resolve("workspaces").toFile().mkdir())
-          .as("Unable to create mock workspaces directory for mock project " + i)
-          .isTrue();
-      assertThat(temporayProjectDirectoryPath.resolve(projectFolderName).resolve("workspaces").resolve("main").toFile().mkdir())
-          .as(
-              "Unable to create mock main workspace directory for mock project " + i)
-          .isTrue();
-    }
-    LOGGER.debug("project folders: {}", Arrays.toString(temporayProjectDirectoryPath.toFile().list()));
+    LOGGER.debug("tempDir: {}", mockIdeRoot);
+    FakeProjectFolderStructureHelper.createFakeProjectFolderStructure(mockIdeRoot);
+    LOGGER.debug("project folders: {}", Arrays.toString(mockIdeRoot.toFile().list()));
+
+    //We set the project root directory to the temporary directory before all tests, so that the IDE can find the projects in the test.
+    IdeGuiStateManager.getInstanceOverrideRootDir(mockIdeRoot.toString()).switchContext("project-1", "main");
   }
 
   /**
    * This test ensures that all IDE open buttons are disabled when no project is selected.
    */
   @Test
-  public void testIdeOpenButtonsDisabledWhenNoProjectSelected() {
+  public void testIdeOpenButtonsDisabledWhenNoWorkspaceSelected() {
 
     // assert that no project is selected
-    assertThat(selectedProject.getValue()).isNull();
+    assertThat(selectedWorkspace.getValue()).isNull();
 
     // assert all IDE open buttons are disabled
     for (Button button : new Button[] { androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen }) {
-      assertThat(button.isDisabled()).as(button.getId() + " button should be disabled when no project has been selected").isTrue();
+      assertThat(button.isDisabled()).as(button.getId() + " button should be disabled when no workspace has been selected").isTrue();
     }
   }
 
@@ -96,14 +102,15 @@ public class AppBaseTest extends HeadlessApplicationTest {
    * This test ensures that all IDE open buttons are enabled when a project is selected.
    */
   @Test
-  public void testIdeOpenButtonsEnabledWhenProjectSelected() {
+  public void testIdeOpenButtonsEnabledWhenWorkspaceSelected() {
 
-    // assert that a project is selected
+    // assert that a project and workspace is selected
     interact(() -> selectedProject.getSelectionModel().select("project-1"));
+    interact(() -> selectedWorkspace.getSelectionModel().select("main"));
 
-    // assert all IDE open buttons are disabled
+    // assert all IDE open buttons are enabled
     for (Button button : new Button[] { androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen }) {
-      assertThat(!button.isDisabled()).as(button.getId() + " button should be enabled when a project has been selected").isTrue();
+      assertThat(button.isDisabled()).as(button.getId() + " button should be enabled when a workspace has been selected").isFalse();
     }
   }
 
@@ -124,7 +131,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
    * Tests that the workspace {@link ComboBox} is enabled when a project is selected.
    */
   @Test
-  public void testWorkspaceComboboxEnabledEnabledWhenProjectSelected() {
+  public void testWorkspaceComboBoxEnabledEnabledWhenProjectSelected() {
 
     // assert that a project is selected
     interact(() -> selectedProject.getSelectionModel().select("project-1"));
@@ -134,4 +141,38 @@ public class AppBaseTest extends HeadlessApplicationTest {
         .as("selectedWorkspace ComboBox should be enabled when a project is selected")
         .isFalse();
   }
+
+  @Test
+  public void testSwitchingLocaleUpdatesTextsWithoutChangingProjectSelection() {
+
+    interact(() -> selectedProject.getSelectionModel().select("project-1"));
+    interact(() -> selectedWorkspace.getSelectionModel().select("main"));
+
+    String projectBefore = selectedProject.getValue();
+    String workspaceBefore = selectedWorkspace.getValue();
+    String buttonTextBefore = androidStudioOpen.getText();
+    IdeGuiContext contextBefore = IdeGuiStateManager.getInstance().getCurrentContext();
+
+    interact(() -> {
+      selectedLanguage.setValue("Deutsch");
+      ActionEvent actionEvent = new ActionEvent(selectedLanguage, null);
+      if (selectedLanguage.getOnAction() != null) {
+        selectedLanguage.getOnAction().handle(actionEvent);
+      }
+    });
+
+    assertThat(selectedProject.getValue()).isEqualTo(projectBefore);
+    assertThat(selectedWorkspace.getValue()).isEqualTo(workspaceBefore);
+    assertThat(IdeGuiStateManager.getInstance().getCurrentContext()).isSameAs(contextBefore);
+    assertThat(selectedLanguage.getValue()).isEqualTo("Deutsch");
+    assertThat(androidStudioOpen.getText()).isNotEqualTo(buttonTextBefore);
+  }
+
+  @SuppressWarnings("unchecked")
+  private static <T> T lookup(Parent root, String selector) {
+
+    return (T) root.lookup(selector);
+  }
+
+
 }
