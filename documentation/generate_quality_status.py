@@ -754,6 +754,20 @@ _Generated: {date}_
 
 """
 
+SEVERTIY_LEGEND = """\
+Severity Legend
+[%header, cols="^1,^2,5"]
+|===
+| Icon | Severity | Description
+
+| 🚨 | Blocker  | Fully prevents users from working; must be fixed immediately
+| 🔴 | Bug      | Confirmed defect with functional impact
+| 🟡 | Enhancement | Feature request, improvement, or task (no functional breakage)
+| 🟢 | OK       | No open issues
+|===
+"""
+
+
 # --- Document output helpers ---
 
 def _os_output_path(main_output: Path, os_key: str) -> Path:
@@ -795,6 +809,8 @@ def _os_document(os_key: str, tool_data_for_os: dict[str, list[IssueRef]]) -> st
     ":nofooter:",
     "",
     f"Automatically generated tool status for {os_name}.",
+    "",
+    SEVERTIY_LEGEND,
     "",
     _os_section(os_key, tool_data_for_os),
   ])
