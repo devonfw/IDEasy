@@ -4,10 +4,23 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.Circle?>
 <?import java.lang.Double?>
 <BorderPane fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" prefHeight="515.0" prefWidth="817.0"
   xmlns="http://javafx.com/javafx/25.0.0"
   xmlns:fx="http://javafx.com/fxml/1">
+  <top>
+    <HBox alignment="CENTER_RIGHT" spacing="8.0" BorderPane.alignment="CENTER">
+      <children>
+        <!-- Upgrade status replaced by indicator; UpgradeController manages status and dialog -->
+        <Label fx:id="updateStatusLabel" text="%status.update.selectProject"/>
+        <Button fx:id="updateButton" mnemonicParsing="false" text="%button.update" onAction="#onUpdateClicked"/>
+      </children>
+      <padding>
+        <Insets right="10.0" top="6.0" bottom="6.0"/>
+      </padding>
+    </HBox>
+  </top>
   <left>
     <VBox prefHeight="428.0" prefWidth="181.0" spacing="4.0" stylesheets="@style/navigation.css" BorderPane.alignment="CENTER">
       <children>
@@ -16,11 +29,24 @@
             <Insets bottom="10.0"/>
           </VBox.margin>
           <children>
-            <ImageView fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
-              <image>
-                <Image url="@assets/logo.png"/>
-              </image>
-            </ImageView>
+            <!-- Wrap logo in a StackPane so we can overlay a circular upgrade indicator in the top-right corner -->
+            <StackPane>
+              <children>
+                <ImageView fx:id="logoImage" fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+                  <image>
+                    <Image url="@assets/logo.png"/>
+                  </image>
+                </ImageView>
+                <!-- small circular status indicator, initially hidden -->
+                <Circle fx:id="upgradeIndicator" radius="7.0" fill="#FFC107" stroke="#B58900" strokeWidth="1.0" visible="false" pickOnBounds="true"
+                  StackPane.alignment="TOP_RIGHT" translateX="9.0" translateY="-5.0">
+                  <StackPane.margin>
+                    <Insets top="6.0" right="6.0"/>
+                  </StackPane.margin>
+                </Circle>
+              </children>
+              <!-- alignment set per-child using StackPane.alignment on the indicator -->
+            </StackPane>
           </children>
         </HBox>
         <VBox maxHeight="-Infinity" prefWidth="100.0" styleClass="sideNavigationElement">

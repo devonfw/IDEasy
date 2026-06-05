@@ -7,7 +7,6 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Locale;
-
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -25,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.ide.gui.context.IdeGuiContext;
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
 import com.devonfw.ide.gui.i18n.I18nService;
+import com.devonfw.ide.gui.update.UpdateController;
 
 /**
  * Basic UI Test
@@ -34,6 +34,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
   private static final Logger LOGGER = LoggerFactory.getLogger(AppBaseTest.class);
 
   private Button androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen;
+  private Button updateButton;
   private ComboBox<String> selectedProject, selectedWorkspace;
   private ComboBox<String> selectedLanguage;
 
@@ -53,7 +54,42 @@ public class AppBaseTest extends HeadlessApplicationTest {
 
     FXMLLoader fxmlLoader = new FXMLLoader(mainViewUrl);
     fxmlLoader.setResources(I18nService.getInstance().getResourceBundle());
-    fxmlLoader.setController(new MainController(mockIdeRoot.toString()));
+    // Inject a test-friendly UpdateController that performs a deterministic upgrade by
+    // toggling a flag. This avoids running the real UpdateCommandlet in tests and prevents
+    // races between multiple controllers updating the same UI nodes.
+    UpdateController testUpdateController = new UpdateController(IdeGuiStateManager.getInstance()) {
+      private boolean updated = false;
+
+      @Override
+      protected void performProjectUpdate(IdeGuiContext context) {
+        this.updated = true;
+      }
+
+      @Override
+      protected boolean checkForUpdates(IdeGuiContext context) {
+        // Before update return true (there is an update available), after update return false.
+        return (context != null) && !this.updated;
+      }
+    };
+    // Provide a test-friendly UpgradeController that performs deterministic checks by toggling a flag
+    com.devonfw.ide.gui.update.UpgradeController testUpgradeController = new com.devonfw.ide.gui.update.UpgradeController(
+        IdeGuiStateManager.getInstance()) {
+      private boolean upgraded = false;
+
+      @Override
+      protected void performUpgrade() {
+        this.upgraded = true;
+      }
+
+      @Override
+      protected boolean checkForUpgrade() {
+        // Before upgrade return true (there is an upgrade available), after upgrade return false.
+        return !this.upgraded;
+      }
+    };
+
+    fxmlLoader.setController(new MainController(mockIdeRoot.toString(), IdeGuiStateManager.getInstance().getProjectManager(), testUpdateController,
+        testUpgradeController));
     Parent root = fxmlLoader.load();
     stage.setScene(new Scene(root));
     stage.requestFocus(); //sometimes needed for headless setup to work
@@ -63,6 +99,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
     eclipseOpen = lookup(root, "#eclipseOpen");
     intellijOpen = lookup(root, "#intellijOpen");
     vsCodeOpen = lookup(root, "#vsCodeOpen");
+    updateButton = lookup(root, "#updateButton");
     selectedProject = lookup(root, "#selectedProject");
     selectedWorkspace = lookup(root, "#selectedWorkspace");
     selectedLanguage = lookup(root, "#selectedLanguage");
@@ -79,8 +116,8 @@ public class AppBaseTest extends HeadlessApplicationTest {
     FakeProjectFolderStructureHelper.createFakeProjectFolderStructure(mockIdeRoot);
     LOGGER.debug("project folders: {}", Arrays.toString(mockIdeRoot.toFile().list()));
 
-    //We set the project root directory to the temporary directory before all tests, so that the IDE can find the projects in the test.
-    IdeGuiStateManager.getInstanceOverrideRootDir(mockIdeRoot.toString()).switchContext("project-1", "main");
+    // Set the project root directory to the temporary directory before all tests so that the IDE can find the projects in the test.
+    IdeGuiStateManager.getInstanceOverrideRootDir(mockIdeRoot.toString()).clearCurrentContext();
   }
 
   /**
@@ -99,6 +136,17 @@ public class AppBaseTest extends HeadlessApplicationTest {
   }
 
   /**
+   * This test ensures that the update button is disabled when no project/workspace is selected.
+   */
+  @Test
+  public void testUpdateButtonDisabledWhenNoWorkspaceSelected() {
+
+    assertThat(updateButton.isDisabled())
+        .as("update button should be disabled when no workspace has been selected")
+        .isTrue();
+  }
+
+  /**
    * This test ensures that all IDE open buttons are enabled when a project is selected.
    */
   @Test
@@ -112,6 +160,20 @@ public class AppBaseTest extends HeadlessApplicationTest {
     for (Button button : new Button[] { androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen }) {
       assertThat(button.isDisabled()).as(button.getId() + " button should be enabled when a workspace has been selected").isFalse();
     }
+  }
+
+  /**
+   * This test ensures that the update button is enabled when a project/workspace is selected.
+   */
+  @Test
+  public void testUpdateButtonEnabledWhenWorkspaceSelected() {
+
+    interact(() -> selectedProject.getSelectionModel().select("project-1"));
+    interact(() -> selectedWorkspace.getSelectionModel().select("main"));
+
+    assertThat(updateButton.isDisabled())
+        .as("update button should be enabled when a workspace has been selected")
+        .isFalse();
   }
 
   /**

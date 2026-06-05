@@ -2,13 +2,13 @@ package com.devonfw.ide.gui;
 
 import java.io.FileNotFoundException;
 import java.nio.file.NotDirectoryException;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.shape.Circle;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +17,8 @@ import com.devonfw.ide.gui.context.IdeGuiStateManager;
 import com.devonfw.ide.gui.context.ProjectManager;
 import com.devonfw.ide.gui.i18n.I18nService;
 import com.devonfw.ide.gui.modal.IdeDialog;
+import com.devonfw.ide.gui.update.UpdateController;
+import com.devonfw.ide.gui.update.UpgradeController;
 
 /**
  * Controller of the main screen of the dashboard GUI.
@@ -58,6 +60,19 @@ public class MainController {
   @FXML
   private Button vsCodeOpen;
 
+  @FXML
+  private Circle upgradeIndicator;
+
+  @FXML
+  private Button updateButton;
+
+  @FXML
+  private Label updateStatusLabel;
+
+  private final UpdateController updateController;
+
+  private final UpgradeController upgradeController;
+
   private final String directoryPath;
 
 
@@ -65,11 +80,27 @@ public class MainController {
    * Constructor
    */
   public MainController(String directoryPath) {
+    this(directoryPath, IdeGuiStateManager.getInstance().getProjectManager(), new UpdateController(IdeGuiStateManager.getInstance()),
+        new UpgradeController(IdeGuiStateManager.getInstance()));
+  }
+
+  /**
+   * Constructor with injected project manager and update controller.
+   *
+   * @param directoryPath IDE root path
+   * @param projectManager the project manager to use
+   * @param updateController update controller to use for project related update actions
+   * @param upgradeController upgrade controller to use for IDEasy upgrade actions
+   */
+  public MainController(String directoryPath, ProjectManager projectManager, UpdateController updateController,
+      UpgradeController upgradeController) {
 
     LOG.debug("IDE_ROOT path={}", directoryPath);
     this.directoryPath = directoryPath;
 
-    this.projectManager = IdeGuiStateManager.getInstance().getProjectManager();
+    this.projectManager = projectManager;
+    this.updateController = updateController;
+    this.upgradeController = upgradeController;
   }
 
   @FXML
@@ -78,6 +109,27 @@ public class MainController {
     initLanguageComboBox();
     updateTexts();
     I18nService.getInstance().addLocaleChangeListener(this::updateTexts);
+    initUpgradeAndUpdateCheck();
+  }
+
+  private void initUpgradeAndUpdateCheck() {
+    try {
+      this.updateController.start(updateStatusLabel, updateButton);
+      if (this.upgradeController != null) {
+        // Pass the indicator to the upgrade controller which will manage its visibility and dialog.
+        this.upgradeController.start(this.upgradeIndicator);
+      }
+    } catch (Exception e) {
+      LOG.debug("Failed to start update controller", e);
+      updateStatusLabel.setText(I18nService.getInstance().get("status.update.unavailable"));
+      updateButton.setDisable(true);
+      if (this.upgradeController != null) {
+        // if upgrade controller failed to start, ensure indicator hidden
+        if (this.upgradeIndicator != null) {
+          this.upgradeIndicator.setVisible(false);
+        }
+      }
+    }
   }
 
   @FXML
@@ -127,6 +179,14 @@ public class MainController {
     eclipseOpen.setText(i18n.get("button.open"));
     intellijOpen.setText(i18n.get("button.open"));
     vsCodeOpen.setText(i18n.get("button.open"));
+    updateButton.setText(i18n.get("button.update"));
+
+    if (this.updateController != null) {
+      this.updateController.refreshStatusText();
+    }
+    if (this.upgradeController != null) {
+      this.upgradeController.refreshStatusText();
+    }
   }
 
 
@@ -154,6 +214,14 @@ public class MainController {
     openIDE("vscode");
   }
 
+  @FXML
+  private void onUpdateClicked() {
+    if (this.updateController != null) {
+      this.updateController.onUpdateClicked();
+    }
+  }
+
+
   private void setProjectsComboBox() {
 
     assert (directoryPath != null) : "directoryPath is null! Please check the setup of your environment variables (IDE_ROOT)";
@@ -173,7 +241,7 @@ public class MainController {
 
   private void setWorkspaceComboBox() {
 
-    List<String> workspaces = null;
+    List<String> workspaces;
     try {
       workspaces = projectManager.getWorkspaceNames(selectedProject.getValue());
     } catch (NotDirectoryException e) {
@@ -184,12 +252,18 @@ public class MainController {
     selectedWorkspace.getItems().addAll(workspaces);
 
     selectedWorkspace.setOnAction(actionEvent -> {
-      updateContext(selectedProject.getValue(), selectedWorkspace.getValue());
 
-      androidStudioOpen.setDisable(false);
-      eclipseOpen.setDisable(false);
-      intellijOpen.setDisable(false);
-      vsCodeOpen.setDisable(false);
+      if (updateContext(selectedProject.getValue(), selectedWorkspace.getValue())) {
+        androidStudioOpen.setDisable(false);
+        eclipseOpen.setDisable(false);
+        intellijOpen.setDisable(false);
+        vsCodeOpen.setDisable(false);
+
+        if (this.updateController != null) {
+          this.updateController.onContextChanged(IdeGuiStateManager.getInstance().getCurrentContext());
+        }
+        // no-op: manual check button removed
+      }
     });
   }
 
@@ -203,12 +277,16 @@ public class MainController {
         .run();
   }
 
-  private void updateContext(String selectedProjectName, String selectedWorkspaceName) {
+  private boolean updateContext(String selectedProjectName, String selectedWorkspaceName) {
     try {
       IdeGuiStateManager.getInstance().switchContext(selectedProjectName, selectedWorkspaceName);
+      return true;
     } catch (FileNotFoundException e) {
+      IdeGuiStateManager.getInstance().clearCurrentContext();
       IdeDialog errorDialog = new IdeDialog(IdeDialog.AlertType.ERROR, e.getMessage());
       errorDialog.showAndWait();
+      // no-op: manual check button removed
+      return false;
     }
   }
 }

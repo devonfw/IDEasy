@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.*?>
+<BorderPane xmlns="http://javafx.com/javafx/25.0.0" xmlns:fx="http://javafx.com/fxml/1"
+  prefWidth="420" prefHeight="160">
+
+  <top>
+    <Separator/>
+  </top>
+
+  <center>
+    <Label fx:id="statusLabel" wrapText="true" maxWidth="380" BorderPane.alignment="CENTER">
+      <BorderPane.margin>
+        <Insets top="12" left="12" right="12" bottom="12"/>
+      </BorderPane.margin>
+    </Label>
+  </center>
+
+  <bottom>
+    <HBox alignment="CENTER_RIGHT" BorderPane.alignment="CENTER">
+      <children>
+        <Button fx:id="upgradeButton" text="%button.upgrade" onAction="#onUpgradeClicked"/>
+      </children>
+      <padding>
+        <Insets bottom="12" right="12"/>
+      </padding>
+    </HBox>
+  </bottom>
+</BorderPane>
+
+

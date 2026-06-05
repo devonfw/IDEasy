@@ -14,8 +14,11 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.ide.gui.context.IdeGuiStateManager;
 import com.devonfw.ide.gui.i18n.I18nService;
 import com.devonfw.ide.gui.modal.IdeDialog;
+import com.devonfw.ide.gui.update.UpdateController;
+import com.devonfw.ide.gui.update.UpgradeController;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.IdeVersion;
 
@@ -31,32 +34,52 @@ public class App extends Application {
   @Override
   public void start(Stage primaryStage) throws IOException {
 
-    // Initialize localization with system default locale
-    I18nService.getInstance(null);
+    try {
+      I18nService.getInstance(null);
+      applyVersionOverrideFromConfig();
 
-    Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
-          LOG.error("Uncaught exception in thread {}: {}", thread.getName(), throwable.getMessage(), throwable);
-          Platform.runLater(() -> new IdeDialog(IdeDialog.AlertType.ERROR, throwable.getMessage()).showAndWait());
-        }
-    );
+      Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+            LOG.error("Uncaught exception in thread {}: {}", thread.getName(), throwable.getMessage(), throwable);
+            Platform.runLater(() -> new IdeDialog(IdeDialog.AlertType.ERROR, throwable.getMessage()).showAndWait());
+          }
+      );
 
-    FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
-    fxmlLoader.setResources(I18nService.getInstance().getResourceBundle());
-    fxmlLoader.setController(
-        new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()))
-    );
-    root = fxmlLoader.load();
+      FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
+      fxmlLoader.setResources(I18nService.getInstance().getResourceBundle());
+      UpdateController updateController = new UpdateController(IdeGuiStateManager.getInstance());
+      UpgradeController upgradeController = new UpgradeController(
+          IdeGuiStateManager.getInstance());
+      fxmlLoader.setController(
+          new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()), IdeGuiStateManager.getInstance().getProjectManager(), updateController,
+              upgradeController)
+      );
+      root = fxmlLoader.load();
 
-    Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
-    Scene scene = new Scene(root, bounds.getWidth() / 2, bounds.getHeight() / 2);
+      Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
+      Scene scene = new Scene(root, bounds.getWidth() / 2, bounds.getHeight() / 2);
 
-    Image icon = new Image("com/devonfw/ide/gui/assets/devonfw.png");
-    primaryStage.getIcons().add(icon);
-    primaryStage.setTitle("IDEasy - version " + IdeVersion.getVersionString());
-    primaryStage.setScene(scene);
-    primaryStage.setMinWidth(scene.getWidth());
-    primaryStage.setMinHeight(scene.getHeight());
-    primaryStage.show();
+      Image icon = new Image("com/devonfw/ide/gui/assets/devonfw.png");
+      primaryStage.getIcons().add(icon);
+      primaryStage.setTitle("IDEasy - version " + IdeVersion.getVersionString());
+      primaryStage.setScene(scene);
+      primaryStage.setMinWidth(scene.getWidth());
+      primaryStage.setMinHeight(scene.getHeight());
+      primaryStage.show();
+    } catch (Throwable t) {
+      t.printStackTrace();
+      new IdeDialog(IdeDialog.AlertType.ERROR, "Failed to start IDEasy GUI: " + t.getMessage()).showAndWait();
+    }
+  }
+
+  public static void applyVersionOverrideFromConfig() {
+
+    String versionOverride = System.getenv("IDE_VERSION");
+    if ((versionOverride == null) || versionOverride.isBlank()) {
+      versionOverride = System.getProperty("IDE_VERSION");
+    }
+    if ((versionOverride != null) && !versionOverride.isBlank()) {
+      IdeVersion.setMockVersionForTesting(versionOverride.trim());
+    }
   }
 
 

@@ -59,6 +59,17 @@ public class IdeGuiStateManager {
   }
 
   /**
+   * Expose the internal start context used to create {@link com.devonfw.ide.gui.context.IdeGuiContext}s. This is needed by the GUI to perform global checks
+   * (like checking for IDEasy upgrades) without a selected project context.
+   *
+   * @return the {@link com.devonfw.tools.ide.context.IdeStartContextImpl} used by the GUI.
+   */
+  public IdeStartContextImpl getStartContext() {
+
+    return this.startContext;
+  }
+
+  /**
    * <strong><u>USE WITH CARE.</u></strong>
    * This method is used in cases where the IDE_ROOT environment variable is not set, e.g. in test contexts on GitHub actions. This method will retrieve the
    * current instance, set the project directory manually an then return the updated instance.
@@ -105,6 +116,14 @@ public class IdeGuiStateManager {
     listeners.forEach(listener -> listener.onContextChange(this.currentContext));
 
     return this.currentContext;
+  }
+
+  /**
+   * Clears the currently selected project context.
+   */
+  public synchronized void clearCurrentContext() {
+
+    this.currentContext = null;
   }
 
   /**
