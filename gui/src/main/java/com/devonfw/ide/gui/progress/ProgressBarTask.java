@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.FxHelper;
+import com.devonfw.ide.gui.context.TaskManager;
 import com.devonfw.tools.ide.io.AbstractIdeProgressBar;
 
 /**
@@ -39,7 +40,6 @@ public class ProgressBarTask extends AbstractIdeProgressBar {
 
     super(title, maxSize, unitName, unitSize);
     this.taskId = taskId;
-    TaskManager.getInstance().addTask(this);
   }
 
   /**
@@ -52,7 +52,6 @@ public class ProgressBarTask extends AbstractIdeProgressBar {
     super(title, 100, "%", 1);
     setIndeterminate(true);
     this.taskId = taskId;
-    TaskManager.getInstance().addTask(this);
   }
 
   @Override

@@ -33,7 +33,10 @@ public class IdeGuiContext extends AbstractIdeContext {
   @Override
   public IdeProgressBar newProgressBar(String title, long size, String unitName, long unitSize) {
 
-    return new ProgressBarTask(UUID.randomUUID().toString(), title, size, unitName, unitSize);
+    ProgressBarTask newTask = new ProgressBarTask(UUID.randomUUID().toString(), title, size, unitName, unitSize);
+    TaskManager.getInstance().addTask(newTask);
+
+    return newTask;
   }
 
   /**
@@ -42,6 +45,9 @@ public class IdeGuiContext extends AbstractIdeContext {
    */
   public IdeProgressBar newProgressBarIndeterminate(String title) {
 
-    return new ProgressBarTask(UUID.randomUUID().toString(), title);
+    ProgressBarTask newTask = new ProgressBarTask(UUID.randomUUID().toString(), title);
+    TaskManager.getInstance().addTask(newTask);
+
+    return newTask;
   }
 }

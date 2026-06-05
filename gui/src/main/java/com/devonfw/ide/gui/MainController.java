@@ -18,9 +18,9 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
 import com.devonfw.ide.gui.context.ProjectManager;
+import com.devonfw.ide.gui.context.TaskManager;
 import com.devonfw.ide.gui.modal.IdeDialog;
 import com.devonfw.ide.gui.progress.ProgressBarTask;
-import com.devonfw.ide.gui.progress.TaskManager;
 import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindow;
 
 /**

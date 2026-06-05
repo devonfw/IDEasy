@@ -1,10 +1,11 @@
-package com.devonfw.ide.gui.progress;
+package com.devonfw.ide.gui.context;
 
 import java.util.Objects;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 import com.devonfw.ide.gui.FxHelper;
+import com.devonfw.ide.gui.progress.ProgressBarTask;
 
 /**
  * Singleton class that manages all currently running tasks and their progress bars. It provides an {@link ObservableList} of tasks, which can be observed by

@@ -6,8 +6,8 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
 
+import com.devonfw.ide.gui.context.TaskManager;
 import com.devonfw.ide.gui.progress.ProgressBarTask;
-import com.devonfw.ide.gui.progress.TaskManager;
 
 /**
  * Controller for the task overview window, which shows all currently running tasks and their progressbars.
