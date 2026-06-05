@@ -97,6 +97,10 @@ public class ProjectManagerTest extends AbstractIdeContextTest {
     Path project0 = ideRoot.resolve("project-0");
     Path project6 = ideRoot.resolve("project-6");
     FileUtils.copyDirectory(project0.toFile(), project6.toFile());
+    File adjustedWorkspaceName = project6.resolve("workspaces").resolve("foo-test-0").toFile();
+
+    //as we copied from project-0, the test workspace folder name is still old
+    assertThat(adjustedWorkspaceName.renameTo(project6.resolve("workspaces").resolve("foo-test-6").toFile())).isTrue();
 
     // Verify that project-6 is now recognized
     List<String> extendedList = new ArrayList<>(VALID_PROJECT_LIST);
