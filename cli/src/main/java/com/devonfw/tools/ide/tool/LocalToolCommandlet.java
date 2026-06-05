@@ -589,4 +589,12 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   public Path findBuildDescriptor(Path directory) {
     return null;
   }
+  
+  /**
+   * @return Bash completion command for this tool or {@code null} if this tool does not provide Bash completion.
+   */
+  public String getBashCompletion() {
+
+    return null;
+  }
 }
