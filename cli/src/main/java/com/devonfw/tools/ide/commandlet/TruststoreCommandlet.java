@@ -150,7 +150,7 @@ public class TruststoreCommandlet extends Commandlet {
   private void configureIdeOptions(Path customTruststorePath) {
     String truststorePath = customTruststorePath.toAbsolutePath().toString();
     String truststoreOption = TRUSTSTORE_OPTION_PREFIX + truststorePath;
-    String truststorePasswordOption = TRUSTSTORE_PASSWORD_OPTION_PREFIX + Arrays.toString(TruststoreUtil.CUSTOM_TRUSTSTORE_PASSWORD);
+    String truststorePasswordOption = TRUSTSTORE_PASSWORD_OPTION_PREFIX + TruststoreUtil.CUSTOM_TRUSTSTORE_PASSWORD;
 
     EnvironmentVariables confVariables = this.context.getVariables().getByType(EnvironmentVariablesType.USER);
 
@@ -170,7 +170,7 @@ public class TruststoreCommandlet extends Commandlet {
       confVariables.save();
       // Apply directly for the current process as well.
       System.setProperty("javax.net.ssl.trustStore", truststorePath);
-      System.setProperty("javax.net.ssl.trustStorePassword", Arrays.toString(TruststoreUtil.CUSTOM_TRUSTSTORE_PASSWORD));
+      System.setProperty("javax.net.ssl.trustStorePassword", TruststoreUtil.CUSTOM_TRUSTSTORE_PASSWORD);
       IdeLogLevel.SUCCESS.log(LOG, "IDE_OPTIONS configured to use custom truststore by default.");
     } catch (UnsupportedOperationException e) {
       IdeLogLevel.INTERACTION.log(LOG, "Please configure IDE_OPTIONS manually: {} {}", truststoreOption, truststorePasswordOption);

@@ -7,7 +7,10 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +58,41 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   public static final String IDE_BIN = "\\_ide\\bin";
   public static final String IDE_INSTALLATION_BIN = "\\_ide\\installation\\bin";
 
+
+  private static final Map<String, Boolean> REQUIRED_INSTALLATION_ARTIFACTS = Map.of(
+      //artifactName: String, required: boolean
+      "bin", true,
+      "functions", true,
+      "internal", true,
+      "gui", true,
+      "system", true,
+      "IDEasy.pdf", true,
+      "setup", true,
+      "setup.bat", false
+  );
+
   private final UpgradeMode mode;
+
+  /** Pattern for IDEasy SNAPSHOT versions built locally. */
+  // ..............................................................................1..........................2........3........4
+  private static final Pattern PATTERN_IDEASY_SNAPSHOT_VERSION = Pattern.compile("^(\\d{4}\\.\\d{2}\\.\\d{3})-(\\d{2})_(\\d{2})_(\\d{2}).*-SNAPSHOT$");
+
+  /** Pattern for Maven/Nexus SNAPSHOT versions from downloads . */
+  // .............................................................................1..........................2.......3.......4..........5
+  private static final Pattern PATTERN_MAVEN_SNAPSHOT_VERSION = Pattern.compile("^(\\d{4}\\.\\d{2}\\.\\d{3})-(\\d{4})(\\d{2})(\\d{2})\\.(\\d{2})\\d{4}.*$");
+
+  // Group numbers for PATTERN_IDEASY_SNAPSHOT_VERSION
+  private static final int GROUP_IDEASY_BASE = 1;
+  private static final int GROUP_IDEASY_MONTH = 2;
+  private static final int GROUP_IDEASY_DAY = 3;
+  private static final int GROUP_IDEASY_HOUR = 4;
+
+  // Group numbers for PATTERN_MAVEN_SNAPSHOT_VERSION
+  private static final int GROUP_MAVEN_BASE = 1;
+  private static final int GROUP_MAVEN_YEAR = 2;
+  private static final int GROUP_MAVEN_MONTH = 3;
+  private static final int GROUP_MAVEN_DAY = 4;
+  private static final int GROUP_MAVEN_HOUR = 5;
 
   /**
    * The constructor.
@@ -164,15 +201,60 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       return false;
     }
     VersionIdentifier latestVersion = getLatestVersion();
-    if (installedVersion.equals(latestVersion)) {
-      IdeLogLevel.SUCCESS.log(LOG, "Your are using the latest version of IDEasy and no update is available.");
+    if (IdeVersion.isSnapshot()) {
+      if (isSameSnapshotVersion(installedVersion.toString(), latestVersion.toString())) {
+        IdeLogLevel.SUCCESS.log(LOG, "Your are using the latest snapshot version of IDEasy and no update is available.");
+        return false;
+      }
+    } else if (installedVersion.equals(latestVersion)) {
+      IdeLogLevel.SUCCESS.log(LOG, "Your are using the latest stable version of IDEasy and no update is available.");
       return false;
-    } else {
-      IdeLogLevel.INTERACTION.log(LOG,
-          "Your version of IDEasy is {} but version {} is available. Please run the following command to upgrade to the latest version:\n"
-              + "ide upgrade", installedVersion, latestVersion);
-      return true;
     }
+    IdeLogLevel.INTERACTION.log(LOG,
+        "Your version of IDEasy is {} but version {} is available. Please run the following command to upgrade to the latest version:\n"
+            + "ide upgrade", installedVersion, latestVersion);
+    return true;
+  }
+
+  /**
+   * Checks if two snapshot versions represent the version
+   *
+   * @param installed the installed version string
+   * @param latest the latest available version string
+   * @return {@code true} if both versions represent the same version, {@code false} otherwise.
+   */
+  private boolean isSameSnapshotVersion(String installed, String latest) {
+    if (installed == null || latest == null) {
+      return false;
+    }
+
+    Matcher installedMatcher = PATTERN_IDEASY_SNAPSHOT_VERSION.matcher(installed);
+    Matcher latestMatcher = PATTERN_MAVEN_SNAPSHOT_VERSION.matcher(latest);
+
+    if (!installedMatcher.matches() || !latestMatcher.matches()) {
+      return false;
+    }
+
+    // Compare base versions
+    String baseInstalled = installedMatcher.group(GROUP_IDEASY_BASE);
+    String baseLatest = latestMatcher.group(GROUP_MAVEN_BASE);
+    if (!baseInstalled.equals(baseLatest)) {
+      return false;
+    }
+
+    // Compare year
+    String yearLatest = latestMatcher.group(GROUP_MAVEN_YEAR);
+    String baseYear = baseInstalled.split("\\.")[0];
+    if (!baseYear.equals(yearLatest)) {
+      return false;
+    }
+
+    // Compare MMDD.HH for both versions
+    String keyInstalled =
+        installedMatcher.group(GROUP_IDEASY_MONTH) + installedMatcher.group(GROUP_IDEASY_DAY) + "." + installedMatcher.group(GROUP_IDEASY_HOUR);
+    String keyLatest = latestMatcher.group(GROUP_MAVEN_MONTH) + latestMatcher.group(GROUP_MAVEN_DAY) + "." + latestMatcher.group(GROUP_MAVEN_HOUR);
+
+    return keyInstalled.equals(keyLatest);
   }
 
   /**
@@ -193,17 +275,15 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       LOG.error("IDEasy is already installed at {} - if your installation is broken, delete it manually and rerun setup!", ideasyVersionPath);
     } else {
       List<Path> installationArtifacts = new ArrayList<>();
-      boolean success = true;
-      success &= addInstallationArtifact(cwd, "bin", true, installationArtifacts);
-      success &= addInstallationArtifact(cwd, "functions", true, installationArtifacts);
-      success &= addInstallationArtifact(cwd, "internal", true, installationArtifacts);
-      success &= addInstallationArtifact(cwd, "system", true, installationArtifacts);
-      success &= addInstallationArtifact(cwd, "IDEasy.pdf", true, installationArtifacts);
-      success &= addInstallationArtifact(cwd, "setup", true, installationArtifacts);
-      success &= addInstallationArtifact(cwd, "setup.bat", false, installationArtifacts);
-      if (!success) {
-        throw new CliException("IDEasy release is inconsistent at " + cwd);
+      for (Map.Entry<String, Boolean> artifactEntry : REQUIRED_INSTALLATION_ARTIFACTS.entrySet()) {
+        String artifactName = artifactEntry.getKey();
+        boolean required = artifactEntry.getValue();
+        boolean success = addInstallationArtifact(cwd, artifactName, required, installationArtifacts);
+        if (!success) {
+          throw new CliException("IDEasy release is inconsistent at %s [artifact=%s]".formatted(cwd, artifactName));
+        }
       }
+
       fileAccess.mkdirs(ideasyVersionPath);
       for (Path installationArtifact : installationArtifacts) {
         fileAccess.copy(installationArtifact, ideasyVersionPath);
@@ -610,12 +690,34 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   private void deleteDownloadCache() {
     Path downloadPath = this.context.getDownloadPath();
     LOG.info("Deleting download cache from {}", downloadPath);
-    this.context.getFileAccess().delete(downloadPath);
+    tryDeleteDownloadCache(downloadPath);
+    // older versions kept the cache under ~/Downloads/ide - clean that up too if it's still around
+    Path legacy = this.context.getUserHome().resolve("Downloads/ide");
+    if (!legacy.equals(downloadPath) && Files.exists(legacy)) {
+      LOG.info("Deleting legacy download cache from {}", legacy);
+      tryDeleteDownloadCache(legacy);
+    }
+  }
+
+  private void tryDeleteDownloadCache(Path path) {
+    try {
+      this.context.getFileAccess().delete(path);
+    } catch (IllegalStateException e) {
+      // best effort - on macOS ~/Downloads can deny access (EPERM), don't fail the whole uninstall over it
+      String cause = (e.getCause() != null) ? e.getCause().getMessage() : e.getMessage();
+      LOG.warn("Could not delete download cache at {} ({}). The folder will be left in place; you can remove it manually via Finder.", path, cause);
+    }
   }
 
   private void uninstallIdeasyIdePath(Path idePath) {
     if (this.context.getSystemInfo().isWindows()) {
-      this.context.newProcess().executable("bash").addArgs("-c",
+      Path bash = this.context.findBash();
+      if (bash == null) {
+        LOG.warn("Could not find bash for asynchronous deletion of {}. Falling back to direct deletion.", idePath);
+        this.context.getFileAccess().delete(idePath);
+        return;
+      }
+      this.context.newProcess().executable(bash).addArgs("-c",
           "sleep 10 && rm -rf \"" + WindowsPathSyntax.MSYS.format(idePath) + "\"").run(ProcessMode.BACKGROUND);
       IdeLogLevel.INTERACTION.log(LOG,
           "To prevent windows file locking errors, we perform an asynchronous deletion of {} in background now.\n"

@@ -180,13 +180,32 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
     return this.installedVersion.get();
   }
 
+  /**
+   * Override to ignore the {@code toolPath} parameter and use the package-manager based detection of the actually installed version.
+   *
+   * @param toolPath the installation {@link Path} where to find the version file.
+   * @return the installed version or null if not installed.
+   */
+  @Override
+  protected VersionIdentifier getInstalledVersion(Path toolPath) {
+    return getInstalledVersion();
+  }
+
   @Override
   protected final void performToolInstallation(ToolInstallRequest request, Path installationPath) {
 
     PackageManagerRequest packageManagerRequest = new PackageManagerRequest(PackageManagerRequest.TYPE_INSTALL, getPackageName())
         .setProcessContext(request.getProcessContext()).setVersion(request.getRequested().getResolvedVersion());
-    runPackageManager(packageManagerRequest, true).failOnError();
+    runPackageManager(packageManagerRequest, isSkipInstallation()).failOnError();
     this.installedVersion.invalidate();
+  }
+
+  /**
+   * @return {@code false} if the underlying {@link #getPackageManagerClass() package manager} should also be installed, {@code false} to skip that additional
+   *     installation (e.g. to prevent infinite loop in case of cyclic dependencies between package manager based tools such as node and npm).
+   */
+  protected boolean isSkipInstallation() {
+    return false;
   }
 
   /**
