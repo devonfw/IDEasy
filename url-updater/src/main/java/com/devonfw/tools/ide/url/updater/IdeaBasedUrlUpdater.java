@@ -25,6 +25,10 @@ public abstract class IdeaBasedUrlUpdater extends JsonUrlUpdater<IntellijJsonObj
     super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
   }
 
+  protected IdeaBasedUrlUpdater(String versionBaseUrl) {
+    super(DOWNLOAD_BASE_URL, versionBaseUrl);
+  }
+
   @Override
   protected Collection<IntellijJsonRelease> getVersionItems(IntellijJsonObject jsonObject) {
 

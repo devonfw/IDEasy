@@ -26,6 +26,10 @@ public class InsoUrlUpdater extends GithubUrlReleaseUpdater {
     super(DOWNLOAD_BASE_URL);
   }
 
+  InsoUrlUpdater(String downloadBaseUrl) {
+    super(downloadBaseUrl);
+  }
+
   @Override
   protected String getGithubOrganization() {
     return "Kong";

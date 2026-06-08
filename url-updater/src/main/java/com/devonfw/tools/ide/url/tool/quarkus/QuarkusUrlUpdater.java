@@ -11,6 +11,14 @@ public class QuarkusUrlUpdater extends GithubUrlTagUpdater {
 
   private static final VersionIdentifier MIN_QUARKUS_VID = VersionIdentifier.of("2.5.0");
 
+  public QuarkusUrlUpdater() {
+    super();
+  }
+
+  QuarkusUrlUpdater(String downloadBaseUrl) {
+    super(downloadBaseUrl);
+  }
+
   @Override
   public String getTool() {
 

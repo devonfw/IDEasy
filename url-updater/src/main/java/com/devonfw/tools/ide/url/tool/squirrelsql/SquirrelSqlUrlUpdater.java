@@ -12,6 +12,14 @@ public class SquirrelSqlUrlUpdater extends GithubUrlReleaseUpdater {
 
   private static final VersionIdentifier MIN_VERSION = VersionIdentifier.of("4.4.0");
 
+  public SquirrelSqlUrlUpdater() {
+    super();
+  }
+
+  SquirrelSqlUrlUpdater(String downloadBaseUrl) {
+    super(downloadBaseUrl);
+  }
+
   @Override
   public String getTool() {
 

@@ -30,6 +30,10 @@ public class PythonUrlUpdater extends JsonUrlUpdater<PythonJsonObject, PythonRel
     super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
   }
 
+  PythonUrlUpdater(String versionBaseUrl) {
+    super(DOWNLOAD_BASE_URL, versionBaseUrl);
+  }
+
   @Override
   public String getTool() {
 

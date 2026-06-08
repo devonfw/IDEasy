@@ -30,6 +30,10 @@ public class AndroidStudioUrlUpdater extends JsonUrlUpdater<AndroidJsonObject, A
     super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
   }
 
+  AndroidStudioUrlUpdater(String versionBaseUrl) {
+    super(DOWNLOAD_BASE_URL, versionBaseUrl);
+  }
+
   @Override
   public String getTool() {
 

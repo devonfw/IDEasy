@@ -7,6 +7,14 @@ import com.devonfw.tools.ide.url.updater.NpmBasedUrlUpdater;
  */
 public class NpmUrlUpdater extends NpmBasedUrlUpdater {
 
+  public NpmUrlUpdater() {
+    super();
+  }
+
+  NpmUrlUpdater(String baseUrl) {
+    super(baseUrl);
+  }
+
   @Override
   public String getTool() {
 

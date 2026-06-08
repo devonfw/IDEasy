@@ -19,6 +19,10 @@ public class PipUrlUpdater extends WebsiteUrlUpdater {
     super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
   }
 
+  PipUrlUpdater(String baseUrl) {
+    super(baseUrl, baseUrl);
+  }
+
   @Override
   public String getTool() {
 

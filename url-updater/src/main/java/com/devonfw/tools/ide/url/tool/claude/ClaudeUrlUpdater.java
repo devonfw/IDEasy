@@ -12,6 +12,14 @@ public class ClaudeUrlUpdater extends GithubUrlReleaseUpdater {
 
   private static final VersionIdentifier MIN_CLAUDE_VID = VersionIdentifier.of("2.1.117");
 
+  public ClaudeUrlUpdater() {
+    super();
+  }
+
+  ClaudeUrlUpdater(String downloadBaseUrl) {
+    super(downloadBaseUrl);
+  }
+
   @Override
   public String getTool() {
     return "claude";

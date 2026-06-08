@@ -12,7 +12,7 @@ public class ClaudeUrlUpdaterMock extends ClaudeUrlUpdater {
   private final WireMockRuntimeInfo wmRuntimeInfo;
 
   ClaudeUrlUpdaterMock(WireMockRuntimeInfo wireMockRuntimeInfo) {
-    super();
+    super("");
     this.wmRuntimeInfo = wireMockRuntimeInfo;
     this.baseUrl = wireMockRuntimeInfo.getHttpBaseUrl();
   }

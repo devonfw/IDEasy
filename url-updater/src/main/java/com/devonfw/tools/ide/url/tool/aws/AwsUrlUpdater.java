@@ -15,6 +15,10 @@ public class AwsUrlUpdater extends GithubUrlTagUpdater {
     super(DOWNLOAD_BASE_URL);
   }
 
+  AwsUrlUpdater(String downloadBaseUrl, String versionBaseUrl) {
+    super(downloadBaseUrl, versionBaseUrl);
+  }
+
   @Override
   public String getTool() {
 

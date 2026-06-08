@@ -38,7 +38,7 @@ class GradleUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(any(urlMatching("/distributions/gradle.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    GradleUrlUpdaterMock updater = new GradleUrlUpdaterMock(wmRuntimeInfo);
+    GradleUrlUpdater updater = new GradleUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // act
     updater.update(urlRepository);

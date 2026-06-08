@@ -15,6 +15,14 @@ public class CopilotUrlUpdater extends GithubUrlTagUpdater {
 
   private static final VersionIdentifier MIN_COPILOT_VID = VersionIdentifier.of("1.0.2");
 
+  public CopilotUrlUpdater() {
+    super();
+  }
+
+  CopilotUrlUpdater(String downloadBaseUrl) {
+    super(downloadBaseUrl);
+  }
+
   @Override
   public String getTool() {
     return "copilot";

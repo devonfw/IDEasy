@@ -7,6 +7,14 @@ import com.devonfw.tools.ide.url.updater.NpmBasedUrlUpdater;
  */
 public class CorepackUrlUpdater extends NpmBasedUrlUpdater {
 
+  public CorepackUrlUpdater() {
+    super();
+  }
+
+  CorepackUrlUpdater(String downloadBaseUrl) {
+    super(downloadBaseUrl);
+  }
+
   @Override
   public String getTool() {
 
@@ -18,5 +26,5 @@ public class CorepackUrlUpdater extends NpmBasedUrlUpdater {
 
     return "corepack";
   }
-  
+
 }

@@ -18,6 +18,10 @@ public class MvndUrlUpdater extends GithubUrlReleaseUpdater {
     super(DOWNLOAD_BASE_URL);
   }
 
+  MvndUrlUpdater(String downloadBaseUrl, String versionBaseUrl) {
+    super(downloadBaseUrl, versionBaseUrl);
+  }
+
   @Override
   public String getTool() {
 
@@ -35,7 +39,7 @@ public class MvndUrlUpdater extends GithubUrlReleaseUpdater {
 
     return "maven-mvnd";
   }
-  
+
   @Override
   protected boolean isAcceptPreVersion() {
 

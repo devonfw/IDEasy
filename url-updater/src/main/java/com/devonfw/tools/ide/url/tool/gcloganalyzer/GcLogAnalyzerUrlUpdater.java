@@ -20,6 +20,10 @@ public class GcLogAnalyzerUrlUpdater extends WebsiteUrlUpdater {
     super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
   }
 
+  GcLogAnalyzerUrlUpdater(String baseUrl) {
+    super(baseUrl, baseUrl);
+  }
+
   @Override
   protected Pattern getVersionPattern() {
 

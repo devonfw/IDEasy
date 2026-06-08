@@ -17,6 +17,14 @@ public class PycharmUrlUpdater extends IdeaBasedUrlUpdater {
   private static final List<String> EDITIONS = List.of("professional", "pycharm");
   protected static final ObjectMapper MAPPER = JsonMapping.createWithReflectionSupportForUrlUpdaters();
 
+  public PycharmUrlUpdater() {
+    super();
+  }
+
+  PycharmUrlUpdater(String versionBaseUrl) {
+    super(versionBaseUrl);
+  }
+
   @Override
   public String getTool() {
 

@@ -21,6 +21,10 @@ public class PgAdminUrlUpdater extends WebsiteUrlUpdater {
     super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
   }
 
+  PgAdminUrlUpdater(String baseUrl) {
+    super(baseUrl, baseUrl);
+  }
+
   @Override
   public String getTool() {
 

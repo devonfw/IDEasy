@@ -12,6 +12,14 @@ public class RustUrlUpdater extends GithubUrlTagUpdater {
   private static final String RUSTUP_REPO = "rustup";
   private static final String RUSTUP_SCRIPT_URL = "https://sh.rustup.rs";
 
+  public RustUrlUpdater() {
+    super(RUSTUP_SCRIPT_URL);
+  }
+
+  RustUrlUpdater(String downloadBaseUrl) {
+    super(downloadBaseUrl + "/rustup.sh", downloadBaseUrl);
+  }
+
   @Override
   public String getTool() {
 
@@ -47,12 +55,6 @@ public class RustUrlUpdater extends GithubUrlTagUpdater {
       return null;
     }
     return mappedVersion;
-  }
-
-  @Override
-  protected String getDownloadBaseUrl() {
-
-    return RUSTUP_SCRIPT_URL;
   }
 
   @Override

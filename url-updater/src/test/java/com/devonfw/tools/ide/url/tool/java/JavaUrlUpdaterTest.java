@@ -43,7 +43,7 @@ class JavaUrlUpdaterTest extends AbstractUrlUpdaterTest {
         aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    JavaUrlUpdater updater = new JavaUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
+    JavaUrlUpdaterMock updater = new JavaUrlUpdaterMock(wmRuntimeInfo.getHttpBaseUrl());
     // when
     updater.update(urlRepository);
 

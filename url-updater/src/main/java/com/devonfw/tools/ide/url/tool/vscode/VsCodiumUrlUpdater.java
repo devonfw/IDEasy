@@ -14,6 +14,10 @@ public class VsCodiumUrlUpdater extends GithubUrlReleaseUpdater {
     super(DOWNLOAD_BASE_URL);
   }
 
+  VsCodiumUrlUpdater(String downloadBaseUrl) {
+    super(downloadBaseUrl);
+  }
+
   @Override
   public String getTool() {
 

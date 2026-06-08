@@ -14,6 +14,10 @@ public class SonarUrlUpdater extends GithubUrlTagUpdater {
     super(DOWNLOAD_BASE_URL);
   }
 
+  SonarUrlUpdater(String downloadBaseUrl) {
+    super(downloadBaseUrl);
+  }
+
   @Override
   public String getTool() {
 

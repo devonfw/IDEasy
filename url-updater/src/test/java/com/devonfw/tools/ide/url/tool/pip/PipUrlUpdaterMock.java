@@ -14,16 +14,13 @@ public class PipUrlUpdaterMock extends PipUrlUpdater {
 
   private static final Set<String> versions = new HashSet<>(List.of("1.0"));
 
-  WireMockRuntimeInfo wmRuntimeInfo;
-
   /**
    * The constructor
    *
-   * @param wmRuntimeInfo the {@link WireMockRuntimeInfo} holding the http url and port of the wiremock server.
+   * @param baseUrl the {@link WireMockRuntimeInfo} holding the http url and port of the wiremock server.
    */
-  public PipUrlUpdaterMock(WireMockRuntimeInfo wmRuntimeInfo) {
-    super();
-    this.wmRuntimeInfo = wmRuntimeInfo;
+  public PipUrlUpdaterMock(String baseUrl) {
+    super(baseUrl);
   }
 
   @Override
@@ -35,6 +32,6 @@ public class PipUrlUpdaterMock extends PipUrlUpdater {
   @Override
   protected void addVersion(UrlVersion urlVersion) {
 
-    doAddVersion(urlVersion, this.wmRuntimeInfo.getHttpBaseUrl() + "/pip/${version}/get-pip.py");
+    doAddVersion(urlVersion, getDownloadBaseUrl() + "/pip/${version}/get-pip.py");
   }
 }

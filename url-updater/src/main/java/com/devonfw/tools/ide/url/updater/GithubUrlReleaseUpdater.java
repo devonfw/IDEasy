@@ -18,6 +18,10 @@ public abstract class GithubUrlReleaseUpdater extends AbstractGithubUrlUpdater<G
     super(downloadBaseUrl);
   }
 
+  public GithubUrlReleaseUpdater(String downloadBaseUrl, String versionBaseUrl) {
+    super(downloadBaseUrl, versionBaseUrl);
+  }
+
   @Override
   protected String doGetVersionUrl() {
 

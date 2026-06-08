@@ -17,6 +17,10 @@ public class AzureUrlUpdater extends GithubUrlTagUpdater {
     super(DOWNLOAD_BASE_URL);
   }
 
+  AzureUrlUpdater(String downloadBaseUrl) {
+    super(downloadBaseUrl);
+  }
+
   @Override
   public String getTool() {
 

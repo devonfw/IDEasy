@@ -20,13 +20,13 @@ public class AwsUrlUpdaterMock extends AwsUrlUpdater {
 
   @Override
   protected String getDownloadBaseUrl() {
-    return this.wmRuntimeInfo.getHttpBaseUrl() + "/download/";
+    return getDownloadBaseUrl() + "/download/";
   }
 
   @Override
   protected String doGetVersionUrl() {
 
-    return this.wmRuntimeInfo.getHttpBaseUrl() + "/repos/" + getGithubOrganization() + "/" + getGithubRepository() + "/git/refs/tags";
+    return getDownloadBaseUrl() + "/repos/" + getGithubOrganization() + "/" + getGithubRepository() + "/git/refs/tags";
 
   }
 

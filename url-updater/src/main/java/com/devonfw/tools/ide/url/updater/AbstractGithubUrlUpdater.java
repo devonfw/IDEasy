@@ -22,8 +22,12 @@ public abstract class AbstractGithubUrlUpdater<J extends JsonObject, JVI extends
     super(GITHUB_BASE_URL, GITHUB_VERSION_URL);
   }
 
-  public AbstractGithubUrlUpdater(String downloadBaseUrl) {
-    super(downloadBaseUrl, GITHUB_VERSION_URL);
+  public AbstractGithubUrlUpdater(String baseUrl) {
+    super(baseUrl, baseUrl + "/repos/");
+  }
+
+  public AbstractGithubUrlUpdater(String downloadBaseUrl, String versionBaseURL) {
+    super(downloadBaseUrl, versionBaseURL + "/repos/");
   }
 
   /**

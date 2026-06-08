@@ -14,6 +14,10 @@ public class GradleUrlUpdater extends GithubUrlReleaseUpdater {
     super(DOWNLOAD_BASE_URL);
   }
 
+  GradleUrlUpdater(String downloadBaseUrl) {
+    super(downloadBaseUrl);
+  }
+
   @Override
   protected String getGithubOrganization() {
     return "gradle";

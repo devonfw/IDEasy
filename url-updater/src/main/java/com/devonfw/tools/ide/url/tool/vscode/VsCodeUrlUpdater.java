@@ -14,6 +14,10 @@ public class VsCodeUrlUpdater extends GithubUrlTagUpdater {
     super(DOWNLOAD_BASE_URL);
   }
 
+  VsCodeUrlUpdater(String downloadBaseUrl) {
+    super(downloadBaseUrl);
+  }
+
   @Override
   public String getTool() {
 

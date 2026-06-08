@@ -20,6 +20,10 @@ public abstract class NpmBasedUrlUpdater extends JsonUrlUpdater<NpmJs, NpmJsVers
     super(REGISTRY_URL, REGISTRY_URL);
   }
 
+  protected NpmBasedUrlUpdater(String baseUrl) {
+    super(baseUrl, baseUrl);
+  }
+
   @Override
   protected String doGetVersionUrl() {
 
