@@ -9,13 +9,21 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class GoUrlUpdater extends GithubUrlTagUpdater {
 
-  private static final String GO_BASE_URL = "https://go.dev";
+  private static final String DOWNLOAD_BASE_URL = "https://go.dev";
 
   private static final VersionIdentifier MIN_GO_VID = VersionIdentifier.of("1.2.2");
 
   private static final VersionIdentifier MIN_WIN_ARM_VID = VersionIdentifier.of("1.17");
 
   private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.of("1.16");
+
+  public GoUrlUpdater() {
+    super(DOWNLOAD_BASE_URL);
+  }
+
+  GoUrlUpdater(String downloadBaseUrl) {
+    super(downloadBaseUrl);
+  }
 
   @Override
   public String getTool() {
@@ -35,11 +43,6 @@ public class GoUrlUpdater extends GithubUrlTagUpdater {
   @Override
   protected String getVersionPrefixToRemove() {
     return "go";
-  }
-
-  @Override
-  protected String getDownloadBaseUrl() {
-    return GO_BASE_URL;
   }
 
   @Override

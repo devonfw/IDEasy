@@ -10,6 +10,14 @@ import com.devonfw.tools.ide.github.GithubTags;
  */
 public abstract class GithubUrlTagUpdater extends AbstractGithubUrlUpdater<GithubTags, GithubTag> {
 
+  public GithubUrlTagUpdater() {
+    super();
+  }
+
+  public GithubUrlTagUpdater(String downloadBaseUrl) {
+    super(downloadBaseUrl);
+  }
+
   @Override
   protected String doGetVersionUrl() {
 

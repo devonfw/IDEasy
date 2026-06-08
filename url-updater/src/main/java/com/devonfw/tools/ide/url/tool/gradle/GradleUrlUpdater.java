@@ -8,6 +8,11 @@ import com.devonfw.tools.ide.url.updater.GithubUrlReleaseUpdater;
  */
 public class GradleUrlUpdater extends GithubUrlReleaseUpdater {
 
+  private static final String DOWNLOAD_BASE_URL = "https://services.gradle.org";
+
+  public GradleUrlUpdater() {
+    super(DOWNLOAD_BASE_URL);
+  }
 
   @Override
   protected String getGithubOrganization() {
@@ -18,12 +23,6 @@ public class GradleUrlUpdater extends GithubUrlReleaseUpdater {
   protected String getGithubRepository() {
 
     return "gradle";
-  }
-
-  @Override
-  protected String getDownloadBaseUrl() {
-
-    return "https://services.gradle.org";
   }
 
   @Override

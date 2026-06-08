@@ -13,16 +13,17 @@ public abstract class NpmBasedUrlUpdater extends JsonUrlUpdater<NpmJs, NpmJsVers
 
   private static final String REGISTRY_URL = "https://registry.npmjs.org/";
 
+  /**
+   * The constructor.
+   */
+  public NpmBasedUrlUpdater() {
+    super(REGISTRY_URL, REGISTRY_URL);
+  }
+
   @Override
   protected String doGetVersionUrl() {
 
     return getVersionBaseUrl() + getPackageName();
-  }
-
-  @Override
-  protected String getVersionBaseUrl() {
-
-    return getDownloadBaseUrl();
   }
 
   @Override
@@ -41,12 +42,6 @@ public abstract class NpmBasedUrlUpdater extends JsonUrlUpdater<NpmJs, NpmJsVers
   protected void addVersion(UrlVersion urlVersion, NpmJsVersion jsonVersionItem) {
 
     doAddVersion(urlVersion, jsonVersionItem.dist().tarball());
-  }
-
-  @Override
-  protected String getDownloadBaseUrl() {
-
-    return REGISTRY_URL;
   }
 
   protected abstract String getPackageName();

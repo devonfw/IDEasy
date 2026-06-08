@@ -10,10 +10,15 @@ import com.devonfw.tools.ide.url.updater.WebsiteUrlUpdater;
  */
 public class GcLogAnalyzerUrlUpdater extends WebsiteUrlUpdater {
 
+  private static final String DOWNLOAD_BASE_URL = "https://cdn.azul.com";
+  private static final String VERSION_BASE_URL = "https://docs.azul.com";
 
   private static final Pattern VERSION_PATTERN =
       Pattern.compile("\\b\\d+\\.\\d+\\.\\d+(?:\\.\\d+)?\\b");
 
+  public GcLogAnalyzerUrlUpdater() {
+    super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
+  }
 
   @Override
   protected Pattern getVersionPattern() {
@@ -28,23 +33,10 @@ public class GcLogAnalyzerUrlUpdater extends WebsiteUrlUpdater {
   }
 
   @Override
-  protected String getVersionBaseUrl() {
-
-    return "https://docs.azul.com";
-  }
-
-  @Override
   protected String getVersionUrl() {
 
     return getVersionBaseUrl() + "/gc-log-analyzer/release-notes";
   }
-
-  @Override
-  protected String getDownloadBaseUrl() {
-
-    return "https://cdn.azul.com";
-  }
-
 
   @Override
   protected void addVersion(UrlVersion urlVersion) {

@@ -10,7 +10,14 @@ import com.devonfw.tools.ide.url.updater.WebsiteUrlUpdater;
  */
 public class PipUrlUpdater extends WebsiteUrlUpdater {
 
+  private static final String DOWNLOAD_BASE_URL = "https://bootstrap.pypa.io";
+  private static final String VERSION_BASE_URL = "https://bootstrap.pypa.io";
+
   private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d+\\.\\d(\\.\\d)?)");
+
+  public PipUrlUpdater() {
+    super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
+  }
 
   @Override
   public String getTool() {
@@ -25,12 +32,6 @@ public class PipUrlUpdater extends WebsiteUrlUpdater {
   }
 
   @Override
-  protected String getDownloadBaseUrl() {
-
-    return "https://bootstrap.pypa.io";
-  }
-
-  @Override
   protected boolean isValidContentType(String contentType) {
     // pip is not a binary download but a script with content-type `text/x-Python` so we override this check here
     return true;
@@ -40,12 +41,6 @@ public class PipUrlUpdater extends WebsiteUrlUpdater {
   protected String getVersionUrl() {
 
     return getVersionBaseUrl() + "/pip/";
-  }
-
-  @Override
-  protected String getVersionBaseUrl() {
-
-    return getDownloadBaseUrl();
   }
 
   @Override

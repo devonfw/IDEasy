@@ -18,9 +18,13 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class InsoUrlUpdater extends GithubUrlReleaseUpdater {
 
-  private static final String BASE_URL = "https://github.com";
+  private static final String DOWNLOAD_BASE_URL = "https://github.com";
   private static final String BOX_EMOJI = "\uD83D\uDCE6";
   private static final VersionIdentifier MIN_INSO_VID = VersionIdentifier.of("11.5.0");
+
+  public InsoUrlUpdater() {
+    super(DOWNLOAD_BASE_URL);
+  }
 
   @Override
   protected String getGithubOrganization() {
@@ -30,11 +34,6 @@ public class InsoUrlUpdater extends GithubUrlReleaseUpdater {
   @Override
   public String getTool() {
     return "inso";
-  }
-
-  @Override
-  protected String getDownloadBaseUrl() {
-    return BASE_URL;
   }
 
   @Override

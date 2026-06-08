@@ -10,7 +10,14 @@ import com.devonfw.tools.ide.url.updater.WebsiteUrlUpdater;
  */
 public class JenkinsUrlUpdater extends WebsiteUrlUpdater {
 
+  private static final String DOWNLOAD_BASE_URL = "https://mirrors.jenkins.io";
+  private static final String VERSION_BASE_URL = "https://mirrors.jenkins.io";
+
   private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d\\.\\d{2,3}\\.\\d)");
+
+  public JenkinsUrlUpdater() {
+    super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
+  }
 
   @Override
   public String getTool() {
@@ -25,21 +32,9 @@ public class JenkinsUrlUpdater extends WebsiteUrlUpdater {
   }
 
   @Override
-  protected String getVersionBaseUrl() {
-
-    return getDownloadBaseUrl();
-  }
-
-  @Override
   protected Pattern getVersionPattern() {
 
     return VERSION_PATTERN;
-  }
-
-  @Override
-  protected String getDownloadBaseUrl() {
-
-    return "https://mirrors.jenkins.io";
   }
 
   @Override

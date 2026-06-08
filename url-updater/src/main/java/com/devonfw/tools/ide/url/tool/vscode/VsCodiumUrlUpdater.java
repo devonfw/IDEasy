@@ -10,6 +10,10 @@ public class VsCodiumUrlUpdater extends GithubUrlReleaseUpdater {
 
   private static final String DOWNLOAD_BASE_URL = "https://github.com/VSCodium/vscodium/releases/download";
 
+  public VsCodiumUrlUpdater() {
+    super(DOWNLOAD_BASE_URL);
+  }
+
   @Override
   public String getTool() {
 
@@ -32,12 +36,6 @@ public class VsCodiumUrlUpdater extends GithubUrlReleaseUpdater {
   protected String getGithubRepository() {
 
     return "vscodium";
-  }
-
-  @Override
-  protected String getDownloadBaseUrl() {
-
-    return DOWNLOAD_BASE_URL;
   }
 
   @Override

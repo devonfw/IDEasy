@@ -12,7 +12,14 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class PgAdminUrlUpdater extends WebsiteUrlUpdater {
 
+  private static final String DOWNLOAD_BASE_URL = "https://ftp.postgresql.org";
+  private static final String VERSION_BASE_URL = "https://www.postgresql.org";
+
   private static final Pattern VERSION_PATTERN = Pattern.compile("v(\\d{1,2}+\\.\\d+)");
+
+  public PgAdminUrlUpdater() {
+    super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
+  }
 
   @Override
   public String getTool() {
@@ -24,18 +31,6 @@ public class PgAdminUrlUpdater extends WebsiteUrlUpdater {
   protected String getVersionUrl() {
 
     return getVersionBaseUrl() + "/ftp/pgadmin/pgadmin4/";
-  }
-
-  @Override
-  protected String getVersionBaseUrl() {
-
-    return "https://www.postgresql.org";
-  }
-
-  @Override
-  protected String getDownloadBaseUrl() {
-
-    return "https://ftp.postgresql.org";
   }
 
   @Override

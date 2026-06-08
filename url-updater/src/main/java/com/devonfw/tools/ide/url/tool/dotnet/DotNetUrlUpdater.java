@@ -8,6 +8,12 @@ import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
  */
 public class DotNetUrlUpdater extends GithubUrlTagUpdater {
 
+  private static final String DOWNLOAD_BASE_URL = "https://dotnetcli.azureedge.net";
+
+  public DotNetUrlUpdater() {
+    super(DOWNLOAD_BASE_URL);
+  }
+
   @Override
   public String getTool() {
 
@@ -45,12 +51,6 @@ public class DotNetUrlUpdater extends GithubUrlTagUpdater {
   protected String getGithubRepository() {
 
     return "sdk";
-  }
-
-  @Override
-  protected String getDownloadBaseUrl() {
-
-    return "https://dotnetcli.azureedge.net";
   }
 
   @Override

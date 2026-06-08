@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.url.tool.mvnd;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.updater.GithubUrlReleaseUpdater;
-import com.devonfw.tools.ide.version.VersionComparisonResult;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -11,7 +10,13 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class MvndUrlUpdater extends GithubUrlReleaseUpdater {
 
+  private static final String DOWNLOAD_BASE_URL = "https://dlcdn.apache.org/maven/mvnd/";
+
   private static final VersionIdentifier MIN_MVND_VID = VersionIdentifier.of("1.0.2");
+
+  public MvndUrlUpdater() {
+    super(DOWNLOAD_BASE_URL);
+  }
 
   @Override
   public String getTool() {
@@ -30,19 +35,13 @@ public class MvndUrlUpdater extends GithubUrlReleaseUpdater {
 
     return "maven-mvnd";
   }
-
-  @Override
-  protected String getDownloadBaseUrl() {
-
-    return "https://dlcdn.apache.org/maven/mvnd/";
-  }
-
+  
   @Override
   protected boolean isAcceptPreVersion() {
 
     return true;
   }
-  
+
   @Override
   public String mapVersion(String version) {
 

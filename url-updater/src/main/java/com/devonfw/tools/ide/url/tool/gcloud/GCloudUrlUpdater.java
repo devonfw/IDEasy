@@ -9,8 +9,14 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class GCloudUrlUpdater extends GithubUrlTagUpdater {
 
+  private static final String DOWNLOAD_BASE_URL = "https://dl.google.com";
+
   private static final VersionIdentifier MIN_GCLOUD_VID = VersionIdentifier.of("299.0.0");
   private static final VersionIdentifier MIN_ARM_GCLOUD_VID = VersionIdentifier.of("366.0.0");
+
+  public GCloudUrlUpdater() {
+    super(DOWNLOAD_BASE_URL);
+  }
 
   @Override
   public String getTool() {
@@ -22,12 +28,6 @@ public class GCloudUrlUpdater extends GithubUrlTagUpdater {
   protected String getGithubRepository() {
 
     return "google-cloud-sdk";
-  }
-
-  @Override
-  protected String getDownloadBaseUrl() {
-
-    return "https://dl.google.com";
   }
 
   @Override
@@ -51,6 +51,6 @@ public class GCloudUrlUpdater extends GithubUrlTagUpdater {
       }
     }
   }
-  
+
 
 }

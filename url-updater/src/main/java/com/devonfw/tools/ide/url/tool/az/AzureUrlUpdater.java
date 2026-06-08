@@ -10,7 +10,12 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class AzureUrlUpdater extends GithubUrlTagUpdater {
 
+  private static final String DOWNLOAD_BASE_URL = "https://azcliprod.blob.core.windows.net";
   private static final VersionIdentifier MIN_AZURE_VID = VersionIdentifier.of("2.17.0");
+
+  public AzureUrlUpdater() {
+    super(DOWNLOAD_BASE_URL);
+  }
 
   @Override
   public String getTool() {
@@ -35,12 +40,6 @@ public class AzureUrlUpdater extends GithubUrlTagUpdater {
   protected String getGithubRepository() {
 
     return "azure-cli";
-  }
-
-  @Override
-  protected String getDownloadBaseUrl() {
-
-    return "https://azcliprod.blob.core.windows.net";
   }
 
   @Override

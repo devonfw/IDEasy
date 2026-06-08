@@ -10,6 +10,14 @@ import com.devonfw.tools.ide.github.GithubReleases;
  */
 public abstract class GithubUrlReleaseUpdater extends AbstractGithubUrlUpdater<GithubReleases, GithubRelease> {
 
+  public GithubUrlReleaseUpdater() {
+    super();
+  }
+
+  public GithubUrlReleaseUpdater(String downloadBaseUrl) {
+    super(downloadBaseUrl);
+  }
+
   @Override
   protected String doGetVersionUrl() {
 
