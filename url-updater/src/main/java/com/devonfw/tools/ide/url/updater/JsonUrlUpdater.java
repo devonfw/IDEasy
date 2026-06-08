@@ -29,6 +29,25 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
   private static final Logger logger = LoggerFactory.getLogger(JsonUrlUpdater.class);
 
   /**
+   * Constructor to prevent compiler from complaining.
+   * TODO: Probably remove this constructor.
+   */
+  public JsonUrlUpdater() {
+    super("", "");
+  }
+
+
+  /**
+   * The constructor.
+   *
+   * @param downloadBaseUrl download base url
+   * @param versionBaseUrl version base url
+   */
+  public JsonUrlUpdater(String downloadBaseUrl, String versionBaseUrl) {
+    super(downloadBaseUrl, versionBaseUrl);
+  }
+
+  /**
    * Updates the tool's versions in the URL repository.
    *
    * @param urlRepository the {@link UrlRepository} to update
