@@ -140,4 +140,24 @@ class EnvironmentVariablesTest extends AbstractIdeContextTest {
     assertThat(AbstractEnvironmentVariables.mergeWithDefault("-s /path/to/settings.xml", defaultValue)).isEqualTo(defaultValue);
     assertThat(AbstractEnvironmentVariables.mergeWithDefault("-s", defaultValue)).isEqualTo(defaultValue);
   }
+
+  /**
+   * Test that conflicting user-defined {@code -s} and {@code -Dsettings.security=} arguments are stripped and overridden by IDEasy's computed values (without
+   * duplication), while unrelated user arguments are preserved. See https://github.com/devonfw/IDEasy/issues/1956[#1956].
+   */
+  @Test
+  void testUserDefinedMavenArgsConflictingWithIdeasyDefaultsAreOverridden() {
+
+    String defaultValue = "-s /ide/settings.xml -Dsettings.security=/ide/settings-security.xml";
+    // user overrides both -s and -Dsettings.security= and keeps an unrelated argument
+    assertThat(AbstractEnvironmentVariables.mergeWithDefault("-Xmx8000m -s invalid/settings.xml -Dsettings.security=wrong", defaultValue))
+        .isEqualTo("-Xmx8000m " + defaultValue);
+    // user overrides only -Dsettings.security=
+    assertThat(AbstractEnvironmentVariables.mergeWithDefault("-Xmx8000m -Dsettings.security=wrong", defaultValue))
+        .isEqualTo("-Xmx8000m " + defaultValue);
+    // user has no conflicting argument, so all user arguments are kept
+    assertThat(AbstractEnvironmentVariables.mergeWithDefault("-T 4", defaultValue)).isEqualTo("-T 4 " + defaultValue);
+    // empty default leaves the user value untouched
+    assertThat(AbstractEnvironmentVariables.mergeWithDefault("-s invalid/settings.xml", "")).isEqualTo("-s invalid/settings.xml");
+  }
 }
