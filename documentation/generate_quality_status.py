@@ -810,6 +810,7 @@ def _os_document(os_key: str, tool_data_for_os: dict[str, list[IssueRef]]) -> st
     "",
     f"Automatically generated tool status for {os_name}.",
     "",
+    "link:quality-status.adoc[Back to overview]",
     SEVERTIY_LEGEND,
     "",
     _os_section(os_key, tool_data_for_os),
@@ -854,9 +855,9 @@ def generate_documents(
 
   overview_parts = [
     header,
+    _os_file_links_section(os_filenames),
     _bugs_all_platforms_section(tool_data, cmd_data, TOOL_DISPLAY, CMD_DISPLAY, unassigned),
     _commandlets_global_table(cmd_data),
-    _os_file_links_section(os_filenames),
     _unassigned_section(unassigned),
     f"""\
 == How to update this document
