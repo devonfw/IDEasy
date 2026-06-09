@@ -811,6 +811,7 @@ def _os_document(os_key: str, tool_data_for_os: dict[str, list[IssueRef]]) -> st
     f"Automatically generated tool status for {os_name}.",
     "",
     "link:quality-status.adoc[Back to overview]",
+    "",
     SEVERTIY_LEGEND,
     "",
     _os_section(os_key, tool_data_for_os),
