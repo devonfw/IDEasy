@@ -31,6 +31,8 @@ public class TaskManager {
    * @param task the task to be added to the list of tasks.
    */
   public void addTask(ProgressBarTask task) {
+    assert task != null;
+
     boolean exists = tasks.stream()
         .anyMatch(t -> Objects.equals(t.getTaskId(), task.getTaskId()));
     if (exists) {
@@ -44,6 +46,7 @@ public class TaskManager {
    * @param task task to be removed
    */
   public void removeTask(ProgressBarTask task) {
+    assert task != null;
 
     FxHelper.runFxSafe(() -> tasks.remove(task));
   }

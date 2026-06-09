@@ -54,12 +54,13 @@ public class ProgressBarTask extends AbstractIdeProgressBar {
     this.taskId = taskId;
   }
 
+  //currentProgress is only for test purposes, see AbstractIdeProgressBar
   @Override
   protected void doStepBy(long stepSize, long currentProgress) {
 
     LOG.debug("Updating progress bar to {}", currentProgress);
 
-    FxHelper.runFxSafe(() -> progressProperty.setValue(currentProgress));
+    FxHelper.runFxSafe(() -> progressProperty.setValue(getCurrentProgress()));
   }
 
   @Override
@@ -67,13 +68,7 @@ public class ProgressBarTask extends AbstractIdeProgressBar {
 
     LOG.debug("Updating progress bar to {}", getCurrentProgress());
 
-    FxHelper.runFxSafe(() -> progressProperty.setValue(getCurrentProgress()));
-  }
-
-  @Override
-  public long getCurrentProgress() {
-
-    return super.getCurrentProgress();
+    FxHelper.runFxSafe(() -> progressProperty.setValue(stepPosition));
   }
 
   @Override

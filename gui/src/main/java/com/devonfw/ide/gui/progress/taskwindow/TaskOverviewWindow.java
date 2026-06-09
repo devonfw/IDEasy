@@ -3,9 +3,11 @@ package com.devonfw.ide.gui.progress.taskwindow;
 import java.io.IOException;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Point2D;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
@@ -18,6 +20,7 @@ public class TaskOverviewWindow {
 
   private final Parent root;
   private final Stage stage = new Stage();
+  private static final Screen screen = Screen.getPrimary();
 
   private static TaskOverviewWindow INSTANCE;
 
@@ -26,7 +29,8 @@ public class TaskOverviewWindow {
    * @return instance of the TaskOverviewWindow.
    */
   public static TaskOverviewWindow getInstance(Node referenceNode) {
-    if (INSTANCE == null) {
+
+    if (INSTANCE == null && referenceNode != null) {
       Point2D point = referenceNode.localToScreen(0, 0);
 
       double nodeRightEdge = point.getX() + referenceNode.getBoundsInLocal().getWidth();
@@ -34,6 +38,10 @@ public class TaskOverviewWindow {
 
       INSTANCE = new TaskOverviewWindow(nodeRightEdge, nodeTopEdge);
       return INSTANCE;
+    } else if (INSTANCE == null) {
+      Rectangle2D screenVisualBounds = screen.getVisualBounds();
+
+      INSTANCE = new TaskOverviewWindow(screenVisualBounds.getWidth() / 2, screenVisualBounds.getHeight() / 2);
     }
     return INSTANCE;
   }
@@ -44,6 +52,7 @@ public class TaskOverviewWindow {
   private TaskOverviewWindow(Double x, Double y) {
 
     FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("task_overview_window.fxml"));
+    fxmlLoader.setController(new TaskOverviewWindowController());
 
     try {
       root = fxmlLoader.load();
@@ -69,5 +78,12 @@ public class TaskOverviewWindow {
   public void show() {
     stage.show();
     stage.requestFocus();
+  }
+
+  /**
+   * @return this TaskOverviewWindow's {@link Stage}.
+   */
+  public Stage getStage() {
+    return stage;
   }
 }
