@@ -21,7 +21,7 @@ public abstract class NpmBasedUrlUpdater extends JsonUrlUpdater<NpmJs, NpmJsVers
   }
 
   /**
-   * TESTING ONLY Constructor used within tests to override production defaults for download und version base url.
+   * Constructor used within tests to override production defaults for download und version base url.
    *
    * @param downloadBaseUrl mock url used for download base.
    * @param versionBaseUrl mock url used for version base.

@@ -91,16 +91,6 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   private static final Logger logger = LoggerFactory.getLogger(AbstractUrlUpdater.class);
 
   /**
-   * Constructor to prevent compiler from complaining.
-   * TODO: Probably remove this constructor.
-   */
-  public AbstractUrlUpdater() {
-    super();
-    this.downloadBaseUrl = "";
-    this.versionBaseUrl = "";
-  }
-
-  /**
    * The constructor.
    *
    * @param downloadBaseUrl download base url
