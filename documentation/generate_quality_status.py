@@ -129,7 +129,9 @@ TOOLS: dict[str, dict] = {
 
 COMMANDLETS: dict[str, dict] = {
   # Core commands
-  "ide": {"display": "IDEasy (general)", "labels": ["CLI", "commandlet", "integration"]},
+  "cli": {"display": "CLI", "labels": ["CLI"]},
+  "commandlet": {"display": "Commandlet", "labels": ["commandlet"]},
+  "integration": {"display": "Integration", "labels": ["integration"]},
   "core": {"display": "Core / Runtime", "labels": ["progressbar"]},
   "install": {"display": "ide install"},
   "uninstall": {"display": "ide uninstall"},
@@ -197,6 +199,7 @@ class IssueRef(NamedTuple):
   bug: bool
   blocker: bool
   os_keys: list[str]
+  created_at: datetime
 
 
 # --- GitHub API helpers ---
@@ -261,7 +264,19 @@ def fetch_all_issues(token: str | None, state: str = "open") -> list[dict]:
     page += 1
   return issues
 
+def _age_bucket(ref: IssueRef) -> str:
+  age_days = (datetime.now(timezone.utc) - ref.created_at).days
 
+  if age_days > 90:
+    return "90+ days"
+  elif age_days > 60:
+    return "61-90 days"
+  elif age_days > 30:
+    return "31-60 days"
+  elif age_days > 10:
+    return "11-30 days"
+  else:
+    return "0-10 days"
 # --- Issue classification ---
 
 def label_names(issue: dict) -> set[str]:
@@ -340,6 +355,7 @@ def classify_issues(
       bug=bug,
       blocker=blocker,
       os_keys=os_keys,
+      created_at=datetime.fromisoformat(issue["created_at"].replace("Z", "+00:00")),
     )
     tool_matches = topic_matches(labels, tool_keys)
     cmd_matches = topic_matches(labels, cmd_keys)
@@ -401,26 +417,30 @@ def _all_issue_refs(
       bug=is_bug(issue, labels),
       blocker=is_blocker(labels),
       os_keys=issue_os_keys,
-    )
+      created_at=datetime.fromisoformat(issue["created_at"].replace("Z", "+00:00")),
+      )
 
   return sorted(seen.values(), key=_severity_sort_key)
 
+
 def _os_cell(ref: IssueRef) -> str:
-  """Format operating systems for the overview table."""
-  if set(ref.os_keys) == set(OS_ORDER):
-    return "Windows, Linux, macOS"
-  return ", ".join(OS_DISPLAY[os_key] for os_key in ref.os_keys)
+  return " ".join(
+    "✓" if os in ref.os_keys else "—"
+    for os in OS_ORDER
+  )
+
+def _severity_label(ref: IssueRef) -> str:
+  if ref.blocker:
+    return "BLOCKER"
+  if ref.bug:
+    return "BUG"
+  return "ENH"
 
 def _issue_table(
     title: str,
     refs: list[IssueRef],
     include_os: bool,
 ) -> str:
-  """Render a simple issue table.
-
-  Overview documents include an OS column.
-  OS-specific documents only include issue number and summary.
-  """
   lines: list[str] = [
     f"== {title}",
     "",
@@ -433,38 +453,79 @@ def _issue_table(
     ]
     return "\n".join(lines)
 
+  def _age_bucket(ref: IssueRef) -> str:
+    age_days = (datetime.now(timezone.utc) - ref.created_at).days
+
+    if age_days > 90:
+      return "90+ days"
+    elif age_days > 60:
+      return "61-90 days"
+    elif age_days > 30:
+      return "31-60 days"
+    elif age_days > 10:
+      return "11-30 days"
+    else:
+      return "0-10 days"
+
   if include_os:
     lines += [
-      '[%header, cols="^1,6,2"]',
-      "|===",
-      "| Issue | Summary | OS",
+      '[%header, cols="^1,6,1,1,1"]',
+      '|===',
+      '| Issue | Summary | Win | Lin | Mac',
     ]
 
+    current_bucket = None
+
     for ref in refs:
+      bucket = _age_bucket(ref)
+
+      if bucket != current_bucket:
+        current_bucket = bucket
+        lines += [
+          "",
+          f"5+^| *{bucket}*",
+        ]
+
       lines += [
         f"| link:{ref.url}[#{ref.number}]",
-        f"| {_safe(ref.title)}",
-        f"| {_os_cell(ref)}",
+        f"| ({_severity_label(ref)}) {_safe(ref.title)}",
+        *[
+          f"| {'✓' if os in ref.os_keys else '—'}"
+          for os in OS_ORDER
+        ],
         "",
       ]
+
   else:
     lines += [
       '[%header, cols="^1,7"]',
-      "|===",
-      "| Issue | Summary",
+      '|===',
+      '| Issue | Summary',
     ]
 
+    current_bucket = None
+
     for ref in refs:
+      bucket = _age_bucket(ref)
+
+      if bucket != current_bucket:
+        current_bucket = bucket
+        lines += [
+          "",
+          f"2+^| *{bucket}*",
+        ]
+
       lines += [
         f"| link:{ref.url}[#{ref.number}]",
-        f"| {_safe(ref.title)}",
+        f"| ({_severity_label(ref)}) {_safe(ref.title)}",
         "",
       ]
 
   lines += [
-    "|===",
+    '|===',
     "",
   ]
+
   return "\n".join(lines)
 
 def _safe(text: str, max_len: int = 72) -> str:
@@ -476,8 +537,29 @@ def _safe(text: str, max_len: int = 72) -> str:
 
 
 def _severity_sort_key(ref: IssueRef) -> tuple:
-  """Sort key: blockers first, then bugs, then enhancements, then by number."""
-  return (0 if ref.blocker else 1 if ref.bug else 2, ref.number)
+  age_days = (datetime.now(timezone.utc) - ref.created_at).days
+
+  # 1. PRIMARY: Age bucket
+  if age_days > 90:
+    age_bucket = 0
+  elif age_days > 60:
+    age_bucket = 1
+  elif age_days > 30:
+    age_bucket = 2
+  elif age_days > 10:
+    age_bucket = 3
+  else:
+    age_bucket = 4
+
+  # 2. SECONDARY: Severity
+  severity_bucket = 0 if ref.blocker else 1 if ref.bug else 2
+
+  # 3. TERTIARY: oldest first (wichtig!)
+  return (
+    age_bucket,
+    severity_bucket,
+    ref.created_at.timestamp(),
+  )
 
 # --- Section renderers ---
 
@@ -514,53 +596,114 @@ HEADER_TEMPLATE = """\
 
 Automatically generated open issue overview for
 https://github.com/{repo}[{repo}].
-The tool list is discovered from the source tree at
-`{tool_path}`.
 
-NOTE: Issues without an OS label are treated as cross-platform and appear in
-every OS section. Issues with a specific OS label appear only in that
-OS section.
 
-Issue Statistics
+### Issue Statistics
 [%header, cols="2,^1"]
 |===
 | Scope | Total
 
-| All platforms (deduplicated) | {total}
-| Unassigned (no label match)  | {unassigned}
+| All platforms  | {total}
+| Assigned       | {assigned}
+| Unassigned                    | {unassigned}
+| Blockers                      | {n_blockers}
+| Bugs                          | {n_bugs}
+| Enhancements                  | {n_enhs}
+
 |===
+
 
 _Generated: {date}_
 
 """
 
 # --- Document output helpers ---
+def analyze_os_issues(
+    refs: list[IssueRef],
+    os_key: str,
+) -> tuple[int, int, int, int, dict[tuple[str, ...], list[IssueRef]]]:
+  """Return counts + multi-OS grouping for a given OS"""
+
+  os_specific = [r for r in refs if r.os_keys == [os_key]]
+
+  cross_platform = [
+    r for r in refs
+    if set(r.os_keys) == set(OS_ORDER)
+  ]
+
+  multi_os_groups: dict[tuple[str, ...], list[IssueRef]] = {}
+
+  for r in refs:
+    keys = tuple(sorted(r.os_keys))
+
+    if (
+      os_key in r.os_keys
+      and len(r.os_keys) > 1
+      and set(r.os_keys) != set(OS_ORDER)
+    ):
+      multi_os_groups.setdefault(keys, []).append(r)
+
+  total = len(refs)
+  count_specific = len(os_specific)
+  count_cross = len(cross_platform)
+  count_multi = sum(len(v) for v in multi_os_groups.values())
+
+  return total, count_specific, count_multi, count_cross, multi_os_groups
 
 def _os_output_path(main_output: Path, os_key: str) -> Path:
   """Derive the per-OS output file path from the main overview output path."""
   suffix = OS_FILE_SUFFIX[os_key]
   return main_output.with_name(f"{main_output.stem}-{suffix}{main_output.suffix}")
-def _os_file_links_section(os_filenames: dict[str, str]) -> str:
+
+def _os_file_links_section(
+    os_filenames: dict[str, str],
+    os_analysis: dict[str, tuple[int, int, int, int, dict]],
+) -> str:
   """Render links from the overview document to the per-OS status documents."""
   lines = [
     "== Operating System Status Files",
     "",
     "The detailed tool status is split into one generated file per operating system.",
     "",
-    '[%header, cols="2,4"]',
+    '[%header, cols="2,1,1,1,1,4"]',
     "|===",
-    "| Operating System | Status File",
+    "| Operating System | Total | Specific | Multi | Cross | Status File",
   ]
 
   for os_key in OS_ORDER:
     filename = os_filenames[os_key]
+
+    total, spec, multi, cross, _ = os_analysis[os_key]
+
     lines += [
       f"| {OS_DISPLAY[os_key]}",
+      f"| {total}",
+      f"| {spec}",
+      f"| {multi}",
+      f"| {cross}",
       f"| link:{filename}[{filename}]",
       "",
     ]
 
   lines += ["|===", ""]
+  return "\n".join(lines)
+
+def _render_multi_os_groups(groups: dict, os_key: str) -> str:
+  lines = ["== Multi-OS Issues", ""]
+
+  if not groups:
+    lines += ["_No multi-OS issues._", ""]
+    return "\n".join(lines)
+
+  for combo, refs in sorted(groups.items(), key=lambda x: -len(x[1])):
+    display = " + ".join(OS_DISPLAY[o] for o in combo)
+
+    lines += [
+      f"=== {display} ({len(refs)})",
+      "",
+      _issue_table("", refs, include_os=False),
+    ]
+
   return "\n".join(lines)
 
 def _os_document(
@@ -569,9 +712,18 @@ def _os_document(
     cmd_data: dict,
     unassigned: list[dict],
 ) -> str:
-  """Render a standalone status document for one operating system."""
   os_name = OS_DISPLAY[os_key]
+
   refs = _all_issue_refs(tool_data, cmd_data, unassigned, os_key=os_key)
+
+  os_specific = [r for r in refs if r.os_keys == [os_key]]
+
+  cross_platform = [
+    r for r in refs
+    if set(r.os_keys) == set(OS_ORDER)
+  ]
+
+  total, count_specific, count_multi, count_cross, multi_os_groups = analyze_os_issues(refs, os_key)
 
   return "\n".join([
     f"= IDEasy Quality Status — {os_name}",
@@ -585,9 +737,127 @@ def _os_document(
     "",
     "link:quality-status.adoc[Back to overview]",
     "",
-    _issue_table(f"{os_name} Open Issues", refs, include_os=False),
+
+    f"*Total Issues:* {total}",
+    "",
+    f"* OS-specific: {count_specific}",
+    "",
+    f"* Multi-OS: {count_multi}",
+    "",
+    f"* Cross-platform: {count_cross}",
+    "",
+
+    _issue_table(f"{os_name} Specific Issues", os_specific, include_os=False),
+    _render_multi_os_groups(multi_os_groups, os_key),
+    _issue_table("Cross-platform Issues", cross_platform, include_os=False),
   ])
+
 # --- Document assembly ---
+def compute_stats(
+    tool_data: dict,
+    cmd_data: dict,
+    unassigned: list[dict],
+) -> dict:
+  """Compute quality statistics (top problem areas + age distribution)."""
+
+  now = datetime.now(timezone.utc)
+
+  # --- Collect all unique issues ---
+  all_refs = _all_issue_refs(tool_data, cmd_data, unassigned)
+
+  # --- Age distribution buckets ---
+  age_buckets = {
+    "0-7": 0,
+    "8-30": 0,
+    "31-90": 0,
+    "90+": 0,
+  }
+
+  for ref in all_refs:
+    age_days = (now - ref.created_at).days
+
+    if age_days <= 7:
+      age_buckets["0-7"] += 1
+    elif age_days <= 30:
+      age_buckets["8-30"] += 1
+    elif age_days <= 90:
+      age_buckets["31-90"] += 1
+    else:
+      age_buckets["90+"] += 1
+
+  area_counts: dict[str, set[int]] = defaultdict(set)
+
+  for os_bucket in tool_data.values():
+    for key, refs in os_bucket.items():
+      for ref in refs:
+        area_counts[key].add(ref.number)
+
+  for os_bucket in cmd_data.values():
+    for key, refs in os_bucket.items():
+      for ref in refs:
+        area_counts[key].add(ref.number)
+
+
+  # Sort descending
+  top_areas = sorted(
+    ((k, len(v)) for k, v in area_counts.items()),
+    key=lambda x: x[1],
+    reverse=True
+  )[:10]
+
+  return {
+    "age_distribution": age_buckets,
+    "top_areas": top_areas,
+  }
+
+def render_stats(stats: dict) -> str:
+  """Render statistics section as AsciiDoc."""
+
+  lines = [
+    "== Quality Insights",
+    "",
+    "=== Issue Age Distribution",
+    '[%header, cols="2,^1"]',
+    "|===",
+    "| Age Range | Count",
+  ]
+
+  age = stats["age_distribution"]
+
+  lines += [
+    f"| 0–7 days   | {age['0-7']}",
+    f"| 8–30 days  | {age['8-30']}",
+    f"| 31–90 days | {age['31-90']}",
+    f"| 90+ days   | {age['90+']}",
+    "|===",
+    "",
+    "=== Components with the highest number of assigned issues (no severity or age weighting applied).",
+    "",
+    "Components represent logical groupings of tools and features based on issue labels. Multiple GitHub labels may map to a single component. Counts reflect the number of unique issues assigned to each component.",
+    "",
+    '[%header, cols="3,^1"]',
+    "|===",
+    "| Component | Issues",
+  ]
+
+  for key, count in stats["top_areas"]:
+    # schöner Name fallback
+    display = (
+      TOOLS.get(key, {}).get("display")
+      or COMMANDLETS.get(key, {}).get("display")
+      or key
+    )
+
+    lines += [
+      f"| {display}",
+      f"| {count}",
+      "",
+    ]
+
+  lines += ["|===", ""]
+
+  return "\n".join(lines)
+
 
 def generate_documents(
     issues: list[dict],
@@ -599,6 +869,13 @@ def generate_documents(
   cmd_keys = set(COMMANDLETS.keys())
 
   tool_data, cmd_data, unassigned = classify_issues(issues, tool_keys, cmd_keys)
+  os_analysis = {}
+
+  for os_key in OS_ORDER:
+    refs = _all_issue_refs(tool_data, cmd_data, unassigned, os_key=os_key)
+    os_analysis[os_key] = analyze_os_issues(refs, os_key)
+
+  stats = compute_stats(tool_data, cmd_data, unassigned)
 
   # Deduplicate across all OS buckets for global statistics
   seen_refs: dict[int, IssueRef] = {}
@@ -618,18 +895,20 @@ def generate_documents(
     repo=REPO,
     tool_path=TOOL_FOLDER_PATH,
     date=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
-    total=len(seen_refs),
+    assigned=len(seen_refs),
     n_blockers=blocker_count,
     n_bugs=bug_count,
     n_enhs=enhancement_count,
     unassigned=len(unassigned),
+    total=len(seen_refs) + len(unassigned),
   )
 
   overview_refs = _all_issue_refs(tool_data, cmd_data, unassigned)
 
   overview_parts = [
     header,
-    _os_file_links_section(os_filenames),
+    _os_file_links_section(os_filenames, os_analysis),
+    render_stats(stats),
     _issue_table("Open Issues", overview_refs, include_os=True),
     f"""\
     == How to update this document
@@ -649,7 +928,7 @@ def generate_documents(
     "overview": "\n".join(overview_parts),
   }
 
-  for os_key in OS_ORDER:
+  for os_key in sorted(OS_ORDER, key=lambda o: os_analysis[o][0], reverse=True):
     documents[os_key] = _os_document(os_key, tool_data, cmd_data, unassigned)
 
   return documents
