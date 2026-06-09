@@ -8,6 +8,7 @@
 Automatically generated tool status for Windows.
 
 link:quality-status.adoc[Back to overview]
+
 Severity Legend
 [%header, cols="^1,^2,5"]
 |===
