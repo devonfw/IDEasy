@@ -61,7 +61,7 @@ public class TaskWindowTest extends HeadlessApplicationTest {
   @Test
   public void isWindowShown() {
     FxHelper.runFxSafe(() -> {
-      TaskOverviewWindow testWindow = TaskOverviewWindow.getInstance(root);
+      TaskOverviewWindow testWindow = TaskOverviewWindow.getInstance();
       testWindow.show();
 
       assertThat(testWindow.getStage().isShowing()).isTrue();
@@ -116,10 +116,10 @@ public class TaskWindowTest extends HeadlessApplicationTest {
 
     FxHelper.runFxSafe(() -> {
 
-      TaskOverviewWindow testWindow1 = TaskOverviewWindow.getInstance(root);
+      TaskOverviewWindow testWindow1 = TaskOverviewWindow.getInstance();
       testWindow1.show();
 
-      TaskOverviewWindow testWindow2 = TaskOverviewWindow.getInstance(root);
+      TaskOverviewWindow testWindow2 = TaskOverviewWindow.getInstance();
       testWindow2.show();
 
       assertThat(testWindow1.equals(testWindow2)).isTrue().as("Window instances differentiate");
@@ -170,16 +170,16 @@ public class TaskWindowTest extends HeadlessApplicationTest {
   public void testNullReferenceNode() {
 
     FxHelper.runFxSafe(() -> {
-      TaskOverviewWindow nullRefWindow = TaskOverviewWindow.getInstance(null);
-      nullRefWindow.show();
+      TaskOverviewWindow nullRefWindow = TaskOverviewWindow.getInstance();
+      nullRefWindow.showRelativeToReferenceNode(null);
 
       Rectangle2D screenMeasures = Screen.getPrimary().getVisualBounds();
 
-      double expectedPositionX = screenMeasures.getWidth() / 2 - nullRefWindow.getStage().getScene().getWidth();
-      double expectedPositionY = screenMeasures.getHeight() / 2 - nullRefWindow.getStage().getScene().getHeight();
+      double expectedPositionX = screenMeasures.getWidth() / 2 - nullRefWindow.getStage().getScene().getWidth() / 2;
+      double expectedPositionY = screenMeasures.getHeight() / 2 - nullRefWindow.getStage().getScene().getHeight() / 2;
 
-      assertThat(nullRefWindow.getStage().getX()).isEqualTo(expectedPositionX);
-      assertThat(nullRefWindow.getStage().getY()).isEqualTo(expectedPositionY);
+      assertThat(nullRefWindow.getStage().getX()).as("Window should be in the expected X position").isEqualTo(expectedPositionX);
+      assertThat(nullRefWindow.getStage().getY()).as("Window should be in the expected Y position").isEqualTo(expectedPositionY);
     });
   }
 }

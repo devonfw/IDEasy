@@ -194,7 +194,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
     interact(() -> statusText.fireEvent(
         new MouseEvent(MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0, null, 1, false, false, false, false, false, false, false, false, false, false, null)));
 
-    assertThat(TaskOverviewWindow.getInstance(statusText).getStage().isShowing()).as("Task overview window should be opened when clicking on status text")
+    assertThat(TaskOverviewWindow.getInstance().getStage().isShowing()).as("Task overview window should be opened when clicking on status text")
         .isTrue();
   }
 }

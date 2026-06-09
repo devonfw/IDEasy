@@ -20,28 +20,16 @@ public class TaskOverviewWindow {
 
   private final Parent root;
   private final Stage stage = new Stage();
-  private static final Screen screen = Screen.getPrimary();
 
   private static TaskOverviewWindow INSTANCE;
 
   /**
-   * @param referenceNode reference node to determine the position of the TaskOverviewWindow.
    * @return instance of the TaskOverviewWindow.
    */
-  public static TaskOverviewWindow getInstance(Node referenceNode) {
+  public static TaskOverviewWindow getInstance() {
 
-    if (INSTANCE == null && referenceNode != null) {
-      Point2D point = referenceNode.localToScreen(0, 0);
-
-      double nodeRightEdge = point.getX() + referenceNode.getBoundsInLocal().getWidth();
-      double nodeTopEdge = point.getY() - referenceNode.getBoundsInLocal().getHeight();
-
-      INSTANCE = new TaskOverviewWindow(nodeRightEdge, nodeTopEdge);
-      return INSTANCE;
-    } else if (INSTANCE == null) {
-      Rectangle2D screenVisualBounds = screen.getVisualBounds();
-
-      INSTANCE = new TaskOverviewWindow(screenVisualBounds.getWidth() / 2, screenVisualBounds.getHeight() / 2);
+    if (INSTANCE == null) {
+      INSTANCE = new TaskOverviewWindow();
     }
     return INSTANCE;
   }
@@ -49,7 +37,7 @@ public class TaskOverviewWindow {
   /**
    *
    */
-  private TaskOverviewWindow(Double x, Double y) {
+  private TaskOverviewWindow() {
 
     FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("task_overview_window.fxml"));
     fxmlLoader.setController(new TaskOverviewWindowController());
@@ -65,19 +53,35 @@ public class TaskOverviewWindow {
     stage.setTitle("Running tasks");
     stage.setScene(new Scene(root));
     stage.initStyle(StageStyle.UTILITY);
-
-    stage.setOnShown(event -> {
-      stage.setX(x - stage.getScene().getWidth());
-      stage.setY(y - stage.getScene().getHeight());
-    });
   }
 
   /**
    * display the TaskOverviewWindow (or put it to the front if it is already open).
    */
   public void show() {
+    showRelativeToReferenceNode(null);
+  }
+
+  /**
+   * Displays the dialogue relative to the given reference node.
+   */
+  public void showRelativeToReferenceNode(Node referenceNode) {
+
     stage.show();
-    stage.requestFocus();
+    Screen screen = Screen.getPrimary();
+    double x, y;
+    if (referenceNode != null) {
+      Point2D referenceNodePos = referenceNode.localToScreen(0, 0);
+
+      x = referenceNodePos.getX() + referenceNode.getBoundsInParent().getWidth() - stage.getWidth();
+      y = referenceNodePos.getY() - referenceNode.getBoundsInParent().getHeight() - stage.getHeight();
+    } else {
+      Rectangle2D screenBounds = screen.getVisualBounds();
+
+      x = screenBounds.getWidth() / 2 - stage.getWidth() / 2;
+      y = screenBounds.getHeight() / 2 - stage.getHeight() / 2;
+    }
+    setPositionRelative(x, y);
   }
 
   /**
@@ -85,5 +89,19 @@ public class TaskOverviewWindow {
    */
   public Stage getStage() {
     return stage;
+  }
+
+  /**
+   * Set the position of the TaskOverviewWindow relative to the given x and y coordinates. The windows bottom right corner is going to be positioned to the top
+   * left of the coordinates.
+   *
+   * @param x x position
+   * @param y y position
+   */
+  public void setPositionRelative(double x, double y) {
+    if (stage.isShowing()) {
+      stage.setX(x);
+      stage.setY(y);
+    }
   }
 }

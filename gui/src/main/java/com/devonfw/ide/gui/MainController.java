@@ -216,9 +216,10 @@ public class MainController {
   private void updateStatusLabel(List<ProgressBarTask> taskList) {
 
     Platform.runLater(() -> {
-      statusLabel.setOnMouseClicked(e -> TaskOverviewWindow.getInstance(statusLabel).show());
 
       if (taskList.size() > 1) {
+        statusLabel.setOnMouseClicked(e -> TaskOverviewWindow.getInstance().showRelativeToReferenceNode(statusLabel));
+
         statusProgressBar.setVisible(false);
         statusProgressBar.setPrefWidth(0);
         statusLabel.setText(taskList.size() + " tasks running...");
@@ -229,6 +230,8 @@ public class MainController {
                 + "-fx-cursor: hand"
         );
       } else if (taskList.size() == 1) {
+        statusLabel.setOnMouseClicked(null);
+
         ProgressBarTask task = taskList.getFirst();
         statusLabel.setText(String.format(
             ProgressBarTask.TASK_DESCRIPTION_STRING_FORMAT,
@@ -239,11 +242,12 @@ public class MainController {
         );
         statusLabel.setUnderline(false);
         statusLabel.setStyle("");
-
+        
         statusProgressBar.setVisible(true);
         statusProgressBar.setPrefWidth(PROGRESSBAR_VISIBLE_WIDTH);
         statusProgressBar.setProgress((double) (task.getCurrentProgress()) / task.getMaxSize());
       } else {
+        statusLabel.setOnMouseClicked(null);
         statusLabel.setText("IDEasy is ready.");
         statusProgressBar.setVisible(false);
         statusProgressBar.setPrefWidth(0);
