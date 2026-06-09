@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.url.go;
+package com.devonfw.tools.ide.url.tool.go;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
@@ -30,7 +30,7 @@ class GoUrlUpdaterTest extends AbstractUrlUpdaterTest {
         aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    GoUrlUpdaterMock updater = new GoUrlUpdaterMock(wmRuntimeInfo);
+    GoUrlUpdater updater = new GoUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
     // when
     updater.update(urlRepository);
 

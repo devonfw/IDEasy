@@ -36,7 +36,7 @@ class TerraformUrlUpdaterTest extends AbstractUrlUpdaterTest {
             aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    TerraformUrlUpdaterMock updater = new TerraformUrlUpdaterMock(wmRuntimeInfo);
+    TerraformUrlUpdater updater = new TerraformUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
     // act
     updater.update(urlRepository);
 
