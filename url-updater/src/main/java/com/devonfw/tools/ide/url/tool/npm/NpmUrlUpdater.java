@@ -7,12 +7,20 @@ import com.devonfw.tools.ide.url.updater.NpmBasedUrlUpdater;
  */
 public class NpmUrlUpdater extends NpmBasedUrlUpdater {
 
+  /**
+   * The Constructor.
+   */
   public NpmUrlUpdater() {
     super();
   }
 
+  /**
+   * Package-private constructor used for testing {@link NpmUrlUpdater}.
+   *
+   * @param baseUrl mock url used as download and version base.
+   */
   NpmUrlUpdater(String baseUrl) {
-    super(baseUrl);
+    super(baseUrl, baseUrl);
   }
 
   @Override

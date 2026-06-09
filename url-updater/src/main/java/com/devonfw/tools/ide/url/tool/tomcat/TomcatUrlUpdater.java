@@ -10,12 +10,20 @@ public class TomcatUrlUpdater extends GithubUrlTagUpdater {
 
   private static final String DOWNLOAD_BASE_URL = "https://archive.apache.org";
 
+  /**
+   * The Constructor.
+   */
   public TomcatUrlUpdater() {
     super(DOWNLOAD_BASE_URL);
   }
 
-  TomcatUrlUpdater(String downloadBaseUrl) {
-    super(downloadBaseUrl);
+  /**
+   * Package-private constructor used for testing {@link TomcatUrlUpdater}.
+   *
+   * @param baseUrl mock url used as download and version base.
+   */
+  TomcatUrlUpdater(String baseUrl) {
+    super(baseUrl, baseUrl);
   }
 
   @Override

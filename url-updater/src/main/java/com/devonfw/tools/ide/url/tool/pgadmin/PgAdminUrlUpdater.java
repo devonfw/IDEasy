@@ -17,10 +17,18 @@ public class PgAdminUrlUpdater extends WebsiteUrlUpdater {
 
   private static final Pattern VERSION_PATTERN = Pattern.compile("v(\\d{1,2}+\\.\\d+)");
 
+  /**
+   * The Constructor.
+   */
   public PgAdminUrlUpdater() {
     super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
   }
 
+  /**
+   * Package-private constructor used for testing {@link PgAdminUrlUpdater}.
+   *
+   * @param baseUrl mock url used as download and version base.
+   */
   PgAdminUrlUpdater(String baseUrl) {
     super(baseUrl, baseUrl);
   }

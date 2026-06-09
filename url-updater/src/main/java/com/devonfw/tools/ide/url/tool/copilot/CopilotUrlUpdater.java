@@ -15,12 +15,20 @@ public class CopilotUrlUpdater extends GithubUrlTagUpdater {
 
   private static final VersionIdentifier MIN_COPILOT_VID = VersionIdentifier.of("1.0.2");
 
+  /**
+   * The Constructor.
+   */
   public CopilotUrlUpdater() {
     super();
   }
 
-  CopilotUrlUpdater(String downloadBaseUrl) {
-    super(downloadBaseUrl);
+  /**
+   * Package-private constructor used for testing {@link CopilotUrlUpdater}.
+   *
+   * @param baseUrl mock url used as download and version base.
+   */
+  CopilotUrlUpdater(String baseUrl) {
+    super(baseUrl, baseUrl);
   }
 
   @Override

@@ -30,6 +30,11 @@ public class AndroidStudioUrlUpdater extends JsonUrlUpdater<AndroidJsonObject, A
     super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
   }
 
+  /**
+   * Package-private constructor used for testing {@link AndroidStudioUrlUpdater}.
+   *
+   * @param versionBaseUrl mock url used as version base.
+   */
   AndroidStudioUrlUpdater(String versionBaseUrl) {
     super(DOWNLOAD_BASE_URL, versionBaseUrl);
   }

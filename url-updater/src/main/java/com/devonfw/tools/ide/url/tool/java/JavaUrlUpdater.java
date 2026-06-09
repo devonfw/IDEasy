@@ -21,9 +21,9 @@ public class JavaUrlUpdater extends JsonUrlUpdater<JavaJsonObject, JavaJsonVersi
   }
 
   /**
-   * Non-public constructor intended for the use in tests to provide mock download url. Production default value for versionBaseUrl will be used.
+   * Package-private constructor used for testing {@link JavaUrlUpdater}.
    *
-   * @param baseUrl mock url used for download and version
+   * @param baseUrl mock url used as download and version base.
    */
   JavaUrlUpdater(String baseUrl) {
     super(baseUrl, baseUrl);

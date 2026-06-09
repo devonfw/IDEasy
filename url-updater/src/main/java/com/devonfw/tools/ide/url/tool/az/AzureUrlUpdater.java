@@ -13,12 +13,20 @@ public class AzureUrlUpdater extends GithubUrlTagUpdater {
   private static final String DOWNLOAD_BASE_URL = "https://azcliprod.blob.core.windows.net";
   private static final VersionIdentifier MIN_AZURE_VID = VersionIdentifier.of("2.17.0");
 
+  /**
+   * The Constructor.
+   */
   public AzureUrlUpdater() {
     super(DOWNLOAD_BASE_URL);
   }
 
-  AzureUrlUpdater(String downloadBaseUrl) {
-    super(downloadBaseUrl);
+  /**
+   * Package-private constructor used for testing {@link AzureUrlUpdater}.
+   *
+   * @param baseUrl mock url used as download and version base.
+   */
+  AzureUrlUpdater(String baseUrl) {
+    super(baseUrl, baseUrl);
   }
 
   @Override

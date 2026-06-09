@@ -16,6 +16,9 @@ public class MvnUrlUpdater extends GithubUrlReleaseUpdater {
   private static final VersionIdentifier MIN_VERSION = VersionIdentifier.of("3.0.4");
   private static final VersionIdentifier MAVEN_4_IDENTIFIER = VersionIdentifier.of("4.0.0-alpha");
 
+  /**
+   * The Constructor.
+   */
   public MvnUrlUpdater() {
     super(DOWNLOAD_BASE_URL);
   }
@@ -25,7 +28,6 @@ public class MvnUrlUpdater extends GithubUrlReleaseUpdater {
 
     return "mvn";
   }
-
 
   @Override
   protected String getGithubOrganization() {

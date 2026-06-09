@@ -25,6 +25,11 @@ public abstract class IdeaBasedUrlUpdater extends JsonUrlUpdater<IntellijJsonObj
     super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
   }
 
+  /**
+   * Package-private constructor used for testing {@link IdeaBasedUrlUpdater}.
+   *
+   * @param versionBaseUrl mock url used as version base.
+   */
   protected IdeaBasedUrlUpdater(String versionBaseUrl) {
     super(DOWNLOAD_BASE_URL, versionBaseUrl);
   }

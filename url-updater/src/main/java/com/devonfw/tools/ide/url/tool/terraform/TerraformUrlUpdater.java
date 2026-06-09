@@ -13,12 +13,20 @@ public class TerraformUrlUpdater extends GithubUrlTagUpdater {
 
   private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.of("1.1.0");
 
+  /**
+   * The Constructor.
+   */
   public TerraformUrlUpdater() {
     super(DOWNLOAD_BASE_URL);
   }
 
-  TerraformUrlUpdater(String downloadBaseUrl) {
-    super(downloadBaseUrl);
+  /**
+   * Package-private constructor used for testing {@link TerraformUrlUpdater}.
+   *
+   * @param baseUrl mock url used as download and version base.
+   */
+  TerraformUrlUpdater(String baseUrl) {
+    super(baseUrl, baseUrl);
   }
 
   @Override

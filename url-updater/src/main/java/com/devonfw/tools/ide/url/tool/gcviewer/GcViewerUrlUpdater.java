@@ -10,6 +10,9 @@ public class GcViewerUrlUpdater extends GithubUrlTagUpdater {
 
   private static final String DOWNLOAD_BASE_URL = "https://sourceforge.net";
 
+  /**
+   * The Constructor.
+   */
   public GcViewerUrlUpdater() {
     super(DOWNLOAD_BASE_URL);
   }

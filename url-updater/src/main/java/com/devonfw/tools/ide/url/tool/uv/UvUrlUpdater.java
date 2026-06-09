@@ -12,12 +12,20 @@ public class UvUrlUpdater extends GithubUrlTagUpdater {
 
   private static final VersionIdentifier MIN_VID = VersionIdentifier.of("0.5.25");
 
+  /**
+   * The Constructor.
+   */
   public UvUrlUpdater() {
     super();
   }
 
-  UvUrlUpdater(String downloadBaseUrl) {
-    super(downloadBaseUrl);
+  /**
+   * Package-private constructor used for testing {@link UvUrlUpdater}.
+   *
+   * @param baseUrl mock url used as download and version base.
+   */
+  UvUrlUpdater(String baseUrl) {
+    super(baseUrl, baseUrl);
   }
 
   @Override

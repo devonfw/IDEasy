@@ -17,12 +17,20 @@ public class GoUrlUpdater extends GithubUrlTagUpdater {
 
   private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.of("1.16");
 
+  /**
+   * The Constructor.
+   */
   public GoUrlUpdater() {
     super(DOWNLOAD_BASE_URL);
   }
 
-  GoUrlUpdater(String downloadBaseUrl) {
-    super(downloadBaseUrl);
+  /**
+   * Package-private constructor used for testing {@link GoUrlUpdater}.
+   *
+   * @param baseUrl mock url used as download and version base.
+   */
+  GoUrlUpdater(String baseUrl) {
+    super(baseUrl, baseUrl);
   }
 
   @Override

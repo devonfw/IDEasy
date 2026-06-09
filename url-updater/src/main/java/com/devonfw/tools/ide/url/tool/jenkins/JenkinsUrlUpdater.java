@@ -15,6 +15,9 @@ public class JenkinsUrlUpdater extends WebsiteUrlUpdater {
 
   private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d\\.\\d{2,3}\\.\\d)");
 
+  /**
+   * The Constructor.
+   */
   public JenkinsUrlUpdater() {
     super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
   }

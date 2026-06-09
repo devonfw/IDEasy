@@ -20,8 +20,14 @@ public abstract class NpmBasedUrlUpdater extends JsonUrlUpdater<NpmJs, NpmJsVers
     super(REGISTRY_URL, REGISTRY_URL);
   }
 
-  protected NpmBasedUrlUpdater(String baseUrl) {
-    super(baseUrl, baseUrl);
+  /**
+   * TESTING ONLY Constructor used within tests to override production defaults for download und version base url.
+   *
+   * @param downloadBaseUrl mock url used for download base.
+   * @param versionBaseUrl mock url used for version base.
+   */
+  protected NpmBasedUrlUpdater(String downloadBaseUrl, String versionBaseUrl) {
+    super(downloadBaseUrl, versionBaseUrl);
   }
 
   @Override

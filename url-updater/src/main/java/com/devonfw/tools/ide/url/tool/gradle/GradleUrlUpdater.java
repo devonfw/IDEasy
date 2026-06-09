@@ -10,12 +10,20 @@ public class GradleUrlUpdater extends GithubUrlReleaseUpdater {
 
   private static final String DOWNLOAD_BASE_URL = "https://services.gradle.org";
 
+  /**
+   * The Constructor.
+   */
   public GradleUrlUpdater() {
     super(DOWNLOAD_BASE_URL);
   }
 
-  GradleUrlUpdater(String downloadBaseUrl) {
-    super(downloadBaseUrl);
+  /**
+   * Package-private constructor used for testing {@link GradleUrlUpdater}.
+   *
+   * @param baseUrl mock url used as download and version base.
+   */
+  GradleUrlUpdater(String baseUrl) {
+    super(baseUrl, baseUrl);
   }
 
   @Override

@@ -12,12 +12,20 @@ public class ClaudeUrlUpdater extends GithubUrlReleaseUpdater {
 
   private static final VersionIdentifier MIN_CLAUDE_VID = VersionIdentifier.of("2.1.117");
 
+  /**
+   * The Constructor.
+   */
   public ClaudeUrlUpdater() {
     super();
   }
 
-  ClaudeUrlUpdater(String downloadBaseUrl) {
-    super(downloadBaseUrl);
+  /**
+   * Package-private constructor used for testing {@link ClaudeUrlUpdater}.
+   *
+   * @param baseUrl mock url used as download and version base.
+   */
+  ClaudeUrlUpdater(String baseUrl) {
+    super(baseUrl, baseUrl);
   }
 
   @Override

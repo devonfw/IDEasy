@@ -14,6 +14,9 @@ public class GCloudUrlUpdater extends GithubUrlTagUpdater {
   private static final VersionIdentifier MIN_GCLOUD_VID = VersionIdentifier.of("299.0.0");
   private static final VersionIdentifier MIN_ARM_GCLOUD_VID = VersionIdentifier.of("366.0.0");
 
+  /**
+   * The Constructor.
+   */
   public GCloudUrlUpdater() {
     super(DOWNLOAD_BASE_URL);
   }

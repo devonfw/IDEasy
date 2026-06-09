@@ -15,10 +15,18 @@ public class PipUrlUpdater extends WebsiteUrlUpdater {
 
   private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d+\\.\\d(\\.\\d)?)");
 
+  /**
+   * The Constructor.
+   */
   public PipUrlUpdater() {
     super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
   }
 
+  /**
+   * Package-private constructor used for testing {@link PipUrlUpdater}.
+   *
+   * @param baseUrl mock url used as download and version base.
+   */
   PipUrlUpdater(String baseUrl) {
     super(baseUrl, baseUrl);
   }

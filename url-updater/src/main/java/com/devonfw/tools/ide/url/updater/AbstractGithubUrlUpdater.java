@@ -16,18 +16,30 @@ public abstract class AbstractGithubUrlUpdater<J extends JsonObject, JVI extends
   protected static final String GITHUB_VERSION_URL = "https://api.github.com/repos/";
 
   /**
-   * Constructor for AbstractGithubUrlUpdater with defaults for download- and version base url.
+   * Constructor with defaults for download- and version base url.
    */
   public AbstractGithubUrlUpdater() {
     super(GITHUB_BASE_URL, GITHUB_VERSION_URL);
   }
 
-  public AbstractGithubUrlUpdater(String baseUrl) {
-    super(baseUrl, baseUrl + "/repos/");
+  /**
+   * Constructor with specific download base url.
+   *
+   * @param downloadBaseUrl url used as download base.
+   */
+  public AbstractGithubUrlUpdater(String downloadBaseUrl) {
+    super(downloadBaseUrl, GITHUB_VERSION_URL);
   }
 
-  public AbstractGithubUrlUpdater(String downloadBaseUrl, String versionBaseURL) {
-    super(downloadBaseUrl, versionBaseURL + "/repos/");
+  /**
+   * TESTING ONLY Constructor used within tests to override production defaults for download und version base url. To prevent repetition, "/repos/" will be
+   * added here to mock version base url.
+   *
+   * @param downloadBaseUrl mock url used for download base.
+   * @param versionBaseUrl mock url used for version base.
+   */
+  public AbstractGithubUrlUpdater(String downloadBaseUrl, String versionBaseUrl) {
+    super(downloadBaseUrl, versionBaseUrl + "/repos/");
   }
 
   /**

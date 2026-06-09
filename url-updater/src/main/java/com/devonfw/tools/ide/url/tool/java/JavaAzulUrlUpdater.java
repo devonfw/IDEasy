@@ -19,6 +19,9 @@ public class JavaAzulUrlUpdater extends JsonUrlUpdater<JavaAzulJsonObject, JavaA
   private static final String VERSION_BASE_URL = "https://api.azul.com";
   private static final ObjectMapper MAPPER = JsonMapping.createWithReflectionSupportForUrlUpdaters();
 
+  /**
+   * The Constructor.
+   */
   public JavaAzulUrlUpdater() {
     super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
   }

@@ -24,6 +24,9 @@ public abstract class EclipseUrlUpdater extends WebsiteUrlUpdater {
 
   private static final Pattern VERSION_PATTERN = Pattern.compile("\\d{4}-\\d{2}");
 
+  /**
+   * The Constructor.
+   */
   public EclipseUrlUpdater() {
     super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
   }

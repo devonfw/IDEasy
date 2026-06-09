@@ -16,6 +16,9 @@ public class KotlincUrlUpdater extends WebsiteUrlUpdater {
 
   private static final Pattern VERSION_PATTERN = Pattern.compile("[0-9]+\\.[0-9]+\\.[0-9]+");
 
+  /**
+   * The Constructor.
+   */
   public KotlincUrlUpdater() {
     super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
   }

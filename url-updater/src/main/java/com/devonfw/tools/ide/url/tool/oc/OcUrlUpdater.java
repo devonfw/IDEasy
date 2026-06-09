@@ -15,6 +15,9 @@ public class OcUrlUpdater extends WebsiteUrlUpdater {
 
   private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d\\.\\d\\.\\d*)");
 
+  /**
+   * The Constructor.
+   */
   public OcUrlUpdater() {
     super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
   }

@@ -4,7 +4,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 
 /**
@@ -29,9 +28,4 @@ public class PipUrlUpdaterMock extends PipUrlUpdater {
     return versions;
   }
 
-  @Override
-  protected void addVersion(UrlVersion urlVersion) {
-
-    doAddVersion(urlVersion, getDownloadBaseUrl() + "/pip/${version}/get-pip.py");
-  }
 }

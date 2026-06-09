@@ -22,6 +22,9 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
 
   private static final Pattern VERSION_PATTERN = Pattern.compile("(4\\.\\d{1,4}+\\.\\d+)");
 
+  /**
+   * The Constructor.
+   */
   public DockerDesktopUrlUpdater() {
     super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
   }

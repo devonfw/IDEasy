@@ -10,12 +10,20 @@ public class SonarUrlUpdater extends GithubUrlTagUpdater {
 
   private static final String DOWNLOAD_BASE_URL = "https://binaries.sonarsource.com";
 
+  /**
+   * The Constructor.
+   */
   public SonarUrlUpdater() {
     super(DOWNLOAD_BASE_URL);
   }
 
-  SonarUrlUpdater(String downloadBaseUrl) {
-    super(downloadBaseUrl);
+  /**
+   * Package-private constructor used for testing {@link SonarUrlUpdater}.
+   *
+   * @param baseUrl mock url used as download and version base.
+   */
+  SonarUrlUpdater(String baseUrl) {
+    super(baseUrl, baseUrl);
   }
 
   @Override

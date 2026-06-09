@@ -13,6 +13,9 @@ public class HelmUrlUpdater extends GithubUrlTagUpdater {
 
   private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.of("3.4.0");
 
+  /**
+   * The Constructor.
+   */
   public HelmUrlUpdater() {
     super(DOWNLOAD_BASE_URL);
   }

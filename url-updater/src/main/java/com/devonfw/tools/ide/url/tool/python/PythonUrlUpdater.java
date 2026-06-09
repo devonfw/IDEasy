@@ -26,10 +26,18 @@ public class PythonUrlUpdater extends JsonUrlUpdater<PythonJsonObject, PythonRel
 
   private static final Logger logger = LoggerFactory.getLogger(PythonUrlUpdater.class);
 
+  /**
+   * The Constructor.
+   */
   public PythonUrlUpdater() {
     super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
   }
 
+  /**
+   * Package-private constructor used for testing {@link PythonUrlUpdater}.
+   *
+   * @param versionBaseUrl mock url used as version base.
+   */
   PythonUrlUpdater(String versionBaseUrl) {
     super(DOWNLOAD_BASE_URL, versionBaseUrl);
   }

@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
 public abstract class WebsiteUrlUpdater extends AbstractUrlUpdater {
 
   /**
-   * The constructor for WebsiteUrlUpdater.
+   * The constructor.
    *
    * @param downloadBaseUrl download base url
    * @param versionBaseUrl version base url

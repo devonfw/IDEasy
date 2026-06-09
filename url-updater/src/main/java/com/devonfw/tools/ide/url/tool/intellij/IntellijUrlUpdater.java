@@ -20,12 +20,20 @@ public class IntellijUrlUpdater extends IdeaBasedUrlUpdater {
   protected static final List<String> EDITIONS = List.of("ultimate", "intellij");
   protected static final ObjectMapper MAPPER = JsonMapping.createWithReflectionSupportForUrlUpdaters();
 
+  /**
+   * The Constructor.
+   */
   public IntellijUrlUpdater() {
     super();
   }
 
-  IntellijUrlUpdater(String downloadBaseUrl) {
-    super(downloadBaseUrl);
+  /**
+   * Package-private constructor used for testing {@link IntellijUrlUpdater}.
+   *
+   * @param versionBaseUrl mock url used as version base.
+   */
+  IntellijUrlUpdater(String versionBaseUrl) {
+    super(versionBaseUrl);
   }
 
   @Override

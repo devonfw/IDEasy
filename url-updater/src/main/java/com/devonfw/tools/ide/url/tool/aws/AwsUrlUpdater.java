@@ -15,6 +15,12 @@ public class AwsUrlUpdater extends GithubUrlTagUpdater {
     super(DOWNLOAD_BASE_URL);
   }
 
+  /**
+   * Package-private constructor used for testing {@link AwsUrlUpdater}.
+   *
+   * @param downloadBaseUrl mock url used as download base
+   * @param versionBaseUrl mock url used as version base.
+   */
   AwsUrlUpdater(String downloadBaseUrl, String versionBaseUrl) {
     super(downloadBaseUrl, versionBaseUrl);
   }

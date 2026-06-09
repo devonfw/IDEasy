@@ -10,6 +10,9 @@ public class DotNetUrlUpdater extends GithubUrlTagUpdater {
 
   private static final String DOWNLOAD_BASE_URL = "https://dotnetcli.azureedge.net";
 
+  /**
+   * The Constructor.
+   */
   public DotNetUrlUpdater() {
     super(DOWNLOAD_BASE_URL);
   }

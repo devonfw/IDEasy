@@ -14,10 +14,19 @@ public class MvndUrlUpdater extends GithubUrlReleaseUpdater {
 
   private static final VersionIdentifier MIN_MVND_VID = VersionIdentifier.of("1.0.2");
 
+  /**
+   * The Constructor.
+   */
   public MvndUrlUpdater() {
     super(DOWNLOAD_BASE_URL);
   }
 
+  /**
+   * Package-private constructor used for testing {@link MvndUrlUpdater}.
+   *
+   * @param downloadBaseUrl mock url used as download base
+   * @param versionBaseUrl mock url used as version base.
+   */
   MvndUrlUpdater(String downloadBaseUrl, String versionBaseUrl) {
     super(downloadBaseUrl, versionBaseUrl);
   }

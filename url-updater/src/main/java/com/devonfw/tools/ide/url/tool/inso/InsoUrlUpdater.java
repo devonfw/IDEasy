@@ -22,12 +22,20 @@ public class InsoUrlUpdater extends GithubUrlReleaseUpdater {
   private static final String BOX_EMOJI = "\uD83D\uDCE6";
   private static final VersionIdentifier MIN_INSO_VID = VersionIdentifier.of("11.5.0");
 
+  /**
+   * The Constructor.
+   */
   public InsoUrlUpdater() {
     super(DOWNLOAD_BASE_URL);
   }
 
-  InsoUrlUpdater(String downloadBaseUrl) {
-    super(downloadBaseUrl);
+  /**
+   * Package-private constructor used for testing {@link InsoUrlUpdater}.
+   *
+   * @param baseUrl mock url used as download and version base.
+   */
+  InsoUrlUpdater(String baseUrl) {
+    super(baseUrl, baseUrl);
   }
 
   @Override

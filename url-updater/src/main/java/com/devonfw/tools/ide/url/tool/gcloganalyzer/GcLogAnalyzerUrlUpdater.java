@@ -16,10 +16,18 @@ public class GcLogAnalyzerUrlUpdater extends WebsiteUrlUpdater {
   private static final Pattern VERSION_PATTERN =
       Pattern.compile("\\b\\d+\\.\\d+\\.\\d+(?:\\.\\d+)?\\b");
 
+  /**
+   * The Constructor.
+   */
   public GcLogAnalyzerUrlUpdater() {
     super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
   }
 
+  /**
+   * Package-private constructor used for testing {@link GcLogAnalyzerUrlUpdater}.
+   *
+   * @param baseUrl mock url used as download and version base.
+   */
   GcLogAnalyzerUrlUpdater(String baseUrl) {
     super(baseUrl, baseUrl);
   }

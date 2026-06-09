@@ -10,14 +10,28 @@ import com.devonfw.tools.ide.github.GithubTags;
  */
 public abstract class GithubUrlTagUpdater extends AbstractGithubUrlUpdater<GithubTags, GithubTag> {
 
+  /**
+   * The Constructor.
+   */
   public GithubUrlTagUpdater() {
     super();
   }
 
+  /**
+   * Constructor with external download base url.
+   *
+   * @param downloadBaseUrl url used for download base.
+   */
   public GithubUrlTagUpdater(String downloadBaseUrl) {
     super(downloadBaseUrl);
   }
 
+  /**
+   * TESTING ONLY Constructor used within tests to override production defaults for download und version base url.
+   *
+   * @param downloadBaseUrl mock url used for download base.
+   * @param versionBaseUrl mock url used for version base.
+   */
   public GithubUrlTagUpdater(String downloadBaseUrl, String versionBaseUrl) {
     super(downloadBaseUrl, versionBaseUrl);
   }

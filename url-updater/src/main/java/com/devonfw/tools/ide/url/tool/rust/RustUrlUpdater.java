@@ -12,12 +12,21 @@ public class RustUrlUpdater extends GithubUrlTagUpdater {
   private static final String RUSTUP_REPO = "rustup";
   private static final String RUSTUP_SCRIPT_URL = "https://sh.rustup.rs";
 
+  /**
+   * The Constructor.
+   */
   public RustUrlUpdater() {
     super(RUSTUP_SCRIPT_URL);
   }
 
-  RustUrlUpdater(String downloadBaseUrl) {
-    super(downloadBaseUrl + "/rustup.sh", downloadBaseUrl);
+  /**
+   * Package-private constructor used for testing {@link RustUrlUpdater}.
+   *
+   * @param downloadBaseUrl mock url used as download base
+   * @param versionBaseUrl mock url used as version base.
+   */
+  RustUrlUpdater(String downloadBaseUrl, String versionBaseUrl) {
+    super(downloadBaseUrl, versionBaseUrl);
   }
 
   @Override

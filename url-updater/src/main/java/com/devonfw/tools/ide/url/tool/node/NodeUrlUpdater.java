@@ -17,6 +17,9 @@ public class NodeUrlUpdater extends GithubUrlTagUpdater {
 
   private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.of("v15.9.9");
 
+  /**
+   * The Constructor.
+   */
   public NodeUrlUpdater() {
     super(DOWNLOAD_BASE_URL);
   }

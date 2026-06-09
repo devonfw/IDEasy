@@ -14,6 +14,9 @@ public class KotlincNativeUrlUpdater extends WebsiteUrlUpdater {
   private final static String DOWNLOAD_BASE_URL = "https://github.com";
   private final static String VERSION_BASE_URL = "https://api.github.com";
 
+  /**
+   * The Constructor.
+   */
   public KotlincNativeUrlUpdater() {
     super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
   }
