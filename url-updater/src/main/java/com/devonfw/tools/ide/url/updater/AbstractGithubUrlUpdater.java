@@ -32,8 +32,8 @@ public abstract class AbstractGithubUrlUpdater<J extends JsonObject, JVI extends
   }
 
   /**
-   * TESTING ONLY Constructor used within tests to override production defaults for download und version base url. To prevent repetition, "/repos/" will be
-   * added here to mock version base url.
+   * Constructor used within tests to override production defaults for download und version base url. To prevent repetition, "/repos/" will be added here to
+   * mock version base url.
    *
    * @param downloadBaseUrl mock url used for download base.
    * @param versionBaseUrl mock url used for version base.
