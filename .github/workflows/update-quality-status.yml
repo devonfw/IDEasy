@@ -31,9 +31,11 @@ jobs:
           # Remove old generated status documents from the documentation root.
           # The new generated files will be written to documentation/status/.
           rm -f documentation/quality-status*.adoc
+          rm -f documentation/status/quality-status*.adoc
+          
 
           python documentation/generate_quality_status.py \
-            --output documentation/status/quality-status.adoc
+            --output documentation/quality-status/quality-status.adoc
 
       - name: Commit and push changes
         run: |
