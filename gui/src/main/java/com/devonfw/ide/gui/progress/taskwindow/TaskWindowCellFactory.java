@@ -52,7 +52,7 @@ public class TaskWindowCellFactory implements Callback<ListView<ProgressBarTask>
             LOG.debug("updating task {} '{}'", progressTask.getTaskId(), progressTask.getTitle());
 
             StringExpression formattedLabelText = Bindings.format(
-                "%s [%d/%d %s]",
+                ProgressBarTask.TASK_DESCRIPTION_STRING_FORMAT,
                 progressTask.titleProperty(),
                 progressTask.currentProgressProperty(),
                 progressTask.getMaxSize(),

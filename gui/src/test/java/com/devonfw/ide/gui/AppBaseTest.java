@@ -1,6 +1,7 @@
 package com.devonfw.ide.gui;
 
 import static org.testfx.assertions.api.Assertions.assertThat;
+import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
 import java.io.IOException;
 import java.net.URL;
@@ -11,6 +12,9 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -20,6 +24,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
+import com.devonfw.ide.gui.context.TaskManager;
+import com.devonfw.ide.gui.progress.ProgressBarTask;
+import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindow;
 
 /**
  * Basic UI Test
@@ -30,6 +37,8 @@ public class AppBaseTest extends HeadlessApplicationTest {
 
   private Button androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen;
   private ComboBox<String> selectedProject, selectedWorkspace;
+  private Label statusText;
+  private ProgressBar taskProgressBar;
 
   @TempDir
   private static Path mockIdeRoot;
@@ -54,6 +63,8 @@ public class AppBaseTest extends HeadlessApplicationTest {
     vsCodeOpen = (Button) root.lookup("#vsCodeOpen");
     selectedProject = (ComboBox<String>) root.lookup("#selectedProject");
     selectedWorkspace = (ComboBox<String>) root.lookup("#selectedWorkspace");
+    statusText = (Label) root.lookup("#statusLabel");
+    taskProgressBar = (ProgressBar) root.lookup("#statusProgressBar");
   }
 
   /**
@@ -128,5 +139,62 @@ public class AppBaseTest extends HeadlessApplicationTest {
     assertThat(selectedWorkspace.isDisabled())
         .as("selectedWorkspace ComboBox should be enabled when a project is selected")
         .isFalse();
+  }
+
+  @Test
+  public void testStatusLabelDisplaysCorrectMessage() {
+
+    TaskManager taskManager = TaskManager.getInstance();
+
+    ProgressBarTask task1 = new ProgressBarTask("task-1", "Test Task");
+    ProgressBarTask task2 = new ProgressBarTask("task-2", "Test Task");
+
+    //Case 1: No tasks added yet, check correct message
+    assertThat(statusText.getText()).isEqualTo("IDEasy is ready.");
+
+    //Case 2: Only single task exists, should display the task title and a progress bar next to the label
+    taskManager.addTask(task1);
+    waitForFxEvents();
+
+    assertThat(statusText.getText()).isEqualTo(
+        String.format(ProgressBarTask.TASK_DESCRIPTION_STRING_FORMAT,
+            task1.getTitle(),
+            task1.getCurrentProgress(),
+            task1.getMaxSize(),
+            task1.getUnitName())
+    );
+    assertThat(taskProgressBar.isVisible()).as("Task progress bar should be visible").isTrue();
+
+    //Case 3: Multiple tasks exist, should display the number of tasks and a progress bar next to the label
+    taskManager.addTask(task2);
+    waitForFxEvents();
+
+    assertThat(statusText.getText()).isEqualTo(String.format("%d tasks running...", taskManager.getTasks().size()));
+    assertThat(taskProgressBar.isVisible()).as("Task progress bar should not be visible").isFalse();
+
+    //...and back to the default state:
+    taskManager.getTasks().clear();
+    waitForFxEvents();
+
+    assertThat(statusText.getText()).isEqualTo("IDEasy is ready.");
+  }
+
+  @Test
+  public void testStatusTextOpensTaskOverviewWindow() {
+
+    TaskManager taskManager = TaskManager.getInstance();
+
+    ProgressBarTask task1 = new ProgressBarTask("task-1", "Test Task");
+    ProgressBarTask task2 = new ProgressBarTask("task-2", "Test Task");
+
+    taskManager.addTask(task1);
+    taskManager.addTask(task2);
+    waitForFxEvents();
+
+    interact(() -> statusText.fireEvent(
+        new MouseEvent(MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0, null, 1, false, false, false, false, false, false, false, false, false, false, null)));
+
+    assertThat(TaskOverviewWindow.getInstance(statusText).getStage().isShowing()).as("Task overview window should be opened when clicking on status text")
+        .isTrue();
   }
 }

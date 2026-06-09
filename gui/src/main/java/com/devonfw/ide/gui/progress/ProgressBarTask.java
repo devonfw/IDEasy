@@ -19,6 +19,11 @@ import com.devonfw.tools.ide.io.AbstractIdeProgressBar;
  */
 public class ProgressBarTask extends AbstractIdeProgressBar {
 
+  /**
+   * This is the format representing how task titles are displayed in the UI. It follows the scheme "Task title [current progress/maximum progress Unit]"
+   */
+  public static final String TASK_DESCRIPTION_STRING_FORMAT = "%s [%d/%d %s]";
+
   private static final Logger LOG = LoggerFactory.getLogger(ProgressBarTask.class.getName());
 
   private boolean isIndeterminate = false;

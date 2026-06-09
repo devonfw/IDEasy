@@ -230,7 +230,13 @@ public class MainController {
         );
       } else if (taskList.size() == 1) {
         ProgressBarTask task = taskList.getFirst();
-        statusLabel.setText(task.getTitle() + " [" + task.getCurrentProgress() + "/" + task.getMaxSize() + " " + task.getUnitName() + "]");
+        statusLabel.setText(String.format(
+            ProgressBarTask.TASK_DESCRIPTION_STRING_FORMAT,
+            task.getTitle(),
+            task.getCurrentProgress(),
+            task.getMaxSize(),
+            task.getUnitName())
+        );
         statusLabel.setUnderline(false);
         statusLabel.setStyle("");
 
