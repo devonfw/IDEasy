@@ -5,152 +5,515 @@
 :source-highlighter: rouge
 :nofooter:
 
-Automatically generated tool status for Windows.
+Automatically generated open issue overview for Windows.
 
 link:quality-status.adoc[Back to overview]
 
-Severity Legend
-[%header, cols="^1,^2,5"]
+*Total Issues:* 155
+
+* OS-specific: 15
+
+* Multi-OS: 0
+
+* Cross-platform: 140
+
+== Windows Specific Issues
+
+[%header, cols="^1,7"]
 |===
-| Icon | Severity | Description
+| Issue | Summary
 
-| 🚨 | Blocker  | Fully prevents users from working; must be fixed immediately
-| 🔴 | Bug      | Confirmed defect with functional impact
-| 🟡 | Enhancement | Feature request, improvement, or task (no functional breakage)
-| 🟢 | OK       | No open issues
+2+^| *90+ days*
+| link:https://github.com/devonfw/IDEasy/issues/1227[#1227]
+| (BUG) Guide windows user after installation
+
+| link:https://github.com/devonfw/IDEasy/issues/1232[#1232]
+| (BUG) MSI Repair broken
+
+| link:https://github.com/devonfw/IDEasy/issues/1548[#1548]
+| (BUG) Windows file locking error on update with plugins
+
+| link:https://github.com/devonfw/IDEasy/issues/1579[#1579]
+| (BUG) IDEasy uninstall after a failed MSI installation does not work
+
+| link:https://github.com/devonfw/IDEasy/issues/421[#421]
+| (ENH) Allow installation of IDEasy via winget
+
+| link:https://github.com/devonfw/IDEasy/issues/422[#422]
+| (ENH) Allow installation of IDEasy via Windows Store
+
+| link:https://github.com/devonfw/IDEasy/issues/599[#599]
+| (ENH) Add release for windows-arm architecture
+
+| link:https://github.com/devonfw/IDEasy/issues/1056[#1056]
+| (ENH) Add Conversion of LICENSE.adoc to RTF Format
+
+| link:https://github.com/devonfw/IDEasy/issues/1558[#1558]
+| (ENH) Add install.log path to msi installer window
+
+
+2+^| *31-60 days*
+| link:https://github.com/devonfw/IDEasy/issues/1870[#1870]
+| (ENH) Implement generic get-version implementation for global tools under wind …
+
+| link:https://github.com/devonfw/IDEasy/issues/1872[#1872]
+| (ENH) Implement generic uninstall implementation for global tools under window …
+
+| link:https://github.com/devonfw/IDEasy/issues/1873[#1873]
+| (ENH) Implement generic get-edition implementation for global tools under wind …
+
+
+2+^| *11-30 days*
+| link:https://github.com/devonfw/IDEasy/issues/1981[#1981]
+| (BUG) ide update fails on windows@arm64
+
+| link:https://github.com/devonfw/IDEasy/issues/1982[#1982]
+| (BUG) relative option for link not honored
+
+
+2+^| *0-10 days*
+| link:https://github.com/devonfw/IDEasy/issues/1991[#1991]
+| (ENH) Improve WindowsHelperMock
+
 |===
 
+== Multi-OS Issues
 
-== Windows Tools — 0 blocker(s), 17 bug(s), 50 enhancement(s)
+_No multi-OS issues._
 
-Open issues labelled `windows` or without any OS label (cross-platform issues appear in every OS section).
+== Cross-platform Issues
 
-=== Tools
-
-NOTE: Components with no open issues are omitted from this table.
-
-[%header, cols="3,^2,7"]
+[%header, cols="^1,7"]
 |===
-| Tool | Status | Issues
-| Android Studio
-| 🔴 Bug
-| 🔴 link:https://github.com/devonfw/IDEasy/issues/1263[#1263] Fix android-studio workspace templates
+| Issue | Summary
 
-| Custom tool support
-| 🟡 Enhancement
-| 🟡 link:https://github.com/devonfw/IDEasy/issues/756[#756] Implement CustomToolRepositoryTest +
-🟡 link:https://github.com/devonfw/IDEasy/issues/930[#930] Refactor `JsonPrettyPrinter` to be usable in CustomToolJson
+2+^| *90+ days*
+| link:https://github.com/devonfw/IDEasy/issues/44[#44]
+| (BUG) DockerUrlUpdater not finding/adding specific versions
 
-| Docker
-| 🔴 Bug
-| 🔴 link:https://github.com/devonfw/IDEasy/issues/44[#44] DockerUrlUpdater not finding/adding specific versions +
-🔴 link:https://github.com/devonfw/IDEasy/issues/1659[#1659] Global tools run tool while installation is running in background +
-🟡 link:https://github.com/devonfw/IDEasy/issues/1181[#1181] Improve url updater for docker desktop to pull all necessary versions +
-🟡 link:https://github.com/devonfw/IDEasy/issues/1868[#1868] Revision of the functionality of global tool commandlets
+| link:https://github.com/devonfw/IDEasy/issues/551[#551]
+| (BUG) Autocompletion and list-versions make OS-agnostic suggestions 
 
-| dotnet
-| 🟡 Enhancement
-| 🟡 link:https://github.com/devonfw/IDEasy/issues/701[#701] Fix Dotnet tests on our CI
+| link:https://github.com/devonfw/IDEasy/issues/690[#690]
+| (BUG) UpdateUrls workflow timeout not working
 
-| Eclipse
-| 🟡 Enhancement
-| 🟡 link:https://github.com/devonfw/IDEasy/issues/1165[#1165] Automatic project import for Eclipse +
-🟡 link:https://github.com/devonfw/IDEasy/issues/1525[#1525] lombok not correctly installed in eclipse
+| link:https://github.com/devonfw/IDEasy/issues/771[#771]
+| (BUG) Check URL Updater issues
 
-| GCViewer
-| 🟡 Enhancement
-| 🟡 link:https://github.com/devonfw/IDEasy/issues/825[#825] Consider adding GC Log Analyzer
+| link:https://github.com/devonfw/IDEasy/issues/772[#772]
+| (BUG) CVE-2023-7272 in org.eclipse.parsson 1.1.7
 
-| git
-| 🔴 Bug
-| 🔴 link:https://github.com/devonfw/IDEasy/issues/840[#840] git fetch does not work with multiple remotes +
-🔴 link:https://github.com/devonfw/IDEasy/issues/1579[#1579] IDEasy uninstall after a failed MSI installation does not work +
-🟡 link:https://github.com/devonfw/IDEasy/issues/714[#714] Improve UX for settings repository +
-🟡 link:https://github.com/devonfw/IDEasy/issues/1694[#1694] Fix behavior when providing a wrong git URL +
-🟡 link:https://github.com/devonfw/IDEasy/issues/1695[#1695] Clone settings to temporary directory, analyse, and then move +
-🟡 link:https://github.com/devonfw/IDEasy/issues/1992[#1992] Improve GitContextMock
+| link:https://github.com/devonfw/IDEasy/issues/840[#840]
+| (BUG) git fetch does not work with multiple remotes
 
-| GUI / IDE launcher
-| 🔴 Bug
-| 🔴 link:https://github.com/devonfw/IDEasy/issues/1938[#1938] GUI not launchable outside of project context +
-🔴 link:https://github.com/devonfw/IDEasy/issues/1987[#1987] Gui commandlet broken for snapshots +
-🟡 link:https://github.com/devonfw/IDEasy/issues/1295[#1295] IDEasy Dashboard Epic +
-🟡 link:https://github.com/devonfw/IDEasy/issues/1296[#1296] Implement IdeContext properly for Dashboard +
-🟡 link:https://github.com/devonfw/IDEasy/issues/1784[#1784] Implement JavaFX based progress bars for the GUI +
-🟡 link:https://github.com/devonfw/IDEasy/issues/1785[#1785] Implemenent confirmation modals using JavaFX +
-🟡 link:https://github.com/devonfw/IDEasy/issues/1802[#1802] Enable state management for the IdeContext in the GUI. +
-🟡 link:https://github.com/devonfw/IDEasy/issues/1840[#1840] Management of tool installations in the GUI +
-🟡 link:https://github.com/devonfw/IDEasy/issues/1917[#1917] Allow the creation of a desktop shortcut for the GUI +
-🟡 link:https://github.com/devonfw/IDEasy/issues/1928[#1928] Show user pro-active notifications of updates in the GUI +
-🟡 link:https://github.com/devonfw/IDEasy/issues/1929[#1929] Manage tool installations via the GUI +
-🟡 link:https://github.com/devonfw/IDEasy/issues/1930[#1930] Implemenent a tag-based filtering system into the GUI +
-🟡 link:https://github.com/devonfw/IDEasy/issues/1933[#1933] Implement a console window in the GUI +
-🟡 link:https://github.com/devonfw/IDEasy/issues/1936[#1936] Improve localization of the GUI +
-🟡 link:https://github.com/devonfw/IDEasy/issues/1975[#1975] Improve state management implementation in the GUI
+| link:https://github.com/devonfw/IDEasy/issues/892[#892]
+| (BUG) Improve GitContextTest tests to actually test something
 
-| IntelliJ IDEA
-| 🔴 Bug
-| 🔴 link:https://github.com/devonfw/IDEasy/issues/1501[#1501] Starting intellij leads to error popup +
-🟡 link:https://github.com/devonfw/IDEasy/issues/992[#992] Support multiple attributes for merge:id
+| link:https://github.com/devonfw/IDEasy/issues/897[#897]
+| (BUG) HTTP Proxy with TLS termination causing errors
 
-| Java (JDK)
-| 🟡 Enhancement
-| 🟡 link:https://github.com/devonfw/IDEasy/issues/72[#72] Add further editions of java +
-🟡 link:https://github.com/devonfw/IDEasy/issues/1976[#1976] Extend ToolCommandlet installation logic to allow software-repository-on …
+| link:https://github.com/devonfw/IDEasy/issues/943[#943]
+| (BUG) XmlMerger: Rework Combine Text Nodes
 
-| kubectl
-| 🔴 Bug
-| 🔴 link:https://github.com/devonfw/IDEasy/issues/1659[#1659] Global tools run tool while installation is running in background
+| link:https://github.com/devonfw/IDEasy/issues/1041[#1041]
+| (BUG) native image has globbing active
 
-| Maven
-| 🔴 Bug
-| 🔴 link:https://github.com/devonfw/IDEasy/issues/1956[#1956] Merging MAVEN_ARGS buggy +
-🔴 link:https://github.com/devonfw/IDEasy/issues/1981[#1981] ide update fails on windows@arm64 +
-🔴 link:https://github.com/devonfw/IDEasy/issues/1987[#1987] Gui commandlet broken for snapshots +
-🟡 link:https://github.com/devonfw/IDEasy/issues/1909[#1909] Support for maven daemon (mvnd)
+| link:https://github.com/devonfw/IDEasy/issues/1054[#1054]
+| (BUG) Incorrect interpretation of trailling and leading spaces in version rang …
 
-| Node.js
-| 🟡 Enhancement
-| 🟡 link:https://github.com/devonfw/IDEasy/issues/1996[#1996] Revisit design for tools that do not install to software repository
+| link:https://github.com/devonfw/IDEasy/issues/1063[#1063]
+| (BUG) User specific configurations are not working as described
 
-| npm
-| 🟡 Enhancement
-| 🟡 link:https://github.com/devonfw/IDEasy/issues/700[#700] Add Npm run test +
-🟡 link:https://github.com/devonfw/IDEasy/issues/1965[#1965] Improve dependent installations +
-🟡 link:https://github.com/devonfw/IDEasy/issues/1996[#1996] Revisit design for tools that do not install to software repository
+| link:https://github.com/devonfw/IDEasy/issues/1124[#1124]
+| (BUG) Ensure latest version of Python is installed
 
-| pgAdmin
-| 🟡 Enhancement
-| 🟡 link:https://github.com/devonfw/IDEasy/issues/1868[#1868] Revision of the functionality of global tool commandlets
+| link:https://github.com/devonfw/IDEasy/issues/1134[#1134]
+| (BUG) IDEasy autocompletion gets stuck if license agreement file was not found
 
-| pip
-| 🟡 Enhancement
-| 🟡 link:https://github.com/devonfw/IDEasy/issues/1965[#1965] Improve dependent installations +
-🟡 link:https://github.com/devonfw/IDEasy/issues/1996[#1996] Revisit design for tools that do not install to software repository
+| link:https://github.com/devonfw/IDEasy/issues/1206[#1206]
+| (BUG) java.util.zip.ZipException when opening Android Studio archives from ver …
 
-| Python
-| 🔴 Bug
-| 🔴 link:https://github.com/devonfw/IDEasy/issues/1124[#1124] Ensure latest version of Python is installed +
-🟡 link:https://github.com/devonfw/IDEasy/issues/1996[#1996] Revisit design for tools that do not install to software repository
+| link:https://github.com/devonfw/IDEasy/issues/1263[#1263]
+| (BUG) Fix android-studio workspace templates
 
-| Rancher Desktop
-| 🟡 Enhancement
-| 🟡 link:https://github.com/devonfw/IDEasy/issues/1868[#1868] Revision of the functionality of global tool commandlets
+| link:https://github.com/devonfw/IDEasy/issues/1333[#1333]
+| (BUG) Step 'Install or update software' already ended with false and now ended …
 
-| uv
-| 🔴 Bug
-| 🔴 link:https://github.com/devonfw/IDEasy/issues/1518[#1518] uv tools are installed globally
+| link:https://github.com/devonfw/IDEasy/issues/1501[#1501]
+| (BUG) Starting intellij leads to error popup
 
-| VS Code
-| 🔴 Bug
-| 🔴 link:https://github.com/devonfw/IDEasy/issues/1990[#1990] Merge of Vscode settings.json file fails +
-🟡 link:https://github.com/devonfw/IDEasy/issues/787[#787] Provide variable to disable open new workspace +
-🟡 link:https://github.com/devonfw/IDEasy/issues/1167[#1167] Automatic project import for VSCode +
-🟡 link:https://github.com/devonfw/IDEasy/issues/1715[#1715] Adapt settings to inject java runtime future proove into vscode +
-🟡 link:https://github.com/devonfw/IDEasy/issues/1966[#1966] Support separate VSCodium plugins folder
+| link:https://github.com/devonfw/IDEasy/issues/1517[#1517]
+| (BUG) IDEasy setup does not install Windows Terminal
 
-| Yarn
-| 🔴 Bug
-| 🔴 link:https://github.com/devonfw/IDEasy/issues/1787[#1787] tracking yarn versions broken
+| link:https://github.com/devonfw/IDEasy/issues/1518[#1518]
+| (BUG) uv tools are installed globally
+
+| link:https://github.com/devonfw/IDEasy/issues/1634[#1634]
+| (BUG) UrlUpdater creates error entries for HTTP status 200
+
+| link:https://github.com/devonfw/IDEasy/issues/1659[#1659]
+| (BUG) Global tools run tool while installation is running in background
+
+| link:https://github.com/devonfw/IDEasy/issues/19[#19]
+| (ENH) Implement ToolCommandlet for Google Cloud CLI
+
+| link:https://github.com/devonfw/IDEasy/issues/45[#45]
+| (ENH) Add compression for native images
+
+| link:https://github.com/devonfw/IDEasy/issues/72[#72]
+| (ENH) Add further editions of java
+
+| link:https://github.com/devonfw/IDEasy/issues/75[#75]
+| (ENH) Consider integration of oracle XE
+
+| link:https://github.com/devonfw/IDEasy/issues/98[#98]
+| (ENH) Ability to secure downloads from custom repository
+
+| link:https://github.com/devonfw/IDEasy/issues/162[#162]
+| (ENH) Difficulty to find the right spot in the documentation
+
+| link:https://github.com/devonfw/IDEasy/issues/169[#169]
+| (ENH) Check if we want to utilize TailTipWidgets for the autocompleter
+
+| link:https://github.com/devonfw/IDEasy/issues/190[#190]
+| (ENH) Improve #103: security warning for CVEs in file tool/edition/security
+
+| link:https://github.com/devonfw/IDEasy/issues/218[#218]
+| (ENH) Add possibility to start a command in a new window with the process buil …
+
+| link:https://github.com/devonfw/IDEasy/issues/370[#370]
+| (ENH) Create local github actions for tests
+
+| link:https://github.com/devonfw/IDEasy/issues/379[#379]
+| (ENH) Rename default branch of repo ide-urls from master to main
+
+| link:https://github.com/devonfw/IDEasy/issues/399[#399]
+| (ENH) Handle uninstall of global tool commandlets
+
+| link:https://github.com/devonfw/IDEasy/issues/412[#412]
+| (ENH) consider integration of lama
+
+| link:https://github.com/devonfw/IDEasy/issues/449[#449]
+| (ENH) Consider integration of continue GenAI coding assistant
+
+| link:https://github.com/devonfw/IDEasy/issues/492[#492]
+| (ENH) Use Maven dependency cache to optimize workflow running times
+
+| link:https://github.com/devonfw/IDEasy/issues/516[#516]
+| (ENH) IdeToolCommandlet: add option and support for import of project(s)
+
+| link:https://github.com/devonfw/IDEasy/issues/607[#607]
+| (ENH) Test for environment variables of process contexts  
+
+| link:https://github.com/devonfw/IDEasy/issues/629[#629]
+| (ENH) Recycle devonfw-ide documentation
+
+| link:https://github.com/devonfw/IDEasy/issues/639[#639]
+| (ENH) Improve step success logic for sub steps
+
+| link:https://github.com/devonfw/IDEasy/issues/700[#700]
+| (ENH) Add Npm run test
+
+| link:https://github.com/devonfw/IDEasy/issues/701[#701]
+| (ENH) Fix Dotnet tests on our CI
+
+| link:https://github.com/devonfw/IDEasy/issues/714[#714]
+| (ENH) Improve UX for settings repository
+
+| link:https://github.com/devonfw/IDEasy/issues/726[#726]
+| (ENH) Replace hardcoded dependencies with dependencies.json in ide-urls
+
+| link:https://github.com/devonfw/IDEasy/issues/735[#735]
+| (ENH) Enhance workspace configuration with generic overlay from settings/works …
+
+| link:https://github.com/devonfw/IDEasy/issues/741[#741]
+| (ENH) Add a warning message for legacy devonfw-ide settings users
+
+| link:https://github.com/devonfw/IDEasy/issues/756[#756]
+| (ENH) Implement CustomToolRepositoryTest
+
+| link:https://github.com/devonfw/IDEasy/issues/768[#768]
+| (ENH) Improve IntelliJ configuration (annotation processing, auto-import, mave …
+
+| link:https://github.com/devonfw/IDEasy/issues/780[#780]
+| (ENH) Create IDEasy service
+
+| link:https://github.com/devonfw/IDEasy/issues/785[#785]
+| (ENH) Re-introduce workspace reverse options from devonfw-ide
+
+| link:https://github.com/devonfw/IDEasy/issues/787[#787]
+| (ENH) Provide variable to disable open new workspace
+
+| link:https://github.com/devonfw/IDEasy/issues/788[#788]
+| (ENH) Add more starting flags to IDE commandlets
+
+| link:https://github.com/devonfw/IDEasy/issues/821[#821]
+| (ENH) Allow User to remove "ide " prefix in ide shell for non-IDEasy command
+
+| link:https://github.com/devonfw/IDEasy/issues/822[#822]
+| (ENH) Handle long CWD paths in shell prompt
+
+| link:https://github.com/devonfw/IDEasy/issues/825[#825]
+| (ENH) Consider adding GC Log Analyzer
+
+| link:https://github.com/devonfw/IDEasy/issues/882[#882]
+| (ENH) Skip step if no installation was required
+
+| link:https://github.com/devonfw/IDEasy/issues/891[#891]
+| (ENH) Improve Url Updater Report Overview
+
+| link:https://github.com/devonfw/IDEasy/issues/930[#930]
+| (ENH) Refactor `JsonPrettyPrinter` to be usable in CustomToolJson
+
+| link:https://github.com/devonfw/IDEasy/issues/945[#945]
+| (ENH) Improve ide update with smart dependency handling
+
+| link:https://github.com/devonfw/IDEasy/issues/987[#987]
+| (ENH) conditional templates
+
+| link:https://github.com/devonfw/IDEasy/issues/989[#989]
+| (ENH) allow expressions in template variable definitions
+
+| link:https://github.com/devonfw/IDEasy/issues/992[#992]
+| (ENH) Support multiple attributes for merge:id
+
+| link:https://github.com/devonfw/IDEasy/issues/1031[#1031]
+| (ENH) Integration of OpenRewrite
+
+| link:https://github.com/devonfw/IDEasy/issues/1059[#1059]
+| (ENH) Improve and fix dependency mechanism
+
+| link:https://github.com/devonfw/IDEasy/issues/1135[#1135]
+| (ENH) IDEasy does not set env variables on Windows PowerShell
+
+| link:https://github.com/devonfw/IDEasy/issues/1150[#1150]
+| (ENH) Full ARM support
+
+| link:https://github.com/devonfw/IDEasy/issues/1155[#1155]
+| (ENH) Improve IntelliJ layout
+
+| link:https://github.com/devonfw/IDEasy/issues/1164[#1164]
+| (ENH) Automatic project import
+
+| link:https://github.com/devonfw/IDEasy/issues/1165[#1165]
+| (ENH) Automatic project import for Eclipse
+
+| link:https://github.com/devonfw/IDEasy/issues/1167[#1167]
+| (ENH) Automatic project import for VSCode
+
+| link:https://github.com/devonfw/IDEasy/issues/1178[#1178]
+| (ENH) Revisit VersionPhase detection
+
+| link:https://github.com/devonfw/IDEasy/issues/1181[#1181]
+| (ENH) Improve url updater for docker desktop to pull all necessary versions
+
+| link:https://github.com/devonfw/IDEasy/issues/1209[#1209]
+| (ENH) migration version message is confusing
+
+| link:https://github.com/devonfw/IDEasy/issues/1214[#1214]
+| (ENH) preserve EOL style in upgrade-settings
+
+| link:https://github.com/devonfw/IDEasy/issues/1215[#1215]
+| (ENH) nightly build not executing tests anymore
+
+| link:https://github.com/devonfw/IDEasy/issues/1216[#1216]
+| (ENH) Release workflow should only deploy artifacts after all tests passed
+
+| link:https://github.com/devonfw/IDEasy/issues/1225[#1225]
+| (ENH) Create new IDEasy introduction videos
+
+| link:https://github.com/devonfw/IDEasy/issues/1295[#1295]
+| (ENH) IDEasy Dashboard Epic
+
+| link:https://github.com/devonfw/IDEasy/issues/1296[#1296]
+| (ENH) Implement IdeContext properly for Dashboard
+
+| link:https://github.com/devonfw/IDEasy/issues/1311[#1311]
+| (ENH) improve IDE_MIN_VERSION support
+
+| link:https://github.com/devonfw/IDEasy/issues/1392[#1392]
+| (ENH) Smart completion
+
+| link:https://github.com/devonfw/IDEasy/issues/1422[#1422]
+| (ENH) Refactor tests to remove windowsJunctionsAreUsed
+
+| link:https://github.com/devonfw/IDEasy/issues/1453[#1453]
+| (ENH) Allow co-authored commits in cla assistant
+
+| link:https://github.com/devonfw/IDEasy/issues/1457[#1457]
+| (ENH) Improve CLI error messages on invalid args or commandlets not available  …
+
+| link:https://github.com/devonfw/IDEasy/issues/1493[#1493]
+| (ENH) Analyze Scoop Windows CLI installer
+
+| link:https://github.com/devonfw/IDEasy/issues/1525[#1525]
+| (ENH) lombok not correctly installed in eclipse
+
+| link:https://github.com/devonfw/IDEasy/issues/1580[#1580]
+| (ENH) Implement cleanup
+
+| link:https://github.com/devonfw/IDEasy/issues/1594[#1594]
+| (ENH) implement ReleaseCommandlet
+
+| link:https://github.com/devonfw/IDEasy/issues/1628[#1628]
+| (ENH) Support for OS specific CVEs
+
+| link:https://github.com/devonfw/IDEasy/issues/1651[#1651]
+| (ENH) Move status.json files out of ide-urls to own repo
+
+| link:https://github.com/devonfw/IDEasy/issues/1676[#1676]
+| (ENH) Import extra SDKs automatically into IDE
+
+| link:https://github.com/devonfw/IDEasy/issues/1689[#1689]
+| (ENH) Fix user commnication when switching the Java version from the default t …
+
+| link:https://github.com/devonfw/IDEasy/issues/1694[#1694]
+| (ENH) Fix behavior when providing a wrong git URL
+
+| link:https://github.com/devonfw/IDEasy/issues/1695[#1695]
+| (ENH) Clone settings to temporary directory, analyse, and then move
+
+| link:https://github.com/devonfw/IDEasy/issues/1715[#1715]
+| (ENH) Adapt settings to inject java runtime future proove into vscode
+
+| link:https://github.com/devonfw/IDEasy/issues/1719[#1719]
+| (ENH) Integrate rust
+
+| link:https://github.com/devonfw/IDEasy/issues/1720[#1720]
+| (ENH) Integrate SoapUI
+
+| link:https://github.com/devonfw/IDEasy/issues/1721[#1721]
+| (ENH) Integrate ruby
+
+
+2+^| *61-90 days*
+| link:https://github.com/devonfw/IDEasy/issues/1746[#1746]
+| (BUG) ide shell broken
+
+| link:https://github.com/devonfw/IDEasy/issues/1787[#1787]
+| (BUG) tracking yarn versions broken
+
+| link:https://github.com/devonfw/IDEasy/issues/1808[#1808]
+| (BUG) icd is not navigating into single available workspace on icd -p project
+
+| link:https://github.com/devonfw/IDEasy/issues/1784[#1784]
+| (ENH) Implement JavaFX based progress bars for the GUI
+
+| link:https://github.com/devonfw/IDEasy/issues/1785[#1785]
+| (ENH) Implemenent confirmation modals using JavaFX
+
+| link:https://github.com/devonfw/IDEasy/issues/1802[#1802]
+| (ENH) Enable state management for the IdeContext in the GUI.
+
+
+2+^| *31-60 days*
+| link:https://github.com/devonfw/IDEasy/issues/1814[#1814]
+| (BUG) IDEasy still reports updates for settings are available after any number …
+
+| link:https://github.com/devonfw/IDEasy/issues/1840[#1840]
+| (ENH) Management of tool installations in the GUI
+
+| link:https://github.com/devonfw/IDEasy/issues/1868[#1868]
+| (ENH) Revision of the functionality of global tool commandlets
+
+| link:https://github.com/devonfw/IDEasy/issues/1902[#1902]
+| (ENH) Create InsoUrlUpdater
+
+| link:https://github.com/devonfw/IDEasy/issues/1909[#1909]
+| (ENH) Support for maven daemon (mvnd)
+
+
+2+^| *11-30 days*
+| link:https://github.com/devonfw/IDEasy/issues/1938[#1938]
+| (BUG) GUI not launchable outside of project context
+
+| link:https://github.com/devonfw/IDEasy/issues/1956[#1956]
+| (BUG) Merging MAVEN_ARGS buggy
+
+| link:https://github.com/devonfw/IDEasy/issues/1917[#1917]
+| (ENH) Allow the creation of a desktop shortcut for the GUI
+
+| link:https://github.com/devonfw/IDEasy/issues/1927[#1927]
+| (ENH) IDEasy virtual instance for AI agent
+
+| link:https://github.com/devonfw/IDEasy/issues/1928[#1928]
+| (ENH) Show user pro-active notifications of updates in the GUI
+
+| link:https://github.com/devonfw/IDEasy/issues/1929[#1929]
+| (ENH) Manage tool installations via the GUI
+
+| link:https://github.com/devonfw/IDEasy/issues/1930[#1930]
+| (ENH) Implemenent a tag-based filtering system into the GUI
+
+| link:https://github.com/devonfw/IDEasy/issues/1933[#1933]
+| (ENH) Implement a console window in the GUI
+
+| link:https://github.com/devonfw/IDEasy/issues/1936[#1936]
+| (ENH) Improve localization of the GUI
+
+| link:https://github.com/devonfw/IDEasy/issues/1937[#1937]
+| (ENH) Ability to link content from settings into workspace(s)
+
+| link:https://github.com/devonfw/IDEasy/issues/1939[#1939]
+| (ENH) Integrate Spyder IDE
+
+| link:https://github.com/devonfw/IDEasy/issues/1942[#1942]
+| (ENH) Create a RubyUrlUpdater
+
+| link:https://github.com/devonfw/IDEasy/issues/1943[#1943]
+| (ENH) Create Ruby Commandlet
+
+| link:https://github.com/devonfw/IDEasy/issues/1946[#1946]
+| (ENH) SpyderCommandlet
+
+| link:https://github.com/devonfw/IDEasy/issues/1953[#1953]
+| (ENH) Implement Base Functionality of Cleanup Commandlet
+
+| link:https://github.com/devonfw/IDEasy/issues/1965[#1965]
+| (ENH) Improve dependent installations
+
+| link:https://github.com/devonfw/IDEasy/issues/1966[#1966]
+| (ENH) Support separate VSCodium plugins folder
+
+| link:https://github.com/devonfw/IDEasy/issues/1975[#1975]
+| (ENH) Improve state management implementation in the GUI
+
+| link:https://github.com/devonfw/IDEasy/issues/1976[#1976]
+| (ENH) Extend ToolCommandlet installation logic to allow software-repository-on …
+
+| link:https://github.com/devonfw/IDEasy/issues/1978[#1978]
+| (ENH) Improve status documentation
+
+
+2+^| *0-10 days*
+| link:https://github.com/devonfw/IDEasy/issues/1987[#1987]
+| (BUG) Gui commandlet broken for snapshots
+
+| link:https://github.com/devonfw/IDEasy/issues/1990[#1990]
+| (BUG) Merge of Vscode settings.json file fails
+
+| link:https://github.com/devonfw/IDEasy/issues/2010[#2010]
+| (BUG) The ide gui command is not working
+
+| link:https://github.com/devonfw/IDEasy/issues/1988[#1988]
+| (ENH) Improve UrlUpdater tests
+
+| link:https://github.com/devonfw/IDEasy/issues/1992[#1992]
+| (ENH) Improve GitContextMock
+
+| link:https://github.com/devonfw/IDEasy/issues/1993[#1993]
+| (ENH) Small improvements to advanced-tooling-windows
+
+| link:https://github.com/devonfw/IDEasy/issues/1994[#1994]
+| (ENH) Small improvements to AI documentation
+
+| link:https://github.com/devonfw/IDEasy/issues/1996[#1996]
+| (ENH) Revisit design for tools that do not install to software repository
+
+| link:https://github.com/devonfw/IDEasy/issues/2000[#2000]
+| (ENH) Create script for local end-to-end testing
+
+| link:https://github.com/devonfw/IDEasy/issues/2005[#2005]
+| (ENH) Refactor quality status generator (remove redundancy and improve structu …
 
 |===
