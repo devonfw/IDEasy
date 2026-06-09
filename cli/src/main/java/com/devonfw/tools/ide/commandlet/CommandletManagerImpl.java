@@ -59,6 +59,7 @@ import com.devonfw.tools.ide.tool.quarkus.Quarkus;
 import com.devonfw.tools.ide.tool.sonar.Sonar;
 import com.devonfw.tools.ide.tool.spring.Spring;
 import com.devonfw.tools.ide.tool.squirrelsql.SquirrelSql;
+import com.devonfw.tools.ide.tool.task.Task;
 import com.devonfw.tools.ide.tool.terraform.Terraform;
 import com.devonfw.tools.ide.tool.tomcat.Tomcat;
 import com.devonfw.tools.ide.tool.uv.Uv;
@@ -136,6 +137,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new KotlincNative(context));
     add(new KubeCtl(context));
     add(new Tomcat(context));
+    add(new Task(context));
     add(new Vscode(context));
     add(new Azure(context));
     add(new Aws(context));
