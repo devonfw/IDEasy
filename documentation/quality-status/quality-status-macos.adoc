@@ -7,6 +7,7 @@
 
 Automatically generated tool status for macOS.
 
+link:quality-status.adoc[Back to overview]
 Severity Legend
 [%header, cols="^1,^2,5"]
 |===

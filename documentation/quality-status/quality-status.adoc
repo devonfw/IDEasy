@@ -36,8 +36,26 @@ OS section.
 | Unassigned (no label match)  | 42 | — | — | —
 |===
 
-_Generated: 2026-06-09 07:33 UTC_
+_Generated: 2026-06-09 08:08 UTC_
 
+
+== Operating System Status Files
+
+The detailed tool status is split into one generated file per operating system.
+
+[%header, cols="2,4"]
+|===
+| Operating System | Status File
+| Windows
+| link:quality-status-windows.adoc[quality-status-windows.adoc]
+
+| Linux
+| link:quality-status-linux.adoc[quality-status-linux.adoc]
+
+| macOS
+| link:quality-status-macos.adoc[quality-status-macos.adoc]
+
+|===
 
 == Bugs and Blockers
 
@@ -646,24 +664,6 @@ NOTE: Components with no open issues are omitted. OS-specific issues are tagged 
 | Logging / Debug output
 | 🟡 Enhancement
 | 🟡 link:https://github.com/devonfw/IDEasy/issues/1689[#1689] Fix user commnication when switching the Java version from the default t …
-
-|===
-
-== Operating System Status Files
-
-The detailed tool status is split into one generated file per operating system.
-
-[%header, cols="2,4"]
-|===
-| Operating System | Status File
-| Windows
-| link:quality-status-windows.adoc[quality-status-windows.adoc]
-
-| Linux
-| link:quality-status-linux.adoc[quality-status-linux.adoc]
-
-| macOS
-| link:quality-status-macos.adoc[quality-status-macos.adoc]
 
 |===
 
