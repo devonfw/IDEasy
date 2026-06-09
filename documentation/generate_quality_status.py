@@ -58,14 +58,10 @@ GITHUB_PAGE_SIZE = 100
 OS_LABELS = {"windows": "windows", "linux": "linux", "mac": "macOS"}
 OS_ORDER = ["windows", "linux", "mac"]
 OS_DISPLAY = {"windows": "Windows", "linux": "Linux", "mac": "macOS"}
-OS_SHORT = {"windows": "Win", "linux": "Linux", "mac": "macOS"}
 OS_FILE_SUFFIX = {"windows": "windows", "linux": "linux", "mac": "macos",}
 
 BUG_TYPE_NAMES = {"Bug", "bug"}
 BLOCKER_LABEL = "blocker"
-
-# Number of columns in the status tables, used for AsciiDoc column spanning.
-TABLE_COLSPAN = 3
 
 # --- Tool registry ---
 # Each key is the canonical tool folder name under TOOL_FOLDER_PATH, which is
@@ -170,38 +166,8 @@ COMMANDLETS: dict[str, dict] = {
 # Ordered list of (category_label, [canonical_keys]).  Controls the spanning
 # header rows and row order in the rendered status tables.
 
-TOOL_CATEGORIES: list[tuple[str, list[str]]] = [
-  ("IDEs and Editors", ["androidstudio", "eclipse", "intellij", "pycharm", "vscode"]),
-  ("JVM and Build Tools", ["java", "graalvm", "kotlinc", "mvn", "gradle",
-                           "spring", "quarkus", "tomcat", "jasypt", "jmc", "gcviewer"]),
-  ("Python", ["python", "pip", "uv"]),
-  ("JavaScript / Node.js", ["node", "npm", "ng", "yarn", "corepack"]),
-  ("Go", ["go"]),
-  ("Cloud and DevOps", ["docker", "lazydocker", "kubectl", "oc", "helm",
-                        "terraform", "aws", "az", "dotnet"]),
-  ("Developer Tools", ["gh", "copilot", "sonar"]),
-  ("Database", ["pgadmin", "squirrelsql"]),
-  ("IDEasy Extensions", ["custom", "extra", "gui", "git", "rancher"]),
-]
-
-COMMANDLET_CATEGORIES: list[tuple[str, list[str]]] = [
-  ("Core Commands", ["ide", "core", "install", "uninstall", "update",
-                     "create-project", "build", "status", "version"]),
-  ("Configuration", ["settings", "icd", "merger", "env"]),
-  ("Download and Install", ["download"]),
-  ("Shell and Terminal", ["shell", "completion"]),
-  ("Infrastructure", ["proxy", "security"]),
-  ("Repository and Workspace", ["repository", "workspace"]),
-  ("Plugin Management", ["plugin"]),
-  ("Observability", ["logging"]),
-  ("Migration", ["migration"]),
-]
-
 # --- Derived lookups ---
 # Computed from the registries above — do not edit directly.
-
-TOOL_DISPLAY: dict[str, str] = {name: cfg["display"] for name, cfg in TOOLS.items()}
-CMD_DISPLAY: dict[str, str] = {name: cfg["display"] for name, cfg in COMMANDLETS.items()}
 
 LABEL_ALIASES: dict[str, str] = {
   alias: name
@@ -392,6 +358,114 @@ def classify_issues(
 
 
 # --- AsciiDoc rendering helpers ---
+def _all_issue_refs(
+    tool_data: dict,
+    cmd_data: dict,
+    unassigned: list[dict],
+    os_key: str | None = None,
+) -> list[IssueRef]:
+  """Collect and deduplicate issue references.
+
+  If os_key is None, all issues across all operating systems are returned.
+  If os_key is set, only issues relevant for that operating system are returned.
+  """
+  seen: dict[int, IssueRef] = {}
+  selected_os_keys = [os_key] if os_key else OS_ORDER
+
+  for current_os_key in selected_os_keys:
+    for topic_refs in tool_data.get(current_os_key, {}).values():
+      for ref in topic_refs:
+        if ref.number not in seen:
+          seen[ref.number] = ref
+
+    for topic_refs in cmd_data.get(current_os_key, {}).values():
+      for ref in topic_refs:
+        if ref.number not in seen:
+          seen[ref.number] = ref
+
+  for issue in unassigned:
+    labels = label_names(issue)
+    issue_os_keys = os_keys_for_issue(labels)
+
+    if os_key and os_key not in issue_os_keys:
+      continue
+
+    issue_number = issue["number"]
+    if issue_number in seen:
+      continue
+
+    seen[issue_number] = IssueRef(
+      number=issue_number,
+      title=issue["title"],
+      url=issue["html_url"],
+      bug=is_bug(issue, labels),
+      blocker=is_blocker(labels),
+      os_keys=issue_os_keys,
+    )
+
+  return sorted(seen.values(), key=_severity_sort_key)
+
+def _os_cell(ref: IssueRef) -> str:
+  """Format operating systems for the overview table."""
+  if set(ref.os_keys) == set(OS_ORDER):
+    return "Windows, Linux, macOS"
+  return ", ".join(OS_DISPLAY[os_key] for os_key in ref.os_keys)
+
+def _issue_table(
+    title: str,
+    refs: list[IssueRef],
+    include_os: bool,
+) -> str:
+  """Render a simple issue table.
+
+  Overview documents include an OS column.
+  OS-specific documents only include issue number and summary.
+  """
+  lines: list[str] = [
+    f"== {title}",
+    "",
+  ]
+
+  if not refs:
+    lines += [
+      "_No open issues._",
+      "",
+    ]
+    return "\n".join(lines)
+
+  if include_os:
+    lines += [
+      '[%header, cols="^1,6,2"]',
+      "|===",
+      "| Issue | Summary | OS",
+    ]
+
+    for ref in refs:
+      lines += [
+        f"| link:{ref.url}[#{ref.number}]",
+        f"| {_safe(ref.title)}",
+        f"| {_os_cell(ref)}",
+        "",
+      ]
+  else:
+    lines += [
+      '[%header, cols="^1,7"]',
+      "|===",
+      "| Issue | Summary",
+    ]
+
+    for ref in refs:
+      lines += [
+        f"| link:{ref.url}[#{ref.number}]",
+        f"| {_safe(ref.title)}",
+        "",
+      ]
+
+  lines += [
+    "|===",
+    "",
+  ]
+  return "\n".join(lines)
 
 def _safe(text: str, max_len: int = 72) -> str:
   """Sanitise text for AsciiDoc table cells — escapes pipes, truncates."""
@@ -405,119 +479,7 @@ def _severity_sort_key(ref: IssueRef) -> tuple:
   """Sort key: blockers first, then bugs, then enhancements, then by number."""
   return (0 if ref.blocker else 1 if ref.bug else 2, ref.number)
 
-
-def _severity_label(bug: bool, blocker: bool) -> str:
-  if blocker:
-    return "Blocker"
-  if bug:
-    return "Bug"
-  return "Enhancement"
-
-
-def _severity_icon(bug: bool, blocker: bool) -> str:
-  if blocker:
-    return "🚨"
-  if bug:
-    return "🔴"
-  return "🟡"
-
-
-def _status_cell(refs: list[IssueRef]) -> str:
-  """Return the worst-case status string for a list of issue refs."""
-  if not refs:
-    return "🟢 OK"
-  if any(ref.blocker for ref in refs):
-    return "🚨 Blocker"
-  if any(ref.bug for ref in refs):
-    return "🔴 Bug"
-  return "🟡 Enhancement"
-
-
-def _issue_cell(refs: list[IssueRef]) -> str:
-  """Format issue refs as an AsciiDoc line-break-separated cell.
-
-  Sorted by severity descending, then issue number ascending.
-  """
-  if not refs:
-    return "—"
-  parts = [
-    f"{_severity_icon(ref.bug, ref.blocker)} link:{ref.url}[#{ref.number}] {_safe(ref.title)}"
-    for ref in sorted(refs, key=_severity_sort_key)
-  ]
-  return " +\n".join(parts)
-
-
 # --- Section renderers ---
-
-def _bugs_all_platforms_section(
-    tool_data: dict,
-    cmd_data: dict,
-    tool_display: dict[str, str],
-    cmd_display: dict[str, str],
-    unassigned: list[dict],
-) -> str:
-  """Render the global Bugs and Blockers section.
-
-  Collects every bug/blocker from tool and commandlet data across all OS
-  buckets, deduplicates by issue number, and includes unassigned bugs/blockers.
-  Enhancements are excluded — they belong in the per-OS and commandlet tables.
-  """
-  seen: dict[int, tuple[str, str, IssueRef]] = {}
-
-  for label, display_name in tool_display.items():
-    for os_key in OS_ORDER:
-      os_bucket = tool_data.get(os_key, {})
-      for ref in os_bucket.get(label, []):
-        if (ref.bug or ref.blocker) and ref.number not in seen:
-          seen[ref.number] = ("Tool", display_name, ref)
-
-  for label, display_name in cmd_display.items():
-    for os_key in OS_ORDER:
-      os_bucket = cmd_data.get(os_key, {})
-      for ref in os_bucket.get(label, []):
-        if (ref.bug or ref.blocker) and ref.number not in seen:
-          seen[ref.number] = ("Commandlet", display_name, ref)
-
-  for issue in unassigned:
-    labels = {label["name"] for label in issue.get("labels", [])}
-    bug = is_bug(issue, labels)
-    blocker = is_blocker(labels)
-    if not (bug or blocker):
-      continue
-    issue_number = issue["number"]
-    if issue_number in seen:
-      continue
-    os_keys = os_keys_for_issue(labels)
-    ref = IssueRef(
-      number=issue_number,
-      title=issue["title"],
-      url=issue["html_url"],
-      bug=bug,
-      blocker=blocker,
-      os_keys=os_keys,
-    )
-    seen[issue_number] = ("\u2014", "Unassigned", ref)
-
-  blocker_count = sum(1 for _, _, ref in seen.values() if ref.blocker)
-  bug_count = len(seen) - blocker_count
-
-  lines: list[str] = [
-    "== Bugs and Blockers\n",
-    f"All open bugs and blockers across all platforms — "
-    f"{blocker_count} blocker(s), {bug_count} bug(s).\n",
-    "NOTE: Issues without an OS label are cross-platform and marked with a "
-    "checkmark in every OS column.\n",
-  ]
-
-  if not seen:
-    lines.append("_No open bugs or blockers._ \U0001f389\n")
-    return "\n".join(lines)
-
-  lines += [
-    '[%header, cols="^1,^2,3,4,^1,^1,^1"]',
-    "|===",
-    "| # | Severity | Component | Summary | Win | Linux | macOS",
-  ]
 
   def _row_sort(item: tuple) -> tuple:
     _, _, ref = item
@@ -538,177 +500,6 @@ def _bugs_all_platforms_section(
   lines.append("|===\n")
   return "\n".join(lines)
 
-
-def _commandlets_global_table(cmd_data: dict) -> str:
-  """Render the cross-OS Commandlets and Core Features section.
-
-  Issue refs from all OS buckets are merged and deduplicated per commandlet.
-  OS-specific issues carry a platform tag in brackets; cross-platform ones don't.
-  Components with no open issues are omitted.
-  """
-  all_os = set(OS_ORDER)
-  line_break = " +\n"
-
-  lines = [
-    "== Commandlets and Core Features",
-    "",
-    "NOTE: Components with no open issues are omitted. "
-    "OS-specific issues are tagged with their platform in brackets.",
-    "",
-    '[%header, cols="3,^2,7"]',
-    "|===",
-    "| Commandlet / Feature | Status | Issues",
-  ]
-
-  for cat_name, keys in COMMANDLET_CATEGORIES:
-    cat_rows = []
-    for key in keys:
-      if key not in CMD_DISPLAY:
-        continue
-      merged: dict[int, IssueRef] = {}
-      for os_key in OS_ORDER:
-        os_bucket = cmd_data.get(os_key, {})
-        for ref in os_bucket.get(key, []):
-          if ref.number not in merged:
-            merged[ref.number] = ref
-      if merged:
-        cat_rows.append((key, list(merged.values())))
-
-    if not cat_rows:
-      continue
-
-    lines += ["", f"{TABLE_COLSPAN}+^h| {cat_name}"]
-    for key, refs in cat_rows:
-      parts = []
-      for ref in sorted(refs, key=_severity_sort_key):
-        icon = _severity_icon(ref.bug, ref.blocker)
-        os_tag = (
-          "" if set(ref.os_keys) == all_os
-          else " [" + "/".join(OS_SHORT[k] for k in ref.os_keys) + "]"
-        )
-        parts.append(f"{icon} link:{ref.url}[#{ref.number}]{os_tag} {_safe(ref.title)}")
-
-      issue_cell = line_break.join(parts)
-      lines += [
-        f"| {CMD_DISPLAY[key]}",
-        f"| {_status_cell(refs)}",
-        f"| {issue_cell}",
-        "",
-      ]
-
-  lines += ["|===", ""]
-  return "\n".join(lines)
-
-
-def _os_status_table(
-    section_heading: str,
-    categories: list[tuple[str, list[str]]],
-    display_map: dict[str, str],
-    os_data: dict[str, list[IssueRef]],
-    col_header: str,
-    grouped: bool = True,
-) -> list[str]:
-  """Render a status table for one OS section.
-
-  When grouped is False, rows are flattened and sorted alphabetically
-  (used for tools).  When True, category spanning headers are emitted
-  (used for commandlets).  Components with no open issues are omitted.
-  """
-  lines: list[str] = [
-    f"=== {section_heading}\n",
-    "NOTE: Components with no open issues are omitted from this table.\n",
-    '[%header, cols="3,^2,7"]',
-    "|===",
-    f"| {col_header} | Status | Issues",
-  ]
-
-  if not grouped:
-    flat = sorted(
-      (
-        (key, display_map[key])
-        for cat_keys in (keys for _, keys in categories)
-        for key in cat_keys
-        if key in display_map
-      ),
-      key=lambda pair: pair[1].lower(),
-    )
-    for key, display_name in flat:
-      refs = os_data.get(key, [])
-      if refs:
-        lines += [f"| {display_name}", f"| {_status_cell(refs)}", f"| {_issue_cell(refs)}", ""]
-  else:
-    for cat_name, keys in categories:
-      cat_rows = [
-        (key, os_data.get(key, []))
-        for key in keys
-        if key in display_map and os_data.get(key)
-      ]
-      if not cat_rows:
-        continue
-      lines.append(f"\n{TABLE_COLSPAN}+^h| {cat_name}")
-      for key, refs in cat_rows:
-        lines += [f"| {display_map[key]}", f"| {_status_cell(refs)}", f"| {_issue_cell(refs)}", ""]
-
-  lines.append("|===\n")
-  return lines
-
-
-def _os_section(os_key: str, tool_data_for_os: dict[str, list[IssueRef]]) -> str:
-  """Render the Tools status section for one operating system."""
-  os_name = OS_DISPLAY[os_key]
-  os_label = OS_LABELS[os_key]
-
-  all_refs = {ref.number: ref for refs in tool_data_for_os.values() for ref in refs}
-  blocker_count = sum(1 for ref in all_refs.values() if ref.blocker)
-  bug_count = sum(1 for ref in all_refs.values() if ref.bug and not ref.blocker)
-  enhancement_count = sum(1 for ref in all_refs.values() if not ref.bug and not ref.blocker)
-
-  if all_refs:
-    stat_str = f"{blocker_count} blocker(s), {bug_count} bug(s), {enhancement_count} enhancement(s)"
-  else:
-    stat_str = "no open issues"
-
-  lines: list[str] = [
-    f"== {os_name} Tools \u2014 {stat_str}\n",
-    f"Open issues labelled `{os_label}` or without any OS label "
-    f"(cross-platform issues appear in every OS section).\n",
-  ]
-  lines += _os_status_table(
-    "Tools", TOOL_CATEGORIES, TOOL_DISPLAY, tool_data_for_os, "Tool",
-    grouped=False,
-  )
-  return "\n".join(lines)
-
-
-def _unassigned_section(unassigned: list[dict]) -> str:
-  """Render the Unassigned Issues section.
-
-  Lists every issue that matched no tool or commandlet label so maintainers
-  can either fix labels on GitHub or extend the registries in this script.
-  """
-  lines: list[str] = [
-    "== Unassigned Issues\n",
-    f"{len(unassigned)} issue(s) matched no known tool or commandlet label. "
-    "Apply the appropriate label on GitHub, or add an entry to ``TOOLS``, "
-    "``COMMANDLETS``, or their ``labels`` list in this script.\n",
-  ]
-  if not unassigned:
-    lines.append("_All issues are assigned._\n")
-    return "\n".join(lines)
-
-  lines += ['[%header, cols="^1,4,3"]', "|===", "| Issue | Summary | Labels"]
-  for issue in sorted(unassigned, key=lambda item: item["number"]):
-    label_str = ", ".join(label["name"] for label in issue.get("labels", []))
-    lines += [
-      f"| link:{issue['html_url']}[#{issue['number']}]",
-      f"| {_safe(issue['title'])}",
-      f"| {label_str or '\u2014'}",
-      "",
-    ]
-  lines.append("|===\n")
-  return "\n".join(lines)
-
-
 # --- Document header template ---
 
 HEADER_TEMPLATE = """\
@@ -721,7 +512,7 @@ HEADER_TEMPLATE = """\
 
 == Overview
 
-Automatically generated quality and support status for
+Automatically generated open issue overview for
 https://github.com/{repo}[{repo}].
 The tool list is discovered from the source tree at
 `{tool_path}`.
@@ -730,43 +521,18 @@ NOTE: Issues without an OS label are treated as cross-platform and appear in
 every OS section. Issues with a specific OS label appear only in that
 OS section.
 
-.Severity Legend
-[%header, cols="^1,^2,5"]
+Issue Statistics
+[%header, cols="2,^1"]
 |===
-| Icon | Severity | Description
+| Scope | Total
 
-| 🚨 | Blocker  | Fully prevents users from working; must be fixed immediately
-| 🔴 | Bug      | Confirmed defect with functional impact
-| 🟡 | Enhancement | Feature request, improvement, or task (no functional breakage)
-| 🟢 | OK       | No open issues
-|===
-
-.Issue Statistics
-[%header, cols="2,^1,^1,^1,^1"]
-|===
-| Scope | Total | Blockers | Bugs | Enhancements
-
-| All platforms (deduplicated) | {total} | {n_blockers} | {n_bugs} | {n_enhs}
-| Unassigned (no label match)  | {unassigned} | — | — | —
+| All platforms (deduplicated) | {total}
+| Unassigned (no label match)  | {unassigned}
 |===
 
 _Generated: {date}_
 
 """
-
-SEVERTIY_LEGEND = """\
-Severity Legend
-[%header, cols="^1,^2,5"]
-|===
-| Icon | Severity | Description
-
-| 🚨 | Blocker  | Fully prevents users from working; must be fixed immediately
-| 🔴 | Bug      | Confirmed defect with functional impact
-| 🟡 | Enhancement | Feature request, improvement, or task (no functional breakage)
-| 🟢 | OK       | No open issues
-|===
-"""
-
 
 # --- Document output helpers ---
 
@@ -797,9 +563,16 @@ def _os_file_links_section(os_filenames: dict[str, str]) -> str:
   lines += ["|===", ""]
   return "\n".join(lines)
 
-def _os_document(os_key: str, tool_data_for_os: dict[str, list[IssueRef]]) -> str:
+def _os_document(
+    os_key: str,
+    tool_data: dict,
+    cmd_data: dict,
+    unassigned: list[dict],
+) -> str:
   """Render a standalone status document for one operating system."""
   os_name = OS_DISPLAY[os_key]
+  refs = _all_issue_refs(tool_data, cmd_data, unassigned, os_key=os_key)
+
   return "\n".join([
     f"= IDEasy Quality Status — {os_name}",
     ":toc: left",
@@ -808,13 +581,11 @@ def _os_document(os_key: str, tool_data_for_os: dict[str, list[IssueRef]]) -> st
     ":source-highlighter: rouge",
     ":nofooter:",
     "",
-    f"Automatically generated tool status for {os_name}.",
+    f"Automatically generated open issue overview for {os_name}.",
     "",
     "link:quality-status.adoc[Back to overview]",
     "",
-    SEVERTIY_LEGEND,
-    "",
-    _os_section(os_key, tool_data_for_os),
+    _issue_table(f"{os_name} Open Issues", refs, include_os=False),
   ])
 # --- Document assembly ---
 
@@ -854,38 +625,32 @@ def generate_documents(
     unassigned=len(unassigned),
   )
 
+  overview_refs = _all_issue_refs(tool_data, cmd_data, unassigned)
+
   overview_parts = [
     header,
     _os_file_links_section(os_filenames),
-    _bugs_all_platforms_section(tool_data, cmd_data, TOOL_DISPLAY, CMD_DISPLAY, unassigned),
-    _commandlets_global_table(cmd_data),
-    _unassigned_section(unassigned),
+    _issue_table("Open Issues", overview_refs, include_os=True),
     f"""\
-== How to update this document
+    == How to update this document
 
-=== Adding a new tool
-Once a folder is added under `{TOOL_FOLDER_PATH}` and issues use that folder
-name as a label, the tool appears automatically in the next generated document.
-Override the display name by adding an entry to ``TOOLS`` in this script.
+    This document is generated automatically from open GitHub issues in
+    https://github.com/{REPO}[{REPO}].
 
-=== Adding a new commandlet or core feature
-Add an entry to ``COMMANDLETS``: key = GitHub label, ``display`` = name,
-``labels`` = list of alternative label names.  Add the key to the appropriate
-category in ``COMMANDLET_CATEGORIES``.
+    Issues are assigned to operating systems based on their labels:
+    `windows`, `linux`, or `macOS`.
 
-=== Mapping a non-standard label
-Add the label to the ``labels`` list of the matching ``TOOLS`` or
-``COMMANDLETS`` entry.  Issues that still match nothing appear in the
-*Unassigned Issues* section.
-""",
-  ]
+    Issues without an operating system label are treated as cross-platform and
+    therefore appear in all operating system specific status files.
+    """,
+    ]
 
   documents = {
     "overview": "\n".join(overview_parts),
   }
 
   for os_key in OS_ORDER:
-    documents[os_key] = _os_document(os_key, tool_data.get(os_key, {}))
+    documents[os_key] = _os_document(os_key, tool_data, cmd_data, unassigned)
 
   return documents
 
