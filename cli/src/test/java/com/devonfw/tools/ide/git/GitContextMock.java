@@ -35,17 +35,17 @@ public class GitContextMock implements GitContext {
   }
 
   @Override
-  public void clone(GitUrl gitUrl, Path repository) {
+  public void clone(GitUrl gitUrl, Path repository) { //improve
+    Path gitFolder = repository.resolve(GIT_FOLDER);
+  }
+
+  @Override
+  public void pull(Path repository) { //improve
 
   }
 
   @Override
-  public void pull(Path repository) {
-
-  }
-
-  @Override
-  public void fetch(Path repository, String remote, String branch) {
+  public void fetch(Path repository, String remote, String branch) { //improve
 
   }
 
@@ -60,7 +60,7 @@ public class GitContextMock implements GitContext {
   }
 
   @Override
-  public String retrieveGitUrl(Path repository) {
+  public String retrieveGitUrl(Path repository) { //improve
 
     return MOCKED_URL_VALUE;
   }
@@ -76,7 +76,7 @@ public class GitContextMock implements GitContext {
   }
 
   @Override
-  public boolean fetchIfNeeded(Path repository, String remoteName, String branch) {
+  public boolean fetchIfNeeded(Path repository, String remoteName, String branch) { //improve
 
     return false;
   }
@@ -88,7 +88,7 @@ public class GitContextMock implements GitContext {
   }
 
   @Override
-  public boolean isRepositoryUpdateAvailable(Path repository) {
+  public boolean isRepositoryUpdateAvailable(Path repository) { //improve
 
     return false;
   }
@@ -100,20 +100,20 @@ public class GitContextMock implements GitContext {
   }
 
   @Override
-  public String determineCurrentBranch(Path repository) {
+  public String determineCurrentBranch(Path repository) { //improve
 
     return "main";
   }
 
   @Override
-  public String determineRemote(Path repository) {
+  public String determineRemote(Path repository) { //improve
 
     return "origin";
   }
 
 
   @Override
-  public void saveCurrentCommitId(Path repository, Path trackedCommitIdPath) {
+  public void saveCurrentCommitId(Path repository, Path trackedCommitIdPath) { //improve
 
   }
 }
