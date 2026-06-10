@@ -9,13 +9,13 @@ Automatically generated open issue overview for Linux.
 
 link:quality-status.adoc[Back to overview]
 
-*Total Issues:* 147
+*Total Issues:* 149
 
 * OS-specific: 6
 
 * Multi-OS: 1
 
-* Cross-platform: 140
+* Cross-platform: 142
 
 *Summary:* 0 blocker(s), 3 bug(s), 3 enhancement(s)
 
@@ -25,20 +25,16 @@ link:quality-status.adoc[Back to overview]
 |===
 | Issue | Summary
 
-2+^| *90+ days*
+2+^| *0-10 days*
 
 2+^| *Bug*
-| link:https://github.com/devonfw/IDEasy/issues/854[#854]
-| Kubectl not working on linux
+| link:https://github.com/devonfw/IDEasy/issues/2007[#2007]
+| IDEasy can not install docker on arch linux
 
-| link:https://github.com/devonfw/IDEasy/issues/1352[#1352]
-| VSCode WSL warning prompt blocking VSCode plugin installation
 
+2+^| *90+ days*
 
 2+^| *Enhancement*
-| link:https://github.com/devonfw/IDEasy/issues/694[#694]
-| Add linux support to dotnet tool
-
 | link:https://github.com/devonfw/IDEasy/issues/950[#950]
 | avoid --no-gpg-checks for docker installation on SUSE Linux
 
@@ -46,11 +42,17 @@ link:quality-status.adoc[Back to overview]
 | Add Support for Python on Linux
 
 
-2+^| *0-10 days*
-
 2+^| *Bug*
-| link:https://github.com/devonfw/IDEasy/issues/2007[#2007]
-| IDEasy can not install docker on arch linux
+| link:https://github.com/devonfw/IDEasy/issues/1352[#1352]
+| VSCode WSL warning prompt blocking VSCode plugin installation
+
+| link:https://github.com/devonfw/IDEasy/issues/854[#854]
+| Kubectl not working on linux
+
+
+2+^| *Enhancement*
+| link:https://github.com/devonfw/IDEasy/issues/694[#694]
+| Add linux support to dotnet tool
 
 |===
 
