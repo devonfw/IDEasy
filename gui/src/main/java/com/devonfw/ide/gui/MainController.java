@@ -1,20 +1,27 @@
 package com.devonfw.ide.gui;
 
-import java.io.IOException;
-import java.nio.file.Files;
+import java.io.FileNotFoundException;
+import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
-import java.util.stream.Stream;
+import java.util.List;
+import javafx.application.Platform;
+import javafx.collections.ListChangeListener;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.context.IdeStartContextImpl;
-import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.log.IdeLogListenerBuffer;
+import com.devonfw.ide.gui.context.IdeGuiStateManager;
+import com.devonfw.ide.gui.context.ProjectManager;
+import com.devonfw.ide.gui.context.TaskManager;
+import com.devonfw.ide.gui.modal.IdeDialog;
+import com.devonfw.ide.gui.progress.ProgressBarTask;
+import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindow;
 
 /**
  * Controller of the main screen of the dashboard GUI.
@@ -22,6 +29,9 @@ import com.devonfw.tools.ide.log.IdeLogListenerBuffer;
 public class MainController {
 
   private static Logger LOG = LoggerFactory.getLogger(MainController.class);
+
+  private ProjectManager projectManager;
+
 
   @FXML
   private ComboBox<String> selectedProject;
@@ -41,16 +51,52 @@ public class MainController {
   @FXML
   private Button vsCodeOpen;
 
+  @FXML
+  private Label statusLabel;
+
+  @FXML
+  private ProgressBar statusProgressBar;
+  private final double PROGRESSBAR_VISIBLE_WIDTH = 150.0;
+
   private final String directoryPath;
   private Path projectValue;
   private Path workspaceValue;
+
+  private final ListChangeListener<ProgressBarTask> taskListChangeListener = change -> {
+    List<ProgressBarTask> tasks = TaskManager.getInstance().getTasks();
+
+    while (change.next()) {
+      if (change.wasAdded()) {
+        LOG.debug("Added: {}", change.getAddedSubList());
+
+        for (ProgressBarTask product : change.getAddedSubList()) {
+          product.currentProgressProperty().addListener((obs, oldVal, newVal) ->
+              updateStatusLabel(tasks)
+          );
+        }
+        updateStatusLabel(tasks);
+      } else if (change.wasRemoved()) {
+        LOG.debug("Removed: {}", change.getRemoved());
+
+        updateStatusLabel(tasks);
+      } else if (change.wasUpdated()) {
+
+        updateStatusLabel(tasks);
+      }
+    }
+  };
 
   /**
    * Constructor
    */
   public MainController(String directoryPath) {
+
     LOG.debug("IDE_ROOT path={}", directoryPath);
     this.directoryPath = directoryPath;
+
+    TaskManager.getInstance().getTasks().addListener(taskListChangeListener);
+
+    this.projectManager = IdeGuiStateManager.getInstance().getProjectManager();
   }
 
   @FXML
@@ -88,61 +134,127 @@ public class MainController {
 
     assert (directoryPath != null) : "directoryPath is null! Please check the setup of your environment variables (IDE_ROOT)";
 
-    selectedProject.getItems().clear();
-    Path directory = Path.of(directoryPath);
+    List<String> projects = projectManager.getProjectNames();
 
-    if (Files.exists(directory) && Files.isDirectory(directory)) {
-      try (Stream<Path> subPaths = Files.list(directory)) {
-        subPaths
-            .filter(Files::isDirectory)
-            .map(Path::getFileName)
-            .map(Path::toString)
-            .filter(name -> !name.startsWith("_"))
-            .forEach(name -> selectedProject.getItems().add(name));
-      } catch (IOException e) {
-        throw new IllegalStateException("Failed to list projects!", e);
-      }
-    }
+    selectedProject.getItems().clear();
+    selectedProject.getItems().addAll(projects);
 
     selectedProject.setOnAction(actionEvent -> {
 
-      projectValue = Path.of(selectedProject.getValue()).resolve(IdeContext.FOLDER_WORKSPACES);
+      setWorkspaceComboBox();
+
       selectedWorkspace.setDisable(false);
+    });
+  }
+
+  private void setWorkspaceComboBox() {
+
+    List<String> workspaces = null;
+    try {
+      workspaces = projectManager.getWorkspaceNames(selectedProject.getValue());
+    } catch (NotDirectoryException e) {
+      throw new RuntimeException(e);
+    }
+
+    selectedWorkspace.getItems().clear();
+    selectedWorkspace.getItems().addAll(workspaces);
+
+    selectedWorkspace.setOnAction(actionEvent -> {
+      updateContext(selectedProject.getValue(), selectedWorkspace.getValue());
+
       androidStudioOpen.setDisable(false);
       eclipseOpen.setDisable(false);
       intellijOpen.setDisable(false);
       vsCodeOpen.setDisable(false);
-      selectedWorkspace.setValue("main");
-      this.workspaceValue = Path.of("main");
     });
-  }
-
-  @FXML
-  private void setWorkspaceValue() {
-
-    selectedWorkspace.getItems().clear();
-    Path directory = Path.of(directoryPath).resolve(projectValue);
-    if (Files.exists(directory) && Files.isDirectory(directory)) {
-      try (Stream<Path> subPaths = Files.list(directory)) {
-        subPaths
-            .filter(Files::isDirectory)
-            .map(Path::getFileName)
-            .map(Path::toString)
-            .forEach(name -> selectedWorkspace.getItems().add(name));
-
-      } catch (IOException e) {
-        throw new RuntimeException("Error occurred while fetching workspace names.", e);
-      }
-    }
-    this.workspaceValue = Path.of(selectedWorkspace.getValue());
   }
 
   private void openIDE(String inIde) {
 
-    final IdeLogListenerBuffer buffer = new IdeLogListenerBuffer();
-    IdeLogLevel logLevel = IdeLogLevel.INFO;
-    IdeStartContextImpl startContext = new IdeStartContextImpl(logLevel, buffer);
-    IdeGuiContext context = new IdeGuiContext(startContext, Path.of(this.directoryPath).resolve(this.projectValue).resolve(this.workspaceValue));
-    context.getCommandletManager().getCommandlet(inIde).run();
+    Task<Void> downloadTask = runIdeCommandTask(inIde);
+
+    new Thread(downloadTask).start();
+  }
+
+  private static Task<Void> runIdeCommandTask(String inIde) {
+
+    ProgressBarTask task = (ProgressBarTask) IdeGuiStateManager.getInstance().getCurrentContext()
+        .newProgressBarIndeterminate("Starting " + inIde);
+    Task<Void> downloadTask = new Task<>() {
+      @Override
+      protected Void call() {
+        IdeGuiStateManager
+            .getInstance()
+            .getCurrentContext()
+            .getCommandletManager()
+            .getCommandlet(inIde)
+            .run();
+        TaskManager.getInstance().removeTask(task);
+        return null;
+      }
+    };
+
+    downloadTask.setOnFailed(e -> {
+      Platform.runLater(() -> {
+        IdeDialog errorDialog = new IdeDialog(IdeDialog.AlertType.ERROR, "Error occurred while launching " + inIde);
+        errorDialog.showAndWait();
+      });
+    });
+    return downloadTask;
+  }
+
+  private void updateContext(String selectedProjectName, String selectedWorkspaceName) {
+
+    try {
+      IdeGuiStateManager.getInstance().switchContext(selectedProjectName, selectedWorkspaceName);
+    } catch (FileNotFoundException e) {
+      IdeDialog errorDialog = new IdeDialog(IdeDialog.AlertType.ERROR, e.getMessage());
+      errorDialog.showAndWait();
+    }
+  }
+
+  private void updateStatusLabel(List<ProgressBarTask> taskList) {
+
+    Platform.runLater(() -> {
+
+      if (taskList.size() > 1) {
+        statusLabel.setOnMouseClicked(e -> TaskOverviewWindow.getInstance().showRelativeToReferenceNode(statusLabel));
+
+        statusProgressBar.setVisible(false);
+        statusProgressBar.setPrefWidth(0);
+        statusLabel.setText(taskList.size() + " tasks running...");
+
+        statusLabel.setUnderline(true);
+        statusLabel.setStyle(
+            "-fx-text-fill: blue;"
+                + "-fx-cursor: hand"
+        );
+      } else if (taskList.size() == 1) {
+        statusLabel.setOnMouseClicked(null);
+
+        ProgressBarTask task = taskList.getFirst();
+        statusLabel.setText(String.format(
+            ProgressBarTask.TASK_DESCRIPTION_STRING_FORMAT,
+            task.getTitle(),
+            task.getCurrentProgress(),
+            task.getMaxSize(),
+            task.getUnitName())
+        );
+        statusLabel.setUnderline(false);
+        statusLabel.setStyle("");
+        
+        statusProgressBar.setVisible(true);
+        statusProgressBar.setPrefWidth(PROGRESSBAR_VISIBLE_WIDTH);
+        statusProgressBar.setProgress((double) (task.getCurrentProgress()) / task.getMaxSize());
+      } else {
+        statusLabel.setOnMouseClicked(null);
+        statusLabel.setText("IDEasy is ready.");
+        statusProgressBar.setVisible(false);
+        statusProgressBar.setPrefWidth(0);
+
+        statusLabel.setUnderline(false);
+        statusLabel.setStyle("");
+      }
+    });
   }
 }
