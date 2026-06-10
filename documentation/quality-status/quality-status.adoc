@@ -16,17 +16,17 @@ https://github.com/devonfw/IDEasy[devonfw/IDEasy].
 |===
 | Scope | Total
 
-| All platforms  | 176
-| Assigned       | 134
+| All platforms  | 218
+| Assigned       | 176
 | Unassigned     | 42
 | Blockers       | 0
-| Bugs           | 49
-| Enhancements   | 85
+| Bugs           | 52
+| Enhancements   | 124
 
 |===
 
 
-_Generated: 2026-06-10 13:21 UTC_
+_Generated: 2026-06-10 14:54 UTC_
 
 
 == Operating System Status Files
