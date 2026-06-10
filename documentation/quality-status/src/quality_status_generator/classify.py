@@ -144,7 +144,7 @@ def _all_issue_refs(
       created_at=datetime.fromisoformat(issue["created_at"].replace("Z", "+00:00")),
     )
 
-  return list(seen.values())
+  return sorted(seen.values(), key=severity_sort_key)
 
 
 def analyze_os_issues(
@@ -194,15 +194,13 @@ def severity_sort_key(ref: IssueRef) -> tuple:
   age_bucket_index = len(AGE_BUCKETS) - 1
   for index, (_, upper_bound) in enumerate(AGE_BUCKETS):
     if upper_bound is None or age_days <= upper_bound:
-      matched_index = index
+      age_bucket_index = index
       break
-
-  age_bucket_index_reversed = len(AGE_BUCKETS) - 1 - age_bucket_index
 
   severity_bucket = 0 if ref.blocker else 1 if ref.bug else 2
 
   return (
-    age_bucket_index_reversed,
+    age_bucket_index,
     severity_bucket,
     ref.created_at.timestamp(),
   )
