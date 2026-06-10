@@ -35,6 +35,7 @@ final class RepositoryProperties {
   private static final String PROPERTY_LINK = "link";
   private static final String PROPERTY_LINK_TARGET = "link (=<target>)";
   private static final String PROPERTY_ECLIPSE = "eclipse";
+  private static final String SETTINGS_PROPERTIES = "settings.properties";
 
   private static final Pattern PATH_PATTERN = Pattern.compile("[a-zA-Z0-9_.$/-]+");
 
@@ -171,7 +172,12 @@ final class RepositoryProperties {
    */
   public String getGitUrl() {
 
-    return getProperty(PROPERTY_GIT_URL, true);
+    return getProperty(PROPERTY_GIT_URL, !isSettingsProperties());
+  }
+
+  private boolean isSettingsProperties() {
+
+    return SETTINGS_PROPERTIES.equals(this.file.getFileName().toString());
   }
 
   /**

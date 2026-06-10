@@ -78,4 +78,8 @@ public record RepositoryConfig(
     return config;
   }
 
+  public boolean isVirtualSettingsRepository() {
+    return IdeContext.SETTINGS_REPOSITORY_KEYWORD.equals(this.id)
+        && (this.gitUrl == null || this.gitUrl.isBlank());
+  }
 }
