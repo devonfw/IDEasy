@@ -63,3 +63,24 @@ def fetch_tool_names(token: str | None) -> list[str]:
 
 def fetch_all_issues(token: str | None, state: str = "open") -> list[dict]:
   """Fetch all non-pull-request issues from the repository, handling pagination."""
+  issues: list[dict] = []
+  page = 1
+
+  while True:
+    batch = _get(
+      f"/repos/{REPO}/issues",
+      token,
+      {"state": state, "per_page": GITHUB_PAGE_SIZE, "page": page},
+    )
+
+    if not isinstance(batch, list) or not batch:
+      break
+
+    issues.extend(item for item in batch if "pull_request" not in item)
+
+    if len(batch) < GITHUB_PAGE_SIZE:
+      break
+
+    page += 1
+
+  return issues

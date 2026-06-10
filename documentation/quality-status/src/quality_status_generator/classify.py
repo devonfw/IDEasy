@@ -1,7 +1,7 @@
 """Issue classification and aggregation logic."""
 
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import NamedTuple
 
 from quality_status_generator.config import (
@@ -10,7 +10,7 @@ from quality_status_generator.config import (
   LABEL_ALIASES,
   OS_LABELS,
   OS_ORDER,
-  AGE_BUCKET
+  AGE_BUCKETS
 )
 
 from quality_status_generator.models import IssueRef
@@ -188,4 +188,21 @@ def age_bucket(ref: IssueRef) -> str:
 
   raise ValueError(f"No age bucket matched for {age_days} days.")
 
+def severity_sort_key(ref: IssueRef) -> tuple:
+  age_days = (datetime.now(timezone.utc) - ref.created_at).days
 
+  age_bucket_index = len(AGE_BUCKETS) - 1
+  for index, (_, upper_bound) in enumerate(AGE_BUCKETS):
+    if upper_bound is None or age_days <= upper_bound:
+      matched_index = index
+      break
+
+  age_bucket_index_reversed = len(AGE_BUCKETS) - 1 - age_bucket_index
+
+  severity_bucket = 0 if ref.blocker else 1 if ref.bug else 2
+
+  return (
+    age_bucket_index_reversed,
+    severity_bucket,
+    ref.created_at.timestamp(),
+  )

@@ -3,7 +3,7 @@ name: Update quality status documents
 on:
   push:
     branches:
-      - feature/1978-improve-status-documentation
+      - feature/2005-refactor-quality-status-generator
   workflow_dispatch:
   schedule:
     - cron: "0 6 * * 1"
@@ -28,22 +28,17 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Remove old generated status documents from the documentation root.
-          # The new generated files will be written to documentation/status/.
-          rm -f documentation/quality-status*.adoc
-          rm -f documentation/status/quality-status*.adoc
-          
+          rm -f documentation/quality-status/quality-status*.adoc
 
-          python documentation/generate_quality_status.py \
-            --output documentation/quality-status/quality-status.adoc
+          cd documentation/quality-status/src
+          python generate_quality_status.py --output ../quality-status.adoc
 
       - name: Commit and push changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # Stage all documentation changes, including deleted old files.
-          git add -A documentation
+          git add -A documentation/quality-status
 
           if git diff --cached --quiet; then
             echo "No changes to commit."

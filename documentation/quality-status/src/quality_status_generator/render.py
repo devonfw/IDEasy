@@ -57,25 +57,6 @@ def safe(text: str, max_len: int = 72) -> str:
     return sanitised[:max_len] + " …"
   return sanitised
 
-
-def severity_sort_key(ref: IssueRef) -> tuple:
-  """Sort by age bucket first, then severity, then oldest first within a bucket."""
-  age_days = (datetime.now(timezone.utc) - ref.created_at).days
-
-  age_bucket_index = len(AGE_BUCKETS) - 1
-  for index, (_, upper_bound) in enumerate(AGE_BUCKETS):
-    if upper_bound is None or age_days <= upper_bound:
-      age_bucket_index = index
-      break
-
-  severity_bucket = 0 if ref.blocker else 1 if ref.bug else 2
-
-  return (
-    age_bucket_index,
-    severity_bucket,
-    ref.created_at.timestamp(),
-  )
-
 def _severity_group(ref: IssueRef) -> str:
   if ref.blocker:
     return "Blocker"
