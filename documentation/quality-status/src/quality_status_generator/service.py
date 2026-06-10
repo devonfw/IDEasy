@@ -8,7 +8,6 @@ from quality_status_generator.classify import (
   classify_issues,
 )
 from quality_status_generator.config import COMMANDLETS, OS_ORDER, REPO, TOOLS, TOOL_FOLDER_PATH
-from quality_status_generator.models import IssueRef
 from quality_status_generator.render import (
   HEADER_TEMPLATE,
   issue_table,
@@ -25,7 +24,6 @@ def generate_documents(
     os_filenames: dict[str, str],
 ) -> dict[str, str]:
   """Assemble the generated AsciiDoc quality-status documents."""
-
   tool_keys = set(tool_names) | set(TOOLS.keys())
   cmd_keys = set(COMMANDLETS.keys())
 
@@ -38,33 +36,26 @@ def generate_documents(
 
   stats = compute_stats(tool_data, cmd_data, unassigned)
 
-  seen_refs: dict[int, IssueRef] = {}
-  for os_key in OS_ORDER:
-    tool_bucket = tool_data.get(os_key, {})
-    cmd_bucket = cmd_data.get(os_key, {})
-    for refs in (*tool_bucket.values(), *cmd_bucket.values()):
-      for ref in refs:
-        if ref.number not in seen_refs:
-          seen_refs[ref.number] = ref
+  all_refs = _all_issue_refs(tool_data, cmd_data, unassigned)
 
-  blocker_count = sum(1 for ref in seen_refs.values() if ref.blocker)
-  bug_count = sum(1 for ref in seen_refs.values() if ref.bug and not ref.blocker)
-  enhancement_count = sum(1 for ref in seen_refs.values() if not ref.bug and not ref.blocker)
+  blocker_count = sum(1 for ref in all_refs if ref.blocker)
+  bug_count = sum(1 for ref in all_refs if ref.bug and not ref.blocker)
+  enhancement_count = sum(1 for ref in all_refs if not ref.bug and not ref.blocker)
 
   header = HEADER_TEMPLATE.format(
     repo=REPO,
     tool_path=TOOL_FOLDER_PATH,
     date=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
-    assigned=len(seen_refs),
+    assigned=len(all_refs),
     n_blockers=blocker_count,
     n_bugs=bug_count,
     n_enhs=enhancement_count,
     unassigned=len(unassigned),
-    total=len(seen_refs) + len(unassigned),
+    total=len(all_refs) + len(unassigned),
   )
 
-  overview_refs = [
-    ref for ref in _all_issue_refs(tool_data, cmd_data, unassigned)
+  cross_platform_refs = [
+    ref for ref in all_refs
     if set(ref.os_keys) == set(OS_ORDER)
   ]
 
@@ -80,9 +71,9 @@ def generate_documents(
     header,
     os_file_links_section(os_filenames, os_analysis),
     render_stats(stats),
-    f"*Summary:* {severity_summary(overview_refs)}",
+    f"*Summary:* {severity_summary(cross_platform_refs)}",
     "",
-    issue_table("Cross-platform Issues", overview_refs, include_os=True),
+    issue_table("Cross-platform Issues", cross_platform_refs, include_os=True),
     how_to_update,
   ]
 

@@ -14,6 +14,7 @@ def severity_summary(refs: list[IssueRef]) -> str:
   enhancements = sum(1 for ref in refs if not ref.bug and not ref.blocker)
   return f"{blockers} blocker(s), {bugs} bug(s), {enhancements} enhancement(s)"
 
+
 def compute_stats(
     tool_data: dict,
     cmd_data: dict,
@@ -29,15 +30,11 @@ def compute_stats(
 
   area_counts: dict[str, set[int]] = defaultdict(set)
 
-  for os_bucket in tool_data.values():
-    for key, refs in os_bucket.items():
-      for ref in refs:
-        area_counts[key].add(ref.number)
-
-  for os_bucket in cmd_data.values():
-    for key, refs in os_bucket.items():
-      for ref in refs:
-        area_counts[key].add(ref.number)
+  for data in (tool_data, cmd_data):
+    for os_bucket in data.values():
+      for key, refs in os_bucket.items():
+        for ref in refs:
+          area_counts[key].add(ref.number)
 
   top_areas = sorted(
     ((key, len(issue_numbers)) for key, issue_numbers in area_counts.items()),
