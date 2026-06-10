@@ -801,21 +801,24 @@ def compute_stats(
 
   # --- Age distribution (in days) buckets ---
   age_buckets = {
-    "0-7": 0,
-    "8-30": 0,
-    "31-90": 0,
+    "0-10": 0,
+    "11-30": 0,
+    "31-60": 0,
+    "61-90": 0,
     "90+": 0,
   }
 
   for ref in all_refs:
     age_days = (now - ref.created_at).days
 
-    if age_days <= 7:
-      age_buckets["0-7"] += 1
+    if age_days <= 10:
+      age_buckets["0-10"] += 1
     elif age_days <= 30:
-      age_buckets["8-30"] += 1
+      age_buckets["11-30"] += 1
+    elif age_days <= 60:
+      age_buckets["31-60"] += 1
     elif age_days <= 90:
-      age_buckets["31-90"] += 1
+      age_buckets["61-90"] += 1
     else:
       age_buckets["90+"] += 1
 
@@ -859,9 +862,10 @@ def render_stats(stats: dict) -> str:
   age = stats["age_distribution"]
 
   lines += [
-    f"| 0–7 days   | {age['0-7']}",
-    f"| 8–30 days  | {age['8-30']}",
-    f"| 31–90 days | {age['31-90']}",
+    f"| 0–10 days   | {age['0-10']}",
+    f"| 11–30 days  | {age['11-30']}",
+    f"| 31–60 days | {age['31-60']}",
+    f"| 61-90 days   | {age['61-90']}",
     f"| 90+ days   | {age['90+']}",
     "|===",
     "",
