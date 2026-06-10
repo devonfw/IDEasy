@@ -23,11 +23,13 @@ import com.devonfw.ide.gui.context.TaskManager;
 import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindow;
 import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindowController;
 
+/**
+ * Tests for the TaskOverviewWindow. We check whether the window is displayed correctly and whether it properly reacts to changes in the TaskManager.
+ */
 public class TaskWindowTest extends HeadlessApplicationTest {
 
-  public ListView<ProgressBarTask> taskList;
+  private ListView<ProgressBarTask> taskList;
   private static TaskManager taskManager;
-  private Parent root;
 
   @Override
   public void start(Stage stage) throws Exception {
@@ -37,7 +39,7 @@ public class TaskWindowTest extends HeadlessApplicationTest {
 
     FXMLLoader fxmlLoader = new FXMLLoader(taskOverviewWindowUrl);
     fxmlLoader.setController(new TaskOverviewWindowController());
-    root = fxmlLoader.load();
+    Parent root = fxmlLoader.load();
     stage.setScene(new Scene(root));
     stage.show();
 
