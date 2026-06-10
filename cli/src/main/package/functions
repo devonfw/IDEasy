@@ -152,6 +152,14 @@ _ide_completion()
   else
     COMPREPLY=( $(ideasy -q complete ${COMP_WORDS[@]:1}) )
   fi
+
+  for reply in "${COMPREPLY[@]}"; do
+    if [[ "${reply}" == *= ]]; then
+      compopt -o nospace
+      break
+    fi
+  done
+
   set +f
 }
 
