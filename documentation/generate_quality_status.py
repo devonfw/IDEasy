@@ -42,6 +42,7 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from typing import Any, NamedTuple
 from pathlib import Path
+import textwrap
 
 log = logging.getLogger(__name__)
 
@@ -428,6 +429,11 @@ def _os_cell(ref: IssueRef) -> str:
     "✓" if os in ref.os_keys else "—"
     for os in OS_ORDER
   )
+def _severity_summary(refs: list[IssueRef]) -> str:
+  blockers = sum(1 for ref in refs if ref.blocker)
+  bugs = sum(1 for ref in refs if ref.bug and not ref.blocker)
+  enhancements = sum(1 for ref in refs if not ref.bug and not ref.blocker)
+  return f"{blockers} blocker(s), {bugs} bug(s), {enhancements} enhancement(s)"
 
 def _severity_label(ref: IssueRef) -> str:
   if ref.blocker:
@@ -467,59 +473,75 @@ def _issue_table(
     else:
       return "0-10 days"
 
-  if include_os:
+def _issue_table(
+    title: str,
+    refs: list[IssueRef],
+    include_os: bool,
+) -> str:
+  lines: list[str] = [
+    f"== {title}",
+    "",
+  ]
+
+  if not refs:
     lines += [
-      '[%header, cols="^1,6,1,1,1"]',
-      '|===',
-      '| Issue | Summary | Win | Lin | Mac',
+      "_No open issues._",
+      "",
     ]
+    return "\n".join(lines)
 
-    current_bucket = None
+  def _age_bucket(ref: IssueRef) -> str:
+    age_days = (datetime.now(timezone.utc) - ref.created_at).days
+    if age_days > 90:
+      return "90+ days"
+    if age_days > 60:
+      return "61-90 days"
+    if age_days > 30:
+      return "31-60 days"
+    if age_days > 10:
+      return "11-30 days"
+    return "0-10 days"
 
-    for ref in refs:
-      bucket = _age_bucket(ref)
+  def _severity_group(ref: IssueRef) -> str:
+    if ref.blocker:
+      return "Blocker"
+    if ref.bug:
+      return "Bug"
+    return "Enhancement"
 
-      if bucket != current_bucket:
-        current_bucket = bucket
-        lines += [
-          "",
-          f"5+^| *{bucket}*",
-        ]
+  col_span = 2
+  lines += [
+    '[%header, cols="^1,7"]',
+    '|===',
+    '| Issue | Summary',
+  ]
 
+  current_bucket = None
+  current_severity = None
+
+  for ref in refs:
+    bucket = _age_bucket(ref)
+    if bucket != current_bucket:
+      current_bucket = bucket
+      current_severity = None
       lines += [
-        f"| link:{ref.url}[#{ref.number}]",
-        f"| ({_severity_label(ref)}) {_safe(ref.title)}",
-        *[
-          f"| {'✓' if os in ref.os_keys else '—'}"
-          for os in OS_ORDER
-        ],
         "",
+        f"{col_span}+^| *{bucket}*",
       ]
 
-  else:
-    lines += [
-      '[%header, cols="^1,7"]',
-      '|===',
-      '| Issue | Summary',
-    ]
-
-    current_bucket = None
-
-    for ref in refs:
-      bucket = _age_bucket(ref)
-
-      if bucket != current_bucket:
-        current_bucket = bucket
-        lines += [
-          "",
-          f"2+^| *{bucket}*",
-        ]
-
+    severity = _severity_group(ref)
+    if severity != current_severity:
+      current_severity = severity
       lines += [
-        f"| link:{ref.url}[#{ref.number}]",
-        f"| ({_severity_label(ref)}) {_safe(ref.title)}",
         "",
+        f"{col_span}+^| *{severity}*",
       ]
+
+    lines += [
+      f"| link:{ref.url}[#{ref.number}]",
+      f"| {_safe(ref.title)}",
+      "",
+    ]
 
   lines += [
     '|===',
@@ -527,6 +549,7 @@ def _issue_table(
   ]
 
   return "\n".join(lines)
+
 
 def _safe(text: str, max_len: int = 72) -> str:
   """Sanitise text for AsciiDoc table cells — escapes pipes, truncates."""
@@ -660,27 +683,34 @@ def _os_file_links_section(
     os_analysis: dict[str, tuple[int, int, int, int, dict]],
 ) -> str:
   """Render links from the overview document to the per-OS status documents."""
+
+  cross_total = os_analysis[OS_ORDER[0]][3]
+
   lines = [
     "== Operating System Status Files",
     "",
+    "Issues are assigned to operating systems based on their labels:",
+    "`windows`, `linux`, or `macOS`.",
+    "",
+    "Issues without an operating system label are treated as cross-platform.",
+    f"A total of {cross_total} cross-platform issues are documented centrally in this document and are therefore not repeated in the operating system specific files.",
+    "",
     "The detailed tool status is split into one generated file per operating system.",
     "",
-    '[%header, cols="2,1,1,1,1,4"]',
+    '[%header, cols="2,1,1,1,4"]',
     "|===",
-    "| Operating System | Total | Specific | Multi | Cross | Status File",
+    "| Operating System | Total | Specific | Multi | Status File",
   ]
 
   for os_key in OS_ORDER:
     filename = os_filenames[os_key]
-
-    total, spec, multi, cross, _ = os_analysis[os_key]
+    total, spec, multi, _, _ = os_analysis[os_key]
 
     lines += [
       f"| {OS_DISPLAY[os_key]}",
       f"| {total}",
       f"| {spec}",
       f"| {multi}",
-      f"| {cross}",
       f"| link:{filename}[{filename}]",
       "",
     ]
@@ -746,10 +776,14 @@ def _os_document(
     "",
     f"* Cross-platform: {count_cross}",
     "",
-
+    f"*Summary:* {_severity_summary(os_specific)}",
+    "",
     _issue_table(f"{os_name} Specific Issues", os_specific, include_os=False),
     _render_multi_os_groups(multi_os_groups, os_key),
-    _issue_table("Cross-platform Issues", cross_platform, include_os=False),
+    "== Cross-platform Issues",
+    "",
+    "Cross-platform issues are listed in the overview document: link:quality-status.adoc[Cross-platform Issues].",
+    "",
   ])
 
 # --- Document assembly ---
@@ -765,7 +799,7 @@ def compute_stats(
   # --- Collect all unique issues ---
   all_refs = _all_issue_refs(tool_data, cmd_data, unassigned)
 
-  # --- Age distribution buckets ---
+  # --- Age distribution (in days) buckets ---
   age_buckets = {
     "0-7": 0,
     "8-30": 0,
@@ -903,25 +937,26 @@ def generate_documents(
     total=len(seen_refs) + len(unassigned),
   )
 
-  overview_refs = _all_issue_refs(tool_data, cmd_data, unassigned)
+  how_to_update = textwrap.dedent(f"""\
+  == How to update this document
+
+  This document is generated automatically from open GitHub issues in
+  https://github.com/{REPO}[{REPO}].
+  """)
+
+  overview_refs = [
+    ref for ref in _all_issue_refs(tool_data, cmd_data, unassigned)
+    if set(ref.os_keys) == set(OS_ORDER)
+  ]
 
   overview_parts = [
     header,
     _os_file_links_section(os_filenames, os_analysis),
     render_stats(stats),
-    _issue_table("Open Issues", overview_refs, include_os=True),
-    f"""\
-    == How to update this document
-
-    This document is generated automatically from open GitHub issues in
-    https://github.com/{REPO}[{REPO}].
-
-    Issues are assigned to operating systems based on their labels:
-    `windows`, `linux`, or `macOS`.
-
-    Issues without an operating system label are treated as cross-platform and
-    therefore appear in all operating system specific status files.
-    """,
+    f"*Summary:* {_severity_summary(overview_refs)}",
+    "",
+    _issue_table("Cross-platform Issues", overview_refs, include_os=True),
+    how_to_update,
     ]
 
   documents = {
@@ -1004,7 +1039,6 @@ def main() -> None:
   for os_key, output_path in os_output_paths.items():
     output_path.write_text(documents[os_key], encoding="utf-8")
     log.info("Written to %s", output_path)
-
 
 if __name__ == "__main__":
   main()
