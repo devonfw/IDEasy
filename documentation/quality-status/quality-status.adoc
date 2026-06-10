@@ -26,7 +26,7 @@ https://github.com/devonfw/IDEasy[devonfw/IDEasy].
 |===
 
 
-_Generated: 2026-06-10 08:50 UTC_
+_Generated: 2026-06-10 09:32 UTC_
 
 
 == Operating System Status Files
@@ -68,9 +68,10 @@ The detailed tool status is split into one generated file per operating system.
 [%header, cols="2,^1"]
 |===
 | Age Range | Count
-| 0–7 days   | 4
-| 8–30 days  | 30
-| 31–90 days | 14
+| 0–10 days   | 12
+| 11–30 days  | 22
+| 31–60 days | 8
+| 61-90 days   | 6
 | 90+ days   | 126
 |===
 
