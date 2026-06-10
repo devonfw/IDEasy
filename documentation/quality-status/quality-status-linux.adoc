@@ -34,25 +34,23 @@ link:quality-status.adoc[Back to overview]
 
 2+^| *90+ days*
 
-2+^| *Enhancement*
-| link:https://github.com/devonfw/IDEasy/issues/950[#950]
-| avoid --no-gpg-checks for docker installation on SUSE Linux
-
-| link:https://github.com/devonfw/IDEasy/issues/1046[#1046]
-| Add Support for Python on Linux
-
-
 2+^| *Bug*
-| link:https://github.com/devonfw/IDEasy/issues/1352[#1352]
-| VSCode WSL warning prompt blocking VSCode plugin installation
-
 | link:https://github.com/devonfw/IDEasy/issues/854[#854]
 | Kubectl not working on linux
+
+| link:https://github.com/devonfw/IDEasy/issues/1352[#1352]
+| VSCode WSL warning prompt blocking VSCode plugin installation
 
 
 2+^| *Enhancement*
 | link:https://github.com/devonfw/IDEasy/issues/694[#694]
 | Add linux support to dotnet tool
+
+| link:https://github.com/devonfw/IDEasy/issues/950[#950]
+| avoid --no-gpg-checks for docker installation on SUSE Linux
+
+| link:https://github.com/devonfw/IDEasy/issues/1046[#1046]
+| Add Support for Python on Linux
 
 |===
 
