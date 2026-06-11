@@ -168,17 +168,10 @@ public final class PackageManagerRequest {
     return this;
   }
 
-  /**
-   * @return the optional parent {@link ToolInstallRequest} if this package-manager invocation happens during a tool installation.
-   */
   public ToolInstallRequest getToolInstallRequest() {
     return toolInstallRequest;
   }
 
-  /**
-   * @param toolInstallRequest the parent {@link ToolInstallRequest} if this package-manager invocation happens during a tool installation.
-   * @return this {@link PackageManagerRequest} for fluent API calls.
-   */
   public PackageManagerRequest setToolInstallRequest(ToolInstallRequest toolInstallRequest) {
     if (this.toolInstallRequest != null) {
       throw new IllegalStateException();
@@ -186,5 +179,5 @@ public final class PackageManagerRequest {
     this.toolInstallRequest = toolInstallRequest;
     return this;
   }
-
+  
 }
