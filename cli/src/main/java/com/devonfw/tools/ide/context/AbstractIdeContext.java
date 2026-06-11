@@ -382,8 +382,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   /**
-   * On macOS, {@code ~/Downloads} is protected by the OS (TCC) and the CLI may not be allowed to delete it, so we put the cache under
-   * {@code ~/Library/Caches} instead. Tests still use {@code ~/Downloads/ide} so existing fixtures keep working.
+   * On macOS, {@code ~/Downloads} is protected by the OS (TCC) and the CLI may not be allowed to delete it, so we put the cache under {@code ~/Library/Caches} instead. Tests still use {@code ~/Downloads/ide} so existing fixtures keep working.
    */
   private Path computeDownloadPath(Path home) {
 
@@ -1495,6 +1494,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       LOG.trace("Trying to match argument '{}'", currentArgument);
       if (currentArgument.isOption() && !arguments.isEndOptions()) {
         if (currentArgument.isCompletion()) {
+          boolean matchedOption = false;
           Iterator<Property<?>> optionIterator = optionProperties.iterator();
           while (optionIterator.hasNext()) {
             Property<?> option = optionIterator.next();
@@ -1502,7 +1502,21 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
             if (success) {
               optionIterator.remove();
               arguments.next();
+              matchedOption = true;
+              break;
             }
+          }
+          if (!matchedOption) {
+            if (valueIterator.hasNext()) {
+              Property<?> valueProperty = valueIterator.next();
+              boolean success = valueProperty.apply(arguments, this, cmd, collector);
+              if (!success) {
+                LOG.trace("Completion cannot match option or value.");
+              }
+            } else {
+              LOG.trace("No value left for completion.");
+            }
+            return;
           }
         } else {
           Property<?> option = cmd.getOption(currentArgument.get());
