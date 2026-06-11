@@ -382,8 +382,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   /**
-   * On macOS, {@code ~/Downloads} is protected by the OS (TCC) and the CLI may not be allowed to delete it, so we put the cache under {@code ~/Library/Caches}
-   * instead. Tests still use {@code ~/Downloads/ide} so existing fixtures keep working.
+   * On macOS, {@code ~/Downloads} is protected by the OS (TCC) and the CLI may not be allowed to delete it, so we put the cache under {@code ~/Library/Caches} instead. Tests still use {@code ~/Downloads/ide} so existing fixtures keep working.
    */
   private Path computeDownloadPath(Path home) {
 
