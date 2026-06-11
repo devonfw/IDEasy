@@ -31,7 +31,7 @@ jobs:
           rm -f documentation/quality-status/quality-status*.adoc
 
           cd documentation/quality-status/src
-          python generate_quality_status.py --output ../quality-status.adoc
+          python generate_quality_status.py --owner devonfw --repo IDEasy --output-dir ..
 
       - name: Commit and push changes
         run: |
