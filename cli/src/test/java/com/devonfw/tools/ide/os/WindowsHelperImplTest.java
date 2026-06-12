@@ -17,8 +17,6 @@ class WindowsHelperImplTest extends AbstractIdeContextTest {
 
   private static final String TEST_APP_NAME = "TestApp";
 
-  private static final String UNKNOWN_TEST_APP_NAME = "UnknownApp";
-
   /**
    * Tests if the USER_PATH registry entry can be parsed properly.
    */
@@ -65,6 +63,21 @@ class WindowsHelperImplTest extends AbstractIdeContextTest {
     assertThat(result.installLocation()).isEqualTo("C:\\Program Files\\TestApp");
   }
 
+  @Test
+  @DisplayName("runReg failure makes getRegistryValue return null")
+  void testGetRegistryValueReturnsNullWhenRunRegFails() {
+    AbstractIdeTestContext context = new IdeTestContext();
+    WindowsHelperImpl helper = new WindowsHelperImpl(context) {
+      @Override
+      protected List<String> runReg(String... args) {
+        return null;
+      }
+    };
+    String value = helper.getRegistryValue("HKCU\\Environment", "ANY");
+
+    assertThat(value).isNull();
+  }
+
   /**
    * Helper method to set up the WindowsHelperMock with a test app installation and retrieve it.
    *
@@ -84,48 +97,73 @@ class WindowsHelperImplTest extends AbstractIdeContextTest {
     return helper.getAppInstallationFromRegistry(TEST_APP_NAME);
   }
 
-  /*
-   *//**
-   * Tests if correct keys can be found in registry output for app name filter.
-   *//*
   @Test
-  void testRegistryLookupReturnsCorrectEntryIfFound() {
-    // arrange
+  @DisplayName("getAppInstallationFromRegistry returns partial installation when some keys missing")
+  void testGetAppInstallationFromRegistryWithPartialFields() {
+    final String app = "TestApp";
     AbstractIdeTestContext context = new IdeTestContext();
-    WindowsHelperImpl helper = new WindowsHelperImplTestable(context);
+    WindowsHelperImpl helper = new WindowsHelperImpl(context) {
+      @Override
+      protected List<String> runReg(String... args) {
+        // search call
+        if (args.length >= 5 && "/f".equalsIgnoreCase(args[3])) {
+          return List.of("HKEY_LOCAL_MACHINE\\SOFTWARE\\...\\Uninstall\\TestApp", "    DisplayName    REG_SZ    TestApp");
+        }
+        // query exact uninstall key: only version + install location
+        if (args.length >= 2 && args[0].equalsIgnoreCase("query") && args[1].endsWith("\\Uninstall\\TestApp")) {
+          return List.of(
+              "HKEY_LOCAL_MACHINE\\SOFTWARE\\...\\Uninstall\\TestApp",
+              "    DisplayVersion    REG_SZ    2.0.0",
+              "    InstallLocation    REG_SZ    C:\\Program Files\\TestApp"
+          );
+        }
+        return List.of();
+      }
+    };
 
-    // act
-    String displayVersion = helper.getDisplayVersionFromRegistry(TEST_APP_NAME);
-    String icon = helper.getDisplayIconFromRegistry(TEST_APP_NAME);
-    String uninstall = helper.getUninstallStringFromRegistry(TEST_APP_NAME);
-    String location = helper.getInstallLocationFromRegistry(TEST_APP_NAME);
-
-    // assert
-    assertThat(displayVersion).isEqualTo("1.1.1");
-    assertThat(icon).isEqualTo("C:\\Program Files\\TestApp\\testapp.exe,0");
-    assertThat(uninstall).isEqualTo("\"C:\\Program Files\\TestApp\\uninstall.exe\"");
-    assertThat(location).isEqualTo("C:\\Program Files\\TestApp");
+    WindowsAppInstallation inst = helper.getAppInstallationFromRegistry(app);
+    assertThat(inst).isNotNull();
+    assertThat(inst.version()).isEqualTo("2.0.0");
+    assertThat(inst.installLocation()).isEqualTo("C:\\Program Files\\TestApp");
+    assertThat(inst.icon()).isNull();
+    assertThat(inst.uninstallString()).isNull();
   }
 
-  *//**
-   * Tests if registry lookup return nulls on unknown app name filter.
-   *//*
   @Test
-  void testRegistryLookupReturnsNullIfNotFound() {
-    // arrange
+  @DisplayName("getAppInstallationFromRegistry returns null when no uninstall key is found")
+  void testGetAppInstallationFromRegistryReturnsNullWhenNoKeyFound() {
     AbstractIdeTestContext context = new IdeTestContext();
-    WindowsHelperImpl helper = new WindowsHelperImplTestable(context);
+    WindowsHelperImpl helper = new WindowsHelperImpl(context) {
+      @Override
+      protected List<String> runReg(String... args) {
+        // simulate search returning empty -> no HKEY_ line
+        return List.of();
+      }
+    };
+    assertThat(helper.getAppInstallationFromRegistry("NoSuchApp")).isNull();
+  }
 
-    // act
-    String displayVersion = helper.getDisplayVersionFromRegistry(UNKNOWN_TEST_APP_NAME);
-    String icon = helper.getDisplayIconFromRegistry(UNKNOWN_TEST_APP_NAME);
-    String uninstall = helper.getUninstallStringFromRegistry(UNKNOWN_TEST_APP_NAME);
-    String location = helper.getInstallLocationFromRegistry(UNKNOWN_TEST_APP_NAME);
+  @Test
+  @DisplayName("getAppInstallationFromRegistry returns null when registry query returns null")
+  void testGetAppInstallationFromRegistryWhenQueryReturnsNull() {
+    AbstractIdeTestContext context = new IdeTestContext();
+    WindowsHelperImpl helper = new WindowsHelperImpl(context) {
+      @Override
+      protected List<String> runReg(String... args) {
+        // simulate search returning the uninstall key
+        if (args.length >= 5 && "/f".equalsIgnoreCase(args[3])) {
+          return List.of("HKEY_LOCAL_MACHINE\\SOFTWARE\\...\\Uninstall\\TestApp", "    DisplayName    REG_SZ    TestApp");
+        }
+        // simulate reg query failure for the exact uninstall key
+        if (args.length >= 2 && args[0].equalsIgnoreCase("query") && args[1].endsWith("\\Uninstall\\TestApp")) {
+          return null;
+        }
+        return List.of();
+      }
+    };
 
-    // assert
-    assertThat(displayVersion).isNull();
-    assertThat(icon).isNull();
-    assertThat(uninstall).isNull();
-    assertThat(location).isNull();
-  }*/
+    WindowsAppInstallation result = helper.getAppInstallationFromRegistry("TestApp");
+    assertThat(result).isNull();
+  }
+
 }
