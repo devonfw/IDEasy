@@ -10,6 +10,7 @@ The implementation is intentionally split into small modules:
 - `quality_status/models.py` – contains the core data classes and reusable table abstractions
 - `quality_status/classification.py` – classifies issue type and platform scope
 - `quality_status/statistics.py` – computes issue statistics, age distribution, top labels, and OS summary data
+- `quality_status/charts.py` – renders dependency-free SVG charts from the computed statistics
 - `quality_status/documents.py` – assembles document data models from issues and statistics
 - `quality_status/renderer.py` – renders the final AsciiDoc files
 - `generate_quality_status.py` – CLI entry point
@@ -24,6 +25,32 @@ GitHub's GraphQL API allows the generator to fetch the exact issue fields it nee
 export GITHUB_TOKEN=<your_token>
 python generate_quality_status.py --owner devonfw --repo IDEasy --output-dir generated-quality-status
 ```
+
+From PowerShell, regenerate the checked-in documentation with:
+
+```powershell
+cd documentation/quality-status/src
+$env:GITHUB_TOKEN = "<your-token>"
+python generate_quality_status.py --owner devonfw --repo IDEasy --output-dir ..
+```
+
+The `--output-dir ..` part is important: without it, the files are written to
+the current working directory instead of `documentation/quality-status`.
+
+The output contains the AsciiDoc files and a `quality-status-images` directory
+with generated SVG charts. The overview places each chart beside its source
+table, so the exact values remain available in text form.
+
+Chart types and table visibility are configured in `quality_status/config.py`.
+For every overview section, set `chart` to `"bar"`, `"pie"`, or `"none"` and
+set `show_table` to `True` or `False`. For example:
+
+```python
+"issue_age": {"chart": "pie", "show_table": True},
+```
+
+Pie charts are most meaningful for mutually exclusive values such as issue age
+ranges. Issue metrics overlap, so a bar chart is usually clearer there.
 
 ## Notes
 

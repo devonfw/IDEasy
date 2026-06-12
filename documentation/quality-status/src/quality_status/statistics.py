@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import Counter
+from datetime import date
 
 from .classification import classify_issue_type
 from .config import AGE_BUCKETS, BLOCKER_LABELS, EXCLUDED_FUNCTIONAL_LABELS, ISSUE_STAT_DEFINITIONS, OS_GROUPS
@@ -37,18 +38,26 @@ def issue_statistics(issues: list[Issue]) -> dict[str, int]:
     return stats
 
 
-def bucket_issues_by_age(issues: list[Issue], age_buckets: tuple[AgeBucket, ...] = AGE_BUCKETS) -> list[tuple[str, str, list[Issue]]]:
+def bucket_issues_by_age(
+    issues: list[Issue],
+    reference_date: date,
+    age_buckets: tuple[AgeBucket, ...] = AGE_BUCKETS,
+) -> list[tuple[str, str, list[Issue]]]:
     grouped: list[tuple[str, str, list[Issue]]] = []
     for bucket in age_buckets:
-        bucket_issues = [issue for issue in issues if bucket.contains(issue.age_days)]
+        bucket_issues = [issue for issue in issues if bucket.contains(issue.age_days_at(reference_date))]
         grouped.append((bucket.key, bucket.title, bucket_issues))
     return grouped
 
 
-def age_distribution(issues: list[Issue], age_buckets: tuple[AgeBucket, ...] = AGE_BUCKETS) -> list[tuple[str, str, int]]:
+def age_distribution(
+    issues: list[Issue],
+    reference_date: date,
+    age_buckets: tuple[AgeBucket, ...] = AGE_BUCKETS,
+) -> list[tuple[str, str, int]]:
     rows: list[tuple[str, str, int]] = []
     for bucket in age_buckets:
-        count = sum(1 for issue in issues if bucket.contains(issue.age_days))
+        count = sum(1 for issue in issues if bucket.contains(issue.age_days_at(reference_date)))
         rows.append((bucket.key, bucket.title, count))
     return rows
 

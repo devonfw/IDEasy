@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from .config import OUTPUT_FILES, OS_GROUPS
+from .charts import CHART_DIRECTORY, write_charts
+from .config import OUTPUT_FILES, OS_GROUPS, VISUALIZATIONS
 from .documents import DocumentBundle, OsDocument, OverviewDocument
+from .models import AsciiDocTable
 
 HEADER = """= {title}
 :toc: left
@@ -12,6 +14,37 @@ HEADER = """= {title}
 :source-highlighter: rouge
 :nofooter:
 """
+
+
+def render_visualization(section: str, image_file: str, alt_text: str, table: AsciiDocTable) -> str:
+    settings = VISUALIZATIONS[section]
+    if "chart" not in settings:
+        raise ValueError(
+            f'Invalid visualization config for "{section}": expected '
+            f'{{"chart": "bar|pie|none", "show_table": True|False}}.'
+        )
+    chart_type = str(settings["chart"])
+    show_chart = chart_type != "none"
+    show_table = bool(settings["show_table"])
+
+    if not show_chart and not show_table:
+        return ""
+    if not show_chart:
+        return table.render()
+    image = f'image::{CHART_DIRECTORY}/{image_file}[{chart_type.title()} chart: {alt_text},width=100%]'
+    if not show_table:
+        return image
+
+    return '\n'.join([
+        '[cols="3,2", frame=none, grid=none]',
+        '|===',
+        'a|',
+        image,
+        '',
+        'a|',
+        table.render(delimiter='!'),
+        '|===',
+    ])
 
 
 def render_overview(document: OverviewDocument) -> str:
@@ -25,7 +58,12 @@ def render_overview(document: OverviewDocument) -> str:
         '',
         '',
         '### Issue Statistics',
-        document.issue_stats_table.render(),
+        render_visualization(
+            'issue_statistics',
+            'issue-statistics.svg',
+            'open issue metrics',
+            document.issue_stats_table,
+        ),
         '',
         '',
         f'_Generated: {document.generated_at}_',
@@ -41,18 +79,33 @@ def render_overview(document: OverviewDocument) -> str:
         '',
         'The detailed tool status is split into one generated file per operating system.',
         '',
-        document.os_summary_table.render(),
+        render_visualization(
+            'operating_systems',
+            'operating-systems.svg',
+            'issues by operating system',
+            document.os_summary_table,
+        ),
         '',
         '== Quality Insights',
         '',
         '=== Issue Age Distribution',
-        document.age_distribution_table.render(),
+        render_visualization(
+            'issue_age',
+            'issue-age.svg',
+            'issue age distribution',
+            document.age_distribution_table,
+        ),
         '',
         '=== Most common functional labels',
         '',
         'Top GitHub labels based on number of issues. This statistic excludes generic labels such as bug/task/enhancement, operating-system labels, and workflow or maintenance labels (for example documentation, dependencies, or help wanted).',
         '',
-        document.top_labels_table.render(),
+        render_visualization(
+            'functional_labels',
+            'functional-labels.svg',
+            'most common functional labels',
+            document.top_labels_table,
+        ),
         '',
         '',
         '== Cross-platform Issues',
@@ -113,6 +166,7 @@ def write_documents(output_dir: str | Path, bundle: DocumentBundle) -> None:
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
     (output_path / OUTPUT_FILES['overview']).write_text(render_overview(bundle.overview), encoding='utf-8')
+    write_charts(output_path, bundle.overview)
     for group in OS_GROUPS:
         document = bundle.os_documents[group.name]
         (output_path / group.output_file).write_text(render_os_document(document), encoding='utf-8')

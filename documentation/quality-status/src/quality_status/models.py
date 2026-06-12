@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import date, datetime
 
 
 @dataclass(frozen=True)
@@ -15,10 +15,8 @@ class Issue:
     created_at: datetime
     is_assigned: bool
 
-    @property
-    def age_days(self) -> int:
-        now = datetime.now(timezone.utc)
-        return max(0, (now - self.created_at).days)
+    def age_days_at(self, reference_date: date) -> int:
+        return max(0, (reference_date - self.created_at.date()).days)
 
 
 @dataclass(frozen=True)
@@ -57,7 +55,7 @@ class TableRow:
 
 class AsciiDocTable(ABC):
     @abstractmethod
-    def render(self) -> str:
+    def render(self, delimiter: str = '|') -> str:
         raise NotImplementedError
 
 
@@ -67,12 +65,16 @@ class KeyValueTable(AsciiDocTable):
     rows: list[TableRow]
     cols: str
 
-    def render(self) -> str:
-        lines = [f'[%header, cols="{self.cols}"]', '|===', '| ' + ' | '.join(self.headers)]
+    def render(self, delimiter: str = '|') -> str:
+        lines = [
+            f'[%header, cols="{self.cols}"]',
+            f'{delimiter}===',
+            f'{delimiter} ' + f' {delimiter} '.join(self.headers),
+        ]
         for row in self.rows:
             for cell in row.cells:
-                lines.append(f'| {cell}')
-        lines.append('|===')
+                lines.append(f'{delimiter} {cell}')
+        lines.append(f'{delimiter}===')
         return '\n'.join(lines)
 
 
@@ -81,21 +83,25 @@ class IssueTable(AsciiDocTable):
     issues_by_bucket: list[tuple[str, str, list[Issue]]]
     anchor_prefix: str | None = None
 
-    def render(self) -> str:
-        lines = ['[%header, cols="^1,7"]', '|===', '| Issue | Summary']
+    def render(self, delimiter: str = '|') -> str:
+        lines = [
+            '[%header, cols="^1,7"]',
+            f'{delimiter}===',
+            f'{delimiter} Issue {delimiter} Summary',
+        ]
         for bucket_key, bucket_title, issues in self.issues_by_bucket:
             if not issues:
                 continue
             if self.anchor_prefix:
-                lines.append(f'2+^a| [[{self.anchor_prefix}-{bucket_key}]] *{bucket_title}*')
+                lines.append(f'2+^a{delimiter} [[{self.anchor_prefix}-{bucket_key}]] *{bucket_title}*')
             else:
-                lines.append(f'2+^| *{bucket_title}*')
+                lines.append(f'2+^{delimiter} *{bucket_title}*')
             lines.append('')
             for issue in issues:
-                lines.append(f'| link:{issue.url}[#{issue.number}]')
-                lines.append(f'| {truncate_title(issue.title)}')
+                lines.append(f'{delimiter} link:{issue.url}[#{issue.number}]')
+                lines.append(f'{delimiter} {truncate_title(issue.title)}')
                 lines.append('')
-        lines.append('|===')
+        lines.append(f'{delimiter}===')
         return '\n'.join(lines)
 
 

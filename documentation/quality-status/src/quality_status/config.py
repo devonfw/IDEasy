@@ -5,6 +5,16 @@ from .models import AgeBucket, OsGroup
 DEFAULT_OWNER = "devonfw"
 DEFAULT_REPO = "IDEasy"
 
+# Change these values to control the generated overview:
+# - chart: "bar", "pie", or "none"
+# - show_table: True or False
+VISUALIZATIONS = {
+    "issue_statistics": {"chart": "none", "show_table": True},
+    "operating_systems": {"chart": "none", "show_table": True},
+    "issue_age": {"chart": "none", "show_table": True},
+    "functional_labels": {"chart": "none", "show_table": True},
+}
+
 OUTPUT_FILES = {
     "overview": "quality-status.adoc",
     "Windows": "quality-status-windows.adoc",
@@ -27,7 +37,7 @@ AGE_BUCKETS: tuple[AgeBucket, ...] = (
 )
 
 ISSUE_STAT_DEFINITIONS: tuple[tuple[str, str], ...] = (
-    ("all", "All platforms"),
+    ("all", "Open Issues"),
     ("assigned", "Assigned"),
     ("unassigned", "Unassigned"),
     ("blockers", "Blockers"),
