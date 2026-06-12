@@ -15,7 +15,7 @@ https://github.com/devonfw/IDEasy[devonfw/IDEasy].
 image::quality-status-images/issue-statistics.svg[Bar chart: open issue metrics,width=100%]
 
 
-_Generated: 2026-06-12 14:23 UTC_
+_Generated: 2026-06-12 15:18 UTC_
 
 
 == Operating System Status Files
@@ -35,7 +35,6 @@ image::quality-status-images/operating-systems.svg[Bar chart: issues by operatin
 == Quality Insights
 
 === Issue Age Distribution
-
 image::quality-status-images/issue-age.svg[Pie chart: issue age distribution,width=100%]
 
 Cross-platform issues by age: <<cross-platform-0-10-days,0-10 days>> | <<cross-platform-11-30-days,11-30 days>> | <<cross-platform-31-60-days,31-60 days>> | <<cross-platform-61-90-days,61-90 days>> | <<cross-platform-90plus-days,90+ days>>
