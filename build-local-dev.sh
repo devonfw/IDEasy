@@ -6,35 +6,44 @@ if [ -z "${IDE_ROOT:-}" ]; then
   exit 1
 fi
 
-if ! command -v ideasy > /dev/null 2>&1; then
-  echo "Error: ideasy command not found."
-  exit 1
-fi
-
-IDEASY_CMD="$(readlink -f "$(command -v ideasy)")"
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+
 CLI_DIR="$SCRIPT_DIR/cli"
 TARGET_DIR="$CLI_DIR/target"
 PACKAGE_DIR="$CLI_DIR/src/main/package"
+
+PROJECT_SOFTWARE_DIR="$PROJECT_DIR/software"
+GRAALVM_DIR="$PROJECT_SOFTWARE_DIR/extra/graalvm"
 
 LOCAL_DEV="$IDE_ROOT/_ide/software/maven/ideasy/ideasy/local-dev"
 INSTALLATION_LINK="$IDE_ROOT/_ide/installation"
 
 echo "Building IDEasy native image..."
+
+if [ ! -d "$GRAALVM_DIR" ]; then
+  echo "Error: GraalVM is not installed for this IDEasy project:"
+  echo "$GRAALVM_DIR"
+  echo
+  echo "Please install GraalVM first:"
+  echo "ideasy install graalvm"
+  exit 1
+fi
+
 cd "$CLI_DIR"
 mvn -B -ntp -Pnative -DskipTests=true package
 
 echo "Preparing local-dev installation..."
 rm -rf "$LOCAL_DEV"
-mkdir -p "$LOCAL_DEV/bin"
+mkdir -p "$LOCAL_DEV"
+
+echo "Copying package contents..."
 
 if [ ! -d "$PACKAGE_DIR" ]; then
   echo "Error: Package directory not found: $PACKAGE_DIR"
   exit 1
 fi
 
-echo "Copying package contents..."
 cp -R "$PACKAGE_DIR"/. "$LOCAL_DEV"/
 
 OS_NAME="$(uname -s)"
@@ -64,7 +73,6 @@ if [ ! -f "$LOCAL_DEV/bin/ideasy.exe" ] && [ ! -f "$LOCAL_DEV/bin/ideasy" ]; the
   exit 1
 fi
 
-
 if [ -f "$LOCAL_DEV/functions" ]; then
   chmod +x "$LOCAL_DEV/functions"
 fi
@@ -73,8 +81,14 @@ if [ -f "$LOCAL_DEV/setup" ]; then
   chmod +x "$LOCAL_DEV/setup"
 fi
 
-
 echo "Updating IDEasy installation link..."
+
+if ! command -v ideasy > /dev/null 2>&1; then
+  echo "Error: ideasy command not found."
+  exit 1
+fi
+
+IDEASY_CMD="$(readlink -f "$(command -v ideasy)")"
 
 if [ -L "$INSTALLATION_LINK" ]; then
   unlink "$INSTALLATION_LINK"
@@ -85,6 +99,12 @@ elif [ -e "$INSTALLATION_LINK" ]; then
 fi
 
 "$IDEASY_CMD" ln -s "$LOCAL_DEV" "$INSTALLATION_LINK"
+
+if [ -f "$LOCAL_DEV/setup" ]; then
+  echo "Running IDEasy setup for local-dev installation..."
+  cd "$LOCAL_DEV"
+  ./setup
+fi
 
 echo "Done."
 echo "You can test it with:"
