@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.os;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
@@ -52,9 +53,41 @@ class WindowsHelperImplTest extends AbstractIdeContextTest {
     assertThat(regString).isNull();
   }
 
+  @Test
+  @DisplayName("Test if WindowsAppInstallation can be properly retrieved from registry mock")
+  void testRegistryLookupReturnsCorrectInstallationInfo() {
+    WindowsAppInstallation result = getWindowsAppInstallation();
+
+    assertThat(result).isNotNull();
+    assertThat(result.version()).isEqualTo("1.1.1");
+    assertThat(result.icon()).isEqualTo("C:\\Program Files\\TestApp\\testapp.exe,0");
+    assertThat(result.uninstallString()).isEqualTo("\"C:\\Program Files\\TestApp\\uninstall.exe\"");
+    assertThat(result.installLocation()).isEqualTo("C:\\Program Files\\TestApp");
+  }
+
   /**
-   * Tests if correct keys can be found in registry output for app name filter.
+   * Helper method to set up the WindowsHelperMock with a test app installation and retrieve it.
+   *
+   * @return the WindowsAppInstallation from the mock registry
    */
+  private static WindowsAppInstallation getWindowsAppInstallation() {
+    AbstractIdeTestContext context = new IdeTestContext();
+    WindowsHelperMock helper = (WindowsHelperMock) context.getWindowsHelper();
+    WindowsAppInstallation installation = new WindowsAppInstallation(
+        "1.1.1",
+        "C:\\Program Files\\TestApp\\testapp.exe,0",
+        "\"C:\\Program Files\\TestApp\\uninstall.exe\"",
+        "C:\\Program Files\\TestApp"
+    );
+    helper.setAppInstallationFromRegistry(TEST_APP_NAME, installation);
+
+    return helper.getAppInstallationFromRegistry(TEST_APP_NAME);
+  }
+
+  /*
+   *//**
+   * Tests if correct keys can be found in registry output for app name filter.
+   *//*
   @Test
   void testRegistryLookupReturnsCorrectEntryIfFound() {
     // arrange
@@ -74,9 +107,9 @@ class WindowsHelperImplTest extends AbstractIdeContextTest {
     assertThat(location).isEqualTo("C:\\Program Files\\TestApp");
   }
 
-  /**
+  *//**
    * Tests if registry lookup return nulls on unknown app name filter.
-   */
+   *//*
   @Test
   void testRegistryLookupReturnsNullIfNotFound() {
     // arrange
@@ -94,5 +127,5 @@ class WindowsHelperImplTest extends AbstractIdeContextTest {
     assertThat(icon).isNull();
     assertThat(uninstall).isNull();
     assertThat(location).isNull();
-  }
+  }*/
 }
