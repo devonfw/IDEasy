@@ -10,11 +10,30 @@ from .documents import OverviewDocument
 
 CHART_DIRECTORY = "quality-status-images"
 
-BACKGROUND = "#ffffff"
-TEXT = "#24292f"
-MUTED_TEXT = "#57606a"
+BACKGROUND = "var(--chart-background)"
+TEXT = "var(--chart-text)"
+MUTED_TEXT = "var(--chart-muted-text)"
+BAR_TRACK = "var(--chart-bar-track)"
 BAR_COLORS = ("#0969da", "#1f883d", "#bf8700", "#8250df", "#cf222e")
 STACK_COLORS = ("#0969da", "#8250df", "#8c959f")
+
+THEME_STYLE = """<style>
+  :root {
+    color-scheme: light dark;
+    --chart-background: #ffffff;
+    --chart-text: #24292f;
+    --chart-muted-text: #57606a;
+    --chart-bar-track: #f0f3f6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --chart-background: #0d1117;
+      --chart-text: #f0f6fc;
+      --chart-muted-text: #8b949e;
+      --chart-bar-track: #30363d;
+    }
+  }
+</style>"""
 
 
 def _svg_document(width: int, height: int, body: Sequence[str]) -> str:
@@ -24,6 +43,7 @@ def _svg_document(width: int, height: int, body: Sequence[str]) -> str:
             f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
             f'viewBox="0 0 {width} {height}" role="img">'
         ),
+        THEME_STYLE,
         f'<rect width="{width}" height="{height}" rx="12" fill="{BACKGROUND}"/>',
         *body,
         "</svg>",
@@ -55,7 +75,7 @@ def render_horizontal_bar_chart(title: str, values: Sequence[tuple[str, int]]) -
                 f'<text x="{left - 12}" y="{y + 15}" text-anchor="end" fill="{TEXT}" '
                 f'font-family="sans-serif" font-size="14">{escape(label)}</text>'
             ),
-            f'<rect x="{left}" y="{y}" width="{chart_width}" height="{bar_height}" rx="4" fill="#f0f3f6"/>',
+            f'<rect x="{left}" y="{y}" width="{chart_width}" height="{bar_height}" rx="4" fill="{BAR_TRACK}"/>',
             f'<rect x="{left}" y="{y}" width="{bar_width:.1f}" height="{bar_height}" rx="4" fill="{color}"/>',
             (
                 f'<text x="{left + bar_width + 8:.1f}" y="{y + 15}" fill="{MUTED_TEXT}" '
