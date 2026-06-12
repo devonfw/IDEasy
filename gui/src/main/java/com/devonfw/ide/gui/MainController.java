@@ -4,17 +4,19 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.ToggleButton;
 
+import javafx.scene.layout.AnchorPane;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.console.ConsoleController;
-import com.devonfw.ide.gui.console.ConsolePaneController;
 import com.devonfw.ide.gui.context.GuiOutputListener;
 import com.devonfw.ide.gui.context.IdeGuiContext;
 import com.devonfw.ide.gui.context.IdeGuiLogListener;
@@ -49,13 +51,19 @@ public class MainController {
   private Button vsCodeOpen;
 
   @FXML
+  private Button statusCommandletButton;
+
+  @FXML
   private SplitPane centerSplitPane;
 
   @FXML
   private ToggleButton consolePaneToggleButton;
 
   @FXML
-  private ConsolePaneController consolePaneController;
+  private ConsoleController consoleController;
+
+  @FXML
+  private AnchorPane console;
 
   private IdeGuiLogListener guiLogListener;
   private OutputListener guiOutputListener;
@@ -79,30 +87,42 @@ public class MainController {
 
     setProjectsComboBox();
     consolePaneToggleButton.setOnAction(event -> toggleConsole());
+    androidStudioOpen.setOnAction(event -> openAndroidStudio());
+    eclipseOpen.setOnAction(event -> openEclipse());
+    intellijOpen.setOnAction(event -> openIntellij());
+    vsCodeOpen.setOnAction(event -> openVsCode());
+    statusCommandletButton.setOnAction(event -> {
+      runCommandlet("status");
+    });
+
+    centerSplitPane.getDividers().getFirst().positionProperty().addListener((obs, oldVal, newVal) -> {
+      //This is a bit of a weird behaviour in JavaFX, but even if you drag the divider fully down, the position value does not become 1, but something like 0.9935345
+      consolePaneToggleButton.setSelected(newVal.doubleValue() < 0.99);
+    });
   }
 
   @FXML
   private void openAndroidStudio() {
 
-    openIDE("android-studio");
+    runCommandlet("android-studio");
   }
 
   @FXML
   private void openEclipse() {
 
-    openIDE("eclipse");
+    runCommandlet("eclipse");
   }
 
   @FXML
   private void openIntellij() {
 
-    openIDE("intellij");
+    runCommandlet("intellij");
   }
 
   @FXML
   private void openVsCode() {
 
-    openIDE("vscode");
+    runCommandlet("vscode");
   }
 
 
@@ -159,36 +179,45 @@ public class MainController {
     this.workspaceValue = Path.of(selectedWorkspace.getValue());
   }
 
-  private void openIDE(String inIde) {
+  private void runCommandlet(String commandlet) {
 
     showConsole();
-
-    ConsoleController consoleController = consolePaneController.newConsole("Running " + inIde);
 
     this.guiLogListener = new IdeGuiLogListener(consoleController);
     this.guiOutputListener = new GuiOutputListener(consoleController);
 
     //TODO:update this since in PR for progress bars the handling of this will be implemented
 
-    new Thread(() -> {
-      try {
-        IdeStartContextImpl startContext = new IdeStartContextImpl(IdeLogLevel.INFO, guiLogListener);
-        IdeGuiContext context = new IdeGuiContext(startContext,
-            Path.of(this.directoryPath).resolve(this.projectValue).resolve(this.workspaceValue));
+    Task<Void> commandletTask = new Task<>() {
 
-        // Set output listener for process output
-        context.setOutputListener(guiOutputListener);
+      @Override
+      protected Void call() {
 
-        context.getCommandletManager().getCommandlet(inIde).run();
+        try {
+          IdeStartContextImpl startContext = new IdeStartContextImpl(IdeLogLevel.INFO, guiLogListener);
+          IdeGuiContext context = new IdeGuiContext(startContext,
+              Path.of(directoryPath).resolve(projectValue).resolve(workspaceValue));
 
-        consoleController.appendOutput(inIde + "started successfully.");
-      } catch (Exception e) {
-        LOG.error("Failed to open {}", inIde, e);
-        consoleController.appendOutput("[ERROR] Failed to launch " + inIde + ": " + e.getMessage());
-        consoleController.setStatus("Error");
+          // Set output listener for process output
+          context.setOutputListener(guiOutputListener);
 
+          LOG.info("[GUI] === Running {} ===", commandlet);
+
+          context.getCommandletManager().getCommandlet(commandlet).run();
+
+          LOG.info("[GUI] === {} ran successfully. ===", commandlet);
+        } catch (Exception e) {
+          LOG.error("Failed to open {}", commandlet, e);
+          consoleController.appendOutput("[ERROR] Failed to launch " + commandlet + ": " + e.getMessage());
+          consoleController.setStatus("Error");
+        }
+        return null;
       }
-    }).start();
+    };
+
+    Thread commandletThread = new Thread(commandletTask);
+    commandletThread.setDaemon(true);
+    commandletThread.start();
   }
 
   /**
@@ -210,6 +239,7 @@ public class MainController {
    */
   public void hideConsole() {
     if (centerSplitPane != null) {
+      console.setVisible(false);
       lastDividerPosition = centerSplitPane.getDividers().get(0).getPosition();
       centerSplitPane.setDividerPosition(0, 1.0);
       isConsoleVisible = false;
@@ -222,6 +252,7 @@ public class MainController {
    */
   public void showConsole() {
     if (centerSplitPane != null) {
+      console.setVisible(true);
       if (lastDividerPosition >= 0.9) {
         centerSplitPane.setDividerPosition(0, 0.75);
       } else {

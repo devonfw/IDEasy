@@ -62,8 +62,7 @@
     <BorderPane>
       <center>
         <SplitPane fx:id="centerSplitPane" dividerPositions="1.0" BorderPane.alignment="CENTER" orientation="VERTICAL">
-          <!-- Haupt-Inhaltsbereich -->
-          <ScrollPane fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED">
+          <ScrollPane fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER">
             <StackPane prefHeight="150.0">
               <fx:define>
                 <Double fx:id="buttonContainerHeight" fx:value="80.0"/>
@@ -88,7 +87,7 @@
                         <HBox alignment="CENTER_RIGHT" prefHeight="$buttonContainerHeight" prefWidth="$buttonContainerWidth" minWidth="$buttonContainerWidth"
                           spacing="10.0" HBox.hgrow="ALWAYS">
                           <children>
-                            <Button fx:id="androidStudioOpen" disable="true" mnemonicParsing="false" onAction="#openAndroidStudio" styleClass="launchButton"
+                            <Button fx:id="androidStudioOpen" disable="true" mnemonicParsing="false" styleClass="launchButton"
                               text="Open">
                               <HBox.margin>
                                 <Insets right="20.0"/>
@@ -113,7 +112,7 @@
                         <HBox alignment="CENTER_RIGHT" prefHeight="$buttonContainerHeight" prefWidth="$buttonContainerWidth" minWidth="$buttonContainerWidth"
                           HBox.hgrow="ALWAYS">
                           <children>
-                            <Button fx:id="eclipseOpen" disable="true" mnemonicParsing="false" onAction="#openEclipse" styleClass="launchButton" text="Open">
+                            <Button fx:id="eclipseOpen" disable="true" mnemonicParsing="false" styleClass="launchButton" text="Open">
                               <HBox.margin>
                                 <Insets right="20.0"/>
                               </HBox.margin>
@@ -137,7 +136,7 @@
                         <HBox alignment="CENTER_RIGHT" prefHeight="$buttonContainerHeight" prefWidth="$buttonContainerWidth" minWidth="$buttonContainerWidth"
                           spacing="10.0" HBox.hgrow="ALWAYS">
                           <children>
-                            <Button fx:id="intellijOpen" disable="true" mnemonicParsing="false" onAction="#openIntellij" styleClass="launchButton" text="Open">
+                            <Button fx:id="intellijOpen" disable="true" mnemonicParsing="false" styleClass="launchButton" text="Open">
                               <HBox.margin>
                                 <Insets right="20.0"/>
                               </HBox.margin>
@@ -160,7 +159,7 @@
                         <HBox alignment="CENTER_RIGHT" prefHeight="$buttonContainerHeight" prefWidth="$buttonContainerWidth" minWidth="$buttonContainerWidth"
                           spacing="10.0" HBox.hgrow="ALWAYS">
                           <children>
-                            <Button fx:id="vsCodeOpen" disable="true" mnemonicParsing="false" onAction="#openVsCode" styleClass="launchButton" text="Open">
+                            <Button fx:id="vsCodeOpen" disable="true" mnemonicParsing="false" styleClass="launchButton" text="Open">
                               <HBox.margin>
                                 <Insets right="20.0"/>
                               </HBox.margin>
@@ -178,12 +177,12 @@
             </StackPane>
           </ScrollPane>
 
-          <fx:include fx:id="consolePane" source="console/console_pane.fxml"/>
+          <fx:include fx:id="console" source="console/console.fxml"/>
 
         </SplitPane>
       </center>
       <bottom>
-        <VBox alignment="CENTER_LEFT">
+        <HBox alignment="CENTER_LEFT">
           <padding>
             <Insets top="5" right="5" bottom="5" left="5"/>
           </padding>
@@ -194,7 +193,8 @@
               </ImageView>
             </graphic>
           </ToggleButton>
-        </VBox>
+          <Button text="Status" fx:id="statusCommandletButton"/>
+        </HBox>
       </bottom>
     </BorderPane>
   </center>

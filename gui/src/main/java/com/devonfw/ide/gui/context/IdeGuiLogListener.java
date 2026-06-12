@@ -1,5 +1,7 @@
 package com.devonfw.ide.gui.context;
 
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import javafx.application.Platform;
 
 import com.devonfw.ide.gui.console.ConsoleController;
@@ -19,7 +21,8 @@ public class IdeGuiLogListener implements IdeLogListener {
   public boolean onLog(IdeLogLevel level, String message, String rawMessage, Object[] args, Throwable error) {
     if (this.consoleController != null && message != null) {
       String prefix = getPrefix(level);
-      String formattedMessage = prefix + message;
+      String timeStamp = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+      String formattedMessage = String.format("%s | %s %s", timeStamp, prefix, message);
 
       Platform.runLater(() -> {
         this.consoleController.appendOutput(formattedMessage);

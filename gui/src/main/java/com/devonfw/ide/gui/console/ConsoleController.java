@@ -7,7 +7,6 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
-import javafx.scene.layout.AnchorPane;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,12 +15,6 @@ import org.slf4j.LoggerFactory;
  * Controller that manages an instance if a console.
  */
 public class ConsoleController {
-
-  @FXML
-  private AnchorPane consolePaneRoot;
-
-  @FXML
-  private TextArea consoleOutput;
 
   @FXML
   private Button clearButton;
@@ -36,18 +29,22 @@ public class ConsoleController {
   private CheckBox autoScrollCheckBox;
 
   @FXML
-  private ScrollPane outputScrollPane;
-
-  @FXML
   private Label statusLabel;
 
   @FXML
   private Label lineCountLabel;
 
+  @FXML
+  private ScrollPane outputScrollPane;
+
+  @FXML
+  private TextArea consoleOutput;
+
   private static final Logger LOG = LoggerFactory.getLogger(ConsoleController.class);
 
   @FXML
   public void initialize() {
+
     setupEventHandlers();
     setupTextAreaBindings();
   }
@@ -65,12 +62,11 @@ public class ConsoleController {
    * Richtet die Bindings für TextArea-Änderungen ein
    */
   private void setupTextAreaBindings() {
-    // Listener für TextArea-Änderungen
+
     consoleOutput.textProperty().addListener((observable, oldValue, newValue) -> {
-      // Zeilenanzahl aktualisieren
+
       updateLineCount();
 
-      // Auto-scroll wenn aktiviert
       if (autoScrollCheckBox.isSelected()) {
         scrollToBottom();
       }
@@ -83,13 +79,8 @@ public class ConsoleController {
    * @param message die auszugebende Nachricht
    */
   public void appendOutput(String message) {
-    Platform.runLater(() -> {
-      if (consoleOutput.getText().isEmpty()) {
-        consoleOutput.setText(message);
-      } else {
-        consoleOutput.appendText("\n" + message);
-      }
-    });
+
+    Platform.runLater(() -> consoleOutput.appendText(message + "\n"));
   }
 
   /**
@@ -98,6 +89,7 @@ public class ConsoleController {
    * @param message string to be printed
    */
   public void appendOutputLine(String message) {
+
     appendOutput(message);
   }
 
@@ -107,6 +99,7 @@ public class ConsoleController {
    * @param status new status
    */
   public void setStatus(String status) {
+
     Platform.runLater(() -> statusLabel.setText(status));
   }
 
@@ -114,6 +107,7 @@ public class ConsoleController {
    * Clears the console
    */
   private void clearConsole() {
+
     consoleOutput.clear();
     updateLineCount();
     setStatus("Console cleared");
@@ -123,6 +117,7 @@ public class ConsoleController {
    * Scrolls to the end of the console
    */
   private void scrollToBottom() {
+
     Platform.runLater(() -> outputScrollPane.setVvalue(1.0));
   }
 
@@ -130,6 +125,7 @@ public class ConsoleController {
    * Refreshes the line count
    */
   private void updateLineCount() {
+
     int lines = consoleOutput.getText().split("\n", -1).length;
     Platform.runLater(() -> lineCountLabel.setText("Lines: " + lines));
   }
