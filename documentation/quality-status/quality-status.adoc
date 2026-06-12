@@ -15,7 +15,7 @@ https://github.com/devonfw/IDEasy[devonfw/IDEasy].
 image::quality-status-images/issue-statistics.svg[Bar chart: open issue metrics,width=100%]
 
 
-_Generated: 2026-06-12 14:19 UTC_
+_Generated: 2026-06-12 14:23 UTC_
 
 
 == Operating System Status Files
