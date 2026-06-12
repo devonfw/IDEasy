@@ -100,12 +100,6 @@ fi
 
 "$IDEASY_CMD" ln -s "$LOCAL_DEV" "$INSTALLATION_LINK"
 
-if [ -f "$LOCAL_DEV/setup" ]; then
-  echo "Running IDEasy setup for local-dev installation..."
-  cd "$LOCAL_DEV"
-  ./setup
-fi
-
 echo "Done."
 echo "You can test it with:"
 echo "ide ..."
