@@ -8,10 +8,11 @@ DEFAULT_REPO = "IDEasy"
 # Change these values to control the generated overview:
 # - chart: "bar", "pie", or "none"
 # - show_table: True or False
+# - show_links: True or False (supported for operating_systems and issue_age)
 VISUALIZATIONS = {
     "issue_statistics": {"chart": "bar", "show_table": False},
-    "operating_systems": {"chart": "bar", "show_table": False},
-    "issue_age": {"chart": "pie", "show_table": False},
+    "operating_systems": {"chart": "bar", "show_table": False, "show_links": True},
+    "issue_age": {"chart": "pie", "show_table": False, "show_links": True},
     "functional_labels": {"chart": "bar", "show_table": False},
 }
 

@@ -49,6 +49,13 @@ set `show_table` to `True` or `False`. For example:
 "issue_age": {"chart": "pie", "show_table": True},
 ```
 
+The `operating_systems` and `issue_age` sections also support `show_links`.
+This keeps navigation links visible independently of the optional data table:
+
+```python
+"issue_age": {"chart": "pie", "show_table": False, "show_links": True},
+```
+
 Pie charts are most meaningful for mutually exclusive values such as issue age
 ranges. Issue metrics overlap, so a bar chart is usually clearer there.
 

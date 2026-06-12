@@ -47,6 +47,26 @@ def render_visualization(section: str, image_file: str, alt_text: str, table: As
     ])
 
 
+def render_os_links() -> str:
+    if not VISUALIZATIONS["operating_systems"].get("show_links", False):
+        return ""
+    return "Status files: " + " | ".join(
+        f'link:{group.output_file}[{group.name}]'
+        for group in OS_GROUPS
+    )
+
+
+def render_age_links(document: OverviewDocument) -> str:
+    if not VISUALIZATIONS["issue_age"].get("show_links", False):
+        return ""
+    links = [
+        f'<<cross-platform-{bucket_key},{title}>>'
+        for bucket_key, title, issues in document.cross_platform_table.issues_by_bucket
+        if issues
+    ]
+    return "Cross-platform issues by age: " + " | ".join(links)
+
+
 def render_overview(document: OverviewDocument) -> str:
     lines = [
         HEADER.format(title='IDEasy Quality Status').strip(),
@@ -79,6 +99,8 @@ def render_overview(document: OverviewDocument) -> str:
         '',
         'The detailed tool status is split into one generated file per operating system.',
         '',
+        render_os_links(),
+        '',
         render_visualization(
             'operating_systems',
             'operating-systems.svg',
@@ -95,6 +117,8 @@ def render_overview(document: OverviewDocument) -> str:
             'issue age distribution',
             document.age_distribution_table,
         ),
+        '',
+        render_age_links(document),
         '',
         '=== Most common functional labels',
         '',
