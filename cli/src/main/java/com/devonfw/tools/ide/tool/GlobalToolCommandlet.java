@@ -77,14 +77,24 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     return false; // None of the package manager commands were successful
   }
 
-  private void logPackageManagerCommands(PackageManagerCommand pmCommand) {
+  /**
+   * Logs the privileged commands before execution so the user knows why sudo/root permissions are requested.
+   *
+   * @param commands the privileged commands to log.
+   */
+  protected void logPrivilegedCommands(List<String> commands) {
 
     IdeLogLevel level = IdeLogLevel.INTERACTION;
     level.log(LOG, "We need to run the following privileged command(s):");
-    for (String command : pmCommand.commands()) {
+    for (String command : commands) {
       level.log(LOG, command);
     }
     level.log(LOG, "This will require root permissions!");
+  }
+
+  private void logPackageManagerCommands(PackageManagerCommand pmCommand) {
+
+    logPrivilegedCommands(pmCommand.commands());
   }
 
   /**
