@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400" viewBox="0 0 640 400" role="img">
+<rect width="640" height="400" rx="12" fill="#ffffff"/>
+<title>Open issue metrics</title>
+<text x="24" y="34" fill="#24292f" font-family="sans-serif" font-size="20" font-weight="600">Open issue metrics</text>
+<text x="138" y="83" text-anchor="end" fill="#24292f" font-family="sans-serif" font-size="14">Open Issues</text>
+<rect x="150" y="68" width="436" height="20" rx="4" fill="#f0f3f6"/>
+<rect x="150" y="68" width="436.0" height="20" rx="4" fill="#0969da"/>
+<text x="594.0" y="83" fill="#57606a" font-family="sans-serif" font-size="13" font-weight="600">176</text>
+<text x="138" y="121" text-anchor="end" fill="#24292f" font-family="sans-serif" font-size="14">Assigned</text>
+<rect x="150" y="106" width="436" height="20" rx="4" fill="#f0f3f6"/>
+<rect x="150" y="106" width="178.4" height="20" rx="4" fill="#1f883d"/>
+<text x="336.4" y="121" fill="#57606a" font-family="sans-serif" font-size="13" font-weight="600">72</text>
+<text x="138" y="159" text-anchor="end" fill="#24292f" font-family="sans-serif" font-size="14">Unassigned</text>
+<rect x="150" y="144" width="436" height="20" rx="4" fill="#f0f3f6"/>
+<rect x="150" y="144" width="257.6" height="20" rx="4" fill="#bf8700"/>
+<text x="415.6" y="159" fill="#57606a" font-family="sans-serif" font-size="13" font-weight="600">104</text>
+<text x="138" y="197" text-anchor="end" fill="#24292f" font-family="sans-serif" font-size="14">Blockers</text>
+<rect x="150" y="182" width="436" height="20" rx="4" fill="#f0f3f6"/>
+<rect x="150" y="182" width="0.0" height="20" rx="4" fill="#8250df"/>
+<text x="158.0" y="197" fill="#57606a" font-family="sans-serif" font-size="13" font-weight="600">0</text>
+<text x="138" y="235" text-anchor="end" fill="#24292f" font-family="sans-serif" font-size="14">Bugs</text>
+<rect x="150" y="220" width="436" height="20" rx="4" fill="#f0f3f6"/>
+<rect x="150" y="220" width="128.8" height="20" rx="4" fill="#cf222e"/>
+<text x="286.8" y="235" fill="#57606a" font-family="sans-serif" font-size="13" font-weight="600">52</text>
+<text x="138" y="273" text-anchor="end" fill="#24292f" font-family="sans-serif" font-size="14">Tasks</text>
+<rect x="150" y="258" width="436" height="20" rx="4" fill="#f0f3f6"/>
+<rect x="150" y="258" width="79.3" height="20" rx="4" fill="#0969da"/>
+<text x="237.3" y="273" fill="#57606a" font-family="sans-serif" font-size="13" font-weight="600">32</text>
+<text x="138" y="311" text-anchor="end" fill="#24292f" font-family="sans-serif" font-size="14">Features</text>
+<rect x="150" y="296" width="436" height="20" rx="4" fill="#f0f3f6"/>
+<rect x="150" y="296" width="227.9" height="20" rx="4" fill="#1f883d"/>
+<text x="385.9" y="311" fill="#57606a" font-family="sans-serif" font-size="13" font-weight="600">92</text>
+<text x="138" y="349" text-anchor="end" fill="#24292f" font-family="sans-serif" font-size="14">No Type</text>
+<rect x="150" y="334" width="436" height="20" rx="4" fill="#f0f3f6"/>
+<rect x="150" y="334" width="0.0" height="20" rx="4" fill="#bf8700"/>
+<text x="158.0" y="349" fill="#57606a" font-family="sans-serif" font-size="13" font-weight="600">0</text>
+</svg>

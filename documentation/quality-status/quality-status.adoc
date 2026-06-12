@@ -12,29 +12,10 @@ https://github.com/devonfw/IDEasy[devonfw/IDEasy].
 
 
 ### Issue Statistics
-[%header, cols="2,^1"]
-|===
-| Scope | Total
-| Open Issues
-| 176
-| Assigned
-| 72
-| Unassigned
-| 104
-| Blockers
-| 0
-| Bugs
-| 52
-| Tasks
-| 32
-| Features
-| 92
-| No Type
-| 0
-|===
+image::quality-status-images/issue-statistics.svg[Bar chart: open issue metrics,width=100%]
 
 
-_Generated: 2026-06-12 14:00 UTC_
+_Generated: 2026-06-12 14:19 UTC_
 
 
 == Operating System Status Files
@@ -47,72 +28,18 @@ Issues without an operating system label are treated as cross-platform.
 
 The detailed tool status is split into one generated file per operating system.
 
-[%header, cols="2,1,1,1,4"]
-|===
-| Operating System | Total | Specific | Multi | Status File
-| Windows
-| 157
-| 15
-| 0
-| link:quality-status-windows.adoc[quality-status-windows.adoc]
-| Linux
-| 149
-| 6
-| 1
-| link:quality-status-linux.adoc[quality-status-linux.adoc]
-| macOS
-| 155
-| 12
-| 1
-| link:quality-status-macos.adoc[quality-status-macos.adoc]
-|===
+image::quality-status-images/operating-systems.svg[Bar chart: issues by operating system,width=100%]
 
 == Quality Insights
 
 === Issue Age Distribution
-[%header, cols="2,^1"]
-|===
-| Age Range | Count
-| 0-10 days
-| 6
-| 11-30 days
-| 21
-| 31-60 days
-| 16
-| 61-90 days
-| 6
-| 90+ days
-| 127
-|===
+image::quality-status-images/issue-age.svg[Pie chart: issue age distribution,width=100%]
 
 === Most common functional labels
 
 Top GitHub labels based on number of issues. This statistic excludes generic labels such as bug/task/enhancement, operating-system labels, and workflow or maintenance labels (for example documentation, dependencies, or help wanted).
 
-[%header, cols="3,^1"]
-|===
-| Label | Issues
-| install
-| 19
-| GUI
-| 18
-| settings
-| 16
-| internal
-| 13
-| commandlet
-| 10
-| urls
-| 9
-| update
-| 7
-| vscode
-| 7
-| configuration
-| 6
-| docker
-| 6
-|===
+image::quality-status-images/functional-labels.svg[Bar chart: most common functional labels,width=100%]
 
 
 == Cross-platform Issues
