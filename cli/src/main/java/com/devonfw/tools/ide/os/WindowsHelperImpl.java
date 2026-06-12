@@ -75,25 +75,50 @@ public class WindowsHelperImpl implements WindowsHelper {
   }
 
   @Override
+  public WindowsAppInstallation getAppInstallationFromRegistry(String appName) {
+    String uninstallKey = findUninstallKey(appName);
+    if (uninstallKey == null) {
+      return null;
+    }
+
+    List<String> out = runReg("query", uninstallKey);
+    if (out == null) {
+      return null;
+    }
+
+    String version = retrieveRegString("DisplayVersion", out);
+    String icon = retrieveRegString("DisplayIcon", out);
+    String uninstallString = retrieveRegString("UninstallString", out);
+    String installLocation = retrieveRegString("InstallLocation", out);
+
+    return new WindowsAppInstallation(version, icon, uninstallString, installLocation);
+  }
+
+  @Deprecated(forRemoval = true)
+  @Override
   public String getDisplayVersionFromRegistry(String appName) {
     return getRegistryValueBySearch(appName, "DisplayVersion");
   }
 
+  @Deprecated(forRemoval = true)
   @Override
   public String getDisplayIconFromRegistry(String appName) {
     return getRegistryValueBySearch(appName, "DisplayIcon");
   }
 
+  @Deprecated(forRemoval = true)
   @Override
   public String getUninstallStringFromRegistry(String appName) {
     return getRegistryValueBySearch(appName, "UninstallString");
   }
 
+  @Deprecated(forRemoval = true)
   @Override
   public String getInstallLocationFromRegistry(String appName) {
     return getRegistryValueBySearch(appName, "InstallLocation");
   }
 
+  @Deprecated(forRemoval = true)
   private String getRegistryValueBySearch(String appName, String key) {
 
     String uninstallKey = findUninstallKey(appName);
