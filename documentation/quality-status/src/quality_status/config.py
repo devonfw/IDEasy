@@ -9,10 +9,10 @@ DEFAULT_REPO = "IDEasy"
 # - chart: "bar", "pie", or "none"
 # - show_table: True or False
 VISUALIZATIONS = {
-    "issue_statistics": {"chart": "none", "show_table": True},
-    "operating_systems": {"chart": "none", "show_table": True},
-    "issue_age": {"chart": "none", "show_table": True},
-    "functional_labels": {"chart": "none", "show_table": True},
+    "issue_statistics": {"chart": "bar", "show_table": False},
+    "operating_systems": {"chart": "bar", "show_table": False},
+    "issue_age": {"chart": "pie", "show_table": False},
+    "functional_labels": {"chart": "bar", "show_table": False},
 }
 
 OUTPUT_FILES = {
