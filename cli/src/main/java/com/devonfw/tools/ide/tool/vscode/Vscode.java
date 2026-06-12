@@ -32,9 +32,6 @@ public class Vscode extends IdeToolCommandlet {
   /** The {@link #getConfiguredEdition() edition} for VSCodium. */
   private static final String EDITION_VSCODIUM = "vscodium";
 
-  /** Plugin IDs collected during {@link #installPlugins} that VSCodium was unable to install. */
-  private final List<String> vscodiumUnavailablePlugins = new ArrayList<>();
-
   /**
    * The constructor.
    *
@@ -78,8 +75,8 @@ public class Vscode extends IdeToolCommandlet {
       });
       super.installPlugins(plugins, pc);
       pb.close();
-  });
-}
+    });
+  }
 
   @Override
   public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
@@ -104,17 +101,12 @@ public class Vscode extends IdeToolCommandlet {
       step.success();
       return true;
     }
-    if (EDITION_VSCODIUM.equals(getConfiguredEdition())) {
-      this.vscodiumUnavailablePlugins.add(plugin.id());
-      return false;
+    if (versionSpecified) {
+      IdeLogLevel.ERROR.log(LOG, "Failed to install plugin: {} with version: {}", plugin.name(), plugin.version());
     } else {
-      if (versionSpecified) {
-        IdeLogLevel.ERROR.log(LOG, "Failed to install plugin: {} with version: {}", plugin.name(), plugin.version());
-      } else {
-        IdeLogLevel.ERROR.log(LOG, "Failed to install plugin: {}", plugin.name());
-      }
-      return false;
+      IdeLogLevel.ERROR.log(LOG, "Failed to install plugin: {}", plugin.name());
     }
+    return false;
   }
 
   @Override
