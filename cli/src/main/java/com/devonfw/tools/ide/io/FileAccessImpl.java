@@ -968,6 +968,10 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   }
 
   private Path resolveRelativePathSecure(String entryName, Path root) {
+    // Handle ZIP entries with absolute paths (e.g. "/bin/java") by converting them to relative paths
+    if (entryName != null && entryName.startsWith("/")) {
+      entryName = entryName.substring(1);
+    }
 
     Path entryPath = root.resolve(entryName).normalize();
     return resolveRelativePathSecure(entryPath, root, entryName);
