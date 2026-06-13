@@ -19,6 +19,7 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.NativePackageManager;
@@ -98,9 +99,9 @@ public class PgAdmin extends GlobalToolCommandlet {
 
       Path targetApp = getMacApplicationsPath().resolve(PGADMIN_APP);
       if (Files.exists(targetApp) && this.context.isForceMode()) {
-        runPrivileged("/bin/rm", "-rf", targetApp.toString());
+        runWithPrivilegeFallback("/bin/rm", "-rf", targetApp.toString());
       }
-      runPrivileged("/usr/bin/ditto", sourceApp.toString(), targetApp.toString());
+      runWithPrivilegeFallback("/usr/bin/ditto", sourceApp.toString(), targetApp.toString());
       return targetApp;
     } finally {
       if (mounted) {
@@ -128,6 +129,16 @@ public class PgAdmin extends GlobalToolCommandlet {
 
     logPrivilegedCommands(List.of(toSudoCommandLine(command)));
     this.context.newProcess().executable("sudo").addArgs(command).run();
+  }
+
+  private void runWithPrivilegeFallback(String... command) {
+
+    ProcessResult result = this.context.newProcess().errorHandling(ProcessErrorHandling.NONE).executable(command[0])
+        .addArgs(Arrays.copyOfRange(command, 1, command.length)).run(ProcessMode.DEFAULT);
+    if (!result.isSuccessful()) {
+      LOG.debug("Command {} failed without elevated privileges. Retrying with sudo.", List.of(command));
+      runPrivileged(command);
+    }
   }
 
   private static String toSudoCommandLine(String... command) {
