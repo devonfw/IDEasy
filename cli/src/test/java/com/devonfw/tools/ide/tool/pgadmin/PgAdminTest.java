@@ -28,7 +28,7 @@ class PgAdminTest extends AbstractIdeContextTest {
    * @param binaryName the expected binary name.
    */
   @ParameterizedTest
-  @CsvSource({ "windows, pgadmin4", "linux, pgadmin4", "mac, pgAdmin4" })
+  @CsvSource({ "windows, pgadmin4", "linux, pgadmin4", "mac, pgAdmin 4" })
   void testGetBinaryName(String os, String binaryName) {
 
     // arrange
@@ -85,7 +85,7 @@ class PgAdminTest extends AbstractIdeContextTest {
     Path applicationsPath = tempDir.resolve("Applications");
     Path appPath = applicationsPath.resolve("pgAdmin 4.app");
     Path appBinPath = appPath.resolve("Contents").resolve("MacOS");
-    Path binary = appBinPath.resolve("pgAdmin4");
+    Path binary = appBinPath.resolve("pgAdmin 4");
     Files.createDirectories(appBinPath);
     Files.writeString(binary, "test");
     context.getFileAccess().makeExecutable(binary);

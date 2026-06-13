@@ -202,7 +202,7 @@ public class PgAdmin extends GlobalToolCommandlet {
   protected String getBinaryName() {
 
     if (this.context.getSystemInfo().isMac()) {
-      return "pgAdmin4";
+      return "pgAdmin 4";
     }
     return "pgadmin4";
   }
