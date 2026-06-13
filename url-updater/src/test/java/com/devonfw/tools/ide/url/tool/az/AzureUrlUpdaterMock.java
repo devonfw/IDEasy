@@ -20,6 +20,11 @@ public class AzureUrlUpdaterMock extends AzureUrlUpdater {
   }
 
   @Override
+  protected String getMacDownloadBaseUrl() {
+    return this.baseUrl;
+  }
+
+  @Override
   protected String doGetVersionUrl() {
 
     return this.baseUrl + "/repos/" + getGithubOrganization() + "/" + getGithubRepository() + "/git/refs/tags";
