@@ -6,8 +6,12 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+<<<<<<< feature/2005-refactor-quality-status-generator
 * https://github.com/devonfw/IDEasy/issues/1978[#1978]: Enhanced the quality status documentation
 * https://github.com/devonfw/IDEasy/issues/2005[#2005]: Refactored the quality status generator
+=======
+* https://github.com/devonfw/IDEasy/issues/1946[#1946]: Add Spyder Python IDE
+>>>>>>> main
 * https://github.com/devonfw/IDEasy/issues/1846[#1846]: Fixed macOS Gatekeeper workaround
 * https://github.com/devonfw/IDEasy/issues/1906[#1906]: Fixed `ide uninstall` failing on macOS
 * https://github.com/devonfw/IDEasy/issues/1985[#1985]: Fix path traversal errors when extracting ZIPs on Windows
