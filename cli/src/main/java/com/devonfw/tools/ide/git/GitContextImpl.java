@@ -526,6 +526,24 @@ public class GitContextImpl implements GitContext {
   protected String determineCurrentCommitId(Path repository) {
     return runGitCommandAndGetSingleOutput("Failed to get current commit id.", repository, "rev-parse", FILE_HEAD);
   }
+
+  @Override
+  public void commit(Path repository, String message) {
+
+    runGitCommand(repository, "commit", "-a", "-m", message);
+  }
+
+  @Override
+  public void tag(Path repository, String tagName) {
+
+    runGitCommand(repository, "tag", "-a", tagName, "-m", tagName);
+  }
+
+  @Override
+  public void push(Path repository) {
+
+    runGitCommand(repository, "push", "--follow-tags");
+  }
 }
 
 

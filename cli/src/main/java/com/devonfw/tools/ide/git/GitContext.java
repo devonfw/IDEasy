@@ -245,4 +245,27 @@ public interface GitContext {
    * @param trackedCommitIdPath the path to the file where the commit Id will be written.
    */
   void saveCurrentCommitId(Path repository, Path trackedCommitIdPath);
+
+  /**
+   * Commits all currently changed files (tracked) in the given repository.
+   *
+   * @param repository the {@link Path} to the git repository.
+   * @param message the commit message.
+   */
+  void commit(Path repository, String message);
+
+  /**
+   * Creates an annotated git tag in the given repository.
+   *
+   * @param repository the {@link Path} to the git repository.
+   * @param tagName the name of the tag to create (e.g. "release/1.5.0").
+   */
+  void tag(Path repository, String tagName);
+
+  /**
+   * Pushes the local commits and tags of the given repository to the remote repository.
+   *
+   * @param repository the {@link Path} to the git repository.
+   */
+  void push(Path repository);
 }
