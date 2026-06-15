@@ -98,6 +98,14 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    */
   public AbstractUrlUpdater(String downloadBaseUrl, String versionBaseUrl) {
     super();
+    if (downloadBaseUrl == null || downloadBaseUrl.isEmpty()) {
+      throw new IllegalArgumentException(
+          "Variable downloadBaseUrl can't be null or empty. Please provide valid value in UrlUpdater and UrlUpdaterTest for effected tool.");
+    }
+    if (versionBaseUrl == null || versionBaseUrl.isEmpty()) {
+      throw new IllegalArgumentException(
+          "Variable versionBaseUrl can't be null or empty. Please provide valid value in UrlUpdater and UrlUpdaterTest for effected tool.");
+    }
     this.downloadBaseUrl = downloadBaseUrl;
     this.versionBaseUrl = versionBaseUrl;
   }
