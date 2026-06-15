@@ -13,6 +13,8 @@ import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
  */
 public class AndroidStudioUrlUpdater extends JsonUrlUpdater<AndroidJsonObject, AndroidJsonItem> {
 
+  private static final String DOWNLOAD_BASE_URL = "undefined-taken-from-JSON";
+
   /** The base URL for the version json file */
   private final static String VERSION_BASE_URL = "https://jb.gg";
 
@@ -21,16 +23,20 @@ public class AndroidStudioUrlUpdater extends JsonUrlUpdater<AndroidJsonObject, A
 
   private static final Logger logger = LoggerFactory.getLogger(AndroidStudioUrlUpdater.class);
 
-  @Override
-  protected String getVersionBaseUrl() {
-
-    return VERSION_BASE_URL;
+  /**
+   * The constructor.
+   */
+  public AndroidStudioUrlUpdater() {
+    super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
   }
 
-  @Override
-  protected String getDownloadBaseUrl() {
-
-    return "undefined-taken-from-JSON";
+  /**
+   * Package-private constructor used for testing {@link AndroidStudioUrlUpdater}.
+   *
+   * @param versionBaseUrl mock url used as version base.
+   */
+  AndroidStudioUrlUpdater(String versionBaseUrl) {
+    super(DOWNLOAD_BASE_URL, versionBaseUrl);
   }
 
   @Override
@@ -81,5 +87,5 @@ public class AndroidStudioUrlUpdater extends JsonUrlUpdater<AndroidJsonObject, A
 
     return jsonObject.content().item();
   }
-  
+
 }

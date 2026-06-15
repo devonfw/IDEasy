@@ -41,7 +41,7 @@ class AwsGithubUrlTagUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(any(urlMatching("/download/.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    AwsUrlUpdaterMock updater = new AwsUrlUpdaterMock(wmRuntimeInfo);
+    AwsUrlUpdater updater = new AwsUrlUpdater(wmRuntimeInfo.getHttpBaseUrl() + "/download/", wmRuntimeInfo.getHttpBaseUrl());
 
     // act
     updater.update(urlRepository);
