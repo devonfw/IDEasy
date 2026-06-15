@@ -63,21 +63,6 @@ class WindowsHelperImplTest extends AbstractIdeContextTest {
     assertThat(result.installLocation()).isEqualTo("C:\\Program Files\\TestApp");
   }
 
-  @Test
-  @DisplayName("runReg failure makes getRegistryValue return null")
-  void testGetRegistryValueReturnsNullWhenRunRegFails() {
-    AbstractIdeTestContext context = new IdeTestContext();
-    WindowsHelperImpl helper = new WindowsHelperImpl(context) {
-      @Override
-      protected List<String> runReg(String... args) {
-        return null;
-      }
-    };
-    String value = helper.getRegistryValue("HKCU\\Environment", "ANY");
-
-    assertThat(value).isNull();
-  }
-
   /**
    * Helper method to set up the WindowsHelperMock with a test app installation and retrieve it.
    *
@@ -98,6 +83,21 @@ class WindowsHelperImplTest extends AbstractIdeContextTest {
   }
 
   @Test
+  @DisplayName("runReg failure makes getRegistryValue return null")
+  void testGetRegistryValueReturnsNullWhenRunRegFails() {
+    AbstractIdeTestContext context = new IdeTestContext();
+    WindowsHelperImpl helper = new WindowsHelperImpl(context) {
+      @Override
+      protected List<String> runReg(String... args) {
+        return null;
+      }
+    };
+    String value = helper.getRegistryValue("HKCU\\Environment", "ANY");
+
+    assertThat(value).isNull();
+  }
+
+  @Test
   @DisplayName("getAppInstallationFromRegistry returns partial installation when some keys missing")
   void testGetAppInstallationFromRegistryWithPartialFields() {
     final String app = "TestApp";
@@ -109,7 +109,8 @@ class WindowsHelperImplTest extends AbstractIdeContextTest {
         if (args.length >= 5 && "/f".equalsIgnoreCase(args[3])) {
           return List.of("HKEY_LOCAL_MACHINE\\SOFTWARE\\...\\Uninstall\\TestApp", "    DisplayName    REG_SZ    TestApp");
         }
-        // query exact uninstall key: only version + install location
+
+        // query exact 'uninstall' key: only version + install location
         if (args.length >= 2 && args[0].equalsIgnoreCase("query") && args[1].endsWith("\\Uninstall\\TestApp")) {
           return List.of(
               "HKEY_LOCAL_MACHINE\\SOFTWARE\\...\\Uninstall\\TestApp",
@@ -150,11 +151,11 @@ class WindowsHelperImplTest extends AbstractIdeContextTest {
     WindowsHelperImpl helper = new WindowsHelperImpl(context) {
       @Override
       protected List<String> runReg(String... args) {
-        // simulate search returning the uninstall key
+        // simulate search returning the 'uninstall' key
         if (args.length >= 5 && "/f".equalsIgnoreCase(args[3])) {
           return List.of("HKEY_LOCAL_MACHINE\\SOFTWARE\\...\\Uninstall\\TestApp", "    DisplayName    REG_SZ    TestApp");
         }
-        // simulate reg query failure for the exact uninstall key
+        // simulate reg query failure for the exact 'uninstall' key
         if (args.length >= 2 && args[0].equalsIgnoreCase("query") && args[1].endsWith("\\Uninstall\\TestApp")) {
           return null;
         }
