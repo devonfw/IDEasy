@@ -16,8 +16,13 @@ public class CleanupIdeToolEditionVersion {
   /** The name of this version. */
   public final String versionName;
 
+  /** The installation {@link Path} of this version. */
   private final Path path;
+
+  /** A list of project names that currently use this version. */
   private final List<String> usedBy;
+
+  /** A flag indicating whether the version is marked for deletion. */
   private boolean delete;
 
   /**

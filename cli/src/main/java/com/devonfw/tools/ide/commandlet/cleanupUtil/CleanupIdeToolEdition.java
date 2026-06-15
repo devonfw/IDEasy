@@ -17,10 +17,16 @@ public class CleanupIdeToolEdition {
   /** The name of this edition. */
   public final String editionName;
 
+  /** The installation {@link Path} of this edition. */
   private final Path path;
+
+  /** A list of project names that currently use this edition. */
   private final List<String> usedBy;
+
+  /** A flag indicating whether the edition is marked for deletion. */
   private boolean delete;
 
+  /** A list of {@link CleanupIdeToolEditionVersion versions} belonging to this edition. */
   private final List<CleanupIdeToolEditionVersion> versions;
 
   /**

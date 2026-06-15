@@ -16,10 +16,16 @@ public class CleanupIdeTool {
   /** The name of this tool. */
   public final String toolName;
 
+  /** The installation {@link Path} of this tool. */
   private final Path path;
+
+  /** A list of project names that currently use this tool. */
   private final List<String> usedBy;
+
+  /** A flag indicating whether the tool is marked for deletion. */
   private boolean delete;
 
+  /** A list of {@link CleanupIdeToolEdition editions} belonging to this tool. */
   private final List<CleanupIdeToolEdition> editions;
 
   /**
