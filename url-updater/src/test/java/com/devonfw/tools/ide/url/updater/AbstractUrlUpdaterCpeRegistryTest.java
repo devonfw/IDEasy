@@ -117,6 +117,16 @@ class AbstractUrlUpdaterCpeRegistryTest {
 
   private static class DefaultCpeUpdater extends AbstractUrlUpdater {
 
+    private static final String DOWNLOAD_BASE_URL = "https://example.org";
+    private static final String VERSION_BASE_URL = "https://example.org";
+
+    /**
+     * Package-Private constructor used for testing.
+     */
+    DefaultCpeUpdater() {
+      super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
+    }
+
     @Override
     public String getTool() {
 
@@ -135,19 +145,8 @@ class AbstractUrlUpdaterCpeRegistryTest {
       // not needed for these tests
     }
 
-    @Override
-    protected String getDownloadBaseUrl() {
-
-      return "https://example.org";
-    }
-
-    @Override
-    protected String getVersionBaseUrl() {
-
-      return "https://example.org";
-    }
   }
-  
+
   private static final class AliasedCpeUpdater extends DefaultCpeUpdater {
 
     @Override
@@ -173,26 +172,26 @@ class AbstractUrlUpdaterCpeRegistryTest {
 
       return "foo";
     }
-   }
+  }
 
-   private static final class BrokenCpeUpdater extends DefaultCpeUpdater {
+  private static final class BrokenCpeUpdater extends DefaultCpeUpdater {
 
-     @Override
-     protected void initCpe(CpeRegistry cpe) {
+    @Override
+    protected void initCpe(CpeRegistry cpe) {
 
-       // intentionally left empty
-     }
-   }
+      // intentionally left empty
+    }
+  }
 
-   private static final class JavaLikeCpeUpdater extends DefaultCpeUpdater {
+  private static final class JavaLikeCpeUpdater extends DefaultCpeUpdater {
 
-     @Override
-     protected void initCpe(CpeRegistry cpe) {
+    @Override
+    protected void initCpe(CpeRegistry cpe) {
 
-       cpe.addVendor("oracle")
-           .addProduct("jdk")
-           .addProduct("java_se");
-     }
-   }
+      cpe.addVendor("oracle")
+          .addProduct("jdk")
+          .addProduct("java_se");
+    }
+  }
 }
 
