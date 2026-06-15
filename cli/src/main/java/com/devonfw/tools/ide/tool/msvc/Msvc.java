@@ -33,7 +33,7 @@ public class Msvc extends LocalToolCommandlet {
       return super.installTool(request);
     }
     LOG.trace("Skipping msvc installation that is only available on Windows.");
-    return null;
+    return createExistingToolInstallation(request);
   }
 
   @Override
