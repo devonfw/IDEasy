@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1956[#1956]: Merging MAVEN_ARGS buggy
 * https://github.com/devonfw/IDEasy/issues/1978[#1978]: Enhanced the quality status documentation
 * https://github.com/devonfw/IDEasy/issues/1946[#1946]: Add Spyder Python IDE
 * https://github.com/devonfw/IDEasy/issues/1846[#1846]: Fixed macOS Gatekeeper workaround
