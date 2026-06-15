@@ -116,4 +116,19 @@ public class GitContextMock implements GitContext {
   public void saveCurrentCommitId(Path repository, Path trackedCommitIdPath) {
 
   }
+
+  @Override
+  public void commit(Path repository, String message) {
+
+  }
+
+  @Override
+  public void tag(Path repository, String tagName) {
+
+  }
+
+  @Override
+  public void push(Path repository) {
+
+  }
 }
