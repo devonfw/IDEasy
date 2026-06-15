@@ -58,6 +58,7 @@ import com.devonfw.tools.ide.tool.python.Python;
 import com.devonfw.tools.ide.tool.quarkus.Quarkus;
 import com.devonfw.tools.ide.tool.sonar.Sonar;
 import com.devonfw.tools.ide.tool.spring.Spring;
+import com.devonfw.tools.ide.tool.spyder.Spyder;
 import com.devonfw.tools.ide.tool.squirrelsql.SquirrelSql;
 import com.devonfw.tools.ide.tool.task.Task;
 import com.devonfw.tools.ide.tool.terraform.Terraform;
@@ -163,6 +164,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Go(context));
     add(new Gui(context));
     add(new SquirrelSql(context));
+    add(new Spyder(context));
     add(new Nest(context));
     add(new Cdk(context));
     add(new Claude(context));
