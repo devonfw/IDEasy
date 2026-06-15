@@ -17,13 +17,14 @@ The implementation is intentionally split into small modules:
 
 ## Why GraphQL?
 
-GitHub's GraphQL API allows the generator to fetch the exact issue fields it needs in a single query, including `issueType`, labels, assignee counts, and pagination metadata.
+GitHub's GraphQL API allows the generator to fetch the exact issue fields it needs in a single query, including `issueType`, labels, assignee counts, and
+pagination metadata.
 
 ## Usage
 
 ```bash
 export GITHUB_TOKEN=<your_token>
-python generate_quality_status.py --owner devonfw --repo IDEasy --output-dir generated-quality-status
+python documentation\quality-status\src\generate_quality_status.py
 ```
 
 From PowerShell, regenerate the checked-in documentation with:
@@ -31,7 +32,7 @@ From PowerShell, regenerate the checked-in documentation with:
 ```powershell
 cd documentation/quality-status/src
 $env:GITHUB_TOKEN = "<your-token>"
-python generate_quality_status.py --owner devonfw --repo IDEasy --output-dir ..
+python documentation\quality-status\src\generate_quality_status.py
 ```
 
 The `--output-dir ..` part is important: without it, the files are written to
