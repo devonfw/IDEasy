@@ -20,15 +20,15 @@
 <rect width="640" height="300" rx="12" fill="var(--chart-background)"/>
 <title>Issue age</title>
 <text x="24" y="34" fill="var(--chart-text)" font-family="sans-serif" font-size="20" font-weight="600">Issue age</text>
-<path d="M 170.0 164.0 L 170.0 64.0 A 100.0 100.0 0 0 1 187.8 65.6 Z" fill="#0969da"/>
+<path d="M 170.0 164.0 L 170.0 64.0 A 100.0 100.0 0 0 1 191.3 66.3 Z" fill="#0969da"/>
 <rect x="330" y="66" width="14" height="14" rx="2" fill="#0969da"/>
-<text x="354" y="78" fill="var(--chart-text)" font-family="sans-serif" font-size="13">0-10 days: 5 (2.8%)</text>
-<path d="M 170.0 164.0 L 187.8 65.6 A 100.0 100.0 0 0 1 243.2 95.9 Z" fill="#1f883d"/>
+<text x="354" y="78" fill="var(--chart-text)" font-family="sans-serif" font-size="13">0-10 days: 6 (3.4%)</text>
+<path d="M 170.0 164.0 L 191.3 66.3 A 100.0 100.0 0 0 1 245.6 98.5 Z" fill="#1f883d"/>
 <rect x="330" y="96" width="14" height="14" rx="2" fill="#1f883d"/>
 <text x="354" y="108" fill="var(--chart-text)" font-family="sans-serif" font-size="13">11-30 days: 18 (10.2%)</text>
-<path d="M 170.0 164.0 L 243.2 95.9 A 100.0 100.0 0 0 1 269.9 160.4 Z" fill="#bf8700"/>
+<path d="M 170.0 164.0 L 245.6 98.5 A 100.0 100.0 0 0 1 269.9 160.4 Z" fill="#bf8700"/>
 <rect x="330" y="126" width="14" height="14" rx="2" fill="#bf8700"/>
-<text x="354" y="138" fill="var(--chart-text)" font-family="sans-serif" font-size="13">31-60 days: 20 (11.4%)</text>
+<text x="354" y="138" fill="var(--chart-text)" font-family="sans-serif" font-size="13">31-60 days: 19 (10.8%)</text>
 <path d="M 170.0 164.0 L 269.9 160.4 A 100.0 100.0 0 0 1 268.4 181.8 Z" fill="#8250df"/>
 <rect x="330" y="156" width="14" height="14" rx="2" fill="#8250df"/>
 <text x="354" y="168" fill="var(--chart-text)" font-family="sans-serif" font-size="13">61-90 days: 6 (3.4%)</text>
