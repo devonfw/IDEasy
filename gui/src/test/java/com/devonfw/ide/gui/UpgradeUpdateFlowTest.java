@@ -2,12 +2,15 @@ package com.devonfw.ide.gui;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.text.MessageFormat;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.shape.Circle;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -55,27 +58,14 @@ public class UpgradeUpdateFlowTest extends HeadlessApplicationTest {
         }
       };
 
-      UpgradeController testUpgradeController = new UpgradeController(IdeGuiStateManager.getInstance()) {
-        private boolean upgraded = false;
-
-        @Override
-        protected void performUpgrade() {
-          this.upgraded = true;
-        }
-
-        @Override
-        protected boolean checkForUpgrade() {
-          return !this.upgraded;
-        }
-      };
+      UpgradeController testUpgradeController = new UpgradeController(IdeGuiStateManager.getInstance());
 
       TestGuiSetup.setupStageWithControllers(stage, mockIdeRoot, testUpdateController, testUpgradeController);
     }
 
     @Test
     public void testUpdateAvailableAndCompletes() throws InterruptedException {
-      Label status = lookup("#updateStatusLabel").queryAs(Label.class);
-      Button update = lookup("#updateButton").queryAs(Button.class);
+      StackPane indicator = lookup("#updateIndicator").queryAs(StackPane.class);
       @SuppressWarnings("unchecked")
       ComboBox<String> selectedProject = (ComboBox<String>) lookup("#selectedProject").queryAs(ComboBox.class);
       @SuppressWarnings("unchecked")
@@ -90,14 +80,26 @@ public class UpgradeUpdateFlowTest extends HeadlessApplicationTest {
       interact(() -> selectedProject.getSelectionModel().select("project-1"));
       interact(() -> selectedWorkspace.getSelectionModel().select("main"));
 
-      // Automatic check runs and reports availability
-      TestGuiSetup.waitForCondition(() -> availableStatus.equals(status.getText()), 5000);
+      // Automatic check runs and reports availability via the indicator
+      TestGuiSetup.waitForCondition(indicator::isVisible, 5000);
+
+      Tooltip tooltip = extractTooltip(indicator);
+      Assertions.assertNotNull(tooltip);
+      Assertions.assertEquals(i18n.get("tooltip.update.available"), tooltip.getText());
+
+      clickOn(indicator);
+
+      TestGuiSetup.waitForCondition(() -> lookup("#upgradeButton").tryQuery().isPresent(), 3000);
+      TestGuiSetup.waitForCondition(() -> availableStatus.equals(lookup("#statusLabel").queryAs(Label.class).getText()), 5000);
+      Button update = lookup("#upgradeButton").queryAs(Button.class);
+      TestGuiSetup.waitForCondition(() -> i18n.get("button.update").equals(update.getText()), 3000);
+      TestGuiSetup.waitForCondition(() -> !update.isDisabled(), 3000);
 
       interact(update::fire);
 
       // After update, should show completed, then recheck should show up to date
-      TestGuiSetup.waitForCondition(() -> completedStatus.equals(status.getText()), 3000);
-      TestGuiSetup.waitForCondition(() -> upToDateStatus.equals(status.getText()), 3000);
+      TestGuiSetup.waitForCondition(() -> completedStatus.equals(lookup("#statusLabel").queryAs(Label.class).getText()), 3000);
+      TestGuiSetup.waitForCondition(() -> upToDateStatus.equals(lookup("#statusLabel").queryAs(Label.class).getText()), 3000);
     }
 
   }
@@ -126,18 +128,16 @@ public class UpgradeUpdateFlowTest extends HeadlessApplicationTest {
 
     @Test
     public void testUpdateShowsUpToDateWhenNoUpdateAvailable() throws InterruptedException {
-      Label status = lookup("#updateStatusLabel").queryAs(Label.class);
+      StackPane indicator = lookup("#updateIndicator").queryAs(StackPane.class);
       @SuppressWarnings("unchecked")
       ComboBox<String> selectedProject = (ComboBox<String>) lookup("#selectedProject").queryAs(ComboBox.class);
       @SuppressWarnings("unchecked")
       ComboBox<String> selectedWorkspace = (ComboBox<String>) lookup("#selectedWorkspace").queryAs(ComboBox.class);
 
-      String expected = I18nService.getInstance().get("status.update.upToDate");
-
       interact(() -> selectedProject.getSelectionModel().select("project-1"));
       interact(() -> selectedWorkspace.getSelectionModel().select("main"));
 
-      TestGuiSetup.waitForCondition(() -> expected.equals(status.getText()), 3000);
+      TestGuiSetup.waitForCondition(() -> !indicator.isVisible(), 3000);
     }
 
   }
@@ -155,19 +155,7 @@ public class UpgradeUpdateFlowTest extends HeadlessApplicationTest {
 
     @Override
     public void start(Stage stage) throws IOException {
-      UpdateController testUpdateController = new UpdateController(IdeGuiStateManager.getInstance()) {
-        private boolean updated = false;
-
-        @Override
-        protected void performProjectUpdate(IdeGuiContext context) {
-          this.updated = true;
-        }
-
-        @Override
-        protected boolean checkForUpdates(IdeGuiContext context) {
-          return (context != null) && !this.updated;
-        }
-      };
+      UpdateController testUpdateController = new UpdateController(IdeGuiStateManager.getInstance());
 
       UpgradeController testUpgradeController = new UpgradeController(IdeGuiStateManager.getInstance()) {
         private boolean upgraded = false;
@@ -188,7 +176,10 @@ public class UpgradeUpdateFlowTest extends HeadlessApplicationTest {
 
     @Test
     public void testUpgradeAvailableAndCompletes() throws InterruptedException {
-      Circle indicator = lookup("#upgradeIndicator").queryAs(Circle.class);
+      StackPane indicator = lookup("#upgradeIndicator").queryAs(StackPane.class);
+
+      I18nService i18n = I18nService.getInstance();
+      String availableStatus = MessageFormat.format(i18n.get("status.upgrade.available"), "", "");
 
       // 1. Wait for indicator to become visible (indicates upgrade available)
       TestGuiSetup.waitForCondition(indicator::isVisible, 5000);
@@ -199,8 +190,11 @@ public class UpgradeUpdateFlowTest extends HeadlessApplicationTest {
       // 3. Wait for dialog to open and get the upgrade button
       TestGuiSetup.waitForCondition(() -> lookup("#upgradeButton").tryQuery().isPresent(), 3000);
       Button upgradeButton = lookup("#upgradeButton").queryAs(Button.class);
+      Label upgradeStatus = lookup("#statusLabel").queryAs(Label.class);
 
       // 4. Verify button is enabled (indicating upgrade is available)
+      String upgradeStatusText = upgradeStatus.getText();
+      TestGuiSetup.waitForCondition(() -> availableStatus.equals(upgradeStatusText), 3000);
       TestGuiSetup.waitForCondition(() -> !upgradeButton.isDisabled(), 3000);
 
       // 5. Click the upgrade button
@@ -236,10 +230,14 @@ public class UpgradeUpdateFlowTest extends HeadlessApplicationTest {
 
     @Test
     public void testUpgradeIndicatorHiddenWhenNoUpgradeAvailable() throws InterruptedException {
-      Circle indicator = lookup("#upgradeIndicator").queryAs(Circle.class);
+      StackPane indicator = lookup("#upgradeIndicator").queryAs(StackPane.class);
 
       // Wait for check to complete then verify indicator is not visible
       TestGuiSetup.waitForCondition(() -> !indicator.isVisible(), 5000);
     }
+  }
+
+  private Tooltip extractTooltip(StackPane node) {
+    return node.getProperties().values().stream().filter(Tooltip.class::isInstance).map(Tooltip.class::cast).findFirst().orElse(null);
   }
 }

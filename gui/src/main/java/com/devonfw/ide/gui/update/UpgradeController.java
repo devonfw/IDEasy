@@ -10,7 +10,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
-import javafx.scene.shape.Circle;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
@@ -50,7 +50,7 @@ public class UpgradeController {
   private final IdeGuiStateManager manager;
   private final I18nService i18n = I18nService.getInstance();
 
-  private Circle upgradeIndicator;
+  private StackPane upgradeIndicator;
   private Stage dialogStage;
 
   // Dialog FXML fields
@@ -72,7 +72,7 @@ public class UpgradeController {
     this.manager = manager;
   }
 
-  public void start(Circle upgradeIndicator) {
+  public void start(StackPane upgradeIndicator) {
     this.upgradeIndicator = upgradeIndicator;
     setStatusKey(STATUS_KEY_CHECKING);
     // indicator initially hidden until check completes
@@ -82,6 +82,7 @@ public class UpgradeController {
         Tooltip.install(this.upgradeIndicator, new Tooltip(i18n.get(TOOLTIP_UPGRADE_AVAILABLE)));
         // click handled by this controller
         this.upgradeIndicator.setOnMouseClicked(ev -> {
+          ev.consume();
           Platform.runLater(this::showDialog);
         });
       }

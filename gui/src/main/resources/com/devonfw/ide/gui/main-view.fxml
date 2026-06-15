@@ -16,7 +16,7 @@
             <Insets bottom="10.0"/>
           </VBox.margin>
           <children>
-            <!-- Wrap logo in a StackPane so we can overlay a circular upgrade indicator in the top-right corner -->
+            <!-- Wrap logo in a StackPane so we can overlay an upgrade indicator in the top-right corner -->
             <StackPane>
               <children>
                 <ImageView fx:id="logoImage" fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
@@ -24,23 +24,41 @@
                     <Image url="@assets/logo.png"/>
                   </image>
                 </ImageView>
-                <!-- small circular status indicator, initially hidden -->
-                <Circle fx:id="upgradeIndicator" radius="7.0" fill="#FFC107" stroke="#B58900" strokeWidth="1.0" visible="false" pickOnBounds="true"
-                  StackPane.alignment="TOP_RIGHT" translateX="9.0" translateY="-5.0">
+                <!-- small status indicator, initially hidden -->
+                <StackPane fx:id="upgradeIndicator" prefHeight="20.0" prefWidth="20.0" translateX="100" translateY="-15" pickOnBounds="true" visible="false"
+                  StackPane.alignment="TOP_RIGHT">
+                  <children>
+                    <Circle radius="10.0" fill="#BF362C"/>
+                    <Circle radius="8.0" fill="#F7CA41"/>
+                    <Label text="!" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #BF362C;"/>
+                  </children>
                   <StackPane.margin>
-                    <Insets top="6.0" right="6.0"/>
+                    <Insets top="2.0" right="2.0"/>
                   </StackPane.margin>
-                </Circle>
+                </StackPane>
               </children>
-              <!-- alignment set per-child using StackPane.alignment on the indicator -->
             </StackPane>
           </children>
         </HBox>
         <VBox maxHeight="-Infinity" prefWidth="100.0" styleClass="sideNavigationElement">
           <children>
             <Label fx:id="labelProject" maxWidth="1.7976931348623157E308" text="%label.project"/>
-            <ComboBox fx:id="selectedProject" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefHeight="40.0" prefWidth="150.0"
-              promptText="%prompt.chooseProject" styleClass="chooseProject"/>
+            <StackPane>
+              <children>
+                <ComboBox fx:id="selectedProject" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefHeight="40.0" prefWidth="150.0"
+                  promptText="%prompt.chooseProject" styleClass="chooseProject"/>
+                <StackPane fx:id="updateIndicator" prefHeight="24.0" prefWidth="24.0" translateX="100" translateY="-50" visible="false"
+                  StackPane.alignment="TOP_RIGHT" pickOnBounds="false" style="-fx-cursor: hand;">
+                  <children>
+                    <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
+                      <image>
+                        <Image url="@assets/update.png"/>
+                      </image>
+                    </ImageView>
+                  </children>
+                </StackPane>
+              </children>
+            </StackPane>
           </children>
           <padding>
             <Insets left="8.0" right="8.0"/>
@@ -193,36 +211,6 @@
                 </Button>
               </children>
             </VBox>
-            <!-- Update Card -->
-            <HBox GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="2"
-              spacing="20.0"
-              styleClass="ideElement"
-              stylesheets="@style/center.css"
-              HBox.hgrow="ALWAYS"
-              alignment="CENTER_LEFT"
-              style="-fx-background-color: #E0E3EA; -fx-background-radius: 16; -fx-border-color: #C8CCD4; -fx-border-width: 1; -fx-border-radius: 16; -fx-padding: 14 20 14 20;"
-            >
-              <children>
-                <ImageView fitHeight="48.0" fitWidth="48.0" pickOnBounds="true" preserveRatio="true">
-                  <image>
-                    <Image url="@assets/update.png"/>
-                  </image>
-                  <HBox.margin>
-                    <Insets left="6.0"/>
-                  </HBox.margin>
-                </ImageView>
-                <Label fx:id="updateStatusLabel" style="-fx-font-size: 15px; -fx-font-weight: 600; -fx-text-fill: #2C2C2C;"
-                  text="%status.update.selectProject"/>
-                <HBox alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">
-                  <children>
-                    <Button fx:id="updateButton" mnemonicParsing="false" text="%button.update" onAction="#onUpdateClicked"
-                      styleClass="launchButton"
-                      style="-fx-padding: 8 24 8 24; -fx-font-size: 13px; -fx-background-color: #4CAF50; -fx-text-fill: white; -fx-background-radius: 8; -fx-border-radius: 8;">
-                    </Button>
-                  </children>
-                </HBox>
-              </children>
-            </HBox>
           </children>
         </GridPane>
       </children>

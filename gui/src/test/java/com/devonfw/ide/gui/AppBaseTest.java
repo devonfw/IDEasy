@@ -10,6 +10,7 @@ import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.stage.Stage;
+import javafx.scene.layout.StackPane;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -29,9 +30,9 @@ public class AppBaseTest extends HeadlessApplicationTest {
   private static final Logger LOGGER = LoggerFactory.getLogger(AppBaseTest.class);
 
   private Button androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen;
-  private Button updateButton;
   private ComboBox<String> selectedProject, selectedWorkspace;
   private ComboBox<String> selectedLanguage;
+  private StackPane updateIndicator;
 
   @TempDir
   private static Path mockIdeRoot;
@@ -48,10 +49,10 @@ public class AppBaseTest extends HeadlessApplicationTest {
     eclipseOpen = lookup(root, "#eclipseOpen");
     intellijOpen = lookup(root, "#intellijOpen");
     vsCodeOpen = lookup(root, "#vsCodeOpen");
-    updateButton = lookup(root, "#updateButton");
     selectedProject = lookup(root, "#selectedProject");
     selectedWorkspace = lookup(root, "#selectedWorkspace");
     selectedLanguage = lookup(root, "#selectedLanguage");
+    updateIndicator = lookup(root, "#updateIndicator");
   }
 
   /**
@@ -85,14 +86,14 @@ public class AppBaseTest extends HeadlessApplicationTest {
   }
 
   /**
-   * This test ensures that the update button is disabled when no project/workspace is selected.
+   * This test ensures that the update indicator is hidden when no project/workspace is selected.
    */
   @Test
-  public void testUpdateButtonDisabledWhenNoWorkspaceSelected() {
+  public void testUpdateIndicatorHiddenWhenNoWorkspaceSelected() {
 
-    assertThat(updateButton.isDisabled())
-        .as("update button should be disabled when no workspace has been selected")
-        .isTrue();
+    assertThat(updateIndicator.isVisible())
+        .as("update indicator should be hidden when no workspace has been selected")
+        .isFalse();
   }
 
   /**
@@ -112,17 +113,15 @@ public class AppBaseTest extends HeadlessApplicationTest {
   }
 
   /**
-   * This test ensures that the update button is enabled when a project/workspace is selected.
+   * This test ensures that the update indicator becomes visible when a project/workspace is selected.
    */
   @Test
-  public void testUpdateButtonEnabledWhenWorkspaceSelected() {
+  public void testUpdateIndicatorVisibleWhenWorkspaceSelected() throws InterruptedException {
 
     interact(() -> selectedProject.getSelectionModel().select("project-1"));
     interact(() -> selectedWorkspace.getSelectionModel().select("main"));
 
-    assertThat(updateButton.isDisabled())
-        .as("update button should be enabled when a workspace has been selected")
-        .isFalse();
+    TestGuiSetup.waitForCondition(updateIndicator::isVisible, 5000);
   }
 
   /**

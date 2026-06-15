@@ -8,7 +8,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.shape.Circle;
+import javafx.scene.layout.StackPane;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,13 +64,10 @@ public class MainController {
   private Button vsCodeOpen;
 
   @FXML
-  private Circle upgradeIndicator;
+  private StackPane updateIndicator;
 
   @FXML
-  private Button updateButton;
-
-  @FXML
-  private Label updateStatusLabel;
+  private StackPane upgradeIndicator;
 
   private final UpdateController updateController;
 
@@ -117,20 +114,19 @@ public class MainController {
 
   private void initUpgradeAndUpdateCheck() {
     try {
-      this.updateController.start(updateStatusLabel, updateButton);
+      this.updateController.start(this.updateIndicator);
       if (this.upgradeController != null) {
         // Pass the indicator to the upgrade controller which will manage its visibility and dialog.
         this.upgradeController.start(this.upgradeIndicator);
       }
     } catch (Exception e) {
       LOG.debug("Failed to start update controller", e);
-      updateStatusLabel.setText(I18nService.getInstance().get("status.update.unavailable"));
-      updateButton.setDisable(true);
-      if (this.upgradeController != null) {
+      if (this.updateIndicator != null) {
+        this.updateIndicator.setVisible(false);
+      }
+      if (this.upgradeController != null && this.upgradeIndicator != null) {
         // if upgrade controller failed to start, ensure indicator hidden
-        if (this.upgradeIndicator != null) {
-          this.upgradeIndicator.setVisible(false);
-        }
+        this.upgradeIndicator.setVisible(false);
       }
     }
   }
@@ -182,7 +178,6 @@ public class MainController {
     eclipseOpen.setText(i18n.get("button.open"));
     intellijOpen.setText(i18n.get("button.open"));
     vsCodeOpen.setText(i18n.get("button.open"));
-    updateButton.setText(i18n.get("button.update"));
 
     if (this.updateController != null) {
       this.updateController.refreshStatusText();
@@ -217,12 +212,6 @@ public class MainController {
     openIDE("vscode");
   }
 
-  @FXML
-  private void onUpdateClicked() {
-    if (this.updateController != null) {
-      this.updateController.onUpdateClicked();
-    }
-  }
 
 
   private void setProjectsComboBox() {

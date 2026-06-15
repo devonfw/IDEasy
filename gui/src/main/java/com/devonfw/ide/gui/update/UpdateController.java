@@ -2,10 +2,20 @@ package com.devonfw.ide.gui.update;
 
 import java.nio.file.Path;
 import javafx.animation.PauseTransition;
+import javafx.application.Platform;
 import javafx.concurrent.Task;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
+
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +56,8 @@ public class UpdateController {
 
   private static final String TRAY_KEY_CAPTION = "tray.update.caption";
   private static final String TRAY_KEY_TEXT = "tray.update.text";
+  private static final String TOOLTIP_KEY_AVAILABLE = "tooltip.update.available";
+  private static final String BUTTON_KEY_UPDATE = "button.update";
 
 
   private static final double POST_UPDATE_RECHECK_DELAY_MILLIS = 500d;
@@ -53,8 +65,14 @@ public class UpdateController {
   private final IdeGuiStateManager manager;
   private final I18nService i18n = I18nService.getInstance();
 
-  private Label updateStatusLabel;
-  private Button updateButton;
+  private StackPane updateIndicator;
+  private Stage dialogStage;
+
+  @FXML
+  private Label statusLabel;
+
+  @FXML
+  private Button upgradeButton;
 
   private IdeGuiContext currentContext;
 
@@ -77,21 +95,32 @@ public class UpdateController {
 
 
   /**
-   * Start the update controller: wire UI state and initialize the status based on the current project context.
+   * Start the update controller: wire the indicator and initialize the status based on the current project context.
    *
-   * @param updateStatusLabel label to show status messages
-   * @param updateButton button that will trigger update action
+   * @param updateIndicator the indicator shown next to the project combo box
    */
-  public void start(Label updateStatusLabel, Button updateButton) {
-    this.updateStatusLabel = updateStatusLabel;
-    this.updateButton = updateButton;
+  public void start(StackPane updateIndicator) {
+    this.updateIndicator = updateIndicator;
+    try {
+      if (this.updateIndicator != null) {
+        this.updateIndicator.setVisible(false);
+        Tooltip.install(this.updateIndicator, new Tooltip(i18n.get(TOOLTIP_KEY_AVAILABLE)));
+        this.updateIndicator.setOnMouseClicked(ev -> {
+          ev.consume();
+          Platform.runLater(this::showDialog);
+        });
+      }
+    } catch (Throwable t) {
+      LOG.debug("Failed to initialize update indicator", t);
+    }
     onContextChanged(this.manager.getCurrentContext());
   }
 
   /**
-   * Called when the user clicks the update button in the UI.
+   * Called when the user clicks the update button in the shared dialog.
    */
-  public void onUpdateClicked() {
+  @FXML
+  private void onUpgradeClicked() {
     IdeGuiContext context = this.currentContext;
     if (context == null) {
       setStatusKey(STATUS_KEY_SELECT_PROJECT);
@@ -161,6 +190,9 @@ public class UpdateController {
     if (currentContext == null) {
       setStatusKey(STATUS_KEY_SELECT_PROJECT);
       setUpdateButtonDisabled(true);
+      if (this.updateIndicator != null) {
+        this.updateIndicator.setVisible(false);
+      }
       return;
     }
 
@@ -176,6 +208,16 @@ public class UpdateController {
   public void refreshStatusText() {
 
     setStatusText(resolveStatusText());
+    try {
+      if (this.updateIndicator != null) {
+        Tooltip.install(this.updateIndicator, new Tooltip(i18n.get(TOOLTIP_KEY_AVAILABLE)));
+      }
+      if (this.upgradeButton != null) {
+        this.upgradeButton.setText(i18n.get(BUTTON_KEY_UPDATE));
+      }
+    } catch (Throwable t) {
+      LOG.debug("Failed to refresh update status text", t);
+    }
   }
 
   /**
@@ -262,6 +304,9 @@ public class UpdateController {
     }
 
     setUpdateButtonDisabled(!updateAvailable);
+    if (this.updateIndicator != null) {
+      this.updateIndicator.setVisible(updateAvailable);
+    }
 
     if (updateAvailable) {
       showTrayNotification();
@@ -328,14 +373,14 @@ public class UpdateController {
   }
 
   private void setStatusText(String text) {
-    if (this.updateStatusLabel != null) {
-      this.updateStatusLabel.setText(text);
+    if (this.statusLabel != null) {
+      this.statusLabel.setText(text);
     }
   }
 
   private void setUpdateButtonDisabled(boolean disabled) {
-    if (this.updateButton != null) {
-      this.updateButton.setDisable(disabled);
+    if (this.upgradeButton != null) {
+      this.upgradeButton.setDisable(disabled);
     }
   }
 
@@ -347,10 +392,49 @@ public class UpdateController {
 
   private void showTrayNotification() {
     try {
-      TrayNotificationService.show(this.i18n.get(TRAY_KEY_CAPTION), this.i18n.get(TRAY_KEY_TEXT), null);
+      TrayNotificationService.show(this.i18n.get(TRAY_KEY_CAPTION), this.i18n.get(TRAY_KEY_TEXT), () -> Platform.runLater(this::showDialog));
     } catch (Throwable t) {
       LOG.debug("Failed to show tray notification", t);
     }
+  }
+
+  private void showDialog() {
+    try {
+      if (this.dialogStage == null) {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/devonfw/ide/gui/upgrade-dialog.fxml"));
+        loader.setResources(i18n.getResourceBundle());
+        loader.setController(this);
+        Parent root = loader.load();
+
+        this.dialogStage = new Stage();
+        this.dialogStage.setTitle(i18n.get(TRAY_KEY_CAPTION));
+        this.dialogStage.initModality(Modality.APPLICATION_MODAL);
+        this.dialogStage.setScene(new Scene(root));
+        this.dialogStage.setWidth(420);
+        this.dialogStage.setHeight(160);
+        this.dialogStage.setMinWidth(360);
+        this.dialogStage.setMinHeight(140);
+        this.dialogStage.setResizable(true);
+      }
+
+      updateDialogStatus();
+      if (this.upgradeButton != null) {
+        this.upgradeButton.setText(i18n.get(BUTTON_KEY_UPDATE));
+        this.upgradeButton.setDisable(!STATUS_KEY_AVAILABLE.equals(this.currentStatusKey));
+      }
+
+      if (this.dialogStage.isShowing()) {
+        this.dialogStage.toFront();
+      } else {
+        this.dialogStage.show();
+      }
+    } catch (Throwable t) {
+      LOG.debug("Failed to show update dialog", t);
+    }
+  }
+
+  private void updateDialogStatus() {
+    setStatusText(resolveStatusText());
   }
 
   private void scheduleDelayedRecheck() {
