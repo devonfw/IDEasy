@@ -1,9 +1,6 @@
 name: Update quality status documents
 
 on:
-  push:
-    branches:
-      - feature/2005-refactor-quality-status-generator
   workflow_dispatch:
   schedule:
     - cron: "0 6 * * 1"
