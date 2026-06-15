@@ -36,7 +36,7 @@ public class App extends Application {
 
     try {
       I18nService.getInstance(null);
-      applyVersionOverrideFromConfig();
+      TestGuiConfiguration.applyConfigOverrides();
 
       Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
             LOG.error("Uncaught exception in thread {}: {}", thread.getName(), throwable.getMessage(), throwable);
@@ -70,18 +70,6 @@ public class App extends Application {
       new IdeDialog(IdeDialog.AlertType.ERROR, "Failed to start IDEasy GUI: " + t.getMessage()).showAndWait();
     }
   }
-
-  public static void applyVersionOverrideFromConfig() {
-
-    String versionOverride = System.getenv("IDE_VERSION");
-    if ((versionOverride == null) || versionOverride.isBlank()) {
-      versionOverride = System.getProperty("IDE_VERSION");
-    }
-    if ((versionOverride != null) && !versionOverride.isBlank()) {
-      IdeVersion.setMockVersionForTesting(versionOverride.trim());
-    }
-  }
-
 
   @SuppressWarnings("MissingJavadoc")
   public static void main(String[] args) {

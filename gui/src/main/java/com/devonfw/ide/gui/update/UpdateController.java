@@ -30,6 +30,9 @@ public class UpdateController {
   private static final String THREAD_UPDATE_CHECKER = "ide-gui-update-checker";
   private static final String THREAD_UPDATE_RUNNER = "ide-gui-update-runner";
 
+  // Mock override for testing: if set (non-null), checkForUpdates will return this value instead of performing real checks
+  private static Boolean mockUpdateAvailable = null;
+
   private static final String STATUS_KEY_SELECT_PROJECT = "status.update.selectProject";
   private static final String STATUS_KEY_CHECKING = "status.update.checking";
   private static final String STATUS_KEY_AVAILABLE = "status.update.available";
@@ -61,6 +64,17 @@ public class UpdateController {
   public UpdateController(IdeGuiStateManager manager) {
     this.manager = manager;
   }
+
+  /**
+   * Sets a mock update availability for testing. If set to a non-null value, {@link #checkForUpdates(IdeGuiContext)} will return that value instead of
+   * performing real update checks. Pass null to disable the mock and use real checks.
+   *
+   * @param available true to indicate update is available, false for no update, null to disable mock
+   */
+  public static void setMockUpdateAvailable(Boolean available) {
+    mockUpdateAvailable = available;
+  }
+
 
   /**
    * Start the update controller: wire UI state and initialize the status based on the current project context.
@@ -206,11 +220,18 @@ public class UpdateController {
 
   /**
    * Default implementation that performs the real checks. Tests can override this to make update checks deterministic.
+   * <p>
+   * If {@link #setMockUpdateAvailable(Boolean)} was called with a non-null value, that value is returned instead of performing real checks.
    *
    * @param context the current project context.
    * @return true if any project update is available, false otherwise
    */
   protected boolean checkForUpdates(IdeGuiContext context) {
+
+    // If mock is set (for testing)
+    if (mockUpdateAvailable != null) {
+      return mockUpdateAvailable;
+    }
 
     if (context == null) {
       return false;

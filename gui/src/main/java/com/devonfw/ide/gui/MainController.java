@@ -34,6 +34,9 @@ public class MainController {
   private ComboBox<String> selectedProject;
 
   @FXML
+  private Label projectHeaderLabel;
+
+  @FXML
   private ComboBox<String> selectedWorkspace;
 
   @FXML
@@ -236,6 +239,9 @@ public class MainController {
       setWorkspaceComboBox();
 
       selectedWorkspace.setDisable(false);
+    });
+    selectedProject.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+      projectHeaderLabel.setText(newVal != null ? newVal : "");
     });
   }
 

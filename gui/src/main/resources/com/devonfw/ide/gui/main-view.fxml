@@ -5,22 +5,9 @@
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.Circle?>
-<?import java.lang.Double?>
 <BorderPane fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" prefHeight="515.0" prefWidth="817.0"
   xmlns="http://javafx.com/javafx/25.0.0"
   xmlns:fx="http://javafx.com/fxml/1">
-  <top>
-    <HBox alignment="CENTER_RIGHT" spacing="8.0" BorderPane.alignment="CENTER">
-      <children>
-        <!-- Upgrade status replaced by indicator; UpgradeController manages status and dialog -->
-        <Label fx:id="updateStatusLabel" text="%status.update.selectProject"/>
-        <Button fx:id="updateButton" mnemonicParsing="false" text="%button.update" onAction="#onUpdateClicked"/>
-      </children>
-      <padding>
-        <Insets right="10.0" top="6.0" bottom="6.0"/>
-      </padding>
-    </HBox>
-  </top>
   <left>
     <VBox prefHeight="428.0" prefWidth="181.0" spacing="4.0" stylesheets="@style/navigation.css" BorderPane.alignment="CENTER">
       <children>
@@ -87,116 +74,158 @@
     </VBox>
   </left>
   <center>
-    <StackPane prefHeight="150.0" BorderPane.alignment="CENTER">
-      <fx:define>
-        <Double fx:id="buttonContainerHeight" fx:value="80.0"/>
-        <Double fx:id="buttonContainerWidth" fx:value="150.0"/>
-      </fx:define>
+    <VBox BorderPane.alignment="CENTER">
       <children>
-        <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="231.0" spacing="12.0">
+        <!-- Project header: updated by controller when selectedProject changes -->
+        <Label fx:id="projectHeaderLabel" maxWidth="1.7976931348623157E308"
+          style="-fx-font-size: 24px; -fx-font-weight: 800; -fx-text-fill: #333333;"
+          text="">
+          <VBox.margin>
+            <Insets left="30.0" top="24.0" right="30.0"/>
+          </VBox.margin>
+        </Label>
+        <GridPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" hgap="32.0" vgap="24.0" VBox.vgrow="ALWAYS">
+          <columnConstraints>
+            <ColumnConstraints hgrow="ALWAYS" percentWidth="50"/>
+            <ColumnConstraints hgrow="ALWAYS" percentWidth="50"/>
+          </columnConstraints>
+          <padding>
+            <Insets top="12.0" right="30.0" bottom="24.0" left="30.0"/>
+          </padding>
           <children>
-            <HBox alignment="CENTER_LEFT" layoutX="20.0" layoutY="204.0" prefHeight="100.0" prefWidth="150.0" spacing="20.0" stylesheets="@style/center.css"
-              styleClass="ideElement">
+            <!-- Android Studio -->
+            <VBox GridPane.columnIndex="0" GridPane.rowIndex="0"
+              stylesheets="@style/center.css"
+              styleClass="ideElement"
+              VBox.vgrow="ALWAYS"
+              alignment="CENTER"
+              spacing="10.0"
+              style="-fx-background-color: #E0E3EA; -fx-background-radius: 16; -fx-border-color: #C8CCD4; -fx-border-width: 1; -fx-border-radius: 16; -fx-padding: 24 20 20 20;"
+            >
               <children>
-                <ImageView fitHeight="60.0" fitWidth="60.0" pickOnBounds="true" preserveRatio="true">
+                <ImageView fitHeight="96.0" fitWidth="96.0" pickOnBounds="true" preserveRatio="true">
                   <image>
                     <Image url="@assets/as.png"/>
                   </image>
-                  <HBox.margin>
-                    <Insets bottom="10.0" left="10.0" top="10.0"/>
-                  </HBox.margin>
                 </ImageView>
-                <Label prefHeight="30.0" prefWidth="190.0" styleClass="ideTitle" text="Android-Studio"/>
-                <HBox alignment="CENTER_RIGHT" prefHeight="$buttonContainerHeight" prefWidth="$buttonContainerWidth" minWidth="$buttonContainerWidth"
-                  spacing="10.0" HBox.hgrow="ALWAYS">
-                  <children>
-                    <Button fx:id="androidStudioOpen" disable="true" mnemonicParsing="false" onAction="#openAndroidStudio" styleClass="launchButton"
-                      text="%button.open">
-                      <HBox.margin>
-                        <Insets right="20.0"/>
-                      </HBox.margin>
-                    </Button>
-                  </children>
-                </HBox>
+                <Label styleClass="ideTitle" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2C2C2C;" text="Android Studio"/>
+                <Button fx:id="androidStudioOpen" disable="true" mnemonicParsing="false" onAction="#openAndroidStudio" styleClass="launchButton"
+                  style="-fx-padding: 9 28 9 28; -fx-font-size: 14px; -fx-background-radius: 8; -fx-border-radius: 8;"
+                  text="%button.open">
+                  <VBox.margin>
+                    <Insets top="6.0"/>
+                  </VBox.margin>
+                </Button>
               </children>
-            </HBox>
-            <HBox alignment="CENTER_LEFT" layoutX="20.0" layoutY="120.0" prefHeight="100.0" prefWidth="150.0" spacing="20.0" styleClass="ideElement"
-              stylesheets="@style/center.css">
+            </VBox>
+            <!-- Eclipse -->
+            <VBox GridPane.columnIndex="1" GridPane.rowIndex="0"
+              styleClass="ideElement"
+              stylesheets="@style/center.css"
+              VBox.vgrow="ALWAYS"
+              alignment="CENTER"
+              spacing="10.0"
+              style="-fx-background-color: #E0E3EA; -fx-background-radius: 16; -fx-border-color: #C8CCD4; -fx-border-width: 1; -fx-border-radius: 16; -fx-padding: 24 20 20 20;"
+            >
               <children>
-                <ImageView fitHeight="60.0" fitWidth="60.0" pickOnBounds="true" preserveRatio="true">
+                <ImageView fitHeight="96.0" fitWidth="96.0" pickOnBounds="true" preserveRatio="true">
                   <image>
                     <Image url="@assets/eclipse.png"/>
                   </image>
-                  <HBox.margin>
-                    <Insets bottom="10.0" left="10.0" top="10.0"/>
-                  </HBox.margin>
                 </ImageView>
-                <Label prefHeight="30.0" prefWidth="114.0" styleClass="ideTitle" text="Eclipse"/>
-                <HBox alignment="CENTER_RIGHT" prefHeight="$buttonContainerHeight" prefWidth="$buttonContainerWidth" minWidth="$buttonContainerWidth"
-                  HBox.hgrow="ALWAYS">
-                  <children>
-                    <Button fx:id="eclipseOpen" disable="true" mnemonicParsing="false" onAction="#openEclipse" styleClass="launchButton" text="%button.open">
-                      <HBox.margin>
-                        <Insets right="20.0"/>
-                      </HBox.margin>
-                    </Button>
-                  </children>
-                </HBox>
+                <Label styleClass="ideTitle" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2C2C2C;" text="Eclipse"/>
+                <Button fx:id="eclipseOpen" disable="true" mnemonicParsing="false" onAction="#openEclipse" styleClass="launchButton"
+                  style="-fx-padding: 9 28 9 28; -fx-font-size: 14px; -fx-background-radius: 8; -fx-border-radius: 8;"
+                  text="%button.open">
+                  <VBox.margin>
+                    <Insets top="6.0"/>
+                  </VBox.margin>
+                </Button>
               </children>
-            </HBox>
-            <HBox alignment="CENTER_LEFT" layoutX="20.0" layoutY="20.0" prefHeight="100.0" prefWidth="150.0" spacing="20.0" styleClass="ideElement"
-              stylesheets="@style/center.css">
+            </VBox>
+            <!-- Intellij -->
+            <VBox GridPane.columnIndex="0" GridPane.rowIndex="1"
+              styleClass="ideElement"
+              stylesheets="@style/center.css"
+              VBox.vgrow="ALWAYS"
+              alignment="CENTER"
+              spacing="10.0"
+              style="-fx-background-color: #E0E3EA; -fx-background-radius: 16; -fx-border-color: #C8CCD4; -fx-border-width: 1; -fx-border-radius: 16; -fx-padding: 24 20 20 20;"
+            >
               <children>
-                <ImageView fitHeight="60.0" fitWidth="60.0" pickOnBounds="true" preserveRatio="true">
+                <ImageView fitHeight="96.0" fitWidth="96.0" pickOnBounds="true" preserveRatio="true">
                   <image>
                     <Image url="@assets/intellij.png"/>
                   </image>
-                  <HBox.margin>
-                    <Insets bottom="10.0" left="10.0" top="10.0"/>
-                  </HBox.margin>
                 </ImageView>
-                <Label prefHeight="30.0" prefWidth="100.0" styleClass="ideTitle" text="Intellij"/>
-                <HBox alignment="CENTER_RIGHT" prefHeight="$buttonContainerHeight" prefWidth="$buttonContainerWidth" minWidth="$buttonContainerWidth"
-                  spacing="10.0" HBox.hgrow="ALWAYS">
-                  <children>
-                    <Button fx:id="intellijOpen" disable="true" mnemonicParsing="false" onAction="#openIntellij" styleClass="launchButton" text="%button.open">
-                      <HBox.margin>
-                        <Insets right="20.0"/>
-                      </HBox.margin>
-                    </Button>
-                  </children>
-                </HBox>
+                <Label styleClass="ideTitle" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2C2C2C;" text="Intellij"/>
+                <Button fx:id="intellijOpen" disable="true" mnemonicParsing="false" onAction="#openIntellij" styleClass="launchButton"
+                  style="-fx-padding: 9 28 9 28; -fx-font-size: 14px; -fx-background-radius: 8; -fx-border-radius: 8;"
+                  text="%button.open">
+                  <VBox.margin>
+                    <Insets top="6.0"/>
+                  </VBox.margin>
+                </Button>
               </children>
-            </HBox>
-            <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="150.0" spacing="20.0" styleClass="ideElement" stylesheets="@style/center.css">
+            </VBox>
+            <!-- VsCode -->
+            <VBox GridPane.columnIndex="1" GridPane.rowIndex="1"
+              styleClass="ideElement"
+              stylesheets="@style/center.css"
+              VBox.vgrow="ALWAYS"
+              alignment="CENTER"
+              spacing="10.0"
+              style="-fx-background-color: #E0E3EA; -fx-background-radius: 16; -fx-border-color: #C8CCD4; -fx-border-width: 1; -fx-border-radius: 16; -fx-padding: 24 20 20 20;"
+            >
               <children>
-                <ImageView fitHeight="60.0" fitWidth="60.0" pickOnBounds="true" preserveRatio="true">
+                <ImageView fitHeight="96.0" fitWidth="96.0" pickOnBounds="true" preserveRatio="true">
                   <image>
                     <Image url="@assets/vscode.png"/>
                   </image>
+                </ImageView>
+                <Label styleClass="ideTitle" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2C2C2C;" text="VS Code"/>
+                <Button fx:id="vsCodeOpen" disable="true" mnemonicParsing="false" onAction="#openVsCode" styleClass="launchButton"
+                  style="-fx-padding: 9 28 9 28; -fx-font-size: 14px; -fx-background-radius: 8; -fx-border-radius: 8;"
+                  text="%button.open">
+                  <VBox.margin>
+                    <Insets top="6.0"/>
+                  </VBox.margin>
+                </Button>
+              </children>
+            </VBox>
+            <!-- Update Card -->
+            <HBox GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="2"
+              spacing="20.0"
+              styleClass="ideElement"
+              stylesheets="@style/center.css"
+              HBox.hgrow="ALWAYS"
+              alignment="CENTER_LEFT"
+              style="-fx-background-color: #E0E3EA; -fx-background-radius: 16; -fx-border-color: #C8CCD4; -fx-border-width: 1; -fx-border-radius: 16; -fx-padding: 14 20 14 20;"
+            >
+              <children>
+                <ImageView fitHeight="48.0" fitWidth="48.0" pickOnBounds="true" preserveRatio="true">
+                  <image>
+                    <Image url="@assets/update.png"/>
+                  </image>
                   <HBox.margin>
-                    <Insets bottom="10.0" left="10.0" top="10.0"/>
+                    <Insets left="6.0"/>
                   </HBox.margin>
                 </ImageView>
-                <Label prefHeight="30.0" prefWidth="114.0" styleClass="ideTitle" text="VS Code"/>
-                <HBox alignment="CENTER_RIGHT" prefHeight="$buttonContainerHeight" prefWidth="$buttonContainerWidth" minWidth="$buttonContainerWidth"
-                  spacing="10.0" HBox.hgrow="ALWAYS">
+                <Label fx:id="updateStatusLabel" style="-fx-font-size: 15px; -fx-font-weight: 600; -fx-text-fill: #2C2C2C;"
+                  text="%status.update.selectProject"/>
+                <HBox alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">
                   <children>
-                    <Button fx:id="vsCodeOpen" disable="true" mnemonicParsing="false" onAction="#openVsCode" styleClass="launchButton" text="%button.open">
-                      <HBox.margin>
-                        <Insets right="20.0"/>
-                      </HBox.margin>
+                    <Button fx:id="updateButton" mnemonicParsing="false" text="%button.update" onAction="#onUpdateClicked"
+                      styleClass="launchButton"
+                      style="-fx-padding: 8 24 8 24; -fx-font-size: 13px; -fx-background-color: #4CAF50; -fx-text-fill: white; -fx-background-radius: 8; -fx-border-radius: 8;">
                     </Button>
                   </children>
                 </HBox>
               </children>
             </HBox>
           </children>
-          <padding>
-            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
-          </padding>
-        </VBox>
+        </GridPane>
       </children>
-    </StackPane>
+    </VBox>
   </center>
 </BorderPane>

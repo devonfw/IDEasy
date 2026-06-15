@@ -3,14 +3,10 @@ package com.devonfw.ide.gui;
 import static org.testfx.assertions.api.Assertions.assertThat;
 
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Locale;
 import javafx.event.ActionEvent;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.stage.Stage;
@@ -23,8 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.context.IdeGuiContext;
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
-import com.devonfw.ide.gui.i18n.I18nService;
-import com.devonfw.ide.gui.update.UpdateController;
+ 
 
 /**
  * Basic UI Test
@@ -44,57 +39,11 @@ public class AppBaseTest extends HeadlessApplicationTest {
 
   @Override
   public void start(Stage stage) throws IOException {
+    // Create deterministic test controllers used by many tests
+    // Use the shared TestGuiSetup which provides deterministic test doubles by default
+    Parent root = TestGuiSetup.setupStageWithControllers(stage, mockIdeRoot, null, null);
 
-    // Initialize i18n for tests
-    I18nService.resetInstance();
-    I18nService.getInstance(Locale.ENGLISH);
-
-    URL mainViewUrl = getClass().getResource("main-view.fxml");
-    assertThat(mainViewUrl).as("Cannot resolve main UI FXML resource!").isNotNull();
-
-    FXMLLoader fxmlLoader = new FXMLLoader(mainViewUrl);
-    fxmlLoader.setResources(I18nService.getInstance().getResourceBundle());
-    // Inject a test-friendly UpdateController that performs a deterministic upgrade by
-    // toggling a flag. This avoids running the real UpdateCommandlet in tests and prevents
-    // races between multiple controllers updating the same UI nodes.
-    UpdateController testUpdateController = new UpdateController(IdeGuiStateManager.getInstance()) {
-      private boolean updated = false;
-
-      @Override
-      protected void performProjectUpdate(IdeGuiContext context) {
-        this.updated = true;
-      }
-
-      @Override
-      protected boolean checkForUpdates(IdeGuiContext context) {
-        // Before update return true (there is an update available), after update return false.
-        return (context != null) && !this.updated;
-      }
-    };
-    // Provide a test-friendly UpgradeController that performs deterministic checks by toggling a flag
-    com.devonfw.ide.gui.update.UpgradeController testUpgradeController = new com.devonfw.ide.gui.update.UpgradeController(
-        IdeGuiStateManager.getInstance()) {
-      private boolean upgraded = false;
-
-      @Override
-      protected void performUpgrade() {
-        this.upgraded = true;
-      }
-
-      @Override
-      protected boolean checkForUpgrade() {
-        // Before upgrade return true (there is an upgrade available), after upgrade return false.
-        return !this.upgraded;
-      }
-    };
-
-    fxmlLoader.setController(new MainController(mockIdeRoot.toString(), IdeGuiStateManager.getInstance().getProjectManager(), testUpdateController,
-        testUpgradeController));
-    Parent root = fxmlLoader.load();
-    stage.setScene(new Scene(root));
-    stage.requestFocus(); //sometimes needed for headless setup to work
-    stage.show();
-
+    // Lookup UI nodes
     androidStudioOpen = lookup(root, "#androidStudioOpen");
     eclipseOpen = lookup(root, "#eclipseOpen");
     intellijOpen = lookup(root, "#intellijOpen");

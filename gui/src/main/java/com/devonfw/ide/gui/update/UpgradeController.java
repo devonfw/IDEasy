@@ -1,5 +1,6 @@
 package com.devonfw.ide.gui.update;
 
+import java.text.MessageFormat;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -36,13 +37,15 @@ public class UpgradeController {
   private static final String STATUS_KEY_CHECKING = "status.upgrade.checking";
   private static final String STATUS_KEY_AVAILABLE = "status.upgrade.available";
   private static final String STATUS_KEY_UP_TO_DATE = "status.upgrade.upToDate";
+  private static final String STATUS_KEY_UPDATED = "status.upgrade.updated";
   private static final String STATUS_KEY_UPDATING = "status.upgrade.updating";
-  private static final String STATUS_KEY_COMPLETED = "status.upgrade.completed";
   private static final String STATUS_KEY_UNAVAILABLE = "status.upgrade.unavailable";
   private static final String STATUS_KEY_FAILED_PREFIX = "status.upgrade.failedPrefix";
+  private static final String TOOLTIP_UPGRADE_AVAILABLE = "tooltip.upgrade.available";
 
   private static final String TRAY_KEY_CAPTION = "tray.upgrade.caption";
   private static final String TRAY_KEY_TEXT = "tray.upgrade.text";
+  public static final String BUTTON_UPGRADE = "button.upgrade";
 
   private final IdeGuiStateManager manager;
   private final I18nService i18n = I18nService.getInstance();
@@ -57,8 +60,13 @@ public class UpgradeController {
   @FXML
   private Button upgradeButton;
 
+
   private String currentStatusKey;
   private String currentStatusDetail;
+
+  private String installedVersionString = "";
+  private String latestVersionString = "";
+  private boolean justUpgraded = false;
 
   public UpgradeController(IdeGuiStateManager manager) {
     this.manager = manager;
@@ -71,10 +79,9 @@ public class UpgradeController {
     try {
       if (this.upgradeIndicator != null) {
         this.upgradeIndicator.setVisible(false);
-        Tooltip.install(this.upgradeIndicator, new Tooltip(i18n.get("tooltip.upgrade.available")));
+        Tooltip.install(this.upgradeIndicator, new Tooltip(i18n.get(TOOLTIP_UPGRADE_AVAILABLE)));
         // click handled by this controller
         this.upgradeIndicator.setOnMouseClicked(ev -> {
-          ev.consume();
           Platform.runLater(this::showDialog);
         });
       }
@@ -101,12 +108,17 @@ public class UpgradeController {
 
     task.setOnSucceeded(e -> {
       e.consume();
-      setStatusKey(STATUS_KEY_COMPLETED);
+      // Mark as updated and prefer showing the updated message (with version)
+      if (this.latestVersionString != null && !this.latestVersionString.isEmpty()) {
+        this.installedVersionString = this.latestVersionString;
+      }
+      setStatusKey(STATUS_KEY_UPDATED);
       updateDialogStatus();
       if (upgradeButton != null) {
         upgradeButton.setDisable(true);
       }
-      // after upgrade, re-check availability
+      // after upgrade, re-check availability so the controller fetches authoritative version info
+      this.justUpgraded = true;
       startCheck();
     });
 
@@ -140,7 +152,18 @@ public class UpgradeController {
   protected boolean checkForUpgrade() {
     try {
       IdeGuiContext ctx = new IdeGuiContext(manager.getStartContext(), null);
-      return new IdeasyCommandlet(ctx, null).checkIfUpdateIsAvailable();
+      IdeasyCommandlet cmd = new IdeasyCommandlet(ctx, null);
+      try {
+        var installed = cmd.getInstalledVersion();
+        var latest = cmd.getLatestVersion();
+        this.installedVersionString = installed == null ? "" : installed.toString();
+        this.latestVersionString = latest == null ? "" : latest.toString();
+      } catch (Exception e) {
+        LOG.debug("Failed to resolve versions", e);
+        this.installedVersionString = "";
+        this.latestVersionString = "";
+      }
+      return cmd.checkIfUpdateIsAvailable();
     } catch (Exception e) {
       LOG.debug("Upgrade check failed", e);
       return false;
@@ -169,6 +192,20 @@ public class UpgradeController {
         }
       } catch (Throwable t) {
         LOG.debug("Failed to update UI on check result", t);
+      }
+      // Update dialog texts/labels (installed/latest versions may have changed)
+      // If we just performed an upgrade and now there is no newer version available,
+      // show the explicit 'updated to' confirmation message
+      if (this.justUpgraded && !available) {
+        // Use the localized updated message as canonical status
+        if (this.latestVersionString != null && !this.latestVersionString.isEmpty()) {
+          this.installedVersionString = this.latestVersionString;
+        }
+        setStatusKey(STATUS_KEY_UPDATED);
+        updateDialogStatus();
+        this.justUpgraded = false;
+      } else {
+        updateDialogStatus();
       }
       if (available) {
         showTrayNotification();
@@ -201,10 +238,10 @@ public class UpgradeController {
     updateDialogStatus();
     try {
       if (this.upgradeIndicator != null) {
-        Tooltip.install(this.upgradeIndicator, new Tooltip(i18n.get("tooltip.upgrade.available")));
+        Tooltip.install(this.upgradeIndicator, new Tooltip(i18n.get(TOOLTIP_UPGRADE_AVAILABLE)));
       }
       if (this.upgradeButton != null) {
-        this.upgradeButton.setText(i18n.get("button.upgrade"));
+        this.upgradeButton.setText(i18n.get(BUTTON_UPGRADE));
       }
     } catch (Throwable t) {
       LOG.debug("Failed to refresh status text", t);
@@ -226,6 +263,15 @@ public class UpgradeController {
       return "";
     }
     String text = this.i18n.get(this.currentStatusKey);
+    if (STATUS_KEY_AVAILABLE.equals(this.currentStatusKey) || STATUS_KEY_UP_TO_DATE.equals(this.currentStatusKey)
+        || STATUS_KEY_UPDATED.equals(this.currentStatusKey)) {
+      try {
+        return MessageFormat.format(text, this.installedVersionString, this.latestVersionString);
+      } catch (IllegalArgumentException iae) {
+        LOG.debug("Failed to format status text with versions", iae);
+        return text;
+      }
+    }
     if (this.currentStatusDetail != null) {
       return text + this.currentStatusDetail;
     }
