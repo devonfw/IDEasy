@@ -15,20 +15,25 @@ import com.devonfw.tools.ide.url.tool.intellij.IntellijJsonRelease;
  */
 public abstract class IdeaBasedUrlUpdater extends JsonUrlUpdater<IntellijJsonObject, IntellijJsonRelease> {
 
+  protected static final String DOWNLOAD_BASE_URL = "undefined-taken-from-JSON";
   protected static final String VERSION_BASE_URL = "https://data.services.jetbrains.com";
 
-  @Override
-  protected String getVersionBaseUrl() {
-
-    return VERSION_BASE_URL;
+  /**
+   * Constructor for IdeaBasedUrlUpdater with defaults for download- and version base url.
+   */
+  public IdeaBasedUrlUpdater() {
+    super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
   }
 
-  @Override
-  protected String getDownloadBaseUrl() {
-
-    return "undefined-taken-from-JSON";
+  /**
+   * Package-private constructor used for testing {@link IdeaBasedUrlUpdater}.
+   *
+   * @param versionBaseUrl mock url used as version base.
+   */
+  protected IdeaBasedUrlUpdater(String versionBaseUrl) {
+    super(DOWNLOAD_BASE_URL, versionBaseUrl);
   }
-  
+
   @Override
   protected Collection<IntellijJsonRelease> getVersionItems(IntellijJsonObject jsonObject) {
 

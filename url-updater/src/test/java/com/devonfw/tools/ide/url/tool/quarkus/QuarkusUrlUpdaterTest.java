@@ -36,7 +36,7 @@ class QuarkusUrlUpdaterTest extends AbstractUrlUpdaterTest {
             aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    QuarkusUrlUpdaterMock updater = new QuarkusUrlUpdaterMock(wmRuntimeInfo);
+    QuarkusUrlUpdater updater = new QuarkusUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
     // act
     updater.update(urlRepository);
 

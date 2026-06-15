@@ -8,6 +8,24 @@ import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
  */
 public class VsCodeUrlUpdater extends GithubUrlTagUpdater {
 
+  private static final String DOWNLOAD_BASE_URL = "https://update.code.visualstudio.com";
+
+  /**
+   * The Constructor.
+   */
+  public VsCodeUrlUpdater() {
+    super(DOWNLOAD_BASE_URL);
+  }
+
+  /**
+   * Package-private constructor used for testing {@link VsCodeUrlUpdater}.
+   *
+   * @param baseUrl mock url used as download and version base.
+   */
+  VsCodeUrlUpdater(String baseUrl) {
+    super(baseUrl, baseUrl);
+  }
+
   @Override
   public String getTool() {
 
@@ -18,12 +36,6 @@ public class VsCodeUrlUpdater extends GithubUrlTagUpdater {
   protected String getGithubOrganization() {
 
     return "microsoft";
-  }
-
-  @Override
-  protected String getDownloadBaseUrl() {
-
-    return "https://update.code.visualstudio.com";
   }
 
   @Override
