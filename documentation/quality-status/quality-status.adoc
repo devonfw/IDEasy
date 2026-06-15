@@ -15,7 +15,7 @@ https://github.com/devonfw/IDEasy[devonfw/IDEasy].
 image::quality-status-images/issue-statistics.svg[Bar chart: open issue metrics,width=100%]
 
 
-_Generated: 2026-06-12 15:18 UTC_
+_Generated: 2026-06-15 07:38 UTC_
 
 
 == Operating System Status Files
@@ -65,10 +65,10 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/2005[#2005]
 | Refactor quality status generator (remove redundancy and improve structure)
 
+2+^a| [[cross-platform-11-30-days]] *11-30 days*
+
 | link:https://github.com/devonfw/IDEasy/issues/2000[#2000]
 | Create script for local end-to-end testing
-
-2+^a| [[cross-platform-11-30-days]] *11-30 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/1996[#1996]
 | Revisit design for tools that do not install to software repository
@@ -112,6 +112,8 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/1953[#1953]
 | Implement Base Functionality of Cleanup Commandlet
 
+2+^a| [[cross-platform-31-60-days]] *31-60 days*
+
 | link:https://github.com/devonfw/IDEasy/issues/1946[#1946]
 | SpyderCommandlet
 
@@ -123,8 +125,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 
 | link:https://github.com/devonfw/IDEasy/issues/1939[#1939]
 | Integrate Spyder IDE
-
-2+^a| [[cross-platform-31-60-days]] *31-60 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/1938[#1938]
 | GUI not launchable outside of project context

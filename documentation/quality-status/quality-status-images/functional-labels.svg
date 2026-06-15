@@ -34,8 +34,8 @@
 <text x="525.2" y="159" fill="var(--chart-muted-text)" font-family="sans-serif" font-size="13" font-weight="600">16</text>
 <text x="138" y="197" text-anchor="end" fill="var(--chart-text)" font-family="sans-serif" font-size="14">internal</text>
 <rect x="150" y="182" width="436" height="20" rx="4" fill="var(--chart-bar-track)"/>
-<rect x="150" y="182" width="298.3" height="20" rx="4" fill="#8250df"/>
-<text x="456.3" y="197" fill="var(--chart-muted-text)" font-family="sans-serif" font-size="13" font-weight="600">13</text>
+<rect x="150" y="182" width="275.4" height="20" rx="4" fill="#8250df"/>
+<text x="433.4" y="197" fill="var(--chart-muted-text)" font-family="sans-serif" font-size="13" font-weight="600">12</text>
 <text x="138" y="235" text-anchor="end" fill="var(--chart-text)" font-family="sans-serif" font-size="14">commandlet</text>
 <rect x="150" y="220" width="436" height="20" rx="4" fill="var(--chart-bar-track)"/>
 <rect x="150" y="220" width="229.5" height="20" rx="4" fill="#cf222e"/>
