@@ -105,6 +105,9 @@ public final class Tag {
   /** {@link Tag} for VS-Code. */
   public static final Tag VS_CODE = create("vscode", IDE, false, "visualstudiocode");
 
+  /** {@link Tag} for Spyder. */
+  public static final Tag SPYDER = create("spyder", IDE, false, new String[0], PYTHON);
+
   /** {@link Tag} for (code-)generators (including template-engines, etc.). */
   public static final Tag GENERATOR = create("generator", ROOT);
 
