@@ -39,34 +39,6 @@ public interface WindowsHelper {
   WindowsAppInstallation getAppInstallationFromRegistry(String appName);
 
   /**
-   * @deprecated use {@link #getAppInstallationFromRegistry(String)}
-   * @param appName the application name to search for in the Windows registry.
-   * @return the DisplayName entry if the application is found in the Windows registry or {@code null} if nothing was found.
-   */
-  String getDisplayVersionFromRegistry(String appName);
-
-  /**
-   * @deprecated use {@link #getAppInstallationFromRegistry(String)}
-   * @param appName the application name to search for in the Windows registry.
-   * @return the DisplayIcon entry if the application is found in the Windows registry or {@code null} if nothing was found.
-   */
-  String getDisplayIconFromRegistry(String appName);
-
-  /**
-   * @deprecated use {@link #getAppInstallationFromRegistry(String)}
-   * @param appName the application name to search for in the Windows registry.
-   * @return the UninstallString entry if the application is found in the Windows registry or {@code null} if nothing was found.
-   */
-  String getUninstallStringFromRegistry(String appName);
-
-  /**
-   * @deprecated use {@link #getAppInstallationFromRegistry(String)}
-   * @param appName the application name to search for in the Windows registry.
-   * @return the InstallLocation entry if the application is found in the Windows registry or {@code null} if nothing was found.
-   */
-  String getInstallLocationFromRegistry(String appName);
-
-  /**
    * @param context the {@link IdeContext}.
    * @return the instance of {@link WindowsHelper}.
    */
