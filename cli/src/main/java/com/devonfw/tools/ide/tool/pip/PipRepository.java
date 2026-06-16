@@ -42,7 +42,7 @@ public class PipRepository extends ArtifactToolRepository<PipArtifact, PipArtifa
   @Override
   protected PipArtifact resolveArtifact(String tool, String edition, VersionIdentifier version, ToolCommandlet toolCommandlet) {
 
-    if (toolCommandlet instanceof Pip pip) {
+    if (toolCommandlet instanceof PipBasedCommandlet pip) {
       String name = pip.getPackageName();
       if (version == null) {
         version = VersionIdentifier.LATEST;
