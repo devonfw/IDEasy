@@ -62,7 +62,7 @@ class PycharmUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(any(urlMatching("/python/pycharm.*.tar.gz.sha256")).willReturn(aResponse().withStatus(200).withBody(SHA_256)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    PycharmUrlUpdaterMock updater = new PycharmUrlUpdaterMock(wmRuntimeInfo);
+    PycharmUrlUpdater updater = new PycharmUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // act
     updater.update(urlRepository);
@@ -96,7 +96,7 @@ class PycharmUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(any(urlMatching("/python/pycharm.*")).willReturn(aResponse().withStatus(404)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    PycharmUrlUpdaterMock updater = new PycharmUrlUpdaterMock(wmRuntimeInfo);
+    PycharmUrlUpdater updater = new PycharmUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // when
     updater.update(urlRepository);
@@ -124,7 +124,7 @@ class PycharmUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(any(urlMatching("/python/pycharm.*")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    PycharmUrlUpdaterMock updater = new PycharmUrlUpdaterMock(wmRuntimeInfo);
+    PycharmUrlUpdater updater = new PycharmUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // act
     updater.update(urlRepository);

@@ -15,9 +15,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class JavaAzulUrlUpdater extends JsonUrlUpdater<JavaAzulJsonObject, JavaAzulJsonVersion> {
 
-  private static final String JAVA_AZUL_BASE_URL = "https://cdn.azul.com";
-  private static final String JAVA_AZUL_VERSION_URL = "https://api.azul.com";
+  private static final String DOWNLOAD_BASE_URL = "https://cdn.azul.com";
+  private static final String VERSION_BASE_URL = "https://api.azul.com";
   private static final ObjectMapper MAPPER = JsonMapping.createWithReflectionSupportForUrlUpdaters();
+
+  /**
+   * The Constructor.
+   */
+  public JavaAzulUrlUpdater() {
+    super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
+  }
 
   @Override
   public String getTool() {
@@ -47,17 +54,6 @@ public class JavaAzulUrlUpdater extends JsonUrlUpdater<JavaAzulJsonObject, JavaA
     doAddVersion(urlVersion, prefix + "linux_aarch64.tar.gz", LINUX, ARM64);
     doAddVersion(urlVersion, prefix + "macosx_x64.tar.gz", MAC, X64);
     doAddVersion(urlVersion, prefix + "macosx_aarch64.tar.gz", MAC, ARM64);
-  }
-
-
-  @Override
-  protected String getDownloadBaseUrl() {
-    return JAVA_AZUL_BASE_URL;
-  }
-
-  @Override
-  protected String getVersionBaseUrl() {
-    return JAVA_AZUL_VERSION_URL;
   }
 
   @Override
