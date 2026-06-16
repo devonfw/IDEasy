@@ -216,4 +216,19 @@ public class GitContextImplMock extends GitContextImpl {
     }
     return null;
   }
+
+  @Override
+  public void commit(Path repository, String message) {
+    LOG.debug("Mock commit with message: {}", message);
+  }
+
+  @Override
+  public void tag(Path repository, String tagName) {
+    LOG.debug("Mock tag: {}", tagName);
+  }
+
+  @Override
+  public void push(Path repository) {
+    LOG.debug("Mock push");
+  }
 }
