@@ -23,6 +23,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1518[#1518]: Add per-project uv tool isolation using UV_TOOL_DIR and UV_TOOL_BIN_DIR
 * https://github.com/devonfw/IDEasy/issues/1719[#1719]: Add Rust and MSVC support
 * https://github.com/devonfw/IDEasy/issues/1991[#1991]: Improve WindowsHelperMock
+* https://github.com/devonfw/IDEasy/issues/1457[#1457]: Improve CLI error messages on invalid args or commandlets not available in current context
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/45?closed=1[milestone 2026.06.001].
 
