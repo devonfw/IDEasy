@@ -13,6 +13,8 @@ import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
  */
 public class AndroidStudioUrlUpdater extends JsonUrlUpdater<AndroidJsonObject, AndroidJsonItem> {
 
+  private static final String DOWNLOAD_BASE_URL = "undefined-taken-from-JSON";
+
   /** The base URL for the version json file */
   private final static String VERSION_BASE_URL = "https://jb.gg";
 
@@ -21,16 +23,20 @@ public class AndroidStudioUrlUpdater extends JsonUrlUpdater<AndroidJsonObject, A
 
   private static final Logger logger = LoggerFactory.getLogger(AndroidStudioUrlUpdater.class);
 
-  @Override
-  protected String getVersionBaseUrl() {
-
-    return VERSION_BASE_URL;
+  /**
+   * The constructor.
+   */
+  public AndroidStudioUrlUpdater() {
+    super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
   }
 
-  @Override
-  protected String getDownloadBaseUrl() {
-
-    return "undefined-taken-from-JSON";
+  /**
+   * Package-private constructor used for testing {@link AndroidStudioUrlUpdater}.
+   *
+   * @param versionBaseUrl mock url used as version base.
+   */
+  AndroidStudioUrlUpdater(String versionBaseUrl) {
+    super(DOWNLOAD_BASE_URL, versionBaseUrl);
   }
 
   @Override
@@ -44,17 +50,22 @@ public class AndroidStudioUrlUpdater extends JsonUrlUpdater<AndroidJsonObject, A
 
     for (AndroidJsonDownload download : jsonVersionItem.download()) {
 
-      if (download.link().contains("windows.zip")) {
-        doAddVersion(urlVersion, download.link(), WINDOWS, X64, download.checksum());
-      } else if (download.link().contains("linux.tar.gz")) {
-        doAddVersion(urlVersion, download.link(), LINUX, X64, download.checksum());
-      } else if (download.link().contains("mac.zip")) {
-        doAddVersion(urlVersion, download.link(), MAC, X64, download.checksum());
-      } else if (download.link().contains("mac_arm.zip")) {
-        doAddVersion(urlVersion, download.link(), MAC, ARM64, download.checksum());
+      String link = download.link();
+      // windows.exe would otherwise match the "windows." branch below, but IDEasy cannot extract it
+      if (link.endsWith(".exe")) {
+        continue;
+      }
+      if (link.contains("windows.")) {
+        doAddVersion(urlVersion, link, WINDOWS, X64, download.checksum());
+      } else if (link.contains("linux.")) {
+        doAddVersion(urlVersion, link, LINUX, X64, download.checksum());
+      } else if (link.contains("mac_arm.")) {
+        doAddVersion(urlVersion, link, MAC, ARM64, download.checksum());
+      } else if (link.contains("mac.")) {
+        doAddVersion(urlVersion, link, MAC, X64, download.checksum());
       } else {
         logger.info("Unknown architecture for tool {} version {} and download {}.", getToolWithEdition(),
-            jsonVersionItem.version(), download.link());
+            jsonVersionItem.version(), link);
       }
     }
   }
@@ -77,13 +88,4 @@ public class AndroidStudioUrlUpdater extends JsonUrlUpdater<AndroidJsonObject, A
     return jsonObject.content().item();
   }
 
-  @Override
-  public String getCpeVendor() {
-    return "google";
-  }
-
-  @Override
-  public String getCpeProduct() {
-    return "android_studio";
-  }
 }

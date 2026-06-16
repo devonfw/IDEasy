@@ -33,6 +33,12 @@ public interface WindowsHelper {
   String getRegistryValue(String path, String key);
 
   /**
+   * @param appName the application name to search for in the Windows registry.
+   * @return the {@link WindowsAppInstallation} with information from the registry if the application is found or {@code null} if nothing was found.
+   */
+  WindowsAppInstallation getAppInstallationFromRegistry(String appName);
+
+  /**
    * @param context the {@link IdeContext}.
    * @return the instance of {@link WindowsHelper}.
    */

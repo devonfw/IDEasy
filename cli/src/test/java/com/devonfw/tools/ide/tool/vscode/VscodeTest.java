@@ -1,9 +1,23 @@
 package com.devonfw.tools.ide.tool.vscode;
 
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.context.ProcessContextTestImpl;
+import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
+import com.devonfw.tools.ide.process.ProcessResultImpl;
+import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 
 /**
  * Test of {@link Vscode} class.
@@ -11,6 +25,8 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 class VscodeTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_VSCODE = "vscode";
+
+  private static final String PROJECT_VSCODIUM = "vscodium";
 
   @Test
   void testVscodeInstall() {
@@ -68,6 +84,33 @@ class VscodeTest extends AbstractIdeContextTest {
     assertThat(context).logAtDebug().hasNoMessage("Successfully installed plugin: ActivePlugin");
   }
 
+  @Test
+  void testInstallPluginUsesExtensionVersionIfConfigured() {
+
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    CapturingVscode vscodeCommandlet = new CapturingVscode(context);
+    ToolPluginDescriptor plugin = new ToolPluginDescriptor("publisher.extension", "mockedPlugin", null, "1.2.3", true, null);
+    Step step = context.newStep("Install plugin mockedPlugin");
+
+    step.run(() -> vscodeCommandlet.installPlugin(plugin, step, new ProcessContextTestImpl(context)));
+
+    assertThat(vscodeCommandlet.lastArgs).contains("--install-extension", "publisher.extension@1.2.3");
+  }
+
+  @Test
+  void testInstallPluginUsesExtensionIdWithoutVersionByDefault() {
+
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    CapturingVscode vscodeCommandlet = new CapturingVscode(context);
+    ToolPluginDescriptor plugin = new ToolPluginDescriptor("publisher.extension", "mockedPlugin", null, null, true, null);
+    Step step = context.newStep("Install plugin mockedPlugin");
+
+    step.run(() -> vscodeCommandlet.installPlugin(plugin, step, new ProcessContextTestImpl(context)));
+
+    assertThat(vscodeCommandlet.lastArgs).contains("--install-extension", "publisher.extension");
+    assertThat(vscodeCommandlet.lastArgs).doesNotContain("publisher.extension@null");
+  }
+
   private void checkInstallation(IdeTestContext context) {
 
     assertThat(context.getSoftwarePath().resolve("vscode/bin/code.cmd")).exists().hasContent("@echo test for windows");
@@ -75,5 +118,150 @@ class VscodeTest extends AbstractIdeContextTest {
 
     assertThat(context.getSoftwarePath().resolve("vscode/.ide.software.version")).exists().hasContent("1.92.1");
     assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed vscode in version 1.92.1");
+  }
+
+  @Test
+  void testConfigureToolArgsSetsWslEnvVarOnWsl() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    context.setSystemInfo(SystemInfoMock.LINUX_WSL_X64);
+    Vscode commandlet = new Vscode(context);
+    EnvCapturingProcessContext pc = new EnvCapturingProcessContext(context);
+    // act
+    commandlet.configureToolArgs(pc, ProcessMode.DEFAULT, List.of());
+    // assert
+    assertThat(pc.getEnvVar("DONT_PROMPT_WSL_INSTALL")).isEqualTo("1");
+  }
+
+  @Test
+  void testConfigureToolArgsDoesNotSetWslEnvVarOnNonWsl() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    Vscode commandlet = new Vscode(context);
+    EnvCapturingProcessContext pc = new EnvCapturingProcessContext(context);
+    // act
+    commandlet.configureToolArgs(pc, ProcessMode.DEFAULT, List.of());
+    // assert
+    assertThat(pc.getEnvVar("DONT_PROMPT_WSL_INSTALL")).isNull();
+  }
+
+  @Test
+  void testVscodiumInstall() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODIUM);
+    Vscode vscodium = new Vscode(context);
+
+    // install
+    vscodium.install();
+
+    // assert
+    checkVscodiumInstallation(context);
+  }
+
+  @Test
+  void testVscodiumRun() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODIUM);
+    Vscode vscodium = new Vscode(context);
+
+    // install
+    vscodium.run();
+
+    // assert
+    checkVscodiumInstallation(context);
+  }
+
+  /**
+   * Tests that VSCodium reads its plugins from the dedicated vscodium folder when it exists.
+   */
+  @Test
+  void testVscodiumUsesVscodiumPluginsFolder() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODIUM);
+    Vscode vscodium = new Vscode(context);
+    Path vscodiumPlugins = context.getSettingsPath().resolve("vscodium/plugins");
+    context.getFileAccess().mkdirs(vscodiumPlugins);
+
+    // act + assert
+    assertThat(vscodium.getPluginsConfigPath()).isEqualTo(vscodiumPlugins);
+  }
+
+  /**
+   * Tests that VSCodium falls back to the vscode folder when it has no dedicated plugins folder.
+   */
+  @Test
+  void testVscodiumFallsBackToVscodePluginsFolder() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODIUM);
+    Vscode vscodium = new Vscode(context);
+
+    // act + assert
+    assertThat(vscodium.getPluginsConfigPath()).isEqualTo(context.getSettingsPath().resolve("vscode/plugins"));
+  }
+
+
+  /**
+   * Test double for {@link Vscode} that captures CLI arguments passed to {@link #runTool(ProcessContext, ProcessMode, List)}
+   * so tests can assert command construction without spawning an external process.
+   */
+  private static class CapturingVscode extends Vscode {
+
+    private List<String> lastArgs;
+
+    private CapturingVscode(IdeTestContext context) {
+
+      super(context);
+      this.lastArgs = List.of();
+    }
+
+    @Override
+    public ProcessResult runTool(ProcessContext pc, ProcessMode processMode, List<String> args) {
+
+      // Capture effective CLI args for assertions in unit tests.
+      this.lastArgs = new ArrayList<>(args);
+      // Return a successful dummy result to keep tests isolated from real VS Code execution.
+      return new ProcessResultImpl("code", "code", 0, List.of());
+    }
+  }
+
+  /**
+   * {@link ProcessContextTestImpl} subclass that captures calls to {@link #withEnvVar(String, String)} for test assertions.
+   */
+  private static class EnvCapturingProcessContext extends ProcessContextTestImpl {
+
+    private final Map<String, String> capturedEnvVars = new HashMap<>();
+
+    private EnvCapturingProcessContext(IdeTestContext context) {
+
+      super(context);
+    }
+
+    @Override
+    public ProcessContext withEnvVar(String key, String value) {
+
+      this.capturedEnvVars.put(key, value);
+      return super.withEnvVar(key, value);
+    }
+
+    String getEnvVar(String key) {
+
+      return this.capturedEnvVars.get(key);
+    }
+  }
+
+  private void checkVscodiumInstallation(IdeTestContext context) {
+
+    assertThat(context.getSoftwarePath().resolve("vscode/bin/codium.cmd")).exists().hasContent("@echo test for windows");
+    assertThat(context.getSoftwarePath().resolve("vscode/bin/codium")).exists().hasContent("#!/bin/bash\n" + "echo \"Test for linux and Mac\"");
+
+    assertThat(context.getSoftwarePath().resolve("vscode/.ide.software.version")).exists().hasContent("1.116.02821");
+    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed vscode/vscodium in version 1.116.02821");
   }
 }

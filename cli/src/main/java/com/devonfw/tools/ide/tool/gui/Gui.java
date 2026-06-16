@@ -7,17 +7,18 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessContextImpl;
 import com.devonfw.tools.ide.process.ProcessMode;
-import com.devonfw.tools.ide.tool.ToolEdition;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
+import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
-import com.devonfw.tools.ide.version.VersionRange;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * {@link Commandlet} to launch the IDEasy GUI.
@@ -46,26 +47,25 @@ public class Gui extends Commandlet {
 
     ProcessContext processContext = new ProcessContextImpl(this.context);
 
-    ToolInstallRequest toolInstallRequest = new ToolInstallRequest(false);
-    toolInstallRequest.setProcessContext(processContext);
-    toolInstallRequest.setRequested(
-        new ToolEditionAndVersion(
-            new ToolEdition("java", "java"),
-            VersionRange.of("[25,)")
-        )
+    Java java = this.context.getCommandletManager().getCommandlet(Java.class);
+    Mvn mvn = this.context.getCommandletManager().getCommandlet(Mvn.class);
+
+    ToolInstallRequest mavenToolInstallRequest = new ToolInstallRequest(false);
+    mavenToolInstallRequest.setProcessContext(processContext);
+
+    ToolInstallRequest javaToolInstallRequest = new ToolInstallRequest(mavenToolInstallRequest);
+    javaToolInstallRequest.setRequested(
+        new ToolEditionAndVersion(VersionIdentifier.of("25.*"))
     );
 
-    Java java = this.context.getCommandletManager().getCommandlet(Java.class);
-    java.install(toolInstallRequest);
+    mvn.installTool(mavenToolInstallRequest);
+    ToolInstallation javaInstallation = java.installTool(javaToolInstallRequest);
 
     LOG.debug("Starting GUI via commandlet");
 
-    Mvn mvn = context.getCommandletManager().getCommandlet(Mvn.class);
-
     Path pomPath = context.getIdeInstallationPath().resolve("gui/pom.xml");
     if (!Files.exists(pomPath)) {
-      LOG.error("Fatal error: The pom.xml file required for launching the IDEasy GUI could not be found in expected location: {}", pomPath);
-      return;
+      throw new CliException("Fatal error: The pom.xml file required for launching the IDEasy GUI could not be found in expected location: " + pomPath);
     }
 
     List<String> args = List.of(
@@ -77,6 +77,10 @@ public class Gui extends Commandlet {
         "-Dexec.args=-classpath %classpath com.devonfw.ide.gui.AppLauncher"
     );
 
-    mvn.runTool(processContext, ProcessMode.DEFAULT, args);
+    /*
+     * We manually update the PATH entry with our java version, as by default IDEasy includes the SymLink under /projectname/software/java/bin in the PATH
+     * In case of projects using older Java Versions, this is important as the java version of the project could potentially older.
+     */
+    mvn.runTool(processContext.withPathEntry(javaInstallation.binDir()), ProcessMode.BACKGROUND_SILENT, args);
   }
 }

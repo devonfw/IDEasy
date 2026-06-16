@@ -379,9 +379,21 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       }
     }
     this.userHomeIde = this.userHome.resolve(FOLDER_DOT_IDE);
-    this.downloadPath = this.userHome.resolve("Downloads/ide");
+    this.downloadPath = computeDownloadPath(this.userHome);
     resetPrivacyMap();
     this.path = computeSystemPath();
+  }
+
+  /**
+   * On macOS, {@code ~/Downloads} is protected by the OS (TCC) and the CLI may not be allowed to delete it, so we put the cache under
+   * {@code ~/Library/Caches} instead. Tests still use {@code ~/Downloads/ide} so existing fixtures keep working.
+   */
+  private Path computeDownloadPath(Path home) {
+
+    if (!isTest() && this.systemInfo.isMac()) {
+      return home.resolve("Library/Caches/IDEasy/downloads");
+    }
+    return home.resolve("Downloads/ide");
   }
 
   private String getMessageIdeHomeFound() {
@@ -606,7 +618,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
     this.userHome = userHome;
     this.userHomeIde = userHome.resolve(FOLDER_DOT_IDE);
-    this.downloadPath = userHome.resolve("Downloads/ide");
+    this.downloadPath = computeDownloadPath(userHome);
     this.variables = null;
     resetPrivacyMap();
   }
@@ -628,7 +640,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
     Path settingsPath = getSettingsPath();
     // check whether the settings path has a .git folder only if its not a symbolic link or junction
-    if ((settingsPath != null) && !Files.exists(settingsPath.resolve(".git")) && !isSettingsRepositorySymlinkOrJunction()) {
+    if ((settingsPath != null) && !Files.exists(settingsPath.resolve(".git")) && !isSettingsCodeRepository()) {
       LOG.error("Settings repository exists but is not a git repository.");
       return null;
     }
@@ -636,13 +648,20 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   @Override
-  public boolean isSettingsRepositorySymlinkOrJunction() {
+  public boolean isSettingsCodeRepository() {
 
     Path settingsPath = getSettingsPath();
-    if (settingsPath == null) {
-      return false;
+    if (settingsPath != null) {
+      boolean settingsIsLink = Files.isSymbolicLink(settingsPath) || getFileAccess().isJunction(settingsPath);
+      if (settingsIsLink) {
+        Path realPath = getFileAccess().toRealPath(this.settingsPath);
+        if (realPath != null) {
+          return getGitContext().isGitRepo(realPath.getParent());
+        }
+        return true;
+      }
     }
-    return Files.isSymbolicLink(settingsPath) || getFileAccess().isJunction(settingsPath);
+    return false;
   }
 
   @Override
@@ -1379,13 +1398,14 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
    * @return {@code msg} to log to the console. {@code null} if the message is suppressed.
    */
   private String determineSettingsUpdateMessage(Commandlet cmd) {
-    if (isSettingsRepositorySymlinkOrJunction()) {
-      if ((cmd instanceof UpdateCommandlet) && isForceMode()) {
+    boolean update = cmd instanceof UpdateCommandlet;
+    if (isSettingsCodeRepository()) {
+      if (update && (isForceMode() || isForcePull())) {
         return null;
       }
       return "Updates are available for the settings repository. Please pull the latest changes by yourself or by calling \"ide -f update\" to apply them.";
     } else {
-      if (cmd instanceof UpdateCommandlet) {
+      if (update) {
         return null;
       }
       return "Updates are available for the settings repository. If you want to apply the latest changes, call \"ide update\"";
