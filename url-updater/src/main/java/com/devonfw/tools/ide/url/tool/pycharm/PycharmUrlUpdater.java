@@ -17,6 +17,22 @@ public class PycharmUrlUpdater extends IdeaBasedUrlUpdater {
   private static final List<String> EDITIONS = List.of("professional", "pycharm");
   protected static final ObjectMapper MAPPER = JsonMapping.createWithReflectionSupportForUrlUpdaters();
 
+  /**
+   * The Constructor.
+   */
+  public PycharmUrlUpdater() {
+    super();
+  }
+
+  /**
+   * Package-private constructor used for testing {@link PycharmUrlUpdater}.
+   *
+   * @param versionBaseUrl mock url used as version base.
+   */
+  PycharmUrlUpdater(String versionBaseUrl) {
+    super(versionBaseUrl);
+  }
+
   @Override
   public String getTool() {
 
