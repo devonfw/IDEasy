@@ -13,6 +13,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessContextImpl;
 import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.ToolInstallation;
@@ -27,6 +28,8 @@ public class Gui extends Commandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Gui.class);
 
+  private final FlagProperty enableExtendedLogging;
+
   /**
    * @param context the {@link IdeContext}.
    */
@@ -34,6 +37,7 @@ public class Gui extends Commandlet {
 
     super(context);
     addKeyword(getName());
+    enableExtendedLogging = add(new FlagProperty("--enableLogging", false, "-l"));
   }
 
   @Override
@@ -69,9 +73,10 @@ public class Gui extends Commandlet {
     }
 
     List<String> args = List.of(
-        "-f",
+        "-U", //required for latest snapshot versions
+        "-f", //use specified POM file
         pomPath.toString(),
-        "exec:exec",
+        "org.codehaus.mojo:exec-maven-plugin:3.1.0:exec",
         "-Dexec.executable=java",
         "-Dexec.classpathScope=compile",
         "-Dexec.args=-classpath %classpath com.devonfw.ide.gui.AppLauncher"
@@ -81,6 +86,7 @@ public class Gui extends Commandlet {
      * We manually update the PATH entry with our java version, as by default IDEasy includes the SymLink under /projectname/software/java/bin in the PATH
      * In case of projects using older Java Versions, this is important as the java version of the project could potentially older.
      */
-    mvn.runTool(processContext.withPathEntry(javaInstallation.binDir()), ProcessMode.BACKGROUND_SILENT, args);
+    ProcessMode processMode = this.enableExtendedLogging.isTrue() ? ProcessMode.DEFAULT : ProcessMode.BACKGROUND_SILENT;
+    mvn.runTool(processContext.withPathEntry(javaInstallation.binDir()), processMode, args);
   }
 }

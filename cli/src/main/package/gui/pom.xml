@@ -4,6 +4,21 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+
+  <repositories>
+    <repository>
+      <id>ossrh</id>
+      <name>OSSRH Snapshots</name>
+      <url>https://central.sonatype.com/repository/maven-snapshots</url>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+    </repository>
+  </repositories>
+
   <groupId>com.devonfw.tools.IDEasy</groupId>
   <artifactId>ide-gui-launcher</artifactId>
   <version>$[project.version]</version>
@@ -17,5 +32,4 @@
       <version>$[project.version]</version>
     </dependency>
   </dependencies>
-
 </project>
