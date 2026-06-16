@@ -15,17 +15,7 @@ import com.devonfw.ide.gui.progress.ProgressBarTask;
  */
 public class TaskManager {
 
-  private static final TaskManager INSTANCE = new TaskManager();
-
   private final ObservableList<ProgressBarTask> tasks = FXCollections.observableArrayList();
-
-  /**
-   * @return the singleton instance of the TaskManager.
-   */
-  public static TaskManager getInstance() {
-
-    return INSTANCE;
-  }
 
   /**
    * @param task the task to be added to the list of tasks.

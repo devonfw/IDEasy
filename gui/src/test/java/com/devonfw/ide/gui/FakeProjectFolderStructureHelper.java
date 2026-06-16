@@ -10,15 +10,15 @@ import java.nio.file.Path;
  * This class helps to create a fake project folder structure for testing. The projects are named in the format "project-{i}" and the workspaces are named
  * "main".
  * <p>
- * This class is supposed to be replaced by enabling ide-cli test dependencies allowing to mock a IdeContext
+ * This class is supposed to be replaced by enabling ide-cli test dependencies allowing to mock an IdeContext
  */
 public class FakeProjectFolderStructureHelper {
 
   /**
-   * @param rootPath root path where fake structure should be created
-   * @return the rootPath
+   * @param rootPath root path where a fake structure should be created
+   * @throws IOException if any of the directories cannot be created
    */
-  public static Path createFakeProjectFolderStructure(Path rootPath) throws IOException {
+  public static void createFakeProjectFolderStructure(Path rootPath) throws IOException {
 
     for (int i = 0; i <= 5; i++) {
       String projectFolderName = "project-" + i;
@@ -34,7 +34,6 @@ public class FakeProjectFolderStructureHelper {
           .isNotNull();
     }
 
-    return rootPath;
   }
 
 }

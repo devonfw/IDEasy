@@ -22,7 +22,6 @@ public class ProjectManagerTest extends AbstractIdeContextTest {
 
   private static ProjectManager projectManager;
 
-  private static IdeTestContext context;
   private static Path ideRoot;
 
   private final List<String> VALID_PROJECT_LIST = List.of("project-0", "project-1", "project-2", "project-3", "project-4", "project-5");
@@ -30,7 +29,7 @@ public class ProjectManagerTest extends AbstractIdeContextTest {
   @BeforeEach
   void resetContext() {
 
-    context = newContext("testProject", "project-0");
+    IdeTestContext context = newContext("testProject", "project-0");
     ideRoot = context.getIdeRoot();
   }
 
@@ -115,7 +114,7 @@ public class ProjectManagerTest extends AbstractIdeContextTest {
   @Test
   void testReadProjectsExcludesFoldersWithoutWorkspaces() throws IOException {
 
-    // Create a project folder without a workspaces subdirectory
+    // Create a project folder without a workspace subdirectory
     Path testProject = ideRoot.resolve("test-project-no-workspaces");
     Files.createDirectory(testProject);
 

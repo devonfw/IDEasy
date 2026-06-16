@@ -13,7 +13,7 @@ import com.devonfw.ide.gui.context.TaskManager;
 
 /**
  * Test for the @TaskManager class. Currently, we extend HeadlessApplicationTest because we need the JavaFX Application Thread. The reason for this is, that
- * TaskManager uses a method from JavaFX (currently; looking for a better impolementation in the future).
+ * TaskManager uses a method from JavaFX (currently; looking for a better implementation in the future).
  *
  * @see TaskManager
  */
@@ -24,8 +24,7 @@ class TaskManagerTest extends HeadlessApplicationTest {
   @BeforeEach
   void setUp() {
 
-    taskManager = TaskManager.getInstance();
-    taskManager.getTasks().clear(); // important because TaskManager is a singleton
+    taskManager = new TaskManager();
 
     waitForFxEvents();
   }
@@ -33,7 +32,7 @@ class TaskManagerTest extends HeadlessApplicationTest {
   @Test
   void shouldAddTask() {
 
-    ProgressBarTask task = new ProgressBarTask("task-1", "Test Task");
+    ProgressBarTask task = new ProgressBarTask(taskManager, "task-1", "Test Task");
 
     taskManager.addTask(task);
 
@@ -46,7 +45,7 @@ class TaskManagerTest extends HeadlessApplicationTest {
   @Test
   void shouldRemoveTask() {
 
-    ProgressBarTask task = new ProgressBarTask("task-1", "Test Task");
+    ProgressBarTask task = new ProgressBarTask(taskManager, "task-1", "Test Task");
 
     taskManager.addTask(task);
     taskManager.removeTask(task);
@@ -59,8 +58,8 @@ class TaskManagerTest extends HeadlessApplicationTest {
   @Test
   void shouldThrowExceptionWhenAddingDuplicateTaskId() {
 
-    ProgressBarTask task1 = new ProgressBarTask("task-1", "Test Task 1");
-    ProgressBarTask task2 = new ProgressBarTask("task-1", "Test Task 2");
+    ProgressBarTask task1 = new ProgressBarTask(taskManager, "task-1", "Test Task 1");
+    ProgressBarTask task2 = new ProgressBarTask(taskManager, "task-1", "Test Task 2");
 
     taskManager.addTask(task1);
 

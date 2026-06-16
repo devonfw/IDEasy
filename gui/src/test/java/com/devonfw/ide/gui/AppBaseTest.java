@@ -18,14 +18,13 @@ import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.ide.gui.context.IdeGuiStateManager;
-
-import com.devonfw.ide.gui.context.IdeGuiStateManager;
+import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.context.TaskManager;
 import com.devonfw.ide.gui.progress.ProgressBarTask;
 import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindow;
@@ -35,7 +34,7 @@ import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindow;
  */
 public class AppBaseTest extends HeadlessApplicationTest {
 
-  private static Logger LOGGER = LoggerFactory.getLogger(AppBaseTest.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AppBaseTest.class);
 
   private Button androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen;
   private ComboBox<String> selectedProject, selectedWorkspace;
@@ -45,6 +44,8 @@ public class AppBaseTest extends HeadlessApplicationTest {
   @TempDir
   private static Path mockIdeRoot;
 
+  private static final TaskManager taskManager = new TaskManager();
+  private static GuiStateManager guiStateManager;
 
   @Override
   public void start(Stage stage) throws IOException {
@@ -53,7 +54,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
     assertThat(mainViewUrl).as("Cannot resolve main UI FXML resource!").isNotNull();
 
     FXMLLoader fxmlLoader = new FXMLLoader(mainViewUrl);
-    fxmlLoader.setController(new MainController(mockIdeRoot.toString()));
+    fxmlLoader.setController(new MainController(mockIdeRoot.toString(), guiStateManager, taskManager));
     Parent root = fxmlLoader.load();
     stage.setScene(new Scene(root));
     stage.requestFocus(); //sometimes needed for headless setup to work
@@ -70,18 +71,25 @@ public class AppBaseTest extends HeadlessApplicationTest {
   }
 
   /**
-   * Generate a temporary project directories in order to be able to test on any device (including GitHub CI). This is required for the {@link MainController}
-   * to work in the test context. Generates a structure like this: /project-[0..6]/workspaces/main
+   * Generate temporary project directories to be able to test on any device (including GitHub CI). This is required for the {@link MainController} to work in
+   * the test context. Generates a structure like this: /project-[0..6]/workspaces/main
    */
   @BeforeAll
   protected static void generateProjectFolderStructure() throws IOException {
 
-    LOGGER.debug("tempDir: {}", mockIdeRoot);
+    LOG.debug("tempDir: {}", mockIdeRoot);
     FakeProjectFolderStructureHelper.createFakeProjectFolderStructure(mockIdeRoot);
-    LOGGER.debug("project folders: {}", Arrays.toString(mockIdeRoot.toFile().list()));
+    LOG.debug("project folders: {}", Arrays.toString(mockIdeRoot.toFile().list()));
 
-    //We set the project root directory to the temporary directory before all tests, so that the IDE can find the projects in the test.
-    IdeGuiStateManager.getInstanceOverrideRootDir(mockIdeRoot.toString()).switchContext("project-1", "main");
+    guiStateManager = new GuiStateManager(taskManager, mockIdeRoot.toString());
+    //We set the project root directory to the temporary directory before all tests so that the IDE can find the projects in the test.
+    guiStateManager.switchContext("project-1", "main");
+  }
+
+  @BeforeEach
+  protected void resetTaskManager() {
+
+    taskManager.getTasks().clear();
   }
 
   /**
@@ -105,7 +113,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
   @Test
   public void testIdeOpenButtonsEnabledWhenProjectSelected() {
 
-    // assert that a project and workspace is selected
+    // assert that project and workspace are selected
     interact(() -> selectedProject.getSelectionModel().select("project-1"));
     interact(() -> selectedWorkspace.getSelectionModel().select("main"));
 
@@ -144,12 +152,10 @@ public class AppBaseTest extends HeadlessApplicationTest {
   }
 
   @Test
-  public void testStatusLabelDisplaysCorrectMessage() {
+  protected void testStatusLabelDisplaysCorrectMessage() {
 
-    TaskManager taskManager = TaskManager.getInstance();
-
-    ProgressBarTask task1 = new ProgressBarTask("task-1", "Test Task");
-    ProgressBarTask task2 = new ProgressBarTask("task-2", "Test Task");
+    ProgressBarTask task1 = new ProgressBarTask(taskManager, "task-1", "Test Task");
+    ProgressBarTask task2 = new ProgressBarTask(taskManager, "task-2", "Test Task");
 
     //Case 1: No tasks added yet, check correct message
     assertThat(statusText.getText()).isEqualTo("IDEasy is ready.");
@@ -182,12 +188,10 @@ public class AppBaseTest extends HeadlessApplicationTest {
   }
 
   @Test
-  public void testStatusTextOpensTaskOverviewWindow() {
+  protected void testStatusTextOpensTaskOverviewWindow() {
 
-    TaskManager taskManager = TaskManager.getInstance();
-
-    ProgressBarTask task1 = new ProgressBarTask("task-1", "Test Task");
-    ProgressBarTask task2 = new ProgressBarTask("task-2", "Test Task");
+    ProgressBarTask task1 = new ProgressBarTask(taskManager, "task-1", "Test Task");
+    ProgressBarTask task2 = new ProgressBarTask(taskManager, "task-2", "Test Task");
 
     taskManager.addTask(task1);
     taskManager.addTask(task2);
@@ -196,7 +200,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
     interact(() -> statusText.fireEvent(
         new MouseEvent(MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0, null, 1, false, false, false, false, false, false, false, false, false, false, null)));
 
-    assertThat(TaskOverviewWindow.getInstance().getStage().isShowing()).as("Task overview window should be opened when clicking on status text")
+    assertThat(TaskOverviewWindow.getInstance(taskManager).getStage().isShowing()).as("Task overview window should be opened when clicking on status text")
         .isTrue();
   }
 }

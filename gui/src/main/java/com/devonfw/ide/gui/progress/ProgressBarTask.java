@@ -19,6 +19,7 @@ import com.devonfw.tools.ide.io.AbstractIdeProgressBar;
  */
 public class ProgressBarTask extends AbstractIdeProgressBar {
 
+  private final TaskManager taskManager;
   /**
    * This is the format representing how task titles are displayed in the UI. It follows the scheme "Task title [current progress/maximum progress Unit]"
    */
@@ -27,43 +28,50 @@ public class ProgressBarTask extends AbstractIdeProgressBar {
   private static final Logger LOG = LoggerFactory.getLogger(ProgressBarTask.class.getName());
 
   private boolean isIndeterminate = false;
-  private final String taskId;
+  private final String taskId; //We use a task id to differentiate between multiple tasks with the same title.
 
   private final LongProperty progressProperty = new SimpleLongProperty(getCurrentProgress());
-  //we only set the title on this line, once. title is final in AbstractIdeContext, but we also use a property here, to be consistent and allow dynamic updates if needed in the future.
+  //we only set the title on this line, once. the title is final in AbstractIdeContext, but we also use a property here to be consistent and allow dynamic updates if needed in the future.
   private final StringProperty titleProperty = new SimpleStringProperty(getTitle());
   private final BooleanProperty indeterminateProperty = new SimpleBooleanProperty(isIndeterminate());
 
   /**
-   * @param taskId a unique identifier for this task, used for example to prevent duplicate tasks in the TaskManager
+   * @param taskManager the {@link TaskManager} to link this progress bar to. Note: The task manager supplied here is only used for closing the task, in
+   *     case {link #close()} is called.
+   * @param taskId a unique id to identify this task.
    * @param title title of the task
    * @param maxSize maximum progress
-   * @param unitName unit of the progress (e.g. %, MB, files, etc.)
-   * @param unitSize unit size (e.g. 1%)
+   * @param unitName unit of the progress (e.g., %, MB, files, etc.)
+   * @param unitSize unit size (e.g., 1%)
    */
-  public ProgressBarTask(String taskId, String title, long maxSize, String unitName, long unitSize) {
+  public ProgressBarTask(TaskManager taskManager, String taskId, String title, long maxSize, String unitName, long unitSize) {
 
     super(title, maxSize, unitName, unitSize);
     this.taskId = taskId;
+    this.taskManager = taskManager;
   }
 
   /**
    * This constructor is used for indeterminate progress bars in the UI.
    *
+   * @param taskManager the {@link TaskManager} to link this progress bar to. Note: The task manager supplied here is only used for closing the task, in
+   *     case {link #close()} is called.
+   * @param taskId a unique id to identify this task.
    * @param title the title of the progress bar
    */
-  public ProgressBarTask(String taskId, String title) {
+  public ProgressBarTask(TaskManager taskManager, String taskId, String title) {
 
     super(title, 100, "%", 1);
     setIndeterminate(true);
     this.taskId = taskId;
+    this.taskManager = taskManager;
   }
 
   //currentProgress is only for test purposes, see AbstractIdeProgressBar
   @Override
   protected void doStepBy(long stepSize, long currentProgress) {
 
-    LOG.debug("Updating progress bar to {}", currentProgress);
+    LOG.debug("Updating progress bar by {} to {}", stepSize, currentProgress);
 
     FxHelper.runFxSafe(() -> progressProperty.setValue(getCurrentProgress()));
   }
@@ -80,7 +88,7 @@ public class ProgressBarTask extends AbstractIdeProgressBar {
   public void close() {
 
     LOG.info("Closing progress bar");
-    TaskManager.getInstance().removeTask(this);
+    taskManager.removeTask(this);
     super.close();
   }
 

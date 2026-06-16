@@ -11,16 +11,17 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeLogListenerBuffer;
+import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
  * This class has the purpose of enabling the context state management for the IDEasy GUI. It is a thread-safe singleton implementation (Bill Pugh Singleton).
  */
-public class IdeGuiStateManager {
+public class GuiStateManager {
 
-  private static final Logger LOG = LoggerFactory.getLogger(IdeGuiStateManager.class);
+  private static final Logger LOG = LoggerFactory.getLogger(GuiStateManager.class);
 
-  private Path ideRootDir;
-  private ProjectManager projectManager;
+  private final Path ideRootDir;
+  private final ProjectManager projectManager;
 
   private final CopyOnWriteArrayList<GuiContextChangeListener> listeners = new CopyOnWriteArrayList<>();
 
@@ -34,52 +35,21 @@ public class IdeGuiStateManager {
    */
   private final IdeStartContextImpl startContext;
 
-  private IdeGuiStateManager() {
+  private final TaskManager taskManager;
+
+  /**
+   * @param taskManager the {@link TaskManager} that manages any running tasks in the GUI.
+   * @param ideRoot the root directory of IDEasy. If <code>null</code>, the IDE_ROOT environment variable is used.
+   */
+  public GuiStateManager(TaskManager taskManager, String ideRoot) {
+
+    this.taskManager = taskManager;
+    this.ideRootDir = Path.of(ideRoot != null ? ideRoot : System.getenv(IdeVariables.IDE_ROOT.getName()));
+    this.projectManager = new ProjectManager(ideRootDir);
 
     final IdeLogListenerBuffer buffer = new IdeLogListenerBuffer();
     IdeLogLevel logLevel = IdeLogLevel.DEBUG;
     startContext = new IdeStartContextImpl(logLevel, buffer);
-  }
-
-  /**
-   * @return the singleton instance of the {@link IdeGuiStateManager}.
-   */
-  public static IdeGuiStateManager getInstance() {
-
-    IdeGuiStateManager instance = Holder.INSTANCE;
-    if (instance.ideRootDir == null) {
-      String ideRoot = System.getenv("IDE_ROOT");
-      if (ideRoot == null) {
-        throw new IllegalStateException("IDE_ROOT environment variable is not set!");
-      }
-      instance.ideRootDir = Path.of(ideRoot);
-      instance.projectManager = new ProjectManager(instance.ideRootDir);
-    }
-    return Holder.INSTANCE;
-  }
-
-  /**
-   * <strong><u>USE WITH CARE.</u></strong>
-   * This method is used in cases where the IDE_ROOT environment variable is not set, e.g. in test contexts on GitHub actions. This method will retrieve the
-   * current instance, set the project directory manually an then return the updated instance.
-   *
-   * @param ideRoot root directory for the ide projects.
-   * @return the singleton instance of the {@link IdeGuiStateManager}.
-   */
-  //TODO: remove this method once we have a better solution for the test context, after implementing CLi's test jar.
-  public static IdeGuiStateManager getInstanceOverrideRootDir(String ideRoot) {
-    LOG.warn("Using unsafe getInstanceOverrideRootDir method.");
-
-    IdeGuiStateManager instance = Holder.INSTANCE;
-    if (ideRoot == null) {
-      throw new IllegalArgumentException("ideRoot must not be null!");
-    } else if (instance.ideRootDir != null) {
-      LOG.warn("ideRootDir is already set. You are overriding it.");
-    }
-
-    instance.ideRootDir = Path.of(ideRoot);
-    instance.projectManager = new ProjectManager(instance.ideRootDir);
-    return instance;
   }
 
   /**
@@ -101,7 +71,7 @@ public class IdeGuiStateManager {
       throw new FileNotFoundException("Workspace " + workspacePath + " does not exist!");
     }
 
-    this.currentContext = new IdeGuiContext(startContext, workspacePath);
+    this.currentContext = new IdeGuiContext(startContext, workspacePath, taskManager);
     listeners.forEach(listener -> listener.onContextChange(this.currentContext));
 
     return this.currentContext;
@@ -139,15 +109,5 @@ public class IdeGuiStateManager {
    */
   public void removeGuiContextChangeListener(GuiContextChangeListener listener) {
     listeners.remove(listener);
-  }
-
-  /**
-   * Holder class for the singleton instance. The static keyword ensures the thread-safety of the singleton.
-   *
-   * @see <a href="https://www.baeldung.com/java-implement-thread-safe-singleton">More info</a>
-   */
-  private static class Holder {
-
-    private static final IdeGuiStateManager INSTANCE = new IdeGuiStateManager();
   }
 }

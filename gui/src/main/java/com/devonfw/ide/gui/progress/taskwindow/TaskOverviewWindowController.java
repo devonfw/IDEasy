@@ -10,13 +10,21 @@ import com.devonfw.ide.gui.context.TaskManager;
 import com.devonfw.ide.gui.progress.ProgressBarTask;
 
 /**
- * Controller for the task overview window, which shows all currently running tasks and their progressbars.
+ * Controller for the task overview window, which shows all currently running tasks and their progressbar.
  */
 public class TaskOverviewWindowController {
 
   @FXML
-  public ListView<ProgressBarTask> taskList;
-  private final TaskManager taskManager = TaskManager.getInstance();
+  private ListView<ProgressBarTask> taskList;
+  private final TaskManager taskManager;
+
+  /**
+   * @param taskManager the {@link TaskManager} to link to this TaskOverviewWindow.
+   */
+  public TaskOverviewWindowController(TaskManager taskManager) {
+
+    this.taskManager = taskManager;
+  }
 
   @FXML
   private void initialize() {

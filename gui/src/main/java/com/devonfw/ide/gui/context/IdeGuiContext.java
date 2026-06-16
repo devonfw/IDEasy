@@ -9,18 +9,22 @@ import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.io.IdeProgressBar;
 
 /**
- * Implementation of {@link AbstractIdeContext} for the IDEasy dashbaord (GUI).
+ * Implementation of {@link AbstractIdeContext} for the IDEasy dashboard (GUI).
  */
 public class IdeGuiContext extends AbstractIdeContext {
+
+  private final TaskManager taskManager;
 
   /**
    * The constructor.
    *
    * @param startContext the {@link IdeStartContextImpl}.
    * @param workingDirectory the optional {@link Path} to current working directory.
+   * @param taskManager the {@link TaskManager} to manage tasks and progress bars in the GUI.
    */
-  public IdeGuiContext(IdeStartContextImpl startContext, Path workingDirectory) {
+  public IdeGuiContext(IdeStartContextImpl startContext, Path workingDirectory, TaskManager taskManager) {
 
+    this.taskManager = taskManager;
     super(startContext, workingDirectory);
   }
 
@@ -33,8 +37,8 @@ public class IdeGuiContext extends AbstractIdeContext {
   @Override
   public IdeProgressBar newProgressBar(String title, long size, String unitName, long unitSize) {
 
-    ProgressBarTask newTask = new ProgressBarTask(UUID.randomUUID().toString(), title, size, unitName, unitSize);
-    TaskManager.getInstance().addTask(newTask);
+    ProgressBarTask newTask = new ProgressBarTask(taskManager, UUID.randomUUID().toString(), title, size, unitName, unitSize);
+    taskManager.addTask(newTask);
 
     return newTask;
   }
@@ -45,8 +49,8 @@ public class IdeGuiContext extends AbstractIdeContext {
    */
   public IdeProgressBar newProgressBarIndeterminate(String title) {
 
-    ProgressBarTask newTask = new ProgressBarTask(UUID.randomUUID().toString(), title);
-    TaskManager.getInstance().addTask(newTask);
+    ProgressBarTask newTask = new ProgressBarTask(taskManager, UUID.randomUUID().toString(), title);
+    taskManager.addTask(newTask);
 
     return newTask;
   }

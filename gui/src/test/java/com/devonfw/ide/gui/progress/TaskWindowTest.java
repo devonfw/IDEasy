@@ -38,7 +38,7 @@ public class TaskWindowTest extends HeadlessApplicationTest {
     assertThat(taskOverviewWindowUrl).as("Cannot resolve task overview window FXML resource!").isNotNull();
 
     FXMLLoader fxmlLoader = new FXMLLoader(taskOverviewWindowUrl);
-    fxmlLoader.setController(new TaskOverviewWindowController());
+    fxmlLoader.setController(new TaskOverviewWindowController(taskManager));
     Parent root = fxmlLoader.load();
     stage.setScene(new Scene(root));
     stage.show();
@@ -47,12 +47,12 @@ public class TaskWindowTest extends HeadlessApplicationTest {
   }
 
   @BeforeAll
-  public static void setup() {
-    taskManager = TaskManager.getInstance();
+  static void setup() {
+    taskManager = new TaskManager();
   }
 
   @BeforeEach
-  public void reset() {
+  void reset() {
     taskManager.getTasks().clear();
     waitForFxEvents();
   }
@@ -61,9 +61,9 @@ public class TaskWindowTest extends HeadlessApplicationTest {
    * We check, whether our implementation of {@link TaskOverviewWindow#show()} actually displays the window.
    */
   @Test
-  public void isWindowShown() {
+  void isWindowShown() {
     FxHelper.runFxSafe(() -> {
-      TaskOverviewWindow testWindow = TaskOverviewWindow.getInstance();
+      TaskOverviewWindow testWindow = TaskOverviewWindow.getInstance(taskManager);
       testWindow.show();
 
       assertThat(testWindow.getStage().isShowing()).isTrue();
@@ -71,9 +71,9 @@ public class TaskWindowTest extends HeadlessApplicationTest {
   }
 
   @Test
-  public void shouldShowTaskWhenTaskAdded() {
+  void shouldShowTaskWhenTaskAdded() {
 
-    ProgressBarTask task = new ProgressBarTask("task-1", "Test Task");
+    ProgressBarTask task = new ProgressBarTask(taskManager, "task-1", "Test Task");
     taskManager.addTask(task);
     waitForFxEvents();
 
@@ -81,9 +81,9 @@ public class TaskWindowTest extends HeadlessApplicationTest {
   }
 
   @Test
-  public void shouldNotShowTaskWhenTaskRemoved() {
+  void shouldNotShowTaskWhenTaskRemoved() {
 
-    ProgressBarTask task = new ProgressBarTask("task-1", "Test Task");
+    ProgressBarTask task = new ProgressBarTask(taskManager, "task-1", "Test Task");
     taskManager.addTask(task);
     waitForFxEvents();
 
@@ -95,12 +95,15 @@ public class TaskWindowTest extends HeadlessApplicationTest {
     assertThat(taskList.getItems()).isEmpty();
   }
 
+  /**
+   * Ensures that the list of tasks stays coherent with the actual tasks.
+   */
   @Test
-  public void listContentsAreCoherent() {
+  void listContentsAreCoherent() {
 
-    ProgressBarTask task1 = new ProgressBarTask("task-1", "Test Task");
-    ProgressBarTask task2 = new ProgressBarTask("task-2", "Test Task 2");
-    ProgressBarTask task3 = new ProgressBarTask("task-3", "Test Task 3");
+    ProgressBarTask task1 = new ProgressBarTask(taskManager, "task-1", "Test Task");
+    ProgressBarTask task2 = new ProgressBarTask(taskManager, "task-2", "Test Task 2");
+    ProgressBarTask task3 = new ProgressBarTask(taskManager, "task-3", "Test Task 3");
 
     taskManager.addTask(task1);
     taskManager.addTask(task2);
@@ -114,14 +117,14 @@ public class TaskWindowTest extends HeadlessApplicationTest {
    * Our TaskOverViewWindow should reuse the same window instance if it is already open. Also, the existing window should be brought to the front
    */
   @Test
-  public void reusesExistingWindow() {
+  void reusesExistingWindow() {
 
     FxHelper.runFxSafe(() -> {
 
-      TaskOverviewWindow testWindow1 = TaskOverviewWindow.getInstance();
+      TaskOverviewWindow testWindow1 = TaskOverviewWindow.getInstance(taskManager);
       testWindow1.show();
 
-      TaskOverviewWindow testWindow2 = TaskOverviewWindow.getInstance();
+      TaskOverviewWindow testWindow2 = TaskOverviewWindow.getInstance(taskManager);
       testWindow2.show();
 
       assertThat(testWindow1.equals(testWindow2)).isTrue().as("Window instances differentiate");
@@ -134,7 +137,7 @@ public class TaskWindowTest extends HeadlessApplicationTest {
    * When no tasks are running, the TaskOverViewWindow should show an empty list, not a null pointer exception or similar.
    */
   @Test
-  public void showsEmptyListWhenNoTasks() {
+  void showsEmptyListWhenNoTasks() {
 
     // In @BeforeEach tasks get cleared before each test
     assertThat(taskList.getItems()).isEmpty();
@@ -144,9 +147,9 @@ public class TaskWindowTest extends HeadlessApplicationTest {
    * tests whether progress tasks are properly updated in the list when the properties update
    */
   @Test
-  public void testTaskProgressUpdatesProperly() {
+  void testTaskProgressUpdatesProperly() {
 
-    ProgressBarTask task = new ProgressBarTask("task-1", "Test Task", 100, "Units", 1);
+    ProgressBarTask task = new ProgressBarTask(taskManager, "task-1", "Test Task", 100, "Units", 1);
     taskManager.addTask(task);
     waitForFxEvents();
 
@@ -169,10 +172,10 @@ public class TaskWindowTest extends HeadlessApplicationTest {
    * We check here that a null node reference is handled properly and leads to the window being displayed in the center of the screen.
    */
   @Test
-  public void testNullReferenceNode() {
+  void testNullReferenceNode() {
 
     FxHelper.runFxSafe(() -> {
-      TaskOverviewWindow nullRefWindow = TaskOverviewWindow.getInstance();
+      TaskOverviewWindow nullRefWindow = TaskOverviewWindow.getInstance(taskManager);
       nullRefWindow.showRelativeToReferenceNode(null);
 
       Rectangle2D screenMeasures = Screen.getPrimary().getVisualBounds();

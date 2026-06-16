@@ -12,24 +12,25 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
 import com.devonfw.ide.gui.App;
+import com.devonfw.ide.gui.context.TaskManager;
 
 /**
  * This window is displayed when the user clicks on the task label in main-view.fxml.
  */
 public class TaskOverviewWindow {
 
-  private final Parent root;
   private final Stage stage = new Stage();
 
   private static TaskOverviewWindow INSTANCE;
 
   /**
+   * @param taskManager the {@link TaskManager} to link to this TaskOverviewWindow.
    * @return instance of the TaskOverviewWindow.
    */
-  public static TaskOverviewWindow getInstance() {
+  public static TaskOverviewWindow getInstance(TaskManager taskManager) {
 
     if (INSTANCE == null) {
-      INSTANCE = new TaskOverviewWindow();
+      INSTANCE = new TaskOverviewWindow(taskManager);
     }
     return INSTANCE;
   }
@@ -37,11 +38,12 @@ public class TaskOverviewWindow {
   /**
    *
    */
-  private TaskOverviewWindow() {
+  private TaskOverviewWindow(TaskManager taskManager) {
 
     FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("task_overview_window.fxml"));
-    fxmlLoader.setController(new TaskOverviewWindowController());
+    fxmlLoader.setController(new TaskOverviewWindowController(taskManager));
 
+    Parent root;
     try {
       root = fxmlLoader.load();
     } catch (IOException e) {
@@ -64,6 +66,8 @@ public class TaskOverviewWindow {
 
   /**
    * Displays the dialogue relative to the given reference node.
+   *
+   * @param referenceNode the node to position the TaskOverviewWindow relative to. If null, the window is centered on the screen.
    */
   public void showRelativeToReferenceNode(Node referenceNode) {
 
@@ -92,7 +96,7 @@ public class TaskOverviewWindow {
   }
 
   /**
-   * Set the position of the TaskOverviewWindow relative to the given x and y coordinates. The windows bottom right corner is going to be positioned to the top
+   * Set the position of the TaskOverviewWindow relative to the given x and y coordinates. The window's bottom right corner is going to be positioned to the top
    * left of the coordinates.
    *
    * @param x x position

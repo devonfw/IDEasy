@@ -8,8 +8,8 @@ import javafx.application.Platform;
 public class FxHelper {
 
   /**
-   * Allows to run operations on the Fx Application Thread, but only, if the call is originating from the Fx Application Thread. Idea: Some tasks which are
-   * doing (potentially heavy) background work, might not originate from the Fx Application (UI) Thread.
+   * Allows running operations on the Fx Application Thread, but only if the call is originating from the Fx Application Thread. Idea: Some tasks that are doing
+   * (potentially heavy) background work might not originate from the Fx Application (UI) Thread but will still interact with javafx observable collections.
    *
    * @param runnable code to execute
    */
