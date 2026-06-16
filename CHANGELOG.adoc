@@ -18,6 +18,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1849[#1849]: Add VSCodium support
 * https://github.com/devonfw/IDEasy/issues/1391[#1391]: Fix bashrc messed with terraform completions
 * https://github.com/devonfw/IDEasy/issues/1922[#1922]: Add Task CLI to IDEasy commandlets
+* https://github.com/devonfw/IDEasy/issues/1994[#1994]: Improve IDEasy AI documentation
 * https://github.com/devonfw/IDEasy/issues/1966[#1966]: Support separate VSCodium plugins
 * https://github.com/devonfw/IDEasy/issues/1518[#1518]: Add per-project uv tool isolation using UV_TOOL_DIR and UV_TOOL_BIN_DIR
 * https://github.com/devonfw/IDEasy/issues/1719[#1719]: Add Rust and MSVC support
