@@ -36,7 +36,7 @@ class VsCodeUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(get(urlMatching("/.*/(linux-x64|darwin|win32-x64-archive)/stable")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    VsCodeUrlUpdaterMock updater = new VsCodeUrlUpdaterMock(wmRuntimeInfo);
+    VsCodeUrlUpdater updater = new VsCodeUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
     // when
     updater.update(urlRepository);
 
