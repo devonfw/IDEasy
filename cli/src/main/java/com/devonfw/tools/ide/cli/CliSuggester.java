@@ -57,7 +57,7 @@ public class CliSuggester {
 
     String name = commandlet.getName();
 
-    step.error("The {} commandlet requires to be an IDEasy project to work.", name);
+    step.error("The {} commandlet requires an IDEasy project to work.", name);
     IdeLogLevel.INTERACTION.log(LOG, "Please run \"icd <project-name>\" before calling \"ide {}\".", name);
     IdeLogLevel.INTERACTION.log(LOG, "Call \"ide help\" for additional details.");
 

@@ -1158,7 +1158,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       if (commandKey == null || commandKey.isBlank()) {
         return 0;
       }
-      Commandlet commandletByName = findCommandletByName(commandKey);
+      Commandlet commandletByName = this.commandletManager.getCommandlet(commandKey);
       // Missing commandlet
       if (commandletByName == null) {
         if (getCliSuggester().isMissingCommandletHandled(commandKey, step)) {
@@ -1200,23 +1200,6 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     }
   }
 
-  /**
-   * Finds the {@link Commandlet} with the given name.
-   *
-   * @param name the name of the {@link Commandlet} to find.
-   * @return the {@link Commandlet} with the given name or {@code null} if no such {@link Commandlet} exists.
-   */
-  private Commandlet findCommandletByName(String name) {
-    if (name == null) {
-      return null;
-    }
-    for (Commandlet c : this.commandletManager.getCommandlets()) {
-      if (name.equals(c.getName())) {
-        return c;
-      }
-    }
-    return null;
-  }
 
   /**
    * @return the {@link CliSuggester} for CLI suggestions.
