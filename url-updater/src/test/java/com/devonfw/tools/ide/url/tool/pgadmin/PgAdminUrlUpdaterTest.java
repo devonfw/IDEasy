@@ -37,7 +37,7 @@ class PgAdminUrlUpdaterTest extends AbstractUrlUpdaterTest {
             .willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    PgAdminUrlUpdaterMock updater = new PgAdminUrlUpdaterMock(wmRuntimeInfo);
+    PgAdminUrlUpdater updater = new PgAdminUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
     // act
     updater.update(urlRepository);
 

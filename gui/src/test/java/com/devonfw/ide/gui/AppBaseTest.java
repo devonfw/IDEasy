@@ -7,7 +7,6 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Locale;
-
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -52,8 +51,8 @@ public class AppBaseTest extends HeadlessApplicationTest {
     assertThat(mainViewUrl).as("Cannot resolve main UI FXML resource!").isNotNull();
 
     FXMLLoader fxmlLoader = new FXMLLoader(mainViewUrl);
-    fxmlLoader.setResources(I18nService.getInstance().getResourceBundle());
     fxmlLoader.setController(new MainController(mockIdeRoot.toString()));
+    fxmlLoader.setResources(I18nService.getInstance().getResourceBundle());
     Parent root = fxmlLoader.load();
     stage.setScene(new Scene(root));
     stage.requestFocus(); //sometimes needed for headless setup to work
@@ -73,7 +72,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
    * to work in the test context. Generates a structure like this: /project-[0..6]/workspaces/main
    */
   @BeforeAll
-  protected static void generateProjectFolderStructure() throws IOException {
+  public static void generateProjectFolderStructure() throws IOException {
 
     LOGGER.debug("tempDir: {}", mockIdeRoot);
     FakeProjectFolderStructureHelper.createFakeProjectFolderStructure(mockIdeRoot);

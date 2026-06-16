@@ -10,6 +10,8 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.context.IdeContext;
+
 /**
  * Service class that allows to access the list of projects
  */
@@ -51,7 +53,7 @@ public class ProjectManager {
           .filter(Files::isDirectory)
           .map(Path::getFileName)
           .map(Path::toString)
-          .filter(name -> !name.startsWith("_") && Files.exists(ideRootDirectory.resolve(name).resolve("workspaces")))
+          .filter(name -> !name.equals(IdeContext.FOLDER_UNDERSCORE_IDE) && Files.exists(ideRootDirectory.resolve(name).resolve("workspaces")))
           .toList();
 
     } catch (IOException e) {

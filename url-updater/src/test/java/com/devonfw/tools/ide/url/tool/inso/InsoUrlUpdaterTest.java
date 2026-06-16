@@ -36,7 +36,7 @@ class InsoUrlUpdaterTest extends AbstractUrlUpdaterTest {
         .willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    InsoUrlUpdaterMock updater = new InsoUrlUpdaterMock(wmRuntimeInfo);
+    InsoUrlUpdater updater = new InsoUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // act
     updater.update(urlRepository);

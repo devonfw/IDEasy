@@ -1,0 +1,223 @@
+= Creating New Commandlets and UrlUpdaters
+
+== Overview
+
+This document explains how to implement a new `Commandlet` and `UrlUpdater` for IDEasy.
+A `Commandlet` is a CLI sub-command and in case of a `ToolCommandlet` manages a tool (install, uninstall, run), while an `UrlUpdater` is responsible for discovering and maintaining available versions of a tool to sync the download-metadata in [ide-urls](http://github.com/ide-urls).
+
+Not all tools require a UrlUpdater, as tools using certain package manager ecosystems (npm, Maven, pip) don't need one because their package managers provide version discovery automatically.
+
+== Understanding Commandlets
+
+=== What is a Commandlet?
+
+A commandlet is a subcommand of the IDEasy CLI that manages a tool's lifecycle.
+The base class is `Commandlet`, and for tools, the relevant base classes are:
+
+* `ToolCommandlet`: Base class for all tools
+* `LocalToolCommandlet`: For tools installed locally into IDEasy
+* `GlobalToolCommandlet`: For tools installed globally on the system
+
+Each commandlet implements:
+
+* Tool installation and uninstallation
+* Edition and version management
+* Retrieval of installed version information
+* Binary execution and configuration
+
+
+==== Tags
+
+Tags are used to classify and categorize tools.
+When creating a commandlet, you must specify appropriate tags for your tool.
+
+Tags are defined in `cli/src/main/java/com/devonfw/tools/ide/common/Tag.java` as static constants in a hierarchical structure (e.g., `Tag.JAVA`, `Tag.PYTHON`, `Tag.BUILD`, etc.) and can be extended with new tags as needed.
+
+Use tags in your commandlet constructor:
+
+[source,java]
+----
+public MyCommandlet(IdeContext context) {
+  super(context, "mycommandlet", Set.of(Tag.JAVA, Tag.BUILD)); // Use one or more tags
+}
+----
+
+== Package Manager Ecosystems
+
+For tools that are part of established package manager ecosystems, IDEasy provides specialized base classes.
+These ecosystems handle version discovery automatically via the package manager's registry and **no UrlUpdater is needed**.
+
+=== Maven Ecosystem
+
+**When to use:** For tools distributed via Maven Central Repository (or other Maven repositories)
+
+To check if an artifact is available on Maven Central, visit https://mvnrepository.com/
+
+**Base class:** `MvnBasedLocalToolCommandlet`
+
+=== npm Ecosystem
+
+**When to use:** For JavaScript/Node.js tools distributed via npm registry (npmjs.org)
+
+To check if a package is available on npm, visit https://www.npmjs.com/
+
+**Base classes:**
+
+* `NodeBasedCommandlet`: For Node.js itself
+* `NpmBasedCommandlet`: For npm packages
+
+The npm registry provides automatic version discovery via its REST API.
+
+When implementing a new npm-based tool, you extend `NpmBasedCommandlet` (not `NodeBasedCommandlet` directly), as npm is based on Node.js and requires Node.js to be installed.
+
+=== pip Ecosystem
+
+**When to use:** For Python tools distributed via PyPI (Python Package Index)
+
+To check if a package is available on PyPI, visit https://pypi.org/
+
+**Base class:** `PipBasedCommandlet`
+
+The pip repository provides automatic version discovery via its JSON API.
+
+== UrlUpdaters
+
+For tools that don't use package manager ecosystems, you need to implement an UrlUpdater, which is responsible to:
+
+1. Discover available versions of a tool
+2. Find download URLs for each version
+3. Validate that downloads are accessible
+4. Handle multiple editions (if applicable)
+5. Support multiple OS/architecture combinations
+
+=== Architecture Overview
+
+The main UrlUpdater types are:
+
+* `JsonUrlUpdater`: For REST APIs returning JSON
+** `AbstractGithubUrlUpdater`: Base for GitHub-based updaters
+*** `GithubUrlReleaseUpdater`: Preferred for GitHub releases
+*** `GithubUrlTagUpdater`: Fallback if no releases available
+* `MavenBasedUrlUpdater`: For Maven repository tools
+* `NpmBasedUrlUpdater`: For npm registry tools
+* `WebsiteUrlUpdater`: Last resort, web scraping only (avoid if possible!)
+
+=== JsonUrlUpdater (Recommended for REST APIs)
+
+Use `JsonUrlUpdater` when you have access to a REST API that returns JSON with version information.
+
+**Examples of tools using JsonUrlUpdater:**
+
+* JavaUrlUpdater
+* AndroidStudioUrlUpdater
+* IdeaBasedUrlUpdater: which is used for IntelliJ, Pycharm
+
+**What you need to implement:**
+
+* `getTool()` - Return the tool name
+* `doGetVersionUrl()` - Return the API endpoint URL
+* `getJsonObjectType()` - Return the root JSON class (create with Jackson annotations)
+* `getVersionItems(T)` - Extract version items from the JSON object
+* `addVersion(UrlVersion, V)` - Process each version and call `doAddVersion()` with the download URL
+
+=== GitHub Release Updater (Preferred for GitHub-hosted Tools)
+
+Use `GithubUrlReleaseUpdater` when:
+
+* The tool is hosted on GitHub
+* Releases are published using GitHub's Release feature
+
+**Examples of tools using GithubUrlReleaseUpdater:**
+
+* Gradle
+* Maven
+* Mvnd
+* Claude
+* SquirrelSQL
+* Inso
+
+**How to identify if a tool uses GitHub Releases:**
+
+* Check if the GitHub repository has a "Releases" section
+* Example: https://api.github.com/repos/anthropics/claude-code/releases
+
+=== GitHub Tag Updater (When No Releases Available)
+
+Use `GithubUrlTagUpdater` only as a fallback when:
+
+* The tool doesn't use GitHub Releases
+* Version discovery from git tags is the only option
+
+As git tags are less structured than releases and download URLs must be reconstructed manually.
+
+**Examples of tools using GithubUrlTagUpdater:**
+
+* Go
+* Sonar
+* Helm
+* VsCode
+* Uv
+
+=== WebsiteUrlUpdater (To Avoid!)
+
+Use `WebsiteUrlUpdater` only when previous options are not available.
+This UrlUpdater relies on HTML and Minor HTML changes break the updater and require maintenance.
+
+**Examples of tools using WebsiteUrlUpdater (last resort):**
+
+* Docker Desktop
+* Eclipse
+* Jenkins
+* Kotlinc
+* OC (OpenShift Client)
+* PgAdmin
+
+== Use Case: Creating a Commandlet and UrlUpdater for a new tool
+
+=== Create an UrlUpdater for the new tool (when needed)
+
+**1. Choose the right base class:**
+
+* If the tool is part of a package manager ecosystem, you don't need a UrlUpdater.
+* If the tool has a REST API with JSON responses, use `JsonUrlUpdater`.
+* If the tool is hosted on GitHub with proper releases, use `GithubUrlReleaseUpdater`.
+* If the tool is hosted on GitHub but only has tags, use `GithubUrlTagUpdater`.
+* Only if none of the above options are available, use `WebsiteUrlUpdater`.
+
+**2. Implement the UrlUpdater:**
+
+* UrlUpdater class: `MyToolUrlUpdater` located in: `url-updater/src/main/java/com/devonfw/tools/ide/url/tool/mytool/`
+* Implement required methods based on the chosen base class (e.g., `getTool()`, `doGetVersionUrl()`, etc.)
+* Register your updater by adding it to `UpdateManager.updaters` list in: `url-updater/src/main/java/com/devonfw/tools/ide/url/updater/UpdateManager.java`
+* Add a test for the created UrlUpdater with a mock class in `src/test/java/com/devonfw/tools/ide/url/tool/mytool/`
+** MyToolUrlUpdaterTest
+** MyToolUrlUpdaterMock: this file test requires a JSON file in `src/test/resources/com/devonfw/tools/ide/url/tool/mytool/` containing a sample response from the API.
+The file format and name depend on the base class used.
+
+
+To test the UrlUpdater, you can run in addition to the unit test the `UpdateInitiator` class located in `url-updater/src/main/java/com/devonfw/tools/ide/url/updater/UpdateInitiator.java` which allows you to run the updater and see the discovered versions and URLs in the console.
+The arguments to pass are:
+
+* Path to ide-urls project (where the url-updater module is located)
+* Time to wait for the updater to finish (e.g., PT1H)
+* Name of the updater to run (e.g., mytool)
+
+Once a day, the `UpdateInitiator` will run the updaters through GitHub Actions and fill the https://github.com/devonfw/ide-urls[ide-URL] repository with new version/tools that are identified by the Updaters.
+
+=== Create a Commandlet for the new tool
+
+After merging the changes for the created UrlUpdater (if needed), you can check in https://github.com/devonfw/ide-urls if the new tool versions have been discovered and added to the `ide-urls` repository.
+
+Then you can proceed to create the Commandlet for the new tool:
+
+* Commandlet class: `MyTool.java` located in: `cli/src/main/java/com/devonfw/tools/ide/cli/tool/mytool/`
+* Extend the appropriate base class (`ToolCommandlet`, `LocalToolCommandlet`, or `GlobalToolCommandlet`)
+* Use the tags defined in `Tag.java` to classify your tool
+* Add the new tool to `cli/src/main/java/com/devonfw/tools/ide/commandlet/CommandletManagerImpl.java` by adding it to the `commandlets` list in the constructor.
+* Add a test for the created Commandlet in `src/test/java/com/devonfw/tools/ide/cli/tool/mytool/` with name `MyToolTest.java`
+* For the test some resource files are needed in `cli/src/test/resources/ide-projects/mytool/` (depends on the base class used.
+For an example of the required files, you can check the tests of other commandlets with the same base class).
+* Proper help texts for all supported languages are added in `cli/src/main/resources/nls/` (`Help.properties`, `Help_de.properties`).
+* The new tool is added to the table of tools in LICENSE.asciidoc with the correct license information and tags.
+
+

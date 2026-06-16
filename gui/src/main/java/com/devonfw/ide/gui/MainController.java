@@ -5,6 +5,7 @@ import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
+import java.util.List;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -13,6 +14,9 @@ import javafx.scene.control.Label;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.ide.gui.context.IdeGuiStateManager;
+import com.devonfw.ide.gui.context.ProjectManager;
+import com.devonfw.ide.gui.modal.IdeDialog;
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
 import com.devonfw.ide.gui.context.ProjectManager;
 import com.devonfw.ide.gui.i18n.I18nService;
@@ -153,6 +157,7 @@ public class MainController {
 
     openIDE("vscode");
   }
+
 
   private void setProjectsComboBox() {
 
