@@ -1,5 +1,9 @@
 * eol=lf
 *.bat eol=crlf
+*.ps1 eol=crlf
+*.ps2 eol=crlf
+*.sh eol=lf
+*.command eol=lf
 *.png binary
 *.zip binary
 *.tgz binary
