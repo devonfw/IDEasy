@@ -9,30 +9,39 @@ This guide gives some special hints to make your project and team `AI ready` wit
 
 == AI Tools
 
-AI tools like a CLI for some famous AI are just another tool for IDEasy.
+IDEasy integrates many tools that you can install automatically including the CLI of famous AI tools like GitHub Copilot or Claude Code.
 Therefore, simply install it via `ide install «tool» [«version»]` to your project.
-If the AI tool of your choice is not available in IDEasy yet, please create a https://github.com/devonfw/IDEasy/issues/new?template=feature_request.yml[feature-request].
-To auto-install the tool for all your team-members on link:project.adoc[project] creation, simply add it to the link:variables.adoc[variable] `IDE_TOOLS`.
+
+To automatically install tools for all team members on link:project.adoc[project] creation, simply add them to the link:variables.adoc[variable] `IDE_TOOLS`.
 For further details see also link:software.adoc[software].
+
+[NOTE]
+====
+If an AI tool is not yet available in IDEasy, you can create a https://github.com/devonfw/IDEasy/issues/new?template=feature_request.yml[feature-request].
+====
 
 == AI Plugins
 
-Plugins with AI support are just another plugin for IDEasy and can be configured as described in the link:plugin.adoc[plugin] section.
+IDEasy can automatically install arbitrary plugins into the IDE of your choice (IntelliJ, Eclipse, VSCode, etc.) as described in the link:plugin.adoc[plugin] section.
 
 Typically, developers want to have the AI integrated into their IDE.
 Therefore, we already preconfigured and tagged common AI plugins for various IDEs.
-To give an example, lets assume you are using IntelliJ and you want to use GitHub Copilot you can find the plugin configuration https://github.com/devonfw/ide-settings/blob/main/intellij/plugins/GitHubCopilot.properties[here].
+To give an example, let's assume you are using IntelliJ and you want to use GitHub Copilot you can find the plugin configuration https://github.com/devonfw/ide-settings/blob/main/intellij/plugins/GitHubCopilot.properties[here].
 In your forked settings ensure that all your desired plugins are activated via
 
 ```
 active=true
 ```
 
-p.s.: If your settings are old the property may still be named `plugin_active` what is the legacy name for devonfw-ide compatibility.
+[NOTE]
+====
+If you are using older settings, the property may still be named `plugin_active`.
+This is a legacy name for compatibility with older __devonfw-ide __versions.
+====
 
 == AI Config
 
-You AI tools shall be configured and tailored to the needs of your project.
+Your AI tools shall be configured and tailored to the needs of your project.
 This includes aspects like instructions, skills, hooks, etc.
 However, common AI tools expect them in configuration folders directly in your workspace top-level directory.
 Even worse there is no common standard yet and every AI tool has its own naming conventions.
@@ -71,17 +80,19 @@ This will result in the following structure in each of your workspaces:
 
 This is just an example.
 Typically, you will only need support for a single type of AI.
-If you have the AI tool specific folder already in your git repository, simply configure something like this:
+If your repository already contains tool-specific folders (e.g. `.github`` for Copilot), simply configure something like this:
+
 ```
 link=.github=.github
 ```
-This will create a symbolic link called `.githib` pointing to the `.github` folder inside your git repository (e.g. `ai/.github`).
 
-However, you can even configure links like:
+This will create a symbolic link called `.github` pointing to the `.github` folder inside your git repository (e.g. `ai/.github`).
+
+However, you can also map specific subfolders:
 
 ```
 .github/hooks=myhooks/github
 ```
 
-So if your git repo would contain the hooks for github copilot in the folder `myhooks/github` those will be linked to appear as `.github/hooks` in your workspace.
+So if your git repo would contain the hooks for GitHub Copilot in the folder `myhooks/github` those will be linked to appear as `.github/hooks` in your workspace.
 We hope this gives you ultimate flexibility to solve all problems you may have.
