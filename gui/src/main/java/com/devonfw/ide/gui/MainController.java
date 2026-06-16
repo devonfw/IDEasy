@@ -213,7 +213,6 @@ public class MainController {
   }
 
 
-
   private void setProjectsComboBox() {
 
     assert (directoryPath != null) : "directoryPath is null! Please check the setup of your environment variables (IDE_ROOT)";

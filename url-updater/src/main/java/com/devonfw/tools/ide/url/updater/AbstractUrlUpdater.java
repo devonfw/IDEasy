@@ -84,13 +84,30 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   /** The GitHub API host to send {@link AbstractUrlUpdater#GITHUB_API_TOKEN_ENV} to. */
   private static final String GITHUB_API_HOST = "api.github.com";
 
+  private final String downloadBaseUrl;
+
+  private final String versionBaseUrl;
+
   private static final Logger logger = LoggerFactory.getLogger(AbstractUrlUpdater.class);
 
   /**
    * The constructor.
+   *
+   * @param downloadBaseUrl download base url
+   * @param versionBaseUrl version base url
    */
-  public AbstractUrlUpdater() {
+  public AbstractUrlUpdater(String downloadBaseUrl, String versionBaseUrl) {
     super();
+    if (downloadBaseUrl == null || downloadBaseUrl.isEmpty()) {
+      throw new IllegalArgumentException(
+          "Variable downloadBaseUrl can't be null or empty. Please provide valid value in UrlUpdater and UrlUpdaterTest for effected tool.");
+    }
+    if (versionBaseUrl == null || versionBaseUrl.isEmpty()) {
+      throw new IllegalArgumentException(
+          "Variable versionBaseUrl can't be null or empty. Please provide valid value in UrlUpdater and UrlUpdaterTest for effected tool.");
+    }
+    this.downloadBaseUrl = downloadBaseUrl;
+    this.versionBaseUrl = versionBaseUrl;
   }
 
   /**
@@ -245,37 +262,37 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
       return this;
     }
 
-     /**
-      * @return the primary vendor, i.e. the first configured vendor alias.
-      */
-     public String getPrimaryVendor() {
+    /**
+     * @return the primary vendor, i.e. the first configured vendor alias.
+     */
+    public String getPrimaryVendor() {
 
-       return getPrimaryValue(this.vendors, "vendor");
-     }
+      return getPrimaryValue(this.vendors, "vendor");
+    }
 
-     /**
-      * @return the primary product, i.e. the first configured product alias.
-      */
-     public String getPrimaryProduct() {
+    /**
+     * @return the primary product, i.e. the first configured product alias.
+     */
+    public String getPrimaryProduct() {
 
-       return getPrimaryValue(this.products, "product");
-     }
+      return getPrimaryValue(this.products, "product");
+    }
 
-     /**
-      * @return a list of all configured vendor values (both exact and infix matches).
-      */
-     public List<String> getVendors() {
+    /**
+     * @return a list of all configured vendor values (both exact and infix matches).
+     */
+    public List<String> getVendors() {
 
-       return this.vendors.stream().map(CpeValue::value).toList();
-     }
+      return this.vendors.stream().map(CpeValue::value).toList();
+    }
 
-     /**
-      * @return a list of all configured product values (both exact and infix matches).
-      */
-     public List<String> getProducts() {
+    /**
+     * @return a list of all configured product values (both exact and infix matches).
+     */
+    public List<String> getProducts() {
 
-       return this.products.stream().map(CpeValue::value).toList();
-     }
+      return this.products.stream().map(CpeValue::value).toList();
+    }
 
 
     /**
@@ -1074,10 +1091,10 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   protected boolean isAcceptVersion(String version) {
 
     if (version.contains("alpha") || version.contains("beta") || version.contains("dev") || version.contains("snapshot") || version.contains("preview")
-          || version.contains("test") || version.contains("tech-preview") //
-          || version.startsWith("ce-") || version.contains("-next")
-          // vscode nonsense
-          || version.startsWith("bad") || version.contains("vsda-") || version.contains("translation/") || version.contains("-insiders")) {
+        || version.contains("test") || version.contains("tech-preview") //
+        || version.startsWith("ce-") || version.contains("-next")
+        // vscode nonsense
+        || version.startsWith("bad") || version.contains("vsda-") || version.contains("translation/") || version.contains("-insiders")) {
       return false;
     }
     if (version.contains("-rc") || version.contains("-pre")) {
@@ -1156,11 +1173,15 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   /**
    * @return the base URL for the release downloads.
    */
-  protected abstract String getDownloadBaseUrl();
+  protected String getDownloadBaseUrl() {
+    return this.downloadBaseUrl;
+  }
 
   /**
    * @return the base URL for the version information.
    */
-  protected abstract String getVersionBaseUrl();
+  protected String getVersionBaseUrl() {
+    return this.versionBaseUrl;
+  }
 
 }

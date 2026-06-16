@@ -131,13 +131,27 @@ class EnvironmentVariablesTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test that a user-defined value which is already contained in IDEasy's default is not duplicated when merged.
+   * Test that IDEasy's {@code -s} and {@code -Dsettings.security=} arguments override any user-provided ones 
+   * and that unrelated user arguments are correctly appended.
    */
   @Test
-  void testUserDefinedMavenArgsAlreadyInIdeasyDefaultsIsNotDuplicated() {
+  void testMergeMavenArgsWithDefault() {
 
-    String defaultValue = "-s /path/to/settings.xml";
-    assertThat(AbstractEnvironmentVariables.mergeWithDefault("-s /path/to/settings.xml", defaultValue)).isEqualTo(defaultValue);
-    assertThat(AbstractEnvironmentVariables.mergeWithDefault("-s", defaultValue)).isEqualTo(defaultValue);
+    String defaultValue = "-s /ide/settings.xml -Dsettings.security=/ide/settings-security.xml";
+
+    assertThat(AbstractEnvironmentVariables.mergeWithDefault("-Xmx8000m -s invalid/settings.xml -Dsettings.security=something_wrong", defaultValue))
+        .isEqualTo("-Xmx8000m " + defaultValue);
+    assertThat(AbstractEnvironmentVariables.mergeWithDefault("-Xmx8000m -s invalid/settings.xml", defaultValue))
+        .isEqualTo("-Xmx8000m " + defaultValue);
+    assertThat(AbstractEnvironmentVariables.mergeWithDefault("-Xmx8000m -Dsettings.security=something_wrong", defaultValue))
+        .isEqualTo("-Xmx8000m " + defaultValue);
+    assertThat(AbstractEnvironmentVariables.mergeWithDefault("-T 4", defaultValue))
+        .isEqualTo("-T 4 " + defaultValue);
+    assertThat(AbstractEnvironmentVariables.mergeWithDefault("-s", defaultValue))
+        .isEqualTo(defaultValue);
+    assertThat(AbstractEnvironmentVariables.mergeWithDefault("-Xmx8000m -s invalid/settings.xml", ""))
+        .isEqualTo("-Xmx8000m -s invalid/settings.xml");
+    assertThat(AbstractEnvironmentVariables.mergeWithDefault("-Xmx8000m -s invalid/settings.xml", null))
+        .isEqualTo("-Xmx8000m -s invalid/settings.xml");
   }
 }

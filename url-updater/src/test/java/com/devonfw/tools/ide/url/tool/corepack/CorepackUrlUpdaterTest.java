@@ -41,7 +41,7 @@ class CorepackUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(any(urlMatching("/corepack/-/corepack-[0-9.].*.tgz")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    CorepackUrlUpdaterMock updater = new CorepackUrlUpdaterMock(wmRuntimeInfo);
+    CorepackUrlUpdater updater = new CorepackUrlUpdater(wmRuntimeInfo.getHttpBaseUrl() + "/");
 
     // act
     updater.update(urlRepository);

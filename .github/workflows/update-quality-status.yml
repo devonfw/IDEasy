@@ -1,0 +1,47 @@
+name: Update quality status documents
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: write
+
+jobs:
+  update-quality-status:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Generate status documents
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          rm -f documentation/quality-status/quality-status*.adoc
+          rm -rf documentation/quality-status/quality-status-images
+
+          cd documentation/quality-status/src
+          python generate_quality_status.py --owner devonfw --repo IDEasy --output-dir ..
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.email ${{ secrets.BUILD_USER_EMAIL }}
+          git config --global user.name ${{ secrets.BUILD_USER }}
+
+          git add -A documentation/quality-status
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git commit -m "Update quality status documents"
+          git push

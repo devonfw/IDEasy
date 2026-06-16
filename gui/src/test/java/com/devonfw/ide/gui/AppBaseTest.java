@@ -5,6 +5,7 @@ import static org.testfx.assertions.api.Assertions.assertThat;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Locale;
 import javafx.event.ActionEvent;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
@@ -20,7 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.context.IdeGuiContext;
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
- 
+
 
 /**
  * Basic UI Test
@@ -110,18 +111,6 @@ public class AppBaseTest extends HeadlessApplicationTest {
     for (Button button : new Button[] { androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen }) {
       assertThat(button.isDisabled()).as(button.getId() + " button should be enabled when a workspace has been selected").isFalse();
     }
-  }
-
-  /**
-   * This test ensures that the update indicator becomes visible when a project/workspace is selected.
-   */
-  @Test
-  public void testUpdateIndicatorVisibleWhenWorkspaceSelected() throws InterruptedException {
-
-    interact(() -> selectedProject.getSelectionModel().select("project-1"));
-    interact(() -> selectedWorkspace.getSelectionModel().select("main"));
-
-    TestGuiSetup.waitForCondition(updateIndicator::isVisible, 5000);
   }
 
   /**

@@ -14,19 +14,14 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 public abstract class MavenBasedUrlUpdater extends AbstractUrlUpdater {
 
   private static final String MAVEN_METADATA_XML = "maven-metadata.xml";
+  private static final String DOWNLOAD_BASE_URL = "https://repo1.maven.org/maven2";
+  private static final String VERSION_BASE_URL = "https://repo1.maven.org/maven2";
 
   /**
    * The constructor.
    */
   public MavenBasedUrlUpdater() {
-
-    super();
-  }
-
-  @Override
-  protected String getDownloadBaseUrl() {
-
-    return "https://repo1.maven.org/maven2";
+    super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
   }
 
   private String getDownloadArtifactUrl() {
@@ -56,12 +51,6 @@ public abstract class MavenBasedUrlUpdater extends AbstractUrlUpdater {
   protected Set<String> getVersions() {
 
     return doGetVersionsFromMavenApi(getDownloadArtifactUrl() + MAVEN_METADATA_XML);
-  }
-
-  @Override
-  protected String getVersionBaseUrl() {
-
-    return getDownloadBaseUrl();
   }
 
   @Override

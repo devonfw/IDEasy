@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
 import com.devonfw.ide.gui.i18n.I18nService;
 import com.devonfw.ide.gui.modal.IdeDialog;
+
 import com.devonfw.ide.gui.update.UpdateController;
 import com.devonfw.ide.gui.update.UpgradeController;
 import com.devonfw.tools.ide.variable.IdeVariables;
@@ -70,6 +71,7 @@ public class App extends Application {
       new IdeDialog(IdeDialog.AlertType.ERROR, "Failed to start IDEasy GUI: " + t.getMessage()).showAndWait();
     }
   }
+
 
   @SuppressWarnings("MissingJavadoc")
   public static void main(String[] args) {
