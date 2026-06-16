@@ -34,7 +34,7 @@ class CliSuggestionTest extends AbstractIdeContextTest {
     assertThat(exit).isEqualTo(1);
 
     assertThat(context).log().hasEntries(
-        new IdeLogEntry(IdeLogLevel.ERROR, "The update commandlet requires to be an IDEasy project to work.", true),
+        new IdeLogEntry(IdeLogLevel.ERROR, "The update commandlet requires an IDEasy project to work.", true),
         new IdeLogEntry(IdeLogLevel.INTERACTION, "Please run \"icd <project-name>\" before calling \"ide update\".", true),
         new IdeLogEntry(IdeLogLevel.INTERACTION, "Call \"ide help\" for additional details.", true)
     );
