@@ -16,10 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.i18n.I18nService;
 import com.devonfw.ide.gui.modal.IdeDialog;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import com.devonfw.ide.gui.modal.IdeDialog;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.IdeVersion;
 
