@@ -11,7 +11,6 @@ import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.process.ProcessContextImpl;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
@@ -28,7 +27,7 @@ public class Gui extends Commandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Gui.class);
 
-  private final FlagProperty enableExtendedLogging;
+  final FlagProperty enableExtendedLogging;
 
   /**
    * @param context the {@link IdeContext}.
@@ -49,7 +48,7 @@ public class Gui extends Commandlet {
   @Override
   protected void doRun() {
 
-    ProcessContext processContext = new ProcessContextImpl(this.context);
+    ProcessContext processContext = context.newProcess();
 
     Java java = this.context.getCommandletManager().getCommandlet(Java.class);
     Mvn mvn = this.context.getCommandletManager().getCommandlet(Mvn.class);
@@ -62,7 +61,7 @@ public class Gui extends Commandlet {
         new ToolEditionAndVersion(VersionIdentifier.of("25.*"))
     );
 
-    mvn.installTool(mavenToolInstallRequest);
+    ToolInstallation mvnToolInstallation = mvn.installTool(mavenToolInstallRequest);
     ToolInstallation javaInstallation = java.installTool(javaToolInstallRequest);
 
     LOG.debug("Starting GUI via commandlet");
