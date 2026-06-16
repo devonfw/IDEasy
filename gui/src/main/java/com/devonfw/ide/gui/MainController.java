@@ -129,7 +129,6 @@ public class MainController {
     openIDE("vscode");
   }
 
-
   private void setProjectsComboBox() {
 
     assert (directoryPath != null) : "directoryPath is null! Please check the setup of your environment variables (IDE_ROOT)";
@@ -242,7 +241,7 @@ public class MainController {
         );
         statusLabel.setUnderline(false);
         statusLabel.setStyle("");
-        
+
         statusProgressBar.setVisible(true);
         statusProgressBar.setPrefWidth(PROGRESSBAR_VISIBLE_WIDTH);
         statusProgressBar.setProgress((double) (task.getCurrentProgress()) / task.getMaxSize());

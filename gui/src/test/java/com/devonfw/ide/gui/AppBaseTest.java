@@ -24,6 +24,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
+
+import com.devonfw.ide.gui.context.IdeGuiStateManager;
 import com.devonfw.ide.gui.context.TaskManager;
 import com.devonfw.ide.gui.progress.ProgressBarTask;
 import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindow;
@@ -86,14 +88,14 @@ public class AppBaseTest extends HeadlessApplicationTest {
    * This test ensures that all IDE open buttons are disabled when no project is selected.
    */
   @Test
-  public void testIdeOpenButtonsDisabledWhenNoWorkspaceSelected() {
+  public void testIdeOpenButtonsDisabledWhenNoProjectSelected() {
 
     // assert that no project is selected
-    assertThat(selectedWorkspace.getValue()).isNull();
+    assertThat(selectedProject.getValue()).isNull();
 
     // assert all IDE open buttons are disabled
     for (Button button : new Button[] { androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen }) {
-      assertThat(button.isDisabled()).as(button.getId() + " button should be disabled when no workspace has been selected").isTrue();
+      assertThat(button.isDisabled()).as(button.getId() + " button should be disabled when no project has been selected").isTrue();
     }
   }
 
@@ -101,7 +103,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
    * This test ensures that all IDE open buttons are enabled when a project is selected.
    */
   @Test
-  public void testIdeOpenButtonsEnabledWhenWorkspaceSelected() {
+  public void testIdeOpenButtonsEnabledWhenProjectSelected() {
 
     // assert that a project and workspace is selected
     interact(() -> selectedProject.getSelectionModel().select("project-1"));
@@ -130,7 +132,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
    * Tests that the workspace {@link ComboBox} is enabled when a project is selected.
    */
   @Test
-  public void testWorkspaceComboBoxEnabledEnabledWhenProjectSelected() {
+  public void testWorkspaceComboboxEnabledEnabledWhenProjectSelected() {
 
     // assert that a project is selected
     interact(() -> selectedProject.getSelectionModel().select("project-1"));

@@ -58,8 +58,7 @@ class AndroidStudioUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(any(urlMatching("/edgedl/android/studio/ide-zips.*")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    AndroidStudioUrlUpdaterMock updater = new AndroidStudioUrlUpdaterMock(wmRuntimeInfo);
-
+    AndroidStudioUrlUpdater updater = new AndroidStudioUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
     // act
     updater.update(urlRepository);
 
@@ -82,7 +81,7 @@ class AndroidStudioUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(any(urlMatching("/edgedl/android/studio/ide-zips.*")).willReturn(aResponse().withStatus(404)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    AndroidStudioUrlUpdaterMock updater = new AndroidStudioUrlUpdaterMock(wmRuntimeInfo);
+    AndroidStudioUrlUpdater updater = new AndroidStudioUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // when
     updater.update(urlRepository);
@@ -109,7 +108,7 @@ class AndroidStudioUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(any(urlMatching("/edgedl/android/studio/ide-zips.*")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    AndroidStudioUrlUpdaterMock updater = new AndroidStudioUrlUpdaterMock(wmRuntimeInfo);
+    AndroidStudioUrlUpdater updater = new AndroidStudioUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // act
     updater.update(urlRepository);

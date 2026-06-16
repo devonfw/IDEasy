@@ -4,13 +4,19 @@ import java.io.IOException;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.ButtonType;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.devonfw.ide.gui.modal.IdeDialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +51,9 @@ public class App extends Application {
     );
     root = fxmlLoader.load();
 
-    Scene scene = new Scene(root, ((BorderPane) fxmlLoader.getRoot()).getPrefWidth(), ((BorderPane) fxmlLoader.getRoot()).getPrefHeight());
+    Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
+    Scene scene = new Scene(root, bounds.getWidth() / 2, bounds.getHeight() / 2);
+
     Image icon = new Image("com/devonfw/ide/gui/assets/devonfw.png");
     primaryStage.getIcons().add(icon);
     primaryStage.setTitle("IDEasy - version " + IdeVersion.getVersionString());
