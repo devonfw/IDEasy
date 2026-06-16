@@ -152,7 +152,9 @@ public final class EnvironmentCommandlet extends Commandlet {
             tool.setEnvironment(environmentContext, toolInstallation, false);
           }
         } catch (Exception e) {
-          LOG.warn("An error occurred while setting the environment variables in local tools:", e);
+          if (LOG.isDebugEnabled()) {
+            IdeLogLevel.PROCESSABLE.log(LOG, e, "An error occurred while setting the environment variables in local tools:");
+          }
         }
       }
     }
@@ -176,7 +178,9 @@ public final class EnvironmentCommandlet extends Commandlet {
             }
           }
         } catch (Exception e) {
-          LOG.warn("An error occurred while collecting Bash completion for tool {}.", tool.getName(), e);
+          if (LOG.isDebugEnabled()) {
+            IdeLogLevel.PROCESSABLE.log(LOG, e, "An error occurred while collecting Bash completion for tool {}.", tool.getName());
+          }
         }
       }
     }
