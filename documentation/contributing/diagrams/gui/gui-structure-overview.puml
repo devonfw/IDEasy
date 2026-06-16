@@ -17,7 +17,7 @@ package "gui" {
     +void start()
   }
 
-  class IdeGuiStateManager <<Thread safe singleton>> {
+  class IdeGuiStateManager {
       -String projectDirectory
       -IdeGuiContext currentContext
       --
@@ -28,10 +28,6 @@ package "gui" {
       +IdeGuiContext getCurrentContext()
       +void addStateChangeListener(StateChangeListener listener)
       +void removeStateChangeListener(StateChangeListener listener)
-  }
-
-  -static class "IdeGuiStateManager.Holder" as Holder {
-    -{static} INSTANCE
   }
 
   class MainController {
@@ -57,10 +53,8 @@ package "gui" {
   note bottom of StateChangeListener
     Idea: This listener is implemented by any UI component to get notified of any context changes.
     Alternative: an abstract StateDependentGuiComponent class that implements the listener and provides an abstract method for handling context changes.
-    Or: restart the app everytime the context changes (probably not the user-friendliest idea)
   end note
   note right of App: FXML layout is loaded here
-  note bottom of Holder: simple instance wrapper class for Bill Pugh singleton
   note right of IdeGuiContext: This will implement modals/progress bars
   note top of AppLauncher
     <b>Current considerations regarding the UI state management:</b>
@@ -79,7 +73,6 @@ IdeGuiContext ..> AbstractIdeContext : extends
 
 IdeGuiStateManager ..> IdeGuiContext : creates/manages instances of
 IdeGuiStateManager --> StateChangeListener : inner class
-IdeGuiStateManager -left> Holder : inner class
 
 App ..> MainController : initializes when loading layout
 MainController ..> IdeGuiStateManager : accesses/interacts with
