@@ -4,8 +4,9 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
-<?import java.lang.Double?>
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" prefHeight="515.0" prefWidth="817.0" xmlns="http://javafx.com/javafx/25.0.0"
+<?import javafx.scene.shape.Circle?>
+<BorderPane fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" prefHeight="515.0" prefWidth="817.0"
+  xmlns="http://javafx.com/javafx/25.0.0"
   xmlns:fx="http://javafx.com/fxml/1">
   <left>
     <VBox prefHeight="428.0" prefWidth="181.0" spacing="4.0" stylesheets="@style/navigation.css" BorderPane.alignment="CENTER">
@@ -15,18 +16,49 @@
             <Insets bottom="10.0"/>
           </VBox.margin>
           <children>
-            <ImageView fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
-              <image>
-                <Image url="@assets/logo.png"/>
-              </image>
-            </ImageView>
+            <!-- Wrap logo in a StackPane so we can overlay an upgrade indicator in the top-right corner -->
+            <StackPane>
+              <children>
+                <ImageView fx:id="logoImage" fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+                  <image>
+                    <Image url="@assets/logo.png"/>
+                  </image>
+                </ImageView>
+                <!-- small status indicator, initially hidden -->
+                <StackPane fx:id="upgradeIndicator" prefHeight="20.0" prefWidth="20.0" translateX="100" translateY="-15" pickOnBounds="true" visible="false"
+                  StackPane.alignment="TOP_RIGHT">
+                  <children>
+                    <Circle radius="10.0" fill="#BF362C"/>
+                    <Circle radius="8.0" fill="#F7CA41"/>
+                    <Label text="!" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #BF362C;"/>
+                  </children>
+                  <StackPane.margin>
+                    <Insets top="2.0" right="2.0"/>
+                  </StackPane.margin>
+                </StackPane>
+              </children>
+            </StackPane>
           </children>
         </HBox>
         <VBox maxHeight="-Infinity" prefWidth="100.0" styleClass="sideNavigationElement">
           <children>
-            <Label maxWidth="1.7976931348623157E308" text="Project"/>
-            <ComboBox fx:id="selectedProject" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefHeight="40.0" prefWidth="150.0"
-              promptText="Choose project" styleClass="chooseProject"/>
+            <Label fx:id="labelProject" maxWidth="1.7976931348623157E308" text="%label.project"/>
+            <StackPane>
+              <children>
+                <ComboBox fx:id="selectedProject" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefHeight="40.0" prefWidth="150.0"
+                  promptText="%prompt.chooseProject" styleClass="chooseProject"/>
+                <StackPane fx:id="updateIndicator" prefHeight="24.0" prefWidth="24.0" translateX="100" translateY="-50" visible="false"
+                  StackPane.alignment="TOP_RIGHT" pickOnBounds="false" style="-fx-cursor: hand;">
+                  <children>
+                    <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
+                      <image>
+                        <Image url="@assets/update.png"/>
+                      </image>
+                    </ImageView>
+                  </children>
+                </StackPane>
+              </children>
+            </StackPane>
           </children>
           <padding>
             <Insets left="8.0" right="8.0"/>
@@ -34,9 +66,20 @@
         </VBox>
         <VBox layoutX="20.0" layoutY="245.0" maxHeight="-Infinity" prefWidth="100.0" styleClass="sideNavigationElement">
           <children>
-            <Label maxWidth="1.7976931348623157E308" text="Workspace"/>
-            <ComboBox fx:id="selectedWorkspace" disable="true" maxWidth="1.7976931348623157E308" minWidth="-Infinity" onAction="#setWorkspaceValue"
-              prefHeight="40.0" prefWidth="150.0" promptText="Choose workspace" styleClass="chooseProject" VBox.vgrow="ALWAYS"/>
+            <Label fx:id="labelWorkspace" maxWidth="1.7976931348623157E308" text="%label.workspace"/>
+            <ComboBox fx:id="selectedWorkspace" disable="true" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefHeight="40.0" prefWidth="150.0"
+              promptText="%prompt.chooseWorkspace" styleClass="chooseProject" VBox.vgrow="ALWAYS"/>
+          </children>
+          <padding>
+            <Insets left="8.0" right="8.0"/>
+          </padding>
+        </VBox>
+        <!-- Language selector -->
+        <VBox maxHeight="-Infinity" prefWidth="100.0" styleClass="sideNavigationElement">
+          <children>
+            <Label fx:id="labelLanguage" maxWidth="1.7976931348623157E308" text="%label.language"/>
+            <ComboBox fx:id="selectedLanguage" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefHeight="40.0" prefWidth="150.0"
+              promptText="%prompt.chooseLanguage" styleClass="chooseProject"/>
           </children>
           <padding>
             <Insets left="8.0" right="8.0"/>
@@ -49,116 +92,128 @@
     </VBox>
   </left>
   <center>
-    <StackPane prefHeight="150.0" BorderPane.alignment="CENTER">
-      <fx:define>
-        <Double fx:id="buttonContainerHeight" fx:value="80.0"/>
-        <Double fx:id="buttonContainerWidth" fx:value="150.0"/>
-      </fx:define>
+    <VBox BorderPane.alignment="CENTER">
       <children>
-        <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="231.0" spacing="12.0">
+        <!-- Project header: updated by controller when selectedProject changes -->
+        <Label fx:id="projectHeaderLabel" maxWidth="1.7976931348623157E308"
+          style="-fx-font-size: 24px; -fx-font-weight: 800; -fx-text-fill: #333333;"
+          text="">
+          <VBox.margin>
+            <Insets left="30.0" top="24.0" right="30.0"/>
+          </VBox.margin>
+        </Label>
+        <GridPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" hgap="32.0" vgap="24.0" VBox.vgrow="ALWAYS">
+          <columnConstraints>
+            <ColumnConstraints hgrow="ALWAYS" percentWidth="50"/>
+            <ColumnConstraints hgrow="ALWAYS" percentWidth="50"/>
+          </columnConstraints>
+          <padding>
+            <Insets top="12.0" right="30.0" bottom="24.0" left="30.0"/>
+          </padding>
           <children>
-            <HBox alignment="CENTER_LEFT" layoutX="20.0" layoutY="204.0" prefHeight="100.0" prefWidth="150.0" spacing="20.0" stylesheets="@style/center.css"
-              styleClass="ideElement">
+            <!-- Android Studio -->
+            <VBox GridPane.columnIndex="0" GridPane.rowIndex="0"
+              stylesheets="@style/center.css"
+              styleClass="ideElement"
+              VBox.vgrow="ALWAYS"
+              alignment="CENTER"
+              spacing="10.0"
+              style="-fx-background-color: #E0E3EA; -fx-background-radius: 16; -fx-border-color: #C8CCD4; -fx-border-width: 1; -fx-border-radius: 16; -fx-padding: 24 20 20 20;"
+            >
               <children>
-                <ImageView fitHeight="60.0" fitWidth="60.0" pickOnBounds="true" preserveRatio="true">
+                <ImageView fitHeight="96.0" fitWidth="96.0" pickOnBounds="true" preserveRatio="true">
                   <image>
                     <Image url="@assets/as.png"/>
                   </image>
-                  <HBox.margin>
-                    <Insets bottom="10.0" left="10.0" top="10.0"/>
-                  </HBox.margin>
                 </ImageView>
-                <Label prefHeight="30.0" prefWidth="190.0" styleClass="ideTitle" text="Android-Studio"/>
-                <HBox alignment="CENTER_RIGHT" prefHeight="$buttonContainerHeight" prefWidth="$buttonContainerWidth" minWidth="$buttonContainerWidth"
-                  spacing="10.0" HBox.hgrow="ALWAYS">
-                  <children>
-                    <Button fx:id="androidStudioOpen" disable="true" mnemonicParsing="false" onAction="#openAndroidStudio" styleClass="launchButton"
-                      text="Open">
-                      <HBox.margin>
-                        <Insets right="20.0"/>
-                      </HBox.margin>
-                    </Button>
-                  </children>
-                </HBox>
+                <Label styleClass="ideTitle" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2C2C2C;" text="Android Studio"/>
+                <Button fx:id="androidStudioOpen" disable="true" mnemonicParsing="false" onAction="#openAndroidStudio" styleClass="launchButton"
+                  style="-fx-padding: 9 28 9 28; -fx-font-size: 14px; -fx-background-radius: 8; -fx-border-radius: 8;"
+                  text="%button.open">
+                  <VBox.margin>
+                    <Insets top="6.0"/>
+                  </VBox.margin>
+                </Button>
               </children>
-            </HBox>
-            <HBox alignment="CENTER_LEFT" layoutX="20.0" layoutY="120.0" prefHeight="100.0" prefWidth="150.0" spacing="20.0" styleClass="ideElement"
-              stylesheets="@style/center.css">
+            </VBox>
+            <!-- Eclipse -->
+            <VBox GridPane.columnIndex="1" GridPane.rowIndex="0"
+              styleClass="ideElement"
+              stylesheets="@style/center.css"
+              VBox.vgrow="ALWAYS"
+              alignment="CENTER"
+              spacing="10.0"
+              style="-fx-background-color: #E0E3EA; -fx-background-radius: 16; -fx-border-color: #C8CCD4; -fx-border-width: 1; -fx-border-radius: 16; -fx-padding: 24 20 20 20;"
+            >
               <children>
-                <ImageView fitHeight="60.0" fitWidth="60.0" pickOnBounds="true" preserveRatio="true">
+                <ImageView fitHeight="96.0" fitWidth="96.0" pickOnBounds="true" preserveRatio="true">
                   <image>
                     <Image url="@assets/eclipse.png"/>
                   </image>
-                  <HBox.margin>
-                    <Insets bottom="10.0" left="10.0" top="10.0"/>
-                  </HBox.margin>
                 </ImageView>
-                <Label prefHeight="30.0" prefWidth="114.0" styleClass="ideTitle" text="Eclipse"/>
-                <HBox alignment="CENTER_RIGHT" prefHeight="$buttonContainerHeight" prefWidth="$buttonContainerWidth" minWidth="$buttonContainerWidth"
-                  HBox.hgrow="ALWAYS">
-                  <children>
-                    <Button fx:id="eclipseOpen" disable="true" mnemonicParsing="false" onAction="#openEclipse" styleClass="launchButton" text="Open">
-                      <HBox.margin>
-                        <Insets right="20.0"/>
-                      </HBox.margin>
-                    </Button>
-                  </children>
-                </HBox>
+                <Label styleClass="ideTitle" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2C2C2C;" text="Eclipse"/>
+                <Button fx:id="eclipseOpen" disable="true" mnemonicParsing="false" onAction="#openEclipse" styleClass="launchButton"
+                  style="-fx-padding: 9 28 9 28; -fx-font-size: 14px; -fx-background-radius: 8; -fx-border-radius: 8;"
+                  text="%button.open">
+                  <VBox.margin>
+                    <Insets top="6.0"/>
+                  </VBox.margin>
+                </Button>
               </children>
-            </HBox>
-            <HBox alignment="CENTER_LEFT" layoutX="20.0" layoutY="20.0" prefHeight="100.0" prefWidth="150.0" spacing="20.0" styleClass="ideElement"
-              stylesheets="@style/center.css">
+            </VBox>
+            <!-- Intellij -->
+            <VBox GridPane.columnIndex="0" GridPane.rowIndex="1"
+              styleClass="ideElement"
+              stylesheets="@style/center.css"
+              VBox.vgrow="ALWAYS"
+              alignment="CENTER"
+              spacing="10.0"
+              style="-fx-background-color: #E0E3EA; -fx-background-radius: 16; -fx-border-color: #C8CCD4; -fx-border-width: 1; -fx-border-radius: 16; -fx-padding: 24 20 20 20;"
+            >
               <children>
-                <ImageView fitHeight="60.0" fitWidth="60.0" pickOnBounds="true" preserveRatio="true">
+                <ImageView fitHeight="96.0" fitWidth="96.0" pickOnBounds="true" preserveRatio="true">
                   <image>
                     <Image url="@assets/intellij.png"/>
                   </image>
-                  <HBox.margin>
-                    <Insets bottom="10.0" left="10.0" top="10.0"/>
-                  </HBox.margin>
                 </ImageView>
-                <Label prefHeight="30.0" prefWidth="100.0" styleClass="ideTitle" text="Intellij"/>
-                <HBox alignment="CENTER_RIGHT" prefHeight="$buttonContainerHeight" prefWidth="$buttonContainerWidth" minWidth="$buttonContainerWidth"
-                  spacing="10.0" HBox.hgrow="ALWAYS">
-                  <children>
-                    <Button fx:id="intellijOpen" disable="true" mnemonicParsing="false" onAction="#openIntellij" styleClass="launchButton" text="Open">
-                      <HBox.margin>
-                        <Insets right="20.0"/>
-                      </HBox.margin>
-                    </Button>
-                  </children>
-                </HBox>
+                <Label styleClass="ideTitle" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2C2C2C;" text="Intellij"/>
+                <Button fx:id="intellijOpen" disable="true" mnemonicParsing="false" onAction="#openIntellij" styleClass="launchButton"
+                  style="-fx-padding: 9 28 9 28; -fx-font-size: 14px; -fx-background-radius: 8; -fx-border-radius: 8;"
+                  text="%button.open">
+                  <VBox.margin>
+                    <Insets top="6.0"/>
+                  </VBox.margin>
+                </Button>
               </children>
-            </HBox>
-            <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="150.0" spacing="20.0" styleClass="ideElement" stylesheets="@style/center.css">
+            </VBox>
+            <!-- VsCode -->
+            <VBox GridPane.columnIndex="1" GridPane.rowIndex="1"
+              styleClass="ideElement"
+              stylesheets="@style/center.css"
+              VBox.vgrow="ALWAYS"
+              alignment="CENTER"
+              spacing="10.0"
+              style="-fx-background-color: #E0E3EA; -fx-background-radius: 16; -fx-border-color: #C8CCD4; -fx-border-width: 1; -fx-border-radius: 16; -fx-padding: 24 20 20 20;"
+            >
               <children>
-                <ImageView fitHeight="60.0" fitWidth="60.0" pickOnBounds="true" preserveRatio="true">
+                <ImageView fitHeight="96.0" fitWidth="96.0" pickOnBounds="true" preserveRatio="true">
                   <image>
                     <Image url="@assets/vscode.png"/>
                   </image>
-                  <HBox.margin>
-                    <Insets bottom="10.0" left="10.0" top="10.0"/>
-                  </HBox.margin>
                 </ImageView>
-                <Label prefHeight="30.0" prefWidth="114.0" styleClass="ideTitle" text="VS Code"/>
-                <HBox alignment="CENTER_RIGHT" prefHeight="$buttonContainerHeight" prefWidth="$buttonContainerWidth" minWidth="$buttonContainerWidth"
-                  spacing="10.0" HBox.hgrow="ALWAYS">
-                  <children>
-                    <Button fx:id="vsCodeOpen" disable="true" mnemonicParsing="false" onAction="#openVsCode" styleClass="launchButton" text="Open">
-                      <HBox.margin>
-                        <Insets right="20.0"/>
-                      </HBox.margin>
-                    </Button>
-                  </children>
-                </HBox>
+                <Label styleClass="ideTitle" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2C2C2C;" text="VS Code"/>
+                <Button fx:id="vsCodeOpen" disable="true" mnemonicParsing="false" onAction="#openVsCode" styleClass="launchButton"
+                  style="-fx-padding: 9 28 9 28; -fx-font-size: 14px; -fx-background-radius: 8; -fx-border-radius: 8;"
+                  text="%button.open">
+                  <VBox.margin>
+                    <Insets top="6.0"/>
+                  </VBox.margin>
+                </Button>
               </children>
-            </HBox>
+            </VBox>
           </children>
-          <padding>
-            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
-          </padding>
-        </VBox>
+        </GridPane>
       </children>
-    </StackPane>
+    </VBox>
   </center>
 </BorderPane>

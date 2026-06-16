@@ -2,6 +2,7 @@ package com.devonfw.ide.gui;
 
 import java.io.IOException;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
@@ -10,6 +11,14 @@ import javafx.scene.image.Image;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.devonfw.ide.gui.context.IdeGuiStateManager;
+import com.devonfw.ide.gui.i18n.I18nService;
+import com.devonfw.ide.gui.modal.IdeDialog;
+import com.devonfw.ide.gui.update.UpdateController;
+import com.devonfw.ide.gui.update.UpgradeController;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.IdeVersion;
 
@@ -20,27 +29,47 @@ public class App extends Application {
 
   Parent root;
 
+  private static final Logger LOG = LoggerFactory.getLogger(App.class);
+
   @Override
   public void start(Stage primaryStage) throws IOException {
 
-    FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
-    fxmlLoader.setController(
-        new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()))
-    );
-    root = fxmlLoader.load();
+    try {
+      I18nService.getInstance(null);
+      TestGuiConfiguration.applyConfigOverrides();
 
-    Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
-    Scene scene = new Scene(root, bounds.getWidth() / 2, bounds.getHeight() / 2);
+      Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+            LOG.error("Uncaught exception in thread {}: {}", thread.getName(), throwable.getMessage(), throwable);
+            Platform.runLater(() -> new IdeDialog(IdeDialog.AlertType.ERROR, throwable.getMessage()).showAndWait());
+          }
+      );
 
-    Image icon = new Image("com/devonfw/ide/gui/assets/devonfw.png");
-    primaryStage.getIcons().add(icon);
-    primaryStage.setTitle("IDEasy - version " + IdeVersion.getVersionString());
-    primaryStage.setScene(scene);
-    primaryStage.setMinWidth(scene.getWidth());
-    primaryStage.setMinHeight(scene.getHeight());
-    primaryStage.show();
+      FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
+      fxmlLoader.setResources(I18nService.getInstance().getResourceBundle());
+      UpdateController updateController = new UpdateController(IdeGuiStateManager.getInstance());
+      UpgradeController upgradeController = new UpgradeController(
+          IdeGuiStateManager.getInstance());
+      fxmlLoader.setController(
+          new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()), IdeGuiStateManager.getInstance().getProjectManager(), updateController,
+              upgradeController)
+      );
+      root = fxmlLoader.load();
+
+      Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
+      Scene scene = new Scene(root, bounds.getWidth() / 2, bounds.getHeight() / 2);
+
+      Image icon = new Image("com/devonfw/ide/gui/assets/devonfw.png");
+      primaryStage.getIcons().add(icon);
+      primaryStage.setTitle("IDEasy - version " + IdeVersion.getVersionString());
+      primaryStage.setScene(scene);
+      primaryStage.setMinWidth(scene.getWidth());
+      primaryStage.setMinHeight(scene.getHeight());
+      primaryStage.show();
+    } catch (Throwable t) {
+      t.printStackTrace();
+      new IdeDialog(IdeDialog.AlertType.ERROR, "Failed to start IDEasy GUI: " + t.getMessage()).showAndWait();
+    }
   }
-
 
   @SuppressWarnings("MissingJavadoc")
   public static void main(String[] args) {
