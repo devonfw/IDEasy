@@ -19,6 +19,7 @@ import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
+import com.devonfw.tools.ide.util.FilenameUtil;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -157,30 +158,35 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     ToolRepository toolRepository = this.context.getDefaultToolRepository();
     resolvedVersion = cveCheck(request);
     // download and install the global tool
-    FileAccess fileAccess = this.context.getFileAccess();
     Path target = toolRepository.download(this.tool, edition, resolvedVersion, this);
-    Path executable = target;
-    Path tmpDir = null;
-    boolean extract = isExtract();
-    if (extract) {
-      tmpDir = fileAccess.createTempDir(getName());
-      Path downloadBinaryPath = tmpDir.resolve(target.getFileName());
-      fileAccess.extract(target, downloadBinaryPath);
-      executable = fileAccess.findFirst(downloadBinaryPath, Files::isExecutable, false);
-    }
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(executable);
-    int exitCode = pc.run(ProcessMode.BACKGROUND_SILENT).getExitCode();
-    if (tmpDir != null) {
-      fileAccess.delete(tmpDir);
-    }
-    if (exitCode == 0) {
-      IdeLogLevel.SUCCESS.log(LOG, "Installation process for {} in version {} has started", this.tool, resolvedVersion);
-      Step step = request.getStep();
-      if (step != null) {
-        step.success(true);
-      }
+    ProcessContext pc;
+    if (isMacDmg(target)) {
+      installMacDmg(target);
+      pc = request.getProcessContext();
     } else {
-      throw new CliException("Installation process for " + this.tool + " in version " + resolvedVersion + " failed with exit code " + exitCode + "!");
+      FileAccess fileAccess = this.context.getFileAccess();
+      Path executable = target;
+      Path tmpDir = null;
+      boolean extract = isExtract();
+      if (extract) {
+        tmpDir = fileAccess.createTempDir(getName());
+        Path downloadBinaryPath = tmpDir.resolve(target.getFileName());
+        fileAccess.extract(target, downloadBinaryPath);
+        executable = fileAccess.findFirst(downloadBinaryPath, Files::isExecutable, false);
+      }
+      pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(executable);
+      int exitCode = pc.run(ProcessMode.BACKGROUND_SILENT).getExitCode();
+      if (tmpDir != null) {
+        fileAccess.delete(tmpDir);
+      }
+      if (exitCode != 0) {
+        throw new CliException("Installation process for " + this.tool + " in version " + resolvedVersion + " failed with exit code " + exitCode + "!");
+      }
+    }
+    IdeLogLevel.SUCCESS.log(LOG, "Installation process for {} in version {} has started", this.tool, resolvedVersion);
+    Step step = request.getStep();
+    if (step != null) {
+      step.success(true);
     }
     installationPath = getInstallationPath(toolEdition.edition(), resolvedVersion);
     if (installationPath == null) {
@@ -188,6 +194,69 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
           + "reboot your machine. Then rerun the command to start the tool.", 2);
     }
     return createToolInstallation(installationPath, resolvedVersion, true, pc, false);
+  }
+
+  private void installMacDmg(Path downloadedToolFile) {
+
+    FileAccess fileAccess = this.context.getFileAccess();
+    Path tmpDir = fileAccess.createTempDir(getName());
+    try {
+      fileAccess.extractDmg(downloadedToolFile, tmpDir);
+      Path sourceApp = getMacOsHelper().findAppDir(tmpDir);
+      if (sourceApp == null) {
+        throw new CliException("Failed to install " + this.tool + " from " + downloadedToolFile + " because no MacOS *.app was found.");
+      }
+      Path targetApp = getMacApplicationsPath().resolve(sourceApp.getFileName().toString());
+      copyMacApplicationToApplications(sourceApp, targetApp);
+    } finally {
+      fileAccess.delete(tmpDir);
+    }
+  }
+
+  /**
+   * Copies a macOS application bundle to the global applications folder.
+   *
+   * @param sourceApp the extracted source {@code .app}.
+   * @param targetApp the target {@code .app} in {@link #getMacApplicationsPath()}.
+   */
+  protected void copyMacApplicationToApplications(Path sourceApp, Path targetApp) {
+
+    runPrivilegedCommands(List.of(
+        List.of("/bin/rm", "-rf", targetApp.toString()),
+        List.of("/usr/bin/ditto", sourceApp.toString(), targetApp.toString())));
+  }
+
+  private void runPrivilegedCommands(List<List<String>> commands) {
+
+    logPrivilegedCommands(commands.stream().map(this::toSudoCommandLine).toList());
+    for (List<String> command : commands) {
+      int exitCode = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable("sudo").addArgs(command).run();
+      if (exitCode != 0) {
+        throw new CliException("Privileged command failed with exit code " + exitCode + ": " + toSudoCommandLine(command));
+      }
+    }
+  }
+
+  private String toSudoCommandLine(List<String> command) {
+
+    return "sudo " + String.join(" ", command);
+  }
+
+  private boolean isMacDmg(Path file) {
+
+    if (!this.context.getSystemInfo().isMac()) {
+      return false;
+    }
+    String extension = FilenameUtil.getExtension(file.toString());
+    return "dmg".equals(extension);
+  }
+
+  /**
+   * @return the macOS applications folder where global {@code .dmg} tools are installed.
+   */
+  protected Path getMacApplicationsPath() {
+
+    return Path.of("/Applications");
   }
 
   /**
@@ -216,6 +285,9 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     Path toolBinary = Path.of(getBinaryName());
     Path binaryPath = this.context.getPath().findBinary(toolBinary);
     if ((binaryPath == toolBinary) || !Files.exists(binaryPath)) {
+      if (this.context.getSystemInfo().isMac()) {
+        return getMacApplicationInstallationPath();
+      }
       return null;
     }
     Path binPath = binaryPath.getParent();
@@ -223,6 +295,30 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
       return null;
     }
     return this.context.getFileAccess().getBinParentPath(binPath);
+  }
+
+  private Path getMacApplicationInstallationPath() {
+
+    Path appPath = this.context.getFileAccess().findFirst(getMacApplicationsPath(), this::isMacApplicationForTool, false);
+    if (appPath == null) {
+      return null;
+    }
+    Path binaryPath = getMacApplicationBinaryPath(appPath);
+    this.context.getPath().setPath(getName(), binaryPath.getParent());
+    return appPath;
+  }
+
+  private boolean isMacApplicationForTool(Path appPath) {
+
+    if (!Files.isDirectory(appPath) || !appPath.getFileName().toString().endsWith(".app")) {
+      return false;
+    }
+    return Files.isExecutable(getMacApplicationBinaryPath(appPath));
+  }
+
+  private Path getMacApplicationBinaryPath(Path appPath) {
+
+    return appPath.resolve(IdeContext.FOLDER_CONTENTS).resolve(IdeContext.FOLDER_MAC_OS).resolve(getBinaryName());
   }
 
   @Override

@@ -62,6 +62,7 @@ import com.devonfw.tools.ide.io.ini.IniFile;
 import com.devonfw.tools.ide.io.ini.IniSection;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.util.DateTimeUtil;
@@ -1000,18 +1001,29 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
 
     Path mountPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_VOLUME);
     mkdirs(mountPath);
-    ProcessContext pc = this.context.newProcess();
-    pc.executable("hdiutil");
-    pc.addArgs("attach", "-quiet", "-nobrowse", "-mountpoint", mountPath, file);
-    pc.run();
-    Path appPath = findFirst(mountPath, p -> p.getFileName().toString().endsWith(".app"), false);
-    if (appPath == null) {
-      throw new IllegalStateException("Failed to unpack DMG as no MacOS *.app was found in file " + file);
-    }
+    boolean mounted = false;
+    try {
+      ProcessContext pc = this.context.newProcess();
+      pc.executable("hdiutil");
+      pc.addArgs("attach", "-quiet", "-nobrowse", "-mountpoint", mountPath, file);
+      pc.run();
+      mounted = true;
+      Path appPath = findFirst(mountPath, p -> p.getFileName().toString().endsWith(".app"), false);
+      if (appPath == null) {
+        throw new IllegalStateException("Failed to unpack DMG as no MacOS *.app was found in file " + file);
+      }
 
-    copy(appPath, targetDir, FileCopyMode.COPY_TREE_OVERRIDE_TREE);
-    pc.addArgs("detach", "-force", mountPath);
-    pc.run();
+      // use ditto to copy the .app: a normal recursive copy breaks on the symlinks inside macOS frameworks (e.g. Python/Tcl)
+      Path targetApp = targetDir.resolve(appPath.getFileName().toString());
+      mkdirs(targetDir);
+      delete(targetApp);
+      this.context.newProcess().executable("ditto").addArgs(appPath, targetApp).run();
+    } finally {
+      if (mounted) {
+        this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable("hdiutil").addArgs("detach", "-force", mountPath)
+            .run(ProcessMode.DEFAULT_SILENT);
+      }
+    }
   }
 
   @Override
