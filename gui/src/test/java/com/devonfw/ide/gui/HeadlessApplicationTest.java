@@ -15,10 +15,11 @@ public abstract class HeadlessApplicationTest extends ApplicationTest {
 
     System.setProperty("testfx.robot", "glass");
     System.setProperty("testfx.headless", "true");
-    System.setProperty("glass.platform", "Monocle");
     System.setProperty("prism.order", "sw");
     System.setProperty("prism.text", "t2k");
-    System.setProperty("testfx.setup.timeout", "10000"); // increased timeout for testing on server-side CIs
     System.setProperty("java.awt.headless", "true");
+    System.setProperty("glass.platform", "Monocle");
+    System.setProperty("monocle.platform", "Headless");
+    System.setProperty("testfx.setup.timeout", "10000"); // increased timeout for testing on server-side CIs
   }
 }

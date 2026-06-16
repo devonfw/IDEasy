@@ -43,7 +43,7 @@ public class GcLogAnalyzerUrlUpdaterTest extends AbstractUrlUpdaterTest {
         .willReturn(aResponse().withStatus(200).withHeader("Content-Type", "application/zip").withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    GcLogAnalyzerUrlUpdaterMock updater = new GcLogAnalyzerUrlUpdaterMock(wmRuntimeInfo);
+    GcLogAnalyzerUrlUpdater updater = new GcLogAnalyzerUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // act
     updater.update(urlRepository);
