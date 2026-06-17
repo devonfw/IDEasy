@@ -5,7 +5,6 @@
 # Supports creating: Applications folder alias and Desktop alias
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 LAUNCHER_SCRIPT="$SCRIPT_DIR/launch-gui.command"
 
 # Set error handling - exit on error but allow catching specific errors
@@ -38,26 +37,27 @@ fi
 chmod +x "$LAUNCHER_SCRIPT"
 
 # Create an alias/shortcut using osascript (AppleScript)
+# Falls back to a symlink if Finder is not running or AppleScript fails
 function create_alias() {
     local source="$1"
     local target_dir="$2"
     local target_name="$3"
-    
+
     if [ ! -f "$source" ]; then
         print_error "Source file not found: $source"
         return 1
     fi
-    
+
     if ! mkdir -p "$target_dir" 2>/dev/null; then
         print_error "Failed to create directory: $target_dir"
         return 1
     fi
-    
+
     # Properly escape paths for AppleScript
     local escaped_source="$(printf '%s\n' "$source" | sed 's/\\/\\\\/g; s/"/\\"/g')"
     local escaped_target_dir="$(printf '%s\n' "$target_dir" | sed 's/\\/\\\\/g; s/"/\\"/g')"
     local escaped_target_name="$(printf '%s\n' "$target_name" | sed 's/\\/\\\\/g; s/"/\\"/g')"
-    
+
     local output
     output=$(osascript 2>&1 <<EOF
 tell application "Finder"
@@ -70,16 +70,24 @@ tell application "Finder"
 end tell
 EOF
     )
-    
+
     local exit_code=$?
     if [ $exit_code -eq 0 ] && [ "$output" = "success" ]; then
         print_success "Created shortcut: $target_dir/$target_name"
         return 0
-    else
-        print_error "Failed to create shortcut: $target_dir/$target_name"
-        [ -n "$output" ] && print_error "Reason: $output"
-        return 1
     fi
+
+    # Fallback: create a symlink if AppleScript failed (e.g. Finder not running in CI/server)
+    # Keep the .command extension so Finder recognises it as a runnable shell script
+    print_info "AppleScript unavailable, falling back to symlink..."
+    if ln -sf "$source" "$target_dir/$target_name.command" 2>/dev/null; then
+        print_success "Created symlink: $target_dir/$target_name.command"
+        return 0
+    fi
+
+    print_error "Failed to create shortcut: $target_dir/$target_name"
+    [ -n "$output" ] && print_error "Reason: $output"
+    return 1
 }
 
 # Create Applications alias

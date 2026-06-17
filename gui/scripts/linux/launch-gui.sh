@@ -26,10 +26,7 @@ fi
 cd "$PROJECT_ROOT"
 
 # Launch IDE GUI in background and exit immediately
-# Redirect output to suppress any console messages
-ide gui > /dev/null 2>&1 &
-
-# Give the process a moment to start (may need time for Maven dependencies on first run)
-sleep 3
+LOG_FILE="$HOME/.ideasy-gui.log"
+ide gui >> "$LOG_FILE" 2>&1 &
 
 exit 0
