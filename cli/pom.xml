@@ -191,6 +191,26 @@
               </resources>
             </configuration>
           </execution>
+          <!-- Before we run the GuiTest, we want to copy the latest gui-launcher pom to the test directory under test/resources/ide-projects/gui/installation/gui/pom.xml  -->
+          <execution>
+            <id>copy-gui-pom-to-test-project</id>
+            <phase>process-test-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.basedir}/src/test/resources/ide-projects/gui/_ide/installation/gui</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>src/main/package/gui</directory>
+                  <filtering>false</filtering>
+                  <includes>
+                    <include>pom.xml</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
     </plugins>
