@@ -478,7 +478,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
    */
   private void mklinkOnWindows(Path source, Path absoluteSource, Path link, PathLinkType type, boolean relative) {
 
-    Path finalSource = source;
+    Path finalSource = relative ? source : absoluteSource;
     Path finalLink = link;
     Path cwd = null;
     if (relative) {
