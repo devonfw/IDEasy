@@ -1,4 +1,4 @@
-package com.devonfw.ide.gui.i18n;
+package com.devonfw.ide.gui.localization;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -12,9 +12,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests for {@link I18nService} - verifies locale switching, bundle loading, and fallback behavior.
+ * Tests for {@link LocalizationService} - verifies locale switching, bundle loading, and fallback behavior.
  */
-public class I18nServiceTest {
+public class LocalizationServiceTest {
 
   private Set<String> englishKeys;
 
@@ -22,9 +22,9 @@ public class I18nServiceTest {
   public void setUp() {
 
     // Reset the singleton instance before each test
-    I18nService.resetInstance();
+    LocalizationService.resetInstance();
     // Preload English bundle keys used by bundle-completion tests
-    ResourceBundle englishBundle = ResourceBundle.getBundle("i18n.messages", Locale.ENGLISH);
+    ResourceBundle englishBundle = ResourceBundle.getBundle("localization.messages", Locale.ENGLISH);
     this.englishKeys = extractKeys(englishBundle);
   }
 
@@ -32,7 +32,7 @@ public class I18nServiceTest {
   public void testGetInstanceWithLocale() {
 
     Locale englishLocale = Locale.ENGLISH;
-    I18nService service = I18nService.getInstance(englishLocale);
+    LocalizationService service = LocalizationService.getInstance(englishLocale);
 
     assertThat(service.getLocale()).isEqualTo(englishLocale);
     assertThat(service.getResourceBundle()).isNotNull();
@@ -41,8 +41,8 @@ public class I18nServiceTest {
   @Test
   public void testGetInstanceSingleton() {
 
-    I18nService service1 = I18nService.getInstance(Locale.ENGLISH);
-    I18nService service2 = I18nService.getInstance();
+    LocalizationService service1 = LocalizationService.getInstance(Locale.ENGLISH);
+    LocalizationService service2 = LocalizationService.getInstance();
 
     assertThat(service1).isSameAs(service2);
   }
@@ -50,7 +50,7 @@ public class I18nServiceTest {
   @Test
   public void testSetLocale() {
 
-    I18nService service = I18nService.getInstance(Locale.ENGLISH);
+    LocalizationService service = LocalizationService.getInstance(Locale.ENGLISH);
     service.setLocale(Locale.GERMAN);
 
     assertThat(service.getLocale().getLanguage()).isEqualTo("de");
@@ -61,17 +61,17 @@ public class I18nServiceTest {
   @Test
   public void testGetMissingKeyReturnsFallback() {
 
-    I18nService service = I18nService.getInstance(Locale.ENGLISH);
+    LocalizationService service = LocalizationService.getInstance(Locale.ENGLISH);
     String value = service.get("non.existent.key");
 
     assertThat(value).isEqualTo("!non.existent.key!");
   }
 
-  
+
   @Test
   public void testGermanBundleCompleteWithAllEnglishKeys() {
 
-    ResourceBundle germanBundle = ResourceBundle.getBundle("i18n.messages", Locale.GERMAN);
+    ResourceBundle germanBundle = ResourceBundle.getBundle("localization.messages", Locale.GERMAN);
     Set<String> germanKeys = extractKeys(germanBundle);
 
     assertThat(germanKeys).as("German bundle must contain all keys from English bundle").containsAll(this.englishKeys);
@@ -80,7 +80,7 @@ public class I18nServiceTest {
   @Test
   public void testGermanBundleDoesNotHaveExtraKeys() {
 
-    ResourceBundle germanBundle = ResourceBundle.getBundle("i18n.messages", Locale.GERMAN);
+    ResourceBundle germanBundle = ResourceBundle.getBundle("localization.messages", Locale.GERMAN);
     Set<String> germanKeys = extractKeys(germanBundle);
 
     assertThat(this.englishKeys).as("German bundle should not have extra keys beyond the English bundle").containsAll(germanKeys);
@@ -89,7 +89,7 @@ public class I18nServiceTest {
   @Test
   public void testNoEmptyTranslations() {
 
-    ResourceBundle englishBundle = ResourceBundle.getBundle("i18n.messages", Locale.ENGLISH);
+    ResourceBundle englishBundle = ResourceBundle.getBundle("localization.messages", Locale.ENGLISH);
     for (String key : this.englishKeys) {
       String value = englishBundle.getString(key);
       assertThat(value).isNotBlank()

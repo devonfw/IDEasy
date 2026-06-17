@@ -1,4 +1,4 @@
-package com.devonfw.ide.gui.i18n;
+package com.devonfw.ide.gui.localization;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,17 +17,13 @@ import org.slf4j.LoggerFactory;
 /**
  * Service for managing localization (i18n) in the JavaFX GUI.
  */
-public class I18nService {
+public class LocalizationService {
 
-  private static final Logger LOG = LoggerFactory.getLogger(I18nService.class);
+  private static final Logger LOG = LoggerFactory.getLogger(LocalizationService.class);
 
-  private static final String BUNDLE_NAME = "i18n.messages";
+  private static final String BUNDLE_NAME = "localization.messages";
 
-  private static final String MISSING_KEY_PREFIX = "!";
-
-  private static final String MISSING_KEY_SUFFIX = "!";
-
-  private static I18nService instance;
+  private static LocalizationService instance;
 
   private final List<Runnable> localeListeners = new CopyOnWriteArrayList<>();
 
@@ -35,20 +31,20 @@ public class I18nService {
 
   private ResourceBundle resourceBundle;
 
-  private I18nService() {
+  private LocalizationService() {
     // singleton
   }
 
-  public static synchronized I18nService getInstance(Locale locale) {
+  public static synchronized LocalizationService getInstance(Locale locale) {
 
     if (instance == null) {
-      instance = new I18nService();
+      instance = new LocalizationService();
       instance.setLocale(locale == null ? Locale.getDefault() : locale);
     }
     return instance;
   }
 
-  public static synchronized I18nService getInstance() {
+  public static synchronized LocalizationService getInstance() {
 
     if (instance == null) {
       return getInstance(null);
@@ -104,7 +100,7 @@ public class I18nService {
       return this.resourceBundle.getString(key);
     } catch (MissingResourceException e) {
       LOG.warn("Missing translation key: {} for locale: {}", key, this.locale);
-      return MISSING_KEY_PREFIX + key + MISSING_KEY_SUFFIX;
+      return "!" + key + "!";
     }
   }
 

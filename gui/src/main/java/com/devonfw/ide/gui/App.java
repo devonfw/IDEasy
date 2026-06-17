@@ -14,7 +14,7 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.ide.gui.i18n.I18nService;
+import com.devonfw.ide.gui.localization.LocalizationService;
 import com.devonfw.ide.gui.modal.IdeDialog;
 
 import com.devonfw.tools.ide.variable.IdeVariables;
@@ -33,7 +33,7 @@ public class App extends Application {
   public void start(Stage primaryStage) throws IOException {
 
     // Initialize localization with system default locale
-    I18nService.getInstance(null);
+    LocalizationService.getInstance(null);
 
     Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
           LOG.error("Uncaught exception in thread {}: {}", thread.getName(), throwable.getMessage(), throwable);
@@ -42,7 +42,7 @@ public class App extends Application {
     );
 
     FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
-    fxmlLoader.setResources(I18nService.getInstance().getResourceBundle());
+    fxmlLoader.setResources(LocalizationService.getInstance().getResourceBundle());
     fxmlLoader.setController(
         new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()))
     );

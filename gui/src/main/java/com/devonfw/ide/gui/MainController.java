@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
 import com.devonfw.ide.gui.context.ProjectManager;
-import com.devonfw.ide.gui.i18n.I18nService;
+import com.devonfw.ide.gui.localization.LocalizationService;
 import com.devonfw.ide.gui.modal.IdeDialog;
 
 /**
@@ -76,12 +76,12 @@ public class MainController {
     setProjectsComboBox();
     initLanguageComboBox();
     updateTexts();
-    I18nService.getInstance().addLocaleChangeListener(this::updateTexts);
+    LocalizationService.getInstance().addLocaleChangeListener(this::updateTexts);
   }
 
   @FXML
   private void dispose() {
-    I18nService.getInstance().removeLocaleChangeListener(this::updateTexts);
+    LocalizationService.getInstance().removeLocaleChangeListener(this::updateTexts);
   }
 
   private void initLanguageComboBox() {
@@ -91,7 +91,7 @@ public class MainController {
     selectedLanguage.getItems().addAll("English", "Deutsch");
 
     // Select current locale
-    Locale current = I18nService.getInstance().getLocale();
+    Locale current = LocalizationService.getInstance().getLocale();
     if (current != null && "de".equals(current.getLanguage())) {
       selectedLanguage.setValue("Deutsch");
     } else {
@@ -101,7 +101,7 @@ public class MainController {
     selectedLanguage.setOnAction(ev -> {
       String selection = selectedLanguage.getValue();
       Locale newLocale = "Deutsch".equals(selection) ? Locale.GERMAN : Locale.ENGLISH;
-      I18nService.getInstance().setLocale(newLocale);
+      LocalizationService.getInstance().setLocale(newLocale);
     });
   }
 
@@ -110,22 +110,22 @@ public class MainController {
    * Found in message.properties and message_de.properties
    */
   private void updateTexts() {
-    I18nService i18n = I18nService.getInstance();
+    LocalizationService localizationService = LocalizationService.getInstance();
     // Set Labels
-    labelProject.setText(i18n.get("label.project"));
-    labelWorkspace.setText(i18n.get("label.workspace"));
-    labelLanguage.setText(i18n.get("label.language"));
+    labelProject.setText(localizationService.get("label.project"));
+    labelWorkspace.setText(localizationService.get("label.workspace"));
+    labelLanguage.setText(localizationService.get("label.language"));
 
     // Set ComboBox prompts
-    selectedProject.setPromptText(i18n.get("prompt.chooseProject"));
-    selectedWorkspace.setPromptText(i18n.get("prompt.chooseWorkspace"));
-    selectedLanguage.setPromptText(i18n.get("prompt.chooseLanguage"));
+    selectedProject.setPromptText(localizationService.get("prompt.chooseProject"));
+    selectedWorkspace.setPromptText(localizationService.get("prompt.chooseWorkspace"));
+    selectedLanguage.setPromptText(localizationService.get("prompt.chooseLanguage"));
 
     // Set Button texts
-    androidStudioOpen.setText(i18n.get("button.open"));
-    eclipseOpen.setText(i18n.get("button.open"));
-    intellijOpen.setText(i18n.get("button.open"));
-    vsCodeOpen.setText(i18n.get("button.open"));
+    androidStudioOpen.setText(localizationService.get("button.open"));
+    eclipseOpen.setText(localizationService.get("button.open"));
+    intellijOpen.setText(localizationService.get("button.open"));
+    vsCodeOpen.setText(localizationService.get("button.open"));
   }
 
 

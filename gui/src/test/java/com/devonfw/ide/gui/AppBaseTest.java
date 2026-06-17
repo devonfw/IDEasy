@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.context.IdeGuiContext;
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
-import com.devonfw.ide.gui.i18n.I18nService;
+import com.devonfw.ide.gui.localization.LocalizationService;
 
 /**
  * Basic UI Test
@@ -43,16 +43,16 @@ public class AppBaseTest extends HeadlessApplicationTest {
   @Override
   public void start(Stage stage) throws IOException {
 
-    // Initialize i18n for tests
-    I18nService.resetInstance();
-    I18nService.getInstance(Locale.ENGLISH);
+    // Initialize Localization for tests
+    LocalizationService.resetInstance();
+    LocalizationService.getInstance(Locale.ENGLISH);
 
     URL mainViewUrl = getClass().getResource("main-view.fxml");
     assertThat(mainViewUrl).as("Cannot resolve main UI FXML resource!").isNotNull();
 
     FXMLLoader fxmlLoader = new FXMLLoader(mainViewUrl);
     fxmlLoader.setController(new MainController(mockIdeRoot.toString()));
-    fxmlLoader.setResources(I18nService.getInstance().getResourceBundle());
+    fxmlLoader.setResources(LocalizationService.getInstance().getResourceBundle());
     Parent root = fxmlLoader.load();
     stage.setScene(new Scene(root));
     stage.requestFocus(); //sometimes needed for headless setup to work
