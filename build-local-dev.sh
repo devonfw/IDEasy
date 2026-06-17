@@ -30,6 +30,8 @@ if [ ! -d "$GRAALVM_DIR" ]; then
   exit 1
 fi
 
+export PATH="$GRAALVM_DIR/bin:$PATH"
+
 cd "$CLI_DIR"
 mvn -B -ntp -Pnative -DskipTests=true package
 
