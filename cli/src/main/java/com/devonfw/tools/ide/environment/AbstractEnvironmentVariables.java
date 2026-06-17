@@ -370,20 +370,27 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   }
 
   /**
-   * Merges user value with default, avoiding duplication if default already contains the user value.
+   * Appends IDEasy's default to the user's input value, stripping {@code -s <path>} and {@code -Dsettings.security=<path>}.
    *
-   * @param value the user-defined value
-   * @param defaultValue IDEasy's default value
-   * @return the merged value, or the user value if defaultValue is null or empty
+   * @param value the user-defined value.
+   * @param defaultValue IDEasy's default value.
+   * @return the merged value.
    */
   static String mergeWithDefault(String value, String defaultValue) {
     if (defaultValue == null || defaultValue.isEmpty()) {
       return value;
     }
-    if (defaultValue.contains(value)) {
-      return defaultValue;
+    StringBuilder merged = new StringBuilder();
+    String[] tokens = value.trim().split("\\s+");
+    for (int i = 0; i < tokens.length; i++) {
+      String token = tokens[i];
+      if (token.equals("-s")) {
+        i++; // skip the path argument that follows
+      } else if (!token.startsWith("-Dsettings.security=")) {
+        merged.append(token).append(' ');
+      }
     }
-    return value + " " + defaultValue;
+    return merged.append(defaultValue).toString();
   }
 
 }
