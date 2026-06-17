@@ -320,6 +320,18 @@ public class GitContextImpl implements GitContext {
     return runGitCommandAndGetSingleOutput("Failed to retrieve git URL for repository", repository, "config", "--get", "remote.origin.url");
   }
 
+  @Override
+  public List<String> retrieveGitTags(Path repository) {
+
+    return runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, "--no-pager", "tag", "--list").getOut();
+  }
+
+  @Override
+  public List<String> retrieveGitRemotes(Path repository) {
+
+    return runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, "--no-pager", "remote", "-v").getOut();
+  }
+
   IdeContext getContext() {
 
     return this.context;

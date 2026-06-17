@@ -12,7 +12,8 @@ import com.devonfw.tools.ide.git.GitContextImplMock;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 
 /**
- * Test of {@link ReleaseCommandlet}.
+ * Test of {@link ReleaseCommandlet}. The mocked {@code mvn} returns {@code 1.0.0-SNAPSHOT} for {@code help:evaluate} (see the test fixture), so the release
+ * version is {@code 1.0.0} and the next version is {@code 1.0.1-SNAPSHOT}.
  */
 class ReleaseCommandletTest extends AbstractIdeContextTest {
 
@@ -41,7 +42,8 @@ class ReleaseCommandletTest extends AbstractIdeContextTest {
   void testRelease() {
 
     IdeTestContext context = newReleaseContext(false);
-    context.setAnswers("1.0.0", "yes");
+    // answer 1: "Is the next version correct?", answer 2: "Do you want to push...?"
+    context.setAnswers("yes", "yes");
     ReleaseCommandlet releaseCommandlet = context.getCommandletManager().getCommandlet(ReleaseCommandlet.class);
 
     releaseCommandlet.run();
@@ -57,7 +59,7 @@ class ReleaseCommandletTest extends AbstractIdeContextTest {
   void testReleaseWithAdditionalArguments() {
 
     IdeTestContext context = newReleaseContext(false);
-    context.setAnswers("1.0.0", "yes");
+    context.setAnswers("yes", "yes");
     ReleaseCommandlet releaseCommandlet = context.getCommandletManager().getCommandlet(ReleaseCommandlet.class);
     releaseCommandlet.arguments.addValue("-DskipTests");
 
@@ -71,7 +73,8 @@ class ReleaseCommandletTest extends AbstractIdeContextTest {
   void testReleaseAbortedByUser() {
 
     IdeTestContext context = newReleaseContext(false);
-    context.setAnswers("1.0.0", "no");
+    // answer 1: next version correct -> yes, answer 2: push -> no (aborts)
+    context.setAnswers("yes", "no");
     ReleaseCommandlet releaseCommandlet = context.getCommandletManager().getCommandlet(ReleaseCommandlet.class);
 
     assertThrows(CliAbortException.class, releaseCommandlet::run);
@@ -81,7 +84,7 @@ class ReleaseCommandletTest extends AbstractIdeContextTest {
   void testReleaseWithoutBuildDescriptor() {
 
     IdeTestContext context = newReleaseContext(false);
-    context.setAnswers("1.0.0", "yes");
+    context.setAnswers("yes", "yes");
     context.setCwd(context.getWorkspacePath().resolve("empty"), context.getWorkspacePath().toString(), context.getIdeHome());
     ReleaseCommandlet releaseCommandlet = context.getCommandletManager().getCommandlet(ReleaseCommandlet.class);
 
