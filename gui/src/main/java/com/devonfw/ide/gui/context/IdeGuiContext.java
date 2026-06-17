@@ -1,4 +1,4 @@
-package com.devonfw.ide.gui;
+package com.devonfw.ide.gui.context;
 
 import java.nio.file.Path;
 
@@ -12,7 +12,6 @@ import com.devonfw.tools.ide.io.IdeProgressBarNone;
  */
 public class IdeGuiContext extends AbstractIdeContext {
 
-
   /**
    * The constructor.
    *
@@ -20,17 +19,19 @@ public class IdeGuiContext extends AbstractIdeContext {
    * @param workingDirectory the optional {@link Path} to current working directory.
    */
   public IdeGuiContext(IdeStartContextImpl startContext, Path workingDirectory) {
+
     super(startContext, workingDirectory);
   }
 
   @Override
   protected String readLine() {
+
     return "";
   }
 
   @Override
   public IdeProgressBar newProgressBar(String title, long size, String unitName, long unitSize) {
+
     return new IdeProgressBarNone(title, 0, unitName, unitSize);
   }
-
 }
