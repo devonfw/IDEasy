@@ -231,4 +231,14 @@ public class GitContextImplMock extends GitContextImpl {
   public void push(Path repository) {
     LOG.debug("Mock push");
   }
+
+  @Override
+  public List<String> retrieveGitTags(Path repository) {
+    return List.of();
+  }
+
+  @Override
+  public List<String> retrieveGitRemotes(Path repository) {
+    return List.of();
+  }
 }

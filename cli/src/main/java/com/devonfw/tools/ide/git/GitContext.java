@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.git;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliOfflineException;
@@ -211,6 +212,18 @@ public interface GitContext {
    * @return the url of the repository as a {@link String}.
    */
   String retrieveGitUrl(Path repository);
+
+  /**
+   * @param repository the {@link Path} to the git repository.
+   * @return the {@link List} of git tags of the given repository.
+   */
+  List<String> retrieveGitTags(Path repository);
+
+  /**
+   * @param repository the {@link Path} to the git repository.
+   * @return the {@link List} of configured git remotes (output of {@code git remote -v}).
+   */
+  List<String> retrieveGitRemotes(Path repository);
 
   /**
    * Finds the {@link Path} to the git installation and throws an exception if there is none.

@@ -66,6 +66,18 @@ public class GitContextMock implements GitContext {
   }
 
   @Override
+  public java.util.List<String> retrieveGitTags(Path repository) {
+
+    return java.util.Collections.emptyList();
+  }
+
+  @Override
+  public java.util.List<String> retrieveGitRemotes(Path repository) {
+
+    return java.util.Collections.emptyList();
+  }
+
+  @Override
   public Path findGitRequired() {
     return Path.of("git");
   }
