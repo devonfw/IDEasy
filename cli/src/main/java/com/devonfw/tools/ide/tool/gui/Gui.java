@@ -93,6 +93,12 @@ public class Gui extends Commandlet {
      * In case of projects using older Java Versions, this is important as the java version of the project could potentially older.
      */
     ProcessMode processMode = this.enableExtendedLogging.isTrue() ? ProcessMode.DEFAULT : ProcessMode.BACKGROUND_SILENT;
-    mvn.runTool(processContext.withPathEntry(javaInstallation.binDir()), processMode, args);
+    try {
+      mvn.runTool(processContext.withPathEntry(javaInstallation.binDir()), processMode, args);
+    } catch (Exception e) {
+      LOG.error(
+          "Failed to launch the GUI. If maven states issues with dependency resolution, check whether the maven M2 repo is enabled in your project.",
+          e);
+    }
   }
 }
