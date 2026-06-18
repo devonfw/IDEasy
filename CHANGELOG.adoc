@@ -26,6 +26,8 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1719[#1719]: Add Rust and MSVC support
 * https://github.com/devonfw/IDEasy/issues/1991[#1991]: Improve WindowsHelperMock
 * https://github.com/devonfw/IDEasy/issues/1457[#1457]: Improve CLI error messages on invalid args or commandlets not available in current context
+* https://github.com/devonfw/IDEasy/issues/2030[#2030]: Fix Plugin install error in Intellij
+* https://github.com/devonfw/IDEasy/issues/2032[#2032]: commandlet env bash leads to broken output
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/45?closed=1[milestone 2026.06.001].
 
