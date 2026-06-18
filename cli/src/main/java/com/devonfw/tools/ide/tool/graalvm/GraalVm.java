@@ -25,7 +25,11 @@ public class GraalVm extends LocalToolCommandlet {
   @Override
   public Path getToolPath() {
 
-    return this.context.getSoftwareExtraPath().resolve(getName());
+    Path extraPath = this.context.getSoftwareExtraPath();
+    if (extraPath == null) {
+      return null;
+    }
+    return extraPath.resolve(getName());
   }
 
   @Override
