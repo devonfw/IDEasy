@@ -55,7 +55,7 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
     if (customRepo) {
       args.add(plugin.url());
     }
-    ProcessResult result = super.runTool(pc, ProcessMode.DEFAULT, args);
+    ProcessResult result = runTool(pc, ProcessMode.DEFAULT, args);
     if (result.isSuccessful()) {
       IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {}", plugin.name());
       step.success();
@@ -82,7 +82,9 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
 
   @Override
   public ProcessResult runTool(ProcessContext pc, ProcessMode processMode, List<String> args) {
-    args.add(this.context.getWorkspacePath().toString());
+    if (!args.contains("installPlugins")) {
+      args.add(this.context.getWorkspacePath().toString());
+    }
 
     String variableName = getName().toUpperCase(Locale.ROOT).replace("-", "_") + VM_ARGS_ENV_SUFFIX;
     String userVmArgsContent = this.context.getVariables().get(variableName);
