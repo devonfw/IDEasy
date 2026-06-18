@@ -446,32 +446,28 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   }
 
   /**
-   * Adapts the given {@link Path} to be relative or absolute depending on the given {@code relative} flag. Additionally, {@link Path#toRealPath(LinkOption...)}
-   * is applied to {@code target}.
+   * Computes the relative target {@link Path} to use for a relative symbolic link at {@code link} pointing to {@code source}.
    *
-   * @param link the {@link Path} the link should point to and that is to be adapted.
-   * @param source the {@link Path} to the link. It is used to calculate the relative path to the {@code target} if {@code relative} is set to
-   *     {@code true}.
-   * @param relative the {@code relative} flag.
-   * @return the adapted {@link Path}.
-   * @see #symlink(Path, Path, boolean)
+   * @param source the {@link Path} the link should point to.
+   * @param link the absolute, normalized destination {@link Path} of the link.
+   * @return the relative {@link Path} from the parent of {@code link} to {@code source}.
    */
-  private Path adaptPath(Path source, Path link, boolean relative) {
+  private Path relativizeSource(Path source, Path link) {
 
     if (!source.isAbsolute()) {
       source = link.resolveSibling(source);
     }
-    try {
-      source = source.toRealPath(LinkOption.NOFOLLOW_LINKS); // to transform ../d1/../d2 to ../d2
-    } catch (IOException e) {
-      throw new RuntimeException("Failed to get real path of " + source, e);
-    }
-    if (relative) {
-      source = link.getParent().relativize(source);
-      // to make relative links like this work: dir/link -> dir
-      source = (source.toString().isEmpty()) ? Path.of(".") : source;
-    }
-    return source;
+    source = source.toAbsolutePath().normalize();
+    return preserveSelfReference(link.getParent().relativize(source));
+  }
+
+  /**
+   * {@link Path#normalize()} and {@link Path#relativize(Path)} can produce the empty path when the result would be the current directory. {@code "."} is the
+   * usable equivalent for a symbolic link target.
+   */
+  private static Path preserveSelfReference(Path path) {
+
+    return path.toString().isEmpty() ? Path.of(".") : path;
   }
 
   /**
@@ -483,7 +479,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
    */
   private void mklinkOnWindows(Path source, Path absoluteSource, Path link, PathLinkType type, boolean relative) {
 
-    Path finalSource = source;
+    Path finalSource = relative ? source : absoluteSource;
     Path finalLink = link;
     Path cwd = null;
     if (relative) {
@@ -528,23 +524,18 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   @Override
   public void link(Path source, Path link, boolean relative, PathLinkType type) {
 
-    Path finalLink = link.toAbsolutePath().normalize();
-    Path finalSource;
-    try {
-      finalSource = adaptPath(source, finalLink, relative);
-    } catch (Exception e) {
-      throw new IllegalStateException("Failed to adapt target (" + source + ") for link (" + finalLink + ") and relative (" + relative + ")", e);
-    }
-    Path absoluteSource = finalSource.isAbsolute() ? finalSource : finalLink.getParent().resolve(finalSource).normalize();
-    String relativeOrAbsolute = relative ? "relative" : "absolute";
-    LOG.debug("Creating {} {} at {} pointing to {}", relativeOrAbsolute, type, finalLink, finalSource);
-    deleteLinkIfExists(finalLink);
+    Path absoluteLink = link.toAbsolutePath().normalize();
+    // Keep this lexical only: archive symlinks may point through links that are created later.
+    Path finalSource = relative ? relativizeSource(source, absoluteLink) : preserveSelfReference(source.normalize());
+    Path absoluteSource = finalSource.isAbsolute() ? finalSource : absoluteLink.getParent().resolve(finalSource).normalize();
+    LOG.debug("Creating {} at {} pointing to {} (relative={})", type, link, finalSource, relative);
+    deleteLinkIfExists(link);
     try {
       // Attention: JavaDoc and position of path arguments can be very confusing - see comment in #1736
       if (type == PathLinkType.SYMBOLIC_LINK) {
-        Files.createSymbolicLink(finalLink, finalSource);
+        Files.createSymbolicLink(link, finalSource);
       } else if (type == PathLinkType.HARD_LINK) {
-        createHardLink(finalSource, finalLink);
+        createHardLink(absoluteSource, link);
       } else {
         throw new IllegalStateException("" + type);
       }
@@ -556,16 +547,16 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
                 + e.getMessage());
 
         try {
-          mklinkOnWindows(finalSource, absoluteSource, finalLink, type, relative);
+          mklinkOnWindows(finalSource, absoluteSource, absoluteLink, type, relative);
         } catch (IllegalStateException mkEx) {
           LOG.info("Creating a hard link as a fallback for the failed mklink attempt.");
-          createHardLink(absoluteSource, finalLink);
+          createHardLink(absoluteSource, link);
         }
       } else {
         throw new RuntimeException(e);
       }
     } catch (IOException e) {
-      throw new IllegalStateException("Failed to create a " + relativeOrAbsolute + " " + type + " at " + finalLink + " pointing to " + source, e);
+      throw new IllegalStateException("Failed to create " + type + " at " + link + " pointing to " + source + " (relative=" + relative + ")", e);
     }
   }
 
@@ -769,8 +760,8 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   /**
    * Extracts a ZIP archive to the given target directory using Java (commons-compress {@link ZipFile}).
    * <p>
-   * Symlinks are handled in a two-phase approach: all regular files and directories are written first, and symlinks are collected and created afterwards. This
-   * ensures every symlink target already exists on disk before the link is made.
+   * Symlinks are handled in a two-phase approach: all regular files and directories are written first, and symlinks are collected and created afterwards.
+   * Creating the links does not require resolving their targets, so chained macOS {@code .framework} links can be restored.
    * <p>
    * {@link ZipFile} is used instead of {@link org.apache.commons.compress.archivers.zip.ZipArchiveInputStream} because Unix file attributes (needed for symlink
    * detection and permission restoration) are stored in the ZIP central directory at the end of the file. A sequential stream only sees the local file headers,
@@ -795,12 +786,12 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
 
         if (isZipSymlink(entry)) {
           try (InputStream entryStream = zipFile.getInputStream(entry)) {
-            // For symlink entries the file content IS the link target path (Unix zip convention).
+            // for a symlink entry the file content is the link target path (Unix ZIP convention)
             String linkTarget = IOUtils.toString(entryStream, StandardCharsets.UTF_8);
             Path parent = entryPath.getParent();
-            Path source = parent.resolve(linkTarget).normalize();
-            resolveRelativePathSecure(source, root, linkTarget);
-            links.add(new PathLink(source, entryPath, PathLinkType.SYMBOLIC_LINK));
+            resolveRelativePathSecure(parent.resolve(linkTarget).normalize(), root, linkTarget);
+            // preserve the raw target so chained links resolve once the bundle is fully extracted
+            links.add(new PathLink(Path.of(linkTarget), entryPath, PathLinkType.SYMBOLIC_LINK));
             mkdirs(parent);
           }
         } else if (entry.isDirectory()) {
@@ -815,7 +806,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
         pb.stepBy(Math.max(0L, entry.getSize()));
       }
 
-      // Phase 2: create all symlinks now that their targets are guaranteed to exist.
+      // Phase 2: create all symlinks after regular files and directories have been extracted.
       for (PathLink link : links) {
         link(link);
       }
@@ -947,9 +938,11 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
           } else {
             Path parent = entryPath.getParent();
             String sourcePathString = tae.getLinkName();
-            Path source = parent.resolve(sourcePathString).normalize();
-            source = resolveRelativePathSecure(source, root, sourcePathString);
-            links.add(new PathLink(source, entryPath, linkType));
+            Path absoluteSource = resolveRelativePathSecure(parent.resolve(sourcePathString).normalize(), root, sourcePathString);
+            // symlink: preserve the raw target so chained links resolve once the bundle is fully extracted.
+            // hardlink: pass the resolved absolute source - createHardLink requires an existing file.
+            Path linkSource = linkType == PathLinkType.SYMBOLIC_LINK ? Path.of(sourcePathString) : absoluteSource;
+            links.add(new PathLink(linkSource, entryPath, linkType));
             mkdirs(parent);
           }
         }

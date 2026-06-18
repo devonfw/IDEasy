@@ -385,8 +385,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   /**
-   * On macOS, {@code ~/Downloads} is protected by the OS (TCC) and the CLI may not be allowed to delete it, so we put the cache under
-   * {@code ~/Library/Caches} instead. Tests still use {@code ~/Downloads/ide} so existing fixtures keep working.
+   * On macOS, {@code ~/Downloads} is protected by the OS (TCC) and the CLI may not be allowed to delete it, so we put the cache under {@code ~/Library/Caches}
+   * instead. Tests still use {@code ~/Downloads/ide} so existing fixtures keep working.
    */
   private Path computeDownloadPath(Path home) {
 
@@ -1522,11 +1522,33 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     return collector.getSortedCandidates();
   }
 
+  /**
+   * Gets the next value property and applies its implicit end-options behavior if required.
+   *
+   * @param valueIterator the iterator over the commandlet value properties
+   * @param arguments the CLI arguments whose option parsing state may be updated
+   * @return the next value property or {@code null} if no further value property exists
+   */
+  private Property<?> nextValueProperty(Iterator<Property<?>> valueIterator, CliArguments arguments) {
+
+    if (!valueIterator.hasNext()) {
+      return null;
+    }
+
+    Property<?> valueProperty = valueIterator.next();
+    if (valueProperty.isEndOptions()) {
+      // Tool argument properties should accept values starting with "-" so stop option parsing here
+      arguments.endOptions();
+    }
+    return valueProperty;
+  }
+
   private void completeCommandlet(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
 
     LOG.trace("Trying to match arguments for auto-completion for commandlet {}", cmd.getName());
     Iterator<Property<?>> valueIterator = cmd.getValues().iterator();
     valueIterator.next(); // skip first property since this is the keyword property that already matched to find the commandlet
+    Property<?> currentValueProperty = nextValueProperty(valueIterator, arguments);
     List<Property<?>> properties = cmd.getProperties();
     // we are creating our own list of options and remove them when matched to avoid duplicate suggestions
     List<Property<?>> optionProperties = new ArrayList<>(properties.size());
@@ -1564,12 +1586,14 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
           }
         }
       } else {
-        if (valueIterator.hasNext()) {
-          Property<?> valueProperty = valueIterator.next();
-          boolean success = valueProperty.apply(arguments, this, cmd, collector);
+        if (currentValueProperty != null) {
+          boolean success = currentValueProperty.apply(arguments, this, cmd, collector);
           if (!success) {
             LOG.trace("Completion cannot match any further.");
             return;
+          }
+          if (!currentValueProperty.isMultiValued()) {
+            currentValueProperty = nextValueProperty(valueIterator, arguments);
           }
         } else {
           LOG.trace("No value left for completion.");
@@ -1628,7 +1652,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
           }
         }
         if ((property != null) && property.isValue() && property.isMultiValued()) {
-          arguments.stopSplitShortOptions();
+          arguments.endOptions();
         }
       }
       boolean matches = currentProperty.apply(arguments, this, cmd, null);
