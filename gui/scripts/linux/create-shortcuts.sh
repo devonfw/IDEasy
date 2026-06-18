@@ -60,7 +60,7 @@ Version=1.0
 Type=Application
 Name=IDEasy GUI
 Comment=Launch IDEasy Integrated Development Environment GUI
-Exec="$LAUNCHER_SCRIPT"
+Exec=$LAUNCHER_SCRIPT
 Icon=$ICON
 Terminal=false
 Categories=Development;IDE;
@@ -91,8 +91,15 @@ else
     print_info "Launch from: Application Menu or Launcher"
 fi
 
-# Determine desktop directory via XDG standard (respects custom Desktop locations)
+# Determine desktop directory via XDG standard (respects custom Desktop locations).
+# On systems where xdg-user-dirs was never configured (e.g. minimal WM setups),
+# xdg-user-dir falls back to printing $HOME itself — guard against that so we
+# don't drop a loose .desktop file directly into the user's home directory.
 DESKTOP_DIR=$(xdg-user-dir DESKTOP 2>/dev/null || echo "$HOME/Desktop")
+DESKTOP_DIR="${DESKTOP_DIR%/}"
+if [ -z "$DESKTOP_DIR" ] || [ "$DESKTOP_DIR" = "$HOME" ]; then
+    DESKTOP_DIR="$HOME/Desktop"
+fi
 if [ -d "$DESKTOP_DIR" ]; then
     if ! create_desktop_entry "$DESKTOP_DIR"; then
         print_info "Note: Desktop entry creation requires write permissions"
