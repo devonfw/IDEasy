@@ -1350,7 +1350,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       }
       try {
         if (cmd.isProcessableOutput()) {
-          if (!LOG.isDebugEnabled()) {
+          if (!isLogLevelEnabled(IdeLogLevel.DEBUG)) {
             // unless --debug or --trace was supplied, processable output commandlets will disable all log-levels except INFO to prevent other logs interfere
             previousLogLevel = this.startContext.setLogLevelConsole(IdeLogLevel.PROCESSABLE);
           }
