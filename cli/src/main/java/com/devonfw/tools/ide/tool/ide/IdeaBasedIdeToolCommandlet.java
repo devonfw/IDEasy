@@ -55,7 +55,7 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
     if (customRepo) {
       args.add(plugin.url());
     }
-    ProcessResult result = runTool(pc, ProcessMode.DEFAULT, args);
+    ProcessResult result = super.runTool(pc, ProcessMode.DEFAULT, args);
     if (result.isSuccessful()) {
       IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {}", plugin.name());
       step.success();
