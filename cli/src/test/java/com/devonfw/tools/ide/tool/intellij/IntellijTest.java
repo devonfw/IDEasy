@@ -196,6 +196,19 @@ class IntellijTest extends AbstractIdeContextTest {
           </component>
         </project>
         """);
+    String compilerXmlContent = """
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+        <project version="4">
+          <component name="CompilerConfiguration">
+            <annotationProcessing>
+              <profile default="true" enabled="true" name="Default"/>
+            </annotationProcessing>
+          </component>
+        </project>
+        """;
+    assertThat(context.getWorkspacePath().resolve(".idea").resolve("compiler.xml")).hasContent(compilerXmlContent);
+    assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve("test").resolve(".idea").resolve("compiler.xml"))
+        .hasContent(compilerXmlContent);
   }
 
   /**
@@ -286,6 +299,14 @@ class IntellijTest extends AbstractIdeContextTest {
     Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
     assertThat(commandlet.getInstalledVersion().toString()).isEqualTo("2023.3.3");
     assertThat(context.getWorkspacePath().resolve("idea.properties")).exists();
+    assertThat(context.getWorkspacePath().resolve(".intellij").resolve("config").resolve("options").resolve("editor.xml")).hasContent("""
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+        <application>
+          <component name="CodeInsightSettings">
+            <option name="ADD_UNAMBIGIOUS_IMPORTS_ON_THE_FLY" value="true"/>
+          </component>
+        </application>
+        """);
     assertThat(context).log().hasEntries(
         new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed java in version 17.0.10_7", true),
         new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed intellij in version 2023.3.3", true));
