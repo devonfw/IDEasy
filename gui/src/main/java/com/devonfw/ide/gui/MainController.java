@@ -224,6 +224,7 @@ public class MainController {
    * Toggles the console visibility
    */
   public void toggleConsole() {
+
     if (centerSplitPane != null) {
       if (isConsoleVisible) {
         hideConsole();
@@ -238,6 +239,7 @@ public class MainController {
    * Hides the console panel
    */
   public void hideConsole() {
+
     if (centerSplitPane != null) {
       console.setVisible(false);
       lastDividerPosition = centerSplitPane.getDividers().get(0).getPosition();
@@ -251,12 +253,11 @@ public class MainController {
    * Shows the console panel
    */
   public void showConsole() {
+
     if (centerSplitPane != null) {
       console.setVisible(true);
-      if (lastDividerPosition >= 0.9) {
+      if (centerSplitPane.getDividers().get(0).getPosition() >= 0.9) {
         centerSplitPane.setDividerPosition(0, 0.75);
-      } else {
-        centerSplitPane.setDividerPosition(0, lastDividerPosition);
       }
       isConsoleVisible = true;
       LOG.debug("Console shown");
