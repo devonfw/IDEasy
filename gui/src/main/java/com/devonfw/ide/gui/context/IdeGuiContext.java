@@ -27,11 +27,10 @@ public class IdeGuiContext extends AbstractIdeContext {
     super(startContext, workingDirectory);
   }
 
-  //TODO: UPDATE THIS
   @Override
   protected String readLine() {
 
-    return "yes";
+    return "";
   }
 
   @Override
