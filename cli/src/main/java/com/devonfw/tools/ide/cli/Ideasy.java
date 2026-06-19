@@ -103,6 +103,9 @@ public final class Ideasy {
       String key = current.getKey();
       Property<?> property = contextCommandlet.getOption(key);
       if (property == null) {
+        if ("complete".equals(current.get())) {
+          arguments.preserveEndOptionsToken();
+        }
         break;
       }
       String value = current.getValue();
