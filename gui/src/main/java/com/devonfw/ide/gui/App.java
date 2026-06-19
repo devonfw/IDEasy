@@ -36,11 +36,9 @@ public class App extends Application {
         }
     );
 
-    MainController mainController = new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()));
-
     FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
     fxmlLoader.setController(
-        mainController
+        new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()))
     );
     root = fxmlLoader.load();
 

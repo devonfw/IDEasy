@@ -149,7 +149,7 @@ public class MainController {
 
   private void setWorkspaceComboBox() {
 
-    List<String> workspaces = null;
+    List<String> workspaces;
     try {
       workspaces = projectManager.getWorkspaceNames(selectedProject.getValue());
     } catch (NotDirectoryException e) {
@@ -159,7 +159,7 @@ public class MainController {
     selectedWorkspace.getItems().clear();
     selectedWorkspace.getItems().addAll(workspaces);
 
-    selectedWorkspace.setOnAction(actionEvent -> {
+    selectedWorkspace.setOnAction(_ -> {
       updateContext(selectedProject.getValue(), selectedWorkspace.getValue());
 
       androidStudioOpen.setDisable(false);
