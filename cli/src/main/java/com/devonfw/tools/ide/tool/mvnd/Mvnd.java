@@ -40,13 +40,13 @@ public class Mvnd extends LocalToolCommandlet {
     registry.add("install");
     registry.add("deploy");
 
-// plugin goals
+    // plugin goals
     registry.add("dependency:tree");
     registry.add("dependency:list");
     registry.add("help:effective-settings");
     registry.add("exec:java");
 
-// common maven options
+    // common maven options
     registry.add("-DskipTests");
     registry.add("-Dmaven.test.skip=true");
     registry.add("-P");
@@ -67,14 +67,15 @@ public class Mvnd extends LocalToolCommandlet {
     registry.add("-s");
     registry.add("-rf");
 
-// exec plugin properties
+    // exec plugin properties
     registry.add("-Dexec.mainClass=");
     registry.add("-Dexec.args=");
     registry.add("-DdeployAtEnd=true");
 
-// mvnd-specific commands
+    // mvnd-specific commands
     registry.add("--status");
     registry.add("--stop");
+    registry.add("--purge");
   }
 
   @Override
