@@ -66,6 +66,7 @@ import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessContextImpl;
 import com.devonfw.tools.ide.process.ProcessResult;
+import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.step.StepImpl;
@@ -1350,7 +1351,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       }
       try {
         if (cmd.isProcessableOutput()) {
-          if (!LOG.isDebugEnabled()) {
+          if (!isLogLevelEnabled(IdeLogLevel.DEBUG)) {
             // unless --debug or --trace was supplied, processable output commandlets will disable all log-levels except INFO to prevent other logs interfere
             previousLogLevel = this.startContext.setLogLevelConsole(IdeLogLevel.PROCESSABLE);
           }
@@ -1628,7 +1629,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
           currentProperty = option;
         } else {
           boolean allowDashedValue = (property != null && property.isValue() && property.isMultiValued());
-          if (!allowDashedValue && currentArgument.isOption()) {
+          boolean allowKeywordOption = (currentProperty instanceof KeywordProperty keywordProperty) && keywordProperty.matches(currentArgument.getKey());
+          if (!allowDashedValue && !allowKeywordOption && currentArgument.isOption()) {
             ValidationState state = new ValidationState(null);
             state.addInvalidOption(currentArgument.getKey());
             state.addErrorMessage("Invalid option \"" + currentArgument.getKey() + "\"");
