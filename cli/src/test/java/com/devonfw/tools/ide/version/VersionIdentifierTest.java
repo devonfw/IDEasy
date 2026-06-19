@@ -59,6 +59,17 @@ class VersionIdentifierTest extends Assertions {
   }
 
   /**
+   * Test of composite version identifiers
+   */
+  @Test
+  void testCompositeVersionPhase() {
+    assertThat(VersionPhase.of("beta-snapshot")).isSameAs(VersionPhase.BETA);
+    assertThat(VersionPhase.of("snapshot-beta")).isSameAs(VersionPhase.SNAPSHOT);
+    assertThat(VersionPhase.of("release-candidate")).isSameAs(VersionPhase.RELEASE_CANDIDATE);
+    assertThat(VersionPhase.of("Foo-Bar")).isSameAs(VersionPhase.UNDEFINED);
+  }
+
+  /**
    * Test of {@link VersionIdentifier#isValid() valid} versions.
    */
   @ParameterizedTest
@@ -390,7 +401,7 @@ class VersionIdentifierTest extends Assertions {
     final List<VersionIdentifier> availableVersions = List.of(identifier);
     final String expectedMessage = "Could not find any version matching '" + identifierPattern
         + "' - there are " + availableVersions.size() + " version(s) available but none matched!\nDid you mean one of: " + identifier + "?";
-    
+
     assertThatThrownBy(() -> VersionIdentifier.resolveVersionPattern(identifierPattern, availableVersions))
         .isInstanceOf(CliException.class)
         .hasMessage(expectedMessage);

@@ -15,7 +15,7 @@ public enum VersionPhase implements AbstractVersionPhase {
   UNSTABLE(Boolean.FALSE, "!"),
 
   /** A snapshot version from development (e.g. "-SNAPSHOT" suffix in maven). */
-  SNAPSHOT(Boolean.FALSE, "beta-snapshot", "snapshot", "dev"),
+  SNAPSHOT(Boolean.FALSE, "snapshot", "dev"),
 
   /** A nightly build version from continuous-integration (CI) process. */
   NIGHTLY("nightly", "nb", "ci"),
@@ -137,12 +137,36 @@ public enum VersionPhase implements AbstractVersionPhase {
    * @return the corresponding {@link VersionPhase}. Will be {@code #UNDEFINED} if undefined (e.g. "apple" or "banana").
    */
   public static VersionPhase of(String letters) {
+    VersionPhase phase = matchExact(letters);
+    if (phase != UNDEFINED) {
+      return phase;
+    }
 
+    return matchComposite(letters);
+  }
+
+  private static VersionPhase matchExact(String letters) {
     for (VersionPhase phase : values()) {
       for (String id : phase.ids) {
         if (id.equals(letters)) {
           return phase;
         }
+      }
+    }
+    return UNDEFINED;
+  }
+
+  private static VersionPhase matchComposite(String letters) {
+    if (!letters.contains("-")) {
+      return UNDEFINED;
+    }
+
+    String[] parts = letters.split("-");
+
+    for (String part : parts) {
+      VersionPhase phase = matchExact(part);
+      if (phase != UNDEFINED) {
+        return phase;
       }
     }
     return UNDEFINED;
