@@ -31,7 +31,7 @@ import com.devonfw.ide.gui.context.IdeGuiStateManager;
  */
 public class AppBaseTest extends HeadlessApplicationTest {
 
-  private static Logger LOGGER = LoggerFactory.getLogger(AppBaseTest.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(AppBaseTest.class);
 
   private Button androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen;
   private ToggleButton consolePaneToggleButton;

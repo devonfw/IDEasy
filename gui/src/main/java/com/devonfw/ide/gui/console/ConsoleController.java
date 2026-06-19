@@ -48,7 +48,7 @@ public class ConsoleController {
    */
   private void setupEventHandlers() {
 
-    clearButton.setOnAction(event -> clearConsole());
+    clearButton.setOnAction(_ -> clearConsole());
   }
 
   /**
@@ -56,7 +56,7 @@ public class ConsoleController {
    */
   private void setupTextAreaBindings() {
 
-    consoleOutput.textProperty().addListener((observable, oldValue, newValue) -> {
+    consoleOutput.textProperty().addListener((_, _, _) -> {
 
       updateLineCount();
 

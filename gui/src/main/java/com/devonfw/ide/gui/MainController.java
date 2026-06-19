@@ -31,7 +31,7 @@ import com.devonfw.tools.ide.process.OutputListener;
  */
 public class MainController {
 
-  private static Logger LOG = LoggerFactory.getLogger(MainController.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MainController.class);
 
   @FXML
   private ComboBox<String> selectedProject;
@@ -76,28 +76,28 @@ public class MainController {
 
   /**
    * Constructor
+   *
+   * @param ideRootPath IDE_ROOT path.
    */
-  public MainController(String directoryPath) {
-    LOG.debug("IDE_ROOT path={}", directoryPath);
-    this.directoryPath = directoryPath;
+  public MainController(String ideRootPath) {
+    LOG.debug("IDE_ROOT path={}", ideRootPath);
+    this.directoryPath = ideRootPath;
   }
 
   @FXML
   private void initialize() {
 
     setProjectsComboBox();
-    consolePaneToggleButton.setOnAction(event -> toggleConsole());
-    androidStudioOpen.setOnAction(event -> openAndroidStudio());
-    eclipseOpen.setOnAction(event -> openEclipse());
-    intellijOpen.setOnAction(event -> openIntellij());
-    vsCodeOpen.setOnAction(event -> openVsCode());
-    statusCommandletButton.setOnAction(event -> {
-      runCommandlet("status");
-    });
+    consolePaneToggleButton.setOnAction(_ -> toggleConsole());
+    androidStudioOpen.setOnAction(_ -> openAndroidStudio());
+    eclipseOpen.setOnAction(_ -> openEclipse());
+    intellijOpen.setOnAction(_ -> openIntellij());
+    vsCodeOpen.setOnAction(_ -> openVsCode());
+    statusCommandletButton.setOnAction(_ -> runCommandlet("status"));
 
     centerDivider = centerSplitPane.getDividers().getFirst();
 
-    centerDivider.positionProperty().addListener((obs, oldVal, newVal) -> {
+    centerDivider.positionProperty().addListener((_, _, newVal) -> {
       //This is a bit of a weird behaviour in JavaFX, but even if you drag the divider fully down, the position value does not become 1, but something like 0.9935345
       consolePaneToggleButton.setSelected(newVal.doubleValue() < 0.99);
     });
@@ -148,7 +148,7 @@ public class MainController {
       }
     }
 
-    selectedProject.setOnAction(actionEvent -> {
+    selectedProject.setOnAction(_ -> {
 
       projectValue = Path.of(selectedProject.getValue()).resolve(IdeContext.FOLDER_WORKSPACES);
       selectedWorkspace.setDisable(false);
