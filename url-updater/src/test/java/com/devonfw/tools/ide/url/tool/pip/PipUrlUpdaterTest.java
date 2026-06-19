@@ -40,7 +40,7 @@ class PipUrlUpdaterTest extends AbstractUrlUpdaterTest {
         .willReturn(aResponse().withStatus(200).withHeader("Content-Type", "text/plain").withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    PipUrlUpdaterMock updater = new PipUrlUpdaterMock(wmRuntimeInfo);
+    PipUrlUpdaterMock updater = new PipUrlUpdaterMock(wmRuntimeInfo.getHttpBaseUrl());
 
     String statusUrl = wmRuntimeInfo.getHttpBaseUrl() + "/pip/1.0/get-pip.py";
     String toolName = "pip";
