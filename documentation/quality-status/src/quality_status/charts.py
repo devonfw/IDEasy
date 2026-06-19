@@ -208,15 +208,33 @@ def write_charts(output_dir: str | Path, document: OverviewDocument) -> None:
     chart_path.mkdir(parents=True, exist_ok=True)
 
     chart_definitions = {
-        "issue_statistics": ("issue-statistics.svg", "Open issue metrics", document.issue_stats),
+        "issue_assignment": (
+            "issue-assignment.svg",
+            "Assigned vs unassigned issues",
+            document.assignment_stats,
+        ),
+        "issue_types": (
+            "issue-types.svg",
+            "Issue type distribution",
+            document.type_stats,
+        ),
         "operating_systems": (
             "operating-systems.svg",
             "Issues by operating system",
             [(name, specific + multi + cross_platform) for name, specific, multi, cross_platform in document.os_stats],
         ),
-        "issue_age": ("issue-age.svg", "Issue age", document.age_stats),
-        "functional_labels": ("functional-labels.svg", "Most common functional labels", document.top_label_stats),
+        "issue_age": (
+            "issue-age.svg",
+            "Issue age",
+            document.age_stats,
+        ),
+        "functional_labels": (
+            "functional-labels.svg",
+            "Most common functional labels",
+            document.top_label_stats,
+        ),
     }
+
     for section, (filename, title, values) in chart_definitions.items():
         settings = VISUALIZATIONS[section]
         if "chart" not in settings:
@@ -224,13 +242,17 @@ def write_charts(output_dir: str | Path, document: OverviewDocument) -> None:
                 f'Invalid visualization config for "{section}": expected '
                 f'{{"chart": "bar|pie|none", "show_table": True|False}}.'
             )
+
         chart_type = str(settings["chart"])
         output_file = chart_path / filename
+
         if chart_type == "none":
             output_file.unlink(missing_ok=True)
             continue
+
         if section == "operating_systems" and chart_type == "bar":
             content = render_os_chart(title, document.os_stats)
         else:
             content = render_chart(chart_type, title, values)
+
         output_file.write_text(content, encoding="utf-8")
