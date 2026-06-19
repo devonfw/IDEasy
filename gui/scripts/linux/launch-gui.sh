@@ -25,16 +25,21 @@ if [ ! -f "$PROJECT_ROOT/pom.xml" ]; then
     exit 1
 fi
 
-if ! command -v ide &> /dev/null; then
+# 'ide' is a shell function defined in $IDE_ROOT/_ide/installation/functions and
+# sourced by ~/.bashrc / ~/.zshrc — those only get sourced in interactive shells.
+# Application launchers (Terminal=false) start a plain, non-interactive shell, so
+# 'ide' is invisible there even though it works fine from a terminal. Route through
+# an interactive bash so the function gets sourced regardless of launch context.
+if ! bash -ic "command -v ide" &> /dev/null; then
     echo "Error: IDEasy is not installed or not in PATH"
     echo "Please install IDEasy first: https://github.com/devonfw/IDEasy#setup"
-    notify_error "'ide' command not found in PATH (see $LOG_FILE)"
+    notify_error "'ide' command not found (see $LOG_FILE)"
     exit 1
 fi
 
 cd "$PROJECT_ROOT"
 
 # Launch IDE GUI in background and exit immediately
-ide gui &
+bash -ic "ide gui" &
 
 exit 0
