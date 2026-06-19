@@ -1,5 +1,7 @@
 package com.devonfw.ide.gui.console;
 
+import java.util.Arrays;
+import java.util.List;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -8,9 +10,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * Controller that manages an instance if a console.
  */
@@ -18,12 +17,6 @@ public class ConsoleController {
 
   @FXML
   private Button clearButton;
-
-  @FXML
-  private Button scrollToBottomButton;
-
-  @FXML
-  private Button hideButton;
 
   @FXML
   private CheckBox autoScrollCheckBox;
@@ -40,10 +33,11 @@ public class ConsoleController {
   @FXML
   private TextArea consoleOutput;
 
-  private static final Logger LOG = LoggerFactory.getLogger(ConsoleController.class);
-
+  /**
+   *
+   */
   @FXML
-  public void initialize() {
+  private void initialize() {
 
     setupEventHandlers();
     setupTextAreaBindings();
@@ -55,7 +49,6 @@ public class ConsoleController {
   private void setupEventHandlers() {
 
     clearButton.setOnAction(event -> clearConsole());
-    scrollToBottomButton.setOnAction(event -> scrollToBottom());
   }
 
   /**
@@ -84,16 +77,6 @@ public class ConsoleController {
   }
 
   /**
-   * prints a string to the screen with new line
-   *
-   * @param message string to be printed
-   */
-  public void appendOutputLine(String message) {
-
-    appendOutput(message);
-  }
-
-  /**
    * sets status text
    *
    * @param status new status
@@ -106,7 +89,7 @@ public class ConsoleController {
   /**
    * Clears the console
    */
-  private void clearConsole() {
+  void clearConsole() {
 
     consoleOutput.clear();
     updateLineCount();
@@ -128,5 +111,14 @@ public class ConsoleController {
 
     int lines = consoleOutput.getText().split("\n", -1).length;
     Platform.runLater(() -> lineCountLabel.setText("Lines: " + lines));
+  }
+
+  /**
+   * Get the current output that is on the console.
+   *
+   * @return a list of the current console output lines
+   */
+  public List<String> getConsoleOutputSnapshot() {
+    return Arrays.stream(consoleOutput.getText().split("\n", -1)).filter(line -> !line.isEmpty()).toList();
   }
 }

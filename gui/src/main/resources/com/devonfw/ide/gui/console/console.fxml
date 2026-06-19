@@ -35,7 +35,6 @@
       <Separator orientation="VERTICAL" style="-fx-padding: 0;"/>
 
       <Button fx:id="clearButton" text="Clear" prefWidth="60" style="-fx-font-size: 11;"/>
-      <Button fx:id="scrollToBottomButton" text="Scroll to Bottom" prefWidth="120" style="-fx-font-size: 11;"/>
 
       <Region HBox.hgrow="ALWAYS"/>
 

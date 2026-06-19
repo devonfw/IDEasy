@@ -1,6 +1,7 @@
 package com.devonfw.ide.gui;
 
 import static org.testfx.assertions.api.Assertions.assertThat;
+import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
 import java.io.IOException;
 import java.net.URL;
@@ -11,8 +12,12 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.SplitPane.Divider;
+import javafx.scene.control.ToggleButton;
 import javafx.stage.Stage;
 
+import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -22,18 +27,19 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
 
 /**
- * Basic UI Test
+ * Basic UI Test for the main screen
  */
 public class AppBaseTest extends HeadlessApplicationTest {
 
   private static Logger LOGGER = LoggerFactory.getLogger(AppBaseTest.class);
 
   private Button androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen;
+  private ToggleButton consolePaneToggleButton;
   private ComboBox<String> selectedProject, selectedWorkspace;
+  private SplitPane centerSplitPane;
 
   @TempDir
   private static Path mockIdeRoot;
-
 
   @Override
   public void start(Stage stage) throws IOException {
@@ -54,6 +60,8 @@ public class AppBaseTest extends HeadlessApplicationTest {
     vsCodeOpen = (Button) root.lookup("#vsCodeOpen");
     selectedProject = (ComboBox<String>) root.lookup("#selectedProject");
     selectedWorkspace = (ComboBox<String>) root.lookup("#selectedWorkspace");
+    consolePaneToggleButton = (ToggleButton) root.lookup("#consolePaneToggleButton");
+    centerSplitPane = (SplitPane) root.lookup("#centerSplitPane");
   }
 
   /**
@@ -128,5 +136,27 @@ public class AppBaseTest extends HeadlessApplicationTest {
     assertThat(selectedWorkspace.isDisabled())
         .as("selectedWorkspace ComboBox should be enabled when a project is selected")
         .isFalse();
+  }
+
+  //===Console panel tests===
+
+  @Test
+  void testConsoleToggleButton() {
+
+    Divider mainPanelDivider = centerSplitPane.getDividers().getFirst();
+
+    //open the console (for some reason, clickOn(toggleButton) does not work properly here.
+    consolePaneToggleButton.fire();
+    waitForFxEvents();
+
+    assertThat(consolePaneToggleButton.isSelected()).isTrue();
+    assertThat(mainPanelDivider.getPosition()).as("Console panel should be extended when opening the console").isEqualTo(0.75, Offset.offset(0.01));
+
+    //close the console
+    consolePaneToggleButton.fire();
+    waitForFxEvents();
+
+    assertThat(consolePaneToggleButton.isSelected()).isFalse();
+    assertThat(mainPanelDivider.getPosition()).isGreaterThan(0.99);
   }
 }

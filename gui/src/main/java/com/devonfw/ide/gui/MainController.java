@@ -9,6 +9,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.SplitPane;
+import javafx.scene.control.SplitPane.Divider;
 import javafx.scene.control.ToggleButton;
 
 import javafx.scene.layout.AnchorPane;
@@ -55,6 +56,7 @@ public class MainController {
 
   @FXML
   private SplitPane centerSplitPane;
+  private Divider centerDivider;
 
   @FXML
   private ToggleButton consolePaneToggleButton;
@@ -71,8 +73,6 @@ public class MainController {
   private final String directoryPath;
   private Path projectValue;
   private Path workspaceValue;
-  private boolean isConsoleVisible = true;
-  private double lastDividerPosition = 0.75;
 
   /**
    * Constructor
@@ -95,7 +95,9 @@ public class MainController {
       runCommandlet("status");
     });
 
-    centerSplitPane.getDividers().getFirst().positionProperty().addListener((obs, oldVal, newVal) -> {
+    centerDivider = centerSplitPane.getDividers().getFirst();
+
+    centerDivider.positionProperty().addListener((obs, oldVal, newVal) -> {
       //This is a bit of a weird behaviour in JavaFX, but even if you drag the divider fully down, the position value does not become 1, but something like 0.9935345
       consolePaneToggleButton.setSelected(newVal.doubleValue() < 0.99);
     });
@@ -226,12 +228,12 @@ public class MainController {
   public void toggleConsole() {
 
     if (centerSplitPane != null) {
-      if (isConsoleVisible) {
+      if (isConsoleVisible()) {
         hideConsole();
       } else {
         showConsole();
       }
-      consolePaneToggleButton.setSelected(isConsoleVisible);
+      consolePaneToggleButton.setSelected(isConsoleVisible());
     }
   }
 
@@ -241,10 +243,7 @@ public class MainController {
   public void hideConsole() {
 
     if (centerSplitPane != null) {
-      console.setVisible(false);
-      lastDividerPosition = centerSplitPane.getDividers().get(0).getPosition();
       centerSplitPane.setDividerPosition(0, 1.0);
-      isConsoleVisible = false;
       LOG.debug("Console hidden");
     }
   }
@@ -255,12 +254,14 @@ public class MainController {
   public void showConsole() {
 
     if (centerSplitPane != null) {
-      console.setVisible(true);
-      if (centerSplitPane.getDividers().get(0).getPosition() >= 0.9) {
+      if (centerSplitPane.getDividers().getFirst().getPosition() >= 0.9) {
         centerSplitPane.setDividerPosition(0, 0.75);
       }
-      isConsoleVisible = true;
       LOG.debug("Console shown");
     }
+  }
+
+  private boolean isConsoleVisible() {
+    return centerDivider.getPosition() <= 0.99 && console.isVisible();
   }
 }
