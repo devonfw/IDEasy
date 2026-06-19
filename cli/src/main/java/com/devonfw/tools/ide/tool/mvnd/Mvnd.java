@@ -75,8 +75,6 @@ public class Mvnd extends LocalToolCommandlet {
 // mvnd-specific commands
     registry.add("--status");
     registry.add("--stop");
-    registry.add("--stop-all");
-    registry.add("--reset");
   }
 
   @Override
