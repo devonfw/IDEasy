@@ -3,16 +3,14 @@ package com.devonfw.ide.gui;
 import java.io.FileNotFoundException;
 import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
-import java.util.stream.Stream;
-import javafx.concurrent.Task;
 import java.util.List;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.SplitPane.Divider;
 import javafx.scene.control.ToggleButton;
-
 import javafx.scene.layout.AnchorPane;
 
 import org.slf4j.Logger;
@@ -22,13 +20,12 @@ import com.devonfw.ide.gui.console.ConsoleController;
 import com.devonfw.ide.gui.context.GuiOutputListener;
 import com.devonfw.ide.gui.context.IdeGuiContext;
 import com.devonfw.ide.gui.context.IdeGuiLogListener;
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.context.IdeStartContextImpl;
-import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.process.OutputListener;
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
 import com.devonfw.ide.gui.context.ProjectManager;
 import com.devonfw.ide.gui.modal.IdeDialog;
+import com.devonfw.tools.ide.context.IdeStartContextImpl;
+import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.process.OutputListener;
 
 /**
  * Controller of the main screen of the dashboard GUI.
@@ -59,9 +56,6 @@ public class MainController {
   private Button vsCodeOpen;
 
   @FXML
-  private Button statusCommandletButton;
-
-  @FXML
   private SplitPane centerSplitPane;
   private Divider centerDivider;
 
@@ -86,10 +80,10 @@ public class MainController {
    *
    * @param ideRootPath IDE_ROOT path.
    */
-  public MainController(String directoryPath) {
+  public MainController(String ideRootPath) {
 
-    LOG.debug("IDE_ROOT path={}", directoryPath);
-    this.directoryPath = directoryPath;
+    LOG.debug("IDE_ROOT path={}", ideRootPath);
+    this.directoryPath = ideRootPath;
 
     this.projectManager = IdeGuiStateManager.getInstance().getProjectManager();
   }
@@ -103,7 +97,6 @@ public class MainController {
     eclipseOpen.setOnAction(_ -> openEclipse());
     intellijOpen.setOnAction(_ -> openIntellij());
     vsCodeOpen.setOnAction(_ -> openVsCode());
-    statusCommandletButton.setOnAction(_ -> runCommandlet("status"));
 
     centerDivider = centerSplitPane.getDividers().getFirst();
 
@@ -259,7 +252,7 @@ public class MainController {
   private boolean isConsoleVisible() {
     return centerDivider.getPosition() <= 0.99 && console.isVisible();
   }
-  
+
   private void updateContext(String selectedProjectName, String selectedWorkspaceName) {
     try {
       IdeGuiStateManager.getInstance().switchContext(selectedProjectName, selectedWorkspaceName);
@@ -267,4 +260,5 @@ public class MainController {
       IdeDialog errorDialog = new IdeDialog(IdeDialog.AlertType.ERROR, e.getMessage());
       errorDialog.showAndWait();
     }
+  }
 }
