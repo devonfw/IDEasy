@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool.vscode;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,6 +29,9 @@ public class Vscode extends IdeToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Vscode.class);
 
+  /** The {@link #getConfiguredEdition() edition} for VSCodium. */
+  private static final String EDITION_VSCODIUM = "vscodium";
+
   /**
    * The constructor.
    *
@@ -41,11 +45,27 @@ public class Vscode extends IdeToolCommandlet {
   @Override
   protected String getBinaryName() {
 
+    if (EDITION_VSCODIUM.equals(getConfiguredEdition())) {
+      return "codium";
+    }
     return "code";
   }
 
   @Override
+  protected Path getPluginsConfigPath() {
+
+    if (EDITION_VSCODIUM.equals(getConfiguredEdition())) {
+      Path vscodiumPluginsPath = this.context.getSettingsPath().resolve(EDITION_VSCODIUM).resolve(IdeContext.FOLDER_PLUGINS);
+      if (Files.isDirectory(vscodiumPluginsPath)) {
+        return vscodiumPluginsPath;
+      }
+    }
+    return super.getPluginsConfigPath();
+  }
+
+  @Override
   protected void installPlugins(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
+
     this.context.runWithoutLogging(() -> {
       IdeProgressBar pb = this.context.newProgressBarForPlugins(plugins.size());
       pc.setOutputListener((msg, err) -> {
@@ -80,19 +100,21 @@ public class Vscode extends IdeToolCommandlet {
       }
       step.success();
       return true;
-    } else {
-        if (versionSpecified) {
-          IdeLogLevel.ERROR.log(LOG, "Failed to install plugin: {} with version: {}", plugin.name(), plugin.version());
-        } else {
-          IdeLogLevel.ERROR.log(LOG, "Failed to install plugin: {}", plugin.name());
-        }
-        return false;
     }
+    if (versionSpecified) {
+      IdeLogLevel.ERROR.log(LOG, "Failed to install plugin: {} with version: {}", plugin.name(), plugin.version());
+    } else {
+      IdeLogLevel.ERROR.log(LOG, "Failed to install plugin: {}", plugin.name());
+    }
+    return false;
   }
 
   @Override
   protected void configureToolArgs(ProcessContext pc, ProcessMode processMode, List<String> args) {
 
+    if (this.context.getSystemInfo().isWsl()) {
+      pc.withEnvVar("DONT_PROMPT_WSL_INSTALL", "1");
+    }
     Path vsCodeConf = this.context.getWorkspacePath().resolve(".vscode/.userdata");
     pc.addArg("--new-window");
     pc.addArg("--user-data-dir=" + vsCodeConf);

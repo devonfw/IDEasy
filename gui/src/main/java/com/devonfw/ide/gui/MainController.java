@@ -1,10 +1,11 @@
 package com.devonfw.ide.gui;
 
-import java.io.IOException;
-import java.nio.file.Files;
+import java.io.FileNotFoundException;
+import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 import javafx.concurrent.Task;
+import java.util.List;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -25,6 +26,9 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.OutputListener;
+import com.devonfw.ide.gui.context.IdeGuiStateManager;
+import com.devonfw.ide.gui.context.ProjectManager;
+import com.devonfw.ide.gui.modal.IdeDialog;
 
 /**
  * Controller of the main screen of the dashboard GUI.
@@ -32,6 +36,9 @@ import com.devonfw.tools.ide.process.OutputListener;
 public class MainController {
 
   private static final Logger LOG = LoggerFactory.getLogger(MainController.class);
+
+  private ProjectManager projectManager;
+
 
   @FXML
   private ComboBox<String> selectedProject;
@@ -79,9 +86,12 @@ public class MainController {
    *
    * @param ideRootPath IDE_ROOT path.
    */
-  public MainController(String ideRootPath) {
-    LOG.debug("IDE_ROOT path={}", ideRootPath);
-    this.directoryPath = ideRootPath;
+  public MainController(String directoryPath) {
+
+    LOG.debug("IDE_ROOT path={}", directoryPath);
+    this.directoryPath = directoryPath;
+
+    this.projectManager = IdeGuiStateManager.getInstance().getProjectManager();
   }
 
   @FXML
@@ -127,58 +137,43 @@ public class MainController {
     runCommandlet("vscode");
   }
 
-
   private void setProjectsComboBox() {
 
     assert (directoryPath != null) : "directoryPath is null! Please check the setup of your environment variables (IDE_ROOT)";
 
-    selectedProject.getItems().clear();
-    Path directory = Path.of(directoryPath);
+    List<String> projects = projectManager.getProjectNames();
 
-    if (Files.exists(directory) && Files.isDirectory(directory)) {
-      try (Stream<Path> subPaths = Files.list(directory)) {
-        subPaths
-            .filter(Files::isDirectory)
-            .map(Path::getFileName)
-            .map(Path::toString)
-            .filter(name -> !name.startsWith("_"))
-            .forEach(name -> selectedProject.getItems().add(name));
-      } catch (IOException e) {
-        throw new IllegalStateException("Failed to list projects!", e);
-      }
-    }
+    selectedProject.getItems().clear();
+    selectedProject.getItems().addAll(projects);
 
     selectedProject.setOnAction(_ -> {
 
-      projectValue = Path.of(selectedProject.getValue()).resolve(IdeContext.FOLDER_WORKSPACES);
+      setWorkspaceComboBox();
+
       selectedWorkspace.setDisable(false);
+    });
+  }
+
+  private void setWorkspaceComboBox() {
+
+    List<String> workspaces = null;
+    try {
+      workspaces = projectManager.getWorkspaceNames(selectedProject.getValue());
+    } catch (NotDirectoryException e) {
+      throw new RuntimeException(e);
+    }
+
+    selectedWorkspace.getItems().clear();
+    selectedWorkspace.getItems().addAll(workspaces);
+
+    selectedWorkspace.setOnAction(actionEvent -> {
+      updateContext(selectedProject.getValue(), selectedWorkspace.getValue());
+
       androidStudioOpen.setDisable(false);
       eclipseOpen.setDisable(false);
       intellijOpen.setDisable(false);
       vsCodeOpen.setDisable(false);
-      selectedWorkspace.setValue("main");
-      this.workspaceValue = Path.of("main");
     });
-  }
-
-  @FXML
-  private void setWorkspaceValue() {
-
-    selectedWorkspace.getItems().clear();
-    Path directory = Path.of(directoryPath).resolve(projectValue);
-    if (Files.exists(directory) && Files.isDirectory(directory)) {
-      try (Stream<Path> subPaths = Files.list(directory)) {
-        subPaths
-            .filter(Files::isDirectory)
-            .map(Path::getFileName)
-            .map(Path::toString)
-            .forEach(name -> selectedWorkspace.getItems().add(name));
-
-      } catch (IOException e) {
-        throw new RuntimeException("Error occurred while fetching workspace names.", e);
-      }
-    }
-    this.workspaceValue = Path.of(selectedWorkspace.getValue());
   }
 
   private void runCommandlet(String commandlet) {
@@ -264,4 +259,12 @@ public class MainController {
   private boolean isConsoleVisible() {
     return centerDivider.getPosition() <= 0.99 && console.isVisible();
   }
+  
+  private void updateContext(String selectedProjectName, String selectedWorkspaceName) {
+    try {
+      IdeGuiStateManager.getInstance().switchContext(selectedProjectName, selectedWorkspaceName);
+    } catch (FileNotFoundException e) {
+      IdeDialog errorDialog = new IdeDialog(IdeDialog.AlertType.ERROR, e.getMessage());
+      errorDialog.showAndWait();
+    }
 }

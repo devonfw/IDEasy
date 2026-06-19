@@ -15,6 +15,8 @@ import com.devonfw.tools.ide.context.AbstractIdeContext;
  */
 public class IdeCompleter implements Completer {
 
+  private static final String EXIT_COMMAND = "exit";
+
   private final AbstractIdeContext context;
 
   /**
@@ -30,12 +32,23 @@ public class IdeCompleter implements Completer {
 
   @Override
   public void complete(LineReader reader, ParsedLine commandLine, List<Candidate> candidates) {
+
+    String currentWord = commandLine.word();
+    int wordIndex = commandLine.wordIndex();
+
+    if (wordIndex == 0 && !currentWord.isEmpty() && EXIT_COMMAND.startsWith(currentWord)) {
+      candidates.add(new Candidate(EXIT_COMMAND));
+    }
+
     List<String> words = commandLine.words();
     CliArguments args = CliArguments.ofCompletion(words.toArray(String[]::new));
     List<CompletionCandidate> completion = this.context.complete(args, true);
     int i = 0;
     for (CompletionCandidate candidate : completion) {
-      candidates.add(new Candidate(candidate.text(), candidate.text(), null, null, null, null, true, i++));
+
+      // candidates ending with "=" avoid appending a whitespace
+      boolean complete = !candidate.text().endsWith("=");
+      candidates.add(new Candidate(candidate.text(), candidate.text(), null, null, null, null, complete, i++));
     }
   }
 

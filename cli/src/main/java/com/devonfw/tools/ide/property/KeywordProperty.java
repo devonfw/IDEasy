@@ -67,7 +67,9 @@ public class KeywordProperty extends BooleanProperty {
   public boolean apply(CliArguments args, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
 
     String normalizedName = this.name;
-    if (args.current().isOption()) {
+    if (args.current().getKey().equals(this.alias)) {
+      normalizedName = this.alias;
+    } else if (args.current().isOption()) {
       normalizedName = this.optionName;
     }
     return apply(normalizedName, args, context, commandlet, collector);

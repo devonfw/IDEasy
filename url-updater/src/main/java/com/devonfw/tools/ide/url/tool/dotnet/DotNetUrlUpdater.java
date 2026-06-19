@@ -8,6 +8,15 @@ import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
  */
 public class DotNetUrlUpdater extends GithubUrlTagUpdater {
 
+  private static final String DOWNLOAD_BASE_URL = "https://dotnetcli.azureedge.net";
+
+  /**
+   * The Constructor.
+   */
+  public DotNetUrlUpdater() {
+    super(DOWNLOAD_BASE_URL);
+  }
+
   @Override
   public String getTool() {
 
@@ -48,12 +57,6 @@ public class DotNetUrlUpdater extends GithubUrlTagUpdater {
   }
 
   @Override
-  protected String getDownloadBaseUrl() {
-
-    return "https://dotnetcli.azureedge.net";
-  }
-
-  @Override
   public String mapVersion(String version) {
     if (version.matches("v\\d+\\.\\d+\\.\\d+")) {
       return super.mapVersion(version);
@@ -63,12 +66,7 @@ public class DotNetUrlUpdater extends GithubUrlTagUpdater {
   }
 
   @Override
-  public String getCpeVendor() {
-    return "microsoft";
-  }
-
-  @Override
-  public String getCpeProduct() {
-    return "dotnet";
+  protected void initCpe(CpeRegistry cpe) {
+    cpe.addVendor("microsoft").addProduct(".net").addProduct(".net_core");
   }
 }

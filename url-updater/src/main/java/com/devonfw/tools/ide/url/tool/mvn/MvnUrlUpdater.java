@@ -11,25 +11,22 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class MvnUrlUpdater extends GithubUrlReleaseUpdater {
 
+  private static final String DOWNLOAD_BASE_URL = "https://archive.apache.org";
+
   private static final VersionIdentifier MIN_VERSION = VersionIdentifier.of("3.0.4");
   private static final VersionIdentifier MAVEN_4_IDENTIFIER = VersionIdentifier.of("4.0.0-alpha");
+
+  /**
+   * The Constructor.
+   */
+  public MvnUrlUpdater() {
+    super(DOWNLOAD_BASE_URL);
+  }
 
   @Override
   public String getTool() {
 
     return "mvn";
-  }
-
-  @Override
-  public String getCpeVendor() {
-
-    return "apache";
-  }
-
-  @Override
-  public String getCpeProduct() {
-
-    return "maven";
   }
 
   @Override
@@ -41,12 +38,6 @@ public class MvnUrlUpdater extends GithubUrlReleaseUpdater {
   protected String getGithubRepository() {
 
     return "maven";
-  }
-
-  @Override
-  protected String getDownloadBaseUrl() {
-
-    return "https://archive.apache.org";
   }
 
   @Override
@@ -79,5 +70,17 @@ public class MvnUrlUpdater extends GithubUrlReleaseUpdater {
       String majorFolder = versionIdentifier.compareVersion(MAVEN_4_IDENTIFIER).isLess() ? "maven-3" : "maven-4";
       doAddVersion(urlVersion, getDownloadBaseUrl() + "/dist/maven/" + majorFolder + "/${version}/binaries/apache-maven-${version}-bin.zip");
     }
+  }
+
+  @Override
+  public String getCpeVendor() {
+
+    return "apache";
+  }
+
+  @Override
+  public String getCpeProduct() {
+
+    return "maven";
   }
 }
