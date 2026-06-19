@@ -3,6 +3,7 @@
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
 == 2026.07.001
+* https://github.com/devonfw/IDEasy/issues/1933[#1933]: Added a console window to the GUI
 
 Release with new features and bugfixes:
 
