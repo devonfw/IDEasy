@@ -23,7 +23,7 @@ public class Mvnd extends LocalToolCommandlet {
   }
 
   /**
-   * Initializes Maven Deamon-specific auto-completion candidates.
+   * Initializes Maven Daemon-specific auto-completion candidates.
    *
    * @param registry the {@link AutoCompletionRegistry} to initialize.
    */
