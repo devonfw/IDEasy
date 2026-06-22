@@ -6,7 +6,7 @@ if [ -z "${IDE_ROOT:-}" ]; then
   exit 1
 fi
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 
 CLI_DIR="$SCRIPT_DIR/cli"
@@ -26,7 +26,7 @@ if [ ! -d "$GRAALVM_DIR" ]; then
   echo "$GRAALVM_DIR"
   echo
   echo "Please install GraalVM first:"
-  echo "ideasy install graalvm"
+  echo "ide install graalvm"
   exit 1
 fi
 
