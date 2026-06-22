@@ -6,6 +6,8 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1937[#1937]: Link content from settings into workspaces
+
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/46?closed=1[milestone 2026.07.001].
 
@@ -13,7 +15,6 @@ The full list of changes for this release can be found in https://github.com/dev
 
 Release with new features and bugfixes:
 
-* https://github.com/devonfw/IDEasy/issues/1937[#1937]: Link content from settings into workspaces
 * https://github.com/devonfw/IDEasy/issues/797[#797]: Fix VSCode install on macOS   
 * https://github.com/devonfw/IDEasy/issues/1956[#1956]: Merging MAVEN_ARGS buggy
 * https://github.com/devonfw/IDEasy/issues/1978[#1978]: Enhanced the quality status documentation
