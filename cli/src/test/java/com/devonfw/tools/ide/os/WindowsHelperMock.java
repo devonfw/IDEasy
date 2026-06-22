@@ -68,26 +68,6 @@ public class WindowsHelperMock extends WindowsHelperImpl {
   }
 
   @Override
-  public String getDisplayVersionFromRegistry(String appName) {
-    return matchesApp(appName) ? MOCK_DISPLAY_VERSION : null;
-  }
-
-  @Override
-  public String getDisplayIconFromRegistry(String appName) {
-    return matchesApp(appName) ? MOCK_DISPLAY_ICON : null;
-  }
-
-  @Override
-  public String getUninstallStringFromRegistry(String appName) {
-    return matchesApp(appName) ? MOCK_UNINSTALL_STRING : null;
-  }
-
-  @Override
-  public String getInstallLocationFromRegistry(String appName) {
-    return matchesApp(appName) ? MOCK_INSTALL_LOCATION : null;
-  }
-
-  @Override
   public String getRegistryValue(String path, String key) {
 
     if (WindowsHelperImpl.HKCU_ENVIRONMENT.equals(path)) {
