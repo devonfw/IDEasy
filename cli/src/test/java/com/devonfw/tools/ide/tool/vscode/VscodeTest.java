@@ -147,6 +147,26 @@ class VscodeTest extends AbstractIdeContextTest {
     assertThat(pc.getEnvVar("DONT_PROMPT_WSL_INSTALL")).isNull();
   }
 
+  /**
+   * Tests that VS Code is launched with a stable {@code --profile} argument instead of {@code --user-data-dir}, so the OS-level
+   * {@code vscode://} protocol handler (e.g. used by GitHub/Copilot OAuth callbacks) can find and reuse the already running instance.
+   */
+  @Test
+  void testConfigureToolArgsUsesProfileInsteadOfUserDataDir() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    Vscode commandlet = new Vscode(context);
+    ArgsCapturingProcessContext pc = new ArgsCapturingProcessContext(context);
+
+    // act
+    commandlet.configureToolArgs(pc, ProcessMode.DEFAULT, List.of());
+
+    // assert
+    assertThat(pc.getArgs()).anyMatch(arg -> arg.startsWith("--profile="));
+    assertThat(pc.getArgs()).noneMatch(arg -> arg.startsWith("--user-data-dir="));
+  }
+
   @Test
   void testVscodiumInstall() {
 
@@ -197,6 +217,31 @@ class VscodeTest extends AbstractIdeContextTest {
       this.lastArgs = new ArrayList<>(args);
       // Return a successful dummy result to keep tests isolated from real VS Code execution.
       return new ProcessResultImpl("code", "code", 0, List.of());
+    }
+  }
+
+  /**
+   * {@link ProcessContextTestImpl} subclass that captures calls to {@link #addArg(String)} for test assertions.
+   */
+  private static class ArgsCapturingProcessContext extends ProcessContextTestImpl {
+
+    private final List<String> args = new ArrayList<>();
+
+    private ArgsCapturingProcessContext(IdeTestContext context) {
+
+      super(context);
+    }
+
+    @Override
+    public ProcessContext addArg(String arg) {
+
+      this.args.add(arg);
+      return super.addArg(arg);
+    }
+
+    List<String> getArgs() {
+
+      return this.args;
     }
   }
 
