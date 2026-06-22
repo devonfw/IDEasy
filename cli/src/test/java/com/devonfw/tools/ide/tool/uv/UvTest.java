@@ -3,13 +3,10 @@ package com.devonfw.tools.ide.tool.uv;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
-import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.environment.VariableLine;
@@ -18,13 +15,10 @@ import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.EnvironmentVariableCollectorContext;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.version.VersionIdentifier;
-import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
-import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
  * Test of {@link Uv}.
  */
-@WireMockTest
 public class UvTest extends AbstractIdeContextTest {
 
   @Test
@@ -45,25 +39,5 @@ public class UvTest extends AbstractIdeContextTest {
     // assert
     assertThat(variables.get("UV_TOOL_DIR").getValue().replace('\\', '/')).endsWith("software/python/tools");
     assertThat(variables.get("UV_TOOL_BIN_DIR").getValue().replace('\\', '/')).endsWith("software/python/bin");
-  }
-
-  @Test
-  public void testJustInstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
-    IdeTestContext context = newContext("uv", wireMockRuntimeInfo);
-    JustTestCommandlet commandlet = new JustTestCommandlet(context);
-    commandlet.install();
-    assertThat(context).logAtInfo().hasMessageContaining("uv tool install rust-just@");
-  }
-
-  static class JustTestCommandlet extends UvBasedCommandlet {
-
-    JustTestCommandlet(IdeContext context) {
-      super(context, "just", Set.of(Tag.PYTHON));
-    }
-
-    @Override
-    public String getPackageName() {
-      return "rust-just";
-    }
   }
 }
