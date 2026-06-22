@@ -1,6 +1,8 @@
 package com.devonfw.tools.ide.os;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import com.devonfw.tools.ide.context.IdeContext;
@@ -12,17 +14,8 @@ public class WindowsHelperMock extends WindowsHelperImpl {
 
   private final Properties env;
 
-  private static final String MOCK_APP_NAME = "TestApp";
-
-  private static final String MOCK_DISPLAY_VERSION = "1.1.1";
-
-  private static final String MOCK_INSTALL_LOCATION = "C:\\Program Files\\TestApp";
-
-  private static final String MOCK_DISPLAY_ICON =
-      "C:\\Program Files\\TestApp\\testapp.exe,0";
-  private static final String MOCK_UNINSTALL_STRING =
-      "\"C:\\Program Files\\TestApp\\uninstall.exe\"";
-
+  /** Mock registry map storing WindowsAppInstallation entries */
+  private final Map<String, WindowsAppInstallation> registry;
 
   /**
    * The constructor.
@@ -34,6 +27,7 @@ public class WindowsHelperMock extends WindowsHelperImpl {
     this.env.setProperty("IDE_ROOT", "C:\\projects");
     this.env.setProperty("PATH",
         "C:\\Users\\testuser\\AppData\\Local\\Microsoft\\WindowsApps;C:\\projects\\_ide\\installation\\bin;C:\\Users\\testuser\\scoop\\apps\\python\\current\\Scripts;C:\\Users\\testuser\\scoop\\apps\\python\\current;C:\\Users\\testuser\\scoop\\shims");
+    this.registry = new HashMap<>();
   }
 
   @Override
@@ -52,6 +46,25 @@ public class WindowsHelperMock extends WindowsHelperImpl {
   public String getUserEnvironmentValue(String key) {
 
     return this.env.getProperty(key);
+  }
+
+  /**
+   * Set full installation info for an app in the mock registry. This allows to test the retrieval of all relevant information for an installed app from the
+   * registry.
+   *
+   * @param appName the name of the app to set in the registry
+   * @param installation the installation info to set
+   */
+  public void setAppInstallationFromRegistry(String appName, WindowsAppInstallation installation) {
+    this.registry.put(appName, installation);
+  }
+
+  @Override
+  public WindowsAppInstallation getAppInstallationFromRegistry(String appName) {
+    if (appName == null) {
+      return null;
+    }
+    return this.registry.get(appName);
   }
 
   @Override
@@ -83,11 +96,6 @@ public class WindowsHelperMock extends WindowsHelperImpl {
       return super.getRegistryValue(path, key);
     }
     return null;
-  }
-
-  private boolean matchesApp(String appName) {
-    return appName != null
-        && appName.equalsIgnoreCase(MOCK_APP_NAME);
   }
 
   @Override

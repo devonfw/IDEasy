@@ -23,8 +23,8 @@ public class WindowsHelperImpl implements WindowsHelper {
 
   /** Common Windows registry base paths containing (uninstall) information for installed applications (system-wide and per-user). */
   private static final String[] REGISTRY_BASE_PATHS = {
-      "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall",
       "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall",
+      "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall",
       "HKLM\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall"
   };
 
@@ -75,36 +75,23 @@ public class WindowsHelperImpl implements WindowsHelper {
   }
 
   @Override
-  public String getDisplayVersionFromRegistry(String appName) {
-    return getRegistryValueBySearch(appName, "DisplayVersion");
-  }
-
-  @Override
-  public String getDisplayIconFromRegistry(String appName) {
-    return getRegistryValueBySearch(appName, "DisplayIcon");
-  }
-
-  @Override
-  public String getUninstallStringFromRegistry(String appName) {
-    return getRegistryValueBySearch(appName, "UninstallString");
-  }
-
-  @Override
-  public String getInstallLocationFromRegistry(String appName) {
-    return getRegistryValueBySearch(appName, "InstallLocation");
-  }
-
-  private String getRegistryValueBySearch(String appName, String key) {
-
+  public WindowsAppInstallation getAppInstallationFromRegistry(String appName) {
     String uninstallKey = findUninstallKey(appName);
     if (uninstallKey == null) {
       return null;
     }
+
     List<String> out = runReg("query", uninstallKey);
-    if (out != null) {
-      return retrieveRegString(key, out);
+    if (out == null) {
+      return null;
     }
-    return null;
+
+    String version = retrieveRegString("DisplayVersion", out);
+    String icon = retrieveRegString("DisplayIcon", out);
+    String uninstallString = retrieveRegString("UninstallString", out);
+    String installLocation = retrieveRegString("InstallLocation", out);
+
+    return new WindowsAppInstallation(version, icon, uninstallString, installLocation);
   }
 
   private String findUninstallKey(String appName) {

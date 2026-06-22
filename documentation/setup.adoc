@@ -98,3 +98,30 @@ NOTE: After you completed your test or the next official release has been shippe
 ```
 ide upgrade --mode=stable
 ```
+
+=== Downloading SNAPSHOT releases manually
+
+It is also possible to download IDEasy SNAPSHOT releases manually - including for other platforms. This may be useful to verify if SNAPSHOT releases for other platforms include an expected file or not. However, please note that this is a manual process containing multiple steps:
+
+First, identify the latest SNAPSHOT version by going to https://central.sonatype.com/repository/maven-snapshots/com/devonfw/tools/IDEasy/ide-cli/maven-metadata.xml. The latest version will be indicated by the `<latest>` tag. For example, if the file would include
+```
+<latest>2026.04.001-SNAPSHOT</latest>
+```
+
+the latest SNAPSHOT version would be `2026.04.001-SNAPSHOT`.
+
+Next, we add the latest identified version into the following URL:
+```
+https://central.sonatype.com/repository/maven-snapshots/com/devonfw/tools/IDEasy/ide-cli/${latest_version}/maven-metadata.xml
+```
+In our example, the URL would be https://central.sonatype.com/repository/maven-snapshots/com/devonfw/tools/IDEasy/ide-cli/2026.04.001-SNAPSHOT/maven-metadata.xml.
+On this page you can find the artifacts of the latest SNAPSHOT release for each platform supported by IDEasy.
+
+Lastly, we obtain a download link of the SNAPSHOT version for our desired platform by constructing a final URL:
+```
+https://central.sonatype.com/repository/maven-snapshots/com/devonfw/tools/IDEasy/ide-cli/${latest_version}/ide-cli-${version.value}-${version.classifier}.${version.extension}
+```
+
+In our example, if we wanted to download the mac version, the final URL would be https://central.sonatype.com/repository/maven-snapshots/com/devonfw/tools/IDEasy/ide-cli/2026.04.001-SNAPSHOT/ide-cli-2026.04.001-20260321.030716-2-mac-x64.tar.gz.
+
+From there, we can download the artifact, extract and test it.

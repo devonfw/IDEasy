@@ -10,18 +10,22 @@ import com.devonfw.tools.ide.url.updater.WebsiteUrlUpdater;
  */
 public class OcUrlUpdater extends WebsiteUrlUpdater {
 
+  private static final String DOWNLOAD_BASE_URL = "https://mirror.openshift.com";
+  private static final String VERSION_BASE_URL = "https://mirror.openshift.com";
+
   private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d\\.\\d\\.\\d*)");
+
+  /**
+   * The Constructor.
+   */
+  public OcUrlUpdater() {
+    super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
+  }
 
   @Override
   public String getTool() {
 
     return "oc";
-  }
-
-  @Override
-  protected String getDownloadBaseUrl() {
-
-    return "https://mirror.openshift.com";
   }
 
   @Override
@@ -34,25 +38,9 @@ public class OcUrlUpdater extends WebsiteUrlUpdater {
   }
 
   @Override
-  public String getCpeVendor() {
-    return "openshift";
-  }
-
-  @Override
-  public String getCpeProduct() {
-    return "oc";
-  }
-
-  @Override
   protected String getVersionUrl() {
 
     return getVersionBaseUrl() + "/pub/openshift-v4/clients/ocp/";
-  }
-
-  @Override
-  protected String getVersionBaseUrl() {
-
-    return getDownloadBaseUrl();
   }
 
   @Override

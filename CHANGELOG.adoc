@@ -2,10 +2,49 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2026.07.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1870[#1870]: Add generic get-version implementation for global tools under windows
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/46?closed=1[milestone 2026.07.001].
+
+== 2026.06.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/797[#797]: Fix VSCode install on macOS   
+* https://github.com/devonfw/IDEasy/issues/1956[#1956]: Merging MAVEN_ARGS buggy
+* https://github.com/devonfw/IDEasy/issues/1978[#1978]: Enhanced the quality status documentation
+* https://github.com/devonfw/IDEasy/issues/1946[#1946]: Add Spyder Python IDE
+* https://github.com/devonfw/IDEasy/issues/1846[#1846]: Fixed macOS Gatekeeper workaround
+* https://github.com/devonfw/IDEasy/issues/1906[#1906]: Fixed `ide uninstall` failing on macOS
+* https://github.com/devonfw/IDEasy/issues/1985[#1985]: Fix path traversal errors when extracting ZIPs on Windows
+* https://github.com/devonfw/IDEasy/issues/1255[#1255]: Enhance snapshot version recognition in IDEasy
+* https://github.com/devonfw/IDEasy/issues/1964[#1964]: Fixed gui not launching with older project java versions
+* https://github.com/devonfw/IDEasy/issues/1968[#1968]: Fixed gui blocking the terminal session while running.
+* https://github.com/devonfw/IDEasy/issues/1849[#1849]: Add VSCodium support
+* https://github.com/devonfw/IDEasy/issues/1391[#1391]: Fix bashrc messed with terraform completions
+* https://github.com/devonfw/IDEasy/issues/1922[#1922]: Add Task CLI to IDEasy commandlets
+* https://github.com/devonfw/IDEasy/issues/1392[#1392]: Add smart completions for mvn
+* https://github.com/devonfw/IDEasy/issues/1994[#1994]: Improve IDEasy AI documentation
+* https://github.com/devonfw/IDEasy/issues/1966[#1966]: Support separate VSCodium plugins
+* https://github.com/devonfw/IDEasy/issues/1518[#1518]: Add per-project uv tool isolation using UV_TOOL_DIR and UV_TOOL_BIN_DIR
+* https://github.com/devonfw/IDEasy/issues/1719[#1719]: Add Rust and MSVC support
+* https://github.com/devonfw/IDEasy/issues/1991[#1991]: Improve WindowsHelperMock
+* https://github.com/devonfw/IDEasy/issues/1457[#1457]: Improve CLI error messages on invalid args or commandlets not available in current context
+* https://github.com/devonfw/IDEasy/issues/2030[#2030]: Fix Plugin install error in Intellij
+* https://github.com/devonfw/IDEasy/issues/2032[#2032]: commandlet env bash leads to broken output
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/45?closed=1[milestone 2026.06.001].
+
 == 2026.05.001
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1947[#1947]: Create gc log analyzer url updater
+* https://github.com/devonfw/IDEasy/issues/1185[#1185]: Fix icd not working in zsh on older macOS
 * https://github.com/devonfw/IDEasy/issues/1754[#1754]: Add version support to vscode plugins
 * https://github.com/devonfw/IDEasy/issues/796[#796]: cannot install aws on Mac
 * https://github.com/devonfw/IDEasy/issues/1800[#1800]: IDEasy will automatically switch to IntelliJ standard edition when installing newer ultimate edition versions
@@ -17,11 +56,14 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1174[#1174]: Add UrlUpdater for Java Azul edition
 * https://github.com/devonfw/IDEasy/issues/451[#451]: Automatically remove macOS quarantine attribute after tool extraction
 * https://github.com/devonfw/IDEasy/issues/1823[#1823]: Fix IDEasy creates duplicate entries in .gitconfig
+* https://github.com/devonfw/IDEasy/issues/1775[#1775]: validated and updated CPE's for all products
 * https://github.com/devonfw/IDEasy/issues/1834[#1834]: Fix fix-vpn-tls-problem NullPointerException
 * https://github.com/devonfw/IDEasy/issues/1724[#1724]: Add gui commandlet
 * https://github.com/devonfw/IDEasy/issues/1853[#1853]: Add ARM releases for VSCode on Mac
+* https://github.com/devonfw/IDEasy/issues/1788[#1788]: Add Commandlet to create links
 * https://github.com/devonfw/IDEasy/issues/797[#797]: Use system unzip on macOS to preserve symlinks in ZIP extraction
 * https://github.com/devonfw/IDEasy/issues/1723[#1723]: Add commandlet for GitHub Copilot CLI
+* https://github.com/devonfw/IDEasy/issues/1880[#1880]: Reinstall all plugins for IDE in force mode
 * https://github.com/devonfw/IDEasy/issues/861[#861]: Fix install of pgadmin throws IllegalStateException when the install wizard starts
 * https://github.com/devonfw/IDEasy/issues/1844[#1844]: VSCode plugin installation progress freezing
 * https://github.com/devonfw/IDEasy/issues/1456[#1456]: Uninstall via Windows settings not working
@@ -29,8 +71,18 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/861[#861]: Fix install of pgadmin throws IllegalStateException when the install wizard starts
 * https://github.com/devonfw/IDEasy/issues/1688[#1688]: Remove unnecessary message in the CLI when installing a new tool
 * https://github.com/devonfw/IDEasy/issues/1685[#1685]: Add Nest CLI to IDEasy commandlets
-* https://github.com/devonfw/IDEasy/issues/1870[#1870]: Add generic get-version implementation for global tools under windows
+* https://github.com/devonfw/IDEasy/issues/1748[#1748]: Improve IDEasy status documentation
+* https://github.com/devonfw/IDEasy/issues/1882[#1882]: Add AWS CDK to IDEasy commandlets
 * https://github.com/devonfw/IDEasy/issues/800[#800]: Fix infinite recursion in Sonar start/stop on macOS
+* https://github.com/devonfw/IDEasy/issues/1886[#1886]: Fix NpmBasedCommandlet shows wrong tool version after install
+* https://github.com/devonfw/IDEasy/issues/1884[#1884]: Fix java unzipping losing symlink information
+* https://github.com/devonfw/IDEasy/issues/1716[#1716]: Add commandlet for Claude Code CLI
+* https://github.com/devonfw/IDEasy/issues/1844[#1844]: Fix vscode installation hanging indefinitely in WSL Linux environments
+* https://github.com/devonfw/IDEasy/issues/863[#863]: Mac x64 / ARM android-studio 2024 releases missing — accept .dmg downloads alongside .zip
+* https://github.com/devonfw/IDEasy/issues/1904[#1904]: Add Inso CLI to IDEasy commandlets
+* https://github.com/devonfw/IDEasy/issues/1952[#1952]: Ability for platform specific dependencies
+* https://github.com/devonfw/IDEasy/issues/1950[#1950]: Fix exit autocompletion
+* https://github.com/devonfw/IDEasy/issues/1958[#1958]: Fix git pull on settings with local branch without remote
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/44?closed=1[milestone 2026.05.001].
 

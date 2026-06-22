@@ -9,11 +9,20 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class NodeUrlUpdater extends GithubUrlTagUpdater {
 
+  private static final String DOWNLOAD_BASE_URL = "https://nodejs.org";
+
   private static final VersionIdentifier MIN_NODE_VID = VersionIdentifier.of("v3.9.9");
 
   private static final VersionIdentifier MIN_WIN_ARM_VID = VersionIdentifier.of("v19.9.9");
 
   private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.of("v15.9.9");
+
+  /**
+   * The Constructor.
+   */
+  public NodeUrlUpdater() {
+    super(DOWNLOAD_BASE_URL);
+  }
 
   @Override
   public String getTool() {
@@ -40,12 +49,6 @@ public class NodeUrlUpdater extends GithubUrlTagUpdater {
   }
 
   @Override
-  protected String getDownloadBaseUrl() {
-
-    return "https://nodejs.org";
-  }
-
-  @Override
   protected void addVersion(UrlVersion urlVersion) {
 
     VersionIdentifier vid = urlVersion.getVersionIdentifier();
@@ -65,6 +68,13 @@ public class NodeUrlUpdater extends GithubUrlTagUpdater {
     }
   }
 
+
+  @Override
+  public String mapVersion(String version) {
+
+    return super.mapVersion("v" + version);
+  }
+
   @Override
   public String getCpeVendor() {
     return "nodejs";
@@ -72,13 +82,6 @@ public class NodeUrlUpdater extends GithubUrlTagUpdater {
 
   @Override
   public String getCpeProduct() {
-    return "node";
+    return "node.js";
   }
-
-  @Override
-  public String mapVersion(String version) {
-
-    return super.mapVersion("v" + version);
-  }
-  
 }
