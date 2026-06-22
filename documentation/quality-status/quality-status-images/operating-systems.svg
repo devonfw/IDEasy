@@ -27,17 +27,17 @@
 <rect x="248" y="48" width="12" height="12" rx="2" fill="#8c959f"/>
 <text x="266" y="59" fill="var(--chart-muted-text)" font-family="sans-serif" font-size="12">Cross-platform</text>
 <text x="98" y="99" text-anchor="end" fill="var(--chart-text)" font-family="sans-serif" font-size="14">Windows</text>
-<rect x="110.0" y="82" width="46.8" height="24" fill="#0969da"/>
-<rect x="156.8" y="82" width="443.2" height="24" fill="#8c959f"/>
-<text x="608.0" y="99" fill="var(--chart-muted-text)" font-family="sans-serif" font-size="13" font-weight="600">157</text>
+<rect x="110.0" y="82" width="45.4" height="24" fill="#0969da"/>
+<rect x="155.4" y="82" width="444.6" height="24" fill="#8c959f"/>
+<text x="608.0" y="99" fill="var(--chart-muted-text)" font-family="sans-serif" font-size="13" font-weight="600">151</text>
 <text x="98" y="147" text-anchor="end" fill="var(--chart-text)" font-family="sans-serif" font-size="14">Linux</text>
-<rect x="110.0" y="130" width="18.7" height="24" fill="#0969da"/>
-<rect x="128.7" y="130" width="3.1" height="24" fill="#8250df"/>
-<rect x="131.8" y="130" width="443.2" height="24" fill="#8c959f"/>
-<text x="583.0" y="147" fill="var(--chart-muted-text)" font-family="sans-serif" font-size="13" font-weight="600">149</text>
+<rect x="110.0" y="130" width="19.5" height="24" fill="#0969da"/>
+<rect x="129.5" y="130" width="3.2" height="24" fill="#8250df"/>
+<rect x="132.7" y="130" width="444.6" height="24" fill="#8c959f"/>
+<text x="585.3" y="147" fill="var(--chart-muted-text)" font-family="sans-serif" font-size="13" font-weight="600">144</text>
 <text x="98" y="195" text-anchor="end" fill="var(--chart-text)" font-family="sans-serif" font-size="14">macOS</text>
-<rect x="110.0" y="178" width="37.5" height="24" fill="#0969da"/>
-<rect x="147.5" y="178" width="3.1" height="24" fill="#8250df"/>
-<rect x="150.6" y="178" width="443.2" height="24" fill="#8c959f"/>
-<text x="601.8" y="195" fill="var(--chart-muted-text)" font-family="sans-serif" font-size="13" font-weight="600">155</text>
+<rect x="110.0" y="178" width="35.7" height="24" fill="#0969da"/>
+<rect x="145.7" y="178" width="3.2" height="24" fill="#8250df"/>
+<rect x="148.9" y="178" width="444.6" height="24" fill="#8c959f"/>
+<text x="601.5" y="195" fill="var(--chart-muted-text)" font-family="sans-serif" font-size="13" font-weight="600">149</text>
 </svg>

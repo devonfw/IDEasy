@@ -9,20 +9,20 @@ Automatically generated open issue overview for Linux.
 
 link:quality-status.adoc[Back to overview]
 
-*Total Issues:* 149
+*Total Issues:* 144
 
 * OS-specific: 6
 
 * Multi-OS: 1
 
-* Cross-platform: 142
+* Cross-platform: 137
 
 == Linux Specific Issues
 
 [%header, cols="^1,7"]
 |===
 | Issue | Summary
-2+^| *0-10 days*
+2+^| *11-30 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2007[#2007]
 | IDEasy can not install docker on arch linux

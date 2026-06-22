@@ -15,7 +15,7 @@ https://github.com/devonfw/IDEasy[devonfw/IDEasy].
 image::quality-status-images/issue-statistics.svg[Bar chart: open issue metrics,width=100%]
 
 
-_Generated: 2026-06-15 08:38 UTC_
+_Generated: 2026-06-22 12:12 UTC_
 
 
 == Operating System Status Files
@@ -24,7 +24,7 @@ Issues are assigned to operating systems based on their labels:
 `windows`, `linux`, or `macOS`.
 
 Issues without an operating system label are treated as cross-platform.
-*A total of 142 cross-platform issues* are documented centrally in this document and are therefore not repeated in the operating system specific files.
+*A total of 137 cross-platform issues* are documented centrally in this document and are therefore not repeated in the operating system specific files.
 
 The detailed tool status is split into one generated file per operating system.
 
@@ -53,22 +53,55 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | Issue | Summary
 2+^a| [[cross-platform-0-10-days]] *0-10 days*
 
+| link:https://github.com/devonfw/IDEasy/issues/2059[#2059]
+| Preconfigure VSCode plugins GitHub Copilot and Claude Code
+
+| link:https://github.com/devonfw/IDEasy/issues/2058[#2058]
+| VSCode authentication not working with IDEasy
+
+| link:https://github.com/devonfw/IDEasy/issues/2056[#2056]
+| Remove progress bar for vscode plugins
+
+| link:https://github.com/devonfw/IDEasy/issues/2052[#2052]
+| Split issue statistics into separate assigned and unassigned pie charts
+
+| link:https://github.com/devonfw/IDEasy/issues/2051[#2051]
+| Release workflow failing publishing release metadata on github
+
+| link:https://github.com/devonfw/IDEasy/issues/2050[#2050]
+| Evaluate shim/launcher-based runtime activation for Node/npm in IDEasy (follow-…
+
+| link:https://github.com/devonfw/IDEasy/issues/2045[#2045]
+| Add tool selection and version/edition configuration via GUI
+
+| link:https://github.com/devonfw/IDEasy/issues/2044[#2044]
+| mvn --<TAB> does not trigger completion
+
+| link:https://github.com/devonfw/IDEasy/issues/2042[#2042]
+| -q parameter supresses ask for CVE choices
+
+| link:https://github.com/devonfw/IDEasy/issues/2040[#2040]
+| Workspace selection buggy
+
+| link:https://github.com/devonfw/IDEasy/issues/2039[#2039]
+| IDE logo not shown in mac task bar
+
+| link:https://github.com/devonfw/IDEasy/issues/2033[#2033]
+| Improve documentation of GUI code.
+
+| link:https://github.com/devonfw/IDEasy/issues/2026[#2026]
+| Create UvRepository and UvBasedCommandlet
+
+| link:https://github.com/devonfw/IDEasy/issues/2025[#2025]
+| Improve JavaDoc of IdeContext
+
 | link:https://github.com/devonfw/IDEasy/issues/2021[#2021]
 | Remove status.json from ide-urls after migration
 
-| link:https://github.com/devonfw/IDEasy/issues/2014[#2014]
-| Wrong font-style CSS configuration in center.css
+2+^a| [[cross-platform-11-30-days]] *11-30 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2013[#2013]
 | Warning: "Unsupported JavaFX configuration: classes were loaded from 'unnamed m…
-
-| link:https://github.com/devonfw/IDEasy/issues/2010[#2010]
-| The ide gui command is not working
-
-| link:https://github.com/devonfw/IDEasy/issues/2005[#2005]
-| Refactor quality status generator (remove redundancy and improve structure)
-
-2+^a| [[cross-platform-11-30-days]] *11-30 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2000[#2000]
 | Create script for local end-to-end testing
@@ -76,26 +109,14 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/1996[#1996]
 | Revisit design for tools that do not install to software repository
 
-| link:https://github.com/devonfw/IDEasy/issues/1994[#1994]
-| Small improvements to AI documentation
-
-| link:https://github.com/devonfw/IDEasy/issues/1993[#1993]
-| Small improvements to advanced-tooling-windows
-
 | link:https://github.com/devonfw/IDEasy/issues/1992[#1992]
 | Improve GitContextMock
 
 | link:https://github.com/devonfw/IDEasy/issues/1990[#1990]
 | Merge of Vscode settings.json file fails
 
-| link:https://github.com/devonfw/IDEasy/issues/1988[#1988]
-| Improve UrlUpdater tests
-
 | link:https://github.com/devonfw/IDEasy/issues/1987[#1987]
 | Gui commandlet broken for snapshots
-
-| link:https://github.com/devonfw/IDEasy/issues/1978[#1978]
-| Improve status documentation
 
 | link:https://github.com/devonfw/IDEasy/issues/1976[#1976]
 | Extend ToolCommandlet installation logic to allow software-repository-only inst…
@@ -103,28 +124,19 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/1975[#1975]
 | Improve state management implementation in the GUI
 
-| link:https://github.com/devonfw/IDEasy/issues/1966[#1966]
-| Support separate VSCodium plugins folder
+2+^a| [[cross-platform-31-60-days]] *31-60 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/1965[#1965]
 | Improve dependent installations
 
-| link:https://github.com/devonfw/IDEasy/issues/1956[#1956]
-| Merging MAVEN_ARGS buggy
-
 | link:https://github.com/devonfw/IDEasy/issues/1953[#1953]
 | Implement Base Functionality of Cleanup Commandlet
-
-2+^a| [[cross-platform-31-60-days]] *31-60 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/1943[#1943]
 | Create Ruby Commandlet
 
 | link:https://github.com/devonfw/IDEasy/issues/1942[#1942]
 | Create a RubyUrlUpdater
-
-| link:https://github.com/devonfw/IDEasy/issues/1939[#1939]
-| Integrate Spyder IDE
 
 | link:https://github.com/devonfw/IDEasy/issues/1938[#1938]
 | GUI not launchable outside of project context
@@ -162,9 +174,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/1868[#1868]
 | Revision of the functionality of global tool commandlets
 
-| link:https://github.com/devonfw/IDEasy/issues/1840[#1840]
-| Management of tool installations in the GUI
-
 2+^a| [[cross-platform-61-90-days]] *61-90 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/1814[#1814]
@@ -172,9 +181,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 
 | link:https://github.com/devonfw/IDEasy/issues/1808[#1808]
 | icd is not navigating into single available workspace on icd -p project
-
-| link:https://github.com/devonfw/IDEasy/issues/1802[#1802]
-| Enable state management for the IdeContext in the GUI.
 
 | link:https://github.com/devonfw/IDEasy/issues/1787[#1787]
 | tracking yarn versions broken
@@ -195,12 +201,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 
 | link:https://github.com/devonfw/IDEasy/issues/1720[#1720]
 | Integrate SoapUI
-
-| link:https://github.com/devonfw/IDEasy/issues/1719[#1719]
-| Integrate rust
-
-| link:https://github.com/devonfw/IDEasy/issues/1715[#1715]
-| Adapt settings to inject java runtime future proove into vscode
 
 | link:https://github.com/devonfw/IDEasy/issues/1695[#1695]
 | Clone settings to temporary directory, analyse, and then move
@@ -235,9 +235,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/1525[#1525]
 | lombok not correctly installed in eclipse
 
-| link:https://github.com/devonfw/IDEasy/issues/1518[#1518]
-| uv tools are installed globally
-
 | link:https://github.com/devonfw/IDEasy/issues/1517[#1517]
 | IDEasy setup does not install Windows Terminal
 
@@ -247,17 +244,11 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/1493[#1493]
 | Analyze Scoop Windows CLI installer
 
-| link:https://github.com/devonfw/IDEasy/issues/1457[#1457]
-| Improve CLI error messages on invalid args or commandlets not available in curr…
-
 | link:https://github.com/devonfw/IDEasy/issues/1453[#1453]
 | Allow co-authored commits in cla assistant
 
 | link:https://github.com/devonfw/IDEasy/issues/1422[#1422]
 | Refactor tests to remove windowsJunctionsAreUsed
-
-| link:https://github.com/devonfw/IDEasy/issues/1392[#1392]
-| Smart completion
 
 | link:https://github.com/devonfw/IDEasy/issues/1333[#1333]
 | Step 'Install or update software' already ended with false and now ended again…
@@ -418,9 +409,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/701[#701]
 | Fix Dotnet tests on our CI
 
-| link:https://github.com/devonfw/IDEasy/issues/700[#700]
-| Add Npm run test
-
 | link:https://github.com/devonfw/IDEasy/issues/690[#690]
 | UpdateUrls workflow timeout not working
 
@@ -432,9 +420,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 
 | link:https://github.com/devonfw/IDEasy/issues/607[#607]
 | Test for environment variables of process contexts  
-
-| link:https://github.com/devonfw/IDEasy/issues/551[#551]
-| Autocompletion and list-versions make OS-agnostic suggestions 
 
 | link:https://github.com/devonfw/IDEasy/issues/516[#516]
 | IdeToolCommandlet: add option and support for import of project(s)
