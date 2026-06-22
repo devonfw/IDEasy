@@ -31,6 +31,14 @@ public interface IdeStartContext extends ReadOfflineMode {
   IdeLogLevel getLogLevelLogger();
 
   /**
+   * @param level the {@link IdeLogLevel} to check.
+   * @return {@code true} if the given {@link IdeLogLevel} is actually enabled in the console, {@code }false} otherwise.
+   */
+  default boolean isLogLevelEnabled(IdeLogLevel level) {
+    return level.ordinal() >= getLogLevelConsole().ordinal();
+  }
+
+  /**
    * @return {@code true} in case of quiet mode (reduced output), {@code false} otherwise.
    */
   boolean isQuietMode();

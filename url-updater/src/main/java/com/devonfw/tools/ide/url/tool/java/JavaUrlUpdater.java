@@ -10,6 +10,25 @@ import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
  */
 public class JavaUrlUpdater extends JsonUrlUpdater<JavaJsonObject, JavaJsonVersion> {
 
+  private static final String DOWNLOAD_BASE_URL = "https://github.com/adoptium";
+  private static final String VERSION_BASE_URL = "https://api.adoptium.net";
+
+  /**
+   * Constructor for JavaUrlUpdater with production defaults for downloadBaseUrl and versionBaseUrl.
+   */
+  public JavaUrlUpdater() {
+    super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
+  }
+
+  /**
+   * Package-private constructor used for testing {@link JavaUrlUpdater}.
+   *
+   * @param baseUrl mock url used as download and version base.
+   */
+  JavaUrlUpdater(String baseUrl) {
+    super(baseUrl, baseUrl);
+  }
+
   @Override
   public String getTool() {
 
@@ -73,22 +92,10 @@ public class JavaUrlUpdater extends JsonUrlUpdater<JavaJsonObject, JavaJsonVersi
   }
 
   @Override
-  protected String getDownloadBaseUrl() {
-
-    return "https://github.com/adoptium";
-  }
-
-  @Override
   protected String doGetVersionUrl() {
 
     return getVersionBaseUrl()
         + "/v3/info/release_versions?architecture=x64&heap_size=normal&image_type=jdk&jvm_impl=hotspot&page=0&page_size=50&project=jdk&release_type=ga&sort_method=DEFAULT&sort_order=DESC&vendor=eclipse";
-  }
-
-  @Override
-  protected String getVersionBaseUrl() {
-
-    return "https://api.adoptium.net";
   }
 
   @Override
