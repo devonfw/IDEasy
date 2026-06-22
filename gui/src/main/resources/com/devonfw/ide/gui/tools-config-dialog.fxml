@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<BorderPane xmlns="http://javafx.com/javafx/25.0.0" xmlns:fx="http://javafx.com/fxml/1"
+  fx:controller="com.devonfw.ide.gui.settings.ToolSettingsController">
+  <top>
+    <VBox style="-fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0; -fx-padding: 8;">
+      <children>
+        <HBox spacing="10.0" style="-fx-font-weight: bold; -fx-font-size: 10;">
+          <padding>
+            <Insets top="5.0" right="10.0" bottom="5.0" left="5.0"/>
+          </padding>
+          <children>
+            <Label text="Enable" prefWidth="40.0"/>
+            <Label text="Tool" prefWidth="120.0"/>
+            <Label text="Edition" prefWidth="130.0"/>
+            <Label text="Version" prefWidth="130.0"/>
+            <Region HBox.hgrow="ALWAYS"/>
+          </children>
+        </HBox>
+      </children>
+    </VBox>
+  </top>
+  <center>
+    <VBox spacing="0">
+      <padding>
+        <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+      </padding>
+      <children>
+        <TreeView fx:id="toolsTree" prefHeight="400.0" style="-fx-font-size: 10;"/>
+      </children>
+    </VBox>
+  </center>
+  <bottom>
+    <HBox spacing="10.0" alignment="CENTER_RIGHT">
+      <padding>
+        <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+      </padding>
+      <children>
+        <Button fx:id="cancelButton" text="%button.cancel" onAction="#onCancel"/>
+        <Button fx:id="previewButton" text="%button.preview" onAction="#onPreview"/>
+        <Button fx:id="saveButton" text="%button.save" onAction="#onSave"/>
+      </children>
+    </HBox>
+  </bottom>
+</BorderPane>
+
+

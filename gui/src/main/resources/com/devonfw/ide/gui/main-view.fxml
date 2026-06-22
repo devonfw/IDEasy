@@ -54,6 +54,15 @@
             <Insets left="8.0" right="8.0"/>
           </padding>
         </VBox>
+        <VBox maxHeight="-Infinity" styleClass="sideNavigationElement">
+          <children>
+            <Button fx:id="toolsConfigButton" mnemonicParsing="false" onAction="#openToolsConfig" text="%button.toolsConfig" maxWidth="1.7976931348623157E308"
+              minWidth="-Infinity" prefHeight="40.0" prefWidth="150.0"/>
+          </children>
+          <padding>
+            <Insets left="8.0" right="8.0"/>
+          </padding>
+        </VBox>
       </children>
       <padding>
         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>

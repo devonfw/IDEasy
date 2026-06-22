@@ -5,9 +5,14 @@ import java.nio.file.NotDirectoryException;
 import java.util.List;
 import java.util.Locale;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +62,9 @@ public class MainController {
   @FXML
   private Button vsCodeOpen;
 
+  @FXML
+  private Button toolsConfigButton;
+
   private final String directoryPath;
 
 
@@ -77,6 +85,8 @@ public class MainController {
     initLanguageComboBox();
     updateTexts();
     LocalizationService.getInstance().addLocaleChangeListener(this::updateTexts);
+    // Disable tools config until a project and workspace are selected (context must be available)
+    updateToolsConfigButtonState();
   }
 
   @FXML
@@ -126,6 +136,7 @@ public class MainController {
     eclipseOpen.setText(localizationService.get("button.open"));
     intellijOpen.setText(localizationService.get("button.open"));
     vsCodeOpen.setText(localizationService.get("button.open"));
+    toolsConfigButton.setText(localizationService.get("button.toolsConfig"));
   }
 
 
@@ -168,6 +179,7 @@ public class MainController {
       setWorkspaceComboBox();
 
       selectedWorkspace.setDisable(false);
+
     });
   }
 
@@ -190,7 +202,25 @@ public class MainController {
       eclipseOpen.setDisable(false);
       intellijOpen.setDisable(false);
       vsCodeOpen.setDisable(false);
+      // Now we have a workspace selected -> enable tools config
+      updateToolsConfigButtonState();
     });
+  }
+
+  /**
+   * Enable or disable the tools config button depending on whether a project and workspace are selected.
+   */
+  private void updateToolsConfigButtonState() {
+    boolean enabled = false;
+    try {
+      enabled = selectedProject != null && selectedProject.getValue() != null && selectedWorkspace != null
+          && selectedWorkspace.getValue() != null;
+    } catch (Exception e) {
+      enabled = false;
+    }
+    if (toolsConfigButton != null) {
+      toolsConfigButton.setDisable(!enabled);
+    }
   }
 
   private void openIDE(String inIde) {
@@ -201,6 +231,25 @@ public class MainController {
         .getCommandletManager()
         .getCommandlet(inIde)
         .run();
+  }
+
+  @FXML
+  private void openToolsConfig() {
+    try {
+      FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/devonfw/ide/gui/tools-config.fxml"));
+      loader.setResources(LocalizationService.getInstance().getResourceBundle());
+      Parent root = loader.load();
+      Stage dialog = new Stage();
+      dialog.initModality(Modality.APPLICATION_MODAL);
+      dialog.initOwner(this.selectedProject.getScene().getWindow());
+      dialog.setTitle(LocalizationService.getInstance().get("label.toolsConfig"));
+      dialog.setScene(new Scene(root));
+      dialog.showAndWait();
+    } catch (Exception e) {
+      LOG.error("Failed to open tools configuration dialog", e);
+      IdeDialog errorDialog = new IdeDialog(IdeDialog.AlertType.ERROR, e.getMessage());
+      errorDialog.showAndWait();
+    }
   }
 
   private void updateContext(String selectedProjectName, String selectedWorkspaceName) {
