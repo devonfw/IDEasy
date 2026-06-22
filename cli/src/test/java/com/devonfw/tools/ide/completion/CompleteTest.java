@@ -302,4 +302,40 @@ class CompleteTest extends AbstractIdeContextTest {
     assertThat(candidates.stream().map(CompletionCandidate::text))
         .contains("clean", "package", "install", "dependency:list", "dependency:tree", "-DskipTests");
   }
+
+  /**
+   * Test of tool argument auto-completion for Maven Daemon.
+   */
+  @Test
+  void testCompleteMavenDaemonToolArguments() {
+
+    // arrange
+    AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
+    CliArguments args = CliArguments.ofCompletion("mvnd", "-Dmvnd.c");
+
+    // act
+    List<CompletionCandidate> candidates = context.complete(args, true);
+
+    // assert
+    assertThat(candidates.stream().map(CompletionCandidate::text))
+        .contains("-Dmvnd.cancelConnectTimeout=", "-Dmvnd.connectTimeout=", "-Dmvnd.coreExtensionsExclude=");
+  }
+
+  /**
+   * Test of Maven Daemon tool argument auto-completion for empty input.
+   */
+  @Test
+  void testCompleteMavenDaemonToolArgumentsForEmptyInput() {
+
+    // arrange
+    AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
+    CliArguments args = CliArguments.ofCompletion("mvnd", "");
+
+    // act
+    List<CompletionCandidate> candidates = context.complete(args, true);
+
+    // assert
+    assertThat(candidates.stream().map(CompletionCandidate::text))
+        .contains("--purge", "--settings", "--completion", "dependency:list", "dependency:tree", "-DskipTests");
+  }
 }

@@ -43,7 +43,7 @@ public class Mvnd extends MavenCommandlet {
     registry.add("--settings");
     registry.add("-Dmvnd.buildTime=");
     registry.add("--builder");
-    registry.add("-Dmvnd.cancelConnectTimeout");
+    registry.add("-Dmvnd.cancelConnectTimeout=");
     registry.add("-Dmvnd.connectTimeout=");
     registry.add("-Dmvnd.coreExtensionsExclude=");
     registry.add("-Dmvnd.daemonStorage=");
