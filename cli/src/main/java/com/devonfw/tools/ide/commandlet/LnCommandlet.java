@@ -3,6 +3,9 @@ package com.devonfw.tools.ide.commandlet;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.PathLinkType;
@@ -16,6 +19,8 @@ import com.devonfw.tools.ide.property.PathProperty;
  * hard link as an alternative (file-only, same volume) to avoid the Git-Bash behavior of silently copying files.
  */
 public final class LnCommandlet extends Commandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(LnCommandlet.class);
 
   /** Grammar token {@code -s} (optional). */
   public final FlagProperty symbolic;
@@ -86,6 +91,11 @@ public final class LnCommandlet extends Commandlet {
     }
 
     PathLinkType linkType = this.symbolic.isTrue() ? PathLinkType.SYMBOLIC_LINK : PathLinkType.HARD_LINK;
-    this.context.getFileAccess().link(sourcePath, linkPath, relative, linkType);
+    PathLinkType result = this.context.getFileAccess().link(sourcePath, linkPath, relative, linkType);
+    if (this.relative.isTrue() && result == null) {
+      LOG.info(
+          "Due to lack of permissions, Microsoft's mklink with junction had to be used to create a Symlink. See\n"
+              + "https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for further details.");
+    }
   }
 }

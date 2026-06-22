@@ -521,8 +521,8 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   }
 
   @Override
-  public void link(Path source, Path link, boolean relative, PathLinkType type) {
-
+  public PathLinkType link(Path source, Path link, boolean relative, PathLinkType type) {
+    PathLinkType resultingPathLinkType = null;
     Path absoluteLink = link.toAbsolutePath().normalize();
     // Keep this lexical only: archive symlinks may point through links that are created later.
     Path finalSource = relative ? relativizeSource(source, absoluteLink) : preserveSelfReference(source.normalize());
@@ -533,23 +533,22 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       // Attention: JavaDoc and position of path arguments can be very confusing - see comment in #1736
       if (type == PathLinkType.SYMBOLIC_LINK) {
         Files.createSymbolicLink(link, finalSource);
+        resultingPathLinkType = PathLinkType.SYMBOLIC_LINK;
       } else if (type == PathLinkType.HARD_LINK) {
         createHardLink(absoluteSource, link);
+        resultingPathLinkType = PathLinkType.HARD_LINK;
       } else {
         throw new IllegalStateException("" + type);
       }
     } catch (FileSystemException e) {
       if (SystemInfoImpl.INSTANCE.isWindows()) {
-        LOG.info(
-            "Due to lack of permissions, Microsoft's mklink with junction had to be used to create a Symlink. See\n"
-                + "https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for further details. Error was: "
-                + e.getMessage());
-
-        try {
+        if (Files.isDirectory(absoluteSource)) {
+          LOG.info("Creating junction as a fallback for link to directory.");
           mklinkOnWindows(finalSource, absoluteSource, absoluteLink, type, relative);
-        } catch (IllegalStateException mkEx) {
-          LOG.info("Creating a hard link as a fallback for the failed mklink attempt.");
+        } else {
+          LOG.info("Creating a hard link as a fallback for link to file.");
           createHardLink(absoluteSource, link);
+          resultingPathLinkType = PathLinkType.HARD_LINK;
         }
       } else {
         throw new RuntimeException(e);
@@ -557,6 +556,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     } catch (IOException e) {
       throw new IllegalStateException("Failed to create " + type + " at " + link + " pointing to " + source + " (relative=" + relative + ")", e);
     }
+    return resultingPathLinkType;
   }
 
 
