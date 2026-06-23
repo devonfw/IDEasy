@@ -5,6 +5,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 == 2026.07.001
 
 Release with new features and bugfixes:
+* https://github.com/devonfw/IDEasy/issues/1942[#1942]: Create ruby url updater
 
 * https://github.com/devonfw/IDEasy/issues/1063[#1063]: Improve IDEasy user specific configuration documentation
 * https://github.com/devonfw/IDEasy/issues/1909[#1909]: add commandlet for Maven Daemon
