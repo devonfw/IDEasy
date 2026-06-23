@@ -19,9 +19,6 @@ eclipse-target/
 generated/
 node_modules
 
-# Generated GUI assets (created at runtime, not to be committed)
-gui/scripts/windows/ideasy-gui.ico
-
 # Package Files #
 *.jar
 *.war
