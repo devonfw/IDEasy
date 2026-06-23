@@ -54,7 +54,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
     assertThat(mainViewUrl).as("Cannot resolve main UI FXML resource!").isNotNull();
 
     FXMLLoader fxmlLoader = new FXMLLoader(mainViewUrl);
-    fxmlLoader.setController(new MainController(mockIdeRoot.toString(), guiStateManager, taskManager));
+    fxmlLoader.setController(new MainController(mockIdeRoot.toString(), guiStateManager));
     Parent root = fxmlLoader.load();
     stage.setScene(new Scene(root));
     stage.requestFocus(); //sometimes needed for headless setup to work

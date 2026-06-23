@@ -46,7 +46,7 @@ public class App extends Application {
 
     FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
     fxmlLoader.setController(
-        new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()), guiStateManager, taskManager)
+        new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()), guiStateManager)
     );
     root = fxmlLoader.load();
 

@@ -70,14 +70,13 @@ public class MainController {
    *
    * @param ideRoot the IDE_ROOT path
    * @param guiStateManager the {@link GuiStateManager} to be used in this application instance
-   * @param taskManager the {@link TaskManager} to be used in this application instance
    */
-  public MainController(String ideRoot, GuiStateManager guiStateManager, TaskManager taskManager) {
+  public MainController(String ideRoot, GuiStateManager guiStateManager) {
 
     LOG.debug("IDE_ROOT path={}", ideRoot);
     this.ideRootPath = ideRoot;
-    this.taskManager = taskManager;
     this.guiStateManager = guiStateManager;
+    this.taskManager = guiStateManager.getTaskManager();
     this.projectManager = guiStateManager.getProjectManager();
 
     ListChangeListener<ProgressBarTask> taskListChangeListener = change -> {

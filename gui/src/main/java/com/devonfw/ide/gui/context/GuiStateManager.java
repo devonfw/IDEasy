@@ -94,6 +94,14 @@ public class GuiStateManager {
   }
 
   /**
+   * @return instance of {@link TaskManager}
+   */
+  public TaskManager getTaskManager() {
+
+    return taskManager;
+  }
+
+  /**
    * Add a listener to the context change events.
    *
    * @param listener the {@link GuiContextChangeListener} to attach to context updates.
