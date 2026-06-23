@@ -7,8 +7,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 
 public class RubyUrlUpdater extends GithubUrlReleaseUpdater {
 
-  //TODo: alter versionen die getVersionPrefixToRemove nicht haben nicht mehr unterstützen. ggf. test anpassen. und prüfen. auch in json.
-  private static final VersionIdentifier MIN_RUBY_VID = VersionIdentifier.of("2.5.8-1");
+  // Older RubyInstaller releases are ignored because releases before 2.5.3-1 use unsupported legacy tag naming.
+  private static final VersionIdentifier MIN_RUBY_VID = VersionIdentifier.of("2.5.3-1");
 
   @Override
   public String getTool() {

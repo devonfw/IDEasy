@@ -54,10 +54,12 @@ class RubyUrlUpdaterTest extends AbstractUrlUpdaterTest {
     updater.update(urlRepository);
 
     // assert
-    Path rubyVersionDir = tempDir.resolve("ruby").resolve("ruby").resolve("2.4.0-7");
-
+    Path rubyVersionDir = tempDir.resolve("ruby").resolve("ruby").resolve("2.5.3-1");
     assertThat(rubyVersionDir.resolve("status.json")).exists();
     assertUrlVersionFile(rubyVersionDir, "windows_x64");
+
+    Path oldRubyVersionDir = tempDir.resolve("ruby").resolve("ruby").resolve("2.4.0-7");
+    assertThat(oldRubyVersionDir).doesNotExist();
 
   }
 }
