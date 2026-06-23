@@ -496,6 +496,9 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     if (type == PathLinkType.SYMBOLIC_LINK) {
       boolean directoryTarget = Files.isDirectory(absoluteSource);
       option = directoryTarget ? "/j" : "/d";
+    } else {
+      // Manual override of option in case of HARD_LINK, because of missing permissions for `mklink /h ...`
+      option = "/j";
     }
 
     if (!runMklink(finalSource, finalLink, cwd, option)) {
@@ -510,8 +513,10 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     if (cwd != null) {
       pc.directory(cwd);
     }
-    ProcessResult result = pc.addArgs(link.toString(), source.toString()).run(ProcessMode.DEFAULT);
+
     try {
+      ProcessContext context = pc.addArgs(link.toString(), source.toString());
+      ProcessResult result = context.run(ProcessMode.DEFAULT);
       result.failOnError();
       return true;
     } catch (RuntimeException e) {
@@ -536,19 +541,20 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
         resultingPathLinkType = PathLinkType.SYMBOLIC_LINK;
       } else if (type == PathLinkType.HARD_LINK) {
         createHardLink(absoluteSource, link);
+        //Files.createLink(link, source);
         resultingPathLinkType = PathLinkType.HARD_LINK;
       } else {
         throw new IllegalStateException("" + type);
       }
-    } catch (FileSystemException e) {
+    } catch (FileSystemException | RuntimeException e) {
       if (SystemInfoImpl.INSTANCE.isWindows()) {
         if (Files.isDirectory(absoluteSource)) {
-          LOG.info("Creating junction as a fallback for link to directory.");
           mklinkOnWindows(finalSource, absoluteSource, absoluteLink, type, relative);
+          LOG.info("Created junction with junction as fallback for link to directory.");
         } else {
-          LOG.info("Creating a hard link as a fallback for link to file.");
           createHardLink(absoluteSource, link);
           resultingPathLinkType = PathLinkType.HARD_LINK;
+          LOG.info("Created hard link as fallback for link to file.");
         }
       } else {
         throw new RuntimeException(e);
