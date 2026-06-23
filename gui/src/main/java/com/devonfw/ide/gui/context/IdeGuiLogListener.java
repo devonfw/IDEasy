@@ -19,6 +19,7 @@ public class IdeGuiLogListener implements IdeLogListener {
 
   @Override
   public boolean onLog(IdeLogLevel level, String message, String rawMessage, Object[] args, Throwable error) {
+
     if (this.consoleController != null && message != null) {
       String prefix = getPrefix(level);
       String timeStamp = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));

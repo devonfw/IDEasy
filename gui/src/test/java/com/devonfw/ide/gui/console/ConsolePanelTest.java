@@ -68,5 +68,4 @@ class ConsolePanelTest extends HeadlessApplicationTest {
     // Verify that the console is empty
     assertThat(consoleController.getConsoleOutputSnapshot()).isEmpty();
   }
-
 }
