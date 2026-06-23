@@ -72,5 +72,7 @@
 
 		<!-- Custom UI Reference -->
 		<ui:WixUI Id="WixUI_InstallDirCustom" InstallDirectory="INSTALLFOLDER" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALTEXT"
+              Value="Installation erfolgreich abgeschlossen. Weitere Infos finden Sie in der Dokumentation " />
   </Package>
 </Wix>
