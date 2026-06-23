@@ -541,7 +541,6 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
         resultingPathLinkType = PathLinkType.SYMBOLIC_LINK;
       } else if (type == PathLinkType.HARD_LINK) {
         createHardLink(absoluteSource, link);
-        //Files.createLink(link, source);
         resultingPathLinkType = PathLinkType.HARD_LINK;
       } else {
         throw new IllegalStateException("" + type);
