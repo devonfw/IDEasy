@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from .charts import CHART_DIRECTORY, write_charts
-from .config import OUTPUT_FILES, OS_GROUPS, VISUALIZATIONS
+from .config import OUTPUT_FILES, OS_GROUPS, VISUALIZATION_CONFIG_SCHEMA, VISUALIZATIONS
 from .documents import DocumentBundle, OsDocument, OverviewDocument
 from .models import AsciiDocTable
 
@@ -21,7 +21,7 @@ def render_visualization(section: str, image_file: str, alt_text: str, table: As
     if "chart" not in settings:
         raise ValueError(
             f'Invalid visualization config for "{section}": expected '
-            f'{{"chart": "bar|pie|none", "show_table": True|False}}.'
+            f'{VISUALIZATION_CONFIG_SCHEMA}.'
         )
     chart_type = str(settings["chart"])
     show_chart = chart_type != "none"
@@ -47,6 +47,19 @@ def render_visualization(section: str, image_file: str, alt_text: str, table: As
     ])
 
 
+def render_visualization_section(
+    section_title: str,
+    section: str,
+    image_file: str,
+    alt_text: str,
+    table: AsciiDocTable,
+) -> str:
+    content = render_visualization(section, image_file, alt_text, table)
+    if not content:
+        return ""
+    return '\n'.join([section_title, content])
+
+
 def render_os_links() -> str:
     if not VISUALIZATIONS["operating_systems"].get("show_links", False):
         return ""
@@ -68,6 +81,31 @@ def render_age_links(document: OverviewDocument) -> str:
 
 
 def render_overview(document: OverviewDocument) -> str:
+    issue_statistics_sections = [
+        render_visualization_section(
+            '#### Assignment',
+            'issue_assignment',
+            'issue-assignment.svg',
+            'assigned vs unassigned issues',
+            document.assignment_stats_table,
+        ),
+        render_visualization_section(
+            '#### Issue Types',
+            'issue_types',
+            'issue-types.svg',
+            'issue type distribution',
+            document.type_stats_table,
+        ),
+    ]
+    issue_statistics_lines = []
+    visible_issue_statistics_sections = [section for section in issue_statistics_sections if section]
+    if visible_issue_statistics_sections:
+        issue_statistics_lines = ['### Issue Statistics', '']
+        for index, section in enumerate(visible_issue_statistics_sections):
+            if index > 0:
+                issue_statistics_lines.append('')
+            issue_statistics_lines.append(section)
+
     lines = [
         HEADER.format(title='IDEasy Quality Status').strip(),
         '',
@@ -77,23 +115,7 @@ def render_overview(document: OverviewDocument) -> str:
         f'https://github.com/{document.owner}/{document.repo}[{document.owner}/{document.repo}].',
         '',
         '',
-        '### Issue Statistics',
-        '',
-        '#### Assignment',
-        render_visualization(
-            'issue_assignment',
-            'issue-assignment.svg',
-            'assigned vs unassigned issues',
-            document.assignment_stats_table,
-        ),
-        '',
-        '#### Issue Types',
-        render_visualization(
-            'issue_types',
-            'issue-types.svg',
-            'issue type distribution',
-            document.type_stats_table,
-        ),
+        *issue_statistics_lines,
         '',
         '',
         f'_Generated: {document.generated_at}_',

@@ -57,7 +57,7 @@ def build_documents(owner: str, repo: str, issues: list[Issue]) -> DocumentBundl
         for key, label in ASSIGNMENT_STAT_DEFINITIONS
     ]
     assignment_stats_table = KeyValueTable(
-        headers=("Scope", "Total"),
+        headers=("Assignment", "Total"),
         rows=assignment_rows,
         cols="2,^1",
     )
@@ -67,7 +67,7 @@ def build_documents(owner: str, repo: str, issues: list[Issue]) -> DocumentBundl
         for key, label in TYPE_STAT_DEFINITIONS
     ]
     type_stats_table = KeyValueTable(
-        headers=("Scope", "Total"),
+        headers=("Issue Type", "Total"),
         rows=type_rows,
         cols="2,^1",
     )

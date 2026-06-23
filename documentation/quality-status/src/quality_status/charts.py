@@ -5,7 +5,7 @@ from math import cos, pi, sin
 from pathlib import Path
 from typing import Sequence
 
-from .config import VISUALIZATIONS
+from .config import VISUALIZATION_CONFIG_SCHEMA, VISUALIZATIONS
 from .documents import OverviewDocument
 
 CHART_DIRECTORY = "quality-status-images"
@@ -240,7 +240,7 @@ def write_charts(output_dir: str | Path, document: OverviewDocument) -> None:
         if "chart" not in settings:
             raise ValueError(
                 f'Invalid visualization config for "{section}": expected '
-                f'{{"chart": "bar|pie|none", "show_table": True|False}}.'
+                f'{VISUALIZATION_CONFIG_SCHEMA}.'
             )
 
         chart_type = str(settings["chart"])

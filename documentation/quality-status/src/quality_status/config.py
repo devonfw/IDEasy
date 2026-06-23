@@ -9,6 +9,11 @@ DEFAULT_REPO = "IDEasy"
 # - chart: "bar", "pie", or "none"
 # - show_table: True or False
 # - show_links: True or False (supported for operating_systems and issue_age)
+VISUALIZATION_CONFIG_SCHEMA = (
+    '{"chart": "bar|pie|none", "show_table": True|False, '
+    '"show_links": True|False}'
+)
+
 VISUALIZATIONS = {
     "issue_assignment": {"chart": "pie", "show_table": False},
     "issue_types": {"chart": "pie", "show_table": False},
