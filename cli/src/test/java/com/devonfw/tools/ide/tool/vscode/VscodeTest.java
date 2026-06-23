@@ -148,11 +148,12 @@ class VscodeTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests that VS Code is launched with a stable {@code --profile} argument instead of {@code --user-data-dir}, so the OS-level
-   * {@code vscode://} protocol handler (e.g. used by GitHub/Copilot OAuth callbacks) can find and reuse the already running instance.
+   * Tests that VS Code is launched without a custom {@code --user-data-dir}, so it uses its default (shared) data dir. This lets the
+   * OS-level {@code vscode://} protocol handler (e.g. used by GitHub/Copilot OAuth callbacks) find and reuse the already running instance
+   * instead of spawning a separate, unauthenticated one.
    */
   @Test
-  void testConfigureToolArgsUsesProfileInsteadOfUserDataDir() {
+  void testConfigureToolArgsDoesNotSetUserDataDir() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_VSCODE);
@@ -163,8 +164,8 @@ class VscodeTest extends AbstractIdeContextTest {
     commandlet.configureToolArgs(pc, ProcessMode.DEFAULT, List.of());
 
     // assert
-    assertThat(pc.getArgs()).anyMatch(arg -> arg.startsWith("--profile="));
     assertThat(pc.getArgs()).noneMatch(arg -> arg.startsWith("--user-data-dir="));
+    assertThat(pc.getArgs()).noneMatch(arg -> arg.startsWith("--profile="));
   }
 
   @Test

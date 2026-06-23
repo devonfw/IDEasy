@@ -126,7 +126,6 @@ public class Vscode extends IdeToolCommandlet {
       pc.withEnvVar("DONT_PROMPT_WSL_INSTALL", "1");
     }
     pc.addArg("--new-window");
-    pc.addArg("--profile=" + this.context.getProjectName() + "-" + this.context.getWorkspaceName());
     Path vsCodeExtensionFolder = this.context.getIdeHome().resolve("plugins/vscode");
     pc.addArg("--extensions-dir=" + vsCodeExtensionFolder);
     pc.addArg(this.context.getWorkspacePath());
