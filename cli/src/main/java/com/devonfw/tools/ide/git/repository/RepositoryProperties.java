@@ -35,7 +35,6 @@ final class RepositoryProperties {
   private static final String PROPERTY_LINK = "link";
   private static final String PROPERTY_LINK_TARGET = "link (=<target>)";
   private static final String PROPERTY_ECLIPSE = "eclipse";
-  private static final String SETTINGS_PROPERTIES = "settings.properties";
 
   private static final Pattern PATH_PATTERN = Pattern.compile("[a-zA-Z0-9_.$/-]+");
 
@@ -65,6 +64,18 @@ final class RepositoryProperties {
     super();
     this.file = file;
     this.properties = properties;
+  }
+
+  /**
+   * @return the ID derived from the filename without {@link IdeContext#EXT_PROPERTIES}.
+   */
+  public String getId() {
+
+    String filename = this.file.getFileName().toString();
+    if (filename.endsWith(IdeContext.EXT_PROPERTIES)) {
+      return filename.substring(0, filename.length() - IdeContext.EXT_PROPERTIES.length());
+    }
+    return filename;
   }
 
   /**
@@ -177,7 +188,7 @@ final class RepositoryProperties {
 
   private boolean isSettingsProperties() {
 
-    return SETTINGS_PROPERTIES.equals(this.file.getFileName().toString());
+    return IdeContext.FOLDER_SETTINGS.equals(getId());
   }
 
   /**
