@@ -79,6 +79,11 @@ public class MainController {
     this.taskManager = guiStateManager.getTaskManager();
     this.projectManager = guiStateManager.getProjectManager();
 
+    setUpTaskListListener();
+  }
+
+  private void setUpTaskListListener() {
+
     ListChangeListener<ProgressBarTask> taskListChangeListener = change -> {
       List<ProgressBarTask> tasks = taskManager.getTasks();
 
@@ -87,7 +92,7 @@ public class MainController {
           LOG.debug("Added: {}", change.getAddedSubList());
 
           for (ProgressBarTask product : change.getAddedSubList()) {
-            product.currentProgressProperty().addListener((obs, oldVal, newVal) ->
+            product.currentProgressProperty().addListener((_, _, _) ->
                 updateStatusLabel(tasks)
             );
           }
