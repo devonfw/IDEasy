@@ -36,7 +36,7 @@ public class UvUrlUpdaterTest extends AbstractUrlUpdaterTest {
             aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    UvUrlUpdaterMock updater = new UvUrlUpdaterMock(wmRuntimeInfo);
+    UvUrlUpdater updater = new UvUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
     // act
     updater.update(urlRepository);
 

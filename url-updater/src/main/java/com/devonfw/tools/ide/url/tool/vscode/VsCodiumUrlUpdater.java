@@ -10,6 +10,22 @@ public class VsCodiumUrlUpdater extends GithubUrlReleaseUpdater {
 
   private static final String DOWNLOAD_BASE_URL = "https://github.com/VSCodium/vscodium/releases/download";
 
+  /**
+   * The Constructor.
+   */
+  public VsCodiumUrlUpdater() {
+    super(DOWNLOAD_BASE_URL);
+  }
+
+  /**
+   * Package-private constructor used for testing {@link VsCodiumUrlUpdater}.
+   *
+   * @param baseUrl mock url used as download and version base.
+   */
+  VsCodiumUrlUpdater(String baseUrl) {
+    super(baseUrl, baseUrl);
+  }
+
   @Override
   public String getTool() {
 
@@ -32,12 +48,6 @@ public class VsCodiumUrlUpdater extends GithubUrlReleaseUpdater {
   protected String getGithubRepository() {
 
     return "vscodium";
-  }
-
-  @Override
-  protected String getDownloadBaseUrl() {
-
-    return DOWNLOAD_BASE_URL;
   }
 
   @Override
