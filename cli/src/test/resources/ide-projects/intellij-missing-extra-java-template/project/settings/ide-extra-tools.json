@@ -1,0 +1,16 @@
+{
+  "java": {
+    "client": {
+      "version": "11.0.27_6",
+      "edition": "azul"
+    },
+    "process-engine": {
+      "version": "21.*"
+    }
+  },
+  "mvn": {
+    "m4": {
+      "version": "4.0.0-rc-5"
+    }
+  }
+}
