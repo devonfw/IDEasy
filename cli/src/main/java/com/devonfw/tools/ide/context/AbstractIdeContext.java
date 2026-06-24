@@ -66,6 +66,7 @@ import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessContextImpl;
 import com.devonfw.tools.ide.process.ProcessResult;
+import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.step.StepImpl;
@@ -1368,7 +1369,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       }
       try {
         if (cmd.isProcessableOutput()) {
-          if (!LOG.isDebugEnabled()) {
+          if (!isLogLevelEnabled(IdeLogLevel.DEBUG)) {
             // unless --debug or --trace was supplied, processable output commandlets will disable all log-levels except INFO to prevent other logs interfere
             previousLogLevel = this.startContext.setLogLevelConsole(IdeLogLevel.PROCESSABLE);
           }
@@ -1540,11 +1541,33 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     return collector.getSortedCandidates();
   }
 
+  /**
+   * Gets the next value property and applies its implicit end-options behavior if required.
+   *
+   * @param valueIterator the iterator over the commandlet value properties
+   * @param arguments the CLI arguments whose option parsing state may be updated
+   * @return the next value property or {@code null} if no further value property exists
+   */
+  private Property<?> nextValueProperty(Iterator<Property<?>> valueIterator, CliArguments arguments) {
+
+    if (!valueIterator.hasNext()) {
+      return null;
+    }
+
+    Property<?> valueProperty = valueIterator.next();
+    if (valueProperty.isEndOptions()) {
+      // Tool argument properties should accept values starting with "-" so stop option parsing here
+      arguments.endOptions();
+    }
+    return valueProperty;
+  }
+
   private void completeCommandlet(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
 
     LOG.trace("Trying to match arguments for auto-completion for commandlet {}", cmd.getName());
     Iterator<Property<?>> valueIterator = cmd.getValues().iterator();
     valueIterator.next(); // skip first property since this is the keyword property that already matched to find the commandlet
+    Property<?> currentValueProperty = nextValueProperty(valueIterator, arguments);
     List<Property<?>> properties = cmd.getProperties();
     // we are creating our own list of options and remove them when matched to avoid duplicate suggestions
     List<Property<?>> optionProperties = new ArrayList<>(properties.size());
@@ -1582,12 +1605,14 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
           }
         }
       } else {
-        if (valueIterator.hasNext()) {
-          Property<?> valueProperty = valueIterator.next();
-          boolean success = valueProperty.apply(arguments, this, cmd, collector);
+        if (currentValueProperty != null) {
+          boolean success = currentValueProperty.apply(arguments, this, cmd, collector);
           if (!success) {
             LOG.trace("Completion cannot match any further.");
             return;
+          }
+          if (!currentValueProperty.isMultiValued()) {
+            currentValueProperty = nextValueProperty(valueIterator, arguments);
           }
         } else {
           LOG.trace("No value left for completion.");
@@ -1622,7 +1647,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
           currentProperty = option;
         } else {
           boolean allowDashedValue = (property != null && property.isValue() && property.isMultiValued());
-          if (!allowDashedValue && currentArgument.isOption()) {
+          boolean allowKeywordOption = (currentProperty instanceof KeywordProperty keywordProperty) && keywordProperty.matches(currentArgument.getKey());
+          if (!allowDashedValue && !allowKeywordOption && currentArgument.isOption()) {
             ValidationState state = new ValidationState(null);
             state.addInvalidOption(currentArgument.getKey());
             state.addErrorMessage("Invalid option \"" + currentArgument.getKey() + "\"");
@@ -1646,7 +1672,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
           }
         }
         if ((property != null) && property.isValue() && property.isMultiValued()) {
-          arguments.stopSplitShortOptions();
+          arguments.endOptions();
         }
       }
       boolean matches = currentProperty.apply(arguments, this, cmd, null);
