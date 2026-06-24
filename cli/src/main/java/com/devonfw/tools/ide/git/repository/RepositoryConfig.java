@@ -63,13 +63,7 @@ public record RepositoryConfig(
   public static RepositoryConfig loadProperties(Path filePath, IdeContext context) {
 
     RepositoryProperties properties = new RepositoryProperties(filePath, context);
-    String filename = filePath.getFileName().toString();
-    final String id;
-    if (filename.endsWith(IdeContext.EXT_PROPERTIES)) {
-      id = filename.substring(0, filename.length() - IdeContext.EXT_PROPERTIES.length());
-    } else {
-      id = filename;
-    }
+    String id = properties.getId();
     RepositoryConfig config = new RepositoryConfig(id, properties.getPath(), properties.getWorkingSets(), properties.getWorkspaces(), properties.getGitUrl(),
         properties.getGitBranch(), properties.getBuildPath(), properties.getBuildCmd(), properties.getImports(), properties.getLinks(), properties.isActive());
     if (properties.isInvalid()) {
@@ -78,4 +72,8 @@ public record RepositoryConfig(
     return config;
   }
 
+  public boolean isVirtualSettingsRepository() {
+    return IdeContext.SETTINGS_REPOSITORY_KEYWORD.equals(this.id)
+        && (this.gitUrl == null || this.gitUrl.isBlank());
+  }
 }

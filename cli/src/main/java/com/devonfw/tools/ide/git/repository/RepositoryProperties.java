@@ -67,6 +67,18 @@ final class RepositoryProperties {
   }
 
   /**
+   * @return the ID derived from the filename without {@link IdeContext#EXT_PROPERTIES}.
+   */
+  public String getId() {
+
+    String filename = this.file.getFileName().toString();
+    if (filename.endsWith(IdeContext.EXT_PROPERTIES)) {
+      return filename.substring(0, filename.length() - IdeContext.EXT_PROPERTIES.length());
+    }
+    return filename;
+  }
+
+  /**
    * @param name the name of the requested property.
    * @return the value of the requested property or {@code null} if undefined.
    */
@@ -171,7 +183,12 @@ final class RepositoryProperties {
    */
   public String getGitUrl() {
 
-    return getProperty(PROPERTY_GIT_URL, true);
+    return getProperty(PROPERTY_GIT_URL, !isSettingsProperties());
+  }
+
+  private boolean isSettingsProperties() {
+
+    return IdeContext.FOLDER_SETTINGS.equals(getId());
   }
 
   /**
