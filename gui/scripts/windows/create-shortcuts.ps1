@@ -15,10 +15,16 @@ $guiDir = Split-Path -Parent (Split-Path -Parent $scriptDir)
 $projectRoot = Split-Path -Parent $guiDir
 
 $launcherBat = Join-Path $scriptDir "launch-gui.bat"
+$launcherVbs = Join-Path $scriptDir "launch-gui-silent.vbs"
 $pomFile = Join-Path $projectRoot "pom.xml"
 
 if (-not (Test-Path $launcherBat)) {
     Write-Host "Error: launch-gui.bat not found" -ForegroundColor Red
+    exit 1
+}
+
+if (-not (Test-Path $launcherVbs)) {
+    Write-Host "Error: launch-gui-silent.vbs not found" -ForegroundColor Red
     exit 1
 }
 
@@ -98,6 +104,7 @@ function Create-Shortcut {
     param(
         [string]$Path,
         [string]$Target,
+        [string]$Arguments,
         [string]$Description
     )
 
@@ -108,6 +115,7 @@ function Create-Shortcut {
         $wshShell = New-Object -ComObject WScript.Shell
         $shortcut = $wshShell.CreateShortcut($Path)
         $shortcut.TargetPath = $Target
+        $shortcut.Arguments = $Arguments
         $shortcut.WorkingDirectory = $projectRoot
         $shortcut.Description = $Description
         $shortcut.IconLocation = $iconLocation
@@ -125,15 +133,20 @@ function Create-Shortcut {
     }
 }
 
+# Target wscript.exe running the silent VBS wrapper instead of launch-gui.bat directly,
+# so no console window ever appears - independent of the user's terminal "close on exit" setting.
+$wscriptPath = Join-Path "$env:SystemRoot\System32" "wscript.exe"
+$launcherArgs = "`"$launcherVbs`""
+
 if (-not $SkipDesktop) {
     # Use Shell32 to resolve the Desktop folder — works correctly with OneDrive-redirected Desktops
     $desktopShortcut = Join-Path ([Environment]::GetFolderPath('Desktop')) "IDEasy GUI.lnk"
-    Create-Shortcut -Path $desktopShortcut -Target $launcherBat -Description "Launch IDEasy GUI"
+    Create-Shortcut -Path $desktopShortcut -Target $wscriptPath -Arguments $launcherArgs -Description "Launch IDEasy GUI"
 }
 
 if (-not $SkipStartMenu) {
     $startMenuShortcut = Join-Path "$env:APPDATA\Microsoft\Windows\Start Menu\Programs" "IDEasy GUI.lnk"
-    Create-Shortcut -Path $startMenuShortcut -Target $launcherBat -Description "Launch IDEasy GUI"
+    Create-Shortcut -Path $startMenuShortcut -Target $wscriptPath -Arguments $launcherArgs -Description "Launch IDEasy GUI"
 }
 
 Write-Host ""

@@ -45,6 +45,6 @@ if not exist "%PROJECT_ROOT%\pom.xml" (
 REM Launch GUI
 cd /d "%PROJECT_ROOT%"
 echo Starting IDEasy GUI...
-START "" /B ide gui >> "%USERPROFILE%\.ideasy-gui.log" 2>&1
+START "" /B cmd /c ide gui >> "%USERPROFILE%\.ideasy-gui.log" 2>&1
 
 exit /b 0
