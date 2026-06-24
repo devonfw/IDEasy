@@ -14,7 +14,13 @@ if [ ! -f "$PROJECT_ROOT/pom.xml" ]; then
     exit 1
 fi
 
-if ! command -v ide &> /dev/null; then
+# 'ide' is a shell function defined in $IDE_ROOT/_ide/installation/functions and
+# sourced by ~/.bashrc / ~/.zshrc — those only get sourced in interactive shells.
+# Double-clicking a .command file runs it via its #!/bin/bash shebang directly,
+# which is a non-interactive shell, so 'ide' is invisible there even though it
+# works fine from a regular Terminal window. Route through an interactive bash
+# so the function gets sourced regardless of how this script was launched.
+if ! bash -ic "command -v ide" &> /dev/null; then
     echo ""
     echo "Error: IDEasy is not installed"
     echo ""
@@ -29,6 +35,7 @@ cd "$PROJECT_ROOT"
 
 # Launch IDE GUI in background and exit immediately
 LOG_FILE="$HOME/.ideasy-gui.log"
-ide gui >> "$LOG_FILE" 2>&1 &
+bash -ic "ide gui" >> "$LOG_FILE" 2>&1 &
+disown
 
 exit 0

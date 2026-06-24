@@ -8,6 +8,11 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 LOG_FILE="$HOME/.ideasy-gui.log"
 
+# Ignore SIGHUP so this script (and what it launches) survives even if the
+# process that handed off execution (desktop session bus, gio launch, etc.)
+# disconnects before we are done.
+trap '' HUP
+
 # When launched from an application menu (Terminal=false), there is no console to
 # show errors on. Redirect everything to a log file from the start so failures
 # (e.g. 'ide' missing from the launcher's PATH) are diagnosable after the fact
@@ -40,6 +45,7 @@ fi
 cd "$PROJECT_ROOT"
 
 # Launch IDE GUI in background and exit immediately
-bash -ic "ide gui" &
+bash -ic "ide gui" </dev/null &
+disown
 
 exit 0
