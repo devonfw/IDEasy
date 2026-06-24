@@ -16,47 +16,39 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 
 /**
- * Tests for {@link IdeGuiStateManager}.
+ * Tests for {@link GuiStateManager}.
  */
-public class IdeGuiStateManagerTest extends AbstractIdeContextTest {
+public class GuiStateManagerTest extends AbstractIdeContextTest {
 
-  private static final Logger LOG = LoggerFactory.getLogger(IdeGuiStateManagerTest.class);
+  private static final Logger LOG = LoggerFactory.getLogger(GuiStateManagerTest.class);
 
   private static IdeTestContext context;
 
-  private static IdeGuiStateManager guiStateManager;
+  private static GuiStateManager guiStateManager;
   private static ProjectManager projectManager;
+  private TaskManager taskManager;
 
   @BeforeAll
   static void setup() {
 
     context = newContext("testProject", "project-0");
     LOG.debug("root: {}", context.getIdeRoot());
-
-    guiStateManager = IdeGuiStateManager.getInstanceOverrideRootDir(context.getIdeRoot().toString());
-    projectManager = guiStateManager.getProjectManager();
   }
 
   @BeforeEach
   void reset() {
-    IdeGuiStateManager.getInstanceOverrideRootDir(context.getIdeRoot().toString());
-  }
 
-  @Test
-  void testThrowsIfIdeRootNull() {
-
-    try {
-      IdeGuiStateManager.getInstanceOverrideRootDir(null);
-    } catch (IllegalArgumentException e) {
-      assertThat(e.getMessage()).contains("ideRoot must not be null!");
-    }
+    TaskManager taskManager = new TaskManager();
+    guiStateManager = new GuiStateManager(taskManager, context.getIdeRoot().toString());
+    projectManager = guiStateManager.getProjectManager();
   }
 
   @Test
   void testThrowsIfIdeRootDoesNotExist() {
 
     try {
-      IdeGuiStateManager.getInstanceOverrideRootDir("nonExistingIdeRoot");
+      new GuiStateManager(taskManager, "nonExistingIdeRoot");
+      fail("IllegalArgumentException expected");
     } catch (IllegalArgumentException e) {
       assertThat(e.getMessage()).contains("Root directory does not exist");
     }
@@ -66,7 +58,7 @@ public class IdeGuiStateManagerTest extends AbstractIdeContextTest {
   void testGetContext() throws FileNotFoundException {
 
     IdeGuiContext context = guiStateManager.switchContext(projectManager.getProjectNames().getFirst(), "main");
-    assertThat(context).isNotNull().as("context was null after switchContext was called"); // When switching to a project, the context should be set.
+    assertThat(context).as("context was null after switchContext was called").isNotNull(); // When switching to a project, the context should be set.
   }
 
   @Test
@@ -88,6 +80,7 @@ public class IdeGuiStateManagerTest extends AbstractIdeContextTest {
 
     try {
       guiStateManager.switchContext(fakeProject.getFileName().toString(), "main");
+      fail("FileNotFoundException expected");
     } catch (FileNotFoundException e) {
       assertThat(e.getMessage()).contains("Project " + fakeProject + " does not exist!")
           .as("GuiStateManager.switchContext should throw an exception, if a non-existent project is selected");

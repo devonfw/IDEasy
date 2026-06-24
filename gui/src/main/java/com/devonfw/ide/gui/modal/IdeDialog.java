@@ -11,7 +11,7 @@ import javafx.stage.Stage;
 public class IdeDialog extends Alert {
 
   /**
-   * @param alertType the {@link AlertType} of the alert (e.g. INFORMATION, CONFIRMATION, etc).
+   * @param alertType the {@link AlertType} of the alert (e.g. INFORMATION, CONFIRMATION, etc.).
    */
   public IdeDialog(AlertType alertType) {
 
@@ -20,7 +20,7 @@ public class IdeDialog extends Alert {
   }
 
   /**
-   * @param alertType the {@link AlertType} of the alert (e.g. INFORMATION, CONFIRMATION, etc).
+   * @param alertType the {@link AlertType} of the alert (e.g. INFORMATION, CONFIRMATION, etc.).
    * @param message main message displayed in the dialoge
    * @param buttonTypes defines the different buttons that the alert displays.
    */

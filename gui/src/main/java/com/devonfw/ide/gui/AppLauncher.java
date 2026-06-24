@@ -6,8 +6,7 @@ package com.devonfw.ide.gui;
  */
 public class AppLauncher {
 
-  @SuppressWarnings("MissingJavadoc")
-  public static void main(final String[] args) {
+  static void main(final String[] args) {
 
     App.main(args);
   }

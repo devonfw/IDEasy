@@ -7,6 +7,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.ButtonType;
 import javafx.scene.image.Image;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -14,6 +15,8 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.ide.gui.context.GuiStateManager;
+import com.devonfw.ide.gui.context.TaskManager;
 import com.devonfw.ide.gui.modal.IdeDialog;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.IdeVersion;
@@ -31,14 +34,19 @@ public class App extends Application {
   public void start(Stage primaryStage) throws IOException {
 
     Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
-          LOG.error("Uncaught exception in thread {}: {}", thread.getName(), throwable.getMessage(), throwable);
+          System.out.println("Uncaught exception in thread " + thread.getName() + ":" + throwable.getMessage());
+
+          //Left this in, because of issues with printing errors when the Fx Application Thread crashes. Needs further research.
+          throwable.printStackTrace();
           Platform.runLater(() -> new IdeDialog(IdeDialog.AlertType.ERROR, throwable.getMessage()).showAndWait());
         }
     );
+    TaskManager taskManager = new TaskManager();
+    GuiStateManager guiStateManager = new GuiStateManager(taskManager, null);
 
     FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
     fxmlLoader.setController(
-        new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()))
+        new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()), guiStateManager)
     );
     root = fxmlLoader.load();
 
@@ -52,6 +60,30 @@ public class App extends Application {
     primaryStage.setMinWidth(scene.getWidth());
     primaryStage.setMinHeight(scene.getHeight());
     primaryStage.show();
+
+    primaryStage.setOnCloseRequest(event -> {
+
+      LOG.info("Closing application");
+      if (!taskManager.getTasks().isEmpty()) {
+        IdeDialog closeConfirm = new IdeDialog(IdeDialog.AlertType.CONFIRMATION, "There are still running tasks. Are you sure you want to exit?",
+            ButtonType.CLOSE, ButtonType.CANCEL);
+        closeConfirm.showAndWait().ifPresent(response -> {
+          if (response == ButtonType.CLOSE) {
+            exitApplication();
+          } else {
+            event.consume();
+          }
+        });
+      } else {
+        exitApplication();
+      }
+    });
+  }
+
+  private void exitApplication() {
+
+    Platform.exit();
+    System.exit(0);
   }
 
 
