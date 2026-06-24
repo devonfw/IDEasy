@@ -27,13 +27,19 @@ public class App extends Application {
 
   Parent root;
 
+  private Stage primaryStage;
+
+  private LocalizationService localizationService;
+
   private static final Logger LOG = LoggerFactory.getLogger(App.class);
 
   @Override
   public void start(Stage primaryStage) throws IOException {
 
+    this.primaryStage = primaryStage;
+
     // Initialize localization with system default locale
-    LocalizationService.getInstance(null);
+    this.localizationService = LocalizationService.getInstance(null);
 
     Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
           LOG.error("Uncaught exception in thread {}: {}", thread.getName(), throwable.getMessage(), throwable);
@@ -41,12 +47,9 @@ public class App extends Application {
         }
     );
 
-    FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
-    fxmlLoader.setResources(LocalizationService.getInstance().getResourceBundle());
-    fxmlLoader.setController(
-        new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()))
-    );
-    root = fxmlLoader.load();
+    root = loadMainView();
+
+    this.localizationService.addLocaleChangeListener(this::reloadMainView);
 
     Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
     Scene scene = new Scene(root, bounds.getWidth() / 2, bounds.getHeight() / 2);
@@ -58,6 +61,33 @@ public class App extends Application {
     primaryStage.setMinWidth(scene.getWidth());
     primaryStage.setMinHeight(scene.getHeight());
     primaryStage.show();
+  }
+
+  @Override
+  public void stop() {
+
+    this.localizationService.removeLocaleChangeListener(this::reloadMainView);
+  }
+
+  private void reloadMainView() {
+
+    try {
+      Parent reloadedRoot = loadMainView();
+      this.root = reloadedRoot;
+      if (this.primaryStage != null && this.primaryStage.getScene() != null) {
+        this.primaryStage.getScene().setRoot(reloadedRoot);
+      }
+    } catch (IOException e) {
+      LOG.error("Failed to reload main view after locale change", e);
+    }
+  }
+
+  private Parent loadMainView() throws IOException {
+
+    FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
+    fxmlLoader.setResources(this.localizationService.getResourceBundle());
+    fxmlLoader.setController(new MainController(System.getenv(IdeVariables.IDE_ROOT.getName())));
+    return fxmlLoader.load();
   }
 
 

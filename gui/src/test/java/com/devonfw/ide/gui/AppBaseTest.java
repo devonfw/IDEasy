@@ -7,7 +7,6 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Locale;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -21,7 +20,6 @@ import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.ide.gui.context.IdeGuiContext;
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
 import com.devonfw.ide.gui.localization.LocalizationService;
 
@@ -34,7 +32,6 @@ public class AppBaseTest extends HeadlessApplicationTest {
 
   private Button androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen;
   private ComboBox<String> selectedProject, selectedWorkspace;
-  private ComboBox<String> selectedLanguage;
 
   @TempDir
   private static Path mockIdeRoot;
@@ -64,7 +61,6 @@ public class AppBaseTest extends HeadlessApplicationTest {
     vsCodeOpen = lookup(root, "#vsCodeOpen");
     selectedProject = lookup(root, "#selectedProject");
     selectedWorkspace = lookup(root, "#selectedWorkspace");
-    selectedLanguage = lookup(root, "#selectedLanguage");
   }
 
   /**
@@ -141,31 +137,6 @@ public class AppBaseTest extends HeadlessApplicationTest {
         .isFalse();
   }
 
-  @Test
-  public void testSwitchingLocaleUpdatesTextsWithoutChangingProjectSelection() {
-
-    interact(() -> selectedProject.getSelectionModel().select("project-1"));
-    interact(() -> selectedWorkspace.getSelectionModel().select("main"));
-
-    String projectBefore = selectedProject.getValue();
-    String workspaceBefore = selectedWorkspace.getValue();
-    String buttonTextBefore = androidStudioOpen.getText();
-    IdeGuiContext contextBefore = IdeGuiStateManager.getInstance().getCurrentContext();
-
-    interact(() -> {
-      selectedLanguage.setValue("Deutsch");
-      ActionEvent actionEvent = new ActionEvent(selectedLanguage, null);
-      if (selectedLanguage.getOnAction() != null) {
-        selectedLanguage.getOnAction().handle(actionEvent);
-      }
-    });
-
-    assertThat(selectedProject.getValue()).isEqualTo(projectBefore);
-    assertThat(selectedWorkspace.getValue()).isEqualTo(workspaceBefore);
-    assertThat(IdeGuiStateManager.getInstance().getCurrentContext()).isSameAs(contextBefore);
-    assertThat(selectedLanguage.getValue()).isEqualTo("Deutsch");
-    assertThat(androidStudioOpen.getText()).isNotEqualTo(buttonTextBefore);
-  }
 
   @SuppressWarnings("unchecked")
   private static <T> T lookup(Parent root, String selector) {

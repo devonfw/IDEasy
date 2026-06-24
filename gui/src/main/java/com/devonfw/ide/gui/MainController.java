@@ -2,12 +2,13 @@ package com.devonfw.ide.gui;
 
 import java.io.FileNotFoundException;
 import java.nio.file.NotDirectoryException;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,15 +35,6 @@ public class MainController {
   private ComboBox<String> selectedWorkspace;
 
   @FXML
-  private Label labelProject;
-
-  @FXML
-  private Label labelWorkspace;
-
-  @FXML
-  private Label labelLanguage;
-
-  @FXML
   private ComboBox<String> selectedLanguage;
 
   @FXML
@@ -59,6 +51,8 @@ public class MainController {
 
   private final String directoryPath;
 
+  private final Map<String, Locale> languageMap;
+
 
   /**
    * Constructor
@@ -67,6 +61,7 @@ public class MainController {
 
     LOG.debug("IDE_ROOT path={}", directoryPath);
     this.directoryPath = directoryPath;
+    this.languageMap = new LinkedHashMap<>();
 
     this.projectManager = IdeGuiStateManager.getInstance().getProjectManager();
   }
@@ -75,57 +70,55 @@ public class MainController {
   private void initialize() {
     setProjectsComboBox();
     initLanguageComboBox();
-    updateTexts();
-    LocalizationService.getInstance().addLocaleChangeListener(this::updateTexts);
-  }
-
-  @FXML
-  private void dispose() {
-    LocalizationService.getInstance().removeLocaleChangeListener(this::updateTexts);
   }
 
   private void initLanguageComboBox() {
 
-    // Initialize language choices
+    LocalizationService localizationService = LocalizationService.getInstance();
+    this.languageMap.clear();
     selectedLanguage.getItems().clear();
-    selectedLanguage.getItems().addAll("English", "Deutsch");
 
-    // Select current locale
-    Locale current = LocalizationService.getInstance().getLocale();
-    if (current != null && "de".equals(current.getLanguage())) {
-      selectedLanguage.setValue("Deutsch");
-    } else {
-      selectedLanguage.setValue("English");
+    for (Locale locale : localizationService.getAvailableLocales()) {
+      String displayName = localizationService.getLanguageDisplayName(locale);
+      this.languageMap.put(displayName, locale);
     }
+
+    selectedLanguage.getItems().addAll(this.languageMap.keySet());
+    //initial value
+    selectedLanguage.setValue(resolveLanguageSelection(localizationService.getLocale()));
 
     selectedLanguage.setOnAction(ev -> {
       String selection = selectedLanguage.getValue();
-      Locale newLocale = "Deutsch".equals(selection) ? Locale.GERMAN : Locale.ENGLISH;
-      LocalizationService.getInstance().setLocale(newLocale);
+      Locale newLocale = this.languageMap.get(selection);
+      if (newLocale != null) {
+        localizationService.setLocale(newLocale);
+      }
     });
   }
 
-  /**
-   * Use this method to update UI texts to change locale when adding new UI Elements. It uses a simple naming convention for the keys in the resource bundle.
-   * Found in message.properties and message_de.properties
-   */
-  private void updateTexts() {
-    LocalizationService localizationService = LocalizationService.getInstance();
-    // Set Labels
-    labelProject.setText(localizationService.get("label.project"));
-    labelWorkspace.setText(localizationService.get("label.workspace"));
-    labelLanguage.setText(localizationService.get("label.language"));
+  private String resolveLanguageSelection(Locale currentLocale) {
 
-    // Set ComboBox prompts
-    selectedProject.setPromptText(localizationService.get("prompt.chooseProject"));
-    selectedWorkspace.setPromptText(localizationService.get("prompt.chooseWorkspace"));
-    selectedLanguage.setPromptText(localizationService.get("prompt.chooseLanguage"));
+    if (currentLocale == null) {
+      return this.languageMap.keySet().stream().findFirst().orElse(null);
+    }
 
-    // Set Button texts
-    androidStudioOpen.setText(localizationService.get("button.open"));
-    eclipseOpen.setText(localizationService.get("button.open"));
-    intellijOpen.setText(localizationService.get("button.open"));
-    vsCodeOpen.setText(localizationService.get("button.open"));
+    String languageTagMatch = null;
+    String languageMatch = null;
+
+    for (Map.Entry<String, Locale> entry : this.languageMap.entrySet()) {
+      Locale entryLocale = entry.getValue();
+      // Exact language tag match takes priority
+      if (entryLocale.toLanguageTag().equalsIgnoreCase(currentLocale.toLanguageTag())) {
+        return entry.getKey();
+      }
+      // Track language-only match as fallback
+      if (languageMatch == null && entryLocale.getLanguage().equalsIgnoreCase(currentLocale.getLanguage())) {
+        languageMatch = entry.getKey();
+      }
+    }
+
+    // Return language-only match if found, otherwise first available
+    return languageMatch != null ? languageMatch : this.languageMap.keySet().stream().findFirst().orElse(null);
   }
 
 

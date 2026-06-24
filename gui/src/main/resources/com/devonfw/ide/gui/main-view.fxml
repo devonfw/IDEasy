@@ -25,9 +25,9 @@
         </HBox>
         <VBox maxHeight="-Infinity" prefWidth="100.0" styleClass="sideNavigationElement">
           <children>
-            <Label fx:id="labelProject" maxWidth="1.7976931348623157E308" text="%label.project"/>
+            <Label fx:id="labelProject" maxWidth="1.7976931348623157E308" text="%project"/>
             <ComboBox fx:id="selectedProject" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefHeight="40.0" prefWidth="150.0"
-              promptText="%prompt.chooseProject" styleClass="chooseProject"/>
+              promptText="%chooseProject" styleClass="chooseProject"/>
           </children>
           <padding>
             <Insets left="8.0" right="8.0"/>
@@ -35,9 +35,9 @@
         </VBox>
         <VBox layoutX="20.0" layoutY="245.0" maxHeight="-Infinity" prefWidth="100.0" styleClass="sideNavigationElement">
           <children>
-            <Label fx:id="labelWorkspace" maxWidth="1.7976931348623157E308" text="%label.workspace"/>
+            <Label fx:id="labelWorkspace" maxWidth="1.7976931348623157E308" text="%workspace"/>
             <ComboBox fx:id="selectedWorkspace" disable="true" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefHeight="40.0" prefWidth="150.0"
-              promptText="%prompt.chooseWorkspace" styleClass="chooseProject" VBox.vgrow="ALWAYS"/>
+              promptText="%chooseWorkspace" styleClass="chooseProject" VBox.vgrow="ALWAYS"/>
           </children>
           <padding>
             <Insets left="8.0" right="8.0"/>
@@ -46,9 +46,9 @@
         <!-- Language selector -->
         <VBox maxHeight="-Infinity" prefWidth="100.0" styleClass="sideNavigationElement">
           <children>
-            <Label fx:id="labelLanguage" maxWidth="1.7976931348623157E308" text="%label.language"/>
+            <Label fx:id="labelLanguage" maxWidth="1.7976931348623157E308" text="%language"/>
             <ComboBox fx:id="selectedLanguage" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefHeight="40.0" prefWidth="150.0"
-              promptText="%prompt.chooseLanguage" styleClass="chooseProject"/>
+              promptText="%chooseLanguage" styleClass="chooseProject"/>
           </children>
           <padding>
             <Insets left="8.0" right="8.0"/>
@@ -85,7 +85,7 @@
                   spacing="10.0" HBox.hgrow="ALWAYS">
                   <children>
                     <Button fx:id="androidStudioOpen" disable="true" mnemonicParsing="false" onAction="#openAndroidStudio" styleClass="launchButton"
-                      text="%button.open">
+                      text="%open">
                       <HBox.margin>
                         <Insets right="20.0"/>
                       </HBox.margin>
@@ -109,7 +109,7 @@
                 <HBox alignment="CENTER_RIGHT" prefHeight="$buttonContainerHeight" prefWidth="$buttonContainerWidth" minWidth="$buttonContainerWidth"
                   HBox.hgrow="ALWAYS">
                   <children>
-                    <Button fx:id="eclipseOpen" disable="true" mnemonicParsing="false" onAction="#openEclipse" styleClass="launchButton" text="%button.open">
+                    <Button fx:id="eclipseOpen" disable="true" mnemonicParsing="false" onAction="#openEclipse" styleClass="launchButton" text="%open">
                       <HBox.margin>
                         <Insets right="20.0"/>
                       </HBox.margin>
@@ -133,7 +133,7 @@
                 <HBox alignment="CENTER_RIGHT" prefHeight="$buttonContainerHeight" prefWidth="$buttonContainerWidth" minWidth="$buttonContainerWidth"
                   spacing="10.0" HBox.hgrow="ALWAYS">
                   <children>
-                    <Button fx:id="intellijOpen" disable="true" mnemonicParsing="false" onAction="#openIntellij" styleClass="launchButton" text="%button.open">
+                    <Button fx:id="intellijOpen" disable="true" mnemonicParsing="false" onAction="#openIntellij" styleClass="launchButton" text="%open">
                       <HBox.margin>
                         <Insets right="20.0"/>
                       </HBox.margin>
@@ -156,7 +156,7 @@
                 <HBox alignment="CENTER_RIGHT" prefHeight="$buttonContainerHeight" prefWidth="$buttonContainerWidth" minWidth="$buttonContainerWidth"
                   spacing="10.0" HBox.hgrow="ALWAYS">
                   <children>
-                    <Button fx:id="vsCodeOpen" disable="true" mnemonicParsing="false" onAction="#openVsCode" styleClass="launchButton" text="%button.open">
+                    <Button fx:id="vsCodeOpen" disable="true" mnemonicParsing="false" onAction="#openVsCode" styleClass="launchButton" text="%open">
                       <HBox.margin>
                         <Insets right="20.0"/>
                       </HBox.margin>
