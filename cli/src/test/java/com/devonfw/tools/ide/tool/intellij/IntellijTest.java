@@ -1,9 +1,13 @@
 package com.devonfw.tools.ide.tool.intellij;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
@@ -219,7 +223,7 @@ class IntellijTest extends AbstractIdeContextTest {
 
   /**
    * Tests whether IDEasy correctly switches editions when the specified version is after 2025.2.6.1
-   */ 
+   */
   @Test
   void testAdjustRequestedEditionSwitchesForUltimateWithVersionAboveCutoff() {
 
@@ -254,7 +258,7 @@ class IntellijTest extends AbstractIdeContextTest {
     // assert
     assertThat(adjusted.getEdition().edition()).isEqualTo("ultimate");
   }
-  
+
   /**
    * Tests if the custom jvm options of the ide variable INTELLI_VM_ARGS have been set.
    */
@@ -281,6 +285,116 @@ class IntellijTest extends AbstractIdeContextTest {
             """);
   }
 
+  /**
+   * Tests that extra Java SDK installations configured via ide-extra-tools.json are imported into IntelliJ jdk.table.xml when IntelliJ is started through
+   * IDEasy.
+   */
+  @Test
+  void testImportExtraJavaSdksIntoJdkTable() throws Exception {
+
+    // arrange
+    IdeTestContext context = newContext("intellij");
+    Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
+
+    Path extraJavaRoot = context.getSoftwareExtraPath().resolve("java");
+    context.getFileAccess().mkdirs(extraJavaRoot.resolve("client"));
+    context.getFileAccess().mkdirs(extraJavaRoot.resolve("process-engine"));
+
+    // act
+    commandlet.run();
+
+    // assert
+    Path jdkTable = context.getWorkspacePath()
+        .resolve(".intellij")
+        .resolve("config")
+        .resolve("options")
+        .resolve("jdk.table.xml");
+    assertThat(jdkTable).exists();
+
+    String jdkTableContent = Files.readString(jdkTable);
+    assertThat(jdkTableContent).contains("<name value=\"client\"/>");
+    assertThat(jdkTableContent).contains("<name value=\"process-engine\"/>");
+    assertThat(jdkTableContent).contains("software/extra/java/client");
+    assertThat(jdkTableContent).contains("software/extra/java/process-engine");
+  }
+
+  /**
+   * Tests that an extra Java SDK using the reserved name "java" is skipped instead of being imported.
+   */
+  @Test
+  void testSkipExtraJavaSdkWithReservedName() throws Exception {
+
+    // arrange
+    IdeTestContext context = newContext("intellij-extra-java-conflict");
+    Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
+
+    Path extraJavaRoot = context.getSoftwareExtraPath().resolve("java");
+    context.getFileAccess().mkdirs(extraJavaRoot.resolve("java"));
+
+    // act
+    commandlet.run();
+
+    // assert
+    Path jdkTable = context.getWorkspacePath()
+        .resolve(".intellij")
+        .resolve("config")
+        .resolve("options")
+        .resolve("jdk.table.xml");
+    assertThat(jdkTable).exists();
+
+    String jdkTableContent = Files.readString(jdkTable);
+    assertThat(jdkTableContent).doesNotContain("software/extra/java/java");
+    assertThat(context).logAtWarning()
+        .hasMessageContaining("Skipping IntelliJ import for extra java installation 'java': name conflicts with main java installation.");
+  }
+
+  /**
+   * Tests that a configured extra Java SDK is skipped if the corresponding installation directory does not exist.
+   */
+  @Test
+  void testSkipMissingExtraJavaSdkDirectory() throws Exception {
+
+    // arrange
+    Intellij commandlet = this.context.getCommandletManager().getCommandlet(Intellij.class);
+
+    // do not create client/process-engine directories on purpose
+
+    // act
+    commandlet.run();
+
+    // assert
+    Path jdkTable = context.getWorkspacePath()
+        .resolve(".intellij")
+        .resolve("config")
+        .resolve("options")
+        .resolve("jdk.table.xml");
+    assertThat(jdkTable).exists();
+
+    String jdkTableContent = Files.readString(jdkTable);
+    assertThat(jdkTableContent).doesNotContain("software/extra/java/client");
+    assertThat(jdkTableContent).doesNotContain("software/extra/java/process-engine");
+    assertThat(context).logAtWarning()
+        .hasMessageContaining("Skipping IntelliJ import for extra java installation");
+  }
+
+  /** Tests that IntelliJ extra Java SDK import fails with a clear error if the merge template is missing from settings. */
+  @Test
+  void testMissingExtraJavaTemplateFails() {
+
+    // arrange
+    IdeTestContext context = newContext("intellij-missing-extra-java-template");
+    Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
+
+    Path extraJavaRoot = context.getSoftwareExtraPath().resolve("java");
+    context.getFileAccess().mkdirs(extraJavaRoot.resolve("client"));
+
+    // act / assert
+    assertThatThrownBy(commandlet::run)
+        .isInstanceOf(CliException.class)
+        .hasMessageContaining("Cannot import extra java installation into IntelliJ: template file not found")
+        .hasMessageContaining("Please do an upstream merge of your settings git repository.");
+  }
+
   private void checkInstallation(IdeTestContext context) {
 
     Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
@@ -292,5 +406,4 @@ class IntellijTest extends AbstractIdeContextTest {
     assertThat(context).logAtDebug().hasMessage("Omitting installation of inactive plugin InactivePlugin (inactivePlugin).");
     assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin ActivePlugin'.");
   }
-
 }
