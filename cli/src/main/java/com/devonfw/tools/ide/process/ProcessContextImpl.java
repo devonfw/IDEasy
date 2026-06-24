@@ -179,9 +179,14 @@ public class ProcessContextImpl implements ProcessContext {
     if ((this.overriddenPath != null) || !this.extraPathEntries.isEmpty()) {
       systemPath = systemPath.withPath(this.overriddenPath, this.extraPathEntries);
     }
+    // research LOG
     String path = systemPath.toString();
+    Path originalExecutable = this.executable;
+    LOG.info("Executable before binary lookup: {}", originalExecutable);
+    Path resolvedExecutable = systemPath.findBinary(originalExecutable, this::isShim);
+    LOG.info("Executable after binary lookup: {}", resolvedExecutable);
+    this.executable = resolvedExecutable;
     LOG.trace("Setting PATH for process execution of {} to {}", this.executable.getFileName(), path);
-    this.executable = systemPath.findBinary(this.executable);
     this.processBuilder.environment().put(IdeVariables.PATH.getName(), path);
     List<String> args = new ArrayList<>(this.arguments.size() + 4);
     String interpreter = addExecutable(args);
@@ -454,5 +459,14 @@ public class ProcessContextImpl implements ProcessContext {
     } else {
       return this.arguments.stream().map(Object::toString).collect(Collectors.joining(" "));
     }
+  }
+
+  // only for research reasons this is placed here - for future reference we need to find a suitable location for this function
+  private boolean isShim(Path binaryPath) {
+    if (binaryPath == null) {
+      return false;
+    }
+    String normalized = binaryPath.normalize().toString().replace('\\', '/');
+    return normalized.contains("/shims/");
   }
 }
