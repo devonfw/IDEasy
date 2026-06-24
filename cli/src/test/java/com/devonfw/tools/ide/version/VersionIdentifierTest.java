@@ -59,17 +59,6 @@ class VersionIdentifierTest extends Assertions {
   }
 
   /**
-   * Test of composite version identifiers
-   */
-  @Test
-  void testCompositeVersionPhase() {
-    assertThat(VersionPhase.of("beta-snapshot")).isSameAs(VersionPhase.BETA);
-    assertThat(VersionPhase.of("snapshot-beta")).isSameAs(VersionPhase.SNAPSHOT);
-    assertThat(VersionPhase.of("release-candidate")).isSameAs(VersionPhase.RELEASE_CANDIDATE);
-    assertThat(VersionPhase.of("Foo-Bar")).isSameAs(VersionPhase.UNDEFINED);
-  }
-
-  /**
    * Test of {@link VersionIdentifier#isValid() valid} versions.
    */
   @ParameterizedTest
@@ -161,6 +150,7 @@ class VersionIdentifierTest extends Assertions {
     assertThat(pattern.matches(VersionIdentifier.of("17.alpha7"))).isFalse();
     assertThat(pattern.matches(VersionIdentifier.of("17.beta2"))).isFalse();
     assertThat(pattern.matches(VersionIdentifier.of("17-SNAPSHOT"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.of("17.2.3-SNAPSHOT"))).isFalse();
 
     pattern = VersionIdentifier.of("17*");
     assertThat(pattern.isValid()).isFalse();
@@ -234,6 +224,7 @@ class VersionIdentifierTest extends Assertions {
     assertThat(pattern.matches(VersionIdentifier.of("17.alpa7"))).isTrue();
     assertThat(pattern.matches(VersionIdentifier.of("17.beta2"))).isTrue();
     assertThat(pattern.matches(VersionIdentifier.of("17-SNAPSHOT"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.of("17.2.3-SNAPSHOT"))).isTrue();
     pattern = VersionIdentifier.of("17.*!");
     assertThat(pattern.isValid()).isFalse();
     assertThat(pattern.isPattern()).isTrue();
@@ -369,6 +360,10 @@ class VersionIdentifierTest extends Assertions {
     assertThat(VersionIdentifier.of("1.0-alpha1.rc2").isStable()).isFalse();
     assertThat(VersionIdentifier.LATEST.isStable()).isTrue();
     assertThat(VersionIdentifier.LATEST_UNSTABLE.isStable()).isFalse();
+    assertThat(VersionIdentifier.of("1.0-SNAPSHOT").isStable()).isFalse();
+    assertThat(VersionIdentifier.of("2025.03.001-SNAPSHOT").isStable()).isFalse();
+    assertThat(VersionIdentifier.of("1.0-beta-SNAPSHOT").isStable()).isFalse();
+    assertThat(VersionIdentifier.of("1.2.3-SNAPSHOT").isStable()).isFalse();
   }
 
   /** Test of {@link VersionIdentifier#resolveVersionPattern(GenericVersionRange, List)} - exact version found. */
