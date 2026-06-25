@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.common;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -145,5 +146,76 @@ class SystemPathTest extends AbstractIdeContextTest {
   private static boolean checkPathToIgnoreLowercase(Path p, String toIgnore) {
     String s = p.toAbsolutePath().toString().replace('\\', '/').toLowerCase(Locale.ROOT);
     return !s.contains(toIgnore);
+  }
+
+  @Test
+  void testFindBinaryCanResolveRealNodeBinaryWhileExcludingShimDirectory() throws Exception {
+
+    // arrange
+    String path = "project/workspaces";
+    IdeTestContext context = newContext("find-binary-shims", path, false);
+    SystemInfo systemInfo = SystemInfoMock.of("windows");
+    context.setSystemInfo(systemInfo);
+
+    Path shims = context.getIdeRoot().resolve("shims");
+    Path realNodeBin = context.getIdeRoot().resolve("real-node-bin");
+
+    Files.createDirectories(shims);
+    Files.createDirectories(realNodeBin);
+
+    Path shimNode = shims.resolve("node.cmd");
+    Path realNode = realNodeBin.resolve("node.exe");
+
+    Files.deleteIfExists(shimNode);
+    Files.deleteIfExists(realNode);
+
+    Files.createFile(shimNode);
+    Files.createFile(realNode);
+
+    List<Path> paths = new ArrayList<>();
+    paths.add(shims);
+    paths.add(realNodeBin);
+
+    SystemPath systemPath = new SystemPath(context, context.getSoftwarePath(), ';', paths);
+    Path node = Path.of("node");
+
+    Predicate<Path> excludeShims = p -> !p.toAbsolutePath().normalize().startsWith(shims.toAbsolutePath().normalize());
+
+    // act
+    Path resultWithoutFilter = systemPath.findBinary(node);
+    Path resultWithFilter = systemPath.findBinary(node, excludeShims);
+
+    // assert
+    assertThat(resultWithoutFilter).isEqualTo(shimNode);
+    assertThat(resultWithFilter).isEqualTo(realNode);
+  }
+
+  @Test
+  void testCanCreateMinimalExperimentalWindowsShims() throws Exception {
+
+    // arrange
+    String path = "project/workspaces";
+    IdeTestContext context = newContext("find-binary-shims", path, false);
+
+    Path shims = context.getIdeRoot().resolve("shims");
+    Files.createDirectories(shims);
+
+    // act
+    Path nodeShim = shims.resolve("node.cmd");
+    Path npmShim = shims.resolve("npm.cmd");
+    Path npxShim = shims.resolve("npx.cmd");
+
+    Files.writeString(nodeShim, "@echo off\r\nide node %*\r\n");
+    Files.writeString(npmShim, "@echo off\r\nide npm %*\r\n");
+    Files.writeString(npxShim, "@echo off\r\nide npx %*\r\n");
+
+    // assert
+    assertThat(nodeShim).exists();
+    assertThat(npmShim).exists();
+    assertThat(npxShim).exists();
+
+    assertThat(Files.readString(nodeShim)).contains("ide node %*");
+    assertThat(Files.readString(npmShim)).contains("ide npm %*");
+    assertThat(Files.readString(npxShim)).contains("ide npx %*");
   }
 }
