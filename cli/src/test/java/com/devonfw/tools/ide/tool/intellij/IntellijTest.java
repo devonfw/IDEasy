@@ -355,7 +355,8 @@ class IntellijTest extends AbstractIdeContextTest {
   void testSkipMissingExtraJavaSdkDirectory() throws Exception {
 
     // arrange
-    Intellij commandlet = this.context.getCommandletManager().getCommandlet(Intellij.class);
+    IdeTestContext context = newContext("intellij");
+    Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
 
     // do not create client/process-engine directories on purpose
 
