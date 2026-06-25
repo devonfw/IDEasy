@@ -321,12 +321,6 @@ public class GitContextImpl implements GitContext {
   }
 
   @Override
-  public List<String> retrieveGitTags(Path repository) {
-
-    return runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, "--no-pager", "tag", "--list").getOut();
-  }
-
-  @Override
   public List<String> retrieveGitRemotes(Path repository) {
 
     return runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, "--no-pager", "remote", "-v").getOut();
@@ -546,9 +540,9 @@ public class GitContextImpl implements GitContext {
   }
 
   @Override
-  public void tag(Path repository, String tagName) {
+  public void tag(Path repository, String tagName, String message) {
 
-    runGitCommand(repository, "tag", "-a", tagName, "-m", tagName);
+    runGitCommand(repository, "tag", "-a", tagName, "-m", message);
   }
 
   @Override
