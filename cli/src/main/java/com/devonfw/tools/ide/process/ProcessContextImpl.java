@@ -180,14 +180,20 @@ public class ProcessContextImpl implements ProcessContext {
       systemPath = systemPath.withPath(this.overriddenPath, this.extraPathEntries);
     }
     // research LOG
+
     String path = systemPath.toString();
+
     Path originalExecutable = this.executable;
-    LOG.info("Executable before binary lookup: {}", originalExecutable);
-    Path resolvedExecutable = systemPath.findBinary(originalExecutable, this::isShim);
-    LOG.info("Executable after binary lookup: {}", resolvedExecutable);
+    Path resolvedExecutable = systemPath.findBinary(originalExecutable, binaryPath -> !isShim(binaryPath));
+
+    LOG.debug("Executable before binary lookup: {}", originalExecutable);
+    LOG.debug("Executable after binary lookup: {}", resolvedExecutable);
+
     this.executable = resolvedExecutable;
+
     LOG.trace("Setting PATH for process execution of {} to {}", this.executable.getFileName(), path);
     this.processBuilder.environment().put(IdeVariables.PATH.getName(), path);
+
     List<String> args = new ArrayList<>(this.arguments.size() + 4);
     String interpreter = addExecutable(args);
     args.addAll(this.arguments);
