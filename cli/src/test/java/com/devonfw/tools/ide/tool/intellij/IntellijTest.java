@@ -325,7 +325,19 @@ class IntellijTest extends AbstractIdeContextTest {
   void testSkipExtraJavaSdkWithReservedName() throws Exception {
 
     // arrange
-    IdeTestContext context = newContext("intellij-extra-java-conflict");
+    IdeTestContext context = newContext("intellij");
+    Path extraToolsFile = context.getSettingsPath().resolve("ide-extra-tools.json");
+    context.getFileAccess().writeFileContent("""
+            {
+              "java": {
+                "java": {
+                  "version": "21"
+                }
+              }
+            }
+            """,
+        extraToolsFile);
+
     Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
 
     Path extraJavaRoot = context.getSoftwareExtraPath().resolve("java");
@@ -383,11 +395,19 @@ class IntellijTest extends AbstractIdeContextTest {
   void testMissingExtraJavaTemplateFails() {
 
     // arrange
-    IdeTestContext context = newContext("intellij-missing-extra-java-template");
+    IdeTestContext context = newContext("intellij");
     Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
 
     Path extraJavaRoot = context.getSoftwareExtraPath().resolve("java");
     context.getFileAccess().mkdirs(extraJavaRoot.resolve("client"));
+
+    Path templateFile = context.getSettingsPath()
+        .resolve("intellij")
+        .resolve("workspace")
+        .resolve("repository")
+        .resolve(".idea")
+        .resolve("jdk-extra-java.xml");
+    context.getFileAccess().delete(templateFile);
 
     // act / assert
     assertThatThrownBy(commandlet::run)
