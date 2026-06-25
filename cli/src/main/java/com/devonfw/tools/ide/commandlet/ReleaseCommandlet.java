@@ -4,7 +4,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,13 +50,13 @@ public class ReleaseCommandlet extends Commandlet {
     GitContext git = this.context.getGitContext();
 
     if (git.hasUntrackedFiles(projectPath)) {
-      throw new CliException("Your local git repository has uncommitted changes. Please use 'git stash' and rerun on a clean repository.");
+      throw new CliException("Your local git repository has uncommitted changes. Please use 'git stash' and rerun on clean repo.");
     }
     if (warnIfFork(git, projectPath)) {
       confirmWarning("You seem to work on a fork. Releases should be done on the original repository!\nWe strongly recommend to abort and rerun on original repository.");
     }
     if (!this.context.isForceMode() && !isTopLevelProject(projectPath)) {
-      throw new CliException("Release has to be performed from the top-level project or using the force option (-f).");
+      throw new CliException("Release has to be performed from the top-level project or using force option.");
     }
 
     String currentVersion = getProjectVersion(projectPath);
@@ -76,15 +75,18 @@ public class ReleaseCommandlet extends Commandlet {
     }
 
     setProjectVersion(projectPath, releaseVersion);
-    git.commit(projectPath, "#release: set release version " + releaseVersion);
-    git.tag(projectPath, releaseVersion);
+    git.commit(projectPath, "set release version to " + releaseVersion);
+    git.tag(projectPath, "release/" + releaseVersion, "tagged version " + releaseVersion);
 
     buildAndDeploy();
 
     setProjectVersion(projectPath, nextVersion);
-    git.commit(projectPath, "#release: set next snapshot version " + nextVersion);
+    git.commit(projectPath, "set next version to " + nextVersion);
+    LOG.info("Local commits and tag need to be pushed now.\nYou now have the chance to review these changes manually before they are pushed.");
+    this.context.askToContinue("Do you want to continue?");
     git.push(projectPath);
 
+    LOG.info("Successfully released version {}.", releaseVersion);
   }
 
   private boolean warnIfFork(GitContext git, Path projectPath) {
@@ -158,9 +160,8 @@ public class ReleaseCommandlet extends Commandlet {
         return;
       }
       LOG.error("Release build failed!");
-      if (!this.context.question("Do you want to retry the release build?")) {
-        throw new CliException("Release build failed and was aborted! The release commit and tag were already created locally - "
-            + "undo them via 'git reset --hard HEAD~1' and 'git tag -d <version>' before retrying.");
+      if (!this.context.question("Do you want to retry the build (e.g. in case of a temporary network error)?")) {
+        throw new CliException("Release build failed and process aborted!\nYou should reset your local commits via 'git reset HEAD^'.");
       }
     }
   }

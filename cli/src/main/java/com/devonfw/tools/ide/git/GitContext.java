@@ -215,12 +215,6 @@ public interface GitContext {
 
   /**
    * @param repository the {@link Path} to the git repository.
-   * @return the {@link List} of git tags of the given repository.
-   */
-  List<String> retrieveGitTags(Path repository);
-
-  /**
-   * @param repository the {@link Path} to the git repository.
    * @return the {@link List} of configured git remotes (output of {@code git remote -v}).
    */
   List<String> retrieveGitRemotes(Path repository);
@@ -272,8 +266,9 @@ public interface GitContext {
    *
    * @param repository the {@link Path} to the git repository.
    * @param tagName the name of the tag to create (e.g. "release/1.5.0").
+   * @param message the annotation message of the tag.
    */
-  void tag(Path repository, String tagName);
+  void tag(Path repository, String tagName, String message);
 
   /**
    * Pushes the local commits and tags of the given repository to the remote repository.

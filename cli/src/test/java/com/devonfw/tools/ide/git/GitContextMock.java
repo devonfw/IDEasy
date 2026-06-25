@@ -66,12 +66,6 @@ public class GitContextMock implements GitContext {
   }
 
   @Override
-  public java.util.List<String> retrieveGitTags(Path repository) {
-
-    return java.util.Collections.emptyList();
-  }
-
-  @Override
   public java.util.List<String> retrieveGitRemotes(Path repository) {
 
     return java.util.Collections.emptyList();
@@ -135,7 +129,7 @@ public class GitContextMock implements GitContext {
   }
 
   @Override
-  public void tag(Path repository, String tagName) {
+  public void tag(Path repository, String tagName, String message) {
 
   }
 
