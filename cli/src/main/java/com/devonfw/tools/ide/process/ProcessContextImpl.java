@@ -179,15 +179,14 @@ public class ProcessContextImpl implements ProcessContext {
     if ((this.overriddenPath != null) || !this.extraPathEntries.isEmpty()) {
       systemPath = systemPath.withPath(this.overriddenPath, this.extraPathEntries);
     }
-    // research LOG
 
     String path = systemPath.toString();
 
     Path originalExecutable = this.executable;
-    Path resolvedExecutable = systemPath.findBinary(originalExecutable, binaryPath -> !isShim(binaryPath));
+    Path resolvedExecutable = systemPath.findBinary(originalExecutable, binaryPath -> !isExperimentalShimBinary(binaryPath));
 
-    LOG.debug("Executable before binary lookup: {}", originalExecutable);
-    LOG.debug("Executable after binary lookup: {}", resolvedExecutable);
+    LOG.trace("Executable before binary lookup: {}", originalExecutable);
+    LOG.trace("Executable after binary lookup: {}", resolvedExecutable);
 
     this.executable = resolvedExecutable;
 
@@ -467,12 +466,21 @@ public class ProcessContextImpl implements ProcessContext {
     }
   }
 
-  // only for research reasons this is placed here - for future reference we need to find a suitable location for this function
-  private boolean isShim(Path binaryPath) {
+  /**
+   * Spike-only guard for stable external shims such as {@code node.cmd -> ide node}. When IDEasy internally resolves the real executable, shim candidates have
+   * to be skipped or PATH order can create a loop such as {@code node -> shim -> ide node -> shim -> ...}. This intentionally recognizes only a directory named
+   * {@code shims}; a production implementation should model shim locations explicitly instead of keeping this helper in {@link ProcessContextImpl}.
+   */
+  private boolean isExperimentalShimBinary(Path binaryPath) {
+
     if (binaryPath == null) {
       return false;
     }
-    String normalized = binaryPath.normalize().toString().replace('\\', '/');
-    return normalized.contains("/shims/");
+    for (Path segment : binaryPath.normalize()) {
+      if ("shims".equals(segment.toString())) {
+        return true;
+      }
+    }
+    return false;
   }
 }

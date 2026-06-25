@@ -26,7 +26,7 @@ class ShimLauncherGeneratorTest {
     // assert
     assertThat(shim).exists();
     assertThat(shim.getFileName().toString()).isEqualTo("node.cmd");
-    assertThat(Files.readString(shim)).isEqualTo("@echo off\r\nide node %*\r\n");
+    assertThat(Files.readString(shim)).isEqualTo("@echo off\r\nide node %*\r\nexit /b %ERRORLEVEL%\r\n");
   }
 
   @Test
@@ -43,7 +43,24 @@ class ShimLauncherGeneratorTest {
     // assert
     assertThat(npmShim).exists();
     assertThat(npxShim).exists();
-    assertThat(Files.readString(npmShim)).isEqualTo("@echo off\r\nide npm %*\r\n");
-    assertThat(Files.readString(npxShim)).isEqualTo("@echo off\r\nide npx %*\r\n");
+    assertThat(Files.readString(npmShim)).isEqualTo("@echo off\r\nide npm %*\r\nexit /b %ERRORLEVEL%\r\n");
+    assertThat(Files.readString(npxShim)).isEqualTo("@echo off\r\nide npx %*\r\nexit /b %ERRORLEVEL%\r\n");
+  }
+
+  @Test
+  void shouldGenerateShellShimForNode() throws Exception {
+
+    // arrange
+    ShimLauncherGenerator generator = new ShimLauncherGenerator();
+    Path shimsDirectory = this.tempDir.resolve("shims");
+
+    // act
+    Path shim = generator.generateShellShim(shimsDirectory, "node");
+
+    // assert
+    assertThat(shim).exists();
+    assertThat(shim.getFileName().toString()).isEqualTo("node");
+    assertThat(Files.readString(shim)).isEqualTo("#!/usr/bin/env bash\nexec ide node \"$@\"\n");
+    assertThat(shim.toFile().canExecute()).isTrue();
   }
 }
