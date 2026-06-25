@@ -120,7 +120,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     Path workspacePath = this.context.getWorkspacePath();
     // Synchronize extra SDK/tool definitions before IntelliJ starts so newly installed extra tool versions
     // become visible in the IDE without requiring a separate repository import step.
-    importExtraToolInstallationsToWorkspace(workspacePath);
+    synchronizeExtraToolInstallations(workspacePath);
 
     environmentContext.withEnvVar("IDEA_PROPERTIES", workspacePath.resolve(IDEA_PROPERTIES).toString());
   }
@@ -215,6 +215,11 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     }
 
     importExtraToolInstallations(repositoryPath);
+  }
+
+  @Override
+  public void synchronizeExtraToolInstallations(Path workspacePath) {
+    importExtraToolInstallationsToWorkspace(workspacePath);
   }
 
   /**
