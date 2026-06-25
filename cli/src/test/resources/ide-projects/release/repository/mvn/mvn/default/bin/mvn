@@ -1,6 +1,2 @@
 #!/bin/bash
-if [ "$1" = "help:evaluate" ]; then
-  echo "1.0.0-SNAPSHOT"
-else
-  echo "mvn $*"
-fi
+echo "mvn $*"

@@ -2,6 +2,8 @@ package com.devonfw.tools.ide.commandlet;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.nio.file.Path;
+
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.cli.CliAbortException;
@@ -12,8 +14,8 @@ import com.devonfw.tools.ide.git.GitContextImplMock;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 
 /**
- * Test of {@link ReleaseCommandlet}. The mocked {@code mvn} returns {@code 1.0.0-SNAPSHOT} for {@code help:evaluate} (see the test fixture), so the release
- * version is {@code 1.0.0} and the next version is {@code 1.0.1-SNAPSHOT}.
+ * Test of {@link ReleaseCommandlet}. The test fixture's {@code .mvn/maven.config} declares {@code -Drevision=1.0.0-SNAPSHOT}, so the release version is
+ * {@code 1.0.0} and the next version is {@code 1.0.1-SNAPSHOT}.
  */
 class ReleaseCommandletTest extends AbstractIdeContextTest {
 
@@ -49,10 +51,11 @@ class ReleaseCommandletTest extends AbstractIdeContextTest {
     releaseCommandlet.run();
 
     assertThat(context).log().hasEntries(
-        IdeLogEntry.ofInfo("mvn versions:set -DnewVersion=1.0.0 -DgenerateBackupPoms=false"),
         IdeLogEntry.ofInfo("mvn clean deploy"),
-        IdeLogEntry.ofInfo("mvn versions:set -DnewVersion=1.0.1-SNAPSHOT -DgenerateBackupPoms=false"),
         IdeLogEntry.ofInfo("Successfully released version 1.0.0."));
+    // the maven.config must be left at the next development version
+    Path mavenConfig = context.getWorkspacePath().resolve("mvn").resolve(".mvn").resolve("maven.config");
+    assertThat(context.getFileAccess().readFileContent(mavenConfig)).contains("-Drevision=1.0.1-SNAPSHOT");
   }
 
   @Test
