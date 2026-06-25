@@ -40,6 +40,7 @@ class MvndTest extends AbstractIdeContextTest {
     mvnd.install();
 
     // assert
+    assertThat(context.getSoftwarePath().resolve("java/bin/java")).exists();
     assertThat(context.getSoftwarePath().resolve("mvnd/bin/mvnd")).exists();
     assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed mvnd");
 
