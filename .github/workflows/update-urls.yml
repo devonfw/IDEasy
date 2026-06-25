@@ -32,43 +32,34 @@ jobs:
       - name: Build and run url updater
         run: |
           mvn -B -ntp -Dstyle.color=always -pl url-updater -am install
-          mvn -B -ntp -Dstyle.color=always -pl url-updater exec:java -Dexec.mainClass="com.devonfw.tools.ide.url.UpdateInitiator" -Dexec.args="ide-urls PT5H30M"
+          mvn -B -ntp -Dstyle.color=always -pl url-updater exec:java -Dexec.mainClass="com.devonfw.tools.ide.url.UpdateInitiator" -Dexec.args="ide-urls ide-urls-status PT5H30M"
         env:
           GHA_TOKEN: ${{ secrets.GHA_TOKEN }}
-      - name: Sync status.json files to ide-urls-status
-        run: |
-          rsync -av --delete --prune-empty-dirs \
-          --exclude='.git/' \
-          --include='*/' \
-          --include='status.json' \
-          --exclude='*' \
-          ide-urls/ ide-urls-status/
-      - name: Commit and push status.json files to ide-urls-status
-        run: |
-          cd ide-urls-status
-          git config --global user.name ${{ secrets.BUILD_USER }}
-          git config --global user.email ${{ secrets.BUILD_USER_EMAIL }}
-          git add -A
-          if ! git diff --cached --quiet; then
-            git commit -m "Update status.json"
-            git push
-          else
-            echo "No status.json changes"
-          fi
       - name: Commit and push to ide-urls
         run: |
           cd ide-urls
           git config --global user.name ${{ secrets.BUILD_USER }}
           git config --global user.email ${{ secrets.BUILD_USER_EMAIL }}
-          CHANGED_NON_STATUS_FILES=$(git ls-files --modified --others --exclude-standard | grep -Ev '(^|/)status\.json$' || true)
-          if [ -n "$CHANGED_NON_STATUS_FILES" ]; then
-            while IFS= read -r file; do
-              [ -n "$file" ] && git add "$file"
-            done <<< "$CHANGED_NON_STATUS_FILES"
+          if git status -z | grep -q .
+          then
+            git add .
             git commit -m "Update urls"
             git push
           else
             echo "No changes, nothing to commit."
+          fi
+      - name: Commit and push status.json files to ide-urls-status
+        run: |
+          cd ide-urls-status
+          git config --global user.name ${{ secrets.BUILD_USER }}
+          git config --global user.email ${{ secrets.BUILD_USER_EMAIL }}
+          if git status -z | grep -q .
+          then
+            git add .
+            git commit -m "Update status.json"
+            git push
+          else
+            echo "No status.json changes"
           fi
   trigger_update_cve:
     runs-on: ubuntu-latest
