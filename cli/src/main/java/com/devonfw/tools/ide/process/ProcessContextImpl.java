@@ -179,20 +179,10 @@ public class ProcessContextImpl implements ProcessContext {
     if ((this.overriddenPath != null) || !this.extraPathEntries.isEmpty()) {
       systemPath = systemPath.withPath(this.overriddenPath, this.extraPathEntries);
     }
-
     String path = systemPath.toString();
-
-    Path originalExecutable = this.executable;
-    Path resolvedExecutable = systemPath.findBinary(originalExecutable, binaryPath -> !isExperimentalShimBinary(binaryPath));
-
-    LOG.trace("Executable before binary lookup: {}", originalExecutable);
-    LOG.trace("Executable after binary lookup: {}", resolvedExecutable);
-
-    this.executable = resolvedExecutable;
-
     LOG.trace("Setting PATH for process execution of {} to {}", this.executable.getFileName(), path);
+    this.executable = systemPath.findBinary(this.executable);
     this.processBuilder.environment().put(IdeVariables.PATH.getName(), path);
-
     List<String> args = new ArrayList<>(this.arguments.size() + 4);
     String interpreter = addExecutable(args);
     args.addAll(this.arguments);
@@ -464,23 +454,5 @@ public class ProcessContextImpl implements ProcessContext {
     } else {
       return this.arguments.stream().map(Object::toString).collect(Collectors.joining(" "));
     }
-  }
-
-  /**
-   * Spike-only guard for stable external shims such as {@code node.cmd -> ide node}. When IDEasy internally resolves the real executable, shim candidates have
-   * to be skipped or PATH order can create a loop such as {@code node -> shim -> ide node -> shim -> ...}. This intentionally recognizes only a directory named
-   * {@code shims}; a production implementation should model shim locations explicitly instead of keeping this helper in {@link ProcessContextImpl}.
-   */
-  private boolean isExperimentalShimBinary(Path binaryPath) {
-
-    if (binaryPath == null) {
-      return false;
-    }
-    for (Path segment : binaryPath.normalize()) {
-      if ("shims".equals(segment.toString())) {
-        return true;
-      }
-    }
-    return false;
   }
 }
