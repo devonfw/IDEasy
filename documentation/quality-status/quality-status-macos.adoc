@@ -9,13 +9,13 @@ Automatically generated open issue overview for macOS.
 
 link:quality-status.adoc[Back to overview]
 
-*Total Issues:* 149
+*Total Issues:* 155
 
-* OS-specific: 11
+* OS-specific: 12
 
 * Multi-OS: 1
 
-* Cross-platform: 137
+* Cross-platform: 142
 
 == macOS Specific Issues
 
@@ -50,6 +50,9 @@ link:quality-status.adoc[Back to overview]
 
 | link:https://github.com/devonfw/IDEasy/issues/798[#798]
 | pgadmin not working on Mac
+
+| link:https://github.com/devonfw/IDEasy/issues/797[#797]
+| vscode not working on mac
 
 | link:https://github.com/devonfw/IDEasy/issues/423[#423]
 | Create installer for MacOS

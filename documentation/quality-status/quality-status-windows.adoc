@@ -9,13 +9,13 @@ Automatically generated open issue overview for Windows.
 
 link:quality-status.adoc[Back to overview]
 
-*Total Issues:* 151
+*Total Issues:* 157
 
-* OS-specific: 14
+* OS-specific: 15
 
 * Multi-OS: 0
 
-* Cross-platform: 137
+* Cross-platform: 142
 
 == Windows Specific Issues
 
@@ -23,6 +23,9 @@ link:quality-status.adoc[Back to overview]
 |===
 | Issue | Summary
 2+^| *11-30 days*
+
+| link:https://github.com/devonfw/IDEasy/issues/1991[#1991]
+| Improve WindowsHelperMock
 
 | link:https://github.com/devonfw/IDEasy/issues/1982[#1982]
 | relative option for link not honored
