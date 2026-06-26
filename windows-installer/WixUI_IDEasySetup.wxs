@@ -27,8 +27,9 @@
             <DialogRef Id="ProgressDlg" />
             <DialogRef Id="ResumeDlg" />
             <DialogRef Id="UserExit" />
+            <DialogRef Id="FirstStepsDialog" />
 
-            <Publish Dialog="ExitDialog" Control="Finish" Event="EndDialog" Value="Return" Order="999" />
+            <Publish Dialog="ExitDialog" Control="Finish" Event="EndDialog" Value="Return" Order="998" />
 
             <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="LicenseAgreementDlg" Condition="NOT Installed" />
             <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Condition="Installed AND PATCH" />
@@ -48,6 +49,9 @@
             <Publish Dialog="MaintenanceTypeDlg" Control="RemoveButton" Event="NewDialog" Value="VerifyReadyDlg" />
             <Publish Dialog="MaintenanceTypeDlg" Control="Back" Event="NewDialog" Value="MaintenanceWelcomeDlg" />
 
+            <Publish Dialog="ProgressDlg" Control="Next" Event="NewDialog" Condition="Installed AND NOT PATCH" Value="FirstStepsDialog" />
+            <Publish Dialog="FirstStepsDialog" Control="Next" Event="NewDialog" Value="ExitDialog" />
+
             <Property Id="ARPNOMODIFY" Value="1" />
 						
         </UI>
@@ -57,7 +61,6 @@
 
 	<Fragment>
 		<UI>
-			
 			<Dialog Id="InstallPathDlg" Width="370" Height="270" Title="!(loc.InstallPathDlg_Title)">
 				
 				<Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="!(loc.InstallPathDlgDescription)" />
@@ -88,4 +91,39 @@
 			</Dialog>
 		</UI>
 	</Fragment>
+	<Fragment>
+     <UI>
+       <Dialog Id="FirstStepsDialog" Width="370" Height="270" Title="First steps">
+
+         <Control Id="Description"
+                  Type="Text"
+                  X="25"
+                  Y="23"
+                  Width="280"
+                  Height="15"
+                  Transparent="yes"
+                  NoPrefix="yes"
+                  Text="!(loc.IntroductoryMessage)" />
+
+         <Control Id="Title"
+                  Type="Text"
+                  X="15"
+                  Y="6"
+                  Width="200"
+                  Height="15"
+                  Transparent="yes"
+                  NoPrefix="yes"
+                  Text="First steps" />
+
+         <Control Id="OpenDocumentation"
+                  Type="PushButton"
+                  X="180"
+                  Y="243"
+                  Width="56"
+                  Height="17"
+                  Text="Read Documentation" />
+
+       </Dialog>
+     </UI>
+  </Fragment>
 </Wix>
