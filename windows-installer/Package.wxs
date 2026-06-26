@@ -72,5 +72,7 @@
 
 		<!-- Custom UI Reference -->
 		<ui:WixUI Id="WixUI_InstallDirCustom" InstallDirectory="INSTALLFOLDER" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALTEXT"
+              Value="!(loc.IntroductoryMessage)" />
   </Package>
 </Wix>
