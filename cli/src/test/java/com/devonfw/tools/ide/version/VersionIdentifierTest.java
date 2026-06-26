@@ -80,7 +80,7 @@ class VersionIdentifierTest extends Assertions {
    */
   @ParameterizedTest
   // arrange
-  @ValueSource(strings = { "0", "0.0", "1.0.pineapple-pen", "1.0-rc", ".1.0", "1.-0", "RC1", "Beta1", "donut", "0*.0", "*0", "*.", "17.*alpha",
+  @ValueSource(strings = { "0", "0.0", "1.0.pineapple-pen", "1.0-rc", ".1.0", "1.-0", "RC1", "Beta1", "donut", "0*.0", "*0", "*.", "17.*alpha", "17-SNAPSHOT1",
       "17*.1" })
   void testInvalid(String version) {
 
