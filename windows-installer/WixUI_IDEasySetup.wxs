@@ -85,7 +85,15 @@
 				<Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="!(loc.WixUICancel)">
 					<Publish Event="SpawnDialog" Value="CancelDlg" />
 				</Control>
-				<Control Id="InstallLogInfoText" Type="Text"  X="20" Y="170" Width="320" Height="30" Transparent="yes" NoPrefix="yes" Text="We will write an install log to: %USERPROFILE%\\.ide\\logs">
+
+<Control Id="InstallLogInfoText"
+         Type="Text"
+         X="20" Y="170"
+         Width="320" Height="30"
+         Transparent="no"
+         NoPrefix="yes"
+         Text="We will write an install log to: [IDEASY_USER_HOME]\.ide\logs"/>
+
 			</Dialog>
 		</UI>
 	</Fragment>

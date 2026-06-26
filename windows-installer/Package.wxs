@@ -33,7 +33,13 @@
     <CustomAction Id="SetTEMP_FOLDER" Property="INSTALLFOLDER" Value="[IDE_ROOT]\_ide\tmp\ideasy" Execute="immediate" Return="check" />
 
 		<!-- On Exit-Dialog -->
-    <Property Id="WIXUI_EXITDIALOGOPTIONALTEXT" Value="IDEasy installation logs are written to: %USERPROFILE%\.ide\logs" />
+
+    <SetProperty
+      Id="WIXUI_EXITDIALOGOPTIONALTEXT"
+      Value="IDEasy installation logs are written to: [IDEASY_USER_HOME]\.ide\logs"
+      Before="ExecuteAction"
+      Sequence="ui" />
+
 		<!-- Execution of install command-->
 		<SetProperty
 			Id="RunInstallAction"
@@ -41,6 +47,13 @@
       Before="RunInstallAction"
 			Sequence="execute"
 			/>
+
+    <SetProperty
+      Id="IDEASY_USER_HOME"
+      Value="[WindowsFolder]..\Users\[LogonUser]"
+      Before="CostFinalize"
+      Sequence="ui" />
+
 		<CustomAction
 			Id="RunInstallAction"
 			BinaryRef="Wix4UtilCA_X64"
