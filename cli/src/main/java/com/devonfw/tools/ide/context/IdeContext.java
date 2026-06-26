@@ -49,7 +49,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * <li>{@link #newProgressBar(String, long, String, long) progress bar} (to display long-running progress for UX)</li>
  * <li>{@link #getGitContext() git context} (for git operations like clone, fetch, pull, etc.)</li>
  * <li>{@link #getSystemInfo() system info} (for information about OS and CPU architecture)</li>
- * <li>{@link #getVariables() environment varialbes} (to access and modify environment variables according to our configuration layout)</li>
+ * <li>{@link #getVariables() environment variables} (to access and modify IDEasy variables according to our configuration layout)</li>
+ * 
  * <li>{@link #question(Object[], String, Object...) question} (for interaction to let the end-user decide)</li>
  * <li>{@link #getUrls() url metadata} (access ide-urls to find versions, download URLs, dependency and security metadata)</li>
  * <li>{@link #getDefaultToolRepository() tool repository} (for abstraction of version resolution and download of tools)</li>
