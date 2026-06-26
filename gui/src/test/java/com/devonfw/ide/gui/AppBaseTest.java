@@ -7,12 +7,15 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.TreeView;
 import javafx.stage.Stage;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -20,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testfx.util.WaitForAsyncUtils;
 
 import com.devonfw.ide.gui.context.IdeGuiContext;
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
@@ -33,6 +37,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
   private static final Logger LOGGER = LoggerFactory.getLogger(AppBaseTest.class);
 
   private Button androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen;
+  private Button toolsConfigButton;
   private ComboBox<String> selectedProject, selectedWorkspace;
   private ComboBox<String> selectedLanguage;
 
@@ -65,6 +70,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
     selectedProject = lookup(root, "#selectedProject");
     selectedWorkspace = lookup(root, "#selectedWorkspace");
     selectedLanguage = lookup(root, "#selectedLanguage");
+    toolsConfigButton = lookup(root, "#toolsConfigButton");
   }
 
   /**
@@ -165,6 +171,79 @@ public class AppBaseTest extends HeadlessApplicationTest {
     assertThat(IdeGuiStateManager.getInstance().getCurrentContext()).isSameAs(contextBefore);
     assertThat(selectedLanguage.getValue()).isEqualTo("Deutsch");
     assertThat(androidStudioOpen.getText()).isNotEqualTo(buttonTextBefore);
+  }
+
+  /**
+   * Verifies that the Tools Config button is disabled when no workspace has been selected yet.
+   */
+  @Test
+  public void testToolsConfigButtonDisabledWithoutWorkspaceSelection() {
+
+    assertThat(selectedWorkspace.getValue()).isNull();
+    assertThat(toolsConfigButton.isDisabled())
+        .as("toolsConfigButton should be disabled when no workspace is selected")
+        .isTrue();
+  }
+
+  /**
+   * Verifies that the Tools Config button becomes enabled once a project and workspace are selected.
+   */
+  @Test
+  public void testToolsConfigButtonEnabledAfterWorkspaceSelection() {
+
+    interact(() -> selectedProject.getSelectionModel().select("project-1"));
+    interact(() -> selectedWorkspace.getSelectionModel().select("main"));
+
+    assertThat(toolsConfigButton.isDisabled())
+        .as("toolsConfigButton should be enabled after project and workspace are selected")
+        .isFalse();
+  }
+
+  /**
+   * Opens the Tools Config dialog, waits for it to finish loading (can take ~30 s because
+   * {@link com.devonfw.ide.gui.settings.ToolSettingsService#listToolConfigurations} queries the real tool repository), then asserts that the expected UI
+   * elements are present and that Cancel closes the dialog.
+   * <p>
+   * {@code Platform.runLater} is used deliberately instead of {@code interact()} / {@code clickOn()} so that the FX thread is not drained synchronously while
+   * the slow {@code initialize()} is still running. The test thread waits via {@link WaitForAsyncUtils#waitFor} instead.
+   */
+  @Test
+  public void testToolsConfigDialogShowsExpectedElementsAndCancels() throws Exception {
+
+    // arrange – a project and workspace must be selected to enable the button
+    interact(() -> selectedProject.getSelectionModel().select("project-1"));
+    interact(() -> selectedWorkspace.getSelectionModel().select("main"));
+
+    // act – fire the button without blocking the test thread on FX-event drain
+    Platform.runLater(() -> toolsConfigButton.fire());
+
+    // wait up to 90 seconds for the dialog to appear (listToolConfigurations can be slow)
+    WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        () -> lookup("#cancelButton").tryQuery().isPresent());
+
+    // assert – all expected dialog controls are present
+    TreeView<?> toolsTree = lookup("#toolsTree").query();
+    Button saveButton = lookup("#saveButton").query();
+    Button previewButton = lookup("#previewButton").query();
+
+    assertThat(toolsTree).isNotNull();
+    assertThat(saveButton).isNotNull();
+    assertThat(previewButton).isNotNull();
+
+    // save and preview should be enabled on open (no validation errors)
+    assertThat(saveButton.isDisabled())
+        .as("save button should be enabled when dialog first opens")
+        .isFalse();
+    assertThat(previewButton.isDisabled())
+        .as("preview button should be enabled when dialog first opens")
+        .isFalse();
+
+    // act – close the dialog via Cancel
+    clickOn("#cancelButton");
+
+    // assert – dialog is gone
+    WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS,
+        () -> lookup("#cancelButton").tryQuery().isEmpty());
   }
 
   @SuppressWarnings("unchecked")

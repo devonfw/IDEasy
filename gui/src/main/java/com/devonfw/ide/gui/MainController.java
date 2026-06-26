@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.nio.file.NotDirectoryException;
 import java.util.List;
 import java.util.Locale;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -11,6 +12,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
@@ -21,6 +23,9 @@ import com.devonfw.ide.gui.context.IdeGuiStateManager;
 import com.devonfw.ide.gui.context.ProjectManager;
 import com.devonfw.ide.gui.localization.LocalizationService;
 import com.devonfw.ide.gui.modal.IdeDialog;
+import com.devonfw.ide.gui.settings.ToolConfiguration;
+import com.devonfw.ide.gui.settings.ToolSettingsController;
+import com.devonfw.ide.gui.settings.ToolSettingsService;
 
 /**
  * Controller of the main screen of the dashboard GUI.
@@ -202,9 +207,84 @@ public class MainController {
       eclipseOpen.setDisable(false);
       intellijOpen.setDisable(false);
       vsCodeOpen.setDisable(false);
-      // Now we have a workspace selected -> enable tools config
+      // enable tools config
       updateToolsConfigButtonState();
+      // Pre-warm ide-urls git repo in background so the first dropdown open is fast
+      Thread preWarm = new Thread(() -> {
+        try {
+          IdeGuiStateManager.getInstance().getCurrentContext().getUrls();
+        } catch (Exception ignored) {
+        }
+      });
+      preWarm.setDaemon(true);
+      preWarm.start();
     });
+  }
+
+
+  private void openIDE(String inIde) {
+
+    IdeGuiStateManager
+        .getInstance()
+        .getCurrentContext()
+        .getCommandletManager()
+        .getCommandlet(inIde)
+        .run();
+  }
+
+  @FXML
+  private void openToolsConfig() {
+    ProgressIndicator spinner = new ProgressIndicator(-1);
+    spinner.setPrefSize(16, 16);
+    toolsConfigButton.setGraphic(spinner);
+    toolsConfigButton.setText("");
+    toolsConfigButton.setDisable(true);
+
+    ToolSettingsService toolSettingsService = new ToolSettingsService();
+
+    Thread thread = new Thread(() -> {
+      try {
+        List<ToolConfiguration> configurations = toolSettingsService.listToolConfigurations(
+            IdeGuiStateManager.getInstance().getCurrentContext());
+        Platform.runLater(() -> showToolsConfigDialog(configurations));
+      } catch (Exception e) {
+        Platform.runLater(() -> {
+          LOG.error("Failed to load tool configurations", e);
+          restoreToolsConfigButton();
+          new IdeDialog(IdeDialog.AlertType.ERROR, e.getMessage()).showAndWait();
+        });
+      }
+    });
+    thread.setDaemon(true);
+    thread.start();
+  }
+
+  private void showToolsConfigDialog(List<ToolConfiguration> configurations) {
+    try {
+      ToolSettingsController controller = new ToolSettingsController();
+      FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/devonfw/ide/gui/tools-config-dialog.fxml"));
+      loader.setController(controller);
+      loader.setResources(LocalizationService.getInstance().getResourceBundle());
+      Parent root = loader.load();
+      Stage dialog = new Stage();
+      dialog.initModality(Modality.APPLICATION_MODAL);
+      dialog.initOwner(this.selectedProject.getScene().getWindow());
+      dialog.setTitle(LocalizationService.getInstance().get("label.toolsConfig"));
+      dialog.setScene(new Scene(root));
+      dialog.setWidth(600);
+      restoreToolsConfigButton();
+      dialog.showAndWait();
+    } catch (Exception e) {
+      LOG.error("Failed to open tools configuration dialog", e);
+      restoreToolsConfigButton();
+      new IdeDialog(IdeDialog.AlertType.ERROR, e.getMessage()).showAndWait();
+    }
+  }
+
+  private void restoreToolsConfigButton() {
+    toolsConfigButton.setGraphic(null);
+    toolsConfigButton.setText(LocalizationService.getInstance().get("button.toolsConfig"));
+    toolsConfigButton.setDisable(false);
   }
 
   /**
@@ -220,35 +300,6 @@ public class MainController {
     }
     if (toolsConfigButton != null) {
       toolsConfigButton.setDisable(!enabled);
-    }
-  }
-
-  private void openIDE(String inIde) {
-
-    IdeGuiStateManager
-        .getInstance()
-        .getCurrentContext()
-        .getCommandletManager()
-        .getCommandlet(inIde)
-        .run();
-  }
-
-  @FXML
-  private void openToolsConfig() {
-    try {
-      FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/devonfw/ide/gui/tools-config.fxml"));
-      loader.setResources(LocalizationService.getInstance().getResourceBundle());
-      Parent root = loader.load();
-      Stage dialog = new Stage();
-      dialog.initModality(Modality.APPLICATION_MODAL);
-      dialog.initOwner(this.selectedProject.getScene().getWindow());
-      dialog.setTitle(LocalizationService.getInstance().get("label.toolsConfig"));
-      dialog.setScene(new Scene(root));
-      dialog.showAndWait();
-    } catch (Exception e) {
-      LOG.error("Failed to open tools configuration dialog", e);
-      IdeDialog errorDialog = new IdeDialog(IdeDialog.AlertType.ERROR, e.getMessage());
-      errorDialog.showAndWait();
     }
   }
 
