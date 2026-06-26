@@ -54,7 +54,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * <li>{@link #question(Object[], String, Object...) question} (for interaction to let the end-user decide)</li>
  * <li>{@link #getUrls() url metadata} (access ide-urls to find versions, download URLs, dependency and security metadata)</li>
  * <li>{@link #getDefaultToolRepository() tool repository} (for abstraction of version resolution and download of tools)</li>
- * <li>{@link #getSystem() ide system} (to abstract system environment variables)</li>
+ * <li>{@link #getSystem() ide system} (abstraction of {@link java.lang.System} for system environment variables)</li>
  * </ul>
  */
 public interface IdeContext extends IdeStartContext {
