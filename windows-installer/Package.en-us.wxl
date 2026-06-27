@@ -18,5 +18,5 @@ This file contains the declaration of all the localizable strings.
   <String Id="FirstStepsDlgTitle" Value="{\WixUI_Font_Title}First Steps" />
   <String Id="FirstStepsDlgDescription" Value="Follow these steps to get started with IDEasy." />
   <String Id="OpenDocumentationBtn" Value="Open Documentation" />
-  <String Id="IntroductoryMessage" Value="IDEasy has been installed successfully.&#xA;&#xA;Open a new terminal and run the following commands:&#xA;&#xA;  Create your first project:&#xA;    ide create &lt;project-name&gt;&#xA;&#xA;  Or set up IDEasy in an existing project folder:&#xA;    ide setup&#xA;&#xA;  For a full list of commands:&#xA;    ide help&#xA;&#xA;Click 'Open Documentation' for detailed setup instructions." />
+  <String Id="IntroductoryMessage" Value="IDEasy has been installed successfully.&#xA;&#xA;Open a new terminal and run the following commands:&#xA;&#xA;  Create your first project:&#xA;    ide create &lt;project-name&gt;&#xA;&#xA;  Or view the full list of available commands:&#xA;    ide help&#xA;&#xA;Click 'Open Documentation' for more detailed setup instructions." />
 </WixLocalization>
