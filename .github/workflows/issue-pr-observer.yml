@@ -23,9 +23,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WEBHOOK: ${{ secrets.TEAMS_WEBHOOK_URL }}
-          REPO: devonfw/IDEasy
+          REPO: ${{ github.repository }}
         run: |
-          SINCE=$(date -u -d '30 days ago' +%Y-%m-%dT%H:%M:%SZ)
+          SINCE=$(date -u -d '1 day ago' +%Y-%m-%dT%H:%M:%SZ)
           echo "Scanning $REPO for items created since $SINCE"
 
           # Search returns both issues and PRs; keep only external authors (not on the team)
