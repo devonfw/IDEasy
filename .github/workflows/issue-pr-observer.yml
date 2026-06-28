@@ -25,7 +25,12 @@ jobs:
           WEBHOOK: ${{ secrets.TEAMS_WEBHOOK_URL }}
           REPO: ${{ github.repository }}
         run: |
-          SINCE=$(date -u -d '1 day ago' +%Y-%m-%dT%H:%M:%SZ)
+          # Monday catches up the weekend (Fri–Sun); other weekdays look back 24h.
+          if [ "$(date -u +%u)" -eq 1 ]; then
+            SINCE=$(date -u -d '3 days ago' +%Y-%m-%dT%H:%M:%SZ)
+          else
+            SINCE=$(date -u -d '1 day ago' +%Y-%m-%dT%H:%M:%SZ)
+          fi
           echo "Scanning $REPO for items created since $SINCE"
 
           # Search returns both issues and PRs; keep only external authors (not on the team)
@@ -52,9 +57,8 @@ jobs:
           fi
           echo "$COUNT neue(r) externe(r) Eintrag/Eintraege gefunden."
 
-          # Build the bare Adaptive Card the Teams "Workflows" webhook expects
-          # (top-level type must be "AdaptiveCard"; no message/attachments envelope).
-          # Card text is in German; each item is its own container for comfortable reading.
+          # Teams' webhook wants a bare Adaptive Card: top-level type must be
+          # "AdaptiveCard", not wrapped in a message/attachments envelope.
           CARD=$(echo "$ITEMS_JSON" | jq --argjson count "$COUNT" '{
             type: "AdaptiveCard",
             "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
