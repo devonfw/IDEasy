@@ -24,10 +24,7 @@ public class Claude extends LocalToolCommandlet {
   /** Sub-directory of {@code conf} holding the isolated Claude configuration. */
   static final String CONFIG_FOLDER = "claude";
 
-  /**
-   * Provider/auth environment variables removed from the launched Claude process so an ambient/leaked value cannot override the per-project configuration. The
-   * isolated {@code settings.json} env block is the single source of truth.
-   */
+  /** Content of the seeded {@code README.md} explaining that the user owns {@code settings.json} and which scrubbed variables to declare there. */
   private static final String README_CONTENT = """
       # Isolated Claude configuration (managed location, content owned by you)
 
@@ -58,6 +55,10 @@ public class Claude extends LocalToolCommandlet {
         }
       """;
 
+  /**
+   * Provider/auth environment variables removed from the launched Claude process so an ambient/leaked value cannot override the per-project configuration. The
+   * isolated {@code settings.json} env block is the single source of truth.
+   */
   static final List<String> SCRUB_VARS = List.of(
       "ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_BASE_URL",
       "ANTHROPIC_MODEL", "ANTHROPIC_SMALL_FAST_MODEL", "ANTHROPIC_CUSTOM_HEADERS",
