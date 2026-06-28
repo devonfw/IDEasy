@@ -107,6 +107,24 @@ class ClaudeTest extends AbstractIdeContextTest {
     assertThat(settings).content().isEqualTo(userContent);
   }
 
+  @Test
+  void testRunExportsIsolatedConfigDirToProcess(WireMockRuntimeInfo wireMockRuntimeInfo) {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_CLAUDE, wireMockRuntimeInfo);
+    Claude claude = new Claude(context);
+    claude.arguments.addValue("hello");
+    claude.arguments.addValue("world");
+
+    // act
+    claude.run();
+
+    // assert
+    String expectedConfigDir = context.getConfPath().resolve("claude").toString();
+    assertThat(context).logAtInfo().hasMessage("claude hello world");
+    assertThat(context).logAtInfo().hasMessageContaining("CLAUDE_CONFIG_DIR=" + expectedConfigDir);
+  }
+
   private void assertInstalled(IdeTestContext context) {
 
     assertThat(context.getSoftwarePath().resolve("claude/.ide.software.version")).exists().hasContent(CLAUDE_VERSION);
