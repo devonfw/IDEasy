@@ -3,7 +3,12 @@ package com.devonfw.ide.gui.localization;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Enumeration;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -12,6 +17,8 @@ import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,11 +43,6 @@ public class LocalizationService {
   private static final String BUNDLE_NAME = "localization.messages";
 
   private static final String LANGUAGE_DISPLAY_KEY = "CurrentLanguage";
-
-  // This list is used to detect available locales by checking for the existence of a concrete bundle file.
-  // English is removed, since it is the default and always available.
-  private static final String[] COMMON_LOCALES = { "de", "fr", "it", "ja", "zh", "es", "pt", "ru", "ko",
-      "pl", "nl", "sv", "da", "no", "fi", "cs", "hu", "ro", "el", "he", "ar", "th", "vi", "id" };
 
   private static LocalizationService instance;
 
@@ -277,34 +279,89 @@ public class LocalizationService {
   }
 
   /**
-   * Detects locales by checking for concrete bundle resources for commonly-used locales.
+   * Detects available locales by scanning the classpath for {@code localization/messages_*.properties} files, covering both exploded directories and JAR
+   * files.
    *
    * @return immutable list of supported locales.
    */
   private List<Locale> detectAvailableLocales() {
+
     Set<Locale> detectedLocales = new LinkedHashSet<>();
     detectedLocales.add(Locale.ENGLISH);
 
-    for (String localeTag : COMMON_LOCALES) {
-      Locale locale = Locale.forLanguageTag(localeTag);
-      if (hasExactBundleForLocale(locale)) {
-        detectedLocales.add(locale);
+    String resourceBase = BUNDLE_NAME.replace('.', '/');
+    String packagePath = resourceBase.substring(0, resourceBase.lastIndexOf('/') + 1);
+    String filePrefix = resourceBase.substring(resourceBase.lastIndexOf('/') + 1) + "_";
+
+    ClassLoader loader = Thread.currentThread().getContextClassLoader();
+    if (loader == null) {
+      loader = LocalizationService.class.getClassLoader();
+    }
+
+    try {
+      Enumeration<URL> resources = loader.getResources(packagePath);
+      while (resources.hasMoreElements()) {
+        collectLocalesFromUrl(resources.nextElement(), packagePath, filePrefix, detectedLocales);
       }
+    } catch (IOException e) {
+      LOG.warn("Classpath locale discovery failed: {}", e.getMessage());
     }
 
     return List.copyOf(detectedLocales);
   }
 
-  private boolean hasExactBundleForLocale(Locale locale) {
-    try {
-      ResourceBundle bundle = ResourceBundle.getBundle(BUNDLE_NAME, locale, UTF8_CONTROL);
+  private void collectLocalesFromUrl(URL url, String packagePath, String filePrefix, Set<Locale> locales) {
 
-      // Java's getBundle automatically falls back to system defaults or the base bundle if a language is missing.
-      //  ensure a strict match by checking that the resolved bundle language matches our requested locale.
-      return bundle.getLocale().getLanguage().equals(locale.getLanguage());
-    } catch (MissingResourceException e) {
-      // Explicitly thrown by ResourceBundle if absolutely no matching file could be found
-      return false;
+    if ("file".equals(url.getProtocol())) {
+      try {
+        collectLocalesFromDirectory(Path.of(url.toURI()), filePrefix, locales);
+      } catch (Exception e) {
+        LOG.debug("Locale scan skipped for {}: {}", url, e.getMessage());
+      }
+    } else if ("jar".equals(url.getProtocol())) {
+      collectLocalesFromJar(url, packagePath, filePrefix, locales);
+    }
+  }
+
+  private void collectLocalesFromDirectory(Path dir, String filePrefix, Set<Locale> locales) {
+
+    try (var stream = Files.list(dir)) {
+      stream.map(p -> p.getFileName().toString())
+          .filter(n -> n.startsWith(filePrefix) && n.endsWith(".properties"))
+          .forEach(n -> addLocaleFromTag(n.substring(filePrefix.length(), n.length() - ".properties".length()), locales));
+    } catch (IOException e) {
+      LOG.debug("Could not list locale directory {}: {}", dir, e.getMessage());
+    }
+  }
+
+  private void collectLocalesFromJar(URL url, String packagePath, String filePrefix, Set<Locale> locales) {
+
+    // url format: jar:file:/path/to/app.jar!/localization/
+    String path = url.getPath();
+    String jarFilePath = path.substring(0, path.indexOf('!'));
+    String entryPrefix = packagePath + filePrefix;
+    try {
+      Path jar = Path.of(new URI(jarFilePath));
+      try (JarFile jarFile = new JarFile(jar.toFile())) {
+        jarFile.stream()
+            .map(JarEntry::getName)
+            .filter(n -> n.startsWith(entryPrefix) && n.endsWith(".properties"))
+            .forEach(n -> addLocaleFromTag(n.substring(entryPrefix.length(), n.length() - ".properties".length()), locales));
+      }
+    } catch (Exception e) {
+      LOG.debug("Could not scan JAR {} for locales: {}", url, e.getMessage());
+    }
+  }
+
+  private void addLocaleFromTag(String tag, Set<Locale> locales) {
+
+    if (tag.isBlank()) {
+      return;
+    }
+    // Java bundle filenames use '_' as separator (e.g. zh_CN); BCP 47 uses '-'
+    Locale locale = Locale.forLanguageTag(tag.replace('_', '-'));
+    if (!locale.getLanguage().isEmpty()) {
+      locales.add(locale);
     }
   }
 

@@ -4,6 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Enumeration;
@@ -13,6 +16,8 @@ import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -111,7 +116,7 @@ public class LocalizationServiceTest {
   }
 
   @Test
-  public void testLanguageDisplayNameFallsBackToLocaleName() {
+  public void testLanguageDisplayShowsLocaleName() {
 
     LocalizationService service = LocalizationService.getInstance(Locale.ENGLISH);
 
@@ -186,6 +191,81 @@ public class LocalizationServiceTest {
       assertThat(value).isNotBlank()
           .as("Translation for key '%s' should not be empty", key);
     }
+  }
+
+
+  @Test
+  public void testGetAvailableLocalesAlwaysContainsEnglish() {
+
+    LocalizationService service = LocalizationService.getInstance(Locale.ENGLISH);
+
+    assertThat(service.getAvailableLocales()).contains(Locale.ENGLISH);
+  }
+
+  @Test
+  public void testGetAvailableLocalesDetectsExistingBundleFiles() {
+
+    LocalizationService service = LocalizationService.getInstance(Locale.ENGLISH);
+    //confirmed languages till now
+    assertThat(service.getAvailableLocales())
+        .contains(Locale.GERMAN, Locale.ENGLISH);
+  }
+
+  @Test
+  public void testGetAvailableLocalesDoesNotContainAbsentLocales() {
+
+    LocalizationService service = LocalizationService.getInstance(Locale.ENGLISH);
+
+    assertThat(service.getAvailableLocales())
+        .doesNotContain(Locale.FRENCH, Locale.JAPANESE, Locale.forLanguageTag("zh"));
+  }
+
+
+  @Test
+  public void testGetAvailableLocalesFromDirectory(@TempDir Path bundleRoot) throws Exception {
+
+    Path localizationDir = bundleRoot.resolve("localization");
+    Files.createDirectories(localizationDir);
+    Files.createFile(localizationDir.resolve("messages.properties"));
+    Files.createFile(localizationDir.resolve("messages_fr.properties"));
+
+    ClassLoader original = Thread.currentThread().getContextClassLoader();
+    try (URLClassLoader loader = new URLClassLoader(new URL[] { bundleRoot.toUri().toURL() }, ClassLoader.getPlatformClassLoader())) {
+      Thread.currentThread().setContextClassLoader(loader);
+      LocalizationService service = LocalizationService.getInstance(Locale.ENGLISH);
+      assertThat(service.getAvailableLocales())
+          .containsExactlyInAnyOrder(Locale.ENGLISH, Locale.FRENCH);
+    } finally {
+      Thread.currentThread().setContextClassLoader(original);
+    }
+  }
+
+  @Test
+  public void testGetAvailableLocalesFromJar(@TempDir Path jarRoot) throws Exception {
+
+    Path jarFile = jarRoot.resolve("test-bundles.jar");
+    try (JarOutputStream jos = new JarOutputStream(Files.newOutputStream(jarFile))) {
+      writeJarEntry(jos, "localization/");
+      writeJarEntry(jos, "localization/messages_fr.properties");
+    }
+
+    ClassLoader original = Thread.currentThread().getContextClassLoader();
+    try (URLClassLoader loader = new URLClassLoader(new URL[] { jarFile.toUri().toURL() }, ClassLoader.getPlatformClassLoader())) {
+      Thread.currentThread().setContextClassLoader(loader);
+      LocalizationService service = LocalizationService.getInstance(Locale.ENGLISH);
+      assertThat(service.getAvailableLocales())
+          .containsExactlyInAnyOrder(Locale.ENGLISH, Locale.FRENCH);
+    } finally {
+      Thread.currentThread().setContextClassLoader(original);
+    }
+  }
+
+
+  private static void writeJarEntry(JarOutputStream jos, String name) throws IOException {
+
+    jos.putNextEntry(new JarEntry(name));
+    jos.write("".getBytes(StandardCharsets.UTF_8));
+    jos.closeEntry();
   }
 
   private Set<String> extractKeys(ResourceBundle bundle) {
