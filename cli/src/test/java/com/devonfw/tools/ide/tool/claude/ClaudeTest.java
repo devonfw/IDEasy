@@ -1,9 +1,13 @@
 package com.devonfw.tools.ide.tool.claude;
 
+import java.nio.file.Path;
+
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.tool.ToolInstallation;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
@@ -43,6 +47,28 @@ class ClaudeTest extends AbstractIdeContextTest {
     // assert
     assertInstalled(context);
     assertThat(context).logAtInfo().hasMessage("claude hello world");
+  }
+
+  @Test
+  void testSetEnvironmentIsolatesConfigDirAndScrubsLeakingVars() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_CLAUDE, null, false);
+    Claude claude = new Claude(context);
+    Path dummy = context.getSoftwarePath().resolve("claude");
+    ToolInstallation installation = new ToolInstallation(dummy, dummy, dummy, VersionIdentifier.of(CLAUDE_VERSION), false);
+    RecordingEnvironmentContext ec = new RecordingEnvironmentContext();
+
+    // act
+    claude.setEnvironment(ec, installation, false);
+
+    // assert
+    Path expectedConfigDir = context.getConfPath().resolve("claude");
+    assertThat(ec.set).containsEntry("CLAUDE_CONFIG_DIR", expectedConfigDir.toString());
+    assertThat(ec.removed).contains("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_BASE_URL",
+        "CLAUDE_CODE_USE_BEDROCK", "CLAUDE_CODE_OAUTH_TOKEN", "AWS_PROFILE", "AWS_REGION",
+        "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_SESSION_TOKEN", "AWS_BEARER_TOKEN_BEDROCK");
+    assertThat(ec.removed).doesNotContain("CLAUDE_CONFIG_DIR");
   }
 
   private void assertInstalled(IdeTestContext context) {
