@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool.claude;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
@@ -69,6 +70,41 @@ class ClaudeTest extends AbstractIdeContextTest {
         "CLAUDE_CODE_USE_BEDROCK", "CLAUDE_CODE_OAUTH_TOKEN", "AWS_PROFILE", "AWS_REGION",
         "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_SESSION_TOKEN", "AWS_BEARER_TOKEN_BEDROCK");
     assertThat(ec.removed).doesNotContain("CLAUDE_CONFIG_DIR");
+  }
+
+  @Test
+  void testInstallSeedsSettingsSkeletonWhenAbsent(WireMockRuntimeInfo wireMockRuntimeInfo) {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_CLAUDE, wireMockRuntimeInfo);
+    Claude claude = new Claude(context);
+
+    // act
+    claude.install();
+
+    // assert
+    Path settings = context.getConfPath().resolve("claude/settings.json");
+    Path readme = context.getConfPath().resolve("claude/README.md");
+    assertThat(settings).exists().content().contains("\"env\"");
+    assertThat(readme).exists();
+  }
+
+  @Test
+  void testInstallDoesNotOverwriteExistingSettings(WireMockRuntimeInfo wireMockRuntimeInfo) throws Exception {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_CLAUDE, wireMockRuntimeInfo);
+    Path settings = context.getConfPath().resolve("claude/settings.json");
+    Files.createDirectories(settings.getParent());
+    String userContent = "{\n  \"env\": { \"CLAUDE_CODE_USE_BEDROCK\": \"1\" }\n}\n";
+    Files.writeString(settings, userContent);
+    Claude claude = new Claude(context);
+
+    // act
+    claude.install();
+
+    // assert
+    assertThat(settings).content().isEqualTo(userContent);
   }
 
   private void assertInstalled(IdeTestContext context) {
