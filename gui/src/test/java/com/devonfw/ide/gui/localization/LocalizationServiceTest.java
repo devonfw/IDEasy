@@ -4,16 +4,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Properties;
-import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.jar.JarEntry;
@@ -92,14 +91,16 @@ public class LocalizationServiceTest {
 
 
   @Test
-  public void testAllLocalizationBundlesContainExactlyTheEnglishKeys() {
+  public void testAllLocalizationBundlesContainExactlyTheEnglishKeys() throws IOException {
 
     LocalizationService service = LocalizationService.getInstance(Locale.ENGLISH);
-    Set<String> englishKeys = extractKeys(ResourceBundle.getBundle("localization.messages", Locale.ENGLISH));
+    Set<String> englishKeys = loadBundleProperties(Locale.ENGLISH).stringPropertyNames();
 
     for (Locale locale : service.getAvailableLocales()) {
-      ResourceBundle bundle = ResourceBundle.getBundle("localization.messages", locale);
-      Set<String> localeKeys = extractKeys(bundle);
+      if (locale.equals(Locale.ENGLISH)) {
+        continue;
+      }
+      Set<String> localeKeys = loadBundleProperties(locale).stringPropertyNames();
 
       Set<String> missingKeys = new HashSet<>(englishKeys);
       missingKeys.removeAll(localeKeys);
@@ -173,23 +174,17 @@ public class LocalizationServiceTest {
 
 
   @Test
-  public void testGetMissingKeyReturnsFallback() {
+  public void testNoEmptyTranslations() throws IOException {
 
     LocalizationService service = LocalizationService.getInstance(Locale.ENGLISH);
-    String value = service.get("non.existent.key");
 
-    assertThat(value).isEqualTo("!non.existent.key!");
-  }
-
-
-  @Test
-  public void testNoEmptyTranslations() {
-
-    ResourceBundle englishBundle = ResourceBundle.getBundle("localization.messages", Locale.ENGLISH);
-    for (String key : extractKeys(englishBundle)) {
-      String value = englishBundle.getString(key);
-      assertThat(value).isNotBlank()
-          .as("Translation for key '%s' should not be empty", key);
+    for (Locale locale : service.getAvailableLocales()) {
+      Properties props = loadBundleProperties(locale);
+      for (String key : props.stringPropertyNames()) {
+        assertThat(props.getProperty(key))
+            .as("Translation for key '%s' in locale '%s' should not be empty", key, locale)
+            .isNotBlank();
+      }
     }
   }
 
@@ -261,23 +256,26 @@ public class LocalizationServiceTest {
   }
 
 
+  private Properties loadBundleProperties(Locale locale) throws IOException {
+
+    String resourceName = locale.equals(Locale.ENGLISH)
+        ? "localization/messages.properties"
+        : "localization/messages_" + locale.toLanguageTag().replace('-', '_') + ".properties";
+    InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(resourceName);
+    assertThat(is).as("Bundle file not found: %s", resourceName).isNotNull();
+    try (InputStreamReader reader = new InputStreamReader(is, StandardCharsets.UTF_8)) {
+      Properties props = new Properties();
+      props.load(reader);
+      return props;
+    }
+  }
+
   private static void writeJarEntry(JarOutputStream jos, String name) throws IOException {
 
     jos.putNextEntry(new JarEntry(name));
     jos.write("".getBytes(StandardCharsets.UTF_8));
     jos.closeEntry();
   }
-
-  private Set<String> extractKeys(ResourceBundle bundle) {
-
-    Set<String> keys = new HashSet<>();
-    Enumeration<String> enumeration = bundle.getKeys();
-    while (enumeration.hasMoreElements()) {
-      keys.add(enumeration.nextElement());
-    }
-    return keys;
-  }
-
 
 }
 

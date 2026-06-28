@@ -245,12 +245,8 @@ public class LocalizationService {
    */
   public String get(String key) {
 
-    try {
-      return this.resourceBundle.getString(key);
-    } catch (MissingResourceException e) {
-      LOG.warn("Missing translation key: {} for locale: {}", key, this.locale);
-      return "!" + key + "!";
-    }
+    return this.resourceBundle.getString(key);
+
   }
 
   /**
