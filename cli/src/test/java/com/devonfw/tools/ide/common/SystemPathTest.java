@@ -12,6 +12,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 
@@ -140,6 +141,25 @@ class SystemPathTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(result).isEqualTo(test);
+  }
+
+  @Test
+  void testConstructorSkipsMalformedPathEntryAndKeepsValidOnes() {
+    // arrange
+    IdeTestContext context = newContext("find-binary", "project/workspaces", false);
+    String validEntryBefore = "C:\\Tools\\bin";
+    // (char) 0 is an illegal NUL character, making Path.of throw InvalidPathException on every OS
+    String malformedEntry = "broken" + (char) 0 + "entry";
+    String validEntryAfter = "C:\\Other\\bin";
+    String envPath = validEntryBefore + ';' + malformedEntry + ';' + validEntryAfter;
+
+    // act
+    SystemPath systemPath = new SystemPath(context, envPath, context.getIdeRoot(), context.getSoftwarePath(), ';', new ArrayList<>());
+
+    // assert
+    String result = systemPath.toString();
+    assertThat(result).contains(validEntryBefore).contains(validEntryAfter);
+    assertThat(context).log(IdeLogLevel.WARNING).hasMessageContaining("Ignoring invalid PATH entry");
   }
 
   private static boolean checkPathToIgnoreLowercase(Path p, String toIgnore) {
