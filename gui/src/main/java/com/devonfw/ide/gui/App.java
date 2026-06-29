@@ -38,7 +38,6 @@ public class App extends Application {
 
     this.primaryStage = primaryStage;
 
-    // Initialize localization with system default locale
     this.localizationService = LocalizationService.getInstance(null);
 
     Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
