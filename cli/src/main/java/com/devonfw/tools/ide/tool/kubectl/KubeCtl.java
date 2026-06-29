@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.tool.kubectl;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -25,6 +27,19 @@ public class KubeCtl extends DelegatingToolCommandlet {
   public KubeCtl(IdeContext context) {
 
     super(context, "kubectl", Set.of(Tag.KUBERNETES), Docker.class);
+  }
+
+  @Override
+  protected String getBinaryName() {
+
+    if (isCommandAvailable(this.tool)) {
+      return this.tool;
+    }
+    Path rancherDesktopBinary = this.context.getUserHome().resolve(".rd").resolve("bin").resolve(this.tool);
+    if (Files.exists(rancherDesktopBinary)) {
+      return rancherDesktopBinary.toString();
+    }
+    return this.tool;
   }
 
   @Override
