@@ -11,6 +11,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.cli.CliArguments;
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
@@ -117,26 +118,32 @@ class CreateCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  void testIdeVersionTooOldOnProjectCreation() {
+  void testIdeVersionTooOldOnProjectCreation(@TempDir Path tempDir) throws Exception {
     // arrange
+    String ideMinVersion = "2026.01.001";
+    IdeVersion.setMockVersionForTesting("2024.01.001");
+    String ideCurrentVersion = IdeVersion.getVersionString();
+    String errorMessage = String.format("""
+        Your version of IDEasy is currently %s
+        However, this is too old as your project requires at latest version %s
+        Please run the following command to update to the latest version of IDEasy and fix the problem:
+        ide upgrade""", ideCurrentVersion, ideMinVersion);
+
+    // IDE_MIN_VERSION must exist in the settings that are cloned into the new project
+    Path settingsRepo = tempDir.resolve("settings");
+    Files.createDirectories(settingsRepo);
+    Files.writeString(settingsRepo.resolve("ide.properties"), "IDE_MIN_VERSION=" + ideMinVersion + System.lineSeparator());
+
+    GitContextImplMock gitContextImplMock = new GitContextImplMock(context, settingsRepo);
+    context.setGitContext(gitContextImplMock);
+
     CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
     cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
     cc.settingsRepo.setValue(IdeContext.DEFAULT_SETTINGS_REPO_URL);
     cc.skipTools.setValue(true);
-    EnvironmentVariables variables = context.getVariables();
-    String ideMinVersion = "2026.01.001"; // mocks the minimum required version
-    IdeVersion.setMockVersionForTesting("2024.01.001"); // mocks the current version (instead of using SNAPSHOT)
-    String ideCurrentVersion = IdeVersion.getVersionString();
-    String errorMessage = String.format("Your version of IDEasy is currently %s\n"
-        + "However, this is too old as your project requires at latest version %s\n"
-        + "Please run the following command to update to the latest version of IDEasy and fix the problem:\n"
-        + "ide upgrade", ideCurrentVersion, ideMinVersion);
 
-    // act
-    variables.getByType(EnvironmentVariablesType.CONF).set("IDE_MIN_VERSION", ideMinVersion);
-
-    // assert
-    assertThatThrownBy(() -> cc.run()).hasMessage(errorMessage);
+    // act & assert
+    assertThatThrownBy(cc::run).isInstanceOf(CliException.class).hasMessage(errorMessage);
   }
 
   @Test
