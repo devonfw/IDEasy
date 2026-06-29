@@ -6,14 +6,13 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
-
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/46?closed=1[milestone 2026.07.001].
 
 == 2026.06.001
 
 Release with new features and bugfixes:
 
-* https://github.com/devonfw/IDEasy/issues/797[#797]: Fix VSCode install on macOS   
+* https://github.com/devonfw/IDEasy/issues/797[#797]: Fix VSCode install on macOS
 * https://github.com/devonfw/IDEasy/issues/1956[#1956]: Merging MAVEN_ARGS buggy
 * https://github.com/devonfw/IDEasy/issues/1978[#1978]: Enhanced the quality status documentation
 * https://github.com/devonfw/IDEasy/issues/1946[#1946]: Add Spyder Python IDE
@@ -35,6 +34,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1457[#1457]: Improve CLI error messages on invalid args or commandlets not available in current context
 * https://github.com/devonfw/IDEasy/issues/2030[#2030]: Fix Plugin install error in Intellij
 * https://github.com/devonfw/IDEasy/issues/2032[#2032]: commandlet env bash leads to broken output
+* https://github.com/devonfw/IDEasy/issues/2045[#2045]: Add tool selection and version or edition configuration to GUI
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/45?closed=1[milestone 2026.06.001].
 
@@ -79,6 +79,8 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1904[#1904]: Add Inso CLI to IDEasy commandlets
 * https://github.com/devonfw/IDEasy/issues/1952[#1952]: Ability for platform specific dependencies
 * https://github.com/devonfw/IDEasy/issues/1950[#1950]: Fix exit autocompletion
+* https://github.com/devonfw/IDEasy/issues/1936[#1936]: Improve localization of GUI
+
 * https://github.com/devonfw/IDEasy/issues/1958[#1958]: Fix git pull on settings with local branch without remote
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/44?closed=1[milestone 2026.05.001].
