@@ -65,7 +65,7 @@ public abstract class NpmBasedCommandlet extends NodeBasedCommandlet<Npm> {
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI)
         .withExitCodeAcceptor(rc -> true); // if the tool is not installed npm list will end with exit code 1
     request.setProcessContext(pc);
-    ProcessResult result = runPackageManager(request);
+    ProcessResult result = runPackageManager(request, true);
     if (result.isSuccessful()) {
       List<String> versions = result.getOut();
       String parsedVersion = null;
@@ -82,6 +82,12 @@ public abstract class NpmBasedCommandlet extends NodeBasedCommandlet<Npm> {
       LOG.debug("The npm package {} for tool {} is not installed.", npmPackage, this.tool);
     }
     return null;
+  }
+
+  @Override
+  protected boolean isSkipInstallation() {
+    Npm npm = this.context.getCommandletManager().getCommandlet(Npm.class);
+    return npm.isInstalled();
   }
 
 }
