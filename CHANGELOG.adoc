@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/451[#451]: Ad-hoc sign the IDEasy macOS binary during release build to avoid Gatekeeper blocking
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/46?closed=1[milestone 2026.07.001].
 
