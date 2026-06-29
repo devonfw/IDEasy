@@ -1,0 +1,85 @@
+name: CI status watch
+
+# Posts a weekday-morning digest to a Teams channel listing the workflows that are
+# currently red on the default branch, so a broken CI is noticed in the Daily and the
+# team can react (e.g. open an issue). Reports current state, not history, so a workflow
+# that stays red shows up each morning until it is green again.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 7 * * 1-5'   # 07:00 UTC, Mon-Fri (= 09:00 CEST / 08:00 CET)
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      WEBHOOK: ${{ secrets.TEAMS_WEBHOOK_URL }}
+      REPO: ${{ github.repository }}
+      BRANCH: ${{ github.event.repository.default_branch }}
+      SELF: .github/workflows/ci-status-watch.yml
+    steps:
+      - name: Collect red workflows and notify Teams
+        run: |
+          set -euo pipefail
+
+          # For every active workflow, look at its latest finished run on the default
+          # branch and keep the ones whose conclusion counts as a red badge.
+          RED=$(gh api "repos/$REPO/actions/workflows" \
+            --jq '.workflows[] | select(.state=="active") | [.name, .path] | @tsv' \
+          | while IFS=$'\t' read -r NAME WF_PATH; do
+              [ "$WF_PATH" = "$SELF" ] && continue
+              DATA=$(gh run list --repo "$REPO" --workflow "$WF_PATH" --branch "$BRANCH" \
+                --status completed --limit 1 --json conclusion,url \
+                --jq '.[0] // empty | "\(.conclusion)\t\(.url)"' || true)
+              [ -z "$DATA" ] && continue
+              CONCL=${DATA%%$'\t'*}
+              URL=${DATA#*$'\t'}
+              if [ "$CONCL" = "failure" ] || [ "$CONCL" = "timed_out" ] || [ "$CONCL" = "startup_failure" ]; then
+                jq -n --arg n "$NAME" --arg u "$URL" --arg c "$CONCL" \
+                  '{name:$n, url:$u, conclusion:$c}'
+              fi
+            done | jq -s '.')
+
+          COUNT=$(echo "$RED" | jq 'length')
+          if [ "$COUNT" -eq 0 ]; then
+            echo "All workflows green on $BRANCH. Skipping Teams notification."
+            exit 0
+          fi
+          echo "$COUNT red workflow(s) on $BRANCH."
+
+          if [ -z "${WEBHOOK:-}" ]; then
+            echo "No Teams webhook set, skipping notification."; exit 0
+          fi
+
+          # Bare Adaptive Card, same shape as the issue/PR observer.
+          CARD=$(echo "$RED" | jq --argjson count "$COUNT" --arg branch "$BRANCH" '{
+            type: "AdaptiveCard",
+            "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+            version: "1.4",
+            body: (
+              [
+                { type: "TextBlock", size: "Large", weight: "Bolder", wrap: true, color: "attention",
+                  text: "🔴 Rote Workflows" },
+                { type: "TextBlock", spacing: "None", isSubtle: true, wrap: true,
+                  text: ("Branch `" + $branch + "` · " + (if $count == 1 then "1 Workflow rot" else "\($count) Workflows rot" end)) }
+              ]
+              + [ .[] | {
+                    type: "Container",
+                    separator: true,
+                    spacing: "Medium",
+                    items: [
+                      { type: "TextBlock", weight: "Bolder", wrap: true, text: "🔴 \(.name)" },
+                      { type: "TextBlock", spacing: "None", isSubtle: true, size: "Small", wrap: true,
+                        text: "\(.conclusion) · [Run-Log öffnen](\(.url))" }
+                    ]
+                  } ]
+            )
+          }')
+
+          curl -sS --fail -X POST -H "Content-Type: application/json" -d "$CARD" "$WEBHOOK"
