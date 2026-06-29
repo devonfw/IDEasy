@@ -22,6 +22,8 @@ target/
 eclipse-target/
 generated/
 node_modules
+# generated graphify knowledge graph output (per-developer AI tooling, not shared)
+graphify-out/
 
 # Package Files #
 *.jar
