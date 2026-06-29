@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.commandlet;
 
+import static com.devonfw.tools.ide.context.IdeContext.FILE_LEGACY_SOFTWARE_VERSION;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -117,7 +119,7 @@ class VersionSetCommandletTest extends AbstractIdeContextTest {
     // the fixture has mvn installed in version 3.9.4, but only versions resolvable via the mock repository can be
     // set, so we fake an installation of one of those resolvable versions (3.1.0) to test the "already installed"
     // message of set-version.
-    Path installedVersionFile = context.getSoftwarePath().resolve("mvn").resolve(".devon.software.version");
+    Path installedVersionFile = context.getSoftwarePath().resolve("mvn").resolve(FILE_LEGACY_SOFTWARE_VERSION);
     Files.writeString(installedVersionFile, "3.1.0");
     VersionSetCommandlet versionSet = context.getCommandletManager().getCommandlet(VersionSetCommandlet.class);
     versionSet.tool.setValueAsString("mvn", context);
@@ -125,7 +127,7 @@ class VersionSetCommandletTest extends AbstractIdeContextTest {
     // act
     versionSet.run();
     // assert
-    assertThat(context).logAtInfo().hasMessageContaining("Version 3.1.0 of tool mvn is already installed");
+    assertThat(context).logAtInfo().hasMessageContaining("Version 3.1.0 of tool mvn is now set (already installed)");
     assertThat(context).logAtInfo().hasNoMessage("To install that version call the following command:");
   }
 

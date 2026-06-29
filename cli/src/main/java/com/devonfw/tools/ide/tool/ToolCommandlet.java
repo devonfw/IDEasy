@@ -905,7 +905,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
           declaringVariables.getSource());
     }
     if (resolvedVersion.equals(getInstalledVersion())) {
-      LOG.info("Version {} of tool {} is already installed", resolvedVersion, this.tool);
+      LOG.info("Version {} of tool {} is now set (already installed)", resolvedVersion, this.tool);
     } else if (hint) {
       LOG.info("To install that version call the following command:");
       LOG.info("ide install {}", this.tool);
