@@ -132,11 +132,52 @@ public class UrlVersion extends AbstractUrlFolderWithParent<UrlEdition, UrlFile<
   }
 
   /**
+   * @return the matching {@link UrlVersion} in the status repository, or this version if no separate status repository is configured.
+   */
+  private UrlVersion getStatusVersion() {
+    UrlRepository statusRepository = getParent().getParent().getParent().getStatusRepository();
+    String toolName = getParent().getParent().getName();
+    String editionName = getParent().getName();
+    String versionName = getName();
+    UrlTool statusTool = statusRepository.getChild(toolName);
+    if (statusTool == null) {
+      return null;
+    }
+    UrlEdition statusEdition = statusTool.getChild(editionName);
+    if (statusEdition == null) {
+      return null;
+    }
+    return statusEdition.getChild(versionName);
+  }
+
+
+  /**
+   * @return the matching {@link UrlVersion} in the status repository. It will be created if it does not exist.
+   */
+  private UrlVersion getOrCreateStatusVersion() {
+
+    UrlRepository statusRepository = getParent().getParent().getParent().getStatusRepository();
+
+    String toolName = getParent().getParent().getName();
+    String editionName = getParent().getName();
+    String versionName = getName();
+
+    UrlTool statusTool = statusRepository.getOrCreateChild(toolName);
+    UrlEdition statusEdition = statusTool.getOrCreateChild(editionName);
+
+    return statusEdition.getOrCreateChild(versionName);
+  }
+
+  /**
    * @return the {@link UrlStatusFile}.
    */
   public UrlStatusFile getStatus() {
 
-    return (UrlStatusFile) getChild(UrlStatusFile.STATUS_JSON);
+    UrlVersion statusVersion = getStatusVersion();
+    if (statusVersion == null) {
+      return null;
+    }
+    return (UrlStatusFile) statusVersion.getChild(UrlStatusFile.STATUS_JSON);
   }
 
   /**
@@ -144,7 +185,8 @@ public class UrlVersion extends AbstractUrlFolderWithParent<UrlEdition, UrlFile<
    */
   public UrlStatusFile getOrCreateStatus() {
 
-    return (UrlStatusFile) getOrCreateChild(UrlStatusFile.STATUS_JSON);
+    UrlVersion statusVersion = getOrCreateStatusVersion();
+    return (UrlStatusFile) statusVersion.getOrCreateChild(UrlStatusFile.STATUS_JSON);
   }
 
   /**
@@ -210,7 +252,11 @@ public class UrlVersion extends AbstractUrlFolderWithParent<UrlEdition, UrlFile<
   @Override
   public void save() {
 
+    UrlVersion statusVersion = getStatusVersion();
     if (getChildCount() == 0) {
+      if ((statusVersion != null) && (statusVersion != this)) {
+        statusVersion.save();
+      }
       return;
     }
     Path path = getPath();
@@ -220,6 +266,9 @@ public class UrlVersion extends AbstractUrlFolderWithParent<UrlEdition, UrlFile<
       throw new IllegalStateException("Failed to create directory " + path, e);
     }
     super.save();
+    if ((statusVersion != null) && (statusVersion != this)) {
+      statusVersion.save();
+    }
   }
 
 }

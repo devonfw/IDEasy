@@ -19,49 +19,63 @@ public class UpdateInitiator {
   private static final Logger logger = LoggerFactory.getLogger(UpdateInitiator.class.getName());
 
   /**
-   * @param args the command-line arguments. arg[0] points to the {@code ide-urls} repository. arg[1] defines a timeout for GitHub actions in Duration
-   *     string format and arg[2] (optional) can be used to specify a single tool to update instead of all tools, either by toolname (e.g. java) or using the Classname of
-   *     the Updater (e.g. JavaAzulUrlUpdater). The timeout is used to prevent the GitHub action from running into a timeout error due to too long execution
-   *     time.
+   * @param args the command-line arguments. arg[0] points to the {@code ide-urls} repository. arg[1] points to the {@code ide-urls-status} repository.
+   *     arg[2] defines a timeout for GitHub actions in Duration string format and arg[3] (optional) can be used to specify a single tool to update instead of
+   *     all tools, either by toolname (e.g. java) or using the Classname of the Updater (e.g. JavaAzulUrlUpdater). The timeout is used to prevent the GitHub
+   *     action from running into a timeout error due to too long execution time.
    */
   public static void main(String[] args) {
 
     if (args.length == 0) {
       logger.error("Error: Missing path to repository as well as missing timeout as command line arguments.");
-      logger.error("Usage: java UpdateInitiator <path_to_repository> <duration_string_format> <tool_to_test|updater_class_name>");
+      logger.error(
+          "Usage: java UpdateInitiator <path_to_url_repository> <path_to_status_repository> <duration_string_format> <tool_to_test|updater_class_name>");
       System.exit(1);
     }
 
-    String pathToRepo = args[0];
+    if (args.length < 2) {
+      logger.error("Error: Missing path to URL repository and/or status repository.");
+      logger.error(
+          "Usage: java UpdateInitiator <path_to_url_repository> <path_to_status_repository> <duration_string_format> <tool_to_test|updater_class_name>");
+      System.exit(1);
+    }
+
+    String pathToUrlRepo = args[0];
+    String pathToStatusRepo = args[1];
     Instant expirationTime = null;
     String selectedTool = null;
 
-    if (args.length < 2) {
+    if (args.length < 3) {
       logger.warn("Timeout was not set, setting timeout to infinite instead.");
     } else {
       try {
-        Duration duration = Duration.parse(args[1]);
+        Duration duration = Duration.parse(args[2]);
         expirationTime = Instant.now().plus(duration);
         logger.info("Timeout was set to: {}.", expirationTime);
       } catch (DateTimeParseException e) {
         logger.error("Error: Provided timeout format is not valid.", e);
         System.exit(1);
       }
-      if (args.length > 2) {
-        selectedTool = args[2];
+      if (args.length > 3) {
+        selectedTool = args[3];
       }
     }
 
-    Path repoPath = Path.of(pathToRepo);
+    Path urlRepoPath = Path.of(pathToUrlRepo);
+    Path statusRepoPath = Path.of(pathToStatusRepo);
 
-    if (!repoPath.toFile().isDirectory()) {
-      logger.error("Error: Provided path is not a valid directory.");
+    if (!urlRepoPath.toFile().isDirectory()) {
+      logger.error("Error: Provided URL repository path is not a valid directory.");
+      System.exit(1);
+    }
+    if (!statusRepoPath.toFile().isDirectory()) {
+      logger.error("Error: Provided status repository path is not a valid directory.");
       System.exit(1);
     }
 
     UrlFinalReport urlFinalReport = new UrlFinalReport();
 
-    UpdateManager updateManager = new UpdateManager(repoPath, urlFinalReport, expirationTime);
+    UpdateManager updateManager = new UpdateManager(urlRepoPath, statusRepoPath, urlFinalReport, expirationTime);
     if (selectedTool == null) {
       updateManager.updateAll();
     } else {
