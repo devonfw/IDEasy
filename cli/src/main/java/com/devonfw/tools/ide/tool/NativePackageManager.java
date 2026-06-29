@@ -14,7 +14,10 @@ public enum NativePackageManager {
   YUM,
 
   /** DaNdiFied yum (DNF) is the package manager of RPM package based Linux distributions like Fedora. It is the successor of {@link #YUM}. */
-  DNF;
+  DNF,
+
+  /** Pacman is the package manager of Arch Linux based distributions. */
+  PACMAN;
 
   /**
    * Extracts the package manager from the provided command string.
@@ -36,6 +39,9 @@ public enum NativePackageManager {
     }
     if (command.contains("dnf")) {
       return DNF;
+    }
+    if (command.contains("pacman")) {
+      return PACMAN;
     }
 
     throw new IllegalArgumentException("Unknown package manager in command: " + command);
