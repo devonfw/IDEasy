@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/2007[#2007]: Support Docker on Arch Linux with pacman and yay
 * https://github.com/devonfw/IDEasy/issues/2140[#2140]: just install fails since already installed
 * https://github.com/devonfw/IDEasy/issues/2137[#2137]: fix-vpn-tls-problem does not detect TLS certificate issues behind HTTP redirects
 * https://github.com/devonfw/IDEasy/issues/1041[#1041]: native image has globbing active
@@ -34,6 +35,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2114[#2114]: Fix false "Cygwin is not supported" warning in Git Bash
 * https://github.com/devonfw/IDEasy/issues/865[#865]: az not working on Mac
 * https://github.com/devonfw/IDEasy/issues/2143[#2143]: Integrate just
+* https://github.com/devonfw/IDEasy/issues/2026[#2026]: Create UvRepository and UvBasedCommandlet
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/46?closed=1[milestone 2026.07.001].
 
