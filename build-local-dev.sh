@@ -49,10 +49,6 @@ fi
 cp -R "$PACKAGE_DIR"/. "$LOCAL_DEV"/
 
 OS_NAME="$(uname -s)"
-if [[ "$OS_NAME" == MINGW* || "$OS_NAME" == MSYS* || "$OS_NAME" == CYGWIN* ]]; then
-  echo "Removing macOS-specific package files for Windows installation..."
-  rm -rf "$LOCAL_DEV/system/mac"
-fi
 
 echo "Creating local-dev software version marker..."
 echo "local-dev-version" > "$LOCAL_DEV/.ide.software.version"
