@@ -49,6 +49,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   private static final String TEMPLATE_LOCATION = "intellij/workspace/repository/" + FOLDER_IDEA_CONFIG;
   private static final String GRADLE_XML = "gradle.xml";
   private static final String MISC_XML = "misc.xml";
+  private static final String COMPILER_XML = "compiler.xml";
   private static final String IDEA_PROPERTIES = "idea.properties";
 
   private static final Map<Class<? extends LocalToolCommandlet>, String> BUILD_TOOL_TO_IJ_TEMPLATE = Map.of(Mvn.class, MISC_XML, Gradle.class, GRADLE_XML);
@@ -137,6 +138,24 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
           "Cannot import project into workspace: template file not found at " + templateFile + "\n"
               + "Please do an upstream merge of your settings git repository.");
     }
+    mergeConfigFile(repositoryPath, configFilePath, templateFile);
+  }
+
+  /**
+   * Merges the given config file template into the workspace if the template exists. Unlike {@link #mergeConfig(Path, String)} this does not fail if the
+   * template is missing, since {@code compiler.xml} is optional and older settings repositories may not provide it yet.
+   */
+  private void mergeConfigIfPresent(Path repositoryPath, String configFilePath) {
+    Path templatePath = this.context.getSettingsPath().resolve(TEMPLATE_LOCATION);
+    Path templateFile = templatePath.resolve(configFilePath);
+    if (!Files.exists(templateFile)) {
+      LOG.debug("Skipping optional template {} since it was not found at {}", configFilePath, templateFile);
+      return;
+    }
+    mergeConfigFile(repositoryPath, configFilePath, templateFile);
+  }
+
+  private void mergeConfigFile(Path repositoryPath, String configFilePath, Path templateFile) {
     Path workspacesPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES);
     Path workspacePath = this.context.getFileAccess().findAncestor(repositoryPath, workspacesPath, 1);
     if (workspacePath == null) {
@@ -165,6 +184,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
         String templateFilename = entry.getValue();
         LOG.debug("Found build descriptor {} so merging template {}", buildDescriptor, templateFilename);
         mergeConfig(repositoryPath, templateFilename);
+        mergeConfigIfPresent(repositoryPath, COMPILER_XML);
         return;
       }
     }

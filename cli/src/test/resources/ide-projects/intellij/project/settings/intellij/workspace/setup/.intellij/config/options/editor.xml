@@ -1,0 +1,5 @@
+<application xmlns:merge="https://github.com/devonfw/IDEasy/merge">
+  <component name="CodeInsightSettings">
+    <option name="ADD_UNAMBIGIOUS_IMPORTS_ON_THE_FLY" value="true" />
+  </component>
+</application>
