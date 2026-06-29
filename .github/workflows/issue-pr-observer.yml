@@ -52,10 +52,10 @@ jobs:
 
           COUNT=$(echo "$ITEMS_JSON" | jq 'length')
           if [ "$COUNT" -eq 0 ]; then
-            echo "Keine neuen externen Issues oder PRs. Teams-Benachrichtigung wird uebersprungen."
+            echo "No new external issues or PRs. Skipping Teams-notification."
             exit 0
           fi
-          echo "$COUNT neue(r) externe(r) Eintrag/Eintraege gefunden."
+          echo "$COUNT new external issue(s)/PR(s) found."
 
           # Teams' webhook wants a bare Adaptive Card: top-level type must be
           # "AdaptiveCard", not wrapped in a message/attachments envelope.
@@ -68,7 +68,7 @@ jobs:
                 { type: "TextBlock", size: "Large", weight: "Bolder", wrap: true,
                   text: "🆕 Neue externe Issues & Pull Requests" },
                 { type: "TextBlock", spacing: "None", isSubtle: true, wrap: true,
-                  text: ("Letzte 24 Stunden · " + (if $count == 1 then "1 neuer Eintrag" else "\($count) neue Einträge" end)) }
+                  text: ("Letzter Zeitraum · " + (if $count == 1 then "1 neuer Eintrag" else "\($count) neue Einträge" end)) }
               ]
               + [ .[] | {
                     type: "Container",
