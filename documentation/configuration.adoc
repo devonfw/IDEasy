@@ -54,4 +54,10 @@ To configure your IDE (e.g. Eclipse, IntelliJ, or VSCode) workspace configuratio
 The configuration templates are honored in the configuration order documented above except that here workspaces (4.) are not supported.
 For each supported location a `workspace` subfolder is considered and with priority also a potential `«ide»/workspace` folder.
 Almost every configuration should be done in `settings`.
+
+User-specific workspace configurations can be defined in `~/.ide/settings/<IDE>/workspace/`.
+This allows developers to configure personal IDE preferences that are applied across all projects and workspaces.
+
+Note that the `workspace` folder must be placed under the `settings` directory (e.g. `~/.ide/settings/...`) to be considered.
+
 Further details can be found in link:configurator.adoc[configurator].
