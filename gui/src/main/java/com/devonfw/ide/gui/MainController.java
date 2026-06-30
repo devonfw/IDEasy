@@ -53,15 +53,18 @@ public class MainController {
 
   private final Map<String, Locale> languageMap;
 
+  private final LocalizationService localizationService;
+
 
   /**
    * Constructor
    */
-  public MainController(String directoryPath) {
+  public MainController(String directoryPath, LocalizationService localizationService) {
 
     LOG.debug("IDE_ROOT path={}", directoryPath);
     this.directoryPath = directoryPath;
     this.languageMap = new LinkedHashMap<>();
+    this.localizationService = localizationService;
 
     this.projectManager = IdeGuiStateManager.getInstance().getProjectManager();
   }
@@ -74,7 +77,6 @@ public class MainController {
 
   private void initLanguageComboBox() {
 
-    LocalizationService localizationService = LocalizationService.getInstance();
     this.languageMap.clear();
     selectedLanguage.getItems().clear();
 

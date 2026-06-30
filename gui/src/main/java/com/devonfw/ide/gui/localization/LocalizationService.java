@@ -49,8 +49,6 @@ public class LocalizationService {
   public static final String EXTENSION_PROPERTIES = ".properties";
   public static final String IDE_OPTIONS = "IDE_OPTIONS";
 
-  private static LocalizationService instance;
-
   private final List<Runnable> localeListeners = new CopyOnWriteArrayList<>();
 
   private Locale locale;
@@ -64,41 +62,13 @@ public class LocalizationService {
   private static final Pattern USER_LANG_PATTERN = Pattern.compile("-Duser\\.lang=(\\S*)");
 
   /**
-   * Creates the singleton service.
-   */
-  private LocalizationService() {
-    // singleton
-  }
-
-  /**
-   * Returns the singleton instance and initializes it with the given locale on first use.
+   * Creates the service and initializes it with the given locale.
    *
    * @param locale the preferred locale, or {@code null} to use persisted or default locale.
-   * @return the singleton {@link LocalizationService}.
    */
-  public static synchronized LocalizationService getInstance(Locale locale) {
+  public LocalizationService(Locale locale) {
 
-    if (instance == null) {
-      instance = new LocalizationService();
-      instance.initialize(locale);
-    }
-    return instance;
-  }
-
-  public static synchronized LocalizationService getInstance() {
-
-    if (instance == null) {
-      return getInstance(null);
-    }
-    return instance;
-  }
-
-  /**
-   * Resets the singleton instance for tests or re-initialization.
-   */
-  public static synchronized void resetInstance() {
-
-    instance = null;
+    initialize(locale);
   }
 
   /**

@@ -40,16 +40,14 @@ public class AppBaseTest extends HeadlessApplicationTest {
   @Override
   public void start(Stage stage) throws IOException {
 
-    // Initialize Localization for tests
-    LocalizationService.resetInstance();
-    LocalizationService.getInstance(Locale.ENGLISH);
+    LocalizationService localizationService = new LocalizationService(Locale.ENGLISH);
 
     URL mainViewUrl = getClass().getResource("main-view.fxml");
     assertThat(mainViewUrl).as("Cannot resolve main UI FXML resource!").isNotNull();
 
     FXMLLoader fxmlLoader = new FXMLLoader(mainViewUrl);
-    fxmlLoader.setController(new MainController(mockIdeRoot.toString()));
-    fxmlLoader.setResources(LocalizationService.getInstance().getResourceBundle());
+    fxmlLoader.setController(new MainController(mockIdeRoot.toString(), localizationService));
+    fxmlLoader.setResources(localizationService.getResourceBundle());
     Parent root = fxmlLoader.load();
     stage.setScene(new Scene(root));
     stage.requestFocus(); //sometimes needed for headless setup to work

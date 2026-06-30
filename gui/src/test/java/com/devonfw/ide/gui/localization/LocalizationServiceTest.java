@@ -44,14 +44,12 @@ public class LocalizationServiceTest {
     this.originalUserHome = System.getProperty("user.home");
     System.setProperty("user.home", this.tempUserHome.toString());
 
-    LocalizationService.resetInstance();
     IdeGuiStateManager.getInstanceOverrideRootDir(this.tempIdeRoot.toString());
   }
 
   @AfterEach
   public void tearDown() {
 
-    LocalizationService.resetInstance();
     if (this.originalUserHome == null) {
       System.clearProperty("user.home");
     } else {
@@ -62,26 +60,18 @@ public class LocalizationServiceTest {
   @Test
   public void testGetInstanceWithLocale() {
 
-    LocalizationService service = LocalizationService.getInstance(Locale.ENGLISH);
+    LocalizationService service = new LocalizationService(Locale.ENGLISH);
 
     assertThat(service.getLocale()).isEqualTo(Locale.ENGLISH);
     assertThat(service.getResourceBundle()).isNotNull();
     assertThat(service.get("CurrentLanguage")).isEqualTo("English (en)");
   }
 
-  @Test
-  public void testGetInstanceSingleton() {
-
-    LocalizationService service1 = LocalizationService.getInstance(Locale.ENGLISH);
-    LocalizationService service2 = LocalizationService.getInstance(Locale.ENGLISH);
-
-    assertThat(service1).isSameAs(service2);
-  }
 
   @Test
   public void testSetLocale() {
 
-    LocalizationService service = LocalizationService.getInstance(Locale.ENGLISH);
+    LocalizationService service = new LocalizationService(Locale.ENGLISH);
     service.setLocale(Locale.GERMAN);
 
     assertThat(service.getLocale().getLanguage()).isEqualTo("de");
@@ -93,7 +83,7 @@ public class LocalizationServiceTest {
   @Test
   public void testAllLocalizationBundlesContainExactlyTheEnglishKeys() throws IOException {
 
-    LocalizationService service = LocalizationService.getInstance(Locale.ENGLISH);
+    LocalizationService service = new LocalizationService(Locale.ENGLISH);
     Set<String> englishKeys = loadBundleProperties(Locale.ENGLISH).stringPropertyNames();
 
     for (Locale locale : service.getAvailableLocales()) {
@@ -119,7 +109,7 @@ public class LocalizationServiceTest {
   @Test
   public void testLanguageDisplayShowsLocaleName() {
 
-    LocalizationService service = LocalizationService.getInstance(Locale.ENGLISH);
+    LocalizationService service = new LocalizationService(Locale.ENGLISH);
 
     assertThat(service.getLanguageDisplayName(Locale.ENGLISH)).isEqualTo("English (en)");
     assertThat(service.getLanguageDisplayName(Locale.GERMAN)).isEqualTo("Deutsch (de)");
@@ -129,7 +119,7 @@ public class LocalizationServiceTest {
   @Test
   public void testLocaleChangeListenerIsInvokedAndCanBeRemoved() {
 
-    LocalizationService service = LocalizationService.getInstance(Locale.ENGLISH);
+    LocalizationService service = new LocalizationService(Locale.ENGLISH);
     AtomicInteger counter = new AtomicInteger();
     Runnable listener = counter::incrementAndGet;
 
@@ -145,7 +135,7 @@ public class LocalizationServiceTest {
   @Test
   public void testSetLocalePersistsSelectionInUserHomeIdeProperties() throws IOException {
 
-    LocalizationService service = LocalizationService.getInstance(Locale.ENGLISH);
+    LocalizationService service = new LocalizationService(Locale.ENGLISH);
     service.setLocale(Locale.GERMAN);
 
     Path propertiesFile = this.tempUserHome.resolve(".ide").resolve("ide.properties");
@@ -167,8 +157,7 @@ public class LocalizationServiceTest {
     Path userProperties = userIdeFolder.resolve("ide.properties");
     Files.writeString(userProperties, "IDE_OPTIONS=-Duser.lang=de\n");
 
-    LocalizationService.resetInstance();
-    LocalizationService service = LocalizationService.getInstance(null);
+    LocalizationService service = new LocalizationService(null);
 
     assertThat(service.getLocale().getLanguage()).isEqualTo("de");
   }
@@ -181,7 +170,7 @@ public class LocalizationServiceTest {
     Path userProperties = userIdeFolder.resolve("ide.properties");
     Files.writeString(userProperties, "IDE_OPTIONS=-Duser.lang=de\n");
 
-    LocalizationService service = LocalizationService.getInstance(null);
+    LocalizationService service = new LocalizationService(null);
     service.setLocale(Locale.ENGLISH);
 
     Properties properties = new Properties();
@@ -200,7 +189,7 @@ public class LocalizationServiceTest {
     Path userProperties = userIdeFolder.resolve("ide.properties");
     Files.writeString(userProperties, "IDE_OPTIONS=-Dfoo=bar\n");
 
-    LocalizationService service = LocalizationService.getInstance(Locale.ENGLISH);
+    LocalizationService service = new LocalizationService(Locale.ENGLISH);
     service.setLocale(Locale.GERMAN);
 
     Properties properties = new Properties();
@@ -219,7 +208,7 @@ public class LocalizationServiceTest {
     Path userProperties = userIdeFolder.resolve("ide.properties");
     Files.writeString(userProperties, "IDE_OPTIONS=-Dfoo=bar -Duser.lang=de\n");
 
-    LocalizationService service = LocalizationService.getInstance(null);
+    LocalizationService service = new LocalizationService(null);
     service.setLocale(Locale.ENGLISH);
 
     Properties properties = new Properties();
@@ -237,7 +226,7 @@ public class LocalizationServiceTest {
   @Test
   public void testNoEmptyTranslations() throws IOException {
 
-    LocalizationService service = LocalizationService.getInstance(Locale.ENGLISH);
+    LocalizationService service = new LocalizationService(Locale.ENGLISH);
 
     for (Locale locale : service.getAvailableLocales()) {
       Properties props = loadBundleProperties(locale);
@@ -253,7 +242,7 @@ public class LocalizationServiceTest {
   @Test
   public void testGetAvailableLocalesAlwaysContainsEnglish() {
 
-    LocalizationService service = LocalizationService.getInstance(Locale.ENGLISH);
+    LocalizationService service = new LocalizationService(Locale.ENGLISH);
 
     assertThat(service.getAvailableLocales()).contains(Locale.ENGLISH);
   }
@@ -261,7 +250,7 @@ public class LocalizationServiceTest {
   @Test
   public void testGetAvailableLocalesDetectsExistingBundleFiles() {
 
-    LocalizationService service = LocalizationService.getInstance(Locale.ENGLISH);
+    LocalizationService service = new LocalizationService(Locale.ENGLISH);
     //confirmed languages till now
     assertThat(service.getAvailableLocales())
         .contains(Locale.GERMAN, Locale.ENGLISH);
@@ -270,7 +259,7 @@ public class LocalizationServiceTest {
   @Test
   public void testGetAvailableLocalesDoesNotContainAbsentLocales() {
 
-    LocalizationService service = LocalizationService.getInstance(Locale.ENGLISH);
+    LocalizationService service = new LocalizationService(Locale.ENGLISH);
 
     assertThat(service.getAvailableLocales())
         .doesNotContain(Locale.FRENCH, Locale.JAPANESE, Locale.forLanguageTag("zh"));
@@ -288,7 +277,7 @@ public class LocalizationServiceTest {
     ClassLoader original = Thread.currentThread().getContextClassLoader();
     try (URLClassLoader loader = new URLClassLoader(new URL[] { bundleRoot.toUri().toURL() }, ClassLoader.getPlatformClassLoader())) {
       Thread.currentThread().setContextClassLoader(loader);
-      LocalizationService service = LocalizationService.getInstance(Locale.ENGLISH);
+      LocalizationService service = new LocalizationService(Locale.ENGLISH);
       assertThat(service.getAvailableLocales())
           .containsExactlyInAnyOrder(Locale.ENGLISH, Locale.FRENCH);
     } finally {
@@ -308,7 +297,7 @@ public class LocalizationServiceTest {
     ClassLoader original = Thread.currentThread().getContextClassLoader();
     try (URLClassLoader loader = new URLClassLoader(new URL[] { jarFile.toUri().toURL() }, ClassLoader.getPlatformClassLoader())) {
       Thread.currentThread().setContextClassLoader(loader);
-      LocalizationService service = LocalizationService.getInstance(Locale.ENGLISH);
+      LocalizationService service = new LocalizationService(Locale.ENGLISH);
       assertThat(service.getAvailableLocales())
           .containsExactlyInAnyOrder(Locale.ENGLISH, Locale.FRENCH);
     } finally {

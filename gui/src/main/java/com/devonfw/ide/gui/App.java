@@ -38,7 +38,7 @@ public class App extends Application {
 
     this.primaryStage = primaryStage;
 
-    this.localizationService = LocalizationService.getInstance(null);
+    this.localizationService = new LocalizationService(null);
 
     Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
           LOG.error("Uncaught exception in thread {}: {}", thread.getName(), throwable.getMessage(), throwable);
@@ -85,7 +85,7 @@ public class App extends Application {
 
     FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
     fxmlLoader.setResources(this.localizationService.getResourceBundle());
-    fxmlLoader.setController(new MainController(System.getenv(IdeVariables.IDE_ROOT.getName())));
+    fxmlLoader.setController(new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()), this.localizationService));
     return fxmlLoader.load();
   }
 
