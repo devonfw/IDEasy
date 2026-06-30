@@ -1,9 +1,9 @@
 name: CI status watch
 
-# Posts a Teams message ONLY when a workflow on the default branch turns red
-# (green -> red). For each workflow it compares the two latest runs with gh; a change
-# is reported only if the newest run finished within the look-back window, so a workflow
-# that stays red is not repeated every day.
+# Posts a Teams message ONLY when one of the README badge workflows on the default
+# branch turns red (green -> red). For each it compares the two latest runs with gh; a
+# change is reported only if the newest run finished within the look-back window, so a
+# workflow that stays red is not repeated every day.
 # Requires the repository secret TEAMS_WEBHOOK_URL.
 
 on:
@@ -22,11 +22,18 @@ jobs:
       WEBHOOK: ${{ secrets.TEAMS_WEBHOOK_URL }}
       REPO: ${{ github.repository }}
       BRANCH: ${{ github.event.repository.default_branch }}
-      SELF: .github/workflows/ci-status-watch.yml
     steps:
-      - name: Detect newly red workflows and notify Teams
+      - name: Detect newly red badge workflows and notify Teams
         run: |
           set -euo pipefail
+
+          # The workflows backing the README badges. Add a line here if a badge is added.
+          WORKFLOWS="
+            .github/workflows/build.yml
+            .github/workflows/update-urls.yml
+            .github/workflows/nightly-build.yml
+            .github/workflows/integration-tests.yml
+          "
 
           # Monday catches up the weekend (Fri-Sun); other weekdays look back 24h.
           if [ "$(date -u +%u)" -eq 1 ]; then
@@ -34,22 +41,18 @@ jobs:
           else
             SINCE=$(date -u -d '1 day ago' +%Y-%m-%dT%H:%M:%SZ)
           fi
-          echo "Checking $REPO for workflows that turned red since $SINCE"
+          echo "Checking badge workflows for red since $SINCE"
 
           is_red() { [ "$1" = "failure" ] || [ "$1" = "timed_out" ] || [ "$1" = "startup_failure" ]; }
 
-          # For each active workflow, compare its two latest runs and report it only if it
-          # just turned red and that run finished inside the window (so a lasting red is
-          # reported just once, not every day).
-          RED=$(gh api "repos/$REPO/actions/workflows" \
-            --jq '.workflows[] | select(.state=="active") | [.name, .path] | @tsv' \
-          | while IFS=$'\t' read -r NAME WF_PATH; do
-              [ "$WF_PATH" = "$SELF" ] && continue
+          # Compare each workflow's two latest runs; report it only if it just turned red
+          # and that run finished inside the window (so a lasting red is reported once).
+          RED=$(for WF_PATH in $WORKFLOWS; do
               ROW=$(gh run list --repo "$REPO" --workflow "$WF_PATH" --branch "$BRANCH" \
-                --status completed --limit 2 --json conclusion,url,updatedAt \
-                --jq '[(.[0].conclusion // ""), (.[0].updatedAt // ""), (.[0].url // ""), (.[1].conclusion // "")] | @tsv' || true)
+                --status completed --limit 2 --json conclusion,url,updatedAt,workflowName \
+                --jq '[(.[0].conclusion // ""), (.[0].updatedAt // ""), (.[0].url // ""), (.[1].conclusion // ""), (.[0].workflowName // "")] | @tsv' || true)
               [ -z "$ROW" ] && continue
-              IFS=$'\t' read -r CUR CURTIME URL PREV <<< "$ROW"
+              IFS=$'\t' read -r CUR CURTIME URL PREV NAME <<< "$ROW"
               [ -z "$CUR" ] && continue
               [[ "$CURTIME" > "$SINCE" ]] || continue
               if is_red "$CUR" && { [ "$PREV" = "success" ] || [ -z "$PREV" ]; }; then
@@ -59,10 +62,10 @@ jobs:
 
           COUNT=$(echo "$RED" | jq 'length')
           if [ "$COUNT" -eq 0 ]; then
-            echo "No workflow turned red. Skipping Teams notification."
+            echo "No badge workflow turned red. Skipping Teams notification."
             exit 0
           fi
-          echo "$COUNT workflow(s) turned red."
+          echo "$COUNT badge workflow(s) turned red."
 
           if [ -z "${WEBHOOK:-}" ]; then
             echo "No Teams webhook set, skipping notification."; exit 0
