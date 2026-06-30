@@ -5,6 +5,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 == 2026.07.001
 
 Release with new features and bugfixes:
+* https://github.com/devonfw/IDEasy/issues/1942[#1942]: Create ruby url updater
 
 * https://github.com/devonfw/IDEasy/issues/2052[#2052]: Split issue statistics in 2 pie-charts
 * https://github.com/devonfw/IDEasy/issues/822[#822] : Added Cwd path limit in shell

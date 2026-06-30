@@ -51,6 +51,7 @@ import com.devonfw.tools.ide.url.tool.pip.PipUrlUpdater;
 import com.devonfw.tools.ide.url.tool.pycharm.PycharmUrlUpdater;
 import com.devonfw.tools.ide.url.tool.python.PythonUrlUpdater;
 import com.devonfw.tools.ide.url.tool.quarkus.QuarkusUrlUpdater;
+import com.devonfw.tools.ide.url.tool.ruby.RubyUrlUpdater;
 import com.devonfw.tools.ide.url.tool.rust.RustUrlUpdater;
 import com.devonfw.tools.ide.url.tool.sonar.SonarUrlUpdater;
 import com.devonfw.tools.ide.url.tool.squirrelsql.SquirrelSqlUrlUpdater;
@@ -82,7 +83,7 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
       new JavaUrlUpdater(), new JenkinsUrlUpdater(), new JmcUrlUpdater(), new KotlincUrlUpdater(),
       new KotlincNativeUrlUpdater(), new LazyDockerUrlUpdater(), new MvnUrlUpdater(), new MvndUrlUpdater(),
       new NgUrlUpdater(), new NodeUrlUpdater(), new NpmUrlUpdater(), new OcUrlUpdater(), new PgAdminUrlUpdater(), new PipUrlUpdater(), new PycharmUrlUpdater(),
-      new PythonUrlUpdater(), new QuarkusUrlUpdater(), new RustUrlUpdater(), new DockerRancherDesktopUrlUpdater(), new SonarUrlUpdater(),
+      new PythonUrlUpdater(), new QuarkusUrlUpdater(), new RubyUrlUpdater(), new RustUrlUpdater(), new DockerRancherDesktopUrlUpdater(), new SonarUrlUpdater(),
       new SquirrelSqlUrlUpdater(),
       new TerraformUrlUpdater(), new TomcatUrlUpdater(), new UvUrlUpdater(), new VsCodeUrlUpdater(), new VsCodiumUrlUpdater());
 
