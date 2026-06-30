@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<installer-gui-script minSpecVersion="1">
+  <title>IDEasy</title>
+  <license file="LICENSE.rtf"/>
+  <conclusion file="CONCLUSION.rtf"/>
+  <options customize="never" require-scripts="false" rootVolumeOnly="true"/>
+  <choices-outline>
+    <line choice="default">
+      <line choice="com.devonfw.ideasy"/>
+    </line>
+  </choices-outline>
+  <choice id="default"/>
+  <choice id="com.devonfw.ideasy" visible="false">
+    <pkg-ref id="com.devonfw.ideasy"/>
+  </choice>
+  <pkg-ref id="com.devonfw.ideasy" version="${next_version}" onConclusion="none">IDEasyComponent.pkg</pkg-ref>
+</installer-gui-script>
