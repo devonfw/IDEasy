@@ -7,7 +7,7 @@ participant "User" as user
 participant "CLI" as cli
 participant "Gui\nCommandlet" as guiCmd
 participant "Maven" as maven
-participant "Launcher\nPOM" as launcherPom
+participant "gui/pom.xml" as launcherPom
 participant "JVM\nProcess" as jvm
 participant "AppLauncher" as launcher
 participant "App" as app
@@ -41,7 +41,7 @@ deactivate guiCmd
 activate maven
 
 note over maven
-  Maven loads Launcher POM
+  Maven loads gui/pom.xml
   (from IDE installation folder)
 
 maven -> launcherPom: Parse pom.xml

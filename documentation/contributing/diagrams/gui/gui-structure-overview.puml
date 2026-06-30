@@ -50,18 +50,8 @@ package "gui" {
     In the most basic sense, the GUI state depends on the current project context.
     This is important to ensure that any commandlets will be executed in the correct project.
   end note
-  note bottom of StateChangeListener
-    Idea: This listener is implemented by any UI component to get notified of any context changes.
-    Alternative: an abstract StateDependentGuiComponent class that implements the listener and provides an abstract method for handling context changes.
-  end note
   note right of App: FXML layout is loaded here
   note right of IdeGuiContext: This will implement modals/progress bars
-  note top of AppLauncher
-    <b>Current considerations regarding the UI state management:</b>
-    - Darf die GUI mehr als einmal offen sein? (Fall: Fenster mit gleichem Projekt parallel offen)
-    - Wie Context-Handling implementieren?
-    - Wie werden Log messages gehandelt?
-  end note
 }
 
 
