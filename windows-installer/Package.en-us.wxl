@@ -13,4 +13,10 @@ This file contains the declaration of all the localizable strings.
   <String Id="SelectInstallLocationText" Value="Select your preferred installation location:"/>
   <String Id="InstallUserHomeOption" Value="Install in Home Directory - [USERFOLDER]projects"/>
   <String Id="InstallCustomOption" Value="Install in Custom Directory - e.g., [ROOTDRIVE]projects"/>
+  <String Id="ExitDialogTitle" Value="{\WixUI_Font_Title}IDEasy Installed Successfully" />
+  <String Id="FirstStepsDlg_Title" Value="[ProductName] Setup" />
+  <String Id="FirstStepsDlgTitle" Value="{\WixUI_Font_Title}First Steps" />
+  <String Id="FirstStepsDlgDescription" Value="Follow these steps to get started with IDEasy." />
+  <String Id="OpenDocumentationBtn" Value="Open Documentation" />
+  <String Id="IntroductoryMessage" Value="Thank you for using IDEasy.&#xA;&#xA;Open a new terminal and run the following commands:&#xA;&#xA;  Create your first project:&#xA;    ide create &lt;project-name&gt;&#xA;&#xA;  Or view the full list of available commands:&#xA;    ide help&#xA;&#xA;Click 'Open Documentation' for more detailed setup instructions." />
 </WixLocalization>

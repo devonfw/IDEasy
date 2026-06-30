@@ -7,7 +7,8 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/2052[#2052]: Split issue statistics in 2 pie-charts
-* https://github.com/devonfw/IDEasy/issues/822[#822] : Added Cwd path limit in shell
+* https://github.com/devonfw/IDEasy/issues/822[#822]: Added Cwd path limit in shell
+* https://github.com/devonfw/IDEasy/issues/1227[#1227]: Added Setup instrcutions to the Windows installer
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/46?closed=1[milestone 2026.07.001].
 
