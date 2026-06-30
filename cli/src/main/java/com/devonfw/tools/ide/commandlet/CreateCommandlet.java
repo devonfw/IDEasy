@@ -67,9 +67,7 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
 
     initializeProject(newProjectPath);
     this.context.setIdeHome(newProjectPath);
-    this.context.verifyIdeMinVersion(true);
     super.doRun();
-    this.context.verifyIdeMinVersion(true);
     this.context.getFileAccess().writeFileContent(IdeVersion.getVersionString(), newProjectPath.resolve(IdeContext.FILE_SOFTWARE_VERSION));
     IdeLogLevel.SUCCESS.log(LOG, "Successfully created new project '{}'.", newProjectName);
 
@@ -93,6 +91,12 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
   protected String getStepMessage() {
 
     return "Create (clone) " + (isCodeRepository() ? "code" : "settings") + " repository";
+  }
+
+  @Override
+  protected void verifyIdeMinVersionForCommand() {
+
+    this.context.verifyIdeMinVersion(true);
   }
 
   private void logWelcomeMessage() {
