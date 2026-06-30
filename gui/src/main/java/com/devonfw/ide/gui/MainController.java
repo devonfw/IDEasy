@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
 import java.util.List;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -62,6 +63,21 @@ public class MainController {
   private void initialize() {
 
     setProjectsComboBox();
+    selectedWorkspace.setOnAction(this::onWorkspaceSelected);
+  }
+
+  @FXML
+  private void onWorkspaceSelected(ActionEvent actionEvent) {
+
+    String workspaceName = selectedWorkspace.getValue();
+    if (workspaceName == null) {
+      return;
+    }
+    updateContext(selectedProject.getValue(), workspaceName);
+    androidStudioOpen.setDisable(false);
+    eclipseOpen.setDisable(false);
+    intellijOpen.setDisable(false);
+    vsCodeOpen.setDisable(false);
   }
 
   @FXML
@@ -116,15 +132,12 @@ public class MainController {
 
     selectedWorkspace.getItems().clear();
     selectedWorkspace.getItems().addAll(workspaces);
+    selectedWorkspace.setValue(null);
 
-    selectedWorkspace.setOnAction(actionEvent -> {
-      updateContext(selectedProject.getValue(), selectedWorkspace.getValue());
-
-      androidStudioOpen.setDisable(false);
-      eclipseOpen.setDisable(false);
-      intellijOpen.setDisable(false);
-      vsCodeOpen.setDisable(false);
-    });
+    androidStudioOpen.setDisable(true);
+    eclipseOpen.setDisable(true);
+    intellijOpen.setDisable(true);
+    vsCodeOpen.setDisable(true);
   }
 
   private void openIDE(String inIde) {
