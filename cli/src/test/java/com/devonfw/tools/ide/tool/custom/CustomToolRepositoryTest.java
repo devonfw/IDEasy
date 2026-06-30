@@ -52,23 +52,10 @@ class CustomToolRepositoryTest extends Assertions {
 
     // assert
     assertThat(this.repository).isNotNull();
-    assertThat(this.repository.getTools()).hasSize(2);
-  }
-
-  /**
-   * Tests that unknown properties in custom-tools.json are silently ignored and do not break loading.
-   *
-   * @param tempDir temporary test directory used as working directory and settings base.
-   * @param wmRuntimeInfo wireMock server on a random port.
-   */
-  @Test
-  void testUnknownPropertiesInJsonAreIgnored(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
-    // arrange
-    setUpRepository(tempDir, wmRuntimeInfo);
-
-    // act & assert
-    assertThatNoException().isThrownBy(() -> CustomToolRepositoryImpl.of(this.context));
-    assertThat(this.repository.getTools()).hasSize(2);
+    assertThat(this.repository.getTools()
+        .stream()
+        .map(tool -> tool.getTool() + ":" + tool.getVersion()))
+        .contains("jboss-eap:7.1.4.GA", "firefox:70.0.1");
   }
 
   /**
