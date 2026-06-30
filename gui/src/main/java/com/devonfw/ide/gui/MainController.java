@@ -4,23 +4,35 @@ import java.io.FileNotFoundException;
 import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
 import java.util.List;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.SplitPane.Divider;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.layout.AnchorPane;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.ide.gui.console.ConsoleController;
+import com.devonfw.ide.gui.context.GuiOutputListener;
+import com.devonfw.ide.gui.context.IdeGuiContext;
+import com.devonfw.ide.gui.context.IdeGuiLogListener;
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
 import com.devonfw.ide.gui.context.ProjectManager;
 import com.devonfw.ide.gui.modal.IdeDialog;
+import com.devonfw.tools.ide.context.IdeStartContextImpl;
+import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.process.OutputListener;
 
 /**
  * Controller of the main screen of the dashboard GUI.
  */
 public class MainController {
 
-  private static Logger LOG = LoggerFactory.getLogger(MainController.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MainController.class);
 
   private ProjectManager projectManager;
 
@@ -43,17 +55,35 @@ public class MainController {
   @FXML
   private Button vsCodeOpen;
 
+  @FXML
+  private SplitPane centerSplitPane;
+  private Divider centerDivider;
+
+  @FXML
+  private ToggleButton consolePaneToggleButton;
+
+  @FXML
+  private ConsoleController consoleController;
+
+  @FXML
+  private AnchorPane console;
+
+  private IdeGuiLogListener guiLogListener;
+  private OutputListener guiOutputListener;
+
   private final String directoryPath;
   private Path projectValue;
   private Path workspaceValue;
 
   /**
    * Constructor
+   *
+   * @param ideRootPath IDE_ROOT path.
    */
-  public MainController(String directoryPath) {
+  public MainController(String ideRootPath) {
 
-    LOG.debug("IDE_ROOT path={}", directoryPath);
-    this.directoryPath = directoryPath;
+    LOG.debug("IDE_ROOT path={}", ideRootPath);
+    this.directoryPath = ideRootPath;
 
     this.projectManager = IdeGuiStateManager.getInstance().getProjectManager();
   }
@@ -62,30 +92,42 @@ public class MainController {
   private void initialize() {
 
     setProjectsComboBox();
+    consolePaneToggleButton.setOnAction(_ -> toggleConsole());
+    androidStudioOpen.setOnAction(_ -> openAndroidStudio());
+    eclipseOpen.setOnAction(_ -> openEclipse());
+    intellijOpen.setOnAction(_ -> openIntellij());
+    vsCodeOpen.setOnAction(_ -> openVsCode());
+
+    centerDivider = centerSplitPane.getDividers().getFirst();
+
+    centerDivider.positionProperty().addListener((_, _, newVal) -> {
+      //This is a bit of a weird behaviour in JavaFX, but even if you drag the divider fully down, the position value does not become 1, but something like 0.9935345
+      consolePaneToggleButton.setSelected(newVal.doubleValue() < 0.99);
+    });
   }
 
   @FXML
   private void openAndroidStudio() {
 
-    openIDE("android-studio");
+    runCommandlet("android-studio");
   }
 
   @FXML
   private void openEclipse() {
 
-    openIDE("eclipse");
+    runCommandlet("eclipse");
   }
 
   @FXML
   private void openIntellij() {
 
-    openIDE("intellij");
+    runCommandlet("intellij");
   }
 
   @FXML
   private void openVsCode() {
 
-    openIDE("vscode");
+    runCommandlet("vscode");
   }
 
   private void setProjectsComboBox() {
@@ -97,7 +139,7 @@ public class MainController {
     selectedProject.getItems().clear();
     selectedProject.getItems().addAll(projects);
 
-    selectedProject.setOnAction(actionEvent -> {
+    selectedProject.setOnAction(_ -> {
 
       setWorkspaceComboBox();
 
@@ -107,7 +149,7 @@ public class MainController {
 
   private void setWorkspaceComboBox() {
 
-    List<String> workspaces = null;
+    List<String> workspaces;
     try {
       workspaces = projectManager.getWorkspaceNames(selectedProject.getValue());
     } catch (NotDirectoryException e) {
@@ -117,7 +159,7 @@ public class MainController {
     selectedWorkspace.getItems().clear();
     selectedWorkspace.getItems().addAll(workspaces);
 
-    selectedWorkspace.setOnAction(actionEvent -> {
+    selectedWorkspace.setOnAction(_ -> {
       updateContext(selectedProject.getValue(), selectedWorkspace.getValue());
 
       androidStudioOpen.setDisable(false);
@@ -127,14 +169,88 @@ public class MainController {
     });
   }
 
-  private void openIDE(String inIde) {
+  private void runCommandlet(String commandlet) {
 
-    IdeGuiStateManager
-        .getInstance()
-        .getCurrentContext()
-        .getCommandletManager()
-        .getCommandlet(inIde)
-        .run();
+    showConsole();
+
+    this.guiLogListener = new IdeGuiLogListener(consoleController);
+    this.guiOutputListener = new GuiOutputListener(consoleController);
+
+    //TODO:update this since in PR for progress bars the handling of this will be implemented
+
+    Task<Void> commandletTask = new Task<>() {
+
+      @Override
+      protected Void call() {
+
+        try {
+          IdeStartContextImpl startContext = new IdeStartContextImpl(IdeLogLevel.INFO, guiLogListener);
+          IdeGuiContext context = new IdeGuiContext(startContext,
+              Path.of(directoryPath).resolve(projectValue).resolve(workspaceValue));
+
+          // Set output listener for process output
+          context.setOutputListener(guiOutputListener);
+
+          LOG.info("[GUI] === Running {} ===", commandlet);
+
+          context.getCommandletManager().getCommandlet(commandlet).run();
+
+          LOG.info("[GUI] === {} ran successfully. ===", commandlet);
+        } catch (Exception e) {
+          LOG.error("Failed to open {}", commandlet, e);
+          consoleController.appendOutput("[ERROR] Failed to launch " + commandlet + ": " + e.getMessage());
+          consoleController.setStatus("Error");
+        }
+        return null;
+      }
+    };
+
+    Thread commandletThread = new Thread(commandletTask);
+    commandletThread.setDaemon(true);
+    commandletThread.start();
+  }
+
+  /**
+   * Toggles the console visibility
+   */
+  public void toggleConsole() {
+
+    if (centerSplitPane != null) {
+      if (isConsoleVisible()) {
+        hideConsole();
+      } else {
+        showConsole();
+      }
+      consolePaneToggleButton.setSelected(isConsoleVisible());
+    }
+  }
+
+  /**
+   * Hides the console panel
+   */
+  public void hideConsole() {
+
+    if (centerSplitPane != null) {
+      centerSplitPane.setDividerPosition(0, 1.0);
+      LOG.debug("Console hidden");
+    }
+  }
+
+  /**
+   * Shows the console panel
+   */
+  public void showConsole() {
+
+    if (centerSplitPane != null) {
+      if (centerSplitPane.getDividers().getFirst().getPosition() >= 0.9) {
+        centerSplitPane.setDividerPosition(0, 0.75);
+      }
+      LOG.debug("Console shown");
+    }
+  }
+
+  private boolean isConsoleVisible() {
+    return centerDivider.getPosition() <= 0.99 && console.isVisible();
   }
 
   private void updateContext(String selectedProjectName, String selectedWorkspaceName) {

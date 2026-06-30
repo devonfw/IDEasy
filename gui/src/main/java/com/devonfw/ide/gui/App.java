@@ -54,7 +54,6 @@ public class App extends Application {
     primaryStage.show();
   }
 
-
   @SuppressWarnings("MissingJavadoc")
   public static void main(String[] args) {
 
