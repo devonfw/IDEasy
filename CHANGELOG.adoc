@@ -7,6 +7,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/2068[#2068]: Isolate Claude Code configuration per IDEasy project
+* https://github.com/devonfw/IDEasy/issues/1056[#1056]: Improve MSI license display by generating formatted RTF from AsciiDoc
 * https://github.com/devonfw/IDEasy/issues/2052[#2052]: Split issue statistics in 2 pie-charts
 * https://github.com/devonfw/IDEasy/issues/822[#822] : Added Cwd path limit in shell
 
@@ -16,7 +17,7 @@ The full list of changes for this release can be found in https://github.com/dev
 
 Release with new features and bugfixes:
 
-* https://github.com/devonfw/IDEasy/issues/797[#797]: Fix VSCode install on macOS   
+* https://github.com/devonfw/IDEasy/issues/797[#797]: Fix VSCode install on macOS
 * https://github.com/devonfw/IDEasy/issues/1956[#1956]: Merging MAVEN_ARGS buggy
 * https://github.com/devonfw/IDEasy/issues/1978[#1978]: Enhanced the quality status documentation
 * https://github.com/devonfw/IDEasy/issues/1946[#1946]: Add Spyder Python IDE
