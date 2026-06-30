@@ -83,6 +83,40 @@ jobs:
           name: msi
           path: windows-installer/signed/ideasy.msi
 
+      - name: Build MacOS PKG
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          maven_config="$(cat .mvn/maven.config)"
+          current_version="${maven_config/#*-Drevision=}"
+          current_version="${current_version/ */}"
+          next_version="${current_version/-SNAPSHOT/}"
+          cd documentation
+          mvn -B -ntp clean install
+          cd ..
+          mkdir -p macos-installer/pkg-root/Library/IDEasy/bin
+          mkdir -p macos-installer/Resources
+          cp documentation/target/generated-docs/LICENSE.rtf macos-installer/Resources/LICENSE.rtf
+          cp -r cli/target/package/* macos-installer/pkg-root/Library/IDEasy/
+          rm -rf macos-installer/pkg-root/Library/IDEasy/system/windows
+          rm -rf macos-installer/pkg-root/Library/IDEasy/system/linux
+          cp cli/target/ideasy macos-installer/pkg-root/Library/IDEasy/bin/
+          chmod +x macos-installer/pkg-root/Library/IDEasy/bin/ideasy
+          chmod +x macos-installer/scripts/postinstall
+          cd macos-installer
+          pkgbuild --root pkg-root --identifier com.devonfw.ideasy \
+          --version $next_version --install-location "/" \
+          --scripts scripts IDEasyComponent.pkg
+          productbuild --distribution Distribution.xml --resources Resources \
+          --package-path . IDEasy-$next_version.pkg
+        # pkgbuild is responsible for building the installation bundle. By using productbuild, we can custimze the installation process, including things like showing a license.
+      - name: Upload PKG
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pkg
+          path: macos-installer/IDEasy-*.pkg
+
   # Downloads all native image artifacts to cli/target and builds the project using assemblies for final deployment to OSSRH Nexus
   deploy:
     name: Build Project and Deploy
