@@ -13,11 +13,21 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
 
+  private final static String DOWNLOAD_BASE_URL = "https://desktop.docker.com";
+  private final static String VERSION_BASE_URL = "https://docs.docker.com";
+
   private final static Set<VersionIdentifier> WINDOWS_ONLY_VERSIONS = Set.of(VersionIdentifier.of("4.16.3"),
       VersionIdentifier.of("4.4.3"), VersionIdentifier.of("4.4.4"), VersionIdentifier.of("4.17.1"),
       VersionIdentifier.of("4.5.1"));
 
   private static final Pattern VERSION_PATTERN = Pattern.compile("(4\\.\\d{1,4}+\\.\\d+)");
+
+  /**
+   * The Constructor.
+   */
+  public DockerDesktopUrlUpdater() {
+    super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
+  }
 
   @Override
   public String getTool() {
@@ -53,21 +63,9 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
   }
 
   @Override
-  protected String getDownloadBaseUrl() {
-
-    return "https://desktop.docker.com";
-  }
-
-  @Override
   protected String getVersionUrl() {
 
     return getVersionBaseUrl() + "/desktop/release-notes/";
-  }
-
-  @Override
-  protected String getVersionBaseUrl() {
-
-    return "https://docs.docker.com";
   }
 
   @Override
@@ -83,6 +81,6 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
 
   @Override
   public String getCpeProduct() {
-    return "docker";
+    return "desktop";
   }
 }

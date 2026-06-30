@@ -1,0 +1,81 @@
+= IDEasy Quality Status — Windows
+:toc: left
+:toclevels: 3
+:icons: font
+:source-highlighter: rouge
+:nofooter:
+
+Automatically generated open issue overview for Windows.
+
+link:quality-status.adoc[Back to overview]
+
+*Total Issues:* 148
+
+* OS-specific: 14
+
+* Multi-OS: 0
+
+* Cross-platform: 134
+
+== Windows Specific Issues
+
+[%header, cols="^1,7"]
+|===
+| Issue | Summary
+2+^| *11-30 days*
+
+| link:https://github.com/devonfw/IDEasy/issues/1982[#1982]
+| relative option for link not honored
+
+| link:https://github.com/devonfw/IDEasy/issues/1981[#1981]
+| ide update fails on windows@arm64
+
+2+^| *31-60 days*
+
+| link:https://github.com/devonfw/IDEasy/issues/1873[#1873]
+| Implement generic get-edition implementation for global tools under windows
+
+| link:https://github.com/devonfw/IDEasy/issues/1872[#1872]
+| Implement generic uninstall implementation for global tools under windows
+
+| link:https://github.com/devonfw/IDEasy/issues/1870[#1870]
+| Implement generic get-version implementation for global tools under windows
+
+2+^| *90+ days*
+
+| link:https://github.com/devonfw/IDEasy/issues/1579[#1579]
+| IDEasy uninstall after a failed MSI installation does not work
+
+| link:https://github.com/devonfw/IDEasy/issues/1558[#1558]
+| Add install.log path to msi installer window
+
+| link:https://github.com/devonfw/IDEasy/issues/1548[#1548]
+| Windows file locking error on update with plugins
+
+| link:https://github.com/devonfw/IDEasy/issues/1232[#1232]
+| MSI Repair broken
+
+| link:https://github.com/devonfw/IDEasy/issues/1227[#1227]
+| Guide windows user after installation
+
+| link:https://github.com/devonfw/IDEasy/issues/1056[#1056]
+| Add Conversion of LICENSE.adoc to RTF Format
+
+| link:https://github.com/devonfw/IDEasy/issues/599[#599]
+| Add release for windows-arm architecture
+
+| link:https://github.com/devonfw/IDEasy/issues/422[#422]
+| Allow installation of IDEasy via Windows Store
+
+| link:https://github.com/devonfw/IDEasy/issues/421[#421]
+| Allow installation of IDEasy via winget
+
+|===
+
+== Multi-OS Issues
+
+No multi-OS issues.
+
+== Cross-platform Issues
+
+Cross-platform issues are listed in the overview document: link:quality-status.adoc[Cross-platform Issues].

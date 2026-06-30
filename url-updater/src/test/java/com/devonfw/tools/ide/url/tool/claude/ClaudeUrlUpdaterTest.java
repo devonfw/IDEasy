@@ -39,7 +39,7 @@ class ClaudeUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(any(urlMatching("/anthropics/claude-code/releases/download/.*")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    ClaudeUrlUpdaterMock updater = new ClaudeUrlUpdaterMock(wmRuntimeInfo);
+    ClaudeUrlUpdater updater = new ClaudeUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // act
     updater.update(urlRepository);
