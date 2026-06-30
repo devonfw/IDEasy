@@ -15,6 +15,9 @@ public class CliArguments implements Iterator<CliArgument> {
 
   private boolean splitShortOpts;
 
+  /** If true, do not discard the special end-of-options token "--" but keep it as current argument. */
+  private boolean preserveEndOptionsToken;
+
   /**
    * The constructor.
    *
@@ -41,6 +44,17 @@ public class CliArguments implements Iterator<CliArgument> {
     this.initialArgument = arg;
     this.endOptions = endOpts;
     this.splitShortOpts = splitShortOpts;
+    this.preserveEndOptionsToken = false;
+    setCurrent(arg);
+  }
+
+  CliArguments(CliArgument arg, boolean endOpts, boolean splitShortOpts, boolean preserveEndOptionsToken) {
+
+    super();
+    this.initialArgument = arg;
+    this.endOptions = endOpts;
+    this.splitShortOpts = splitShortOpts;
+    this.preserveEndOptionsToken = preserveEndOptionsToken;
     setCurrent(arg);
   }
 
@@ -89,7 +103,11 @@ public class CliArguments implements Iterator<CliArgument> {
 
     if (arg.isEndOptions()) {
       endOptions();
-      this.currentArg = arg.getNext();
+      if (this.preserveEndOptionsToken) {
+        this.currentArg = arg;
+      } else {
+        this.currentArg = arg.getNext();
+      }
     } else {
       this.currentArg = arg;
     }
@@ -155,8 +173,7 @@ public class CliArguments implements Iterator<CliArgument> {
    * @return a copy of this {@link CliArguments} to fork a CLI matching of auto-completion.
    */
   public CliArguments copy() {
-
-    return new CliArguments(this.currentArg, this.endOptions, this.splitShortOpts);
+    return new CliArguments(this.currentArg, this.endOptions, this.splitShortOpts, this.preserveEndOptionsToken);
   }
 
   @Override
@@ -171,7 +188,17 @@ public class CliArguments implements Iterator<CliArgument> {
    */
   public static CliArguments ofCompletion(String... args) {
 
-    return new CliArguments(CliArgument.ofCompletion(args));
+    CliArguments ca = new CliArguments(CliArgument.ofCompletion(args));
+    ca.preserveEndOptionsToken = true;
+    return ca;
+  }
+
+  /**
+   * Enable preserving the literal end-of-options token "--" so it is not consumed by the parser. This is used for completion mode where the user input should
+   * be preserved verbatim.
+   */
+  public void preserveEndOptionsToken() {
+    this.preserveEndOptionsToken = true;
   }
 
 }
