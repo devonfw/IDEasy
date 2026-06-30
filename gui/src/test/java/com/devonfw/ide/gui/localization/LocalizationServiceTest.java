@@ -156,20 +156,81 @@ public class LocalizationServiceTest {
       properties.load(inputStream);
     }
 
-    assertThat(properties.getProperty("IDE_LOCALE")).isEqualTo("de");
+    assertThat(properties.getProperty("IDE_OPTIONS")).isEqualTo("-Duser.lang=de");
   }
 
   @Test
   public void testPersistedLocaleIsLoadedFromIdePropertiesFixture() throws IOException {
+
     Path userIdeFolder = this.tempUserHome.resolve(".ide");
     Files.createDirectories(userIdeFolder);
     Path userProperties = userIdeFolder.resolve("ide.properties");
-    Files.writeString(userProperties, "IDE_LOCALE=de\n");
+    Files.writeString(userProperties, "IDE_OPTIONS=-Duser.lang=de\n");
 
     LocalizationService.resetInstance();
     LocalizationService service = LocalizationService.getInstance(null);
 
     assertThat(service.getLocale().getLanguage()).isEqualTo("de");
+  }
+
+  @Test
+  public void testPersistLocaleUpdatesExistingUserLangInIdeOptions() throws IOException {
+
+    Path userIdeFolder = this.tempUserHome.resolve(".ide");
+    Files.createDirectories(userIdeFolder);
+    Path userProperties = userIdeFolder.resolve("ide.properties");
+    Files.writeString(userProperties, "IDE_OPTIONS=-Duser.lang=de\n");
+
+    LocalizationService service = LocalizationService.getInstance(null);
+    service.setLocale(Locale.ENGLISH);
+
+    Properties properties = new Properties();
+    try (InputStream inputStream = Files.newInputStream(userProperties)) {
+      properties.load(inputStream);
+    }
+
+    assertThat(properties.getProperty("IDE_OPTIONS")).isEqualTo("-Duser.lang=en");
+  }
+
+  @Test
+  public void testPersistLocaleAppendsWhenIdeOptionsHasOtherOptions() throws IOException {
+
+    Path userIdeFolder = this.tempUserHome.resolve(".ide");
+    Files.createDirectories(userIdeFolder);
+    Path userProperties = userIdeFolder.resolve("ide.properties");
+    Files.writeString(userProperties, "IDE_OPTIONS=-Dfoo=bar\n");
+
+    LocalizationService service = LocalizationService.getInstance(Locale.ENGLISH);
+    service.setLocale(Locale.GERMAN);
+
+    Properties properties = new Properties();
+    try (InputStream inputStream = Files.newInputStream(userProperties)) {
+      properties.load(inputStream);
+    }
+
+    assertThat(properties.getProperty("IDE_OPTIONS")).isEqualTo("-Dfoo=bar -Duser.lang=de");
+  }
+
+  @Test
+  public void testPersistLocalePreservesUnrelatedIdeOptions() throws IOException {
+
+    Path userIdeFolder = this.tempUserHome.resolve(".ide");
+    Files.createDirectories(userIdeFolder);
+    Path userProperties = userIdeFolder.resolve("ide.properties");
+    Files.writeString(userProperties, "IDE_OPTIONS=-Dfoo=bar -Duser.lang=de\n");
+
+    LocalizationService service = LocalizationService.getInstance(null);
+    service.setLocale(Locale.ENGLISH);
+
+    Properties properties = new Properties();
+    try (InputStream inputStream = Files.newInputStream(userProperties)) {
+      properties.load(inputStream);
+    }
+
+    String ideOptions = properties.getProperty("IDE_OPTIONS");
+    assertThat(ideOptions).contains("-Dfoo=bar");
+    assertThat(ideOptions).contains("-Duser.lang=en");
+    assertThat(ideOptions).doesNotContain("-Duser.lang=de");
   }
 
 

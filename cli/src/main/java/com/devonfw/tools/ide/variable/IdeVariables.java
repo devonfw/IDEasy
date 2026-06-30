@@ -126,9 +126,6 @@ public interface IdeVariables {
   /** {@link VariableDefinition} for support of overriding the default pycharm jvm options. */
   VariableDefinitionString PYCHARM_VM_ARGS = new VariableDefinitionString("PYCHARM_VM_ARGS", null);
 
-  /** {@link VariableDefinition} for selected GUI locale persisted in user properties. */
-  VariableDefinitionString IDE_LOCALE = new VariableDefinitionString("IDE_LOCALE");
-
   /** A {@link Collection} with all pre-defined {@link VariableDefinition}s. */
   Collection<VariableDefinition<?>> VARIABLES = List.of(PATH, HOME, WORKSPACE_PATH, IDE_HOME, IDE_ROOT, WORKSPACE, IDE_TOOLS, HTTP_VERSIONS,
       CREATE_START_SCRIPTS,
@@ -136,7 +133,6 @@ public interface IdeVariables {
       GRADLE_USER_HOME,
       YARN_BUILD_OPTS, JASYPT_OPTS,
       MAVEN_ARGS, INTELLIJ_VM_ARGS, ANDROID_STUDIO_VM_ARGS, PYCHARM_VM_ARGS,
-      IDE_LOCALE,
       PROJECT_NAME, IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED, PREFERRED_GIT_PROTOCOL);
 
   /**

@@ -1,11 +1,8 @@
 package com.devonfw.ide.gui.localization;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Enumeration;
@@ -13,12 +10,13 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
-import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +25,6 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeContextConsole;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
-import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
  * Service for managing localization (i18n) in the JavaFX GUI.
@@ -40,9 +37,17 @@ public class LocalizationService {
 
   private static final Logger LOG = LoggerFactory.getLogger(LocalizationService.class);
 
-  private static final String BUNDLE_NAME = "localization.messages";
+
+  private static final String BUNDLE_PACKAGE = "localization";
+
+  private static final String BUNDLE_BASE_NAME = "messages";
+
+  private static final String BUNDLE_NAME = BUNDLE_PACKAGE + "." + BUNDLE_BASE_NAME;
 
   private static final String LANGUAGE_DISPLAY_KEY = "CurrentLanguage";
+
+  public static final String EXTENSION_PROPERTIES = ".properties";
+  public static final String IDE_OPTIONS = "IDE_OPTIONS";
 
   private static LocalizationService instance;
 
@@ -56,7 +61,7 @@ public class LocalizationService {
 
   private volatile EnvironmentVariables userEnvironmentVariables;
 
-  private static final ResourceBundle.Control UTF8_CONTROL = new UTF8Control();
+  private static final Pattern USER_LANG_PATTERN = Pattern.compile("-Duser\\.lang=(\\S*)");
 
   /**
    * Creates the singleton service.
@@ -145,7 +150,7 @@ public class LocalizationService {
       try {
         listener.run();
       } catch (Exception e) {
-        LOG.warn("Locale change listener threw: {}", e.getMessage());
+        LOG.warn("Locale change listener threw: {}", e.getMessage(), e);
       }
     }
   }
@@ -184,7 +189,7 @@ public class LocalizationService {
         return bundle.getString(LANGUAGE_DISPLAY_KEY);
       }
     } catch (MissingResourceException e) {
-      LOG.debug("No bundle found for language display locale {}", locale);
+      LOG.debug("No bundle found for language display locale {}", locale, e);
     }
     //fallback
     String languageCode = locale.getLanguage();
@@ -263,15 +268,9 @@ public class LocalizationService {
     }
   }
 
-  /**
-   * Loads a resource bundle for a specific locale using UTF-8 properties.
-   *
-   * @param locale the locale to load.
-   * @return the resource bundle for that locale.
-   */
   private ResourceBundle loadBundle(Locale locale) {
 
-    return ResourceBundle.getBundle(BUNDLE_NAME, locale, UTF8_CONTROL);
+    return ResourceBundle.getBundle(BUNDLE_NAME, locale);
   }
 
   /**
@@ -285,9 +284,8 @@ public class LocalizationService {
     Set<Locale> detectedLocales = new LinkedHashSet<>();
     detectedLocales.add(Locale.ENGLISH);
 
-    String resourceBase = BUNDLE_NAME.replace('.', '/');
-    String packagePath = resourceBase.substring(0, resourceBase.lastIndexOf('/') + 1);
-    String filePrefix = resourceBase.substring(resourceBase.lastIndexOf('/') + 1) + "_";
+    String packagePath = BUNDLE_PACKAGE + "/";
+    String filePrefix = BUNDLE_BASE_NAME + "_";
 
     ClassLoader loader = Thread.currentThread().getContextClassLoader();
     if (loader == null) {
@@ -300,7 +298,7 @@ public class LocalizationService {
         collectLocalesFromUrl(resources.nextElement(), packagePath, filePrefix, detectedLocales);
       }
     } catch (IOException e) {
-      LOG.warn("Classpath locale discovery failed: {}", e.getMessage());
+      LOG.warn("Classpath locale discovery failed: {}", e.getMessage(), e);
     }
 
     return List.copyOf(detectedLocales);
@@ -312,7 +310,7 @@ public class LocalizationService {
       try {
         collectLocalesFromDirectory(Path.of(url.toURI()), filePrefix, locales);
       } catch (Exception e) {
-        LOG.debug("Locale scan skipped for {}: {}", url, e.getMessage());
+        LOG.debug("Locale scan skipped for {}: {}", url, e.getMessage(), e);
       }
     } else if ("jar".equals(url.getProtocol())) {
       collectLocalesFromJar(url, packagePath, filePrefix, locales);
@@ -323,10 +321,10 @@ public class LocalizationService {
 
     try (var stream = Files.list(dir)) {
       stream.map(p -> p.getFileName().toString())
-          .filter(n -> n.startsWith(filePrefix) && n.endsWith(".properties"))
-          .forEach(n -> addLocaleFromTag(n.substring(filePrefix.length(), n.length() - ".properties".length()), locales));
+          .filter(n -> n.startsWith(filePrefix) && n.endsWith(EXTENSION_PROPERTIES))
+          .forEach(n -> addLocaleFromTag(n.substring(filePrefix.length(), n.length() - EXTENSION_PROPERTIES.length()), locales));
     } catch (IOException e) {
-      LOG.debug("Could not list locale directory {}: {}", dir, e.getMessage());
+      LOG.debug("Could not list locale directory {}: {}", dir, e.getMessage(), e);
     }
   }
 
@@ -341,11 +339,11 @@ public class LocalizationService {
       try (JarFile jarFile = new JarFile(jar.toFile())) {
         jarFile.stream()
             .map(JarEntry::getName)
-            .filter(n -> n.startsWith(entryPrefix) && n.endsWith(".properties"))
-            .forEach(n -> addLocaleFromTag(n.substring(entryPrefix.length(), n.length() - ".properties".length()), locales));
+            .filter(n -> n.startsWith(entryPrefix) && n.endsWith(EXTENSION_PROPERTIES))
+            .forEach(n -> addLocaleFromTag(n.substring(entryPrefix.length(), n.length() - EXTENSION_PROPERTIES.length()), locales));
       }
     } catch (Exception e) {
-      LOG.debug("Could not scan JAR {} for locales: {}", url, e.getMessage());
+      LOG.debug("Could not scan JAR {} for locales: {}", url, e.getMessage(), e);
     }
   }
 
@@ -363,18 +361,27 @@ public class LocalizationService {
 
 
   /**
-   * Loads the persisted GUI locale from the user configuration.
+   * Loads the persisted GUI locale from {@code -Duser.lang=<tag>} inside {@code IDE_OPTIONS}.
    *
    * @return the stored locale, or {@code null} if none is configured.
    */
   private Locale loadPersistedLocale() {
 
-    String persistedLocaleTag = getUserEnvironmentVariables().get(IdeVariables.IDE_LOCALE.getName());
-    return ((persistedLocaleTag == null) || persistedLocaleTag.isBlank()) ? null : Locale.forLanguageTag(persistedLocaleTag);
+    String ideOptions = getUserEnvironmentVariables().get(IDE_OPTIONS);
+    if (ideOptions == null || ideOptions.isBlank()) {
+      return null;
+    }
+    Matcher matcher = USER_LANG_PATTERN.matcher(ideOptions);
+    if (matcher.find()) {
+      String tag = matcher.group(1);
+      return tag.isBlank() ? null : Locale.forLanguageTag(tag);
+    }
+    return null;
   }
 
   /**
-   * Stores the selected GUI locale in the user configuration.
+   * Persists the selected GUI locale by setting {@code -Duser.lang=<tag>} inside {@code IDE_OPTIONS}. Updates an existing {@code -Duser.lang=...} entry if
+   * present; otherwise appends it.
    *
    * @param localeToPersist the locale to store.
    */
@@ -382,10 +389,20 @@ public class LocalizationService {
 
     EnvironmentVariables environmentVariables = getUserEnvironmentVariables();
     try {
-      environmentVariables.set(IdeVariables.IDE_LOCALE.getName(), localeToPersist.toLanguageTag());
+      String ideOptions = environmentVariables.get(IDE_OPTIONS);
+      String userLangFlag = "-Duser.lang=" + localeToPersist.toLanguageTag();
+      String updated;
+      if (ideOptions == null || ideOptions.isBlank()) {
+        updated = userLangFlag;
+      } else if (USER_LANG_PATTERN.matcher(ideOptions).find()) {
+        updated = USER_LANG_PATTERN.matcher(ideOptions).replaceFirst(userLangFlag);
+      } else {
+        updated = ideOptions + " " + userLangFlag;
+      }
+      environmentVariables.set(IDE_OPTIONS, updated);
       environmentVariables.save();
     } catch (RuntimeException e) {
-      LOG.warn("Failed to persist GUI locale: {}", e.getMessage());
+      LOG.warn("Failed to persist GUI locale: {}", e.getMessage(), e);
     }
   }
 
@@ -411,26 +428,4 @@ public class LocalizationService {
     return userVariables;
   }
 
-  /**
-   * UTF-8 ResourceBundle.Control to read .properties files correctly.
-   */
-  private static final class UTF8Control extends ResourceBundle.Control {
-
-    /**
-     * Loads a bundle from UTF-8 encoded properties.
-     */
-    @Override
-    public ResourceBundle newBundle(String baseName, Locale locale, String format, ClassLoader loader,
-        boolean reload) throws IOException {
-
-      String resourceName = toResourceName(toBundleName(baseName, locale), "properties");
-      try (InputStream inputStream = loader.getResourceAsStream(resourceName)) {
-        if (inputStream == null) {
-          return null;
-        }
-        return new PropertyResourceBundle(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-      }
-    }
-
-  }
 }
