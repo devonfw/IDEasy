@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.commandlet.CompleteCommandlet;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -103,7 +104,7 @@ public final class Ideasy {
       String key = current.getKey();
       Property<?> property = contextCommandlet.getOption(key);
       if (property == null) {
-        if ("complete".equals(current.get())) {
+        if (CompleteCommandlet.NAME.equals(current.get())) {
           arguments.preserveEndOptionsToken();
         }
         break;

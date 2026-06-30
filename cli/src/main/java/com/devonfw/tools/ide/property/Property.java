@@ -429,16 +429,10 @@ public abstract class Property<V> {
 
     if (success) {
       if (this.multivalued) {
-        boolean consumedExtra = false;
         while (success && args.hasNext()) {
           CliArgument arg = args.next();
-          consumedExtra = true;
           success = assignValueAsString(arg.get(), context, commandlet);
         }
-        if (!consumedExtra) {
-          args.next();
-        }
-        return success;
       }
     }
     args.next();

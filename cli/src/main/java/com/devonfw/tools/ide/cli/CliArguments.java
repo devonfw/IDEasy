@@ -48,6 +48,16 @@ public class CliArguments implements Iterator<CliArgument> {
     setCurrent(arg);
   }
 
+  CliArguments(CliArgument arg, boolean endOpts, boolean splitShortOpts, boolean preserveEndOptionsToken) {
+
+    super();
+    this.initialArgument = arg;
+    this.endOptions = endOpts;
+    this.splitShortOpts = splitShortOpts;
+    this.preserveEndOptionsToken = preserveEndOptionsToken;
+    setCurrent(arg);
+  }
+
   /**
    * Marks the end of the options so no further {@link CliArgument#getNext(boolean) option splitting} will be performed.
    *
@@ -163,10 +173,7 @@ public class CliArguments implements Iterator<CliArgument> {
    * @return a copy of this {@link CliArguments} to fork a CLI matching of auto-completion.
    */
   public CliArguments copy() {
-
-    CliArguments copy = new CliArguments(this.currentArg, this.endOptions, this.splitShortOpts);
-    copy.preserveEndOptionsToken = this.preserveEndOptionsToken;
-    return copy;
+    return new CliArguments(this.currentArg, this.endOptions, this.splitShortOpts, this.preserveEndOptionsToken);
   }
 
   @Override
