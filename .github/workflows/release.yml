@@ -91,19 +91,25 @@ jobs:
           maven_config="$(cat .mvn/maven.config)"
           current_version="${maven_config/#*-Drevision=}"
           current_version="${current_version/ */}"
-          mkdir -p mac-installer/pkg-root/usr/local/share/ideasy/bin
-          cp -r cli/target/package/* mac-installer/pkg-root/usr/local/share/ideasy/
-          rm -rf mac-installer/pkg-root/usr/local/share/ideasy/system/windows
-          rm -rf mac-installer/pkg-root/usr/local/share/ideasy/system/linux
-          cp cli/target/ideasy mac-installer/pkg-root/usr/local/share/ideasy/bin/ideasy
-          chmod +x mac-installer/pkg-root/usr/local/share/ideasy/bin/ideasy
-          pkgbuild \
-          --root mac-installer/pkg-root \
-          --identifier com.devonfw.ideasy \
-          --version "$VERSION" \
-          --install-location / \
-          --scripts mac-installer/pkg-scripts \
-          mac-installer/ideasy-${VERSION}.pkg
+          next_version="${current_version/-SNAPSHOT/}"
+          cd documentation
+          mvn -B -ntp clean install
+          cd ..
+          mkdir -p macos-installer/pkg-root/Library/IDEasy/bin
+          mkdir -p macos-installer/Resources
+          cp documentation/target/generated-docs/LICENSE.rtf macos-installer/Resources/LICENSE.rtf
+          cp -r cli/target/package/* macos-installer/pkg-root/Library/IDEasy/
+          rm -rf macos-installer/pkg-root/Library/IDEasy/system/windows
+          rm -rf macos-installer/pkg-root/Library/IDEasy/system/linux
+          cp cli/target/ideasy macos-installer/pkg-root/Library/IDEasy/bin/
+          chmod +x macos-installer/pkg-root/Library/IDEasy/bin/ideasy
+          chmod +x macos-installer/scripts/postinstall
+          cd macos-installer
+          pkgbuild --root pkg-root --identifier com.devonfw.ideasy \
+          --version $next_version --install-location "/" \
+          --scripts scripts IDEasyComponent.pkg
+          productbuild --distribution Distribution.xml --resources Resources \
+          --package-path . IDEasy-$next_version.pkg
 
       - name: Upload PKG
         if: runner.os == 'macOS'

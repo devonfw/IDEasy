@@ -1,0 +1,17 @@
+#!/bin/bash
+set -e
+
+INSTALL_DIR="/Library/IDEasy"
+LOG_DIR="$HOME/.ide/logs"
+mkdir -p "$LOG_DIR"
+ts=$(date +"%Y-%m-%d-%H-%M-%S")
+
+ln -sf "$INSTALL_DIR/bin/ideasy" /usr/local/bin/ideasy
+
+"$INSTALL_DIR/bin/ideasy" -ftb --no-colors install \
+  > "$LOG_DIR/install-$ts.log" 2>&1
+
+# Add INSTALL_DIR/bin to PATH for both bash and zsh (login shells)
+echo "$INSTALL_DIR/bin" > /etc/paths.d/ideasy
+
+exit 0
