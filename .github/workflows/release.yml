@@ -110,13 +110,13 @@ jobs:
           --scripts scripts IDEasyComponent.pkg
           productbuild --distribution Distribution.xml --resources Resources \
           --package-path . IDEasy-$next_version.pkg
-
+        # pkgbuild is responsible for building the installation bundle. By using productbuild, we can custimze the installation process, including things like showing a license.
       - name: Upload PKG
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v4
         with:
-          name: pkg-${{ matrix.os }}
-          path: mac-installer/ideasy-*.pkg
+          name: pkg
+          path: macos-installer/IDEasy-*.pkg
 
   # Downloads all native image artifacts to cli/target and builds the project using assemblies for final deployment to Maven Central.
   # The version number for the next build will be incremented automatically.
