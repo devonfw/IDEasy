@@ -84,6 +84,33 @@ jobs:
         with:
           name: msi
           path: windows-installer/signed/ideasy.msi
+      - name: Build MacOS PKG
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          maven_config="$(cat .mvn/maven.config)"
+          current_version="${maven_config/#*-Drevision=}"
+          current_version="${current_version/ */}"
+          mkdir -p mac-installer/pkg-root/usr/local/share/ideasy/bin
+          cp -r cli/target/package/* mac-installer/pkg-root/usr/local/share/ideasy/
+          rm -rf mac-installer/pkg-root/usr/local/share/ideasy/system/windows
+          rm -rf mac-installer/pkg-root/usr/local/share/ideasy/system/linux
+          cp cli/target/ideasy mac-installer/pkg-root/usr/local/share/ideasy/bin/ideasy
+          chmod +x mac-installer/pkg-root/usr/local/share/ideasy/bin/ideasy
+          pkgbuild \
+          --root mac-installer/pkg-root \
+          --identifier com.devonfw.ideasy \
+          --version "$VERSION" \
+          --install-location / \
+          --scripts mac-installer/pkg-scripts \
+          mac-installer/ideasy-${VERSION}.pkg
+
+      - name: Upload PKG
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pkg-${{ matrix.os }}
+          path: mac-installer/ideasy-*.pkg
 
   # Downloads all native image artifacts to cli/target and builds the project using assemblies for final deployment to Maven Central.
   # The version number for the next build will be incremented automatically.
