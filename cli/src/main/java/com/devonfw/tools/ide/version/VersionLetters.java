@@ -27,6 +27,8 @@ public final class VersionLetters implements AbstractVersionPhase, VersionObject
 
   private final boolean prePhase;
 
+  private final boolean snapshot;
+
   /**
    * The constructor.
    *
@@ -48,6 +50,11 @@ public final class VersionLetters implements AbstractVersionPhase, VersionObject
     } else {
       this.prePhase = false;
     }
+    this.snapshot = containsSnapshotPart(phaseLetters);
+    if (this.snapshot) {
+      phaseLetters = removeSnapshotPart(phaseLetters);
+    }
+
     this.phase = VersionPhase.of(phaseLetters);
   }
 
@@ -58,6 +65,7 @@ public final class VersionLetters implements AbstractVersionPhase, VersionObject
     this.lettersLowerCase = "";
     this.prePhase = false;
     this.phase = phase;
+    this.snapshot = false;
   }
 
   /**
@@ -86,6 +94,13 @@ public final class VersionLetters implements AbstractVersionPhase, VersionObject
   }
 
   /**
+   * @return {@code true} if this {@link VersionSegment} has a SNAPSHOT suffix, otherwise {@code false}.
+   */
+  public boolean isSnapshot() {
+    return snapshot;
+  }
+
+  /**
    * @return {@code true} if the {@link #getLetters() letters} and a potential {@link #getPhase() phase} are prefixed with "pre" (e.g. in "pre-alpha"),
    *     {@code false} otherwise.
    */
@@ -103,13 +118,13 @@ public final class VersionLetters implements AbstractVersionPhase, VersionObject
   @Override
   public boolean isUnstable() {
 
-    return this.prePhase || this.phase.isUnstable();
+    return this.prePhase || this.phase.isUnstable() || this.isSnapshot();
   }
 
   @Override
   public boolean isStable() {
 
-    return !this.prePhase && this.phase.isStable();
+    return !this.prePhase && this.phase.isStable() && !this.snapshot;
   }
 
   /**
@@ -137,13 +152,16 @@ public final class VersionLetters implements AbstractVersionPhase, VersionObject
           return VersionComparisonResult.GREATER_UNSAFE;
         }
       }
-      if (this.phase != other.phase) {
-        if (this.phase.ordinal() < other.phase.ordinal()) {
-          return VersionComparisonResult.LESS;
-        } else {
-          return VersionComparisonResult.GREATER;
-        }
-      } else if (this.prePhase != other.prePhase) {
+
+      int thisRank = getPhaseRank();
+      int otherRank = other.getPhaseRank();
+      if (thisRank < otherRank) {
+        return VersionComparisonResult.LESS;
+      } else if (thisRank > otherRank) {
+        return VersionComparisonResult.GREATER;
+      }
+
+      if (this.prePhase != other.prePhase) {
         if (this.prePhase) {
           return VersionComparisonResult.LESS;
         } else {
@@ -222,4 +240,47 @@ public final class VersionLetters implements AbstractVersionPhase, VersionObject
     return new VersionLetters(letters);
   }
 
+  private static boolean containsSnapshotPart(String phaseLetters) {
+    String[] parts = phaseLetters.split("-");
+    for (String part : parts) {
+      if ("snapshot".equals(part)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static String removeSnapshotPart(String phaseLetters) {
+    String[] parts = phaseLetters.split("-");
+    StringBuilder result = new StringBuilder();
+
+    for (String part : parts) {
+
+      if ("snapshot".equals(part)) {
+        continue;
+      }
+
+      if (!part.isEmpty()) {
+        if (!result.isEmpty()) {
+          result.append("-");
+        }
+        result.append(part);
+      }
+    }
+    return result.toString();
+  }
+
+  private int getPhaseRank() {
+    int unstableRank = VersionPhase.UNSTABLE.ordinal();
+
+    if (this.snapshot) {
+      return unstableRank + 1;
+    }
+    int rank = this.phase.ordinal();
+
+    if (rank > unstableRank) {
+      return rank + 1;
+    }
+    return rank;
+  }
 }

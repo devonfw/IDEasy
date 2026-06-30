@@ -80,7 +80,7 @@ class VersionIdentifierTest extends Assertions {
    */
   @ParameterizedTest
   // arrange
-  @ValueSource(strings = { "0", "0.0", "1.0.pineapple-pen", "1.0-rc", ".1.0", "1.-0", "RC1", "Beta1", "donut", "0*.0", "*0", "*.", "17.*alpha",
+  @ValueSource(strings = { "0", "0.0", "1.0.pineapple-pen", "1.0-rc", ".1.0", "1.-0", "RC1", "Beta1", "donut", "0*.0", "*0", "*.", "17.*alpha", "17-SNAPSHOT1",
       "17*.1" })
   void testInvalid(String version) {
 
@@ -150,6 +150,7 @@ class VersionIdentifierTest extends Assertions {
     assertThat(pattern.matches(VersionIdentifier.of("17.alpha7"))).isFalse();
     assertThat(pattern.matches(VersionIdentifier.of("17.beta2"))).isFalse();
     assertThat(pattern.matches(VersionIdentifier.of("17-SNAPSHOT"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.of("17.2.3-SNAPSHOT"))).isFalse();
 
     pattern = VersionIdentifier.of("17*");
     assertThat(pattern.isValid()).isFalse();
@@ -223,6 +224,7 @@ class VersionIdentifierTest extends Assertions {
     assertThat(pattern.matches(VersionIdentifier.of("17.alpa7"))).isTrue();
     assertThat(pattern.matches(VersionIdentifier.of("17.beta2"))).isTrue();
     assertThat(pattern.matches(VersionIdentifier.of("17-SNAPSHOT"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.of("17.2.3-SNAPSHOT"))).isTrue();
     pattern = VersionIdentifier.of("17.*!");
     assertThat(pattern.isValid()).isFalse();
     assertThat(pattern.isPattern()).isTrue();
@@ -358,6 +360,10 @@ class VersionIdentifierTest extends Assertions {
     assertThat(VersionIdentifier.of("1.0-alpha1.rc2").isStable()).isFalse();
     assertThat(VersionIdentifier.LATEST.isStable()).isTrue();
     assertThat(VersionIdentifier.LATEST_UNSTABLE.isStable()).isFalse();
+    assertThat(VersionIdentifier.of("1.0-SNAPSHOT").isStable()).isFalse();
+    assertThat(VersionIdentifier.of("2025.03.001-SNAPSHOT").isStable()).isFalse();
+    assertThat(VersionIdentifier.of("1.0-beta-SNAPSHOT").isStable()).isFalse();
+    assertThat(VersionIdentifier.of("1.2.3-SNAPSHOT").isStable()).isFalse();
   }
 
   /** Test of {@link VersionIdentifier#resolveVersionPattern(GenericVersionRange, List)} - exact version found. */
@@ -390,7 +396,7 @@ class VersionIdentifierTest extends Assertions {
     final List<VersionIdentifier> availableVersions = List.of(identifier);
     final String expectedMessage = "Could not find any version matching '" + identifierPattern
         + "' - there are " + availableVersions.size() + " version(s) available but none matched!\nDid you mean one of: " + identifier + "?";
-    
+
     assertThatThrownBy(() -> VersionIdentifier.resolveVersionPattern(identifierPattern, availableVersions))
         .isInstanceOf(CliException.class)
         .hasMessage(expectedMessage);
