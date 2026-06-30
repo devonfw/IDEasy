@@ -123,6 +123,14 @@ function icd() {
   return
 }
 
+function claude() {
+  if [ -n "${IDE_HOME}" ]; then
+    ide claude "$@"
+  else
+    command claude "$@"
+  fi
+}
+
 _ide_create_project()
 {
   local found_create=false

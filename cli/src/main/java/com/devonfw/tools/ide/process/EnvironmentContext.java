@@ -28,6 +28,18 @@ public interface EnvironmentContext {
   EnvironmentContext withPathEntry(Path path);
 
   /**
+   * Removes (unsets) the specified environment variable in this context so that an inherited/ambient value cannot leak into the launched process. The default
+   * implementation is a no-op; only contexts backed by a real process environment (see {@link com.devonfw.tools.ide.process.ProcessContextImpl}) actually
+   * remove the variable. Collector contexts used for shell export intentionally ignore this so the user's interactive shell is never modified.
+   *
+   * @param key the name of the environment variable to remove.
+   * @return this {@link EnvironmentContext} for fluent API calls.
+   */
+  default EnvironmentContext removeEnvVar(String key) {
+    return this;
+  }
+
+  /**
    * @return an empty instance of {@link EnvironmentContext} to prevent {@link NullPointerException}s.
    */
   static EnvironmentContext getEmpty() {
