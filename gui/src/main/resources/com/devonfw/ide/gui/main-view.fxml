@@ -5,7 +5,8 @@
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 <?import java.lang.Double?>
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" prefHeight="515.0" prefWidth="817.0" xmlns="http://javafx.com/javafx/25.0.0"
+<BorderPane fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" prefHeight="515.0" prefWidth="817.0"
+  xmlns="http://javafx.com/javafx/25.0.0"
   xmlns:fx="http://javafx.com/fxml/1">
   <left>
     <VBox prefHeight="428.0" prefWidth="181.0" spacing="4.0" stylesheets="@style/navigation.css" BorderPane.alignment="CENTER">
@@ -24,9 +25,9 @@
         </HBox>
         <VBox maxHeight="-Infinity" prefWidth="100.0" styleClass="sideNavigationElement">
           <children>
-            <Label maxWidth="1.7976931348623157E308" text="Project"/>
+            <Label fx:id="labelProject" maxWidth="1.7976931348623157E308" text="%project"/>
             <ComboBox fx:id="selectedProject" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefHeight="40.0" prefWidth="150.0"
-              promptText="Choose project" styleClass="chooseProject"/>
+              promptText="%chooseProject" styleClass="chooseProject"/>
           </children>
           <padding>
             <Insets left="8.0" right="8.0"/>
@@ -34,8 +35,20 @@
         </VBox>
         <VBox layoutX="20.0" layoutY="245.0" maxHeight="-Infinity" prefWidth="100.0" styleClass="sideNavigationElement">
           <children>
-            <Label maxWidth="1.7976931348623157E308" text="Workspace" />
-            <ComboBox fx:id="selectedWorkspace" disable="true" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefHeight="40.0" prefWidth="150.0" promptText="Choose workspace" styleClass="chooseProject" VBox.vgrow="ALWAYS" />
+            <Label fx:id="labelWorkspace" maxWidth="1.7976931348623157E308" text="%workspace"/>
+            <ComboBox fx:id="selectedWorkspace" disable="true" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefHeight="40.0" prefWidth="150.0"
+              promptText="%chooseWorkspace" styleClass="chooseProject" VBox.vgrow="ALWAYS"/>
+          </children>
+          <padding>
+            <Insets left="8.0" right="8.0"/>
+          </padding>
+        </VBox>
+        <!-- Language selector -->
+        <VBox maxHeight="-Infinity" prefWidth="100.0" styleClass="sideNavigationElement">
+          <children>
+            <Label fx:id="labelLanguage" maxWidth="1.7976931348623157E308" text="%language"/>
+            <ComboBox fx:id="selectedLanguage" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefHeight="40.0" prefWidth="150.0"
+              promptText="%chooseLanguage" styleClass="chooseProject"/>
           </children>
           <padding>
             <Insets left="8.0" right="8.0"/>
@@ -72,7 +85,7 @@
                   spacing="10.0" HBox.hgrow="ALWAYS">
                   <children>
                     <Button fx:id="androidStudioOpen" disable="true" mnemonicParsing="false" onAction="#openAndroidStudio" styleClass="launchButton"
-                      text="Open">
+                      text="%open">
                       <HBox.margin>
                         <Insets right="20.0"/>
                       </HBox.margin>
@@ -96,7 +109,7 @@
                 <HBox alignment="CENTER_RIGHT" prefHeight="$buttonContainerHeight" prefWidth="$buttonContainerWidth" minWidth="$buttonContainerWidth"
                   HBox.hgrow="ALWAYS">
                   <children>
-                    <Button fx:id="eclipseOpen" disable="true" mnemonicParsing="false" onAction="#openEclipse" styleClass="launchButton" text="Open">
+                    <Button fx:id="eclipseOpen" disable="true" mnemonicParsing="false" onAction="#openEclipse" styleClass="launchButton" text="%open">
                       <HBox.margin>
                         <Insets right="20.0"/>
                       </HBox.margin>
@@ -120,7 +133,7 @@
                 <HBox alignment="CENTER_RIGHT" prefHeight="$buttonContainerHeight" prefWidth="$buttonContainerWidth" minWidth="$buttonContainerWidth"
                   spacing="10.0" HBox.hgrow="ALWAYS">
                   <children>
-                    <Button fx:id="intellijOpen" disable="true" mnemonicParsing="false" onAction="#openIntellij" styleClass="launchButton" text="Open">
+                    <Button fx:id="intellijOpen" disable="true" mnemonicParsing="false" onAction="#openIntellij" styleClass="launchButton" text="%open">
                       <HBox.margin>
                         <Insets right="20.0"/>
                       </HBox.margin>
@@ -143,7 +156,7 @@
                 <HBox alignment="CENTER_RIGHT" prefHeight="$buttonContainerHeight" prefWidth="$buttonContainerWidth" minWidth="$buttonContainerWidth"
                   spacing="10.0" HBox.hgrow="ALWAYS">
                   <children>
-                    <Button fx:id="vsCodeOpen" disable="true" mnemonicParsing="false" onAction="#openVsCode" styleClass="launchButton" text="Open">
+                    <Button fx:id="vsCodeOpen" disable="true" mnemonicParsing="false" onAction="#openVsCode" styleClass="launchButton" text="%open">
                       <HBox.margin>
                         <Insets right="20.0"/>
                       </HBox.margin>
