@@ -78,6 +78,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1884[#1884]: Fix java unzipping losing symlink information
 * https://github.com/devonfw/IDEasy/issues/1716[#1716]: Add commandlet for Claude Code CLI
 * https://github.com/devonfw/IDEasy/issues/1844[#1844]: Fix vscode installation hanging indefinitely in WSL Linux environments
+* https://github.com/devonfw/IDEasy/issues/1953[#1953]: Implement base functionality of cleanup commandlet
 * https://github.com/devonfw/IDEasy/issues/863[#863]: Mac x64 / ARM android-studio 2024 releases missing — accept .dmg downloads alongside .zip
 * https://github.com/devonfw/IDEasy/issues/1904[#1904]: Add Inso CLI to IDEasy commandlets
 * https://github.com/devonfw/IDEasy/issues/1952[#1952]: Ability for platform specific dependencies
