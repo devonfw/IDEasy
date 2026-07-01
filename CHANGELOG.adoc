@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1676[#1676]: Import extra SDKs automatically into IDE
 * https://github.com/devonfw/IDEasy/issues/1056[#1056]: Improve MSI license display by generating formatted RTF from AsciiDoc
 * https://github.com/devonfw/IDEasy/issues/2052[#2052]: Split issue statistics in 2 pie-charts
 * https://github.com/devonfw/IDEasy/issues/822[#822] : Added Cwd path limit in shell

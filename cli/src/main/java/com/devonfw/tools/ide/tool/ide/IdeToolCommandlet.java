@@ -131,4 +131,18 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
 
     throw new UnsupportedOperationException("Repository import is not yet implemented for IDE " + this.tool);
   }
+
+  /**
+   * Synchronizes extra IDEasy tool installations into the IDE workspace configuration if supported.
+   *
+   * <p>
+   * The default implementation does nothing. IDEs such as IntelliJ may override this hook to import extra SDK/tool installations configured via
+   * {@code settings/ide-extra-tools.json}.
+   * </p>
+   *
+   * @param workspacePath the workspace root whose IDE configuration should be synchronized.
+   */
+  public void synchronizeExtraToolInstallations(Path workspacePath) {
+    // default no-op
+  }
 }

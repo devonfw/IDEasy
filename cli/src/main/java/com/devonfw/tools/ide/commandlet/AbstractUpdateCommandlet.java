@@ -33,6 +33,7 @@ import com.devonfw.tools.ide.tool.custom.CustomToolMetadata;
 import com.devonfw.tools.ide.tool.extra.ExtraToolInstallation;
 import com.devonfw.tools.ide.tool.extra.ExtraTools;
 import com.devonfw.tools.ide.tool.extra.ExtraToolsMapper;
+import com.devonfw.tools.ide.tool.intellij.Intellij;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -349,6 +350,8 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
         this.context.newStep("Install extra version(s) of " + tool).run(() -> installExtraToolInstallations(tool, installations));
       }
     }
+
+    synchronizeIdeExtraToolInstallations(extraTools);
   }
 
   private void installExtraToolInstallations(String tool, List<ExtraToolInstallation> extraInstallations) {
@@ -371,6 +374,28 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       request.setToolPathForExtraInstallation(toolPath);
       toolCommandlet.install(request);
     }
+  }
+
+  private void synchronizeIdeExtraToolInstallations(ExtraTools extraTools) {
+
+    if (extraTools == null) {
+      return;
+    }
+
+    Path workspacePath = this.context.getWorkspacePath();
+    if (!Files.isDirectory(workspacePath)) {
+      LOG.debug("Skipping IDE extra SDK synchronization because workspace path does not exist: {}", workspacePath);
+      return;
+    }
+
+    Intellij intellij = this.context.getCommandletManager().getCommandlet(Intellij.class);
+    if (intellij != null) {
+      this.context.newStep("Synchronize IntelliJ extra SDKs").run(() -> intellij.synchronizeExtraToolInstallations(workspacePath));
+    }
+
+    // later:
+    // Eclipse eclipse = ...
+    // VsCode vscode = ...
   }
 
   private void updateRepositories() {
