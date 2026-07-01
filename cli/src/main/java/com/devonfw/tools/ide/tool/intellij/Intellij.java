@@ -310,12 +310,11 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
 
     ExtensibleEnvironmentVariables environmentVariables = new ExtensibleEnvironmentVariables(
         (AbstractEnvironmentVariables) this.context.getVariables().getParent(), this.context);
-    environmentVariables.setValue("EXTRA_TOOL", tool);
-    environmentVariables.setValue("EXTRA_NAME", name);
-    environmentVariables.setValue("EXTRA_HOME", extraToolHome.toString().replace('\\', '/'));
-    environmentVariables.setValue("EXTRA_VERSION", extraInstallation.version().toString());
+    environmentVariables.setValue("EXTRA_JAVA_NAME", name);
+    environmentVariables.setValue("EXTRA_JAVA_HOME", extraToolHome.toString().replace('\\', '/'));
+    environmentVariables.setValue("EXTRA_JAVA_VERSION", extraInstallation.version().toString());
     if (extraInstallation.edition() != null) {
-      environmentVariables.setValue("EXTRA_EDITION", extraInstallation.edition());
+      environmentVariables.setValue("EXTRA_JAVA_EDITION", extraInstallation.edition());
     }
 
     mergeExtraToolInstallationToWorkspace(workspacePath, config, templateFile, environmentVariables.resolved());
