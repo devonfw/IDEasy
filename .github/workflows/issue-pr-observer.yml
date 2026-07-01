@@ -1,30 +1,55 @@
-name: External Issue & PR Observer
+name: External Issue, PR & Discussion Observer
 
-# Posts a weekday-morning digest of new EXTERNAL issues/PRs (last 24h) to a Teams
-# channel so incoming reports from outside the team are noticed quickly and don't slip.
-# "External" = author_association is not MEMBER, OWNER or COLLABORATOR.
+# Posts a weekday-morning digest of new EXTERNAL issues, PRs and discussions (last 24h)
+# to a Teams channel so incoming activity from outside the team is noticed quickly and
+# "External" = author is not in the DAILY_TEAM list below.
+# Issues/PRs come from the REST search API, discussions from GraphQL (no REST equivalent).
+# Each source falls back to empty on error, so one failing API still posts the rest.
 # Requires the repository secret TEAMS_WEBHOOK_URL (a Teams "Workflows" incoming webhook).
 
 on:
-  workflow_dispatch:          
+  workflow_dispatch:
   schedule:
     - cron: '0 7 * * 1-5'     # 07:00 UTC, Mon-Fri (= 09:00 CEST summer / 08:00 CET winter)
 
 permissions:
   issues: read
   pull-requests: read
+  discussions: read
   contents: read
 
 jobs:
   observe:
     runs-on: ubuntu-latest
     steps:
-      - name: Scan for new external issues & PRs and notify Teams
+      - name: Scan for new external issues, PRs & discussions and notify Teams
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WEBHOOK: ${{ secrets.TEAMS_WEBHOOK_URL }}
           REPO: ${{ github.repository }}
+          # Daily-team logins to exclude; one per line, case-insensitive.
+          DAILY_TEAM: |
+            AdemZarrouki
+            Ali-Shariati-Najafabadi
+            areinicke
+            Caylipp
+            hohwille
+            JoelAdbu
+            KarimALotfy
+            laert-ll
+            laim2003
+            marceltchanga9
+            maybeec
+            oanding-blrng
+            Paras14
+            quando632
+            shodiBoy1
+            tineff96
+            vivu001
         run: |
+          # so a failing gh api trips the || fallback instead of being hidden by the trailing jq
+          set -o pipefail
+
           # Monday catches up the weekend (Fri–Sun); other weekdays look back 24h.
           if [ "$(date -u +%u)" -eq 1 ]; then
             SINCE=$(date -u -d '3 days ago' +%Y-%m-%dT%H:%M:%SZ)
@@ -33,14 +58,16 @@ jobs:
           fi
           echo "Scanning $REPO for items created since $SINCE"
 
-          # Search returns both issues and PRs; keep only external authors (not on the team)
-          # and emit a structured object per item so the card can lay them out nicely.
-          ITEMS_JSON=$(gh api -X GET search/issues \
-            -f q="repo:$REPO created:>=$SINCE" \
-            --jq '[.items[]
-              | select(.author_association != "MEMBER"
-                   and .author_association != "OWNER"
-                   and .author_association != "COLLABORATOR")
+          # team logins as a lowercase JSON array
+          TEAM=$(printf '%s\n' "$DAILY_TEAM" | grep -vE '^[[:space:]]*$' \
+            | tr -d ' \t\r' | tr '[:upper:]' '[:lower:]' | jq -R . | jq -s .)
+          echo "Excluding $(echo "$TEAM" | jq 'length') daily-team member(s)."
+
+          # Issues + PRs via REST search; drop team authors, keep the rest. On error use [].
+          ISSUE_ITEMS=$(gh api -X GET search/issues \
+            -f q="repo:$REPO created:>=$SINCE" -f per_page=100 --jq '.items' \
+            | jq --argjson team "$TEAM" '[.[]
+              | select((.user.login | ascii_downcase) as $u | $team | index($u) | not)
               | {
                   kind:   (if .pull_request then "Pull Request" else "Issue" end),
                   icon:   (if .pull_request then "🔵" else "🟢" end),
@@ -48,40 +75,79 @@ jobs:
                   title:  .title,
                   url:    .html_url,
                   user:   .user.login
-                }]')
+                }]') \
+            || { echo "WARN: issue/PR fetch failed, continuing without them."; ISSUE_ITEMS='[]'; }
 
-          COUNT=$(echo "$ITEMS_JSON" | jq 'length')
+          # No REST search for discussions; take newest 50 via GraphQL, filter by window + team.
+          OWNER=${REPO%/*}
+          NAME=${REPO#*/}
+          DISC_ITEMS=$(gh api graphql \
+            -f owner="$OWNER" -f name="$NAME" \
+            -f query='
+              query($owner:String!, $name:String!) {
+                repository(owner:$owner, name:$name) {
+                  discussions(first:50, orderBy:{field:CREATED_AT, direction:DESC}) {
+                    nodes { number title url createdAt author { login } }
+                  }
+                }
+              }' \
+            --jq '.data.repository.discussions.nodes' \
+            | jq --arg since "$SINCE" --argjson team "$TEAM" '[ .[]
+                | select(.createdAt >= $since)
+                | select(((.author.login // "") | ascii_downcase) as $u | $team | index($u) | not)
+                | {
+                    kind:   "Discussion",
+                    icon:   "💬",
+                    number: .number,
+                    title:  .title,
+                    url:    .url,
+                    user:   (.author.login // "unknown")
+                  } ]') \
+            || { echo "WARN: discussion fetch failed, continuing without them."; DISC_ITEMS='[]'; }
+
+          IP_COUNT=$(echo "$ISSUE_ITEMS" | jq 'length')
+          D_COUNT=$(echo "$DISC_ITEMS" | jq 'length')
+          COUNT=$((IP_COUNT + D_COUNT))
           if [ "$COUNT" -eq 0 ]; then
-            echo "No new external issues or PRs. Skipping Teams-notification."
+            echo "No new external issues, PRs or discussions. Skipping Teams-notification."
             exit 0
           fi
-          echo "$COUNT new external issue(s)/PR(s) found."
+          echo "$COUNT new external item(s): $IP_COUNT issue(s)/PR(s), $D_COUNT discussion(s)."
 
-          # Teams' webhook wants a bare Adaptive Card: top-level type must be
-          # "AdaptiveCard", not wrapped in a message/attachments envelope.
-          CARD=$(echo "$ITEMS_JSON" | jq --argjson count "$COUNT" '{
-            type: "AdaptiveCard",
-            "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-            version: "1.4",
-            body: (
-              [
-                { type: "TextBlock", size: "Large", weight: "Bolder", wrap: true,
-                  text: "🆕 Neue externe Issues & Pull Requests" },
-                { type: "TextBlock", spacing: "None", isSubtle: true, wrap: true,
-                  text: ("Letzter Zeitraum · " + (if $count == 1 then "1 neuer Eintrag" else "\($count) neue Einträge" end)) }
-              ]
-              + [ .[] | {
-                    type: "Container",
-                    separator: true,
-                    spacing: "Medium",
-                    items: [
-                      { type: "TextBlock", weight: "Bolder", wrap: true,
-                        text: "\(.icon) #\(.number) · \(.title)" },
-                      { type: "TextBlock", spacing: "None", isSubtle: true, size: "Small", wrap: true,
-                        text: "\(.kind) · von @\(.user) · [Öffnen](\(.url))" }
-                    ]
-                  } ]
-            )
-          }')
+          # Bare Adaptive Card with one group per source; a group is rendered only if it has
+          # items, so issues/PRs and discussions stay separated and empty sections are hidden.
+          CARD=$(jq -n \
+            --argjson ip "$ISSUE_ITEMS" \
+            --argjson disc "$DISC_ITEMS" \
+            --argjson count "$COUNT" '
+            def section(title; items):
+              if (items | length) > 0 then
+                [ { type: "TextBlock", size: "Medium", weight: "Bolder", wrap: true,
+                    spacing: "Large", text: title } ]
+                + [ items[] | {
+                      type: "Container", separator: true, spacing: "Medium",
+                      items: [
+                        { type: "TextBlock", weight: "Bolder", wrap: true,
+                          text: "\(.icon) #\(.number) · \(.title)" },
+                        { type: "TextBlock", spacing: "None", isSubtle: true, size: "Small", wrap: true,
+                          text: "\(.kind) · von @\(.user) · [Öffnen](\(.url))" }
+                      ]
+                    } ]
+              else [] end;
+            {
+              type: "AdaptiveCard",
+              "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+              version: "1.4",
+              body: (
+                [
+                  { type: "TextBlock", size: "Large", weight: "Bolder", wrap: true,
+                    text: "🆕 Neue externe Aktivität" },
+                  { type: "TextBlock", spacing: "None", isSubtle: true, wrap: true,
+                    text: ("Letzter Zeitraum · " + (if $count == 1 then "1 neuer Eintrag" else "\($count) neue Einträge" end)) }
+                ]
+                + section("📋 Issues & Pull Requests"; $ip)
+                + section("💬 Discussions"; $disc)
+              )
+            }')
 
           curl -sS --fail -X POST -H "Content-Type: application/json" -d "$CARD" "$WEBHOOK"

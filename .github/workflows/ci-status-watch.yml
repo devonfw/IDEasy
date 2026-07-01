@@ -1,0 +1,98 @@
+name: CI status watch
+
+# Posts a Teams message ONLY when one of the README badge workflows on the default
+# branch turns red (green -> red). For each it compares the two latest runs with gh; a
+# change is reported only if the newest run finished within the look-back window, so a
+# workflow that stays red is not repeated every day.
+# Requires the repository secret TEAMS_WEBHOOK_URL.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 7 * * 1-5'   # 07:00 UTC, Mon-Fri (= 09:00 CEST / 08:00 CET)
+
+permissions:
+  actions: read
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      WEBHOOK: ${{ secrets.TEAMS_WEBHOOK_URL }}
+      REPO: ${{ github.repository }}
+      BRANCH: ${{ github.event.repository.default_branch }}
+    steps:
+      - name: Detect newly red badge workflows and notify Teams
+        run: |
+          set -euo pipefail
+
+          # The workflows backing the README badges. Add a line here if a badge is added.
+          WORKFLOWS="
+            .github/workflows/build.yml
+            .github/workflows/update-urls.yml
+            .github/workflows/nightly-build.yml
+            .github/workflows/integration-tests.yml
+          "
+
+          # Monday catches up the weekend (Fri-Sun); other weekdays look back 24h.
+          if [ "$(date -u +%u)" -eq 1 ]; then
+            SINCE=$(date -u -d '3 days ago' +%Y-%m-%dT%H:%M:%SZ)
+          else
+            SINCE=$(date -u -d '1 day ago' +%Y-%m-%dT%H:%M:%SZ)
+          fi
+          echo "Checking badge workflows for red since $SINCE"
+
+          is_red() { [ "$1" = "failure" ] || [ "$1" = "timed_out" ] || [ "$1" = "startup_failure" ]; }
+
+          # Compare each workflow's two latest runs; report it only if it just turned red
+          # and that run finished inside the window (so a lasting red is reported once).
+          RED=$(for WF_PATH in $WORKFLOWS; do
+              ROW=$(gh run list --repo "$REPO" --workflow "$WF_PATH" --branch "$BRANCH" \
+                --status completed --limit 2 --json conclusion,url,updatedAt,workflowName \
+                --jq '[(.[0].conclusion // ""), (.[0].updatedAt // ""), (.[0].url // ""), (.[1].conclusion // ""), (.[0].workflowName // "")] | @tsv' || true)
+              [ -z "$ROW" ] && continue
+              IFS=$'\t' read -r CUR CURTIME URL PREV NAME <<< "$ROW"
+              [ -z "$CUR" ] && continue
+              [[ "$CURTIME" > "$SINCE" ]] || continue
+              if is_red "$CUR" && { [ "$PREV" = "success" ] || [ -z "$PREV" ]; }; then
+                jq -n --arg n "$NAME" --arg u "$URL" '{name:$n, url:$u}'
+              fi
+            done | jq -s '.')
+
+          COUNT=$(echo "$RED" | jq 'length')
+          if [ "$COUNT" -eq 0 ]; then
+            echo "No badge workflow turned red. Skipping Teams notification."
+            exit 0
+          fi
+          echo "$COUNT badge workflow(s) turned red."
+
+          if [ -z "${WEBHOOK:-}" ]; then
+            echo "No Teams webhook set, skipping notification."; exit 0
+          fi
+
+          CARD=$(echo "$RED" | jq --argjson count "$COUNT" '{
+            type: "AdaptiveCard",
+            "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+            version: "1.4",
+            body: (
+              [
+                { type: "TextBlock", size: "Large", weight: "Bolder", wrap: true, color: "attention",
+                  text: "🔴 Workflow rot geworden" },
+                { type: "TextBlock", spacing: "None", isSubtle: true, wrap: true,
+                  text: (if $count == 1 then "1 Workflow · grün → rot" else "\($count) Workflows · grün → rot" end) }
+              ]
+              + [ .[] | {
+                    type: "Container",
+                    separator: true,
+                    spacing: "Medium",
+                    items: [
+                      { type: "TextBlock", weight: "Bolder", wrap: true, text: "🔴 \(.name)" },
+                      { type: "TextBlock", spacing: "None", isSubtle: true, size: "Small", wrap: true,
+                        text: "[Run-Log öffnen](\(.url))" }
+                    ]
+                  } ]
+            )
+          }')
+
+          curl -sS --fail -X POST -H "Content-Type: application/json" -d "$CARD" "$WEBHOOK"
