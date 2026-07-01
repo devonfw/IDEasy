@@ -92,7 +92,7 @@
          Width="320" Height="30"
          Transparent="no"
          NoPrefix="yes"
-         Text="We will write an install log to: [IDEASY_USER_HOME]\.ide\logs"/>
+         Text="We will write an install log to: [USERFOLDER]\.ide\logs"/>
 
 			</Dialog>
 		</UI>

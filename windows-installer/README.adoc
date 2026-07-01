@@ -23,6 +23,20 @@ Ensure you have the following installed:
 
    wix build Package.wxs WixUI_IDEasySetup.wxs -loc Package.en-us.wxl -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext -o ideasy.msi
 
+== IDEasy Installation Logs
+
+The IDEasy MSI installer writes installation logs to:
+
+%USERPROFILE%\.ide\logs
+
+Each installation generates a new timestamped log file, for example:
+
+install-2026-07-01_10-15-00.log
+
+If the installation fails, check the most recent log file in this directory.
+
+A note displaying the installation log location is also shown in the "Select Project Folder" dialog and in the exit dialog.
+
 == Debugging Installation Issues
 
 To debug the installation process and capture detailed logs, use the following command:
