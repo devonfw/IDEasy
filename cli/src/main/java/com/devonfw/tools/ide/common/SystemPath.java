@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.common;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -15,6 +16,9 @@ import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
@@ -32,6 +36,8 @@ import com.devonfw.tools.ide.variable.IdeVariables;
  * end-user.
  */
 public class SystemPath {
+
+  private static final Logger LOG = LoggerFactory.getLogger(SystemPath.class);
 
   private static final Pattern REGEX_WINDOWS_PATH = Pattern.compile("([a-zA-Z]:)?(\\\\[a-zA-Z0-9\\s_.-]+)+\\\\?");
 
@@ -96,7 +102,13 @@ public class SystemPath {
     this(context, pathSeparator, extraPathEntries, new HashMap<>(), new ArrayList<>());
     String[] envPaths = envPath.split(Character.toString(pathSeparator));
     for (String segment : envPaths) {
-      Path path = Path.of(segment);
+      Path path;
+      try {
+        path = Path.of(segment);
+      } catch (InvalidPathException e) {
+        LOG.warn("Ignoring invalid PATH entry '{}' - {}", segment, e.getMessage());
+        continue;
+      }
       String tool = getTool(path, ideRoot);
       if (tool == null) {
         this.paths.add(path);
