@@ -130,6 +130,9 @@ public interface IdeContext extends IdeStartContext {
   /** The name of the Contents folder inside a MacOS app. */
   String FOLDER_CONTENTS = "Contents";
 
+  /** The name of the MacOS folder inside the Contents of a MacOS app, holding the executable. */
+  String FOLDER_MAC_OS = "MacOS";
+
   /** The name of the Resources folder inside a MacOS app. */
   String FOLDER_RESOURCES = "Resources";
 
