@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.git;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliOfflineException;
@@ -213,6 +214,12 @@ public interface GitContext {
   String retrieveGitUrl(Path repository);
 
   /**
+   * @param repository the {@link Path} to the git repository.
+   * @return the {@link List} of configured git remotes (output of {@code git remote -v}).
+   */
+  List<String> retrieveGitRemotes(Path repository);
+
+  /**
    * Finds the {@link Path} to the git installation and throws an exception if there is none.
    *
    * @return the {@link Path} to the Git installation. Throws a {@link CliException} if no git was found.
@@ -245,4 +252,28 @@ public interface GitContext {
    * @param trackedCommitIdPath the path to the file where the commit Id will be written.
    */
   void saveCurrentCommitId(Path repository, Path trackedCommitIdPath);
+
+  /**
+   * Commits all currently changed files (tracked) in the given repository.
+   *
+   * @param repository the {@link Path} to the git repository.
+   * @param message the commit message.
+   */
+  void commit(Path repository, String message);
+
+  /**
+   * Creates an annotated git tag in the given repository.
+   *
+   * @param repository the {@link Path} to the git repository.
+   * @param tagName the name of the tag to create (e.g. "release/1.5.0").
+   * @param message the annotation message of the tag.
+   */
+  void tag(Path repository, String tagName, String message);
+
+  /**
+   * Pushes the local commits and tags of the given repository to the remote repository.
+   *
+   * @param repository the {@link Path} to the git repository.
+   */
+  void push(Path repository);
 }

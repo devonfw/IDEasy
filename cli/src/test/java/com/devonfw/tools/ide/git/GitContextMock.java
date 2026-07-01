@@ -66,6 +66,12 @@ public class GitContextMock implements GitContext {
   }
 
   @Override
+  public java.util.List<String> retrieveGitRemotes(Path repository) {
+
+    return java.util.Collections.emptyList();
+  }
+
+  @Override
   public Path findGitRequired() {
     return Path.of("git");
   }
@@ -114,6 +120,21 @@ public class GitContextMock implements GitContext {
 
   @Override
   public void saveCurrentCommitId(Path repository, Path trackedCommitIdPath) {
+
+  }
+
+  @Override
+  public void commit(Path repository, String message) {
+
+  }
+
+  @Override
+  public void tag(Path repository, String tagName, String message) {
+
+  }
+
+  @Override
+  public void push(Path repository) {
 
   }
 }
