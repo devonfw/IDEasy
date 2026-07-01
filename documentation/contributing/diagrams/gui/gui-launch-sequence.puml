@@ -1,0 +1,119 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+title Complete GUI Launch Sequence - From CLI to JavaFX Application
+
+participant "User" as user
+participant "CLI" as cli
+participant "Gui\nCommandlet" as guiCmd
+participant "Maven" as maven
+participant "gui/pom.xml" as launcherPom
+participant "JVM\nProcess" as jvm
+participant "AppLauncher" as launcher
+participant "App" as app
+participant "JavaFX" as javafx
+
+== CLI Phase: User is in the terminal. ==
+user -> cli: ide gui
+cli -> guiCmd: execute()
+activate guiCmd
+
+note over guiCmd
+  Gui.doRun()
+  - Validates Java & Maven
+  - Prepares Maven execution
+end note
+
+guiCmd -> guiCmd: new ToolInstallRequest(s)
+guiCmd -> guiCmd: java.installTool()
+guiCmd -> guiCmd: mvn.installTool()
+
+note over guiCmd
+  Prepare Maven arguments:
+  - POM: $IDE_ROOT/gui/pom.xml
+  - Goal: exec:exec
+  - Executable: java
+  - Class: AppLauncher
+end note
+
+guiCmd -> maven: mvn -f gui/pom.xml exec:exec\n-Dexec.executable=java\n-Dexec.args=...AppLauncher
+deactivate guiCmd
+activate maven
+
+note over maven
+  Maven loads gui/pom.xml
+  (from IDE installation folder)
+
+maven -> launcherPom: Parse pom.xml
+activate launcherPom
+
+note over launcherPom
+  Launcher POM Dependencies:
+  - ide-gui JAR
+  - version: $[project.version]
+end note
+
+launcherPom --> maven: Dependencies resolved
+deactivate launcherPom
+
+note over maven
+  Maven resolves & downloads:
+  1. ide-gui JAR from repository
+  2. All transitive dependencies
+  3. Builds classpath
+end note
+
+== JVM Launch Phase (after user called "ide gui") ==
+
+maven -> jvm: fork JVM with classpath
+deactivate maven
+activate jvm
+
+note over jvm
+  JVM Process:
+  - Classpath includes ide-gui JAR
+  - JAVA_HOME from IDE_ROOT
+  - IDE_ROOT env var passed
+end note
+
+jvm -> launcher: java AppLauncher.java
+activate launcher
+
+
+launcher -> app: App.main(args)
+deactivate launcher
+activate app
+
+== App & JavaFX Phase (Core GUI code gets executed) ==
+
+app -> javafx: Application.launch()
+activate javafx
+
+javafx -> app: start(primaryStage)
+deactivate javafx
+note over app
+  This triggers the same sequence as
+  shown in app-startup-sequence.puml:
+
+  1. Load FXML (main-view.fxml)
+  2. Create MainController
+  3. IdeGuiStateManager.getInstance()
+  4. ProjectManager initialization
+  5. Create Scene & display UI
+end note
+
+app -> javafx: primaryStage.show()
+activate javafx
+
+javafx --> user: GUI Window Displayed
+deactivate javafx
+deactivate app
+deactivate jvm
+
+note over user
+  User can now interact with the GUI
+end note
+
+@enduml
+
+
