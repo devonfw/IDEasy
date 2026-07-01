@@ -27,7 +27,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WEBHOOK: ${{ secrets.TEAMS_WEBHOOK_URL }}
           REPO: ${{ github.repository }}
-          # Daily-team logins to exclude (Project #5 "daily" tab); one per line, case-insensitive.
+          # Daily-team logins to exclude; one per line, case-insensitive.
           DAILY_TEAM: |
             AdemZarrouki
             Ali-Shariati-Najafabadi
