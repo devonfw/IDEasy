@@ -86,13 +86,7 @@
 					<Publish Event="SpawnDialog" Value="CancelDlg" />
 				</Control>
 
-<Control Id="InstallLogInfoText"
-         Type="Text"
-         X="20" Y="170"
-         Width="320" Height="30"
-         Transparent="no"
-         NoPrefix="yes"
-         Text="We will write an install log to: [USERFOLDER]\.ide\logs"/>
+        <Control Id="InstallLogInfoText" Type="Text" X="20" Y="170" Width="320" Height="30" Transparent="no" NoPrefix="yes" Text="We will write an install log to: [USERFOLDER].ide\logs"/>
 
 			</Dialog>
 		</UI>

@@ -36,7 +36,7 @@
 
     <SetProperty
       Id="WIXUI_EXITDIALOGOPTIONALTEXT"
-      Value="IDEasy installation logs are written to: [USERFOLDER]\.ide\logs"
+      Value="IDEasy installation logs are written to: [USERFOLDER].ide\logs"
       Before="ExecuteAction"
       Sequence="ui" />
 
