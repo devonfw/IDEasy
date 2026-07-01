@@ -1,0 +1,32 @@
+#!/bin/bash
+set -e
+
+INSTALL_DIR="/Library/IDEasy"
+
+echo "Begin install"
+
+# Determine the logged-in user. When the PKG installer executes a script, it references the ROOT, not a user, therefore we have to find out who runs the script.
+CONSOLE_USER=$(stat -f%Su /dev/console)
+# dscl -read reads the given user information reliably
+USER_HOME=$(dscl . -read "/Users/${CONSOLE_USER}" NFSHomeDirectory 2>/dev/null | awk '{print $2}')
+
+if [ -z "$USER_HOME" ] || [ "$CONSOLE_USER" = "root" ]; then
+    echo "ERROR: could not determine target user, aborting IDEasy install." >&2
+    exit 1
+fi
+
+LOG_DIR="${USER_HOME}/.ide/logs"
+sudo -u "$CONSOLE_USER" mkdir -p "$LOG_DIR"
+ts=$(date +"%Y-%m-%d-%H-%M-%S")
+
+ln -sf "$INSTALL_DIR/bin/ideasy" /usr/local/bin/ideasy
+
+sudo -u "$CONSOLE_USER" -H \
+  "$INSTALL_DIR/bin/ideasy" -ftb --no-colors install \
+  > "$LOG_DIR/install-$ts.log" 2>&1
+
+echo "$INSTALL_DIR/bin" > /etc/paths.d/ideasy
+
+echo "Install finished"
+
+exit 0
