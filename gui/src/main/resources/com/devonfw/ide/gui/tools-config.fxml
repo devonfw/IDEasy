@@ -9,25 +9,25 @@
         <Insets top="10.0" right="10.0" bottom="10.0" left="40.0"/>
       </padding>
       <children>
-        <HBox spacing="10.0" maxWidth="Infinity" style="-fx-font-weight: bold; -fx-font-size: 10;">
+        <HBox spacing="10.0" maxWidth="Infinity" style="-fx-font-weight: bold; -fx-font-size: 12;">
           <children>
             <Label text="Enable" prefWidth="40.0"/>
-            <Label text="Tool" prefWidth="120.0"/>
-            <Label text="Edition" prefWidth="130.0"/>
-            <Label text="Version" prefWidth="130.0"/>
-            <Region HBox.hgrow="ALWAYS"/>
+            <Label text="Tool" prefWidth="120.0" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <Label text="Edition" prefWidth="130.0" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <Label text="Version" prefWidth="130.0" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
           </children>
         </HBox>
       </children>
     </VBox>
   </top>
   <center>
-    <VBox spacing="0">
+    <VBox spacing="0" maxHeight="1.7976931348623157E308">
       <padding>
         <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
       </padding>
       <children>
-        <TreeView fx:id="toolsTree" prefHeight="400.0" style="-fx-font-size: 10;"/>
+        <TreeView fx:id="toolsTree" style="-fx-font-size: 10;"
+          VBox.vgrow="ALWAYS" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"/>
       </children>
     </VBox>
   </center>

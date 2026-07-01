@@ -1,0 +1,50 @@
+/* Tab bar background — light gray with a solid bottom border as divider */
+.tab-pane > .tab-header-area > .tab-header-background {
+    -fx-background-color: #f0f0f0;
+    -fx-border-color: transparent transparent #c8c8c8 transparent;
+    -fx-border-width: 0 0 2 0;
+}
+
+/* Content area background */
+.tab-pane > .tab-content-area {
+    -fx-background-color: #ffffff;
+}
+
+/* Individual tab: more padding, rounded top corners */
+.tab-pane > .tab-header-area > .headers-region > .tab {
+    -fx-background-color: transparent;
+    -fx-background-radius: 4 4 0 0;
+    -fx-background-insets: 0;
+    -fx-padding: 9 22 9 22;
+    -fx-cursor: hand;
+}
+
+/* Hover state */
+.tab-pane > .tab-header-area > .headers-region > .tab:hover {
+    -fx-background-color: #e2e2e2;
+}
+
+/* Selected tab: white background, top+side border, bottom matches content */
+.tab-pane > .tab-header-area > .headers-region > .tab:selected {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #c8c8c8 #c8c8c8 #ffffff #c8c8c8;
+    -fx-border-width: 1;
+    -fx-border-radius: 4 4 0 0;
+}
+
+/* Tab label: muted for unselected, bold+dark for selected */
+.tab .tab-label {
+    -fx-font-size: 13px;
+    -fx-font-family: Arial;
+    -fx-text-fill: #666666;
+}
+
+.tab:selected .tab-label {
+    -fx-font-weight: bold;
+    -fx-text-fill: #1a1a1a;
+}
+
+/* Disabled tab: visually dimmed */
+.tab:disabled .tab-label {
+    -fx-text-fill: #b0b0b0;
+}

@@ -22,7 +22,6 @@ import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -50,6 +49,8 @@ public class ToolSettingsController {
   private static IdeGuiContext currentContext;
   // Static so validation errors survive cell recycling — JavaFX reuses TreeCell instances during scroll.
   private static final Set<String> validationErrors = new HashSet<>();
+
+  private Runnable onClose;
 
 
   @FXML
@@ -174,7 +175,15 @@ public class ToolSettingsController {
     previewButton.setDisable(hasErrors);
   }
 
+  public void setOnClose(Runnable onClose) {
+    this.onClose = onClose;
+  }
+
   private void closeWindow() {
+    if (onClose != null) {
+      onClose.run();
+      return;
+    }
     if (toolsTree == null || toolsTree.getScene() == null) {
       return;
     }
@@ -236,19 +245,19 @@ public class ToolSettingsController {
 
       // Reapply error state if this tool has a validation error
       if (validationErrors.contains(toolItem.getToolName())) {
-        version.setStyle("-fx-font-size: 10; -fx-border-color: red; -fx-border-width: 2;");
+        version.setStyle("-fx-font-size: 12; -fx-border-color: red; -fx-border-width: 2;");
         errorIcon.setVisible(true);
         errorIcon.setManaged(true);
       }
 
       HBox versionWithIcon = new HBox(5);
       versionWithIcon.setAlignment(Pos.CENTER_LEFT);
+      versionWithIcon.setMaxWidth(Double.MAX_VALUE);
+      HBox.setHgrow(version, Priority.ALWAYS);
       versionWithIcon.getChildren().addAll(version, errorIcon);
+      HBox.setHgrow(versionWithIcon, Priority.ALWAYS);
 
-      Region spacer = new Region();
-      HBox.setHgrow(spacer, Priority.ALWAYS);
-
-      root.getChildren().addAll(enabled, name, edition, versionWithIcon, spacer);
+      root.getChildren().addAll(enabled, name, edition, versionWithIcon);
       applyEnabledState(toolItem);
       setGraphic(root);
     }
@@ -273,15 +282,20 @@ public class ToolSettingsController {
     private Label createToolNameLabel(ToolConfiguration toolItem) {
       Label toolNameLabel = new Label(toolItem.getToolName());
       toolNameLabel.setPrefWidth(120);
-      toolNameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11;");
+      toolNameLabel.setMaxWidth(Double.MAX_VALUE);
+      HBox.setHgrow(toolNameLabel, Priority.ALWAYS);
+      toolNameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13;");
       return toolNameLabel;
     }
 
     private ComboBox<String> createEditionSelector(ToolConfiguration toolItem) {
       ComboBox<String> editionSelector = new ComboBox<>();
       editionSelector.setPrefWidth(130);
+      editionSelector.setMaxWidth(Double.MAX_VALUE);
+      editionSelector.setPrefHeight(32);
+      HBox.setHgrow(editionSelector, Priority.ALWAYS);
       editionSelector.setEditable(true);
-      editionSelector.setStyle("-fx-font-size: 10;");
+      editionSelector.setStyle("-fx-font-size: 12;");
 
       List<String> editions = toolItem.getAvailableEditions();
       boolean supportsEdition = toolItem.isSupportsEdition() && editions != null && !editions.isEmpty();
@@ -316,9 +330,11 @@ public class ToolSettingsController {
     private ComboBox<String> createVersionSelector(ToolConfiguration toolItem) {
       ComboBox<String> versionSelector = new ComboBox<>();
       versionSelector.setPrefWidth(130);
+      versionSelector.setMaxWidth(Double.MAX_VALUE);
+      versionSelector.setPrefHeight(32);
       versionSelector.setEditable(true);
       versionSelector.setValue(toolItem.getConfiguredVersion() == null ? "" : toolItem.getConfiguredVersion());
-      versionSelector.setStyle("-fx-font-size: 10;");
+      versionSelector.setStyle("-fx-font-size: 12;");
 
       // Lazy-load versions the first time the dropdown is opened to avoid fetching all tools' versions upfront.
       versionSelector.setOnShowing(e -> {
@@ -374,19 +390,19 @@ public class ToolSettingsController {
           String enteredVersion = version.getValue();
           if (enteredVersion == null || enteredVersion.isBlank()) {
             version.setValue("*");
-            version.setStyle("-fx-font-size: 10;");
+            version.setStyle("-fx-font-size: 12;");
             errorIcon.setVisible(false);
             errorIcon.setManaged(false);
             validationErrors.remove(errorKey);
           } else {
             List<String> availableVersions = toolItem.getAvailableVersions();
             if (availableVersions != null && !availableVersions.contains(enteredVersion) && !enteredVersion.equals("*")) {
-              version.setStyle("-fx-font-size: 10; -fx-border-color: red; -fx-border-width: 2;");
+              version.setStyle("-fx-font-size: 12; -fx-border-color: red; -fx-border-width: 2;");
               errorIcon.setVisible(true);
               errorIcon.setManaged(true);
               validationErrors.add(errorKey);
             } else {
-              version.setStyle("-fx-font-size: 10;");
+              version.setStyle("-fx-font-size: 12;");
               errorIcon.setVisible(false);
               errorIcon.setManaged(false);
               validationErrors.remove(errorKey);

@@ -4,17 +4,15 @@ import java.io.FileNotFoundException;
 import java.nio.file.NotDirectoryException;
 import java.util.List;
 import java.util.Locale;
-import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.ProgressIndicator;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.Tooltip;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,9 +21,7 @@ import com.devonfw.ide.gui.context.IdeGuiStateManager;
 import com.devonfw.ide.gui.context.ProjectManager;
 import com.devonfw.ide.gui.localization.LocalizationService;
 import com.devonfw.ide.gui.modal.IdeDialog;
-import com.devonfw.ide.gui.settings.ToolConfiguration;
 import com.devonfw.ide.gui.settings.ToolSettingsController;
-import com.devonfw.ide.gui.settings.ToolSettingsService;
 
 /**
  * Controller of the main screen of the dashboard GUI.
@@ -68,7 +64,13 @@ public class MainController {
   private Button vsCodeOpen;
 
   @FXML
-  private Button toolsConfigButton;
+  private TabPane tabPane;
+
+  @FXML
+  private Tab mainTab;
+
+  @FXML
+  private Tab toolConfigTab;
 
   private final String directoryPath;
 
@@ -90,8 +92,13 @@ public class MainController {
     initLanguageComboBox();
     updateTexts();
     LocalizationService.getInstance().addLocaleChangeListener(this::updateTexts);
-    // Disable tools config until a project and workspace are selected (context must be available)
-    updateToolsConfigButtonState();
+    toolConfigTab.setDisable(true);
+    toolConfigTab.setTooltip(new Tooltip(LocalizationService.getInstance().get("tooltip.toolConfigDisabled")));
+    tabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
+      if (newTab == toolConfigTab) {
+        loadToolConfigContent();
+      }
+    });
   }
 
   @FXML
@@ -141,7 +148,6 @@ public class MainController {
     eclipseOpen.setText(localizationService.get("button.open"));
     intellijOpen.setText(localizationService.get("button.open"));
     vsCodeOpen.setText(localizationService.get("button.open"));
-    toolsConfigButton.setText(localizationService.get("button.toolsConfig"));
   }
 
 
@@ -207,8 +213,11 @@ public class MainController {
       eclipseOpen.setDisable(false);
       intellijOpen.setDisable(false);
       vsCodeOpen.setDisable(false);
-      // enable tools config
-      updateToolsConfigButtonState();
+      toolConfigTab.setDisable(false);
+      // If tool config is already open, reload it to reflect the new context
+      if (toolConfigTab.isSelected()) {
+        loadToolConfigContent();
+      }
       // Pre-warm ide-urls git repo in background so the first dropdown open is fast
       Thread preWarm = new Thread(() -> {
         try {
@@ -232,74 +241,19 @@ public class MainController {
         .run();
   }
 
-  @FXML
-  private void openToolsConfig() {
-    ProgressIndicator spinner = new ProgressIndicator(-1);
-    spinner.setPrefSize(16, 16);
-    toolsConfigButton.setGraphic(spinner);
-    toolsConfigButton.setText("");
-    toolsConfigButton.setDisable(true);
+  private void loadToolConfigContent() {
 
-    ToolSettingsService toolSettingsService = new ToolSettingsService();
-
-    Thread thread = new Thread(() -> {
-      try {
-        List<ToolConfiguration> configurations = toolSettingsService.listToolConfigurations(
-            IdeGuiStateManager.getInstance().getCurrentContext());
-        Platform.runLater(() -> showToolsConfigDialog(configurations));
-      } catch (Exception e) {
-        Platform.runLater(() -> {
-          LOG.error("Failed to load tool configurations", e);
-          restoreToolsConfigButton();
-          new IdeDialog(IdeDialog.AlertType.ERROR, e.getMessage()).showAndWait();
-        });
-      }
-    });
-    thread.setDaemon(true);
-    thread.start();
-  }
-
-  private void showToolsConfigDialog(List<ToolConfiguration> configurations) {
     try {
       ToolSettingsController controller = new ToolSettingsController();
-      FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/devonfw/ide/gui/tools-config-dialog.fxml"));
+      FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/devonfw/ide/gui/tools-config.fxml"));
       loader.setController(controller);
       loader.setResources(LocalizationService.getInstance().getResourceBundle());
-      Parent root = loader.load();
-      Stage dialog = new Stage();
-      dialog.initModality(Modality.APPLICATION_MODAL);
-      dialog.initOwner(this.selectedProject.getScene().getWindow());
-      dialog.setTitle(LocalizationService.getInstance().get("label.toolsConfig"));
-      dialog.setScene(new Scene(root));
-      dialog.setWidth(600);
-      restoreToolsConfigButton();
-      dialog.showAndWait();
+      Parent content = loader.load();
+      controller.setOnClose(() -> tabPane.getSelectionModel().select(mainTab));
+      toolConfigTab.setContent(content);
     } catch (Exception e) {
-      LOG.error("Failed to open tools configuration dialog", e);
-      restoreToolsConfigButton();
+      LOG.error("Failed to load tool config view", e);
       new IdeDialog(IdeDialog.AlertType.ERROR, e.getMessage()).showAndWait();
-    }
-  }
-
-  private void restoreToolsConfigButton() {
-    toolsConfigButton.setGraphic(null);
-    toolsConfigButton.setText(LocalizationService.getInstance().get("button.toolsConfig"));
-    toolsConfigButton.setDisable(false);
-  }
-
-  /**
-   * Enable or disable the tools config button depending on whether a project and workspace are selected.
-   */
-  private void updateToolsConfigButtonState() {
-    boolean enabled = false;
-    try {
-      enabled = selectedProject != null && selectedProject.getValue() != null && selectedWorkspace != null
-          && selectedWorkspace.getValue() != null;
-    } catch (Exception e) {
-      enabled = false;
-    }
-    if (toolsConfigButton != null) {
-      toolsConfigButton.setDisable(!enabled);
     }
   }
 
