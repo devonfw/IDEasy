@@ -2,7 +2,7 @@ name: External Issue, PR & Discussion Observer
 
 # Posts a weekday-morning digest of new EXTERNAL issues, PRs and discussions (last 24h)
 # to a Teams channel so incoming activity from outside the team is noticed quickly and
-# doesn't slip. "External" = author association is not MEMBER, OWNER or COLLABORATOR.
+# "External" = author is not in the DAILY_TEAM list below.
 # Issues/PRs come from the REST search API, discussions from GraphQL (no REST equivalent).
 # Each source falls back to empty on error, so one failing API still posts the rest.
 # Requires the repository secret TEAMS_WEBHOOK_URL (a Teams "Workflows" incoming webhook).
@@ -27,7 +27,29 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WEBHOOK: ${{ secrets.TEAMS_WEBHOOK_URL }}
           REPO: ${{ github.repository }}
+          # Daily-team logins to exclude (Project #5 "daily" tab); one per line, case-insensitive.
+          DAILY_TEAM: |
+            AdemZarrouki
+            Ali-Shariati-Najafabadi
+            areinicke
+            Caylipp
+            hohwille
+            JoelAdbu
+            KarimALotfy
+            laert-ll
+            laim2003
+            marceltchanga9
+            maybeec
+            oanding-blrng
+            Paras14
+            quando632
+            shodiBoy1
+            tineff96
+            vivu001
         run: |
+          # so a failing gh api trips the || fallback instead of being hidden by the trailing jq
+          set -o pipefail
+
           # Monday catches up the weekend (Fri–Sun); other weekdays look back 24h.
           if [ "$(date -u +%u)" -eq 1 ]; then
             SINCE=$(date -u -d '3 days ago' +%Y-%m-%dT%H:%M:%SZ)
@@ -36,14 +58,16 @@ jobs:
           fi
           echo "Scanning $REPO for items created since $SINCE"
 
-          # Issues + PRs via REST search; keep only external authors. On error fall back to
-          # an empty list so a discussions failure (below) can still be reported on its own.
+          # team logins as a lowercase JSON array
+          TEAM=$(printf '%s\n' "$DAILY_TEAM" | grep -vE '^[[:space:]]*$' \
+            | tr -d ' \t\r' | tr '[:upper:]' '[:lower:]' | jq -R . | jq -s .)
+          echo "Excluding $(echo "$TEAM" | jq 'length') daily-team member(s)."
+
+          # Issues + PRs via REST search; drop team authors, keep the rest. On error use [].
           ISSUE_ITEMS=$(gh api -X GET search/issues \
-            -f q="repo:$REPO created:>=$SINCE" \
-            --jq '[.items[]
-              | select(.author_association != "MEMBER"
-                   and .author_association != "OWNER"
-                   and .author_association != "COLLABORATOR")
+            -f q="repo:$REPO created:>=$SINCE" -f per_page=100 --jq '.items' \
+            | jq --argjson team "$TEAM" '[.[]
+              | select((.user.login | ascii_downcase) as $u | $team | index($u) | not)
               | {
                   kind:   (if .pull_request then "Pull Request" else "Issue" end),
                   icon:   (if .pull_request then "🔵" else "🟢" end),
@@ -54,8 +78,7 @@ jobs:
                 }]') \
             || { echo "WARN: issue/PR fetch failed, continuing without them."; ISSUE_ITEMS='[]'; }
 
-          # Discussions have no REST search, so use GraphQL: take the newest, then filter by
-          # the same time window and external-author rule. 50 is plenty for a daily window.
+          # No REST search for discussions; take newest 50 via GraphQL, filter by window + team.
           OWNER=${REPO%/*}
           NAME=${REPO#*/}
           DISC_ITEMS=$(gh api graphql \
@@ -64,16 +87,14 @@ jobs:
               query($owner:String!, $name:String!) {
                 repository(owner:$owner, name:$name) {
                   discussions(first:50, orderBy:{field:CREATED_AT, direction:DESC}) {
-                    nodes { number title url createdAt authorAssociation author { login } }
+                    nodes { number title url createdAt author { login } }
                   }
                 }
               }' \
             --jq '.data.repository.discussions.nodes' \
-            | jq --arg since "$SINCE" '[ .[]
+            | jq --arg since "$SINCE" --argjson team "$TEAM" '[ .[]
                 | select(.createdAt >= $since)
-                | select(.authorAssociation != "MEMBER"
-                     and .authorAssociation != "OWNER"
-                     and .authorAssociation != "COLLABORATOR")
+                | select(((.author.login // "") | ascii_downcase) as $u | $team | index($u) | not)
                 | {
                     kind:   "Discussion",
                     icon:   "💬",
