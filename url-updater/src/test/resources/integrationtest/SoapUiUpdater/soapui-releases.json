@@ -1,0 +1,22 @@
+[
+  {
+    "tag_name": "v5.10.0",
+    "name": "SoapUI 5.10.0",
+    "prerelease": false
+  },
+  {
+    "tag_name": "v5.9.1",
+    "name": "SoapUI 5.9.1",
+    "prerelease": false
+  },
+  {
+    "tag_name": "v5.8.0",
+    "name": "SoapUI 5.8.0",
+    "prerelease": false
+  },
+  {
+    "tag_name": "v5.7.2",
+    "name": "SoapUI 5.7.2",
+    "prerelease": false
+  }
+]
