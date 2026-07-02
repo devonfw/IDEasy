@@ -156,9 +156,8 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
    * @param pc the {@link ProcessContext} to use.
    */
   protected void installPlugins(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
-
-    int currentPluginIndex = 1;
-    int totalNumberPlugin = plugins.size();
+    long currentPluginIndex = 1;
+    long totalActivePlugins = plugins.stream().filter(ToolPluginDescriptor::active).count();
     for (ToolPluginDescriptor plugin : plugins) {
       Path pluginMarkerFile = retrievePluginMarkerFilePath(plugin);
       boolean pluginMarkerFileExists = pluginMarkerFile != null && Files.exists(pluginMarkerFile);
@@ -167,17 +166,17 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
       }
       if (plugin.active()) {
         if (this.context.isForcePlugins() || !pluginMarkerFileExists) {
-          Step step = this.context.newStep("Install plugin " + plugin.name() + " (" + currentPluginIndex + "/" + totalNumberPlugin + ")");
+          Step step = this.context.newStep("Install plugin " + plugin.name() + " (" + currentPluginIndex + "/" + totalActivePlugins + ")");
           step.run(() -> doInstallPluginStep(plugin, step, pc));
         } else {
           LOG.debug("Skipping installation of plugin '{}' due to existing marker file: {}", plugin.name(), pluginMarkerFile);
         }
+        currentPluginIndex++;
       } else {
         if (!pluginMarkerFileExists) {
           handleInstallForInactivePlugin(plugin);
         }
       }
-      currentPluginIndex++;
     }
   }
 
