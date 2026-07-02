@@ -108,3 +108,44 @@ IDEasy can also be compiled to a native binary using GraalVM's native image feat
 This results in a self-contained executable with fast startup time and no JVM dependency, which is the same build used for official IDEasy releases.
 
 For step-by-step instructions on how to set up GraalVM and build the native image locally, see the xref:graalvm-build-guide.adoc[GraalVM Build Guide].
+
+== Run IDEasy locally as native binary using the local-dev script
+
+As an alternative to running IDEasy from inside an IDE or via Maven, you can build and use a local native IDEasy binary with the provided local development script.
+
+This is useful when you want to test your local feature branch end-to-end with an actual IDEasy installation.
+
+Run the script from the root folder of the IDEasy project:
+
+[source,bash]
+----
+./build-local-dev.sh
+----
+
+The script will:
+
+* build the IDEasy native image using GraalVM
+* create a local-dev IDEasy installation
+* copy the IDEasy executable into the local-dev installation
+* update the IDEasy installation link to point to the locally built version
+
+After the script completed successfully, you can test your local IDEasy version with regular IDEasy commands, for example:
+
+[source,bash]
+----
+ide help
+----
+
+To switch back to the latest stable IDEasy version, run:
+
+[source,bash]
+----
+ideasy upgrade --mode=stable
+----
+
+To switch to the latest snapshot IDEasy version, run:
+
+[source,bash]
+----
+ideasy upgrade --mode=snapshot
+----
