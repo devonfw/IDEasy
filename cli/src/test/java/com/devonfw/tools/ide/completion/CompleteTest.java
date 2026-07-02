@@ -266,4 +266,40 @@ class CompleteTest extends AbstractIdeContextTest {
     // Should include both context options and commandlets
     assertThat(candidates).isNotEmpty();
   }
+
+  /**
+   * Test of tool argument auto-completion for Maven.
+   */
+  @Test
+  void testCompleteMavenToolArguments() {
+
+    // arrange
+    AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
+    CliArguments args = CliArguments.ofCompletion("mvn", "dep");
+
+    // act
+    List<CompletionCandidate> candidates = context.complete(args, true);
+
+    // assert
+    assertThat(candidates.stream().map(CompletionCandidate::text))
+        .contains("dependency:list", "dependency:tree", "deploy");
+  }
+
+  /**
+   * Test of Maven tool argument auto-completion for empty input.
+   */
+  @Test
+  void testCompleteMavenToolArgumentsForEmptyInput() {
+
+    // arrange
+    AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
+    CliArguments args = CliArguments.ofCompletion("mvn", "");
+
+    // act
+    List<CompletionCandidate> candidates = context.complete(args, true);
+
+    // assert
+    assertThat(candidates.stream().map(CompletionCandidate::text))
+        .contains("clean", "package", "install", "dependency:list", "dependency:tree", "-DskipTests");
+  }
 }
