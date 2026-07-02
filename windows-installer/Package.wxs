@@ -66,8 +66,8 @@
 
 		<!-- Specifying when Custom Actions should run -->
 		<InstallExecuteSequence>
-			<Custom Action="RunInstallAction" Condition="NOT Installed" Before="InstallFinalize" />
-			<Custom Action='RunUninstallAction' Condition="Installed AND NOT UPGRADINGPRODUCTCODE" After="InstallInitialize" />
+			<Custom Action="RunInstallAction" Condition="NOT Installed OR REINSTALL" Before="InstallFinalize" />
+			<Custom Action='RunUninstallAction' Condition="Installed AND NOT UPGRADINGPRODUCTCODE AND NOT REINSTALL" After="InstallInitialize" />
 		</InstallExecuteSequence>
 
 		<!-- Custom UI Reference -->
