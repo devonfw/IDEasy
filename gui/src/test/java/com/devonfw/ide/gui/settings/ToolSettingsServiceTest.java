@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
+import java.util.Properties;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -250,6 +251,105 @@ class ToolSettingsServiceTest extends AbstractIdeContextTest {
     assertThat(content).contains("mvn").contains("npm");
     assertThat(content).contains("MVN_VERSION=3.9.0");
     assertThat(content).contains("NPM_VERSION=10.0.0");
+  }
+
+  // ---------------------------------------------------------------------------
+  // loadPluginsForTool
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void testLoadPluginsForTool_returnsPluginsWhenDirectoryExists(@TempDir Path tempDir) throws IOException {
+
+    IdeGuiContext guiContext = createGuiContext(tempDir, "");
+    Path pluginsDir = tempDir.resolve("project/settings/intellij/plugins");
+    Files.createDirectories(pluginsDir);
+    Files.writeString(pluginsDir.resolve("CheckStyle.properties"), "id=CheckStyle-IDEA\nactive=true\n");
+    Files.writeString(pluginsDir.resolve("FindBugs.properties"), "id=FindBugs-IDEA\nactive=false\n");
+
+    ToolConfiguration parent = tool("intellij", null, null, false);
+    List<PluginConfiguration> plugins = service.loadPluginsForTool(parent, guiContext);
+
+    assertThat(plugins).hasSize(2);
+    assertThat(plugins.get(0).getPluginName()).isEqualTo("CheckStyle");
+    assertThat(plugins.get(0).getPluginId()).isEqualTo("CheckStyle-IDEA");
+    assertThat(plugins.get(0).isActive()).isTrue();
+    assertThat(plugins.get(1).getPluginName()).isEqualTo("FindBugs");
+    assertThat(plugins.get(1).isActive()).isFalse();
+  }
+
+  @Test
+  void testLoadPluginsForTool_returnsEmptyWhenDirectoryAbsent(@TempDir Path tempDir) throws IOException {
+
+    IdeGuiContext guiContext = createGuiContext(tempDir, "");
+    ToolConfiguration parent = tool("intellij", null, null, false);
+
+    List<PluginConfiguration> plugins = service.loadPluginsForTool(parent, guiContext);
+
+    assertThat(plugins).isEmpty();
+  }
+
+  @Test
+  void testLoadPluginsForTool_parentEnabledStateIsAccessible(@TempDir Path tempDir) throws IOException {
+
+    IdeGuiContext guiContext = createGuiContext(tempDir, "");
+    Path pluginsDir = tempDir.resolve("project/settings/intellij/plugins");
+    Files.createDirectories(pluginsDir);
+    Files.writeString(pluginsDir.resolve("CheckStyle.properties"), "active=true\n");
+
+    ToolConfiguration parent = enabled("intellij", null, null, false);
+    List<PluginConfiguration> plugins = service.loadPluginsForTool(parent, guiContext);
+
+    assertThat(plugins).hasSize(1);
+    assertThat(plugins.get(0).isParentEnabled()).isTrue();
+  }
+
+  // ---------------------------------------------------------------------------
+  // savePluginActive
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void testSavePluginActive_deactivatesPlugin(@TempDir Path tempDir) throws IOException {
+
+    IdeGuiContext guiContext = createGuiContext(tempDir, "");
+    Path pluginsDir = tempDir.resolve("project/settings/intellij/plugins");
+    Files.createDirectories(pluginsDir);
+    Path pluginFile = pluginsDir.resolve("CheckStyle.properties");
+    Files.writeString(pluginFile, "id=CheckStyle-IDEA\nactive=true\n");
+
+    service.savePluginActive("intellij", "CheckStyle", false, guiContext);
+
+    Properties props = new Properties();
+    try (var in = Files.newInputStream(pluginFile)) {
+      props.load(in);
+    }
+    assertThat(props.getProperty("active")).isEqualTo("false");
+  }
+
+  @Test
+  void testSavePluginActive_activatesPlugin(@TempDir Path tempDir) throws IOException {
+
+    IdeGuiContext guiContext = createGuiContext(tempDir, "");
+    Path pluginsDir = tempDir.resolve("project/settings/intellij/plugins");
+    Files.createDirectories(pluginsDir);
+    Path pluginFile = pluginsDir.resolve("CheckStyle.properties");
+    Files.writeString(pluginFile, "id=CheckStyle-IDEA\nactive=false\n");
+
+    service.savePluginActive("intellij", "CheckStyle", true, guiContext);
+
+    Properties props = new Properties();
+    try (var in = Files.newInputStream(pluginFile)) {
+      props.load(in);
+    }
+    assertThat(props.getProperty("active")).isEqualTo("true");
+  }
+
+  @Test
+  void testSavePluginActive_noExceptionWhenFileAbsent(@TempDir Path tempDir) throws IOException {
+
+    IdeGuiContext guiContext = createGuiContext(tempDir, "");
+    // no plugins directory → file does not exist; should log a warning and return silently
+    assertThatCode(() -> service.savePluginActive("intellij", "nonexistent", true, guiContext))
+        .doesNotThrowAnyException();
   }
 
   // ---------------------------------------------------------------------------

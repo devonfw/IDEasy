@@ -6,7 +6,7 @@ import java.util.Objects;
 /**
  * Model representing the configurable settings for a single tool.
  */
-public final class ToolConfiguration {
+public final class ToolConfiguration implements ToolTreeNode {
 
   private final String toolName;
 

@@ -4,6 +4,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -95,7 +96,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
   /**
    * @return the {@link Path} to the folder with the plugin configuration files inside the settings.
    */
-  protected Path getPluginsConfigPath() {
+  public Path getPluginsConfigPath() {
 
     return this.context.getSettingsPath().resolve(this.tool).resolve(IdeContext.FOLDER_PLUGINS);
   }
@@ -302,6 +303,21 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
           "Could not find plugin " + key + " at " + getPluginsConfigPath().resolve(key) + ".properties");
     }
     return pluginDescriptor;
+  }
+
+  /**
+   * Persists the {@link ToolPluginDescriptor#active() active} flag for the given plugin to its properties file in the project settings.
+   *
+   * @param plugin the {@link ToolPluginDescriptor} whose active state to save.
+   * @param active {@code true} to activate, {@code false} to deactivate.
+   */
+  public void savePluginActive(ToolPluginDescriptor plugin, boolean active) {
+
+    Path pluginFile = getPluginsConfigPath().resolve(plugin.name() + IdeContext.EXT_PROPERTIES);
+    Properties props = this.context.getFileAccess().readProperties(pluginFile);
+    String activeKey = props.containsKey("plugin_active") ? "plugin_active" : "active";
+    props.setProperty(activeKey, Boolean.toString(active));
+    this.context.getFileAccess().writeProperties(props, pluginFile);
   }
 
   /**

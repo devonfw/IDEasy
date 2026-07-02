@@ -2,7 +2,6 @@ package com.devonfw.ide.gui.settings;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javafx.application.Platform;
@@ -37,7 +36,7 @@ import com.devonfw.ide.gui.localization.LocalizationService;
 public class ToolSettingsController {
 
   @FXML
-  private TreeView<ToolConfiguration> toolsTree;
+  private TreeView<ToolTreeNode> toolsTree;
 
   @FXML
   private Button saveButton;
@@ -77,7 +76,7 @@ public class ToolSettingsController {
           tc.setSupportsEdition(editions.size() > 1);
           // Auto-select the sole edition so the user doesn't have to.
           if (editions.size() == 1 && (tc.getConfiguredEdition() == null || tc.getConfiguredEdition().isBlank())) {
-            tc.setConfiguredEdition(editions.get(0));
+            tc.setConfiguredEdition(editions.getFirst());
           }
         }
         Platform.runLater(() -> toolsTree.refresh());
@@ -87,8 +86,8 @@ public class ToolSettingsController {
     }
   }
 
-  private TreeItem<ToolConfiguration> buildToolTree(List<ToolConfiguration> toolConfigurations) {
-    TreeItem<ToolConfiguration> root = new TreeItem<>();
+  private TreeItem<ToolTreeNode> buildToolTree(List<ToolConfiguration> toolConfigurations) {
+    TreeItem<ToolTreeNode> root = new TreeItem<>();
     root.setExpanded(false);
     for (ToolConfiguration.ToolGroup group : ToolConfiguration.ToolGroup.values()) {
       List<ToolConfiguration> groupTools = toolConfigurations.stream().filter(tc -> tc.getGroup() == group).toList();
@@ -99,24 +98,41 @@ public class ToolSettingsController {
     return root;
   }
 
-  private TreeItem<ToolConfiguration> createGroupItem(ToolConfiguration.ToolGroup group, List<ToolConfiguration> groupTools) {
+  private TreeItem<ToolTreeNode> createGroupItem(ToolConfiguration.ToolGroup group, List<ToolConfiguration> groupTools) {
     Label toolGroupLabel = new Label(group.getLabel());
     toolGroupLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12; -fx-padding: 6 0 6 0;");
 
-    TreeItem<ToolConfiguration> groupItem = new TreeItem<>(null);
+    TreeItem<ToolTreeNode> groupItem = new TreeItem<>(null);
     groupItem.setGraphic(toolGroupLabel);
     groupItem.setExpanded(true);
     for (ToolConfiguration toolConfiguration : groupTools) {
-      groupItem.getChildren().add(new TreeItem<>(toolConfiguration));
+      groupItem.getChildren().add(createToolItem(toolConfiguration));
     }
     return groupItem;
+  }
+
+  private TreeItem<ToolTreeNode> createToolItem(ToolConfiguration toolConfiguration) {
+    TreeItem<ToolTreeNode> toolItem = new TreeItem<>(toolConfiguration);
+    if (toolConfiguration.getGroup() == ToolConfiguration.ToolGroup.IDE && currentContext != null) {
+      List<PluginConfiguration> plugins = service.loadPluginsForTool(toolConfiguration, currentContext);
+      if (!plugins.isEmpty()) {
+        for (PluginConfiguration plugin : plugins) {
+          toolItem.getChildren().add(new TreeItem<>(plugin));
+        }
+      }
+    }
+    return toolItem;
   }
 
   @FXML
   private void onSave() {
     List<ToolConfiguration> toolConfigurations = collectLeafConfigurations();
     service.applyAndSave(toolConfigurations, currentContext);
-    closeWindow();
+    if (currentContext != null) {
+      collectPluginConfigurations().forEach(
+          plugin -> service.savePluginActive(plugin.getParentToolName(), plugin.getPluginName(), plugin.isActive(), currentContext));
+    }
+    refreshTree();
   }
 
   @FXML
@@ -143,6 +159,10 @@ public class ToolSettingsController {
     save.setOnAction(event -> {
       event.consume();
       service.applyAndSave(toolConfigurations, currentContext);
+      if (currentContext != null) {
+        collectPluginConfigurations().forEach(
+            plugin -> service.savePluginActive(plugin.getParentToolName(), plugin.getPluginName(), plugin.isActive(), currentContext));
+      }
       dialog.close();
       closeWindow();
     });
@@ -159,9 +179,23 @@ public class ToolSettingsController {
     dialog.showAndWait();
   }
 
+  private List<PluginConfiguration> collectPluginConfigurations() {
+    return toolsTree.getRoot().getChildren().stream()
+        .flatMap(groupNode -> groupNode.getChildren().stream())
+        .flatMap(toolNode -> toolNode.getChildren().stream())
+        .map(TreeItem::getValue)
+        .filter(v -> v instanceof PluginConfiguration)
+        .map(v -> (PluginConfiguration) v)
+        .collect(Collectors.toList());
+  }
+
   private List<ToolConfiguration> collectLeafConfigurations() {
-    return toolsTree.getRoot().getChildren().stream().flatMap(groupNode -> groupNode.getChildren().stream()).map(TreeItem::getValue)
-        .filter(Objects::nonNull).filter(ToolConfiguration::isEnabled).collect(Collectors.toList());
+    return toolsTree.getRoot().getChildren().stream()
+        .flatMap(groupNode -> groupNode.getChildren().stream())
+        .map(TreeItem::getValue)
+        .filter(v -> v instanceof ToolConfiguration)
+        .map(v -> (ToolConfiguration) v)
+        .collect(Collectors.toList());
   }
 
   @FXML
@@ -173,6 +207,10 @@ public class ToolSettingsController {
     boolean hasErrors = !validationErrors.isEmpty();
     saveButton.setDisable(hasErrors);
     previewButton.setDisable(hasErrors);
+  }
+
+  void refreshTree() {
+    toolsTree.refresh();
   }
 
   public void setOnClose(Runnable onClose) {
@@ -194,10 +232,14 @@ public class ToolSettingsController {
   }
 
   /**
-   * Custom cell rendering each tool row as: [checkbox | tool name | edition combo | version combo | error icon]. Group header rows carry a null value and are
-   * rendered via the graphic set on their TreeItem instead.
+   * Custom cell rendering each row. Dispatches on item type:
+   * <ul>
+   *   <li>{@code null} — group header (graphic delegated to the TreeItem's own graphic)</li>
+   *   <li>{@link ToolConfiguration} — tool row: checkbox | name | edition combo | version combo | error icon</li>
+   *   <li>{@link PluginConfiguration} — plugin row: checkbox | name | id</li>
+   * </ul>
    */
-  private static final class ToolTreeCell extends TreeCell<ToolConfiguration> {
+  private static final class ToolTreeCell extends TreeCell<ToolTreeNode> {
 
     private final HBox root;
     private final ToolSettingsController controller;
@@ -214,25 +256,39 @@ public class ToolSettingsController {
     }
 
     @Override
-    protected void updateItem(ToolConfiguration toolItem, boolean empty) {
-      super.updateItem(toolItem, empty);
+    protected void updateItem(ToolTreeNode item, boolean empty) {
+      super.updateItem(item, empty);
       if (empty) {
         setGraphic(null);
         setText(null);
         return;
       }
       // null value means this is a group header row — delegate to the Label graphic set in createGroupItem().
-      if (toolItem == null) {
-        TreeItem<ToolConfiguration> treeItem = getTreeItem();
-        if (isTopLevelGroupHeader(treeItem)) {
-          setGraphic(treeItem.getGraphic());
-        } else {
-          setGraphic(null);
+      switch (item) {
+        case null -> {
+          TreeItem<ToolTreeNode> treeItem = getTreeItem();
+          if (isTopLevelGroupHeader(treeItem)) {
+            setGraphic(treeItem.getGraphic());
+          } else {
+            setGraphic(null);
+          }
+          setText(null);
         }
-        setText(null);
-        return;
+        case ToolConfiguration toolItem -> renderToolRow(toolItem);
+        case PluginConfiguration plugin -> renderPluginRow(plugin);
+        default -> {
+        }
       }
 
+    }
+
+    // Tree depth: invisible root → group items (depth 1) → tool items (depth 2) → plugins folder (depth 3) → plugin items (depth 4).
+    // Group headers are at depth 1: they have a parent (root) but that parent has no parent.
+    private boolean isTopLevelGroupHeader(TreeItem<ToolTreeNode> treeItem) {
+      return treeItem != null && treeItem.getParent() != null && treeItem.getParent().getParent() == null;
+    }
+
+    private void renderToolRow(ToolConfiguration toolItem) {
       root.getChildren().clear();
 
       enabled = createEnabledToggle(toolItem);
@@ -260,13 +316,9 @@ public class ToolSettingsController {
       root.getChildren().addAll(enabled, name, edition, versionWithIcon);
       applyEnabledState(toolItem);
       setGraphic(root);
+      setText(null);
     }
 
-    // Tree depth: invisible root → group items (depth 1) → tool items (depth 2).
-    // Group headers are at depth 1: they have a parent (root) but that parent has no parent.
-    private boolean isTopLevelGroupHeader(TreeItem<ToolConfiguration> treeItem) {
-      return treeItem != null && treeItem.getParent() != null && treeItem.getParent().getParent() == null;
-    }
 
     private CheckBox createEnabledToggle(ToolConfiguration toolItem) {
       CheckBox enabledToggle = new CheckBox();
@@ -275,6 +327,8 @@ public class ToolSettingsController {
       enabledToggle.setOnAction(_ -> {
         toolItem.setEnabled(enabledToggle.isSelected());
         applyEnabledState(toolItem);
+        // Refresh child plugin cells so they reflect the new parent-enabled state.
+        controller.refreshTree();
       });
       return enabledToggle;
     }
@@ -359,6 +413,34 @@ public class ToolSettingsController {
       });
 
       return versionSelector;
+    }
+
+
+    private void renderPluginRow(PluginConfiguration plugin) {
+      root.getChildren().clear();
+      boolean parentEnabled = plugin.isParentEnabled();
+
+      CheckBox activeToggle = new CheckBox();
+      activeToggle.setSelected(plugin.isActive());
+      activeToggle.setDisable(!parentEnabled);
+      activeToggle.setOpacity(parentEnabled ? 1.0 : 0.6);
+      activeToggle.setOnAction(_ -> plugin.setActive(activeToggle.isSelected()));
+
+      Label nameLabel = new Label(plugin.getPluginName());
+      nameLabel.setStyle("-fx-font-size: 12;");
+      nameLabel.setOpacity(parentEnabled ? 1.0 : 0.6);
+
+      root.getChildren().addAll(activeToggle, nameLabel);
+
+      if (plugin.getPluginId() != null && !plugin.getPluginId().isBlank()) {
+        Label idLabel = new Label("(" + plugin.getPluginId() + ")");
+        idLabel.setStyle("-fx-font-size: 11; -fx-text-fill: gray;");
+        idLabel.setOpacity(parentEnabled ? 1.0 : 0.6);
+        root.getChildren().add(idLabel);
+      }
+
+      setGraphic(root);
+      setText(null);
     }
 
     private Label createErrorIcon() {

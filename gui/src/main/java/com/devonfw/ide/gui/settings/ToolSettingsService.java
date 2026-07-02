@@ -25,6 +25,8 @@ import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.npm.NpmBasedCommandlet;
 import com.devonfw.tools.ide.tool.pip.PipBasedCommandlet;
+import com.devonfw.tools.ide.tool.plugin.PluginBasedCommandlet;
+import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -148,6 +150,7 @@ public final class ToolSettingsService {
       }
       return cmd.getToolRepository().getSortedEditions(tool);
     } catch (Exception e) {
+      LOG.error("Failed to load Editions for tool {} : {}", tool, e.getMessage(), e);
       return List.of();
     }
   }
@@ -173,6 +176,7 @@ public final class ToolSettingsService {
       List<VersionIdentifier> versionIds = toolCmd.getToolRepository().getSortedVersions(tool, selectedEdition, toolCmd);
       return versionIds.stream().map(VersionIdentifier::toString).collect(Collectors.toList());
     } catch (Exception e) {
+      LOG.error("Failed to load Versions for tool {} : {}", tool, e.getMessage(), e);
       return List.of();
     }
   }
@@ -219,7 +223,53 @@ public final class ToolSettingsService {
         }
       }
     } catch (Exception e) {
-      LOG.error("Failed to create backup of the existing properties file: {}", e.getMessage());
+      LOG.error("Failed to create backup of the existing properties file: {}", e.getMessage(), e);
+    }
+  }
+
+  /**
+   * Load the plugins for a tool from its settings directory ({@code settings/<tool>/plugins/*.properties}).
+   *
+   * @param parent the {@link ToolConfiguration} that owns these plugins
+   * @param context the IDE context
+   * @return list of {@link PluginConfiguration}, empty when no plugins directory exists
+   */
+  public List<PluginConfiguration> loadPluginsForTool(ToolConfiguration parent, IdeContext context) {
+
+    try {
+      ToolCommandlet toolCmd = context.getCommandletManager().getToolCommandlet(parent.getToolName());
+      if (!(toolCmd instanceof PluginBasedCommandlet pbc)) {
+        return List.of();
+      }
+      return pbc.getPlugins().getPlugins().stream()
+          .sorted(Comparator.comparing(ToolPluginDescriptor::name))
+          .map(d -> new PluginConfiguration(d.name(), d.id(), d.active(), parent))
+          .collect(Collectors.toList());
+    } catch (Exception e) {
+      LOG.error("Failed to load plugins for tool {}: {}", parent.getToolName(), e.getMessage(), e);
+      return List.of();
+    }
+  }
+
+  /**
+   * Persist the {@code active} flag for a plugin into its properties file ({@code settings/<tool>/plugins/<name>.properties}).
+   *
+   * @param toolName the name of the tool
+   * @param pluginName the plugin name (without {@code .properties} extension)
+   * @param active {@code true} to activate, {@code false} to deactivate
+   * @param context the IDE context
+   */
+  public void savePluginActive(String toolName, String pluginName, boolean active, IdeContext context) {
+
+    try {
+      ToolCommandlet toolCmd = context.getCommandletManager().getToolCommandlet(toolName);
+      if (!(toolCmd instanceof PluginBasedCommandlet pbc)) {
+        LOG.warn("Tool {} is not plugin-based, skipping plugin save for {}", toolName, pluginName);
+        return;
+      }
+      pbc.savePluginActive(pbc.getPlugin(pluginName), active);
+    } catch (Exception e) {
+      LOG.error("Failed to save plugin {} state for tool {}: {}", pluginName, toolName, e.getMessage(), e);
     }
   }
 
