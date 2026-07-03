@@ -166,7 +166,8 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
       }
       if (plugin.active()) {
         if (this.context.isForcePlugins() || !pluginMarkerFileExists) {
-          Step step = this.context.newStep("Install plugin " + plugin.name() + " (" + currentPluginIndex + "/" + totalActivePlugins + ")");
+          String progressMarker = " (" + currentPluginIndex + "/" + totalActivePlugins + ")";
+          Step step = this.context.newStep("Install plugin " + plugin.name() + progressMarker);
           step.run(() -> doInstallPluginStep(plugin, step, pc));
         } else {
           LOG.debug("Skipping installation of plugin '{}' due to existing marker file: {}", plugin.name(), pluginMarkerFile);
