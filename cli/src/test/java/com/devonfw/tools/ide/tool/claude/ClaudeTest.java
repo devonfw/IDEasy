@@ -70,6 +70,31 @@ class ClaudeTest extends AbstractIdeContextTest {
         "CLAUDE_CODE_USE_BEDROCK", "CLAUDE_CODE_OAUTH_TOKEN", "AWS_PROFILE", "AWS_REGION",
         "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_SESSION_TOKEN", "AWS_BEARER_TOKEN_BEDROCK");
     assertThat(ec.removed).doesNotContain("CLAUDE_CONFIG_DIR");
+    // ANTHROPIC_MODEL is declared in settings/ide.properties (team-shared config) and must be preserved
+    assertThat(ec.removed).doesNotContain("ANTHROPIC_MODEL");
+  }
+
+  @Test
+  void testSetEnvironmentScrubsAmbientSystemValueButKeepsIdePropertiesValue() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_CLAUDE, null, false);
+    // ANTHROPIC_MODEL is exported by settings/ide.properties, but a leaked value is also present in the ambient system environment
+    context.getSystem().setEnv("ANTHROPIC_MODEL", "leaked-ambient-model");
+    context.getSystem().setEnv("ANTHROPIC_API_KEY", "leaked-ambient-key");
+    Claude claude = new Claude(context);
+    Path dummy = context.getSoftwarePath().resolve("claude");
+    ToolInstallation installation = new ToolInstallation(dummy, dummy, dummy, VersionIdentifier.of(CLAUDE_VERSION), false);
+    RecordingEnvironmentContext ec = new RecordingEnvironmentContext();
+
+    // act
+    claude.setEnvironment(ec, installation, false);
+
+    // assert
+    // ANTHROPIC_MODEL is defined in ide.properties, so the intentional value wins and it is not scrubbed
+    assertThat(ec.removed).doesNotContain("ANTHROPIC_MODEL");
+    // ANTHROPIC_API_KEY only comes from the ambient system environment, so it is scrubbed
+    assertThat(ec.removed).contains("ANTHROPIC_API_KEY");
   }
 
   @Test

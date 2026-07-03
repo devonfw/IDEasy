@@ -7,6 +7,8 @@ import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
@@ -31,10 +33,13 @@ public class Claude extends LocalToolCommandlet {
       This directory is your project-local CLAUDE_CONFIG_DIR. IDEasy points Claude here so this
       project's settings, credentials, MCP servers and history stay separate from other projects.
 
-      Put ALL provider/auth configuration in `settings.json` -> `env`. IDEasy removes the following
-      ambient variables before launching Claude, so they must be declared here if you need them:
+      Put provider/auth configuration in `settings.json` -> `env`. Before launching Claude, IDEasy
+      removes the following variables when they are only inherited from your ambient shell/system
+      environment, so an accidentally leaked value cannot override this project's configuration:
       ANTHROPIC_*, CLAUDE_CODE_USE_BEDROCK/VERTEX/FOUNDRY, CLAUDE_CODE_OAUTH_TOKEN,
       AWS_PROFILE, AWS_REGION, AWS_*_KEY*, AWS_SESSION_TOKEN, AWS_BEARER_TOKEN_BEDROCK.
+      A value you declare intentionally in an IDEasy `ide.properties` (e.g. `settings/ide.properties`
+      to share `ANTHROPIC_MODEL` or `BEDROCK_MODEL_ID` across your team) is kept as-is.
 
       Example (AWS Bedrock):
         {
@@ -56,8 +61,10 @@ public class Claude extends LocalToolCommandlet {
       """;
 
   /**
-   * Provider/auth environment variables removed from the launched Claude process so an ambient/leaked value cannot override the per-project configuration. The
-   * isolated {@code settings.json} env block is the single source of truth.
+   * Provider/auth environment variables that must not leak from the ambient system environment into the launched Claude process, so an inherited value cannot
+   * override the per-project configuration. Each variable is only removed when it is inherited from the {@link EnvironmentVariablesType#SYSTEM system
+   * environment} (or undefined); a value declared in an IDEasy {@code ide.properties} layer (e.g. {@code settings/ide.properties} to share
+   * {@code ANTHROPIC_MODEL} across a team) is intentional and therefore preserved.
    */
   static final List<String> SCRUB_VARS = List.of(
       "ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_BASE_URL",
@@ -107,9 +114,25 @@ public class Claude extends LocalToolCommandlet {
       return;
     }
     environmentContext.withEnvVar(CLAUDE_CONFIG_DIR, claudeConfigDir.toString());
+    EnvironmentVariables variables = this.context.getVariables();
     for (String name : SCRUB_VARS) {
-      environmentContext.removeEnvVar(name);
+      if (isInheritedFromSystem(variables, name)) {
+        environmentContext.removeEnvVar(name);
+      }
     }
+  }
+
+  /**
+   * @param variables the {@link EnvironmentVariables} of the current {@link IdeContext}.
+   * @param name the name of the environment variable to check.
+   * @return {@code true} if the variable is undefined or only inherited from the {@link EnvironmentVariablesType#SYSTEM system environment} and should therefore
+   *     be scrubbed; {@code false} if it is defined in an IDEasy {@code ide.properties} layer and must be preserved so it can be shared intentionally (e.g. via
+   *     {@code settings/ide.properties}).
+   */
+  private static boolean isInheritedFromSystem(EnvironmentVariables variables, String name) {
+
+    EnvironmentVariables source = variables.findVariable(name);
+    return (source == null) || (source.getType() == EnvironmentVariablesType.SYSTEM);
   }
 
   @Override
