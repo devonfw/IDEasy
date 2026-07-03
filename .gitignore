@@ -19,6 +19,11 @@ eclipse-target/
 generated/
 node_modules
 
+#macOs installer files
+macos-installer/*.pkg
+macos-installer/Resources/LICENSE.rtf
+macos-installer/pkg-root
+
 # Package Files #
 *.jar
 *.war
