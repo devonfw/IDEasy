@@ -6,9 +6,12 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1937[#1937]: Link content from settings into workspaces
 * https://github.com/devonfw/IDEasy/issues/1056[#1056]: Improve MSI license display by generating formatted RTF from AsciiDoc
 * https://github.com/devonfw/IDEasy/issues/2052[#2052]: Split issue statistics in 2 pie-charts
 * https://github.com/devonfw/IDEasy/issues/822[#822] : Added Cwd path limit in shell
+* https://github.com/devonfw/IDEasy/issues/1517[#1517]: Fix IDEasy MSI does not configure Windows Terminal for git-bash
+* https://github.com/devonfw/IDEasy/issues/1227[#1227]: Added Setup instrcutions to the Windows installer
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/46?closed=1[milestone 2026.07.001].
 
