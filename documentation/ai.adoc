@@ -99,16 +99,14 @@ We hope this gives you ultimate flexibility to solve all problems you may have.
 
 == Isolated Claude configuration
 
-When you run multiple Claude Code configurations (e.g. different AWS Bedrock accounts, a sovereign endpoint, a company-wide instance), they normally interfere through the shared `~/.claude` home folder and through leaked environment variables.
+IDEasy isolates Claude Code per project following the link:sandbox.adoc[sandbox principle]: `ide claude` (or simply `claude` while an IDEasy project is active) points `CLAUDE_CONFIG_DIR` at `$IDE_HOME/conf/claude` and seeds a user-owned `conf/claude/settings.json` skeleton on first install.
 
-IDEasy isolates Claude per project. Running `ide claude` (or simply `claude` while an IDEasy project is active):
+On top of relocating the config folder, IDEasy scrubs provider/auth environment variables so a value leaked into your shell cannot silently override this project's configuration.
+You need to understand this behavior in order to debug, circumvent or influence it:
 
-* sets `CLAUDE_CONFIG_DIR` to `$IDE_HOME/conf/claude`, so settings, credentials, MCP servers and history are stored per project;
-* removes leaking provider/auth variables (`ANTHROPIC_*`, `CLAUDE_CODE_USE_BEDROCK`/`VERTEX`/`FOUNDRY`, `CLAUDE_CODE_OAUTH_TOKEN`, `AWS_PROFILE`, `AWS_REGION`, `AWS_*_KEY*`, `AWS_SESSION_TOKEN`, `AWS_BEARER_TOKEN_BEDROCK`) from the launched process;
-* seeds a user-owned `conf/claude/settings.json` skeleton on first install.
-
-Put *all* provider/auth configuration in `conf/claude/settings.json` under the `env` block (see the generated `conf/claude/README.md` for Bedrock and custom-endpoint examples).
-Because scrubbed variables such as `AWS_PROFILE` are removed from the process, declare them there rather than relying on your shell.
+* Before launching Claude, IDEasy removes the following variables *when they are only inherited from your ambient shell/system environment*: `ANTHROPIC_*`, `CLAUDE_CODE_USE_BEDROCK`/`VERTEX`/`FOUNDRY`, `CLAUDE_CODE_OAUTH_TOKEN`, `AWS_PROFILE`, `AWS_REGION`, `AWS_*_KEY*`, `AWS_SESSION_TOKEN`, `AWS_BEARER_TOKEN_BEDROCK`.
+* A value you declare *intentionally* in an IDEasy `ide.properties` (e.g. `export ANTHROPIC_MODEL=...` or `export BEDROCK_MODEL_ID=...` in `settings/ide.properties` to share it across your team) is *not* scrubbed and takes precedence over the ambient value.
+* Put per-user provider/auth secrets in `conf/claude/settings.json` under the `env` block (see the generated `conf/claude/README.md` for Bedrock and custom-endpoint examples), since ambient values for those variables are removed.
 
 [NOTE]
 ====
