@@ -63,7 +63,8 @@ class VersionIdentifierTest extends Assertions {
    */
   @ParameterizedTest
   // arrange
-  @ValueSource(strings = { "1.0", "0.1", "2023.08.001", "2023-06-M1", "11.0.4_11.4", "5.2.23.RELEASE", "8u412b08" })
+  @ValueSource(strings = { "1.0", "0.1", "2023.08.001", "2023-06-M1", "11.0.4_11.4", "5.2.23.RELEASE", "8u412b08", "17-SNAPSHOT", "17-beta1-snapshot",
+      "17-beta12-snapshot" })
   void testValid(String version) {
 
     // act
@@ -98,8 +99,11 @@ class VersionIdentifierTest extends Assertions {
   @Test
   void testCompare() {
 
-    String[] versions = { "0.1", "0.2-SNAPSHOT", "0.2-nb5", "0.2-a", "0.2-alpha1", "0.2-beta", "0.2-b2", "0.2.M1", "0.2M9", "0.2M10", "0.2-rc1", "0.2-RC2",
-        "0.2", "0.2-release", "0.2-fix9", "0.2-hf1", "0.3", "0.3.1", "0.3.*", "0.3.*!", "0.*", "1", "1.0", "10-alpha2", "10-alpha*", "10.*", "*", "*!" };
+    String[] versions = { "0.1-snapshot", "0.1", "0.2-nb5-snapshot", "0.2-nb5", "0.2-a-snapshot", "0.2-a-snapshot", "0.2-a", "0.2-alpha1-snapshot",
+        "0.2-alpha1", "0.2-beta-snapshot", "0.2-beta", "0.2-b2-snapshot", "0.2-b2", "0.2.M1-snapshot", "0.2.M1", "0.2M9-snapshot", "0.2M9", "0.2M10-snapshot",
+        "0.2M10", "0.2-rc1-snapshot", "0.2-rc1", "0.2-RC2-snapshot", "0.2-RC2", "0.2-SNAPSHOT", "0.2", "0.2-release-snapshot", "0.2-release",
+        "0.2-fix9-snapshot", "0.2-fix9", "0.2-hf1-snapshot", "0.2-hf1", "0.3-snapshot", "0.3", "0.3.1-snapshot", "0.3.1", "0.3.*", "0.3.*!", "0.*", "1", "1.0",
+        "10-alpha2", "10-alpha*", "10.*", "*", "*!" };
     List<VersionIdentifier> vids = new ArrayList<>(versions.length);
     for (String version : versions) {
       VersionIdentifier vid = VersionIdentifier.of(version);

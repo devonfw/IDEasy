@@ -214,10 +214,7 @@ public class VersionSegment implements VersionObject<VersionSegment> {
       }
     }
     if (this.letters.isSnapshot()) {
-      if (this.number >= 0) {
-        return false;
-      }
-      return true;
+      return this.number < 0;
     }
 
     return this.letters.getPhase().isValid(this.number);

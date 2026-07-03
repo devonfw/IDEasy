@@ -19,6 +19,9 @@ public final class VersionLetters implements AbstractVersionPhase, VersionObject
   /** The undefined {@link VersionLetters} instance. */
   public static final VersionLetters UNDEFINED = new VersionLetters("undefined");
 
+  /** he snapshot qualifier string. */
+  public static final String SNAPSHOT = "snapshot";
+
   private final String letters;
 
   private final String lettersLowerCase;
@@ -50,9 +53,12 @@ public final class VersionLetters implements AbstractVersionPhase, VersionObject
     } else {
       this.prePhase = false;
     }
-    this.snapshot = containsSnapshotPart(phaseLetters);
-    if (this.snapshot) {
-      phaseLetters = removeSnapshotPart(phaseLetters);
+    String newPhaseLetters = removeSnapshotPart(phaseLetters);
+    if (newPhaseLetters.equals(phaseLetters)) {
+      this.snapshot = false;
+    } else { // snapshot was found and removed
+      phaseLetters = newPhaseLetters;
+      this.snapshot = true;
     }
 
     this.phase = VersionPhase.of(phaseLetters);
@@ -118,7 +124,7 @@ public final class VersionLetters implements AbstractVersionPhase, VersionObject
   @Override
   public boolean isUnstable() {
 
-    return this.prePhase || this.phase.isUnstable() || this.isSnapshot();
+    return this.prePhase || this.phase.isUnstable() || this.snapshot;
   }
 
   @Override
@@ -240,46 +246,26 @@ public final class VersionLetters implements AbstractVersionPhase, VersionObject
     return new VersionLetters(letters);
   }
 
-  private static boolean containsSnapshotPart(String phaseLetters) {
-    String[] parts = phaseLetters.split("-");
-    for (String part : parts) {
-      if ("snapshot".equals(part)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   private static String removeSnapshotPart(String phaseLetters) {
-    String[] parts = phaseLetters.split("-");
-    StringBuilder result = new StringBuilder();
-
-    for (String part : parts) {
-
-      if ("snapshot".equals(part)) {
-        continue;
-      }
-
-      if (!part.isEmpty()) {
-        if (!result.isEmpty()) {
-          result.append("-");
-        }
-        result.append(part);
-      }
+    int i = phaseLetters.indexOf(SNAPSHOT);
+    if (i < 0) {
+      return phaseLetters;
     }
-    return result.toString();
+    int start = i;
+    int end = i + SNAPSHOT.length();
+    if ((i > 0) && (phaseLetters.charAt(i - 1) == '-')) {
+      start--;
+    }
+    return phaseLetters.substring(0, start) + phaseLetters.substring(end);
   }
+
 
   private int getPhaseRank() {
-    int unstableRank = VersionPhase.UNSTABLE.ordinal();
 
-    if (this.snapshot) {
-      return unstableRank + 1;
-    }
-    int rank = this.phase.ordinal();
+    int rank = this.phase.ordinal() * 2;
 
-    if (rank > unstableRank) {
-      return rank + 1;
+    if (!this.snapshot) {
+      rank++;
     }
     return rank;
   }

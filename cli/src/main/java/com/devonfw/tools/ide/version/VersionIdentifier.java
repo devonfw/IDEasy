@@ -245,7 +245,7 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
     while (true) {
       VersionMatchResult matchResult = thisSegment.matches(otherSegment);
       if (matchResult == VersionMatchResult.MATCH) {
-        return !this.isPattern() || !this.isStable() || other.isStable();
+        return true;
       } else if (matchResult == VersionMatchResult.MISMATCH) {
         return false;
       }
