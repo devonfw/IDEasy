@@ -117,7 +117,7 @@ class VersionSetCommandletTest extends AbstractIdeContextTest {
     // the fixture has mvn installed in version 3.9.4, but only versions resolvable via the mock repository can be
     // set, so we fake an installation of one of those resolvable versions (3.1.0) to test the "already installed"
     // message of set-version.
-    Path installedVersionFile = context.getSoftwarePath().resolve("mvn").resolve(IdeContext.FILE_LEGACY_SOFTWARE_VERSION);
+    Path installedVersionFile = context.getSoftwarePath().resolve("mvn").resolve(IdeContext.FILE_SOFTWARE_VERSION);
     Files.writeString(installedVersionFile, "3.1.0");
     VersionSetCommandlet versionSet = context.getCommandletManager().getCommandlet(VersionSetCommandlet.class);
     versionSet.tool.setValueAsString("mvn", context);
