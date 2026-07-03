@@ -83,7 +83,7 @@ main() {
   trap 'rm -rf "${TMPDIR_CLEANUP}"' EXIT
   local tmpdir="${TMPDIR_CLEANUP}"
 
-  blue "Downloading ${archive}..."
+  blue "Downloading ${archive} from ${download_url}"
   curl -fSL --progress-bar -o "${tmpdir}/${archive}" "${download_url}"
 
   blue "Extracting..."
