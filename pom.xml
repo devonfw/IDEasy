@@ -219,6 +219,69 @@
           </dependency>
         </dependencies>
       </plugin>
+
+      <!--
+        Mandatory development harness: formatting (Spotless) and static analysis (Checkstyle).
+        Enforced on CHANGED code only (ratchet model) by the mandatory pre-commit hook:
+        Spotless ratchets to origin/main; Checkstyle is scoped to the changed files.
+        Deliberately NOT bound to the verify phase, so full builds / CI stay green on legacy code
+        while every new or modified file must comply.
+          Auto-fix formatting:  mvn spotless:apply
+          Lint on demand:       mvn checkstyle:check
+        Rules mirror .editorconfig and documentation/contributing/coding-conventions.adoc.
+      -->
+      <plugin>
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <version>2.44.5</version>
+        <configuration>
+          <!-- Ratchet: only files changed vs origin/main are checked / formatted. -->
+          <ratchetFrom>origin/main</ratchetFrom>
+          <java>
+            <includes>
+              <include>src/main/java/**/*.java</include>
+              <include>src/test/java/**/*.java</include>
+            </includes>
+            <!--
+              Only IDE-agnostic, auto-fixable rules so Spotless never fights the IntelliJ formatter
+              driven by .editorconfig. Import ORDER mirrors .editorconfig (ij_java_imports_layout):
+              static first, then java/javax/jakarta/javafx, then org/net/com, then everything else.
+            -->
+            <importOrder>
+              <order>\#,java,javax,jakarta,javafx,org,net,com,</order>
+            </importOrder>
+            <removeUnusedImports/>
+            <trimTrailingWhitespace/>
+            <endWithNewline/>
+          </java>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>3.6.0</version>
+        <dependencies>
+          <dependency>
+            <groupId>com.puppycrawl.tools</groupId>
+            <artifactId>checkstyle</artifactId>
+            <version>10.21.4</version>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <!--
+            Every code module sits one level under the repo root, so this resolves to
+            <repo-root>/checkstyle.xml from ANY working directory (repo root or a module dir like
+            cli/). The root aggregator (packaging=pom) is excluded from checkstyle runs instead of
+            being made to resolve this path. maven.multiModuleProjectBasedir is unreliable here
+            (unset by the IDEasy mvn wrapper), hence a module-relative path.
+          -->
+          <configLocation>${project.basedir}/../checkstyle.xml</configLocation>
+          <includeTestSourceDirectory>true</includeTestSourceDirectory>
+          <consoleOutput>true</consoleOutput>
+          <failOnViolation>true</failOnViolation>
+          <violationSeverity>error</violationSeverity>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 

@@ -22,6 +22,11 @@ https://github.com/devonfw/ide-settings.
   software packages
 - `/windows-installer`: Source code to compile an MSI installer for IDEasy
 
+## Development Method
+
+- TDD is the standard for features and bug fixes: write a failing test first, make it pass, refactor.
+  For a bug, step one is a test that reproduces it and fails.
+
 ## Test Execution
 
 - All tests can be executed with `mvn clean test`.
@@ -30,6 +35,22 @@ https://github.com/devonfw/ide-settings.
 - Execute specific test classes from your IDE or via `mvn -Dtest=ClassName test` in the module
   folder of interest (e.g. the `cli` folder, i.e. the `ide-cli` Maven module).
 - All integration tests can be executed via the script `cli/src/test/all-tests.sh`.
+
+## Development Harness (cheap → expensive)
+
+Run the tiers covering your change proactively — cheap ones constantly, expensive ones before commit
+and review — and fix what they report.
+
+1. Conventions (free): follow `documentation/contributing/coding-conventions.adoc` + `.editorconfig`.
+2. Compile: `mvn -q -o compile` in the changed module.
+3. Tests: `mvn -Dtest=ClassName test` or `mvn -q test` in the module folder (never repo root).
+4. Format: `mvn spotless:apply` (auto-fix; ratcheted to origin/main — only files you changed).
+5. Lint: `mvn checkstyle:check` in the module folder — must pass for every file you change.
+6. Build + tests: `mvn -q verify -pl '!documentation'` from repo root.
+
+Enforcement is by CHANGED code (ratchet), not the whole legacy tree. Git hooks are mandatory: run
+`./install-hooks.sh` once per clone; pre-commit then runs steps 4–6 on every commit. Skip a single
+commit only when strictly necessary with `git commit --no-verify`.
 
 ## Coding Conventions
 
