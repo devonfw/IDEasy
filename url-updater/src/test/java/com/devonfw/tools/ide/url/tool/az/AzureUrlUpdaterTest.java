@@ -35,7 +35,7 @@ class AzureUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(any(urlMatching("/msi/azure-cli-.*\\.msi")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    AzureUrlUpdaterMock updater = new AzureUrlUpdaterMock(wmRuntimeInfo);
+    AzureUrlUpdater updater = new AzureUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // act
     updater.update(urlRepository);

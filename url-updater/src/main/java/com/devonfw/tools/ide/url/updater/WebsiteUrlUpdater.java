@@ -15,6 +15,16 @@ import java.util.regex.Pattern;
 public abstract class WebsiteUrlUpdater extends AbstractUrlUpdater {
 
   /**
+   * The constructor.
+   *
+   * @param downloadBaseUrl download base url
+   * @param versionBaseUrl version base url
+   */
+  public WebsiteUrlUpdater(String downloadBaseUrl, String versionBaseUrl) {
+    super(downloadBaseUrl, versionBaseUrl);
+  }
+
+  /**
    * Retrieves the available versions by performing a GET request on the version URL and extracting the version numbers from the HTML body of the response.
    *
    * @return a set of available version numbers

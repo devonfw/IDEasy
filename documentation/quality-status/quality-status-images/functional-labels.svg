@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="476" viewBox="0 0 640 476" role="img">
+<style>
+  :root {
+    color-scheme: light dark;
+    --chart-background: #ffffff;
+    --chart-text: #24292f;
+    --chart-muted-text: #57606a;
+    --chart-bar-track: #f0f3f6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --chart-background: #0d1117;
+      --chart-text: #f0f6fc;
+      --chart-muted-text: #8b949e;
+      --chart-bar-track: #30363d;
+    }
+  }
+</style>
+<rect width="640" height="476" rx="12" fill="var(--chart-background)"/>
+<title>Most common functional labels</title>
+<text x="24" y="34" fill="var(--chart-text)" font-family="sans-serif" font-size="20" font-weight="600">Most common functional labels</text>
+<text x="138" y="83" text-anchor="end" fill="var(--chart-text)" font-family="sans-serif" font-size="14">install</text>
+<rect x="150" y="68" width="436" height="20" rx="4" fill="var(--chart-bar-track)"/>
+<rect x="150" y="68" width="436.0" height="20" rx="4" fill="#0969da"/>
+<text x="594.0" y="83" fill="var(--chart-muted-text)" font-family="sans-serif" font-size="13" font-weight="600">20</text>
+<text x="138" y="121" text-anchor="end" fill="var(--chart-text)" font-family="sans-serif" font-size="14">GUI</text>
+<rect x="150" y="106" width="436" height="20" rx="4" fill="var(--chart-bar-track)"/>
+<rect x="150" y="106" width="392.4" height="20" rx="4" fill="#1f883d"/>
+<text x="550.4" y="121" fill="var(--chart-muted-text)" font-family="sans-serif" font-size="13" font-weight="600">18</text>
+<text x="138" y="159" text-anchor="end" fill="var(--chart-text)" font-family="sans-serif" font-size="14">settings</text>
+<rect x="150" y="144" width="436" height="20" rx="4" fill="var(--chart-bar-track)"/>
+<rect x="150" y="144" width="348.8" height="20" rx="4" fill="#bf8700"/>
+<text x="506.8" y="159" fill="var(--chart-muted-text)" font-family="sans-serif" font-size="13" font-weight="600">16</text>
+<text x="138" y="197" text-anchor="end" fill="var(--chart-text)" font-family="sans-serif" font-size="14">internal</text>
+<rect x="150" y="182" width="436" height="20" rx="4" fill="var(--chart-bar-track)"/>
+<rect x="150" y="182" width="261.6" height="20" rx="4" fill="#8250df"/>
+<text x="419.6" y="197" fill="var(--chart-muted-text)" font-family="sans-serif" font-size="13" font-weight="600">12</text>
+<text x="138" y="235" text-anchor="end" fill="var(--chart-text)" font-family="sans-serif" font-size="14">commandlet</text>
+<rect x="150" y="220" width="436" height="20" rx="4" fill="var(--chart-bar-track)"/>
+<rect x="150" y="220" width="218.0" height="20" rx="4" fill="#cf222e"/>
+<text x="376.0" y="235" fill="var(--chart-muted-text)" font-family="sans-serif" font-size="13" font-weight="600">10</text>
+<text x="138" y="273" text-anchor="end" fill="var(--chart-text)" font-family="sans-serif" font-size="14">urls</text>
+<rect x="150" y="258" width="436" height="20" rx="4" fill="var(--chart-bar-track)"/>
+<rect x="150" y="258" width="196.2" height="20" rx="4" fill="#0969da"/>
+<text x="354.2" y="273" fill="var(--chart-muted-text)" font-family="sans-serif" font-size="13" font-weight="600">9</text>
+<text x="138" y="311" text-anchor="end" fill="var(--chart-text)" font-family="sans-serif" font-size="14">software</text>
+<rect x="150" y="296" width="436" height="20" rx="4" fill="var(--chart-bar-track)"/>
+<rect x="150" y="296" width="174.4" height="20" rx="4" fill="#1f883d"/>
+<text x="332.4" y="311" fill="var(--chart-muted-text)" font-family="sans-serif" font-size="13" font-weight="600">8</text>
+<text x="138" y="349" text-anchor="end" fill="var(--chart-text)" font-family="sans-serif" font-size="14">update</text>
+<rect x="150" y="334" width="436" height="20" rx="4" fill="var(--chart-bar-track)"/>
+<rect x="150" y="334" width="152.6" height="20" rx="4" fill="#bf8700"/>
+<text x="310.6" y="349" fill="var(--chart-muted-text)" font-family="sans-serif" font-size="13" font-weight="600">7</text>
+<text x="138" y="387" text-anchor="end" fill="var(--chart-text)" font-family="sans-serif" font-size="14">docker</text>
+<rect x="150" y="372" width="436" height="20" rx="4" fill="var(--chart-bar-track)"/>
+<rect x="150" y="372" width="130.8" height="20" rx="4" fill="#8250df"/>
+<text x="288.8" y="387" fill="var(--chart-muted-text)" font-family="sans-serif" font-size="13" font-weight="600">6</text>
+<text x="138" y="425" text-anchor="end" fill="var(--chart-text)" font-family="sans-serif" font-size="14">git</text>
+<rect x="150" y="410" width="436" height="20" rx="4" fill="var(--chart-bar-track)"/>
+<rect x="150" y="410" width="130.8" height="20" rx="4" fill="#cf222e"/>
+<text x="288.8" y="425" fill="var(--chart-muted-text)" font-family="sans-serif" font-size="13" font-weight="600">6</text>
+</svg>

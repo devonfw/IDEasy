@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -490,13 +491,13 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       ObjectNode gitBashProfile = mapper.createObjectNode();
       String newGuid = "{2ece5bfe-50ed-5f3a-ab87-5cd4baafed2b}";
       String iconPath = getGitBashIconPath(bashPath);
-      String startingDirectory = this.context.getIdeRoot().toString();
+      Path startingDirectory = Objects.requireNonNullElse(this.context.getIdeRoot(), this.context.getUserHome());
 
       gitBashProfile.put("guid", newGuid);
       gitBashProfile.put("name", "Git Bash");
       gitBashProfile.put("commandline", bashPath);
       gitBashProfile.put("icon", iconPath);
-      gitBashProfile.put("startingDirectory", startingDirectory);
+      gitBashProfile.put("startingDirectory", startingDirectory.toString());
 
       ((ArrayNode) profilesList).add(gitBashProfile);
 
@@ -690,7 +691,23 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   private void deleteDownloadCache() {
     Path downloadPath = this.context.getDownloadPath();
     LOG.info("Deleting download cache from {}", downloadPath);
-    this.context.getFileAccess().delete(downloadPath);
+    tryDeleteDownloadCache(downloadPath);
+    // older versions kept the cache under ~/Downloads/ide - clean that up too if it's still around
+    Path legacy = this.context.getUserHome().resolve("Downloads/ide");
+    if (!legacy.equals(downloadPath) && Files.exists(legacy)) {
+      LOG.info("Deleting legacy download cache from {}", legacy);
+      tryDeleteDownloadCache(legacy);
+    }
+  }
+
+  private void tryDeleteDownloadCache(Path path) {
+    try {
+      this.context.getFileAccess().delete(path);
+    } catch (IllegalStateException e) {
+      // best effort - on macOS ~/Downloads can deny access (EPERM), don't fail the whole uninstall over it
+      String cause = (e.getCause() != null) ? e.getCause().getMessage() : e.getMessage();
+      LOG.warn("Could not delete download cache at {} ({}). The folder will be left in place; you can remove it manually via Finder.", path, cause);
+    }
   }
 
   private void uninstallIdeasyIdePath(Path idePath) {

@@ -1,0 +1,78 @@
+= IDEasy Quality Status — macOS
+:toc: left
+:toclevels: 3
+:icons: font
+:source-highlighter: rouge
+:nofooter:
+
+Automatically generated open issue overview for macOS.
+
+link:quality-status.adoc[Back to overview]
+
+*Total Issues:* 146
+
+* OS-specific: 11
+
+* Multi-OS: 1
+
+* Cross-platform: 134
+
+== macOS Specific Issues
+
+[%header, cols="^1,7"]
+|===
+| Issue | Summary
+2+^| *90+ days*
+
+| link:https://github.com/devonfw/IDEasy/issues/1512[#1512]
+| Cannot run Intellij on Mac due to file permission error
+
+| link:https://github.com/devonfw/IDEasy/issues/1187[#1187]
+| Eclipse plugin installation on mac is not working
+
+| link:https://github.com/devonfw/IDEasy/issues/878[#878]
+| pgadmin does not work on Mac x64
+
+| link:https://github.com/devonfw/IDEasy/issues/871[#871]
+| Add progressbar to *.dmg extract process
+
+| link:https://github.com/devonfw/IDEasy/issues/869[#869]
+| gcviewer logs errors on Mac X64
+
+| link:https://github.com/devonfw/IDEasy/issues/868[#868]
+| Eclipse does not work on Mac x64
+
+| link:https://github.com/devonfw/IDEasy/issues/865[#865]
+| Az is not working on Mac x64
+
+| link:https://github.com/devonfw/IDEasy/issues/864[#864]
+| AWS is not working on Mac x64
+
+| link:https://github.com/devonfw/IDEasy/issues/798[#798]
+| pgadmin not working on Mac
+
+| link:https://github.com/devonfw/IDEasy/issues/423[#423]
+| Create installer for MacOS
+
+| link:https://github.com/devonfw/IDEasy/issues/377[#377]
+| Support Homebrew for installation on macOS
+
+|===
+
+== Multi-OS Issues
+
+=== Linux + macOS (1)
+
+[%header, cols="^1,7"]
+|===
+| Issue | Summary
+2+^| *90+ days*
+
+| link:https://github.com/devonfw/IDEasy/issues/802[#802]
+| az not working on Mac
+
+|===
+
+== Cross-platform Issues
+
+Cross-platform issues are listed in the overview document: link:quality-status.adoc[Cross-platform Issues].

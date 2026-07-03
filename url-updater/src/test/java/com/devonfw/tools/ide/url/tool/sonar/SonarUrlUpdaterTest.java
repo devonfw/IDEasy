@@ -35,7 +35,7 @@ class SonarUrlUpdaterTest extends AbstractUrlUpdaterTest {
         .willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    SonarUrlUpdaterMock updater = new SonarUrlUpdaterMock(wmRuntimeInfo);
+    SonarUrlUpdater updater = new SonarUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
     // act
     updater.update(urlRepository);
 

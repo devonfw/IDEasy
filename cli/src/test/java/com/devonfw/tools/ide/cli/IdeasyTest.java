@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.version.IdeVersion;
 
 /**
  * Test of {@link Ideasy}.
@@ -31,6 +32,44 @@ class IdeasyTest extends AbstractIdeContextTest {
     // assert
     assertThat(context).logAtDebug().hasMessage("Step 'ide' ended with failure.");
     assertThat(context).log().hasNoEntryWithException();
+  }
+
+  /**
+   * Test of {@code ide --version}.
+   */
+  @Test
+  void testVersionLongOption() {
+
+    // arrange
+    IdeTestContext context = newContext(Path.of("/"));
+    Ideasy ideasy = new Ideasy(context);
+
+    // act
+    int exitCode = ideasy.run("--version");
+
+    // assert
+    assertThat(exitCode).isEqualTo(0);
+    assertThat(context).logAtProcessable().hasMessage(IdeVersion.getVersionString());
+    assertThat(context).logAtError().hasNoMessageContaining("Unknown command");
+  }
+
+  /**
+   * Test of {@code ide -v}.
+   */
+  @Test
+  void testVersionShortOption() {
+
+    // arrange
+    IdeTestContext context = newContext(Path.of("/"));
+    Ideasy ideasy = new Ideasy(context);
+
+    // act
+    int exitCode = ideasy.run("-v");
+
+    // assert
+    assertThat(exitCode).isEqualTo(0);
+    assertThat(context).logAtProcessable().hasMessage(IdeVersion.getVersionString());
+    assertThat(context).logAtError().hasNoMessageContaining("Unknown command");
   }
 
   /**

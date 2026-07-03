@@ -1,0 +1,65 @@
+= IDEasy Quality Status — Linux
+:toc: left
+:toclevels: 3
+:icons: font
+:source-highlighter: rouge
+:nofooter:
+
+Automatically generated open issue overview for Linux.
+
+link:quality-status.adoc[Back to overview]
+
+*Total Issues:* 141
+
+* OS-specific: 6
+
+* Multi-OS: 1
+
+* Cross-platform: 134
+
+== Linux Specific Issues
+
+[%header, cols="^1,7"]
+|===
+| Issue | Summary
+2+^| *11-30 days*
+
+| link:https://github.com/devonfw/IDEasy/issues/2007[#2007]
+| IDEasy can not install docker on arch linux
+
+2+^| *90+ days*
+
+| link:https://github.com/devonfw/IDEasy/issues/1352[#1352]
+| VSCode WSL warning prompt blocking VSCode plugin installation
+
+| link:https://github.com/devonfw/IDEasy/issues/1046[#1046]
+| Add Support for Python on Linux
+
+| link:https://github.com/devonfw/IDEasy/issues/950[#950]
+| avoid --no-gpg-checks for docker installation on SUSE Linux
+
+| link:https://github.com/devonfw/IDEasy/issues/854[#854]
+| Kubectl not working on linux
+
+| link:https://github.com/devonfw/IDEasy/issues/694[#694]
+| Add linux support to dotnet tool
+
+|===
+
+== Multi-OS Issues
+
+=== Linux + macOS (1)
+
+[%header, cols="^1,7"]
+|===
+| Issue | Summary
+2+^| *90+ days*
+
+| link:https://github.com/devonfw/IDEasy/issues/802[#802]
+| az not working on Mac
+
+|===
+
+== Cross-platform Issues
+
+Cross-platform issues are listed in the overview document: link:quality-status.adoc[Cross-platform Issues].

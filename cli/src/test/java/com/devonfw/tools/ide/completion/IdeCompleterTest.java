@@ -49,7 +49,7 @@ class IdeCompleterTest extends AutocompletionReaderTestSupport {
   void testIdeCompleterInstall() {
 
     this.reader.setCompleter(newCompleter());
-    assertBuffer("install mvn ", new TestBuffer("install m").tab());
+    assertBuffer("install mvn ", new TestBuffer("install mv").tab());
   }
 
   /**
@@ -59,7 +59,7 @@ class IdeCompleterTest extends AutocompletionReaderTestSupport {
   void testIdeCompleterHelpWithToolCompletion() {
 
     this.reader.setCompleter(newCompleter());
-    assertBuffer("help mvn ", new TestBuffer("help m").tab().tab());
+    assertBuffer("help mvn ", new TestBuffer("help mv").tab().tab());
   }
 
   /**
