@@ -114,13 +114,22 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
         + addedRcLines);
   }
 
-  /** Test of {@link IdeasyCommandlet#configureWindowsTerminalGitBash()}. */
-  @Test
-  void testConfigureWindowsTerminalGitBash() {
+  /**
+   * Test of {@link IdeasyCommandlet#configureWindowsTerminalGitBash()}, also when {@code IDE_ROOT} is not yet set, as is the case during MSI installation.
+   *
+   * @param ideRootSet whether {@code IDE_ROOT} is set on the context.
+   */
+  @ParameterizedTest
+  @ValueSource(booleans = { true, false })
+  void testConfigureWindowsTerminalGitBash(boolean ideRootSet) {
 
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of("windows");
     IdeTestContext context = newContext("install");
+    context.setSystemInfo(systemInfo);
+    if (!ideRootSet) {
+      context.setIdeRoot(null);
+    }
     IdeasyCommandlet ideasy = new IdeasyCommandlet(context);
 
     // act
