@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool.vscode;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -173,6 +174,36 @@ class VscodeTest extends AbstractIdeContextTest {
 
     // assert
     checkVscodiumInstallation(context);
+  }
+
+  /**
+   * Tests that VSCodium reads its plugins from the dedicated vscodium folder when it exists.
+   */
+  @Test
+  void testVscodiumUsesVscodiumPluginsFolder() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODIUM);
+    Vscode vscodium = new Vscode(context);
+    Path vscodiumPlugins = context.getSettingsPath().resolve("vscodium/plugins");
+    context.getFileAccess().mkdirs(vscodiumPlugins);
+
+    // act + assert
+    assertThat(vscodium.getPluginsConfigPath()).isEqualTo(vscodiumPlugins);
+  }
+
+  /**
+   * Tests that VSCodium falls back to the vscode folder when it has no dedicated plugins folder.
+   */
+  @Test
+  void testVscodiumFallsBackToVscodePluginsFolder() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODIUM);
+    Vscode vscodium = new Vscode(context);
+
+    // act + assert
+    assertThat(vscodium.getPluginsConfigPath()).isEqualTo(context.getSettingsPath().resolve("vscode/plugins"));
   }
 
 

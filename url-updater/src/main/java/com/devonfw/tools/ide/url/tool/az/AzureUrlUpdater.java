@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.url.tool.az;
 
 import com.devonfw.tools.ide.os.OperatingSystem;
-import com.devonfw.tools.ide.os.SystemArchitecture;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -11,9 +10,24 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class AzureUrlUpdater extends GithubUrlTagUpdater {
 
+  private static final String DOWNLOAD_BASE_URL = "https://azcliprod.blob.core.windows.net";
   private static final VersionIdentifier MIN_AZURE_VID = VersionIdentifier.of("2.17.0");
 
-  private static final VersionIdentifier MIN_AZURE_MAC_VID = VersionIdentifier.of("2.84.0");
+  /**
+   * The Constructor.
+   */
+  public AzureUrlUpdater() {
+    super(DOWNLOAD_BASE_URL);
+  }
+
+  /**
+   * Package-private constructor used for testing {@link AzureUrlUpdater}.
+   *
+   * @param baseUrl mock url used as download and version base.
+   */
+  AzureUrlUpdater(String baseUrl) {
+    super(baseUrl, baseUrl);
+  }
 
   @Override
   public String getTool() {
@@ -26,22 +40,6 @@ public class AzureUrlUpdater extends GithubUrlTagUpdater {
 
     doAddVersion(urlVersion, getDownloadBaseUrl() + "/msi/azure-cli-${version}.msi",
         OperatingSystem.WINDOWS);
-    VersionIdentifier vid = urlVersion.getVersionIdentifier();
-    if (vid.compareVersion(MIN_AZURE_MAC_VID).isGreater()) {
-      String macBaseUrl = getMacDownloadBaseUrl() + "/" + getGithubRepositoryPath()
-          + "/releases/download/azure-cli-${version}/azure-cli-${version}-macos-";
-      doAddVersion(urlVersion, macBaseUrl + "x86_64.tar.gz", OperatingSystem.MAC, SystemArchitecture.X64);
-      doAddVersion(urlVersion, macBaseUrl + "arm64.tar.gz", OperatingSystem.MAC, SystemArchitecture.ARM64);
-    }
-  }
-
-  /**
-   * @return base URL for the macOS tarball downloads (GitHub releases). Separate hook from {@link #getDownloadBaseUrl()}
-   *     because Windows MSIs live on Microsoft blob storage while mac tarballs live on GitHub.
-   */
-  protected String getMacDownloadBaseUrl() {
-
-    return GITHUB_BASE_URL;
   }
 
   @Override
@@ -54,12 +52,6 @@ public class AzureUrlUpdater extends GithubUrlTagUpdater {
   protected String getGithubRepository() {
 
     return "azure-cli";
-  }
-
-  @Override
-  protected String getDownloadBaseUrl() {
-
-    return "https://azcliprod.blob.core.windows.net";
   }
 
   @Override

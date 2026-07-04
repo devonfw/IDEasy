@@ -45,7 +45,7 @@ public class SquirrelSqlUpdaterTest extends AbstractUrlUpdaterTest {
             .withBody("aBody")));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    SquirrelSqlUrlUpdaterMock updater = new SquirrelSqlUrlUpdaterMock(wmRuntimeInfo);
+    SquirrelSqlUrlUpdater updater = new SquirrelSqlUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // act
     updater.update(urlRepository);

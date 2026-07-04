@@ -1,30 +1,13 @@
 package com.devonfw.tools.ide.url.tool.java;
 
-import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
-
 /**
  * Mock of {@link JavaUrlUpdater} to allow integration testing with wiremock.
  */
 public class JavaUrlUpdaterMock extends JavaUrlUpdater {
 
-  private final String baseUrl;
+  JavaUrlUpdaterMock(String baseUrl) {
 
-  JavaUrlUpdaterMock(WireMockRuntimeInfo wireMockRuntimeInfo) {
-
-    super();
-    this.baseUrl = wireMockRuntimeInfo.getHttpBaseUrl();
-  }
-
-  @Override
-  protected String getDownloadBaseUrl() {
-
-    return this.baseUrl;
-  }
-
-  @Override
-  protected String getVersionBaseUrl() {
-
-    return this.baseUrl;
+    super(baseUrl);
   }
 
   @Override

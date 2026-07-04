@@ -41,7 +41,7 @@ class NpmUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(any(urlMatching("/npm/-/npm-[1-9.]*.tgz")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    NpmUrlUpdaterMock updater = new NpmUrlUpdaterMock(wmRuntimeInfo);
+    NpmUrlUpdater updater = new NpmUrlUpdater(wmRuntimeInfo.getHttpBaseUrl() + "/");
 
     // act
     updater.update(urlRepository);
@@ -72,7 +72,7 @@ class NpmUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(any(urlMatching("/npm/-/npm-[1-9.]*.tgz")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    NpmUrlUpdaterMock updater = new NpmUrlUpdaterMock(wmRuntimeInfo);
+    NpmUrlUpdater updater = new NpmUrlUpdater(wmRuntimeInfo.getHttpBaseUrl() + "/");
 
     // act
     updater.update(urlRepository);
@@ -98,7 +98,7 @@ class NpmUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(any(urlMatching("/npm/-/npm-[1-9.]*.tgz")).willReturn(aResponse().withStatus(200).withBody("aBody")));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    NpmUrlUpdaterMock updater = new NpmUrlUpdaterMock(wmRuntimeInfo);
+    NpmUrlUpdater updater = new NpmUrlUpdater(wmRuntimeInfo.getHttpBaseUrl() + "/");
 
     // act
     updater.update(urlRepository);
@@ -126,7 +126,7 @@ class NpmUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(any(urlMatching("/npm/-/npm-[1-9.]*.tgz")).willReturn(aResponse().withStatus(200).withBody("aBody")));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    NpmUrlUpdaterMock updater = new NpmUrlUpdaterMock(wmRuntimeInfo);
+    NpmUrlUpdater updater = new NpmUrlUpdater(wmRuntimeInfo.getHttpBaseUrl() + "/");
 
     // act
     updater.update(urlRepository);

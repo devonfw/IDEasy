@@ -9,6 +9,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import com.devonfw.tools.ide.cli.CliException;
+
 /**
  * Test of {@link VersionIdentifier}.
  */
@@ -358,4 +360,39 @@ class VersionIdentifierTest extends Assertions {
     assertThat(VersionIdentifier.LATEST_UNSTABLE.isStable()).isFalse();
   }
 
+  /** Test of {@link VersionIdentifier#resolveVersionPattern(GenericVersionRange, List)} - exact version found. */
+  @Test
+  void testResolveVersionPatternVersionFound() {
+
+    final VersionIdentifier identifier = VersionIdentifier.of("2025.01.002");
+    final List<VersionIdentifier> availableVersions = List.of(identifier);
+    final VersionIdentifier resolvedVersion = VersionIdentifier.resolveVersionPattern(identifier, availableVersions);
+    assertThat(resolvedVersion).isEqualTo(identifier);
+  }
+
+  /** Test of {@link VersionIdentifier#resolveVersionPattern(GenericVersionRange, List)} - pattern version found. */
+  @Test
+  void testResolveVersionPatternVersionFoundPattern() {
+
+    final VersionIdentifier identifier = VersionIdentifier.of("2025.01.002");
+    final VersionIdentifier identifierPattern = VersionIdentifier.of("2025.01.*");
+    final List<VersionIdentifier> availableVersions = List.of(identifier);
+    final VersionIdentifier resolvedVersion = VersionIdentifier.resolveVersionPattern(identifierPattern, availableVersions);
+    assertThat(resolvedVersion).isEqualTo(identifier);
+  }
+
+  /** Test of {@link VersionIdentifier#resolveVersionPattern(GenericVersionRange, List)} - no version found with suggestions. */
+  @Test
+  void testResolveVersionPatternNoVersionFound() {
+
+    final VersionIdentifier identifier = VersionIdentifier.of("2025.01.002");
+    final VersionIdentifier identifierPattern = VersionIdentifier.of("2026.01.*");
+    final List<VersionIdentifier> availableVersions = List.of(identifier);
+    final String expectedMessage = "Could not find any version matching '" + identifierPattern
+        + "' - there are " + availableVersions.size() + " version(s) available but none matched!\nDid you mean one of: " + identifier + "?";
+    
+    assertThatThrownBy(() -> VersionIdentifier.resolveVersionPattern(identifierPattern, availableVersions))
+        .isInstanceOf(CliException.class)
+        .hasMessage(expectedMessage);
+  }
 }

@@ -11,15 +11,23 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class MvnUrlUpdater extends GithubUrlReleaseUpdater {
 
+  private static final String DOWNLOAD_BASE_URL = "https://archive.apache.org";
+
   private static final VersionIdentifier MIN_VERSION = VersionIdentifier.of("3.0.4");
   private static final VersionIdentifier MAVEN_4_IDENTIFIER = VersionIdentifier.of("4.0.0-alpha");
+
+  /**
+   * The Constructor.
+   */
+  public MvnUrlUpdater() {
+    super(DOWNLOAD_BASE_URL);
+  }
 
   @Override
   public String getTool() {
 
     return "mvn";
   }
-
 
   @Override
   protected String getGithubOrganization() {
@@ -30,12 +38,6 @@ public class MvnUrlUpdater extends GithubUrlReleaseUpdater {
   protected String getGithubRepository() {
 
     return "maven";
-  }
-
-  @Override
-  protected String getDownloadBaseUrl() {
-
-    return "https://archive.apache.org";
   }
 
   @Override

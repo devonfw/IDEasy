@@ -31,7 +31,7 @@ class RustUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(any(urlMatching("/rustup\\.sh")).willReturn(aResponse().withStatus(200).withHeader("content-type", "text/plain").withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    RustUrlUpdaterMock updater = new RustUrlUpdaterMock(wmRuntimeInfo);
+    RustUrlUpdater updater = new RustUrlUpdater(wmRuntimeInfo.getHttpBaseUrl() + "/rustup.sh", wmRuntimeInfo.getHttpBaseUrl());
 
     // act
     updater.update(urlRepository);

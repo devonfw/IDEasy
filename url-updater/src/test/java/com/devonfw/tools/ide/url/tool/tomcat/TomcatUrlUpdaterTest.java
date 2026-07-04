@@ -36,7 +36,7 @@ class TomcatUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(get(urlMatching("/dist/tomcat/tomcat-.*/v.*/bin/apache-tomcat-.*\\.tar.gz")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    TomcatUrlUpdaterMock updater = new TomcatUrlUpdaterMock(wmRuntimeInfo);
+    TomcatUrlUpdater updater = new TomcatUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
     // when
     updater.update(urlRepository);
 

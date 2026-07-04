@@ -144,6 +144,11 @@ _ide_create_project()
   done
 }
 
+# remove ":" from word breaks so completion keeps arguments like "dependency:list" together.
+if [ -n "${COMP_WORDBREAKS:-}" ]; then
+  COMP_WORDBREAKS=${COMP_WORDBREAKS//:}
+fi
+
 _ide_completion()
 {
   set -f
@@ -152,6 +157,15 @@ _ide_completion()
   else
     COMPREPLY=( $(ideasy -q complete ${COMP_WORDS[@]:1}) )
   fi
+
+  # keywords ending with "=" remove whitespace
+  for reply in "${COMPREPLY[@]}"; do
+    if [[ "${reply}" == *= ]]; then
+      compopt -o nospace
+      break
+    fi
+  done
+
   set +f
 }
 

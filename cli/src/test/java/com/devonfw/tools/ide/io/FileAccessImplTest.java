@@ -204,7 +204,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
 
   /**
    * Test of {@link FileAccessImpl#symlink(Path, Path, boolean)} and whether the source paths are simplified correctly by
-   * {@link Path#toRealPath(LinkOption...)}.
+   * lexical normalization.
    */
   @Test
   void testSymlinkShortcutPaths(@TempDir Path tempDir) {
@@ -242,6 +242,35 @@ class FileAccessImplTest extends AbstractIdeContextTest {
       assertSymlinkRead(dir.resolve("link5"), dir.resolve("d1"));
       assertSymlinkRead(dir.resolve("link6"), dir.resolve("d1"));
     }
+  }
+
+  @Test
+  @DisabledOnOs(OS.WINDOWS)
+  void testLinkWithSymlinkTargetCreatedLater(@TempDir Path tempDir) throws IOException {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    FileAccess fileAccess = new FileAccessImpl(context);
+    Path framework = tempDir.resolve("Electron Framework.framework");
+    Path versions = framework.resolve("Versions");
+    Path versionA = versions.resolve("A");
+    fileAccess.mkdirs(versionA);
+
+    Path frameworkLink = framework.resolve("Electron Framework");
+    Path source = Path.of("Versions/Current/Electron Framework");
+
+    // act - Current is another symlink that does not exist yet
+    fileAccess.link(new PathLink(source, frameworkLink, PathLinkType.SYMBOLIC_LINK));
+
+    // assert - raw target preserved, so the bundle stays portable
+    assertThat(frameworkLink).existsNoFollowLinks();
+    assertThat(Files.readSymbolicLink(frameworkLink)).isEqualTo(source);
+
+    Files.writeString(versionA.resolve("Electron Framework"), "binary");
+    Files.createSymbolicLink(versions.resolve("Current"), Path.of("A"));
+
+    assertThat(frameworkLink).hasContent("binary");
+    assertThat(frameworkLink.toRealPath()).isEqualTo(realPath(versionA.resolve("Electron Framework")));
   }
 
   private void createDirs(FileAccess fileAccess, Path dir) {
@@ -418,7 +447,16 @@ class FileAccessImplTest extends AbstractIdeContextTest {
     }
     assertThat(realPath).exists();
     assertThat(realPath).existsNoFollowLinks();
-    assertThat(realPath).isEqualTo(trueTarget);
+    assertThat(realPath).isEqualTo(realPath(trueTarget));
+  }
+
+  private static Path realPath(Path path) {
+
+    try {
+      return path.toRealPath();
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to get real path of " + path, e);
+    }
   }
 
   /**
@@ -561,7 +599,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
     // assert
     Path link = tempDir.resolve("link");
     assertThat(link).hasContent("hi");
-    assertThat(fileAccess.toRealPath(link)).isEqualTo(tempDir.resolve("file"));
+    assertThat(fileAccess.toRealPath(link)).isEqualTo(realPath(tempDir.resolve("file")));
   }
 
   @Test
@@ -579,7 +617,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
     // assert
     Path link = tempDir.resolve("link");
     assertThat(link).hasContent("hi");
-    assertThat(fileAccess.toRealPath(link)).isEqualTo(tempDir.resolve("file"));
+    assertThat(fileAccess.toRealPath(link)).isEqualTo(realPath(tempDir.resolve("file")));
   }
 
   /**
@@ -621,7 +659,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
     // assert - symlink must resolve correctly even though its entry preceded the target entry in the ZIP
     Path link = tempDir.resolve("link");
     assertThat(link).hasContent("hi");
-    assertThat(fileAccess.toRealPath(link)).isEqualTo(tempDir.resolve("file"));
+    assertThat(fileAccess.toRealPath(link)).isEqualTo(realPath(tempDir.resolve("file")));
   }
 
   /**
@@ -659,7 +697,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
 
     // assert - symlink resolves to the executable
     Path link = tempDir.resolve("link");
-    assertThat(fileAccess.toRealPath(link)).isEqualTo(tempDir.resolve("executable.sh"));
+    assertThat(fileAccess.toRealPath(link)).isEqualTo(realPath(tempDir.resolve("executable.sh")));
 
     // assert - executable permission preserved (Unix only)
     if (!context.getSystemInfo().isWindows()) {
@@ -684,7 +722,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
     // assert
     Path dirlink = tempDir.resolve("dirlink");
     assertThat(dirlink).isSymbolicLink();
-    assertThat(fileAccess.toRealPath(dirlink)).isEqualTo(tempDir.resolve("subdir"));
+    assertThat(fileAccess.toRealPath(dirlink)).isEqualTo(realPath(tempDir.resolve("subdir")));
     assertThat(dirlink.resolve("file.txt")).hasContent("hello");
   }
 
@@ -705,7 +743,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
     // assert
     Path link = tempDir.resolve("subdir").resolve("link");
     assertThat(link).hasContent("hi");
-    assertThat(fileAccess.toRealPath(link)).isEqualTo(tempDir.resolve("file"));
+    assertThat(fileAccess.toRealPath(link)).isEqualTo(realPath(tempDir.resolve("file")));
   }
 
   /**
@@ -944,7 +982,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
 
     // Verify junction was created and works
     assertThat(targetLink).existsNoFollowLinks();
-    assertThat(targetLink.toRealPath()).isEqualTo(sourceDir);
+    assertThat(targetLink.toRealPath()).isEqualTo(realPath(sourceDir));
 
     // Simulate the scenario: delete the source directory to break the junction
     fileAccess.delete(sourceDir);
@@ -962,7 +1000,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
 
     // assert - The junction should now point to the new source
     assertThat(targetLink).existsNoFollowLinks();
-    assertThat(targetLink.toRealPath()).isEqualTo(newSourceDir);
+    assertThat(targetLink.toRealPath()).isEqualTo(realPath(newSourceDir));
   }
 
   /**
@@ -986,7 +1024,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
 
       // Verify link works initially
       assertThat(brokenLink).existsNoFollowLinks();
-      assertThat(brokenLink.toRealPath()).isEqualTo(sourceDir);
+      assertThat(brokenLink.toRealPath()).isEqualTo(realPath(sourceDir));
 
       // Delete the source to break the link
       fileAccess.delete(sourceDir);
@@ -1001,7 +1039,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
 
       // This should not fail, even with the broken symlink
       fileAccess.symlink(newSource, brokenLink, false);
-      assertThat(brokenLink.toRealPath()).isEqualTo(newSource);
+      assertThat(brokenLink.toRealPath()).isEqualTo(realPath(newSource));
     } else {
       System.out.println("Test adapted for Windows environment - testing basic junction functionality");
       // On Windows, just test that basic junction functionality works
@@ -1012,7 +1050,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
       fileAccess.symlink(sourceDir, junctionLink, false);
 
       assertThat(junctionLink).existsNoFollowLinks();
-      assertThat(junctionLink.toRealPath()).isEqualTo(sourceDir);
+      assertThat(junctionLink.toRealPath()).isEqualTo(realPath(sourceDir));
     }
   }
 
