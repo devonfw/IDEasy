@@ -217,6 +217,32 @@ class RepositoryCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
+  void testSetupVirtualSettingsRepositoryWithoutGitUrlWithLinks() {
+
+    // arrange
+    String expectedSkillContent = "# dummy for testing virtual settings repository link feature\n";
+    IdeTestContext context = newContext(PROJECT_REPOSITORY);
+    FileAccess fileAccess = context.getFileAccess();
+    Path settingsAiPath = context.getSettingsPath().resolve("ai");
+    fileAccess.mkdirs(settingsAiPath);
+    fileAccess.writeFileContent(expectedSkillContent, settingsAiPath.resolve("skill.md"));
+
+    Properties properties = new Properties();
+    properties.setProperty("workspaces", IdeContext.WORKSPACE_MAIN);
+    properties.setProperty("link", ".github=ai");
+    saveProperties(context, properties, "settings.properties");
+
+    RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
+
+    // act
+    rc.run();
+
+    // assert
+    assertThat(context.getWorkspacePath(IdeContext.WORKSPACE_MAIN).resolve(".github/skill.md")).hasContent(expectedSkillContent);
+    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Setup of repository settings'.");
+  }
+
+  @Test
   void testSetupRepositoryWithMultipleWorkspacesWithSpaces() {
 
     // arrange

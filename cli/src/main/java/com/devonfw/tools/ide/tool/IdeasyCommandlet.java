@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -490,13 +491,13 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       ObjectNode gitBashProfile = mapper.createObjectNode();
       String newGuid = "{2ece5bfe-50ed-5f3a-ab87-5cd4baafed2b}";
       String iconPath = getGitBashIconPath(bashPath);
-      String startingDirectory = this.context.getIdeRoot().toString();
+      Path startingDirectory = Objects.requireNonNullElse(this.context.getIdeRoot(), this.context.getUserHome());
 
       gitBashProfile.put("guid", newGuid);
       gitBashProfile.put("name", "Git Bash");
       gitBashProfile.put("commandline", bashPath);
       gitBashProfile.put("icon", iconPath);
-      gitBashProfile.put("startingDirectory", startingDirectory);
+      gitBashProfile.put("startingDirectory", startingDirectory.toString());
 
       ((ArrayNode) profilesList).add(gitBashProfile);
 
