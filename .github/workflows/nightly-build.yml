@@ -107,6 +107,7 @@ jobs:
           pkgbuild --root pkg-root --identifier com.devonfw.ideasy \
           --version $next_version --install-location "/" \
           --scripts scripts IDEasyComponent.pkg
+          sed -i '' "s/\${next_version}/${next_version}/" Distribution.xml
           productbuild --distribution Distribution.xml --resources Resources \
           --package-path . IDEasy-$next_version.pkg
         # pkgbuild is responsible for building the installation bundle. By using productbuild, we can custimze the installation process, including things like showing a license.
