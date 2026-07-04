@@ -17,7 +17,7 @@
 		</Feature>
 
 		<MediaTemplate EmbedCab="yes" />
-		<WixVariable Id="WixUILicenseRtf" Value=".\assets\LICENSE.rtf" />
+		<WixVariable Id="WixUILicenseRtf" Value="..\documentation\target\generated-docs\LICENSE.rtf" />
 		<WixVariable Id="WixUIBannerBmp" Value=".\assets\banner.bmp" />
 
 		<Property Id="INSTALLTYPE" Value="USERHOME" />
@@ -69,6 +69,10 @@
 			<Custom Action="RunInstallAction" Condition="NOT Installed" Before="InstallFinalize" />
 			<Custom Action='RunUninstallAction' Condition="Installed AND NOT UPGRADINGPRODUCTCODE" After="InstallInitialize" />
 		</InstallExecuteSequence>
+
+    <!-- Open documentation URL from FirstStepsDialog -->
+    <Property Id="WixShellExecTarget" Value="https://github.com/devonfw/IDEasy/blob/main/documentation/setup.adoc" />
+    <CustomAction Id="OpenDocumentationAction" BinaryRef="Wix4UtilCA_X64" DllEntry="WixShellExec" Execute="immediate" Return="ignore" />
 
 		<!-- Custom UI Reference -->
 		<ui:WixUI Id="WixUI_InstallDirCustom" InstallDirectory="INSTALLFOLDER" />
