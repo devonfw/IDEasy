@@ -740,6 +740,15 @@ However, you can imagine how easily you can be tricked by such behavior and wast
 To avoid this, we recommend never initializing non-static fields outside the constructor.
 If you want to be more strict, then also avoid calling non-final methods from constructor calls.
 
+== Usage of this
+
+We use `this.` qualifier for accessing fields.
+This is helpful to understand that a variable is actaully a field (`variable` may also be a local variable or method parameter, while `this.variable` can only be a field).
+Especially with link:pull-request.adoc[Pull-Requests] where we do code-reviews also in the web browser this is helpful.
+Ideally your IDE is auto-configured to prepend fields automatically with `this.` when formatting (or saving) your code.
+However, methods should not be qualified with this.
+That is pointless since a method can always be identified by its paranthesis (`method()` cannot be a variable and qualifying as `this.method()` is therefore considered pointless).
+
 == Lambdas and Streams
 
 With Java8 you have cool new features like lambdas and monads like (`Stream`, `CompletableFuture`, `Optional`, etc.).
