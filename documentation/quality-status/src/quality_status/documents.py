@@ -4,23 +4,24 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 
 from .classification import group_issues
-from .config import ISSUE_STAT_DEFINITIONS, OS_GROUPS
+from .config import ASSIGNMENT_STAT_DEFINITIONS, TYPE_STAT_DEFINITIONS, OS_GROUPS
 from .models import Issue, IssueGroups, KeyValueTable, IssueTable, TableRow
 from .statistics import age_distribution, bucket_issues_by_age, issue_statistics, os_summary, top_functional_labels
-
 
 @dataclass
 class OverviewDocument:
     owner: str
     repo: str
     generated_at: str
-    issue_stats_table: KeyValueTable
+    assignment_stats_table: KeyValueTable
+    type_stats_table: KeyValueTable
     os_summary_table: KeyValueTable
     age_distribution_table: KeyValueTable
     top_labels_table: KeyValueTable
     cross_platform_table: IssueTable
     groups: IssueGroups
-    issue_stats: list[tuple[str, int]]
+    assignment_stats: list[tuple[str, int]]
+    type_stats: list[tuple[str, int]]
     os_stats: list[tuple[str, int, int, int]]
     age_stats: list[tuple[str, int]]
     top_label_stats: list[tuple[str, int]]
@@ -50,8 +51,26 @@ def build_documents(owner: str, repo: str, issues: list[Issue]) -> DocumentBundl
     reference_date = generated_datetime.date()
 
     stats = issue_statistics(issues)
-    issue_rows = [TableRow((label, str(stats.get(key, 0)))) for key, label in ISSUE_STAT_DEFINITIONS]
-    issue_stats_table = KeyValueTable(headers=('Scope', 'Total'), rows=issue_rows, cols='2,^1')
+
+    assignment_rows = [
+        TableRow((label, str(stats.get(key, 0))))
+        for key, label in ASSIGNMENT_STAT_DEFINITIONS
+    ]
+    assignment_stats_table = KeyValueTable(
+        headers=("Assignment", "Total"),
+        rows=assignment_rows,
+        cols="2,^1",
+    )
+
+    type_rows = [
+        TableRow((label, str(stats.get(key, 0))))
+        for key, label in TYPE_STAT_DEFINITIONS
+    ]
+    type_stats_table = KeyValueTable(
+        headers=("Issue Type", "Total"),
+        rows=type_rows,
+        cols="2,^1",
+    )
 
     os_summary_rows = os_summary(groups, OS_GROUPS)
     os_rows = [
@@ -87,15 +106,23 @@ def build_documents(owner: str, repo: str, issues: list[Issue]) -> DocumentBundl
         owner=owner,
         repo=repo,
         generated_at=generated_at,
-        issue_stats_table=issue_stats_table,
+        assignment_stats_table=assignment_stats_table,
+        type_stats_table=type_stats_table,
         os_summary_table=os_summary_table,
         age_distribution_table=age_distribution_table,
         top_labels_table=top_labels_table,
         cross_platform_table=cross_platform_table,
         groups=groups,
-        issue_stats=[(label, stats.get(key, 0)) for key, label in ISSUE_STAT_DEFINITIONS],
+        assignment_stats=[
+            (label, stats.get(key, 0))
+            for key, label in ASSIGNMENT_STAT_DEFINITIONS
+        ],
+        type_stats=[
+            (label, stats.get(key, 0))
+            for key, label in TYPE_STAT_DEFINITIONS
+        ],
         os_stats=[
-            (str(row['name']), int(row['specific']), int(row['multi']), len(groups.cross_platform))
+            (str(row["name"]), int(row["specific"]), int(row["multi"]), len(groups.cross_platform))
             for row in os_summary_rows
         ],
         age_stats=[(title, count) for _, title, count in age_distribution_rows],
