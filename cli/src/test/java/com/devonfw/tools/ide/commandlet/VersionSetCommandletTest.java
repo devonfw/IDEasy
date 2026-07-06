@@ -125,8 +125,8 @@ class VersionSetCommandletTest extends AbstractIdeContextTest {
     // act
     versionSet.run();
     // assert
-    assertThat(context).logAtInfo().hasMessageContaining("Version 3.1.0 of tool mvn is now set (already installed)");
-    assertThat(context).logAtInfo().hasNoMessage("To install that version call the following command:");
+    assertThat(context).logAtInfo().hasMessageContaining("Version of tool mvn has been set to 3.1.0 (MVN_VERSION=3.1.0)");
+    assertThat(context).logAtInteraction().hasNoMessageContaining("To install that version call the following command:");
   }
 
   @Test
