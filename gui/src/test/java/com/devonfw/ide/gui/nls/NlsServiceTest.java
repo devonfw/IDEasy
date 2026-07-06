@@ -146,29 +146,17 @@ public class NlsServiceTest {
       properties.load(inputStream);
     }
 
-    assertThat(properties.getProperty("IDE_OPTIONS")).isEqualTo("-Duser.lang=de");
+    assertThat(properties.getProperty("IDE_OPTIONS")).isEqualTo("-Duser.language=de");
   }
 
-  @Test
-  public void testPersistedLocaleIsLoadedFromIdePropertiesFixture() throws IOException {
-
-    Path userIdeFolder = this.tempUserHome.resolve(".ide");
-    Files.createDirectories(userIdeFolder);
-    Path userProperties = userIdeFolder.resolve("ide.properties");
-    Files.writeString(userProperties, "IDE_OPTIONS=-Duser.lang=de\n");
-
-    NlsService service = new NlsService(null);
-
-    assertThat(service.getLocale().getLanguage()).isEqualTo("de");
-  }
-
+  
   @Test
   public void testPersistLocaleUpdatesExistingUserLangInIdeOptions() throws IOException {
 
     Path userIdeFolder = this.tempUserHome.resolve(".ide");
     Files.createDirectories(userIdeFolder);
     Path userProperties = userIdeFolder.resolve("ide.properties");
-    Files.writeString(userProperties, "IDE_OPTIONS=-Duser.lang=de\n");
+    Files.writeString(userProperties, "IDE_OPTIONS=-Duser.language=de\n");
 
     NlsService service = new NlsService(null);
     service.setLocale(Locale.ENGLISH);
@@ -178,7 +166,7 @@ public class NlsServiceTest {
       properties.load(inputStream);
     }
 
-    assertThat(properties.getProperty("IDE_OPTIONS")).isEqualTo("-Duser.lang=en");
+    assertThat(properties.getProperty("IDE_OPTIONS")).isEqualTo("-Duser.language=en");
   }
 
   @Test
@@ -197,7 +185,7 @@ public class NlsServiceTest {
       properties.load(inputStream);
     }
 
-    assertThat(properties.getProperty("IDE_OPTIONS")).isEqualTo("-Dfoo=bar -Duser.lang=de");
+    assertThat(properties.getProperty("IDE_OPTIONS")).isEqualTo("-Dfoo=bar -Duser.language=de");
   }
 
   @Test
@@ -206,7 +194,7 @@ public class NlsServiceTest {
     Path userIdeFolder = this.tempUserHome.resolve(".ide");
     Files.createDirectories(userIdeFolder);
     Path userProperties = userIdeFolder.resolve("ide.properties");
-    Files.writeString(userProperties, "IDE_OPTIONS=-Dfoo=bar -Duser.lang=de\n");
+    Files.writeString(userProperties, "IDE_OPTIONS=-Dfoo=bar -Duser.language=de\n");
 
     NlsService service = new NlsService(null);
     service.setLocale(Locale.ENGLISH);
@@ -218,8 +206,8 @@ public class NlsServiceTest {
 
     String ideOptions = properties.getProperty("IDE_OPTIONS");
     assertThat(ideOptions).contains("-Dfoo=bar");
-    assertThat(ideOptions).contains("-Duser.lang=en");
-    assertThat(ideOptions).doesNotContain("-Duser.lang=de");
+    assertThat(ideOptions).contains("-Duser.language=en");
+    assertThat(ideOptions).doesNotContain("-Duser.language=de");
   }
 
 

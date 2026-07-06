@@ -47,7 +47,7 @@ public class NlsService {
   private static final String LANGUAGE_DISPLAY_KEY = "CurrentLanguage";
 
   public static final String EXTENSION_PROPERTIES = ".properties";
-  
+
   public static final String IDE_OPTIONS = "IDE_OPTIONS";
 
   private final List<Runnable> localeListeners = new CopyOnWriteArrayList<>();
@@ -60,7 +60,7 @@ public class NlsService {
 
   private volatile EnvironmentVariables userEnvironmentVariables;
 
-  private static final Pattern USER_LANG_PATTERN = Pattern.compile("-Duser\\.lang=(\\S*)");
+  private static final Pattern USER_LANG_PATTERN = Pattern.compile("-Duser\\.language=(\\S*)");
 
   /**
    * Creates the service and initializes it with the given locale.
@@ -81,7 +81,7 @@ public class NlsService {
 
     Locale localeToApply = explicitLocale;
     if (localeToApply == null) {
-      localeToApply = loadPersistedLocale();
+      localeToApply = Locale.getDefault();
     }
     applyLocale(localeToApply, false);
   }
@@ -328,27 +328,8 @@ public class NlsService {
 
 
   /**
-   * Loads the persisted GUI locale from {@code -Duser.lang=<tag>} inside {@code IDE_OPTIONS}.
-   *
-   * @return the stored locale, or {@code null} if none is configured.
-   */
-  private Locale loadPersistedLocale() {
-
-    String ideOptions = getUserEnvironmentVariables().get(IDE_OPTIONS);
-    if (ideOptions == null || ideOptions.isBlank()) {
-      return null;
-    }
-    Matcher matcher = USER_LANG_PATTERN.matcher(ideOptions);
-    if (matcher.find()) {
-      String tag = matcher.group(1);
-      return tag.isBlank() ? null : Locale.forLanguageTag(tag);
-    }
-    return null;
-  }
-
-  /**
-   * Persists the selected GUI locale by setting {@code -Duser.lang=<tag>} inside {@code IDE_OPTIONS}. Updates an existing {@code -Duser.lang=...} entry if
-   * present; otherwise appends it.
+   * Persists the selected GUI locale by setting {@code -Duser.language=<tag>} inside {@code IDE_OPTIONS}. Updates an existing {@code -Duser.language=...} entry
+   * if present; otherwise appends it.
    *
    * @param localeToPersist the locale to store.
    */
@@ -357,7 +338,7 @@ public class NlsService {
     EnvironmentVariables environmentVariables = getUserEnvironmentVariables();
     try {
       String ideOptions = environmentVariables.get(IDE_OPTIONS);
-      String userLangFlag = "-Duser.lang=" + localeToPersist.toLanguageTag();
+      String userLangFlag = "-Duser.language=" + localeToPersist.toLanguageTag();
       String updated = updateLocale(ideOptions, userLangFlag);
       environmentVariables.set(IDE_OPTIONS, updated);
       environmentVariables.save();
