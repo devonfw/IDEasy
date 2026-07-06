@@ -38,7 +38,7 @@ public class NlsService {
   private static final Logger LOG = LoggerFactory.getLogger(NlsService.class);
 
 
-  private static final String BUNDLE_PACKAGE = "localization";
+  private static final String BUNDLE_PACKAGE = "nls";
 
   private static final String BUNDLE_BASE_NAME = "messages";
 
@@ -47,6 +47,7 @@ public class NlsService {
   private static final String LANGUAGE_DISPLAY_KEY = "CurrentLanguage";
 
   public static final String EXTENSION_PROPERTIES = ".properties";
+  
   public static final String IDE_OPTIONS = "IDE_OPTIONS";
 
   private final List<Runnable> localeListeners = new CopyOnWriteArrayList<>();

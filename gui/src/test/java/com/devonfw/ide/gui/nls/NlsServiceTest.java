@@ -269,7 +269,7 @@ public class NlsServiceTest {
   @Test
   public void testGetAvailableLocalesFromDirectory(@TempDir Path bundleRoot) throws Exception {
 
-    Path localizationDir = bundleRoot.resolve("localization");
+    Path localizationDir = bundleRoot.resolve("nls");
     Files.createDirectories(localizationDir);
     Files.createFile(localizationDir.resolve("messages.properties"));
     Files.createFile(localizationDir.resolve("messages_fr.properties"));
@@ -290,8 +290,8 @@ public class NlsServiceTest {
 
     Path jarFile = jarRoot.resolve("test-bundles.jar");
     try (JarOutputStream jos = new JarOutputStream(Files.newOutputStream(jarFile))) {
-      writeJarEntry(jos, "localization/");
-      writeJarEntry(jos, "localization/messages_fr.properties");
+      writeJarEntry(jos, "nls/");
+      writeJarEntry(jos, "nls/messages_fr.properties");
     }
 
     ClassLoader original = Thread.currentThread().getContextClassLoader();
@@ -309,8 +309,8 @@ public class NlsServiceTest {
   private Properties loadBundleProperties(Locale locale) throws IOException {
 
     String resourceName = locale.equals(Locale.ENGLISH)
-        ? "localization/messages.properties"
-        : "localization/messages_" + locale.toLanguageTag().replace('-', '_') + ".properties";
+        ? "nls/messages.properties"
+        : "nls/messages_" + locale.toLanguageTag().replace('-', '_') + ".properties";
     InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(resourceName);
     assertThat(is).as("Bundle file not found: %s", resourceName).isNotNull();
     try (InputStreamReader reader = new InputStreamReader(is, StandardCharsets.UTF_8)) {
