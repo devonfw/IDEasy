@@ -102,11 +102,8 @@ public class SystemPath {
     this(context, pathSeparator, extraPathEntries, new HashMap<>(), new ArrayList<>());
     String[] envPaths = envPath.split(Character.toString(pathSeparator));
     for (String segment : envPaths) {
-      Path path;
-      try {
-        path = Path.of(segment);
-      } catch (InvalidPathException e) {
-        LOG.warn("Ignoring invalid PATH entry '{}' - {}", segment, e.getMessage());
+      Path path = parsePathSegment(segment);
+      if (path == null) {
         continue;
       }
       String tool = getTool(path, ideRoot);
@@ -115,6 +112,51 @@ public class SystemPath {
       }
     }
     collectToolPath(softwarePath);
+  }
+
+  /**
+   * Parses a single {@code PATH} segment into a {@link Path}. The segment is first {@link #normalizePathSegment(String) normalized} by removing illegal control
+   * characters (e.g. CR, LF, NUL, TAB) that may sneak into the {@code PATH} variable (e.g. via broken tool configurations) and would otherwise render the entry
+   * invalid. This way a still usable entry is kept instead of being dropped. If nothing usable remains after normalization or the segment cannot be parsed as a
+   * {@link Path} even after normalization, {@code null} is returned so the entry is skipped without aborting the entire {@link SystemPath} construction.
+   *
+   * @param segment the raw {@code PATH} segment.
+   * @return the parsed {@link Path} or {@code null} if the segment is invalid and should be ignored.
+   */
+  private static Path parsePathSegment(String segment) {
+
+    String normalized = normalizePathSegment(segment);
+    if (normalized.isEmpty()) {
+      if (!segment.isEmpty()) {
+        LOG.warn("Ignoring invalid PATH entry '{}' as it only contains illegal control characters.", segment);
+      }
+      return null;
+    }
+    if (!normalized.equals(segment)) {
+      LOG.warn("Normalized PATH entry '{}' by removing illegal control characters.", segment);
+    }
+    try {
+      return Path.of(normalized);
+    } catch (InvalidPathException e) {
+      LOG.warn("Ignoring invalid PATH entry '{}' - {}", segment, e.getMessage());
+      return null;
+    }
+  }
+
+  /**
+   * @param segment the raw {@code PATH} segment.
+   * @return the given {@code segment} with all {@link Character#isISOControl(char) ISO control characters} (e.g. CR, LF, NUL, TAB) removed.
+   */
+  private static String normalizePathSegment(String segment) {
+
+    StringBuilder sb = new StringBuilder(segment.length());
+    for (int i = 0; i < segment.length(); i++) {
+      char c = segment.charAt(i);
+      if (!Character.isISOControl(c)) {
+        sb.append(c);
+      }
+    }
+    return sb.toString();
   }
 
   /**
