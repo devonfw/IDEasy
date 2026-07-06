@@ -5,22 +5,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.Tooltip;
-import javafx.scene.control.TreeCell;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -31,7 +26,7 @@ import com.devonfw.ide.gui.context.IdeGuiStateManager;
 import com.devonfw.ide.gui.localization.LocalizationService;
 
 /**
- * Controller for the Tools Configuration dialog.
+ * Controller for the Tools Configuration Tab.
  */
 public class ToolSettingsController {
 
@@ -44,10 +39,14 @@ public class ToolSettingsController {
   @FXML
   private Button previewButton;
 
-  private static final ToolSettingsService service = new ToolSettingsService();
-  private static IdeGuiContext currentContext;
+  @FXML
+  private Button addPluginButton;
+
+  static final ToolSettingsService service = new ToolSettingsService();
+  
+  static IdeGuiContext currentContext;
   // Static so validation errors survive cell recycling — JavaFX reuses TreeCell instances during scroll.
-  private static final Set<String> validationErrors = new HashSet<>();
+  static final Set<String> validationErrors = new HashSet<>();
 
   private Runnable onClose;
 
@@ -57,12 +56,15 @@ public class ToolSettingsController {
     currentContext = IdeGuiStateManager.getInstance().getCurrentContext();
 
     updateButtonStates();
+    addPluginButton.setDisable(true);
 
     List<ToolConfiguration> configurations = service.listToolConfigurations(currentContext);
 
     toolsTree.setRoot(buildToolTree(configurations));
     toolsTree.setShowRoot(false);
     toolsTree.setCellFactory(tv -> new ToolTreeCell(this));
+    toolsTree.getSelectionModel().selectedItemProperty().addListener(
+        (_, _, newVal) -> addPluginButton.setDisable(!isPluginCapableSelection(newVal)));
 
     // Load editions in background to avoid blocking the UI thread on startup.
     // Each tool's edition list is a directory scan, so we batch all tools in a single thread
@@ -199,11 +201,125 @@ public class ToolSettingsController {
   }
 
   @FXML
+  private void onAddPlugin() {
+    TreeItem<ToolTreeNode> toolItem = resolveToolItem(toolsTree.getSelectionModel().getSelectedItem());
+    if (toolItem == null || !(toolItem.getValue() instanceof ToolConfiguration tc)) {
+      return;
+    }
+
+    boolean urlNeeded = service.isPluginUrlNeeded(tc.getToolName(), currentContext);
+
+    TextField idField = new TextField();
+    idField.setPromptText("Required");
+    idField.setPrefWidth(250);
+    TextField nameField = new TextField();
+    nameField.setPromptText("Required");
+    nameField.setPrefWidth(250);
+
+    String[] lastSuggestion = { "" };
+    idField.textProperty().addListener((obs, old, newId) -> {
+      String suggested = suggestPluginName(newId);
+      if (nameField.getText().isBlank() || nameField.getText().equals(lastSuggestion[0])) {
+        nameField.setText(suggested);
+        lastSuggestion[0] = suggested;
+      }
+    });
+
+    TextField tagsField = new TextField();
+    tagsField.setPromptText("e.g. java,lint");
+    tagsField.setPrefWidth(250);
+
+    VBox form = new VBox(6, new Label("Plugin ID *"), idField, new Label("Plugin Name *"), nameField,
+        new Label("Tags"), tagsField);
+
+    TextField urlField = null;
+    if (urlNeeded) {
+      urlField = new TextField();
+      urlField.setPromptText("Required");
+      urlField.setPrefWidth(250);
+      form.getChildren().addAll(new Label("Plugin URL *"), urlField);
+    }
+    TextField capturedUrl = urlField;
+
+    Button okBtn = new Button("OK");
+    okBtn.setDefaultButton(true);
+    Button cancelBtn = new Button(LocalizationService.getInstance().get("button.cancel"));
+    HBox actions = new HBox(8, cancelBtn, okBtn);
+    actions.setAlignment(Pos.CENTER_RIGHT);
+
+    VBox content = new VBox(10, form, actions);
+    content.setPadding(new Insets(15));
+
+    Stage dialog = new Stage();
+    dialog.initModality(Modality.APPLICATION_MODAL);
+    dialog.initOwner(toolsTree.getScene().getWindow());
+    dialog.setTitle("Add Plugin - " + tc.getToolName());
+    dialog.setScene(new Scene(content));
+
+    boolean[] confirmed = { false };
+    okBtn.setOnAction(e -> {
+      boolean valid = !idField.getText().isBlank() && !nameField.getText().isBlank() && (!urlNeeded || !capturedUrl.getText().isBlank());
+      if (valid) {
+        confirmed[0] = true;
+        dialog.close();
+      }
+    });
+    cancelBtn.setOnAction(e -> dialog.close());
+    dialog.showAndWait();
+
+    if (!confirmed[0]) {
+      return;
+    }
+    String url = capturedUrl != null ? capturedUrl.getText().trim() : null;
+    String tags = tagsField.getText().trim().isEmpty() ? null : tagsField.getText().trim();
+    PluginConfiguration newPlugin = service.createPlugin(
+        tc.getToolName(), nameField.getText().trim(), idField.getText().trim(), url, tags, tc, currentContext);
+    if (newPlugin != null) {
+      toolItem.getChildren().add(new TreeItem<>(newPlugin));
+      toolItem.setExpanded(true);
+      toolsTree.refresh();
+    }
+  }
+
+  private boolean isPluginCapableSelection(TreeItem<ToolTreeNode> item) {
+    if (item == null || currentContext == null) {
+      return false;
+    }
+    ToolTreeNode value = item.getValue();
+    if (value instanceof ToolConfiguration tc) {
+      return tc.isPluginBased();
+    }
+    return value instanceof PluginConfiguration;
+  }
+
+  private TreeItem<ToolTreeNode> resolveToolItem(TreeItem<ToolTreeNode> selected) {
+    if (selected == null) {
+      return null;
+    }
+    ToolTreeNode value = selected.getValue();
+    if (value instanceof ToolConfiguration) {
+      return selected;
+    }
+    if (value instanceof PluginConfiguration) {
+      return selected.getParent();
+    }
+    return null;
+  }
+
+  private static String suggestPluginName(String id) {
+    if (id == null || id.isBlank()) {
+      return "";
+    }
+    int lastDot = id.lastIndexOf('.');
+    return lastDot >= 0 ? id.substring(lastDot + 1) : id;
+  }
+
+  @FXML
   private void onCancel() {
     closeWindow();
   }
 
-  private void updateButtonStates() {
+  void updateButtonStates() {
     boolean hasErrors = !validationErrors.isEmpty();
     saveButton.setDisable(hasErrors);
     previewButton.setDisable(hasErrors);
@@ -231,281 +347,5 @@ public class ToolSettingsController {
     }
   }
 
-  /**
-   * Custom cell rendering each row. Dispatches on item type:
-   * <ul>
-   *   <li>{@code null} — group header (graphic delegated to the TreeItem's own graphic)</li>
-   *   <li>{@link ToolConfiguration} — tool row: checkbox | name | edition combo | version combo | error icon</li>
-   *   <li>{@link PluginConfiguration} — plugin row: checkbox | name | id</li>
-   * </ul>
-   */
-  private static final class ToolTreeCell extends TreeCell<ToolTreeNode> {
-
-    private final HBox root;
-    private final ToolSettingsController controller;
-    private CheckBox enabled;
-    private Label name;
-    private ComboBox<String> edition;
-    private ComboBox<String> version;
-
-    ToolTreeCell(ToolSettingsController controller) {
-      this.controller = controller;
-      this.root = new HBox(10);
-      this.root.setAlignment(Pos.CENTER_LEFT);
-      this.root.setStyle("-fx-padding: 5 0 5 0;");
-    }
-
-    @Override
-    protected void updateItem(ToolTreeNode item, boolean empty) {
-      super.updateItem(item, empty);
-      if (empty) {
-        setGraphic(null);
-        setText(null);
-        return;
-      }
-      // null value means this is a group header row — delegate to the Label graphic set in createGroupItem().
-      switch (item) {
-        case null -> {
-          TreeItem<ToolTreeNode> treeItem = getTreeItem();
-          if (isTopLevelGroupHeader(treeItem)) {
-            setGraphic(treeItem.getGraphic());
-          } else {
-            setGraphic(null);
-          }
-          setText(null);
-        }
-        case ToolConfiguration toolItem -> renderToolRow(toolItem);
-        case PluginConfiguration plugin -> renderPluginRow(plugin);
-        default -> {
-        }
-      }
-
-    }
-
-    // Tree depth: invisible root → group items (depth 1) → tool items (depth 2) → plugins folder (depth 3) → plugin items (depth 4).
-    // Group headers are at depth 1: they have a parent (root) but that parent has no parent.
-    private boolean isTopLevelGroupHeader(TreeItem<ToolTreeNode> treeItem) {
-      return treeItem != null && treeItem.getParent() != null && treeItem.getParent().getParent() == null;
-    }
-
-    private void renderToolRow(ToolConfiguration toolItem) {
-      root.getChildren().clear();
-
-      enabled = createEnabledToggle(toolItem);
-      name = createToolNameLabel(toolItem);
-      edition = createEditionSelector(toolItem);
-      version = createVersionSelector(toolItem);
-
-      Label errorIcon = createErrorIcon();
-      attachVersionValidation(toolItem, errorIcon);
-
-      // Reapply error state if this tool has a validation error
-      if (validationErrors.contains(toolItem.getToolName())) {
-        version.setStyle("-fx-font-size: 12; -fx-border-color: red; -fx-border-width: 2;");
-        errorIcon.setVisible(true);
-        errorIcon.setManaged(true);
-      }
-
-      HBox versionWithIcon = new HBox(5);
-      versionWithIcon.setAlignment(Pos.CENTER_LEFT);
-      versionWithIcon.setMaxWidth(Double.MAX_VALUE);
-      HBox.setHgrow(version, Priority.ALWAYS);
-      versionWithIcon.getChildren().addAll(version, errorIcon);
-      HBox.setHgrow(versionWithIcon, Priority.ALWAYS);
-
-      root.getChildren().addAll(enabled, name, edition, versionWithIcon);
-      applyEnabledState(toolItem);
-      setGraphic(root);
-      setText(null);
-    }
-
-
-    private CheckBox createEnabledToggle(ToolConfiguration toolItem) {
-      CheckBox enabledToggle = new CheckBox();
-      enabledToggle.setPrefWidth(40);
-      enabledToggle.setSelected(toolItem.isEnabled());
-      enabledToggle.setOnAction(_ -> {
-        toolItem.setEnabled(enabledToggle.isSelected());
-        applyEnabledState(toolItem);
-        // Refresh child plugin cells so they reflect the new parent-enabled state.
-        controller.refreshTree();
-      });
-      return enabledToggle;
-    }
-
-    private Label createToolNameLabel(ToolConfiguration toolItem) {
-      Label toolNameLabel = new Label(toolItem.getToolName());
-      toolNameLabel.setPrefWidth(120);
-      toolNameLabel.setMaxWidth(Double.MAX_VALUE);
-      HBox.setHgrow(toolNameLabel, Priority.ALWAYS);
-      toolNameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13;");
-      return toolNameLabel;
-    }
-
-    private ComboBox<String> createEditionSelector(ToolConfiguration toolItem) {
-      ComboBox<String> editionSelector = new ComboBox<>();
-      editionSelector.setPrefWidth(130);
-      editionSelector.setMaxWidth(Double.MAX_VALUE);
-      editionSelector.setPrefHeight(32);
-      HBox.setHgrow(editionSelector, Priority.ALWAYS);
-      editionSelector.setEditable(true);
-      editionSelector.setStyle("-fx-font-size: 12;");
-
-      List<String> editions = toolItem.getAvailableEditions();
-      boolean supportsEdition = toolItem.isSupportsEdition() && editions != null && !editions.isEmpty();
-      if (supportsEdition) {
-        editionSelector.setItems(FXCollections.observableArrayList(editions));
-        editionSelector.setValue(toolItem.getConfiguredEdition() == null ? "" : toolItem.getConfiguredEdition());
-        editionSelector.setVisible(true);
-        editionSelector.setManaged(true);
-        // When the edition changes, refresh the version list to match the new edition.
-        // Version is captured before the lambda to avoid referencing the mutable field from a background thread.
-        editionSelector.setOnAction(e -> {
-          String selectedEdition = editionSelector.getValue();
-          if (selectedEdition != null && !selectedEdition.isBlank() && currentContext != null) {
-            toolItem.setConfiguredEdition(selectedEdition);
-            ComboBox<String> capturedVersion = version;
-            Thread t = new Thread(() -> {
-              List<String> versions = service.loadVersionsForSelectedEdition(toolItem.getToolName(), selectedEdition, currentContext);
-              Platform.runLater(() -> capturedVersion.setItems(FXCollections.observableArrayList(versions)));
-            });
-            t.setDaemon(true);
-            t.start();
-          }
-        });
-      } else {
-        editionSelector.setVisible(false);
-        editionSelector.setManaged(true);
-        editionSelector.setDisable(true);
-      }
-      return editionSelector;
-    }
-
-    private ComboBox<String> createVersionSelector(ToolConfiguration toolItem) {
-      ComboBox<String> versionSelector = new ComboBox<>();
-      versionSelector.setPrefWidth(130);
-      versionSelector.setMaxWidth(Double.MAX_VALUE);
-      versionSelector.setPrefHeight(32);
-      versionSelector.setEditable(true);
-      versionSelector.setValue(toolItem.getConfiguredVersion() == null ? "" : toolItem.getConfiguredVersion());
-      versionSelector.setStyle("-fx-font-size: 12;");
-
-      // Lazy-load versions the first time the dropdown is opened to avoid fetching all tools' versions upfront.
-      versionSelector.setOnShowing(e -> {
-        if (versionSelector.getItems().isEmpty() && currentContext != null) {
-          String edition = toolItem.getConfiguredEdition();
-          Thread t = new Thread(() -> {
-            List<String> versions = service.loadVersionsForSelectedEdition(toolItem.getToolName(), edition, currentContext);
-            Platform.runLater(() -> {
-              versionSelector.setItems(FXCollections.observableArrayList(versions));
-              toolItem.setAvailableVersions(versions);
-              // JavaFX doesn't repaint an already-open popup after its items change;
-              // hide/show forces a fresh layout with the newly loaded list.
-              if (versionSelector.isShowing()) {
-                versionSelector.hide();
-                versionSelector.show();
-              }
-            });
-          });
-          t.setDaemon(true);
-          t.start();
-        }
-      });
-
-      return versionSelector;
-    }
-
-
-    private void renderPluginRow(PluginConfiguration plugin) {
-      root.getChildren().clear();
-      boolean parentEnabled = plugin.isParentEnabled();
-
-      CheckBox activeToggle = new CheckBox();
-      activeToggle.setSelected(plugin.isActive());
-      activeToggle.setDisable(!parentEnabled);
-      activeToggle.setOpacity(parentEnabled ? 1.0 : 0.6);
-      activeToggle.setOnAction(_ -> plugin.setActive(activeToggle.isSelected()));
-
-      Label nameLabel = new Label(plugin.getPluginName());
-      nameLabel.setStyle("-fx-font-size: 12;");
-      nameLabel.setOpacity(parentEnabled ? 1.0 : 0.6);
-
-      root.getChildren().addAll(activeToggle, nameLabel);
-
-      if (plugin.getPluginId() != null && !plugin.getPluginId().isBlank()) {
-        Label idLabel = new Label("(" + plugin.getPluginId() + ")");
-        idLabel.setStyle("-fx-font-size: 11; -fx-text-fill: gray;");
-        idLabel.setOpacity(parentEnabled ? 1.0 : 0.6);
-        root.getChildren().add(idLabel);
-      }
-
-      setGraphic(root);
-      setText(null);
-    }
-
-    private Label createErrorIcon() {
-      Label errorIcon = new Label("✗");
-      errorIcon.setStyle("-fx-text-fill: red; -fx-font-size: 14; -fx-font-weight: bold; -fx-cursor: hand;");
-      errorIcon.setPrefWidth(20);
-      errorIcon.setVisible(false);
-      errorIcon.setManaged(false);
-
-      Tooltip errorTooltip = new Tooltip(LocalizationService.getInstance().get("invalidVersionError"));
-      errorIcon.setOnMouseEntered(e -> {
-        if (errorIcon.isVisible()) {
-          errorTooltip.show(errorIcon, e.getScreenX() + 10, e.getScreenY() + 10);
-        }
-      });
-      errorIcon.setOnMouseExited(e -> errorTooltip.hide());
-      return errorIcon;
-    }
-
-    // Validate free-text version input on focus-lost.
-    // Also handles setting the right selected version in the ToolConfiguration object when the comboBox focus is left
-    // Blank input is normalized to "*" (meaning "latest") so the field is never left empty.
-    // Validation is skipped when versions haven't been loaded yet (availableVersions == null),
-    // and "*" is always allowed as a wildcard regardless of the loaded list.
-    private void attachVersionValidation(ToolConfiguration toolItem, Label errorIcon) {
-      String errorKey = toolItem.getToolName();
-      version.focusedProperty().addListener((obs, oldVal, newVal) -> {
-        if (!newVal) {
-          String enteredVersion = version.getValue();
-          if (enteredVersion == null || enteredVersion.isBlank()) {
-            version.setValue("*");
-            version.setStyle("-fx-font-size: 12;");
-            errorIcon.setVisible(false);
-            errorIcon.setManaged(false);
-            validationErrors.remove(errorKey);
-          } else {
-            List<String> availableVersions = toolItem.getAvailableVersions();
-            if (availableVersions != null && !availableVersions.contains(enteredVersion) && !enteredVersion.equals("*")) {
-              version.setStyle("-fx-font-size: 12; -fx-border-color: red; -fx-border-width: 2;");
-              errorIcon.setVisible(true);
-              errorIcon.setManaged(true);
-              validationErrors.add(errorKey);
-            } else {
-              version.setStyle("-fx-font-size: 12;");
-              errorIcon.setVisible(false);
-              errorIcon.setManaged(false);
-              validationErrors.remove(errorKey);
-            }
-          }
-
-          toolItem.setConfiguredVersion(version.getValue());
-          controller.updateButtonStates();
-        }
-      });
-    }
-
-    private void applyEnabledState(ToolConfiguration toolItem) {
-      double opacity = toolItem.isEnabled() ? 1.0 : 0.6;
-      enabled.setOpacity(opacity);
-      name.setOpacity(opacity);
-      version.setOpacity(opacity);
-      edition.setOpacity(opacity);
-      version.setDisable(!toolItem.isEnabled());
-      edition.setDisable(!toolItem.isEnabled());
-    }
-  }
 }
 

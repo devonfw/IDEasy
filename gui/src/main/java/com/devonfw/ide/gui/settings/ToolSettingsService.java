@@ -81,6 +81,7 @@ public final class ToolSettingsService {
     toolConfiguration.setConfiguredVersion(toConfiguredVersion(commandlet.getConfiguredVersion()));
     toolConfiguration.setConfiguredEdition(commandlet.getConfiguredEdition());
     toolConfiguration.setEnabled(isEnabledTool(toolName, enabledTools));
+    toolConfiguration.setPluginBased(commandlet instanceof PluginBasedCommandlet);
 
     return toolConfiguration;
   }
@@ -270,6 +271,48 @@ public final class ToolSettingsService {
       pbc.savePluginActive(pbc.getPlugin(pluginName), active);
     } catch (Exception e) {
       LOG.error("Failed to save plugin {} state for tool {}: {}", pluginName, toolName, e.getMessage(), e);
+    }
+  }
+
+  /**
+   * @param toolName the tool name
+   * @param context the IDE context
+   * @return {@code true} if the given plugin-based tool requires a URL when creating a plugin
+   */
+  public boolean isPluginUrlNeeded(String toolName, IdeContext context) {
+
+    try {
+      ToolCommandlet cmd = context.getCommandletManager().getToolCommandlet(toolName);
+      return cmd instanceof PluginBasedCommandlet pbc && pbc.isPluginUrlNeeded();
+    } catch (Exception e) {
+      LOG.error("Failed to check plugin URL requirement for {}: {}", toolName, e.getMessage(), e);
+      return false;
+    }
+  }
+
+  /**
+   * Creates a new plugin properties file via {@link PluginBasedCommandlet#createPlugin} and returns the GUI model.
+   *
+   * @param toolName the tool to add the plugin for
+   * @param name the plugin name (file name without extension)
+   * @param id the plugin id
+   * @param url the plugin URL, may be {@code null}
+   * @param parent the owning {@link ToolConfiguration}
+   * @param context the IDE context
+   * @return the new {@link PluginConfiguration}, or {@code null} on failure
+   */
+  public PluginConfiguration createPlugin(String toolName, String name, String id, String url, String tags, ToolConfiguration parent, IdeContext context) {
+
+    try {
+      ToolCommandlet cmd = context.getCommandletManager().getToolCommandlet(toolName);
+      if (!(cmd instanceof PluginBasedCommandlet pbc)) {
+        return null;
+      }
+      ToolPluginDescriptor descriptor = pbc.createPlugin(name, id, url, tags);
+      return new PluginConfiguration(descriptor.name(), descriptor.id(), true, parent);
+    } catch (Exception e) {
+      LOG.error("Failed to create plugin for tool {}: {}", toolName, e.getMessage(), e);
+      return null;
     }
   }
 

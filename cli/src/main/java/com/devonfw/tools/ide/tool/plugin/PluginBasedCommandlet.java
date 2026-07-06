@@ -88,9 +88,39 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
   /**
    * @return {@code true} if {@link ToolPluginDescriptor#url() plugin URL} property is needed, {@code false} otherwise.
    */
-  protected boolean isPluginUrlNeeded() {
+  public boolean isPluginUrlNeeded() {
 
     return false;
+  }
+
+  /**
+   * Creates a new plugin properties file in the project settings and returns the resulting {@link ToolPluginDescriptor}. The plugin is created as active by
+   * default.
+   *
+   * @param name the plugin name (used as the properties file name).
+   * @param id the plugin id (e.g. marketplace or extension identifier).
+   * @param url the plugin URL (update site / marketplace URL); may be {@code null} when not needed.
+   * @return the created {@link ToolPluginDescriptor}.
+   */
+  public ToolPluginDescriptor createPlugin(String name, String id, String url, String tags) {
+
+    Path pluginsDir = getPluginsConfigPath();
+    this.context.getFileAccess().mkdirs(pluginsDir);
+    Path pluginFile = pluginsDir.resolve(name + IdeContext.EXT_PROPERTIES);
+    Properties props = new Properties();
+    if (id != null && !id.isBlank()) {
+      props.setProperty("id", id);
+    }
+    props.setProperty("active", "true");
+    if (url != null && !url.isBlank()) {
+      props.setProperty("url", url);
+    }
+    if (tags != null && !tags.isBlank()) {
+      props.setProperty("tags", tags);
+    }
+    this.context.getFileAccess().writeProperties(props, pluginFile);
+    this.plugins = null;
+    return new ToolPluginDescriptor(id, name, url, null, true, Tag.parseCsv(tags));
   }
 
   /**
@@ -130,6 +160,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
 
   /**
    * Deletes all installed plugins for this {@link IdeToolCommandlet} by deleting the plugins installation folder and all plugin marker files.
+   *
    * @param pluginsInstallationPath the {@link Path} to the plugins installation folder.
    */
   private void deleteAllPlugins(Path pluginsInstallationPath) {

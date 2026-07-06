@@ -218,7 +218,7 @@ public class MainController {
       if (toolConfigTab.isSelected()) {
         loadToolConfigContent();
       }
-      // Pre-warm ide-urls git repo in background so the first dropdown open is fast
+      // Pre-warm ide-urls git repo in background so the first open is fast
       Thread preWarm = new Thread(() -> {
         try {
           IdeGuiStateManager.getInstance().getCurrentContext().getUrls();

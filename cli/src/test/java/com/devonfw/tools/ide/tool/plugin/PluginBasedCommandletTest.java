@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -99,6 +100,69 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
 
     assertThat(markerFilePath).isNotNull();
     assertThat(markerFilePath.getFileName().toString()).contains("plugin-name.version-1.2.3_build_4");
+  }
+
+  @Test
+  void testIsPluginUrlNeeded_returnsFalseByDefault() {
+
+    ExamplePluginBasedCommandlet commandlet = new ExamplePluginBasedCommandlet(context, TOOL, null);
+
+    assertThat(commandlet.isPluginUrlNeeded()).isFalse();
+  }
+
+  @Test
+  void testCreatePlugin_createsPropertiesFileWithActiveTrue() throws IOException {
+
+    IdeTestContext localContext = newContext(PROJECT_BASIC, null, false);
+    ExamplePluginBasedCommandlet commandlet = new ExamplePluginBasedCommandlet(localContext, TOOL, null);
+
+    ToolPluginDescriptor result = commandlet.createPlugin("create-basic-plugin", "com.example.basic", null, null);
+
+    assertThat(result.name()).isEqualTo("create-basic-plugin");
+    assertThat(result.id()).isEqualTo("com.example.basic");
+    assertThat(result.active()).isTrue();
+
+    Path pluginFile = commandlet.getPluginsConfigPath().resolve("create-basic-plugin.properties");
+    assertThat(pluginFile).exists();
+    Properties props = new Properties();
+    try (var in = Files.newInputStream(pluginFile)) {
+      props.load(in);
+    }
+    assertThat(props.getProperty("active")).isEqualTo("true");
+    assertThat(props.getProperty("id")).isEqualTo("com.example.basic");
+    assertThat(props.containsKey("url")).isFalse();
+    assertThat(props.containsKey("tags")).isFalse();
+  }
+
+  @Test
+  void testCreatePlugin_writesUrlAndTagsWhenProvided() throws IOException {
+
+    IdeTestContext localContext = newContext(PROJECT_BASIC, null, false);
+    ExamplePluginBasedCommandlet commandlet = new ExamplePluginBasedCommandlet(localContext, TOOL, null);
+
+    commandlet.createPlugin("create-full-plugin", "com.example.full", "https://example.com/update", "java,ide");
+
+    Path pluginFile = commandlet.getPluginsConfigPath().resolve("create-full-plugin.properties");
+    Properties props = new Properties();
+    try (var in = Files.newInputStream(pluginFile)) {
+      props.load(in);
+    }
+    assertThat(props.getProperty("url")).isEqualTo("https://example.com/update");
+    assertThat(props.getProperty("tags")).isEqualTo("java,ide");
+  }
+
+  @Test
+  void testCreatePlugin_clearsCacheSoNewPluginAppearsInGetPlugins() {
+
+    IdeTestContext localContext = newContext(PROJECT_BASIC, null, false);
+    ExamplePluginBasedCommandlet commandlet = new ExamplePluginBasedCommandlet(localContext, TOOL, null);
+
+    assertThat(commandlet.getPlugins().getByName("create-cache-plugin")).isNull();
+
+    commandlet.createPlugin("create-cache-plugin", "com.example.cache", null, null);
+
+    assertThat(commandlet.getPlugins().getByName("create-cache-plugin")).isNotNull();
+    assertThat(commandlet.getPlugins().getByName("create-cache-plugin").active()).isTrue();
   }
 
   @Test

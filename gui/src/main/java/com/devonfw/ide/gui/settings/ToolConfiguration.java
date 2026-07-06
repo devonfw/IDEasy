@@ -25,6 +25,8 @@ public final class ToolConfiguration implements ToolTreeNode {
 
   private List<String> availableVersions;
 
+  private boolean pluginBased;
+
   //<------------ Constructor & Getters/Setters ------------>
 
   public ToolConfiguration(String toolName) {
@@ -111,6 +113,14 @@ public final class ToolConfiguration implements ToolTreeNode {
 
   public void setAvailableVersions(List<String> availableVersions) {
     this.availableVersions = availableVersions;
+  }
+
+  public boolean isPluginBased() {
+    return this.pluginBased;
+  }
+
+  public void setPluginBased(boolean pluginBased) {
+    this.pluginBased = pluginBased;
   }
 
 }

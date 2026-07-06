@@ -17,6 +17,7 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeLogListenerBuffer;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.eclipse.Eclipse;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
@@ -270,9 +271,9 @@ class ToolSettingsServiceTest extends AbstractIdeContextTest {
     List<PluginConfiguration> plugins = service.loadPluginsForTool(parent, guiContext);
 
     assertThat(plugins).hasSize(2);
-    assertThat(plugins.get(0).getPluginName()).isEqualTo("CheckStyle");
-    assertThat(plugins.get(0).getPluginId()).isEqualTo("CheckStyle-IDEA");
-    assertThat(plugins.get(0).isActive()).isTrue();
+    assertThat(plugins.getFirst().getPluginName()).isEqualTo("CheckStyle");
+    assertThat(plugins.getFirst().getPluginId()).isEqualTo("CheckStyle-IDEA");
+    assertThat(plugins.getFirst().isActive()).isTrue();
     assertThat(plugins.get(1).getPluginName()).isEqualTo("FindBugs");
     assertThat(plugins.get(1).isActive()).isFalse();
   }
@@ -300,7 +301,7 @@ class ToolSettingsServiceTest extends AbstractIdeContextTest {
     List<PluginConfiguration> plugins = service.loadPluginsForTool(parent, guiContext);
 
     assertThat(plugins).hasSize(1);
-    assertThat(plugins.get(0).isParentEnabled()).isTrue();
+    assertThat(plugins.getFirst().isParentEnabled()).isTrue();
   }
 
   // ---------------------------------------------------------------------------
@@ -534,6 +535,121 @@ class ToolSettingsServiceTest extends AbstractIdeContextTest {
     List<String> versions = service.loadVersionsForSelectedEdition("mvn", "default", context);
 
     assertThat(versions).isEmpty();
+  }
+
+  // ---------------------------------------------------------------------------
+  // toToolConfiguration – pluginBased flag
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void testToToolConfiguration_pluginBasedTrueForPluginBasedCommandlet() {
+
+    IdeTestContext context = newContext("testProject", "project-0", false);
+
+    ToolConfiguration tc = service.toToolConfiguration(new Eclipse(context), List.of());
+
+    assertThat(tc.isPluginBased()).isTrue();
+  }
+
+  @Test
+  void testToToolConfiguration_pluginBasedFalseForNonPluginBasedCommandlet() {
+
+    IdeTestContext context = newContext("testProject", "project-0", false);
+
+    ToolConfiguration tc = service.toToolConfiguration(new Mvn(context), List.of());
+
+    assertThat(tc.isPluginBased()).isFalse();
+  }
+
+  // ---------------------------------------------------------------------------
+  // isPluginUrlNeeded
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void testIsPluginUrlNeeded_returnsFalseForIntelliJ(@TempDir Path tempDir) throws IOException {
+
+    IdeGuiContext context = createGuiContext(tempDir, "");
+
+    assertThat(service.isPluginUrlNeeded("intellij", context)).isFalse();
+  }
+
+  @Test
+  void testIsPluginUrlNeeded_returnsTrueForEclipse(@TempDir Path tempDir) throws IOException {
+
+    IdeGuiContext context = createGuiContext(tempDir, "");
+
+    assertThat(service.isPluginUrlNeeded("eclipse", context)).isTrue();
+  }
+
+  @Test
+  void testIsPluginUrlNeeded_returnsFalseForNonPluginBasedTool(@TempDir Path tempDir) throws IOException {
+
+    IdeGuiContext context = createGuiContext(tempDir, "");
+
+    assertThat(service.isPluginUrlNeeded("mvn", context)).isFalse();
+  }
+
+  @Test
+  void testIsPluginUrlNeeded_returnsFalseForUnknownTool(@TempDir Path tempDir) throws IOException {
+
+    IdeGuiContext context = createGuiContext(tempDir, "");
+
+    assertThat(service.isPluginUrlNeeded("nonexistent-xyz-404", context)).isFalse();
+  }
+
+  // ---------------------------------------------------------------------------
+  // createPlugin
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void testCreatePlugin_createsFileAndReturnsPluginConfiguration(@TempDir Path tempDir) throws IOException {
+
+    IdeGuiContext context = createGuiContext(tempDir, "");
+    ToolConfiguration parent = tool("eclipse", null, null, false);
+
+    PluginConfiguration result = service.createPlugin("eclipse", "myplugin", "com.example.myplugin", null, null, parent, context);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getPluginName()).isEqualTo("myplugin");
+    assertThat(result.getPluginId()).isEqualTo("com.example.myplugin");
+    assertThat(result.isActive()).isTrue();
+    assertThat(result.getParentToolName()).isEqualTo("eclipse");
+
+    Path pluginFile = tempDir.resolve("project/settings/eclipse/plugins/myplugin.properties");
+    assertThat(pluginFile).exists();
+    Properties props = new Properties();
+    try (var in = Files.newInputStream(pluginFile)) {
+      props.load(in);
+    }
+    assertThat(props.getProperty("active")).isEqualTo("true");
+    assertThat(props.getProperty("id")).isEqualTo("com.example.myplugin");
+  }
+
+  @Test
+  void testCreatePlugin_writesTagsWhenProvided(@TempDir Path tempDir) throws IOException {
+
+    IdeGuiContext context = createGuiContext(tempDir, "");
+    ToolConfiguration parent = tool("eclipse", null, null, false);
+
+    service.createPlugin("eclipse", "tagged-plugin", "com.example.tagged", null, "java,ide", parent, context);
+
+    Path pluginFile = tempDir.resolve("project/settings/eclipse/plugins/tagged-plugin.properties");
+    Properties props = new Properties();
+    try (var in = Files.newInputStream(pluginFile)) {
+      props.load(in);
+    }
+    assertThat(props.getProperty("tags")).isEqualTo("java,ide");
+  }
+
+  @Test
+  void testCreatePlugin_returnsNullForNonPluginBasedTool(@TempDir Path tempDir) throws IOException {
+
+    IdeGuiContext context = createGuiContext(tempDir, "");
+    ToolConfiguration parent = tool("mvn", null, null, false);
+
+    PluginConfiguration result = service.createPlugin("mvn", "myplugin", "com.example.myplugin", null, null, parent, context);
+
+    assertThat(result).isNull();
   }
 
   // ---------------------------------------------------------------------------
