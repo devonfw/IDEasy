@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.commandlet.cleanupUtil;
+package com.devonfw.tools.ide.commandlet.cleanup;
 
 import java.nio.file.Path;
 import java.util.ArrayList;

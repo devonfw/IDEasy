@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.commandlet;
+package com.devonfw.tools.ide.commandlet.cleanup;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -9,9 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.cli.CliAbortException;
-import com.devonfw.tools.ide.commandlet.cleanupUtil.CleanupIdeTool;
-import com.devonfw.tools.ide.commandlet.cleanupUtil.CleanupIdeToolEdition;
-import com.devonfw.tools.ide.commandlet.cleanupUtil.CleanupIdeToolEditionVersion;
+import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.property.FlagProperty;

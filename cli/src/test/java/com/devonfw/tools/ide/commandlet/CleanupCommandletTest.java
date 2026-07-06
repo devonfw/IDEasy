@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.commandlet;
 
 import org.junit.jupiter.api.Test;
 
+import com.devonfw.tools.ide.commandlet.cleanup.CleanupCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 
