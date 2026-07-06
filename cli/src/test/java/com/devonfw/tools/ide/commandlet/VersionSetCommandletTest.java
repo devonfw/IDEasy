@@ -1,12 +1,14 @@
 package com.devonfw.tools.ide.commandlet;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesFiles;
 
 /**
@@ -106,6 +108,25 @@ class VersionSetCommandletTest extends AbstractIdeContextTest {
         # This file contains the global configuration from the user HOME directory.
         #********************************************************************************
         MVN_VERSION=3.2.2""");
+  }
+
+  @Test
+  void testVersionSetCommandletAlreadyInstalledRun() throws IOException {
+
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    // the fixture has mvn installed in version 3.9.4, but only versions resolvable via the mock repository can be
+    // set, so we fake an installation of one of those resolvable versions (3.1.0) to test the "already installed"
+    // message of set-version.
+    Path installedVersionFile = context.getSoftwarePath().resolve("mvn").resolve(IdeContext.FILE_SOFTWARE_VERSION);
+    Files.writeString(installedVersionFile, "3.1.0");
+    VersionSetCommandlet versionSet = context.getCommandletManager().getCommandlet(VersionSetCommandlet.class);
+    versionSet.tool.setValueAsString("mvn", context);
+    versionSet.version.setValueAsString("3.1.0", context);
+    // act
+    versionSet.run();
+    // assert
+    assertThat(context).logAtInfo().hasMessageContaining("Version of tool mvn has been set to 3.1.0 (MVN_VERSION=3.1.0)");
+    assertThat(context).logAtInteraction().hasNoMessageContaining("To install that version call the following command:");
   }
 
   @Test
