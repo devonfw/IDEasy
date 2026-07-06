@@ -105,13 +105,16 @@ public class NlsService {
   private void applyLocale(Locale locale, boolean persist) {
 
     Locale targetLocale = (locale == null) ? Locale.getDefault() : locale;
-    if (targetLocale.equals(this.locale)) {
-      return;
+    boolean localeChanged = !targetLocale.equals(this.locale);
+    if (localeChanged) {
+      this.locale = targetLocale;
+      loadBundle();
     }
-    this.locale = targetLocale;
-    loadBundle();
     if (persist) {
       persistLocale(targetLocale);
+    }
+    if (!localeChanged) {
+      return;
     }
     LOG.info("Locale set to: {}", targetLocale.toLanguageTag());
     for (Runnable listener : this.localeListeners) {
