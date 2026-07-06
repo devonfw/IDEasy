@@ -275,9 +275,6 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     } else {
       ToolInstallation installation = install(request);
       if (installation != null && installation.installedAsynchronously()) {
-        LOG.warn(
-            "The installation of {} is currently running in the background!\nYou need to complete the installation, potentially reboot and rerun your 'ide' command in a new terminal session after the installation has completed.",
-            request.getRequested());
         return new ProcessResultImpl(this.tool, this.tool, 0, List.of());
       }
     }
@@ -351,7 +348,13 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     if (request.isInstallLoop()) {
       return toolAlreadyInstalled(request);
     }
-    return doInstall(request);
+    ToolInstallation installation = doInstall(request);
+    if (installation != null && installation.installedAsynchronously()) {
+      LOG.warn(
+          "The installation of {} is currently running in the background!\nYou need to complete the installation, potentially reboot and rerun your 'ide' command in a new terminal session after the installation has completed.",
+          request.getRequested());
+    }
+    return installation;
   }
 
   /**
