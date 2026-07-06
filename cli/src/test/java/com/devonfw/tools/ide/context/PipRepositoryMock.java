@@ -5,8 +5,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
@@ -63,7 +63,7 @@ public class PipRepositoryMock extends PipRepository {
             //   <root>/pip.json  -> "/pip/json"
             Path rel = pypiRoot.relativize(jsonFile);
             String packageName = rel.toString()
-                .replace(File.separatorChar, '/')
+                .replace(FileSystems.getDefault().getSeparator(), "/")
                 .replaceAll("\\.json$", "");
             String packagePath = "/" + packageName + "/json";
 
