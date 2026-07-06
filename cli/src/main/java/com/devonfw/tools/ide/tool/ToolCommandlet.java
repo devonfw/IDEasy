@@ -731,8 +731,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       }
     }
     if ((latest == null) && (nearest == null)) {
-      LOG.warn(
-          "Could not find any other version resolving your CVEs.\nPlease keep attention to this tool and consider updating as soon as security fixes are available.");
+      LOG.warn("Could not find any other version resolving your CVEs.\n"
+          + "Please keep attention to this tool and consider updating as soon as security fixes are available.");
       if (alreadyInstalled) {
         // we came here via "ide -f install ..." but no alternative is available
         return resolvedVersion;
@@ -894,19 +894,19 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       destination = EnvironmentVariablesFiles.SETTINGS;
     }
     EnvironmentVariables settingsVariables = variables.getByType(destination.toType());
-    String name = EnvironmentVariables.getToolVersionVariable(this.tool);
+    String variableName = EnvironmentVariables.getToolVersionVariable(this.tool);
 
-    toolRepository.resolveVersion(this.tool, edition, version, this); // verify that the version actually exists
-    settingsVariables.set(name, version.toString(), false);
+    VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, version, this); // verify that the version actually exists
+    settingsVariables.set(variableName, version.toString(), false);
     settingsVariables.save();
-    EnvironmentVariables declaringVariables = variables.findVariable(name);
+    EnvironmentVariables declaringVariables = variables.findVariable(variableName);
     if ((declaringVariables != null) && (declaringVariables != settingsVariables)) {
-      LOG.warn("The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.", name,
+      LOG.warn("The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.", variableName,
           declaringVariables.getSource());
     }
-    if (hint) {
-      LOG.info("To install that version call the following command:");
-      LOG.info("ide install {}", this.tool);
+    LOG.info("Version of tool {} has been set to {} ({}={})", this.tool, version, variableName, version);
+    if (hint && !resolvedVersion.equals(getInstalledVersion())) {
+      IdeLogLevel.INTERACTION.log(LOG, "To install that version call the following command:\nide install {}", this.tool);
     }
   }
 
