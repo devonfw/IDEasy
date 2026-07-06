@@ -1,0 +1,53 @@
+#!/bin/sh
+# IDEasy pre-commit hook — mandatory quality harness.
+#
+# Ratchet model: legacy code is grandfathered, but every file you CHANGE must comply.
+#   1. Build + tests            (mvn verify, docs module excluded)
+#   2. Formatting  (Spotless)   ratcheted to origin/main -> only files you changed
+#   3. Static analysis (Checkstyle) scoped to the Java files staged in this commit
+#
+# Installed via ../install-hooks.sh (sets core.hooksPath). Editing this file changes the live hook.
+#
+# Escape hatches (use sparingly):
+#   git commit --no-verify        -> skip all hooks for this commit
+#   HARNESS_SKIP=1 git commit ...  -> skip only this hook (keeps other hooks)
+
+if [ "${HARNESS_SKIP:-0}" = "1" ]; then
+  echo "[pre-commit] HARNESS_SKIP=1 -> skipping harness."
+  exit 0
+fi
+
+REPO_ROOT=$(git rev-parse --show-toplevel) || exit 1
+cd "$REPO_ROOT" || exit 1
+
+fail() {
+  echo ""
+  echo "[pre-commit] $1"
+  echo "[pre-commit] Fix the issues, or bypass intentionally with: git commit --no-verify"
+  exit 1
+}
+
+# 1. Build + tests. 'documentation' is excluded on purpose: it triggers long-running AsciiDoc
+#    generation (the ide-doc module) irrelevant to a code commit. See AGENTS.md > Test Execution.
+echo "[pre-commit] Build + tests: mvn -q -ntp verify -pl '!documentation'"
+mvn -q -ntp verify -pl '!documentation' || fail "Build/tests failed."
+
+# 2. Formatting (Spotless ratchets to origin/main via pom config -> only your changed files).
+echo "[pre-commit] Formatting: mvn -q -ntp spotless:check"
+mvn -q -ntp spotless:check -pl '!documentation' \
+  || fail "Formatting violations. Auto-fix with: mvn spotless:apply"
+
+# 3. Static analysis (Checkstyle) on the Java files staged in this commit.
+CHANGED_JAVA=$(git diff --cached --name-only --diff-filter=ACM -- '*.java')
+if [ -n "$CHANGED_JAVA" ]; then
+  # Turn each staged path into a basename glob (**/Foo.java) for the checkstyle.includes filter.
+  INCLUDES=$(printf '%s\n' "$CHANGED_JAVA" | sed 's#.*/#**/#' | paste -sd, -)
+  echo "[pre-commit] Checkstyle (changed files): -Dcheckstyle.includes=$INCLUDES"
+  # Exclude documentation and the root aggregator (packaging=pom, no checkstyle config next to it).
+  mvn -q -ntp checkstyle:check -Dcheckstyle.includes="$INCLUDES" \
+    -pl '!documentation,!com.devonfw.tools.IDEasy.dev:ide' \
+    || fail "Checkstyle violations in changed files."
+fi
+
+echo "[pre-commit] OK."
+exit 0
