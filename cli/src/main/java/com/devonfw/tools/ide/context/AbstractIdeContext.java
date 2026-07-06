@@ -1041,6 +1041,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
     assert (options.length > 0);
     IdeLogLevel.INTERACTION.log(LOG, question, args);
+    LOG.warn(question, args);
     return displayOptionsAndGetAnswer(options);
   }
 
