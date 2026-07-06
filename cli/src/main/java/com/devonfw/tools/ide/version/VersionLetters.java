@@ -19,7 +19,7 @@ public final class VersionLetters implements AbstractVersionPhase, VersionObject
   /** The undefined {@link VersionLetters} instance. */
   public static final VersionLetters UNDEFINED = new VersionLetters("undefined");
 
-  /** he snapshot qualifier string. */
+  /** The snapshot qualifier string. */
   public static final String SNAPSHOT = "snapshot";
 
   private final String letters;
@@ -124,7 +124,7 @@ public final class VersionLetters implements AbstractVersionPhase, VersionObject
   @Override
   public boolean isUnstable() {
 
-    return this.prePhase || this.phase.isUnstable() || this.snapshot;
+    return !isStable();
   }
 
   @Override
