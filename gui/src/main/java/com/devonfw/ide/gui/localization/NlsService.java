@@ -33,9 +33,9 @@ import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
  * English uses the suffix-less file {@code messages.properties}. To add a new locale, add a new bundle file with the same key set and a matching suffix (for
  * example {@code messages_fr.properties}).
  */
-public class LocalizationService {
+public class NlsService {
 
-  private static final Logger LOG = LoggerFactory.getLogger(LocalizationService.class);
+  private static final Logger LOG = LoggerFactory.getLogger(NlsService.class);
 
 
   private static final String BUNDLE_PACKAGE = "localization";
@@ -66,7 +66,7 @@ public class LocalizationService {
    *
    * @param locale the preferred locale, or {@code null} to use persisted or default locale.
    */
-  public LocalizationService(Locale locale) {
+  public NlsService(Locale locale) {
 
     initialize(locale);
   }
@@ -81,9 +81,6 @@ public class LocalizationService {
     Locale localeToApply = explicitLocale;
     if (localeToApply == null) {
       localeToApply = loadPersistedLocale();
-      if (localeToApply == null) {
-        localeToApply = Locale.getDefault();
-      }
     }
     applyLocale(localeToApply, false);
   }
@@ -259,7 +256,7 @@ public class LocalizationService {
 
     ClassLoader loader = Thread.currentThread().getContextClassLoader();
     if (loader == null) {
-      loader = LocalizationService.class.getClassLoader();
+      loader = NlsService.class.getClassLoader();
     }
 
     try {
@@ -361,19 +358,24 @@ public class LocalizationService {
     try {
       String ideOptions = environmentVariables.get(IDE_OPTIONS);
       String userLangFlag = "-Duser.lang=" + localeToPersist.toLanguageTag();
-      String updated;
-      if (ideOptions == null || ideOptions.isBlank()) {
-        updated = userLangFlag;
-      } else if (USER_LANG_PATTERN.matcher(ideOptions).find()) {
-        updated = USER_LANG_PATTERN.matcher(ideOptions).replaceFirst(userLangFlag);
-      } else {
-        updated = ideOptions + " " + userLangFlag;
-      }
+      String updated = updateLocale(ideOptions, userLangFlag);
       environmentVariables.set(IDE_OPTIONS, updated);
       environmentVariables.save();
     } catch (RuntimeException e) {
       LOG.warn("Failed to persist GUI locale: {}", e.getMessage(), e);
     }
+  }
+
+  String updateLocale(String ideOptions, String userLangFlag) {
+
+    if (ideOptions == null || ideOptions.isBlank()) {
+      return userLangFlag;
+    }
+    Matcher matcher = USER_LANG_PATTERN.matcher(ideOptions);
+    if (matcher.find()) {
+      return matcher.replaceFirst(userLangFlag);
+    }
+    return ideOptions + " " + userLangFlag;
   }
 
   private EnvironmentVariables getUserEnvironmentVariables() {

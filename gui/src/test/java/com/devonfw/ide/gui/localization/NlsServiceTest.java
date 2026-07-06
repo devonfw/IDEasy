@@ -26,9 +26,9 @@ import org.junit.jupiter.api.io.TempDir;
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
 
 /**
- * Tests for {@link LocalizationService} - verifies locale switching, bundle loading, and fallback behavior.
+ * Tests for {@link NlsService} - verifies locale switching, bundle loading, and fallback behavior.
  */
-public class LocalizationServiceTest {
+public class NlsServiceTest {
 
   @TempDir
   Path tempUserHome;
@@ -60,7 +60,7 @@ public class LocalizationServiceTest {
   @Test
   public void testGetInstanceWithLocale() {
 
-    LocalizationService service = new LocalizationService(Locale.ENGLISH);
+    NlsService service = new NlsService(Locale.ENGLISH);
 
     assertThat(service.getLocale()).isEqualTo(Locale.ENGLISH);
     assertThat(service.getResourceBundle()).isNotNull();
@@ -71,7 +71,7 @@ public class LocalizationServiceTest {
   @Test
   public void testSetLocale() {
 
-    LocalizationService service = new LocalizationService(Locale.ENGLISH);
+    NlsService service = new NlsService(Locale.ENGLISH);
     service.setLocale(Locale.GERMAN);
 
     assertThat(service.getLocale().getLanguage()).isEqualTo("de");
@@ -83,7 +83,7 @@ public class LocalizationServiceTest {
   @Test
   public void testAllLocalizationBundlesContainExactlyTheEnglishKeys() throws IOException {
 
-    LocalizationService service = new LocalizationService(Locale.ENGLISH);
+    NlsService service = new NlsService(Locale.ENGLISH);
     Set<String> englishKeys = loadBundleProperties(Locale.ENGLISH).stringPropertyNames();
 
     for (Locale locale : service.getAvailableLocales()) {
@@ -109,7 +109,7 @@ public class LocalizationServiceTest {
   @Test
   public void testLanguageDisplayShowsLocaleName() {
 
-    LocalizationService service = new LocalizationService(Locale.ENGLISH);
+    NlsService service = new NlsService(Locale.ENGLISH);
 
     assertThat(service.getLanguageDisplayName(Locale.ENGLISH)).isEqualTo("English (en)");
     assertThat(service.getLanguageDisplayName(Locale.GERMAN)).isEqualTo("Deutsch (de)");
@@ -119,7 +119,7 @@ public class LocalizationServiceTest {
   @Test
   public void testLocaleChangeListenerIsInvokedAndCanBeRemoved() {
 
-    LocalizationService service = new LocalizationService(Locale.ENGLISH);
+    NlsService service = new NlsService(Locale.ENGLISH);
     AtomicInteger counter = new AtomicInteger();
     Runnable listener = counter::incrementAndGet;
 
@@ -135,7 +135,7 @@ public class LocalizationServiceTest {
   @Test
   public void testSetLocalePersistsSelectionInUserHomeIdeProperties() throws IOException {
 
-    LocalizationService service = new LocalizationService(Locale.ENGLISH);
+    NlsService service = new NlsService(Locale.ENGLISH);
     service.setLocale(Locale.GERMAN);
 
     Path propertiesFile = this.tempUserHome.resolve(".ide").resolve("ide.properties");
@@ -157,7 +157,7 @@ public class LocalizationServiceTest {
     Path userProperties = userIdeFolder.resolve("ide.properties");
     Files.writeString(userProperties, "IDE_OPTIONS=-Duser.lang=de\n");
 
-    LocalizationService service = new LocalizationService(null);
+    NlsService service = new NlsService(null);
 
     assertThat(service.getLocale().getLanguage()).isEqualTo("de");
   }
@@ -170,7 +170,7 @@ public class LocalizationServiceTest {
     Path userProperties = userIdeFolder.resolve("ide.properties");
     Files.writeString(userProperties, "IDE_OPTIONS=-Duser.lang=de\n");
 
-    LocalizationService service = new LocalizationService(null);
+    NlsService service = new NlsService(null);
     service.setLocale(Locale.ENGLISH);
 
     Properties properties = new Properties();
@@ -189,7 +189,7 @@ public class LocalizationServiceTest {
     Path userProperties = userIdeFolder.resolve("ide.properties");
     Files.writeString(userProperties, "IDE_OPTIONS=-Dfoo=bar\n");
 
-    LocalizationService service = new LocalizationService(Locale.ENGLISH);
+    NlsService service = new NlsService(Locale.ENGLISH);
     service.setLocale(Locale.GERMAN);
 
     Properties properties = new Properties();
@@ -208,7 +208,7 @@ public class LocalizationServiceTest {
     Path userProperties = userIdeFolder.resolve("ide.properties");
     Files.writeString(userProperties, "IDE_OPTIONS=-Dfoo=bar -Duser.lang=de\n");
 
-    LocalizationService service = new LocalizationService(null);
+    NlsService service = new NlsService(null);
     service.setLocale(Locale.ENGLISH);
 
     Properties properties = new Properties();
@@ -226,7 +226,7 @@ public class LocalizationServiceTest {
   @Test
   public void testNoEmptyTranslations() throws IOException {
 
-    LocalizationService service = new LocalizationService(Locale.ENGLISH);
+    NlsService service = new NlsService(Locale.ENGLISH);
 
     for (Locale locale : service.getAvailableLocales()) {
       Properties props = loadBundleProperties(locale);
@@ -242,7 +242,7 @@ public class LocalizationServiceTest {
   @Test
   public void testGetAvailableLocalesAlwaysContainsEnglish() {
 
-    LocalizationService service = new LocalizationService(Locale.ENGLISH);
+    NlsService service = new NlsService(Locale.ENGLISH);
 
     assertThat(service.getAvailableLocales()).contains(Locale.ENGLISH);
   }
@@ -250,7 +250,7 @@ public class LocalizationServiceTest {
   @Test
   public void testGetAvailableLocalesDetectsExistingBundleFiles() {
 
-    LocalizationService service = new LocalizationService(Locale.ENGLISH);
+    NlsService service = new NlsService(Locale.ENGLISH);
     //confirmed languages till now
     assertThat(service.getAvailableLocales())
         .contains(Locale.GERMAN, Locale.ENGLISH);
@@ -259,7 +259,7 @@ public class LocalizationServiceTest {
   @Test
   public void testGetAvailableLocalesDoesNotContainAbsentLocales() {
 
-    LocalizationService service = new LocalizationService(Locale.ENGLISH);
+    NlsService service = new NlsService(Locale.ENGLISH);
 
     assertThat(service.getAvailableLocales())
         .doesNotContain(Locale.FRENCH, Locale.JAPANESE, Locale.forLanguageTag("zh"));
@@ -277,7 +277,7 @@ public class LocalizationServiceTest {
     ClassLoader original = Thread.currentThread().getContextClassLoader();
     try (URLClassLoader loader = new URLClassLoader(new URL[] { bundleRoot.toUri().toURL() }, ClassLoader.getPlatformClassLoader())) {
       Thread.currentThread().setContextClassLoader(loader);
-      LocalizationService service = new LocalizationService(Locale.ENGLISH);
+      NlsService service = new NlsService(Locale.ENGLISH);
       assertThat(service.getAvailableLocales())
           .containsExactlyInAnyOrder(Locale.ENGLISH, Locale.FRENCH);
     } finally {
@@ -297,7 +297,7 @@ public class LocalizationServiceTest {
     ClassLoader original = Thread.currentThread().getContextClassLoader();
     try (URLClassLoader loader = new URLClassLoader(new URL[] { jarFile.toUri().toURL() }, ClassLoader.getPlatformClassLoader())) {
       Thread.currentThread().setContextClassLoader(loader);
-      LocalizationService service = new LocalizationService(Locale.ENGLISH);
+      NlsService service = new NlsService(Locale.ENGLISH);
       assertThat(service.getAvailableLocales())
           .containsExactlyInAnyOrder(Locale.ENGLISH, Locale.FRENCH);
     } finally {

@@ -14,7 +14,7 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.ide.gui.localization.LocalizationService;
+import com.devonfw.ide.gui.localization.NlsService;
 import com.devonfw.ide.gui.modal.IdeDialog;
 
 import com.devonfw.tools.ide.variable.IdeVariables;
@@ -29,7 +29,7 @@ public class App extends Application {
 
   private Stage primaryStage;
 
-  private LocalizationService localizationService;
+  private NlsService nlsService;
 
   private static final Logger LOG = LoggerFactory.getLogger(App.class);
 
@@ -38,7 +38,7 @@ public class App extends Application {
 
     this.primaryStage = primaryStage;
 
-    this.localizationService = new LocalizationService(null);
+    this.nlsService = new NlsService(null);
 
     Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
           LOG.error("Uncaught exception in thread {}: {}", thread.getName(), throwable.getMessage(), throwable);
@@ -48,7 +48,7 @@ public class App extends Application {
 
     root = loadMainView();
 
-    this.localizationService.addLocaleChangeListener(this::reloadMainView);
+    this.nlsService.addLocaleChangeListener(this::reloadMainView);
 
     Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
     Scene scene = new Scene(root, bounds.getWidth() / 2, bounds.getHeight() / 2);
@@ -65,7 +65,7 @@ public class App extends Application {
   @Override
   public void stop() {
 
-    this.localizationService.removeLocaleChangeListener(this::reloadMainView);
+    this.nlsService.removeLocaleChangeListener(this::reloadMainView);
   }
 
   private void reloadMainView() {
@@ -84,8 +84,8 @@ public class App extends Application {
   private Parent loadMainView() throws IOException {
 
     FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
-    fxmlLoader.setResources(this.localizationService.getResourceBundle());
-    fxmlLoader.setController(new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()), this.localizationService));
+    fxmlLoader.setResources(this.nlsService.getResourceBundle());
+    fxmlLoader.setController(new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()), this.nlsService));
     return fxmlLoader.load();
   }
 

@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
 import com.devonfw.ide.gui.context.ProjectManager;
-import com.devonfw.ide.gui.localization.LocalizationService;
+import com.devonfw.ide.gui.localization.NlsService;
 import com.devonfw.ide.gui.modal.IdeDialog;
 
 /**
@@ -53,18 +53,18 @@ public class MainController {
 
   private final Map<String, Locale> languageMap;
 
-  private final LocalizationService localizationService;
+  private final NlsService nlsService;
 
 
   /**
    * Constructor
    */
-  public MainController(String directoryPath, LocalizationService localizationService) {
+  public MainController(String directoryPath, NlsService nlsService) {
 
     LOG.debug("IDE_ROOT path={}", directoryPath);
     this.directoryPath = directoryPath;
     this.languageMap = new LinkedHashMap<>();
-    this.localizationService = localizationService;
+    this.nlsService = nlsService;
 
     this.projectManager = IdeGuiStateManager.getInstance().getProjectManager();
   }
@@ -80,20 +80,20 @@ public class MainController {
     this.languageMap.clear();
     selectedLanguage.getItems().clear();
 
-    for (Locale locale : localizationService.getAvailableLocales()) {
-      String displayName = localizationService.getLanguageDisplayName(locale);
+    for (Locale locale : nlsService.getAvailableLocales()) {
+      String displayName = nlsService.getLanguageDisplayName(locale);
       this.languageMap.put(displayName, locale);
     }
 
     selectedLanguage.getItems().addAll(this.languageMap.keySet());
     //initial value
-    selectedLanguage.setValue(resolveLanguageSelection(localizationService.getLocale()));
+    selectedLanguage.setValue(resolveLanguageSelection(nlsService.getLocale()));
 
     selectedLanguage.setOnAction(ev -> {
       String selection = selectedLanguage.getValue();
       Locale newLocale = this.languageMap.get(selection);
       if (newLocale != null) {
-        localizationService.setLocale(newLocale);
+        nlsService.setLocale(newLocale);
       }
     });
   }
