@@ -11,6 +11,9 @@ jobs:
           # Full history so Spotless can resolve origin/main and compute the merge-base (ratchet).
           # Cheap here: no submodules, ~1.3k commits / ~15 MB.
           fetch-depth: 0
+      - name: Run shell function tests
+        shell: bash
+        run: bash cli/src/test/functions-test.sh
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:

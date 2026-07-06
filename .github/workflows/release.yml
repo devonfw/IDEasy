@@ -36,6 +36,12 @@ jobs:
           next_version="${current_version/-SNAPSHOT/}"
           cd cli
           mvn -B -ntp -Drevision=${next_version} -Pnative -DskipTests=true package
+      - name: Ad-hoc sign native image (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          codesign --force --sign - cli/target/ideasy
+          codesign --verify --verbose cli/target/ideasy
       - name: Upload native image
         uses: actions/upload-artifact@v4
         with:
