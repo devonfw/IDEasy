@@ -145,7 +145,6 @@ public class NlsServiceTest {
     try (InputStream inputStream = Files.newInputStream(propertiesFile)) {
       properties.load(inputStream);
     }
-
     assertThat(properties.getProperty("IDE_OPTIONS")).isEqualTo("-Duser.language=de");
   }
 
