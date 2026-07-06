@@ -115,7 +115,7 @@ public enum VersionPhase implements AbstractVersionPhase {
   @Override
   public boolean isStable() {
 
-    if (ordinal() >= NONE.ordinal()) {
+    if ((ordinal() >= NONE.ordinal()) || !isDevelopmentPhase()) {
       return true;
     }
     return false;
