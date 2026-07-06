@@ -21,11 +21,12 @@ ts=$(date +"%Y-%m-%d-%H-%M-%S")
 
 ln -sf "$INSTALL_DIR/bin/ideasy" /usr/local/bin/ideasy
 
+echo "IDEasy installation log for this session can be found at: $LOG_DIR/install-$ts.log"
+
 sudo -u "$CONSOLE_USER" -H \
   "$INSTALL_DIR/bin/ideasy" -ftb --no-colors install \
   > "$LOG_DIR/install-$ts.log" 2>&1
 
-echo "IDEasy installation log for this session can be found at: $LOG_DIR/install-$ts.log"
 
 echo "$INSTALL_DIR/bin" > /etc/paths.d/ideasy #Add ideasy to PATH for both zsh and bash
 
