@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/2068[#2068]: Isolate Claude Code configuration per IDEasy project
 * https://github.com/devonfw/IDEasy/issues/451[#451]: Fix macOS Gatekeeper blocking the IDEasy binary
 * https://github.com/devonfw/IDEasy/issues/1937[#1937]: Link content from settings into workspaces
 * https://github.com/devonfw/IDEasy/issues/1056[#1056]: Improve MSI license display by generating formatted RTF from AsciiDoc
