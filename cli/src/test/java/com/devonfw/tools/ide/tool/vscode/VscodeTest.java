@@ -149,13 +149,15 @@ class VscodeTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests that VS Code is launched with a named {@code --profile} and without a custom {@code --user-data-dir}. Using {@code --profile}
-   * preserves per-workspace isolation (settings, keybindings, theme) while keeping the VS Code IPC lock at the default user-data-dir
-   * location. This lets the OS-level {@code vscode://} protocol handler (e.g. used by GitHub/Copilot OAuth callbacks) find and reuse the
-   * already running instance instead of spawning a separate, unauthenticated one.
+   * Tests that VS Code is launched without a custom {@code --user-data-dir}, so it uses its default (shared) data dir. This lets the
+   * OS-level {@code vscode://} protocol handler (e.g. used by GitHub/Copilot OAuth callbacks) find and reuse the already running instance
+   * instead of spawning a separate, unauthenticated one.
+   * <p>
+   * Note: {@code --profile} is intentionally also NOT used, because named profiles isolate extension globalStorage (where auth session
+   * metadata is stored), causing auth to not persist across VS Code restarts.
    */
   @Test
-  void testConfigureToolArgsUsesProfileInsteadOfUserDataDir() {
+  void testConfigureToolArgsDoesNotSetUserDataDir() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_VSCODE);
@@ -167,7 +169,7 @@ class VscodeTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(pc.getArgs()).noneMatch(arg -> arg.startsWith("--user-data-dir="));
-    assertThat(pc.getArgs()).anyMatch(arg -> arg.startsWith("--profile=ideasy-"));
+    assertThat(pc.getArgs()).noneMatch(arg -> arg.startsWith("--profile="));
   }
 
   @Test
