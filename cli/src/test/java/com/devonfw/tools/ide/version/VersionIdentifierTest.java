@@ -99,10 +99,10 @@ class VersionIdentifierTest extends Assertions {
   @Test
   void testCompare() {
 
-    String[] versions = { "0.1-snapshot", "0.1", "0.2-nb5-snapshot", "0.2-nb5", "0.2-a-snapshot", "0.2-a-snapshot", "0.2-a", "0.2-alpha1-snapshot",
-        "0.2-alpha1", "0.2-beta-snapshot", "0.2-beta", "0.2-b2-snapshot", "0.2-b2", "0.2.M1-snapshot", "0.2.M1", "0.2M9-snapshot", "0.2M9", "0.2M10-snapshot",
-        "0.2M10", "0.2-rc1-snapshot", "0.2-rc1", "0.2-RC2-snapshot", "0.2-RC2", "0.2-SNAPSHOT", "0.2", "0.2-release-snapshot", "0.2-release",
-        "0.2-fix9-snapshot", "0.2-fix9", "0.2-hf1-snapshot", "0.2-hf1", "0.3-snapshot", "0.3", "0.3.1-snapshot", "0.3.1", "0.3.*", "0.3.*!", "0.*", "1", "1.0",
+    String[] versions = { "0.1-SNAPSHOT", "0.1", "0.2-nb5-snapshot", "0.2-nb5", "0.2-a-SNAPSHOT", "0.2-a-SNAPSHOT", "0.2-a", "0.2-alpha1-SNAPSHOT",
+        "0.2-alpha1", "0.2-beta-SNAPSHOT", "0.2-beta", "0.2-b2-SNAPSHOT", "0.2-b2", "0.2.M1-SNAPSHOT", "0.2.M1", "0.2M9-SNAPSHOT", "0.2M9", "0.2M10-SNAPSHOT",
+        "0.2M10", "0.2-rc1-SNAPSHOT", "0.2-rc1", "0.2-RC2-SNAPSHOT", "0.2-RC2", "0.2-SNAPSHOT", "0.2", "0.2-release-SNAPSHOT", "0.2-release",
+        "0.2-fix9-SNAPSHOT", "0.2-fix9", "0.2-hf1-SNAPSHOT", "0.2-hf1", "0.3-SNAPSHOT", "0.3", "0.3.1-SNAPSHOT", "0.3.1", "0.3.*", "0.3.*!", "0.*", "1", "1.0",
         "10-alpha2", "10-alpha*", "10.*", "*", "*!" };
     List<VersionIdentifier> vids = new ArrayList<>(versions.length);
     for (String version : versions) {
