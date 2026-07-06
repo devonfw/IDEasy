@@ -43,7 +43,6 @@ public class NlsServiceTest {
 
     this.originalUserHome = System.getProperty("user.home");
     System.setProperty("user.home", this.tempUserHome.toString());
-
     IdeGuiStateManager.getInstanceOverrideRootDir(this.tempIdeRoot.toString());
   }
 
