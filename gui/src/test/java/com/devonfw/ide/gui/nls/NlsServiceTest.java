@@ -1,4 +1,4 @@
-package com.devonfw.ide.gui.localization;
+package com.devonfw.ide.gui.nls;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

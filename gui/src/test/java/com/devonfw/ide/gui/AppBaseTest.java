@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
-import com.devonfw.ide.gui.localization.NlsService;
+import com.devonfw.ide.gui.nls.NlsService;
 
 /**
  * Basic UI Test

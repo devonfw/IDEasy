@@ -1,4 +1,4 @@
-package com.devonfw.ide.gui.localization;
+package com.devonfw.ide.gui.nls;
 
 import java.io.IOException;
 import java.net.URI;
@@ -27,9 +27,9 @@ import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 
 /**
- * Service for managing localization (i18n) in the JavaFX GUI.
+ * Service for managing nls (i18n) in the JavaFX GUI.
  *
- * <p>Locale bundles are discovered from {@code localization/messages[_<lang>].properties}.
+ * <p>Locale bundles are discovered from {@code nls/messages[_<lang>].properties}.
  * English uses the suffix-less file {@code messages.properties}. To add a new locale, add a new bundle file with the same key set and a matching suffix (for
  * example {@code messages_fr.properties}).
  */
@@ -241,8 +241,7 @@ public class NlsService {
   }
 
   /**
-   * Detects available locales by scanning the classpath for {@code localization/messages_*.properties} files, covering both exploded directories and JAR
-   * files.
+   * Detects available locales by scanning the classpath for {@code nls/messages_*.properties} files, covering both exploded directories and JAR files.
    *
    * @return immutable list of supported locales.
    */
@@ -297,7 +296,7 @@ public class NlsService {
 
   private void collectLocalesFromJar(URL url, String packagePath, String filePrefix, Set<Locale> locales) {
 
-    // url format: jar:file:/path/to/app.jar!/localization/
+    // url format: jar:file:/path/to/app.jar!/nls/
     String path = url.getPath();
     String jarFilePath = path.substring(0, path.indexOf('!'));
     String entryPrefix = packagePath + filePrefix;

@@ -14,9 +14,8 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.ide.gui.localization.NlsService;
 import com.devonfw.ide.gui.modal.IdeDialog;
-
+import com.devonfw.ide.gui.nls.NlsService;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.IdeVersion;
 
