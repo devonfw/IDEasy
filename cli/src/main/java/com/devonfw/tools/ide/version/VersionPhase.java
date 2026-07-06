@@ -74,7 +74,7 @@ public enum VersionPhase implements AbstractVersionPhase {
   @Override
   public boolean isDevelopmentPhase() {
 
-    return (this != UNDEFINED) && (this != NONE) && (this != REVISION) && (this != BUILD) && (this != BETA_OR_BUILD);
+    return (this != NONE) && (this != REVISION) && (this != BUILD) && (this != BETA_OR_BUILD);
   }
 
   /**
