@@ -731,8 +731,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       }
     }
     if ((latest == null) && (nearest == null)) {
-      LOG.warn(
-          "Could not find any other version resolving your CVEs.\nPlease keep attention to this tool and consider updating as soon as security fixes are available.");
+      LOG.warn("Could not find any other version resolving your CVEs.\n"
+          + "Please keep attention to this tool and consider updating as soon as security fixes are available.");
       if (alreadyInstalled) {
         // we came here via "ide -f install ..." but no alternative is available
         return resolvedVersion;
