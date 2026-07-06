@@ -894,21 +894,19 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       destination = EnvironmentVariablesFiles.SETTINGS;
     }
     EnvironmentVariables settingsVariables = variables.getByType(destination.toType());
-    String name = EnvironmentVariables.getToolVersionVariable(this.tool);
+    String variableName = EnvironmentVariables.getToolVersionVariable(this.tool);
 
     VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, version, this); // verify that the version actually exists
-    settingsVariables.set(name, version.toString(), false);
+    settingsVariables.set(variableName, version.toString(), false);
     settingsVariables.save();
-    EnvironmentVariables declaringVariables = variables.findVariable(name);
+    EnvironmentVariables declaringVariables = variables.findVariable(variableName);
     if ((declaringVariables != null) && (declaringVariables != settingsVariables)) {
-      LOG.warn("The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.", name,
+      LOG.warn("The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.", variableName,
           declaringVariables.getSource());
     }
-    if (resolvedVersion.equals(getInstalledVersion())) {
-      LOG.info("Version {} of tool {} is now set (already installed)", resolvedVersion, this.tool);
-    } else if (hint) {
-      LOG.info("To install that version call the following command:");
-      LOG.info("ide install {}", this.tool);
+    LOG.info("Version of tool {} has been set to {} ({}={})", this.tool, version, variableName, version);
+    if (hint && !resolvedVersion.equals(getInstalledVersion())) {
+      IdeLogLevel.INTERACTION.log(LOG, "To install that version call the following command:\nide install {}", this.tool);
     }
   }
 
