@@ -37,7 +37,7 @@ class ToolSettingsServiceTest extends AbstractIdeContextTest {
   @Test
   void testToToolConfiguration_toolNameMatchesCommandletName() {
 
-    IdeTestContext context = newContext("testProject", "project-0", false);
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
 
     ToolConfiguration tc = service.toToolConfiguration(new Mvn(context), List.of());
 
@@ -47,7 +47,7 @@ class ToolSettingsServiceTest extends AbstractIdeContextTest {
   @Test
   void testToToolConfiguration_enabledWhenInEnabledToolsList() {
 
-    IdeTestContext context = newContext("testProject", "project-0", false);
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
 
     ToolConfiguration tc = service.toToolConfiguration(new Mvn(context), List.of("mvn", "npm"));
 
@@ -57,7 +57,7 @@ class ToolSettingsServiceTest extends AbstractIdeContextTest {
   @Test
   void testToToolConfiguration_disabledWhenNotInEnabledToolsList() {
 
-    IdeTestContext context = newContext("testProject", "project-0", false);
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
 
     ToolConfiguration tc = service.toToolConfiguration(new Mvn(context), List.of("npm"));
 
@@ -67,7 +67,7 @@ class ToolSettingsServiceTest extends AbstractIdeContextTest {
   @Test
   void testToToolConfiguration_enabledCheckIsCaseInsensitive() {
 
-    IdeTestContext context = newContext("testProject", "project-0", false);
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
 
     ToolConfiguration tc = service.toToolConfiguration(new Mvn(context), List.of("MVN"));
 
@@ -77,7 +77,7 @@ class ToolSettingsServiceTest extends AbstractIdeContextTest {
   @Test
   void testToToolConfiguration_nullEnabledToolsListYieldsDisabled() {
 
-    IdeTestContext context = newContext("testProject", "project-0", false);
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
 
     ToolConfiguration tc = service.toToolConfiguration(new Mvn(context), null);
 
@@ -91,7 +91,7 @@ class ToolSettingsServiceTest extends AbstractIdeContextTest {
   @Test
   void testLoadEditionsForTool_returnsEditionsFromRepository() {
 
-    IdeTestContext context = newContext("testProject", "project-0", false);
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
     context.setDefaultToolRepository(stubRepo(List.of("community", "ultimate"), List.of()));
 
     List<String> editions = service.loadEditionsForTool("intellij", context);
@@ -102,7 +102,7 @@ class ToolSettingsServiceTest extends AbstractIdeContextTest {
   @Test
   void testLoadEditionsForTool_returnsEmptyForUnknownTool() {
 
-    IdeTestContext context = newContext("testProject", "project-0", false);
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
 
     List<String> editions = service.loadEditionsForTool("nonexistent-xyz-123", context);
 
@@ -112,16 +112,72 @@ class ToolSettingsServiceTest extends AbstractIdeContextTest {
   @Test
   void testLoadEditionsForTool_repositoryExceptionYieldsEmpty() {
 
-    IdeTestContext context = newContext("testProject", "project-0", false);
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
     context.setDefaultToolRepository(stubRepo(null, null));
 
     List<String> editions = service.loadEditionsForTool("mvn", context);
 
     assertThat(editions).isEmpty();
   }
+  // ---------------------------------------------------------------------------
+  // reloadVersionsForSelectedEdition
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void testLoadVersionsForSelectedEdition_returnsVersionsFromRepository() {
+
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    List<VersionIdentifier> stubVersions = List.of(VersionIdentifier.of("3.9.0"), VersionIdentifier.of("3.8.0"));
+    context.setDefaultToolRepository(stubRepo(List.of(), stubVersions));
+
+    List<String> versions = service.loadVersionsForSelectedEdition("mvn", "default", context);
+
+    assertThat(versions).containsExactly("3.9.0", "3.8.0");
+  }
+
+  @Test
+  void testLoadVersionsForSelectedEdition_nullEditionReturnsEmpty() {
+
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+
+    List<String> versions = service.loadVersionsForSelectedEdition("mvn", null, context);
+
+    assertThat(versions).isEmpty();
+  }
+
+  @Test
+  void testLoadVersionsForSelectedEdition_blankEditionReturnsEmpty() {
+
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+
+    List<String> versions = service.loadVersionsForSelectedEdition("mvn", "  ", context);
+
+    assertThat(versions).isEmpty();
+  }
+
+  @Test
+  void testLoadVersionsForSelectedEdition_unknownToolReturnsEmpty() {
+
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+
+    List<String> versions = service.loadVersionsForSelectedEdition("nonexistent-xyz-123", "community", context);
+
+    assertThat(versions).isEmpty();
+  }
+
+  @Test
+  void testLoadVersionsForSelectedEdition_repositoryExceptionYieldsEmpty() {
+
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    context.setDefaultToolRepository(stubRepo(null, null));
+
+    List<String> versions = service.loadVersionsForSelectedEdition("mvn", "default", context);
+
+    assertThat(versions).isEmpty();
+  }
 
   // ---------------------------------------------------------------------------
-  // buildPreviewSettingsContent – pure logic, no context needed
+  // buildPreviewSettingsContent
   // ---------------------------------------------------------------------------
 
   @Test
@@ -377,63 +433,6 @@ class ToolSettingsServiceTest extends AbstractIdeContextTest {
     String saved = readSettingsFile(tempDir);
     assertThat(saved).contains("MVN_VERSION=3.9.0");
     assertThat(saved).doesNotContain("MVN_EDITION");
-  }
-
-  // ---------------------------------------------------------------------------
-  // reloadVersionsForSelectedEdition
-  // ---------------------------------------------------------------------------
-
-  @Test
-  void testLoadVersionsForSelectedEdition_returnsVersionsFromRepository() {
-
-    IdeTestContext context = newContext("testProject", "project-0", false);
-    List<VersionIdentifier> stubVersions = List.of(VersionIdentifier.of("3.9.0"), VersionIdentifier.of("3.8.0"));
-    context.setDefaultToolRepository(stubRepo(List.of(), stubVersions));
-
-    List<String> versions = service.loadVersionsForSelectedEdition("mvn", "default", context);
-
-    assertThat(versions).containsExactly("3.9.0", "3.8.0");
-  }
-
-  @Test
-  void testLoadVersionsForSelectedEdition_nullEditionReturnsEmpty() {
-
-    IdeTestContext context = newContext("testProject", "project-0", false);
-
-    List<String> versions = service.loadVersionsForSelectedEdition("mvn", null, context);
-
-    assertThat(versions).isEmpty();
-  }
-
-  @Test
-  void testLoadVersionsForSelectedEdition_blankEditionReturnsEmpty() {
-
-    IdeTestContext context = newContext("testProject", "project-0", false);
-
-    List<String> versions = service.loadVersionsForSelectedEdition("mvn", "  ", context);
-
-    assertThat(versions).isEmpty();
-  }
-
-  @Test
-  void testLoadVersionsForSelectedEdition_unknownToolReturnsEmpty() {
-
-    IdeTestContext context = newContext("testProject", "project-0", false);
-
-    List<String> versions = service.loadVersionsForSelectedEdition("nonexistent-xyz-123", "community", context);
-
-    assertThat(versions).isEmpty();
-  }
-
-  @Test
-  void testLoadVersionsForSelectedEdition_repositoryExceptionYieldsEmpty() {
-
-    IdeTestContext context = newContext("testProject", "project-0", false);
-    context.setDefaultToolRepository(stubRepo(null, null));
-
-    List<String> versions = service.loadVersionsForSelectedEdition("mvn", "default", context);
-
-    assertThat(versions).isEmpty();
   }
 
   // ---------------------------------------------------------------------------
