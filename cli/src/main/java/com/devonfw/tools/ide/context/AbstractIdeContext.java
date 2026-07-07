@@ -36,6 +36,7 @@ import com.devonfw.tools.ide.commandlet.CommandletManagerImpl;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
 import com.devonfw.tools.ide.commandlet.EnvironmentCommandlet;
 import com.devonfw.tools.ide.commandlet.UpdateCommandlet;
+import com.devonfw.tools.ide.commandlet.UpgradeCommandlet;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
@@ -1173,7 +1174,6 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
         }
       }
       activateLogging(cmd);
-      verifyIdeMinVersion(false);
       String commandKey = current.getKey();
 
       if (commandKey == null || commandKey.isBlank()) {
@@ -1360,6 +1360,9 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
           if (cmd.isIdeHomeRequired()) {
             LOG.debug(getMessageIdeHomeFound());
           }
+          if (!(cmd instanceof UpgradeCommandlet)) {
+            verifyIdeMinVersion(false);
+          }
           Path settingsRepository = getSettingsGitRepository();
           if (settingsRepository != null) {
             if (getGitContext().isRepositoryUpdateAvailable(settingsRepository, getSettingsCommitIdPath()) || (
@@ -1479,14 +1482,15 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     }
     VersionIdentifier versionIdentifier = IdeVersion.getVersionIdentifier();
     if (versionIdentifier.compareVersion(minVersion).isLess() && !IdeVersion.isUndefined()) {
-      String message = String.format("Your version of IDEasy is currently %s\n"
-          + "However, this is too old as your project requires at latest version %s\n"
-          + "Please run the following command to update to the latest version of IDEasy and fix the problem:\n"
-          + "ide upgrade", versionIdentifier, minVersion);
+      String warning = String.format("Your version of IDEasy is currently %s\n"
+          + "However, this is too old as your project requires at latest version %s", versionIdentifier, minVersion);
+      String interaction = "Please run the following command to update to the latest version of IDEasy and fix the problem:\n"
+          + "ide upgrade";
       if (throwException) {
-        throw new CliException(message);
+        throw new CliException(warning + "\n" + interaction);
       } else {
-        LOG.warn(message);
+        LOG.warn(warning);
+        IdeLogLevel.INTERACTION.log(LOG, interaction);
       }
     }
   }

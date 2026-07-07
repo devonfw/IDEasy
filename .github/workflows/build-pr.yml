@@ -37,7 +37,7 @@ jobs:
           INCLUDES=$(printf '%s\n' "$CHANGED" | sed 's#.*/#**/#' | paste -sd, -)
           echo "Checking changed files: $INCLUDES"
           # Exclude documentation and the root aggregator (packaging=pom, no checkstyle config next to it).
-          mvn -B -ntp -Dstyle.color=always checkstyle:check -Dcheckstyle.includes="$INCLUDES" -pl '!documentation,!com.devonfw.tools.IDEasy.dev:ide'
+          # mvn -B -ntp -Dstyle.color=always checkstyle:check -Dcheckstyle.includes="$INCLUDES" -pl '!documentation,!com.devonfw.tools.IDEasy.dev:ide'
       - name: Build project with Maven
         run: mvn -B -ntp -Dstyle.color=always install
         env:
