@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool;
 
 import java.nio.file.Path;
 
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -112,6 +113,30 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
         + "devon\n"
         + "source ~/.devon/autocomplete\n"
         + addedRcLines);
+    verifyDesktopShortcut(context, systemInfo, installationPath);
+  }
+
+  private void verifyDesktopShortcut(IdeTestContext context, SystemInfo systemInfo, Path installationPath) {
+
+    if (systemInfo.isLinux()) {
+      Path desktopFile = context.getUserHome().resolve(".local/share/applications/ideasy-gui.desktop");
+      assertThat(desktopFile).exists();
+      assertThat(desktopFile).content()
+          .contains("Exec=" + installationPath.resolve("bin/ideasy") + " gui")
+          .contains("Icon=" + installationPath.resolve("gui/logo.png"));
+    } else if (systemInfo.isMac()) {
+      Path commandFile = context.getUserHome().resolve("Applications/IDEasy GUI.command");
+      assertThat(commandFile).exists();
+      assertThat(commandFile).content()
+          .contains(installationPath.resolve("bin/ideasy").toString())
+          .contains("gui");
+    } else if (systemInfo.isWindows()) {
+      Assumptions.assumeTrue(System.getProperty("os.name", "").toLowerCase().startsWith("win"),
+          "Skipped: .lnk creation requires PowerShell, which is only available on Windows");
+      assertThat(context.getUserHome().resolve("Desktop/IDEasy GUI.lnk")).exists();
+      assertThat(context.getUserHome().resolve(
+          "AppData/Roaming/Microsoft/Windows/Start Menu/Programs/IDEasy GUI.lnk")).exists();
+    }
   }
 
   /**
