@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE module PUBLIC
+  "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+  "https://checkstyle.org/dtd/configuration_1_3.dtd">
+
+<!--
+  IDEasy Checkstyle ruleset (mandatory harness step).
+
+  Encodes the machine-checkable subset of documentation/contributing/coding-conventions.adoc.
+  Runs on every build (bound to the verify phase in pom.xml) and BLOCKS on violation
+  (failOnViolation=true). Import ORDER and whitespace are intentionally NOT enforced here:
+  Spotless owns those (auto-fix), and full formatting stays driven by .editorconfig in the IDE.
+-->
+<module name="Checker">
+  <property name="severity" value="error"/>
+  <property name="charset" value="UTF-8"/>
+  <property name="fileExtensions" value="java"/>
+
+  <!-- Line length: matches .editorconfig max_line_length = 160 -->
+  <module name="LineLength">
+    <property name="max" value="160"/>
+    <property name="ignorePattern" value="^\s*(//|\*).*https?://"/>
+  </module>
+
+  <!-- Files end with a newline (matches .editorconfig insert_final_newline = true) -->
+  <module name="NewlineAtEndOfFile"/>
+
+  <!-- Indentation is spaces, not tabs (matches .editorconfig indent_style = space) -->
+  <module name="FileTabCharacter">
+    <property name="eachLine" value="true"/>
+  </module>
+
+  <module name="TreeWalker">
+
+    <!-- No star imports (coding-conventions: "no star imports are used") -->
+    <module name="AvoidStarImport"/>
+    <module name="RedundantImport"/>
+    <module name="UnusedImports">
+      <property name="processJavadoc" value="true"/>
+    </module>
+
+    <!-- Obsolete / banned APIs (coding-conventions: "Obsolete APIs").
+         Import-based detection; fully-qualified usages are covered by Tier 0 self-review. -->
+    <module name="IllegalImport">
+      <property name="illegalClasses"
+        value="java.util.Date,
+               java.util.Calendar,
+               java.sql.Date,
+               java.sql.Time,
+               java.sql.Timestamp,
+               java.util.Vector,
+               java.lang.StringBuffer,
+               java.io.File,
+               com.google.common.base.Objects"/>
+    </module>
+
+    <!-- Always use curly braces (coding-conventions: "Enclose blocks with curly braces") -->
+    <module name="NeedBraces">
+      <property name="tokens"
+        value="LITERAL_IF, LITERAL_ELSE, LITERAL_FOR, LITERAL_WHILE, LITERAL_DO"/>
+    </module>
+
+    <!-- No System.out / System.err (coding-conventions: "No System output") -->
+    <module name="RegexpSinglelineJava">
+      <property name="format" value="System\.(out|err)\."/>
+      <property name="message"
+        value="Do not use System.out/System.err; use the logger (context / SLF4J) instead."/>
+      <property name="ignoreComments" value="true"/>
+    </module>
+
+    <!-- Never call printStackTrace() (coding-conventions: "Catching and handling Exceptions") -->
+    <module name="RegexpSinglelineJava">
+      <property name="format" value="\.printStackTrace\s*\("/>
+      <property name="message"
+        value="Do not call printStackTrace(); log or wrap-and-rethrow the exception with its cause."/>
+      <property name="ignoreComments" value="true"/>
+    </module>
+
+  </module>
+</module>

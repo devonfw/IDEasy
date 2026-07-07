@@ -40,6 +40,7 @@ import com.devonfw.tools.ide.tool.intellij.Intellij;
 import com.devonfw.tools.ide.tool.jasypt.Jasypt;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.jmc.Jmc;
+import com.devonfw.tools.ide.tool.just.Just;
 import com.devonfw.tools.ide.tool.kotlinc.Kotlinc;
 import com.devonfw.tools.ide.tool.kotlinc.KotlincNative;
 import com.devonfw.tools.ide.tool.kubectl.KubeCtl;
@@ -173,6 +174,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Cdk(context));
     add(new Claude(context));
     add(new Mvnd(context));
+    add(new Just(context));
   }
 
   /**

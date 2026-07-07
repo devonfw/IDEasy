@@ -14,10 +14,16 @@
 !.anyedit.properties
 !.ide.properties
 !.templateengine
+# Share Claude Code slash commands with the team, but keep local Claude settings ignored
+!.claude/
+.claude/*
+!.claude/commands/
 target/
 eclipse-target/
 generated/
 node_modules
+# generated graphify knowledge graph output (per-developer AI tooling, not shared)
+graphify-out/
 
 # Package Files #
 *.jar
