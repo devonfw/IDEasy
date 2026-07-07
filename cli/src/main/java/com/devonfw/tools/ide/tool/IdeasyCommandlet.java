@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.tool;
 
 import java.io.IOException;
+import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
@@ -332,7 +333,6 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       setGitLongpaths();
     }
   }
-
   private void installDesktopShortcut(Path installationPath) {
 
     try {
@@ -371,7 +371,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       LOG.debug("Could not set POSIX permissions on {}", desktopFile);
     }
 
-    // without this, the new entry is only visible in application menus after the next login
+    // Update desktop database so the entry appears in application menus immediately
     try {
       this.context.newProcess().executable("update-desktop-database").addArg(applicationsDir.toString())
           .run(ProcessMode.DEFAULT_CAPTURE);
