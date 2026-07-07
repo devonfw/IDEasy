@@ -18,7 +18,7 @@ In case you are not inside of a `IDEasy` folder the command will echo a message 
 You are not inside an IDEasy installation: /
 [~]$ cd projects/my-project/workspaces/test/my-git-repo
 [my-git-repo]$ ide
-IDEasy environment variables have been set for /projects/my-project in workspace main
+IDEasy environment variables have been set for /projects/my-project in workspace test
 [my-git-repo]$ echo $IDE_HOME
 ~/projects/my-project
 [my-git-repo]$ echo $JAVA_HOME
@@ -129,6 +129,6 @@ IDE environment variables have been set for /~/projects/myproject in workspace m
 [~/projects/myproject/workspaces/myworkspace]$ cd myrepo/mymodule/src/main/java/com/foo/bar/some/path
 [.../some/path]$ echo "do something here but now I want to go back to my project root dir"
 [.../some/path]$ icd
-IDE environment variables have been set for /~/projects/myproject in workspace main
+IDE environment variables have been set for /~/projects/myproject
 [~/projects/myproject]$ echo "Wow! IDEasy is awesome!"
 ```

@@ -44,13 +44,25 @@ for /f "tokens=*" %%i in ('"ideasy %IDE_OPTIONS% env"') do (
 ideasy %IDE_OPTIONS% env >nul
 
 if %ERRORLEVEL% EQU 0 (
-  if "%~1" == "" (
-    echo IDE environment variables have been set for %IDE_HOME% in workspace %WORKSPACE%
-  )
+  if "%~1" == "" call :printIdeHomeMessage
 )
 
 call :echoUseBash
 goto :eof
+
+REM prints the "environment variables have been set" line. Only mention the workspace when the
+REM current directory is actually inside one; at the project root no workspace is reported (see #1808)
+:printIdeHomeMessage
+  setlocal enabledelayedexpansion
+  set "_IDE_CWD=!CD!"
+  if defined WORKSPACE_PATH if not "!_IDE_CWD:%WORKSPACE_PATH%=!" == "!_IDE_CWD!" (
+    endlocal
+    echo IDE environment variables have been set for %IDE_HOME% in workspace %WORKSPACE%
+    exit /b
+  )
+  endlocal
+  echo IDE environment variables have been set for %IDE_HOME%
+  exit /b
 
 :handleCreateCd
   if "%~1" == "" exit /b
