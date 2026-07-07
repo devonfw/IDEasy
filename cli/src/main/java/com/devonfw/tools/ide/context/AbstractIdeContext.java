@@ -1211,7 +1211,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       activateLogging(cmd);
       step.error(t, true);
       if (this.logfile != null) {
-        System.err.println("Logfile can be found at " + this.logfile); // do not use logger
+        // logging just failed, so point the user to the logfile directly
+        System.err.println("Logfile can be found at " + this.logfile); // checkstyle:ignore SystemOut
       }
       throw t;
     } finally {
