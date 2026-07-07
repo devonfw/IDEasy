@@ -6,6 +6,8 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1063[#1063]: Improve IDEasy user specific configuration documentation
+* https://github.com/devonfw/IDEasy/issues/1909[#1909]: add commandlet for Maven Daemon
 * https://github.com/devonfw/IDEasy/issues/2068[#2068]: Isolate Claude Code configuration per IDEasy project
 * https://github.com/devonfw/IDEasy/issues/451[#451]: Fix macOS Gatekeeper blocking the IDEasy binary
 * https://github.com/devonfw/IDEasy/issues/1937[#1937]: Link content from settings into workspaces
@@ -17,6 +19,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1227[#1227]: Added Setup instrcutions to the Windows installer
 * https://github.com/devonfw/IDEasy/issues/2114[#2114]: Fix false "Cygwin is not supported" warning in Git Bash
 * https://github.com/devonfw/IDEasy/issues/865[#865]: az not working on Mac
+* https://github.com/devonfw/IDEasy/issues/2026[#2026]: Create UvRepository and UvBasedCommandlet
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/46?closed=1[milestone 2026.07.001].
 
