@@ -89,7 +89,7 @@ public class MainController {
     setProjectsComboBox();
     initLanguageComboBox();
     toolConfigTab.setDisable(true);
-    toolConfigTab.setTooltip(new Tooltip(nlsService.get("tooltip.toolConfigDisabled")));
+    toolConfigTab.setTooltip(new Tooltip(nlsService.get("toolConfigDisabled")));
     tabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
       if (newTab == toolConfigTab) {
         loadToolConfigContent();
@@ -238,7 +238,7 @@ public class MainController {
   private void loadToolConfigContent() {
 
     try {
-      ToolSettingsController controller = new ToolSettingsController();
+      ToolSettingsController controller = new ToolSettingsController(nlsService);
       FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/devonfw/ide/gui/tools-config.fxml"));
       loader.setController(controller);
       loader.setResources(nlsService.getResourceBundle());

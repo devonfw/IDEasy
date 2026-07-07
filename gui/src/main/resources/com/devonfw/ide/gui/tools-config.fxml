@@ -37,9 +37,9 @@
         <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
       </padding>
       <children>
-        <Button fx:id="cancelButton" text="%button.cancel" onAction="#onCancel"/>
-        <Button fx:id="previewButton" text="%button.preview" onAction="#onPreview"/>
-        <Button fx:id="saveButton" text="%button.save" onAction="#onSave"/>
+        <Button fx:id="cancelButton" text="%cancel" onAction="#onCancel"/>
+        <Button fx:id="previewButton" text="%preview" onAction="#onPreview"/>
+        <Button fx:id="saveButton" text="%save" onAction="#onSave"/>
       </children>
     </HBox>
   </bottom>

@@ -29,7 +29,7 @@ import javafx.stage.Window;
 
 import com.devonfw.ide.gui.context.IdeGuiContext;
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
-import com.devonfw.ide.gui.localization.LocalizationService;
+import com.devonfw.ide.gui.nls.NlsService;
 
 /**
  * Controller for the Tools Configuration dialog.
@@ -50,7 +50,22 @@ public class ToolSettingsController {
   // Static so validation errors survive cell recycling — JavaFX reuses TreeCell instances during scroll.
   private static final Set<String> validationErrors = new HashSet<>();
 
+  private final NlsService nlsService;
+
   private Runnable onClose;
+
+  /**
+   * Constructor
+   *
+   * @param nlsService the injected {@link NlsService} used for translations.
+   */
+  public ToolSettingsController(NlsService nlsService) {
+    this.nlsService = nlsService;
+  }
+
+  NlsService getNlsService() {
+    return this.nlsService;
+  }
 
 
   @FXML
@@ -136,10 +151,10 @@ public class ToolSettingsController {
     Stage dialog = new Stage();
     dialog.initModality(Modality.APPLICATION_MODAL);
     dialog.initOwner(toolsTree.getScene().getWindow());
-    dialog.setTitle(LocalizationService.getInstance().get("label.toolsConfig") + " - Preview");
+    dialog.setTitle(nlsService.get("toolsConfigTitle") + " - Preview");
 
-    Button save = new Button(LocalizationService.getInstance().get("button.save"));
-    Button close = new Button(LocalizationService.getInstance().get("button.cancel"));
+    Button save = new Button(nlsService.get("save"));
+    Button close = new Button(nlsService.get("cancel"));
     save.setOnAction(event -> {
       event.consume();
       service.applyAndSave(toolConfigurations, currentContext);
@@ -368,7 +383,7 @@ public class ToolSettingsController {
       errorIcon.setVisible(false);
       errorIcon.setManaged(false);
 
-      Tooltip errorTooltip = new Tooltip(LocalizationService.getInstance().get("invalidVersionError"));
+      Tooltip errorTooltip = new Tooltip(controller.getNlsService().get("invalidVersionError"));
       errorIcon.setOnMouseEntered(e -> {
         if (errorIcon.isVisible()) {
           errorTooltip.show(errorIcon, e.getScreenX() + 10, e.getScreenY() + 10);
