@@ -11,6 +11,22 @@ public class QuarkusUrlUpdater extends GithubUrlTagUpdater {
 
   private static final VersionIdentifier MIN_QUARKUS_VID = VersionIdentifier.of("2.5.0");
 
+  /**
+   * The Constructor.
+   */
+  public QuarkusUrlUpdater() {
+    super();
+  }
+
+  /**
+   * Package-private constructor used for testing {@link QuarkusUrlUpdater}.
+   *
+   * @param baseUrl mock url used as download and version base.
+   */
+  QuarkusUrlUpdater(String baseUrl) {
+    super(baseUrl, baseUrl);
+  }
+
   @Override
   public String getTool() {
 
@@ -42,13 +58,11 @@ public class QuarkusUrlUpdater extends GithubUrlTagUpdater {
 
   @Override
   public String getCpeVendor() {
-
     return "quarkus";
   }
 
   @Override
   public String getCpeProduct() {
-
     return "quarkus";
   }
 

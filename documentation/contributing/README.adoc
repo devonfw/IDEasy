@@ -18,3 +18,6 @@ To support cross-platform testing also consider link:testing-linux-on-windows.ad
 You may also install Windows or other OS in a VM if you need to test the IDEasy installation process itself and retest it multiple times using VM snapshots without tweaking or even breaking your host OS.
 
 Further, we documented link:junit-testing.adoc[JUnit-testing] and link:integration-testing.adoc[integration-testing] to help you properly testing your new code.
+
+For security mapping in URL updater development, see link:cpe-url-updater.adoc[CPE integration for URL updaters].
+

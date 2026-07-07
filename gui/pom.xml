@@ -30,7 +30,6 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>ide-cli</artifactId>
-      <classifier>tests</classifier>
       <version>${project.version}</version>
       <type>test-jar</type>
       <scope>test</scope>
@@ -66,6 +65,14 @@
     <dependency>
       <groupId>org.testfx</groupId>
       <artifactId>openjfx-monocle</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- required for using ide-cli testing classes -->
+    <dependency>
+      <groupId>org.wiremock</groupId>
+      <artifactId>wiremock</artifactId>
+      <version>3.13.2</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

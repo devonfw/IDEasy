@@ -14,14 +14,22 @@ import com.devonfw.tools.ide.version.VersionSegment;
  */
 public abstract class EclipseUrlUpdater extends WebsiteUrlUpdater {
 
-  private static final String BASE_URL = "https://download.eclipse.org/technology/epp/downloads";
+  private static final String DOWNLOAD_BASE_URL = "https://download.eclipse.org/technology/epp/downloads";
+  private static final String VERSION_BASE_URL = "https://www.eclipse.org";
 
   private static final List<String> MIRRORS = List.of(
-      BASE_URL,
+      DOWNLOAD_BASE_URL,
       "https://archive.eclipse.org/technology/epp/downloads",
       "https://ftp.osuosl.org/pub/eclipse/technology/epp/downloads");
 
   private static final Pattern VERSION_PATTERN = Pattern.compile("\\d{4}-\\d{2}");
+
+  /**
+   * The Constructor.
+   */
+  public EclipseUrlUpdater() {
+    super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
+  }
 
   @Override
   public String getTool() {
@@ -62,20 +70,14 @@ public abstract class EclipseUrlUpdater extends WebsiteUrlUpdater {
     }
   }
 
-  @Override
-  protected String getDownloadBaseUrl() {
-
-    return BASE_URL;
-  }
-
   protected List<String> getMirrors() {
 
     String downloadBaseUrl = getDownloadBaseUrl();
-    if (!BASE_URL.equals(downloadBaseUrl)) {
+    if (!DOWNLOAD_BASE_URL.equals(downloadBaseUrl)) {
       return List.of(downloadBaseUrl);
     }
     return List.of(
-        BASE_URL,
+        DOWNLOAD_BASE_URL,
         "https://archive.eclipse.org/technology/epp/downloads",
         "https://ftp.osuosl.org/pub/eclipse/technology/epp/downloads");
   }
@@ -101,12 +103,6 @@ public abstract class EclipseUrlUpdater extends WebsiteUrlUpdater {
   }
 
   @Override
-  protected String getVersionBaseUrl() {
-
-    return "https://www.eclipse.org";
-  }
-
-  @Override
   protected Pattern getVersionPattern() {
 
     return VERSION_PATTERN;
@@ -120,12 +116,9 @@ public abstract class EclipseUrlUpdater extends WebsiteUrlUpdater {
   }
 
   @Override
-  public String getCpeVendor() {
-    return "eclipse";
-  }
-
-  @Override
-  public String getCpeProduct() {
-    return "eclipse";
+  protected void initCpe(CpeRegistry cpe) {
+    cpe.addVendor("eclipse");
+    cpe.addProduct("eclipse_ide");
+    cpe.addProductInfix("eclipse"); // matches cpe:...:eclipse:eclipse:...
   }
 }

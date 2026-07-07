@@ -104,7 +104,7 @@ public class StatusCommandlet extends Commandlet {
     } else {
       GitContext gitContext = this.context.getGitContext();
       if (gitContext.isRepositoryUpdateAvailable(settingsPath, this.context.getSettingsCommitIdPath())) {
-        if (!this.context.isSettingsRepositorySymlinkOrJunction()) {
+        if (!this.context.isSettingsCodeRepository()) {
           LOG.warn("Your settings are not up-to-date, please run 'ide update'.");
         }
       } else {

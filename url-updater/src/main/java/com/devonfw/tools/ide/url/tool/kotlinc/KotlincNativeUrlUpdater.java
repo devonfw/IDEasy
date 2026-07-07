@@ -11,16 +11,20 @@ import com.devonfw.tools.ide.url.updater.WebsiteUrlUpdater;
 // TODO refactor me to GithubUrlUpdater
 public class KotlincNativeUrlUpdater extends WebsiteUrlUpdater {
 
+  private final static String DOWNLOAD_BASE_URL = "https://github.com";
+  private final static String VERSION_BASE_URL = "https://api.github.com";
+
+  /**
+   * The Constructor.
+   */
+  public KotlincNativeUrlUpdater() {
+    super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
+  }
+
   @Override
   public String getTool() {
 
     return "kotlinc-native";
-  }
-
-  @Override
-  protected String getDownloadBaseUrl() {
-
-    return "https://github.com";
   }
 
   @Override
@@ -40,25 +44,9 @@ public class KotlincNativeUrlUpdater extends WebsiteUrlUpdater {
   }
 
   @Override
-  protected String getVersionBaseUrl() {
-
-    return "https://api.github.com";
-  }
-
-  @Override
   protected Pattern getVersionPattern() {
 
     return Pattern.compile("[0-9]+\\.[0-9]+\\.[0-9]+");
-  }
-
-  @Override
-  public String getCpeVendor() {
-    return "jetbrains";
-  }
-
-  @Override
-  public String getCpeProduct() {
-    return "kotlin-native";
   }
 
 }

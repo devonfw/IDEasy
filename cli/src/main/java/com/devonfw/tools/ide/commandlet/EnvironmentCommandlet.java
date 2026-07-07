@@ -89,6 +89,11 @@ public final class EnvironmentCommandlet extends Commandlet {
     }
 
     printLines(variableMap, winCmd);
+
+    // Bash completions must be printed after the environment variables because they may reference variables such as TERRAFORM_HOME.
+    if (this.bash.isTrue()) {
+      printBashCompletions();
+    }
   }
 
   private void printLines(Map<String, VariableLine> variableMap, boolean winCmd) {
@@ -148,6 +153,30 @@ public final class EnvironmentCommandlet extends Commandlet {
           }
         } catch (Exception e) {
           LOG.warn("An error occurred while setting the environment variables in local tools:", e);
+        }
+      }
+    }
+  }
+
+  /**
+   * Prints optional Bash completion setup commands for installed local tools.
+   * <p>
+   * These lines are only emitted for {@code env --bash}. The IDEasy shell wrapper evaluates this output, so tools can dynamically register completions without
+   * modifying user files such as {@code ~/.bashrc}.
+   */
+  private void printBashCompletions() {
+
+    for (Commandlet commandlet : this.context.getCommandletManager().getCommandlets()) {
+      if (commandlet instanceof LocalToolCommandlet tool) {
+        try {
+          if (tool.isInstalled()) {
+            String bashCompletion = tool.getBashCompletion();
+            if ((bashCompletion != null) && !bashCompletion.isBlank()) {
+              IdeLogLevel.PROCESSABLE.log(LOG, bashCompletion);
+            }
+          }
+        } catch (Exception e) {
+          LOG.warn("An error occurred while collecting Bash completion for tool {}.", tool.getName(), e);
         }
       }
     }

@@ -13,6 +13,7 @@ import java.util.Set;
 
 import org.assertj.core.api.Assertions;
 
+import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileCopyMode;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
@@ -140,6 +141,10 @@ public abstract class AbstractIdeContextTest extends Assertions {
       stubFor(any(urlEqualTo("/health")).willReturn(
           aResponse().withStatus(200).withHeader("Content-Type", "text").withHeader("Content-Length", String.valueOf("ok".length()))
               .withBody("ok")));
+    }
+    Path settingsPath = context.getSettingsPath();
+    if ((settingsPath != null) && Files.isDirectory(settingsPath)) {
+      context.getFileAccess().mkdirs(settingsPath.resolve(GitContext.GIT_FOLDER));
     }
     return context;
   }

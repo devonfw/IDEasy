@@ -17,6 +17,8 @@ import org.slf4j.event.Level;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.common.Tags;
+import com.devonfw.tools.ide.completion.AutoCompletionRegistry;
+import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesFiles;
@@ -28,7 +30,8 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
-import com.devonfw.tools.ide.property.StringProperty;
+import com.devonfw.tools.ide.property.Property;
+import com.devonfw.tools.ide.property.ToolArgumentsProperty;
 import com.devonfw.tools.ide.security.ToolVersionChoice;
 import com.devonfw.tools.ide.security.ToolVulnerabilities;
 import com.devonfw.tools.ide.step.Step;
@@ -53,11 +56,16 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   private final Set<Tag> tags;
 
   /** The commandline arguments to pass to the tool. */
-  public final StringProperty arguments;
+  public final ToolArgumentsProperty arguments;
 
   private Path executionDirectory;
 
   private MacOsHelper macOsHelper;
+
+  /**
+   * Registry for tool-specific auto-completion candidates.
+   */
+  private AutoCompletionRegistry autoCompletionRegistry;
 
   /**
    * The constructor.
@@ -72,8 +80,45 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     this.tool = tool;
     this.tags = tags;
     addKeyword(tool);
-    this.arguments = new StringProperty("", false, true, "args");
+    this.arguments = new ToolArgumentsProperty("", false, true, "args");
     initProperties();
+  }
+
+  /**
+   * Gets the auto-completion registry for this tool.
+   *
+   * @return the {@link AutoCompletionRegistry}.
+   */
+  protected AutoCompletionRegistry getAutoCompletionRegistry() {
+
+    if (this.autoCompletionRegistry == null) {
+      this.autoCompletionRegistry = new AutoCompletionRegistry();
+      initAutoCompletionRegistry(this.autoCompletionRegistry);
+    }
+
+    return this.autoCompletionRegistry;
+  }
+
+
+  /**
+   * Initializes the auto-completion registry for this tool.
+   *
+   * @param registry the {@link AutoCompletionRegistry} to initialize.
+   */
+  protected void initAutoCompletionRegistry(AutoCompletionRegistry registry) {
+    // default empty
+  }
+
+  /**
+   * Completes tool-specific arguments.
+   *
+   * @param arg the current argument to complete.
+   * @param collector the {@link CompletionCandidateCollector}.
+   * @param property the {@link Property} that triggered completion.
+   */
+  public void completeToolArguments(String arg, CompletionCandidateCollector collector, Property<?> property) {
+
+    getAutoCompletionRegistry().complete(arg, collector, property, this);
   }
 
   /**
@@ -368,7 +413,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       edition = new ToolEdition(this.tool, getConfiguredEdition());
       requested = new ToolEditionAndVersion(edition);
       request.setRequested(requested);
-    
+
     } else {
       edition = requested.getEdition();
       if (edition == null) {
@@ -381,7 +426,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     // Adjust edition if necessary based on requested version. This is needed for tools like IntelliJ where we may need to automatically switch editions
     requested = adjustRequestedEdition(requested);
     edition = requested.getEdition();
-  
+
     GenericVersionRange version = requested.getVersion();
     if (version == null) {
       version = getConfiguredVersion();
@@ -686,8 +731,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       }
     }
     if ((latest == null) && (nearest == null)) {
-      LOG.warn(
-          "Could not find any other version resolving your CVEs.\nPlease keep attention to this tool and consider updating as soon as security fixes are available.");
+      LOG.warn("Could not find any other version resolving your CVEs.\n"
+          + "Please keep attention to this tool and consider updating as soon as security fixes are available.");
       if (alreadyInstalled) {
         // we came here via "ide -f install ..." but no alternative is available
         return resolvedVersion;
@@ -849,19 +894,19 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       destination = EnvironmentVariablesFiles.SETTINGS;
     }
     EnvironmentVariables settingsVariables = variables.getByType(destination.toType());
-    String name = EnvironmentVariables.getToolVersionVariable(this.tool);
+    String variableName = EnvironmentVariables.getToolVersionVariable(this.tool);
 
-    toolRepository.resolveVersion(this.tool, edition, version, this); // verify that the version actually exists
-    settingsVariables.set(name, version.toString(), false);
+    VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, version, this); // verify that the version actually exists
+    settingsVariables.set(variableName, version.toString(), false);
     settingsVariables.save();
-    EnvironmentVariables declaringVariables = variables.findVariable(name);
+    EnvironmentVariables declaringVariables = variables.findVariable(variableName);
     if ((declaringVariables != null) && (declaringVariables != settingsVariables)) {
-      LOG.warn("The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.", name,
+      LOG.warn("The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.", variableName,
           declaringVariables.getSource());
     }
-    if (hint) {
-      LOG.info("To install that version call the following command:");
-      LOG.info("ide install {}", this.tool);
+    LOG.info("Version of tool {} has been set to {} ({}={})", this.tool, version, variableName, version);
+    if (hint && !resolvedVersion.equals(getInstalledVersion())) {
+      IdeLogLevel.INTERACTION.log(LOG, "To install that version call the following command:\nide install {}", this.tool);
     }
   }
 

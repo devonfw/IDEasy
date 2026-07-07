@@ -17,6 +17,22 @@ public class PycharmUrlUpdater extends IdeaBasedUrlUpdater {
   private static final List<String> EDITIONS = List.of("professional", "pycharm");
   protected static final ObjectMapper MAPPER = JsonMapping.createWithReflectionSupportForUrlUpdaters();
 
+  /**
+   * The Constructor.
+   */
+  public PycharmUrlUpdater() {
+    super();
+  }
+
+  /**
+   * Package-private constructor used for testing {@link PycharmUrlUpdater}.
+   *
+   * @param versionBaseUrl mock url used as version base.
+   */
+  PycharmUrlUpdater(String versionBaseUrl) {
+    super(versionBaseUrl);
+  }
+
   @Override
   public String getTool() {
 
@@ -34,6 +50,13 @@ public class PycharmUrlUpdater extends IdeaBasedUrlUpdater {
     return jsonObjects[EDITIONS.indexOf(edition)];
   }
 
+
+  @Override
+  protected String doGetVersionUrl() {
+
+    return getVersionBaseUrl() + "/" + JSON_URL;
+  }
+
   @Override
   public String getCpeVendor() {
     return "jetbrains";
@@ -42,11 +65,5 @@ public class PycharmUrlUpdater extends IdeaBasedUrlUpdater {
   @Override
   public String getCpeProduct() {
     return "pycharm";
-  }
-
-  @Override
-  protected String doGetVersionUrl() {
-
-    return getVersionBaseUrl() + "/" + JSON_URL;
   }
 }

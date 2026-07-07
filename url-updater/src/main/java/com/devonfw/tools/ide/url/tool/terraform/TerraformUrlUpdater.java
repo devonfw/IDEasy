@@ -9,7 +9,25 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class TerraformUrlUpdater extends GithubUrlTagUpdater {
 
+  private static final String DOWNLOAD_BASE_URL = "https://releases.hashicorp.com";
+
   private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.of("1.1.0");
+
+  /**
+   * The Constructor.
+   */
+  public TerraformUrlUpdater() {
+    super(DOWNLOAD_BASE_URL);
+  }
+
+  /**
+   * Package-private constructor used for testing {@link TerraformUrlUpdater}.
+   *
+   * @param baseUrl mock url used as download and version base.
+   */
+  TerraformUrlUpdater(String baseUrl) {
+    super(baseUrl, baseUrl);
+  }
 
   @Override
   public String getTool() {
@@ -21,12 +39,6 @@ public class TerraformUrlUpdater extends GithubUrlTagUpdater {
   protected String getGithubOrganization() {
 
     return "hashicorp";
-  }
-
-  @Override
-  protected String getDownloadBaseUrl() {
-
-    return "https://releases.hashicorp.com";
   }
 
   @Override
