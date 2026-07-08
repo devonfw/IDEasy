@@ -43,10 +43,8 @@ class GitContextMockTest extends Assertions {
     assertThat(Files.readString(refFile)).isNotEmpty();
 
     Path config = gitFolder.resolve("config");
-    assertThat(config).exists().hasContent("""
-        [remote "origin"]
-        \turl = %s
-        """.formatted(TEST_URL));
+    assertThat(config).exists();
+    assertThat(mock.retrieveGitUrl(repository)).isEqualTo(TEST_URL);
   }
 
   @Test

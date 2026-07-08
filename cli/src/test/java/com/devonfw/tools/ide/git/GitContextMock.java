@@ -11,6 +11,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import com.devonfw.tools.ide.io.ini.IniFile;
+import com.devonfw.tools.ide.io.ini.IniFileImpl;
+import com.devonfw.tools.ide.io.ini.IniSection;
+
 /**
  * Mock implementation of {@link GitContext}.
  */
@@ -77,13 +81,13 @@ public class GitContextMock implements GitContext {
       Path branchRefPath = refsHeads.resolve(branch);
       Files.createDirectories(branchRefPath.getParent());
       Files.writeString(branchRefPath, lastId);
-      // create a simple config file with remote origin url using ini-like format
-      StringBuilder cfg = new StringBuilder();
-      cfg.append("[remote \"origin\"]\n");
-      cfg.append("\turl = ").append(gitUrl.url()).append('\n');
+      // create .git/config using the project's IniFile support
+      IniFile cfg = new IniFileImpl();
+      IniSection originSection = cfg.getOrCreateSection("remote \"origin\"");
+      originSection.setProperty("url", gitUrl.url());
       Files.writeString(gitFolder.resolve("config"), cfg.toString());
-    } catch (java.io.IOException e) {
-      throw new RuntimeException(e);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to clone Git repository " + gitUrl + " to " + repository, e);
     }
   }
 
@@ -131,8 +135,8 @@ public class GitContextMock implements GitContext {
       Files.createDirectories(branchRefPath.getParent());
       Files.writeString(branchRefPath, lastId);
       Files.writeString(gitFolder.resolve(FILE_FETCH_HEAD), lastId);
-    } catch (java.io.IOException e) {
-      throw new RuntimeException(e);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to pull repository " + repository, e);
     }
   }
 
@@ -155,7 +159,7 @@ public class GitContextMock implements GitContext {
       Files.createDirectories(gitFolder);
       Files.writeString(gitFolder.resolve(FILE_FETCH_HEAD), String.valueOf(last.hashCode()));
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new IllegalStateException("Failed to fetch repository " + repository, e);
     }
   }
 
@@ -178,17 +182,20 @@ public class GitContextMock implements GitContext {
   @Override
   public String retrieveGitUrl(Path repository) {
     Path cfg = repository.resolve(GIT_FOLDER).resolve("config");
-    if (Files.exists(cfg)) {
-      try {
-        for (String line : Files.readAllLines(cfg)) {
-          String trimmed = line.trim();
-          if (trimmed.startsWith("url =")) {
-            return trimmed.substring("url =".length()).trim();
+    try {
+      if (Files.exists(cfg)) {
+        IniFile config = new IniFileImpl();
+        readIniFile(cfg, config);
+        IniSection origin = config.getSection("remote \"origin\"");
+        if (origin != null) {
+          String url = origin.getPropertyValue("url");
+          if (url != null && !url.isBlank()) {
+            return url.trim();
           }
         }
-      } catch (IOException e) {
-        throw new RuntimeException(e);
       }
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to read remote URL from repository config " + cfg, e);
     }
     return MOCKED_URL_VALUE;
   }
@@ -254,7 +261,7 @@ public class GitContextMock implements GitContext {
       }
       return !f.equals(h);
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new IllegalStateException("Failed to check for repository update in " + repository, e);
     }
   }
 
@@ -277,7 +284,7 @@ public class GitContextMock implements GitContext {
       String t = Files.readString(trackedCommitIdPath).trim();
       return !f.equals(t);
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new IllegalStateException("Failed to check for repository update in " + repository, e);
     }
   }
 
@@ -310,7 +317,7 @@ public class GitContextMock implements GitContext {
       // fallback: return content
       return content;
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new IllegalStateException("Failed to determine current branch for repository " + repository, e);
     }
   }
 
@@ -329,6 +336,23 @@ public class GitContextMock implements GitContext {
     List<GitCommit> list = this.pending.computeIfAbsent(repository, k -> new ArrayList<>());
     if (commits != null) {
       Collections.addAll(list, commits);
+    }
+  }
+
+  private static void readIniFile(Path file, IniFile iniFile) throws IOException {
+    List<String> iniLines = Files.readAllLines(file);
+    IniSection currentIniSection = iniFile.getInitialSection();
+    for (String line : iniLines) {
+      if (line.trim().startsWith("[")) {
+        currentIniSection = iniFile.getOrCreateSection(line);
+      } else if (line.trim().startsWith("#") || line.trim().startsWith(";")) {
+        currentIniSection.addComment(line);
+      } else {
+        int index = line.indexOf('=');
+        if (index > 0) {
+          currentIniSection.setPropertyLine(line);
+        }
+      }
     }
   }
 
@@ -352,7 +376,7 @@ public class GitContextMock implements GitContext {
             Files.copy(s, dest, StandardCopyOption.REPLACE_EXISTING);
           }
         } catch (IOException e) {
-          throw new RuntimeException(e);
+          throw new IllegalStateException("Failed to copy directory " + source + " to " + target, e);
         }
       });
     }
@@ -378,6 +402,24 @@ public class GitContextMock implements GitContext {
     public Path target() {
       return this.target;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (!(obj instanceof GitChange other)) {
+        return false;
+      }
+      return this.content.equals(other.content) && this.target.equals(other.target);
+    }
+
+    @Override
+    public int hashCode() {
+      int result = this.content.hashCode();
+      result = 31 * result + this.target.hashCode();
+      return result;
+    }
   }
 
   /**
@@ -397,6 +439,17 @@ public class GitContextMock implements GitContext {
 
     public List<GitChange> getChanges() {
       return Collections.unmodifiableList(this.changes);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (!(obj instanceof GitCommit other)) {
+        return false;
+      }
+      return this.changes.equals(other.changes);
     }
 
     @Override
@@ -435,7 +488,7 @@ public class GitContextMock implements GitContext {
           commitId = content;
         }
       }
-      if (commitId == null || commitId.isEmpty()) {
+      if (commitId.isEmpty()) {
         // nothing to save
         return;
       }
@@ -445,7 +498,7 @@ public class GitContextMock implements GitContext {
       }
       Files.writeString(trackedCommitIdPath, commitId);
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new IllegalStateException("Failed to save current commit id to " + trackedCommitIdPath, e);
     }
   }
 }
