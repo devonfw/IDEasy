@@ -56,7 +56,7 @@ public class RubyUrlUpdater extends GithubUrlReleaseUpdater {
     VersionComparisonResult result = vid.compareVersion(MIN_RUBY_VID);
 
     if (result.isEqual() || result.isGreater()) {
-      String baseUrl = createGithubReleaseDownloadUrl("RubyInstaller-${version}", "rubyinstaller-");
+      String baseUrl = createGithubReleaseDownloadUrl("RubyInstaller-${version}", "rubyinstaller-${version}-");
 
       doAddVersion(urlVersion, baseUrl + "x64.7z", WINDOWS, X64);
     }
@@ -78,4 +78,16 @@ public class RubyUrlUpdater extends GithubUrlReleaseUpdater {
   public String getCpeProduct() {
     return "ruby";
   }
+
+
+  @Override
+  public String mapVersion(String version) {
+
+    int dateSeparator = version.indexOf(" - ");
+    if (dateSeparator >= 0) {
+      version = version.substring(0, dateSeparator);
+    }
+    return super.mapVersion(version);
+  }
+
 }

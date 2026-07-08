@@ -6,10 +6,15 @@
     "id": 1,
     "tag_name": "RubyInstaller-2.5.3-1",
     "target_commitish": "master",
-    "name": "RubyInstaller-2.5.3-1",
+    "name": "RubyInstaller-2.5.3-1 - 2026-07-02",
     "draft": false,
     "prerelease": true,
-    "assets": []
+    "assets": [
+      {
+        "name": "rubyinstaller-2.5.3-1-x64.7z",
+        "browser_download_url": "${testbaseurl}/oneclick/rubyinstaller2/releases/download/RubyInstaller-2.5.3-1/rubyinstaller-2.5.3-1-x64.7z"
+      }
+    ]
   },
   {
     "url": "https://api.github.com/repos/oneclick/rubyinstaller2/releases/2",
@@ -18,7 +23,7 @@
     "id": 2,
     "tag_name": "RubyInstaller-2.4.0-7",
     "target_commitish": "master",
-    "name": "RubyInstaller-2.4.0-7",
+    "name": "RubyInstaller-2.4.0-7 - 2026-07-02",
     "draft": false,
     "prerelease": true,
     "assets": [
@@ -29,4 +34,3 @@
     ]
   }
 ]
-``
