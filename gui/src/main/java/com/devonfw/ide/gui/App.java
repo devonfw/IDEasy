@@ -14,12 +14,8 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.ide.gui.context.IdeGuiStateManager;
-import com.devonfw.ide.gui.i18n.I18nService;
 import com.devonfw.ide.gui.modal.IdeDialog;
-
-import com.devonfw.ide.gui.update.UpdateController;
-import com.devonfw.ide.gui.update.UpgradeController;
+import com.devonfw.ide.gui.nls.NlsService;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.IdeVersion;
 
@@ -30,14 +26,21 @@ public class App extends Application {
 
   Parent root;
 
+  private Stage primaryStage;
+
+  private NlsService nlsService;
+
   private static final Logger LOG = LoggerFactory.getLogger(App.class);
 
   @Override
   public void start(Stage primaryStage) throws IOException {
-
     try {
-      I18nService.getInstance(null);
+
       TestGuiConfiguration.applyConfigOverrides();
+
+      this.primaryStage = primaryStage;
+
+      this.nlsService = new NlsService(null);
 
       Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
             LOG.error("Uncaught exception in thread {}: {}", thread.getName(), throwable.getMessage(), throwable);
@@ -45,16 +48,9 @@ public class App extends Application {
           }
       );
 
-      FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
-      fxmlLoader.setResources(I18nService.getInstance().getResourceBundle());
-      UpdateController updateController = new UpdateController(IdeGuiStateManager.getInstance());
-      UpgradeController upgradeController = new UpgradeController(
-          IdeGuiStateManager.getInstance());
-      fxmlLoader.setController(
-          new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()), IdeGuiStateManager.getInstance().getProjectManager(), updateController,
-              upgradeController)
-      );
-      root = fxmlLoader.load();
+      root = loadMainView();
+
+      this.nlsService.addLocaleChangeListener(this::reloadMainView);
 
       Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
       Scene scene = new Scene(root, bounds.getWidth() / 2, bounds.getHeight() / 2);
@@ -67,9 +63,35 @@ public class App extends Application {
       primaryStage.setMinHeight(scene.getHeight());
       primaryStage.show();
     } catch (Throwable t) {
-      t.printStackTrace();
       new IdeDialog(IdeDialog.AlertType.ERROR, "Failed to start IDEasy GUI: " + t.getMessage()).showAndWait();
     }
+  }
+
+  @Override
+  public void stop() {
+
+    this.nlsService.removeLocaleChangeListener(this::reloadMainView);
+  }
+
+  private void reloadMainView() {
+
+    try {
+      Parent reloadedRoot = loadMainView();
+      this.root = reloadedRoot;
+      if (this.primaryStage != null && this.primaryStage.getScene() != null) {
+        this.primaryStage.getScene().setRoot(reloadedRoot);
+      }
+    } catch (IOException e) {
+      LOG.error("Failed to reload main view after locale change", e);
+    }
+  }
+
+  private Parent loadMainView() throws IOException {
+
+    FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
+    fxmlLoader.setResources(this.nlsService.getResourceBundle());
+    fxmlLoader.setController(new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()), this.nlsService));
+    return fxmlLoader.load();
   }
 
 

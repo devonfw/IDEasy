@@ -17,7 +17,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.ide.gui.context.IdeGuiContext;
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
-import com.devonfw.ide.gui.i18n.I18nService;
+import com.devonfw.ide.gui.nls.NlsService;
 import com.devonfw.ide.gui.update.UpdateController;
 import com.devonfw.ide.gui.update.UpgradeController;
 
@@ -33,6 +33,7 @@ public class UpgradeUpdateFlowTest extends HeadlessApplicationTest {
 
   @TempDir
   private static Path mockIdeRoot;
+  private static final NlsService nlsService = new NlsService(null);
 
   // ========== UPDATE FLOW TESTS: AVAILABLE ==========
 
@@ -44,7 +45,7 @@ public class UpgradeUpdateFlowTest extends HeadlessApplicationTest {
 
     @Override
     public void start(Stage stage) throws IOException {
-      UpdateController testUpdateController = new UpdateController(IdeGuiStateManager.getInstance()) {
+      UpdateController testUpdateController = new UpdateController(IdeGuiStateManager.getInstance(), nlsService) {
         private boolean updated = false;
 
         @Override
@@ -58,7 +59,7 @@ public class UpgradeUpdateFlowTest extends HeadlessApplicationTest {
         }
       };
 
-      UpgradeController testUpgradeController = new UpgradeController(IdeGuiStateManager.getInstance());
+      UpgradeController testUpgradeController = new UpgradeController(IdeGuiStateManager.getInstance(), nlsService);
 
       TestGuiSetup.setupStageWithControllers(stage, mockIdeRoot, testUpdateController, testUpgradeController);
     }
@@ -71,10 +72,9 @@ public class UpgradeUpdateFlowTest extends HeadlessApplicationTest {
       @SuppressWarnings("unchecked")
       ComboBox<String> selectedWorkspace = (ComboBox<String>) lookup("#selectedWorkspace").queryAs(ComboBox.class);
 
-      I18nService i18n = I18nService.getInstance();
-      String availableStatus = i18n.get("status.update.available");
-      String completedStatus = i18n.get("status.update.completed");
-      String upToDateStatus = i18n.get("status.update.upToDate");
+      String availableStatus = nlsService.get("status.update.available");
+      String completedStatus = nlsService.get("status.update.completed");
+      String upToDateStatus = nlsService.get("status.update.upToDate");
 
       // Select project/workspace context
       interact(() -> selectedProject.getSelectionModel().select("project-1"));
@@ -85,14 +85,14 @@ public class UpgradeUpdateFlowTest extends HeadlessApplicationTest {
 
       Tooltip tooltip = extractTooltip(indicator);
       Assertions.assertNotNull(tooltip);
-      Assertions.assertEquals(i18n.get("tooltip.update.available"), tooltip.getText());
+      Assertions.assertEquals(nlsService.get("tooltip.update.available"), tooltip.getText());
 
       clickOn(indicator);
 
       TestGuiSetup.waitForCondition(() -> lookup("#upgradeButton").tryQuery().isPresent(), 3000);
       TestGuiSetup.waitForCondition(() -> availableStatus.equals(lookup("#statusLabel").queryAs(Label.class).getText()), 5000);
       Button update = lookup("#upgradeButton").queryAs(Button.class);
-      TestGuiSetup.waitForCondition(() -> i18n.get("button.update").equals(update.getText()), 3000);
+      TestGuiSetup.waitForCondition(() -> nlsService.get("button.update").equals(update.getText()), 3000);
       TestGuiSetup.waitForCondition(() -> !update.isDisabled(), 3000);
 
       interact(update::fire);
@@ -114,14 +114,14 @@ public class UpgradeUpdateFlowTest extends HeadlessApplicationTest {
 
     @Override
     public void start(Stage stage) throws IOException {
-      UpdateController testUpdateController = new UpdateController(IdeGuiStateManager.getInstance()) {
+      UpdateController testUpdateController = new UpdateController(IdeGuiStateManager.getInstance(), nlsService) {
         @Override
         protected boolean checkForUpdates(IdeGuiContext context) {
           return false;
         }
       };
 
-      UpgradeController testUpgradeController = new UpgradeController(IdeGuiStateManager.getInstance());
+      UpgradeController testUpgradeController = new UpgradeController(IdeGuiStateManager.getInstance(), nlsService);
 
       TestGuiSetup.setupStageWithControllers(stage, mockIdeRoot, testUpdateController, testUpgradeController);
     }
@@ -155,9 +155,9 @@ public class UpgradeUpdateFlowTest extends HeadlessApplicationTest {
 
     @Override
     public void start(Stage stage) throws IOException {
-      UpdateController testUpdateController = new UpdateController(IdeGuiStateManager.getInstance());
+      UpdateController testUpdateController = new UpdateController(IdeGuiStateManager.getInstance(), nlsService);
 
-      UpgradeController testUpgradeController = new UpgradeController(IdeGuiStateManager.getInstance()) {
+      UpgradeController testUpgradeController = new UpgradeController(IdeGuiStateManager.getInstance(), nlsService) {
         private boolean upgraded = false;
 
         @Override
@@ -178,8 +178,7 @@ public class UpgradeUpdateFlowTest extends HeadlessApplicationTest {
     public void testUpgradeAvailableAndCompletes() throws InterruptedException {
       StackPane indicator = lookup("#upgradeIndicator").queryAs(StackPane.class);
 
-      I18nService i18n = I18nService.getInstance();
-      String availableStatus = MessageFormat.format(i18n.get("status.upgrade.available"), "", "");
+      String availableStatus = MessageFormat.format(nlsService.get("status.upgrade.available"), "", "");
 
       // 1. Wait for indicator to become visible (indicates upgrade available)
       TestGuiSetup.waitForCondition(indicator::isVisible, 5000);
@@ -216,9 +215,9 @@ public class UpgradeUpdateFlowTest extends HeadlessApplicationTest {
 
     @Override
     public void start(Stage stage) throws IOException {
-      UpdateController testUpdateController = new UpdateController(IdeGuiStateManager.getInstance());
+      UpdateController testUpdateController = new UpdateController(IdeGuiStateManager.getInstance(), nlsService);
 
-      UpgradeController testUpgradeController = new UpgradeController(IdeGuiStateManager.getInstance()) {
+      UpgradeController testUpgradeController = new UpgradeController(IdeGuiStateManager.getInstance(), nlsService) {
         @Override
         protected boolean checkForUpgrade() {
           return false;

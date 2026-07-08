@@ -10,7 +10,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
-import com.devonfw.ide.gui.i18n.I18nService;
+import com.devonfw.ide.gui.nls.NlsService;
 import com.devonfw.ide.gui.update.UpdateController;
 import com.devonfw.ide.gui.update.UpgradeController;
 
@@ -26,9 +26,7 @@ public final class TestGuiSetup {
   public static Parent setupStageWithControllers(Stage stage, Path mockIdeRoot, UpdateController updateController,
       UpgradeController upgradeController) throws IOException {
 
-    // Initialize i18n
-    I18nService.resetInstance();
-    I18nService.getInstance(Locale.ENGLISH);
+    NlsService nlsService = new NlsService(Locale.ENGLISH);
 
     // Ensure fake project structure exists when provided
     if (mockIdeRoot != null) {
@@ -47,14 +45,14 @@ public final class TestGuiSetup {
     }
 
     FXMLLoader fxmlLoader = new FXMLLoader(mainViewUrl);
-    fxmlLoader.setResources(I18nService.getInstance().getResourceBundle());
+    fxmlLoader.setResources(nlsService.getResourceBundle());
 
     // If controllers are null, create default deterministic ones
-    UpdateController uc = updateController == null ? new UpdateController(IdeGuiStateManager.getInstance()) : updateController;
-    UpgradeController ugc = upgradeController == null ? new UpgradeController(IdeGuiStateManager.getInstance()) : upgradeController;
+    UpdateController uc = updateController == null ? new UpdateController(IdeGuiStateManager.getInstance(), nlsService) : updateController;
+    UpgradeController ugc = upgradeController == null ? new UpgradeController(IdeGuiStateManager.getInstance(), nlsService) : upgradeController;
 
     fxmlLoader.setController(new MainController(mockIdeRoot != null ? mockIdeRoot.toString() : System.getProperty("java.io.tmpdir"),
-        IdeGuiStateManager.getInstance().getProjectManager(), uc, ugc));
+        IdeGuiStateManager.getInstance().getProjectManager(), uc, ugc, nlsService));
 
     Parent root = fxmlLoader.load();
     stage.setScene(new Scene(root));

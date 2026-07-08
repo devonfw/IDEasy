@@ -12,18 +12,17 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.StackPane;
-import javafx.util.Duration;
-
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.context.IdeGuiContext;
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
-import com.devonfw.ide.gui.i18n.I18nService;
 import com.devonfw.ide.gui.modal.IdeDialog;
+import com.devonfw.ide.gui.nls.NlsService;
 import com.devonfw.ide.gui.tray.TrayNotificationService;
 import com.devonfw.tools.ide.commandlet.UpdateCommandlet;
 import com.devonfw.tools.ide.git.GitContext;
@@ -63,7 +62,7 @@ public class UpdateController {
   private static final double POST_UPDATE_RECHECK_DELAY_MILLIS = 500d;
 
   private final IdeGuiStateManager manager;
-  private final I18nService i18n = I18nService.getInstance();
+  private final NlsService nlsService;
 
   private StackPane updateIndicator;
   private Stage dialogStage;
@@ -79,9 +78,11 @@ public class UpdateController {
   private String currentStatusKey;
   private String currentStatusDetail;
 
-  public UpdateController(IdeGuiStateManager manager) {
+  public UpdateController(IdeGuiStateManager manager, NlsService nlsService) {
     this.manager = manager;
+    this.nlsService = nlsService;
   }
+
 
   /**
    * Sets a mock update availability for testing. If set to a non-null value, {@link #checkForUpdates(IdeGuiContext)} will return that value instead of
@@ -104,7 +105,7 @@ public class UpdateController {
     try {
       if (this.updateIndicator != null) {
         this.updateIndicator.setVisible(false);
-        Tooltip.install(this.updateIndicator, new Tooltip(i18n.get(TOOLTIP_KEY_AVAILABLE)));
+        Tooltip.install(this.updateIndicator, new Tooltip(nlsService.get(TOOLTIP_KEY_AVAILABLE)));
         this.updateIndicator.setOnMouseClicked(ev -> {
           ev.consume();
           Platform.runLater(this::showDialog);
@@ -146,7 +147,7 @@ public class UpdateController {
         // show a notification dialog but do not allow failures here to prevent
         // breaking the update flow in environments where dialogs are not
         // supported (headless CI).
-        new IdeDialog(IdeDialog.AlertType.INFORMATION, this.i18n.get(DIALOG_KEY_COMPLETED)).show();
+        new IdeDialog(IdeDialog.AlertType.INFORMATION, this.nlsService.get(DIALOG_KEY_COMPLETED)).show();
       } catch (Throwable t) {
         LOG.debug("Failed to show completion dialog", t);
       }
@@ -210,10 +211,10 @@ public class UpdateController {
     setStatusText(resolveStatusText());
     try {
       if (this.updateIndicator != null) {
-        Tooltip.install(this.updateIndicator, new Tooltip(i18n.get(TOOLTIP_KEY_AVAILABLE)));
+        Tooltip.install(this.updateIndicator, new Tooltip(nlsService.get(TOOLTIP_KEY_AVAILABLE)));
       }
       if (this.upgradeButton != null) {
-        this.upgradeButton.setText(i18n.get(BUTTON_KEY_UPDATE));
+        this.upgradeButton.setText(nlsService.get(BUTTON_KEY_UPDATE));
       }
     } catch (Throwable t) {
       LOG.debug("Failed to refresh update status text", t);
@@ -254,7 +255,7 @@ public class UpdateController {
 
     checkTask.setOnFailed(ignored -> {
       LOG.warn("Update check failed", checkTask.getException());
-      showUpdateFailed(i18n.get(STATUS_KEY_UNAVAILABLE));
+      showUpdateFailed(nlsService.get(STATUS_KEY_UNAVAILABLE));
     });
 
     startBackgroundTask(checkTask, THREAD_UPDATE_CHECKER);
@@ -365,7 +366,7 @@ public class UpdateController {
     if (this.currentStatusKey == null) {
       return "";
     }
-    String text = this.i18n.get(this.currentStatusKey);
+    String text = this.nlsService.get(this.currentStatusKey);
     if (this.currentStatusDetail != null) {
       return text + this.currentStatusDetail;
     }
@@ -392,7 +393,7 @@ public class UpdateController {
 
   private void showTrayNotification() {
     try {
-      TrayNotificationService.show(this.i18n.get(TRAY_KEY_CAPTION), this.i18n.get(TRAY_KEY_TEXT), () -> Platform.runLater(this::showDialog));
+      TrayNotificationService.show(this.nlsService.get(TRAY_KEY_CAPTION), this.nlsService.get(TRAY_KEY_TEXT), () -> Platform.runLater(this::showDialog));
     } catch (Throwable t) {
       LOG.debug("Failed to show tray notification", t);
     }
@@ -402,12 +403,12 @@ public class UpdateController {
     try {
       if (this.dialogStage == null) {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/devonfw/ide/gui/upgrade-dialog.fxml"));
-        loader.setResources(i18n.getResourceBundle());
+        loader.setResources(nlsService.getResourceBundle());
         loader.setController(this);
         Parent root = loader.load();
 
         this.dialogStage = new Stage();
-        this.dialogStage.setTitle(i18n.get(TRAY_KEY_CAPTION));
+        this.dialogStage.setTitle(nlsService.get(TRAY_KEY_CAPTION));
         this.dialogStage.initModality(Modality.APPLICATION_MODAL);
         this.dialogStage.setScene(new Scene(root));
         this.dialogStage.setWidth(420);
@@ -419,7 +420,7 @@ public class UpdateController {
 
       updateDialogStatus();
       if (this.upgradeButton != null) {
-        this.upgradeButton.setText(i18n.get(BUTTON_KEY_UPDATE));
+        this.upgradeButton.setText(nlsService.get(BUTTON_KEY_UPDATE));
         this.upgradeButton.setDisable(!STATUS_KEY_AVAILABLE.equals(this.currentStatusKey));
       }
 

@@ -42,11 +42,11 @@
         </HBox>
         <VBox maxHeight="-Infinity" prefWidth="100.0" styleClass="sideNavigationElement">
           <children>
-            <Label fx:id="labelProject" maxWidth="1.7976931348623157E308" text="%label.project"/>
+            <Label fx:id="labelProject" maxWidth="1.7976931348623157E308" text="%project"/>
             <StackPane>
               <children>
                 <ComboBox fx:id="selectedProject" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefHeight="40.0" prefWidth="150.0"
-                  promptText="%prompt.chooseProject" styleClass="chooseProject"/>
+                  promptText="%chooseProject" styleClass="chooseProject"/>
                 <StackPane fx:id="updateIndicator" prefHeight="24.0" prefWidth="24.0" translateX="100" translateY="-50" visible="false"
                   StackPane.alignment="TOP_RIGHT" pickOnBounds="false" style="-fx-cursor: hand;">
                   <children>
@@ -66,9 +66,9 @@
         </VBox>
         <VBox layoutX="20.0" layoutY="245.0" maxHeight="-Infinity" prefWidth="100.0" styleClass="sideNavigationElement">
           <children>
-            <Label fx:id="labelWorkspace" maxWidth="1.7976931348623157E308" text="%label.workspace"/>
+            <Label fx:id="labelWorkspace" maxWidth="1.7976931348623157E308" text="%workspace"/>
             <ComboBox fx:id="selectedWorkspace" disable="true" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefHeight="40.0" prefWidth="150.0"
-              promptText="%prompt.chooseWorkspace" styleClass="chooseProject" VBox.vgrow="ALWAYS"/>
+              promptText="%chooseWorkspace" styleClass="chooseProject" VBox.vgrow="ALWAYS"/>
           </children>
           <padding>
             <Insets left="8.0" right="8.0"/>
@@ -77,9 +77,9 @@
         <!-- Language selector -->
         <VBox maxHeight="-Infinity" prefWidth="100.0" styleClass="sideNavigationElement">
           <children>
-            <Label fx:id="labelLanguage" maxWidth="1.7976931348623157E308" text="%label.language"/>
+            <Label fx:id="labelLanguage" maxWidth="1.7976931348623157E308" text="%language"/>
             <ComboBox fx:id="selectedLanguage" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefHeight="40.0" prefWidth="150.0"
-              promptText="%prompt.chooseLanguage" styleClass="chooseProject"/>
+              promptText="%chooseLanguage" styleClass="chooseProject"/>
           </children>
           <padding>
             <Insets left="8.0" right="8.0"/>
@@ -129,7 +129,7 @@
                 <Label styleClass="ideTitle" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2C2C2C;" text="Android Studio"/>
                 <Button fx:id="androidStudioOpen" disable="true" mnemonicParsing="false" onAction="#openAndroidStudio" styleClass="launchButton"
                   style="-fx-padding: 9 28 9 28; -fx-font-size: 14px; -fx-background-radius: 8; -fx-border-radius: 8;"
-                  text="%button.open">
+                  text="%open">
                   <VBox.margin>
                     <Insets top="6.0"/>
                   </VBox.margin>
@@ -154,7 +154,7 @@
                 <Label styleClass="ideTitle" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2C2C2C;" text="Eclipse"/>
                 <Button fx:id="eclipseOpen" disable="true" mnemonicParsing="false" onAction="#openEclipse" styleClass="launchButton"
                   style="-fx-padding: 9 28 9 28; -fx-font-size: 14px; -fx-background-radius: 8; -fx-border-radius: 8;"
-                  text="%button.open">
+                  text="%open">
                   <VBox.margin>
                     <Insets top="6.0"/>
                   </VBox.margin>
@@ -179,7 +179,7 @@
                 <Label styleClass="ideTitle" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2C2C2C;" text="Intellij"/>
                 <Button fx:id="intellijOpen" disable="true" mnemonicParsing="false" onAction="#openIntellij" styleClass="launchButton"
                   style="-fx-padding: 9 28 9 28; -fx-font-size: 14px; -fx-background-radius: 8; -fx-border-radius: 8;"
-                  text="%button.open">
+                  text="%open">
                   <VBox.margin>
                     <Insets top="6.0"/>
                   </VBox.margin>
@@ -204,7 +204,7 @@
                 <Label styleClass="ideTitle" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2C2C2C;" text="VS Code"/>
                 <Button fx:id="vsCodeOpen" disable="true" mnemonicParsing="false" onAction="#openVsCode" styleClass="launchButton"
                   style="-fx-padding: 9 28 9 28; -fx-font-size: 14px; -fx-background-radius: 8; -fx-border-radius: 8;"
-                  text="%button.open">
+                  text="%open">
                   <VBox.margin>
                     <Insets top="6.0"/>
                   </VBox.margin>

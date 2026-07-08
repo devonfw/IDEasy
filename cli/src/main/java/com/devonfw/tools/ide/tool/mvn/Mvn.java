@@ -13,7 +13,6 @@ import java.util.regex.Matcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.io.FileAccess;
@@ -21,16 +20,16 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.variable.VariableSyntax;
 
+
 /**
  * {@link ToolCommandlet} for <a href="https://maven.apache.org/">maven</a>.
  */
-public class Mvn extends LocalToolCommandlet {
+public class Mvn extends MavenCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Mvn.class);
 
@@ -69,8 +68,9 @@ public class Mvn extends LocalToolCommandlet {
    */
   public Mvn(IdeContext context) {
 
-    super(context, "mvn", Set.of(Tag.JAVA, Tag.BUILD));
+    super(context, "mvn");
   }
+
 
   @Override
   protected void configureToolBinary(ProcessContext pc, ProcessMode processMode) {

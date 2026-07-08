@@ -1,0 +1,87 @@
+name: External Issue & PR Observer
+
+# Posts a weekday-morning digest of new EXTERNAL issues/PRs (last 24h) to a Teams
+# channel so incoming reports from outside the team are noticed quickly and don't slip.
+# "External" = author_association is not MEMBER, OWNER or COLLABORATOR.
+# Requires the repository secret TEAMS_WEBHOOK_URL (a Teams "Workflows" incoming webhook).
+
+on:
+  workflow_dispatch:          
+  schedule:
+    - cron: '0 7 * * 1-5'     # 07:00 UTC, Mon-Fri (= 09:00 CEST summer / 08:00 CET winter)
+
+permissions:
+  issues: read
+  pull-requests: read
+  contents: read
+
+jobs:
+  observe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Scan for new external issues & PRs and notify Teams
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WEBHOOK: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          REPO: ${{ github.repository }}
+        run: |
+          # Monday catches up the weekend (Fri–Sun); other weekdays look back 24h.
+          if [ "$(date -u +%u)" -eq 1 ]; then
+            SINCE=$(date -u -d '3 days ago' +%Y-%m-%dT%H:%M:%SZ)
+          else
+            SINCE=$(date -u -d '1 day ago' +%Y-%m-%dT%H:%M:%SZ)
+          fi
+          echo "Scanning $REPO for items created since $SINCE"
+
+          # Search returns both issues and PRs; keep only external authors (not on the team)
+          # and emit a structured object per item so the card can lay them out nicely.
+          ITEMS_JSON=$(gh api -X GET search/issues \
+            -f q="repo:$REPO created:>=$SINCE" \
+            --jq '[.items[]
+              | select(.author_association != "MEMBER"
+                   and .author_association != "OWNER"
+                   and .author_association != "COLLABORATOR")
+              | {
+                  kind:   (if .pull_request then "Pull Request" else "Issue" end),
+                  icon:   (if .pull_request then "🔵" else "🟢" end),
+                  number: .number,
+                  title:  .title,
+                  url:    .html_url,
+                  user:   .user.login
+                }]')
+
+          COUNT=$(echo "$ITEMS_JSON" | jq 'length')
+          if [ "$COUNT" -eq 0 ]; then
+            echo "No new external issues or PRs. Skipping Teams-notification."
+            exit 0
+          fi
+          echo "$COUNT new external issue(s)/PR(s) found."
+
+          # Teams' webhook wants a bare Adaptive Card: top-level type must be
+          # "AdaptiveCard", not wrapped in a message/attachments envelope.
+          CARD=$(echo "$ITEMS_JSON" | jq --argjson count "$COUNT" '{
+            type: "AdaptiveCard",
+            "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+            version: "1.4",
+            body: (
+              [
+                { type: "TextBlock", size: "Large", weight: "Bolder", wrap: true,
+                  text: "🆕 Neue externe Issues & Pull Requests" },
+                { type: "TextBlock", spacing: "None", isSubtle: true, wrap: true,
+                  text: ("Letzter Zeitraum · " + (if $count == 1 then "1 neuer Eintrag" else "\($count) neue Einträge" end)) }
+              ]
+              + [ .[] | {
+                    type: "Container",
+                    separator: true,
+                    spacing: "Medium",
+                    items: [
+                      { type: "TextBlock", weight: "Bolder", wrap: true,
+                        text: "\(.icon) #\(.number) · \(.title)" },
+                      { type: "TextBlock", spacing: "None", isSubtle: true, size: "Small", wrap: true,
+                        text: "\(.kind) · von @\(.user) · [Öffnen](\(.url))" }
+                    ]
+                  } ]
+            )
+          }')
+
+          curl -sS --fail -X POST -H "Content-Type: application/json" -d "$CARD" "$WEBHOOK"

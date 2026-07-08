@@ -45,7 +45,10 @@ public class IdeCompleter implements Completer {
     List<CompletionCandidate> completion = this.context.complete(args, true);
     int i = 0;
     for (CompletionCandidate candidate : completion) {
-      candidates.add(new Candidate(candidate.text(), candidate.text(), null, null, null, null, true, i++));
+
+      // candidates ending with "=" avoid appending a whitespace
+      boolean complete = !candidate.text().endsWith("=");
+      candidates.add(new Candidate(candidate.text(), candidate.text(), null, null, null, null, complete, i++));
     }
   }
 

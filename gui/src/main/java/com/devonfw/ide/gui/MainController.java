@@ -2,8 +2,10 @@ package com.devonfw.ide.gui;
 
 import java.io.FileNotFoundException;
 import java.nio.file.NotDirectoryException;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -15,8 +17,8 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
 import com.devonfw.ide.gui.context.ProjectManager;
-import com.devonfw.ide.gui.i18n.I18nService;
 import com.devonfw.ide.gui.modal.IdeDialog;
+import com.devonfw.ide.gui.nls.NlsService;
 import com.devonfw.ide.gui.update.UpdateController;
 import com.devonfw.ide.gui.update.UpgradeController;
 
@@ -38,15 +40,6 @@ public class MainController {
 
   @FXML
   private ComboBox<String> selectedWorkspace;
-
-  @FXML
-  private Label labelProject;
-
-  @FXML
-  private Label labelWorkspace;
-
-  @FXML
-  private Label labelLanguage;
 
   @FXML
   private ComboBox<String> selectedLanguage;
@@ -73,42 +66,45 @@ public class MainController {
 
   private final UpgradeController upgradeController;
 
+  private final NlsService nlsService;
+
   private final String directoryPath;
 
+  private final Map<String, Locale> languageMap;
 
   /**
    * Constructor
    */
-  public MainController(String directoryPath) {
-    this(directoryPath, IdeGuiStateManager.getInstance().getProjectManager(), new UpdateController(IdeGuiStateManager.getInstance()),
-        new UpgradeController(IdeGuiStateManager.getInstance()));
+  public MainController(String directoryPath, NlsService nlsService) {
+    this(directoryPath, IdeGuiStateManager.getInstance().getProjectManager(), new UpdateController(IdeGuiStateManager.getInstance(), nlsService),
+        new UpgradeController(IdeGuiStateManager.getInstance(), nlsService), nlsService);
   }
 
   /**
-   * Constructor with injected project manager and update controller.
+   * Constructor with injected dependencies.
    *
    * @param directoryPath IDE root path
    * @param projectManager the project manager to use
    * @param updateController update controller to use for project related update actions
    * @param upgradeController upgrade controller to use for IDEasy upgrade actions
    */
-  public MainController(String directoryPath, ProjectManager projectManager, UpdateController updateController,
-      UpgradeController upgradeController) {
+  public MainController(String directoryPath, ProjectManager projectManager, UpdateController updateController, UpgradeController upgradeController,
+      NlsService nlsService) {
 
     LOG.debug("IDE_ROOT path={}", directoryPath);
     this.directoryPath = directoryPath;
-
+    this.languageMap = new LinkedHashMap<>();
+    this.nlsService = nlsService;
     this.projectManager = projectManager;
     this.updateController = updateController;
     this.upgradeController = upgradeController;
+
   }
 
   @FXML
   private void initialize() {
     setProjectsComboBox();
     initLanguageComboBox();
-    updateTexts();
-    I18nService.getInstance().addLocaleChangeListener(this::updateTexts);
     initUpgradeAndUpdateCheck();
   }
 
@@ -131,60 +127,52 @@ public class MainController {
     }
   }
 
-  @FXML
-  private void dispose() {
-    I18nService.getInstance().removeLocaleChangeListener(this::updateTexts);
-  }
-
   private void initLanguageComboBox() {
 
-    // Initialize language choices
+    this.languageMap.clear();
     selectedLanguage.getItems().clear();
-    selectedLanguage.getItems().addAll("English", "Deutsch");
 
-    // Select current locale
-    Locale current = I18nService.getInstance().getLocale();
-    if (current != null && "de".equals(current.getLanguage())) {
-      selectedLanguage.setValue("Deutsch");
-    } else {
-      selectedLanguage.setValue("English");
+    for (Locale locale : nlsService.getAvailableLocales()) {
+      String displayName = nlsService.getLanguageDisplayName(locale);
+      this.languageMap.put(displayName, locale);
     }
+
+    selectedLanguage.getItems().addAll(this.languageMap.keySet());
+    //initial value
+    selectedLanguage.setValue(resolveLanguageSelection(nlsService.getLocale()));
 
     selectedLanguage.setOnAction(ev -> {
       String selection = selectedLanguage.getValue();
-      Locale newLocale = "Deutsch".equals(selection) ? Locale.GERMAN : Locale.ENGLISH;
-      I18nService.getInstance().setLocale(newLocale);
+      Locale newLocale = this.languageMap.get(selection);
+      if (newLocale != null) {
+        nlsService.setLocale(newLocale);
+      }
     });
   }
 
-  /**
-   * Use this method to update UI texts to change locale when adding new UI Elements. It uses a simple naming convention for the keys in the resource bundle.
-   * Found in message.properties and message_de.properties
-   */
-  private void updateTexts() {
-    I18nService i18n = I18nService.getInstance();
-    // Set Labels
-    labelProject.setText(i18n.get("label.project"));
-    labelWorkspace.setText(i18n.get("label.workspace"));
-    labelLanguage.setText(i18n.get("label.language"));
+  private String resolveLanguageSelection(Locale currentLocale) {
 
-    // Set ComboBox prompts
-    selectedProject.setPromptText(i18n.get("prompt.chooseProject"));
-    selectedWorkspace.setPromptText(i18n.get("prompt.chooseWorkspace"));
-    selectedLanguage.setPromptText(i18n.get("prompt.chooseLanguage"));
-
-    // Set Button texts
-    androidStudioOpen.setText(i18n.get("button.open"));
-    eclipseOpen.setText(i18n.get("button.open"));
-    intellijOpen.setText(i18n.get("button.open"));
-    vsCodeOpen.setText(i18n.get("button.open"));
-
-    if (this.updateController != null) {
-      this.updateController.refreshStatusText();
+    if (currentLocale == null) {
+      return this.languageMap.keySet().stream().findFirst().orElse(null);
     }
-    if (this.upgradeController != null) {
-      this.upgradeController.refreshStatusText();
+
+    String languageTagMatch = null;
+    String languageMatch = null;
+
+    for (Map.Entry<String, Locale> entry : this.languageMap.entrySet()) {
+      Locale entryLocale = entry.getValue();
+      // Exact language tag match takes priority
+      if (entryLocale.toLanguageTag().equalsIgnoreCase(currentLocale.toLanguageTag())) {
+        return entry.getKey();
+      }
+      // Track language-only match as fallback
+      if (languageMatch == null && entryLocale.getLanguage().equalsIgnoreCase(currentLocale.getLanguage())) {
+        languageMatch = entry.getKey();
+      }
     }
+
+    // Return language-only match if found, otherwise first available
+    return languageMatch != null ? languageMatch : this.languageMap.keySet().stream().findFirst().orElse(null);
   }
 
 
@@ -211,7 +199,6 @@ public class MainController {
 
     openIDE("vscode");
   }
-
 
   private void setProjectsComboBox() {
 

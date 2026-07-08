@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.context.IdeGuiContext;
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
-import com.devonfw.ide.gui.i18n.I18nService;
+import com.devonfw.ide.gui.nls.NlsService;
 import com.devonfw.ide.gui.tray.TrayNotificationService;
 import com.devonfw.tools.ide.commandlet.UpgradeCommandlet;
 import com.devonfw.tools.ide.tool.IdeasyCommandlet;
@@ -48,7 +48,7 @@ public class UpgradeController {
   public static final String BUTTON_UPGRADE = "button.upgrade";
 
   private final IdeGuiStateManager manager;
-  private final I18nService i18n = I18nService.getInstance();
+  private final NlsService nlsService;
 
   private StackPane upgradeIndicator;
   private Stage dialogStage;
@@ -68,8 +68,9 @@ public class UpgradeController {
   private String latestVersionString = "";
   private boolean justUpgraded = false;
 
-  public UpgradeController(IdeGuiStateManager manager) {
+  public UpgradeController(IdeGuiStateManager manager, NlsService nlsService) {
     this.manager = manager;
+    this.nlsService = nlsService;
   }
 
   public void start(StackPane upgradeIndicator) {
@@ -79,7 +80,7 @@ public class UpgradeController {
     try {
       if (this.upgradeIndicator != null) {
         this.upgradeIndicator.setVisible(false);
-        Tooltip.install(this.upgradeIndicator, new Tooltip(i18n.get(TOOLTIP_UPGRADE_AVAILABLE)));
+        Tooltip.install(this.upgradeIndicator, new Tooltip(nlsService.get(TOOLTIP_UPGRADE_AVAILABLE)));
         // click handled by this controller
         this.upgradeIndicator.setOnMouseClicked(ev -> {
           ev.consume();
@@ -91,7 +92,7 @@ public class UpgradeController {
     }
     startCheck();
   }
-
+ 
   /**
    * Starts upgrade invoked from the dialog.
    */
@@ -239,10 +240,10 @@ public class UpgradeController {
     updateDialogStatus();
     try {
       if (this.upgradeIndicator != null) {
-        Tooltip.install(this.upgradeIndicator, new Tooltip(i18n.get(TOOLTIP_UPGRADE_AVAILABLE)));
+        Tooltip.install(this.upgradeIndicator, new Tooltip(nlsService.get(TOOLTIP_UPGRADE_AVAILABLE)));
       }
       if (this.upgradeButton != null) {
-        this.upgradeButton.setText(i18n.get(BUTTON_UPGRADE));
+        this.upgradeButton.setText(nlsService.get(BUTTON_UPGRADE));
       }
     } catch (Throwable t) {
       LOG.debug("Failed to refresh status text", t);
@@ -263,7 +264,7 @@ public class UpgradeController {
     if (this.currentStatusKey == null) {
       return "";
     }
-    String text = this.i18n.get(this.currentStatusKey);
+    String text = this.nlsService.get(this.currentStatusKey);
     if (STATUS_KEY_AVAILABLE.equals(this.currentStatusKey) || STATUS_KEY_UP_TO_DATE.equals(this.currentStatusKey)
         || STATUS_KEY_UPDATED.equals(this.currentStatusKey)) {
       try {
@@ -295,12 +296,12 @@ public class UpgradeController {
       // Load dialog FXML if not already loaded
       if (this.dialogStage == null) {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/devonfw/ide/gui/upgrade-dialog.fxml"));
-        loader.setResources(i18n.getResourceBundle());
+        loader.setResources(nlsService.getResourceBundle());
         loader.setController(this);
         Parent root = loader.load();
 
         this.dialogStage = new Stage();
-        this.dialogStage.setTitle(i18n.get(TRAY_KEY_CAPTION));
+        this.dialogStage.setTitle(nlsService.get(TRAY_KEY_CAPTION));
         this.dialogStage.initModality(Modality.APPLICATION_MODAL);
         this.dialogStage.setScene(new Scene(root));
         this.dialogStage.setWidth(420);
@@ -337,7 +338,7 @@ public class UpgradeController {
   private void showTrayNotification() {
     try {
       // attach click action that runs upgrade on FX thread
-      TrayNotificationService.show(i18n.get(TRAY_KEY_CAPTION), i18n.get(TRAY_KEY_TEXT), () -> Platform.runLater(this::showDialog));
+      TrayNotificationService.show(nlsService.get(TRAY_KEY_CAPTION), nlsService.get(TRAY_KEY_TEXT), () -> Platform.runLater(this::showDialog));
     } catch (Throwable t) {
       LOG.debug("Failed to show tray notification", t);
     }

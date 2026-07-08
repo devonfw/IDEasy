@@ -5,13 +5,11 @@ import static org.testfx.assertions.api.Assertions.assertThat;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Locale;
-import javafx.event.ActionEvent;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
-import javafx.stage.Stage;
 import javafx.scene.layout.StackPane;
+import javafx.stage.Stage;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -19,7 +17,6 @@ import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.ide.gui.context.IdeGuiContext;
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
 
 
@@ -32,7 +29,6 @@ public class AppBaseTest extends HeadlessApplicationTest {
 
   private Button androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen;
   private ComboBox<String> selectedProject, selectedWorkspace;
-  private ComboBox<String> selectedLanguage;
   private StackPane updateIndicator;
 
   @TempDir
@@ -52,7 +48,6 @@ public class AppBaseTest extends HeadlessApplicationTest {
     vsCodeOpen = lookup(root, "#vsCodeOpen");
     selectedProject = lookup(root, "#selectedProject");
     selectedWorkspace = lookup(root, "#selectedWorkspace");
-    selectedLanguage = lookup(root, "#selectedLanguage");
     updateIndicator = lookup(root, "#updateIndicator");
   }
 
@@ -61,7 +56,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
    * to work in the test context. Generates a structure like this: /project-[0..6]/workspaces/main
    */
   @BeforeAll
-  protected static void generateProjectFolderStructure() throws IOException {
+  public static void generateProjectFolderStructure() throws IOException {
 
     LOGGER.debug("tempDir: {}", mockIdeRoot);
     FakeProjectFolderStructureHelper.createFakeProjectFolderStructure(mockIdeRoot);
@@ -141,31 +136,6 @@ public class AppBaseTest extends HeadlessApplicationTest {
         .isFalse();
   }
 
-  @Test
-  public void testSwitchingLocaleUpdatesTextsWithoutChangingProjectSelection() {
-
-    interact(() -> selectedProject.getSelectionModel().select("project-1"));
-    interact(() -> selectedWorkspace.getSelectionModel().select("main"));
-
-    String projectBefore = selectedProject.getValue();
-    String workspaceBefore = selectedWorkspace.getValue();
-    String buttonTextBefore = androidStudioOpen.getText();
-    IdeGuiContext contextBefore = IdeGuiStateManager.getInstance().getCurrentContext();
-
-    interact(() -> {
-      selectedLanguage.setValue("Deutsch");
-      ActionEvent actionEvent = new ActionEvent(selectedLanguage, null);
-      if (selectedLanguage.getOnAction() != null) {
-        selectedLanguage.getOnAction().handle(actionEvent);
-      }
-    });
-
-    assertThat(selectedProject.getValue()).isEqualTo(projectBefore);
-    assertThat(selectedWorkspace.getValue()).isEqualTo(workspaceBefore);
-    assertThat(IdeGuiStateManager.getInstance().getCurrentContext()).isSameAs(contextBefore);
-    assertThat(selectedLanguage.getValue()).isEqualTo("Deutsch");
-    assertThat(androidStudioOpen.getText()).isNotEqualTo(buttonTextBefore);
-  }
 
   @SuppressWarnings("unchecked")
   private static <T> T lookup(Parent root, String selector) {
