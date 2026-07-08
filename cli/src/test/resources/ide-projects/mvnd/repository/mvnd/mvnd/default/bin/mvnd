@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+if [ "$1" == "--version" ]; then
+  echo "1.0.0"
+else
+  echo "mvnd $*"
+fi
+
