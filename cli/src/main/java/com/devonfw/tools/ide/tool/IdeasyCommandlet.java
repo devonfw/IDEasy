@@ -343,7 +343,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
         installWindowsDesktopShortcut(installationPath);
       }
     } catch (Exception e) {
-      LOG.warn("Failed to create desktop shortcut: {}", e.getMessage());
+      LOG.warn("Failed to create desktop shortcut.", e);
     }
   }
 
@@ -357,18 +357,14 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     Path ideasyBin = installationPath.resolve("bin/ideasy");
     Path logoPath = installationPath.resolve("gui/logo.png");
     String content = Files.readString(templateFile)
-        .replace("IDEASY_BIN", ideasyBin.toString())
-        .replace("IDEASY_ICON", logoPath.toString());
+        .replace("@IDEASY_BIN@", ideasyBin.toString())
+        .replace("@IDEASY_ICON@", logoPath.toString());
 
     Path applicationsDir = this.context.getUserHome().resolve(".local/share/applications");
     this.context.getFileAccess().mkdirs(applicationsDir);
     Path desktopFile = applicationsDir.resolve("ideasy-gui.desktop");
-    Files.writeString(desktopFile, content);
-    try {
-      Files.setPosixFilePermissions(desktopFile, FileAccess.RWX_RX_RX);
-    } catch (UnsupportedOperationException e) {
-      LOG.debug("Could not set POSIX permissions on {}", desktopFile);
-    }
+    this.context.getFileAccess().writeFileContent(content, desktopFile);
+    this.context.getFileAccess().makeExecutable(desktopFile);
 
     // without this, the new entry is only visible in application menus after the next login
     try {
@@ -390,19 +386,16 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     IdeLogLevel.SUCCESS.log(LOG, "Created desktop shortcut at {}", desktopFile);
   }
 
-  private void installMacDesktopShortcut(Path installationPath) throws IOException {
+  private void installMacDesktopShortcut(Path installationPath) {
 
     Path ideasyBin = installationPath.resolve("bin/ideasy");
-    String content = "#!/bin/bash\n\"" + ideasyBin + "\" gui\n";
+    String escapedBin = ideasyBin.toString().replace("\"", "\\\"");
+    String content = "#!/bin/bash\n\"" + escapedBin + "\" gui\n";
     Path applicationsDir = this.context.getUserHome().resolve("Applications");
     this.context.getFileAccess().mkdirs(applicationsDir);
     Path commandFile = applicationsDir.resolve("IDEasy GUI.command");
-    Files.writeString(commandFile, content);
-    try {
-      Files.setPosixFilePermissions(commandFile, FileAccess.RWX_RX_RX);
-    } catch (UnsupportedOperationException e) {
-      LOG.debug("Could not set POSIX permissions on {}", commandFile);
-    }
+    this.context.getFileAccess().writeFileContent(content, commandFile);
+    this.context.getFileAccess().makeExecutable(commandFile);
     IdeLogLevel.SUCCESS.log(LOG, "Created macOS launcher at {}", commandFile);
   }
 
@@ -414,11 +407,13 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     WindowsHelper helper = WindowsHelper.get(this.context);
     String desktopStr = helper.getRegistryValue(
         "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders", "Desktop");
-    Path desktopPath = (desktopStr != null) ? Path.of(desktopStr) : this.context.getUserHome().resolve("Desktop");
+    Path desktopPath = (desktopStr != null && !desktopStr.isBlank()) ? Path.of(desktopStr) : this.context.getUserHome().resolve("Desktop");
     this.context.getFileAccess().mkdirs(desktopPath);
     createWindowsShortcut(desktopPath.resolve("IDEasy GUI.lnk"), ideasyExe, icoPath);
-    Path startMenu = this.context.getUserHome()
-        .resolve("AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs");
+    String startMenuStr = helper.getRegistryValue(
+        "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders", "Programs");
+    Path startMenu = (startMenuStr != null && !startMenuStr.isBlank()) ? Path.of(startMenuStr)
+        : this.context.getUserHome().resolve("AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs");
     if (Files.isDirectory(startMenu)) {
       createWindowsShortcut(startMenu.resolve("IDEasy GUI.lnk"), ideasyExe, icoPath);
     }
@@ -441,7 +436,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
           .run(ProcessMode.DEFAULT_CAPTURE);
       IdeLogLevel.SUCCESS.log(LOG, "Created shortcut at {}", lnkPath);
     } catch (Exception e) {
-      LOG.warn("Failed to create shortcut at {}: {}", lnkPath, e.getMessage());
+      LOG.warn("Failed to create shortcut at {}.", lnkPath, e);
     }
   }
 
