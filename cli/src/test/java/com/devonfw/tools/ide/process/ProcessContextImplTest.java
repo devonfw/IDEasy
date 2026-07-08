@@ -243,6 +243,23 @@ class ProcessContextImplTest extends AbstractIdeContextTest {
   }
 
   @Test
+  void removeEnvVarShouldRemoveVariableFromProcessEnvironment() {
+
+    // arrange
+    java.util.Map<String, String> env = new java.util.HashMap<>();
+    env.put("ANTHROPIC_API_KEY", "leaked-value");
+    env.put("KEEP_ME", "stays");
+    when(this.mockProcessBuilder.environment()).thenReturn(env);
+
+    // act
+    this.processContextUnderTest.removeEnvVar("ANTHROPIC_API_KEY");
+
+    // assert
+    assertThat(env).doesNotContainKey("ANTHROPIC_API_KEY");
+    assertThat(env).containsEntry("KEEP_ME", "stays");
+  }
+
+  @Test
   void testModifyArgumentsOnBackgroundProcessWithBackgroundMode() throws Exception {
 
     // This test verifies that modifyArgumentsOnBackgroundProcess works correctly
