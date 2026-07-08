@@ -41,7 +41,7 @@ class NgUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(any(urlMatching("/@angular/cli/-/cli-[1-9.].*.tgz")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    NgUrlUpdaterMock updater = new NgUrlUpdaterMock(wmRuntimeInfo);
+    NgUrlUpdater updater = new NgUrlUpdater(wmRuntimeInfo.getHttpBaseUrl() + "/");
 
     // act
     updater.update(urlRepository);

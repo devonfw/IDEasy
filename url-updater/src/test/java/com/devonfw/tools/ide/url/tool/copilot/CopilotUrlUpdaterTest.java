@@ -39,7 +39,7 @@ class CopilotUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(any(urlMatching("/github/copilot-cli/releases/download/.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    CopilotUrlUpdaterMock updater = new CopilotUrlUpdaterMock(wmRuntimeInfo);
+    CopilotUrlUpdater updater = new CopilotUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // act
     updater.update(urlRepository);

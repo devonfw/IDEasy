@@ -55,8 +55,8 @@ class PythonUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(any(urlMatching("/actions/python-versions/releases/download.*")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    PythonUrlUpdaterMock pythonUpdaterMock = new PythonUrlUpdaterMock(wmRuntimeInfo);
-    pythonUpdaterMock.update(urlRepository);
+    PythonUrlUpdater pythonUpdater = new PythonUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
+    pythonUpdater.update(urlRepository);
     Path pythonPath = tempDir.resolve("python").resolve("python").resolve("3.12.0");
 
     assertUrlVersionOsDefArch(pythonPath);

@@ -33,10 +33,11 @@ class VsCodiumUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(get(urlMatching("/repos/VSCodium/vscodium/releases")).willReturn(aResponse().withStatus(200)
         .withBody(Files.readAllBytes(PATH_INTEGRATION_TEST.resolve("VsCodiumUrlUpdater").resolve("vscodium-releases.json")))));
     stubFor(head(urlMatching("/.*/VSCodium-(linux|darwin|win32)-(x64|arm64)-.*\\.(tar\\.gz|zip)")).willReturn(aResponse().withStatus(200)));
-    stubFor(get(urlMatching("/.*/VSCodium-(linux|darwin|win32)-(x64|arm64)-.*\\.(tar\\.gz|zip)")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
+    stubFor(get(urlMatching("/.*/VSCodium-(linux|darwin|win32)-(x64|arm64)-.*\\.(tar\\.gz|zip)")).willReturn(
+        aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    VsCodiumUrlUpdaterMock updater = new VsCodiumUrlUpdaterMock(wmRuntimeInfo);
+    VsCodiumUrlUpdater updater = new VsCodiumUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
     // when
     updater.update(urlRepository);
 

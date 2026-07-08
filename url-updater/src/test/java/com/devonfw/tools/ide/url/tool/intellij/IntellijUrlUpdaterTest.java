@@ -60,7 +60,7 @@ class IntellijUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(any(urlMatching("/idea/idea.*\\.tar\\.gz\\.sha256")).willReturn(aResponse().withStatus(200).withBody(SHA_256)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    IntellijUrlUpdaterMock updater = new IntellijUrlUpdaterMock(wmRuntimeInfo);
+    IntellijUrlUpdater updater = new IntellijUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // act
     updater.update(urlRepository);
@@ -94,7 +94,7 @@ class IntellijUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(any(urlMatching("/idea/idea.*\\.tar\\.gz.*")).willReturn(aResponse().withStatus(404)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    IntellijUrlUpdaterMock updater = new IntellijUrlUpdaterMock(wmRuntimeInfo);
+    IntellijUrlUpdater updater = new IntellijUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // act
     updater.update(urlRepository);
@@ -121,7 +121,7 @@ class IntellijUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(any(urlMatching("/idea/idea.*\\.tar\\.gz")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    IntellijUrlUpdaterMock updater = new IntellijUrlUpdaterMock(wmRuntimeInfo);
+    IntellijUrlUpdater updater = new IntellijUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // act
     updater.update(urlRepository);
@@ -132,8 +132,9 @@ class IntellijUrlUpdaterTest extends AbstractUrlUpdaterTest {
   }
 
   /**
-   * Test if the {@link IntellijUrlUpdater} correctly moves unified releases to the community edition JSON object, so that they are correctly recognized as community edition releases by the rest of the code.
-   * This is done by providing a mocked JSON response with a unified release and checking whether this release is moved to the community edition JSON object by the {@link IntellijUrlUpdater}.
+   * Test if the {@link IntellijUrlUpdater} correctly moves unified releases to the community edition JSON object, so that they are correctly recognized as
+   * community edition releases by the rest of the code. This is done by providing a mocked JSON response with a unified release and checking whether this
+   * release is moved to the community edition JSON object by the {@link IntellijUrlUpdater}.
    */
   @Test
   void testIntellijJsonResponseMovesUnifiedReleasesToCommunity() throws Exception {
