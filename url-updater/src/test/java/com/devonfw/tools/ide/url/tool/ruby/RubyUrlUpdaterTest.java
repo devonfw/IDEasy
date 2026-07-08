@@ -48,7 +48,7 @@ class RubyUrlUpdaterTest extends AbstractUrlUpdaterTest {
             .withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    RubyUrlUpdaterMock updater = new RubyUrlUpdaterMock(wmRuntimeInfo);
+    RubyUrlUpdater updater = new RubyUrlUpdater(wmRuntimeInfo.getHttpBaseUrl(), wmRuntimeInfo.getHttpBaseUrl());
 
     // act
     updater.update(urlRepository);
