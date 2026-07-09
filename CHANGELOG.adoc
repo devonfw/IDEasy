@@ -2,6 +2,12 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2026.07.002
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1041[#1041]: native image has globbing active
+
 == 2026.07.001
 
 Release with new features and bugfixes:
