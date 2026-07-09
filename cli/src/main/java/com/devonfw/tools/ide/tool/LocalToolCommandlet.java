@@ -167,7 +167,9 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     String edition = toolEdition.edition();
     VersionIdentifier resolvedVersion = cveCheck(request);
     installToolDependencies(request);
-
+    var debug = requested.getEdition();
+    var debug2 = getInstalledEdition();
+    var debugTool = requested.getEdition().tool();
     // cveCheck might have changed resolvedVersion so let us re-check...
     if (request.isAlreadyInstalled()) {
       return toolAlreadyInstalled(request);
@@ -223,8 +225,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   /**
-   * Performs the installation of the {@link #getName() tool} by using {@link #installDownloadedToolPayload(ToolInstallRequest, Path, Path)}
-   * for tool-specific logic, backing up any existing installation, and writing the version file.
+   * Performs the installation of the {@link #getName() tool} by using {@link #installDownloadedToolPayload(ToolInstallRequest, Path, Path)} for tool-specific
+   * logic, backing up any existing installation, and writing the version file.
    * <p>
    * This method assumes that the version has already been resolved and dependencies installed. It handles the final steps of placing the tool into the
    * appropriate installation directory.
@@ -604,7 +606,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   public Path findBuildDescriptor(Path directory) {
     return null;
   }
-  
+
   /**
    * @return Bash completion command for this tool or {@code null} if this tool does not provide Bash completion.
    */

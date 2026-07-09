@@ -76,7 +76,7 @@ public abstract class UvBasedCommandlet extends PackageManagerBasedLocalToolComm
     request.setProcessContext(pc);
     ProcessResult result = runPackageManager(request, true);
     if (result.isSuccessful()) {
-      String prefix = packageName + " v";
+      String prefix = getInstalledToolName() + " v";
       for (String line : result.getOut()) {
         if (line.startsWith(prefix)) {
           return VersionIdentifier.of(line.substring(prefix.length()).trim());
@@ -87,4 +87,9 @@ public abstract class UvBasedCommandlet extends PackageManagerBasedLocalToolComm
     result.log(IdeLogLevel.DEBUG);
     return null;
   }
+
+  protected String getInstalledToolName() {
+    return getPackageName();
+  }
+
 }

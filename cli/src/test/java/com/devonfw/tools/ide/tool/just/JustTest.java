@@ -76,4 +76,18 @@ public class JustTest extends AbstractIdeContextTest {
     // assert
     assertThat(installedVersion).isEqualTo(VersionIdentifier.of("1.37.0"));
   }
+
+
+  @Test
+  void testJustUsesDifferentInstalledToolName() {
+
+    // arrange
+    Just commandlet = new Just(new IdeTestContext());
+
+    // assert
+    assertThat(commandlet.getPackageName()).isEqualTo("rust-just");
+    assertThat(commandlet.getInstalledToolName()).isEqualTo("just");
+  }
+
+
 }
