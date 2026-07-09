@@ -132,3 +132,13 @@ IDE environment variables have been set for /~/projects/myproject in workspace m
 IDE environment variables have been set for /~/projects/myproject in workspace main
 [~/projects/myproject]$ echo "Wow! IDEasy is awesome!"
 ```
+
+You can also use `-r «repository»` to jump straight into a repository (folder) inside a workspace.
+If `-w` is omitted, the workspace `main` is searched first and, if the repository is not found there, all other workspaces are searched next; `icd` then navigates into the first workspace containing the repository.
+If `-r` is given without a value, the project name is used as the repository name.
+
+```bash
+[/tmp]$ icd -p myproject -r myrepo
+IDE environment variables have been set for /~/projects/myproject in workspace main
+[~/projects/myproject/workspaces/main/myrepo]$ echo "Found and jumped straight into myrepo!"
+```
