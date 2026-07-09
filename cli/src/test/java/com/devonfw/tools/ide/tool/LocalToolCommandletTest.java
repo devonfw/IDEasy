@@ -13,6 +13,9 @@ import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.tool.intellij.Intellij;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
+import com.devonfw.tools.ide.version.BoundaryType;
+import com.devonfw.tools.ide.version.VersionIdentifier;
+import com.devonfw.tools.ide.version.VersionRange;
 
 /**
  * Test of {@link LocalToolCommandlet}.
@@ -127,6 +130,30 @@ class LocalToolCommandletTest extends AbstractIdeContextTest {
     context.getFileAccess().delete(java);
     // run intellij again and verify that compatible Java version gets reinstalled
     runIntellijAndCheckInstallationWithJavaDependency(context);
+  }
+
+  /**
+   * Test dependency installation ignoring the project configuration.
+   */
+  @Test
+  void testInstallAsDependencyIgnoresProject() {
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    LocalToolDummyCommandlet dependencyTool = new LocalToolDummyCommandlet(context);
+    ToolInstallRequest parentRequest = new ToolInstallRequest(false);
+    parentRequest.setIgnoreProject(true);
+    parentRequest.setRequested(new ToolEditionAndVersion(VersionIdentifier.of("25.*")));
+    VersionRange versionRange = VersionRange.of(VersionIdentifier.of("17.0.6"), VersionIdentifier.of("25.0.9"), BoundaryType.CLOSED);
+
+    // act
+    ToolInstallation installation = dependencyTool.installAsDependency(versionRange, parentRequest);
+
+    // assert
+    assertThat(installation.newInstallation()).isTrue();
+    assertThat(installation.rootDir()).isEqualTo(
+        context.getSoftwareRepositoryPath().resolve(ToolRepository.ID_DEFAULT).resolve("dummy").resolve("dummy").resolve("25.0.9"));
+    assertThat(context.getSoftwarePath().resolve("dummy")).doesNotExist();
+    assertThat(context).logAtDebug().hasMessageContaining("Ignoring project for dependency");
   }
 
   private static void runIntellijAndCheckInstallationWithJavaDependency(IdeTestContext context) {

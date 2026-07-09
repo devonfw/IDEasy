@@ -52,11 +52,13 @@ public class Gui extends Commandlet {
 
     ToolInstallRequest mavenToolInstallRequest = new ToolInstallRequest(false);
     mavenToolInstallRequest.setProcessContext(processContext);
+    mavenToolInstallRequest.setIgnoreProject(true);
 
     ToolInstallRequest javaToolInstallRequest = new ToolInstallRequest(mavenToolInstallRequest);
     javaToolInstallRequest.setRequested(
         new ToolEditionAndVersion(VersionIdentifier.of("25.*"))
     );
+    javaToolInstallRequest.setIgnoreProject(true);
 
     mvn.installTool(mavenToolInstallRequest);
     ToolInstallation javaInstallation = java.installTool(javaToolInstallRequest);

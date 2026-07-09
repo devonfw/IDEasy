@@ -105,13 +105,16 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     FileAccess fileAccess = this.context.getFileAccess();
     boolean ignoreSoftwareRepo = isIgnoreSoftwareRepo();
     Path toolPath = request.getToolPath();
-    if (!ignoreSoftwareRepo) {
+    if (!ignoreSoftwareRepo && !request.isIgnoreProject() && toolPath != null) {
       // we need to link the version or update the link.
       if (Files.exists(toolPath, LinkOption.NOFOLLOW_LINKS)) {
         fileAccess.backup(toolPath);
       }
       fileAccess.mkdirs(toolPath.getParent());
       fileAccess.symlink(installation.linkDir(), toolPath);
+    } else {
+      LOG.debug("Skipping symlink creation for tool {} as it is installed in standalone/global mode (ignoreSoftwareRepo={}, ignoreProject={}, toolPath={}).",
+          this.tool, ignoreSoftwareRepo, request.isIgnoreProject(), toolPath);
     }
     if (!request.isExtraInstallation() && (installation.binDir() != null)) {
       this.context.getPath().setPath(this.tool, installation.binDir());
@@ -291,24 +294,30 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     ToolInstallRequest request = new ToolInstallRequest(parentRequest);
     ToolEditionAndVersion requested = new ToolEditionAndVersion(getToolWithConfiguredEdition());
     request.setRequested(requested);
+
+    // If we are not inside a project or if we should ignore the project, do not try to use the configured version but instead just use the version range from the dependency.
+    boolean ignoreProject = request.isIgnoreProject() || this.context.getIdeHome() == null;
     VersionIdentifier configuredVersion = getConfiguredVersion();
-    if (versionRange.contains(configuredVersion)) {
+    if (!ignoreProject && (configuredVersion != null) && versionRange.contains(configuredVersion)) {
       // prefer configured version if contained in version range
       requested.setVersion(configuredVersion);
       // return install(true, configuredVersion, processContext, null);
       return install(request);
     } else {
-      if (isIgnoreSoftwareRepo()) {
+      if (ignoreProject) {
+        LOG.debug("Ignoring project for dependency {} of tool {}, using version range {}", this.tool, parentRequest.getRequested(), versionRange);
+      } else if (isIgnoreSoftwareRepo()) {
         throw new IllegalStateException(
             "Cannot satisfy dependency to " + this.tool + " in version " + versionRange + " for " + parentRequest.getRequested()
                 + " since it is conflicting with configured version "
                 + configuredVersion
                 + " and this tool does not support the software repository.");
+      } else {
+        LOG.info(
+            "The tool {} requires {} in the version range {}, but your project uses version {}, which does not match."
+                + " Therefore, we install a compatible version in that range.",
+            parentRequest.getRequested().getEdition(), this.tool, versionRange, configuredVersion);
       }
-      LOG.info(
-          "The tool {} requires {} in the version range {}, but your project uses version {}, which does not match."
-              + " Therefore, we install a compatible version in that range.",
-          parentRequest.getRequested().getEdition(), this.tool, versionRange, configuredVersion);
       requested.setVersion(versionRange);
       return installTool(request);
     }

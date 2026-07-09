@@ -302,5 +302,55 @@ class InstallCommandletTest extends AbstractIdeContextTest {
     assertThat(context).logAtWarning().hasMessage("Cannot download java in version " + targetVersion
         + " because we are offline. Continuing with already installed version " + installedVersion + ".");
   }
+
+  /**
+   * Test of {@link InstallCommandlet} with --ignore-project flag. Verifies that the tool is installed in the software repository without creating a symlink
+   * inside the project, even though we are currently inside a project context.
+   *
+   * @param wmRuntimeInfo wireMock server on a random port
+   */
+  @Test
+  void testInstallCommandletWithIgnoreProjectDoesNotCreateSymlink(WireMockRuntimeInfo wmRuntimeInfo) {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_INSTALL, wmRuntimeInfo);
+    InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
+    install.tool.setValueAsString("java", context);
+    install.ignoreProject.setValue(true);
+
+    // act
+    install.run();
+
+    // assert - java should be installed in the software repository
+    assertThat(context.getSoftwareRepositoryPath().resolve(DefaultToolRepository.ID_DEFAULT).resolve("java").resolve("java")
+        .resolve("17.0.6")).exists();
+    // assert - no project symlink should have been created
+    assertThat(context.getSoftwarePath().resolve("java")).doesNotExist();
+    assertThat(context).logAtDebug().hasMessageContaining("Skipping symlink creation");
+  }
+
+  /**
+   * Test of {@link InstallCommandlet} with --ignore-project flag outside a project. Verifies that dependencies are still installed into the software repository.
+   *
+   * @param wmRuntimeInfo wireMock server on a random port
+   */
+  @Test
+  void testInstallCommandletWithIgnoreProjectOutsideProject(WireMockRuntimeInfo wmRuntimeInfo) {
+
+    // arrange - context without IDEasy project root
+    IdeTestContext context = newContext(PROJECT_INSTALL, wmRuntimeInfo);
+    context.setIdeHome(null);
+    InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
+    install.tool.setValueAsString("java", context);
+    install.ignoreProject.setValue(true);
+
+    // act
+    install.run();
+
+    // assert - tool should be installed in the software repository without requiring a project symlink
+    assertThat(context.getSoftwareRepositoryPath().resolve(DefaultToolRepository.ID_DEFAULT).resolve("java").resolve("java")
+        .resolve("17.0.6")).exists();
+    assertThat(context.getSoftwarePath()).isNull();
+  }
 }
 

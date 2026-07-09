@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.cli.GraalVmHelper;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.property.BooleanProperty;
 import com.devonfw.tools.ide.property.ToolProperty;
 import com.devonfw.tools.ide.property.VersionProperty;
 import com.devonfw.tools.ide.tool.IdeasyCommandlet;
@@ -31,6 +32,9 @@ public class InstallCommandlet extends Commandlet {
   /** The optional version to set and install. */
   public final VersionProperty version;
 
+  /** Ignore the current project during installation. */
+  public final BooleanProperty ignoreProject;
+
   /**
    * The constructor.
    *
@@ -42,6 +46,7 @@ public class InstallCommandlet extends Commandlet {
     addKeyword(getName());
     this.tool = add(new ToolProperty("", false, "tool"));
     this.version = add(new VersionProperty("", false, "version"));
+    this.ignoreProject = add(new BooleanProperty("", false, "ignore-project"));
   }
 
   @Override
@@ -86,6 +91,7 @@ public class InstallCommandlet extends Commandlet {
     }
     ToolInstallRequest request = ToolInstallRequest.ofDirect();
     request.setRequested(new ToolEditionAndVersion(version));
+    request.setIgnoreProject(this.ignoreProject.getValue());
     ToolInstallation installation = commandlet.install(request);
     if (versionIdentifier != null) {
       VersionIdentifier installedVersion = installation.resolvedVersion();
