@@ -20,6 +20,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2114[#2114]: Fix false "Cygwin is not supported" warning in Git Bash
 * https://github.com/devonfw/IDEasy/issues/865[#865]: az not working on Mac
 * https://github.com/devonfw/IDEasy/issues/2026[#2026]: Create UvRepository and UvBasedCommandlet
+* https://github.com/devonfw/IDEasy/issues/2137[#2137]: Fix `fix-vpn-tls-problem` not detecting TLS certificate issues behind HTTP redirects and surface an actionable hint (failing URL + fix command) when a download fails due to a certificate trust error
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/46?closed=1[milestone 2026.07.001].
 
