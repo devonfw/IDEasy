@@ -309,6 +309,94 @@ class ToolSettingsServiceTest extends AbstractIdeContextTest {
   }
 
   // ---------------------------------------------------------------------------
+  // isValidVersion
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void testIsValidVersion_exactVersionPresentInAvailableListIsValid() {
+
+    List<String> availableVersions = List.of("2026.1.0", "2026.1.5", "2026.2.0");
+
+    assertThat(service.isValidVersion("2026.1.0", availableVersions)).isTrue();
+  }
+
+  @Test
+  void testIsValidVersion_exactVersionNotPresentInAvailableListIsInvalid() {
+
+    List<String> availableVersions = List.of("2026.1.0", "2026.1.5", "2026.2.0");
+
+    assertThat(service.isValidVersion("2026.1.2.4.5", availableVersions)).isFalse();
+  }
+
+  @Test
+  void testIsValidVersion_patternMatchingAvailableVersionIsValid() {
+
+    List<String> availableVersions = List.of("2026.1.0", "2026.1.5", "2026.2.0");
+
+    assertThat(service.isValidVersion("2026.1*", availableVersions)).isTrue();
+  }
+
+  @Test
+  void testIsValidVersion_patternWithUnstableSuffixMatchingUnstableAvailableVersionIsValid() {
+
+    List<String> availableVersions = List.of("2026.1.0-SNAPSHOT");
+
+    assertThat(service.isValidVersion("2026*!", availableVersions)).isTrue();
+  }
+
+  @Test
+  void testIsValidVersion_stablePatternDoesNotMatchOnlyUnstableAvailableVersions() {
+
+    List<String> availableVersions = List.of("2026.1.0-SNAPSHOT");
+
+    assertThat(service.isValidVersion("2026*", availableVersions)).isFalse();
+  }
+
+  @Test
+  void testIsValidVersion_patternNotMatchingAnyAvailableVersionIsInvalid() {
+
+    List<String> availableVersions = List.of("2026.1.0", "2026.1.5", "2026.2.0");
+
+    assertThat(service.isValidVersion("2027*", availableVersions)).isFalse();
+  }
+
+  @Test
+  void testIsValidVersion_wildcardIsAlwaysValidRegardlessOfAvailableVersions() {
+
+    assertThat(service.isValidVersion("*", List.of("2026.1.0"))).isTrue();
+    assertThat(service.isValidVersion("*", List.of())).isTrue();
+    assertThat(service.isValidVersion("*", null)).isTrue();
+  }
+
+  @Test
+  void testIsValidVersion_blankInputIsValid() {
+
+    assertThat(service.isValidVersion("", List.of("2026.1.0"))).isTrue();
+    assertThat(service.isValidVersion(null, List.of("2026.1.0"))).isTrue();
+  }
+
+  @Test
+  void testIsValidVersion_nullAvailableVersionsSkipsValidation() {
+
+    assertThat(service.isValidVersion("2026.1.0", null)).isTrue();
+  }
+
+  @Test
+  void testIsValidVersion_worksWithVersionsLoadedWithoutEverOpeningDropdown() {
+
+    // Simulates typing a version and tabbing away without ever opening the version dropdown: the caller
+    // (ToolSettingsController) loads the list itself via loadVersionsForSelectedEdition, then validates against it.
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    List<VersionIdentifier> stubVersions = List.of(VersionIdentifier.of("2026.1.0"), VersionIdentifier.of("2026.1.5"));
+    context.setDefaultToolRepository(stubRepo(List.of(), stubVersions));
+
+    List<String> loadedVersions = service.loadVersionsForSelectedEdition("mvn", "default", context);
+
+    assertThat(service.isValidVersion("2026.1*", loadedVersions)).isTrue();
+    assertThat(service.isValidVersion("2027*", loadedVersions)).isFalse();
+  }
+
+  // ---------------------------------------------------------------------------
   // applyAndSave – writes to a real EnvironmentVariablesPropertiesFile
   // ---------------------------------------------------------------------------
 

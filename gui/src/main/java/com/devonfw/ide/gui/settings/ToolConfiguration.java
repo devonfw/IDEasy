@@ -35,12 +35,12 @@ public final class ToolConfiguration {
    * Tool groups used to group/sort tools in the UI. Order of declaration determines the default ordering.
    */
   public enum ToolGroup {
-    IDE("IDE tools"),
-    LOCAL("Local tools"),
-    GLOBAL("Global tools"),
-    PIP("Pip-based tools"),
-    NPM("NPM-based tools"),
-    OTHER("Other tools");
+    IDE("toolGroupIde"),
+    LOCAL("toolGroupLocal"),
+    GLOBAL("toolGroupGlobal"),
+    PIP("toolGroupPip"),
+    NPM("toolGroupNpm"),
+    OTHER("toolGroupOther");
 
     private final String label;
 

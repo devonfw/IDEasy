@@ -144,6 +144,7 @@ public final class ToolSettingsService {
       }
       return cmd.getToolRepository().getSortedEditions(tool);
     } catch (Exception e) {
+      LOG.debug("Failed to load editions for tool {}: {}", tool, e.getMessage(), e);
       return List.of();
     }
   }
@@ -169,8 +170,38 @@ public final class ToolSettingsService {
       List<VersionIdentifier> versionIds = toolCmd.getToolRepository().getSortedVersions(tool, selectedEdition, toolCmd);
       return versionIds.stream().map(VersionIdentifier::toString).collect(Collectors.toList());
     } catch (Exception e) {
+      LOG.debug("Failed to load versions for tool {}: {}", tool, e.getMessage(), e);
       return List.of();
     }
+  }
+
+  /**
+   * Validate a user-entered version against a tool's loaded available versions.
+   * <p>
+   * Exact versions are checked for literal presence in {@code availableVersions}. Version patterns (e.g. {@code 2026.1*} or {@code 2026*!}, see
+   * {@link VersionIdentifier#isPattern()}) are considered valid if they {@link VersionIdentifier#matches(VersionIdentifier) match} at least one available
+   * version. Blank input and {@code "*"} are always valid, and validation is skipped (treated as valid) when {@code availableVersions} has not been loaded
+   * yet.
+   *
+   * @param enteredVersion the version (or version pattern) typed by the user.
+   * @param availableVersions the available versions for the tool/edition, or {@code null} if not loaded yet.
+   * @return {@code true} if the entered version is valid, {@code false} otherwise.
+   */
+  public boolean isValidVersion(String enteredVersion, List<String> availableVersions) {
+    if (enteredVersion == null || enteredVersion.isBlank() || enteredVersion.equals("*")) {
+      return true;
+    }
+    if (availableVersions == null) {
+      return true;
+    }
+    VersionIdentifier entered = VersionIdentifier.of(enteredVersion);
+    if (entered == null) {
+      return false;
+    }
+    if (entered.isPattern()) {
+      return availableVersions.stream().map(VersionIdentifier::of).anyMatch(entered::matches);
+    }
+    return availableVersions.contains(enteredVersion);
   }
 
   /**
