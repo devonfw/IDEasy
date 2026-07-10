@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Locale;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -20,13 +21,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
+import com.devonfw.ide.gui.nls.NlsService;
 
 /**
  * Basic UI Test
  */
 public class AppBaseTest extends HeadlessApplicationTest {
 
-  private static Logger LOGGER = LoggerFactory.getLogger(AppBaseTest.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(AppBaseTest.class);
 
   private Button androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen;
   private ComboBox<String> selectedProject, selectedWorkspace;
@@ -38,22 +40,25 @@ public class AppBaseTest extends HeadlessApplicationTest {
   @Override
   public void start(Stage stage) throws IOException {
 
+    NlsService nlsService = new NlsService(Locale.ENGLISH);
+
     URL mainViewUrl = getClass().getResource("main-view.fxml");
     assertThat(mainViewUrl).as("Cannot resolve main UI FXML resource!").isNotNull();
 
     FXMLLoader fxmlLoader = new FXMLLoader(mainViewUrl);
-    fxmlLoader.setController(new MainController(mockIdeRoot.toString()));
+    fxmlLoader.setController(new MainController(mockIdeRoot.toString(), nlsService));
+    fxmlLoader.setResources(nlsService.getResourceBundle());
     Parent root = fxmlLoader.load();
     stage.setScene(new Scene(root));
     stage.requestFocus(); //sometimes needed for headless setup to work
     stage.show();
 
-    androidStudioOpen = (Button) root.lookup("#androidStudioOpen");
-    eclipseOpen = (Button) root.lookup("#eclipseOpen");
-    intellijOpen = (Button) root.lookup("#intellijOpen");
-    vsCodeOpen = (Button) root.lookup("#vsCodeOpen");
-    selectedProject = (ComboBox<String>) root.lookup("#selectedProject");
-    selectedWorkspace = (ComboBox<String>) root.lookup("#selectedWorkspace");
+    androidStudioOpen = lookup(root, "#androidStudioOpen");
+    eclipseOpen = lookup(root, "#eclipseOpen");
+    intellijOpen = lookup(root, "#intellijOpen");
+    vsCodeOpen = lookup(root, "#vsCodeOpen");
+    selectedProject = lookup(root, "#selectedProject");
+    selectedWorkspace = lookup(root, "#selectedWorkspace");
   }
 
   /**
@@ -61,7 +66,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
    * to work in the test context. Generates a structure like this: /project-[0..6]/workspaces/main
    */
   @BeforeAll
-  protected static void generateProjectFolderStructure() throws IOException {
+  public static void generateProjectFolderStructure() throws IOException {
 
     LOGGER.debug("tempDir: {}", mockIdeRoot);
     FakeProjectFolderStructureHelper.createFakeProjectFolderStructure(mockIdeRoot);
@@ -129,4 +134,13 @@ public class AppBaseTest extends HeadlessApplicationTest {
         .as("selectedWorkspace ComboBox should be enabled when a project is selected")
         .isFalse();
   }
+
+
+  @SuppressWarnings("unchecked")
+  private static <T> T lookup(Parent root, String selector) {
+
+    return (T) root.lookup(selector);
+  }
+
+
 }

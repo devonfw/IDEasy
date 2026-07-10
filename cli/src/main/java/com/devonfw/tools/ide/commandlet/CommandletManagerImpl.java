@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-import com.devonfw.tools.ide.tool.inso.Inso;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,16 +35,19 @@ import com.devonfw.tools.ide.tool.graalvm.GraalVm;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
 import com.devonfw.tools.ide.tool.gui.Gui;
 import com.devonfw.tools.ide.tool.helm.Helm;
+import com.devonfw.tools.ide.tool.inso.Inso;
 import com.devonfw.tools.ide.tool.intellij.Intellij;
 import com.devonfw.tools.ide.tool.jasypt.Jasypt;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.jmc.Jmc;
+import com.devonfw.tools.ide.tool.just.Just;
 import com.devonfw.tools.ide.tool.kotlinc.Kotlinc;
 import com.devonfw.tools.ide.tool.kotlinc.KotlincNative;
 import com.devonfw.tools.ide.tool.kubectl.KubeCtl;
 import com.devonfw.tools.ide.tool.lazydocker.LazyDocker;
-import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.msvc.Msvc;
+import com.devonfw.tools.ide.tool.mvn.Mvn;
+import com.devonfw.tools.ide.tool.mvnd.Mvnd;
 import com.devonfw.tools.ide.tool.nest.Nest;
 import com.devonfw.tools.ide.tool.ng.Ng;
 import com.devonfw.tools.ide.tool.node.Node;
@@ -172,6 +173,8 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Nest(context));
     add(new Cdk(context));
     add(new Claude(context));
+    add(new Mvnd(context));
+    add(new Just(context));
   }
 
   /**
