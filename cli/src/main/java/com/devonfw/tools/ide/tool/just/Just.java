@@ -27,11 +27,6 @@ public class Just extends UvBasedCommandlet {
   }
 
   @Override
-  protected String getInstalledToolName() {
-    return "just";
-  }
-
-  @Override
   protected String completeRequestOption(PackageManagerRequest request) {
 
     if (PackageManagerRequest.TYPE_INSTALL.equals(request.getType())) {

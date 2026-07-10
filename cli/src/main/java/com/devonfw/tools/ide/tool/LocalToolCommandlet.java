@@ -167,9 +167,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     String edition = toolEdition.edition();
     VersionIdentifier resolvedVersion = cveCheck(request);
     installToolDependencies(request);
-    var debug = requested.getEdition();
-    var debug2 = getInstalledEdition();
-    var debugTool = requested.getEdition().tool();
     // cveCheck might have changed resolvedVersion so let us re-check...
     if (request.isAlreadyInstalled()) {
       return toolAlreadyInstalled(request);
