@@ -354,28 +354,21 @@ class ToolSettingsServiceTest extends AbstractIdeContextTest {
     assertThat(saved).doesNotContain("MVN_VERSION=");
   }
 
-  @Test
-  void testApplyAndSave_createsBackupOfExistingFile(@TempDir Path tempDir) throws IOException {
-
-    // arrange – file must exist for createBackupIfPossible to act
-    IdeGuiContext guiContext = createGuiContext(tempDir, "IDE_TOOLS=mvn\n");
-    ToolConfiguration mvn = enabled("mvn", "3.9.0", null, false);
-    // act
-    service.applyAndSave(List.of(mvn), guiContext);
-    // assert
-    assertThat(tempDir.resolve("project/settings/ide.properties.bak")).exists();
-  }
 
   @Test
-  void testApplyAndSave_noBackupWhenFileAbsent(@TempDir Path tempDir) throws IOException {
+  void testApplyAndSave_disabledToolRemovesExistingVersionAndEditionLines(@TempDir Path tempDir) throws IOException {
 
-    // arrange – no ide.properties → backup must not be created
-    IdeGuiContext guiContext = createGuiContext(tempDir, null);
-    ToolConfiguration mvn = enabled("mvn", "3.9.0", null, false);
+    // arrange – existing file already has version and edition entries for intellij
+    IdeGuiContext guiContext = createGuiContext(tempDir, "IDE_TOOLS=intellij\nINTELLIJ_VERSION=2024.1\nINTELLIJ_EDITION=community\n");
+    ToolConfiguration intellij = tool("intellij", "2024.1", "community", true);
+    intellij.setEnabled(false);
     // act
-    service.applyAndSave(List.of(mvn), guiContext);
-    // assert
-    assertThat(tempDir.resolve("project/settings/ide.properties.bak")).doesNotExist();
+    service.applyAndSave(List.of(intellij), guiContext);
+    // assert – both the version and edition line must be removed when the tool is disabled
+    String saved = readSettingsFile(tempDir);
+    assertThat(saved).doesNotContain("INTELLIJ_VERSION=");
+    assertThat(saved).doesNotContain("INTELLIJ_EDITION=");
+    assertThat(saved).doesNotContain("IDE_TOOLS=intellij");
   }
 
   @Test

@@ -1,8 +1,5 @@
 package com.devonfw.ide.gui.settings;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -17,7 +14,6 @@ import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
-import com.devonfw.tools.ide.environment.EnvironmentVariablesPropertiesFile;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
@@ -185,8 +181,6 @@ public final class ToolSettingsService {
   public void applyAndSave(List<ToolConfiguration> toolConfigurations, IdeGuiContext guiContext) {
     EnvironmentVariables settingsVars = guiContext.getVariables().getByType(EnvironmentVariablesType.SETTINGS);
 
-    createBackupIfPossible(settingsVars);
-
     settingsVars.set(IdeVariables.IDE_TOOLS.getName(), String.join(", ", getEnabledToolNames(toolConfigurations)), false);
 
     for (ToolConfiguration toolConfiguration : toolConfigurations) {
@@ -206,21 +200,6 @@ public final class ToolSettingsService {
     }
 
     settingsVars.save();
-  }
-
-  //TODO: Align with Team if this is needed
-  private void createBackupIfPossible(EnvironmentVariables settingsVars) {
-    try {
-      if (settingsVars instanceof EnvironmentVariablesPropertiesFile evpf) {
-        Path path = evpf.getPropertiesFilePath();
-        if (path != null && Files.exists(path)) {
-          Path backup = path.resolveSibling(path.getFileName().toString() + ".bak");
-          Files.copy(path, backup, StandardCopyOption.REPLACE_EXISTING);
-        }
-      }
-    } catch (Exception e) {
-      LOG.error("Failed to create backup of the existing properties file: {}", e.getMessage());
-    }
   }
 
   private static String emptyToNull(String s) {

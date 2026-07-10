@@ -176,7 +176,7 @@ public class ToolSettingsController {
 
   private List<ToolConfiguration> collectLeafConfigurations() {
     return toolsTree.getRoot().getChildren().stream().flatMap(groupNode -> groupNode.getChildren().stream()).map(TreeItem::getValue)
-        .filter(Objects::nonNull).filter(ToolConfiguration::isEnabled).collect(Collectors.toList());
+        .filter(Objects::nonNull).collect(Collectors.toList());
   }
 
   @FXML
