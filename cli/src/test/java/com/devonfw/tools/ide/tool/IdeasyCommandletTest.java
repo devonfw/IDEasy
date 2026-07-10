@@ -115,6 +115,35 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Test that {@link IdeasyCommandlet#installIdeasy(Path)} updates {@link IdeContext#getIdeRoot()} to the derived install target when {@code IDE_ROOT} is not
+   * set in the environment (as is the case during a fresh MSI installation). This ensures downstream code reading {@link IdeContext#getIdeRoot()} during the
+   * same install run gets a consistent value. See <a href="https://github.com/devonfw/IDEasy/issues/1517">#1517</a> for reference.
+   *
+   * @param os to use
+   */
+  @ParameterizedTest
+  @ValueSource(strings = { "windows", "mac", "linux" })
+  void testInstallIdeasyUpdatesIdeRoot(String os) {
+
+    // arrange
+    SystemInfo systemInfo = SystemInfoMock.of(os);
+    IdeTestContext context = newContext("install");
+    context.setIdeRoot(null);
+    context.setSystemInfo(systemInfo);
+    context.getStartContext().setForceMode(true);
+    Path gitconfigPath = context.getUserHome().resolve(".gitconfig");
+    FileAccess fileAccess = new FileAccessImpl(context);
+    fileAccess.writeFileContent("", gitconfigPath);
+    Path ideRoot = context.getUserHome().resolve("projects");
+    IdeasyCommandlet ideasy = new IdeasyCommandlet(context);
+    assertThat(context.getIdeRoot()).as("IDE_ROOT is not set before install").isNull();
+    // act
+    ideasy.installIdeasy(context.getUserHome().resolve("Downloads/ide-cli"));
+    // assert
+    assertThat(context.getIdeRoot()).isEqualTo(ideRoot);
+  }
+
+  /**
    * Test of {@link IdeasyCommandlet#configureWindowsTerminalGitBash()}, also when {@code IDE_ROOT} is not yet set, as is the case during MSI installation.
    *
    * @param ideRootSet whether {@code IDE_ROOT} is set on the context.
