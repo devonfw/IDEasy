@@ -13,8 +13,6 @@ import java.util.regex.Matcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.tools.ide.common.Tag;
-import com.devonfw.tools.ide.completion.AutoCompletionRegistry;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.io.FileAccess;
@@ -22,16 +20,16 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.variable.VariableSyntax;
 
+
 /**
  * {@link ToolCommandlet} for <a href="https://maven.apache.org/">maven</a>.
  */
-public class Mvn extends LocalToolCommandlet {
+public class Mvn extends MavenCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Mvn.class);
 
@@ -70,39 +68,9 @@ public class Mvn extends LocalToolCommandlet {
    */
   public Mvn(IdeContext context) {
 
-    super(context, "mvn", Set.of(Tag.JAVA, Tag.BUILD));
+    super(context, "mvn");
   }
 
-  /**
-   * Initializes Maven-specific auto-completion candidates.
-   *
-   * @param registry the {@link AutoCompletionRegistry} to initialize.
-   */
-  @Override
-  protected void initAutoCompletionRegistry(AutoCompletionRegistry registry) {
-
-    registry.add("clean");
-    registry.add("package");
-    registry.add("install");
-    registry.add("deploy");
-    registry.add("test");
-    registry.add("verify");
-    registry.add("validate");
-    registry.add("compile");
-    registry.add("dependency:tree");
-    registry.add("dependency:list");
-    registry.add("help:effective-settings");
-    registry.add("-DskipTests");
-    registry.add("exec:java");
-    registry.add("-Dexec.mainClass=");
-    registry.add("-Dexec.args=");
-    registry.add("--also-make");
-    registry.add("--also-make-dependents");
-    registry.add("--fail-at-end");
-    registry.add("--fail-fast");
-    registry.add("-T1C");
-    registry.add("-DdeployAtEnd=true");
-  }
 
   @Override
   protected void configureToolBinary(ProcessContext pc, ProcessMode processMode) {
