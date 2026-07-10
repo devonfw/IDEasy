@@ -1,6 +1,11 @@
 #!/bin/bash
 cd "$(dirname "${BASH_SOURCE:-$0}")" || exit 255
 
+# On macOS remove the quarantine flag added by browser downloads so Gatekeeper does not block the binary
+if [ "$(uname)" = "Darwin" ]; then
+  xattr -dr com.apple.quarantine . 2>/dev/null
+fi
+
 # Create logs directory if it doesn't exist
 LOGS_DIR="${HOME}/.ide/logs"
 mkdir -p "${LOGS_DIR}"

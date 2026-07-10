@@ -20,18 +20,16 @@ Click on `Generate new token` to create a new token.
 +
 . Enter the following data
 +
-image::../images/AccessToken2.png["New fine-grained personal access token"]
-+
 * a unique name for the new token
-* ensure the organization is set as `Resource owner`
+* ensure the `devonfw` organization is set as `Resource owner`
 * set `Expiration` to the maximum possible value (1 year)
 * choose `Only select repositories` and select the repositories our actions need to access (`IDEasy` and `ide-urls`).
-* in `Repository permissions` select `Read and write` for `Contents`.
++
+image::../images/AccessToken2.png["New fine-grained personal access token"]
+. In `Repository permissions` select `Read and write` for `Contents` (and `Metadata`).
 +
 image::../images/AccessToken3.png["Repository permissions"]
 . Click on `Generate token` to proceed.
-+
-image::../images/AccessToken4.png["Generate token"]
 . On the confirmation page click again on `Generate token` to proceed.
 +
 image::../images/AccessToken5.png["Confirm and Generate token"]
