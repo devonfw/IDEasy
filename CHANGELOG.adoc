@@ -4,10 +4,9 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 == 2026.07.002
 
-* https://github.com/devonfw/IDEasy/issues/1917[#1917]: Allow the creation of a desktop shortcut for the GUI
-
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1917[#1917]: Allow the creation of a desktop shortcut for the GUI
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/47?closed=1[milestone 2026.07.002].
 
