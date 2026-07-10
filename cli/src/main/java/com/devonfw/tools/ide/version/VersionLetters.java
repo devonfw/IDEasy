@@ -19,6 +19,9 @@ public final class VersionLetters implements AbstractVersionPhase, VersionObject
   /** The undefined {@link VersionLetters} instance. */
   public static final VersionLetters UNDEFINED = new VersionLetters("undefined");
 
+  /** The snapshot qualifier string. */
+  public static final String SNAPSHOT = "snapshot";
+
   private final String letters;
 
   private final String lettersLowerCase;
@@ -26,6 +29,8 @@ public final class VersionLetters implements AbstractVersionPhase, VersionObject
   private final VersionPhase phase;
 
   private final boolean prePhase;
+
+  private final boolean snapshot;
 
   /**
    * The constructor.
@@ -48,6 +53,14 @@ public final class VersionLetters implements AbstractVersionPhase, VersionObject
     } else {
       this.prePhase = false;
     }
+    String newPhaseLetters = removeSnapshotPart(phaseLetters);
+    if (newPhaseLetters.equals(phaseLetters)) {
+      this.snapshot = false;
+    } else { // snapshot was found and removed
+      phaseLetters = newPhaseLetters;
+      this.snapshot = true;
+    }
+
     this.phase = VersionPhase.of(phaseLetters);
   }
 
@@ -58,6 +71,7 @@ public final class VersionLetters implements AbstractVersionPhase, VersionObject
     this.lettersLowerCase = "";
     this.prePhase = false;
     this.phase = phase;
+    this.snapshot = false;
   }
 
   /**
@@ -86,6 +100,13 @@ public final class VersionLetters implements AbstractVersionPhase, VersionObject
   }
 
   /**
+   * @return {@code true} if this {@link VersionSegment} has a SNAPSHOT suffix, otherwise {@code false}.
+   */
+  public boolean isSnapshot() {
+    return snapshot;
+  }
+
+  /**
    * @return {@code true} if the {@link #getLetters() letters} and a potential {@link #getPhase() phase} are prefixed with "pre" (e.g. in "pre-alpha"),
    *     {@code false} otherwise.
    */
@@ -103,13 +124,13 @@ public final class VersionLetters implements AbstractVersionPhase, VersionObject
   @Override
   public boolean isUnstable() {
 
-    return this.prePhase || this.phase.isUnstable();
+    return !isStable();
   }
 
   @Override
   public boolean isStable() {
 
-    return !this.prePhase && this.phase.isStable();
+    return !this.prePhase && this.phase.isStable() && !this.snapshot;
   }
 
   /**
@@ -137,13 +158,16 @@ public final class VersionLetters implements AbstractVersionPhase, VersionObject
           return VersionComparisonResult.GREATER_UNSAFE;
         }
       }
-      if (this.phase != other.phase) {
-        if (this.phase.ordinal() < other.phase.ordinal()) {
-          return VersionComparisonResult.LESS;
-        } else {
-          return VersionComparisonResult.GREATER;
-        }
-      } else if (this.prePhase != other.prePhase) {
+
+      int thisRank = getPhaseRank();
+      int otherRank = other.getPhaseRank();
+      if (thisRank < otherRank) {
+        return VersionComparisonResult.LESS;
+      } else if (thisRank > otherRank) {
+        return VersionComparisonResult.GREATER;
+      }
+
+      if (this.prePhase != other.prePhase) {
         if (this.prePhase) {
           return VersionComparisonResult.LESS;
         } else {
@@ -222,4 +246,27 @@ public final class VersionLetters implements AbstractVersionPhase, VersionObject
     return new VersionLetters(letters);
   }
 
+  private static String removeSnapshotPart(String phaseLetters) {
+    int i = phaseLetters.indexOf(SNAPSHOT);
+    if (i < 0) {
+      return phaseLetters;
+    }
+    int start = i;
+    int end = i + SNAPSHOT.length();
+    if ((i > 0) && (phaseLetters.charAt(i - 1) == '-')) {
+      start--;
+    }
+    return phaseLetters.substring(0, start) + phaseLetters.substring(end);
+  }
+
+
+  private int getPhaseRank() {
+
+    int rank = this.phase.ordinal() * 2;
+
+    if (!this.snapshot) {
+      rank++;
+    }
+    return rank;
+  }
 }
