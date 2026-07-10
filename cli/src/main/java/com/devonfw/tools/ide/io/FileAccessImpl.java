@@ -549,11 +549,11 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       if (SystemInfoImpl.INSTANCE.isWindows()) {
         if (Files.isDirectory(absoluteSource)) {
           mklinkOnWindows(finalSource, absoluteSource, absoluteLink, type, relative);
-          LOG.info("Created junction with mklink as fallback for link to directory.");
+          LOG.debug("Created junction with mklink as fallback for link to directory.");
         } else {
           createHardLink(absoluteSource, link);
           resultingPathLinkType = PathLinkType.HARD_LINK;
-          LOG.info("Created hard link as fallback for link to file.");
+          LOG.debug("Created hard link as fallback for link to file.");
         }
       } else {
         throw new RuntimeException(e);
