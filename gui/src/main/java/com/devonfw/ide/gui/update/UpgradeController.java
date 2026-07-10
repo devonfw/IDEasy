@@ -2,7 +2,6 @@ package com.devonfw.ide.gui.update;
 
 import java.text.MessageFormat;
 import javafx.application.Platform;
-import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -17,12 +16,9 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.ide.gui.context.IdeGuiContext;
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
 import com.devonfw.ide.gui.nls.NlsService;
 import com.devonfw.ide.gui.tray.TrayNotificationService;
-import com.devonfw.tools.ide.commandlet.UpgradeCommandlet;
-import com.devonfw.tools.ide.tool.IdeasyCommandlet;
 
 /**
  * Controller for tool-wide IDEasy upgrades. Keeps upgrade checks separated from project updates.
@@ -34,21 +30,20 @@ public class UpgradeController {
   private static final String THREAD_CHECKER = "ide-gui-upgrade-checker";
   private static final String THREAD_RUNNER = "ide-gui-upgrade-runner";
 
-  private static final String STATUS_KEY_CHECKING = "status.upgrade.checking";
-  private static final String STATUS_KEY_AVAILABLE = "status.upgrade.available";
-  private static final String STATUS_KEY_UP_TO_DATE = "status.upgrade.upToDate";
-  private static final String STATUS_KEY_UPDATED = "status.upgrade.updated";
-  private static final String STATUS_KEY_UPDATING = "status.upgrade.updating";
-  private static final String STATUS_KEY_UNAVAILABLE = "status.upgrade.unavailable";
-  private static final String STATUS_KEY_FAILED_PREFIX = "status.upgrade.failedPrefix";
-  private static final String TOOLTIP_UPGRADE_AVAILABLE = "tooltip.upgrade.available";
+  private static final String STATUS_KEY_CHECKING = "status.upgrade.checking"; // "Upgrade status: checking..."
+  private static final String STATUS_KEY_AVAILABLE = "status.upgrade.available"; // "Version {0} needs to be updated to {1}."
+  private static final String STATUS_KEY_UP_TO_DATE = "status.upgrade.upToDate"; // "Version {0} is the latest version."
+  private static final String STATUS_KEY_UPDATED = "status.upgrade.updated"; // "IDEasy updated to latest version: {0}"
+  private static final String STATUS_KEY_UPDATING = "status.upgrade.updating"; // "Upgrading IDEasy..."
+  private static final String STATUS_KEY_UNAVAILABLE = "status.upgrade.unavailable"; // "Upgrade status unavailable"
+  private static final String STATUS_KEY_FAILED_PREFIX = "status.upgrade.failedPrefix"; // "Upgrade failed: " (prefix, detail text appended)
+  private static final String TOOLTIP_UPGRADE_AVAILABLE = "tooltip.upgrade.available"; // "Upgrade available - click the icon to view details"
 
-  private static final String TRAY_KEY_CAPTION = "tray.upgrade.caption";
-  private static final String TRAY_KEY_TEXT = "tray.upgrade.text";
-  public static final String BUTTON_UPGRADE = "button.upgrade";
+  private static final String TRAY_KEY_CAPTION = "tray.upgrade.caption"; // "IDEasy upgrade available"
+  private static final String TRAY_KEY_TEXT = "tray.upgrade.text"; // "Click to start IDEasy upgrade."
 
-  private final IdeGuiStateManager manager;
   private final NlsService nlsService;
+  private final UpgradeService upgradeService;
 
   private StackPane upgradeIndicator;
   private Stage dialogStage;
@@ -60,22 +55,40 @@ public class UpgradeController {
   @FXML
   private Button upgradeButton;
 
+  /** Whether the last known status is "upgrade available" (drives the dialog's button state on open). */
+  private boolean upgradeAvailable;
 
-  private String currentStatusKey;
-  private String currentStatusDetail;
+  /** The last rendered status text, kept so {@link #showDialog()} can paint it once the label becomes available (it is null until the dialog first loads). */
+  private String currentStatusText = "";
 
   private String installedVersionString = "";
   private String latestVersionString = "";
   private boolean justUpgraded = false;
 
+  /**
+   * The constructor.
+   *
+   * @param manager the {@link IdeGuiStateManager} to use.
+   * @param nlsService the {@link NlsService} to use.
+   */
   public UpgradeController(IdeGuiStateManager manager, NlsService nlsService) {
-    this.manager = manager;
+    this(nlsService, new UpgradeService(manager));
+  }
+
+  /**
+   * The constructor with an injectable {@link UpgradeService}.
+   *
+   * @param nlsService the {@link NlsService} to use.
+   * @param upgradeService the {@link UpgradeService} encapsulating the upgrade business logic.
+   */
+  public UpgradeController(NlsService nlsService, UpgradeService upgradeService) {
     this.nlsService = nlsService;
+    this.upgradeService = upgradeService;
   }
 
   public void start(StackPane upgradeIndicator) {
     this.upgradeIndicator = upgradeIndicator;
-    setStatusKey(STATUS_KEY_CHECKING);
+    showStatus(STATUS_KEY_CHECKING);
     // indicator initially hidden until check completes
     try {
       if (this.upgradeIndicator != null) {
@@ -92,98 +105,48 @@ public class UpgradeController {
     }
     startCheck();
   }
- 
+
   /**
    * Starts upgrade invoked from the dialog.
    */
   private void performUpgradeTask() {
-    setStatusKey(STATUS_KEY_UPDATING);
-    updateDialogStatus();
+    showStatus(STATUS_KEY_UPDATING);
 
-    Task<Void> task = new Task<>() {
-      @Override
-      protected Void call() {
-        performUpgrade();
-        return null;
-      }
-    };
-
-    task.setOnSucceeded(e -> {
-      e.consume();
+    TasksHelper.run(() -> {
+      this.upgradeService.runUpgrade();
+      return null;
+    }, ignored -> {
       // Mark as updated and prefer showing the updated message (with version)
       if (this.latestVersionString != null && !this.latestVersionString.isEmpty()) {
         this.installedVersionString = this.latestVersionString;
       }
-      setStatusKey(STATUS_KEY_UPDATED);
-      updateDialogStatus();
+      showStatus(STATUS_KEY_UPDATED);
       if (upgradeButton != null) {
         upgradeButton.setDisable(true);
       }
       // after upgrade, re-check availability so the controller fetches authoritative version info
       this.justUpgraded = true;
       startCheck();
-    });
-
-    task.setOnFailed(e -> {
-      e.consume();
-      Throwable ex = task.getException();
-      if (ex == null) {
-        setStatusKey(STATUS_KEY_UNAVAILABLE);
+    }, throwable -> {
+      if (throwable == null) {
+        showStatus(STATUS_KEY_UNAVAILABLE);
       } else {
-        setFailureDetail(ex.getMessage());
+        showStatusFailed(throwable.getMessage());
       }
-      updateDialogStatus();
       if (upgradeButton != null) {
         upgradeButton.setDisable(false);
       }
-    });
-
-    startBackgroundTask(task, THREAD_RUNNER);
-  }
-
-  protected void performUpgrade() {
-    IdeGuiContext ctx = new IdeGuiContext(this.manager.getStartContext(), null);
-    new UpgradeCommandlet(ctx).run();
-  }
-
-  /**
-   * Performs the actual upgrade availability check.
-   *
-   * @return true if an upgrade is available, false otherwise
-   */
-  protected boolean checkForUpgrade() {
-    try {
-      IdeGuiContext ctx = new IdeGuiContext(manager.getStartContext(), null);
-      IdeasyCommandlet cmd = new IdeasyCommandlet(ctx, null);
-      try {
-        var installed = cmd.getInstalledVersion();
-        var latest = cmd.getLatestVersion();
-        this.installedVersionString = installed == null ? "" : installed.toString();
-        this.latestVersionString = latest == null ? "" : latest.toString();
-      } catch (Exception e) {
-        LOG.debug("Failed to resolve versions", e);
-        this.installedVersionString = "";
-        this.latestVersionString = "";
-      }
-      return cmd.checkIfUpdateIsAvailable();
-    } catch (Exception e) {
-      LOG.debug("Upgrade check failed", e);
-      return false;
-    }
+    }, THREAD_RUNNER);
   }
 
   private void startCheck() {
-    Task<Boolean> checkTask = new Task<>() {
-      @Override
-      protected Boolean call() {
-        return checkForUpgrade();
-      }
-    };
 
-    checkTask.setOnSucceeded(e -> {
-      e.consume();
-      boolean available = Boolean.TRUE.equals(checkTask.getValue());
-      setStatusKey(available ? STATUS_KEY_AVAILABLE : STATUS_KEY_UP_TO_DATE);
+    TasksHelper.run(this.upgradeService::checkForUpgrade, result -> {
+      boolean available = Boolean.TRUE.equals(result);
+      this.installedVersionString = this.upgradeService.getInstalledVersion();
+      this.latestVersionString = this.upgradeService.getLatestVersion();
+
+      showStatus(available ? STATUS_KEY_AVAILABLE : STATUS_KEY_UP_TO_DATE);
       try {
         if (this.upgradeIndicator != null) {
           this.upgradeIndicator.setVisible(available);
@@ -195,7 +158,6 @@ public class UpgradeController {
       } catch (Throwable t) {
         LOG.debug("Failed to update UI on check result", t);
       }
-      // Update dialog texts/labels (installed/latest versions may have changed)
       // If we just performed an upgrade and now there is no newer version available,
       // show the explicit 'updated to' confirmation message
       if (this.justUpgraded && !available) {
@@ -203,21 +165,15 @@ public class UpgradeController {
         if (this.latestVersionString != null && !this.latestVersionString.isEmpty()) {
           this.installedVersionString = this.latestVersionString;
         }
-        setStatusKey(STATUS_KEY_UPDATED);
-        updateDialogStatus();
+        showStatus(STATUS_KEY_UPDATED);
         this.justUpgraded = false;
-      } else {
-        updateDialogStatus();
       }
       if (available) {
         showTrayNotification();
       }
-    });
-
-    checkTask.setOnFailed(e -> {
-      e.consume();
-      LOG.debug("Upgrade check failed", checkTask.getException());
-      setStatusKey(STATUS_KEY_UNAVAILABLE);
+    }, throwable -> {
+      LOG.debug("Upgrade check failed", throwable);
+      showStatus(STATUS_KEY_UNAVAILABLE);
       try {
         if (this.upgradeIndicator != null) {
           this.upgradeIndicator.setVisible(false);
@@ -228,45 +184,33 @@ public class UpgradeController {
       } catch (Throwable t) {
         LOG.debug("Failed to update UI on check failure", t);
       }
-    });
-
-    startBackgroundTask(checkTask, THREAD_CHECKER);
+    }, THREAD_CHECKER);
   }
 
   /**
-   * Re-applies the current localized status text. For after a locale change.
+   * Shows a plain localized status (with version substitution for available/up-to-date/updated) and records whether it represents "upgrade available" (for the
+   * dialog's button state).
    */
-  public void refreshStatusText() {
-    updateDialogStatus();
-    try {
-      if (this.upgradeIndicator != null) {
-        Tooltip.install(this.upgradeIndicator, new Tooltip(nlsService.get(TOOLTIP_UPGRADE_AVAILABLE)));
-      }
-      if (this.upgradeButton != null) {
-        this.upgradeButton.setText(nlsService.get(BUTTON_UPGRADE));
-      }
-    } catch (Throwable t) {
-      LOG.debug("Failed to refresh status text", t);
+  private void showStatus(String key) {
+    this.upgradeAvailable = STATUS_KEY_AVAILABLE.equals(key);
+    setLabelText(formatStatusText(key));
+  }
+
+  /**
+   * Shows the failed-status prefix with an appended (not localized) detail, e.g. an exception message.
+   */
+  private void showStatusFailed(String detail) {
+    this.upgradeAvailable = false;
+    String text = this.nlsService.get(STATUS_KEY_FAILED_PREFIX);
+    if (detail != null) {
+      text = text + detail;
     }
+    setLabelText(text);
   }
 
-  private void setStatusKey(String statusKey) {
-    this.currentStatusKey = statusKey;
-    this.currentStatusDetail = null;
-  }
-
-  private void setFailureDetail(String detail) {
-    this.currentStatusKey = STATUS_KEY_FAILED_PREFIX;
-    this.currentStatusDetail = detail;
-  }
-
-  private String resolveStatusText() {
-    if (this.currentStatusKey == null) {
-      return "";
-    }
-    String text = this.nlsService.get(this.currentStatusKey);
-    if (STATUS_KEY_AVAILABLE.equals(this.currentStatusKey) || STATUS_KEY_UP_TO_DATE.equals(this.currentStatusKey)
-        || STATUS_KEY_UPDATED.equals(this.currentStatusKey)) {
+  private String formatStatusText(String key) {
+    String text = this.nlsService.get(key);
+    if (STATUS_KEY_AVAILABLE.equals(key) || STATUS_KEY_UP_TO_DATE.equals(key) || STATUS_KEY_UPDATED.equals(key)) {
       try {
         return MessageFormat.format(text, this.installedVersionString, this.latestVersionString);
       } catch (IllegalArgumentException iae) {
@@ -274,15 +218,13 @@ public class UpgradeController {
         return text;
       }
     }
-    if (this.currentStatusDetail != null) {
-      return text + this.currentStatusDetail;
-    }
     return text;
   }
 
-  private void updateDialogStatus() {
+  private void setLabelText(String text) {
+    this.currentStatusText = text;
     if (this.statusLabel != null) {
-      this.statusLabel.setText(resolveStatusText());
+      this.statusLabel.setText(text);
     }
   }
 
@@ -311,11 +253,10 @@ public class UpgradeController {
         this.dialogStage.setResizable(true);
       }
 
-      // Update status and button state before showing/bringing to front
-      updateDialogStatus();
-      boolean available = STATUS_KEY_AVAILABLE.equals(this.currentStatusKey);
+      // repaint now that the label/button are bound: they may have missed status updates issued before the dialog was first loaded
+      setLabelText(this.currentStatusText);
       if (this.upgradeButton != null) {
-        this.upgradeButton.setDisable(!available);
+        this.upgradeButton.setDisable(!this.upgradeAvailable);
       }
 
       if (this.dialogStage.isShowing()) {
@@ -328,13 +269,6 @@ public class UpgradeController {
     }
   }
 
-  private <T> void startBackgroundTask(Task<T> task, String threadName) {
-    Thread t = new Thread(task, threadName);
-    t.setDaemon(true);
-    t.start();
-  }
-
-
   private void showTrayNotification() {
     try {
       // attach click action that runs upgrade on FX thread
@@ -344,10 +278,3 @@ public class UpgradeController {
     }
   }
 }
-
-
-
-
-
-
-

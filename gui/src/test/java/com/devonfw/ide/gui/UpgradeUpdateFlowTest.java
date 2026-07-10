@@ -19,7 +19,9 @@ import com.devonfw.ide.gui.context.IdeGuiContext;
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
 import com.devonfw.ide.gui.nls.NlsService;
 import com.devonfw.ide.gui.update.UpdateController;
+import com.devonfw.ide.gui.update.UpdateService;
 import com.devonfw.ide.gui.update.UpgradeController;
+import com.devonfw.ide.gui.update.UpgradeService;
 
 /**
  * Comprehensive integration tests for update and upgrade flows covering both availability and unavailability scenarios.
@@ -45,19 +47,20 @@ public class UpgradeUpdateFlowTest extends HeadlessApplicationTest {
 
     @Override
     public void start(Stage stage) throws IOException {
-      UpdateController testUpdateController = new UpdateController(IdeGuiStateManager.getInstance(), nlsService) {
+      UpdateService fakeUpdateService = new UpdateService() {
         private boolean updated = false;
 
         @Override
-        protected void performProjectUpdate(IdeGuiContext context) {
+        public void runUpdate(IdeGuiContext context) {
           this.updated = true;
         }
 
         @Override
-        protected boolean checkForUpdates(IdeGuiContext context) {
+        public boolean isUpdateAvailable(IdeGuiContext context) {
           return (context != null) && !this.updated;
         }
       };
+      UpdateController testUpdateController = new UpdateController(IdeGuiStateManager.getInstance(), nlsService, fakeUpdateService);
 
       UpgradeController testUpgradeController = new UpgradeController(IdeGuiStateManager.getInstance(), nlsService);
 
@@ -114,12 +117,13 @@ public class UpgradeUpdateFlowTest extends HeadlessApplicationTest {
 
     @Override
     public void start(Stage stage) throws IOException {
-      UpdateController testUpdateController = new UpdateController(IdeGuiStateManager.getInstance(), nlsService) {
+      UpdateService fakeUpdateService = new UpdateService() {
         @Override
-        protected boolean checkForUpdates(IdeGuiContext context) {
+        public boolean isUpdateAvailable(IdeGuiContext context) {
           return false;
         }
       };
+      UpdateController testUpdateController = new UpdateController(IdeGuiStateManager.getInstance(), nlsService, fakeUpdateService);
 
       UpgradeController testUpgradeController = new UpgradeController(IdeGuiStateManager.getInstance(), nlsService);
 
@@ -157,19 +161,20 @@ public class UpgradeUpdateFlowTest extends HeadlessApplicationTest {
     public void start(Stage stage) throws IOException {
       UpdateController testUpdateController = new UpdateController(IdeGuiStateManager.getInstance(), nlsService);
 
-      UpgradeController testUpgradeController = new UpgradeController(IdeGuiStateManager.getInstance(), nlsService) {
+      UpgradeService fakeUpgradeService = new UpgradeService(IdeGuiStateManager.getInstance()) {
         private boolean upgraded = false;
 
         @Override
-        protected void performUpgrade() {
+        public void runUpgrade() {
           this.upgraded = true;
         }
 
         @Override
-        protected boolean checkForUpgrade() {
+        public boolean checkForUpgrade() {
           return !this.upgraded;
         }
       };
+      UpgradeController testUpgradeController = new UpgradeController(nlsService, fakeUpgradeService);
 
       TestGuiSetup.setupStageWithControllers(stage, mockIdeRoot, testUpdateController, testUpgradeController);
     }
@@ -217,12 +222,13 @@ public class UpgradeUpdateFlowTest extends HeadlessApplicationTest {
     public void start(Stage stage) throws IOException {
       UpdateController testUpdateController = new UpdateController(IdeGuiStateManager.getInstance(), nlsService);
 
-      UpgradeController testUpgradeController = new UpgradeController(IdeGuiStateManager.getInstance(), nlsService) {
+      UpgradeService fakeUpgradeService = new UpgradeService(IdeGuiStateManager.getInstance()) {
         @Override
-        protected boolean checkForUpgrade() {
+        public boolean checkForUpgrade() {
           return false;
         }
       };
+      UpgradeController testUpgradeController = new UpgradeController(nlsService, fakeUpgradeService);
 
       TestGuiSetup.setupStageWithControllers(stage, mockIdeRoot, testUpdateController, testUpgradeController);
     }

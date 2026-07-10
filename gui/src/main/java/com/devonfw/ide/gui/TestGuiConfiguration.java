@@ -1,6 +1,6 @@
 package com.devonfw.ide.gui;
 
-import com.devonfw.ide.gui.update.UpdateController;
+import com.devonfw.ide.gui.update.UpdateService;
 import com.devonfw.tools.ide.version.IdeVersion;
 
 /**
@@ -54,7 +54,7 @@ public class TestGuiConfiguration {
     }
     if ((updateOverride != null) && !updateOverride.isBlank()) {
       boolean isAvailable = "true".equalsIgnoreCase(updateOverride.trim());
-      UpdateController.setMockUpdateAvailable(isAvailable);
+      UpdateService.setMockUpdateAvailable(isAvailable);
     }
   }
 }
