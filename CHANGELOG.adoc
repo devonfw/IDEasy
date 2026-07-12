@@ -6,7 +6,6 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
-
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/47?closed=1[milestone 2026.07.002].
 
 == 2026.07.001
@@ -28,6 +27,8 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/865[#865]: az not working on Mac
 * https://github.com/devonfw/IDEasy/issues/1936[#1936]: Improve localization of GUI
 * https://github.com/devonfw/IDEasy/issues/2045[#2045]: Add tool selection and version or edition configuration to GUI
+* https://github.com/devonfw/IDEasy/issues/2097[#2097]: Configure Ide plugins in the GUI
+
 
 * https://github.com/devonfw/IDEasy/issues/2026[#2026]: Create UvRepository and UvBasedCommandlet
 
