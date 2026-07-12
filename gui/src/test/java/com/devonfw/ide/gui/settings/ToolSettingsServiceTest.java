@@ -17,7 +17,6 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeLogListenerBuffer;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
-import com.devonfw.tools.ide.tool.eclipse.Eclipse;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
@@ -39,7 +38,7 @@ class ToolSettingsServiceTest extends AbstractIdeContextTest {
   @Test
   void testToToolConfiguration_toolNameMatchesCommandletName() {
 
-    IdeTestContext context = newContext("testProject", "project-0", false);
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
 
     ToolConfiguration tc = service.toToolConfiguration(new Mvn(context), List.of());
 
@@ -49,7 +48,7 @@ class ToolSettingsServiceTest extends AbstractIdeContextTest {
   @Test
   void testToToolConfiguration_enabledWhenInEnabledToolsList() {
 
-    IdeTestContext context = newContext("testProject", "project-0", false);
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
 
     ToolConfiguration tc = service.toToolConfiguration(new Mvn(context), List.of("mvn", "npm"));
 
@@ -59,7 +58,7 @@ class ToolSettingsServiceTest extends AbstractIdeContextTest {
   @Test
   void testToToolConfiguration_disabledWhenNotInEnabledToolsList() {
 
-    IdeTestContext context = newContext("testProject", "project-0", false);
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
 
     ToolConfiguration tc = service.toToolConfiguration(new Mvn(context), List.of("npm"));
 
@@ -69,7 +68,7 @@ class ToolSettingsServiceTest extends AbstractIdeContextTest {
   @Test
   void testToToolConfiguration_enabledCheckIsCaseInsensitive() {
 
-    IdeTestContext context = newContext("testProject", "project-0", false);
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
 
     ToolConfiguration tc = service.toToolConfiguration(new Mvn(context), List.of("MVN"));
 
@@ -79,7 +78,7 @@ class ToolSettingsServiceTest extends AbstractIdeContextTest {
   @Test
   void testToToolConfiguration_nullEnabledToolsListYieldsDisabled() {
 
-    IdeTestContext context = newContext("testProject", "project-0", false);
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
 
     ToolConfiguration tc = service.toToolConfiguration(new Mvn(context), null);
 
@@ -93,7 +92,7 @@ class ToolSettingsServiceTest extends AbstractIdeContextTest {
   @Test
   void testLoadEditionsForTool_returnsEditionsFromRepository() {
 
-    IdeTestContext context = newContext("testProject", "project-0", false);
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
     context.setDefaultToolRepository(stubRepo(List.of("community", "ultimate"), List.of()));
 
     List<String> editions = service.loadEditionsForTool("intellij", context);
@@ -104,7 +103,7 @@ class ToolSettingsServiceTest extends AbstractIdeContextTest {
   @Test
   void testLoadEditionsForTool_returnsEmptyForUnknownTool() {
 
-    IdeTestContext context = newContext("testProject", "project-0", false);
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
 
     List<String> editions = service.loadEditionsForTool("nonexistent-xyz-123", context);
 
@@ -114,16 +113,72 @@ class ToolSettingsServiceTest extends AbstractIdeContextTest {
   @Test
   void testLoadEditionsForTool_repositoryExceptionYieldsEmpty() {
 
-    IdeTestContext context = newContext("testProject", "project-0", false);
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
     context.setDefaultToolRepository(stubRepo(null, null));
 
     List<String> editions = service.loadEditionsForTool("mvn", context);
 
     assertThat(editions).isEmpty();
   }
+  // ---------------------------------------------------------------------------
+  // reloadVersionsForSelectedEdition
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void testLoadVersionsForSelectedEdition_returnsVersionsFromRepository() {
+
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    List<VersionIdentifier> stubVersions = List.of(VersionIdentifier.of("3.9.0"), VersionIdentifier.of("3.8.0"));
+    context.setDefaultToolRepository(stubRepo(List.of(), stubVersions));
+
+    List<String> versions = service.loadVersionsForSelectedEdition("mvn", "default", context);
+
+    assertThat(versions).containsExactly("3.9.0", "3.8.0");
+  }
+
+  @Test
+  void testLoadVersionsForSelectedEdition_nullEditionReturnsEmpty() {
+
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+
+    List<String> versions = service.loadVersionsForSelectedEdition("mvn", null, context);
+
+    assertThat(versions).isEmpty();
+  }
+
+  @Test
+  void testLoadVersionsForSelectedEdition_blankEditionReturnsEmpty() {
+
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+
+    List<String> versions = service.loadVersionsForSelectedEdition("mvn", "  ", context);
+
+    assertThat(versions).isEmpty();
+  }
+
+  @Test
+  void testLoadVersionsForSelectedEdition_unknownToolReturnsEmpty() {
+
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+
+    List<String> versions = service.loadVersionsForSelectedEdition("nonexistent-xyz-123", "community", context);
+
+    assertThat(versions).isEmpty();
+  }
+
+  @Test
+  void testLoadVersionsForSelectedEdition_repositoryExceptionYieldsEmpty() {
+
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    context.setDefaultToolRepository(stubRepo(null, null));
+
+    List<String> versions = service.loadVersionsForSelectedEdition("mvn", "default", context);
+
+    assertThat(versions).isEmpty();
+  }
 
   // ---------------------------------------------------------------------------
-  // buildPreviewSettingsContent – pure logic, no context needed
+  // buildPreviewSettingsContent
   // ---------------------------------------------------------------------------
 
   @Test
@@ -252,6 +307,94 @@ class ToolSettingsServiceTest extends AbstractIdeContextTest {
     assertThat(content).contains("mvn").contains("npm");
     assertThat(content).contains("MVN_VERSION=3.9.0");
     assertThat(content).contains("NPM_VERSION=10.0.0");
+  }
+
+  // ---------------------------------------------------------------------------
+  // isValidVersion
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void testIsValidVersion_exactVersionPresentInAvailableListIsValid() {
+
+    List<String> availableVersions = List.of("2026.1.0", "2026.1.5", "2026.2.0");
+
+    assertThat(service.isValidVersion("2026.1.0", availableVersions)).isTrue();
+  }
+
+  @Test
+  void testIsValidVersion_exactVersionNotPresentInAvailableListIsInvalid() {
+
+    List<String> availableVersions = List.of("2026.1.0", "2026.1.5", "2026.2.0");
+
+    assertThat(service.isValidVersion("2026.1.2.4.5", availableVersions)).isFalse();
+  }
+
+  @Test
+  void testIsValidVersion_patternMatchingAvailableVersionIsValid() {
+
+    List<String> availableVersions = List.of("2026.1.0", "2026.1.5", "2026.2.0");
+
+    assertThat(service.isValidVersion("2026.1*", availableVersions)).isTrue();
+  }
+
+  @Test
+  void testIsValidVersion_patternWithUnstableSuffixMatchingUnstableAvailableVersionIsValid() {
+
+    List<String> availableVersions = List.of("2026.1.0-SNAPSHOT");
+
+    assertThat(service.isValidVersion("2026*!", availableVersions)).isTrue();
+  }
+
+  @Test
+  void testIsValidVersion_stablePatternDoesNotMatchOnlyUnstableAvailableVersions() {
+
+    List<String> availableVersions = List.of("2026.1.0-SNAPSHOT");
+
+    assertThat(service.isValidVersion("2026*", availableVersions)).isFalse();
+  }
+
+  @Test
+  void testIsValidVersion_patternNotMatchingAnyAvailableVersionIsInvalid() {
+
+    List<String> availableVersions = List.of("2026.1.0", "2026.1.5", "2026.2.0");
+
+    assertThat(service.isValidVersion("2027*", availableVersions)).isFalse();
+  }
+
+  @Test
+  void testIsValidVersion_wildcardIsAlwaysValidRegardlessOfAvailableVersions() {
+
+    assertThat(service.isValidVersion("*", List.of("2026.1.0"))).isTrue();
+    assertThat(service.isValidVersion("*", List.of())).isTrue();
+    assertThat(service.isValidVersion("*", null)).isTrue();
+  }
+
+  @Test
+  void testIsValidVersion_blankInputIsValid() {
+
+    assertThat(service.isValidVersion("", List.of("2026.1.0"))).isTrue();
+    assertThat(service.isValidVersion(null, List.of("2026.1.0"))).isTrue();
+  }
+
+  @Test
+  void testIsValidVersion_nullAvailableVersionsSkipsValidation() {
+
+    assertThat(service.isValidVersion("2026.1.0", null)).isTrue();
+  }
+
+  @Test
+  void testIsValidVersion_worksWithVersionsLoadedWithoutEverOpeningDropdown() {
+
+    // Simulates typing a version and tabbing away without ever opening the version dropdown: the caller
+    // (ToolSettingsController) loads the list itself via loadVersionsForSelectedEdition, then validates against it.
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    List<VersionIdentifier> stubVersions = List.of(VersionIdentifier.of("2026.1.0"), VersionIdentifier.of("2026.1.5"));
+    context.setDefaultToolRepository(stubRepo(List.of(), stubVersions));
+
+    List<String> loadedVersions = service.loadVersionsForSelectedEdition("mvn", "default", context);
+
+    assertThat(service.isValidVersion("2026.1*", loadedVersions)).isTrue();
+    assertThat(service.isValidVersion("2027*", loadedVersions)).isFalse();
   }
 
   // ---------------------------------------------------------------------------
@@ -399,28 +542,21 @@ class ToolSettingsServiceTest extends AbstractIdeContextTest {
     assertThat(saved).doesNotContain("MVN_VERSION=");
   }
 
-  @Test
-  void testApplyAndSave_createsBackupOfExistingFile(@TempDir Path tempDir) throws IOException {
-
-    // arrange – file must exist for createBackupIfPossible to act
-    IdeGuiContext guiContext = createGuiContext(tempDir, "IDE_TOOLS=mvn\n");
-    ToolConfiguration mvn = enabled("mvn", "3.9.0", null, false);
-    // act
-    service.applyAndSave(List.of(mvn), guiContext);
-    // assert
-    assertThat(tempDir.resolve("project/settings/ide.properties.bak")).exists();
-  }
 
   @Test
-  void testApplyAndSave_noBackupWhenFileAbsent(@TempDir Path tempDir) throws IOException {
+  void testApplyAndSave_disabledToolRemovesExistingVersionAndEditionLines(@TempDir Path tempDir) throws IOException {
 
-    // arrange – no ide.properties → backup must not be created
-    IdeGuiContext guiContext = createGuiContext(tempDir, null);
-    ToolConfiguration mvn = enabled("mvn", "3.9.0", null, false);
+    // arrange – existing file already has version and edition entries for intellij
+    IdeGuiContext guiContext = createGuiContext(tempDir, "IDE_TOOLS=intellij\nINTELLIJ_VERSION=2024.1\nINTELLIJ_EDITION=community\n");
+    ToolConfiguration intellij = tool("intellij", "2024.1", "community", true);
+    intellij.setEnabled(false);
     // act
-    service.applyAndSave(List.of(mvn), guiContext);
-    // assert
-    assertThat(tempDir.resolve("project/settings/ide.properties.bak")).doesNotExist();
+    service.applyAndSave(List.of(intellij), guiContext);
+    // assert – both the version and edition line must be removed when the tool is disabled
+    String saved = readSettingsFile(tempDir);
+    assertThat(saved).doesNotContain("INTELLIJ_VERSION=");
+    assertThat(saved).doesNotContain("INTELLIJ_EDITION=");
+    assertThat(saved).doesNotContain("IDE_TOOLS=intellij");
   }
 
   @Test
@@ -478,178 +614,6 @@ class ToolSettingsServiceTest extends AbstractIdeContextTest {
     String saved = readSettingsFile(tempDir);
     assertThat(saved).contains("MVN_VERSION=3.9.0");
     assertThat(saved).doesNotContain("MVN_EDITION");
-  }
-
-  // ---------------------------------------------------------------------------
-  // reloadVersionsForSelectedEdition
-  // ---------------------------------------------------------------------------
-
-  @Test
-  void testLoadVersionsForSelectedEdition_returnsVersionsFromRepository() {
-
-    IdeTestContext context = newContext("testProject", "project-0", false);
-    List<VersionIdentifier> stubVersions = List.of(VersionIdentifier.of("3.9.0"), VersionIdentifier.of("3.8.0"));
-    context.setDefaultToolRepository(stubRepo(List.of(), stubVersions));
-
-    List<String> versions = service.loadVersionsForSelectedEdition("mvn", "default", context);
-
-    assertThat(versions).containsExactly("3.9.0", "3.8.0");
-  }
-
-  @Test
-  void testLoadVersionsForSelectedEdition_nullEditionReturnsEmpty() {
-
-    IdeTestContext context = newContext("testProject", "project-0", false);
-
-    List<String> versions = service.loadVersionsForSelectedEdition("mvn", null, context);
-
-    assertThat(versions).isEmpty();
-  }
-
-  @Test
-  void testLoadVersionsForSelectedEdition_blankEditionReturnsEmpty() {
-
-    IdeTestContext context = newContext("testProject", "project-0", false);
-
-    List<String> versions = service.loadVersionsForSelectedEdition("mvn", "  ", context);
-
-    assertThat(versions).isEmpty();
-  }
-
-  @Test
-  void testLoadVersionsForSelectedEdition_unknownToolReturnsEmpty() {
-
-    IdeTestContext context = newContext("testProject", "project-0", false);
-
-    List<String> versions = service.loadVersionsForSelectedEdition("nonexistent-xyz-123", "community", context);
-
-    assertThat(versions).isEmpty();
-  }
-
-  @Test
-  void testLoadVersionsForSelectedEdition_repositoryExceptionYieldsEmpty() {
-
-    IdeTestContext context = newContext("testProject", "project-0", false);
-    context.setDefaultToolRepository(stubRepo(null, null));
-
-    List<String> versions = service.loadVersionsForSelectedEdition("mvn", "default", context);
-
-    assertThat(versions).isEmpty();
-  }
-
-  // ---------------------------------------------------------------------------
-  // toToolConfiguration – pluginBased flag
-  // ---------------------------------------------------------------------------
-
-  @Test
-  void testToToolConfiguration_pluginBasedTrueForPluginBasedCommandlet() {
-
-    IdeTestContext context = newContext("testProject", "project-0", false);
-
-    ToolConfiguration tc = service.toToolConfiguration(new Eclipse(context), List.of());
-
-    assertThat(tc.isPluginBased()).isTrue();
-  }
-
-  @Test
-  void testToToolConfiguration_pluginBasedFalseForNonPluginBasedCommandlet() {
-
-    IdeTestContext context = newContext("testProject", "project-0", false);
-
-    ToolConfiguration tc = service.toToolConfiguration(new Mvn(context), List.of());
-
-    assertThat(tc.isPluginBased()).isFalse();
-  }
-
-  // ---------------------------------------------------------------------------
-  // isPluginUrlNeeded
-  // ---------------------------------------------------------------------------
-
-  @Test
-  void testIsPluginUrlNeeded_returnsFalseForIntelliJ(@TempDir Path tempDir) throws IOException {
-
-    IdeGuiContext context = createGuiContext(tempDir, "");
-
-    assertThat(service.isPluginUrlNeeded("intellij", context)).isFalse();
-  }
-
-  @Test
-  void testIsPluginUrlNeeded_returnsTrueForEclipse(@TempDir Path tempDir) throws IOException {
-
-    IdeGuiContext context = createGuiContext(tempDir, "");
-
-    assertThat(service.isPluginUrlNeeded("eclipse", context)).isTrue();
-  }
-
-  @Test
-  void testIsPluginUrlNeeded_returnsFalseForNonPluginBasedTool(@TempDir Path tempDir) throws IOException {
-
-    IdeGuiContext context = createGuiContext(tempDir, "");
-
-    assertThat(service.isPluginUrlNeeded("mvn", context)).isFalse();
-  }
-
-  @Test
-  void testIsPluginUrlNeeded_returnsFalseForUnknownTool(@TempDir Path tempDir) throws IOException {
-
-    IdeGuiContext context = createGuiContext(tempDir, "");
-
-    assertThat(service.isPluginUrlNeeded("nonexistent-xyz-404", context)).isFalse();
-  }
-
-  // ---------------------------------------------------------------------------
-  // createPlugin
-  // ---------------------------------------------------------------------------
-
-  @Test
-  void testCreatePlugin_createsFileAndReturnsPluginConfiguration(@TempDir Path tempDir) throws IOException {
-
-    IdeGuiContext context = createGuiContext(tempDir, "");
-    ToolConfiguration parent = tool("eclipse", null, null, false);
-
-    PluginConfiguration result = service.createPlugin("eclipse", "myplugin", "com.example.myplugin", null, null, parent, context);
-
-    assertThat(result).isNotNull();
-    assertThat(result.getPluginName()).isEqualTo("myplugin");
-    assertThat(result.getPluginId()).isEqualTo("com.example.myplugin");
-    assertThat(result.isActive()).isTrue();
-    assertThat(result.getParentToolName()).isEqualTo("eclipse");
-
-    Path pluginFile = tempDir.resolve("project/settings/eclipse/plugins/myplugin.properties");
-    assertThat(pluginFile).exists();
-    Properties props = new Properties();
-    try (var in = Files.newInputStream(pluginFile)) {
-      props.load(in);
-    }
-    assertThat(props.getProperty("active")).isEqualTo("true");
-    assertThat(props.getProperty("id")).isEqualTo("com.example.myplugin");
-  }
-
-  @Test
-  void testCreatePlugin_writesTagsWhenProvided(@TempDir Path tempDir) throws IOException {
-
-    IdeGuiContext context = createGuiContext(tempDir, "");
-    ToolConfiguration parent = tool("eclipse", null, null, false);
-
-    service.createPlugin("eclipse", "tagged-plugin", "com.example.tagged", null, "java,ide", parent, context);
-
-    Path pluginFile = tempDir.resolve("project/settings/eclipse/plugins/tagged-plugin.properties");
-    Properties props = new Properties();
-    try (var in = Files.newInputStream(pluginFile)) {
-      props.load(in);
-    }
-    assertThat(props.getProperty("tags")).isEqualTo("java,ide");
-  }
-
-  @Test
-  void testCreatePlugin_returnsNullForNonPluginBasedTool(@TempDir Path tempDir) throws IOException {
-
-    IdeGuiContext context = createGuiContext(tempDir, "");
-    ToolConfiguration parent = tool("mvn", null, null, false);
-
-    PluginConfiguration result = service.createPlugin("mvn", "myplugin", "com.example.myplugin", null, null, parent, context);
-
-    assertThat(result).isNull();
   }
 
   // ---------------------------------------------------------------------------

@@ -23,7 +23,7 @@ import javafx.stage.Window;
 
 import com.devonfw.ide.gui.context.IdeGuiContext;
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
-import com.devonfw.ide.gui.localization.LocalizationService;
+import com.devonfw.ide.gui.nls.NlsService;
 
 /**
  * Controller for the Tools Configuration Tab.
@@ -39,16 +39,30 @@ public class ToolSettingsController {
   @FXML
   private Button previewButton;
 
+  final ToolSettingsService service = new ToolSettingsService();
+
+  IdeGuiContext currentContext;
+
+  final Set<String> validationErrors = new HashSet<>();
+
+  private final NlsService nlsService;
   @FXML
   private Button addPluginButton;
 
-  static final ToolSettingsService service = new ToolSettingsService();
-  
-  static IdeGuiContext currentContext;
-  // Static so validation errors survive cell recycling — JavaFX reuses TreeCell instances during scroll.
-  static final Set<String> validationErrors = new HashSet<>();
-
   private Runnable onClose;
+
+  /**
+   * Constructor
+   *
+   * @param nlsService the injected {@link NlsService} used for translations.
+   */
+  public ToolSettingsController(NlsService nlsService) {
+    this.nlsService = nlsService;
+  }
+
+  NlsService getNlsService() {
+    return this.nlsService;
+  }
 
 
   @FXML
@@ -101,7 +115,7 @@ public class ToolSettingsController {
   }
 
   private TreeItem<ToolTreeNode> createGroupItem(ToolConfiguration.ToolGroup group, List<ToolConfiguration> groupTools) {
-    Label toolGroupLabel = new Label(group.getLabel());
+    Label toolGroupLabel = new Label(this.nlsService.get(group.getLabel()));
     toolGroupLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12; -fx-padding: 6 0 6 0;");
 
     TreeItem<ToolTreeNode> groupItem = new TreeItem<>(null);
@@ -154,10 +168,10 @@ public class ToolSettingsController {
     Stage dialog = new Stage();
     dialog.initModality(Modality.APPLICATION_MODAL);
     dialog.initOwner(toolsTree.getScene().getWindow());
-    dialog.setTitle(LocalizationService.getInstance().get("label.toolsConfig") + " - Preview");
+    dialog.setTitle(nlsService.get("toolsConfigTitle") + " - " + nlsService.get("preview"));
 
-    Button save = new Button(LocalizationService.getInstance().get("button.save"));
-    Button close = new Button(LocalizationService.getInstance().get("button.cancel"));
+    Button save = new Button(nlsService.get("save"));
+    Button close = new Button(nlsService.get("cancel"));
     save.setOnAction(event -> {
       event.consume();
       service.applyAndSave(toolConfigurations, currentContext);
@@ -243,7 +257,7 @@ public class ToolSettingsController {
 
     Button okBtn = new Button("OK");
     okBtn.setDefaultButton(true);
-    Button cancelBtn = new Button(LocalizationService.getInstance().get("button.cancel"));
+    Button cancelBtn = new Button(nlsService.get("cancel"));
     HBox actions = new HBox(8, cancelBtn, okBtn);
     actions.setAlignment(Pos.CENTER_RIGHT);
 

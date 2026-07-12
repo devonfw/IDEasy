@@ -9,8 +9,14 @@ DEFAULT_REPO = "IDEasy"
 # - chart: "bar", "pie", or "none"
 # - show_table: True or False
 # - show_links: True or False (supported for operating_systems and issue_age)
+VISUALIZATION_CONFIG_SCHEMA = (
+    '{"chart": "bar|pie|none", "show_table": True|False, '
+    '"show_links": True|False}'
+)
+
 VISUALIZATIONS = {
-    "issue_statistics": {"chart": "bar", "show_table": False},
+    "issue_assignment": {"chart": "pie", "show_table": False},
+    "issue_types": {"chart": "pie", "show_table": False},
     "operating_systems": {"chart": "bar", "show_table": False, "show_links": True},
     "issue_age": {"chart": "pie", "show_table": False, "show_links": True},
     "functional_labels": {"chart": "bar", "show_table": False},
@@ -47,6 +53,19 @@ ISSUE_STAT_DEFINITIONS: tuple[tuple[str, str], ...] = (
     ("features", "Features"),
     ("no_type", "No Type"),
 )
+
+ASSIGNMENT_STAT_DEFINITIONS: tuple[tuple[str, str], ...] = (
+    ("assigned", "Assigned"),
+    ("unassigned", "Unassigned"),
+)
+
+TYPE_STAT_DEFINITIONS: tuple[tuple[str, str], ...] = (
+    ("bugs", "Bugs"),
+    ("tasks", "Tasks"),
+    ("features", "Features"),
+    ("no_type", "No Type"),
+)
+
 
 BLOCKER_LABELS = {"blocker", "critical"}
 

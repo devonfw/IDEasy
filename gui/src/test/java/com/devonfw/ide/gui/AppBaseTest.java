@@ -6,15 +6,17 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
-import javafx.application.Platform;
-import javafx.event.ActionEvent;
+import java.util.function.Supplier;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.stage.Stage;
 
@@ -23,23 +25,26 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testfx.util.WaitForAsyncUtils;
 
-import com.devonfw.ide.gui.context.IdeGuiContext;
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
-import com.devonfw.ide.gui.localization.LocalizationService;
+import com.devonfw.ide.gui.nls.NlsService;
+import com.devonfw.ide.gui.settings.ToolConfiguration;
 
 /**
  * Basic UI Test
+ * <p>
+ * Note: TestFX calls {@link #start(Stage)} fresh before every {@code @Test} method (JUnit5's default per-method test instance lifecycle), so no state (combo
+ * box selections, loaded tab content, ...) carries over between tests. Every test sets up whatever it needs from scratch, the same way the pre-existing tests
+ * below already do.
  */
 public class AppBaseTest extends HeadlessApplicationTest {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AppBaseTest.class);
 
   private Button androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen;
-  private Button toolsConfigButton;
   private ComboBox<String> selectedProject, selectedWorkspace;
-  private ComboBox<String> selectedLanguage;
+  private TabPane tabPane;
+  private Tab mainTab, toolConfigTab;
 
   @TempDir
   private static Path mockIdeRoot;
@@ -48,16 +53,14 @@ public class AppBaseTest extends HeadlessApplicationTest {
   @Override
   public void start(Stage stage) throws IOException {
 
-    // Initialize Localization for tests
-    LocalizationService.resetInstance();
-    LocalizationService.getInstance(Locale.ENGLISH);
+    NlsService nlsService = new NlsService(Locale.ENGLISH);
 
     URL mainViewUrl = getClass().getResource("main-view.fxml");
     assertThat(mainViewUrl).as("Cannot resolve main UI FXML resource!").isNotNull();
 
     FXMLLoader fxmlLoader = new FXMLLoader(mainViewUrl);
-    fxmlLoader.setController(new MainController(mockIdeRoot.toString()));
-    fxmlLoader.setResources(LocalizationService.getInstance().getResourceBundle());
+    fxmlLoader.setController(new MainController(mockIdeRoot.toString(), nlsService));
+    fxmlLoader.setResources(nlsService.getResourceBundle());
     Parent root = fxmlLoader.load();
     stage.setScene(new Scene(root));
     stage.requestFocus(); //sometimes needed for headless setup to work
@@ -69,8 +72,10 @@ public class AppBaseTest extends HeadlessApplicationTest {
     vsCodeOpen = lookup(root, "#vsCodeOpen");
     selectedProject = lookup(root, "#selectedProject");
     selectedWorkspace = lookup(root, "#selectedWorkspace");
-    selectedLanguage = lookup(root, "#selectedLanguage");
-    toolsConfigButton = lookup(root, "#toolsConfigButton");
+
+    tabPane = (TabPane) fxmlLoader.getNamespace().get("tabPane");
+    mainTab = (Tab) fxmlLoader.getNamespace().get("mainTab");
+    toolConfigTab = (Tab) fxmlLoader.getNamespace().get("toolConfigTab");
   }
 
   /**
@@ -86,6 +91,31 @@ public class AppBaseTest extends HeadlessApplicationTest {
 
     //We set the project root directory to the temporary directory before all tests, so that the IDE can find the projects in the test.
     IdeGuiStateManager.getInstanceOverrideRootDir(mockIdeRoot.toString()).switchContext("project-1", "main");
+  }
+
+  /**
+   * Polls the given condition until it becomes {@code true}, or fails with an {@link AssertionError} once {@code timeoutMillis} elapses. Useful for state that
+   * is updated asynchronously (e.g. from a background thread).
+   */
+  public static void waitForCondition(Supplier<Boolean> condition, long timeoutMillis) throws InterruptedException {
+
+    long start = System.currentTimeMillis();
+    while (System.currentTimeMillis() - start < timeoutMillis) {
+      if (condition.get()) {
+        return;
+      }
+      Thread.sleep(100);
+    }
+    throw new AssertionError("Condition not met within timeout");
+  }
+
+  /**
+   * Selects the given project and workspace, exactly like a user would, so that a test starts from a known context.
+   */
+  private void selectProjectAndWorkspace() {
+
+    interact(() -> selectedProject.getSelectionModel().select("project-1"));
+    interact(() -> selectedWorkspace.getSelectionModel().select("main"));
   }
 
   /**
@@ -110,8 +140,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
   public void testIdeOpenButtonsEnabledWhenWorkspaceSelected() {
 
     // assert that a project and workspace is selected
-    interact(() -> selectedProject.getSelectionModel().select("project-1"));
-    interact(() -> selectedWorkspace.getSelectionModel().select("main"));
+    selectProjectAndWorkspace();
 
     // assert all IDE open buttons are enabled
     for (Button button : new Button[] { androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen }) {
@@ -147,104 +176,83 @@ public class AppBaseTest extends HeadlessApplicationTest {
         .isFalse();
   }
 
+  /**
+   * This test ensures that the tool config tab is disabled before any workspace has been selected, and that its content is not eagerly loaded.
+   */
   @Test
-  public void testSwitchingLocaleUpdatesTextsWithoutChangingProjectSelection() {
+  public void testToolConfigTabDisabledWhenNoWorkspaceSelected() {
 
-    interact(() -> selectedProject.getSelectionModel().select("project-1"));
-    interact(() -> selectedWorkspace.getSelectionModel().select("main"));
-
-    String projectBefore = selectedProject.getValue();
-    String workspaceBefore = selectedWorkspace.getValue();
-    String buttonTextBefore = androidStudioOpen.getText();
-    IdeGuiContext contextBefore = IdeGuiStateManager.getInstance().getCurrentContext();
-
-    interact(() -> {
-      selectedLanguage.setValue("Deutsch");
-      ActionEvent actionEvent = new ActionEvent(selectedLanguage, null);
-      if (selectedLanguage.getOnAction() != null) {
-        selectedLanguage.getOnAction().handle(actionEvent);
-      }
-    });
-
-    assertThat(selectedProject.getValue()).isEqualTo(projectBefore);
-    assertThat(selectedWorkspace.getValue()).isEqualTo(workspaceBefore);
-    assertThat(IdeGuiStateManager.getInstance().getCurrentContext()).isSameAs(contextBefore);
-    assertThat(selectedLanguage.getValue()).isEqualTo("Deutsch");
-    assertThat(androidStudioOpen.getText()).isNotEqualTo(buttonTextBefore);
+    assertThat(toolConfigTab.isDisabled()).as("toolConfigTab should be disabled before a workspace is selected").isTrue();
+    assertThat(toolConfigTab.getContent()).as("toolConfigTab content should not be loaded before it has ever been selected").isNull();
   }
 
   /**
-   * Verifies that the Tools Config button is disabled when no workspace has been selected yet.
+   * This test ensures that the tool config tab becomes enabled once a project and workspace have been selected.
    */
   @Test
-  public void testToolsConfigButtonDisabledWithoutWorkspaceSelection() {
+  public void testToolConfigTabEnabledAfterWorkspaceSelected() {
 
-    assertThat(selectedWorkspace.getValue()).isNull();
-    assertThat(toolsConfigButton.isDisabled())
-        .as("toolsConfigButton should be disabled when no workspace is selected")
-        .isTrue();
+    selectProjectAndWorkspace();
+
+    assertThat(toolConfigTab.isDisabled()).as("toolConfigTab should be enabled once a workspace has been selected").isFalse();
   }
 
   /**
-   * Verifies that the Tools Config button becomes enabled once a project and workspace are selected.
+   * This test ensures that selecting the tool config tab lazily loads its content from tools-config.fxml.
    */
   @Test
-  public void testToolsConfigButtonEnabledAfterWorkspaceSelection() {
+  public void testSelectingToolConfigTabLoadsContent() throws InterruptedException {
 
-    interact(() -> selectedProject.getSelectionModel().select("project-1"));
-    interact(() -> selectedWorkspace.getSelectionModel().select("main"));
+    selectProjectAndWorkspace();
+    interact(() -> tabPane.getSelectionModel().select(toolConfigTab));
+    waitForCondition(() -> toolConfigTab.getContent() != null, 5000);
 
-    assertThat(toolsConfigButton.isDisabled())
-        .as("toolsConfigButton should be enabled after project and workspace are selected")
-        .isFalse();
+    Parent content = (Parent) toolConfigTab.getContent();
+    assertThat(content.lookup("#toolsTree")).as("tools-config.fxml content should contain the tools tree").isNotNull();
+    assertThat(content.lookup("#cancelButton")).as("tools-config.fxml content should contain the cancel button").isNotNull();
   }
 
   /**
-   * Opens the Tools Config dialog, waits for it to finish loading (can take ~30 s because
-   * {@link com.devonfw.ide.gui.settings.ToolSettingsService#listToolConfigurations} queries the real tool repository), then asserts that the expected UI
-   * elements are present and that Cancel closes the dialog.
-   * <p>
-   * {@code Platform.runLater} is used deliberately instead of {@code interact()} / {@code clickOn()} so that the FX thread is not drained synchronously while
-   * the slow {@code initialize()} is still running. The test thread waits via {@link WaitForAsyncUtils#waitFor} instead.
+   * This test ensures that the tools tree is populated with tool groups and tools as soon as the tool config tab content is loaded (the initial tree build
+   * happens synchronously in {@code ToolSettingsController#initialize()}; only the per-tool edition/version lookups run on a background thread).
    */
   @Test
-  public void testToolsConfigDialogShowsExpectedElementsAndCancels() throws Exception {
+  @SuppressWarnings("unchecked")
+  public void testToolConfigTreePopulatedWithToolsAfterOpening() throws InterruptedException {
 
-    // arrange – a project and workspace must be selected to enable the button
-    interact(() -> selectedProject.getSelectionModel().select("project-1"));
-    interact(() -> selectedWorkspace.getSelectionModel().select("main"));
+    selectProjectAndWorkspace();
+    interact(() -> tabPane.getSelectionModel().select(toolConfigTab));
+    waitForCondition(() -> toolConfigTab.getContent() != null, 5000);
 
-    // act – fire the button without blocking the test thread on FX-event drain
-    Platform.runLater(() -> toolsConfigButton.fire());
+    Parent content = (Parent) toolConfigTab.getContent();
+    TreeView<ToolConfiguration> toolsTree = (TreeView<ToolConfiguration>) content.lookup("#toolsTree");
+    waitForCondition(() -> toolsTree.getRoot() != null && !toolsTree.getRoot().getChildren().isEmpty(), 5000);
 
-    // wait up to 90 seconds for the dialog to appear (listToolConfigurations can be slow)
-    WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-        () -> lookup("#cancelButton").tryQuery().isPresent());
+    List<TreeItem<ToolConfiguration>> groups = toolsTree.getRoot().getChildren();
+    assertThat(groups).as("tools tree should contain at least one tool group").isNotEmpty();
 
-    // assert – all expected dialog controls are present
-    TreeView<?> toolsTree = lookup("#toolsTree").query();
-    Button saveButton = lookup("#saveButton").query();
-    Button previewButton = lookup("#previewButton").query();
-
-    assertThat(toolsTree).isNotNull();
-    assertThat(saveButton).isNotNull();
-    assertThat(previewButton).isNotNull();
-
-    // save and preview should be enabled on open (no validation errors)
-    assertThat(saveButton.isDisabled())
-        .as("save button should be enabled when dialog first opens")
-        .isFalse();
-    assertThat(previewButton.isDisabled())
-        .as("preview button should be enabled when dialog first opens")
-        .isFalse();
-
-    // act – close the dialog via Cancel
-    clickOn("#cancelButton");
-
-    // assert – dialog is gone
-    WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS,
-        () -> lookup("#cancelButton").tryQuery().isEmpty());
+    boolean hasToolLeaf = groups.stream().flatMap(group -> group.getChildren().stream()).anyMatch(item -> item.getValue() != null);
+    assertThat(hasToolLeaf).as("tools tree should contain at least one tool leaf below a group").isTrue();
   }
+
+  /**
+   * This test ensures that the cancel button on the tool config tab navigates back to the main tab.
+   */
+  @Test
+  public void testCancelButtonReturnsToMainTab() throws InterruptedException {
+
+    selectProjectAndWorkspace();
+    interact(() -> tabPane.getSelectionModel().select(toolConfigTab));
+    waitForCondition(() -> toolConfigTab.getContent() != null, 5000);
+
+    Parent content = (Parent) toolConfigTab.getContent();
+    Button cancelButton = lookup(content, "#cancelButton");
+
+    interact(cancelButton::fire);
+
+    assertThat(tabPane.getSelectionModel().getSelectedItem()).as("cancel should navigate back to the main tab").isEqualTo(mainTab);
+  }
+
 
   @SuppressWarnings("unchecked")
   private static <T> T lookup(Parent root, String selector) {

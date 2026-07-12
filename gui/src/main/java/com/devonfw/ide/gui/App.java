@@ -14,9 +14,8 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.ide.gui.localization.LocalizationService;
 import com.devonfw.ide.gui.modal.IdeDialog;
-
+import com.devonfw.ide.gui.nls.NlsService;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.IdeVersion;
 
@@ -27,13 +26,18 @@ public class App extends Application {
 
   Parent root;
 
+  private Stage primaryStage;
+
+  private NlsService nlsService;
+
   private static final Logger LOG = LoggerFactory.getLogger(App.class);
 
   @Override
   public void start(Stage primaryStage) throws IOException {
 
-    // Initialize localization with system default locale
-    LocalizationService.getInstance(null);
+    this.primaryStage = primaryStage;
+
+    this.nlsService = new NlsService(null);
 
     Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
           LOG.error("Uncaught exception in thread {}: {}", thread.getName(), throwable.getMessage(), throwable);
@@ -41,12 +45,9 @@ public class App extends Application {
         }
     );
 
-    FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
-    fxmlLoader.setResources(LocalizationService.getInstance().getResourceBundle());
-    fxmlLoader.setController(
-        new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()))
-    );
-    root = fxmlLoader.load();
+    root = loadMainView();
+
+    this.nlsService.addLocaleChangeListener(this::reloadMainView);
 
     Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
     Scene scene = new Scene(root, bounds.getWidth() / 2, bounds.getHeight() / 2);
@@ -58,6 +59,33 @@ public class App extends Application {
     primaryStage.setMinWidth(scene.getWidth());
     primaryStage.setMinHeight(scene.getHeight());
     primaryStage.show();
+  }
+
+  @Override
+  public void stop() {
+
+    this.nlsService.removeLocaleChangeListener(this::reloadMainView);
+  }
+
+  private void reloadMainView() {
+
+    try {
+      Parent reloadedRoot = loadMainView();
+      this.root = reloadedRoot;
+      if (this.primaryStage != null && this.primaryStage.getScene() != null) {
+        this.primaryStage.getScene().setRoot(reloadedRoot);
+      }
+    } catch (IOException e) {
+      LOG.error("Failed to reload main view after locale change", e);
+    }
+  }
+
+  private Parent loadMainView() throws IOException {
+
+    FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
+    fxmlLoader.setResources(this.nlsService.getResourceBundle());
+    fxmlLoader.setController(new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()), this.nlsService));
+    return fxmlLoader.load();
   }
 
 

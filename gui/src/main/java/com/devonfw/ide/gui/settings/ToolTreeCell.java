@@ -1,6 +1,7 @@
 package com.devonfw.ide.gui.settings;
 
 import java.util.List;
+import java.util.function.Consumer;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
@@ -13,7 +14,7 @@ import javafx.scene.control.TreeItem;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 
-import com.devonfw.ide.gui.localization.LocalizationService;
+import com.devonfw.ide.gui.context.IdeGuiContext;
 
 /**
  * Custom {@link TreeCell} for the tool configuration tree. Dispatches on item type:
@@ -31,6 +32,7 @@ final class ToolTreeCell extends TreeCell<ToolTreeNode> {
   private Label name;
   private ComboBox<String> edition;
   private ComboBox<String> version;
+  private Label errorIcon;
 
   ToolTreeCell(ToolSettingsController controller) {
     this.controller = controller;
@@ -76,14 +78,14 @@ final class ToolTreeCell extends TreeCell<ToolTreeNode> {
 
     enabled = createEnabledToggle(toolItem);
     name = createToolNameLabel(toolItem);
+    errorIcon = createErrorIcon();
     edition = createEditionSelector(toolItem);
     version = createVersionSelector(toolItem);
 
-    Label errorIcon = createErrorIcon();
     attachVersionValidation(toolItem, errorIcon);
 
     // Reapply error state if this tool has a validation error
-    if (ToolSettingsController.validationErrors.contains(toolItem.getToolName())) {
+    if (controller.validationErrors.contains(toolItem.getToolName())) {
       version.setStyle("-fx-font-size: 12; -fx-border-color: red; -fx-border-width: 2;");
       errorIcon.setVisible(true);
       errorIcon.setManaged(true);
@@ -140,21 +142,26 @@ final class ToolTreeCell extends TreeCell<ToolTreeNode> {
       editionSelector.setValue(toolItem.getConfiguredEdition() == null ? "" : toolItem.getConfiguredEdition());
       editionSelector.setVisible(true);
       editionSelector.setManaged(true);
-      // When the edition changes, refresh the version list to match the new edition.
-      // Version is captured before the lambda to avoid referencing the mutable field from a background thread.
+      // When the edition changes, reload the version list and re-validate the already-entered version against it
+      // (a version valid for the old edition may not be for the new one). Version/errorIcon are captured before
+      // the lambda to avoid referencing the mutable fields from a background thread.
       editionSelector.setOnAction(e -> {
         String selectedEdition = editionSelector.getValue();
-        if (selectedEdition != null && !selectedEdition.isBlank() && ToolSettingsController.currentContext != null) {
-          toolItem.setConfiguredEdition(selectedEdition);
-          ComboBox<String> capturedVersion = version;
-          Thread t = new Thread(() -> {
-            List<String> versions = ToolSettingsController.service.loadVersionsForSelectedEdition(
-                toolItem.getToolName(), selectedEdition, ToolSettingsController.currentContext);
-            Platform.runLater(() -> capturedVersion.setItems(FXCollections.observableArrayList(versions)));
-          });
-          t.setDaemon(true);
-          t.start();
+        if (selectedEdition == null || selectedEdition.isBlank() || controller.currentContext == null) {
+          return;
         }
+        toolItem.setConfiguredEdition(selectedEdition);
+        ComboBox<String> capturedVersion = version;
+        Label capturedErrorIcon = errorIcon;
+        String errorKey = toolItem.getToolName();
+
+        String enteredVersion = capturedVersion.getValue();
+        loadVersions(toolItem, versions -> {
+          capturedVersion.setItems(FXCollections.observableArrayList(versions));
+          capturedVersion.setValue(enteredVersion);
+          toolItem.setConfiguredVersion(enteredVersion);
+          applyValidation(errorKey, capturedVersion, capturedErrorIcon, versions);
+        });
       });
     } else {
       editionSelector.setVisible(false);
@@ -174,26 +181,25 @@ final class ToolTreeCell extends TreeCell<ToolTreeNode> {
     versionSelector.setStyle("-fx-font-size: 12;");
 
     // Lazy-load versions the first time the dropdown is opened to avoid fetching all tools' versions upfront.
+    // Reuse the list if it was already loaded (e.g. by focus-lost validation) instead of fetching again.
     versionSelector.setOnShowing(e -> {
-      if (versionSelector.getItems().isEmpty() && ToolSettingsController.currentContext != null) {
-        String edition = toolItem.getConfiguredEdition();
-        Thread t = new Thread(() -> {
-          List<String> versions = ToolSettingsController.service.loadVersionsForSelectedEdition(
-              toolItem.getToolName(), edition, ToolSettingsController.currentContext);
-          Platform.runLater(() -> {
-            versionSelector.setItems(FXCollections.observableArrayList(versions));
-            toolItem.setAvailableVersions(versions);
-            // JavaFX doesn't repaint an already-open popup after its items change;
-            // hide/show forces a fresh layout with the newly loaded list.
-            if (versionSelector.isShowing()) {
-              versionSelector.hide();
-              versionSelector.show();
-            }
-          });
-        });
-        t.setDaemon(true);
-        t.start();
+      if (!versionSelector.getItems().isEmpty()) {
+        return;
       }
+      List<String> cachedVersions = toolItem.getAvailableVersions();
+      if (cachedVersions != null) {
+        versionSelector.setItems(FXCollections.observableArrayList(cachedVersions));
+        return;
+      }
+      loadVersions(toolItem, versions -> {
+        versionSelector.setItems(FXCollections.observableArrayList(versions));
+        // JavaFX doesn't repaint an already-open popup after its items change;
+        // hide/show forces a fresh layout with the newly loaded list.
+        if (versionSelector.isShowing()) {
+          versionSelector.hide();
+          versionSelector.show();
+        }
+      });
     });
 
     return versionSelector;
@@ -226,6 +232,25 @@ final class ToolTreeCell extends TreeCell<ToolTreeNode> {
     setText(null);
   }
 
+  /**
+   * Loads {@code toolItem}'s available versions for its currently configured edition on a background thread, caches them onto {@code toolItem}, then runs
+   * {@code onLoaded} with the result on the JavaFX application thread. Used by the version dropdown, focus-lost validation, and edition changes.
+   */
+  private void loadVersions(ToolConfiguration toolItem, Consumer<List<String>> onLoaded) {
+    if (controller.currentContext == null) {
+      return;
+    }
+    String edition = toolItem.getConfiguredEdition();
+    IdeGuiContext loadContext = controller.currentContext;
+    Thread t = new Thread(() -> {
+      List<String> versions = controller.service.loadVersionsForSelectedEdition(toolItem.getToolName(), edition, loadContext);
+      toolItem.setAvailableVersions(versions);
+      Platform.runLater(() -> onLoaded.accept(versions));
+    });
+    t.setDaemon(true);
+    t.start();
+  }
+
   private Label createErrorIcon() {
     Label errorIcon = new Label("✗");
     errorIcon.setStyle("-fx-text-fill: red; -fx-font-size: 14; -fx-font-weight: bold; -fx-cursor: hand;");
@@ -233,7 +258,7 @@ final class ToolTreeCell extends TreeCell<ToolTreeNode> {
     errorIcon.setVisible(false);
     errorIcon.setManaged(false);
 
-    Tooltip errorTooltip = new Tooltip(LocalizationService.getInstance().get("invalidVersionError"));
+    Tooltip errorTooltip = new Tooltip(controller.getNlsService().get("invalidVersionError"));
     errorIcon.setOnMouseEntered(e -> {
       if (errorIcon.isVisible()) {
         errorTooltip.show(errorIcon, e.getScreenX() + 10, e.getScreenY() + 10);
@@ -243,41 +268,48 @@ final class ToolTreeCell extends TreeCell<ToolTreeNode> {
     return errorIcon;
   }
 
-  // Validate free-text version input on focus-lost.
-  // Also handles setting the right selected version in the ToolConfiguration object when the comboBox focus is left
+  // Validate free-text version input on focus-lost, and handle setting the version on the ToolConfiguration.
   // Blank input is normalized to "*" (meaning "latest") so the field is never left empty.
-  // Validation is skipped when versions haven't been loaded yet (availableVersions == null),
-  // and "*" is always allowed as a wildcard regardless of the loaded list.
+  // If versions were never loaded (dropdown never opened), load them first so typing a value and tabbing/clicking
+  // away still validates correctly.
   private void attachVersionValidation(ToolConfiguration toolItem, Label errorIcon) {
     String errorKey = toolItem.getToolName();
     version.focusedProperty().addListener((obs, oldVal, newVal) -> {
-      if (!newVal) {
-        String enteredVersion = version.getValue();
-        if (enteredVersion == null || enteredVersion.isBlank()) {
-          version.setValue("*");
-          version.setStyle("-fx-font-size: 12;");
-          errorIcon.setVisible(false);
-          errorIcon.setManaged(false);
-          ToolSettingsController.validationErrors.remove(errorKey);
-        } else {
-          List<String> availableVersions = toolItem.getAvailableVersions();
-          if (availableVersions != null && !availableVersions.contains(enteredVersion) && !enteredVersion.equals("*")) {
-            version.setStyle("-fx-font-size: 12; -fx-border-color: red; -fx-border-width: 2;");
-            errorIcon.setVisible(true);
-            errorIcon.setManaged(true);
-            ToolSettingsController.validationErrors.add(errorKey);
-          } else {
-            version.setStyle("-fx-font-size: 12;");
-            errorIcon.setVisible(false);
-            errorIcon.setManaged(false);
-            ToolSettingsController.validationErrors.remove(errorKey);
-          }
-        }
+      if (newVal) {
+        return;
+      }
+      if (version.getValue() == null || version.getValue().isBlank()) {
+        version.setValue("*");
+      }
+      toolItem.setConfiguredVersion(version.getValue());
 
-        toolItem.setConfiguredVersion(version.getValue());
-        controller.updateButtonStates();
+      List<String> availableVersions = toolItem.getAvailableVersions();
+      if (availableVersions != null) {
+        applyValidation(errorKey, version, errorIcon, availableVersions);
+      } else {
+        loadVersions(toolItem, versions -> applyValidation(errorKey, version, errorIcon, versions));
       }
     });
+  }
+
+  /**
+   * Validates {@code versionSelector}'s current value (using {@link ToolSettingsService#isValidVersion}) against {@code availableVersions} and updates the
+   * border, error icon, the shared {@code validationErrors} set, and the Save/Preview button state accordingly.
+   */
+  private void applyValidation(String errorKey, ComboBox<String> versionSelector, Label errorIconLabel, List<String> availableVersions) {
+    boolean valid = controller.service.isValidVersion(versionSelector.getValue(), availableVersions);
+    if (valid) {
+      versionSelector.setStyle("-fx-font-size: 12;");
+      errorIconLabel.setVisible(false);
+      errorIconLabel.setManaged(false);
+      controller.validationErrors.remove(errorKey);
+    } else {
+      versionSelector.setStyle("-fx-font-size: 12; -fx-border-color: red; -fx-border-width: 2;");
+      errorIconLabel.setVisible(true);
+      errorIconLabel.setManaged(true);
+      controller.validationErrors.add(errorKey);
+    }
+    controller.updateButtonStates();
   }
 
   private void applyEnabledState(ToolConfiguration toolItem) {

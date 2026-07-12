@@ -1,8 +1,5 @@
 package com.devonfw.ide.gui.settings;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -17,7 +14,6 @@ import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
-import com.devonfw.tools.ide.environment.EnvironmentVariablesPropertiesFile;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
@@ -177,9 +173,38 @@ public final class ToolSettingsService {
       List<VersionIdentifier> versionIds = toolCmd.getToolRepository().getSortedVersions(tool, selectedEdition, toolCmd);
       return versionIds.stream().map(VersionIdentifier::toString).collect(Collectors.toList());
     } catch (Exception e) {
-      LOG.error("Failed to load Versions for tool {} : {}", tool, e.getMessage(), e);
+      LOG.debug("Failed to load versions for tool {}: {}", tool, e.getMessage(), e);
       return List.of();
     }
+  }
+
+  /**
+   * Validate a user-entered version against a tool's loaded available versions.
+   * <p>
+   * Exact versions are checked for literal presence in {@code availableVersions}. Version patterns (e.g. {@code 2026.1*} or {@code 2026*!}, see
+   * {@link VersionIdentifier#isPattern()}) are considered valid if they {@link VersionIdentifier#matches(VersionIdentifier) match} at least one available
+   * version. Blank input and {@code "*"} are always valid, and validation is skipped (treated as valid) when {@code availableVersions} has not been loaded
+   * yet.
+   *
+   * @param enteredVersion the version (or version pattern) typed by the user.
+   * @param availableVersions the available versions for the tool/edition, or {@code null} if not loaded yet.
+   * @return {@code true} if the entered version is valid, {@code false} otherwise.
+   */
+  public boolean isValidVersion(String enteredVersion, List<String> availableVersions) {
+    if (enteredVersion == null || enteredVersion.isBlank() || enteredVersion.equals("*")) {
+      return true;
+    }
+    if (availableVersions == null) {
+      return true;
+    }
+    VersionIdentifier entered = VersionIdentifier.of(enteredVersion);
+    if (entered == null) {
+      return false;
+    }
+    if (entered.isPattern()) {
+      return availableVersions.stream().map(VersionIdentifier::of).anyMatch(entered::matches);
+    }
+    return availableVersions.contains(enteredVersion);
   }
 
   /**
@@ -189,8 +214,6 @@ public final class ToolSettingsService {
    */
   public void applyAndSave(List<ToolConfiguration> toolConfigurations, IdeGuiContext guiContext) {
     EnvironmentVariables settingsVars = guiContext.getVariables().getByType(EnvironmentVariablesType.SETTINGS);
-
-    createBackupIfPossible(settingsVars);
 
     settingsVars.set(IdeVariables.IDE_TOOLS.getName(), String.join(", ", getEnabledToolNames(toolConfigurations)), false);
 
@@ -211,21 +234,6 @@ public final class ToolSettingsService {
     }
 
     settingsVars.save();
-  }
-
-  //TODO: Align with Team if this is needed
-  private void createBackupIfPossible(EnvironmentVariables settingsVars) {
-    try {
-      if (settingsVars instanceof EnvironmentVariablesPropertiesFile evpf) {
-        Path path = evpf.getPropertiesFilePath();
-        if (path != null && Files.exists(path)) {
-          Path backup = path.resolveSibling(path.getFileName().toString() + ".bak");
-          Files.copy(path, backup, StandardCopyOption.REPLACE_EXISTING);
-        }
-      }
-    } catch (Exception e) {
-      LOG.error("Failed to create backup of the existing properties file: {}", e.getMessage(), e);
-    }
   }
 
   /**
