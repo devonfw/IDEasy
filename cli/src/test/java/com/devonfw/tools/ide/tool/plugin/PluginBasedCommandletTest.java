@@ -63,17 +63,18 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
   void testInstallPluginsWithForce() {
 
     //arrange
-    context.getStartContext().setForcePlugins(true);
-    final ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags);
+    IdeTestContext localContext = newContext(PROJECT_BASIC, null, true);
+    localContext.getStartContext().setForcePlugins(true);
+    final ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(localContext, TOOL, tags);
 
     //act
     pluginBasedCommandlet.installPlugins(
-        List.of(ToolPluginDescriptor.of(context.getSettingsPath().resolve(ANY_EDIT_PLUGIN_PATH), context, false)),
-        new ProcessContextTestImpl(context));
+        List.of(ToolPluginDescriptor.of(localContext.getSettingsPath().resolve(ANY_EDIT_PLUGIN_PATH), localContext, false)),
+        new ProcessContextTestImpl(localContext));
 
     //assert - Check if we skip the markerfile-check because we force the plugins to install
-    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin anyedit'.");
-    assertThat(context).log().hasNoMessageContaining("Skipping installation of plugin '{}' due to existing marker file: ");
+    assertThat(localContext).logAtSuccess().hasMessage("Successfully ended step 'Install plugin anyedit'.");
+    assertThat(localContext).log().hasNoMessageContaining("Skipping installation of plugin '{}' due to existing marker file: ");
   }
 
   @Test
@@ -154,7 +155,7 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
   @Test
   void testCreatePlugin_clearsCacheSoNewPluginAppearsInGetPlugins() {
 
-    IdeTestContext localContext = newContext(PROJECT_BASIC, null, false);
+    IdeTestContext localContext = newContext(PROJECT_BASIC, null, true);
     ExamplePluginBasedCommandlet commandlet = new ExamplePluginBasedCommandlet(localContext, TOOL, null);
 
     assertThat(commandlet.getPlugins().getByName("create-cache-plugin")).isNull();
