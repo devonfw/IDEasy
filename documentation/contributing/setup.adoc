@@ -32,7 +32,7 @@ For detailed, step‑by‑step installation instructions, including platform‑s
 . After the IDEasy installation, run the following command in the terminal to create a project:
 +
 ```
-ide create IDEasy -
+ide create IDEasy https://assets.engine.capgemini.com/engine_hohwille/ideasy-settings.git
 ```
 +
 Wait until this process has finished (this will take several minutes).
