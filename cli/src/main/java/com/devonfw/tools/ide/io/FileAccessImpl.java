@@ -470,15 +470,14 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   }
 
   /**
-   * Creates a Windows link using mklink at {@code link} pointing to {@code target}.
+   * Creates a junction with mklink as fallback at {@code link} pointing to {@code target}
    *
    * @param source the {@link Path} the link will point to.
    * @param link the {@link Path} where to create the link.
-   * @param type the {@link PathLinkType}.
    */
-  private void mklinkOnWindows(Path source, Path absoluteSource, Path link, PathLinkType type, boolean relative) {
+  private void mklinkOnWindows(Path source, Path absoluteSource, Path link, boolean relative) {
 
-    Path finalSource = relative ? source : absoluteSource;
+    Path finalSource = absoluteSource;
     Path finalLink = link;
     Path cwd = null;
     if (relative) {
@@ -492,28 +491,19 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       }
     }
 
-    String option = type.getMklinkOption();
-    if (type == PathLinkType.SYMBOLIC_LINK) {
-      boolean directoryTarget = Files.isDirectory(absoluteSource);
-      option = directoryTarget ? "/j" : "/d";
-    } else {
-      // Manual override of option in case of HARD_LINK, because of missing permissions for `mklink /h ...`
-      option = "/j";
-    }
-
-    if (!runMklink(finalSource, finalLink, cwd, option)) {
+    if (!runMklink(finalSource, finalLink, cwd)) {
       throw new IllegalStateException("Failed to create Windows link at " + link + " pointing to " + source);
     }
   }
 
-  private boolean runMklink(Path source, Path link, Path cwd, String option) {
+  private boolean runMklink(Path source, Path link, Path cwd) {
 
+    String option = "/j";
     LOG.trace("Creating a Windows link with mklink {} at {} pointing to {}", option, link, source);
     ProcessContext pc = this.context.newProcess().executable("cmd").addArgs("/c", "mklink", option);
     if (cwd != null) {
       pc.directory(cwd);
     }
-
     try {
       ProcessContext context = pc.addArgs(link.toString(), source.toString());
       ProcessResult result = context.run(ProcessMode.DEFAULT);
@@ -540,15 +530,20 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
         Files.createSymbolicLink(link, finalSource);
         resultingPathLinkType = PathLinkType.SYMBOLIC_LINK;
       } else if (type == PathLinkType.HARD_LINK) {
-        createHardLink(absoluteSource, link);
+        Files.createLink(link, absoluteSource);
         resultingPathLinkType = PathLinkType.HARD_LINK;
       } else {
         throw new IllegalStateException("" + type);
       }
-    } catch (FileSystemException | RuntimeException e) {
+    } catch (FileSystemException e) {
+      LOG.warn(
+          "Due to lack of permissions, Microsoft's mklink with junction have to be used to create link. See\n"
+              + "https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for further details. Error was: "
+              + e.getMessage());
+      LOG.debug("Failed to create link of type {} for {} at {}.", type, source, link);
       if (SystemInfoImpl.INSTANCE.isWindows()) {
         if (Files.isDirectory(absoluteSource)) {
-          mklinkOnWindows(finalSource, absoluteSource, absoluteLink, type, relative);
+          mklinkOnWindows(finalSource, absoluteSource, absoluteLink, relative);
           LOG.debug("Created junction with mklink as fallback for link to directory.");
         } else {
           createHardLink(absoluteSource, link);

@@ -93,9 +93,7 @@ public final class LnCommandlet extends Commandlet {
     PathLinkType linkType = this.symbolic.isTrue() ? PathLinkType.SYMBOLIC_LINK : PathLinkType.HARD_LINK;
     PathLinkType result = this.context.getFileAccess().link(sourcePath, linkPath, relative, linkType);
     if (this.relative.isTrue() && result == null) {
-      LOG.info(
-          "Due to lack of permissions, Microsoft's mklink with junction had to be used to create a Symlink. See\n"
-              + "https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for further details.");
+      LOG.warn("Windows junction had to be used as fallback that only supports absolute paths. Therefore we cannot create a relative link as requested.");
     }
   }
 }
