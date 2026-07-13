@@ -537,9 +537,9 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       }
     } catch (FileSystemException e) {
       LOG.warn(
-          "Due to lack of permissions, Microsoft's mklink with junction have to be used to create link. See\n"
-              + "https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for further details. Error was: "
-              + e.getMessage());
+          "Due to lack of permissions, Microsoft's mklink with junction have to be used to create link. "
+              + "See https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for further details. "
+              + "Error was: " + e.getMessage());
       LOG.debug("Failed to create link of type {} for {} at {}.", type, source, link);
       if (SystemInfoImpl.INSTANCE.isWindows()) {
         if (Files.isDirectory(absoluteSource)) {
