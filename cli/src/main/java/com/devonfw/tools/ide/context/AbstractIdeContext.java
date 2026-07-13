@@ -1651,7 +1651,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
         if (option != null) {
           currentProperty = option;
         } else {
-          boolean allowDashedValue = (property != null && property.isValue() && property.isMultiValued());
+          boolean allowDashedValue = (property != null) && property.isValue()
+              && (property.isMultiValued() || "-".equals(currentArgument.get()));
           boolean allowKeywordOption = (currentProperty instanceof KeywordProperty keywordProperty) && keywordProperty.matches(currentArgument.getKey());
           if (!allowDashedValue && !allowKeywordOption && currentArgument.isOption()) {
             ValidationState state = new ValidationState(null);
