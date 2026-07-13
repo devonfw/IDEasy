@@ -54,6 +54,7 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
     context.getStartContext().setForceMode(true);
     WindowsHelper helper = context.getWindowsHelper();
     String originalPath = helper.getUserEnvironmentValue("PATH");
+    context.getFileAccess().copy(Path.of("src/main/package/gui"), context.getUserHome().resolve("Downloads/ide-cli"));
     IdeasyCommandlet ideasy = new IdeasyCommandlet(context);
     // act
     ideasy.installIdeasy(context.getUserHome().resolve("Downloads/ide-cli"));
@@ -94,6 +95,7 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
     Path gitconfigPath = context.getUserHome().resolve(".gitconfig");
     FileAccess fileAccess = new FileAccessImpl(context);
     fileAccess.writeFileContent("", gitconfigPath);
+    fileAccess.copy(Path.of("src/main/package/gui"), context.getUserHome().resolve("Downloads/ide-cli"));
     IdeasyCommandlet ideasy = new IdeasyCommandlet(context);
     // act
     ideasy.installIdeasy(context.getUserHome().resolve("Downloads/ide-cli"));
@@ -180,6 +182,7 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
     context.setSystemInfo(systemInfo);
     context.getStartContext().setForceMode(true);
     Path gitconfigPath = context.getUserHome().resolve(".gitconfig");
+    context.getFileAccess().copy(Path.of("src/main/package/gui"), context.getUserHome().resolve("Downloads/ide-cli"));
     IdeasyCommandlet ideasy = new IdeasyCommandlet(context);
     // act
     ideasy.installIdeasy(context.getUserHome().resolve("Downloads/ide-cli"));
