@@ -3,10 +3,14 @@ package com.devonfw.tools.ide.commandlet;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -53,6 +57,8 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       Further details can be found here: https://github.com/devonfw/IDEasy/blob/main/documentation/settings.adoc
       Please contact the technical lead of your project to get the SETTINGS_URL for your project to enter.
       In case you just want to test IDEasy you may simply hit return to install the default settings.""";
+
+  private static final Pattern SECRET_PLACEHOLDER_PATTERN = Pattern.compile("\\$\\[secret:([a-zA-Z0-9_-]+)]");
 
   /** {@link StringProperty} for the settings repository URL. */
   public final StringProperty settingsRepo;
@@ -148,12 +154,33 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
           LOG.debug("Configuration {} already exists - skipping to copy from {}", confPath, child);
         } else {
           if (!basename.equals("settings.xml")) {
-            LOG.info("Copying template {} to {}.", child, conf);
-            this.context.getFileAccess().copy(child, conf);
+            copyTemplateWithSecretReplacement(child, confPath);
           }
         }
       }
     }
+  }
+
+  private void copyTemplateWithSecretReplacement(Path source, Path destination) {
+    LOG.info("Copying template {} to {}.", source, destination.getParent());
+    String content = this.context.getFileAccess().readFileContent(source);
+    Matcher matcher = SECRET_PLACEHOLDER_PATTERN.matcher(content);
+    if (!matcher.find()) {
+      // No placeholder - use original copy operation with destination as directory
+      this.context.getFileAccess().copy(source, destination.getParent());
+      return;
+    }
+    matcher.reset();
+    Map<String, String> secretValues = new HashMap<>();
+    StringBuilder result = new StringBuilder();
+    while (matcher.find()) {
+      String secretName = matcher.group(1);
+      String secretValue = secretValues.computeIfAbsent(secretName,
+          name -> this.context.askForInput("Please enter secret value for " + name + ":"));
+      matcher.appendReplacement(result, Matcher.quoteReplacement(secretValue));
+    }
+    matcher.appendTail(result);
+    this.context.getFileAccess().writeFileContent(result.toString(), destination, true);
   }
 
   /**

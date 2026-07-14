@@ -221,6 +221,296 @@ class CreateCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
+  void testSecretPlaceholderInTemplateIsReplaced() {
+    // arrange
+    GitContextImplMock gitContextImplMock = new GitContextImplMock(context,
+        TEST_RESOURCES.resolve("settings-with-secret-placeholder"));
+    context.setGitContext(gitContextImplMock);
+    context.setAnswers("test-secret-value");
+    CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
+    cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
+    cc.settingsRepo.setValue(IdeContext.DEFAULT_SETTINGS_REPO_URL);
+    cc.skipTools.setValue(true);
+
+    // act
+    cc.run();
+
+    // assert
+    Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
+    Path generatedSettings = newProjectPath.resolve("conf").resolve("claude").resolve("settings.json");
+    assertThat(generatedSettings).exists();
+    String generatedContent = context.getFileAccess().readFileContent(generatedSettings);
+    // The generated file should contain the secret value and no longer the placeholder
+    assertThat(generatedContent).contains("test-secret-value");
+    assertThat(generatedContent).doesNotContain("$[secret:ai-api-key]");
+
+    // The source template must remain unchanged
+    Path sourceTemplate = TEST_RESOURCES.resolve("settings-with-secret-placeholder")
+        .resolve("templates").resolve("conf").resolve("claude").resolve("settings.json");
+    String sourceContent = context.getFileAccess().readFileContent(sourceTemplate);
+    assertThat(sourceContent).contains("$[secret:ai-api-key]");
+    assertThat(sourceContent).doesNotContain("test-secret-value");
+  }
+
+  @Test
+  void testPlaceholderLikeTextInSecretIsNotProcessed() {
+    // arrange — the entered secret itself contains placeholder-like text
+    String secretWithPlaceholderText = "prefix-$[secret:not-a-template-placeholder]-suffix";
+    GitContextImplMock gitContextImplMock = new GitContextImplMock(context,
+        TEST_RESOURCES.resolve("settings-with-placeholder-like-secret"));
+    context.setGitContext(gitContextImplMock);
+    // Only one answer — if the embedded placeholder-like text were rescanned, a second prompt would fail
+    context.setAnswers(secretWithPlaceholderText);
+    CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
+    cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
+    cc.settingsRepo.setValue(IdeContext.DEFAULT_SETTINGS_REPO_URL);
+    cc.skipTools.setValue(true);
+
+    // act
+    cc.run();
+
+    // assert
+    Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
+    Path generatedFile = newProjectPath.resolve("conf").resolve("example").resolve("config.txt");
+    assertThat(generatedFile).exists();
+    String generatedContent = context.getFileAccess().readFileContent(generatedFile);
+    // The generated file should contain the secret value verbatim, including its placeholder-like text
+    assertThat(generatedContent).isEqualTo("value=" + secretWithPlaceholderText);
+    // The embedded placeholder-like text must remain literal (it came from the entered value, not the template)
+    assertThat(generatedContent).contains("$[secret:not-a-template-placeholder]");
+    // The original template placeholder must be gone
+    assertThat(generatedContent).doesNotContain("$[secret:outer-secret]");
+
+    // The source template must remain unchanged
+    Path sourceTemplate = TEST_RESOURCES.resolve("settings-with-placeholder-like-secret")
+        .resolve("templates").resolve("conf").resolve("example").resolve("config.txt");
+    String sourceContent = context.getFileAccess().readFileContent(sourceTemplate);
+    assertThat(sourceContent).contains("$[secret:outer-secret]");
+    assertThat(sourceContent).doesNotContain(secretWithPlaceholderText);
+  }
+
+  @Test
+  void testSecretValueNotLoggedByProductionCode() {
+    // arrange
+    String secretWithMarker = "TOP-SECRET-LOG-MARKER-7f3a";
+    GitContextImplMock gitContextImplMock = new GitContextImplMock(context,
+        TEST_RESOURCES.resolve("settings-with-secret-placeholder"));
+    context.setGitContext(gitContextImplMock);
+    context.setAnswers(secretWithMarker);
+    CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
+    cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
+    cc.settingsRepo.setValue(IdeContext.DEFAULT_SETTINGS_REPO_URL);
+    cc.skipTools.setValue(true);
+
+    // act
+    cc.run();
+
+    // assert
+    Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
+    Path generatedSettings = newProjectPath.resolve("conf").resolve("claude").resolve("settings.json");
+    // The generated file should contain the secret
+    assertThat(generatedSettings).exists();
+    assertThat(context.getFileAccess().readFileContent(generatedSettings)).contains(secretWithMarker);
+
+    // No production log level (DEBUG, INFO, WARNING, ERROR, SUCCESS) may contain the secret
+    assertThat(context).logAtDebug().hasNoMessageContaining(secretWithMarker);
+    assertThat(context).logAtInfo().hasNoMessageContaining(secretWithMarker);
+    assertThat(context).logAtWarning().hasNoMessageContaining(secretWithMarker);
+    assertThat(context).logAtError().hasNoMessageContaining(secretWithMarker);
+    assertThat(context).logAtSuccess().hasNoMessageContaining(secretWithMarker);
+  }
+
+  @Test
+  void testExistingLocalConfFileIsNotOverwrittenByTemplateWithSecret() {
+    // arrange — the destination conf file already exists with local content
+    String existingLocalSecret = "EXISTING-LOCAL-SECRET-91c4";
+    GitContextImplMock gitContextImplMock = new GitContextImplMock(context,
+        TEST_RESOURCES.resolve("settings-with-secret-placeholder"));
+    context.setGitContext(gitContextImplMock);
+    // Only answer the non-empty-directory confirmation.
+    // No secret answer is queued, so an unexpected secret prompt would fail.
+    context.setAnswers("yes");
+    CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
+    cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
+    cc.settingsRepo.setValue(IdeContext.DEFAULT_SETTINGS_REPO_URL);
+    cc.skipTools.setValue(true);
+
+    // Pre-create the destination file before running create, so it looks like an existing local config
+    Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
+    Path preExistingFile = newProjectPath.resolve("conf").resolve("claude").resolve("settings.json");
+    context.getFileAccess().mkdirs(preExistingFile.getParent());
+    context.getFileAccess().writeFileContent(existingLocalSecret, preExistingFile, true);
+
+    // act
+    cc.run();
+
+    // assert — the destination file must still contain the original local content
+    String finalContent = context.getFileAccess().readFileContent(preExistingFile);
+    assertThat(finalContent).isEqualTo(existingLocalSecret);
+    assertThat(finalContent).doesNotContain("$[secret:ai-api-key]");
+
+    // The source template must remain unchanged
+    Path sourceTemplate = TEST_RESOURCES.resolve("settings-with-secret-placeholder")
+        .resolve("templates").resolve("conf").resolve("claude").resolve("settings.json");
+    String sourceContent = context.getFileAccess().readFileContent(sourceTemplate);
+    assertThat(sourceContent).contains("$[secret:ai-api-key]");
+    assertThat(sourceContent).doesNotContain(existingLocalSecret);
+
+    // No production log level may contain the existing local secret
+    assertThat(context).logAtDebug().hasNoMessageContaining(existingLocalSecret);
+    assertThat(context).logAtInfo().hasNoMessageContaining(existingLocalSecret);
+    assertThat(context).logAtWarning().hasNoMessageContaining(existingLocalSecret);
+    assertThat(context).logAtError().hasNoMessageContaining(existingLocalSecret);
+    assertThat(context).logAtSuccess().hasNoMessageContaining(existingLocalSecret);
+
+    // Verify the skip log was emitted (proves the file was not overwritten)
+    assertThat(context).logAtDebug()
+        .hasMessageContaining("already exists - skipping to copy from");
+  }
+
+  @Test
+  void testRepeatedSamePlaceholderIsReplacedTwice() {
+    // arrange — same placeholder appears twice; only one answer is queued
+    String repeatedSecret = "repeated-test-secret";
+    GitContextImplMock gitContextImplMock = new GitContextImplMock(context,
+        TEST_RESOURCES.resolve("settings-with-repeated-secret"));
+    context.setGitContext(gitContextImplMock);
+    context.setAnswers(repeatedSecret);
+    CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
+    cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
+    cc.settingsRepo.setValue(IdeContext.DEFAULT_SETTINGS_REPO_URL);
+    cc.skipTools.setValue(true);
+
+    // act
+    cc.run();
+
+    // assert
+    Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
+    Path generatedFile = newProjectPath.resolve("conf").resolve("example").resolve("config.json");
+    assertThat(generatedFile).exists();
+    String generatedContent = context.getFileAccess().readFileContent(generatedFile);
+    // Both occurrences of the placeholder should be replaced with the single answer
+    assertThat(countOccurrences(generatedContent, repeatedSecret)).isEqualTo(2);
+    assertThat(generatedContent).doesNotContain("$[secret:ai-api-key]");
+
+    // The source template must remain unchanged
+    Path sourceTemplate = TEST_RESOURCES.resolve("settings-with-repeated-secret")
+        .resolve("templates").resolve("conf").resolve("example").resolve("config.json");
+    String sourceContent = context.getFileAccess().readFileContent(sourceTemplate);
+    assertThat(countOccurrences(sourceContent, "$[secret:ai-api-key]")).isEqualTo(2);
+    assertThat(sourceContent).doesNotContain(repeatedSecret);
+  }
+
+  private static int countOccurrences(String text, String needle) {
+    int count = 0;
+    int idx = 0;
+    while ((idx = text.indexOf(needle, idx)) != -1) {
+      count++;
+      idx += needle.length();
+    }
+    return count;
+  }
+
+  @Test
+  void testDistinctSecretPlaceholdersAreReplaced() {
+    // arrange — two different secret placeholders; two answers in encounter order
+    String aiSecret = "test-ai-secret";
+    String dbSecret = "test-database-secret";
+    GitContextImplMock gitContextImplMock = new GitContextImplMock(context,
+        TEST_RESOURCES.resolve("settings-with-distinct-secrets"));
+    context.setGitContext(gitContextImplMock);
+    context.setAnswers(aiSecret, dbSecret);
+    CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
+    cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
+    cc.settingsRepo.setValue(IdeContext.DEFAULT_SETTINGS_REPO_URL);
+    cc.skipTools.setValue(true);
+
+    // act
+    cc.run();
+
+    // assert
+    Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
+    Path generatedFile = newProjectPath.resolve("conf").resolve("example").resolve("config.json");
+    assertThat(generatedFile).exists();
+    String generatedContent = context.getFileAccess().readFileContent(generatedFile);
+    // Both placeholders should be replaced with their respective values
+    assertThat(generatedContent).contains("\"api\": \"" + aiSecret + "\"");
+    assertThat(generatedContent).contains("\"database\": \"" + dbSecret + "\"");
+    // Values must not be swapped
+    assertThat(generatedContent).doesNotContain("\"api\": \"" + dbSecret + "\"");
+    assertThat(generatedContent).doesNotContain("\"database\": \"" + aiSecret + "\"");
+    // No unresolved placeholders should remain
+    assertThat(generatedContent).doesNotContain("$[secret:ai-api-key]");
+    assertThat(generatedContent).doesNotContain("$[secret:database-password]");
+
+    // The source template must remain unchanged
+    Path sourceTemplate = TEST_RESOURCES.resolve("settings-with-distinct-secrets")
+        .resolve("templates").resolve("conf").resolve("example").resolve("config.json");
+    String sourceContent = context.getFileAccess().readFileContent(sourceTemplate);
+    assertThat(sourceContent).contains("$[secret:ai-api-key]");
+    assertThat(sourceContent).contains("$[secret:database-password]");
+    assertThat(sourceContent).doesNotContain(aiSecret);
+    assertThat(sourceContent).doesNotContain(dbSecret);
+  }
+
+  @Test
+  void testTemplateCopyWithoutPlaceholder() {
+    // arrange — plain template with no secret placeholder, copied via original FileAccess.copy behavior
+    GitContextImplMock gitContextImplMock = new GitContextImplMock(context,
+        TEST_RESOURCES.resolve("settings-with-plain-conf"));
+    context.setGitContext(gitContextImplMock);
+    CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
+    cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
+    cc.settingsRepo.setValue(IdeContext.DEFAULT_SETTINGS_REPO_URL);
+    cc.skipTools.setValue(true);
+
+    // act
+    cc.run();
+
+    // assert
+    Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
+    Path generatedFile = newProjectPath.resolve("conf").resolve("example").resolve("config.txt");
+    assertThat(generatedFile).exists();
+    assertThat(generatedFile).hasContent("plain configuration content");
+    // No accidentally nested path (would indicate wrong FileAccess.copy target)
+    Path nestedPath = generatedFile.resolve("config.txt");
+    assertThat(nestedPath).doesNotExist();
+  }
+
+  @Test
+  void testSecretPlaceholderWithSpecialReplacementCharacters() {
+    // arrange — secret value contains $ and \ which are special in Matcher replacements
+    String specialSecret = "test$ecret\\value";
+    GitContextImplMock gitContextImplMock = new GitContextImplMock(context,
+        TEST_RESOURCES.resolve("settings-with-special-secret"));
+    context.setGitContext(gitContextImplMock);
+    context.setAnswers(specialSecret);
+    CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
+    cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
+    cc.settingsRepo.setValue(IdeContext.DEFAULT_SETTINGS_REPO_URL);
+    cc.skipTools.setValue(true);
+
+    // act
+    cc.run();
+
+    // assert
+    Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
+    Path generatedSettings = newProjectPath.resolve("conf").resolve("claude").resolve("settings.json");
+    assertThat(generatedSettings).exists();
+    String generatedContent = context.getFileAccess().readFileContent(generatedSettings);
+    // The generated file should contain the exact literal secret value including $ and \
+    assertThat(generatedContent).contains(specialSecret);
+    assertThat(generatedContent).doesNotContain("$[secret:ai-api-key]");
+
+    // The source template must remain unchanged
+    Path sourceTemplate = TEST_RESOURCES.resolve("settings-with-special-secret")
+        .resolve("templates").resolve("conf").resolve("claude").resolve("settings.json");
+    String sourceContent = context.getFileAccess().readFileContent(sourceTemplate);
+    assertThat(sourceContent).contains("$[secret:ai-api-key]");
+    assertThat(sourceContent).doesNotContain(specialSecret);
+  }
+
+  @Test
   void testCreateWithDashPlaceholderAsCliArgument() {
     // arrange - see https://github.com/devonfw/IDEasy/issues/2106
     GitContextImplMock gitContextImplMock = new GitContextImplMock(context, TEST_RESOURCES.resolve("settings"));

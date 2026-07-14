@@ -1,0 +1,4 @@
+{
+  "primary": "$[secret:ai-api-key]",
+  "secondary": "$[secret:ai-api-key]"
+}

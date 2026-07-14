@@ -1,0 +1,3 @@
+{
+  "api-key": "$[secret:ai-api-key]"
+}

@@ -1,0 +1,4 @@
+{
+  "api": "$[secret:ai-api-key]",
+  "database": "$[secret:database-password]"
+}
