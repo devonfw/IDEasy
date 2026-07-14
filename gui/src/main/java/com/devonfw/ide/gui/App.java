@@ -1,6 +1,10 @@
 package com.devonfw.ide.gui;
 
+import java.awt.Taskbar;
+import java.awt.Toolkit;
 import java.io.IOException;
+import java.net.URL;
+
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -18,11 +22,15 @@ import com.devonfw.ide.gui.modal.IdeDialog;
 import com.devonfw.ide.gui.nls.NlsService;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.IdeVersion;
+import com.devonfw.tools.ide.os.OperatingSystem;
+import com.devonfw.tools.ide.os.SystemInfoImpl;
 
 /**
  * GUI Application for IDEasy
  */
 public class App extends Application {
+
+  public static final String ICON_PATH = "com/devonfw/ide/gui/assets/devonfw.png";
 
   Parent root;
 
@@ -52,7 +60,11 @@ public class App extends Application {
     Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
     Scene scene = new Scene(root, bounds.getWidth() / 2, bounds.getHeight() / 2);
 
-    Image icon = new Image("com/devonfw/ide/gui/assets/devonfw.png");
+    if (SystemInfoImpl.INSTANCE.getOs() == OperatingSystem.MAC) {
+      setIconInMacOsDock();
+    }
+
+    Image icon = new Image(ICON_PATH);
     primaryStage.getIcons().add(icon);
     primaryStage.setTitle("IDEasy - version " + IdeVersion.getVersionString());
     primaryStage.setScene(scene);
@@ -86,6 +98,19 @@ public class App extends Application {
     fxmlLoader.setResources(this.nlsService.getResourceBundle());
     fxmlLoader.setController(new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()), this.nlsService));
     return fxmlLoader.load();
+  }
+
+  private void setIconInMacOsDock() {
+    try {
+      Toolkit defaultToolkit = Toolkit.getDefaultToolkit();
+      URL imageResource = getClass().getClassLoader().getResource(ICON_PATH);
+      java.awt.Image image = defaultToolkit.getImage(imageResource);
+
+      Taskbar taskbar = Taskbar.getTaskbar();
+      taskbar.setIconImage(image);
+    } catch (Exception e) {
+      LOG.error("Failed to set devonfw icon in MacOS dock. ", e);
+    }
   }
 
 
