@@ -58,7 +58,8 @@ public class InstallCommandlet extends Commandlet {
   @Override
   public boolean isIdeRootRequired() {
 
-    return this.tool.getValueCount() > 0;
+    return (this.tool.getValueCount() > 0)
+        && !Boolean.TRUE.equals(this.ignoreProject.getValue());
   }
 
   @Override
@@ -91,7 +92,7 @@ public class InstallCommandlet extends Commandlet {
     }
     ToolInstallRequest request = ToolInstallRequest.ofDirect();
     request.setRequested(new ToolEditionAndVersion(version));
-    request.setIgnoreProject(this.ignoreProject.getValue());
+    request.setIgnoreProject(Boolean.TRUE.equals(this.ignoreProject.getValue()));
     ToolInstallation installation = commandlet.install(request);
     if (versionIdentifier != null) {
       VersionIdentifier installedVersion = installation.resolvedVersion();

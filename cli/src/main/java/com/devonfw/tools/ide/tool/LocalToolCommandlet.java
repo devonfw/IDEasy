@@ -297,7 +297,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
     // If we are not inside a project or if we should ignore the project, do not try to use the configured version but instead just use the version range from the dependency.
     boolean ignoreProject = request.isIgnoreProject() || this.context.getIdeHome() == null;
-    VersionIdentifier configuredVersion = getConfiguredVersion();
+    VersionIdentifier configuredVersion = ignoreProject ? null : getConfiguredVersion();
     if (!ignoreProject && (configuredVersion != null) && versionRange.contains(configuredVersion)) {
       // prefer configured version if contained in version range
       requested.setVersion(configuredVersion);

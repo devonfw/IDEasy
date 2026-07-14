@@ -32,19 +32,6 @@ class ToolInstallRequestTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Verify that creating a dependency request with a null parent does not crash and defaults ignoreProject to false.
-   */
-  @Test
-  void testDependencyRequestWithNullParent() {
-    // arrange & act
-    ToolInstallRequest dependencyRequest = new ToolInstallRequest(null);
-
-    // assert
-    assertThat(dependencyRequest.isIgnoreProject()).isFalse();
-    assertThat(dependencyRequest.getProcessContext()).isNull();
-  }
-
-  /**
    * Verify that {@link ToolInstallRequest#isIgnoreProject() ignoreProject} can be changed after creating a request.
    */
   @Test

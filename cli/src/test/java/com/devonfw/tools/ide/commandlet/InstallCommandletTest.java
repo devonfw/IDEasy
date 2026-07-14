@@ -316,6 +316,7 @@ class InstallCommandletTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext(PROJECT_INSTALL, wmRuntimeInfo);
     InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
     install.tool.setValueAsString("java", context);
+    install.version.setValueAsString("17.0.6", context);
     install.ignoreProject.setValue(true);
 
     // act
@@ -330,7 +331,8 @@ class InstallCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test of {@link InstallCommandlet} with --ignore-project flag outside a project. Verifies that dependencies are still installed into the software repository.
+   * Test of {@link InstallCommandlet} with --ignore-project flag outside a project. Verifies that dependencies are still installed into the software
+   * repository.
    *
    * @param wmRuntimeInfo wireMock server on a random port
    */
@@ -342,6 +344,7 @@ class InstallCommandletTest extends AbstractIdeContextTest {
     context.setIdeHome(null);
     InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
     install.tool.setValueAsString("java", context);
+    install.version.setValueAsString("17.0.6", context);
     install.ignoreProject.setValue(true);
 
     // act
