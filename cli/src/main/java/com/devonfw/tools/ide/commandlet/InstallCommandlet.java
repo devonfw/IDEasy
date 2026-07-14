@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.cli.GraalVmHelper;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.property.BooleanProperty;
+import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.ToolProperty;
 import com.devonfw.tools.ide.property.VersionProperty;
 import com.devonfw.tools.ide.tool.IdeasyCommandlet;
@@ -33,7 +33,7 @@ public class InstallCommandlet extends Commandlet {
   public final VersionProperty version;
 
   /** Ignore the current project during installation. */
-  public final BooleanProperty ignoreProject;
+  public final FlagProperty ignoreProject;
 
   /**
    * The constructor.
@@ -46,7 +46,7 @@ public class InstallCommandlet extends Commandlet {
     addKeyword(getName());
     this.tool = add(new ToolProperty("", false, "tool"));
     this.version = add(new VersionProperty("", false, "version"));
-    this.ignoreProject = add(new BooleanProperty("", false, "ignore-project"));
+    this.ignoreProject = add(new FlagProperty("--ignore-project"));
   }
 
   @Override
@@ -87,12 +87,13 @@ public class InstallCommandlet extends Commandlet {
     ToolCommandlet commandlet = this.tool.getValue();
     VersionIdentifier versionIdentifier = this.version.getValue();
     VersionIdentifier version = versionIdentifier;
-    if (version == null) {
+    boolean ignoreProject = Boolean.TRUE.equals(this.ignoreProject.getValue());
+    if ((version == null) && !ignoreProject) {
       version = commandlet.getConfiguredVersion();
     }
     ToolInstallRequest request = ToolInstallRequest.ofDirect();
     request.setRequested(new ToolEditionAndVersion(version));
-    request.setIgnoreProject(Boolean.TRUE.equals(this.ignoreProject.getValue()));
+    request.setIgnoreProject(ignoreProject);
     ToolInstallation installation = commandlet.install(request);
     if (versionIdentifier != null) {
       VersionIdentifier installedVersion = installation.resolvedVersion();

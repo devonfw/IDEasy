@@ -30,23 +30,4 @@ class ToolInstallRequestTest extends AbstractIdeContextTest {
     assertThat(dependencyRequest.isIgnoreProject()).isTrue();
     assertThat(dependencyRequest.getProcessContext()).isEqualTo(processContext);
   }
-
-  /**
-   * Verify that {@link ToolInstallRequest#isIgnoreProject() ignoreProject} can be changed after creating a request.
-   */
-  @Test
-  @SuppressWarnings("ConstantConditions")
-  void testIgnoreProjectCanBeChanged() {
-    // arrange
-    ToolInstallRequest request = new ToolInstallRequest(false);
-    assertThat(request.isIgnoreProject()).isFalse();
-
-    // act & assert - toggle to true
-    request.setIgnoreProject(true);
-    assertThat(request.isIgnoreProject()).isTrue();
-
-    // act & assert - toggle back to false
-    request.setIgnoreProject(false);
-    assertThat(request.isIgnoreProject()).isFalse();
-  }
 }

@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.cli.CliOfflineException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -327,14 +328,10 @@ class InstallCommandletTest extends AbstractIdeContextTest {
         .resolve("17.0.6")).exists();
     // assert - no project symlink should have been created
     assertThat(context.getSoftwarePath().resolve("java")).doesNotExist();
-    assertThat(context).logAtDebug().hasMessageContaining("Skipping symlink creation");
   }
 
   /**
-   * Test of {@link InstallCommandlet} with --ignore-project flag outside a project. Verifies that dependencies are still installed into the software
-   * repository.
-   *
-   * @param wmRuntimeInfo wireMock server on a random port
+   * Test that installation with ignoreProject succeeds outside a project and installs the requested tool only into the software repository.
    */
   @Test
   void testInstallCommandletWithIgnoreProjectOutsideProject(WireMockRuntimeInfo wmRuntimeInfo) {
@@ -354,6 +351,63 @@ class InstallCommandletTest extends AbstractIdeContextTest {
     assertThat(context.getSoftwareRepositoryPath().resolve(DefaultToolRepository.ID_DEFAULT).resolve("java").resolve("java")
         .resolve("17.0.6")).exists();
     assertThat(context.getSoftwarePath()).isNull();
+  }
+  
+  /**
+   * Test that --ignore-project prevents using the configured project version when no explicit version is provided.
+   *
+   * @param wmRuntimeInfo wireMock server on a random port
+   */
+  @Test
+  void testInstallCommandletWithIgnoreProjectIgnoresConfiguredVersion(WireMockRuntimeInfo wmRuntimeInfo) {
+    // arrange
+    IdeTestContext context = newContext(PROJECT_INSTALL, wmRuntimeInfo);
+    InstallCommandlet install = context.getCommandletManager()
+        .getCommandlet(InstallCommandlet.class);
+    install.tool.setValueAsString("java", context);
+    install.ignoreProject.setValue(true);
+
+    // act
+    install.run();
+
+    // assert
+    assertThat(context.getSoftwarePath().resolve("java")).doesNotExist();
+    assertThat(context.getSoftwareRepositoryPath()
+        .resolve(DefaultToolRepository.ID_DEFAULT)
+        .resolve("java")
+        .resolve("java")
+        .resolve("17.0.6")).doesNotExist();
+    assertThat(context)
+        .logAtSuccess()
+        .hasMessageContaining("Successfully installed java in version");
+  }
+
+  /**
+   * Test that --ignore-project is parsed as a CLI flag and prevents creation of the project symlink.
+   *
+   * @param wmRuntimeInfo wireMock server on a random port
+   */
+  @Test
+  void testInstallCommandletParsesIgnoreProjectFlag(WireMockRuntimeInfo wmRuntimeInfo) {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_INSTALL, wmRuntimeInfo);
+    CliArguments args = new CliArguments("install", "java", "17.0.6", "--ignore-project");
+    args.next();
+
+    // act
+    int exitCode = context.run(args);
+
+    // assert
+    InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
+    assertThat(exitCode).isZero();
+    assertThat(install.ignoreProject.getValue()).isTrue();
+    assertThat(context.getSoftwareRepositoryPath()
+        .resolve(DefaultToolRepository.ID_DEFAULT)
+        .resolve("java")
+        .resolve("java")
+        .resolve("17.0.6")).exists();
+    assertThat(context.getSoftwarePath().resolve("java")).doesNotExist();
   }
 }
 

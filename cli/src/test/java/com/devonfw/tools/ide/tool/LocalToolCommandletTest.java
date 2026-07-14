@@ -5,7 +5,6 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
-import com.devonfw.tools.ide.commandlet.InstallCommandlet;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -138,8 +137,8 @@ class LocalToolCommandletTest extends AbstractIdeContextTest {
   }
   
   /**
-   * Test of {@link InstallCommandlet} with --ignore-project outside a project. Verifies that the requested tool is installed into the software repository
-   * without requiring a project.
+   * Test that {@link LocalToolCommandlet#installAsDependency(VersionRange, ToolInstallRequest)} ignores the configured project version when
+   * {@link ToolInstallRequest#isIgnoreProject()} is {@code true}.
    */
   @Test
   void testInstallAsDependencyIgnoresProject(WireMockRuntimeInfo wmRuntimeInfo) {
