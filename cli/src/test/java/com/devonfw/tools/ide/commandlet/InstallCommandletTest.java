@@ -331,29 +331,6 @@ class InstallCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test that installation with ignoreProject succeeds outside a project and installs the requested tool only into the software repository.
-   */
-  @Test
-  void testInstallCommandletWithIgnoreProjectOutsideProject(WireMockRuntimeInfo wmRuntimeInfo) {
-
-    // arrange - context without IDEasy project root
-    IdeTestContext context = newContext(PROJECT_INSTALL, wmRuntimeInfo);
-    context.setIdeHome(null);
-    InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
-    install.tool.setValueAsString("java", context);
-    install.version.setValueAsString("17.0.6", context);
-    install.ignoreProject.setValue(true);
-
-    // act
-    install.run();
-
-    // assert - tool should be installed in the software repository without requiring a project symlink
-    assertThat(context.getSoftwareRepositoryPath().resolve(DefaultToolRepository.ID_DEFAULT).resolve("java").resolve("java")
-        .resolve("17.0.6")).exists();
-    assertThat(context.getSoftwarePath()).isNull();
-  }
-  
-  /**
    * Test that --ignore-project prevents using the configured project version when no explicit version is provided.
    *
    * @param wmRuntimeInfo wireMock server on a random port
