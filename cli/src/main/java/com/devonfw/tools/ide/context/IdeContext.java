@@ -408,12 +408,9 @@ public interface IdeContext extends IdeStartContext {
    */
   Path getIdeRoot();
 
-  /**
    * @param ideRoot the new value of {@link #getIdeRoot() IDE_ROOT}. Typically detected automatically from the environment and working directory, but may need
-   *     to be set explicitly (e.g. during the initial installation where the {@code IDE_ROOT} environment variable is not yet available but the install target
-   *     is already known).
-   */
-  void setIdeRoot(Path ideRoot);
+   *     to be set explicitly (e.g. during the initial installation where the {@code IDE_ROOT} environment variable is not yet available but the installation 
+   * target is already known).
 
   /**
    * @return the {@link Path} to the {@link #FOLDER_UNDERSCORE_IDE}.
