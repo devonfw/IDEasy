@@ -9,6 +9,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliOfflineException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -91,6 +92,12 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   private ToolInstallation doInstallStep(ToolInstallRequest request) {
+
+    if (request.isIgnoreProject() && isIgnoreSoftwareRepo()) {
+      throw new CliException(
+          "The tool " + this.tool
+              + " does not support the software repository and therefore cannot be installed with --ignore-project.");
+    }
 
     // install configured version of our tool in the software repository if not already installed
     ToolInstallation installation = installTool(request);

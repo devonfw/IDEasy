@@ -439,7 +439,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
     GenericVersionRange version = requested.getVersion();
     if (version == null) {
-      version = getConfiguredVersion();
+      version = request.isIgnoreProject() ? VersionIdentifier.LATEST : getConfiguredVersion();
       requested.setVersion(version);
     }
     VersionIdentifier resolvedVersion = requested.getResolvedVersion();
