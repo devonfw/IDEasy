@@ -58,6 +58,12 @@ public class InstallCommandlet extends Commandlet {
   @Override
   public boolean isIdeRootRequired() {
 
+    return this.tool.getValueCount() > 0;
+  }
+
+  @Override
+  public boolean isIdeHomeRequired() {
+
     return (this.tool.getValueCount() > 0)
         && !Boolean.TRUE.equals(this.ignoreProject.getValue());
   }
