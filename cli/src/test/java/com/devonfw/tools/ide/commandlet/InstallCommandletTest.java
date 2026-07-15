@@ -337,26 +337,25 @@ class InstallCommandletTest extends AbstractIdeContextTest {
    */
   @Test
   void testInstallCommandletWithIgnoreProjectIgnoresConfiguredVersion(WireMockRuntimeInfo wmRuntimeInfo) {
-    // arrange
+    // arrange - configure a project version that differs from the latest available version
     IdeTestContext context = newContext(PROJECT_INSTALL, wmRuntimeInfo);
-    InstallCommandlet install = context.getCommandletManager()
-        .getCommandlet(InstallCommandlet.class);
+    VersionSetCommandlet versionSet = context.getCommandletManager().getCommandlet(VersionSetCommandlet.class);
+    versionSet.tool.setValueAsString("java", context);
+    versionSet.version.setValueAsString("17.0.6", context);
+    versionSet.run();
+    InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
     install.tool.setValueAsString("java", context);
     install.ignoreProject.setValue(true);
 
     // act
     install.run();
 
-    // assert
-    assertThat(context.getSoftwarePath().resolve("java")).doesNotExist();
-    assertThat(context.getSoftwareRepositoryPath()
-        .resolve(DefaultToolRepository.ID_DEFAULT)
-        .resolve("java")
-        .resolve("java")
+    // assert - the configured 17.0.6 must be ignored and the latest version installed instead
+    assertThat(context.getSoftwareRepositoryPath().resolve(DefaultToolRepository.ID_DEFAULT).resolve("java").resolve("java")
         .resolve("17.0.6")).doesNotExist();
-    assertThat(context)
-        .logAtSuccess()
-        .hasMessageContaining("Successfully installed java in version");
+    assertThat(context.getSoftwareRepositoryPath().resolve(DefaultToolRepository.ID_DEFAULT).resolve("java").resolve("java")
+        .resolve("21.0.8_9")).exists();
+    assertThat(context.getSoftwarePath().resolve("java")).doesNotExist();
   }
 
   /**
