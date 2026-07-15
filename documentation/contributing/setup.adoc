@@ -31,10 +31,17 @@ For detailed, step‑by‑step installation instructions, including platform‑s
 
 . After the IDEasy installation, run the following command in the terminal to create a project:
 +
+For external contributors:
++
+```
+ide create IDEasy -
+```
++
+For Capgemini developers with access to the IDEasy settings repository:
++
 ```
 ide create IDEasy https://assets.engine.capgemini.com/engine_hohwille/ideasy-settings.git
 ```
-+
 Wait until this process has finished (this will take several minutes).
 This will create an `IDEasy` folder inside your `projects` directory, for example:
 `C:\Users\«username»\projects\IDEasy` on Windows and populate it with the project.
