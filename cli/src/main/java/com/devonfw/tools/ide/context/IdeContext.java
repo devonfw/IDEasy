@@ -51,6 +51,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * <li>{@link #getGitContext() git context} (for git operations like clone, fetch, pull, etc.)</li>
  * <li>{@link #getSystemInfo() system info} (for information about OS and CPU architecture)</li>
  * <li>{@link #getVariables() environment variables} (to access and modify IDEasy variables according to our configuration layout)</li>
+ *
  * <li>{@link #question(Object[], String, Object...) question} (for interaction to let the end-user decide)</li>
  * <li>{@link #getUrls() url metadata} (access ide-urls to find versions, download URLs, dependency and security metadata)</li>
  * <li>{@link #getDefaultToolRepository() tool repository} (for abstraction of version resolution and download of tools)</li>
@@ -408,9 +409,12 @@ public interface IdeContext extends IdeStartContext {
    */
   Path getIdeRoot();
 
+  /**
    * @param ideRoot the new value of {@link #getIdeRoot() IDE_ROOT}. Typically detected automatically from the environment and working directory, but may need
-   *     to be set explicitly (e.g. during the initial installation where the {@code IDE_ROOT} environment variable is not yet available but the installation 
-   * target is already known).
+   *     to be set explicitly (e.g. during the initial installation where the {@code IDE_ROOT} environment variable is not yet available but the installation
+   *     target is already known).
+   */
+  void setIdeRoot(Path ideRoot);
 
   /**
    * @return the {@link Path} to the {@link #FOLDER_UNDERSCORE_IDE}.
