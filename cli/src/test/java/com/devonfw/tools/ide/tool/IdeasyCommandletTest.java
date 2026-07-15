@@ -115,9 +115,10 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test that {@link IdeasyCommandlet#installIdeasy(Path)} updates {@link IdeContext#getIdeRoot()} to the derived installation target when {@code IDE_ROOT} 
-   * is not set in the environment (as is the case during a fresh MSI installation). This ensures downstream code reading {@link IdeContext#getIdeRoot()} 
+   * Test that {@link IdeasyCommandlet#installIdeasy(Path)} updates {@link IdeContext#getIdeRoot()} to the derived installation target when {@code IDE_ROOT}
+   * is not set in the environment (as is the case during a fresh MSI installation). This ensures downstream code reading {@link IdeContext#getIdeRoot()}
    * during the same install run gets a consistent value. See <a href="https://github.com/devonfw/IDEasy/issues/1517">#1517</a> for reference.
+   *
    * @param os to use
    */
   @ParameterizedTest
