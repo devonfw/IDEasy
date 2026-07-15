@@ -101,7 +101,7 @@ public class InstallCommandlet extends Commandlet {
     request.setRequested(new ToolEditionAndVersion(version));
     request.setIgnoreProject(ignoreProject);
     ToolInstallation installation = commandlet.install(request);
-    if (versionIdentifier != null) {
+    if ((versionIdentifier != null) && !ignoreProject) {
       VersionIdentifier installedVersion = installation.resolvedVersion();
       if (!versionIdentifier.isPattern() || !versionIdentifier.matches(installedVersion)) {
         versionIdentifier = installedVersion;
