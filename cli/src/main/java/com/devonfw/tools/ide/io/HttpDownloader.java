@@ -3,7 +3,6 @@ package com.devonfw.tools.ide.io;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
-import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpClient.Version;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublisher;
@@ -42,7 +41,7 @@ public abstract class HttpDownloader {
 
   protected static HttpClient createHttpClient() {
 
-    return HttpClient.newBuilder().followRedirects(Redirect.ALWAYS).build();
+    return HttpClientFactory.create();
   }
 
   /**
