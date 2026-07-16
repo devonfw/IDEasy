@@ -114,7 +114,7 @@ public final class Ideasy {
         if (property instanceof FlagProperty) {
           ((FlagProperty) property).setValue(Boolean.TRUE);
         } else {
-          System.err.println("Missing value for option " + key);
+          System.err.println("Missing value for option " + key); // checkstyle:ignore SystemOut - option parsing runs before the logger is initialized
         }
       } else {
         property.setValueAsString(value, this.context);
