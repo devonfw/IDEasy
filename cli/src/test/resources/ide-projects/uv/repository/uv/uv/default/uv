@@ -9,7 +9,7 @@ if [ "$1" = "pip" ] && [ "$2" = "install" ]; then
 elif [ "$1" = "venv" ] && [ "$2" = "--python" ]; then
   cp -a repository/python/python/default project/software/.venv
 elif [ "$1" = "tool" ] && [ "$2" = "install" ]; then
-  echo "$3" >> "$TOOLS_DB"
+  echo "${!#}" >> "$TOOLS_DB"
 elif [ "$1" = "tool" ] && [ "$2" = "list" ]; then
   if [ -f "$TOOLS_DB" ]; then
     while IFS= read -r spec; do

@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.commandlet;
 
 import java.nio.file.Path;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,18 +86,16 @@ public class TruststoreCommandlet extends Commandlet {
       throw new CliException("Invalid target URL/host '" + endpointInput + "': " + e.getMessage(), e);
     }
 
-    String host = endpoint.host();
-    int port = endpoint.port();
     Path customTruststorePath = this.context.getUserHomeIde().resolve("truststore").resolve("truststore.p12");
 
-    if (TruststoreUtil.isTruststorePresent(customTruststorePath) && TruststoreUtil.isReachable(host, port, customTruststorePath)) {
+    if (TruststoreUtil.isTruststorePresent(customTruststorePath) && TruststoreUtil.isReachable(endpoint, customTruststorePath)) {
       IdeLogLevel.SUCCESS.log(LOG, "TLS handshake succeeded with existing custom truststore at {}.", customTruststorePath);
       configureIdeOptions(customTruststorePath);
       return;
     }
 
-    if (TruststoreUtil.isReachable(host, port)) {
-      IdeLogLevel.SUCCESS.log(LOG, "Successfully connected to {}:{} without certificate changes.", host, port);
+    if (TruststoreUtil.isReachable(endpoint, null)) {
+      IdeLogLevel.SUCCESS.log(LOG, "Successfully connected to {}:{} without certificate changes.", endpoint.host(), endpoint.port());
       LOG.info("No truststore update is required for the given address.");
       if (defaultUrlUsed) {
         LOG.info(
@@ -108,19 +105,22 @@ public class TruststoreCommandlet extends Commandlet {
       return;
     }
 
-    LOG.info("The given address {}:{} is not reachable/valid without certificate changes. Continuing with certificate capture.", host, port);
+    LOG.info("The given address {} is not reachable/valid without certificate changes. Continuing with certificate capture.", endpoint.url());
+
+    // download URLs are frequently redirected (e.g. https://aka.ms/...), so capture the certificate from the effective endpoint after following all redirects
+    TruststoreUtil.TlsEndpoint effectiveEndpoint = TruststoreUtil.resolveEffectiveEndpoint(endpoint);
 
     X509Certificate certificate;
     try {
-      certificate = TruststoreUtil.fetchServerCertificate(host, port);
+      certificate = TruststoreUtil.fetchServerCertificate(effectiveEndpoint.host(), effectiveEndpoint.port());
     } catch (Exception e) {
-      LOG.error("Failed to capture certificate from {}:{}.", host, port, e);
+      LOG.error("Failed to capture certificate from {}:{}.", effectiveEndpoint.host(), effectiveEndpoint.port(), e);
       IdeLogLevel.INTERACTION.log(LOG,
           "Please check proxy/VPN and retry. You can also follow: https://github.com/devonfw/IDEasy/blob/main/documentation/proxy-support.adoc#tls-certificate-issues");
       return;
     }
 
-    LOG.info("Captured untrusted certificate:");
+    LOG.info("Captured untrusted certificate from {}:{}:", effectiveEndpoint.host(), effectiveEndpoint.port());
     LOG.info(TruststoreUtil.describeCertificate(certificate));
 
     boolean addToTruststore = this.context.question("Do you want to add this certificate to the custom truststore at {}?", customTruststorePath);
@@ -140,7 +140,7 @@ public class TruststoreCommandlet extends Commandlet {
 
     configureIdeOptions(customTruststorePath);
 
-    if (TruststoreUtil.isReachable(host, port, customTruststorePath)) {
+    if (TruststoreUtil.isReachable(endpoint, customTruststorePath)) {
       IdeLogLevel.SUCCESS.log(LOG, "TLS handshake succeeded with custom truststore.");
     } else {
       LOG.warn("TLS handshake still fails even with custom truststore.");
