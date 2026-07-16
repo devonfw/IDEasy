@@ -1229,7 +1229,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       activateLogging(cmd);
       step.error(t, true);
       if (this.logfile != null) {
-        System.err.println("Logfile can be found at " + this.logfile); // do not use logger
+        // point the user to the logfile directly (does not make sense via logger)
+        System.err.println("Logfile can be found at " + this.logfile); // checkstyle:ignore SystemOut
       }
       throw t;
     } finally {
@@ -1651,7 +1652,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
         if (option != null) {
           currentProperty = option;
         } else {
-          boolean allowDashedValue = (property != null && property.isValue() && property.isMultiValued());
+          boolean allowDashedValue = (property != null) && property.isValue()
+              && (property.isMultiValued() || "-".equals(currentArgument.get()));
           boolean allowKeywordOption = (currentProperty instanceof KeywordProperty keywordProperty) && keywordProperty.matches(currentArgument.getKey());
           if (!allowDashedValue && !allowKeywordOption && currentArgument.isOption()) {
             ValidationState state = new ValidationState(null);

@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.common;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
@@ -78,7 +77,7 @@ public class SystemPath {
    */
   public SystemPath(IdeContext context, String envPath, Path ideRoot, Path softwarePath) {
 
-    this(context, envPath, ideRoot, softwarePath, File.pathSeparatorChar, Collections.emptyList());
+    this(context, envPath, ideRoot, softwarePath, System.getProperty("path.separator").charAt(0), Collections.emptyList());
   }
 
   /**
