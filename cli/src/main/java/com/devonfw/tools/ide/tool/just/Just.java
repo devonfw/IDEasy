@@ -4,6 +4,7 @@ import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.tool.PackageManagerRequest;
 import com.devonfw.tools.ide.tool.uv.UvBasedCommandlet;
 
 /**
@@ -24,5 +25,16 @@ public class Just extends UvBasedCommandlet {
   public String getPackageName() {
     return "rust-just";
   }
+
+  @Override
+  protected String completeRequestOption(PackageManagerRequest request) {
+
+    if (PackageManagerRequest.TYPE_INSTALL.equals(request.getType())) {
+      return "--force";
+    }
+
+    return super.completeRequestOption(request);
+  }
+
 
 }
