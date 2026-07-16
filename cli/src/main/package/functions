@@ -107,6 +107,8 @@ function icd() {
         echo "  -w | --workspace  «workspace»  The workspace inside your IDEasy project to cd to. Defaults to main."
         echo "  -r | --repository «repository» The repository inside the workspace to cd to. Defaults to the project name."
         echo "                                 If no workspace is given, 'main' is searched first and then all other workspaces."
+        echo "                                 If no repository is given and no project-name folder is found, falls back to the"
+        echo "                                 single non-hidden folder in the workspace, or the workspace itself with a warning."
         echo "  -h | --help                    Print this help text."
         return
         ;;
@@ -146,10 +148,12 @@ function icd() {
   fi
   
   if [ "${icd_repository_given}" = true ]; then
-    # Repository specified - resolve it within the given (or searched) workspace
+    # Repository specified (or implied by project name) - resolve it within the given (or searched) workspace
+    local icd_repo_name_given=true
     local icd_repo_name="${icd_repository}"
     if [ "${icd_repo_name}" = "" ]; then
       icd_repo_name="$(basename "${icd_path}")"
+      icd_repo_name_given=false
     fi
     local icd_workspaces_dir="${icd_path}/workspaces"
     local icd_found_workspace=
@@ -175,11 +179,34 @@ function icd() {
         done
       fi
     fi
-    if [ "${icd_found_workspace}" = "" ]; then
+    if [ "${icd_found_workspace}" != "" ]; then
+      icd_path=${icd_workspaces_dir}/${icd_found_workspace}/${icd_repo_name}
+    elif [ "${icd_repo_name_given}" = true ]; then
       echo "Error: Repository '${icd_repo_name}' not found in any workspace." >&2
       return 1
+    else
+      local icd_fallback_workspace="${icd_workspace}"
+      if [ "${icd_fallback_workspace}" = "" ]; then
+        icd_fallback_workspace=main
+      fi
+      local icd_fallback_dir="${icd_workspaces_dir}/${icd_fallback_workspace}"
+      local icd_candidate= icd_candidate_count=0 icd_entry icd_entry_name
+      for icd_entry in "${icd_fallback_dir}"/*/; do
+        [ -d "${icd_entry}" ] || continue
+        icd_entry_name="$(basename "${icd_entry}")"
+        case "${icd_entry_name}" in
+          .*) continue ;;
+        esac
+        icd_candidate="${icd_entry}"
+        icd_candidate_count=$((icd_candidate_count + 1))
+      done
+      if [ "${icd_candidate_count}" = 1 ]; then
+        icd_path="${icd_candidate%/}"
+      else
+        echo "Warning: Repository '${icd_repo_name}' not found in any workspace and workspace '${icd_fallback_workspace}' does not contain a single unambiguous repository. Navigating to the workspace instead." >&2
+        icd_path="${icd_fallback_dir}"
+      fi
     fi
-    icd_path=${icd_workspaces_dir}/${icd_found_workspace}/${icd_repo_name}
   elif [ "${icd_workspace}" != "" ]; then
     # Append workspace path if specified
     icd_path=${icd_path}/workspaces/${icd_workspace}
