@@ -44,6 +44,7 @@ public class Uv extends LocalToolCommandlet {
     ProcessResult result = runTool(processContext, ProcessMode.DEFAULT_CAPTURE, List.of("venv", "--python", resolvedVersion.toString()));
     assert result.isSuccessful();
   }
+
   @Override
   public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
 
@@ -51,5 +52,6 @@ public class Uv extends LocalToolCommandlet {
     Path pythonPath = this.context.getSoftwarePath().resolve("python");
     environmentContext.withEnvVar("UV_TOOL_DIR", pythonPath.resolve("tools").toString());
     environmentContext.withEnvVar("UV_TOOL_BIN_DIR", pythonPath.resolve("bin").toString());
+    environmentContext.withPathEntry(pythonPath.resolve("bin"));
   }
 }

@@ -93,7 +93,6 @@ class IntellijTest extends AbstractIdeContextTest {
     SystemInfo systemInfo = SystemInfoMock.of(os);
     this.context.setSystemInfo(systemInfo);
     Intellij commandlet = new Intellij(this.context);
-    System.out.println("Starting testIntellijRun on " + os);
 
     // act
     commandlet.run();
@@ -219,7 +218,7 @@ class IntellijTest extends AbstractIdeContextTest {
 
   /**
    * Tests whether IDEasy correctly switches editions when the specified version is after 2025.2.6.1
-   */ 
+   */
   @Test
   void testAdjustRequestedEditionSwitchesForUltimateWithVersionAboveCutoff() {
 
@@ -254,7 +253,7 @@ class IntellijTest extends AbstractIdeContextTest {
     // assert
     assertThat(adjusted.getEdition().edition()).isEqualTo("ultimate");
   }
-  
+
   /**
    * Tests if the custom jvm options of the ide variable INTELLI_VM_ARGS have been set.
    */
