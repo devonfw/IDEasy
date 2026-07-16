@@ -7,7 +7,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
@@ -140,7 +139,7 @@ public class MvnRepositoryMock extends MvnRepository {
             //   <root>/org/springframework/boot/maven-metadata.xml  -> org/springframework/boot
             Path rel = mvnRoot.relativize(xmlFile);
             String packagePath = "/" + rel.toString()
-                .replace(FileSystems.getDefault().getSeparator(), "/");
+                .replace("\\", "/");
 
             String body = IdeTestContext.readAndResolveBaseUrl(xmlFile, wireMockRuntimeInfo);
 

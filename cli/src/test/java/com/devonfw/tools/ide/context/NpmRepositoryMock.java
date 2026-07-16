@@ -6,7 +6,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 
 import java.io.IOException;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
@@ -61,7 +60,7 @@ public class NpmRepositoryMock extends NpmRepository {
               //   <root>/yarn.json          -> "/yarn"
               Path rel = npmRoot.relativize(jsonFile);
               String packagePath = "/" + rel.toString()
-                  .replace(FileSystems.getDefault().getSeparator(), "/")
+                  .replace("\\", "/")
                   .replaceAll("\\.json$", "");
 
               String body = IdeTestContext.readAndResolveBaseUrl(jsonFile, wireMockRuntimeInfo);
