@@ -19,7 +19,6 @@ To do so you might need to be connected to a VPN depending on the company settin
 | image::images/LSPPoperty.png[]
 | image::images/LSPAddUser.png[]
 |
-
 |===
 
 IDEasy provides a tool to create symlinks using the `ln` command.
@@ -30,8 +29,7 @@ For example:
 
 The result can be verified using `ls -la`.
 
-==
- Running Tests Without Symlink Permissions
+== Running Tests Without Symlink Permissions
 
 If you are a contributor and want to run the test suite without administrator privileges or enabling symlink permissions, you can still do so.
 Tests that require symbolic link creation will be automatically skipped on Windows systems without proper permissions, using the `WindowsSymlinkTestHelper.assumeSymlinksSupported()` utility.
