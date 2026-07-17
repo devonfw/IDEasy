@@ -69,6 +69,10 @@ function icd() {
   local icd_workspace=
   local icd_repository=
   local icd_repository_given=false
+  # zsh aborts on unmatched globs by default (NOMATCH) - let the workspace-scan globs below behave like in bash
+  if [ -n "${ZSH_VERSION:-}" ]; then
+    setopt local_options null_glob
+  fi
   while [ $# != 0 ]; do
     case "$1" in
       -p|--project)
