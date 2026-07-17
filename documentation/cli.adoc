@@ -134,6 +134,7 @@ IDE environment variables have been set for /~/projects/myproject in workspace m
 ```
 
 You can also use `-r «repository»` to jump straight into a repository (folder) inside a workspace.
+The repository can also be a nested path such as `-r backend/core`.
 If `-w` is omitted, the workspace `main` is searched first and, if the repository is not found there, all other workspaces are searched next; `icd` then navigates into the first workspace containing the repository.
 If the repository is given explicitly but not found in any workspace, `icd` fails with an error.
 
