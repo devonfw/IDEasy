@@ -21,21 +21,11 @@ To do so you might need to be connected to a VPN depending on the company settin
 |
 |===
 
-IDEasy provides a tool to create symlinks using the `ln` command.
+IDEasy provides a tool to create symlinks using the `ide ln` command. As example:
 
-For example:
+`ide ln -sr src-folder target-link-folder`
 
-[source,shell]
-----
-ide ln -sr src-folder target-link-folder
-----
-
-The result can be verified using:
-
-[source,shell]
-----
-ls -la
-----
+The result can be verified using `ls -la`.
 
 == Running Tests Without Symlink Permissions
 
