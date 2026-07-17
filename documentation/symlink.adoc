@@ -20,7 +20,7 @@ To do so you might need to be connected to a VPN depending on the company settin
 | image::images/LSPAddUser.png[]
 |
 |===
-
+==
 IDEasy provides a tool to create symlinks using the `ln` command.
 
 For example:
