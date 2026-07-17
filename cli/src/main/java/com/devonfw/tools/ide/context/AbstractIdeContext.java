@@ -78,6 +78,7 @@ import com.devonfw.tools.ide.tool.npm.NpmRepository;
 import com.devonfw.tools.ide.tool.pip.PipRepository;
 import com.devonfw.tools.ide.tool.repository.DefaultToolRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
+import com.devonfw.tools.ide.tool.uv.UvRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.util.DateTimeUtil;
 import com.devonfw.tools.ide.util.PrivacyUtil;
@@ -155,6 +156,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   private NpmRepository npmRepository;
 
   private PipRepository pipRepository;
+
+  private UvRepository uvRepository;
 
   private DirectoryMerger workspaceMerger;
 
@@ -294,6 +297,13 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
    */
   protected PipRepository createPipRepository() {
     return new PipRepository(this);
+  }
+
+  /**
+   * @return a new {@link UvRepository}
+   */
+  protected UvRepository createUvRepository() {
+    return new UvRepository(this);
   }
 
   private Path findIdeRoot(Path ideHomePath) {
@@ -513,6 +523,14 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       this.pipRepository = createPipRepository();
     }
     return this.pipRepository;
+  }
+
+  @Override
+  public UvRepository getUvRepository() {
+    if (this.uvRepository == null) {
+      this.uvRepository = createUvRepository();
+    }
+    return this.uvRepository;
   }
 
   @Override
@@ -1211,7 +1229,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       activateLogging(cmd);
       step.error(t, true);
       if (this.logfile != null) {
-        System.err.println("Logfile can be found at " + this.logfile); // do not use logger
+        // point the user to the logfile directly (does not make sense via logger)
+        System.err.println("Logfile can be found at " + this.logfile); // checkstyle:ignore SystemOut
       }
       throw t;
     } finally {
@@ -1633,7 +1652,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
         if (option != null) {
           currentProperty = option;
         } else {
-          boolean allowDashedValue = (property != null && property.isValue() && property.isMultiValued());
+          boolean allowDashedValue = (property != null) && property.isValue()
+              && (property.isMultiValued() || "-".equals(currentArgument.get()));
           boolean allowKeywordOption = (currentProperty instanceof KeywordProperty keywordProperty) && keywordProperty.matches(currentArgument.getKey());
           if (!allowDashedValue && !allowKeywordOption && currentArgument.isOption()) {
             ValidationState state = new ValidationState(null);
