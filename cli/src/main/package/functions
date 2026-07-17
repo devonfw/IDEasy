@@ -182,7 +182,11 @@ function icd() {
     if [ "${icd_found_workspace}" != "" ]; then
       icd_path=${icd_workspaces_dir}/${icd_found_workspace}/${icd_repo_name}
     elif [ "${icd_repo_name_given}" = true ]; then
-      echo "Error: Repository '${icd_repo_name}' not found in any workspace." >&2
+      if [ "${icd_workspace}" != "" ]; then
+        echo "Error: Repository '${icd_repo_name}' not found in workspace '${icd_workspace}'." >&2
+      else
+        echo "Error: Repository '${icd_repo_name}' not found in any workspace." >&2
+      fi
       return 1
     else
       local icd_fallback_workspace="${icd_workspace}"
