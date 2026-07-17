@@ -94,9 +94,11 @@ class StatusCommandletTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(context).log().hasEntries(IdeLogEntry.ofWarning("Skipping check for newer version of IDEasy because you are offline."),
-        new IdeLogEntry(IdeLogLevel.ERROR, "You are offline because of the following error:", null, null, error, false), IdeLogEntry.ofWarning(
-            "You are having TLS trust issues (PKIX/certificate-path/SSL handshake). As a workaround you can create and configure a truststore via the following command (replace <url> with the failing endpoint):\nide fix-vpn-tls-problem <url>"),
-        IdeLogEntry.ofInteraction("https://github.com/devonfw/IDEasy/blob/main/documentation/proxy-support.adoc#tls-certificate-issues"));
+        new IdeLogEntry(IdeLogLevel.ERROR, "You are offline because of the following error:", null, null, error, false));
+    assertThat(context).logAtWarning().hasMessageContaining(
+        "The TLS connection to https://www.github.com failed due to a certificate trust error (PKIX / certificate-path / SSL handshake).");
+    assertThat(context).logAtWarning().hasMessageContaining("ide fix-vpn-tls-problem https://www.github.com");
+    assertThat(context).logAtInteraction().hasMessageContaining("https://github.com/devonfw/IDEasy/blob/main/documentation/proxy-support.adoc#tls-certificate-issues");
   }
 
   /**
@@ -115,7 +117,7 @@ class StatusCommandletTest extends AbstractIdeContextTest {
     status.run();
 
     // assert
-    assertThat(context).logAtWarning().hasMessageContaining("ide fix-vpn-tls-problem <url>");
+    assertThat(context).logAtWarning().hasMessageContaining("ide fix-vpn-tls-problem https://www.github.com");
     assertThat(context).logAtInteraction().hasMessageContaining("proxy-support.adoc#tls-certificate-issues");
   }
 

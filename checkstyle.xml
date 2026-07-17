@@ -32,6 +32,21 @@
 
   <module name="TreeWalker">
 
+    <!--
+      Inline suppression of the SystemOut rule for a single, justified line. Write the marker as a
+      trailing comment ON the offending line, followed by a reason:
+        someCall(); // checkstyle:ignore SystemOut - why this System.out/err is legitimate here
+      influenceFormat=0 limits the suppression to the commented line only. checkFormat names the
+      checkstyle check that raises the violation (System.out and printStackTrace share the
+      RegexpSinglelineJava check; the distinct "SystemOut" marker keeps the intent readable).
+      Add an analogous filter per rule that needs line-level exceptions.
+    -->
+    <module name="SuppressWithNearbyCommentFilter">
+      <property name="commentFormat" value="checkstyle:ignore\s+SystemOut\b"/>
+      <property name="checkFormat" value="RegexpSinglelineJava"/>
+      <property name="influenceFormat" value="0"/>
+    </module>
+
     <!-- No star imports (coding-conventions: "no star imports are used") -->
     <module name="AvoidStarImport"/>
     <module name="RedundantImport"/>
@@ -60,8 +75,11 @@
         value="LITERAL_IF, LITERAL_ELSE, LITERAL_FOR, LITERAL_WHILE, LITERAL_DO"/>
     </module>
 
-    <!-- No System.out / System.err (coding-conventions: "No System output") -->
+    <!-- No System.out / System.err (coding-conventions: "No System output").
+         id "SystemOut" is the handle used to suppress justified exceptions, e.g.
+         a trailing "// checkstyle:ignore SystemOut - reason" or the log-package filter below. -->
     <module name="RegexpSinglelineJava">
+      <property name="id" value="SystemOut"/>
       <property name="format" value="System\.(out|err)\."/>
       <property name="message"
         value="Do not use System.out/System.err; use the logger (context / SLF4J) instead."/>
@@ -76,5 +94,12 @@
       <property name="ignoreComments" value="true"/>
     </module>
 
+  </module>
+
+  <!-- The logging implementation in the "log" package IS the console output, so it must write to
+       System.out/System.err directly. Suppress only the SystemOut rule there (other rules stay on). -->
+  <module name="SuppressionSingleFilter">
+    <property name="id" value="SystemOut"/>
+    <property name="files" value="[\\/]ide[\\/]log[\\/][^\\/]+\.java$"/>
   </module>
 </module>
