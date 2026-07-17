@@ -9,6 +9,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2140[#2140]: just install fails since already installed
 * https://github.com/devonfw/IDEasy/issues/2137[#2137]: fix-vpn-tls-problem does not detect TLS certificate issues behind HTTP redirects
 * https://github.com/devonfw/IDEasy/issues/1041[#1041]: native image has globbing active
+* https://github.com/devonfw/IDEasy/issues/2056[#2056]: Replaced progress bar with general progress information for installing plugins in VSCode
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/47?closed=1[milestone 2026.07.002].
 
