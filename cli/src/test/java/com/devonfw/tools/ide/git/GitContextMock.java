@@ -1,6 +1,8 @@
 package com.devonfw.tools.ide.git;
 
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Mock implementation of {@link GitContext}.
@@ -66,9 +68,9 @@ public class GitContextMock implements GitContext {
   }
 
   @Override
-  public java.util.List<String> retrieveGitRemotes(Path repository) {
+  public List<String> retrieveGitRemotes(Path repository) {
 
-    return java.util.Collections.emptyList();
+    return Collections.emptyList();
   }
 
   @Override
