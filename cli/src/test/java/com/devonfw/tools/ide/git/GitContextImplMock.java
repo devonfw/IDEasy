@@ -218,7 +218,7 @@ public class GitContextImplMock extends GitContextImpl {
   }
 
   @Override
-  public void commit(Path repository, String message) {
+  public void commit(Path repository, String message, boolean addAll) {
     LOG.debug("Mock commit with message: {}", message);
   }
 
@@ -228,7 +228,7 @@ public class GitContextImplMock extends GitContextImpl {
   }
 
   @Override
-  public void push(Path repository) {
+  public void push(Path repository, boolean followTags) {
     LOG.debug("Mock push");
   }
 

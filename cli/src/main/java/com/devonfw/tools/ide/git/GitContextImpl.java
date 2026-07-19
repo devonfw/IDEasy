@@ -534,9 +534,13 @@ public class GitContextImpl implements GitContext {
   }
 
   @Override
-  public void commit(Path repository, String message) {
+  public void commit(Path repository, String message, boolean addAll) {
 
-    runGitCommand(repository, "commit", "-a", "-m", message);
+    if (addAll) {
+      runGitCommand(repository, "commit", "-a", "-m", message);
+    } else {
+      runGitCommand(repository, "commit", "-m", message);
+    }
   }
 
   @Override
@@ -546,9 +550,13 @@ public class GitContextImpl implements GitContext {
   }
 
   @Override
-  public void push(Path repository) {
+  public void push(Path repository, boolean followTags) {
 
-    runGitCommand(repository, "push", "--follow-tags");
+    if (followTags) {
+      runGitCommand(repository, "push", "--follow-tags");
+    } else {
+      runGitCommand(repository, "push");
+    }
   }
 }
 

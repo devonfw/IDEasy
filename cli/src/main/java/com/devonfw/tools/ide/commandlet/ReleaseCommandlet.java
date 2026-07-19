@@ -75,16 +75,16 @@ public class ReleaseCommandlet extends Commandlet {
     }
 
     setProjectVersion(projectPath, releaseVersion);
-    git.commit(projectPath, "set release version to " + releaseVersion);
+    git.commit(projectPath, "set release version to " + releaseVersion, true);
     git.tag(projectPath, "release/" + releaseVersion, "tagged version " + releaseVersion);
 
     buildAndDeploy();
 
     setProjectVersion(projectPath, nextVersion);
-    git.commit(projectPath, "set next version to " + nextVersion);
+    git.commit(projectPath, "set next version to " + nextVersion, true);
     LOG.info("Local commits and tag need to be pushed now.\nYou now have the chance to review these changes manually before they are pushed.");
     this.context.askToContinue("Do you want to continue?");
-    git.push(projectPath);
+    git.push(projectPath, true);
 
     LOG.info("Successfully released version {}.", releaseVersion);
   }

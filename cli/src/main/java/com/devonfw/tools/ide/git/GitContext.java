@@ -254,12 +254,24 @@ public interface GitContext {
   void saveCurrentCommitId(Path repository, Path trackedCommitIdPath);
 
   /**
-   * Commits all currently changed files (tracked) in the given repository.
+   * Commits the staged changes in the given repository.
    *
    * @param repository the {@link Path} to the git repository.
    * @param message the commit message.
    */
-  void commit(Path repository, String message);
+  default void commit(Path repository, String message) {
+
+    commit(repository, message, false);
+  }
+
+  /**
+   * Commits changes in the given repository.
+   *
+   * @param repository the {@link Path} to the git repository.
+   * @param message the commit message.
+   * @param addAll {@code true} to stage all modified tracked files before committing, {@code false} to only commit changes that are already staged.
+   */
+  void commit(Path repository, String message, boolean addAll);
 
   /**
    * Creates an annotated git tag in the given repository.
@@ -271,9 +283,20 @@ public interface GitContext {
   void tag(Path repository, String tagName, String message);
 
   /**
-   * Pushes the local commits and tags of the given repository to the remote repository.
+   * Pushes the local commits of the given repository to the remote repository.
    *
    * @param repository the {@link Path} to the git repository.
    */
-  void push(Path repository);
+  default void push(Path repository) {
+
+    push(repository, false);
+  }
+
+  /**
+   * Pushes the local commits of the given repository to the remote repository.
+   *
+   * @param repository the {@link Path} to the git repository.
+   * @param followTags {@code true} to also push annotated tags reachable from the pushed commits (git push --follow-tags), {@code false} to push commits only.
+   */
+  void push(Path repository, boolean followTags);
 }
