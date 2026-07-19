@@ -16,6 +16,7 @@ import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * {@link Commandlet} to build and deploy a release of the current project.
@@ -61,7 +62,7 @@ public class ReleaseCommandlet extends Commandlet {
 
     String currentVersion = getProjectVersion(projectPath);
     String releaseVersion = currentVersion.replace("-SNAPSHOT", "");
-    String nextVersion = getNextVersion(releaseVersion) + "-SNAPSHOT";
+    String nextVersion = VersionIdentifier.of(releaseVersion).incrementLastDigit(false) + "-SNAPSHOT";
 
     LOG.info("Current version: {}", currentVersion);
     LOG.info("Release version: {}", releaseVersion);
@@ -126,16 +127,6 @@ public class ReleaseCommandlet extends Commandlet {
       }
     }
     throw new CliException("Could not find '" + REVISION_FLAG + "' in " + mavenConfig);
-  }
-
-  private String getNextVersion(String version) {
-
-    int lastDot = version.lastIndexOf('.');
-    String prefix = version.substring(0, lastDot + 1);
-    String lastSegment = version.substring(lastDot + 1);
-    String incrementedSegment = String.valueOf(Long.parseLong(lastSegment) + 1);
-    incrementedSegment = "0".repeat(lastSegment.length() - incrementedSegment.length()) + incrementedSegment;
-    return prefix + incrementedSegment;
   }
 
   private void setProjectVersion(Path projectPath, String version) {
