@@ -87,14 +87,14 @@ public class Docker extends GlobalToolCommandlet {
     return List.of(new PackageManagerCommand(NativePackageManager.ZYPPER, List.of(
             "sudo zypper addrepo https://download.opensuse.org/repositories/isv:/Rancher:/stable/rpm/isv:Rancher:stable.repo",
             String.format("sudo zypper --no-gpg-checks install rancher-desktop=%s*", resolvedVersion))),
+        new PackageManagerCommand(NativePackageManager.PACMAN, List.of("yay -S --needed --noconfirm rancher-desktop")),
         new PackageManagerCommand(NativePackageManager.APT, List.of(
             "curl -s https://download.opensuse.org/repositories/isv:/Rancher:/stable/deb/Release.key | gpg --dearmor |"
                 + " sudo dd status=none of=/usr/share/keyrings/isv-rancher-stable-archive-keyring.gpg",
             "echo 'deb [signed-by=/usr/share/keyrings/isv-rancher-stable-archive-keyring.gpg]"
                 + " https://download.opensuse.org/repositories/isv:/Rancher:/stable/deb/ ./' |"
                 + " sudo dd status=none of=/etc/apt/sources.list.d/isv-rancher-stable.list", "sudo apt update",
-            String.format("sudo apt install -y --allow-downgrades rancher-desktop=%s*", resolvedVersion))),
-        new PackageManagerCommand(NativePackageManager.PACMAN, List.of("yay -S --needed --noconfirm rancher-desktop")));
+            String.format("sudo apt install -y --allow-downgrades rancher-desktop=%s*", resolvedVersion))));
   }
 
   @Override
