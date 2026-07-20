@@ -129,17 +129,19 @@ public interface FileAccess {
    *
    * @param source the source {@link Path} to link to, may be relative or absolute.
    * @param link the destination {@link Path} where the link shall be created pointing to {@code source}.
-   * @param relative {@code true} to calculate a relative target from {@code link} to {@code source}; {@code false} to use {@code source} as passed in, apart
-   *     from normalizing {@code .} and {@code ..} segments.
+   * @param relative {@code true} to calculate a relative target from {@code link} to {@code source}; {@code false} to use {@code source} as passed in,
+   *     apart from normalizing {@code .} and {@code ..} segments.
    * @param type the {@link PathLinkType}.
+   * @return {@link PathLinkType} created or {@code null}, if Microsoft's mklink with junction option had to be used.
    */
-  void link(Path source, Path link, boolean relative, PathLinkType type);
+  PathLinkType link(Path source, Path link, boolean relative, PathLinkType type);
 
   /**
    * @param link the {@link PathLink} to {@link #link(Path, Path, boolean, PathLinkType) create}.
+   * @return created {@link PathLinkType}.
    */
-  default void link(PathLink link) {
-    link(link.source(), link.link(), false, link.type());
+  default PathLinkType link(PathLink link) {
+    return link(link.source(), link.link(), false, link.type());
   }
 
   /**
