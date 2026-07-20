@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/2142[#2142]: Move IDE-specific metadata (.idea, .vscode) out of workspace
 * https://github.com/devonfw/IDEasy/issues/1982[#1982]: Modified fallback link creation on Windows
 * https://github.com/devonfw/IDEasy/issues/2140[#2140]: just install fails since already installed
 * https://github.com/devonfw/IDEasy/issues/2137[#2137]: fix-vpn-tls-problem does not detect TLS certificate issues behind HTTP redirects
