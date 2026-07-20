@@ -3,7 +3,6 @@ package com.devonfw.tools.ide.tool.vscode;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -12,7 +11,6 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -61,21 +59,6 @@ public class Vscode extends IdeToolCommandlet {
       }
     }
     return super.getPluginsConfigPath();
-  }
-
-  @Override
-  protected void installPlugins(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
-
-    this.context.runWithoutLogging(() -> {
-      IdeProgressBar pb = this.context.newProgressBarForPlugins(plugins.size());
-      pc.setOutputListener((msg, err) -> {
-        if (msg.contains("Installing extension ")) {
-          pb.stepBy(1);
-        }
-      });
-      super.installPlugins(plugins, pc);
-      pb.close();
-    });
   }
 
   @Override
