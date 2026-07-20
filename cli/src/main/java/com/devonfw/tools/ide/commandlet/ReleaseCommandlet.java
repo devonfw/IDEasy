@@ -2,8 +2,6 @@ package com.devonfw.tools.ide.commandlet;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,8 +9,6 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
-import com.devonfw.tools.ide.process.ProcessErrorHandling;
-import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
@@ -24,10 +20,6 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 public class ReleaseCommandlet extends Commandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(ReleaseCommandlet.class);
-
-  private static final String REVISION_FLAG = "-Drevision=";
-
-  private static final String DEFAULT_MVN_RELEASE_OPTS = "clean deploy -Dchangelist= -Pdeploy";
 
   public final StringProperty arguments;
 
@@ -49,6 +41,7 @@ public class ReleaseCommandlet extends Commandlet {
 
     Path projectPath = this.context.getCwd();
     GitContext git = this.context.getGitContext();
+    Mvn buildTool = this.context.getCommandletManager().getCommandlet(Mvn.class);
 
     if (git.hasUntrackedFiles(projectPath)) {
       throw new CliException("Your local git repository has uncommitted changes. Please use 'git stash' and rerun on clean repo.");
@@ -60,9 +53,9 @@ public class ReleaseCommandlet extends Commandlet {
       throw new CliException("Release has to be performed from the top-level project or using force option.");
     }
 
-    String currentVersion = getProjectVersion(projectPath);
-    String releaseVersion = currentVersion.replace("-SNAPSHOT", "");
-    String nextVersion = VersionIdentifier.of(releaseVersion).incrementLastDigit(false) + "-SNAPSHOT";
+    VersionIdentifier currentVersion = buildTool.getProjectVersion(projectPath);
+    VersionIdentifier releaseVersion = VersionIdentifier.of(currentVersion.toString().replace("-SNAPSHOT", ""));
+    VersionIdentifier nextVersion = VersionIdentifier.of(releaseVersion.incrementLastDigit(false) + "-SNAPSHOT");
 
     LOG.info("Current version: {}", currentVersion);
     LOG.info("Release version: {}", releaseVersion);
@@ -72,16 +65,16 @@ public class ReleaseCommandlet extends Commandlet {
       if (this.context.question("Is the next version '" + nextVersion + "' correct?")) {
         break;
       }
-      nextVersion = this.context.askForInput("Please enter the next version:");
+      nextVersion = VersionIdentifier.of(this.context.askForInput("Please enter the next version:"));
     }
 
-    setProjectVersion(projectPath, releaseVersion);
+    buildTool.setProjectVersion(projectPath, releaseVersion);
     git.commit(projectPath, "set release version to " + releaseVersion, true);
     git.tag(projectPath, "release/" + releaseVersion, "tagged version " + releaseVersion);
 
-    buildAndDeploy();
+    buildAndDeploy(buildTool);
 
-    setProjectVersion(projectPath, nextVersion);
+    buildTool.setProjectVersion(projectPath, nextVersion);
     git.commit(projectPath, "set next version to " + nextVersion, true);
     LOG.info("Local commits and tag need to be pushed now.\nYou now have the chance to review these changes manually before they are pushed.");
     this.context.askToContinue("Do you want to continue?");
@@ -108,45 +101,10 @@ public class ReleaseCommandlet extends Commandlet {
         && !Files.exists(projectPath.getParent().resolve("pom.xml"));
   }
 
-  private Path getMavenConfig(Path projectPath) {
+  private void buildAndDeploy(Mvn buildTool) {
 
-    Path mavenConfig = projectPath.resolve(".mvn").resolve("maven.config");
-    if (!Files.exists(mavenConfig)) {
-      throw new CliException("Could not find the maven configuration at " + mavenConfig);
-    }
-    return mavenConfig;
-  }
-
-  private String getProjectVersion(Path projectPath) {
-
-    Path mavenConfig = getMavenConfig(projectPath);
-    String content = this.context.getFileAccess().readFileContent(mavenConfig);
-    for (String token : content.split("\\s+")) {
-      if (token.startsWith(REVISION_FLAG)) {
-        return token.substring(REVISION_FLAG.length());
-      }
-    }
-    throw new CliException("Could not find '" + REVISION_FLAG + "' in " + mavenConfig);
-  }
-
-  private void setProjectVersion(Path projectPath, String version) {
-
-    Path mavenConfig = getMavenConfig(projectPath);
-    String content = this.context.getFileAccess().readFileContent(mavenConfig);
-    if (!content.contains(REVISION_FLAG)) {
-      throw new CliException("Could not find '" + REVISION_FLAG + "' in " + mavenConfig);
-    }
-    content = content.replaceAll(REVISION_FLAG + "\\S+", REVISION_FLAG + version);
-    this.context.getFileAccess().writeFileContent(content, mavenConfig);
-  }
-
-  private void buildAndDeploy() {
-
-    Mvn mvn = this.context.getCommandletManager().getCommandlet(Mvn.class);
-    List<String> args = new ArrayList<>(getReleaseOptions());
-    args.addAll(this.arguments.asList());
     while (true) {
-      ProcessResult result = mvn.runTool(ProcessMode.DEFAULT, null, ProcessErrorHandling.NONE, args);
+      ProcessResult result = buildTool.buildAndDeploy(this.arguments.asList());
       if (result.isSuccessful()) {
         return;
       }
@@ -155,15 +113,6 @@ public class ReleaseCommandlet extends Commandlet {
         throw new CliException("Release build failed and process aborted!\nYou should reset your local commits via 'git reset HEAD^'.");
       }
     }
-  }
-
-  private List<String> getReleaseOptions() {
-
-    String options = this.context.getVariables().get("MVN_RELEASE_OPTS");
-    if ((options == null) || options.isBlank()) {
-      options = DEFAULT_MVN_RELEASE_OPTS;
-    }
-    return List.of(options.split("\\s+"));
   }
 
   private void confirmWarning(String message) {
