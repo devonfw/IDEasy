@@ -111,7 +111,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   private Path ideHome;
 
-  private final Path ideRoot;
+  private Path ideRoot;
 
   private Path confPath;
 
@@ -585,6 +585,12 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   public Path getIdeRoot() {
 
     return this.ideRoot;
+  }
+
+  @Override
+  public void setIdeRoot(Path ideRoot) {
+
+    this.ideRoot = ideRoot;
   }
 
   @Override
