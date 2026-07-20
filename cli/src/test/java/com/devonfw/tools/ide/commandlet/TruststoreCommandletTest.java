@@ -1,5 +1,9 @@
 package com.devonfw.tools.ide.commandlet;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.any;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+
 import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -14,7 +18,9 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.property.Property;
+import com.devonfw.tools.ide.truststore.HttpsTestServer;
 import com.devonfw.tools.ide.util.TruststoreUtil;
+import com.github.tomakehurst.wiremock.WireMockServer;
 
 /**
  * Test of {@link TruststoreCommandlet}.
@@ -88,6 +94,34 @@ class TruststoreCommandletTest extends AbstractIdeContextTest {
 
     assertThat(System.getProperty("javax.net.ssl.trustStore")).isEqualTo(newTruststorePath.toAbsolutePath().toString());
     assertThat(System.getProperty("javax.net.ssl.trustStorePassword")).isEqualTo(expectedPassword);
+  }
+
+  @Test
+  void testRunCapturesUntrustedCertificateFollowingRedirectAndConfiguresTruststore() {
+
+    rememberSystemProperties();
+    WireMockServer redirectingServer = HttpsTestServer.start();
+    WireMockServer targetServer = HttpsTestServer.start();
+    try {
+      String targetUrl = "https://localhost:" + targetServer.httpsPort() + "/vs_BuildTools.exe";
+      targetServer.stubFor(any(urlEqualTo("/vs_BuildTools.exe")).willReturn(aResponse().withStatus(200)));
+      redirectingServer.stubFor(any(urlEqualTo("/vs/17/release/vs_BuildTools.exe"))
+          .willReturn(aResponse().withStatus(302).withHeader("Location", targetUrl)));
+
+      IdeTestContext context = newContext(PROJECT_BASIC);
+      context.setAnswers("yes");
+      TruststoreCommandlet commandlet = context.getCommandletManager().getCommandlet(TruststoreCommandlet.class);
+      setUrl(commandlet, context, "https://localhost:" + redirectingServer.httpsPort() + "/vs/17/release/vs_BuildTools.exe");
+
+      commandlet.run();
+
+      Path customTruststorePath = context.getUserHomeIde().resolve("truststore").resolve("truststore.p12");
+      assertThat(customTruststorePath).exists();
+      assertThat(context).logAtSuccess().hasMessageContaining("TLS handshake succeeded with custom truststore");
+    } finally {
+      redirectingServer.stop();
+      targetServer.stop();
+    }
   }
 
   private IdeTestContext newIsolatedContext(Path tempDir) {

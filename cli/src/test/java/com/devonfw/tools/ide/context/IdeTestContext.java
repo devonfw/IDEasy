@@ -13,6 +13,7 @@ import com.devonfw.tools.ide.tool.mvn.MvnRepository;
 import com.devonfw.tools.ide.tool.npm.NpmRepository;
 import com.devonfw.tools.ide.tool.pip.PipRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepositoryMock;
+import com.devonfw.tools.ide.tool.uv.UvRepository;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 
 /**
@@ -135,5 +136,12 @@ public class IdeTestContext extends AbstractIdeTestContext {
     return super.createPipRepository();
   }
 
+  @Override
+  protected UvRepository createUvRepository() {
+    if (this.wireMockRuntimeInfo != null) {
+      return new UvRepositoryMock(this, this.wireMockRuntimeInfo);
+    }
+    return super.createUvRepository();
+  }
 
 }

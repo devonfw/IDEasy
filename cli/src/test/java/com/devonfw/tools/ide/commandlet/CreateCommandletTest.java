@@ -201,4 +201,23 @@ class CreateCommandletTest extends AbstractIdeContextTest {
     assertThat(newProjectPath).doesNotExist();
     assertThat(context.getIdeRoot().resolve("_ide/tmp/projects").resolve(NEW_PROJECT_NAME)).doesNotExist();
   }
+
+  @Test
+  void testCreateWithDashPlaceholderAsCliArgument() {
+    // arrange - see https://github.com/devonfw/IDEasy/issues/2106
+    GitContextImplMock gitContextImplMock = new GitContextImplMock(context, TEST_RESOURCES.resolve("settings"));
+    context.setGitContext(gitContextImplMock);
+    CliArguments args = new CliArguments("create", NEW_PROJECT_NAME, "-", "--skip-tools");
+
+    // act
+    int result = context.run(args);
+
+    // assert
+    assertThat(result).isEqualTo(0);
+    assertThat(context).logAtError().hasNoMessageContaining("not found for commandlet");
+    assertThat(context).logAtInfo()
+        .hasMessageContaining("'-' was found for settings repository, the default settings repository");
+    Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
+    assertThat(newProjectPath).exists();
+  }
 }
