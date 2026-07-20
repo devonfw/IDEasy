@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.tool.eclipse;
 
-import java.io.File;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileLock;
 import java.nio.file.Files;
@@ -120,8 +119,8 @@ public class Eclipse extends IdeToolCommandlet {
   }
 
   /**
-   * @param lockfile the {@link File} pointing to the lockfile to check.
-   * @return {@code true} if the given {@link File} is locked, {@code false} otherwise.
+   * @param lockfile the {@link Path} pointing to the lockfile to check.
+   * @return {@code true} if the given {@link Path} is locked, {@code false} otherwise.
    */
   private static boolean isLocked(Path lockfile) {
 

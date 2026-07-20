@@ -5,7 +5,6 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
-import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
@@ -19,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.io.HttpClientFactory;
 import com.devonfw.tools.ide.os.MacOsHelper;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
@@ -145,7 +145,7 @@ public class IdeaPluginDownloader {
 
     URI uri = null;
     HttpRequest request;
-    try (HttpClient client = HttpClient.newBuilder().followRedirects(Redirect.ALWAYS).build()) {
+    try (HttpClient client = HttpClientFactory.create()) {
       uri = URI.create(urlString);
       request = HttpRequest.newBuilder().uri(uri)
           .method("HEAD", HttpRequest.BodyPublishers.noBody()).timeout(Duration.ofSeconds(5)).build();
