@@ -195,6 +195,7 @@ public class VersionSegment implements VersionObject<VersionSegment> {
    * <li>The {@link #getSeparator() separator} may only contain the characters '.', '-', or '_' (e.g. " 1" or "ö1" are
    * not considered valid).</li>
    * <li>The combination of {@link #getPhase() phase} and {@link #getNumber() number} has to be
+   * <li>If the snapshot flag is set for this segment, it must not be combined with digits in the same segment.</li>
    * {@link VersionPhase#isValid(int) valid} (e.g. "pineapple-pen1" or "donut" are not considered valid).</li>
    * </ul>
    */
@@ -211,6 +212,9 @@ public class VersionSegment implements VersionObject<VersionSegment> {
       if (!CharCategory.isValidSeparator(this.separator.charAt(0))) {
         return false;
       }
+    }
+    if (this.letters.isSnapshot()) {
+      return this.number < 0;
     }
     return this.letters.getPhase().isValid(this.number);
   }
@@ -317,8 +321,7 @@ public class VersionSegment implements VersionObject<VersionSegment> {
     VersionMatchResult result = this.letters.matches(other.letters, isPattern);
     if (isPattern && (result == VersionMatchResult.EQUAL)) {
       if (this.pattern.equals(PATTERN_MATCH_ANY_STABLE_VERSION)) {
-        VersionLetters developmentPhase = other.getDevelopmentPhase();
-        if (developmentPhase.isUnstable()) {
+        if (other.containsUnstableQualifier()) {
           return VersionMatchResult.MISMATCH;
         }
         return VersionMatchResult.MATCH;
@@ -332,27 +335,24 @@ public class VersionSegment implements VersionObject<VersionSegment> {
   }
 
   /**
-   * @return the {@link VersionLetters} that represent a {@link VersionLetters#isDevelopmentPhase() development phase} searching from this
-   *     {@link VersionSegment} to all {@link #getNextOrNull() next segments}. Will be {@link VersionPhase#NONE} if no
-   *     {@link VersionPhase#isDevelopmentPhase() development phase} was found and {@link VersionPhase#UNDEFINED} if multiple
-   *     {@link VersionPhase#isDevelopmentPhase() development phase}s have been found.
-   * @see VersionIdentifier#getDevelopmentPhase()
+   * @return {@code true} if this {@link VersionSegment} or any following segment contains an unstable qualifier.
+   *     <p>
+   *     An unstable qualifier is either:
+   *     <ul>
+   *       <li>a {@link VersionPhase} (e.g. alpha, beta ...)</li>
+   *       <li>a pre-phase</li>
+   *       <li>a snapshot flag</li>
+   *     </ul>
    */
-  protected VersionLetters getDevelopmentPhase() {
-
-    VersionLetters result = VersionLetters.EMPTY;
+  protected boolean containsUnstableQualifier() {
     VersionSegment segment = this;
     while (segment != null) {
-      if (segment.letters.isDevelopmentPhase()) {
-        if (result == VersionLetters.EMPTY) {
-          result = segment.letters;
-        } else {
-          result = VersionLetters.UNDEFINED;
-        }
+      if (segment.letters.isUnstable()) {
+        return true;
       }
       segment = segment.next;
     }
-    return result;
+    return false;
   }
 
   /**
