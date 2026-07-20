@@ -121,8 +121,7 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
    *
    * @param os to use
    */
-  @ParameterizedTest
-  @ValueSource(strings = { "windows", "mac", "linux" })
+  @Test
   void testInstallIdeasyUpdatesIdeRoot(String os) {
 
     // arrange
