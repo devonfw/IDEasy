@@ -9,6 +9,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.context.ProcessContextTestImpl;
 import com.devonfw.tools.ide.os.SystemInfoMock;
@@ -150,6 +151,26 @@ class VscodeTest extends AbstractIdeContextTest {
     assertThat(pc.getEnvVar("DONT_PROMPT_WSL_INSTALL")).isNull();
   }
 
+  /**
+   * Tests that {@link Vscode#configureToolArgs(ProcessContext, ProcessMode, List)} points {@code --user-data-dir} to the IDE metadata folder
+   * ({@code $IDE_HOME/.ide/vscode/«workspace»/config}) instead of a {@code .vscode} folder inside the workspace.
+   */
+  @Test
+  void testConfigureToolArgsUsesIdeMetadataPathForUserData() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    Vscode commandlet = new Vscode(context);
+    ArgCapturingProcessContext pc = new ArgCapturingProcessContext(context);
+    // act
+    commandlet.configureToolArgs(pc, ProcessMode.DEFAULT, List.of());
+    // assert
+    Path expectedUserData = context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("vscode").resolve(context.getWorkspaceName()).resolve("config");
+    assertThat(pc.capturedArgs).contains("--user-data-dir=" + expectedUserData);
+    assertThat(pc.capturedArgs).noneMatch(arg -> arg.contains(".vscode"));
+  }
+
   @Test
   void testVscodiumInstall() {
 
@@ -255,6 +276,26 @@ class VscodeTest extends AbstractIdeContextTest {
     String getEnvVar(String key) {
 
       return this.capturedEnvVars.get(key);
+    }
+  }
+
+  /**
+   * {@link ProcessContextTestImpl} subclass that captures the CLI arguments added via {@link #addArg(String)} for test assertions.
+   */
+  private static class ArgCapturingProcessContext extends ProcessContextTestImpl {
+
+    private final List<String> capturedArgs = new ArrayList<>();
+
+    private ArgCapturingProcessContext(IdeTestContext context) {
+
+      super(context);
+    }
+
+    @Override
+    public ProcessContext addArg(String arg) {
+
+      this.capturedArgs.add(arg);
+      return super.addArg(arg);
     }
   }
 
