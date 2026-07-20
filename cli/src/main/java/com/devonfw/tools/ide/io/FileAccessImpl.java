@@ -536,16 +536,20 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
         throw new IllegalStateException("" + type);
       }
     } catch (FileSystemException e) {
-      LOG.warn(
-          "Due to lack of permissions, Microsoft's mklink with junction have to be used to create link. "
-              + "See https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for further details. "
-              + "Error was: " + e.getMessage());
       LOG.debug("Failed to create link of type {} for {} at {}.", type, source, link);
       if (SystemInfoImpl.INSTANCE.isWindows()) {
         if (Files.isDirectory(absoluteSource)) {
+          LOG.warn(
+            "Due to lack of permissions, Microsoft's mklink with junction has to be used to create the link. "
+              + "See https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for further details. "
+              + "Error was: " + e.getMessage());
           mklinkOnWindows(finalSource, absoluteSource, absoluteLink, relative);
           LOG.debug("Created junction with mklink as fallback for link to directory.");
         } else {
+          LOG.warn(
+            "Due to lack of permissions, a hard link has to be used instead of a symbolic link. "
+              + "See https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for further details. "
+              + "Error was: " + e.getMessage());
           createHardLink(absoluteSource, link);
           resultingPathLinkType = PathLinkType.HARD_LINK;
           LOG.debug("Created hard link as fallback for link to file.");
