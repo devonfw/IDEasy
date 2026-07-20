@@ -53,7 +53,7 @@ public class UpgradeController {
   private Label statusLabel;
 
   @FXML
-  private Button upgradeButton;
+  private Button executeButton;
 
   /** Whether the last known status is "upgrade available" (drives the dialog's button state on open). */
   private boolean upgradeAvailable;
@@ -121,8 +121,8 @@ public class UpgradeController {
         this.installedVersionString = this.latestVersionString;
       }
       showStatus(STATUS_KEY_UPDATED);
-      if (upgradeButton != null) {
-        upgradeButton.setDisable(true);
+      if (executeButton != null) {
+        executeButton.setDisable(true);
       }
       // after upgrade, re-check availability so the controller fetches authoritative version info
       this.justUpgraded = true;
@@ -133,8 +133,8 @@ public class UpgradeController {
       } else {
         showStatusFailed(throwable.getMessage());
       }
-      if (upgradeButton != null) {
-        upgradeButton.setDisable(false);
+      if (executeButton != null) {
+        executeButton.setDisable(false);
       }
     }, THREAD_RUNNER);
   }
@@ -151,9 +151,9 @@ public class UpgradeController {
         if (this.upgradeIndicator != null) {
           this.upgradeIndicator.setVisible(available);
         }
-        if (this.upgradeButton != null) {
+        if (this.executeButton != null) {
           // if dialog is open, update button state
-          this.upgradeButton.setDisable(!available);
+          this.executeButton.setDisable(!available);
         }
       } catch (Throwable t) {
         LOG.debug("Failed to update UI on check result", t);
@@ -178,8 +178,8 @@ public class UpgradeController {
         if (this.upgradeIndicator != null) {
           this.upgradeIndicator.setVisible(false);
         }
-        if (this.upgradeButton != null) {
-          this.upgradeButton.setDisable(true);
+        if (this.executeButton != null) {
+          this.executeButton.setDisable(true);
         }
       } catch (Throwable t) {
         LOG.debug("Failed to update UI on check failure", t);
@@ -229,7 +229,7 @@ public class UpgradeController {
   }
 
   @FXML
-  private void onUpgradeClicked() {
+  private void onExecuteClicked() {
     performUpgradeTask();
   }
 
@@ -237,7 +237,7 @@ public class UpgradeController {
     try {
       // Load dialog FXML if not already loaded
       if (this.dialogStage == null) {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/devonfw/ide/gui/upgrade-dialog.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/devonfw/ide/gui/upgrade-update-dialog.fxml"));
         loader.setResources(nlsService.getResourceBundle());
         loader.setController(this);
         Parent root = loader.load();
@@ -255,8 +255,8 @@ public class UpgradeController {
 
       // repaint now that the label/button are bound: they may have missed status updates issued before the dialog was first loaded
       setLabelText(this.currentStatusText);
-      if (this.upgradeButton != null) {
-        this.upgradeButton.setDisable(!this.upgradeAvailable);
+      if (this.executeButton != null) {
+        this.executeButton.setDisable(!this.upgradeAvailable);
       }
 
       if (this.dialogStage.isShowing()) {

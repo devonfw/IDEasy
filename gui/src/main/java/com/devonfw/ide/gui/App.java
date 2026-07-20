@@ -36,7 +36,8 @@ public class App extends Application {
   public void start(Stage primaryStage) throws IOException {
     try {
 
-      TestGuiConfiguration.applyConfigOverrides();
+      // For testing purposes.
+      // TestGuiConfiguration.applyConfigOverrides();
 
       this.primaryStage = primaryStage;
 

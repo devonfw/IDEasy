@@ -1,5 +1,7 @@
 package com.devonfw.ide.gui.update;
 
+import com.devonfw.tools.ide.version.IdeVersion;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +40,9 @@ public class UpgradeService {
    * @return true if an upgrade is available, false otherwise
    */
   public boolean checkForUpgrade() {
-
+    if (IdeVersion.isUndefined()) {
+      return false;
+    }
     try {
       IdeGuiContext ctx = new IdeGuiContext(this.manager.getStartContext(), null);
       IdeasyCommandlet cmd = new IdeasyCommandlet(ctx, null);
@@ -52,6 +56,7 @@ public class UpgradeService {
         this.installedVersion = "";
         this.latestVersion = "";
       }
+
       return cmd.checkIfUpdateIsAvailable();
     } catch (Exception e) {
       LOG.debug("Upgrade check failed", e);

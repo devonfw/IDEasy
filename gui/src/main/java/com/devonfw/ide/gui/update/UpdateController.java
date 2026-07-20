@@ -62,7 +62,7 @@ public class UpdateController {
   private Label statusLabel;
 
   @FXML
-  private Button upgradeButton;
+  private Button executeButton;
 
   private IdeGuiContext currentContext;
 
@@ -121,7 +121,7 @@ public class UpdateController {
    * Called when the user clicks the update button in the shared dialog.
    */
   @FXML
-  private void onUpgradeClicked() {
+  private void onExecuteClicked() {
     IdeGuiContext context = this.currentContext;
     if (context == null) {
       showStatus(STATUS_KEY_SELECT_PROJECT);
@@ -259,8 +259,8 @@ public class UpdateController {
   }
 
   private void setUpdateButtonDisabled(boolean disabled) {
-    if (this.upgradeButton != null) {
-      this.upgradeButton.setDisable(disabled);
+    if (this.executeButton != null) {
+      this.executeButton.setDisable(disabled);
     }
   }
 
@@ -275,7 +275,7 @@ public class UpdateController {
   private void showDialog() {
     try {
       if (this.dialogStage == null) {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/devonfw/ide/gui/upgrade-dialog.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/devonfw/ide/gui/upgrade-update-dialog.fxml"));
         loader.setResources(nlsService.getResourceBundle());
         loader.setController(this);
         Parent root = loader.load();
@@ -293,9 +293,9 @@ public class UpdateController {
 
       // repaint now that the label/button are bound: they may have missed status updates issued before the dialog was first loaded
       setLabelText(this.currentStatusText);
-      if (this.upgradeButton != null) {
-        this.upgradeButton.setText(nlsService.get(BUTTON_KEY_UPDATE));
-        this.upgradeButton.setDisable(!this.updateAvailable);
+      if (this.executeButton != null) {
+        this.executeButton.setText(nlsService.get(BUTTON_KEY_UPDATE));
+        this.executeButton.setDisable(!this.updateAvailable);
       }
 
       if (this.dialogStage.isShowing()) {

@@ -92,9 +92,9 @@ public class UpgradeUpdateFlowTest extends HeadlessApplicationTest {
 
       clickOn(indicator);
 
-      TestGuiSetup.waitForCondition(() -> lookup("#upgradeButton").tryQuery().isPresent(), 3000);
+      TestGuiSetup.waitForCondition(() -> lookup("#executeButton").tryQuery().isPresent(), 3000);
       TestGuiSetup.waitForCondition(() -> availableStatus.equals(lookup("#statusLabel").queryAs(Label.class).getText()), 5000);
-      Button update = lookup("#upgradeButton").queryAs(Button.class);
+      Button update = lookup("#executeButton").queryAs(Button.class);
       TestGuiSetup.waitForCondition(() -> nlsService.get("button.update").equals(update.getText()), 3000);
       TestGuiSetup.waitForCondition(() -> !update.isDisabled(), 3000);
 
@@ -192,17 +192,17 @@ public class UpgradeUpdateFlowTest extends HeadlessApplicationTest {
       clickOn(indicator);
 
       // 3. Wait for dialog to open and get the upgrade button
-      TestGuiSetup.waitForCondition(() -> lookup("#upgradeButton").tryQuery().isPresent(), 3000);
-      Button upgradeButton = lookup("#upgradeButton").queryAs(Button.class);
+      TestGuiSetup.waitForCondition(() -> lookup("#executeButton").tryQuery().isPresent(), 3000);
+      Button executeButton = lookup("#executeButton").queryAs(Button.class);
       Label upgradeStatus = lookup("#statusLabel").queryAs(Label.class);
 
       // 4. Verify button is enabled (indicating upgrade is available)
       String upgradeStatusText = upgradeStatus.getText();
       TestGuiSetup.waitForCondition(() -> availableStatus.equals(upgradeStatusText), 3000);
-      TestGuiSetup.waitForCondition(() -> !upgradeButton.isDisabled(), 3000);
+      TestGuiSetup.waitForCondition(() -> !executeButton.isDisabled(), 3000);
 
       // 5. Click the upgrade button
-      interact(upgradeButton::fire);
+      interact(executeButton::fire);
 
       // 6. After upgrade completes, indicator should be hidden (no more upgrade available)
       TestGuiSetup.waitForCondition(() -> !indicator.isVisible(), 5000);

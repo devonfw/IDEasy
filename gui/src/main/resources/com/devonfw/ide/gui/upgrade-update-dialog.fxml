@@ -23,7 +23,7 @@
   <bottom>
     <HBox alignment="CENTER_RIGHT" BorderPane.alignment="CENTER">
       <children>
-        <Button fx:id="upgradeButton" text="%button.upgrade" onAction="#onUpgradeClicked"/>
+        <Button fx:id="executeButton" text="%button.upgrade" onAction="#onExecuteClicked"/>
       </children>
       <padding>
         <Insets bottom="12" right="12"/>
