@@ -71,7 +71,7 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
         new ProcessContextTestImpl(context));
 
     //assert - Check if we skip the markerfile-check because we force the plugins to install
-    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin anyedit'.");
+    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin anyedit (1/1)'.");
     assertThat(context).log().hasNoMessageContaining("Skipping installation of plugin '{}' due to existing marker file: ");
   }
 
