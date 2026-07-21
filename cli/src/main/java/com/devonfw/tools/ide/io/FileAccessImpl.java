@@ -48,6 +48,8 @@ import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.archivers.zip.ZipFile;
+import org.apache.commons.compress.archivers.sevenz.SevenZFile;
+import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipParameters;
@@ -1047,6 +1049,27 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   @Override
   public void extract7z(Path file, Path targetDir) {
 
+    LOG.info("Extracting 7z file {} to {}", file, targetDir);
+    byte[] buffer = new byte[8192];
+    try (SevenZFile sevenZFile = SevenZFile.builder().setPath(file).get()) {
+      SevenZArchiveEntry entry;
+      while ((entry = sevenZFile.getNextEntry()) != null) {
+        Path entryPath = targetDir.resolve(entry.getName());
+        if (entry.isDirectory()) {
+          mkdirs(entryPath);
+        } else {
+          mkdirs(entryPath.getParent());
+          try (OutputStream out = Files.newOutputStream(entryPath)) {
+            int n;
+            while ((n = sevenZFile.read(buffer)) != -1) {
+              out.write(buffer, 0, n);
+            }
+          }
+        }
+      }
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
+    }
   }
 
   @Override
