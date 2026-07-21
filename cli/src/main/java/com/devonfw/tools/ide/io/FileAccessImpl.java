@@ -713,6 +713,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
         case "dmg" -> extractDmg(archiveFile, tmpDir);
         case "msi" -> extractMsi(archiveFile, tmpDir);
         case "pkg" -> extractPkg(archiveFile, tmpDir);
+        case "7z" -> extract7z(archiveFile, tmpDir);
         default -> throw new IllegalStateException("Unknown archive format " + extension + ". Can not extract " + archiveFile);
       }
     }
@@ -1019,6 +1020,11 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     // msiexec also creates a copy of the MSI
     Path msiCopy = targetDir.resolve(file.getFileName());
     delete(msiCopy);
+  }
+
+  @Override
+  public void extract7z(Path file, Path targetDir) {
+
   }
 
   @Override
