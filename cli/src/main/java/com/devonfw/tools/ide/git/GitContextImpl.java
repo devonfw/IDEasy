@@ -320,6 +320,12 @@ public class GitContextImpl implements GitContext {
     return runGitCommandAndGetSingleOutput("Failed to retrieve git URL for repository", repository, "config", "--get", "remote.origin.url");
   }
 
+  @Override
+  public List<String> retrieveGitRemotes(Path repository) {
+
+    return runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, "--no-pager", "remote", "-v").getOut();
+  }
+
   IdeContext getContext() {
 
     return this.context;
@@ -525,6 +531,32 @@ public class GitContextImpl implements GitContext {
    */
   protected String determineCurrentCommitId(Path repository) {
     return runGitCommandAndGetSingleOutput("Failed to get current commit id.", repository, "rev-parse", FILE_HEAD);
+  }
+
+  @Override
+  public void commit(Path repository, String message, boolean addAll) {
+
+    if (addAll) {
+      runGitCommand(repository, "commit", "-a", "-m", message);
+    } else {
+      runGitCommand(repository, "commit", "-m", message);
+    }
+  }
+
+  @Override
+  public void tag(Path repository, String tagName, String message) {
+
+    runGitCommand(repository, "tag", "-a", tagName, "-m", message);
+  }
+
+  @Override
+  public void push(Path repository, boolean followTags) {
+
+    if (followTags) {
+      runGitCommand(repository, "push", "--follow-tags");
+    } else {
+      runGitCommand(repository, "push");
+    }
   }
 }
 
