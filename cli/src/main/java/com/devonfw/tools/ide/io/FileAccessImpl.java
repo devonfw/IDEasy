@@ -1053,7 +1053,8 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     List<PathLink> links = new ArrayList<>();
     byte[] buffer = new byte[8192];
     Path root = targetDir.toAbsolutePath().normalize();
-    try (SevenZFile sevenZFile = SevenZFile.builder().setPath(file).get()) {
+    try (SevenZFile sevenZFile = SevenZFile.builder().setPath(file).get();
+        IdeProgressBar pb = this.context.newProgressbarForExtracting(getFileSize(file))) {
       SevenZArchiveEntry entry;
       while ((entry = sevenZFile.getNextEntry()) != null) {
         Path entryPath = resolveRelativePathSecure(entry.getName(), root);
@@ -1077,6 +1078,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
             }
           }
         }
+        pb.stepBy(Math.max(0L, entry.getSize()));
       }
       for (PathLink link : links) {
         link(link);
