@@ -258,7 +258,7 @@ public interface FileAccess {
   void extractPkg(Path file, Path targetDir);
 
   /**
-   * Extracts a 7-Zip (7z) archive file. 7z is an archive format with a high compression ratio, commonly used for software releases.
+   * Extracts a 7z archive file. 7z is an archive format with a high compression ratio, commonly used for software releases.
    *
    * @param file the 7z file to extract.
    * @param targetDir the target directory where to extract the contents to.

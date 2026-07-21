@@ -1023,11 +1023,6 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   }
 
   @Override
-  public void extract7z(Path file, Path targetDir) {
-
-  }
-
-  @Override
   public void extractPkg(Path file, Path targetDir) {
 
     LOG.info("Extracting PKG file {} to {}", file, targetDir);
@@ -1047,6 +1042,11 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     pc.executable("/usr/bin/tar");
     pc.addArgs("-xf", payload, "-C", targetDir);
     pc.run();
+  }
+
+  @Override
+  public void extract7z(Path file, Path targetDir) {
+
   }
 
   @Override
