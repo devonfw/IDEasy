@@ -37,6 +37,8 @@ final class RepositoryProperties {
   private static final String PROPERTY_GIT_REMOTE = "git_remote";
   private static final String PROPERTY_ECLIPSE = "eclipse";
 
+  private static final Pattern REMOTE_NAME_PATTERN = Pattern.compile("[a-zA-Z]+");
+
   private static final Pattern PATH_PATTERN = Pattern.compile("[a-zA-Z0-9_.$/-]+");
 
   private static final Pattern WORKSPACE_PATTERN = Pattern.compile("[a-zA-Z][a-zA-Z0-9_.-]+");
@@ -321,6 +323,11 @@ final class RepositoryProperties {
       String url = trimmed.substring(colonIndex + 1).trim();
       if (name.isBlank() || url.isBlank()) {
         LOG.warn("Ignoring git_remote entry {} with empty name or url from {}", trimmed, PROPERTY_GIT_REMOTE);
+        continue;
+      }
+      if (!REMOTE_NAME_PATTERN.matcher(name).matches()) {
+        LOG.warn("Ignoring git_remote entry {} with invalid remote name \"{}\" — name must consist of latin letters only from {}",
+            trimmed, name, PROPERTY_GIT_REMOTE);
         continue;
       }
       remoteList.add(new RepositoryRemote(name, url));
