@@ -103,4 +103,31 @@ class RepositoryPropertiesTest {
     assertThat(remotes.get(0).name()).isEqualTo("upstream");
     assertThat(remotes.get(0).url()).isEqualTo("https://github.com/devonfw/repo.git");
   }
+
+  @Test
+  void testGetRemotesInvalidNameRejected() {
+
+    Properties props = new Properties();
+    props.setProperty("git_remote",
+        "my-remote:https://a.git,remote2:https://b.git,remote_one:https://c.git,valid:https://d.git");
+    RepositoryProperties repositoryProperties = properties("test.properties", props);
+
+    List<com.devonfw.tools.ide.git.repository.RepositoryRemote> remotes = repositoryProperties.getRemotes();
+    assertThat(remotes).hasSize(1);
+    assertThat(remotes.get(0).name()).isEqualTo("valid");
+    assertThat(remotes.get(0).url()).isEqualTo("https://d.git");
+  }
+
+  @Test
+  void testGetRemotesSshUrl() {
+
+    Properties props = new Properties();
+    props.setProperty("git_remote", "upstream:git@github.com:devonfw/ide-settings.git");
+    RepositoryProperties repositoryProperties = properties("test.properties", props);
+
+    List<com.devonfw.tools.ide.git.repository.RepositoryRemote> remotes = repositoryProperties.getRemotes();
+    assertThat(remotes).hasSize(1);
+    assertThat(remotes.get(0).name()).isEqualTo("upstream");
+    assertThat(remotes.get(0).url()).isEqualTo("git@github.com:devonfw/ide-settings.git");
+  }
 }
