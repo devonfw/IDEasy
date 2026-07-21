@@ -1050,12 +1050,13 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   public void extract7z(Path file, Path targetDir) {
 
     LOG.info("Extracting 7z file {} to {}", file, targetDir);
-    final List<PathLink> links = new ArrayList<>();
-    final byte[] buffer = new byte[8192];
+    List<PathLink> links = new ArrayList<>();
+    byte[] buffer = new byte[8192];
+    Path root = targetDir.toAbsolutePath().normalize();
     try (SevenZFile sevenZFile = SevenZFile.builder().setPath(file).get()) {
       SevenZArchiveEntry entry;
       while ((entry = sevenZFile.getNextEntry()) != null) {
-        Path entryPath = targetDir.resolve(entry.getName());
+        Path entryPath = resolveRelativePathSecure(entry.getName(), root);
         int unixMode = getUnixMode(entry);
         if (entry.isDirectory()) {
           mkdirs(entryPath);
