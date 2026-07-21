@@ -17,6 +17,7 @@ import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.ToolInstallation;
+import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.tool.uv.Uv;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -72,6 +73,12 @@ public class Python extends LocalToolCommandlet {
   protected boolean isIgnoreSoftwareRepo() {
 
     return true;
+  }
+
+  @Override
+  public ToolRepository getToolRepository() {
+
+    return this.context.getPythonRepository();
   }
 
   /**
