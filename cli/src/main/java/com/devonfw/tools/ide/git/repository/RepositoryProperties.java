@@ -34,6 +34,7 @@ final class RepositoryProperties {
   private static final String PROPERTY_IMPORT = "import";
   private static final String PROPERTY_LINK = "link";
   private static final String PROPERTY_LINK_TARGET = "link (=<target>)";
+  private static final String PROPERTY_GIT_REMOTE = "git_remote";
   private static final String PROPERTY_ECLIPSE = "eclipse";
 
   private static final Pattern PATH_PATTERN = Pattern.compile("[a-zA-Z0-9_.$/-]+");
@@ -300,6 +301,31 @@ final class RepositoryProperties {
       }
     }
     return List.copyOf(links); // make immutable for record
+  }
+
+  public List<RepositoryRemote> getRemotes() {
+
+    String remotes = getProperty(PROPERTY_GIT_REMOTE);
+    if (isEmpty(remotes)) {
+      return List.of();
+    }
+    List<RepositoryRemote> remoteList = new ArrayList<>();
+    for (String remoteItem : remotes.split(",")) {
+      String trimmed = remoteItem.trim();
+      int colonIndex = trimmed.indexOf(':');
+      if (colonIndex <= 0) {
+        LOG.warn("Ignoring invalid git_remote entry {} from {}", trimmed, PROPERTY_GIT_REMOTE);
+        continue;
+      }
+      String name = trimmed.substring(0, colonIndex).trim();
+      String url = trimmed.substring(colonIndex + 1).trim();
+      if (name.isBlank() || url.isBlank()) {
+        LOG.warn("Ignoring git_remote entry {} with empty name or url from {}", trimmed, PROPERTY_GIT_REMOTE);
+        continue;
+      }
+      remoteList.add(new RepositoryRemote(name, url));
+    }
+    return List.copyOf(remoteList);
   }
 
   private String sanatizeRelativePath(String path, String propertyName) {

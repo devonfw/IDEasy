@@ -525,6 +525,16 @@ public class GitContextImpl implements GitContext {
     }
   }
 
+  @Override
+  public void addRemote(Path repository, String name, String url) {
+
+    LOG.debug("Adding remote '{}' with url '{}' to {}", name, url, repository);
+    ProcessResult result = runGitCommand(repository, ProcessMode.DEFAULT, "remote", "add", name, url);
+    if (!result.isSuccessful()) {
+      LOG.warn("Failed to add remote '{}' to {}", name, repository);
+    }
+  }
+
   /**
    * @param repository the {@link Path} to the git repository.
    * @return the current commit ID of the given {@link Path repository}.

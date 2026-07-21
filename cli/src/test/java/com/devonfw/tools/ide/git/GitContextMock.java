@@ -350,4 +350,9 @@ public class GitContextMock extends GitContextImpl {
   public void push(Path repository, boolean followTags) {
 
   }
+
+  @Override
+  public void addRemote(Path repository, String name, String url) {
+
+  }
 }

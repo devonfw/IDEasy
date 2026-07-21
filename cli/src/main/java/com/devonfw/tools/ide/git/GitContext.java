@@ -299,4 +299,13 @@ public interface GitContext {
    * @param followTags {@code true} to also push annotated tags reachable from the pushed commits (git push --follow-tags), {@code false} to push commits only.
    */
   void push(Path repository, boolean followTags);
+
+  /**
+   * Adds a new git remote to the given repository using {@code git remote add}.
+   *
+   * @param repository the {@link Path} to the git repository.
+   * @param name the name of the remote to add (e.g. "upstream").
+   * @param url the URL of the remote to add.
+   */
+  void addRemote(Path repository, String name, String url);
 }
