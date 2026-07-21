@@ -1050,31 +1050,71 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   public void extract7z(Path file, Path targetDir) {
 
     LOG.info("Extracting 7z file {} to {}", file, targetDir);
-    byte[] buffer = new byte[8192];
+    final List<PathLink> links = new ArrayList<>();
+    final byte[] buffer = new byte[8192];
     try (SevenZFile sevenZFile = SevenZFile.builder().setPath(file).get()) {
       SevenZArchiveEntry entry;
       while ((entry = sevenZFile.getNextEntry()) != null) {
         Path entryPath = targetDir.resolve(entry.getName());
+        int unixMode = getUnixMode(entry);
         if (entry.isDirectory()) {
           mkdirs(entryPath);
         } else {
           mkdirs(entryPath.getParent());
-          try (OutputStream out = Files.newOutputStream(entryPath)) {
-            int n;
-            while ((n = sevenZFile.read(buffer)) != -1) {
-              out.write(buffer, 0, n);
+          if ((unixMode & 0xF000) == 0xA000) { // symbolic link (S_IFLNK)
+            String linkTarget = readSymbolicLinkTarget(sevenZFile, entry);
+            links.add(new PathLink(Path.of(linkTarget), entryPath, PathLinkType.SYMBOLIC_LINK));
+          } else {
+            try (OutputStream out = Files.newOutputStream(entryPath)) {
+              int n;
+              while ((n = sevenZFile.read(buffer)) != -1) {
+                out.write(buffer, 0, n);
+              }
+            }
+            if (unixMode != 0) {
+              setFilePermissions(entryPath, PathPermissions.of(unixMode), true);
             }
           }
-          // 7z carries a Unix mode only when the 0x8000 bit is set; it then lives in the upper 16 bits.
-          int attributes = entry.getWindowsAttributes();
-          if ((attributes & 0x8000) != 0) {
-            setFilePermissions(entryPath, PathPermissions.of((attributes >> 16) & 0xFFFF), true);
-          }
         }
+      }
+      for (PathLink link : links) {
+        link(link);
       }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
     }
+  }
+
+  /**
+   * Extracts the Unix file mode from a 7z entry.
+   *
+   * @param entry the 7z entry to read.
+   * @return the Unix file mode stored in the entry, or {@code 0} if none (e.g. a Windows-made archive).
+   */
+  private static int getUnixMode(SevenZArchiveEntry entry) {
+
+    // 7z stores a Unix mode only when the 0x8000 bit is set; it then lives in the upper 16 bits.
+    int attributes = entry.getWindowsAttributes();
+    return (attributes & 0x8000) != 0 ? (attributes >> 16) & 0xFFFF : 0;
+  }
+
+  /**
+   * Reads the target path of a symbolic link entry. In 7z (as in tar) the entry content is the raw link target path.
+   *
+   * @param sevenZFile the {@link SevenZFile} positioned at the symlink entry to read.
+   * @param entry the symlink {@link SevenZArchiveEntry}.
+   * @return the link target path.
+   * @throws IOException if reading the target fails.
+   */
+  private static String readSymbolicLinkTarget(SevenZFile sevenZFile, SevenZArchiveEntry entry) throws IOException {
+
+    byte[] target = new byte[(int) entry.getSize()];
+    int read = 0;
+    int n;
+    while (read < target.length && (n = sevenZFile.read(target, read, target.length - read)) != -1) {
+      read += n;
+    }
+    return new String(target, StandardCharsets.UTF_8);
   }
 
   @Override
