@@ -79,7 +79,7 @@ jobs:
           api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
           organization-id: '428e13ed-ca0c-47ca-8a73-63b76cabb59b'
           project-slug: 'IDEasy'
-          signing-policy-slug: 'release-signing'
+          signing-policy-slug: 'test-signing'
           artifact-configuration-slug: 'IDEasy'
           github-artifact-id: '${{ steps.upload-msi.outputs.artifact-id }}'
           wait-for-completion: true
