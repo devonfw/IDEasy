@@ -505,6 +505,46 @@ class FileAccessImplTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Test of {@link FileAccessImpl#test7zExtraction(Path, Path)}
+   */
+  @Test
+  void test7zExtraction(@TempDir Path tempDir) {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+
+    // act
+    context.getFileAccess()
+        .extract7z(Path.of("src/test/resources/com/devonfw/tools/ide/io/executable_and_non_executable.7z"),
+          tempDir);
+    
+    // assert
+    assertThat(tempDir.resolve("executableFile.txt")).exists();
+    assertThat(tempDir.resolve("nonExecutableFile.txt")).exists();
+  }
+
+  /**
+   * Test of {@link FileAccessImpl#extract7z(Path, Path)} and checks if file permissions are preserved on Unix.
+   */
+  @Test
+  void test7zExtractionWithFilePermissions(@TempDir Path tempDir) {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    if (context.getSystemInfo().isWindows()) {
+      return;
+    }
+
+    // act
+    context.getFileAccess()
+        .extract7z(Path.of("src/test/resources/com/devonfw/tools/ide/io/executable_and_non_executable.7z"), tempDir);
+
+    // assert
+    assertPosixFilePermissions(tempDir.resolve("executableFile.txt"), "rwxrwxr-x");
+    assertPosixFilePermissions(tempDir.resolve("nonExecutableFile.txt"), "rw-rw-r--");
+  }
+
+  /**
    * Test of {@link FileAccessImpl#extractTar(Path, Path, TarCompression)} with {@link TarCompression#NONE} and checks if file permissions are preserved on
    * Unix.
    */

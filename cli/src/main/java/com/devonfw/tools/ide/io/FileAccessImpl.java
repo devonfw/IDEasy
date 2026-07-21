@@ -1065,6 +1065,11 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
               out.write(buffer, 0, n);
             }
           }
+          // 7z carries a Unix mode only when the 0x8000 bit is set; it then lives in the upper 16 bits.
+          int attributes = entry.getWindowsAttributes();
+          if ((attributes & 0x8000) != 0) {
+            setFilePermissions(entryPath, PathPermissions.of((attributes >> 16) & 0xFFFF), true);
+          }
         }
       }
     } catch (IOException e) {
