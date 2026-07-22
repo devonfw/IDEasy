@@ -1054,7 +1054,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     byte[] buffer = new byte[8192];
     Path root = targetDir.toAbsolutePath().normalize();
     try (SevenZFile sevenZFile = SevenZFile.builder().setPath(file).get();
-        IdeProgressBar pb = this.context.newProgressbarForExtracting(getFileSize(file))) {
+      IdeProgressBar pb = this.context.newProgressbarForExtracting(getFileSize(file))) {
       SevenZArchiveEntry entry;
       while ((entry = sevenZFile.getNextEntry()) != null) {
         Path entryPath = resolveRelativePathSecure(entry.getName(), root);
