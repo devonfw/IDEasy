@@ -891,7 +891,7 @@ class FileAccessImplTest extends AbstractIdeContextTest {
     context.getFileAccess()
         .extract7z(Path.of("src/test/resources/com/devonfw/tools/ide/io/executable_and_non_executable.7z"),
           tempDir);
-    
+
     // assert
     assertThat(tempDir.resolve("executableFile.txt")).exists();
     assertThat(tempDir.resolve("nonExecutableFile.txt")).exists();
