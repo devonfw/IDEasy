@@ -36,7 +36,7 @@ public class Gui extends Commandlet {
 
     super(context);
     addKeyword(getName());
-    enableExtendedLogging = add(new FlagProperty("--enableLogging", false, "-l"));
+    this.enableExtendedLogging = add(new FlagProperty("--enable-logging", false, "-l"));
   }
 
   @Override
