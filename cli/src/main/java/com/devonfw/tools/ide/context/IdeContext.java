@@ -31,6 +31,7 @@ import com.devonfw.tools.ide.tool.npm.Npm;
 import com.devonfw.tools.ide.tool.npm.NpmRepository;
 import com.devonfw.tools.ide.tool.pip.PipRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
+import com.devonfw.tools.ide.tool.python.PythonRepository;
 import com.devonfw.tools.ide.tool.uv.UvRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
@@ -377,6 +378,11 @@ public interface IdeContext extends IdeStartContext {
    * @return the {@link UvRepository}.
    */
   UvRepository getUvRepository();
+
+  /**
+   * @return the {@link PythonRepository}.
+   */
+  PythonRepository getPythonRepository();
 
   /**
    * @return the {@link Path} to the IDE instance directory. You can have as many IDE instances on the same computer as independent tenants for different
