@@ -569,5 +569,3 @@ public class GitContextImpl implements GitContext {
     }
   }
 }
-
-
