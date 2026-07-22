@@ -256,7 +256,7 @@ public class GitContextMock extends GitContextImpl {
     return DEFAULT_REMOTE;
   }
 
-  /**
+/**
    * Adds pending commits to simulate remote changes. Commits are stored per repository and applied on pull.
    *
    * @param repository the repository the commits belong to
@@ -268,6 +268,11 @@ public class GitContextMock extends GitContextImpl {
     }
     List<GitCommit> pendingCommits = this.pending.computeIfAbsent(repository, k -> new ArrayList<>());
     Collections.addAll(pendingCommits, commits);
+  }
+
+  @Override
+  public void saveCurrentCommitId(Path repository, Path trackedCommitIdPath) {
+
   }
 
   @Override
