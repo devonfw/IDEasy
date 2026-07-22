@@ -264,6 +264,7 @@
                 <arg>--enable-url-protocols=http,https</arg>
                 <arg>-march=compatibility</arg>
                 <arg>--initialize-at-build-time=org.apache.commons</arg>
+                <arg>--initialize-at-build-time=org.tukaani.xz</arg>
                 <arg>-H:IncludeResourceBundles=com.sun.org.apache.xml.internal.res.XMLErrorResources,com.sun.org.apache.xerces.internal.impl.msg.XMLMessages
                 </arg>
                 <!-- Disable Windows wildcard expansion so that arguments like "*" (e.g. "ide set-version gradle *")
