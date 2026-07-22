@@ -96,11 +96,12 @@ jobs:
           cd ..
           mkdir -p macos-installer/pkg-root/Library/IDEasy/bin
           mkdir -p macos-installer/Resources
+          cp documentation/target/generated-docs/IDEasy.pdf macos-installer/pkg-root/Library/IDEasy/
           cp documentation/target/generated-docs/LICENSE.rtf macos-installer/Resources/LICENSE.rtf
           cp -r cli/target/package/* macos-installer/pkg-root/Library/IDEasy/
+          cp cli/target/ideasy macos-installer/pkg-root/Library/IDEasy/bin/
           rm -rf macos-installer/pkg-root/Library/IDEasy/system/windows
           rm -rf macos-installer/pkg-root/Library/IDEasy/system/linux
-          cp cli/target/ideasy macos-installer/pkg-root/Library/IDEasy/bin/
           chmod +x macos-installer/pkg-root/Library/IDEasy/bin/ideasy
           chmod +x macos-installer/scripts/postinstall
           cd macos-installer
