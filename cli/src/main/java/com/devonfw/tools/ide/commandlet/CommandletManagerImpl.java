@@ -121,6 +121,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new UpgradeSettingsCommandlet(context));
     add(new CreateCommandlet(context));
     add(new BuildCommandlet(context));
+    add(new ReleaseCommandlet(context));
     add(new InstallPluginCommandlet(context));
     add(new UninstallPluginCommandlet(context));
     add(new UpgradeCommandlet(context));
