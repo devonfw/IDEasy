@@ -1065,6 +1065,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
           mkdirs(entryPath.getParent());
           if ((unixMode & 0xF000) == 0xA000) { // symbolic link (S_IFLNK)
             String linkTarget = readSymbolicLinkTarget(sevenZFile, entry);
+            resolveRelativePathSecure(entryPath.getParent().resolve(linkTarget).normalize(), root, linkTarget);
             links.add(new PathLink(Path.of(linkTarget), entryPath, PathLinkType.SYMBOLIC_LINK));
           } else {
             try (OutputStream out = Files.newOutputStream(entryPath)) {
