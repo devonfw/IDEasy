@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1943[#1943]: Create ruby commandlet
 * https://github.com/devonfw/IDEasy/issues/2100[#2100]: Fix Python not available for Mac x64
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/48?closed=1[milestone 2026.08.001].
@@ -31,7 +32,6 @@ The full list of changes for this release can be found in https://github.com/dev
 
 Release with new features and bugfixes:
 
-* https://github.com/devonfw/IDEasy/issues/1943[#1943]: Create ruby commandlet
 * https://github.com/devonfw/IDEasy/issues/1063[#1063]: Improve IDEasy user specific configuration documentation
 * https://github.com/devonfw/IDEasy/issues/1909[#1909]: add commandlet for Maven Daemon
 * https://github.com/devonfw/IDEasy/issues/2068[#2068]: Isolate Claude Code configuration per IDEasy project
