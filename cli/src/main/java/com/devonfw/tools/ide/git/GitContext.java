@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.git;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliOfflineException;
@@ -213,6 +214,12 @@ public interface GitContext {
   String retrieveGitUrl(Path repository);
 
   /**
+   * @param repository the {@link Path} to the git repository.
+   * @return the {@link List} of configured git remotes (output of {@code git remote -v}).
+   */
+  List<String> retrieveGitRemotes(Path repository);
+
+  /**
    * Finds the {@link Path} to the git installation and throws an exception if there is none.
    *
    * @return the {@link Path} to the Git installation. Throws a {@link CliException} if no git was found.
@@ -245,4 +252,51 @@ public interface GitContext {
    * @param trackedCommitIdPath the path to the file where the commit Id will be written.
    */
   void saveCurrentCommitId(Path repository, Path trackedCommitIdPath);
+
+  /**
+   * Commits the staged changes in the given repository.
+   *
+   * @param repository the {@link Path} to the git repository.
+   * @param message the commit message.
+   */
+  default void commit(Path repository, String message) {
+
+    commit(repository, message, false);
+  }
+
+  /**
+   * Commits changes in the given repository.
+   *
+   * @param repository the {@link Path} to the git repository.
+   * @param message the commit message.
+   * @param addAll {@code true} to stage all modified tracked files before committing, {@code false} to only commit changes that are already staged.
+   */
+  void commit(Path repository, String message, boolean addAll);
+
+  /**
+   * Creates an annotated git tag in the given repository.
+   *
+   * @param repository the {@link Path} to the git repository.
+   * @param tagName the name of the tag to create (e.g. "release/1.5.0").
+   * @param message the annotation message of the tag.
+   */
+  void tag(Path repository, String tagName, String message);
+
+  /**
+   * Pushes the local commits of the given repository to the remote repository.
+   *
+   * @param repository the {@link Path} to the git repository.
+   */
+  default void push(Path repository) {
+
+    push(repository, false);
+  }
+
+  /**
+   * Pushes the local commits of the given repository to the remote repository.
+   *
+   * @param repository the {@link Path} to the git repository.
+   * @param followTags {@code true} to also push annotated tags reachable from the pushed commits (git push --follow-tags), {@code false} to push commits only.
+   */
+  void push(Path repository, boolean followTags);
 }
