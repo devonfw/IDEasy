@@ -11,15 +11,37 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.environment.VariableLine;
 import com.devonfw.tools.ide.environment.VariableSource;
+import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.EnvironmentVariableCollectorContext;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.version.VersionIdentifier;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
  * Test of {@link Python}.
  */
+@WireMockTest
 public class PythonTest extends AbstractIdeContextTest {
+
+  private static final String PROJECT_UV = "uv";
+
+  @Test
+  public void testInstallOnIntelMacResolvesVersionFromUvNotIdeUrls(WireMockRuntimeInfo wireMockRuntimeInfo) {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_UV, wireMockRuntimeInfo);
+    context.setSystemInfo(SystemInfoMock.MAC_X64);
+    Python python = context.getCommandletManager().getCommandlet(Python.class);
+
+    // act
+    python.install();
+
+    // assert
+    assertThat(context.getSoftwarePath().resolve("python").resolve(".ide.software.version")).hasContent("3.14.6");
+    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed python");
+  }
 
   @Test
   public void testSetEnvironment() {
