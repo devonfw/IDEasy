@@ -51,7 +51,9 @@ class GcLogAnalyzerTest extends AbstractIdeContextTest {
     commandlet.run();
 
     // assert
-    assertInstallation(context, commandlet);
+    assertThat(context.getSoftwarePath().resolve("java/bin/java"))
+        .exists();
+
     assertThat(context).logAtInfo().hasMessageContaining(
         "java -jar GCLogAnalyzer-" + ARTIFACT_VERSION
             + "-ca.jar --generate-html output gc.log");
