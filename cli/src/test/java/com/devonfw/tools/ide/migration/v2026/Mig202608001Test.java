@@ -49,4 +49,26 @@ class Mig202608001Test extends AbstractIdeContextTest {
     // assert
     assertThat(vscodeMeta).doesNotExist();
   }
+
+  /**
+   * Tests that the migration skips a workspace whose target folder already exists, without failing and without overwriting the existing data.
+   */
+  @Test
+  void testSkipsWhenTargetAlreadyExists() {
+
+    // arrange
+    IdeTestContext context = newContext("vscode");
+    FileAccess fileAccess = context.getFileAccess();
+    Path oldUserData = context.getWorkspacePath().resolve(".vscode").resolve(".userdata");
+    fileAccess.mkdirs(oldUserData);
+    fileAccess.writeFileContent("old", oldUserData.resolve("state.json"));
+    Path target = context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("vscode").resolve(context.getWorkspaceName()).resolve("config");
+    fileAccess.mkdirs(target);
+    fileAccess.writeFileContent("new", target.resolve("state.json"));
+    // act
+    new Mig202608001().run(context);
+    // assert
+    assertThat(oldUserData).exists();
+    assertThat(target.resolve("state.json")).exists().hasContent("new");
+  }
 }
