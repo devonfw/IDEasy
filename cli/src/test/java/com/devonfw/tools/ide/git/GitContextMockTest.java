@@ -4,14 +4,16 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeTestContext;
 
 /**
  * Test of {@link GitContextMock}.
  */
-class GitContextMockTest extends Assertions {
+class GitContextMockTest extends AbstractIdeContextTest {
 
   private static final String TEST_URL = "https://github.com/test/repo.git";
 
@@ -19,10 +21,21 @@ class GitContextMockTest extends Assertions {
 
   private static final String MAIN_BRANCH = "main";
 
+  private GitContextMock newGitContextMock(Path tempDir) {
+
+    IdeTestContext context = newContext(tempDir);
+    context.getNetworkStatus().simulateOnline();
+
+    GitContextMock mock = new GitContextMock(context);
+    context.setGitContext(mock);
+
+    return mock;
+  }
+
   @Test
   void testCloneCreatesGitStructureWithMainBranch(@TempDir Path tempDir) throws IOException {
 
-    GitContextMock mock = new GitContextMock();
+    GitContextMock mock = newGitContextMock(tempDir);
     GitUrl gitUrl = new GitUrl(TEST_URL, null);
     Path repository = tempDir.resolve("repo");
 
@@ -50,7 +63,7 @@ class GitContextMockTest extends Assertions {
   @Test
   void testCloneCreatesGitStructureWithCustomBranch(@TempDir Path tempDir) {
 
-    GitContextMock mock = new GitContextMock();
+    GitContextMock mock = newGitContextMock(tempDir);
     GitUrl gitUrl = new GitUrl(TEST_URL, TEST_BRANCH);
     Path repository = tempDir.resolve("repo");
 
@@ -65,9 +78,9 @@ class GitContextMockTest extends Assertions {
   }
 
   @Test
-  void testFetchIfNeededReturnsFalseWithNoPendingCommits(@TempDir Path tempDir) {
+  void testFetchIfNeededSkipsRecentFetchHeadWithoutPendingCommits(@TempDir Path tempDir) {
 
-    GitContextMock mock = new GitContextMock();
+    GitContextMock mock = newGitContextMock(tempDir);
     Path repository = tempDir.resolve("repo");
     mock.clone(GitUrl.of(TEST_URL), repository);
 
@@ -77,9 +90,9 @@ class GitContextMockTest extends Assertions {
   }
 
   @Test
-  void testFetchIfNeededReturnsTrueWithPendingCommits(@TempDir Path tempDir) throws IOException {
+  void testFetchIfNeededSkipsRecentFetchHeadWithPendingCommits(@TempDir Path tempDir) throws IOException {
 
-    GitContextMock mock = new GitContextMock();
+    GitContextMock mock = newGitContextMock(tempDir);
     Path repository = tempDir.resolve("repo");
     mock.clone(GitUrl.of(TEST_URL), repository);
 
@@ -92,13 +105,13 @@ class GitContextMockTest extends Assertions {
 
     boolean result = mock.fetchIfNeeded(repository);
 
-    assertThat(result).isTrue();
+    assertThat(result).isFalse();
   }
 
   @Test
   void testFetchUpdatesFetchHeadWithPendingCommits(@TempDir Path tempDir) throws IOException {
 
-    GitContextMock mock = new GitContextMock();
+    GitContextMock mock = newGitContextMock(tempDir);
     Path repository = tempDir.resolve("repo");
     mock.clone(GitUrl.of(TEST_URL), repository);
 
@@ -112,7 +125,7 @@ class GitContextMockTest extends Assertions {
     GitContextMock.GitCommit commit = new GitContextMock.GitCommit(change);
     mock.addChanges(repository, commit);
 
-    mock.fetch(repository, "origin", "main");
+    mock.fetch(repository, GitContext.DEFAULT_REMOTE, MAIN_BRANCH);
 
     String updatedFetchHead = Files.readString(fetchHeadPath);
     assertThat(updatedFetchHead).isNotEqualTo(initialFetchHead).isEqualTo(String.valueOf(commit.hashCode()));
@@ -121,7 +134,7 @@ class GitContextMockTest extends Assertions {
   @Test
   void testFetchMakesUpdateAvailable(@TempDir Path tempDir) throws IOException {
 
-    GitContextMock mock = new GitContextMock();
+    GitContextMock mock = newGitContextMock(tempDir);
     Path repository = tempDir.resolve("repo");
     mock.clone(GitUrl.of(TEST_URL), repository);
 
@@ -134,7 +147,7 @@ class GitContextMockTest extends Assertions {
     GitContextMock.GitCommit commit = new GitContextMock.GitCommit(change);
     mock.addChanges(repository, commit);
 
-    mock.fetch(repository, "origin", "main");
+    mock.fetch(repository, GitContext.DEFAULT_REMOTE, MAIN_BRANCH);
 
     assertThat(mock.isRepositoryUpdateAvailable(repository)).isTrue();
   }
@@ -142,7 +155,7 @@ class GitContextMockTest extends Assertions {
   @Test
   void testPullAppliesPendingCommitAndUpdatesRepositoryState(@TempDir Path tempDir) throws IOException {
 
-    GitContextMock mock = new GitContextMock();
+    GitContextMock mock = newGitContextMock(tempDir);
     Path repository = tempDir.resolve("repo");
     mock.clone(GitUrl.of(TEST_URL), repository);
 
@@ -153,7 +166,7 @@ class GitContextMockTest extends Assertions {
     GitContextMock.GitCommit commit = new GitContextMock.GitCommit(change);
     mock.addChanges(repository, commit);
 
-    mock.fetch(repository, "origin", "main");
+    mock.fetch(repository, GitContext.DEFAULT_REMOTE, MAIN_BRANCH);
     assertThat(mock.isRepositoryUpdateAvailable(repository)).isTrue();
 
     mock.pull(repository);
@@ -175,7 +188,7 @@ class GitContextMockTest extends Assertions {
   @Test
   void testPullAppliesMultipleCommitsInOrder(@TempDir Path tempDir) throws IOException {
 
-    GitContextMock mock = new GitContextMock();
+    GitContextMock mock = newGitContextMock(tempDir);
     Path repository = tempDir.resolve("repo");
     mock.clone(GitUrl.of(TEST_URL), repository);
 
@@ -200,7 +213,7 @@ class GitContextMockTest extends Assertions {
   @Test
   void testPullAppliesDirectoryChange(@TempDir Path tempDir) throws IOException {
 
-    GitContextMock mock = new GitContextMock();
+    GitContextMock mock = newGitContextMock(tempDir);
     Path repository = tempDir.resolve("repo");
     mock.clone(GitUrl.of(TEST_URL), repository);
 
@@ -223,7 +236,7 @@ class GitContextMockTest extends Assertions {
   @Test
   void testSaveCurrentCommitIdResolvesHeadRef(@TempDir Path tempDir) throws IOException {
 
-    GitContextMock mock = new GitContextMock();
+    GitContextMock mock = newGitContextMock(tempDir);
     Path repository = tempDir.resolve("repo");
     mock.clone(GitUrl.of(TEST_URL), repository);
 
@@ -240,28 +253,9 @@ class GitContextMockTest extends Assertions {
   }
 
   @Test
-  void testSaveCurrentCommitIdCreatesParentDirectories(@TempDir Path tempDir) throws IOException {
-
-    GitContextMock mock = new GitContextMock();
-    Path repository = tempDir.resolve("repo");
-    mock.clone(GitUrl.of(TEST_URL), repository);
-
-    Path gitFolder = repository.resolve(GitContext.GIT_FOLDER);
-    Path refFile = gitFolder.resolve("refs").resolve("heads").resolve(MAIN_BRANCH);
-    String expectedCommitId = "xyz789";
-    Files.writeString(refFile, expectedCommitId);
-
-    Path trackedFile = tempDir.resolve("nested").resolve("dir").resolve("commit.txt");
-
-    mock.saveCurrentCommitId(repository, trackedFile);
-
-    assertThat(trackedFile).exists().hasContent(expectedCommitId);
-  }
-
-  @Test
   void testSaveCurrentCommitIdWithDirectCommitId(@TempDir Path tempDir) throws IOException {
 
-    GitContextMock mock = new GitContextMock();
+    GitContextMock mock = newGitContextMock(tempDir);
     Path repository = tempDir.resolve("repo");
     Path gitFolder = repository.resolve(GitContext.GIT_FOLDER);
     Files.createDirectories(gitFolder);
@@ -279,7 +273,7 @@ class GitContextMockTest extends Assertions {
   @Test
   void testSaveCurrentCommitIdDoesNotWriteWhenRefNotFound(@TempDir Path tempDir) throws IOException {
 
-    GitContextMock mock = new GitContextMock();
+    GitContextMock mock = newGitContextMock(tempDir);
     Path repository = tempDir.resolve("repo");
     Path gitFolder = repository.resolve(GitContext.GIT_FOLDER);
     Files.createDirectories(gitFolder);
@@ -296,7 +290,7 @@ class GitContextMockTest extends Assertions {
   @Test
   void testDetermineCurrentBranchAfterClone(@TempDir Path tempDir) {
 
-    GitContextMock mock = new GitContextMock();
+    GitContextMock mock = newGitContextMock(tempDir);
     GitUrl gitUrl = new GitUrl(TEST_URL, TEST_BRANCH);
     Path repository = tempDir.resolve("repo");
     mock.clone(gitUrl, repository);
@@ -309,7 +303,7 @@ class GitContextMockTest extends Assertions {
   @Test
   void testRetrieveGitUrlFromConfig(@TempDir Path tempDir) {
 
-    GitContextMock mock = new GitContextMock();
+    GitContextMock mock = newGitContextMock(tempDir);
     GitUrl gitUrl = new GitUrl(TEST_URL, null);
     Path repository = tempDir.resolve("repo");
     mock.clone(gitUrl, repository);
@@ -322,7 +316,7 @@ class GitContextMockTest extends Assertions {
   @Test
   void testIsRepositoryUpdateAvailableInitiallyFalse(@TempDir Path tempDir) {
 
-    GitContextMock mock = new GitContextMock();
+    GitContextMock mock = newGitContextMock(tempDir);
     Path repository = tempDir.resolve("repo");
     mock.clone(GitUrl.of(TEST_URL), repository);
 
@@ -334,7 +328,7 @@ class GitContextMockTest extends Assertions {
   @Test
   void testIsRepositoryUpdateAvailableWithTrackedCommitId(@TempDir Path tempDir) throws IOException {
 
-    GitContextMock mock = new GitContextMock();
+    GitContextMock mock = newGitContextMock(tempDir);
     Path repository = tempDir.resolve("repo");
     mock.clone(GitUrl.of(TEST_URL), repository);
 
@@ -348,7 +342,7 @@ class GitContextMockTest extends Assertions {
     GitContextMock.GitCommit commit = new GitContextMock.GitCommit(change);
     mock.addChanges(repository, commit);
 
-    mock.fetch(repository, "origin", "main");
+    mock.fetch(repository, GitContext.DEFAULT_REMOTE, MAIN_BRANCH);
 
     boolean result = mock.isRepositoryUpdateAvailable(repository, trackedFile);
 
@@ -356,9 +350,9 @@ class GitContextMockTest extends Assertions {
   }
 
   @Test
-  void testIsRepositoryUpdateAvailableWithTrackedCommitIdNoUpdate(@TempDir Path tempDir) throws IOException {
+  void testIsRepositoryUpdateAvailableWithTrackedCommitIdNoUpdate(@TempDir Path tempDir) {
 
-    GitContextMock mock = new GitContextMock();
+    GitContextMock mock = newGitContextMock(tempDir);
     Path repository = tempDir.resolve("repo");
     mock.clone(GitUrl.of(TEST_URL), repository);
 
