@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool.gui;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -12,12 +13,12 @@ import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
-import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
+import com.devonfw.tools.ide.version.IdeVersion;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -27,7 +28,6 @@ public class Gui extends Commandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Gui.class);
 
-  final FlagProperty enableExtendedLogging;
 
   /**
    * @param context the {@link IdeContext}.
@@ -36,7 +36,6 @@ public class Gui extends Commandlet {
 
     super(context);
     addKeyword(getName());
-    this.enableExtendedLogging = add(new FlagProperty("--enable-logging", false, "-l"));
   }
 
   @Override
@@ -78,27 +77,30 @@ public class Gui extends Commandlet {
       throw new CliException("Fatal error: The pom.xml file required for launching the IDEasy GUI could not be found in expected location: " + pomPath);
     }
 
-    List<String> args = List.of(
-        "-U", //required for latest snapshot versions
+    ArrayList<String> args = new ArrayList<>(List.of(
         "-f", //use specified POM file
         pomPath.toString(),
         "org.codehaus.mojo:exec-maven-plugin:3.1.0:exec",
         "-Dexec.executable=java",
         "-Dexec.classpathScope=compile",
-        "-Dexec.args=-classpath %classpath com.devonfw.ide.gui.AppLauncher"
-    );
+        "-Dexec.args=-classpath %classpath com.devonfw.ide.gui.AppLauncher",
+        "-Dexec.async=true"
+    ));
+
+    if (!IdeVersion.getVersionIdentifier().isStable()) {
+      LOG.debug("Launching gui in snapshot mode");
+      args.add("-U"); //Adding this flag forces maven to download the latest SNAPSHOT version, but only if IDEasy is a snapshot version.
+    }
 
     /*
      * We manually update the PATH entry with our java version, as by default IDEasy includes the SymLink under /projectname/software/java/bin in the PATH
      * In case of projects using older Java Versions, this is important as the java version of the project could potentially older.
      */
-    ProcessMode processMode = this.enableExtendedLogging.isTrue() ? ProcessMode.DEFAULT : ProcessMode.BACKGROUND_SILENT;
     try {
-      mvn.runTool(processContext.withPathEntry(javaInstallation.binDir()), processMode, args);
-    } catch (Exception e) {
-      LOG.error(
-          "Failed to launch the GUI. If maven states issues with dependency resolution, check whether the maven M2 repo is enabled in your project.",
-          e);
+      mvn.runTool(processContext.withPathEntry(javaInstallation.binDir()), ProcessMode.DEFAULT, args);
+    } catch (RuntimeException e) {
+      throw new CliException(
+          "Failed to launch the GUI. If maven reports issues with dependency resolution, check whether the maven M2 repo is enabled in your project.", e);
     }
   }
 }
