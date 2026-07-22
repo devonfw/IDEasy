@@ -3,6 +3,8 @@ package com.devonfw.tools.ide.git;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.List;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -198,6 +200,12 @@ public class GitContextMock implements GitContext {
       throw new IllegalStateException("Failed to read remote URL from repository config " + cfg, e);
     }
     return MOCKED_URL_VALUE;
+  }
+
+  @Override
+  public List<String> retrieveGitRemotes(Path repository) {
+
+    return Collections.emptyList();
   }
 
   @Override
@@ -500,5 +508,20 @@ public class GitContextMock implements GitContext {
     } catch (IOException e) {
       throw new IllegalStateException("Failed to save current commit id to " + trackedCommitIdPath, e);
     }
+  }
+
+  @Override
+  public void commit(Path repository, String message, boolean addAll) {
+
+  }
+
+  @Override
+  public void tag(Path repository, String tagName, String message) {
+
+  }
+
+  @Override
+  public void push(Path repository, boolean followTags) {
+
   }
 }
