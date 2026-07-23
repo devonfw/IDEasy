@@ -1,34 +1,29 @@
 #!/bin/bash
 set -e
 
-INSTALL_DIR="/Library/IDEasy"
+echo "Step 1/2: Running IDEasy installation..."
 
-echo "Begin install"
+INSTALL_DIR="${HOME}/projects/_ide/tmp/ideasy"
 
-# Determine the logged-in user. When the PKG installer executes a script, it references the ROOT, not a user, therefore we have to find out who runs the script.
-CONSOLE_USER=$(stat -f%Su /dev/console)
-# dscl -read reads the given user information reliably
-USER_HOME=$(dscl . -read "/Users/${CONSOLE_USER}" NFSHomeDirectory 2>/dev/null | awk '{print $2}')
+echo "Installing IDEasy to ${INSTALL_DIR}"
 
-if [ -z "$USER_HOME" ] || [ "$CONSOLE_USER" = "root" ]; then
-    echo "ERROR: could not determine target user, aborting IDEasy install." >&2
-    exit 1
-fi
-
-LOG_DIR="${USER_HOME}/.ide/logs"
-sudo -u "$CONSOLE_USER" mkdir -p "$LOG_DIR"
+LOG_DIR="${HOME}/.ide/logs"
+mkdir -p "$LOG_DIR"
 ts=$(date +"%Y-%m-%d-%H-%M-%S")
-
-ln -sf "$INSTALL_DIR/bin/ideasy" /usr/local/bin/ideasy
 
 echo "IDEasy installation log for this session can be found at: $LOG_DIR/install-$ts.log"
 
-sudo -u "$CONSOLE_USER" -H \
-  "$INSTALL_DIR/bin/ideasy" -ftb --no-colors install \
+if [ ! -d "$INSTALL_DIR" ]; then
+    echo "ERROR: expected install directory not found: $INSTALL_DIR" >&2
+    exit 1
+fi
+
+"$INSTALL_DIR/bin/ideasy" -ftb --no-colors install \
   > "$LOG_DIR/install-$ts.log" 2>&1
 
+echo "Step 2/2: Cleaning up temporary ideasy installation..."
 
-echo "$INSTALL_DIR/bin" > /etc/paths.d/ideasy #Add ideasy to PATH for both zsh and bash
+rm -rf $INSTALL_DIR
 
 echo "Install finished"
 
