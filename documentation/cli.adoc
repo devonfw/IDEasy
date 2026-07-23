@@ -132,3 +132,6 @@ IDE environment variables have been set for /~/projects/myproject in workspace m
 IDE environment variables have been set for /~/projects/myproject in workspace main
 [~/projects/myproject]$ echo "Wow! IDEasy is awesome!"
 ```
+
+Like `ide`, the `icd` command supports auto-completion for `bash` (or `zsh`):
+Pressing `[Tab]` after `-p` suggests the available projects, after `-w` the workspaces of the selected (or current) project, and after `-r` the repositories found in its workspaces.
