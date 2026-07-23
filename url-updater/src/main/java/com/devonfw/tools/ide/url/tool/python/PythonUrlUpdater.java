@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class PythonUrlUpdater extends JsonUrlUpdater<PythonJsonObject, PythonRelease> {
 
+  private static final String DOWNLOAD_BASE_URL = "undefined-taken-from-JSON";
   private static final String VERSION_BASE_URL = "https://raw.githubusercontent.com";
 
   private static final String VERSION_FILENAME = "actions/python-versions/main/versions-manifest.json";
@@ -25,16 +26,26 @@ public class PythonUrlUpdater extends JsonUrlUpdater<PythonJsonObject, PythonRel
 
   private static final Logger logger = LoggerFactory.getLogger(PythonUrlUpdater.class);
 
+  /**
+   * The Constructor.
+   */
+  public PythonUrlUpdater() {
+    super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
+  }
+
+  /**
+   * Package-private constructor used for testing {@link PythonUrlUpdater}.
+   *
+   * @param versionBaseUrl mock url used as version base.
+   */
+  PythonUrlUpdater(String versionBaseUrl) {
+    super(DOWNLOAD_BASE_URL, versionBaseUrl);
+  }
+
   @Override
   public String getTool() {
 
     return "python";
-  }
-
-  @Override
-  protected String getDownloadBaseUrl() {
-
-    return "undefined-taken-from-JSON";
   }
 
   @Override
@@ -46,8 +57,14 @@ public class PythonUrlUpdater extends JsonUrlUpdater<PythonJsonObject, PythonRel
       for (PythonFile download : release.files()) {
         if (download.getPlatform().equals("win32") && download.getArch().equals("x64")) {
           doAddVersion(urlVersion, download.getDownloadUrl(), WINDOWS, X64);
+        } else if (download.getPlatform().equals("win32") && download.getArch().equals("arm64")) {
+          doAddVersion(urlVersion, download.getDownloadUrl(), WINDOWS, ARM64);
         } else if (download.getPlatform().equals("linux") && download.getArch().equals("x64")) {
           doAddVersion(urlVersion, download.getDownloadUrl(), LINUX, X64);
+        } else if (download.getPlatform().equals("linux") && download.getArch().equals("arm64")) {
+          doAddVersion(urlVersion, download.getDownloadUrl(), LINUX, ARM64);
+        } else if (download.getPlatform().equals("darwin") && download.getArch().equals("x64")) {
+          doAddVersion(urlVersion, download.getDownloadUrl(), MAC, X64);
         } else if (download.getPlatform().equals("darwin") && download.getArch().equals("arm64")) {
           doAddVersion(urlVersion, download.getDownloadUrl(), MAC, ARM64);
         } else {
@@ -59,12 +76,6 @@ public class PythonUrlUpdater extends JsonUrlUpdater<PythonJsonObject, PythonRel
     } catch (Exception exp) {
       logger.error("For tool {} we failed to add version {}.", getToolWithEdition(), version, exp);
     }
-  }
-
-  @Override
-  protected String getVersionBaseUrl() {
-
-    return VERSION_BASE_URL;
   }
 
   @Override

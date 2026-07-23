@@ -167,7 +167,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     String edition = toolEdition.edition();
     VersionIdentifier resolvedVersion = cveCheck(request);
     installToolDependencies(request);
-
     // cveCheck might have changed resolvedVersion so let us re-check...
     if (request.isAlreadyInstalled()) {
       return toolAlreadyInstalled(request);
@@ -223,8 +222,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   /**
-   * Performs the actual installation of the {@link #getName() tool} by downloading its binary, optionally extracting it, backing up any existing installation,
-   * and writing the version file.
+   * Performs the installation of the {@link #getName() tool} by using {@link #installDownloadedToolPayload(ToolInstallRequest, Path, Path)} for tool-specific
+   * logic, backing up any existing installation, and writing the version file.
    * <p>
    * This method assumes that the version has already been resolved and dependencies installed. It handles the final steps of placing the tool into the
    * appropriate installation directory.
@@ -238,10 +237,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     ToolEditionAndVersion requested = request.getRequested();
     VersionIdentifier resolvedVersion = requested.getResolvedVersion();
     Path downloadedToolFile = downloadTool(requested.getEdition().edition(), resolvedVersion);
-    boolean extract = isExtract();
-    if (!extract) {
-      LOG.trace("Extraction is disabled for '{}' hence just moving the downloaded file {}.", this.tool, downloadedToolFile);
-    }
+
     if (Files.isDirectory(installationPath)) {
       if (this.tool.equals(IdeasyCommandlet.TOOL_NAME)) {
         LOG.warn("Your IDEasy installation is missing the version file.");
@@ -250,11 +246,29 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       }
     }
     fileAccess.mkdirs(installationPath.getParent());
-    fileAccess.extract(downloadedToolFile, installationPath, this::postExtract, extract);
+
+    installDownloadedToolPayload(request, installationPath, downloadedToolFile);
+
     this.context.writeVersionFile(resolvedVersion, installationPath);
     // fix macOS Gatekeeper blocking - must run after version file is written but before any executables are launched
     getMacOsHelper().removeQuarantineAttribute(installationPath);
     LOG.debug("Installed {} in version {} at {}", this.tool, resolvedVersion, installationPath);
+  }
+
+  /**
+   * Performs the actual installation of the tool bits.
+   *
+   * @param request the {@link ToolInstallRequest}.
+   * @param installationPath the target {@link Path} where the tool should be installed.
+   * @param downloadedToolFile the {@link Path} to the downloaded tool file.
+   */
+  protected void installDownloadedToolPayload(ToolInstallRequest request, Path installationPath, Path downloadedToolFile) {
+
+    boolean extract = isExtract();
+    if (!extract) {
+      LOG.trace("Extraction is disabled for '{}' hence just moving the downloaded file {}.", this.tool, downloadedToolFile);
+    }
+    this.context.getFileAccess().extract(downloadedToolFile, installationPath, this::postExtract, extract);
   }
 
   /**
@@ -589,7 +603,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   public Path findBuildDescriptor(Path directory) {
     return null;
   }
-  
+
   /**
    * @return Bash completion command for this tool or {@code null} if this tool does not provide Bash completion.
    */

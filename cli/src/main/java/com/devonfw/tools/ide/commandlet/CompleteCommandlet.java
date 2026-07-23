@@ -13,6 +13,9 @@ import com.devonfw.tools.ide.property.StringProperty;
  */
 public final class CompleteCommandlet extends Commandlet {
 
+  /** The name of the complete commandlet. */
+  public static final String NAME = "complete";
+
   /** {@link StringProperty} with the current CLI arguments to complete. */
   public final StringProperty args;
 
@@ -31,7 +34,7 @@ public final class CompleteCommandlet extends Commandlet {
   @Override
   public String getName() {
 
-    return "complete";
+    return NAME;
   }
 
   @Override
@@ -52,8 +55,8 @@ public final class CompleteCommandlet extends Commandlet {
     CliArguments arguments = CliArguments.ofCompletion(this.args.asArray());
     List<CompletionCandidate> candidates = ((AbstractIdeContext) this.context).complete(arguments, true);
     for (CompletionCandidate candidate : candidates) {
-      System.out.print(candidate.text()); // enforce output via System.out even if logging is disabled
-      System.out.print('\n'); // do not use println to prevent Carriage-Return character in bash completion on Windows
+      System.out.print(candidate.text()); // checkstyle:ignore SystemOut - completion output must reach stdout even when logging is disabled
+      System.out.print('\n'); // checkstyle:ignore SystemOut - raw newline (not println) avoids a CR char in bash completion on Windows
     }
   }
 }

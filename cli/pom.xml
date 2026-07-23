@@ -266,6 +266,9 @@
                 <arg>--initialize-at-build-time=org.apache.commons</arg>
                 <arg>-H:IncludeResourceBundles=com.sun.org.apache.xml.internal.res.XMLErrorResources,com.sun.org.apache.xerces.internal.impl.msg.XMLMessages
                 </arg>
+                <!-- Disable Windows wildcard expansion so that arguments like "*" (e.g. "ide set-version gradle *")
+                     reach IDEasy verbatim instead of being expanded to file names by the C runtime. -->
+                <buildArg>-H:-EnableWildcardExpansion</buildArg>
               </buildArgs>
             </configuration>
           </plugin>
@@ -279,7 +282,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-antrun-plugin</artifactId>
-            <version>3.1.0</version>
+            <version>3.2.0</version>
             <executions>
               <execution>
                 <phase>prepare-package</phase>

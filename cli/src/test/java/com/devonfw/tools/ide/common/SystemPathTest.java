@@ -12,6 +12,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 
@@ -140,6 +141,45 @@ class SystemPathTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(result).isEqualTo(test);
+  }
+
+  @Test
+  void testConstructorNormalizesPathEntryWithControlCharactersAndKeepsIt() {
+    // arrange
+    IdeTestContext context = newContext("find-binary", "project/workspaces", false);
+    String validEntry = "C:\\Tools\\bin";
+    // an entry polluted with control characters (CR, LF, TAB, NUL) that must be stripped instead of dropping the whole entry
+    String cleanedEntry = "C:\\Other\\bin";
+    String pollutedEntry = "C:\\Other" + "\r\n\t" + (char) 0 + "\\bin";
+    String envPath = validEntry + ';' + pollutedEntry;
+
+    // act
+    SystemPath systemPath = new SystemPath(context, envPath, context.getIdeRoot(), context.getSoftwarePath(), ';', new ArrayList<>());
+
+    // assert
+    String result = systemPath.toString();
+    assertThat(result).contains(validEntry).contains(cleanedEntry);
+    assertThat(result).doesNotContain("\r").doesNotContain("\n").doesNotContain("\t").doesNotContain(Character.toString((char) 0));
+    assertThat(context).log(IdeLogLevel.WARNING).hasMessageContaining("Normalized PATH entry");
+  }
+
+  @Test
+  void testConstructorSkipsPathEntryConsistingOnlyOfControlCharactersAndKeepsValidOnes() {
+    // arrange
+    IdeTestContext context = newContext("find-binary", "project/workspaces", false);
+    String validEntryBefore = "C:\\Tools\\bin";
+    // an entry that has nothing usable left after normalization must be skipped without aborting the whole construction
+    String controlOnlyEntry = "\r\n\t" + (char) 0;
+    String validEntryAfter = "C:\\Other\\bin";
+    String envPath = validEntryBefore + ';' + controlOnlyEntry + ';' + validEntryAfter;
+
+    // act
+    SystemPath systemPath = new SystemPath(context, envPath, context.getIdeRoot(), context.getSoftwarePath(), ';', new ArrayList<>());
+
+    // assert
+    String result = systemPath.toString();
+    assertThat(result).contains(validEntryBefore).contains(validEntryAfter);
+    assertThat(context).log(IdeLogLevel.WARNING).hasMessageContaining("Ignoring invalid PATH entry");
   }
 
   private static boolean checkPathToIgnoreLowercase(Path p, String toIgnore) {

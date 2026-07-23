@@ -33,7 +33,7 @@ See link:documentation/features.adoc[features].
 
 IDEasy is stable and ready for production usage.
 However, there may be some know issues.
-For a detailed overview of the quality and support status of IDEasy tools across operating systems, see link:documentation/quality-status.adoc[Quality Status].
+For a detailed overview of the quality and support status of IDEasy tools across operating systems, see link:documentation/quality-status/quality-status.adoc[Quality Status] (link:documentation/quality-status/quality-status-windows.adoc[Windows]/link:documentation/quality-status/quality-status-macos.adoc[Mac]/link:documentation/quality-status/quality-status-linux.adoc[Linux]).
 
 == Setup
 

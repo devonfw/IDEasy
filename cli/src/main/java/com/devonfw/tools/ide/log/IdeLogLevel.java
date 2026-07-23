@@ -159,7 +159,10 @@ public enum IdeLogLevel {
    */
   public void log(Logger logger, Throwable error, String message, Object... args) {
 
-    LoggingEventBuilder builder = logger.atLevel(this.slf4jLevel).setCause(error);
+    if (!isEnabled()) {
+      return;
+    }
+    LoggingEventBuilder builder = logger.makeLoggingEventBuilder(this.slf4jLevel).setCause(error);
     if (this.slf4jMarker != null) {
       builder = builder.addMarker(this.slf4jMarker);
     }
@@ -177,6 +180,9 @@ public enum IdeLogLevel {
   }
 
   /**
+   * <b>ATTENTION:</b> This method will only check if the log-level is globally enabled in SLF4J.<br>
+   * In most cases you want to use {@link com.devonfw.tools.ide.context.IdeContext#isLogLevelEnabled(IdeLogLevel)} instead.
+   *
    * @return {@code true} if this {@link IdeLogLevel} is enabled (globally), {@code false} otherwise.
    */
   public boolean isEnabled() {

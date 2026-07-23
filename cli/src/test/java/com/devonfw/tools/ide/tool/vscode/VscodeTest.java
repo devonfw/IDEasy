@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool.vscode;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -68,6 +69,7 @@ class VscodeTest extends AbstractIdeContextTest {
     commandlet.run();
 
     assertThat(context).logAtSuccess().hasMessage("Successfully installed plugin: mockedPlugin");
+    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin mockedPlugin (1/1)'.");
 
     // assert
     assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("mockedPlugin"))).exists();
@@ -117,6 +119,7 @@ class VscodeTest extends AbstractIdeContextTest {
 
     assertThat(context.getSoftwarePath().resolve("vscode/.ide.software.version")).exists().hasContent("1.92.1");
     assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed vscode in version 1.92.1");
+    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin mockedPlugin (1/1)'.");
   }
 
   @Test
@@ -175,10 +178,40 @@ class VscodeTest extends AbstractIdeContextTest {
     checkVscodiumInstallation(context);
   }
 
+  /**
+   * Tests that VSCodium reads its plugins from the dedicated vscodium folder when it exists.
+   */
+  @Test
+  void testVscodiumUsesVscodiumPluginsFolder() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODIUM);
+    Vscode vscodium = new Vscode(context);
+    Path vscodiumPlugins = context.getSettingsPath().resolve("vscodium/plugins");
+    context.getFileAccess().mkdirs(vscodiumPlugins);
+
+    // act + assert
+    assertThat(vscodium.getPluginsConfigPath()).isEqualTo(vscodiumPlugins);
+  }
 
   /**
-   * Test double for {@link Vscode} that captures CLI arguments passed to {@link #runTool(ProcessContext, ProcessMode, List)}
-   * so tests can assert command construction without spawning an external process.
+   * Tests that VSCodium falls back to the vscode folder when it has no dedicated plugins folder.
+   */
+  @Test
+  void testVscodiumFallsBackToVscodePluginsFolder() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODIUM);
+    Vscode vscodium = new Vscode(context);
+
+    // act + assert
+    assertThat(vscodium.getPluginsConfigPath()).isEqualTo(context.getSettingsPath().resolve("vscode/plugins"));
+  }
+
+
+  /**
+   * Test double for {@link Vscode} that captures CLI arguments passed to {@link #runTool(ProcessContext, ProcessMode, List)} so tests can assert command
+   * construction without spawning an external process.
    */
   private static class CapturingVscode extends Vscode {
 

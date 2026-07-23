@@ -12,6 +12,9 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: recursive
+      - name: Run shell function tests
+        shell: bash
+        run: bash cli/src/test/functions-test.sh
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:

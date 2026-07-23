@@ -1,7 +1,9 @@
 package com.devonfw.tools.ide.version;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,9 +33,13 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
 
   private final boolean valid;
 
+  private final boolean snapshot;
+
   private VersionIdentifier(VersionSegment start) {
 
     super();
+    boolean hasSnapshot = false;
+
     Objects.requireNonNull(start);
     this.start = start;
     boolean isValid = this.start.getSeparator().isEmpty() && this.start.getLettersString().isEmpty();
@@ -47,6 +53,11 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
         hasPositiveNumber = true;
       }
       VersionLetters segmentLetters = segment.getLetters();
+
+      if (segmentLetters.isSnapshot()) {
+        hasSnapshot = true;
+      }
+
       if (segmentLetters.isDevelopmentPhase()) {
         if (dev.isEmpty()) {
           dev = segmentLetters;
@@ -57,6 +68,7 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
       }
       segment = segment.getNextOrNull();
     }
+    this.snapshot = hasSnapshot;
     this.developmentPhase = dev;
     this.valid = isValid && hasPositiveNumber;
   }
@@ -88,8 +100,39 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
         return vi;
       }
     }
+    List<VersionIdentifier> closest = findClosestVersions(version, versions, 5);
+    String closestStr = closest.stream().map(Object::toString).collect(Collectors.joining(", "));
     throw new CliException(
-        "Could not find any version matching '" + version + "' - there are " + versions.size() + " version(s) available but none matched!");
+        "Could not find any version matching '" + version + "' - there are " + versions.size()
+            + " version(s) available but none matched!\nDid you mean one of: " + closestStr + "?");
+  }
+
+  /**
+   * Finds the closest versions to the requested version pattern by matching the major version segment.
+   *
+   * @param version the requested version pattern or version.
+   * @param versions the available versions to choose from.
+   * @param maxCount the maximum number of versions to return.
+   * @return a list of the closest matching versions.
+   */
+  private static List<VersionIdentifier> findClosestVersions(GenericVersionRange version, List<VersionIdentifier> versions, int maxCount) {
+
+    if (version instanceof VersionIdentifier vi && !vi.isPattern()) {
+      long requestedMajor = vi.getStart().getNumber();
+      List<VersionIdentifier> majorMatches = new ArrayList<>();
+      for (VersionIdentifier v : versions) {
+        if (v.getStart().getNumber() == requestedMajor) {
+          majorMatches.add(v);
+          if (majorMatches.size() >= maxCount) {
+            break;
+          }
+        }
+      }
+      if (!majorMatches.isEmpty()) {
+        return majorMatches;
+      }
+    }
+    return versions.size() <= maxCount ? versions : versions.subList(0, maxCount);
   }
 
   /**
@@ -143,7 +186,7 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
    */
   public boolean isStable() {
 
-    return this.developmentPhase.isStable();
+    return !this.snapshot && this.developmentPhase.isStable();
   }
 
   /**

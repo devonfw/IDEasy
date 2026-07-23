@@ -12,6 +12,22 @@ public class SquirrelSqlUrlUpdater extends GithubUrlReleaseUpdater {
 
   private static final VersionIdentifier MIN_VERSION = VersionIdentifier.of("4.4.0");
 
+  /**
+   * The Constructor.
+   */
+  public SquirrelSqlUrlUpdater() {
+    super();
+  }
+
+  /**
+   * Package-private constructor used for testing {@link SquirrelSqlUrlUpdater}.
+   *
+   * @param baseUrl mock url used as download and version base.
+   */
+  SquirrelSqlUrlUpdater(String baseUrl) {
+    super(baseUrl, baseUrl);
+  }
+
   @Override
   public String getTool() {
 

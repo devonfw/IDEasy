@@ -124,21 +124,24 @@ public interface FileAccess {
   }
 
   /**
-   * Creates a link. If the given {@code link} already exists and is a symbolic link or a Windows junction, it will be replaced. In case of missing
-   * privileges, Windows mklink may be used as fallback, which must point to absolute paths. In such case the {@code relative} flag will be ignored.
+   * Creates a link. If the given {@code link} already exists and is a symbolic link or a Windows junction, it will be replaced. On Windows, mklink may be used
+   * as fallback if native link creation is not allowed.
    *
    * @param source the source {@link Path} to link to, may be relative or absolute.
    * @param link the destination {@link Path} where the link shall be created pointing to {@code source}.
-   * @param relative - {@code true} if the link shall be relative, {@code false} if it shall be absolute.
+   * @param relative {@code true} to calculate a relative target from {@code link} to {@code source}; {@code false} to use {@code source} as passed in,
+   *     apart from normalizing {@code .} and {@code ..} segments.
    * @param type the {@link PathLinkType}.
+   * @return {@link PathLinkType} created or {@code null}, if Microsoft's mklink with junction option had to be used.
    */
-  void link(Path source, Path link, boolean relative, PathLinkType type);
+  PathLinkType link(Path source, Path link, boolean relative, PathLinkType type);
 
   /**
    * @param link the {@link PathLink} to {@link #link(Path, Path, boolean, PathLinkType) create}.
+   * @return created {@link PathLinkType}.
    */
-  default void link(PathLink link) {
-    link(link.source(), link.link(), true, link.type());
+  default PathLinkType link(PathLink link) {
+    return link(link.source(), link.link(), false, link.type());
   }
 
   /**
