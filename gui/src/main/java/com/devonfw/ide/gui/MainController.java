@@ -13,12 +13,16 @@ import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert.AlertType;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.stage.Stage;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.stage.Stage;
@@ -342,6 +346,23 @@ public class MainController {
       }
     });
   }
+
+  @FXML
+  private void openCommandlet() {
+    try {
+      FXMLLoader loader = new FXMLLoader(getClass().getResource("commandlet-view.fxml"));
+      loader.setResources(this.nlsService.getResourceBundle());
+      loader.setController(new CommandletController(guiStateManager.getCurrentContext()));
+      Parent root = loader.load();
+
+      Stage stage = (Stage) selectedProject.getScene().getWindow();
+      stage.setScene(new Scene(root));
+    } catch (IOException e) {
+      LOG.error("Failed to load commandlet view", e);
+      new IdeDialog(IdeDialog.AlertType.ERROR, e.getMessage()).showAndWait();
+    }
+  }
+
 
   @FXML
   private void openCommandlet() {
