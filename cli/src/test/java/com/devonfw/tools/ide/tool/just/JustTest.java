@@ -35,7 +35,7 @@ public class JustTest extends AbstractIdeContextTest {
     commandlet.install();
 
     // assert
-    assertThat(context).logAtInfo().hasMessageContaining("uv tool install rust-just@");
+    assertThat(context).logAtInfo().hasMessageContaining("uv tool install --force rust-just@");
     assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed just");
   }
 
