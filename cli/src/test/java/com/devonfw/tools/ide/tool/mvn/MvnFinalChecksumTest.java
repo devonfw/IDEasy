@@ -12,8 +12,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * Integration test verifying that the deterministic archives produced by our mock repositories
- * match our hardcoded "Gold Standard" values.
+ * Integration test verifying that the deterministic archives produced by our mock repositories match our hardcoded "Gold Standard" values.
  */
 @WireMockTest
 class MvnFinalChecksumTest extends AbstractIdeContextTest {
@@ -21,10 +20,8 @@ class MvnFinalChecksumTest extends AbstractIdeContextTest {
   private static final String PROJECT_MVN = "mvn";
 
 
-
   /**
-   * Integration test verifying that the tool installation correctly performs and validates 
-   * the checksum from the URL repository (urls.sha256).
+   * Integration test verifying that the tool installation correctly performs and validates the checksum from the URL repository (urls.sha256).
    */
   @Test
   void testVerifyUrlChecksum(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
@@ -32,6 +29,7 @@ class MvnFinalChecksumTest extends AbstractIdeContextTest {
     // 1. Arrange: Use the "mvn" project context with WireMock
     IdeTestContext context = newContext(PROJECT_MVN, wmRuntimeInfo);
     Mvn mvn = context.getCommandletManager().getCommandlet(Mvn.class);
+    context.setAnswers("login", "password");
 
     // Read the expected hash from the URL repository file in the test resources
     Path urlsSha256Path = context.getIdePath().resolve("urls/mvn/mvn/3.9.7/urls.sha256");
