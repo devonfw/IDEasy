@@ -191,6 +191,28 @@
               </resources>
             </configuration>
           </execution>
+          <execution>
+            <id>Copy Distribution.xml [macOS Installer]</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/macos-installer</outputDirectory>
+              <delimiters>
+                <delimiter>$[*]</delimiter>
+              </delimiters>
+              <resources>
+                <resource>
+                  <directory>../macos-installer/src</directory>
+                  <filtering>true</filtering>
+                  <includes>
+                    <include>Distribution.xml</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
     </plugins>

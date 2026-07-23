@@ -29,6 +29,7 @@ graphify-out/
 macos-installer/*.pkg
 macos-installer/Resources/LICENSE.rtf
 macos-installer/pkg-root
+macos-installer/Distribution.xml
 
 # Package Files #
 *.jar

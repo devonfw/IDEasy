@@ -23,7 +23,7 @@ fi
 
 echo "Step 2/2: Cleaning up temporary ideasy installation..."
 
-rm -rf $INSTALL_DIR
+rm -rf "$INSTALL_DIR"
 
 echo "Install finished"
 

@@ -99,22 +99,25 @@ jobs:
           cd documentation
           mvn -B -ntp clean install
           cd ..
-          mkdir -p macos-installer/pkg-root/Library/IDEasy/bin
+          mkdir -p macos-installer/pkg-root/bin
           mkdir -p macos-installer/Resources
-          cp documentation/target/generated-docs/IDEasy.pdf macos-installer/pkg-root/Library/IDEasy/
+          cp documentation/target/generated-docs/IDEasy.pdf macos-installer/pkg-root/
           cp documentation/target/generated-docs/LICENSE.rtf macos-installer/Resources/LICENSE.rtf
-          cp -r cli/target/package/* macos-installer/pkg-root/Library/IDEasy/
-          cp cli/target/ideasy macos-installer/pkg-root/Library/IDEasy/bin/
-          rm -rf macos-installer/pkg-root/Library/IDEasy/system/windows
-          rm -rf macos-installer/pkg-root/Library/IDEasy/system/linux
-          chmod +x macos-installer/pkg-root/Library/IDEasy/bin/ideasy
+          cp cli/target/macos-installer/Distribution.xml macos-installer/Distribution.xml
+          cp -r cli/target/package/* macos-installer/pkg-root/
+          cp cli/target/ideasy macos-installer/pkg-root/bin/
+          rm -rf macos-installer/pkg-root/system/windows
+          rm -rf macos-installer/pkg-root/system/linux
+          chmod +x macos-installer/pkg-root/bin/ideasy
           chmod +x macos-installer/scripts/postinstall
           cd macos-installer
-          pkgbuild --root pkg-root --identifier com.devonfw.ideasy \
-          --version $next_version --install-location "/" \
+          pkgbuild --root pkg-root \
+          --identifier com.devonfw.ideasy \
+          --version $next_version \
+          --install-location projects/_ide/tmp/ideasy \
           --scripts scripts IDEasyComponent.pkg
-          sed -i '' "s/\${next_version}/${next_version}/" Distribution.xml
-          productbuild --distribution Distribution.xml --resources Resources \
+          productbuild --distribution Distribution.xml \
+          --resources Resources \
           --package-path . IDEasy-$next_version.pkg
         # pkgbuild is responsible for building the installation bundle. By using productbuild, we can custimze the installation process, including things like showing a license.
       - name: Upload PKG
