@@ -24,7 +24,6 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2056[#2056]: Replaced progress bar with general progress information for installing plugins in VSCode
 * https://github.com/devonfw/IDEasy/issues/1659[#1659]: Abort runTool with warning when global tool installer runs in background
 * https://github.com/devonfw/IDEasy/issues/1720[#1720]: Integrate SoapUI
-* https://github.com/devonfw/IDEasy/issues/1936[#1936]: Improve localization of GUI
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/47?closed=1[milestone 2026.07.002].
 
@@ -121,6 +120,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1952[#1952]: Ability for platform specific dependencies
 * https://github.com/devonfw/IDEasy/issues/1950[#1950]: Fix exit autocompletion
 * https://github.com/devonfw/IDEasy/issues/1958[#1958]: Fix git pull on settings with local branch without remote
+* https://github.com/devonfw/IDEasy/issues/1936[#1936]: Improve localization of GUI
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/44?closed=1[milestone 2026.05.001].
 
