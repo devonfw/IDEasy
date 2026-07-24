@@ -158,6 +158,7 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
     Path gitconfigPath = context.getUserHome().resolve(".gitconfig");
     FileAccess fileAccess = new FileAccessImpl(context);
     fileAccess.writeFileContent("", gitconfigPath);
+    fileAccess.copy(Path.of("src/main/package/gui"), context.getUserHome().resolve("Downloads/ide-cli"));
     Path ideRoot = context.getUserHome().resolve("projects");
     IdeasyCommandlet ideasy = new IdeasyCommandlet(context);
     assertThat(context.getIdeRoot()).as("IDE_ROOT is not set before install").isNull();
