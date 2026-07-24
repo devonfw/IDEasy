@@ -26,7 +26,7 @@ public abstract class MavenCommandlet extends LocalToolCommandlet {
 
     super(context, tool, Set.of(Tag.JAVA, Tag.BUILD));
   }
-  
+
   /**
    * Initializes common Maven auto-completion candidates.
    *
@@ -66,9 +66,15 @@ public abstract class MavenCommandlet extends LocalToolCommandlet {
     registry.add("-U");
     registry.add("-o");
     registry.add("-f");
-    registry.add("-s");
+    registry.add("-s", "--settings");
     registry.add("-rf");
     registry.add("-DdeployAtEnd=true");
+    registry.add("-Dmaven.multiModuleProjectDirectory=");
+    registry.add("-Dmaven.repo.local=");
+    registry.add("-T", "--threads");
+    registry.add("-Dstyle.color=");
+    registry.add("-Duser.dir=");
+    registry.add("-Duser.home=");
   }
 }
 

@@ -59,6 +59,7 @@ import com.devonfw.tools.ide.tool.pycharm.Pycharm;
 import com.devonfw.tools.ide.tool.python.Python;
 import com.devonfw.tools.ide.tool.quarkus.Quarkus;
 import com.devonfw.tools.ide.tool.rust.Rust;
+import com.devonfw.tools.ide.tool.soapui.SoapUi;
 import com.devonfw.tools.ide.tool.sonar.Sonar;
 import com.devonfw.tools.ide.tool.spring.Spring;
 import com.devonfw.tools.ide.tool.spyder.Spyder;
@@ -120,6 +121,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new UpgradeSettingsCommandlet(context));
     add(new CreateCommandlet(context));
     add(new BuildCommandlet(context));
+    add(new ReleaseCommandlet(context));
     add(new InstallPluginCommandlet(context));
     add(new UninstallPluginCommandlet(context));
     add(new UpgradeCommandlet(context));
@@ -175,6 +177,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Claude(context));
     add(new Mvnd(context));
     add(new Just(context));
+    add(new SoapUi(context));
   }
 
   /**

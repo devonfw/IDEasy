@@ -6,6 +6,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import org.jline.utils.Log;
+
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.json.JsonMapping;
 import com.devonfw.tools.ide.url.model.file.json.Cve;
@@ -68,7 +70,7 @@ public class UrlSecurityFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?,
   public void doSave() {
 
     if ((this.security == null || this.security.getIssues().isEmpty()) && !Files.exists(getPath())) {
-      System.out.println("Skipping save for " + getPath() + " (no warnings and file doesn't exist)");
+      Log.debug("Skipping save for {} (no warnings and file doesn't exist)", getPath());
       return;
     }
 
@@ -161,5 +163,3 @@ public class UrlSecurityFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?,
 
 
 }
-
-

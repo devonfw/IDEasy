@@ -38,9 +38,6 @@ public class Mvnd extends MavenCommandlet {
     registry.add("--file");
     registry.add("-Djava.home=");
     registry.add("-Djdk.java.options=");
-    registry.add("-Dmaven.multiModuleProjectDirectory=");
-    registry.add("-Dmaven.repo.local=");
-    registry.add("--settings");
     registry.add("-Dmvnd.buildTime=");
     registry.add("--builder");
     registry.add("-Dmvnd.cancelConnectTimeout=");
@@ -70,13 +67,6 @@ public class Mvnd extends MavenCommandlet {
     registry.add("-Dmvnd.registry=");
     registry.add("-Dmvnd.rollingWindowSize=");
     registry.add("--serial");
-    registry.add("-Dmvnd.socketConnectTimeout=");
-    registry.add("-Dmvnd.socketFamily=");
-    registry.add("-Dmvnd.threadStackSize=");
-    registry.add("--threads");
-    registry.add("-Dstyle.color=");
-    registry.add("-Duser.dir=");
-    registry.add("-Duser.home=");
   }
 
   @Override
