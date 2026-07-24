@@ -51,7 +51,7 @@ As next step read the link:usage.adoc[usage].
 The IDEasy installer writes installation logs to:
 
 ----
-%USERPROFILE%\.ide\logs
+~\.ide\logs
 ----
 
 Each installation generates a new timestamped log file, for example:
