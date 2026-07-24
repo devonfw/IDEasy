@@ -1,6 +1,14 @@
 #!/bin/bash
 set -e
 
+console_user=$(stat -f "%Su" /dev/console)
+console_uid=$(id -u "$console_user")
+
+show_error() {
+  /bin/launchctl asuser "$console_uid" /usr/bin/osascript \
+    -e "display dialog \"$1\" with title \"IDEasy Installer\" buttons {\"OK\"} with icon stop"
+}
+
 echo "Step 1/2: Running IDEasy installation..."
 
 INSTALL_DIR="$HOME/projects/_ide/tmp/ideasy"
@@ -10,16 +18,31 @@ echo "Installing IDEasy to $INSTALL_DIR"
 LOG_DIR="$HOME/.ide/logs"
 mkdir -p "$LOG_DIR"
 ts=$(date +"%Y-%m-%d-%H-%M-%S")
+LOG_FILE="$LOG_DIR/install-$ts.log"
 
-echo "IDEasy installation log for this session can be found at: $LOG_DIR/install-$ts.log"
+echo "IDEasy installation log for this session can be found at: $LOG_FILE"
 
 if [ ! -d "$INSTALL_DIR" ]; then
     echo "ERROR: expected install directory not found: $INSTALL_DIR" >&2
+    show_error "IDEasy installation failed: expected directory not found:\n$INSTALL_DIR"
     exit 1
 fi
 
 "$INSTALL_DIR/bin/ideasy" -ftb --no-colors install \
-  > "$LOG_DIR/install-$ts.log" 2>&1
+  > "$LOG_FILE" 2>&1
+install_rc=$?
+
+# 2. Generischer interner Fehler von ideasy
+if grep -q "ide (install) failed after" "$LOG_FILE"; then
+  show_error "IDEasy installation failed. See log:\n$LOG_FILE"
+  exit 1
+fi
+
+# 3. Fallback: Exit-Code ≠ 0, falls keine Log-Meldung griff
+if [ $install_rc -ne 0 ]; then
+  show_error "IDEasy installation failed (exit code $install_rc). See log:\n$LOG_FILE"
+  exit 1
+fi
 
 echo "Step 2/2: Cleaning up temporary ideasy installation..."
 
