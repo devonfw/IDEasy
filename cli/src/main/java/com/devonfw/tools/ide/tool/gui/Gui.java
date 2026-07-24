@@ -63,11 +63,11 @@ public class Gui extends Commandlet {
     ToolInstallation mvnToolInstallation = mvn.installTool(mavenToolInstallRequest);
     ToolInstallation javaInstallation = java.installTool(javaToolInstallRequest);
 
-    /* Register the freshly installed mvn on the IDEasy managed PATH so that the IDEasy controlled maven is used to launch
-     the GUI instead of any maven that happens to be on the system PATH. We install via installTool (software repository
-     only) and therefore have to register the bin directory ourselves (install() would normally do this). I tried to achieve this alternatively via .withPathEntry(), however, this did not work as expected.
-     This was tested on a Mac; potentially, withPathVariable() works correctly on Windows.
-    */
+    /*
+     * Register the freshly installed mvn on the IDEasy-managed PATH so the IDEasy-controlled maven (from the software
+     * repository) launches the GUI instead of any maven on the system PATH. installTool only installs into the software
+     * repository, so we register the bin directory here (install() would normally do this).
+     */
     context.getPath().setPath(mvn.getName(), mvnToolInstallation.binDir());
 
     LOG.debug("Starting GUI via commandlet");
