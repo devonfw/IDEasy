@@ -46,7 +46,7 @@ For any other existing terminal sessions, you must run the `source` command manu
 Once installed, you want to link:project.adoc[create a project].
 As next step read the link:usage.adoc[usage].
 
-=== Installation Logs (Windows MSI Installer)
+=== Installation Logs
 
 The IDEasy MSI installer writes installation logs to:
 
