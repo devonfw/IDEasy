@@ -95,7 +95,7 @@ jobs:
           maven_config="$(cat .mvn/maven.config)"
           current_version="${maven_config/#*-Drevision=}"
           current_version="${current_version/ */}"
-          next_version="${current_version/-SNAPSHOT/}"
+          current_version="${current_version/-SNAPSHOT/-$(date +%m_%d_%H)-SNAPSHOT}"
           cd documentation
           mvn -B -ntp clean install
           cd ..
