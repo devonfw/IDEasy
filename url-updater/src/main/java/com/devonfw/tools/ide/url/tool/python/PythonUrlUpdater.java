@@ -57,8 +57,14 @@ public class PythonUrlUpdater extends JsonUrlUpdater<PythonJsonObject, PythonRel
       for (PythonFile download : release.files()) {
         if (download.getPlatform().equals("win32") && download.getArch().equals("x64")) {
           doAddVersion(urlVersion, download.getDownloadUrl(), WINDOWS, X64);
+        } else if (download.getPlatform().equals("win32") && download.getArch().equals("arm64")) {
+          doAddVersion(urlVersion, download.getDownloadUrl(), WINDOWS, ARM64);
         } else if (download.getPlatform().equals("linux") && download.getArch().equals("x64")) {
           doAddVersion(urlVersion, download.getDownloadUrl(), LINUX, X64);
+        } else if (download.getPlatform().equals("linux") && download.getArch().equals("arm64")) {
+          doAddVersion(urlVersion, download.getDownloadUrl(), LINUX, ARM64);
+        } else if (download.getPlatform().equals("darwin") && download.getArch().equals("x64")) {
+          doAddVersion(urlVersion, download.getDownloadUrl(), MAC, X64);
         } else if (download.getPlatform().equals("darwin") && download.getArch().equals("arm64")) {
           doAddVersion(urlVersion, download.getDownloadUrl(), MAC, ARM64);
         } else {
