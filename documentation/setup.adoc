@@ -48,7 +48,7 @@ As next step read the link:usage.adoc[usage].
 
 === Installation Logs
 
-The IDEasy MSI installer writes installation logs to:
+The IDEasy installer writes installation logs to:
 
 ----
 %USERPROFILE%\.ide\logs
