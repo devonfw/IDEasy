@@ -393,7 +393,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     String content = "#!/bin/bash\n\"" + escapedBin + "\" gui\n";
     Path applicationsDir = this.context.getUserHome().resolve("Applications");
     this.context.getFileAccess().mkdirs(applicationsDir);
-    Path commandFile = applicationsDir.resolve("IDEasy GUI.command");
+    Path commandFile = applicationsDir.resolve("IDEasy.command");
     this.context.getFileAccess().writeFileContent(content, commandFile);
     this.context.getFileAccess().makeExecutable(commandFile);
     IdeLogLevel.SUCCESS.log(LOG, "Created macOS launcher at {}", commandFile);
@@ -409,13 +409,13 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
         "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders", "Desktop");
     Path desktopPath = (desktopStr != null && !desktopStr.isBlank()) ? Path.of(desktopStr) : this.context.getUserHome().resolve("Desktop");
     this.context.getFileAccess().mkdirs(desktopPath);
-    createWindowsShortcut(desktopPath.resolve("IDEasy GUI.lnk"), ideasyExe, icoPath);
+    createWindowsShortcut(desktopPath.resolve("IDEasy.lnk"), ideasyExe, icoPath);
     String startMenuStr = helper.getRegistryValue(
         "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders", "Programs");
     Path startMenu = (startMenuStr != null && !startMenuStr.isBlank()) ? Path.of(startMenuStr)
         : this.context.getUserHome().resolve("AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs");
     if (Files.isDirectory(startMenu)) {
-      createWindowsShortcut(startMenu.resolve("IDEasy GUI.lnk"), ideasyExe, icoPath);
+      createWindowsShortcut(startMenu.resolve("IDEasy.lnk"), ideasyExe, icoPath);
     }
   }
 

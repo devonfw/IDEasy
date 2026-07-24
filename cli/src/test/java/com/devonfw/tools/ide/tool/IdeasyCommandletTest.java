@@ -127,7 +127,7 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
           .contains("Exec=" + installationPath.resolve("bin/ideasy") + " gui")
           .contains("Icon=" + installationPath.resolve("gui/logo.png"));
     } else if (systemInfo.isMac()) {
-      Path commandFile = context.getUserHome().resolve("Applications/IDEasy GUI.command");
+      Path commandFile = context.getUserHome().resolve("Applications/IDEasy.command");
       assertThat(commandFile).exists();
       assertThat(commandFile).content()
           .contains(installationPath.resolve("bin/ideasy").toString())
@@ -135,9 +135,9 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
     } else if (systemInfo.isWindows()) {
       Assumptions.assumeTrue(System.getProperty("os.name", "").toLowerCase().startsWith("win"),
           "Skipped: .lnk creation requires PowerShell, which is only available on Windows");
-      assertThat(context.getUserHome().resolve("Desktop/IDEasy GUI.lnk")).exists();
+      assertThat(context.getUserHome().resolve("Desktop/IDEasy.lnk")).exists();
       assertThat(context.getUserHome().resolve(
-          "AppData/Roaming/Microsoft/Windows/Start Menu/Programs/IDEasy GUI.lnk")).exists();
+          "AppData/Roaming/Microsoft/Windows/Start Menu/Programs/IDEasy.lnk")).exists();
     }
   }
 
