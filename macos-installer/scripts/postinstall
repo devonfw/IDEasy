@@ -3,11 +3,11 @@ set -e
 
 echo "Step 1/2: Running IDEasy installation..."
 
-INSTALL_DIR="${HOME}/projects/_ide/tmp/ideasy"
+INSTALL_DIR="$HOME/projects/_ide/tmp/ideasy"
 
-echo "Installing IDEasy to ${INSTALL_DIR}"
+echo "Installing IDEasy to $INSTALL_DIR"
 
-LOG_DIR="${HOME}/.ide/logs"
+LOG_DIR="$HOME/.ide/logs"
 mkdir -p "$LOG_DIR"
 ts=$(date +"%Y-%m-%d-%H-%M-%S")
 
