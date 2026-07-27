@@ -78,9 +78,7 @@ public class MainController {
   private IdeGuiLogListener guiLogListener;
   private OutputListener guiOutputListener;
 
-  private final String directoryPath;
-  private Path projectValue;
-  private Path workspaceValue;
+  private final String ideRootDirectory;
 
   private final Map<String, Locale> languageMap;
 
@@ -95,7 +93,7 @@ public class MainController {
   public MainController(String ideRootPath, NlsService nlsService) {
 
     LOG.debug("IDE_ROOT path={}", ideRootPath);
-    this.directoryPath = ideRootPath;
+    this.ideRootDirectory = ideRootPath;
     this.languageMap = new LinkedHashMap<>();
     this.nlsService = nlsService;
 
@@ -197,7 +195,7 @@ public class MainController {
 
   private void setProjectsComboBox() {
 
-    assert (directoryPath != null) : "directoryPath is null! Please check the setup of your environment variables (IDE_ROOT)";
+    assert (ideRootDirectory != null) : "directoryPath is null! Please check the setup of your environment variables (IDE_ROOT)";
 
     List<String> projects = projectManager.getProjectNames();
 
@@ -251,7 +249,7 @@ public class MainController {
         try {
           IdeStartContextImpl startContext = new IdeStartContextImpl(IdeLogLevel.INFO, guiLogListener);
           IdeGuiContext context = new IdeGuiContext(startContext,
-              Path.of(directoryPath).resolve(projectValue).resolve(workspaceValue));
+              Path.of(ideRootDirectory).resolve(selectedProject.getValue()).resolve(selectedWorkspace.getValue()));
 
           // Set output listener for process output
           context.setOutputListener(guiOutputListener);
