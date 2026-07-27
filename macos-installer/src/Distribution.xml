@@ -5,6 +5,7 @@
   <license file="LICENSE.rtf"/>
   <conclusion file="CONCLUSION.rtf"/>
   <background file="background.png" alignment="left" scaling="tofit"/>
+  <background-darkAqua file="background.png" alignment="left" scaling="tofit"/>
   <options customize="never" require-scripts="true"/>
   <domains enable_anywhere="false"
     enable_currentUserHome="true"
