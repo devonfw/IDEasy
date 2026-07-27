@@ -95,7 +95,7 @@ jobs:
           maven_config="$(cat .mvn/maven.config)"
           current_version="${maven_config/#*-Drevision=}"
           current_version="${current_version/ */}"
-          current_version="${current_version/-SNAPSHOT/-$(date +%m_%d_%H)-SNAPSHOT}"
+          next_version="${current_version/-SNAPSHOT/}"
           cd documentation
           mvn -B -ntp clean install
           cd ..
@@ -111,14 +111,8 @@ jobs:
           chmod +x macos-installer/pkg-root/bin/ideasy
           chmod +x macos-installer/scripts/postinstall
           cd macos-installer
-          pkgbuild --root pkg-root \
-          --identifier com.devonfw.ideasy \
-          --version $next_version \
-          --install-location projects/_ide/tmp/ideasy \
-          --scripts scripts IDEasyComponent.pkg
-          productbuild --distribution Distribution.xml \
-          --resources Resources \
-          --package-path . IDEasy-$next_version.pkg
+          pkgbuild --root pkg-root --identifier com.devonfw.ideasy --version $next_version --install-location /projects/_ide/tmp/ideasy --scripts scripts IDEasyComponent.pkg
+          productbuild --distribution Distribution.xml --resources Resources --package-path . IDEasy-$next_version.pkg
         # pkgbuild is responsible for building the installation bundle. By using productbuild, we can custimze the installation process, including things like showing a license.
       - name: Upload PKG
         if: runner.os == 'macOS'
