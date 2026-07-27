@@ -5,6 +5,7 @@ import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
 import java.io.IOException;
 import java.net.URL;
+
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;

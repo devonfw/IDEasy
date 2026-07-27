@@ -2,6 +2,7 @@ package com.devonfw.ide.gui.context;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+
 import javafx.application.Platform;
 
 import com.devonfw.ide.gui.console.ConsoleController;

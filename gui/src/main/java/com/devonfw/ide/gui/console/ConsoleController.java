@@ -2,6 +2,7 @@ package com.devonfw.ide.gui.console;
 
 import java.util.Arrays;
 import java.util.List;
+
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -33,9 +34,6 @@ public class ConsoleController {
   @FXML
   private TextArea consoleOutput;
 
-  /**
-   *
-   */
   @FXML
   private void initialize() {
 
@@ -44,7 +42,7 @@ public class ConsoleController {
   }
 
   /**
-   * Richtet die Event-Handler für Buttons und Eingabefeld ein
+   * Sets up event handlers for the buttons.
    */
   private void setupEventHandlers() {
 
@@ -52,7 +50,7 @@ public class ConsoleController {
   }
 
   /**
-   * Richtet die Bindings für TextArea-Änderungen ein
+   * Sets up bindings for the console output text area, including updating line count and auto-scrolling behavior.
    */
   private void setupTextAreaBindings() {
 
@@ -67,9 +65,9 @@ public class ConsoleController {
   }
 
   /**
-   * Gibt eine Nachricht zur Konsole aus
+   * Prints a message to the console.
    *
-   * @param message die auszugebende Nachricht
+   * @param message message to be printed
    */
   public void appendOutput(String message) {
 
