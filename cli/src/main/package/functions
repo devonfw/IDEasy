@@ -309,8 +309,8 @@ _icd_list_projects()
 {
   local cur="$1" dir names=()
   [ -d "${IDE_ROOT}" ] || return
-  for dir in "${IDE_ROOT}"/*/; do
-    if [ -d "${dir}workspaces" ] && [ -d "${dir}settings" ]; then
+  for dir in "${IDE_ROOT}"/*; do
+    if [ -d "${dir}/workspaces" ] && [ -d "${dir}/settings" ]; then
       names+=("$(basename "${dir}")")
     fi
   done
