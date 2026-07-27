@@ -1,6 +1,7 @@
 package com.devonfw.ide.gui;
 
 import java.util.List;
+
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -36,7 +37,6 @@ public class CommandletController {
     commandletSelector.getItems().clear();
     commandletSelector.getItems().addAll(context.getCommandletManager().getCommandlets().stream()
         .map(Commandlet::getName)
-        .sorted()
         .toList());
   }
 
