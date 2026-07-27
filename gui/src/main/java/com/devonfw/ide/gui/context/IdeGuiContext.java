@@ -24,8 +24,8 @@ public class IdeGuiContext extends AbstractIdeContext {
    */
   public IdeGuiContext(IdeStartContextImpl startContext, Path workingDirectory, TaskManager taskManager) {
 
-    this.taskManager = taskManager;
     super(startContext, workingDirectory);
+    this.taskManager = taskManager;
   }
 
   @Override
