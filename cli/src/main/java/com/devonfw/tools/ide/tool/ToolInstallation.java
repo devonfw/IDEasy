@@ -14,7 +14,23 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  *     "bin").
  * @param resolvedVersion the {@link VersionIdentifier} of the resolved tool version installed in {@code rootDir}.
  * @param newInstallation {@code true} if the tool has been newly installed, {@code false} otherwise (the tool was already installed before).
+ * @param installedAsynchronously {@code true} if the installation was launched in the background and the tool is not yet available, {@code false} otherwise.
  */
-public record ToolInstallation(Path rootDir, Path linkDir, Path binDir, VersionIdentifier resolvedVersion, boolean newInstallation) {
+public record ToolInstallation(Path rootDir, Path linkDir, Path binDir, VersionIdentifier resolvedVersion, boolean newInstallation,
+    boolean installedAsynchronously) {
+
+  /**
+   * Creates a {@link ToolInstallation} with {@code installedAsynchronously} set to {@code false}.
+   *
+   * @param rootDir see {@link #rootDir()}.
+   * @param linkDir see {@link #linkDir()}.
+   * @param binDir see {@link #binDir()}.
+   * @param resolvedVersion see {@link #resolvedVersion()}.
+   * @param newInstallation see {@link #newInstallation()}.
+   */
+  public ToolInstallation(Path rootDir, Path linkDir, Path binDir, VersionIdentifier resolvedVersion, boolean newInstallation) {
+
+    this(rootDir, linkDir, binDir, resolvedVersion, newInstallation, false);
+  }
 
 }

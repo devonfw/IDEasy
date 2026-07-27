@@ -30,6 +30,7 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
+import com.devonfw.tools.ide.process.ProcessResultImpl;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.property.ToolArgumentsProperty;
 import com.devonfw.tools.ide.security.ToolVersionChoice;
@@ -272,7 +273,10 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       // we render this warning so the error gets detected and can be fixed but we do not block the user by skipping the installation.
       LOG.warn("Preventing infinity loop during installation of {}", request.getRequested(), new RuntimeException());
     } else {
-      install(request);
+      ToolInstallation installation = install(request);
+      if (installation != null && installation.installedAsynchronously()) {
+        return new ProcessResultImpl(this.tool, this.tool, 0, List.of());
+      }
     }
     return runTool(request.getProcessContext(), processMode, args);
   }
@@ -344,7 +348,13 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     if (request.isInstallLoop()) {
       return toolAlreadyInstalled(request);
     }
-    return doInstall(request);
+    ToolInstallation installation = doInstall(request);
+    if (installation != null && installation.installedAsynchronously()) {
+      LOG.warn(
+          "The installation of {} is currently running in the background!\nYou need to complete the installation, potentially reboot and rerun your 'ide' command in a new terminal session after the installation has completed.",
+          request.getRequested());
+    }
+    return installation;
   }
 
   /**
@@ -731,8 +741,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       }
     }
     if ((latest == null) && (nearest == null)) {
-      LOG.warn(
-          "Could not find any other version resolving your CVEs.\nPlease keep attention to this tool and consider updating as soon as security fixes are available.");
+      LOG.warn("Could not find any other version resolving your CVEs.\n"
+          + "Please keep attention to this tool and consider updating as soon as security fixes are available.");
       if (alreadyInstalled) {
         // we came here via "ide -f install ..." but no alternative is available
         return resolvedVersion;
@@ -894,19 +904,19 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       destination = EnvironmentVariablesFiles.SETTINGS;
     }
     EnvironmentVariables settingsVariables = variables.getByType(destination.toType());
-    String name = EnvironmentVariables.getToolVersionVariable(this.tool);
+    String variableName = EnvironmentVariables.getToolVersionVariable(this.tool);
 
-    toolRepository.resolveVersion(this.tool, edition, version, this); // verify that the version actually exists
-    settingsVariables.set(name, version.toString(), false);
+    VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, version, this); // verify that the version actually exists
+    settingsVariables.set(variableName, version.toString(), false);
     settingsVariables.save();
-    EnvironmentVariables declaringVariables = variables.findVariable(name);
+    EnvironmentVariables declaringVariables = variables.findVariable(variableName);
     if ((declaringVariables != null) && (declaringVariables != settingsVariables)) {
-      LOG.warn("The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.", name,
+      LOG.warn("The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.", variableName,
           declaringVariables.getSource());
     }
-    if (hint) {
-      LOG.info("To install that version call the following command:");
-      LOG.info("ide install {}", this.tool);
+    LOG.info("Version of tool {} has been set to {} ({}={})", this.tool, version, variableName, version);
+    if (hint && !resolvedVersion.equals(getInstalledVersion())) {
+      IdeLogLevel.INTERACTION.log(LOG, "To install that version call the following command:\nide install {}", this.tool);
     }
   }
 

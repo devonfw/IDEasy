@@ -31,13 +31,33 @@ import com.devonfw.tools.ide.tool.npm.Npm;
 import com.devonfw.tools.ide.tool.npm.NpmRepository;
 import com.devonfw.tools.ide.tool.pip.PipRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
+import com.devonfw.tools.ide.tool.python.PythonRepository;
+import com.devonfw.tools.ide.tool.uv.UvRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.IdeVersion;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * Interface for interaction with the user allowing to input and output information.
+ * Interface for the context of IDEasy and the potential current project. Central constants for names of files and folders are defined here and should be
+ * referenced instead of duplicating such string literals across the code-base. All central components can be accessed from here such as:
+ * <ul>
+ * <li>{@link #getPath() system path} (abstraction of PATH environment variable)</li>
+ * <li>{@link #getCommandletManager() commandlet manager} (access {@link com.devonfw.tools.ide.commandlet.Commandlet}s)</li>
+ * <li>{@link #getFileAccess() file access} (file and I/O operations on a higher level of abstraction)</li>
+ * <li>{@link #getNetworkStatus() network status} (determine if we are online or offline)</li>
+ * <li>{@link #newProcess() process context} (start external programs as process including logging, error handling, background and output processing)</li>
+ * <li>{@link #newStep(String) step} creation (a sub-task that may fail without stopping the overall process)</li>
+ * <li>{@link #newProgressBar(String, long, String, long) progress bar} (to display long-running progress for UX)</li>
+ * <li>{@link #getGitContext() git context} (for git operations like clone, fetch, pull, etc.)</li>
+ * <li>{@link #getSystemInfo() system info} (for information about OS and CPU architecture)</li>
+ * <li>{@link #getVariables() environment variables} (to access and modify IDEasy variables according to our configuration layout)</li>
+ *
+ * <li>{@link #question(Object[], String, Object...) question} (for interaction to let the end-user decide)</li>
+ * <li>{@link #getUrls() url metadata} (access ide-urls to find versions, download URLs, dependency and security metadata)</li>
+ * <li>{@link #getDefaultToolRepository() tool repository} (for abstraction of version resolution and download of tools)</li>
+ * <li>{@link #getSystem() ide system} (abstraction of {@link java.lang.System} for system environment variables)</li>
+ * </ul>
  */
 public interface IdeContext extends IdeStartContext {
 
@@ -355,6 +375,16 @@ public interface IdeContext extends IdeStartContext {
   PipRepository getPipRepository();
 
   /**
+   * @return the {@link UvRepository}.
+   */
+  UvRepository getUvRepository();
+
+  /**
+   * @return the {@link PythonRepository}.
+   */
+  PythonRepository getPythonRepository();
+
+  /**
    * @return the {@link Path} to the IDE instance directory. You can have as many IDE instances on the same computer as independent tenants for different
    *     isolated projects.
    * @see com.devonfw.tools.ide.variable.IdeVariables#IDE_HOME
@@ -384,6 +414,13 @@ public interface IdeContext extends IdeStartContext {
    * @see com.devonfw.tools.ide.variable.IdeVariables#IDE_ROOT
    */
   Path getIdeRoot();
+
+  /**
+   * @param ideRoot the new value of {@link #getIdeRoot() IDE_ROOT}. Typically detected automatically from the environment and working directory, but may need
+   *     to be set explicitly (e.g. during the initial installation where the {@code IDE_ROOT} environment variable is not yet available but the installation
+   *     target is already known).
+   */
+  void setIdeRoot(Path ideRoot);
 
   /**
    * @return the {@link Path} to the {@link #FOLDER_UNDERSCORE_IDE}.
