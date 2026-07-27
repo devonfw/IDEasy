@@ -366,7 +366,7 @@ _icd_list_repositories()
 _icd_completion()
 {
   local cur="${COMP_WORDS[COMP_CWORD]}" prev="${COMP_WORDS[COMP_CWORD-1]}"
-  local icd_comp_project= icd_comp_workspace= i
+  local icd_comp_project icd_comp_workspace i
 
   for (( i=1; i<COMP_CWORD; i++ )); do
     case "${COMP_WORDS[i]}" in
