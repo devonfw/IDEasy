@@ -107,8 +107,8 @@ public class MainController {
         if (change.wasAdded()) {
           LOG.debug("Added: {}", change.getAddedSubList());
 
-          for (ProgressBarTask product : change.getAddedSubList()) {
-            product.currentProgressProperty().addListener((_, _, _) ->
+          for (ProgressBarTask progressTask : change.getAddedSubList()) {
+            progressTask.currentProgressProperty().addListener((_, _, _) ->
                 updateStatusLabel(tasks)
             );
           }
@@ -264,7 +264,6 @@ public class MainController {
               .getCommandletManager()
               .getCommandlet(inIde)
               .run();
-          task.close();
           return null;
         }
       };
@@ -274,6 +273,7 @@ public class MainController {
         IdeDialog errorDialog = new IdeDialog(AlertType.ERROR, "Error occurred while launching " + inIde);
         errorDialog.showAndWait();
       }));
+      downloadTask.setOnSucceeded(_ -> Platform.runLater(task::close));
       return downloadTask;
     }
   }
