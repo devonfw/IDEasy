@@ -116,7 +116,8 @@ public class MainController {
     centerDivider = centerSplitPane.getDividers().getFirst();
 
     centerDivider.positionProperty().addListener((_, _, newVal) -> {
-      //This is a bit of a weird behaviour in JavaFX, but even if you drag the divider fully down, the position value does not become 1, but something like 0.9935345
+      //This is a bit of a weird behaviour in JavaFX, but even if you drag the divider fully down,
+      // the position value does not become 1, but something like 0.9935345
       consolePaneToggleButton.setSelected(newVal.doubleValue() < 0.99);
     });
   }
