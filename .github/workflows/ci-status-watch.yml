@@ -21,7 +21,7 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       WEBHOOK: ${{ secrets.TEAMS_WEBHOOK_URL }}
       REPO: ${{ github.repository }}
-      BRANCH: ${{ github.event.repository.default_branch }}
+      BRANCH: ${{ github.ref_name }}
     steps:
       - name: Detect newly red badge workflows and notify Teams
         run: |
@@ -42,6 +42,7 @@ jobs:
             SINCE=$(date -u -d '1 day ago' +%Y-%m-%dT%H:%M:%SZ)
           fi
           echo "Checking badge workflows for red since $SINCE"
+          echo "Resolved branch: $BRANCH"
 
           is_red() { [ "$1" = "failure" ] || [ "$1" = "timed_out" ] || [ "$1" = "startup_failure" ]; }
 
@@ -54,6 +55,7 @@ jobs:
               [ -z "$ROW" ] && continue
               IFS=$'\t' read -r CUR CURTIME URL PREV NAME <<< "$ROW"
               [ -z "$CUR" ] && continue
+              # lexicographic string comparison sufficient due to ISO-8601 format
               [[ "$CURTIME" > "$SINCE" ]] || continue
               if is_red "$CUR" && { [ "$PREV" = "success" ] || [ -z "$PREV" ]; }; then
                 jq -n --arg n "$NAME" --arg u "$URL" '{name:$n, url:$u}'

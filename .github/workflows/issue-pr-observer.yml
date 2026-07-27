@@ -48,7 +48,7 @@ jobs:
             vivu001
         run: |
           # so a failing gh api trips the || fallback instead of being hidden by the trailing jq
-          set -o pipefail
+          set -o pipefail  # no `set -e`: the per-source `|| { ... ITEMS='[]'; }` fallbacks must keep the script running
 
           # Monday catches up the weekend (Fri–Sun); other weekdays look back 24h.
           if [ "$(date -u +%u)" -eq 1 ]; then
