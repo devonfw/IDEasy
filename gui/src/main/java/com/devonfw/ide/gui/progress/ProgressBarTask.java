@@ -31,7 +31,9 @@ public class ProgressBarTask extends AbstractIdeProgressBar {
   private final String taskId; //We use a task id to differentiate between multiple tasks with the same title.
 
   private final LongProperty progressProperty = new SimpleLongProperty(getCurrentProgress());
-  //we only set the title on this line, once. the title is final in AbstractIdeContext, but we also use a property here to be consistent and allow dynamic updates if needed in the future.
+
+  //we only set the title on this line, once. the title is final in AbstractIdeContext,
+  // but we also use a property here to be consistent and allow dynamic updates if needed in the future.
   private final StringProperty titleProperty = new SimpleStringProperty(getTitle());
   private final BooleanProperty indeterminateProperty = new SimpleBooleanProperty(isIndeterminate());
 
