@@ -80,8 +80,10 @@ public class MainController {
     this.languageMap.clear();
     selectedLanguage.getItems().clear();
 
+    var availableLocales = nlsService.getAvailableLocales();
+    LOG.info(availableLocales.toString());
     // This loop is iterating over de and en but only sets the key for de twice
-    for (Locale locale : nlsService.getAvailableLocales()) {
+    for (Locale locale : availableLocales) {
       // Maybe some file was not found and then he defaults to ROOT or something.
       String displayName = nlsService.getLanguageDisplayName(locale);
       this.languageMap.put(displayName, locale);

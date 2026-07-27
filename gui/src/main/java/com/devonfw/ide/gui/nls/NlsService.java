@@ -81,6 +81,8 @@ public class NlsService {
 
     Locale localeToApply = explicitLocale;
     if (localeToApply == null) {
+      // Setting localeToApply to Locale.ROOT will return "" which leads to exception
+      // Setting localeToApply to Locale.getDefault() will return "de" based on JVM
       localeToApply = Locale.getDefault();
     }
     applyLocale(localeToApply, false);
@@ -240,7 +242,7 @@ public class NlsService {
   }
 
   private ResourceBundle loadBundle(Locale locale) {
-
+    // ResourceBundle.getBundle(BUNDLE_NAME, locale) returns de bundle for en parameter...
     return ResourceBundle.getBundle(BUNDLE_NAME, locale);
   }
 
