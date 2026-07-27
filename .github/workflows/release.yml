@@ -121,7 +121,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pkg
-          path: macos-installer/IDEasy.pkg
+          path: macos-installer/ideasy.pkg
 
   # Downloads all native image artifacts to cli/target and builds the project using assemblies for final deployment to Maven Central.
   # The version number for the next build will be incremented automatically.
@@ -190,6 +190,7 @@ jobs:
           * Windows: https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-windows-x64.tar.gz
           * Mac(arm64): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-mac-arm64.tar.gz
           * Mac(x64): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-mac-x64.tar.gz
+          * Mac(PKG): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-mac.pkg
           * Linux: https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-linux-x64.tar.gz
           # Changes
           https://github.com/devonfw/IDEasy/blob/main/CHANGELOG.adoc#${noDotVersion/-beta/}"
