@@ -32,13 +32,13 @@ fi
   > "$LOG_FILE" 2>&1
 install_rc=$?
 
-# 2. Generischer interner Fehler von ideasy
+# 1. Handle generic install errors by analyzing the log file for known error messages
 if grep -q "ide (install) failed after" "$LOG_FILE"; then
   show_error "IDEasy installation failed. See log:\n$LOG_FILE"
   exit 1
 fi
 
-# 3. Fallback: Exit-Code ≠ 0, falls keine Log-Meldung griff
+# 3. Fallback: Exit-Code != 0 and no error message could be detected in the log file. Show generic error message with log file path.
 if [ $install_rc -ne 0 ]; then
   show_error "IDEasy installation failed (exit code $install_rc). See log:\n$LOG_FILE"
   exit 1
