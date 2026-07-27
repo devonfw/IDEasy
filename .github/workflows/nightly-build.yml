@@ -33,6 +33,12 @@ jobs:
           current_version="${current_version/-SNAPSHOT/-$(date +%m_%d_%H)-SNAPSHOT}"
           cd cli
           mvn -B -ntp -Pnative -DskipTests=true -Drevision=${current_version} package
+      - name: Ad-hoc sign native image (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          codesign --force --sign - cli/target/ideasy
+          codesign --verify --verbose cli/target/ideasy
       - name: Upload native image
         uses: actions/upload-artifact@v4
         with:
@@ -55,8 +61,7 @@ jobs:
           dotnet tool install --global wix --version 5.0.2
           wix extension add WixToolset.UI.wixext/5.0.2
           wix extension add WixToolset.Util.wixext/5.0.2
-          wix build Package.wxs WixUI_IDEasySetup.wxs -loc Package.en-us.wxl -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext -o ideasy.msi
-
+          wix build Package.wxs WixUI_IDEasySetup.wxs WixUI_FirstStepsDlg.wxs -loc Package.en-us.wxl -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext -o ideasy.msi
       - name: Upload unsigned MSI
         if: runner.os == 'Windows'
         id: upload-msi

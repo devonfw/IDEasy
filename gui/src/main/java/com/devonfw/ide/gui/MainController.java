@@ -3,7 +3,10 @@ package com.devonfw.ide.gui;
 import java.io.FileNotFoundException;
 import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -23,6 +26,7 @@ import com.devonfw.ide.gui.context.IdeGuiLogListener;
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
 import com.devonfw.ide.gui.context.ProjectManager;
 import com.devonfw.ide.gui.modal.IdeDialog;
+import com.devonfw.ide.gui.nls.NlsService;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.OutputListener;
@@ -30,18 +34,21 @@ import com.devonfw.tools.ide.process.OutputListener;
 /**
  * Controller of the main screen of the dashboard GUI.
  */
+@SuppressWarnings("unused")
 public class MainController {
 
   private static final Logger LOG = LoggerFactory.getLogger(MainController.class);
 
-  private ProjectManager projectManager;
-
+  private final ProjectManager projectManager;
 
   @FXML
   private ComboBox<String> selectedProject;
 
   @FXML
   private ComboBox<String> selectedWorkspace;
+
+  @FXML
+  private ComboBox<String> selectedLanguage;
 
   @FXML
   private Button androidStudioOpen;
@@ -75,15 +82,22 @@ public class MainController {
   private Path projectValue;
   private Path workspaceValue;
 
+  private final Map<String, Locale> languageMap;
+
+  private final NlsService nlsService;
+
+
   /**
    * Constructor
    *
    * @param ideRootPath IDE_ROOT path.
    */
-  public MainController(String ideRootPath) {
+  public MainController(String ideRootPath, NlsService nlsService) {
 
     LOG.debug("IDE_ROOT path={}", ideRootPath);
     this.directoryPath = ideRootPath;
+    this.languageMap = new LinkedHashMap<>();
+    this.nlsService = nlsService;
 
     this.projectManager = IdeGuiStateManager.getInstance().getProjectManager();
   }
@@ -92,6 +106,8 @@ public class MainController {
   private void initialize() {
 
     setProjectsComboBox();
+    initLanguageComboBox();
+
     consolePaneToggleButton.setOnAction(_ -> toggleConsole());
     androidStudioOpen.setOnAction(_ -> openAndroidStudio());
     eclipseOpen.setOnAction(_ -> openEclipse());
@@ -105,6 +121,55 @@ public class MainController {
       consolePaneToggleButton.setSelected(newVal.doubleValue() < 0.99);
     });
   }
+
+  private void initLanguageComboBox() {
+
+    this.languageMap.clear();
+    selectedLanguage.getItems().clear();
+
+    for (Locale locale : nlsService.getAvailableLocales()) {
+      String displayName = nlsService.getLanguageDisplayName(locale);
+      this.languageMap.put(displayName, locale);
+    }
+
+    selectedLanguage.getItems().addAll(this.languageMap.keySet());
+    //initial value
+    selectedLanguage.setValue(resolveLanguageSelection(nlsService.getLocale()));
+
+    selectedLanguage.setOnAction(ev -> {
+      String selection = selectedLanguage.getValue();
+      Locale newLocale = this.languageMap.get(selection);
+      if (newLocale != null) {
+        nlsService.setLocale(newLocale);
+      }
+    });
+  }
+
+  private String resolveLanguageSelection(Locale currentLocale) {
+
+    if (currentLocale == null) {
+      return this.languageMap.keySet().stream().findFirst().orElse(null);
+    }
+
+    String languageTagMatch = null;
+    String languageMatch = null;
+
+    for (Map.Entry<String, Locale> entry : this.languageMap.entrySet()) {
+      Locale entryLocale = entry.getValue();
+      // Exact language tag match takes priority
+      if (entryLocale.toLanguageTag().equalsIgnoreCase(currentLocale.toLanguageTag())) {
+        return entry.getKey();
+      }
+      // Track language-only match as fallback
+      if (languageMatch == null && entryLocale.getLanguage().equalsIgnoreCase(currentLocale.getLanguage())) {
+        languageMatch = entry.getKey();
+      }
+    }
+
+    // Return language-only match if found, otherwise first available
+    return languageMatch != null ? languageMatch : this.languageMap.keySet().stream().findFirst().orElse(null);
+  }
+
 
   @FXML
   private void openAndroidStudio() {
