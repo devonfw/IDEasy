@@ -1,6 +1,7 @@
 package com.devonfw.ide.gui.progress.taskwindow;
 
 import java.io.IOException;
+
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;

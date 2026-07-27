@@ -5,11 +5,12 @@ import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.concurrent.Task;
-import java.util.Locale;
-import java.util.Map;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -24,9 +25,9 @@ import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.context.ProjectManager;
 import com.devonfw.ide.gui.context.TaskManager;
 import com.devonfw.ide.gui.modal.IdeDialog;
+import com.devonfw.ide.gui.nls.NlsService;
 import com.devonfw.ide.gui.progress.ProgressBarTask;
 import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindow;
-import com.devonfw.ide.gui.nls.NlsService;
 
 /**
  * Controller of the main screen of the dashboard GUI.

@@ -1,6 +1,7 @@
 package com.devonfw.ide.gui.context;
 
 import java.util.Objects;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
