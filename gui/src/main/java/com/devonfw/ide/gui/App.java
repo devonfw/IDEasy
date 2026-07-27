@@ -33,6 +33,9 @@ public class App extends Application {
 
   private NlsService nlsService;
 
+  TaskManager taskManager = new TaskManager();
+  GuiStateManager guiStateManager = new GuiStateManager(taskManager, null);
+
   private static final Logger LOG = LoggerFactory.getLogger(App.class);
 
   @Override
@@ -47,8 +50,6 @@ public class App extends Application {
           Platform.runLater(() -> new IdeDialog(IdeDialog.AlertType.ERROR, throwable.getMessage()).showAndWait());
         }
     );
-    TaskManager taskManager = new TaskManager();
-    GuiStateManager guiStateManager = new GuiStateManager(taskManager, null);
 
     root = loadMainView();
 
