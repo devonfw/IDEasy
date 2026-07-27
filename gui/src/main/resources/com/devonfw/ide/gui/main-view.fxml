@@ -8,9 +8,7 @@
 <BorderPane fx:id="rootPane"
   maxHeight="-Infinity"
   maxWidth="-Infinity"
-  minHeight="-Infinity"
-  prefHeight="515.0"
-  prefWidth="817.0"
+  VBox.vgrow="ALWAYS"
   xmlns="http://javafx.com/javafx/25.0.0"
   xmlns:fx="http://javafx.com/fxml/1">
 
