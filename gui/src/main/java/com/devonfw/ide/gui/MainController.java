@@ -3,10 +3,13 @@ package com.devonfw.ide.gui;
 import java.io.FileNotFoundException;
 import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
 import java.util.List;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.concurrent.Task;
+import java.util.Locale;
+import java.util.Map;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -23,10 +26,12 @@ import com.devonfw.ide.gui.context.TaskManager;
 import com.devonfw.ide.gui.modal.IdeDialog;
 import com.devonfw.ide.gui.progress.ProgressBarTask;
 import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindow;
+import com.devonfw.ide.gui.nls.NlsService;
 
 /**
  * Controller of the main screen of the dashboard GUI.
  */
+@SuppressWarnings("unused")
 public class MainController {
 
   private static final Logger LOG = LoggerFactory.getLogger(MainController.class);
@@ -41,6 +46,9 @@ public class MainController {
 
   @FXML
   private ComboBox<String> selectedWorkspace;
+
+  @FXML
+  private ComboBox<String> selectedLanguage;
 
   @FXML
   private Button androidStudioOpen;
@@ -65,19 +73,26 @@ public class MainController {
   private Path projectValue;
   private Path workspaceValue;
 
+  private final Map<String, Locale> languageMap;
+
+  private final NlsService nlsService;
+
+
   /**
    * Constructor
    *
    * @param ideRoot the IDE_ROOT path
    * @param guiStateManager the {@link GuiStateManager} to be used in this application instance
    */
-  public MainController(String ideRoot, GuiStateManager guiStateManager) {
+  public MainController(String ideRoot, GuiStateManager guiStateManager, NlsService nlsService) {
 
     LOG.debug("IDE_ROOT path={}", ideRoot);
     this.ideRootPath = ideRoot;
     this.guiStateManager = guiStateManager;
     this.taskManager = guiStateManager.getTaskManager();
     this.projectManager = guiStateManager.getProjectManager();
+    this.languageMap = new LinkedHashMap<>();
+    this.nlsService = nlsService;
 
     setUpTaskListListener();
   }
@@ -114,7 +129,57 @@ public class MainController {
   private void initialize() {
 
     setProjectsComboBox();
+    initLanguageComboBox();
   }
+
+  private void initLanguageComboBox() {
+
+    this.languageMap.clear();
+    selectedLanguage.getItems().clear();
+
+    for (Locale locale : nlsService.getAvailableLocales()) {
+      String displayName = nlsService.getLanguageDisplayName(locale);
+      this.languageMap.put(displayName, locale);
+    }
+
+    selectedLanguage.getItems().addAll(this.languageMap.keySet());
+    //initial value
+    selectedLanguage.setValue(resolveLanguageSelection(nlsService.getLocale()));
+
+    selectedLanguage.setOnAction(ev -> {
+      String selection = selectedLanguage.getValue();
+      Locale newLocale = this.languageMap.get(selection);
+      if (newLocale != null) {
+        nlsService.setLocale(newLocale);
+      }
+    });
+  }
+
+  private String resolveLanguageSelection(Locale currentLocale) {
+
+    if (currentLocale == null) {
+      return this.languageMap.keySet().stream().findFirst().orElse(null);
+    }
+
+    String languageTagMatch = null;
+    String languageMatch = null;
+
+    for (Map.Entry<String, Locale> entry : this.languageMap.entrySet()) {
+      Locale entryLocale = entry.getValue();
+      // Exact language tag match takes priority
+      if (entryLocale.toLanguageTag().equalsIgnoreCase(currentLocale.toLanguageTag())) {
+        return entry.getKey();
+      }
+      // Track language-only match as fallback
+      if (languageMatch == null && entryLocale.getLanguage().equalsIgnoreCase(currentLocale.getLanguage())) {
+        languageMatch = entry.getKey();
+      }
+    }
+
+    // Return language-only match if found, otherwise first available
+    return languageMatch != null ? languageMatch : this.languageMap.keySet().stream().findFirst().orElse(null);
+  }
+
 
   @FXML
   private void openAndroidStudio() {

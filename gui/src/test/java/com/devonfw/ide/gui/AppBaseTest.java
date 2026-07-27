@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Locale;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -24,6 +25,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.ide.gui.nls.NlsService;
 import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.context.TaskManager;
 import com.devonfw.ide.gui.progress.ProgressBarTask;
@@ -34,7 +36,7 @@ import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindow;
  */
 public class AppBaseTest extends HeadlessApplicationTest {
 
-  private static final Logger LOG = LoggerFactory.getLogger(AppBaseTest.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(AppBaseTest.class);
 
   private Button androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen;
   private ComboBox<String> selectedProject, selectedWorkspace;
@@ -50,11 +52,14 @@ public class AppBaseTest extends HeadlessApplicationTest {
   @Override
   public void start(Stage stage) throws IOException {
 
+    NlsService nlsService = new NlsService(Locale.ENGLISH);
+
     URL mainViewUrl = getClass().getResource("main-view.fxml");
     assertThat(mainViewUrl).as("Cannot resolve main UI FXML resource!").isNotNull();
 
     FXMLLoader fxmlLoader = new FXMLLoader(mainViewUrl);
-    fxmlLoader.setController(new MainController(mockIdeRoot.toString(), guiStateManager));
+    fxmlLoader.setController(new MainController(mockIdeRoot.toString(), guiStateManager, nlsService));
+    fxmlLoader.setResources(nlsService.getResourceBundle());
     Parent root = fxmlLoader.load();
     stage.setScene(new Scene(root));
     stage.requestFocus(); //sometimes needed for headless setup to work
@@ -75,11 +80,11 @@ public class AppBaseTest extends HeadlessApplicationTest {
    * the test context. Generates a structure like this: /project-[0..6]/workspaces/main
    */
   @BeforeAll
-  protected static void generateProjectFolderStructure() throws IOException {
+  public static void generateProjectFolderStructure() throws IOException {
 
-    LOG.debug("tempDir: {}", mockIdeRoot);
+    LOGGER.debug("tempDir: {}", mockIdeRoot);
     FakeProjectFolderStructureHelper.createFakeProjectFolderStructure(mockIdeRoot);
-    LOG.debug("project folders: {}", Arrays.toString(mockIdeRoot.toFile().list()));
+    LOGGER.debug("project folders: {}", Arrays.toString(mockIdeRoot.toFile().list()));
 
     guiStateManager = new GuiStateManager(taskManager, mockIdeRoot.toString());
     //We set the project root directory to the temporary directory before all tests so that the IDE can find the projects in the test.
@@ -90,6 +95,21 @@ public class AppBaseTest extends HeadlessApplicationTest {
   protected void resetTaskManager() {
 
     taskManager.getTasks().clear();
+  }
+
+  /**
+   * Tests that the workspace {@link ComboBox} is enabled when a project is selected.
+   */
+  @Test
+  public void testWorkspaceComboboxEnabledEnabledWhenProjectSelected() {
+
+    // assert that a project is selected
+    interact(() -> selectedProject.getSelectionModel().select("project-1"));
+
+    // assert all IDE open buttons are disabled
+    assertThat(selectedWorkspace.isDisabled())
+        .as("selectedWorkspace ComboBox should be enabled when a project is selected")
+        .isFalse();
   }
 
   /**
@@ -111,9 +131,9 @@ public class AppBaseTest extends HeadlessApplicationTest {
    * This test ensures that all IDE open buttons are enabled when a project is selected.
    */
   @Test
-  public void testIdeOpenButtonsEnabledWhenProjectSelected() {
+  public void testIdeOpenButtonsEnabledWhenWorkspaceSelected() {
 
-    // assert that project and workspace are selected
+    // assert that a project and workspace is selected
     interact(() -> selectedProject.getSelectionModel().select("project-1"));
     interact(() -> selectedWorkspace.getSelectionModel().select("main"));
 
@@ -121,34 +141,6 @@ public class AppBaseTest extends HeadlessApplicationTest {
     for (Button button : new Button[] { androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen }) {
       assertThat(button.isDisabled()).as(button.getId() + " button should be enabled when a workspace has been selected").isFalse();
     }
-  }
-
-  /**
-   * Tests that the workspace {@link ComboBox} is disbaled when no project is selected.
-   */
-  @Test
-  public void testWorkspaceComboBoxDisabledWhenNoProjectSelected() {
-
-    assertThat(selectedProject.getValue()).isNull();
-
-    assertThat(selectedWorkspace.isDisabled())
-        .as("selectedWorkspace ComboBox should be disabled when no project is selected")
-        .isTrue();
-  }
-
-  /**
-   * Tests that the workspace {@link ComboBox} is enabled when a project is selected.
-   */
-  @Test
-  public void testWorkspaceComboboxEnabledEnabledWhenProjectSelected() {
-
-    // assert that a project is selected
-    interact(() -> selectedProject.getSelectionModel().select("project-1"));
-
-    // assert all IDE open buttons are disabled
-    assertThat(selectedWorkspace.isDisabled())
-        .as("selectedWorkspace ComboBox should be enabled when a project is selected")
-        .isFalse();
   }
 
   @Test

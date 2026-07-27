@@ -93,7 +93,6 @@ class IntellijTest extends AbstractIdeContextTest {
     SystemInfo systemInfo = SystemInfoMock.of(os);
     this.context.setSystemInfo(systemInfo);
     Intellij commandlet = new Intellij(this.context);
-    System.out.println("Starting testIntellijRun on " + os);
 
     // act
     commandlet.run();
@@ -219,7 +218,7 @@ class IntellijTest extends AbstractIdeContextTest {
 
   /**
    * Tests whether IDEasy correctly switches editions when the specified version is after 2025.2.6.1
-   */ 
+   */
   @Test
   void testAdjustRequestedEditionSwitchesForUltimateWithVersionAboveCutoff() {
 
@@ -254,7 +253,7 @@ class IntellijTest extends AbstractIdeContextTest {
     // assert
     assertThat(adjusted.getEdition().edition()).isEqualTo("ultimate");
   }
-  
+
   /**
    * Tests if the custom jvm options of the ide variable INTELLI_VM_ARGS have been set.
    */
@@ -290,7 +289,7 @@ class IntellijTest extends AbstractIdeContextTest {
         new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed java in version 17.0.10_7", true),
         new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed intellij in version 2023.3.3", true));
     assertThat(context).logAtDebug().hasMessage("Omitting installation of inactive plugin InactivePlugin (inactivePlugin).");
-    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin ActivePlugin'.");
+    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin ActivePlugin (1/1)'.");
   }
 
 }

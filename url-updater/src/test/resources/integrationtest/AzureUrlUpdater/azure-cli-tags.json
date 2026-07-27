@@ -4,6 +4,8 @@
   },
   {
     "ref": "refs/tags/azure-cli-2.20.0"
+  },
+  {
+    "ref": "refs/tags/azure-cli-2.85.0"
   }
 ]
-

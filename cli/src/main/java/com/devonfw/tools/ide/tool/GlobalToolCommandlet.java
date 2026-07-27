@@ -174,8 +174,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     }
     installationPath = getInstallationPath(toolEdition.edition(), resolvedVersion);
     if (installationPath == null) {
-      throw new CliException("The tool " + this.tool + " is about to be installed. Please complete the installation and if required "
-          + "reboot your machine. Then rerun the command to start the tool.", 2);
+      return new ToolInstallation(null, null, null, resolvedVersion, true, true);
     }
     return createToolInstallation(installationPath, resolvedVersion, true, pc, false);
   }

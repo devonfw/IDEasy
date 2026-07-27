@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.context.TaskManager;
 import com.devonfw.ide.gui.modal.IdeDialog;
+import com.devonfw.ide.gui.nls.NlsService;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.IdeVersion;
 
@@ -28,27 +29,30 @@ public class App extends Application {
 
   Parent root;
 
+  private Stage primaryStage;
+
+  private NlsService nlsService;
+
   private static final Logger LOG = LoggerFactory.getLogger(App.class);
 
   @Override
   public void start(Stage primaryStage) throws IOException {
 
-    Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
-          System.out.println("Uncaught exception in thread " + thread.getName() + ":" + throwable.getMessage());
+    this.primaryStage = primaryStage;
 
-          //Left this in, because of issues with printing errors when the Fx Application Thread crashes. Needs further research.
-          throwable.printStackTrace();
+    this.nlsService = new NlsService(null);
+
+    Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+          LOG.error("Uncaught exception in thread {}: {}", thread.getName(), throwable.getMessage(), throwable);
           Platform.runLater(() -> new IdeDialog(IdeDialog.AlertType.ERROR, throwable.getMessage()).showAndWait());
         }
     );
     TaskManager taskManager = new TaskManager();
     GuiStateManager guiStateManager = new GuiStateManager(taskManager, null);
 
-    FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
-    fxmlLoader.setController(
-        new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()), guiStateManager)
-    );
-    root = fxmlLoader.load();
+    root = loadMainView();
+
+    this.nlsService.addLocaleChangeListener(this::reloadMainView);
 
     Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
     Scene scene = new Scene(root, bounds.getWidth() / 2, bounds.getHeight() / 2);
@@ -84,6 +88,33 @@ public class App extends Application {
 
     Platform.exit();
     System.exit(0);
+  }
+
+  @Override
+  public void stop() {
+
+    this.nlsService.removeLocaleChangeListener(this::reloadMainView);
+  }
+
+  private void reloadMainView() {
+
+    try {
+      Parent reloadedRoot = loadMainView();
+      this.root = reloadedRoot;
+      if (this.primaryStage != null && this.primaryStage.getScene() != null) {
+        this.primaryStage.getScene().setRoot(reloadedRoot);
+      }
+    } catch (IOException e) {
+      LOG.error("Failed to reload main view after locale change", e);
+    }
+  }
+
+  private Parent loadMainView() throws IOException {
+
+    FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
+    fxmlLoader.setResources(this.nlsService.getResourceBundle());
+    fxmlLoader.setController(new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()), guiStateManager, this.nlsService));
+    return fxmlLoader.load();
   }
 
 
