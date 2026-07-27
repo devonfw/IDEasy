@@ -243,6 +243,9 @@ public class NlsService {
 
   private ResourceBundle loadBundle(Locale locale) {
     // ResourceBundle.getBundle(BUNDLE_NAME, locale) returns de bundle for en parameter...
+    if (locale.equals(Locale.ENGLISH)) {
+      return ResourceBundle.getBundle(BUNDLE_NAME, Locale.ROOT);
+    }
     return ResourceBundle.getBundle(BUNDLE_NAME, locale);
   }
 
