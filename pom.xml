@@ -282,6 +282,8 @@
           <violationSeverity>error</violationSeverity>
         </configuration>
       </plugin>
+
+      <!-- Clean up macOS installer artifacts -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-clean-plugin</artifactId>
