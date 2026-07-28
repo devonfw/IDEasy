@@ -296,14 +296,20 @@
       <build>
         <plugins>
           <plugin>
-            <groupId>org.sonatype.plugins</groupId>
-            <artifactId>nexus-staging-maven-plugin</artifactId>
-            <version>1.7.0</version>
+            <groupId>org.sonatype.central</groupId>
+            <artifactId>central-publishing-maven-plugin</artifactId>
             <extensions>true</extensions>
             <configuration>
-              <serverId>repository</serverId>
-              <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
-              <autoReleaseAfterClose>true</autoReleaseAfterClose>
+              <publishingServerId>repository</publishingServerId>
+              <autoPublish>true</autoPublish>
+              <!--
+                Block until the deployment is actually published instead of returning as soon as it
+                validated. Everything that follows the deployment - the GitHub release notes linking
+                to Maven Central and the Homebrew formula referencing the same URLs - would otherwise
+                race the publication.
+              -->
+              <waitUntil>published</waitUntil>
+              <waitMaxTime>3600</waitMaxTime>
             </configuration>
           </plugin>
         </plugins>
