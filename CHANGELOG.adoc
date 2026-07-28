@@ -7,6 +7,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/1943[#1943]: Create ruby commandlet
+* https://github.com/devonfw/IDEasy/issues/2176[#2176]: Support 7z archive extraction
 * https://github.com/devonfw/IDEasy/issues/2100[#2100]: Fix Python not available for Mac x64
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/48?closed=1[milestone 2026.08.001].
@@ -121,7 +122,6 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1952[#1952]: Ability for platform specific dependencies
 * https://github.com/devonfw/IDEasy/issues/1950[#1950]: Fix exit autocompletion
 * https://github.com/devonfw/IDEasy/issues/1936[#1936]: Improve localization of GUI
-
 * https://github.com/devonfw/IDEasy/issues/1958[#1958]: Fix git pull on settings with local branch without remote
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/44?closed=1[milestone 2026.05.001].
