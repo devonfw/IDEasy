@@ -74,13 +74,13 @@ public class NlsServiceTest {
 
   static Stream<Arguments> localeProvider() {
     return Stream.of(
-        arguments(Locale.GERMAN, Locale.ENGLISH, Locale.ENGLISH, "English (en)"),
-        arguments(Locale.GERMAN, Locale.GERMAN, Locale.GERMAN, "Deutsch (de)"),
-        arguments(Locale.GERMAN, null, Locale.GERMAN, "Deutsch (de)"),
-        arguments(Locale.ENGLISH, Locale.ENGLISH, Locale.ENGLISH, "English (en)"),
-        arguments(Locale.ENGLISH, Locale.GERMAN, Locale.GERMAN, "Deutsch (de)"),
-        arguments(Locale.ENGLISH, null, Locale.ENGLISH, "English (en)"),
-        arguments(Locale.FRENCH, null, Locale.ENGLISH, "English (en)")
+        arguments(Locale.GERMANY, Locale.ENGLISH, Locale.ENGLISH, "English (en)"),
+        arguments(Locale.GERMANY, Locale.GERMAN, Locale.GERMAN, "Deutsch (de)"),
+        arguments(Locale.GERMANY, null, Locale.GERMAN, "Deutsch (de)"),
+        arguments(Locale.UK, Locale.ENGLISH, Locale.ENGLISH, "English (en)"),
+        arguments(Locale.UK, Locale.GERMAN, Locale.GERMAN, "Deutsch (de)"),
+        arguments(Locale.UK, null, Locale.ENGLISH, "English (en)"),
+        arguments(Locale.FRANCE, null, Locale.ENGLISH, "English (en)")
     );
   }
 
