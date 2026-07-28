@@ -28,7 +28,7 @@
     <javafx.version>25</javafx.version>
     <testfx.version>4.0.18</testfx.version>
     <native.maven.plugin.version>0.10.6</native.maven.plugin.version>
-    <assembly.maven.plugin.version>3.7.1</assembly.maven.plugin.version>
+    <assembly.maven.plugin.version>3.8.0</assembly.maven.plugin.version>
     <build.helper.maven.plugin.version>3.6.1</build.helper.maven.plugin.version>
     <graalvm.version>25.1.3</graalvm.version>
   </properties>
