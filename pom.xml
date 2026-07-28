@@ -296,18 +296,17 @@
       <build>
         <plugins>
           <plugin>
+            <!--
+              The plugin itself, its extension and publishingServerId/autoPublish are inherited from
+              the deploy profile of com.devonfw:maven-parent. Only the waiting behaviour is added
+              here: block until the deployment is actually published instead of returning as soon as
+              it is validated. Everything that follows the deployment - the GitHub release notes
+              linking to Maven Central and the Homebrew formula referencing the same artifacts -
+              would otherwise race the publication.
+            -->
             <groupId>org.sonatype.central</groupId>
             <artifactId>central-publishing-maven-plugin</artifactId>
-            <extensions>true</extensions>
             <configuration>
-              <publishingServerId>repository</publishingServerId>
-              <autoPublish>true</autoPublish>
-              <!--
-                Block until the deployment is actually published instead of returning as soon as it
-                validated. Everything that follows the deployment - the GitHub release notes linking
-                to Maven Central and the Homebrew formula referencing the same URLs - would otherwise
-                race the publication.
-              -->
               <waitUntil>published</waitUntil>
               <waitMaxTime>3600</waitMaxTime>
             </configuration>
