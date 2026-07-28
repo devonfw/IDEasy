@@ -1,14 +1,20 @@
 package com.devonfw.ide.gui;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.nio.file.NotDirectoryException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.stage.Stage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +54,9 @@ public class MainController {
 
   @FXML
   private Button vsCodeOpen;
+
+  @FXML
+  private Button commandletOpen;
 
   private final String directoryPath;
 
@@ -185,6 +194,8 @@ public class MainController {
       eclipseOpen.setDisable(false);
       intellijOpen.setDisable(false);
       vsCodeOpen.setDisable(false);
+      vsCodeOpen.setDisable(false);
+      commandletOpen.setDisable(false);
     });
   }
 
@@ -206,4 +217,21 @@ public class MainController {
       errorDialog.showAndWait();
     }
   }
+
+  @FXML
+  private void openCommandlet() {
+    try {
+      FXMLLoader loader = new FXMLLoader(getClass().getResource("commandlet-view.fxml"));
+      loader.setResources(this.nlsService.getResourceBundle());
+      loader.setController(new CommandletController(IdeGuiStateManager.getInstance().getCurrentContext()));
+      Parent root = loader.load();
+
+      Stage stage = (Stage) selectedProject.getScene().getWindow();
+      stage.setScene(new Scene(root));
+    } catch (IOException e) {
+      LOG.error("Failed to load commandlet view", e);
+      new IdeDialog(IdeDialog.AlertType.ERROR, e.getMessage()).showAndWait();
+    }
+  }
+
 }
