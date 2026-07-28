@@ -59,13 +59,15 @@ You can even open SSH sessions and WSL distributions from the context menu of `W
 ==== Window Title
 
 By default git-bash overwrites the window title with `MINGW64:«current-directory»` on every prompt, so all your tabs and windows look alike in the taskbar and in `Alt`+`Tab`.
-IDEasy therefore replaces this with a title that tells you which project and workspace the shell is initialized for:
+IDEasy therefore replaces this with a title that tells you which project, workspace and repository the shell is initialized for:
 
-* `ideasy>«project»>«workspace»` when you are inside a workspace (e.g. `ideasy>devonfw>main`)
+* `ideasy>«project»>«workspace»>«repository»` when you are inside a repository (e.g. `ideasy>devonfw>main>IDEasy`)
+* `ideasy>«project»>«workspace»` when you are inside a workspace but outside any repository
 * `ideasy>«project»` when you are inside an IDEasy project but outside any workspace
 * `ideasy` when you are outside of any IDEasy project
 
-The workspace is derived from your current directory, so the title also follows a plain `cd` between workspaces.
+Workspace and repository are derived from your current directory, so the title also follows a plain `cd` and not only `ide` or `icd`.
+As with `icd -r`, hidden folders are not considered to be repositories, and for a nested repository such as `backend/core` the top-level folder is shown to keep the title short.
 This only applies to git-bash on Windows - on macOS and Linux your prompt configuration is left untouched.
 
 == Windows Helpers

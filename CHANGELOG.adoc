@@ -9,7 +9,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2176[#2176]: Support 7z archive extraction
 * https://github.com/devonfw/IDEasy/issues/2100[#2100]: Fix Python not available for Mac x64
 * https://github.com/devonfw/IDEasy/issues/2134[#2134]: Add auto-completion for icd command
-* https://github.com/devonfw/IDEasy/issues/2226[#2226]: Show IDEasy project and workspace in the Git Bash window title
+* https://github.com/devonfw/IDEasy/issues/2226[#2226]: Show IDEasy project, workspace and repository in the Git Bash window title
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/48?closed=1[milestone 2026.08.001].
 

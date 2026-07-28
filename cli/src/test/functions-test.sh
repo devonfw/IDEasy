@@ -181,7 +181,9 @@ echo
 echo "Testing terminal title in ${FUNCTIONS_FILE}"
 
 mkdir -p "${TITLE_ROOT}/devonfw/workspaces/main/IDEasy/cli"
+mkdir -p "${TITLE_ROOT}/devonfw/workspaces/main/.vscode"
 mkdir -p "${TITLE_ROOT}/devonfw/workspaces/feature-x/foo"
+mkdir -p "${TITLE_ROOT}/devonfw/workspaces/dev/backend/core"
 mkdir -p "${TITLE_ROOT}/devonfw/conf"
 mkdir -p "${TITLE_ROOT}/outside"
 
@@ -234,10 +236,18 @@ checkTitle "directory inside the project but outside any workspace shows no work
   "ideasy>devonfw" "MINGW64_NT-10.0-26200" "${TITLE_ROOT}/devonfw" "${TITLE_ROOT}/devonfw/conf"
 checkTitle "the workspaces directory itself shows no workspace" \
   "ideasy>devonfw" "MINGW64_NT-10.0-26200" "${TITLE_ROOT}/devonfw" "${TITLE_ROOT}/devonfw/workspaces"
-checkTitle "directory deep inside a workspace shows that workspace" \
-  "ideasy>devonfw>main" "MINGW64_NT-10.0-26200" "${TITLE_ROOT}/devonfw" "${TITLE_ROOT}/devonfw/workspaces/main/IDEasy/cli"
+checkTitle "the workspace root shows no repository" \
+  "ideasy>devonfw>main" "MINGW64_NT-10.0-26200" "${TITLE_ROOT}/devonfw" "${TITLE_ROOT}/devonfw/workspaces/main"
+checkTitle "the repository root shows workspace and repository" \
+  "ideasy>devonfw>main>IDEasy" "MINGW64_NT-10.0-26200" "${TITLE_ROOT}/devonfw" "${TITLE_ROOT}/devonfw/workspaces/main/IDEasy"
+checkTitle "directory deep inside a repository still shows that repository" \
+  "ideasy>devonfw>main>IDEasy" "MINGW64_NT-10.0-26200" "${TITLE_ROOT}/devonfw" "${TITLE_ROOT}/devonfw/workspaces/main/IDEasy/cli"
 checkTitle "a non-default workspace is reflected in the title" \
-  "ideasy>devonfw>feature-x" "MINGW64_NT-10.0-26200" "${TITLE_ROOT}/devonfw" "${TITLE_ROOT}/devonfw/workspaces/feature-x/foo"
+  "ideasy>devonfw>feature-x>foo" "MINGW64_NT-10.0-26200" "${TITLE_ROOT}/devonfw" "${TITLE_ROOT}/devonfw/workspaces/feature-x/foo"
+checkTitle "a nested repository shows its top-level folder" \
+  "ideasy>devonfw>dev>backend" "MINGW64_NT-10.0-26200" "${TITLE_ROOT}/devonfw" "${TITLE_ROOT}/devonfw/workspaces/dev/backend/core"
+checkTitle "a hidden folder in the workspace is not a repository" \
+  "ideasy>devonfw>main" "MINGW64_NT-10.0-26200" "${TITLE_ROOT}/devonfw" "${TITLE_ROOT}/devonfw/workspaces/main/.vscode"
 
 # runPrompt <uname -s value> <code evaluated before sourcing> <how often to source> : sources the functions
 # file in a fresh shell simulating the given environment and prints the resulting PS1, the joined
