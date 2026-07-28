@@ -67,6 +67,12 @@ function icd() {
   fi
   local icd_project=
   local icd_workspace=
+  local icd_repository=
+  local icd_repository_given=false
+  # zsh aborts on unmatched globs by default (NOMATCH) - let the workspace-scan globs below behave like in bash
+  if [ -n "${ZSH_VERSION:-}" ]; then
+    setopt local_options null_glob
+  fi
   while [ $# != 0 ]; do
     case "$1" in
       -p|--project)
@@ -83,8 +89,16 @@ function icd() {
           icd_workspace=main
         fi
         ;;
+      -r|--repository)
+        shift
+        icd_repository_given=true
+        if [ $# != 0 ] && [ "${1:0:1}" != "-" ]; then
+          icd_repository=$1
+          shift
+        fi
+        ;;
       -h|--help)
-        echo "USAGE: icd [-p «project»] [-w [«workspace»]]"
+        echo "USAGE: icd [-p «project»] [-w [«workspace»]] [-r [«repository»]]"
         echo
         echo "Change directory and initialize IDEasy environment."
         echo "The icd command can be used as an alternative to the regular cd command."
@@ -93,9 +107,13 @@ function icd() {
         echo "Without any arguments icd will navigate to your top-level project directory (IDE_HOME)."
         echo
         echo "OPTIONS:"
-        echo "  -p | --project   «project»   The IDEasy project to cd to."
-        echo "  -w | --workspace «workspace» The workspace inside your IDEasy project to cd to. Defaults to main."
-        echo "  -h | --help                  Print this help text."
+        echo "  -p | --project    «project»    The IDEasy project to cd to."
+        echo "  -w | --workspace  «workspace»  The workspace inside your IDEasy project to cd to. Defaults to main."
+        echo "  -r | --repository «repository» The repository inside the workspace to cd to. Defaults to the project name."
+        echo "                                 If no workspace is given, 'main' is searched first and then all other workspaces."
+        echo "                                 If no repository is given and no project-name folder is found, falls back to the"
+        echo "                                 single non-hidden folder in the workspace, or the workspace itself with a warning."
+        echo "  -h | --help                    Print this help text."
         return
         ;;
       *)
@@ -104,13 +122,13 @@ function icd() {
     esac
   done
   local icd_path=${IDE_ROOT}
-  
+
   # Determine the project to use
   if [ "${icd_project}" != "" ]; then
     # Project explicitly specified
     icd_path=${icd_path}/${icd_project}
-  elif [ "${icd_workspace}" != "" ]; then
-    # Workspace specified without project - infer project from current directory or IDE_HOME
+  elif [ "${icd_workspace}" != "" ] || [ "${icd_repository_given}" = true ]; then
+    # Workspace or repository specified without project - infer project from current directory or IDE_HOME
     local current_project=""
     local current_dir="$(pwd)"
     if [[ "${current_dir}" == "${IDE_ROOT}"/* ]]; then
@@ -133,11 +151,75 @@ function icd() {
     icd_path=${IDE_HOME}
   fi
   
-  # Append workspace path if specified
-  if [ "${icd_workspace}" != "" ]; then
+  if [ "${icd_repository_given}" = true ]; then
+    # Repository specified (or implied by project name) - resolve it within the given (or searched) workspace
+    local icd_repo_name_given=true
+    local icd_repo_name="${icd_repository}"
+    if [ "${icd_repo_name}" = "" ]; then
+      icd_repo_name="$(basename "${icd_path}")"
+      icd_repo_name_given=false
+    fi
+    local icd_workspaces_dir="${icd_path}/workspaces"
+    local icd_found_workspace=
+    if [ "${icd_workspace}" != "" ]; then
+      if [ -d "${icd_workspaces_dir}/${icd_workspace}/${icd_repo_name}" ]; then
+        icd_found_workspace=${icd_workspace}
+      fi
+    else
+      if [ -d "${icd_workspaces_dir}/main/${icd_repo_name}" ]; then
+        icd_found_workspace=main
+      else
+        local icd_ws_dir icd_ws_name
+        for icd_ws_dir in "${icd_workspaces_dir}"/*/; do
+          [ -d "${icd_ws_dir}" ] || continue
+          icd_ws_name="$(basename "${icd_ws_dir}")"
+          if [ "${icd_ws_name}" = "main" ]; then
+            continue
+          fi
+          if [ -d "${icd_workspaces_dir}/${icd_ws_name}/${icd_repo_name}" ]; then
+            icd_found_workspace=${icd_ws_name}
+            break
+          fi
+        done
+      fi
+    fi
+    if [ "${icd_found_workspace}" != "" ]; then
+      icd_path=${icd_workspaces_dir}/${icd_found_workspace}/${icd_repo_name}
+    elif [ "${icd_repo_name_given}" = true ]; then
+      if [ "${icd_workspace}" != "" ]; then
+        echo "Error: Repository '${icd_repo_name}' not found in workspace '${icd_workspace}'." >&2
+      else
+        echo "Error: Repository '${icd_repo_name}' not found in any workspace." >&2
+      fi
+      return 1
+    else
+      local icd_fallback_workspace="${icd_workspace}"
+      if [ "${icd_fallback_workspace}" = "" ]; then
+        icd_fallback_workspace=main
+      fi
+      local icd_fallback_dir="${icd_workspaces_dir}/${icd_fallback_workspace}"
+      local icd_candidate= icd_candidate_count=0 icd_entry icd_entry_name
+      for icd_entry in "${icd_fallback_dir}"/*/; do
+        [ -d "${icd_entry}" ] || continue
+        icd_entry_name="$(basename "${icd_entry}")"
+        case "${icd_entry_name}" in
+          .*) continue ;;
+        esac
+        icd_candidate="${icd_entry}"
+        icd_candidate_count=$((icd_candidate_count + 1))
+      done
+      if [ "${icd_candidate_count}" = 1 ]; then
+        icd_path="${icd_candidate%/}"
+      else
+        echo "Warning: Repository '${icd_repo_name}' not found in any workspace and workspace '${icd_fallback_workspace}' does not contain a single unambiguous repository. Navigating to the workspace instead." >&2
+        icd_path="${icd_fallback_dir}"
+      fi
+    fi
+  elif [ "${icd_workspace}" != "" ]; then
+    # Append workspace path if specified
     icd_path=${icd_path}/workspaces/${icd_workspace}
   fi
-  
+
   cd "${icd_path}" || return 1
   ide
   return

@@ -1,4 +1,8 @@
 #!/bin/bash
+if [ "$1" = "python" ] && [ "$2" = "list" ]; then
+  echo '[{"version": "3.12.12", "implementation": "cpython"}]'
+  exit 0
+fi
 echo "uv $*"
 cd $(dirname $0)
 cd ../../../../../..

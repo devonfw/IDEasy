@@ -266,6 +266,9 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
    */
   public void installIdeasy(Path cwd) {
     Path ideRoot = determineIdeRoot(cwd);
+    // During a fresh (MSI) installation the IDE_ROOT environment variable is not yet available, so context.getIdeRoot() would return null for the whole run.
+    // The installation target is already known here, so we make the context consistent for any downstream code reading context.getIdeRoot() (see #1517).
+    this.context.setIdeRoot(ideRoot);
     Path idePath = ideRoot.resolve(IdeContext.FOLDER_UNDERSCORE_IDE);
     Path installationPath = idePath.resolve(IdeContext.FOLDER_INSTALLATION);
     Path ideasySoftwarePath = idePath.resolve(IdeContext.FOLDER_SOFTWARE).resolve(MvnRepository.ID).resolve(IdeasyCommandlet.TOOL_NAME)
