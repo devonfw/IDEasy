@@ -317,19 +317,32 @@ _icd_list_projects()
   compgen -W "${names[*]}" -- "${project_prefix}"
 }
 
+# sets _ide_path_segment_result to the first path segment of the path $1 below the directory $2, or to the
+# empty string if $1 is not below $2. Used to determine the current project, workspace and repository.
+# Callers should declare _ide_path_segment_result as local. The result is passed via this variable instead of
+# being echoed, so that no subshell is needed - _ide_title calls this for every prompt.
+_ide_path_segment()
+{
+  local path="$1" base="$2" relative_path
+  _ide_path_segment_result=
+  if [[ "${path}" != "${base}"/* ]]; then
+    return
+  fi
+  relative_path="${path#${base}/}"
+  _ide_path_segment_result="${relative_path%%/*}"
+}
+
 # echoes the path of the project given as $1 or, if empty, the project inferred from PWD or IDE_HOME (same logic as icd())
 _icd_project_dir()
 {
-  local project="$1"
+  local project="$1" _ide_path_segment_result
   if [ -n "${project}" ]; then
     echo "${IDE_ROOT}/${project}"
     return
   fi
-  local current_dir
-  current_dir="$(pwd)"
-  if [[ "${current_dir}" == "${IDE_ROOT}"/* ]]; then
-    local relative_path="${current_dir#${IDE_ROOT}/}"
-    echo "${IDE_ROOT}/${relative_path%%/*}"
+  _ide_path_segment "$(pwd)" "${IDE_ROOT}"
+  if [ -n "${_ide_path_segment_result}" ]; then
+    echo "${IDE_ROOT}/${_ide_path_segment_result}"
   elif [ -n "${IDE_HOME}" ]; then
     echo "${IDE_HOME}"
   fi
@@ -393,6 +406,56 @@ _icd_completion()
 
   COMPREPLY=( $(compgen -W "-p --project -w --workspace -r --repository -h --help" -- "${cur}") )
 }
+
+# writes the terminal title for the current directory as "ideasy", "ideasy>«project»",
+# "ideasy>«project»>«workspace»" or "ideasy>«project»>«workspace»>«repository»", so that terminal tabs and
+# windows can be told apart.
+# The workspace and repository are derived from PWD and not from the WORKSPACE variable, since the latter
+# always defaults to "main" even outside of any workspace or IDEasy project. Like "icd -r", hidden folders are
+# not considered to be repositories. For a nested repository such as "backend/core" the top-level folder is
+# shown to keep the title short.
+_ide_title()
+{
+  local title="ideasy" workspace repository _ide_path_segment_result
+  if [ -n "${IDE_HOME:-}" ]; then
+    title="${title}>${IDE_HOME##*/}"
+    _ide_path_segment "${PWD}" "${IDE_HOME}/workspaces"
+    workspace="${_ide_path_segment_result}"
+    if [ -n "${workspace}" ]; then
+      title="${title}>${workspace}"
+      _ide_path_segment "${PWD}" "${IDE_HOME}/workspaces/${workspace}"
+      repository="${_ide_path_segment_result}"
+      if [ -n "${repository}" ] && [[ "${repository}" != .* ]]; then
+        title="${title}>${repository}"
+      fi
+    fi
+  fi
+  printf '\033]0;%s\007' "${title}"
+}
+
+# Git Bash rewrites the window title on every prompt through an escape sequence in PS1 (see
+# /etc/profile.d/git-prompt.sh), so a title cannot be set permanently. Remove that sequence and write our own
+# title instead. This is limited to Git Bash on purpose: on other systems the prompt is configured by the user
+# or the distribution and must not be touched, and zsh has no PROMPT_COMMAND (it uses precmd).
+if _ide_is_msys && [ -n "${BASH_VERSION:-}" ]; then
+  case "${PS1:-}" in
+    '\[\033]0;'*'\007\]'*)
+      PS1="${PS1#*'\007\]'}"
+      ;;
+  esac
+  # the joined form matches both a plain string and an array valued PROMPT_COMMAND (bash 5.1 and above)
+  case "${PROMPT_COMMAND[*]:-}" in
+    *_ide_title*)
+      ;;
+    *)
+      if [[ "$(declare -p PROMPT_COMMAND 2>/dev/null)" == "declare -a"* ]]; then
+        PROMPT_COMMAND=(_ide_title "${PROMPT_COMMAND[@]}")
+      else
+        PROMPT_COMMAND="_ide_title${PROMPT_COMMAND:+; ${PROMPT_COMMAND}}"
+      fi
+      ;;
+  esac
+fi
 
 complete -F _ide_completion ide
 complete -F _icd_completion icd
