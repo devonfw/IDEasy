@@ -1,6 +1,7 @@
 package com.devonfw.ide.gui.nls;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,11 +18,15 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
 
@@ -56,16 +61,28 @@ public class NlsServiceTest {
     }
   }
 
-  @Test
-  public void testGetInstanceWithLocale() {
+  @ParameterizedTest
+  @MethodSource("localeProvider")
+  public void testGetInstanceWithLocale(Locale systemLocale, Locale providedLocal, Locale expectedServiceLocal, String expectedString) {
+    Locale.setDefault(systemLocale);
+    NlsService service = new NlsService(providedLocal);
 
-    NlsService service = new NlsService(Locale.ENGLISH);
-
-    assertThat(service.getLocale()).isEqualTo(Locale.ENGLISH);
+    assertThat(service.getLocale()).isEqualTo(expectedServiceLocal);
     assertThat(service.getResourceBundle()).isNotNull();
-    assertThat(service.get("CurrentLanguage")).isEqualTo("English (en)");
+    assertThat(service.get("CurrentLanguage")).isEqualTo(expectedString);
   }
 
+  static Stream<Arguments> localeProvider() {
+    return Stream.of(
+        arguments(Locale.GERMAN, Locale.ENGLISH, Locale.ENGLISH, "English (en)"),
+        arguments(Locale.GERMAN, Locale.GERMAN, Locale.GERMAN, "Deutsch (de)"),
+        arguments(Locale.GERMAN, null, Locale.GERMAN, "Deutsch (de)"),
+        arguments(Locale.ENGLISH, Locale.ENGLISH, Locale.ENGLISH, "English (en)"),
+        arguments(Locale.ENGLISH, Locale.GERMAN, Locale.GERMAN, "Deutsch (de)"),
+        arguments(Locale.ENGLISH, null, Locale.ENGLISH, "English (en)"),
+        arguments(Locale.FRENCH, null, Locale.ENGLISH, "English (en)")
+    );
+  }
 
   @Test
   public void testSetLocale() {
@@ -77,7 +94,6 @@ public class NlsServiceTest {
     assertThat(service.getResourceBundle()).isNotNull();
     assertThat(service.get("CurrentLanguage")).isEqualTo("Deutsch (de)");
   }
-
 
   @Test
   public void testAllLocalizationBundlesContainExactlyTheEnglishKeys() throws IOException {
@@ -147,7 +163,6 @@ public class NlsServiceTest {
     assertThat(properties.getProperty("IDE_OPTIONS")).isEqualTo("-Duser.language=de");
   }
 
-  
   @Test
   public void testPersistLocaleUpdatesExistingUserLangInIdeOptions() throws IOException {
 
@@ -314,6 +329,3 @@ public class NlsServiceTest {
   }
 
 }
-
-
-

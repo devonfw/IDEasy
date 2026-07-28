@@ -68,22 +68,23 @@ public class NlsService {
    * @param locale the preferred locale, or {@code null} to use persisted or default locale.
    */
   public NlsService(Locale locale) {
-
+    this.availableLocales = getAvailableLocales();
     initialize(locale);
   }
 
   /**
-   * Initializes the service using an explicit, persisted, or system default locale.
+   * Initializes the service using an explicit, persisted, or system default locale (if applicable) or English as fallback.
    *
    * @param explicitLocale the locale requested by the caller, or {@code null}.
    */
   private void initialize(Locale explicitLocale) {
-
     Locale localeToApply = explicitLocale;
     if (localeToApply == null) {
-      // Setting localeToApply to Locale.ROOT will return "" which leads to exception
-      // Setting localeToApply to Locale.getDefault() will return "de" based on JVM
-      localeToApply = Locale.getDefault();
+      // Locale.getDefault() returns "de_DE" (for systems set to German) which isn't the same as "de"
+      localeToApply = Locale.of(Locale.getDefault().getLanguage());
+      if (!availableLocales.contains(localeToApply)) {
+        localeToApply = Locale.ENGLISH;
+      }
     }
     applyLocale(localeToApply, false);
   }
@@ -242,7 +243,7 @@ public class NlsService {
   }
 
   private ResourceBundle loadBundle(Locale locale) {
-    // ResourceBundle.getBundle(BUNDLE_NAME, locale) returns de bundle for en parameter...
+    // ResourceBundle.getBundle(...) with Locale.ENGLISH would return German properties on system locale = German
     if (locale.equals(Locale.ENGLISH)) {
       return ResourceBundle.getBundle(BUNDLE_NAME, Locale.ROOT);
     }
