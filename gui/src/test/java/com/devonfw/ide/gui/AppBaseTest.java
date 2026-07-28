@@ -3,15 +3,12 @@ package com.devonfw.ide.gui;
 import static org.testfx.assertions.api.Assertions.assertThat;
 
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Locale;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -21,7 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.context.IdeGuiStateManager;
-import com.devonfw.ide.gui.nls.NlsService;
+
 
 /**
  * Basic UI Test
@@ -32,6 +29,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
 
   private Button androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen;
   private ComboBox<String> selectedProject, selectedWorkspace;
+  private StackPane updateIndicator;
 
   @TempDir
   private static Path mockIdeRoot;
@@ -39,26 +37,18 @@ public class AppBaseTest extends HeadlessApplicationTest {
 
   @Override
   public void start(Stage stage) throws IOException {
+    // Create deterministic test controllers used by many tests
+    // Use the shared TestGuiSetup which provides deterministic test doubles by default
+    Parent root = TestGuiSetup.setupStageWithControllers(stage, mockIdeRoot, null, null);
 
-    NlsService nlsService = new NlsService(Locale.ENGLISH);
-
-    URL mainViewUrl = getClass().getResource("main-view.fxml");
-    assertThat(mainViewUrl).as("Cannot resolve main UI FXML resource!").isNotNull();
-
-    FXMLLoader fxmlLoader = new FXMLLoader(mainViewUrl);
-    fxmlLoader.setController(new MainController(mockIdeRoot.toString(), nlsService));
-    fxmlLoader.setResources(nlsService.getResourceBundle());
-    Parent root = fxmlLoader.load();
-    stage.setScene(new Scene(root));
-    stage.requestFocus(); //sometimes needed for headless setup to work
-    stage.show();
-
+    // Lookup UI nodes
     androidStudioOpen = lookup(root, "#androidStudioOpen");
     eclipseOpen = lookup(root, "#eclipseOpen");
     intellijOpen = lookup(root, "#intellijOpen");
     vsCodeOpen = lookup(root, "#vsCodeOpen");
     selectedProject = lookup(root, "#selectedProject");
     selectedWorkspace = lookup(root, "#selectedWorkspace");
+    updateIndicator = lookup(root, "#updateIndicator");
   }
 
   /**
@@ -72,8 +62,8 @@ public class AppBaseTest extends HeadlessApplicationTest {
     FakeProjectFolderStructureHelper.createFakeProjectFolderStructure(mockIdeRoot);
     LOGGER.debug("project folders: {}", Arrays.toString(mockIdeRoot.toFile().list()));
 
-    //We set the project root directory to the temporary directory before all tests, so that the IDE can find the projects in the test.
-    IdeGuiStateManager.getInstanceOverrideRootDir(mockIdeRoot.toString()).switchContext("project-1", "main");
+    // Set the project root directory to the temporary directory before all tests so that the IDE can find the projects in the test.
+    IdeGuiStateManager.getInstanceOverrideRootDir(mockIdeRoot.toString()).clearCurrentContext();
   }
 
   /**
@@ -89,6 +79,17 @@ public class AppBaseTest extends HeadlessApplicationTest {
     for (Button button : new Button[] { androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen }) {
       assertThat(button.isDisabled()).as(button.getId() + " button should be disabled when no workspace has been selected").isTrue();
     }
+  }
+
+  /**
+   * This test ensures that the update indicator is hidden when no project/workspace is selected.
+   */
+  @Test
+  public void testUpdateIndicatorHiddenWhenNoWorkspaceSelected() {
+
+    assertThat(updateIndicator.isVisible())
+        .as("update indicator should be hidden when no workspace has been selected")
+        .isFalse();
   }
 
   /**

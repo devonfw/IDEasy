@@ -34,31 +34,38 @@ public class App extends Application {
 
   @Override
   public void start(Stage primaryStage) throws IOException {
+    try {
 
-    this.primaryStage = primaryStage;
+      // For testing purposes.
+      // TestGuiConfiguration.applyConfigOverrides();
 
-    this.nlsService = new NlsService(null);
+      this.primaryStage = primaryStage;
 
-    Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
-          LOG.error("Uncaught exception in thread {}: {}", thread.getName(), throwable.getMessage(), throwable);
-          Platform.runLater(() -> new IdeDialog(IdeDialog.AlertType.ERROR, throwable.getMessage()).showAndWait());
-        }
-    );
+      this.nlsService = new NlsService(null);
 
-    root = loadMainView();
+      Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+            LOG.error("Uncaught exception in thread {}: {}", thread.getName(), throwable.getMessage(), throwable);
+            Platform.runLater(() -> new IdeDialog(IdeDialog.AlertType.ERROR, throwable.getMessage()).showAndWait());
+          }
+      );
 
-    this.nlsService.addLocaleChangeListener(this::reloadMainView);
+      root = loadMainView();
 
-    Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
-    Scene scene = new Scene(root, bounds.getWidth() / 2, bounds.getHeight() / 2);
+      this.nlsService.addLocaleChangeListener(this::reloadMainView);
 
-    Image icon = new Image("com/devonfw/ide/gui/assets/devonfw.png");
-    primaryStage.getIcons().add(icon);
-    primaryStage.setTitle("IDEasy - version " + IdeVersion.getVersionString());
-    primaryStage.setScene(scene);
-    primaryStage.setMinWidth(scene.getWidth());
-    primaryStage.setMinHeight(scene.getHeight());
-    primaryStage.show();
+      Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
+      Scene scene = new Scene(root, bounds.getWidth() / 2, bounds.getHeight() / 2);
+
+      Image icon = new Image("com/devonfw/ide/gui/assets/devonfw.png");
+      primaryStage.getIcons().add(icon);
+      primaryStage.setTitle("IDEasy - version " + IdeVersion.getVersionString());
+      primaryStage.setScene(scene);
+      primaryStage.setMinWidth(scene.getWidth());
+      primaryStage.setMinHeight(scene.getHeight());
+      primaryStage.show();
+    } catch (Throwable t) {
+      new IdeDialog(IdeDialog.AlertType.ERROR, "Failed to start IDEasy GUI: " + t.getMessage()).showAndWait();
+    }
   }
 
   @Override
