@@ -87,6 +87,7 @@ public class Docker extends GlobalToolCommandlet {
     return List.of(new PackageManagerCommand(NativePackageManager.ZYPPER, List.of(
             "sudo zypper addrepo https://download.opensuse.org/repositories/isv:/Rancher:/stable/rpm/isv:Rancher:stable.repo",
             String.format("sudo zypper --no-gpg-checks install rancher-desktop=%s*", resolvedVersion))),
+        new PackageManagerCommand(NativePackageManager.PACMAN, List.of("yay -S --needed --noconfirm rancher-desktop")),
         new PackageManagerCommand(NativePackageManager.APT, List.of(
             "curl -s https://download.opensuse.org/repositories/isv:/Rancher:/stable/deb/Release.key | gpg --dearmor |"
                 + " sudo dd status=none of=/usr/share/keyrings/isv-rancher-stable-archive-keyring.gpg",
@@ -132,6 +133,9 @@ public class Docker extends GlobalToolCommandlet {
 
   private VersionIdentifier getDockerDesktopVersionLinux() {
 
+    if (!isCommandAvailable("apt")) {
+      return null;
+    }
     String dockerDesktopVersionLinuxCommand = "apt list --installed | grep docker-desktop | awk '{print $2}'";
     String output = this.context.newProcess().runAndGetSingleOutput("bash", "-lc", dockerDesktopVersionLinuxCommand);
     return super.resolveVersionWithPattern(output, DOCKER_DESKTOP_LINUX_VERSION_PATTERN);
@@ -175,6 +179,8 @@ public class Docker extends GlobalToolCommandlet {
         new PackageManagerCommand(NativePackageManager.ZYPPER, List.of("sudo zypper remove rancher-desktop")));
     pmCommands.add(
         new PackageManagerCommand(NativePackageManager.APT, List.of("sudo apt -y autoremove rancher-desktop")));
+    pmCommands.add(
+        new PackageManagerCommand(NativePackageManager.PACMAN, List.of("sudo pacman -Rs --noconfirm rancher-desktop")));
 
     return pmCommands;
   }
