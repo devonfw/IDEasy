@@ -78,7 +78,8 @@ echo
 echo "Testing icd -r repository navigation in ${FUNCTIONS_FILE}"
 
 ICD_ROOT="$(mktemp -d)"
-trap 'rm -rf "${STUB_DIR}" "${ICD_ROOT}"' EXIT
+TITLE_ROOT="$(mktemp -d)"
+trap 'rm -rf "${STUB_DIR}" "${ICD_ROOT}" "${TITLE_ROOT}"' EXIT
 
 # "proj" has a repo directly in main ("cli") and a nested repo in "dev" ("backend/core", with "backend" itself
 # also being a valid top-level repo folder in "dev").
@@ -175,6 +176,152 @@ for icd_shell in "${ICD_SHELLS[@]}"; do
   checkIcd "-r (implicit): empty workspace -> warning, cd into workspace, no crash" "${icd_shell}" 0 "/proj-empty/workspaces/main" "not contain a single unambiguous repository" \
     -p proj-empty -r
 done
+
+echo
+echo "Testing terminal title in ${FUNCTIONS_FILE}"
+
+mkdir -p "${TITLE_ROOT}/devonfw/workspaces/main/IDEasy/cli"
+mkdir -p "${TITLE_ROOT}/devonfw/workspaces/feature-x/foo"
+mkdir -p "${TITLE_ROOT}/devonfw/conf"
+mkdir -p "${TITLE_ROOT}/outside"
+
+# the window title sequence Git Bash bakes into PS1, followed by its regular colored prompt
+GIT_BASH_PS1='\[\033]0;$TITLEPREFIX:$PWD\007\]\n\[\033[32m\]\u@\h \[\033[33m\]\w\[\033[0m\]\n$ '
+# the same prompt with the title sequence removed
+GIT_BASH_PS1_STRIPPED='\n\[\033[32m\]\u@\h \[\033[33m\]\w\[\033[0m\]\n$ '
+
+# runTitle <uname -s value> <IDE_HOME value> <directory to cd into> : sources the functions file in a fresh
+# shell simulating the given environment and prints the title text emitted by _ide_title without its escape
+# sequence, or "<none>" if the functions file did not define _ide_title.
+runTitle() {
+  FAKE_UNAME_S="$1" FAKE_IDE_HOME="$2" FAKE_PWD="$3" GIT_BASH_PS1="${GIT_BASH_PS1}" \
+  FUNCTIONS_FILE="${FUNCTIONS_FILE}" STUB_DIR="${STUB_DIR}" TITLE_ROOT="${TITLE_ROOT}" \
+    bash --noprofile --norc -c '
+      export PATH="${STUB_DIR}:${PATH}"
+      export IDE_ROOT="${TITLE_ROOT}"
+      uname() { if [ "$1" = "-s" ]; then echo "${FAKE_UNAME_S}"; else command uname "$@"; fi; }
+      cygpath() { echo "${@: -1}"; }
+      PS1="${GIT_BASH_PS1}"
+      source "${FUNCTIONS_FILE}" >/dev/null 2>&1
+      declare -F _ide_title >/dev/null || { echo "<none>"; exit 0; }
+      # "ide" resets IDE_HOME while sourcing, so the simulated project is set afterwards
+      IDE_HOME="${FAKE_IDE_HOME}"
+      cd "${FAKE_PWD}" || exit 99
+      title="$(_ide_title | tr -d $'"'"'\033\007'"'"')"
+      echo "${title#]0;}"
+    '
+}
+
+# checkTitle <description> <expected title> <uname -s value> <IDE_HOME value> <directory to cd into>
+checkTitle() {
+  local description="$1" expected="$2" uname_s="$3" ide_home="$4" dir="$5"
+  total=$((total + 1))
+  local actual
+  actual="$(runTitle "${uname_s}" "${ide_home}" "${dir}")"
+  if [ "${actual}" = "${expected}" ]; then
+    doSuccess "PASSED: ${description} (title '${actual}')"
+  else
+    doError "FAILED: ${description} - expected title '${expected}' but was '${actual}'"
+    failed=$((failed + 1))
+  fi
+}
+
+checkTitle "outside any IDEasy project only shows the tool name" \
+  "ideasy" "MINGW64_NT-10.0-26200" "" "${TITLE_ROOT}/outside"
+checkTitle "project root shows project without workspace" \
+  "ideasy>devonfw" "MINGW64_NT-10.0-26200" "${TITLE_ROOT}/devonfw" "${TITLE_ROOT}/devonfw"
+checkTitle "directory inside the project but outside any workspace shows no workspace" \
+  "ideasy>devonfw" "MINGW64_NT-10.0-26200" "${TITLE_ROOT}/devonfw" "${TITLE_ROOT}/devonfw/conf"
+checkTitle "the workspaces directory itself shows no workspace" \
+  "ideasy>devonfw" "MINGW64_NT-10.0-26200" "${TITLE_ROOT}/devonfw" "${TITLE_ROOT}/devonfw/workspaces"
+checkTitle "directory deep inside a workspace shows that workspace" \
+  "ideasy>devonfw>main" "MINGW64_NT-10.0-26200" "${TITLE_ROOT}/devonfw" "${TITLE_ROOT}/devonfw/workspaces/main/IDEasy/cli"
+checkTitle "a non-default workspace is reflected in the title" \
+  "ideasy>devonfw>feature-x" "MINGW64_NT-10.0-26200" "${TITLE_ROOT}/devonfw" "${TITLE_ROOT}/devonfw/workspaces/feature-x/foo"
+
+# runPrompt <uname -s value> <code evaluated before sourcing> <how often to source> : sources the functions
+# file in a fresh shell simulating the given environment and prints the resulting PS1, the joined
+# PROMPT_COMMAND and how often the title hook occurs in it.
+runPrompt() {
+  FAKE_UNAME_S="$1" PRE_SOURCE="$2" SOURCE_TIMES="$3" GIT_BASH_PS1="${GIT_BASH_PS1}" \
+  FUNCTIONS_FILE="${FUNCTIONS_FILE}" STUB_DIR="${STUB_DIR}" TITLE_ROOT="${TITLE_ROOT}" \
+    bash --noprofile --norc -c '
+      export PATH="${STUB_DIR}:${PATH}"
+      export IDE_ROOT="${TITLE_ROOT}"
+      uname() { if [ "$1" = "-s" ]; then echo "${FAKE_UNAME_S}"; else command uname "$@"; fi; }
+      cygpath() { echo "${@: -1}"; }
+      PS1="${GIT_BASH_PS1}"
+      eval "${PRE_SOURCE}"
+      for (( i=0; i<SOURCE_TIMES; i++ )); do
+        source "${FUNCTIONS_FILE}" >/dev/null 2>&1
+      done
+      printf "PS1=%s\n" "${PS1}"
+      printf "PROMPT_COMMAND=%s\n" "${PROMPT_COMMAND[*]:-}"
+      printf "HOOKS=%s\n" "$(printf "%s" "${PROMPT_COMMAND[*]:-}" | grep -c "_ide_title")"
+    '
+}
+
+# checkPrompt <description> <uname -s value> <pre-source code> <source times> <expected PS1> <expected PROMPT_COMMAND> <expected hook count>
+checkPrompt() {
+  local description="$1" uname_s="$2" pre_source="$3" source_times="$4"
+  local expected_ps1="$5" expected_pc="$6" expected_hooks="$7"
+  total=$((total + 1))
+  local result actual_ps1 actual_pc actual_hooks ok=true
+  result="$(runPrompt "${uname_s}" "${pre_source}" "${source_times}")"
+  actual_ps1="$(printf '%s\n' "${result}" | sed -n 's/^PS1=//p')"
+  actual_pc="$(printf '%s\n' "${result}" | sed -n 's/^PROMPT_COMMAND=//p')"
+  actual_hooks="$(printf '%s\n' "${result}" | sed -n 's/^HOOKS=//p')"
+  [ "${actual_ps1}" = "${expected_ps1}" ] || ok=false
+  [ "${actual_pc}" = "${expected_pc}" ] || ok=false
+  [ "${actual_hooks}" = "${expected_hooks}" ] || ok=false
+  if [ "${ok}" = true ]; then
+    doSuccess "PASSED: ${description}"
+  else
+    doError "FAILED: ${description} - PS1='${actual_ps1}' (expected '${expected_ps1}'), PROMPT_COMMAND='${actual_pc}' (expected '${expected_pc}'), hooks=${actual_hooks} (expected ${expected_hooks})"
+    failed=$((failed + 1))
+  fi
+}
+
+checkPrompt "Git Bash: title sequence is removed from PS1 and the hook is installed" \
+  "MINGW64_NT-10.0-26200" "" 1 "${GIT_BASH_PS1_STRIPPED}" "_ide_title" 1
+checkPrompt "Git Bash: sourcing twice does not duplicate the hook nor strip PS1 twice" \
+  "MINGW64_NT-10.0-26200" "" 2 "${GIT_BASH_PS1_STRIPPED}" "_ide_title" 1
+checkPrompt "Git Bash: an existing PROMPT_COMMAND string is preserved" \
+  "MINGW64_NT-10.0-26200" 'PROMPT_COMMAND="my_hook"' 1 "${GIT_BASH_PS1_STRIPPED}" "_ide_title; my_hook" 1
+checkPrompt "Git Bash: an array-valued PROMPT_COMMAND is preserved as array" \
+  "MINGW64_NT-10.0-26200" 'PROMPT_COMMAND=(my_hook other_hook)' 1 "${GIT_BASH_PS1_STRIPPED}" "_ide_title my_hook other_hook" 1
+checkPrompt "Git Bash: a custom prompt without the title sequence is left untouched" \
+  "MINGW64_NT-10.0-26200" 'PS1="custom> "' 1 "custom> " "_ide_title" 1
+
+# the title must never interfere with prompts on other operating systems
+checkPrompt "macOS leaves PS1 and PROMPT_COMMAND untouched" \
+  "Darwin" "" 1 "${GIT_BASH_PS1}" "" 0
+checkPrompt "Linux leaves PS1 and PROMPT_COMMAND untouched" \
+  "Linux" "" 1 "${GIT_BASH_PS1}" "" 0
+checkPrompt "Cygwin leaves PS1 and PROMPT_COMMAND untouched" \
+  "CYGWIN_NT-10.0-26200" "" 1 "${GIT_BASH_PS1}" "" 0
+
+# zsh has no PROMPT_COMMAND (it uses precmd), so the hook must not be installed there
+if command -v zsh >/dev/null 2>&1; then
+  total=$((total + 1))
+  zsh_result="$(FAKE_UNAME_S="MINGW64_NT-10.0-26200" FUNCTIONS_FILE="${FUNCTIONS_FILE}" \
+    STUB_DIR="${STUB_DIR}" TITLE_ROOT="${TITLE_ROOT}" zsh -c '
+      export PATH="${STUB_DIR}:${PATH}"
+      export IDE_ROOT="${TITLE_ROOT}"
+      uname() { if [ "$1" = "-s" ]; then echo "${FAKE_UNAME_S}"; else command uname "$@"; fi; }
+      cygpath() { echo "${@: -1}"; }
+      source "${FUNCTIONS_FILE}" >/dev/null 2>&1
+      echo "PROMPT_COMMAND=${PROMPT_COMMAND:-}"
+    ' 2>/dev/null)"
+  if [ "${zsh_result}" = "PROMPT_COMMAND=" ]; then
+    doSuccess "PASSED: zsh on MSYS does not install the PROMPT_COMMAND hook"
+  else
+    doError "FAILED: zsh on MSYS must not install the PROMPT_COMMAND hook - got '${zsh_result}'"
+    failed=$((failed + 1))
+  fi
+else
+  echo "zsh not found on PATH - skipping the zsh check for the terminal title"
+fi
 
 echo
 if [ "${failed}" = 0 ]; then

@@ -394,6 +394,50 @@ _icd_completion()
   COMPREPLY=( $(compgen -W "-p --project -w --workspace -r --repository -h --help" -- "${cur}") )
 }
 
+# writes the terminal title for the current directory as "ideasy", "ideasy>«project»" or
+# "ideasy>«project»>«workspace»", so that terminal tabs and windows can be told apart.
+# The workspace is derived from PWD and not from the WORKSPACE variable, since the latter always defaults to
+# "main" even outside of any workspace or IDEasy project.
+_ide_title()
+{
+  local title="ideasy" relative_path workspace
+  if [ -n "${IDE_HOME:-}" ]; then
+    title="${title}>${IDE_HOME##*/}"
+    if [[ "${PWD}" == "${IDE_HOME}"/workspaces/* ]]; then
+      relative_path="${PWD#${IDE_HOME}/workspaces/}"
+      workspace="${relative_path%%/*}"
+      if [ -n "${workspace}" ]; then
+        title="${title}>${workspace}"
+      fi
+    fi
+  fi
+  printf '\033]0;%s\007' "${title}"
+}
+
+# Git Bash rewrites the window title on every prompt through an escape sequence in PS1 (see
+# /etc/profile.d/git-prompt.sh), so a title cannot be set permanently. Remove that sequence and write our own
+# title instead. This is limited to Git Bash on purpose: on other systems the prompt is configured by the user
+# or the distribution and must not be touched, and zsh has no PROMPT_COMMAND (it uses precmd).
+if _ide_is_msys && [ -n "${BASH_VERSION:-}" ]; then
+  case "${PS1:-}" in
+    '\[\033]0;'*'\007\]'*)
+      PS1="${PS1#*'\007\]'}"
+      ;;
+  esac
+  # the joined form matches both a plain string and an array valued PROMPT_COMMAND (bash 5.1 and above)
+  case "${PROMPT_COMMAND[*]:-}" in
+    *_ide_title*)
+      ;;
+    *)
+      if [[ "$(declare -p PROMPT_COMMAND 2>/dev/null)" == "declare -a"* ]]; then
+        PROMPT_COMMAND=(_ide_title "${PROMPT_COMMAND[@]}")
+      else
+        PROMPT_COMMAND="_ide_title${PROMPT_COMMAND:+; ${PROMPT_COMMAND}}"
+      fi
+      ;;
+  esac
+fi
+
 complete -F _ide_completion ide
 complete -F _icd_completion icd
 ide
