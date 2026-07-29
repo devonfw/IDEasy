@@ -12,9 +12,7 @@ import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.step.Step;
-import com.devonfw.tools.ide.tool.repository.ToolRepository;
 
 /**
  * Commandlet which scans your IDE installation for unused software (tools not currently used by any project) and removes them.
@@ -23,13 +21,10 @@ public class CleanupCommandlet extends Commandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(CleanupCommandlet.class);
 
-  public final FlagProperty forceDelete;
-
   public CleanupCommandlet(IdeContext context) {
 
     super(context);
     addKeyword(getName());
-    this.forceDelete = add(new FlagProperty("--force-delete"));   // Skips confirmation prompts if provided
   }
 
   @Override
@@ -43,23 +38,19 @@ public class CleanupCommandlet extends Commandlet {
 
     LOG.debug("Start cleanup commandlet");
 
-    List<CleanupIdeTool> installedCleanupIdeTools = new ArrayList<>();
-
     // Identify and remove unused tools.
     Step step = context.newStep("Identify and remove unused software");
-    step.run(() -> discoverAndDeleteUnusedSoftware(installedCleanupIdeTools));
+    step.run(this::discoverAndDeleteUnusedSoftware);
 
     LOG.debug("Finished cleanup commandlet");
   }
 
   /**
    * This method specifies the primary flow for the discovery of installed and unused software, and its deletion.
-   *
-   * @param installedCleanupIdeTools the mutable list of discovered tools, populated and updated during this method's execution.
    */
-  private void discoverAndDeleteUnusedSoftware(List<CleanupIdeTool> installedCleanupIdeTools) {
-    // Iterate over software in $IDE_ROOT/_ide/software/default folder and save installed software to a list
-    discoverInstalledSoftware(installedCleanupIdeTools, this.context.getSoftwareRepositoryPath().resolve(ToolRepository.ID_DEFAULT));
+  private void discoverAndDeleteUnusedSoftware() {
+    // Iterate over software in $IDE_ROOT/_ide/software repositories and save installed software to a list
+    List<CleanupIdeTool> installedCleanupIdeTools = discoverInstalledSoftware();
 
     // Scan for IDEasy projects
     List<Path> ideasyProjects = this.context.getFileAccess().listChildren(this.context.getIdeRoot(), Files::isDirectory);
@@ -81,26 +72,40 @@ public class CleanupCommandlet extends Commandlet {
   }
 
   /**
-   * This method discovers all installed tools at $IDE_ROOT/_ide/software/default and saves them to the list of installed tools.
-   * Installed editions are then recursively discovered.
+   * This method discovers all installed tools in all repositories below $IDE_ROOT/_ide/software and saves them to the list of installed tools.
+   *
+   * @return the list of discovered installed tools.
+   */
+  private List<CleanupIdeTool> discoverInstalledSoftware() {
+    List<CleanupIdeTool> installedCleanupIdeTools = new ArrayList<>();
+    Path softwareRepositoryPath = this.context.getSoftwareRepositoryPath();
+    List<Path> repositoryFolders = this.context.getFileAccess().listChildren(softwareRepositoryPath, Files::isDirectory);
+    for (Path repositoryFolder : repositoryFolders) {
+      discoverInstalledSoftwareRepository(installedCleanupIdeTools, repositoryFolder);
+    }
+    return installedCleanupIdeTools;
+  }
+
+  /**
+   * This method discovers all installed tools in one software repository. Installed editions are then recursively discovered.
    *
    * @param installedCleanupIdeTools the list to populate with discovered tools.
-   * @param softwareFolder The folder where the software is saved in ($IDE_ROOT/_ide/software/default).
+   * @param repositoryFolder The software repository folder to scan.
    */
-  private void discoverInstalledSoftware(List<CleanupIdeTool> installedCleanupIdeTools, Path softwareFolder) {
-    List<Path> subfolders = this.context.getFileAccess().listChildren(softwareFolder, Files::isDirectory);
-    for (Path subfolder : subfolders) {
-      CleanupIdeTool tool = new CleanupIdeTool(subfolder.getFileName().toString(), this.context.getFileAccess().toRealPath(subfolder));
+  private void discoverInstalledSoftwareRepository(List<CleanupIdeTool> installedCleanupIdeTools, Path repositoryFolder) {
+    List<Path> toolFolders = this.context.getFileAccess().listChildren(repositoryFolder, Files::isDirectory);
+    for (Path toolFolder : toolFolders) {
+      CleanupIdeTool tool = new CleanupIdeTool(toolFolder.getFileName().toString(), this.context.getFileAccess().toRealPath(toolFolder));
       installedCleanupIdeTools.add(tool);
-      discoverInstalledEditions(subfolder, tool);
+      discoverInstalledEditions(toolFolder, tool);
     }
   }
 
   /**
-   * This method discovers all installed editions of a tool at $IDE_ROOT/_ide/software/default/<tool> and saves them to the edition list of the tool.
+   * This method discovers all installed editions of a tool at $IDE_ROOT/_ide/software/<repository>/<tool> and saves them to the edition list of the tool.
    * Installed versions of the edition are then recursively discovered.
    *
-   * @param editionFolder The folder where the editions are saved in ($IDE_ROOT/_ide/software/default/<tool>).
+   * @param editionFolder The folder where the editions are saved in ($IDE_ROOT/_ide/software/<repository>/<tool>).
    * @param tool The respective tool for which we are discovering editions.
    */
   private void discoverInstalledEditions(Path editionFolder, CleanupIdeTool tool) {
@@ -113,68 +118,79 @@ public class CleanupCommandlet extends Commandlet {
   }
 
   /**
-   * This method discovers all installed versions of an edition of a tool at $IDE_ROOT/_ide/software/default/<tool>/<edition> and saves them to the version list of the edition.
+   * This method discovers all installed versions of an edition of a tool at $IDE_ROOT/_ide/software/<repository>/<tool>/<edition> and saves them to the version
+   * list of the edition.
    *
-   * @param versionFolder The folder where the versions are saved in ($IDE_ROOT/_ide/software/default/<tool>/<edition>).
+   * @param versionFolder The folder where the versions are saved in ($IDE_ROOT/_ide/software/<repository>/<tool>/<edition>).
    * @param edition The respective edition for which we are discovering versions.
    */
   private void discoverInstalledVersions(Path versionFolder, CleanupIdeToolEdition edition) {
     List<Path> subfolders = this.context.getFileAccess().listChildren(versionFolder, Files::isDirectory);
     for (Path subfolder : subfolders) {
-      CleanupIdeToolEditionVersion version = new CleanupIdeToolEditionVersion(subfolder.getFileName().toString(), this.context.getFileAccess().toRealPath(subfolder));
+      CleanupIdeToolEditionVersion version = new CleanupIdeToolEditionVersion(subfolder.getFileName().toString(),
+          this.context.getFileAccess().toRealPath(subfolder));
       edition.getVersions().add(version);
     }
   }
 
   /**
-   * This method scans the software folder of an IDEasy project for installed tools and matches these against the global tool list created earlier.
-   * Identified tools are marked as used in the global tool list.
+   * This method scans the software folder of an IDEasy project for installed tools and matches these against the global tool list created earlier. Identified
+   * tools are marked as used in the global tool list.
    *
    * @param installedCleanupIdeTools the list of installed tools to check against.
    * @param softwareFolder The software folder of the IDEasy project to scan for used software.
    * @param projectName The name of the project we are currently scanning.
    */
   private void discoverUsedSoftware(List<CleanupIdeTool> installedCleanupIdeTools, Path softwareFolder, String projectName) {
+    discoverUsedSoftware(installedCleanupIdeTools, softwareFolder, projectName, 0);
+  }
+
+  /**
+   * This method scans the software folder of an IDEasy project recursively for installed tools and matches these against the global tool list created earlier.
+   *
+   * @param installedCleanupIdeTools the list of installed tools to check against.
+   * @param softwareFolder The software folder of the IDEasy project to scan for used software.
+   * @param projectName The name of the project we are currently scanning.
+   * @param depth The current recursion depth.
+   */
+  private void discoverUsedSoftware(List<CleanupIdeTool> installedCleanupIdeTools, Path softwareFolder, String projectName, int depth) {
     // Get all installed tools for this project
     List<Path> subfolders = this.context.getFileAccess().listChildren(softwareFolder, Files::isDirectory);
     for (Path currentFolder : subfolders) {
       // Converts the path of the tool installation to the real path by eliminating symlinks. This allows us to determine whether a tool is installed locally for an IDEasy project or is part
-      // of the global software installation under $IDE_ROOT/_ide/software/default
-      currentFolder = this.context.getFileAccess().toRealPath(currentFolder);
-      // Check if directory contains a software version file. If so, read version and add to list of used software.
-      if (Files.exists(currentFolder.resolve(IdeContext.FILE_SOFTWARE_VERSION))
-          || Files.exists(currentFolder.resolve(IdeContext.FILE_LEGACY_SOFTWARE_VERSION))) {
-        if (!currentFolder.startsWith(this.context.getSoftwareRepositoryPath().resolve(ToolRepository.ID_DEFAULT))) {
-          // We found a software that is locally installed in an IDEasy project but not in the global software folder. We leave these alone.
-          continue;
-        }
-        // Get details of the tool (name, edition, version)
-        // currentFolder has the structure «repo-path»/«tool»/«edition»/«version»
-        String toolVersion = currentFolder.getFileName().toString();
-        Path toolEditionFolder = currentFolder.getParent();
-        String toolEdition = toolEditionFolder.getFileName().toString();
-        String toolName = toolEditionFolder.getParent().getFileName().toString();
-        // Check if software exists in global CleanupIdeTool list. If so, mark as used
-        for (CleanupIdeTool tool : installedCleanupIdeTools) {
-          if (tool.toolName.equals(toolName)) {
-            tool.getUsedBy().add(projectName);
-            for (CleanupIdeToolEdition edition : tool.getEditions()) {
-              if (edition.editionName.equals(toolEdition)) {
-                edition.getUsedBy().add(projectName);
-                for (CleanupIdeToolEditionVersion version : edition.getVersions()) {
-                  if (version.versionName.equals(toolVersion)) {
-                    version.getUsedBy().add(projectName);
-                    break;
-                  }
-                }
-                break;
-              }
-            }
-            break;
+      // of the global software installation under $IDE_ROOT/_ide/software
+      Path referencedPath = this.context.getFileAccess().toRealPath(currentFolder);
+      // Check if the resolved project software path belongs to a discovered global software version.
+      boolean matchingVersionFound = markMatchingVersionAsUsed(installedCleanupIdeTools, referencedPath, projectName);
+      // For ide-extra-tools.json the actual software link may be located at software/extra/<tool>/<name>.
+      if (!matchingVersionFound && depth < 1 && !Files.isSymbolicLink(currentFolder)) {
+        discoverUsedSoftware(installedCleanupIdeTools, currentFolder, projectName, depth + 1);
+      }
+    }
+  }
+
+  /**
+   * Marks the installed version containing the referenced project software path as used. The referenced path may point directly to a version folder or to one
+   * of its subfolders.
+   *
+   * @param installedCleanupIdeTools the list of installed tools to check against.
+   * @param referencedPath The resolved path referenced by the IDEasy project.
+   * @param projectName The name of the project we are currently scanning.
+   * @return {@code true} if a matching installed version was found.
+   */
+  private boolean markMatchingVersionAsUsed(List<CleanupIdeTool> installedCleanupIdeTools, Path referencedPath, String projectName) {
+    for (CleanupIdeTool tool : installedCleanupIdeTools) {
+      for (CleanupIdeToolEdition edition : tool.getEditions()) {
+        for (CleanupIdeToolEditionVersion version : edition.getVersions()) {
+          Path versionPath = version.getPath();
+          if (referencedPath.equals(versionPath) || referencedPath.startsWith(versionPath)) {
+            version.addUsedBy(projectName);
+            return true;
           }
         }
       }
     }
+    return false;
   }
 
   /**
@@ -201,8 +217,8 @@ public class CleanupCommandlet extends Commandlet {
   }
 
   /**
-   * Generates a summary report for tools, editions, and versions to be deleted and prompts the user for confirmation.
-   * If the user agrees, we proceed with deletion of the unused tools, editions, and versions.
+   * Generates a summary report for tools, editions, and versions to be deleted and prompts the user for confirmation. If the user agrees, we proceed with
+   * deletion of the unused tools, editions, and versions.
    *
    * @param installedCleanupIdeTools the list of installed tools with deletion flags set.
    */
@@ -248,17 +264,16 @@ public class CleanupCommandlet extends Commandlet {
       LOG.info("No installed tools will be deleted. All installed software is used by at least one project.");
     } else {
       LOG.info("The following installed tools will be deleted: \n" + logOutput);
-      LOG.info("Summary: {} installed tool versions across {} editions of {} tools will be deleted.", totalVersionsDeleted, totalEditionsDeleted, totalToolsDeleted);
+      LOG.info("Summary: {} installed tool versions across {} editions of {} tools will be deleted.", totalVersionsDeleted, totalEditionsDeleted,
+          totalToolsDeleted);
 
-      // Ask for confirmation. Skipped if --force-delete flag is provided
-      if (!this.forceDelete.isTrue()) {
-        try {
-          this.context.askToContinue("Do you want to continue?");
+      // Ask for confirmation. Automatically confirmed if the global force option is provided.
+      try {
+        this.context.askToContinue("Do you want to continue?");
 
-        } catch (CliAbortException e) {
-          LOG.info("Installed Tools will not be deleted.");
-          return;
-        }
+      } catch (CliAbortException e) {
+        LOG.info("Installed Tools will not be deleted.");
+        return;
       }
       deleteUnusedSoftware(installedCleanupIdeTools);
     }

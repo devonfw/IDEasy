@@ -1,9 +1,14 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.commandlet.cleanup.CleanupCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 
 /**
@@ -14,21 +19,183 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
   private static final String PROJECT_BASIC = "basic";
 
   /**
-   * Test of {@link CleanupCommandlet} that {@code az} tool is not used by any project and thus deleted.
+   * Tests that unused software is deleted while software used by a project is retained.
+   *
+   * @throws IOException if the test setup cannot be created.
    */
   @Test
-  void testCleanupDeletesUnusedGlobalSoftware() {
+  void testCleanupDeletesUnusedAndKeepsUsedGlobalSoftware() throws IOException {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
-    CleanupCommandlet cleanup = context.getCommandletManager().getCommandlet(CleanupCommandlet.class);
-    cleanup.forceDelete.setValue(true);
+
+    Path usedVersion = createInstalledVersion(context, "default", "cleanup-test-java", "default", "21");
+
+    Path unusedVersion = createInstalledVersion(context, "default", "cleanup-test-java", "default", "17");
+
+    Path projectSoftware = context.getIdeHome().resolve(IdeContext.FOLDER_SOFTWARE);
+
+    createSoftwareLink(projectSoftware.resolve("cleanup-test-java"), usedVersion);
+
+    CleanupCommandlet cleanup = getCleanupWithoutConfirmation(context);
 
     // act
     cleanup.run();
 
     // assert
-    assertThat(context.getIdeRoot().resolve("_ide/software/default/az")).doesNotExist();
+    assertThat(usedVersion).as("Software used by a project must not be deleted").exists();
+
+    assertThat(unusedVersion).as("Unused software should be deleted").doesNotExist();
+
     assertThat(context).logAtSuccess().hasMessage("Unused tools have been deleted successfully.");
+  }
+
+  /**
+   * Tests that a version is retained when a project links to a subdirectory of the installation, for example {@code <version>/Contents/MacOS}.
+   *
+   * @throws IOException if the test setup cannot be created.
+   */
+  @Test
+  void testCleanupKeepsVersionReferencedBySubdirectory() throws IOException {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+
+    Path usedVersion = createInstalledVersion(context, "default", "cleanup-test-macos", "default", "1.0");
+
+    Path macOsFolder = usedVersion.resolve("Contents").resolve("MacOS");
+    Files.createDirectories(macOsFolder);
+
+    Path unusedVersion = createInstalledVersion(context, "default", "cleanup-test-macos", "default", "2.0");
+
+    Path projectSoftware = context.getIdeHome().resolve(IdeContext.FOLDER_SOFTWARE);
+
+    createSoftwareLink(projectSoftware.resolve("cleanup-test-macos"), macOsFolder);
+
+    CleanupCommandlet cleanup = getCleanupWithoutConfirmation(context);
+
+    // act
+    cleanup.run();
+
+    // assert
+    assertThat(usedVersion)
+        .as("The version must be retained when the project links to a subdirectory of that version")
+        .exists();
+
+    assertThat(unusedVersion).as("The unrelated unused version should be deleted").doesNotExist();
+  }
+
+  /**
+   * Tests that a version referenced by {@code software/extra/<tool>/<name>} is retained.
+   *
+   * @throws IOException if the test setup cannot be created.
+   */
+  @Test
+  void testCleanupKeepsVersionReferencedByNestedExtraTool() throws IOException {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+
+    Path usedVersion = createInstalledVersion(context, "default", "cleanup-test-extra", "default", "1.0");
+
+    Path unusedVersion = createInstalledVersion(context, "default", "cleanup-test-extra", "default", "2.0");
+
+    Path nestedExtraToolLink = context.getIdeHome()
+        .resolve(IdeContext.FOLDER_SOFTWARE)
+        .resolve(IdeContext.FOLDER_EXTRA)
+        .resolve("cleanup-test-extra")
+        .resolve("custom-installation");
+
+    createSoftwareLink(nestedExtraToolLink, usedVersion);
+
+    CleanupCommandlet cleanup = getCleanupWithoutConfirmation(context);
+
+    // act
+    cleanup.run();
+
+    // assert
+    assertThat(usedVersion)
+        .as("Software referenced by software/extra/<tool>/<name> must not be deleted")
+        .exists();
+
+    assertThat(unusedVersion).as("The unrelated unused extra-tool version should be deleted").doesNotExist();
+  }
+
+  /**
+   * Tests that unused installations in repositories other than {@code default} are also discovered and deleted.
+   *
+   * @throws IOException if the test setup cannot be created.
+   */
+  @Test
+  void testCleanupDeletesUnusedSoftwareFromNonDefaultRepository() throws IOException {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+
+    Path unusedVersion = createInstalledVersion(context, "cleanup-test-repository", "cleanup-test-tool", "default",
+        "1.0");
+
+    CleanupCommandlet cleanup = getCleanupWithoutConfirmation(context);
+
+    // act
+    cleanup.run();
+
+    // assert
+    assertThat(unusedVersion)
+        .as("Unused software from a non-default repository should also be discovered and deleted")
+        .doesNotExist();
+  }
+
+  /**
+   * Creates an installed software version with the structure {@code _ide/software/<repository>/<tool>/<edition>/<version>}.
+   *
+   * @param context the test context.
+   * @param repositoryId the repository ID.
+   * @param toolName the tool name.
+   * @param editionName the edition name.
+   * @param versionName the version name.
+   * @return the real path of the created version directory.
+   * @throws IOException if the directory or version marker cannot be created.
+   */
+  private Path createInstalledVersion(IdeTestContext context, String repositoryId, String toolName,
+      String editionName, String versionName) throws IOException {
+
+    Path versionFolder = context.getSoftwareRepositoryPath()
+        .resolve(repositoryId)
+        .resolve(toolName)
+        .resolve(editionName)
+        .resolve(versionName);
+
+    Files.createDirectories(versionFolder);
+
+    Files.writeString(versionFolder.resolve(IdeContext.FILE_SOFTWARE_VERSION), versionName);
+
+    return versionFolder.toRealPath();
+  }
+
+  /**
+   * Creates a symbolic link from a project software location to an installed software version or one of its subdirectories.
+   *
+   * @param link the project-side link.
+   * @param target the link target.
+   * @throws IOException if the link cannot be created.
+   */
+  private void createSoftwareLink(Path link, Path target) throws IOException {
+
+    Files.createDirectories(link.getParent());
+    Files.deleteIfExists(link);
+    Files.createSymbolicLink(link, target);
+  }
+
+  /**
+   * Gets the cleanup commandlet and configures the confirmation answer.
+   *
+   * @param context the test context.
+   * @return the configured cleanup commandlet.
+   */
+  private CleanupCommandlet getCleanupWithoutConfirmation(IdeTestContext context) {
+
+    context.setAnswers("yes");
+    return context.getCommandletManager().getCommandlet(CleanupCommandlet.class);
   }
 }

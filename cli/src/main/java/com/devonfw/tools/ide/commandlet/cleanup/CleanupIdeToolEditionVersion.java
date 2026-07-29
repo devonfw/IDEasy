@@ -62,7 +62,9 @@ public class CleanupIdeToolEditionVersion {
    */
   public void addUsedBy(String projectName) {
 
-    this.usedBy.add(projectName);
+    if (!this.usedBy.contains(projectName)) {
+      this.usedBy.add(projectName);
+    }
   }
 
   /**

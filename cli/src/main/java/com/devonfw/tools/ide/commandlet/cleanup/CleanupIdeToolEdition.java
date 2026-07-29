@@ -8,8 +8,8 @@ import java.util.List;
  * Represents an edition of an IDE tool in the global software folder as discovered by the {@code cleanup} commandlet.
  * <p>
  * For example, for IntelliJ, the editions could be "community" and "ultimate". This class
- * contains the edition name, the installation path, a list of projects that use this
- * edition, and a flag indicating whether the edition is marked for deletion. It also holds
+ * contains the edition name, the installation path, and a flag indicating whether the
+ * edition is marked for deletion. It also holds
  * a list of {@link CleanupIdeToolEditionVersion versions} belonging to this edition.
  */
 public class CleanupIdeToolEdition {
@@ -19,9 +19,6 @@ public class CleanupIdeToolEdition {
 
   /** The installation {@link Path} of this edition. */
   private final Path path;
-
-  /** A list of project names that currently use this edition. */
-  private final List<String> usedBy;
 
   /** A flag indicating whether the edition is marked for deletion. */
   private boolean delete;
@@ -39,7 +36,6 @@ public class CleanupIdeToolEdition {
 
     this.editionName = editionName;
     this.path = path;
-    this.usedBy = new ArrayList<>();
     this.delete = false;
     this.versions = new ArrayList<>();
   }
@@ -50,24 +46,6 @@ public class CleanupIdeToolEdition {
   public Path getPath() {
 
     return this.path;
-  }
-
-  /**
-   * @return the list of project names that currently use this edition.
-   */
-  public List<String> getUsedBy() {
-
-    return this.usedBy;
-  }
-
-  /**
-   * Marks this edition as used by the given project.
-   *
-   * @param projectName the name of the project using this edition.
-   */
-  public void addUsedBy(String projectName) {
-
-    this.usedBy.add(projectName);
   }
 
   /**
@@ -89,11 +67,11 @@ public class CleanupIdeToolEdition {
   }
 
   /**
-   * @return {@code true} if no project currently uses this edition.
+   * @return {@code true} if all versions of this edition are unused.
    */
   public boolean isUnused() {
 
-    return this.usedBy.isEmpty();
+    return this.versions.stream().allMatch(CleanupIdeToolEditionVersion::isUnused);
   }
 
   /**

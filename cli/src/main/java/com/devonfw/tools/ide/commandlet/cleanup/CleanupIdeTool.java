@@ -7,8 +7,7 @@ import java.util.List;
 /**
  * Represents an installed IDE tool in the global software folder as discovered by the {@code cleanup} commandlet.
  * <p>
- * Contains the tool name, installation path, a list of projects that use this tool,
- * and a flag indicating whether the tool is marked for deletion. This class also
+ * Contains the tool name, installation path, and a flag indicating whether the tool is marked for deletion. This class also
  * holds a list of {@link CleanupIdeToolEdition editions} belonging to this tool.
  */
 public class CleanupIdeTool {
@@ -18,9 +17,6 @@ public class CleanupIdeTool {
 
   /** The installation {@link Path} of this tool. */
   private final Path path;
-
-  /** A list of project names that currently use this tool. */
-  private final List<String> usedBy;
 
   /** A flag indicating whether the tool is marked for deletion. */
   private boolean delete;
@@ -38,7 +34,6 @@ public class CleanupIdeTool {
 
     this.toolName = toolName;
     this.path = path;
-    this.usedBy = new ArrayList<>();
     this.delete = false;
     this.editions = new ArrayList<>();
   }
@@ -49,24 +44,6 @@ public class CleanupIdeTool {
   public Path getPath() {
 
     return this.path;
-  }
-
-  /**
-   * @return the list of project names that currently use this tool.
-   */
-  public List<String> getUsedBy() {
-
-    return this.usedBy;
-  }
-
-  /**
-   * Marks this tool as used by the given project.
-   *
-   * @param projectName the name of the project that uses this tool.
-   */
-  public void markUsedBy(String projectName) {
-
-    this.usedBy.add(projectName);
   }
 
   /**
@@ -88,11 +65,11 @@ public class CleanupIdeTool {
   }
 
   /**
-   * @return {@code true} if no project currently uses this tool.
+   * @return {@code true} if all editions of this tool are unused.
    */
   public boolean isUnused() {
 
-    return this.usedBy.isEmpty();
+    return this.editions.stream().allMatch(CleanupIdeToolEdition::isUnused);
   }
 
   /**
