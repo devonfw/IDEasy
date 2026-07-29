@@ -56,6 +56,10 @@ public class ObsidianUrlUpdaterTest extends AbstractUrlUpdaterTest {
         .willReturn(aResponse()
             .withStatus(200)
             .withBody(DOWNLOAD_CONTENT)));
+    stubFor(any(urlMatching("/obsidianmd/obsidian-releases/releases/download/v\\d+\\.\\d+\\.\\d+/obsidian-.*-arm64\\.tar\\.gz"))
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
     ObsidianUrlUpdater updater = new ObsidianUrlUpdater(wmRuntimeInfo.getHttpBaseUrl(), wmRuntimeInfo.getHttpBaseUrl());
