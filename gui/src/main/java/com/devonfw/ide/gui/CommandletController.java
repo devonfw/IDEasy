@@ -10,8 +10,6 @@ import javafx.scene.layout.VBox;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.property.BooleanProperty;
-import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 
 public class CommandletController {
@@ -55,13 +53,7 @@ public class CommandletController {
     children.clear();
 
     for (Property<?> property : properties) {
-      if (property instanceof KeywordProperty) {
-        children.add(PropertyFormFieldFactory.createFormField(property, context));
-      } else if (property instanceof BooleanProperty) {
-        continue;
-      } else {
-        children.add(PropertyFormFieldFactory.createFormField(property, context));
-      }
+      children.add(PropertyFormFieldFactory.createFormField(property, context));
     }
   }
 
