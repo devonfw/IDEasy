@@ -62,7 +62,7 @@ public class NlsServiceTest {
   }
 
   @ParameterizedTest
-  @MethodSource("localeProvider")
+  @MethodSource("testGetInstanceWithLocaleProvider")
   public void testGetInstanceWithLocale(Locale systemLocale, Locale providedLocal, Locale expectedServiceLocal, String expectedString) {
     Locale.setDefault(systemLocale);
     NlsService service = new NlsService(providedLocal);
@@ -72,7 +72,7 @@ public class NlsServiceTest {
     assertThat(service.get("CurrentLanguage")).isEqualTo(expectedString);
   }
 
-  static Stream<Arguments> localeProvider() {
+  static Stream<Arguments> testGetInstanceWithLocaleProvider() {
     return Stream.of(
         arguments(Locale.GERMANY, Locale.ENGLISH, Locale.ENGLISH, "English (en)"),
         arguments(Locale.GERMANY, Locale.GERMAN, Locale.GERMAN, "Deutsch (de)"),
