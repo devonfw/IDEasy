@@ -53,6 +53,7 @@ public class ObsidianUrlUpdater extends GithubUrlReleaseUpdater {
     doAddVersion(urlVersion, baseUrl + "Obsidian-${version}.dmg", MAC, X64);
     doAddVersion(urlVersion, baseUrl + "obsidian_${version}_amd64.deb", LINUX, X64);
     doAddVersion(urlVersion, baseUrl + "obsidian-${version}.tar.gz", LINUX, X64);
+    doAddVersion(urlVersion, baseUrl + "obsidian-${version}-arm64.tar.gz", LINUX, ARM64);
   }
 
   @Override
