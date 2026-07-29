@@ -9,6 +9,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2176[#2176]: Support 7z archive extraction
 * https://github.com/devonfw/IDEasy/issues/2100[#2100]: Fix Python not available for Mac x64
 * https://github.com/devonfw/IDEasy/issues/2134[#2134]: Add auto-completion for icd command
+* https://github.com/devonfw/IDEasy/issues/1933[#1933]: Added a console window to the GUI
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/48?closed=1[milestone 2026.08.001].
 
@@ -30,7 +31,6 @@ Release with new features and bugfixes:
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/47?closed=1[milestone 2026.07.002].
 
 == 2026.07.001
-* https://github.com/devonfw/IDEasy/issues/1933[#1933]: Added a console window to the GUI
 
 Release with new features and bugfixes:
 
