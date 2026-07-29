@@ -157,7 +157,8 @@ public class CleanupCommandlet extends Commandlet {
     // Get all installed tools for this project
     List<Path> subfolders = this.context.getFileAccess().listChildren(softwareFolder, Files::isDirectory);
     for (Path currentFolder : subfolders) {
-      // Converts the path of the tool installation to the real path by eliminating symlinks. This allows us to determine whether a tool is installed locally for an IDEasy project or is part
+      // Converts the path of the tool installation to the real path by eliminating symlinks. This allows us to determine
+      // whether a tool is installed locally for an IDEasy project or is part
       // of the global software installation under $IDE_ROOT/_ide/software
       Path referencedPath = this.context.getFileAccess().toRealPath(currentFolder);
       // Check if the resolved project software path belongs to a discovered global software version.
