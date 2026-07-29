@@ -386,4 +386,3 @@ class InstallCommandletTest extends AbstractIdeContextTest {
     assertThat(context.getSoftwarePath().resolve("java")).doesNotExist();
   }
 }
-

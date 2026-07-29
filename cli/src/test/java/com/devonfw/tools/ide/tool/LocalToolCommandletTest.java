@@ -135,7 +135,7 @@ class LocalToolCommandletTest extends AbstractIdeContextTest {
     // run intellij again and verify that compatible Java version gets reinstalled
     runIntellijAndCheckInstallationWithJavaDependency(context);
   }
-  
+
   /**
    * Test that {@link LocalToolCommandlet#installAsDependency(VersionRange, ToolInstallRequest)} ignores the configured project version when
    * {@link ToolInstallRequest#isIgnoreProject()} is {@code true}.
