@@ -30,7 +30,7 @@ For `VisualStudio Code`,  this is the extension ID you can directly get from the
 |`version`|e.g. `1.2.3`|(optional) Plugin version to install. If omitted, IDEasy installs the latest version available.
 |`active`|`true`|(optional) `true` to tell IDEasy that this plugin shall be installed automatically for everybody in your team. Default is `false`. If not auto-installed, it can still be installed via `ide install-plugin «ide» «plugin»`.
 |`tags`|e.g. `java,spring,ai`|(optional) Tags to classify the plugin. Will be used by the GUI of IDEasy for selection by tag.
-|`excluded-editions`|e.g. `vscodium` |(optional) Comma-separated list of edition names for which this plugin should NOT be installed. Useful for plugins that are not avaiable on certain IDE editions
+|`excluded-editions`|e.g. `vscodium` |(optional) Comma-separated list of edition names for which this plugin should NOT be installed. Useful for plugins that are not available on certain IDE editions
 |===
 
 == Resetting installed plugins
