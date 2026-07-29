@@ -3,8 +3,7 @@ name: Update quality status documents
 on:
   workflow_dispatch:
   schedule:
-    #- cron: "0 6 * * 1"
-    - cron: "*/15 * * * *"
+    - cron: "0 6 * * 1"
 
 permissions:
   contents: write
