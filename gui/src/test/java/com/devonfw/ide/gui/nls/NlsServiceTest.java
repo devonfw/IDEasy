@@ -95,7 +95,6 @@ public class NlsServiceTest {
     assertThat(service.get("CurrentLanguage")).isEqualTo("Deutsch (de)");
   }
 
-
   @Test
   public void testAllLocalizationBundlesContainExactlyTheEnglishKeys() throws IOException {
 
@@ -131,7 +130,6 @@ public class NlsServiceTest {
     assertThat(service.getLanguageDisplayName(Locale.GERMAN)).isEqualTo("Deutsch (de)");
   }
 
-
   @Test
   public void testLocaleChangeListenerIsInvokedAndCanBeRemoved() {
 
@@ -163,7 +161,6 @@ public class NlsServiceTest {
     }
     assertThat(properties.getProperty("IDE_OPTIONS")).isEqualTo("-Duser.language=de");
   }
-
 
   @Test
   public void testPersistLocaleUpdatesExistingUserLangInIdeOptions() throws IOException {
@@ -225,7 +222,6 @@ public class NlsServiceTest {
     assertThat(ideOptions).doesNotContain("-Duser.language=de");
   }
 
-
   @Test
   public void testNoEmptyTranslations() throws IOException {
 
@@ -240,7 +236,6 @@ public class NlsServiceTest {
       }
     }
   }
-
 
   @Test
   public void testGetAvailableLocalesAlwaysContainsEnglish() {
@@ -267,7 +262,6 @@ public class NlsServiceTest {
     assertThat(service.getAvailableLocales())
         .doesNotContain(Locale.FRENCH, Locale.JAPANESE, Locale.forLanguageTag("zh"));
   }
-
 
   @Test
   public void testGetAvailableLocalesFromDirectory(@TempDir Path bundleRoot) throws Exception {
@@ -308,7 +302,6 @@ public class NlsServiceTest {
     }
   }
 
-
   private Properties loadBundleProperties(Locale locale) throws IOException {
 
     String resourceName = locale.equals(Locale.ENGLISH)
@@ -331,6 +324,3 @@ public class NlsServiceTest {
   }
 
 }
-
-
-
