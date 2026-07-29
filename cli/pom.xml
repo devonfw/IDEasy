@@ -17,10 +17,15 @@
   </properties>
 
   <dependencies>
-    <!-- unpack tar, gzip, bzip2 -->
+    <!-- unpack tar, gzip, bzip2, 7z -->
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-compress</artifactId>
+    </dependency>
+    <!-- required by commons-compress for 7z extraction -->
+    <dependency>
+      <groupId>org.tukaani</groupId>
+      <artifactId>xz</artifactId>
     </dependency>
     <!-- JSON and XML support -->
     <dependency>
@@ -264,8 +269,12 @@
                 <arg>--enable-url-protocols=http,https</arg>
                 <arg>-march=compatibility</arg>
                 <arg>--initialize-at-build-time=org.apache.commons</arg>
+                <arg>--initialize-at-build-time=org.tukaani.xz</arg>
                 <arg>-H:IncludeResourceBundles=com.sun.org.apache.xml.internal.res.XMLErrorResources,com.sun.org.apache.xerces.internal.impl.msg.XMLMessages
                 </arg>
+                <!-- Disable Windows wildcard expansion so that arguments like "*" (e.g. "ide set-version gradle *")
+                     reach IDEasy verbatim instead of being expanded to file names by the C runtime. -->
+                <buildArg>-H:-EnableWildcardExpansion</buildArg>
               </buildArgs>
             </configuration>
           </plugin>

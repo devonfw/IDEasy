@@ -1,6 +1,5 @@
 package com.devonfw.ide.gui.context;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NotDirectoryException;
@@ -73,13 +72,10 @@ public class ProjectManagerTest extends AbstractIdeContextTest {
   void testConstructorWithFile() throws IOException {
 
     try {
-      File testFile = ideRoot.resolve("testFile").toFile();
-      boolean success = testFile.createNewFile();
-      if (!success) {
-        throw new RuntimeException("Unable to create test file");
-      }
+      Path testFile = ideRoot.resolve("testFile");
+      Files.createFile(testFile);
 
-      projectManager = new ProjectManager(ideRoot.resolve("testFile"));
+      projectManager = new ProjectManager(testFile);
       fail("IllegalArgumentException expected");
     } catch (IllegalArgumentException e) {
       assertThat(e.getMessage()).contains("Root directory is not a directory");
@@ -97,10 +93,13 @@ public class ProjectManagerTest extends AbstractIdeContextTest {
     Path project0 = ideRoot.resolve("project-0");
     Path project6 = ideRoot.resolve("project-6");
     FileUtils.copyDirectory(project0.toFile(), project6.toFile());
-    File adjustedWorkspaceName = project6.resolve("workspaces").resolve("foo-test-0").toFile();
+    Path oldWorkspace = project6.resolve("workspaces").resolve("foo-test-0");
+    Path newWorkspace = project6.resolve("workspaces").resolve("foo-test-6");
 
     //as we copied from project-0, the test workspace folder name is still old
-    assertThat(adjustedWorkspaceName.renameTo(project6.resolve("workspaces").resolve("foo-test-6").toFile())).isTrue();
+    Files.move(oldWorkspace, newWorkspace);
+    assertThat(newWorkspace).exists();
+    assertThat(oldWorkspace).doesNotExist();
 
     // Verify that project-6 is now recognized
     List<String> extendedList = new ArrayList<>(VALID_PROJECT_LIST);

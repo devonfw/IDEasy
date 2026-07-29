@@ -27,6 +27,17 @@ public class AutoCompletionRegistry {
     this.candidates.add(candidate);
   }
 
+  /**
+   * Adds a new completion candidate together with a synonym. For now this adds both values.
+   *
+   * @param candidate the candidate to add.
+   * @param synonym to add a long with the candidate
+   */
+  public void add(String candidate, String synonym) {
+    add(candidate);
+    add(synonym);
+  }
+
 
   /**
    * Adds all candidates matching the given argument to the collector.
