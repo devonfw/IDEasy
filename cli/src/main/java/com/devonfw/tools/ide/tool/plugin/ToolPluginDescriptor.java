@@ -22,6 +22,7 @@ import com.devonfw.tools.ide.context.IdeContext;
  * @param version the optional plugin version to install.
  * @param active {@code true} if the plugin is active and shall be installed automatically, {@code false} otherwise.
  * @param tags the {@link #tags () tags}.
+ * @param excludedEditions the ide editions that this plugin should not be installed for
  */
 public record ToolPluginDescriptor(String id, String name, String url, String version, boolean active, Set<Tag> tags, Set<String> excludedEditions) implements
     Tags {

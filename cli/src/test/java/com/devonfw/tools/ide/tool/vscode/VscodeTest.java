@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.tool.vscode;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -8,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
@@ -181,52 +179,6 @@ class VscodeTest extends AbstractIdeContextTest {
     checkVscodiumInstallation(context);
   }
 
-  /**
-   * Tests that VSCodium reads its plugins from the dedicated vscodium folder when it exists.
-   */
-  @Test
-  @Disabled("Vscodium and Vscode now share a plugin folder")
-  void testVscodiumUsesVscodiumPluginsFolder() {
-
-    // arrange
-    IdeTestContext context = newContext(PROJECT_VSCODIUM);
-    Vscode vscodium = new Vscode(context);
-    Path vscodiumPlugins = context.getSettingsPath().resolve("vscodium/plugins");
-    context.getFileAccess().mkdirs(vscodiumPlugins);
-
-    // act + assert
-    assertThat(vscodium.getPluginsConfigPath()).isEqualTo(vscodiumPlugins);
-  }
-
-  /**
-   * Tests that VSCodium falls back to the vscode folder when it has no dedicated plugins folder.
-   */
-  @Test
-  @Disabled("Vscodium and Vscode now share a plugin folder")
-  void testVscodiumFallsBackToVscodePluginsFolder() {
-
-    // arrange
-    IdeTestContext context = newContext(PROJECT_VSCODIUM);
-    Vscode vscodium = new Vscode(context);
-
-    // act + assert
-    assertThat(vscodium.getPluginsConfigPath()).isEqualTo(context.getSettingsPath().resolve("vscode/plugins"));
-  }
-
-  /**
-   * Tests that VSCodium uses the VSCode plugin folder.
-   */
-  @Test
-  void testVscodiumUsesTheVscodePluginsFolder() {
-
-    // arrange
-    IdeTestContext context = newContext(PROJECT_VSCODIUM);
-    Vscode vscodium = new Vscode(context);
-
-    // act + assert
-    assertThat(vscodium.getPluginsConfigPath()).isEqualTo(context.getSettingsPath().resolve("vscode/plugins"));
-  }
-
   @Test
   void testVscodiumSkipsPluginWithVscodiumInExcludedEditions() {
 
@@ -260,6 +212,20 @@ class VscodeTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(vscodeCommandlet.lastArgs).contains("--install-extension", "publisher.excluded@1.0.0");
+  }
+
+  @Test
+  void testCsvParsingOfExcludedEditions() {
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+
+    // act
+    ToolPluginDescriptor excludedPlugin = ToolPluginDescriptor.of(
+        context.getSettingsPath().resolve("vscode/plugins/excludedPlugin.properties"), context, false);
+    Set<String> excludedEditions = excludedPlugin.excludedEditions();
+
+    // assert
+    assertThat(excludedEditions).contains("vscode", "vscodium");
   }
 
   /**

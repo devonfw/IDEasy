@@ -48,12 +48,6 @@ public class Vscode extends IdeToolCommandlet {
     return "code";
   }
 
-  @Override
-  protected Path getPluginsConfigPath() {
-    // Kept for potential backward-compatibility fallback
-
-    return super.getPluginsConfigPath();
-  }
 
   @Override
   public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
