@@ -76,6 +76,12 @@ public class Python extends LocalToolCommandlet {
   }
 
   @Override
+  protected boolean isIgnoreMissingSoftwareVersionFile() {
+
+    return true;
+  }
+
+  @Override
   public ToolRepository getToolRepository() {
 
     return this.context.getPythonRepository();
