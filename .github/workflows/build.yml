@@ -1,5 +1,6 @@
 name: CI build
 on:
+  # test for build
   push:
     paths-ignore:
       - 'documentation/**'
