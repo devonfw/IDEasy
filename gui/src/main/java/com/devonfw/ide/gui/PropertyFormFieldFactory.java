@@ -1,9 +1,9 @@
 package com.devonfw.ide.gui;
 
 import javafx.geometry.Insets;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.HBox;
 
 import com.devonfw.tools.ide.context.IdeContext;
@@ -56,15 +56,15 @@ public class PropertyFormFieldFactory {
       displayName = booleanProperty.getAlias() != null ? booleanProperty.getAlias() : "flag";
     }
 
-    ToggleButton toggleButton = new ToggleButton(displayName);
-    toggleButton.setSelected(booleanProperty.isTrue());
-    toggleButton.setPadding(new Insets(2, 0, 2, 0));
+    CheckBox checkbox = new CheckBox(displayName);
+    checkbox.setSelected(booleanProperty.isTrue());
+    checkbox.setPadding(new Insets(2, 0, 2, 0));
 
-    toggleButton.selectedProperty().addListener((obs, oldVal, newVal) -> {
+    checkbox.selectedProperty().addListener((obs, oldVal, newVal) -> {
       booleanProperty.setValue(newVal);
     });
 
-    return toggleButton;
+    return checkbox;
   }
 
   private static javafx.scene.Node createKeywordField(KeywordProperty keywordProperty) {
