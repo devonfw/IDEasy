@@ -293,6 +293,108 @@ if ! command -v ideasy &> /dev/null; then
   export PATH="${PATH}:${IDE_ROOT}/_ide/installation/bin"
 fi
 
+# echoes the names of the sub-directories of $1 that start with $2
+_icd_list_dirs()
+{
+  local base="$1" cur="$2" dir names=()
+  [ -d "${base}" ] || return
+  for dir in "${base}"/*/; do
+    [ -d "${dir}" ] && names+=("$(basename "${dir}")")
+  done
+  compgen -W "${names[*]}" -- "${cur}"
+}
+
+# echoes the IDEasy projects (sub-directories of IDE_ROOT with a 'workspaces' and 'settings' folder) that start with $1
+_icd_list_projects()
+{
+  local project_prefix="$1" dir names=()
+  [ -d "${IDE_ROOT}" ] || return
+  for dir in "${IDE_ROOT}"/*; do
+    if [ -d "${dir}/workspaces" ] && [ -d "${dir}/settings" ]; then
+      names+=("$(basename "${dir}")")
+    fi
+  done
+  compgen -W "${names[*]}" -- "${project_prefix}"
+}
+
+# echoes the path of the project given as $1 or, if empty, the project inferred from PWD or IDE_HOME (same logic as icd())
+_icd_project_dir()
+{
+  local project="$1"
+  if [ -n "${project}" ]; then
+    echo "${IDE_ROOT}/${project}"
+    return
+  fi
+  local current_dir
+  current_dir="$(pwd)"
+  if [[ "${current_dir}" == "${IDE_ROOT}"/* ]]; then
+    local relative_path="${current_dir#${IDE_ROOT}/}"
+    echo "${IDE_ROOT}/${relative_path%%/*}"
+  elif [ -n "${IDE_HOME}" ]; then
+    echo "${IDE_HOME}"
+  fi
+}
+
+# echoes the workspaces of project $1 that start with $2
+_icd_list_workspaces()
+{
+  local project_dir
+  project_dir="$(_icd_project_dir "$1")"
+  [ -n "${project_dir}" ] && _icd_list_dirs "${project_dir}/workspaces" "$2"
+}
+
+# echoes the repositories (folders inside a workspace) of project $1, optionally restricted to workspace $2, that start with $3
+_icd_list_repositories()
+{
+  local project_dir workspace="$2" repo_prefix="$3"
+  project_dir="$(_icd_project_dir "$1")"
+  [ -n "${project_dir}" ] || return
+  if [ -n "${workspace}" ]; then
+    _icd_list_dirs "${project_dir}/workspaces/${workspace}" "${repo_prefix}"
+  else
+    local ws_dir repo_dir names=()
+    for ws_dir in "${project_dir}"/workspaces/*/; do
+      [ -d "${ws_dir}" ] || continue
+      for repo_dir in "${ws_dir}"*/; do
+        [ -d "${repo_dir}" ] && names+=("$(basename "${repo_dir}")")
+      done
+    done
+    compgen -W "${names[*]}" -- "${repo_prefix}" | sort -u
+  fi
+}
+
+_icd_completion()
+{
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local prev="${COMP_WORDS[COMP_CWORD-1]}"
+  local icd_comp_project icd_comp_workspace i
+
+  for (( i=1; i<COMP_CWORD; i++ )); do
+    case "${COMP_WORDS[i]}" in
+      -p|--project) icd_comp_project="${COMP_WORDS[i+1]}" ;;
+      -w|--workspace) icd_comp_workspace="${COMP_WORDS[i+1]}" ;;
+    esac
+  done
+
+  case "${prev}" in
+    -p|--project)
+      COMPREPLY=( $(_icd_list_projects "${cur}") )
+      return
+      ;;
+    -w|--workspace)
+      COMPREPLY=( $(_icd_list_workspaces "${icd_comp_project}" "${cur}") )
+      return
+      ;;
+    -r|--repository)
+      COMPREPLY=( $(_icd_list_repositories "${icd_comp_project}" "${icd_comp_workspace}" "${cur}") )
+      return
+      ;;
+  esac
+
+  COMPREPLY=( $(compgen -W "-p --project -w --workspace -r --repository -h --help" -- "${cur}") )
+}
+
 complete -F _ide_completion ide
+complete -F _icd_completion icd
 ide
 
