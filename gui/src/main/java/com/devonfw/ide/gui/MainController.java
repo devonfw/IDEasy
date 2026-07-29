@@ -7,8 +7,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.Tooltip;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +22,7 @@ import com.devonfw.ide.gui.context.IdeGuiStateManager;
 import com.devonfw.ide.gui.context.ProjectManager;
 import com.devonfw.ide.gui.modal.IdeDialog;
 import com.devonfw.ide.gui.nls.NlsService;
+import com.devonfw.ide.gui.settings.ToolSettingsController;
 
 /**
  * Controller of the main screen of the dashboard GUI.
@@ -49,6 +55,15 @@ public class MainController {
   @FXML
   private Button vsCodeOpen;
 
+  @FXML
+  private TabPane tabPane;
+
+  @FXML
+  private Tab mainTab;
+
+  @FXML
+  private Tab toolConfigTab;
+
   private final String directoryPath;
 
   private final Map<String, Locale> languageMap;
@@ -73,6 +88,13 @@ public class MainController {
   private void initialize() {
     setProjectsComboBox();
     initLanguageComboBox();
+    toolConfigTab.setDisable(true);
+    toolConfigTab.setTooltip(new Tooltip(nlsService.get("toolConfigDisabled")));
+    tabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
+      if (newTab == toolConfigTab) {
+        loadToolConfigContent();
+      }
+    });
   }
 
   private void initLanguageComboBox() {
@@ -148,7 +170,6 @@ public class MainController {
     openIDE("vscode");
   }
 
-
   private void setProjectsComboBox() {
 
     assert (directoryPath != null) : "directoryPath is null! Please check the setup of your environment variables (IDE_ROOT)";
@@ -163,6 +184,7 @@ public class MainController {
       setWorkspaceComboBox();
 
       selectedWorkspace.setDisable(false);
+
     });
   }
 
@@ -185,8 +207,23 @@ public class MainController {
       eclipseOpen.setDisable(false);
       intellijOpen.setDisable(false);
       vsCodeOpen.setDisable(false);
+      toolConfigTab.setDisable(false);
+      // If tool config is already open, reload it to reflect the new context
+      if (toolConfigTab.isSelected()) {
+        loadToolConfigContent();
+      }
+      // Pre-warm ide-urls git repo in background so the first dropdown open is fast
+      Thread preWarm = new Thread(() -> {
+        try {
+          IdeGuiStateManager.getInstance().getCurrentContext().getUrls();
+        } catch (Exception ignored) {
+        }
+      });
+      preWarm.setDaemon(true);
+      preWarm.start();
     });
   }
+
 
   private void openIDE(String inIde) {
 
@@ -196,6 +233,22 @@ public class MainController {
         .getCommandletManager()
         .getCommandlet(inIde)
         .run();
+  }
+
+  private void loadToolConfigContent() {
+
+    try {
+      ToolSettingsController controller = new ToolSettingsController(nlsService);
+      FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/devonfw/ide/gui/tools-config.fxml"));
+      loader.setController(controller);
+      loader.setResources(nlsService.getResourceBundle());
+      Parent content = loader.load();
+      controller.setOnClose(() -> tabPane.getSelectionModel().select(mainTab));
+      toolConfigTab.setContent(content);
+    } catch (Exception e) {
+      LOG.error("Failed to load tool config view", e);
+      new IdeDialog(IdeDialog.AlertType.ERROR, e.getMessage()).showAndWait();
+    }
   }
 
   private void updateContext(String selectedProjectName, String selectedWorkspaceName) {

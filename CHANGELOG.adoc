@@ -44,9 +44,12 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2088[#2088]: Normalize and skip malformed PATH entries instead of failing with InvalidPathException
 * https://github.com/devonfw/IDEasy/issues/1689[#1689]: Fix misleading message in `set-version` when the version is already installed
 * https://github.com/devonfw/IDEasy/issues/1517[#1517]: Fix IDEasy MSI does not configure Windows Terminal for git-bash
-* https://github.com/devonfw/IDEasy/issues/1227[#1227]: Added Setup instrcutions to the Windows installer
+* https://github.com/devonfw/IDEasy/issues/1227[#1227]: Added Setup instructions to the Windows installer
 * https://github.com/devonfw/IDEasy/issues/2114[#2114]: Fix false "Cygwin is not supported" warning in Git Bash
 * https://github.com/devonfw/IDEasy/issues/865[#865]: az not working on Mac
+* https://github.com/devonfw/IDEasy/issues/1936[#1936]: Improve localization of GUI
+* https://github.com/devonfw/IDEasy/issues/2045[#2045]: Add tool selection and version or edition configuration to GUI
+* https://github.com/devonfw/IDEasy/issues/2026[#2026]: Create UvRepository and UvBasedCommandlet
 * https://github.com/devonfw/IDEasy/issues/2143[#2143]: Integrate just
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/46?closed=1[milestone 2026.07.001].
