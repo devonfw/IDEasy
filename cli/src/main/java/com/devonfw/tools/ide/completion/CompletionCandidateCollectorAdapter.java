@@ -53,12 +53,6 @@ public class CompletionCandidateCollectorAdapter implements CompletionCandidateC
   }
 
   @Override
-  public void setAlreadyProvided(Set<String> alreadyProvided) {
-
-    this.delegate.setAlreadyProvided(alreadyProvided);
-  }
-
-  @Override
   public Set<String> getAlreadyProvided() {
 
     return this.delegate.getAlreadyProvided();

@@ -28,16 +28,17 @@ public class CompletionCandidateCollectorDefault implements CompletionCandidateC
   /**
    * The set of arguments that have already been provided on the command line.
    */
-  private Set<String> alreadyProvided;
+  private final Set<String> alreadyProvided;
 
   /**
    * The constructor.
    *
    * @param context the {@link IdeContext}.
    */
-  public CompletionCandidateCollectorDefault(IdeContext context) {
+  public CompletionCandidateCollectorDefault(IdeContext context, Set<String> alreadyProvided) {
 
     super();
+    this.alreadyProvided = Collections.unmodifiableSet(alreadyProvided);
     this.candidates = new ArrayList<>();
     this.context = context;
     this.sortCandidates = true;
@@ -78,12 +79,6 @@ public class CompletionCandidateCollectorDefault implements CompletionCandidateC
   public void disableSorting() {
 
     this.sortCandidates = false;
-  }
-
-  @Override
-  public void setAlreadyProvided(Set<String> alreadyProvided) {
-
-    this.alreadyProvided = alreadyProvided;
   }
 
   @Override

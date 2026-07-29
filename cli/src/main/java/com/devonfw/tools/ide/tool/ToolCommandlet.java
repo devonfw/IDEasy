@@ -119,7 +119,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    */
   public void completeToolArguments(String arg, CompletionCandidateCollector collector, Property<?> property) {
 
-    getAutoCompletionRegistry().complete(arg, collector, property, this, collector.getAlreadyProvided());
+    getAutoCompletionRegistry().complete(arg, collector, property, this);
   }
 
   /**

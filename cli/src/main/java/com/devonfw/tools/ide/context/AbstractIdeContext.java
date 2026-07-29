@@ -10,7 +10,6 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -18,7 +17,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.Set;
 import java.util.function.Predicate;
 import java.util.logging.FileHandler;
 import java.util.logging.LogManager;
@@ -42,7 +40,6 @@ import com.devonfw.tools.ide.commandlet.UpgradeCommandlet;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
-import com.devonfw.tools.ide.completion.CompletionCandidateCollectorDefault;
 import com.devonfw.tools.ide.environment.AbstractEnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
@@ -1545,9 +1542,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
    * @param includeContextOptions to include the options of {@link ContextCommandlet}.
    * @return the {@link List} of {@link CompletionCandidate}s to suggest.
    */
-  public List<CompletionCandidate> complete(CliArguments arguments, boolean includeContextOptions) {
+  public List<CompletionCandidate> complete(CliArguments arguments, CompletionCandidateCollector collector, boolean includeContextOptions) {
 
-    CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(this);
     if (arguments.current().isStart()) {
       arguments.next();
     }
@@ -1597,18 +1593,6 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   private void completeCommandlet(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
 
     LOG.trace("Trying to match arguments for auto-completion for commandlet {}", cmd.getName());
-
-    // Collect all already-provided arguments (non-completion) to filter out synonyms
-    Set<String> alreadyProvided = new HashSet<>();
-    CliArguments argsCopy = arguments.copy();
-    while (!argsCopy.current().isEnd()) {
-      CliArgument arg = argsCopy.current();
-      if (!arg.isCompletion()) {
-        alreadyProvided.add(arg.get());
-      }
-      argsCopy.next();
-    }
-    collector.setAlreadyProvided(alreadyProvided);
 
     Iterator<Property<?>> valueIterator = cmd.getValues().iterator();
     valueIterator.next(); // skip first property since this is the keyword property that already matched to find the commandlet

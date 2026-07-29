@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.completion;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.property.Property;
@@ -50,10 +49,10 @@ public class AutoCompletionRegistry {
    * @param commandlet the {@link Commandlet} owning the property.
    */
   public void complete(String arg, CompletionCandidateCollector collector,
-      Property<?> property, Commandlet commandlet, Set<String> alreadyProvided) {
+      Property<?> property, Commandlet commandlet) {
 
     for (CompletionEntry entry : this.entries) {
-      entry.complete(arg, collector, property, commandlet, alreadyProvided);
+      entry.complete(arg, collector, property, commandlet);
     }
   }
 

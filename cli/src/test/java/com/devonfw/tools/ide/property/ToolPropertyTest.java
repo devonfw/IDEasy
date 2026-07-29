@@ -3,6 +3,8 @@ package com.devonfw.tools.ide.property;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.HashSet;
+
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
@@ -24,7 +26,7 @@ class ToolPropertyTest {
     IdeContext context = new IdeTestContext();
     String[] expectedCandidates = { "az", "android-studio", "aws" };
     String input = "a";
-    CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context);
+    CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context, new HashSet<>());
 
     ToolProperty toolProp = new ToolProperty("", false, "");
     toolProp.completeValue(input, context, new ContextCommandlet(), collector);

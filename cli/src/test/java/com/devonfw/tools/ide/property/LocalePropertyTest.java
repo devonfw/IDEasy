@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.property;
 
+import java.util.HashSet;
 import java.util.Locale;
 
 import org.assertj.core.api.Assertions;
@@ -42,7 +43,7 @@ class LocalePropertyTest extends Assertions {
     IdeTestContext context = new IdeTestContext();
     String[] expectedCandidates = { "de", "de-AT", "de-BE", "de-CH", "de-DE", "de-IT", "de-LI", "de-LU", "de-Latn-DE" };
     String input = "de";
-    CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context);
+    CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context, new HashSet<>());
     // act
     LocaleProperty property = new LocaleProperty("--locale", true, null);
     property.completeValue(input, context, new ContextCommandlet(), collector);

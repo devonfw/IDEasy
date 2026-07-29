@@ -87,14 +87,6 @@ public interface CompletionCandidateCollector {
   List<CompletionCandidate> getSortedCandidates();
 
   /**
-   * Sets the already-provided arguments for this completion cycle. Used to filter out candidates whose
-   * candidate or synonym has already been typed on the command line.
-   *
-   * @param alreadyProvided the set of already-provided argument strings.
-   */
-  void setAlreadyProvided(Set<String> alreadyProvided);
-
-  /**
    * @return the set of already-provided arguments, or {@code null} if not set.
    */
   Set<String> getAlreadyProvided();
