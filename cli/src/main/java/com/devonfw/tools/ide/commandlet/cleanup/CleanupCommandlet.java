@@ -200,9 +200,9 @@ public class CleanupCommandlet extends Commandlet {
   }
 
   /**
-   * Sets the delete flag for all unused tools, editions, and versions to true.
+   * Sets the delete flag for all unused software versions to {@code true}.
    *
-   * @param installedSoftwareTools the list of installed tools to mark.
+   * @param installedSoftwareTools the list of installed tools containing the versions to mark.
    */
   private void markUnusedSoftwareForDeletion(List<InstalledSoftwareTool> installedSoftwareTools) {
     for (InstalledSoftwareTool tool : installedSoftwareTools) {
@@ -212,12 +212,6 @@ public class CleanupCommandlet extends Commandlet {
             version.setDelete(true);
           }
         }
-        if (edition.isUnused()) {
-          edition.setDelete(true);
-        }
-      }
-      if (tool.isUnused()) {
-        tool.setDelete(true);
       }
     }
   }
@@ -286,33 +280,28 @@ public class CleanupCommandlet extends Commandlet {
   }
 
   /**
-   * Deletes tools, editions, and versions marked for deletion.
+   * Deletes software versions marked for deletion and removes their parent edition and tool folders if they become empty.
    *
-   * @param installedSoftwareTools the list of installed tools to delete from.
+   * @param installedSoftwareTools the list of installed tools containing the versions to delete.
    */
   private void deleteUnusedSoftware(List<InstalledSoftwareTool> installedSoftwareTools) {
     int failedDeletion = 0;
-    // Delete the tool
     for (InstalledSoftwareTool tool : installedSoftwareTools) {
-      if (tool.isDelete()) {
-        LOG.debug("Deleting tool {} and all its editions and versions in {}", tool.getName(), tool.getPath());
-        failedDeletion += deleteFolder(tool.getPath());
-        continue;
-      }
-      // Delete editions of the tool
       for (InstalledSoftwareEdition edition : tool.getEditions()) {
-        if (edition.isDelete()) {
-          LOG.debug("Deleting edition {} of tool {} and all its versions in {}", edition.getName(), tool.getName(), edition.getPath());
-          failedDeletion += deleteFolder(edition.getPath());
-          continue;
-        }
-        // Delete versions of the edition
         for (InstalledSoftwareVersion version : edition.getVersions()) {
           if (version.isDelete()) {
             LOG.debug("Deleting version {} of edition {} of tool {} in {}", version.getName(), edition.getName(), tool.getName(), version.getPath());
             failedDeletion += deleteFolder(version.getPath());
           }
         }
+        if (isEmptyFolder(edition.getPath())) {
+          LOG.debug("Deleting empty edition {} of tool {} in {}", edition.getName(), tool.getName(), edition.getPath());
+          failedDeletion += deleteFolder(edition.getPath());
+        }
+      }
+      if (isEmptyFolder(tool.getPath())) {
+        LOG.debug("Deleting empty tool {} in {}", tool.getName(), tool.getPath());
+        failedDeletion += deleteFolder(tool.getPath());
       }
     }
 
@@ -322,6 +311,17 @@ public class CleanupCommandlet extends Commandlet {
     } else {
       IdeLogLevel.SUCCESS.log(LOG, "Unused tools have been deleted successfully.");
     }
+  }
+
+  /**
+   * Checks whether the given folder exists and has no remaining children.
+   *
+   * @param folder the folder to check.
+   * @return {@code true} if the folder exists and is empty.
+   */
+  private boolean isEmptyFolder(Path folder) {
+
+    return Files.isDirectory(folder) && this.context.getFileAccess().listChildren(folder, child -> true).isEmpty();
   }
 
   /**
