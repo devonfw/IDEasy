@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
-import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Path;
@@ -23,6 +22,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.io.HttpClientFactory;
 import com.devonfw.tools.ide.io.HttpErrorResponse;
 import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.os.SystemArchitecture;
@@ -76,7 +76,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   private static final Set<String> URL_FILENAMES_OS_INDEPENDENT = Set.of("urls");
 
   /** The {@link HttpClient} for HTTP requests. */
-  protected final HttpClient client = HttpClient.newBuilder().followRedirects(Redirect.ALWAYS).build();
+  protected final HttpClient client = HttpClientFactory.create();
 
   /** The GitHub actions token name for api requests. */
   private static final String GITHUB_API_TOKEN_ENV = "GHA_TOKEN";

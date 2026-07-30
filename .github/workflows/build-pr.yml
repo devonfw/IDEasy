@@ -23,8 +23,7 @@ jobs:
         # Ratchets to origin/main, so only files changed by this PR are checked.
         # Fix locally with: mvn spotless:apply
         run: |
-          # mvn -B -ntp -Dstyle.color=always spotless:check
-          echo "skipped since spotless is broken and reports nonsense"
+          mvn -B -ntp -Dstyle.color=always spotless:check
       - name: Static analysis (Checkstyle, changed files only)
         # Mirrors the pre-commit hook: lint only the Java files this PR changed
         # (merge-base with origin/main), so legacy code is not retro-flagged.

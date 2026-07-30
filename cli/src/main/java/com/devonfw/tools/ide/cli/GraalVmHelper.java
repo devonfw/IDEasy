@@ -44,7 +44,8 @@ public class GraalVmHelper {
       Path ideasyBinaryPath = Path.of(executableName).toAbsolutePath();
       Path binPath = ideasyBinaryPath.getParent();
       if (!binPath.getFileName().toString().equals("bin")) {
-        System.out.println("WARNING: Expected native image binary to be in bin path but found " + ideasyBinaryPath);
+        // runs during native-image startup before the IDEasy logger is initialized
+        System.out.println("WARNING: Expected native image binary to be in bin path but found " + ideasyBinaryPath); // checkstyle:ignore SystemOut
       }
       cwd = binPath.getParent();
     } else {

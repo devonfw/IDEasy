@@ -56,7 +56,7 @@ public enum OperatingSystem {
     } else if (os.contains("ix")) {
       return OperatingSystem.LINUX;
     } else {
-      System.err.println("ERROR: Unknown operating system '" + osName + "'");
+      System.err.println("ERROR: Unknown operating system '" + osName + "'"); // checkstyle:ignore SystemOut - static OS detection, no logger available
       // be tolerant: most of our users are working on windows
       // in case of an odd JVM or virtualization issue let us better continue than failing
       return OperatingSystem.WINDOWS;
