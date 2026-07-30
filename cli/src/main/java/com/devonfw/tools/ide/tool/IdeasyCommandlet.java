@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool;
 
+import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
@@ -266,6 +267,9 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
    */
   public void installIdeasy(Path cwd) {
     Path ideRoot = determineIdeRoot(cwd);
+    // During a fresh (MSI) installation the IDE_ROOT environment variable is not yet available, so context.getIdeRoot() would return null for the whole run.
+    // The installation target is already known here, so we make the context consistent for any downstream code reading context.getIdeRoot() (see #1517).
+    this.context.setIdeRoot(ideRoot);
     Path idePath = ideRoot.resolve(IdeContext.FOLDER_UNDERSCORE_IDE);
     Path installationPath = idePath.resolve(IdeContext.FOLDER_INSTALLATION);
     Path ideasySoftwarePath = idePath.resolve(IdeContext.FOLDER_SOFTWARE).resolve(MvnRepository.ID).resolve(IdeasyCommandlet.TOOL_NAME)
@@ -295,6 +299,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     addToShellRc(BASHRC, ideRoot, null);
     addToShellRc(ZSHRC, ideRoot, "autoload -U +X bashcompinit && bashcompinit");
     installIdeasyWindowsEnv(ideRoot, installationPath);
+    installDesktopShortcut(installationPath);
     IdeLogLevel.SUCCESS.log(LOG, "IDEasy has been installed successfully on your system.");
     LOG.warn("IDEasy has been setup for new shells but it cannot work in your current shell(s).\n"
         + "To use it here, run 'source ~/.bashrc' (or your shell config). Otherwise, open a new terminal or reboot.");
@@ -328,6 +333,113 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       path.getEntries().add(ideasyBinPath.toString());
       helper.setUserEnvironmentValue(IdeVariables.PATH.getName(), path.toString());
       setGitLongpaths();
+    }
+  }
+  private void installDesktopShortcut(Path installationPath) {
+
+    try {
+      if (this.context.getSystemInfo().isLinux()) {
+        installLinuxDesktopShortcut(installationPath);
+      } else if (this.context.getSystemInfo().isMac()) {
+        installMacDesktopShortcut(installationPath);
+      } else if (this.context.getSystemInfo().isWindows()) {
+        installWindowsDesktopShortcut(installationPath);
+      }
+    } catch (Exception e) {
+      LOG.warn("Failed to create desktop shortcut.", e);
+    }
+  }
+
+  private void installLinuxDesktopShortcut(Path installationPath) throws IOException {
+
+    Path templateFile = installationPath.resolve("gui/linux/ideasy-gui.desktop");
+    if (!Files.exists(templateFile)) {
+      LOG.warn("Desktop file template not found at {}. Skipping desktop shortcut creation.", templateFile);
+      return;
+    }
+    Path ideasyBin = installationPath.resolve("bin/ideasy");
+    Path logoPath = installationPath.resolve("gui/logo.png");
+    String content = Files.readString(templateFile)
+        .replace("@IDEASY_BIN@", ideasyBin.toString())
+        .replace("@IDEASY_ICON@", logoPath.toString());
+
+    Path applicationsDir = this.context.getUserHome().resolve(".local/share/applications");
+    this.context.getFileAccess().mkdirs(applicationsDir);
+    Path desktopFile = applicationsDir.resolve("ideasy-gui.desktop");
+    this.context.getFileAccess().writeFileContent(content, desktopFile);
+    this.context.getFileAccess().makeExecutable(desktopFile);
+
+    // without this, the new entry is only visible in application menus after the next login
+    try {
+      this.context.newProcess().executable("update-desktop-database").addArg(applicationsDir.toString())
+          .run(ProcessMode.DEFAULT_CAPTURE);
+    } catch (Exception e) {
+      LOG.debug("update-desktop-database failed (optional): {}", e.getMessage());
+    }
+
+    // Mark as trusted for GNOME 3.28+ so the shortcut is executable without prompting
+    try {
+      this.context.newProcess().executable("gio")
+          .addArgs("set", desktopFile.toString(), "metadata::trusted", "true")
+          .run(ProcessMode.DEFAULT_CAPTURE);
+    } catch (Exception e) {
+      LOG.debug("gio set trusted failed (optional): {}", e.getMessage());
+    }
+
+    IdeLogLevel.SUCCESS.log(LOG, "Created desktop shortcut at {}", desktopFile);
+  }
+
+  private void installMacDesktopShortcut(Path installationPath) {
+
+    Path ideasyBin = installationPath.resolve("bin/ideasy");
+    String escapedBin = ideasyBin.toString().replace("\"", "\\\"");
+    String content = "#!/bin/bash\n\"" + escapedBin + "\" gui\n";
+    Path applicationsDir = this.context.getUserHome().resolve("Applications");
+    this.context.getFileAccess().mkdirs(applicationsDir);
+    Path commandFile = applicationsDir.resolve("IDEasy.command");
+    this.context.getFileAccess().writeFileContent(content, commandFile);
+    this.context.getFileAccess().makeExecutable(commandFile);
+    IdeLogLevel.SUCCESS.log(LOG, "Created macOS launcher at {}", commandFile);
+  }
+
+  private void installWindowsDesktopShortcut(Path installationPath) {
+
+    Path ideasyExe = installationPath.resolve("bin\\ideasy.exe");
+    Path icoPath = installationPath.resolve("gui\\logo.ico");
+    // Shell Folders contains the already-expanded Desktop path, including OneDrive-redirected locations
+    WindowsHelper helper = WindowsHelper.get(this.context);
+    String desktopStr = helper.getRegistryValue(
+        "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders", "Desktop");
+    Path desktopPath = (desktopStr != null && !desktopStr.isBlank()) ? Path.of(desktopStr) : this.context.getUserHome().resolve("Desktop");
+    this.context.getFileAccess().mkdirs(desktopPath);
+    createWindowsShortcut(desktopPath.resolve("IDEasy.lnk"), ideasyExe, icoPath);
+    String startMenuStr = helper.getRegistryValue(
+        "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders", "Programs");
+    Path startMenu = (startMenuStr != null && !startMenuStr.isBlank()) ? Path.of(startMenuStr)
+        : this.context.getUserHome().resolve("AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs");
+    if (Files.isDirectory(startMenu)) {
+      createWindowsShortcut(startMenu.resolve("IDEasy.lnk"), ideasyExe, icoPath);
+    }
+  }
+
+  private static String psEscapePath(Path path) {
+    return path.toString().replace("'", "''");
+  }
+
+  private void createWindowsShortcut(Path lnkPath, Path targetExe, Path icoPath) {
+
+    String ps = "$ws = New-Object -ComObject WScript.Shell; "
+        + "$s = $ws.CreateShortcut('" + psEscapePath(lnkPath) + "'); "
+        + "$s.TargetPath = '" + psEscapePath(targetExe) + "'; "
+        + "$s.Arguments = 'gui'; "
+        + "$s.IconLocation = '" + psEscapePath(icoPath) + ",0'; "
+        + "$s.Save()";
+    try {
+      this.context.newProcess().executable("powershell").addArgs("-Command", ps)
+          .run(ProcessMode.DEFAULT_CAPTURE);
+      IdeLogLevel.SUCCESS.log(LOG, "Created shortcut at {}", lnkPath);
+    } catch (Exception e) {
+      LOG.warn("Failed to create shortcut at {}.", lnkPath, e);
     }
   }
 

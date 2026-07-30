@@ -78,6 +78,7 @@ import com.devonfw.tools.ide.tool.npm.NpmRepository;
 import com.devonfw.tools.ide.tool.pip.PipRepository;
 import com.devonfw.tools.ide.tool.repository.DefaultToolRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
+import com.devonfw.tools.ide.tool.python.PythonRepository;
 import com.devonfw.tools.ide.tool.uv.UvRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.util.DateTimeUtil;
@@ -111,7 +112,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   private Path ideHome;
 
-  private final Path ideRoot;
+  private Path ideRoot;
 
   private Path confPath;
 
@@ -158,6 +159,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   private PipRepository pipRepository;
 
   private UvRepository uvRepository;
+
+  private PythonRepository pythonRepository;
 
   private DirectoryMerger workspaceMerger;
 
@@ -304,6 +307,13 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
    */
   protected UvRepository createUvRepository() {
     return new UvRepository(this);
+  }
+
+  /**
+   * @return a new {@link PythonRepository}
+   */
+  protected PythonRepository createPythonRepository() {
+    return new PythonRepository(this);
   }
 
   private Path findIdeRoot(Path ideHomePath) {
@@ -534,6 +544,14 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   @Override
+  public PythonRepository getPythonRepository() {
+    if (this.pythonRepository == null) {
+      this.pythonRepository = createPythonRepository();
+    }
+    return this.pythonRepository;
+  }
+
+  @Override
   public CustomToolRepository getCustomToolRepository() {
 
     if (this.customToolRepository == null) {
@@ -585,6 +603,12 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   public Path getIdeRoot() {
 
     return this.ideRoot;
+  }
+
+  @Override
+  public void setIdeRoot(Path ideRoot) {
+
+    this.ideRoot = ideRoot;
   }
 
   @Override
@@ -1229,7 +1253,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       activateLogging(cmd);
       step.error(t, true);
       if (this.logfile != null) {
-        System.err.println("Logfile can be found at " + this.logfile); // do not use logger
+        // point the user to the logfile directly (does not make sense via logger)
+        System.err.println("Logfile can be found at " + this.logfile); // checkstyle:ignore SystemOut
       }
       throw t;
     } finally {

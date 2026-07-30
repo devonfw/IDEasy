@@ -16,8 +16,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class UvRepository extends ArtifactToolRepository<UvArtifact, UvArtifactMetadata> {
 
+  /** Base URL of PyPI registry */
   public static final String REGISTRY_URL = "https://pypi.org/pypi/";
+
   private static final ObjectMapper MAPPER = JsonMapping.create();
+
+  /** {@link #getId() ID} of this repository. */
   public static final String ID = "uv";
 
   /**
