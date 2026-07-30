@@ -10,6 +10,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2176[#2176]: Support 7z archive extraction
 * https://github.com/devonfw/IDEasy/issues/2100[#2100]: Fix Python not available for Mac x64
 * https://github.com/devonfw/IDEasy/issues/1164[#1167]: Automatic project import for VSCode
+* https://github.com/devonfw/IDEasy/issues/2224[#2224]: Brew upgrade ideasy not working
 * https://github.com/devonfw/IDEasy/issues/1784[#1784]: GUI now supports displaying progress bars
 * https://github.com/devonfw/IDEasy/issues/1917[#1917]: Allow the creation of a desktop shortcut for the GUI
 * https://github.com/devonfw/IDEasy/issues/2134[#2134]: Add auto-completion for icd command
