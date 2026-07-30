@@ -151,3 +151,7 @@ IDE environment variables have been set for /~/projects/myproject in workspace m
 If `-r` is given without a value, the project name is used as the repository name and resolved the same way.
 If no folder matching the project name is found, `icd` falls back to the workspace `main` (or the workspace given via `-w`):
 if that workspace contains exactly one non-hidden folder, `icd` navigates into it; otherwise it navigates into the workspace itself and prints a warning.
+
+Like `ide`, the `icd` command supports auto-completion for `bash` (or `zsh`):
+Pressing `[Tab]` after `-p` suggests the available projects, after `-w` the workspaces of the selected (or current) project, and after `-r` the repositories found in its workspaces.
+
