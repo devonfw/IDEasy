@@ -3,7 +3,7 @@ package com.devonfw.tools.ide.tool.plugin;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -13,8 +13,10 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.context.ProcessContextTestImpl;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
 
 /**
  * Test of {@link PluginBasedCommandlet}.
@@ -62,17 +64,18 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
   void testInstallPluginsWithForce() {
 
     //arrange
-    context.getStartContext().setForcePlugins(true);
-    final ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags);
+    IdeTestContext localContext = newContext(PROJECT_BASIC, null, false);
+    localContext.getStartContext().setForcePlugins(true);
+    final ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(localContext, TOOL, tags);
 
     //act
     pluginBasedCommandlet.installPlugins(
-        List.of(ToolPluginDescriptor.of(context.getSettingsPath().resolve(ANY_EDIT_PLUGIN_PATH), context, false)),
-        new ProcessContextTestImpl(context));
+        List.of(ToolPluginDescriptor.of(localContext.getSettingsPath().resolve(ANY_EDIT_PLUGIN_PATH), localContext, false)),
+        new ProcessContextTestImpl(localContext));
 
     //assert - Check if we skip the markerfile-check because we force the plugins to install
-    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin anyedit (1/1)'.");
-    assertThat(context).log().hasNoMessageContaining("Skipping installation of plugin '{}' due to existing marker file: ");
+    assertThat(localContext).logAtSuccess().hasMessage("Successfully ended step 'Install plugin anyedit (1/1)'.");
+    assertThat(localContext).log().hasNoMessageContaining("Skipping installation of plugin '{}' due to existing marker file: ");
   }
 
   @Test
@@ -118,5 +121,58 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
 
     assertThat(markerBPath).exists();
     assertThat(markerAPath).doesNotExist();
+  }
+
+  @Test
+  void testExtraPluginIsActivated() {
+
+    IdeTestContext localContext = newContext(PROJECT_PLUGIN_EXTRA, null, false);
+    ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(localContext, TOOL, tags);
+
+    ToolPluginDescriptor anyedit = pluginBasedCommandlet.getPlugins().getByName("anyedit");
+
+    assertThat(anyedit).isNotNull();
+    assertThat(anyedit.active()).isTrue();
+  }
+
+  @Test
+  void testExtraPluginIsActivatedInPluginCollection() {
+
+    IdeTestContext localContext = newContext(PROJECT_PLUGIN_EXTRA, null, false);
+    ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(localContext, TOOL, tags);
+
+    Collection<ToolPluginDescriptor> plugins = pluginBasedCommandlet.getPlugins().getPlugins();
+
+    assertThat(plugins).filteredOn(plugin -> "anyedit".equals(plugin.name()))
+        .singleElement().extracting(ToolPluginDescriptor::active).isEqualTo(Boolean.TRUE);
+  }
+
+  @Test
+  void testUnlistedPluginKeepsConfiguredState() {
+
+    IdeTestContext localContext = newContext(PROJECT_PLUGIN_EXTRA, null, false);
+    ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(localContext, TOOL, tags);
+
+    ToolPlugins toolPlugins = pluginBasedCommandlet.getPlugins();
+
+    // configured as inactive and not listed in ECLIPSE_PLUGINS_EXTRA - has to stay inactive
+    assertThat(toolPlugins.getByName("checkstyle").active()).isFalse();
+    // configured as active and not listed in ECLIPSE_PLUGINS_EXTRA - has to stay active
+    assertThat(toolPlugins.getByName("spotbugs").active()).isTrue();
+  }
+
+  @Test
+  void testUnknownExtraPluginLogsWarning() throws IOException {
+
+    IdeTestContext localContext = newContext(PROJECT_PLUGIN_EXTRA, null, true);
+    Files.writeString(localContext.getIdeHome().resolve(IdeContext.FOLDER_CONF).resolve(EnvironmentVariables.DEFAULT_PROPERTIES),
+        "ECLIPSE_PLUGINS_EXTRA=anyedit,doesnotexist\n");
+    localContext.reload();
+    ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(localContext, TOOL, tags);
+
+    ToolPlugins toolPlugins = pluginBasedCommandlet.getPlugins();
+
+    assertThat(toolPlugins.getByName("anyedit").active()).isTrue();
+    assertThat(localContext).logAtWarning().hasMessageContaining("doesnotexist");
   }
 }

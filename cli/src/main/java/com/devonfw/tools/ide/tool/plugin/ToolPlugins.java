@@ -72,4 +72,27 @@ public class ToolPlugins {
       LOG.info("Plugin with key {} was {} but got overridden by {}", key, duplicate, descriptor);
     }
   }
+
+  /**
+   * Activates the plugin with the given {@link ToolPluginDescriptor#name() name} so it will be installed even if it is not
+   * {@link ToolPluginDescriptor#active() active} in its configuration. The descriptor is replaced in all internal indices so that {@link #getPlugins()},
+   * {@link #getByName(String)} and {@link #getById(String)} consistently return the activated variant.
+   *
+   * @param name the {@link ToolPluginDescriptor#name() name} of the plugin to activate.
+   * @return the activated {@link ToolPluginDescriptor} or {@code null} if no plugin with the given {@code name} is configured.
+   */
+  public ToolPluginDescriptor activate(String name) {
+
+    ToolPluginDescriptor descriptor = this.mapByName.get(name);
+    if (descriptor == null) {
+      return null;
+    }
+    ToolPluginDescriptor activated = descriptor.withActive(true);
+    this.mapByName.put(activated.name(), activated);
+    String id = activated.id();
+    if ((id != null) && !id.isEmpty()) {
+      this.mapById.put(id, activated);
+    }
+    return activated;
+  }
 }
