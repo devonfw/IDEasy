@@ -1,9 +1,8 @@
 name: CI status watch
 
-# Posts a Teams message ONLY when one of the README badge workflows on the default
-# branch turns red (green -> red). For each it compares the two latest runs with gh; a
-# change is reported only if the newest run finished within the look-back window, so a
-# workflow that stays red is not repeated every day.
+# Posts a Teams message listing the README badge workflows that are currently red on the
+# default branch. A workflow stays in the list until it is green again, so the reminder
+# repeats every weekday morning until somebody fixes it. Creates no issues, read-only.
 # Requires the repository secret TEAMS_WEBHOOK_URL.
 
 on:
@@ -35,39 +34,27 @@ jobs:
             .github/workflows/integration-tests.yml
           "
 
-          # Monday catches up the weekend (Fri-Sun); other weekdays look back 24h.
-          if [ "$(date -u +%u)" -eq 1 ]; then
-            SINCE=$(date -u -d '3 days ago' +%Y-%m-%dT%H:%M:%SZ)
-          else
-            SINCE=$(date -u -d '1 day ago' +%Y-%m-%dT%H:%M:%SZ)
-          fi
-          echo "Checking badge workflows for red since $SINCE"
-          echo "Resolved branch: $BRANCH"
+          echo "Checking badge workflows on branch $BRANCH"
 
-          is_red() { [ "$1" = "failure" ] || [ "$1" = "timed_out" ] || [ "$1" = "startup_failure" ]; }
-
-          # Compare each workflow's two latest runs; report it only if it just turned red
-          # and that run finished inside the window (so a lasting red is reported once).
+          # A workflow counts as red if its newest completed run that produced a real result
+          # failed; cancelled/skipped runs say nothing about the code and are ignored. This is
+          # exactly what the README badge shows. There is no look-back window on purpose: as
+          # long as it stays red it is reported every morning, so nobody can miss it.
           RED=$(for WF_PATH in $WORKFLOWS; do
-              ROW=$(gh run list --repo "$REPO" --workflow "$WF_PATH" --branch "$BRANCH" \
-                --status completed --limit 2 --json conclusion,url,updatedAt,workflowName \
-                --jq '[(.[0].conclusion // ""), (.[0].updatedAt // ""), (.[0].url // ""), (.[1].conclusion // ""), (.[0].workflowName // "")] | @tsv' || true)
-              [ -z "$ROW" ] && continue
-              IFS=$'\t' read -r CUR CURTIME URL PREV NAME <<< "$ROW"
-              [ -z "$CUR" ] && continue
-              # lexicographic string comparison sufficient due to ISO-8601 format
-              [[ "$CURTIME" > "$SINCE" ]] || continue
-              if is_red "$CUR" && { [ "$PREV" = "success" ] || [ -z "$PREV" ]; }; then
-                jq -n --arg n "$NAME" --arg u "$URL" '{name:$n, url:$u}'
-              fi
+              gh run list --repo "$REPO" --workflow "$WF_PATH" --branch "$BRANCH" \
+                --status completed --limit 5 --json conclusion,url,updatedAt,workflowName \
+                --jq '[ .[] | select(.conclusion != "cancelled" and .conclusion != "skipped") ][0]
+                      | select(. != null)
+                      | select(.conclusion == "failure" or .conclusion == "timed_out" or .conclusion == "startup_failure")
+                      | {name: .workflowName, url: .url, since: .updatedAt}' || true
             done | jq -s '.')
 
           COUNT=$(echo "$RED" | jq 'length')
           if [ "$COUNT" -eq 0 ]; then
-            echo "No badge workflow turned red. Skipping Teams notification."
+            echo "No badge workflow is red. Skipping Teams notification."
             exit 0
           fi
-          echo "$COUNT badge workflow(s) turned red."
+          echo "$COUNT badge workflow(s) currently red."
 
           if [ -z "${WEBHOOK:-}" ]; then
             echo "No Teams webhook set, skipping notification."; exit 0
@@ -80,9 +67,9 @@ jobs:
             body: (
               [
                 { type: "TextBlock", size: "Large", weight: "Bolder", wrap: true, color: "attention",
-                  text: "🔴 Workflow rot geworden" },
+                  text: "🔴 CI ist rot" },
                 { type: "TextBlock", spacing: "None", isSubtle: true, wrap: true,
-                  text: (if $count == 1 then "1 Workflow · grün → rot" else "\($count) Workflows · grün → rot" end) }
+                  text: (if $count == 1 then "1 Workflow ist rot" else "\($count) Workflows sind rot" end) }
               ]
               + [ .[] | {
                     type: "Container",
@@ -91,7 +78,7 @@ jobs:
                     items: [
                       { type: "TextBlock", weight: "Bolder", wrap: true, text: "🔴 \(.name)" },
                       { type: "TextBlock", spacing: "None", isSubtle: true, size: "Small", wrap: true,
-                        text: "[Run-Log öffnen](\(.url))" }
+                        text: "rot seit \(.since) · [Run-Log öffnen](\(.url))" }
                     ]
                   } ]
             )
