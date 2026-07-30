@@ -76,9 +76,9 @@ import com.devonfw.tools.ide.tool.custom.CustomToolRepositoryImpl;
 import com.devonfw.tools.ide.tool.mvn.MvnRepository;
 import com.devonfw.tools.ide.tool.npm.NpmRepository;
 import com.devonfw.tools.ide.tool.pip.PipRepository;
+import com.devonfw.tools.ide.tool.python.PythonRepository;
 import com.devonfw.tools.ide.tool.repository.DefaultToolRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
-import com.devonfw.tools.ide.tool.python.PythonRepository;
 import com.devonfw.tools.ide.tool.uv.UvRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.util.DateTimeUtil;
@@ -1084,7 +1084,6 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
     assert (options.length > 0);
     IdeLogLevel.INTERACTION.log(LOG, question, args);
-    LOG.warn(question, args);
     return displayOptionsAndGetAnswer(options);
   }
 

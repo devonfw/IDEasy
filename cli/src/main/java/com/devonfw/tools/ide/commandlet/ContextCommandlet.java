@@ -108,7 +108,7 @@ public class ContextCommandlet extends Commandlet {
     } else if (this.debug.isTrue()) {
       logLevel = IdeLogLevel.DEBUG;
     } else if (this.quiet.isTrue()) {
-      logLevel = IdeLogLevel.INTERACTION;
+      logLevel = IdeLogLevel.WARNING;
     }
     return logLevel;
   }
