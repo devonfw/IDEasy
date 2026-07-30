@@ -11,6 +11,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.ButtonType;
 import javafx.scene.image.Image;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -18,6 +19,8 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.ide.gui.context.GuiStateManager;
+import com.devonfw.ide.gui.context.TaskManager;
 import com.devonfw.ide.gui.modal.IdeDialog;
 import com.devonfw.ide.gui.nls.NlsService;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
@@ -39,6 +42,9 @@ public class App extends Application {
   private Stage primaryStage;
 
   private NlsService nlsService;
+
+  TaskManager taskManager = new TaskManager();
+  GuiStateManager guiStateManager = new GuiStateManager(taskManager, null);
 
   private static final Logger LOG = LoggerFactory.getLogger(App.class);
 
@@ -73,6 +79,30 @@ public class App extends Application {
     primaryStage.setMinWidth(scene.getWidth());
     primaryStage.setMinHeight(scene.getHeight());
     primaryStage.show();
+
+    primaryStage.setOnCloseRequest(event -> {
+
+      LOG.info("Closing application");
+      if (!taskManager.getTasks().isEmpty()) {
+        IdeDialog closeConfirm = new IdeDialog(IdeDialog.AlertType.CONFIRMATION, "There are still running tasks. Are you sure you want to exit?",
+            ButtonType.CLOSE, ButtonType.CANCEL);
+        closeConfirm.showAndWait().ifPresent(response -> {
+          if (response == ButtonType.CLOSE) {
+            exitApplication();
+          } else {
+            event.consume();
+          }
+        });
+      } else {
+        exitApplication();
+      }
+    });
+  }
+
+  private void exitApplication() {
+
+    Platform.exit();
+    System.exit(0);
   }
 
   @Override
@@ -98,7 +128,7 @@ public class App extends Application {
 
     FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
     fxmlLoader.setResources(this.nlsService.getResourceBundle());
-    fxmlLoader.setController(new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()), this.nlsService));
+    fxmlLoader.setController(new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()), guiStateManager, this.nlsService));
     return fxmlLoader.load();
   }
 
