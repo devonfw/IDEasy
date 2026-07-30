@@ -58,13 +58,10 @@ public class CleanupCommandlet extends Commandlet {
     List<InstalledSoftwareTool> installedSoftwareTools = discoverInstalledSoftware();
 
     // Scan for IDEasy projects
-    List<Path> ideasyProjects = this.context.getFileAccess().listChildren(this.context.getIdeRoot(), Files::isDirectory);
+    List<Path> ideasyProjects = this.context.findProjects();
 
     // Iterate through IDEasy projects and scan software in software folder. Save found software to list
     for (Path ideasyProject : ideasyProjects) {
-      if (ideasyProject.getFileName().toString().equals("_ide")) {
-        continue;
-      }
       Path ideasyProjectSoftware = ideasyProject.resolve(IdeContext.FOLDER_SOFTWARE);
       discoverUsedSoftware(installedSoftwareTools, ideasyProjectSoftware, ideasyProject.getFileName().toString());
       discoverUsedSoftware(installedSoftwareTools, ideasyProjectSoftware.resolve(IdeContext.FOLDER_EXTRA), ideasyProject.getFileName().toString());
