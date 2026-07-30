@@ -12,6 +12,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1784[#1784]: GUI now supports displaying progress bars
 * https://github.com/devonfw/IDEasy/issues/1917[#1917]: Allow the creation of a desktop shortcut for the GUI
 * https://github.com/devonfw/IDEasy/issues/2134[#2134]: Add auto-completion for icd command
+* https://github.com/devonfw/IDEasy/issues/2145[#2145]: Improve documentation on symlink regarding ide ln
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/48?closed=1[milestone 2026.08.001].
 
