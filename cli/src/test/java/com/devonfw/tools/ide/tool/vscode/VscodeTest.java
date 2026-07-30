@@ -210,6 +210,45 @@ class VscodeTest extends AbstractIdeContextTest {
 
 
   /**
+   * Tests that {@link Vscode#importRepository(Path)} merges the VSCode settings template for a Maven project.
+   */
+  @Test
+  void testVscodeMvnRepositoryImport() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    Vscode vscodeCommandlet = new Vscode(context);
+    Path repositoryPath = context.getWorkspacePath().resolve("test_mvn");
+
+    // act
+    vscodeCommandlet.importRepository(repositoryPath);
+
+    // assert
+    Path settingsJson = context.getWorkspacePath().resolve(".vscode/settings.json");
+    assertThat(settingsJson).exists().content().contains("test_mvn");
+  }
+
+  /**
+   * Tests that {@link Vscode#importRepository(Path)} merges the VSCode settings template for a Gradle project in a non-main workspace.
+   */
+  @Test
+  void testVscodeGradleRepositoryImport() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    Vscode vscodeCommandlet = new Vscode(context);
+    Path repositoryPath = context.getWorkspacePath("test").resolve("subfolder/test_gradle");
+
+    // act
+    vscodeCommandlet.importRepository(repositoryPath);
+
+    // assert
+    Path settingsJson = context.getWorkspacePath("test").resolve(".vscode/settings.json");
+    assertThat(settingsJson).exists().content().contains("test_gradle");
+  }
+
+
+  /**
    * Test double for {@link Vscode} that captures CLI arguments passed to {@link #runTool(ProcessContext, ProcessMode, List)} so tests can assert command
    * construction without spawning an external process.
    */
