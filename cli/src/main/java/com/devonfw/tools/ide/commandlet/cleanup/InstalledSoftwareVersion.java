@@ -7,17 +7,10 @@ import java.util.List;
 /**
  * Represents a version of an IDE tool edition in the global software folder as discovered by the {@code cleanup} commandlet.
  * <p>
- * For example, for IntelliJ's "ultimate" edition, versions could be "2022.3" and "2023.1".
- * This class contains the version name, the installation path, a list of projects that
- * use this version, and a flag indicating whether the version is marked for deletion.
+ * For example, for IntelliJ's "ultimate" edition, versions could be "2022.3" and "2023.1". This class contains a list
+ * of projects that use this version and a flag indicating whether the version is marked for deletion.
  */
-public class CleanupIdeToolEditionVersion {
-
-  /** The name of this version. */
-  public final String versionName;
-
-  /** The installation {@link Path} of this version. */
-  private final Path path;
+public class InstalledSoftwareVersion extends AbstractInstalledSoftwareItem {
 
   /** A list of project names that currently use this version. */
   private final List<String> usedBy;
@@ -28,23 +21,14 @@ public class CleanupIdeToolEditionVersion {
   /**
    * Constructor.
    *
-   * @param versionName the name of the version.
+   * @param name the name of the version.
    * @param path the installation {@link Path} of this version.
    */
-  public CleanupIdeToolEditionVersion(String versionName, Path path) {
+  public InstalledSoftwareVersion(String name, Path path) {
 
-    this.versionName = versionName;
-    this.path = path;
+    super(name, path);
     this.usedBy = new ArrayList<>();
     this.delete = false;
-  }
-
-  /**
-   * @return the installation {@link Path} of this version.
-   */
-  public Path getPath() {
-
-    return this.path;
   }
 
   /**
@@ -96,6 +80,6 @@ public class CleanupIdeToolEditionVersion {
   @Override
   public String toString() {
 
-    return "CleanupIdeToolEditionVersion[" + this.versionName + "]";
+    return "InstalledSoftwareVersion[" + getName() + "]";
   }
 }
