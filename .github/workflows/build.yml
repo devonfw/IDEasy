@@ -3,7 +3,7 @@ on:
   push:
     #    paths-ignore:
     #      - 'documentation/**'
-    branches: [ main ]
+    branches: [ bug-fix/* ]
 jobs:
   build:
     runs-on: ubuntu-latest
