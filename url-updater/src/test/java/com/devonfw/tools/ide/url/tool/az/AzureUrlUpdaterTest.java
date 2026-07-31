@@ -33,6 +33,8 @@ class AzureUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(get(urlMatching("/repos/Azure/azure-cli/git/refs/tags")).willReturn(aResponse().withStatus(200)
         .withBody(readAndResolve(PATH_INTEGRATION_TEST.resolve("AzureUrlUpdater").resolve("azure-cli-tags.json"), wmRuntimeInfo))));
     stubFor(any(urlMatching("/msi/azure-cli-.*\\.msi")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
+    stubFor(any(urlMatching("/Azure/azure-cli/releases/download/azure-cli-.*/azure-cli-.*-macos-.*\\.tar\\.gz"))
+        .willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
     AzureUrlUpdater updater = new AzureUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
@@ -44,5 +46,6 @@ class AzureUrlUpdaterTest extends AbstractUrlUpdaterTest {
     Path azEditionDir = tempDir.resolve("az").resolve("az");
     assertUrlVersion(azEditionDir.resolve("2.18.0"), List.of("windows_x64"));
     assertUrlVersion(azEditionDir.resolve("2.20.0"), List.of("windows_x64"));
+    assertUrlVersion(azEditionDir.resolve("2.85.0"), List.of("windows_x64", "mac_x64", "mac_arm64"));
   }
 }
