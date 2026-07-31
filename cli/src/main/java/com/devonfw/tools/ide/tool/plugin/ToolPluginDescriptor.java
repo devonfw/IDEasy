@@ -95,7 +95,7 @@ public record ToolPluginDescriptor(String id, String name, String url, String ve
           result.add(trimmed);
         }
       }
-      return result;
+      return Set.copyOf(result);
     }
     return Set.of();
   }
