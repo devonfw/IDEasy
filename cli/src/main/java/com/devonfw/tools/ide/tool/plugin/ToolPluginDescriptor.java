@@ -56,7 +56,7 @@ public record ToolPluginDescriptor(String id, String name, String url, String ve
     boolean active = getBoolean(properties, "active", "plugin_active", propertiesFile);
     String tagsCsv = getString(properties, "tags", "plugin_tags");
     Set<Tag> tags = Tag.parseCsv(tagsCsv);
-    Set<String> excludedEditions = getExcludedEditions(properties, "excluded-editions");
+    Set<String> excludedEditions = getSetOfStrings(properties, "excluded-editions");
     return new ToolPluginDescriptor(id, name, url, version, active, tags, excludedEditions);
   }
 
