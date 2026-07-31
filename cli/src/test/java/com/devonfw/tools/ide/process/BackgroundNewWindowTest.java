@@ -271,6 +271,10 @@ class BackgroundNewWindowTest extends AbstractIdeContextTest {
       return; // Skip when no bash is available
     }
 
+    // Pre-answer "yes" to the executable permission prompt that may appear in CI
+    // where git clone does not preserve executable permissions on shell scripts
+    context.setAnswers("1");
+
     boolean hasDisplay = System.getenv("DISPLAY") != null || System.getenv("WAYLAND_DISPLAY") != null;
 
     Path markerFile = Files.createTempFile("bg-marker-linux-", ".txt");
