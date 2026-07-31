@@ -46,7 +46,7 @@ jobs:
             exit 0
           fi
           
-          BRANCH= "quality-status-update"
+          BRANCH="doc/quality-status-update"
           
           git checkout -B "$BRANCH"
 
