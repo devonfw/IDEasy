@@ -7,7 +7,6 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 jobs:
   update-quality-status:
@@ -45,21 +44,6 @@ jobs:
             echo "No changes to commit."
             exit 0
           fi
-          
-          BRANCH="doc/quality-status-update"
-          
-          git checkout -B "$BRANCH"
 
           git commit -m "Update quality status documents"
-          git push origin "$BRANCH" --force
-
-      - name: Create Pull Request
-        env:
-          GH_TOKEN: ${{ secrets.ACTION_PUSH_TOKEN }}
-        run: |
-          gh pr create \
-            --base main \
-            --head doc/quality-status-update \
-            --title "Doc: update quality status documents" \
-            --body "Automatically generated quality status update." \
-          || echo "Pull request already exists"
+          git push --force
