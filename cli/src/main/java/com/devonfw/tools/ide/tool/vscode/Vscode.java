@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.tool.vscode;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,17 +48,6 @@ public class Vscode extends IdeToolCommandlet {
     return "code";
   }
 
-  @Override
-  protected Path getPluginsConfigPath() {
-
-    if (EDITION_VSCODIUM.equals(getConfiguredEdition())) {
-      Path vscodiumPluginsPath = this.context.getSettingsPath().resolve(EDITION_VSCODIUM).resolve(IdeContext.FOLDER_PLUGINS);
-      if (Files.isDirectory(vscodiumPluginsPath)) {
-        return vscodiumPluginsPath;
-      }
-    }
-    return super.getPluginsConfigPath();
-  }
 
   @Override
   public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
