@@ -15,8 +15,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-      #        with:
-      #          token: ${{ secrets.ACTION_PUSH_TOKEN }}
+        with:
+          token: ${{ secrets.ACTION_PUSH_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -46,7 +46,4 @@ jobs:
           fi
 
           git commit -m "Update quality status documents"
-        # debugging
-      - name: Push
-        run: |
           git push
