@@ -44,8 +44,6 @@ public class NlsService {
 
   private static final String BUNDLE_NAME = BUNDLE_PACKAGE + "." + BUNDLE_BASE_NAME;
 
-  private static final String LANGUAGE_DISPLAY_KEY = "CurrentLanguage";
-
   public static final String EXTENSION_PROPERTIES = ".properties";
 
   public static final String IDE_OPTIONS = "IDE_OPTIONS";
@@ -144,30 +142,17 @@ public class NlsService {
   }
 
   /**
-   * Returns the display label for a locale, using {@code CurrentLanguage} when available.
+   * Returns the display label for a locale localized using {@code this.locale}.
    *
    * @param locale the locale to describe.
    * @return a user-facing language label.
    */
   public String getLanguageDisplayName(Locale locale) {
-
-    if (locale == null) {
-      return "";
-    }
-    try {
-      ResourceBundle bundle = loadBundle(locale);
-      if (bundle.containsKey(LANGUAGE_DISPLAY_KEY)) {
-        return bundle.getString(LANGUAGE_DISPLAY_KEY);
-      }
-    } catch (MissingResourceException e) {
-      LOG.debug("No bundle found for language display locale {}", locale, e);
-    }
-    //fallback
     String languageCode = locale.getLanguage();
     if (languageCode.isBlank()) {
       languageCode = Locale.ENGLISH.getLanguage();
     }
-    return locale.getDisplayLanguage(locale) + " (" + languageCode + ")";
+    return locale.getDisplayLanguage(this.locale) + " (" + languageCode + ")";
   }
 
   /**
