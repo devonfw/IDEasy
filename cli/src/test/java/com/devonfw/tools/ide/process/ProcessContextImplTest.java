@@ -141,7 +141,7 @@ class ProcessContextImplTest extends AbstractIdeContextTest {
   }
 
   @ParameterizedTest
-  @EnumSource(value = ProcessMode.class, names = { "BACKGROUND", "BACKGROUND_SILENT" })
+  @EnumSource(value = ProcessMode.class, names = { "BACKGROUND", "BACKGROUND_SILENT", "BACKGROUND_NEW_WINDOW" })
   void enablingBackgroundProcessShouldNotBeAwaitedAndShouldNotPassStreams(ProcessMode processMode)
       throws Exception {
 
@@ -158,7 +158,7 @@ class ProcessContextImplTest extends AbstractIdeContextTest {
 
       verify(this.mockProcessBuilder).redirectError(
           (ProcessBuilder.Redirect) argThat(arg -> arg.equals(ProcessBuilder.Redirect.INHERIT)));
-    } else if (processMode == ProcessMode.BACKGROUND_SILENT) {
+    } else if (processMode == ProcessMode.BACKGROUND_SILENT || processMode == ProcessMode.BACKGROUND_NEW_WINDOW) {
       verify(this.mockProcessBuilder).redirectOutput(
           (ProcessBuilder.Redirect) argThat(arg -> arg.equals(ProcessBuilder.Redirect.DISCARD)));
 
