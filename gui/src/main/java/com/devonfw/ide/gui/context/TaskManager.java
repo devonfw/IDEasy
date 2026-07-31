@@ -45,10 +45,10 @@ public class TaskManager {
   }
 
   /**
-   * @return the {@link ObservableList} of currently running tasks.
+   * @return the {@link ObservableList} of currently running tasks (read-only).
    */
   public ObservableList<ProgressBarTask> getTasks() {
 
-    return tasks;
+    return FXCollections.unmodifiableObservableList(tasks);
   }
 }
