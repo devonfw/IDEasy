@@ -1,9 +1,9 @@
 name: CI build
 on:
   push:
-    #    paths-ignore:
-    #      - 'documentation/**'
-    branches: [ bug-fix/2124-update-quality-status-document-fails ]
+    paths-ignore:
+      - 'documentation/**'
+    branches: [ main ]
 jobs:
   build:
     runs-on: ubuntu-latest
