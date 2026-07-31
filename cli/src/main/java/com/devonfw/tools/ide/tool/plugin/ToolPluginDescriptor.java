@@ -85,7 +85,7 @@ public record ToolPluginDescriptor(String id, String name, String url, String ve
     return value != null ? value.trim() : null;
   }
 
-  private static Set<String> getExcludedEditions(Properties properties, String key) {
+  private static Set<String> getSetOfStrings(Properties properties, String key) {
     String excludedEditionsString = properties.getProperty(key);
     if (excludedEditionsString != null) {
       Set<String> result = new HashSet<>();
