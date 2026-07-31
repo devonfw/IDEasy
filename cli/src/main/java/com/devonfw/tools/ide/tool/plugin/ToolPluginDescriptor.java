@@ -22,9 +22,9 @@ import com.devonfw.tools.ide.context.IdeContext;
  * @param version the optional plugin version to install.
  * @param active {@code true} if the plugin is active and shall be installed automatically, {@code false} otherwise.
  * @param tags the {@link #tags () tags}.
- * @param excludedEditions the ide editions that this plugin should not be installed for
+ * @param excludeditems the ide items that this plugin should not be installed for
  */
-public record ToolPluginDescriptor(String id, String name, String url, String version, boolean active, Set<Tag> tags, Set<String> excludedEditions) implements
+public record ToolPluginDescriptor(String id, String name, String url, String version, boolean active, Set<Tag> tags, Set<String> excludeditems) implements
     Tags {
 
   private static final Logger LOG = LoggerFactory.getLogger(ToolPluginDescriptor.class);
@@ -56,8 +56,8 @@ public record ToolPluginDescriptor(String id, String name, String url, String ve
     boolean active = getBoolean(properties, "active", "plugin_active", propertiesFile);
     String tagsCsv = getString(properties, "tags", "plugin_tags");
     Set<Tag> tags = Tag.parseCsv(tagsCsv);
-    Set<String> excludedEditions = getSetOfStrings(properties, "excluded-editions");
-    return new ToolPluginDescriptor(id, name, url, version, active, tags, excludedEditions);
+    Set<String> excludeditems = getSetOfStrings(properties, "excluded-items");
+    return new ToolPluginDescriptor(id, name, url, version, active, tags, excludeditems);
   }
 
   private static boolean getBoolean(Properties properties, String key, String legacyKey, Path propertiesFile) {
@@ -86,11 +86,11 @@ public record ToolPluginDescriptor(String id, String name, String url, String ve
   }
 
   private static Set<String> getSetOfStrings(Properties properties, String key) {
-    String excludedEditionsString = properties.getProperty(key);
-    if (excludedEditionsString != null) {
+    String value = properties.getProperty(key);
+    if (value != null) {
       Set<String> result = new HashSet<>();
-      for (String edition : excludedEditionsString.split(",")) {
-        String trimmed = edition.trim();
+      for (String item : value.split(",")) {
+        String trimmed = item.trim();
         if (!trimmed.isEmpty()) {
           result.add(trimmed);
         }
