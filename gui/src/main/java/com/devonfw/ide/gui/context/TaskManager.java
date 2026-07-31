@@ -18,6 +18,7 @@ import com.devonfw.ide.gui.progress.ProgressBarTask;
 public class TaskManager {
 
   private final ObservableList<ProgressBarTask> tasks = FXCollections.observableArrayList();
+  private final ObservableList<ProgressBarTask> taskListReadOnly = FXCollections.unmodifiableObservableList(tasks);
 
   /**
    * @param task the task to be added to the list of tasks.
@@ -44,11 +45,17 @@ public class TaskManager {
     FxHelper.runFxSafe(() -> tasks.remove(task));
   }
 
+  /// clears the task list.
+  public void clearTasks() {
+
+    FxHelper.runFxSafe(tasks::clear);
+  }
+
   /**
    * @return the {@link ObservableList} of currently running tasks (read-only).
    */
   public ObservableList<ProgressBarTask> getTasks() {
 
-    return FXCollections.unmodifiableObservableList(tasks);
+    return taskListReadOnly;
   }
 }

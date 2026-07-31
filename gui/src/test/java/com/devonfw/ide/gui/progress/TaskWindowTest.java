@@ -54,7 +54,7 @@ public class TaskWindowTest extends HeadlessApplicationTest {
 
   @BeforeEach
   void reset() {
-    taskManager.getTasks().clear();
+    taskManager.clearTasks();
     waitForFxEvents();
   }
 
