@@ -51,7 +51,7 @@ jobs:
           git checkout -B "$BRANCH"
 
           git commit -m "Update quality status documents"
-          git push origin "$BRANCH" --force-with-lease
+          git push origin "$BRANCH" --force
 
       - name: Create Pull Request
         env:
