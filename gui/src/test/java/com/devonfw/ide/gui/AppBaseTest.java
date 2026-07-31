@@ -96,6 +96,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
   protected void resetTaskManager() {
 
     taskManager.clearTasks();
+    waitForFxEvents();
   }
 
   /**
@@ -187,6 +188,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
     ProgressBarTask task2 = new ProgressBarTask(taskManager, "task-2", "Test Task");
 
     taskManager.addTask(task1);
+    waitForFxEvents();
     taskManager.addTask(task2);
     waitForFxEvents();
 

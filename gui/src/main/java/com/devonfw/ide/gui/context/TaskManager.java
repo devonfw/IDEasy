@@ -21,6 +21,8 @@ public class TaskManager {
   private final ObservableList<ProgressBarTask> taskListReadOnly = FXCollections.unmodifiableObservableList(tasks);
 
   /**
+   * Adds a task to the task list. Make sure to use waitForFxEvents() during testing after this method.
+   *
    * @param task the task to be added to the list of tasks.
    */
   public void addTask(ProgressBarTask task) {
@@ -37,7 +39,9 @@ public class TaskManager {
   }
 
   /**
-   * @param task task to be removed
+   * Removes a task from the task list. Make sure to use waitForFxEvents() during testing after this method.
+   *
+   * @param task task to be removed.
    */
   public void removeTask(ProgressBarTask task) {
     assert task != null;
@@ -45,7 +49,7 @@ public class TaskManager {
     FxHelper.runFxSafe(() -> tasks.remove(task));
   }
 
-  /// clears the task list.
+  /// clears the task list. Make sure to use waitForFxEvents() during testing after this method.
   public void clearTasks() {
 
     FxHelper.runFxSafe(tasks::clear);

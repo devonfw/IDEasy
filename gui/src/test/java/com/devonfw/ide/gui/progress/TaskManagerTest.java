@@ -35,7 +35,6 @@ class TaskManagerTest extends HeadlessApplicationTest {
     ProgressBarTask task = new ProgressBarTask(taskManager, "task-1", "Test Task");
 
     taskManager.addTask(task);
-
     waitForFxEvents();
 
     assertEquals(1, taskManager.getTasks().size());
@@ -48,8 +47,9 @@ class TaskManagerTest extends HeadlessApplicationTest {
     ProgressBarTask task = new ProgressBarTask(taskManager, "task-1", "Test Task");
 
     taskManager.addTask(task);
-    taskManager.removeTask(task);
+    waitForFxEvents();
 
+    taskManager.removeTask(task);
     waitForFxEvents();
 
     assertTrue(taskManager.getTasks().isEmpty());
@@ -62,12 +62,14 @@ class TaskManagerTest extends HeadlessApplicationTest {
     ProgressBarTask task2 = new ProgressBarTask(taskManager, "task-1", "Test Task 2");
 
     taskManager.addTask(task1);
-
     waitForFxEvents();
 
     IllegalArgumentException exception = assertThrows(
         IllegalArgumentException.class,
-        () -> taskManager.addTask(task2)
+        () -> {
+          taskManager.addTask(task2);
+          waitForFxEvents();
+        }
     );
     assertEquals("Task with ID task-1 already exists.", exception.getMessage());
   }
