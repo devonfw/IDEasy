@@ -1,7 +1,6 @@
 package com.devonfw.ide.gui.progress;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
@@ -12,8 +11,8 @@ import com.devonfw.ide.gui.HeadlessApplicationTest;
 import com.devonfw.ide.gui.context.TaskManager;
 
 /**
- * Test for the @TaskManager class. Currently, we extend HeadlessApplicationTest because we need the JavaFX Application Thread. The reason for this is, that
- * TaskManager uses a method from JavaFX (currently; looking for a better implementation in the future).
+ * Tests for the {@link TaskManager} class. We extend HeadlessApplicationTest because all TaskManager mutations run on the JavaFX Application Thread via
+ * {@code FxHelper.runFxSafe()}.
  *
  * @see TaskManager
  */
@@ -56,7 +55,7 @@ class TaskManagerTest extends HeadlessApplicationTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenAddingDuplicateTaskId() {
+  void shouldIgnoreDuplicateTaskId() {
 
     ProgressBarTask task1 = new ProgressBarTask(taskManager, "task-1", "Test Task 1");
     ProgressBarTask task2 = new ProgressBarTask(taskManager, "task-1", "Test Task 2");
@@ -64,13 +63,11 @@ class TaskManagerTest extends HeadlessApplicationTest {
     taskManager.addTask(task1);
     waitForFxEvents();
 
-    IllegalArgumentException exception = assertThrows(
-        IllegalArgumentException.class,
-        () -> {
-          taskManager.addTask(task2);
-          waitForFxEvents();
-        }
-    );
-    assertEquals("Task with ID task-1 already exists.", exception.getMessage());
+    // Duplicate task IDs are silently ignored — the operation is idempotent.
+    taskManager.addTask(task2);
+    waitForFxEvents();
+
+    assertEquals(1, taskManager.getTasks().size());
+    assertTrue(taskManager.getTasks().contains(task1));
   }
 }

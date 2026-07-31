@@ -1,6 +1,5 @@
 package com.devonfw.ide.gui.context;
 
-import java.util.ArrayList;
 import java.util.Objects;
 
 import javafx.collections.FXCollections;
@@ -21,27 +20,29 @@ public class TaskManager {
   private final ObservableList<ProgressBarTask> taskListReadOnly = FXCollections.unmodifiableObservableList(tasks);
 
   /**
-   * Adds a task to the task list. Make sure to use waitForFxEvents() during testing after this method.
+   * Adds a task to the task list. The duplicate check and the add are performed atomically on the FX thread.
+   * Duplicate IDs are silently ignored (idempotent).
    *
    * @param task the task to be added to the list of tasks.
    */
   public void addTask(ProgressBarTask task) {
     assert task != null;
 
-    // Create a defensive copy to avoid ConcurrentModificationException when the list is modified by FX listeners
-    boolean exists = new ArrayList<>(tasks).stream()
-        .anyMatch(t -> Objects.equals(t.getTaskId(), task.getTaskId()));
-    if (exists) {
-      throw new IllegalArgumentException("Task with ID " + task.getTaskId() + " already exists.");
-    }
-
-    FxHelper.runFxSafe(() -> tasks.add(task));
+    // Both the duplicate check and the add happen atomically on the FX thread to avoid race conditions.
+    FxHelper.runFxSafe(() -> {
+      if (tasks.stream().anyMatch(t -> Objects.equals(t.getTaskId(), task.getTaskId()))) {
+        // Duplicate task — silently skip. Throwing here would crash the FX event loop
+        // when called from a background thread.
+        return;
+      }
+      tasks.add(task);
+    });
   }
 
   /**
-   * Removes a task from the task list. Make sure to use waitForFxEvents() during testing after this method.
+   * Removes a task from the list.
    *
-   * @param task task to be removed.
+   * @param task the task to be removed.
    */
   public void removeTask(ProgressBarTask task) {
     assert task != null;
@@ -49,7 +50,9 @@ public class TaskManager {
     FxHelper.runFxSafe(() -> tasks.remove(task));
   }
 
-  /// clears the task list. Make sure to use waitForFxEvents() during testing after this method.
+  /**
+   * Clears the task list.
+   */
   public void clearTasks() {
 
     FxHelper.runFxSafe(tasks::clear);
