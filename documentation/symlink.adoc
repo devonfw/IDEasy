@@ -21,6 +21,18 @@ To do so you might need to be connected to a VPN depending on the company settin
 |
 |===
 
+== Creating links easy
+
+IDEasy allows to create symbolic or had links using the `ide ln` command.
+For example the following command will create a symbolic relative link `target-link-folder` pointing to `src-folder`:
+
+`ide ln -sr src-folder target-link-folder`
+
+This behaves very much like the same command without prefixed by `ide`.
+Unfortunately on Windows in Git-Bash the `ln` command is falling back to `cp` command so not really doing what you expect.
+However, prefixed with `ide` it will work regardless of your platform.
+The result can be verified using `ls -la`.
+
 == Running Tests Without Symlink Permissions
 
 If you are a contributor and want to run the test suite without administrator privileges or enabling symlink permissions, you can still do so.
