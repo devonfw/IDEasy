@@ -13,6 +13,8 @@ import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.mvn.MvnRepository;
+import com.devonfw.tools.ide.tool.repository.ToolRepository;
 
 /**
  * Commandlet which scans your IDE installation for unused software (tools not currently used by any project) and removes them.
@@ -74,17 +76,24 @@ public class CleanupCommandlet extends Commandlet {
   }
 
   /**
-   * This method discovers all installed tools in all repositories below $IDE_ROOT/_ide/software and saves them to the list of installed tools.
+   * Discovers all installed tools in the default, Maven, and custom software repositories.
    *
    * @return the list of discovered installed tools.
    */
   private List<InstalledSoftwareTool> discoverInstalledSoftware() {
+
     List<InstalledSoftwareTool> installedSoftwareTools = new ArrayList<>();
     Path softwareRepositoryPath = this.context.getSoftwareRepositoryPath();
-    List<Path> repositoryFolders = this.context.getFileAccess().listChildren(softwareRepositoryPath, Files::isDirectory);
-    for (Path repositoryFolder : repositoryFolders) {
-      discoverInstalledSoftwareRepository(installedSoftwareTools, repositoryFolder);
-    }
+
+    discoverInstalledSoftwareRepository(installedSoftwareTools,
+        softwareRepositoryPath.resolve(ToolRepository.ID_DEFAULT));
+
+    discoverInstalledSoftwareRepository(installedSoftwareTools,
+        softwareRepositoryPath.resolve(MvnRepository.ID));
+
+    discoverInstalledSoftwareRepository(installedSoftwareTools,
+        softwareRepositoryPath.resolve(this.context.getCustomToolRepository().getId()));
+
     return installedSoftwareTools;
   }
 
@@ -95,6 +104,9 @@ public class CleanupCommandlet extends Commandlet {
    * @param repositoryFolder The software repository folder to scan.
    */
   private void discoverInstalledSoftwareRepository(List<InstalledSoftwareTool> installedSoftwareTools, Path repositoryFolder) {
+    if (!Files.isDirectory(repositoryFolder)) {
+      return;
+    }
     List<Path> toolFolders = this.context.getFileAccess().listChildren(repositoryFolder, Files::isDirectory);
     for (Path toolFolder : toolFolders) {
       InstalledSoftwareTool tool = new InstalledSoftwareTool(toolFolder.getFileName().toString(), this.context.getFileAccess().toRealPath(toolFolder));

@@ -127,13 +127,13 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
    * @throws IOException if the test setup cannot be created.
    */
   @Test
-  void testCleanupDeletesUnusedSoftwareFromNonDefaultRepository() throws IOException {
+  void testCleanupDeletesUnusedSoftwareFromCustomRepository() throws IOException {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
+    String customRepositoryId = context.getCustomToolRepository().getId();
 
-    Path unusedVersion = createInstalledVersion(context, "cleanup-test-repository", "cleanup-test-tool", "default",
-        "1.0");
+    Path unusedVersion = createInstalledVersion(context, customRepositoryId, "cleanup-test-tool", "default", "1.0");
 
     CleanupCommandlet cleanup = getCleanupWithoutConfirmation(context);
 
@@ -142,7 +142,7 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(unusedVersion)
-        .as("Unused software from a non-default repository should also be discovered and deleted")
+        .as("Unused software from the configured custom repository should be discovered and deleted")
         .doesNotExist();
   }
 
