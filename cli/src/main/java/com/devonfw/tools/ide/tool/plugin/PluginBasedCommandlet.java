@@ -158,8 +158,9 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
   protected void installPlugins(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
     long currentPluginIndex = 1;
     long totalActivePlugins = plugins.stream().filter(ToolPluginDescriptor::active).count();
+    String edition = getConfiguredEdition();
     for (ToolPluginDescriptor plugin : plugins) {
-      if (plugin.excludedEditions().contains(getConfiguredEdition())) {
+      if (plugin.excludedEditions().contains(edition)) {
         LOG.debug("Skipping plugin '{}' (excluded for edition '{}').", plugin.name(), getConfiguredEdition());
         continue;
       }
