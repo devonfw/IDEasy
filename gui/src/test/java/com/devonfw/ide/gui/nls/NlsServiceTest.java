@@ -63,24 +63,25 @@ public class NlsServiceTest {
 
   @ParameterizedTest
   @MethodSource("testGetInstanceWithLocaleProvider")
-  public void testGetInstanceWithLocale(Locale systemLocale, Locale providedLocale, Locale expectedServiceLocale, String expectedString) {
+  public void testGetInstanceWithLocale(Locale systemLocale, Locale providedLocale, Locale expectedServiceLocale) {
     Locale.setDefault(systemLocale);
     NlsService service = new NlsService(providedLocale);
 
     assertThat(service.getLocale()).isEqualTo(expectedServiceLocale);
     assertThat(service.getResourceBundle()).isNotNull();
-    assertThat(service.get("CurrentLanguage")).isEqualTo(expectedString);
   }
 
   static Stream<Arguments> testGetInstanceWithLocaleProvider() {
     return Stream.of(
-        arguments(Locale.GERMANY, Locale.ENGLISH, Locale.ENGLISH, "English (en)"),
-        arguments(Locale.GERMANY, Locale.GERMAN, Locale.GERMAN, "Deutsch (de)"),
-        arguments(Locale.GERMANY, null, Locale.GERMANY, "Deutsch (de)"),
-        arguments(Locale.UK, Locale.ENGLISH, Locale.ENGLISH, "English (en)"),
-        arguments(Locale.UK, Locale.GERMAN, Locale.GERMAN, "Deutsch (de)"),
-        arguments(Locale.UK, null, Locale.UK, "English (en)"),
-        arguments(Locale.FRANCE, null, Locale.FRANCE, "English (en)")
+        arguments(Locale.GERMANY, Locale.ENGLISH, Locale.ENGLISH),
+        arguments(Locale.GERMANY, Locale.GERMAN, Locale.GERMAN),
+        arguments(Locale.GERMANY, null, Locale.GERMANY),
+        arguments(Locale.UK, Locale.ENGLISH, Locale.ENGLISH),
+        arguments(Locale.UK, Locale.GERMAN, Locale.GERMAN),
+        arguments(Locale.UK, null, Locale.UK),
+        arguments(Locale.FRANCE, Locale.ENGLISH, Locale.ENGLISH),
+        arguments(Locale.FRANCE, Locale.GERMAN, Locale.GERMAN),
+        arguments(Locale.FRANCE, null, Locale.FRANCE)
     );
   }
 
@@ -92,7 +93,7 @@ public class NlsServiceTest {
 
     assertThat(service.getLocale().getLanguage()).isEqualTo("de");
     assertThat(service.getResourceBundle()).isNotNull();
-    assertThat(service.get("CurrentLanguage")).isEqualTo("Deutsch (de)");
+    assertThat(service.get("language")).isEqualTo("Sprache");
   }
 
   @Test
@@ -121,13 +122,23 @@ public class NlsServiceTest {
     }
   }
 
-  @Test
-  public void testLanguageDisplayShowsLocaleName() {
+  @ParameterizedTest
+  @MethodSource("testLanguageDisplayShowsLocaleNameProvider")
+  public void testLanguageDisplayShowsLocaleName(Locale serviceLocale, Locale displayLocale, String expectedString) {
+    NlsService service = new NlsService(serviceLocale);
 
-    NlsService service = new NlsService(Locale.ENGLISH);
+    assertThat(service.getLanguageDisplayName(displayLocale)).isEqualTo(expectedString);
+  }
 
-    assertThat(service.getLanguageDisplayName(Locale.ENGLISH)).isEqualTo("English (en)");
-    assertThat(service.getLanguageDisplayName(Locale.GERMAN)).isEqualTo("Deutsch (de)");
+  static Stream<Arguments> testLanguageDisplayShowsLocaleNameProvider() {
+    return Stream.of(
+        arguments(Locale.GERMANY, Locale.ENGLISH, "Englisch (en)"),
+        arguments(Locale.GERMANY, Locale.GERMAN, "Deutsch (de)"),
+        arguments(Locale.UK, Locale.ENGLISH, "English (en)"),
+        arguments(Locale.UK, Locale.GERMAN, "German (de)"),
+        arguments(Locale.FRANCE, Locale.ENGLISH, "anglais (en)"),
+        arguments(Locale.FRANCE, Locale.GERMAN, "allemand (de)")
+    );
   }
 
   @Test
