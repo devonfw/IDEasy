@@ -1,5 +1,6 @@
 package com.devonfw.ide.gui.context;
 
+import java.util.ArrayList;
 import java.util.Objects;
 
 import javafx.collections.FXCollections;
@@ -24,7 +25,8 @@ public class TaskManager {
   public void addTask(ProgressBarTask task) {
     assert task != null;
 
-    boolean exists = tasks.stream()
+    // Create a defensive copy to avoid ConcurrentModificationException when the list is modified by FX listeners
+    boolean exists = new ArrayList<>(tasks).stream()
         .anyMatch(t -> Objects.equals(t.getTaskId(), task.getTaskId()));
     if (exists) {
       throw new IllegalArgumentException("Task with ID " + task.getTaskId() + " already exists.");
