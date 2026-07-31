@@ -28,8 +28,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import com.devonfw.ide.gui.context.IdeGuiStateManager;
-
 /**
  * Tests for {@link NlsService} - verifies locale switching, bundle loading, and fallback behavior.
  */
@@ -38,9 +36,6 @@ public class NlsServiceTest {
   @TempDir
   Path tempUserHome;
 
-  @TempDir
-  Path tempIdeRoot;
-
   private String originalUserHome;
 
   @BeforeEach
@@ -48,7 +43,6 @@ public class NlsServiceTest {
 
     this.originalUserHome = System.getProperty("user.home");
     System.setProperty("user.home", this.tempUserHome.toString());
-    IdeGuiStateManager.getInstanceOverrideRootDir(this.tempIdeRoot.toString());
   }
 
   @AfterEach
