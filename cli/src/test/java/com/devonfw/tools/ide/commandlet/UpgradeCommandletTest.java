@@ -14,6 +14,7 @@ import com.devonfw.tools.ide.completion.CompletionCandidateCollectorDefault;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.property.EnumProperty;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
@@ -58,7 +59,7 @@ class UpgradeCommandletTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = new IdeTestContext();
     CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context);
-    UpgradeModeProperty property = new UpgradeModeProperty();
+    EnumProperty<UpgradeMode> property = new EnumProperty<>("--mode", false, null, UpgradeMode.class);
 
     // act
     property.completeValue(input, context, new UpgradeCommandlet(context), collector);
@@ -76,7 +77,7 @@ class UpgradeCommandletTest extends AbstractIdeContextTest {
     // arrange
     IdeContext context = new IdeTestContext();
     CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context);
-    UpgradeModeProperty property = new UpgradeModeProperty();
+    EnumProperty<UpgradeMode> property = new EnumProperty<>("--mode", false, null, UpgradeMode.class);
 
     // act
     property.completeValue("ss", context, new UpgradeCommandlet(context), collector);

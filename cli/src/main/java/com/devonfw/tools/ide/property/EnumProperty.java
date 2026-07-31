@@ -49,7 +49,7 @@ public class EnumProperty<V extends Enum<V>> extends Property<V> {
   }
 
   @Override
-  protected void completeValue(String arg, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
+  public void completeValue(String arg, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
 
     for (V enumConstant : this.valueType.getEnumConstants()) {
       String name = enumConstant.name().toLowerCase(Locale.ROOT);

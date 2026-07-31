@@ -28,7 +28,7 @@ public class UpgradeCommandlet extends Commandlet {
 
     super(context);
     addKeyword(getName());
-    this.mode = add(new UpgradeModeProperty());
+    this.mode = add(new EnumProperty<>("--mode", false, null, UpgradeMode.class));
   }
 
   @Override
