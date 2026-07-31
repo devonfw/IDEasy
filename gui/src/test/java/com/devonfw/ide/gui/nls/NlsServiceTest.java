@@ -23,8 +23,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.devonfw.ide.gui.context.IdeGuiStateManager;
-
 /**
  * Tests for {@link NlsService} - verifies locale switching, bundle loading, and fallback behavior.
  */
@@ -33,9 +31,6 @@ public class NlsServiceTest {
   @TempDir
   Path tempUserHome;
 
-  @TempDir
-  Path tempIdeRoot;
-
   private String originalUserHome;
 
   @BeforeEach
@@ -43,7 +38,6 @@ public class NlsServiceTest {
 
     this.originalUserHome = System.getProperty("user.home");
     System.setProperty("user.home", this.tempUserHome.toString());
-    IdeGuiStateManager.getInstanceOverrideRootDir(this.tempIdeRoot.toString());
   }
 
   @AfterEach
@@ -147,7 +141,7 @@ public class NlsServiceTest {
     assertThat(properties.getProperty("IDE_OPTIONS")).isEqualTo("-Duser.language=de");
   }
 
-  
+
   @Test
   public void testPersistLocaleUpdatesExistingUserLangInIdeOptions() throws IOException {
 
@@ -314,6 +308,3 @@ public class NlsServiceTest {
   }
 
 }
-
-
-
