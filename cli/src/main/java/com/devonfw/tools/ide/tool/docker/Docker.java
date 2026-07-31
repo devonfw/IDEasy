@@ -184,4 +184,9 @@ public class Docker extends GlobalToolCommandlet {
 
     return "help";
   }
+
+  @Override
+  public String getWindowsRegistryAppName() {
+    return "Docker Desktop";
+  }
 }

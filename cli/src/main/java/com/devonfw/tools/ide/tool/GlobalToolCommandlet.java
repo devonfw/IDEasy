@@ -14,6 +14,7 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.os.WindowsAppInstallation;
 import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
@@ -200,9 +201,9 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   public VersionIdentifier getInstalledVersion() {
 
     if (this.context.getSystemInfo().isWindows()) {
-      String version = WindowsHelper.get(this.context).getDisplayVersionFromRegistry(getWindowsRegistryAppName());
-      if (version != null) {
-        return VersionIdentifier.of(version);
+      WindowsAppInstallation installation = WindowsHelper.get(this.context).getAppInstallationFromRegistry(getWindowsRegistryAppName());
+      if (installation != null) {
+        return VersionIdentifier.of(installation.version());
       }
     }
     return null;

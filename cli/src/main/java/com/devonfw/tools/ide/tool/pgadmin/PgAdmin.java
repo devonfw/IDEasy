@@ -102,4 +102,9 @@ public class PgAdmin extends GlobalToolCommandlet {
     }
     return null;
   }
+
+  @Override
+  public String getWindowsRegistryAppName() {
+    return "pgAdmin 4v9_is1";
+  }
 }
