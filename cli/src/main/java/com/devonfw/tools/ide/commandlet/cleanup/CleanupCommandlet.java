@@ -8,7 +8,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
@@ -41,6 +40,12 @@ public class CleanupCommandlet extends Commandlet {
   }
 
   @Override
+  public boolean isIdeHomeRequired() {
+
+    return false;
+  }
+
+  @Override
   protected void doRun() {
 
     LOG.debug("Start cleanup commandlet");
@@ -64,9 +69,10 @@ public class CleanupCommandlet extends Commandlet {
 
     // Iterate through IDEasy projects and scan software in software folder. Save found software to list
     for (Path ideasyProject : ideasyProjects) {
+      String projectName = ideasyProject.getFileName().toString();
       Path ideasyProjectSoftware = ideasyProject.resolve(IdeContext.FOLDER_SOFTWARE);
-      discoverUsedSoftware(installedSoftwareTools, ideasyProjectSoftware, ideasyProject.getFileName().toString());
-      discoverUsedSoftware(installedSoftwareTools, ideasyProjectSoftware.resolve(IdeContext.FOLDER_EXTRA), ideasyProject.getFileName().toString());
+      discoverUsedSoftware(installedSoftwareTools, ideasyProjectSoftware, projectName);
+      discoverUsedSoftware(installedSoftwareTools, ideasyProjectSoftware.resolve(IdeContext.FOLDER_EXTRA), projectName);
     }
 
     // Mark unused software for deletion
@@ -109,7 +115,8 @@ public class CleanupCommandlet extends Commandlet {
     }
     List<Path> toolFolders = this.context.getFileAccess().listChildren(repositoryFolder, Files::isDirectory);
     for (Path toolFolder : toolFolders) {
-      InstalledSoftwareTool tool = new InstalledSoftwareTool(toolFolder.getFileName().toString(), this.context.getFileAccess().toRealPath(toolFolder));
+      Path toolPath = this.context.getFileAccess().toRealPath(toolFolder);
+      InstalledSoftwareTool tool = new InstalledSoftwareTool(toolFolder.getFileName().toString(), toolPath);
       installedSoftwareTools.add(tool);
       discoverInstalledEditions(toolFolder, tool);
     }
@@ -119,15 +126,16 @@ public class CleanupCommandlet extends Commandlet {
    * This method discovers all installed editions of a tool at $IDE_ROOT/_ide/software/<repository>/<tool> and saves them to the edition list of the tool.
    * Installed versions of the edition are then recursively discovered.
    *
-   * @param editionFolder The folder where the editions are saved in ($IDE_ROOT/_ide/software/<repository>/<tool>).
+   * @param toolFolder The folder where the editions are saved in ($IDE_ROOT/_ide/software/<repository>/<tool>).
    * @param tool The respective tool for which we are discovering editions.
    */
-  private void discoverInstalledEditions(Path editionFolder, InstalledSoftwareTool tool) {
-    List<Path> subfolders = this.context.getFileAccess().listChildren(editionFolder, Files::isDirectory);
-    for (Path subfolder : subfolders) {
-      InstalledSoftwareEdition edition = new InstalledSoftwareEdition(subfolder.getFileName().toString(), this.context.getFileAccess().toRealPath(subfolder));
+  private void discoverInstalledEditions(Path toolFolder, InstalledSoftwareTool tool) {
+    List<Path> editionFolders = this.context.getFileAccess().listChildren(toolFolder, Files::isDirectory);
+    for (Path editionFolder : editionFolders) {
+      Path editionPath = this.context.getFileAccess().toRealPath(editionFolder);
+      InstalledSoftwareEdition edition = new InstalledSoftwareEdition(editionFolder.getFileName().toString(), editionPath);
       tool.getEditions().add(edition);
-      discoverInstalledVersions(subfolder, edition);
+      discoverInstalledVersions(editionFolder, edition);
     }
   }
 
@@ -135,14 +143,14 @@ public class CleanupCommandlet extends Commandlet {
    * This method discovers all installed versions of an edition of a tool at $IDE_ROOT/_ide/software/<repository>/<tool>/<edition> and saves them to the version
    * list of the edition.
    *
-   * @param versionFolder The folder where the versions are saved in ($IDE_ROOT/_ide/software/<repository>/<tool>/<edition>).
+   * @param editionFolder The folder where the versions are saved in ($IDE_ROOT/_ide/software/<repository>/<tool>/<edition>).
    * @param edition The respective edition for which we are discovering versions.
    */
-  private void discoverInstalledVersions(Path versionFolder, InstalledSoftwareEdition edition) {
-    List<Path> subfolders = this.context.getFileAccess().listChildren(versionFolder, Files::isDirectory);
-    for (Path subfolder : subfolders) {
-      InstalledSoftwareVersion version = new InstalledSoftwareVersion(subfolder.getFileName().toString(),
-          this.context.getFileAccess().toRealPath(subfolder));
+  private void discoverInstalledVersions(Path editionFolder, InstalledSoftwareEdition edition) {
+    List<Path> versionFolders = this.context.getFileAccess().listChildren(editionFolder, Files::isDirectory);
+    for (Path versionFolder : versionFolders) {
+      Path versionPath = this.context.getFileAccess().toRealPath(versionFolder);
+      InstalledSoftwareVersion version = new InstalledSoftwareVersion(versionFolder.getFileName().toString(), versionPath);
       edition.getVersions().add(version);
     }
   }
@@ -226,19 +234,18 @@ public class CleanupCommandlet extends Commandlet {
   }
 
   /**
-   * Generates a summary report for tools, editions, and versions to be deleted and prompts the user for confirmation. If the user agrees, we proceed with
-   * deletion of the unused tools, editions, and versions.
+   * Generates a summary report for software versions to be deleted and prompts the user for confirmation. If the user agrees, the unused software versions and
+   * empty parent folders are deleted.
    *
-   * @param installedSoftwareTools the list of installed tools with deletion flags set.
+   * @param installedSoftwareTools the list of installed tools containing versions with deletion flags.
    */
   private void logSoftwareToBeDeleted(List<InstalledSoftwareTool> installedSoftwareTools) {
     String logOutput = "";
-    int totalToolsDeleted = 0;
-    int totalEditionsDeleted = 0;
+    int totalAffectedTools = 0;
+    int totalAffectedEditions = 0;
     int totalVersionsDeleted = 0;
     for (InstalledSoftwareTool tool : installedSoftwareTools) {
       String logOutputEdition = "";
-      int editionsDeleted = 0;
       for (InstalledSoftwareEdition edition : tool.getEditions()) {
         String logOutputVersion = "";
         int versionsDeleted = 0;
@@ -255,35 +262,24 @@ public class CleanupCommandlet extends Commandlet {
             logOutputVersion += "\t\t + " + (edition.getVersions().size() - versionsDeleted) + " more version(s) of this edition will not be deleted\n";
           }
           logOutputEdition += "\t - " + edition.getName() + "\n" + logOutputVersion;
-          editionsDeleted++;
-          totalEditionsDeleted++;
+          totalAffectedEditions++;
         }
       }
       if (!logOutputEdition.isBlank()) {
-        // If at least one edition of the tool should have a delete operation
-        if (editionsDeleted < tool.getEditions().size()) {
-          logOutputEdition += "\t + " + (tool.getEditions().size() - editionsDeleted) + " more edition(s) of this tool will not be deleted\n";
-        }
         logOutput += " - " + tool.getName() + "\n" + logOutputEdition;
-        totalToolsDeleted++;
+        totalAffectedTools++;
       }
     }
 
     if (logOutput.isBlank()) {
       LOG.info("No installed tools will be deleted. All installed software is used by at least one project.");
     } else {
-      LOG.info("The following installed tools will be deleted: \n" + logOutput);
-      LOG.info("Summary: {} installed tool versions across {} editions of {} tools will be deleted.", totalVersionsDeleted, totalEditionsDeleted,
-          totalToolsDeleted);
+      LOG.info("The following installed tool versions will be deleted: \n" + logOutput);
+      LOG.info("Summary: {} installed tool versions across {} affected editions of {} affected tools will be deleted.", totalVersionsDeleted,
+          totalAffectedEditions, totalAffectedTools);
 
-      // Ask for confirmation. Automatically confirmed if the global force option is provided.
-      try {
-        this.context.askToContinue("Do you want to continue?");
-
-      } catch (CliAbortException e) {
-        LOG.info("Installed Tools will not be deleted.");
-        return;
-      }
+      // Ask for confirmation. Automatically confirmed in batch mode with the global force option.
+      this.context.askToContinue("Do you want to continue?");
       deleteUnusedSoftware(installedSoftwareTools);
     }
   }

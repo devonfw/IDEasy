@@ -10,6 +10,7 @@ import com.devonfw.tools.ide.commandlet.cleanup.CleanupCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.io.WindowsSymlinkTestHelper;
 
 /**
  * Test of {@link CleanupCommandlet}.
@@ -26,6 +27,8 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
   @Test
   void testCleanupDeletesUnusedAndKeepsUsedGlobalSoftware() throws IOException {
 
+    WindowsSymlinkTestHelper.assumeSymlinksSupported();
+
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
 
@@ -37,7 +40,7 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
 
     createSoftwareLink(projectSoftware.resolve("cleanup-test-java"), usedVersion);
 
-    CleanupCommandlet cleanup = getCleanupWithoutConfirmation(context);
+    CleanupCommandlet cleanup = getCleanupWithConfirmation(context);
 
     // act
     cleanup.run();
@@ -58,6 +61,8 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
   @Test
   void testCleanupKeepsVersionReferencedBySubdirectory() throws IOException {
 
+    WindowsSymlinkTestHelper.assumeSymlinksSupported();
+
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
 
@@ -72,7 +77,7 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
 
     createSoftwareLink(projectSoftware.resolve("cleanup-test-macos"), macOsFolder);
 
-    CleanupCommandlet cleanup = getCleanupWithoutConfirmation(context);
+    CleanupCommandlet cleanup = getCleanupWithConfirmation(context);
 
     // act
     cleanup.run();
@@ -93,6 +98,8 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
   @Test
   void testCleanupKeepsVersionReferencedByNestedExtraTool() throws IOException {
 
+    WindowsSymlinkTestHelper.assumeSymlinksSupported();
+
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
 
@@ -108,7 +115,7 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
 
     createSoftwareLink(nestedExtraToolLink, usedVersion);
 
-    CleanupCommandlet cleanup = getCleanupWithoutConfirmation(context);
+    CleanupCommandlet cleanup = getCleanupWithConfirmation(context);
 
     // act
     cleanup.run();
@@ -122,7 +129,7 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests that unused installations in repositories other than {@code default} are also discovered and deleted.
+   * Tests that unused installations in the configured custom repository are discovered and deleted.
    *
    * @throws IOException if the test setup cannot be created.
    */
@@ -135,7 +142,7 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
 
     Path unusedVersion = createInstalledVersion(context, customRepositoryId, "cleanup-test-tool", "default", "1.0");
 
-    CleanupCommandlet cleanup = getCleanupWithoutConfirmation(context);
+    CleanupCommandlet cleanup = getCleanupWithConfirmation(context);
 
     // act
     cleanup.run();
@@ -144,6 +151,36 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
     assertThat(unusedVersion)
         .as("Unused software from the configured custom repository should be discovered and deleted")
         .doesNotExist();
+  }
+
+  /**
+   * Tests that batch mode combined with force mode skips the confirmation prompt.
+   *
+   * @throws IOException if the test setup cannot be created.
+   */
+  @Test
+  void testCleanupSkipsConfirmationInBatchForceMode() throws IOException {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+
+    Path unusedVersion = createInstalledVersion(
+        context, "default", "cleanup-test-force", "default", "1.0");
+
+    context.getStartContext().setBatchMode(true);
+    context.getStartContext().setForceMode(true);
+
+    CleanupCommandlet cleanup = context.getCommandletManager().getCommandlet(CleanupCommandlet.class);
+
+    // act
+    cleanup.run();
+
+    // assert
+    assertThat(unusedVersion)
+        .as("Unused software should be deleted without an interactive confirmation in batch force mode")
+        .doesNotExist();
+
+    assertThat(context).logAtSuccess().hasMessage("Unused tools have been deleted successfully.");
   }
 
   /**
@@ -188,12 +225,12 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Gets the cleanup commandlet and configures the confirmation answer.
+   * Gets the cleanup commandlet and configures an affirmative confirmation answer.
    *
    * @param context the test context.
    * @return the configured cleanup commandlet.
    */
-  private CleanupCommandlet getCleanupWithoutConfirmation(IdeTestContext context) {
+  private CleanupCommandlet getCleanupWithConfirmation(IdeTestContext context) {
 
     context.setAnswers("yes");
     return context.getCommandletManager().getCommandlet(CleanupCommandlet.class);

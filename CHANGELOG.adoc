@@ -9,6 +9,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2176[#2176]: Support 7z archive extraction
 * https://github.com/devonfw/IDEasy/issues/2100[#2100]: Fix Python not available for Mac x64
 * https://github.com/devonfw/IDEasy/issues/2134[#2134]: Add auto-completion for icd command
+* https://github.com/devonfw/IDEasy/issues/1953[#1953]: Implement base functionality of cleanup commandlet
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/48?closed=1[milestone 2026.08.001].
 
@@ -117,7 +118,6 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1884[#1884]: Fix java unzipping losing symlink information
 * https://github.com/devonfw/IDEasy/issues/1716[#1716]: Add commandlet for Claude Code CLI
 * https://github.com/devonfw/IDEasy/issues/1844[#1844]: Fix vscode installation hanging indefinitely in WSL Linux environments
-* https://github.com/devonfw/IDEasy/issues/1953[#1953]: Implement base functionality of cleanup commandlet
 * https://github.com/devonfw/IDEasy/issues/863[#863]: Mac x64 / ARM android-studio 2024 releases missing — accept .dmg downloads alongside .zip
 * https://github.com/devonfw/IDEasy/issues/1904[#1904]: Add Inso CLI to IDEasy commandlets
 * https://github.com/devonfw/IDEasy/issues/1952[#1952]: Ability for platform specific dependencies
