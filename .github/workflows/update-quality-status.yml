@@ -46,4 +46,4 @@ jobs:
           fi
 
           git commit -m "Update quality status documents"
-          git push --force
+          git push

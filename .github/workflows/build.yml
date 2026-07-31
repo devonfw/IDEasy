@@ -3,7 +3,7 @@ on:
   push:
     #    paths-ignore:
     #      - 'documentation/**'
-    branches: [ bug-fix/* ]
+    branches: [ bug-fix/2124-update-quality-status-document-fails ]
 jobs:
   build:
     runs-on: ubuntu-latest
