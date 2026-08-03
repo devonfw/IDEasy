@@ -201,22 +201,24 @@
         </SplitPane>
       </center>
       <bottom>
-        <HBox>
+        <HBox fx:id="bottomPanelContainer">
           <padding>
-            <Insets top="8" right="8" bottom="8" left="8"/>
+            <Insets top="5" right="5" bottom="5" left="5"/>
           </padding>
-          <HBox alignment="CENTER_LEFT">
-            <ToggleButton fx:id="consolePaneToggleButton">
-              <graphic>
-                <ImageView fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
-                  <Image url="@assets/icons/console_button.png"/>
-                </ImageView>
-              </graphic>
-            </ToggleButton>
-          </HBox>
-          <HBox fx:id="bottomPanelContainer"
+
+          <ToggleButton fx:id="consolePaneToggleButton">
+            <graphic>
+              <ImageView fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
+                <Image url="@assets/icons/console_button.png"/>
+              </ImageView>
+            </graphic>
+          </ToggleButton>
+
+          <Region HBox.hgrow="ALWAYS"/>
+
+          <HBox
             alignment="CENTER_RIGHT"
-            prefHeight="40.0"
+            prefHeight="20.0"
             prefWidth="200.0"
             spacing="10.0"
             BorderPane.alignment="CENTER">
