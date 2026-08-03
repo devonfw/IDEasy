@@ -9,20 +9,20 @@ Automatically generated open issue overview for Linux.
 
 link:quality-status.adoc[Back to overview]
 
-*Total Issues:* 139
+*Total Issues:* 141
 
 * OS-specific: 6
 
-* Multi-OS: 2
+* Multi-OS: 1
 
-* Cross-platform: 131
+* Cross-platform: 134
 
 == Linux Specific Issues
 
 [%header, cols="^1,7"]
 |===
 | Issue | Summary
-2+^| *31-60 days*
+2+^| *11-30 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2007[#2007]
 | IDEasy can not install docker on arch linux
@@ -48,16 +48,11 @@ link:quality-status.adoc[Back to overview]
 
 == Multi-OS Issues
 
-=== Linux + macOS (2)
+=== Linux + macOS (1)
 
 [%header, cols="^1,7"]
 |===
 | Issue | Summary
-2+^| *11-30 days*
-
-| link:https://github.com/devonfw/IDEasy/issues/2136[#2136]
-| Support Ruby URL updater for Linux and macOS
-
 2+^| *90+ days*
 
 | link:https://github.com/devonfw/IDEasy/issues/802[#802]
