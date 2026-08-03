@@ -36,6 +36,10 @@ class CreateCommandletTest extends AbstractIdeContextTest {
     if (Files.exists(newProjectPath)) {
       context.getFileAccess().delete(newProjectPath);
     }
+    Path tempProjectPath = context.getTempPath().resolve(IdeContext.FOLDER_PROJECTS).resolve(NEW_PROJECT_NAME);
+    if (Files.exists(tempProjectPath)) {
+      context.getFileAccess().delete(tempProjectPath);
+    }
     this.context = context;
   }
 
@@ -51,6 +55,9 @@ class CreateCommandletTest extends AbstractIdeContextTest {
   void testCreateCommandletRun() {
 
     // arrange
+    GitContextImplMock gitContextImplMock = new GitContextImplMock(context, TEST_RESOURCES.resolve("settings"));
+    context.setGitContext(gitContextImplMock);
+
     CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
     cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
     cc.settingsRepo.setValue(IdeContext.DEFAULT_SETTINGS_REPO_URL);
@@ -123,6 +130,9 @@ class CreateCommandletTest extends AbstractIdeContextTest {
   @Test
   void testIdeVersionOk() {
     // arrange
+    GitContextImplMock gitContextImplMock = new GitContextImplMock(context, TEST_RESOURCES.resolve("settings"));
+    context.setGitContext(gitContextImplMock);
+
     CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
     cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
     cc.settingsRepo.setValue(IdeContext.DEFAULT_SETTINGS_REPO_URL);
@@ -214,7 +224,7 @@ class CreateCommandletTest extends AbstractIdeContextTest {
     assertThat(result).isEqualTo(0);
     assertThat(context).logAtError().hasNoMessageContaining("not found for commandlet");
     assertThat(context).logAtInfo()
-        .hasMessageContaining("'-' was found for settings repository, the default settings repository");
+        .hasMessageContaining("'-' was found for the repository, the default settings repository");
     Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
     assertThat(newProjectPath).exists();
   }
