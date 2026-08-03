@@ -30,9 +30,6 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(PluginBasedCommandlet.class);
 
-  /** Suffix of the tool-specific variable listing additional plugins to activate (e.g. {@code VSCODE_PLUGINS_EXTRA}). */
-  public static final String VARIABLE_SUFFIX_PLUGINS_EXTRA = "_PLUGINS_EXTRA";
-
   private ToolPlugins plugins;
 
   /** {@link FlagProperty} to force the reset and reinstallation of plugins as configured in the project settings. */
@@ -330,7 +327,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
   }
 
   /**
-   * Activates the plugins configured in the tool-specific {@code «TOOL»}{@value #VARIABLE_SUFFIX_PLUGINS_EXTRA} variable (e.g.
+   * Activates the plugins configured in the tool-specific {@code «TOOL»_PLUGINS_EXTRA} variable (e.g.
    * {@code VSCODE_PLUGINS_EXTRA=copilot,docker}). This allows a user to permanently opt-in to plugins that are not {@link ToolPluginDescriptor#active() active}
    * in the project settings, without modifying the shared settings and without losing them when plugins are purged and reinstalled on IDE upgrade. Values refer
    * to the {@link ToolPluginDescriptor#name() name} of the plugin (the filename of its {@code .properties} file) and not to the
@@ -341,13 +338,12 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
    */
   private void activateExtraPlugins(ToolPlugins toolPlugins) {
 
-    String variable = EnvironmentVariables.getToolVariablePrefix(this.tool) + VARIABLE_SUFFIX_PLUGINS_EXTRA;
+    String variable = EnvironmentVariables.getToolPluginsExtraVariable(this.tool);
     String value = this.context.getVariables().get(variable);
     if ((value == null) || value.isBlank()) {
       return;
     }
-    for (String entry : VariableLine.parseArray(value)) {
-      String name = entry;
+    for (String name : VariableLine.parseArray(value)) {
       if (name.endsWith(IdeContext.EXT_PROPERTIES)) {
         name = name.substring(0, name.length() - IdeContext.EXT_PROPERTIES.length());
       }
