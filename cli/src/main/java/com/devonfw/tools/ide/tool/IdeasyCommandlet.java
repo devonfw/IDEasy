@@ -303,7 +303,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     addToShellRc(BASHRC, ideRoot, null);
     addToShellRc(ZSHRC, ideRoot, "autoload -U +X bashcompinit && bashcompinit");
     installIdeasyWindowsEnv(ideRoot, installationPath);
-    installPowerShellProfile();
+    configurePowerShellProfiles(true);
     installDesktopShortcut(installationPath);
     IdeLogLevel.SUCCESS.log(LOG, "IDEasy has been installed successfully on your system.");
     LOG.warn("IDEasy has been setup for new shells but it cannot work in your current shell(s).\n"
@@ -449,78 +449,73 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     }
   }
 
-  private void installPowerShellProfile() {
-
-    modifyPowerShellProfiles(true);
-  }
-
-  private void uninstallPowerShellProfile() {
-
-    modifyPowerShellProfiles(false);
-  }
-
-  private void modifyPowerShellProfiles(boolean add) {
+  private void configurePowerShellProfiles(boolean install) {
 
     if (!this.context.getSystemInfo().isWindows()) {
       return;
     }
 
     // Windows PowerShell 5.x and PowerShell 7+ have different profile locations.
-    modifyPowerShellProfile("powershell", add);
-    modifyPowerShellProfile("pwsh", add);
+    modifyPowerShellProfile("powershell", install);
+    modifyPowerShellProfile("pwsh", install);
   }
 
-  private void modifyPowerShellProfile(String executable, boolean add) {
+  private void modifyPowerShellProfile(String executable, boolean install) {
 
     Path profilePath = getPowerShellProfilePath(executable);
     if (profilePath == null) {
       return;
     }
 
-    if (add) {
-      LOG.info("Configuring IDEasy in PowerShell profile {}", profilePath);
-    } else {
-      LOG.info("Removing IDEasy from PowerShell profile {}", profilePath);
-    }
+    logIdeasyModification(profilePath.toString(), install);
 
     FileAccess fileAccess = this.context.getFileAccess();
     List<String> lines = fileAccess.readFileLines(profilePath);
 
-    if (lines == null) {
-      if (!add) {
-        return;
-      }
-      lines = new ArrayList<>();
-    } else {
-      lines = new ArrayList<>(lines);
+    if (lines == null && !install) {
+      return;
     }
 
-    Iterator<String> iterator = lines.iterator();
-    boolean alreadyConfigured = false;
-
-    while (iterator.hasNext()) {
-      String line = iterator.next().trim();
-
-      if (line.equals(POWERSHELL_CODE_SOURCE_FUNCTIONS)) {
-        if (add) {
-          alreadyConfigured = true;
-        } else {
-          iterator.remove();
-        }
-      }
-    }
-
-    if (add && !alreadyConfigured) {
-      lines.add(POWERSHELL_CODE_SOURCE_FUNCTIONS);
-    }
+    List<String> modifiedLines = modifyPowerShellProfileLines(lines, install);
 
     Path parent = profilePath.getParent();
     if (parent != null) {
       fileAccess.mkdirs(parent);
     }
 
-    fileAccess.writeFileLines(lines, profilePath);
+    fileAccess.writeFileLines(modifiedLines, profilePath);
     LOG.debug("Successfully updated PowerShell profile {}", profilePath);
+  }
+
+  List<String> modifyPowerShellProfileLines(List<String> lines, boolean install) {
+
+    List<String> modifiedLines;
+
+    if (lines == null) {
+      modifiedLines = new ArrayList<>();
+    } else {
+      modifiedLines = new ArrayList<>(lines);
+    }
+
+    boolean configured = modifiedLines.stream()
+        .map(String::trim)
+        .anyMatch(POWERSHELL_CODE_SOURCE_FUNCTIONS::equals);
+
+    if (install) {
+      if (!configured) {
+        modifiedLines.add(POWERSHELL_CODE_SOURCE_FUNCTIONS);
+      }
+    } else {
+      modifiedLines.removeIf(
+          line -> line.trim().equals(POWERSHELL_CODE_SOURCE_FUNCTIONS));
+    }
+
+    return modifiedLines;
+  }
+
+  private void logIdeasyModification(String target, boolean configure) {
+    String action = configure ? "Configuring" : "Removing";
+    LOG.info("{} IDEasy in {}", action, target);
   }
 
   private Path getPowerShellProfilePath(String executable) {
@@ -813,11 +808,8 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
    */
   private void modifyShellRc(String filename, Path ideRoot, boolean add, String extraLine) {
 
-    if (add) {
-      LOG.info("Configuring IDEasy in {}", filename);
-    } else {
-      LOG.info("Removing IDEasy from {}", filename);
-    }
+    logIdeasyModification(filename, add);
+
     Path rcFile = this.context.getUserHome().resolve(filename);
     FileAccess fileAccess = this.context.getFileAccess();
     List<String> lines = fileAccess.readFileLines(rcFile);
@@ -910,7 +902,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     removeFromShellRc(ZSHRC, ideRoot);
     Path idePath = this.context.getIdePath();
     uninstallIdeasyWindowsEnv(ideRoot);
-    uninstallPowerShellProfile();
+    configurePowerShellProfiles(false);
     uninstallIdeasyIdePath(idePath);
     deleteDownloadCache();
     IdeLogLevel.SUCCESS.log(LOG, "IDEasy has been uninstalled from your system.");
