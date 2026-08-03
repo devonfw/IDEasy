@@ -58,9 +58,12 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
     Path newProjectPath = this.context.getIdeRoot().resolve(newProjectName);
     Path tempProjectPath = this.context.getTempPath().resolve(IdeContext.FOLDER_PROJECTS).resolve(newProjectName);
 
-    if (Files.exists(newProjectPath)) {
+    if (Files.exists(tempProjectPath)) {
       throw new CliException(
-          String.format("Project directory already exists: %s. If the project already exists, try calling 'ide update'.",
+          String.format("Temporary project directory already exists in: %s. Please delete it and try again.", tempProjectPath));
+    } else if (Files.exists(newProjectPath)) {
+      throw new CliException(
+          String.format("Project directory already exists in: %s. As the project already exists, try calling 'ide update'.",
               newProjectPath));
     }
 
