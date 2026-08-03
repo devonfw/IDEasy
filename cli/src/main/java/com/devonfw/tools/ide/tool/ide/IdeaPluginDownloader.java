@@ -5,7 +5,6 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
-import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
@@ -14,8 +13,12 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.io.HttpClientFactory;
 import com.devonfw.tools.ide.os.MacOsHelper;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
@@ -25,6 +28,8 @@ import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
  * Used for a direct download and installation of idea plugins
  */
 public class IdeaPluginDownloader {
+
+  private static final Logger LOG = LoggerFactory.getLogger(IdeaPluginDownloader.class);
 
   private static final String BUILD_FILE = "build.txt";
   private final IdeContext context;
@@ -130,7 +135,7 @@ public class IdeaPluginDownloader {
   private void extractDownloadedPlugin(FileAccess fileAccess, Path downloadedFile, String pluginId) throws IOException {
     Path targetDir = this.commandlet.getPluginsInstallationPath().resolve(pluginId);
     if (Files.exists(targetDir)) {
-      context.info("Plugin already installed, target directory already existing: {}", targetDir);
+      LOG.info("Plugin already installed, target directory already existing: {}", targetDir);
     } else {
       fileAccess.extract(downloadedFile, targetDir);
     }
@@ -140,7 +145,7 @@ public class IdeaPluginDownloader {
 
     URI uri = null;
     HttpRequest request;
-    try (HttpClient client = HttpClient.newBuilder().followRedirects(Redirect.ALWAYS).build()) {
+    try (HttpClient client = HttpClientFactory.create()) {
       uri = URI.create(urlString);
       request = HttpRequest.newBuilder().uri(uri)
           .method("HEAD", HttpRequest.BodyPublishers.noBody()).timeout(Duration.ofSeconds(5)).build();

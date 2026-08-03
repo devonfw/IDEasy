@@ -1,14 +1,14 @@
 package com.devonfw.tools.ide.url.tool.graalvm;
 
-import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
 
 /**
- * Abstract {@link GithubUrlUpdater} base-class for GraalVM editions.
+ * Abstract {@link GithubUrlTagUpdater} base-class for GraalVM editions.
  */
-public abstract class GraalVmUrlUpdater extends GithubUrlUpdater {
+public abstract class GraalVmUrlUpdater extends GithubUrlTagUpdater {
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "graalvm";
   }

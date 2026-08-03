@@ -1,18 +1,20 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.devonfw.tools.ide.cli.CliExitException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.environment.VariableLine;
 import com.devonfw.tools.ide.environment.VariableSource;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.EnvironmentVariableCollectorContext;
@@ -25,6 +27,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * {@link Commandlet} to print the environment variables.
  */
 public final class EnvironmentCommandlet extends Commandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(EnvironmentCommandlet.class);
 
   /** {@link FlagProperty} to enable Bash (MSys) path conversion on Windows. */
   public final FlagProperty bash;
@@ -60,14 +64,10 @@ public final class EnvironmentCommandlet extends Commandlet {
   }
 
   @Override
-  public void run() {
-    if (this.context.getIdeHome() == null) {
-      throw new CliExitException();
-    }
+  protected void doRun() {
 
     boolean winCmd = false;
     WindowsPathSyntax pathSyntax = null;
-    IdeSubLogger logger = this.context.level(IdeLogLevel.PROCESSABLE);
     if (this.context.getSystemInfo().isWindows()) {
       if (this.bash.isTrue()) {
         pathSyntax = WindowsPathSyntax.MSYS;
@@ -81,15 +81,23 @@ public final class EnvironmentCommandlet extends Commandlet {
     List<VariableLine> variables = this.context.getVariables().collectVariables();
     Map<String, VariableLine> variableMap = variables.stream().collect(Collectors.toMap(VariableLine::getName, v -> v));
 
-    EnvironmentVariableCollectorContext environmentVariableCollectorContext = new EnvironmentVariableCollectorContext(variableMap,
-        new VariableSource(EnvironmentVariablesType.TOOL, this.context.getSoftwarePath()), pathSyntax);
-    setEnvironmentVariablesInLocalTools(environmentVariableCollectorContext);
+    Path softwarePath = this.context.getSoftwarePath();
+    if (softwarePath != null) {
+      EnvironmentVariableCollectorContext environmentVariableCollectorContext = new EnvironmentVariableCollectorContext(variableMap,
+          new VariableSource(EnvironmentVariablesType.TOOL, softwarePath), pathSyntax);
+      setEnvironmentVariablesInLocalTools(environmentVariableCollectorContext);
+    }
 
-    printLines(variableMap, logger, winCmd);
+    printLines(variableMap, winCmd);
+
+    // Bash completions must be printed after the environment variables because they may reference variables such as TERRAFORM_HOME.
+    if (this.bash.isTrue()) {
+      printBashCompletions();
+    }
   }
 
-  private void printLines(Map<String, VariableLine> variableMap, IdeSubLogger logger, boolean winCmd) {
-    if (this.context.debug().isEnabled()) {
+  private void printLines(Map<String, VariableLine> variableMap, boolean winCmd) {
+    if (LOG.isDebugEnabled()) {
       Map<EnvironmentVariablesType, List<VariableLine>> type2lines = variableMap.values().stream().collect(Collectors.groupingBy(l -> l.getSource().type()));
       for (EnvironmentVariablesType type : EnvironmentVariablesType.values()) {
         List<VariableLine> lines = type2lines.get(type);
@@ -98,10 +106,10 @@ public final class EnvironmentCommandlet extends Commandlet {
           sortVariables(lines);
           for (VariableLine line : lines) {
             if (!sourcePrinted) {
-              this.context.debug("from {}:", line.getSource());
+              LOG.debug("from {}:", line.getSource());
               sourcePrinted = true;
             }
-            logger.log(format(line, winCmd));
+            IdeLogLevel.PROCESSABLE.log(LOG, format(line, winCmd));
           }
         }
       }
@@ -109,7 +117,7 @@ public final class EnvironmentCommandlet extends Commandlet {
       List<VariableLine> variables = new ArrayList<>(variableMap.values());
       sortVariables(variables);
       for (VariableLine line : variables) {
-        logger.log(format(line, winCmd));
+        IdeLogLevel.PROCESSABLE.log(LOG, format(line, winCmd));
       }
     }
   }
@@ -136,14 +144,39 @@ public final class EnvironmentCommandlet extends Commandlet {
     for (Commandlet commandlet : this.context.getCommandletManager().getCommandlets()) {
       if (commandlet instanceof LocalToolCommandlet tool) {
         try {
-          VersionIdentifier installedVersion = tool.getInstalledVersion();
-          if (installedVersion != null) {
+          if (tool.isInstalled()) {
+            // for performance optimization, we do a hack here and assume that the installedVersion is never used by any setEnvironment method implementation.
+            VersionIdentifier installedVersion = VersionIdentifier.LATEST;
             ToolInstallation toolInstallation = new ToolInstallation(tool.getToolPath(), tool.getToolPath(),
                 tool.getToolBinPath(), installedVersion, false);
             tool.setEnvironment(environmentContext, toolInstallation, false);
           }
         } catch (Exception e) {
-          this.context.warning("An error occurred while setting the environment variables in local tools:", e);
+          LOG.warn("An error occurred while setting the environment variables in local tools:", e);
+        }
+      }
+    }
+  }
+
+  /**
+   * Prints optional Bash completion setup commands for installed local tools.
+   * <p>
+   * These lines are only emitted for {@code env --bash}. The IDEasy shell wrapper evaluates this output, so tools can dynamically register completions without
+   * modifying user files such as {@code ~/.bashrc}.
+   */
+  private void printBashCompletions() {
+
+    for (Commandlet commandlet : this.context.getCommandletManager().getCommandlets()) {
+      if (commandlet instanceof LocalToolCommandlet tool) {
+        try {
+          if (tool.isInstalled()) {
+            String bashCompletion = tool.getBashCompletion();
+            if ((bashCompletion != null) && !bashCompletion.isBlank()) {
+              IdeLogLevel.PROCESSABLE.log(LOG, bashCompletion);
+            }
+          }
+        } catch (Exception e) {
+          LOG.warn("An error occurred while collecting Bash completion for tool {}.", tool.getName(), e);
         }
       }
     }

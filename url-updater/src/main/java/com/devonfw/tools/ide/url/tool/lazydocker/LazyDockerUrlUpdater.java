@@ -1,20 +1,20 @@
 package com.devonfw.tools.ide.url.tool.lazydocker;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link GithubUrlUpdater} for lazydocker.
+ * {@link GithubUrlTagUpdater} for lazydocker.
  */
-public class LazyDockerUrlUpdater extends GithubUrlUpdater {
+public class LazyDockerUrlUpdater extends GithubUrlTagUpdater {
 
   private static final VersionIdentifier MIN_WIN_VID = VersionIdentifier.of("0.7.4");
 
   private static final VersionIdentifier MIN_ARM_VID = VersionIdentifier.of("0.15.0");
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "lazydocker";
   }
@@ -41,7 +41,7 @@ public class LazyDockerUrlUpdater extends GithubUrlUpdater {
   protected void addVersion(UrlVersion urlVersion) {
 
     VersionIdentifier vid = urlVersion.getVersionIdentifier();
-    String baseUrl = getDownloadBaseUrl() + "/jesseduffield/lazydocker/releases/download/v${version}/lazydocker_${version}_";
+    String baseUrl = createGithubReleaseDownloadUrl("v${version}", "lazydocker_${version}_");
     if (vid.compareVersion(MIN_WIN_VID).isGreater()) {
       doAddVersion(urlVersion, baseUrl + "Windows_x86_64.zip", WINDOWS, X64);
     }
@@ -53,15 +53,4 @@ public class LazyDockerUrlUpdater extends GithubUrlUpdater {
       doAddVersion(urlVersion, baseUrl + "Darwin_arm64.tar.gz", MAC, ARM64);
     }
   }
-
-  @Override
-  public String getCpeVendor() {
-    return "jesseduffield";
-  }
-
-  @Override
-  public String getCpeProduct() {
-    return "lazydocker";
-  }
-
 }

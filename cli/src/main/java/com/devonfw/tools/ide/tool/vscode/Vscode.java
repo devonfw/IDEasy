@@ -2,15 +2,16 @@ package com.devonfw.tools.ide.tool.vscode;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.io.IdeProgressBar;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
@@ -22,6 +23,11 @@ import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
  * {@link ToolCommandlet} for <a href="https://code.visualstudio.com/">vscode</a>.
  */
 public class Vscode extends IdeToolCommandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(Vscode.class);
+
+  /** The {@link #getConfiguredEdition() edition} for VSCodium. */
+  private static final String EDITION_VSCODIUM = "vscodium";
 
   /**
    * The constructor.
@@ -36,22 +42,12 @@ public class Vscode extends IdeToolCommandlet {
   @Override
   protected String getBinaryName() {
 
+    if (EDITION_VSCODIUM.equals(getConfiguredEdition())) {
+      return "codium";
+    }
     return "code";
   }
 
-  @Override
-  protected void installPlugins(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
-    this.context.runWithoutLogging(() -> {
-      IdeProgressBar pb = this.context.newProgressBarForPlugins(plugins.size());
-      pc.setOutputListener((msg, err) -> {
-        if (msg.contains("Installing extension ")) {
-          pb.stepBy(1);
-        }
-      });
-      super.installPlugins(plugins, pc);
-      pb.close();
-    });
-  }
 
   @Override
   public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
@@ -59,28 +55,44 @@ public class Vscode extends IdeToolCommandlet {
     List<String> extensionsCommands = new ArrayList<>();
     extensionsCommands.add("--force");
     extensionsCommands.add("--install-extension");
-    extensionsCommands.add(plugin.id());
-    ProcessResult result = runTool(ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.THROW_ERR, pc, extensionsCommands.toArray(String[]::new));
+    String extensionInstallTarget = plugin.id();
+    // If a version number was specified, add it to the extension identifier with the format "extensionId@version"
+    boolean versionSpecified = (plugin.version() != null) && !plugin.version().isBlank();
+    if (versionSpecified) {
+      extensionInstallTarget = extensionInstallTarget + "@" + plugin.version();
+    }
+    extensionsCommands.add(extensionInstallTarget);
+    ProcessResult result = runTool(pc, ProcessMode.DEFAULT_CAPTURE, extensionsCommands);
     if (result.isSuccessful()) {
-      this.context.success("Successfully installed plugin: {}", plugin.name());
+      if (versionSpecified) {
+        IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {} with version: {}", plugin.name(), plugin.version());
+      } else {
+        IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {}", plugin.name());
+      }
       step.success();
       return true;
-    } else {
-      this.context.warning("An error occurred while installing plugin: {}", plugin.name());
-      return false;
     }
+    if (versionSpecified) {
+      IdeLogLevel.ERROR.log(LOG, "Failed to install plugin: {} with version: {}", plugin.name(), plugin.version());
+    } else {
+      IdeLogLevel.ERROR.log(LOG, "Failed to install plugin: {}", plugin.name());
+    }
+    return false;
   }
 
   @Override
-  protected void configureToolArgs(ProcessContext pc, ProcessMode processMode, ProcessErrorHandling errorHandling, String... args) {
+  protected void configureToolArgs(ProcessContext pc, ProcessMode processMode, List<String> args) {
 
+    if (this.context.getSystemInfo().isWsl()) {
+      pc.withEnvVar("DONT_PROMPT_WSL_INSTALL", "1");
+    }
     Path vsCodeConf = this.context.getWorkspacePath().resolve(".vscode/.userdata");
     pc.addArg("--new-window");
     pc.addArg("--user-data-dir=" + vsCodeConf);
     Path vsCodeExtensionFolder = this.context.getIdeHome().resolve("plugins/vscode");
     pc.addArg("--extensions-dir=" + vsCodeExtensionFolder);
     pc.addArg(this.context.getWorkspacePath());
-    super.configureToolArgs(pc, processMode, errorHandling, args);
+    super.configureToolArgs(pc, processMode, args);
   }
 
 }

@@ -17,7 +17,6 @@ import org.xmlunit.assertj3.XmlAssert;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.context.IdeTestContextMock;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesPropertiesMock;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
@@ -51,7 +50,7 @@ class XmlMergerTest extends AbstractIdeContextTest {
     Path targetPath = tempDir.resolve(TARGET_XML);
     Path resultPath = folder.resolve(RESULT_XML);
     Files.copy(folder.resolve(TARGET_XML), targetPath, REPLACE_EXISTING);
-    IdeTestContextMock context = IdeTestContextMock.get();
+    IdeTestContext context = new IdeTestContext();
     EnvironmentVariablesPropertiesMock mockVariables = new EnvironmentVariablesPropertiesMock(null, EnvironmentVariablesType.SETTINGS, context);
     mockVariables.set("JAVA_HOME", "/projects/myproject", false);
     mockVariables.set("JAVA_VERSION", "21", false);
@@ -87,8 +86,8 @@ class XmlMergerTest extends AbstractIdeContextTest {
     })
         // assert
         .hasRootCauseInstanceOf(IllegalStateException.class).hasRootCauseMessage(
-            "2 matches found for XPath configuration[@default='true' and @type='JUnit'] in workspace XML at /project[@version='4']/component[@name='RunManager' @selected='Application.IDEasy']");
-    ;
+            "2 matches found for XPath configuration[@default='true' and @type='JUnit'] in workspace XML file '" + targetPath
+                + "' at /project[@version='4']/component[@name='RunManager' @selected='Application.IDEasy'] for template file '" + sourcePath + "'");
 
   }
 
@@ -145,9 +144,34 @@ class XmlMergerTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(context).logAtWarning().hasEntries(
-        "XML merge namespace not found in file " + settingsUpdatePath
+        "XML merge namespace not found in file " + settingsSetupPath
             + ". If you are working in a legacy devonfw-ide project, please set IDE_XML_MERGE_LEGACY_SUPPORT_ENABLED=true to "
             + "proceed correctly.");
+  }
+
+  /**
+   * Test that the warning message includes both file paths for better user experience.
+   */
+  @Test
+  void testWarningMessageIncludesFilePaths(@TempDir Path tempDir) throws Exception {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    EnvironmentVariables variables = context.getVariables();
+    // Do NOT set FAIL_ON_AMBIGUOUS_MERGE to true to get warning instead of error
+    XmlMerger merger = new XmlMerger(context);
+    Path folder = XML_TEST_RESOURCES.resolve("ambiguous-id");
+    Path sourcePath = folder.resolve(SOURCE_XML);
+    Path targetPath = tempDir.resolve(TARGET_XML);
+    Files.copy(folder.resolve(TARGET_XML), targetPath, REPLACE_EXISTING);
+
+    // act
+    merger.merge(null, sourcePath, variables, targetPath);
+
+    // assert - check that the warning message contains both file paths
+    assertThat(context).logAtWarning().hasEntries(
+        "2 matches found for XPath configuration[@default='true' and @type='JUnit'] in workspace XML file '" + targetPath
+            + "' at /project[@version='4']/component[@name='RunManager' @selected='Application.IDEasy'] for template file '" + sourcePath + "'");
   }
 
 }

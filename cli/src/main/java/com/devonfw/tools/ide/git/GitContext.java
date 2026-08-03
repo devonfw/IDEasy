@@ -1,7 +1,10 @@
 package com.devonfw.tools.ide.git;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliOfflineException;
 
 /**
@@ -61,6 +64,14 @@ public interface GitContext {
   boolean fetchIfNeeded(Path repository, String remoteName, String branch);
 
   /**
+   * @param directory the {@link Path} to the directory to check for repo status
+   * @return {@code true} if `directory` is a Git repo, {@code false} otherwise
+   */
+  default boolean isGitRepo(Path directory) {
+    return directory != null && Files.exists(directory.resolve(GIT_FOLDER));
+  }
+
+  /**
    * Checks if there are updates available for the Git repository in the specified target folder by comparing the local commit hash with the remote commit
    * hash.
    *
@@ -91,6 +102,29 @@ public interface GitContext {
    * @throws CliOfflineException if offline and cloning is needed.
    */
   void pullOrCloneAndResetIfNeeded(GitUrl gitUrl, Path repository, String remoteName);
+
+  /**
+   * Performs a {@code git pull} operation on the given repository while safely preserving and restoring any local untracked or modified files using a temporary
+   * Git stash.
+   *
+   * @param repository the {@link Path} to the root directory of the Git repository. This must be the directory that directly contains the {@code .git}
+   *     folder.
+   */
+  void pullSafelyWithStash(Path repository);
+
+  /**
+   * Checks whether the given Git repository contains any untracked files.
+   * <p>
+   * This method runs {@code git status --porcelain -uall} to retrieve a machine-readable status of the repository. The {@code -uall} option ensures that all
+   * untracked files, including those in subdirectories, are listed. If the output of the command is non-empty, this method considers the repository to contain
+   * untracked files.
+   * </p>
+   *
+   * @param repository the {@link Path} to the target folder where the git repository should be checked for untracked files. It is not the parent directory
+   *     where git will by default create a sub-folder by default on clone but the final folder that will contain the ".git" subfolder.
+   * @return {@code true} if the local repository contains untracked changes. {@code false} if no untracked files are present or if the Git command fails.
+   */
+  boolean hasUntrackedFiles(Path repository);
 
   /**
    * Runs a git pull or a git clone.
@@ -180,9 +214,24 @@ public interface GitContext {
   String retrieveGitUrl(Path repository);
 
   /**
-   * Checks if there is a git installation and throws an exception if there is none
+   * @param repository the {@link Path} to the git repository.
+   * @return the {@link List} of configured git remotes (output of {@code git remote -v}).
    */
-  void verifyGitInstalled();
+  List<String> retrieveGitRemotes(Path repository);
+
+  /**
+   * Finds the {@link Path} to the git installation and throws an exception if there is none.
+   *
+   * @return the {@link Path} to the Git installation. Throws a {@link CliException} if no git was found.
+   */
+  Path findGitRequired();
+
+  /**
+   * Finds the path to the Git executable.
+   *
+   * @return the {@link Path} to the Git executable, or {@code null} if Git is not found.
+   */
+  Path findGit();
 
   /**
    * @param repository the {@link Path} to the folder where the git repository is located.
@@ -203,4 +252,51 @@ public interface GitContext {
    * @param trackedCommitIdPath the path to the file where the commit Id will be written.
    */
   void saveCurrentCommitId(Path repository, Path trackedCommitIdPath);
+
+  /**
+   * Commits the staged changes in the given repository.
+   *
+   * @param repository the {@link Path} to the git repository.
+   * @param message the commit message.
+   */
+  default void commit(Path repository, String message) {
+
+    commit(repository, message, false);
+  }
+
+  /**
+   * Commits changes in the given repository.
+   *
+   * @param repository the {@link Path} to the git repository.
+   * @param message the commit message.
+   * @param addAll {@code true} to stage all modified tracked files before committing, {@code false} to only commit changes that are already staged.
+   */
+  void commit(Path repository, String message, boolean addAll);
+
+  /**
+   * Creates an annotated git tag in the given repository.
+   *
+   * @param repository the {@link Path} to the git repository.
+   * @param tagName the name of the tag to create (e.g. "release/1.5.0").
+   * @param message the annotation message of the tag.
+   */
+  void tag(Path repository, String tagName, String message);
+
+  /**
+   * Pushes the local commits of the given repository to the remote repository.
+   *
+   * @param repository the {@link Path} to the git repository.
+   */
+  default void push(Path repository) {
+
+    push(repository, false);
+  }
+
+  /**
+   * Pushes the local commits of the given repository to the remote repository.
+   *
+   * @param repository the {@link Path} to the git repository.
+   * @param followTags {@code true} to also push annotated tags reachable from the pushed commits (git push --follow-tags), {@code false} to push commits only.
+   */
+  void push(Path repository, boolean followTags);
 }

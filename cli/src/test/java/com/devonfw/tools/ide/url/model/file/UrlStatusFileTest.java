@@ -16,13 +16,13 @@ import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 /**
  * Test of {@link UrlStatusFile}.
  */
-public class UrlStatusFileTest extends AbstractUrlModelTest {
+class UrlStatusFileTest extends AbstractUrlModelTest {
 
   /**
    * Test of {@link UrlStatusFile#getStatusJson()}.
    */
   @Test
-  public void testReadJson() {
+  void testReadJson() {
 
     // given
     UrlRepository repo = newRepo();

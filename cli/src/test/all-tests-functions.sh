@@ -15,18 +15,18 @@ function doIdeCreate () {
   ide --batch -d create "${TEST_PROJECT_NAME}" "${settings_url}"
 
   echo "Switching to directory: ${IDE_ROOT}/${TEST_PROJECT_NAME}"
-  cd "${IDE_ROOT}/${TEST_PROJECT_NAME}" || exit
+  cd "${IDE_ROOT}/${TEST_PROJECT_NAME}" || exit 1
 }
 
 function doIdeCreateCleanup () {
   rm -rf "${IDE_ROOT:?}/${TEST_PROJECT_NAME}"
 }
 
-function doDownloadSnapshot () {
+function doDownloadRelease () {
   mkdir -p "$WORK_DIR_INTEG_TEST"
   if [ "$1" != "" ]; then
     if [ -f "$1" ] && [[ $1 == *.tar.gz ]]; then
-      echo "Local snapshot given. Copying to directory: ${WORK_DIR_INTEG_TEST}"
+      echo "Local release given. Copying to directory: ${WORK_DIR_INTEG_TEST}"
       cp "$1" "$IDEASY_COMPRESSED_FILE"
     else
       echo "Expected a file ending with tar.gz - Given: ${1}"
@@ -43,30 +43,113 @@ function doDownloadSnapshot () {
     local url
     # Change OS type based on github workflow matrix.os name
     local osType
-    if [ "${MATRIX_OS}" == "windows-latest" ]; then
-      osType="windows-x64"
-    elif [ "${MATRIX_OS}" == "ubuntu-latest" ]; then
-      osType="linux-x64"
-    elif [ "${MATRIX_OS}" == "macos-latest" ]; then
-      osType="mac-arm64"
-    elif [ "${MATRIX_OS}" == "macos-13" ]; then
-      osType="mac-x64"
+    osType=$(doGetOsType)
+    local architecture=$(doGetArchNameForOs "$osType")
+    url=$(grep "href=\"https://.*${osType}-${architecture}.tar.gz" "$pageHtmlLocal" | grep -o "https://[^\"]*${osType}-${architecture}.tar.gz" | head -1)
+    if [ -z "$url" ]; then
+      doError "No release found for ${osType}-${architecture}"
+      exit 1
     fi
-    url=$(grep "href=\"https://.*${osType}.tar.gz" "$pageHtmlLocal" | grep -o "https://.*${osType}.tar.gz" | cut -f1 -d"\"")
     echo "Trying to download IDEasy for OS: ${osType} from: ${url} to: ${IDEASY_COMPRESSED_FILE:?} ..."
     curl -o "${IDEASY_COMPRESSED_FILE:?}" "$url"
     rm "${pageHtmlLocal:?}"
   fi
 }
 
+function doGetOsType() {
+  local osType
+  case "$OSTYPE" in
+    msys*|cygwin*|win32*)
+      osType="windows"
+      ;;
+    linux*|gnu*)
+      osType="linux"
+      ;;
+    darwin*|macos*)
+      osType="mac"
+      ;;
+    *)
+      echo "Unknown OSTYPE: $OSTYPE. Falling back to windows (most common developer machine)." >&2
+      osType="windows"
+      ;;
+  esac
+  echo "Detected OS type: ${osType}" >&2
+  echo "$osType"
+}
 
-function doExtract() {
-  echo "Extracting IDEasy archive: ${IDEASY_COMPRESSED_FILE} to: ${IDEASY_DIR}"
-  if [ -f "${IDEASY_COMPRESSED_FILE:?}" ]; then
-    tar xfz "${IDEASY_COMPRESSED_FILE:?}" --directory "${IDEASY_DIR:?}" || exit 1
-  else
-    echo "Could not find and extract release ${IDEASY_COMPRESSED_FILE:?}"
+function doGetArchNameForOs() {
+  local machine archEnv archWow
+  local osType="$1"
+
+  case "$osType" in
+    linux|mac)
+      machine="$(uname -m 2>/dev/null || echo "")"
+      case "$machine" in
+        arm64|aarch64)
+          echo "arm64"
+          ;;
+        x86_64|amd64)
+          echo "x64"
+          ;;
+        *)
+          echo "Unknown architecture from uname -m: '$machine' (osType=$osType). Falling back to x64." >&2
+          echo "x64"
+          ;;
+      esac
+      ;;
+
+    windows)
+      # Prefer Windows-native environment variables (more reliable than uname in Git Bash/MSYS/Cygwin).
+      # Normalize to lower-case for comparisons.
+      archEnv="${PROCESSOR_ARCHITECTURE,,}"
+      archWow="${PROCESSOR_ARCHITEW6432,,}"
+
+      # If running as 32-bit on 64-bit Windows, PROCESSOR_ARCHITEW6432 may reveal the underlying OS arch.
+      case "${archWow:-$archEnv}" in
+        arm64)
+          echo "arm64"
+          ;;
+        amd64|x86_64)
+          echo "x64"
+          ;;
+        *)
+          # Best-effort fallback for environments where env vars aren't available/accurate.
+          machine="$(uname -m 2>/dev/null || echo "")"
+          case "$machine" in
+            arm64|aarch64)
+              echo "arm64"
+              ;;
+            x86_64|amd64)
+              echo "x64"
+              ;;
+            *)
+              echo "Unknown Windows architecture (PROCESSOR_ARCHITECTURE='${archEnv}', PROCESSOR_ARCHITEW6432='${archWow}', uname -m='${machine}'). Falling back to x64." >&2
+              echo "x64"
+              ;;
+          esac
+          ;;
+      esac
+      ;;
+
+    *)
+      echo "Unsupported osType: $osType. Falling back to x64." >&2
+      echo "x64"
+      ;;
+  esac
+}
+
+
+# doCreateLink <source> <target-link>
+function doCreateLink() {
+  echo "creating link from $1 to $2 in $PWD"
+  if [ ! -e "$1" ]; then
+    echo "Source file to link does not exist!"
     exit 1
+  fi
+  if doIsWindows; then
+    cmd //c "mklink /J $(cygpath -w $2) $(cygpath -w $1)" || exit 1
+  else
+    ln -s "$1" "$2"
   fi
 }
 

@@ -1,15 +1,24 @@
 package com.devonfw.tools.ide.url.tool.gcviewer;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
 
 /**
- * {@link GithubUrlUpdater} for GCViewer.
+ * {@link GithubUrlTagUpdater} for GCViewer.
  */
-public class GcViewerUrlUpdater extends GithubUrlUpdater {
+public class GcViewerUrlUpdater extends GithubUrlTagUpdater {
+
+  private static final String DOWNLOAD_BASE_URL = "https://sourceforge.net";
+
+  /**
+   * The Constructor.
+   */
+  public GcViewerUrlUpdater() {
+    super(DOWNLOAD_BASE_URL);
+  }
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "gcviewer";
   }
@@ -33,13 +42,7 @@ public class GcViewerUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
-  protected String getDownloadBaseUrl() {
-
-    return "https://sourceforge.net";
-  }
-
-  @Override
-  protected String mapVersion(String version) {
+  public String mapVersion(String version) {
 
     if (version.matches("\\d+\\.\\d+(\\.\\d+)?")) {
       return super.mapVersion(version);
@@ -47,15 +50,4 @@ public class GcViewerUrlUpdater extends GithubUrlUpdater {
       return null;
     }
   }
-
-  @Override
-  public String getCpeVendor() {
-    return "chewiebug";
-  }
-
-  @Override
-  public String getCpeProduct() {
-    return "gcviewer";
-  }
-
 }

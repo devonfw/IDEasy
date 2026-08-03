@@ -11,14 +11,17 @@ import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollectorDefault;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.context.IdeTestContextMock;
+import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
+/**
+ * Test of {@link VersionProperty}.
+ */
 class VersionPropertyTest {
 
   @Test
-  public void testParse() {
-    IdeContext context = IdeTestContextMock.get();
+  void testParse() {
+    IdeContext context = new IdeTestContext();
     VersionProperty versionProp = new VersionProperty("", false, "");
 
     assertThat(versionProp.parse("1", context)).isEqualTo(VersionIdentifier.of("1"));
@@ -30,8 +33,8 @@ class VersionPropertyTest {
    * versions is provided as argument, we except on versions as candidates to be returned.
    */
   @Test
-  public void testCompleteValueUnfitCommandlet() {
-    IdeContext context = IdeTestContextMock.get();
+  void testCompleteValueUnfitCommandlet() {
+    IdeContext context = new IdeTestContext();
     CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context);
     VersionProperty versionProp = new VersionProperty("", false, "");
 
@@ -45,8 +48,8 @@ class VersionPropertyTest {
    * completed, we expect this argument to be kept as is, and given as the sole candidate.
    */
   @Test
-  public void testCompleteValuePatternGiven() {
-    IdeContext context = IdeTestContextMock.get();
+  void testCompleteValuePatternGiven() {
+    IdeContext context = new IdeTestContext();
     String anyVersion = "*";
     String anyVersionAfter2 = "2.*";
     CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context);

@@ -1,6 +1,10 @@
-name: Nightly Build
+name: Nightly Build (SNAPSHOT release)
 on:
   workflow_dispatch
+
+permissions:
+  contents: read
+  id-token: write
 
 jobs:
   # Builds all native images and uploads each binary as a separate artifact
@@ -8,15 +12,15 @@ jobs:
     name: Build native images
     runs-on: ${{ matrix.os }}
     strategy:
-      matrix:
-        os: [ windows-latest, ubuntu-latest, macos-latest, macos-13 ]
+      matrix: # ATTENTION: see also release.yml, image name are referenced in cli/src/main/assembly/*.xml files, on update do not forget to also update there
+        os: [ windows-latest, ubuntu-latest, ubuntu-22.04-arm, macos-latest, macos-15-intel ]
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: recursive
       - uses: graalvm/setup-graalvm@v1
         with:
-          java-version: '23.0.2'
+          java-version: '25'
           distribution: 'graalvm-community'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
@@ -29,6 +33,12 @@ jobs:
           current_version="${current_version/-SNAPSHOT/-$(date +%m_%d_%H)-SNAPSHOT}"
           cd cli
           mvn -B -ntp -Pnative -DskipTests=true -Drevision=${current_version} package
+      - name: Ad-hoc sign native image (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          codesign --force --sign - cli/target/ideasy
+          codesign --verify --verbose cli/target/ideasy
       - name: Upload native image
         uses: actions/upload-artifact@v4
         with:
@@ -51,13 +61,32 @@ jobs:
           dotnet tool install --global wix --version 5.0.2
           wix extension add WixToolset.UI.wixext/5.0.2
           wix extension add WixToolset.Util.wixext/5.0.2
-          wix build Package.wxs WixUI_IDEasySetup.wxs -loc Package.en-us.wxl -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext -o ideasy.msi
+          wix build Package.wxs WixUI_IDEasySetup.wxs WixUI_FirstStepsDlg.wxs -loc Package.en-us.wxl -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext -o ideasy.msi
+      - name: Upload unsigned MSI
+        if: runner.os == 'Windows'
+        id: upload-msi
+        uses: actions/upload-artifact@v4
+        with:
+          name: msi-unsigned
+          path: windows-installer/ideasy.msi
+      - name: Sign MSI
+        if: runner.os == 'Windows'
+        uses: signpath/github-action-submit-signing-request@v2
+        with:
+          api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
+          organization-id: '428e13ed-ca0c-47ca-8a73-63b76cabb59b'
+          project-slug: 'IDEasy'
+          signing-policy-slug: 'test-signing'
+          artifact-configuration-slug: 'IDEasy'
+          github-artifact-id: '${{ steps.upload-msi.outputs.artifact-id }}'
+          wait-for-completion: true
+          output-artifact-directory: 'windows-installer/signed'
       - name: Upload MSI
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
         with:
           name: msi
-          path: windows-installer/ideasy.msi
+          path: windows-installer/signed/ideasy.msi
 
   # Downloads all native image artifacts to cli/target and builds the project using assemblies for final deployment to OSSRH Nexus
   deploy:
@@ -70,9 +99,10 @@ jobs:
         with:
           submodules: recursive
       - name: Set up JDK
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v3
         with:
-          java-version: '21'
+          distribution: 'temurin'
+          java-version: '25'
       - name: Download natives and build project
         uses: actions/download-artifact@v4
         with:

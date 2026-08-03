@@ -7,8 +7,24 @@ import com.devonfw.tools.ide.url.updater.NpmBasedUrlUpdater;
  */
 public class CorepackUrlUpdater extends NpmBasedUrlUpdater {
 
+  /**
+   * The Constructor.
+   */
+  public CorepackUrlUpdater() {
+    super();
+  }
+
+  /**
+   * Package-private constructor used for testing {@link CorepackUrlUpdater}.
+   *
+   * @param baseUrl mock url used as download and version base.
+   */
+  CorepackUrlUpdater(String baseUrl) {
+    super(baseUrl, baseUrl);
+  }
+
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "corepack";
   }
@@ -19,13 +35,4 @@ public class CorepackUrlUpdater extends NpmBasedUrlUpdater {
     return "corepack";
   }
 
-  @Override
-  public String getCpeVendor() {
-    return "corepack";
-  }
-
-  @Override
-  public String getCpeProduct() {
-    return "corepack";
-  }
 }

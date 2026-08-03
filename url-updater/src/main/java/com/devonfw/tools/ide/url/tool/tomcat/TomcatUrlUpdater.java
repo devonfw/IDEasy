@@ -1,15 +1,33 @@
 package com.devonfw.tools.ide.url.tool.tomcat;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
 
 /**
- * {@link GithubUrlUpdater} for Tomcat.
+ * {@link GithubUrlTagUpdater} for Tomcat.
  */
-public class TomcatUrlUpdater extends GithubUrlUpdater {
+public class TomcatUrlUpdater extends GithubUrlTagUpdater {
+
+  private static final String DOWNLOAD_BASE_URL = "https://archive.apache.org";
+
+  /**
+   * The Constructor.
+   */
+  public TomcatUrlUpdater() {
+    super(DOWNLOAD_BASE_URL);
+  }
+
+  /**
+   * Package-private constructor used for testing {@link TomcatUrlUpdater}.
+   *
+   * @param baseUrl mock url used as download and version base.
+   */
+  TomcatUrlUpdater(String baseUrl) {
+    super(baseUrl, baseUrl);
+  }
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "tomcat";
   }
@@ -31,12 +49,6 @@ public class TomcatUrlUpdater extends GithubUrlUpdater {
   protected String getGithubRepository() {
 
     return "tomcat";
-  }
-
-  @Override
-  protected String getDownloadBaseUrl() {
-
-    return "https://archive.apache.org";
   }
 
   @Override

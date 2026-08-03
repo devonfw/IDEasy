@@ -7,18 +7,19 @@ import java.nio.file.Path;
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.git.GitContextMock;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.log.IdeTestLogger;
+import com.devonfw.tools.ide.log.IdeTestStartContext;
 import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.tool.repository.NpmRepository;
+import com.devonfw.tools.ide.tool.mvn.MvnRepository;
+import com.devonfw.tools.ide.tool.npm.NpmRepository;
+import com.devonfw.tools.ide.tool.pip.PipRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepositoryMock;
+import com.devonfw.tools.ide.tool.uv.UvRepository;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 
 /**
  * Implementation of {@link IdeContext} for testing.
  */
 public class IdeTestContext extends AbstractIdeTestContext {
-
-  private final IdeTestLogger logger;
 
   private GitContext gitContext;
 
@@ -38,7 +39,7 @@ public class IdeTestContext extends AbstractIdeTestContext {
    */
   public IdeTestContext(Path workingDirectory, WireMockRuntimeInfo wireMockRuntimeInfo) {
 
-    this(workingDirectory, IdeLogLevel.TRACE, wireMockRuntimeInfo);
+    this(workingDirectory, IdeLogLevel.DEBUG, wireMockRuntimeInfo);
   }
 
   /**
@@ -50,14 +51,13 @@ public class IdeTestContext extends AbstractIdeTestContext {
    */
   public IdeTestContext(Path workingDirectory, IdeLogLevel logLevel, WireMockRuntimeInfo wireMockRuntimeInfo) {
 
-    this(new IdeTestLogger(logLevel), workingDirectory, wireMockRuntimeInfo);
+    this(new IdeTestStartContext(logLevel), workingDirectory, wireMockRuntimeInfo);
   }
 
-  private IdeTestContext(IdeTestLogger logger, Path workingDirectory, WireMockRuntimeInfo wireMockRuntimeInfo) {
+  private IdeTestContext(IdeTestStartContext startContext, Path workingDirectory, WireMockRuntimeInfo wireMockRuntimeInfo) {
 
-    super(logger, workingDirectory, wireMockRuntimeInfo);
-    this.logger = logger;
-    this.gitContext = new GitContextMock();
+    super(startContext, workingDirectory, wireMockRuntimeInfo);
+    this.gitContext = new GitContextMock(this);
   }
 
   @Override
@@ -88,11 +88,11 @@ public class IdeTestContext extends AbstractIdeTestContext {
   }
 
   /**
-   * @return the {@link IdeTestLogger}.
+   * @return the {@link IdeTestStartContext}.
    */
-  public IdeTestLogger getLogger() {
+  public IdeTestStartContext getTestStartContext() {
 
-    return logger;
+    return (IdeTestStartContext) getStartContext();
   }
 
   /**
@@ -119,4 +119,29 @@ public class IdeTestContext extends AbstractIdeTestContext {
     }
     return super.createNpmRepository();
   }
+
+  @Override
+  protected MvnRepository createMvnRepository() {
+    if (this.wireMockRuntimeInfo != null) {
+      return new MvnRepositoryMock(this, this.wireMockRuntimeInfo);
+    }
+    return super.createMvnRepository();
+  }
+
+  @Override
+  protected PipRepository createPipRepository() {
+    if (this.wireMockRuntimeInfo != null) {
+      return new PipRepositoryMock(this, this.wireMockRuntimeInfo);
+    }
+    return super.createPipRepository();
+  }
+
+  @Override
+  protected UvRepository createUvRepository() {
+    if (this.wireMockRuntimeInfo != null) {
+      return new UvRepositoryMock(this, this.wireMockRuntimeInfo);
+    }
+    return super.createUvRepository();
+  }
+
 }

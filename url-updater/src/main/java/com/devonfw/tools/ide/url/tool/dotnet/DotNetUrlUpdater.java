@@ -1,15 +1,24 @@
 package com.devonfw.tools.ide.url.tool.dotnet;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
 
 /**
- * {@link GithubUrlUpdater} for Microsoft .NET core.
+ * {@link GithubUrlTagUpdater} for Microsoft .NET core.
  */
-public class DotNetUrlUpdater extends GithubUrlUpdater {
+public class DotNetUrlUpdater extends GithubUrlTagUpdater {
+
+  private static final String DOWNLOAD_BASE_URL = "https://dotnetcli.azureedge.net";
+
+  /**
+   * The Constructor.
+   */
+  public DotNetUrlUpdater() {
+    super(DOWNLOAD_BASE_URL);
+  }
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "dotnet";
   }
@@ -48,13 +57,7 @@ public class DotNetUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
-  protected String getDownloadBaseUrl() {
-
-    return "https://dotnetcli.azureedge.net";
-  }
-
-  @Override
-  protected String mapVersion(String version) {
+  public String mapVersion(String version) {
     if (version.matches("v\\d+\\.\\d+\\.\\d+")) {
       return super.mapVersion(version);
     } else {
@@ -63,12 +66,7 @@ public class DotNetUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
-  public String getCpeVendor() {
-    return "microsoft";
-  }
-
-  @Override
-  public String getCpeProduct() {
-    return "dotnet";
+  protected void initCpe(CpeRegistry cpe) {
+    cpe.addVendor("microsoft").addProduct(".net").addProduct(".net_core");
   }
 }

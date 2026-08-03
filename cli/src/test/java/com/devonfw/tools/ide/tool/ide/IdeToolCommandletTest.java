@@ -11,13 +11,13 @@ import com.devonfw.tools.ide.tool.intellij.Intellij;
 /**
  * Test of {@link IdeToolCommandlet}.
  */
-public class IdeToolCommandletTest extends AbstractIdeContextTest {
+class IdeToolCommandletTest extends AbstractIdeContextTest {
 
   /**
    * Tests if .editorconfig was copied to workspace-folder after running an ide-tool.
    */
   @Test
-  public void testConfigureWorkspace() {
+  void testConfigureWorkspace() {
     // arrange
     IdeContext context = newContext("intellij");
     Path workspace = context.getWorkspacePath();
@@ -27,5 +27,21 @@ public class IdeToolCommandletTest extends AbstractIdeContextTest {
     assertThat(workspace.resolve(".editorconfig")).exists();
     assertThat(workspace.resolve(".intellij/config/idea.key")).exists();
     assertThat(workspace.resolve("user.properties")).exists().content().contains("ijversion=2023.3.3");
+  }
+
+  /**
+   * Tests that {@link IdeToolCommandlet#getIdeMetadataPath()} resolves to {@code $IDE_HOME/.ide/«ide»/«workspace»} instead of the workspace itself.
+   */
+  @Test
+  void testGetIdeMetadataPath() {
+    // arrange
+    IdeContext context = newContext("intellij");
+    IdeToolCommandlet ide = context.getCommandletManager().getCommandlet(Intellij.class);
+    // act
+    Path metadataPath = ide.getIdeMetadataPath();
+    // assert
+    assertThat(metadataPath).startsWithRaw(context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE));
+    assertThat(metadataPath).endsWithRaw(Path.of("intellij", context.getWorkspaceName()));
+    assertThat(metadataPath).isNotEqualTo(context.getWorkspacePath());
   }
 }

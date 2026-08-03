@@ -51,18 +51,17 @@ public class VersionSegment implements VersionObject<VersionSegment> {
 
     super();
     this.separator = separator;
-    this.letters = VersionLetters.of(letters);
-    if (!pattern.isEmpty() && !PATTERN_MATCH_ANY_STABLE_VERSION.equals(pattern)
-        && !PATTERN_MATCH_ANY_VERSION.equals(pattern)) {
+    boolean isAnyPattern = PATTERN_MATCH_ANY_VERSION.equals(pattern);
+    if (isAnyPattern && letters.isEmpty()) {
+      this.letters = VersionLetters.UNSTABLE;
+    } else {
+      this.letters = VersionLetters.of(letters);
+    }
+    if (!pattern.isEmpty() && !isAnyPattern
+        && !PATTERN_MATCH_ANY_STABLE_VERSION.equals(pattern)) {
       throw new IllegalArgumentException("Invalid pattern: " + pattern);
     }
     this.pattern = pattern;
-    /*
-     * this.lettersLower = this.letters.toLowerCase(Locale.ROOT); String phaseLetters = this.lettersLower.replace('_',
-     * '-'); if (phaseLetters.startsWith("pre")) { this.prePhase = true; int preLength = 3; if
-     * (phaseLetters.startsWith("pre-")) { preLength = 4; } phaseLetters = phaseLetters.substring(preLength); } else {
-     * this.prePhase = false; } this.phase = VersionPhase.of(phaseLetters);
-     */
     this.digits = digits;
     if (this.digits.isEmpty()) {
       this.number = -1;
@@ -73,6 +72,16 @@ public class VersionSegment implements VersionObject<VersionSegment> {
       assert (!this.letters.isEmpty() || !this.digits.isEmpty() || !this.separator.isEmpty()
           || !this.pattern.isEmpty());
     }
+  }
+
+  private VersionSegment(VersionSegment next, String separator, VersionLetters letters, String digits, int number, String pattern) {
+    super();
+    this.next = next;
+    this.separator = separator;
+    this.letters = letters;
+    this.pattern = pattern;
+    this.digits = digits;
+    this.number = number;
   }
 
   /**
@@ -186,6 +195,7 @@ public class VersionSegment implements VersionObject<VersionSegment> {
    * <li>The {@link #getSeparator() separator} may only contain the characters '.', '-', or '_' (e.g. " 1" or "ö1" are
    * not considered valid).</li>
    * <li>The combination of {@link #getPhase() phase} and {@link #getNumber() number} has to be
+   * <li>If the snapshot flag is set for this segment, it must not be combined with digits in the same segment.</li>
    * {@link VersionPhase#isValid(int) valid} (e.g. "pineapple-pen1" or "donut" are not considered valid).</li>
    * </ul>
    */
@@ -203,6 +213,9 @@ public class VersionSegment implements VersionObject<VersionSegment> {
         return false;
       }
     }
+    if (this.letters.isSnapshot()) {
+      return this.number < 0;
+    }
     return this.letters.getPhase().isValid(this.number);
   }
 
@@ -212,6 +225,14 @@ public class VersionSegment implements VersionObject<VersionSegment> {
     if (other == null) {
       return VersionComparisonResult.GREATER_UNSAFE;
     }
+
+    // Check if one version segment is * or *! while the other has no pattern. If so, no further comparison is needed
+    if (this.letters.isEmpty() && isPattern() && !other.letters.isEmpty()) {
+      return VersionComparisonResult.GREATER_UNSAFE;
+    } else if (other.letters.isEmpty() && other.isPattern() && !this.letters.isEmpty()) {
+      return VersionComparisonResult.LESS_UNSAFE;
+    }
+    // Compare letters and phases
     VersionComparisonResult lettersResult = this.letters.compareVersion(other.letters);
     if (!lettersResult.isEqual()) {
       return lettersResult;
@@ -230,15 +251,33 @@ public class VersionSegment implements VersionObject<VersionSegment> {
       }
     }
 
+    // Compare version numbers
     if (this.number != other.number) {
       if ((this.number < 0) && isPattern()) {
-        return VersionComparisonResult.LESS_UNSAFE;
-      } else if ((other.number < 0) && other.isPattern()) {
         return VersionComparisonResult.GREATER_UNSAFE;
+      } else if ((other.number < 0) && other.isPattern()) {
+        return VersionComparisonResult.LESS_UNSAFE;
       } else if (this.number < other.number) {
         return VersionComparisonResult.LESS;
       } else {
         return VersionComparisonResult.GREATER;
+      }
+    } else if (this.number < 0 && (isPattern() || other.isPattern())) {
+      // Numbers are equal and one of them is a pattern
+      if (isPattern() && !other.isPattern()) {
+        return VersionComparisonResult.GREATER_UNSAFE;
+      } else if (!isPattern() && other.isPattern()) {
+        return VersionComparisonResult.LESS_UNSAFE;
+      }
+      // Both are patterns
+      else if (this.pattern.equals(PATTERN_MATCH_ANY_STABLE_VERSION) && other.pattern.equals(PATTERN_MATCH_ANY_VERSION)) {
+        return VersionComparisonResult.LESS_UNSAFE;
+      } else if (this.pattern.equals(PATTERN_MATCH_ANY_VERSION) && other.pattern.equals(PATTERN_MATCH_ANY_STABLE_VERSION)) {
+        return VersionComparisonResult.GREATER_UNSAFE;
+      } else if (this.pattern.equals(other.pattern)) {
+        return VersionComparisonResult.EQUAL;
+      } else {
+        return VersionComparisonResult.EQUAL_UNSAFE;
       }
     } else if (this.separator.equals(other.separator)) {
       return VersionComparisonResult.EQUAL;
@@ -282,8 +321,7 @@ public class VersionSegment implements VersionObject<VersionSegment> {
     VersionMatchResult result = this.letters.matches(other.letters, isPattern);
     if (isPattern && (result == VersionMatchResult.EQUAL)) {
       if (this.pattern.equals(PATTERN_MATCH_ANY_STABLE_VERSION)) {
-        VersionLetters developmentPhase = other.getDevelopmentPhase();
-        if (developmentPhase.isUnstable()) {
+        if (other.containsUnstableQualifier()) {
           return VersionMatchResult.MISMATCH;
         }
         return VersionMatchResult.MATCH;
@@ -297,27 +335,93 @@ public class VersionSegment implements VersionObject<VersionSegment> {
   }
 
   /**
-   * @return the {@link VersionLetters} that represent a {@link VersionLetters#isDevelopmentPhase() development phase} searching from this
-   * {@link VersionSegment} to all {@link #getNextOrNull() next segments}. Will be {@link VersionPhase#NONE} if no
-   * {@link VersionPhase#isDevelopmentPhase() development phase} was found and {@link VersionPhase#UNDEFINED} if multiple
-   * {@link VersionPhase#isDevelopmentPhase() development phase}s have been found.
-   * @see VersionIdentifier#getDevelopmentPhase()
+   * @return {@code true} if this {@link VersionSegment} or any following segment contains an unstable qualifier.
+   *     <p>
+   *     An unstable qualifier is either:
+   *     <ul>
+   *       <li>a {@link VersionPhase} (e.g. alpha, beta ...)</li>
+   *       <li>a pre-phase</li>
+   *       <li>a snapshot flag</li>
+   *     </ul>
    */
-  protected VersionLetters getDevelopmentPhase() {
-
-    VersionLetters result = VersionLetters.EMPTY;
+  protected boolean containsUnstableQualifier() {
     VersionSegment segment = this;
     while (segment != null) {
-      if (segment.letters.isDevelopmentPhase()) {
-        if (result == VersionLetters.EMPTY) {
-          result = segment.letters;
-        } else {
-          result = VersionLetters.UNDEFINED;
-        }
+      if (segment.letters.isUnstable()) {
+        return true;
       }
       segment = segment.next;
     }
-    return result;
+    return false;
+  }
+
+  /**
+   * {@link VersionIdentifier#incrementSegment(int, boolean)}  Increments a version} recursively per {@link VersionSegment}.
+   *
+   * @param digitKeepCount the number of leading {@link VersionSegment}s with {@link VersionSegment#getDigits() digits} to keep untouched. Will be {@code 0}
+   *     for the segment to increment and negative for the segments to set to zero.
+   * @param keepLetters {@code true} to keep {@link VersionSegment#getLetters() letters} from modified segments, {@code false} to drop them.
+   * @return the new {@link VersionSegment}.
+   */
+  VersionSegment increment(int digitKeepCount, boolean keepLetters) {
+
+    String separator = this.separator;
+    VersionLetters letters = this.letters;
+    String digits = this.digits;
+    int number = this.number;
+    String pattern = this.pattern;
+    int nextSegmentKeepCount = digitKeepCount;
+    if (this.number >= 0) {
+      nextSegmentKeepCount--;
+    }
+    if ((digitKeepCount < 0) || ((digitKeepCount == 0) && (this.number >= 0))) {
+      if (!keepLetters) {
+        letters = VersionLetters.EMPTY;
+      }
+      if (number >= 0) {
+        if (digitKeepCount == 0) {
+          number++;
+        } else {
+          number = 0;
+        }
+        int digitsLength = digits.length();
+        digits = Integer.toString(number);
+        int leadingZeros = digitsLength - digits.length();
+        if (leadingZeros > 0) {
+          StringBuilder newDigits = new StringBuilder(digits);
+          while (leadingZeros > 0) {
+            newDigits.insert(0, "0");
+            leadingZeros--;
+          }
+          digits = newDigits.toString();
+        }
+      } else if (!keepLetters) {
+        if (this.next == null) {
+          return null;
+        }
+        return this.next.increment(nextSegmentKeepCount, false);
+      }
+    }
+    VersionSegment nextSegment = null;
+    if (this.next != null) {
+      nextSegment = this.next.increment(nextSegmentKeepCount, keepLetters);
+    }
+    return new VersionSegment(nextSegment, separator, letters, digits, number, pattern);
+  }
+
+  /**
+   * @return the number of {@link VersionSegment}s with {@link VersionSegment#getDigits() digits}.
+   */
+  int countDigits() {
+
+    int count = 0;
+    if (this.number >= 0) {
+      count = 1;
+    }
+    if (this.next != null) {
+      count = count + this.next.countDigits();
+    }
+    return count;
   }
 
   @Override

@@ -15,7 +15,7 @@ import com.devonfw.tools.ide.io.FileAccess;
 /**
  * Test of {@link DirectoryMerger}.
  */
-public class DirectoryMergerTest extends AbstractIdeContextTest {
+class DirectoryMergerTest extends AbstractIdeContextTest {
 
   private static final String IDE_HOME = TEST_PROJECTS.resolve(PROJECT_BASIC).resolve("project").toAbsolutePath().toString().replace('\\', '/');
 
@@ -46,7 +46,7 @@ public class DirectoryMergerTest extends AbstractIdeContextTest {
    * @throws Exception on error.
    */
   @Test
-  public void testConfigurator(@TempDir Path workspaceDir) throws Exception {
+  void testConfigurator(@TempDir Path workspaceDir) throws Exception {
 
     // arrange
     IdeContext context = newContext(PROJECT_BASIC, null, false);

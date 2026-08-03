@@ -19,10 +19,10 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * Test class for integrations of the {@link CorepackUrlUpdater}
+ * Test of {@link CorepackUrlUpdater}
  */
 @WireMockTest
-public class CorepackUrlUpdaterTest extends AbstractUrlUpdaterTest {
+class CorepackUrlUpdaterTest extends AbstractUrlUpdaterTest {
 
   /**
    * Test of {@link JsonUrlUpdater} for the creation of {@link CorepackUrlUpdater} download URLs and checksums.
@@ -32,7 +32,7 @@ public class CorepackUrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @throws IOException test fails
    */
   @Test
-  public void testCorepackJsonUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  void testCorepackJsonUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
 
     // arrange
     stubFor(get(urlMatching("/corepack")).willReturn(
@@ -41,7 +41,7 @@ public class CorepackUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(any(urlMatching("/corepack/-/corepack-[0-9.].*.tgz")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    CorepackUrlUpdaterMock updater = new CorepackUrlUpdaterMock(wmRuntimeInfo);
+    CorepackUrlUpdater updater = new CorepackUrlUpdater(wmRuntimeInfo.getHttpBaseUrl() + "/");
 
     // act
     updater.update(urlRepository);

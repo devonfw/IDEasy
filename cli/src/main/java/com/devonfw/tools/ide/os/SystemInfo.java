@@ -56,4 +56,12 @@ public interface SystemInfo {
     return getOs() == OperatingSystem.LINUX;
   }
 
+  /**
+   * @return {@code true} if we are running inside WSL (Windows Subsystem for Linux).
+   */
+  default boolean isWsl() {
+
+    return false;
+  }
+
 }

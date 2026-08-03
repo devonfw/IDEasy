@@ -1,0 +1,5 @@
+-Xms128m
+-Xmx2048m
+-XX:ReservedCodeCacheSize=512m
+-ea
+-Dsun.io.useCanonCaches=false

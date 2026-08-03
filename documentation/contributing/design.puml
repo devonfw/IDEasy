@@ -1,0 +1,81 @@
+@startuml
+skinparam classFontStyle bold
+skinparam classAttributeIconSize 0
+
+'''' Attributes and methods '''
+
+class Ideasy {
+  {static} +main(String [])
+}
+
+class CliArgument
+class Property
+
+interface IdeContext
+
+interface CommandletManager
+interface EnvironmentVariables
+interface FileAccess
+interface ProcessContext
+interface SystemInfo
+interface Step
+
+interface ToolRepository
+interface CustomToolRepository
+
+class UrlMetadata
+interface UrlArtifact
+
+class Commandlet
+class ToolCommandlet
+class LocalToolCommandlet
+class GlobalToolCommandlet
+class PluginBasedToolCommandlet
+class IdeToolCommandlet
+class IdeaBasedIdeToolCommandlet
+
+class UpdateInitiator{
+  {static} +main(String [])
+}
+
+class UpdateManager
+interface UrlUpdater
+
+
+'''' Relations '''
+
+Ideasy ..> CliArgument
+Ideasy ..> Property
+Ideasy ..> Commandlet
+Ideasy ..> IdeContext
+
+IdeContext ..> CommandletManager
+IdeContext ..> EnvironmentVariables
+IdeContext ..> FileAccess
+IdeContext ..> ProcessContext
+IdeContext ..> SystemInfo
+IdeContext ..> Step
+IdeContext ..> ToolRepository
+IdeContext ..> UrlMetadata
+IdeContext ..> GitContext
+UrlMetadata ..> UrlArtifact
+
+AbstractIdeContext ..|> IdeContext : implements
+IdeContextConsole --|> AbstractIdeContext : extends
+
+GitContextImpl ..|> GitContext  : implements
+
+CommandletManager ..> Commandlet
+Commandlet <|-- ToolCommandlet : extends
+ToolCommandlet <|-- LocalToolCommandlet : extends
+ToolCommandlet <|-- GlobalToolCommandlet : extends
+LocalToolCommandlet <|-- PluginBasedToolCommandlet : extends
+PluginBasedToolCommandlet <|-- IdeToolCommandlet : extends
+IdeToolCommandlet <|-- IdeaBasedIdeToolCommandlet : extends
+
+ToolRepository <|-- CustomToolRepository : extends
+
+UpdateInitiator ..> UpdateManager
+UpdateManager ..> UrlUpdater
+
+@enduml

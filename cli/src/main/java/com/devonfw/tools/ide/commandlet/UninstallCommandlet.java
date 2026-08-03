@@ -1,5 +1,8 @@
 package com.devonfw.tools.ide.commandlet;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.ToolProperty;
 import com.devonfw.tools.ide.tool.IdeasyCommandlet;
@@ -9,6 +12,8 @@ import com.devonfw.tools.ide.tool.ToolCommandlet;
  * An internal {@link Commandlet} to uninstall a tool.
  */
 public class UninstallCommandlet extends Commandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(UninstallCommandlet.class);
 
   /** The tool to uninstall. */
   public final ToolProperty tools;
@@ -38,7 +43,7 @@ public class UninstallCommandlet extends Commandlet {
   }
 
   @Override
-  public void run() {
+  protected void doRun() {
 
     int valueCount = this.tools.getValueCount();
     if (valueCount == 0) {
@@ -53,12 +58,11 @@ public class UninstallCommandlet extends Commandlet {
     }
     for (int i = 0; i < valueCount; i++) {
       ToolCommandlet toolCommandlet = this.tools.getValue(i);
-      if (toolCommandlet.getInstalledVersion() != null) {
+      if (toolCommandlet.isInstalled()) {
         toolCommandlet.uninstall();
       } else {
-        this.context.warning("Couldn't uninstall " + toolCommandlet.getName() + " because we could not find an installation");
+        LOG.warn("Couldn't uninstall " + toolCommandlet.getName() + " because we could not find an installation");
       }
-
     }
   }
 }

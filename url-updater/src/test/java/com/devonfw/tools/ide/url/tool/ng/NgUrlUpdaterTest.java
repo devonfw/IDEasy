@@ -19,10 +19,10 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * Test class for integrations of the {@link NgUrlUpdater}
+ * Test of {@link NgUrlUpdater}
  */
 @WireMockTest
-public class NgUrlUpdaterTest extends AbstractUrlUpdaterTest {
+class NgUrlUpdaterTest extends AbstractUrlUpdaterTest {
 
   /**
    * Test of {@link JsonUrlUpdater} for the creation of {@link NgUrlUpdater} download URLs and checksums.
@@ -32,7 +32,7 @@ public class NgUrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @throws IOException test fails
    */
   @Test
-  public void testNgJsonUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  void testNgJsonUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
 
     // arrange
     stubFor(get(urlMatching("/@angular/cli")).willReturn(
@@ -41,7 +41,7 @@ public class NgUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(any(urlMatching("/@angular/cli/-/cli-[1-9.].*.tgz")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    NgUrlUpdaterMock updater = new NgUrlUpdaterMock(wmRuntimeInfo);
+    NgUrlUpdater updater = new NgUrlUpdater(wmRuntimeInfo.getHttpBaseUrl() + "/");
 
     // act
     updater.update(urlRepository);

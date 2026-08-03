@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="280" viewBox="0 0 640 280" role="img">
+<style>
+  :root {
+    color-scheme: light dark;
+    --chart-background: #ffffff;
+    --chart-text: #24292f;
+    --chart-muted-text: #57606a;
+    --chart-bar-track: #f0f3f6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --chart-background: #0d1117;
+      --chart-text: #f0f6fc;
+      --chart-muted-text: #8b949e;
+      --chart-bar-track: #30363d;
+    }
+  }
+</style>
+<rect width="640" height="280" rx="12" fill="var(--chart-background)"/>
+<title>Issues by operating system</title>
+<text x="24" y="34" fill="var(--chart-text)" font-family="sans-serif" font-size="20" font-weight="600">Issues by operating system</text>
+<rect x="24" y="48" width="12" height="12" rx="2" fill="#0969da"/>
+<text x="42" y="59" fill="var(--chart-muted-text)" font-family="sans-serif" font-size="12">Specific</text>
+<rect x="136" y="48" width="12" height="12" rx="2" fill="#8250df"/>
+<text x="154" y="59" fill="var(--chart-muted-text)" font-family="sans-serif" font-size="12">Multi-OS</text>
+<rect x="248" y="48" width="12" height="12" rx="2" fill="#8c959f"/>
+<text x="266" y="59" fill="var(--chart-muted-text)" font-family="sans-serif" font-size="12">Cross-platform</text>
+<text x="98" y="99" text-anchor="end" fill="var(--chart-text)" font-family="sans-serif" font-size="14">Windows</text>
+<rect x="110.0" y="82" width="46.4" height="24" fill="#0969da"/>
+<rect x="156.4" y="82" width="443.6" height="24" fill="#8c959f"/>
+<text x="608.0" y="99" fill="var(--chart-muted-text)" font-family="sans-serif" font-size="13" font-weight="600">148</text>
+<text x="98" y="147" text-anchor="end" fill="var(--chart-text)" font-family="sans-serif" font-size="14">Linux</text>
+<rect x="110.0" y="130" width="19.9" height="24" fill="#0969da"/>
+<rect x="129.9" y="130" width="3.3" height="24" fill="#8250df"/>
+<rect x="133.2" y="130" width="443.6" height="24" fill="#8c959f"/>
+<text x="584.8" y="147" fill="var(--chart-muted-text)" font-family="sans-serif" font-size="13" font-weight="600">141</text>
+<text x="98" y="195" text-anchor="end" fill="var(--chart-text)" font-family="sans-serif" font-size="14">macOS</text>
+<rect x="110.0" y="178" width="36.4" height="24" fill="#0969da"/>
+<rect x="146.4" y="178" width="3.3" height="24" fill="#8250df"/>
+<rect x="149.7" y="178" width="443.6" height="24" fill="#8c959f"/>
+<text x="601.4" y="195" fill="var(--chart-muted-text)" font-family="sans-serif" font-size="13" font-weight="600">146</text>
+</svg>

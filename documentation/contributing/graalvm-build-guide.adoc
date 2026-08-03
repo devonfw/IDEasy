@@ -1,0 +1,58 @@
+= Graalvm Build Guide
+
+*1. Setup Graalvm*
+
+```
+icd IDEasy
+ide install graalvm
+```
+When the installation is complete, the GRAALVM_HOME environment variable is automatically set to the graalvm installation path e.g. C/Projects/IDEasy/software/extra/graalvm
+
+*2. Install Dependencies*
+
+*2.1 Windows: Install Visual Studio*
+
+* Download Visual Studio from https://visualstudio.microsoft.com/downloads/
+
+* During the installation, make sure to include the "Desktop development with CPP" workload, as this includes the necessary C/C++ compiler
+
+image:../images/cppInstall.png[image]
+* If you already have Visual Studio installed, open the Visual Studio installer and click “modifyˮ on your existing installation.
+Then select the C++ workload and click on install.
+
+*2.2 Linux*
+
+Install the zlib development package on your system:
+
+```
+sudo apt-get update +
+sudo apt-get install zlib1g-dev
+```
+
+*3. Build Your Application*
+
+Run the following Maven command inside Intellij to compile your application and create an executable:
+
+```
+icd -w main
+cd IDEasy/cli
+mvn -B -ntp -Pnative -DskipTests=true package
+```
+
+image:../images/graalvmMvnArgs.png[image]
+
+Building the application might take up to 10 minutes depending on your machine.
+
+*4. Run your Application* +
+An ideasy executable (e.g. ideasy.exe under windows) should be created under *../workspace/main/IDEasy/cli/target*.
+
+To run the application open a cli and pass your arguments.
+
+Example:
+
+[width="100%",cols="100%",options="header",]
+|===
+a|
+C:\Projects\IDEasy\workspaces\main\IDEasy\cli\target> .\ideasy.exe mvn --version
+|===
+

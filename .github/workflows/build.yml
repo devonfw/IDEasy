@@ -9,13 +9,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           submodules: recursive
+      - name: Run shell function tests
+        shell: bash
+        run: bash cli/src/test/functions-test.sh
       - name: Set up JDK
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v3
         with:
-          java-version: '21'
+          distribution: 'temurin'
+          java-version: '25'
       - name: Build project with Maven
         run: mvn -B -ntp -Dstyle.color=always install
       - name: Coveralls GitHub Action

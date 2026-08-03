@@ -44,7 +44,7 @@ public class VersionSetCommandlet extends Commandlet {
   }
 
   @Override
-  public void run() {
+  protected void doRun() {
 
     ToolCommandlet commandlet = this.tool.getValue();
     VersionIdentifier versionIdentifier = this.version.getValue();

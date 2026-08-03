@@ -21,12 +21,12 @@ The directory layout of your `IDEasy` will look like this:
 |  ├──/ link:software.adoc[software]/
 |  ├──/ tmp/
 |  └──/ urls/
-└──/ my-project (link:variables.adoc[$IDE_HOME])
+└──/ link:project.adoc[my-project] (link:variables.adoc[$IDE_HOME])
    ├──/ link:conf.adoc[conf]/
    ├──/ link:log.adoc[log]/
    ├──/ link:settings.adoc[settings]/
    ├──/ link:software.adoc[software]/
-   ├──/ link:workspaces.adoc[workspaces]/
+   └──/ link:workspaces.adoc[workspaces]/
 ----
 
 The elements of the above structure are described in the individual sections.

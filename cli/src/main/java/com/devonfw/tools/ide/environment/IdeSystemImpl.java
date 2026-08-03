@@ -4,36 +4,37 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 
-import com.devonfw.tools.ide.log.IdeLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implementation of {@link IdeSystem}.
  */
 public class IdeSystemImpl implements IdeSystem {
 
-  private final IdeLogger logger;
+  private static final Logger LOG = LoggerFactory.getLogger(IdeSystemImpl.class);
 
   final Properties systemProperties;
 
   final Map<String, String> environmentVariables;
 
   /**
-   * @param logger the {@link IdeLogger}.
+   * The constructor.
    */
-  public IdeSystemImpl(IdeLogger logger) {
+  public IdeSystemImpl() {
 
-    this(logger, System.getProperties(), System.getenv());
+    this(System.getProperties(), System.getenv());
   }
 
   /**
-   * @param logger the {@link IdeLogger}.
+   * The constructor.
+   *
    * @param systemProperties the {@link System#getProperties() system properties}.
    * @param environmentVariables the {@link System#getenv() environment variables}.
    */
-  protected IdeSystemImpl(IdeLogger logger, Properties systemProperties, Map<String, String> environmentVariables) {
+  protected IdeSystemImpl(Properties systemProperties, Map<String, String> environmentVariables) {
 
     super();
-    this.logger = logger;
     this.systemProperties = systemProperties;
     this.environmentVariables = environmentVariables;
   }
@@ -55,13 +56,13 @@ public class IdeSystemImpl implements IdeSystem {
 
     String old = getProperty(key);
     if (Objects.equals(old, value)) {
-      this.logger.trace("System property was already set to {}={}", key, value);
+      LOG.trace("System property was already set to {}={}", key, value);
     } else {
       this.systemProperties.put(key, value);
       if (old == null) {
-        this.logger.trace("System property was set to {}={}", key, value);
+        LOG.trace("System property was set to {}={}", key, value);
       } else {
-        this.logger.trace("System property was changed to {}={} from {}", key, value, old);
+        LOG.trace("System property was changed to {}={} from {}", key, value, old);
       }
     }
   }

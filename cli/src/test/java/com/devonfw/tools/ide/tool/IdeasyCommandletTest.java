@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool;
 
 import java.nio.file.Path;
 
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -15,15 +16,16 @@ import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * Test of {@link IdeasyCommandlet}.
  */
-public class IdeasyCommandletTest extends AbstractIdeContextTest {
+class IdeasyCommandletTest extends AbstractIdeContextTest {
 
   /** Test of {@link IdeasyCommandlet#removeObsoleteEntryFromWindowsPath(String)}. */
   @Test
-  public void testRemoveObsoleteEntryFromWindowsPath() {
+  void testRemoveObsoleteEntryFromWindowsPath() {
 
     assertThat(IdeasyCommandlet.removeObsoleteEntryFromWindowsPath("C:\\projects\\_ide\\bin;C:\\Windows\\System32;C:\\Program Files\\Git\\cmd")).isEqualTo(
         "C:\\Windows\\System32;C:\\Program Files\\Git\\cmd");
@@ -37,10 +39,38 @@ public class IdeasyCommandletTest extends AbstractIdeContextTest {
     assertThat(IdeasyCommandlet.removeObsoleteEntryFromWindowsPath(path)).isEqualTo(path);
   }
 
-  /** Test of {@link IdeasyCommandlet#installIdeasy(Path)}. */
+  /**
+   * Tests if the installation on windows did not add a 2nd path to IDEasy to the PATH environment variable and instead removed the old one and updated it.
+   * See:
+   * <a href="https://github.com/devonfw/IDEasy/issues/1559">#1559</a> for reference.
+   */
+  @Test
+  void testInstallDoesNotAddPathEntryTwiceOnWindows() {
+    // arrange
+    SystemInfo systemInfo = SystemInfoMock.of("windows");
+    IdeTestContext context = newContext("install");
+    context.setIdeRoot(null);
+    context.setSystemInfo(systemInfo);
+    context.getStartContext().setForceMode(true);
+    WindowsHelper helper = context.getWindowsHelper();
+    String originalPath = helper.getUserEnvironmentValue("PATH");
+    context.getFileAccess().copy(Path.of("src/main/package/gui"), context.getUserHome().resolve("Downloads/ide-cli"));
+    IdeasyCommandlet ideasy = new IdeasyCommandlet(context);
+    // act
+    ideasy.installIdeasy(context.getUserHome().resolve("Downloads/ide-cli"));
+    String newPath = originalPath.replace("C:\\projects\\_ide\\installation\\bin;", "");
+    // assert
+    assertThat(helper.getUserEnvironmentValue("PATH")).isEqualTo(newPath + ";" + context.getUserHome().resolve("projects/_ide/installation/bin"));
+  }
+
+  /**
+   * Test of {@link IdeasyCommandlet#installIdeasy(Path)}.
+   *
+   * @param os to use
+   */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testInstallIdeasy(String os) {
+  void testInstallIdeasy(String os) {
 
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of(os);
@@ -51,7 +81,7 @@ public class IdeasyCommandletTest extends AbstractIdeContextTest {
     WindowsHelper helper = context.getWindowsHelper();
     String originalPath = helper.getUserEnvironmentValue("PATH");
     if (systemInfo.isWindows()) {
-      helper.setUserEnvironmentValue("PATH", "C:\\projects\\_ide\\bin;" + originalPath);
+      helper.setUserEnvironmentValue("PATH", "C:\\projects\\_ide\\installation\\bin;" + originalPath);
     }
     Path ideRoot = context.getUserHome().resolve("projects");
     String addedRcLines =
@@ -65,6 +95,7 @@ public class IdeasyCommandletTest extends AbstractIdeContextTest {
     Path gitconfigPath = context.getUserHome().resolve(".gitconfig");
     FileAccess fileAccess = new FileAccessImpl(context);
     fileAccess.writeFileContent("", gitconfigPath);
+    fileAccess.copy(Path.of("src/main/package/gui"), context.getUserHome().resolve("Downloads/ide-cli"));
     IdeasyCommandlet ideasy = new IdeasyCommandlet(context);
     // act
     ideasy.installIdeasy(context.getUserHome().resolve("Downloads/ide-cli"));
@@ -73,7 +104,8 @@ public class IdeasyCommandletTest extends AbstractIdeContextTest {
     verifyInstallation(releasePath);
     if (systemInfo.isWindows()) {
       assertThat(helper.getUserEnvironmentValue("IDE_ROOT")).isEqualTo(ideRoot.toString());
-      assertThat(helper.getUserEnvironmentValue("PATH")).isEqualTo(originalPath + ";" + context.getUserHome().resolve("projects/_ide/installation/bin"));
+      String newPath = originalPath.replace("C:\\projects\\_ide\\installation\\bin;", "");
+      assertThat(helper.getUserEnvironmentValue("PATH")).isEqualTo(newPath + ";" + context.getUserHome().resolve("projects/_ide/installation/bin"));
       assertThat(context.getUserHome().resolve(".gitconfig")).hasContent("[core]\nlongpaths = true");
     }
     assertThat(context.getUserHome().resolve(".bashrc")).hasContent(addedRcLines);
@@ -83,15 +115,75 @@ public class IdeasyCommandletTest extends AbstractIdeContextTest {
         + "devon\n"
         + "source ~/.devon/autocomplete\n"
         + addedRcLines);
+    verifyDesktopShortcut(context, systemInfo, installationPath);
   }
 
-  /** Test of {@link IdeasyCommandlet#configureWindowsTerminalGitBash()}. */
+  private void verifyDesktopShortcut(IdeTestContext context, SystemInfo systemInfo, Path installationPath) {
+
+    if (systemInfo.isLinux()) {
+      Path desktopFile = context.getUserHome().resolve(".local/share/applications/ideasy-gui.desktop");
+      assertThat(desktopFile).exists();
+      assertThat(desktopFile).content()
+          .contains("Exec=" + installationPath.resolve("bin/ideasy") + " gui")
+          .contains("Icon=" + installationPath.resolve("gui/logo.png"));
+    } else if (systemInfo.isMac()) {
+      Path commandFile = context.getUserHome().resolve("Applications/IDEasy.command");
+      assertThat(commandFile).exists();
+      assertThat(commandFile).content()
+          .contains(installationPath.resolve("bin/ideasy").toString())
+          .contains("gui");
+    } else if (systemInfo.isWindows()) {
+      Assumptions.assumeTrue(System.getProperty("os.name", "").toLowerCase().startsWith("win"),
+          "Skipped: .lnk creation requires PowerShell, which is only available on Windows");
+      assertThat(context.getUserHome().resolve("Desktop/IDEasy.lnk")).exists();
+      assertThat(context.getUserHome().resolve(
+          "AppData/Roaming/Microsoft/Windows/Start Menu/Programs/IDEasy.lnk")).exists();
+    }
+  }
+
+  /**
+   * Test that {@link IdeasyCommandlet#installIdeasy(Path)} updates {@link IdeContext#getIdeRoot()} to the derived installation target when {@code IDE_ROOT}
+   * is not set in the environment (as is the case during a fresh MSI installation). This ensures downstream code reading {@link IdeContext#getIdeRoot()}
+   * during the same install run gets a consistent value. See <a href="https://github.com/devonfw/IDEasy/issues/1517">#1517</a> for reference.
+   */
   @Test
-  public void testConfigureWindowsTerminalGitBash() {
+  void testInstallIdeasyUpdatesIdeRoot() {
 
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of("windows");
     IdeTestContext context = newContext("install");
+    context.setIdeRoot(null);
+    context.setSystemInfo(systemInfo);
+    context.getStartContext().setForceMode(true);
+    Path gitconfigPath = context.getUserHome().resolve(".gitconfig");
+    FileAccess fileAccess = new FileAccessImpl(context);
+    fileAccess.writeFileContent("", gitconfigPath);
+    fileAccess.copy(Path.of("src/main/package/gui"), context.getUserHome().resolve("Downloads/ide-cli"));
+    Path ideRoot = context.getUserHome().resolve("projects");
+    IdeasyCommandlet ideasy = new IdeasyCommandlet(context);
+    assertThat(context.getIdeRoot()).as("IDE_ROOT is not set before install").isNull();
+    // act
+    ideasy.installIdeasy(context.getUserHome().resolve("Downloads/ide-cli"));
+    // assert
+    assertThat(context.getIdeRoot()).isEqualTo(ideRoot);
+  }
+
+  /**
+   * Test of {@link IdeasyCommandlet#configureWindowsTerminalGitBash()}, also when {@code IDE_ROOT} is not yet set, as is the case during MSI installation.
+   *
+   * @param ideRootSet whether {@code IDE_ROOT} is set on the context.
+   */
+  @ParameterizedTest
+  @ValueSource(booleans = { true, false })
+  void testConfigureWindowsTerminalGitBash(boolean ideRootSet) {
+
+    // arrange
+    SystemInfo systemInfo = SystemInfoMock.of("windows");
+    IdeTestContext context = newContext("install");
+    context.setSystemInfo(systemInfo);
+    if (!ideRootSet) {
+      context.setIdeRoot(null);
+    }
     IdeasyCommandlet ideasy = new IdeasyCommandlet(context);
 
     // act
@@ -102,6 +194,90 @@ public class IdeasyCommandletTest extends AbstractIdeContextTest {
     assertThat(settingsPath).exists();
     assertThat(settingsPath).content().contains("\"name\" : \"Git Bash\"");
     assertThat(settingsPath).content().contains("\"guid\" : \"{2ece5bfe-50ed-5f3a-ab87-5cd4baafed2b}\"");
+  }
+
+  /**
+   * Tests if the installation on windows did not add a second `longpaths = true` entry to the `.gitconfig` file when installing IDEasy multiple times. See:
+   * <a href="https://github.com/devonfw/IDEasy/issues/1823">#1823</a> for reference.
+   */
+  @Test
+  void testInstallIdeasyTwiceDoesNotDuplicateGitLongpaths() {
+    // arrange
+    SystemInfo systemInfo = SystemInfoMock.of("windows");
+    IdeTestContext context = newContext("install");
+    context.setIdeRoot(null);
+    context.setSystemInfo(systemInfo);
+    context.getStartContext().setForceMode(true);
+    Path gitconfigPath = context.getUserHome().resolve(".gitconfig");
+    context.getFileAccess().copy(Path.of("src/main/package/gui"), context.getUserHome().resolve("Downloads/ide-cli"));
+    IdeasyCommandlet ideasy = new IdeasyCommandlet(context);
+    // act
+    ideasy.installIdeasy(context.getUserHome().resolve("Downloads/ide-cli"));
+    ideasy.installIdeasy(context.getUserHome().resolve("Downloads/ide-cli"));
+    // assert
+    assertThat(gitconfigPath).content().contains("[core]");
+    assertThat(gitconfigPath).content().containsOnlyOnce("longpaths = true");
+    assertThat(gitconfigPath).content().doesNotContain("longpaths = false");
+  }
+
+  /**
+   * Test of {@link IdeasyCommandlet#checkIfUpdateIsAvailable()} with same snapshot versions.
+   */
+  @Test
+  void testCheckIfUpdateIsAvailableWithSameSnapshotVersions() {
+
+    // arrange
+    IdeTestContext context = newContext("install");
+    context.getStartContext().setOfflineMode(false);
+    IdeasyCommandlet ideasy = new IdeasyCommandlet(context) {
+      @Override
+      public VersionIdentifier getInstalledVersion() {
+        return VersionIdentifier.of("2025.04.002-04_17_02-SNAPSHOT");
+      }
+
+      @Override
+      public VersionIdentifier getLatestVersion() {
+        return VersionIdentifier.of("2025.04.002-20250417.024201-5");
+      }
+    };
+
+    // act
+    boolean updateAvailable = ideasy.checkIfUpdateIsAvailable();
+
+    // assert
+    assertThat(updateAvailable).isFalse();
+    assertThat(context).logAtSuccess().hasMessage("Your are using the latest snapshot version of IDEasy and no update is available.");
+  }
+
+  /**
+   * Test of {@link IdeasyCommandlet#checkIfUpdateIsAvailable()} with different snapshot versions.
+   */
+  @Test
+  void testCheckIfUpdateIsAvailableWithDifferentSnapshotVersions() {
+
+    // arrange
+    IdeTestContext context = newContext("install");
+    context.getStartContext().setOfflineMode(false);
+    IdeasyCommandlet ideasy = new IdeasyCommandlet(context) {
+      @Override
+      public VersionIdentifier getInstalledVersion() {
+        return VersionIdentifier.of("2025.04.002-04_17_02-SNAPSHOT");
+      }
+
+      @Override
+      public VersionIdentifier getLatestVersion() {
+        return VersionIdentifier.of("2026.05.001-20260519.032313-17");
+      }
+    };
+
+    // act
+    boolean updateAvailable = ideasy.checkIfUpdateIsAvailable();
+
+    // assert
+    assertThat(updateAvailable).isTrue();
+    assertThat(context).logAtInteraction()
+        .hasMessageContaining("version 2026.05.001-20260519.032313-17 is available. Please run the following command to upgrade to the latest version:\n"
+            + "ide upgrade");
   }
 
   private void verifyInstallation(Path installationPath) {

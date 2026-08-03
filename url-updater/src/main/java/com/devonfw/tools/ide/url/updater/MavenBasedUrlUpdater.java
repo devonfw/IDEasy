@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.devonfw.tools.ide.maven.MavenMetadata;
+import com.devonfw.tools.ide.tool.mvn.MvnMetadata;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
@@ -14,19 +14,14 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 public abstract class MavenBasedUrlUpdater extends AbstractUrlUpdater {
 
   private static final String MAVEN_METADATA_XML = "maven-metadata.xml";
+  private static final String DOWNLOAD_BASE_URL = "https://repo1.maven.org/maven2";
+  private static final String VERSION_BASE_URL = "https://repo1.maven.org/maven2";
 
   /**
    * The constructor.
    */
   public MavenBasedUrlUpdater() {
-
-    super();
-  }
-
-  @Override
-  protected String getDownloadBaseUrl() {
-
-    return "https://repo1.maven.org/maven2";
+    super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
   }
 
   private String getDownloadArtifactUrl() {
@@ -59,12 +54,6 @@ public abstract class MavenBasedUrlUpdater extends AbstractUrlUpdater {
   }
 
   @Override
-  protected String getVersionBaseUrl() {
-
-    return getDownloadBaseUrl();
-  }
-
-  @Override
   protected void addVersion(UrlVersion urlVersion) {
 
     String version = urlVersion.getName();
@@ -84,7 +73,7 @@ public abstract class MavenBasedUrlUpdater extends AbstractUrlUpdater {
     try {
       String response = doGetResponseBodyAsString(url);
       XmlMapper mapper = new XmlMapper();
-      MavenMetadata metaData = mapper.readValue(response, MavenMetadata.class);
+      MvnMetadata metaData = mapper.readValue(response, MvnMetadata.class);
       for (String version : metaData.getVersioning().getVersions()) {
         if (isValidVersion(version)) {
           addVersion(version, versions);

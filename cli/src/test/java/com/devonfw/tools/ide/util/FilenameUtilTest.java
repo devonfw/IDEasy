@@ -8,13 +8,13 @@ import org.junit.jupiter.api.Test;
 /**
  * Test of {@link FilenameUtil}.
  */
-public class FilenameUtilTest extends Assertions {
+class FilenameUtilTest extends Assertions {
 
   /**
    * Test of {@link FilenameUtil#getExtension(String)}.
    */
   @Test
-  public void testGetExtension() {
+  void testGetExtension() {
 
     assertThat(FilenameUtil.getExtension("foo_zip")).isNull();
     assertThat(FilenameUtil.getExtension("foo.zip")).isEqualTo("zip");
@@ -35,7 +35,7 @@ public class FilenameUtilTest extends Assertions {
    * Test of {@link FilenameUtil#getFilenameWithoutExtension(Path)}
    */
   @Test
-  public void testGetFilenameWithoutExtension() {
+  void testGetFilenameWithoutExtension() {
 
     assertThat(FilenameUtil.getFilenameWithoutExtension(Path.of("foo/bar.some/file.name.extension"))).isEqualTo("file.name");
     assertThat(FilenameUtil.getFilenameWithoutExtension(Path.of("foo/bar.some/file.name.tar.gz"))).isEqualTo("file.name");

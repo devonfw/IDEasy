@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.commandlet.Commandlet;
@@ -27,6 +30,8 @@ import com.devonfw.tools.ide.validation.ValidationState;
  */
 public abstract class Property<V> {
 
+  private static final Logger LOG = LoggerFactory.getLogger(Property.class);
+
   private static final String INVALID_ARGUMENT = "Invalid CLI argument '{}' for property '{}' of commandlet '{}'";
 
   private static final String INVALID_ARGUMENT_WITH_EXCEPTION_MESSAGE = INVALID_ARGUMENT + ": {}";
@@ -47,6 +52,9 @@ public abstract class Property<V> {
 
   /** @see #getValue() */
   protected final List<V> value = new ArrayList<>();
+
+  /** The last invalid value that was attempted to be parsed. */
+  private String lastInvalidValue;
 
   /**
    * The constructor.
@@ -186,7 +194,7 @@ public abstract class Property<V> {
     if (this.value.isEmpty()) {
       return null;
     } else {
-      return this.value.get(0);
+      return this.value.getFirst();
     }
   }
 
@@ -303,15 +311,31 @@ public abstract class Property<V> {
 
     try {
       setValueAsString(valueAsString, context);
+      this.lastInvalidValue = null;
       return true;
     } catch (Exception e) {
+      this.lastInvalidValue = valueAsString;
       if (e instanceof IllegalArgumentException) {
-        context.warning(INVALID_ARGUMENT, valueAsString, getNameOrAlias(), commandlet.getName());
+        LOG.warn(INVALID_ARGUMENT, valueAsString, getNameOrAlias(), commandlet.getName());
       } else {
-        context.warning(INVALID_ARGUMENT_WITH_EXCEPTION_MESSAGE, valueAsString, getNameOrAlias(), commandlet.getName(), e.getMessage());
+        LOG.warn(INVALID_ARGUMENT_WITH_EXCEPTION_MESSAGE, valueAsString, getNameOrAlias(), commandlet.getName(), e.getMessage());
       }
       return false;
     }
+  }
+
+  /**
+   * @return the last invalid value that was attempted to be parsed, or {@code null} if no invalid value was attempted or the last attempt was successful.
+   */
+  public String getLastInvalidValue() {
+    return this.lastInvalidValue;
+  }
+
+  /**
+   * Clears the last invalid value.
+   */
+  public void clearLastInvalidValue() {
+    this.lastInvalidValue = null;
   }
 
   /**

@@ -1,5 +1,10 @@
 package com.devonfw.tools.ide.context;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.any;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
@@ -8,10 +13,11 @@ import java.util.Set;
 
 import org.assertj.core.api.Assertions;
 
+import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.io.FileCopyMode;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
+import com.devonfw.tools.ide.io.IdeProgressBarTestImpl.ProgressEvent;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.tool.repository.ToolRepositoryMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
@@ -33,7 +39,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
   protected static final Path TEST_PROJECTS = TEST_RESOURCES.resolve("ide-projects");
 
   // will not use eclipse-target like done in maven via eclipse profile...
-  protected static final Path TEST_PROJECTS_COPY = Path.of("target/test-projects");
+  protected static final Path TEST_PROJECTS_COPY = Path.of("target/ide-projects");
 
   /** Chunk size to use for progress bars **/
   private static final int CHUNK_SIZE = 1024;
@@ -94,7 +100,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
    */
   protected static IdeTestContext newContext(String testProject, String projectPath, boolean copyForMutation, WireMockRuntimeInfo wmRuntimeInfo) {
 
-    return newContext(testProject, projectPath, copyForMutation, wmRuntimeInfo, IdeLogLevel.TRACE);
+    return newContext(testProject, projectPath, copyForMutation, wmRuntimeInfo, IdeLogLevel.DEBUG);
   }
 
   /**
@@ -113,7 +119,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
     Path ideRoot = TEST_PROJECTS.resolve(testProject);
     if (copyForMutation) {
       Path ideRootCopy = TEST_PROJECTS_COPY.resolve(testProject);
-      FileAccess fileAccess = new FileAccessImpl(IdeTestContextMock.get());
+      FileAccess fileAccess = new IdeTestContext().getFileAccess();
       fileAccess.delete(ideRootCopy);
       fileAccess.mkdirs(TEST_PROJECTS_COPY);
       fileAccess.copy(ideRoot, TEST_PROJECTS_COPY, FileCopyMode.COPY_TREE_OVERRIDE_TREE);
@@ -130,6 +136,15 @@ public abstract class AbstractIdeContextTest extends Assertions {
     if (Files.isDirectory(repositoryFolder)) {
       toolRepository = new ToolRepositoryMock(context, repositoryFolder, wmRuntimeInfo);
       context.setDefaultToolRepository(toolRepository);
+    }
+    if (wmRuntimeInfo != null) {
+      stubFor(any(urlEqualTo("/health")).willReturn(
+          aResponse().withStatus(200).withHeader("Content-Type", "text").withHeader("Content-Length", String.valueOf("ok".length()))
+              .withBody("ok")));
+    }
+    Path settingsPath = context.getSettingsPath();
+    if ((settingsPath != null) && Files.isDirectory(settingsPath)) {
+      context.getFileAccess().mkdirs(settingsPath.resolve(GitContext.GIT_FOLDER));
     }
     return context;
   }
@@ -148,11 +163,11 @@ public abstract class AbstractIdeContextTest extends Assertions {
     return new IdeTestContextAssertion(context);
   }
 
-  private static List<IdeProgressBarTestImpl.ProgressEvent> assertProgressEventsAndSize(AbstractIdeTestContext context, String taskName, int chunkCount,
+  private static List<ProgressEvent> assertProgressEventsAndSize(AbstractIdeTestContext context, String taskName, int chunkCount,
       long maxSize) {
     IdeProgressBarTestImpl progressBar = context.getProgressBarMap().get(taskName);
     assertThat(progressBar).as(taskName).isNotNull();
-    List<IdeProgressBarTestImpl.ProgressEvent> eventList = progressBar.getEventList();
+    List<ProgressEvent> eventList = progressBar.getEventList();
     assertThat(eventList).hasSize(chunkCount + 1);
     // extra case for unknown file size (indefinite progress bar)
     if (progressBar.getMaxSize() != -1L) {

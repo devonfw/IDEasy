@@ -13,8 +13,14 @@ public final class VersionLetters implements AbstractVersionPhase, VersionObject
   /** The empty {@link VersionLetters} instance. */
   public static final VersionLetters EMPTY = new VersionLetters("");
 
+  /** The unstable {@link VersionLetters} instance - see {@link VersionSegment#PATTERN_MATCH_ANY_VERSION}. */
+  public static final VersionLetters UNSTABLE = new VersionLetters(VersionPhase.UNSTABLE);
+
   /** The undefined {@link VersionLetters} instance. */
   public static final VersionLetters UNDEFINED = new VersionLetters("undefined");
+
+  /** The snapshot qualifier string. */
+  public static final String SNAPSHOT = "snapshot";
 
   private final String letters;
 
@@ -23,6 +29,8 @@ public final class VersionLetters implements AbstractVersionPhase, VersionObject
   private final VersionPhase phase;
 
   private final boolean prePhase;
+
+  private final boolean snapshot;
 
   /**
    * The constructor.
@@ -45,17 +53,35 @@ public final class VersionLetters implements AbstractVersionPhase, VersionObject
     } else {
       this.prePhase = false;
     }
+    String newPhaseLetters = removeSnapshotPart(phaseLetters);
+    if (newPhaseLetters.equals(phaseLetters)) {
+      this.snapshot = false;
+    } else { // snapshot was found and removed
+      phaseLetters = newPhaseLetters;
+      this.snapshot = true;
+    }
+
     this.phase = VersionPhase.of(phaseLetters);
+  }
+
+  private VersionLetters(VersionPhase phase) {
+
+    super();
+    this.letters = "";
+    this.lettersLowerCase = "";
+    this.prePhase = false;
+    this.phase = phase;
+    this.snapshot = false;
   }
 
   /**
    * @return the letters or the empty {@link String} ("") for none. In canonical {@link VersionIdentifier}s letters indicate the development phase (e.g. "pre",
-   * "rc", "alpha", "beta", "milestone", "test", "dev", "SNAPSHOT", etc.). However, letters are technically any
-   * {@link Character#isLetter(char) letter characters} and may also be something like a code-name (e.g. "Cupcake", "Donut", "Eclair", "Froyo", "Gingerbread",
-   * "Honeycomb", "Ice Cream Sandwich", "Jelly Bean" in case of Android internals). Please note that in such case it is impossible to properly decide which
-   * version is greater than another versions. To avoid mistakes, the comparison supports a strict mode that will let the comparison fail in such case. However,
-   * by default (e.g. for {@link Comparable#compareTo(Object)}) the default {@link String#compareTo(String) string comparison} (lexicographical) is used to
-   * ensure a natural order.
+   *     "rc", "alpha", "beta", "milestone", "test", "dev", "SNAPSHOT", etc.). However, letters are technically any
+   *     {@link Character#isLetter(char) letter characters} and may also be something like a code-name (e.g. "Cupcake", "Donut", "Eclair", "Froyo",
+   *     "Gingerbread", "Honeycomb", "Ice Cream Sandwich", "Jelly Bean" in case of Android internals). Please note that in such case it is impossible to
+   *     properly decide which version is greater than another versions. To avoid mistakes, the comparison supports a strict mode that will let the comparison
+   *     fail in such case. However, by default (e.g. for {@link Comparable#compareTo(Object)}) the default {@link String#compareTo(String) string comparison}
+   *     (lexicographical) is used to ensure a natural order.
    * @see #getPhase()
    */
   public String getLetters() {
@@ -74,8 +100,15 @@ public final class VersionLetters implements AbstractVersionPhase, VersionObject
   }
 
   /**
+   * @return {@code true} if this {@link VersionSegment} has a SNAPSHOT suffix, otherwise {@code false}.
+   */
+  public boolean isSnapshot() {
+    return snapshot;
+  }
+
+  /**
    * @return {@code true} if the {@link #getLetters() letters} and a potential {@link #getPhase() phase} are prefixed with "pre" (e.g. in "pre-alpha"),
-   * {@code false} otherwise.
+   *     {@code false} otherwise.
    */
   public boolean isPrePhase() {
 
@@ -91,13 +124,13 @@ public final class VersionLetters implements AbstractVersionPhase, VersionObject
   @Override
   public boolean isUnstable() {
 
-    return this.prePhase || this.phase.isUnstable();
+    return !isStable();
   }
 
   @Override
   public boolean isStable() {
 
-    return !this.prePhase && this.phase.isStable();
+    return !this.prePhase && this.phase.isStable() && !this.snapshot;
   }
 
   /**
@@ -125,13 +158,16 @@ public final class VersionLetters implements AbstractVersionPhase, VersionObject
           return VersionComparisonResult.GREATER_UNSAFE;
         }
       }
-      if (this.phase != other.phase) {
-        if (this.phase.ordinal() < other.phase.ordinal()) {
-          return VersionComparisonResult.LESS;
-        } else {
-          return VersionComparisonResult.GREATER;
-        }
-      } else if (this.prePhase != other.prePhase) {
+
+      int thisRank = getPhaseRank();
+      int otherRank = other.getPhaseRank();
+      if (thisRank < otherRank) {
+        return VersionComparisonResult.LESS;
+      } else if (thisRank > otherRank) {
+        return VersionComparisonResult.GREATER;
+      }
+
+      if (this.prePhase != other.prePhase) {
         if (this.prePhase) {
           return VersionComparisonResult.LESS;
         } else {
@@ -210,4 +246,27 @@ public final class VersionLetters implements AbstractVersionPhase, VersionObject
     return new VersionLetters(letters);
   }
 
+  private static String removeSnapshotPart(String phaseLetters) {
+    int i = phaseLetters.indexOf(SNAPSHOT);
+    if (i < 0) {
+      return phaseLetters;
+    }
+    int start = i;
+    int end = i + SNAPSHOT.length();
+    if ((i > 0) && (phaseLetters.charAt(i - 1) == '-')) {
+      start--;
+    }
+    return phaseLetters.substring(0, start) + phaseLetters.substring(end);
+  }
+
+
+  private int getPhaseRank() {
+
+    int rank = this.phase.ordinal() * 2;
+
+    if (!this.snapshot) {
+      rank++;
+    }
+    return rank;
+  }
 }

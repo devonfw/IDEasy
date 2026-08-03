@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.io;
 
 import java.io.OutputStream;
 import java.io.Reader;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFilePermission;
@@ -13,6 +14,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.ini.IniFile;
 import com.devonfw.tools.ide.io.ini.IniFileImpl;
 
@@ -88,11 +90,11 @@ public interface FileAccess {
    * of relative.
    *
    * @param source the source {@link Path} to link to, may be relative or absolute.
-   * @param targetLink the {@link Path} where the symbolic link shall be created pointing to {@code source}.
+   * @param link the destination {@link Path} where the symbolic link shall be created pointing to {@code source}.
    */
-  default void symlink(Path source, Path targetLink) {
+  default void symlink(Path source, Path link) {
 
-    symlink(source, targetLink, true);
+    symlink(source, link, true);
   }
 
   /**
@@ -100,43 +102,46 @@ public interface FileAccess {
    * be replaced. In case of missing privileges, Windows mklink may be used as fallback, which must point to absolute paths. In such case the {@code relative}
    * flag will be ignored.
    *
-   * @param target the target {@link Path} to link to, may be relative or absolute.
-   * @param link the {@link Path} where the symbolic link shall be created pointing to {@code target}.
+   * @param source the source {@link Path} to link to, may be relative or absolute.
+   * @param link the destination {@link Path} where the symbolic link shall be created pointing to {@code source}.
    * @param relative - {@code true} if the symbolic link shall be relative, {@code false} if it shall be absolute.
    */
-  default void symlink(Path target, Path link, boolean relative) {
+  default void symlink(Path source, Path link, boolean relative) {
 
-    link(target, link, relative, PathLinkType.SYMBOLIC_LINK);
+    link(source, link, relative, PathLinkType.SYMBOLIC_LINK);
   }
 
   /**
    * Creates a {@link PathLinkType#HARD_LINK hard link}. If the given {@code link} already exists and is a symbolic link or a Windows junction, it will be
    * replaced. In case of missing privileges, Windows mklink may be used as fallback.
    *
-   * @param target the target {@link Path} to link to, may be relative or absolute.
-   * @param link the {@link Path} where the symbolic link shall be created pointing to {@code target}.
+   * @param source the source {@link Path} to link to, may be relative or absolute.
+   * @param link the destination {@link Path} where the hard link shall be created pointing to {@code source}.
    */
-  default void hardlink(Path target, Path link) {
+  default void hardlink(Path source, Path link) {
 
-    link(target, link, false, PathLinkType.HARD_LINK);
+    link(source, link, false, PathLinkType.HARD_LINK);
   }
 
   /**
-   * Creates a link. If the given {@code link} already exists and is a symbolic link or a Windows junction, it will be replaced. In case of missing privileges,
-   * Windows mklink may be used as fallback, which must point to absolute paths. In such case the {@code relative} flag will be ignored.
+   * Creates a link. If the given {@code link} already exists and is a symbolic link or a Windows junction, it will be replaced. On Windows, mklink may be used
+   * as fallback if native link creation is not allowed.
    *
-   * @param target the target {@link Path} to link to, may be relative or absolute.
-   * @param link the {@link Path} where the symbolic link shall be created pointing to {@code target}.
-   * @param relative - {@code true} if the symbolic link shall be relative, {@code false} if it shall be absolute.
+   * @param source the source {@link Path} to link to, may be relative or absolute.
+   * @param link the destination {@link Path} where the link shall be created pointing to {@code source}.
+   * @param relative {@code true} to calculate a relative target from {@code link} to {@code source}; {@code false} to use {@code source} as passed in,
+   *     apart from normalizing {@code .} and {@code ..} segments.
    * @param type the {@link PathLinkType}.
+   * @return {@link PathLinkType} created or {@code null}, if Microsoft's mklink with junction option had to be used.
    */
-  void link(Path target, Path link, boolean relative, PathLinkType type);
+  PathLinkType link(Path source, Path link, boolean relative, PathLinkType type);
 
   /**
    * @param link the {@link PathLink} to {@link #link(Path, Path, boolean, PathLinkType) create}.
+   * @return created {@link PathLinkType}.
    */
-  default void link(PathLink link) {
-    link(link.target(), link.link(), true, link.type());
+  default PathLinkType link(PathLink link) {
+    return link(link.source(), link.link(), false, link.type());
   }
 
   /**
@@ -152,8 +157,8 @@ public interface FileAccess {
   /**
    * @param source the source {@link Path file or folder} to copy.
    * @param target the {@link Path} to copy {@code source} to. Unlike the Linux {@code cp} command this method will not take the filename of {@code source}
-   *     and copy that to {@code target} in case that is an existing folder. Instead it will always be simple and stupid and just copy from {@code source} to
-   *     {@code target}. Therefore the result is always clear and easy to predict and understand. Also you can easily rename a file to copy. While
+   *     and copy that to {@code target} in case that is an existing folder. Instead, it will always be simple and stupid and just copy from {@code source} to
+   *     {@code target}. Therefore, the result is always clear and easy to predict and understand. Also, you can easily rename a file to copy. While
    *     {@code cp my-file target} may lead to a different result than {@code cp my-file target/} this method will always ensure that in the end you will find
    *     the same content of {@code source} in {@code target}.
    * @param mode the {@link FileCopyMode}.
@@ -166,8 +171,8 @@ public interface FileAccess {
   /**
    * @param source the source {@link Path file or folder} to copy.
    * @param target the {@link Path} to copy {@code source} to. Unlike the Linux {@code cp} command this method will not take the filename of {@code source}
-   *     and copy that to {@code target} in case that is an existing folder. Instead it will always be simple and stupid and just copy from {@code source} to
-   *     {@code target}. Therefore the result is always clear and easy to predict and understand. Also you can easily rename a file to copy. While
+   *     and copy that to {@code target} in case that is an existing folder. Instead, it will always be simple and stupid and just copy from {@code source} to
+   *     {@code target}. Therefore, the result is always clear and easy to predict and understand. Also, you can easily rename a file to copy. While
    *     {@code cp my-file target} may lead to a different result than {@code cp my-file target/} this method will always ensure that in the end you will find
    *     the same content of {@code source} in {@code target}.
    * @param mode the {@link FileCopyMode}.
@@ -253,11 +258,19 @@ public interface FileAccess {
   void extractPkg(Path file, Path targetDir);
 
   /**
+   * Extracts a 7z archive file. 7z is an archive format with a high compression ratio, commonly used for software releases.
+   *
+   * @param file the 7z file to extract.
+   * @param targetDir the target directory where to extract the contents to.
+   */
+  void extract7z(Path file, Path targetDir);
+
+  /**
    * @param dir the {@link Path directory} to compress.
    * @param out the {@link OutputStream} to write the compressed data to.
-   * @param format the path, filename or extension to derive the archive format from (e.g. "tgz", "tar.gz", "zip", etc.).
+   * @param path the path or filename to derive the archive format from (e.g. "archive.tgz", "archive.tar.gz", "archive.zip", etc.).
    */
-  void compress(Path dir, OutputStream out, String format);
+  void compress(Path dir, OutputStream out, String path);
 
   /**
    * @param dir the {@link Path directory} to compress as TAR with given {@link TarCompression}.
@@ -328,6 +341,47 @@ public interface FileAccess {
    * @return the first child {@link Path} matching the given {@link Predicate} or {@code null} if no match was found.
    */
   Path findFirst(Path dir, Predicate<Path> filter, boolean recursive);
+
+  /**
+   * Example usage:
+   * <pre>
+   * findAncestor(ideHome.resolve("workspaces/test/foo/bar"), ideHome.resolve("workspaces"), 1); // will return ideHome.resolve("workspaces/test")
+   * </pre>
+   *
+   * @param path the {@link Path} to the file or directory to find the ancestor from.
+   * @param baseDir the {@link Path} to the base-directory is supposed to be a direct or indirect {@link Path#getParent() parent} of {@code path}.
+   * @param subfolderCount the number of sub-folders of {@code baseDir} to retain from {@code path}.
+   * @return the {@link Path} pointing to {@code subfolderCount} sub-folders from {@code baseDir} that is still equal or a {@link Path#getParent() parent} of
+   *     {@code directory} or {@code null} if no such {@link Path} exists.
+   */
+  Path findAncestor(Path path, Path baseDir, int subfolderCount);
+
+  /**
+   * @param path the {@link Path} to get the rest from the given starting position.
+   * @param nameEnd the end position in the range from 0 to {@link Path#getNameCount() nameCount}-1.
+   * @return the requested start of the {@link Path} including all {@link Path#getName(int) name segments} from the start to the given position (inclusive). If
+   *     an {@link Path#isAbsolute() absolute} {@link Path} was given, then also an {@link Path#isAbsolute() absolute} {@link Path} will be returned.
+   */
+  Path getPathStart(Path path, int nameEnd);
+
+  /**
+   * @param path the {@link Path} to get the rest from the given starting position.
+   * @param nameStart the starting position in the range from 0 to {@link Path#getNameCount() nameCount}-1.
+   * @return the requested end of the {@link Path}. This will always be a relative {@link Path} even if the given {@link Path} was
+   *     {@link Path#isAbsolute() absolute}.
+   */
+  Path getPathEnd(Path path, int nameStart);
+
+  /**
+   * @param path1 the first {@link Path} to compare.
+   * @param path2 the second {@link Path} to compare.
+   * @return the first {@link Path#getName(int) name index} for which the {@link Path#getName(int) segments} of both given {@link Path}s differ. Will be
+   *     {@code -1} if a given {@link Path} was {@code null} or both {@link Path} do not even share the same {@link Path#getRoot() roots} (e.g. different
+   *     Windows drives or one {@link Path} is {@link Path#isAbsolute() absolute} and one is relative). Otherwise, will be {@code 0} if already the first
+   *     segments differ or positive for the number of common segments. So the returned number is the index of the first {@link Path#getName(int) name segment}
+   *     that does not match (or is not present).
+   */
+  int getCommonNameCount(Path path1, Path path2);
 
   /**
    * @param dir the {@link Path} to the directory where to list the children.
@@ -508,7 +562,7 @@ public interface FileAccess {
   /**
    * @param properties the {@link Properties} to save.
    * @param file the {@link Path} to the file where to save the properties.
-   * @param createParentDir if {@code true}, the parent directory will created if it does not already exist, {@code false} otherwise (fail if parent does
+   * @param createParentDir if {@code true}, the parent directory will be created if it does not already exist, {@code false} otherwise (fail if parent does
    *     not exist).
    */
   void writeProperties(Properties properties, Path file, boolean createParentDir);
@@ -557,4 +611,38 @@ public interface FileAccess {
    *     {@link Duration}), {@code false} otherwise.
    */
   boolean isFileAgeRecent(Path path, Duration cacheDuration);
+
+  /**
+   * @param path the tool {@link Path}.
+   * @return a potential "bin" sub-folder or the given {@link Path} itself, if no such sub-folder was found.
+   */
+  default Path getBinPath(Path path) {
+
+    Path binPath = path.resolve(IdeContext.FOLDER_BIN);
+    if (Files.exists(binPath)) {
+      return binPath;
+    }
+    return path;
+  }
+
+  /**
+   * Reverse operation of {@link #getBinPath(Path)}.
+   *
+   * @param binPath the {@link Path} to a potential "bin" sub-folder of a tool {@link Path}.
+   * @return the tool {@link Path} containing the "bin" sub-folder.
+   */
+  default Path getBinParentPath(Path binPath) {
+
+    if (binPath.getFileName().toString().equals(IdeContext.FOLDER_BIN)) {
+      return binPath.getParent();
+    }
+    return binPath;
+  }
+
+  /**
+   * @param file the {@link Path} the potential file.
+   * @return if the given {@code file} exists and is not empty.
+   */
+  boolean isNonEmptyFile(Path file);
+
 }

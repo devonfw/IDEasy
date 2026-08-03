@@ -6,15 +6,15 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 
 /**
- * Integration test of {@link VersionListCommandlet}.
+ * Test of {@link VersionListCommandlet}.
  */
-public class VersionListCommandletTest extends AbstractIdeContextTest {
+class VersionListCommandletTest extends AbstractIdeContextTest {
 
   /**
    * Test of {@link VersionListCommandlet} run.
    */
   @Test
-  public void testVersionListCommandletRun() {
+  void testVersionListCommandletRun() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC, null, false);

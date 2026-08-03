@@ -1,19 +1,28 @@
 package com.devonfw.tools.ide.url.tool.gcloud;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link GithubUrlUpdater} for GCloud CLI.
+ * {@link GithubUrlTagUpdater} for GCloud CLI.
  */
-public class GCloudUrlUpdater extends GithubUrlUpdater {
+public class GCloudUrlUpdater extends GithubUrlTagUpdater {
+
+  private static final String DOWNLOAD_BASE_URL = "https://dl.google.com";
 
   private static final VersionIdentifier MIN_GCLOUD_VID = VersionIdentifier.of("299.0.0");
   private static final VersionIdentifier MIN_ARM_GCLOUD_VID = VersionIdentifier.of("366.0.0");
 
+  /**
+   * The Constructor.
+   */
+  public GCloudUrlUpdater() {
+    super(DOWNLOAD_BASE_URL);
+  }
+
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "gcloud";
   }
@@ -22,12 +31,6 @@ public class GCloudUrlUpdater extends GithubUrlUpdater {
   protected String getGithubRepository() {
 
     return "google-cloud-sdk";
-  }
-
-  @Override
-  protected String getDownloadBaseUrl() {
-
-    return "https://dl.google.com";
   }
 
   @Override
@@ -52,14 +55,5 @@ public class GCloudUrlUpdater extends GithubUrlUpdater {
     }
   }
 
-  @Override
-  public String getCpeVendor() {
-    return "google";
-  }
-
-  @Override
-  public String getCpeProduct() {
-    return "gcloud";
-  }
 
 }

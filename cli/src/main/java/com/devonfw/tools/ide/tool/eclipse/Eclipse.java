@@ -1,11 +1,14 @@
 package com.devonfw.tools.ide.tool.eclipse;
 
-import java.io.File;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileLock;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
@@ -26,6 +29,8 @@ import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
  */
 public class Eclipse extends IdeToolCommandlet {
 
+  private static final Logger LOG = LoggerFactory.getLogger(Eclipse.class);
+
   // version must correspond to eclipse-import.xml
   private static final String GROOVY_VERSION = "3.0.23";
 
@@ -45,17 +50,17 @@ public class Eclipse extends IdeToolCommandlet {
   }
 
   @Override
-  protected void configureToolBinary(ProcessContext pc, ProcessMode processMode, ProcessErrorHandling errorHandling) {
+  protected void configureToolBinary(ProcessContext pc, ProcessMode processMode) {
 
     if (!processMode.isBackground() && this.context.getSystemInfo().isWindows()) {
       pc.executable(Path.of("eclipsec"));
     } else {
-      super.configureToolBinary(pc, processMode, errorHandling);
+      super.configureToolBinary(pc, processMode);
     }
   }
 
   @Override
-  protected void configureToolArgs(ProcessContext pc, ProcessMode processMode, ProcessErrorHandling errorHandling, String... args) {
+  protected void configureToolArgs(ProcessContext pc, ProcessMode processMode, List<String> args) {
 
     // configure workspace location
     pc.addArg("-data").addArg(this.context.getWorkspacePath());
@@ -69,8 +74,8 @@ public class Eclipse extends IdeToolCommandlet {
     } else {
       pc.addArg("-consoleLog").addArg("-nosplash");
     }
-    super.configureToolArgs(pc, processMode, errorHandling, args);
-    if ((args.length > 0) && !VMARGS.equals(args[0])) {
+    super.configureToolArgs(pc, processMode, args);
+    if ((!args.isEmpty()) && !VMARGS.equals(args.getFirst())) {
       String vmArgs = this.context.getVariables().get("ECLIPSE_VMARGS");
       if ((vmArgs != null) && !vmArgs.isEmpty()) {
         pc.addArg(VMARGS).addArg(vmArgs);
@@ -87,18 +92,18 @@ public class Eclipse extends IdeToolCommandlet {
   @Override
   public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
 
-    ProcessResult result = runTool(ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.LOG_WARNING, pc, "-application", "org.eclipse.equinox.p2.director",
-        "-repository", plugin.url(), "-installIU", plugin.id());
+    ProcessResult result = runTool(pc, ProcessMode.DEFAULT_CAPTURE, List.of("-application", "org.eclipse.equinox.p2.director",
+        "-repository", plugin.url(), "-installIU", plugin.id()));
     if (result.isSuccessful()) {
       for (String line : result.getOut()) {
         if (line.contains("Overall install request is satisfiable")) {
-          this.context.success("Successfully installed plugin: {}", plugin.name());
+          IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {}", plugin.name());
           step.success();
           return true;
         }
       }
     }
-    result.log(IdeLogLevel.DEBUG, context, IdeLogLevel.ERROR);
+    result.log(IdeLogLevel.DEBUG, IdeLogLevel.ERROR);
     step.error("Failed to install plugin {} ({}): exit code was {}", plugin.name(), plugin.id(), result.getExitCode());
     return false;
   }
@@ -114,14 +119,14 @@ public class Eclipse extends IdeToolCommandlet {
   }
 
   /**
-   * @param lockfile the {@link File} pointing to the lockfile to check.
-   * @return {@code true} if the given {@link File} is locked, {@code false} otherwise.
+   * @param lockfile the {@link Path} pointing to the lockfile to check.
+   * @return {@code true} if the given {@link Path} is locked, {@code false} otherwise.
    */
   private static boolean isLocked(Path lockfile) {
 
     if (Files.isRegularFile(lockfile)) {
-      try (RandomAccessFile raFile = new RandomAccessFile(lockfile.toFile(), "rw")) {
-        FileLock fileLock = raFile.getChannel().tryLock(0, 1, false);
+      try (RandomAccessFile raFile = new RandomAccessFile(lockfile.toFile(), "rw");
+          FileLock fileLock = raFile.getChannel().tryLock(0, 1, false)) {
         // success, file was not locked so we immediately unlock again...
         fileLock.release();
         return false;
@@ -141,8 +146,8 @@ public class Eclipse extends IdeToolCommandlet {
       this.groovyInstalled = true;
     }
     // -DdevonImportPath=\"${import_path}\" -DdevonImportWorkingSet=\"${importWorkingSets}\""
-    runTool(ProcessMode.DEFAULT, null, ProcessErrorHandling.THROW_CLI, VMARGS,
+    runTool(ProcessMode.DEFAULT, null, ProcessErrorHandling.THROW_CLI, List.of(VMARGS,
         "-DrepositoryImportPath=\"" + repositoryPath + "\" -DrepositoryImportWorkingSet=\"" + "" + "\"", "-application", "org.eclipse.ant.core.antRunner",
-        "-buildfile", this.context.getIdeInstallationPath().resolve(IdeContext.FOLDER_INTERNAL).resolve("eclipse-import.xml").toString());
+        "-buildfile", this.context.getIdeInstallationPath().resolve(IdeContext.FOLDER_INTERNAL).resolve("eclipse-import.xml").toString()));
   }
 }

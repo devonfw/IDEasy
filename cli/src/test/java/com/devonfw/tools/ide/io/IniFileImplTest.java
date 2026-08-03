@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.context.IdeTestContextMock;
+import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.io.ini.IniFile;
 import com.devonfw.tools.ide.io.ini.IniFileImpl;
 import com.devonfw.tools.ide.io.ini.IniSection;
@@ -18,7 +18,7 @@ import com.devonfw.tools.ide.io.ini.IniSection;
 /**
  * Test of {@link IniFileImpl}
  */
-public class IniFileImplTest extends AbstractIdeContextTest {
+class IniFileImplTest extends AbstractIdeContextTest {
 
   String iniContent = """
       [filter "lfs"]
@@ -62,9 +62,9 @@ public class IniFileImplTest extends AbstractIdeContextTest {
    * @throws IOException if the temporary ini file couldn't be created
    */
   @Test
-  public void testGetSectionNames() throws IOException {
+  void testGetSectionNames() throws IOException {
     // arrange
-    IdeContext context = IdeTestContextMock.get();
+    IdeTestContext context = new IdeTestContext();
     IniFile iniFileA = getIniFile(context, iniContentWithInitialProperties);
     IniFile iniFIleB = getIniFile(context, iniContent);
 
@@ -86,9 +86,9 @@ public class IniFileImplTest extends AbstractIdeContextTest {
    * @throws IOException if the temporary ini file couldn't be created
    */
   @Test
-  public void testRemoveSection() throws IOException {
+  void testRemoveSection() throws IOException {
     // arrange
-    IdeContext context = IdeTestContextMock.get();
+    IdeContext context = new IdeTestContext();
     IniFile iniFileA = getIniFile(context, iniContentWithInitialProperties);
     IniFile iniFileB = getIniFile(context, iniContent);
     String[] expectedSections = { "filter \"lfs\"", "credential", "credential.details", "core" };
@@ -111,9 +111,9 @@ public class IniFileImplTest extends AbstractIdeContextTest {
    * @throws IOException if the temporary ini file couldn't be created
    */
   @Test
-  public void testGetSection() throws IOException {
+  void testGetSection() throws IOException {
     // arrange
-    IdeContext context = IdeTestContextMock.get();
+    IdeContext context = new IdeTestContext();
     IniFile iniFileA = getIniFile(context, iniContentWithInitialProperties);
     IniFile iniFileB = getIniFile(context, iniContent);
     String sectionName = "credential";
@@ -141,9 +141,9 @@ public class IniFileImplTest extends AbstractIdeContextTest {
    * @throws IOException if the temporary ini file couldn't be created
    */
   @Test
-  public void testGetOrCreateSection() throws IOException {
+  void testGetOrCreateSection() throws IOException {
     // arrange
-    IdeContext context = IdeTestContextMock.get();
+    IdeContext context = new IdeTestContext();
     IniFile iniFileA = getIniFile(context, iniContentWithInitialProperties);
     IniFile iniFileB = getIniFile(context, iniContent);
     String sectionName = "credential";
@@ -184,9 +184,9 @@ public class IniFileImplTest extends AbstractIdeContextTest {
    * @throws IOException if the temporary ini file couldn't be created
    */
   @Test
-  public void testToString() throws IOException {
+  void testToString() throws IOException {
     // arrange
-    IdeContext context = IdeTestContextMock.get();
+    IdeContext context = new IdeTestContext();
     IniFile iniFileA = getIniFile(context, iniContentWithInitialProperties);
     IniFile iniFileB = getIniFile(context, iniContent);
 
@@ -205,9 +205,9 @@ public class IniFileImplTest extends AbstractIdeContextTest {
    * @throws IOException if the temporary ini file couldn't be created
    */
   @Test
-  public void testAddProperty() throws IOException {
+  void testAddProperty() throws IOException {
     // arrange
-    IdeContext context = IdeTestContextMock.get();
+    IdeContext context = new IdeTestContext();
     IniFile iniFileB = getIniFile(context, iniContent);
     String expectedContent = "variable = value\n" + iniContent;
 

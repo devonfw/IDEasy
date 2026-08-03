@@ -17,10 +17,15 @@
   </properties>
 
   <dependencies>
-    <!-- unpack tar, gzip, bzip2 -->
+    <!-- unpack tar, gzip, bzip2, 7z -->
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-compress</artifactId>
+    </dependency>
+    <!-- required by commons-compress for 7z extraction -->
+    <dependency>
+      <groupId>org.tukaani</groupId>
+      <artifactId>xz</artifactId>
     </dependency>
     <!-- JSON and XML support -->
     <dependency>
@@ -50,11 +55,6 @@
       <!--optional>true</optional-->
     </dependency>
     <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-classic</artifactId>
-      <!--optional>true</optional-->
-    </dependency>
-    <dependency>
       <groupId>org.graalvm.sdk</groupId>
       <artifactId>nativeimage</artifactId>
     </dependency>
@@ -75,6 +75,14 @@
     <dependency>
       <groupId>org.jline</groupId>
       <artifactId>jline</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jline</groupId>
+      <artifactId>jline-terminal</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jline</groupId>
+      <artifactId>jline-native</artifactId>
     </dependency>
     <dependency>
       <groupId>org.fusesource.jansi</groupId>
@@ -118,15 +126,32 @@
         <!-- Build an executable JAR -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-        <configuration>
-          <archive>
-            <manifest>
-              <addClasspath>true</addClasspath>
-              <classpathPrefix>lib/</classpathPrefix>
-              <mainClass>${mainClass}</mainClass>
-            </manifest>
-          </archive>
-        </configuration>
+        <executions>
+          <!-- default jar -->
+          <execution>
+            <id>default-jar</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <archive>
+                <manifest>
+                  <addClasspath>true</addClasspath>
+                  <classpathPrefix>lib/</classpathPrefix>
+                  <mainClass>${mainClass}</mainClass>
+                </manifest>
+              </archive>
+            </configuration>
+          </execution>
+
+          <!-- jar for test classes -->
+          <execution>
+            <id>test-jar</id>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
       <!-- Copy Resources -->
       <plugin>
@@ -240,11 +265,16 @@
               </agent>
               <imageName>${imageName}</imageName>
               <buildArgs>
+                <buildArg>--enable-native-access=ALL-UNNAMED</buildArg>
                 <arg>--enable-url-protocols=http,https</arg>
                 <arg>-march=compatibility</arg>
                 <arg>--initialize-at-build-time=org.apache.commons</arg>
+                <arg>--initialize-at-build-time=org.tukaani.xz</arg>
                 <arg>-H:IncludeResourceBundles=com.sun.org.apache.xml.internal.res.XMLErrorResources,com.sun.org.apache.xerces.internal.impl.msg.XMLMessages
                 </arg>
+                <!-- Disable Windows wildcard expansion so that arguments like "*" (e.g. "ide set-version gradle *")
+                     reach IDEasy verbatim instead of being expanded to file names by the C runtime. -->
+                <buildArg>-H:-EnableWildcardExpansion</buildArg>
               </buildArgs>
             </configuration>
           </plugin>
@@ -258,7 +288,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-antrun-plugin</artifactId>
-            <version>3.1.0</version>
+            <version>3.2.0</version>
             <executions>
               <execution>
                 <phase>prepare-package</phase>
@@ -299,5 +329,4 @@
       </build>
     </profile>
   </profiles>
-
 </project>

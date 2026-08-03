@@ -1,18 +1,34 @@
 package com.devonfw.tools.ide.url.tool.quarkus;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link GithubUrlUpdater} for quarkus CLI.
+ * {@link GithubUrlTagUpdater} for quarkus CLI.
  */
-public class QuarkusUrlUpdater extends GithubUrlUpdater {
+public class QuarkusUrlUpdater extends GithubUrlTagUpdater {
 
   private static final VersionIdentifier MIN_QUARKUS_VID = VersionIdentifier.of("2.5.0");
 
+  /**
+   * The Constructor.
+   */
+  public QuarkusUrlUpdater() {
+    super();
+  }
+
+  /**
+   * Package-private constructor used for testing {@link QuarkusUrlUpdater}.
+   *
+   * @param baseUrl mock url used as download and version base.
+   */
+  QuarkusUrlUpdater(String baseUrl) {
+    super(baseUrl, baseUrl);
+  }
+
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "quarkus";
   }
@@ -34,7 +50,7 @@ public class QuarkusUrlUpdater extends GithubUrlUpdater {
 
     VersionIdentifier vid = urlVersion.getVersionIdentifier();
     if (vid.compareVersion(MIN_QUARKUS_VID).isGreater()) {
-      String baseUrl = getDownloadBaseUrl() + "/quarkusio/quarkus/releases/download/${version}/quarkus-cli-${version}";
+      String baseUrl = createGithubReleaseDownloadUrl("${version}", "quarkus-cli-${version}");
       doAddVersion(urlVersion, baseUrl + ".zip", WINDOWS);
       doAddVersion(urlVersion, baseUrl + ".tar.gz");
     }
@@ -42,19 +58,12 @@ public class QuarkusUrlUpdater extends GithubUrlUpdater {
 
   @Override
   public String getCpeVendor() {
-
     return "quarkus";
   }
 
   @Override
   public String getCpeProduct() {
-
     return "quarkus";
   }
 
-  @Override
-  public String mapUrlVersionToCpeVersion(String version) {
-
-    return version.replaceAll("[^\\d.]", "");
-  }
 }

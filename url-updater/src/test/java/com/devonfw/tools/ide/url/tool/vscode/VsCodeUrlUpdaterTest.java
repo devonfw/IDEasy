@@ -23,9 +23,9 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
  */
 @WireMockTest
 class VsCodeUrlUpdaterTest extends AbstractUrlUpdaterTest {
-  
+
   /**
-   * Integration test for VsCodeUrlUpdater: verifies that update creates expected files for VS Code versions.
+   * verifies that update creates expected files for VS Code versions.
    */
   @Test
   void testVsCodeUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
@@ -36,7 +36,7 @@ class VsCodeUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(get(urlMatching("/.*/(linux-x64|darwin|win32-x64-archive)/stable")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    VsCodeUrlUpdaterMock updater = new VsCodeUrlUpdaterMock(wmRuntimeInfo);
+    VsCodeUrlUpdater updater = new VsCodeUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
     // when
     updater.update(urlRepository);
 

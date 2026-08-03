@@ -6,11 +6,11 @@ import org.junit.jupiter.api.Test;
 /**
  * Test of {@link VersionRange}.
  */
-public class VersionRangeTest extends Assertions {
+class VersionRangeTest extends Assertions {
 
   /** Test of {@link VersionRange#of(String)}. */
   @Test
-  public void testOf() {
+  void testOf() {
 
     checkVersionRange("1.2,3", "1.2", "3", BoundaryType.CLOSED);
     checkVersionRange("[1.2,3]", "1.2", "3", BoundaryType.CLOSED);
@@ -43,7 +43,7 @@ public class VersionRangeTest extends Assertions {
 
   /** Test of {@link VersionRange#toString()}. */
   @Test
-  public void testToString() {
+  void testToString() {
 
     assertThat(VersionRange.of("1.2,3").toString()).isEqualTo("[1.2,3]");
     assertThat(VersionRange.of("1,)").toString()).isEqualTo("[1,)");
@@ -53,7 +53,7 @@ public class VersionRangeTest extends Assertions {
 
   /** Test of {@link VersionRange#equals(Object)}. */
   @Test
-  public void testEquals() {
+  void testEquals() {
 
     // assert
     // equals
@@ -83,7 +83,7 @@ public class VersionRangeTest extends Assertions {
    * Test of {@link VersionRange#contains(VersionIdentifier)}.
    */
   @Test
-  public void testContains() {
+  void testContains() {
 
     // assert
     checkContains("1.2,3.4", "1.2");
@@ -134,7 +134,7 @@ public class VersionRangeTest extends Assertions {
 
   /** Test of {@link VersionRange#compareTo(VersionRange)} and testing if versions are compared to be the same. */
   @Test
-  public void testCompareToIsSame() {
+  void testCompareToIsSame() {
 
     // assert
     assertThat(VersionRange.of("1.2,3").compareTo(VersionRange.of("1.2,3"))).isEqualTo(0);
@@ -144,7 +144,7 @@ public class VersionRangeTest extends Assertions {
 
   /** Test of {@link VersionRange#compareTo(VersionRange)} and testing if first version is smaller than second. */
   @Test
-  public void testCompareToIsSmaller() {
+  void testCompareToIsSmaller() {
 
     // assert
     assertThat(VersionRange.of("1.1.2,3").compareTo(VersionRange.of("1.2,3"))).isEqualTo(-1);
@@ -153,7 +153,7 @@ public class VersionRangeTest extends Assertions {
 
   /** Test of {@link VersionRange#compareTo(VersionRange)} and testing if first version is larger than second. */
   @Test
-  public void testCompareToIsLarger() {
+  void testCompareToIsLarger() {
 
     // assert
     assertThat(VersionRange.of("1.2.1,3").compareTo(VersionRange.of("1.2,3"))).isEqualTo(1);
@@ -162,7 +162,7 @@ public class VersionRangeTest extends Assertions {
 
   /** Test of {@link VersionRange#of(String)} with illegal syntax. */
   @Test
-  public void testIllegalSyntax() {
+  void testIllegalSyntax() {
 
     checkIllegalRange("[,)");
     checkIllegalRange("(,]");
@@ -170,6 +170,16 @@ public class VersionRangeTest extends Assertions {
     checkIllegalRange("[,1.0)");
     checkIllegalRange("(1.0,]");
     checkIllegalRange("(1.1,1.0)");
+  }
+
+  /** Test of {@link VersionRange#of(String, boolean)} with tolerance. */
+  @Test
+  void testTolerance() {
+
+    assertThat(VersionRange.of("[*,*]", true)).isEqualTo(VersionRange.UNBOUNDED);
+    assertThat(VersionRange.of("[,)", true)).isEqualTo(VersionRange.UNBOUNDED);
+    assertThat(VersionRange.of("(,]", true)).isEqualTo(VersionRange.UNBOUNDED);
+    assertThat(VersionRange.of("[,]", true)).isEqualTo(VersionRange.UNBOUNDED);
   }
 
   private void checkIllegalRange(String range) {
@@ -181,4 +191,73 @@ public class VersionRangeTest extends Assertions {
       assertThat(e.getMessage()).isEqualTo(range);
     }
   }
+
+  /** Test of {@link VersionRange#union(VersionRange, VersionRangeRelation)}. */
+  @Test
+  void testUnion() {
+
+    VersionRange union = VersionRange.of("[2.0,5.0]");
+    assertThat(union("[2.0,5.0)", "(3.0,5.0]")).isEqualTo(union);
+    assertThat(union("[2.0,3.0]", "[3.0,5.0]")).isEqualTo(union);
+    assertThat(union("[2.0,3.0)", "[3.0,5.0]")).isEqualTo(union);
+    assertThat(union("[2.0,3.0)", "[3.0,5.0]", VersionRangeRelation.OVERLAPPING)).isNull();
+    assertThat(union("[2.0,3.0]", "(3.0,5.0]")).isEqualTo(union);
+    assertThat(union("[2.0,3.0]", "(3.0,5.0]", VersionRangeRelation.CONNECTED)).isEqualTo(union);
+    assertThat(union("[2.0,2.2]", "[2.3,5.0]")).isNull();
+    assertThat(union("[2.0,2.2]", "[2.3,5.0]", VersionRangeRelation.CONNECTED_LOOSELY)).isEqualTo(union);
+    assertThat(union("[2.0,3.0]", "[4.0,5.0]", VersionRangeRelation.CONNECTED_LOOSELY)).isNull();
+    assertThat(union("[2.0,3.0]", "[4.0,5.0]", VersionRangeRelation.DISJUNCT)).isEqualTo(union);
+    assertThat(union("[2.0,2.2)", "(2.2,5.0]", VersionRangeRelation.CONNECTED_LOOSELY)).isNull();
+    assertThat(union("[2.0,2.2)", "(2.2,5.0]", VersionRangeRelation.DISJUNCT)).isEqualTo(union);
+    assertThat(union("(,)", "[1.0,1.0]")).isSameAs(VersionRange.UNBOUNDED);
+    assertThat(union("(,1.0)", "[1.0,1.0]")).isEqualTo(VersionRange.of("(,1.0]"));
+    assertThat(union("(1.0,)", "[1.0,1.0]")).isEqualTo(VersionRange.of("[1.0,)"));
+    assertThat(union("(,2.0]", "[1.0,2.0)")).isEqualTo(VersionRange.of("(,2.0]"));
+    assertThat(union("[2.0,)", "(2.0,3.0]")).isEqualTo(VersionRange.of("[2.0,)"));
+  }
+
+  private VersionRange union(String range1, String range2) {
+
+    return union(range1, range2, null);
+  }
+
+  private VersionRange union(String range1, String range2, VersionRangeRelation minRelation) {
+
+    VersionRange r1 = VersionRange.of(range1);
+    VersionRange r2 = VersionRange.of(range2);
+    VersionRange union;
+    VersionRange reverseUnion;
+    if (minRelation == null) {
+      union = r1.union(r2);
+      reverseUnion = r2.union(r1);
+    } else {
+      union = r1.union(r2, minRelation);
+      reverseUnion = r2.union(r1, minRelation);
+    }
+    assertThat(union).as("Union of " + range1 + " and " + range2 + " is symmetric").isEqualTo(reverseUnion);
+    return union;
+  }
+
+
+  /** Test of {@link VersionRange#intersect(VersionRange)}. */
+  @Test
+  void testIntersection() {
+
+    assertThat(intersection("(,)", "[1.0,5.0]")).isEqualTo(VersionRange.of("[1.0,5.0]"));
+    assertThat(intersection("(2.0,5.0]", "[2.0,5.0)")).isEqualTo(VersionRange.of("(2.0,5.0)"));
+    assertThat(intersection("[2.0,5.0)", "(2.0,5.0]")).isEqualTo(VersionRange.of("(2.0,5.0)"));
+    assertThat(intersection("(2.0,4.0]", "[3.0,5.0]")).isEqualTo(VersionRange.of("[3.0,4.0]"));
+    assertThat(intersection("(2.0,3.0]", "[3.0,5.0]")).isEqualTo(VersionRange.of("[3.0,3.0]"));
+    assertThat(intersection("(2.0,3.0)", "[3.0,5.0]")).isNull();
+  }
+
+  private VersionRange intersection(String range1, String range2) {
+    VersionRange r1 = VersionRange.of(range1);
+    VersionRange r2 = VersionRange.of(range2);
+    VersionRange intersection = r1.intersect(r2);
+    VersionRange reverseIntersection = r2.intersect(r1);
+    assertThat(intersection).as("Intersection of " + range1 + " and " + range2 + " is symmetric").isEqualTo(reverseIntersection);
+    return intersection;
+  }
+
 }

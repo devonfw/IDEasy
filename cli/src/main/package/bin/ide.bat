@@ -31,6 +31,9 @@ if %ERRORLEVEL% NEQ 0 (
   exit /b %ERRORLEVEL%
 )
 
+REM after successful create, auto-cd into the new project (see #1458)
+call :handleCreateCd %*
+
 :skipIdeasy
 
 REM https://stackoverflow.com/questions/61888625/what-is-f-in-the-for-loop-command
@@ -48,6 +51,21 @@ if %ERRORLEVEL% EQU 0 (
 
 call :echoUseBash
 goto :eof
+
+:handleCreateCd
+  if "%~1" == "" exit /b
+  if "%~1" == "create" goto :findCreateProject
+  shift
+  goto :handleCreateCd
+
+:findCreateProject
+  shift
+  if "%~1" == "" exit /b
+  set "_arg=%~1"
+  if "%_arg:~0,1%" == "-" goto :findCreateProject
+  if exist "%IDE_ROOT%\%~1\" cd /d "%IDE_ROOT%\%~1"
+  set "_arg="
+  exit /b
 
 :echoUseBash
   echo.

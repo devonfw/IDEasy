@@ -21,10 +21,10 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * Test class for integrations of the {@link IntellijUrlUpdater}
+ * Test of {@link IntellijUrlUpdater}
  */
 @WireMockTest
-public class IntellijUrlUpdaterTest extends AbstractUrlUpdaterTest {
+class IntellijUrlUpdaterTest extends AbstractUrlUpdaterTest {
 
   private static String intellijVersionJson;
   private static String intellijVersionWithoutChecksumJson;
@@ -37,7 +37,7 @@ public class IntellijUrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @throws IOException on error.
    */
   @BeforeAll
-  public static void setupTestVersionJson(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  static void setupTestVersionJson(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     //preparing test data with dynamic port
     Path testDataPath = PATH_INTEGRATION_TEST.resolve("IntellijUrlUpdater");
     intellijVersionJson = readAndResolve(testDataPath.resolve("intellij-version.json"), wmRuntimeInfo);
@@ -51,7 +51,7 @@ public class IntellijUrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testIntellijJsonUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
+  void testIntellijJsonUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange
     stubFor(get(urlMatching("/products.*")).willReturn(aResponse().withStatus(200).withBody(intellijVersionJson)));
@@ -60,7 +60,7 @@ public class IntellijUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(any(urlMatching("/idea/idea.*\\.tar\\.gz\\.sha256")).willReturn(aResponse().withStatus(200).withBody(SHA_256)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    IntellijUrlUpdaterMock updater = new IntellijUrlUpdaterMock(wmRuntimeInfo);
+    IntellijUrlUpdater updater = new IntellijUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // act
     updater.update(urlRepository);
@@ -86,7 +86,7 @@ public class IntellijUrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testIntellijJsonUrlUpdaterWithMissingDownloadsDoesNotCreateVersionFolder(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
+  void testIntellijJsonUrlUpdaterWithMissingDownloadsDoesNotCreateVersionFolder(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange
     stubFor(get(urlMatching("/products.*")).willReturn(aResponse().withStatus(200).withBody(intellijVersionJson)));
@@ -94,7 +94,7 @@ public class IntellijUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(any(urlMatching("/idea/idea.*\\.tar\\.gz.*")).willReturn(aResponse().withStatus(404)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    IntellijUrlUpdaterMock updater = new IntellijUrlUpdaterMock(wmRuntimeInfo);
+    IntellijUrlUpdater updater = new IntellijUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // act
     updater.update(urlRepository);
@@ -113,7 +113,7 @@ public class IntellijUrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testIntellijJsonUrlUpdaterWithMissingChecksumGeneratesChecksum(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
+  void testIntellijJsonUrlUpdaterWithMissingChecksumGeneratesChecksum(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange
     stubFor(get(urlMatching("/products.*")).willReturn(aResponse().withStatus(200).withBody(intellijVersionWithoutChecksumJson)));
@@ -121,7 +121,7 @@ public class IntellijUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(any(urlMatching("/idea/idea.*\\.tar\\.gz")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    IntellijUrlUpdaterMock updater = new IntellijUrlUpdaterMock(wmRuntimeInfo);
+    IntellijUrlUpdater updater = new IntellijUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // act
     updater.update(urlRepository);
@@ -129,5 +129,57 @@ public class IntellijUrlUpdaterTest extends AbstractUrlUpdaterTest {
     // assert
     Path intellijVersionsPath = tempDir.resolve("intellij").resolve("intellij").resolve("2023.1.2");
     assertUrlVersion(intellijVersionsPath, List.of("linux_x64"));
+  }
+
+  /**
+   * Test if the {@link IntellijUrlUpdater} correctly moves unified releases to the community edition JSON object, so that they are correctly recognized as
+   * community edition releases by the rest of the code. This is done by providing a mocked JSON response with a unified release and checking whether this
+   * release is moved to the community edition JSON object by the {@link IntellijUrlUpdater}.
+   */
+  @Test
+  void testIntellijJsonResponseMovesUnifiedReleasesToCommunity() throws Exception {
+
+    String response = """
+        [
+          {
+            "releases": [
+              {
+                "version": "2025.2.6.2",
+                "downloads": {}
+              },
+              {
+                "version": "2025.2.6.1",
+                "downloads": {}
+              },
+              {
+                "version": "2024.3.0",
+                "downloads": {}
+              }
+            ]
+          },
+          {
+            "releases": [
+              {
+                "version": "2025.2.6.1",
+                "downloads": {}
+              },
+              {
+                "version": "2024.3.0",
+                "downloads": {}
+              }
+            ]
+          }
+        ]
+        """;
+
+    IntellijUrlUpdater updater = new IntellijUrlUpdater();
+
+    IntellijJsonObject communityEdition = updater.getJsonObjectFromResponse(response, "intellij");
+    IntellijJsonObject ultimateEdition = updater.getJsonObjectFromResponse(response, "ultimate");
+
+    assertThat(communityEdition.releases()).extracting(IntellijJsonRelease::version)
+        .containsExactly("2025.2.6.2", "2025.2.6.1", "2024.3.0");
+    assertThat(ultimateEdition.releases()).extracting(IntellijJsonRelease::version)
+        .containsExactly("2025.2.6.1", "2024.3.0");
   }
 }

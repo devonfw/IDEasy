@@ -4,7 +4,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 
 /**
@@ -14,16 +13,13 @@ public class PipUrlUpdaterMock extends PipUrlUpdater {
 
   private static final Set<String> versions = new HashSet<>(List.of("1.0"));
 
-  WireMockRuntimeInfo wmRuntimeInfo;
-
   /**
    * The constructor
    *
-   * @param wmRuntimeInfo the {@link WireMockRuntimeInfo} holding the http url and port of the wiremock server.
+   * @param baseUrl the {@link WireMockRuntimeInfo} holding the http url and port of the wiremock server.
    */
-  public PipUrlUpdaterMock(WireMockRuntimeInfo wmRuntimeInfo) {
-    super();
-    this.wmRuntimeInfo = wmRuntimeInfo;
+  public PipUrlUpdaterMock(String baseUrl) {
+    super(baseUrl);
   }
 
   @Override
@@ -32,9 +28,4 @@ public class PipUrlUpdaterMock extends PipUrlUpdater {
     return versions;
   }
 
-  @Override
-  protected void addVersion(UrlVersion urlVersion) {
-
-    doAddVersion(urlVersion, this.wmRuntimeInfo.getHttpBaseUrl() + "/pip/${version}/get-pip.py");
-  }
 }

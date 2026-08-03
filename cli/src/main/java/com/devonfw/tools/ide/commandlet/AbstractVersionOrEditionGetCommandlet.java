@@ -2,10 +2,12 @@ package com.devonfw.tools.ide.commandlet;
 
 import java.util.Objects;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.ToolProperty;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
@@ -16,6 +18,8 @@ import com.devonfw.tools.ide.tool.ToolCommandlet;
  * @see ToolCommandlet#getInstalledVersion()
  */
 public abstract class AbstractVersionOrEditionGetCommandlet extends Commandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractVersionOrEditionGetCommandlet.class);
 
   /** The tool to get the version of. */
   public final ToolProperty tool;
@@ -68,10 +72,10 @@ public abstract class AbstractVersionOrEditionGetCommandlet extends Commandlet {
   protected abstract Object getInstalledValue(ToolCommandlet commandlet);
 
   @Override
-  public void run() {
+  protected void doRun() {
 
     ToolCommandlet commandlet = this.tool.getValue();
-    IdeSubLogger logger = this.context.level(IdeLogLevel.PROCESSABLE);
+    IdeLogLevel level = IdeLogLevel.PROCESSABLE;
     Object configuredValue = getConfiguredValue(commandlet);
     Object installedValue = getInstalledValue(commandlet);
     boolean getInstalledValue = this.installed.isTrue();
@@ -81,42 +85,43 @@ public abstract class AbstractVersionOrEditionGetCommandlet extends Commandlet {
     }
     if (getInstalledValue == getConfiguredValue) {
       if (getInstalledValue) { // both --configured and --installed
-        logToolInfo(logger, commandlet, configuredValue, installedValue);
-      } else if (this.context.debug().isEnabled()) {
-        logToolInfo(logger, commandlet, configuredValue, installedValue);
+        logToolInfo(commandlet, configuredValue, installedValue);
+      } else if (LOG.isDebugEnabled()) {
+        logToolInfo(commandlet, configuredValue, installedValue);
       } else {
         if (installedValue == null) {
-          logger.log(configuredValue.toString());
+          level.log(LOG, configuredValue.toString());
         } else {
-          logger.log(installedValue.toString());
+          level.log(LOG, installedValue.toString());
         }
       }
     } else {
       if (getInstalledValue) {
         if (installedValue == null) {
-          logToolInfo(logger, commandlet, configuredValue, null);
+          logToolInfo(commandlet, configuredValue, null);
         } else {
-          logger.log(installedValue.toString());
+          level.log(LOG, installedValue.toString());
         }
       } else {
-        logger.log(configuredValue.toString());
+        level.log(LOG, configuredValue.toString());
       }
     }
   }
 
-  private void logToolInfo(IdeSubLogger logger, ToolCommandlet commandlet, Object configuredValue, Object installedValue) {
+  private void logToolInfo(ToolCommandlet commandlet, Object configuredValue, Object installedValue) {
 
     String property = getPropertyToGet();
     String toolName = commandlet.getName();
+    IdeLogLevel level = IdeLogLevel.PROCESSABLE;
     if (installedValue == null) {
-      logger.log("No installation of tool {} was found.", toolName);
+      level.log(LOG, "No installation of tool {} was found.", toolName);
     } else {
-      logger.log("The installed {} for tool {} is {}", property, toolName, installedValue);
+      level.log(LOG, "The installed {} for tool {} is {}", property, toolName, installedValue);
     }
-    logger.log("The configured {} for tool {} is {}", property, toolName, configuredValue);
+    level.log(LOG, "The configured {} for tool {} is {}", property, toolName, configuredValue);
     if (!Objects.equals(configuredValue, installedValue)) {
-      logger.log("To install the configured {} call the following command:", property);
-      logger.log("ide install {}", toolName);
+      level.log(LOG, "To install the configured {} call the following command:", property);
+      level.log(LOG, "ide install {}", toolName);
     }
   }
 

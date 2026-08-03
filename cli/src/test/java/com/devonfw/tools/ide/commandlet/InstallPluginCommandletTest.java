@@ -9,9 +9,9 @@ import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 
 /**
- * Integration test of {@link InstallPluginCommandlet}.
+ * Test of {@link InstallPluginCommandlet}.
  */
-public class InstallPluginCommandletTest extends AbstractIdeContextTest {
+class InstallPluginCommandletTest extends AbstractIdeContextTest {
 
   /**
    * Tests if {@link InstallPluginCommandlet} can install intellij plugins with custom url.
@@ -20,7 +20,7 @@ public class InstallPluginCommandletTest extends AbstractIdeContextTest {
    */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testInstallPlugin(String os) {
+  void testInstallPlugin(String os) {
 
     // arrange
     IdeTestContext context = newContext("intellij");

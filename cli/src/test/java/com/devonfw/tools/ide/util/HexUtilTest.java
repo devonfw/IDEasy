@@ -6,11 +6,11 @@ import org.junit.jupiter.api.Test;
 /**
  * Test of {@link HexUtil}.
  */
-public class HexUtilTest extends Assertions {
+class HexUtilTest extends Assertions {
 
   /** Test of {@link HexUtil#toHexString(byte[])}. */
   @Test
-  public void testToHexString() {
+  void testToHexString() {
 
     // given
     byte[] data = { 0x01, 0x23, 0x45, 0x67, (byte) 0x89, (byte) 0xab, (byte) 0xcd, (byte) 0xef };

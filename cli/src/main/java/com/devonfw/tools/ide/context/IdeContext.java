@@ -17,25 +17,47 @@ import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarNone;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
+import com.devonfw.tools.ide.network.NetworkStatus;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.corepack.Corepack;
+import com.devonfw.tools.ide.tool.custom.CustomToolRepository;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
+import com.devonfw.tools.ide.tool.mvn.MvnRepository;
 import com.devonfw.tools.ide.tool.npm.Npm;
-import com.devonfw.tools.ide.tool.repository.CustomToolRepository;
-import com.devonfw.tools.ide.tool.repository.MvnRepository;
-import com.devonfw.tools.ide.tool.repository.NpmRepository;
+import com.devonfw.tools.ide.tool.npm.NpmRepository;
+import com.devonfw.tools.ide.tool.pip.PipRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
+import com.devonfw.tools.ide.tool.python.PythonRepository;
+import com.devonfw.tools.ide.tool.uv.UvRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.IdeVersion;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * Interface for interaction with the user allowing to input and output information.
+ * Interface for the context of IDEasy and the potential current project. Central constants for names of files and folders are defined here and should be
+ * referenced instead of duplicating such string literals across the code-base. All central components can be accessed from here such as:
+ * <ul>
+ * <li>{@link #getPath() system path} (abstraction of PATH environment variable)</li>
+ * <li>{@link #getCommandletManager() commandlet manager} (access {@link com.devonfw.tools.ide.commandlet.Commandlet}s)</li>
+ * <li>{@link #getFileAccess() file access} (file and I/O operations on a higher level of abstraction)</li>
+ * <li>{@link #getNetworkStatus() network status} (determine if we are online or offline)</li>
+ * <li>{@link #newProcess() process context} (start external programs as process including logging, error handling, background and output processing)</li>
+ * <li>{@link #newStep(String) step} creation (a sub-task that may fail without stopping the overall process)</li>
+ * <li>{@link #newProgressBar(String, long, String, long) progress bar} (to display long-running progress for UX)</li>
+ * <li>{@link #getGitContext() git context} (for git operations like clone, fetch, pull, etc.)</li>
+ * <li>{@link #getSystemInfo() system info} (for information about OS and CPU architecture)</li>
+ * <li>{@link #getVariables() environment variables} (to access and modify IDEasy variables according to our configuration layout)</li>
+ *
+ * <li>{@link #question(Object[], String, Object...) question} (for interaction to let the end-user decide)</li>
+ * <li>{@link #getUrls() url metadata} (access ide-urls to find versions, download URLs, dependency and security metadata)</li>
+ * <li>{@link #getDefaultToolRepository() tool repository} (for abstraction of version resolution and download of tools)</li>
+ * <li>{@link #getSystem() ide system} (abstraction of {@link java.lang.System} for system environment variables)</li>
+ * </ul>
  */
 public interface IdeContext extends IdeStartContext {
 
@@ -91,6 +113,9 @@ public interface IdeContext extends IdeStartContext {
 
   /** The name of the backups folder for backup. */
   String FOLDER_BACKUPS = "backups";
+
+  /** The name of the logs folder for log-files (in {@link #FOLDER_UNDERSCORE_IDE}). */
+  String FOLDER_LOGS = "logs";
 
   /** The name of the downloads folder. */
   String FOLDER_DOWNLOADS = "Downloads";
@@ -175,9 +200,6 @@ public interface IdeContext extends IdeStartContext {
   /** The default folder name for {@link #getIdeRoot() IDE_ROOT}. */
   String FOLDER_PROJECTS = "projects";
 
-  /** The filename of the configuration file in the settings for this {@link CustomToolRepository}. */
-  String FILE_CUSTOM_TOOLS = "ide-custom-tools.json";
-
   /**
    * file containing the current local commit hash of the settings repository.
    */
@@ -196,26 +218,39 @@ public interface IdeContext extends IdeStartContext {
    * The keyword for project name convention.
    */
   String SETTINGS_REPOSITORY_KEYWORD = "settings";
+  String IS_NOT_INSTALLED_BUT_REQUIRED = "is not installed on your computer but required by IDEasy.";
+  String WINDOWS_GIT_DOWNLOAD_URL = "https://git-scm.com/download/";
+  String PLEASE_DOWNLOAD_AND_INSTALL_GIT = "Please download and install git";
+
+  /**
+   * @return the {@link NetworkStatus} for online check and related operations.
+   */
+  NetworkStatus getNetworkStatus();
 
   /**
    * @return {@code true} if {@link #isOfflineMode() offline mode} is active or we are NOT {@link #isOnline() online}, {@code false} otherwise.
+   * @deprecated use {@link #getNetworkStatus()}
    */
   default boolean isOffline() {
 
-    return isOfflineMode() || !isOnline();
+    return getNetworkStatus().isOffline();
   }
 
   /**
    * @return {@code true} if we are currently online (Internet access is available), {@code false} otherwise.
+   * @deprecated use {@link #getNetworkStatus()}
    */
-  boolean isOnline();
+  default boolean isOnline() {
+
+    return getNetworkStatus().isOnline();
+  }
 
   /**
    * Print the IDEasy {@link #LOGO logo}.
    */
   default void printLogo() {
 
-    info(LOGO);
+    AbstractIdeContext.LOG.info(LOGO);
   }
 
   /**
@@ -335,6 +370,21 @@ public interface IdeContext extends IdeStartContext {
   NpmRepository getNpmRepository();
 
   /**
+   * @return the {@link PipRepository}.
+   */
+  PipRepository getPipRepository();
+
+  /**
+   * @return the {@link UvRepository}.
+   */
+  UvRepository getUvRepository();
+
+  /**
+   * @return the {@link PythonRepository}.
+   */
+  PythonRepository getPythonRepository();
+
+  /**
    * @return the {@link Path} to the IDE instance directory. You can have as many IDE instances on the same computer as independent tenants for different
    *     isolated projects.
    * @see com.devonfw.tools.ide.variable.IdeVariables#IDE_HOME
@@ -366,6 +416,13 @@ public interface IdeContext extends IdeStartContext {
   Path getIdeRoot();
 
   /**
+   * @param ideRoot the new value of {@link #getIdeRoot() IDE_ROOT}. Typically detected automatically from the environment and working directory, but may need
+   *     to be set explicitly (e.g. during the initial installation where the {@code IDE_ROOT} environment variable is not yet available but the installation
+   *     target is already known).
+   */
+  void setIdeRoot(Path ideRoot);
+
+  /**
    * @return the {@link Path} to the {@link #FOLDER_UNDERSCORE_IDE}.
    * @see #getIdeRoot()
    * @see #FOLDER_UNDERSCORE_IDE
@@ -378,7 +435,11 @@ public interface IdeContext extends IdeStartContext {
    */
   default Path getIdeInstallationPath() {
 
-    return getIdePath().resolve(FOLDER_INSTALLATION);
+    Path idePath = getIdePath();
+    if (idePath == null) {
+      return null;
+    }
+    return idePath.resolve(FOLDER_INSTALLATION);
   }
 
   /**
@@ -493,9 +554,9 @@ public interface IdeContext extends IdeStartContext {
   Path getSettingsGitRepository();
 
   /**
-   * @return {@code true} if the settings repository is a symlink or a junction.
+   * @return {@code true} if the settings repository is a symlink or a junction to a code-repository.
    */
-  boolean isSettingsRepositorySymlinkOrJunction();
+  boolean isSettingsCodeRepository();
 
   /**
    * @return the {@link Path} to the file containing the last tracked commit Id of the settings repository.
@@ -514,7 +575,8 @@ public interface IdeContext extends IdeStartContext {
       if (Files.isDirectory(templatesFolderLegacy)) {
         templatesFolder = templatesFolderLegacy;
       } else {
-        warning("No templates found in settings git repo neither in {} nor in {} - configuration broken", templatesFolder, templatesFolderLegacy);
+        AbstractIdeContext.LOG.warn("No templates found in settings git repo neither in {} nor in {} - configuration broken", templatesFolder,
+            templatesFolderLegacy);
         return null;
       }
     }
@@ -528,10 +590,22 @@ public interface IdeContext extends IdeStartContext {
   Path getConfPath();
 
   /**
+   * @return the {@link Path} to the workspaces base folder containing the individual {@link #getWorkspacePath(String) workspaces}.
+   * @see #getWorkspacePath(String)
+   */
+  Path getWorkspacesBasePath();
+
+  /**
    * @return the {@link Path} to the workspace.
    * @see #getWorkspaceName()
    */
   Path getWorkspacePath();
+
+  /**
+   * @param workspace the specific workspace name.
+   * @return the {@link Path} to the specified workspace.
+   */
+  Path getWorkspacePath(String workspace);
 
   /**
    * @return the name of the workspace. Defaults to {@link #WORKSPACE_MAIN}.
@@ -655,24 +729,12 @@ public interface IdeContext extends IdeStartContext {
    */
   default Path getMavenConfigurationFolder() {
 
-    Path confPath = getConfPath();
-    Path mvnConfFolder = null;
-    if (confPath != null) {
-      mvnConfFolder = confPath.resolve(Mvn.MVN_CONFIG_FOLDER);
-      if (!Files.isDirectory(mvnConfFolder)) {
-        Path m2LegacyFolder = confPath.resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER);
-        if (Files.isDirectory(m2LegacyFolder)) {
-          mvnConfFolder = m2LegacyFolder;
-        } else {
-          mvnConfFolder = null; // see fallback below
-        }
-      }
+    if (getIdeHome() == null) {
+      // fallback to USER_HOME/.m2 folder if called outside an IDEasy project
+      return getUserHome().resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER);
     }
-    if (mvnConfFolder == null) {
-      // fallback to USER_HOME/.m2 folder
-      mvnConfFolder = getUserHome().resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER);
-    }
-    return mvnConfFolder;
+    Mvn mvn = getCommandletManager().getCommandlet(Mvn.class);
+    return mvn.getMavenConfigurationFolder();
   }
 
   /**
@@ -752,24 +814,26 @@ public interface IdeContext extends IdeStartContext {
   /**
    * Finds the path to the Bash executable.
    *
-   * @return the {@link String} to the Bash executable, or {@code null} if Bash is not found
+   * @return the {@link Path} to the Bash executable, or {@code null} if Bash is not found.
    */
-  String findBash();
+  Path findBash();
 
   /**
    * Finds the path to the Bash executable.
    *
-   * @return the {@link String} to the Bash executable. Throws an {@link IllegalStateException} if no bash was found.
+   * @return the {@link Path} to the Bash executable. Throws a {@link CliException} if no bash was found.
    */
-  default String findBashRequired() {
-    String bash = findBash();
+  default Path findBashRequired() {
+    Path bash = findBash();
     if (bash == null) {
-      String message = "Could not find bash what is a prerequisite of IDEasy.";
+      String message = "Bash " + IS_NOT_INSTALLED_BUT_REQUIRED;
       if (getSystemInfo().isWindows()) {
-        message = message + "\nPlease install Git for Windows and rerun.";
+        message += " " + PLEASE_DOWNLOAD_AND_INSTALL_GIT + ":\n " + WINDOWS_GIT_DOWNLOAD_URL;
+        throw new CliException(message);
       }
-      throw new IllegalStateException(message);
+      bash = Path.of("bash");
     }
+
     return bash;
   }
 
@@ -817,4 +881,5 @@ public interface IdeContext extends IdeStartContext {
     Npm npm = getCommandletManager().getCommandlet(Npm.class);
     return npm.getOrCreateNpmConfigUserConfig();
   }
+
 }

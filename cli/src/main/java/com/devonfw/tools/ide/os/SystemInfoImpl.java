@@ -1,5 +1,8 @@
 package com.devonfw.tools.ide.os;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -29,13 +32,35 @@ public class SystemInfoImpl implements SystemInfo {
 
   private final SystemArchitecture architecture;
 
+  private final boolean wsl;
+
   /**
    * The constructor.
    */
   private SystemInfoImpl() {
 
     this(System.getProperty(PROPERTY_OS_NAME).trim(), System.getProperty(PROPERTY_OS_VERSION).trim(),
-        System.getProperty(PROPERTY_OS_ARCHITECTURE).trim());
+        resolveArchitecture(), System.getenv("WSL_DISTRO_NAME") != null || System.getenv("WSL_INTEROP") != null);
+  }
+
+  private static String resolveArchitecture() {
+
+    String arch = System.getProperty(PROPERTY_OS_ARCHITECTURE).trim();
+    String osName = System.getProperty(PROPERTY_OS_NAME).trim().toLowerCase(java.util.Locale.ROOT);
+    if (!osName.startsWith("windows")) {
+      try {
+        Process process = new ProcessBuilder("uname", "-m").start();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+          String line = reader.readLine();
+          if (line != null && !line.isBlank()) {
+            arch = line.trim();
+          }
+        }
+      } catch (Exception e) {
+        // fallback to system property
+      }
+    }
+    return arch;
   }
 
   /**
@@ -47,12 +72,26 @@ public class SystemInfoImpl implements SystemInfo {
    */
   public SystemInfoImpl(String osName, String osVersion, String architectureName) {
 
+    this(osName, osVersion, architectureName, false);
+  }
+
+  /**
+   * The constructor.
+   *
+   * @param osName the {@link #getOsName() OS name}
+   * @param osVersion the {@link #getOsVersion() OS version}.
+   * @param architectureName the {@link #getArchitectureName() architecture name}.
+   * @param wsl {@code true} if running inside WSL (Windows Subsystem for Linux).
+   */
+  public SystemInfoImpl(String osName, String osVersion, String architectureName, boolean wsl) {
+
     super();
     this.osName = osName;
     this.osVersion = VersionIdentifier.of(osVersion);
     this.architectureName = architectureName;
     this.os = OperatingSystem.ofName(this.osName);
     this.architecture = detectArchitecture(this.architectureName);
+    this.wsl = wsl;
   }
 
   private static SystemArchitecture detectArchitecture(String architectureName) {
@@ -92,6 +131,12 @@ public class SystemInfoImpl implements SystemInfo {
   public SystemArchitecture getArchitecture() {
 
     return this.architecture;
+  }
+
+  @Override
+  public boolean isWsl() {
+
+    return this.wsl;
   }
 
   @Override

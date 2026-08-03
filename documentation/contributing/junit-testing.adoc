@@ -1,0 +1,74 @@
+= JUnit Tests
+
+For quality assurance we want to cover most features with automated tests.
+Since our code is implemented in Java, we implement regular tests with https://junit.org/[JUnit].
+Further, we strictly use https://assertj.github.io/doc/[AssertJ] for assertions (so use `assertThat` and not `assertEquals` or `assertTrue`, etc.).
+For simple unit tests of `src/main/java/«package»/«Type».java` we implement a JUnit test in `src/test/java/«package»/«Type»Test.java`.
+
+== Component Testing
+
+For testing entire components of IDEasy, especially commandlets, we have created a special test-infrastructure.
+In general, we want to archive the following goals:
+
+* JUnit tests should be isolated and reproducible.
+* Therefore, they must not modify any source files (anything committed in our git repo).
+* Also, they must not modify the installation or OS nor be influenced by user settings in the current OS.
+* They must we work cross-platform (e.g. not work on Windows but fail on Linux or MacOS).
+* They must be able to simulate or mock a different operating system.
+* They must not be influenced by external network resources (so if we download a tool we cannot download it from an external server because if that server is temporary down, the test would break even though our code is not broken).
+* We must be able to prepare arbitrary setups and scenarios to run a test on making it easy to test also special cases.
+
+Therefore, we provide `AbstractIdeContextTest` that you can extend your test class from, if you want to create a simulated IDEasy environment via an `IdeContext`.
+This allows you to use the inherited method `newContext` to create an instance of `IdeTestContext`.
+Typically, you only need to provide the name of a test-project.
+This is a mocked IDEasy project folder located under `src/test/resources/ide-projects`.
+The `newContext` method will create a fresh copy of that folder structure into the `target/ide-projects` folder where the test can then also modify the files without changing source files (see above).
+
+=== Test Project Structure
+
+The structure of such a test project looks as following:
+.File structure of your IDEasy
+
+[subs=+macros]
+----
+/ «test-project» (link:../variables.adoc[$IDE_ROOT])
+├──/ _ide/
+|  ├──/ link:../software.adoc[software]/
+|  ├──/ tmp/
+|  └──/ urls/«tool»/«edition»/«version»/urls
+├──/ link:../project.adoc[project] (link:../variables.adoc[$IDE_HOME])
+|  ├──/ link:../conf.adoc[conf]/
+|  ├──/ home/
+|  |  ├──/ .ide/ide.properties
+|  |  └──/ environment.properites
+|  ├──/ link:../settings.adoc[settings]/
+|  ├──/ link:../software.adoc[software]/
+|  └──/ link:.//workspaces.adoc[workspaces]/
+└──/ repository/«tool»/«edition»/default/bin/«tool»
+----
+
+So we can see the regular IDEasy project structure but also a few special things:
+
+* The project folder is always named `project` by convention.
+* The `home` folder inside the `project` folder mocks the real users home directory (~) so the JUnit test can be self-contained and is not influenced by the developers personal home directory configurations.
+* The optional `environment.properites` file in the `home` directory even allows to mock `System.getEnv()`.
+* The `repository` folder mocks any server from where IDEasy downloads software.
+Here, you can add mocked content structures of the tool to install.
+Typically, we try to keep that minimalistic instead of dumping entire contents of real tools into our git repository.
+Therefore, we only add simple bash scripts mocking the tools binary to be executed that only echos the arguments that had been passed to it.
+Additionally, we may add specific key files if our commandlet code relies on them.
+In cases where our commandlet code contains OS-specific behaviour that depends on different structures of OS-specific binary downloads, we even add `linux`, `mac`, and  `windows` sub-folders below the `default` folder.
+Then we also parameterize the JUnit test for each operating system so we can test and cover the specific behaviour for each OS.
+See `IntellijTest` for an example.
+Please do not copy & paste such OS-specific example for new commandlet tests that are actually os-agnostic since this is only causing overhead, clutter, and confusion without adding any value.
+* In order to really test our download functionally when installing the tool, we use https://wiremock.org/[wiremock].
+This allows us to start an HTTP server within our JUnit test on a free random port, configure the downloads automatically from the `repository` folder so that the contents of a specific tool will be compressed dynamically into a `*.tgz` archive that the commandlet install routine will also extract after download. See existing commandlet test like `JavaTest` for an example.
+* If desired, you can also provide dedicated versions of a tool by providing it in an according version folder.
+If the specific version to install is not found as version folder below the mocked `repository` folder, the `default` folder will be used as fallback.
+* In order to mock the `ide-urls` structure, create the according `_ide/urls/«tool»/«edition»/«version»/` folder with an os-agnostic `urls` file or even os-specific `*.urls` files.
+The content of such URLs file needs to have the following convention:
+`${testbaseurl}/download/«tool»/«edition»/«version»/«tool»-«version».tgz`
+The test-infrastructure will automatically resolve `${testbaseurl}` to the wiremock base URL if the `WireMockRuntimeInfo` injected into the JUnit test is passed into the `newContext` method (see `JavaTest`).
+* In case your JUnit test method is guaranteed not to modify any contents of the test-project, you can also call the `newContext` method with `false` as 3rd argument (`copyForMutation`).
+This will skip the copy of the test-project saving some milliseconds and speeding up the test execution.
+However, if you are unsure, never use this feature since it is better to waste a few milliseconds rather than accidentally causing pain by JUnits that modify the source files from git and may even fail on a second run then.

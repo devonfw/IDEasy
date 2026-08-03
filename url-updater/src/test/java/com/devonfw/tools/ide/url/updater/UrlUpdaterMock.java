@@ -22,12 +22,12 @@ public class UrlUpdaterMock extends AbstractUrlUpdater {
    * @param wmRuntimeInfo the {@link WireMockRuntimeInfo} holding the http url and port of the wiremock server.
    */
   public UrlUpdaterMock(WireMockRuntimeInfo wmRuntimeInfo) {
-    super();
+    super(wmRuntimeInfo.getHttpBaseUrl(), wmRuntimeInfo.getHttpBaseUrl());
     this.wmRuntimeInfo = wmRuntimeInfo;
   }
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "mocked";
   }
@@ -35,18 +35,6 @@ public class UrlUpdaterMock extends AbstractUrlUpdater {
   @Override
   protected Set<String> getVersions() {
     return versions;
-  }
-
-  @Override
-  protected String getVersionBaseUrl() {
-
-    return getDownloadBaseUrl();
-  }
-
-  @Override
-  protected String getDownloadBaseUrl() {
-
-    return this.wmRuntimeInfo.getHttpBaseUrl();
   }
 
   @Override

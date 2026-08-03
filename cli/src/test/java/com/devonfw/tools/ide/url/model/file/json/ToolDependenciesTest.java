@@ -5,6 +5,7 @@ import java.util.Collection;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.url.model.AbstractUrlModelTest;
 import com.devonfw.tools.ide.url.model.folder.AbstractUrlToolOrEdition;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -13,11 +14,10 @@ import com.devonfw.tools.ide.version.VersionRange;
 /**
  * Test of {@link ToolDependencies} and {@link AbstractUrlToolOrEdition#getDependencyFile()}.
  */
-public class ToolDependenciesTest extends AbstractUrlModelTest {
-
+class ToolDependenciesTest extends AbstractUrlModelTest {
 
   @Test
-  public void testEditionSpecific() {
+  void testEditionSpecific() {
 
     // arrange
     IdeContext context = newContext();
@@ -31,7 +31,7 @@ public class ToolDependenciesTest extends AbstractUrlModelTest {
   }
 
   @Test
-  public void testEditionFallback() {
+  void testEditionFallback() {
 
     // arrange
     IdeContext context = newContext();
@@ -46,7 +46,7 @@ public class ToolDependenciesTest extends AbstractUrlModelTest {
   }
 
   @Test
-  public void testEditionUnspecific() {
+  void testEditionUnspecific() {
 
     // arrange
     IdeContext context = newContext();
@@ -57,5 +57,31 @@ public class ToolDependenciesTest extends AbstractUrlModelTest {
 
     // assert
     assertThat(dependencies).containsExactly(new ToolDependency("java", VersionRange.of("[8,)")));
+  }
+
+  @Test
+  void testDependencyFilteringByOsAndArch() {
+
+    // arrange
+    IdeContext context = newContext();
+    ToolDependencies dependencies = context.getUrls().getEdition("fixtures", "fixtures").getDependencyFile()
+        .getDependencies();
+
+    // act
+    Collection<ToolDependency> macArmDependencies = dependencies.findDependencies(VersionIdentifier.of("1.5"),
+        new SystemInfoImpl("Mac OS X", "13.0", "arm64"));
+    Collection<ToolDependency> windowsX64Dependencies = dependencies.findDependencies(VersionIdentifier.of("1.5"),
+        new SystemInfoImpl("Windows 11", "11.0", "amd64"));
+    Collection<ToolDependency> linuxArmDependencies = dependencies.findDependencies(VersionIdentifier.of("1.5"),
+        new SystemInfoImpl("Linux", "5.15", "arm64"));
+
+    // assert
+    assertThat(macArmDependencies).extracting(ToolDependency::tool)
+        .containsExactly("global", "mac-only", "arm-only", "mac-arm");
+    assertThat(windowsX64Dependencies).extracting(ToolDependency::tool)
+        .containsExactly("global", "x64-only");
+    assertThat(linuxArmDependencies).extracting(ToolDependency::tool)
+        .containsExactly("global", "linux-only", "arm-only");
+
   }
 }

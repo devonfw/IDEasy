@@ -31,9 +31,9 @@ See link:documentation/features.adoc[features].
 
 == Status
 
-Currently we focused on support for Windows while official Linux and Mac support are still a little bit work in progress (see e.g. bug https://github.com/devonfw/IDEasy/issues/451[#451]).
-Further, we still recommend that you should contact us if you plan to use IDEasy in your project with a larger developer team.
-We surely try to fix bugs as soon as possible but we do not work extra shifts or prioritize your issues if you are blocked and we never promised any help before.
+IDEasy is stable and ready for production usage.
+However, there may be some know issues.
+For a detailed overview of the quality and support status of IDEasy tools across operating systems, see link:documentation/quality-status/quality-status.adoc[Quality Status] (link:documentation/quality-status/quality-status-windows.adoc[Windows]/link:documentation/quality-status/quality-status-macos.adoc[Mac]/link:documentation/quality-status/quality-status-linux.adoc[Linux]).
 
 == Setup
 
@@ -43,7 +43,13 @@ All you need before installing IDEasy is https://git-scm.com/download/[git].
 
 === Install
 
-Download the latest version of `IDEasy` from https://github.com/devonfw/IDEasy/releases[here] and install it.
+The fastest way to install IDEasy is the following one-line command for bash (use git-bash on Windows):
+
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/devonfw/IDEasy/main/install.sh)"
+```
+
+For more details see link:documentation/setup.adoc[setup].
 
 === Create projects
 
@@ -80,13 +86,12 @@ See also our latest video https://vimeo.com/808368450/88d4af9d18[devon ide updat
 * link:documentation/variables.adoc[Variables]
 * link:documentation/settings.adoc[Settings]
 * link:documentation/advanced-tooling.adoc[Advanced-tooling]
-* link:documentation/IDEasy-contribution-getting-started.adoc[Contribution]
 * link:documentation/[Documentation]
 * link:https://github.com/devonfw/IDEasy/discussions[FAQs]
 
 == Contribution Guidelines
 
-*If you want to contribute to `IDEasy` please read our https://github.com/devonfw/IDEasy/blob/main/documentation/IDEasy-contribution-getting-started.adoc[Contribution Guidelines].*
+*If you want to contribute to `IDEasy` please read our link:documentation/contributing/README.adoc[Contributing Guidelines].*
 
 *We use https://github.com/devonfw/IDEasy/issues[GitHub Issues] to track bugs and submit feature requests.*
 

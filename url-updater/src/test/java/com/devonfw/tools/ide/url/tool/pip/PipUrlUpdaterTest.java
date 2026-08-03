@@ -19,10 +19,10 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * Test of {@link PipUrlUpdater} based on Wiremock.
+ * Test of {@link PipUrlUpdater}.
  */
 @WireMockTest
-public class PipUrlUpdaterTest extends AbstractUrlUpdaterTest {
+class PipUrlUpdaterTest extends AbstractUrlUpdaterTest {
 
   /**
    * Tests if the {@link PipUrlUpdater} will successfully resolve a server with a Content-Type:text header response.
@@ -33,14 +33,14 @@ public class PipUrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testPipUrlUpdaterWithTextContentTypeWillSucceed(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
+  void testPipUrlUpdaterWithTextContentTypeWillSucceed(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrage
     stubFor(any(urlMatching("/pip/.*"))
         .willReturn(aResponse().withStatus(200).withHeader("Content-Type", "text/plain").withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    PipUrlUpdaterMock updater = new PipUrlUpdaterMock(wmRuntimeInfo);
+    PipUrlUpdaterMock updater = new PipUrlUpdaterMock(wmRuntimeInfo.getHttpBaseUrl());
 
     String statusUrl = wmRuntimeInfo.getHttpBaseUrl() + "/pip/1.0/get-pip.py";
     String toolName = "pip";
@@ -60,6 +60,5 @@ public class PipUrlUpdaterTest extends AbstractUrlUpdaterTest {
     Instant successTimestamp = urlStatus.getSuccess().getTimestamp();
 
     assertThat(successTimestamp).isNotNull();
-
   }
 }

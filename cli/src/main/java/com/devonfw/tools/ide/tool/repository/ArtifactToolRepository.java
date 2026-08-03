@@ -8,6 +8,8 @@ import java.util.Map;
 import com.devonfw.tools.ide.cache.CachedValue;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.mvn.MvnRepository;
+import com.devonfw.tools.ide.tool.npm.NpmRepository;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 

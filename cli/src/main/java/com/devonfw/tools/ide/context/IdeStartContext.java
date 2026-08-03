@@ -2,14 +2,41 @@ package com.devonfw.tools.ide.context;
 
 import java.util.Locale;
 
-import com.devonfw.tools.ide.log.IdeLogger;
+import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.log.IdeLogListener;
+import com.devonfw.tools.ide.network.ReadOfflineMode;
 
 /**
- * Extends {@link IdeLogger} with the options configurable via {@link com.devonfw.tools.ide.cli.Ideasy} CLI (see
- * {@link com.devonfw.tools.ide.commandlet.ContextCommandlet}). The {@link IdeStartContext} is therefore the object configured at bootstrapping and then used to
- * create the actual {@link IdeContext} from it.
+ * Contains the options configurable via {@link com.devonfw.tools.ide.cli.Ideasy} CLI. The {@link IdeStartContext} is therefore the object configured at
+ * bootstrapping and then used to create the actual {@link IdeContext} from it.
+ *
+ * @see com.devonfw.tools.ide.commandlet.ContextCommandlet
  */
-public interface IdeStartContext extends IdeLogger {
+public interface IdeStartContext extends ReadOfflineMode {
+
+  /**
+   * @return the {@link IdeLogListener}.
+   */
+  IdeLogListener getLogListener();
+
+  /**
+   * @return the minimum allowed {@link IdeLogLevel} (threshold) for console output (see --debug and --trace options).
+   */
+  IdeLogLevel getLogLevelConsole();
+
+  /**
+   * @return the minimum allowed {@link IdeLogLevel} (threshold) for SLF4J and JUL logger (can be lower than {@link #getLogLevelConsole()} for finer details in
+   *     logfile).
+   */
+  IdeLogLevel getLogLevelLogger();
+
+  /**
+   * @param level the {@link IdeLogLevel} to check.
+   * @return {@code true} if the given {@link IdeLogLevel} is actually enabled in the console, {@code }false} otherwise.
+   */
+  default boolean isLogLevelEnabled(IdeLogLevel level) {
+    return level.ordinal() >= getLogLevelConsole().ordinal();
+  }
 
   /**
    * @return {@code true} in case of quiet mode (reduced output), {@code false} otherwise.
@@ -47,12 +74,9 @@ public interface IdeStartContext extends IdeLogger {
   boolean isForceRepositories();
 
   /**
-   * @return {@code true} if offline mode is activated (-o/--offline), {@code false} otherwise.
-   */
-  boolean isOfflineMode();
-
-  /**
-   * @return {@code true} if quickStart mode is activated (-s/--quickStart), {@code false} otherwise.
+   * @return {@code true} if updates should be skipped, {@code false} otherwise. If updates are skipped and the configured version is a
+   *     {@link com.devonfw.tools.ide.version.VersionIdentifier#isPattern() pattern} (e.g. "*" or "21*") and a matching version is already installed (e.g.
+   *     "21.0.3_9"), then updates will be skipped even if they are available (e.g. "21.0.9_10").
    */
   boolean isSkipUpdatesMode();
 

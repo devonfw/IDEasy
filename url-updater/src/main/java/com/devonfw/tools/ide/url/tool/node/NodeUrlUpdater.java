@@ -1,13 +1,15 @@
 package com.devonfw.tools.ide.url.tool.node;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link GithubUrlUpdater} for node.js.
+ * {@link GithubUrlTagUpdater} for node.js.
  */
-public class NodeUrlUpdater extends GithubUrlUpdater {
+public class NodeUrlUpdater extends GithubUrlTagUpdater {
+
+  private static final String DOWNLOAD_BASE_URL = "https://nodejs.org";
 
   private static final VersionIdentifier MIN_NODE_VID = VersionIdentifier.of("v3.9.9");
 
@@ -15,8 +17,15 @@ public class NodeUrlUpdater extends GithubUrlUpdater {
 
   private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.of("v15.9.9");
 
+  /**
+   * The Constructor.
+   */
+  public NodeUrlUpdater() {
+    super(DOWNLOAD_BASE_URL);
+  }
+
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "node";
   }
@@ -40,12 +49,6 @@ public class NodeUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
-  protected String getDownloadBaseUrl() {
-
-    return "https://nodejs.org";
-  }
-
-  @Override
   protected void addVersion(UrlVersion urlVersion) {
 
     VersionIdentifier vid = urlVersion.getVersionIdentifier();
@@ -65,6 +68,13 @@ public class NodeUrlUpdater extends GithubUrlUpdater {
     }
   }
 
+
+  @Override
+  public String mapVersion(String version) {
+
+    return super.mapVersion("v" + version);
+  }
+
   @Override
   public String getCpeVendor() {
     return "nodejs";
@@ -72,19 +82,6 @@ public class NodeUrlUpdater extends GithubUrlUpdater {
 
   @Override
   public String getCpeProduct() {
-    return "node";
+    return "node.js";
   }
-
-  @Override
-  public String mapUrlVersionToCpeVersion(String version) {
-
-    return version.replaceAll("[^\\d.]", "");
-  }
-
-  @Override
-  protected String mapVersion(String version) {
-
-    return super.mapVersion("v" + version);
-  }
-
 }

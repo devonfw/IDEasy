@@ -6,7 +6,6 @@ import java.nio.file.Paths;
 import java.util.Iterator;
 
 import org.fusesource.jansi.AnsiConsole;
-import org.jline.reader.Completer;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
@@ -14,11 +13,11 @@ import org.jline.reader.MaskingCallback;
 import org.jline.reader.Parser;
 import org.jline.reader.UserInterruptException;
 import org.jline.reader.impl.DefaultParser;
-import org.jline.reader.impl.completer.AggregateCompleter;
-import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.widget.AutosuggestionWidgets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
@@ -35,9 +34,13 @@ import com.devonfw.tools.ide.property.Property;
  */
 public final class ShellCommandlet extends Commandlet {
 
+  private static final Logger LOG = LoggerFactory.getLogger(ShellCommandlet.class);
+
   private static final int AUTOCOMPLETER_MAX_RESULTS = 50;
 
   private static final int RC_EXIT = 987654321;
+
+  private static final String EXIT_COMMAND = "exit";
 
   /**
    * The constructor.
@@ -63,14 +66,12 @@ public final class ShellCommandlet extends Commandlet {
   }
 
   @Override
-  public void run() {
+  protected void doRun() {
 
     try {
       Parser parser = new DefaultParser();
       try (Terminal terminal = TerminalBuilder.builder().build()) {
-        // initialize our own completer here and add exit as an autocompletion option
-        Completer completer = new AggregateCompleter(
-            new StringsCompleter("exit"), new IdeCompleter((AbstractIdeContext) this.context));
+        IdeCompleter completer = new IdeCompleter((AbstractIdeContext) this.context);
 
         LineReader reader = LineReaderBuilder.builder().terminal(terminal).completer(completer).parser(parser)
             .variable(LineReader.LIST_MAX, AUTOCOMPLETER_MAX_RESULTS).build();
@@ -88,10 +89,11 @@ public final class ShellCommandlet extends Commandlet {
         AnsiConsole.systemInstall();
         while (true) {
           try {
-            String prompt = context.getCwd() + "$ ide ";
+            String cwdPath = String.valueOf(context.getCwd());
+            String prompt = cwdPath + (cwdPath.length() <= 80 ? "" : System.lineSeparator()) + "$ ide ";
             line = reader.readLine(prompt, rightPrompt, (MaskingCallback) null, null);
             line = line.trim();
-            if (line.equals("exit")) {
+            if (EXIT_COMMAND.equals(line)) {
               return;
             }
             reader.getHistory().add(line);
@@ -128,7 +130,7 @@ public final class ShellCommandlet extends Commandlet {
    */
   private int runCommand(String args) {
 
-    if ("exit".equals(args) || "quit".equals(args)) {
+    if (EXIT_COMMAND.equals(args) || "quit".equals(args)) {
       return RC_EXIT;
     }
     String[] arguments = args.split(" ", 0);
@@ -173,7 +175,7 @@ public final class ShellCommandlet extends Commandlet {
    */
   private boolean apply(CliArgument argument, Commandlet commandlet) {
 
-    this.context.trace("Trying to match arguments to commandlet {}", commandlet.getName());
+    LOG.trace("Trying to match arguments to commandlet {}", commandlet.getName());
     CliArgument currentArgument = argument;
     Iterator<Property<?>> valueIterator = commandlet.getValues().iterator();
     Property<?> currentProperty = null;
@@ -183,7 +185,7 @@ public final class ShellCommandlet extends Commandlet {
         endOpts = true;
       } else {
         String arg = currentArgument.get();
-        this.context.trace("Trying to match argument '{}'", currentArgument);
+        LOG.trace("Trying to match argument '{}'", currentArgument);
         if ((currentProperty != null) && (currentProperty.isExpectValue())) {
           currentProperty.setValueAsString(arg, this.context);
           if (!currentProperty.isMultiValued()) {
@@ -196,17 +198,17 @@ public final class ShellCommandlet extends Commandlet {
           }
           if (property == null) {
             if (!valueIterator.hasNext()) {
-              this.context.trace("No option or next value found");
+              LOG.trace("No option or next value found");
               return false;
             }
             currentProperty = valueIterator.next();
-            this.context.trace("Next value candidate is {}", currentProperty);
+            LOG.trace("Next value candidate is {}", currentProperty);
             if (currentProperty instanceof KeywordProperty keyword) {
               if (keyword.matches(arg)) {
                 keyword.setValue(Boolean.TRUE);
-                this.context.trace("Keyword matched");
+                LOG.trace("Keyword matched");
               } else {
-                this.context.trace("Missing keyword");
+                LOG.trace("Missing keyword");
                 return false;
               }
             } else {
@@ -219,7 +221,7 @@ public final class ShellCommandlet extends Commandlet {
               currentProperty = null;
             }
           } else {
-            this.context.trace("Found option by name");
+            LOG.trace("Found option by name");
             String value = currentArgument.getValue();
             if (value != null) {
               property.setValueAsString(value, this.context);

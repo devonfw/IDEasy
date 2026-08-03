@@ -11,7 +11,7 @@ public class JasyptUrlUpdater extends MavenBasedUrlUpdater {
   public static final VersionIdentifier MIN_VERSION = VersionIdentifier.of("1.9.3");
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "jasypt";
   }
@@ -28,15 +28,6 @@ public class JasyptUrlUpdater extends MavenBasedUrlUpdater {
     return "jasypt";
   }
 
-  @Override
-  public String getCpeVendor() {
-    return "jasypt";
-  }
-
-  @Override
-  public String getCpeProduct() {
-    return "jasypt";
-  }
 
   @Override
   public boolean isValidVersion(String version) {
@@ -46,6 +37,16 @@ public class JasyptUrlUpdater extends MavenBasedUrlUpdater {
       return artifactVersion.isGreaterOrEqual(MIN_VERSION);
     }
     return false;
+  }
+
+  @Override
+  public String getCpeVendor() {
+    return "jasypt_project";
+  }
+
+  @Override
+  public String getCpeProduct() {
+    return "jasypt";
   }
 
 }

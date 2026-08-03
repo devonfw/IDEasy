@@ -13,9 +13,8 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 
-/** Integration test of {@link EditionGetCommandlet}. */
-
-public class EditionGetCommandletTest extends AbstractIdeContextTest {
+/** Test of {@link EditionGetCommandlet}. */
+class EditionGetCommandletTest extends AbstractIdeContextTest {
 
   private static final String PROJECT = "edition-version-get-uninstall";
 
@@ -35,7 +34,7 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
 
   /** Test of {@link EditionGetCommandlet} run. */
   @Test
-  public void testEditionGetCommandletRunWithoutFlagsAndNotInstalled() {
+  void testEditionGetCommandletRunWithoutFlagsAndNotInstalled() {
 
     // arrange
     String tool = "gh";
@@ -54,7 +53,7 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
 
   /** Test of {@link VersionGetCommandlet} run with --configured flag and installed tool */
   @Test
-  public void testEditionGetCommandletConfiguredEditionAndInstalled() {
+  void testEditionGetCommandletConfiguredEditionAndInstalled() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT, null, false);
@@ -69,7 +68,7 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
 
   /** Test of {@link VersionGetCommandlet} run with --configured flag and not installed tool but set 'basic' edition for TOMCAT_EDITION in ide.properties */
   @Test
-  public void testEditionGetCommandletNotInstalledConfiguredEdition() {
+  void testEditionGetCommandletNotInstalledConfiguredEdition() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT, null, false);
@@ -84,7 +83,7 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
 
   /** Test of {@link VersionGetCommandlet} run with --configured flag but tool was not installed */
   @Test
-  public void testEditionGetCommandletConfiguredEditionButNotInstalled() {
+  void testEditionGetCommandletConfiguredEditionButNotInstalled() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT, null, false);
@@ -99,7 +98,7 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
 
   /** Test of {@link EditionGetCommandlet} run, when tool is not installed but --installed flag was used and --configured was not used. */
   @Test
-  public void testEditionGetCommandletToolNotInstalledButInstalledFlagInUseThrowsException() {
+  void testEditionGetCommandletToolNotInstalledButInstalledFlagInUseThrowsException() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT, null, false);
@@ -112,7 +111,7 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
 
   /** Test of {@link EditionGetCommandlet} run, with --installed flag, when tool is installed. */
   @Test
-  public void testEditionGetCommandletInstalledEditionToolInstalled() {
+  void testEditionGetCommandletInstalledEditionToolInstalled() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT, null, false);
@@ -127,7 +126,7 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
 
   /** Test of {@link EditionGetCommandlet} run, with --installed and --configured flag, when tool is not installed. */
   @Test
-  public void testEditionGetCommandletInstalledConfiguredEditionToolNotInstalled() {
+  void testEditionGetCommandletInstalledConfiguredEditionToolNotInstalled() {
 
     // arrange
     String tool = "tomcat";

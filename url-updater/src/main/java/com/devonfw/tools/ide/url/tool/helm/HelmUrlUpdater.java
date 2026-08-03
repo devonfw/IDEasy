@@ -1,18 +1,27 @@
 package com.devonfw.tools.ide.url.tool.helm;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link GithubUrlUpdater} for "helm".
+ * {@link GithubUrlTagUpdater} for "helm".
  */
-public class HelmUrlUpdater extends GithubUrlUpdater {
+public class HelmUrlUpdater extends GithubUrlTagUpdater {
+
+  private static final String DOWNLOAD_BASE_URL = "https://get.helm.sh";
 
   private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.of("3.4.0");
 
+  /**
+   * The Constructor.
+   */
+  public HelmUrlUpdater() {
+    super(DOWNLOAD_BASE_URL);
+  }
+
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "helm";
   }
@@ -30,36 +39,6 @@ public class HelmUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
-  protected String getDownloadBaseUrl() {
-
-    return "https://get.helm.sh";
-  }
-
-  @Override
-  public String getCpeVendor() {
-
-    return "helm";
-  }
-
-  @Override
-  public String getCpeProduct() {
-
-    return "helm";
-  }
-
-  @Override
-  public String mapUrlVersionToCpeVersion(String version) {
-
-    return version.substring(getVersionPrefixToRemove().length());
-  }
-
-  @Override
-  public String mapCpeVersionToUrlVersion(String version) {
-
-    return getVersionPrefixToRemove() + version;
-  }
-
-  @Override
   protected void addVersion(UrlVersion urlVersion) {
 
     VersionIdentifier vid = urlVersion.getVersionIdentifier();
@@ -74,10 +53,21 @@ public class HelmUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
-  protected String mapVersion(String version) {
+  public String mapVersion(String version) {
 
     return super.mapVersion("v" + version);
   }
 
+  @Override
+  public String getCpeVendor() {
+
+    return "helm";
+  }
+
+  @Override
+  public String getCpeProduct() {
+
+    return "helm";
+  }
 
 }

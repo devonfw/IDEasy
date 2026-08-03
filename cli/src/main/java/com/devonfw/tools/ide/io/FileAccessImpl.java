@@ -7,12 +7,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Writer;
-import java.net.URI;
 import java.net.http.HttpClient.Version;
 import java.net.http.HttpResponse;
-import java.nio.file.FileSystem;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystemException;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
@@ -29,10 +27,11 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -43,16 +42,22 @@ import java.util.stream.Stream;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveOutputStream;
+import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
+import org.apache.commons.compress.archivers.sevenz.SevenZFile;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
+import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.apache.commons.compress.compressors.gzip.GzipParameters;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.cli.CliException;
-import com.devonfw.tools.ide.cli.CliOfflineException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.ini.IniComment;
 import com.devonfw.tools.ide.io.ini.IniFile;
@@ -71,13 +76,13 @@ import com.devonfw.tools.ide.variable.IdeVariables;
  */
 public class FileAccessImpl extends HttpDownloader implements FileAccess {
 
+  private static final Logger LOG = LoggerFactory.getLogger(FileAccessImpl.class);
+
   private static final String WINDOWS_FILE_LOCK_DOCUMENTATION_PAGE = "https://github.com/devonfw/IDEasy/blob/main/documentation/windows-file-lock.adoc";
 
   private static final String WINDOWS_FILE_LOCK_WARNING =
       "On Windows, file operations could fail due to file locks. Please ensure the files in the moved directory are not in use. For further details, see: \n"
           + WINDOWS_FILE_LOCK_DOCUMENTATION_PAGE;
-
-  private static final Map<String, String> FS_ENV = Map.of("encoding", "UTF-8");
 
   private final IdeContext context;
 
@@ -95,9 +100,6 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   @Override
   public void download(String url, Path target) {
 
-    if (this.context.isOffline()) {
-      throw CliOfflineException.ofDownloadViaUrl(url);
-    }
     if (url.startsWith("http")) {
       downloadViaHttp(url, target);
     } else if (url.startsWith("ftp") || url.startsWith("sftp")) {
@@ -140,12 +142,16 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   private void downloadWithHttpVersion(String url, Path target, Version httpVersion) throws Exception {
 
     if (httpVersion == null) {
-      this.context.info("Trying to download {} from {}", target.getFileName(), url);
+      LOG.info("Trying to download {} from {}", target.getFileName(), url);
     } else {
-      this.context.info("Trying to download: {} with HTTP protocol version: {}", url, httpVersion);
+      LOG.info("Trying to download {} from {} with HTTP protocol version {}", target.getFileName(), url, httpVersion);
     }
     mkdirs(target.getParent());
-    httpGet(url, httpVersion, (response) -> downloadFileWithProgressBar(url, target, response));
+    this.context.getNetworkStatus().invokeNetworkTask(() ->
+    {
+      httpGet(url, httpVersion, (response) -> downloadFileWithProgressBar(url, target, response));
+      return null;
+    }, url);
   }
 
   /**
@@ -159,7 +165,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
 
     long contentLength = response.headers().firstValueAsLong("content-length").orElse(-1);
     if (contentLength < 0) {
-      this.context.warning("Content-Length was not provided by download from {}", url);
+      LOG.warn("Content-Length was not provided by download from {}", url);
     }
 
     byte[] data = new byte[1024];
@@ -210,7 +216,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   @Override
   public String download(String url) {
 
-    this.context.debug("Downloading text body from {}", url);
+    LOG.debug("Downloading text body from {}", url);
     return httpGetAsString(url);
   }
 
@@ -220,7 +226,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     if (Files.isDirectory(directory)) {
       return;
     }
-    this.context.trace("Creating directory {}", directory);
+    LOG.trace("Creating directory {}", directory);
     try {
       Files.createDirectories(directory);
     } catch (IOException e) {
@@ -232,11 +238,11 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   public boolean isFile(Path file) {
 
     if (!Files.exists(file)) {
-      this.context.trace("File {} does not exist", file);
+      LOG.trace("File {} does not exist", file);
       return false;
     }
     if (Files.isDirectory(file)) {
-      this.context.trace("Path {} is a directory but a regular file was expected", file);
+      LOG.trace("Path {} is a directory but a regular file was expected", file);
       return false;
     }
     return true;
@@ -248,7 +254,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     if (Files.isDirectory(folder)) {
       return true;
     }
-    this.context.warning("Expected folder was not found at {}", folder);
+    LOG.warn("Expected folder was not found at {}", folder);
     return false;
   }
 
@@ -286,8 +292,15 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     } catch (NoSuchFileException e) {
       return false; // file doesn't exist
     } catch (IOException e) {
-      // errors in reading the attributes of the file
-      throw new IllegalStateException("An unexpected error occurred whilst checking if the file: " + path + " is a junction", e);
+      // For broken junctions, reading attributes might fail with various IOExceptions.
+      // In such cases, we should check if the path exists without following links.
+      // If it exists but we can't read its attributes, it's likely a broken junction.
+      if (Files.exists(path, LinkOption.NOFOLLOW_LINKS)) {
+        LOG.debug("Path {} exists but attributes cannot be read, likely a broken junction: {}", path, e.getMessage());
+        return true; // Assume it's a broken junction
+      }
+      // If it doesn't exist at all, it's not a junction
+      return false;
     }
   }
 
@@ -297,19 +310,24 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     if ((fileOrFolder != null) && (Files.isSymbolicLink(fileOrFolder) || isJunction(fileOrFolder))) {
       delete(fileOrFolder);
     } else if ((fileOrFolder != null) && Files.exists(fileOrFolder)) {
+      LOG.trace("Going to backup {}", fileOrFolder);
       LocalDateTime now = LocalDateTime.now();
       String date = DateTimeUtil.formatDate(now, true);
       String time = DateTimeUtil.formatTime(now);
       String filename = fileOrFolder.getFileName().toString();
-      Path backupPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_BACKUPS).resolve(date).resolve(time + "_" + filename);
+      Path backupBaseDir = this.context.getIdeHome();
+      if (backupBaseDir == null) {
+        backupBaseDir = this.context.getIdePath();
+      }
+      Path backupPath = backupBaseDir.resolve(IdeContext.FOLDER_BACKUPS).resolve(date).resolve(time + "_" + filename);
       backupPath = appendParentPath(backupPath, fileOrFolder.getParent(), 2);
       mkdirs(backupPath);
       Path target = backupPath.resolve(filename);
-      this.context.info("Creating backup by moving {} to {}", fileOrFolder, target);
+      LOG.info("Creating backup by moving {} to {}", fileOrFolder, target);
       move(fileOrFolder, target);
       return target;
     } else {
-      this.context.trace("Backup of {} skipped as the path does not exist.", fileOrFolder);
+      LOG.trace("Backup of {} skipped as the path does not exist.", fileOrFolder);
     }
     return fileOrFolder;
   }
@@ -325,7 +343,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   @Override
   public void move(Path source, Path targetDir, StandardCopyOption... copyOptions) {
 
-    this.context.trace("Moving {} to {}", source, targetDir);
+    LOG.trace("Moving {} to {}", source, targetDir);
     try {
       Files.move(source, targetDir, copyOptions);
     } catch (IOException e) {
@@ -358,12 +376,12 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     boolean fileOnly = mode.isFileOnly();
     String operation = mode.getOperation();
     if (mode.isExtract()) {
-      this.context.debug("Starting to {} to {}", operation, target);
+      LOG.debug("Starting to {} to {}", operation, target);
     } else {
       if (fileOnly) {
-        this.context.debug("Starting to {} file {} to {}", operation, source, target);
+        LOG.debug("Starting to {} file {} to {}", operation, source, target);
       } else {
-        this.context.debug("Starting to {} {} recursively to {}", operation, source, target);
+        LOG.debug("Starting to {} {} recursively to {}", operation, source, target);
       }
     }
     if (fileOnly && Files.isDirectory(source)) {
@@ -399,7 +417,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       if (mode.isOverride()) {
         delete(target);
       }
-      this.context.trace("Starting to {} {} to {}", mode.getOperation(), source, target);
+      LOG.trace("Starting to {} {} to {}", mode.getOperation(), source, target);
       Files.copy(source, target);
       listener.onCopy(source, target, false);
     } else {
@@ -408,114 +426,210 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   }
 
   /**
-   * Deletes the given {@link Path} if it is a symbolic link or a Windows junction. And throws an {@link IllegalStateException} if there is a file at the given
-   * {@link Path} that is neither a symbolic link nor a Windows junction.
+   * Deletes the given {@link Path} if it is a symbolic link or a Windows junction or hard link. And throws an {@link IllegalStateException} if it fails to
+   * delete the file at the given {@link Path}.
    *
    * @param path the {@link Path} to delete.
    */
   private void deleteLinkIfExists(Path path) {
 
     boolean isJunction = isJunction(path); // since broken junctions are not detected by Files.exists()
-    boolean isSymlink = Files.exists(path) && Files.isSymbolicLink(path);
+    boolean exists = Files.exists(path, LinkOption.NOFOLLOW_LINKS);
 
-    assert !(isSymlink && isJunction);
-
-    if (isJunction || isSymlink) {
-      this.context.info("Deleting previous " + (isJunction ? "junction" : "symlink") + " at " + path);
+    if (isJunction || exists) {
+      LOG.info("Deleting previous link or file at " + path);
       try {
         Files.delete(path);
       } catch (IOException e) {
-        throw new IllegalStateException("Failed to delete link at " + path, e);
+        throw new IllegalStateException("Failed to delete link or file at " + path, e);
       }
     }
   }
 
   /**
-   * Adapts the given {@link Path} to be relative or absolute depending on the given {@code relative} flag. Additionally, {@link Path#toRealPath(LinkOption...)}
-   * is applied to {@code target}.
+   * Computes the relative target {@link Path} to use for a relative symbolic link at {@code link} pointing to {@code source}.
    *
-   * @param target the {@link Path} the link should point to and that is to be adapted.
-   * @param link the {@link Path} to the link. It is used to calculate the relative path to the {@code target} if {@code relative} is set to {@code true}.
-   * @param relative the {@code relative} flag.
-   * @return the adapted {@link Path}.
-   * @see #symlink(Path, Path, boolean)
+   * @param source the {@link Path} the link should point to.
+   * @param link the absolute, normalized destination {@link Path} of the link.
+   * @return the relative {@link Path} from the parent of {@code link} to {@code source}.
    */
-  private Path adaptPath(Path target, Path link, boolean relative) {
+  private Path relativizeSource(Path source, Path link) {
 
-    if (!target.isAbsolute()) {
-      target = link.resolveSibling(target);
+    if (!source.isAbsolute()) {
+      source = link.resolveSibling(source);
     }
-    try {
-      target = target.toRealPath(LinkOption.NOFOLLOW_LINKS); // to transform ../d1/../d2 to ../d2
-    } catch (IOException e) {
-      throw new RuntimeException("Failed to get real path of " + target, e);
-    }
-    if (relative) {
-      target = link.getParent().relativize(target);
-      // to make relative links like this work: dir/link -> dir
-      target = (target.toString().isEmpty()) ? Path.of(".") : target;
-    }
-    return target;
+    source = source.toAbsolutePath().normalize();
+    return preserveSelfReference(link.getParent().relativize(source));
   }
 
   /**
-   * Creates a Windows link using mklink at {@code link} pointing to {@code target}.
-   *
-   * @param target the {@link Path} the link will point to.
-   * @param link the {@link Path} where to create the link.
-   * @param type the {@link PathLinkType}.
+   * {@link Path#normalize()} and {@link Path#relativize(Path)} can produce the empty path when the result would be the current directory. {@code "."} is the
+   * usable equivalent for a symbolic link target.
    */
-  private void mklinkOnWindows(Path target, Path link, PathLinkType type) {
+  private static Path preserveSelfReference(Path path) {
 
-    this.context.trace("Creating a Windows {} at {} pointing to {}", type, link, target);
-    ProcessContext pc = this.context.newProcess().executable("cmd").addArgs("/c", "mklink", type.getMklinkOption());
-    Path parent = link.getParent();
-    if (parent == null) {
-      parent = Path.of(".");
+    return path.toString().isEmpty() ? Path.of(".") : path;
+  }
+
+  /**
+   * Creates a junction with mklink as fallback at {@code link} pointing to {@code target}
+   *
+   * @param source the {@link Path} the link will point to.
+   * @param link the {@link Path} where to create the link.
+   */
+  private void mklinkOnWindows(Path source, Path absoluteSource, Path link, boolean relative) {
+
+    Path finalSource = absoluteSource;
+    Path finalLink = link;
+    Path cwd = null;
+    if (relative) {
+      int count = getCommonNameCount(absoluteSource, link);
+      if (count < 1) {
+        LOG.error("Cannot create relative link at {} pointing to {} - falling back to absolute link", link, absoluteSource);
+      } else {
+        cwd = getPathStart(absoluteSource, count - 1);
+        finalSource = getPathEnd(absoluteSource, count);
+        finalLink = getPathEnd(link, count);
+      }
     }
-    Path absolute = parent.resolve(target).toAbsolutePath().normalize();
-    if (type == PathLinkType.SYMBOLIC_LINK && Files.isDirectory(absolute)) {
-      pc = pc.addArg("/j");
-      target = absolute;
+
+    if (!runMklink(finalSource, finalLink, cwd)) {
+      throw new IllegalStateException("Failed to create Windows link at " + link + " pointing to " + source);
     }
-    pc = pc.addArgs(link.toString(), target.toString());
-    ProcessResult result = pc.run(ProcessMode.DEFAULT);
-    result.failOnError();
+  }
+
+  private boolean runMklink(Path source, Path link, Path cwd) {
+
+    String option = "/j";
+    LOG.trace("Creating a Windows link with mklink {} at {} pointing to {}", option, link, source);
+    ProcessContext pc = this.context.newProcess().executable("cmd").addArgs("/c", "mklink", option);
+    if (cwd != null) {
+      pc.directory(cwd);
+    }
+    try {
+      ProcessContext context = pc.addArgs(link.toString(), source.toString());
+      ProcessResult result = context.run(ProcessMode.DEFAULT);
+      result.failOnError();
+      return true;
+    } catch (RuntimeException e) {
+      LOG.debug("mklink {} failed for {} -> {}: {}", option, link, source, e.getMessage());
+      return false;
+    }
   }
 
   @Override
-  public void link(Path target, Path link, boolean relative, PathLinkType type) {
-
-    final Path finalTarget;
-    try {
-      finalTarget = adaptPath(target, link, relative);
-    } catch (Exception e) {
-      throw new IllegalStateException("Failed to adapt target (" + target + ") for link (" + link + ") and relative (" + relative + ")", e);
-    }
-    String relativeOrAbsolute = finalTarget.isAbsolute() ? "absolute" : "relative";
-    this.context.debug("Creating {} {} at {} pointing to {}", relativeOrAbsolute, type, link, finalTarget);
+  public PathLinkType link(Path source, Path link, boolean relative, PathLinkType type) {
+    PathLinkType resultingPathLinkType = null;
+    Path absoluteLink = link.toAbsolutePath().normalize();
+    // Keep this lexical only: archive symlinks may point through links that are created later.
+    Path finalSource = relative ? relativizeSource(source, absoluteLink) : preserveSelfReference(source.normalize());
+    Path absoluteSource = finalSource.isAbsolute() ? finalSource : absoluteLink.getParent().resolve(finalSource).normalize();
+    LOG.debug("Creating {} at {} pointing to {} (relative={})", type, link, finalSource, relative);
     deleteLinkIfExists(link);
     try {
+      // Attention: JavaDoc and position of path arguments can be very confusing - see comment in #1736
       if (type == PathLinkType.SYMBOLIC_LINK) {
-        Files.createSymbolicLink(link, finalTarget);
+        Files.createSymbolicLink(link, finalSource);
+        resultingPathLinkType = PathLinkType.SYMBOLIC_LINK;
       } else if (type == PathLinkType.HARD_LINK) {
-        Files.createLink(link, finalTarget);
+        Files.createLink(link, absoluteSource);
+        resultingPathLinkType = PathLinkType.HARD_LINK;
       } else {
         throw new IllegalStateException("" + type);
       }
     } catch (FileSystemException e) {
+      LOG.debug("Failed to create link of type {} for {} at {}.", type, source, link);
       if (SystemInfoImpl.INSTANCE.isWindows()) {
-        this.context.info(
-            "Due to lack of permissions, Microsoft's mklink with junction had to be used to create a Symlink. See\n"
-                + "https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for further details. Error was: "
-                + e.getMessage());
-        mklinkOnWindows(finalTarget, link, type);
+        if (Files.isDirectory(absoluteSource)) {
+          LOG.warn(
+            "Due to lack of permissions, Microsoft's mklink with junction has to be used to create the link. "
+              + "See https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for further details. "
+              + "Error was: " + e.getMessage());
+          mklinkOnWindows(finalSource, absoluteSource, absoluteLink, relative);
+          LOG.debug("Created junction with mklink as fallback for link to directory.");
+        } else {
+          LOG.warn(
+            "Due to lack of permissions, a hard link has to be used instead of a symbolic link. "
+              + "See https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for further details. "
+              + "Error was: " + e.getMessage());
+          createHardLink(absoluteSource, link);
+          resultingPathLinkType = PathLinkType.HARD_LINK;
+          LOG.debug("Created hard link as fallback for link to file.");
+        }
       } else {
         throw new RuntimeException(e);
       }
     } catch (IOException e) {
-      throw new IllegalStateException("Failed to create a " + relativeOrAbsolute + " " + type + " at " + link + " pointing to " + target, e);
+      throw new IllegalStateException("Failed to create " + type + " at " + link + " pointing to " + source + " (relative=" + relative + ")", e);
     }
+    return resultingPathLinkType;
+  }
+
+
+  /**
+   * Creates a hard link at {@code link} pointing to {@code source}.
+   *
+   * @param source the {@link Path} the hard link will point to.
+   * @param link the {@link Path} where to create the hard link.
+   */
+  void createHardLink(Path source, Path link) {
+    try {
+      Files.createLink(link, source);
+      LOG.trace("Created hard link at {} pointing to {}", link, source);
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to create a hardlink for " + source + " at " + link, e);
+    }
+  }
+
+  @Override
+  public Path getPathStart(Path path, int nameEnd) {
+
+    int count = path.getNameCount();
+    int delta = count - nameEnd - 1;
+    if (delta < 0) {
+      throw new IllegalArgumentException("Cannot get start before segment " + nameEnd + " from path " + path + " that has only " + count + " segments.");
+    }
+    Path result = path;
+    while (delta > 0) {
+      result = result.getParent();
+      delta--;
+    }
+    return result;
+  }
+
+  @Override
+  public Path getPathEnd(Path path, int nameStart) {
+
+    int count = path.getNameCount();
+    if (nameStart > count) {
+      throw new IllegalArgumentException("Cannot get end after segment " + nameStart + " from path " + path + " that has only " + count + " segments.");
+    } else if (nameStart == count) {
+      return Path.of(".");
+    }
+    Path result = path.getName(nameStart++);
+    while (nameStart < count) {
+      result = result.resolve(path.getName(nameStart++));
+    }
+    return result;
+  }
+
+  @Override
+  public int getCommonNameCount(Path path1, Path path2) {
+
+    if ((path1 == null) || (path2 == null) || !Objects.equals(path1.getRoot(), path2.getRoot())) {
+      return -1;
+    }
+    int minNameCount = Math.min(path1.getNameCount(), path2.getNameCount());
+    int i = 0;
+    while (i < minNameCount) {
+      Path segment1 = path1.getName(i);
+      Path segment2 = path2.getName(i);
+      if (!segment1.equals(segment2)) {
+        break;
+      }
+      i++;
+    }
+    return i;
   }
 
   @Override
@@ -540,7 +654,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
         realPath = path.toRealPath(LinkOption.NOFOLLOW_LINKS);
       }
       if (!realPath.equals(path)) {
-        this.context.trace("Resolved path {} to {}", path, realPath);
+        LOG.trace("Resolved path {} to {}", path, realPath);
       }
       return realPath;
     } catch (IOException e) {
@@ -573,7 +687,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   public void extract(Path archiveFile, Path targetDir, Consumer<Path> postExtractHook, boolean extract) {
 
     if (Files.isDirectory(archiveFile)) {
-      this.context.warning("Found directory for download at {} hence copying without extraction!", archiveFile);
+      LOG.warn("Found directory for download at {} hence copying without extraction!", archiveFile);
       copy(archiveFile, targetDir, FileCopyMode.COPY_TREE_CONTENT);
       postExtractHook(postExtractHook, targetDir);
       return;
@@ -583,7 +697,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       return;
     }
     Path tmpDir = createTempDir("extract-" + archiveFile.getFileName());
-    this.context.trace("Trying to extract the downloaded file {} to {} and move it to {}.", archiveFile, tmpDir, targetDir);
+    LOG.trace("Trying to extract the file {} to {} and move it to {}.", archiveFile, tmpDir, targetDir);
     String filename = archiveFile.getFileName().toString();
     TarCompression tarCompression = TarCompression.of(filename);
     if (tarCompression != null) {
@@ -593,7 +707,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       if (extension == null) {
         throw new IllegalStateException("Unknown archive format without extension - can not extract " + archiveFile);
       } else {
-        this.context.trace("Determined file extension {}", extension);
+        LOG.trace("Determined file extension {}", extension);
       }
       switch (extension) {
         case "zip" -> extractZip(archiveFile, tmpDir);
@@ -601,6 +715,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
         case "dmg" -> extractDmg(archiveFile, tmpDir);
         case "msi" -> extractMsi(archiveFile, tmpDir);
         case "pkg" -> extractPkg(archiveFile, tmpDir);
+        case "7z" -> extract7z(archiveFile, tmpDir);
         default -> throw new IllegalStateException("Unknown archive format " + extension + ". Can not extract " + archiveFile);
       }
     }
@@ -644,40 +759,130 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   @Override
   public void extractZip(Path file, Path targetDir) {
 
-    this.context.info("Extracting ZIP file {} to {}", file, targetDir);
-    URI uri = URI.create("jar:" + file.toUri());
-    try (FileSystem fs = FileSystems.newFileSystem(uri, FS_ENV)) {
-      long size = 0;
-      for (Path root : fs.getRootDirectories()) {
-        size += getFileSizeRecursive(root);
-      }
-      try (final IdeProgressBar progressBar = this.context.newProgressbarForExtracting(size)) {
-        for (Path root : fs.getRootDirectories()) {
-          copy(root, targetDir, FileCopyMode.EXTRACT, (s, t, d) -> onFileCopiedFromZip(s, t, d, progressBar));
+    LOG.info("Extracting ZIP file {} to {}", file, targetDir);
+    extractZipWithJava(file, targetDir);
+  }
+
+  /**
+   * Extracts a ZIP archive to the given target directory using Java (commons-compress {@link ZipFile}).
+   * <p>
+   * Symlinks are handled in a two-phase approach: all regular files and directories are written first, and symlinks are collected and created afterwards.
+   * Creating the links does not require resolving their targets, so chained macOS {@code .framework} links can be restored.
+   * <p>
+   * {@link ZipFile} is used instead of {@link org.apache.commons.compress.archivers.zip.ZipArchiveInputStream} because Unix file attributes (needed for symlink
+   * detection and permission restoration) are stored in the ZIP central directory at the end of the file. A sequential stream only sees the local file headers,
+   * where external attributes are always zero. {@link ZipFile} reads the central directory via random access, so attributes are always correct.
+   *
+   * @param file the ZIP archive to extract.
+   * @param targetDir the directory to extract into.
+   */
+  private void extractZipWithJava(Path file, Path targetDir) {
+
+    final List<PathLink> links = new ArrayList<>();
+    try (ZipFile zipFile = ZipFile.builder().setPath(file).get();
+        IdeProgressBar pb = this.context.newProgressbarForExtracting(getFileSize(file))) {
+
+      final Path root = targetDir.toAbsolutePath().normalize();
+      Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
+
+      while (entries.hasMoreElements()) {
+        ZipArchiveEntry entry = entries.nextElement();
+        String entryName = entry.getName();
+        Path entryPath = resolveRelativePathSecure(entryName, root);
+
+        if (isZipSymlink(entry)) {
+          try (InputStream entryStream = zipFile.getInputStream(entry)) {
+            // for a symlink entry the file content is the link target path (Unix ZIP convention)
+            String linkTarget = IOUtils.toString(entryStream, StandardCharsets.UTF_8);
+            Path parent = entryPath.getParent();
+            resolveRelativePathSecure(parent.resolve(linkTarget).normalize(), root, linkTarget);
+            // preserve the raw target so chained links resolve once the bundle is fully extracted
+            links.add(new PathLink(Path.of(linkTarget), entryPath, PathLinkType.SYMBOLIC_LINK));
+            mkdirs(parent);
+          }
+        } else if (entry.isDirectory()) {
+          mkdirs(entryPath);
+        } else {
+          mkdirs(entryPath.getParent());
+          try (InputStream entryStream = zipFile.getInputStream(entry)) {
+            Files.copy(entryStream, entryPath, StandardCopyOption.REPLACE_EXISTING);
+          }
+          onFileCopiedFromZip(entry, entryPath);
         }
+        pb.stepBy(Math.max(0L, entry.getSize()));
+      }
+
+      // Phase 2: create all symlinks after regular files and directories have been extracted.
+      for (PathLink link : links) {
+        link(link);
       }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
     }
   }
 
-  @SuppressWarnings("unchecked")
-  private void onFileCopiedFromZip(Path source, Path target, boolean directory, IdeProgressBar progressBar) {
+  /**
+   * Returns the Unix file mode stored in the external file attributes of the given ZIP entry.
+   * <p>
+   * The ZIP specification stores platform-specific metadata in a 32-bit external-attributes field. When the archive was created on a Unix system the layout
+   * is:
+   * <ul>
+   *   <li>bits 31–16 (upper 16 bits): Unix file mode (same bit layout as {@code stat.st_mode})</li>
+   *   <li>bits 15–0 (lower 16 bits): MS-DOS attributes (read-only, hidden, …)</li>
+   * </ul>
+   * Shifting right by 16 and masking with {@code 0xFFFF} isolates the Unix mode.
+   *
+   * @param entry the ZIP entry to read.
+   * @return the Unix file mode, or {@code 0} if no Unix attributes are present.
+   */
+  private static int getZipUnixMode(ZipArchiveEntry entry) {
 
-    if (directory) {
-      return;
-    }
+    // Right-shift by 16 to move the upper 16 bits (Unix mode) into the lower 16 bits, then
+    // mask with 0xFFFF to discard any sign-extended bits introduced by the cast.
+    return (int) ((entry.getExternalAttributes() >> 16) & 0xFFFF);
+  }
+
+  /**
+   * Returns {@code true} if the given ZIP entry represents a symbolic link.
+   * <p>
+   * Unix file modes encode the file type in the top 4 bits (bits 15–12) of the mode word. The possible file-type values are defined in {@code <sys/stat.h>}:
+   * <ul>
+   *   <li>{@code 0x8000} – regular file ({@code S_IFREG})</li>
+   *   <li>{@code 0x4000} – directory ({@code S_IFDIR})</li>
+   *   <li>{@code 0xA000} – symbolic link ({@code S_IFLNK})</li>
+   * </ul>
+   * Masking with {@code 0xF000} isolates those top 4 bits and comparing against {@code 0xA000} identifies symlinks.
+   *
+   * @param entry the ZIP entry to test.
+   * @return {@code true} if the entry is a symbolic link, {@code false} otherwise.
+   */
+  private static boolean isZipSymlink(ZipArchiveEntry entry) {
+
+    // 0xF000 masks the file-type nibble; 0xA000 is the Unix S_IFLNK constant.
+    return (getZipUnixMode(entry) & 0xF000) == 0xA000;
+  }
+
+  /**
+   * Applies Unix file permissions stored in a ZIP entry to the extracted file.
+   * <p>
+   * Permissions are only applied on non-Windows systems because POSIX permission bits have no equivalent on Windows. If the entry carries no Unix attributes
+   * (mode is {@code 0}), the call is a no-op.
+   *
+   * @param entry the source ZIP entry carrying the Unix mode.
+   * @param target the extracted file whose permissions should be updated.
+   */
+  private void onFileCopiedFromZip(ZipArchiveEntry entry, Path target) {
+
     if (!this.context.getSystemInfo().isWindows()) {
       try {
-        Object attribute = Files.getAttribute(source, "zip:permissions");
-        if (attribute instanceof Set<?> permissionSet) {
-          Files.setPosixFilePermissions(target, (Set<PosixFilePermission>) permissionSet);
+        int unixMode = getZipUnixMode(entry);
+        if (unixMode != 0) {
+          Files.setPosixFilePermissions(target, PathPermissions.of(unixMode).toPosix());
         }
       } catch (Exception e) {
-        this.context.error(e, "Failed to transfer zip permissions for {}", target);
+        LOG.error("Failed to transfer zip permissions for {}", target, e);
       }
     }
-    progressBar.stepBy(getFileSize(target));
   }
 
   @Override
@@ -713,7 +918,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
 
   private void extractArchive(Path file, Path targetDir, Function<InputStream, ArchiveInputStream<?>> unpacker) {
 
-    this.context.info("Extracting TAR file {} to {}", file, targetDir);
+    LOG.info("Extracting TAR file {} to {}", file, targetDir);
 
     final List<PathLink> links = new ArrayList<>();
     try (InputStream is = Files.newInputStream(file);
@@ -738,10 +943,12 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
             permissions = PathPermissions.of(tae.getMode());
           } else {
             Path parent = entryPath.getParent();
-            String linkName = tae.getLinkName();
-            Path linkTarget = parent.resolve(linkName).normalize();
-            Path target = resolveRelativePathSecure(linkTarget, root, linkName);
-            links.add(new PathLink(entryPath, target, linkType));
+            String sourcePathString = tae.getLinkName();
+            Path absoluteSource = resolveRelativePathSecure(parent.resolve(sourcePathString).normalize(), root, sourcePathString);
+            // symlink: preserve the raw target so chained links resolve once the bundle is fully extracted.
+            // hardlink: pass the resolved absolute source - createHardLink requires an existing file.
+            Path linkSource = linkType == PathLinkType.SYMBOLIC_LINK ? Path.of(sourcePathString) : absoluteSource;
+            links.add(new PathLink(linkSource, entryPath, linkType));
             mkdirs(parent);
           }
         }
@@ -768,6 +975,10 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   }
 
   private Path resolveRelativePathSecure(String entryName, Path root) {
+    // Handle ZIP entries with absolute paths (e.g. "/bin/java") by converting them to relative paths
+    if (entryName != null && entryName.startsWith("/")) {
+      entryName = entryName.substring(1);
+    }
 
     Path entryPath = root.resolve(entryName).normalize();
     return resolveRelativePathSecure(entryPath, root, entryName);
@@ -784,7 +995,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   @Override
   public void extractDmg(Path file, Path targetDir) {
 
-    this.context.info("Extracting DMG file {} to {}", file, targetDir);
+    LOG.info("Extracting DMG file {} to {}", file, targetDir);
     assert this.context.getSystemInfo().isMac();
 
     Path mountPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_VOLUME);
@@ -806,7 +1017,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   @Override
   public void extractMsi(Path file, Path targetDir) {
 
-    this.context.info("Extracting MSI file {} to {}", file, targetDir);
+    LOG.info("Extracting MSI file {} to {}", file, targetDir);
     this.context.newProcess().executable("msiexec").addArgs("/a", file, "/qn", "TARGETDIR=" + targetDir).run();
     // msiexec also creates a copy of the MSI
     Path msiCopy = targetDir.resolve(file.getFileName());
@@ -816,20 +1027,104 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   @Override
   public void extractPkg(Path file, Path targetDir) {
 
-    this.context.info("Extracting PKG file {} to {}", file, targetDir);
+    LOG.info("Extracting PKG file {} to {}", file, targetDir);
+    assert this.context.getSystemInfo().isMac();
     Path tmpDirPkg = createTempDir("ide-pkg-");
     ProcessContext pc = this.context.newProcess();
-    // we might also be able to use cpio from commons-compression instead of external xar...
     pc.executable("xar").addArgs("-C", tmpDirPkg, "-xf", file).run();
     Path contentPath = findFirst(tmpDirPkg, p -> p.getFileName().toString().equals("Payload"), true);
-    extractTar(contentPath, targetDir, TarCompression.GZ);
+    extractPkgPayloadWithSystemTar(contentPath, targetDir);
     delete(tmpDirPkg);
   }
 
-  @Override
-  public void compress(Path dir, OutputStream out, String format) {
+  private void extractPkgPayloadWithSystemTar(Path payload, Path targetDir) {
 
-    String extension = FilenameUtil.getExtension(format);
+    mkdirs(targetDir);
+    ProcessContext pc = this.context.newProcess();
+    pc.executable("/usr/bin/tar");
+    pc.addArgs("-xf", payload, "-C", targetDir);
+    pc.run();
+  }
+
+  @Override
+  public void extract7z(Path file, Path targetDir) {
+
+    LOG.info("Extracting 7z file {} to {}", file, targetDir);
+    List<PathLink> links = new ArrayList<>();
+    byte[] buffer = new byte[8192];
+    Path root = targetDir.toAbsolutePath().normalize();
+    try (SevenZFile sevenZFile = SevenZFile.builder().setPath(file).get();
+      IdeProgressBar pb = this.context.newProgressbarForExtracting(getFileSize(file))) {
+      SevenZArchiveEntry entry;
+      while ((entry = sevenZFile.getNextEntry()) != null) {
+        Path entryPath = resolveRelativePathSecure(entry.getName(), root);
+        int unixMode = getUnixMode(entry);
+        if (entry.isDirectory()) {
+          mkdirs(entryPath);
+        } else {
+          mkdirs(entryPath.getParent());
+          if ((unixMode & 0xF000) == 0xA000) { // symbolic link (S_IFLNK)
+            String linkTarget = readSymbolicLinkTarget(sevenZFile, entry);
+            resolveRelativePathSecure(entryPath.getParent().resolve(linkTarget).normalize(), root, linkTarget);
+            links.add(new PathLink(Path.of(linkTarget), entryPath, PathLinkType.SYMBOLIC_LINK));
+          } else {
+            try (OutputStream out = Files.newOutputStream(entryPath)) {
+              int n;
+              while ((n = sevenZFile.read(buffer)) != -1) {
+                out.write(buffer, 0, n);
+              }
+            }
+            if (unixMode != 0) {
+              setFilePermissions(entryPath, PathPermissions.of(unixMode), true);
+            }
+          }
+        }
+        pb.stepBy(Math.max(0L, entry.getSize()));
+      }
+      for (PathLink link : links) {
+        link(link);
+      }
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
+    }
+  }
+
+  /**
+   * Extracts the Unix file mode from a 7z entry.
+   *
+   * @param entry the 7z entry to read.
+   * @return the Unix file mode stored in the entry, or {@code 0} if none (e.g. a Windows-made archive).
+   */
+  private static int getUnixMode(SevenZArchiveEntry entry) {
+
+    // 7z stores a Unix mode only when the 0x8000 bit is set; it then lives in the upper 16 bits.
+    int attributes = entry.getWindowsAttributes();
+    return (attributes & 0x8000) != 0 ? (attributes >> 16) & 0xFFFF : 0;
+  }
+
+  /**
+   * Reads the target path of a symbolic link entry. In 7z (as in tar) the entry content is the raw link target path.
+   *
+   * @param sevenZFile the {@link SevenZFile} positioned at the symlink entry to read.
+   * @param entry the symlink {@link SevenZArchiveEntry}.
+   * @return the link target path.
+   * @throws IOException if reading the target fails.
+   */
+  private static String readSymbolicLinkTarget(SevenZFile sevenZFile, SevenZArchiveEntry entry) throws IOException {
+
+    byte[] target = new byte[(int) entry.getSize()];
+    int read = 0;
+    int n;
+    while (read < target.length && (n = sevenZFile.read(target, read, target.length - read)) != -1) {
+      read += n;
+    }
+    return new String(target, StandardCharsets.UTF_8);
+  }
+
+  @Override
+  public void compress(Path dir, OutputStream out, String path) {
+
+    String extension = FilenameUtil.getExtension(path);
     TarCompression tarCompression = TarCompression.of(extension);
     if (tarCompression != null) {
       compressTar(dir, out, tarCompression);
@@ -855,7 +1150,9 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   @Override
   public void compressTarGz(Path dir, OutputStream out) {
 
-    try (GzipCompressorOutputStream gzOut = new GzipCompressorOutputStream(out)) {
+    GzipParameters parameters = new GzipParameters();
+    parameters.setModificationTime(0);
+    try (GzipCompressorOutputStream gzOut = new GzipCompressorOutputStream(out, parameters)) {
       compressTarOrThrow(dir, gzOut);
     } catch (IOException e) {
       throw new IllegalStateException("Failed to compress directory " + dir + " to tar.gz file.", e);
@@ -903,15 +1200,15 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
 
   private <E extends ArchiveEntry> void compressRecursive(Path path, ArchiveOutputStream<E> out, String relativePath) {
 
-    try (Stream<Path> childStream = Files.list(path)) {
+    try (Stream<Path> childStream = Files.list(path).sorted()) {
       Iterator<Path> iterator = childStream.iterator();
       while (iterator.hasNext()) {
         Path child = iterator.next();
         String relativeChildPath = relativePath + "/" + child.getFileName().toString();
         boolean isDirectory = Files.isDirectory(child);
         E archiveEntry = out.createArchiveEntry(child, relativeChildPath);
+        FileTime none = FileTime.fromMillis(0);
         if (archiveEntry instanceof TarArchiveEntry tarEntry) {
-          FileTime none = FileTime.fromMillis(0);
           tarEntry.setCreationTime(none);
           tarEntry.setModTime(none);
           tarEntry.setLastAccessTime(none);
@@ -922,6 +1219,11 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
           tarEntry.setGroupName("group");
           PathPermissions filePermissions = getFilePermissions(child);
           tarEntry.setMode(filePermissions.toMode());
+        } else if (archiveEntry instanceof ZipArchiveEntry zipEntry) {
+          zipEntry.setCreationTime(none);
+          zipEntry.setLastAccessTime(none);
+          zipEntry.setLastModifiedTime(none);
+          zipEntry.setTime(none);
         }
         out.putArchiveEntry(archiveEntry);
         if (!isDirectory) {
@@ -943,13 +1245,13 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   public void delete(Path path) {
 
     if (!Files.exists(path, LinkOption.NOFOLLOW_LINKS)) {
-      this.context.trace("Deleting {} skipped as the path does not exist.", path);
+      LOG.trace("Deleting {} skipped as the path does not exist.", path);
       return;
     }
-    this.context.debug("Deleting {} ...", path);
+    LOG.debug("Deleting {} ...", path);
     try {
-      if (Files.isSymbolicLink(path) || isJunction(path)) {
-        Files.delete(path);
+      if (isLink(path)) {
+        deletePath(path);
       } else {
         deleteRecursive(path);
       }
@@ -960,7 +1262,12 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
 
   private void deleteRecursive(Path path) throws IOException {
 
-    if (Files.isDirectory(path)) {
+    if (Files.isSymbolicLink(path) || isJunction(path)) {
+      LOG.trace("Deleting link {} ...", path);
+      Files.delete(path);
+      return;
+    }
+    if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
       try (Stream<Path> childStream = Files.list(path)) {
         Iterator<Path> iterator = childStream.iterator();
         while (iterator.hasNext()) {
@@ -969,10 +1276,20 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
         }
       }
     }
-    this.context.trace("Deleting {} ...", path);
+    deletePath(path);
+  }
+
+  private boolean isLink(Path path) {
+
+    return Files.isSymbolicLink(path) || isJunction(path);
+  }
+
+  private void deletePath(Path path) throws IOException {
+
+    LOG.trace("Deleting {} ...", path);
     boolean isSetWritable = setWritable(path, true);
     if (!isSetWritable) {
-      this.context.debug("Couldn't give write access to file: " + path);
+      LOG.debug("Couldn't give write access to file: {}", path);
     }
     Files.delete(path);
   }
@@ -1019,6 +1336,42 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   }
 
   @Override
+  public Path findAncestor(Path path, Path baseDir, int subfolderCount) {
+
+    if ((path == null) || (baseDir == null)) {
+      LOG.debug("Path should not be null for findAncestor.");
+      return null;
+    }
+    if (subfolderCount <= 0) {
+      throw new IllegalArgumentException("Subfolder count: " + subfolderCount);
+    }
+    // 1. option relativize
+    // 2. recursive getParent
+    // 3. loop getParent???
+    // 4. getName + getNameCount
+    path = path.toAbsolutePath().normalize();
+    baseDir = baseDir.toAbsolutePath().normalize();
+    int directoryNameCount = path.getNameCount();
+    int baseDirNameCount = baseDir.getNameCount();
+    int delta = directoryNameCount - baseDirNameCount - subfolderCount;
+    if (delta < 0) {
+      return null;
+    }
+    // ensure directory is a sub-folder of baseDir
+    for (int i = 0; i < baseDirNameCount; i++) {
+      if (!path.getName(i).toString().equals(baseDir.getName(i).toString())) {
+        return null;
+      }
+    }
+    Path result = path;
+    while (delta > 0) {
+      result = result.getParent();
+      delta--;
+    }
+    return result;
+  }
+
+  @Override
   public List<Path> listChildrenMapped(Path dir, Function<Path, Path> filter) {
 
     if (!Files.isDirectory(dir)) {
@@ -1032,13 +1385,13 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
         Path filteredChild = filter.apply(child);
         if (filteredChild != null) {
           if (filteredChild == child) {
-            this.context.trace("Accepted file {}", child);
+            LOG.trace("Accepted file {}", child);
           } else {
-            this.context.trace("Accepted file {} and mapped to {}", child, filteredChild);
+            LOG.trace("Accepted file {} and mapped to {}", child, filteredChild);
           }
           children.add(filteredChild);
         } else {
-          this.context.trace("Ignoring file {} according to filter", child);
+          LOG.trace("Ignoring file {} according to filter", child);
         }
       }
     } catch (IOException e) {
@@ -1053,34 +1406,25 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     return listChildren(dir, f -> true).isEmpty();
   }
 
+  @Override
+  public boolean isNonEmptyFile(Path file) {
+
+    if (Files.isRegularFile(file)) {
+      return (getFileSize(file) > 0);
+    }
+    return false;
+  }
+
   private long getFileSize(Path file) {
 
     try {
       return Files.size(file);
     } catch (IOException e) {
-      this.context.warning(e.getMessage(), e);
+      LOG.warn("Failed to determine size of file {}: {}", file, e.toString(), e);
       return 0;
     }
   }
 
-  private long getFileSizeRecursive(Path path) {
-
-    long size = 0;
-    if (Files.isDirectory(path)) {
-      try (Stream<Path> childStream = Files.list(path)) {
-        Iterator<Path> iterator = childStream.iterator();
-        while (iterator.hasNext()) {
-          Path child = iterator.next();
-          size += getFileSizeRecursive(child);
-        }
-      } catch (IOException e) {
-        throw new RuntimeException("Failed to iterate children of folder " + path, e);
-      }
-    } else {
-      size += getFileSize(path);
-    }
-    return size;
-  }
 
   @Override
   public Path findExistingFile(String fileName, List<Path> searchDirs) {
@@ -1101,6 +1445,9 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   @Override
   public boolean setWritable(Path file, boolean writable) {
 
+    if (!Files.exists(file)) {
+      return false;
+    }
     try {
       // POSIX
       PosixFileAttributeView posix = Files.getFileAttributeView(file, PosixFileAttributeView.class);
@@ -1125,11 +1472,11 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
         return true;
       }
 
-      this.context.debug("Failed to set writing permission for file {}", file);
+      LOG.debug("Failed to set writing permission for file {}", file);
       return false;
 
     } catch (IOException e) {
-      this.context.debug("Error occurred when trying to set writing permission for file " + file + ": " + e);
+      LOG.debug("Error occurred when trying to set writing permission for file {}: {}", file, e.toString(), e);
       return false;
     }
   }
@@ -1160,10 +1507,10 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
         }
         setFilePermissions(path, executablePermissions, false);
       } else {
-        this.context.trace("Executable flags already present so no need to set them for file {}", path);
+        LOG.trace("Executable flags already present so no need to set them for file {}", path);
       }
     } else {
-      this.context.warning("Cannot set executable flag on file that does not exist: {}", path);
+      LOG.warn("Cannot set executable flag on file that does not exist: {}", path);
     }
   }
 
@@ -1194,7 +1541,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       }
       pathPermissions = PathPermissions.of(permissions);
     }
-    this.context.trace("Read {}permissions of {} as {}.", info, path, pathPermissions);
+    LOG.trace("Read {}permissions of {} as {}.", info, path, pathPermissions);
     return pathPermissions;
   }
 
@@ -1205,14 +1552,15 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       return;
     }
     try {
-      this.context.debug("Setting permissions for {} to {}", path, permissions);
+      LOG.debug("Setting permissions for {} to {}", path, permissions);
       // Set the new permissions
       Files.setPosixFilePermissions(path, permissions.toPosix());
     } catch (IOException e) {
+      String message = "Failed to set permissions to " + permissions + " for path " + path;
       if (logErrorAndContinue) {
-        this.context.warning().log(e, "Failed to set permissions to {} for path {}", permissions, path);
+        LOG.warn(message, e);
       } else {
-        throw new RuntimeException("Failed to set permissions to " + permissions + " for path " + path, e);
+        throw new RuntimeException(message, e);
       }
     }
   }
@@ -1220,7 +1568,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   private boolean skipPermissionsIfWindows(Path path) {
 
     if (SystemInfoImpl.INSTANCE.isWindows()) {
-      this.context.trace("Windows does not have file permissions hence omitting for {}", path);
+      LOG.trace("Windows does not have file permissions hence omitting for {}", path);
       return true;
     }
     return false;
@@ -1247,14 +1595,14 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   @Override
   public String readFileContent(Path file) {
 
-    this.context.trace("Reading content of file from {}", file);
+    LOG.trace("Reading content of file from {}", file);
     if (!Files.exists((file))) {
-      this.context.debug("File {} does not exist", file);
+      LOG.debug("File {} does not exist", file);
       return null;
     }
     try {
       String content = Files.readString(file);
-      this.context.trace("Completed reading {} character(s) from file {}", content.length(), file);
+      LOG.trace("Completed reading {} character(s) from file {}", content.length(), file);
       return content;
     } catch (IOException e) {
       throw new IllegalStateException("Failed to read file " + file, e);
@@ -1270,13 +1618,13 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     if (content == null) {
       content = "";
     }
-    this.context.trace("Writing content with {} character(s) to file {}", content.length(), file);
+    LOG.trace("Writing content with {} character(s) to file {}", content.length(), file);
     if (Files.exists(file)) {
-      this.context.info("Overriding content of file {}", file);
+      LOG.info("Overriding content of file {}", file);
     }
     try {
       Files.writeString(file, content);
-      this.context.trace("Wrote content to file {}", file);
+      LOG.trace("Wrote content to file {}", file);
     } catch (IOException e) {
       throw new RuntimeException("Failed to write file " + file, e);
     }
@@ -1285,14 +1633,14 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   @Override
   public List<String> readFileLines(Path file) {
 
-    this.context.trace("Reading content of file from {}", file);
+    LOG.trace("Reading lines of file from {}", file);
     if (!Files.exists(file)) {
-      this.context.warning("File {} does not exist", file);
+      LOG.warn("File {} does not exist", file);
       return null;
     }
     try {
       List<String> content = Files.readAllLines(file);
-      this.context.trace("Completed reading {} lines from file {}", content.size(), file);
+      LOG.trace("Completed reading {} lines from file {}", content.size(), file);
       return content;
     } catch (IOException e) {
       throw new IllegalStateException("Failed to read file " + file, e);
@@ -1308,13 +1656,13 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     if (content == null) {
       content = List.of();
     }
-    this.context.trace("Writing content with {} lines to file {}", content.size(), file);
+    LOG.trace("Writing content with {} lines to file {}", content.size(), file);
     if (Files.exists(file)) {
-      this.context.debug("Overriding content of file {}", file);
+      LOG.debug("Overriding content of file {}", file);
     }
     try {
       Files.write(file, content);
-      this.context.trace("Wrote content to file {}", file);
+      LOG.trace("Wrote lines to file {}", file);
     } catch (IOException e) {
       throw new RuntimeException("Failed to write file " + file, e);
     }
@@ -1325,7 +1673,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
 
     try (Reader reader = Files.newBufferedReader(file)) {
       properties.load(reader);
-      this.context.debug("Successfully loaded {} properties from {}", properties.size(), file);
+      LOG.debug("Successfully loaded {} properties from {}", properties.size(), file);
     } catch (IOException e) {
       throw new IllegalStateException("Failed to read properties file: " + file, e);
     }
@@ -1339,7 +1687,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     }
     try (Writer writer = Files.newBufferedWriter(file)) {
       properties.store(writer, null); // do not get confused - Java still writes a date/time header that cannot be omitted
-      this.context.debug("Successfully saved {} properties to {}", properties.size(), file);
+      LOG.debug("Successfully saved {} properties to {}", properties.size(), file);
     } catch (IOException e) {
       throw new IllegalStateException("Failed to save properties file during tests.", e);
     }
@@ -1349,7 +1697,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   public void readIniFile(Path file, IniFile iniFile) {
 
     if (!Files.exists(file)) {
-      this.context.debug("INI file {} does not exist.", iniFile);
+      LOG.debug("INI file {} does not exist.", iniFile);
       return;
     }
     List<String> iniLines = readFileLines(file);
@@ -1362,7 +1710,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       } else {
         int index = line.indexOf('=');
         if (index > 0) {
-          currentIniSection.setProperty(line);
+          currentIniSection.setPropertyLine(line);
         }
       }
     }
@@ -1384,10 +1732,10 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
         long fileModifiedTime = Files.getLastModifiedTime(path).toMillis();
         return Duration.ofMillis(currentTime - fileModifiedTime);
       } catch (IOException e) {
-        this.context.warning().log(e, "Could not get modification-time of {}.", path);
+        LOG.warn("Could not get modification-time of {}.", path, e);
       }
     } else {
-      this.context.debug("Path {} is missing - skipping modification-time and file age check.", path);
+      LOG.debug("Path {} is missing - skipping modification-time and file age check.", path);
     }
     return null;
   }
@@ -1399,7 +1747,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     if (age == null) {
       return false;
     }
-    this.context.debug("The path {} was last updated {} ago and caching duration is {}.", path, age, cacheDuration);
+    LOG.debug("The path {} was last updated {} ago and caching duration is {}.", path, age, cacheDuration);
     return (age.toMillis() <= cacheDuration.toMillis());
   }
 }

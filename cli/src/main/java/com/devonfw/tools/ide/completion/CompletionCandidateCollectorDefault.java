@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.Property;
@@ -12,6 +15,8 @@ import com.devonfw.tools.ide.property.Property;
  * Collects the {@link CompletionCandidate}s for auto-completion.
  */
 public class CompletionCandidateCollectorDefault implements CompletionCandidateCollector {
+
+  private static final Logger LOG = LoggerFactory.getLogger(CompletionCandidateCollectorDefault.class);
 
   private final List<CompletionCandidate> candidates;
 
@@ -35,9 +40,17 @@ public class CompletionCandidateCollectorDefault implements CompletionCandidateC
   @Override
   public void add(String text, String description, Property<?> property, Commandlet commandlet) {
 
+    // Check if this candidate already exists to avoid duplicates
+    for (CompletionCandidate existing : this.candidates) {
+      if (existing.text().equals(text)) {
+        // Duplicate candidate found, do not add
+        return;
+      }
+    }
+
     CompletionCandidate candidate = createCandidate(text, description, property, commandlet);
     this.candidates.add(candidate);
-    this.context.trace("Added {} for auto-completion of property {}.{}", candidate, commandlet, property);
+    LOG.trace("Added {} for auto-completion of property {}.{}", candidate, commandlet, property);
   }
 
   @Override

@@ -7,9 +7,9 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 
 /**
- * Integration test of {@link Jasypt}.
+ * Test of {@link Jasypt}.
  */
-public class JasyptTest extends AbstractIdeContextTest {
+class JasyptTest extends AbstractIdeContextTest {
 
   private static final String JASYPT_OPTS = "custom_argument";
 
@@ -19,7 +19,7 @@ public class JasyptTest extends AbstractIdeContextTest {
    * Tests if {@link Jasypt} is properly installed by the {@link InstallCommandlet}
    */
   @Test
-  public void testJasyptInstallCommandlet() {
+  void testJasyptInstallCommandlet() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_JASYPT);
@@ -36,7 +36,7 @@ public class JasyptTest extends AbstractIdeContextTest {
    * Tests if {@link Jasypt} Commandlet installation is properly working
    */
   @Test
-  public void testJasyptInstall() {
+  void testJasyptInstall() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_JASYPT);
@@ -54,7 +54,7 @@ public class JasyptTest extends AbstractIdeContextTest {
    * Tests if {@link Jasypt} Commandlet is properly running
    */
   @Test
-  public void testJasyptRun() {
+  void testJasyptRun() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_JASYPT);
@@ -76,7 +76,7 @@ public class JasyptTest extends AbstractIdeContextTest {
    * Tests if {@link Jasypt} Commandlet is properly running with a user-defined JASYPT_OPTS env variable
    */
   @Test
-  public void testJasyptRunWithCustomVariable() {
+  void testJasyptRunWithCustomVariable() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_JASYPT);
@@ -104,6 +104,6 @@ public class JasyptTest extends AbstractIdeContextTest {
     // commandlet - jasypt
     assertThat(context.getSoftwarePath().resolve("jasypt/jasypt-1.9.3.jar")).hasContent("This is a jar file.");
     assertThat(context.getSoftwarePath().resolve("jasypt/.ide.software.version")).exists().hasContent("1.9.3");
-    assertThat(context).logAtSuccess().hasMessage("Successfully installed jasypt in version 1.9.3");
+    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed jasypt in version 1.9.3");
   }
 }

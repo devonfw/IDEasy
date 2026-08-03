@@ -1,15 +1,15 @@
 package com.devonfw.tools.ide.url.tool.jmc;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
 
 /**
- * {@link GithubUrlUpdater} for java mission control.
+ * {@link GithubUrlTagUpdater} for java mission control.
  */
-public class JmcUrlUpdater extends GithubUrlUpdater {
+public class JmcUrlUpdater extends GithubUrlTagUpdater {
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "jmc";
   }
@@ -29,20 +29,10 @@ public class JmcUrlUpdater extends GithubUrlUpdater {
   @Override
   protected void addVersion(UrlVersion urlVersion) {
 
-    String baseUrl = getDownloadBaseUrl() + "/adoptium/jmc-build/releases/download/${version}/org.openjdk.jmc-${version}-";
+    String baseUrl = createGithubReleaseDownloadUrl("${version}", "org.openjdk.jmc-${version}-");
 
     doAddVersion(urlVersion, baseUrl + "win32.win32.x86_64.zip", WINDOWS);
     doAddVersion(urlVersion, baseUrl + "macosx.cocoa.x86_64.tar.gz", MAC);
     doAddVersion(urlVersion, baseUrl + "linux.gtk.x86_64.tar.gz", LINUX);
-  }
-
-  @Override
-  public String getCpeVendor() {
-    return "adoptium";
-  }
-
-  @Override
-  public String getCpeProduct() {
-    return "jmc-build";
   }
 }

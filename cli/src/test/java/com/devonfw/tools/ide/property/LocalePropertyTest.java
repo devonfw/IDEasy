@@ -10,19 +10,19 @@ import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollectorDefault;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.context.IdeTestContextMock;
+import com.devonfw.tools.ide.context.IdeTestContext;
 
 /**
  * Test of {@link LocaleProperty}.
  */
-public class LocalePropertyTest extends Assertions {
+class LocalePropertyTest extends Assertions {
 
   /** Test of {@link LocaleProperty#setValueAsString(String, IdeContext)}. */
   @Test
-  public void testGermany() {
+  void testGermany() {
 
     // arrange
-    IdeContext context = IdeTestContextMock.get();
+    IdeContext context = new IdeTestContext();
     Locale germany = Locale.GERMANY;
     // act
     LocaleProperty property = new LocaleProperty("--locale", true, null);
@@ -36,10 +36,10 @@ public class LocalePropertyTest extends Assertions {
    * {@link LocaleProperty#completeValue(String, IdeContext, com.devonfw.tools.ide.commandlet.Commandlet, CompletionCandidateCollector) auto-completion}.
    */
   @Test
-  public void testCompletion() {
+  void testCompletion() {
 
     // arrange
-    IdeContext context = IdeTestContextMock.get();
+    IdeTestContext context = new IdeTestContext();
     String[] expectedCandidates = { "de", "de-AT", "de-BE", "de-CH", "de-DE", "de-IT", "de-LI", "de-LU", "de-Latn-DE" };
     String input = "de";
     CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context);

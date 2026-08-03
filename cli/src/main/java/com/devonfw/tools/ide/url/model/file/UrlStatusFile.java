@@ -20,7 +20,7 @@ public class UrlStatusFile extends AbstractUrlFile<UrlVersion> {
    */
   public static final String STATUS_JSON = "status.json";
 
-  private static final ObjectMapper MAPPER = JsonMapping.create();
+  private static final ObjectMapper MAPPER = JsonMapping.createWithReflectionSupportForUrlUpdaters();
 
   private StatusJson statusJson;
 

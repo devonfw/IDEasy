@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Test of {@link SortedProperties}.
  */
-public class SortedPropertiesTest extends Assertions {
+class SortedPropertiesTest extends Assertions {
 
   /**
    * Test of {@link SortedProperties}.
@@ -17,7 +17,7 @@ public class SortedPropertiesTest extends Assertions {
    * @throws Exception on error.
    */
   @Test
-  public void test() throws Exception {
+  void test() throws Exception {
 
     // given
     SortedProperties properties = new SortedProperties();

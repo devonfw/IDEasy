@@ -134,6 +134,15 @@ public record IdeLogEntry(IdeLogLevel level, String message, String rawMessage, 
 
   /**
    * @param message the {@link #message() message}.
+   * @return the new {@link IdeLogEntry} with {@link IdeLogLevel#INTERACTION}.
+   */
+  public static IdeLogEntry ofInteraction(String message) {
+
+    return new IdeLogEntry(IdeLogLevel.INTERACTION, message);
+  }
+
+  /**
+   * @param message the {@link #message() message}.
    * @return the new {@link IdeLogEntry} with {@link IdeLogLevel#SUCCESS}.
    */
   public static IdeLogEntry ofSuccess(String message) {

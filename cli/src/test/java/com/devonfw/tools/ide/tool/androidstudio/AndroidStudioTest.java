@@ -6,30 +6,37 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.log.IdeLogEntry;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * Test class for {@link AndroidStudio Android Studio IDE} tests.
+ * Test of {@link AndroidStudio}.
  */
 @WireMockTest
-public class AndroidStudioTest extends AbstractIdeContextTest {
+class AndroidStudioTest extends AbstractIdeContextTest {
 
   private static final String ANDROID_STUDIO = "android-studio";
   private static final String MOCKED_PLUGIN_JAR = "mocked-plugin.jar";
 
-  private final IdeTestContext context = newContext(ANDROID_STUDIO);
+  private IdeTestContext context;
+
+  @BeforeEach
+  void setUpContext(WireMockRuntimeInfo wmRuntimeInfo) {
+    this.context = newContext(ANDROID_STUDIO, wmRuntimeInfo);
+  }
 
   /**
    * Tests if {@link AndroidStudio Android Studio IDE} can be installed.
@@ -39,7 +46,7 @@ public class AndroidStudioTest extends AbstractIdeContextTest {
    */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testAndroidStudioInstall(String os, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  void testAndroidStudioInstall(String os, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     // arrange
     setupMockedPlugin(wmRuntimeInfo);
     SystemInfo systemInfo = SystemInfoMock.of(os);
@@ -61,7 +68,7 @@ public class AndroidStudioTest extends AbstractIdeContextTest {
    */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testAndroidStudioRun(String os, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  void testAndroidStudioRun(String os, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     // arrange
     setupMockedPlugin(wmRuntimeInfo);
     SystemInfo systemInfo = SystemInfoMock.of(os);
@@ -77,19 +84,46 @@ public class AndroidStudioTest extends AbstractIdeContextTest {
         ANDROID_STUDIO + " " + this.context.getSystemInfo().getOs() + " " + this.context.getWorkspacePath());
   }
 
+  /**
+   * Tests if the custom jvm options of the ide variable ANDROID_STUDIO_VM_ARGS have been set.
+   */
+  @ParameterizedTest
+  @ValueSource(strings = { "windows", "mac", "linux" })
+  void testAndroidStudioRunWithCustomJvmOptions(String os) {
+    // arrange
+    SystemInfo systemInfo = SystemInfoMock.of(os);
+    context.setSystemInfo(systemInfo);
+    AndroidStudio androidStudio = context.getCommandletManager().getCommandlet(AndroidStudio.class);
+
+    // act
+    androidStudio.run();
+
+    // assert
+    assertThat(context.getWorkspacePath().resolve(".studio.vmoptions"))
+        .exists()
+        .hasContent("""
+            -Xms256m
+            -Xmx4096m
+            -XX:ReservedCodeCacheSize=256m
+            -ea
+            -Dsun.io.useCanonCaches=true
+            """);
+  }
+
   private void checkInstallation(IdeTestContext context) {
     // commandlet - android-studio
-    assertThat(context.getSoftwarePath().resolve("android-studio/.ide.software.version")).exists().hasContent("2024.1.1.1");
-    assertThat(context).logAtSuccess().hasEntries("Successfully ended step 'Install plugin MockedPlugin'.", //
-        "Successfully installed android-studio in version 2024.1.1.1");
+    AndroidStudio commandlet = context.getCommandletManager().getCommandlet(AndroidStudio.class);
+    assertThat(commandlet.getInstalledVersion().toString()).isEqualTo("2024.1.1.1");
+    assertThat(context).log().hasEntries(new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully ended step 'Install plugin MockedPlugin (1/1)'.", true), //
+        new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed android-studio in version 2024.1.1.1", true));
     assertThat(context.getPluginsPath().resolve("android-studio").resolve("mockedPlugin").resolve("dev").resolve("MockedClass.class")).exists();
   }
 
   private void setupMockedPlugin(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
 
     String content = "plugin_id=mockedPlugin\nplugin_active=true\nplugin_url=" + wmRuntimeInfo.getHttpBaseUrl() + "/mockedPlugin";
-    Files.write(this.context.getSettingsPath().resolve("android-studio").resolve("plugins").resolve("MockedPlugin.properties"),
-        content.getBytes(StandardCharsets.UTF_8));
+    Files.writeString(this.context.getSettingsPath().resolve("android-studio").resolve("plugins").resolve("MockedPlugin.properties"),
+        content);
 
     Path mockedPlugin = this.context.getIdeRoot().resolve("repository").resolve(MOCKED_PLUGIN_JAR);
     byte[] contentBytes = Files.readAllBytes(mockedPlugin);

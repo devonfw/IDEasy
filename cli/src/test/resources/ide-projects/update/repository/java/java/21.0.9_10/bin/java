@@ -1,0 +1,2 @@
+#!/bin/bash
+echo java 21.0.9_10 $*

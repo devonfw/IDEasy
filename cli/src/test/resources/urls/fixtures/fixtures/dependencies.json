@@ -1,0 +1,41 @@
+{
+  "[1.0,2.0]": [
+    {
+      "tool": "global",
+      "versionRange": "[1.0,2.0]"
+    },
+    {
+      "tool": "mac-only",
+      "versionRange": "[1.0,2.0]",
+      "os": "mac"
+    },
+    {
+      "tool": "linux-only",
+      "versionRange": "[1.0,2.0]",
+      "os": "linux"
+    },
+    {
+      "tool": "arm-only",
+      "versionRange": "[1.0,2.0]",
+      "arch": "arm64"
+    },
+    {
+      "tool": "x64-only",
+      "versionRange": "[1.0,2.0]",
+      "arch": "x64"
+    },
+    {
+      "tool": "mac-arm",
+      "versionRange": "[1.0,2.0]",
+      "os": "mac",
+      "arch": "arm64"
+    },
+    {
+      "tool": "mac-x64",
+      "versionRange": "[1.0,2.0]",
+      "os": "mac",
+      "arch": "x64"
+    }
+  ]
+}
+

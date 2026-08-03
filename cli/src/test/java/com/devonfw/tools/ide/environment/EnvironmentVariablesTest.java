@@ -12,15 +12,17 @@ import com.devonfw.tools.ide.variable.IdeVariables;
 /**
  * Test of {@link EnvironmentVariables}.
  */
-public class EnvironmentVariablesTest extends AbstractIdeContextTest {
+class EnvironmentVariablesTest extends AbstractIdeContextTest {
 
   private static final String ENVIRONMENT_PROJECT = "environment";
+
+  private static final String MAVEN_ARGS_MERGE_PROJECT = "mvn-args";
 
   /**
    * Test of {@link EnvironmentVariables#resolve(String, Object)} with self referencing variables.
    */
   @Test
-  public void testProperEvaluationOfVariables() {
+  void testProperEvaluationOfVariables() {
 
     // arrange
     String path = "project/workspaces/foo-test/my-git-repo";
@@ -69,7 +71,7 @@ public class EnvironmentVariablesTest extends AbstractIdeContextTest {
    * Test of {@link EnvironmentVariables#getToolVersionVariable(String)} and {@link EnvironmentVariables#getToolEditionVariable(String)}.
    */
   @Test
-  public void testGetToolVariable() {
+  void testGetToolVariable() {
 
     assertThat(EnvironmentVariables.getToolVersionVariable("android-studio")).isEqualTo("ANDROID_STUDIO_VERSION");
     assertThat(EnvironmentVariables.getToolEditionVariable("android-studio")).isEqualTo("ANDROID_STUDIO_EDITION");
@@ -79,7 +81,7 @@ public class EnvironmentVariablesTest extends AbstractIdeContextTest {
    * Test of {@link EnvironmentVariablesSystem} not inheriting specific environment variables leaking values from other projects into the current one.
    */
   @Test
-  public void testSpecificEnvironmentVariablesNotInheritedFromOtherProject() {
+  void testSpecificEnvironmentVariablesNotInheritedFromOtherProject() {
 
     // arrange
     IdeTestContext context = newContext(ENVIRONMENT_PROJECT, null, false);
@@ -98,5 +100,58 @@ public class EnvironmentVariablesTest extends AbstractIdeContextTest {
     assertThat(npmVersion).isNull();
     assertThat(m2Repo).isEqualTo(context.getUserHome().resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER).resolve("repository"));
     assertThat(otherVariable).isEqualTo("other value");
+  }
+
+  /**
+   * Test that {@link IdeVariables#MAVEN_ARGS} has the appendDefaultValue flag enabled, and that other variables do not.
+   */
+  @Test
+  void testMavenArgsAppendDefaultValueFlagIsEnabled() {
+
+    assertThat(IdeVariables.MAVEN_ARGS.isDefaultValueAppended()).isTrue();
+    assertThat(IdeVariables.MVN_BUILD_OPTS.isDefaultValueAppended()).isFalse();
+    assertThat(IdeVariables.IDE_HOME.isDefaultValueAppended()).isFalse();
+  }
+
+  /**
+   * Test that a user-defined {@code MAVEN_ARGS} in {@code conf/ide.properties} is kept and IDEasy's defaults are appended to it, not replaced.
+   */
+  @Test
+  void testUserDefinedMavenArgsIsMergedWithIdeasyDefaults() {
+
+    // arrange
+    IdeTestContext context = newContext(MAVEN_ARGS_MERGE_PROJECT, null, false);
+
+    // act
+    String mavenArgs = IdeVariables.MAVEN_ARGS.get(context);
+
+    // assert
+    Path settingsFile = context.getConfPath().resolve(Mvn.MVN_CONFIG_FOLDER).resolve(Mvn.SETTINGS_FILE);
+    assertThat(mavenArgs).isEqualTo("-X -e -s " + settingsFile);
+  }
+
+  /**
+   * Test that IDEasy's {@code -s} and {@code -Dsettings.security=} arguments override any user-provided ones 
+   * and that unrelated user arguments are correctly appended.
+   */
+  @Test
+  void testMergeMavenArgsWithDefault() {
+
+    String defaultValue = "-s /ide/settings.xml -Dsettings.security=/ide/settings-security.xml";
+
+    assertThat(AbstractEnvironmentVariables.mergeWithDefault("-Xmx8000m -s invalid/settings.xml -Dsettings.security=something_wrong", defaultValue))
+        .isEqualTo("-Xmx8000m " + defaultValue);
+    assertThat(AbstractEnvironmentVariables.mergeWithDefault("-Xmx8000m -s invalid/settings.xml", defaultValue))
+        .isEqualTo("-Xmx8000m " + defaultValue);
+    assertThat(AbstractEnvironmentVariables.mergeWithDefault("-Xmx8000m -Dsettings.security=something_wrong", defaultValue))
+        .isEqualTo("-Xmx8000m " + defaultValue);
+    assertThat(AbstractEnvironmentVariables.mergeWithDefault("-T 4", defaultValue))
+        .isEqualTo("-T 4 " + defaultValue);
+    assertThat(AbstractEnvironmentVariables.mergeWithDefault("-s", defaultValue))
+        .isEqualTo(defaultValue);
+    assertThat(AbstractEnvironmentVariables.mergeWithDefault("-Xmx8000m -s invalid/settings.xml", ""))
+        .isEqualTo("-Xmx8000m -s invalid/settings.xml");
+    assertThat(AbstractEnvironmentVariables.mergeWithDefault("-Xmx8000m -s invalid/settings.xml", null))
+        .isEqualTo("-Xmx8000m -s invalid/settings.xml");
   }
 }

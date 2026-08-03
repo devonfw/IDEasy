@@ -21,10 +21,10 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * Test class for integrations of the {@link AndroidStudioUrlUpdater}.
+ * Test of {@link AndroidStudioUrlUpdater}.
  */
 @WireMockTest
-public class AndroidStudioUrlUpdaterTest extends AbstractUrlUpdaterTest {
+class AndroidStudioUrlUpdaterTest extends AbstractUrlUpdaterTest {
 
   private static String androidVersionJson;
   private static String androidVersionWithoutChecksumJson;
@@ -37,7 +37,7 @@ public class AndroidStudioUrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @throws IOException on error.
    */
   @BeforeAll
-  public static void setupTestVersionJson(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  static void setupTestVersionJson(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     //preparing test data with dynamic port
     Path testDataPath = PATH_INTEGRATION_TEST.resolve("AndroidStudioUrlUpdater");
     androidVersionJson = readAndResolve(testDataPath.resolve("android-version.json"), wmRuntimeInfo);
@@ -51,15 +51,14 @@ public class AndroidStudioUrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testJsonUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
+  void testJsonUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange
     stubFor(get(urlMatching("/android-studio-releases-list.*")).willReturn(aResponse().withStatus(200).withBody(androidVersionJson)));
     stubFor(any(urlMatching("/edgedl/android/studio/ide-zips.*")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    AndroidStudioUrlUpdaterMock updater = new AndroidStudioUrlUpdaterMock(wmRuntimeInfo);
-
+    AndroidStudioUrlUpdater updater = new AndroidStudioUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
     // act
     updater.update(urlRepository);
 
@@ -75,14 +74,14 @@ public class AndroidStudioUrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testJsonUrlUpdaterWithMissingDownloadsDoesNotCreateVersionFolder(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
+  void testJsonUrlUpdaterWithMissingDownloadsDoesNotCreateVersionFolder(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // given
     stubFor(get(urlMatching("/android-studio-releases-list.*")).willReturn(aResponse().withStatus(200).withBody(androidVersionJson)));
     stubFor(any(urlMatching("/edgedl/android/studio/ide-zips.*")).willReturn(aResponse().withStatus(404)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    AndroidStudioUrlUpdaterMock updater = new AndroidStudioUrlUpdaterMock(wmRuntimeInfo);
+    AndroidStudioUrlUpdater updater = new AndroidStudioUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // when
     updater.update(urlRepository);
@@ -102,14 +101,14 @@ public class AndroidStudioUrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testJsonUrlUpdaterWithMissingChecksumGeneratesChecksum(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
+  void testJsonUrlUpdaterWithMissingChecksumGeneratesChecksum(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange
     stubFor(get(urlMatching("/android-studio-releases-list.*")).willReturn(aResponse().withStatus(200).withBody(androidVersionWithoutChecksumJson)));
     stubFor(any(urlMatching("/edgedl/android/studio/ide-zips.*")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    AndroidStudioUrlUpdaterMock updater = new AndroidStudioUrlUpdaterMock(wmRuntimeInfo);
+    AndroidStudioUrlUpdater updater = new AndroidStudioUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // act
     updater.update(urlRepository);

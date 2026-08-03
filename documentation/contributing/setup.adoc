@@ -1,0 +1,135 @@
+= IDEasy Development Setup Guide
+:toc:
+toc::[]
+
+Before you can contribute to IDEasy, you need to set up your local development environment.
+This section guides you through all required steps — from installation to project initialization — so you can start developing immediately.
+
+== Prerequisites
+
+* *Git* +
+Install Git: https://git-scm.com/download/ (only if you do not already have Git installed)
+
+* *A GitHub account* +
+If you do not have a GitHub account, click https://github.com/signup[signup] and create a new account within a minute.
+Send your GitHub login name/ID via Teams chat to https://github.com/hohwille[hohwille] so he can grant you additional permissions.
++
+NOTE: Make sure your Git configuration matches your GitHub account:
++
+```
+git config user.name "«my_github_name»"
+git config user.email "«my_github_user_email»"
+```
+
+== Installation of IDEasy
+
+Before you continue, please install IDEasy on your system.
+
+For detailed, step‑by‑step installation instructions, including platform‑specific notes, see the link:../setup.adoc[setup guide].
+
+== Set up the Development Environment
+
+. After the IDEasy installation, run the following command in the terminal to create a project:
++
+```
+ide create IDEasy -
+```
++
+Wait until this process has finished (this will take several minutes).
+This will create an `IDEasy` folder inside your `projects` directory, for example:
+`C:\Users\«username»\projects\IDEasy` on Windows and populate it with the project.
+. Fork the https://github.com/devonfw/ideasy[IDEasy] repository.
++
+Create a fork by expanding the split button (left of the repo name, between *Watch* and *Star*) and choosing *Create a new fork*, so you get your own copy of IDEasy on GitHub. +
++
+NOTE: Steps for forking or cloning repositories, creating branches, and using Git commands can be found in the https://github.com/firstcontributions/first-contributions[first contributions guideline].
+
+. Start a bash terminal (on Windows open `Git Bash` from the Start Menu) and run the following command:
++
+```
+icd -p IDEasy -w
+```
+. Clone your fork in there:
++
+```
+git clone https://github.com/«my-github-login»/IDEasy.git
+```
+. Configure your Git environment and connect your fork to the official IDEasy repository (upstream):
++
+```
+git remote add upstream https://github.com/devonfw/ideasy.git
+git fetch upstream
+```
+. Build the project and download all dependencies:
++
+```
+ide mvn clean install
+```
+. Now you can open the project in your preferred IDE using the `ide` command. +
+For IntelliJ:
++
+```
+ide intellij
+```
+. If your IDE does not automatically detect the Maven project structure, you must add it manually. +
+In IntelliJ, navigate to the IDEasy folder inside your main workspace directory, locate the `pom.xml` file, right‑click it, and select **Add as Maven Project**.
++
+TIP: If the Maven button is hidden or not visible, press `Alt+7` to open the **Structure** window below the project explorer. +
+Scroll down in the explorer to make the `pom.xml` file appear higher, enabling the option to be clicked. +
+
+Optional, for Windows user: +
+If you are developing on Windows, we strongly recommend to follow the guide
+link:testing-linux-on-windows.adoc[Testing IDEasy Linux on Windows].
+It explains how to create a virtual Linux environment on Windows and setting up IDEasy also in there.
+This is useful for every developer so he is able to test and reproduce Linux specific issues.
+
+Your setup is now complete.
+
+Before you start contributing, we recommend reviewing the documentation and code to get familiar with the IDEasy project.
+
+== Documentation
+
+When reading this guide online on GitHub, use the left sidebar to navigate the `documentation` directory.
+If you are reading this from your local clone, browse the files using your IDE or file explorer.
+
+Please study the documentation, as it explains many important aspects of IDEasy.
+
+As a developer, it is especially important to read the link:coding-conventions.adoc[coding conventions] and link:DoD.adoc[Definition of Done].
+
+== Code
+
+Before you deep-dive into the code, please study the link:../images/design.puml[design diagram] (requires PlantUML support, e.g., via IntelliJ plugin).
+It gives you an architectural overview of the key types (interfaces, classes, enums, records) of the IDEasy codebase.
+Open these key types in your IDE and read their JavaDoc and have a look at the signatures.
+
+=== CLI
+
+Open the class `Ideasy` that is our main entry point of the CLI of IDEasy having the `main` method.
+Run it from your IDE, edit the run configuration and specify some arguments.
+Compare running the following CLI commands in your terminal as well as in your IDE:
+
+```
+ide help
+ide -v
+ide status
+```
+
+Also try to set some breakpoint and run it from your IDE in debug mode.
+
+=== GUI
+
+Open the class `AppLauncher` that is our main entry point to the GUI of IDEasy having a `main` method.
+Run it from your IDE and play around with it.
+
+=== Other modules
+
+Browse the project structure to find other modules like `url-updater`, `security`, or `windows-installer`.
+For the beginning you do not need to deep dive here but just get a rough understanding what this may be.
+
+Finally, you can continue with the link:contributing.adoc[contributing guidelines].
+
+Welcome to the IDEasy project and team!
+
+
+
+

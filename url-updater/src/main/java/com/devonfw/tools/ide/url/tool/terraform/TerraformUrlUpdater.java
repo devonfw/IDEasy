@@ -1,18 +1,36 @@
 package com.devonfw.tools.ide.url.tool.terraform;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link GithubUrlUpdater} for terraform.
+ * {@link GithubUrlTagUpdater} for terraform.
  */
-public class TerraformUrlUpdater extends GithubUrlUpdater {
+public class TerraformUrlUpdater extends GithubUrlTagUpdater {
+
+  private static final String DOWNLOAD_BASE_URL = "https://releases.hashicorp.com";
 
   private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.of("1.1.0");
 
+  /**
+   * The Constructor.
+   */
+  public TerraformUrlUpdater() {
+    super(DOWNLOAD_BASE_URL);
+  }
+
+  /**
+   * Package-private constructor used for testing {@link TerraformUrlUpdater}.
+   *
+   * @param baseUrl mock url used as download and version base.
+   */
+  TerraformUrlUpdater(String baseUrl) {
+    super(baseUrl, baseUrl);
+  }
+
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "terraform";
   }
@@ -21,12 +39,6 @@ public class TerraformUrlUpdater extends GithubUrlUpdater {
   protected String getGithubOrganization() {
 
     return "hashicorp";
-  }
-
-  @Override
-  protected String getDownloadBaseUrl() {
-
-    return "https://releases.hashicorp.com";
   }
 
   @Override

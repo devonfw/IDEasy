@@ -12,12 +12,12 @@
 			<Files Include="msi-files\**" />
       <Component Id="setEnv" Directory="INSTALLFOLDER" Guid="8bea8575-87ca-4847-8b8b-202b6e34901e">
         <CreateFolder/>
-        <Environment Id="IdeRoot" Name="IDE_ROOT" Value="[IDE_ROOT]" Permanent="yes" Action="set" System="no" />
+        <Environment Id="IdeRoot" Name="IDE_ROOT" Value="[IDE_ROOT]" Permanent="no" Action="set" System="no" />
       </Component>
 		</Feature>
 
 		<MediaTemplate EmbedCab="yes" />
-		<WixVariable Id="WixUILicenseRtf" Value=".\assets\LICENSE.rtf" />
+		<WixVariable Id="WixUILicenseRtf" Value="..\documentation\target\generated-docs\LICENSE.rtf" />
 		<WixVariable Id="WixUIBannerBmp" Value=".\assets\banner.bmp" />
 
 		<Property Id="INSTALLTYPE" Value="USERHOME" />
@@ -35,8 +35,8 @@
 		<!-- Execution of install command-->
 		<SetProperty
 			Id="RunInstallAction"
-			Value='"[%SystemFolder]cmd.exe" /c "cd /d [INSTALLFOLDER] &amp;&amp; bin\ideasy.exe -ftb --no-colors install > install.log 2>&amp;1"'
-			Before="RunInstallAction"
+      Value='"[%SystemFolder]cmd.exe" /v:on /c "cd /d [INSTALLFOLDER] &amp;&amp; (if not exist "[%USERPROFILE]\.ide\logs" mkdir "[%USERPROFILE]\.ide\logs") &amp;&amp; set ts=%date:/=-%_%time::=-% &amp;&amp; set ts=!ts:,=-! &amp;&amp; bin\ideasy.exe -ftb --no-colors install &gt; "[%USERPROFILE]\.ide\logs\install-!ts!.log" 2&gt;&amp;1"'
+      Before="RunInstallAction"
 			Sequence="execute"
 			/>
 		<CustomAction
@@ -51,7 +51,7 @@
     <!-- Execution of uninstall command-->
     <SetProperty
       Id="RunUninstallAction"
-			Value='"[%SystemFolder]cmd.exe" /c "[%IDE_ROOT]\_ide\installation\bin\ideasy.exe -ft --no-colors uninstall > [%IDE_ROOT]\uninstall.log 2>&amp;1"'
+      Value='"[%SystemFolder]cmd.exe" /v:on /c "cd /d &quot;[INSTALLFOLDER]&quot; &amp;&amp; (if not exist &quot;[%USERPROFILE]\.ide\logs&quot; mkdir &quot;[%USERPROFILE]\.ide\logs&quot;) &amp;&amp; set ts=%date:/=-%_%time::=-% &amp;&amp; set ts=!ts:,=-! &amp;&amp; bin\ideasy.exe -ft --no-colors uninstall &gt; &quot;[%USERPROFILE]\.ide\logs\uninstall-!ts!.log&quot; 2&gt;&amp;1"'
       Before="RunUninstallAction"
       Sequence="execute"
       />
@@ -69,6 +69,10 @@
 			<Custom Action="RunInstallAction" Condition="NOT Installed" Before="InstallFinalize" />
 			<Custom Action='RunUninstallAction' Condition="Installed AND NOT UPGRADINGPRODUCTCODE" After="InstallInitialize" />
 		</InstallExecuteSequence>
+
+    <!-- Open documentation URL from FirstStepsDialog -->
+    <Property Id="WixShellExecTarget" Value="https://github.com/devonfw/IDEasy/blob/main/documentation/setup.adoc" />
+    <CustomAction Id="OpenDocumentationAction" BinaryRef="Wix4UtilCA_X64" DllEntry="WixShellExec" Execute="immediate" Return="ignore" />
 
 		<!-- Custom UI Reference -->
 		<ui:WixUI Id="WixUI_InstallDirCustom" InstallDirectory="INSTALLFOLDER" />

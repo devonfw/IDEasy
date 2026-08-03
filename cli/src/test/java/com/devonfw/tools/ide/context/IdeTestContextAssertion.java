@@ -26,7 +26,7 @@ public class IdeTestContextAssertion {
    */
   public IdeTestLoggerAssertion log(IdeLogLevel level) {
 
-    return new IdeTestLoggerAssertion(context.getLogger().getEntries(), level);
+    return new IdeTestLoggerAssertion(context.getTestStartContext().getEntries(), level);
   }
 
   /**

@@ -15,16 +15,32 @@ public class PycharmUrlUpdater extends IdeaBasedUrlUpdater {
 
   private static final String JSON_URL = "products?code=PCP%2CPCC&release.type=release";
   private static final List<String> EDITIONS = List.of("professional", "pycharm");
-  protected static final ObjectMapper MAPPER = JsonMapping.create();
+  protected static final ObjectMapper MAPPER = JsonMapping.createWithReflectionSupportForUrlUpdaters();
+
+  /**
+   * The Constructor.
+   */
+  public PycharmUrlUpdater() {
+    super();
+  }
+
+  /**
+   * Package-private constructor used for testing {@link PycharmUrlUpdater}.
+   *
+   * @param versionBaseUrl mock url used as version base.
+   */
+  PycharmUrlUpdater(String versionBaseUrl) {
+    super(versionBaseUrl);
+  }
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "pycharm";
   }
 
   @Override
-  protected List<String> getEditions() {
+  public List<String> getEditions() {
     return EDITIONS;
   }
 
@@ -32,6 +48,13 @@ public class PycharmUrlUpdater extends IdeaBasedUrlUpdater {
   protected IntellijJsonObject getJsonObjectFromResponse(String response, String edition) throws JsonProcessingException {
     IntellijJsonObject[] jsonObjects = MAPPER.readValue(response, IntellijJsonObject[].class);
     return jsonObjects[EDITIONS.indexOf(edition)];
+  }
+
+
+  @Override
+  protected String doGetVersionUrl() {
+
+    return getVersionBaseUrl() + "/" + JSON_URL;
   }
 
   @Override
@@ -42,11 +65,5 @@ public class PycharmUrlUpdater extends IdeaBasedUrlUpdater {
   @Override
   public String getCpeProduct() {
     return "pycharm";
-  }
-
-  @Override
-  protected String doGetVersionUrl() {
-
-    return getVersionBaseUrl() + "/" + JSON_URL;
   }
 }

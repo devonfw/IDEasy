@@ -9,10 +9,10 @@ public enum VersionPhase implements AbstractVersionPhase {
   UNDEFINED,
 
   /** A revision number (actually not a development phase like {@link #UNDEFINED}). */
-  REVISION(Boolean.TRUE, "revision", "rev"),
+  REVISION(Boolean.TRUE, "revision", "rev", "u"),
 
-  /** A snapshot version from development (e.g. "-SNAPSHOT" suffix in maven). */
-  SNAPSHOT(Boolean.FALSE, "beta-snapshot", "snapshot", "dev"),
+  /** Unstable marker - see {@link VersionSegment#PATTERN_MATCH_ANY_VERSION}. */
+  UNSTABLE(Boolean.FALSE, "!"),
 
   /** A nightly build version from continuous-integration (CI) process. */
   NIGHTLY("nightly", "nb", "ci"),
@@ -74,7 +74,7 @@ public enum VersionPhase implements AbstractVersionPhase {
   @Override
   public boolean isDevelopmentPhase() {
 
-    return (this != UNDEFINED) && (this != NONE) && (this != REVISION) && (this != BUILD);
+    return (this != NONE) && (this != REVISION) && (this != BUILD) && (this != BETA_OR_BUILD);
   }
 
   /**
@@ -85,7 +85,6 @@ public enum VersionPhase implements AbstractVersionPhase {
    * <li>The {@link VersionPhase}s {@link #REVISION}, {@link #ALPHA}, {@link #BETA}, {@link #BUILD}, {@link #MILESTONE},
    * {@link #RELEASE_CANDIDATE}, {@link #NONE}, {@link #BUG_FIX}, or {@link #HOT_FIX} have to be followed by
    * {@link VersionSegment#getDigits() digits} ({@link VersionSegment#getNumber() segment number} >= 0).</li>
-   * <li>The {@link VersionPhase} {@link #SNAPSHOT} must not be followed by {@link VersionSegment#getDigits() digits}
    * ({@link VersionSegment#getNumber() segment number} == -1).</li>
    * </ul>
    *
@@ -94,7 +93,7 @@ public enum VersionPhase implements AbstractVersionPhase {
    */
   public boolean isValid(int number) {
 
-    if ((this == UNDEFINED) || (this == BETA_OR_BUILD)) {
+    if (this == UNDEFINED) {
       return false;
     }
     if (this.hasNumber != null) {
@@ -110,18 +109,13 @@ public enum VersionPhase implements AbstractVersionPhase {
   @Override
   public boolean isUnstable() {
 
-    if (isDevelopmentPhase()) {
-      if (ordinal() < NONE.ordinal()) {
-        return true;
-      }
-    }
-    return false;
+    return !isStable();
   }
 
   @Override
   public boolean isStable() {
 
-    if (ordinal() >= NONE.ordinal()) {
+    if ((ordinal() >= NONE.ordinal()) || !isDevelopmentPhase()) {
       return true;
     }
     return false;
@@ -134,7 +128,6 @@ public enum VersionPhase implements AbstractVersionPhase {
    * @return the corresponding {@link VersionPhase}. Will be {@code #UNDEFINED} if undefined (e.g. "apple" or "banana").
    */
   public static VersionPhase of(String letters) {
-
     for (VersionPhase phase : values()) {
       for (String id : phase.ids) {
         if (id.equals(letters)) {

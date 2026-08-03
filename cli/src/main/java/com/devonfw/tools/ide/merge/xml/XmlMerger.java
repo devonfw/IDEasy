@@ -13,6 +13,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -31,6 +33,8 @@ import com.devonfw.tools.ide.variable.IdeVariables;
  * {@link FileMerger} for XML files.
  */
 public class XmlMerger extends FileMerger implements XmlMergeSupport {
+
+  private static final Logger LOG = LoggerFactory.getLogger(XmlMerger.class);
 
   private static final DocumentBuilder DOCUMENT_BUILDER;
 
@@ -112,12 +116,26 @@ public class XmlMerger extends FileMerger implements XmlMergeSupport {
   public Document merge(XmlMergeDocument templateDocument, XmlMergeDocument workspaceDocument, boolean workspaceFileExists) {
 
     Document resultDocument;
-    Path source = templateDocument.getPath();
-    Path template = workspaceDocument.getPath();
-    this.context.debug("Merging {} into {} ...", template, source);
+    Path template = templateDocument.getPath();
+    Path source = workspaceDocument.getPath();
+    LOG.debug("Merging {} into {} ...", template, source);
     Element templateRoot = templateDocument.getRoot();
     QName templateQName = XmlMergeSupport.getQualifiedName(templateRoot);
+    Document document = workspaceDocument.getDocument();
     Element workspaceRoot = workspaceDocument.getRoot();
+    if (workspaceRoot == null) {
+      workspaceRoot = (Element) document.importNode(templateRoot, false);
+      NamedNodeMap attributes = workspaceRoot.getAttributes();
+      int length = attributes.getLength();
+      for (int i = 0; i < length; i++) {
+        Attr attribute = (Attr) attributes.item(i);
+        if (XmlMergeSupport.hasMergeNamespace(attribute)) {
+          workspaceRoot.removeAttributeNode(attribute);
+        }
+      }
+      workspaceRoot.removeAttributeNS(XmlMergeSupport.MERGE_NS_URI, "xmlns:xsi");
+      document.appendChild(workspaceRoot);
+    }
     QName workspaceQName = XmlMergeSupport.getQualifiedName(workspaceRoot);
     if (templateQName.equals(workspaceQName)) {
       XmlMergeStrategy strategy = XmlMergeSupport.getMergeStrategy(templateRoot);
@@ -132,16 +150,16 @@ public class XmlMerger extends FileMerger implements XmlMergeSupport {
             strategy = XmlMergeStrategy.KEEP;
           }
         } else {
-          this.context.warning(
+          LOG.warn(
               "XML merge namespace not found in file {}. If you are working in a legacy devonfw-ide project, please set IDE_XML_MERGE_LEGACY_SUPPORT_ENABLED=true to "
                   + "proceed correctly.", source);
         }
       }
-      ElementMatcher elementMatcher = new ElementMatcher(this.context);
+      ElementMatcher elementMatcher = new ElementMatcher(this.context, templateDocument.getPath(), workspaceDocument.getPath());
       strategy.merge(templateRoot, workspaceRoot, elementMatcher);
-      resultDocument = workspaceDocument.getDocument();
+      resultDocument = document;
     } else {
-      this.context.error("Cannot merge XML template {} with root {} into XML file {} with root {} as roots do not match.", templateDocument.getPath(),
+      LOG.error("Cannot merge XML template {} with root {} into XML file {} with root {} as roots do not match.", templateDocument.getPath(),
           templateQName, workspaceDocument.getPath(), workspaceQName);
       return null;
     }
@@ -177,12 +195,17 @@ public class XmlMerger extends FileMerger implements XmlMergeSupport {
    */
   public XmlMergeDocument load(Path file) {
 
-    try (InputStream in = Files.newInputStream(file)) {
-      Document document = DOCUMENT_BUILDER.parse(in);
-      return new XmlMergeDocument(document, file);
-    } catch (Exception e) {
-      throw new IllegalStateException("Failed to load XML from: " + file, e);
+    Document document;
+    if (this.context.getFileAccess().isNonEmptyFile(file)) {
+      try (InputStream in = Files.newInputStream(file)) {
+        document = DOCUMENT_BUILDER.parse(in);
+      } catch (Exception e) {
+        throw new IllegalStateException("Failed to load XML from: " + file, e);
+      }
+    } else {
+      document = DOCUMENT_BUILDER.newDocument();
     }
+    return new XmlMergeDocument(document, file);
   }
 
   /**
@@ -350,7 +373,7 @@ public class XmlMerger extends FileMerger implements XmlMergeSupport {
         }
       }
     }
-    this.context.warning(
+    LOG.warn(
         "The XML file {} does not contain the XML merge namespace and seems outdated. For details see:\n"
             + "https://github.com/devonfw/IDEasy/blob/main/documentation/configurator.adoc#xml-merger", workspaceFile);
   }

@@ -13,11 +13,16 @@ class GithubTagsTest extends Assertions {
    */
   @Test
   void testAddAndRetrieveTags() {
+    // arrange
     GithubTags tags = new GithubTags();
     GithubTag tag1 = new GithubTag("refs/tags/v1.0.0");
     GithubTag tag2 = new GithubTag("refs/tags/v2.0.0");
+
+    // act
     tags.add(tag1);
     tags.add(tag2);
+
+    // assert
     assertThat(tags).hasSize(2);
     assertThat(tags.get(0).version()).isEqualTo("v1.0.0");
     assertThat(tags.get(1).version()).isEqualTo("v2.0.0");
@@ -28,7 +33,10 @@ class GithubTagsTest extends Assertions {
    */
   @Test
   void testEmptyTags() {
+    // arrange
     GithubTags tags = new GithubTags();
+
+    // assert
     assertThat(tags).isEmpty();
   }
 }

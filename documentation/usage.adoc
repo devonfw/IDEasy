@@ -10,28 +10,62 @@ This section explains the usage of `IDEasy` according to your role:
 
 == Developer
 
-As a developer you are supported to link:setup.adoc[setup] your IDE automated and fast while you can have a nice cup of coffee (after you provided `settings-URL` and accepted the license).
+Once installed via link:setup.adoc[setup] you can start using IDEasy.
+The first thing to get started is to link:project.adoc[create a project].
 You only need the settings URL from your xref:admin[ide-admin].
-Experienced developers can directly call `setup «settings-URL»`.
-Otherwise if you just call `setup` (e.g. by double-clicking it), you can enter it when you are prompted for `Settings URL` (using copy&paste to avoid typos).
+IDEasy supports you to create your IDE project automated and fast.
+Grab a cup of coffee or tea while the installation is proceeding.
 
-Note: IDEasy supports autocompletion (since `2021.04.001`).
-Currently this only works in bash (on windows use git bash).
+NOTE: IDEasy supports autocompletion.
+Currently, this only works in bash (on windows use git bash).
 Simply type `ide` and hit `[Tab]` to get completion.
+Press `[Tab]` twice to get multiple suggestions if your typed argument is not unique.
 
 === Update
 
-To update your IDE (if instructed by your xref:admin[ide-admin]), you only need to run the following command:
+To update your IDEasy link:project.adoc[project], you only need to run the following command:
 
 ```
 ide update
 ```
 
-Please note that windows is using file-locking what can have ugly side-effects.
-To be safe, you should have your IDE tools shut down before invoking the above update command.
-E.g. if a tool needs to be updated, the old installation folder will be moved to a backup and the new version is installed on top.
-If there are windows file locks in place this can fail and mess up things.
-You can still delete the according installation from your `software` folder and rerun `ide update` if you ran into this error.
+In case you abort the update process or run into an error, you can simply rerun `ide update` and it will catch up from where you left off.
+
+=== Upgrade
+
+To upgrade the IDEasy product to the latest version, you simply run the following command:
+
+```
+ide upgrade
+```
+
+If there is no newer version available, this command will not change anything:
+
+```
+$ ide upgrade
+Version 2025.12.001 of tool ideasy is already installed
+```
+
+=== Status
+
+While using IDEasy, you will also get log messages if an update or upgrade is available.
+Still the best way is to run `ide status` that will give you a nice overview of your state:
+
+```
+$ ide status
+IDE_ROOT is set to D:\projects
+IDE_HOME is set to D:\projects\IDEasy
+Your version of IDEasy is 2025.12.001.
+Your are using the latest version of IDEasy and no update is available.
+Your operating system is windows(10.0)@x64 [Windows 11@amd64]
+You are online.
+Found bash executable at: C:\Program Files\Git\usr\bin\bash.exe
+Found git executable at: C:\Program Files\Git\mingw64\bin\git.exe
+Your settings are up-to-date.
+Successfully completed ide (status)
+```
+
+If you get warings (yellow) or errors (red) then read them carefully and follow the suggestions.
 
 === Working with multiple workspaces
 
@@ -39,39 +73,42 @@ If you are working on different branches in parallel you typically want to use m
 
 . Go to the link:workspaces.adoc[workspaces] folder in your link:variables.adoc[${IDE_HOME}] and create a new folder with the name of your choice (e.g. `release2.1`).
 . Check out (`git clone ...`) the according projects and branch into that workspace folder.
-. Open a shell in that new workspace folder (`cd` to it) and according to your IDE run e.g. `eclipse`, `vscode`, or `intellij` to create your workspace and launch the IDE.
+. Open a shell in that new workspace folder (`icd -p «project» -w «workspace»`) and according to your IDE run e.g. `eclipse`, `vscode`, or `intellij` to create your workspace and launch the IDE.
 You can also add the parameter `create-script` to the IDE link:cli.adoc#commandlets[commandlet] in order to create a launch-script for your IDE.
 
-You can have multiple instances of eclipse running for each workspace in parallel.
-To distinguish these instances you will find the workspace name in the title of eclipse.
+You can have multiple instances of Eclipse or VSCode running for each workspace in parallel.
+Also with IntelliJ this is possible, but it has some limitations (see also FAQ https://github.com/devonfw/IDEasy/discussions/794[#794]).
+To distinguish these instances you will find the project and workspace name in the title of your IDE.
+
+=== Working with multiple versions of the same tool
+
+See link:software.adoc#extra-tool-installations[extra tool installations].
 
 == Admin
 
 You can easily customize and link:configuration.adoc[configure] `IDEasy` for the requirements of your project.
 In order to do so, you need to create your own project-specific settings git repository and provide the URL to all developers for the link:setup.adoc[setup].
-With tools such as gitlab, bitbucket or github every developer can easily propose changes and improvements.
+With tools such as GitLab, BitBucket or GitHub every developer can easily propose changes and improvements.
 However, we suggest that one team member is responsible to ensure that everything stays consistent and works.
 We will call this person the _ide-admin_ of your project.
 
 The following are the suggested step-by-step instructions how an _ide-admin_ should prepare `IDEasy` for his new project:
 
 . Fork https://github.com/devonfw/ide-settings.git[ide-settings] to a git repository specific for your project (e.g. a new project in the `gitlab` of your `production-line` instance).
-In case you are using github, all you need to do is use the `Fork` button.
+In case you are using GitHub and your settings may be open-source, all you need to do is use the `Fork` button.
 In other cases simply create a new and empty git repository and clone this to your machine.
 Then add the default ide-settings as origin, fetch and pull from it:
 +
 ```
 git remote add upstream https://github.com/devonfw/ide-settings.git
-git fetch upstream
-git pull upstream main
-git push
+git fetch upstream git pull upstream main git push
 ```
 +
 Now you should have a full fork as a copy of the `settings` git repo with all its history that is ready for upstream merges.
 . Study the link:settings.adoc#structure[structure] of this git repository to understand where to find which configuration.
 . Study the link:configuration.adoc[configuration] and understand that general settings can be tweaked in the toplevel `ide.properties` file of your settings git repository.
 . Configure the tools and their versions for your project.
-Here is an example:
+Here is an example for some legacy project:
 +
 ```
 IDE_TOOLS=(java mvn eclipse)
@@ -84,7 +121,6 @@ MAVEN_VERSION=3.6.2
 +
 This way you will take over control of the tools and their versions for every developer in your project team and ensure that things get reproducible.
 . In case you need a proprietary or unsupported tool, you can study link:software.adoc#custom[how to include custom tools].
-. In case you have very restrictive policies about downloading tools from the internet, you can create and configure a link:software.adoc#repository[software repository] for your project or company.
 . Some of the tools (especially the actual IDEs) allow extensions via plugins.
 You can customize them to your needs for https://github.com/devonfw/ide-settings/tree/main/eclipse/plugins[eclipse], https://github.com/devonfw/ide-settings/tree/main/vscode/plugins[VS code], or https://github.com/devonfw/ide-settings/tree/main/intellij/plugins[intelliJ].
 . In your `settings` git repository you will find a `repositories` folder.
@@ -95,8 +131,7 @@ The link:repository.adoc[repository] documentation will explain you how to do th
 Here are the individual configuration settings for that IDE.
 You can change them by directly editing the according configuration files directly with a text-editor in your `settings` git repository.
 However, this is a really complex way and will take you a lot of time to find the right file and property to tweak for your actual need.
-Instead we suggest to study
-link:configurator.adoc#how-to-customize[how to customize IDE specific settings].
+Instead, we suggest to study link:configurator.adoc#how-to-customize[how to customize IDE specific settings].
 . You may also create new sub-folders in your `settings` git repository and put individual things according to your needs.
 E.g. you could add scripts for https://addons.mozilla.org/de/firefox/addon/greasemonkey[greasemonkey] or https://www.tampermonkey.net/[tampermonkey], as well as scripts for your database or whatever may be useful and worth to share in your team.
 However, to share and maintain knowledge we recommend to use a wiki instead.
@@ -106,9 +141,9 @@ All described in the above steps (except the first one) can be used to manage an
 However, when you have done changes especially in a larger project, please consider the following best-practices to avoid that a large teams gets blocked by a non-functional IDE:
 
 * Commit your changes to a feature-branch.
-* First test the changes yourself.
-* If all works as expected, pick a pilot user of the team to test the changes from the feature branch (go to `settings` folder, `git fetch`, `git checkout -t origin/feature/«name»`, `ide update`).
-* Only after that works well for a couple of days, inform the entire team to update.
+* First, test the changes yourself.
+* If all works as expected, pick a pilot user of the team to test the changes from the feature branch (go to `settings` folder, `git fetch`, `git checkout -t origin/feature/«name»`, `ide update` or even better create a new project via `ide create project-test «settings-url»#feature/«name»`).
+* Only after that works well for a couple of days, merge the feature branch and inform the entire team to update.
 
 === Announce changes to your team
 
@@ -116,5 +151,5 @@ In order to roll out the perfectly configured `IDEasy` to your project initially
 You can also provide a specific branch with `Settings URL#branch` to use variations of common settings or to test new settings before making them public to the team.
 
 After you changed and tested your `settings` git repository (main branch), you only need to announce this to your xref:developer[developers] (e.g. via email or some communication tool) so that they will call `ide update` and automatically get up-to-date with the latest changes (see xref:update[update]).
-
-In case you want to go to a new version of `IDEasy` itself, xref:developer[developers] have to call `ide update scripts`.
+Please note that developers will also be informed about updates automatically by IDEasy.
+Therefore, you only need to announce important (and breaking) changes to your team explicitly.

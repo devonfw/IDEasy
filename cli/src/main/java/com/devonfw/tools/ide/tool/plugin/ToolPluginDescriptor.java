@@ -1,14 +1,17 @@
 package com.devonfw.tools.ide.tool.plugin;
 
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.common.Tags;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.log.IdeLogger;
 
 /**
  * Implementation of {@link ToolPluginDescriptor}.
@@ -16,10 +19,15 @@ import com.devonfw.tools.ide.log.IdeLogger;
  * @param id the unique identifier of the plugin.
  * @param name the name of the plugin properties file excluding the extension.
  * @param url the optional plugin URL (download/update site).
+ * @param version the optional plugin version to install.
  * @param active {@code true} if the plugin is active and shall be installed automatically, {@code false} otherwise.
  * @param tags the {@link #tags () tags}.
+ * @param excludedEditions the ide editions that this plugin should not be installed for
  */
-public record ToolPluginDescriptor(String id, String name, String url, boolean active, Set<Tag> tags) implements Tags {
+public record ToolPluginDescriptor(String id, String name, String url, String version, boolean active, Set<Tag> tags, Set<String> excludedEditions) implements
+    Tags {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ToolPluginDescriptor.class);
 
   @Override
   public Set<Tag> getTags() {
@@ -41,17 +49,18 @@ public record ToolPluginDescriptor(String id, String name, String url, boolean a
     Properties properties = context.getFileAccess().readProperties(propertiesFile);
     String id = getString(properties, "id", "plugin_id");
     String url = getString(properties, "url", "plugin_url");
+    String version = getString(properties, "version", "plugin_version");
     if (needUrl && ((url == null) || url.isBlank())) {
-      context.warning("Missing plugin URL in {}", propertiesFile);
+      LOG.warn("Missing plugin URL in {}", propertiesFile);
     }
-    boolean active = getBoolean(properties, "active", "plugin_active", propertiesFile, context);
+    boolean active = getBoolean(properties, "active", "plugin_active", propertiesFile);
     String tagsCsv = getString(properties, "tags", "plugin_tags");
     Set<Tag> tags = Tag.parseCsv(tagsCsv);
-    return new ToolPluginDescriptor(id, name, url, active, tags);
+    Set<String> excludedEditions = getSetOfStrings(properties, "excluded-editions");
+    return new ToolPluginDescriptor(id, name, url, version, active, tags, excludedEditions);
   }
 
-  private static boolean getBoolean(Properties properties, String key, String legacyKey, Path propertiesFile,
-      IdeLogger logger) {
+  private static boolean getBoolean(Properties properties, String key, String legacyKey, Path propertiesFile) {
 
     String value = getString(properties, key, legacyKey);
     if (value == null) {
@@ -63,7 +72,7 @@ public record ToolPluginDescriptor(String id, String name, String url, boolean a
     } else if ("false".equals(lower)) {
       return false;
     }
-    logger.warning("Invalid boolean value '{}' for property '{}' in {}", value, key, propertiesFile);
+    LOG.warn("Invalid boolean value '{}' for property '{}' in {}", value, key, propertiesFile);
     return false;
   }
 
@@ -73,7 +82,22 @@ public record ToolPluginDescriptor(String id, String name, String url, boolean a
     if (value == null) {
       value = properties.getProperty(legacyKey);
     }
-    return value;
+    return value != null ? value.trim() : null;
+  }
+
+  private static Set<String> getSetOfStrings(Properties properties, String key) {
+    String value = properties.getProperty(key);
+    if (value != null) {
+      Set<String> result = new HashSet<>();
+      for (String item : value.split(",")) {
+        String trimmed = item.trim();
+        if (!trimmed.isEmpty()) {
+          result.add(trimmed);
+        }
+      }
+      return Set.copyOf(result);
+    }
+    return Set.of();
   }
 
 }

@@ -1,0 +1,2 @@
+#!/bin/bash
+echo java 11.0.27_6 $*

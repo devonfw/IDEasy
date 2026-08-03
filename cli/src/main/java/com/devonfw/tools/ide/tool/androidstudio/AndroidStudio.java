@@ -52,9 +52,15 @@ public class AndroidStudio extends IdeaBasedIdeToolCommandlet {
   }
 
   @Override
-  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean extraInstallation) {
+  protected String getIdeProductPrefix() {
 
-    super.setEnvironment(environmentContext, toolInstallation, extraInstallation);
+    return STUDIO;
+  }
+
+  @Override
+  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
+
+    super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
     environmentContext.withEnvVar("STUDIO_PROPERTIES", this.context.getWorkspacePath().resolve("studio.properties").toString());
   }
 

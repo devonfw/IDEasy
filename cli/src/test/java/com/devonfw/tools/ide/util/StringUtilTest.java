@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Test of {@link StringUtil}.
  */
-public class StringUtilTest {
+class StringUtilTest {
 
   /**
    * Tests appending of a single extra string will return the expected result.

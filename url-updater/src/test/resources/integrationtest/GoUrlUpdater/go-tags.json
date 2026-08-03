@@ -1,0 +1,11 @@
+[
+  {
+    "ref": "refs/tags/go1.25.7"
+  },
+  {
+    "ref": "refs/tags/go1.25.8"
+  },
+  {
+    "ref": "refs/tags/go1.25rc1"
+  }
+]

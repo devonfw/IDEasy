@@ -36,7 +36,7 @@ image::images/tools-tabs-explorer.png["tabs in windows explorer"]
 === Tabs for SSH
 
 If you want to have tabs for your SSH client http://www.putty.org/[Putty] (or even better http://www.9bis.net/kitty/[Kitty] that comes with https://winscp.net/[WinSCP] integration) you simply install https://github.com/jimradford/superputty#superputty-application[SuperPutty]
-BTW: Windows 10 has already an SSH client included.
+BTW: Windows has already an SSH client included.
 
 .Tabs for SSH
 image::images/tools-tabs-ssh.png["tabs for SSH sessions"]
@@ -48,10 +48,11 @@ If you want to use different shells like CMD, Powershell, git-bash, WSL, SSH, et
 .Tabs for multiple shells inside one window
 image::images/WindowsTerminal.png["Shells inside Windows-Terminal"]
 
-For perfect integration, you should (re-)install `git` after Windows-Terminal has been installed and check the option `Add a Git Bash Profile to Windows Terminal` or follow the https://www.timschaeps.be/post/adding-git-bash-to-windows-terminal/[manual integration].
+For perfect integration, IDEasy automatically integrates Git Bash into Windows-Terminal during setup and makes it the default shell.
+If you maintain a manual setup without IDEasy, you can still follow this https://www.timschaeps.be/post/adding-git-bash-to-windows-terminal/[manual integration].
 
 .Integration of git-bash into Windows-Terminal
-image::https://mobeigi.com/_next/image/?url=%2Fapi%2Fmedia%2Ffile%2Fgit-installer-windows-terminal-profile.webp&w=1200&q=75["Intergate git-bash into Windows-Terminal"]
+image::images/git-installer-windows-terminal-profile.png["Integrate git-bash into Windows-Terminal"]
 
 You can even open SSH sessions and WSL distributions from the context menu of `Windows Terminal` in a tab.
 
@@ -83,7 +84,7 @@ If you still want more you might try http://ditto-cp.sourceforge.net/[ditto].
 === PowerToys
 
 Microsoft provides some extensions to improve the workflow in windows called https://github.com/microsoft/PowerToys[PowerToys].
-The include tools like a file renamer, a way to order your windows on the screen, a color picker and more.
+They include tools like a file renamer, a way to order your windows on the screen, a color picker and more.
 
 === Sysinternals Tools
 
@@ -145,7 +146,7 @@ For the example (« and ») you can simply use this script to get started:
 
 First, just press `[ctrl][<]` and `[ctrl][>]` (`[ctrl][shift][<]`).
 Next, create shortcuts to launch your IDE, to open your favorite tool, etc.
-If you like a GUI to easily configure the scrips, that comes with a lot of extensions preinstalled, you should have a look at https://activaid.telgkamp.de/[Ac'tiveAid].
+If you like a GUI to easily configure the scripts, that comes with a lot of extensions preinstalled, you should have a look at https://activaid.telgkamp.de/[Ac'tiveAid].
 
 === Paint anywhere on your desktop
 
@@ -155,7 +156,7 @@ Use http://epic-pen.com/[Epic Pen] to do just that.
 === Analyze graphs
 
 Do you need to visualize complex graph structures?
-Convert them to https://en.wikipedia.org/wiki/Trivial_Graph_Format[Trivial Graph Format] `(.tgf)`, a run https://www.yworks.com/products/yed[yEd] to get an interactive visualization of your graph.
+Convert them to https://en.wikipedia.org/wiki/Trivial_Graph_Format[Trivial Graph Format] `(.tgf)`, and run https://www.yworks.com/products/yed[yEd] to get an interactive visualization of your graph.
 
 === Up your screen capture game
 

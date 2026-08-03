@@ -1,7 +1,13 @@
 echo "Running install intellij integration test"
 ide -d install intellij
 
-assertThat "${IDE_ROOT}/${TEST_PROJECT_NAME}/software/intellij/.ide.software.version" exists
+if ! doIsMacOs
+then
+  assertThat "${IDE_ROOT}/${TEST_PROJECT_NAME}/software/intellij/.ide.software.version" exists
+else
+  ide intellij --version
+  assertThat $? equals 0
+fi
 
 intellij_binary="bin/idea.sh"
 

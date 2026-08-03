@@ -4,14 +4,18 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Locale;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.IdeSystem;
-import com.devonfw.tools.ide.log.IdeLogLevel;
 
 /**
  * Simple class to {@link #configure()} network proxy.
  */
 public class NetworkProxy {
+
+  private static final Logger LOG = LoggerFactory.getLogger(NetworkProxy.class);
 
   private static final String PROXY_DOCUMENTATION_PAGE = "https://github.com/devonfw/IDEasy/blob/main/documentation/proxy-support.adoc";
 
@@ -44,12 +48,12 @@ public class NetworkProxy {
     String systemPropertyProxyHost = protocol + ".proxyHost";
     String configuredValue = System.getProperty(systemPropertyProxyHost);
     if (configuredValue != null) {
-      this.context.trace("Proxy already configured via system property {}={}", systemPropertyProxyHost, configuredValue);
+      LOG.trace("Proxy already configured via system property {}={}", systemPropertyProxyHost, configuredValue);
       return;
     }
     String proxyUrlString = getProxyUrlFromEnvironmentVariable(protocol);
     if (proxyUrlString == null) {
-      this.context.trace("No {} proxy configured.", protocol);
+      LOG.trace("No {} proxy configured.", protocol);
       return;
     }
     try {
@@ -75,9 +79,8 @@ public class NetworkProxy {
         system.setProperty(protocol + ".nonProxyHosts", this.nonProxyHosts);
       }
     } catch (MalformedURLException e) {
-      context.level(IdeLogLevel.WARNING)
-          .log(e, "Invalid {} proxy configuration detected with URL {}. Proxy configuration will be skipped.\n"
-              + "For further details, see " + PROXY_DOCUMENTATION_PAGE, protocol, proxyUrlString);
+      LOG.warn("Invalid {} proxy configuration detected with URL {}. Proxy configuration will be skipped.\n"
+          + "For further details, see " + PROXY_DOCUMENTATION_PAGE, protocol, proxyUrlString, e);
     }
   }
 
@@ -118,7 +121,7 @@ public class NetworkProxy {
 
     String value = this.context.getSystem().getEnv(name);
     if (value != null) {
-      this.context.trace("Found environment variable {}={}", name, value);
+      LOG.trace("Found environment variable {}={}", name, value);
     }
     return value;
   }

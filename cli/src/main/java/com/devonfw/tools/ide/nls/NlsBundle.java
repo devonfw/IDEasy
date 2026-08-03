@@ -3,6 +3,9 @@ package com.devonfw.tools.ide.nls;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.Property;
@@ -11,6 +14,8 @@ import com.devonfw.tools.ide.property.Property;
  * Wrapper for {@link ResourceBundle} to avoid {@link java.util.MissingResourceException}.
  */
 public class NlsBundle {
+
+  private static final Logger LOG = LoggerFactory.getLogger(NlsBundle.class);
 
   private final IdeContext context;
 
@@ -62,7 +67,7 @@ public class NlsBundle {
   public String get(String key) {
 
     if (!this.bundle.containsKey(key)) {
-      this.context.warning("Cound not find key '{}' in ResourceBundle {}.properties", key, this.fqn);
+      LOG.warn("Cound not find key '{}' in ResourceBundle {}.properties", key, this.fqn);
       return "?" + key;
     }
     return this.bundle.getString(key);

@@ -5,14 +5,17 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.EnvironmentContext;
-import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.tool.uv.Uv;
@@ -22,6 +25,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * {@link ToolCommandlet} for <a href="https://www.python.org/">python</a>.
  */
 public class Python extends LocalToolCommandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(Python.class);
 
   private final VersionIdentifier PYTHON_MIN_VERSION = VersionIdentifier.of("3.8.2");
 
@@ -35,21 +40,10 @@ public class Python extends LocalToolCommandlet {
     super(context, "python", Set.of(Tag.PYTHON));
   }
 
-  /**
-   * Installs {@code Python} using the {@link Uv#installPython(Path, VersionIdentifier, ProcessContext)} method.
-   * <p>
-   * Unlike the base implementation, this method requires the {@link ProcessContext} to perform the installation logic specific to {@code python}.
-   *
-   * @param toolRepository the {@link ToolRepository}, unused in this implementation.
-   * @param resolvedVersion the {@link VersionIdentifier} of the {@code Python} tool to install.
-   * @param installationPath the target {@link Path} where the tool should be installed.
-   * @param edition the edition of the tool to install, unused in this implementation.
-   * @param processContext the {@link ProcessContext} required to install the {@code Python} environment.
-   */
   @Override
-  protected void performToolInstallation(ToolRepository toolRepository, VersionIdentifier resolvedVersion, Path installationPath,
-      String edition, ProcessContext processContext) {
+  protected void performToolInstallation(ToolInstallRequest request, Path installationPath) {
 
+    VersionIdentifier resolvedVersion = request.getRequested().getResolvedVersion();
     if (resolvedVersion.compareVersion(PYTHON_MIN_VERSION).isLess()) {
       throw new CliException("Python version must be at least " + this.PYTHON_MIN_VERSION);
     }
@@ -61,17 +55,17 @@ public class Python extends LocalToolCommandlet {
     Path softwarePath = installationPath.getParent();
     Uv uv = this.context.getCommandletManager().getCommandlet(Uv.class);
 
-    uv.installPython(softwarePath, resolvedVersion, processContext);
+    uv.installPython(softwarePath, resolvedVersion, request.getProcessContext());
     renameVenvFolderToPython(fileAccess, softwarePath, installationPath);
     this.context.writeVersionFile(resolvedVersion, installationPath);
     createWindowsSymlinkBinFolder(fileAccess, installationPath);
-    this.context.debug("Installed {} in version {} at {}", this.tool, resolvedVersion, installationPath);
+    LOG.debug("Installed {} in version {} at {}", this.tool, resolvedVersion, installationPath);
   }
 
   @Override
-  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean extraInstallation) {
+  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
 
-    super.setEnvironment(environmentContext, toolInstallation, extraInstallation);
+    super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
     environmentContext.withEnvVar("VIRTUAL_ENV", toolInstallation.rootDir().toString());
   }
 
@@ -79,6 +73,12 @@ public class Python extends LocalToolCommandlet {
   protected boolean isIgnoreSoftwareRepo() {
 
     return true;
+  }
+
+  @Override
+  public ToolRepository getToolRepository() {
+
+    return this.context.getPythonRepository();
   }
 
   /**

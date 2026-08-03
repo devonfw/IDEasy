@@ -1,15 +1,18 @@
 package com.devonfw.tools.ide.environment;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-import com.devonfw.tools.ide.log.IdeLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Container that represents a line from a properties (ide.properties) file. We do not use {@link java.util.Properties} as we need support for exported
  * variables, lists/arrays, and saving changes without loosing comments, etc.
  */
 public abstract class VariableLine {
+
+  private static final Logger LOG = LoggerFactory.getLogger(VariableLine.class);
 
   /**
    * @return {@code true} if the variable is exported (e.g. "export MAVEN_OPTS=-Xmx20248m"), {@code false} otherwise.
@@ -80,7 +83,7 @@ public abstract class VariableLine {
 
   static final class Variable extends VariableLine {
 
-    private boolean export;
+    private final boolean export;
 
     private final String name;
 
@@ -238,11 +241,10 @@ public abstract class VariableLine {
    * Parses a {@link VariableLine} from {@link String}.
    *
    * @param line the {@link VariableLine} as {@link String} to parse.
-   * @param logger the {@link IdeLogger}.
    * @param source the source where the given {@link String} to parse is from (e.g. the file path).
    * @return the parsed {@link VariableLine}.
    */
-  public static VariableLine of(String line, IdeLogger logger, VariableSource source) {
+  public static VariableLine of(String line, VariableSource source) {
 
     int len = line.length();
     int start = 0;
@@ -290,7 +292,7 @@ public abstract class VariableLine {
       }
       end++;
     }
-    logger.warning("Ignoring corrupted line '{}' in {}", line, source);
+    LOG.warn("Ignoring corrupted line '{}' in {}", line, source);
     return new Garbage(line);
   }
 
@@ -318,6 +320,15 @@ public abstract class VariableLine {
   }
 
   /**
+   * @param value the {@link String} value to check.
+   * @return {@code true} if the value is a bash array (starts with "(" and ends with ")"), {@code false} otherwise.
+   */
+  public static boolean isBashArray(String value) {
+
+    return value.startsWith("(") && value.endsWith(")");
+  }
+
+  /**
    * Returns a list of String Variables.
    *
    * @param value String to parse
@@ -326,17 +337,18 @@ public abstract class VariableLine {
   public static List<String> parseArray(String value) {
     String csv = value;
     String separator = ",";
-    // TODO: refactor with isBashArray method from VariableDefinitionStringList
-    if (value.startsWith("(") && value.endsWith(")")) {
+    if (isBashArray(value)) {
       csv = value.substring(1, value.length() - 1);
       separator = " ";
+      // Support comma as separator in bash array syntax for convenience
+      if (csv.contains(",")) {
+        separator = ",";
+      }
     }
-    String[] items = csv.split(separator);
-    List<String> list = new ArrayList<>(items.length);
-    for (String item : items) {
-      list.add(item.trim());
-    }
-    return list;
+    return Arrays.stream(csv.split(separator))
+        .map(String::trim)
+        .filter(s -> !s.isEmpty())
+        .toList();
   }
 
 }

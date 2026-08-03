@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
-import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Path;
@@ -23,6 +22,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.io.HttpClientFactory;
 import com.devonfw.tools.ide.io.HttpErrorResponse;
 import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.os.SystemArchitecture;
@@ -70,28 +70,50 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   protected static final SystemArchitecture ARM64 = SystemArchitecture.ARM64;
 
   /** List of URL file names dependent on OS which need to be checked for existence */
-  private static final Set<String> URL_FILENAMES_PER_OS = Set.of("linux_x64.urls", "mac_arm64.urls", "mac_x64.urls",
-      "windows_x64.urls");
+  private static final Set<String> URL_FILENAMES_PER_OS = Set.of("linux_x64.urls", "mac_arm64.urls", "mac_x64.urls", "windows_x64.urls");
 
   /** List of URL file name independent of OS which need to be checked for existence */
   private static final Set<String> URL_FILENAMES_OS_INDEPENDENT = Set.of("urls");
 
   /** The {@link HttpClient} for HTTP requests. */
-  protected final HttpClient client = HttpClient.newBuilder().followRedirects(Redirect.ALWAYS).build();
+  protected final HttpClient client = HttpClientFactory.create();
+
+  /** The GitHub actions token name for api requests. */
+  private static final String GITHUB_API_TOKEN_ENV = "GHA_TOKEN";
+
+  /** The GitHub API host to send {@link AbstractUrlUpdater#GITHUB_API_TOKEN_ENV} to. */
+  private static final String GITHUB_API_HOST = "api.github.com";
+
+  private final String downloadBaseUrl;
+
+  private final String versionBaseUrl;
 
   private static final Logger logger = LoggerFactory.getLogger(AbstractUrlUpdater.class);
 
   /**
    * The constructor.
+   *
+   * @param downloadBaseUrl download base url
+   * @param versionBaseUrl version base url
    */
-  public AbstractUrlUpdater() {
+  public AbstractUrlUpdater(String downloadBaseUrl, String versionBaseUrl) {
     super();
+    if (downloadBaseUrl == null || downloadBaseUrl.isEmpty()) {
+      throw new IllegalArgumentException(
+          "Variable downloadBaseUrl can't be null or empty. Please provide valid value in UrlUpdater and UrlUpdaterTest for effected tool.");
+    }
+    if (versionBaseUrl == null || versionBaseUrl.isEmpty()) {
+      throw new IllegalArgumentException(
+          "Variable versionBaseUrl can't be null or empty. Please provide valid value in UrlUpdater and UrlUpdaterTest for effected tool.");
+    }
+    this.downloadBaseUrl = downloadBaseUrl;
+    this.versionBaseUrl = versionBaseUrl;
   }
 
   /**
    * @return the name of the {@link UrlTool tool} handled by this updater.
    */
-  protected abstract String getTool();
+  public abstract String getTool();
 
   /**
    * @return the name of the {@link UrlEdition edition} handled by this updater.
@@ -104,7 +126,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   /**
    * @return the names of the {@link UrlEdition editions} handled by this updater.
    */
-  protected List<String> getEditions() {
+  public List<String> getEditions() {
 
     return List.of(getEdition());
   }
@@ -150,32 +172,211 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   }
 
   /**
-   * @return the edition as specified in the {@link #CPE}.
-   */
-  public String getCpeEdition() {
-
-    return getTool();
-  }
-
-  /**
-   * @param version the {@link UrlVersion#getName() version} to map to the format or syntax used in the {@link #CPE}.
-   * @return the version as specified in the {@link #CPE}.
-   */
-  public String mapUrlVersionToCpeVersion(String version) {
-
-    return version;
-  }
-
-  /**
-   * This method is only used as fallback if the passed version is not in the expected format or syntax of {@link #mapUrlVersionToCpeVersion(String)}. This
-   * doesn't have to be inverse of {@link #mapUrlVersionToCpeVersion(String)}. It must only be sufficient to get the correct
-   * {@link com.devonfw.tools.ide.version.VersionRange} from the matched vulnerable software.
+   * Configures the CPE aliases used by this updater. The default implementation keeps the existing behavior and registers the current
+   * {@link #getCpeVendor() vendor} and {@link #getCpeProduct() product} as exact matches.
    *
-   * @return the mapped version as specified in the {@link #CPE} to the version as specified by the directory name in the url repository.
+   * @param cpe the registry to configure.
    */
-  public String mapCpeVersionToUrlVersion(String version) {
+  protected void initCpe(CpeRegistry cpe) {
 
-    return version;
+    cpe.addVendor(getCpeVendor()).addProduct(getCpeProduct());
+  }
+
+  /**
+   * @return the configured CPE registry for this updater.
+   */
+  public final CpeRegistry getCpeRegistry() {
+
+    CpeRegistry cpe = new CpeRegistry();
+    initCpe(cpe);
+    cpe.validate();
+    return cpe;
+  }
+
+  /**
+   * Checks if the given vendor/product combination matches this updater's configured CPE aliases.
+   *
+   * @param vendor the CPE vendor.
+   * @param product the CPE product.
+   * @return {@code true} if the CPE matches, {@code false} otherwise.
+   */
+  public final boolean matchesCpe(String vendor, String product) {
+
+    return getCpeRegistry().matches(vendor, product);
+  }
+
+  /**
+   * Registry for CPE aliases of an updater.
+   */
+  public static final class CpeRegistry {
+
+    private final List<CpeValue> vendors = new ArrayList<>();
+
+    private final List<CpeValue> products = new ArrayList<>();
+
+    /**
+     * Adds an exact vendor match.
+     *
+     * @param vendor the vendor value.
+     * @return this registry.
+     */
+    public CpeRegistry addVendor(String vendor) {
+
+      addValue(this.vendors, vendor, false);
+      return this;
+    }
+
+    /**
+     * Adds an infix vendor match.
+     *
+     * @param vendor the vendor infix.
+     * @return this registry.
+     */
+    public CpeRegistry addVendorInfix(String vendor) {
+
+      addValue(this.vendors, vendor, true);
+      return this;
+    }
+
+    /**
+     * Adds an exact product match.
+     *
+     * @param product the product value.
+     * @return this registry.
+     */
+    public CpeRegistry addProduct(String product) {
+
+      addValue(this.products, product, false);
+      return this;
+    }
+
+    /**
+     * Adds an infix product match.
+     *
+     * @param product the product infix.
+     * @return this registry.
+     */
+    public CpeRegistry addProductInfix(String product) {
+
+      addValue(this.products, product, true);
+      return this;
+    }
+
+    /**
+     * @return the primary vendor, i.e. the first configured vendor alias.
+     */
+    public String getPrimaryVendor() {
+
+      return getPrimaryValue(this.vendors, "vendor");
+    }
+
+    /**
+     * @return the primary product, i.e. the first configured product alias.
+     */
+    public String getPrimaryProduct() {
+
+      return getPrimaryValue(this.products, "product");
+    }
+
+    /**
+     * @return a list of all configured vendor values (both exact and infix matches).
+     */
+    public List<String> getVendors() {
+
+      return this.vendors.stream().map(CpeValue::value).toList();
+    }
+
+    /**
+     * @return a list of all configured product values (both exact and infix matches).
+     */
+    public List<String> getProducts() {
+
+      return this.products.stream().map(CpeValue::value).toList();
+    }
+
+
+    /**
+     * @param vendor the vendor to check.
+     * @param product the product to check.
+     * @return {@code true} if both values match the configured aliases.
+     */
+    public boolean matches(String vendor, String product) {
+
+      return matches(vendor, this.vendors) && matches(product, this.products);
+    }
+
+    /**
+     * Validates that at least one vendor and one product have been configured.
+     */
+    public void validate() {
+
+      if (this.vendors.isEmpty()) {
+        throw new IllegalStateException("No CPE vendor configured. Add at least one vendor via initCpe(...).");
+      }
+      if (this.products.isEmpty()) {
+        throw new IllegalStateException("No CPE product configured. Add at least one product via initCpe(...).");
+      }
+    }
+
+    private static void addValue(List<CpeValue> values, String value, boolean infix) {
+
+      String normalized = normalizeCpeValue(value);
+      if (normalized.isEmpty()) {
+        throw new IllegalArgumentException("CPE value must not be empty.");
+      }
+      values.add(new CpeValue(normalized, infix));
+    }
+
+    private CpeRegistry() {
+      super();
+    }
+
+    private static String getPrimaryValue(List<CpeValue> values, String type) {
+
+      if (values.isEmpty()) {
+        throw new IllegalStateException("No CPE " + type + " configured.");
+      }
+      return values.getFirst().value();
+    }
+
+    private static List<String> getValues(List<CpeValue> values) {
+
+      return values.stream().map(CpeValue::value).toList();
+    }
+
+    private static boolean matches(String value, List<CpeValue> values) {
+
+      if (value == null) {
+        return false;
+      }
+      String normalized = normalizeCpeValue(value);
+      for (CpeValue candidate : values) {
+        if (candidate.matches(normalized)) {
+          return true;
+        }
+      }
+      return false;
+    }
+  }
+
+  /**
+   * Single configured CPE value.
+   */
+  private record CpeValue(String value, boolean infix) {
+
+    private boolean matches(String actualValue) {
+
+      if (this.infix) {
+        return actualValue.contains(this.value);
+      }
+      return actualValue.equals(this.value);
+    }
+  }
+
+  private static String normalizeCpeValue(String value) {
+
+    Objects.requireNonNull(value, "CPE value must not be null.");
+    return value.trim().toLowerCase(Locale.ROOT);
   }
 
   /**
@@ -188,7 +389,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   protected String doGetResponseBodyAsString(String url) {
 
     try {
-      HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
+      HttpRequest request = createRequestWithOptionalAuth(url).GET().build();
       HttpResponse<String> response = this.client.send(request, HttpResponse.BodyHandlers.ofString());
       if (response.statusCode() == 200) {
         return response.body();
@@ -206,13 +407,30 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   protected HttpResponse<InputStream> doGetResponseAsStream(String url) {
 
     try {
-      HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
+      HttpRequest request = createRequestWithOptionalAuth(url).GET().build();
       return this.client.send(request, HttpResponse.BodyHandlers.ofInputStream());
     } catch (Exception e) {
       throw new IllegalStateException("Failed to retrieve response from url: " + url, e);
     }
   }
 
+  /**
+   * Creates an {@link HttpRequest.Builder} and adds GitHub API authentication if the target host is {@link AbstractUrlUpdater#GITHUB_API_HOST}
+   *
+   * @param url the url to build the request with.
+   * @return an {@link HttpRequest.Builder} for the given url.
+   */
+  private HttpRequest.Builder createRequestWithOptionalAuth(String url) {
+    URI uri = URI.create(url);
+    HttpRequest.Builder requestBuilder = HttpRequest.newBuilder().uri(uri);
+    if (uri.getHost() != null && GITHUB_API_HOST.equalsIgnoreCase(uri.getHost())) {
+      String githubToken = System.getenv(GITHUB_API_TOKEN_ENV);
+      if (githubToken != null && !githubToken.isBlank()) {
+        requestBuilder.header("Authorization", "Bearer " + githubToken);
+      }
+    }
+    return requestBuilder;
+  }
 
   /**
    * Updates a tool version with the given arguments (OS independent).
@@ -276,8 +494,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    * @param architecture the optional {@link SystemArchitecture}.
    * @return {@code true} if the version was successfully added, {@code false} otherwise.
    */
-  protected boolean doAddVersion(UrlVersion urlVersion, String downloadUrl, OperatingSystem os,
-      SystemArchitecture architecture) {
+  protected boolean doAddVersion(UrlVersion urlVersion, String downloadUrl, OperatingSystem os, SystemArchitecture architecture) {
 
     return doAddVersion(getEdition(), urlVersion, downloadUrl, os, architecture, "");
   }
@@ -292,8 +509,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    * @param architecture the optional {@link SystemArchitecture}.
    * @return {@code true} if the version was successfully added, {@code false} otherwise.
    */
-  protected boolean doAddVersion(String edition, UrlVersion urlVersion, String downloadUrl, OperatingSystem os,
-      SystemArchitecture architecture) {
+  protected boolean doAddVersion(String edition, UrlVersion urlVersion, String downloadUrl, OperatingSystem os, SystemArchitecture architecture) {
 
     return doAddVersion(edition, urlVersion, downloadUrl, os, architecture, "");
   }
@@ -324,8 +540,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    * @param checksum the existing checksum (e.g. from JSON metadata) or the empty {@link String} if not available and computation needed.
    * @return {@code true} if the version was successfully added, {@code false} otherwise.
    */
-  protected boolean doAddVersion(String edition, UrlVersion urlVersion, String url, OperatingSystem os, SystemArchitecture architecture,
-      String checksum) {
+  protected boolean doAddVersion(String edition, UrlVersion urlVersion, String url, OperatingSystem os, SystemArchitecture architecture, String checksum) {
 
     UrlStatusFile status = urlVersion.getStatus();
     if ((status != null) && status.getStatusJson().isManual()) {
@@ -368,14 +583,13 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    * @param url the URL the checksum belongs to.
    * @return {@code true} if update of checksum was successful, {@code false} otherwise.
    */
-  private static boolean isChecksumStillValid(String checksum, UrlChecksum urlChecksum,
-      String toolWithEdition, String version, String url) {
+  private static boolean isChecksumStillValid(String checksum, UrlChecksum urlChecksum, String toolWithEdition, String version, String url) {
 
     String existingChecksum = urlChecksum.getChecksum();
 
     if ((existingChecksum != null) && !existingChecksum.equals(checksum)) {
-      logger.error("For tool {} and version {} the download URL {} results in checksum {} but expected {}.",
-          toolWithEdition, version, url, checksum, existingChecksum);
+      logger.error("For tool {} and version {} the download URL {} results in checksum {} but expected {}.", toolWithEdition, version, url, checksum,
+          existingChecksum);
       return false;
     } else {
       urlChecksum.setChecksum(checksum);
@@ -398,8 +612,8 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
       String contentType = response.headers().firstValue("content-type").orElse("undefined");
       boolean isValidContentType = isValidContentType(contentType);
       if (!isValidContentType) {
-        logger.error("For toolWithEdition {} and version {} the download has an invalid content type {} for URL {}", toolWithEdition, version,
-            contentType, url);
+        logger.error("For toolWithEdition {} and version {} the download has an invalid content type {} for URL {}", toolWithEdition, version, contentType,
+            url);
         return false;
       }
       return true;
@@ -433,8 +647,8 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    * @param checksum the existing checksum (e.g. from JSON metadata) or the empty {@link String} if not available and computation needed.
    * @return {@code true} if the download was checked successfully, {@code false} otherwise.
    */
-  private boolean doAddVersionUrlIfNewAndValid(String edition, String url, UrlVersion urlVersion, OperatingSystem os,
-      SystemArchitecture architecture, String checksum) {
+  private boolean doAddVersionUrlIfNewAndValid(String edition, String url, UrlVersion urlVersion, OperatingSystem os, SystemArchitecture architecture,
+      String checksum) {
 
     UrlDownloadFile urlDownloadFile = urlVersion.getUrls(os, architecture);
     if (urlDownloadFile != null) {
@@ -492,8 +706,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    * @param version the {@link UrlVersion version} identifier.
    * @return checksum of input stream as hex string
    */
-  private String doGenerateChecksum(HttpResponse<InputStream> response, String url, String edition, String version,
-      String contentType) {
+  private String doGenerateChecksum(HttpResponse<InputStream> response, String url, String edition, String version, String contentType) {
 
     logger.info("Computing checksum for download with URL {}", url);
     try (InputStream inputStream = response.body()) {
@@ -511,9 +724,8 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
       }
       byte[] digestBytes = md.digest();
       String checksum = HexUtil.toHexString(digestBytes);
-      logger.info(
-          "For tool {} and version {} we received {} bytes with content-type {} and computed SHA256 {} from URL {}",
-          getToolWithEdition(edition), version, Long.valueOf(size), contentType, checksum, url);
+      logger.info("For tool {} and version {} we received {} bytes with content-type {} and computed SHA256 {} from URL {}", getToolWithEdition(edition),
+          version, Long.valueOf(size), contentType, checksum, url);
       return checksum;
     } catch (IOException e) {
       throw new IllegalStateException("Failed to read body of download " + url, e);
@@ -530,16 +742,17 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    */
   protected HttpResponse<?> doCheckDownloadViaHeadRequest(String url) {
 
-    URI uri = null;
     HttpRequest request = null;
     try {
-      uri = URI.create(url);
-      request = HttpRequest.newBuilder().uri(uri)
-          .method("HEAD", HttpRequest.BodyPublishers.noBody()).timeout(Duration.ofSeconds(5)).build();
-
+      request = createRequestWithOptionalAuth(url).method("HEAD", HttpRequest.BodyPublishers.noBody()).timeout(Duration.ofSeconds(5)).build();
       return this.client.send(request, HttpResponse.BodyHandlers.ofString());
     } catch (Exception e) {
       logger.error("Failed to perform HEAD request of URL {}", url, e);
+      URI uri = null;
+      try {
+        uri = URI.create(url);
+      } catch (Exception ignored) {
+      }
       return new HttpErrorResponse(e, request, uri);
     }
   }
@@ -601,8 +814,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
         modified = true;
       }
 
-      logger.info("For tool {} and version {} the download verification succeeded with status code {} for URL {}.", tool,
-          version, code, url);
+      logger.info("For tool {} and version {} the download verification succeeded with status code {} for URL {}.", tool, version, code, url);
       getUrlUpdaterReport().incrementVerificationSuccess();
     } else {
       if (status != null) {
@@ -610,8 +822,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
           modified = true;
         } else {
           if (!Objects.equals(code, errorStatus.getCode())) {
-            logger.warn("For tool {} and version {} the error status-code changed from {} to {} for URL {}.", tool,
-                version, code, errorStatus.getCode(), url);
+            logger.warn("For tool {} and version {} the error status-code changed from {} to {} for URL {}.", tool, version, code, errorStatus.getCode(), url);
             modified = true;
           } else if (isErrorCodeForAutomaticUrlRemoval(code)) {
             boolean urlBroken;
@@ -645,8 +856,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
           status.setError(errorStatus);
         }
       }
-      logger.warn("For tool {} and version {} the download verification failed with status code {} for URL {}.", tool,
-          version, code, url);
+      logger.warn("For tool {} and version {} the download verification failed with status code {} for URL {}.", tool, version, code, url);
 
       getUrlUpdaterReport().incrementVerificationFailure();
     }
@@ -660,13 +870,11 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
 
   private static void removeUrl(String url, UrlDownloadFile downloadFile, String tool, String version, Integer code, UrlStatusFile urlStatusFile,
       UrlStatus status) {
-    logger.warn("For tool {} and version {} the the URL {} is broken (status code {}) for a long time and will be removed.", tool,
-        version, code, url);
+    logger.warn("For tool {} and version {} the the URL {} is broken (status code {}) for a long time and will be removed.", tool, version, code, url);
     downloadFile.removeUrl(url);
     if (downloadFile.getUrls().isEmpty()) {
       Path downloadPath = downloadFile.getPath();
-      logger.warn("For tool {} and version {} all URLs have been removed so the download file {} will be removed.", tool,
-          version, downloadPath);
+      logger.warn("For tool {} and version {} all URLs have been removed so the download file {} will be removed.", tool, version, downloadPath);
       downloadFile.delete();
       UrlChecksum urlChecksum = downloadFile.getParent().getChecksum(downloadFile.getName());
       if (urlChecksum == null) {
@@ -789,8 +997,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
         UrlStatusFile urlStatusFile = urlVersion.getOrCreateStatus();
         StatusJson statusJson = urlStatusFile.getStatusJson();
         if (statusJson.isManual()) {
-          logger.info("For tool {} the version {} is set to manual, hence skipping update", getToolWithEdition(edition.getName()),
-              version);
+          logger.info("For tool {} the version {} is set to manual, hence skipping update", getToolWithEdition(edition.getName()), version);
         } else {
           updateExistingVersion(edition.getName(), version, urlVersion, statusJson, urlStatusFile);
           if (urlVersion.getChildren().isEmpty()) {
@@ -804,8 +1011,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     }
   }
 
-  private void updateExistingVersion(String edition, String version, UrlVersion urlVersion, StatusJson statusJson,
-      UrlStatusFile urlStatusFile) {
+  private void updateExistingVersion(String edition, String version, UrlVersion urlVersion, StatusJson statusJson, UrlStatusFile urlStatusFile) {
 
     String toolWithEdition = getToolWithEdition(edition);
     Instant now = Instant.now();
@@ -859,28 +1065,64 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    * @param version the original version (e.g. "v1.0").
    * @return the transformed version (e.g. "1.0") or {@code null} to filter and omit the given version.
    */
-  protected String mapVersion(String version) {
+  public String mapVersion(String version) {
 
     String prefix = getVersionPrefixToRemove();
     if ((prefix != null) && version.startsWith(prefix)) {
       version = version.substring(prefix.length());
     }
+
     String vLower = version.toLowerCase(Locale.ROOT);
-    if (vLower.contains("alpha") || vLower.contains("beta") || vLower.contains("dev") || vLower.contains("snapshot")
-        || vLower.contains("preview") || vLower.contains("test") || vLower.contains("tech-preview") //
-        || vLower.contains("-pre") || vLower.startsWith("ce-") || vLower.contains("-next") || vLower.contains("-rc")
-        // vscode nonsense
-        || vLower.startsWith("bad") || vLower.contains("vsda-") || vLower.contains("translation/") || vLower.contains(
-        "-insiders")) {
+    if (!isAcceptVersion(vLower)) {
+      return null;
+    }
+
+    String filter = getCustomVersionFilter();
+    if ((filter != null) && version.contains(filter)) {
       return null;
     }
     return version;
   }
 
   /**
+   * @param version the version to check in lower-case (e.g. "1.0" or "1.0-alpha1").
+   * @return {@code true} if version should be accepted, {@code false} otherwise (to filter and ignore this version).
+   */
+  protected boolean isAcceptVersion(String version) {
+
+    if (version.contains("alpha") || version.contains("beta") || version.contains("dev") || version.contains("snapshot") || version.contains("preview")
+        || version.contains("test") || version.contains("tech-preview") //
+        || version.startsWith("ce-") || version.contains("-next")
+        // vscode nonsense
+        || version.startsWith("bad") || version.contains("vsda-") || version.contains("translation/") || version.contains("-insiders")) {
+      return false;
+    }
+    if (version.contains("-rc") || version.contains("-pre")) {
+      return isAcceptPreVersion();
+    }
+    return true;
+  }
+
+  /**
+   * @return {@code true} to accept release-candidate ("rc") or "pre" versions, {@code false} otherwise (default).
+   */
+  protected boolean isAcceptPreVersion() {
+
+    return false;
+  }
+
+  /**
    * @return the optional version prefix that has to be removed (e.g. "v").
    */
   protected String getVersionPrefixToRemove() {
+
+    return null;
+  }
+
+  /**
+   * @return the generic filters applied in {@link #filterVersion(String)}. Example: a tool might want to exclude versions containing "rc" or "beta".
+   */
+  protected String getCustomVersionFilter() {
 
     return null;
   }
@@ -931,11 +1173,15 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   /**
    * @return the base URL for the release downloads.
    */
-  protected abstract String getDownloadBaseUrl();
+  protected String getDownloadBaseUrl() {
+    return this.downloadBaseUrl;
+  }
 
   /**
    * @return the base URL for the version information.
    */
-  protected abstract String getVersionBaseUrl();
+  protected String getVersionBaseUrl() {
+    return this.versionBaseUrl;
+  }
 
 }

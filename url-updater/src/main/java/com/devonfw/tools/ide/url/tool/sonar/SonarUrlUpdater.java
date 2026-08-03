@@ -1,15 +1,33 @@
 package com.devonfw.tools.ide.url.tool.sonar;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
 
 /**
- * {@link GithubUrlUpdater} for sonar (sonarqube).
+ * {@link GithubUrlTagUpdater} for sonar (sonarqube).
  */
-public class SonarUrlUpdater extends GithubUrlUpdater {
+public class SonarUrlUpdater extends GithubUrlTagUpdater {
+
+  private static final String DOWNLOAD_BASE_URL = "https://binaries.sonarsource.com";
+
+  /**
+   * The Constructor.
+   */
+  public SonarUrlUpdater() {
+    super(DOWNLOAD_BASE_URL);
+  }
+
+  /**
+   * Package-private constructor used for testing {@link SonarUrlUpdater}.
+   *
+   * @param baseUrl mock url used as download and version base.
+   */
+  SonarUrlUpdater(String baseUrl) {
+    super(baseUrl, baseUrl);
+  }
 
   @Override
-  protected String getTool() {
+  public String getTool() {
 
     return "sonar";
   }
@@ -27,12 +45,6 @@ public class SonarUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
-  protected String getDownloadBaseUrl() {
-
-    return "https://binaries.sonarsource.com";
-  }
-
-  @Override
   protected void addVersion(UrlVersion urlVersion) {
 
     doAddVersion(urlVersion, getDownloadBaseUrl() + "/Distribution/sonarqube/sonarqube-${version}.zip");
@@ -45,6 +57,6 @@ public class SonarUrlUpdater extends GithubUrlUpdater {
 
   @Override
   public String getCpeProduct() {
-    return "sonar";
+    return "sonarqube";
   }
 }

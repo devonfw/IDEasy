@@ -1,8 +1,8 @@
 package com.devonfw.tools.ide.common;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -11,8 +11,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
@@ -31,9 +36,9 @@ import com.devonfw.tools.ide.variable.IdeVariables;
  */
 public class SystemPath {
 
-  private static final Pattern REGEX_WINDOWS_PATH = Pattern.compile("([a-zA-Z]:)?(\\\\[a-zA-Z0-9\\s_.-]+)+\\\\?");
+  private static final Logger LOG = LoggerFactory.getLogger(SystemPath.class);
 
-  private final String envPath;
+  private static final Pattern REGEX_WINDOWS_PATH = Pattern.compile("([a-zA-Z]:)?(\\\\[a-zA-Z0-9\\s_.-]+)+\\\\?");
 
   private final char pathSeparator;
 
@@ -78,7 +83,7 @@ public class SystemPath {
    */
   public SystemPath(IdeContext context, String envPath, Path ideRoot, Path softwarePath) {
 
-    this(context, envPath, ideRoot, softwarePath, File.pathSeparatorChar, Collections.emptyList());
+    this(context, envPath, ideRoot, softwarePath, System.getProperty("path.separator").charAt(0), Collections.emptyList());
   }
 
   /**
@@ -93,10 +98,13 @@ public class SystemPath {
    */
   public SystemPath(IdeContext context, String envPath, Path ideRoot, Path softwarePath, char pathSeparator, List<Path> extraPathEntries) {
 
-    this(context, envPath, pathSeparator, extraPathEntries, new HashMap<>(), new ArrayList<>());
+    this(context, pathSeparator, extraPathEntries, new HashMap<>(), new ArrayList<>());
     String[] envPaths = envPath.split(Character.toString(pathSeparator));
     for (String segment : envPaths) {
-      Path path = Path.of(segment);
+      Path path = parsePathSegment(segment);
+      if (path == null) {
+        continue;
+      }
       String tool = getTool(path, ideRoot);
       if (tool == null) {
         this.paths.add(path);
@@ -105,11 +113,66 @@ public class SystemPath {
     collectToolPath(softwarePath);
   }
 
-  private SystemPath(IdeContext context, String envPath, char pathSeparator, List<Path> extraPathEntries, Map<String, Path> tool2PathMap, List<Path> paths) {
+  /**
+   * Parses a single {@code PATH} segment into a {@link Path}. The segment is first {@link #normalizePathSegment(String) normalized} by removing illegal control
+   * characters (e.g. CR, LF, NUL, TAB) that may sneak into the {@code PATH} variable (e.g. via broken tool configurations) and would otherwise render the entry
+   * invalid. This way a still usable entry is kept instead of being dropped. If nothing usable remains after normalization or the segment cannot be parsed as a
+   * {@link Path} even after normalization, {@code null} is returned so the entry is skipped without aborting the entire {@link SystemPath} construction.
+   *
+   * @param segment the raw {@code PATH} segment.
+   * @return the parsed {@link Path} or {@code null} if the segment is invalid and should be ignored.
+   */
+  private static Path parsePathSegment(String segment) {
+
+    String normalized = normalizePathSegment(segment);
+    if (normalized.isEmpty()) {
+      if (!segment.isEmpty()) {
+        LOG.warn("Ignoring invalid PATH entry '{}' as it only contains illegal control characters.", segment);
+      }
+      return null;
+    }
+    if (!normalized.equals(segment)) {
+      LOG.warn("Normalized PATH entry '{}' by removing illegal control characters.", segment);
+    }
+    try {
+      return Path.of(normalized);
+    } catch (InvalidPathException e) {
+      LOG.warn("Ignoring invalid PATH entry '{}' - {}", segment, e.getMessage());
+      return null;
+    }
+  }
+
+  /**
+   * @param segment the raw {@code PATH} segment.
+   * @return the given {@code segment} with all {@link Character#isISOControl(char) ISO control characters} (e.g. CR, LF, NUL, TAB) removed.
+   */
+  private static String normalizePathSegment(String segment) {
+
+    StringBuilder sb = new StringBuilder(segment.length());
+    for (int i = 0; i < segment.length(); i++) {
+      char c = segment.charAt(i);
+      if (!Character.isISOControl(c)) {
+        sb.append(c);
+      }
+    }
+    return sb.toString();
+  }
+
+  /**
+   * @param context {@link IdeContext} for the output of information.
+   * @param softwarePath the {@link IdeContext#getSoftwarePath() software path}.
+   * @param pathSeparator the path separator char (';' for Windows and ':' otherwise).
+   * @param paths the {@link List} of {@link Path}s to use in the PATH environment variable.
+   */
+  public SystemPath(IdeContext context, Path softwarePath, char pathSeparator, List<Path> paths) {
+    this(context, pathSeparator, new ArrayList<>(), new HashMap<>(), paths);
+    collectToolPath(softwarePath);
+  }
+
+  private SystemPath(IdeContext context, char pathSeparator, List<Path> extraPathEntries, Map<String, Path> tool2PathMap, List<Path> paths) {
 
     super();
     this.context = context;
-    this.envPath = envPath;
     this.pathSeparator = pathSeparator;
     this.extraPathEntries = extraPathEntries;
     this.tool2pathMap = tool2PathMap;
@@ -162,7 +225,7 @@ public class SystemPath {
   private Path findBinaryInOrder(Path path, String tool) {
 
     List<String> extensionPriority = List.of("");
-    if (SystemInfoImpl.INSTANCE.isWindows()) {
+    if (this.context.getSystemInfo().isWindows() || SystemInfoImpl.INSTANCE.isWindows()) {
       extensionPriority = EXTENSION_PRIORITY;
     }
     for (String extension : extensionPriority) {
@@ -202,28 +265,40 @@ public class SystemPath {
    *     was not found on PATH, the same {@link Path} instance is returned that was given as argument.
    */
   public Path findBinary(Path toolPath) {
+    return findBinary(toolPath, p -> true);
+  }
+
+  /**
+   * Finds a binary for {@code toolPath} but allows excluding candidates via {@code filter}. If the filter rejects a candidate, the search continues. If no
+   * acceptable candidate is found, the original {@code toolPath} is returned unchanged.
+   *
+   * @param toolPath the {@link Path} to the tool installation or a simple name (e.g., "git").
+   * @param filter a predicate that must return {@code true} for acceptable candidates; {@code false} rejects and continues searching.
+   * @return the first acceptable {@link Path} found; if none, the original {@code toolPath}.
+   */
+  public Path findBinary(Path toolPath, Predicate<Path> filter) {
+    Objects.requireNonNull(toolPath, "toolPath");
+    Objects.requireNonNull(filter, "filter");
 
     Path parent = toolPath.getParent();
     String fileName = toolPath.getFileName().toString();
 
     if (parent == null) {
-
       for (Path path : this.tool2pathMap.values()) {
         Path binaryPath = findBinaryInOrder(path, fileName);
-        if (binaryPath != null) {
+        if (binaryPath != null && filter.test(binaryPath)) {
           return binaryPath;
         }
       }
-
       for (Path path : this.paths) {
         Path binaryPath = findBinaryInOrder(path, fileName);
-        if (binaryPath != null) {
+        if (binaryPath != null && filter.test(binaryPath)) {
           return binaryPath;
         }
       }
     } else {
       Path binaryPath = findBinaryInOrder(parent, fileName);
-      if (binaryPath != null) {
+      if (binaryPath != null && filter.test(binaryPath)) {
         return binaryPath;
       }
     }
@@ -267,7 +342,7 @@ public class SystemPath {
     } else {
       separator = this.pathSeparator;
     }
-    StringBuilder sb = new StringBuilder(this.envPath.length() + 128);
+    StringBuilder sb = new StringBuilder(128);
     for (Path path : this.extraPathEntries) {
       appendPath(path, sb, separator, pathSyntax);
     }
@@ -290,7 +365,7 @@ public class SystemPath {
   public SystemPath withPath(String overriddenPath, List<Path> extraPathEntries) {
 
     if (overriddenPath == null) {
-      return new SystemPath(this.context, this.envPath, this.pathSeparator, extraPathEntries, this.tool2pathMap, this.paths);
+      return new SystemPath(this.context, this.pathSeparator, extraPathEntries, this.tool2pathMap, this.paths);
     } else {
       return new SystemPath(this.context, overriddenPath, null, null, this.pathSeparator, extraPathEntries);
     }

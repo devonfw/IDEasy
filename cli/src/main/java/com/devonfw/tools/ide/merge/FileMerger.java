@@ -6,6 +6,9 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.regex.Matcher;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.variable.IdeVariables;
@@ -16,6 +19,8 @@ import com.devonfw.tools.ide.variable.VariableSyntax;
  * {@link WorkspaceMerger} responsible for a single type of file.
  */
 public abstract class FileMerger extends AbstractWorkspaceMerger {
+
+  private static final Logger LOG = LoggerFactory.getLogger(FileMerger.class);
 
   protected final boolean legacySupport;
 
@@ -49,7 +54,7 @@ public abstract class FileMerger extends AbstractWorkspaceMerger {
     try {
       doMerge(setup, update, variables, workspace);
     } catch (Exception e) {
-      this.context.error(e, "Failed to merge workspace file {} with update template {} and setup file {}!", workspace, update, setup);
+      LOG.error("Failed to merge workspace file {} with update template {} and setup file {}!", workspace, update, setup, e);
       return 1;
     }
     return 0;
@@ -71,9 +76,9 @@ public abstract class FileMerger extends AbstractWorkspaceMerger {
     try {
       boolean modified = doUpgrade(workspaceFile);
       if (modified) {
-        this.context.debug("Successfully migrated file {}", workspaceFile);
+        LOG.debug("Successfully migrated file {}", workspaceFile);
       } else {
-        this.context.trace("Nothing to migrate in file {}", workspaceFile);
+        LOG.trace("Nothing to migrate in file {}", workspaceFile);
       }
     } catch (Exception e) {
       throw new IllegalStateException("Failed to update file " + workspaceFile, e);

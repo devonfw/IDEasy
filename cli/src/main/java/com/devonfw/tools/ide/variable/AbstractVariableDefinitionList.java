@@ -5,12 +5,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.context.IdeContext;
 
 /**
  * Abstract base implementation of {@link VariableDefinition} for a variable with the {@link #getValueType() value type} {@link List}.
  */
 public abstract class AbstractVariableDefinitionList<E> extends AbstractVariableDefinition<List<E>> {
+
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractVariableDefinitionList.class);
 
   /**
    * The constructor.
@@ -87,7 +92,7 @@ public abstract class AbstractVariableDefinitionList<E> extends AbstractVariable
       try {
         list.add(parseValue(item.trim(), context));
       } catch (Exception e) {
-        context.warning().log(e, "Invalid value '{}' for element of variable {}", item, getName());
+        LOG.warn("Invalid value '{}' for element of variable {}", item, getName(), e);
         return null;
       }
 

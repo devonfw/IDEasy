@@ -3,6 +3,9 @@ package com.devonfw.tools.ide.step;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Test of {@link StepSummary}.
+ */
 class StepSummaryTest extends Assertions {
 
   @Test

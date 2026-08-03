@@ -8,7 +8,6 @@ import java.util.Set;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
@@ -18,8 +17,11 @@ import com.devonfw.tools.ide.tool.ToolCommandlet;
  */
 public class Gradle extends LocalToolCommandlet {
 
-  private static final String BUILD_GRADLE = "build.gradle";
-  private static final String BUILD_GRADLE_KTS = "build.gradle.kts";
+  /** build.gradle file name */
+  public static final String BUILD_GRADLE = "build.gradle";
+
+  /** build.gradle.kts file name */
+  public static final String BUILD_GRADLE_KTS = "build.gradle.kts";
   private static final String GRADLE_WRAPPER_FILENAME = "gradlew";
 
   /**
@@ -45,12 +47,12 @@ public class Gradle extends LocalToolCommandlet {
   }
 
   @Override
-  protected void configureToolBinary(ProcessContext pc, ProcessMode processMode, ProcessErrorHandling errorHandling) {
+  protected void configureToolBinary(ProcessContext pc, ProcessMode processMode) {
     Path gradle = Path.of(getBinaryName());
-    Path wrapper = findWrapper(GRADLE_WRAPPER_FILENAME, path -> Files.exists(path.resolve(BUILD_GRADLE)) || Files.exists(path.resolve(BUILD_GRADLE_KTS)));
+    Path wrapper = findWrapper(GRADLE_WRAPPER_FILENAME);
     pc.executable(Objects.requireNonNullElse(wrapper, gradle));
   }
-  
+
   /**
    * @return the {@link Path} to the gradle configuration folder, creates the folder if it was not existing.
    */
@@ -64,4 +66,17 @@ public class Gradle extends LocalToolCommandlet {
     return gradleConfigFolder;
   }
 
+  @Override
+  public Path findBuildDescriptor(Path directory) {
+
+    Path buildDescriptor = directory.resolve(BUILD_GRADLE);
+    if (Files.exists(buildDescriptor)) {
+      return buildDescriptor;
+    }
+    buildDescriptor = directory.resolve(BUILD_GRADLE_KTS);
+    if (Files.exists(buildDescriptor)) {
+      return buildDescriptor;
+    }
+    return super.findBuildDescriptor(directory);
+  }
 }

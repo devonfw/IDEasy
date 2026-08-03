@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.commandlet;
 
 import java.nio.file.Path;
 import java.util.stream.Stream;
+import javax.net.ssl.SSLHandshakeException;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -10,18 +11,20 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.log.IdeLogEntry;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 
 /**
  * Test of {@link StatusCommandlet}.
  */
-public class StatusCommandletTest extends AbstractIdeContextTest {
+class StatusCommandletTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_BASIC = "basic";
 
   @Test
-  public void testStatusOutsideOfHome() {
+  void testStatusOutsideOfHome() {
     //arrange
     IdeTestContext context = new IdeTestContext();
     StatusCommandlet status = context.getCommandletManager().getCommandlet(StatusCommandlet.class);
@@ -34,21 +37,88 @@ public class StatusCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests the output if {@link StatusCommandlet} is run without internet connection.
+   * Tests the output if {@link StatusCommandlet} is run in enforced offline mode.
    */
   @Test
-  public void testStatusWhenOffline() {
+  void testStatusWhenOfflineMode() {
 
     // arrange
     IdeTestContext context = new IdeTestContext();
-    context.setOnline(false);
+    context.getStartContext().setOfflineMode(true);
     StatusCommandlet status = context.getCommandletManager().getCommandlet(StatusCommandlet.class);
 
     // act
     status.run();
 
     // assert
-    assertThat(context).logAtWarning().hasMessage("Skipping check for newer version of IDEasy because you are offline.");
+    assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("Your version of IDEasy is SNAPSHOT."),
+        IdeLogEntry.ofWarning("Skipping check for newer version of IDEasy because you are offline."),
+        IdeLogEntry.ofWarning("You are offline because you have enabled offline mode via CLI option."));
+  }
+
+  /**
+   * Tests the output if {@link StatusCommandlet} is run without internet connection.
+   */
+  @Test
+  void testStatusWhenOffline() {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    Exception error = context.getNetworkStatus().simulateNetworkError();
+    StatusCommandlet status = context.getCommandletManager().getCommandlet(StatusCommandlet.class);
+
+    // act
+    status.run();
+
+    // assert
+    assertThat(context).log().hasEntries(IdeLogEntry.ofWarning("Skipping check for newer version of IDEasy because you are offline."),
+        new IdeLogEntry(IdeLogLevel.ERROR, "You are offline because of the following error:", null, null, error, false),
+        IdeLogEntry.ofInteraction("Please check potential proxy settings, ensure you are properly connected to the internet and retry this operation."));
+  }
+
+  /**
+   * Tests the output if {@link StatusCommandlet} is run with TLS issue.
+   */
+  @Test
+  void testStatusWhenTlsIssue() throws Exception {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    SSLHandshakeException error = new SSLHandshakeException(
+        "PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target");
+    context.getNetworkStatus().getOnlineCheck().set(error);
+    StatusCommandlet status = context.getCommandletManager().getCommandlet(StatusCommandlet.class);
+
+    // act
+    status.run();
+
+    // assert
+    assertThat(context).log().hasEntries(IdeLogEntry.ofWarning("Skipping check for newer version of IDEasy because you are offline."),
+        new IdeLogEntry(IdeLogLevel.ERROR, "You are offline because of the following error:", null, null, error, false));
+    assertThat(context).logAtWarning().hasMessageContaining(
+        "The TLS connection to https://www.github.com failed due to a certificate trust error (PKIX / certificate-path / SSL handshake).");
+    assertThat(context).logAtWarning().hasMessageContaining("ide fix-vpn-tls-problem https://www.github.com");
+    assertThat(context).logAtInteraction().hasMessageContaining("https://github.com/devonfw/IDEasy/blob/main/documentation/proxy-support.adoc#tls-certificate-issues");
+  }
+
+  /**
+   * Tests the output if {@link StatusCommandlet} is run and online-check error message contains known PKIX trust issue text.
+   */
+  @Test
+  void testStatusWhenPkixIssueInMessage() {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    IllegalStateException error = new IllegalStateException("PKIX path building failed: unable to find valid certification path to requested target");
+    context.getNetworkStatus().getOnlineCheck().set(error);
+    StatusCommandlet status = context.getCommandletManager().getCommandlet(StatusCommandlet.class);
+
+    // act
+    status.run();
+
+    // assert
+    assertThat(context).logAtWarning().hasMessageContaining("ide fix-vpn-tls-problem https://www.github.com");
+    assertThat(context).logAtInteraction().hasMessageContaining("proxy-support.adoc#tls-certificate-issues");
   }
 
   /**
@@ -61,7 +131,7 @@ public class StatusCommandletTest extends AbstractIdeContextTest {
    */
   @ParameterizedTest
   @MethodSource("providePrivacyModeTestCases")
-  public void testStatusWhenInPrivacyMode(String os, Path ideHome, Path ideRoot, Path userHome) {
+  void testStatusWhenInPrivacyMode(String os, Path ideHome, Path ideRoot, Path userHome) {
     // arrange
     IdeTestContext context = new IdeTestContext();
     StatusCommandlet status = context.getCommandletManager().getCommandlet(StatusCommandlet.class);
@@ -76,35 +146,15 @@ public class StatusCommandletTest extends AbstractIdeContextTest {
     status.run();
 
     // assert
-    assertThat(context).logAtSuccess().hasNoMessageContaining("testuser");
+    assertThat(context).log().hasNoMessageContaining("testuser");
+    assertThat(context).logAtInfo().hasMessageContaining("Your operating system is " + os);
   }
 
   private static Stream<Arguments> providePrivacyModeTestCases() {
     return Stream.of(
-        Arguments.of(
-            "linux",
-            Path.of("/mnt/c/Users/testuser/projects/myproject"),
-            Path.of("/mnt/c/Users/testuser/projects"),
-            Path.of("/mnt/c/projects")
-        ),
-        Arguments.of(
-            "windows",
-            Path.of("C:\\Users\\testuser\\projects\\myproject"),
-            Path.of("C:\\Users\\testuser\\projects"),
-            Path.of("C:\\Users\\testuser")
-        ),
-        Arguments.of(
-            "linux",
-            Path.of("/home/testuser/projects/myproject"),
-            Path.of("/home/testuser/projects"),
-            Path.of("/home/testuser")
-        ),
-        Arguments.of(
-            "mac",
-            Path.of("/Users/testuser/projects/myproject"),
-            Path.of("/Users/testuser/projects"),
-            Path.of("/Users/testuser")
-        )
-    );
+        Arguments.of("linux", Path.of("/mnt/c/Users/testuser/projects/myproject"), Path.of("/mnt/c/Users/testuser/projects"), Path.of("/mnt/c/projects")),
+        Arguments.of("windows", Path.of("C:\\Users\\testuser\\projects\\myproject"), Path.of("C:\\Users\\testuser\\projects"), Path.of("C:\\Users\\testuser")),
+        Arguments.of("linux", Path.of("/home/testuser/projects/myproject"), Path.of("/home/testuser/projects"), Path.of("/home/testuser")),
+        Arguments.of("mac", Path.of("/Users/testuser/projects/myproject"), Path.of("/Users/testuser/projects"), Path.of("/Users/testuser")));
   }
 }
