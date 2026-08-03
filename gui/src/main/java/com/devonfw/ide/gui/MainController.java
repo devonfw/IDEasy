@@ -9,13 +9,20 @@ import java.util.Locale;
 import java.util.Map;
 
 import javafx.concurrent.Task;
+
+import javafx.application.Platform;
+import javafx.collections.ListChangeListener;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.SplitPane.Divider;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,13 +31,16 @@ import com.devonfw.ide.gui.console.ConsoleController;
 import com.devonfw.ide.gui.context.GuiOutputListener;
 import com.devonfw.ide.gui.context.IdeGuiContext;
 import com.devonfw.ide.gui.context.IdeGuiLogListener;
-import com.devonfw.ide.gui.context.IdeGuiStateManager;
+import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.context.ProjectManager;
+import com.devonfw.ide.gui.context.TaskManager;
 import com.devonfw.ide.gui.modal.IdeDialog;
 import com.devonfw.ide.gui.nls.NlsService;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.OutputListener;
+import com.devonfw.ide.gui.progress.ProgressBarTask;
+import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindow;
 
 /**
  * Controller of the main screen of the dashboard GUI.
@@ -39,8 +49,6 @@ import com.devonfw.tools.ide.process.OutputListener;
 public class MainController {
 
   private static final Logger LOG = LoggerFactory.getLogger(MainController.class);
-
-  private final ProjectManager projectManager;
 
   @FXML
   private ComboBox<String> selectedProject;
@@ -65,6 +73,8 @@ public class MainController {
 
   @FXML
   private SplitPane centerSplitPane;
+
+  @FXML
   private Divider centerDivider;
 
   @FXML
@@ -76,10 +86,22 @@ public class MainController {
   @FXML
   private AnchorPane console;
 
+  @FXML
+  private Label statusLabel;
+
+  @FXML
+  private ProgressBar statusProgressBar;
+
+  private final GuiStateManager guiStateManager;
+  private final ProjectManager projectManager;
+  private final TaskManager taskManager;
+
   private IdeGuiLogListener guiLogListener;
   private OutputListener guiOutputListener;
 
-  private final String ideRootDirectory;
+  private final double PROGRESSBAR_VISIBLE_WIDTH = 150.0;
+
+  private final String ideRootPath;
 
   private final Map<String, Locale> languageMap;
 
@@ -89,16 +111,47 @@ public class MainController {
   /**
    * Constructor
    *
-   * @param ideRootPath IDE_ROOT path.
+   * @param ideRootPath the IDE_ROOT path
+   * @param guiStateManager the {@link GuiStateManager} to be used in this application instance
    */
-  public MainController(String ideRootPath, NlsService nlsService) {
+  public MainController(String ideRootPath, GuiStateManager guiStateManager, NlsService nlsService) {
 
     LOG.debug("IDE_ROOT path={}", ideRootPath);
-    this.ideRootDirectory = ideRootPath;
+    this.ideRootPath = ideRootPath;
+    this.guiStateManager = guiStateManager;
+    this.taskManager = guiStateManager.getTaskManager();
+    this.projectManager = guiStateManager.getProjectManager();
     this.languageMap = new LinkedHashMap<>();
     this.nlsService = nlsService;
+    setUpTaskListListener();
+  }
 
-    this.projectManager = IdeGuiStateManager.getInstance().getProjectManager();
+  private void setUpTaskListListener() {
+
+    ListChangeListener<ProgressBarTask> taskListChangeListener = change -> {
+      List<ProgressBarTask> tasks = taskManager.getTasks();
+
+      while (change.next()) {
+        if (change.wasAdded()) {
+          LOG.debug("Added: {}", change.getAddedSubList());
+
+          for (ProgressBarTask progressTask : change.getAddedSubList()) {
+            progressTask.currentProgressProperty().addListener((_, _, _) ->
+                updateStatusLabel(tasks)
+            );
+          }
+          updateStatusLabel(tasks);
+        } else if (change.wasRemoved()) {
+          LOG.debug("Removed: {}", change.getRemoved());
+
+          updateStatusLabel(tasks);
+        } else if (change.wasUpdated()) {
+
+          updateStatusLabel(tasks);
+        }
+      }
+    };
+    taskManager.getTasks().addListener(taskListChangeListener);
   }
 
   @FXML
@@ -197,7 +250,7 @@ public class MainController {
 
   private void setProjectsComboBox() {
 
-    assert (ideRootDirectory != null) : "directoryPath is null! Please check the setup of your environment variables (IDE_ROOT)";
+    assert (ideRootPath != null) : "directoryPath is null! Please check the setup of your environment variables (IDE_ROOT)";
 
     List<String> projects = projectManager.getProjectNames();
 
@@ -241,9 +294,10 @@ public class MainController {
     this.guiLogListener = new IdeGuiLogListener(consoleController);
     this.guiOutputListener = new GuiOutputListener(consoleController);
 
-    //TODO:update this since in PR for progress bars the handling of this will be implemented
+    ProgressBarTask task = (ProgressBarTask) guiStateManager.getCurrentContext()
+        .newProgressBarIndeterminate("Starting " + commandlet);
 
-    Task<Void> commandletTask = new Task<>() {
+    Task<Void> ideCommandletTask = new Task<>() {
 
       @Override
       protected Void call() {
@@ -251,7 +305,7 @@ public class MainController {
         try {
           IdeStartContextImpl startContext = new IdeStartContextImpl(IdeLogLevel.INFO, guiLogListener);
           IdeGuiContext context = new IdeGuiContext(startContext,
-              Path.of(ideRootDirectory).resolve(selectedProject.getValue()).resolve(selectedWorkspace.getValue()));
+              Path.of(ideRootPath).resolve(selectedProject.getValue()).resolve(selectedWorkspace.getValue()));
 
           // Set output listener for process output
           context.setOutputListener(guiOutputListener);
@@ -270,9 +324,26 @@ public class MainController {
       }
     };
 
-    Thread commandletThread = new Thread(commandletTask);
+    ideCommandletTask.setOnFailed(_ -> Platform.runLater(() -> {
+      task.close();
+      IdeDialog errorDialog = new IdeDialog(AlertType.ERROR, "Error occurred while launching " + inIde);
+      errorDialog.showAndWait();
+    }));
+    ideCommandletTask.setOnSucceeded(_ -> Platform.runLater(task::close));
+
+    Thread commandletThread = new Thread(ideCommandletTask);
     commandletThread.setDaemon(true);
     commandletThread.start();
+  }
+
+  private void updateContext(String selectedProjectName, String selectedWorkspaceName) {
+
+    try {
+      guiStateManager.switchContext(selectedProjectName, selectedWorkspaceName);
+    } catch (FileNotFoundException e) {
+      IdeDialog errorDialog = new IdeDialog(AlertType.ERROR, e.getMessage());
+      errorDialog.showAndWait();
+    }
   }
 
   /**
@@ -318,12 +389,48 @@ public class MainController {
     return centerDivider.getPosition() <= 0.99 && console.isVisible();
   }
 
-  private void updateContext(String selectedProjectName, String selectedWorkspaceName) {
-    try {
-      IdeGuiStateManager.getInstance().switchContext(selectedProjectName, selectedWorkspaceName);
-    } catch (FileNotFoundException e) {
-      IdeDialog errorDialog = new IdeDialog(IdeDialog.AlertType.ERROR, e.getMessage());
-      errorDialog.showAndWait();
-    }
+  private void updateStatusLabel(List<ProgressBarTask> taskList) {
+
+    Platform.runLater(() -> {
+
+      if (taskList.size() > 1) {
+        statusLabel.setOnMouseClicked(e -> TaskOverviewWindow.getInstance(taskManager).showRelativeToReferenceNode(statusLabel));
+
+        statusProgressBar.setVisible(false);
+        statusProgressBar.setPrefWidth(0);
+        statusLabel.setText(taskList.size() + " tasks running...");
+
+        statusLabel.setUnderline(true);
+        statusLabel.setStyle(
+            "-fx-text-fill: blue;"
+                + "-fx-cursor: hand"
+        );
+      } else if (taskList.size() == 1) {
+        statusLabel.setOnMouseClicked(null);
+
+        ProgressBarTask task = taskList.getFirst();
+        statusLabel.setText(String.format(
+            ProgressBarTask.TASK_DESCRIPTION_STRING_FORMAT,
+            task.getTitle(),
+            task.getCurrentProgress(),
+            task.getMaxSize(),
+            task.getUnitName())
+        );
+        statusLabel.setUnderline(false);
+        statusLabel.setStyle("");
+
+        statusProgressBar.setVisible(true);
+        statusProgressBar.setPrefWidth(PROGRESSBAR_VISIBLE_WIDTH);
+        statusProgressBar.setProgress((double) (task.getCurrentProgress()) / task.getMaxSize());
+      } else {
+        statusLabel.setOnMouseClicked(null);
+        statusLabel.setText("IDEasy is ready.");
+        statusProgressBar.setVisible(false);
+        statusProgressBar.setPrefWidth(0);
+
+        statusLabel.setUnderline(false);
+        statusLabel.setStyle("");
+      }
+    });
   }
 }

@@ -17,17 +17,24 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.SplitPane.Divider;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 
 import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.ide.gui.context.IdeGuiStateManager;
+import com.devonfw.ide.gui.context.GuiStateManager;
+import com.devonfw.ide.gui.context.TaskManager;
 import com.devonfw.ide.gui.nls.NlsService;
+import com.devonfw.ide.gui.progress.ProgressBarTask;
+import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindow;
 
 /**
  * Basic UI Test for the main screen
@@ -39,11 +46,15 @@ public class AppBaseTest extends HeadlessApplicationTest {
   private Button androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen;
   private ToggleButton consolePaneToggleButton;
   private ComboBox<String> selectedProject, selectedWorkspace;
+  private Label statusText;
+  private ProgressBar taskProgressBar;
   private SplitPane centerSplitPane;
 
   @TempDir
   private static Path mockIdeRoot;
 
+  private static final TaskManager taskManager = new TaskManager();
+  private static GuiStateManager guiStateManager;
   @Override
   public void start(Stage stage) throws IOException {
 
@@ -53,7 +64,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
     assertThat(mainViewUrl).as("Cannot resolve main UI FXML resource!").isNotNull();
 
     FXMLLoader fxmlLoader = new FXMLLoader(mainViewUrl);
-    fxmlLoader.setController(new MainController(mockIdeRoot.toString(), nlsService));
+    fxmlLoader.setController(new MainController(mockIdeRoot.toString(), guiStateManager, nlsService));
     fxmlLoader.setResources(nlsService.getResourceBundle());
     Parent root = fxmlLoader.load();
     stage.setScene(new Scene(root));
@@ -68,11 +79,13 @@ public class AppBaseTest extends HeadlessApplicationTest {
     selectedWorkspace = lookup(root, "#selectedWorkspace");
     consolePaneToggleButton = lookup(root, "#consolePaneToggleButton");
     centerSplitPane = lookup(root, "#centerSplitPane");
+    statusText = lookup(root, "#statusLabel");
+    taskProgressBar = lookup(root, "#statusProgressBar");
   }
 
   /**
-   * Generate a temporary project directories in order to be able to test on any device (including GitHub CI). This is required for the {@link MainController}
-   * to work in the test context. Generates a structure like this: /project-[0..6]/workspaces/main
+   * Generate temporary project directories to be able to test on any device (including GitHub CI). This is required for the {@link MainController} to work in
+   * the test context. Generates a structure like this: /project-[0..6]/workspaces/main
    */
   @BeforeAll
   public static void generateProjectFolderStructure() throws IOException {
@@ -81,22 +94,44 @@ public class AppBaseTest extends HeadlessApplicationTest {
     FakeProjectFolderStructureHelper.createFakeProjectFolderStructure(mockIdeRoot);
     LOGGER.debug("project folders: {}", Arrays.toString(mockIdeRoot.toFile().list()));
 
-    //We set the project root directory to the temporary directory before all tests, so that the IDE can find the projects in the test.
-    IdeGuiStateManager.getInstanceOverrideRootDir(mockIdeRoot.toString()).switchContext("project-1", "main");
+    guiStateManager = new GuiStateManager(taskManager, mockIdeRoot.toString());
+    //We set the project root directory to the temporary directory before all tests so that the IDE can find the projects in the test.
+    guiStateManager.switchContext("project-1", "main");
+  }
+
+  @BeforeEach
+  protected void resetTaskManager() {
+
+    taskManager.getTasks().clear();
+  }
+
+  /**
+   * Tests that the workspace {@link ComboBox} is enabled when a project is selected.
+   */
+  @Test
+  public void testWorkspaceComboboxEnabledEnabledWhenProjectSelected() {
+
+    // assert that a project is selected
+    interact(() -> selectedProject.getSelectionModel().select("project-1"));
+
+    // assert all IDE open buttons are disabled
+    assertThat(selectedWorkspace.isDisabled())
+        .as("selectedWorkspace ComboBox should be enabled when a project is selected")
+        .isFalse();
   }
 
   /**
    * This test ensures that all IDE open buttons are disabled when no project is selected.
    */
   @Test
-  public void testIdeOpenButtonsDisabledWhenNoWorkspaceSelected() {
+  public void testIdeOpenButtonsDisabledWhenNoProjectSelected() {
 
     // assert that no project is selected
-    assertThat(selectedWorkspace.getValue()).isNull();
+    assertThat(selectedProject.getValue()).isNull();
 
     // assert all IDE open buttons are disabled
     for (Button button : new Button[] { androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen }) {
-      assertThat(button.isDisabled()).as(button.getId() + " button should be disabled when no workspace has been selected").isTrue();
+      assertThat(button.isDisabled()).as(button.getId() + " button should be disabled when no project has been selected").isTrue();
     }
   }
 
@@ -116,43 +151,59 @@ public class AppBaseTest extends HeadlessApplicationTest {
     }
   }
 
-  /**
-   * Tests that the workspace {@link ComboBox} is disbaled when no project is selected.
-   */
   @Test
-  public void testWorkspaceComboBoxDisabledWhenNoProjectSelected() {
+  protected void testStatusLabelDisplaysCorrectMessage() {
 
-    assertThat(selectedProject.getValue()).isNull();
+    ProgressBarTask task1 = new ProgressBarTask(taskManager, "task-1", "Test Task");
+    ProgressBarTask task2 = new ProgressBarTask(taskManager, "task-2", "Test Task");
 
-    assertThat(selectedWorkspace.isDisabled())
-        .as("selectedWorkspace ComboBox should be disabled when no project is selected")
+    //Case 1: No tasks added yet, check correct message
+    assertThat(statusText.getText()).isEqualTo("IDEasy is ready.");
+
+    //Case 2: Only single task exists, should display the task title and a progress bar next to the label
+    taskManager.addTask(task1);
+    waitForFxEvents();
+
+    assertThat(statusText.getText()).isEqualTo(
+        String.format(ProgressBarTask.TASK_DESCRIPTION_STRING_FORMAT,
+            task1.getTitle(),
+            task1.getCurrentProgress(),
+            task1.getMaxSize(),
+            task1.getUnitName())
+    );
+    assertThat(taskProgressBar.isVisible()).as("Task progress bar should be visible").isTrue();
+
+    //Case 3: Multiple tasks exist, should display the number of tasks and a progress bar next to the label
+    taskManager.addTask(task2);
+    waitForFxEvents();
+
+    assertThat(statusText.getText()).isEqualTo(String.format("%d tasks running...", taskManager.getTasks().size()));
+    assertThat(taskProgressBar.isVisible()).as("Task progress bar should not be visible").isFalse();
+
+    //...and back to the default state:
+    taskManager.getTasks().clear();
+    waitForFxEvents();
+
+    assertThat(statusText.getText()).isEqualTo("IDEasy is ready.");
+  }
+
+  @Test
+  protected void testStatusTextOpensTaskOverviewWindow() {
+
+    ProgressBarTask task1 = new ProgressBarTask(taskManager, "task-1", "Test Task");
+    ProgressBarTask task2 = new ProgressBarTask(taskManager, "task-2", "Test Task");
+
+    taskManager.addTask(task1);
+    taskManager.addTask(task2);
+    waitForFxEvents();
+
+    interact(() -> statusText.fireEvent(
+        new MouseEvent(MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0, null, 1, false, false, false, false, false, false, false, false, false, false, null)));
+
+    assertThat(TaskOverviewWindow.getInstance(taskManager).getStage().isShowing()).as("Task overview window should be opened when clicking on status text")
         .isTrue();
   }
-
-  /**
-   * Tests that the workspace {@link ComboBox} is enabled when a project is selected.
-   */
-  @Test
-  public void testWorkspaceComboBoxEnabledEnabledWhenProjectSelected() {
-
-    // assert that a project is selected
-    interact(() -> selectedProject.getSelectionModel().select("project-1"));
-
-    // assert all IDE open buttons are disabled
-    assertThat(selectedWorkspace.isDisabled())
-        .as("selectedWorkspace ComboBox should be enabled when a project is selected")
-        .isFalse();
-  }
-
-
-  @SuppressWarnings("unchecked")
-  private static <T> T lookup(Parent root, String selector) {
-
-    return (T) root.lookup(selector);
-  }
-
-
-
+  
   //===Console panel tests===
 
   @Test
