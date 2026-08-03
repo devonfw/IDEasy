@@ -4,7 +4,6 @@ import java.awt.Taskbar;
 import java.awt.Toolkit;
 import java.io.IOException;
 import java.net.URL;
-
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -50,16 +49,15 @@ public class App extends Application {
 
   @Override
   public void start(Stage primaryStage) throws IOException {
-
-    this.primaryStage = primaryStage;
-
-    this.nlsService = new NlsService(null);
-
     Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
           LOG.error("Uncaught exception in thread {}: {}", thread.getName(), throwable.getMessage(), throwable);
           Platform.runLater(() -> new IdeDialog(IdeDialog.AlertType.ERROR, throwable.getMessage()).showAndWait());
         }
     );
+
+    this.primaryStage = primaryStage;
+
+    this.nlsService = new NlsService(null);
 
     root = loadMainView();
 
