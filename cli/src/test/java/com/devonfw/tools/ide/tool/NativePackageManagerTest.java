@@ -16,7 +16,6 @@ class NativePackageManagerTest {
     NativePackage np = new NativePackage(
         NativePackageManager.APT,
         List.of("pkg1"),
-        "1.0.0",
         List.of("--allow-downgrades"),
         List.of(
             "curl -s https://example.com/key.gpg | gpg --dearmor",
@@ -26,14 +25,14 @@ class NativePackageManagerTest {
             "sudo rm -f /etc/apt/sources.list.d/example.list",
             "sudo rm -f /usr/share/keyrings/example.gpg"));
 
-    var cmd = NativePackageManager.APT.install(np);
+    var cmd = NativePackageManager.APT.install(np, "1.0.0");
 
     assertThat(cmd.packageManager()).isEqualTo(NativePackageManager.APT);
     assertThat(cmd.commands()).containsExactly(
         "curl -s https://example.com/key.gpg | gpg --dearmor",
         "echo 'deb https://example.com/repository stable main'",
         "sudo apt update",
-        "sudo apt --allow-downgrades install -y pkg1=1.0.0");
+        "sudo apt --allow-downgrades install -y 'pkg1=1.0.0*'");
   }
 
   @Test
@@ -41,7 +40,6 @@ class NativePackageManagerTest {
     NativePackage np = new NativePackage(
         NativePackageManager.APT,
         List.of("pkg1"),
-        "1.0.0",
         List.of("--allow-downgrades"),
         List.of(
             "curl -s https://example.com/key.gpg | gpg --dearmor",
@@ -65,7 +63,6 @@ class NativePackageManagerTest {
     NativePackage np = new NativePackage(
         NativePackageManager.ZYPPER,
         List.of("pkg1"),
-        "1.0.0",
         List.of("--no-gpg-checks"),
         List.of(
             "sudo zypper addrepo https://example.com/repo.repo",
@@ -73,7 +70,7 @@ class NativePackageManagerTest {
         List.of(
             "sudo zypper removerepo example-repo"));
 
-    var cmd = NativePackageManager.ZYPPER.install(np);
+    var cmd = NativePackageManager.ZYPPER.install(np, "1.0.0");
 
     assertThat(cmd.packageManager()).isEqualTo(NativePackageManager.ZYPPER);
     assertThat(cmd.commands()).containsExactly(
@@ -87,7 +84,6 @@ class NativePackageManagerTest {
     NativePackage np = new NativePackage(
         NativePackageManager.ZYPPER,
         List.of("pkg1"),
-        "1.0.0",
         List.of("--no-gpg-checks"),
         List.of(
             "sudo zypper addrepo https://example.com/repo.repo",
@@ -108,7 +104,6 @@ class NativePackageManagerTest {
     NativePackage np = new NativePackage(
         NativePackageManager.YUM,
         List.of("pkg1"),
-        "1.0.0",
         List.of("--skip-broken"),
         List.of(
             "sudo yum-config-manager --add-repo https://example.com/repo.repo",
@@ -116,13 +111,13 @@ class NativePackageManagerTest {
         List.of(
             "sudo rm -f /etc/yum.repos.d/example.repo"));
 
-    var cmd = NativePackageManager.YUM.install(np);
+    var cmd = NativePackageManager.YUM.install(np, "1.0.0");
 
     assertThat(cmd.packageManager()).isEqualTo(NativePackageManager.YUM);
     assertThat(cmd.commands()).containsExactly(
         "sudo yum-config-manager --add-repo https://example.com/repo.repo",
         "sudo yum makecache",
-        "sudo yum --skip-broken install -y pkg1-1.0.0");
+        "sudo yum --skip-broken install -y 'pkg1-1.0.0*'");
   }
 
   @Test
@@ -130,7 +125,6 @@ class NativePackageManagerTest {
     NativePackage np = new NativePackage(
         NativePackageManager.YUM,
         List.of("pkg1"),
-        "1.0.0",
         List.of("--skip-broken"),
         List.of("sudo yum-config-manager --add-repo https://example.com/repo.repo", "sudo yum makecache"),
         List.of("sudo rm -f /etc/yum.repos.d/example.repo"));
@@ -147,16 +141,15 @@ class NativePackageManagerTest {
     NativePackage np = new NativePackage(
         NativePackageManager.DNF,
         List.of("pkg1"),
-        "1.0.0",
         List.of("--refresh"),
         List.of("sudo dnf config-manager addrepo --from-repofile=https://example.com/repo.repo", "sudo dnf makecache"),
         List.of("sudo rm -f /etc/yum.repos.d/example.repo"));
 
-    var cmd = NativePackageManager.DNF.install(np);
+    var cmd = NativePackageManager.DNF.install(np, "1.0.0");
 
     assertThat(cmd.packageManager()).isEqualTo(NativePackageManager.DNF);
     assertThat(cmd.commands()).containsExactly("sudo dnf config-manager addrepo --from-repofile=https://example.com/repo.repo", "sudo dnf makecache",
-        "sudo dnf --refresh install -y pkg1-1.0.0");
+        "sudo dnf --refresh install -y 'pkg1-1.0.0*'");
   }
 
   @Test
@@ -164,7 +157,6 @@ class NativePackageManagerTest {
     NativePackage np = new NativePackage(
         NativePackageManager.DNF,
         List.of("pkg1"),
-        "1.0.0",
         List.of("--refresh"),
         List.of("sudo dnf config-manager addrepo --from-repofile=https://example.com/repo.repo", "sudo dnf makecache"),
         List.of("sudo rm -f /etc/yum.repos.d/example.repo"));

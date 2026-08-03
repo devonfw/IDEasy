@@ -14,7 +14,6 @@ import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.NativePackage;
 import com.devonfw.tools.ide.tool.NativePackageManager;
-import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -66,17 +65,11 @@ public class Docker extends GlobalToolCommandlet {
   }
 
   @Override
-  public List<NativePackage> getNativePackages() {
-    String edition = getConfiguredEdition();
-    ToolRepository toolRepository = getToolRepository();
-    VersionIdentifier configuredVersion = getConfiguredVersion();
-    String version = toolRepository.resolveVersion(this.tool, edition, configuredVersion, this).toString();
-
+  protected List<NativePackage> getNativePackages() {
     return List.of(
         new NativePackage(
             NativePackageManager.ZYPPER,
             List.of("rancher-desktop"),
-            version,
             List.of("--no-gpg-checks"),
             List.of("sudo zypper addrepo https://download.opensuse.org/repositories/isv:/Rancher:/stable/rpm/isv:Rancher:stable.repo"),
             List.of("sudo zypper remove rancher-desktop")
@@ -84,7 +77,6 @@ public class Docker extends GlobalToolCommandlet {
         new NativePackage(
             NativePackageManager.APT,
             List.of("rancher-desktop"),
-            version,
             List.of("--allow-downgrades"),
             List.of(
                 "curl -s https://download.opensuse.org/repositories/isv:/Rancher:/stable/deb/Release.key | "

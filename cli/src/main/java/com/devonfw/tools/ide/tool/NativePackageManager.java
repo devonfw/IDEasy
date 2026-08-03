@@ -8,25 +8,27 @@ import java.util.List;
  */
 public enum NativePackageManager {
   /** Advanced Package Tool (APT) is the package manager of Debian based Linux distributions. */
-  APT("install -y", "autoremove -y", "="),
+  APT("install -y", "autoremove -y", "=", "*"),
 
   /** Zypper is the package manager of SUSE based Linux distributions. */
-  ZYPPER("--non-interactive install", "--non-interactive remove --clean-deps", "="),
+  ZYPPER("--non-interactive install", "--non-interactive remove --clean-deps", "=", ""),
 
   /** Yellowdog Updater Modified (YUM) is the package manager of RPM package based Linux distributions like Fedora, Red Hat, or CentOS. */
-  YUM("install -y", "remove -y", "-"),
+  YUM("install -y", "remove -y", "-", "*"),
 
   /** DaNdiFied yum (DNF) is the package manager of RPM package based Linux distributions like Fedora. It is the successor of {@link #YUM}. */
-  DNF("install -y", "remove -y", "-");
+  DNF("install -y", "remove -y", "-", "*");
 
   private final String installCommand;
   private final String uninstallCommand;
   private final String versionSeparator;
+  private final String versionWildCard;
 
-  NativePackageManager(String installCommand, String uninstallCommand, String versionSeparator) {
+  NativePackageManager(String installCommand, String uninstallCommand, String versionSeparator, String versionWildCard) {
     this.installCommand = installCommand;
     this.uninstallCommand = uninstallCommand;
     this.versionSeparator = versionSeparator;
+    this.versionWildCard = versionWildCard;
   }
 
   /**
@@ -60,17 +62,28 @@ public enum NativePackageManager {
   }
 
   /**
-   * @return the character separating a package name from its version.
+   * Builds the package specification pinning the given package to the given version.
+   * @param pkg the name of the package.
+   * @param version the version to pin the package to or {@code null} to use the latest available version.
+   * @return the package specification for this package manager.
    */
-  public String getVersionSeparator() {
-    return this.versionSeparator;
+
+  public String getPackageSpec(String pkg, String version) {
+    if((version == null) || version.isBlank()) {
+      return pkg;
+    }
+    String spec = pkg + this.versionSeparator + version + this.versionWildCard;
+    if (this.versionWildCard.isEmpty()) {
+      return spec;
+    }
+    return "'" + spec + "'";
   }
 
   /**
    * @param nativePackage the {@link NativePackage} to install.
    * @return the {@link PackageManagerCommand} to install the given {@link NativePackage} including its {@link NativePackage#getSetupCommands()} setup commands.
    */
-  public PackageManagerCommand install(NativePackage nativePackage) {
+  public PackageManagerCommand install(NativePackage nativePackage, String version) {
     verifyPackageManager(nativePackage);
     List<String> commands = new ArrayList<>(nativePackage.getSetupCommands());
     StringBuilder command = new StringBuilder("sudo ").append(getBinaryName());
@@ -78,7 +91,9 @@ public enum NativePackageManager {
       command.append(' ').append(option);
     }
     command.append(' ').append(this.installCommand);
-    appendPackages(command, nativePackage.getPackagesWithVersion());
+    for(String pkg : nativePackage.getPackages() ) {
+      command.append(' ').append(getPackageSpec(pkg, version));
+    }
     commands.add(command.toString());
     return new PackageManagerCommand(this, commands);
   }
@@ -91,7 +106,9 @@ public enum NativePackageManager {
   public PackageManagerCommand uninstall(NativePackage nativePackage) {
     verifyPackageManager(nativePackage);
     StringBuilder command = new StringBuilder("sudo ").append(getBinaryName()).append(' ').append(this.uninstallCommand);
-    appendPackages(command, nativePackage.getPackages());
+    for (String pkg : nativePackage.getPackages()) {
+      command.append(' ').append(pkg);
+    }
     List<String> commands = new ArrayList<>();
     commands.add(command.toString());
     commands.addAll(nativePackage.getCleanupCommands());
@@ -103,12 +120,6 @@ public enum NativePackageManager {
       throw new IllegalArgumentException(
           "Package" + nativePackage.getPackages() + " is declared for package manager " + nativePackage.getPackageManager() + " and cannot be handled by "
               + this);
-    }
-  }
-
-  private static void appendPackages(StringBuilder command, List<String> packages) {
-    for (String pkg : packages) {
-      command.append(' ').append(pkg);
     }
   }
 }

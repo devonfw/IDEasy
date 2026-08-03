@@ -12,7 +12,6 @@ import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.NativePackage;
 import com.devonfw.tools.ide.tool.NativePackageManager;
-import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -31,17 +30,10 @@ public class PgAdmin extends GlobalToolCommandlet {
   }
 
   @Override
-  public List<NativePackage> getNativePackages() {
-
-    String edition = getConfiguredEdition();
-    ToolRepository toolRepository = getToolRepository();
-    VersionIdentifier configuredVersion = getConfiguredVersion();
-    String version = toolRepository.resolveVersion(this.tool, edition, configuredVersion, this).toString();
-
+  protected List<NativePackage> getNativePackages() {
     return List.of(new NativePackage(
         NativePackageManager.APT,
         List.of("pgadmin4", "pgadmin4-server", "pgadmin4-desktop", "pgadmin4-web"),
-        version,
         List.of("--allow-downgrades"),
         List.of("curl -fsS https://www.pgadmin.org/static/packages_pgadmin_org.pub | sudo gpg --yes --dearmor -o /usr/share/keyrings/packages-pgadmin-org.gpg",
             "sudo sh -c 'echo \"deb [signed-by=/usr/share/keyrings/packages-pgadmin-org.gpg] "

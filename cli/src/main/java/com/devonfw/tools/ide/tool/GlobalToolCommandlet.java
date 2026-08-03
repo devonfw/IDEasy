@@ -45,9 +45,10 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
    *
    * @param silent {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
    * @param commandStrings commandStrings The package manager command strings to execute.
+   * @param action the {@link NativePackageAction} tht is performed - only used for logging.
    * @return {@code true} if installation or uninstallation succeeds with any of the package manager commands, {@code false} otherwise.
    */
-  protected boolean runWithPackageManager(boolean silent, String action, String... commandStrings) {
+  protected boolean runWithPackageManager(boolean silent, NativePackageAction action, String... commandStrings) {
 
     List<PackageManagerCommand> pmCommands = Arrays.stream(commandStrings).map(PackageManagerCommand::of).toList();
     return runWithPackageManager(silent, pmCommands, action);
@@ -57,10 +58,11 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
    * Performs the installation or uninstallation of the {@link #getName() tool} via a package manager.
    *
    * @param silent {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
-   * @param pmCommands A list of {@link PackageManagerCommand} to be used for installation or uninstallation.
+   * @param pmCommands A list of {@link PackageManagerCommand} to be used for installation or uninstallation. * @param action the
+   *     {@link NativePackageAction} tht is performed - only used for logging.
    * @return {@code true} if installation or uninstallation succeeds with any of the package manager commands, {@code false} otherwise.
    */
-  protected boolean runWithPackageManager(boolean silent, List<PackageManagerCommand> pmCommands, String action) {
+  protected boolean runWithPackageManager(boolean silent, List<PackageManagerCommand> pmCommands, NativePackageAction action) {
 
     for (PackageManagerCommand pmCommand : pmCommands) {
       NativePackageManager packageManager = pmCommand.packageManager();
@@ -92,9 +94,10 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
    *
    * @param pmCommand The {@link PackageManagerCommand} containing the commands to execute.
    * @param silent {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
+   * @param action the {@link NativePackageAction} tht is performed - only used for logging.
    * @return {@code true} if the package manager commands execute successfully, {@code false} otherwise.
    */
-  private boolean executePackageManagerCommand(PackageManagerCommand pmCommand, boolean silent, String action) {
+  private boolean executePackageManagerCommand(PackageManagerCommand pmCommand, boolean silent, NativePackageAction action) {
 
     String bashPath = this.context.findBashRequired().toString();
     logPackageManagerCommands(pmCommand);
@@ -109,7 +112,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     }
 
     if (!silent) {
-      IdeLogLevel.SUCCESS.log(LOG, "Successfully {} {}", action, this.tool);
+      IdeLogLevel.SUCCESS.log(LOG, "Successfully {} {}", action.getAction(), this.tool);
     }
     return true;
   }
@@ -128,10 +131,10 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     VersionIdentifier resolvedVersion = request.getRequested().getResolvedVersion();
     if (this.context.getSystemInfo().isLinux()) {
       // on Linux global tools are typically installed via the package manager of the OS
-      // if a global tool implements this method to return at least one PackageManagerCommand, then we install this way.
-      List<PackageManagerCommand> commands = getInstallPackageManagerCommands();
+      // if a global tool implements getNativePackages() to returnm at least one NativePackage, then we will install this way.
+      List<PackageManagerCommand> commands = getInstallPackageManagerCommands(resolvedVersion);
       if (!commands.isEmpty()) {
-        boolean newInstallation = runWithPackageManager(request.isSilent(), commands, "installed");
+        boolean newInstallation = runWithPackageManager(request.isSilent(), commands, NativePackageAction.INSTALL);
         Path rootDir = getInstallationPath(getConfiguredEdition(), resolvedVersion);
         return createToolInstallation(rootDir, resolvedVersion, newInstallation, request.getProcessContext(), request.isAdditionalInstallation());
       }
@@ -181,8 +184,8 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
 
   /**
    * @return the {@link List} of {@link NativePackage}s this tool consists of on Linux - one per supported {@link NativePackageManager}. Override this method
-   *     instead of {@link getInstallPackageManagerCommands} so that the commands for installation and uninstallation can both be derived from this declaration.
-   *     If empty, no package manager installation will be triggered on Linux.
+   *     instead of {@link #getInstallPackageManagerCommands} so that the commands for installation and uninstallation can both be derived from this
+   *     declaration. If empty, no package manager installation will be triggered on Linux.
    */
   protected List<NativePackage> getNativePackages() {
     return List.of();
@@ -192,8 +195,9 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
    * @return the {@link List} of {@link PackageManagerCommand}s to use on Linux to install this tool. If empty, no package manager installation will be
    *     triggered on Linux.
    */
-  protected List<PackageManagerCommand> getInstallPackageManagerCommands() {
-    return getNativePackages().stream().map(NativePackage::install).toList();
+  protected List<PackageManagerCommand> getInstallPackageManagerCommands(VersionIdentifier resolvedVersion) {
+    String version = (resolvedVersion == null) ? null : resolvedVersion.toString();
+    return getNativePackages().stream().map(nativePackage -> nativePackage.install(version)).toList();
   }
 
   /**
@@ -235,7 +239,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   @Override
   public void uninstall() {
     if (this.context.getSystemInfo().isLinux()) {
-      runWithPackageManager(false, getUninstallPackageManagerCommands(), "uninstallec");
+      runWithPackageManager(false, getUninstallPackageManagerCommands(), NativePackageAction.UNINSTALL);
     } else {
       LOG.error("Couldn't uninstall {} on this OS. Please uninstall manually.", this.getName());
     }

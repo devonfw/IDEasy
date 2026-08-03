@@ -10,7 +10,6 @@ public class NativePackage {
 
   private final NativePackageManager packageManager;
   private final List<String> packages;
-  private final String version;
   private final List<String> extraInstallOptions;
   private final List<String> setupCommands;
   private final List<String> cleanupCommands;
@@ -20,16 +19,14 @@ public class NativePackage {
    *
    * @param pm the specific {@link NativePackageManager}
    * @param packages the packages that need to be handled.
-   * @param version the package version (optional).
    * @param extraInstallOptions extra install options (optional)
    * @param setupCommands commands to run before install (optional)
    * @param cleanupCommands commands to run after uninstall (optional)
    */
-  public NativePackage(NativePackageManager pm, List<String> packages, String version,
+  public NativePackage(NativePackageManager pm, List<String> packages,
       List<String> extraInstallOptions, List<String> setupCommands, List<String> cleanupCommands) {
     this.packageManager = Objects.requireNonNull(pm, "package manager must not be null");
     this.packages = List.copyOf(Objects.requireNonNull(packages, "packages must not be null"));
-    this.version = version;
     this.extraInstallOptions = extraInstallOptions != null ? List.copyOf(extraInstallOptions) : List.of();
     this.setupCommands = setupCommands != null ? List.copyOf(setupCommands) : List.of();
     this.cleanupCommands = cleanupCommands != null ? List.copyOf(cleanupCommands) : List.of();
@@ -42,7 +39,7 @@ public class NativePackage {
    * @param packages the packages that need to be handled-
    */
   public NativePackage(NativePackageManager pm, List<String> packages) {
-    this(pm, packages, null, null, null, null);
+    this(pm, packages, null, null, null);
   }
 
   /**
@@ -57,18 +54,6 @@ public class NativePackage {
   }
 
   /**
-   * Factory method with version.
-   *
-   * @param pm the specific {@link NativePackageManager}
-   * @param version the package version.
-   * @param packages the packages that need to be handled.
-   * @return a new {@link NativePackage} with given params.
-   */
-  public static NativePackage ofVersion(NativePackageManager pm, String version, String... packages) {
-    return new NativePackage(pm, List.of(packages), version, null, null, null);
-  }
-
-  /**
    * @return {@link packages} that are handled.
    */
   public List<String> getPackages() {
@@ -80,13 +65,6 @@ public class NativePackage {
    */
   public NativePackageManager getPackageManager() {
     return packageManager;
-  }
-
-  /**
-   * @return set {@link version}.
-   */
-  public String getVersion() {
-    return version;
   }
 
   /**
@@ -111,21 +89,11 @@ public class NativePackage {
   }
 
   /**
-   * @return version of the package
-   */
-  public List<String> getPackagesWithVersion() {
-    if ((this.version == null) || this.version.isBlank()) {
-      return this.packages;
-    }
-    String versionSuffix = this.packageManager.getVersionSeparator() + this.version;
-    return this.packages.stream().map(pkg -> pkg + versionSuffix).toList();
-  }
-
-  /**
+   * @param version the version to pin the {@link #getPackages()} to or {@code null} to install the latest available version.
    * @return {@link PackageManagerCommand} for installation.
    */
-  public PackageManagerCommand install() {
-    return this.packageManager.install(this);
+  public PackageManagerCommand install(String version) {
+    return this.packageManager.install(this, version);
   }
 
   /**
