@@ -133,7 +133,7 @@ public final class ToolInstallRequest {
       loopFound = this.parentToolInstallRequest.detectInstallLoopRecursively(toolEditionAndVersion, sb);
     } else if (this.parentPackageManagerRequest != null) {
       if (this.parentPackageManagerRequest.getType().equals("uninstall")) {
-        return true;
+        return false;
       }
       loopFound = this.parentPackageManagerRequest.getToolInstallRequest().detectInstallLoopRecursively(toolEditionAndVersion, sb);
     } else {
