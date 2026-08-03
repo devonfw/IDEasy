@@ -106,8 +106,6 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     createStartScripts();
   }
 
-
-
   private void reloadContext() {
 
     ((AbstractIdeContext) this.context).reload();

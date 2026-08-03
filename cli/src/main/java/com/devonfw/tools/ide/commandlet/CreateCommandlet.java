@@ -13,9 +13,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.git.GitUrl;
 import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.io.FileCopyMode;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.version.IdeVersion;
 
@@ -58,7 +56,13 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
 
     String newProjectName = this.newProject.getValue();
     Path newProjectPath = this.context.getIdeRoot().resolve(newProjectName);
-    Path tempProjectPath = this.context.getIdeRoot().resolve("_ide/tmp/projects").resolve(newProjectName);
+    Path tempProjectPath = this.context.getTempPath().resolve(IdeContext.FOLDER_PROJECTS).resolve(newProjectName);
+
+    if (Files.exists(newProjectPath)) {
+      throw new CliException(
+          String.format("Project directory already exists: %s. If the project already exists, try calling 'ide update'.",
+              newProjectPath));
+    }
 
     LOG.info("Creating new IDEasy project in {}", newProjectPath);
     if (!this.context.getFileAccess().isEmptyDir(newProjectPath)) {
@@ -88,10 +92,10 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
     analyzeProject();
   }
 
-    /**
-   * This method is invoked when a new porject is created. It analyzes the cloned repository to check if it is a valid IDEasy repository.
-   * The repository can either be a settings repository (with ide.properties or devon.properties on the top level)
-   * or a code repository (with a settings folder on the top level containing such a file). Otherwise, the project creation fails and an error message is logged.
+  /**
+   * This method is invoked when a new porject is created. It analyzes the cloned repository to check if it is a valid IDEasy repository. The repository can
+   * either be a settings repository (with ide.properties or devon.properties on the top level) or a code repository (with a settings folder on the top level
+   * containing such a file). Otherwise, the project creation fails and an error message is logged.
    */
   private void analyzeProject() {
     // Settings repository: ide.properties on top levels (or devon.properties for legacy users)
@@ -103,12 +107,14 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
 
     // Check whether the repository is a valid settings repository, code repository, or neither
     if (isSettingsRepository(settingsPath)) {
-      LOG.info("The repository seems to be a settings repository based on the presence of " + EnvironmentVariables.DEFAULT_PROPERTIES + " or " + EnvironmentVariables.LEGACY_PROPERTIES + " on the top level.");
+      LOG.info("The repository seems to be a settings repository based on the presence of " + EnvironmentVariables.DEFAULT_PROPERTIES + " or "
+          + EnvironmentVariables.LEGACY_PROPERTIES + " on the top level.");
       moveProject(this.context.getIdeHome(), actualProjectPath);
 
     } else if (isCodeRepository(settingsPath)) {
-      LOG.info(EnvironmentVariables.DEFAULT_PROPERTIES + " or " + EnvironmentVariables.LEGACY_PROPERTIES + " found in settings subfolder. This indicates a code repository with a settings folder on the top level.");
-      
+      LOG.info(EnvironmentVariables.DEFAULT_PROPERTIES + " or " + EnvironmentVariables.LEGACY_PROPERTIES
+          + " found in settings subfolder. This indicates a code repository with a settings folder on the top level.");
+
       String gitProjectName = GitUrl.of(this.settingsRepo.getValue(0)).getProjectName();
       Path codeFolderPath = actualProjectPath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN).resolve(gitProjectName);
       // Move temp project to actual project location $IDE_ROOT/<project_name>
@@ -126,8 +132,9 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
     } else {
       // Repository seems to be invalid. Clean up temporary location and return error
       fileAccess.delete(this.context.getIdeHome());
-      throw new CliException("This repository does not include an " + EnvironmentVariables.DEFAULT_PROPERTIES + " or " + EnvironmentVariables.LEGACY_PROPERTIES + " file at the top level or a settings folder with such a file. "
-      + "The repository does not seem to be a valid IDEasy repository. Please verify the repository and try again.");
+      throw new CliException("This repository does not include an " + EnvironmentVariables.DEFAULT_PROPERTIES + " or " + EnvironmentVariables.LEGACY_PROPERTIES
+          + " file at the top level or a settings folder with such a file. "
+          + "The repository does not seem to be a valid IDEasy repository. Please verify the repository and try again.");
     }
     // Set IDE_HOME to new (and actual) project location
     this.context.setIdeHome(actualProjectPath);
@@ -135,6 +142,7 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
 
   /**
    * Moves files of a new projectfrom the temporary location to the final project location.
+   *
    * @param oldPath - The path of the file or directory to be moved.
    * @param newPath - The path of the destination.
    */
@@ -150,14 +158,18 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
 
   /**
    * Checks whether te given repository is a settings repository by checking for the presence of ide.properties or devon.properties on the top level.
+   *
    * @param repositoryPath - The path of the repository to be checked.
    */
   private boolean isSettingsRepository(Path repositoryPath) {
-    return Files.exists(repositoryPath.resolve(EnvironmentVariables.DEFAULT_PROPERTIES)) || Files.exists(repositoryPath.resolve(EnvironmentVariables.LEGACY_PROPERTIES));
+    return Files.exists(repositoryPath.resolve(EnvironmentVariables.DEFAULT_PROPERTIES)) || Files.exists(
+        repositoryPath.resolve(EnvironmentVariables.LEGACY_PROPERTIES));
   }
 
   /**
-   * Checks whether te given repository is a code repository by checking for the presence of ide.properties or devon.properties within a settings folder on the top level.
+   * Checks whether te given repository is a code repository by checking for the presence of ide.properties or devon.properties within a settings folder on the
+   * top level.
+   *
    * @param repositoryPath - The path of the repository to be checked.
    */
   private boolean isCodeRepository(Path repositoryPath) {

@@ -7,15 +7,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.context.ProcessContextGitMock;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.git.GitContextImplMock;
@@ -193,13 +190,14 @@ class CreateCommandletTest extends AbstractIdeContextTest {
     // act - run the create command
     assertThatThrownBy(() -> cc.run())
         .isInstanceOf(CliException.class)
-        .hasMessageContaining("This repository does not include an " + EnvironmentVariables.DEFAULT_PROPERTIES + " or " + EnvironmentVariables.LEGACY_PROPERTIES + " file at the top level or a settings folder with such a file.")
+        .hasMessageContaining("This repository does not include an " + EnvironmentVariables.DEFAULT_PROPERTIES + " or " + EnvironmentVariables.LEGACY_PROPERTIES
+            + " file at the top level or a settings folder with such a file.")
         .hasMessageContaining("The repository does not seem to be a valid IDEasy repository. Please verify the repository and try again.");
 
     // assert
     Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
     assertThat(newProjectPath).doesNotExist();
-    assertThat(context.getIdeRoot().resolve("_ide/tmp/projects").resolve(NEW_PROJECT_NAME)).doesNotExist();
+    assertThat(context.getTempPath().resolve(IdeContext.FOLDER_PROJECTS).resolve(NEW_PROJECT_NAME)).doesNotExist();
   }
 
   @Test
