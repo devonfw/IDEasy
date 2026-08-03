@@ -8,17 +8,16 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Locale;
-
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.SplitPane.Divider;
 import javafx.scene.control.ToggleButton;
-import javafx.scene.control.Label;
-import javafx.scene.control.ProgressBar;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 
@@ -55,6 +54,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
 
   private static final TaskManager taskManager = new TaskManager();
   private static GuiStateManager guiStateManager;
+
   @Override
   public void start(Stage stage) throws IOException {
 
@@ -71,16 +71,16 @@ public class AppBaseTest extends HeadlessApplicationTest {
     stage.requestFocus(); //sometimes needed for headless setup to work
     stage.show();
 
-    androidStudioOpen = lookup(root, "#androidStudioOpen");
-    eclipseOpen = lookup(root, "#eclipseOpen");
-    intellijOpen = lookup(root, "#intellijOpen");
-    vsCodeOpen = lookup(root, "#vsCodeOpen");
-    selectedProject = lookup(root, "#selectedProject");
-    selectedWorkspace = lookup(root, "#selectedWorkspace");
-    consolePaneToggleButton = lookup(root, "#consolePaneToggleButton");
-    centerSplitPane = lookup(root, "#centerSplitPane");
-    statusText = lookup(root, "#statusLabel");
-    taskProgressBar = lookup(root, "#statusProgressBar");
+    androidStudioOpen = FxHelper.lookup(root, "#androidStudioOpen");
+    eclipseOpen = FxHelper.lookup(root, "#eclipseOpen");
+    intellijOpen = FxHelper.lookup(root, "#intellijOpen");
+    vsCodeOpen = FxHelper.lookup(root, "#vsCodeOpen");
+    selectedProject = FxHelper.lookup(root, "#selectedProject");
+    selectedWorkspace = FxHelper.lookup(root, "#selectedWorkspace");
+    consolePaneToggleButton = FxHelper.lookup(root, "#consolePaneToggleButton");
+    centerSplitPane = FxHelper.lookup(root, "#centerSplitPane");
+    statusText = FxHelper.lookup(root, "#statusLabel");
+    taskProgressBar = FxHelper.lookup(root, "#statusProgressBar");
   }
 
   /**
@@ -203,7 +203,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
     assertThat(TaskOverviewWindow.getInstance(taskManager).getStage().isShowing()).as("Task overview window should be opened when clicking on status text")
         .isTrue();
   }
-  
+
   //===Console panel tests===
 
   @Test
