@@ -62,7 +62,7 @@ class CreateCommandletTest extends AbstractIdeContextTest {
 
     // act
     cc.run();
-    
+
     // assert
     Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
     assertThat(newProjectPath).exists();
