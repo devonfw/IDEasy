@@ -58,6 +58,11 @@ public final class ToolInstallRequest {
     this(parent, parent.silent, false);
   }
 
+  /**
+   * The constructor.
+   *
+   * @param parent the parent {@link PackageManagerRequest} (in case of a dependency).
+   */
   public ToolInstallRequest(PackageManagerRequest parent) {
     this(parent, false, false);
   }
@@ -127,6 +132,9 @@ public final class ToolInstallRequest {
     if (this.parentToolInstallRequest != null) {
       loopFound = this.parentToolInstallRequest.detectInstallLoopRecursively(toolEditionAndVersion, sb);
     } else if (this.parentPackageManagerRequest != null) {
+      if (this.parentPackageManagerRequest.getType().equals("uninstall")) {
+        return true;
+      }
       loopFound = this.parentPackageManagerRequest.getToolInstallRequest().detectInstallLoopRecursively(toolEditionAndVersion, sb);
     } else {
       return false;
