@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.tool.mvn;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -13,25 +14,35 @@ import java.util.regex.Matcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.BuildTool;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.variable.VariableSyntax;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 
 /**
  * {@link ToolCommandlet} for <a href="https://maven.apache.org/">maven</a>.
  */
-public class Mvn extends MavenCommandlet {
+public class Mvn extends MavenCommandlet implements BuildTool {
 
   private static final Logger LOG = LoggerFactory.getLogger(Mvn.class);
+
+  /** The maven property (in {@code .mvn/maven.config}) that holds the ci-friendly project version. */
+  private static final String REVISION_FLAG = "-Drevision=";
+
+  /** The default value of the {@code MVN_RELEASE_OPTS} variable used to build and deploy a release. */
+  private static final String DEFAULT_RELEASE_OPTS = "clean deploy -Dchangelist= -Pdeploy";
 
   /** The name of the mvn folder. */
   public static final String MVN_CONFIG_FOLDER = "mvn";
@@ -341,5 +352,51 @@ public class Mvn extends MavenCommandlet {
       return buildDescriptor;
     }
     return super.findBuildDescriptor(directory);
+  }
+
+  @Override
+  public VersionIdentifier getProjectVersion(Path projectPath) {
+
+    Path mavenConfig = getMavenConfig(projectPath);
+    String content = this.context.getFileAccess().readFileContent(mavenConfig);
+    for (String token : content.split("\\s+")) {
+      if (token.startsWith(REVISION_FLAG)) {
+        return VersionIdentifier.of(token.substring(REVISION_FLAG.length()));
+      }
+    }
+    throw new CliException("Could not find '" + REVISION_FLAG + "' in " + mavenConfig);
+  }
+
+  @Override
+  public void setProjectVersion(Path projectPath, VersionIdentifier version) {
+
+    Path mavenConfig = getMavenConfig(projectPath);
+    String content = this.context.getFileAccess().readFileContent(mavenConfig);
+    if (!content.contains(REVISION_FLAG)) {
+      throw new CliException("Could not find '" + REVISION_FLAG + "' in " + mavenConfig);
+    }
+    content = content.replaceAll(REVISION_FLAG + "\\S+", REVISION_FLAG + version);
+    this.context.getFileAccess().writeFileContent(content, mavenConfig);
+  }
+
+  @Override
+  public ProcessResult buildAndDeploy(List<String> additionalArgs) {
+
+    String options = this.context.getVariables().get("MVN_RELEASE_OPTS");
+    if ((options == null) || options.isBlank()) {
+      options = DEFAULT_RELEASE_OPTS;
+    }
+    List<String> args = new ArrayList<>(List.of(options.split("\\s+")));
+    args.addAll(additionalArgs);
+    return runTool(ProcessMode.DEFAULT, null, ProcessErrorHandling.NONE, args);
+  }
+
+  private Path getMavenConfig(Path projectPath) {
+
+    Path mavenConfig = projectPath.resolve(".mvn").resolve("maven.config");
+    if (!Files.exists(mavenConfig)) {
+      throw new CliException("Could not find the maven configuration at " + mavenConfig);
+    }
+    return mavenConfig;
   }
 }

@@ -879,6 +879,64 @@ class FileAccessImplTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Test of {@link FileAccessImpl#test7zExtraction(Path, Path)}
+   */
+  @Test
+  void test7zExtraction(@TempDir Path tempDir) {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+
+    // act
+    context.getFileAccess()
+        .extract7z(Path.of("src/test/resources/com/devonfw/tools/ide/io/executable_and_non_executable.7z"),
+          tempDir);
+
+    // assert
+    assertThat(tempDir.resolve("executableFile.txt")).exists();
+    assertThat(tempDir.resolve("nonExecutableFile.txt")).exists();
+  }
+
+  /**
+   * Test of {@link FileAccessImpl#extract7z(Path, Path)} and checks if file permissions are preserved on Unix.
+   */
+  @Test
+  void test7zExtractionWithFilePermissions(@TempDir Path tempDir) {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    if (context.getSystemInfo().isWindows()) {
+      return;
+    }
+
+    // act
+    context.getFileAccess()
+        .extract7z(Path.of("src/test/resources/com/devonfw/tools/ide/io/executable_and_non_executable.7z"), tempDir);
+
+    // assert
+    assertPosixFilePermissions(tempDir.resolve("executableFile.txt"), "rwxrwxr-x");
+    assertPosixFilePermissions(tempDir.resolve("nonExecutableFile.txt"), "rw-rw-r--");
+  }
+
+  @Test
+  void test7zExtractionWithSymbolicLink(@TempDir Path tempDir) {
+
+    // arrange
+    WindowsSymlinkTestHelper.assumeSymlinksSupported();
+    IdeTestContext context = new IdeTestContext();
+    Path link7z = Path.of("src/test/resources/com/devonfw/tools/ide/io/link.7z");
+    FileAccess fileAccess = context.getFileAccess();
+
+    // act
+    fileAccess.extract7z(link7z, tempDir);
+
+    // assert
+    Path link = tempDir.resolve("link");
+    assertThat(link).hasContent("hi");
+    assertThat(fileAccess.toRealPath(link)).isEqualTo(realPath(tempDir.resolve("file")));
+  }
+
+  /**
    * Tests if a file can be found within a list of folders.
    *
    * @param tempDir temporary directory to use.
