@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.cli.CliOfflineException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -303,86 +302,5 @@ class InstallCommandletTest extends AbstractIdeContextTest {
     assertThat(context).logAtWarning().hasMessage("Cannot download java in version " + targetVersion
         + " because we are offline. Continuing with already installed version " + installedVersion + ".");
   }
-
-  /**
-   * Test of {@link InstallCommandlet} with --ignore-project flag. Verifies that the tool is installed in the software repository without creating a symlink
-   * inside the project, even though we are currently inside a project context.
-   *
-   * @param wmRuntimeInfo wireMock server on a random port
-   */
-  @Test
-  void testInstallCommandletWithIgnoreProjectDoesNotCreateSymlink(WireMockRuntimeInfo wmRuntimeInfo) {
-
-    // arrange
-    IdeTestContext context = newContext(PROJECT_INSTALL, wmRuntimeInfo);
-    InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
-    install.tool.setValueAsString("java", context);
-    install.version.setValueAsString("17.0.6", context);
-    install.ignoreProject.setValue(true);
-
-    // act
-    install.run();
-
-    // assert - java should be installed in the software repository
-    assertThat(context.getSoftwareRepositoryPath().resolve(DefaultToolRepository.ID_DEFAULT).resolve("java").resolve("java")
-        .resolve("17.0.6")).exists();
-    // assert - no project symlink should have been created
-    assertThat(context.getSoftwarePath().resolve("java")).doesNotExist();
-  }
-
-  /**
-   * Test that --ignore-project prevents using the configured project version when no explicit version is provided.
-   *
-   * @param wmRuntimeInfo wireMock server on a random port
-   */
-  @Test
-  void testInstallCommandletWithIgnoreProjectIgnoresConfiguredVersion(WireMockRuntimeInfo wmRuntimeInfo) {
-    // arrange - configure a project version that differs from the latest available version
-    IdeTestContext context = newContext(PROJECT_INSTALL, wmRuntimeInfo);
-    VersionSetCommandlet versionSet = context.getCommandletManager().getCommandlet(VersionSetCommandlet.class);
-    versionSet.tool.setValueAsString("java", context);
-    versionSet.version.setValueAsString("17.0.6", context);
-    versionSet.run();
-    InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
-    install.tool.setValueAsString("java", context);
-    install.ignoreProject.setValue(true);
-
-    // act
-    install.run();
-
-    // assert - the configured 17.0.6 must be ignored and the latest version installed instead
-    assertThat(context.getSoftwareRepositoryPath().resolve(DefaultToolRepository.ID_DEFAULT).resolve("java").resolve("java")
-        .resolve("17.0.6")).doesNotExist();
-    assertThat(context.getSoftwareRepositoryPath().resolve(DefaultToolRepository.ID_DEFAULT).resolve("java").resolve("java")
-        .resolve("21.0.8_9")).exists();
-    assertThat(context.getSoftwarePath().resolve("java")).doesNotExist();
-  }
-
-  /**
-   * Test that --ignore-project is parsed as a CLI flag and prevents creation of the project symlink.
-   *
-   * @param wmRuntimeInfo wireMock server on a random port
-   */
-  @Test
-  void testInstallCommandletParsesIgnoreProjectFlag(WireMockRuntimeInfo wmRuntimeInfo) {
-
-    // arrange
-    IdeTestContext context = newContext(PROJECT_INSTALL, wmRuntimeInfo);
-    CliArguments args = new CliArguments("install", "java", "17.0.6", "--ignore-project");
-    args.next();
-
-    // act
-    int exitCode = context.run(args);
-
-    // assert
-    InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
-    assertThat(exitCode).isZero();
-    assertThat(install.ignoreProject.getValue()).isTrue();
-    assertThat(context.getSoftwareRepositoryPath()
-        .resolve(DefaultToolRepository.ID_DEFAULT)
-        .resolve("java")
-        .resolve("java")
-        .resolve("17.0.6")).exists();
-    assertThat(context.getSoftwarePath().resolve("java")).doesNotExist();
-  }
 }
+

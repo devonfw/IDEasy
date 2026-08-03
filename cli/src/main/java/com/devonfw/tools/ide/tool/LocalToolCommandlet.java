@@ -96,7 +96,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     if (request.isIgnoreProject() && isIgnoreSoftwareRepo()) {
       throw new CliException(
           "The tool " + this.tool
-              + " does not support the software repository and therefore cannot be installed with --ignore-project.");
+              + " does not support the software repository and therefore cannot be installed while ignoring the project.");
     }
 
     // install configured version of our tool in the software repository if not already installed

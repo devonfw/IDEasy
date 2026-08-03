@@ -58,7 +58,6 @@ public class Gui extends Commandlet {
     javaToolInstallRequest.setRequested(
         new ToolEditionAndVersion(VersionIdentifier.of("25.*"))
     );
-    javaToolInstallRequest.setIgnoreProject(true);
 
     mvn.installTool(mavenToolInstallRequest);
     ToolInstallation javaInstallation = java.installTool(javaToolInstallRequest);
