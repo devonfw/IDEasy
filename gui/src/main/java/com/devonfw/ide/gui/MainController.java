@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import javafx.concurrent.Task;
-
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.concurrent.Task;
@@ -17,30 +15,30 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.SplitPane.Divider;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.control.Label;
-import javafx.scene.control.ProgressBar;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.console.ConsoleController;
 import com.devonfw.ide.gui.context.GuiOutputListener;
+import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.context.IdeGuiContext;
 import com.devonfw.ide.gui.context.IdeGuiLogListener;
-import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.context.ProjectManager;
 import com.devonfw.ide.gui.context.TaskManager;
 import com.devonfw.ide.gui.modal.IdeDialog;
 import com.devonfw.ide.gui.nls.NlsService;
+import com.devonfw.ide.gui.progress.ProgressBarTask;
+import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindow;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.OutputListener;
-import com.devonfw.ide.gui.progress.ProgressBarTask;
-import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindow;
 
 /**
  * Controller of the main screen of the dashboard GUI.
@@ -305,7 +303,7 @@ public class MainController {
         try {
           IdeStartContextImpl startContext = new IdeStartContextImpl(IdeLogLevel.INFO, guiLogListener);
           IdeGuiContext context = new IdeGuiContext(startContext,
-              Path.of(ideRootPath).resolve(selectedProject.getValue()).resolve(selectedWorkspace.getValue()));
+              Path.of(ideRootPath).resolve(selectedProject.getValue()).resolve(selectedWorkspace.getValue()), taskManager);
 
           // Set output listener for process output
           context.setOutputListener(guiOutputListener);
@@ -326,7 +324,7 @@ public class MainController {
 
     ideCommandletTask.setOnFailed(_ -> Platform.runLater(() -> {
       task.close();
-      IdeDialog errorDialog = new IdeDialog(AlertType.ERROR, "Error occurred while launching " + inIde);
+      IdeDialog errorDialog = new IdeDialog(AlertType.ERROR, "Error occurred while launching " + commandlet);
       errorDialog.showAndWait();
     }));
     ideCommandletTask.setOnSucceeded(_ -> Platform.runLater(task::close));
