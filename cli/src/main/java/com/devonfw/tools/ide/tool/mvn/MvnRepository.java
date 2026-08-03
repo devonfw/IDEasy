@@ -6,18 +6,24 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.devonfw.tools.ide.cache.CachedValue;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.OperatingSystem;
@@ -41,6 +47,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class MvnRepository extends ArtifactToolRepository<MvnArtifact, MvnArtifactMetadata> {
 
+  private static final Logger LOG = LoggerFactory.getLogger(MvnRepository.class);
+
   /** Base URL for Maven Central repository */
   public static final String MAVEN_CENTRAL = "https://repo1.maven.org/maven2";
 
@@ -54,9 +62,26 @@ public class MvnRepository extends ArtifactToolRepository<MvnArtifact, MvnArtifa
 
   private static final Duration METADATA_CACHE_DURATION_SNAPSHOT = Duration.ofMinutes(5);
 
+  private static final long XML_METADATA_CACHE_RETENTION =
+      Duration.ofMinutes(1).toMillis();
+
+  private static final String CLASSIFIER_WINDOWS_ARM64 = "windows-arm64";
+
+  private static final String CLASSIFIER_WINDOWS_X64 = "windows-x64";
+
+  /**
+   * Matches resolved timestamped Maven snapshot versions, for example:
+   * 2026.05.001-20260527.032443-21
+   * 2025.02.001-beta-20250204.023111-1
+   */
+  private static final Pattern PATTERN_TIMESTAMPED_SNAPSHOT =
+      Pattern.compile("^(.+)-\\d{8}\\.\\d{6}-\\d+$");
+
   private final Path localMavenRepository;
 
   private final DocumentBuilder documentBuilder;
+
+  private final Map<String, CachedValue<Document>> xmlMetadataCache;
 
   private static final Map<String, MvnArtifact> TOOL_MAP = Map.of(
       "ideasy", IdeasyCommandlet.ARTIFACT,
@@ -72,6 +97,7 @@ public class MvnRepository extends ArtifactToolRepository<MvnArtifact, MvnArtifa
 
     super(context);
     this.localMavenRepository = IdeVariables.M2_REPO.get(this.context);
+    this.xmlMetadataCache = new ConcurrentHashMap<>();
     try {
       DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
       this.documentBuilder = factory.newDocumentBuilder();
@@ -112,24 +138,184 @@ public class MvnRepository extends ArtifactToolRepository<MvnArtifact, MvnArtifa
     OperatingSystem os = null;
     SystemArchitecture arch = null;
     String classifier = artifact.getClassifier();
+
     if (!classifier.isEmpty()) {
       String resolvedClassifier;
+
       os = this.context.getSystemInfo().getOs();
       resolvedClassifier = classifier.replace("${os}", os.toString());
+
       if (resolvedClassifier.equals(classifier)) {
         os = null;
       } else {
         classifier = resolvedClassifier;
       }
+
       arch = this.context.getSystemInfo().getArchitecture();
       resolvedClassifier = classifier.replace("${arch}", arch.toString());
+
       if (resolvedClassifier.equals(classifier)) {
         arch = null;
+      } else {
+        classifier = resolvedClassifier;
       }
-      artifact = artifact.withClassifier(resolvedClassifier);
+
+      if (CLASSIFIER_WINDOWS_ARM64.equals(classifier)) {
+        classifier = resolveSnapshotClassifier(
+            artifact,
+            classifier,
+            artifact.getType());
+      }
+
+      artifact = artifact.withClassifier(classifier);
     }
+
     UrlChecksums checksums = getChecksums(artifact);
     return new MvnArtifactMetadata(artifact, tool, edition, checksums, os, arch);
+  }
+
+  /**
+   * Resolves the classifier for a timestamped Maven snapshot.
+   * <p>
+   * IDEasy currently does not publish a Windows ARM64 artifact. Windows on ARM
+   * can execute Windows x64 applications, so the x64 artifact is used as a
+   * fallback when the ARM64 artifact is unavailable.
+   *
+   * @param artifact the artifact being resolved.
+   * @param classifier the originally resolved classifier.
+   * @param extension the artifact extension, such as {@code tar.gz}.
+   * @return the original classifier if it exists or no suitable fallback is
+   *         available; otherwise {@code windows-x64}.
+   */
+  private String resolveSnapshotClassifier(
+      MvnArtifact artifact,
+      String classifier,
+      String extension) {
+
+    String snapshotVersion = getSnapshotBaseVersion(artifact.getVersion());
+
+    // The classifier availability is listed in version-specific metadata only
+    // for Maven snapshots. Leave normal release handling unchanged.
+    if (snapshotVersion == null) {
+      return classifier;
+    }
+
+    MvnArtifact metadataArtifact = artifact
+        .withVersion(snapshotVersion)
+        .withMavenMetadata();
+
+    String metadataUrl = getMavenUrl(metadataArtifact);
+    Document metadata = fetchXmlMetadata(metadataUrl);
+
+    return resolveSnapshotClassifier(metadata, classifier, extension);
+  }
+
+  /**
+   * Resolves a snapshot classifier from Maven snapshot metadata.
+   *
+   * @param metadata the version-specific Maven snapshot metadata.
+   * @param classifier the requested artifact classifier.
+   * @param extension the requested artifact extension.
+   * @return the resolved classifier.
+   */
+  String resolveSnapshotClassifier(
+      Document metadata,
+      String classifier,
+      String extension) {
+
+    if (hasSnapshotArtifact(metadata, classifier, extension)) {
+      return classifier;
+    }
+
+    if (CLASSIFIER_WINDOWS_ARM64.equals(classifier)
+        && hasSnapshotArtifact(metadata, CLASSIFIER_WINDOWS_X64, extension)) {
+
+      LOG.warn(
+          "No Windows ARM64 artifact is available. "
+              + "Falling back to the Windows x64 artifact.");
+
+      return CLASSIFIER_WINDOWS_X64;
+    }
+
+    // Preserve the original classifier so the existing download error is
+    // reported when neither the requested artifact nor a fallback exists.
+    return classifier;
+  }
+
+  /**
+   * Converts a resolved timestamped snapshot version back to its Maven snapshot
+   * base version.
+   *
+   * @param version the resolved artifact version.
+   * @return the corresponding {@code -SNAPSHOT} version, or {@code null} if the
+   *         version is not a timestamped snapshot.
+   */
+  String getSnapshotBaseVersion(String version) {
+
+    Matcher matcher = PATTERN_TIMESTAMPED_SNAPSHOT.matcher(version);
+
+    if (!matcher.matches()) {
+      return null;
+    }
+
+    return matcher.group(1) + "-SNAPSHOT";
+  }
+
+  /**
+   * Checks whether the Maven snapshot metadata contains the requested artifact.
+   *
+   * @param metadata the Maven snapshot metadata.
+   * @param classifier the artifact classifier.
+   * @param extension the artifact extension.
+   * @return {@code true} if the artifact is present.
+   */
+  private boolean hasSnapshotArtifact(
+      Document metadata,
+      String classifier,
+      String extension) {
+
+    NodeList snapshotVersions =
+        metadata.getElementsByTagName("snapshotVersion");
+
+    for (int i = 0; i < snapshotVersions.getLength(); i++) {
+      Node snapshotVersion = snapshotVersions.item(i);
+
+      String currentClassifier =
+          getChildText(snapshotVersion, "classifier");
+
+      String currentExtension =
+          getChildText(snapshotVersion, "extension");
+
+      if (classifier.equals(currentClassifier)
+          && extension.equals(currentExtension)) {
+
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Gets the text content of a direct child node.
+   *
+   * @param parent the parent node.
+   * @param childName the child-node name.
+   * @return the child text, or {@code null} if the child does not exist.
+   */
+  private String getChildText(Node parent, String childName) {
+
+    NodeList children = parent.getChildNodes();
+
+    for (int i = 0; i < children.getLength(); i++) {
+      Node child = children.item(i);
+
+      if (childName.equals(child.getNodeName())) {
+        return child.getTextContent().trim();
+      }
+    }
+
+    return null;
   }
 
   /**
@@ -278,15 +464,32 @@ public class MvnRepository extends ArtifactToolRepository<MvnArtifact, MvnArtifa
 
   private Document fetchXmlMetadata(String url) {
 
+    CachedValue<Document> cachedMetadata =
+        this.xmlMetadataCache.computeIfAbsent(
+            url,
+            key -> new CachedValue<>(
+                () -> downloadXmlMetadata(key),
+                XML_METADATA_CACHE_RETENTION));
+
+    return cachedMetadata.get();
+  }
+
+  private Document downloadXmlMetadata(String url) {
+
     try {
       return this.context.getNetworkStatus().invokeNetworkTask(() -> {
         URL xmlUrl = new URL(url);
+
         try (InputStream is = xmlUrl.openStream()) {
-          return documentBuilder.parse(is);
+          synchronized (this.documentBuilder) {
+            return this.documentBuilder.parse(is);
+          }
         }
       }, url);
+
     } catch (Exception e) {
-      throw new CliException("Failed to determine the latest version from " + url, e);
+      throw new CliException(
+          "Failed to determine the latest version from " + url, e);
     }
   }
 
