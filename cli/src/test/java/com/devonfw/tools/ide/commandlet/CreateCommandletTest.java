@@ -55,15 +55,14 @@ class CreateCommandletTest extends AbstractIdeContextTest {
   void testCreateCommandletRun() {
 
     // arrange
-    GitContextImplMock gitContextImplMock = new GitContextImplMock(context, TEST_RESOURCES.resolve("settings"));
-    context.setGitContext(gitContextImplMock);
-
     CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
     cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
     cc.settingsRepo.setValue(IdeContext.DEFAULT_SETTINGS_REPO_URL);
     cc.skipTools.setValue(true);
+
     // act
     cc.run();
+    
     // assert
     Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
     assertThat(newProjectPath).exists();
@@ -130,8 +129,6 @@ class CreateCommandletTest extends AbstractIdeContextTest {
   @Test
   void testIdeVersionOk() {
     // arrange
-    GitContextImplMock gitContextImplMock = new GitContextImplMock(context, TEST_RESOURCES.resolve("settings"));
-    context.setGitContext(gitContextImplMock);
 
     CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
     cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
