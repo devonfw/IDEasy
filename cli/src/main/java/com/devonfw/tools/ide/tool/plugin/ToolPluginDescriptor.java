@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.tool.plugin;
 
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.Set;
@@ -21,8 +22,10 @@ import com.devonfw.tools.ide.context.IdeContext;
  * @param version the optional plugin version to install.
  * @param active {@code true} if the plugin is active and shall be installed automatically, {@code false} otherwise.
  * @param tags the {@link #tags () tags}.
+ * @param excludedEditions the ide editions that this plugin should not be installed for
  */
-public record ToolPluginDescriptor(String id, String name, String url, String version, boolean active, Set<Tag> tags) implements Tags {
+public record ToolPluginDescriptor(String id, String name, String url, String version, boolean active, Set<Tag> tags, Set<String> excludedEditions) implements
+    Tags {
 
   private static final Logger LOG = LoggerFactory.getLogger(ToolPluginDescriptor.class);
 
@@ -53,7 +56,8 @@ public record ToolPluginDescriptor(String id, String name, String url, String ve
     boolean active = getBoolean(properties, "active", "plugin_active", propertiesFile);
     String tagsCsv = getString(properties, "tags", "plugin_tags");
     Set<Tag> tags = Tag.parseCsv(tagsCsv);
-    return new ToolPluginDescriptor(id, name, url, version, active, tags);
+    Set<String> excludedEditions = getSetOfStrings(properties, "excluded-editions");
+    return new ToolPluginDescriptor(id, name, url, version, active, tags, excludedEditions);
   }
 
   private static boolean getBoolean(Properties properties, String key, String legacyKey, Path propertiesFile) {
@@ -81,6 +85,21 @@ public record ToolPluginDescriptor(String id, String name, String url, String ve
     return value != null ? value.trim() : null;
   }
 
+  private static Set<String> getSetOfStrings(Properties properties, String key) {
+    String value = properties.getProperty(key);
+    if (value != null) {
+      Set<String> result = new HashSet<>();
+      for (String item : value.split(",")) {
+        String trimmed = item.trim();
+        if (!trimmed.isEmpty()) {
+          result.add(trimmed);
+        }
+      }
+      return Set.copyOf(result);
+    }
+    return Set.of();
+  }
+
   /**
    * @param newActive the new value of {@link #active()}.
    * @return this {@link ToolPluginDescriptor} if {@link #active()} already has the given value, otherwise a copy of this descriptor with all other properties
@@ -91,7 +110,7 @@ public record ToolPluginDescriptor(String id, String name, String url, String ve
     if (newActive == this.active) {
       return this;
     }
-    return new ToolPluginDescriptor(this.id, this.name, this.url, this.version, newActive, this.tags);
+    return new ToolPluginDescriptor(this.id, this.name, this.url, this.version, newActive, this.tags, this.excludedEditions);
   }
 
 }

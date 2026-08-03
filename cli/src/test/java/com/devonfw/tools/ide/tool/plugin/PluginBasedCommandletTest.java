@@ -96,7 +96,7 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
   void testMarkerFileContainsVersionSegment() {
 
     ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags);
-    ToolPluginDescriptor plugin = new ToolPluginDescriptor("plugin-id", "plugin-name", null, "1.2.3+build/4", true, Set.of());
+    ToolPluginDescriptor plugin = new ToolPluginDescriptor("plugin-id", "plugin-name", null, "1.2.3+build/4", true, Set.of(), Set.of());
 
     Path markerFilePath = pluginBasedCommandlet.retrievePluginMarkerFilePath(plugin);
 
@@ -109,8 +109,8 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
 
     IdeTestContext localContext = newContext(PROJECT_BASIC, null, false);
     ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(localContext, TOOL, tags);
-    ToolPluginDescriptor versionA = new ToolPluginDescriptor("plugin-id", "plugin-name", null, "1.0.0", true, Set.of());
-    ToolPluginDescriptor versionB = new ToolPluginDescriptor("plugin-id", "plugin-name", null, "2.0.0", true, Set.of());
+    ToolPluginDescriptor versionA = new ToolPluginDescriptor("plugin-id", "plugin-name", null, "1.0.0", true, Set.of(), Set.of());
+    ToolPluginDescriptor versionB = new ToolPluginDescriptor("plugin-id", "plugin-name", null, "2.0.0", true, Set.of(), Set.of());
 
     pluginBasedCommandlet.createPluginMarkerFile(versionA);
     Path markerAPath = pluginBasedCommandlet.retrievePluginMarkerFilePath(versionA);
