@@ -22,8 +22,6 @@ public final class ToolInstallRequest {
 
   private final ToolInstallRequest parentToolInstallRequest;
 
-  private final boolean isParentToolInstallRequest;
-
   private final boolean silent;
 
   private final boolean direct;
@@ -74,7 +72,6 @@ public final class ToolInstallRequest {
     super();
     this.parentToolInstallRequest = parent;
     this.parentPackageManagerRequest = null;
-    this.isParentToolInstallRequest = true;
     this.silent = silent;
     this.direct = direct;
     if (parent != null) {
@@ -86,7 +83,6 @@ public final class ToolInstallRequest {
     super();
     this.parentPackageManagerRequest = parent;
     this.parentToolInstallRequest = null;
-    this.isParentToolInstallRequest = false;
     this.silent = silent;
     this.direct = direct;
     if (parent != null) {
