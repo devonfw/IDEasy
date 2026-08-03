@@ -1,14 +1,13 @@
 package com.devonfw.tools.ide.tool.ruff;
 
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.tool.uv.UvBasedCommandlet;
 import com.devonfw.tools.ide.version.VersionIdentifier;
-import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
-import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
  * Test of {@link Ruff}.
@@ -28,7 +27,6 @@ public class RuffTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_UV, wireMockRuntimeInfo);
-    context.setSystemInfo(SystemInfoMock.LINUX_X64);
     Ruff commandlet = new Ruff(context);
 
     // act
@@ -49,7 +47,6 @@ public class RuffTest extends AbstractIdeContextTest {
 
     //arrange
     IdeTestContext context = newContext(PROJECT_UV, wireMockRuntimeInfo);
-    context.setSystemInfo(SystemInfoMock.LINUX_X64);
 
     // act
     Ruff commandlet = new Ruff(context);
