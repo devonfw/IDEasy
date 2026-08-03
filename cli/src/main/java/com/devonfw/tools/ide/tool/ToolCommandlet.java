@@ -351,7 +351,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     ToolInstallation installation = doInstall(request);
     if (installation != null && installation.installedAsynchronously()) {
       LOG.warn(
-          "The installation of {} is currently running in the background!\nYou need to complete the installation, potentially reboot and rerun your 'ide' command in a new terminal session after the installation has completed.",
+          "The installation of {} is currently running in the background!\nYou need to complete the installation, potentially "
+              + "reboot and rerun your 'ide' command in a new terminal session after the installation has completed.",
           request.getRequested());
     }
     return installation;
@@ -439,7 +440,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
     GenericVersionRange version = requested.getVersion();
     if (version == null) {
-      version = getConfiguredVersion();
+      version = request.isIgnoreProject() ? VersionIdentifier.LATEST : getConfiguredVersion();
       requested.setVersion(version);
     }
     VersionIdentifier resolvedVersion = requested.getResolvedVersion();
