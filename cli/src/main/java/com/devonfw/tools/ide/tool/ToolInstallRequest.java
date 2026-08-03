@@ -127,11 +127,7 @@ public final class ToolInstallRequest {
     if (this.parentToolInstallRequest != null) {
       loopFound = this.parentToolInstallRequest.detectInstallLoopRecursively(toolEditionAndVersion, sb);
     } else if (this.parentPackageManagerRequest != null) {
-      ToolInstallRequest parent = this.parentPackageManagerRequest.getToolInstallRequest();
-      if (parent == null) {
-        return false;
-      }
-      loopFound = parent.detectInstallLoopRecursively(toolEditionAndVersion, sb);
+      loopFound = this.parentPackageManagerRequest.getToolInstallRequest().detectInstallLoopRecursively(toolEditionAndVersion, sb);
     } else {
       return false;
     }
