@@ -66,7 +66,6 @@ public class RuffTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_UV, wireMockRuntimeInfo);
-    context.setSystemInfo(SystemInfoMock.LINUX_X64);
     Ruff commandlet = new Ruff(context);
     commandlet.install();
 
@@ -76,4 +75,5 @@ public class RuffTest extends AbstractIdeContextTest {
     // assert
     assertThat(installedVersion).isEqualTo(VersionIdentifier.of("0.15.22"));
   }
+
 }
