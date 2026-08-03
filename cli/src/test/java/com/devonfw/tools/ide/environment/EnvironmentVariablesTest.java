@@ -132,7 +132,7 @@ class EnvironmentVariablesTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test that IDEasy's {@code -s} and {@code -Dsettings.security=} arguments override any user-provided ones 
+   * Test that IDEasy's {@code -s} and {@code -Dsettings.security=} arguments override any user-provided ones
    * and that unrelated user arguments are correctly appended.
    */
   @Test
