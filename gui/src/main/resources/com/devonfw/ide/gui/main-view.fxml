@@ -209,7 +209,7 @@
             <ToggleButton fx:id="consolePaneToggleButton">
               <graphic>
                 <ImageView fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
-                  <Image url="@assets/icons/terminal.png"/>
+                  <Image url="@assets/icons/console_button.png"/>
                 </ImageView>
               </graphic>
             </ToggleButton>
