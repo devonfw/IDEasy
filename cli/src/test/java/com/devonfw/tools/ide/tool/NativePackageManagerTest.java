@@ -53,7 +53,7 @@ class NativePackageManagerTest {
 
     assertThat(cmd.packageManager()).isEqualTo(NativePackageManager.APT);
     assertThat(cmd.commands()).containsExactly(
-        "sudo apt autoremove -y pkg1",
+        "sudo apt -y autoremove pkg1",
         "sudo rm -f /etc/apt/sources.list.d/example.list",
         "sudo rm -f /usr/share/keyrings/example.gpg");
   }
@@ -95,7 +95,7 @@ class NativePackageManagerTest {
 
     assertThat(cmd.packageManager()).isEqualTo(NativePackageManager.ZYPPER);
     assertThat(cmd.commands()).containsExactly(
-        "sudo zypper --non-interactive remove --clean-deps pkg1",
+        "sudo zypper remove pkg1",
         "sudo zypper removerepo example-repo");
   }
 
