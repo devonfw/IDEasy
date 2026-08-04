@@ -4,6 +4,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -60,7 +61,7 @@ public class ConsoleController {
 
   /// @param nlsService nlsService injection
   public ConsoleController(NlsService nlsService) {
-    
+
     this.nlsService = nlsService;
   }
 
