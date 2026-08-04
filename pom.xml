@@ -181,6 +181,7 @@
     <module>gui</module>
     <module>url-updater</module>
     <module>security</module>
+    <module>macos-installer</module>
   </modules>
 
   <build>
@@ -285,26 +286,6 @@
           <consoleOutput>true</consoleOutput>
           <failOnViolation>true</failOnViolation>
           <violationSeverity>error</violationSeverity>
-        </configuration>
-      </plugin>
-
-      <!-- Clean up macOS installer artifacts -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-clean-plugin</artifactId>
-        <version>3.5.0</version>
-        <configuration>
-          <filesets>
-            <fileset>
-              <directory>${basedir}/macos-installer</directory>
-              <includes>
-                <include>Distribution.xml</include>
-                <include>*.pkg</include>
-                <include>pkg-root/</include>
-              </includes>
-              <followSymlinks>false</followSymlinks>
-            </fileset>
-          </filesets>
         </configuration>
       </plugin>
     </plugins>
