@@ -51,8 +51,8 @@ public class CleanupCommandlet extends Commandlet {
     LOG.debug("Start cleanup commandlet");
 
     // Identify and remove unused tools.
-    Step step = context.newStep("Identify and remove unused software");
-    step.run(this::discoverAndDeleteUnusedSoftware);
+    Step step = this.context.newStep("Identify and remove unused software");
+    step.run(this::discoverAndDeleteUnusedSoftware, true);
 
     LOG.debug("Finished cleanup commandlet");
   }
