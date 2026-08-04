@@ -95,7 +95,7 @@
     </VBox>
   </left>
   <center>
-    <StackPane prefHeight="150.0" BorderPane.alignment="CENTER">
+    <StackPane fx:id="centerPane" prefHeight="150.0" BorderPane.alignment="CENTER">
       <fx:define>
         <Double fx:id="buttonContainerHeight" fx:value="80.0"/>
         <Double fx:id="buttonContainerWidth" fx:value="150.0"/>
