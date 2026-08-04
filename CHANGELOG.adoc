@@ -37,6 +37,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2056[#2056]: Replaced progress bar with general progress information for installing plugins in VSCode
 * https://github.com/devonfw/IDEasy/issues/1659[#1659]: Abort runTool with warning when global tool installer runs in background
 * https://github.com/devonfw/IDEasy/issues/1720[#1720]: Integrate SoapUI
+* https://github.com/devonfw/IDEasy/issues/1167[#1167]: Automatic project import for vs code
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/47?closed=1[milestone 2026.07.002].
 
