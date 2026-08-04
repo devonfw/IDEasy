@@ -3,6 +3,7 @@ package com.devonfw.ide.gui.console;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+
 import com.devonfw.tools.ide.log.IdeLogLevel;
 
 /**
