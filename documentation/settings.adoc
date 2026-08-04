@@ -18,17 +18,18 @@ This gives you the freedom to control and manage the tools with their versions a
 To setup and customize these settings simply follow the link:usage.adoc#admin[admin usage guide].
 Then tell your team to create the project using your project sepcific settings git URL:
 ```
-ide create «project-name» --code «settings-url»
+ide create «project-name» «settings-url»
 ```
 
 == Code-repository
 
 It is even possible to include your settings into your code repository by having the `settings` folder directly on top-level of your code git repository.
 This allows you to keep settings changes in sync with code changes and manage them in the same pull/merge requests.
-To use this approach simply copy the content of https://github.com/devonfw/ide-settings[ide-settings] to a top-level `settings` folder in your code repository root and tell your developers to create the project usining the `--code` option:
+To use this approach simply copy the content of https://github.com/devonfw/ide-settings[ide-settings] to a top-level `settings` folder in your code repository.
+You can then create the project as normal as IDEasy will automatically detect that you are using a code repository:
 
 ```
-ide create «project-name» --code «code-repo-url»
+ide create «project-name» «code-repo-url»
 ```
 
 IDEasy will clone your repository and create a symlink to the settings folder.
