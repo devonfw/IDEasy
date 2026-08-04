@@ -66,7 +66,7 @@ public class CommandletController {
 
   @FXML
   private void runCommandlet() {
-    if (this.commandletSelector == null) {
+    if (this.selectedCommandlet == null) {
       return;
     }
 
