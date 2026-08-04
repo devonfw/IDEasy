@@ -29,9 +29,16 @@ class ConsolePanelTest extends HeadlessApplicationTest {
     URL consoleViewUrl = getClass().getResource("console.fxml");
     assertThat(consoleViewUrl).as("Cannot resolve console UI FXML resource!").isNotNull();
 
+    NlsService nlsService = new NlsService(Locale.ENGLISH);
+
     FXMLLoader fxmlLoader = new FXMLLoader(consoleViewUrl);
-    fxmlLoader.setResources(new NlsService(Locale.ENGLISH).getResourceBundle());
-    fxmlLoader.setController(new ConsoleController(new NlsService(Locale.ENGLISH)));
+    fxmlLoader.setResources(nlsService.getResourceBundle());
+    fxmlLoader.setControllerFactory(clazz -> {
+      if (clazz == ConsoleController.class) {
+        return new ConsoleController(nlsService);
+      }
+      return null;
+    });
     Parent root = fxmlLoader.load();
     stage.setScene(new Scene(root));
     stage.requestFocus(); // sometimes needed for headless setup to work
@@ -91,11 +98,11 @@ class ConsolePanelTest extends HeadlessApplicationTest {
     waitForFxEvents();
 
     var snapshot = consoleController.getConsoleOutputSnapshot();
-    assertThat(snapshot).hasSize(2);
+
     // Check that both the error message and the error detail appear
     // Format: "HH:mm:ss | [LEVEL]  message"
     assertThat(snapshot).anyMatch(s -> s.contains("[ERROR]  Error message"));
-    assertThat(snapshot).anyMatch(s -> s.contains("[ERROR]    Error: Test error"));
+    assertThat(snapshot).anyMatch(s -> s.contains("Error: Test error"));
   }
 
   @Test

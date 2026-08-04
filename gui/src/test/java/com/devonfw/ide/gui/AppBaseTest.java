@@ -8,7 +8,6 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Locale;
-
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -30,6 +29,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.ide.gui.console.ConsoleController;
 import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.context.TaskManager;
 import com.devonfw.ide.gui.nls.NlsService;
@@ -66,6 +66,12 @@ public class AppBaseTest extends HeadlessApplicationTest {
 
     FXMLLoader fxmlLoader = new FXMLLoader(mainViewUrl);
     fxmlLoader.setController(new MainController(mockIdeRoot.toString(), guiStateManager, nlsService));
+    fxmlLoader.setControllerFactory(clazz -> {
+      if (clazz == ConsoleController.class) {
+        return new ConsoleController(nlsService);
+      }
+      return null;
+    });
     fxmlLoader.setResources(nlsService.getResourceBundle());
     Parent root = fxmlLoader.load();
     stage.setScene(new Scene(root));
