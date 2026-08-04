@@ -18,6 +18,7 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.ide.gui.console.ConsoleController;
 import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.context.TaskManager;
 import com.devonfw.ide.gui.modal.IdeDialog;
@@ -127,6 +128,12 @@ public class App extends Application {
     FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
     fxmlLoader.setResources(this.nlsService.getResourceBundle());
     fxmlLoader.setController(new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()), guiStateManager, this.nlsService));
+    fxmlLoader.setControllerFactory(clazz -> {
+      if (clazz == ConsoleController.class) {
+        return new ConsoleController(this.nlsService);
+      }
+      return null;
+    });
     return fxmlLoader.load();
   }
 

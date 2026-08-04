@@ -1,18 +1,16 @@
 package com.devonfw.ide.gui.context;
 
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-
-import javafx.application.Platform;
 
 import com.devonfw.ide.gui.console.ConsoleController;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeLogListener;
 
+/// Listener class that listens to internal ideasy output, e.g. output from commandlets that are run.
 public class IdeGuiLogListener implements IdeLogListener {
 
   private final ConsoleController consoleController;
 
+  /// @param consoleController the console controller to output messages to
   public IdeGuiLogListener(ConsoleController consoleController) {
 
     this.consoleController = consoleController;
@@ -22,27 +20,12 @@ public class IdeGuiLogListener implements IdeLogListener {
   public boolean onLog(IdeLogLevel level, String message, String rawMessage, Object[] args, Throwable error) {
 
     if (this.consoleController != null && message != null) {
-      String prefix = getPrefix(level);
-      String timeStamp = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
-      String formattedMessage = String.format("%s | %s %s", timeStamp, prefix, message);
-
-      this.consoleController.appendOutput(formattedMessage);
+      this.consoleController.appendOutput(level, message);
       if (error != null) {
-        this.consoleController.appendOutput("  Error: " + error.getMessage());
+        this.consoleController.appendOutput(IdeLogLevel.ERROR, "  Error: " + error.getMessage());
       }
     }
     return true; // continue processing (also log to standard output if needed)
-  }
-
-  private String getPrefix(IdeLogLevel level) {
-    return switch (level) {
-      case ERROR -> "[ERROR] ";
-      case WARNING -> "[WARN]  ";
-      case INFO -> "[INFO]  ";
-      case DEBUG -> "[DEBUG] ";
-      case TRACE -> "[TRACE] ";
-      default -> "";
-    };
   }
 
 }

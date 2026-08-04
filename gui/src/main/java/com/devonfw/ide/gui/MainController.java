@@ -111,6 +111,7 @@ public class MainController {
    *
    * @param ideRootPath the IDE_ROOT path
    * @param guiStateManager the {@link GuiStateManager} to be used in this application instance
+   * @param nlsService nlsService instance
    */
   public MainController(String ideRootPath, GuiStateManager guiStateManager, NlsService nlsService) {
 
@@ -316,7 +317,6 @@ public class MainController {
         } catch (Exception e) {
           LOG.error("Failed to open {}", commandlet, e);
           consoleController.appendOutput("[ERROR] Failed to launch " + commandlet + ": " + e.getMessage());
-          consoleController.setStatus("Error");
         }
         return null;
       }

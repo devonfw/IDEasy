@@ -159,7 +159,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
     ProgressBarTask task2 = new ProgressBarTask(taskManager, "task-2", "Test Task");
 
     //Case 1: No tasks added yet, check correct message
-    assertThat(statusText.getText()).isEqualTo("IDEasy is ready");
+    assertThat(statusText.getText()).isEqualTo("IDEasy is ready.");
 
     //Case 2: Only single task exists, should display the task title and a progress bar next to the label
     taskManager.addTask(task1);

@@ -1,32 +1,41 @@
 package com.devonfw.ide.gui.console;
 
 import java.util.ArrayDeque;
-import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 
 import com.devonfw.ide.gui.FxHelper;
+import com.devonfw.ide.gui.nls.NlsService;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 
 /**
- * Controller that manages an instance if a console.
+ * Controller that manages an instance of a console using ListView for better performance with large outputs.
  */
 public class ConsoleController {
 
+  private final NlsService nlsService;
+
   /**
    * Thread-safe buffer collecting messages that arrive while a batched UI update is already pending. Keeps the FX thread from being overwhelmed by individual
-   * {@link Platform#runLater()} submissions.
+   * {@link javafx.application.Platform#runLater()} submissions.
    */
-  private final Deque<String> outputBuffer = new ArrayDeque<>();
+  private final Deque<LogEntry> outputBuffer = new ArrayDeque<>();
 
   /** Whether a batch flush is already scheduled on the FX thread. */
   private boolean flushPending;
+
+  /** Observable list backing the ListView for efficient updates. */
+  private final ObservableList<LogEntry> logEntries = FXCollections.observableArrayList();
 
   @FXML
   private Button clearButton;
@@ -35,20 +44,31 @@ public class ConsoleController {
   private CheckBox autoScrollCheckBox;
 
   @FXML
-  private Label statusLabel;
+  private Label consoleStatusLabel;
 
   @FXML
   private Label lineCountLabel;
 
   @FXML
-  private ScrollPane outputScrollPane;
-
-  @FXML
-  private TextArea consoleOutput;
+  private ListView<LogEntry> consoleListView;
 
   @FXML
   private void initialize() {
+    setupListView();
     setupEventHandlers();
+  }
+
+  /// @param nlsService nlsService injection
+  public ConsoleController(NlsService nlsService) {
+    this.nlsService = nlsService;
+  }
+
+  /**
+   * Sets up the ListView with a custom cell factory for colored log levels.
+   */
+  private void setupListView() {
+    consoleListView.setItems(logEntries);
+    consoleListView.setCellFactory(_ -> new LogEntryCell());
   }
 
   /**
@@ -60,16 +80,24 @@ public class ConsoleController {
   }
 
   /**
-   * Prints a message to the console.
-   * <p>
-   * Messages are buffered and flushed in a single FX-thread operation to prevent the FX thread from being overwhelmed when many messages arrive concurrently
-   * (e.g. during IDE startup).
+   * Prints a simple message to the console.
    *
    * @param message message to be printed
    */
   public void appendOutput(String message) {
+
+    appendOutput(new LogEntry(message));
+  }
+
+  /**
+   * Prints a log entry to the console.
+   *
+   * @param entry the log entry to append
+   */
+  public void appendOutput(LogEntry entry) {
+
     synchronized (outputBuffer) {
-      outputBuffer.add(message);
+      outputBuffer.add(entry);
       if (!flushPending) {
         flushPending = true;
         FxHelper.runFxSafe(this::flushBuffer);
@@ -78,24 +106,44 @@ public class ConsoleController {
   }
 
   /**
-   * Flushes all buffered messages to the console in a single FX-thread operation.
+   * Prints a message with a log level to the console.
+   *
+   * @param level the log level
+   * @param message the message
+   */
+  public void appendOutput(IdeLogLevel level, String message) {
+
+    appendOutput(new LogEntry(level, message));
+  }
+
+  /**
+   * Prints a message with a log level and error to the console.
+   *
+   * @param level the log level
+   * @param message the message
+   * @param error the error
+   */
+  public void appendOutput(IdeLogLevel level, String message, Throwable error) {
+
+    appendOutput(new LogEntry(level, message, error));
+  }
+
+  /**
+   * Flushes all buffered messages to the console.
    */
   private void flushBuffer() {
-    String text;
+    List<LogEntry> entriesToAdd;
     synchronized (outputBuffer) {
       if (outputBuffer.isEmpty()) {
         flushPending = false;
         return;
       }
-      StringBuilder sb = new StringBuilder();
-      while (!outputBuffer.isEmpty()) {
-        sb.append(outputBuffer.pollFirst()).append('\n');
-      }
-      text = sb.toString();
+      entriesToAdd = outputBuffer.stream().toList();
+      outputBuffer.clear();
       flushPending = false;
     }
 
-    consoleOutput.appendText(text);
+    logEntries.addAll(entriesToAdd);
 
     if (autoScrollCheckBox.isSelected()) {
       scrollToBottom();
@@ -105,17 +153,17 @@ public class ConsoleController {
   }
 
   /**
-   * sets status text
+   * Sets status text.
    *
    * @param status new status
    */
-  public void setStatus(String status) {
+  public void setConsoleStatus(String status) {
 
-    FxHelper.runFxSafe(() -> statusLabel.setText(status));
+    FxHelper.runFxSafe(() -> consoleStatusLabel.setText(status));
   }
 
   /**
-   * Clears the console
+   * Clears the console.
    */
   void clearConsole() {
     synchronized (outputBuffer) {
@@ -123,40 +171,91 @@ public class ConsoleController {
       flushPending = false;
     }
 
-    consoleOutput.clear();
+    logEntries.clear();
     updateLineCount();
-    setStatus("Console cleared");
+    setConsoleStatus(nlsService.get("console_cleared"));
   }
 
   /**
    * Scrolls to the end of the console.
-   * <p>
-   * Uses {@link TextArea#positionCaret(int)} to scroll to the end of the text. This works because TextArea
-   * scrolls to make its content visible via {@link Node#scrollTo()}, which operates against visual bounds —
-   * unlike {@link ScrollPane#setVvalue(double)} which depends on the ScrollPane's lazy vmax computation.
-   * </p>
    */
   private void scrollToBottom() {
 
-    int length = consoleOutput.getLength();
-    consoleOutput.positionCaret(length);
+    if (!logEntries.isEmpty()) {
+      consoleListView.scrollTo(logEntries.size() - 1);
+    }
   }
 
   /**
-   * Refreshes the line count
+   * Refreshes the line count.
    */
   private void updateLineCount() {
-
-    int lines = consoleOutput.getText().split("\n", -1).length;
-    FxHelper.runFxSafe(() -> lineCountLabel.setText("Lines: " + lines));
+    if (nlsService != null) {
+      FxHelper.runFxSafe(() -> lineCountLabel.setText(nlsService.get("console_line_count").replace("{0}", String.valueOf(logEntries.size()))));
+    } else {
+      FxHelper.runFxSafe(() -> lineCountLabel.setText("Lines: " + logEntries.size()));
+    }
   }
 
   /**
-   * Get the current output that is on the console.
+   * Gets the current output that is on the console.
    *
    * @return a list of the current console output lines
    */
   public List<String> getConsoleOutputSnapshot() {
-    return Arrays.stream(consoleOutput.getText().split("\n", -1)).filter(line -> !line.isEmpty()).toList();
+    return logEntries.stream().map(LogEntry::toString).filter(line -> !line.isEmpty()).collect(Collectors.toList());
+  }
+
+  /**
+   * Checks if auto-scroll is enabled.
+   *
+   * @return true if auto-scroll is enabled
+   */
+  public boolean isAutoScrollEnabled() {
+
+    return autoScrollCheckBox.isSelected();
+  }
+
+
+  /**
+   * Custom ListCell for rendering log entries with colors based on log level.
+   */
+  private static class LogEntryCell extends ListCell<LogEntry> {
+
+    private static final String BASE_STYLE = "-fx-font-family: 'Consolas', monospace; -fx-font-size: 11;";
+    private static final String ERROR_STYLE = BASE_STYLE + " -fx-text-fill: #cc0000;";
+    private static final String WARNING_STYLE = BASE_STYLE + " -fx-text-fill: #cc8800;";
+    private static final String INFO_STYLE = BASE_STYLE + " -fx-text-fill: #000000;";
+    private static final String DEBUG_STYLE = BASE_STYLE + " -fx-text-fill: #666666;";
+    private static final String TRACE_STYLE = BASE_STYLE + " -fx-text-fill: #888888;";
+    private static final String PLAIN_STYLE = BASE_STYLE + " -fx-text-fill: #333333;";
+    private static final String ERROR_BG = "-fx-background-color: #fff0f0;";
+    private static final String WARNING_BG = "-fx-background-color: #fff8e0;";
+
+    @Override
+    protected void updateItem(LogEntry entry, boolean empty) {
+      super.updateItem(entry, empty);
+      if (empty || entry == null) {
+        setText(null);
+        setStyle(BASE_STYLE);
+      } else {
+        setText(entry.toString());
+        setStyle(getStyleForEntry(entry));
+      }
+    }
+
+    private String getStyleForEntry(LogEntry entry) {
+      if (entry.getLevel() == null) {
+        return PLAIN_STYLE;
+      }
+      return switch (entry.getLevel()) {
+        case ERROR -> ERROR_STYLE + " " + ERROR_BG;
+        case WARNING -> WARNING_STYLE + " " + WARNING_BG;
+        case INFO -> INFO_STYLE;
+        case DEBUG -> DEBUG_STYLE;
+        case TRACE -> TRACE_STYLE;
+        default -> PLAIN_STYLE;
+      };
+    }
   }
 }
