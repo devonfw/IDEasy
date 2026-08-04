@@ -197,7 +197,7 @@
             </configuration>
           </execution>
           <execution>
-            <id>Copy Distribution.xml [macOS Installer]</id>
+            <id>copy-distribution-file-pkgbuild</id>
             <phase>validate</phase>
             <goals>
               <goal>copy-resources</goal>
