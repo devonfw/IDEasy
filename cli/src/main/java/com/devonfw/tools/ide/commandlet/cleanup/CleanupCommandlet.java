@@ -97,8 +97,11 @@ public class CleanupCommandlet extends Commandlet {
     discoverInstalledSoftwareRepository(installedSoftwareTools,
         softwareRepositoryPath.resolve(MvnRepository.ID));
 
-    discoverInstalledSoftwareRepository(installedSoftwareTools,
-        softwareRepositoryPath.resolve(this.context.getCustomToolRepository().getId()));
+    // the custom tool repository is derived from ide-custom-tools.json in the settings, which require IDE_HOME
+    if (this.context.getSettingsPath() != null) {
+      discoverInstalledSoftwareRepository(installedSoftwareTools,
+          softwareRepositoryPath.resolve(this.context.getCustomToolRepository().getId()));
+    }
 
     return installedSoftwareTools;
   }
