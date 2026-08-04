@@ -26,12 +26,10 @@ public class IdeGuiLogListener implements IdeLogListener {
       String timeStamp = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
       String formattedMessage = String.format("%s | %s %s", timeStamp, prefix, message);
 
-      Platform.runLater(() -> {
-        this.consoleController.appendOutput(formattedMessage);
-        if (error != null) {
-          this.consoleController.appendOutput("  Error: " + error.getMessage());
-        }
-      });
+      this.consoleController.appendOutput(formattedMessage);
+      if (error != null) {
+        this.consoleController.appendOutput("  Error: " + error.getMessage());
+      }
     }
     return true; // continue processing (also log to standard output if needed)
   }
