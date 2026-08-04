@@ -52,6 +52,7 @@ public class Gui extends Commandlet {
 
     ToolInstallRequest mavenToolInstallRequest = new ToolInstallRequest(false);
     mavenToolInstallRequest.setProcessContext(processContext);
+    mavenToolInstallRequest.setIgnoreProject(true);
 
     ToolInstallRequest javaToolInstallRequest = new ToolInstallRequest(mavenToolInstallRequest);
     javaToolInstallRequest.setRequested(
