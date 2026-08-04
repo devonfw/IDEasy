@@ -72,7 +72,7 @@ public class Docker extends GlobalToolCommandlet {
             List.of("rancher-desktop"),
             List.of("--no-gpg-checks"),
             List.of("sudo zypper addrepo https://download.opensuse.org/repositories/isv:/Rancher:/stable/rpm/isv:Rancher:stable.repo"),
-            List.of("sudo zypper remove rancher-desktop")
+            null
         ),
         new NativePackage(
             NativePackageManager.APT,
@@ -87,7 +87,6 @@ public class Docker extends GlobalToolCommandlet {
                 "sudo apt update"
             ),
             List.of(
-                "sudo apt -y autoremove rancher-desktop",
                 "sudo rm -f /etc/apt/sources.list.d/isv-rancher-stable.list",
                 "sudo rm -f /usr/share/keyrings/isv-rancher-stable-archive-keyring.gpg"
             )

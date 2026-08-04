@@ -8,10 +8,10 @@ import java.util.List;
  */
 public enum NativePackageManager {
   /** Advanced Package Tool (APT) is the package manager of Debian based Linux distributions. */
-  APT("install -y", "autoremove -y", "=", "*"),
+  APT("install -y", "-y autoremove", "=", "*"),
 
   /** Zypper is the package manager of SUSE based Linux distributions. */
-  ZYPPER("--non-interactive install", "--non-interactive remove --clean-deps", "=", ""),
+  ZYPPER("--non-interactive install", "remove", "=", ""),
 
   /** Yellowdog Updater Modified (YUM) is the package manager of RPM package based Linux distributions like Fedora, Red Hat, or CentOS. */
   YUM("install -y", "remove -y", "-", "*"),
@@ -63,13 +63,14 @@ public enum NativePackageManager {
 
   /**
    * Builds the package specification pinning the given package to the given version.
+   *
    * @param pkg the name of the package.
    * @param version the version to pin the package to or {@code null} to use the latest available version.
    * @return the package specification for this package manager.
    */
 
   public String getPackageSpec(String pkg, String version) {
-    if((version == null) || version.isBlank()) {
+    if ((version == null) || version.isBlank()) {
       return pkg;
     }
     String spec = pkg + this.versionSeparator + version + this.versionWildCard;
@@ -91,7 +92,7 @@ public enum NativePackageManager {
       command.append(' ').append(option);
     }
     command.append(' ').append(this.installCommand);
-    for(String pkg : nativePackage.getPackages() ) {
+    for (String pkg : nativePackage.getPackages()) {
       command.append(' ').append(getPackageSpec(pkg, version));
     }
     commands.add(command.toString());
