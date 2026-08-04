@@ -7,9 +7,10 @@ import java.time.format.DateTimeFormatter;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 
 /**
- * Represents a single log entry in the console with level, timestamp, message, and optional error.
+ * Represents a single log entry in the console with level, timestamp, message, and optional error. Not the same as
+ * {@link com.devonfw.tools.ide.log.IdeLogEntry}.
  */
-public class LogEntry {
+public class GuiLogEntry {
 
   private final String message;
   private final IdeLogLevel level;
@@ -20,7 +21,7 @@ public class LogEntry {
    *
    * @param message the message
    */
-  public LogEntry(String message) {
+  public GuiLogEntry(String message) {
     this(message, null);
   }
 
@@ -30,7 +31,7 @@ public class LogEntry {
    * @param level the log level
    * @param message the message
    */
-  public LogEntry(IdeLogLevel level, String message) {
+  public GuiLogEntry(IdeLogLevel level, String message) {
     this(level, message, null);
   }
 
@@ -41,7 +42,7 @@ public class LogEntry {
    * @param message the message
    * @param error the error
    */
-  public LogEntry(IdeLogLevel level, String message, Throwable error) {
+  public GuiLogEntry(IdeLogLevel level, String message, Throwable error) {
     this.level = level;
     this.message = message + (error != null ? "\n  Error: " + error.getMessage() : "");
     this.timeStamp = System.currentTimeMillis();
@@ -53,7 +54,7 @@ public class LogEntry {
    * @param message the message
    * @param level the log level
    */
-  public LogEntry(String message, IdeLogLevel level) {
+  public GuiLogEntry(String message, IdeLogLevel level) {
     this.level = level;
     this.message = message;
     this.timeStamp = System.currentTimeMillis();
