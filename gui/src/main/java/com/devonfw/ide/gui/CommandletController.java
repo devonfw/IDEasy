@@ -16,6 +16,7 @@ public class CommandletController {
 
   private Commandlet selectedCommandlet;
   private final IdeContext context;
+  private final Runnable goBackCallback;
 
   @FXML
   private ComboBox<String> commandletSelector;
@@ -27,8 +28,9 @@ public class CommandletController {
   private Button runButton;
 
   /// @param context
-  public CommandletController(IdeContext context) {
+  public CommandletController(IdeContext context, Runnable goBackCallback) {
     this.context = context;
+    this.goBackCallback = goBackCallback;
   }
 
   @FXML
@@ -36,6 +38,12 @@ public class CommandletController {
     commandletSelector.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> onCommandletSelected(newVal));
     Platform.runLater(this::populateCommandletList);
   }
+
+  @FXML
+  private void goBack() {
+    this.goBackCallback.run();
+  }
+
 
   private void onCommandletSelected(String name) {
     if (name == null) {

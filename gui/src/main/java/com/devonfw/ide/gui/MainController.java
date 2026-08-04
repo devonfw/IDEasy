@@ -1,18 +1,20 @@
 package com.devonfw.ide.gui;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -22,6 +24,8 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.control.SplitPane.Divider;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,6 +59,12 @@ public class MainController {
 
   private IdeGuiLogListener guiLogListener;
   private OutputListener guiOutputListener;
+
+  @FXML
+  private BorderPane rootPane;
+
+  @FXML
+  private StackPane centerPane;
 
   @FXML
   private ComboBox<String> selectedProject;
@@ -451,6 +461,22 @@ public class MainController {
         statusLabel.setStyle("");
       }
     });
+  }
+
+  @FXML
+  private void openCommandlet() {
+    Runnable goBack = () -> rootPane.setCenter(centerPane);
+    try {
+      FXMLLoader loader = new FXMLLoader(getClass().getResource("commandlet-view.fxml"));
+      loader.setResources(this.nlsService.getResourceBundle());
+      loader.setController(new CommandletController(guiStateManager.getCurrentContext(), goBack));
+      Parent commandletView = loader.load();
+
+      rootPane.setCenter(commandletView);
+    } catch (IOException e) {
+      LOG.error("Failed to load commandlet view", e);
+      new IdeDialog(IdeDialog.AlertType.ERROR, e.getMessage()).showAndWait();
+    }
   }
 
   private void setIdeButtonsDisabled(boolean disabled) {

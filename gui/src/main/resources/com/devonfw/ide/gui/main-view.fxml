@@ -162,6 +162,30 @@
                       mnemonicParsing="false"
                       onAction="#openAndroidStudio"
                       styleClass="launchButton"
+    <StackPane fx:id="centerPane" prefHeight="150.0" BorderPane.alignment="CENTER">
+      <fx:define>
+        <Double fx:id="buttonContainerHeight" fx:value="80.0"/>
+        <Double fx:id="buttonContainerWidth" fx:value="150.0"/>
+      </fx:define>
+      <children>
+        <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="231.0" spacing="12.0">
+          <children>
+            <HBox alignment="CENTER_LEFT" layoutX="20.0" layoutY="204.0" prefHeight="100.0" prefWidth="150.0" spacing="20.0" stylesheets="@style/center.css"
+              styleClass="ideElement">
+              <children>
+                <ImageView fitHeight="60.0" fitWidth="60.0" pickOnBounds="true" preserveRatio="true">
+                  <image>
+                    <Image url="@assets/as.png"/>
+                  </image>
+                  <HBox.margin>
+                    <Insets bottom="10.0" left="10.0" top="10.0"/>
+                  </HBox.margin>
+                </ImageView>
+                <Label prefHeight="30.0" prefWidth="190.0" styleClass="ideTitle" text="Android-Studio"/>
+                <HBox alignment="CENTER_RIGHT" prefHeight="$buttonContainerHeight" prefWidth="$buttonContainerWidth" minWidth="$buttonContainerWidth"
+                  spacing="10.0" HBox.hgrow="ALWAYS">
+                  <children>
+                    <Button fx:id="androidStudioOpen" disable="true" mnemonicParsing="false" onAction="#openAndroidStudio" styleClass="launchButton"
                       text="%open">
                       <HBox.margin>
                         <Insets right="20.0"/>
@@ -290,6 +314,13 @@
                       </HBox.margin>
                     </Button>
                   </HBox>
+                  <HBox>
+                </HBox>
+                  <Button fx:id="commandletOpen" disable="true" text="Commandlets" onAction="#openCommandlet">
+                    <HBox.margin>
+                      <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+                    </HBox.margin>
+                  </Button>
                 </HBox>
               </VBox>
             </StackPane>
