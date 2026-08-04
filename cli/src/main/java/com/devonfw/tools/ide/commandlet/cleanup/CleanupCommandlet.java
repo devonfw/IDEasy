@@ -50,20 +50,29 @@ public class CleanupCommandlet extends Commandlet {
 
     LOG.debug("Start cleanup commandlet");
 
-    // Identify and remove unused tools.
-    Step step = this.context.newStep("Identify and remove unused software");
-    step.run(this::discoverAndDeleteUnusedSoftware, true);
+    List<InstalledSoftwareTool> installedSoftwareTools = new ArrayList<>();
+
+    // Discover unused software and report what would be deleted.
+    Step step = this.context.newStep("Identify unused software");
+    step.run(() -> discoverAndReportUnusedSoftware(installedSoftwareTools), true);
+
+    if (hasSoftwareToDelete(installedSoftwareTools)) {
+      // Automatically confirmed in batch mode with the global force option.
+      this.context.askToContinue("Do you want to continue?");
+      deleteUnusedSoftware(installedSoftwareTools);
+    }
 
     LOG.debug("Finished cleanup commandlet");
   }
 
   /**
-   * This method specifies the primary flow for the discovery of installed and unused software, and its deletion.
+   * Discovers installed and unused software and logs the deletion preview.
+   *
+   * @param installedSoftwareTools the list to populate with discovered installed software.
    */
-  private void discoverAndDeleteUnusedSoftware() {
+  private void discoverAndReportUnusedSoftware(List<InstalledSoftwareTool> installedSoftwareTools) {
     // Iterate over software in $IDE_ROOT/_ide/software repositories and save installed software to a list
-    List<InstalledSoftwareTool> installedSoftwareTools = discoverInstalledSoftware();
-
+    installedSoftwareTools.addAll(discoverInstalledSoftware());
     // Scan for IDEasy projects
     List<Path> ideasyProjects = this.context.findProjects();
 
@@ -77,7 +86,7 @@ public class CleanupCommandlet extends Commandlet {
 
     // Mark unused software for deletion
     markUnusedSoftwareForDeletion(installedSoftwareTools);
-    // Log summary report and proceed with deletion if user confirms
+    // Log summary report
     logSoftwareToBeDeleted(installedSoftwareTools);
   }
 
@@ -237,8 +246,21 @@ public class CleanupCommandlet extends Commandlet {
   }
 
   /**
-   * Generates a summary report for software versions to be deleted and prompts the user for confirmation. If the user agrees, the unused software versions and
-   * empty parent folders are deleted.
+   * Checks whether at least one installed software version is marked for deletion.
+   *
+   * @param installedSoftwareTools the installed software to inspect.
+   * @return {@code true} if at least one version is marked for deletion.
+   */
+  private boolean hasSoftwareToDelete(List<InstalledSoftwareTool> installedSoftwareTools) {
+
+    return installedSoftwareTools.stream()
+        .flatMap(tool -> tool.getEditions().stream())
+        .flatMap(edition -> edition.getVersions().stream())
+        .anyMatch(InstalledSoftwareVersion::isDelete);
+  }
+
+  /**
+   * Logs a summary of the software versions marked for deletion.
    *
    * @param installedSoftwareTools the list of installed tools containing versions with deletion flags.
    */
@@ -280,10 +302,6 @@ public class CleanupCommandlet extends Commandlet {
       LOG.info("The following installed tool versions will be deleted: \n" + logOutput);
       LOG.info("Summary: {} installed tool versions across {} affected editions of {} affected tools will be deleted.", totalVersionsDeleted,
           totalAffectedEditions, totalAffectedTools);
-
-      // Ask for confirmation. Automatically confirmed in batch mode with the global force option.
-      this.context.askToContinue("Do you want to continue?");
-      deleteUnusedSoftware(installedSoftwareTools);
     }
   }
 
@@ -342,7 +360,7 @@ public class CleanupCommandlet extends Commandlet {
     try {
       this.context.getFileAccess().delete(path);
     } catch (Exception e) {
-      LOG.error("Failed to delete {}: {}", path, e.getMessage());
+      LOG.error("Failed to delete {}.", path, e);
       return 1;
     }
     return 0;
