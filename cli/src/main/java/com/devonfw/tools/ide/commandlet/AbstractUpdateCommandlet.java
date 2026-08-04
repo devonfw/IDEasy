@@ -350,16 +350,16 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
         List<ExtraToolInstallation> installations = extraTools.getExtraInstallations(tool);
         this.context.newStep("Install extra version(s) of " + tool).run(() -> installExtraToolInstallations(tool, installations));
       }
+    }
 
-      // After installing extra tools, synchronize them into all IDE workspaces
-      List<String> ides = IdeVariables.CREATE_START_SCRIPTS.get(this.context);
-      if (ides != null) {
-        for (String ideName : ides) {
-          ToolCommandlet ideCommandlet = commandletManager.getToolCommandlet(ideName);
-          if (ideCommandlet instanceof IdeToolCommandlet) {
-            LOG.info("Synchronizing extra tools into {} workspace", ideName);
-            ((IdeToolCommandlet) ideCommandlet).configureWorkspace();
-          }
+    // Synchronize extra tools into all IDE workspaces (always run, even if extraTools is null —
+    // synchronizeExtraToolInstallations() handles the no-op case internally)
+    List<String> ides = IdeVariables.CREATE_START_SCRIPTS.get(this.context);
+    if (ides != null) {
+      for (String ideName : ides) {
+        ToolCommandlet ideCommandlet = commandletManager.getToolCommandlet(ideName);
+        if (ideCommandlet instanceof IdeToolCommandlet) {
+          ((IdeToolCommandlet) ideCommandlet).configureWorkspace();
         }
       }
     }

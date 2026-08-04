@@ -21,12 +21,11 @@ import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.merge.xml.XmlMergeDocument;
 import com.devonfw.tools.ide.merge.xml.XmlMerger;
+import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
-import com.devonfw.tools.ide.tool.ToolInstallRequest;
-import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
 import com.devonfw.tools.ide.tool.extra.ExtraToolInstallation;
 import com.devonfw.tools.ide.tool.extra.ExtraTools;
@@ -80,9 +79,12 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
   }
 
   @Override
-  public ToolInstallation install(ToolInstallRequest request) {
+  public ProcessResult runTool(ProcessContext pc, ProcessMode processMode, List<String> args) {
 
-    return super.install(request);
+    if (processMode == ProcessMode.BACKGROUND) {
+      configureWorkspace();
+    }
+    return super.runTool(pc, processMode, args);
   }
 
   /**
@@ -174,6 +176,7 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
    * @param relativeTemplatePath the workspace-relative path of the IDE-specific template file to merge.
    */
   protected void registerExtraSdkTemplate(String sdk, Path relativeTemplatePath) {
+
     Set<Path> templatePaths = this.extraSdkMap.computeIfAbsent(sdk, _ -> new HashSet<>());
     templatePaths.add(relativeTemplatePath);
   }
@@ -186,6 +189,7 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
    * </p>
    */
   protected void synchronizeExtraToolInstallations() {
+
     ExtraTools extraTools = ExtraToolsMapper.get().loadJsonFromFolder(this.context.getSettingsPath());
     if (extraTools == null) {
       return;
@@ -202,6 +206,7 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
   }
 
   private void synchronizeExtraToolInstallation(String sdk, Set<Path> templatePaths, List<ExtraToolInstallation> extraInstallations) {
+
     for (Path templatePath : templatePaths) {
       Path workspaceFile = this.context.getWorkspacePath().resolve(templatePath);
       Path templateFile = this.context.getSettingsPath().resolve(this.tool).resolve(IdeContext.FOLDER_WORKSPACE)
@@ -219,6 +224,7 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
   }
 
   private void synchronizeExtraToolInstallation(String sdk, Path templateFile, Path workspaceFile, ExtraToolInstallation installation) {
+
     String name = installation.name();
     Path extraToolHome = this.context.getSoftwareExtraPath().resolve(sdk).resolve(name);
     if (!Files.isDirectory(extraToolHome)) {
