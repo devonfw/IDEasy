@@ -7,14 +7,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
-import javafx.stage.Stage;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +32,12 @@ public class MainController {
   private static final Logger LOG = LoggerFactory.getLogger(MainController.class);
 
   private final ProjectManager projectManager;
+
+  @FXML
+  private BorderPane rootPane;
+
+  @FXML
+  private StackPane centerPane;
 
   @FXML
   private ComboBox<String> selectedProject;
@@ -219,14 +224,14 @@ public class MainController {
 
   @FXML
   private void openCommandlet() {
+    Runnable goBack = () -> rootPane.setCenter(centerPane);
     try {
       FXMLLoader loader = new FXMLLoader(getClass().getResource("commandlet-view.fxml"));
       loader.setResources(this.nlsService.getResourceBundle());
-      loader.setController(new CommandletController(IdeGuiStateManager.getInstance().getCurrentContext()));
-      Parent root = loader.load();
+      loader.setController(new CommandletController(IdeGuiStateManager.getInstance().getCurrentContext(), goBack));
+      Parent commandletView = loader.load();
 
-      Stage stage = (Stage) selectedProject.getScene().getWindow();
-      stage.setScene(new Scene(root));
+      rootPane.setCenter(commandletView);
     } catch (IOException e) {
       LOG.error("Failed to load commandlet view", e);
       new IdeDialog(IdeDialog.AlertType.ERROR, e.getMessage()).showAndWait();
