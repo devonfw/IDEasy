@@ -76,6 +76,7 @@ public class CommandletController {
     commandletSelector.getItems().clear();
     commandletSelector.getItems().addAll(context.getCommandletManager().getCommandlets().stream()
         .map(Commandlet::getName)
+        .sorted()
         .toList());
   }
 
