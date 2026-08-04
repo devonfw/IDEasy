@@ -264,8 +264,54 @@ class VscodeTest extends AbstractIdeContextTest {
     // assert
     Path settingsJson = context.getWorkspacePath("test").resolve(".vscode/settings.json");
     assertThat(settingsJson).exists().content().contains("test_gradle");
+  @Test
+  void testVscodiumSkipsPluginWithVscodiumInExcludedEditions() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODIUM);
+    CapturingVscode vscodiumCommandlet = new CapturingVscode(context);
+    ToolPluginDescriptor excludedPlugin = new ToolPluginDescriptor("publisher.excluded", "excludedPlugin", null,
+        "1.0.0", true, Set.of(), Set.of("vscodium"));
+    List<ToolPluginDescriptor> plugins = List.of(excludedPlugin);
+
+    // act
+    vscodiumCommandlet.installPluginsForTest(plugins, new ProcessContextTestImpl(context));
+
+    // assert
+    assertThat(vscodiumCommandlet.lastArgs).isEmpty();
+    assertThat(context).logAtDebug().hasMessage("Skipping plugin 'excludedPlugin' (excluded for edition 'vscodium').");
   }
 
+  @Test
+  void testVscodeInstallsPluginExcludedForVscodium() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    CapturingVscode vscodeCommandlet = new CapturingVscode(context);
+    ToolPluginDescriptor excludedPlugin = new ToolPluginDescriptor("publisher.excluded", "excludedPlugin", null,
+        "1.0.0", true, Set.of(), Set.of("vscodium"));
+    List<ToolPluginDescriptor> plugins = List.of(excludedPlugin);
+
+    // act
+    vscodeCommandlet.installPluginsForTest(plugins, new ProcessContextTestImpl(context));
+
+    // assert
+    assertThat(vscodeCommandlet.lastArgs).contains("--install-extension", "publisher.excluded@1.0.0");
+  }
+
+  @Test
+  void testCsvParsingOfExcludedEditions() {
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+
+    // act
+    ToolPluginDescriptor excludedPlugin = ToolPluginDescriptor.of(
+        context.getSettingsPath().resolve("vscode/plugins/excludedPlugin.properties"), context, false);
+    Set<String> excludedEditions = excludedPlugin.excludedEditions();
+
+    // assert
+    assertThat(excludedEditions).contains("vscode", "vscodium");
+  }
 
   /**
    * Test double for {@link Vscode} that captures CLI arguments passed to {@link #runTool(ProcessContext, ProcessMode, List)} so tests can assert command
