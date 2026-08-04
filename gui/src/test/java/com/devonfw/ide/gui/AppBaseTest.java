@@ -16,9 +16,13 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.SplitPane.Divider;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 
+import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,6 +30,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.ide.gui.console.ConsoleController;
 import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.context.TaskManager;
 import com.devonfw.ide.gui.nls.NlsService;
@@ -33,16 +38,18 @@ import com.devonfw.ide.gui.progress.ProgressBarTask;
 import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindow;
 
 /**
- * Basic UI Test
+ * Basic UI Test for the main screen
  */
 public class AppBaseTest extends HeadlessApplicationTest {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AppBaseTest.class);
 
   private Button androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen;
+  private ToggleButton consolePaneToggleButton;
   private ComboBox<String> selectedProject, selectedWorkspace;
   private Label statusText;
   private ProgressBar taskProgressBar;
+  private SplitPane centerSplitPane;
 
   @TempDir
   private static Path mockIdeRoot;
@@ -60,20 +67,28 @@ public class AppBaseTest extends HeadlessApplicationTest {
 
     FXMLLoader fxmlLoader = new FXMLLoader(mainViewUrl);
     fxmlLoader.setController(new MainController(mockIdeRoot.toString(), guiStateManager, nlsService));
+    fxmlLoader.setControllerFactory(clazz -> {
+      if (clazz == ConsoleController.class) {
+        return new ConsoleController(nlsService);
+      }
+      return null;
+    });
     fxmlLoader.setResources(nlsService.getResourceBundle());
     Parent root = fxmlLoader.load();
     stage.setScene(new Scene(root));
     stage.requestFocus(); //sometimes needed for headless setup to work
     stage.show();
 
-    androidStudioOpen = (Button) root.lookup("#androidStudioOpen");
-    eclipseOpen = (Button) root.lookup("#eclipseOpen");
-    intellijOpen = (Button) root.lookup("#intellijOpen");
-    vsCodeOpen = (Button) root.lookup("#vsCodeOpen");
-    selectedProject = (ComboBox<String>) root.lookup("#selectedProject");
-    selectedWorkspace = (ComboBox<String>) root.lookup("#selectedWorkspace");
-    statusText = (Label) root.lookup("#statusLabel");
-    taskProgressBar = (ProgressBar) root.lookup("#statusProgressBar");
+    androidStudioOpen = FxHelper.lookup(root, "#androidStudioOpen");
+    eclipseOpen = FxHelper.lookup(root, "#eclipseOpen");
+    intellijOpen = FxHelper.lookup(root, "#intellijOpen");
+    vsCodeOpen = FxHelper.lookup(root, "#vsCodeOpen");
+    selectedProject = FxHelper.lookup(root, "#selectedProject");
+    selectedWorkspace = FxHelper.lookup(root, "#selectedWorkspace");
+    consolePaneToggleButton = FxHelper.lookup(root, "#consolePaneToggleButton");
+    centerSplitPane = FxHelper.lookup(root, "#centerSplitPane");
+    statusText = FxHelper.lookup(root, "#statusLabel");
+    taskProgressBar = FxHelper.lookup(root, "#statusProgressBar");
   }
 
   /**
@@ -195,5 +210,27 @@ public class AppBaseTest extends HeadlessApplicationTest {
 
     assertThat(TaskOverviewWindow.getInstance(taskManager).getStage().isShowing()).as("Task overview window should be opened when clicking on status text")
         .isTrue();
+  }
+
+  //===Console panel tests===
+
+  @Test
+  void testConsoleToggleButton() {
+
+    Divider mainPanelDivider = centerSplitPane.getDividers().getFirst();
+
+    //open the console (for some reason, clickOn(toggleButton) does not work properly here.
+    consolePaneToggleButton.fire();
+    waitForFxEvents();
+
+    assertThat(consolePaneToggleButton.isSelected()).isTrue();
+    assertThat(mainPanelDivider.getPosition()).as("Console panel should be extended when opening the console").isEqualTo(0.75, Offset.offset(0.01));
+
+    //close the console
+    consolePaneToggleButton.fire();
+    waitForFxEvents();
+
+    assertThat(consolePaneToggleButton.isSelected()).isFalse();
+    assertThat(mainPanelDivider.getPosition()).isGreaterThan(0.99);
   }
 }
