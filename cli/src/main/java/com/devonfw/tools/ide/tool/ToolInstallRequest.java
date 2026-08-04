@@ -38,6 +38,8 @@ public final class ToolInstallRequest {
 
   private boolean extraInstallation;
 
+  private boolean ignoreProject;
+
   private Step step;
 
   /**
@@ -81,6 +83,7 @@ public final class ToolInstallRequest {
     this.direct = direct;
     if (parent != null) {
       this.processContext = parent.processContext;
+      this.ignoreProject = parent.ignoreProject;
     }
   }
 
@@ -269,6 +272,22 @@ public final class ToolInstallRequest {
   public boolean isExtraInstallation() {
 
     return this.extraInstallation;
+  }
+
+  /**
+   * @return {@code true} if the current project should be ignored during tool installation, {@code false} otherwise.
+   */
+  public boolean isIgnoreProject() {
+
+    return this.ignoreProject;
+  }
+
+  /**
+   * @param ignoreProject new value of {@link #isIgnoreProject() ignoreProject}.
+   */
+  public void setIgnoreProject(boolean ignoreProject) {
+
+    this.ignoreProject = ignoreProject;
   }
 
   /**
