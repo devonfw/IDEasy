@@ -70,6 +70,7 @@ public class CommandletController {
       return;
     }
 
+    this.selectedCommandlet.reset();
     for (javafx.scene.Node node : formContainer.getChildren()) {
       if (node instanceof javafx.scene.layout.HBox hbox && hbox.getUserData() instanceof Property<?>
           property) {
