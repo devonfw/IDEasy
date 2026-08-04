@@ -92,27 +92,11 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          maven_config="$(cat .mvn/maven.config)"
-          current_version="${maven_config/#*-Drevision=}"
-          current_version="${current_version/ */}"
-          cd documentation
-          mvn -B -ntp clean install
-          cd ..
-          mkdir -p macos-installer/pkg-root/bin
-          mkdir -p macos-installer/Resources
-          cp documentation/target/generated-docs/IDEasy.pdf macos-installer/pkg-root/
-          cp documentation/target/generated-docs/LICENSE.rtf macos-installer/Resources/LICENSE.rtf
-          cp cli/target/macos-installer/Distribution.xml macos-installer/Distribution.xml
-          cp -r cli/target/package/* macos-installer/pkg-root/
-          cp cli/target/ideasy macos-installer/pkg-root/bin/
-          rm -rf macos-installer/pkg-root/system/windows
-          rm -rf macos-installer/pkg-root/system/linux
-          chmod +x macos-installer/pkg-root/bin/ideasy
-          chmod +x macos-installer/scripts/postinstall
-          cd macos-installer
-          pkgbuild --root pkg-root --identifier com.devonfw.ideasy --version $current_version --install-location /projects/_ide/tmp/ideasy --scripts scripts IDEasyComponent.pkg
-          productbuild --distribution Distribution.xml --resources Resources --package-path . ideasy.pkg
-        # pkgbuild is responsible for building the installation bundle. By using productbuild, we can custimze the installation process, including things like showing a license.
+          export maven_config="$(cat .mvn/maven.config)"
+          export current_version="${maven_config/#*-Drevision=}"
+          export pkg_version="${current_version/ */}"
+          chmod +x ./.github/workflows/macos/generate_pkg.sh
+          ./.github/workflows/macos/generate_pkg.sh
       - name: Upload unsigned PKG
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v4
