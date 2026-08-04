@@ -7,7 +7,10 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/1870[#1870]: Add generic get-version implementation for global tools under windows
+* https://github.com/devonfw/IDEasy/issues/2187[#2187]: Start SoapUI commandlet in background
+* https://github.com/devonfw/IDEasy/issues/2189[#2189]: Integrate Ruff
 * https://github.com/devonfw/IDEasy/issues/2126[#2126]: Fix language selection dropdown
+* https://github.com/devonfw/IDEasy/issues/1976[#1976]: Extend Tool Commandlet installation logic
 * https://github.com/devonfw/IDEasy/issues/2039[#2039]: IDE logo not shown in mac task bar
 * https://github.com/devonfw/IDEasy/issues/2176[#2176]: Support 7z archive extraction
 * https://github.com/devonfw/IDEasy/issues/2100[#2100]: Fix Python not available for Mac x64
