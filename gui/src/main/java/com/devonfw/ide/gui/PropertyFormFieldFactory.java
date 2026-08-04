@@ -60,9 +60,7 @@ public class PropertyFormFieldFactory {
     checkbox.setSelected(booleanProperty.isTrue());
     checkbox.setPadding(new Insets(2, 0, 2, 0));
 
-    checkbox.selectedProperty().addListener((obs, oldVal, newVal) -> {
-      booleanProperty.setValue(newVal);
-    });
+    checkbox.setUserData(booleanProperty);
 
     return checkbox;
   }
@@ -71,6 +69,10 @@ public class PropertyFormFieldFactory {
     Label label = new Label(keywordProperty.getOptionName());
     label.setStyle("-fx-font-weight: bold;");
     label.setPadding(new Insets(2, 0, 2, 0));
+
+    label.setUserData(keywordProperty);
+    keywordProperty.setValue(true);
+
     return label;
   }
 
@@ -85,9 +87,6 @@ public class PropertyFormFieldFactory {
       return name;
     }
 
-    if (name.isEmpty() && alias != null) {
-      return alias;
-    }
-    return name;
+    return property.getNameOrAlias();
   }
 }

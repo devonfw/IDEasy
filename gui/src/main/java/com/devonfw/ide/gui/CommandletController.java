@@ -1,16 +1,23 @@
 package com.devonfw.ide.gui;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.VBox;
 
+import com.devonfw.ide.gui.modal.IdeDialog;
 import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.EnvironmentCommandlet;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.property.BooleanProperty;
 import com.devonfw.tools.ide.property.Property;
+import com.devonfw.tools.ide.validation.ValidationResult;
 
 public class CommandletController {
 
@@ -79,18 +86,62 @@ public class CommandletController {
     }
 
     this.selectedCommandlet.reset();
+
     for (javafx.scene.Node node : formContainer.getChildren()) {
       if (node instanceof javafx.scene.layout.HBox hbox && hbox.getUserData() instanceof Property<?>
           property) {
         for (javafx.scene.Node child : hbox.getChildren()) {
           if (child instanceof javafx.scene.control.TextField textField) {
-            property.setValueAsString(textField.getText(), context);
+            String value = textField.getText();
+            if (!value.isBlank()) {
+              property.assignValueAsString(value, this.context, this.selectedCommandlet);
+            }
             break;
           }
         }
       }
+
+      if (node instanceof CheckBox checkbox && checkbox.getUserData() instanceof BooleanProperty
+          boolProp) {
+        boolProp.setValue(checkbox.isSelected());
+      }
+
+    }
+
+    if (!validate(this.selectedCommandlet)) {
+      return;
     }
 
     this.selectedCommandlet.run();
   }
+
+  private boolean validate(Commandlet cmd) {
+    ValidationResult result = cmd.validate();
+    if (!result.isValid()) {
+      new IdeDialog(IdeDialog.AlertType.ERROR, result.getErrorMessage()).showAndWait();
+      return false;
+    }
+
+    if (cmd.isIdeHomeRequired() && this.context.getIdeHome() == null) {
+      new IdeDialog(IdeDialog.AlertType.ERROR, "Not inside an IDEasy project!").showAndWait();
+      return false;
+    }
+
+    if (cmd.isIdeRootRequired() && this.context.getIdeRoot() == null) {
+      new IdeDialog(IdeDialog.AlertType.ERROR, "IDEasy root not found!").showAndWait();
+      return false;
+    }
+
+    Path licenseAgreement = this.context.getUserHomeIde().resolve("license-agreement");
+    if (!Files.isRegularFile(licenseAgreement)) {
+      if (cmd instanceof EnvironmentCommandlet) {
+        return false;
+      }
+      new IdeDialog(IdeDialog.AlertType.ERROR, "License agreement not accepted.").showAndWait();
+      return false;
+    }
+
+    return true;
+  }
+
 }
