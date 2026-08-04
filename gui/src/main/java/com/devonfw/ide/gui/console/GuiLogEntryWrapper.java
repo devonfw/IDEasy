@@ -1,7 +1,8 @@
 package com.devonfw.ide.gui.console;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 import com.devonfw.tools.ide.log.IdeLogEntry;
 
@@ -18,6 +19,9 @@ public class GuiLogEntryWrapper {
 
   /** The timestamp associated with this wrapper (milliseconds since Unix epoch). */
   private Long timeStamp;
+
+  /** Formatter used to render the timestamp (hours:minutes:seconds.millis) in the system default zone. */
+  private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss.SSS").withZone(ZoneId.systemDefault());
 
   /**
    * Create a new wrapper for the given {@link IdeLogEntry} using the current system time as the timestamp.
@@ -81,7 +85,7 @@ public class GuiLogEntryWrapper {
   @Override
   public String toString() {
 
-    String timeStampReadable = new SimpleDateFormat("HH:mm:ss.SSS").format(new Date(this.timeStamp));
+    String timeStampReadable = TIME_FORMATTER.format(Instant.ofEpochMilli(this.timeStamp));
     return String.format("%s | [%s] %s", timeStampReadable, this.entry.level(), this.entry.message());
   }
 }
