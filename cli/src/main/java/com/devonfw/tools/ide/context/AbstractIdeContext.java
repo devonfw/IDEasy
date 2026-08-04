@@ -64,6 +64,7 @@ import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.os.WindowsHelperImpl;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
+import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessContextImpl;
 import com.devonfw.tools.ide.process.ProcessResult;
@@ -71,14 +72,16 @@ import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.step.StepImpl;
+import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.custom.CustomToolRepository;
 import com.devonfw.tools.ide.tool.custom.CustomToolRepositoryImpl;
 import com.devonfw.tools.ide.tool.mvn.MvnRepository;
 import com.devonfw.tools.ide.tool.npm.NpmRepository;
 import com.devonfw.tools.ide.tool.pip.PipRepository;
+import com.devonfw.tools.ide.tool.python.PythonRepository;
 import com.devonfw.tools.ide.tool.repository.DefaultToolRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
-import com.devonfw.tools.ide.tool.python.PythonRepository;
 import com.devonfw.tools.ide.tool.uv.UvRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.util.DateTimeUtil;
@@ -964,6 +967,29 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       this.system = new IdeSystemImpl();
     }
     return this.system;
+  }
+
+  @Override
+  public void setEnvironmentOfInstalledTools(EnvironmentContext environmentContext) {
+
+    if (getSoftwarePath() == null) {
+      return;
+    }
+    for (Commandlet commandlet : getCommandletManager().getCommandlets()) {
+      if (commandlet instanceof LocalToolCommandlet tool) {
+        Path toolPath = tool.getToolPath();
+        // we cannot use isInstalled() here since it may spawn processes (e.g. "npm --version") what would be way too expensive.
+        if ((toolPath != null) && Files.isDirectory(toolPath)) {
+          try {
+            // for performance optimization, we do a hack here and assume that the installedVersion is never used by any setEnvironment method implementation.
+            ToolInstallation toolInstallation = new ToolInstallation(toolPath, toolPath, tool.getToolBinPath(), VersionIdentifier.LATEST, false);
+            tool.setEnvironment(environmentContext, toolInstallation, false);
+          } catch (Exception e) {
+            LOG.warn("Failed to set the environment variables of the installed tool {}.", tool.getName(), e);
+          }
+        }
+      }
+    }
   }
 
   /**

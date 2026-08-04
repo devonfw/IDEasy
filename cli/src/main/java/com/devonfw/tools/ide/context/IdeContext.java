@@ -20,6 +20,7 @@ import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.network.NetworkStatus;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
+import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.corepack.Corepack;
@@ -30,8 +31,8 @@ import com.devonfw.tools.ide.tool.mvn.MvnRepository;
 import com.devonfw.tools.ide.tool.npm.Npm;
 import com.devonfw.tools.ide.tool.npm.NpmRepository;
 import com.devonfw.tools.ide.tool.pip.PipRepository;
-import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.tool.python.PythonRepository;
+import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.tool.uv.UvRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
@@ -622,6 +623,15 @@ public interface IdeContext extends IdeStartContext {
    * @return a new {@link ProcessContext} to {@link ProcessContext#run() run} external commands.
    */
   ProcessContext newProcess();
+
+  /**
+   * Sets the environment variables of all tools installed in the {@link #getSoftwarePath() software path} in the given {@link EnvironmentContext}. This is the
+   * single source of truth for the tool environment: it is used for the environment exported to the user's shell (see
+   * {@link com.devonfw.tools.ide.commandlet.EnvironmentCommandlet}) as well as for the {@link ProcessContext} of a tool that is run via IDEasy.
+   *
+   * @param environmentContext the {@link EnvironmentContext} where to set the environment variables.
+   */
+  void setEnvironmentOfInstalledTools(EnvironmentContext environmentContext);
 
   /**
    * @param title the {@link IdeProgressBar#getTitle() title}.
