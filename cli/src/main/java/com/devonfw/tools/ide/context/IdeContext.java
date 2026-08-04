@@ -30,8 +30,8 @@ import com.devonfw.tools.ide.tool.mvn.MvnRepository;
 import com.devonfw.tools.ide.tool.npm.Npm;
 import com.devonfw.tools.ide.tool.npm.NpmRepository;
 import com.devonfw.tools.ide.tool.pip.PipRepository;
-import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.tool.python.PythonRepository;
+import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.tool.uv.UvRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
@@ -122,6 +122,9 @@ public interface IdeContext extends IdeStartContext {
 
   /** The name of the bin folder where executable files are found by default. */
   String FOLDER_BIN = "bin";
+
+  /** The name of the repository folder used to store repository data */
+  String FOLDER_REPOSITORY = "repository";
 
   /** The name of the repositories folder where properties files are stores for each repository */
   String FOLDER_REPOSITORIES = "repositories";
@@ -416,9 +419,9 @@ public interface IdeContext extends IdeStartContext {
   Path getIdeRoot();
 
   /**
-   * @param ideRoot the new value of {@link #getIdeRoot() IDE_ROOT}. Typically detected automatically from the environment and working directory, but may need
-   *     to be set explicitly (e.g. during the initial installation where the {@code IDE_ROOT} environment variable is not yet available but the installation
-   *     target is already known).
+   * @param ideRoot the new value of {@link #getIdeRoot() IDE_ROOT}. Typically detected automatically from the environment and working directory, but may
+   *     need to be set explicitly (e.g. during the initial installation where the {@code IDE_ROOT} environment variable is not yet available but the
+   *     installation target is already known).
    */
   void setIdeRoot(Path ideRoot);
 
