@@ -59,6 +59,7 @@ import com.devonfw.tools.ide.tool.pip.Pip;
 import com.devonfw.tools.ide.tool.pycharm.Pycharm;
 import com.devonfw.tools.ide.tool.python.Python;
 import com.devonfw.tools.ide.tool.quarkus.Quarkus;
+import com.devonfw.tools.ide.tool.ruff.Ruff;
 import com.devonfw.tools.ide.tool.rust.Rust;
 import com.devonfw.tools.ide.tool.soapui.SoapUi;
 import com.devonfw.tools.ide.tool.sonar.Sonar;
@@ -180,6 +181,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Mvnd(context));
     add(new Just(context));
     add(new SoapUi(context));
+    add(new Ruff(context));
   }
 
   /**
