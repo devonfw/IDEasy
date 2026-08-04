@@ -1,9 +1,10 @@
 package com.devonfw.ide.gui.console;
 
+import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.List;
 
-import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -11,10 +12,21 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 
+import com.devonfw.ide.gui.FxHelper;
+
 /**
  * Controller that manages an instance if a console.
  */
 public class ConsoleController {
+
+  /**
+   * Thread-safe buffer collecting messages that arrive while a batched UI update is already pending. Keeps the FX thread from being overwhelmed by individual
+   * {@link Platform#runLater()} submissions.
+   */
+  private final Deque<String> outputBuffer = new ArrayDeque<>();
+
+  /** Whether a batch flush is already scheduled on the FX thread. */
+  private boolean flushPending;
 
   @FXML
   private Button clearButton;
@@ -36,9 +48,7 @@ public class ConsoleController {
 
   @FXML
   private void initialize() {
-
     setupEventHandlers();
-    setupTextAreaBindings();
   }
 
   /**
@@ -50,28 +60,48 @@ public class ConsoleController {
   }
 
   /**
-   * Sets up bindings for the console output text area, including updating line count and auto-scrolling behavior.
-   */
-  private void setupTextAreaBindings() {
-
-    consoleOutput.textProperty().addListener((_, _, _) -> {
-
-      updateLineCount();
-
-      if (autoScrollCheckBox.isSelected()) {
-        scrollToBottom();
-      }
-    });
-  }
-
-  /**
    * Prints a message to the console.
+   * <p>
+   * Messages are buffered and flushed in a single FX-thread operation to prevent the FX thread from being overwhelmed when many messages arrive concurrently
+   * (e.g. during IDE startup).
    *
    * @param message message to be printed
    */
   public void appendOutput(String message) {
+    synchronized (outputBuffer) {
+      outputBuffer.add(message);
+      if (!flushPending) {
+        flushPending = true;
+        FxHelper.runFxSafe(this::flushBuffer);
+      }
+    }
+  }
 
-    Platform.runLater(() -> consoleOutput.appendText(message + "\n"));
+  /**
+   * Flushes all buffered messages to the console in a single FX-thread operation.
+   */
+  private void flushBuffer() {
+    String text;
+    synchronized (outputBuffer) {
+      if (outputBuffer.isEmpty()) {
+        flushPending = false;
+        return;
+      }
+      StringBuilder sb = new StringBuilder();
+      while (!outputBuffer.isEmpty()) {
+        sb.append(outputBuffer.pollFirst()).append('\n');
+      }
+      text = sb.toString();
+      flushPending = false;
+    }
+
+    consoleOutput.appendText(text);
+
+    if (autoScrollCheckBox.isSelected()) {
+      scrollToBottom();
+    }
+
+    updateLineCount();
   }
 
   /**
@@ -81,13 +111,17 @@ public class ConsoleController {
    */
   public void setStatus(String status) {
 
-    Platform.runLater(() -> statusLabel.setText(status));
+    FxHelper.runFxSafe(() -> statusLabel.setText(status));
   }
 
   /**
    * Clears the console
    */
   void clearConsole() {
+    synchronized (outputBuffer) {
+      outputBuffer.clear();
+      flushPending = false;
+    }
 
     consoleOutput.clear();
     updateLineCount();
@@ -95,11 +129,17 @@ public class ConsoleController {
   }
 
   /**
-   * Scrolls to the end of the console
+   * Scrolls to the end of the console.
+   * <p>
+   * Uses {@link TextArea#positionCaret(int)} to scroll to the end of the text. This works because TextArea
+   * scrolls to make its content visible via {@link Node#scrollTo()}, which operates against visual bounds —
+   * unlike {@link ScrollPane#setVvalue(double)} which depends on the ScrollPane's lazy vmax computation.
+   * </p>
    */
   private void scrollToBottom() {
 
-    Platform.runLater(() -> outputScrollPane.setVvalue(1.0));
+    int length = consoleOutput.getLength();
+    consoleOutput.positionCaret(length);
   }
 
   /**
@@ -108,7 +148,7 @@ public class ConsoleController {
   private void updateLineCount() {
 
     int lines = consoleOutput.getText().split("\n", -1).length;
-    Platform.runLater(() -> lineCountLabel.setText("Lines: " + lines));
+    FxHelper.runFxSafe(() -> lineCountLabel.setText("Lines: " + lines));
   }
 
   /**
