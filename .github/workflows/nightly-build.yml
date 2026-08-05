@@ -114,7 +114,7 @@ jobs:
           path: windows-installer/signed/ideasy.msi
 
       - name: Build MacOS PKG
-        if: runner.os == 'macOS'
+        if: runner.os == 'macOS' && matrix.os == 'macos-latest'
         shell: bash
         run: |
           chmod +x ./.github/workflows/macos/generate_pkg.sh
@@ -122,7 +122,7 @@ jobs:
         env:
           PKG_VERSION: ${{ needs.resolve-version.outputs.snapshot_version }}
       - name: Upload unsigned PKG
-        if: runner.os == 'macOS'
+        if: runner.os == 'macOS' && matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v4
         with:
           name: pkg
@@ -151,4 +151,4 @@ jobs:
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-        run: mvn --settings .mvn/settings.xml -DskipTests=true -Darchetype.test.skip=true -Dgpg.skip=true -Dstyle.color=always -B -ntp -Passembly,msi,deploy deploy
+        run: mvn --settings .mvn/settings.xml -DskipTests=true -Darchetype.test.skip=true -Dgpg.skip=true -Dstyle.color=always -B -ntp -Passembly,msi,pkg,deploy deploy
