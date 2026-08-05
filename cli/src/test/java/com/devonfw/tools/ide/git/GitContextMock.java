@@ -273,6 +273,10 @@ public class GitContextMock extends GitContextImpl {
   @Override
   public void saveCurrentCommitId(Path repository, Path trackedCommitIdPath) {
 
+    String currentCommitId = determineCurrentCommitId(repository);
+    if (currentCommitId != null) {
+      this.context.getFileAccess().writeFileContent(currentCommitId, trackedCommitIdPath);
+    }
   }
 
   @Override
@@ -361,3 +365,4 @@ public class GitContextMock extends GitContextImpl {
 
   }
 }
+
