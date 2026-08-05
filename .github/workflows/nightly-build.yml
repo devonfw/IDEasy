@@ -114,7 +114,7 @@ jobs:
           path: windows-installer/signed/ideasy.msi
 
       - name: Build MacOS PKG
-        if: runner.os == 'macOS' && matrix.os == 'macos-latest'
+        if: runner.os == 'macOS'
         shell: bash
         run: |
           chmod +x ./.github/workflows/macos/generate_pkg.sh
@@ -122,11 +122,11 @@ jobs:
         env:
           PKG_VERSION: ${{ needs.resolve-version.outputs.snapshot_version }}
       - name: Upload unsigned PKG
-        if: runner.os == 'macOS' && matrix.os == 'macos-latest'
+        if: runner.os == 'macOS'
         uses: actions/upload-artifact@v4
         with:
-          name: pkg
-          path: macos-installer/ideasy.pkg
+          name: pkg-${{ matrix.os }}
+          path: macos-installer/ideasy-${{ matrix.os }}.pkg
 
   # Downloads all native image artifacts to cli/target and builds the project using assemblies for final deployment to OSSRH Nexus
   deploy:

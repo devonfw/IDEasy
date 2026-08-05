@@ -26,7 +26,7 @@ else
     echo "pkgbuild failed with exit code $?" >&2
     exit 1
 fi
-# pkgbuild is responsible for building the installation bundle. By using productbuild, we can custimze the installation process, including things like showing a license.
+# pkgbuild is responsible for building the installation bundle. By using productbuild, we can customize the installation process, including things like showing a license.
 if productbuild --distribution Distribution.xml \
     --resources Resources \
     --package-path . \
