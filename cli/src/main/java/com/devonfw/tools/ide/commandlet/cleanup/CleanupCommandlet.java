@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.commandlet.cleanup;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -50,182 +49,165 @@ public class CleanupCommandlet extends Commandlet {
 
     LOG.debug("Start cleanup commandlet");
 
-    List<InstalledSoftwareTool> installedSoftwareTools = new ArrayList<>();
+    InstalledSoftware installedSoftware = new InstalledSoftware();
 
-    // Discover unused software and report what would be deleted.
     Step step = this.context.newStep("Identify unused software");
-    step.run(() -> discoverUnusedSoftware(installedSoftwareTools), true);
+    step.run(() -> discoverUnusedSoftware(installedSoftware), true);
 
-    if (hasSoftwareToDelete(installedSoftwareTools)) {
-      // Automatically confirmed in batch mode with the global force option.
+    logSoftwareToBeDeleted(installedSoftware.getTools());
+
+    if (hasSoftwareToDelete(installedSoftware.getTools())) {
       this.context.askToContinue("Do you want to continue?");
-      deleteUnusedSoftware(installedSoftwareTools);
+      deleteUnusedSoftware(installedSoftware.getTools());
     }
 
     LOG.debug("Finished cleanup commandlet");
   }
 
   /**
-   * Discovers installed and unused software and logs the deletion preview.
+   * Discovers installed and unused software.
    *
-   * @param installedSoftwareTools the list to populate with discovered installed software.
+   * @param installedSoftware the data structure to populate with installed software.
    */
-  private void discoverUnusedSoftware(List<InstalledSoftwareTool> installedSoftwareTools) {
-    // Iterate over software in $IDE_ROOT/_ide/software repositories and save installed software to a list
-    installedSoftwareTools.addAll(discoverInstalledSoftware());
-    // Scan for IDEasy projects
-    List<Path> ideasyProjects = this.context.findProjects();
+  private void discoverUnusedSoftware(InstalledSoftware installedSoftware) {
 
-    // Iterate through IDEasy projects and scan software in software folder. Save found software to list
+    discoverInstalledSoftware(installedSoftware);
+
+    List<Path> ideasyProjects = this.context.findProjects();
     for (Path ideasyProject : ideasyProjects) {
       String projectName = ideasyProject.getFileName().toString();
       Path ideasyProjectSoftware = ideasyProject.resolve(IdeContext.FOLDER_SOFTWARE);
-      discoverUsedSoftware(installedSoftwareTools, ideasyProjectSoftware, projectName, 1);
-      discoverUsedSoftware(installedSoftwareTools, ideasyProjectSoftware.resolve(IdeContext.FOLDER_EXTRA), projectName);
+      discoverUsedSoftware(installedSoftware, ideasyProjectSoftware, projectName, 1);
+      discoverUsedSoftware(installedSoftware, ideasyProjectSoftware.resolve(IdeContext.FOLDER_EXTRA), projectName);
     }
 
-    // Mark unused software for deletion
-    markUnusedSoftwareForDeletion(installedSoftwareTools);
-    // Log summary report
-    logSoftwareToBeDeleted(installedSoftwareTools);
+    markUnusedSoftwareForDeletion(installedSoftware.getTools());
   }
 
   /**
    * Discovers all installed tools in the default, Maven, and custom software repositories.
    *
-   * @return the list of discovered installed tools.
+   * @param installedSoftware the data structure to populate with installed software.
    */
-  private List<InstalledSoftwareTool> discoverInstalledSoftware() {
+  private void discoverInstalledSoftware(InstalledSoftware installedSoftware) {
 
-    List<InstalledSoftwareTool> installedSoftwareTools = new ArrayList<>();
     Path softwareRepositoryPath = this.context.getSoftwareRepositoryPath();
 
-    discoverInstalledSoftwareRepository(installedSoftwareTools,
-        softwareRepositoryPath.resolve(ToolRepository.ID_DEFAULT));
+    discoverInstalledSoftwareRepository(installedSoftware, softwareRepositoryPath.resolve(ToolRepository.ID_DEFAULT));
+    discoverInstalledSoftwareRepository(installedSoftware, softwareRepositoryPath.resolve(MvnRepository.ID));
 
-    discoverInstalledSoftwareRepository(installedSoftwareTools,
-        softwareRepositoryPath.resolve(MvnRepository.ID));
-
-    // the custom tool repository is derived from ide-custom-tools.json in the settings, which require IDE_HOME
     if (this.context.getSettingsPath() != null) {
-      discoverInstalledSoftwareRepository(installedSoftwareTools,
-          softwareRepositoryPath.resolve(this.context.getCustomToolRepository().getId()));
+      discoverInstalledSoftwareRepository(installedSoftware, softwareRepositoryPath.resolve(this.context.getCustomToolRepository().getId()));
     }
-
-    return installedSoftwareTools;
   }
 
   /**
-   * This method discovers all installed tools in one software repository. Installed editions are then recursively discovered.
+   * Discovers all installed tools in one software repository. Installed editions are then recursively discovered.
    *
-   * @param installedSoftwareTools the list to populate with discovered tools.
-   * @param repositoryFolder The software repository folder to scan.
+   * @param installedSoftware the data structure to populate with installed software.
+   * @param repositoryFolder the software repository folder to scan.
    */
-  private void discoverInstalledSoftwareRepository(List<InstalledSoftwareTool> installedSoftwareTools, Path repositoryFolder) {
+  private void discoverInstalledSoftwareRepository(InstalledSoftware installedSoftware, Path repositoryFolder) {
+
     if (!Files.isDirectory(repositoryFolder)) {
       return;
     }
+
     List<Path> toolFolders = this.context.getFileAccess().listChildren(repositoryFolder, Files::isDirectory);
     for (Path toolFolder : toolFolders) {
       Path toolPath = this.context.getFileAccess().toRealPath(toolFolder);
       InstalledSoftwareTool tool = new InstalledSoftwareTool(toolFolder.getFileName().toString(), toolPath);
-      installedSoftwareTools.add(tool);
-      discoverInstalledEditions(toolFolder, tool);
+      installedSoftware.addTool(tool);
+      discoverInstalledEditions(installedSoftware, toolFolder, tool);
     }
   }
 
   /**
-   * This method discovers all installed editions of a tool at $IDE_ROOT/_ide/software/<repository>/<tool> and saves them to the edition list of the tool.
-   * Installed versions of the edition are then recursively discovered.
+   * Discovers all installed editions of the given tool.
    *
-   * @param toolFolder The folder where the editions are saved in ($IDE_ROOT/_ide/software/<repository>/<tool>).
-   * @param tool The respective tool for which we are discovering editions.
+   * @param installedSoftware the installed software data structure.
+   * @param toolFolder the folder containing the editions of the tool.
+   * @param tool the tool to populate with discovered editions.
    */
-  private void discoverInstalledEditions(Path toolFolder, InstalledSoftwareTool tool) {
+  private void discoverInstalledEditions(InstalledSoftware installedSoftware, Path toolFolder, InstalledSoftwareTool tool) {
+
     List<Path> editionFolders = this.context.getFileAccess().listChildren(toolFolder, Files::isDirectory);
     for (Path editionFolder : editionFolders) {
       Path editionPath = this.context.getFileAccess().toRealPath(editionFolder);
       InstalledSoftwareEdition edition = new InstalledSoftwareEdition(editionFolder.getFileName().toString(), editionPath);
-      tool.getEditions().add(edition);
-      discoverInstalledVersions(editionFolder, edition);
+      installedSoftware.addEdition(tool, edition);
+      discoverInstalledVersions(installedSoftware, editionFolder, edition);
     }
   }
 
   /**
-   * This method discovers all installed versions of an edition of a tool at $IDE_ROOT/_ide/software/<repository>/<tool>/<edition> and saves them to the version
-   * list of the edition.
+   * Discovers all installed versions of the given edition.
    *
-   * @param editionFolder The folder where the versions are saved in ($IDE_ROOT/_ide/software/<repository>/<tool>/<edition>).
-   * @param edition The respective edition for which we are discovering versions.
+   * @param installedSoftware the installed software data structure.
+   * @param editionFolder the folder containing the versions of the edition.
+   * @param edition the edition to populate with discovered versions.
    */
-  private void discoverInstalledVersions(Path editionFolder, InstalledSoftwareEdition edition) {
+  private void discoverInstalledVersions(InstalledSoftware installedSoftware, Path editionFolder, InstalledSoftwareEdition edition) {
+
     List<Path> versionFolders = this.context.getFileAccess().listChildren(editionFolder, Files::isDirectory);
     for (Path versionFolder : versionFolders) {
       Path versionPath = this.context.getFileAccess().toRealPath(versionFolder);
       InstalledSoftwareVersion version = new InstalledSoftwareVersion(versionFolder.getFileName().toString(), versionPath);
-      edition.getVersions().add(version);
+      installedSoftware.addVersion(edition, version);
     }
   }
 
   /**
-   * This method scans the software folder of an IDEasy project for installed tools and matches these against the global tool list created earlier. Identified
-   * tools are marked as used in the global tool list.
+   * Scans the software folder of an IDEasy project for used software.
    *
-   * @param installedSoftwareTools the list of installed tools to check against.
-   * @param softwareFolder The software folder of the IDEasy project to scan for used software.
-   * @param projectName The name of the project we are currently scanning.
+   * @param installedSoftware the installed software data structure.
+   * @param softwareFolder the software folder to scan.
+   * @param projectName the name of the project being scanned.
    */
-  private void discoverUsedSoftware(List<InstalledSoftwareTool> installedSoftwareTools, Path softwareFolder, String projectName) {
-    discoverUsedSoftware(installedSoftwareTools, softwareFolder, projectName, 0);
+  private void discoverUsedSoftware(InstalledSoftware installedSoftware, Path softwareFolder, String projectName) {
+
+    discoverUsedSoftware(installedSoftware, softwareFolder, projectName, 0);
   }
 
   /**
-   * This method scans the software folder of an IDEasy project recursively for installed tools and matches these against the global tool list created earlier.
+   * Scans the software folder of an IDEasy project recursively for used software.
    *
-   * @param installedSoftwareTools the list of installed tools to check against.
-   * @param softwareFolder The software folder of the IDEasy project to scan for used software.
-   * @param projectName The name of the project we are currently scanning.
-   * @param depth The current recursion depth.
+   * @param installedSoftware the installed software data structure.
+   * @param softwareFolder the software folder to scan.
+   * @param projectName the name of the project being scanned.
+   * @param depth the current recursion depth.
    */
-  private void discoverUsedSoftware(List<InstalledSoftwareTool> installedSoftwareTools, Path softwareFolder, String projectName, int depth) {
-    // Get all installed tools for this project
+  private void discoverUsedSoftware(InstalledSoftware installedSoftware, Path softwareFolder, String projectName, int depth) {
+
     List<Path> subfolders = this.context.getFileAccess().listChildren(softwareFolder, Files::isDirectory);
     for (Path currentFolder : subfolders) {
-      // Converts the path of the tool installation to the real path by eliminating symlinks. This allows us to determine
-      // whether a tool is installed locally for an IDEasy project or is part
-      // of the global software installation under $IDE_ROOT/_ide/software
       Path referencedPath = this.context.getFileAccess().toRealPath(currentFolder);
-      // Check if the resolved project software path belongs to a discovered global software version.
-      boolean matchingVersionFound = markMatchingVersionAsUsed(installedSoftwareTools, referencedPath, projectName);
+      boolean matchingVersionFound = markMatchingVersionAsUsed(installedSoftware, referencedPath, projectName);
+
       // For ide-extra-tools.json the actual software link may be located at software/extra/<tool>/<name>.
       if (!matchingVersionFound && depth < 1 && !Files.isSymbolicLink(currentFolder)) {
-        discoverUsedSoftware(installedSoftwareTools, currentFolder, projectName, depth + 1);
+        discoverUsedSoftware(installedSoftware, currentFolder, projectName, depth + 1);
       }
     }
   }
 
   /**
-   * Marks the installed version containing the referenced project software path as used. The referenced path may point directly to a version folder or to one
-   * of its subfolders.
+   * Marks the installed version containing the referenced path as used.
    *
-   * @param installedSoftwareTools the list of installed tools to check against.
-   * @param referencedPath The resolved path referenced by the IDEasy project.
-   * @param projectName The name of the project we are currently scanning.
+   * @param installedSoftware the installed software data structure.
+   * @param referencedPath the resolved path referenced by the IDEasy project.
+   * @param projectName the name of the project using the version.
    * @return {@code true} if a matching installed version was found.
    */
-  private boolean markMatchingVersionAsUsed(List<InstalledSoftwareTool> installedSoftwareTools, Path referencedPath, String projectName) {
-    for (InstalledSoftwareTool tool : installedSoftwareTools) {
-      for (InstalledSoftwareEdition edition : tool.getEditions()) {
-        for (InstalledSoftwareVersion version : edition.getVersions()) {
-          Path versionPath = version.getPath();
-          if (referencedPath.equals(versionPath) || referencedPath.startsWith(versionPath)) {
-            version.addUsedBy(projectName);
-            return true;
-          }
-        }
-      }
+  private boolean markMatchingVersionAsUsed(InstalledSoftware installedSoftware, Path referencedPath, String projectName) {
+
+    InstalledSoftwareVersion version = installedSoftware.findVersion(referencedPath);
+    if (version == null) {
+      return false;
     }
-    return false;
+
+    version.addUsedBy(projectName);
+    return true;
   }
 
   /**
@@ -234,6 +216,7 @@ public class CleanupCommandlet extends Commandlet {
    * @param installedSoftwareTools the list of installed tools containing the versions to mark.
    */
   private void markUnusedSoftwareForDeletion(List<InstalledSoftwareTool> installedSoftwareTools) {
+
     for (InstalledSoftwareTool tool : installedSoftwareTools) {
       for (InstalledSoftwareEdition edition : tool.getEditions()) {
         for (InstalledSoftwareVersion version : edition.getVersions()) {
@@ -265,15 +248,19 @@ public class CleanupCommandlet extends Commandlet {
    * @param installedSoftwareTools the list of installed tools containing versions with deletion flags.
    */
   private void logSoftwareToBeDeleted(List<InstalledSoftwareTool> installedSoftwareTools) {
+
     String logOutput = "";
     int totalAffectedTools = 0;
     int totalAffectedEditions = 0;
     int totalVersionsDeleted = 0;
+
     for (InstalledSoftwareTool tool : installedSoftwareTools) {
       String logOutputEdition = "";
+
       for (InstalledSoftwareEdition edition : tool.getEditions()) {
         String logOutputVersion = "";
         int versionsDeleted = 0;
+
         for (InstalledSoftwareVersion version : edition.getVersions()) {
           if (version.isDelete()) {
             logOutputVersion += "\t\t - " + version.getName() + "\n";
@@ -281,8 +268,8 @@ public class CleanupCommandlet extends Commandlet {
             totalVersionsDeleted++;
           }
         }
+
         if (!logOutputVersion.isBlank()) {
-          // If at least one version of the edition should be deleted
           if (versionsDeleted < edition.getVersions().size()) {
             logOutputVersion += "\t\t + " + (edition.getVersions().size() - versionsDeleted) + " more version(s) of this edition will not be deleted\n";
           }
@@ -290,6 +277,7 @@ public class CleanupCommandlet extends Commandlet {
           totalAffectedEditions++;
         }
       }
+
       if (!logOutputEdition.isBlank()) {
         logOutput += " - " + tool.getName() + "\n" + logOutputEdition;
         totalAffectedTools++;
@@ -311,7 +299,9 @@ public class CleanupCommandlet extends Commandlet {
    * @param installedSoftwareTools the list of installed tools containing the versions to delete.
    */
   private void deleteUnusedSoftware(List<InstalledSoftwareTool> installedSoftwareTools) {
+
     int failedDeletion = 0;
+
     for (InstalledSoftwareTool tool : installedSoftwareTools) {
       for (InstalledSoftwareEdition edition : tool.getEditions()) {
         for (InstalledSoftwareVersion version : edition.getVersions()) {
@@ -320,18 +310,19 @@ public class CleanupCommandlet extends Commandlet {
             failedDeletion += deleteFolder(version.getPath());
           }
         }
+
         if (isEmptyFolder(edition.getPath())) {
           LOG.debug("Deleting empty edition {} of tool {} in {}", edition.getName(), tool.getName(), edition.getPath());
           failedDeletion += deleteFolder(edition.getPath());
         }
       }
+
       if (isEmptyFolder(tool.getPath())) {
         LOG.debug("Deleting empty tool {} in {}", tool.getName(), tool.getPath());
         failedDeletion += deleteFolder(tool.getPath());
       }
     }
 
-    // Log completion message
     if (failedDeletion > 0) {
       LOG.warn("Unused tools have been deleted.\nFailed to delete {} tools/editions/versions. Please check the log for details.", failedDeletion);
     } else {

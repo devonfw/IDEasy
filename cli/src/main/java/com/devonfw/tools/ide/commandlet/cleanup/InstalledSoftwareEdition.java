@@ -7,8 +7,8 @@ import java.util.List;
 /**
  * Represents an edition of an IDE tool in the global software folder as discovered by the {@code cleanup} commandlet.
  * <p>
- * For example, for IntelliJ, the editions could be "community" and "ultimate". This class holds a list of
- * {@link InstalledSoftwareVersion versions} belonging to this edition.
+ * For example, for IntelliJ, the editions could be "community" and "ultimate". This class holds a list of {@link InstalledSoftwareVersion versions} belonging
+ * to this edition.
  */
 public class InstalledSoftwareEdition extends AbstractInstalledSoftwareItem {
 
@@ -33,6 +33,16 @@ public class InstalledSoftwareEdition extends AbstractInstalledSoftwareItem {
   public List<InstalledSoftwareVersion> getVersions() {
 
     return this.versions;
+  }
+
+  /**
+   * Adds a version to this edition.
+   *
+   * @param version the version to add.
+   */
+  public void addVersion(InstalledSoftwareVersion version) {
+
+    this.versions.add(version);
   }
 
   @Override

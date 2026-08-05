@@ -34,6 +34,16 @@ public class InstalledSoftwareTool extends AbstractInstalledSoftwareItem {
     return this.editions;
   }
 
+  /**
+   * Adds an edition to this tool.
+   *
+   * @param edition the edition to add.
+   */
+  public void addEdition(InstalledSoftwareEdition edition) {
+
+    this.editions.add(edition);
+  }
+
   @Override
   public String toString() {
 
