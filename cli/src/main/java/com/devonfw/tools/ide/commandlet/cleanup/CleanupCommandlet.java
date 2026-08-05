@@ -80,7 +80,7 @@ public class CleanupCommandlet extends Commandlet {
     for (Path ideasyProject : ideasyProjects) {
       String projectName = ideasyProject.getFileName().toString();
       Path ideasyProjectSoftware = ideasyProject.resolve(IdeContext.FOLDER_SOFTWARE);
-      discoverUsedSoftware(installedSoftwareTools, ideasyProjectSoftware, projectName);
+      discoverUsedSoftware(installedSoftwareTools, ideasyProjectSoftware, projectName, 1);
       discoverUsedSoftware(installedSoftwareTools, ideasyProjectSoftware.resolve(IdeContext.FOLDER_EXTRA), projectName);
     }
 
