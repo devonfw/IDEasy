@@ -330,6 +330,7 @@
         </plugins>
       </build>
     </profile>
+    <!-- this is exceptionally included in cli/pom.xml and not macos-installer/pom.xml as we need to attach the artifacts to the cli module for publishing to maven central -->
     <profile>
       <id>pkg</id>
       <build>
