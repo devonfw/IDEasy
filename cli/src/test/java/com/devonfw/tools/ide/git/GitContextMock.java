@@ -365,4 +365,3 @@ public class GitContextMock extends GitContextImpl {
 
   }
 }
-
