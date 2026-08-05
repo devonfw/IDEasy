@@ -69,10 +69,6 @@ public class PropertyFormFieldFactory {
     Label label = new Label(keywordProperty.getOptionName());
     label.setStyle("-fx-font-weight: bold;");
     label.setPadding(new Insets(2, 0, 2, 0));
-
-    label.setUserData(keywordProperty);
-    keywordProperty.setValue(true);
-
     return label;
   }
 
