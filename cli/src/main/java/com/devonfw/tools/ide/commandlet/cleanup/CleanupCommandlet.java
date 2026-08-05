@@ -54,7 +54,7 @@ public class CleanupCommandlet extends Commandlet {
 
     // Discover unused software and report what would be deleted.
     Step step = this.context.newStep("Identify unused software");
-    step.run(() -> discoverAndReportUnusedSoftware(installedSoftwareTools), true);
+    step.run(() -> discoverUnusedSoftware(installedSoftwareTools), true);
 
     if (hasSoftwareToDelete(installedSoftwareTools)) {
       // Automatically confirmed in batch mode with the global force option.
@@ -70,7 +70,7 @@ public class CleanupCommandlet extends Commandlet {
    *
    * @param installedSoftwareTools the list to populate with discovered installed software.
    */
-  private void discoverAndReportUnusedSoftware(List<InstalledSoftwareTool> installedSoftwareTools) {
+  private void discoverUnusedSoftware(List<InstalledSoftwareTool> installedSoftwareTools) {
     // Iterate over software in $IDE_ROOT/_ide/software repositories and save installed software to a list
     installedSoftwareTools.addAll(discoverInstalledSoftware());
     // Scan for IDEasy projects
