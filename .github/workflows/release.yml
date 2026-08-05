@@ -119,13 +119,9 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          export maven_config="$(cat .mvn/maven.config)"
-          export current_version="${maven_config/#*-Drevision=}"
-          export current_version="${current_version/ */}"
-          export pkg_version="${current_version/-SNAPSHOT/}"
+          export pkg_version=${RELEASE_VERSION}
           chmod +x ./.github/workflows/macos/generate_pkg.sh
           ./.github/workflows/macos/generate_pkg.sh
-        # pkgbuild is responsible for building the installation bundle. By using productbuild, we can custimze the installation process, including things like showing a license.
       - name: Upload unsigned PKG
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v4
