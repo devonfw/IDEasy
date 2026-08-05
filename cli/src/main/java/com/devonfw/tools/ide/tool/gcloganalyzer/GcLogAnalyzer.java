@@ -28,9 +28,9 @@ public class GcLogAnalyzer extends LocalToolCommandlet {
   }
 
   @Override
-  protected void doRun() {
+  public ProcessResult runTool(List<String> args) {
 
-    runTool(ProcessMode.BACKGROUND, null, this.arguments.asList());
+    return runTool(ProcessMode.BACKGROUND, null, args);
   }
 
   @Override
