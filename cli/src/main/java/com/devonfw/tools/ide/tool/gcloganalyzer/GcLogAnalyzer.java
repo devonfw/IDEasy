@@ -1,7 +1,9 @@
 package com.devonfw.tools.ide.tool.gcloganalyzer;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
@@ -46,10 +48,17 @@ public class GcLogAnalyzer extends LocalToolCommandlet {
 
   private Path resolveGcLogAnalyzerJarPath() {
 
-    String version = getInstalledVersion().toString();
-    if (version.endsWith(".0.0")) {
-      version = version.substring(0, version.length() - 2);
+    List<Path> jarFiles = this.context.getFileAccess().listChildren(
+        getToolPath(),
+        path -> Files.isRegularFile(path) && path.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(".jar")
+    );
+
+    if (jarFiles.size() == 1) {
+      return jarFiles.getFirst();
     }
-    return getToolPath().resolve("GCLogAnalyzer-" + version + "-ca.jar");
+
+    return jarFiles.stream().filter(path -> path.getFileName().toString()
+            .regionMatches(true, 0, "GCLogAnalyzer-", 0, "GCLogAnalyzer-".length())).findFirst()
+        .orElseThrow(() -> new IllegalStateException("Could not find GC Log Analyzer JAR in " + getToolPath()));
   }
 }
