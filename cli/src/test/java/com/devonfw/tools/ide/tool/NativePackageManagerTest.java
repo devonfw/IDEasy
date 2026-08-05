@@ -166,4 +166,30 @@ class NativePackageManagerTest {
     assertThat(cmd.packageManager()).isEqualTo(NativePackageManager.DNF);
     assertThat(cmd.commands()).containsExactly("sudo dnf remove -y pkg1", "sudo rm -f /etc/yum.repos.d/example.repo");
   }
+
+  @Test
+  void testVersionQueryCommandForDebianBasedPackageManager() {
+    assertThat(NativePackageManager.APT.getVersionQueryCommand("pkg1")).containsExactly("dpkg-query", "-W", "-f=${db:Status-Status}|${Version}",
+        "pkg1");
+  }
+
+  @Test
+  void testVersionQueryCommandForRpmBasedPackageManager() {
+    assertThat(NativePackageManager.ZYPPER.getVersionQueryCommand("pkg1")).containsExactly("rpm", "-q", "--queryformat", "%{VERSION}", "pkg1");
+    assertThat(NativePackageManager.YUM.getVersionQueryCommand("pkg1")).containsExactly("rpm", "-q", "--queryformat", "%{VERSION}", "pkg1");
+    assertThat(NativePackageManager.DNF.getVersionQueryCommand("pkg1")).containsExactly("rpm", "-q", "--queryformat", "%{VERSION}", "pkg1");
+  }
+
+  @Test
+  void testParseVersionQueryOutputForInstalledDebianPackage() {
+    assertThat(NativePackageManager.APT.parseVersionQueryOutput("installed|9.17")).isEqualTo("9.17");
+    assertThat(NativePackageManager.APT.parseVersionQueryOutput("installed|8.5.0-2ubuntu10.9")).isEqualTo("8.5.0-2ubuntu10.9");
+  }
+
+  @Test
+  void testParseVersionQueryOutputForRpmBasedPackageManager() {
+    assertThat(NativePackageManager.ZYPPER.parseVersionQueryOutput("1.0.0")).isEqualTo("1.0.0");
+    assertThat(NativePackageManager.YUM.parseVersionQueryOutput("1.0.0")).isEqualTo("1.0.0");
+    assertThat(NativePackageManager.DNF.parseVersionQueryOutput("1.0.0")).isEqualTo("1.0.0");
+  }
 }

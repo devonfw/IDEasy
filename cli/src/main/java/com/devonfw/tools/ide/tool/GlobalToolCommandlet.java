@@ -213,8 +213,9 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
    * @return {@code true} if the given {@link NativePackageManager} is available on the current system, {@code false} otherwise.
    */
   protected boolean isPackageManagerAvailable(NativePackageManager packageManager) {
-    Path packageManagerPath = this.context.getPath().findBinary(Path.of(packageManager.getBinaryName()));
-    return packageManagerPath != null || Files.exists(packageManagerPath);
+    Path binary = Path.of(packageManager.getBinaryName());
+    Path binaryPath = this.context.getPath().findBinary(binary);
+    return (binaryPath != binary) && Files.exists(binaryPath);
   }
 
   /**
