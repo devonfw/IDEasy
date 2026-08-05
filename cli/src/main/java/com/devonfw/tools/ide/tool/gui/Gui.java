@@ -88,7 +88,7 @@ public class Gui extends Commandlet {
     ));
 
     if (!IdeVersion.getVersionIdentifier().isStable()) {
-      LOG.debug("Launching gui in snapshot mode");
+      LOG.warn("Launching gui in snapshot mode");
       args.add("-U"); //Adding this flag forces maven to download the latest SNAPSHOT version, but only if IDEasy is a snapshot version.
     }
 
