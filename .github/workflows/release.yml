@@ -120,8 +120,8 @@ jobs:
         shell: bash
         run: |
           export pkg_version=${RELEASE_VERSION}
-          echo $RELEASE_VERSION
-          echo $PWR
+          echo "Building PKG version: $RELEASE_VERSION"
+          echo "working dir: $PWD"
           chmod +x ./.github/workflows/macos/generate_pkg.sh
           ./.github/workflows/macos/generate_pkg.sh
       - name: Upload unsigned PKG
