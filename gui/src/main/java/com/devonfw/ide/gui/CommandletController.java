@@ -135,9 +135,10 @@ public class CommandletController {
 
   private boolean validate(Commandlet cmd) {
 
-    KeywordProperty keyword = cmd.getFirstKeyword();
-    if (keyword != null) {
-      keyword.setValue(true);
+    for (Property<?> property : cmd.getProperties()) {
+      if (property instanceof KeywordProperty keyword) {
+        keyword.setValue(true);
+      }
     }
 
     ValidationResult result = cmd.validate();
