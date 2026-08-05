@@ -17,6 +17,7 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -66,8 +67,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
 
     for (PackageManagerCommand pmCommand : pmCommands) {
       NativePackageManager packageManager = pmCommand.packageManager();
-      Path packageManagerPath = this.context.getPath().findBinary(Path.of(packageManager.getBinaryName()));
-      if (packageManagerPath == null || !Files.exists(packageManagerPath)) {
+      if (!isPackageManagerAvailable(packageManager)) {
         LOG.debug("{} is not installed", packageManager);
         continue; // Skip to the next package manager command
       }
@@ -208,9 +208,52 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     return getNativePackages().stream().map(NativePackage::uninstall).toList();
   }
 
+  /**
+   * @param packageManager the {@link NativePackageManager} to check.
+   * @return {@code true} if the given {@link NativePackageManager} is available on the current system, {@code false} otherwise.
+   */
+  protected boolean isPackageManagerAvailable(NativePackageManager packageManager) {
+    Path packageManagerPath = this.context.getPath().findBinary(Path.of(packageManager.getBinaryName()));
+    return packageManagerPath == null || !Files.exists(packageManagerPath);
+  }
+
+  /**
+   * @param nativePackage the {@link NativePackage} to query.
+   * @return the raw version reported by the {@link NativePackageManager} or {@code null} if the package is not installed.
+   */
+  protected String queryNativePackageVersion(NativePackage nativePackage) {
+    List<String> command = nativePackage.getVersionQueryCommand();
+    String[] args = command.subList(1, command.size()).toArray(String[]::new);
+    ProcessResult result = this.context.newProcess().errorHandling(ProcessErrorHandling.NONE).executable(command.getFirst()).addArgs(args)
+        .run(ProcessMode.DEFAULT_CAPTURE);
+    if (!result.isSuccessful()) {
+      return null;
+    }
+    return nativePackage.getPackageManager().parseVersionQueryOutput(result.getSingleOutput(IdeLogLevel.DEBUG));
+  }
+
+  /**
+   * @return the {@link VersionIdentifier} of this tool as reported by the OS native package manager it was installed with or {@code null} if this tool is not
+   *     installed via any of its {@link #getNativePackages() native packages}.
+   */
+  protected VersionIdentifier getNativePackageVersion() {
+    for (NativePackage nativePackage : getNativePackages()) {
+      if (!isPackageManagerAvailable(nativePackage.getPackageManager())) {
+        continue;
+      }
+      String version = queryNativePackageVersion(nativePackage);
+      if ((version != null) && !version.isBlank()) {
+        return VersionIdentifier.of(version.trim());
+      }
+    }
+    return null;
+  }
 
   @Override
   public VersionIdentifier getInstalledVersion() {
+    if (this.context.getSystemInfo().isLinux()) {
+      return getNativePackageVersion();
+    }
     //TODO: handle "get-version <globaltool>"
     return null;
   }

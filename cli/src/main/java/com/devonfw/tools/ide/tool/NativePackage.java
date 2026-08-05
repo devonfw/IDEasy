@@ -102,4 +102,11 @@ public class NativePackage {
   public PackageManagerCommand uninstall() {
     return this.packageManager.uninstall(this);
   }
+
+  /**
+   * @return the command to determine the installed version of the leading {@link #getPackages() package} as executable followed by its arguments.
+   */
+  public List<String> getVersionQueryCommand() {
+    return this.packageManager.getVersionQueryCommand(this.packages.getFirst());
+  }
 }

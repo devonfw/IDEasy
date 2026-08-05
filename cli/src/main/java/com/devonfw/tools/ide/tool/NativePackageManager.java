@@ -19,6 +19,9 @@ public enum NativePackageManager {
   /** DaNdiFied yum (DNF) is the package manager of RPM package based Linux distributions like Fedora. It is the successor of {@link #YUM}. */
   DNF("install -y", "remove -y", "-", "*");
 
+  private static final String DPKG_STATUS_INSTALLED = "installed";
+  private static final String DPKG_SEPARATOR = "|";
+
   private final String installCommand;
   private final String uninstallCommand;
   private final String versionSeparator;
@@ -81,6 +84,39 @@ public enum NativePackageManager {
   }
 
   /**
+   * @param pkg the name of the package to query.
+   * @return the command to determine the installed version of the given package as executable followed by its arguments.
+   */
+  public List<String> getVersionQueryCommand(String pkg) {
+    List<String> command = new ArrayList<>(switch (this) {
+      case APT -> List.of("dpkg-query", "-w", "-f=${db:Status-Status}" + DPKG_SEPARATOR + "${Version}");
+      case ZYPPER, YUM, DNF -> List.of("rpm", "-q", "--queryformat", "%{VERSION}");
+    });
+    command.add(pkg);
+    return command;
+  }
+
+  /**
+   * @param output the output of the {@link #getVersionQueryCommand(String) version query command}.
+   * @return the version of the installed package or {@code null} if the package is not installed.
+   */
+  public String parseVersionQueryOutput(String output) {
+    if ((output == null) || output.isBlank()) {
+      return null;
+    }
+    String version = output.trim();
+    if (this == APT) {
+      String[] parts = version.split("\\|", 2);
+      if ((parts.length != 2) || !DPKG_STATUS_INSTALLED.equals(parts[0].trim())) {
+        return null;
+      }
+      version = parts[1].trim();
+    }
+    return version.isEmpty() ? null : version;
+  }
+
+  /**
+   * @param version the version of the package to install.
    * @param nativePackage the {@link NativePackage} to install.
    * @return the {@link PackageManagerCommand} to install the given {@link NativePackage} including its {@link NativePackage#getSetupCommands()} setup commands.
    */

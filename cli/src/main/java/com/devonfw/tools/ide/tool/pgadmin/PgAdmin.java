@@ -59,15 +59,6 @@ public class PgAdmin extends GlobalToolCommandlet {
     return null;
   }
 
-  @Override
-  public VersionIdentifier getInstalledVersion() {
-    if (!isCommandAvailable(getBinaryName())) {
-      return null;
-    }
-    String output = this.context.newProcess().runAndGetSingleOutput(getBinaryName(), "--version");
-    return VersionIdentifier.of(output.replace("pgAdmin4", "").trim());
-  }
-
   private Path getExecutableFolderFromWindowsRegistry() {
 
     WindowsHelper windowsHelper = WindowsHelper.get(this.context);
