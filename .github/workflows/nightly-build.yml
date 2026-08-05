@@ -35,6 +35,7 @@ jobs:
   build-natives:
     name: Build native images
     runs-on: ${{ matrix.os }}
+    needs: resolve-version
     strategy:
       matrix: # ATTENTION: see also release.yml, image name are referenced in cli/src/main/assembly/*.xml files, on update do not forget to also update there
         os: [ windows-latest, ubuntu-latest, ubuntu-22.04-arm, macos-latest, macos-15-intel ]
