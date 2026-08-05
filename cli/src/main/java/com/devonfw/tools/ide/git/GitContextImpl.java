@@ -525,6 +525,32 @@ public class GitContextImpl implements GitContext {
     }
   }
 
+  @Override
+  public void addRemote(Path repository, String name, String url) {
+
+    LOG.debug("Adding remote '{}' with url '{}' to {}", name, url, repository);
+    // Check if the remote already exists and get its current URL
+    ProcessResult getUrlResult = runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.NONE, "remote", "get-url", name);
+    if (getUrlResult.isSuccessful() && getUrlResult.getOut().getFirst().trim().equals(url)) {
+      LOG.debug("Remote '{}' already exists with the expected URL {}", name, url);
+      return;
+    }
+    if (getUrlResult.isSuccessful()) {
+      // Remote exists with a different URL — update it
+      LOG.debug("Remote '{}' already exists with a different URL, updating to {}", name, url);
+      ProcessResult setResult = runGitCommand(repository, ProcessMode.DEFAULT, "remote", "set-url", name, url);
+      if (!setResult.isSuccessful()) {
+        LOG.warn("Failed to update URL for remote '{}' to {}", name, repository);
+      }
+      return;
+    }
+    // Remote does not exist — add it
+    ProcessResult result = runGitCommand(repository, ProcessMode.DEFAULT, "remote", "add", name, url);
+    if (!result.isSuccessful()) {
+      LOG.warn("Failed to add remote '{}' to {}", name, repository);
+    }
+  }
+
   /**
    * @param repository the {@link Path} to the git repository.
    * @return the current commit ID of the given {@link Path repository}.
@@ -559,5 +585,3 @@ public class GitContextImpl implements GitContext {
     }
   }
 }
-
-

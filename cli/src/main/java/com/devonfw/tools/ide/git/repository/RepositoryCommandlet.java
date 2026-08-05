@@ -186,6 +186,9 @@ public class RepositoryCommandlet extends Commandlet {
       }
       Path linkRepositoryPath = config.isVirtualSettingsRepository() ? firstRepository : repositoryPath;
       if (Files.exists(linkRepositoryPath)) {
+        for (RepositoryRemote remote : config.remotes()) {
+          this.context.getGitContext().addRemote(linkRepositoryPath, remote.name(), remote.url());
+        }
         for (RepositoryLink link : config.links()) {
           createRepositoryLink(link, linkRepositoryPath, workspacePath);
         }

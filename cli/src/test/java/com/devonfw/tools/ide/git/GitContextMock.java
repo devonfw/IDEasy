@@ -256,7 +256,7 @@ public class GitContextMock extends GitContextImpl {
     return DEFAULT_REMOTE;
   }
 
-  /**
+/**
    * Adds pending commits to simulate remote changes. Commits are stored per repository and applied on pull.
    *
    * @param repository the repository the commits belong to
@@ -268,6 +268,15 @@ public class GitContextMock extends GitContextImpl {
     }
     List<GitCommit> pendingCommits = this.pending.computeIfAbsent(repository, k -> new ArrayList<>());
     Collections.addAll(pendingCommits, commits);
+  }
+
+  @Override
+  public void saveCurrentCommitId(Path repository, Path trackedCommitIdPath) {
+
+    String currentCommitId = determineCurrentCommitId(repository);
+    if (currentCommitId != null) {
+      this.context.getFileAccess().writeFileContent(currentCommitId, trackedCommitIdPath);
+    }
   }
 
   @Override
@@ -349,5 +358,14 @@ public class GitContextMock extends GitContextImpl {
   @Override
   public void push(Path repository, boolean followTags) {
 
+  }
+
+  private final Map<Path, Map<String, String>> remoteUrls = new HashMap<>();
+
+  @Override
+  public void addRemote(Path repository, String name, String url) {
+
+    Map<String, String> remotes = this.remoteUrls.computeIfAbsent(repository, k -> new HashMap<>());
+    remotes.put(name, url);
   }
 }
