@@ -360,8 +360,12 @@ public class GitContextMock extends GitContextImpl {
 
   }
 
+  private final Map<Path, Map<String, String>> remoteUrls = new HashMap<>();
+
   @Override
   public void addRemote(Path repository, String name, String url) {
 
+    Map<String, String> remotes = this.remoteUrls.computeIfAbsent(repository, k -> new HashMap<>());
+    remotes.put(name, url);
   }
 }
