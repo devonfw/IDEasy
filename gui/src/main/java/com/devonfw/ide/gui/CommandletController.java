@@ -6,20 +6,27 @@ import java.util.List;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.VBox;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.modal.IdeDialog;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.commandlet.EnvironmentCommandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.BooleanProperty;
+import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.validation.ValidationResult;
 
 public class CommandletController {
+
+  private static final Logger LOG = LoggerFactory.getLogger(CommandletController.class);
 
   private Commandlet selectedCommandlet;
   private final IdeContext context;
@@ -113,10 +120,26 @@ public class CommandletController {
       return;
     }
 
-    this.selectedCommandlet.run();
+    runButton.setDisable(true);
+    try {
+      this.selectedCommandlet.run();
+      new IdeDialog(AlertType.INFORMATION, "Commandlet executed successfully.").showAndWait();
+    } catch (Exception e) {
+      LOG.error("Commandlet execution failed", e);
+      new IdeDialog(IdeDialog.AlertType.ERROR, e.getMessage()).showAndWait();
+    } finally {
+      runButton.setDisable(false);
+    }
+
   }
 
   private boolean validate(Commandlet cmd) {
+
+    KeywordProperty keyword = cmd.getFirstKeyword();
+    if (keyword != null) {
+      keyword.setValue(true);
+    }
+
     ValidationResult result = cmd.validate();
     if (!result.isValid()) {
       new IdeDialog(IdeDialog.AlertType.ERROR, result.getErrorMessage()).showAndWait();
@@ -133,7 +156,7 @@ public class CommandletController {
       return false;
     }
 
-    Path licenseAgreement = this.context.getUserHomeIde().resolve("license-agreement");
+    Path licenseAgreement = this.context.getUserHomeIde().resolve(".license.agreement");
     if (!Files.isRegularFile(licenseAgreement)) {
       if (cmd instanceof EnvironmentCommandlet) {
         return false;
