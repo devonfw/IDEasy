@@ -7,6 +7,30 @@ permissions:
   id-token: write
 
 jobs:
+  # Resolves the version to be released exactly once, so that every downstream job refers to the
+  # same value. .mvn/maven.config is rewritten twice during this workflow (to the release version
+  # and afterwards to the next snapshot), so re-reading it in a later job would resolve a different
+  # version depending on when it happens.
+  resolve-version:
+    name: Resolve release version
+    runs-on: ubuntu-latest
+    outputs:
+      snapshot_version: ${{ steps.resolve.outputs.snapshot_version }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Resolve version from .mvn/maven.config
+        id: resolve
+        shell: bash
+        run: |
+          maven_config="$(cat .mvn/maven.config)"
+          snapshot_version="${maven_config/#*-Drevision=}"
+          snapshot_version="${snapshot_version/ */}"
+          if [ -z "${snapshot_version}" ]; then
+            echo "ERROR: could not resolve the snapshot version from .mvn/maven.config." >&2
+            exit 1
+          fi
+          echo "Releasing snapshot ${snapshot_version}"
+          echo "snapshot_version=${snapshot_version}" >> "$GITHUB_OUTPUT"
   # Builds all native images and uploads each binary as a separate artifact
   build-natives:
     name: Build native images
