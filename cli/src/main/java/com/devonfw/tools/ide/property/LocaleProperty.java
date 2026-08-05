@@ -49,7 +49,7 @@ public class LocaleProperty extends Property<Locale> {
   @Override
   public Locale parse(String valueAsString, IdeContext context) {
 
-    return Locale.forLanguageTag(valueAsString);
+    return Locale.forLanguageTag(valueAsString.replace('_', '-'));
   }
 
   @Override
