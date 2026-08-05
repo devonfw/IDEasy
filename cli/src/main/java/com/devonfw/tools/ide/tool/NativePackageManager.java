@@ -20,7 +20,6 @@ public enum NativePackageManager {
   DNF("install -y", "remove -y", "-", "*");
 
   private static final String DPKG_STATUS_INSTALLED = "installed";
-  private static final String DPKG_SEPARATOR = "|";
 
   private final String installCommand;
   private final String uninstallCommand;
@@ -89,7 +88,7 @@ public enum NativePackageManager {
    */
   public List<String> getVersionQueryCommand(String pkg) {
     List<String> command = new ArrayList<>(switch (this) {
-      case APT -> List.of("dpkg-query", "-w", "-f=${db:Status-Status}" + DPKG_SEPARATOR + "${Version}");
+      case APT -> List.of("dpkg-query", "-W", "-f=${db:Status-Status}|${Version}");
       case ZYPPER, YUM, DNF -> List.of("rpm", "-q", "--queryformat", "%{VERSION}");
     });
     command.add(pkg);
