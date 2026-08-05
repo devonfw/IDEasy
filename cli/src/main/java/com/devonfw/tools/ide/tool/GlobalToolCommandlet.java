@@ -6,6 +6,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+import com.devonfw.tools.ide.os.WindowsAppInstallation;
+import com.devonfw.tools.ide.os.WindowsHelper;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -232,7 +235,8 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
 
   @Override
   public void uninstall() {
-    //TODO: handle "uninstall <globaltool>"
-    LOG.error("Couldn't uninstall " + this.getName());
+    if (this.context.getSystemInfo().isWindows()) {
+      WindowsHelper.get(this.context).uninstallApplication(getName());
+    }
   }
 }

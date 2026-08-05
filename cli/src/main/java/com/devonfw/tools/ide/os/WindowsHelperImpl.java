@@ -94,9 +94,35 @@ public class WindowsHelperImpl implements WindowsHelper {
     return new WindowsAppInstallation(version, icon, uninstallString, installLocation);
   }
 
+  @Override
+  public void uninstallApplication(String appName) {
+    WindowsAppInstallation installation = getAppInstallationFromRegistry(appName);
+    if (installation == null) {
+      LOG.warn("Could not find application {} in the Windows registry.", appName);
+      return;
+    }
+
+    String uninstallString = installation.uninstallString();
+    if ((uninstallString == null) || uninstallString.isBlank()) {
+      LOG.warn("Could not determine uninstall command for application {}.", appName);
+      return;
+    }
+
+    executeUninstallCommand(uninstallString);
+  }
+
+  protected void executeUninstallCommand(String uninstallString) {
+    this.context.newProcess()
+        .executable("cmd")
+        .addArgs("/c", uninstallString)
+        .errorHandling(ProcessErrorHandling.LOG_WARNING)
+        .run(ProcessMode.DEFAULT_CAPTURE);
+  }
+
   private String findUninstallKey(String appName) {
 
     for (String registryBasePath : REGISTRY_BASE_PATHS) {
+      LOG.warn("Searching registry for {} in {}", appName, registryBasePath);
       List<String> out = runReg("query", registryBasePath, "/s", "/f", appName);
       if (out == null) {
         continue;

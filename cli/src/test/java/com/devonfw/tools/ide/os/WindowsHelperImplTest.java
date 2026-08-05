@@ -251,4 +251,99 @@ class WindowsHelperImplTest extends AbstractIdeContextTest {
     assertThat(path).isEqualTo("C:\\some\\path;");
     assertThat(captured[0]).isEqualTo("query HKCU\\Environment /v PATH");
   }
+
+  @Test
+  void testUninstallApplicationExecutesRegistryCommand() {
+    AbstractIdeTestContext context = new IdeTestContext();
+    String appName = "Test Application";
+    String uninstallString =
+        "\"C:\\Program Files\\Test\\uninstall.exe\" /S";
+
+    String[] capturedCommand = new String[1];
+
+    WindowsHelperImpl helper = new WindowsHelperImpl(context) {
+
+      @Override
+      public WindowsAppInstallation getAppInstallationFromRegistry(
+          String requestedAppName) {
+
+        assertThat(requestedAppName).isEqualTo(appName);
+
+        return new WindowsAppInstallation(
+            "1.0",
+            null,
+            uninstallString,
+            "C:\\Program Files\\Test");
+      }
+
+      @Override
+      protected void executeUninstallCommand(String command) {
+        capturedCommand[0] = command;
+      }
+    };
+
+    // act
+    helper.uninstallApplication(appName);
+
+    // assert
+    assertThat(capturedCommand[0]).isEqualTo(uninstallString);
+  }
+
+  @Test
+  void testUninstallApplicationDoesNothingWhenApplicationIsMissing() {
+    AbstractIdeTestContext context = new IdeTestContext();
+    boolean[] commandExecuted = { false };
+
+    WindowsHelperImpl helper = new WindowsHelperImpl(context) {
+
+      @Override
+      public WindowsAppInstallation getAppInstallationFromRegistry(
+          String appName) {
+
+        return null;
+      }
+
+      @Override
+      protected void executeUninstallCommand(String command) {
+        commandExecuted[0] = true;
+      }
+    };
+
+    // act
+    helper.uninstallApplication("MissingApp");
+
+    // assert
+    assertThat(commandExecuted[0]).isFalse();
+  }
+
+  @Test
+  void testUninstallApplicationDoesNothingWithoutUninstallString() {
+    AbstractIdeTestContext context = new IdeTestContext();
+    boolean[] commandExecuted = { false };
+
+    WindowsHelperImpl helper = new WindowsHelperImpl(context) {
+
+      @Override
+      public WindowsAppInstallation getAppInstallationFromRegistry(
+          String appName) {
+
+        return new WindowsAppInstallation(
+            "1.0",
+            null,
+            null,
+            "C:\\Program Files\\Test");
+      }
+
+      @Override
+      protected void executeUninstallCommand(String command) {
+        commandExecuted[0] = true;
+      }
+    };
+
+    // act
+    helper.uninstallApplication("TestApp");
+
+    // assert
+    assertThat(commandExecuted[0]).isFalse();
+  }
 }
