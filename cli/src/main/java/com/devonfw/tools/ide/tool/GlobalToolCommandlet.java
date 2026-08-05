@@ -214,7 +214,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
    */
   protected boolean isPackageManagerAvailable(NativePackageManager packageManager) {
     Path packageManagerPath = this.context.getPath().findBinary(Path.of(packageManager.getBinaryName()));
-    return packageManagerPath == null || !Files.exists(packageManagerPath);
+    return packageManagerPath != null || Files.exists(packageManagerPath);
   }
 
   /**
