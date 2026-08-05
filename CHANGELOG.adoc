@@ -6,8 +6,21 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/2187[#2187]: Start SoapUI commandlet in background
+* https://github.com/devonfw/IDEasy/issues/2189[#2189]: Integrate Ruff
+* https://github.com/devonfw/IDEasy/issues/2126[#2126]: Fix language selection dropdown
+* https://github.com/devonfw/IDEasy/issues/1976[#1976]: Extend Tool Commandlet installation logic
+* https://github.com/devonfw/IDEasy/issues/2039[#2039]: IDE logo not shown in mac task bar
+* https://github.com/devonfw/IDEasy/issues/2176[#2176]: Support 7z archive extraction
 * https://github.com/devonfw/IDEasy/issues/2100[#2100]: Fix Python not available for Mac x64
 * https://github.com/devonfw/IDEasy/issues/1987[#1987]: Fixed issue that the GUI would not launch in SNAPSHOT versions.
+* https://github.com/devonfw/IDEasy/issues/2224[#2224]: Brew upgrade ideasy not working
+* https://github.com/devonfw/IDEasy/issues/1784[#1784]: GUI now supports displaying progress bars
+* https://github.com/devonfw/IDEasy/issues/1917[#1917]: Allow the creation of a desktop shortcut for the GUI
+* https://github.com/devonfw/IDEasy/issues/2134[#2134]: Add auto-completion for icd command
+* https://github.com/devonfw/IDEAsy/issues/2181[#2181]: Merged the VsCode and VsCodium plugin folder and added excluded-editions as an option for plugins
+* https://github.com/devonfw/IDEasy/issues/2145[#2145]: Improve documentation on symlink regarding ide ln
+* https://github.com/devonfw/IDEasy/issues/2235[#2235]: Language flag in cli dosn't take effect in some terminals
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/48?closed=1[milestone 2026.08.001].
 
@@ -64,7 +77,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1985[#1985]: Fix path traversal errors when extracting ZIPs on Windows
 * https://github.com/devonfw/IDEasy/issues/1255[#1255]: Enhance snapshot version recognition in IDEasy
 * https://github.com/devonfw/IDEasy/issues/1964[#1964]: Fixed gui not launching with older project java versions
-* https://github.com/devonfw/IDEasy/issues/1968[#1968]: Fixed gui blocking the terminal session while running.
+* https://github.com/devonfw/IDEasy/issues/1968[#1968]: Fixed gui blocking the terminal session while running
 * https://github.com/devonfw/IDEasy/issues/1849[#1849]: Add VSCodium support
 * https://github.com/devonfw/IDEasy/issues/1391[#1391]: Fix bashrc messed with terraform completions
 * https://github.com/devonfw/IDEasy/issues/1922[#1922]: Add Task CLI to IDEasy commandlets
