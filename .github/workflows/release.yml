@@ -170,7 +170,7 @@ jobs:
           git tag -a "release/${RELEASE_VERSION}" -m "tagged version ${RELEASE_VERSION}"
           export GPG_TTY=$TTY
           mkdir -p ./cli/target/
-          mvn --settings .mvn/settings.xml -B -ntp deploy -Passembly,msi,deploy -Dgpg.pin.entry.mode=loopback -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }}
+          mvn --settings .mvn/settings.xml -B -ntp deploy -Passembly,msi,pkg,deploy -Dgpg.pin.entry.mode=loopback -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }}
         env:
           RELEASE_VERSION: ${{ needs.resolve-version.outputs.release_version }}
           SNAPSHOT_VERSION: ${{ needs.resolve-version.outputs.snapshot_version }}
@@ -214,7 +214,7 @@ jobs:
           * Windows: https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${RELEASE_VERSION}/ide-cli-${RELEASE_VERSION}-windows-x64.tar.gz
           * Mac(arm64): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${RELEASE_VERSION}/ide-cli-${RELEASE_VERSION}-mac-arm64.tar.gz
           * Mac(x64): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${RELEASE_VERSION}/ide-cli-${RELEASE_VERSION}-mac-x64.tar.gz
-          * Mac(PKG): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${RELEASE_VERSION}/ide-cli-${RELEASE_VERSION}-mac.pkg
+          * Mac-PKG: https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${RELEASE_VERSION}/ide-cli-${RELEASE_VERSION}-mac.pkg
           * Linux(arm64): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${RELEASE_VERSION}/ide-cli-${RELEASE_VERSION}-linux-arm64.tar.gz
           * Linux(x64): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${RELEASE_VERSION}/ide-cli-${RELEASE_VERSION}-linux-x64.tar.gz
           # Changes
