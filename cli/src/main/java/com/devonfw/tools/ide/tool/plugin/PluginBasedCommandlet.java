@@ -104,6 +104,10 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
    */
   public ToolPluginDescriptor createPlugin(String name, String id, String url, String tags) {
 
+    ToolPlugins existingPlugins = getPlugins();
+    if (existingPlugins.getByName(name) != null) {
+      return null;
+    }
     Path pluginsDir = getPluginsConfigPath();
     this.context.getFileAccess().mkdirs(pluginsDir);
     Path pluginFile = pluginsDir.resolve(name + IdeContext.EXT_PROPERTIES);
@@ -349,6 +353,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     String activeKey = props.containsKey("plugin_active") ? "plugin_active" : "active";
     props.setProperty(activeKey, Boolean.toString(active));
     this.context.getFileAccess().writeProperties(props, pluginFile);
+    this.plugins = null;
   }
 
   /**
