@@ -32,6 +32,9 @@ public abstract class AbstractIdeContextTest extends Assertions {
   /** {@link #newContext(String) Name of test project} {@value}. */
   protected static final String PROJECT_BASIC = "basic";
 
+  /** {@link #newContext(String) Name of test project} {@value} to test the {@code «TOOL»_PLUGINS_EXTRA} variable. */
+  protected static final String PROJECT_PLUGIN_EXTRA = "plugin-extra";
+
   /** Test- */
   protected static final Path TEST_RESOURCES = Path.of("src/test/resources");
 

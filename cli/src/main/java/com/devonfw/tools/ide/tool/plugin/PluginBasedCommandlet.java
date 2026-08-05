@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
+import com.devonfw.tools.ide.environment.VariableLine;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
@@ -67,6 +69,8 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
       // override plugins (e.g. change active flag).
       Path userPluginsPath = getUserHomePluginsConfigPath();
       loadPluginsFromDirectory(toolPlugins, userPluginsPath);
+
+      activateExtraPlugins(toolPlugins);
 
       this.plugins = toolPlugins;
     }
@@ -320,5 +324,33 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
   protected void handleInstallForInactivePlugin(ToolPluginDescriptor plugin) {
 
     LOG.debug("Omitting installation of inactive plugin {} ({}).", plugin.name(), plugin.id());
+  }
+
+  /**
+   * Activates the plugins configured in the tool-specific {@code «TOOL»_PLUGINS_EXTRA} variable (e.g.
+   * {@code VSCODE_PLUGINS_EXTRA=copilot,docker}). This allows a user to permanently opt-in to plugins that are not {@link ToolPluginDescriptor#active() active}
+   * in the project settings, without modifying the shared settings and without losing them when plugins are purged and reinstalled on IDE upgrade. Values refer
+   * to the {@link ToolPluginDescriptor#name() name} of the plugin (the filename of its {@code .properties} file) and not to the
+   * {@link ToolPluginDescriptor#id() id}. Names that do not resolve to a configured plugin are logged as a warning and skipped so that a single stale entry
+   * cannot break the entire installation.
+   *
+   * @param toolPlugins the {@link ToolPlugins} to modify.
+   */
+  private void activateExtraPlugins(ToolPlugins toolPlugins) {
+
+    String variable = EnvironmentVariables.getToolPluginsExtraVariable(this.tool);
+    String value = this.context.getVariables().get(variable);
+    if ((value == null) || value.isBlank()) {
+      return;
+    }
+    for (String name : VariableLine.parseArray(value)) {
+      if (name.endsWith(IdeContext.EXT_PROPERTIES)) {
+        name = name.substring(0, name.length() - IdeContext.EXT_PROPERTIES.length());
+      }
+      if (toolPlugins.activate(name) == null) {
+        LOG.warn("Undefined plugin '{}' configured in variable {} - no file {}{} found in {} or {}.", name, variable, name, IdeContext.EXT_PROPERTIES,
+            getPluginsConfigPath(), getUserHomePluginsConfigPath());
+      }
+    }
   }
 }

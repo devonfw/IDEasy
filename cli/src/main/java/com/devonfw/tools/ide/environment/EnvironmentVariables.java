@@ -276,6 +276,15 @@ public interface EnvironmentVariables {
 
   /**
    * @param tool the name of the tool.
+   * @return the name of the variable listing additional plugins to activate.
+   */
+  static String getToolPluginsExtraVariable(String tool) {
+
+    return getToolVariablePrefix(tool) + "_PLUGINS_EXTRA";
+  }
+
+  /**
+   * @param tool the name of the tool.
    * @return the given {@code tool} name in UPPER_CASE without hyphen characters.
    */
   static String getToolVariablePrefix(String tool) {
