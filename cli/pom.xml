@@ -340,14 +340,28 @@
             <version>3.2.0</version>
             <executions>
               <execution>
+                <id>move-pkg-arm64</id>
                 <phase>prepare-package</phase>
                 <goals>
                   <goal>run</goal>
                 </goals>
                 <configuration>
                   <target>
-                    <move file="${project.basedir}/target/pkg/ideasy.pkg"
-                      tofile="${project.basedir}/target/${project.artifactId}-${revision}-mac.pkg"/>
+                    <move file="${project.basedir}/target/pkg-arm64/ideasy.pkg"
+                      tofile="${project.basedir}/target/${project.artifactId}-${revision}-mac-arm64.pkg"/>
+                  </target>
+                </configuration>
+              </execution>
+              <execution>
+                <id>move-pkg-x64</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <target>
+                    <move file="${project.basedir}/target/pkg-x64/ideasy.pkg"
+                      tofile="${project.basedir}/target/${project.artifactId}-${revision}-mac-x64.pkg"/>
                   </target>
                 </configuration>
               </execution>
@@ -359,15 +373,31 @@
             <version>${build.helper.maven.plugin.version}</version>
             <executions>
               <execution>
+                <id>attach-pkg-arm64</id>
                 <goals>
                   <goal>attach-artifact</goal>
                 </goals>
                 <configuration>
                   <artifacts>
                     <artifact>
-                      <file>${project.basedir}/target/${project.artifactId}-${revision}-mac.pkg</file>
+                      <file>${project.basedir}/target/${project.artifactId}-${revision}-mac-arm64.pkg</file>
                       <type>pkg</type>
-                      <classifier>mac</classifier>
+                      <classifier>mac-arm64</classifier>
+                    </artifact>
+                  </artifacts>
+                </configuration>
+              </execution>
+              <execution>
+                <id>attach-pkg-x64</id>
+                <goals>
+                  <goal>attach-artifact</goal>
+                </goals>
+                <configuration>
+                  <artifacts>
+                    <artifact>
+                      <file>${project.basedir}/target/${project.artifactId}-${revision}-mac-x64.pkg</file>
+                      <type>pkg</type>
+                      <classifier>mac-x64</classifier>
                     </artifact>
                   </artifacts>
                 </configuration>

@@ -14,6 +14,13 @@ chmod +x macos-installer/pkg-root/bin/ideasy
 chmod +x macos-installer/scripts/postinstall
 cd macos-installer
 mvn -B -ntp install # no clean here, this would delete our copy results from above (beginning line 7)!
+# Determine architecture: macos-latest -> arm64, macos-15-intel -> x64
+if [[ "$RUNNER_ARCH" == "ARM64" ]] || [[ "$(uname -m)" == "arm64" ]]; then
+  PKG_ARCH="arm64"
+else
+  PKG_ARCH="x64"
+fi
+PKG_FILE="ideasy-${PKG_ARCH}.pkg"
 # shellcheck disable=SC2154
 if pkgbuild --root pkg-root \
     --identifier com.devonfw.ideasy \
@@ -30,9 +37,11 @@ fi
 if productbuild --distribution Distribution.xml \
     --resources Resources \
     --package-path . \
-    ideasy.pkg; then
-    echo "productbuild succeeded"
+    "$PKG_FILE"; then
+    echo "productbuild succeeded: $PKG_FILE"
 else
     echo "productbuild failed with exit code $?" >&2
     exit 1
 fi
+# Copy to expected output location for upload
+cp "$PKG_FILE" ../ideasy.pkg

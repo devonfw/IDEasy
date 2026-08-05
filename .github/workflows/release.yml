@@ -116,7 +116,7 @@ jobs:
           name: msi
           path: windows-installer/signed/ideasy.msi
       - name: Build MacOS PKG
-        if: runner.os == 'macOS' && matrix.os == 'macos-latest'
+        if: runner.os == 'macOS'
         shell: bash
         run: |
           chmod +x ./.github/workflows/macos/generate_pkg.sh
@@ -124,10 +124,10 @@ jobs:
         env:
           PKG_VERSION: ${{ needs.resolve-version.outputs.release_version }}
       - name: Upload unsigned PKG
-        if: runner.os == 'macOS' && matrix.os == 'macos-latest'
+        if: runner.os == 'macOS'
         uses: actions/upload-artifact@v4
         with:
-          name: pkg
+          name: pkg-${{ matrix.os == 'macos-latest' && 'arm64' || 'x64' }}
           path: macos-installer/ideasy.pkg
 
   # Downloads all native image artifacts to cli/target and builds the project using assemblies for final deployment to Maven Central.
@@ -214,7 +214,8 @@ jobs:
           * Windows: https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${RELEASE_VERSION}/ide-cli-${RELEASE_VERSION}-windows-x64.tar.gz
           * Mac(arm64): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${RELEASE_VERSION}/ide-cli-${RELEASE_VERSION}-mac-arm64.tar.gz
           * Mac(x64): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${RELEASE_VERSION}/ide-cli-${RELEASE_VERSION}-mac-x64.tar.gz
-          * Mac-PKG: https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${RELEASE_VERSION}/ide-cli-${RELEASE_VERSION}-mac.pkg
+          * Mac-PKG(arm64): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${RELEASE_VERSION}/ide-cli-${RELEASE_VERSION}-mac-arm64.pkg
+          * Mac-PKG(x64): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${RELEASE_VERSION}/ide-cli-${RELEASE_VERSION}-mac-x64.pkg
           * Linux(arm64): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${RELEASE_VERSION}/ide-cli-${RELEASE_VERSION}-linux-arm64.tar.gz
           * Linux(x64): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${RELEASE_VERSION}/ide-cli-${RELEASE_VERSION}-linux-x64.tar.gz
           # Changes
