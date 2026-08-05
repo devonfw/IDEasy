@@ -530,7 +530,7 @@ public class GitContextImpl implements GitContext {
 
     LOG.debug("Adding remote '{}' with url '{}' to {}", name, url, repository);
     // Check if the remote already exists and get its current URL
-    ProcessResult getUrlResult = runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, "remote", "get-url", name);
+    ProcessResult getUrlResult = runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.NONE, "remote", "get-url", name);
     if (getUrlResult.isSuccessful() && getUrlResult.getOut().getFirst().trim().equals(url)) {
       LOG.debug("Remote '{}' already exists with the expected URL {}", name, url);
       return;
