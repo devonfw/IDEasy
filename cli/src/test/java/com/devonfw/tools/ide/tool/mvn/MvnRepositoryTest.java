@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -193,7 +194,8 @@ class MvnRepositoryTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(metadata.getUrls()).containsExactly(
-        "https://central.sonatype.com/repository/maven-snapshots/com/devonfw/tools/IDEasy/ide-cli/2025.01.001-beta-SNAPSHOT/ide-cli-2025.01.001-beta-20250121.023134-9-"
+        "https://central.sonatype.com/repository/maven-snapshots/com/devonfw/tools/IDEasy/ide-cli/"
+            + "2025.01.001-beta-SNAPSHOT/ide-cli-2025.01.001-beta-20250121.023134-9-"
             + os + "-" + arch + ".tar.gz");
     assertThat(metadata.getTool()).isEqualTo(tool);
     assertThat(metadata.getEdition()).isEqualTo(edition);
