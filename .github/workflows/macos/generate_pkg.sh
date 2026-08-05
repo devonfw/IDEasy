@@ -15,6 +15,6 @@ chmod +x macos-installer/scripts/postinstall
 cd macos-installer
 mvn -B -ntp install # no clean here, this would delete our copy results from above (beginning line 7)!
 # shellcheck disable=SC2154
-pkgbuild --root pkg-root --identifier com.devonfw.ideasy --version "$pkg_version" --install-location /projects/_ide/tmp/ideasy --scripts scripts IDEasyComponent.pkg
+pkgbuild --root pkg-root --identifier com.devonfw.ideasy --version "$PKG_VERSION" --install-location /projects/_ide/tmp/ideasy --scripts scripts IDEasyComponent.pkg
 # pkgbuild is responsible for building the installation bundle. By using productbuild, we can custimze the installation process, including things like showing a license.
 productbuild --distribution Distribution.xml --resources Resources --package-path . ideasy.pkg

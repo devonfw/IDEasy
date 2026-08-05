@@ -119,11 +119,11 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          export pkg_version=${RELEASE_VERSION}
-          echo "Building PKG version: $RELEASE_VERSION"
-          echo "working dir: $PWD"
+          echo "Building PKG version: $PKG_VERSION"
           chmod +x ./.github/workflows/macos/generate_pkg.sh
           ./.github/workflows/macos/generate_pkg.sh
+        env:
+          PKG_VERSION: ${{ needs.resolve-version.outputs.release_version }}
       - name: Upload unsigned PKG
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v4
