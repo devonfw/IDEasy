@@ -119,7 +119,6 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          echo "Building PKG version: $PKG_VERSION"
           chmod +x ./.github/workflows/macos/generate_pkg.sh
           ./.github/workflows/macos/generate_pkg.sh
         env:
