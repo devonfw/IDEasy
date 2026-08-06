@@ -78,6 +78,7 @@ public class Python extends LocalToolCommandlet {
   @Override
   protected boolean isIgnoreMissingSoftwareVersionFile() {
 
+    // https://github.com/devonfw/IDEasy/issues/2190
     return true;
   }
 
