@@ -12,11 +12,18 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.tool.intellij.Intellij;
+import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
+import com.devonfw.tools.ide.version.BoundaryType;
+import com.devonfw.tools.ide.version.VersionIdentifier;
+import com.devonfw.tools.ide.version.VersionRange;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
  * Test of {@link LocalToolCommandlet}.
  */
+@WireMockTest
 class LocalToolCommandletTest extends AbstractIdeContextTest {
 
   static final String JAVA_VERSION_FOR_INTELLIJ = "17.0.10_7";
@@ -127,6 +134,35 @@ class LocalToolCommandletTest extends AbstractIdeContextTest {
     context.getFileAccess().delete(java);
     // run intellij again and verify that compatible Java version gets reinstalled
     runIntellijAndCheckInstallationWithJavaDependency(context);
+  }
+
+  /**
+   * Test that {@link LocalToolCommandlet#installAsDependency(VersionRange, ToolInstallRequest)} ignores the configured project version when
+   * {@link ToolInstallRequest#isIgnoreProject()} is {@code true}.
+   */
+  @Test
+  void testInstallAsDependencyIgnoresProject(WireMockRuntimeInfo wmRuntimeInfo) {
+    // arrange
+    IdeTestContext context = newContext("dependencies", wmRuntimeInfo);
+    context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
+    Java javaTool = context.getCommandletManager().getCommandlet(Java.class);
+
+    ToolInstallRequest parentRequest = new ToolInstallRequest(false);
+    parentRequest.setIgnoreProject(true);
+    parentRequest.setRequested(new ToolEditionAndVersion(new ToolEdition("intellij", null), VersionIdentifier.of("2023.3.3")));
+    VersionRange versionRange = VersionRange.of(VersionIdentifier.of("17"), VersionIdentifier.of("25.0.9"), BoundaryType.CLOSED);
+
+    // act
+    ToolInstallation installation = javaTool.installAsDependency(versionRange, parentRequest);
+
+    // assert - a Java version within the range should have been installed in the software repository
+    assertThat(installation.newInstallation()).isTrue();
+    assertThat(installation.rootDir()).isEqualTo(
+        context.getSoftwareRepositoryPath().resolve(ToolRepository.ID_DEFAULT).resolve("java").resolve("java").resolve(JAVA_VERSION_FOR_INTELLIJ));
+    // assert - no project symlink should have been created because ignoreProject=true
+    assertThat(context.getSoftwarePath().resolve("java")).doesNotExist();
+    // assert - the debug log must confirm that the project was ignored
+    assertThat(context).logAtDebug().hasMessageContaining("Ignoring project for dependency");
   }
 
   private static void runIntellijAndCheckInstallationWithJavaDependency(IdeTestContext context) {
