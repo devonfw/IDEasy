@@ -12,8 +12,6 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.version.VersionIdentifier;
-import com.devonfw.tools.ide.tool.ToolEdition;
-import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 
 /**
  * Test of {@link GlobalToolCommandlet}.
@@ -25,8 +23,8 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
   private static final String TOOL_VERSION = "1.21.0";
 
   /**
-   * Dummy {@link GlobalToolCommandlet} that simulates a background GUI installer (e.g. Rancher Desktop on Windows).
-   * Only {@code doInstall} is overridden so the warning-check inside the real {@code install()} is exercised.
+   * Dummy {@link GlobalToolCommandlet} that simulates a background GUI installer (e.g. Rancher Desktop on Windows). Only {@code doInstall} is overridden so the
+   * warning-check inside the real {@code install()} is exercised.
    */
   static class AsyncInstallerToolCommandlet extends GlobalToolCommandlet {
 
@@ -96,5 +94,99 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     assertThat(context).logAtWarning().hasMessageContaining("is currently running in the background!");
     assertThat(context).logAtWarning()
         .hasMessageContaining("rerun your 'ide' command in a new terminal session after the installation has completed.");
+  }
+
+  /**
+   * Dummy {@link GlobalToolCommandlet} that provides {@link NativePackage}s for testing uninstall via package manager on Linux.
+   */
+  static class PackageManagedToolCommandlet extends GlobalToolCommandlet {
+
+    private static final String TOOL_NAME = "mytool";
+
+    PackageManagedToolCommandlet(IdeContext context) {
+
+      super(context, TOOL_NAME, Set.of(Tag.MISC));
+    }
+
+    @Override
+    protected List<NativePackage> getNativePackages() {
+
+      return List.of(
+          new NativePackage(
+              NativePackageManager.APT,
+              List.of("mytool"),
+              List.of(),
+              List.of(),
+              List.of("sudo rm -f /etc/apt/sources.list.d/mytool.list"))
+      );
+    }
+
+    @Override
+    protected String getBinaryName() {
+      return TOOL_NAME;
+    }
+  }
+
+  /**
+   * Verifies that {@link GlobalToolCommandlet#uninstall()} on non-Linux systems logs an error asking the user to uninstall manually.
+   */
+  @Test
+  void testUninstallOnWindowsLogsManualUninstallError() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
+    PackageManagedToolCommandlet commandlet = new PackageManagedToolCommandlet(context);
+
+    // act
+    commandlet.uninstall();
+
+    // assert: error was logged because uninstall is not supported on Windows
+    assertThat(context).logAtError()
+        .hasMessageContaining("Couldn't uninstall mytool on this OS. Please uninstall manually.");
+  }
+
+  /**
+   * Verifies that {@link GlobalToolCommandlet#uninstall()} on Mac logs an error asking the user to uninstall manually.
+   */
+  @Test
+  void testUninstallOnMacLogsManualUninstallError() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setSystemInfo(SystemInfoMock.MAC_X64);
+    PackageManagedToolCommandlet commandlet = new PackageManagedToolCommandlet(context);
+
+    // act
+    commandlet.uninstall();
+
+    // assert: error was logged because uninstall is not supported on Mac
+    assertThat(context).logAtError()
+        .hasMessageContaining("Couldn't uninstall mytool on this OS. Please uninstall manually.");
+  }
+
+  /**
+   * Verifies that {@link GlobalToolCommandlet#getUninstallPackageManagerCommands()} correctly derives uninstall commands from
+   * {@link GlobalToolCommandlet#getNativePackages()}.
+   */
+  @Test
+  void testGetUninstallPackageManagerCommandsDerivesFromNativePackages() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    PackageManagedToolCommandlet commandlet = new PackageManagedToolCommandlet(context);
+
+    // act
+    List<PackageManagerCommand> uninstallCommands = commandlet.getUninstallPackageManagerCommands();
+
+    // assert: exactly one command for APT
+    assertThat(uninstallCommands).hasSize(1);
+    PackageManagerCommand cmd = uninstallCommands.getFirst();
+    assertThat(cmd.packageManager()).isEqualTo(NativePackageManager.APT);
+    // The uninstall command includes the package removal and the cleanup command
+    assertThat(cmd.commands()).containsExactly(
+        "sudo apt -y autoremove --purge mytool",
+        "sudo rm -f /etc/apt/sources.list.d/mytool.list");
   }
 }
