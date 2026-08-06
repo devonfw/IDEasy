@@ -29,6 +29,7 @@ import com.devonfw.tools.ide.tool.corepack.Corepack;
 import com.devonfw.tools.ide.tool.docker.Docker;
 import com.devonfw.tools.ide.tool.dotnet.DotNet;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
+import com.devonfw.tools.ide.tool.gcloganalyzer.GcLogAnalyzer;
 import com.devonfw.tools.ide.tool.gcviewer.GcViewer;
 import com.devonfw.tools.ide.tool.gh.Gh;
 import com.devonfw.tools.ide.tool.go.Go;
@@ -137,6 +138,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Npm(context));
     add(new Mvn(context));
     add(new Msvc(context));
+    add(new GcLogAnalyzer(context));
     add(new GcViewer(context));
     add(new Gradle(context));
     add(new Eclipse(context));
