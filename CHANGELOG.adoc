@@ -21,6 +21,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEAsy/issues/2181[#2181]: Merged the VsCode and VsCodium plugin folder and added excluded-editions as an option for plugins
 * https://github.com/devonfw/IDEasy/issues/2145[#2145]: Improve documentation on symlink regarding ide ln
 * https://github.com/devonfw/IDEasy/issues/2235[#2235]: Language flag in cli dosn't take effect in some terminals
+* https://github.com/devonfw/IDEasy/issues/2136[#2136]: Add Support for Ruby URL Updater for Linux and macOS
 * https://github.com/devonfw/IDEasy/issues/825[#825]: Add commandlet for GC Log Analyzer
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/48?closed=1[milestone 2026.08.001].
