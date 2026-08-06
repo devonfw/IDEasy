@@ -7,8 +7,8 @@ import com.devonfw.tools.ide.expression.ExpressionContext;
 import com.devonfw.tools.ide.expression.ExpressionFunction;
 
 /**
- * {@link ExpressionFunction} {@code @ask-variable} that asks for a variable in plain text and {@code @ask-secret} that
- * asks for a secret variable with masked input.
+ * {@link ExpressionFunction} {@code @ask-variable} that asks for a variable in plain text and {@code @ask-secret} that asks for a secret variable with masked
+ * input.
  * <ol>
  * <li>the name of the requested variable. If the variable is already defined it is returned without asking. If the
  * empty string is given, the user is always asked.</li>
@@ -66,7 +66,7 @@ public class AskFunction implements ExpressionFunction {
         throw new IllegalArgumentException(
             "Function @" + this.name + " requires an explicit question as 2nd argument if the variable name is empty.");
       }
-      return ask(question, defaultValue, context);
+      return toResult(ask(question, defaultValue, context));
     }
     String value = context.getVariable(variableName);
     if (value != null) {
@@ -76,22 +76,31 @@ public class AskFunction implements ExpressionFunction {
       question = "Please enter the value for the " + (this.secret ? "secret " : "") + "variable " + variableName + ":";
     }
     value = ask(question, defaultValue, context);
+    if (value == null) {
+      return "";
+    }
     if (context.isPersistent()) {
       context.setVariable(variableName, value);
     }
     return value;
   }
 
+  private static String toResult(String value) {
+
+    return (value == null) ? "" : value;
+  }
+
+  /**
+   * @return the value entered by the user, the default value, or {@code null} if the user could not be asked (batch mode with force) and no default value was
+   *     given.
+   */
   private String ask(String question, String defaultValue, ExpressionContext context) {
 
     IdeContext ideContext = context.getIdeContext();
-    String value;
     if (this.secret) {
-      value = ideContext.askForSecret(question, defaultValue);
-    } else {
-      value = ideContext.askForInput(question, defaultValue);
+      return ideContext.askForSecret(question, defaultValue);
     }
-    return (value == null) ? "" : value;
+    return ideContext.askForInput(question, defaultValue);
   }
 
   /**

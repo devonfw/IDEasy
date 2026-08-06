@@ -244,6 +244,47 @@ class ExpressionParserTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Test that in batch mode with force enabled a variable without a default value resolves to the empty string and is NOT persisted, so that the user is asked
+   * again on the next interactive run.
+   */
+  @Test
+  void testBatchModeWithForceDoesNotPersistMissingValue() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.getStartContext().setBatchMode(true);
+    context.getStartContext().setForceMode(true);
+    TestExpressionContext expressionContext = new TestExpressionContext(context);
+
+    // act
+    String result = expressionContext.resolve("@ask-secret('MY_TOKEN')");
+
+    // assert
+    assertThat(result).isEmpty();
+    assertThat(expressionContext.persisted).isEmpty();
+  }
+
+  /**
+   * Test that in batch mode with force enabled an explicitly given default value is used and persisted.
+   */
+  @Test
+  void testBatchModeWithForceUsesAndPersistsDefaultValue() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.getStartContext().setBatchMode(true);
+    context.getStartContext().setForceMode(true);
+    TestExpressionContext expressionContext = new TestExpressionContext(context);
+
+    // act
+    String result = expressionContext.resolve("@ask-variable('MY_VARIABLE', 'Question:', 'the-default')");
+
+    // assert
+    assertThat(result).isEqualTo("the-default");
+    assertThat(expressionContext.persisted).containsExactly(Map.entry("MY_VARIABLE", "the-default"));
+  }
+
+  /**
    * Test that an empty 1st argument without an explicit question is rejected.
    */
   @Test
