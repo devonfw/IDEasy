@@ -11,12 +11,16 @@
   </padding>
   <children>
     <HBox spacing="10.0" alignment="CENTER_LEFT">
-      <Button text="%back" mnemonicParsing="false" onAction="#goBack"/>
+      <Button mnemonicParsing="false" onAction="#goBack" text="%home"/>
     </HBox>
     <ComboBox fx:id="commandletSelector" maxWidth="1.7976931348623157E308" prefWidth="400.0" VBox.vgrow="NEVER"/>
     <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
       <VBox fx:id="formContainer" spacing="5.0"/>
     </ScrollPane>
-    <Button fx:id="runButton" alignment="BOTTOM_RIGHT" contentDisplay="BOTTOM" mnemonicParsing="false" onAction="#runCommandlet" text="Run"/>
+    <HBox alignment="CENTER_RIGHT">
+      <children>
+        <Button fx:id="runButton" alignment="BOTTOM_RIGHT" contentDisplay="BOTTOM" mnemonicParsing="false" onAction="#runCommandlet" text="%execute"/>
+      </children>
+    </HBox>
   </children>
 </VBox>
