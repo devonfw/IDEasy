@@ -43,6 +43,14 @@ public class Gui extends Commandlet {
   }
 
   @Override
+  public boolean isIdeHomeRequired() {
+
+    // The GUI is typically launched from a desktop shortcut and therefore starts outside of any IDEasy project.
+    // Selecting the project is done within the GUI itself, which reads the available projects from IDE_ROOT.
+    return false;
+  }
+
+  @Override
   protected void doRun() {
 
     ProcessContext processContext = new ProcessContextImpl(this.context);
@@ -59,8 +67,12 @@ public class Gui extends Commandlet {
         new ToolEditionAndVersion(VersionIdentifier.of("25.*"))
     );
 
-    mvn.installTool(mavenToolInstallRequest);
+    ToolInstallation mvnInstallation = mvn.installTool(mavenToolInstallRequest);
     ToolInstallation javaInstallation = java.installTool(javaToolInstallRequest);
+
+    // Without IDE_HOME there is no project software folder, so SystemPath cannot resolve the mvn binary on its own.
+    // Registering the bin directory of the installation makes it findable, analogous to what LocalToolCommandlet does after a fresh installation.
+    this.context.getPath().setPath(mvn.getName(), mvnInstallation.binDir());
 
     LOG.debug("Starting GUI via commandlet");
 
