@@ -17,11 +17,13 @@ public class Just extends UvBasedCommandlet {
    * @param context the {@link com.devonfw.tools.ide.context.IdeContext}.
    */
   public Just(IdeContext context) {
+
     super(context, "just", Set.of(Tag.BUILD));
   }
 
   @Override
   public String getPackageName() {
+
     return "rust-just";
   }
 

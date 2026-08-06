@@ -1,8 +1,8 @@
 package com.devonfw.tools.ide.common;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -15,6 +15,9 @@ import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
@@ -32,6 +35,8 @@ import com.devonfw.tools.ide.variable.IdeVariables;
  * end-user.
  */
 public class SystemPath {
+
+  private static final Logger LOG = LoggerFactory.getLogger(SystemPath.class);
 
   private static final Pattern REGEX_WINDOWS_PATH = Pattern.compile("([a-zA-Z]:)?(\\\\[a-zA-Z0-9\\s_.-]+)+\\\\?");
 
@@ -78,7 +83,7 @@ public class SystemPath {
    */
   public SystemPath(IdeContext context, String envPath, Path ideRoot, Path softwarePath) {
 
-    this(context, envPath, ideRoot, softwarePath, File.pathSeparatorChar, Collections.emptyList());
+    this(context, envPath, ideRoot, softwarePath, System.getProperty("path.separator").charAt(0), Collections.emptyList());
   }
 
   /**
@@ -96,13 +101,61 @@ public class SystemPath {
     this(context, pathSeparator, extraPathEntries, new HashMap<>(), new ArrayList<>());
     String[] envPaths = envPath.split(Character.toString(pathSeparator));
     for (String segment : envPaths) {
-      Path path = Path.of(segment);
+      Path path = parsePathSegment(segment);
+      if (path == null) {
+        continue;
+      }
       String tool = getTool(path, ideRoot);
       if (tool == null) {
         this.paths.add(path);
       }
     }
     collectToolPath(softwarePath);
+  }
+
+  /**
+   * Parses a single {@code PATH} segment into a {@link Path}. The segment is first {@link #normalizePathSegment(String) normalized} by removing illegal control
+   * characters (e.g. CR, LF, NUL, TAB) that may sneak into the {@code PATH} variable (e.g. via broken tool configurations) and would otherwise render the entry
+   * invalid. This way a still usable entry is kept instead of being dropped. If nothing usable remains after normalization or the segment cannot be parsed as a
+   * {@link Path} even after normalization, {@code null} is returned so the entry is skipped without aborting the entire {@link SystemPath} construction.
+   *
+   * @param segment the raw {@code PATH} segment.
+   * @return the parsed {@link Path} or {@code null} if the segment is invalid and should be ignored.
+   */
+  private static Path parsePathSegment(String segment) {
+
+    String normalized = normalizePathSegment(segment);
+    if (normalized.isEmpty()) {
+      if (!segment.isEmpty()) {
+        LOG.warn("Ignoring invalid PATH entry '{}' as it only contains illegal control characters.", segment);
+      }
+      return null;
+    }
+    if (!normalized.equals(segment)) {
+      LOG.warn("Normalized PATH entry '{}' by removing illegal control characters.", segment);
+    }
+    try {
+      return Path.of(normalized);
+    } catch (InvalidPathException e) {
+      LOG.warn("Ignoring invalid PATH entry '{}' - {}", segment, e.getMessage());
+      return null;
+    }
+  }
+
+  /**
+   * @param segment the raw {@code PATH} segment.
+   * @return the given {@code segment} with all {@link Character#isISOControl(char) ISO control characters} (e.g. CR, LF, NUL, TAB) removed.
+   */
+  private static String normalizePathSegment(String segment) {
+
+    StringBuilder sb = new StringBuilder(segment.length());
+    for (int i = 0; i < segment.length(); i++) {
+      char c = segment.charAt(i);
+      if (!Character.isISOControl(c)) {
+        sb.append(c);
+      }
+    }
+    return sb.toString();
   }
 
   /**

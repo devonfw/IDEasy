@@ -9,6 +9,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliOfflineException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -92,6 +93,12 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
   private ToolInstallation doInstallStep(ToolInstallRequest request) {
 
+    if (request.isIgnoreProject() && isIgnoreSoftwareRepo()) {
+      throw new CliException(
+          "The tool " + this.tool
+              + " does not support the software repository and therefore cannot be installed while ignoring the project.");
+    }
+
     // install configured version of our tool in the software repository if not already installed
     ToolInstallation installation = installTool(request);
 
@@ -105,13 +112,16 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     FileAccess fileAccess = this.context.getFileAccess();
     boolean ignoreSoftwareRepo = isIgnoreSoftwareRepo();
     Path toolPath = request.getToolPath();
-    if (!ignoreSoftwareRepo) {
+    if (!ignoreSoftwareRepo && !request.isIgnoreProject() && toolPath != null) {
       // we need to link the version or update the link.
       if (Files.exists(toolPath, LinkOption.NOFOLLOW_LINKS)) {
         fileAccess.backup(toolPath);
       }
       fileAccess.mkdirs(toolPath.getParent());
       fileAccess.symlink(installation.linkDir(), toolPath);
+    } else {
+      LOG.debug("Skipping symlink creation for tool {} as it is installed in standalone/global mode (ignoreSoftwareRepo={}, ignoreProject={}, toolPath={}).",
+          this.tool, ignoreSoftwareRepo, request.isIgnoreProject(), toolPath);
     }
     if (!request.isExtraInstallation() && (installation.binDir() != null)) {
       this.context.getPath().setPath(this.tool, installation.binDir());
@@ -167,7 +177,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     String edition = toolEdition.edition();
     VersionIdentifier resolvedVersion = cveCheck(request);
     installToolDependencies(request);
-
     // cveCheck might have changed resolvedVersion so let us re-check...
     if (request.isAlreadyInstalled()) {
       return toolAlreadyInstalled(request);
@@ -223,8 +232,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   /**
-   * Performs the installation of the {@link #getName() tool} by using {@link #installDownloadedToolPayload(ToolInstallRequest, Path, Path)}
-   * for tool-specific logic, backing up any existing installation, and writing the version file.
+   * Performs the installation of the {@link #getName() tool} by using {@link #installDownloadedToolPayload(ToolInstallRequest, Path, Path)} for tool-specific
+   * logic, backing up any existing installation, and writing the version file.
    * <p>
    * This method assumes that the version has already been resolved and dependencies installed. It handles the final steps of placing the tool into the
    * appropriate installation directory.
@@ -292,24 +301,31 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     ToolInstallRequest request = new ToolInstallRequest(parentRequest);
     ToolEditionAndVersion requested = new ToolEditionAndVersion(getToolWithConfiguredEdition());
     request.setRequested(requested);
-    VersionIdentifier configuredVersion = getConfiguredVersion();
-    if (versionRange.contains(configuredVersion)) {
+
+    // If we are not inside a project or if we should ignore the project, do not try to use the configured version
+    // but instead just use the version range from the dependency.
+    boolean ignoreProject = request.isIgnoreProject() || this.context.getIdeHome() == null;
+    VersionIdentifier configuredVersion = ignoreProject ? null : getConfiguredVersion();
+    if (!ignoreProject && (configuredVersion != null) && versionRange.contains(configuredVersion)) {
       // prefer configured version if contained in version range
       requested.setVersion(configuredVersion);
       // return install(true, configuredVersion, processContext, null);
       return install(request);
     } else {
-      if (isIgnoreSoftwareRepo()) {
+      if (ignoreProject) {
+        LOG.debug("Ignoring project for dependency {} of tool {}, using version range {}", this.tool, parentRequest.getRequested(), versionRange);
+      } else if (isIgnoreSoftwareRepo()) {
         throw new IllegalStateException(
             "Cannot satisfy dependency to " + this.tool + " in version " + versionRange + " for " + parentRequest.getRequested()
                 + " since it is conflicting with configured version "
                 + configuredVersion
                 + " and this tool does not support the software repository.");
+      } else {
+        LOG.info(
+            "The tool {} requires {} in the version range {}, but your project uses version {}, which does not match."
+                + " Therefore, we install a compatible version in that range.",
+            parentRequest.getRequested().getEdition(), this.tool, versionRange, configuredVersion);
       }
-      LOG.info(
-          "The tool {} requires {} in the version range {}, but your project uses version {}, which does not match."
-              + " Therefore, we install a compatible version in that range.",
-          parentRequest.getRequested().getEdition(), this.tool, versionRange, configuredVersion);
       requested.setVersion(versionRange);
       return installTool(request);
     }
@@ -604,7 +620,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   public Path findBuildDescriptor(Path directory) {
     return null;
   }
-  
+
   /**
    * @return Bash completion command for this tool or {@code null} if this tool does not provide Bash completion.
    */
