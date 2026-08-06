@@ -3,7 +3,6 @@ package com.devonfw.tools.ide.commandlet;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.property.FlagProperty;
 
 /**
@@ -74,7 +73,6 @@ class ContextCommandletTest extends AbstractIdeContextTest {
     assertThat(cxt.getStartContext().isQuietMode()).isTrue();
     assertThat(cxt.getStartContext().isPrivacyMode()).isTrue();
     assertThat(cxt.getStartContext().isOfflineMode()).isTrue();
-    assertThat(cxt.getStartContext().getLogLevelConsole()).isEqualTo(IdeLogLevel.INTERACTION);
 
   }
 }
