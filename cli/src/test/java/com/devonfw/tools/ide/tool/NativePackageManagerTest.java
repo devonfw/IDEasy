@@ -53,7 +53,7 @@ class NativePackageManagerTest {
 
     assertThat(cmd.packageManager()).isEqualTo(NativePackageManager.APT);
     assertThat(cmd.commands()).containsExactly(
-        "sudo apt -y autoremove pkg1",
+        "sudo apt -y autoremove --purge pkg1",
         "sudo rm -f /etc/apt/sources.list.d/example.list",
         "sudo rm -f /usr/share/keyrings/example.gpg");
   }

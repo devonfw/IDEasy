@@ -64,6 +64,6 @@ class NativePackageTest {
     var cmd = np.uninstall();
 
     assertThat(cmd.packageManager()).isEqualTo(NativePackageManager.APT);
-    assertThat(cmd.commands()).containsExactly("sudo apt -y autoremove pkg1");
+    assertThat(cmd.commands()).containsExactly("sudo apt -y autoremove --purge pkg1");
   }
 }

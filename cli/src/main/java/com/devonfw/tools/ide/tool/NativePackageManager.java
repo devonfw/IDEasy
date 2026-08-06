@@ -8,7 +8,7 @@ import java.util.List;
  */
 public enum NativePackageManager {
   /** Advanced Package Tool (APT) is the package manager of Debian based Linux distributions. */
-  APT("install -y", "-y autoremove", "=", "*"),
+  APT("install -y", "-y autoremove --purge", "=", "*"),
 
   /** Zypper is the package manager of SUSE based Linux distributions. */
   ZYPPER("--non-interactive install", "remove", "=", ""),
