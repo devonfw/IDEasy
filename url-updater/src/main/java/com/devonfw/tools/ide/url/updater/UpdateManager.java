@@ -45,6 +45,7 @@ import com.devonfw.tools.ide.url.tool.mvnd.MvndUrlUpdater;
 import com.devonfw.tools.ide.url.tool.ng.NgUrlUpdater;
 import com.devonfw.tools.ide.url.tool.node.NodeUrlUpdater;
 import com.devonfw.tools.ide.url.tool.npm.NpmUrlUpdater;
+import com.devonfw.tools.ide.url.tool.obsidian.ObsidianUrlUpdater;
 import com.devonfw.tools.ide.url.tool.oc.OcUrlUpdater;
 import com.devonfw.tools.ide.url.tool.pgadmin.PgAdminUrlUpdater;
 import com.devonfw.tools.ide.url.tool.pip.PipUrlUpdater;
@@ -83,7 +84,7 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
       new LazyDockerUrlUpdater(), new MvnUrlUpdater(), new MvndUrlUpdater(), new NgUrlUpdater(), new NodeUrlUpdater(), new NpmUrlUpdater(), new OcUrlUpdater(),
       new PgAdminUrlUpdater(), new PipUrlUpdater(), new PycharmUrlUpdater(), new QuarkusUrlUpdater(), new RubyUrlUpdater(), new RubyJdxUrlUpdater(),
       new RustUrlUpdater(), new DockerRancherDesktopUrlUpdater(), new SonarUrlUpdater(), new SquirrelSqlUrlUpdater(), new SoapUiUrlUpdater(),
-      new TerraformUrlUpdater(), new TomcatUrlUpdater(), new UvUrlUpdater(), new VsCodeUrlUpdater(), new VsCodiumUrlUpdater());
+      new TerraformUrlUpdater(), new TomcatUrlUpdater(), new UvUrlUpdater(), new VsCodeUrlUpdater(), new VsCodiumUrlUpdater(), new ObsidianUrlUpdater());
 
   /**
    * The constructor.
