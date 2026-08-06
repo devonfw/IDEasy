@@ -157,7 +157,7 @@ public class CommandletController {
       return false;
     }
 
-    Path licenseAgreement = this.context.getUserHomeIde().resolve(".license.agreement");
+    Path licenseAgreement = this.context.getUserHomeIde().resolve(IdeContext.FILE_LICENSE_AGREEMENT);
     if (!Files.isRegularFile(licenseAgreement)) {
       if (cmd instanceof EnvironmentCommandlet) {
         return false;
