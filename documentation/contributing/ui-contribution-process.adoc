@@ -1,0 +1,46 @@
+= Contributing to the IDEasy GUI
+:toc:
+:toclevels: 4
+:sectnums:
+
+== Introduction
+
+When contributing to the UI, a few special guidelines are relevant in order to ensure a high quality and consistency.
+This guide acts as an overview.
+
+== Contribution workflow
+
+GUI contributions should follow a short design-first workflow before implementation of the actual task starts.
+This prevents ensures consistency of parallel work on UI contributions and makes reviews easier.
+
+. Pick an issue
+. Create a design (see details)
+. Review the design with the team
+. Start with the actual implementation
+. -> From here continue with the normal IDEasy contribution workflow (Open PR, Team review, review, merge, retest)
+
+=== Pick an issue
+
+Before implementing anything:
+
+. Find an existing GUI-labeled issue.
+. Assign the issue to yourself.
+. If the work is not tracked yet, create a new issue first and don't forget to add the "GUI" label.
+
+=== Create a design proposal
+
+For visible GUI changes, do *not* start directly with JavaFX implementation.
+First create a design proposal.
+
+Recommended flow:
+
+. Create a design sub-issue for the parent GUI issue (e.g.: Parent GUI issue: "Add project config screen", design sub-issue: "Design: Add project config screen").
+. Mark the parent issue as blocked by the design sub-task in GitHub.
+. Plan the screen or interaction in the Figma template.
+. Move the design sub-task into team review when ready (same process as with other tasks, however, we move the issue into review, as we do the design on Figma, we do *not* need Pull Requests!).
+. Move the design sub-task into review when passed the team review.
+. When passed the review, close the design sub-issue.
+
+=== Final implementation
+
+. Implement the actual GUI change in JavaFX just like any other contribution.
