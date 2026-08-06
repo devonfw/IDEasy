@@ -208,11 +208,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
           LOG.warn("Deleting corrupted installation at {}", installationPath);
           fileAccess.delete(installationPath);
         } else {
-          // Version file missing but tool allows this - restore it and preserve installation
-          LOG.warn("Version file missing at {} - restoring it for tool {}", toolVersionFile, this.tool);
-          // Restore the missing file
-          this.context.writeVersionFile(resolvedVersion, installationPath);
-          return createToolInstallation(installationPath, resolvedVersion, false, processContext, additionalInstallation);
+          // Recover an existing installation when the version marker is missing instead of reinstalling and risking data loss.
+          return recoverMissingVersionFile(request, installationPath, toolVersionFile, processContext, additionalInstallation);
         }
       }
     }
@@ -235,6 +232,31 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       }
     }
     return createToolInstallation(installationPath, actualInstalledVersion, true, processContext, additionalInstallation);
+  }
+
+  private ToolInstallation recoverMissingVersionFile(ToolInstallRequest request, Path installationPath, Path toolVersionFile,
+      ProcessContext processContext, boolean additionalInstallation) {
+
+    VersionIdentifier installedVersion = getInstalledVersionWithMissingVersionFile(installationPath);
+    if (installedVersion == null) {
+      LOG.warn("Version file missing at {} for tool {}", toolVersionFile, this.tool);
+      return createToolInstallation(installationPath, request.getRequested().getResolvedVersion(), false, processContext, additionalInstallation);
+    }
+    this.context.writeVersionFile(installedVersion, installationPath);
+    return createToolInstallation(installationPath, installedVersion, false, processContext, additionalInstallation);
+  }
+
+  /**
+   * Determines the installed version when the version marker file is missing.
+   * <p>
+   * This is intended for recovery of existing installations whose {@code .ide.software.version} file was removed by external tooling.
+   *
+   * @param toolPath the tool installation directory
+   * @return the detected installed version, or {@code null} if it cannot be determined
+   */
+  protected VersionIdentifier getInstalledVersionWithMissingVersionFile(Path toolPath) {
+
+    return null;
   }
 
   /**
