@@ -10,6 +10,7 @@ import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.os.WindowsAppInstallation;
 import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.NativePackageManager;
@@ -87,15 +88,18 @@ public class PgAdmin extends GlobalToolCommandlet {
     return null;
   }
 
+  /**
+   * Resolves the pgAdmin installation folder from the Windows registry.
+   *
+   * @return the installation folder, or {@code null} if no valid registry entry or directory could be found.
+   */
   private Path getExecutableFolderFromWindowsRegistry() {
 
-    WindowsHelper windowsHelper = WindowsHelper.get(this.context);
-    String registryPath = "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\pgAdmin 4v9_is1";
-    String displayIcon = windowsHelper.getRegistryValue(registryPath, "DisplayIcon");
-    if (displayIcon != null) {
-      Path executablePath = Paths.get(displayIcon);
-      if (Files.isExecutable(executablePath)) {
-        Path installationDir = executablePath.getParent();
+    WindowsAppInstallation installation = WindowsHelper.get(this.context).getAppInstallationFromRegistry(getWindowsRegistryAppName());
+
+    if (installation != null && installation.installLocation() != null) {
+      Path installationDir = Paths.get(installation.installLocation());
+      if (Files.isDirectory(installationDir)) {
         this.context.getPath().setPath(getName(), installationDir);
         return installationDir;
       }
@@ -105,6 +109,7 @@ public class PgAdmin extends GlobalToolCommandlet {
 
   @Override
   public String getWindowsRegistryAppName() {
-    return "pgAdmin 4v9_is1";
+
+    return "pgAdmin";
   }
 }
