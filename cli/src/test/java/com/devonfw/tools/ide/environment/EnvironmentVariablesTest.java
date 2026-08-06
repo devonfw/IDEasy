@@ -131,8 +131,8 @@ class EnvironmentVariablesTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test that IDEasy's {@code -s} and {@code -Dsettings.security=} arguments override any user-provided ones 
-   * and that unrelated user arguments are correctly appended.
+   * Test that IDEasy's {@code -s} and {@code -Dsettings.security=} arguments override any user-provided ones and that unrelated user arguments are correctly
+   * appended.
    */
   @Test
   void testMergeMavenArgsWithDefault() {
@@ -154,4 +154,83 @@ class EnvironmentVariablesTest extends AbstractIdeContextTest {
     assertThat(AbstractEnvironmentVariables.mergeWithDefault("-Xmx8000m -s invalid/settings.xml", null))
         .isEqualTo("-Xmx8000m -s invalid/settings.xml");
   }
+
+  /**
+   * Test of {@link EnvironmentVariables#resolve(String, Object)} with an {@code @ask-variable} expression for an undefined variable. The user is asked and the
+   * entered value is persisted to {@code conf/ide.properties} so that the question is only asked once.
+   */
+  @Test
+  void testResolveAskVariableExpressionPromptsAndPersists() {
+
+    // arrange
+    String path = "project/workspaces/foo-test/my-git-repo";
+    IdeTestContext context = newContext(ENVIRONMENT_PROJECT, path, true);
+    context.setAnswers("http://llama.local");
+    EnvironmentVariables variables = context.getVariables();
+
+    // act
+    String resolved = variables.resolve("url=@ask-variable('AI_BACKEND_URL')", "test", false);
+
+    // assert
+    assertThat(resolved).isEqualTo("url=http://llama.local");
+    assertThat(context.getVariables().get("AI_BACKEND_URL")).isEqualTo("http://llama.local");
+  }
+
+  /**
+   * Test that an {@code @ask-variable} expression for an already defined variable behaves exactly like a plain variable and does not interact with the user.
+   */
+  @Test
+  void testResolveAskVariableExpressionUsesDefinedVariableWithoutInteraction() {
+
+    // arrange
+    String path = "project/workspaces/foo-test/my-git-repo";
+    IdeTestContext context = newContext(ENVIRONMENT_PROJECT, path, false);
+    EnvironmentVariables variables = context.getVariables();
+
+    // act
+    String askExpression = variables.resolve("@ask-variable('TEST_ARGS4')", "test", false);
+    String plainVariable = variables.resolve("$[TEST_ARGS4]", "test", false);
+
+    // assert
+    assertThat(askExpression).isEqualTo(plainVariable);
+    assertThat(askExpression).endsWith(" settings4");
+  }
+
+  /**
+   * Test of {@link EnvironmentVariables#resolve(String, Object)} with a {@code @path} expression whose argument contains a variable.
+   */
+  @Test
+  void testResolvePathExpressionWithVariableArgument() {
+
+    // arrange
+    String path = "project/workspaces/foo-test/my-git-repo";
+    IdeTestContext context = newContext(ENVIRONMENT_PROJECT, path, false);
+    EnvironmentVariables variables = context.getVariables();
+
+    // act
+    String resolved = variables.resolve("@path('$[IDE_HOME]/software/mvn')", "test", false);
+
+    // assert
+    assertThat(resolved).doesNotContain("\\\\");
+    assertThat(resolved).endsWith("/software/mvn");
+  }
+
+  /**
+   * Test that text which does not call a registered expression function is passed through untouched.
+   */
+  @Test
+  void testResolveLeavesForeignExpressionUntouched() {
+
+    // arrange
+    String path = "project/workspaces/foo-test/my-git-repo";
+    IdeTestContext context = newContext(ENVIRONMENT_PROJECT, path, false);
+    EnvironmentVariables variables = context.getVariables();
+
+    // act
+    String resolved = variables.resolve("@media(max-width:600px){a:1}", "test", false);
+
+    // assert
+    assertThat(resolved).isEqualTo("@media(max-width:600px){a:1}");
+  }
+
 }

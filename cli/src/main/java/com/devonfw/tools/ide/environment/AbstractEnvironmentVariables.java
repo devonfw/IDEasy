@@ -12,6 +12,9 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.expression.ExpressionContext;
+import com.devonfw.tools.ide.expression.ExpressionFunctionManager;
+import com.devonfw.tools.ide.expression.ExpressionParser;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.variable.VariableDefinition;
 import com.devonfw.tools.ide.variable.VariableSyntax;
@@ -33,6 +36,8 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   private static final String SELF_REFERENCING_NOT_FOUND = "";
 
   private static final int MAX_RECURSION = 9;
+
+  private static final ExpressionParser EXPRESSION_PARSER = new ExpressionParser(ExpressionFunctionManager.get());
 
   /**
    * @see #getParent()
@@ -206,14 +211,16 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
     }
     recursion++;
 
+    String value2 = EXPRESSION_PARSER.resolve(value, new EnvironmentExpressionContext(source, recursion, resolvedVars, context));
+
     String resolved;
     if (context.syntax == null) {
-      resolved = resolveWithSyntax(value, source, recursion, resolvedVars, context, VariableSyntax.SQUARE);
+      resolved = resolveWithSyntax(value2, source, recursion, resolvedVars, context, VariableSyntax.SQUARE);
       if (context.legacySupport) {
         resolved = resolveWithSyntax(resolved, source, recursion, resolvedVars, context, VariableSyntax.CURLY);
       }
     } else {
-      resolved = resolveWithSyntax(value, source, recursion, resolvedVars, context, context.syntax);
+      resolved = resolveWithSyntax(value2, source, recursion, resolvedVars, context, context.syntax);
     }
     return resolved;
   }
@@ -355,6 +362,65 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   public String toString() {
 
     return getSource().toString();
+  }
+
+  /**
+   * Implementation of {@link ExpressionContext} that connects an {@link com.devonfw.tools.ide.expression.ExpressionFunction} with this
+   * {@link EnvironmentVariables} hierarchy.
+   */
+  private final class EnvironmentExpressionContext implements ExpressionContext {
+
+    private final Object src;
+
+    private final int recursion;
+
+    private final AbstractEnvironmentVariables resolvedVars;
+
+    private final ResolveContext context;
+
+    private EnvironmentExpressionContext(Object src, int recursion, AbstractEnvironmentVariables resolvedVars, ResolveContext context) {
+
+      super();
+      this.src = src;
+      this.recursion = recursion;
+      this.resolvedVars = resolvedVars;
+      this.context = context;
+    }
+
+    @Override
+    public IdeContext getIdeContext() {
+
+      return AbstractEnvironmentVariables.this.context;
+    }
+
+    @Override
+    public String resolve(String value) {
+
+      return this.resolvedVars.resolveRecursive(value, this.src, this.recursion, this.resolvedVars, this.context);
+    }
+
+    @Override
+    public String getVariable(String name) {
+
+      return this.resolvedVars.getValue(name, false);
+    }
+
+    @Override
+    public void setVariable(String name, String value) {
+
+      EnvironmentVariables conf = getByType(EnvironmentVariablesType.CONF);
+      if (conf instanceof EnvironmentVariablesPropertiesFile propertiesFile) {
+        propertiesFile.set(name, value);
+        propertiesFile.save();
+      } else {
+        LOG.warn("Cannot persist variable {} since no configuration file is available.", name);
+      }
+    }
+
+    @Override
+    public boolean isPersistent() {
+      return true;
+    }
   }
 
   /**
