@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.util.List;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -120,17 +121,31 @@ public class CommandletController {
       return;
     }
 
-    runButton.setDisable(true);
-    try {
-      this.selectedCommandlet.run();
-      new IdeDialog(AlertType.INFORMATION, "Commandlet executed successfully.").showAndWait();
-    } catch (Exception e) {
-      LOG.error("Commandlet execution failed", e);
-      new IdeDialog(IdeDialog.AlertType.ERROR, e.getMessage()).showAndWait();
-    } finally {
-      runButton.setDisable(false);
-    }
+    Commandlet commandlet = this.selectedCommandlet;
+    Task<Void> execution = new Task<>() {
+      @Override
+      protected Void call() {
+        commandlet.run();
+        return null;
+      }
+    };
 
+    execution.setOnSucceeded(event -> {
+      this.runButton.setDisable(false);
+      new IdeDialog(AlertType.INFORMATION, "Commandlet executed successfully.").showAndWait();
+    });
+
+    execution.setOnFailed(event -> {
+      this.runButton.setDisable(false);
+      Throwable error = execution.getException();
+      LOG.error("Commandlet execution failed", error);
+      new IdeDialog(IdeDialog.AlertType.ERROR, error.getMessage()).showAndWait();
+    });
+
+    this.runButton.setDisable(true);
+    Thread thread = new Thread(execution, "commandlet-" + commandlet.getName());
+    thread.setDaemon(true);
+    thread.start();
   }
 
   private boolean validate(Commandlet cmd) {
