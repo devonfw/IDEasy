@@ -9,15 +9,15 @@ The IDEasy GUI follows the **Model-View-Controller (MVC)** pattern with a featur
 The architecture emphasizes:
 
 * *Model-View-Controller pattern (MVC)*: separation of concerns into Models, Views, and Controllers
-* *Reusability*: Reusable components through a shared component library (e.g.: Console component)
-* *Reactivity*: via Observer patterns and property bindings
+* *Component Reusability*: Reusable components through a shared component library (e.g.: Console component)
+* *UI Reactivity*: via Observer patterns and property bindings
 * *Maintainability*: through localization, programmatic wiring, and comprehensive testing + Scalability via feature-based organization allowing independent development
 
 == Observer / Observable Pattern
 
-***Editor's Note:*** Currently, the GUI mostly does not use the Observer/Observable pattern via extension of `Observable` or `PropertyChangeSupport`.
+_**Editor's Note:**_ Currently, the GUI mostly does not use the Observer/Observable pattern via extension of `Observable` or `PropertyChangeSupport`.
 Instead, it relies on JavaFX `Property` bindings for reactivity.
-We should rethink this in future contributions
+We should rethink this in future contributions.
 
 IDEasy uses the **Observer/Observable pattern** (and JavaFX `Property` bindings) to propagate changes between Models, Controllers, and Views.
 
@@ -57,6 +57,8 @@ public class PackageController implements Observer {
 ```
 
 == Package Structure per Feature
+
+**Editors note**: This is not yet fully followed in the codebase, but it is the recommended structure for new features.
 
 The codebase follows a **feature-based package organization** rather than layer-based.
 Each feature owns its MVC triad and related components.
@@ -110,7 +112,7 @@ This is implemented in code via resource bundles; handled by the `NlsService` cl
 * In FXML layout files, we use the %key pattern for localized strings. (example: `<Label text="%dashboard.title" />`)
 * Controllers load resource bundles via `NlsService.getBundle("feature.dashboard.messages")`
 
-== Controller Injection via Code (No FXML Injection)
+== Controller Injection via Code
 
 Controllers are **primarily injected via Code** to allow Dependency Injection.
 Generally, we want to refrain from injecting a controller only via FXML:
