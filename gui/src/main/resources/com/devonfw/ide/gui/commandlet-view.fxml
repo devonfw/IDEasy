@@ -11,7 +11,7 @@
   </padding>
   <children>
     <HBox spacing="10.0" alignment="CENTER_LEFT">
-      <Button text="Back" mnemonicParsing="false" onAction="#goBack"/>
+      <Button text="%back" mnemonicParsing="false" onAction="#goBack"/>
     </HBox>
     <ComboBox fx:id="commandletSelector" maxWidth="1.7976931348623157E308" prefWidth="400.0" VBox.vgrow="NEVER"/>
     <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
