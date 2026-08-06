@@ -12,7 +12,6 @@ import com.devonfw.tools.ide.url.model.AbstractUrlFolderWithParent;
 import com.devonfw.tools.ide.url.model.file.UrlChecksum;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFile;
 import com.devonfw.tools.ide.url.model.file.UrlFile;
-import com.devonfw.tools.ide.url.model.file.UrlStatusFile;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -132,22 +131,6 @@ public class UrlVersion extends AbstractUrlFolderWithParent<UrlEdition, UrlFile<
   }
 
   /**
-   * @return the {@link UrlStatusFile}.
-   */
-  public UrlStatusFile getStatus() {
-
-    return (UrlStatusFile) getChild(UrlStatusFile.STATUS_JSON);
-  }
-
-  /**
-   * @return the {@link UrlStatusFile}.
-   */
-  public UrlStatusFile getOrCreateStatus() {
-
-    return (UrlStatusFile) getOrCreateChild(UrlStatusFile.STATUS_JSON);
-  }
-
-  /**
    * @return the {@link VersionIdentifier}
    */
   public VersionIdentifier getVersionIdentifier() {
@@ -193,9 +176,7 @@ public class UrlVersion extends AbstractUrlFolderWithParent<UrlEdition, UrlFile<
   @Override
   protected UrlFile<?> newChild(String name) {
 
-    if (Objects.equals(name, UrlStatusFile.STATUS_JSON)) {
-      return new UrlStatusFile(this);
-    } else if (name.endsWith(UrlChecksum.EXTENSION)) {
+    if (name.endsWith(UrlChecksum.EXTENSION)) {
       return new UrlChecksum(this, name);
     }
     return new UrlDownloadFile(this, name);
@@ -204,7 +185,7 @@ public class UrlVersion extends AbstractUrlFolderWithParent<UrlEdition, UrlFile<
   @Override
   protected boolean isAllowedChild(String name, boolean folder) {
 
-    return true;
+    return !"status.json".equals(name);
   }
 
   @Override

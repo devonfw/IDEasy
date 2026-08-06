@@ -71,6 +71,8 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
 
   private final UrlRepository urlRepository;
 
+  private final Path statusRepositoryPath;
+
   private final UrlFinalReport urlFinalReport;
 
   private final List<AbstractUrlUpdater> updaters = List.of(
@@ -89,13 +91,26 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
    * The constructor.
    *
    * @param pathToRepository the {@link Path} to the {@code ide-urls} repository to update.
+   * @param pathToStatusRepository the {@link Path} to the {@code ide-urls-status} repository to update.
    * @param expirationTime for GitHub actions url-update job
+   */
+  public UpdateManager(Path pathToRepository, Path pathToStatusRepository, UrlFinalReport urlFinalReport, Instant expirationTime) {
+
+    this.urlRepository = UrlRepository.load(pathToRepository);
+    this.statusRepositoryPath = pathToStatusRepository;
+    this.urlFinalReport = urlFinalReport;
+    setExpirationTime(expirationTime);
+  }
+
+  /**
+   * The constructor.
+   *
+   * @param pathToRepository the {@link Path} to the {@code ide-urls} repository to update.
+   * @param expirationTime for GitHub actions url-update job.
    */
   public UpdateManager(Path pathToRepository, UrlFinalReport urlFinalReport, Instant expirationTime) {
 
-    this.urlRepository = UrlRepository.load(pathToRepository);
-    this.urlFinalReport = urlFinalReport;
-    setExpirationTime(expirationTime);
+    this(pathToRepository, pathToRepository, urlFinalReport, expirationTime);
   }
 
   /**
@@ -137,6 +152,7 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
     try {
       updater.setExpirationTime(getExpirationTime());
       updater.setUrlFinalReport(this.urlFinalReport);
+      updater.setStatusRepositoryPath(this.statusRepositoryPath);
       String updaterName = updater.getClass().getSimpleName();
       String toolName = updater.getTool();
       logger.debug("Starting {} for tool {}", updaterName, toolName);

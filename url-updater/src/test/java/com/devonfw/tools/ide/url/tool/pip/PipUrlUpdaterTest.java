@@ -11,10 +11,10 @@ import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.devonfw.tools.ide.url.model.file.json.StatusJson;
-import com.devonfw.tools.ide.url.model.file.json.UrlStatus;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
 import com.devonfw.tools.ide.url.updater.AbstractUrlUpdaterTest;
+import com.devonfw.tools.ide.url.updater.status.StatusJson;
+import com.devonfw.tools.ide.url.updater.status.UrlStatus;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
