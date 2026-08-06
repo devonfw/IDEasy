@@ -44,3 +44,7 @@ Recommended flow:
 === Final implementation
 
 . Implement the actual GUI change in JavaFX just like any other contribution.
+
+== Figma link
+
+You can access the Figma board here: https://www.figma.com/design/cEcWlvnNOS5xVE2kQFZe0R/IDEasy?t=K358vlISaq7t2Nfp-1y?t=K358vlISaq7t2Nfp-1
