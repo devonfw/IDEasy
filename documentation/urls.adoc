@@ -1,0 +1,24 @@
+:toc:
+toc::[]
+
+= urls
+
+The `urls` directory is located in:
+
+----
+$IDE_ROOT/_ide/urls
+----
+
+It contains URL metadata used by IDEasy to resolve download locations for supported tools.
+IDEasy uses this data to find versions, editions, platform-specific archives, and download URLs for tools such as Java, Maven, Node.js, IntelliJ, VS Code, and others.
+
+The content of this directory is managed by IDEasy.
+You normally do not need to edit files in this folder manually.
+
+If URL metadata is outdated or missing, run:
+
+----
+ide update
+----
+
+or use the according IDEasy command for the tool you are working with.

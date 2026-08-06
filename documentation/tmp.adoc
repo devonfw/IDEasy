@@ -1,0 +1,26 @@
+:toc:
+toc::[]
+
+= tmp
+
+The `tmp` directory is located in:
+
+----
+$IDE_ROOT/_ide/tmp
+----
+
+It is used by IDEasy to store temporary files created during command execution.
+Typical examples are temporary extraction folders, intermediate downloads, or files created while installing or updating tools.
+
+Temporary files are not intended to be edited manually.
+If IDEasy is interrupted, for example during a download or extraction, temporary files may remain in this directory.
+
+To free disk space, use the `ide cleanup` command once cleanup support for temporary files is available.
+The `ide cleanup` command is still work in progress (see issue #1580).
+
+[NOTE]
+====
+The `ide cleanup` command is still work in progress.
+Currently it mainly supports cleanup of unused software.
+Cleanup of `tmp` and `logs` is planned as a future enhancement.
+====
