@@ -129,6 +129,9 @@ jobs:
         with:
           name: pkg-${{ matrix.os == 'macos-latest' && 'arm64' || 'x64' }}
           path: macos-installer/ideasy.pkg
+          # Default is "warn": a missing PKG would upload an empty artifact and only fail much
+          # later in the release job. Fail right here instead.
+          if-no-files-found: error
 
   # Downloads all native image artifacts to cli/target and builds the project using assemblies for final deployment to Maven Central.
   # The version number for the next build will be incremented automatically.
