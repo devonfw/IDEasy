@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/2183[#2183]: Dynamically generate form fields for selected commandlet
 * https://github.com/devonfw/IDEasy/issues/2187[#2187]: Start SoapUI commandlet in background
 * https://github.com/devonfw/IDEasy/issues/2189[#2189]: Integrate Ruff
 * https://github.com/devonfw/IDEasy/issues/2126[#2126]: Fix language selection dropdown
@@ -79,7 +80,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1985[#1985]: Fix path traversal errors when extracting ZIPs on Windows
 * https://github.com/devonfw/IDEasy/issues/1255[#1255]: Enhance snapshot version recognition in IDEasy
 * https://github.com/devonfw/IDEasy/issues/1964[#1964]: Fixed gui not launching with older project java versions
-* https://github.com/devonfw/IDEasy/issues/1968[#1968]: Fixed gui blocking the terminal session while running
+* https://github.com/devonfw/IDEasy/issues/1968[#1968]: Fixed gui blocking the terminal session while running.
 * https://github.com/devonfw/IDEasy/issues/1849[#1849]: Add VSCodium support
 * https://github.com/devonfw/IDEasy/issues/1391[#1391]: Fix bashrc messed with terraform completions
 * https://github.com/devonfw/IDEasy/issues/1922[#1922]: Add Task CLI to IDEasy commandlets
@@ -137,6 +138,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1952[#1952]: Ability for platform specific dependencies
 * https://github.com/devonfw/IDEasy/issues/1950[#1950]: Fix exit autocompletion
 * https://github.com/devonfw/IDEasy/issues/1936[#1936]: Improve localization of GUI
+
 * https://github.com/devonfw/IDEasy/issues/1958[#1958]: Fix git pull on settings with local branch without remote
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/44?closed=1[milestone 2026.05.001].
