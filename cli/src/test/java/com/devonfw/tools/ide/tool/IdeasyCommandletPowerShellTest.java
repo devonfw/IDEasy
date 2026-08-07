@@ -10,9 +10,6 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 
 class IdeasyCommandletPowerShellTest extends AbstractIdeContextTest {
 
-  private static final String POWERSHELL_SOURCE_FUNCTIONS =
-      ". \"$env:IDE_ROOT\\_ide\\installation\\functions.ps1\"";
-
   private IdeasyCommandlet commandlet;
 
   @BeforeEach
@@ -29,7 +26,7 @@ class IdeasyCommandletPowerShellTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(result).containsExactly(
-        POWERSHELL_SOURCE_FUNCTIONS);
+        IdeasyCommandlet.POWERSHELL_CODE_SOURCE_FUNCTIONS);
   }
 
   @Test
@@ -43,7 +40,7 @@ class IdeasyCommandletPowerShellTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(result).containsExactly(
-        POWERSHELL_SOURCE_FUNCTIONS);
+        IdeasyCommandlet.POWERSHELL_CODE_SOURCE_FUNCTIONS);
   }
 
   @Test
@@ -61,7 +58,7 @@ class IdeasyCommandletPowerShellTest extends AbstractIdeContextTest {
     assertThat(result).containsExactly(
         "Set-Alias ll Get-ChildItem",
         "$env:TEST = \"value\"",
-        POWERSHELL_SOURCE_FUNCTIONS);
+        IdeasyCommandlet.POWERSHELL_CODE_SOURCE_FUNCTIONS);
   }
 
   @Test
@@ -69,7 +66,7 @@ class IdeasyCommandletPowerShellTest extends AbstractIdeContextTest {
     // arrange
     List<String> lines = List.of(
         "Set-Alias ll Get-ChildItem",
-        POWERSHELL_SOURCE_FUNCTIONS);
+        IdeasyCommandlet.POWERSHELL_CODE_SOURCE_FUNCTIONS);
 
     // act
     List<String> result =
@@ -78,7 +75,7 @@ class IdeasyCommandletPowerShellTest extends AbstractIdeContextTest {
     // assert
     assertThat(result).containsExactly(
         "Set-Alias ll Get-ChildItem",
-        POWERSHELL_SOURCE_FUNCTIONS);
+        IdeasyCommandlet.POWERSHELL_CODE_SOURCE_FUNCTIONS);
   }
 
   @Test
@@ -86,7 +83,7 @@ class IdeasyCommandletPowerShellTest extends AbstractIdeContextTest {
     // arrange
     List<String> lines = List.of(
         "Set-Alias ll Get-ChildItem",
-        "  " + POWERSHELL_SOURCE_FUNCTIONS + "  ");
+        "  " + IdeasyCommandlet.POWERSHELL_CODE_SOURCE_FUNCTIONS + "  ");
 
     // act
     List<String> result =
@@ -95,7 +92,7 @@ class IdeasyCommandletPowerShellTest extends AbstractIdeContextTest {
     // assert
     assertThat(result).containsExactly(
         "Set-Alias ll Get-ChildItem",
-        "  " + POWERSHELL_SOURCE_FUNCTIONS + "  ");
+        "  " + IdeasyCommandlet.POWERSHELL_CODE_SOURCE_FUNCTIONS + "  ");
   }
 
   @Test
@@ -103,7 +100,7 @@ class IdeasyCommandletPowerShellTest extends AbstractIdeContextTest {
     // arrange
     List<String> lines = List.of(
         "Set-Alias ll Get-ChildItem",
-        POWERSHELL_SOURCE_FUNCTIONS,
+        IdeasyCommandlet.POWERSHELL_CODE_SOURCE_FUNCTIONS,
         "$env:TEST = \"value\"");
 
     // act
@@ -121,7 +118,7 @@ class IdeasyCommandletPowerShellTest extends AbstractIdeContextTest {
     // arrange
     List<String> lines = List.of(
         "Set-Alias ll Get-ChildItem",
-        "  " + POWERSHELL_SOURCE_FUNCTIONS + "  ",
+        "  " + IdeasyCommandlet.POWERSHELL_CODE_SOURCE_FUNCTIONS + "  ",
         "$env:TEST = \"value\"");
 
     // act
@@ -163,9 +160,9 @@ class IdeasyCommandletPowerShellTest extends AbstractIdeContextTest {
   void testUninstallRemovesAllDuplicatePowerShellEntries() {
     // arrange
     List<String> lines = List.of(
-        POWERSHELL_SOURCE_FUNCTIONS,
+        IdeasyCommandlet.POWERSHELL_CODE_SOURCE_FUNCTIONS,
         "Set-Alias ll Get-ChildItem",
-        POWERSHELL_SOURCE_FUNCTIONS);
+        IdeasyCommandlet.POWERSHELL_CODE_SOURCE_FUNCTIONS);
 
     // act
     List<String> result =
