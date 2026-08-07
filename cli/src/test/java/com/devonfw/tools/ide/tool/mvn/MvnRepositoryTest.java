@@ -231,6 +231,74 @@ class MvnRepositoryTest extends AbstractIdeContextTest {
     assertThat(version).hasToString("2025.02.001-beta-20250204.023111-1");
   }
 
+  @Test
+  void testResolveSnapshotClassifierFallsBackFromWindowsArm64ToX64() {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    MvnRepository mvnRepository = context.getMvnRepository();
+    Document metadata = parseXml(XML_SNAPSNOT_METADATA);
+
+    // act
+    String classifier = mvnRepository.resolveSnapshotClassifier(
+        metadata,
+        "windows-arm64",
+        "tar.gz");
+
+    // assert
+    assertThat(classifier).isEqualTo("windows-x64");
+  }
+
+  @Test
+  void testResolveSnapshotClassifierKeepsWindowsArm64WhenAvailable() {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    MvnRepository mvnRepository = context.getMvnRepository();
+
+    String arm64Artifact = """
+      <snapshotVersion>
+        <classifier>windows-arm64</classifier>
+        <extension>tar.gz</extension>
+        <value>2025.02.001-beta-20250204.023111-1</value>
+        <updated>20250204023111</updated>
+      </snapshotVersion>
+      """;
+
+    String xml = XML_SNAPSNOT_METADATA.replace(
+        "</snapshotVersions>",
+        arm64Artifact + "</snapshotVersions>");
+
+    Document metadata = parseXml(xml);
+
+    // act
+    String classifier = mvnRepository.resolveSnapshotClassifier(
+        metadata,
+        "windows-arm64",
+        "tar.gz");
+
+    // assert
+    assertThat(classifier).isEqualTo("windows-arm64");
+  }
+
+  @Test
+  void testResolveSnapshotClassifierDoesNotFallbackForLinuxArm64() {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    MvnRepository mvnRepository = context.getMvnRepository();
+    Document metadata = parseXml(XML_SNAPSNOT_METADATA);
+
+    // act
+    String classifier = mvnRepository.resolveSnapshotClassifier(
+        metadata,
+        "linux-arm64",
+        "tar.gz");
+
+    // assert
+    assertThat(classifier).isEqualTo("linux-arm64");
+  }
+
   /** Test of {@link MvnRepository#fetchVersions(Document, String)}. */
   @Test
   void testResolveVersion() {
@@ -260,4 +328,24 @@ class MvnRepositoryTest extends AbstractIdeContextTest {
     }
   }
 
+  @Test
+  void testGetSnapshotBaseVersion() {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    MvnRepository mvnRepository = context.getMvnRepository();
+
+    // act/assert
+    assertThat(mvnRepository.getSnapshotBaseVersion(
+        "2026.05.001-20260527.032443-21"))
+        .isEqualTo("2026.05.001-SNAPSHOT");
+
+    assertThat(mvnRepository.getSnapshotBaseVersion(
+        "2025.02.001-beta-20250204.023111-1"))
+        .isEqualTo("2025.02.001-beta-SNAPSHOT");
+
+    assertThat(mvnRepository.getSnapshotBaseVersion(
+        "2026.05.001"))
+        .isNull();
+  }
 }
