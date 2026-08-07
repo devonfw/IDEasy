@@ -12,6 +12,7 @@ The architecture emphasizes:
 * *Component Reusability*: Reusable components through a shared component library (e.g.: Console component)
 * *UI Reactivity*: via Observer patterns and property bindings
 * *Maintainability*: through localization, programmatic wiring, and comprehensive testing + Scalability via feature-based organization allowing independent development
+* **Scalability** via feature-based organization allowing independent development
 
 == Observer / Observable Pattern
 
@@ -192,19 +193,3 @@ Otherwise tests will fail on the GitHub CI pipeline.**
         .isFalse();
   }
 ```
-
-== Summary
-
-The IDEasy UI architecture emphasizes:
-
-1. **Clear separation of concerns** via MVC
-2. **Reusability** through a component library and feature-based packaging
-3. **Reactivity** via Observer patterns and property bindings
-4. **Maintainability** through localization, programmatic wiring, and comprehensive testing
-5. **Scalability** via feature-based organization allowing independent development
-
----
-
-// Reference for contributors:
-// [[contribution-process]] - Contribution process model
-// [[figma-design-system]] - Figma design system link
