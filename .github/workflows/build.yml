@@ -3,8 +3,7 @@ on:
   push:
     paths-ignore:
       - 'documentation/**'
-    branches: [ main ]
-  workflow_dispatch:
+    branches: [ feature/Integrate-SonarCloud-analysis-into-GitHub-workflows ]
 jobs:
   build:
     runs-on: ubuntu-latest
