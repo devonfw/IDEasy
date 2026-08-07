@@ -86,9 +86,11 @@ public class Vscode extends IdeToolCommandlet {
     if (this.context.getSystemInfo().isWsl()) {
       pc.withEnvVar("DONT_PROMPT_WSL_INSTALL", "1");
     }
-    Path vsCodeConf = this.context.getWorkspacePath().resolve(".vscode/.userdata");
     pc.addArg("--new-window");
-    pc.addArg("--user-data-dir=" + vsCodeConf);
+    // Use a named profile (not --user-data-dir) so VS Code keeps its IPC lock at the default location.
+    // This lets the OS-level vscode:// protocol handler (OAuth callbacks e.g. GitHub/Copilot) find the
+    // already-running IDEasy window. Each workspace gets its own profile for isolated auth and settings.
+    pc.addArg("--profile=ideasy-" + this.context.getWorkspaceName());
     Path vsCodeExtensionFolder = this.context.getIdeHome().resolve("plugins/vscode");
     pc.addArg("--extensions-dir=" + vsCodeExtensionFolder);
     pc.addArg(this.context.getWorkspacePath());
