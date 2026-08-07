@@ -41,6 +41,11 @@ jobs:
         run: mvn -B -ntp -Dstyle.color=always install
         env:
           TESTFX_HEADLESS: true #required for running ide-gui tests in headless mode
+      - name: Sonarcloud analysis
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: mvn -B -ntp org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=devonfw_devon4j
       - name: Coveralls GitHub Action
         uses: coverallsapp/github-action@v2.2.3
         with:
