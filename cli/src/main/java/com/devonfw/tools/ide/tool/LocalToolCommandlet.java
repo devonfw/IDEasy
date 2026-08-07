@@ -237,10 +237,17 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   private ToolInstallation recoverMissingVersionFile(ToolInstallRequest request, Path installationPath, Path toolVersionFile,
       ProcessContext processContext, boolean additionalInstallation) {
 
+    VersionIdentifier requestedVersion = request.getRequested().getResolvedVersion();
     VersionIdentifier installedVersion = getInstalledVersionWithMissingVersionFile(installationPath);
     if (installedVersion == null) {
       LOG.warn("Version file missing at {} for tool {}", toolVersionFile, this.tool);
-      return createToolInstallation(installationPath, request.getRequested().getResolvedVersion(), false, processContext, additionalInstallation);
+      return createToolInstallation(installationPath, requestedVersion, false, processContext, additionalInstallation);
+    }
+    if (!installedVersion.equals(requestedVersion)) {
+      LOG.info("Existing installation version {} does not match requested version {} for tool {}. Reinstalling.",
+          installedVersion, requestedVersion, this.tool);
+      performToolInstallation(request, installationPath);
+      return createToolInstallation(installationPath, requestedVersion, true, processContext, additionalInstallation);
     }
     this.context.writeVersionFile(installedVersion, installationPath);
     return createToolInstallation(installationPath, installedVersion, false, processContext, additionalInstallation);
