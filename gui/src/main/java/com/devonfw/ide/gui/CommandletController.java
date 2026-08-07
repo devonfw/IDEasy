@@ -3,6 +3,7 @@ package com.devonfw.ide.gui;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
