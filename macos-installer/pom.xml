@@ -16,6 +16,17 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
   <groupId>com.devonfw.tools.IDEasy</groupId>
+
+  <!-- This module only prepares the PKG installer build (filtered Distribution.xml). The PKG
+       artifacts themselves are attached to ide-cli via the pkg profile in cli/pom.xml, so this
+       module must never be published itself. skipPublishing covers the central-publishing-maven-plugin
+       (extension mode, inherited from the deploy profile of com.devonfw:maven-parent),
+       maven.deploy.skip covers a plain maven-deploy-plugin deploy. -->
+  <properties>
+    <skipPublishing>true</skipPublishing>
+    <maven.deploy.skip>true</maven.deploy.skip>
+  </properties>
+
   <build>
     <plugins>
       <plugin>
@@ -59,7 +70,7 @@
                 <include>Distribution.xml</include>
                 <include>*.pkg</include>
                 <include>pkg-root/</include>
-                <include>Resources/LICENESE.rtf</include>
+                <include>Resources/LICENSE.rtf</include>
               </includes>
               <followSymlinks>false</followSymlinks>
             </fileset>
