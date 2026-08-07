@@ -1,8 +1,5 @@
 package com.devonfw.tools.ide.tool.openrewrite;
 
-import com.devonfw.tools.ide.json.JsonMapping;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -14,11 +11,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import com.devonfw.tools.ide.json.JsonMapping;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 
 public class RecipeManager {
 
   private static final String OPEN_REWRITE_CONFIG_JSON_PATH = "refactor/openrewrite.json";
-  private final Map<RefactorRecipeEnum, RecipeWrapper> recipes = new HashMap<>();
+  private final Map<RewriteRecipeEnum, RecipeWrapper> recipes = new HashMap<>();
 
 
   public RecipeManager() {
@@ -27,15 +27,15 @@ public class RecipeManager {
           Objects.requireNonNull(RecipeManager.class.getClassLoader().getResourceAsStream(OPEN_REWRITE_CONFIG_JSON_PATH)), StandardCharsets.UTF_8));
       ObjectMapper objectMapper = JsonMapping.create();
 
-      List<RecipeWrapper> wrapperList  = objectMapper.readValue(reader, objectMapper.getTypeFactory().constructCollectionType(List.class, RecipeWrapper.class));
+      List<RecipeWrapper> wrapperList = objectMapper.readValue(reader, objectMapper.getTypeFactory().constructCollectionType(List.class, RecipeWrapper.class));
 
-      for(RecipeWrapper one: wrapperList) {
-        recipes.put(one.ideasy_command, one);
+      for (RecipeWrapper one : wrapperList) {
+        recipes.put(one.ideasyCommand, one);
       }
 
 
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new RuntimeException("Failed to load " + OPEN_REWRITE_CONFIG_JSON_PATH, e);
     }
   }
 
@@ -44,18 +44,18 @@ public class RecipeManager {
   }
 
   private Optional<RecipeWrapper> findRecipeByName(String rawName) {
-    return recipes.values().stream().filter(x -> x.origin_name.equals(rawName)).findAny();
+    return recipes.values().stream().filter(x -> x.originName.equals(rawName)).findAny();
   }
 
   public boolean isValidRecipeNameRawName(String rawName) {
     return findRecipeByName(rawName).isPresent();
   }
 
-  public boolean isValidRecipeEnum(RefactorRecipeEnum recipeEnum) {
+  public boolean isValidRecipeEnum(RewriteRecipeEnum recipeEnum) {
     return recipes.containsKey(recipeEnum);
   }
 
-  public RecipeWrapper getRecipeWrapper(RefactorRecipeEnum recipeEnum) {
+  public RecipeWrapper getRecipeWrapper(RewriteRecipeEnum recipeEnum) {
     return recipes.get(recipeEnum);
   }
 

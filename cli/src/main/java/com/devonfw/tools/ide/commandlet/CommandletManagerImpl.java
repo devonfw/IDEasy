@@ -134,7 +134,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Npm(context));
     add(new Mvn(context));
     add(new Msvc(context));
-    add(new RefactorCommandlet(context));
+    add(new RewriteCommandlet(context));
     add(new GcViewer(context));
     add(new Gradle(context));
     add(new Eclipse(context));
