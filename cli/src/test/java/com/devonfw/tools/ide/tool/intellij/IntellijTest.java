@@ -100,7 +100,7 @@ class IntellijTest extends AbstractIdeContextTest {
     // assert
     checkInstallation(this.context);
     assertThat(commandlet.getToolBinPath().resolve("intellijtest")).hasContent(
-        "intellij " + this.context.getSystemInfo().getOs() + " " + this.context.getWorkspacePath());
+        "intellij " + this.context.getSystemInfo().getOs() + " nosplash " + this.context.getWorkspacePath());
   }
 
   /**

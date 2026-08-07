@@ -2,7 +2,9 @@ package com.devonfw.tools.ide.tool.ide;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -28,6 +30,8 @@ import com.devonfw.tools.ide.tool.vscode.Vscode;
 public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(IdeToolCommandlet.class);
+
+  private static final String OPTIONS_ENV_SUFFIX = "_OPTIONS";
 
   /**
    * The constructor.
@@ -60,7 +64,26 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
   @Override
   public ProcessResult runTool(List<String> args) {
 
-    return runTool(ProcessMode.BACKGROUND, null, args);
+    List<String> effectiveArgs = new ArrayList<>(args);
+    addIdeOptions(effectiveArgs);
+    return runTool(ProcessMode.BACKGROUND, null, effectiveArgs);
+  }
+
+  /**
+   * Appends the tokens of {@code «IDE»_OPTIONS} (e.g. {@code INTELLIJ_OPTIONS}) to the given {@code args}. This is the per-tool analogue of the global
+   * {@code IDE_OPTIONS} and only applies when actually starting the IDE (not for internal calls like plugin installation or repository import).
+   *
+   * @param args the command-line arguments to launch this IDE, extended in place.
+   */
+  private void addIdeOptions(List<String> args) {
+
+    String variableName = getName().toUpperCase(Locale.ROOT).replace("-", "_") + OPTIONS_ENV_SUFFIX;
+    String options = this.context.getVariables().get(variableName);
+    if ((options != null) && !options.isBlank()) {
+      for (String option : options.trim().split("\\s+")) {
+        args.add(option);
+      }
+    }
   }
 
   @Override
