@@ -1,0 +1,195 @@
+= IDEasy UI Architecture and Structure
+
+This document describes the architecture, structure, and best practices for the IDEasy GUI module.
+It serves as a reference for contributors working on the UI layer.
+
+== Architecture Overview
+
+The IDEasy GUI follows the **Model-View-Controller (MVC)** pattern with a feature-based package organization.
+The architecture emphasizes:
+
+* *Model-View-Controller pattern (MVC)*: separation of concerns into Models, Views, and Controllers
+* *Component Reusability*: Reusable components through a shared component library (e.g.: Console component)
+* *UI Reactivity*: via Observer patterns and property bindings
+* *Maintainability*: through localization, programmatic wiring, and comprehensive testing + Scalability via feature-based organization allowing independent development
+* **Scalability** via feature-based organization allowing independent development
+
+== Observer / Observable Pattern
+
+_**Editor's Note:**_ Currently, the GUI mostly does not use the Observer/Observable pattern via extension of `Observable` or `PropertyChangeSupport`.
+Instead, it relies on JavaFX `Property` bindings for reactivity.
+We should rethink this in future contributions.
+
+IDEasy uses the **Observer/Observable pattern** (and JavaFX `Property` bindings) to propagate changes between Models, Controllers, and Views.
+
+* **Models** act as *Observables*: they hold state and notify observers when state changes
+* **Controllers and Views** act as *Observers*: they react to model changes and update accordingly
+* JavaFX `Property` and `Binding` APIs are used for fine-grained reactivity within the UI layer
+
+=== Implementation Guidelines
+
+* Models extend `Observable` or use `PropertyChangeSupport` / JavaFX `Property` classes
+* Controllers and Views register as observers/listeners on models
+* Use *weak references* where appropriate to prevent memory leaks
+* Prefer JavaFX `Property` bindings for View-Model synchronization (bidirectional where appropriate)
+* Unregister listeners in `dispose()` or `dispose()` methods to avoid memory leaks
+
+=== Example
+
+```java
+// Model
+public class PackageModel extends Observable {
+    private final ListProperty<Package> packages = new SimpleListProperty<>();
+    public ListProperty<Package> packagesProperty() { return packages; }
+    public void addPackage(Package pkg) { packages.add(pkg); setChanged(); notifyObservers(); }
+}
+
+// Controller
+public class PackageController implements Observer {
+    private final PackageModel model;
+    public PackageController(PackageModel model) {
+        this.model = model;
+        model.addObserver(this);
+    }
+    @Override public void update(Observable o, Object arg) {
+        view.updatePackageList(model.getPackages());
+    }
+}
+```
+
+== Package Structure per Feature
+
+**Editors note**: This is not yet fully followed in the codebase, but it is the recommended structure for new features.
+
+The codebase follows a **feature-based package organization** rather than layer-based.
+Each feature owns its MVC triad and related components.
+
+```
+gui/
+├── src/
+│   └── main/
+│       └── java/
+│           └── com/ideasy/gui/
+│               ├── feature/
+│               │   ├── dashboard/
+│               │   │   ├── DashboardController.java
+│               │   │   ├── DashboardModel.java
+│               │   │   ├── DashboardView.java
+│               │   │   └── component/
+│               │   ├── settings/
+│               │   │   ├── SettingsController.java
+│               │   │   ├── SettingsModel.java
+│               │   │   ├── SettingsView.java
+│               │   │   └── component/
+│               │   └── package-manager/
+│               │       ├── PackageManagerController.java
+│               │       ├── PackageManagerModel.java
+│               │       ├── PackageManagerView.java
+│               │       and component/
+│               ├── component/          # Shared generic components (Button, Table, Dialog, etc.)
+│               ├── util/               # UI utilities (bindings, converters, CSS helpers)
+│               └── event/              # Event bus and custom events
+```
+
+=== Benefits
+
+* **High cohesion**: All code for a feature is co-located
+* **Low coupling**: Features communicate via well-defined interfaces/events
+* **Scalability**: New features can be added without touching existing ones
+* **Team autonomy**: Teams can own features end-to-end
+
+== Localization as a Best Practice
+
+All user-facing strings **must** be externalized for localization (i18n).
+This is implemented in code via resource bundles; handled by the `NlsService` class.
+
+* **Resource Bundles**: Each language has its own `messages.properties` (like `messages_de.properties`)
+* **Key Naming**: Use hierarchical keys: `feature.component.action` (e.g., `dashboard.toolbar.refresh`, `settings.dialog.save`)
+* **No Hardcoded Strings**: Never embed user-visible text in Java code or FXML
+* **Interpolation**: Use `MessageFormat` for dynamic values: `{0} packages updated`
+
+=== Implementation
+
+* In FXML layout files, we use the %key pattern for localized strings. (example: `<Label text="%dashboard.title" />`)
+* Controllers load resource bundles via `NlsService.getBundle("feature.dashboard.messages")`
+
+== Controller Injection via Code
+
+Controllers are **primarily injected via Code** to allow Dependency Injection.
+Generally, we want to refrain from injecting a controller only via FXML:
+
+* **Programmatic Wiring**: Controllers are instantiated and wired in Java code
+* We use either:
+. **setController pattern**: When using an FXML loader, we can set the controller instance before loading the FXML.
+. **Factory Pattern**: In this case, defining the controller in the FXML is fine.
+BUT: You need to use a ControllerFactory to create and configure controllers with their dependencies.
+This pattern comes into play when you work with nested layouts that have their own controllers.
+In this case, the parent FXMLloader can provide the dependencies to the child controller via a factory.
+See this thread: https://stackoverflow.com/a/78535631
+
+=== Example: setController
+
+```java
+    FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
+    fxmlLoader.setResources(this.nlsService.getResourceBundle());
+    fxmlLoader.setController(new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()), guiStateManager, this.nlsService));
+    return fxmlLoader.load();
+```
+
+=== Example: ControllerFactroy
+
+In the (potenitally nested) fxml file:
+
+```xml
+<AnchorPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.ideasy.gui.feature.main.MainController">
+    <children>
+        <Label text="%main.title" />
+    </children>
+```
+
+Then in the code:
+
+```java
+    FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
+    fxmlLoader.setResources(this.nlsService.getResourceBundle());
+    fxmlLoader.setController(new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()), guiStateManager, this.nlsService));
+    fxmlLoader.setControllerFactory(clazz -> {
+      if (clazz == ConsoleController.class) {
+        return new ConsoleController(this.nlsService);
+      }
+      return null;
+    });
+    return fxmlLoader.load();
+```
+
+== Testing Documentation
+
+Testing follows a clear separation between **logic tests** (unit tests) and **interaction tests** (UI tests).
+In this documentation, we focus on the UI testing strategy.
+
+=== Interaction Testing (UI Tests)
+
+* **Scope**: Test view behavior and user interactions
+* **Framework**: TestFX
+* **Focus**: Event handling, binding correctness, UI state changes
+* **Headless Testing: All tests should extend the `HeadlessApplication` class to enable headless testing.
+Otherwise tests will fail on the GitHub CI pipeline.**
+
+==== Example
+
+```java
+  /**
+   * Tests that the workspace {@link ComboBox} is enabled when a project is selected.
+   */
+  @Test
+  public void testWorkspaceComboboxEnabledEnabledWhenProjectSelected() {
+
+    // assert that a project is selected
+    interact(() -> selectedProject.getSelectionModel().select("project-1"));
+
+    // assert all IDE open buttons are disabled
+    assertThat(selectedWorkspace.isDisabled())
+        .as("selectedWorkspace ComboBox should be enabled when a project is selected")
+        .isFalse();
+  }
+```
