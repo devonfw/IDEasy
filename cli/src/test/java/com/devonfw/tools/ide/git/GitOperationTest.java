@@ -214,6 +214,61 @@ class GitOperationTest extends AbstractIdeContextTest {
     Mockito.verify(mock).pullOrClone(GIT_URL, repo);
   }
 
+  /**
+   * Verifies that existing URL metadata is reused when Git is not available but the local URL repository already exists.
+   */
+  @Test
+  void testUpdateUrlsRepositoryUsesExistingUrlsWithoutGit() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    GitContext mock = Mockito.mock(GitContext.class);
+    context.setGitContext(mock);
+
+    Mockito.when(mock.findGit()).thenReturn(null);
+
+    Path urlsPath = context.getUrlsPath();
+    context.getFileAccess().mkdirs(urlsPath);
+
+    // act
+    context.updateUrlsRepository();
+
+    // assert
+    assertThat(context).logAtDebug()
+        .hasMessage("Git is not available. Using existing URL metadata without updating it.");
+
+    Mockito.verify(mock).findGit();
+    Mockito.verify(mock, Mockito.never()).findGitRequired();
+    Mockito.verify(mock, Mockito.never())
+        .pullOrCloneAndResetIfNeeded(Mockito.any(), Mockito.any(), Mockito.any());
+  }
+
+  /**
+   * Verifies that Git is required when Git is not available and no local URL repository exists.
+   */
+  @Test
+  void testUpdateUrlsRepositoryRequiresGitWithoutExistingUrls() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    GitContext mock = Mockito.mock(GitContext.class);
+    context.setGitContext(mock);
+
+    Mockito.when(mock.findGit()).thenReturn(null);
+
+    Path urlsPath = context.getUrlsPath();
+    context.getFileAccess().delete(urlsPath);
+
+    // act
+    context.updateUrlsRepository();
+
+    // assert
+    Mockito.verify(mock).findGit();
+    Mockito.verify(mock).findGitRequired();
+    Mockito.verify(mock, Mockito.never())
+        .pullOrCloneAndResetIfNeeded(Mockito.any(), Mockito.any(), Mockito.any());
+  }
+
   private Path createFakeGitRepo(Path dir, String file) throws Exception {
 
     return createFakeGitRepo(dir, file, false);

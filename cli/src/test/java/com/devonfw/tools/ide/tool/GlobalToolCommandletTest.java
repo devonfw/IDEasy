@@ -199,4 +199,84 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
         "sudo apt -y autoremove --purge mytool",
         "sudo rm -f /etc/apt/sources.list.d/mytool.list");
   }
+
+  /**
+   * Tests that version resolution is skipped on Linux when native packages are available.
+   */
+  @Test
+  void testRequiresVersionResolutionReturnsFalseForNativePackageOnLinux() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    PackageManagedToolCommandlet commandlet = new PackageManagedToolCommandlet(context);
+
+    // act + assert
+    assertThat(commandlet.requiresVersionResolution()).isFalse();
+  }
+
+  /**
+   * Tests that version resolution is still required on Windows.
+   */
+  @Test
+  void testRequiresVersionResolutionReturnsTrueOnWindows() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
+    PackageManagedToolCommandlet commandlet = new PackageManagedToolCommandlet(context);
+
+    // act + assert
+    assertThat(commandlet.requiresVersionResolution()).isTrue();
+  }
+
+  /**
+   * Tests that version resolution is required on Linux when no native packages are configured.
+   */
+  @Test
+  void testRequiresVersionResolutionReturnsTrueWithoutNativePackagesOnLinux() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    AsyncInstallerToolCommandlet commandlet = new AsyncInstallerToolCommandlet(context);
+
+    // act + assert
+    assertThat(commandlet.requiresVersionResolution()).isTrue();
+  }
+
+  /**
+   * Tests that global tools have no installer arguments by default.
+   */
+  @Test
+  void testGetInstallerArgumentsReturnsEmptyListByDefault() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    AsyncInstallerToolCommandlet commandlet = new AsyncInstallerToolCommandlet(context);
+
+    // act + assert
+    assertThat(commandlet.getInstallerArguments()).isEmpty();
+  }
+
+  /**
+   * Tests that native package install commands can be created without a resolved version.
+   */
+  @Test
+  void testGetInstallPackageManagerCommandsWithoutResolvedVersion() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    PackageManagedToolCommandlet commandlet = new PackageManagedToolCommandlet(context);
+
+    // act
+    List<PackageManagerCommand> commands =
+        commandlet.getInstallPackageManagerCommands(null);
+
+    // assert
+    assertThat(commands).hasSize(1);
+    assertThat(commands.getFirst().packageManager())
+        .isEqualTo(NativePackageManager.APT);
+  }
 }
