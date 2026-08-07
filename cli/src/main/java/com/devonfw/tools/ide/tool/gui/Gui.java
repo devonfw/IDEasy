@@ -50,6 +50,25 @@ public class Gui extends Commandlet {
     return false;
   }
 
+  /**
+   * Registers the {@link ToolInstallation#binDir() bin directory} of the given Maven installation in the {@link IdeContext#getPath() SystemPath} so that the
+   * Maven binary can be resolved.
+   * <p>
+   * This only applies without {@link IdeContext#getIdeHome() IDE_HOME}, where there is no project software folder to resolve Maven from. Inside a project the
+   * tool map is already filled from that folder, and since this commandlet installs the latest Maven rather than the configured one, registering it would
+   * override the version configured for the project.
+   *
+   * @param mvn the {@link Mvn} commandlet providing the tool name to register.
+   * @param mvnInstallation the {@link ToolInstallation} of Maven.
+   */
+  void registerMvnBinDir(Mvn mvn, ToolInstallation mvnInstallation) {
+
+    // The null check mirrors LocalToolCommandlet, since a null bin directory would end up in the tool map and break the next binary lookup.
+    if ((this.context.getIdeHome() == null) && (mvnInstallation.binDir() != null)) {
+      this.context.getPath().setPath(mvn.getName(), mvnInstallation.binDir());
+    }
+  }
+
   @Override
   protected void doRun() {
 
@@ -70,12 +89,7 @@ public class Gui extends Commandlet {
     ToolInstallation mvnInstallation = mvn.installTool(mavenToolInstallRequest);
     ToolInstallation javaInstallation = java.installTool(javaToolInstallRequest);
 
-    // Without IDE_HOME there is no project software folder, so SystemPath cannot resolve the mvn binary on its own.
-    // Registering the bin directory of the installation makes it findable, analogous to what LocalToolCommandlet does after a fresh installation.
-    // The null check mirrors LocalToolCommandlet, since a null bin directory would end up in the tool map and break the next binary lookup.
-    if (mvnInstallation.binDir() != null) {
-      this.context.getPath().setPath(mvn.getName(), mvnInstallation.binDir());
-    }
+    registerMvnBinDir(mvn, mvnInstallation);
 
     LOG.debug("Starting GUI via commandlet");
 
