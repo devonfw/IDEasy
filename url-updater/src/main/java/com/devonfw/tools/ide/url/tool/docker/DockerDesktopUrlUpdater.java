@@ -13,10 +13,10 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
 
-  private final static String DOWNLOAD_BASE_URL = "https://desktop.docker.com";
-  private final static String VERSION_BASE_URL = "https://docs.docker.com";
+  private static final String DOWNLOAD_BASE_URL = "https://desktop.docker.com";
+  private static final String VERSION_BASE_URL = "https://docs.docker.com";
 
-  private final static Set<VersionIdentifier> WINDOWS_ONLY_VERSIONS = Set.of(VersionIdentifier.of("4.16.3"),
+  private static final Set<VersionIdentifier> WINDOWS_ONLY_VERSIONS = Set.of(VersionIdentifier.of("4.16.3"),
       VersionIdentifier.of("4.4.3"), VersionIdentifier.of("4.4.4"), VersionIdentifier.of("4.17.1"),
       VersionIdentifier.of("4.5.1"));
 
