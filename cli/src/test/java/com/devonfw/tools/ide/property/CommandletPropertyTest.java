@@ -2,8 +2,6 @@ package com.devonfw.tools.ide.property;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.HashSet;
-
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
@@ -28,7 +26,7 @@ class CommandletPropertyTest {
     IdeContext context = new IdeTestContext();
     String[] expectedCandidates = { "help", "helm" };
     String input = "he";
-    CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context, new HashSet<>());
+    CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context);
     CommandletProperty cmdProp = new CommandletProperty("", false, "");
 
     // act

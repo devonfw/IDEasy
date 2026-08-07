@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.HashSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +35,16 @@ public class CompletionCandidateCollectorDefault implements CompletionCandidateC
    * The constructor.
    *
    * @param context the {@link IdeContext}.
+   */
+  public CompletionCandidateCollectorDefault(IdeContext context) {
+    this(context, new HashSet<>());
+  }
+   
+  /**
+   * The constructor.
+   *
+   * @param context the {@link IdeContext}.
+   * @param alreadyProvided the {@link Set} of arguments already provided before the completion argument.
    */
   public CompletionCandidateCollectorDefault(IdeContext context, Set<String> alreadyProvided) {
 

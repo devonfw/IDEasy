@@ -3,8 +3,6 @@ package com.devonfw.tools.ide.property;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.util.HashSet;
-
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
@@ -47,7 +45,7 @@ class EnumPropertyTest {
     IdeContext context = new IdeTestContext();
     String[] expectedCandidates = { "elementzero", "elementone", "elementtwo" };
     String input = "ele";
-    CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context, new HashSet<>());
+    CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context);
 
     EnumProperty<TestEnum> enumProp = new EnumProperty<>("", false, "", TestEnum.class);
     enumProp.completeValue(input, context, new ContextCommandlet(), collector);

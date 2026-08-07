@@ -1,7 +1,5 @@
 package com.devonfw.tools.ide.completion;
 
-import java.util.HashSet;
-
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
@@ -30,7 +28,7 @@ class CompletionCandidateCollectorDefaultTest extends AbstractIdeContextTest {
 
     VersionProperty versionProperty = new VersionProperty("", false, "version");
     IdeContext context = new IdeTestContext();
-    CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context, new HashSet<>());
+    CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context);
 
     // act
     int matches = collector.addAllMatches(input, sortedCandidates, versionProperty, new VersionCommandlet(context));
@@ -49,7 +47,7 @@ class CompletionCandidateCollectorDefaultTest extends AbstractIdeContextTest {
 
     VersionProperty versionProperty = new VersionProperty("", false, "version");
     IdeContext context = new IdeTestContext();
-    CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context, new HashSet<>());
+    CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context);
 
     // act
     int matches = collector.addAllMatches(input, sortedCandidates, versionProperty, new VersionCommandlet(context));
@@ -69,7 +67,7 @@ class CompletionCandidateCollectorDefaultTest extends AbstractIdeContextTest {
 
     VersionProperty versionProperty = new VersionProperty("", false, "version");
     IdeContext context = new IdeTestContext();
-    CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context, new HashSet<>());
+    CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context);
 
     // act
     collector.addAllMatches(input, sortedCandidates, versionProperty, new VersionCommandlet(context));

@@ -2,8 +2,6 @@ package com.devonfw.tools.ide.property;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.HashSet;
-
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
@@ -37,7 +35,7 @@ class VersionPropertyTest {
   @Test
   void testCompleteValueUnfitCommandlet() {
     IdeContext context = new IdeTestContext();
-    CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context, new HashSet<>());
+    CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context);
     VersionProperty versionProp = new VersionProperty("", false, "");
 
     // no version completion for context commandlet
@@ -54,7 +52,7 @@ class VersionPropertyTest {
     IdeContext context = new IdeTestContext();
     String anyVersion = "*";
     String anyVersionAfter2 = "2.*";
-    CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context, new HashSet<>());
+    CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context);
     VersionProperty versionProp = new VersionProperty("", false, "");
     InstallCommandlet installCmd = new InstallCommandlet(context);
     installCmd.tool.setValueAsString("mvn", context);
@@ -62,7 +60,7 @@ class VersionPropertyTest {
     versionProp.completeValue(anyVersion, context, installCmd, collector);
     assertThat(collector.getCandidates().stream().map(CompletionCandidate::text)).containsExactly(anyVersion);
 
-    collector = new CompletionCandidateCollectorDefault(context, new HashSet<>());
+    collector = new CompletionCandidateCollectorDefault(context);
     versionProp.completeValue(anyVersionAfter2, context, installCmd, collector);
     assertThat(collector.getCandidates().stream().map(CompletionCandidate::text)).containsExactly(anyVersionAfter2);
   }
