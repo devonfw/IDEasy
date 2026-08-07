@@ -10,7 +10,7 @@
 
 Please add conscise, understandable instructions on how a reviewer can test/verify the functionality of your contribution here:
 
-1. 
+1.
 
 ---
 
@@ -21,8 +21,8 @@ our [DoD](https://github.com/devonfw/IDEasy/blob/main/documentation/contributing
 
 - [ ] When running `mvn clean test` locally all tests pass and build is successful
 - [ ] PR title is of the form `#«issue-id»: «brief summary»` (e.g. `#921: fixed setup.bat`). If no issue ID exists, title only.
-- [ ] PR top-level comment summarizes what has been done and contains link to addressed issue(s)
-- [ ] PR and issue(s) have suitable labels
+- [ ] PR top-level comment summarizes what has been done and contains link to addressed issue (s)
+- [ ] PR and issue (s) have suitable labels
 - [ ] Issue is set to `In Progress` and assigned to you *or* there is no issue (might happen for very small PRs)
 - [ ] You followed all [coding conventions](https://github.com/devonfw/IDEasy/blob/main/documentation/coding-conventions.adoc)
 - [ ] You have added the issue implemented by your PR in [CHANGELOG.adoc](https://github.com/devonfw/IDEasy/blob/main/CHANGELOG.adoc) unless issue is labeled
@@ -42,3 +42,9 @@ Have you added a new `«tool»` as commandlet? There are the following additiona
 - [ ] The variables `«TOOL»_VERSION` and `«TOOL»_EDITION` are honored by your commandlet
 - [ ] The new commandlet is tested on all platforms it is available for or tested on all platforms that are in scope of the linked issue
 
+### Checklist for UI contributions
+
+Did you make user-facing changes to the UI? There are the following additional checks:
+
+- [ ] Before submitting your PR, you created a design in Figma and it was approved by the team
+- [ ] You have added screenshots of the UI changes to the PR description
