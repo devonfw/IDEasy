@@ -3,6 +3,7 @@ package com.devonfw.ide.gui;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.ResourceBundle;
 
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
@@ -42,6 +43,9 @@ public class CommandletController {
 
   @FXML
   private Button runButton;
+
+  @FXML
+  private ResourceBundle resources;
 
   /// @param context
   public CommandletController(IdeContext context, Runnable goBackCallback) {
@@ -133,7 +137,7 @@ public class CommandletController {
 
     execution.setOnSucceeded(event -> {
       this.runButton.setDisable(false);
-      new IdeDialog(AlertType.INFORMATION, "Commandlet executed successfully.").showAndWait();
+      new IdeDialog(AlertType.INFORMATION, this.resources.getString("executionSucceeded")).showAndWait();
     });
 
     execution.setOnFailed(event -> {
@@ -164,12 +168,12 @@ public class CommandletController {
     }
 
     if (cmd.isIdeHomeRequired() && this.context.getIdeHome() == null) {
-      new IdeDialog(IdeDialog.AlertType.ERROR, "Not inside an IDEasy project!").showAndWait();
+      new IdeDialog(IdeDialog.AlertType.ERROR, this.resources.getString("noIdeHome")).showAndWait();
       return false;
     }
 
     if (cmd.isIdeRootRequired() && this.context.getIdeRoot() == null) {
-      new IdeDialog(IdeDialog.AlertType.ERROR, "IDEasy root not found!").showAndWait();
+      new IdeDialog(IdeDialog.AlertType.ERROR, this.resources.getString("noIdeRoot")).showAndWait();
       return false;
     }
 
@@ -178,7 +182,7 @@ public class CommandletController {
       if (cmd instanceof EnvironmentCommandlet) {
         return false;
       }
-      new IdeDialog(IdeDialog.AlertType.ERROR, "License agreement not accepted.").showAndWait();
+      new IdeDialog(IdeDialog.AlertType.ERROR, this.resources.getString("licenseNotAccepted")).showAndWait();
       return false;
     }
 
