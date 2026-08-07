@@ -17,10 +17,13 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1784[#1784]: GUI now supports displaying progress bars
 * https://github.com/devonfw/IDEasy/issues/1917[#1917]: Allow the creation of a desktop shortcut for the GUI
 * https://github.com/devonfw/IDEasy/issues/2134[#2134]: Add auto-completion for icd command
+* https://github.com/devonfw/IDEasy/issues/1953[#1953]: Implement base functionality of cleanup commandlet
 * https://github.com/devonfw/IDEAsy/issues/2181[#2181]: Merged the VsCode and VsCodium plugin folder and added excluded-editions as an option for plugins
 * https://github.com/devonfw/IDEasy/issues/2145[#2145]: Improve documentation on symlink regarding ide ln
 * https://github.com/devonfw/IDEasy/issues/2235[#2235]: Language flag in cli dosn't take effect in some terminals
 * https://github.com/devonfw/IDEasy/issues/821[#821]: Made the `ide` prefix in `ide shell` part of the editable input so it can be removed for non-IDEasy commands
+* https://github.com/devonfw/IDEasy/issues/2136[#2136]: Add Support for Ruby URL Updater for Linux and macOS
+* https://github.com/devonfw/IDEasy/issues/825[#825]: Add commandlet for GC Log Analyzer
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/48?closed=1[milestone 2026.08.001].
 
