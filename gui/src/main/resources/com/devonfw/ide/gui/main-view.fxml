@@ -206,13 +206,12 @@
             </HBox>
           </children>
           <padding>
-              <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
-            </padding>
-          </VBox>
-        </children>
-      </StackPane>
-    </center>
-  </BorderPane>
+            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+          </padding>
+        </VBox>
+      </children>
+    </StackPane>
+  </center>
 
   <bottom>
     <HBox fx:id="bottomPanelContainer"
