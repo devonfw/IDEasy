@@ -95,7 +95,8 @@ public class AppBaseTest extends HeadlessApplicationTest {
   @BeforeEach
   protected void resetTaskManager() {
 
-    taskManager.getTasks().clear();
+    taskManager.clearTasks();
+    waitForFxEvents();
   }
 
   /**
@@ -174,7 +175,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
     assertThat(taskProgressBar.isVisible()).as("Task progress bar should not be visible").isFalse();
 
     //...and back to the default state:
-    taskManager.getTasks().clear();
+    taskManager.clearTasks();
     waitForFxEvents();
 
     assertThat(statusText.getText()).isEqualTo("IDEasy is ready.");
@@ -187,6 +188,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
     ProgressBarTask task2 = new ProgressBarTask(taskManager, "task-2", "Test Task");
 
     taskManager.addTask(task1);
+    waitForFxEvents();
     taskManager.addTask(task2);
     waitForFxEvents();
 
