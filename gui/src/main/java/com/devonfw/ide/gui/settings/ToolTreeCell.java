@@ -2,6 +2,7 @@ package com.devonfw.ide.gui.settings;
 
 import java.util.List;
 import java.util.function.Consumer;
+
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.geometry.Pos;

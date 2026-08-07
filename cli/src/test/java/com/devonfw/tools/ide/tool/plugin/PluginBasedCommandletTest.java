@@ -113,7 +113,7 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
   @Test
   void testCreatePlugin_createsPropertiesFileWithActiveTrue() throws IOException {
 
-    IdeTestContext localContext = newContext(PROJECT_BASIC, null, false);
+    IdeTestContext localContext = newContext(PROJECT_BASIC, null, true);
     ExamplePluginBasedCommandlet commandlet = new ExamplePluginBasedCommandlet(localContext, TOOL, null);
 
     ToolPluginDescriptor result = commandlet.createPlugin("create-basic-plugin", "com.example.basic", null, null);
@@ -137,7 +137,7 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
   @Test
   void testCreatePlugin_writesUrlAndTagsWhenProvided() throws IOException {
 
-    IdeTestContext localContext = newContext(PROJECT_BASIC, null, false);
+    IdeTestContext localContext = newContext(PROJECT_BASIC, null, true);
     ExamplePluginBasedCommandlet commandlet = new ExamplePluginBasedCommandlet(localContext, TOOL, null);
 
     commandlet.createPlugin("create-full-plugin", "com.example.full", "https://example.com/update", "java,ide");

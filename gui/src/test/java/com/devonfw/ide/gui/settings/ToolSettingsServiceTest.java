@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.ide.gui.context.IdeGuiContext;
+import com.devonfw.ide.gui.context.TaskManager;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.context.IdeTestContext;
@@ -628,13 +629,14 @@ class ToolSettingsServiceTest extends AbstractIdeContextTest {
   private IdeGuiContext createGuiContext(Path tempDir, String idePropertiesContent) throws IOException {
 
     Path ideHome = tempDir.resolve("project");
+    TaskManager taskManager = new TaskManager();
     Files.createDirectories(ideHome.resolve("settings"));
     Files.createDirectories(ideHome.resolve("workspaces").resolve("main"));
     if (idePropertiesContent != null) {
       Files.writeString(ideHome.resolve("settings").resolve("ide.properties"), idePropertiesContent);
     }
     IdeStartContextImpl startContext = new IdeStartContextImpl(IdeLogLevel.WARNING, new IdeLogListenerBuffer());
-    return new IdeGuiContext(startContext, ideHome.resolve("workspaces").resolve("main"));
+    return new IdeGuiContext(startContext, ideHome.resolve("workspaces").resolve("main"), taskManager);
   }
 
   private String readSettingsFile(Path tempDir) throws IOException {

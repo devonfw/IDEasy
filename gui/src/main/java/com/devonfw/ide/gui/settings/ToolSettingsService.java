@@ -333,4 +333,3 @@ public final class ToolSettingsService {
   }
 
 }
-
