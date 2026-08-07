@@ -80,12 +80,13 @@ public class PgAdmin extends GlobalToolCommandlet {
 
   @Override
   protected Path getInstallationPath(String edition, VersionIdentifier resolvedVersion) {
-    if (super.getInstallationPath(edition, resolvedVersion) == null) {
+    Path path = super.getInstallationPath(edition, resolvedVersion);
+    if (path == null) {
       if (this.context.getSystemInfo().isWindows()) {
         return getExecutableFolderFromWindowsRegistry();
       }
     }
-    return null;
+    return path;
   }
 
   /**
