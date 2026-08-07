@@ -53,7 +53,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
 
   private static final String BASH_CODE_SOURCE_FUNCTIONS = "source \"$IDE_ROOT/_ide/installation/functions\"";
 
-  private static final String POWERSHELL_CODE_SOURCE_FUNCTIONS =
+  public static final String POWERSHELL_CODE_SOURCE_FUNCTIONS =
       ". \"$env:IDE_ROOT\\_ide\\installation\\functions.ps1\"";
 
   /** The {@link #getName() tool name}. */
