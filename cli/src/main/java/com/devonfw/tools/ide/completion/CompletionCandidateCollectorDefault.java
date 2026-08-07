@@ -39,7 +39,7 @@ public class CompletionCandidateCollectorDefault implements CompletionCandidateC
   public CompletionCandidateCollectorDefault(IdeContext context) {
     this(context, new HashSet<>());
   }
-   
+
   /**
    * The constructor.
    *
