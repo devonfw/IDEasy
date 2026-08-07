@@ -59,6 +59,7 @@ The column `inclusion` indicates the way the component is included:
 |https://nodejs.org/[Node.js] |Default Setup|https://raw.githubusercontent.com/nodejs/node/master/LICENSE[License]
 |https://www.npmjs.com/[NPM] |Default Setup|https://github.com/npm/cli/blob/latest/LICENSE[Artistic License 2.0] (https://www.npmjs.com/policies/terms[Terms])
 |https://go.dev[GO]|Optional|https://go.dev/LICENSE[BSD 3-Clause]
+|https://docs.azul.com/gc-log-analyzer/[GC Log Analyzer]|Optional|https://opensource.org/license/BSD-3-clause[BSD 3-Clause]
 |https://github.com/github/copilot-cli[GitHub Copilot CLI]|Optional|https://github.com/github/copilot-cli/blob/main/LICENSE.md[Proprietary]
 |https://github.com/anthropics/claude-code/tree/main[Claude Code CLI]|Optional|https://github.com/anthropics/claude-code/blob/main/LICENSE.md[Proprietary]
 |https://code.visualstudio.com/[VS Code]|Optional|https://github.com/Microsoft/vscode/blob/master/LICENSE.txt[MIT] (https://code.visualstudio.com/License/[Terms])
@@ -118,6 +119,7 @@ The column `inclusion` indicates the way the component is included:
 |https://developer.konghq.com/inso-cli |Optional|https://github.com/Kong/insomnia/blob/develop/LICENSE[Apache 2.0]
 |https://www.rust-lang.org/[Rust] |Optional|https://www.rust-lang.org/policies/licenses[MIT and Apache 2.0]
 |https://visualstudio.microsoft.com/visual-cpp-build-tools/[MSVC Build Tools] |Optional|https://visualstudio.microsoft.com/license-terms/vs2022-ga-community/[Microsoft Software License Terms]
+|https://docs.astral.sh/ruff[ruff] |Optional|https://github.com/astral-sh/ruff/blob/main/LICENSE[MIT License]
 |===
 
 == Apache Software License - Version 2.0
