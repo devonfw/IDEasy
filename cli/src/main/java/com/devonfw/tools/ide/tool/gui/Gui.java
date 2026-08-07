@@ -72,7 +72,10 @@ public class Gui extends Commandlet {
 
     // Without IDE_HOME there is no project software folder, so SystemPath cannot resolve the mvn binary on its own.
     // Registering the bin directory of the installation makes it findable, analogous to what LocalToolCommandlet does after a fresh installation.
-    this.context.getPath().setPath(mvn.getName(), mvnInstallation.binDir());
+    // The null check mirrors LocalToolCommandlet, since a null bin directory would end up in the tool map and break the next binary lookup.
+    if (mvnInstallation.binDir() != null) {
+      this.context.getPath().setPath(mvn.getName(), mvnInstallation.binDir());
+    }
 
     LOG.debug("Starting GUI via commandlet");
 
