@@ -14,6 +14,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
@@ -99,7 +100,9 @@ class AndroidStudioTest extends AbstractIdeContextTest {
     androidStudio.run();
 
     // assert
-    assertThat(context.getWorkspacePath().resolve(".studio.vmoptions"))
+    Path studioVmOptions = context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("android-studio").resolve(context.getWorkspaceName())
+        .resolve(".studio.vmoptions");
+    assertThat(studioVmOptions)
         .exists()
         .hasContent("""
             -Xms256m
