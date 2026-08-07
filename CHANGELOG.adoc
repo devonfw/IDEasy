@@ -6,6 +6,8 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1965[#1965]: Improve dependent installation, fixed npm and pip-based installation duplication
+* https://github.com/devonfw/IDEasy/issues/2100[#2100]: Fix Python not available for Mac x64
 * https://github.com/devonfw/IDEasy/issues/2187[#2187]: Start SoapUI commandlet in background
 * https://github.com/devonfw/IDEasy/issues/2189[#2189]: Integrate Ruff
 * https://github.com/devonfw/IDEasy/issues/2126[#2126]: Fix language selection dropdown

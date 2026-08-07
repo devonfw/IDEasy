@@ -32,6 +32,8 @@ public final class PackageManagerRequest {
 
   private ProcessMode processMode;
 
+  private ToolInstallRequest toolInstallRequest;
+
   /**
    * The constructor.
    *
@@ -163,6 +165,28 @@ public final class PackageManagerRequest {
       throw new IllegalStateException();
     }
     this.processMode = processMode;
+    return this;
+  }
+
+  /**
+   * @return the {@link ToolInstallRequest}.
+   */
+  public ToolInstallRequest getToolInstallRequest() {
+    return this.toolInstallRequest;
+  }
+
+  /**
+   * @param toolInstallRequest new value of {@link #getToolInstallRequest()} ToolInstallRequest()}.
+   * @return this {@link PackageManagerRequest} for fluent API calls.
+   */
+  public PackageManagerRequest setToolInstallRequest(
+      ToolInstallRequest toolInstallRequest) {
+
+    if (this.toolInstallRequest != null) {
+      throw new IllegalStateException();
+    }
+
+    this.toolInstallRequest = toolInstallRequest;
     return this;
   }
 
