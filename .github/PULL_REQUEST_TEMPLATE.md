@@ -20,13 +20,14 @@ Make sure everything is checked before merging this PR. For further info please 
 our [DoD](https://github.com/devonfw/IDEasy/blob/main/documentation/contributing/DoD.adoc).
 
 - [ ] When running `mvn clean test` locally all tests pass and build is successful
-- [ ] PR title is of the form `#«issue-id»: «brief summary»` (e.g. `#921: fixed setup.bat`). If no issue ID exists, title only.
-- [ ] PR top-level comment summarizes what has been done and contains link to addressed issue(s)
+- [ ] PR title is of the form `#«issue-id»: «brief summary»` (e.g. `#921: fixed setup.bat` and not `feature/921 fixed setup.bat`). If no issue ID exists, title only.
+- [ ] PR top-level comment summaries what has been done and contains link to addressed issue(s)
 - [ ] PR and issue(s) have suitable labels
 - [ ] Issue is set to `In Progress` and assigned to you *or* there is no issue (might happen for very small PRs)
 - [ ] You followed all [coding conventions](https://github.com/devonfw/IDEasy/blob/main/documentation/coding-conventions.adoc)
-- [ ] You have added the issue implemented by your PR in [CHANGELOG.adoc](https://github.com/devonfw/IDEasy/blob/main/CHANGELOG.adoc) unless issue is labeled
+- [ ] You have added the issue implemented by your PR in [CHANGELOG.adoc](https://github.com/devonfw/IDEasy/blob/main/CHANGELOG.adoc) unless issue is labelled
   with `internal`
+- [ ] You have not changed any dependency in `pom.xml` files or otherwise if runtime dependencies changed, you have updated our [LICENSE.asciidoc](https://github.com/devonfw/IDEasy/blob/main/documentation/LICENSE.adoc)
 - [ ] You have formulated clear instructions on how to test your contribution under "Testing instructions"
 
 ### Checklist for tool commandlets
