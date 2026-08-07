@@ -21,8 +21,8 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
+import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.context.IdeGuiContext;
-import com.devonfw.ide.gui.context.IdeGuiStateManager;
 import com.devonfw.ide.gui.nls.NlsService;
 
 /**
@@ -46,6 +46,7 @@ public class ToolSettingsController {
   final Set<String> validationErrors = new HashSet<>();
 
   private final NlsService nlsService;
+  private final GuiStateManager guiStateManager;
   @FXML
   private Button addPluginButton;
 
@@ -56,8 +57,9 @@ public class ToolSettingsController {
    *
    * @param nlsService the injected {@link NlsService} used for translations.
    */
-  public ToolSettingsController(NlsService nlsService) {
+  public ToolSettingsController(NlsService nlsService, GuiStateManager guiStateManager) {
     this.nlsService = nlsService;
+    this.guiStateManager = guiStateManager;
   }
 
   NlsService getNlsService() {
@@ -67,7 +69,7 @@ public class ToolSettingsController {
 
   @FXML
   private void initialize() {
-    currentContext = IdeGuiStateManager.getInstance().getCurrentContext();
+    currentContext = guiStateManager.getCurrentContext();
 
     updateButtonStates();
     addPluginButton.setDisable(true);

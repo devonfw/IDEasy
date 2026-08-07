@@ -124,7 +124,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     }
     this.context.getFileAccess().writeProperties(props, pluginFile);
     this.plugins = null;
-    return new ToolPluginDescriptor(id, name, url, null, true, Tag.parseCsv(tags));
+    return new ToolPluginDescriptor(id, name, url, null, true, Tag.parseCsv(tags), Set.of());
   }
 
   /**

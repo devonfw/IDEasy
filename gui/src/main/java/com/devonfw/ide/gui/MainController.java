@@ -7,14 +7,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert.AlertType;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -89,8 +88,6 @@ public class MainController {
   private final String ideRootPath;
   private Path projectValue;
   private Path workspaceValue;
-
-  private final String directoryPath;
 
   private final Map<String, Locale> languageMap;
 
@@ -276,7 +273,7 @@ public class MainController {
       // Pre-warm ide-urls git repo in background so the first open is fast
       Thread preWarm = new Thread(() -> {
         try {
-          IdeGuiStateManager.getInstance().getCurrentContext().getUrls();
+          guiStateManager.getCurrentContext().getUrls();
         } catch (Exception ignored) {
         }
       });
@@ -322,7 +319,7 @@ public class MainController {
   private void loadToolConfigContent() {
 
     try {
-      ToolSettingsController controller = new ToolSettingsController(nlsService);
+      ToolSettingsController controller = new ToolSettingsController(nlsService, guiStateManager);
       FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/devonfw/ide/gui/tools-config.fxml"));
       loader.setController(controller);
       loader.setResources(nlsService.getResourceBundle());
