@@ -48,17 +48,10 @@ public class ProjectManager {
    */
   public List<String> getProjectNames() {
 
-    try (Stream<Path> subPaths = Files.list(ideRootDirectory)) {
-      return subPaths
-          .filter(Files::isDirectory)
-          .map(Path::getFileName)
-          .map(Path::toString)
-          .filter(name -> !name.equals(IdeContext.FOLDER_UNDERSCORE_IDE) && Files.exists(ideRootDirectory.resolve(name).resolve("workspaces")))
-          .toList();
-
-    } catch (IOException e) {
-      throw new RuntimeException("Failed to read project list!", e);
-    }
+    return IdeContext.findProjects(this.ideRootDirectory).stream()
+        .map(Path::getFileName)
+        .map(Path::toString)
+        .toList();
   }
 
   /**
