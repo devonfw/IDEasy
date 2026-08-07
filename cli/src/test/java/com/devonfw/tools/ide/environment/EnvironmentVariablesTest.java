@@ -131,8 +131,8 @@ class EnvironmentVariablesTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test that IDEasy's {@code -s} and {@code -Dsettings.security=} arguments override any user-provided ones 
-   * and that unrelated user arguments are correctly appended.
+   * Test that IDEasy's {@code -s} and {@code -Dsettings.security=} arguments override any user-provided ones and that unrelated user arguments are correctly
+   * appended.
    */
   @Test
   void testMergeMavenArgsWithDefault() {
@@ -153,5 +153,47 @@ class EnvironmentVariablesTest extends AbstractIdeContextTest {
         .isEqualTo("-Xmx8000m -s invalid/settings.xml");
     assertThat(AbstractEnvironmentVariables.mergeWithDefault("-Xmx8000m -s invalid/settings.xml", null))
         .isEqualTo("-Xmx8000m -s invalid/settings.xml");
+  }
+
+  /**
+   * Test of {@link EnvironmentVariables#resolve(String, Object)} with interactive ask expressions ({@code $[ask:VARIABLE]} / {@code $[secret:VARIABLE]}). The
+   * user is prompted for undefined variables and the entered values are persisted so the user is not asked again.
+   */
+  @Test
+  void testResolveAskExpressionPromptsAndPersists() {
+
+    // arrange
+    String path = "project/workspaces/foo-test/my-git-repo";
+    IdeTestContext context = newContext(ENVIRONMENT_PROJECT, path, true);
+    context.setAnswers("https://ai.example.com", "my-secret-token");
+    EnvironmentVariables variables = context.getVariables();
+    String template = "url=$[ask:AI_BACKEND_URL] token=$[secret:AI_API_KEY]";
+
+    // act
+    String resolved = variables.resolve(template, "test-template", false);
+
+    // assert
+    assertThat(resolved).isEqualTo("url=https://ai.example.com token=my-secret-token");
+    // resolving again must not prompt (no answers left) but reuse the persisted values
+    assertThat(variables.resolve(template, "test-template", false)).isEqualTo("url=https://ai.example.com token=my-secret-token");
+  }
+
+  /**
+   * Test of {@link EnvironmentVariables#resolve(String, Object)} with an ask expression for a variable that is already defined - no interaction must happen.
+   */
+  @Test
+  void testResolveAskExpressionUsesDefinedVariableWithoutInteraction() {
+
+    // arrange
+    String path = "project/workspaces/foo-test/my-git-repo";
+    IdeTestContext context = newContext(ENVIRONMENT_PROJECT, path, false);
+    // no answers are set - any interaction would fail with "End of answers reached!"
+    EnvironmentVariables variables = context.getVariables();
+
+    // act
+    String resolved = variables.resolve("$[ask:TEST_ARGS4]", "test-template", true);
+
+    // assert
+    assertThat(resolved).isEqualTo(variables.get("TEST_ARGS4"));
   }
 }

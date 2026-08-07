@@ -30,6 +30,7 @@ The full list of changes for this release can be found in https://github.com/dev
 == 2026.07.002
 
 Release with new features and bugfixes:
+* https://github.com/devonfw/IDEasy/issues/2165[#2165]: Interactive template variables to ask the user for values at apply time
 
 * https://github.com/devonfw/IDEasy/issues/2102[#2102]: IDE_ROOT environment variable is not available to ideasy.exe during MSI installation
 * https://github.com/devonfw/IDEasy/issues/1594[#1594]: Add release commandlet

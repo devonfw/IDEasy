@@ -1080,6 +1080,36 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   @Override
+  public String askForSecret(String message) {
+
+    while (true) {
+      if (!message.isBlank()) {
+        IdeLogLevel.INTERACTION.log(LOG, message);
+      }
+      if (isBatchMode()) {
+        if (isForceMode()) {
+          return null;
+        } else {
+          throw new CliAbortException();
+        }
+      }
+      String input = readSecretLine().trim();
+      if (!input.isEmpty()) {
+        return input;
+      }
+    }
+  }
+
+  /**
+   * @return a single line of input read from the user that should not be echoed to the console while typing (if supported). By default this simply delegates
+   *     to {@link #readLine()} and gets overridden where masked input is supported.
+   */
+  protected String readSecretLine() {
+
+    return readLine();
+  }
+
+  @Override
   public <O> O question(O[] options, String question, Object... args) {
 
     assert (options.length > 0);
