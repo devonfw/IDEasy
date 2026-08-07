@@ -52,12 +52,8 @@ jobs:
       - name: Build native image
         shell: bash
         run: |
-          maven_config="$(cat .mvn/maven.config)"
-          current_version="${maven_config/#*-Drevision=}"
-          current_version="${current_version/ */}"
-          current_version="${current_version/-SNAPSHOT/-$(date +%m_%d_%H)-SNAPSHOT}"
           cd cli
-          mvn -B -ntp -Pnative -DskipTests=true -Drevision=${current_version} package
+          mvn -B -ntp -Pnative -DskipTests=true -Drevision=${{ needs.resolve-version.outputs.snapshot_version }} package
       - name: Ad-hoc sign native image (macOS)
         if: runner.os == 'macOS'
         shell: bash
