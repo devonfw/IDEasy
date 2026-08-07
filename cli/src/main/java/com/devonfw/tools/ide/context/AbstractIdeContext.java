@@ -76,9 +76,9 @@ import com.devonfw.tools.ide.tool.custom.CustomToolRepositoryImpl;
 import com.devonfw.tools.ide.tool.mvn.MvnRepository;
 import com.devonfw.tools.ide.tool.npm.NpmRepository;
 import com.devonfw.tools.ide.tool.pip.PipRepository;
+import com.devonfw.tools.ide.tool.python.PythonRepository;
 import com.devonfw.tools.ide.tool.repository.DefaultToolRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
-import com.devonfw.tools.ide.tool.python.PythonRepository;
 import com.devonfw.tools.ide.tool.uv.UvRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.util.DateTimeUtil;
@@ -1080,6 +1080,31 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   @Override
+  public String askForSecret(String message, String defaultValue) {
+
+    while (true) {
+      if (!message.isBlank()) {
+        IdeLogLevel.INTERACTION.log(LOG, message);
+      }
+      if (isBatchMode()) {
+        if (isForceMode()) {
+          return defaultValue;
+        } else {
+          throw new CliAbortException();
+        }
+      }
+      String input = readSecretLine().trim();
+      if (!input.isEmpty()) {
+        return input;
+      } else {
+        if (defaultValue != null) {
+          return defaultValue;
+        }
+      }
+    }
+  }
+
+  @Override
   public <O> O question(O[] options, String question, Object... args) {
 
     assert (options.length > 0);
@@ -1146,6 +1171,15 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
    * @return the input from the end-user (e.g. read from the console).
    */
   protected abstract String readLine();
+
+  /**
+   * @return the secret input from the end-user (e.g. read from the console without echoing it). The default implementation simply delegates to
+   *     {@link #readLine()} so that sub-classes without a secure console (e.g. in tests) work out of the box.
+   */
+  protected String readSecretLine() {
+
+    return readLine();
+  }
 
   private static <O> void addMapping(Map<String, O> mapping, String key, O option) {
 

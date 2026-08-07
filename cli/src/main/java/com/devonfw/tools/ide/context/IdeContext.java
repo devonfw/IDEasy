@@ -277,6 +277,26 @@ public interface IdeContext extends IdeStartContext {
   }
 
   /**
+   * Asks the user for a single secret input (e.g. a password or API token). Unlike {@link #askForInput(String, String)} the input is not echoed to the console
+   * if a secure console is available.
+   *
+   * @param message The information message to display.
+   * @param defaultValue The default value to return when no input is provided or {@code null} to keep asking until the user entered a non empty value.
+   * @return The secret input from the user, or the default value if no input is provided.
+   */
+  String askForSecret(String message, String defaultValue);
+
+  /**
+   * Asks the user for a single secret input (e.g. a password or API token).
+   *
+   * @param message The information message to display.
+   * @return The secret input from the user.
+   */
+  default String askForSecret(String message) {
+    return askForSecret(message, null);
+  }
+
+  /**
    * @param question the question to ask.
    * @param args arguments for filling the templates
    * @return {@code true} if the user answered with "yes", {@code false} otherwise ("no").
