@@ -40,7 +40,6 @@ import com.devonfw.tools.ide.commandlet.UpgradeCommandlet;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
-import com.devonfw.tools.ide.completion.CompletionCandidateCollectorDefault;
 import com.devonfw.tools.ide.environment.AbstractEnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
@@ -1569,9 +1568,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
    * @param includeContextOptions to include the options of {@link ContextCommandlet}.
    * @return the {@link List} of {@link CompletionCandidate}s to suggest.
    */
-  public List<CompletionCandidate> complete(CliArguments arguments, boolean includeContextOptions) {
+  public List<CompletionCandidate> complete(CliArguments arguments, CompletionCandidateCollector collector, boolean includeContextOptions) {
 
-    CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(this);
     if (arguments.current().isStart()) {
       arguments.next();
     }
@@ -1621,6 +1619,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   private void completeCommandlet(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
 
     LOG.trace("Trying to match arguments for auto-completion for commandlet {}", cmd.getName());
+
     Iterator<Property<?>> valueIterator = cmd.getValues().iterator();
     valueIterator.next(); // skip first property since this is the keyword property that already matched to find the commandlet
     Property<?> currentValueProperty = nextValueProperty(valueIterator, arguments);

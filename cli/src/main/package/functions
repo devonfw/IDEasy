@@ -256,9 +256,10 @@ _ide_create_project()
   done
 }
 
-# remove ":" from word breaks so completion keeps arguments like "dependency:list" together.
+# remove ":" and "=" from word breaks so completion keeps arguments like "dependency:list" and "--mode="
 if [ -n "${COMP_WORDBREAKS:-}" ]; then
   COMP_WORDBREAKS=${COMP_WORDBREAKS//:}
+  COMP_WORDBREAKS=${COMP_WORDBREAKS//=}
 fi
 
 _ide_completion()
