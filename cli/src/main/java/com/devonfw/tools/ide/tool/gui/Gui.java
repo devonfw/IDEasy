@@ -78,7 +78,7 @@ public class Gui extends Commandlet {
       throw new CliException("Fatal error: The pom.xml file required for launching the IDEasy GUI could not be found in expected location: " + pomPath);
     }
 
-    ArrayList<String> args = new ArrayList<>(List.of(
+    List<String> args = new ArrayList<>(List.of(
         "-f", //use specified POM file
         pomPath.toString(),
         "org.codehaus.mojo:exec-maven-plugin:3.1.0:exec",
