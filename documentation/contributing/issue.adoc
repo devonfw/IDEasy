@@ -41,7 +41,7 @@ If you are looking for a new story to work on, here is how to find one in our pr
 2. Look for issues with the label `good-first-issue` if you are new to the project and want to start with something smaller and more accessible.
 3. If you are a frequent contributor, also consider the `Priority` and `Size` metadata fields to pick an issue that fits your capacity and timeline.
 4. Read the issue title, description, and comments to understand the scope and make sure you feel comfortable implementing it.
-5. For a visual overview of all issues and their status, check the https://github.com/devonfw/IDEasy/projects/8[project board]^2^.
+5. For a visual overview of all issues and their status, check the https://github.com/devonfw/IDEasy/projects/[project board]^2^.
 
 IMPORTANT: Before you start working, always self-assign the issue first.
 See <<working-on-an-issue, Working on an Issue>> for the detailed steps.
