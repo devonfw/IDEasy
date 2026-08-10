@@ -7,6 +7,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/2131[#2131]: Improve `ide upgrade --mode=` auto-completion
+* https://github.com/devonfw/IDEasy/issues/1870[#1870]: Add generic get-version implementation for global tools under windows
 * https://github.com/devonfw/IDEasy/issues/1558[#1558]: Added installation log information to the "Select Project Folder" and exit dialogs and enhanced `windows-installer/README.adoc`.
 * https://github.com/devonfw/IDEasy/issues/2187[#2187]: Start SoapUI commandlet in background
 * https://github.com/devonfw/IDEasy/issues/2189[#2189]: Integrate Ruff
