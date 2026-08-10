@@ -459,6 +459,20 @@ public class ProcessContextImpl implements ProcessContext {
   }
 
   /**
+   * Builds a space-separated command string from {@code arguments}, applying the given {@link Function} to each argument for quoting or normalization.
+   *
+   * @param transformer the function to apply to each argument (e.g., quoting or path normalization)
+   * @return the space-separated command string
+   */
+  private String buildCommandString(Function<String, String> transformer) {
+
+    return this.arguments.stream()
+        .map(transformer)
+        .reduce((a, b) -> a + " " + b)
+        .orElse("");
+  }
+
+  /**
    * Modifies arguments for a background process on Linux/macOS using {@code bash -c}.
    *
    * @param processMode the {@link ProcessMode} determining the background behavior
