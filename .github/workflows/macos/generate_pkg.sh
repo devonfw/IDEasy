@@ -3,9 +3,9 @@
 # on unset variables and on failures in the middle of a pipe.
 set -euo pipefail
 
-# PKG_VERSION is provided as env by the "Build MacOS PKG" steps in release.yml (release version)
+# RELEASE_VERSION is provided as env by the "Build MacOS PKG" steps in release.yml (release version)
 # and nightly-build.yml (snapshot version). Fail early instead of building a PKG without version.
-PKG_VERSION="${PKG_VERSION:?PKG_VERSION must be set (see release.yml/nightly-build.yml)}"
+RELEASE_VERSION="${RELEASE_VERSION:?RELEASE_VERSION must be set (see release.yml/nightly-build.yml)}"
 
 cd documentation
 mvn -B -ntp clean install
@@ -20,13 +20,12 @@ cp ./cli/target/ideasy macos-installer/pkg-root/bin/
 rm -rf ./macos-installer/pkg-root/system/windows
 rm -rf ./macos-installer/pkg-root/system/linux
 chmod +x macos-installer/pkg-root/bin/ideasy
-chmod +x macos-installer/scripts/postinstall
 cd macos-installer
 # -Drevision keeps Distribution.xml (installer title, pkg-ref version) in sync with the
 # pkgbuild --version below: without it Maven would resolve ${revision} from .mvn/maven.config,
 # which during a release build still contains the SNAPSHOT version (release.yml only rewrites it
 # later in the release job). No clean here, this would delete our copy results from above!
-mvn -B -ntp install -Drevision="$PKG_VERSION"
+mvn -B -ntp install -Drevision="$RELEASE_VERSION"
 # Determine architecture: macos-latest -> arm64, macos-15-intel -> x64
 if [[ "${RUNNER_ARCH:-}" == "ARM64" ]] || [[ "$(uname -m)" == "arm64" ]]; then
   PKG_ARCH="arm64"
@@ -36,7 +35,7 @@ fi
 PKG_FILE="ideasy-${PKG_ARCH}.pkg"
 if pkgbuild --root pkg-root \
     --identifier com.devonfw.ideasy \
-    --version "$PKG_VERSION" \
+    --version "$RELEASE_VERSION" \
     --install-location /projects/_ide/tmp/ideasy \
     --scripts scripts \
     IDEasyComponent.pkg; then
