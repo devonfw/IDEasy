@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.completion;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
@@ -84,5 +85,10 @@ public interface CompletionCandidateCollector {
    * @return the sorted {@link #getCandidates() candidates}.
    */
   List<CompletionCandidate> getSortedCandidates();
+
+  /**
+   * @return the set of already-provided arguments, or {@code null} if not set.
+   */
+  Set<String> getAlreadyProvided();
 
 }
