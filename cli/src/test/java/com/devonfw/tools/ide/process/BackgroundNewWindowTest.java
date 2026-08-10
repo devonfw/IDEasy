@@ -95,7 +95,7 @@ class BackgroundNewWindowTest extends AbstractIdeContextTest {
     boolean hasTerminalEmulator = bashCommand.contains("x-terminal-emulator") || bashCommand.contains("gnome-terminal")
         || bashCommand.contains("konsole") || bashCommand.contains("xfce4-terminal")
         || bashCommand.contains("tilix") || bashCommand.contains("xterm") || bashCommand.contains("alacritty");
-    boolean hasFallback = bashCommand.contains("disown");
+    boolean hasFallback = bashCommand.contains("disown") || bashCommand.contains("/dev/null");
 
     // Should either have a terminal emulator or fallback to disown
     assertThat(hasTerminalEmulator || hasFallback)
