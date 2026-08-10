@@ -60,7 +60,9 @@ jobs:
         shell: bash
         run: |
           cd cli
-          mvn -B -ntp -Pnative -DskipTests=true -Drevision=${{ needs.resolve-version.outputs.build_version }} package
+          mvn -B -ntp -Pnative -DskipTests=true -Drevision=${RELEASE_VERSION} package
+        env:
+          RELEASE_VERSION: ${{ needs.resolve-version.outputs.build_version }}
       - name: Ad-hoc sign native image (macOS)
         if: runner.os == 'macOS'
         shell: bash
@@ -120,10 +122,9 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          chmod +x ./.github/workflows/macos/generate_pkg.sh
           ./.github/workflows/macos/generate_pkg.sh
         env:
-          PKG_VERSION: ${{ needs.resolve-version.outputs.snapshot_version }}
+          RELEASE_VERSION: ${{ needs.resolve-version.outputs.snapshot_version }}
       - name: Upload unsigned PKG
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v4
@@ -157,5 +158,6 @@ jobs:
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          RELEASE_VERSION: ${{ needs.resolve-version.outputs.snapshot_version }}
         # -Drevision pins the deploy to the version resolved at the start of the workflow
-        run: mvn --settings .mvn/settings.xml -DskipTests=true -Darchetype.test.skip=true -Dgpg.skip=true -Dstyle.color=always -B -ntp -Passembly,msi,pkg,deploy -Drevision=${{ needs.resolve-version.outputs.snapshot_version }} deploy
+        run: mvn --settings .mvn/settings.xml -DskipTests=true -Darchetype.test.skip=true -Dgpg.skip=true -Dstyle.color=always -B -ntp -Passembly,msi,pkg,deploy -Drevision=${RELEASE_VERSION} deploy

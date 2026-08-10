@@ -60,7 +60,9 @@ jobs:
         shell: bash
         run: |
           cd cli
-          mvn -B -ntp -Drevision=${{ needs.resolve-version.outputs.release_version }} -Pnative -DskipTests=true package
+          mvn -B -ntp -Drevision=${RELEASE_VERSION} -Pnative -DskipTests=true package
+        env:
+          RELEASE_VERSION: ${{ needs.resolve-version.outputs.release_version }}
       - name: Ad-hoc sign native image (macOS)
         if: runner.os == 'macOS'
         shell: bash
@@ -119,10 +121,9 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          chmod +x ./.github/workflows/macos/generate_pkg.sh
           ./.github/workflows/macos/generate_pkg.sh
         env:
-          PKG_VERSION: ${{ needs.resolve-version.outputs.release_version }}
+          RELEASE_VERSION: ${{ needs.resolve-version.outputs.release_version }}
       - name: Upload unsigned PKG
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v4
