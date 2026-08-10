@@ -9,19 +9,29 @@ Automatically generated open issue overview for macOS.
 
 link:quality-status.adoc[Back to overview]
 
-*Total Issues:* 146
+*Total Issues:* 158
 
-* OS-specific: 11
+* OS-specific: 12
 
 * Multi-OS: 1
 
-* Cross-platform: 134
+* Cross-platform: 145
 
 == macOS Specific Issues
 
 [%header, cols="^1,7"]
 |===
 | Issue | Summary
+2+^| *0-10 days*
+
+| link:https://github.com/devonfw/IDEasy/issues/2252[#2252]
+| Provide uninstall support for globally installed tools (macOS)
+
+2+^| *11-30 days*
+
+| link:https://github.com/devonfw/IDEasy/issues/2206[#2206]
+| IDEasy title not properly shown on macOS
+
 2+^| *90+ days*
 
 | link:https://github.com/devonfw/IDEasy/issues/1512[#1512]
@@ -41,9 +51,6 @@ link:quality-status.adoc[Back to overview]
 
 | link:https://github.com/devonfw/IDEasy/issues/868[#868]
 | Eclipse does not work on Mac x64
-
-| link:https://github.com/devonfw/IDEasy/issues/865[#865]
-| Az is not working on Mac x64
 
 | link:https://github.com/devonfw/IDEasy/issues/864[#864]
 | AWS is not working on Mac x64
