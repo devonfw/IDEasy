@@ -1,14 +1,13 @@
 package com.devonfw.tools.ide.tool.openrewrite;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.util.Arrays;
-
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-class RecipeManagerTest {
+/**
+ * Tests for {@link RecipeManager}.
+ */
+class RecipeManagerTest extends Assertions {
 
   static RecipeManager manager;
 
@@ -18,21 +17,22 @@ class RecipeManagerTest {
   }
 
   @Test
-  public void testCreation() {
-    assertFalse(manager.listAvailableRecipes().isEmpty());
+  void testCreation() {
+    assertThat(manager.listAvailableRecipes()).isNotEmpty();
   }
 
   @Test
-  public void testStringValidation() {
-    assertFalse(manager.isValidRecipeNameRawName("NONSENSE"));
-    assertTrue(manager.isValidRecipeNameRawName(manager.listAvailableRecipes().stream().findAny().get().originName));
+  void testStringValidation() {
+    assertThat(manager.isValidRecipeNameRawName("NONSENSE")).isFalse();
+    var anyRecipe = manager.listAvailableRecipes().stream().findAny().get();
+    assertThat(manager.isValidRecipeNameRawName(anyRecipe.originName)).isTrue();
   }
 
   @Test
-  public void testEnumValidation() {
-    assertFalse(manager.isValidRecipeEnum(RewriteRecipeEnum.UNRECOGNIZED_RECIPE));
-    assertTrue(manager.isValidRecipeEnum(
-        Arrays.stream(RewriteRecipeEnum.values())
-            .filter(x -> !x.equals(RewriteRecipeEnum.UNRECOGNIZED_RECIPE)).findAny().get()));
+  void testEnumValidation() {
+    assertThat(manager.isValidRecipeEnum(RewriteRecipeEnum.UNRECOGNIZED_RECIPE)).isFalse();
+    var validRecipe = java.util.Arrays.stream(RewriteRecipeEnum.values())
+        .filter(x -> x != RewriteRecipeEnum.UNRECOGNIZED_RECIPE).findAny().get();
+    assertThat(manager.isValidRecipeEnum(validRecipe)).isTrue();
   }
 }

@@ -2,6 +2,9 @@ package com.devonfw.tools.ide.tool.openrewrite;
 
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.json.JsonBuilder;
 import com.devonfw.tools.ide.json.JsonObjectDeserializer;
 import com.fasterxml.jackson.core.JsonParser;
@@ -11,6 +14,8 @@ import com.fasterxml.jackson.databind.DeserializationContext;
  * {@link JsonObjectDeserializer} for {@link RecipeWrapper}.
  */
 public class RecipeWrapperJsonDeserializer extends JsonObjectDeserializer<RecipeWrapper> {
+
+  private static final Logger LOG = LoggerFactory.getLogger(RecipeWrapperJsonDeserializer.class);
 
   @Override
   protected JsonBuilder<RecipeWrapper> createBuilder() {
@@ -53,6 +58,7 @@ public class RecipeWrapperJsonDeserializer extends JsonObjectDeserializer<Recipe
           this.rawCmd = readValueAsString(p, property, this.rawCmd);
         }
         default -> {
+          LOG.warn("Unknown recipe property: {}", property);
           super.setProperty(property, p, ctxt);
         }
       }
