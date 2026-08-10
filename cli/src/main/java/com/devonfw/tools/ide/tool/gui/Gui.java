@@ -90,15 +90,16 @@ public class Gui extends Commandlet {
 
     if (!IdeVersion.getVersionIdentifier().isStable()) {
       LOG.warn("Launching gui in snapshot mode");
-      args.add("-U"); //Adding this flag forces maven to download the latest SNAPSHOT version, but only if IDEasy is a snapshot version.
+      args.add("-U"); //Adding this flag forces maven to download the latest SNAPSHOT version
     }
 
     /*
      * We manually update the PATH entry with our java version, as by default IDEasy includes the SymLink under /projectname/software/java/bin in the PATH
      * In case of projects using older Java Versions, this is important as the java version of the project could potentially older.
      */
+    processContext = processContext.withPathEntry(javaInstallation.binDir());
     try {
-      mvn.runTool(processContext.withPathEntry(javaInstallation.binDir()), ProcessMode.DEFAULT, args);
+      mvn.runTool(processContext, ProcessMode.DEFAULT, args);
     } catch (RuntimeException e) {
       throw new CliException(
           "Failed to launch the GUI. If maven reports issues with dependency resolution, check whether the maven M2 repo is enabled in your project.", e);
