@@ -118,7 +118,7 @@ class BackgroundNewWindowTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC, null, false);
 
-    Path scriptPath = TEST_RESOURCES.resolve("process-context").resolve("log-order.sh");
+    Path scriptPath = TEST_RESOURCES.resolve("process-context").resolve("log-order.bat");
     // act
     List<String> capturedArgs = captureCommandArgs(context, scriptPath, ProcessMode.BACKGROUND_NEW_WINDOW);
     // assert
@@ -331,6 +331,8 @@ class BackgroundNewWindowTest extends AbstractIdeContextTest {
       // Skip - no GUI session or osascript not available (e.g. headless CI)
       return;
     }
+
+    context.setAnswers("1");
 
     Path markerFile = Files.createTempFile("bg-marker-mac-", ".txt");
     Files.delete(markerFile); // Remove so polling can detect when the script creates it

@@ -14,8 +14,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +25,8 @@ import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.VariableLine;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.os.SystemInfoImpl;
+import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.util.FilenameUtil;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
@@ -420,13 +422,40 @@ public class ProcessContextImpl implements ProcessContext {
           "modifyArgumentsOnBackgroundProcess called for a non-background process.");
     }
 
-    String commandToRunInBackground = buildCommand(args);
+    if (processMode.launchesNewWindow()) {
+      String commandToRunInBackground = buildCommand(args);
+      if (this.context.getSystemInfo().isWindows()) {
+        modifyArgumentsOnBackgroundProcessWindows(processMode, args, commandToRunInBackground);
+      } else {
+        modifyArgumentsOnBackgroundProcessUnix(processMode, args, commandToRunInBackground);
+      }
+    } else {
+      Path bash = this.context.findBash();
+      if (bash == null) {
+        LOG.warn("Cannot start background process via bash because no bash installation was found. Hence, output will be discarded.");
+        this.processBuilder.redirectOutput(Redirect.DISCARD).redirectError(Redirect.DISCARD);
+        return;
+      }
+      String commandToRunInBackground = buildCommandToRunInBackground();
+      this.arguments.clear();
+      this.arguments.add(bash.toString());
+      this.arguments.add("-c");
+      commandToRunInBackground += " & disown";
+      this.arguments.add(commandToRunInBackground);
+    }
+  }
+
+  private String buildCommandToRunInBackground() {
 
     if (this.context.getSystemInfo().isWindows()) {
-      modifyArgumentsOnBackgroundProcessWindows(processMode, args, commandToRunInBackground);
-    } else {
-      modifyArgumentsOnBackgroundProcessUnix(processMode, args, commandToRunInBackground);
+      return buildCommandString(arg -> {
+        if (SystemInfoImpl.INSTANCE.isWindows() && SystemPath.isValidWindowsPath(arg)) {
+          return WindowsPathSyntax.MSYS.normalize(arg);
+        }
+        return arg;
+      });
     }
+    return buildCommandString(Function.identity());
   }
 
   /**
@@ -451,7 +480,7 @@ public class ProcessContextImpl implements ProcessContext {
 
     if (processMode.launchesNewWindow()) {
       String newWindowCommand = buildNewWindowCommand(command);
-      args.add(newWindowCommand + " ; disown");
+      args.add(newWindowCommand);
     } else {
       args.add(command + " & disown");
     }
@@ -480,15 +509,14 @@ public class ProcessContextImpl implements ProcessContext {
 
   private String buildCommand(List<String> args) {
 
-    if (this.context.getSystemInfo().isWindows()) {
-      return args.stream()
-          .map(this::windowsQuote)
-          .collect(Collectors.joining(" "));
-    } else {
-      return args.stream()
-          .map(this::shellQuote)
-          .collect(Collectors.joining(" "));
-    }
+    Function<String, String> quoter = this.context.getSystemInfo().isWindows()
+        ? this::windowsQuote
+        : this::shellQuote;
+
+    return args.stream()
+        .map(quoter)
+        .reduce((a, b) -> a + " " + b)
+        .orElse("");
   }
 
   /**
@@ -576,8 +604,14 @@ public class ProcessContextImpl implements ProcessContext {
       return "\"\"";
     }
 
-    // Quote unconditionally and escape cmd.exe metacharacters
-    String escaped = value.replace("^", "^^").replace("%", "%%").replace("\"", "\\\"");
+    // Escape cmd.exe metacharacters in this specific order to avoid double-escaping:
+    // 1. Caret (^) first, since it's the escape character itself
+    // 2. Percent (%) for environment variable expansion
+    // 3. Double quote (") using caret escape (not backslash, since \" is not a reliable cmd.exe escape)
+    String escaped = value.replace("^", "^^")
+        .replace("%", "%%")
+        .replace("\"", "^\"");
+
     return "\"" + escaped + "\"";
   }
 
@@ -622,20 +656,14 @@ public class ProcessContextImpl implements ProcessContext {
    */
   private boolean isItermInstalled() {
 
-    // Modern iTerm2 3.x+ is installed as /Applications/iTerm.app
-    if (Files.exists(Path.of("/Applications/iTerm.app"))) {
-      return true;
-    }
-    // Older iTerm2 versions used /Applications/iTerm2.app
-    if (Files.exists(Path.of("/Applications/iTerm2.app"))) {
-      return true;
-    }
-    // Check ~/Applications for per-user installs
+    List<Path> candidates = new ArrayList<>(List.of(
+        Path.of("/Applications/iTerm.app"),
+        Path.of("/Applications/iTerm2.app")
+    ));
     Path homeApps = Path.of(System.getProperty("user.home"), "Applications");
-    if (Files.exists(homeApps.resolve("iTerm.app"))) {
-      return true;
-    }
-    if (Files.exists(homeApps.resolve("iTerm2.app"))) {
+    candidates.add(homeApps.resolve("iTerm.app"));
+    candidates.add(homeApps.resolve("iTerm2.app"));
+    if (candidates.stream().anyMatch(Files::exists)) {
       return true;
     }
     // Also check if iTerm binary is in PATH, for portable installs, Homebrew, etc.
