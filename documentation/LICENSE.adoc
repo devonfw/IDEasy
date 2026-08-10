@@ -44,7 +44,6 @@ The column `inclusion` indicates the way the component is included:
 |https://commons.apache.org/proper/commons-compress/[Apache Commons Compress]|Directly included|https://github.com/apache/commons-compress/blob/master/LICENSE.txt[Apache 2.0]
 |https://tukaani.org/xz/java.html[XZ for Java]|Directly included|https://github.com/tukaani-project/xz-java/blob/master/LICENSES/0BSD.txt[0BSD]
 |https://github.com/FasterXML/jackson-databind[jackson-databind]|Directly included|https://github.com/FasterXML/jackson-databind/blob/2.19/LICENSE[Apache 2.0]
-|https://github.com/FasterXML/jackson-modules-java8/tree/master/datetime[jackson-datatype-jsr310]|Directly included|https://github.com/FasterXML/jackson-modules-java8/blob/2.19/LICENSE[Apache 2.0]
 |https://github.com/FasterXML/jackson-dataformat-xml[jackson-dataformat-xml]|Directly included|https://github.com/FasterXML/jackson-databind/blob/2.19/LICENSE[Apache 2.0]
 |https://www.slf4j.org/[slf4j]|Directly included|https://www.slf4j.org/license.html[MIT]
 |https://logback.qos.ch/[logback-classic]|Directly included|https://logback.qos.ch/license.html[LGPL 2.1]
