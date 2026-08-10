@@ -1,5 +1,8 @@
 package com.devonfw.tools.ide.truststore;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.any;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -17,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.util.TruststoreUtil;
+import com.github.tomakehurst.wiremock.WireMockServer;
 
 /**
  * Test of {@link TruststoreUtil}.
@@ -133,6 +137,50 @@ class TruststoreUtilTest {
         .hasMessageContaining("host must not be blank");
     assertThatThrownBy(() -> TruststoreUtil.fetchServerCertificate("github.com", 0)).isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("port must be between 1 and 65535");
+  }
+
+  @Test
+  void testIsReachableFalseForUntrustedCertificateAndTrueWithCapturedCertificate() throws Exception {
+
+    WireMockServer server = HttpsTestServer.start();
+    try {
+      server.stubFor(any(urlEqualTo("/")).willReturn(aResponse().withStatus(200)));
+      TruststoreUtil.TlsEndpoint endpoint = TruststoreUtil.parseTlsEndpoint("https://localhost:" + server.httpsPort() + "/");
+
+      // the self-signed localhost certificate is not part of the JRE cacerts, so the default trust configuration must reject it
+      assertThat(TruststoreUtil.isReachable(endpoint, null)).isFalse();
+
+      X509Certificate certificate = TruststoreUtil.fetchServerCertificate(endpoint.host(), endpoint.port());
+      Path truststorePath = this.tempDir.resolve("captured.p12");
+      TruststoreUtil.createOrUpdateTruststore(truststorePath, certificate, "custom");
+
+      // once the captured certificate is part of the custom truststore the endpoint becomes reachable
+      assertThat(TruststoreUtil.isReachable(endpoint, truststorePath)).isTrue();
+    } finally {
+      server.stop();
+    }
+  }
+
+  @Test
+  void testResolveEffectiveEndpointFollowsRedirectToFinalHost() {
+
+    WireMockServer redirectingServer = HttpsTestServer.start();
+    WireMockServer targetServer = HttpsTestServer.start();
+    try {
+      String targetUrl = "https://localhost:" + targetServer.httpsPort() + "/target";
+      targetServer.stubFor(any(urlEqualTo("/target")).willReturn(aResponse().withStatus(200)));
+      redirectingServer.stubFor(any(urlEqualTo("/redirect"))
+          .willReturn(aResponse().withStatus(302).withHeader("Location", targetUrl)));
+
+      TruststoreUtil.TlsEndpoint requested = TruststoreUtil.parseTlsEndpoint("https://localhost:" + redirectingServer.httpsPort() + "/redirect");
+      TruststoreUtil.TlsEndpoint effective = TruststoreUtil.resolveEffectiveEndpoint(requested);
+
+      assertThat(effective.host()).isEqualTo("localhost");
+      assertThat(effective.port()).isEqualTo(targetServer.httpsPort());
+    } finally {
+      redirectingServer.stop();
+      targetServer.stop();
+    }
   }
 
   @Test

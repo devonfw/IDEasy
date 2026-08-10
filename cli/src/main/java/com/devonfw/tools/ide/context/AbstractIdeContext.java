@@ -40,7 +40,6 @@ import com.devonfw.tools.ide.commandlet.UpgradeCommandlet;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
-import com.devonfw.tools.ide.completion.CompletionCandidateCollectorDefault;
 import com.devonfw.tools.ide.environment.AbstractEnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
@@ -76,8 +75,10 @@ import com.devonfw.tools.ide.tool.custom.CustomToolRepositoryImpl;
 import com.devonfw.tools.ide.tool.mvn.MvnRepository;
 import com.devonfw.tools.ide.tool.npm.NpmRepository;
 import com.devonfw.tools.ide.tool.pip.PipRepository;
+import com.devonfw.tools.ide.tool.python.PythonRepository;
 import com.devonfw.tools.ide.tool.repository.DefaultToolRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
+import com.devonfw.tools.ide.tool.uv.UvRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.util.DateTimeUtil;
 import com.devonfw.tools.ide.util.PrivacyUtil;
@@ -110,7 +111,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   private Path ideHome;
 
-  private final Path ideRoot;
+  private Path ideRoot;
 
   private Path confPath;
 
@@ -155,6 +156,10 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   private NpmRepository npmRepository;
 
   private PipRepository pipRepository;
+
+  private UvRepository uvRepository;
+
+  private PythonRepository pythonRepository;
 
   private DirectoryMerger workspaceMerger;
 
@@ -294,6 +299,20 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
    */
   protected PipRepository createPipRepository() {
     return new PipRepository(this);
+  }
+
+  /**
+   * @return a new {@link UvRepository}
+   */
+  protected UvRepository createUvRepository() {
+    return new UvRepository(this);
+  }
+
+  /**
+   * @return a new {@link PythonRepository}
+   */
+  protected PythonRepository createPythonRepository() {
+    return new PythonRepository(this);
   }
 
   private Path findIdeRoot(Path ideHomePath) {
@@ -516,6 +535,22 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   @Override
+  public UvRepository getUvRepository() {
+    if (this.uvRepository == null) {
+      this.uvRepository = createUvRepository();
+    }
+    return this.uvRepository;
+  }
+
+  @Override
+  public PythonRepository getPythonRepository() {
+    if (this.pythonRepository == null) {
+      this.pythonRepository = createPythonRepository();
+    }
+    return this.pythonRepository;
+  }
+
+  @Override
   public CustomToolRepository getCustomToolRepository() {
 
     if (this.customToolRepository == null) {
@@ -567,6 +602,12 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   public Path getIdeRoot() {
 
     return this.ideRoot;
+  }
+
+  @Override
+  public void setIdeRoot(Path ideRoot) {
+
+    this.ideRoot = ideRoot;
   }
 
   @Override
@@ -1211,7 +1252,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       activateLogging(cmd);
       step.error(t, true);
       if (this.logfile != null) {
-        System.err.println("Logfile can be found at " + this.logfile); // do not use logger
+        // point the user to the logfile directly (does not make sense via logger)
+        System.err.println("Logfile can be found at " + this.logfile); // checkstyle:ignore SystemOut
       }
       throw t;
     } finally {
@@ -1500,9 +1542,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
    * @param includeContextOptions to include the options of {@link ContextCommandlet}.
    * @return the {@link List} of {@link CompletionCandidate}s to suggest.
    */
-  public List<CompletionCandidate> complete(CliArguments arguments, boolean includeContextOptions) {
+  public List<CompletionCandidate> complete(CliArguments arguments, CompletionCandidateCollector collector, boolean includeContextOptions) {
 
-    CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(this);
     if (arguments.current().isStart()) {
       arguments.next();
     }
@@ -1552,6 +1593,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   private void completeCommandlet(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
 
     LOG.trace("Trying to match arguments for auto-completion for commandlet {}", cmd.getName());
+
     Iterator<Property<?>> valueIterator = cmd.getValues().iterator();
     valueIterator.next(); // skip first property since this is the keyword property that already matched to find the commandlet
     Property<?> currentValueProperty = nextValueProperty(valueIterator, arguments);
@@ -1633,7 +1675,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
         if (option != null) {
           currentProperty = option;
         } else {
-          boolean allowDashedValue = (property != null && property.isValue() && property.isMultiValued());
+          boolean allowDashedValue = (property != null) && property.isValue()
+              && (property.isMultiValued() || "-".equals(currentArgument.get()));
           boolean allowKeywordOption = (currentProperty instanceof KeywordProperty keywordProperty) && keywordProperty.matches(currentArgument.getKey());
           if (!allowDashedValue && !allowKeywordOption && currentArgument.isOption()) {
             ValidationState state = new ValidationState(null);

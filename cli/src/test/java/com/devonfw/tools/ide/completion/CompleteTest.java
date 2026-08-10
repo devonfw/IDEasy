@@ -3,8 +3,10 @@ package com.devonfw.tools.ide.completion;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
@@ -17,140 +19,157 @@ import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 
 /**
- * Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion}.
+ * Test of {@link AbstractIdeContext#complete(CliArguments, CompletionCandidateCollector, boolean) auto-completion}.
  */
 class CompleteTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_COMPLETION = "completion";
 
-  /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for empty input. */
+  private CompletionCandidateCollector createCollector(AbstractIdeContext context, String[] args) {
+    Set<String> alreadyProvided = new HashSet<>();
+    for (int i = 0; i < args.length - 1; i++) {
+      alreadyProvided.add(args[i]);
+    }
+    return new CompletionCandidateCollectorDefault(context, alreadyProvided);
+  }
+
+  /** Test of {@link AbstractIdeContext#complete(CliArguments, CompletionCandidateCollector, boolean) auto-completion} for empty input. */
   @Test
   void testCompleteEmpty() {
 
     // arrange
     boolean includeContextOptions = true;
     AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
-    CliArguments args = CliArguments.ofCompletion("");
+    String[] argsArray = { "" };
+    CliArguments args = CliArguments.ofCompletion(argsArray);
     args.next();
     List<String> expectedCandidates = getExpectedCandidates(context, true, includeContextOptions, true);
     // act
-    List<CompletionCandidate> candidates = context.complete(args, includeContextOptions);
+    List<CompletionCandidate> candidates = context.complete(args, createCollector(context, argsArray), includeContextOptions);
     // assert
     assertThat(candidates.stream().map(CompletionCandidate::text))
         .containsExactly(expectedCandidates.toArray(String[]::new));
   }
 
-  /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for long option. */
+  /** Test of {@link AbstractIdeContext#complete(CliArguments, CompletionCandidateCollector, boolean) auto-completion} for long option. */
   @Test
   void testCompleteLongOptionBatch() {
 
     // arrange
     boolean includeContextOptions = true;
     AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
-    CliArguments args = CliArguments.ofCompletion("--b");
+    String[] argsArray = { "--b" };
+    CliArguments args = CliArguments.ofCompletion(argsArray);
     args.next();
     List<String> expectedCandidates = List.of("--batch");
     // act
-    List<CompletionCandidate> candidates = context.complete(args, includeContextOptions);
+    List<CompletionCandidate> candidates = context.complete(args, createCollector(context, argsArray), includeContextOptions);
     // assert
     assertThat(candidates.stream().map(CompletionCandidate::text))
         .containsExactly(expectedCandidates.toArray(String[]::new));
   }
 
-  /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for empty input. */
+  /** Test of {@link AbstractIdeContext#complete(CliArguments, CompletionCandidateCollector, boolean) auto-completion} for empty input. */
   @Test
   void testCompleteEmptyNoCtxOptions() {
 
     // arrange
     boolean includeContextOptions = false;
     AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
-    CliArguments args = CliArguments.ofCompletion("");
+    String[] argsArray = { "" };
+    CliArguments args = CliArguments.ofCompletion(argsArray);
     args.next();
     List<String> expectedCandidates = getExpectedCandidates(context, true, includeContextOptions, true);
     // act
-    List<CompletionCandidate> candidates = context.complete(args, includeContextOptions);
+    List<CompletionCandidate> candidates = context.complete(args, createCollector(context, argsArray), includeContextOptions);
     // assert
     assertThat(candidates.stream().map(CompletionCandidate::text))
         .containsExactly(expectedCandidates.toArray(String[]::new));
   }
 
-  /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for input "h". */
+  /** Test of {@link AbstractIdeContext#complete(CliArguments, CompletionCandidateCollector, boolean) auto-completion} for input "h". */
   @Test
   void testCompleteCommandletFirstLetter() {
 
     // arrange
     AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
-    CliArguments args = CliArguments.ofCompletion("h");
+    String[] argsArray = { "h" };
+    CliArguments args = CliArguments.ofCompletion(argsArray);
     // act
-    List<CompletionCandidate> candidates = context.complete(args, true);
+    List<CompletionCandidate> candidates = context.complete(args, createCollector(context, argsArray), true);
     // assert
     assertThat(candidates.stream().map(CompletionCandidate::text)).containsExactly("helm", "help");
   }
 
-  /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for input "-f". */
+  /** Test of {@link AbstractIdeContext#complete(CliArguments, CompletionCandidateCollector, boolean) auto-completion} for input "-f". */
   @Test
   void testCompleteShortOptsCombined() {
 
     // arrange
     AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
-    CliArguments args = CliArguments.ofCompletion("-f");
+    String[] argsArray = { "-f" };
+    CliArguments args = CliArguments.ofCompletion(argsArray);
     // act
-    List<CompletionCandidate> candidates = context.complete(args, true);
+    List<CompletionCandidate> candidates = context.complete(args, createCollector(context, argsArray), true);
     // assert
     assertThat(candidates.stream().map(CompletionCandidate::text)).containsExactly("-f", "-fb", "-fd", "-fh", "-fo", "-fp", "-fq",
         "-ft", "-fv");
   }
 
-  /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for input "-fbdoqt". */
+  /** Test of {@link AbstractIdeContext#complete(CliArguments, CompletionCandidateCollector, boolean) auto-completion} for input "-fbdoqt". */
   @Test
   void testCompleteShortOptsCombinedAllButVersion() {
 
     // arrange
     AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
-    CliArguments args = CliArguments.ofCompletion("-fbdopqt");
+    String[] argsArray = { "-fbdopqt" };
+    CliArguments args = CliArguments.ofCompletion(argsArray);
     // act
-    List<CompletionCandidate> candidates = context.complete(args, true);
+    List<CompletionCandidate> candidates = context.complete(args, createCollector(context, argsArray), true);
     // assert
     assertThat(candidates.stream().map(CompletionCandidate::text)).containsExactly("-fbdopqt", "-fbdopqth", "-fbdopqtv");
   }
 
-  /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for input "help", "". */
+  /** Test of {@link AbstractIdeContext#complete(CliArguments, CompletionCandidateCollector, boolean) auto-completion} for input "help", "". */
   @Test
   void testCompleteHelpEmptyArgs() {
 
     // arrange
     AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
-    CliArguments args = CliArguments.ofCompletion("help", "");
+    String[] argsArray = { "help", "" };
+    CliArguments args = CliArguments.ofCompletion(argsArray);
     List<String> expectedCandidates = getExpectedCandidates(context, true, false, false);
     // act
-    List<CompletionCandidate> candidates = context.complete(args, true);
+    List<CompletionCandidate> candidates = context.complete(args, createCollector(context, argsArray), true);
     // assert
     assertThat(candidates.stream().map(CompletionCandidate::text))
         .containsExactly(expectedCandidates.toArray(String[]::new));
   }
 
-  /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for input "help", "". */
+  /** Test of {@link AbstractIdeContext#complete(CliArguments, CompletionCandidateCollector, boolean) auto-completion} for input "help", "". */
   @Test
   void testCompleteVersionNoMoreArgs() {
 
     // arrange
     AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
-    CliArguments args = CliArguments.ofCompletion("--version", "");
+    String[] argsArray = { "--version", "" };
+    CliArguments args = CliArguments.ofCompletion(argsArray);
     // act
-    List<CompletionCandidate> candidates = context.complete(args, true);
+    List<CompletionCandidate> candidates = context.complete(args, createCollector(context, argsArray), true);
     // assert
     assertThat(candidates).isEmpty();
   }
 
-  /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for an option inside a commandlet. */
+  /** Test of {@link AbstractIdeContext#complete(CliArguments, CompletionCandidateCollector, boolean) auto-completion} for an option inside a commandlet. */
   @Test
   void testCompleteCommandletOption() {
 
     // arrange
     AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
-    CliArguments args = CliArguments.ofCompletion("get-version", "--c");
+    String[] argsArray = { "get-version", "--c" };
+    CliArguments args = CliArguments.ofCompletion(argsArray);
     // act
-    List<CompletionCandidate> candidates = context.complete(args, true);
+    List<CompletionCandidate> candidates = context.complete(args, createCollector(context, argsArray), true);
     // assert
     assertThat(candidates.stream().map(CompletionCandidate::text)).containsExactly("--configured");
   }
@@ -201,7 +220,7 @@ class CompleteTest extends AbstractIdeContextTest {
     for (String input : testInputs) {
       // act
       CliArguments args = CliArguments.ofCompletion(input);
-      List<CompletionCandidate> candidates = context.complete(args, false);
+      List<CompletionCandidate> candidates = context.complete(args, createCollector(context, new String[] { input }), false);
 
       // assert
       Map<String, Integer> textCounts = new HashMap<>();
@@ -227,10 +246,11 @@ class CompleteTest extends AbstractIdeContextTest {
 
     // arrange
     AbstractIdeContext context = newContext(PROJECT_COMPLETION, null, false);
-    CliArguments args = CliArguments.ofCompletion("in");
+    String[] argsArray = { "in" };
+    CliArguments args = CliArguments.ofCompletion(argsArray);
 
     // act
-    List<CompletionCandidate> candidates = context.complete(args, true);
+    List<CompletionCandidate> candidates = context.complete(args, createCollector(context, argsArray), true);
 
     // assert - verify no duplicates
     long totalCandidates = candidates.size();
@@ -251,11 +271,12 @@ class CompleteTest extends AbstractIdeContextTest {
 
     // arrange
     AbstractIdeContext context = newContext(PROJECT_COMPLETION, null, false);
-    CliArguments args = CliArguments.ofCompletion("");
+    String[] argsArray = { "" };
+    CliArguments args = CliArguments.ofCompletion(argsArray);
     args.next(); // move to first argument
 
     // act
-    List<CompletionCandidate> candidates = context.complete(args, true);
+    List<CompletionCandidate> candidates = context.complete(args, createCollector(context, argsArray), true);
 
     // assert - verify no duplicates
     long totalCandidates = candidates.size();
@@ -275,10 +296,11 @@ class CompleteTest extends AbstractIdeContextTest {
 
     // arrange
     AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
-    CliArguments args = CliArguments.ofCompletion("mvn", "dep");
+    String[] argsArray = { "mvn", "dep" };
+    CliArguments args = CliArguments.ofCompletion(argsArray);
 
     // act
-    List<CompletionCandidate> candidates = context.complete(args, true);
+    List<CompletionCandidate> candidates = context.complete(args, createCollector(context, argsArray), true);
 
     // assert
     assertThat(candidates.stream().map(CompletionCandidate::text))
@@ -293,13 +315,94 @@ class CompleteTest extends AbstractIdeContextTest {
 
     // arrange
     AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
+    String[] argsArray = { "mvn", "" };
     CliArguments args = CliArguments.ofCompletion("mvn", "");
 
     // act
-    List<CompletionCandidate> candidates = context.complete(args, true);
+    List<CompletionCandidate> candidates = context.complete(args, createCollector(context, argsArray), true);
 
     // assert
     assertThat(candidates.stream().map(CompletionCandidate::text))
         .contains("clean", "package", "install", "dependency:list", "dependency:tree", "-DskipTests");
+  }
+
+  /**
+   * Test of tool argument auto-completion for Maven Daemon.
+   */
+  @Test
+  void testCompleteMavenDaemonToolArguments() {
+
+    // arrange
+    AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
+    String[] argsArray = { "mvnd", "-Dmvnd.c" };
+    CliArguments args = CliArguments.ofCompletion(argsArray);
+
+    // act
+    List<CompletionCandidate> candidates = context.complete(args, createCollector(context, argsArray), true);
+
+    // assert
+    assertThat(candidates.stream().map(CompletionCandidate::text))
+        .contains("-Dmvnd.cancelConnectTimeout=", "-Dmvnd.connectTimeout=", "-Dmvnd.coreExtensionsExclude=");
+  }
+
+  /**
+   * Test of Maven Daemon tool argument auto-completion for empty input.
+   */
+  @Test
+  void testCompleteMavenDaemonToolArgumentsForEmptyInput() {
+
+    // arrange
+    AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
+    String[] argsArray = { "mvnd", "" };
+    CliArguments args = CliArguments.ofCompletion(argsArray);
+
+    // act
+    List<CompletionCandidate> candidates = context.complete(args, createCollector(context, argsArray), true);
+
+    // assert
+    assertThat(candidates.stream().map(CompletionCandidate::text))
+        .contains("--purge", "--settings", "--completion", "dependency:list", "dependency:tree", "-DskipTests");
+  }
+
+  /**
+   * Test that synonyms and canonical candidates are not suggested when the canonical candidate has already been provided.
+   */
+  @Test
+  void testSynonymFilteringWithProvidedCanonicalCandidate() {
+
+    // arrange
+    AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
+    String[] argsArray = { "mvn", "-s", "" };
+    CliArguments args = CliArguments.ofCompletion(argsArray);
+    CompletionCandidateCollector collector = createCollector(context, argsArray);
+
+    // act
+    List<CompletionCandidate> candidates = context.complete(args, collector, true);
+
+    // assert
+    List<String> texts = candidates.stream().map(CompletionCandidate::text).toList();
+    assertThat(texts).doesNotContain("-s");
+    assertThat(texts).doesNotContain("--settings");
+  }
+
+  /**
+   * Test that synonyms and canonical candidates are not suggested when the synonym has already been provided.
+   */
+  @Test
+  void testSynonymFilteringWithProvidedSynonym() {
+
+    // arrange
+    AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
+    String[] argsArray = { "mvn", "--settings", "" };
+    CliArguments args = CliArguments.ofCompletion(argsArray);
+    CompletionCandidateCollector collector = createCollector(context, argsArray);
+
+    // act
+    List<CompletionCandidate> candidates = context.complete(args, collector, true);
+
+    // assert
+    List<String> texts = candidates.stream().map(CompletionCandidate::text).toList();
+    assertThat(texts).doesNotContain("-s");
+    assertThat(texts).doesNotContain("--settings");
   }
 }
