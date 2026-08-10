@@ -25,9 +25,9 @@ trap 'show_error "IDEasy installation failed unexpectedly (line ${LINENO})."' ER
 
 echo "Step 1/2: Running IDEasy installation..."
 
-INSTALL_DIR="$HOME/projects/_ide/tmp/ideasy"
+TMP_INSTALL_DIR="$HOME/projects/_ide/tmp/ideasy"
 
-echo "Installing IDEasy to $INSTALL_DIR"
+echo "Installing IDEasy to $TMP_INSTALL_DIR"
 
 LOG_DIR="$HOME/.ide/logs"
 mkdir -p "$LOG_DIR"
@@ -36,16 +36,16 @@ LOG_FILE="$LOG_DIR/install-$ts.log"
 
 echo "IDEasy installation log for this session can be found at: $LOG_FILE"
 
-if [ ! -d "$INSTALL_DIR" ]; then
-    echo "ERROR: expected install directory not found: $INSTALL_DIR" >&2
-    show_error "IDEasy installation failed: expected directory not found:${NL}${INSTALL_DIR}"
+if [ ! -d "$TMP_INSTALL_DIR" ]; then
+    echo "ERROR: expected install directory not found: $TMP_INSTALL_DIR" >&2
+    show_error "IDEasy installation failed: expected directory not found:${NL}${TMP_INSTALL_DIR}"
     exit 1
 fi
 
 # The exit code is captured via "||" so that a failing install does not abort the script through
 # "set -e" - otherwise none of the error handling below would ever run.
 install_rc=0
-"$INSTALL_DIR/bin/ideasy" -ftb --no-colors install \
+"$TMP_INSTALL_DIR/bin/ideasy" -ftb --no-colors install \
   > "$LOG_FILE" 2>&1 || install_rc=$?
 
 # 1. Handle generic install errors by analyzing the log file for known error messages
@@ -62,7 +62,7 @@ fi
 
 echo "Step 2/2: Cleaning up temporary ideasy installation..."
 
-rm -rf "$INSTALL_DIR"
+rm -rf "$TMP_INSTALL_DIR"
 
 echo "Install finished"
 
