@@ -47,6 +47,23 @@ For any other existing terminal sessions, you must run the `source` command manu
 Once installed, you want to link:project.adoc[create a project].
 As next step read the link:usage.adoc[usage].
 
+=== Installation Logs
+
+The IDEasy installer writes installation logs to:
+
+----
+~\.ide\logs
+----
+
+Each installation generates a new timestamped log file, for example:
+
+----
+install-2026-07-01_10-15-00.log
+----
+
+If the installation fails, check the most recent log file in this directory.
+A note displaying the installation log location is also shown in the "Select Project Folder" dialog and in the exit dialog.
+
 === Tweak installation location
 
 The easiest way is to use your $HOME directory as installation target (e.g. by extracting the download inside `~/Downloads`).
