@@ -1,0 +1,27 @@
+[
+  {
+    "url": "https://api.github.com/repos/jdx/ruby/releases/1",
+    "assets_url": "https://api.github.com/repos/jdx/ruby/releases/1/assets",
+    "html_url": "https://github.com/jdx/ruby/releases/tag/4.0.6-1",
+    "id": 1,
+    "tag_name": "4.0.6-1",
+    "target_commitish": "main",
+    "name": "4.0.6-1",
+    "draft": false,
+    "prerelease": false,
+    "assets": [
+      {
+        "name": "ruby-4.0.6.x86_64_linux.tar.gz",
+        "browser_download_url": "${testbaseurl}/jdx/ruby/releases/download/4.0.6-1/ruby-4.0.6.x86_64_linux.tar.gz"
+      },
+      {
+        "name": "ruby-4.0.6.arm64_linux.tar.gz",
+        "browser_download_url": "${testbaseurl}/jdx/ruby/releases/download/4.0.6-1/ruby-4.0.6.arm64_linux.tar.gz"
+      },
+      {
+        "name": "ruby-4.0.6.macos.tar.gz",
+        "browser_download_url": "${testbaseurl}/jdx/ruby/releases/download/4.0.6-1/ruby-4.0.6.macos.tar.gz"
+      }
+    ]
+  }
+]
