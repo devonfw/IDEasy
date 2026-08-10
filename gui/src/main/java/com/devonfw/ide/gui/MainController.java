@@ -126,8 +126,16 @@ public class MainController {
     taskManager.getTasks().addListener(taskListChangeListener);
   }
 
+  /**Guard to ensure {@link #initialize()} runs only once across all FXML files.*/
+  private boolean initialized;
+
   @FXML
   private void initialize() {
+
+    if (this.initialized) {
+      return;
+    }
+    this.initialized = true;
 
     setProjectsComboBox();
     initLanguageComboBox();

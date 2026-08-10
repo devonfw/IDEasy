@@ -6,6 +6,7 @@
 <?import javafx.scene.layout.*?>
 <?import java.lang.Double?>
 <BorderPane fx:id="rootPane"
+  fx:controller="com.devonfw.ide.gui.MainController"
   maxHeight="-Infinity"
   maxWidth="-Infinity"
   VBox.vgrow="ALWAYS"

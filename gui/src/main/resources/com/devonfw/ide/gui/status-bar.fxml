@@ -4,6 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <HBox fx:id="bottomPanelContainer"
+  fx:controller="com.devonfw.ide.gui.MainController"
   alignment="CENTER_RIGHT"
   prefHeight="40.0"
   prefWidth="200.0"

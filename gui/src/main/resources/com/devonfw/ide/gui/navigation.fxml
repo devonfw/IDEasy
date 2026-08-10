@@ -5,6 +5,7 @@
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 <VBox fx:id="navigationPanel"
+  fx:controller="com.devonfw.ide.gui.MainController"
   prefHeight="428.0"
   prefWidth="181.0"
   spacing="4.0"
