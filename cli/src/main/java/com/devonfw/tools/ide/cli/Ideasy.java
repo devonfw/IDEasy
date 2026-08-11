@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.commandlet.CompleteCommandlet;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -103,6 +104,9 @@ public final class Ideasy {
       String key = current.getKey();
       Property<?> property = contextCommandlet.getOption(key);
       if (property == null) {
+        if (CompleteCommandlet.NAME.equals(current.get())) {
+          arguments.preserveEndOptionsToken();
+        }
         break;
       }
       String value = current.getValue();
@@ -110,7 +114,7 @@ public final class Ideasy {
         if (property instanceof FlagProperty) {
           ((FlagProperty) property).setValue(Boolean.TRUE);
         } else {
-          System.err.println("Missing value for option " + key);
+          System.err.println("Missing value for option " + key); // checkstyle:ignore SystemOut - option parsing runs before the logger is initialized
         }
       } else {
         property.setValueAsString(value, this.context);

@@ -73,7 +73,7 @@ main() {
   arch=$(detect_arch)
   version=$(fetch_latest_version)
   archive="ide-cli-${version}-${os}-${arch}.tar.gz"
-  download_url="https://github.com/${GITHUB_REPO}/releases/download/release/${version}/${archive}"
+  download_url="https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${version}/${archive}"
 
   blue "Detected: ${os} ${arch}"
   blue "Latest version: ${version}"
@@ -83,7 +83,7 @@ main() {
   trap 'rm -rf "${TMPDIR_CLEANUP}"' EXIT
   local tmpdir="${TMPDIR_CLEANUP}"
 
-  blue "Downloading ${archive}..."
+  blue "Downloading ${archive} from ${download_url}"
   curl -fSL --progress-bar -o "${tmpdir}/${archive}" "${download_url}"
 
   blue "Extracting..."

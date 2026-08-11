@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool;
 
 import java.nio.file.Path;
 
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -53,6 +54,7 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
     context.getStartContext().setForceMode(true);
     WindowsHelper helper = context.getWindowsHelper();
     String originalPath = helper.getUserEnvironmentValue("PATH");
+    context.getFileAccess().copy(Path.of("src/main/package/gui"), context.getUserHome().resolve("Downloads/ide-cli"));
     IdeasyCommandlet ideasy = new IdeasyCommandlet(context);
     // act
     ideasy.installIdeasy(context.getUserHome().resolve("Downloads/ide-cli"));
@@ -93,6 +95,7 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
     Path gitconfigPath = context.getUserHome().resolve(".gitconfig");
     FileAccess fileAccess = new FileAccessImpl(context);
     fileAccess.writeFileContent("", gitconfigPath);
+    fileAccess.copy(Path.of("src/main/package/gui"), context.getUserHome().resolve("Downloads/ide-cli"));
     IdeasyCommandlet ideasy = new IdeasyCommandlet(context);
     // act
     ideasy.installIdeasy(context.getUserHome().resolve("Downloads/ide-cli"));
@@ -112,15 +115,75 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
         + "devon\n"
         + "source ~/.devon/autocomplete\n"
         + addedRcLines);
+    verifyDesktopShortcut(context, systemInfo, installationPath);
   }
 
-  /** Test of {@link IdeasyCommandlet#configureWindowsTerminalGitBash()}. */
+  private void verifyDesktopShortcut(IdeTestContext context, SystemInfo systemInfo, Path installationPath) {
+
+    if (systemInfo.isLinux()) {
+      Path desktopFile = context.getUserHome().resolve(".local/share/applications/ideasy-gui.desktop");
+      assertThat(desktopFile).exists();
+      assertThat(desktopFile).content()
+          .contains("Exec=" + installationPath.resolve("bin/ideasy") + " gui")
+          .contains("Icon=" + installationPath.resolve("gui/logo.png"));
+    } else if (systemInfo.isMac()) {
+      Path commandFile = context.getUserHome().resolve("Applications/IDEasy.command");
+      assertThat(commandFile).exists();
+      assertThat(commandFile).content()
+          .contains(installationPath.resolve("bin/ideasy").toString())
+          .contains("gui");
+    } else if (systemInfo.isWindows()) {
+      Assumptions.assumeTrue(System.getProperty("os.name", "").toLowerCase().startsWith("win"),
+          "Skipped: .lnk creation requires PowerShell, which is only available on Windows");
+      assertThat(context.getUserHome().resolve("Desktop/IDEasy.lnk")).exists();
+      assertThat(context.getUserHome().resolve(
+          "AppData/Roaming/Microsoft/Windows/Start Menu/Programs/IDEasy.lnk")).exists();
+    }
+  }
+
+  /**
+   * Test that {@link IdeasyCommandlet#installIdeasy(Path)} updates {@link IdeContext#getIdeRoot()} to the derived installation target when {@code IDE_ROOT}
+   * is not set in the environment (as is the case during a fresh MSI installation). This ensures downstream code reading {@link IdeContext#getIdeRoot()}
+   * during the same install run gets a consistent value. See <a href="https://github.com/devonfw/IDEasy/issues/1517">#1517</a> for reference.
+   */
   @Test
-  void testConfigureWindowsTerminalGitBash() {
+  void testInstallIdeasyUpdatesIdeRoot() {
 
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of("windows");
     IdeTestContext context = newContext("install");
+    context.setIdeRoot(null);
+    context.setSystemInfo(systemInfo);
+    context.getStartContext().setForceMode(true);
+    Path gitconfigPath = context.getUserHome().resolve(".gitconfig");
+    FileAccess fileAccess = new FileAccessImpl(context);
+    fileAccess.writeFileContent("", gitconfigPath);
+    fileAccess.copy(Path.of("src/main/package/gui"), context.getUserHome().resolve("Downloads/ide-cli"));
+    Path ideRoot = context.getUserHome().resolve("projects");
+    IdeasyCommandlet ideasy = new IdeasyCommandlet(context);
+    assertThat(context.getIdeRoot()).as("IDE_ROOT is not set before install").isNull();
+    // act
+    ideasy.installIdeasy(context.getUserHome().resolve("Downloads/ide-cli"));
+    // assert
+    assertThat(context.getIdeRoot()).isEqualTo(ideRoot);
+  }
+
+  /**
+   * Test of {@link IdeasyCommandlet#configureWindowsTerminalGitBash()}, also when {@code IDE_ROOT} is not yet set, as is the case during MSI installation.
+   *
+   * @param ideRootSet whether {@code IDE_ROOT} is set on the context.
+   */
+  @ParameterizedTest
+  @ValueSource(booleans = { true, false })
+  void testConfigureWindowsTerminalGitBash(boolean ideRootSet) {
+
+    // arrange
+    SystemInfo systemInfo = SystemInfoMock.of("windows");
+    IdeTestContext context = newContext("install");
+    context.setSystemInfo(systemInfo);
+    if (!ideRootSet) {
+      context.setIdeRoot(null);
+    }
     IdeasyCommandlet ideasy = new IdeasyCommandlet(context);
 
     // act
@@ -146,6 +209,7 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
     context.setSystemInfo(systemInfo);
     context.getStartContext().setForceMode(true);
     Path gitconfigPath = context.getUserHome().resolve(".gitconfig");
+    context.getFileAccess().copy(Path.of("src/main/package/gui"), context.getUserHome().resolve("Downloads/ide-cli"));
     IdeasyCommandlet ideasy = new IdeasyCommandlet(context);
     // act
     ideasy.installIdeasy(context.getUserHome().resolve("Downloads/ide-cli"));
