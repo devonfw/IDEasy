@@ -13,6 +13,7 @@ The full list of changes for this release can be found in https://github.com/dev
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/2178[#2178]: Make ReleaseCommandlet independent of specific build commandlet
 * https://github.com/devonfw/IDEasy/issues/2197[#2197]: Fix broken python integration
 * https://github.com/devonfw/IDEasy/issues/2131[#2131]: Improve `ide upgrade --mode=` auto-completion
 * https://github.com/devonfw/IDEasy/issues/1870[#1870]: Add generic get-version implementation for global tools under windows
