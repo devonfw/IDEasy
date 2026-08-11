@@ -51,7 +51,8 @@ public class ReleaseCommandlet extends Commandlet {
       throw new CliException("Your local git repository has uncommitted changes. Please use 'git stash' and rerun on clean repo.");
     }
     if (warnIfFork(git, projectPath)) {
-      confirmWarning("You seem to work on a fork. Releases should be done on the original repository!\nWe strongly recommend to abort and rerun on original repository.");
+      confirmWarning("You seem to work on a fork. Releases should be done on the original repository!\n"
+          + "We strongly recommend to abort and rerun on original repository.");
     }
     if (!this.context.isForceMode() && !isTopLevelProject(commandlet, projectPath)) {
       throw new CliException("Release has to be performed from the top-level project or using force option.");
