@@ -41,6 +41,7 @@ public class MainController {
   private final ProjectManager projectManager;
   private final TaskManager taskManager;
 
+  private final MainController oldMainController;
 
   @FXML
   private ComboBox<String> selectedProject;
@@ -85,7 +86,7 @@ public class MainController {
    * @param ideRoot the IDE_ROOT path
    * @param guiStateManager the {@link GuiStateManager} to be used in this application instance
    */
-  public MainController(String ideRoot, GuiStateManager guiStateManager, NlsService nlsService) {
+  public MainController(String ideRoot, GuiStateManager guiStateManager, NlsService nlsService, MainController oldMainController) {
 
     LOG.debug("IDE_ROOT path={}", ideRoot);
     this.ideRootPath = ideRoot;
@@ -94,6 +95,7 @@ public class MainController {
     this.projectManager = guiStateManager.getProjectManager();
     this.languageMap = new LinkedHashMap<>();
     this.nlsService = nlsService;
+    this.oldMainController = oldMainController;
 
     setUpTaskListListener();
   }
@@ -131,6 +133,27 @@ public class MainController {
 
     setProjectsComboBox();
     initLanguageComboBox();
+    loadOldMainController();
+  }
+
+  private void loadOldMainController() {
+    if (this.oldMainController == null) {
+      return;
+    }
+
+    selectedLanguage.setValue(this.oldMainController.selectedLanguage.getValue());
+    selectedProject.setValue(this.oldMainController.selectedProject.getValue());
+    setWorkspaceComboBox();
+    selectedWorkspace.setValue(this.oldMainController.selectedWorkspace.getValue());
+
+    updateContext(this.selectedProject.getValue(), this.selectedWorkspace.getValue());
+
+    selectedWorkspace.setDisable(this.oldMainController.selectedWorkspace.isDisable());
+    androidStudioOpen.setDisable(this.oldMainController.androidStudioOpen.isDisable());
+    eclipseOpen.setDisable(this.oldMainController.eclipseOpen.isDisable());
+    intellijOpen.setDisable(this.oldMainController.intellijOpen.isDisable());
+    vsCodeOpen.setDisable(this.oldMainController.vsCodeOpen.isDisable());
+
   }
 
   private void initLanguageComboBox() {
