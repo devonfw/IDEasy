@@ -93,4 +93,19 @@ class ReleaseCommandletTest extends AbstractIdeContextTest {
 
     assertThrows(CliException.class, releaseCommandlet::run);
   }
+
+  /**
+   * Tests that the release fails gracefully if a build descriptor is found but its build tool does not support releasing (does not implement
+   * {@link com.devonfw.tools.ide.tool.BuildTool}), e.g. a gradle project (only maven currently supports releasing).
+   */
+  @Test
+  void testReleaseWithUnsupportedBuildToolThrowsException() {
+
+    IdeTestContext context = newReleaseContext(false);
+    context.setCwd(context.getWorkspacePath().resolve("gradle"), context.getWorkspacePath().toString(), context.getIdeHome());
+    ReleaseCommandlet releaseCommandlet = context.getCommandletManager().getCommandlet(ReleaseCommandlet.class);
+
+    CliException exception = assertThrows(CliException.class, releaseCommandlet::run);
+    assertThat(exception).hasMessageContaining("Could not find a supported build tool");
+  }
 }
