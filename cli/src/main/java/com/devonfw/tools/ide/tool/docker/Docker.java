@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.SystemArchitecture;
-import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.NativePackageManager;
 import com.devonfw.tools.ide.tool.PackageManagerCommand;
@@ -108,7 +107,7 @@ public class Docker extends GlobalToolCommandlet {
       return getRancherDesktopClientVersion();
     } else {
       VersionIdentifier parsedVersion = switch (this.context.getSystemInfo().getOs()) {
-        case WINDOWS -> getDockerDesktopVersionWindows();
+        case WINDOWS -> super.getInstalledVersion();
         case LINUX -> getDockerDesktopVersionLinux();
         default -> null;
       };
@@ -119,16 +118,6 @@ public class Docker extends GlobalToolCommandlet {
 
       return parsedVersion;
     }
-  }
-
-  private VersionIdentifier getDockerDesktopVersionWindows() {
-
-    String registryPath = "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Docker Desktop";
-
-    WindowsHelper windowsHelper = ((com.devonfw.tools.ide.context.AbstractIdeContext) this.context).getWindowsHelper();
-    String version = windowsHelper.getRegistryValue(registryPath, "DisplayVersion");
-
-    return VersionIdentifier.of(version);
   }
 
   private VersionIdentifier getDockerDesktopVersionLinux() {
@@ -189,5 +178,11 @@ public class Docker extends GlobalToolCommandlet {
   public String getToolHelpArguments() {
 
     return "help";
+  }
+
+  @Override
+  public String getWindowsRegistryAppName() {
+
+    return "Docker Desktop";
   }
 }
