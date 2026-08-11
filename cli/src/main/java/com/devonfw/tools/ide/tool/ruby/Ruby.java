@@ -8,7 +8,7 @@ import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 
 /**
- * {@link ToolCommandlet} for <a href="https://www.ruby-lang.org/">Ruby</a>.
+ * {@link ToolCommandlet} for the Ruby programming language.
  */
 public class Ruby extends LocalToolCommandlet {
 
