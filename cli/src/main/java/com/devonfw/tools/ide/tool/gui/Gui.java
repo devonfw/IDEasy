@@ -88,7 +88,7 @@ public class Gui extends Commandlet {
         "-f", //use specified POM file
         pomPath.toString(),
         "org.codehaus.mojo:exec-maven-plugin:3.1.0:exec",
-        "-Dexec.executable=java",
+        "-Dexec.executable=" + getGuiExecutable(javaInstallation),
         "-Dexec.classpathScope=compile",
         "-Dexec.args=-classpath %classpath com.devonfw.ide.gui.AppLauncher",
         "-Dexec.async=true"
@@ -110,5 +110,25 @@ public class Gui extends Commandlet {
       throw new CliException(
           "Failed to launch the GUI. If maven reports issues with dependency resolution, check whether the maven M2 repo is enabled in your project.", e);
     }
+  }
+
+  /**
+   * The GUI is launched as a plain {@code java} process without a native app bundle. On macOS this makes the Dock and menu bar show the executable's
+   * filename "java" instead of "IDEasy" (see issue #2206). As a workaround we exec a symlink named "IDEasy" that points to the real java executable instead
+   * of exec-ing "java" directly.
+   *
+   * @param javaInstallation the {@link ToolInstallation} of the java tool used to launch the GUI.
+   * @return the executable to pass to Maven's {@code exec:exec} goal in order to launch the GUI.
+   */
+  String getGuiExecutable(ToolInstallation javaInstallation) {
+
+    if (!this.context.getSystemInfo().isMac()) {
+      return "java";
+    }
+    Path javaExecutable = javaInstallation.binDir().resolve("java");
+    Path link = this.context.getTempPath().resolve("IDEasy");
+    this.context.getFileAccess().mkdirs(link.getParent());
+    this.context.getFileAccess().symlink(javaExecutable, link, false);
+    return link.toString();
   }
 }
