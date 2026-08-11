@@ -174,7 +174,7 @@ jobs:
           git tag -a "release/${RELEASE_VERSION}" -m "tagged version ${RELEASE_VERSION}"
           export GPG_TTY=$TTY
           mkdir -p ./cli/target/
-          mvn --settings .mvn/settings.xml -B -ntp deploy -Passembly,msi,pkg,deploy -Dgpg.pin.entry.mode=loopback -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }}
+          mvn --settings .mvn/settings.xml -B -ntp deploy -Passembly,msi,pkg,deploy -pl -:ide-macos-installer -Dgpg.pin.entry.mode=loopback -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }}
         env:
           RELEASE_VERSION: ${{ needs.resolve-version.outputs.release_version }}
           SNAPSHOT_VERSION: ${{ needs.resolve-version.outputs.snapshot_version }}
