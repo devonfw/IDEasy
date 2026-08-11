@@ -70,6 +70,7 @@ public class Python extends LocalToolCommandlet {
 
     super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
     environmentContext.withEnvVar("VIRTUAL_ENV", toolInstallation.rootDir().toString());
+    environmentContext.withEnvVar("UV_PROJECT_ENVIRONMENT", toolInstallation.rootDir().toString());
   }
 
   @Override
