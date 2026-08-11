@@ -54,7 +54,7 @@ public class TaskWindowTest extends HeadlessApplicationTest {
 
   @BeforeEach
   void reset() {
-    taskManager.getTasks().clear();
+    taskManager.clearTasks();
     waitForFxEvents();
   }
 
@@ -107,7 +107,9 @@ public class TaskWindowTest extends HeadlessApplicationTest {
     ProgressBarTask task3 = new ProgressBarTask(taskManager, "task-3", "Test Task 3");
 
     taskManager.addTask(task1);
+    waitForFxEvents();
     taskManager.addTask(task2);
+    waitForFxEvents();
     taskManager.addTask(task3);
     waitForFxEvents();
 
