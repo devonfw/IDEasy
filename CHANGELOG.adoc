@@ -36,6 +36,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2136[#2136]: Add Support for Ruby URL Updater for Linux and macOS
 * https://github.com/devonfw/IDEasy/issues/2292[#2292]: Questions appear twice
 * https://github.com/devonfw/IDEasy/issues/825[#825]: Add commandlet for GC Log Analyzer
+* https://github.com/devonfw/IDEasy/issues/1938[#1938]: GUI not launchable outside of project context
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/48?closed=1[milestone 2026.08.001].
 
