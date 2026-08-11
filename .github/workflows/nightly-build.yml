@@ -15,7 +15,7 @@ jobs:
       matrix: # ATTENTION: see also release.yml, image name are referenced in cli/src/main/assembly/*.xml files, on update do not forget to also update there
         os: [ windows-latest, ubuntu-latest, ubuntu-22.04-arm, macos-latest, macos-15-intel ]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
       - uses: graalvm/setup-graalvm@v1
@@ -40,7 +40,7 @@ jobs:
           codesign --force --sign - cli/target/ideasy
           codesign --verify --verbose cli/target/ideasy
       - name: Upload native image
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: natives-${{ matrix.os }}
           path: cli/target/ideasy*
@@ -65,7 +65,7 @@ jobs:
       - name: Upload unsigned MSI
         if: runner.os == 'Windows'
         id: upload-msi
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: msi-unsigned
           path: windows-installer/ideasy.msi
@@ -83,7 +83,7 @@ jobs:
           output-artifact-directory: 'windows-installer/signed'
       - name: Upload MSI
         if: runner.os == 'Windows'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: msi
           path: windows-installer/signed/ideasy.msi
@@ -95,16 +95,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         with:
           submodules: recursive
       - name: Set up JDK
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '25'
       - name: Download natives and build project
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: ./cli/target/
       - name: Deploy to OSSRH nexus
