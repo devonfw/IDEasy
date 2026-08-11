@@ -25,6 +25,12 @@ node_modules
 # generated graphify knowledge graph output (per-developer AI tooling, not shared)
 graphify-out/
 
+#macOs installer files
+*.pkg
+macos-installer/Resources/LICENSE.rtf
+macos-installer/pkg-root
+macos-installer/Distribution.xml
+
 # Package Files #
 *.jar
 *.war

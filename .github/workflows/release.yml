@@ -60,7 +60,9 @@ jobs:
         shell: bash
         run: |
           cd cli
-          mvn -B -ntp -Drevision=${{ needs.resolve-version.outputs.release_version }} -Pnative -DskipTests=true package
+          mvn -B -ntp -Drevision=${RELEASE_VERSION} -Pnative -DskipTests=true package
+        env:
+          RELEASE_VERSION: ${{ needs.resolve-version.outputs.release_version }}
       - name: Ad-hoc sign native image (macOS)
         if: runner.os == 'macOS'
         shell: bash
@@ -115,6 +117,22 @@ jobs:
         with:
           name: msi
           path: windows-installer/signed/ideasy.msi
+      - name: Build MacOS PKG
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          ./.github/workflows/macos/generate_pkg.sh
+        env:
+          RELEASE_VERSION: ${{ needs.resolve-version.outputs.release_version }}
+      - name: Upload unsigned PKG
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pkg-${{ matrix.os == 'macos-latest' && 'arm64' || 'x64' }}
+          path: macos-installer/ideasy.pkg
+          # Default is "warn": a missing PKG would upload an empty artifact and only fail much
+          # later in the release job. Fail right here instead.
+          if-no-files-found: error
 
   # Downloads all native image artifacts to cli/target and builds the project using assemblies for final deployment to Maven Central.
   # The version number for the next build will be incremented automatically.
@@ -156,7 +174,7 @@ jobs:
           git tag -a "release/${RELEASE_VERSION}" -m "tagged version ${RELEASE_VERSION}"
           export GPG_TTY=$TTY
           mkdir -p ./cli/target/
-          mvn --settings .mvn/settings.xml -B -ntp deploy -Passembly,msi,deploy -Dgpg.pin.entry.mode=loopback -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }}
+          mvn --settings .mvn/settings.xml -B -ntp deploy -Passembly,msi,pkg,deploy -Dgpg.pin.entry.mode=loopback -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }}
         env:
           RELEASE_VERSION: ${{ needs.resolve-version.outputs.release_version }}
           SNAPSHOT_VERSION: ${{ needs.resolve-version.outputs.snapshot_version }}
@@ -200,6 +218,8 @@ jobs:
           * Windows: https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${RELEASE_VERSION}/ide-cli-${RELEASE_VERSION}-windows-x64.tar.gz
           * Mac(arm64): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${RELEASE_VERSION}/ide-cli-${RELEASE_VERSION}-mac-arm64.tar.gz
           * Mac(x64): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${RELEASE_VERSION}/ide-cli-${RELEASE_VERSION}-mac-x64.tar.gz
+          * Mac-PKG(arm64): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${RELEASE_VERSION}/ide-cli-${RELEASE_VERSION}-mac-arm64.pkg
+          * Mac-PKG(x64): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${RELEASE_VERSION}/ide-cli-${RELEASE_VERSION}-mac-x64.pkg
           * Linux(arm64): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${RELEASE_VERSION}/ide-cli-${RELEASE_VERSION}-linux-arm64.tar.gz
           * Linux(x64): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${RELEASE_VERSION}/ide-cli-${RELEASE_VERSION}-linux-x64.tar.gz
           # Changes
