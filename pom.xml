@@ -181,6 +181,7 @@
     <module>gui</module>
     <module>url-updater</module>
     <module>security</module>
+    <module>macos-installer</module>
   </modules>
 
   <build>
