@@ -60,5 +60,6 @@ public class PythonTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(variables.get("VIRTUAL_ENV").getValue().replace('\\', '/')).endsWith("/software/python");
+    assertThat(variables.get("UV_PROJECT_ENVIRONMENT").getValue().replace('\\', '/')).endsWith("/software/python");
   }
 }
