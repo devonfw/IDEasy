@@ -620,9 +620,17 @@ public class ProcessContextImpl implements ProcessContext {
 
     // Escape cmd.exe metacharacters in this specific order to avoid double-escaping:
     // 1. Caret (^) first, since it's the escape character itself
-    // 2. Percent (%) for environment variable expansion
-    // 3. Double quote (") using caret escape (not backslash, since \" is not a reliable cmd.exe escape)
+    // 2. Ampersand (&) - command separator
+    // 3. Pipe (|) - command pipe
+    // 4. Greater-than (>) - output redirection
+    // 5. Less-than (<) - input redirection
+    // 6. Percent (%) for environment variable expansion
+    // 7. Double quote (") using caret escape (not backslash, since \" is not a reliable cmd.exe escape)
     String escaped = value.replace("^", "^^")
+        .replace("&", "^&")
+        .replace("|", "^|")
+        .replace(">", "^>")
+        .replace("<", "^<")
         .replace("%", "%%")
         .replace("\"", "^\"");
 

@@ -256,6 +256,60 @@ class BackgroundNewWindowTest extends AbstractIdeContextTest {
     Files.deleteIfExists(batchFile);
   }
 
+  @Test
+  @EnabledOnOs(OS.WINDOWS)
+  void backgroundNewWindowShouldWithEchoInjectedShouldNotActuallyLeakOnWindows() throws Exception {
+    // arrange
+    if (isCiEnvironment()) {
+      return; // Skip — opening a CMD window would leak in CI
+    }
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+
+    Path markerFile = Files.createTempFile("bg-marker-", ".txt");
+    Files.delete(markerFile); // Remove so polling can detect when the batch file creates it
+
+    /*
+    Path injectedFile = Files.createTempFile("bg-injected-", ".txt");
+    Files.delete(injectedFile); */
+
+    Path injectedFile = markerFile.resolveSibling("injected.txt");
+    Files.deleteIfExists(injectedFile);
+
+    // Create a simple batch file that writes to the marker file
+    Path batchFile = Files.createTempFile("bg-test-", ".bat");
+    String batchContent = "@echo off\r\necho background-process-ran > " + markerFile + "\r\nexit /b 0\r\n";
+    Files.writeString(batchFile, batchContent);
+
+    ProcessContextImpl processContext = new ProcessContextImpl(context);
+    // act
+    ProcessResult result = processContext.executable(batchFile)
+        .addArg("& echo INJECTED > " + injectedFile)
+        .run(ProcessMode.BACKGROUND_NEW_WINDOW);
+    // assert
+    // The process should detach successfully
+    assertThat(result.isSuccessful()).isTrue();
+
+    // Poll for the marker file with a generous timeout.
+    long timeout = System.currentTimeMillis() + Duration.ofSeconds(15).toMillis();
+    while (System.currentTimeMillis() < timeout) {
+      if (Files.exists(markerFile)) {
+        assertThat(Files.readString(markerFile)).contains("background-process-ran");
+        assertThat(Files.exists(injectedFile)).isFalse();
+        Files.delete(batchFile); // Clean up
+        Files.deleteIfExists(injectedFile);
+        return; // Success
+      }
+      Thread.sleep(Duration.ofMillis(500));
+    }
+
+    // If we reach here, the marker file was not created in time
+    assertThat(markerFile)
+        .as("Marker file should have been created by the new-window CMD process within 15 seconds")
+        .exists();
+    Files.deleteIfExists(batchFile);
+    Files.deleteIfExists(injectedFile);
+  }
+
   /**
    * End-to-end verification: on Linux, {@link ProcessMode#BACKGROUND_NEW_WINDOW} should open a new terminal window (via {@code gnome-terminal}, {@code xterm},
    * or another detected emulator) and actually execute the command. The marker file proves the subprocess was spawned in the new window and completed.
