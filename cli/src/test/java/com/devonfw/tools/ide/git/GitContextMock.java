@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
@@ -20,6 +21,9 @@ import com.devonfw.tools.ide.io.ini.IniSection;
 public class GitContextMock extends GitContextImpl {
 
   private static final String MOCKED_URL_VALUE = "mocked url value";
+
+  /** Filename used to persist mocked remotes inside the {@code .git} folder. */
+  private static final String REMOTES_FILE = "remotes.properties";
 
   private final Map<Path, List<GitCommit>> pending = new HashMap<>();
 
@@ -360,8 +364,6 @@ public class GitContextMock extends GitContextImpl {
 
   }
 
-  private final Map<Path, Map<String, String>> remoteUrls = new HashMap<>();
-
   @Override
   public void addRemote(Path repository, String name, String url) {
 
@@ -382,13 +384,22 @@ public class GitContextMock extends GitContextImpl {
    */
   protected void addRemote(Path repository, String name, String url, boolean failOnOverride) {
 
-    Map<String, String> remotes = this.remoteUrls.computeIfAbsent(repository, k -> new HashMap<>());
-    String existingUrl = remotes.get(name);
+    Path gitFolder = repository.resolve(GIT_FOLDER);
+    FileAccess fileAccess = this.context.getFileAccess();
+    Path remotesFile = gitFolder.resolve(REMOTES_FILE);
+
+    Properties properties = new Properties();
+    if (fileAccess.isFile(remotesFile)) {
+      fileAccess.readProperties(remotesFile, properties);
+    }
+
+    String existingUrl = (String) properties.getProperty(name);
     if (existingUrl != null && !existingUrl.equals(url)) {
       if (failOnOverride) {
         throw new IllegalStateException("Remote '" + name + "' already exists with URL '" + existingUrl + "', refusing to override with '" + url + "'");
       }
     }
-    remotes.put(name, url);
+    properties.setProperty(name, url);
+    fileAccess.writeProperties(properties, remotesFile, true);
   }
 }
