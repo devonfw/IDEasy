@@ -313,26 +313,38 @@ final class RepositoryProperties {
     }
     List<RepositoryRemote> remoteList = new ArrayList<>();
     for (String remoteItem : remotes.split(",")) {
-      String trimmed = remoteItem.trim();
-      int colonIndex = trimmed.indexOf(':');
-      if (colonIndex <= 0) {
-        LOG.warn("Ignoring invalid git_remote entry {} from {}", trimmed, PROPERTY_GIT_REMOTE);
-        continue;
+      RepositoryRemote remote = parseRemoteEntry(remoteItem.trim());
+      if (remote != null) {
+        remoteList.add(remote);
       }
-      String name = trimmed.substring(0, colonIndex).trim();
-      String url = trimmed.substring(colonIndex + 1).trim();
-      if (name.isBlank() || url.isBlank()) {
-        LOG.warn("Ignoring git_remote entry {} with empty name or url from {}", trimmed, PROPERTY_GIT_REMOTE);
-        continue;
-      }
-      if (!REMOTE_NAME_PATTERN.matcher(name).matches()) {
-        LOG.warn("Ignoring git_remote entry {} with invalid remote name \"{}\" — name must consist of latin letters only from {}",
-            trimmed, name, PROPERTY_GIT_REMOTE);
-        continue;
-      }
-      remoteList.add(new RepositoryRemote(name, url));
     }
     return List.copyOf(remoteList);
+  }
+
+  /**
+   * Parses a single remote entry in the format {@code "name:url"} from a {@link PROPERTY_GIT_REMOTE} value.
+   *
+   * @param remoteItem the remote entry string to parse.
+   * @return the parsed {@link RepositoryRemote} or {@code null} if the entry is invalid.
+   */
+  private RepositoryRemote parseRemoteEntry(String remoteItem) {
+    int colonIndex = remoteItem.indexOf(':');
+    if (colonIndex <= 0) {
+      LOG.warn("Ignoring invalid git_remote entry {} from {}", remoteItem, PROPERTY_GIT_REMOTE);
+      return null;
+    }
+    String name = remoteItem.substring(0, colonIndex).trim();
+    String url = remoteItem.substring(colonIndex + 1).trim();
+    if (name.isBlank() || url.isBlank()) {
+      LOG.warn("Ignoring git_remote entry {} with empty name or url from {}", remoteItem, PROPERTY_GIT_REMOTE);
+      return null;
+    }
+    if (!REMOTE_NAME_PATTERN.matcher(name).matches()) {
+      LOG.warn("Ignoring git_remote entry {} with invalid remote name \"{}\" — name must consist of latin letters only from {}",
+          remoteItem, name, PROPERTY_GIT_REMOTE);
+      return null;
+    }
+    return new RepositoryRemote(name, url);
   }
 
   private String sanatizeRelativePath(String path, String propertyName) {
