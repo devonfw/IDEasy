@@ -44,7 +44,7 @@ If you are looking for a new story to work on, here is how to find one in our pr
 5. For a visual overview of all issues and their status, check the https://github.com/devonfw/IDEasy/projects/[project board]^2^.
 
 IMPORTANT: Before you start working, always self-assign the issue first.
-See <<working-on-an-issue, Working on an Issue>> for the detailed steps.
+See xref:working-on-an-issue[Working on an Issue] for the detailed steps.
 
 [.footnote]
 ^.1.^ The *ready-to-implement* label means the issue has been refined and is ready for someone to pick it up -- no further clarification is needed.
