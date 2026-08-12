@@ -266,11 +266,7 @@ class BackgroundNewWindowTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext(PROJECT_BASIC, null, false);
 
     Path markerFile = Files.createTempFile("bg-marker-", ".txt");
-    Files.delete(markerFile); // Remove so polling can detect when the batch file creates it
-
-    /*
-    Path injectedFile = Files.createTempFile("bg-injected-", ".txt");
-    Files.delete(injectedFile); */
+    Files.delete(markerFile);
 
     Path injectedFile = markerFile.resolveSibling("injected.txt");
     Files.deleteIfExists(injectedFile);
@@ -295,9 +291,9 @@ class BackgroundNewWindowTest extends AbstractIdeContextTest {
       if (Files.exists(markerFile)) {
         assertThat(Files.readString(markerFile)).contains("background-process-ran");
         assertThat(Files.exists(injectedFile)).isFalse();
-        Files.delete(batchFile); // Clean up
+        Files.delete(batchFile);
         Files.deleteIfExists(injectedFile);
-        return; // Success
+        return;
       }
       Thread.sleep(Duration.ofMillis(500));
     }

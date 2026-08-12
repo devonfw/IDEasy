@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- This file is the installer configuration file for the macOS pkg-Installer. The next_version placeholder will be replaced during build with the correct version. -->
 <installer-gui-script minSpecVersion="1">
-  <title>IDEasy - 2026.08.001-SNAPSHOT</title>
+  <title>IDEasy - 2026.08.002-SNAPSHOT</title>
   <license file="LICENSE.rtf"/>
   <conclusion file="CONCLUSION.rtf"/>
   <background file="background.png" alignment="left" scaling="tofit"/>
@@ -19,5 +19,5 @@
   <choice id="com.devonfw.ideasy" visible="false">
     <pkg-ref id="com.devonfw.ideasy"/>
   </choice>
-  <pkg-ref id="com.devonfw.ideasy" version="2026.08.001-SNAPSHOT" onConclusion="none">IDEasyComponent.pkg</pkg-ref>
+  <pkg-ref id="com.devonfw.ideasy" version="2026.08.002-SNAPSHOT" onConclusion="none">IDEasyComponent.pkg</pkg-ref>
 </installer-gui-script>

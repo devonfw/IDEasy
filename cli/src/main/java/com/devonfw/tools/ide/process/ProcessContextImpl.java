@@ -425,9 +425,9 @@ public class ProcessContextImpl implements ProcessContext {
     if (processMode.launchesNewWindow()) {
       String commandToRunInBackground = buildCommand(args);
       if (this.context.getSystemInfo().isWindows()) {
-        modifyArgumentsOnBackgroundProcessWindows(processMode, args, commandToRunInBackground);
+        modifyArgumentsOnBackgroundProcessForNewWindowWindows(args, commandToRunInBackground);
       } else {
-        modifyArgumentsOnBackgroundProcessUnix(processMode, args, commandToRunInBackground);
+        modifyArgumentsOnBackgroundProcessForNewWindowUnix(args, commandToRunInBackground);
       }
     } else {
       Path bash = this.context.findBash();
@@ -473,13 +473,12 @@ public class ProcessContextImpl implements ProcessContext {
   }
 
   /**
-   * Modifies arguments for a background process on Linux/macOS using {@code bash -c}.
+   * Modifies arguments for a background process opening in a new window on Linux/macOS using {@code bash -c}.
    *
-   * @param processMode the {@link ProcessMode} determining the background behavior
    * @param args the argument list to modify in place
    * @param command the command string to run in the background
    */
-  private void modifyArgumentsOnBackgroundProcessUnix(ProcessMode processMode, List<String> args, String command) {
+  private void modifyArgumentsOnBackgroundProcessForNewWindowUnix(List<String> args, String command) {
 
     Path bash = this.context.findBash();
     if (bash == null) {
@@ -492,33 +491,24 @@ public class ProcessContextImpl implements ProcessContext {
     args.add(bash.toString());
     args.add("-c");
 
-    if (processMode.launchesNewWindow()) {
-      String newWindowCommand = buildNewWindowCommand(command);
-      args.add(newWindowCommand);
-    } else {
-      args.add(command + " & disown");
-    }
+    String newWindowCommand = buildNewWindowCommand(command);
+    args.add(newWindowCommand);
+
   }
 
   /**
-   * Modifies arguments for a background process on Windows using {@code cmd.exe /c}.
+   * Modifies arguments for a background process opening in a new window on Windows using {@code cmd.exe /c}.
    *
-   * @param processMode the {@link ProcessMode} determining the background behavior
    * @param args the argument list to modify in place
    * @param command the command string to run in the background
    */
-  private void modifyArgumentsOnBackgroundProcessWindows(ProcessMode processMode, List<String> args, String command) {
+  private void modifyArgumentsOnBackgroundProcessForNewWindowWindows(List<String> args, String command) {
 
     args.clear();
     args.add("cmd.exe");
     args.add("/c");
+    args.add("start \"\" cmd.exe /k \"" + command + "\"");
 
-    if (processMode.launchesNewWindow()) {
-      args.add("start \"\" cmd.exe /k " + command);
-    } else {
-      // start /b detaches the process without opening a new window
-      args.add("start \"\" /b " + command);
-    }
   }
 
   private String buildCommand(List<String> args) {
@@ -618,21 +608,16 @@ public class ProcessContextImpl implements ProcessContext {
       return "\"\"";
     }
 
-    // Escape cmd.exe metacharacters in this specific order to avoid double-escaping:
-    // 1. Caret (^) first, since it's the escape character itself
-    // 2. Ampersand (&) - command separator
-    // 3. Pipe (|) - command pipe
-    // 4. Greater-than (>) - output redirection
-    // 5. Less-than (<) - input redirection
-    // 6. Percent (%) for environment variable expansion
-    // 7. Double quote (") using caret escape (not backslash, since \" is not a reliable cmd.exe escape)
+    if (value.indexOf('"') >= 0) {
+      throw new IllegalArgumentException("Argument must not contain a double quote character on Windows: " + value);
+    }
+
     String escaped = value.replace("^", "^^")
         .replace("&", "^&")
         .replace("|", "^|")
         .replace(">", "^>")
         .replace("<", "^<")
-        .replace("%", "%%")
-        .replace("\"", "^\"");
+        .replace("%", "%%");
 
     return "\"" + escaped + "\"";
   }
