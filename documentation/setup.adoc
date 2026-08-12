@@ -19,7 +19,7 @@ If you prefer a manual installation feel free to read-one.
 We try to make it as simple as possible for you.
 However, there are some minimal prerequisites:
 
-* Unless you use the MSI installer for Windows, you need to have a tool to extract `*.tar.gz` files (`tar` and `gzip`).
+* Unless you use the MSI installer for Windows or the PKG installer for MacOS, you need to have a tool to extract `*.tar.gz` files (`tar` and `gzip`).
 On Windows before Version 10 (1803) use https://www.7-zip.org/[7-zip].
 On all other platforms this comes out of the box.
 * You need to have https://git-scm.com[git].
@@ -36,6 +36,7 @@ The latest release of `IDEasy` can be downloaded from https://github.com/devonfw
 Extract the contents of the downloaded archive (`ide-cli-*.tar.gz`) to a new folder and run `setup` in this folder (on windows double-click on `setup.bat`).
 
 On MacOS please study link:mac-gatekeeper.adoc[Gatekeeper problem and workaround] in order to use IDEasy.
+This is also relevant in case of using the PKG installer on MacOS.
 
 On Linux, run `./setup` to install.
 Your current terminal session will not recognize the `ide` command immediately.
