@@ -81,7 +81,7 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
   @Override
   public ProcessResult runTool(ProcessContext pc, ProcessMode processMode, List<String> args) {
 
-    if (processMode == ProcessMode.BACKGROUND) {
+    if ((processMode != null) && processMode.isBackground()) {
       configureWorkspace();
     }
     return super.runTool(pc, processMode, args);
