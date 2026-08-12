@@ -45,11 +45,3 @@ ide --quiet
 However, log files are always written with full trace information to ensure all details required for troubleshooting are available, regardless of the selected console log level.
 
 To remove obsolete data and free disk space, use the `ide cleanup` command.
-
-[NOTE]
-====
-The `ide cleanup` command is still work in progress (see issue #1580).
-
-Currently it mainly supports cleanup of unused software.
-Cleanup of temporary files and logs is planned as a future enhancement.
-====
