@@ -548,28 +548,24 @@ public class GitContextImpl implements GitContext {
     // Check if the remote already exists and get its current URL
     ProcessResult getUrlResult = runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.NONE, "remote", "get-url", name);
     if (getUrlResult.isSuccessful()) {
-<<<<<<< HEAD
-      if (getUrlResult.getOut().getFirst().trim().equals(url)) {
+      String existingUrl = getUrlResult.getOut().getFirst().trim();
+      if (existingUrl.equals(url)) {
         LOG.debug("Remote '{}' already exists with the expected URL {}", name, url);
         return;
       }
-      // Remote exists with a different URL — update it
-      LOG.debug("Remote '{}' already exists with a different URL, updating to {}", name, url);
-=======
       // Remote exists with a different URL
-      String oldUrl = getUrlResult.getOut().getFirst().trim();
       if (failOnOverride) {
-        throw new IllegalStateException("Remote '" + name + "' already exists with URL '" + oldUrl + "', refusing to override with '" + url + "'");
+        throw new IllegalStateException("Remote '" + name + "' already exists with URL '" + existingUrl + "', refusing to override with '" + url + "'");
       }
-      LOG.warn("Remote '{}' already exists with URL '{}', overriding with '{}'", name, oldUrl, url);
->>>>>>> cdd8dd52 (fix addRemoteOrFail)
+      LOG.warn("Remote '{}' already exists with URL '{}', overriding with '{}'", name, existingUrl, url);
       ProcessResult setResult = runGitCommand(repository, ProcessMode.DEFAULT, "remote", "set-url", name, url);
       if (!setResult.isSuccessful()) {
-        LOG.warn("Failed to update URL for remote '{}' to {}", name, repository);
+        LOG.warn("Failed to update URL for remote '{}' to {}", name, url);
       }
       return;
     }
     // Remote does not exist — add it
+    LOG.debug("Remote '{}' does not exist yet in {}, adding it", name, repository);
     ProcessResult result = runGitCommand(repository, ProcessMode.DEFAULT, "remote", "add", name, url);
     if (!result.isSuccessful()) {
       LOG.warn("Failed to add remote '{}' to {}", name, repository);
