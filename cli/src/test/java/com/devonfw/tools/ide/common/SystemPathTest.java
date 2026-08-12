@@ -144,6 +144,25 @@ class SystemPathTest extends AbstractIdeContextTest {
   }
 
   @Test
+  void testFindBinaryFindsBinaryInExtraPathEntries() throws java.io.IOException {
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    Path binDir = context.getIdeHome().resolve("scratch-bin");
+    java.nio.file.Files.createDirectories(binDir);
+    java.nio.file.Files.writeString(binDir.resolve("faketool.cmd"), "@echo hi");
+
+    // empty PATH and no software folder, so tool2pathMap and paths stay empty
+    SystemPath base = new SystemPath(context, "", null, null, ';', List.of());
+    SystemPath merged = base.withPath(null, List.of(binDir));
+
+    // assert
+    assertThat(merged.toString()).contains(binDir.toString());
+    Path resolved = merged.findBinary(Path.of("faketool"));
+    assertThat(resolved).isNotEqualTo(Path.of("faketool"));
+    assertThat(resolved).isEqualTo(binDir.resolve("faketool.cmd"));
+  }
+
+  @Test
   void testConstructorNormalizesPathEntryWithControlCharactersAndKeepsIt() {
     // arrange
     IdeTestContext context = newContext("find-binary", "project/workspaces", false);
