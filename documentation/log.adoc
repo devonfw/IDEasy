@@ -13,14 +13,7 @@ $IDE_ROOT/_ide/logs
 
 The log directory can be helpful for troubleshooting and debugging if something goes wrong during execution of IDEasy commands.
 
-Typical log files are generated for:
-
-* setup
-* update
-* install
-* uninstall
-* upgrade
-* build
+Log files are generated for all IDEasy commands except those that only get simple information like `ide help` or `ide version`.
 
 The log directory also stores installation and uninstallation logs of IDEasy itself.
 
