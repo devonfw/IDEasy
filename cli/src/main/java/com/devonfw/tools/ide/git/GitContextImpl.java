@@ -527,17 +527,42 @@ public class GitContextImpl implements GitContext {
 
   @Override
   public void addRemote(Path repository, String name, String url) {
+    addRemote(repository, name, url, false);
+  }
+
+  @Override
+  public void addRemoteOrFail(Path repository, String name, String url) {
+    addRemote(repository, name, url, true);
+  }
+
+  /**
+   * @param repository the {@link Path} to the git repository.
+   * @param name the name of the remote.
+   * @param url the URL of the remote.
+   * @param failOnOverride {@code true} to throw an {@link IllegalStateException} if the remote already exists
+   *     with a different URL, {@code false} to silently update it.
+   */
+  protected void addRemote(Path repository, String name, String url, boolean failOnOverride) {
 
     LOG.debug("Adding remote '{}' with url '{}' to {}", name, url, repository);
     // Check if the remote already exists and get its current URL
     ProcessResult getUrlResult = runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.NONE, "remote", "get-url", name);
     if (getUrlResult.isSuccessful()) {
+<<<<<<< HEAD
       if (getUrlResult.getOut().getFirst().trim().equals(url)) {
         LOG.debug("Remote '{}' already exists with the expected URL {}", name, url);
         return;
       }
       // Remote exists with a different URL — update it
       LOG.debug("Remote '{}' already exists with a different URL, updating to {}", name, url);
+=======
+      // Remote exists with a different URL
+      String oldUrl = getUrlResult.getOut().getFirst().trim();
+      if (failOnOverride) {
+        throw new IllegalStateException("Remote '" + name + "' already exists with URL '" + oldUrl + "', refusing to override with '" + url + "'");
+      }
+      LOG.warn("Remote '{}' already exists with URL '{}', overriding with '{}'", name, oldUrl, url);
+>>>>>>> cdd8dd52 (fix addRemoteOrFail)
       ProcessResult setResult = runGitCommand(repository, ProcessMode.DEFAULT, "remote", "set-url", name, url);
       if (!setResult.isSuccessful()) {
         LOG.warn("Failed to update URL for remote '{}' to {}", name, repository);

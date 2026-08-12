@@ -365,7 +365,30 @@ public class GitContextMock extends GitContextImpl {
   @Override
   public void addRemote(Path repository, String name, String url) {
 
+    addRemote(repository, name, url, false);
+  }
+
+  @Override
+  public void addRemoteOrFail(Path repository, String name, String url) {
+
+    addRemote(repository, name, url, true);
+  }
+
+  /**
+   * @param repository the repository.
+   * @param name the remote name.
+   * @param url the remote URL.
+   * @param failOnOverride {@code true} to throw if the remote already exists with a different URL.
+   */
+  protected void addRemote(Path repository, String name, String url, boolean failOnOverride) {
+
     Map<String, String> remotes = this.remoteUrls.computeIfAbsent(repository, k -> new HashMap<>());
+    String existingUrl = remotes.get(name);
+    if (existingUrl != null && !existingUrl.equals(url)) {
+      if (failOnOverride) {
+        throw new IllegalStateException("Remote '" + name + "' already exists with URL '" + existingUrl + "', refusing to override with '" + url + "'");
+      }
+    }
     remotes.put(name, url);
   }
 }
