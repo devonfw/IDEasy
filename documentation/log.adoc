@@ -1,7 +1,7 @@
 :toc:
 toc::[]
 
-= Logs
+= logs
 
 The log directory is used to store log files created by IDEasy.
 
