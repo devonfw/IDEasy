@@ -153,8 +153,11 @@ public class Vscode extends AbstractIdeToolCommandlet {
     } else {
       pc.addArg("--user-data-dir=" + getUserDataPath());
     }
-    Path vsCodeExtensionFolder = this.context.getIdeHome().resolve("plugins/vscode");
+    pc.addArg("--user-data-dir=" + vsCodeConf);
+
+    Path vsCodeExtensionFolder = getPluginsInstallationPath();
     pc.addArg("--extensions-dir=" + vsCodeExtensionFolder);
+
     pc.addArg(this.context.getWorkspacePath());
     super.configureToolArgs(pc, processMode, args);
   }
