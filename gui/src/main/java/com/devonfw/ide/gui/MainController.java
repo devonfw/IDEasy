@@ -235,6 +235,15 @@ public class MainController {
     selectedWorkspace.getItems().clear();
     selectedWorkspace.getItems().addAll(workspaces);
 
+    if (workspaces.contains("main")) {
+      selectedWorkspace.setValue("main");
+      updateContext(selectedProject.getValue(), selectedWorkspace.getValue());
+      androidStudioOpen.setDisable(false);
+      eclipseOpen.setDisable(false);
+      intellijOpen.setDisable(false);
+      vsCodeOpen.setDisable(false);
+    }
+
     selectedWorkspace.setOnAction(actionEvent -> {
       updateContext(selectedProject.getValue(), selectedWorkspace.getValue());
 
