@@ -149,7 +149,9 @@ class SystemPathTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext(PROJECT_BASIC);
     Path binDir = context.getIdeHome().resolve("scratch-bin");
     java.nio.file.Files.createDirectories(binDir);
-    java.nio.file.Files.writeString(binDir.resolve("faketool.cmd"), "@echo hi");
+    // create a plain binary name (no extension) so it works on both Linux and Windows
+    Path fakeToolFile = binDir.resolve("faketool");
+    java.nio.file.Files.writeString(fakeToolFile, "@echo hi");
 
     // empty PATH and no software folder, so tool2pathMap and paths stay empty
     SystemPath base = new SystemPath(context, "", null, null, ';', List.of());
@@ -159,7 +161,7 @@ class SystemPathTest extends AbstractIdeContextTest {
     assertThat(merged.toString()).contains(binDir.toString());
     Path resolved = merged.findBinary(Path.of("faketool"));
     assertThat(resolved).isNotEqualTo(Path.of("faketool"));
-    assertThat(resolved).isEqualTo(binDir.resolve("faketool.cmd"));
+    assertThat(resolved).isEqualTo(fakeToolFile);
   }
 
   @Test
