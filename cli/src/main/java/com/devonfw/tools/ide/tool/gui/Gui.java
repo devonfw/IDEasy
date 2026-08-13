@@ -45,6 +45,12 @@ public class Gui extends Commandlet {
   }
 
   @Override
+  public boolean isIdeHomeRequired() {
+
+    return false;
+  }
+
+  @Override
   protected void doRun() {
 
     ProcessContext processContext = context.newProcess();
