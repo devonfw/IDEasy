@@ -53,6 +53,10 @@ public class Python extends LocalToolCommandlet {
       fileAccess.backup(installationPath);
     }
     Path softwarePath = installationPath.getParent();
+    Path venvPath = softwarePath.resolve(".venv");
+    if (Files.exists(venvPath)) {
+      fileAccess.delete(venvPath);
+    }
     Uv uv = this.context.getCommandletManager().getCommandlet(Uv.class);
 
     uv.installPython(softwarePath, resolvedVersion, request.getProcessContext());
