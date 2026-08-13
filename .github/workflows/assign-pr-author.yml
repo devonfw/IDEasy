@@ -1,11 +1,9 @@
-name: Assign PR Author
-
-# Automatically assigns the PR creator as assignee when a new Pull Request is
-# opened without an assignee. Existing assignees are preserved.
+name: Auto Assign PR Author
 
 on:
   pull_request:
-    types: [opened]
+    types:
+      - opened
 
 permissions:
   pull-requests: write
@@ -13,18 +11,25 @@ permissions:
 jobs:
   assign-author:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Assign PR author as assignee
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          ASSIGNEES=$(gh pr view "$PR_NUMBER" --json assignees --jq '.assignees | length')
-          if [ "$ASSIGNEES" -eq 0 ]; then
-            echo "No assignees found - assigning @${PR_AUTHOR} to PR #${PR_NUMBER}"
-            gh pr edit "$PR_NUMBER" --add-assignee "$PR_AUTHOR"
-          else
-            echo "PR #${PR_NUMBER} already has assignees - skipping."
-          fi
-        env:
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+      - name: Assign PR author if no assignee exists
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+
+            // Do not overwrite existing assignees
+            if (pr.assignees && pr.assignees.length > 0) {
+              console.log('PR already has assignees. Skipping.');
+              return;
+            }
+
+            await github.rest.issues.addAssignees({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              assignees: [pr.user.login]
+            });
+
+            console.log(`Assigned ${pr.user.login} to PR #${pr.number}`);
