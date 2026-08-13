@@ -34,7 +34,7 @@ import us.springett.parsers.cpe.values.Part;
 /**
  * Scans the IDEasy URL repository for tools, editions, and versions, and checks for known vulnerabilities using the OWASP Dependency-Check engine.
  * <p>For each tool and edition, vulnerabilities are collected and written to the corresponding {@link UrlSecurityFile}. Only vulnerabilities above a
- * configurable severity threshold are included</p>
+ * configurable severity threshold are included.</p>
  * <p>Note: Running this class may take a long time due to OWASP database updates.</p>
  * <p> For usage, see the {@link #main(String[]) main method}</p>
  */
