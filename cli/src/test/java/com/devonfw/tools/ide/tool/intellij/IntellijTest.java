@@ -148,7 +148,8 @@ class IntellijTest extends AbstractIdeContextTest {
     commandlet.run();
 
     // assert
-    assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"))).exists();
+    Path oldMarkerFile = commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"));
+    assertThat(oldMarkerFile).exists();
 
     // act
     commandlet.setEdition("ultimate");
@@ -156,7 +157,7 @@ class IntellijTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(context).logAtDebug()
-        .hasEntries("Plugin marker file " + context.getIdeHome().resolve(".ide").resolve("plugin.intellij.intellij.ActivePlugin") + " got deleted.");
+        .hasEntries("Plugin marker file " + oldMarkerFile  + " got deleted.");
     assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"))).exists();
   }
 
@@ -272,15 +273,21 @@ class IntellijTest extends AbstractIdeContextTest {
     intellij.run();
 
     // assert
+    String expectedPluginsPath = context.getPluginsPath()
+        .resolve("intellij")
+        .resolve("2023.3.3")
+        .toAbsolutePath()
+        .toString();
+
     assertThat(context.getWorkspacePath().resolve(".idea.vmoptions"))
         .exists()
         .hasContent("""
-            -Xms256m
-            -Xmx4096m
-            -XX:ReservedCodeCacheSize=256m
-            -ea
-            -Dsun.io.useCanonCaches=true
-            """);
+        -Xms256m
+        -Xmx4096m
+        -XX:ReservedCodeCacheSize=256m
+        -ea
+        -Dsun.io.useCanonCaches=true
+        """ + "-Didea.plugins.path=" + expectedPluginsPath + System.lineSeparator());
   }
 
   /**

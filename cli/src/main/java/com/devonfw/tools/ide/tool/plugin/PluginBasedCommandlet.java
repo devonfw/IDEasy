@@ -24,6 +24,7 @@ import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * Base class for {@link LocalToolCommandlet}s that support plugins. It can automatically install configured plugins for the tool managed by this commandlet.
@@ -114,21 +115,50 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
    */
   public Path getPluginsInstallationPath() {
 
-    return this.context.getPluginsPath().resolve(this.tool);
+    VersionIdentifier version = getInstalledVersion();
+    if (version == null) {
+      return this.context.getPluginsPath().resolve(this.tool);
+    }
+    return getPluginsInstallationPath(version);
+  }
+
+  public Path getPluginsInstallationPath(VersionIdentifier version) {
+
+    if (version == null) {
+      return this.context.getPluginsPath().resolve(this.tool);
+    }
+
+    return this.context.getPluginsPath()
+        .resolve(this.tool)
+        .resolve(version.toString());
   }
 
   @Override
   protected void postInstall(ToolInstallRequest request) {
 
     super.postInstall(request);
-    Path pluginsInstallationPath = getPluginsInstallationPath();
+
+    VersionIdentifier version = null;
+    if (request.getRequested() != null) {
+      version = request.getRequested().getResolvedVersion();
+    }
+    if (version == null) {
+      version = getInstalledVersion();
+    }
+
+    Path pluginsInstallationPath = getPluginsInstallationPath(version);
 
     if (!request.isAlreadyInstalled() || this.forcePluginReinstall.isTrue()) {
-      LOG.info("Resetting all installed plugins...");
-      deleteAllPlugins(pluginsInstallationPath);
+      LOG.info("Resetting installed plugins for the current IDE version...");
+      deleteAllPlugins(pluginsInstallationPath, version);
     }
+
     this.context.getFileAccess().mkdirs(pluginsInstallationPath);
     installPlugins(request.getProcessContext());
+
+    if (version != null) {
+      cleanupOldPluginVersions(version);
+    }
   }
 
   /**
@@ -136,17 +166,12 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
    *
    * @param pluginsInstallationPath the {@link Path} to the plugins installation folder.
    */
-  private void deleteAllPlugins(Path pluginsInstallationPath) {
+  private void deleteAllPlugins(Path pluginsInstallationPath, VersionIdentifier version) {
 
     FileAccess fileAccess = this.context.getFileAccess();
     fileAccess.delete(pluginsInstallationPath);
-    List<Path> markerFiles = fileAccess.listChildren(this.context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE), Files::isRegularFile);
-    for (Path path : markerFiles) {
-      if (path.getFileName().toString().startsWith("plugin." + getName())) {
-        fileAccess.delete(path);
-        LOG.debug("Plugin marker file {} got deleted.", path);
-      }
-    }
+
+    deletePluginMarkerFiles(version == null ? null : version.toString());
   }
 
   private void installPlugins(ProcessContext pc) {
@@ -242,7 +267,17 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
    */
   public Path retrievePluginMarkerFilePath(ToolPluginDescriptor plugin) {
     if (this.context.getIdeHome() != null) {
-      String markerFileName = "plugin" + "." + getName() + "." + getInstalledEdition() + "." + plugin.name();
+      String markerFileName = "plugin"
+          + "." + getName()
+          + "." + getInstalledEdition();
+
+      String ideVersion = getPluginMarkerVersionSegment();
+      if (ideVersion != null) {
+        markerFileName = markerFileName + "." + ideVersion;
+      }
+
+      markerFileName = markerFileName + "." + plugin.name();
+
       String version = plugin.version();
       if ((version != null) && !version.isBlank()) {
         markerFileName = markerFileName + ".version-" + normalizeMarkerFileSegment(version);
@@ -274,12 +309,24 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
 
   private void deleteExistingPluginMarkerFiles(FileAccess fileAccess, ToolPluginDescriptor plugin, Path currentMarkerFilePath) {
 
-    String markerFilePrefix = "plugin" + "." + getName() + "." + getInstalledEdition() + "." + plugin.name();
+    String markerFilePrefix = "plugin"
+        + "." + getName()
+        + "." + getInstalledEdition();
+
+    String ideVersion = getPluginMarkerVersionSegment();
+    if (ideVersion != null) {
+      markerFilePrefix = markerFilePrefix + "." + ideVersion;
+    }
+
+    markerFilePrefix = markerFilePrefix + "." + plugin.name();
+    String finalMarkerFilePrefix = markerFilePrefix;
+
     List<Path> markerFiles = fileAccess.listChildren(currentMarkerFilePath.getParent(),
         p -> {
           String fileName = p.getFileName().toString();
-          return Files.isRegularFile(p) && (fileName.equals(markerFilePrefix) || fileName.startsWith(markerFilePrefix + ".version-"));
+          return Files.isRegularFile(p) && (fileName.equals(finalMarkerFilePrefix) || fileName.startsWith(finalMarkerFilePrefix + ".version-"));
         });
+
     for (Path markerFile : markerFiles) {
       if (!markerFile.equals(currentMarkerFilePath)) {
         fileAccess.delete(markerFile);
@@ -363,5 +410,79 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
   protected void handleInstallForInactivePlugin(ToolPluginDescriptor plugin) {
 
     LOG.debug("Omitting installation of inactive plugin {} ({}).", plugin.name(), plugin.id());
+  }
+
+  private void cleanupOldPluginVersions(VersionIdentifier currentVersion) {
+
+    Path toolPluginsPath = this.context.getPluginsPath().resolve(this.tool);
+    FileAccess fileAccess = this.context.getFileAccess();
+
+    if (!Files.isDirectory(toolPluginsPath)) {
+      return;
+    }
+
+    List<Path> versionDirectories = fileAccess.listChildren(toolPluginsPath, Files::isDirectory);
+
+    for (Path versionDirectory : versionDirectories) {
+      String version = versionDirectory.getFileName().toString();
+
+      if (version.equals(currentVersion.toString())) {
+        continue;
+      }
+
+      try {
+        fileAccess.delete(versionDirectory);
+        deletePluginMarkerFiles(version);
+        LOG.debug("Deleted obsolete plugin directory {}.", versionDirectory);
+      } catch (RuntimeException _) {
+        LOG.warn("Could not delete obsolete plugin directory {}. It may still be in use and will be cleaned up later.",
+            versionDirectory);
+      }
+    }
+  }
+
+  private String getPluginMarkerVersionSegment() {
+
+    VersionIdentifier ideVersion = getInstalledVersion();
+    if (ideVersion == null) {
+      return null;
+    }
+    return normalizeMarkerFileSegment(ideVersion.toString());
+  }
+
+  /**
+   * Deletes plugin marker files belonging to the specified IDE version.
+   *
+   * @param version the IDE version whose plugin marker files shall be deleted, or {@code null} to delete all plugin marker files for this tool.
+   */
+  private void deletePluginMarkerFiles(String version) {
+
+    FileAccess fileAccess = this.context.getFileAccess();
+
+    List<Path> markerFiles = fileAccess.listChildren(
+        this.context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE),
+        Files::isRegularFile);
+
+    String markerPrefix = "plugin." + getName() + ".";
+    String versionSegment = null;
+
+    if (version != null) {
+      versionSegment = "." + normalizeMarkerFileSegment(version) + ".";
+    }
+
+    for (Path markerFile : markerFiles) {
+      String fileName = markerFile.getFileName().toString();
+
+      boolean matches = fileName.startsWith(markerPrefix);
+
+      if (versionSegment != null) {
+        matches = matches && fileName.contains(versionSegment);
+      }
+
+      if (matches) {
+        fileAccess.delete(markerFile);
+        LOG.debug("Plugin marker file {} got deleted.", markerFile);
+      }
+    }
   }
 }

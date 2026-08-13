@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.tool.pycharm;
 
+import java.nio.file.Path;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -140,7 +142,8 @@ class PycharmTest extends AbstractIdeContextTest {
     commandlet.run();
 
     // assert
-    assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"))).exists();
+    Path oldMarkerFile = commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"));
+    assertThat(oldMarkerFile).exists();
 
     // act
     commandlet.setEdition("professional");
@@ -148,7 +151,7 @@ class PycharmTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(context).logAtDebug()
-        .hasEntries("Plugin marker file " + context.getIdeHome().resolve(".ide").resolve("plugin.pycharm.pycharm.ActivePlugin") + " got deleted.");
+        .hasEntries("Plugin marker file " + oldMarkerFile + " got deleted.");
     assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"))).exists();
   }
 
@@ -167,15 +170,19 @@ class PycharmTest extends AbstractIdeContextTest {
     pycharm.run();
 
     // assert
+    String expectedPluginsPath = pycharm.getPluginsInstallationPath()
+        .toAbsolutePath()
+        .toString();
+
     assertThat(context.getWorkspacePath().resolve(".pycharm.vmoptions"))
         .exists()
         .hasContent("""
-            -Xms256m
-            -Xmx4096m
-            -XX:ReservedCodeCacheSize=256m
-            -ea
-            -Dsun.io.useCanonCaches=true
-            """);
+          -Xms256m
+          -Xmx4096m
+          -XX:ReservedCodeCacheSize=256m
+          -ea
+          -Dsun.io.useCanonCaches=true
+          """ + "-Didea.plugins.path=" + expectedPluginsPath + System.lineSeparator());
   }
 
   private void checkInstallation(IdeTestContext context) {
