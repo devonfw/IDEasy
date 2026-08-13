@@ -1,0 +1,30 @@
+name: Assign PR Author
+
+# Automatically assigns the PR creator as assignee when a new Pull Request is
+# opened without an assignee. Existing assignees are preserved.
+
+on:
+  pull_request:
+    types: [opened]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  assign-author:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assign PR author as assignee
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ASSIGNEES=$(gh pr view "$PR_NUMBER" --json assignees --jq '.assignees | length')
+          if [ "$ASSIGNEES" -eq 0 ]; then
+            echo "No assignees found - assigning @${PR_AUTHOR} to PR #${PR_NUMBER}"
+            gh pr edit "$PR_NUMBER" --add-assignee "$PR_AUTHOR"
+          else
+            echo "PR #${PR_NUMBER} already has assignees - skipping."
+          fi
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
