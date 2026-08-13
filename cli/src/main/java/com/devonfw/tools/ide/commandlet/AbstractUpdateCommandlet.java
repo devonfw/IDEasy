@@ -19,6 +19,7 @@ import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.git.GitUrl;
 import com.devonfw.tools.ide.git.repository.RepositoryCommandlet;
+import com.devonfw.tools.ide.git.repository.RepositoryUtil;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.StringProperty;
@@ -182,6 +183,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       if (!settingsRepository) {
         if (Files.exists(settingsPath)) {
           if (!this.context.getFileAccess().isEmptyDir(settingsPath)) {
+            // settings folder seems to be invalid
             this.context.askToContinue(
                 "Your settings repository seems to be broken ('.git' folder not present). "
                     + "We can fix this by moving  your settings the backed up. "
@@ -191,9 +193,10 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
           }
           this.context.getFileAccess().backup(settingsPath);
         }
+        //settings folder does not exist (yet), lets retrieve the settings url to pull
         GitUrl gitUrl = getOrAskSettingsUrl();
         checkProjectNameConvention(gitUrl.getProjectName());
-        initializeRepository(gitUrl);
+        pullAndVerify(gitUrl);
         return;
       }
     }
@@ -236,6 +239,64 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     return gitUrl;
   }
 
+  /**
+   * We pull the settings repo from the remote into a temporary folder to perform health checks.
+   */
+  private void pullAndVerify(GitUrl gitUrl) {
+    GitContext gitContext = this.context.getGitContext();
+    Path tempProjectPath = this.context.getTempPath().resolve(IdeContext.FOLDER_PROJECTS).resolve(this.context.getProjectName());
+
+    gitContext.pullOrClone(gitUrl, tempProjectPath);
+
+    checkIntegrityAndMove(tempProjectPath, gitUrl.getProjectName());
+  }
+
+  private void checkIntegrityAndMove(Path projectPath, String gitProjectName) {
+
+    FileAccess fileAccess = this.context.getFileAccess();
+
+    if (!Files.exists(projectPath)) {
+      throw new CliException(getIntegrityCheckErrorMessage("Git pull target folder does not exist."));
+    }
+
+    Path finalSettingsPath;
+    switch (RepositoryUtil.getRepositoryType(projectPath, gitProjectName)) {
+      case CODE -> {
+
+        finalSettingsPath = this.context.getIdeHome().resolve(this.context.getProjectName()).resolve(IdeContext.FOLDER_SETTINGS);
+        moveProject(projectPath, finalSettingsPath);
+      }
+      case SETTINGS -> {
+
+        finalSettingsPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_SETTINGS);
+        moveProject(projectPath, finalSettingsPath);
+      }
+      case CODE_SETTINGS_COMBINED -> {
+
+        finalSettingsPath = this.context.getWorkspacePath().resolve(gitProjectName).resolve(IdeContext.FOLDER_SETTINGS);
+        Path symLinkLocation = this.context.getIdeHome().resolve(IdeContext.FOLDER_SETTINGS);
+
+      }
+      case UNKNOWN ->
+          throw new CliException(getIntegrityCheckErrorMessage("The specified repository could not be validated as either a code or settings repository."));
+    }
+  }
+
+  private Path moveProject(Path from, Path to) {
+
+    FileAccess fileAccess = this.context.getFileAccess();
+    try {
+      fileAccess.move(from, to);
+    } catch (Exception e) {
+      throw new CliException(getIntegrityCheckErrorMessage(String.format("Failed to move project from %s to %s", from, to)), e);
+    }
+    return to;
+  }
+
+  private String getIntegrityCheckErrorMessage(String message) {
+    return String.format("Settings repository integrity check failed: %s", message);
+  }
+
   private String handleDefaultRepository(String repository) {
     if ("-".equals(repository)) {
       if (isCodeRepository()) {
@@ -275,7 +336,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     Path settingsPath = this.context.getSettingsPath();
     Path repoPath = settingsPath;
     boolean codeRepository = isCodeRepository();
-    if (codeRepository) {
+    if (codeRepository) { //this never gets executed because isCodeRepository is always false
       // clone the given code repository into IDE_HOME/workspaces/main
       repoPath = context.getWorkspacePath().resolve(gitUrl.getProjectName());
     }
