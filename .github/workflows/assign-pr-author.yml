@@ -21,7 +21,7 @@ jobs:
 
             // Do not overwrite existing assignees
             if (pr.assignees && pr.assignees.length > 0) {
-              console.log('PR already has assignees. Skipping.');
+              console.log(`PR #${pr.number} already has ${pr.assignees.length} assignee(s). Skipping.`);
               return;
             }
 
