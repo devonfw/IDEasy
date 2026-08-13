@@ -2,6 +2,10 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2026.08.002
+
+* https://github.com/devonfw/IDEasy/issues/1165[#1165]: Fix automatic project import for Eclipse
+
 == 2026.08.001
 
 Release with new features and bugfixes:
