@@ -124,9 +124,6 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
       deleteAllPlugins(pluginsInstallationPath);
     }
     this.context.getFileAccess().mkdirs(pluginsInstallationPath);
-    if (this instanceof IdeToolCommandlet) {
-      ((IdeToolCommandlet) this).configureWorkspace();
-    }
     installPlugins(request.getProcessContext());
   }
 

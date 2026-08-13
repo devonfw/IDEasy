@@ -26,6 +26,7 @@ import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
 import com.devonfw.tools.ide.tool.extra.ExtraToolInstallation;
 import com.devonfw.tools.ide.tool.extra.ExtraTools;
@@ -85,6 +86,12 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
       configureWorkspace();
     }
     return super.runTool(pc, processMode, args);
+  }
+
+  @Override
+  protected void postInstall(ToolInstallRequest request) {
+    configureWorkspace();
+    super.postInstall(request);
   }
 
   /**
