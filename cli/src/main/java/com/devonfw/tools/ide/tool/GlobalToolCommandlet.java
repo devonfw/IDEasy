@@ -14,6 +14,8 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.os.WindowsAppInstallation;
+import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -250,12 +252,25 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     return null;
   }
 
+  /**
+   * @return the app name to look for in the Windows registry
+   */
+  public String getWindowsRegistryAppName() {
+
+    return this.tool;
+  }
+
   @Override
   public VersionIdentifier getInstalledVersion() {
     if (this.context.getSystemInfo().isLinux()) {
       return getNativePackageVersion();
     }
-    //TODO: handle "get-version <globaltool>"
+    if (this.context.getSystemInfo().isWindows()) {
+      WindowsAppInstallation installation = WindowsHelper.get(this.context).getAppInstallationFromRegistry(getWindowsRegistryAppName());
+      if (installation != null) {
+        return VersionIdentifier.of(installation.version());
+      }
+    }
     return null;
   }
 

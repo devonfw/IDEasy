@@ -168,7 +168,7 @@ class HelpCommandletTest extends AbstractIdeContextTest {
         "-d | --debug    enable debug logging.",
         "-f | --force    enable force mode.",
         "-o | --offline  enable offline mode (skip updates or git pull, fail downloads or git clone).",
-        "-q | --quiet    disable info logging (only log success, warning or error).",
+        "-q | --quiet    disable info logging (only log interaction, success, warning or error).",
         "-t | --trace    enable trace logging.");
   }
 
