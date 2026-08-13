@@ -30,6 +30,12 @@ $IDE_ROOT/_ide/logs
 The first directory level represents the year, followed by the month and day.
 This structure helps keeping log files organized by date.
 The full path to the log of `ide «command»` will follow this pattern:
+```
+$IDE_ROOT/_ide/logs/«yyyy»/«MM»/«dd»/«project»-ide-«command»-«HH»-«mm»-«ss».log
+```
+
+The only excuse to this pattern are installation and uninstallation logs of IDEasy itself that are stored in the top-level `logs` directory.
+These logs keep the timestamp in their filename (see link:setup.adoc#installation-logs[installation-logs]).
 
 Log files contain detailed diagnostic information such as timestamps, log levels, executed operations, warnings, errors, and stack traces.
 They are intended for troubleshooting and analysing problems during IDEasy execution.
