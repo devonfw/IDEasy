@@ -212,7 +212,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
     String repository = this.settingsRepo.getValue();
     repository = handleDefaultRepository(repository);
-    String userPromt = "Settings URL [" + IdeContext.DEFAULT_SETTINGS_REPO_URL + "]:";
+    String userPrompt = "Settings URL [" + IdeContext.DEFAULT_SETTINGS_REPO_URL + "]:";
     String defaultUrl = IdeContext.DEFAULT_SETTINGS_REPO_URL;
     LOG.info(MESSAGE_SETTINGS_REPO_URL, this.context.getSettingsPath());
 
@@ -221,7 +221,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       gitUrl = GitUrl.of(repository);
     }
     while ((gitUrl == null) || !gitUrl.isValid()) {
-      repository = this.context.askForInput(userPromt, defaultUrl);
+      repository = this.context.askForInput(userPrompt, defaultUrl);
       repository = handleDefaultRepository(repository);
       gitUrl = GitUrl.of(repository);
       if (!gitUrl.isValid()) {
