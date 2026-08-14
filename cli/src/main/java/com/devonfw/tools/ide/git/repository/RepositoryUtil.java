@@ -41,15 +41,12 @@ public class RepositoryUtil {
   /// enum representation of a detected {@link RepositoryType}
   public enum RepositoryType {
     /// Git Repository is a code repository.
-    CODE("code"),
+    CODE,
     /// Git Repository is a settings repository.
-    SETTINGS("settings"),
+    SETTINGS,
     /// A combined code & settings repository contains both the settings-folder and the code within the workspace folder.
-    CODE_SETTINGS_COMBINED("code & settings combined"),
+    CODE_SETTINGS_COMBINED,
     /// The type of the repository could not be determined.
-    UNKNOWN("unknown");
-
-    RepositoryType(String displayName) {
-    }
+    UNKNOWN
   }
 }
