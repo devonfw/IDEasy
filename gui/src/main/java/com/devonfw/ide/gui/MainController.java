@@ -135,7 +135,6 @@ public class MainController {
     selectedWorkspace.setOnAction(this::onWorkspaceSelected);
   }
 
-  @FXML
   private void onWorkspaceSelected(ActionEvent actionEvent) {
 
     String workspaceName = selectedWorkspace.getValue();
@@ -143,10 +142,7 @@ public class MainController {
       return;
     }
     updateContext(selectedProject.getValue(), workspaceName);
-    androidStudioOpen.setDisable(false);
-    eclipseOpen.setDisable(false);
-    intellijOpen.setDisable(false);
-    vsCodeOpen.setDisable(false);
+    setIdeButtonsDisabled(false);
   }
 
   private void initLanguageComboBox() {
@@ -248,14 +244,11 @@ public class MainController {
       throw new RuntimeException(e);
     }
 
+    selectedWorkspace.setValue(null);
     selectedWorkspace.getItems().clear();
     selectedWorkspace.getItems().addAll(workspaces);
-    selectedWorkspace.setValue(null);
 
-    androidStudioOpen.setDisable(true);
-    eclipseOpen.setDisable(true);
-    intellijOpen.setDisable(true);
-    vsCodeOpen.setDisable(true);
+    setIdeButtonsDisabled(true);
   }
 
   private void openIDE(String inIde) {
@@ -344,5 +337,13 @@ public class MainController {
         statusLabel.setStyle("");
       }
     });
+  }
+
+  private void setIdeButtonsDisabled(boolean disabled) {
+
+    this.androidStudioOpen.setDisable(disabled);
+    this.eclipseOpen.setDisable(disabled);
+    this.intellijOpen.setDisable(disabled);
+    this.vsCodeOpen.setDisable(disabled);
   }
 }
