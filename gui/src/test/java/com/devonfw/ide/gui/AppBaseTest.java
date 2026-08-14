@@ -356,11 +356,3 @@ public class AppBaseTest extends HeadlessApplicationTest {
 
     assertThat(tabPane.getSelectionModel().getSelectedItem()).as("cancel should navigate back to the main tab").isEqualTo(mainTab);
   }
-
-
-  @SuppressWarnings("unchecked")
-  private static <T> T lookup(Parent root, String selector) {
-
-    return (T) root.lookup(selector);
-  }
-}
