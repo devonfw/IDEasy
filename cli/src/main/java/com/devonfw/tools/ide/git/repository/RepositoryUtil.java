@@ -10,7 +10,7 @@ import com.devonfw.tools.ide.environment.EnvironmentVariables;
 public class RepositoryUtil {
 
   /**
-   * Checks whether te given repository is a settings repository, a combined settings and code repository, or a typical code repositor. Combined code and
+   * Checks whether te given git repository is a settings repository, a combined settings and code repository, or a typical code repositor. Combined code and
    * settings repository is detected by checking whether IDE_HOME/workspaces/main/[gitProjectName]/settings exists and is a valid settings repository.
    *
    * @param repositoryPath - The path of the repository to be checked.
@@ -27,13 +27,12 @@ public class RepositoryUtil {
       return RepositoryType.SETTINGS;
     } else if (gitProjectName != null
         && Files.exists(
-        repositoryPath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN).resolve(gitProjectName).resolve(IdeContext.FOLDER_SETTINGS))
+        repositoryPath.resolve(IdeContext.FOLDER_SETTINGS))
         && getRepositoryType(
-        repositoryPath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN).resolve(gitProjectName).resolve(IdeContext.FOLDER_SETTINGS),
+        repositoryPath.resolve(IdeContext.FOLDER_SETTINGS),
         gitProjectName) == RepositoryType.SETTINGS) {
       return RepositoryType.CODE_SETTINGS_COMBINED;
-    } else if (!Files.isSymbolicLink(repositoryPath.resolve(IdeContext.FOLDER_SETTINGS))
-        && getRepositoryType(repositoryPath.resolve(IdeContext.FOLDER_SETTINGS), gitProjectName) == RepositoryType.SETTINGS) {
+    } else if (!Files.exists(repositoryPath.resolve(IdeContext.FOLDER_SETTINGS))) {
       return RepositoryType.CODE;
     }
     return RepositoryType.UNKNOWN;
@@ -42,12 +41,15 @@ public class RepositoryUtil {
   /// enum representation of a detected {@link RepositoryType}
   public enum RepositoryType {
     /// Git Repository is a code repository.
-    CODE,
+    CODE("code"),
     /// Git Repository is a settings repository.
-    SETTINGS,
+    SETTINGS("settings"),
     /// A combined code & settings repository contains both the settings-folder and the code within the workspace folder.
-    CODE_SETTINGS_COMBINED,
+    CODE_SETTINGS_COMBINED("code & settings"),
     /// The type of the repository could not be determined.
-    UNKNOWN
+    UNKNOWN("unknown");
+
+    RepositoryType(String displayName) {
+    }
   }
 }
