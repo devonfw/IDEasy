@@ -36,7 +36,7 @@ public class NativePackage {
    * Convenience constructor for the common case: package manager + packages.
    *
    * @param pm the specific {@link NativePackageManager}
-   * @param packages the packages that need to be handled-
+   * @param packages the packages that need to be handled
    */
   public NativePackage(NativePackageManager pm, List<String> packages) {
     this(pm, packages, null, null, null);
