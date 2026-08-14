@@ -1,10 +1,14 @@
 package com.devonfw.tools.ide.tool.spyder;
 
+import java.nio.file.Path;
+import java.util.List;
 import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.EnvironmentContext;
+import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.pip.PipBasedIdeToolCommandlet;
 
@@ -13,8 +17,11 @@ import com.devonfw.tools.ide.tool.pip.PipBasedIdeToolCommandlet;
  */
 public class Spyder extends PipBasedIdeToolCommandlet {
 
-  /** Environment variable that tells Spyder to use an IDEasy-managed config directory instead of the shared user config. */
-  private static final String SPYDER_CONFIG_DIR = "SPYDER_CONFIG_DIR";
+  /** The name of the Spyder config folder (defaults to <code>.spyder-py3</code> in user home). */
+  private static final String SPYDER_CONFDIR_NAME = ".spyder-py3";
+
+  /** Environment variable to override Spyder's default config directory. */
+  private static final String SPYDER_CONFDIR = "SPYDER_CONFDIR";
 
   /**
    * The constructor.
@@ -29,9 +36,18 @@ public class Spyder extends PipBasedIdeToolCommandlet {
   public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
     super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
 
-    // Point Spyder to an IDEasy-managed config directory so its settings stay isolated per IDE_HOME.
-    if (this.context.getConfPath() != null) {
-      environmentContext.withEnvVar(SPYDER_CONFIG_DIR, this.context.getConfPath().resolve("spyder").toString());
+    Path spyderConfig = this.context.getWorkspacePath().resolve(SPYDER_CONFDIR_NAME);
+    environmentContext.withEnvVar(SPYDER_CONFDIR, spyderConfig.toString());
+  }
+
+  @Override
+  protected void configureToolArgs(ProcessContext pc, ProcessMode processMode, List<String> args) {
+    // Pass the workspace path to Spyder via -w/--workdir so it opens the correct workspace directory.
+    Path workspacePath = this.context.getWorkspacePath();
+    if (workspacePath != null) {
+      pc.addArg("-w");
+      pc.addArg(workspacePath.toString());
     }
+    super.configureToolArgs(pc, processMode, args);
   }
 }
