@@ -5,7 +5,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 == 2026.09.002
 
 Release with new features and bugfixes:
-
+* https://github.com/devonfw/IDEasy/issues/1695[#1695]: Project creation logic extended with health checks and removed `--code` flag.
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/50?closed=1[milestone 2026.09.002].
 
