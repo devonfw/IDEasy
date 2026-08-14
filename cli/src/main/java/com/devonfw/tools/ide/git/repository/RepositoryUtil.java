@@ -45,7 +45,7 @@ public class RepositoryUtil {
     /// Git Repository is a settings repository.
     SETTINGS("settings"),
     /// A combined code & settings repository contains both the settings-folder and the code within the workspace folder.
-    CODE_SETTINGS_COMBINED("code & settings"),
+    CODE_SETTINGS_COMBINED("code & settings combined"),
     /// The type of the repository could not be determined.
     UNKNOWN("unknown");
 
