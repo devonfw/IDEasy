@@ -63,6 +63,7 @@ import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.os.WindowsHelperImpl;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
+import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessContextImpl;
 import com.devonfw.tools.ide.process.ProcessResult;
@@ -70,6 +71,8 @@ import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.step.StepImpl;
+import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.custom.CustomToolRepository;
 import com.devonfw.tools.ide.tool.custom.CustomToolRepositoryImpl;
 import com.devonfw.tools.ide.tool.mvn.MvnRepository;
@@ -965,6 +968,29 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     return this.system;
   }
 
+  @Override
+  public void setEnvironmentOfInstalledTools(EnvironmentContext environmentContext) {
+
+    if (getSoftwarePath() == null) {
+      return;
+    }
+    for (Commandlet commandlet : getCommandletManager().getCommandlets()) {
+      if (commandlet instanceof LocalToolCommandlet tool) {
+        Path toolPath = tool.getToolPath();
+        // we cannot use isInstalled() here since it may spawn processes (e.g. "npm --version") what would be way too expensive.
+        if ((toolPath != null) && Files.isDirectory(toolPath)) {
+          try {
+            // for performance optimization, we do a hack here and assume that the installedVersion is never used by any setEnvironment method implementation.
+            ToolInstallation toolInstallation = new ToolInstallation(toolPath, toolPath, tool.getToolBinPath(), VersionIdentifier.LATEST, false);
+            tool.setEnvironment(environmentContext, toolInstallation, false);
+          } catch (Exception e) {
+            LOG.warn("Failed to set the environment variables of the installed tool {}.", tool.getName(), e);
+          }
+        }
+      }
+    }
+  }
+
   /**
    * @return a new instance of {@link ProcessContext}.
    * @see #newProcess()
@@ -1083,7 +1109,6 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
     assert (options.length > 0);
     IdeLogLevel.INTERACTION.log(LOG, question, args);
-    LOG.warn(question, args);
     return displayOptionsAndGetAnswer(options);
   }
 
