@@ -48,7 +48,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
    *
    * @param silent {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
    * @param commandStrings commandStrings The package manager command strings to execute.
-   * @param action the {@link NativePackageAction} tht is performed - only used for logging.
+   * @param action the {@link NativePackageAction} that is performed - only used for logging.
    * @return {@code true} if installation or uninstallation succeeds with any of the package manager commands, {@code false} otherwise.
    */
   protected boolean runWithPackageManager(boolean silent, NativePackageAction action, String... commandStrings) {
