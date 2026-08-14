@@ -742,18 +742,21 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
             latestVulnerabilities = newVulnerabilities;
             latest = ToolVersionChoice.ofLatest(toolEditionAndVersion, latestVulnerabilities);
             nearest = null;
-            nearestVulnerabilities = latestVulnerabilities;
+            //nearestVulnerabilities = latestVulnerabilities;
           } else {
             nearestVulnerabilities = newVulnerabilities;
             nearest = ToolVersionChoice.ofNearest(toolEditionAndVersion, nearestVulnerabilities);
           }
         } else if (newVulnerabilities.isSaferOrEqual(nearestVulnerabilities)) {
-          if (newVulnerabilities.isSafer(nearestVulnerabilities) || !version.isGreater(resolvedVersion)) {
+          if (newVulnerabilities.isSafer(nearestVulnerabilities) || /*!*/version.isGreater(resolvedVersion)) {
             nearest = ToolVersionChoice.ofNearest(new ToolEditionAndVersion(toolEdition, version), newVulnerabilities);
           }
           nearestVulnerabilities = newVulnerabilities;
         }
       }
+    }
+    if ((nearest != null) && !nearest.vulnerabilities().isSafer(currentVulnerabilities)) {
+      nearest = null; // never suggest a version that does not reduce the CVEs
     }
     if ((latest == null) && (nearest == null)) {
       LOG.warn("Could not find any other version resolving your CVEs.\n"

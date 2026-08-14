@@ -30,6 +30,8 @@ public class Python extends LocalToolCommandlet {
 
   private final VersionIdentifier PYTHON_MIN_VERSION = VersionIdentifier.of("3.8.2");
 
+  private static final String VENV_FOLDER = ".venv";
+
   /**
    * The constructor.
    *
@@ -53,10 +55,10 @@ public class Python extends LocalToolCommandlet {
       fileAccess.backup(installationPath);
     }
     Path softwarePath = installationPath.getParent();
-    Path venvPath = softwarePath.resolve(".venv");
-    if (Files.exists(venvPath)) {
-      fileAccess.delete(venvPath);
-    }
+    Path venvPath = softwarePath.resolve(VENV_FOLDER);
+
+    fileAccess.delete(venvPath);
+
     Uv uv = this.context.getCommandletManager().getCommandlet(Uv.class);
 
     uv.installPython(softwarePath, resolvedVersion, request.getProcessContext());
@@ -119,7 +121,7 @@ public class Python extends LocalToolCommandlet {
    */
   private void renameVenvFolderToPython(FileAccess fileAccess, Path softwarePath, Path installationPath) {
 
-    Path venvPath = softwarePath.resolve(".venv");
+    Path venvPath = softwarePath.resolve(VENV_FOLDER);
     fileAccess.move(venvPath, installationPath, StandardCopyOption.REPLACE_EXISTING);
   }
 
