@@ -133,7 +133,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     VersionIdentifier resolvedVersion = request.getRequested().getResolvedVersion();
     if (this.context.getSystemInfo().isLinux()) {
       // on Linux global tools are typically installed via the package manager of the OS
-      // if a global tool implements getNativePackages() to returnm at least one NativePackage, then we will install this way.
+      // if a global tool implements getNativePackages() to returns at least one NativePackage, then we will install this way.
       List<PackageManagerCommand> commands = getInstallPackageManagerCommands(resolvedVersion);
       if (!commands.isEmpty()) {
         boolean newInstallation = runWithPackageManager(request.isSilent(), commands, NativePackageAction.INSTALL);
