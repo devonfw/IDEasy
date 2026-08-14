@@ -169,23 +169,26 @@ class SystemPathTest extends AbstractIdeContextTest {
   @Test
   void testFindBinaryExtraPathEntriesWinsOverTool2pathMap() throws IOException {
     // arrange - create two directories, both with a binary named "mytool"
+    // tool2pathMap collects subdirectories of softwarePath, so mytool must be a subdirectory
     IdeTestContext context = newContext(PROJECT_BASIC);
     Path toolDir = context.getIdeHome().resolve("software-tool");
     Files.createDirectories(toolDir);
-    Files.writeString(toolDir.resolve("mytool"), "tool-version");
+    Path mytoolInToolDir = toolDir.resolve("mytool");
+    Files.createDirectories(mytoolInToolDir);
+    Files.writeString(mytoolInToolDir.resolve("mytool"), "tool-version");
 
     Path extraDir = context.getIdeHome().resolve("extra-path");
     Files.createDirectories(extraDir);
     Files.writeString(extraDir.resolve("mytool"), "extra-version");
 
-    // tool2pathMap has "toolDir", extraPathEntries has "extraDir"
+    // tool2pathMap has "software-tool" (mytool is a subdirectory → registered), extraPathEntries has "extraDir"
     SystemPath base = new SystemPath(context, "", null, toolDir, ';', List.of());
     SystemPath merged = base.withPath(null, List.of(extraDir));
 
     // assert - findBinary should return the one from extraPathEntries, NOT from tool2pathMap
     Path resolved = merged.findBinary(Path.of("mytool"));
     assertThat(resolved).isEqualTo(extraDir.resolve("mytool"));
-    assertThat(resolved).isNotEqualTo(toolDir.resolve("mytool"));
+    assertThat(resolved).isNotEqualTo(mytoolInToolDir.resolve("mytool"));
   }
 
   @Test
