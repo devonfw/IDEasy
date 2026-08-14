@@ -9,11 +9,12 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.ide.IdeFeatures;
+import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeWorkspaceConfigurer;
 
 /**
- * Base class for pip-based IDE tools that should launch in the background instead of blocking the terminal.
- * Implements {@link IdeFeatures} to provide IDE workspace configuration capabilities.
+ * Base class for pip-based IDE tools that should launch in the background instead of blocking the terminal. Implements {@link IdeFeatures} to provide IDE
+ * workspace configuration capabilities.
  */
 public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet implements IdeFeatures {
 
@@ -44,12 +45,18 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
 
   @Override
   public Path getIdeMetadataPath() {
-    return this.workspaceConfigurer.getIdeMetadataPath();
+
+    return this.context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve(getName()).resolve(this.context.getWorkspaceName());
   }
 
+  /**
+   * Imports the repository specified by the given {@link Path} into the IDE managed by this {@link IdeToolCommandlet}.
+   *
+   * @param repositoryPath the {@link Path} to the repository directory to import.
+   */
   @Override
   public void importRepository(Path repositoryPath) {
-    this.workspaceConfigurer.importRepository(repositoryPath);
+    throw new UnsupportedOperationException("Repository import is not yet implemented for IDE " + this.tool);
   }
 
   @Override

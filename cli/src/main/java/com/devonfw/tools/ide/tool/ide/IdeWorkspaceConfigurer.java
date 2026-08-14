@@ -84,23 +84,4 @@ public class IdeWorkspaceConfigurer {
     LOG.debug("Merging workspace templates from {}...", templatesFolder);
     return errors + this.context.getWorkspaceMerger().merge(setupFolder, updateFolder, this.context.getVariables(), workspaceFolder);
   }
-
-  /**
-   * @return the {@link Path} to the IDE-specific metadata folder for the {@link IdeContext#getWorkspaceName() current workspace}, located at
-   *     {@code $IDE_HOME/.ide/«ide»/«workspace»}. Unlike {@link IdeContext#getWorkspacePath() the workspace path} (which holds the projects to open), this
-   *     folder keeps IDE-specific metadata (e.g. {@code .vmoptions} or {@code *.properties} files) out of the workspace so it stays clean and independent of
-   *     the IDE being used.
-   */
-  public Path getIdeMetadataPath() {
-    return this.context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve(this.toolName).resolve(this.context.getWorkspaceName());
-  }
-
-  /**
-   * Imports the repository specified by the given {@link Path} into the IDE managed by this {@link IdeToolCommandlet}.
-   *
-   * @param repositoryPath the {@link Path} to the repository directory to import.
-   */
-  public void importRepository(Path repositoryPath) {
-    throw new UnsupportedOperationException("Repository import is not yet implemented for IDE " + this.toolName);
-  }
 }

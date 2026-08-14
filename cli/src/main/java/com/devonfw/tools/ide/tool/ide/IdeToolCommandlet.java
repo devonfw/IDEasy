@@ -66,14 +66,6 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet implements
   }
 
   /**
-   * Configure (initialize or update) the workspace for this IDE using the templates from the settings.
-   */
-  @Override
-  public void configureWorkspace() {
-    this.workspaceConfigurer.configureWorkspace();
-  }
-
-  /**
    * @return the {@link Path} to the IDE-specific metadata folder for the {@link IdeContext#getWorkspaceName() current workspace}, located at
    *     {@code $IDE_HOME/.ide/«ide»/«workspace»}. Unlike {@link IdeContext#getWorkspacePath() the workspace path} (which holds the projects to open), this
    *     folder keeps IDE-specific metadata (e.g. {@code .vmoptions} or {@code *.properties} files) out of the workspace so it stays clean and independent of
@@ -81,8 +73,18 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet implements
    */
   @Override
   public Path getIdeMetadataPath() {
-    return this.workspaceConfigurer.getIdeMetadataPath();
+
+    return this.context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve(getName()).resolve(this.context.getWorkspaceName());
   }
+
+  /**
+   * Configure (initialize or update) the workspace for this IDE using the templates from the settings.
+   */
+  @Override
+  public void configureWorkspace() {
+    this.workspaceConfigurer.configureWorkspace();
+  }
+
 
   /**
    * Imports the repository specified by the given {@link Path} into the IDE managed by this {@link IdeToolCommandlet}.
@@ -91,6 +93,7 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet implements
    */
   @Override
   public void importRepository(Path repositoryPath) {
-    this.workspaceConfigurer.importRepository(repositoryPath);
+
+    throw new UnsupportedOperationException("Repository import is not yet implemented for IDE " + this.tool);
   }
 }
