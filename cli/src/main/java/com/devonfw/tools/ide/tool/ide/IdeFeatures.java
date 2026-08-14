@@ -5,8 +5,8 @@ import java.nio.file.Path;
 /**
  * Interface for IDE-specific features that are independent of the installation mechanism (binary vs. package manager).
  * <p>
- * This allows tools installed via package managers (like pip for Spyder) to still benefit from IDEasy's IDE features
- * such as workspace configuration, metadata management, and repository import.
+ * This allows tools installed via package managers (like pip for Spyder) to still benefit from IDEasy's IDE features such as workspace configuration, metadata
+ * management, and repository import.
  */
 public interface IdeFeatures {
 
@@ -16,11 +16,10 @@ public interface IdeFeatures {
   void configureWorkspace();
 
   /**
-   * @return the {@link Path} to the IDE-specific metadata folder for the current workspace,
-   *     located at {@code $IDE_HOME/.ide/«toolName»/«workspace»}. Unlike {@link com.devonfw.tools.ide.context.IdeContext#getWorkspacePath()
-   *     the workspace path} (which holds the projects to open), this folder keeps IDE-specific metadata
-   *     (e.g. {@code .vmoptions} or {@code *.properties} files) out of the workspace so it stays clean
-   *     and independent of the IDE being used.
+   * @return the {@link Path} to the IDE-specific metadata folder for the current workspace, located at {@code $IDE_HOME/.ide/«toolName»/«workspace»}. Unlike
+   *     {@link com.devonfw.tools.ide.context.IdeContext#getWorkspacePath() the workspace path} (which holds the projects to open), this folder keeps
+   *     IDE-specific metadata (e.g. {@code .vmoptions} or {@code *.properties} files) out of the workspace so it stays clean and independent of the IDE being
+   *     used.
    */
   Path getIdeMetadataPath();
 
