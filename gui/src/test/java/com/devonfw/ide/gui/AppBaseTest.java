@@ -79,14 +79,14 @@ public class AppBaseTest extends HeadlessApplicationTest {
     stage.requestFocus(); //sometimes needed for headless setup to work
     stage.show();
 
-    androidStudioOpen = lookup(root, "#androidStudioOpen");
-    eclipseOpen = lookup(root, "#eclipseOpen");
-    intellijOpen = lookup(root, "#intellijOpen");
-    vsCodeOpen = lookup(root, "#vsCodeOpen");
-    selectedProject = lookup(root, "#selectedProject");
-    selectedWorkspace = lookup(root, "#selectedWorkspace");
-    statusText = lookup(root, "#statusLabel");
-    taskProgressBar = lookup(root, "#statusProgressBar");
+    androidStudioOpen = (Button) root.lookup("#androidStudioOpen");
+    eclipseOpen = (Button) root.lookup("#eclipseOpen");
+    intellijOpen = (Button) root.lookup("#intellijOpen");
+    vsCodeOpen = (Button) root.lookup("#vsCodeOpen");
+    selectedProject = (ComboBox<String>) root.lookup("#selectedProject");
+    selectedWorkspace = (ComboBox<String>) root.lookup("#selectedWorkspace");
+    statusText = (Label) root.lookup("#statusLabel");
+    taskProgressBar = (ProgressBar) root.lookup("#statusProgressBar");
 
     tabPane = (TabPane) fxmlLoader.getNamespace().get("tabPane");
     mainTab = (Tab) fxmlLoader.getNamespace().get("mainTab");
