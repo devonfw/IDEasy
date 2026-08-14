@@ -3,7 +3,6 @@ package com.devonfw.tools.ide.tool.plugin;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -13,10 +12,8 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.context.ProcessContextTestImpl;
-import com.devonfw.tools.ide.environment.EnvironmentVariables;
 
 /**
  * Test of {@link PluginBasedCommandlet}.
@@ -124,55 +121,45 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  void testExtraPluginIsActivated() {
+  void testExtraPluginsAreInstalled() {
 
-    IdeTestContext localContext = newContext(PROJECT_EXTRA_PLUGINS, null, false);
+    IdeTestContext localContext = newContext(PROJECT_EXTRA_PLUGINS, null, true);
+    localContext.getStartContext().setForcePlugins(true);
     ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(localContext, TOOL, tags);
 
-    ToolPluginDescriptor anyedit = pluginBasedCommandlet.getPlugins().getByName("anyedit");
+    pluginBasedCommandlet.installPlugins(pluginBasedCommandlet.getPlugins().getPlugins(), new ProcessContextTestImpl(localContext));
 
-    assertThat(anyedit).isNotNull();
-    assertThat(anyedit.active()).isTrue();
+    // anyedit is configured as inactive but listed in ECLIPSE_EXTRA_PLUGINS - has to be installed
+    assertThat(localContext).logAtSuccess().hasMessageContaining("Install plugin anyedit (");
+    // spotbugs is configured as active and not listed - has to be installed as before
+    assertThat(localContext).logAtSuccess().hasMessageContaining("Install plugin spotbugs (");
+    // checkstyle is configured as inactive and not listed - has to stay omitted
+    assertThat(localContext).log().hasMessageContaining("Omitting installation of inactive plugin checkstyle");
+    assertThat(localContext).log().hasNoMessageContaining("Install plugin checkstyle");
   }
 
   @Test
-  void testExtraPluginIsActivatedInPluginCollection() {
-
-    IdeTestContext localContext = newContext(PROJECT_EXTRA_PLUGINS, null, false);
-    ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(localContext, TOOL, tags);
-
-    Collection<ToolPluginDescriptor> plugins = pluginBasedCommandlet.getPlugins().getPlugins();
-
-    assertThat(plugins).filteredOn(plugin -> "anyedit".equals(plugin.name()))
-        .singleElement().extracting(ToolPluginDescriptor::active).isEqualTo(Boolean.TRUE);
-  }
-
-  @Test
-  void testUnlistedPluginKeepsConfiguredState() {
+  void testExtraPluginsDoNotModifyConfiguredState() {
 
     IdeTestContext localContext = newContext(PROJECT_EXTRA_PLUGINS, null, false);
     ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(localContext, TOOL, tags);
 
     ToolPlugins toolPlugins = pluginBasedCommandlet.getPlugins();
 
-    // configured as inactive and not listed in ECLIPSE_EXTRA_PLUGINS - has to stay inactive
+    // the loaded configuration must stay untouched - activation happens only while installing
+    assertThat(toolPlugins.getByName("anyedit").active()).isFalse();
     assertThat(toolPlugins.getByName("checkstyle").active()).isFalse();
-    // configured as active and not listed in ECLIPSE_EXTRA_PLUGINS - has to stay active
     assertThat(toolPlugins.getByName("spotbugs").active()).isTrue();
   }
 
   @Test
-  void testUnknownExtraPluginLogsWarning() throws IOException {
+  void testUndefinedExtraPluginLogsWarning() {
 
-    IdeTestContext localContext = newContext(PROJECT_EXTRA_PLUGINS, null, true);
-    Files.writeString(localContext.getIdeHome().resolve(IdeContext.FOLDER_CONF).resolve(EnvironmentVariables.DEFAULT_PROPERTIES),
-        "ECLIPSE_EXTRA_PLUGINS=anyedit,doesnotexist\n");
-    localContext.reload();
+    IdeTestContext localContext = newContext(PROJECT_EXTRA_PLUGINS, null, false);
     ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(localContext, TOOL, tags);
 
-    ToolPlugins toolPlugins = pluginBasedCommandlet.getPlugins();
+    pluginBasedCommandlet.getExtraPlugins(pluginBasedCommandlet.getPlugins().getPlugins());
 
-    assertThat(toolPlugins.getByName("anyedit").active()).isTrue();
     assertThat(localContext).logAtWarning().hasMessageContaining("doesnotexist");
   }
 }

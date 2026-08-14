@@ -100,17 +100,4 @@ public record ToolPluginDescriptor(String id, String name, String url, String ve
     return Set.of();
   }
 
-  /**
-   * @param newActive the new value of {@link #active()}.
-   * @return this {@link ToolPluginDescriptor} if {@link #active()} already has the given value, otherwise a copy of this descriptor with all other properties
-   *     unchanged and {@link #active()} set to the given value.
-   */
-  public ToolPluginDescriptor withActive(boolean newActive) {
-
-    if (newActive == this.active) {
-      return this;
-    }
-    return new ToolPluginDescriptor(this.id, this.name, this.url, this.version, newActive, this.tags, this.excludedEditions);
-  }
-
 }
