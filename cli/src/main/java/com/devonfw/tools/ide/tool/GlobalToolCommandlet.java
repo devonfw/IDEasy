@@ -61,8 +61,8 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
    * Performs the installation or uninstallation of the {@link #getName() tool} via a package manager.
    *
    * @param silent {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
-   * @param pmCommands A list of {@link PackageManagerCommand} to be used for installation or uninstallation. * @param action the
-   *     {@link NativePackageAction} tht is performed - only used for logging.
+   * @param pmCommands A list of {@link PackageManagerCommand} to be used for installation or uninstallation. 
+   * @param action the {@link NativePackageAction} that is performed - only used for logging.
    * @return {@code true} if installation or uninstallation succeeds with any of the package manager commands, {@code false} otherwise.
    */
   protected boolean runWithPackageManager(boolean silent, List<PackageManagerCommand> pmCommands, NativePackageAction action) {
