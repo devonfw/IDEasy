@@ -242,4 +242,3 @@ public final class ToolSettingsService {
   }
 
 }
-
