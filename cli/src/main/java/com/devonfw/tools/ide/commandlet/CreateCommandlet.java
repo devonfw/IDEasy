@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.version.IdeVersion;
 
@@ -24,9 +23,6 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
   /** {@link StringProperty} for the name of the new project */
   public final StringProperty newProject;
 
-  /** {@link FlagProperty} for creating a project with settings inside a code repository */
-  public final FlagProperty codeRepositoryFlag;
-
   /**
    * The constructor.
    *
@@ -36,7 +32,6 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
 
     super(context);
     this.newProject = add(new StringProperty("", true, "project"));
-    this.codeRepositoryFlag = add(new FlagProperty("--code"));
     add(this.settingsRepo);
   }
 
@@ -83,14 +78,9 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
   }
 
   @Override
-  protected boolean isCodeRepository() {
-    return this.codeRepositoryFlag.isTrue();
-  }
-
-  @Override
   protected String getStepMessage() {
 
-    return "Create (clone) " + (isCodeRepository() ? "code" : "settings") + " repository";
+    return "Create (clone) repository";
   }
 
   private void logWelcomeMessage() {
