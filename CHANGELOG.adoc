@@ -5,7 +5,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 == 2026.08.002
 
 Release with new features and bugfixes:
-* https://github.com/devonfw/IDEasy/issues/2180[#2180]: Add *_PLUGINS_EXTRA variable to install extra IDE plugins per user
+* https://github.com/devonfw/IDEasy/issues/2180[#2180]: Add *_EXTRA_PLUGINS variable to install extra IDE plugins per user
 
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/49?closed=1[milestone 2026.08.002].

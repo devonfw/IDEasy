@@ -126,7 +126,7 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
   @Test
   void testExtraPluginIsActivated() {
 
-    IdeTestContext localContext = newContext(PROJECT_PLUGIN_EXTRA, null, false);
+    IdeTestContext localContext = newContext(PROJECT_EXTRA_PLUGINS, null, false);
     ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(localContext, TOOL, tags);
 
     ToolPluginDescriptor anyedit = pluginBasedCommandlet.getPlugins().getByName("anyedit");
@@ -138,7 +138,7 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
   @Test
   void testExtraPluginIsActivatedInPluginCollection() {
 
-    IdeTestContext localContext = newContext(PROJECT_PLUGIN_EXTRA, null, false);
+    IdeTestContext localContext = newContext(PROJECT_EXTRA_PLUGINS, null, false);
     ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(localContext, TOOL, tags);
 
     Collection<ToolPluginDescriptor> plugins = pluginBasedCommandlet.getPlugins().getPlugins();
@@ -150,23 +150,23 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
   @Test
   void testUnlistedPluginKeepsConfiguredState() {
 
-    IdeTestContext localContext = newContext(PROJECT_PLUGIN_EXTRA, null, false);
+    IdeTestContext localContext = newContext(PROJECT_EXTRA_PLUGINS, null, false);
     ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(localContext, TOOL, tags);
 
     ToolPlugins toolPlugins = pluginBasedCommandlet.getPlugins();
 
-    // configured as inactive and not listed in ECLIPSE_PLUGINS_EXTRA - has to stay inactive
+    // configured as inactive and not listed in ECLIPSE_EXTRA_PLUGINS - has to stay inactive
     assertThat(toolPlugins.getByName("checkstyle").active()).isFalse();
-    // configured as active and not listed in ECLIPSE_PLUGINS_EXTRA - has to stay active
+    // configured as active and not listed in ECLIPSE_EXTRA_PLUGINS - has to stay active
     assertThat(toolPlugins.getByName("spotbugs").active()).isTrue();
   }
 
   @Test
   void testUnknownExtraPluginLogsWarning() throws IOException {
 
-    IdeTestContext localContext = newContext(PROJECT_PLUGIN_EXTRA, null, true);
+    IdeTestContext localContext = newContext(PROJECT_EXTRA_PLUGINS, null, true);
     Files.writeString(localContext.getIdeHome().resolve(IdeContext.FOLDER_CONF).resolve(EnvironmentVariables.DEFAULT_PROPERTIES),
-        "ECLIPSE_PLUGINS_EXTRA=anyedit,doesnotexist\n");
+        "ECLIPSE_EXTRA_PLUGINS=anyedit,doesnotexist\n");
     localContext.reload();
     ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(localContext, TOOL, tags);
 

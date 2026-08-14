@@ -327,18 +327,17 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
   }
 
   /**
-   * Activates the plugins configured in the tool-specific {@code «TOOL»_PLUGINS_EXTRA} variable (e.g.
-   * {@code VSCODE_PLUGINS_EXTRA=copilot,docker}). This allows a user to permanently opt-in to plugins that are not {@link ToolPluginDescriptor#active() active}
-   * in the project settings, without modifying the shared settings and without losing them when plugins are purged and reinstalled on IDE upgrade. Values refer
-   * to the {@link ToolPluginDescriptor#name() name} of the plugin (the filename of its {@code .properties} file) and not to the
-   * {@link ToolPluginDescriptor#id() id}. Names that do not resolve to a configured plugin are logged as a warning and skipped so that a single stale entry
-   * cannot break the entire installation.
+   * Activates the plugins configured in the tool-specific {@code «TOOL»_EXTRA_PLUGINS} variable (e.g. {@code VSCODE_EXTRA_PLUGINS=copilot,docker}). This allows
+   * a user to permanently opt-in to plugins that are not {@link ToolPluginDescriptor#active() active} in the project settings, without modifying the shared
+   * settings and without losing them when plugins are purged and reinstalled on IDE upgrade. Values refer to the {@link ToolPluginDescriptor#name() name} of
+   * the plugin (the filename of its {@code .properties} file) and not to the {@link ToolPluginDescriptor#id() id}. Names that do not resolve to a configured
+   * plugin are logged as a warning and skipped so that a single stale entry cannot break the entire installation.
    *
    * @param toolPlugins the {@link ToolPlugins} to modify.
    */
   private void activateExtraPlugins(ToolPlugins toolPlugins) {
 
-    String variable = EnvironmentVariables.getToolPluginsExtraVariable(this.tool);
+    String variable = EnvironmentVariables.getToolExtraPluginsVariable(this.tool);
     String value = this.context.getVariables().get(variable);
     if ((value == null) || value.isBlank()) {
       return;
