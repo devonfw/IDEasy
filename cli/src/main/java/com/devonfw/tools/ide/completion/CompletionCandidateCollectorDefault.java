@@ -2,7 +2,9 @@ package com.devonfw.tools.ide.completion;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,13 +27,29 @@ public class CompletionCandidateCollectorDefault implements CompletionCandidateC
   private boolean sortCandidates;
 
   /**
+   * The set of arguments that have already been provided on the command line.
+   */
+  private final Set<String> alreadyProvided;
+
+  /**
    * The constructor.
    *
    * @param context the {@link IdeContext}.
    */
   public CompletionCandidateCollectorDefault(IdeContext context) {
+    this(context, new HashSet<>());
+  }
+
+  /**
+   * The constructor.
+   *
+   * @param context the {@link IdeContext}.
+   * @param alreadyProvided the {@link Set} of arguments already provided before the completion argument.
+   */
+  public CompletionCandidateCollectorDefault(IdeContext context, Set<String> alreadyProvided) {
 
     super();
+    this.alreadyProvided = Collections.unmodifiableSet(alreadyProvided);
     this.candidates = new ArrayList<>();
     this.context = context;
     this.sortCandidates = true;
@@ -72,6 +90,12 @@ public class CompletionCandidateCollectorDefault implements CompletionCandidateC
   public void disableSorting() {
 
     this.sortCandidates = false;
+  }
+
+  @Override
+  public Set<String> getAlreadyProvided() {
+
+    return this.alreadyProvided;
   }
 
   @Override

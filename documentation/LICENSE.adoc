@@ -22,13 +22,14 @@ However, due to automation you may not explicitly decide and notice what the lic
 Therefore, we list such software with their licenses explicitly below esp. those that require reproduction of the license text in the distribution.
 Before using our product and installing additional software with it you need to agree to such licenses and be aware of this.
 
-NOTE: Please be aware that it is even possible to configure and automatically install some commercial software that is NOT open-source and requires a license to be used (e.g. IntelliJ ultimate edition).
+NOTE: Please be aware that it is even possible to configure and automatically install some commercial software that is NOT open-source and requires a license to be used (e.g. IntelliJ IDEA that is shipped as a single unified and proprietary distribution since version 2025.3 where the advanced features formerly known as `ultimate` edition require a paid subscription).
 Hence, only configure and use such software if you have an according license.
 
 The following table shows the components that may be used.
 The column `inclusion` indicates the way the component is included:
 
 * `directly included` means the component is directly contained in the download package of `IDEasy` we provide (derivative work)
+* `GUI` means the component is not contained in the download package of `IDEasy` but is a dependency of our graphical user interface that gets downloaded automatically when you launch it via the `ide gui` command
 * `default setup` means the component is not initially included but will be downloaded during creation of a link:project.adoc[`project`] by default
 * `optional` means the component is neither initially included nor downloaded by default, but only gets downloaded and installed if explicitly triggered by you when invoking additional commands or if explicitly configured by your project.
 
@@ -43,17 +44,24 @@ The column `inclusion` indicates the way the component is included:
 |https://commons.apache.org/proper/commons-compress/[Apache Commons Compress]|Directly included|https://github.com/apache/commons-compress/blob/master/LICENSE.txt[Apache 2.0]
 |https://tukaani.org/xz/java.html[XZ for Java]|Directly included|https://github.com/tukaani-project/xz-java/blob/master/LICENSES/0BSD.txt[0BSD]
 |https://github.com/FasterXML/jackson-databind[jackson-databind]|Directly included|https://github.com/FasterXML/jackson-databind/blob/2.19/LICENSE[Apache 2.0]
-|https://github.com/FasterXML/jackson-modules-java8/tree/master/datetime[jackson-datatype-jsr310]|Directly included|https://github.com/FasterXML/jackson-modules-java8/blob/2.19/LICENSE[Apache 2.0]
 |https://github.com/FasterXML/jackson-dataformat-xml[jackson-dataformat-xml]|Directly included|https://github.com/FasterXML/jackson-databind/blob/2.19/LICENSE[Apache 2.0]
 |https://www.slf4j.org/[slf4j]|Directly included|https://www.slf4j.org/license.html[MIT]
 |https://logback.qos.ch/[logback-classic]|Directly included|https://logback.qos.ch/license.html[LGPL 2.1]
+|https://github.com/jline/jline3[JLine3] |Directly included|https://github.com/jline/jline3/blob/master/LICENSE.txt[BSD-3]
+|https://github.com/fusesource/jansi[jansi] |Directly included|https://github.com/fusesource/jansi/blob/master/license.txt[Apache 2.0]
+|https://github.com/ctongfei/progressbar[Progressbar]|Directly included|https://github.com/ctongfei/progressbar/blob/main/LICENSE[MIT]
+|https://github.com/oracle/graal/tree/master/sdk[GraalVM SDK] (nativeimage)|Directly included|https://github.com/oracle/graal/blob/master/sdk/LICENSE.md[UPL 1.0]
+|https://github.com/tukaani-project/xz-java[xz]|Directly included|https://github.com/tukaani-project/xz-java/blob/master/COPYING[0BSD]
+|https://github.com/openjdk/jfx[OpenJFX] (javafx-controls, javafx-fxml) |GUI|https://github.com/openjdk/jfx/blob/master/LICENSE[GPLv2] (with the “Classpath” Exception)
 |https://openjdk.java.net/[OpenJDK] / https://adoptopenjdk.net/[AdoptOpenJDK] (Java)|Default Setup|https://openjdk.java.net/legal/gplv2+ce.html[GPLv2]
+|https://maven.apache.org/[Maven]|Default Setup|https://www.apache.org/licenses/LICENSE-2.0[Apache 2.0]
+|https://maven.apache.org/[Maven Daemon]|Default Setup|https://www.apache.org/licenses/LICENSE-2.0[Apache 2.0]
+|https://nodejs.org/[Node.js] |Default Setup|https://raw.githubusercontent.com/nodejs/node/master/LICENSE[License]
+|https://www.npmjs.com/[NPM] |Default Setup|https://github.com/npm/cli/blob/latest/LICENSE[Artistic License 2.0] (https://www.npmjs.com/policies/terms[Terms])
 |https://go.dev[GO]|Optional|https://go.dev/LICENSE[BSD 3-Clause]
 |https://docs.azul.com/gc-log-analyzer/[GC Log Analyzer]|Optional|https://opensource.org/license/BSD-3-clause[BSD 3-Clause]
 |https://github.com/github/copilot-cli[GitHub Copilot CLI]|Optional|https://github.com/github/copilot-cli/blob/main/LICENSE.md[Proprietary]
 |https://github.com/anthropics/claude-code/tree/main[Claude Code CLI]|Optional|https://github.com/anthropics/claude-code/blob/main/LICENSE.md[Proprietary]
-|https://maven.apache.org/[Maven]|Default Setup|https://www.apache.org/licenses/LICENSE-2.0[Apache 2.0]
-|https://maven.apache.org/[Maven Daemon]|Default Setup|https://www.apache.org/licenses/LICENSE-2.0[Apache 2.0]
 |https://code.visualstudio.com/[VS Code]|Optional|https://github.com/Microsoft/vscode/blob/master/LICENSE.txt[MIT] (https://code.visualstudio.com/License/[Terms])
 |https://vscodium.com/[VSCodium]|Optional|https://github.com/VSCodium/vscodium/blob/master/LICENSE[MIT]
 |https://github.com/devonfw/extension-pack-vscode[extension-pack-vscode] |Optional|https://github.com/devonfw/extension-pack-vscode/blob/master/LICENSE[Apache 2.0]
@@ -66,8 +74,6 @@ The column `inclusion` indicates the way the component is included:
 |https://basti1302.github.io/startexplorer/[StartExplorer] |Optional|http://www.wtfpl.net/txt/copying/[WTFPL 2]
 |http://myregexp.com/eclipsePlugin.html[regex tester] |Optional|http://www.gnu.org/licenses/gpl-2.0.html[GPL 2.0] (see https://sourceforge.net/projects/regex-util/[here])
 |https://github.com/m-m-m/eclipse-templatevariables/[eclipse-templatevariables] |Optional|https://github.com/m-m-m/eclipse-templatevariables/blob/master/LICENSE.txt[Apache 2.0]
-|https://nodejs.org/[Node.js] |Default Setup|https://raw.githubusercontent.com/nodejs/node/master/LICENSE[License]
-|https://www.npmjs.com/[NPM] |Default Setup|https://github.com/npm/cli/blob/latest/LICENSE[Artistic License 2.0] (https://www.npmjs.com/policies/terms[Terms])
 |https://www.npmjs.com/package/corepack/[corepack] |Optional|https://github.com/nodejs/corepack/blob/main/LICENSE.md[MIT License]
 |https://yarnpkg.com/[yarnpkg] |Optional|https://github.com/yarnpkg/berry/blob/master/LICENSE.md[BSD 2-Clause License]
 |https://cli.angular.io/[Angular CLI] (ng) |Optional|https://cli.angular.io/license.html[MIT]
@@ -75,12 +81,10 @@ The column `inclusion` indicates the way the component is included:
 |https://ant.apache.org/[Apache Ant]|Optional|https://github.com/apache/ant/blob/master/LICENSE[Apache 2.0]
 |https://gradle.org/[Gradle] |Optional|https://github.com/gradle/gradle/blob/master/LICENSE[Apache 2.0]
 |https://jenkins.io/[Jenkins] |Optional|https://github.com/jenkinsci/jenkins/blob/master/LICENSE.txt[MIT]
-|https://github.com/jline/jline3[JLine3] |Directly included|https://github.com/jline/jline3/blob/master/LICENSE.txt[BSD-3]
-|https://github.com/fusesource/jansi[jansi] |Directly included|https://github.com/fusesource/jansi/blob/master/license.txt[Apache 2.0]
 |https://www.sonarsource.com/plans-and-pricing/community/[SonarQube (Community Edition)] |Optional|https://github.com/SonarSource/sonarqube/blob/master/LICENSE.txt[LGPL 3.0]
 |https://www.sonarlint.org/eclipse/[SonarLint] |Optional|https://github.com/SonarSource/sonarlint-eclipse/blob/master/LICENSE.txt[LGPL 3+]
 |https://spring.io/projects/spring-boot/[Spring-Boot] |Optional|https://github.com/spring-projects/spring-boot/blob/main/LICENSE.txt[Apache 2.0]
-|https://www.jetbrains.com/idea/[IntelliJ IDEA] |Optional|https://www.jetbrains.com/opensource/idea/[Apache 2.0]
+|https://www.jetbrains.com/idea/[IntelliJ IDEA] |Optional|https://www.jetbrains.com/legal/docs/toolbox/user/[JetBrains User Agreement] (proprietary - since 2025.3 IntelliJ IDEA is shipped as a single unified distribution where the core features are free of charge while the advanced features formerly known as `ultimate` edition require a paid https://www.jetbrains.com/legal/docs/toolbox/license/[subscription] - only the open-source core is available as source under https://github.com/JetBrains/intellij-community[Apache 2.0])
 |https://developer.android.com/studio[Android Studio] |Optional|https://developer.android.com/license[Apache 2.0]
 |https://www.jetbrains.com/pycharm/[Pycharm] |Optional|https://www.jetbrains.com/legal/docs/toolbox/user_community/[Apache 2.0]
 |http://www.jasypt.org/[jasypt] |Optional|http://www.jasypt.org/license.html[Apache 2.0]
@@ -103,10 +107,8 @@ The column `inclusion` indicates the way the component is included:
 |https://kotlinlang.org//[kotlin]|Optional|https://github.com/JetBrains/kotlin-web-site/blob/master/LICENSE[Apache 2.0]
 |https://tomcat.apache.org/[tomcat]|Optional|https://www.apache.org/licenses/LICENSE-2.0[Apache 2.0]
 |https://www.oracle.com/java/technologies/jdk-mission-control.html[Java Mission Control]|Optional|https://github.com/openjdk/jmc/blob/master/license/LICENSE.txt[UPL 1.0] and https://github.com/openjdk/jmc/blob/master/license/THIRDPARTYREADME.txt[EPL 2.0]
-|https://github.com/ctongfei/progressbar[Progressbar]|Directly included|https://github.com/ctongfei/progressbar/blob/main/LICENSE[MIT]
 |https://www.pgadmin.org/[pgAdmin]|Optional|https://www.pgadmin.org/licence/#postgresql[The PostgreSQL Licence]
 |https://docs.astral.sh/uv/[uv] |Optional|https://docs.astral.sh/uv/reference/policies/license/[Apache 2.0]
-|https://github.com/openjdk/jfx[OpenJFX] |Optional|https://github.com/openjdk/jfx/blob/master/LICENSE[GPLv2] (with the “Classpath” Exception)
 |https://squirrel-sql.sourceforge.io/[SQuirreL SQL Client]|Optional|https://github.com/squirrel-sql-client/squirrel-sql-stable-releases/blob/main/LICENSE[LGPL 2.1]
 |https://www.soapui.org/[SoapUI]|Optional|https://github.com/SmartBear/soapui/blob/next/LICENSE.txt[EUPL 1.1]
 |https://docs.nestjs.com/cli/overview[NestJS CLI] |Optional|https://github.com/nestjs/nest-cli/blob/master/LICENSE[MIT License]

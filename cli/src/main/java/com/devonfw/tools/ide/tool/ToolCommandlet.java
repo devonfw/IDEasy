@@ -248,7 +248,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    */
   public ProcessResult runTool(ProcessMode processMode, GenericVersionRange toolVersion, ProcessErrorHandling errorHandling, List<String> args) {
 
-    ProcessContext pc = this.context.newProcess().errorHandling(errorHandling);
+    ProcessContext pc = newToolProcess(errorHandling);
     ToolInstallRequest request = new ToolInstallRequest(true);
     if (toolVersion != null) {
       request.setRequested(new ToolEditionAndVersion(toolVersion));
@@ -351,8 +351,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     ToolInstallation installation = doInstall(request);
     if (installation != null && installation.installedAsynchronously()) {
       LOG.warn(
-          "The installation of {} is currently running in the background!\nYou need to complete the installation, potentially "
-              + "reboot and rerun your 'ide' command in a new terminal session after the installation has completed.",
+          "The installation of {} is currently running in the background!\n"
+              + "You need to complete the installation, potentially reboot and rerun your 'ide' command in a new terminal session"
+              + " after the installation has completed.",
           request.getRequested());
     }
     return installation;
@@ -379,9 +380,21 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
   private void completeRequestProcessContext(ToolInstallRequest request) {
     if (request.getProcessContext() == null) {
-      ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI);
-      request.setProcessContext(pc);
+      request.setProcessContext(newToolProcess(ProcessErrorHandling.THROW_CLI));
     }
+  }
+
+  /**
+   * @param errorHandling the {@link ProcessErrorHandling}.
+   * @return a new {@link ProcessContext} initialized with the environment variables of all installed tools of the project. This tool and its
+   *     {@link ToolDependency dependencies} will override those variables later when their
+   *     {@link #setEnvironment(EnvironmentContext, ToolInstallation, boolean) environment} is set.
+   */
+  private ProcessContext newToolProcess(ProcessErrorHandling errorHandling) {
+
+    ProcessContext pc = this.context.newProcess().errorHandling(errorHandling);
+    this.context.setEnvironmentOfInstalledTools(pc);
+    return pc;
   }
 
   private void completeRequestInstalled(ToolInstallRequest request) {
