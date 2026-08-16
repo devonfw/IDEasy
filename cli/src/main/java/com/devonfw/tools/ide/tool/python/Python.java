@@ -67,11 +67,19 @@ public class Python extends LocalToolCommandlet {
 
     super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
     environmentContext.withEnvVar("VIRTUAL_ENV", toolInstallation.rootDir().toString());
+    environmentContext.withEnvVar("UV_PROJECT_ENVIRONMENT", toolInstallation.rootDir().toString());
   }
 
   @Override
   protected boolean isIgnoreSoftwareRepo() {
 
+    return true;
+  }
+
+  @Override
+  protected boolean isIgnoreMissingSoftwareVersionFile() {
+
+    // https://github.com/devonfw/IDEasy/issues/2190
     return true;
   }
 
