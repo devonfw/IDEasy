@@ -7,7 +7,6 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/2183[#2183]: Dynamically generate form fields for selected commandlet
-* https://github.com/devonfw/IDEasy/issues/1968[#1968]: Fixed gui blocking the terminal session while running.
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/49?closed=1[milestone 2026.08.002].
 
