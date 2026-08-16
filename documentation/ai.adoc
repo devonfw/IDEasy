@@ -96,3 +96,27 @@ However, you can also map specific subfolders:
 
 So if your git repo would contain the hooks for GitHub Copilot in the folder `myhooks/github` those will be linked to appear as `.github/hooks` in your workspace.
 We hope this gives you ultimate flexibility to solve all problems you may have.
+
+== Isolated configuration
+
+IDEasy isolates tools and configuration in a link:sandbox.adoc[sandbox].
+Therefore, different IDEasy projects on the same computer may use the same tool in different version or with different configuration.
+In case you work for multiple projects (and customers) on the same machine, you want to isolate the project environments.
+This also applies to AI tooling where maybe one of your customers may pay a subscription for an AI tool and you only want to use it for that specific project.
+Assuming another project may be hightly restricted and confidential then you also do not want to accidentally send the project code to some AI cloud service of a different project.
+
+Example for Claude CLI: `ide claude` (or simply `claude` while an IDEasy project is active) points `CLAUDE_CONFIG_DIR` at `$IDE_HOME/conf/claude` and seeds a user-owned `$IDE_HOME/conf/claude/settings.json` skeleton on first install.
+
+On top of relocating the config folder, IDEasy scrubs provider/auth environment variables so a value leaked into your shell cannot silently override this project's configuration.
+You need to understand this behavior in order to debug, circumvent or influence it:
+
+* Before launching Claude, IDEasy removes the following variables *when they are only inherited from your ambient shell/system environment*: `ANTHROPIC_*`, `CLAUDE_CODE_USE_BEDROCK`/`VERTEX`/`FOUNDRY`, `CLAUDE_CODE_OAUTH_TOKEN`, `AWS_PROFILE`, `AWS_REGION`, `AWS_*_KEY*`, `AWS_SESSION_TOKEN`, `AWS_BEARER_TOKEN_BEDROCK`.
+* A value you declare *intentionally* in an IDEasy `ide.properties` (e.g. `export ANTHROPIC_MODEL=...` or `export BEDROCK_MODEL_ID=...` in `settings/ide.properties` to share it across your team) is *not* scrubbed and takes precedence over the ambient value.
+* Put per-user provider/auth secrets in `conf/claude/settings.json` under the `env` block (see the generated `conf/claude/README.md` for Bedrock and custom-endpoint examples), since ambient values for those variables are removed.
+
+[NOTE]
+====
+Known limitations: on macOS, Claude.ai _subscription_ login credentials are stored in the system Keychain, which `CLAUDE_CONFIG_DIR` does not relocate (use Bedrock/API-token auth to isolate on macOS; not relevant for Bedrock setups).
+An enterprise `managed-settings.json` overrides all projects by design.
+A bare `claude` run while no IDEasy project is active is not scrubbed - keep provider credentials out of your shell rc files.
+====

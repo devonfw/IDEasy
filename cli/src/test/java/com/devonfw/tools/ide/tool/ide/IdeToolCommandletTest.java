@@ -28,4 +28,20 @@ class IdeToolCommandletTest extends AbstractIdeContextTest {
     assertThat(workspace.resolve(".intellij/config/idea.key")).exists();
     assertThat(workspace.resolve("user.properties")).exists().content().contains("ijversion=2023.3.3");
   }
+
+  /**
+   * Tests that {@link IdeToolCommandlet#getIdeMetadataPath()} resolves to {@code $IDE_HOME/.ide/«ide»/«workspace»} instead of the workspace itself.
+   */
+  @Test
+  void testGetIdeMetadataPath() {
+    // arrange
+    IdeContext context = newContext("intellij");
+    IdeToolCommandlet ide = context.getCommandletManager().getCommandlet(Intellij.class);
+    // act
+    Path metadataPath = ide.getIdeMetadataPath();
+    // assert
+    assertThat(metadataPath).startsWithRaw(context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE));
+    assertThat(metadataPath).endsWithRaw(Path.of("intellij", context.getWorkspaceName()));
+    assertThat(metadataPath).isNotEqualTo(context.getWorkspacePath());
+  }
 }

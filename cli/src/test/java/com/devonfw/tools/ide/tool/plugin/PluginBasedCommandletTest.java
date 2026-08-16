@@ -3,7 +3,6 @@ package com.devonfw.tools.ide.tool.plugin;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
 import java.util.List;
 import java.util.Set;
 
@@ -71,7 +70,7 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
         new ProcessContextTestImpl(context));
 
     //assert - Check if we skip the markerfile-check because we force the plugins to install
-    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin anyedit'.");
+    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin anyedit (1/1)'.");
     assertThat(context).log().hasNoMessageContaining("Skipping installation of plugin '{}' due to existing marker file: ");
   }
 
@@ -93,7 +92,7 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
   void testMarkerFileContainsVersionSegment() {
 
     ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags);
-    ToolPluginDescriptor plugin = new ToolPluginDescriptor("plugin-id", "plugin-name", null, "1.2.3+build/4", true, Set.of());
+    ToolPluginDescriptor plugin = new ToolPluginDescriptor("plugin-id", "plugin-name", null, "1.2.3+build/4", true, Set.of(), Set.of());
 
     Path markerFilePath = pluginBasedCommandlet.retrievePluginMarkerFilePath(plugin);
 
@@ -106,8 +105,8 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
 
     IdeTestContext localContext = newContext(PROJECT_BASIC, null, false);
     ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(localContext, TOOL, tags);
-    ToolPluginDescriptor versionA = new ToolPluginDescriptor("plugin-id", "plugin-name", null, "1.0.0", true, Set.of());
-    ToolPluginDescriptor versionB = new ToolPluginDescriptor("plugin-id", "plugin-name", null, "2.0.0", true, Set.of());
+    ToolPluginDescriptor versionA = new ToolPluginDescriptor("plugin-id", "plugin-name", null, "1.0.0", true, Set.of(), Set.of());
+    ToolPluginDescriptor versionB = new ToolPluginDescriptor("plugin-id", "plugin-name", null, "2.0.0", true, Set.of(), Set.of());
 
     pluginBasedCommandlet.createPluginMarkerFile(versionA);
     Path markerAPath = pluginBasedCommandlet.retrievePluginMarkerFilePath(versionA);
