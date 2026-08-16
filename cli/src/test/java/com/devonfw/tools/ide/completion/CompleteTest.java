@@ -405,4 +405,24 @@ class CompleteTest extends AbstractIdeContextTest {
     assertThat(texts).doesNotContain("-s");
     assertThat(texts).doesNotContain("--settings");
   }
+
+  /**
+   * Test that completion works for a second tool argument (e.g. "ide mvn clean [tab]"), which is the real-world scenario
+   * that previously failed because the multivalued arguments property consumed the completion marker greedily.
+   */
+  @Test
+  void testCompleteMavenSecondToolArgument() {
+
+    // arrange
+    AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
+    String[] argsArray = { "mvn", "clean", "dep" };
+    CliArguments args = CliArguments.ofCompletion(argsArray);
+
+    // act
+    List<CompletionCandidate> candidates = context.complete(args, createCollector(context, argsArray), true);
+
+    // assert - should complete the second argument after 'clean'
+    assertThat(candidates.stream().map(CompletionCandidate::text))
+        .contains("dependency:list", "dependency:tree", "deploy");
+  }
 }
