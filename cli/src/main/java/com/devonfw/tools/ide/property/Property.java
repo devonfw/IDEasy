@@ -431,6 +431,10 @@ public abstract class Property<V> {
       if (this.multivalued) {
         while (success && args.hasNext()) {
           CliArgument arg = args.next();
+          if (arg.isCompletion()) {
+            // leave the completion argument for the caller to handle — do NOT consume it
+            return true;
+          }
           success = assignValueAsString(arg.get(), context, commandlet);
         }
       }
