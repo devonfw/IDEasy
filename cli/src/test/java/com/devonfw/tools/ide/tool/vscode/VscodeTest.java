@@ -1,10 +1,11 @@
 package com.devonfw.tools.ide.tool.vscode;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
@@ -90,7 +91,7 @@ class VscodeTest extends AbstractIdeContextTest {
 
     IdeTestContext context = newContext(PROJECT_VSCODE);
     CapturingVscode vscodeCommandlet = new CapturingVscode(context);
-    ToolPluginDescriptor plugin = new ToolPluginDescriptor("publisher.extension", "mockedPlugin", null, "1.2.3", true, null);
+    ToolPluginDescriptor plugin = new ToolPluginDescriptor("publisher.extension", "mockedPlugin", null, "1.2.3", true, null, null);
     Step step = context.newStep("Install plugin mockedPlugin");
 
     step.run(() -> vscodeCommandlet.installPlugin(plugin, step, new ProcessContextTestImpl(context)));
@@ -103,7 +104,7 @@ class VscodeTest extends AbstractIdeContextTest {
 
     IdeTestContext context = newContext(PROJECT_VSCODE);
     CapturingVscode vscodeCommandlet = new CapturingVscode(context);
-    ToolPluginDescriptor plugin = new ToolPluginDescriptor("publisher.extension", "mockedPlugin", null, null, true, null);
+    ToolPluginDescriptor plugin = new ToolPluginDescriptor("publisher.extension", "mockedPlugin", null, null, true, null, null);
     Step step = context.newStep("Install plugin mockedPlugin");
 
     step.run(() -> vscodeCommandlet.installPlugin(plugin, step, new ProcessContextTestImpl(context)));
@@ -201,36 +202,54 @@ class VscodeTest extends AbstractIdeContextTest {
     checkVscodiumInstallation(context);
   }
 
-  /**
-   * Tests that VSCodium reads its plugins from the dedicated vscodium folder when it exists.
-   */
   @Test
-  void testVscodiumUsesVscodiumPluginsFolder() {
+  void testVscodiumSkipsPluginWithVscodiumInExcludedEditions() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_VSCODIUM);
-    Vscode vscodium = new Vscode(context);
-    Path vscodiumPlugins = context.getSettingsPath().resolve("vscodium/plugins");
-    context.getFileAccess().mkdirs(vscodiumPlugins);
+    CapturingVscode vscodiumCommandlet = new CapturingVscode(context);
+    ToolPluginDescriptor excludedPlugin = new ToolPluginDescriptor("publisher.excluded", "excludedPlugin", null,
+        "1.0.0", true, Set.of(), Set.of("vscodium"));
+    List<ToolPluginDescriptor> plugins = List.of(excludedPlugin);
 
-    // act + assert
-    assertThat(vscodium.getPluginsConfigPath()).isEqualTo(vscodiumPlugins);
+    // act
+    vscodiumCommandlet.installPluginsForTest(plugins, new ProcessContextTestImpl(context));
+
+    // assert
+    assertThat(vscodiumCommandlet.lastArgs).isEmpty();
+    assertThat(context).logAtDebug().hasMessage("Skipping plugin 'excludedPlugin' (excluded for edition 'vscodium').");
   }
 
-  /**
-   * Tests that VSCodium falls back to the vscode folder when it has no dedicated plugins folder.
-   */
   @Test
-  void testVscodiumFallsBackToVscodePluginsFolder() {
+  void testVscodeInstallsPluginExcludedForVscodium() {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_VSCODIUM);
-    Vscode vscodium = new Vscode(context);
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    CapturingVscode vscodeCommandlet = new CapturingVscode(context);
+    ToolPluginDescriptor excludedPlugin = new ToolPluginDescriptor("publisher.excluded", "excludedPlugin", null,
+        "1.0.0", true, Set.of(), Set.of("vscodium"));
+    List<ToolPluginDescriptor> plugins = List.of(excludedPlugin);
 
-    // act + assert
-    assertThat(vscodium.getPluginsConfigPath()).isEqualTo(context.getSettingsPath().resolve("vscode/plugins"));
+    // act
+    vscodeCommandlet.installPluginsForTest(plugins, new ProcessContextTestImpl(context));
+
+    // assert
+    assertThat(vscodeCommandlet.lastArgs).contains("--install-extension", "publisher.excluded@1.0.0");
   }
 
+  @Test
+  void testCsvParsingOfExcludedEditions() {
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+
+    // act
+    ToolPluginDescriptor excludedPlugin = ToolPluginDescriptor.of(
+        context.getSettingsPath().resolve("vscode/plugins/excludedPlugin.properties"), context, false);
+    Set<String> excludedEditions = excludedPlugin.excludedEditions();
+
+    // assert
+    assertThat(excludedEditions).contains("vscode", "vscodium");
+  }
 
   /**
    * Test double for {@link Vscode} that captures CLI arguments passed to {@link #runTool(ProcessContext, ProcessMode, List)} so tests can assert command
@@ -253,6 +272,11 @@ class VscodeTest extends AbstractIdeContextTest {
       this.lastArgs = new ArrayList<>(args);
       // Return a successful dummy result to keep tests isolated from real VS Code execution.
       return new ProcessResultImpl("code", "code", 0, List.of());
+    }
+
+    /** Exposes the protected {@link com.devonfw.tools.ide.tool.plugin.PluginBasedCommandlet#installPlugins(Collection, ProcessContext)} for testing. */
+    public void installPluginsForTest(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
+      installPlugins(plugins, pc);
     }
   }
 
