@@ -12,7 +12,7 @@ jobs:
     outputs:
       RUN_BUILD: ${{ steps.verify_commit.outputs.RUN_BUILD }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
       - id: verify_commit
         run: |
           if git log --since='24 hours ago' --oneline | grep '.'; then
