@@ -15,7 +15,7 @@ public class AutoCompletionRegistry {
   /**
    * The registered completion candidates.
    */
-  private final List<String> candidates = new ArrayList<>();
+  private final List<CompletionEntry> entries = new ArrayList<>();
 
 
   /**
@@ -24,7 +24,19 @@ public class AutoCompletionRegistry {
    * @param candidate the candidate to add.
    */
   public void add(String candidate) {
-    this.candidates.add(candidate);
+    this.entries.add(new CompletionEntry(candidate));
+  }
+
+  /**
+   * Adds a new completion candidate together with a synonym. For now this adds both values.
+   *
+   * @param candidate the candidate to add.
+   * @param synonym to add a long with the candidate
+   */
+  public void add(String candidate, String synonym) {
+    CompletionEntry entry = new CompletionEntry(candidate);
+    entry.addSynonym(synonym);
+    this.entries.add(entry);
   }
 
 
@@ -39,10 +51,8 @@ public class AutoCompletionRegistry {
   public void complete(String arg, CompletionCandidateCollector collector,
       Property<?> property, Commandlet commandlet) {
 
-    for (String candidate : this.candidates) {
-      if (candidate.startsWith(arg)) {
-        collector.add(candidate, "", property, commandlet);
-      }
+    for (CompletionEntry entry : this.entries) {
+      entry.complete(arg, collector, property, commandlet);
     }
   }
 

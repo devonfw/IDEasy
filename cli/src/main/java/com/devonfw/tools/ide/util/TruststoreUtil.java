@@ -4,6 +4,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyStore;
@@ -11,6 +14,7 @@ import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Locale;
@@ -24,18 +28,23 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
+import com.devonfw.tools.ide.io.HttpClientFactory;
+
 /**
  * Utility methods for truststore handling and TLS certificate capture.
  */
 public final class TruststoreUtil {
 
   /**
-   * Parsed TLS endpoint with host and port.
+   * Parsed TLS endpoint that is the single model of a requested target (or a redirect target). It encapsulates the {@link #url() HTTPS URL} together with its
+   * {@link #host() host} and {@link #port() port} and is used for all reachability and certificate operations.
    *
    * @param host the server host.
    * @param port the server port.
+   * @param url the normalized HTTPS URL (including the path if one was provided). Keeping the full URL is essential because redirect behavior (e.g. for
+   *     {@code https://aka.ms/...}) depends on the path, whereas the certificate to be trusted only depends on {@link #host() host} and {@link #port() port}.
    */
-  public record TlsEndpoint(String host, int port) {
+  public record TlsEndpoint(String host, int port, String url) {
 
   }
 
@@ -226,18 +235,18 @@ public final class TruststoreUtil {
         throw new IllegalArgumentException("Invalid port in input: " + input, e);
       }
       validateEndpoint(host, port, input);
-      return new TlsEndpoint(host, port);
+      return new TlsEndpoint(host, port, "https://" + host + ":" + port);
     }
 
     validateEndpoint(candidate, 443, input);
-    return new TlsEndpoint(candidate, 443);
+    return new TlsEndpoint(candidate, 443, "https://" + candidate);
   }
 
   private static TlsEndpoint parseEndpointFromUri(String input, URI uri) {
     String host = uri.getHost();
     int port = (uri.getPort() > 0) ? uri.getPort() : 443;
     validateEndpoint(host, port, input);
-    return new TlsEndpoint(host, port);
+    return new TlsEndpoint(host, port, uri.toString());
   }
 
   private static void validateEndpoint(String host, int port, String input) {
@@ -250,46 +259,94 @@ public final class TruststoreUtil {
   }
 
   /**
-   * Checks if a TLS endpoint can be reached and validated with the current default trust configuration.
+   * Checks whether the given URL can be reached with a successful TLS handshake, following HTTP redirects exactly like the actual download does (see
+   * {@link HttpClientFactory}). Download URLs are frequently shortened or redirected (e.g. {@code https://aka.ms/...}), and the certificate causing a TLS
+   * problem is usually presented by the redirect target rather than by the initially requested host. Therefore a raw socket handshake against the requested
+   * host is not sufficient and would falsely report success.
    *
-   * @param host the server host to connect to.
-   * @param port the server port to connect to.
-   * @return {@code true} if TLS handshake succeeds without truststore changes, {@code false} otherwise.
+   * @param endpoint the {@link TlsEndpoint} to probe (its {@link TlsEndpoint#url() URL} is used).
+   * @param truststorePath the {@link Path} to a custom truststore to use for trust validation, or {@code null} to use the default trust configuration.
+   * @return {@code true} if the TLS handshake succeeds across all redirects (regardless of the resulting HTTP status code), {@code false} if it fails (e.g. due
+   *     to an untrusted certificate) or the endpoint cannot be contacted.
    */
-  public static boolean isReachable(String host, int port) {
-    validateEndpoint(host, port, host + ":" + port);
+  public static boolean isReachable(TlsEndpoint endpoint, Path truststorePath) {
     try {
-      SSLContext sslContext = SSLContext.getInstance(TLS_PROTOCOL);
-      sslContext.init(null, null, new SecureRandom());
-      SSLSocketFactory factory = sslContext.getSocketFactory();
-
-      try (SSLSocket socket = connectTlsSocket(factory, host, port)) {
-        socket.startHandshake();
+      SSLContext sslContext = createSslContext(truststorePath);
+      try (HttpClient client = HttpClientFactory.create(sslContext)) {
+        sendProbe(client, endpoint.url());
+        return true;
       }
-      return true;
     } catch (Exception e) {
       return false;
     }
-
   }
 
   /**
-   * Checks if a TLS endpoint can be reached and validated using the provided custom truststore.
+   * Resolves the effective endpoint of the given endpoint by following all HTTP redirects. This is the host that actually serves the content (and hence
+   * presents the certificate that has to be trusted). Redirects are followed with a trust-all configuration so that the target can be determined even when an
+   * intermediate certificate is not (yet) trusted.
    *
-   * @param host the server host to connect to.
-   * @param port the server port to connect to.
-   * @param truststorePath the path to the custom truststore to use.
-   * @return {@code true} if TLS handshake succeeds with the custom truststore, {@code false} otherwise.
+   * @param endpoint the requested {@link TlsEndpoint} to resolve.
+   * @return the {@link TlsEndpoint} of the final host after following all redirects, or the given {@code endpoint} if the redirect chain cannot be resolved.
    */
-  public static boolean isReachable(String host, int port, Path truststorePath) {
-    validateEndpoint(host, port, host + ":" + port);
-    Objects.requireNonNull(truststorePath, "truststorePath");
-    try {
-      verifyConnectionWithTruststore(host, port, truststorePath);
-      return true;
+  public static TlsEndpoint resolveEffectiveEndpoint(TlsEndpoint endpoint) {
+    try (HttpClient client = HttpClientFactory.create(createTrustAllSslContext())) {
+      HttpResponse<InputStream> response = sendProbe(client, endpoint.url());
+      URI effectiveUri = response.uri();
+      if (effectiveUri != null) {
+        return parseEndpointFromUri(effectiveUri.toString(), effectiveUri);
+      }
     } catch (Exception e) {
-      return false;
+      // fall back to the requested endpoint if the redirect chain cannot be resolved
     }
+    return endpoint;
+  }
+
+  /**
+   * Builds the probe request used for reachability checks and redirect resolution. It uses the same {@code GET} method as the actual download so that the exact
+   * same redirect chain (and therefore the same certificates) is exercised. A {@code Range: bytes=0-0} header keeps the transfer minimal: servers that honor it
+   * return a single byte, and per the HTTP specification servers that do not support ranges simply ignore the header and return the full response - so this is
+   * safe on any server. We only care that the TLS handshake across the redirect chain succeeds, not about the response body or status code.
+   */
+  private static HttpRequest buildProbeRequest(String url) {
+    return HttpRequest.newBuilder(URI.create(url))
+        .GET()
+        .header("Range", "bytes=0-0")
+        .timeout(Duration.ofMillis(DEFAULT_TIMEOUT_MILLIS))
+        .build();
+  }
+
+  /**
+   * Sends the {@link #buildProbeRequest(String) probe request} and returns the response once its headers have been received. The body is streamed via
+   * {@link HttpResponse.BodyHandlers#ofInputStream()} and immediately {@link InputStream#close() closed} to abort the remaining transfer. This ensures the probe
+   * never downloads a large body even if a server ignored the {@code Range} header, while still completing the TLS handshake and exposing the response metadata
+   * (e.g. the effective {@link HttpResponse#uri() URI} after redirects).
+   */
+  private static HttpResponse<InputStream> sendProbe(HttpClient client, String url) throws Exception {
+    HttpResponse<InputStream> response = client.send(buildProbeRequest(url), HttpResponse.BodyHandlers.ofInputStream());
+    response.body().close();
+    return response;
+  }
+
+  private static SSLContext createSslContext(Path truststorePath) throws Exception {
+    if (truststorePath == null) {
+      return SSLContext.getDefault();
+    }
+    KeyStore truststore = KeyStore.getInstance("PKCS12");
+    try (InputStream in = Files.newInputStream(truststorePath)) {
+      truststore.load(in, CUSTOM_TRUSTSTORE_PASSWORD.toCharArray());
+    }
+    TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+    trustManagerFactory.init(truststore);
+    SSLContext sslContext = SSLContext.getInstance(TLS_PROTOCOL);
+    sslContext.init(null, trustManagerFactory.getTrustManagers(), new SecureRandom());
+    return sslContext;
+  }
+
+  private static SSLContext createTrustAllSslContext() throws Exception {
+    SSLContext sslContext = SSLContext.getInstance(TLS_PROTOCOL);
+    sslContext.init(null, new TrustManager[] { new TrustAllManager() }, new SecureRandom());
+    return sslContext;
   }
 
   private static SSLSocket connectTlsSocket(SSLSocketFactory factory, String host, int port) throws Exception {
@@ -345,35 +402,6 @@ public final class TruststoreUtil {
     }
 
     return chain[chain.length - 1];
-  }
-
-  /**
-   * Verifies that a TLS connection to the specified host and port can be established using the truststore at the given path by performing a TLS handshake. If
-   * the handshake is successful, the method returns normally. If the handshake fails due to trust issues, an SSLException is thrown.
-   *
-   * @param host the server host to connect to.
-   * @param port the server port to connect to.
-   * @param truststorePath the path to the truststore file to use for the TLS handshake.
-   * @throws Exception if an error occurs while verifying the connection, e.g. due to connection issues, TLS handshake failure, or if the truststore file
-   *     cannot be loaded.
-   */
-  public static void verifyConnectionWithTruststore(String host, int port, Path truststorePath) throws Exception {
-    KeyStore truststore = KeyStore.getInstance("PKCS12");
-    try (InputStream in = Files.newInputStream(truststorePath)) {
-      truststore.load(in, CUSTOM_TRUSTSTORE_PASSWORD.toCharArray());
-    }
-
-    TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-    tmf.init(truststore);
-
-    SSLContext sslContext = SSLContext.getInstance(TLS_PROTOCOL);
-    sslContext.init(null, tmf.getTrustManagers(), new SecureRandom());
-
-    SSLSocketFactory socketFactory = sslContext.getSocketFactory();
-    try (SSLSocket socket = (SSLSocket) socketFactory.createSocket(host, port)) {
-      socket.setSoTimeout(DEFAULT_TIMEOUT_MILLIS);
-      socket.startHandshake();
-    }
   }
 
   /**
@@ -446,6 +474,28 @@ public final class TruststoreUtil {
 
     public X509Certificate[] getChain() {
       return this.chain;
+    }
+  }
+
+  /**
+   * {@link X509TrustManager} that trusts any certificate. It is only used to follow HTTP redirects in {@link #resolveEffectiveEndpoint(TlsEndpoint)} in order to
+   * discover the effective endpoint - it is never used to actually establish trust for downloads.
+   */
+  private static final class TrustAllManager implements X509TrustManager {
+
+    @Override
+    public void checkClientTrusted(X509Certificate[] chain, String authType) {
+      // trust all - only used to follow redirects and discover the effective endpoint
+    }
+
+    @Override
+    public void checkServerTrusted(X509Certificate[] chain, String authType) {
+      // trust all - only used to follow redirects and discover the effective endpoint
+    }
+
+    @Override
+    public X509Certificate[] getAcceptedIssuers() {
+      return new X509Certificate[0];
     }
   }
 }

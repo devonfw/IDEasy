@@ -116,7 +116,7 @@ public class NetworkStatusImpl implements NetworkStatus {
       LOG.error(error.toString());
     }
     if (isTlsTrustIssue(error)) {
-      logTruststoreFixHint();
+      logTruststoreFixHint(this.onlineCheckUrl);
     } else {
       IdeLogLevel.INTERACTION.log(LOG, "Please check potential proxy settings, ensure you are properly connected to the internet and retry this operation.");
     }
@@ -131,22 +131,30 @@ public class NetworkStatusImpl implements NetworkStatus {
     configureNetworkProxy();
     try {
       return callable.call();
-    } catch (IOException e) {
-      this.onlineCheck.set(e);
-      if (isTlsTrustIssue(e)) {
-        logTruststoreFixHint();
-      }
-      throw new IllegalStateException("Network error whilst communicating to " + uri, e);
     } catch (Exception e) {
-      throw new IllegalStateException("Unexpected checked exception whilst communicating to " + uri, e);
+      if (e instanceof IOException ioException) {
+        this.onlineCheck.set(ioException);
+      }
+      // the underlying SSLHandshakeException is often wrapped (e.g. as an IllegalStateException by the downloader), hence we scan the entire cause chain and
+      // must not rely on the exception being an IOException.
+      if (isTlsTrustIssue(e)) {
+        logTruststoreFixHint(uri);
+        throw new IllegalStateException("TLS certificate trust error whilst communicating to " + uri, e);
+      }
+      if (e instanceof IOException) {
+        throw new IllegalStateException("Network error whilst communicating to " + uri, e);
+      }
+      throw new IllegalStateException("Unexpected error whilst communicating to " + uri, e);
     }
   }
 
-  private void logTruststoreFixHint() {
+  private void logTruststoreFixHint(String uri) {
 
-    LOG.warn(
-        "You are having TLS trust issues (PKIX/certificate-path/SSL handshake). As a workaround you can create and configure a truststore via the following command (replace <url> with the failing endpoint):\nide fix-vpn-tls-problem <url>");
-    IdeLogLevel.INTERACTION.log(LOG, "https://github.com/devonfw/IDEasy/blob/main/documentation/proxy-support.adoc#tls-certificate-issues");
+    LOG.warn("The TLS connection to {} failed due to a certificate trust error (PKIX / certificate-path / SSL handshake). "
+        + "This commonly happens behind a corporate VPN or proxy that intercepts TLS traffic.", uri);
+    LOG.warn("Please first verify that the URL above is a legitimate endpoint that you trust and that you are reaching it securely. "
+        + "If it is trustworthy, you can register its certificate in a custom truststore by running:\nide fix-vpn-tls-problem {}", uri);
+    IdeLogLevel.INTERACTION.log(LOG, "For more details see: https://github.com/devonfw/IDEasy/blob/main/documentation/proxy-support.adoc#tls-certificate-issues");
   }
 
   boolean isTlsTrustIssue(Throwable throwable) {

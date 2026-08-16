@@ -20,7 +20,7 @@
     <github.repository>IDEasy</github.repository>
     <ide_version>${revision}</ide_version>
     <java.version>25</java.version>
-    <jline.version>4.1.0</jline.version>
+    <jline.version>4.3.1</jline.version>
     <jansi.version>2.4.1</jansi.version>
     <jackson.version>2.18.3</jackson.version>
     <xmlunit.version>2.11.0</xmlunit.version>
@@ -28,9 +28,9 @@
     <javafx.version>25</javafx.version>
     <testfx.version>4.0.18</testfx.version>
     <native.maven.plugin.version>0.10.6</native.maven.plugin.version>
-    <assembly.maven.plugin.version>3.7.1</assembly.maven.plugin.version>
+    <assembly.maven.plugin.version>3.8.0</assembly.maven.plugin.version>
     <build.helper.maven.plugin.version>3.6.1</build.helper.maven.plugin.version>
-    <graalvm.version>25.0.3</graalvm.version>
+    <graalvm.version>25.1.3</graalvm.version>
   </properties>
 
   <dependencyManagement>
@@ -39,6 +39,11 @@
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-compress</artifactId>
         <version>1.27.1</version>
+      </dependency>
+      <dependency>
+        <groupId>org.tukaani</groupId>
+        <artifactId>xz</artifactId>
+        <version>1.12</version>
       </dependency>
       <dependency>
         <groupId>jakarta.json</groupId>
@@ -83,7 +88,7 @@
       <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
-        <version>2.0.17</version>
+        <version>2.0.18</version>
       </dependency>
       <dependency>
         <groupId>ch.qos.logback</groupId>
@@ -176,6 +181,7 @@
     <module>gui</module>
     <module>url-updater</module>
     <module>security</module>
+    <module>macos-installer</module>
   </modules>
 
   <build>
@@ -191,7 +197,7 @@
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
-        <version>0.8.13</version>
+        <version>0.8.15</version>
         <executions>
           <execution>
             <goals>
@@ -215,9 +221,72 @@
           <dependency>
             <groupId>org.pitest</groupId>
             <artifactId>pitest-junit5-plugin</artifactId>
-            <version>1.2.2</version>
+            <version>1.2.3</version>
           </dependency>
         </dependencies>
+      </plugin>
+
+      <!--
+        Mandatory development harness: formatting (Spotless) and static analysis (Checkstyle).
+        Enforced on CHANGED code only (ratchet model) by the mandatory pre-commit hook:
+        Spotless ratchets to origin/main; Checkstyle is scoped to the changed files.
+        Deliberately NOT bound to the verify phase, so full builds / CI stay green on legacy code
+        while every new or modified file must comply.
+          Auto-fix formatting:  mvn spotless:apply
+          Lint on demand:       mvn checkstyle:check
+        Rules mirror .editorconfig and documentation/contributing/coding-conventions.adoc.
+      -->
+      <plugin>
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <version>2.44.5</version>
+        <configuration>
+          <!-- Ratchet: only files changed vs origin/main are checked / formatted. -->
+          <ratchetFrom>origin/main</ratchetFrom>
+          <java>
+            <includes>
+              <include>src/main/java/**/*.java</include>
+              <include>src/test/java/**/*.java</include>
+            </includes>
+            <!--
+              Only IDE-agnostic, auto-fixable rules so Spotless never fights the IntelliJ formatter
+              driven by .editorconfig. Import ORDER mirrors .editorconfig (ij_java_imports_layout):
+              static first, then java/javax/jakarta/javafx, then org/net/com, then everything else.
+            -->
+            <importOrder>
+              <order>\#,java,javax,jakarta,javafx,org,net,com,</order>
+            </importOrder>
+            <removeUnusedImports/>
+            <trimTrailingWhitespace/>
+            <endWithNewline/>
+          </java>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>3.6.0</version>
+        <dependencies>
+          <dependency>
+            <groupId>com.puppycrawl.tools</groupId>
+            <artifactId>checkstyle</artifactId>
+            <version>10.21.4</version>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <!--
+            Every code module sits one level under the repo root, so this resolves to
+            <repo-root>/checkstyle.xml from ANY working directory (repo root or a module dir like
+            cli/). The root aggregator (packaging=pom) is excluded from checkstyle runs instead of
+            being made to resolve this path. maven.multiModuleProjectBasedir is unreliable here
+            (unset by the IDEasy mvn wrapper), hence a module-relative path.
+          -->
+          <configLocation>${project.basedir}/../checkstyle.xml</configLocation>
+          <includeTestSourceDirectory>true</includeTestSourceDirectory>
+          <consoleOutput>true</consoleOutput>
+          <failOnViolation>true</failOnViolation>
+          <violationSeverity>error</violationSeverity>
+        </configuration>
       </plugin>
     </plugins>
   </build>
@@ -228,14 +297,19 @@
       <build>
         <plugins>
           <plugin>
-            <groupId>org.sonatype.plugins</groupId>
-            <artifactId>nexus-staging-maven-plugin</artifactId>
-            <version>1.7.0</version>
-            <extensions>true</extensions>
+            <!--
+              The plugin itself, its extension and publishingServerId/autoPublish are inherited from
+              the deploy profile of com.devonfw:maven-parent. Only the waiting behaviour is added
+              here: block until the deployment is actually published instead of returning as soon as
+              it is validated. Everything that follows the deployment - the GitHub release notes
+              linking to Maven Central and the Homebrew formula referencing the same artifacts -
+              would otherwise race the publication.
+            -->
+            <groupId>org.sonatype.central</groupId>
+            <artifactId>central-publishing-maven-plugin</artifactId>
             <configuration>
-              <serverId>repository</serverId>
-              <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
-              <autoReleaseAfterClose>true</autoReleaseAfterClose>
+              <waitUntil>published</waitUntil>
+              <waitMaxTime>3600</waitMaxTime>
             </configuration>
           </plugin>
         </plugins>

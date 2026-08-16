@@ -144,6 +144,14 @@ public class ProcessContextImpl implements ProcessContext {
   }
 
   @Override
+  public EnvironmentContext removeEnvVar(String key) {
+
+    LOG.trace("Removing process environment variable {}", key);
+    this.processBuilder.environment().remove(key);
+    return this;
+  }
+
+  @Override
   public ProcessContext withPathEntry(Path path) {
 
     this.extraPathEntries.add(path);
