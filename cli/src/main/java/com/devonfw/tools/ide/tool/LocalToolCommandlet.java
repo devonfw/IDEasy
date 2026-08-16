@@ -207,6 +207,11 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
         } else if (!isIgnoreMissingSoftwareVersionFile()) {
           LOG.warn("Deleting corrupted installation at {}", installationPath);
           fileAccess.delete(installationPath);
+        } else {
+          // Version file missing but tool allows this - restore it and preserve installation
+          LOG.warn("Version file missing at {} - restoring it for tool {}", toolVersionFile, this.tool);
+          // Restore the missing file
+          return createToolInstallation(installationPath, resolvedVersion, false, processContext, additionalInstallation);
         }
       }
     }
