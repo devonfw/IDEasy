@@ -1,6 +1,8 @@
 package com.devonfw.tools.ide.completion;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.jline.reader.Candidate;
 import org.jline.reader.Completer;
@@ -41,8 +43,14 @@ public class IdeCompleter implements Completer {
     }
 
     List<String> words = commandLine.words();
-    CliArguments args = CliArguments.ofCompletion(words.toArray(String[]::new));
-    List<CompletionCandidate> completion = this.context.complete(args, true);
+    String[] argsArray = words.toArray(String[]::new);
+    CliArguments args = CliArguments.ofCompletion(argsArray);
+    Set<String> alreadyProvided = new HashSet<>();
+    for (int i = 0; i < argsArray.length - 1; i++) {
+      alreadyProvided.add(argsArray[i]);
+    }
+    CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(this.context, alreadyProvided);
+    List<CompletionCandidate> completion = this.context.complete(args, collector, true);
     int i = 0;
     for (CompletionCandidate candidate : completion) {
 
