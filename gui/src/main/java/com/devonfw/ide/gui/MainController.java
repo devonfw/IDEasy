@@ -17,17 +17,28 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.SplitPane.Divider;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.layout.AnchorPane;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.ide.gui.console.ConsoleController;
+import com.devonfw.ide.gui.context.GuiOutputListener;
 import com.devonfw.ide.gui.context.GuiStateManager;
+import com.devonfw.ide.gui.context.IdeGuiContext;
+import com.devonfw.ide.gui.context.IdeGuiLogListener;
 import com.devonfw.ide.gui.context.ProjectManager;
 import com.devonfw.ide.gui.context.TaskManager;
 import com.devonfw.ide.gui.modal.IdeDialog;
 import com.devonfw.ide.gui.nls.NlsService;
 import com.devonfw.ide.gui.progress.ProgressBarTask;
 import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindow;
+import com.devonfw.tools.ide.context.IdeStartContextImpl;
+import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.process.OutputListener;
 
 /**
  * Controller of the main screen of the dashboard GUI.
@@ -36,11 +47,6 @@ import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindow;
 public class MainController {
 
   private static final Logger LOG = LoggerFactory.getLogger(MainController.class);
-
-  private final GuiStateManager guiStateManager;
-  private final ProjectManager projectManager;
-  private final TaskManager taskManager;
-
 
   @FXML
   private ComboBox<String> selectedProject;
@@ -64,15 +70,36 @@ public class MainController {
   private Button vsCodeOpen;
 
   @FXML
+  private SplitPane centerSplitPane;
+
+  @FXML
+  private Divider centerDivider;
+
+  @FXML
+  private ToggleButton consolePaneToggleButton;
+
+  @FXML
+  private ConsoleController consoleController;
+
+  @FXML
+  private AnchorPane console;
+
+  @FXML
   private Label statusLabel;
 
   @FXML
   private ProgressBar statusProgressBar;
+
+  private final GuiStateManager guiStateManager;
+  private final ProjectManager projectManager;
+  private final TaskManager taskManager;
+
+  private IdeGuiLogListener guiLogListener;
+  private OutputListener guiOutputListener;
+
   private final double PROGRESSBAR_VISIBLE_WIDTH = 150.0;
 
   private final String ideRootPath;
-  private Path projectValue;
-  private Path workspaceValue;
 
   private final Map<String, Locale> languageMap;
 
@@ -82,19 +109,19 @@ public class MainController {
   /**
    * Constructor
    *
-   * @param ideRoot the IDE_ROOT path
+   * @param ideRootPath the IDE_ROOT path
    * @param guiStateManager the {@link GuiStateManager} to be used in this application instance
+   * @param nlsService nlsService instance
    */
-  public MainController(String ideRoot, GuiStateManager guiStateManager, NlsService nlsService) {
+  public MainController(String ideRootPath, GuiStateManager guiStateManager, NlsService nlsService) {
 
-    LOG.debug("IDE_ROOT path={}", ideRoot);
-    this.ideRootPath = ideRoot;
+    LOG.debug("IDE_ROOT path={}", ideRootPath);
+    this.ideRootPath = ideRootPath;
     this.guiStateManager = guiStateManager;
     this.taskManager = guiStateManager.getTaskManager();
     this.projectManager = guiStateManager.getProjectManager();
     this.languageMap = new LinkedHashMap<>();
     this.nlsService = nlsService;
-
     setUpTaskListListener();
   }
 
@@ -131,6 +158,20 @@ public class MainController {
 
     setProjectsComboBox();
     initLanguageComboBox();
+
+    consolePaneToggleButton.setOnAction(_ -> toggleConsole());
+    androidStudioOpen.setOnAction(_ -> openAndroidStudio());
+    eclipseOpen.setOnAction(_ -> openEclipse());
+    intellijOpen.setOnAction(_ -> openIntellij());
+    vsCodeOpen.setOnAction(_ -> openVsCode());
+
+    centerDivider = centerSplitPane.getDividers().getFirst();
+
+    centerDivider.positionProperty().addListener((_, _, newVal) -> {
+      //This is a bit of a weird behaviour in JavaFX, but even if you drag the divider fully down,
+      // the position value does not become 1, but something like 0.9935345
+      consolePaneToggleButton.setSelected(newVal.doubleValue() < 0.99);
+    });
   }
 
   private void initLanguageComboBox() {
@@ -185,25 +226,25 @@ public class MainController {
   @FXML
   private void openAndroidStudio() {
 
-    openIDE("android-studio");
+    runCommandlet("android-studio");
   }
 
   @FXML
   private void openEclipse() {
 
-    openIDE("eclipse");
+    runCommandlet("eclipse");
   }
 
   @FXML
   private void openIntellij() {
 
-    openIDE("intellij");
+    runCommandlet("intellij");
   }
 
   @FXML
   private void openVsCode() {
 
-    openIDE("vscode");
+    runCommandlet("vscode");
   }
 
   private void setProjectsComboBox() {
@@ -215,7 +256,7 @@ public class MainController {
     selectedProject.getItems().clear();
     selectedProject.getItems().addAll(projects);
 
-    selectedProject.setOnAction(actionEvent -> {
+    selectedProject.setOnAction(_ -> {
 
       setWorkspaceComboBox();
 
@@ -235,7 +276,7 @@ public class MainController {
     selectedWorkspace.getItems().clear();
     selectedWorkspace.getItems().addAll(workspaces);
 
-    selectedWorkspace.setOnAction(actionEvent -> {
+    selectedWorkspace.setOnAction(_ -> {
       updateContext(selectedProject.getValue(), selectedWorkspace.getValue());
 
       androidStudioOpen.setDisable(false);
@@ -245,37 +286,52 @@ public class MainController {
     });
   }
 
-  private void openIDE(String inIde) {
+  private void runCommandlet(String commandlet) {
 
-    Task<Void> downloadTask = runIdeCommandTask(inIde);
+    showConsole();
 
-    new Thread(downloadTask).start();
-  }
+    this.guiLogListener = new IdeGuiLogListener(consoleController);
+    this.guiOutputListener = new GuiOutputListener(consoleController);
 
-  private Task<Void> runIdeCommandTask(String inIde) {
+    ProgressBarTask task = (ProgressBarTask) guiStateManager.getCurrentContext()
+        .newProgressBarIndeterminate("Starting " + commandlet);
 
-    try (ProgressBarTask task = (ProgressBarTask) guiStateManager.getCurrentContext()
-        .newProgressBarIndeterminate("Starting " + inIde)) {
-      Task<Void> downloadTask = new Task<>() {
-        @Override
-        protected Void call() {
-          guiStateManager
-              .getCurrentContext()
-              .getCommandletManager()
-              .getCommandlet(inIde)
-              .run();
-          return null;
+    Task<Void> ideCommandletTask = new Task<>() {
+
+      @Override
+      protected Void call() {
+
+        try {
+          IdeStartContextImpl startContext = new IdeStartContextImpl(IdeLogLevel.INFO, guiLogListener);
+          IdeGuiContext context = new IdeGuiContext(startContext,
+              Path.of(ideRootPath).resolve(selectedProject.getValue()).resolve(selectedWorkspace.getValue()), taskManager);
+
+          // Set output listener for process output
+          context.setOutputListener(guiOutputListener);
+
+          LOG.info("[GUI] === Running {} ===", commandlet);
+
+          context.getCommandletManager().getCommandlet(commandlet).run();
+
+          LOG.info("[GUI] === {} ran successfully. ===", commandlet);
+        } catch (Exception e) {
+          LOG.error("Failed to open {}", commandlet, e);
+          consoleController.appendOutput("[ERROR] Failed to launch " + commandlet + ": " + e.getMessage());
         }
-      };
+        return null;
+      }
+    };
 
-      downloadTask.setOnFailed(_ -> Platform.runLater(() -> {
-        task.close();
-        IdeDialog errorDialog = new IdeDialog(AlertType.ERROR, "Error occurred while launching " + inIde);
-        errorDialog.showAndWait();
-      }));
-      downloadTask.setOnSucceeded(_ -> Platform.runLater(task::close));
-      return downloadTask;
-    }
+    ideCommandletTask.setOnFailed(_ -> Platform.runLater(() -> {
+      task.close();
+      IdeDialog errorDialog = new IdeDialog(AlertType.ERROR, "Error occurred while launching " + commandlet);
+      errorDialog.showAndWait();
+    }));
+    ideCommandletTask.setOnSucceeded(_ -> Platform.runLater(task::close));
+
+    Thread commandletThread = new Thread(ideCommandletTask);
+    commandletThread.setDaemon(true);
+    commandletThread.start();
   }
 
   private void updateContext(String selectedProjectName, String selectedWorkspaceName) {
@@ -286,6 +342,49 @@ public class MainController {
       IdeDialog errorDialog = new IdeDialog(AlertType.ERROR, e.getMessage());
       errorDialog.showAndWait();
     }
+  }
+
+  /**
+   * Toggles the console visibility
+   */
+  public void toggleConsole() {
+
+    if (centerSplitPane != null) {
+      if (isConsoleVisible()) {
+        hideConsole();
+      } else {
+        showConsole();
+      }
+      consolePaneToggleButton.setSelected(isConsoleVisible());
+    }
+  }
+
+  /**
+   * Hides the console panel
+   */
+  public void hideConsole() {
+
+    if (centerSplitPane != null) {
+      centerSplitPane.setDividerPosition(0, 1.0);
+      LOG.debug("Console hidden");
+    }
+  }
+
+  /**
+   * Shows the console panel
+   */
+  public void showConsole() {
+
+    if (centerSplitPane != null) {
+      if (centerSplitPane.getDividers().getFirst().getPosition() >= 0.9) {
+        centerSplitPane.setDividerPosition(0, 0.75);
+      }
+      LOG.debug("Console shown");
+    }
+  }
+
+  private boolean isConsoleVisible() {
+    return centerDivider.getPosition() <= 0.99 && console.isVisible();
   }
 
   private void updateStatusLabel(List<ProgressBarTask> taskList) {
