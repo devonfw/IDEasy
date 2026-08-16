@@ -43,7 +43,11 @@ function ide() {
   if [ $? = 0 ]; then
     eval "${ide_env}"
     if [ $# = 0 ] && [ -n "${IDE_HOME}" ]; then
-      echo "IDE environment variables have been set for ${IDE_HOME} in workspace ${WORKSPACE}"
+      if [ -n "${WORKSPACE_PATH}" ] && [ "${PWD#"${WORKSPACE_PATH}"}" != "${PWD}" ]; then
+        echo "IDE environment variables have been set for ${IDE_HOME} in workspace ${WORKSPACE}"
+      else
+        echo "IDE environment variables have been set for ${IDE_HOME}"
+      fi
     fi
   fi
   if _ide_is_cygwin && [ "$#" != 0 ]; then
