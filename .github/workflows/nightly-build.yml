@@ -7,15 +7,47 @@ permissions:
   id-token: write
 
 jobs:
+  # Resolves the versions exactly once, so that every downstream job refers to the same values:
+  # - snapshot_version: plain version from .mvn/maven.config, used for the deployed Maven artifacts
+  #   and the PKG installer.
+  # - build_version: snapshot_version with a date suffix (e.g. 2026.08.001-08_07_11-SNAPSHOT),
+  #   baked into the native images so "ide -v" identifies the nightly. The CLI upgrade logic
+  #   (IdeasyCommandlet.PATTERN_IDEASY_SNAPSHOT_VERSION) relies on exactly this format.
+  #   Resolving it here also guarantees all matrix legs share one timestamp instead of each
+  #   computing its own (which could differ across an hour boundary).
+  resolve-version:
+    name: Resolve release version
+    runs-on: ubuntu-latest
+    outputs:
+      snapshot_version: ${{ steps.resolve.outputs.snapshot_version }}
+      build_version: ${{ steps.resolve.outputs.build_version }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Resolve version from .mvn/maven.config
+        id: resolve
+        shell: bash
+        run: |
+          maven_config="$(cat .mvn/maven.config)"
+          snapshot_version="${maven_config/#*-Drevision=}"
+          snapshot_version="${snapshot_version/ */}"
+          if [ -z "${snapshot_version}" ]; then
+            echo "ERROR: could not resolve the snapshot version from .mvn/maven.config." >&2
+            exit 1
+          fi
+          build_version="${snapshot_version/-SNAPSHOT/-$(date +%m_%d_%H)-SNAPSHOT}"
+          echo "Releasing snapshot ${snapshot_version} (native build version ${build_version})"
+          echo "snapshot_version=${snapshot_version}" >> "$GITHUB_OUTPUT"
+          echo "build_version=${build_version}" >> "$GITHUB_OUTPUT"
   # Builds all native images and uploads each binary as a separate artifact
   build-natives:
     name: Build native images
     runs-on: ${{ matrix.os }}
+    needs: resolve-version
     strategy:
       matrix: # ATTENTION: see also release.yml, image name are referenced in cli/src/main/assembly/*.xml files, on update do not forget to also update there
         os: [ windows-latest, ubuntu-latest, ubuntu-22.04-arm, macos-latest, macos-15-intel ]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
       - uses: graalvm/setup-graalvm@v1
@@ -27,12 +59,10 @@ jobs:
       - name: Build native image
         shell: bash
         run: |
-          maven_config="$(cat .mvn/maven.config)"
-          current_version="${maven_config/#*-Drevision=}"
-          current_version="${current_version/ */}"
-          current_version="${current_version/-SNAPSHOT/-$(date +%m_%d_%H)-SNAPSHOT}"
           cd cli
-          mvn -B -ntp -Pnative -DskipTests=true -Drevision=${current_version} package
+          mvn -B -ntp -Pnative -DskipTests=true -Drevision=${RELEASE_VERSION} package
+        env:
+          RELEASE_VERSION: ${{ needs.resolve-version.outputs.build_version }}
       - name: Ad-hoc sign native image (macOS)
         if: runner.os == 'macOS'
         shell: bash
@@ -40,7 +70,7 @@ jobs:
           codesign --force --sign - cli/target/ideasy
           codesign --verify --verbose cli/target/ideasy
       - name: Upload native image
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: natives-${{ matrix.os }}
           path: cli/target/ideasy*
@@ -65,7 +95,7 @@ jobs:
       - name: Upload unsigned MSI
         if: runner.os == 'Windows'
         id: upload-msi
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: msi-unsigned
           path: windows-installer/ideasy.msi
@@ -83,32 +113,50 @@ jobs:
           output-artifact-directory: 'windows-installer/signed'
       - name: Upload MSI
         if: runner.os == 'Windows'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: msi
           path: windows-installer/signed/ideasy.msi
 
+      - name: Build MacOS PKG
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          ./.github/workflows/macos/generate_pkg.sh
+        env:
+          RELEASE_VERSION: ${{ needs.resolve-version.outputs.snapshot_version }}
+      - name: Upload unsigned PKG
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pkg-${{ matrix.os == 'macos-latest' && 'arm64' || 'x64' }}
+          path: macos-installer/ideasy.pkg
+          # Default is "warn": a missing PKG would upload an empty artifact and only fail much
+          # later in the deploy job. Fail right here instead.
+          if-no-files-found: error
+
   # Downloads all native image artifacts to cli/target and builds the project using assemblies for final deployment to OSSRH Nexus
   deploy:
     name: Build Project and Deploy
-    needs: [ build-natives ]
+    needs: [ resolve-version, build-natives ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         with:
           submodules: recursive
       - name: Set up JDK
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '25'
       - name: Download natives and build project
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: ./cli/target/
       - name: Deploy to OSSRH nexus
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-        run: mvn --settings .mvn/settings.xml -DskipTests=true -Darchetype.test.skip=true -Dgpg.skip=true -Dstyle.color=always -B -ntp -Passembly,msi,deploy deploy
+          RELEASE_VERSION: ${{ needs.resolve-version.outputs.snapshot_version }}
+        run: mvn --settings .mvn/settings.xml -DskipTests=true -Darchetype.test.skip=true -Dgpg.skip=true -Dstyle.color=always -B -ntp -pl -:ide-macos-installer -Passembly,msi,pkg,deploy deploy
