@@ -1,6 +1,7 @@
 package com.devonfw.ide.gui;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
@@ -12,11 +13,15 @@ import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +48,12 @@ public class MainController {
 
 
   @FXML
+  private BorderPane rootPane;
+
+  @FXML
+  private StackPane centerPane;
+
+  @FXML
   private ComboBox<String> selectedProject;
 
   @FXML
@@ -62,6 +73,9 @@ public class MainController {
 
   @FXML
   private Button vsCodeOpen;
+
+  @FXML
+  private Button commandletOpen;
 
   @FXML
   private Label statusLabel;
@@ -242,6 +256,7 @@ public class MainController {
       eclipseOpen.setDisable(false);
       intellijOpen.setDisable(false);
       vsCodeOpen.setDisable(false);
+      commandletOpen.setDisable(false);
     });
   }
 
@@ -332,4 +347,21 @@ public class MainController {
       }
     });
   }
+
+  @FXML
+  private void openCommandlet() {
+    Runnable goBack = () -> rootPane.setCenter(centerPane);
+    try {
+      FXMLLoader loader = new FXMLLoader(getClass().getResource("commandlet-view.fxml"));
+      loader.setResources(this.nlsService.getResourceBundle());
+      loader.setController(new CommandletController(guiStateManager.getCurrentContext(), goBack));
+      Parent commandletView = loader.load();
+
+      rootPane.setCenter(commandletView);
+    } catch (IOException e) {
+      LOG.error("Failed to load commandlet view", e);
+      new IdeDialog(IdeDialog.AlertType.ERROR, e.getMessage()).showAndWait();
+    }
+  }
+
 }
