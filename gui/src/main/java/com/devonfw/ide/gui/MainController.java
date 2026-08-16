@@ -12,11 +12,16 @@ import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.Tooltip;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +33,7 @@ import com.devonfw.ide.gui.modal.IdeDialog;
 import com.devonfw.ide.gui.nls.NlsService;
 import com.devonfw.ide.gui.progress.ProgressBarTask;
 import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindow;
+import com.devonfw.ide.gui.settings.ToolSettingsController;
 
 /**
  * Controller of the main screen of the dashboard GUI.
@@ -68,6 +74,16 @@ public class MainController {
 
   @FXML
   private ProgressBar statusProgressBar;
+
+  @FXML
+  private TabPane tabPane;
+
+  @FXML
+  private Tab mainTab;
+
+  @FXML
+  private Tab toolConfigTab;
+
   private final double PROGRESSBAR_VISIBLE_WIDTH = 150.0;
 
   private final String ideRootPath;
@@ -131,6 +147,13 @@ public class MainController {
 
     setProjectsComboBox();
     initLanguageComboBox();
+    toolConfigTab.setDisable(true);
+    toolConfigTab.setTooltip(new Tooltip(nlsService.get("toolConfigDisabled")));
+    tabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
+      if (newTab == toolConfigTab) {
+        loadToolConfigContent();
+      }
+    });
   }
 
   private void initLanguageComboBox() {
@@ -220,6 +243,7 @@ public class MainController {
       setWorkspaceComboBox();
 
       selectedWorkspace.setDisable(false);
+
     });
   }
 
@@ -242,8 +266,23 @@ public class MainController {
       eclipseOpen.setDisable(false);
       intellijOpen.setDisable(false);
       vsCodeOpen.setDisable(false);
+      toolConfigTab.setDisable(false);
+      // If tool config is already open, reload it to reflect the new context
+      if (toolConfigTab.isSelected()) {
+        loadToolConfigContent();
+      }
+      // Pre-warm ide-urls git repo in background so the first open is fast
+      Thread preWarm = new Thread(() -> {
+        try {
+          guiStateManager.getCurrentContext().getUrls();
+        } catch (Exception ignored) {
+        }
+      });
+      preWarm.setDaemon(true);
+      preWarm.start();
     });
   }
+
 
   private void openIDE(String inIde) {
 
@@ -275,6 +314,22 @@ public class MainController {
       }));
       downloadTask.setOnSucceeded(_ -> Platform.runLater(task::close));
       return downloadTask;
+    }
+  }
+
+  private void loadToolConfigContent() {
+
+    try {
+      ToolSettingsController controller = new ToolSettingsController(nlsService, guiStateManager);
+      FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/devonfw/ide/gui/tools-config.fxml"));
+      loader.setController(controller);
+      loader.setResources(nlsService.getResourceBundle());
+      Parent content = loader.load();
+      controller.setOnClose(() -> tabPane.getSelectionModel().select(mainTab));
+      toolConfigTab.setContent(content);
+    } catch (Exception e) {
+      LOG.error("Failed to load tool config view", e);
+      new IdeDialog(IdeDialog.AlertType.ERROR, e.getMessage()).showAndWait();
     }
   }
 

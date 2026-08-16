@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -61,17 +62,18 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
   void testInstallPluginsWithForce() {
 
     //arrange
-    context.getStartContext().setForcePlugins(true);
-    final ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags);
+    IdeTestContext localContext = newContext(PROJECT_BASIC, null, true);
+    localContext.getStartContext().setForcePlugins(true);
+    final ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(localContext, TOOL, tags);
 
     //act
     pluginBasedCommandlet.installPlugins(
-        List.of(ToolPluginDescriptor.of(context.getSettingsPath().resolve(ANY_EDIT_PLUGIN_PATH), context, false)),
-        new ProcessContextTestImpl(context));
+        List.of(ToolPluginDescriptor.of(localContext.getSettingsPath().resolve(ANY_EDIT_PLUGIN_PATH), localContext, false)),
+        new ProcessContextTestImpl(localContext));
 
     //assert - Check if we skip the markerfile-check because we force the plugins to install
-    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin anyedit (1/1)'.");
-    assertThat(context).log().hasNoMessageContaining("Skipping installation of plugin '{}' due to existing marker file: ");
+    assertThat(localContext).logAtSuccess().hasMessage("Successfully ended step 'Install plugin anyedit (1/1)'.");
+    assertThat(localContext).log().hasNoMessageContaining("Skipping installation of plugin '{}' due to existing marker file: ");
   }
 
   @Test
@@ -98,6 +100,69 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
 
     assertThat(markerFilePath).isNotNull();
     assertThat(markerFilePath.getFileName().toString()).contains("plugin-name.version-1.2.3_build_4");
+  }
+
+  @Test
+  void testIsPluginUrlNeeded_returnsFalseByDefault() {
+
+    ExamplePluginBasedCommandlet commandlet = new ExamplePluginBasedCommandlet(context, TOOL, null);
+
+    assertThat(commandlet.isPluginUrlNeeded()).isFalse();
+  }
+
+  @Test
+  void testCreatePlugin_createsPropertiesFileWithActiveTrue() throws IOException {
+
+    IdeTestContext localContext = newContext(PROJECT_BASIC, null, true);
+    ExamplePluginBasedCommandlet commandlet = new ExamplePluginBasedCommandlet(localContext, TOOL, null);
+
+    ToolPluginDescriptor result = commandlet.createPlugin("create-basic-plugin", "com.example.basic", null, null);
+
+    assertThat(result.name()).isEqualTo("create-basic-plugin");
+    assertThat(result.id()).isEqualTo("com.example.basic");
+    assertThat(result.active()).isTrue();
+
+    Path pluginFile = commandlet.getPluginsConfigPath().resolve("create-basic-plugin.properties");
+    assertThat(pluginFile).exists();
+    Properties props = new Properties();
+    try (var in = Files.newInputStream(pluginFile)) {
+      props.load(in);
+    }
+    assertThat(props.getProperty("active")).isEqualTo("true");
+    assertThat(props.getProperty("id")).isEqualTo("com.example.basic");
+    assertThat(props.containsKey("url")).isFalse();
+    assertThat(props.containsKey("tags")).isFalse();
+  }
+
+  @Test
+  void testCreatePlugin_writesUrlAndTagsWhenProvided() throws IOException {
+
+    IdeTestContext localContext = newContext(PROJECT_BASIC, null, true);
+    ExamplePluginBasedCommandlet commandlet = new ExamplePluginBasedCommandlet(localContext, TOOL, null);
+
+    commandlet.createPlugin("create-full-plugin", "com.example.full", "https://example.com/update", "java,ide");
+
+    Path pluginFile = commandlet.getPluginsConfigPath().resolve("create-full-plugin.properties");
+    Properties props = new Properties();
+    try (var in = Files.newInputStream(pluginFile)) {
+      props.load(in);
+    }
+    assertThat(props.getProperty("url")).isEqualTo("https://example.com/update");
+    assertThat(props.getProperty("tags")).isEqualTo("java,ide");
+  }
+
+  @Test
+  void testCreatePlugin_clearsCacheSoNewPluginAppearsInGetPlugins() {
+
+    IdeTestContext localContext = newContext(PROJECT_BASIC, null, true);
+    ExamplePluginBasedCommandlet commandlet = new ExamplePluginBasedCommandlet(localContext, TOOL, null);
+
+    assertThat(commandlet.getPlugins().getByName("create-cache-plugin")).isNull();
+
+    commandlet.createPlugin("create-cache-plugin", "com.example.cache", null, null);
+
+    assertThat(commandlet.getPlugins().getByName("create-cache-plugin")).isNotNull();
+    assertThat(commandlet.getPlugins().getByName("create-cache-plugin").active()).isTrue();
   }
 
   @Test
