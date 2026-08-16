@@ -21,19 +21,20 @@ _ide_is_msys() {
 }
 
 function ide() {
-  local return_code
+  local return_code=0
   local ide_env
   if [ $# != 0 ]; then
     ideasy ${IDE_OPTIONS} "$@"
     return_code=$?
     if [ $return_code != 0 ]; then
+      # we must not return here so that the environment is refreshed below - otherwise a retry would start from the same incomplete environment
       echo -e "\n\033[91mError: IDEasy failed with exit code ${return_code}\033[91m" >&2
-      return ${return_code}
-    fi
-    local _create_project
-    _create_project="$(_ide_create_project "$@")"
-    if [ -n "${_create_project}" ] && [ -d "${IDE_ROOT}/${_create_project}" ]; then
-      cd "${IDE_ROOT}/${_create_project}" || return 1
+    else
+      local _create_project
+      _create_project="$(_ide_create_project "$@")"
+      if [ -n "${_create_project}" ] && [ -d "${IDE_ROOT}/${_create_project}" ]; then
+        cd "${IDE_ROOT}/${_create_project}" || return 1
+      fi
     fi
   fi
   unset IDE_HOME
@@ -52,6 +53,7 @@ function ide() {
   if _ide_is_cygwin && [ "$#" != 0 ]; then
     echo -e "\033[93m--- WARNING: CYGWIN IS NOT SUPPORTED ---\nCygwin console is not supported by IDEasy.\nConsider using the git terminal instead.\nIf you want to use Cygwin with IDEasy, you will have to configure it yourself.\nA few suggestions and caveats can be found here:\nhttps://github.com/devonfw/IDEasy/blob/main/documentation/cygwin.adoc\n\033[39m"
   fi
+  return ${return_code}
 }
 
 function icd() {
