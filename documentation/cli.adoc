@@ -55,6 +55,7 @@ ide install «tool» [«version»]
 ```
 ide «tool» «args»
 ```
+
 This makes IDEasy a superiour tool since it can replace `mvnw` (maven wrapper), `gradlew` (gradle wrapper), `nvm` (node version manager), etc.
 Unlike these tool-specific wrapper scripts, it will even ensure that the actual command is called with the proper configuration of your project (e.g. in case of `mvn` with the `settings.xml` and `settings-security.xml` specific for your project).
 However, if you like such wrapper and IDEasy you can still use both at the same time:
@@ -75,6 +76,7 @@ Please note that the defaults are as following:
 «TOOL»_VERSION=*
 «TOOL»_EDITION=«tool»
 ```
+
 So by default you always get the latest stable version of the tool and the "standard" edition.
 Some tools support multiple editions.
 E.g. for `Eclipse` there is also a `jee` and a `cpp` edition and if you have an according license for Intellij, you can set the edition to `ultimate`.
@@ -119,6 +121,8 @@ Therefore we may have to trigger a `git pull` on the `urls` repository with the 
 This can cause that the auto-completion of versions can take a few seconds sometimes.
 However, we implemented a smart caching mechanism so we do not call `git pull` again if already done a minute ago.
 
+The auto-completion also supports argument values for some commandlets, e.g. `ide upgrade --mode=` suggests valid upgrade modes such as `stable` and `snapshot`.
+
 == icd
 
 IDEasy also ships with the `icd` command that can be used as fancy improved version of the regular `cd` command:
@@ -132,3 +136,22 @@ IDE environment variables have been set for /~/projects/myproject in workspace m
 IDE environment variables have been set for /~/projects/myproject in workspace main
 [~/projects/myproject]$ echo "Wow! IDEasy is awesome!"
 ```
+
+You can also use `-r «repository»` to jump straight into a repository (folder) inside a workspace.
+The repository can also be a nested path such as `-r backend/core`.
+If `-w` is omitted, the workspace `main` is searched first and, if the repository is not found there, all other workspaces are searched next; `icd` then navigates into the first workspace containing the repository.
+If the repository is given explicitly but not found in any workspace, `icd` fails with an error.
+
+```bash
+[/tmp]$ icd -p myproject -r myrepo
+IDE environment variables have been set for /~/projects/myproject in workspace main
+[~/projects/myproject/workspaces/main/myrepo]$ echo "Found and jumped straight into myrepo!"
+```
+
+If `-r` is given without a value, the project name is used as the repository name and resolved the same way.
+If no folder matching the project name is found, `icd` falls back to the workspace `main` (or the workspace given via `-w`):
+if that workspace contains exactly one non-hidden folder, `icd` navigates into it; otherwise it navigates into the workspace itself and prints a warning.
+
+Like `ide`, the `icd` command supports auto-completion for `bash` (or `zsh`):
+Pressing `[Tab]` after `-p` suggests the available projects, after `-w` the workspaces of the selected (or current) project, and after `-r` the repositories found in its workspaces.
+

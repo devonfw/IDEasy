@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         with:
           submodules: recursive
           # Full history so Spotless can resolve origin/main and compute the merge-base (ratchet).
@@ -15,7 +15,7 @@ jobs:
         shell: bash
         run: bash cli/src/test/functions-test.sh
       - name: Set up JDK
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '25'
@@ -23,8 +23,7 @@ jobs:
         # Ratchets to origin/main, so only files changed by this PR are checked.
         # Fix locally with: mvn spotless:apply
         run: |
-          # mvn -B -ntp -Dstyle.color=always spotless:check
-          echo "skipped since spotless is broken and reports nonsense"
+          mvn -B -ntp -Dstyle.color=always spotless:check
       - name: Static analysis (Checkstyle, changed files only)
         # Mirrors the pre-commit hook: lint only the Java files this PR changed
         # (merge-base with origin/main), so legacy code is not retro-flagged.
@@ -37,7 +36,7 @@ jobs:
           INCLUDES=$(printf '%s\n' "$CHANGED" | sed 's#.*/#**/#' | paste -sd, -)
           echo "Checking changed files: $INCLUDES"
           # Exclude documentation and the root aggregator (packaging=pom, no checkstyle config next to it).
-          # mvn -B -ntp -Dstyle.color=always checkstyle:check -Dcheckstyle.includes="$INCLUDES" -pl '!documentation,!com.devonfw.tools.IDEasy.dev:ide'
+          mvn -B -ntp -Dstyle.color=always checkstyle:check -Dcheckstyle.includes="$INCLUDES" -pl '!documentation,!com.devonfw.tools.IDEasy.dev:ide'
       - name: Build project with Maven
         run: mvn -B -ntp -Dstyle.color=always install
         env:

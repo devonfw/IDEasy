@@ -1,6 +1,7 @@
 package com.devonfw.ide.gui.nls;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,13 +18,15 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-
-import com.devonfw.ide.gui.context.IdeGuiStateManager;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Tests for {@link NlsService} - verifies locale switching, bundle loading, and fallback behavior.
@@ -33,9 +36,6 @@ public class NlsServiceTest {
   @TempDir
   Path tempUserHome;
 
-  @TempDir
-  Path tempIdeRoot;
-
   private String originalUserHome;
 
   @BeforeEach
@@ -43,7 +43,6 @@ public class NlsServiceTest {
 
     this.originalUserHome = System.getProperty("user.home");
     System.setProperty("user.home", this.tempUserHome.toString());
-    IdeGuiStateManager.getInstanceOverrideRootDir(this.tempIdeRoot.toString());
   }
 
   @AfterEach
@@ -56,16 +55,29 @@ public class NlsServiceTest {
     }
   }
 
-  @Test
-  public void testGetInstanceWithLocale() {
+  @ParameterizedTest
+  @MethodSource("testGetInstanceWithLocaleProvider")
+  public void testGetInstanceWithLocale(Locale systemLocale, Locale providedLocale, Locale expectedServiceLocale) {
+    Locale.setDefault(systemLocale);
+    NlsService service = new NlsService(providedLocale);
 
-    NlsService service = new NlsService(Locale.ENGLISH);
-
-    assertThat(service.getLocale()).isEqualTo(Locale.ENGLISH);
+    assertThat(service.getLocale()).isEqualTo(expectedServiceLocale);
     assertThat(service.getResourceBundle()).isNotNull();
-    assertThat(service.get("CurrentLanguage")).isEqualTo("English (en)");
   }
 
+  static Stream<Arguments> testGetInstanceWithLocaleProvider() {
+    return Stream.of(
+        arguments(Locale.GERMANY, Locale.ENGLISH, Locale.ENGLISH),
+        arguments(Locale.GERMANY, Locale.GERMAN, Locale.GERMAN),
+        arguments(Locale.GERMANY, null, Locale.GERMANY),
+        arguments(Locale.UK, Locale.ENGLISH, Locale.ENGLISH),
+        arguments(Locale.UK, Locale.GERMAN, Locale.GERMAN),
+        arguments(Locale.UK, null, Locale.UK),
+        arguments(Locale.FRANCE, Locale.ENGLISH, Locale.ENGLISH),
+        arguments(Locale.FRANCE, Locale.GERMAN, Locale.GERMAN),
+        arguments(Locale.FRANCE, null, Locale.FRANCE)
+    );
+  }
 
   @Test
   public void testSetLocale() {
@@ -75,9 +87,8 @@ public class NlsServiceTest {
 
     assertThat(service.getLocale().getLanguage()).isEqualTo("de");
     assertThat(service.getResourceBundle()).isNotNull();
-    assertThat(service.get("CurrentLanguage")).isEqualTo("Deutsch (de)");
+    assertThat(service.get("language")).isEqualTo("Sprache");
   }
-
 
   @Test
   public void testAllLocalizationBundlesContainExactlyTheEnglishKeys() throws IOException {
@@ -105,15 +116,24 @@ public class NlsServiceTest {
     }
   }
 
-  @Test
-  public void testLanguageDisplayShowsLocaleName() {
+  @ParameterizedTest
+  @MethodSource("testLanguageDisplayShowsLocaleNameProvider")
+  public void testLanguageDisplayShowsLocaleName(Locale serviceLocale, Locale displayLocale, String expectedString) {
+    NlsService service = new NlsService(serviceLocale);
 
-    NlsService service = new NlsService(Locale.ENGLISH);
-
-    assertThat(service.getLanguageDisplayName(Locale.ENGLISH)).isEqualTo("English (en)");
-    assertThat(service.getLanguageDisplayName(Locale.GERMAN)).isEqualTo("Deutsch (de)");
+    assertThat(service.getLanguageDisplayName(displayLocale)).isEqualTo(expectedString);
   }
 
+  static Stream<Arguments> testLanguageDisplayShowsLocaleNameProvider() {
+    return Stream.of(
+        arguments(Locale.GERMANY, Locale.ENGLISH, "Englisch (en)"),
+        arguments(Locale.GERMANY, Locale.GERMAN, "Deutsch (de)"),
+        arguments(Locale.UK, Locale.ENGLISH, "English (en)"),
+        arguments(Locale.UK, Locale.GERMAN, "German (de)"),
+        arguments(Locale.FRANCE, Locale.ENGLISH, "anglais (en)"),
+        arguments(Locale.FRANCE, Locale.GERMAN, "allemand (de)")
+    );
+  }
 
   @Test
   public void testLocaleChangeListenerIsInvokedAndCanBeRemoved() {
@@ -147,7 +167,6 @@ public class NlsServiceTest {
     assertThat(properties.getProperty("IDE_OPTIONS")).isEqualTo("-Duser.language=de");
   }
 
-  
   @Test
   public void testPersistLocaleUpdatesExistingUserLangInIdeOptions() throws IOException {
 
@@ -208,7 +227,6 @@ public class NlsServiceTest {
     assertThat(ideOptions).doesNotContain("-Duser.language=de");
   }
 
-
   @Test
   public void testNoEmptyTranslations() throws IOException {
 
@@ -223,7 +241,6 @@ public class NlsServiceTest {
       }
     }
   }
-
 
   @Test
   public void testGetAvailableLocalesAlwaysContainsEnglish() {
@@ -250,7 +267,6 @@ public class NlsServiceTest {
     assertThat(service.getAvailableLocales())
         .doesNotContain(Locale.FRENCH, Locale.JAPANESE, Locale.forLanguageTag("zh"));
   }
-
 
   @Test
   public void testGetAvailableLocalesFromDirectory(@TempDir Path bundleRoot) throws Exception {
@@ -291,7 +307,6 @@ public class NlsServiceTest {
     }
   }
 
-
   private Properties loadBundleProperties(Locale locale) throws IOException {
 
     String resourceName = locale.equals(Locale.ENGLISH)
@@ -314,6 +329,3 @@ public class NlsServiceTest {
   }
 
 }
-
-
-
