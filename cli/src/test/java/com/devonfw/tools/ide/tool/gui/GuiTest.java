@@ -32,7 +32,7 @@ class GuiTest extends AbstractIdeContextTest {
   }
 
   @Test
-  void testGetGuiExecutableOnMacCreatesSymlinkNamedIDEasy() throws Exception {
+  void testGetGuiExecutableOnMacCreatesAppBundleWithSymlinkNamedIDEasy() throws Exception {
 
     // arrange
     WindowsSymlinkTestHelper.assumeSymlinksSupported();
@@ -45,10 +45,15 @@ class GuiTest extends AbstractIdeContextTest {
     String executable = gui.getGuiExecutable(javaInstallation);
 
     // assert
-    Path link = context.getTempPath().resolve("IDEasy");
-    assertThat(executable).isEqualTo(link.toString());
-    assertThat(Files.isSymbolicLink(link)).isTrue();
-    assertThat(link.toRealPath()).isEqualTo(javaInstallation.binDir().resolve("java").toRealPath());
+    Path contentsDir = context.getTempPath().resolve("IDEasy.app").resolve("Contents");
+    Path launcher = contentsDir.resolve("MacOS").resolve("IDEasy");
+    assertThat(executable).isEqualTo(launcher.toString());
+    assertThat(Files.isSymbolicLink(launcher)).isTrue();
+    assertThat(launcher.toRealPath()).isEqualTo(javaInstallation.binDir().resolve("java").toRealPath());
+    Path infoPlist = contentsDir.resolve("Info.plist");
+    assertThat(infoPlist).exists();
+    assertThat(Files.readString(infoPlist)).contains("<key>CFBundleName</key>", "<string>IDEasy</string>",
+        "<key>CFBundleIdentifier</key>");
   }
 
   @Test
