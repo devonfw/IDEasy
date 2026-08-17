@@ -190,6 +190,11 @@ public class ProcessContextImpl implements ProcessContext {
     String path = systemPath.toString();
     LOG.trace("Setting PATH for process execution of {} to {}", this.executable.getFileName(), path);
     this.executable = systemPath.findBinary(this.executable);
+    if (processMode.launchesNewWindow()) {
+      // The command runs in a new terminal window whose working directory is the user's home directory, not the
+      // current working directory, so the executable must be an absolute path or it would not be found.
+      this.executable = this.executable.toAbsolutePath().normalize();
+    }
     this.processBuilder.environment().put(IdeVariables.PATH.getName(), path);
     List<String> args = new ArrayList<>(this.arguments.size() + 4);
     String interpreter = addExecutable(args);
