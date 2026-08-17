@@ -91,7 +91,8 @@ class ReleaseCommandletTest extends AbstractIdeContextTest {
     context.setCwd(context.getWorkspacePath().resolve("empty"), context.getWorkspacePath().toString(), context.getIdeHome());
     ReleaseCommandlet releaseCommandlet = context.getCommandletManager().getCommandlet(ReleaseCommandlet.class);
 
-    assertThrows(CliException.class, releaseCommandlet::run);
+    CliException exception = assertThrows(CliException.class, releaseCommandlet::run);
+    assertThat(exception).hasMessageContaining("Could not find a build descriptor");
   }
 
   /**
@@ -106,6 +107,6 @@ class ReleaseCommandletTest extends AbstractIdeContextTest {
     ReleaseCommandlet releaseCommandlet = context.getCommandletManager().getCommandlet(ReleaseCommandlet.class);
 
     CliException exception = assertThrows(CliException.class, releaseCommandlet::run);
-    assertThat(exception).hasMessageContaining("Could not find a supported build tool");
+    assertThat(exception).hasMessageContaining("gradle").hasMessageContaining("does not support releasing");
   }
 }
