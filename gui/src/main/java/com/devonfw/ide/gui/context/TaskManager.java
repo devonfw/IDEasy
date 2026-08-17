@@ -2,6 +2,8 @@ package com.devonfw.ide.gui.context;
 
 import java.util.Objects;
 
+import com.devonfw.ide.gui.progress.step.GuiStep;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -23,6 +25,9 @@ public class TaskManager {
 
   private final ObservableList<ProgressBarTask> tasks = FXCollections.observableArrayList();
   private final ObservableList<ProgressBarTask> taskListReadOnly = FXCollections.unmodifiableObservableList(tasks);
+
+  private final ObservableList<GuiStep> steps = FXCollections.observableArrayList();
+  private final ObservableList<GuiStep> stepListReadOnly = FXCollections.unmodifiableObservableList(steps);
 
   /**
    * Adds a task to the task list. The duplicate check and the add are performed atomically on the FX thread. Duplicate IDs are silently ignored (idempotent).
@@ -67,5 +72,25 @@ public class TaskManager {
   public ObservableList<ProgressBarTask> getTasks() {
 
     return taskListReadOnly;
+  }
+
+  public void addStep(GuiStep step) {
+
+    FxHelper.runFxSafe(() -> this.steps.add(step));
+  }
+
+  public void removeStep(GuiStep step) {
+
+    FxHelper.runFxSafe(() -> this.steps.remove(step));
+  }
+
+  public void clearSteps() {
+
+    FxHelper.runFxSafe(steps::clear);
+  }
+
+  public ObservableList<GuiStep> getSteps() {
+
+    return stepListReadOnly;
   }
 }
