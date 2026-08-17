@@ -20,6 +20,9 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class UrlVersion extends AbstractUrlFolderWithParent<UrlEdition, UrlFile<?>> {
 
+  /** The {@link #getName() filename} of the status file. Must stay in sync with {@code UrlStatusFile.STATUS_JSON} in the url-updater module. */
+  private static final String STATUS_JSON = "status.json";
+
   private VersionIdentifier versionIdentifier;
 
   /**
@@ -185,7 +188,7 @@ public class UrlVersion extends AbstractUrlFolderWithParent<UrlEdition, UrlFile<
   @Override
   protected boolean isAllowedChild(String name, boolean folder) {
 
-    return !"status.json".equals(name);
+    return !STATUS_JSON.equals(name);
   }
 
   @Override
