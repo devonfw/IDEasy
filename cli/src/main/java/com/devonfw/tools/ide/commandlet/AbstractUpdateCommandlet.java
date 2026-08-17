@@ -258,7 +258,8 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       }
       case CODE_SETTINGS_COMBINED -> {
 
-        //this is a special case - here we need to symlink from IDE_HOME/settings to IDE_HOME/workspaces/main/repo_name/settings. (Formerly managed by the obsolete "--code" flag)
+        //this is a special case - here we need to symlink from IDE_HOME/settings to IDE_HOME/workspaces/main/repo_name/settings.
+        //(Formerly managed by the obsolete "--code" flag)
         targetDirectory = this.context.getWorkspacePath().resolve(gitProjectName);
         moveProject(projectPath, targetDirectory);
 
@@ -271,7 +272,8 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       default -> {
         fileAccess.backup(projectPath);
         throw new CliException(getIntegrityCheckErrorMessage(String.format(
-            "The given git repository URL does not point to a valid settings or code-settings repository. Please verify and try again. Before trying again, please delete the folder %s",
+            "The given git repository URL does not point to a valid settings or code-settings repository. "
+                + "Please verify and try again. Before trying again, please delete the folder %s",
             this.context.getIdeHome())));
       }
     }

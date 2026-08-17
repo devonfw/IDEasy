@@ -186,7 +186,8 @@ class CreateCommandletTest extends AbstractIdeContextTest {
     assertThatThrownBy(cc::run)
         .isInstanceOf(CliException.class)
         .hasMessageContaining(
-            "Settings repository integrity check failed: The given git repository URL does not point to a valid settings or code-settings repository. Please verify and try again.");
+            "Settings repository integrity check failed: "
+                + "The given git repository URL does not point to a valid settings or code-settings repository. Please verify and try again.");
 
     // assert
     assertThat(context.getTempPath().resolve(IdeContext.FOLDER_PROJECTS).resolve(NEW_PROJECT_NAME)).doesNotExist();
