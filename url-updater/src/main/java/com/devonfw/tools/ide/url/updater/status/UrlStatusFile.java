@@ -10,7 +10,7 @@ import com.devonfw.tools.ide.json.JsonMapping;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Wrapper for the "status.json" file of a tool version. It loads the {@link StatusJson} from disk when created 
+ * Wrapper for the "status.json" file of a tool version. It loads the {@link StatusJson} from disk when created
  * (or starts empty if the file is missing) and only writes it back on {@link #save()} if it was changed.
  */
 public class UrlStatusFile {
