@@ -43,8 +43,11 @@ public class ReleaseCommandlet extends Commandlet {
     GitContext git = this.context.getGitContext();
 
     LocalToolCommandlet commandlet = BuildCommandlet.findBuildCommandlet(this.context, projectPath);
+    if (commandlet == null) {
+      throw new CliException("Could not find a build descriptor in " + projectPath + ". There is nothing to release here.");
+    }
     if (!(commandlet instanceof BuildTool buildTool)) {
-      throw new CliException("Could not find a supported build tool to release the project in " + projectPath + ".");
+      throw new CliException("The build tool " + commandlet.getName() + " detected in " + projectPath + " does not support releasing.");
     }
 
     if (git.hasUntrackedFiles(projectPath)) {
