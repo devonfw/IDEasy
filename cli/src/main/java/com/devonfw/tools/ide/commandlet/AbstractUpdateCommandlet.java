@@ -185,8 +185,11 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
           if (!this.context.getFileAccess().isEmptyDir(settingsPath)) {
             // settings folder seems to be invalid
             this.context.askToContinue(
-                "Your settings repository seems to be broken ('.git' folder not present). " + "We can fix this by moving  your settings the backed up. "
-                    + "You will be asked for the settings git URL and your settings will be cloned from scratch. " + "Do you want to proceed?");
+                "Your settings repository seems to be broken ('.git' folder not present). "
+                    + "We can fix this by moving  your settings the backed up. "
+                    + "You will be asked for the settings git URL and your settings will be cloned from scratch. "
+                    + "Do you want to proceed?"
+            );
           }
           this.context.getFileAccess().backup(settingsPath);
         }
