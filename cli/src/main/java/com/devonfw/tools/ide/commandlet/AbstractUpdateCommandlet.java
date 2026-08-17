@@ -168,7 +168,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       LOG.info("Skipping git pull in settings due to code repository. Use --force-pull to enforce pulling.");
       return;
     }
-    this.context.newStep(getStepMessage()).run(() -> updateSettingsInStep(codeRepository));
+    this.context.newStep(getStepMessage()).run(() -> updateSettingsInStep(codeRepository), true);
   }
 
   protected String getStepMessage() {
@@ -185,11 +185,8 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
           if (!this.context.getFileAccess().isEmptyDir(settingsPath)) {
             // settings folder seems to be invalid
             this.context.askToContinue(
-                "Your settings repository seems to be broken ('.git' folder not present). "
-                    + "We can fix this by moving  your settings the backed up. "
-                    + "You will be asked for the settings git URL and your settings will be cloned from scratch. "
-                    + "Do you want to proceed?"
-            );
+                "Your settings repository seems to be broken ('.git' folder not present). " + "We can fix this by moving  your settings the backed up. "
+                    + "You will be asked for the settings git URL and your settings will be cloned from scratch. " + "Do you want to proceed?");
           }
           this.context.getFileAccess().backup(settingsPath);
         }
@@ -253,9 +250,6 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
     Path targetDirectory;
     switch (RepositoryUtil.getRepositoryType(projectPath, gitProjectName)) {
-      case CODE -> throw new CliException(
-          getIntegrityCheckErrorMessage(
-              "The given git repository URL points to a code repository. The <<git-url>> parameter only accepts a settings or a combined code-settings repository."));
       case SETTINGS -> {
 
         targetDirectory = this.context.getIdeHome().resolve(IdeContext.FOLDER_SETTINGS);
@@ -274,8 +268,12 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
         fileAccess.symlink(symlinkTargetPath, symlinkPath);
         this.context.getGitContext().saveCurrentCommitId(symlinkTargetPath, this.context.getSettingsCommitIdPath());
       }
-      case UNKNOWN -> throw new CliException(
-          getIntegrityCheckErrorMessage("The specified repository could not be validated as either a code, settings or combined code-settings repository."));
+      default -> {
+        fileAccess.backup(projectPath);
+        throw new CliException(getIntegrityCheckErrorMessage(String.format(
+            "The given git repository URL does not point to a valid settings or code-settings repository. Please verify and try again. Before trying again, please delete the folder %s",
+            this.context.getIdeHome())));
+      }
     }
   }
 
@@ -296,7 +294,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
   private String handleDefaultRepository(String repository) {
     if ("-".equals(repository)) {
-      LOG.info("'-' was found for settings repository, the default settings repository '{}' will be used.", IdeContext.DEFAULT_SETTINGS_REPO_URL);
+      LOG.info("'-' was found for the repository, the default settings repository '{}' will be used.", IdeContext.DEFAULT_SETTINGS_REPO_URL);
       repository = IdeContext.DEFAULT_SETTINGS_REPO_URL;
     }
     return repository;
