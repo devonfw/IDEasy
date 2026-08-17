@@ -26,11 +26,8 @@ public class RepositoryUtil {
         || Files.exists(repositoryPath.resolve(EnvironmentVariables.LEGACY_PROPERTIES))) {
       return RepositoryType.SETTINGS;
     } else if (gitProjectName != null
-        && Files.exists(
-        repositoryPath.resolve(IdeContext.FOLDER_SETTINGS))
-        && getRepositoryType(
-        repositoryPath.resolve(IdeContext.FOLDER_SETTINGS),
-        gitProjectName) == RepositoryType.SETTINGS) {
+        && Files.exists(repositoryPath.resolve(IdeContext.FOLDER_SETTINGS))
+        && getRepositoryType(repositoryPath.resolve(IdeContext.FOLDER_SETTINGS), gitProjectName) == RepositoryType.SETTINGS) {
       return RepositoryType.CODE_SETTINGS_COMBINED;
     } else if (!Files.exists(repositoryPath.resolve(IdeContext.FOLDER_SETTINGS))) {
       return RepositoryType.CODE;
