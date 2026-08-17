@@ -90,9 +90,8 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
     completeRequest(request);
     ProcessContext pc = request.getProcessContext();
     ToolCommandlet pm = request.getPackageManager();
-    if (!skipInstallation) { // See Node.postInstallOnNewInstallation
-      ToolInstallRequest installRequest = new ToolInstallRequest(true);
-      installRequest.setProcessContext(pc.createChild());
+    if (!skipInstallation) {
+      ToolInstallRequest installRequest = new ToolInstallRequest(request);
       pm.install(installRequest);
     }
     return pm.runTool(pc, request.getProcessMode(), request.getArgs());
@@ -194,8 +193,13 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
   @Override
   protected final void performToolInstallation(ToolInstallRequest request, Path installationPath) {
 
-    PackageManagerRequest packageManagerRequest = new PackageManagerRequest(PackageManagerRequest.TYPE_INSTALL, getPackageName())
-        .setProcessContext(request.getProcessContext()).setVersion(request.getRequested().getResolvedVersion());
+    PackageManagerRequest packageManagerRequest =
+        new PackageManagerRequest(
+            PackageManagerRequest.TYPE_INSTALL,
+            getPackageName())
+            .setToolInstallRequest(request)
+            .setProcessContext(request.getProcessContext())
+            .setVersion(request.getRequested().getResolvedVersion());
     runPackageManager(packageManagerRequest, isSkipInstallation()).failOnError();
     this.installedVersion.invalidate();
   }
