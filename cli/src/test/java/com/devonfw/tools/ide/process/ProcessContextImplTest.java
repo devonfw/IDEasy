@@ -10,6 +10,8 @@ import static org.mockito.Mockito.when;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -273,6 +275,58 @@ class ProcessContextImplTest extends AbstractIdeContextTest {
 
     // verify the result is successful
     assertThat(result.isSuccessful()).isTrue();
+  }
+
+  /**
+   * Verify that {@code windowsQuote} rejects an argument containing a double quote. The guard throws so a double quote cannot be injected into the
+   * {@code start "" cmd.exe /k "..."} command line (which would break out of the quoting and allow command injection).
+   */
+  @Test
+  void windowsQuoteShouldThrowOnArgumentContainingDoubleQuote() throws Exception {
+
+    // act & assert
+    IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
+      invokeWindowsQuote("normal\"evil");
+    });
+
+    assertThat(thrown.getMessage()).contains("must not contain a double quote character");
+  }
+
+  /**
+   * Verify that {@code windowsQuote} escapes the special {@code cmd.exe} metacharacters ({@code ^ & | > < %}) and surrounds the value with double quotes,
+   * so the argument is passed through as a single literal token.
+   */
+  @Test
+  void windowsQuoteShouldEscapeCommandInjectionCharactersAndWrapInDoubleQuotes() throws Exception {
+
+    // act
+    String result = invokeWindowsQuote("echo hi & rm /s | x < y > z %VAR% ^caret");
+
+    // assert
+    assertThat(result).isEqualTo("\"echo hi ^& rm /s ^| x ^< y ^> z %%VAR%% ^^caret\"");
+  }
+
+  /**
+   * Invoke the private {@code windowsQuote} method via reflection.
+   *
+   * @param value the value to quote
+   * @return the quoted value
+   */
+  private String invokeWindowsQuote(String value) throws Exception {
+
+    Method method = ReflectionUtils.findMethod(ProcessContextImpl.class, "windowsQuote", String.class).get();
+    method.setAccessible(true);
+    try {
+      return (String) method.invoke(this.processContextUnderTest, value);
+    } catch (InvocationTargetException e) {
+      // Unwrap so the actual cause (e.g. IllegalArgumentException) is what gets asserted on
+      if (e.getCause() instanceof RuntimeException re) {
+        throw re;
+      }
+      throw e;
+    } finally {
+      method.setAccessible(false);
+    }
   }
 
 }
