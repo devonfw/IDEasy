@@ -95,6 +95,10 @@ public final class ToolInstallRequest {
     this.direct = direct;
     if (parent != null) {
       this.processContext = parent.getProcessContext();
+      ToolInstallRequest parentRequest = parent.getToolInstallRequest();
+      if (parentRequest != null) {
+        this.ignoreProject = parentRequest.ignoreProject;
+      }
     }
   }
 
@@ -135,10 +139,11 @@ public final class ToolInstallRequest {
     if (this.parentToolInstallRequest != null) {
       loopFound = this.parentToolInstallRequest.detectInstallLoopRecursively(toolEditionAndVersion, sb);
     } else if (this.parentPackageManagerRequest != null) {
-      if (this.parentPackageManagerRequest.getType().equals("uninstall")) {
+      ToolInstallRequest parentRequest = this.parentPackageManagerRequest.getToolInstallRequest();
+      if (parentRequest == null) {
         return false;
       }
-      loopFound = this.parentPackageManagerRequest.getToolInstallRequest().detectInstallLoopRecursively(toolEditionAndVersion, sb);
+      loopFound = parentRequest.detectInstallLoopRecursively(toolEditionAndVersion, sb);
     } else {
       return false;
     }

@@ -176,11 +176,10 @@ public final class PackageManagerRequest {
   }
 
   /**
-   * @param toolInstallRequest new value of {@link #getToolInstallRequest()} ToolInstallRequest()}.
+   * @param toolInstallRequest new value of {@link #getToolInstallRequest()}.
    * @return this {@link PackageManagerRequest} for fluent API calls.
    */
-  public PackageManagerRequest setToolInstallRequest(
-      ToolInstallRequest toolInstallRequest) {
+  public PackageManagerRequest setToolInstallRequest(ToolInstallRequest toolInstallRequest) {
 
     if (this.toolInstallRequest != null) {
       throw new IllegalStateException();
