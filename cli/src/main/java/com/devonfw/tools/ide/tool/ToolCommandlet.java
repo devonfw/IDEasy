@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 
+import com.devonfw.tools.ide.cache.CachedValue;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.common.Tags;
@@ -62,6 +63,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   private Path executionDirectory;
 
   private MacOsHelper macOsHelper;
+
+  /** Cached result for {@link #getInstalledEditionAndVersion()}. */
+  private CachedValue<EditionAndVersion> installedEditionAndVersion;
 
   /**
    * Registry for tool-specific auto-completion candidates.
@@ -608,6 +612,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   protected ToolInstallation createToolInstallation(Path rootDir, Path linkDir, Path binDir, VersionIdentifier version, boolean newInstallation,
       EnvironmentContext environmentContext, boolean additionalInstallation) {
 
+    // Invalidate cached edition/version so that subsequent calls reflect the new installation
+    invalidateInstalledEditionAndVersion();
     // do not copy the version file into macOS .app bundles: changing the bundle after codesigning breaks the seal.
     ToolInstallation toolInstallation = new ToolInstallation(rootDir, linkDir, binDir, version, newInstallation);
     setEnvironment(environmentContext, toolInstallation, additionalInstallation);
@@ -812,9 +818,42 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
+   * Gets the installed edition and version together, resolving both in a single operation.
+   *
+   * @return the {@link EditionAndVersion} or {@code null} if not installed.
+   */
+  public EditionAndVersion getInstalledEditionAndVersion() {
+
+    if (this.installedEditionAndVersion == null) {
+      this.installedEditionAndVersion = new CachedValue<>(this::computeInstalledEditionAndVersion);
+    }
+    return this.installedEditionAndVersion.get();
+  }
+
+  /**
+   * Hook to compute the installed edition and version together. Override this method in subclasses to resolve both
+   * edition and version in a single operation, avoiding redundant expensive lookups.
+   *
+   * @return the {@link EditionAndVersion} or {@code null} if not installed.
+   */
+  protected EditionAndVersion computeInstalledEditionAndVersion() {
+
+    String edition = computeInstalledEdition();
+    VersionIdentifier version = computeInstalledVersion();
+    if ((edition == null) && (version == null)) {
+      return null;
+    }
+    return new EditionAndVersion(edition, version);
+  }
+
+  /**
    * @return the currently installed {@link VersionIdentifier version} of this tool or {@code null} if not installed.
    */
-  public abstract VersionIdentifier getInstalledVersion();
+  public final VersionIdentifier getInstalledVersion() {
+
+    EditionAndVersion ev = getInstalledEditionAndVersion();
+    return (ev != null) ? ev.version() : null;
+  }
 
   /**
    * @return {@code true} if this tool is installed, {@code false} otherwise.
@@ -827,7 +866,57 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   /**
    * @return the installed edition of this tool or {@code null} if not installed.
    */
-  public abstract String getInstalledEdition();
+  public final String getInstalledEdition() {
+
+    EditionAndVersion ev = getInstalledEditionAndVersion();
+    return (ev != null) ? ev.edition() : null;
+  }
+
+  /**
+   * @deprecated Override {@link #computeInstalledEditionAndVersion()} instead.
+   * @return the currently installed version.
+   */
+  @Deprecated
+  protected VersionIdentifier computeInstalledVersion() {
+
+    return getInstalledVersionDeprecated();
+  }
+
+  /**
+   * @deprecated Override {@link #computeInstalledEditionAndVersion()} instead.
+   * @return the installed edition.
+   */
+  @Deprecated
+  protected String computeInstalledEdition() {
+
+    return getInstalledEditionDeprecated();
+  }
+
+  /**
+   * @deprecated Override {@link #computeInstalledEditionAndVersion()} instead.
+   * @return the installed version.
+   */
+  @Deprecated
+  protected VersionIdentifier getInstalledVersionDeprecated() {
+
+    return null;
+  }
+
+  /**
+   * @deprecated Override {@link #computeInstalledEditionAndVersion()} instead.
+   * @return the installed edition.
+   */
+  @Deprecated
+  protected String getInstalledEditionDeprecated() {
+
+    return null;
+  }
+
+  /** Invalidates the cached installed edition and version so the next call to {@link #getInstalledEditionAndVersion()} recomputes the result. */
+  protected void invalidateInstalledEditionAndVersion() {
+
+    this.installedEditionAndVersion = null;
+  }
 
   /**
    * Uninstalls the {@link #getName() tool}.
