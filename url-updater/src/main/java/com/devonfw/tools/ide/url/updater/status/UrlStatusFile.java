@@ -73,6 +73,14 @@ public class UrlStatusFile {
   }
 
   /**
+   * Marks this status file as modified so that the next {@link #save()} writes it to disk.
+   */
+  public void markModified() {
+
+    this.modified = true;
+  }
+
+  /**
    * Performs a cleanup and removes all unused entries.
    *
    * @see StatusJson#cleanup()

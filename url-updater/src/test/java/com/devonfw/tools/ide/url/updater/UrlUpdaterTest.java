@@ -128,7 +128,7 @@ class UrlUpdaterTest extends AbstractUrlUpdaterTest {
     UrlStatus status = statusFile.getStatusJson().getOrCreateUrlStatus(url);
     UrlStatusState successState = new UrlStatusState(lastMonth); // ensure that we trigger a recheck of the URL
     status.setSuccess(successState);
-    statusFile.setStatusJson(statusFile.getStatusJson()); // mark as modified so save() persists it
+    statusFile.markModified();
     UrlDownloadFile urlDownloadFile = urlVersion.getOrCreateUrls(OperatingSystem.WINDOWS, SystemArchitecture.X64);
     urlDownloadFile.addUrl(url);
     UrlChecksum urlChecksum = urlVersion.getOrCreateChecksum(urlDownloadFile.getName());
@@ -186,7 +186,7 @@ class UrlUpdaterTest extends AbstractUrlUpdaterTest {
     UrlStatusState errorState = new UrlStatusState(lastMonth);
     errorState.setCode(404);
     status.setError(errorState);
-    statusFile.setStatusJson(statusFile.getStatusJson()); // mark as modified so save() persists it
+    statusFile.markModified();
     UrlDownloadFile urlDownloadFile = urlVersion.getOrCreateUrls(OperatingSystem.WINDOWS, SystemArchitecture.X64);
     urlDownloadFile.addUrl(url);
     UrlChecksum urlChecksum = urlVersion.getOrCreateChecksum(urlDownloadFile.getName());
@@ -241,7 +241,7 @@ class UrlUpdaterTest extends AbstractUrlUpdaterTest {
     UrlStatusState errorState = new UrlStatusState(lastMonth);
     errorState.setCode(404);
     status.setError(errorState);
-    statusFile.setStatusJson(statusFile.getStatusJson()); // mark as modified so save() persists it
+    statusFile.markModified();
     UrlDownloadFile urlDownloadFile = urlVersion.getOrCreateUrls(OperatingSystem.WINDOWS, SystemArchitecture.X64);
     urlDownloadFile.addUrl(url);
     UrlChecksum urlChecksum = urlVersion.getOrCreateChecksum(urlDownloadFile.getName());
