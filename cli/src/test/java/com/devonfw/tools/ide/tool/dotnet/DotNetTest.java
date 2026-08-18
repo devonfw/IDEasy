@@ -109,7 +109,7 @@ class DotNetTest extends AbstractIdeContextTest {
         dotnetPath,
         dotnetPath,
         dotnetPath,
-        VersionIdentifier.of("10.0.400"),
+        VersionIdentifier.of("6.0.419"),
         true);
 
     Map<String, VariableLine> variables = new HashMap<>();
