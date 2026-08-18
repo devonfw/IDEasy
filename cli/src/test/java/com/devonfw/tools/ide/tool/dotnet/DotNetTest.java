@@ -1,15 +1,25 @@
 package com.devonfw.tools.ide.tool.dotnet;
 
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.environment.VariableLine;
+import com.devonfw.tools.ide.environment.VariableSource;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.devonfw.tools.ide.os.WindowsPathSyntax;
+import com.devonfw.tools.ide.process.EnvironmentVariableCollectorContext;
+import com.devonfw.tools.ide.tool.ToolInstallation;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * Test of {@link DotNet}.
@@ -88,5 +98,32 @@ class DotNetTest extends AbstractIdeContextTest {
 
     Path dummyUserHomePath = PROJECTS_TARGET_PATH.resolve(PROJECT_DOTNET).resolve(pathString);
     context.setUserHome(dummyUserHomePath);
+  }
+
+  @Test
+  void testSetEnvironment() {
+
+    // arrange
+    Path dotnetPath = this.context.getSoftwarePath().resolve("dotnet");
+    ToolInstallation installation = new ToolInstallation(
+        dotnetPath,
+        dotnetPath,
+        dotnetPath,
+        VersionIdentifier.of("10.0.400"),
+        true);
+
+    Map<String, VariableLine> variables = new HashMap<>();
+    EnvironmentVariableCollectorContext environmentContext =
+        new EnvironmentVariableCollectorContext(
+            variables,
+            new VariableSource(EnvironmentVariablesType.WORKSPACE, null),
+            WindowsPathSyntax.MSYS);
+
+    this.commandlet.setEnvironment(environmentContext, installation, false);
+
+    assertThat(variables.get("DOTNET_HOME").getValue())
+        .isEqualTo(dotnetPath.toString());
+    assertThat(variables.get("DOTNET_ROOT").getValue())
+        .isEqualTo(dotnetPath.toString());
   }
 }
