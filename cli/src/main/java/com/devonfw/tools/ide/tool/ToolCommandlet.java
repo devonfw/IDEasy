@@ -742,7 +742,6 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
             latestVulnerabilities = newVulnerabilities;
             latest = ToolVersionChoice.ofLatest(toolEditionAndVersion, latestVulnerabilities);
             nearest = null;
-            //nearestVulnerabilities = latestVulnerabilities;
           } else {
             nearestVulnerabilities = newVulnerabilities;
             nearest = ToolVersionChoice.ofNearest(toolEditionAndVersion, nearestVulnerabilities);
