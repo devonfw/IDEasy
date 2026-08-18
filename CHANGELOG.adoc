@@ -8,6 +8,7 @@ Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/1165[#1165]: Fix automatic project import for Eclipse
 * https://github.com/devonfw/IDEasy/issues/2040[#2040]: Fixed buggy workspace selection in the GUI
+* https://github.com/devonfw/IDEasy/issues/2253[#2253]: Fix structure and log documentation
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/49?closed=1[milestone 2026.08.002].
 
@@ -15,7 +16,6 @@ The full list of changes for this release can be found in https://github.com/dev
 
 Release with new features and bugfixes:
 
-* https://github.com/devonfw/IDEasy/issues/2253[#2253]: Fix structure and log documentation
 * https://github.com/devonfw/IDEasy/issues/2197[#2197]: Fix broken python integration
 * https://github.com/devonfw/IDEasy/issues/2131[#2131]: Improve `ide upgrade --mode=` auto-completion
 * https://github.com/devonfw/IDEasy/issues/1870[#1870]: Add generic get-version implementation for global tools under windows
