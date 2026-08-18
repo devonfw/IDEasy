@@ -30,7 +30,7 @@ public class Python extends LocalToolCommandlet {
 
   private final VersionIdentifier PYTHON_MIN_VERSION = VersionIdentifier.of("3.8.2");
 
-  private static final String VENV_FOLDER = ".venv";
+  protected static final String VENV_FOLDER = ".venv";
 
   /**
    * The constructor.
