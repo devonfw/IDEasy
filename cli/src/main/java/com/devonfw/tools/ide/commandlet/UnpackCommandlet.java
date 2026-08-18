@@ -37,7 +37,7 @@ public final class UnpackCommandlet extends Commandlet {
     addKeyword(getName());
 
     this.archive = add(new PathProperty("", true, "archive", true));
-    this.target = add(new PathProperty("target", false, "target", false));
+    this.target = add(new PathProperty("", false, "target", false));
   }
 
   @Override
