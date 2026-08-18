@@ -1274,11 +1274,24 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       IdeLogLevel.INTERACTION.log(LOG, "For additional details run ide help {}", cmd == null ? "" : cmd.getName());
       return 1;
     } catch (Throwable t) {
-      activateLogging(cmd);
-      step.error(t, true);
-      if (this.logfile != null) {
-        // point the user to the logfile directly (does not make sense via logger)
-        System.err.println("Logfile can be found at " + this.logfile); // checkstyle:ignore SystemOut
+      if (cmd != null) {
+        // Do not log errors for processable output commandlets (e.g. CompleteCommandlet) — the output is consumed
+        // automatically and errors would appear as completion suggestions to the user.
+        if (!cmd.isProcessableOutput()) {
+          activateLogging(cmd);
+          step.error(t, true);
+        }
+        if ((this.logfile != null) && !cmd.isProcessableOutput()) {
+          // point the user to the logfile directly (does not make sense via logger)
+          System.err.println("Logfile can be found at " + this.logfile); // checkstyle:ignore SystemOut
+        }
+      } else {
+        activateLogging(cmd);
+        step.error(t, true);
+        if (this.logfile != null) {
+          // point the user to the logfile directly (does not make sense via logger)
+          System.err.println("Logfile can be found at " + this.logfile); // checkstyle:ignore SystemOut
+        }
       }
       throw t;
     } finally {
