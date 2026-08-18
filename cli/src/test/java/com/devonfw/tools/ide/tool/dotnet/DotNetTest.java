@@ -14,7 +14,6 @@ import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.environment.VariableLine;
 import com.devonfw.tools.ide.environment.VariableSource;
 import com.devonfw.tools.ide.os.SystemInfo;
-import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.EnvironmentVariableCollectorContext;
@@ -65,20 +64,17 @@ class DotNetTest extends AbstractIdeContextTest {
   @ValueSource(strings = { "windows", "mac", "linux" })
   void dotnetShouldRunExecutableSuccessful(String os) {
 
-    // TODO: Check: https://github.com/devonfw/IDEasy/issues/701 for reference.
-    if (SystemInfoImpl.INSTANCE.isWindows()) {
-      String expectedOutputLinux = "Dummy dotnet 6.0.419 on linux ";
-      String expectedOutputMacOs = "Dummy dotnet 6.0.419 on mac ";
-      String expectedOutputWindows = "Dummy dotnet 6.0.419 on windows ";
-      runExecutable(os);
+    String expectedOutputLinux = "Dummy dotnet 6.0.419 on linux ";
+    String expectedOutputMacOs = "Dummy dotnet 6.0.419 on mac ";
+    String expectedOutputWindows = "Dummy dotnet 6.0.419 on windows ";
+    runExecutable(os);
 
-      if (this.context.getSystemInfo().isLinux()) {
-        checkExpectedOutput(expectedOutputLinux);
-      } else if (this.context.getSystemInfo().isMac()) {
-        checkExpectedOutput(expectedOutputMacOs);
-      } else if (this.context.getSystemInfo().isWindows()) {
-        checkExpectedOutput(expectedOutputWindows);
-      }
+    if (this.context.getSystemInfo().isLinux()) {
+      checkExpectedOutput(expectedOutputLinux);
+    } else if (this.context.getSystemInfo().isMac()) {
+      checkExpectedOutput(expectedOutputMacOs);
+    } else if (this.context.getSystemInfo().isWindows()) {
+      checkExpectedOutput(expectedOutputWindows);
     }
   }
 
