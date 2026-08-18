@@ -1275,12 +1275,12 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       return 1;
     } catch (Throwable t) {
       if (cmd != null) {
-        // Do not log errors for processable output commandlets (e.g. CompleteCommandlet) — the output is consumed
-        // automatically and errors would appear as completion suggestions to the user.
+        // Do not activate logging for processable output commandlets (e.g. CompleteCommandlet) — errors would appear
+        // in the terminal as completion suggestions to the user. step.error() still needs to be called for proper step tracking.
         if (!cmd.isProcessableOutput()) {
           activateLogging(cmd);
-          step.error(t, true);
         }
+        step.error(t, true);
         if ((this.logfile != null) && !cmd.isProcessableOutput()) {
           // point the user to the logfile directly (does not make sense via logger)
           System.err.println("Logfile can be found at " + this.logfile); // checkstyle:ignore SystemOut
