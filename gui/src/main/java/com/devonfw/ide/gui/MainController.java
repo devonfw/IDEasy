@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.concurrent.Task;
@@ -21,11 +22,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.context.GuiStateManager;
+import com.devonfw.ide.gui.context.IdeGuiContext;
 import com.devonfw.ide.gui.context.ProjectManager;
 import com.devonfw.ide.gui.context.TaskManager;
 import com.devonfw.ide.gui.modal.IdeDialog;
 import com.devonfw.ide.gui.nls.NlsService;
-import com.devonfw.ide.gui.progress.ProgressBarTask;
+import com.devonfw.ide.gui.progress.GuiTask;
+import com.devonfw.ide.gui.progress.TaskState;
 import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindow;
 
 /**
@@ -99,28 +102,16 @@ public class MainController {
 
   private void setUpTaskListListener() {
 
-    ListChangeListener<ProgressBarTask> taskListChangeListener = change -> {
-      List<ProgressBarTask> tasks = taskManager.getTasks();
-
+    // The task list is created with an extractor, so additions, removals and changes to a task's own properties all arrive here.
+    ListChangeListener<GuiTask> taskListChangeListener = change -> {
       while (change.next()) {
         if (change.wasAdded()) {
           LOG.debug("Added: {}", change.getAddedSubList());
-
-          for (ProgressBarTask progressTask : change.getAddedSubList()) {
-            progressTask.currentProgressProperty().addListener((_, _, _) ->
-                updateStatusLabel(tasks)
-            );
-          }
-          updateStatusLabel(tasks);
         } else if (change.wasRemoved()) {
           LOG.debug("Removed: {}", change.getRemoved());
-
-          updateStatusLabel(tasks);
-        } else if (change.wasUpdated()) {
-
-          updateStatusLabel(tasks);
         }
       }
+      updateStatusLabel(taskManager.getTasks());
     };
     taskManager.getTasks().addListener(taskListChangeListener);
   }
@@ -253,28 +244,23 @@ public class MainController {
 
   private Task<Void> runIdeCommandTask(String inIde) {
 
-    try (ProgressBarTask task = (ProgressBarTask) guiStateManager.getCurrentContext()
-        .newProgressBarIndeterminate("Starting " + inIde)) {
-      Task<Void> downloadTask = new Task<>() {
-        @Override
-        protected Void call() {
-          guiStateManager
-              .getCurrentContext()
-              .getCommandletManager()
-              .getCommandlet(inIde)
-              .run();
-          return null;
-        }
-      };
+    Task<Void> downloadTask = new Task<>() {
+      @Override
+      protected Void call() {
+        // Each execution gets its own context so that concurrently started commands keep independent step stacks.
+        IdeGuiContext runContext = guiStateManager.newRunContext();
+        // Wrapping the commandlet in a root step gives the user a single task that reports on all steps the commandlet creates below it.
+        runContext.newStep("Starting " + inIde).run(() ->
+            runContext.getCommandletManager().getCommandlet(inIde).run());
+        return null;
+      }
+    };
 
-      downloadTask.setOnFailed(_ -> Platform.runLater(() -> {
-        task.close();
-        IdeDialog errorDialog = new IdeDialog(AlertType.ERROR, "Error occurred while launching " + inIde);
-        errorDialog.showAndWait();
-      }));
-      downloadTask.setOnSucceeded(_ -> Platform.runLater(task::close));
-      return downloadTask;
-    }
+    downloadTask.setOnFailed(_ -> Platform.runLater(() -> {
+      IdeDialog errorDialog = new IdeDialog(AlertType.ERROR, "Error occurred while launching " + inIde);
+      errorDialog.showAndWait();
+    }));
+    return downloadTask;
   }
 
   private void updateContext(String selectedProjectName, String selectedWorkspaceName) {
@@ -287,48 +273,69 @@ public class MainController {
     }
   }
 
-  private void updateStatusLabel(List<ProgressBarTask> taskList) {
+  private void updateStatusLabel(List<GuiTask> taskList) {
 
-    Platform.runLater(() -> {
+    // runFxSafe rather than runLater: the task list notifies us on the FX thread already, so queueing another hop per progress update only adds churn.
+    FxHelper.runFxSafe(() -> {
+      // Finished steps stay in the list until the user dismisses them, so the status bar reports on the running ones.
+      List<GuiTask> runningTasks = taskList.stream().filter(GuiTask::isRunning).toList();
 
-      if (taskList.size() > 1) {
-        statusLabel.setOnMouseClicked(e -> TaskOverviewWindow.getInstance(taskManager).showRelativeToReferenceNode(statusLabel));
-
-        statusProgressBar.setVisible(false);
-        statusProgressBar.setPrefWidth(0);
-        statusLabel.setText(taskList.size() + " tasks running...");
-
-        statusLabel.setUnderline(true);
-        statusLabel.setStyle(
-            "-fx-text-fill: blue;"
-                + "-fx-cursor: hand"
-        );
-      } else if (taskList.size() == 1) {
-        statusLabel.setOnMouseClicked(null);
-
-        ProgressBarTask task = taskList.getFirst();
-        statusLabel.setText(String.format(
-            ProgressBarTask.TASK_DESCRIPTION_STRING_FORMAT,
-            task.getTitle(),
-            task.getCurrentProgress(),
-            task.getMaxSize(),
-            task.getUnitName())
-        );
-        statusLabel.setUnderline(false);
-        statusLabel.setStyle("");
-
-        statusProgressBar.setVisible(true);
-        statusProgressBar.setPrefWidth(PROGRESSBAR_VISIBLE_WIDTH);
-        statusProgressBar.setProgress((double) (task.getCurrentProgress()) / task.getMaxSize());
+      if (runningTasks.size() > 1) {
+        showLinkStatus(runningTasks.size() + " tasks running...");
+      } else if (runningTasks.size() == 1) {
+        showSingleTaskStatus(runningTasks.getFirst());
+      } else if (!taskList.isEmpty()) {
+        showLinkStatus(buildFinishedSummary(taskList));
       } else {
-        statusLabel.setOnMouseClicked(null);
-        statusLabel.setText("IDEasy is ready.");
-        statusProgressBar.setVisible(false);
-        statusProgressBar.setPrefWidth(0);
-
-        statusLabel.setUnderline(false);
-        statusLabel.setStyle("");
+        showIdleStatus();
       }
     });
+  }
+
+  private String buildFinishedSummary(List<GuiTask> taskList) {
+
+    long failed = taskList.stream().filter(task -> task.getState() == TaskState.FAILED).count();
+    if (failed > 0) {
+      return String.format("%d of %d tasks failed", failed, taskList.size());
+    }
+    return String.format("%d tasks finished", taskList.size());
+  }
+
+  /**
+   * Shows a clickable status that opens the {@link TaskOverviewWindow}, used whenever a single task cannot represent the state.
+   */
+  private void showLinkStatus(String text) {
+
+    statusLabel.setOnMouseClicked(_ -> TaskOverviewWindow.getInstance(taskManager).showRelativeToReferenceNode(statusLabel));
+    statusLabel.setText(text);
+    statusLabel.setUnderline(true);
+    statusLabel.setStyle("-fx-text-fill: blue;-fx-cursor: hand");
+
+    statusProgressBar.setVisible(false);
+    statusProgressBar.setPrefWidth(0);
+  }
+
+  private void showSingleTaskStatus(GuiTask task) {
+
+    statusLabel.setOnMouseClicked(_ -> TaskOverviewWindow.getInstance(taskManager).showRelativeToReferenceNode(statusLabel));
+    statusLabel.setText(task.displayTextProperty().get());
+    statusLabel.setUnderline(true);
+    statusLabel.setStyle("-fx-text-fill: blue;-fx-cursor: hand");
+
+    statusProgressBar.setVisible(true);
+    statusProgressBar.setPrefWidth(PROGRESSBAR_VISIBLE_WIDTH);
+    // a value of GuiTaskModel.INDETERMINATE maps directly onto the indeterminate animation of the JavaFX progress bar.
+    statusProgressBar.setProgress(task.progressProperty().get());
+  }
+
+  private void showIdleStatus() {
+
+    statusLabel.setOnMouseClicked(null);
+    statusLabel.setText("IDEasy is ready.");
+    statusLabel.setUnderline(false);
+    statusLabel.setStyle("");
+
+    statusProgressBar.setVisible(false);
+    statusProgressBar.setPrefWidth(0);
   }
 }

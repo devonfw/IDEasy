@@ -78,6 +78,24 @@ public class GuiStateManager {
   }
 
   /**
+   * Creates a fresh {@link IdeGuiContext} for a single command execution.
+   * <p>
+   * Each command runs on its own thread, while an {@link IdeGuiContext} keeps the currently running {@link com.devonfw.tools.ide.step.Step} in a field. Handing
+   * every execution its own context keeps those step stacks independent, so two commands started in parallel cannot corrupt each other's step hierarchy.
+   *
+   * @return a new {@link IdeGuiContext} for the currently selected project and workspace.
+   * @throws IllegalStateException if no project and workspace have been selected yet.
+   */
+  public IdeGuiContext newRunContext() {
+
+    Path workspacePath = this.currentContext.getWorkspacePath();
+    if (workspacePath == null) {
+      throw new IllegalStateException("No project and workspace selected - call switchContext first.");
+    }
+    return new IdeGuiContext(this.startContext, workspacePath, this.taskManager);
+  }
+
+  /**
    * @return the current {@link IdeGuiContext} based on the selected project. is <code>null</code>, if no context has been set via switchContext.
    */
   public IdeGuiContext getCurrentContext() {
