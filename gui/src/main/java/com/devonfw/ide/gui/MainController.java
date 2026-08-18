@@ -11,6 +11,7 @@ import java.util.Map;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -131,6 +132,16 @@ public class MainController {
 
     setProjectsComboBox();
     initLanguageComboBox();
+    selectedWorkspace.setOnAction(this::onWorkspaceSelected);
+  }
+
+  private void onWorkspaceSelected(ActionEvent actionEvent) {
+    String workspaceName = selectedWorkspace.getValue();
+    if (workspaceName == null) {
+      return;
+    }
+    updateContext(selectedProject.getValue(), workspaceName);
+    setIdeButtonsDisabled(false);
   }
 
   private void initLanguageComboBox() {
@@ -232,26 +243,17 @@ public class MainController {
       throw new RuntimeException(e);
     }
 
+    selectedWorkspace.setValue(null);
     selectedWorkspace.getItems().clear();
     selectedWorkspace.getItems().addAll(workspaces);
 
     if (workspaces.contains("main")) {
       selectedWorkspace.setValue("main");
       updateContext(selectedProject.getValue(), selectedWorkspace.getValue());
-      androidStudioOpen.setDisable(false);
-      eclipseOpen.setDisable(false);
-      intellijOpen.setDisable(false);
-      vsCodeOpen.setDisable(false);
+      setIdeButtonsDisabled(false);
+    } else {
+      setIdeButtonsDisabled(true);
     }
-
-    selectedWorkspace.setOnAction(actionEvent -> {
-      updateContext(selectedProject.getValue(), selectedWorkspace.getValue());
-
-      androidStudioOpen.setDisable(false);
-      eclipseOpen.setDisable(false);
-      intellijOpen.setDisable(false);
-      vsCodeOpen.setDisable(false);
-    });
   }
 
   private void openIDE(String inIde) {
@@ -340,5 +342,13 @@ public class MainController {
         statusLabel.setStyle("");
       }
     });
+  }
+
+  private void setIdeButtonsDisabled(boolean disabled) {
+
+    this.androidStudioOpen.setDisable(disabled);
+    this.eclipseOpen.setDisable(disabled);
+    this.intellijOpen.setDisable(disabled);
+    this.vsCodeOpen.setDisable(disabled);
   }
 }

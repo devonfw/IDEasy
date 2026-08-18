@@ -145,6 +145,46 @@ public class AppBaseTest extends HeadlessApplicationTest {
     }
   }
 
+  /**
+   * Regression test for #2040: switching between projects must reset the workspace selection to main and keep the IDE open buttons and the context consistent.
+   * <p>
+   * Previously the workspace selection and IDE open buttons were not kept in sync when a different project was selected. This ensures that selecting a new
+   * project clears the workspace selection, selects main as default and enables the IDE open buttons again, and that (re-)selecting the workspace of the new
+   * project re-enables the buttons and points the context to the correct project.
+   */
+  @Test
+  public void testSwitchingProjectResetsWorkspaceSelection() {
+
+    // select a project and its workspace -> all IDE open buttons become enabled
+    interact(() -> selectedProject.getSelectionModel().select("project-1"));
+    interact(() -> selectedWorkspace.getSelectionModel().select("main"));
+
+    for (Button button : new Button[] { androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen }) {
+      assertThat(button.isDisabled()).as(button.getId() + " button should be enabled when a project and workspace are selected").isFalse();
+    }
+
+    // switch to another project -> the workspace selection must be reset and the IDE open buttons disabled again
+    interact(() -> selectedProject.getSelectionModel().select("project-2"));
+
+    assertThat(selectedWorkspace.getValue()).as("Selected workspace should be main when switching to a different project").isEqualTo("main");
+
+    for (Button button : new Button[] { androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen }) {
+      assertThat(button.isDisabled())
+          .as(button.getId() + " button should be disabled after switching to a new project without a selected workspace").isFalse();
+    }
+
+    // re-select the workspace of the new project -> buttons enabled again and the context points to the correct project
+    interact(() -> selectedWorkspace.getSelectionModel().select("main"));
+
+    for (Button button : new Button[] { androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen }) {
+      assertThat(button.isDisabled())
+          .as(button.getId() + " button should be enabled after selecting the workspace of the new project").isFalse();
+    }
+
+    assertThat(guiStateManager.getCurrentContext().getCwd().endsWith(Path.of("project-2", "workspaces", "main")))
+        .as("Context should point to the main workspace of the newly selected project").isTrue();
+  }
+
   @Test
   protected void testStatusLabelDisplaysCorrectMessage() {
 
