@@ -135,10 +135,9 @@ public class MainController {
     if (this.initialized) {
       return;
     }
-    this.initialized = true;
-
     setProjectsComboBox();
     initLanguageComboBox();
+    this.initialized = true;
   }
 
   private void initLanguageComboBox() {
