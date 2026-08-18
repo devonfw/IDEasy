@@ -77,7 +77,7 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
    */
   private void addIdeOptions(List<String> args) {
 
-    String variableName = getName().toUpperCase(Locale.ROOT).replace("-", "_") + OPTIONS_ENV_SUFFIX;
+    String variableName = getToolVariablePrefix(this.tool) + OPTIONS_ENV_SUFFIX;
     String options = this.context.getVariables().get(variableName);
     if ((options != null) && !options.isBlank()) {
       for (String option : options.trim().split("\\s+")) {
