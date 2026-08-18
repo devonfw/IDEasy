@@ -30,6 +30,7 @@ public class Python extends LocalToolCommandlet {
 
   private final VersionIdentifier PYTHON_MIN_VERSION = VersionIdentifier.of("3.8.2");
 
+  /** The folder created by {@code uv venv} inside the software folder before it is renamed to the python installation. */
   protected static final String VENV_FOLDER = ".venv";
 
   /**
