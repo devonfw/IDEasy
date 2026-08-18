@@ -151,6 +151,29 @@ class VscodeTest extends AbstractIdeContextTest {
     assertThat(pc.getEnvVar("DONT_PROMPT_WSL_INSTALL")).isNull();
   }
 
+  /**
+   * Tests that VS Code is launched with a named {@code --profile} and without a custom {@code --user-data-dir}.
+   * <p>
+   * Using {@code --profile} keeps auth and extension state isolated per workspace while keeping the VS Code IPC lock
+   * at the default user-data-dir location, so the OS-level {@code vscode://} protocol handler (e.g. GitHub/Copilot
+   * OAuth callbacks) can find and reuse the already-running instance.
+   */
+  @Test
+  void testConfigureToolArgsUsesProfileInsteadOfUserDataDir() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    Vscode commandlet = new Vscode(context);
+    ArgsCapturingProcessContext pc = new ArgsCapturingProcessContext(context);
+
+    // act
+    commandlet.configureToolArgs(pc, ProcessMode.DEFAULT, List.of());
+
+    // assert
+    assertThat(pc.getArgs()).noneMatch(arg -> arg.startsWith("--user-data-dir="));
+    assertThat(pc.getArgs()).anyMatch(arg -> arg.startsWith("--profile=ideasy-"));
+  }
+
   @Test
   void testVscodiumInstall() {
 
@@ -254,6 +277,31 @@ class VscodeTest extends AbstractIdeContextTest {
     /** Exposes the protected {@link com.devonfw.tools.ide.tool.plugin.PluginBasedCommandlet#installPlugins(Collection, ProcessContext)} for testing. */
     public void installPluginsForTest(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
       installPlugins(plugins, pc);
+    }
+  }
+
+  /**
+   * {@link ProcessContextTestImpl} subclass that captures calls to {@link #addArg(String)} for test assertions.
+   */
+  private static class ArgsCapturingProcessContext extends ProcessContextTestImpl {
+
+    private final List<String> args = new ArrayList<>();
+
+    private ArgsCapturingProcessContext(IdeTestContext context) {
+
+      super(context);
+    }
+
+    @Override
+    public ProcessContext addArg(String arg) {
+
+      this.args.add(arg);
+      return super.addArg(arg);
+    }
+
+    List<String> getArgs() {
+
+      return this.args;
     }
   }
 
