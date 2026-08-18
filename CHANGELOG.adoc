@@ -15,7 +15,7 @@ The full list of changes for this release can be found in https://github.com/dev
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/694[#694]: Improved dotnet installation
- https://github.com/devonfw/IDEasy/issues/2102[#2102]: IDE_ROOT environment variable is not available to ideasy.exe during MSI installation
+* https://github.com/devonfw/IDEasy/issues/2102[#2102]: IDE_ROOT environment variable is not available to ideasy.exe during MSI installation
 * https://github.com/devonfw/IDEasy/issues/1594[#1594]: Add release commandlet
 * https://github.com/devonfw/IDEasy/issues/1982[#1982]: Modified fallback link creation on Windows
 * https://github.com/devonfw/IDEasy/issues/2140[#2140]: just install fails since already installed
