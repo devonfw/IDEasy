@@ -18,9 +18,4 @@ public class RecipeWrapper implements JsonObject {
     this.rawCmd = rawCmd;
   }
 
-  //in case of future need
-  public String getName() {
-    return this.originName;
-  }
-
 }

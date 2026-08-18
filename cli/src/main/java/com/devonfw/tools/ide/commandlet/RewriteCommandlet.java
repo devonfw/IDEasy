@@ -145,15 +145,12 @@ public class RewriteCommandlet extends Commandlet {
 
     LOG.info("Actual command line: {}", commandLine);
 
-    try {
-      List<String> args = adaptMVNCommand(commandLine);
-      // Inject -f <project-root> so Maven runs in the correct project
-      args.add(0, "-f");
-      args.add(1, projectRoot.toString());
-      getCommandlet(Mvn.class).runTool(args);
-    } catch (Exception e) {
-      throw new CliException("OpenRewrite execution failed for recipe '" + wrapper.ideasyCommand.name() + "': " + e.getMessage(), e);
-    }
+    List<String> args = adaptMVNCommand(commandLine);
+    // Inject -f <project-root> so Maven runs in the correct project
+    args.add(0, "-f");
+    args.add(1, projectRoot.toString());
+    getCommandlet(Mvn.class).runTool(args);
+
   }
 
   @Override

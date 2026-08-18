@@ -22,13 +22,6 @@ class RecipeManagerTest extends Assertions {
   }
 
   @Test
-  void testStringValidation() {
-    assertThat(manager.isValidRecipeNameRawName("NONSENSE")).isFalse();
-    var anyRecipe = manager.listAvailableRecipes().stream().findAny().get();
-    assertThat(manager.isValidRecipeNameRawName(anyRecipe.originName)).isTrue();
-  }
-
-  @Test
   void testEnumValidation() {
     assertThat(manager.isValidRecipeEnum(RewriteRecipeEnum.UNRECOGNIZED_RECIPE)).isFalse();
     var validRecipe = java.util.Arrays.stream(RewriteRecipeEnum.values())

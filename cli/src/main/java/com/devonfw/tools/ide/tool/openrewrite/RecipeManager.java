@@ -2,12 +2,11 @@ package com.devonfw.tools.ide.tool.openrewrite;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.json.JsonMapping;
@@ -23,8 +22,11 @@ public class RecipeManager {
   private final Map<RewriteRecipeEnum, RecipeWrapper> recipes;
 
   public RecipeManager() {
-    try (BufferedReader reader = new BufferedReader(new InputStreamReader(
-        Objects.requireNonNull(RecipeManager.class.getClassLoader().getResourceAsStream(OPEN_REWRITE_CONFIG_JSON_PATH)), StandardCharsets.UTF_8))) {
+    InputStream is = RecipeManager.class.getClassLoader().getResourceAsStream(OPEN_REWRITE_CONFIG_JSON_PATH);
+    if (is == null) {
+      throw new CliException("Failed to load " + OPEN_REWRITE_CONFIG_JSON_PATH + " from classpath");
+    }
+    try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
       ObjectMapper objectMapper = JsonMapping.create();
       List<RecipeWrapper> wrapperList = objectMapper.readValue(reader, objectMapper.getTypeFactory().constructCollectionType(List.class, RecipeWrapper.class));
 
@@ -46,20 +48,6 @@ public class RecipeManager {
   public List<RecipeWrapper> listAvailableRecipes() {
 
     return List.copyOf(recipes.values());
-  }
-
-  private Optional<RecipeWrapper> findRecipeByName(String rawName) {
-    return recipes.values().stream().filter(x -> x.originName.equals(rawName)).findFirst();
-  }
-
-  /**
-   * Checks if a recipe with the given original OpenRewrite name exists in the configuration.
-   *
-   * @param rawName the original recipe name (e.g. {@code "java.format_autoformat"}).
-   * @return {@code true} if a matching recipe was found.
-   */
-  public boolean isValidRecipeNameRawName(String rawName) {
-    return findRecipeByName(rawName).isPresent();
   }
 
   /**

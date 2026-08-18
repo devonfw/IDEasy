@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.commandlet;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -39,17 +38,6 @@ class RewriteCommandletTest extends AbstractIdeContextTest {
     assertThat(manager.listAvailableRecipes()).isNotEmpty();
     assertThat(manager.isValidRecipeEnum(RewriteRecipeEnum.FORMAT_JAVA_CODE)).isTrue();
     assertThat(manager.isValidRecipeEnum(RewriteRecipeEnum.UNRECOGNIZED_RECIPE)).isFalse();
-  }
-
-  /**
-   * Tests that {@link RecipeManager} validates raw recipe names.
-   */
-  @Test
-  void testRecipeManagerValidatesRawName() {
-    RecipeManager manager = new RecipeManager();
-    assertThat(manager.isValidRecipeNameRawName("NONSENSE")).isFalse();
-    RecipeWrapper wrapper = manager.getRecipeWrapper(RewriteRecipeEnum.FORMAT_JAVA_CODE);
-    assertThat(manager.isValidRecipeNameRawName(wrapper.originName)).isTrue();
   }
 
   /**
@@ -113,8 +101,7 @@ class RewriteCommandletTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext("basic");
     RewriteCommandlet commandlet = context.getCommandletManager().getCommandlet(RewriteCommandlet.class);
     commandlet.command.setValue(RewriteRecipeEnum.UNRECOGNIZED_RECIPE);
-    CliException e = assertThrows(CliException.class, commandlet::doRun);
-    assertThat(e.getMessage()).contains("Invalid recipe name");
+    assertThatThrownBy(commandlet::doRun).isInstanceOf(CliException.class).hasMessageContaining("Invalid recipe name");
   }
 
   /**
@@ -154,7 +141,6 @@ class RewriteCommandletTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext("basic");
     RewriteCommandlet commandlet = context.getCommandletManager().getCommandlet(RewriteCommandlet.class);
     context.setCwd(null, "main", context.getIdeHome());
-    CliException e = assertThrows(CliException.class, commandlet::findProjectRoot);
-    assertThat(e.getMessage()).contains("current working directory");
+    assertThatThrownBy(commandlet::findProjectRoot).isInstanceOf(CliException.class).hasMessageContaining("current working directory");
   }
 }
