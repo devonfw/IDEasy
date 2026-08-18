@@ -5,6 +5,7 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
 
+import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 
@@ -125,5 +126,34 @@ class UnpackCommandletTest extends AbstractIdeContextTest {
 
     Path expectedTarget = context.getCwd().resolve(TEST_ARCHIVE_BASENAME);
     assertThat(expectedTarget).isDirectory();
+  }
+
+  /**
+   * End-to-end test that a positional {@code target} argument on the command line ({@code ide unpack <archive> <target>})
+   * is bound to the target property and the archive is extracted into the given directory.
+   * <p>
+   * The {@code target} property has no long option (it is a positional value argument); this guards that the positional
+   * binding works end-to-end, which the property-level tests above (which set the property directly) cannot verify.
+   * </p>
+   */
+  @Test
+  void testUnpackWithPositionalTarget() throws IOException {
+
+    IdeTestContext context = newContext(PROJECT_BASIC);
+
+    Path archive = TEST_ARCHIVE_ZIP.toAbsolutePath();
+    Path target = context.getCwd().resolve("e2e-unpack-target");
+    CliArguments args = new CliArguments("unpack", archive.toString(), target.toString());
+    args.next();
+
+    int exitCode = context.run(args);
+
+    assertThat(exitCode).isEqualTo(0);
+    assertThat(context).logAtError().hasNoMessageContaining("Unknown command");
+    assertThat(context).logAtError().hasNoMessageContaining("Invalid option");
+    assertThat(context).logAtError().hasNoMessageContaining("No matching property");
+    assertThat(target).isDirectory();
+    assertThat(target.resolve("executableFile.txt")).isRegularFile();
+    assertThat(target.resolve("nonExecutableFile.txt")).isRegularFile();
   }
 }
