@@ -7,7 +7,9 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
+import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.version.IdeVersion;
 
@@ -32,6 +34,75 @@ class IdeasyTest extends AbstractIdeContextTest {
     // assert
     assertThat(context).logAtDebug().hasMessage("Step 'ide' ended with failure.");
     assertThat(context).log().hasNoEntryWithException();
+  }
+
+  /**
+   * Test that a {@link Commandlet#isProcessableOutput() processable-output} commandlet that throws inside {@link Commandlet#run() run} does not leak
+   * an ERROR-level error block ("An unexpected error occurred! … please file a bug") nor a "Logfile can be found at …" line into the captured log, while
+   * still marking the step as failed.
+   * <p>
+   * Regression test: rethrowing the exception made {@link Ideasy#run(String...)} log the error at ERROR level into the machine-consumed (auto-completion)
+   * output. The fix swallows the failure for processable-output commandlets instead of rethrowing it.
+   */
+  @Test
+  void testProcessableOutputCommandletFailureDoesNotLogError() {
+
+    // arrange
+    IdeTestContext context = newContext(Path.of("/"));
+    context.addCommandlet(new ThrowingProcessableCommandlet(context));
+    Ideasy ideasy = new Ideasy(context);
+
+    // act
+    int exitCode = ideasy.run("throw");
+
+    // assert - the step is marked as failed
+    assertThat(context).logAtDebug().hasMessage("Step 'ide' ended with failure.");
+    // assert - no ERROR-level error block and no "Logfile can be found at" line leaked into the captured output
+    assertThat(exitCode).isNotEqualTo(0);
+    assertThat(context).logAtError().hasNoMessageContaining("An unexpected error occurred");
+    assertThat(context).log().hasNoMessageContaining("An unexpected error occurred");
+    assertThat(context).log().hasNoMessageContaining("Logfile can be found at");
+    assertThat(context).log().hasNoEntryWithException();
+  }
+
+  /**
+   * A minimal {@link Commandlet} that produces processable output (like {@code complete}) but always fails, used to verify how a failure in such a
+   * commandlet is reported.
+   */
+  private static final class ThrowingProcessableCommandlet extends Commandlet {
+
+    /**
+     * @param context the {@link IdeContext}.
+     */
+    ThrowingProcessableCommandlet(IdeContext context) {
+
+      super(context);
+      addKeyword("throw");
+    }
+
+    @Override
+    public String getName() {
+
+      return "throw";
+    }
+
+    @Override
+    public boolean isIdeRootRequired() {
+
+      return false;
+    }
+
+    @Override
+    public boolean isProcessableOutput() {
+
+      return true;
+    }
+
+    @Override
+    protected void doRun() {
+
+      throw new IllegalStateException("boom");
+    }
   }
 
   /**

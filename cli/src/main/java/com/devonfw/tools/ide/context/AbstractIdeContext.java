@@ -1274,24 +1274,21 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       IdeLogLevel.INTERACTION.log(LOG, "For additional details run ide help {}", cmd == null ? "" : cmd.getName());
       return 1;
     } catch (Throwable t) {
-      if (cmd != null) {
-        // Do not activate logging for processable output commandlets (e.g. CompleteCommandlet) — errors would appear
-        // in the terminal as completion suggestions to the user. step.error() still needs to be called for proper step tracking.
-        if (!cmd.isProcessableOutput()) {
-          activateLogging(cmd);
-        }
+      if (cmd != null && cmd.isProcessableOutput()) {
+        // Processable output commandlets (auto-completion, env) write machine-consumed output to stdout. A failure
+        // there must not pollute that output with an error block and "file a bug" screen — so we record the failure
+        // (step.error still logs "Step ... ended with failure" for step tracking) and fail quietly instead of
+        // rethrowing, which would make Ideasy.run() log the error at ERROR level into the captured output.
         step.error(t, true);
-        if ((this.logfile != null) && !cmd.isProcessableOutput()) {
-          // point the user to the logfile directly (does not make sense via logger)
-          System.err.println("Logfile can be found at " + this.logfile); // checkstyle:ignore SystemOut
-        }
-      } else {
-        activateLogging(cmd);
-        step.error(t, true);
-        if (this.logfile != null) {
-          // point the user to the logfile directly (does not make sense via logger)
-          System.err.println("Logfile can be found at " + this.logfile); // checkstyle:ignore SystemOut
-        }
+        return 1;
+      }
+      // Do not activate logging for processable output commandlets (e.g. CompleteCommandlet) — errors would appear
+      // in the terminal as completion suggestions to the user.
+      activateLogging(cmd);
+      step.error(t, true);
+      if (this.logfile != null) {
+        // point the user to the logfile directly (does not make sense via logger)
+        System.err.println("Logfile can be found at " + this.logfile); // checkstyle:ignore SystemOut
       }
       throw t;
     } finally {
