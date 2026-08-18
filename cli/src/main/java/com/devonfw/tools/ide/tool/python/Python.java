@@ -28,10 +28,10 @@ public class Python extends LocalToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Python.class);
 
-  private final VersionIdentifier pythonMinVersion = VersionIdentifier.of("3.8.2");
+  private static final VersionIdentifier PYTHON_MIN_VERSION = VersionIdentifier.of("3.8.2");
 
   /** The folder created by {@code uv venv} inside the software folder before it is renamed to the python installation. */
-  protected static final String VENV_FOLDER = ".venv";
+  static final String VENV_FOLDER = ".venv";
 
   /**
    * The constructor.
@@ -47,8 +47,8 @@ public class Python extends LocalToolCommandlet {
   protected void performToolInstallation(ToolInstallRequest request, Path installationPath) {
 
     VersionIdentifier resolvedVersion = request.getRequested().getResolvedVersion();
-    if (resolvedVersion.compareVersion(pythonMinVersion).isLess()) {
-      throw new CliException("Python version must be at least " + this.pythonMinVersion);
+    if (resolvedVersion.compareVersion(PYTHON_MIN_VERSION).isLess()) {
+      throw new CliException("Python version must be at least " + this.PYTHON_MIN_VERSION);
     }
 
     FileAccess fileAccess = this.context.getFileAccess();
