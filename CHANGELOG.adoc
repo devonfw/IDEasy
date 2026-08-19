@@ -11,6 +11,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1165[#1165]: Fix automatic project import for Eclipse
 * https://github.com/devonfw/IDEasy/issues/2040[#2040]: Fixed buggy workspace selection in the GUI
 * https://github.com/devonfw/IDEasy/issues/2253[#2253]: Fix structure and log documentation
+* https://github.com/devonfw/IDEasy/issues/2219[#2219]: Add unpack commandlet
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/49?closed=1[milestone 2026.08.002].
 
