@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  The window is resizable, so the tree has to follow it.
+-->
+<?import javafx.scene.control.TreeView?>
+<?import javafx.scene.layout.HBox?>
+<HBox xmlns="http://javafx.com/javafx"
+  xmlns:fx="http://javafx.com/fxml"
+  prefWidth="300.0" prefHeight="200.0">
+  <TreeView fx:id="taskList" HBox.hgrow="ALWAYS" maxWidth="Infinity" maxHeight="Infinity"/>
+</HBox>

@@ -6,7 +6,10 @@ import javafx.beans.binding.StringExpression;
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
+import com.devonfw.ide.gui.FxHelper;
 import com.devonfw.ide.gui.progress.GuiTask;
 import com.devonfw.ide.gui.progress.GuiTaskModel;
 import com.devonfw.ide.gui.progress.TaskState;
@@ -36,6 +39,14 @@ public class GuiStep extends StepImpl implements GuiTask {
   private int childrenSucceeded;
 
   private int childrenFailed;
+
+  /**
+   * All descendants of this root, flattened to a single level and in the order they started. Like the counters above this is only populated on a root step.
+   * Append-only - a sub-step stays here once it has ended, because its outcome is exactly what the user expands the task to see.
+   */
+  private final ObservableList<GuiStep> subSteps = FXCollections.observableArrayList();
+
+  private final ObservableList<GuiStep> subStepsReadOnly = FXCollections.unmodifiableObservableList(this.subSteps);
 
   /**
    * Creates and starts a new {@link GuiStep}.
@@ -136,12 +147,21 @@ public class GuiStep extends StepImpl implements GuiTask {
     return root;
   }
 
+  @Override
+  public ObservableList<GuiStep> getSubTasks() {
+
+    return this.subStepsReadOnly;
+  }
+
   /**
    * Records that a nested step below this root has been started.
+   *
+   * @param child the nested step. Appended to {@link #getSubTasks()}, which is what puts the most recently started step at the bottom of the list.
    */
-  public synchronized void recordChildStart() {
+  public synchronized void recordChildStart(GuiStep child) {
 
     this.childrenRunning++;
+    FxHelper.runFxSafe(() -> this.subSteps.add(child));
     updateStepStats();
   }
 

@@ -41,7 +41,7 @@ public class TaskOverviewWindow {
    */
   private TaskOverviewWindow(TaskManager taskManager) {
 
-    FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("task_overview_window.fxml"));
+    FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("layout/taskOverviewWindow/task_overview_window.fxml"));
     fxmlLoader.setController(new TaskOverviewWindowController(taskManager));
 
     Parent root;
@@ -51,7 +51,9 @@ public class TaskOverviewWindow {
       throw new RuntimeException(e);
     }
 
-    stage.setResizable(false);
+    // resizable, because an expanded task with many sub-steps does not fit the default size.
+    stage.setMinWidth(300);
+    stage.setMinHeight(200);
     stage.setAlwaysOnTop(true);
     stage.setTitle("Running tasks");
     stage.setScene(new Scene(root));

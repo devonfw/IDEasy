@@ -126,7 +126,7 @@ public class App extends Application {
 
   private Parent loadMainView() throws IOException {
 
-    FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
+    FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("layout/mainview/main-view.fxml"));
     fxmlLoader.setResources(this.nlsService.getResourceBundle());
     fxmlLoader.setController(new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()), guiStateManager, this.nlsService));
     return fxmlLoader.load();

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+  Row of a top-level task in the task overview. Shared by progress bars and steps, so both look and behave alike.
+  Optional nodes bind "managed" to "visible" so that hiding one leaves no gap; what makes them visible is bound in TaskWindowCellFactory.
+-->
+<fx:root type="javafx.scene.layout.HBox" spacing="10.0" alignment="CENTER_LEFT" styleClass="task-cell"
+  xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml">
+
+  <Label fx:id="stateLabel"/>
+
+  <VBox fx:id="contentBox" spacing="2.0" HBox.hgrow="ALWAYS">
+    <Label fx:id="titleLabel"/>
+    <Label fx:id="subtitleLabel" managed="${subtitleLabel.visible}"
+      style="-fx-text-fill: #555555;-fx-font-size: 0.9em;"/>
+    <ProgressBar fx:id="progressBar" maxWidth="Infinity" managed="${progressBar.visible}"/>
+    <HBox fx:id="chipBox" spacing="4.0" managed="${chipBox.visible}">
+      <Label fx:id="succeededChip" managed="${succeededChip.visible}"
+        style="-fx-background-radius: 8;-fx-padding: 1 6 1 6;-fx-font-size: 0.85em;-fx-background-color: #e6f4ea;-fx-text-fill: #1e7e34;"/>
+      <Label fx:id="failedChip" managed="${failedChip.visible}"
+        style="-fx-background-radius: 8;-fx-padding: 1 6 1 6;-fx-font-size: 0.85em;-fx-background-color: #fce8e6;-fx-text-fill: #c5221f;"/>
+    </HBox>
+  </VBox>
+
+  <Button fx:id="dismissButton" text="✕" focusTraversable="false" managed="${dismissButton.visible}"/>
+</fx:root>

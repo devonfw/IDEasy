@@ -2,8 +2,7 @@ package com.devonfw.ide.gui.context;
 
 import java.util.Objects;
 
-import com.devonfw.ide.gui.progress.step.GuiStep;
-
+import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -11,39 +10,42 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.FxHelper;
-import com.devonfw.ide.gui.progress.ProgressBarTask;
+import com.devonfw.ide.gui.progress.GuiTask;
 
 /**
- * Singleton class that manages all currently running tasks and their progress bars. It provides an {@link ObservableList} of tasks, which can be observed by
- * components like in the UI.
+ * Manages all tasks currently shown to the end-user and provides them as an {@link ObservableList} that UI components can observe.
+ * <p>
+ * Both progress bars and steps are held in this single list as {@link GuiTask}s, so that the status bar and the task overview window need only one rendering
+ * path. The list is created with an extractor, so a change to a task's own properties also notifies list observers.
  *
- * @see ProgressBarTask
+ * @see com.devonfw.ide.gui.progress.ProgressBarTask
+ * @see com.devonfw.ide.gui.progress.step.GuiStep
  */
 public class TaskManager {
 
-  private final Logger LOG = LoggerFactory.getLogger(TaskManager.class);
+  private static final Logger LOG = LoggerFactory.getLogger(TaskManager.class);
 
-  private final ObservableList<ProgressBarTask> tasks = FXCollections.observableArrayList();
-  private final ObservableList<ProgressBarTask> taskListReadOnly = FXCollections.unmodifiableObservableList(tasks);
+  private final ObservableList<GuiTask> tasks = FXCollections.observableArrayList(
+      task -> new Observable[] { task.progressProperty(), task.detailProperty(), task.stateProperty() });
 
-  private final ObservableList<GuiStep> steps = FXCollections.observableArrayList();
-  private final ObservableList<GuiStep> stepListReadOnly = FXCollections.unmodifiableObservableList(steps);
+  private final ObservableList<GuiTask> taskListReadOnly = FXCollections.unmodifiableObservableList(this.tasks);
 
   /**
    * Adds a task to the task list. The duplicate check and the add are performed atomically on the FX thread. Duplicate IDs are silently ignored (idempotent).
    *
    * @param task the task to be added to the list of tasks.
    */
-  public void addTask(ProgressBarTask task) {
-    assert task != null;
+  public void addTask(GuiTask task) {
+
+    Objects.requireNonNull(task, "task");
 
     // Both the duplicate check and the add happen atomically on the FX thread to avoid race conditions.
     FxHelper.runFxSafe(() -> {
-      if (tasks.stream().anyMatch(t -> Objects.equals(t.getTaskId(), task.getTaskId()))) {
-        LOG.error("Task with ID {} already exists.", task.getTaskId());
+      if (this.tasks.stream().anyMatch(t -> Objects.equals(t.getId(), task.getId()))) {
+        LOG.error("Task with ID {} already exists.", task.getId());
         return;
       }
-      tasks.add(task);
+      this.tasks.add(task);
     });
   }
 
@@ -52,10 +54,11 @@ public class TaskManager {
    *
    * @param task the task to be removed.
    */
-  public void removeTask(ProgressBarTask task) {
-    assert task != null;
+  public void removeTask(GuiTask task) {
 
-    FxHelper.runFxSafe(() -> tasks.remove(task));
+    Objects.requireNonNull(task, "task");
+
+    FxHelper.runFxSafe(() -> this.tasks.remove(task));
   }
 
   /**
@@ -63,34 +66,14 @@ public class TaskManager {
    */
   public void clearTasks() {
 
-    FxHelper.runFxSafe(tasks::clear);
+    FxHelper.runFxSafe(this.tasks::clear);
   }
 
   /**
-   * @return the {@link ObservableList} of currently running tasks (read-only).
+   * @return the {@link ObservableList} of tasks (read-only). Contains both running tasks and finished ones that the user has not dismissed yet.
    */
-  public ObservableList<ProgressBarTask> getTasks() {
+  public ObservableList<GuiTask> getTasks() {
 
-    return taskListReadOnly;
-  }
-
-  public void addStep(GuiStep step) {
-
-    FxHelper.runFxSafe(() -> this.steps.add(step));
-  }
-
-  public void removeStep(GuiStep step) {
-
-    FxHelper.runFxSafe(() -> this.steps.remove(step));
-  }
-
-  public void clearSteps() {
-
-    FxHelper.runFxSafe(steps::clear);
-  }
-
-  public ObservableList<GuiStep> getSteps() {
-
-    return stepListReadOnly;
+    return this.taskListReadOnly;
   }
 }

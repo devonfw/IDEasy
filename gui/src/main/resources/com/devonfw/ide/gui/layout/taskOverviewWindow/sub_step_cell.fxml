@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  Row of a single sub-step below an expanded task.
+  The status pane has a fixed size and stacks the spinner and the outcome mark, so a running step and a finished one draw their icon in the very same spot -
+  nothing shifts sideways when the step ends. Which of the two is shown is bound in TaskWindowCellFactory.
+-->
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<fx:root type="javafx.scene.layout.HBox" spacing="6.0" alignment="CENTER_LEFT"
+  xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml">
+
+  <StackPane fx:id="statusPane"
+    minWidth="16.0" prefWidth="16.0" maxWidth="16.0"
+    minHeight="16.0" prefHeight="16.0" maxHeight="16.0">
+    <ProgressIndicator fx:id="spinner" prefWidth="16.0" prefHeight="16.0" maxWidth="16.0" maxHeight="16.0"/>
+    <Label fx:id="mark"/>
+  </StackPane>
+
+  <Label fx:id="titleLabel"/>
+</fx:root>

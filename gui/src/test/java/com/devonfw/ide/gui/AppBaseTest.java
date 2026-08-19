@@ -31,6 +31,7 @@ import com.devonfw.ide.gui.context.TaskManager;
 import com.devonfw.ide.gui.nls.NlsService;
 import com.devonfw.ide.gui.progress.ProgressBarTask;
 import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindow;
+import com.devonfw.tools.ide.step.Step;
 
 /**
  * Basic UI Test
@@ -55,7 +56,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
 
     NlsService nlsService = new NlsService(Locale.ENGLISH);
 
-    URL mainViewUrl = getClass().getResource("main-view.fxml");
+    URL mainViewUrl = getClass().getResource("layout/mainview/main-view.fxml");
     assertThat(mainViewUrl).as("Cannot resolve main UI FXML resource!").isNotNull();
 
     FXMLLoader fxmlLoader = new FXMLLoader(mainViewUrl);
@@ -158,13 +159,8 @@ public class AppBaseTest extends HeadlessApplicationTest {
     taskManager.addTask(task1);
     waitForFxEvents();
 
-    assertThat(statusText.getText()).isEqualTo(
-        String.format(ProgressBarTask.TASK_DESCRIPTION_STRING_FORMAT,
-            task1.getTitle(),
-            task1.getCurrentProgress(),
-            task1.getMaxSize(),
-            task1.getUnitName())
-    );
+    // task1 is indeterminate, so there is no "x of y" detail to append to the title.
+    assertThat(statusText.getText()).isEqualTo(task1.displayTextProperty().get());
     assertThat(taskProgressBar.isVisible()).as("Task progress bar should be visible").isTrue();
 
     //Case 3: Multiple tasks exist, should display the number of tasks and a progress bar next to the label
@@ -179,6 +175,48 @@ public class AppBaseTest extends HeadlessApplicationTest {
     waitForFxEvents();
 
     assertThat(statusText.getText()).isEqualTo("IDEasy is ready.");
+  }
+
+  /**
+   * The status label follows a running task through the extractor of the task list, so progressing a task must update the label without any per-task listener
+   * being registered by the controller.
+   */
+  @Test
+  protected void testStatusLabelFollowsTaskProgress() {
+
+    ProgressBarTask task = new ProgressBarTask(taskManager, "task-1", "Downloading", 100, "MiB", 1);
+
+    taskManager.addTask(task);
+    waitForFxEvents();
+
+    assertThat(statusText.getText()).isEqualTo("Downloading [0/100 MiB]");
+
+    task.stepBy(25);
+    waitForFxEvents();
+
+    assertThat(statusText.getText()).as("status label should follow the progress of the running task").isEqualTo("Downloading [25/100 MiB]");
+    assertThat(taskProgressBar.getProgress()).isEqualTo(0.25);
+  }
+
+  /**
+   * A step stays in the task list when it ends, so its completion is not a structural change of the list. Only the binding on its state can pick that up, which
+   * is why the status bar binds to the properties of the tasks rather than reading them from a list listener.
+   */
+  @Test
+  protected void testStatusLabelUpdatesWhenStepFinishesInPlace() {
+
+    Step step = guiStateManager.getCurrentContext().newStep("Doing something");
+    waitForFxEvents();
+
+    assertThat(statusText.getText()).isEqualTo("Doing something");
+    assertThat(taskProgressBar.isVisible()).as("a running step shows the indeterminate bar").isTrue();
+
+    step.success();
+    step.close();
+    waitForFxEvents();
+
+    assertThat(statusText.getText()).as("the finished step stays in the list and the status bar must reflect that").isEqualTo("1 tasks finished");
+    assertThat(taskProgressBar.isVisible()).as("nothing is running anymore").isFalse();
   }
 
   @Test

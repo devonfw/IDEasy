@@ -7,9 +7,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import javafx.application.Platform;
+import javafx.beans.Observable;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert.AlertType;
@@ -72,6 +77,9 @@ public class MainController {
   private ProgressBar statusProgressBar;
   private final double PROGRESSBAR_VISIBLE_WIDTH = 150.0;
 
+  /** Styling of the status label while it links to the {@link TaskOverviewWindow}. */
+  private static final String STATUS_LINK_STYLE = "-fx-text-fill: blue;-fx-cursor: hand";
+
   private final String ideRootPath;
   private Path projectValue;
   private Path workspaceValue;
@@ -97,23 +105,6 @@ public class MainController {
     this.languageMap = new LinkedHashMap<>();
     this.nlsService = nlsService;
 
-    setUpTaskListListener();
-  }
-
-  private void setUpTaskListListener() {
-
-    // The task list is created with an extractor, so additions, removals and changes to a task's own properties all arrive here.
-    ListChangeListener<GuiTask> taskListChangeListener = change -> {
-      while (change.next()) {
-        if (change.wasAdded()) {
-          LOG.debug("Added: {}", change.getAddedSubList());
-        } else if (change.wasRemoved()) {
-          LOG.debug("Removed: {}", change.getRemoved());
-        }
-      }
-      updateStatusLabel(taskManager.getTasks());
-    };
-    taskManager.getTasks().addListener(taskListChangeListener);
   }
 
   @FXML
@@ -121,6 +112,81 @@ public class MainController {
 
     setProjectsComboBox();
     initLanguageComboBox();
+    // Rebuild only when the set of tasks changes. Everything that changes within a task reaches the UI through the bindings built below, so reacting to
+    // anything else here would rebuild them for no reason on every progress tick.
+    taskManager.getTasks().addListener((ListChangeListener<GuiTask>) change -> {
+      while (change.next()) {
+        if (change.wasAdded() || change.wasRemoved()) {
+          bindStatusBar();
+          return;
+        }
+      }
+    });
+    bindStatusBar();
+  }
+
+  /**
+   * Binds the status bar to the tasks it reports on.
+   * <p>
+   * The bindings depend on the properties of the tasks themselves, not on the task list, so a task progressing or finishing updates the status bar directly.
+   * Only adding or removing a task changes which properties matter, which is why this is rebuilt on structural changes of the list.
+   */
+  private void bindStatusBar() {
+
+    statusLabel.textProperty().unbind();
+    statusLabel.underlineProperty().unbind();
+    statusLabel.styleProperty().unbind();
+    statusProgressBar.progressProperty().unbind();
+    statusProgressBar.visibleProperty().unbind();
+    statusProgressBar.prefWidthProperty().unbind();
+
+    ObservableList<GuiTask> tasks = taskManager.getTasks();
+    Observable[] dependencies = Stream.concat(
+        tasks.stream().flatMap(task -> Stream.of(task.stateProperty(), task.displayTextProperty(), task.progressProperty())),
+        Stream.of(tasks)).toArray(Observable[]::new);
+
+    BooleanBinding singleTaskRunning = Bindings.createBooleanBinding(() -> getRunningTasks().size() == 1, dependencies);
+    // Whenever there is any task at all the label links to the overview, so finished ones can always be reached and dismissed.
+    BooleanBinding isLink = Bindings.createBooleanBinding(() -> !tasks.isEmpty(), dependencies);
+
+    statusLabel.textProperty().bind(Bindings.createStringBinding(this::buildStatusText, dependencies));
+    statusLabel.underlineProperty().bind(isLink);
+    statusLabel.styleProperty().bind(Bindings.when(isLink).then(STATUS_LINK_STYLE).otherwise(""));
+    statusLabel.setOnMouseClicked(_ -> TaskOverviewWindow.getInstance(taskManager).showRelativeToReferenceNode(statusLabel));
+
+    // a value of GuiTaskModel.INDETERMINATE maps directly onto the indeterminate animation of the JavaFX progress bar.
+    statusProgressBar.progressProperty().bind(Bindings.createDoubleBinding(this::buildStatusProgress, dependencies));
+    statusProgressBar.visibleProperty().bind(singleTaskRunning);
+    statusProgressBar.prefWidthProperty().bind(Bindings.when(singleTaskRunning).then(PROGRESSBAR_VISIBLE_WIDTH).otherwise(0.0));
+  }
+
+  /**
+   * @return the tasks that are still running. Finished steps stay in the list until dismissed, so the status bar reports on the running ones.
+   */
+  private List<GuiTask> getRunningTasks() {
+
+    return taskManager.getTasks().stream().filter(GuiTask::isRunning).toList();
+  }
+
+  private String buildStatusText() {
+
+    List<GuiTask> runningTasks = getRunningTasks();
+    if (runningTasks.size() > 1) {
+      return runningTasks.size() + " tasks running...";
+    } else if (runningTasks.size() == 1) {
+      return runningTasks.getFirst().displayTextProperty().get();
+    }
+    List<GuiTask> tasks = taskManager.getTasks();
+    if (!tasks.isEmpty()) {
+      return buildFinishedSummary(tasks);
+    }
+    return "IDEasy is ready.";
+  }
+
+  private double buildStatusProgress() {
+
+    List<GuiTask> runningTasks = getRunningTasks();
+    return (runningTasks.size() == 1) ? runningTasks.getFirst().progressProperty().get() : 0.0;
   }
 
   private void initLanguageComboBox() {
@@ -273,25 +339,6 @@ public class MainController {
     }
   }
 
-  private void updateStatusLabel(List<GuiTask> taskList) {
-
-    // runFxSafe rather than runLater: the task list notifies us on the FX thread already, so queueing another hop per progress update only adds churn.
-    FxHelper.runFxSafe(() -> {
-      // Finished steps stay in the list until the user dismisses them, so the status bar reports on the running ones.
-      List<GuiTask> runningTasks = taskList.stream().filter(GuiTask::isRunning).toList();
-
-      if (runningTasks.size() > 1) {
-        showLinkStatus(runningTasks.size() + " tasks running...");
-      } else if (runningTasks.size() == 1) {
-        showSingleTaskStatus(runningTasks.getFirst());
-      } else if (!taskList.isEmpty()) {
-        showLinkStatus(buildFinishedSummary(taskList));
-      } else {
-        showIdleStatus();
-      }
-    });
-  }
-
   private String buildFinishedSummary(List<GuiTask> taskList) {
 
     long failed = taskList.stream().filter(task -> task.getState() == TaskState.FAILED).count();
@@ -301,41 +348,4 @@ public class MainController {
     return String.format("%d tasks finished", taskList.size());
   }
 
-  /**
-   * Shows a clickable status that opens the {@link TaskOverviewWindow}, used whenever a single task cannot represent the state.
-   */
-  private void showLinkStatus(String text) {
-
-    statusLabel.setOnMouseClicked(_ -> TaskOverviewWindow.getInstance(taskManager).showRelativeToReferenceNode(statusLabel));
-    statusLabel.setText(text);
-    statusLabel.setUnderline(true);
-    statusLabel.setStyle("-fx-text-fill: blue;-fx-cursor: hand");
-
-    statusProgressBar.setVisible(false);
-    statusProgressBar.setPrefWidth(0);
-  }
-
-  private void showSingleTaskStatus(GuiTask task) {
-
-    statusLabel.setOnMouseClicked(_ -> TaskOverviewWindow.getInstance(taskManager).showRelativeToReferenceNode(statusLabel));
-    statusLabel.setText(task.displayTextProperty().get());
-    statusLabel.setUnderline(true);
-    statusLabel.setStyle("-fx-text-fill: blue;-fx-cursor: hand");
-
-    statusProgressBar.setVisible(true);
-    statusProgressBar.setPrefWidth(PROGRESSBAR_VISIBLE_WIDTH);
-    // a value of GuiTaskModel.INDETERMINATE maps directly onto the indeterminate animation of the JavaFX progress bar.
-    statusProgressBar.setProgress(task.progressProperty().get());
-  }
-
-  private void showIdleStatus() {
-
-    statusLabel.setOnMouseClicked(null);
-    statusLabel.setText("IDEasy is ready.");
-    statusLabel.setUnderline(false);
-    statusLabel.setStyle("");
-
-    statusProgressBar.setVisible(false);
-    statusProgressBar.setPrefWidth(0);
-  }
 }

@@ -21,3 +21,8 @@ Further, we documented link:junit-testing.adoc[JUnit-testing] and link:integrati
 
 For security mapping in URL updater development, see link:cpe-url-updater.adoc[CPE integration for URL updaters].
 
+== Design
+
+If you work on the dashboard, read link:gui-task-model.adoc[GUI task model] first.
+It explains how the GUI renders progress bars and steps through a single abstraction, why the CLI is left untouched, and which parts of the design are load-bearing.
+

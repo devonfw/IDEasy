@@ -1,0 +1,89 @@
+= GUI task model
+
+The dashboard (`gui` module) shows long-running work in two places: the status bar of the main window, and the task overview window.
+This page explains how that is modelled and why, so the design is not accidentally undone by a later change.
+
+== One abstraction for two CLI concepts
+
+The CLI reports progress through two unrelated mechanisms, both owned by `IdeContext`:
+
+* `IdeProgressBar` -- quantitative, bounded, short-lived. Created via `newProgressBar(...)`.
+* `Step` -- qualitative, nested, and carrying an outcome (success or failure). Created via `newStep(...)`.
+
+The GUI has to render both as "something is happening", so it defines a single UI-facing interface, `GuiTask`, with a title, a detail line, a subtitle, a
+progress fraction, a `TaskState` and a `TaskStats` tally.
+`ProgressBarTask` and `GuiStep` both implement it.
+
+They cannot share a base class: `ProgressBarTask` must extend `AbstractIdeProgressBar` and `GuiStep` must extend `StepImpl`, and Java has single inheritance.
+The shared state therefore lives in `GuiTaskModel`, which both own by composition and delegate to.
+This is the reason for the delegation boilerplate in those two classes -- it is not accidental, and replacing it with a common superclass is not possible.
+
+`TaskManager` holds exactly one `ObservableList<GuiTask>`, so the status bar and the task overview need only one rendering path.
+
+== The CLI is not modified
+
+`IdeGuiContext` maintains its own `Step` stack rather than the one inherited from `AbstractIdeContext`, whose field is private.
+It can do so because all three access points -- `newStep(boolean, String, Object...)`, `getCurrentStep()` and `endStep(StepImpl)` -- are public and overridable,
+and because `StepImpl.end()` calls `context.endStep(this)` virtually and exactly once.
+That call is the only reliable "step has ended" hook: a step may end through `success()`, `error()` or `close()`, and `run()` calls `close()` after `success()`,
+so overriding `close()` alone is neither sufficient nor unambiguous.
+Note that a step closed without an explicit outcome is recorded as a *failure*, and the GUI renders that honestly.
+
+== Steps and progress bars behave differently on purpose
+
+A progress bar removes itself from the task list when it closes.
+A step does not: its outcome is the point, so it stays until the user dismisses it with the `x` button.
+
+Only *root* steps become their own task.
+Nested steps feed their root: they contribute to its `TaskStats` chips, they name its subtitle while they run, and they are appended to its sub-task list.
+Because every descendant resolves the same root via `getRoot()`, a grandchild is flattened onto the root rather than nested under its own parent -- the model is
+deliberately only one level deep.
+
+== Why the task overview is a `TreeView`
+
+A root step can be expanded to reveal its sub-steps.
+That could have been done by building sub-rows inside a `ListCell`, but `TreeView` avoids three problems rather than solving them:
+
+[cols="1,2,2"]
+|===
+|Concern |Sub-rows in a `ListCell` |`TreeView`
+
+|Expansion state
+|Must be stored on the task, because cells are recycled; a flag on the cell makes scrolling expand the wrong row
+|`TreeItem.expandedProperty()` -- tree items are never recycled, only cells are
+
+|Observing the sub-step list
+|Every cell attaches and detaches a `ListChangeListener`, with the same discipline as the binding cleanup in `updateItem`
+|Cells never observe lists; the sync happens once per task in `TaskOverviewWindowController`
+
+|Row height
+|The parent cell grows when expanded, so the list has to re-measure
+|Expanding adds rows, not height
+|===
+
+The tree is only ever two levels deep: a hidden root holds the tasks, and each task holds its sub-steps as a flat list.
+Keeping the tree in sync is cheap because the sub-step list is *append-only* -- a sub-step is never removed once started -- so no diffing is required.
+
+== Updates reach the UI through bindings
+
+Everything the UI shows is bound to the properties of the task itself: the cells in `TaskWindowCellFactory` and the status bar in `MainController`.
+The task list reports which tasks exist; what happens *within* a task is observed by binding, not by reading values out of a list listener.
+
+There is exactly one place where a value is pushed instead of derived, and it cannot be otherwise.
+`AbstractIdeProgressBar` holds its progress in a plain `long` field that is mutated on a background worker thread, so there is no observable to bind to, and
+JavaFX properties may only be written on the JavaFX Application Thread.
+`ProgressBarTask.publishProgress` performs that hand-off -- and *coalesces* it: copying reads in 1 KiB chunks, so a large archive reports progress hundreds of
+thousands of times, and posting every one of those to the FX thread floods its event queue and freezes the UI.
+Only the latest value is kept and a single update is scheduled; while it is outstanding, further reports just overwrite that value.
+The UI therefore refreshes as fast as it can drain and no faster.
+This is the same technique `javafx.concurrent.Task.updateProgress()` uses internally.
+
+`TaskWindowTest.rapidProgressUpdatesAreCoalescedWithoutLosingTheFinalValue` pins both halves of that behaviour: the number of FX events stays far below the
+number of reported steps, and the final value is never dropped.
+
+== Concurrency
+
+`GuiStateManager.newRunContext()` hands every command execution its own `IdeGuiContext`.
+Commands run on their own threads, and a context keeps the current step in a field, so a shared context would let two concurrent commands corrupt each other's
+step hierarchy.
+A per-run context makes that field safe without any locking.

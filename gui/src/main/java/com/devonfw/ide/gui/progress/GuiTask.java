@@ -4,6 +4,7 @@ import javafx.beans.binding.StringExpression;
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.collections.ObservableList;
 
 /**
  * A unit of work that is displayed to the end-user in the status bar and in the task overview window.
@@ -59,6 +60,12 @@ public interface GuiTask {
    * @see com.devonfw.ide.gui.progress.step.GuiStep
    */
   ReadOnlyObjectProperty<TaskStats> statsProperty();
+
+  /**
+   * @return the sub-tasks of this task in the order they were started, so the most recently started one is last. Empty for a task that cannot have sub-tasks.
+   *     The list is append-only: a sub-task stays in it once it has ended, because its outcome is what the user wants to see.
+   */
+  ObservableList<? extends GuiTask> getSubTasks();
 
   /**
    * @return {@code true} if the end-user may remove this task from the task list once it is {@link TaskState#isTerminal() finished}, {@code false} if it

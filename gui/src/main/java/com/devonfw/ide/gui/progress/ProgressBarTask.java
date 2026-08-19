@@ -8,6 +8,8 @@ import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -125,6 +127,15 @@ public class ProgressBarTask extends AbstractIdeProgressBar implements GuiTask {
   public ReadOnlyObjectProperty<TaskStats> statsProperty() {
 
     return this.model.statsProperty();
+  }
+
+  /**
+   * @return always empty: a progress bar reports a single quantity and has no sub-tasks, so it never becomes expandable.
+   */
+  @Override
+  public ObservableList<GuiTask> getSubTasks() {
+
+    return FXCollections.emptyObservableList();
   }
 
   /**
