@@ -154,7 +154,7 @@ class IdeasyTest extends AbstractIdeContextTest {
     String path = "project/workspaces/foo-test";
     IdeTestContext context = newContext("environment", path, false);
     Ideasy ideasy = new Ideasy(context);
-    
+
     // Take snapshot of software directory before running ide command
     Path softwarePath = context.getSoftwarePath();
     Set<String> existingToolsBefore = new HashSet<>();
@@ -165,7 +165,7 @@ class IdeasyTest extends AbstractIdeContextTest {
         fail("Failed to list software directory: " + e.getMessage());
       }
     }
-    
+
     // Take snapshot of _ide/software repository before running ide command
     Path ideaSoftwarePath = context.getIdeRoot().resolve("_ide").resolve("software");
     Set<String> existingIdeToolsBefore = new HashSet<>();
@@ -189,7 +189,7 @@ class IdeasyTest extends AbstractIdeContextTest {
         fail("Failed to list software directory after ide: " + e.getMessage());
       }
     }
-    
+
     Set<String> existingIdeToolsAfter = new HashSet<>();
     if (Files.exists(ideaSoftwarePath)) {
       try (var stream = Files.list(ideaSoftwarePath)) {
@@ -198,10 +198,10 @@ class IdeasyTest extends AbstractIdeContextTest {
         fail("Failed to list _ide/software directory after ide: " + e.getMessage());
       }
     }
-    
+
     // Verify no new tools were added to software directory
     assertThat(existingToolsAfter).as("No new tools should be installed in software directory").isEqualTo(existingToolsBefore);
-    
+
     // Verify no new tools were added to _ide/software repository
     assertThat(existingIdeToolsAfter).as("No new tools should be installed in _ide/software repository").isEqualTo(existingIdeToolsBefore);
   }
