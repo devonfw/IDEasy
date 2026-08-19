@@ -126,21 +126,6 @@ public interface IdeVariables {
   /** {@link VariableDefinition} for support of overriding the default pycharm jvm options. */
   VariableDefinitionString PYCHARM_VM_ARGS = new VariableDefinitionString("PYCHARM_VM_ARGS", null);
 
-  /** {@link VariableDefinition} for additional command-line arguments to start eclipse. */
-  VariableDefinitionString ECLIPSE_OPTIONS = new VariableDefinitionString("ECLIPSE_OPTIONS", null);
-
-  /** {@link VariableDefinition} for additional command-line arguments to start intellij. */
-  VariableDefinitionString INTELLIJ_OPTIONS = new VariableDefinitionString("INTELLIJ_OPTIONS", null);
-
-  /** {@link VariableDefinition} for additional command-line arguments to start android studio. */
-  VariableDefinitionString ANDROID_STUDIO_OPTIONS = new VariableDefinitionString("ANDROID_STUDIO_OPTIONS", null);
-
-  /** {@link VariableDefinition} for additional command-line arguments to start pycharm. */
-  VariableDefinitionString PYCHARM_OPTIONS = new VariableDefinitionString("PYCHARM_OPTIONS", null);
-
-  /** {@link VariableDefinition} for additional command-line arguments to start vscode. */
-  VariableDefinitionString VSCODE_OPTIONS = new VariableDefinitionString("VSCODE_OPTIONS", null);
-
   /** A {@link Collection} with all pre-defined {@link VariableDefinition}s. */
   Collection<VariableDefinition<?>> VARIABLES = List.of(PATH, HOME, WORKSPACE_PATH, IDE_HOME, IDE_ROOT, WORKSPACE, IDE_TOOLS, HTTP_VERSIONS,
       CREATE_START_SCRIPTS,
@@ -148,7 +133,6 @@ public interface IdeVariables {
       GRADLE_USER_HOME,
       YARN_BUILD_OPTS, JASYPT_OPTS,
       MAVEN_ARGS, INTELLIJ_VM_ARGS, ANDROID_STUDIO_VM_ARGS, PYCHARM_VM_ARGS,
-      ECLIPSE_OPTIONS, INTELLIJ_OPTIONS, ANDROID_STUDIO_OPTIONS, PYCHARM_OPTIONS, VSCODE_OPTIONS,
       PROJECT_NAME, IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED, PREFERRED_GIT_PROTOCOL);
 
   /**

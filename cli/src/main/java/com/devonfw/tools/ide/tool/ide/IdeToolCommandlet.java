@@ -4,7 +4,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -12,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
@@ -77,7 +77,7 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
    */
   private void addIdeOptions(List<String> args) {
 
-    String variableName = getName().toUpperCase(Locale.ROOT).replace("-", "_") + OPTIONS_ENV_SUFFIX;
+    String variableName = EnvironmentVariables.getToolVariablePrefix(this.tool) + OPTIONS_ENV_SUFFIX;
     String options = this.context.getVariables().get(variableName);
     if ((options != null) && !options.isBlank()) {
       for (String option : options.trim().split("\\s+")) {
