@@ -94,6 +94,17 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
   }
 
   /**
+   * @return the {@link Path} to the IDE-specific metadata folder for the {@link IdeContext#getWorkspaceName() current workspace}, located at
+   *     {@code $IDE_HOME/.ide/«ide»/«workspace»}. Unlike {@link IdeContext#getWorkspacePath() the workspace path} (which holds the projects to open), this
+   *     folder keeps IDE-specific metadata (e.g. {@code .vmoptions} or {@code *.properties} files) out of the workspace so it stays clean and independent of
+   *     the IDE being used.
+   */
+  protected Path getIdeMetadataPath() {
+
+    return this.context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve(getName()).resolve(this.context.getWorkspaceName());
+  }
+
+  /**
    * Configure (initialize or update) the workspace for this IDE using the templates from the settings.
    */
   protected void configureWorkspace() {

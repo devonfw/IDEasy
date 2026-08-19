@@ -63,4 +63,24 @@ class TomcatTest extends AbstractIdeContextTest {
     );
   }
 
+  /**
+   * Test that running a tool also provides the environment variables of the other installed tools of the project that are no
+   * {@link com.devonfw.tools.ide.tool.ToolDependency dependency} of the invoked tool. The tomcat project has rust installed but tomcat only depends on java, so
+   * without the fix of <a href="https://github.com/devonfw/IDEasy/issues/2264">#2264</a> CARGO_HOME is missing in the tomcat process.
+   */
+  @Test
+  void testTomcatHasEnvironmentOfOtherInstalledTools() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_TOMCAT);
+    Tomcat tomcatCommandlet = context.getCommandletManager().getCommandlet(Tomcat.class);
+    Path cargoHome = context.getSoftwarePath().resolve("rust").resolve(".cargo");
+
+    // act
+    tomcatCommandlet.run();
+
+    // assert
+    assertThat(context).logAtInfo().hasMessage("CARGO_HOME=" + cargoHome);
+  }
+
 }
