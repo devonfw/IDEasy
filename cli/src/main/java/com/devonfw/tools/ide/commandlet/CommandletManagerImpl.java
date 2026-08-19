@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
+import com.devonfw.tools.ide.commandlet.check.CheckCommandlet;
 import com.devonfw.tools.ide.commandlet.cleanup.CleanupCommandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -184,6 +185,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Just(context));
     add(new SoapUi(context));
     add(new Ruff(context));
+    add(new CheckCommandlet(context));
   }
 
   /**
