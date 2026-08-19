@@ -558,6 +558,22 @@ public class GitContextImpl implements GitContext {
       runGitCommand(repository, "push");
     }
   }
+
+  @Override
+  public Path findRepositoryRoot(Path directory) {
+    if (directory == null) {
+      return null;
+    }
+
+    Path dir = this.context.getFileAccess().toRealPath(directory);
+    while (dir != null) {
+      if (isGitRepo(dir)) {
+        return dir;
+      }
+      dir = dir.getParent();
+    }
+    return null;
+  }
 }
 
 
