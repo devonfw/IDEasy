@@ -4,9 +4,12 @@ import java.nio.file.Path;
 import java.util.UUID;
 
 import com.devonfw.ide.gui.progress.ProgressBarTask;
+import com.devonfw.ide.gui.progress.step.GuiStep;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.io.IdeProgressBar;
+import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.step.StepImpl;
 
 /**
  * Implementation of {@link AbstractIdeContext} for the IDEasy dashboard (GUI).
@@ -53,5 +56,29 @@ public class IdeGuiContext extends AbstractIdeContext {
     taskManager.addTask(newTask);
 
     return newTask;
+  }
+
+  @Override
+  public Step newStep(String name) {
+    GuiStep step = new GuiStep(taskManager, this, null, name, false);
+    taskManager.addStep(step);
+
+    return step;
+  }
+
+  @Override
+  public Step newStep(String name, Object... parameters) {
+    GuiStep step = new GuiStep(taskManager, this, null, name, false, parameters);
+    taskManager.addStep(step);
+
+    return step;
+  }
+
+  @Override
+  public StepImpl newStep(boolean silent, String name, Object... parameters) {
+    GuiStep step = new GuiStep(taskManager, this, null, name, silent, parameters);
+    taskManager.addStep(step);
+
+    return step;
   }
 }

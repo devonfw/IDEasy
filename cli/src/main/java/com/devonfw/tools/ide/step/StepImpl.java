@@ -16,7 +16,7 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 /**
  * Regular implementation of {@link Step}.
  */
-public final class StepImpl implements Step {
+public class StepImpl implements Step {
 
   private static final Logger LOG = LoggerFactory.getLogger(StepImpl.class);
 
