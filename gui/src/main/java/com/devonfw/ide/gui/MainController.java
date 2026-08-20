@@ -135,6 +135,7 @@ public class MainController {
     setProjectsComboBox();
     initLanguageComboBox();
     selectedWorkspace.setOnAction(this::onWorkspaceSelected);
+    loadOldMainController();
   }
 
   private void onWorkspaceSelected(ActionEvent actionEvent) {
@@ -145,7 +146,6 @@ public class MainController {
     }
     updateContext(selectedProject.getValue(), workspaceName);
     setIdeButtonsDisabled(false);
-    loadOldMainController();
   }
 
   private void loadOldMainController() {
@@ -153,19 +153,23 @@ public class MainController {
       return;
     }
 
-    selectedLanguage.setValue(this.oldMainController.selectedLanguage.getValue());
-    selectedProject.setValue(this.oldMainController.selectedProject.getValue());
-    setWorkspaceComboBox();
-    selectedWorkspace.setValue(this.oldMainController.selectedWorkspace.getValue());
+    String oldProjectName = this.oldMainController.selectedProject.getValue();
+    if (oldProjectName != null && selectedProject.getItems().contains(oldProjectName)) {
+      selectedProject.setValue(oldProjectName);
+      setWorkspaceComboBox();
+      String oldWorkspaceName = this.oldMainController.selectedWorkspace.getValue();
+      if (oldWorkspaceName != null) {
+        selectedWorkspace.setValue(oldWorkspaceName);
+        updateContext(oldProjectName, oldWorkspaceName);
+      }
 
-    updateContext(this.selectedProject.getValue(), this.selectedWorkspace.getValue());
-
-    selectedWorkspace.setDisable(this.oldMainController.selectedWorkspace.isDisable());
-    androidStudioOpen.setDisable(this.oldMainController.androidStudioOpen.isDisable());
-    eclipseOpen.setDisable(this.oldMainController.eclipseOpen.isDisable());
-    intellijOpen.setDisable(this.oldMainController.intellijOpen.isDisable());
-    vsCodeOpen.setDisable(this.oldMainController.vsCodeOpen.isDisable());
-
+      // Restore the enabled state captured from the previous view so it stays consistent with the restored selection.
+      selectedWorkspace.setDisable(this.oldMainController.selectedWorkspace.isDisable());
+      androidStudioOpen.setDisable(this.oldMainController.androidStudioOpen.isDisable());
+      eclipseOpen.setDisable(this.oldMainController.eclipseOpen.isDisable());
+      intellijOpen.setDisable(this.oldMainController.intellijOpen.isDisable());
+      vsCodeOpen.setDisable(this.oldMainController.vsCodeOpen.isDisable());
+    }
   }
 
   private void initLanguageComboBox() {
