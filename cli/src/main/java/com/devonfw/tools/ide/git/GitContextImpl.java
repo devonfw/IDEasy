@@ -546,7 +546,8 @@ public class GitContextImpl implements GitContext {
 
     LOG.debug("Adding remote '{}' with url '{}' to {}", name, url, repository);
     // Check if the remote already exists and get its current URL
-    String existingUrl = runGitCommandAndGetSingleOutput("Failed to get remote URL for remote '" + name + "' in " + repository, repository, "remote", "get-url", name);
+    String existingUrl = runGitCommandAndGetSingleOutput("Failed to get remote URL for remote '" + name + "' in " + repository,
+        repository, "remote", "get-url", name);
     if (existingUrl != null) {
       existingUrl = existingUrl.trim();
       if (existingUrl.equals(url)) {
