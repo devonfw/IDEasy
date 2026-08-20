@@ -37,6 +37,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1135[#1135]: Fix PowerShell env variable initialization on Windows by sourcing functions from the PowerShell profile
 * https://github.com/devonfw/IDEasy/issues/741[#741]: Add a warning message for legacy devonfw-ide settings users
 * https://github.com/devonfw/IDEasy/issues/1933[#1933]: Added a console panel to the GUI
+* https://github.com/devonfw/IDEasy/issues/1981[#1981]: Fall back to windows-x64 when no windows-arm64 artifact is published
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/49?closed=1[milestone 2026.09.001].
 
@@ -48,7 +49,6 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2131[#2131]: Improve `ide upgrade --mode=` auto-completion
 * https://github.com/devonfw/IDEasy/issues/1870[#1870]: Add generic get-version implementation for global tools under windows
 * https://github.com/devonfw/IDEasy/issues/1558[#1558]: Added installation log information to the "Select Project Folder" and exit dialogs and enhanced `windows-installer/README.adoc`.
-* https://github.com/devonfw/IDEasy/issues/1981[#1981]: ide update fails on windows@arm64
 * https://github.com/devonfw/IDEasy/issues/2187[#2187]: Start SoapUI commandlet in background
 * https://github.com/devonfw/IDEasy/issues/2189[#2189]: Integrate Ruff
 * https://github.com/devonfw/IDEasy/issues/2126[#2126]: Fix language selection dropdown
