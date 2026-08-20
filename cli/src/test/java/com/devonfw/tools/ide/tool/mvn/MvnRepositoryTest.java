@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -15,6 +16,7 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.os.SystemArchitecture;
+import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.url.model.file.UrlChecksums;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
@@ -140,6 +142,7 @@ class MvnRepositoryTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
     MvnRepository mavenRepo = new MvnRepository(context);
     String tool = "ideasy";
     String edition = tool;
@@ -180,6 +183,7 @@ class MvnRepositoryTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
     MvnRepository mavenRepo = new MvnRepository(context);
     String tool = "ideasy";
     String edition = tool;
@@ -193,7 +197,8 @@ class MvnRepositoryTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(metadata.getUrls()).containsExactly(
-        "https://central.sonatype.com/repository/maven-snapshots/com/devonfw/tools/IDEasy/ide-cli/2025.01.001-beta-SNAPSHOT/ide-cli-2025.01.001-beta-20250121.023134-9-"
+        "https://central.sonatype.com/repository/maven-snapshots/com/devonfw/tools/IDEasy/ide-cli/"
+            + "2025.01.001-beta-SNAPSHOT/ide-cli-2025.01.001-beta-20250121.023134-9-"
             + os + "-" + arch + ".tar.gz");
     assertThat(metadata.getTool()).isEqualTo(tool);
     assertThat(metadata.getEdition()).isEqualTo(edition);
@@ -231,6 +236,80 @@ class MvnRepositoryTest extends AbstractIdeContextTest {
     assertThat(version).hasToString("2025.02.001-beta-20250204.023111-1");
   }
 
+  /** Test of {@link MvnRepository#resolveSnapshotClassifier(Document, String, String, String)}. */
+  @Test
+  void testResolveSnapshotClassifierFallsBackFromWindowsArm64ToX64() {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    MvnRepository mvnRepository = context.getMvnRepository();
+    Document metadata = parseXml(XML_SNAPSNOT_METADATA);
+
+    // act
+    String classifier = mvnRepository.resolveSnapshotClassifier(
+        metadata,
+        "windows-arm64",
+        "tar.gz",
+        "2025.02.001-beta-20250204.023111-1");
+
+    // assert
+    assertThat(classifier).isEqualTo("windows-x64");
+  }
+
+  /** Test of {@link MvnRepository#resolveSnapshotClassifier(Document, String, String, String)}. */
+  @Test
+  void testResolveSnapshotClassifierKeepsWindowsArm64WhenAvailable() {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    MvnRepository mvnRepository = context.getMvnRepository();
+
+    String arm64Artifact = """
+      <snapshotVersion>
+        <classifier>windows-arm64</classifier>
+        <extension>tar.gz</extension>
+        <value>2025.02.001-beta-20250204.023111-1</value>
+        <updated>20250204023111</updated>
+      </snapshotVersion>
+      """;
+
+    String xml = XML_SNAPSNOT_METADATA.replace(
+        "</snapshotVersions>",
+        arm64Artifact + "</snapshotVersions>");
+
+    Document metadata = parseXml(xml);
+
+    // act
+    String classifier = mvnRepository.resolveSnapshotClassifier(
+        metadata,
+        "windows-arm64",
+        "tar.gz",
+        "2025.02.001-beta-20250204.023111-1");
+
+    // assert
+    assertThat(classifier).isEqualTo("windows-arm64");
+  }
+
+  /** Test of {@link MvnRepository#resolveSnapshotClassifier(Document, String, String, String)}. */
+  @Test
+  void testResolveSnapshotClassifierDoesNotFallbackForLinuxArm64() {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    MvnRepository mvnRepository = context.getMvnRepository();
+    Document metadata = parseXml(XML_SNAPSNOT_METADATA);
+
+    // act
+    String classifier = mvnRepository.resolveSnapshotClassifier(
+        metadata,
+        "linux-arm64",
+        "tar.gz",
+        "2025.02.001-beta-20250204.023111-1");
+
+    // assert
+    assertThat(classifier).isEqualTo("linux-arm64");
+  }
+
   /** Test of {@link MvnRepository#fetchVersions(Document, String)}. */
   @Test
   void testResolveVersion() {
@@ -250,6 +329,56 @@ class MvnRepositoryTest extends AbstractIdeContextTest {
         "2024.07.003-alpha", "2024.07.002-alpha", "2024.06.001-alpha", "2024.05.001-alpha", "2024.04.001-alpha", "2024.03.001-alpha");
   }
 
+  /**
+   * Tests that a Windows ARM64 snapshot falls back to x64 when no ARM64 snapshot artifact is published.
+   */
+  @Test
+  void testGetMetadataFallsBackToWindowsX64ForSnapshotOnWindowsArm64() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setSystemInfo(SystemInfoMock.WINDOWS_ARM64);
+    MvnRepository repository = context.getMvnRepository();
+    VersionIdentifier version = VersionIdentifier.of("2025.02.001-beta-20250204.023111-1");
+
+    // act
+    UrlDownloadFileMetadata metadata = repository.getMetadata(
+        "ideasy",
+        "ideasy",
+        version,
+        null);
+
+    // assert
+    assertThat(metadata.getUrls())
+        .anyMatch(url -> url.endsWith("-windows-x64.tar.gz"));
+    assertThat(metadata.getArch()).isSameAs(SystemArchitecture.X64);
+  }
+
+  /**
+   * Tests that a Windows ARM64 release falls back directly to x64.
+   */
+  @Test
+  void testGetMetadataFallsBackToWindowsX64ForReleaseOnWindowsArm64() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setSystemInfo(SystemInfoMock.WINDOWS_ARM64);
+    MvnRepository repository = context.getMvnRepository();
+    VersionIdentifier version = VersionIdentifier.of("2025.01.001-beta");
+
+    // act
+    UrlDownloadFileMetadata metadata = repository.getMetadata(
+        "ideasy",
+        "ideasy",
+        version,
+        null);
+
+    // assert
+    assertThat(metadata.getUrls())
+        .anyMatch(url -> url.endsWith("-windows-x64.tar.gz"));
+    assertThat(metadata.getArch()).isSameAs(SystemArchitecture.X64);
+  }
+
   private static Document parseXml(String xml) {
 
     InputStream inputStream = new ByteArrayInputStream(xml.getBytes());
@@ -259,5 +388,4 @@ class MvnRepositoryTest extends AbstractIdeContextTest {
       throw new RuntimeException("Failed to parse XML!", e);
     }
   }
-
 }
