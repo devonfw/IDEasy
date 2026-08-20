@@ -7,12 +7,12 @@ import java.util.List;
 
 import org.assertj.core.api.Assertions;
 
-import com.devonfw.tools.ide.url.model.file.UrlStatusFile;
-import com.devonfw.tools.ide.url.model.file.json.StatusJson;
 import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
 import com.devonfw.tools.ide.url.model.folder.UrlTool;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
+import com.devonfw.tools.ide.url.updater.status.StatusJson;
+import com.devonfw.tools.ide.url.updater.status.UrlStatusFile;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 
 /**
@@ -59,9 +59,8 @@ public class AbstractUrlUpdaterTest extends Assertions {
     UrlTool urlTool = new UrlTool(urlRepository, tool);
     UrlEdition urlEdition = new UrlEdition(urlTool, edition);
     UrlVersion urlVersion = new UrlVersion(urlEdition, version);
-    UrlStatusFile urlStatusFile = new UrlStatusFile(urlVersion);
-    urlStatusFile.load(false);
-    return urlStatusFile.getStatusJson();
+    Path statusPath = urlVersion.getPath().resolve(UrlStatusFile.STATUS_JSON);
+    return new UrlStatusFile(statusPath).getStatusJson();
   }
 
   protected void assertUrlVersionAgnostic(Path urlVersionFolder) {

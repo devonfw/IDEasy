@@ -6,6 +6,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -13,9 +14,11 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -29,15 +32,15 @@ import com.devonfw.tools.ide.os.SystemArchitecture;
 import com.devonfw.tools.ide.url.model.file.UrlChecksum;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFile;
 import com.devonfw.tools.ide.url.model.file.UrlFile;
-import com.devonfw.tools.ide.url.model.file.UrlStatusFile;
-import com.devonfw.tools.ide.url.model.file.json.StatusJson;
-import com.devonfw.tools.ide.url.model.file.json.UrlStatus;
-import com.devonfw.tools.ide.url.model.file.json.UrlStatusState;
 import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
 import com.devonfw.tools.ide.url.model.folder.UrlTool;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.model.report.UrlUpdaterReport;
+import com.devonfw.tools.ide.url.updater.status.StatusJson;
+import com.devonfw.tools.ide.url.updater.status.UrlStatus;
+import com.devonfw.tools.ide.url.updater.status.UrlStatusFile;
+import com.devonfw.tools.ide.url.updater.status.UrlStatusState;
 import com.devonfw.tools.ide.util.DateTimeUtil;
 import com.devonfw.tools.ide.util.HexUtil;
 
@@ -87,6 +90,10 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   private final String downloadBaseUrl;
 
   private final String versionBaseUrl;
+
+  private Path statusRepositoryPath;
+
+  private final Map<Path, UrlStatusFile> statusFiles = new HashMap<>();
 
   private static final Logger logger = LoggerFactory.getLogger(AbstractUrlUpdater.class);
 
@@ -542,7 +549,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    */
   protected boolean doAddVersion(String edition, UrlVersion urlVersion, String url, OperatingSystem os, SystemArchitecture architecture, String checksum) {
 
-    UrlStatusFile status = urlVersion.getStatus();
+    UrlStatusFile status = getStatusFile(urlVersion, false);
     if ((status != null) && status.getStatusJson().isManual()) {
       return true;
     }
@@ -695,6 +702,10 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     doUpdateStatusJson(success, statusCode, edition, urlVersion, url, urlDownloadFile, update);
 
     urlVersion.save();
+    UrlStatusFile urlStatusFile = getStatusFile(urlVersion, false);
+    if (urlStatusFile != null) {
+      urlStatusFile.save();
+    }
 
     return success;
   }
@@ -771,10 +782,10 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   private void doUpdateStatusJson(boolean success, int statusCode, String edition, UrlVersion urlVersion, String url, UrlDownloadFile downloadFile,
       boolean update) {
 
-    UrlStatusFile urlStatusFile = urlVersion.getStatus();
+    UrlStatusFile urlStatusFile = getStatusFile(urlVersion, false);
     boolean forceCreation = (success || update);
     if ((urlStatusFile == null) && forceCreation) {
-      urlStatusFile = urlVersion.getOrCreateStatus();
+      urlStatusFile = getStatusFile(urlVersion, true);
     }
     StatusJson statusJson = null;
     UrlStatus status = null;
@@ -942,6 +953,36 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   }
 
   /**
+   * @param statusRepositoryPath the {@link Path} to the repository where {@code status.json} files are stored.
+   */
+  public void setStatusRepositoryPath(Path statusRepositoryPath) {
+
+    this.statusRepositoryPath = statusRepositoryPath;
+  }
+
+  private Path getStatusJsonPath(UrlVersion urlVersion) {
+
+    Path urlRepositoryPath = urlVersion.getParent().getParent().getParent().getPath();
+    Path statusRoot = (this.statusRepositoryPath != null) ? this.statusRepositoryPath : urlRepositoryPath;
+    Path relativeVersionPath = urlRepositoryPath.relativize(urlVersion.getPath());
+    return statusRoot.resolve(relativeVersionPath).resolve(UrlStatusFile.STATUS_JSON);
+  }
+
+  private UrlStatusFile getStatusFile(UrlVersion urlVersion, boolean create) {
+
+    Path statusPath = getStatusJsonPath(urlVersion);
+    UrlStatusFile statusFile = this.statusFiles.get(statusPath);
+    if (statusFile == null) {
+      if (!create && !Files.exists(statusPath)) {
+        return null;
+      }
+      statusFile = new UrlStatusFile(statusPath);
+      this.statusFiles.put(statusPath, statusFile);
+    }
+    return statusFile;
+  }
+
+  /**
    * Updates the tool's versions in the URL repository.
    *
    * @param urlRepository the {@link UrlRepository} to update
@@ -994,7 +1035,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     for (String version : existingVersions) {
       UrlVersion urlVersion = edition.getChild(version);
       if (urlVersion != null) {
-        UrlStatusFile urlStatusFile = urlVersion.getOrCreateStatus();
+        UrlStatusFile urlStatusFile = getStatusFile(urlVersion, true);
         StatusJson statusJson = urlStatusFile.getStatusJson();
         if (statusJson.isManual()) {
           logger.info("For tool {} the version {} is set to manual, hence skipping update", getToolWithEdition(edition.getName()), version);
