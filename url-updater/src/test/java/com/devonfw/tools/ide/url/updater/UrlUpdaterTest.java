@@ -54,7 +54,7 @@ class UrlUpdaterTest extends AbstractUrlUpdaterTest {
     UrlUpdaterMock updater = new UrlUpdaterMock(wmRuntimeInfo);
 
     // when
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     Path versionsPath = tempDir.resolve("mocked").resolve("mocked").resolve("1.0");
 
@@ -74,7 +74,7 @@ class UrlUpdaterTest extends AbstractUrlUpdaterTest {
 
     // re-initialize UrlRepository
     UrlRepository urlRepositoryNew = UrlRepository.load(tempDir);
-    updater.update(urlRepositoryNew);
+    update(updater, urlRepositoryNew);
 
     assertThat(versionsPath.resolve("linux_x64.urls")).exists();
     assertThat(versionsPath.resolve("linux_x64.urls.sha256")).exists();
@@ -91,7 +91,7 @@ class UrlUpdaterTest extends AbstractUrlUpdaterTest {
     UrlUpdaterMockSingle updater = new UrlUpdaterMockSingle(wmRuntimeInfo);
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
     Path versionsPath = Path.of(TEST_DATA_ROOT).resolve("mocked").resolve("mocked").resolve("1.0");
 
     // assert
@@ -140,7 +140,7 @@ class UrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(any(urlMatching("/os/.*")).willReturn(aResponse().withStatus(404)));
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     StatusJson statusJson = retrieveStatusJson(urlRepository, toolName, editionName, versionName);
@@ -198,7 +198,7 @@ class UrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(any(urlMatching("/os/.*")).willReturn(aResponse().withStatus(200).withHeader("Content-Type", "text/plain")));
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     status = retrieveStatusJson(urlRepository, toolName, editionName, versionName).getStatus(url);
@@ -253,7 +253,7 @@ class UrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(any(urlMatching("/os/.*")).willReturn(aResponse().withStatus(404)));
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     assertThat(urlVersion.getPath()).doesNotExist();
@@ -277,7 +277,7 @@ class UrlUpdaterTest extends AbstractUrlUpdaterTest {
     UrlUpdaterMockSingle updater = new UrlUpdaterMockSingle(wmRuntimeInfo);
 
     // when
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     Path versionsPath = tempDir.resolve("mocked").resolve("mocked").resolve("1.0");
 
@@ -301,7 +301,7 @@ class UrlUpdaterTest extends AbstractUrlUpdaterTest {
     updater.setVersion("latest");
 
     // when
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // then
     Path versionsPath = tempDir.resolve("mocked").resolve("mocked").resolve("latest");

@@ -39,7 +39,7 @@ class InsoUrlUpdaterTest extends AbstractUrlUpdaterTest {
     InsoUrlUpdater updater = new InsoUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     Path insoDir = tempDir.resolve("inso").resolve("inso");

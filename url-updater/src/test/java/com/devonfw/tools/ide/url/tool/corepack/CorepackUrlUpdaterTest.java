@@ -44,7 +44,7 @@ class CorepackUrlUpdaterTest extends AbstractUrlUpdaterTest {
     CorepackUrlUpdater updater = new CorepackUrlUpdater(wmRuntimeInfo.getHttpBaseUrl() + "/");
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     assertUrlVersionAgnostic(tempDir.resolve("corepack").resolve("corepack").resolve("0.34.0"));

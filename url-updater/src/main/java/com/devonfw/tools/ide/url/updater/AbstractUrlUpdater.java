@@ -6,7 +6,6 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -14,11 +13,9 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -91,9 +88,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
 
   private final String versionBaseUrl;
 
-  private Path statusRepositoryPath;
-
-  private final Map<Path, UrlStatusFile> statusFiles = new HashMap<>();
+  private UpdateManager updateManager;
 
   private static final Logger logger = LoggerFactory.getLogger(AbstractUrlUpdater.class);
 
@@ -702,10 +697,6 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     doUpdateStatusJson(success, statusCode, edition, urlVersion, url, urlDownloadFile, update);
 
     urlVersion.save();
-    UrlStatusFile urlStatusFile = getStatusFile(urlVersion, false);
-    if (urlStatusFile != null) {
-      urlStatusFile.save();
-    }
 
     return success;
   }
@@ -953,33 +944,16 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   }
 
   /**
-   * @param statusRepositoryPath the {@link Path} to the repository where {@code status.json} files are stored.
+   * @param updateManager the {@link UpdateManager} that owns the shared status file cache.
    */
-  public void setStatusRepositoryPath(Path statusRepositoryPath) {
+  public void setUpdateManager(UpdateManager updateManager) {
 
-    this.statusRepositoryPath = statusRepositoryPath;
-  }
-
-  private Path getStatusJsonPath(UrlVersion urlVersion) {
-
-    Path urlRepositoryPath = urlVersion.getParent().getParent().getParent().getPath();
-    Path statusRoot = (this.statusRepositoryPath != null) ? this.statusRepositoryPath : urlRepositoryPath;
-    Path relativeVersionPath = urlRepositoryPath.relativize(urlVersion.getPath());
-    return statusRoot.resolve(relativeVersionPath).resolve(UrlStatusFile.STATUS_JSON);
+    this.updateManager = updateManager;
   }
 
   private UrlStatusFile getStatusFile(UrlVersion urlVersion, boolean create) {
 
-    Path statusPath = getStatusJsonPath(urlVersion);
-    UrlStatusFile statusFile = this.statusFiles.get(statusPath);
-    if (statusFile == null) {
-      if (!create && !Files.exists(statusPath)) {
-        return null;
-      }
-      statusFile = new UrlStatusFile(statusPath);
-      this.statusFiles.put(statusPath, statusFile);
-    }
-    return statusFile;
+    return this.updateManager.getStatusFile(urlVersion, create);
   }
 
   /**
@@ -1073,8 +1047,6 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     urlStatusFile.cleanup();
     if (statusJson.getUrls().isEmpty()) {
       urlStatusFile.delete();
-    } else {
-      urlStatusFile.save();
     }
   }
 

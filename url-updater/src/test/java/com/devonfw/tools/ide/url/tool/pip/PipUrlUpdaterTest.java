@@ -48,7 +48,7 @@ class PipUrlUpdaterTest extends AbstractUrlUpdaterTest {
     String versionName = "1.0";
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     Path versionsPath = tempDir.resolve(toolName).resolve(editionName).resolve(versionName);
 

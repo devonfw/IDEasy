@@ -11,6 +11,7 @@ import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
 import com.devonfw.tools.ide.url.model.folder.UrlTool;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
+import com.devonfw.tools.ide.url.model.report.UrlFinalReport;
 import com.devonfw.tools.ide.url.updater.status.StatusJson;
 import com.devonfw.tools.ide.url.updater.status.UrlStatusFile;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
@@ -61,6 +62,20 @@ public class AbstractUrlUpdaterTest extends Assertions {
     UrlVersion urlVersion = new UrlVersion(urlEdition, version);
     Path statusPath = urlVersion.getPath().resolve(UrlStatusFile.STATUS_JSON);
     return new UrlStatusFile(statusPath).getStatusJson();
+  }
+
+  /**
+   * Runs the given updater on the given repository and saves the resulting status files (wiring an {@link UpdateManager} like the production code does).
+   *
+   * @param updater the {@link AbstractUrlUpdater} to run.
+   * @param urlRepository the {@link UrlRepository} to update.
+   */
+  protected void update(AbstractUrlUpdater updater, UrlRepository urlRepository) {
+
+    UpdateManager updateManager = new UpdateManager(urlRepository.getPath(), urlRepository.getPath(), new UrlFinalReport(), null);
+    updater.setUpdateManager(updateManager);
+    updater.update(urlRepository);
+    updateManager.saveStatusFiles();
   }
 
   protected void assertUrlVersionAgnostic(Path urlVersionFolder) {
