@@ -575,5 +575,3 @@ public class GitContextImpl implements GitContext {
     return null;
   }
 }
-
-
