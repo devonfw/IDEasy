@@ -58,7 +58,7 @@ class IdeasyTest extends AbstractIdeContextTest {
     // assert - the step is marked as failed
     assertThat(context).logAtDebug().hasMessage("Step 'ide' ended with failure.");
     // assert - no ERROR-level error block and no "Logfile can be found at" line leaked into the captured output
-    assertThat(exitCode).isNotEqualTo(0);
+    assertThat(exitCode).isEqualTo(1);
     assertThat(context).logAtError().hasNoMessageContaining("An unexpected error occurred");
     assertThat(context).log().hasNoMessageContaining("An unexpected error occurred");
     assertThat(context).log().hasNoMessageContaining("Logfile can be found at");
