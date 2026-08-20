@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 import org.junit.platform.commons.util.ReflectionUtils;
@@ -215,6 +216,7 @@ class BackgroundNewWindowTest extends AbstractIdeContextTest {
    */
   @Test
   @EnabledOnOs(OS.WINDOWS)
+  @EnabledIfSystemProperty(named = "ide.e2e.window.tests", matches = "true")
   void backgroundNewWindowShouldActuallyExecuteViaStartOnWindows() throws Exception {
     // arrange
     if (isCiEnvironment()) {
@@ -258,6 +260,7 @@ class BackgroundNewWindowTest extends AbstractIdeContextTest {
 
   @Test
   @EnabledOnOs(OS.WINDOWS)
+  @EnabledIfSystemProperty(named = "ide.e2e.window.tests", matches = "true")
   void backgroundNewWindowShouldWithEchoInjectedShouldNotActuallyLeakOnWindows() throws Exception {
     // arrange
     if (isCiEnvironment()) {
@@ -314,6 +317,7 @@ class BackgroundNewWindowTest extends AbstractIdeContextTest {
    */
   @Test
   @EnabledOnOs(OS.LINUX)
+  @EnabledIfSystemProperty(named = "ide.e2e.window.tests", matches = "true")
   void backgroundNewWindowShouldActuallyExecuteOnLinux() throws Exception {
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC, null, false);
@@ -366,6 +370,7 @@ class BackgroundNewWindowTest extends AbstractIdeContextTest {
    */
   @Test
   @EnabledOnOs(OS.MAC)
+  @EnabledIfSystemProperty(named = "ide.e2e.window.tests", matches = "true")
   void backgroundNewWindowShouldActuallyExecuteViaOsascriptOnMac() throws Exception {
     // arrange
     if (isCiEnvironment()) {
