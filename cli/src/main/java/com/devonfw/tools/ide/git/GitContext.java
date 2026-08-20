@@ -301,7 +301,11 @@ public interface GitContext {
    */
   void push(Path repository, boolean followTags);
 
-  /// @param directory
-  /// @return
-  Path findRepositoryRoot(Path directory);
+  /**
+   * Find the root of the git repository
+   *
+   * @param repository the {@link Path} to the git repository.
+   * @return the {@link Path} to the repository root
+   */
+  Path findRepositoryRoot(Path repository);
 }
