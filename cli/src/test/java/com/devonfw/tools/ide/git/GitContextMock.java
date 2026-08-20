@@ -275,15 +275,6 @@ public class GitContextMock extends GitContextImpl {
   }
 
   @Override
-  public void saveCurrentCommitId(Path repository, Path trackedCommitIdPath) {
-
-    String currentCommitId = determineCurrentCommitId(repository);
-    if (currentCommitId != null) {
-      this.context.getFileAccess().writeFileContent(currentCommitId, trackedCommitIdPath);
-    }
-  }
-
-  @Override
   protected String determineCurrentCommitId(Path repository) {
 
     Path gitFolder = repository.resolve(GIT_FOLDER);
