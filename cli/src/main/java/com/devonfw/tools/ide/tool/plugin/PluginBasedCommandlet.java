@@ -223,7 +223,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
       undefinedPlugins.remove(plugin.name());
     }
     for (String name : undefinedPlugins) {
-      LOG.warn("Undefined plugin '{}' configured in variable {} - no file {}{} found in {} or {}.", name, variable, name, IdeContext.EXT_PROPERTIES,
+      LOG.info("Ignoring undefined plugin '{}' configured in variable {} - no file {}{} found in {} or {}.", name, variable, name, IdeContext.EXT_PROPERTIES,
           getPluginsConfigPath(), getUserHomePluginsConfigPath());
     }
     return extraPlugins;
