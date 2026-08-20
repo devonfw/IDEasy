@@ -284,6 +284,12 @@ public class SystemPath {
     String fileName = toolPath.getFileName().toString();
 
     if (parent == null) {
+      for (Path path : this.extraPathEntries) {
+        Path binaryPath = findBinaryInOrder(path, fileName);
+        if (binaryPath != null && filter.test(binaryPath)) {
+          return binaryPath;
+        }
+      }
       for (Path path : this.tool2pathMap.values()) {
         Path binaryPath = findBinaryInOrder(path, fileName);
         if (binaryPath != null && filter.test(binaryPath)) {
