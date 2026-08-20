@@ -2,12 +2,23 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2026.08.002
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/821[#821]: Made the `ide` prefix in `ide shell` part of the editable input so it can be removed for non-IDEasy commands
+* https://github.com/devonfw/IDEasy/issues/2286[#2286]: Fix SystemPath.findBinary to search extraPathEntries
+* https://github.com/devonfw/IDEasy/issues/1165[#1165]: Fix automatic project import for Eclipse
+* https://github.com/devonfw/IDEasy/issues/2040[#2040]: Fixed buggy workspace selection in the GUI
+* https://github.com/devonfw/IDEasy/issues/2253[#2253]: Fix structure and log documentation
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/49?closed=1[milestone 2026.08.002].
+
 == 2026.08.001
 
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/2197[#2197]: Fix broken python integration
-* https://github.com/devonfw/IDEasy/issues/2190[#2190]: IDEasy destroys my python installation
 * https://github.com/devonfw/IDEasy/issues/2131[#2131]: Improve `ide upgrade --mode=` auto-completion
 * https://github.com/devonfw/IDEasy/issues/1870[#1870]: Add generic get-version implementation for global tools under windows
 * https://github.com/devonfw/IDEasy/issues/1558[#1558]: Added installation log information to the "Select Project Folder" and exit dialogs and enhanced `windows-installer/README.adoc`.
@@ -36,6 +47,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2136[#2136]: Add Support for Ruby URL Updater for Linux and macOS
 * https://github.com/devonfw/IDEasy/issues/2292[#2292]: Questions appear twice
 * https://github.com/devonfw/IDEasy/issues/825[#825]: Add commandlet for GC Log Analyzer
+* https://github.com/devonfw/IDEasy/issues/1938[#1938]: GUI not launchable outside of project context
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/48?closed=1[milestone 2026.08.001].
 
