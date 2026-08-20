@@ -299,4 +299,12 @@ public interface GitContext {
    * @param followTags {@code true} to also push annotated tags reachable from the pushed commits (git push --follow-tags), {@code false} to push commits only.
    */
   void push(Path repository, boolean followTags);
+
+  /**
+   * Find the root of the git repository
+   *
+   * @param repository the {@link Path} to the git repository.
+   * @return the {@link Path} to the repository root
+   */
+  Path findRepositoryRoot(Path repository);
 }

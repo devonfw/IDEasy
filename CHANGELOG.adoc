@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/2338[#2338]: Create first basic version of check commandlet
 * https://github.com/devonfw/IDEasy/issues/821[#821]: Made the `ide` prefix in `ide shell` part of the editable input so it can be removed for non-IDEasy commands
 * https://github.com/devonfw/IDEasy/issues/2286[#2286]: Fix SystemPath.findBinary to search extraPathEntries
 * https://github.com/devonfw/IDEasy/issues/1165[#1165]: Fix automatic project import for Eclipse
