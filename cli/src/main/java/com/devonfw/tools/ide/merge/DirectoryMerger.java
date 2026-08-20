@@ -53,6 +53,8 @@ public class DirectoryMerger extends AbstractWorkspaceMerger {
     this.extension2mergerMap.put("launch", xmlMerger); // Eclipse specific
     JsonMerger jsonMerger = new JsonMerger(context);
     this.extension2mergerMap.put("json", jsonMerger);
+    IniMerger iniMerger = new IniMerger(context);
+    this.extension2mergerMap.put("ini", iniMerger);
     TextMerger textMerger = new TextMerger(context);
     this.extension2mergerMap.put("name", textMerger); // intellij specific
     this.extension2mergerMap.put("editorconfig", textMerger);

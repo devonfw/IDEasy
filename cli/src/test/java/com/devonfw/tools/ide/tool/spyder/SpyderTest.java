@@ -62,8 +62,12 @@ class SpyderTest extends AbstractIdeContextTest {
     assertThat(commandlet).isInstanceOf(PipBasedIdeToolCommandlet.class);
   }
 
+  /**
+   * Tests that {@link Spyder#setEnvironment} points SPYDER_CONFDIR to the workspace-specific
+   * config directory (analog to VSCode's --user-data-dir).
+   */
   @Test
-  void testSpyderSetEnvironmentUsesIsolatedConfigDir() {
+  void testSpyderSetEnvironmentUsesWorkspaceConfigDir() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_PIP);
@@ -75,7 +79,8 @@ class SpyderTest extends AbstractIdeContextTest {
     // act
     commandlet.setEnvironment(environmentContext, installation, false);
 
-    // assert
-    assertThat(environmentContext.set).containsEntry("SPYDER_CONFIG_DIR", context.getConfPath().resolve("spyder").toString());
+    // assert — SPYDER_CONFDIR points to workspace/.spyder-py3
+    assertThat(environmentContext.set).containsEntry("SPYDER_CONFDIR", context.getWorkspacePath().resolve(".spyder-py3").toString());
   }
+
 }
