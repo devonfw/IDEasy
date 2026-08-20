@@ -296,8 +296,7 @@ public interface GitContext {
    * Pushes the local commits of the given repository to the remote repository.
    *
    * @param repository the {@link Path} to the git repository.
-   * @param followTags {@code true} to also push annotated tags reachable from the pushed commits (git push --follow-tags), {@code false} to push commits
-   *     only.
+   * @param followTags {@code true} to also push annotated tags reachable from the pushed commits (git push --follow-tags), {@code false} to push commits only.
    */
   void push(Path repository, boolean followTags);
 
