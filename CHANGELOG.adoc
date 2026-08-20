@@ -11,6 +11,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1165[#1165]: Fix automatic project import for Eclipse
 * https://github.com/devonfw/IDEasy/issues/2040[#2040]: Fixed buggy workspace selection in the GUI
 * https://github.com/devonfw/IDEasy/issues/2253[#2253]: Fix structure and log documentation
+* https://github.com/devonfw/IDEasy/issues/2251[#2251]: Provide generic uninstall support for globally installed tools (windows)
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/49?closed=1[milestone 2026.08.002].
 
@@ -22,7 +23,6 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2131[#2131]: Improve `ide upgrade --mode=` auto-completion
 * https://github.com/devonfw/IDEasy/issues/1870[#1870]: Add generic get-version implementation for global tools under windows
 * https://github.com/devonfw/IDEasy/issues/1558[#1558]: Added installation log information to the "Select Project Folder" and exit dialogs and enhanced `windows-installer/README.adoc`.
-* https://github.com/devonfw/IDEasy/issues/2251[#2251]: Provide generic uninstall support for globally installed tools (windows)
 * https://github.com/devonfw/IDEasy/issues/2187[#2187]: Start SoapUI commandlet in background
 * https://github.com/devonfw/IDEasy/issues/2189[#2189]: Integrate Ruff
 * https://github.com/devonfw/IDEasy/issues/2126[#2126]: Fix language selection dropdown

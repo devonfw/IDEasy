@@ -122,7 +122,6 @@ public class WindowsHelperImpl implements WindowsHelper {
   private String findUninstallKey(String appName) {
 
     for (String registryBasePath : REGISTRY_BASE_PATHS) {
-      LOG.warn("Searching registry for {} in {}", appName, registryBasePath);
       List<String> out = runReg("query", registryBasePath, "/s", "/f", appName);
       if (out == null) {
         continue;

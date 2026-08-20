@@ -17,6 +17,9 @@ public class WindowsHelperMock extends WindowsHelperImpl {
   /** Mock registry map storing WindowsAppInstallation entries */
   private final Map<String, WindowsAppInstallation> registry;
 
+  /** Captured uninstall command for assertions in tests. */
+  private String executedUninstallCommand;
+
   /**
    * The constructor.
    */
@@ -26,7 +29,11 @@ public class WindowsHelperMock extends WindowsHelperImpl {
     this.env = new Properties();
     this.env.setProperty("IDE_ROOT", "C:\\projects");
     this.env.setProperty("PATH",
-        "C:\\Users\\testuser\\AppData\\Local\\Microsoft\\WindowsApps;C:\\projects\\_ide\\installation\\bin;C:\\Users\\testuser\\scoop\\apps\\python\\current\\Scripts;C:\\Users\\testuser\\scoop\\apps\\python\\current;C:\\Users\\testuser\\scoop\\shims");
+        "C:\\Users\\testuser\\AppData\\Local\\Microsoft\\WindowsApps;"
+            + "C:\\projects\\_ide\\installation\\bin;"
+            + "C:\\Users\\testuser\\scoop\\apps\\python\\current\\Scripts;"
+            + "C:\\Users\\testuser\\scoop\\apps\\python\\current;"
+            + "C:\\Users\\testuser\\scoop\\shims");
     this.registry = new HashMap<>();
   }
 
@@ -108,6 +115,20 @@ public class WindowsHelperMock extends WindowsHelperImpl {
     }
 
     return List.of();
+  }
+
+  @Override
+  protected void executeUninstallCommand(String command) {
+
+    this.executedUninstallCommand = command;
+  }
+
+  /**
+   * @return the uninstall command that would have been executed, or {@code null} if none was executed.
+   */
+  public String getExecutedUninstallCommand() {
+
+    return this.executedUninstallCommand;
   }
 
   private static String extractFilterValue(String[] args) {

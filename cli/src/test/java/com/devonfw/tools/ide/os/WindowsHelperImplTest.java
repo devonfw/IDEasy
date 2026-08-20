@@ -255,95 +255,57 @@ class WindowsHelperImplTest extends AbstractIdeContextTest {
   @Test
   void testUninstallApplicationExecutesRegistryCommand() {
     AbstractIdeTestContext context = new IdeTestContext();
+    WindowsHelperMock helper = (WindowsHelperMock) context.getWindowsHelper();
+
     String appName = "Test Application";
-    String uninstallString =
-        "\"C:\\Program Files\\Test\\uninstall.exe\" /S";
+    String uninstallString = "\"C:\\Program Files\\Test\\uninstall.exe\" /S";
 
-    String[] capturedCommand = new String[1];
-
-    WindowsHelperImpl helper = new WindowsHelperImpl(context) {
-
-      @Override
-      public WindowsAppInstallation getAppInstallationFromRegistry(
-          String requestedAppName) {
-
-        assertThat(requestedAppName).isEqualTo(appName);
-
-        return new WindowsAppInstallation(
+    helper.setAppInstallationFromRegistry(
+        appName,
+        new WindowsAppInstallation(
             "1.0",
             null,
             uninstallString,
-            "C:\\Program Files\\Test");
-      }
-
-      @Override
-      protected void executeUninstallCommand(String command) {
-        capturedCommand[0] = command;
-      }
-    };
+            "C:\\Program Files\\Test"));
 
     // act
     helper.uninstallApplication(appName);
 
     // assert
-    assertThat(capturedCommand[0]).isEqualTo(uninstallString);
+    assertThat(helper.getExecutedUninstallCommand()).isEqualTo(uninstallString);
   }
 
   @Test
   void testUninstallApplicationDoesNothingWhenApplicationIsMissing() {
+    // arrange
     AbstractIdeTestContext context = new IdeTestContext();
-    boolean[] commandExecuted = { false };
-
-    WindowsHelperImpl helper = new WindowsHelperImpl(context) {
-
-      @Override
-      public WindowsAppInstallation getAppInstallationFromRegistry(
-          String appName) {
-
-        return null;
-      }
-
-      @Override
-      protected void executeUninstallCommand(String command) {
-        commandExecuted[0] = true;
-      }
-    };
+    WindowsHelperMock helper = (WindowsHelperMock) context.getWindowsHelper();
 
     // act
     helper.uninstallApplication("MissingApp");
 
     // assert
-    assertThat(commandExecuted[0]).isFalse();
+    assertThat(helper.getExecutedUninstallCommand()).isNull();
   }
 
   @Test
   void testUninstallApplicationDoesNothingWithoutUninstallString() {
+    // arrange
     AbstractIdeTestContext context = new IdeTestContext();
-    boolean[] commandExecuted = { false };
+    WindowsHelperMock helper = (WindowsHelperMock) context.getWindowsHelper();
 
-    WindowsHelperImpl helper = new WindowsHelperImpl(context) {
+    WindowsAppInstallation installation = new WindowsAppInstallation(
+        "1.0",
+        null,
+        null,
+        "C:\\Program Files\\Test");
 
-      @Override
-      public WindowsAppInstallation getAppInstallationFromRegistry(
-          String appName) {
-
-        return new WindowsAppInstallation(
-            "1.0",
-            null,
-            null,
-            "C:\\Program Files\\Test");
-      }
-
-      @Override
-      protected void executeUninstallCommand(String command) {
-        commandExecuted[0] = true;
-      }
-    };
+    helper.setAppInstallationFromRegistry(TEST_APP_NAME, installation);
 
     // act
-    helper.uninstallApplication("TestApp");
+    helper.uninstallApplication(TEST_APP_NAME);
 
     // assert
-    assertThat(commandExecuted[0]).isFalse();
+    assertThat(helper.getExecutedUninstallCommand()).isNull();
   }
 }
