@@ -16,12 +16,26 @@ import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.property.FlagProperty;
 
+/**
+ * {@link Commandlet} to check the current repository for best-practices, starting from the current working directory (CWD).
+ */
 public class CheckCommandlet extends Commandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(CheckCommandlet.class);
+
+  /**
+   * rule to exclude all hidden files and folders.
+   */
   public static final String RULE_IGNORE_HIDDEN = ".*";
+
+  /**
+   * rule to ensure that the .gitignore file is committed.
+   */
   public static final String RULE_UNIGNORE_GITIGNORE = "!" + MissingGitignoreIssue.GITIGNORE;
 
+  /**
+   * Flag to fix issues
+   */
   public final FlagProperty fix;
 
   /**
@@ -76,7 +90,7 @@ public class CheckCommandlet extends Commandlet {
       return;
     }
 
-    List<String> lines = new ArrayList<>();
+    List<String> lines;
     try {
       lines = Files.readAllLines(gitignore);
     } catch (IOException e) {
