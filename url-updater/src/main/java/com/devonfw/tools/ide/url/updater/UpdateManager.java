@@ -92,7 +92,7 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
       new JavaAzulUrlUpdater(), new JavaUrlUpdater(), new JenkinsUrlUpdater(), new JmcUrlUpdater(), new KotlincUrlUpdater(), new KotlincNativeUrlUpdater(),
       new LazyDockerUrlUpdater(), new MvnUrlUpdater(), new MvndUrlUpdater(), new NgUrlUpdater(), new NodeUrlUpdater(), new NpmUrlUpdater(),
       new ObsidianUrlUpdater(), new OcUrlUpdater(), new PgAdminUrlUpdater(), new PipUrlUpdater(), new PycharmUrlUpdater(), new QuarkusUrlUpdater(),
-      new RubyUrlUpdater(), new RubyJdxUrlUpdater(), new RustUrlUpdater(), new DockerRancherDesktopUrlUpdater(), new SonarUrlUpdater(), 
+      new RubyUrlUpdater(), new RubyJdxUrlUpdater(), new RustUrlUpdater(), new DockerRancherDesktopUrlUpdater(), new SonarUrlUpdater(),
       new SquirrelSqlUrlUpdater(), new SoapUiUrlUpdater(), new TerraformUrlUpdater(), new TomcatUrlUpdater(), new UvUrlUpdater(), new VsCodeUrlUpdater(),
       new VsCodiumUrlUpdater());
 
