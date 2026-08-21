@@ -297,7 +297,9 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
 
   @Override
   public void uninstall() {
-    if (this.context.getSystemInfo().isLinux()) {
+    if (this.context.getSystemInfo().isWindows()) {
+      WindowsHelper.get(this.context).uninstallApplication(getWindowsRegistryAppName());
+    } else if (this.context.getSystemInfo().isLinux()) {
       runWithPackageManager(false, getUninstallPackageManagerCommands(), NativePackageAction.UNINSTALL);
     } else {
       LOG.error("Couldn't uninstall {} on this OS. Please uninstall manually.", this.getName());
