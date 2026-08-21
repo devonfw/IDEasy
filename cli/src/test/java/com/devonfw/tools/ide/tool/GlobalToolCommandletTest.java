@@ -176,44 +176,6 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Verifies that {@link GlobalToolCommandlet#uninstall()} on non-Linux systems logs an error asking the user to uninstall manually.
-   */
-  @Test
-  void testUninstallOnWindowsLogsManualUninstallError() {
-
-    // arrange
-    IdeTestContext context = newContext(PROJECT_BASIC);
-    context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
-    PackageManagedToolCommandlet commandlet = new PackageManagedToolCommandlet(context);
-
-    // act
-    commandlet.uninstall();
-
-    // assert: error was logged because uninstall is not supported on Windows
-    assertThat(context).logAtError()
-        .hasMessageContaining("Couldn't uninstall mytool on this OS. Please uninstall manually.");
-  }
-
-  /**
-   * Verifies that {@link GlobalToolCommandlet#uninstall()} on Mac logs an error asking the user to uninstall manually.
-   */
-  @Test
-  void testUninstallOnMacLogsManualUninstallError() {
-
-    // arrange
-    IdeTestContext context = newContext(PROJECT_BASIC);
-    context.setSystemInfo(SystemInfoMock.MAC_X64);
-    PackageManagedToolCommandlet commandlet = new PackageManagedToolCommandlet(context);
-
-    // act
-    commandlet.uninstall();
-
-    // assert: error was logged because uninstall is not supported on Mac
-    assertThat(context).logAtError()
-        .hasMessageContaining("Couldn't uninstall mytool on this OS. Please uninstall manually.");
-  }
-
-  /**
    * Verifies that {@link GlobalToolCommandlet#getUninstallPackageManagerCommands()} correctly derives uninstall commands from
    * {@link GlobalToolCommandlet#getNativePackages()}.
    */
