@@ -5,7 +5,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 == 2026.08.002
 
 Release with new features and bugfixes:
-
+* https://github.com/devonfw/IDEasy/issues/694[#694]: Improved dotnet installation
 * https://github.com/devonfw/IDEasy/issues/1165[#1165]: Fix automatic project import for Eclipse
 * https://github.com/devonfw/IDEasy/issues/2040[#2040]: Fixed buggy workspace selection in the GUI
 
@@ -52,7 +52,6 @@ The full list of changes for this release can be found in https://github.com/dev
 
 Release with new features and bugfixes:
 
-* https://github.com/devonfw/IDEasy/issues/694[#694]: Improved dotnet installation
 * https://github.com/devonfw/IDEasy/issues/2102[#2102]: IDE_ROOT environment variable is not available to ideasy.exe during MSI installation
 * https://github.com/devonfw/IDEasy/issues/1594[#1594]: Add release commandlet
 * https://github.com/devonfw/IDEasy/issues/1982[#1982]: Modified fallback link creation on Windows
