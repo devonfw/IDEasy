@@ -30,6 +30,8 @@ public class Docker extends GlobalToolCommandlet {
 
   private static final Pattern DOCKER_DESKTOP_LINUX_VERSION_PATTERN = Pattern.compile("^([0-9]+(?:\\.[0-9]+){1,2})");
 
+  private static final String EDITION_DOCKER = "docker";
+
   /**
    * The constructor.
    *
@@ -65,6 +67,32 @@ public class Docker extends GlobalToolCommandlet {
 
   @Override
   protected List<NativePackage> getNativePackages() {
+
+    if (EDITION_DOCKER.equals(getConfiguredEdition())) {
+      return List.of(
+          new NativePackage(
+              NativePackageManager.APT,
+              List.of("/tmp/docker-desktop-amd64.deb"),
+              List.of("--allow-downgrades"),
+              List.of(
+                  "sudo install -m 0755 -d /etc/apt/keyrings",
+                  "sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc",
+                  "sudo chmod a+r /etc/apt/keyrings/docker.asc",
+                  "echo \"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] "
+                      + "https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo \\\"$VERSION_CODENAME\\\") stable\" | "
+                      + "sudo tee /etc/apt/sources.list.d/docker.list > /dev/null",
+                  "sudo apt update",
+                  "curl -fsSL https://desktop.docker.com/linux/main/amd64/docker-desktop-amd64.deb -o /tmp/docker-desktop-amd64.deb"
+              ),
+              List.of(
+                  "sudo rm -f /etc/apt/sources.list.d/docker.list",
+                  "sudo rm -f /etc/apt/keyrings/docker.asc",
+                  "rm -f /tmp/docker-desktop-amd64.deb"
+              )
+          )
+      );
+    }
+
     return List.of(
         new NativePackage(
             NativePackageManager.ZYPPER,
