@@ -50,23 +50,35 @@ public class BuildCommandlet extends Commandlet {
       throw new CliException("Missing current working directory!");
     }
 
-    List<String> args = this.arguments.asList();
-    LocalToolCommandlet commandlet = null;
-    for (Class<? extends LocalToolCommandlet> toolClass : BUILD_TOOLS) {
-      LocalToolCommandlet toolCommandlet = this.context.getCommandletManager().getCommandlet(toolClass);
-      Path buildDescriptor = toolCommandlet.findBuildDescriptor(buildPath);
-      if (buildDescriptor != null) {
-        commandlet = toolCommandlet;
-        if (args.isEmpty()) {
-          String variableName = commandlet.getName().toUpperCase(Locale.ROOT) + "_BUILD_OPTS";
-          args = getDefaultToolOptions(variableName);
-        }
-      }
-    }
+    LocalToolCommandlet commandlet = findBuildCommandlet(this.context, buildPath);
     if (commandlet == null) {
-      throw new CliException("Could not find build descriptor - no pom.xml, build.gradle, or package.json found!");
+      throw new CliException("Could not find a build descriptor in " + buildPath + " - no supported build tool detected.");
+    }
+    List<String> args = this.arguments.asList();
+    if (args.isEmpty()) {
+      String variableName = commandlet.getName().toUpperCase(Locale.ROOT) + "_BUILD_OPTS";
+      args = getDefaultToolOptions(variableName);
     }
     commandlet.runTool(args);
+  }
+
+  /**
+   * Detects the applicable build tool for the given {@code buildPath} by {@link LocalToolCommandlet#findBuildDescriptor(Path) querying} the available build
+   * commandlets (in order of priority) for a matching build descriptor (e.g. {@code pom.xml}, {@code build.gradle} or {@code package.json}).
+   *
+   * @param context the {@link IdeContext}.
+   * @param buildPath the {@link Path} to the directory to build.
+   * @return the applicable build {@link LocalToolCommandlet} or {@code null} if no build descriptor was found.
+   */
+  static LocalToolCommandlet findBuildCommandlet(IdeContext context, Path buildPath) {
+
+    for (Class<? extends LocalToolCommandlet> toolClass : BUILD_TOOLS) {
+      LocalToolCommandlet toolCommandlet = context.getCommandletManager().getCommandlet(toolClass);
+      if (toolCommandlet.findBuildDescriptor(buildPath) != null) {
+        return toolCommandlet;
+      }
+    }
+    return null;
   }
 
   private List<String> getDefaultToolOptions(String buildOptionName) {

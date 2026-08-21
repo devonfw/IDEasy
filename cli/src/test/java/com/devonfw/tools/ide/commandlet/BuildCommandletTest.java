@@ -2,6 +2,8 @@ package com.devonfw.tools.ide.commandlet;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.nio.file.Path;
+
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.cli.CliException;
@@ -11,6 +13,10 @@ import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.devonfw.tools.ide.tool.gradle.Gradle;
+import com.devonfw.tools.ide.tool.mvn.Mvn;
+import com.devonfw.tools.ide.tool.npm.Npm;
+import com.devonfw.tools.ide.tool.yarn.Yarn;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
@@ -117,5 +123,23 @@ class BuildCommandletTest extends AbstractIdeContextTest {
     BuildCommandlet buildCommandlet = context.getCommandletManager().getCommandlet(BuildCommandlet.class);
     context.setCwd(context.getWorkspacePath().resolve("empty"), context.getWorkspacePath().toString(), context.getIdeHome());
     assertThrows(CliException.class, buildCommandlet::run);
+  }
+
+  /**
+   * Tests {@link BuildCommandlet#findBuildCommandlet(com.devonfw.tools.ide.context.IdeContext, Path)} detecting the applicable build tool by its build
+   * descriptor and preferring {@link Yarn} over {@link Npm} when a {@code yarn.lock} is present.
+   */
+  @Test
+  void testFindBuildCommandlet() {
+
+    IdeTestContext context = newContext(PROJECT_BUILD);
+    Path workspace = context.getWorkspacePath();
+
+    assertThat(BuildCommandlet.findBuildCommandlet(context, workspace.resolve("mvn"))).isInstanceOf(Mvn.class);
+    assertThat(BuildCommandlet.findBuildCommandlet(context, workspace.resolve("gradle"))).isInstanceOf(Gradle.class);
+    assertThat(BuildCommandlet.findBuildCommandlet(context, workspace.resolve("npm"))).isInstanceOf(Npm.class);
+    // both npm and yarn match package.json, but yarn.lock is present so yarn must take precedence over npm
+    assertThat(BuildCommandlet.findBuildCommandlet(context, workspace.resolve("yarn"))).isInstanceOf(Yarn.class);
+    assertThat(BuildCommandlet.findBuildCommandlet(context, workspace.resolve("empty"))).isNull();
   }
 }
