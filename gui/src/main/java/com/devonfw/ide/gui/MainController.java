@@ -255,7 +255,14 @@ public class MainController {
     selectedWorkspace.getItems().clear();
     selectedWorkspace.getItems().addAll(workspaces);
 
-    setIdeButtonsDisabled(true);
+    if (workspaces.contains("main")) {
+      selectedWorkspace.setValue("main");
+      updateContext(selectedProject.getValue(), selectedWorkspace.getValue());
+      setIdeButtonsDisabled(false);
+    } else {
+      setIdeButtonsDisabled(true);
+    }
+
   }
 
   private void openIDE(String inIde) {
