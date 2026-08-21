@@ -5,6 +5,7 @@ import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Locale;
@@ -44,6 +45,8 @@ public class AppBaseTest extends HeadlessApplicationTest {
   private Label statusText;
   private ProgressBar taskProgressBar;
 
+  private MainController mainController;
+
   @TempDir
   private static Path mockIdeRoot;
 
@@ -58,8 +61,9 @@ public class AppBaseTest extends HeadlessApplicationTest {
     URL mainViewUrl = getClass().getResource("main-view.fxml");
     assertThat(mainViewUrl).as("Cannot resolve main UI FXML resource!").isNotNull();
 
+    mainController = new MainController(mockIdeRoot.toString(), guiStateManager, nlsService, null);
     FXMLLoader fxmlLoader = new FXMLLoader(mainViewUrl);
-    fxmlLoader.setController(new MainController(mockIdeRoot.toString(), guiStateManager, nlsService));
+    fxmlLoader.setController(mainController);
     fxmlLoader.setResources(nlsService.getResourceBundle());
     Parent root = fxmlLoader.load();
     stage.setScene(new Scene(root));
@@ -148,9 +152,9 @@ public class AppBaseTest extends HeadlessApplicationTest {
   /**
    * Regression test for #2040: switching between projects must reset the workspace selection and keep the IDE open buttons and the context consistent.
    * <p>
-   * Previously the workspace selection and IDE open buttons were not kept in sync when a different project was selected. This ensures that selecting a
-   * new project clears the workspace selection and disables the IDE open buttons again, and that (re-)selecting the workspace of the new project
-   * re-enables the buttons and points the context to the correct project.
+   * Previously the workspace selection and IDE open buttons were not kept in sync when a different project was selected. This ensures that selecting a new
+   * project clears the workspace selection and disables the IDE open buttons again, and that (re-)selecting the workspace of the new project re-enables the
+   * buttons and points the context to the correct project.
    */
   @Test
   public void testSwitchingProjectResetsWorkspaceSelection() {
@@ -237,5 +241,101 @@ public class AppBaseTest extends HeadlessApplicationTest {
 
     assertThat(TaskOverviewWindow.getInstance(taskManager).getStage().isShowing()).as("Task overview window should be opened when clicking on status text")
         .isTrue();
+  }
+
+  /**
+   * Regression test for #2214: switching the application language re-loads the main view and constructs a fresh {@link MainController}.
+   * <p>
+   * The user's selection (project, workspace) and the enabled state of the IDE open buttons must survive the reload. This drives the reload the same way the
+   * GUI does on a locale change: a new {@link MainController} is loaded, with the existing controller's selection handed over as its {@code oldMainController}.
+   * It also verifies that a project which no longer exists after the reload is skipped gracefully instead of being reapplied.
+   */
+  @Test
+  public void testLanguageSelectionDoesNotResetGuiState() throws IOException {
+
+    // Arrange: select a project and its workspace -> the IDE open buttons become enabled.
+    interact(() -> selectedProject.getSelectionModel().select("project-1"));
+    interact(() -> selectedWorkspace.getSelectionModel().select("main"));
+
+    // Act: reload the main view with a new locale, carrying over the existing selection (as the GUI does on a locale change).
+    ReloadedView reloaded = reloadMainViewOnFxThread(Locale.GERMAN, mainController);
+
+    // Assert: project, workspace and the enabled state of the IDE open buttons are preserved.
+    assertThat(reloaded.project.getValue()).as("Project should be restored after switching language").isEqualTo("project-1");
+    assertThat(reloaded.workspace.getValue()).as("Workspace should be restored after switching language").isEqualTo("main");
+    for (Button button : reloaded.ideButtons) {
+      assertThat(button.isDisabled()).as(button.getId() + " button should remain enabled after switching language").isFalse();
+    }
+
+    // Act: select another project (unused by the other tests in this class) and then remove it so it no longer exists -> reload again.
+    interact(() -> selectedProject.getSelectionModel().select("project-4"));
+    deleteProject("project-4");
+    ReloadedView stale = reloadMainViewOnFxThread(Locale.ENGLISH, mainController);
+
+    // Assert: the removed project is not reapplied and the buttons stay disabled.
+    assertThat(stale.project.getItems()).as("The removed project should not be present in the reloaded project list").doesNotContain("project-4");
+    assertThat(stale.project.getValue()).as("A no-longer-existing project should not be restored").isNull();
+    assertThat(stale.workspace.getValue()).as("Workspace should not be restored for a removed project").isNull();
+    for (Button button : stale.ideButtons) {
+      assertThat(button.isDisabled()).as(button.getId() + " button should be disabled when no project is selected").isTrue();
+    }
+  }
+
+  /**
+   * Reloads the main view on the FX thread the same way the GUI does on a locale change: a new {@link MainController} is constructed with the given previous
+   * controller handed over as its {@code oldMainController}, and the FXML view is re-loaded with the given locale. This forces the new controller's
+   * {@code initialize} to re-apply the previous controller's selection.
+   *
+   * @param locale the locale to apply on the re-loaded view
+   * @param oldController the controller holding the selection to carry over
+   * @return the relevant nodes of the freshly loaded main view
+   */
+  private ReloadedView reloadMainViewOnFxThread(Locale locale, MainController oldController) {
+
+    final ReloadedView[] reloaded = new ReloadedView[1];
+    interact(() -> {
+      try {
+        NlsService nlsService = new NlsService(locale);
+        MainController controller = new MainController(mockIdeRoot.toString(), guiStateManager, nlsService, oldController);
+
+        URL mainViewUrl = AppBaseTest.class.getResource("main-view.fxml");
+        assertThat(mainViewUrl).as("Cannot resolve main UI FXML resource!").isNotNull();
+        FXMLLoader fxmlLoader = new FXMLLoader(mainViewUrl);
+        fxmlLoader.setController(controller);
+        fxmlLoader.setResources(nlsService.getResourceBundle());
+        Parent root = fxmlLoader.load();
+
+        reloaded[0] = new ReloadedView();
+        reloaded[0].project = (ComboBox<String>) root.lookup("#selectedProject");
+        reloaded[0].workspace = (ComboBox<String>) root.lookup("#selectedWorkspace");
+        reloaded[0].ideButtons = new Button[] { (Button) root.lookup("#androidStudioOpen"), (Button) root.lookup("#eclipseOpen"),
+            (Button) root.lookup("#intellijOpen"), (Button) root.lookup("#vsCodeOpen") };
+      } catch (IOException e) {
+        throw new IllegalStateException("Failed to load the main view", e);
+      }
+    });
+    return reloaded[0];
+  }
+
+  /**
+   * The project, workspace and IDE open button nodes of a loaded main view.
+   */
+  private static final class ReloadedView {
+
+    private ComboBox<String> project;
+    private ComboBox<String> workspace;
+    private Button[] ideButtons;
+  }
+
+  /**
+   * Removes the given project directory so it no longer shows up in the project list.
+   *
+   * @param projectName the name of the project to remove
+   */
+  private void deleteProject(String projectName) throws IOException {
+
+    Files.deleteIfExists(mockIdeRoot.resolve(projectName).resolve("workspaces").resolve("main"));
+    Files.deleteIfExists(mockIdeRoot.resolve(projectName).resolve("workspaces"));
+    Files.deleteIfExists(mockIdeRoot.resolve(projectName));
   }
 }

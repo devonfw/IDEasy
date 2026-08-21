@@ -43,6 +43,8 @@ public class App extends Application {
 
   private NlsService nlsService;
 
+  private MainController mainController;
+
   TaskManager taskManager = new TaskManager();
   GuiStateManager guiStateManager = new GuiStateManager(taskManager, null);
 
@@ -61,7 +63,7 @@ public class App extends Application {
         }
     );
 
-    root = loadMainView();
+    root = loadMainView(null);
 
     this.nlsService.addLocaleChangeListener(this::reloadMainView);
 
@@ -114,7 +116,7 @@ public class App extends Application {
   private void reloadMainView() {
 
     try {
-      Parent reloadedRoot = loadMainView();
+      Parent reloadedRoot = loadMainView(this.mainController);
       this.root = reloadedRoot;
       if (this.primaryStage != null && this.primaryStage.getScene() != null) {
         this.primaryStage.getScene().setRoot(reloadedRoot);
@@ -124,11 +126,12 @@ public class App extends Application {
     }
   }
 
-  private Parent loadMainView() throws IOException {
+  private Parent loadMainView(MainController oldMainController) throws IOException {
 
     FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
     fxmlLoader.setResources(this.nlsService.getResourceBundle());
-    fxmlLoader.setController(new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()), guiStateManager, this.nlsService));
+    this.mainController = new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()), guiStateManager, this.nlsService, oldMainController);
+    fxmlLoader.setController(this.mainController);
     return fxmlLoader.load();
   }
 

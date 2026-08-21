@@ -42,6 +42,7 @@ public class MainController {
   private final ProjectManager projectManager;
   private final TaskManager taskManager;
 
+  private final MainController oldMainController;
 
   @FXML
   private ComboBox<String> selectedProject;
@@ -86,7 +87,7 @@ public class MainController {
    * @param ideRoot the IDE_ROOT path
    * @param guiStateManager the {@link GuiStateManager} to be used in this application instance
    */
-  public MainController(String ideRoot, GuiStateManager guiStateManager, NlsService nlsService) {
+  public MainController(String ideRoot, GuiStateManager guiStateManager, NlsService nlsService, MainController oldMainController) {
 
     LOG.debug("IDE_ROOT path={}", ideRoot);
     this.ideRootPath = ideRoot;
@@ -95,6 +96,7 @@ public class MainController {
     this.projectManager = guiStateManager.getProjectManager();
     this.languageMap = new LinkedHashMap<>();
     this.nlsService = nlsService;
+    this.oldMainController = oldMainController;
 
     setUpTaskListListener();
   }
@@ -133,6 +135,7 @@ public class MainController {
     setProjectsComboBox();
     initLanguageComboBox();
     selectedWorkspace.setOnAction(this::onWorkspaceSelected);
+    loadOldMainController();
   }
 
   private void onWorkspaceSelected(ActionEvent actionEvent) {
@@ -143,6 +146,30 @@ public class MainController {
     }
     updateContext(selectedProject.getValue(), workspaceName);
     setIdeButtonsDisabled(false);
+  }
+
+  private void loadOldMainController() {
+    if (this.oldMainController == null) {
+      return;
+    }
+
+    String oldProjectName = this.oldMainController.selectedProject.getValue();
+    if (oldProjectName != null && selectedProject.getItems().contains(oldProjectName)) {
+      selectedProject.setValue(oldProjectName);
+      setWorkspaceComboBox();
+      String oldWorkspaceName = this.oldMainController.selectedWorkspace.getValue();
+      if (oldWorkspaceName != null) {
+        selectedWorkspace.setValue(oldWorkspaceName);
+        updateContext(oldProjectName, oldWorkspaceName);
+      }
+
+      // Restore the enabled state captured from the previous view so it stays consistent with the restored selection.
+      selectedWorkspace.setDisable(this.oldMainController.selectedWorkspace.isDisable());
+      androidStudioOpen.setDisable(this.oldMainController.androidStudioOpen.isDisable());
+      eclipseOpen.setDisable(this.oldMainController.eclipseOpen.isDisable());
+      intellijOpen.setDisable(this.oldMainController.intellijOpen.isDisable());
+      vsCodeOpen.setDisable(this.oldMainController.vsCodeOpen.isDisable());
+    }
   }
 
   private void initLanguageComboBox() {
