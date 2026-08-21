@@ -153,7 +153,7 @@ public class MainController {
       if (newTab == toolConfigTab) {
         loadToolConfigContent();
       }
-    }
+    });
     selectedWorkspace.setOnAction(this::onWorkspaceSelected);
 
   }
