@@ -12,6 +12,7 @@ import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -24,6 +25,7 @@ import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -275,7 +277,8 @@ public class ToolSettingsController {
       versionWithIcon.getChildren().addAll(version, errorIcon);
       HBox.setHgrow(versionWithIcon, Priority.ALWAYS);
 
-      root.getChildren().addAll(enabled, name, edition, versionWithIcon);
+      Node editionSlot = edition.isManaged() ? edition : createEditionPlaceholder();
+      root.getChildren().addAll(enabled, name, editionSlot, versionWithIcon);
       applyEnabledState(toolItem);
       setGraphic(root);
     }
@@ -345,10 +348,20 @@ public class ToolSettingsController {
         });
       } else {
         editionSelector.setVisible(false);
-        editionSelector.setManaged(true);
+        editionSelector.setManaged(false);
         editionSelector.setDisable(true);
       }
       return editionSelector;
+    }
+
+    // Empty stand-in occupying the same column width as the edition combo, used for tools that have no edition
+    // choice so the Version column stays aligned with rows that do render an edition selector.
+    private Region createEditionPlaceholder() {
+      Region placeholder = new Region();
+      placeholder.setPrefWidth(130);
+      placeholder.setMaxWidth(Double.MAX_VALUE);
+      HBox.setHgrow(placeholder, Priority.ALWAYS);
+      return placeholder;
     }
 
     private ComboBox<String> createVersionSelector(ToolConfiguration toolItem) {

@@ -6,7 +6,6 @@
 <?import javafx.scene.layout.*?>
 <?import java.lang.Double?>
 <BorderPane fx:id="rootPane"
-  maxHeight="-Infinity"
   maxWidth="-Infinity"
   VBox.vgrow="ALWAYS"
   xmlns="http://javafx.com/javafx/25.0.0"
