@@ -39,7 +39,7 @@ class VsCodiumUrlUpdaterTest extends AbstractUrlUpdaterTest {
     UrlRepository urlRepository = UrlRepository.load(tempDir);
     VsCodiumUrlUpdater updater = new VsCodiumUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
     // when
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     Path vscodium1 = tempDir.resolve("vscode").resolve("vscodium").resolve("1.92.1.24228");
     Path vscodium2 = tempDir.resolve("vscode").resolve("vscodium").resolve("1.116.02821");

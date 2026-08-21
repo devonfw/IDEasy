@@ -20,6 +20,7 @@ import com.devonfw.tools.ide.git.GitUrl;
  * @param buildPath The build path for the repository.
  * @param buildCmd The command to invoke to build the repository after clone or pull. If omitted no build is triggered.
  * @param imports list of IDEs where the repository will be imported to.
+ * @param remotes list of additional git remotes to add to the repository after cloning.
  * @param active {@code true} to setup the repository during setup, {@code false} to skip.
  */
 public record RepositoryConfig(
@@ -33,6 +34,7 @@ public record RepositoryConfig(
     String buildCmd,
     Set<String> imports,
     List<RepositoryLink> links,
+    List<RepositoryRemote> remotes,
     boolean active) {
 
   /** Wildcard to match all workspaces. */
@@ -65,7 +67,8 @@ public record RepositoryConfig(
     RepositoryProperties properties = new RepositoryProperties(filePath, context);
     String id = properties.getId();
     RepositoryConfig config = new RepositoryConfig(id, properties.getPath(), properties.getWorkingSets(), properties.getWorkspaces(), properties.getGitUrl(),
-        properties.getGitBranch(), properties.getBuildPath(), properties.getBuildCmd(), properties.getImports(), properties.getLinks(), properties.isActive());
+        properties.getGitBranch(), properties.getBuildPath(), properties.getBuildCmd(), properties.getImports(), properties.getLinks(), properties.getRemotes(),
+        properties.isActive());
     if (properties.isInvalid()) {
       return null;
     }
