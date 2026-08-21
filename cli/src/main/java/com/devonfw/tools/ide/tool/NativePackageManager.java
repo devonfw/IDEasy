@@ -20,6 +20,7 @@ public enum NativePackageManager {
   DNF("install -y", "remove -y", "-", "*");
 
   private static final String DPKG_STATUS_INSTALLED = "installed";
+  private static final String SUDO = "sudo";
 
   private final String installCommand;
   private final String uninstallCommand;
@@ -122,7 +123,7 @@ public enum NativePackageManager {
   public PackageManagerCommand install(NativePackage nativePackage, String version) {
     verifyPackageManager(nativePackage);
     List<String> commands = new ArrayList<>(nativePackage.getSetupCommands());
-    StringBuilder command = new StringBuilder("sudo ").append(getBinaryName());
+    StringBuilder command = new StringBuilder(SUDO).append(' ').append(getBinaryName());
     for (String option : nativePackage.getExtraInstallOptions()) {
       command.append(' ').append(option);
     }
@@ -141,7 +142,7 @@ public enum NativePackageManager {
    */
   public PackageManagerCommand uninstall(NativePackage nativePackage) {
     verifyPackageManager(nativePackage);
-    StringBuilder command = new StringBuilder("sudo ").append(getBinaryName()).append(' ').append(this.uninstallCommand);
+    StringBuilder command = new StringBuilder(SUDO).append(' ').append(getBinaryName()).append(' ').append(this.uninstallCommand);
     for (String pkg : nativePackage.getPackages()) {
       command.append(' ').append(pkg);
     }
