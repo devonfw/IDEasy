@@ -20,6 +20,8 @@ public class WindowsHelperMock extends WindowsHelperImpl {
   /** Captured uninstall command for assertions in tests. */
   private String executedUninstallCommand;
 
+  private Boolean powerShellProfilesConfigured;
+
   /**
    * The constructor.
    */
@@ -129,6 +131,15 @@ public class WindowsHelperMock extends WindowsHelperImpl {
   public String getExecutedUninstallCommand() {
 
     return this.executedUninstallCommand;
+  }
+
+  @Override
+  public void configurePowerShellProfiles(boolean install) {
+    this.powerShellProfilesConfigured = install;
+  }
+
+  public Boolean getPowerShellProfilesConfigured() {
+    return this.powerShellProfilesConfigured;
   }
 
   private static String extractFilterValue(String[] args) {
