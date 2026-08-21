@@ -18,6 +18,56 @@ ide eclipse add-plugin lombok
 
 However, to avoid manual extra effort for lombok based projects you only need to activate this plugin in your project specific link:settings.adoc[settings] in https://github.com/devonfw/ide-settings/blob/master/eclipse/plugins/lombok.properties#L3[lombok.properties for eclipse] (replace `false` with `true` for `plugin_active`).
 
+=== Problem
+
+With current versions of eclipse the lombok plugin does not activate itself even though it is installed properly.
+IDEasy reports the plugin as successfully installed and eclipse lists it in `About Eclipse IDE` > `Installation Details`, but lombok stays inactive.
+As a result eclipse reports compile errors for everything that lombok is supposed to generate (e.g. the `log` field from `@Slf4j` or the getters and setters from `@Data`).
+Building the very same project from the command-line via `mvn` or `gradle` works without any error since only the eclipse compiler is affected.
+
+The reason is that lombok has to be loaded as https://docs.oracle.com/en/java/javase/21/docs/api/java.instrument/java/lang/instrument/package-summary.html[Java agent] in order to hook into the eclipse compiler.
+A Java agent can only be activated with the JVM option `-javaagent` when eclipse is started.
+An eclipse plugin however is installed into an already running eclipse and therefore can never do this.
+This is a bug of lombok and not of IDEasy - for details and the current status see https://github.com/projectlombok/lombok/issues/3621[lombok#3621].
+
+=== Workaround
+
+Until lombok fixes their eclipse plugin you can activate lombok manually as Java agent:
+
+1. Determine the absolute path to your `lombok.jar`.
+In case your project is built with maven you already have it in your link:variables.adoc[`M2_REPO`] (`$IDE_HOME/conf/mvn/repository/org/projectlombok/lombok/«version»/lombok-«version».jar`).
+Otherwise you can download it from https://projectlombok.org/download[projectlombok.org].
+Please use the same version that your project is compiling against to avoid differences between your IDE and your build.
+2. Open the file `$IDE_HOME/software/eclipse/eclipse.ini` in a text editor.
+3. Add the following line at the very end of that file or atleast make sure it is placed after the `-vmargs` line since everything before is passed to the eclipse launcher instead of the JVM:
++
+```
+-javaagent:«absolute-path-to-lombok.jar»
+```
++
+4. Restart eclipse via `ide eclipse` and rebuild your project via `Project` > `Clean...`.
+
+You can verify the result in `About Eclipse IDE` that now shows the installed lombok version.
+
+NOTE: The folder `$IDE_HOME/software/eclipse` is only a symbolic link into the shared link:software.adoc#repository[software repository].
+Therefore this change applies to every IDEasy project on your disc that uses the same eclipse version.
+Also it is lost whenever eclipse is updated or reinstalled so that you have to repeat it.
+
+=== Status
+
+We are aware that this workaround is not convenient and does not fit to the automation that IDEasy stands for.
+Still we decided not to automate it for the following reasons:
+
+* As described above the file `eclipse.ini` is shared across all your IDEasy projects using the same eclipse version.
+If IDEasy would modify it for one project, all other projects would be affected as well.
+Even worse, they would end up with a broken eclipse that cannot be started anymore once the project owning the referenced `lombok.jar` gets deleted.
+* We can neither reliably determine which lombok version a project actually uses (it may come from a parent POM, a BOM or even as transitive dependency) nor when the workaround has to be disabled again after lombok fixed their plugin.
+* IDEasy installs plugins via a generic mechanism that works the same way for all supported IDEs.
+Adding tool specific hacks to it would make it hard to maintain.
+
+For updates of the status see issue https://github.com/devonfw/IDEasy/issues/1525[#1525].
+We still hope that lombok fixes their eclipse plugin so that this workaround is not needed any more.
+
 == Lombok for VS-Code
 
 For VisualStudio Code there is an extension to activate https://projectlombok.org/setup/vscode[lombok support in VS-Code].
