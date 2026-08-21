@@ -65,6 +65,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       //artifactName: String, required: boolean
       "bin", true,
       "functions", true,
+      "functions.ps1", true,
       "internal", true,
       "gui", true,
       "system", true,
@@ -299,10 +300,12 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     addToShellRc(BASHRC, ideRoot, null);
     addToShellRc(ZSHRC, ideRoot, "autoload -U +X bashcompinit && bashcompinit");
     installIdeasyWindowsEnv(ideRoot, installationPath);
+    WindowsHelper.get(this.context).configurePowerShellProfiles(true);
     installDesktopShortcut(installationPath);
     IdeLogLevel.SUCCESS.log(LOG, "IDEasy has been installed successfully on your system.");
     LOG.warn("IDEasy has been setup for new shells but it cannot work in your current shell(s).\n"
-        + "To use it here, run 'source ~/.bashrc' (or your shell config). Otherwise, open a new terminal or reboot.");
+        + "To use it here, reload your shell configuration (e.g. 'source ~/.bashrc' in bash "
+        + "or '. $PROFILE.CurrentUserAllHosts' in PowerShell). Otherwise, open a new terminal or reboot.");
   }
 
   private void installIdeasyWindowsEnv(Path ideRoot, Path installationPath) {
@@ -694,11 +697,8 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
    */
   private void modifyShellRc(String filename, Path ideRoot, boolean add, String extraLine) {
 
-    if (add) {
-      LOG.info("Configuring IDEasy in {}", filename);
-    } else {
-      LOG.info("Removing IDEasy from {}", filename);
-    }
+    logIdeasyModification(filename, add);
+
     Path rcFile = this.context.getUserHome().resolve(filename);
     FileAccess fileAccess = this.context.getFileAccess();
     List<String> lines = fileAccess.readFileLines(rcFile);
@@ -791,6 +791,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     removeFromShellRc(ZSHRC, ideRoot);
     Path idePath = this.context.getIdePath();
     uninstallIdeasyWindowsEnv(ideRoot);
+    WindowsHelper.get(this.context).configurePowerShellProfiles(false);
     uninstallIdeasyIdePath(idePath);
     deleteDownloadCache();
     IdeLogLevel.SUCCESS.log(LOG, "IDEasy has been uninstalled from your system.");
@@ -816,7 +817,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     try {
       this.context.getFileAccess().delete(path);
     } catch (IllegalStateException e) {
-      // best effort - on macOS ~/Downloads can deny access (EPERM), don't fail the whole uninstall over it
+      // best effort - on macOS ~/Downloads can deny access (EPERM), don't fail the whole uninstallation over it
       String cause = (e.getCause() != null) ? e.getCause().getMessage() : e.getMessage();
       LOG.warn("Could not delete download cache at {} ({}). The folder will be left in place; you can remove it manually via Finder.", path, cause);
     }
@@ -864,5 +865,10 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
         helper.setUserEnvironmentValue(IdeVariables.PATH.getName(), newUserPath);
       }
     }
+  }
+
+  private void logIdeasyModification(String target, boolean configure) {
+    String action = configure ? "Configuring" : "Removing";
+    LOG.info("{} IDEasy in {}", action, target);
   }
 }
