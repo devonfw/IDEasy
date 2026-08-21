@@ -17,6 +17,8 @@ GRAALVM_DIR="$PROJECT_SOFTWARE_DIR/extra/graalvm"
 
 LOCAL_DEV="$IDE_ROOT/_ide/software/maven/ideasy/ideasy/local-dev"
 INSTALLATION_LINK="$IDE_ROOT/_ide/installation"
+LOCAL_DEV_REPO="$LOCAL_DEV/.m2"
+LAUNCHER_POM="$TARGET_DIR/package/gui/pom.xml"
 
 echo "Building IDEasy native image..."
 
@@ -33,10 +35,6 @@ export PATH="$GRAALVM_DIR/bin:$PATH"
 
 mvn -B -ntp -f "$CLI_DIR/pom.xml" -Pnative -DskipTests=true clean install
 
-echo "Installing the GUI into the local maven repository..."
-
-mvn -B -ntp -f "$SCRIPT_DIR/pom.xml" -pl gui -DskipTests=true install
-
 echo "Preparing local-dev installation..."
 rm -rf "$LOCAL_DEV"
 mkdir -p "$LOCAL_DEV"
@@ -50,6 +48,14 @@ if [ ! -d "$TARGET_DIR/package" ]; then
 fi
 
 cp -R "$TARGET_DIR/package"/. "$LOCAL_DEV"/
+
+echo "Building the GUI into the self-contained maven repository..."
+mvn -B -ntp -f "$SCRIPT_DIR/pom.xml" -pl gui -am -DskipTests=true -Dmaven.repo.local="$LOCAL_DEV_REPO" install
+
+echo "Seeding the GUI launcher (exec) maven plugin into the self-contained maven repository..."
+mvn -B -ntp -f "$LAUNCHER_POM" org.codehaus.mojo:exec-maven-plugin:3.1.0:exec \
+  -Dexec.executable=echo -Dexec.args=seeded \
+  -Dmaven.repo.local="$LOCAL_DEV_REPO"
 
 OS_NAME="$(uname -s)"
 
