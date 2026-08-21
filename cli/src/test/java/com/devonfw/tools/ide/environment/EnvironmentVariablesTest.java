@@ -76,6 +76,7 @@ class EnvironmentVariablesTest extends AbstractIdeContextTest {
 
     assertThat(EnvironmentVariables.getToolVersionVariable("android-studio")).isEqualTo("ANDROID_STUDIO_VERSION");
     assertThat(EnvironmentVariables.getToolEditionVariable("android-studio")).isEqualTo("ANDROID_STUDIO_EDITION");
+    assertThat(EnvironmentVariables.getToolExtraPluginsVariable("android-studio")).isEqualTo("ANDROID_STUDIO_EXTRA_PLUGINS");
   }
 
   /**
