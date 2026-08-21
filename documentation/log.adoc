@@ -1,6 +1,53 @@
 :toc:
 toc::[]
 
-= log
+= logs
 
-The log directory is used to store log files e.g. for the IDE link:configurator.adoc[configurator]. You may look here for debug information if something goes wrong.
+The log directory is used to store log files created by IDEasy.
+
+Logs are stored in:
+
+----
+$IDE_ROOT/_ide/logs
+----
+
+The log directory can be helpful for troubleshooting and debugging if something goes wrong during execution of IDEasy commands.
+
+Log files are generated for all IDEasy commands except those that only get simple information like `ide help` or `ide version`.
+
+The logs are organized in date-based directories below the `logs` folder.
+
+A typical structure looks similar to:
+
+----
+$IDE_ROOT/_ide/logs
+└── 2026
+    └── 08
+        ├── 04
+        └── 05
+----
+
+The first directory level represents the year, followed by the month and day.
+This structure helps keeping log files organized by date.
+The full path to the log of `ide «command»` will follow this pattern:
+```
+$IDE_ROOT/_ide/logs/«yyyy»/«MM»/«dd»/«project»-ide-«command»-«HH»-«mm»-«ss».log
+```
+
+The only excuse to this pattern are installation and uninstallation logs of IDEasy itself that are stored in the top-level `logs` directory.
+These logs keep the timestamp in their filename (see link:setup.adoc#installation-logs[installation-logs]).
+
+Log files contain detailed diagnostic information such as timestamps, log levels, executed operations, warnings, errors, and stack traces.
+They are intended for troubleshooting and analysing problems during IDEasy execution.
+
+On the console, the visible log level can be influenced with options such as:
+
+----
+ide --debug
+ide --trace
+ide --quiet
+----
+
+However, log files are always written with full trace information to ensure all details required for troubleshooting are available, regardless of the selected console log level.
+
+To remove obsolete data and free disk space, use the `ide cleanup` command.
