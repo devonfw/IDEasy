@@ -350,9 +350,10 @@ public class AppBaseTest extends HeadlessApplicationTest {
     waitForCondition(() -> toolConfigTab.getContent() != null, 5000);
 
     Parent content = (Parent) toolConfigTab.getContent();
-    Button cancelButton = lookup(content, "#cancelButton");
+    Button cancelButton = (Button) content.lookup("#cancelButton");
 
     interact(cancelButton::fire);
 
     assertThat(tabPane.getSelectionModel().getSelectedItem()).as("cancel should navigate back to the main tab").isEqualTo(mainTab);
   }
+}
