@@ -6,11 +6,21 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/218[#218]: Added possibility to start a command in a new window using the process builder
+* https://github.com/devonfw/IDEasy/issues/788[#788]: Add support for IDE_OPTIONS variable per IDE commandlet
+* https://github.com/devonfw/IDEasy/issues/2313[#2313]: Fix python installation failing with wired behaviour
+* https://github.com/devonfw/IDEasy/issues/2168[#2168]: Add support for git_remote property to configure additional remotes after cloning
+* https://github.com/devonfw/IDEasy/issues/1676[#1676]: Import extra sdks automatically into ide
+* https://github.com/devonfw/IDEasy/issues/2180[#2180]: Add *_EXTRA_PLUGINS variable to install extra IDE plugins per user
+* https://github.com/devonfw/IDEasy/issues/1651[#1651]: Move status.json files out of ide-urls to ide-urls-status
+* https://github.com/devonfw/IDEasy/issues/1943[#1943]: Create ruby commandlet
+* https://github.com/devonfw/IDEasy/issues/2250[#2250]: Implemented uninstall commands from package manager
 * https://github.com/devonfw/IDEasy/issues/821[#821]: Made the `ide` prefix in `ide shell` part of the editable input so it can be removed for non-IDEasy commands
 * https://github.com/devonfw/IDEasy/issues/2286[#2286]: Fix SystemPath.findBinary to search extraPathEntries
 * https://github.com/devonfw/IDEasy/issues/1165[#1165]: Fix automatic project import for Eclipse
 * https://github.com/devonfw/IDEasy/issues/2040[#2040]: Fixed buggy workspace selection in the GUI
 * https://github.com/devonfw/IDEasy/issues/2253[#2253]: Fix structure and log documentation
+* https://github.com/devonfw/IDEasy/issues/1135[#1135]: Fix PowerShell env variable initialization on Windows by sourcing functions from the PowerShell profile
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/49?closed=1[milestone 2026.08.002].
 

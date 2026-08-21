@@ -299,4 +299,25 @@ public interface GitContext {
    * @param followTags {@code true} to also push annotated tags reachable from the pushed commits (git push --follow-tags), {@code false} to push commits only.
    */
   void push(Path repository, boolean followTags);
+
+  /**
+   * Adds a new git remote to the given repository using {@code git remote add}.
+   *
+   * @param repository the {@link Path} to the git repository.
+   * @param name the name of the remote to add (e.g. "upstream").
+   * @param url the URL of the remote to add.
+   */
+  void addRemote(Path repository, String name, String url);
+
+  /**
+   * Adds a new git remote to the given repository using {@code git remote add}.
+   * If the remote already exists with a different URL, an {@link IllegalStateException} is thrown
+   * instead of silently overriding it.
+   *
+   * @param repository the {@link Path} to the git repository.
+   * @param name the name of the remote to add (e.g. "upstream").
+   * @param url the URL of the remote to add.
+   * @throws IllegalStateException if the remote already exists with a different URL.
+   */
+  void addRemoteOrFail(Path repository, String name, String url);
 }
