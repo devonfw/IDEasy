@@ -13,6 +13,9 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.EnvironmentContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
+import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
@@ -81,6 +84,36 @@ public class Python extends LocalToolCommandlet {
 
     // https://github.com/devonfw/IDEasy/issues/2190
     return true;
+  }
+
+  @Override
+  protected VersionIdentifier getInstalledVersionWithMissingVersionFile(Path toolPath) {
+
+    Path pythonExecutable = this.context.getSystemInfo().isWindows()
+        ? toolPath.resolve("Scripts").resolve("python.exe")
+        : toolPath.resolve("bin").resolve("python");
+
+    if (!Files.exists(pythonExecutable)) {
+      return null;
+    }
+
+    ProcessResult result = this.context.newProcess()
+        .directory(toolPath)
+        .errorHandling(ProcessErrorHandling.NONE)
+        .executable(pythonExecutable)
+        .addArgs("-c", "import sys; print(sys.version.split()[0])")
+        .run(ProcessMode.DEFAULT_CAPTURE);
+
+    if (!result.isSuccessful()) {
+      return null;
+    }
+
+    String version = result.getOut().isEmpty() ? null : result.getOut().getFirst();
+    if ((version == null) || version.isBlank()) {
+      return null;
+    }
+
+    return VersionIdentifier.of(version.trim());
   }
 
   @Override
