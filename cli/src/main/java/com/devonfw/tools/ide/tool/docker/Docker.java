@@ -35,6 +35,8 @@ public class Docker extends GlobalToolCommandlet {
 
   private static final String EDITION_DOCKER = "docker";
 
+  private static final String EDITION_DOCKER = "docker";
+
   /**
    * The constructor.
    *
@@ -139,6 +141,49 @@ public class Docker extends GlobalToolCommandlet {
       case MAC -> this.context.getSystemInfo().getArchitecture().equals(SystemArchitecture.ARM64);
       case LINUX -> true;
     };
+  }
+
+  @Override
+  protected List<PackageManagerCommand> getInstallPackageManagerCommands() {
+
+    String edition = getConfiguredEdition();
+    ToolRepository toolRepository = getToolRepository();
+    VersionIdentifier configuredVersion = getConfiguredVersion();
+    String resolvedVersion = toolRepository.resolveVersion(this.tool, edition, configuredVersion, this).toString();
+
+    if (EDITION_DOCKER.equals(edition)) {
+      return getInstallPackageManagerCommandsDockerDesktop(resolvedVersion);
+    }
+
+    return getInstallPackageManagerCommandsRancherDesktop(resolvedVersion);
+  }
+
+  private List<PackageManagerCommand> getInstallPackageManagerCommandsRancherDesktop(String resolvedVersion) {
+
+    return List.of(new PackageManagerCommand(NativePackageManager.ZYPPER, List.of(
+            "sudo zypper addrepo https://download.opensuse.org/repositories/isv:/Rancher:/stable/rpm/isv:Rancher:stable.repo",
+            String.format("sudo zypper --no-gpg-checks install rancher-desktop=%s*", resolvedVersion))),
+        new PackageManagerCommand(NativePackageManager.APT, List.of(
+            "curl -s https://download.opensuse.org/repositories/isv:/Rancher:/stable/deb/Release.key | gpg --dearmor |"
+                + " sudo dd status=none of=/usr/share/keyrings/isv-rancher-stable-archive-keyring.gpg",
+            "echo 'deb [signed-by=/usr/share/keyrings/isv-rancher-stable-archive-keyring.gpg]"
+                + " https://download.opensuse.org/repositories/isv:/Rancher:/stable/deb/ ./' |"
+                + " sudo dd status=none of=/etc/apt/sources.list.d/isv-rancher-stable.list", "sudo apt update",
+            String.format("sudo apt install -y --allow-downgrades rancher-desktop=%s*", resolvedVersion))));
+  }
+
+  private List<PackageManagerCommand> getInstallPackageManagerCommandsDockerDesktop(String resolvedVersion) {
+
+    return List.of(new PackageManagerCommand(NativePackageManager.APT, List.of(
+        "sudo install -m 0755 -d /etc/apt/keyrings",
+        "sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc",
+        "sudo chmod a+r /etc/apt/keyrings/docker.asc",
+        "echo \"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc]"
+            + " https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo \\\"$VERSION_CODENAME\\\") stable\" |"
+            + " sudo tee /etc/apt/sources.list.d/docker.list > /dev/null",
+        "sudo apt update",
+        "curl -fsSL https://desktop.docker.com/linux/main/amd64/docker-desktop-amd64.deb -o /tmp/docker-desktop-amd64.deb",
+        String.format("sudo apt install -y --allow-downgrades rancher-desktop=%s*", resolvedVersion))));
   }
 
   @Override
