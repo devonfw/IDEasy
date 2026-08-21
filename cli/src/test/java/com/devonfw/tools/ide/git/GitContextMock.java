@@ -57,6 +57,9 @@ public class GitContextMock extends GitContextImpl {
     FileAccess fileAccess = this.context.getFileAccess();
     fileAccess.mkdirs(repository);
 
+    // Create ide.properties to simulate a valid repository
+    fileAccess.touch(repository.resolve("ide.properties"));
+
     Path gitFolder = repository.resolve(GIT_FOLDER);
     fileAccess.mkdirs(gitFolder);
     String branch = gitUrl.branch();

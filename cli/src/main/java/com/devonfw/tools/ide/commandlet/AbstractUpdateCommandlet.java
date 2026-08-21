@@ -19,6 +19,7 @@ import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.git.GitUrl;
 import com.devonfw.tools.ide.git.repository.RepositoryCommandlet;
+import com.devonfw.tools.ide.git.repository.RepositoryUtil;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.StringProperty;
@@ -167,7 +168,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       LOG.info("Skipping git pull in settings due to code repository. Use --force-pull to enforce pulling.");
       return;
     }
-    this.context.newStep(getStepMessage()).run(() -> updateSettingsInStep(codeRepository));
+    this.context.newStep(getStepMessage()).run(() -> updateSettingsInStep(codeRepository), true);
   }
 
   protected String getStepMessage() {
@@ -182,6 +183,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       if (!settingsRepository) {
         if (Files.exists(settingsPath)) {
           if (!this.context.getFileAccess().isEmptyDir(settingsPath)) {
+            // settings folder seems to be invalid
             this.context.askToContinue(
                 "Your settings repository seems to be broken ('.git' folder not present). "
                     + "We can fix this by moving  your settings the backed up. "
@@ -191,9 +193,9 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
           }
           this.context.getFileAccess().backup(settingsPath);
         }
+        //settings folder does not exist (yet), lets retrieve the settings url to pull
         GitUrl gitUrl = getOrAskSettingsUrl();
-        checkProjectNameConvention(gitUrl.getProjectName());
-        initializeRepository(gitUrl);
+        pullAndCheckIntegrity(gitUrl);
         return;
       }
     }
@@ -210,23 +212,16 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
     String repository = this.settingsRepo.getValue();
     repository = handleDefaultRepository(repository);
-    String userPromt;
-    String defaultUrl;
-    if (isCodeRepository()) {
-      userPromt = "Code repository URL:";
-      defaultUrl = null;
-      LOG.info(MESSAGE_CODE_REPO_URL);
-    } else {
-      userPromt = "Settings URL [" + IdeContext.DEFAULT_SETTINGS_REPO_URL + "]:";
-      defaultUrl = IdeContext.DEFAULT_SETTINGS_REPO_URL;
-      LOG.info(MESSAGE_SETTINGS_REPO_URL, this.context.getSettingsPath());
-    }
+    String userPrompt = "Settings URL [" + IdeContext.DEFAULT_SETTINGS_REPO_URL + "]:";
+    String defaultUrl = IdeContext.DEFAULT_SETTINGS_REPO_URL;
+    LOG.info(MESSAGE_SETTINGS_REPO_URL, this.context.getSettingsPath());
+
     GitUrl gitUrl = null;
     if (repository != null) {
       gitUrl = GitUrl.of(repository);
     }
     while ((gitUrl == null) || !gitUrl.isValid()) {
-      repository = this.context.askForInput(userPromt, defaultUrl);
+      repository = this.context.askForInput(userPrompt, defaultUrl);
       repository = handleDefaultRepository(repository);
       gitUrl = GitUrl.of(repository);
       if (!gitUrl.isValid()) {
@@ -236,60 +231,78 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     return gitUrl;
   }
 
+  /**
+   * We pull the settings repo from the remote into a temporary folder to perform health checks.
+   */
+  private void pullAndCheckIntegrity(GitUrl gitUrl) {
+    GitContext gitContext = this.context.getGitContext();
+    Path tempProjectPath = this.context.getTempPath().resolve(IdeContext.FOLDER_PROJECTS).resolve(this.context.getProjectName());
+
+    gitContext.pullOrClone(gitUrl, tempProjectPath);
+
+    checkIntegrityAndMove(tempProjectPath, gitUrl.getProjectName());
+  }
+
+  private void checkIntegrityAndMove(Path projectPath, String gitProjectName) {
+
+    FileAccess fileAccess = this.context.getFileAccess();
+
+    if (!Files.exists(projectPath)) {
+      throw new CliException(getIntegrityCheckErrorMessage("Git pull target folder does not exist."));
+    }
+
+    Path targetDirectory;
+    switch (RepositoryUtil.getRepositoryType(projectPath, gitProjectName)) {
+      case SETTINGS -> {
+
+        targetDirectory = this.context.getIdeHome().resolve(IdeContext.FOLDER_SETTINGS);
+        moveProject(projectPath, targetDirectory);
+        this.context.getGitContext().saveCurrentCommitId(targetDirectory, this.context.getSettingsCommitIdPath());
+      }
+      case CODE_SETTINGS_COMBINED -> {
+
+        //this is a special case - here we need to symlink from IDE_HOME/settings to IDE_HOME/workspaces/main/repo_name/settings.
+        //(Formerly managed by the obsolete "--code" flag)
+        targetDirectory = this.context.getWorkspacePath().resolve(gitProjectName);
+        moveProject(projectPath, targetDirectory);
+
+        Path symlinkPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_SETTINGS);
+        Path symlinkTargetPath = this.context.getWorkspacePath().resolve(gitProjectName).resolve(IdeContext.FOLDER_SETTINGS);
+
+        fileAccess.symlink(symlinkTargetPath, symlinkPath);
+        this.context.getGitContext().saveCurrentCommitId(symlinkTargetPath, this.context.getSettingsCommitIdPath());
+      }
+      default -> {
+        fileAccess.backup(projectPath);
+        throw new CliException(getIntegrityCheckErrorMessage(String.format(
+            "The given git repository URL does not point to a valid settings or code-settings repository. "
+                + "Please verify and try again. Before trying again, please delete the folder %s",
+            this.context.getIdeHome())));
+      }
+    }
+  }
+
+  private Path moveProject(Path from, Path to) {
+
+    FileAccess fileAccess = this.context.getFileAccess();
+    try {
+      fileAccess.move(from, to);
+    } catch (Exception e) {
+      throw new CliException(getIntegrityCheckErrorMessage(String.format("Failed to move project from %s to %s", from, to)), e);
+    }
+    return to;
+  }
+
+  private String getIntegrityCheckErrorMessage(String message) {
+    return String.format("Settings repository integrity check failed: %s", message);
+  }
+
   private String handleDefaultRepository(String repository) {
     if ("-".equals(repository)) {
-      if (isCodeRepository()) {
-        LOG.warn("'-' is found after '--code'. This is invalid.");
-        repository = null;
-      } else {
-        LOG.info("'-' was found for settings repository, the default settings repository '{}' will be used.", IdeContext.DEFAULT_SETTINGS_REPO_URL);
-        repository = IdeContext.DEFAULT_SETTINGS_REPO_URL;
-      }
+      LOG.info("'-' was found for the repository, the default settings repository '{}' will be used.", IdeContext.DEFAULT_SETTINGS_REPO_URL);
+      repository = IdeContext.DEFAULT_SETTINGS_REPO_URL;
     }
     return repository;
-  }
-
-  private void checkProjectNameConvention(String projectName) {
-    boolean isSettingsRepo = projectName.contains(IdeContext.SETTINGS_REPOSITORY_KEYWORD);
-    boolean codeRepository = isCodeRepository();
-    if (isSettingsRepo == codeRepository) {
-      String warningTemplate;
-      if (codeRepository) {
-        warningTemplate = """
-            Your git URL is pointing to the project name {} that contains the keyword '{}'.
-            Therefore we assume that you did a mistake by adding the '--code' option to the ide project creation.
-            Do you really want to create the project?""";
-      } else {
-        warningTemplate = """
-            Your git URL is pointing to the project name {} that does not contain the keyword ''{}''.
-            Therefore we assume that you forgot to add the '--code' option to the ide project creation.
-            Do you really want to create the project?""";
-      }
-      this.context.askToContinue(warningTemplate, projectName, IdeContext.SETTINGS_REPOSITORY_KEYWORD);
-    }
-  }
-
-  private void initializeRepository(GitUrl gitUrl) {
-
-    GitContext gitContext = this.context.getGitContext();
-    Path settingsPath = this.context.getSettingsPath();
-    Path repoPath = settingsPath;
-    boolean codeRepository = isCodeRepository();
-    if (codeRepository) {
-      // clone the given code repository into IDE_HOME/workspaces/main
-      repoPath = context.getWorkspacePath().resolve(gitUrl.getProjectName());
-    }
-    gitContext.pullOrClone(gitUrl, repoPath);
-    if (codeRepository) {
-      // check for settings folder and create symlink to IDE_HOME/settings
-      Path settingsFolder = repoPath.resolve(IdeContext.FOLDER_SETTINGS);
-      if (Files.exists(settingsFolder)) {
-        context.getFileAccess().symlink(settingsFolder, settingsPath);
-      } else {
-        throw new CliException("Invalid code repository " + gitUrl + ": missing a settings folder at " + settingsFolder);
-      }
-    }
-    this.context.getGitContext().saveCurrentCommitId(settingsPath, this.context.getSettingsCommitIdPath());
   }
 
   private void updateSoftware() {
@@ -447,14 +460,4 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     fileAccess.writeFileContent(scriptContent, scriptPath);
     fileAccess.makeExecutable(scriptPath);
   }
-
-  /**
-   * Judge if the repository is a code repository.
-   *
-   * @return true when the repository is a code repository, otherwise false.
-   */
-  protected boolean isCodeRepository() {
-    return false;
-  }
-
 }
