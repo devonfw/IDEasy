@@ -96,186 +96,201 @@
   </left>
 
   <center>
-    <StackPane prefHeight="150.0" BorderPane.alignment="CENTER">
-      <fx:define>
-        <Double fx:id="buttonContainerHeight" fx:value="80.0"/>
-        <Double fx:id="buttonContainerWidth" fx:value="150.0"/>
-      </fx:define>
+    <TabPane fx:id="tabPane"
+      tabClosingPolicy="UNAVAILABLE"
+      stylesheets="@style/tabs.css"
+      BorderPane.alignment="CENTER">
+      <tabs>
+        <Tab fx:id="mainTab" text="%main">
+          <content>
+            <StackPane prefHeight="150.0">
+              <fx:define>
+                <Double fx:id="buttonContainerHeight" fx:value="80.0"/>
+                <Double fx:id="buttonContainerWidth" fx:value="150.0"/>
+              </fx:define>
 
-      <VBox maxHeight="1.7976931348623157E308"
-        maxWidth="1.7976931348623157E308"
-        prefHeight="231.0"
-        spacing="12.0">
-        <padding>
-          <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
-        </padding>
+              <VBox maxHeight="1.7976931348623157E308"
+                maxWidth="1.7976931348623157E308"
+                prefHeight="231.0"
+                spacing="12.0">
+                <padding>
+                  <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+                </padding>
 
-        <HBox alignment="CENTER_LEFT"
-          layoutX="20.0"
-          layoutY="204.0"
-          prefHeight="100.0"
-          prefWidth="150.0"
-          spacing="20.0"
-          stylesheets="@style/center.css"
-          styleClass="ideElement">
-          <ImageView fitHeight="60.0"
-            fitWidth="60.0"
-            pickOnBounds="true"
-            preserveRatio="true">
-            <HBox.margin>
-              <Insets bottom="10.0" left="10.0" top="10.0"/>
-            </HBox.margin>
-            <Image url="@assets/as.png"/>
-          </ImageView>
+                <HBox alignment="CENTER_LEFT"
+                  layoutX="20.0"
+                  layoutY="204.0"
+                  prefHeight="100.0"
+                  prefWidth="150.0"
+                  spacing="20.0"
+                  stylesheets="@style/center.css"
+                  styleClass="ideElement">
+                  <ImageView fitHeight="60.0"
+                    fitWidth="60.0"
+                    pickOnBounds="true"
+                    preserveRatio="true">
+                    <HBox.margin>
+                      <Insets bottom="10.0" left="10.0" top="10.0"/>
+                    </HBox.margin>
+                    <Image url="@assets/as.png"/>
+                  </ImageView>
 
-          <Label prefHeight="30.0"
-            prefWidth="190.0"
-            styleClass="ideTitle"
-            text="Android-Studio"/>
+                  <Label prefHeight="30.0"
+                    prefWidth="190.0"
+                    styleClass="ideTitle"
+                    text="Android-Studio"/>
 
-          <HBox alignment="CENTER_RIGHT"
-            prefHeight="$buttonContainerHeight"
-            prefWidth="$buttonContainerWidth"
-            minWidth="$buttonContainerWidth"
-            spacing="10.0"
-            HBox.hgrow="ALWAYS">
-            <Button fx:id="androidStudioOpen"
-              disable="true"
-              mnemonicParsing="false"
-              onAction="#openAndroidStudio"
-              styleClass="launchButton"
-              text="%open">
-              <HBox.margin>
-                <Insets right="20.0"/>
-              </HBox.margin>
-            </Button>
-          </HBox>
-        </HBox>
+                  <HBox alignment="CENTER_RIGHT"
+                    prefHeight="$buttonContainerHeight"
+                    prefWidth="$buttonContainerWidth"
+                    minWidth="$buttonContainerWidth"
+                    spacing="10.0"
+                    HBox.hgrow="ALWAYS">
+                    <Button fx:id="androidStudioOpen"
+                      disable="true"
+                      mnemonicParsing="false"
+                      onAction="#openAndroidStudio"
+                      styleClass="launchButton"
+                      text="%open">
+                      <HBox.margin>
+                        <Insets right="20.0"/>
+                      </HBox.margin>
+                    </Button>
+                  </HBox>
+                </HBox>
 
-        <HBox alignment="CENTER_LEFT"
-          layoutX="20.0"
-          layoutY="120.0"
-          prefHeight="100.0"
-          prefWidth="150.0"
-          spacing="20.0"
-          styleClass="ideElement"
-          stylesheets="@style/center.css">
-          <ImageView fitHeight="60.0"
-            fitWidth="60.0"
-            pickOnBounds="true"
-            preserveRatio="true">
-            <HBox.margin>
-              <Insets bottom="10.0" left="10.0" top="10.0"/>
-            </HBox.margin>
-            <Image url="@assets/eclipse.png"/>
-          </ImageView>
+                <HBox alignment="CENTER_LEFT"
+                  layoutX="20.0"
+                  layoutY="120.0"
+                  prefHeight="100.0"
+                  prefWidth="150.0"
+                  spacing="20.0"
+                  styleClass="ideElement"
+                  stylesheets="@style/center.css">
+                  <ImageView fitHeight="60.0"
+                    fitWidth="60.0"
+                    pickOnBounds="true"
+                    preserveRatio="true">
+                    <HBox.margin>
+                      <Insets bottom="10.0" left="10.0" top="10.0"/>
+                    </HBox.margin>
+                    <Image url="@assets/eclipse.png"/>
+                  </ImageView>
 
-          <Label prefHeight="30.0"
-            prefWidth="114.0"
-            styleClass="ideTitle"
-            text="Eclipse"/>
+                  <Label prefHeight="30.0"
+                    prefWidth="114.0"
+                    styleClass="ideTitle"
+                    text="Eclipse"/>
 
-          <HBox alignment="CENTER_RIGHT"
-            prefHeight="$buttonContainerHeight"
-            prefWidth="$buttonContainerWidth"
-            minWidth="$buttonContainerWidth"
-            HBox.hgrow="ALWAYS">
-            <Button fx:id="eclipseOpen"
-              disable="true"
-              mnemonicParsing="false"
-              onAction="#openEclipse"
-              styleClass="launchButton"
-              text="%open">
-              <HBox.margin>
-                <Insets right="20.0"/>
-              </HBox.margin>
-            </Button>
-          </HBox>
-        </HBox>
+                  <HBox alignment="CENTER_RIGHT"
+                    prefHeight="$buttonContainerHeight"
+                    prefWidth="$buttonContainerWidth"
+                    minWidth="$buttonContainerWidth"
+                    HBox.hgrow="ALWAYS">
+                    <Button fx:id="eclipseOpen"
+                      disable="true"
+                      mnemonicParsing="false"
+                      onAction="#openEclipse"
+                      styleClass="launchButton"
+                      text="%open">
+                      <HBox.margin>
+                        <Insets right="20.0"/>
+                      </HBox.margin>
+                    </Button>
+                  </HBox>
+                </HBox>
 
-        <HBox alignment="CENTER_LEFT"
-          layoutX="20.0"
-          layoutY="20.0"
-          prefHeight="100.0"
-          prefWidth="150.0"
-          spacing="20.0"
-          styleClass="ideElement"
-          stylesheets="@style/center.css">
-          <ImageView fitHeight="60.0"
-            fitWidth="60.0"
-            pickOnBounds="true"
-            preserveRatio="true">
-            <HBox.margin>
-              <Insets bottom="10.0" left="10.0" top="10.0"/>
-            </HBox.margin>
-            <Image url="@assets/intellij.png"/>
-          </ImageView>
+                <HBox alignment="CENTER_LEFT"
+                  layoutX="20.0"
+                  layoutY="20.0"
+                  prefHeight="100.0"
+                  prefWidth="150.0"
+                  spacing="20.0"
+                  styleClass="ideElement"
+                  stylesheets="@style/center.css">
+                  <ImageView fitHeight="60.0"
+                    fitWidth="60.0"
+                    pickOnBounds="true"
+                    preserveRatio="true">
+                    <HBox.margin>
+                      <Insets bottom="10.0" left="10.0" top="10.0"/>
+                    </HBox.margin>
+                    <Image url="@assets/intellij.png"/>
+                  </ImageView>
 
-          <Label prefHeight="30.0"
-            prefWidth="100.0"
-            styleClass="ideTitle"
-            text="IntelliJ"/>
+                  <Label prefHeight="30.0"
+                    prefWidth="100.0"
+                    styleClass="ideTitle"
+                    text="IntelliJ"/>
 
-          <HBox alignment="CENTER_RIGHT"
-            prefHeight="$buttonContainerHeight"
-            prefWidth="$buttonContainerWidth"
-            minWidth="$buttonContainerWidth"
-            spacing="10.0"
-            HBox.hgrow="ALWAYS">
-            <Button fx:id="intellijOpen"
-              disable="true"
-              mnemonicParsing="false"
-              onAction="#openIntellij"
-              styleClass="launchButton"
-              text="%open">
-              <HBox.margin>
-                <Insets right="20.0"/>
-              </HBox.margin>
-            </Button>
-          </HBox>
-        </HBox>
+                  <HBox alignment="CENTER_RIGHT"
+                    prefHeight="$buttonContainerHeight"
+                    prefWidth="$buttonContainerWidth"
+                    minWidth="$buttonContainerWidth"
+                    spacing="10.0"
+                    HBox.hgrow="ALWAYS">
+                    <Button fx:id="intellijOpen"
+                      disable="true"
+                      mnemonicParsing="false"
+                      onAction="#openIntellij"
+                      styleClass="launchButton"
+                      text="%open">
+                      <HBox.margin>
+                        <Insets right="20.0"/>
+                      </HBox.margin>
+                    </Button>
+                  </HBox>
+                </HBox>
 
-        <HBox alignment="CENTER_LEFT"
-          prefHeight="100.0"
-          prefWidth="150.0"
-          spacing="20.0"
-          styleClass="ideElement"
-          stylesheets="@style/center.css">
-          <ImageView fitHeight="60.0"
-            fitWidth="60.0"
-            pickOnBounds="true"
-            preserveRatio="true">
-            <HBox.margin>
-              <Insets bottom="10.0" left="10.0" top="10.0"/>
-            </HBox.margin>
-            <Image url="@assets/vscode.png"/>
-          </ImageView>
+                <HBox alignment="CENTER_LEFT"
+                  prefHeight="100.0"
+                  prefWidth="150.0"
+                  spacing="20.0"
+                  styleClass="ideElement"
+                  stylesheets="@style/center.css">
+                  <ImageView fitHeight="60.0"
+                    fitWidth="60.0"
+                    pickOnBounds="true"
+                    preserveRatio="true">
+                    <HBox.margin>
+                      <Insets bottom="10.0" left="10.0" top="10.0"/>
+                    </HBox.margin>
+                    <Image url="@assets/vscode.png"/>
+                  </ImageView>
 
-          <Label prefHeight="30.0"
-            prefWidth="114.0"
-            styleClass="ideTitle"
-            text="VS Code"/>
+                  <Label prefHeight="30.0"
+                    prefWidth="114.0"
+                    styleClass="ideTitle"
+                    text="VS Code"/>
 
-          <HBox alignment="CENTER_RIGHT"
-            prefHeight="$buttonContainerHeight"
-            prefWidth="$buttonContainerWidth"
-            minWidth="$buttonContainerWidth"
-            spacing="10.0"
-            HBox.hgrow="ALWAYS">
-            <Button fx:id="vsCodeOpen"
-              disable="true"
-              mnemonicParsing="false"
-              onAction="#openVsCode"
-              styleClass="launchButton"
-              text="%open">
-              <HBox.margin>
-                <Insets right="20.0"/>
-              </HBox.margin>
-            </Button>
-          </HBox>
-        </HBox>
-      </VBox>
-    </StackPane>
+                  <HBox alignment="CENTER_RIGHT"
+                    prefHeight="$buttonContainerHeight"
+                    prefWidth="$buttonContainerWidth"
+                    minWidth="$buttonContainerWidth"
+                    spacing="10.0"
+                    HBox.hgrow="ALWAYS">
+                    <Button fx:id="vsCodeOpen"
+                      disable="true"
+                      mnemonicParsing="false"
+                      onAction="#openVsCode"
+                      styleClass="launchButton"
+                      text="%open">
+                      <HBox.margin>
+                        <Insets right="20.0"/>
+                      </HBox.margin>
+                    </Button>
+                  </HBox>
+                </HBox>
+              </VBox>
+            </StackPane>
+          </content>
+        </Tab>
+        <Tab fx:id="toolConfigTab" text="%toolsConfig">
+          <content>
+          </content>
+        </Tab>
+      </tabs>
+    </TabPane>
   </center>
 
   <bottom>

@@ -7,7 +7,9 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
+import java.util.function.Supplier;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -16,6 +18,10 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 
@@ -31,9 +37,14 @@ import com.devonfw.ide.gui.context.TaskManager;
 import com.devonfw.ide.gui.nls.NlsService;
 import com.devonfw.ide.gui.progress.ProgressBarTask;
 import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindow;
+import com.devonfw.ide.gui.settings.ToolConfiguration;
 
 /**
  * Basic UI Test
+ * <p>
+ * Note: TestFX calls {@link #start(Stage)} fresh before every {@code @Test} method (JUnit5's default per-method test instance lifecycle), so no state (combo
+ * box selections, loaded tab content, ...) carries over between tests. Every test sets up whatever it needs from scratch, the same way the pre-existing tests
+ * below already do.
  */
 public class AppBaseTest extends HeadlessApplicationTest {
 
@@ -43,6 +54,8 @@ public class AppBaseTest extends HeadlessApplicationTest {
   private ComboBox<String> selectedProject, selectedWorkspace;
   private Label statusText;
   private ProgressBar taskProgressBar;
+  private TabPane tabPane;
+  private Tab mainTab, toolConfigTab;
 
   @TempDir
   private static Path mockIdeRoot;
@@ -66,14 +79,18 @@ public class AppBaseTest extends HeadlessApplicationTest {
     stage.requestFocus(); //sometimes needed for headless setup to work
     stage.show();
 
-    androidStudioOpen = (Button) root.lookup("#androidStudioOpen");
-    eclipseOpen = (Button) root.lookup("#eclipseOpen");
-    intellijOpen = (Button) root.lookup("#intellijOpen");
-    vsCodeOpen = (Button) root.lookup("#vsCodeOpen");
-    selectedProject = (ComboBox<String>) root.lookup("#selectedProject");
-    selectedWorkspace = (ComboBox<String>) root.lookup("#selectedWorkspace");
-    statusText = (Label) root.lookup("#statusLabel");
-    taskProgressBar = (ProgressBar) root.lookup("#statusProgressBar");
+    androidStudioOpen = lookup(root, "#androidStudioOpen");
+    eclipseOpen = lookup(root, "#eclipseOpen");
+    intellijOpen = lookup(root, "#intellijOpen");
+    vsCodeOpen = lookup(root, "#vsCodeOpen");
+    selectedProject = lookup(root, "#selectedProject");
+    selectedWorkspace = lookup(root, "#selectedWorkspace");
+    statusText = lookup(root, "#statusLabel");
+    taskProgressBar = lookup(root, "#statusProgressBar");
+
+    tabPane = (TabPane) fxmlLoader.getNamespace().get("tabPane");
+    mainTab = (Tab) fxmlLoader.getNamespace().get("mainTab");
+    toolConfigTab = (Tab) fxmlLoader.getNamespace().get("toolConfigTab");
   }
 
   /**
@@ -115,6 +132,31 @@ public class AppBaseTest extends HeadlessApplicationTest {
   }
 
   /**
+   * Polls the given condition until it becomes {@code true}, or fails with an {@link AssertionError} once {@code timeoutMillis} elapses. Useful for state that
+   * is updated asynchronously (e.g. from a background thread).
+   */
+  public static void waitForCondition(Supplier<Boolean> condition, long timeoutMillis) throws InterruptedException {
+
+    long start = System.currentTimeMillis();
+    while (System.currentTimeMillis() - start < timeoutMillis) {
+      if (condition.get()) {
+        return;
+      }
+      Thread.sleep(100);
+    }
+    throw new AssertionError("Condition not met within timeout");
+  }
+
+  /**
+   * Selects the given project and workspace, exactly like a user would, so that a test starts from a known context.
+   */
+  private void selectProjectAndWorkspace() {
+
+    interact(() -> selectedProject.getSelectionModel().select("project-1"));
+    interact(() -> selectedWorkspace.getSelectionModel().select("main"));
+  }
+
+  /**
    * This test ensures that all IDE open buttons are disabled when no project is selected.
    */
   @Test
@@ -136,8 +178,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
   public void testIdeOpenButtonsEnabledWhenWorkspaceSelected() {
 
     // assert that a project and workspace is selected
-    interact(() -> selectedProject.getSelectionModel().select("project-1"));
-    interact(() -> selectedWorkspace.getSelectionModel().select("main"));
+    selectProjectAndWorkspace();
 
     // assert all IDE open buttons are enabled
     for (Button button : new Button[] { androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen }) {
@@ -237,5 +278,89 @@ public class AppBaseTest extends HeadlessApplicationTest {
 
     assertThat(TaskOverviewWindow.getInstance(taskManager).getStage().isShowing()).as("Task overview window should be opened when clicking on status text")
         .isTrue();
+  }
+
+  /**
+   * This test ensures that the tool config tab is disabled before any workspace has been selected, and that its content is not eagerly loaded.
+   */
+  @Test
+  public void testToolConfigTabDisabledWhenNoWorkspaceSelected() {
+
+    assertThat(toolConfigTab.isDisabled()).as("toolConfigTab should be disabled before a workspace is selected").isTrue();
+    assertThat(toolConfigTab.getContent()).as("toolConfigTab content should not be loaded before it has ever been selected").isNull();
+  }
+
+  /**
+   * This test ensures that the tool config tab becomes enabled once a project and workspace have been selected.
+   */
+  @Test
+  public void testToolConfigTabEnabledAfterWorkspaceSelected() {
+
+    selectProjectAndWorkspace();
+
+    assertThat(toolConfigTab.isDisabled()).as("toolConfigTab should be enabled once a workspace has been selected").isFalse();
+  }
+
+  /**
+   * This test ensures that selecting the tool config tab lazily loads its content from tools-config.fxml.
+   */
+  @Test
+  public void testSelectingToolConfigTabLoadsContent() throws InterruptedException {
+
+    selectProjectAndWorkspace();
+    interact(() -> tabPane.getSelectionModel().select(toolConfigTab));
+    waitForCondition(() -> toolConfigTab.getContent() != null, 5000);
+
+    Parent content = (Parent) toolConfigTab.getContent();
+    assertThat(content.lookup("#toolsTree")).as("tools-config.fxml content should contain the tools tree").isNotNull();
+    assertThat(content.lookup("#cancelButton")).as("tools-config.fxml content should contain the cancel button").isNotNull();
+  }
+
+  /**
+   * This test ensures that the tools tree is populated with tool groups and tools as soon as the tool config tab content is loaded (the initial tree build
+   * happens synchronously in {@code ToolSettingsController#initialize()}; only the per-tool edition/version lookups run on a background thread).
+   */
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testToolConfigTreePopulatedWithToolsAfterOpening() throws InterruptedException {
+
+    selectProjectAndWorkspace();
+    interact(() -> tabPane.getSelectionModel().select(toolConfigTab));
+    waitForCondition(() -> toolConfigTab.getContent() != null, 5000);
+
+    Parent content = (Parent) toolConfigTab.getContent();
+    TreeView<ToolConfiguration> toolsTree = (TreeView<ToolConfiguration>) content.lookup("#toolsTree");
+    waitForCondition(() -> toolsTree.getRoot() != null && !toolsTree.getRoot().getChildren().isEmpty(), 5000);
+
+    List<TreeItem<ToolConfiguration>> groups = toolsTree.getRoot().getChildren();
+    assertThat(groups).as("tools tree should contain at least one tool group").isNotEmpty();
+
+    boolean hasToolLeaf = groups.stream().flatMap(group -> group.getChildren().stream()).anyMatch(item -> item.getValue() != null);
+    assertThat(hasToolLeaf).as("tools tree should contain at least one tool leaf below a group").isTrue();
+  }
+
+  /**
+   * This test ensures that the cancel button on the tool config tab navigates back to the main tab.
+   */
+  @Test
+  public void testCancelButtonReturnsToMainTab() throws InterruptedException {
+
+    selectProjectAndWorkspace();
+    interact(() -> tabPane.getSelectionModel().select(toolConfigTab));
+    waitForCondition(() -> toolConfigTab.getContent() != null, 5000);
+
+    Parent content = (Parent) toolConfigTab.getContent();
+    Button cancelButton = lookup(content, "#cancelButton");
+
+    interact(cancelButton::fire);
+
+    assertThat(tabPane.getSelectionModel().getSelectedItem()).as("cancel should navigate back to the main tab").isEqualTo(mainTab);
+  }
+
+
+  @SuppressWarnings("unchecked")
+  private static <T> T lookup(Parent root, String selector) {
+
+    return (T) root.lookup(selector);
   }
 }
