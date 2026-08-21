@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/218[#218]: Added possibility to start a command in a new window using the process builder
 * https://github.com/devonfw/IDEasy/issues/788[#788]: Add support for IDE_OPTIONS variable per IDE commandlet
 * https://github.com/devonfw/IDEasy/issues/2313[#2313]: Fix python installation failing with wired behaviour
 * https://github.com/devonfw/IDEasy/issues/2168[#2168]: Add support for git_remote property to configure additional remotes after cloning
