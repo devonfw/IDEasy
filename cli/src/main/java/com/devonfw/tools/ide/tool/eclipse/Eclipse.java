@@ -109,7 +109,7 @@ public class Eclipse extends IdeToolCommandlet {
   }
 
   @Override
-  protected void configureWorkspace() {
+  public void configureWorkspace() {
 
     Path lockfile = this.context.getWorkspacePath().resolve(".metadata/.lock");
     if (isLocked(lockfile)) {
