@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool.gui;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -88,7 +89,7 @@ public class Gui extends Commandlet {
         "-f", //use specified POM file
         pomPath.toString(),
         "org.codehaus.mojo:exec-maven-plugin:3.1.0:exec",
-        "-Dexec.executable=java",
+        "-Dexec.executable=" + getGuiExecutable(javaInstallation),
         "-Dexec.classpathScope=compile",
         "-Dexec.args=-classpath %classpath com.devonfw.ide.gui.AppLauncher",
         "-Dexec.async=true"
@@ -109,6 +110,61 @@ public class Gui extends Commandlet {
     } catch (RuntimeException e) {
       throw new CliException(
           "Failed to launch the GUI. If maven reports issues with dependency resolution, check whether the maven M2 repo is enabled in your project.", e);
+    }
+  }
+
+  private static final String GUI_APP_BUNDLE_ID = "com.devonfw.tools.ideasy.gui";
+
+  private static final String GUI_INFO_PLIST = """
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+      <plist version="1.0">
+      <dict>
+        <key>CFBundleExecutable</key>
+        <string>IDEasy</string>
+        <key>CFBundleIdentifier</key>
+        <string>%s</string>
+        <key>CFBundleName</key>
+        <string>IDEasy</string>
+        <key>CFBundlePackageType</key>
+        <string>APPL</string>
+        <key>CFBundleShortVersionString</key>
+        <string>1.0</string>
+      </dict>
+      </plist>
+      """.formatted(GUI_APP_BUNDLE_ID);
+
+  /**
+   * The GUI is launched as a plain {@code java} process without a native app bundle. On macOS this makes the Dock and menu bar show the executable's
+   * filename "java" instead of "IDEasy" (see issue #2206). Merely renaming/symlinking the bare executable is not reliable: without a real bundle,
+   * LaunchServices may still fall back to the underlying JDK's own identity. Instead, we wrap the launch in a minimal {@code .app} bundle: a proper
+   * {@code Info.plist} declaring our own {@code CFBundleName}/{@code CFBundleIdentifier}, with {@code Contents/MacOS/IDEasy} as a symlink pointing
+   * directly at the real java executable (not a wrapper script - an intermediate {@code exec} would replace the process image and lose the bundle
+   * identity again).
+   *
+   * @param javaInstallation the {@link ToolInstallation} of the java tool used to launch the GUI.
+   * @return the executable to pass to Maven's {@code exec:exec} goal in order to launch the GUI.
+   */
+  String getGuiExecutable(ToolInstallation javaInstallation) {
+
+    if (!this.context.getSystemInfo().isMac()) {
+      return "java";
+    }
+    Path javaExecutable = javaInstallation.binDir().resolve("java");
+    Path contentsDir = this.context.getTempPath().resolve("IDEasy.app").resolve("Contents");
+    Path launcher = contentsDir.resolve("MacOS").resolve("IDEasy");
+    this.context.getFileAccess().mkdirs(launcher.getParent());
+    writeFile(contentsDir.resolve("Info.plist"), GUI_INFO_PLIST);
+    this.context.getFileAccess().symlink(javaExecutable, launcher, false);
+    return launcher.toString();
+  }
+
+  private static void writeFile(Path file, String content) {
+
+    try {
+      Files.writeString(file, content);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to write file: " + file, e);
     }
   }
 }
