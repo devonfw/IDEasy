@@ -6,6 +6,8 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/2168[#2168]: Add support for git_remote property to configure additional remotes after cloning
+* https://github.com/devonfw/IDEasy/issues/1676[#1676]: Import extra sdks automatically into ide
 * https://github.com/devonfw/IDEasy/issues/2180[#2180]: Add *_EXTRA_PLUGINS variable to install extra IDE plugins per user
 * https://github.com/devonfw/IDEasy/issues/1651[#1651]: Move status.json files out of ide-urls to ide-urls-status
 * https://github.com/devonfw/IDEasy/issues/1943[#1943]: Create ruby commandlet

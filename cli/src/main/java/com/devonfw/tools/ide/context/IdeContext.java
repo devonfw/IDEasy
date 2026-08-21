@@ -128,6 +128,9 @@ public interface IdeContext extends IdeStartContext {
   /** The name of the bin folder where executable files are found by default. */
   String FOLDER_BIN = "bin";
 
+  /** The name of the repository folder used to store repository data */
+  String FOLDER_REPOSITORY = "repository";
+
   /** The name of the repositories folder where properties files are stores for each repository */
   String FOLDER_REPOSITORIES = "repositories";
 
