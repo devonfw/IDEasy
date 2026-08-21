@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.url.tool.docker;
 
+
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -39,17 +40,14 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
   protected void addVersion(UrlVersion urlVersion) {
 
     VersionIdentifier vid = VersionIdentifier.of(urlVersion.getName());
-    String version = urlVersion.getName().replaceAll("\\.", "");
-    // get Code for version
     String body = doGetResponseBodyAsString(getVersionUrl());
-    String regex = "href=#" + version
-        // .......1.........................................................2.................
-        + ".{8,12}(\r\n|\r|\n).{0,350}href=https://desktop\\.docker\\.com.*?(\\d{5,6}).*\\.exe";
+    String regex = "## " + Pattern.quote(urlVersion.getName())
+        + ".*?\\[Windows\\(https://desktop\\.docker\\.com/win/main/amd64/(\\d{5,6})/";
     Pattern pattern = Pattern.compile(regex, Pattern.DOTALL);
     Matcher matcher = pattern.matcher(body);
-    String code;
+
     if (matcher.find()) {
-      code = matcher.group(2);
+      String code = matcher.group(1);
       boolean success = doAddVersion(urlVersion,
           getDownloadBaseUrl() + "/win/main/amd64/" + code + "/Docker%20Desktop%20Installer.exe", WINDOWS);
       if (!success) {
@@ -58,6 +56,7 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
       if (WINDOWS_ONLY_VERSIONS.stream().noneMatch(i -> vid.compareVersion(i).isEqual())) {
         doAddVersion(urlVersion, getDownloadBaseUrl() + "/mac/main/amd64/" + code + "/Docker.dmg", MAC, X64);
         doAddVersion(urlVersion, getDownloadBaseUrl() + "/mac/main/arm64/" + code + "/Docker.dmg", MAC, ARM64);
+        doAddVersion(urlVersion, getDownloadBaseUrl() + "/linux/main/amd64/" + code + "/docker-desktop-amd64.deb", LINUX);
       }
     }
   }
@@ -65,7 +64,7 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
   @Override
   protected String getVersionUrl() {
 
-    return getVersionBaseUrl() + "/desktop/release-notes/";
+    return getVersionBaseUrl() + "/desktop/release-notes.md";
   }
 
   @Override
