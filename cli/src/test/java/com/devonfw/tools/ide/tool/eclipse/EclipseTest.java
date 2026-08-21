@@ -53,7 +53,8 @@ public class EclipseTest extends AbstractIdeContextTest {
     assertThat(context.getPluginsPath().resolve("eclipse")).isDirectory();
     assertThat(eclipse.getToolBinPath().resolve("eclipsetest")).hasContent(
         "eclipse " + os + " -data " + context.getWorkspacePath() + " -keyring " + context.getUserHome().resolve(".eclipse").resolve(".keyring")
-            + " -configuration " + context.getPluginsPath().resolve("eclipse").resolve("configuration") + " gui -showlocation eclipseproject");
+            + " -configuration " + context.getPluginsPath().resolve("eclipse").resolve("configuration")
+            + " gui -showlocation eclipseproject -nosplash");
 
     //if tool already installed
     eclipse.install();
