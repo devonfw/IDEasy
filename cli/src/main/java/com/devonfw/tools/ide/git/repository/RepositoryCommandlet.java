@@ -27,6 +27,7 @@ import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 public class RepositoryCommandlet extends Commandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(RepositoryCommandlet.class);
+  private static final String REPOSITORY = "repository";
 
   /** the repository to setup. */
   public final RepositoryProperty repository;
@@ -41,13 +42,13 @@ public class RepositoryCommandlet extends Commandlet {
     super(context);
     addKeyword(getName());
     addKeyword("setup");
-    this.repository = add(new RepositoryProperty("", false, "repository"));
+    this.repository = add(new RepositoryProperty("", false, REPOSITORY));
   }
 
   @Override
   public String getName() {
 
-    return "repository";
+    return REPOSITORY;
   }
 
   @Override
@@ -186,6 +187,9 @@ public class RepositoryCommandlet extends Commandlet {
       }
       Path linkRepositoryPath = config.isVirtualSettingsRepository() ? firstRepository : repositoryPath;
       if (Files.exists(linkRepositoryPath)) {
+        for (RepositoryRemote remote : config.remotes()) {
+          this.context.getGitContext().addRemote(linkRepositoryPath, remote.name(), remote.url());
+        }
         for (RepositoryLink link : config.links()) {
           createRepositoryLink(link, linkRepositoryPath, workspacePath);
         }
