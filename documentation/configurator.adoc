@@ -40,6 +40,12 @@ For each located file `«relative-path»/«file»` it will create or update such
 Please note that in devonfw-ide the syntax was `${«variable-name»}` and legacy support for this can be enabled/disabled.
 However, this clashes with the variable syntax already used by IDE tools like Eclipse, IntelliJ, etc.
 Therefore this was changed in IDEasy and the new syntax should be used to avoid problems.
+* Additionally the expression `$[ask:«variable-name»]` can be used for values that cannot be preconfigured in the settings (e.g. a project specific service URL).
+If `«variable-name»` is already defined, its value is used just like for a plain variable.
+Otherwise the user is interactively asked to enter the value, which is then stored in his local `conf/ide.properties` so he will not be asked again.
+For secret values like API keys or tokens use `$[secret:«variable-name»]` so the input is not echoed to the console while typing.
+Please note that the entered value is currently stored as plain text in `conf/ide.properties` (which is not committed to git).
+In batch mode such expressions are not resolved and a warning is logged instead.
 * If this caused any change the result is written to `«relative-path»/«file»` in the current workspace.
 
 In other words this means:

@@ -228,6 +228,21 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
     StringBuilder sb = new StringBuilder(value.length() + EXTRA_CAPACITY);
     do {
       String variableName = syntax.getVariable(matcher);
+      if (variableName == null) {
+        // current match is not a plain variable but an ask expression like $[ask:MY_VARIABLE] or $[secret:MY_TOKEN]
+        String askVariable = syntax.getAskVariable(matcher);
+        if (resolvedVars.getValue(askVariable, false) == null) {
+          // variable is undefined so we have to ask the user interactively
+          String replacement = resolveAskExpression(askVariable, syntax.isSecret(matcher), resolvedVars, src);
+          if (replacement == null) {
+            continue; // could not be resolved - leave expression untouched (warning has already been logged)
+          }
+          matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
+          continue;
+        }
+        // variable is already defined - fall through and resolve it like a plain variable
+        variableName = askVariable;
+      }
       String variableValue = resolvedVars.getValue(variableName, false);
       if (variableValue == null) {
         Level logLevel = Level.WARN;
@@ -271,6 +286,40 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
     matcher.appendTail(sb);
 
     return sb.toString();
+  }
+
+  /**
+   * Resolves an interactive ask expression like {@code $[ask:MY_VARIABLE]} or {@code $[secret:MY_TOKEN]} by prompting the user. The entered value is persisted
+   * in his local {@link EnvironmentVariablesType#CONF configuration} so he will not be asked again. The caller has to ensure that the variable is undefined.
+   *
+   * @param variableName the name of the variable to resolve.
+   * @param secret {@code true} if the input shall be masked while typing.
+   * @param resolvedVars the {@link EnvironmentVariablesResolved} used to persist the entered value.
+   * @param src the source of the expression (used in the prompt).
+   * @return the entered value or {@code null} if it could not be determined (the expression is then left untouched).
+   */
+  private String resolveAskExpression(String variableName, boolean secret, AbstractEnvironmentVariables resolvedVars, Object src) {
+
+    if ((this.context == null) || this.context.isBatchMode()) {
+      LOG.warn("Undefined variable {} in '{}' cannot be resolved interactively in batch mode.", variableName, src);
+      return null;
+    }
+    String message = "Please enter " + (secret ? "secret " : "") + "value for variable " + variableName + " (required by " + src + "):";
+    String input;
+    if (secret) {
+      input = this.context.askForSecret(message);
+    } else {
+      input = this.context.askForInput(message);
+    }
+    EnvironmentVariables confVariables = resolvedVars.getByType(EnvironmentVariablesType.CONF);
+    if (confVariables instanceof EnvironmentVariablesPropertiesFile propertiesFile) {
+      propertiesFile.set(variableName, input, false);
+      propertiesFile.save();
+      LOG.info("Variable {} has been saved to {}", variableName, propertiesFile.getPropertiesFilePath());
+    } else {
+      LOG.warn("Could not persist variable {} - you may be asked for it again.", variableName);
+    }
+    return input;
   }
 
   /**
