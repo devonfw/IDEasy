@@ -36,6 +36,14 @@ note over guiCmd
   - Class: AppLauncher
 end note
 
+note right of guiCmd
+  For a local-dev installation
+  (.ide.software.version = local-dev-version)
+  the GUI is resolved offline from the
+  self-contained repo in the installation:
+  -Dmaven.repo.local=$IDE_ROOT/.../.m2 -o
+end note
+
 guiCmd -> maven: mvn -f gui/pom.xml exec:exec\n-Dexec.executable=java\n-Dexec.args=...AppLauncher
 deactivate guiCmd
 activate maven

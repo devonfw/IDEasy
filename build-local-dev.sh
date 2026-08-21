@@ -11,13 +11,14 @@ PROJECT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 
 CLI_DIR="$SCRIPT_DIR/cli"
 TARGET_DIR="$CLI_DIR/target"
-PACKAGE_DIR="$CLI_DIR/src/main/package"
 
 PROJECT_SOFTWARE_DIR="$PROJECT_DIR/software"
 GRAALVM_DIR="$PROJECT_SOFTWARE_DIR/extra/graalvm"
 
 LOCAL_DEV="$IDE_ROOT/_ide/software/maven/ideasy/ideasy/local-dev"
 INSTALLATION_LINK="$IDE_ROOT/_ide/installation"
+LOCAL_DEV_REPO="$LOCAL_DEV/.m2"
+LAUNCHER_POM="$TARGET_DIR/package/gui/pom.xml"
 
 echo "Building IDEasy native image..."
 
@@ -32,8 +33,7 @@ fi
 
 export PATH="$GRAALVM_DIR/bin:$PATH"
 
-cd "$CLI_DIR"
-mvn -B -ntp -Pnative -DskipTests=true package
+mvn -B -ntp -f "$CLI_DIR/pom.xml" -Pnative -DskipTests=true clean install
 
 echo "Preparing local-dev installation..."
 rm -rf "$LOCAL_DEV"
@@ -41,12 +41,21 @@ mkdir -p "$LOCAL_DEV"
 
 echo "Copying package contents..."
 
-if [ ! -d "$PACKAGE_DIR" ]; then
-  echo "Error: Package directory not found: $PACKAGE_DIR"
+if [ ! -d "$TARGET_DIR/package" ]; then
+  echo "Error: Filtered package output not found: $TARGET_DIR/package"
+  echo "This should be produced by the maven package phase above."
   exit 1
 fi
 
-cp -R "$PACKAGE_DIR"/. "$LOCAL_DEV"/
+cp -R "$TARGET_DIR/package"/. "$LOCAL_DEV"/
+
+echo "Building the GUI into the self-contained maven repository..."
+mvn -B -ntp -f "$SCRIPT_DIR/pom.xml" -pl gui -am -DskipTests=true -Dmaven.repo.local="$LOCAL_DEV_REPO" install
+
+echo "Seeding the GUI launcher (exec) maven plugin into the self-contained maven repository..."
+mvn -B -ntp -f "$LAUNCHER_POM" org.codehaus.mojo:exec-maven-plugin:3.1.0:exec \
+  -Dexec.executable=echo -Dexec.args=seeded \
+  -Dmaven.repo.local="$LOCAL_DEV_REPO"
 
 OS_NAME="$(uname -s)"
 

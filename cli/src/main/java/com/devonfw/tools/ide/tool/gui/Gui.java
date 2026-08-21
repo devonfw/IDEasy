@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool.gui;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -27,6 +28,9 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 public class Gui extends Commandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Gui.class);
+
+  /** The value of {@link IdeContext#FILE_SOFTWARE_VERSION} written by the local-dev build script to mark a local-dev installation. */
+  private static final String LOCAL_DEV_VERSION = "local-dev-version";
 
 
   /**
@@ -79,25 +83,13 @@ public class Gui extends Commandlet {
 
     LOG.debug("Starting GUI via commandlet");
 
-    Path pomPath = context.getIdeInstallationPath().resolve("gui/pom.xml");
+    Path installationPath = context.getIdeInstallationPath();
+    Path pomPath = installationPath.resolve("gui/pom.xml");
     if (!Files.exists(pomPath)) {
       throw new CliException("Fatal error: The pom.xml file required for launching the IDEasy GUI could not be found in expected location: " + pomPath);
     }
 
-    List<String> args = new ArrayList<>(List.of(
-        "-f", //use specified POM file
-        pomPath.toString(),
-        "org.codehaus.mojo:exec-maven-plugin:3.1.0:exec",
-        "-Dexec.executable=java",
-        "-Dexec.classpathScope=compile",
-        "-Dexec.args=-classpath %classpath com.devonfw.ide.gui.AppLauncher",
-        "-Dexec.async=true"
-    ));
-
-    if (!IdeVersion.getVersionIdentifier().isStable()) {
-      LOG.warn("Launching gui in snapshot mode");
-      args.add("-U"); //Adding this flag forces maven to download the latest SNAPSHOT version
-    }
+    List<String> args = buildMvnArgs(installationPath);
 
     /*
      * We manually update the PATH entry with our java version, as by default IDEasy includes the SymLink under /projectname/software/java/bin in the PATH
@@ -109,6 +101,62 @@ public class Gui extends Commandlet {
     } catch (RuntimeException e) {
       throw new CliException(
           "Failed to launch the GUI. If maven reports issues with dependency resolution, check whether the maven M2 repo is enabled in your project.", e);
+    }
+  }
+
+  /**
+   * Builds the arguments passed to {@code mvn} to launch the GUI via the launcher POM in the IDEasy installation.
+   * <p>
+   * A local-dev installation (created by {@code build-local-dev.sh}) is self-contained: its launcher POM resolves {@code ide-gui} from a maven
+   * repository inside the installation and runs offline. This keeps the GUI independent of the context-dependent Maven local repository
+   * (see {@code M2_REPO}), which otherwise could silently resolve a remote snapshot instead of the locally built GUI.
+   * </p>
+   *
+   * @param installationPath the {@link IdeContext#getIdeInstallationPath() IDEasy installation} directory containing {@code gui/pom.xml}.
+   * @return the {@code mvn} arguments to launch the GUI.
+   */
+  static List<String> buildMvnArgs(Path installationPath) {
+
+    List<String> args = new ArrayList<>(List.of(
+        "-f", //use specified POM file
+        installationPath.resolve("gui/pom.xml").toString(),
+        "org.codehaus.mojo:exec-maven-plugin:3.1.0:exec",
+        "-Dexec.executable=java",
+        "-Dexec.classpathScope=compile",
+        "-Dexec.args=-classpath %classpath com.devonfw.ide.gui.AppLauncher",
+        "-Dexec.async=true"
+    ));
+
+    if (isLocalDevInstallation(installationPath)) {
+      LOG.warn("Launching gui from the self-contained maven repository of the local-dev installation");
+      args.add("-Dmaven.repo.local=" + installationPath.resolve(".m2").toString());
+      args.add("-o"); // run offline so the local build is used and no remote snapshot is resolved
+    } else if (!IdeVersion.getVersionIdentifier().isStable()) {
+      LOG.warn("Launching gui in snapshot mode");
+      args.add("-U"); //Adding this flag forces maven to download the latest SNAPSHOT version
+    }
+    return args;
+  }
+
+  /**
+   * @param installationPath the IDEasy installation directory.
+   * @return {@code true} if the installation is a local-dev installation (marked via {@link IdeContext#FILE_SOFTWARE_VERSION}), {@code false} otherwise.
+   */
+  private static boolean isLocalDevInstallation(Path installationPath) {
+
+    if (installationPath == null) {
+      return false;
+    }
+    Path versionFile = installationPath.resolve(IdeContext.FILE_SOFTWARE_VERSION);
+    if (!Files.exists(versionFile)) {
+      return false;
+    }
+    try {
+      return LOCAL_DEV_VERSION.equals(Files.readString(versionFile).trim());
+    } catch (IOException e) {
+      // a local-dev marker we cannot read must not break the GUI launch, so fall back to the non-local-dev behavior
+      LOG.warn("Failed to read the local-dev version marker at " + versionFile, e);
+      return false;
     }
   }
 }
