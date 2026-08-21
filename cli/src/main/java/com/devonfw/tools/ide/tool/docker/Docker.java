@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.tool.docker;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -12,9 +11,8 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.SystemArchitecture;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
+import com.devonfw.tools.ide.tool.NativePackage;
 import com.devonfw.tools.ide.tool.NativePackageManager;
-import com.devonfw.tools.ide.tool.PackageManagerCommand;
-import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -66,6 +64,36 @@ public class Docker extends GlobalToolCommandlet {
   }
 
   @Override
+  protected List<NativePackage> getNativePackages() {
+    return List.of(
+        new NativePackage(
+            NativePackageManager.ZYPPER,
+            List.of("rancher-desktop"),
+            List.of("--no-gpg-checks"),
+            List.of("sudo zypper addrepo https://download.opensuse.org/repositories/isv:/Rancher:/stable/rpm/isv:Rancher:stable.repo"),
+            null
+        ),
+        new NativePackage(
+            NativePackageManager.APT,
+            List.of("rancher-desktop"),
+            List.of("--allow-downgrades"),
+            List.of(
+                "curl -s https://download.opensuse.org/repositories/isv:/Rancher:/stable/deb/Release.key | "
+                    + "gpg --dearmor | sudo dd status=none of=/usr/share/keyrings/isv-rancher-stable-archive-keyring.gpg",
+                "echo 'deb [signed-by=/usr/share/keyrings/isv-rancher-stable-archive-keyring.gpg] "
+                    + "https://download.opensuse.org/repositories/isv:/Rancher:/stable/deb/ ./' | "
+                    + "sudo dd status=none of=/etc/apt/sources.list.d/isv-rancher-stable.list",
+                "sudo apt update"
+            ),
+            List.of(
+                "sudo rm -f /etc/apt/sources.list.d/isv-rancher-stable.list",
+                "sudo rm -f /usr/share/keyrings/isv-rancher-stable-archive-keyring.gpg"
+            )
+        )
+    );
+  }
+
+  @Override
   public boolean isExtract() {
 
     return switch (this.context.getSystemInfo().getOs()) {
@@ -73,26 +101,6 @@ public class Docker extends GlobalToolCommandlet {
       case MAC -> this.context.getSystemInfo().getArchitecture().equals(SystemArchitecture.ARM64);
       case LINUX -> true;
     };
-  }
-
-  @Override
-  protected List<PackageManagerCommand> getInstallPackageManagerCommands() {
-
-    String edition = getConfiguredEdition();
-    ToolRepository toolRepository = getToolRepository();
-    VersionIdentifier configuredVersion = getConfiguredVersion();
-    String resolvedVersion = toolRepository.resolveVersion(this.tool, edition, configuredVersion, this).toString();
-
-    return List.of(new PackageManagerCommand(NativePackageManager.ZYPPER, List.of(
-            "sudo zypper addrepo https://download.opensuse.org/repositories/isv:/Rancher:/stable/rpm/isv:Rancher:stable.repo",
-            String.format("sudo zypper --no-gpg-checks install rancher-desktop=%s*", resolvedVersion))),
-        new PackageManagerCommand(NativePackageManager.APT, List.of(
-            "curl -s https://download.opensuse.org/repositories/isv:/Rancher:/stable/deb/Release.key | gpg --dearmor |"
-                + " sudo dd status=none of=/usr/share/keyrings/isv-rancher-stable-archive-keyring.gpg",
-            "echo 'deb [signed-by=/usr/share/keyrings/isv-rancher-stable-archive-keyring.gpg]"
-                + " https://download.opensuse.org/repositories/isv:/Rancher:/stable/deb/ ./' |"
-                + " sudo dd status=none of=/etc/apt/sources.list.d/isv-rancher-stable.list", "sudo apt update",
-            String.format("sudo apt install -y --allow-downgrades rancher-desktop=%s*", resolvedVersion))));
   }
 
   @Override
@@ -144,28 +152,6 @@ public class Docker extends GlobalToolCommandlet {
     } else {
       return "desktop";
     }
-  }
-
-  @Override
-  public void uninstall() {
-
-    if (this.context.getSystemInfo().isLinux()) {
-      runWithPackageManager(false, getPackageManagerCommandsUninstall());
-    } else {
-      super.uninstall();
-    }
-
-  }
-
-  private List<PackageManagerCommand> getPackageManagerCommandsUninstall() {
-
-    List<PackageManagerCommand> pmCommands = new ArrayList<>();
-    pmCommands.add(
-        new PackageManagerCommand(NativePackageManager.ZYPPER, List.of("sudo zypper remove rancher-desktop")));
-    pmCommands.add(
-        new PackageManagerCommand(NativePackageManager.APT, List.of("sudo apt -y autoremove rancher-desktop")));
-
-    return pmCommands;
   }
 
   @Override

@@ -105,7 +105,7 @@ function icd() {
         echo "Change directory and initialize IDEasy environment."
         echo "The icd command can be used as an alternative to the regular cd command."
         echo "As additional effect, it will automatically update your environment variables."
-        echo "Futher, it allows shortcuts to quickly navigate to common directories of IDEasy."
+        echo "Further, it allows shortcuts to quickly navigate to common directories of IDEasy."
         echo "Without any arguments icd will navigate to your top-level project directory (IDE_HOME)."
         echo
         echo "OPTIONS:"
