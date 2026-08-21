@@ -166,6 +166,10 @@ public class MainController {
     }
     updateContext(selectedProject.getValue(), workspaceName);
     setIdeButtonsDisabled(false);
+    toolConfigTab.setDisable(false);
+    if (toolConfigTab.isSelected()) {
+      loadToolConfigContent();
+    }
   }
 
   private void initLanguageComboBox() {
@@ -272,14 +276,8 @@ public class MainController {
     selectedWorkspace.getItems().clear();
     selectedWorkspace.getItems().addAll(workspaces);
 
-    selectedWorkspace.setOnAction(actionEvent -> {
-      updateContext(selectedProject.getValue(), selectedWorkspace.getValue());
-
-      androidStudioOpen.setDisable(false);
-      eclipseOpen.setDisable(false);
-      intellijOpen.setDisable(false);
-      vsCodeOpen.setDisable(false);
-    });
+    setIdeButtonsDisabled(true);
+    toolConfigTab.setDisable(true);
   }
 
   private void openIDE(String inIde) {
