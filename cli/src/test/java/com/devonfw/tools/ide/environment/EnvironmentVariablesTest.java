@@ -75,6 +75,7 @@ class EnvironmentVariablesTest extends AbstractIdeContextTest {
 
     assertThat(EnvironmentVariables.getToolVersionVariable("android-studio")).isEqualTo("ANDROID_STUDIO_VERSION");
     assertThat(EnvironmentVariables.getToolEditionVariable("android-studio")).isEqualTo("ANDROID_STUDIO_EDITION");
+    assertThat(EnvironmentVariables.getToolExtraPluginsVariable("android-studio")).isEqualTo("ANDROID_STUDIO_EXTRA_PLUGINS");
   }
 
   /**
@@ -131,8 +132,8 @@ class EnvironmentVariablesTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test that IDEasy's {@code -s} and {@code -Dsettings.security=} arguments override any user-provided ones 
-   * and that unrelated user arguments are correctly appended.
+   * Test that IDEasy's {@code -s} and {@code -Dsettings.security=} arguments override any user-provided ones and that unrelated user arguments are correctly
+   * appended.
    */
   @Test
   void testMergeMavenArgsWithDefault() {
