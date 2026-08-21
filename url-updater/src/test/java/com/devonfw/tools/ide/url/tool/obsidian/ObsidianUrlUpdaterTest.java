@@ -15,6 +15,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
 import com.devonfw.tools.ide.url.updater.AbstractUrlUpdaterTest;
+import com.devonfw.tools.ide.url.updater.UpdateManager;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
@@ -61,9 +62,11 @@ public class ObsidianUrlUpdaterTest extends AbstractUrlUpdaterTest {
             .withStatus(200)
             .withBody(DOWNLOAD_CONTENT)));
 
-    UrlRepository urlRepository = UrlRepository.load(tempDir);
+    UpdateManager updateManager = new UpdateManager(tempDir, null, null);
+    UrlRepository urlRepository = updateManager.getUrlRepository();
     ObsidianUrlUpdater updater = new ObsidianUrlUpdater(wmRuntimeInfo.getHttpBaseUrl(), wmRuntimeInfo.getHttpBaseUrl());
-
+    updater..setUpdateManager(updateManager);
+    
     // act
     updater.update(urlRepository);
 
