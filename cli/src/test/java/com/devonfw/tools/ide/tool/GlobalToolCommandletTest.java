@@ -143,4 +143,60 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     // act + assert
     assertThat(commandlet.getInstalledVersion()).isNull();
   }
+
+  /**
+   * Dummy {@link GlobalToolCommandlet} that provides {@link NativePackage}s for testing uninstall via package manager on Linux.
+   */
+  static class PackageManagedToolCommandlet extends GlobalToolCommandlet {
+
+    private static final String TOOL_NAME = "mytool";
+
+    PackageManagedToolCommandlet(IdeContext context) {
+
+      super(context, TOOL_NAME, Set.of(Tag.MISC));
+    }
+
+    @Override
+    protected List<NativePackage> getNativePackages() {
+
+      return List.of(
+          new NativePackage(
+              NativePackageManager.APT,
+              List.of("mytool"),
+              List.of(),
+              List.of(),
+              List.of("sudo rm -f /etc/apt/sources.list.d/mytool.list"))
+      );
+    }
+
+    @Override
+    protected String getBinaryName() {
+      return TOOL_NAME;
+    }
+  }
+
+  /**
+   * Verifies that {@link GlobalToolCommandlet#getUninstallPackageManagerCommands()} correctly derives uninstall commands from
+   * {@link GlobalToolCommandlet#getNativePackages()}.
+   */
+  @Test
+  void testGetUninstallPackageManagerCommandsDerivesFromNativePackages() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    PackageManagedToolCommandlet commandlet = new PackageManagedToolCommandlet(context);
+
+    // act
+    List<PackageManagerCommand> uninstallCommands = commandlet.getUninstallPackageManagerCommands();
+
+    // assert: exactly one command for APT
+    assertThat(uninstallCommands).hasSize(1);
+    PackageManagerCommand cmd = uninstallCommands.getFirst();
+    assertThat(cmd.packageManager()).isEqualTo(NativePackageManager.APT);
+    // The uninstall command includes the package removal and the cleanup command
+    assertThat(cmd.commands()).containsExactly(
+        "sudo apt -y autoremove --purge mytool",
+        "sudo rm -f /etc/apt/sources.list.d/mytool.list");
+  }
 }
