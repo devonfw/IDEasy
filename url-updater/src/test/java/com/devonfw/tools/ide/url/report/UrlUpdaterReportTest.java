@@ -57,7 +57,7 @@ class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
     updater.setUrlFinalReport(urlFinalReport);
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     assertThat(urlFinalReport.getUrlUpdaterReports()).contains(expectedReport);
@@ -76,7 +76,7 @@ class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
     updater.setUrlFinalReport(urlFinalReport);
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     assertThat(urlFinalReport.getUrlUpdaterReports()).contains(expectedReport);
@@ -91,13 +91,13 @@ class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
     // assign
     stubSuccessfulUrlRequest();
     stubFailedUrlRequest("/os/mac.*");
-    updater.update(urlRepository); // init successful update
+    update(updater, urlRepository); // init successful update
     UrlUpdaterReport expectedReport = createReport(3, 0, 0, 6);
     UrlFinalReport urlFinalReport = new UrlFinalReport();
     updater.setUrlFinalReport(urlFinalReport);
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     assertThat(urlFinalReport.getUrlUpdaterReports()).contains(expectedReport);
@@ -111,13 +111,13 @@ class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
 
     // assign
     stubSuccessfulUrlRequest();
-    updater.update(urlRepository); // init successful update
+    update(updater, urlRepository); // init successful update
     UrlUpdaterReport expectedReport = createReport(0, 0, 0, 0);
     UrlFinalReport urlFinalReport = new UrlFinalReport();
     updater.setUrlFinalReport(urlFinalReport);
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     assertThat(urlFinalReport.getUrlUpdaterReports()).contains(expectedReport);
@@ -131,7 +131,7 @@ class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
 
     // assign
     stubSuccessfulUrlRequest();
-    updater.update(urlRepository); // init successful update
+    update(updater, urlRepository); // init successful update
     UrlUpdaterReport expectedReport = createReport(1, 0, 1, 0);
     Path urlPath = urlRepository.getPath().resolve("mocked").resolve("mocked").resolve("1.0");
     Files.deleteIfExists(urlPath.resolve("windows_x64.urls"));
@@ -141,7 +141,7 @@ class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
     updater.setUrlFinalReport(urlFinalReport);
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     assertThat(urlFinalReport.getUrlUpdaterReports()).contains(expectedReport);

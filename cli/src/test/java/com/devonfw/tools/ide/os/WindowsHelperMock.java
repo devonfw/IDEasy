@@ -17,6 +17,8 @@ public class WindowsHelperMock extends WindowsHelperImpl {
   /** Mock registry map storing WindowsAppInstallation entries */
   private final Map<String, WindowsAppInstallation> registry;
 
+  private Boolean powerShellProfilesConfigured;
+
   /**
    * The constructor.
    */
@@ -26,7 +28,11 @@ public class WindowsHelperMock extends WindowsHelperImpl {
     this.env = new Properties();
     this.env.setProperty("IDE_ROOT", "C:\\projects");
     this.env.setProperty("PATH",
-        "C:\\Users\\testuser\\AppData\\Local\\Microsoft\\WindowsApps;C:\\projects\\_ide\\installation\\bin;C:\\Users\\testuser\\scoop\\apps\\python\\current\\Scripts;C:\\Users\\testuser\\scoop\\apps\\python\\current;C:\\Users\\testuser\\scoop\\shims");
+      "C:\\Users\\testuser\\AppData\\Local\\Microsoft\\WindowsApps;"
+        + "C:\\projects\\_ide\\installation\\bin;"
+        + "C:\\Users\\testuser\\scoop\\apps\\python\\current\\Scripts;"
+        + "C:\\Users\\testuser\\scoop\\apps\\python\\current;"
+        + "C:\\Users\\testuser\\scoop\\shims");
     this.registry = new HashMap<>();
   }
 
@@ -108,6 +114,15 @@ public class WindowsHelperMock extends WindowsHelperImpl {
     }
 
     return List.of();
+  }
+
+  @Override
+  public void configurePowerShellProfiles(boolean install) {
+    this.powerShellProfilesConfigured = install;
+  }
+
+  public Boolean getPowerShellProfilesConfigured() {
+    return this.powerShellProfilesConfigured;
   }
 
   private static String extractFilterValue(String[] args) {
