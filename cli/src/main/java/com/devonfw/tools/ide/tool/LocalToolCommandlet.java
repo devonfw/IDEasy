@@ -366,7 +366,23 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   @Override
-  public VersionIdentifier getInstalledVersion() {
+  protected EditionAndVersion computeInstalledEditionAndVersion() {
+
+    Path toolPath = getToolPath();
+    if (isToolNotInstalled(toolPath)) {
+      return null;
+    }
+    // Resolve edition and version from a single tool-path lookup (one pass) instead of two separate lookups.
+    String edition = getInstalledEdition(toolPath);
+    VersionIdentifier version = getInstalledVersion(toolPath);
+    if ((edition == null) && (version == null)) {
+      return null;
+    }
+    return new EditionAndVersion(edition, version);
+  }
+
+  @Override
+  protected VersionIdentifier getInstalledVersionDeprecated() {
 
     return getInstalledVersion(getToolPath());
   }
@@ -399,7 +415,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   @Override
-  public String getInstalledEdition() {
+  protected String getInstalledEditionDeprecated() {
 
     return getInstalledEdition(getToolPath());
   }

@@ -7,7 +7,6 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.tools.ide.cache.CachedValue;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
@@ -25,8 +24,6 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
 
   private static final Logger LOG = LoggerFactory.getLogger(PackageManagerBasedLocalToolCommandlet.class);
 
-  private final CachedValue<VersionIdentifier> installedVersion;
-
   /**
    * The constructor.
    *
@@ -37,7 +34,6 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
   public PackageManagerBasedLocalToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
     super(context, tool, tags);
-    this.installedVersion = new CachedValue<>(this::determineInstalledVersion);
   }
 
   @Override
@@ -156,10 +152,15 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
     return true;
   }
 
-  private VersionIdentifier determineInstalledVersion() {
+  @Override
+  protected EditionAndVersion computeInstalledEditionAndVersion() {
 
     try {
-      return computeInstalledVersion();
+      VersionIdentifier version = computeInstalledVersion();
+      if (version == null) {
+        return null;
+      }
+      return new EditionAndVersion(this.tool, version);
     } catch (Exception e) {
       LOG.debug("Failed to compute installed version of {}", this.tool, e);
       return null;
@@ -167,18 +168,12 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
   }
 
   /**
-   * @return the computed value of the {@link #getInstalledVersion() installed version}.
+   * @return the computed value of the installed version.
    * @implNote Implementations of this method should NOT trigger any tool installation or download. If you need to call
    *     {@link #runPackageManager(PackageManagerRequest)}, make sure to use {@link #runPackageManager(PackageManagerRequest, boolean)} with
    *     {@code skipInstallation=true} to avoid inadvertently triggering installations when only checking the version.
    */
   protected abstract VersionIdentifier computeInstalledVersion();
-
-  @Override
-  public VersionIdentifier getInstalledVersion() {
-
-    return this.installedVersion.get();
-  }
 
   /**
    * Override to ignore the {@code toolPath} parameter and use the package-manager based detection of the actually installed version.
@@ -197,7 +192,7 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
     PackageManagerRequest packageManagerRequest = new PackageManagerRequest(PackageManagerRequest.TYPE_INSTALL, getPackageName())
         .setProcessContext(request.getProcessContext()).setVersion(request.getRequested().getResolvedVersion());
     runPackageManager(packageManagerRequest, isSkipInstallation()).failOnError();
-    this.installedVersion.invalidate();
+    invalidateInstalledEditionAndVersion();
   }
 
   /**
@@ -220,7 +215,7 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
     if (canBeUninstalled()) {
       PackageManagerRequest request = new PackageManagerRequest(PackageManagerRequest.TYPE_UNINSTALL, getPackageName());
       runPackageManager(request).failOnError();
-      this.installedVersion.invalidate();
+      invalidateInstalledEditionAndVersion();
     } else {
       LOG.info("IDEasy does not support uninstalling the tool {} since this will break your installation.\n"
           + "If you really want to uninstall it, please uninstall its parent tool via:\n"

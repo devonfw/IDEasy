@@ -46,13 +46,8 @@ public abstract class DelegatingToolCommandlet<D extends ToolCommandlet> extends
   }
 
   @Override
-  public VersionIdentifier getInstalledVersion() {
-    return getDelegate().getInstalledVersion();
-  }
-
-  @Override
-  public String getInstalledEdition() {
-    return getDelegate().getInstalledEdition();
+  public EditionAndVersion getInstalledEditionAndVersion() {
+    return getDelegate().getInstalledEditionAndVersion();
   }
 
   @Override
