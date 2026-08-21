@@ -436,7 +436,7 @@ public interface IdeContext extends IdeStartContext {
    * @param ideRoot the IDE root containing the IDEasy projects.
    * @return the paths of all detected IDEasy projects.
    */
-  public static List<Path> findProjects(Path ideRoot) {
+  static List<Path> findProjects(Path ideRoot) {
 
     if ((ideRoot == null) || !Files.isDirectory(ideRoot)) {
       return List.of();
