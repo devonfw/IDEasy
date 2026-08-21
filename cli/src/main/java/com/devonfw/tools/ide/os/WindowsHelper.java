@@ -46,4 +46,11 @@ public interface WindowsHelper {
     // IdeContext API is already too large
     return ((AbstractIdeContext) context).getWindowsHelper();
   }
+
+  /**
+   * Configures or removes IDEasy integration in the PowerShell profiles.
+   *
+   * @param install {@code true} to install the integration, {@code false} to remove it.
+   */
+  void configurePowerShellProfiles(boolean install);
 }
