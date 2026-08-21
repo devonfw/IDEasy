@@ -66,7 +66,7 @@ public class ObsidianUrlUpdaterTest extends AbstractUrlUpdaterTest {
     UrlRepository urlRepository = updateManager.getUrlRepository();
     ObsidianUrlUpdater updater = new ObsidianUrlUpdater(wmRuntimeInfo.getHttpBaseUrl(), wmRuntimeInfo.getHttpBaseUrl());
     updater.setUpdateManager(updateManager);
-    
+
     // act
     updater.update(urlRepository);
 
