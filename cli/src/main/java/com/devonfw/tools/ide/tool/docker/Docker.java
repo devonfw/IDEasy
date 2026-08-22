@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.tool.docker;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -14,8 +13,6 @@ import com.devonfw.tools.ide.os.SystemArchitecture;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.NativePackage;
 import com.devonfw.tools.ide.tool.NativePackageManager;
-import com.devonfw.tools.ide.tool.PackageManagerCommand;
-import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
