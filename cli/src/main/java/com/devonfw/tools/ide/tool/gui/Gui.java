@@ -100,7 +100,9 @@ public class Gui extends Commandlet {
       mvn.runTool(processContext, ProcessMode.DEFAULT, args);
     } catch (RuntimeException e) {
       throw new CliException(
-          "Failed to launch the GUI. If maven reports issues with dependency resolution, the self-contained maven repository of the IDEasy installation may be incomplete - re-run the local-dev build (build-local-dev.sh) to repopulate it.", e);
+          "Failed to launch the GUI. If maven reports issues with dependency resolution, the self-contained maven repository of the IDEasy "
+              + "installation may be incomplete - re-run the local-dev build (build-local-dev.sh) to repopulate it.",
+          e);
     }
   }
 
