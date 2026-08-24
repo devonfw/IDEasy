@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<VBox fx:id="navigationPanel"
+  fx:controller="com.devonfw.ide.gui.MainController"
+  prefHeight="428.0"
+  prefWidth="181.0"
+  spacing="4.0"
+  stylesheets="@style/navigation.css"
+  xmlns="http://javafx.com/javafx/25.0.0"
+  xmlns:fx="http://javafx.com/fxml/1">
+  <padding>
+    <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+  </padding>
+
+  <HBox alignment="CENTER_LEFT" prefWidth="200.0">
+    <VBox.margin>
+      <Insets bottom="10.0"/>
+    </VBox.margin>
+    <ImageView fitHeight="150.0"
+      fitWidth="200.0"
+      pickOnBounds="true"
+      preserveRatio="true">
+      <Image url="@assets/logo.png"/>
+    </ImageView>
+  </HBox>
+
+  <VBox maxHeight="-Infinity"
+    prefWidth="100.0"
+    styleClass="sideNavigationElement">
+    <padding>
+      <Insets left="8.0" right="8.0"/>
+    </padding>
+    <Label fx:id="labelProject"
+      maxWidth="1.7976931348623157E308"
+      text="%project"/>
+    <ComboBox fx:id="selectedProject"
+      maxWidth="1.7976931348623157E308"
+      minWidth="-Infinity"
+      prefHeight="40.0"
+      prefWidth="150.0"
+      promptText="%chooseProject"
+      styleClass="chooseProject"/>
+  </VBox>
+
+  <VBox maxHeight="-Infinity"
+    prefWidth="100.0"
+    styleClass="sideNavigationElement">
+    <padding>
+      <Insets left="8.0" right="8.0"/>
+    </padding>
+    <Label fx:id="labelWorkspace"
+      maxWidth="1.7976931348623157E308"
+      text="%workspace"/>
+    <ComboBox fx:id="selectedWorkspace"
+      disable="true"
+      maxWidth="1.7976931348623157E308"
+      minWidth="-Infinity"
+      prefHeight="40.0"
+      prefWidth="150.0"
+      promptText="%chooseWorkspace"
+      styleClass="chooseProject"
+      VBox.vgrow="ALWAYS"/>
+  </VBox>
+
+  <!-- Language selector -->
+  <VBox maxHeight="-Infinity"
+    prefWidth="100.0"
+    styleClass="sideNavigationElement">
+    <padding>
+      <Insets left="8.0" right="8.0"/>
+    </padding>
+    <Label fx:id="labelLanguage"
+      maxWidth="1.7976931348623157E308"
+      text="%language"/>
+    <ComboBox fx:id="selectedLanguage"
+      maxWidth="1.7976931348623157E308"
+      minWidth="-Infinity"
+      prefHeight="40.0"
+      prefWidth="150.0"
+      promptText="%chooseLanguage"
+      styleClass="chooseProject"/>
+  </VBox>
+</VBox>

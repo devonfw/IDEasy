@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<root>
+  <element name="elem1">text1<![CDATA[text2]]>text3</element>
+  <element name="elem2">text1<![CDATA[text2]]>text3</element>
+  <element name="elem3">text1<![CDATA[text5]]>text6</element>
+  <element name="elem4"><![CDATA[text2]]></element>
+</root>
