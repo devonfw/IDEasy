@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
@@ -337,7 +338,7 @@ class ExpressionParserTest extends AbstractIdeContextTest {
 
     // act + assert
     assertThatThrownBy(() -> expressionContext.resolve("@ask-variable('MY_VARIABLE', 'Q:', somewhere)"))
-        .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("Invalid configuration location 'somewhere'");
+        .isInstanceOf(CliException.class).hasMessageContaining("invalid configuration location 'somewhere'");
   }
 
   /**
@@ -391,7 +392,7 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     TestExpressionContext expressionContext = new TestExpressionContext(context);
 
     // act + assert
-    assertThatThrownBy(() -> expressionContext.resolve("@ask-variable('')")).isInstanceOf(IllegalArgumentException.class)
+    assertThatThrownBy(() -> expressionContext.resolve("@ask-variable('')")).isInstanceOf(CliException.class)
         .hasMessageContaining("requires an explicit question");
   }
 
@@ -407,7 +408,23 @@ class ExpressionParserTest extends AbstractIdeContextTest {
 
     // act + assert
     assertThatThrownBy(() -> expressionContext.resolve("@path(a, unix, extra)"))
-        .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("requires 1 to 2 argument(s) but received 3");
+        .isInstanceOf(CliException.class).hasMessageContaining("requires 1 to 2 argument(s) but received 3");
+  }
+
+  /**
+   * Test that an invalid mode for {@code @path} is rejected with a {@link CliException} so that a template authoring error is not reported as an internal error
+   * of IDEasy.
+   */
+  @Test
+  void testInvalidPathMode() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    TestExpressionContext expressionContext = new TestExpressionContext(context);
+
+    // act + assert
+    assertThatThrownBy(() -> expressionContext.resolve("@path('x', dos)")).isInstanceOf(CliException.class)
+        .hasMessageContaining("invalid mode 'dos'");
   }
 
   /**

@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.expression.function;
 import java.util.List;
 import java.util.Locale;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesFiles;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
@@ -81,8 +82,8 @@ public class AskFunction implements ExpressionFunction {
 
     if (variableName.isEmpty()) {
       if ((question == null) || question.isEmpty()) {
-        throw new IllegalArgumentException(
-            "Function @" + this.name + " requires an explicit question as 2nd argument if the variable name is empty.");
+        throw new CliException("Invalid template expression: function @" + this.name
+            + " requires an explicit question as 2nd argument if the variable name is empty.");
       }
       // the user is always asked and nothing is persisted since we have no name to persist under
       return toResult(ask(question, defaultValue, context));
@@ -121,8 +122,8 @@ public class AskFunction implements ExpressionFunction {
     try {
       return EnvironmentVariablesFiles.valueOf(location).toType();
     } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException("Invalid configuration location '" + arg + "' for function @" + this.name
-          + " - expected one of settings, workspace, conf or home.", e);
+      throw new CliException("Invalid template expression: invalid configuration location '" + arg + "' for function @"
+          + this.name + " - expected one of settings, workspace, conf or home.", e);
     }
   }
 

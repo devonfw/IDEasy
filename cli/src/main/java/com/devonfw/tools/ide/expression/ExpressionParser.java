@@ -8,17 +8,17 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.cli.CliException;
+
 /**
  * Parser for expressions of the syntax {@code @«function-name»([«arg»[,«arg»]*])}.
  * <p>
- * A regular expression is only used to <em>locate</em> the start of a function call. The argument list is then scanned
- * manually, because a regular expression cannot express a balanced list of an arbitrary number of arguments that may
- * contain quoted commas, quoted parenthesis or nested function calls.
+ * A regular expression is only used to <em>locate</em> the start of a function call. The argument list is then scanned manually, because a regular expression
+ * cannot express a balanced list of an arbitrary number of arguments that may contain quoted commas, quoted parenthesis or nested function calls.
  * <p>
- * Text that does not form a call of a {@link ExpressionFunctionManager#getFunction(String) registered function} is
- * passed through entirely untouched. This is essential since foreign configuration formats may use an {@code @} for
- * their own purposes (e.g. CSS {@code @media(...)}) and IDEasy must never try to resolve placeholders that are not
- * ours.
+ * Text that does not form a call of a {@link ExpressionFunctionManager#getFunction(String) registered function} is passed through entirely untouched. This is
+ * essential since foreign configuration formats may use an {@code @} for their own purposes (e.g. CSS {@code @media(...)}) and IDEasy must never try to resolve
+ * placeholders that are not ours.
  */
 public class ExpressionParser {
 
@@ -86,9 +86,10 @@ public class ExpressionParser {
     int min = function.getMinArgs();
     int max = function.getMaxArgs();
     if ((size < min) || ((max >= 0) && (size > max))) {
-      throw new IllegalArgumentException(
-          "Function @" + function.getName() + " requires " + min + (max < 0 ? " or more" : " to " + max)
-              + " argument(s) but received " + size + " in '" + value + "'.");
+      // NOTE: the value is deliberately not part of the message since it may already contain a resolved secret
+      throw new CliException(
+          "Invalid template expression: function @" + function.getName() + " requires " + min
+              + (max < 0 ? " or more" : " to " + max) + " argument(s) but received " + size + ".");
     }
     String result = function.apply(args, context);
     return (result == null) ? "" : result;

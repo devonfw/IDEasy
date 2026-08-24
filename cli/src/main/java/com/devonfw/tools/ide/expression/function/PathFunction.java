@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.expression.function;
 
 import java.util.List;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.expression.ExpressionContext;
 import com.devonfw.tools.ide.expression.ExpressionFunction;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
@@ -53,8 +54,8 @@ public class PathFunction implements ExpressionFunction {
       }
       return path.replace('\\', '/');
     }
-    throw new IllegalArgumentException(
-        "Invalid mode '" + mode + "' for function @path - expected '" + MODE_UNIX + "' or '" + MODE_NATIVE + "'.");
+    throw new CliException(
+        "Invalid template expression: invalid mode '" + mode + "' for function @path - expected '" + MODE_UNIX + "' or '" + MODE_NATIVE + "'.");
   }
 
 }
