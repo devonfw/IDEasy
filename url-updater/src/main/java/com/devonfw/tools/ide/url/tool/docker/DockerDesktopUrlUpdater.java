@@ -42,7 +42,7 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
     VersionIdentifier vid = VersionIdentifier.of(urlVersion.getName());
     String body = doGetResponseBodyAsString(getVersionUrl());
     String regex = "## " + Pattern.quote(urlVersion.getName())
-        + ".*?\\[Windows\\(https://desktop\\.docker\\.com/win/main/amd64/(\\d{5,6})/";
+        + ".*?\\[Windows]\\(https://desktop\\.docker\\.com/win/main/amd64/(\\d{5,6})/";
     Pattern pattern = Pattern.compile(regex, Pattern.DOTALL);
     Matcher matcher = pattern.matcher(body);
 
