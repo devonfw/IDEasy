@@ -285,6 +285,26 @@ class VscodeTest extends AbstractIdeContextTest {
     assertThat(settingsJson).exists().content().contains("test_gradle");
   }
 
+  /**
+   * Tests that {@link Vscode#importRepository(Path)} logs a warning and merges nothing when the repository contains no supported build descriptor.
+   */
+  @Test
+  void testVscodeRepositoryImportWithoutSupportedBuildDescriptor() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    Vscode vscodeCommandlet = new Vscode(context);
+    Path repositoryPath = context.getWorkspacePath().resolve("empty_project");
+    context.getFileAccess().mkdirs(repositoryPath);
+
+    // act
+    vscodeCommandlet.importRepository(repositoryPath);
+
+    // assert
+    assertThat(context).logAtWarning().hasMessageContaining("No supported build descriptor was found for project import in");
+    assertThat(context.getWorkspacePath().resolve(".vscode/settings.json")).doesNotExist();
+  }
+
 
   /**
    * Test double for {@link Vscode} that captures CLI arguments passed to {@link #runTool(ProcessContext, ProcessMode, List)} so tests can assert command

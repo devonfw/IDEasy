@@ -5,14 +5,12 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.cli.CliException;
-import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.AbstractEnvironmentVariables;
@@ -121,19 +119,9 @@ public class Vscode extends IdeToolCommandlet {
   }
 
   @Override
-  public void importRepository(Path repositoryPath) {
-    CommandletManager commandletManager = this.context.getCommandletManager();
-    for (Entry<Class<? extends LocalToolCommandlet>, String> entry : BUILD_TOOL_TO_TEMPLATE.entrySet()) {
-      LocalToolCommandlet buildTool = commandletManager.getCommandlet(entry.getKey());
-      Path buildDescriptor = buildTool.findBuildDescriptor(repositoryPath);
-      if (buildDescriptor != null) {
-        String templateFilename = entry.getValue();
-        LOG.debug("Found build descriptor {} so merging template {}", buildDescriptor, templateFilename);
-        mergeSettings(repositoryPath, templateFilename);
-        return;
-      }
-    }
-    LOG.warn("No supported build descriptor was found for project import in {}", repositoryPath);
+  protected Map<Class<? extends LocalToolCommandlet>, String> getBuildTool2TemplateMap() {
+
+    return BUILD_TOOL_TO_TEMPLATE;
   }
 
   /**
@@ -156,7 +144,8 @@ public class Vscode extends IdeToolCommandlet {
    * @param repositoryPath the {@link Path} to the repository to import.
    * @param configFilePath the filename of the config file (e.g. {@code settings.json}).
    */
-  private void mergeSettings(Path repositoryPath, String configFilePath) {
+  @Override
+  protected void mergeTemplate(Path repositoryPath, String configFilePath) {
     Path templatePath = this.context.getSettingsPath().resolve(TEMPLATE_LOCATION);
     Path templateFile = templatePath.resolve(configFilePath);
     if (!Files.exists(templateFile)) {

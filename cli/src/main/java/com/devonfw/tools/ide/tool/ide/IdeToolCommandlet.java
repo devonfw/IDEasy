@@ -8,12 +8,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
+import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.AbstractEnvironmentVariables;
@@ -27,6 +29,7 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
@@ -185,9 +188,47 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
   /**
    * Imports the repository specified by the given {@link Path} into the IDE managed by this {@link IdeToolCommandlet}.
    *
+   * <p>
+   * The repository is searched for a build descriptor of any build tool that this IDE supports via {@link #getBuildTool2TemplateMap()}. The first match triggers a merge of
+   * the corresponding template into the workspace via {@link #mergeTemplate(Path, String)}. If no build tool of this IDE applies the repository is skipped.
+   * </p>
+   *
    * @param repositoryPath the {@link Path} to the repository directory to import.
    */
   public void importRepository(Path repositoryPath) {
+
+    CommandletManager commandletManager = this.context.getCommandletManager();
+    for (Entry<Class<? extends LocalToolCommandlet>, String> entry : getBuildTool2TemplateMap().entrySet()) {
+      LocalToolCommandlet buildTool = commandletManager.getCommandlet(entry.getKey());
+      Path buildDescriptor = buildTool.findBuildDescriptor(repositoryPath);
+      if (buildDescriptor != null) {
+        String templateFilename = entry.getValue();
+        LOG.debug("Found build descriptor {} so merging template {}", buildDescriptor, templateFilename);
+        mergeTemplate(repositoryPath, templateFilename);
+        return;
+      }
+    }
+    LOG.warn("No supported build descriptor was found for project import in {}", repositoryPath);
+  }
+
+  /**
+   * @return the mapping of supported build tool commandlets to the template file name to be merged into the workspace (see {@link #mergeTemplate(Path, String)}) when the
+   *     corresponding build descriptor is present in the imported repository. The default is an empty map meaning that no build tool is supported for repository import by
+   *     this IDE.
+   */
+  protected Map<Class<? extends LocalToolCommandlet>, String> getBuildTool2TemplateMap() {
+
+    return Map.of();
+  }
+
+  /**
+   * Merges the template with the given file name into the workspace for the imported repository. This is the IDE-specific part
+   * of {@link #importRepository(Path)} and is called after a supported build descriptor was found.
+   *
+   * @param repositoryPath the {@link Path} to the imported repository directory.
+   * @param templateFilename the file name of the workspace-relative template to merge (as configured in {@link #getBuildTool2TemplateMap()}).
+   */
+  protected void mergeTemplate(Path repositoryPath, String templateFilename) {
 
     throw new UnsupportedOperationException("Repository import is not yet implemented for IDE " + this.tool);
   }

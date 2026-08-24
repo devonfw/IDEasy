@@ -3,7 +3,6 @@ package com.devonfw.tools.ide.tool.intellij;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -11,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
 import com.devonfw.tools.ide.cli.CliException;
-import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.AbstractEnvironmentVariables;
@@ -133,7 +131,8 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     return environmentVariables.resolved();
   }
 
-  private void mergeConfig(Path repositoryPath, String configFilePath) {
+  @Override
+  protected void mergeTemplate(Path repositoryPath, String configFilePath) {
     Path templatePath = this.context.getSettingsPath().resolve(TEMPLATE_LOCATION);
     Path templateFile = templatePath.resolve(configFilePath);
     if (!Files.exists(templateFile)) {
@@ -160,18 +159,8 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   }
 
   @Override
-  public void importRepository(Path repositoryPath) {
-    CommandletManager commandletManager = this.context.getCommandletManager();
-    for (Entry<Class<? extends LocalToolCommandlet>, String> entry : BUILD_TOOL_TO_IJ_TEMPLATE.entrySet()) {
-      LocalToolCommandlet buildTool = commandletManager.getCommandlet(entry.getKey());
-      Path buildDescriptor = buildTool.findBuildDescriptor(repositoryPath);
-      if (buildDescriptor != null) {
-        String templateFilename = entry.getValue();
-        LOG.debug("Found build descriptor {} so merging template {}", buildDescriptor, templateFilename);
-        mergeConfig(repositoryPath, templateFilename);
-        return;
-      }
-    }
-    LOG.warn("No supported build descriptor was found for project import in {}", repositoryPath);
+  protected Map<Class<? extends LocalToolCommandlet>, String> getBuildTool2TemplateMap() {
+
+    return BUILD_TOOL_TO_IJ_TEMPLATE;
   }
 }
