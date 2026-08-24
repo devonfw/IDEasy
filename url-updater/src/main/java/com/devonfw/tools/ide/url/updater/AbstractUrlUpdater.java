@@ -29,15 +29,15 @@ import com.devonfw.tools.ide.os.SystemArchitecture;
 import com.devonfw.tools.ide.url.model.file.UrlChecksum;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFile;
 import com.devonfw.tools.ide.url.model.file.UrlFile;
-import com.devonfw.tools.ide.url.model.file.UrlStatusFile;
-import com.devonfw.tools.ide.url.model.file.json.StatusJson;
-import com.devonfw.tools.ide.url.model.file.json.UrlStatus;
-import com.devonfw.tools.ide.url.model.file.json.UrlStatusState;
 import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
 import com.devonfw.tools.ide.url.model.folder.UrlTool;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.model.report.UrlUpdaterReport;
+import com.devonfw.tools.ide.url.updater.status.StatusJson;
+import com.devonfw.tools.ide.url.updater.status.UrlStatus;
+import com.devonfw.tools.ide.url.updater.status.UrlStatusFile;
+import com.devonfw.tools.ide.url.updater.status.UrlStatusState;
 import com.devonfw.tools.ide.util.DateTimeUtil;
 import com.devonfw.tools.ide.util.HexUtil;
 
@@ -87,6 +87,8 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   private final String downloadBaseUrl;
 
   private final String versionBaseUrl;
+
+  private UpdateManager updateManager;
 
   private static final Logger logger = LoggerFactory.getLogger(AbstractUrlUpdater.class);
 
@@ -542,7 +544,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    */
   protected boolean doAddVersion(String edition, UrlVersion urlVersion, String url, OperatingSystem os, SystemArchitecture architecture, String checksum) {
 
-    UrlStatusFile status = urlVersion.getStatus();
+    UrlStatusFile status = getStatusFile(urlVersion, false);
     if ((status != null) && status.getStatusJson().isManual()) {
       return true;
     }
@@ -771,10 +773,10 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   private void doUpdateStatusJson(boolean success, int statusCode, String edition, UrlVersion urlVersion, String url, UrlDownloadFile downloadFile,
       boolean update) {
 
-    UrlStatusFile urlStatusFile = urlVersion.getStatus();
+    UrlStatusFile urlStatusFile = getStatusFile(urlVersion, false);
     boolean forceCreation = (success || update);
     if ((urlStatusFile == null) && forceCreation) {
-      urlStatusFile = urlVersion.getOrCreateStatus();
+      urlStatusFile = getStatusFile(urlVersion, true);
     }
     StatusJson statusJson = null;
     UrlStatus status = null;
@@ -942,6 +944,19 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   }
 
   /**
+   * @param updateManager the {@link UpdateManager} that owns the shared status file cache.
+   */
+  public void setUpdateManager(UpdateManager updateManager) {
+
+    this.updateManager = updateManager;
+  }
+
+  private UrlStatusFile getStatusFile(UrlVersion urlVersion, boolean create) {
+
+    return this.updateManager.getStatusFile(urlVersion, create);
+  }
+
+  /**
    * Updates the tool's versions in the URL repository.
    *
    * @param urlRepository the {@link UrlRepository} to update
@@ -994,7 +1009,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     for (String version : existingVersions) {
       UrlVersion urlVersion = edition.getChild(version);
       if (urlVersion != null) {
-        UrlStatusFile urlStatusFile = urlVersion.getOrCreateStatus();
+        UrlStatusFile urlStatusFile = getStatusFile(urlVersion, true);
         StatusJson statusJson = urlStatusFile.getStatusJson();
         if (statusJson.isManual()) {
           logger.info("For tool {} the version {} is set to manual, hence skipping update", getToolWithEdition(edition.getName()), version);
@@ -1032,8 +1047,6 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     urlStatusFile.cleanup();
     if (statusJson.getUrls().isEmpty()) {
       urlStatusFile.delete();
-    } else {
-      urlStatusFile.save();
     }
   }
 

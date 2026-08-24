@@ -127,12 +127,19 @@ public class MainController {
     taskManager.getTasks().addListener(taskListChangeListener);
   }
 
+  /**Guard to ensure {@link #initialize()} runs only once across all FXML files.*/
+  private boolean initialized;
+
   @FXML
   private void initialize() {
 
+    if (this.initialized) {
+      return;
+    }
     setProjectsComboBox();
     initLanguageComboBox();
     selectedWorkspace.setOnAction(this::onWorkspaceSelected);
+    this.initialized = true;
   }
 
   private void onWorkspaceSelected(ActionEvent actionEvent) {
@@ -248,7 +255,14 @@ public class MainController {
     selectedWorkspace.getItems().clear();
     selectedWorkspace.getItems().addAll(workspaces);
 
-    setIdeButtonsDisabled(true);
+    if (workspaces.contains("main")) {
+      selectedWorkspace.setValue("main");
+      updateContext(selectedProject.getValue(), selectedWorkspace.getValue());
+      setIdeButtonsDisabled(false);
+    } else {
+      setIdeButtonsDisabled(true);
+    }
+
   }
 
   private void openIDE(String inIde) {
