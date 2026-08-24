@@ -37,6 +37,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1135[#1135]: Fix PowerShell env variable initialization on Windows by sourcing functions from the PowerShell profile
 * https://github.com/devonfw/IDEasy/issues/741[#741]: Add a warning message for legacy devonfw-ide settings users
 * https://github.com/devonfw/IDEasy/issues/1933[#1933]: Added a console panel to the GUI
+* https://github.com/devonfw/IDEasy/issues/2271[#2271]: Fix `ide install pgadmin` on Linux
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/49?closed=1[milestone 2026.09.001].
 

@@ -23,6 +23,7 @@ import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
+import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -134,12 +135,16 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     VersionIdentifier resolvedVersion = request.getRequested().getResolvedVersion();
     if (this.context.getSystemInfo().isLinux()) {
       // on Linux global tools are typically installed via the package manager of the OS
-      // if a global tool implements getNativePackages() to returns at least one NativePackage, then we will install this way.
+      // if a global tool implements getNativePackages() to return at least one NativePackage, then we will install this way.
       List<PackageManagerCommand> commands = getInstallPackageManagerCommands(resolvedVersion);
       if (!commands.isEmpty()) {
         boolean newInstallation = runWithPackageManager(request.isSilent(), commands, NativePackageAction.INSTALL);
-        Path rootDir = getInstallationPath(getConfiguredEdition(), resolvedVersion);
-        return createToolInstallation(rootDir, resolvedVersion, newInstallation, request.getProcessContext(), request.isAdditionalInstallation());
+
+        VersionIdentifier installedVersion = getInstalledVersion();
+        Path rootDir = getInstallationPath(getConfiguredEdition(), installedVersion);
+
+        return createToolInstallation(rootDir, installedVersion, newInstallation, request.getProcessContext(),
+            request.isAdditionalInstallation());
       }
     }
 
@@ -183,6 +188,20 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
       return new ToolInstallation(null, null, null, resolvedVersion, true, true);
     }
     return createToolInstallation(installationPath, resolvedVersion, true, pc, false);
+  }
+
+  @Override
+  protected VersionIdentifier resolveVersionForInstall(String edition, GenericVersionRange version) {
+
+    if (this.context.getSystemInfo().isLinux() && !getNativePackages().isEmpty()) {
+      if (version instanceof VersionIdentifier versionIdentifier && !versionIdentifier.isPattern()) {
+        return versionIdentifier;
+      }
+
+      return null;
+    }
+
+    return super.resolveVersionForInstall(edition, version);
   }
 
   /**
@@ -308,7 +327,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   public void uninstall() {
     if (this.context.getSystemInfo().isWindows()) {
       WindowsHelper.get(this.context).uninstallApplication(getWindowsRegistryAppName());
-    } else if (this.context.getSystemInfo().isLinux()) {
+    } else if (this.context.getSystemInfo().isLinux() && !getNativePackages().isEmpty()) {
       runWithPackageManager(false, getUninstallPackageManagerCommands(), NativePackageAction.UNINSTALL);
     } else {
       LOG.error("Couldn't uninstall {} on this OS. Please uninstall manually.", this.getName());

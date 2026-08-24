@@ -199,4 +199,43 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
         "sudo apt -y autoremove --purge mytool",
         "sudo rm -f /etc/apt/sources.list.d/mytool.list");
   }
+
+  /**
+   * Verifies that an explicitly requested exact version is preserved for a Linux tool installed via a native package manager.
+   */
+  @Test
+  void testResolveVersionForInstallKeepsExactVersionForLinuxNativePackage() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    PackageManagedToolCommandlet commandlet = new PackageManagedToolCommandlet(context);
+    VersionIdentifier version = VersionIdentifier.of("1.2.3");
+
+    // act
+    VersionIdentifier resolvedVersion = commandlet.resolveVersionForInstall("default", version);
+
+    // assert
+    assertThat(resolvedVersion).isEqualTo(version);
+  }
+
+  /**
+   * Verifies that a version pattern is not resolved by IDEasy for a Linux tool installed via a native package manager, so the package manager can determine the
+   * concrete version.
+   */
+  @Test
+  void testResolveVersionForInstallReturnsNullForPatternOnLinuxNativePackage() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    PackageManagedToolCommandlet commandlet = new PackageManagedToolCommandlet(context);
+    VersionIdentifier version = VersionIdentifier.of("1.2.*");
+
+    // act
+    VersionIdentifier resolvedVersion = commandlet.resolveVersionForInstall("default", version);
+
+    // assert
+    assertThat(resolvedVersion).isNull();
+  }
 }
