@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.devonfw.tools.ide.expression.ExpressionContext;
 import com.devonfw.tools.ide.expression.ExpressionFunction;
+import com.devonfw.tools.ide.os.WindowsPathSyntax;
 
 /**
  * {@link ExpressionFunction} {@code @path} that normalises a path.
@@ -48,7 +49,7 @@ public class PathFunction implements ExpressionFunction {
       return path.replace('\\', '/');
     } else if (MODE_NATIVE.equals(mode)) {
       if (context.getIdeContext().getSystemInfo().isWindows()) {
-        return path.replace('/', '\\');
+        return WindowsPathSyntax.WINDOWS.normalize(path).replace('/', '\\');
       }
       return path.replace('\\', '/');
     }

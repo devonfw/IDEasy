@@ -61,6 +61,43 @@ class ExpressionParserTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Test that {@code @path} with mode {@code native} converts an absolute MSYS path (git-bash) to the according windows drive instead of turning the drive
+   * letter into a folder.
+   */
+  @Test
+  void testPathNativeConvertsMsysPathOnWindows() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
+    TestExpressionContext expressionContext = new TestExpressionContext(context);
+
+    // act
+    String result = expressionContext.resolve("@path('/d/projects/my-project/software/mvn', native)");
+
+    // assert
+    assertThat(result).isEqualTo("D:\\projects\\my-project\\software\\mvn");
+  }
+
+  /**
+   * Test that {@code @path} with mode {@code native} still converts the separators of a relative path on windows.
+   */
+  @Test
+  void testPathNativeConvertsRelativePathOnWindows() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
+    TestExpressionContext expressionContext = new TestExpressionContext(context);
+
+    // act
+    String result = expressionContext.resolve("@path('software/node/node.exe', native)");
+
+    // assert
+    assertThat(result).isEqualTo("software\\node\\node.exe");
+  }
+
+  /**
    * Test that a backslash inside a quoted argument is never interpreted as an escape character, since arguments
    * regularly contain native windows paths.
    */
