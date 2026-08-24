@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.tool.vscode;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,12 +9,9 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.environment.AbstractEnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
-import com.devonfw.tools.ide.environment.ExtensibleEnvironmentVariables;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.merge.JsonMerger;
 import com.devonfw.tools.ide.process.ProcessContext;
@@ -44,9 +40,6 @@ public class Vscode extends IdeToolCommandlet {
 
   /** Settings file name for VSCode. */
   private static final String SETTINGS_JSON = "settings.json";
-
-  /** Template location for VSCode repository workspace settings. */
-  private static final String TEMPLATE_LOCATION = "vscode/workspace/repository/" + FOLDER_VSCODE;
 
   /** Map of build tool classes to their corresponding VSCode settings template. */
   private static final Map<Class<? extends LocalToolCommandlet>, String> BUILD_TOOL_TO_TEMPLATE =
@@ -124,53 +117,29 @@ public class Vscode extends IdeToolCommandlet {
     return BUILD_TOOL_TO_TEMPLATE;
   }
 
-  /**
-   * Creates {@link EnvironmentVariables} for resolving VSCode workspace templates with the relative project path.
-   *
-   * @param projectPath the relative {@link Path} from workspace to repository.
-   * @return the resolved {@link EnvironmentVariables}.
-   */
-  private EnvironmentVariables getVscodeEnvironmentVariables(Path projectPath) {
-    ExtensibleEnvironmentVariables environmentVariables = new ExtensibleEnvironmentVariables(
-        (AbstractEnvironmentVariables) this.context.getVariables().getParent(), this.context);
+  @Override
+  protected String getTemplateFolder() {
 
-    environmentVariables.setValue("PROJECT_PATH", projectPath.toString().replace('\\', '/'));
-    return environmentVariables.resolved();
+    return FOLDER_VSCODE;
   }
 
   /**
    * Merges the VSCode settings template into the workspace's {@code .vscode/settings.json}.
    *
-   * @param repositoryPath the {@link Path} to the repository to import.
-   * @param configFilePath the filename of the config file (e.g. {@code settings.json}).
+   * @param templateFile the resolved {@link Path} to the settings template in the settings repository.
+   * @param workspaceFile the {@link Path} to the workspace {@code settings.json} to merge into.
+   * @param environmentVariables the {@link EnvironmentVariables} to resolve variables (e.g. {@code PROJECT_PATH}) in the template.
    */
   @Override
-  protected void mergeTemplate(Path repositoryPath, String configFilePath) {
-    Path templatePath = this.context.getSettingsPath().resolve(TEMPLATE_LOCATION);
-    Path templateFile = templatePath.resolve(configFilePath);
-    if (!Files.exists(templateFile)) {
-      throw new CliException(
-          "Cannot import project into workspace: template file not found at " + templateFile + "\n"
-              + "Please do an upstream merge of your settings git repository.");
-    }
-    Path workspacesPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES);
-    Path workspacePath = this.context.getFileAccess().findAncestor(repositoryPath, workspacesPath, 1);
-    if (workspacePath == null) {
-      throw new CliException(
-          "Cannot import project into workspace: could not find workspace from " + repositoryPath);
-    }
-    JsonMerger jsonMerger = new JsonMerger(this.context);
-    EnvironmentVariables environmentVariables = getVscodeEnvironmentVariables(workspacePath.relativize(repositoryPath));
-    Path vscodeFolder = workspacePath.resolve(FOLDER_VSCODE);
-    Path workspaceFile = vscodeFolder.resolve(configFilePath);
+  protected void doMergeTemplate(Path templateFile, Path workspaceFile, EnvironmentVariables environmentVariables) {
 
     // Ensure .vscode folder exists
-    this.context.getFileAccess().mkdirs(vscodeFolder);
+    this.context.getFileAccess().mkdirs(workspaceFile.getParent());
 
     // Merge template into workspace settings (template acts as "setup" for creation, also as "update" for variable resolution)
+    JsonMerger jsonMerger = new JsonMerger(this.context);
     jsonMerger.merge(templateFile, templateFile, environmentVariables, workspaceFile);
-
-    LOG.debug("Merged VSCode settings into {} for repository at {}", workspaceFile, repositoryPath);
+    LOG.debug("Merged VSCode settings into {}", workspaceFile);
   }
 
 }

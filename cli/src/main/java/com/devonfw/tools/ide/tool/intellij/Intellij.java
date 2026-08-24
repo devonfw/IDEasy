@@ -9,12 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
-import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.environment.AbstractEnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
-import com.devonfw.tools.ide.environment.ExtensibleEnvironmentVariables;
 import com.devonfw.tools.ide.merge.xml.XmlMergeDocument;
 import com.devonfw.tools.ide.merge.xml.XmlMerger;
 import com.devonfw.tools.ide.process.EnvironmentContext;
@@ -44,7 +41,6 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   private static final String IDEA_BASH_SCRIPT = IDEA + ".sh";
 
   private static final String FOLDER_IDEA_CONFIG = ".idea";
-  private static final String TEMPLATE_LOCATION = "intellij/workspace/repository/" + FOLDER_IDEA_CONFIG;
   private static final String GRADLE_XML = "gradle.xml";
   private static final String MISC_XML = "misc.xml";
   private static final String IDEA_PROPERTIES = "idea.properties";
@@ -123,33 +119,23 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     return requested;
   }
 
-  private EnvironmentVariables getIntellijEnvironmentVariables(Path projectPath) {
-    ExtensibleEnvironmentVariables environmentVariables = new ExtensibleEnvironmentVariables(
-        (AbstractEnvironmentVariables) this.context.getVariables().getParent(), this.context);
+  @Override
+  protected String getTemplateFolder() {
 
-    environmentVariables.setValue("PROJECT_PATH", projectPath.toString().replace('\\', '/'));
-    return environmentVariables.resolved();
+    return FOLDER_IDEA_CONFIG;
   }
 
+  /**
+   * Merges the IntelliJ project template into the workspace's {@code .idea} config (e.g. {@code misc.xml} or {@code gradle.xml}).
+   *
+   * @param templateFile the resolved {@link Path} to the template file in the settings repository.
+   * @param workspaceFile the {@link Path} to the target {@code .idea} file to merge into.
+   * @param environmentVariables the {@link EnvironmentVariables} to resolve variables (e.g. {@code PROJECT_PATH}) in the template.
+   */
   @Override
-  protected void mergeTemplate(Path repositoryPath, String configFilePath) {
-    Path templatePath = this.context.getSettingsPath().resolve(TEMPLATE_LOCATION);
-    Path templateFile = templatePath.resolve(configFilePath);
-    if (!Files.exists(templateFile)) {
-      throw new CliException(
-          "Cannot import project into workspace: template file not found at " + templateFile + "\n"
-              + "Please do an upstream merge of your settings git repository.");
-    }
-    Path workspacesPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES);
-    Path workspacePath = this.context.getFileAccess().findAncestor(repositoryPath, workspacesPath, 1);
-    if (workspacePath == null) {
-      throw new CliException(
-          "Cannot import project into workspace: could not find workspace from " + repositoryPath);
-    }
-    XmlMerger xmlMerger = new XmlMerger(this.context);
-    EnvironmentVariables environmentVariables = getIntellijEnvironmentVariables(workspacePath.relativize(repositoryPath));
-    Path workspaceFile = workspacePath.resolve(FOLDER_IDEA_CONFIG).resolve(configFilePath);
+  protected void doMergeTemplate(Path templateFile, Path workspaceFile, EnvironmentVariables environmentVariables) {
 
+    XmlMerger xmlMerger = new XmlMerger(this.context);
     XmlMergeDocument workspaceDocument = xmlMerger.load(workspaceFile);
     XmlMergeDocument templateDocument = xmlMerger.loadAndResolve(templateFile, environmentVariables);
 
