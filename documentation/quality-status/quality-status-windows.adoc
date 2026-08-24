@@ -9,23 +9,25 @@ Automatically generated open issue overview for Windows.
 
 link:quality-status.adoc[Back to overview]
 
-*Total Issues:* 159
+*Total Issues:* 146
 
-* OS-specific: 9
+* OS-specific: 10
 
 * Multi-OS: 0
 
-* Cross-platform: 150
+* Cross-platform: 136
 
 == Windows Specific Issues
 
 [%header, cols="^1,7"]
 |===
 | Issue | Summary
-2+^| *11-30 days*
+2+^| *0-10 days*
 
-| link:https://github.com/devonfw/IDEasy/issues/2251[#2251]
-| Provide generic uninstall support for globally installed tools (Windows)
+| link:https://github.com/devonfw/IDEasy/issues/2342[#2342]
+| Display ProgressBar progress in windows taskbar
+
+2+^| *11-30 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2226[#2226]
 | Show IDEasy project, workspace and repository in the Git Bash / Windows Termina…
@@ -39,6 +41,9 @@ link:quality-status.adoc[Back to overview]
 
 | link:https://github.com/devonfw/IDEasy/issues/1873[#1873]
 | Implement generic get-edition implementation for global tools under windows
+
+| link:https://github.com/devonfw/IDEasy/issues/1746[#1746]
+| ide shell broken
 
 | link:https://github.com/devonfw/IDEasy/issues/1548[#1548]
 | Windows file locking error on update with plugins
