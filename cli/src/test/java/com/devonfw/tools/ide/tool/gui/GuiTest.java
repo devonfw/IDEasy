@@ -35,8 +35,8 @@ class GuiTest extends Assertions {
   }
 
   /**
-   * Verifies the GUI is launched from the self-contained maven repository inside the installation when a local-dev installation is
-   * detected, and that the snapshot (-U) behavior is not applied in that case.
+   * Verifies the GUI is launched from the self-contained maven repository inside the installation when a local-dev installation is detected, and that the
+   * snapshot (-U) behavior is not applied in that case.
    *
    * @throws IOException if an I/O error occurs.
    */
@@ -48,7 +48,7 @@ class GuiTest extends Assertions {
     Files.writeString(installationPath.resolve(IdeContext.FILE_SOFTWARE_VERSION), LOCAL_DEV_VERSION);
 
     // act
-    List<String> args = Gui.buildMvnArgs(installationPath);
+    List<String> args = Gui.buildMvnArgs(installationPath, installationPath.resolve("gui/pom.xml"));
 
     // assert
     String m2RepoFlag = "-Dmaven.repo.local=" + installationPath.resolve(".m2");
@@ -68,7 +68,7 @@ class GuiTest extends Assertions {
     String m2RepoFlag = "-Dmaven.repo.local=" + installationPath.resolve(".m2");
 
     // act
-    List<String> args = Gui.buildMvnArgs(installationPath);
+    List<String> args = Gui.buildMvnArgs(installationPath, installationPath.resolve("gui/pom.xml"));
 
     // assert
     assertThat(args).contains("-U");
@@ -88,7 +88,7 @@ class GuiTest extends Assertions {
     String m2RepoFlag = "-Dmaven.repo.local=" + installationPath.resolve(".m2");
 
     // act
-    List<String> args = Gui.buildMvnArgs(installationPath);
+    List<String> args = Gui.buildMvnArgs(installationPath, installationPath.resolve("gui/pom.xml"));
 
     // assert
     assertThat(args).doesNotContain("-U");

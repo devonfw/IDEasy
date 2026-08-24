@@ -89,7 +89,7 @@ public class Gui extends Commandlet {
       throw new CliException("Fatal error: The pom.xml file required for launching the IDEasy GUI could not be found in expected location: " + pomPath);
     }
 
-    List<String> args = buildMvnArgs(installationPath);
+    List<String> args = buildMvnArgs(installationPath, pomPath);
 
     /*
      * We manually update the PATH entry with our java version, as by default IDEasy includes the SymLink under /projectname/software/java/bin in the PATH
@@ -100,7 +100,7 @@ public class Gui extends Commandlet {
       mvn.runTool(processContext, ProcessMode.DEFAULT, args);
     } catch (RuntimeException e) {
       throw new CliException(
-          "Failed to launch the GUI. If maven reports issues with dependency resolution, check whether the maven M2 repo is enabled in your project.", e);
+          "Failed to launch the GUI. If maven reports issues with dependency resolution, the self-contained maven repository of the IDEasy installation may be incomplete - re-run the local-dev build (build-local-dev.sh) to repopulate it.", e);
     }
   }
 
@@ -113,13 +113,14 @@ public class Gui extends Commandlet {
    * </p>
    *
    * @param installationPath the {@link IdeContext#getIdeInstallationPath() IDEasy installation} directory containing {@code gui/pom.xml}.
+   * @param pomPath the launcher POM ({@code gui/pom.xml}) to launch the GUI from. Must be verified to exist before this is called.
    * @return the {@code mvn} arguments to launch the GUI.
    */
-  static List<String> buildMvnArgs(Path installationPath) {
+  static List<String> buildMvnArgs(Path installationPath, Path pomPath) {
 
     List<String> args = new ArrayList<>(List.of(
         "-f", //use specified POM file
-        installationPath.resolve("gui/pom.xml").toString(),
+        pomPath.toString(),
         "org.codehaus.mojo:exec-maven-plugin:3.1.0:exec",
         "-Dexec.executable=java",
         "-Dexec.classpathScope=compile",
