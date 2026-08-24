@@ -13,6 +13,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfoMock;
@@ -186,26 +187,6 @@ class ExpressionParserTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test that a settings template does not persist the entered value since it is only instantiated once.
-   */
-  @Test
-  void testSettingsTemplateDoesNotPersist() {
-
-    // arrange
-    IdeTestContext context = newContext(PROJECT_BASIC);
-    context.setAnswers("value");
-    TestExpressionContext expressionContext = new TestExpressionContext(context);
-    expressionContext.persistent = false;
-
-    // act
-    String result = expressionContext.resolve("@ask-variable('MY_VARIABLE')");
-
-    // assert
-    assertThat(result).isEqualTo("value");
-    assertThat(expressionContext.persisted).isEmpty();
-  }
-
-  /**
    * Test that an empty 1st argument always asks the user and never persists.
    */
   @Test
@@ -237,7 +218,7 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     TestExpressionContext expressionContext = new TestExpressionContext(context);
 
     // act
-    String result = expressionContext.resolve("@ask-secret('OPTIONAL_PASSWORD', 'Password (may be empty):', '')");
+    String result = expressionContext.resolve("@ask-secret('OPTIONAL_PASSWORD', 'Password (may be empty):', conf, '')");
 
     // assert
     assertThat(result).isEmpty();
@@ -277,11 +258,89 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     TestExpressionContext expressionContext = new TestExpressionContext(context);
 
     // act
-    String result = expressionContext.resolve("@ask-variable('MY_VARIABLE', 'Question:', 'the-default')");
+    String result = expressionContext.resolve("@ask-variable('MY_VARIABLE', 'Question:', conf, 'the-default')");
 
     // assert
     assertThat(result).isEqualTo("the-default");
     assertThat(expressionContext.persisted).containsExactly(Map.entry("MY_VARIABLE", "the-default"));
+  }
+
+  /**
+   * Test that the 3rd argument selects the configuration location the variable is persisted to.
+   */
+  @Test
+  void testConfigLocationArgument() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setAnswers("value-a", "value-b", "value-c");
+    TestExpressionContext expressionContext = new TestExpressionContext(context);
+
+    // act
+    expressionContext.resolve("@ask-variable('VAR_SETTINGS', 'Q:', settings)");
+    expressionContext.resolve("@ask-variable('VAR_HOME', 'Q:', home)");
+    expressionContext.resolve("@ask-variable('VAR_DEFAULT', 'Q:')");
+
+    // assert
+    assertThat(expressionContext.locations).containsExactly( //
+        Map.entry("VAR_SETTINGS", EnvironmentVariablesType.SETTINGS), //
+        Map.entry("VAR_HOME", EnvironmentVariablesType.USER), //
+        Map.entry("VAR_DEFAULT", EnvironmentVariablesType.CONF));
+  }
+
+  /**
+   * Test that an invalid configuration location is rejected.
+   */
+  @Test
+  void testInvalidConfigLocation() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    TestExpressionContext expressionContext = new TestExpressionContext(context);
+
+    // act + assert
+    assertThatThrownBy(() -> expressionContext.resolve("@ask-variable('MY_VARIABLE', 'Q:', somewhere)"))
+        .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("Invalid configuration location 'somewhere'");
+  }
+
+  /**
+   * Test that the default value is appended to the question in angled brackets.
+   */
+  @Test
+  void testDefaultValueIsAppendedToQuestion() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setAnswers("");
+    TestExpressionContext expressionContext = new TestExpressionContext(context);
+
+    // act
+    String result = expressionContext.resolve("@ask-variable('MY_VARIABLE', 'Please enter the value:', conf, 'the-default')");
+
+    // assert
+    assertThat(result).isEqualTo("the-default");
+    assertThat(context).log()
+        .hasEntries(new IdeLogEntry(IdeLogLevel.INTERACTION, "Please enter the value: <the-default>", true));
+  }
+
+  /**
+   * Test that an explicit {@code null} as 4th argument means there is no default value and no suffix is appended.
+   */
+  @Test
+  void testExplicitNullMeansNoDefaultValue() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setAnswers("typed-value");
+    TestExpressionContext expressionContext = new TestExpressionContext(context);
+
+    // act
+    String result = expressionContext.resolve("@ask-variable('MY_VARIABLE', 'Please enter the value:', conf, null)");
+
+    // assert
+    assertThat(result).isEqualTo("typed-value");
+    assertThat(context).log()
+        .hasEntries(new IdeLogEntry(IdeLogLevel.INTERACTION, "Please enter the value:", true));
   }
 
   /**
@@ -328,9 +387,10 @@ class ExpressionParserTest extends AbstractIdeContextTest {
 
     private final Map<String, String> persisted = new LinkedHashMap<>();
 
+    private final Map<String, EnvironmentVariablesType> locations = new LinkedHashMap<>();
+
     private final IdeContext ideContext;
 
-    private boolean persistent = true;
 
     private TestExpressionContext(IdeContext ideContext) {
 
@@ -365,16 +425,12 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     }
 
     @Override
-    public void setVariable(String name, String value) {
+    public void setVariable(String name, String value, EnvironmentVariablesType type) {
 
       this.persisted.put(name, value);
+      this.locations.put(name, type);
       this.variables.put(name, value);
     }
 
-    @Override
-    public boolean isPersistent() {
-
-      return this.persistent;
-    }
   }
 }

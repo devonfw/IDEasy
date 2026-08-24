@@ -406,20 +406,15 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
     }
 
     @Override
-    public void setVariable(String name, String value) {
+    public void setVariable(String name, String value, EnvironmentVariablesType type) {
 
-      EnvironmentVariables conf = getByType(EnvironmentVariablesType.CONF);
-      if (conf instanceof EnvironmentVariablesPropertiesFile propertiesFile) {
+      EnvironmentVariables variables = getByType(type);
+      if (variables instanceof EnvironmentVariablesPropertiesFile propertiesFile) {
         propertiesFile.set(name, value);
         propertiesFile.save();
       } else {
-        LOG.warn("Cannot persist variable {} since no configuration file is available.", name);
+        LOG.warn("Cannot persist variable {} since no configuration file is available for {}.", name, type);
       }
-    }
-
-    @Override
-    public boolean isPersistent() {
-      return true;
     }
   }
 

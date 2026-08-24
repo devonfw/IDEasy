@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.expression;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 
 /**
  * Interface for the context available to an {@link ExpressionFunction} while an expression is evaluated.
@@ -28,20 +29,13 @@ public interface ExpressionContext {
   String getVariable(String name);
 
   /**
-   * Persists the given variable to the user local {@code conf/ide.properties} so the user is not asked again.
-   * <p>
-   * Only has an effect if {@link #isPersistent()} returns {@code true}.
+   * Persists the given variable to the {@code ide.properties} of the given {@link EnvironmentVariablesType configuration location} so the user is not asked
+   * again.
    *
    * @param name the name of the variable.
    * @param value the value to persist.
+   * @param type the {@link EnvironmentVariablesType} determining the {@code ide.properties} to write to.
    */
-  void setVariable(String name, String value);
-
-  /**
-   * @return {@code true} if values acquired from the user should be {@link #setVariable(String, String) persisted}.
-   *     This is the case for workspace templates that are re-applied on every {@code ide update}. For settings
-   *     templates that are only instantiated once, this is {@code false}.
-   */
-  boolean isPersistent();
+  void setVariable(String name, String value, EnvironmentVariablesType type);
 
 }
