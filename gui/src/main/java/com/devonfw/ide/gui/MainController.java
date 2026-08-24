@@ -313,7 +313,7 @@ public class MainController {
 
           context.getCommandletManager().getCommandlet(commandlet).run();
 
-          LOG.info("[GUI] === {} ran successfully. ===", commandlet);
+          LOG.info("[GUI] === {} completed successfully. ===", commandlet);
         } catch (Exception e) {
           LOG.error("Failed to open {}", commandlet, e);
           consoleController.appendOutput("[ERROR] Failed to launch " + commandlet + ": " + e.getMessage());

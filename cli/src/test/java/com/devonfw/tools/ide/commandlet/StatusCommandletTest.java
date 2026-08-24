@@ -98,7 +98,8 @@ class StatusCommandletTest extends AbstractIdeContextTest {
     assertThat(context).logAtWarning().hasMessageContaining(
         "The TLS connection to https://www.github.com failed due to a certificate trust error (PKIX / certificate-path / SSL handshake).");
     assertThat(context).logAtWarning().hasMessageContaining("ide fix-vpn-tls-problem https://www.github.com");
-    assertThat(context).logAtInteraction().hasMessageContaining("https://github.com/devonfw/IDEasy/blob/main/documentation/proxy-support.adoc#tls-certificate-issues");
+    assertThat(context).logAtInteraction()
+        .hasMessageContaining("https://github.com/devonfw/IDEasy/blob/main/documentation/proxy-support.adoc#tls-certificate-issues");
   }
 
   /**

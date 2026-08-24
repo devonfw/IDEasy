@@ -30,13 +30,13 @@ public class ConsoleController {
    * Thread-safe buffer collecting messages that arrive while a batched UI update is already pending. Keeps the FX thread from being overwhelmed by individual
    * {@link javafx.application.Platform#runLater()} submissions.
    */
-  private final Deque<GuiLogEntryWrapper> outputBuffer = new ArrayDeque<>();
+  private final Deque<IdeLogEntry> outputBuffer = new ArrayDeque<>();
 
   /** Whether a batch flush is already scheduled on the FX thread. */
   private boolean flushPending;
 
   /** Observable list backing the ListView for efficient updates. */
-  private final ObservableList<GuiLogEntryWrapper> logEntries = FXCollections.observableArrayList();
+  private final ObservableList<IdeLogEntry> logEntries = FXCollections.observableArrayList();
 
   @FXML
   private Button clearButton;
@@ -51,7 +51,7 @@ public class ConsoleController {
   private Label lineCountLabel;
 
   @FXML
-  private ListView<GuiLogEntryWrapper> consoleListView;
+  private ListView<IdeLogEntry> consoleListView;
 
   @FXML
   private void initialize() {
@@ -100,7 +100,7 @@ public class ConsoleController {
   public void appendOutput(IdeLogEntry entry) {
 
     synchronized (outputBuffer) {
-      outputBuffer.add(new GuiLogEntryWrapper(entry));
+      outputBuffer.add(entry);
       if (!flushPending) {
         flushPending = true;
         FxHelper.runFxSafe(this::flushBuffer);
@@ -124,7 +124,7 @@ public class ConsoleController {
    */
   private void flushBuffer() {
 
-    List<GuiLogEntryWrapper> entriesToAdd;
+    List<IdeLogEntry> entriesToAdd;
     synchronized (outputBuffer) {
       if (outputBuffer.isEmpty()) {
         flushPending = false;
@@ -198,7 +198,7 @@ public class ConsoleController {
    */
   public List<String> getConsoleOutputSnapshot() {
 
-    return logEntries.stream().map(GuiLogEntryWrapper::toString).collect(Collectors.toList());
+    return logEntries.stream().map(IdeLogEntry::displayValue).collect(Collectors.toList());
   }
 
   /**
@@ -215,7 +215,7 @@ public class ConsoleController {
   /**
    * Custom ListCell for rendering log entries with colors based on log level.
    */
-  private static class LogEntryCell extends ListCell<GuiLogEntryWrapper> {
+  private static class LogEntryCell extends ListCell<IdeLogEntry> {
 
     private static final String BASE_STYLE = "-fx-font-family: 'Consolas', monospace; -fx-font-size: 11;";
     private static final String ERROR_STYLE = BASE_STYLE + " -fx-text-fill: #cc0000;";
@@ -228,24 +228,24 @@ public class ConsoleController {
     private static final String WARNING_BG = "-fx-background-color: #fff8e0;";
 
     @Override
-    protected void updateItem(GuiLogEntryWrapper entry, boolean empty) {
+    protected void updateItem(IdeLogEntry entry, boolean empty) {
 
       super.updateItem(entry, empty);
       if (empty || entry == null) {
         setText(null);
         setStyle(BASE_STYLE);
       } else {
-        setText(entry.toString());
+        setText(entry.displayValue());
         setStyle(getStyleForEntry(entry));
       }
     }
 
-    private String getStyleForEntry(GuiLogEntryWrapper entry) {
+    private String getStyleForEntry(IdeLogEntry entry) {
 
-      if (entry.getEntry().level() == null) {
+      if (entry.level() == null) {
         return PLAIN_STYLE;
       }
-      return switch (entry.getEntry().level()) {
+      return switch (entry.level()) {
         case ERROR -> ERROR_STYLE + " " + ERROR_BG;
         case WARNING -> WARNING_STYLE + " " + WARNING_BG;
         case INFO -> INFO_STYLE;
