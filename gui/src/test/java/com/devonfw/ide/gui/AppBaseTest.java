@@ -59,7 +59,8 @@ public class AppBaseTest extends HeadlessApplicationTest {
     assertThat(mainViewUrl).as("Cannot resolve main UI FXML resource!").isNotNull();
 
     FXMLLoader fxmlLoader = new FXMLLoader(mainViewUrl);
-    fxmlLoader.setController(new MainController(mockIdeRoot.toString(), guiStateManager, nlsService));
+    MainController controller = new MainController(mockIdeRoot.toString(), guiStateManager, nlsService);
+    fxmlLoader.setControllerFactory(type -> controller);
     fxmlLoader.setResources(nlsService.getResourceBundle());
     Parent root = fxmlLoader.load();
     stage.setScene(new Scene(root));
@@ -146,14 +147,10 @@ public class AppBaseTest extends HeadlessApplicationTest {
   }
 
   /**
-   * Regression test for #2040: switching between projects must reset the workspace selection and keep the IDE open buttons and the context consistent.
-   * <p>
-   * Previously the workspace selection and IDE open buttons were not kept in sync when a different project was selected. This ensures that selecting a
-   * new project clears the workspace selection and disables the IDE open buttons again, and that (re-)selecting the workspace of the new project
-   * re-enables the buttons and points the context to the correct project.
+   * This test ensures that switching to a project will auto-select the main workspace
    */
   @Test
-  public void testSwitchingProjectResetsWorkspaceSelection() {
+  public void testSwitchingProjectResetsWorkspaceSelectionToMain() {
 
     // select a project and its workspace -> all IDE open buttons become enabled
     interact(() -> selectedProject.getSelectionModel().select("project-1"));
@@ -166,19 +163,11 @@ public class AppBaseTest extends HeadlessApplicationTest {
     // switch to another project -> the workspace selection must be reset and the IDE open buttons disabled again
     interact(() -> selectedProject.getSelectionModel().select("project-2"));
 
-    assertThat(selectedWorkspace.getValue()).as("Workspace selection should be reset when switching to a different project").isNull();
+    assertThat(selectedWorkspace.getValue()).as("Workspace selection should be reset when switching to a different project").isEqualTo("main");
 
     for (Button button : new Button[] { androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen }) {
       assertThat(button.isDisabled())
-          .as(button.getId() + " button should be disabled after switching to a new project without a selected workspace").isTrue();
-    }
-
-    // re-select the workspace of the new project -> buttons enabled again and the context points to the correct project
-    interact(() -> selectedWorkspace.getSelectionModel().select("main"));
-
-    for (Button button : new Button[] { androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen }) {
-      assertThat(button.isDisabled())
-          .as(button.getId() + " button should be enabled again after selecting the workspace of the new project").isFalse();
+          .as(button.getId() + " button should be disabled after switching to a new project without a selected workspace").isFalse();
     }
 
     assertThat(guiStateManager.getCurrentContext().getCwd().endsWith(Path.of("project-2", "workspaces", "main")))

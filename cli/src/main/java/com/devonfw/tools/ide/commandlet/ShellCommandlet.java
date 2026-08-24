@@ -42,6 +42,8 @@ public final class ShellCommandlet extends Commandlet {
 
   private static final String EXIT_COMMAND = "exit";
 
+  private static final String IDE_PREFIX = "ide ";
+
   /**
    * The constructor.
    *
@@ -90,9 +92,9 @@ public final class ShellCommandlet extends Commandlet {
         while (true) {
           try {
             String cwdPath = String.valueOf(context.getCwd());
-            String prompt = cwdPath + (cwdPath.length() <= 80 ? "" : System.lineSeparator()) + "$ ide ";
-            line = reader.readLine(prompt, rightPrompt, (MaskingCallback) null, null);
-            line = line.trim();
+            String prompt = cwdPath + (cwdPath.length() <= 80 ? "" : System.lineSeparator()) + "$ ";
+            line = reader.readLine(prompt, rightPrompt, (MaskingCallback) null, IDE_PREFIX);
+            line = normalizeLine(line);
             if (EXIT_COMMAND.equals(line)) {
               return;
             }
@@ -120,6 +122,25 @@ public final class ShellCommandlet extends Commandlet {
     } catch (Exception e) {
       throw new RuntimeException("Unexpected error during interactive auto-completion", e);
     }
+  }
+
+  /**
+   * Strips the pre-filled {@link #IDE_PREFIX} from the given raw input line, so that a command entered after leaving the prefix untouched (e.g.
+   * {@code ide status}) behaves the same as if only {@code status} was entered. This allows the user to remove the prefix via backspace to enter a
+   * non-IDEasy command (e.g. {@code cd}) without the misleading {@code ide} prefix.
+   *
+   * @param rawLine the raw line as read from the {@link LineReader}.
+   * @return the normalized line ready to be passed to {@link #runCommand(String)}.
+   */
+  static String normalizeLine(String rawLine) {
+
+    String line = rawLine.trim();
+    if (line.equals(IDE_PREFIX.trim())) {
+      return "";
+    } else if (line.startsWith(IDE_PREFIX)) {
+      return line.substring(IDE_PREFIX.length()).trim();
+    }
+    return line;
   }
 
   /**

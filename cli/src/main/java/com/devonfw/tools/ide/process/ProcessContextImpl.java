@@ -14,8 +14,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -190,6 +190,11 @@ public class ProcessContextImpl implements ProcessContext {
     String path = systemPath.toString();
     LOG.trace("Setting PATH for process execution of {} to {}", this.executable.getFileName(), path);
     this.executable = systemPath.findBinary(this.executable);
+    if (processMode.launchesNewWindow()) {
+      // The command runs in a new terminal window whose working directory is the user's home directory, not the
+      // current working directory, so the executable must be an absolute path or it would not be found.
+      this.executable = this.executable.toAbsolutePath().normalize();
+    }
     this.processBuilder.environment().put(IdeVariables.PATH.getName(), path);
     List<String> args = new ArrayList<>(this.arguments.size() + 4);
     String interpreter = addExecutable(args);
@@ -203,7 +208,7 @@ public class ProcessContextImpl implements ProcessContext {
     try {
       applyRedirects(processMode);
       if (processMode.isBackground()) {
-        modifyArgumentsOnBackgroundProcess(processMode);
+        modifyArgumentsOnBackgroundProcess(processMode, args);
       }
 
       this.processBuilder.command(args);
@@ -239,7 +244,8 @@ public class ProcessContextImpl implements ProcessContext {
 
         List<OutputMessage> finalOutput = new ArrayList<>(output);
         boolean success = this.exitCodeAcceptor.test(exitCode);
-        ProcessResult result = new ProcessResultImpl(this.executable.getFileName().toString(), command, exitCode, success, finalOutput);
+        ProcessResult result =
+            new ProcessResultImpl(this.executable.getFileName().toString(), command, exitCode, success, finalOutput);
 
         performLogging(result, exitCode, interpreter);
 
@@ -269,9 +275,11 @@ public class ProcessContextImpl implements ProcessContext {
    *
    * @param is {@link InputStream}.
    * @param errorStream to identify if the output came from stdout or stderr
+   * @param outputMessages the queue storing output messages
    * @return {@link CompletableFuture}.
    */
-  private static CompletableFuture<Void> readInputStream(InputStream is, boolean errorStream, ConcurrentLinkedQueue<OutputMessage> outputMessages) {
+  private static CompletableFuture<Void> readInputStream(InputStream is, boolean errorStream,
+      ConcurrentLinkedQueue<OutputMessage> outputMessages) {
 
     return CompletableFuture.supplyAsync(() -> {
 
@@ -405,9 +413,77 @@ public class ProcessContextImpl implements ProcessContext {
     }
   }
 
-  private void modifyArgumentsOnBackgroundProcess(ProcessMode processMode) {
+  /**
+   * Modifies the argument list to run the command as a background process. On Linux/macOS, uses {@code bash -c} with {@code & disown} for detachment. On
+   * Windows, uses {@code cmd.exe /c} with {@code start /b} for detachment or {@code start} for a new window.
+   *
+   * @param processMode the {@link ProcessMode} determining the background behavior
+   * @param args the argument list to modify in place
+   */
+  private void modifyArgumentsOnBackgroundProcess(ProcessMode processMode, List<String> args) {
 
-    assert processMode.isBackground() : "Cannot handle non background process mode!";
+    if (!processMode.isBackground()) {
+      throw new IllegalStateException(
+          "modifyArgumentsOnBackgroundProcess called for a non-background process.");
+    }
+
+    if (processMode.launchesNewWindow()) {
+      String commandToRunInBackground = buildCommand(args);
+      if (this.context.getSystemInfo().isWindows()) {
+        modifyArgumentsOnBackgroundProcessForNewWindowWindows(args, commandToRunInBackground);
+      } else {
+        modifyArgumentsOnBackgroundProcessForNewWindowUnix(args, commandToRunInBackground);
+      }
+    } else {
+      Path bash = this.context.findBash();
+      if (bash == null) {
+        LOG.warn("Cannot start background process via bash because no bash installation was found. Hence, output will be discarded.");
+        this.processBuilder.redirectOutput(Redirect.DISCARD).redirectError(Redirect.DISCARD);
+        return;
+      }
+      String commandToRunInBackground = buildCommandToRunInBackground();
+      this.arguments.clear();
+      this.arguments.add(bash.toString());
+      this.arguments.add("-c");
+      commandToRunInBackground += " & disown";
+      this.arguments.add(commandToRunInBackground);
+    }
+  }
+
+  private String buildCommandToRunInBackground() {
+
+    if (this.context.getSystemInfo().isWindows()) {
+      return buildCommandString(arg -> {
+        if (SystemInfoImpl.INSTANCE.isWindows() && SystemPath.isValidWindowsPath(arg)) {
+          return WindowsPathSyntax.MSYS.normalize(arg);
+        }
+        return arg;
+      });
+    }
+    return buildCommandString(Function.identity());
+  }
+
+  /**
+   * Builds a space-separated command string from {@code arguments}, applying the given {@link Function} to each argument for quoting or normalization.
+   *
+   * @param transformer the function to apply to each argument (e.g., quoting or path normalization)
+   * @return the space-separated command string
+   */
+  private String buildCommandString(Function<String, String> transformer) {
+
+    return this.arguments.stream()
+        .map(transformer)
+        .reduce((a, b) -> a + " " + b)
+        .orElse("");
+  }
+
+  /**
+   * Modifies arguments for a background process opening in a new window on Linux/macOS using {@code bash -c}.
+   *
+   * @param args the argument list to modify in place
+   * @param command the command string to run in the background
+   */
+  private void modifyArgumentsOnBackgroundProcessForNewWindowUnix(List<String> args, String command) {
 
     Path bash = this.context.findBash();
     if (bash == null) {
@@ -416,14 +492,223 @@ public class ProcessContextImpl implements ProcessContext {
       return;
     }
 
-    String commandToRunInBackground = buildCommandToRunInBackground();
+    args.clear();
+    args.add(bash.toString());
+    args.add("-c");
 
-    this.arguments.clear();
-    this.arguments.add(bash.toString());
-    this.arguments.add("-c");
-    commandToRunInBackground += " & disown";
-    this.arguments.add(commandToRunInBackground);
+    String newWindowCommand = buildNewWindowCommand(command);
+    args.add(newWindowCommand);
 
+  }
+
+  /**
+   * Modifies arguments for a background process opening in a new window on Windows using {@code cmd.exe /c}.
+   *
+   * @param args the argument list to modify in place
+   * @param command the command string to run in the background
+   */
+  private void modifyArgumentsOnBackgroundProcessForNewWindowWindows(List<String> args, String command) {
+
+    args.clear();
+    args.add("cmd.exe");
+    args.add("/c");
+    args.add("start \"\" cmd.exe /k \"" + command + "\"");
+
+  }
+
+  private String buildCommand(List<String> args) {
+
+    Function<String, String> quoter = this.context.getSystemInfo().isWindows()
+        ? this::windowsQuote
+        : this::shellQuote;
+
+    return args.stream()
+        .map(quoter)
+        .reduce((a, b) -> a + " " + b)
+        .orElse("");
+  }
+
+  /**
+   * Build the command for opening a new terminal window on Linux/macOS.
+   *
+   * @param command the command to run in the new terminal
+   * @return the shell command string that opens a new terminal window, or a fallback background command
+   */
+  private String buildNewWindowCommand(String command) {
+
+    if (this.context.getSystemInfo().isLinux()) {
+      return buildLinuxNewWindowCommand(command);
+    }
+
+    if (this.context.getSystemInfo().isMac()) {
+      return buildMacOsNewWindowCommand(command);
+    }
+
+    // Fallback for unsupported platforms
+    LOG.warn(
+        "No terminal emulator detected for BACKGROUND_NEW_WINDOW on {} - falling back to background execution without new window.",
+        this.context.getSystemInfo().getOsName());
+    return command + " & disown";
+  }
+
+  /**
+   * Build the command for opening a new terminal window on Linux. Detects available terminal emulators and uses the correct flag syntax for each.
+   *
+   * @param command the command to run in the new terminal
+   * @return the shell command string that opens a new terminal window, or a fallback background command
+   */
+  private String buildLinuxNewWindowCommand(String command) {
+
+    String bashCommand = "bash -c " + shellQuote(command + "; exec bash");
+
+    // Prefer explicit terminal emulators over x-terminal-emulator because
+    // x-terminal-emulator is only an alternatives symlink and may point to
+    // different terminals with different command-line syntax.
+    if (isExecutable("gnome-terminal")) {
+      return "gnome-terminal -- " + bashCommand + " &";
+    }
+
+    if (isExecutable("konsole")) {
+      return "konsole -e " + bashCommand + " &";
+    }
+
+    if (isExecutable("xfce4-terminal")) {
+      return "xfce4-terminal --command=" + shellQuote(bashCommand) + " &";
+    }
+
+    if (isExecutable("tilix")) {
+      return "tilix -e " + bashCommand + " &";
+    }
+
+    if (isExecutable("alacritty")) {
+      return "alacritty -e " + bashCommand + " &";
+    }
+
+    if (isExecutable("xterm")) {
+      return "xterm -e " + bashCommand + " &";
+    }
+
+    // Last fallback only. This may still fail depending on what the alternatives
+    // symlink points to, but it is better than not trying at all.
+    if (isExecutable("x-terminal-emulator")) {
+      return "x-terminal-emulator -e " + bashCommand + " &";
+    }
+
+    LOG.warn("No terminal emulator found on Linux - falling back to background execution without new window.");
+
+    return "bash -c " + shellQuote(command) + " > /dev/null 2>&1 &";
+  }
+
+  private String shellQuote(String value) {
+
+    if (value == null || value.isEmpty()) {
+      return "''";
+    }
+    return "'" + escapeForShellSingleQuote(value) + "'";
+  }
+
+  private String windowsQuote(String value) {
+
+    if (value == null || value.isEmpty()) {
+      return "\"\"";
+    }
+
+    if (value.indexOf('"') >= 0) {
+      throw new IllegalArgumentException("Argument must not contain a double quote character on Windows: " + value);
+    }
+
+    String escaped = value.replace("^", "^^")
+        .replace("&", "^&")
+        .replace("|", "^|")
+        .replace(">", "^>")
+        .replace("<", "^<")
+        .replace("%", "%%");
+
+    return "\"" + escaped + "\"";
+  }
+
+  /**
+   * Build the command for opening a new terminal window on macOS. Prefers iTerm2 via AppleScript, falls back to Terminal.app, then to plain background.
+   *
+   * @param command the command to run in the new terminal
+   * @return the shell command string that opens a new terminal window, or a fallback background command
+   */
+  private String buildMacOsNewWindowCommand(String command) {
+
+    // Escape for AppleScript string literal: backslashes first, then double quotes
+    String escapedForAppleScript = command.replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("\t", "\\t");
+
+    // Check for iTerm2, modern versions ship as /Applications/iTerm.app
+    if (isItermInstalled()) {
+      String appleScript = "tell application \"iTerm2\"\n"
+          + "  activate\n"
+          + "  set newWindow to (create window with default profile)\n"
+          + "  tell current session of newWindow\n"
+          + "    write text \"" + escapedForAppleScript + "; exec bash\"\n"
+          + "  end tell\n"
+          + "end tell";
+      return "osascript -e '" + escapeForShellSingleQuote(appleScript) + "' &";
+    }
+
+    // Fallback to Terminal.app
+    String terminalScript = "tell application \"Terminal\"\n"
+        + "  do script \"" + escapedForAppleScript + "\"\n"
+        + "end tell";
+    return "osascript -e '" + escapeForShellSingleQuote(terminalScript) + "' &";
+  }
+
+  /**
+   * Check if iTerm2 is installed on macOS.
+   *
+   * @return {@code true} if iTerm2 is found
+   */
+  private boolean isItermInstalled() {
+
+    List<Path> candidates = new ArrayList<>(List.of(
+        Path.of("/Applications/iTerm.app"),
+        Path.of("/Applications/iTerm2.app")
+    ));
+    Path homeApps = Path.of(System.getProperty("user.home"), "Applications");
+    candidates.add(homeApps.resolve("iTerm.app"));
+    candidates.add(homeApps.resolve("iTerm2.app"));
+    if (candidates.stream().anyMatch(Files::exists)) {
+      return true;
+    }
+    // Also check if iTerm binary is in PATH, for portable installs, Homebrew, etc.
+    return isExecutable("iterm");
+  }
+
+  /**
+   * Escape a string for embedding inside a shell single-quoted string. Single quotes are replaced with the standard shell sequence: {@code '"'"'}
+   *
+   * @param s the string to escape
+   * @return the escaped string safe for single-quote embedding
+   */
+  private static String escapeForShellSingleQuote(String s) {
+
+    return s.replace("'", "'\"'\"'");
+  }
+
+  /**
+   * Check if a command is available in PATH.
+   *
+   * @param command the command name
+   * @return {@code true} if the command is found in PATH
+   */
+  private boolean isExecutable(String command) {
+
+    SystemPath systemPath = this.context.getPath();
+    Path binary = systemPath.findBinary(Path.of(command));
+
+    try {
+      return (binary != null) && Files.isExecutable(binary);
+    } catch (Exception e) {
+      return false;
+    }
   }
 
   private void applyRedirects(ProcessMode processMode) {
@@ -440,27 +725,6 @@ public class ProcessContextImpl implements ProcessContext {
     }
     if (input != null) {
       this.processBuilder.redirectInput(input);
-    }
-  }
-
-  private String buildCommandToRunInBackground() {
-
-    if (this.context.getSystemInfo().isWindows()) {
-
-      StringBuilder stringBuilder = new StringBuilder();
-
-      for (String argument : this.arguments) {
-
-        if (SystemInfoImpl.INSTANCE.isWindows() && SystemPath.isValidWindowsPath(argument)) {
-          argument = WindowsPathSyntax.MSYS.normalize(argument);
-        }
-
-        stringBuilder.append(argument);
-        stringBuilder.append(" ");
-      }
-      return stringBuilder.toString().trim();
-    } else {
-      return this.arguments.stream().map(Object::toString).collect(Collectors.joining(" "));
     }
   }
 }
