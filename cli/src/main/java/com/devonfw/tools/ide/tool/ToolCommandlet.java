@@ -754,6 +754,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
         }
       }
     }
+    if ((nearest != null) && !nearest.vulnerabilities().isSafer(currentVulnerabilities)) {
+      nearest = null; // never suggest a version that does not reduce the CVEs
+    }
     if ((latest == null) && (nearest == null)) {
       LOG.warn("Could not find any other version resolving your CVEs.\n"
           + "Please keep attention to this tool and consider updating as soon as security fixes are available.");
