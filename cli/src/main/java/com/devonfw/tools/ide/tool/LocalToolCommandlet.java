@@ -375,7 +375,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     // Resolve edition and version from a single tool-path lookup (one pass) instead of two separate lookups.
     String edition = getInstalledEdition(toolPath);
     VersionIdentifier version = getInstalledVersion(toolPath);
-    if ((edition == null) && (version == null)) {
+    if (version == null) {
       return null;
     }
     return new EditionAndVersion(edition, version);
