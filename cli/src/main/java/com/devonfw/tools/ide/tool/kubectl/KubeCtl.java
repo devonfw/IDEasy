@@ -29,10 +29,10 @@ public class KubeCtl extends DelegatingToolCommandlet {
   }
 
   @Override
-  public EditionAndVersion getInstalledEditionAndVersion() {
+  protected EditionAndVersion computeInstalledEditionAndVersion() {
 
     if (!isCommandAvailable(this.tool)) {
-      return super.getInstalledEditionAndVersion();
+      return super.computeInstalledEditionAndVersion();
     }
 
     List<String> outputs = this.context.newProcess().runAndGetOutput(this.tool, "version", "--client");

@@ -65,7 +65,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   private MacOsHelper macOsHelper;
 
   /** Cached result for {@link #getInstalledEditionAndVersion()}. */
-  private CachedValue<EditionAndVersion> installedEditionAndVersion;
+  private final CachedValue<EditionAndVersion> installedEditionAndVersion;
 
   /**
    * Registry for tool-specific auto-completion candidates.
@@ -84,6 +84,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     super(context);
     this.tool = tool;
     this.tags = tags;
+    this.installedEditionAndVersion = new CachedValue<>(this::computeInstalledEditionAndVersion);
     addKeyword(tool);
     this.arguments = new ToolArgumentsProperty("", false, true, "args");
     initProperties();
@@ -818,15 +819,14 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
-   * Gets the installed edition and version together, resolving both in a single operation.
+   * Gets the installed edition and version together, resolving both in a single operation. This method is final:
+   * tool-specific logic belongs in the {@link #computeInstalledEditionAndVersion()} hook so that the cache here always
+   * applies.
    *
    * @return the {@link EditionAndVersion} or {@code null} if not installed.
    */
-  public EditionAndVersion getInstalledEditionAndVersion() {
+  public final EditionAndVersion getInstalledEditionAndVersion() {
 
-    if (this.installedEditionAndVersion == null) {
-      this.installedEditionAndVersion = new CachedValue<>(this::computeInstalledEditionAndVersion);
-    }
     return this.installedEditionAndVersion.get();
   }
 
@@ -838,12 +838,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    */
   protected EditionAndVersion computeInstalledEditionAndVersion() {
 
-    String edition = computeInstalledEdition();
-    VersionIdentifier version = computeInstalledVersion();
-    if ((edition == null) && (version == null)) {
-      return null;
-    }
-    return new EditionAndVersion(edition, version);
+    return null;
   }
 
   /**
@@ -872,50 +867,10 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     return (ev != null) ? ev.edition() : null;
   }
 
-  /**
-   * @deprecated Override {@link #computeInstalledEditionAndVersion()} instead.
-   * @return the currently installed version.
-   */
-  @Deprecated
-  protected VersionIdentifier computeInstalledVersion() {
-
-    return getInstalledVersionDeprecated();
-  }
-
-  /**
-   * @deprecated Override {@link #computeInstalledEditionAndVersion()} instead.
-   * @return the installed edition.
-   */
-  @Deprecated
-  protected String computeInstalledEdition() {
-
-    return getInstalledEditionDeprecated();
-  }
-
-  /**
-   * @deprecated Override {@link #computeInstalledEditionAndVersion()} instead.
-   * @return the installed version.
-   */
-  @Deprecated
-  protected VersionIdentifier getInstalledVersionDeprecated() {
-
-    return null;
-  }
-
-  /**
-   * @deprecated Override {@link #computeInstalledEditionAndVersion()} instead.
-   * @return the installed edition.
-   */
-  @Deprecated
-  protected String getInstalledEditionDeprecated() {
-
-    return null;
-  }
-
   /** Invalidates the cached installed edition and version so the next call to {@link #getInstalledEditionAndVersion()} recomputes the result. */
   protected void invalidateInstalledEditionAndVersion() {
 
-    this.installedEditionAndVersion = null;
+    this.installedEditionAndVersion.invalidate();
   }
 
   /**

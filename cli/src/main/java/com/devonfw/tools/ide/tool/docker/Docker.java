@@ -142,7 +142,7 @@ public class Docker extends GlobalToolCommandlet {
     // Log a warning and return null (instead of throwing) when the command produces no usable output, e.g. when
     // Docker Desktop is not installed via apt.
     String output = this.context.newProcess().runAndGetSingleOutput(IdeLogLevel.WARNING, "bash", "-lc", dockerDesktopVersionLinuxCommand);
-    return (output != null) ? super.resolveVersionWithPattern(output, DOCKER_DESKTOP_VERSION_PATTERN) : null;
+    return (output != null) ? resolveVersionWithPattern(output, DOCKER_DESKTOP_VERSION_PATTERN) : null;
   }
 
   private VersionIdentifier getDockerDesktopVersionMac() {
@@ -151,13 +151,13 @@ public class Docker extends GlobalToolCommandlet {
     // Log a warning and return null (instead of throwing) when the command produces no usable output, e.g. when
     // Docker Desktop is not installed at /Applications/Docker.app.
     String output = this.context.newProcess().runAndGetSingleOutput(IdeLogLevel.WARNING, "bash", "-lc", dockerDesktopVersionMacCommand);
-    return (output != null) ? super.resolveVersionWithPattern(output, DOCKER_DESKTOP_VERSION_PATTERN) : null;
+    return (output != null) ? resolveVersionWithPattern(output, DOCKER_DESKTOP_VERSION_PATTERN) : null;
   }
 
   private VersionIdentifier getRancherDesktopClientVersion() {
 
     String output = this.context.newProcess().runAndGetSingleOutput("rdctl", "version");
-    return super.resolveVersionWithPattern(output, RDCTL_CLIENT_VERSION_PATTERN);
+    return resolveVersionWithPattern(output, RDCTL_CLIENT_VERSION_PATTERN);
   }
 
   @Override

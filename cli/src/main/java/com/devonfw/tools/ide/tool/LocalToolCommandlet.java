@@ -381,12 +381,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     return new EditionAndVersion(edition, version);
   }
 
-  @Override
-  protected VersionIdentifier getInstalledVersionDeprecated() {
-
-    return getInstalledVersion(getToolPath());
-  }
-
   /**
    * @param toolPath the installation {@link Path} where to find the version file.
    * @return the currently installed {@link VersionIdentifier version} of this tool or {@code null} if not installed.
@@ -412,12 +406,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     }
     String version = this.context.getFileAccess().readFileContent(toolVersionFile).trim();
     return VersionIdentifier.of(version);
-  }
-
-  @Override
-  protected String getInstalledEditionDeprecated() {
-
-    return getInstalledEdition(getToolPath());
   }
 
   /**

@@ -39,8 +39,10 @@ class KubeCtlTest extends AbstractIdeContextTest {
 
   /**
    * Verifies that the installed version of KubeCtl is determined by running {@code kubectl version --client} (and not by delegating to
-   * {@link com.devonfw.tools.ide.tool.docker.Docker}). This is the behavior that regressed when the logic was moved to the protected
-   * {@code computeInstalledEditionAndVersion()} hook, which {@link com.devonfw.tools.ide.tool.DelegatingToolCommandlet} never invokes.
+   * {@link com.devonfw.tools.ide.tool.docker.Docker}). The kubectl-specific logic lives in the
+   * {@code computeInstalledEditionAndVersion()} hook, which the final cached
+   * {@code getInstalledEditionAndVersion()} invokes directly; only if the kubectl command itself is not available does the
+   * {@code super} call fall through to the Docker delegate.
    */
   @Test
   void testGetInstalledVersionComesFromKubectlVersionClient() {

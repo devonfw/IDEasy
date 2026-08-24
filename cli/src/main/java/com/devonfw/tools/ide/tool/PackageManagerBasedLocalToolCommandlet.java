@@ -156,7 +156,7 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
   protected EditionAndVersion computeInstalledEditionAndVersion() {
 
     try {
-      VersionIdentifier version = computeInstalledVersion();
+      VersionIdentifier version = computeInstalledPackageVersion();
       if (version == null) {
         return null;
       }
@@ -173,7 +173,7 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
    *     {@link #runPackageManager(PackageManagerRequest)}, make sure to use {@link #runPackageManager(PackageManagerRequest, boolean)} with
    *     {@code skipInstallation=true} to avoid inadvertently triggering installations when only checking the version.
    */
-  protected abstract VersionIdentifier computeInstalledVersion();
+  protected abstract VersionIdentifier computeInstalledPackageVersion();
 
   /**
    * Override to ignore the {@code toolPath} parameter and use the package-manager based detection of the actually installed version.

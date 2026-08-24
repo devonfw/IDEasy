@@ -222,12 +222,6 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   }
 
   @Override
-  protected String getInstalledEditionDeprecated() {
-    //TODO: handle "get-edition <globaltool>"
-    return null;
-  }
-
-  @Override
   protected Path getInstallationPath(String edition, VersionIdentifier resolvedVersion) {
 
     Path toolBinary = Path.of(getBinaryName());
