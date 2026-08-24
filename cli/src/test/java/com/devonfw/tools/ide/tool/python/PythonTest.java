@@ -27,6 +27,30 @@ public class PythonTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_UV = "uv";
 
+
+  /**
+   * Test that a stale {@code .venv} folder left behind by a previously interrupted installation is removed before {@code uv venv} is invoked, see
+   * <a href="https://github.com/devonfw/IDEasy/issues/2313">#2313</a>.
+   */
+  @Test
+  public void testInstallRemovesStaleVenvFolder(WireMockRuntimeInfo wireMockRuntimeInfo) {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_UV, wireMockRuntimeInfo);
+    context.setSystemInfo(SystemInfoMock.MAC_X64);
+    Path staleMarker = context.getSoftwarePath().resolve(Python.VENV_FOLDER).resolve("stale.txt");
+    context.getFileAccess().writeFileContent("stale", staleMarker, true);
+    Python python = context.getCommandletManager().getCommandlet(Python.class);
+
+    // act
+    python.install();
+
+    // assert
+    assertThat(context.getSoftwarePath().resolve("python").resolve("stale.txt")).doesNotExist();
+    assertThat(context.getSoftwarePath().resolve(".venv")).doesNotExist();
+    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed python");
+  }
+
   @Test
   public void testInstallOnIntelMacResolvesVersionFromUvNotIdeUrls(WireMockRuntimeInfo wireMockRuntimeInfo) {
 

@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.variable.IdeVariables;
@@ -75,6 +76,7 @@ class EnvironmentVariablesTest extends AbstractIdeContextTest {
 
     assertThat(EnvironmentVariables.getToolVersionVariable("android-studio")).isEqualTo("ANDROID_STUDIO_VERSION");
     assertThat(EnvironmentVariables.getToolEditionVariable("android-studio")).isEqualTo("ANDROID_STUDIO_EDITION");
+    assertThat(EnvironmentVariables.getToolExtraPluginsVariable("android-studio")).isEqualTo("ANDROID_STUDIO_EXTRA_PLUGINS");
   }
 
   /**
@@ -98,7 +100,7 @@ class EnvironmentVariablesTest extends AbstractIdeContextTest {
     assertThat(mavenArgs).isEqualTo("-s " + context.getConfPath().resolve(Mvn.MVN_CONFIG_FOLDER).resolve(Mvn.SETTINGS_FILE));
     assertThat(javaHome).isNotEqualTo("/usr/share/java");
     assertThat(npmVersion).isNull();
-    assertThat(m2Repo).isEqualTo(context.getUserHome().resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER).resolve("repository"));
+    assertThat(m2Repo).isEqualTo(context.getUserHome().resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER).resolve(IdeContext.FOLDER_REPOSITORY));
     assertThat(otherVariable).isEqualTo("other value");
   }
 
@@ -131,8 +133,8 @@ class EnvironmentVariablesTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test that IDEasy's {@code -s} and {@code -Dsettings.security=} arguments override any user-provided ones 
-   * and that unrelated user arguments are correctly appended.
+   * Test that IDEasy's {@code -s} and {@code -Dsettings.security=} arguments override any user-provided ones and that unrelated user arguments are correctly
+   * appended.
    */
   @Test
   void testMergeMavenArgsWithDefault() {
