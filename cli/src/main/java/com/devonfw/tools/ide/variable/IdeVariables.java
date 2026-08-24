@@ -163,6 +163,6 @@ public interface IdeVariables {
     if (mvnConf == null) {
       return null;
     }
-    return mvnConf.resolve("repository");
+    return mvnConf.resolve(IdeContext.FOLDER_REPOSITORY);
   }
 }

@@ -160,6 +160,34 @@ public class AppBaseTest extends HeadlessApplicationTest {
     }
   }
 
+  /**
+   * This test ensures that switching to a project will auto-select the main workspace
+   */
+  @Test
+  public void testSwitchingProjectResetsWorkspaceSelectionToMain() {
+
+    // select a project and its workspace -> all IDE open buttons become enabled
+    interact(() -> selectedProject.getSelectionModel().select("project-1"));
+    interact(() -> selectedWorkspace.getSelectionModel().select("main"));
+
+    for (Button button : new Button[] { androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen }) {
+      assertThat(button.isDisabled()).as(button.getId() + " button should be enabled when a project and workspace are selected").isFalse();
+    }
+
+    // switch to another project -> the workspace selection must be reset and the IDE open buttons disabled again
+    interact(() -> selectedProject.getSelectionModel().select("project-2"));
+
+    assertThat(selectedWorkspace.getValue()).as("Workspace selection should be reset when switching to a different project").isEqualTo("main");
+
+    for (Button button : new Button[] { androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen }) {
+      assertThat(button.isDisabled())
+          .as(button.getId() + " button should be disabled after switching to a new project without a selected workspace").isFalse();
+    }
+
+    assertThat(guiStateManager.getCurrentContext().getCwd().endsWith(Path.of("project-2", "workspaces", "main")))
+        .as("Context should point to the main workspace of the newly selected project").isTrue();
+  }
+
   @Test
   protected void testStatusLabelDisplaysCorrectMessage() {
 
