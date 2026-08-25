@@ -231,8 +231,8 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
     context.getStartContext().setOfflineMode(false);
     IdeasyCommandlet ideasy = new IdeasyCommandlet(context) {
       @Override
-      public VersionIdentifier getInstalledVersion() {
-        return VersionIdentifier.of("2025.04.002-04_17_02-SNAPSHOT");
+      protected EditionAndVersion computeInstalledEditionAndVersion() {
+        return new EditionAndVersion("ideasy", VersionIdentifier.of("2025.04.002-04_17_02-SNAPSHOT"));
       }
 
       @Override
@@ -260,8 +260,8 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
     context.getStartContext().setOfflineMode(false);
     IdeasyCommandlet ideasy = new IdeasyCommandlet(context) {
       @Override
-      public VersionIdentifier getInstalledVersion() {
-        return VersionIdentifier.of("2025.04.002-04_17_02-SNAPSHOT");
+      protected EditionAndVersion computeInstalledEditionAndVersion() {
+        return new EditionAndVersion("ideasy", VersionIdentifier.of("2025.04.002-04_17_02-SNAPSHOT"));
       }
 
       @Override
