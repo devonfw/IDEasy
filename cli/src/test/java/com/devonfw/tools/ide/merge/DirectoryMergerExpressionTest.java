@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.merge;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Properties;
 
 import org.junit.jupiter.api.Test;
@@ -10,6 +11,8 @@ import org.junit.jupiter.api.io.TempDir;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.log.IdeLogEntry;
 
 /**
  * Integration test of expressions (see {@link com.devonfw.tools.ide.expression.ExpressionParser}) applied to a workspace template by the
@@ -54,4 +57,31 @@ class DirectoryMergerExpressionTest extends AbstractIdeContextTest {
     assertThat(conf).contains("AI_API_KEY=sk-TOPSECRET");
     assertThat(conf).contains("AI_BACKEND_URL=http://llama.local");
   }
+
+  /**
+   * Test that an invalid expression in a workspace template is reported with a readable message and without a stacktrace, since it is an authoring error in the
+   * settings and not a technical error of IDEasy.
+   *
+   * @param workspaceDir the temporary folder to use as workspace for this test.
+   */
+  @Test
+  void testInvalidExpressionIsReportedWithoutStacktrace(@TempDir Path workspaceDir) {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC, null, true);
+    DirectoryMerger merger = context.getWorkspaceMerger();
+    Path templates = TEST_RESOURCES.resolve("templates-expression-invalid");
+
+    // act
+    merger.merge(templates.resolve(IdeContext.FOLDER_SETUP), templates.resolve(IdeContext.FOLDER_UPDATE), context.getVariables(), workspaceDir);
+
+    // assert
+    List<IdeLogEntry> errors = context.getTestStartContext().getEntries().stream().filter(e -> e.level() == IdeLogLevel.ERROR).toList();
+    assertThat(errors).isNotEmpty();
+    IdeLogEntry error = errors.get(0);
+    assertThat(error.message()).contains("invalid mode 'dos'");
+    // no exception is attached to the log entry, so no stacktrace is printed for the end-user
+    assertThat(error.error()).isNull();
+  }
+
 }
