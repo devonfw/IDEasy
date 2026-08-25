@@ -6,6 +6,7 @@
 <?import javafx.scene.layout.*?>
 <?import java.lang.Double?>
 <BorderPane fx:id="rootPane"
+  fx:controller="com.devonfw.ide.gui.MainController"
   maxHeight="-Infinity"
   maxWidth="-Infinity"
   VBox.vgrow="ALWAYS"
@@ -13,86 +14,7 @@
   xmlns:fx="http://javafx.com/fxml/1">
 
   <left>
-    <VBox prefHeight="428.0"
-      prefWidth="181.0"
-      spacing="4.0"
-      stylesheets="@style/navigation.css"
-      BorderPane.alignment="CENTER">
-      <padding>
-        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
-      </padding>
-
-      <HBox alignment="CENTER_LEFT" prefWidth="200.0">
-        <VBox.margin>
-          <Insets bottom="10.0"/>
-        </VBox.margin>
-        <ImageView fitHeight="150.0"
-          fitWidth="200.0"
-          pickOnBounds="true"
-          preserveRatio="true">
-          <Image url="@assets/logo.png"/>
-        </ImageView>
-      </HBox>
-
-      <VBox maxHeight="-Infinity"
-        prefWidth="100.0"
-        styleClass="sideNavigationElement">
-        <padding>
-          <Insets left="8.0" right="8.0"/>
-        </padding>
-        <Label fx:id="labelProject"
-          maxWidth="1.7976931348623157E308"
-          text="%project"/>
-        <ComboBox fx:id="selectedProject"
-          maxWidth="1.7976931348623157E308"
-          minWidth="-Infinity"
-          prefHeight="40.0"
-          prefWidth="150.0"
-          promptText="%chooseProject"
-          styleClass="chooseProject"/>
-      </VBox>
-
-      <VBox layoutX="20.0"
-        layoutY="245.0"
-        maxHeight="-Infinity"
-        prefWidth="100.0"
-        styleClass="sideNavigationElement">
-        <padding>
-          <Insets left="8.0" right="8.0"/>
-        </padding>
-        <Label fx:id="labelWorkspace"
-          maxWidth="1.7976931348623157E308"
-          text="%workspace"/>
-        <ComboBox fx:id="selectedWorkspace"
-          disable="true"
-          maxWidth="1.7976931348623157E308"
-          minWidth="-Infinity"
-          prefHeight="40.0"
-          prefWidth="150.0"
-          promptText="%chooseWorkspace"
-          styleClass="chooseProject"
-          VBox.vgrow="ALWAYS"/>
-      </VBox>
-
-      <!-- Language selector -->
-      <VBox maxHeight="-Infinity"
-        prefWidth="100.0"
-        styleClass="sideNavigationElement">
-        <padding>
-          <Insets left="8.0" right="8.0"/>
-        </padding>
-        <Label fx:id="labelLanguage"
-          maxWidth="1.7976931348623157E308"
-          text="%language"/>
-        <ComboBox fx:id="selectedLanguage"
-          maxWidth="1.7976931348623157E308"
-          minWidth="-Infinity"
-          prefHeight="40.0"
-          prefWidth="150.0"
-          promptText="%chooseLanguage"
-          styleClass="chooseProject"/>
-      </VBox>
-    </VBox>
+    <fx:include source="navigation.fxml" BorderPane.alignment="CENTER"/>
   </left>
 
   <center>
@@ -110,9 +32,8 @@
           <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
         </padding>
 
+        <!-- Android Studio -->
         <HBox alignment="CENTER_LEFT"
-          layoutX="20.0"
-          layoutY="204.0"
           prefHeight="100.0"
           prefWidth="150.0"
           spacing="20.0"
@@ -152,9 +73,8 @@
           </HBox>
         </HBox>
 
+        <!-- Eclipse -->
         <HBox alignment="CENTER_LEFT"
-          layoutX="20.0"
-          layoutY="120.0"
           prefHeight="100.0"
           prefWidth="150.0"
           spacing="20.0"
@@ -193,9 +113,8 @@
           </HBox>
         </HBox>
 
+        <!-- IntelliJ -->
         <HBox alignment="CENTER_LEFT"
-          layoutX="20.0"
-          layoutY="20.0"
           prefHeight="100.0"
           prefWidth="150.0"
           spacing="20.0"
@@ -235,6 +154,7 @@
           </HBox>
         </HBox>
 
+        <!-- VS Code -->
         <HBox alignment="CENTER_LEFT"
           prefHeight="100.0"
           prefWidth="150.0"
@@ -279,21 +199,6 @@
   </center>
 
   <bottom>
-    <HBox fx:id="bottomPanelContainer"
-      alignment="CENTER_RIGHT"
-      prefHeight="40.0"
-      prefWidth="200.0"
-      spacing="10.0"
-      BorderPane.alignment="CENTER">
-      <padding>
-        <Insets right="8.0"/>
-      </padding>
-
-      <Label fx:id="statusLabel" text="IDEasy is ready."/>
-      <ProgressBar fx:id="statusProgressBar"
-        prefWidth="0.0"
-        progress="0.0"
-        visible="false"/>
-    </HBox>
+    <fx:include source="status-bar.fxml" BorderPane.alignment="CENTER"/>
   </bottom>
 </BorderPane>

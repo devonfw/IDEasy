@@ -1,13 +1,17 @@
 package com.devonfw.tools.ide.url.updater;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
+import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.model.report.UrlFinalReport;
 import com.devonfw.tools.ide.url.tool.androidstudio.AndroidStudioUrlUpdater;
 import com.devonfw.tools.ide.url.tool.aws.AwsUrlUpdater;
@@ -61,6 +65,7 @@ import com.devonfw.tools.ide.url.tool.tomcat.TomcatUrlUpdater;
 import com.devonfw.tools.ide.url.tool.uv.UvUrlUpdater;
 import com.devonfw.tools.ide.url.tool.vscode.VsCodeUrlUpdater;
 import com.devonfw.tools.ide.url.tool.vscode.VsCodiumUrlUpdater;
+import com.devonfw.tools.ide.url.updater.status.UrlStatusFile;
 
 /**
  * The {@code UpdateManager} class manages the update process for various tools by using a list of {@link AbstractUrlUpdater}s to update the
@@ -72,7 +77,11 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
 
   private final UrlRepository urlRepository;
 
+  private final Path statusRepositoryPath;
+
   private final UrlFinalReport urlFinalReport;
+
+  private final Map<UrlVersion, UrlStatusFile> statusFiles = new HashMap<>();
 
   private final List<AbstractUrlUpdater> updaters = List.of(
       new AndroidStudioUrlUpdater(), new AwsUrlUpdater(), new AzureUrlUpdater(), new ClaudeUrlUpdater(), new CopilotUrlUpdater(), new CorepackUrlUpdater(),
@@ -89,13 +98,26 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
    * The constructor.
    *
    * @param pathToRepository the {@link Path} to the {@code ide-urls} repository to update.
+   * @param pathToStatusRepository the {@link Path} to the {@code ide-urls-status} repository to update.
    * @param expirationTime for GitHub actions url-update job
+   */
+  public UpdateManager(Path pathToRepository, Path pathToStatusRepository, UrlFinalReport urlFinalReport, Instant expirationTime) {
+
+    this.urlRepository = UrlRepository.load(pathToRepository);
+    this.statusRepositoryPath = pathToStatusRepository;
+    this.urlFinalReport = urlFinalReport;
+    setExpirationTime(expirationTime);
+  }
+
+  /**
+   * The constructor.
+   *
+   * @param pathToRepository the {@link Path} to the {@code ide-urls} repository to update.
+   * @param expirationTime for GitHub actions url-update job.
    */
   public UpdateManager(Path pathToRepository, UrlFinalReport urlFinalReport, Instant expirationTime) {
 
-    this.urlRepository = UrlRepository.load(pathToRepository);
-    this.urlFinalReport = urlFinalReport;
-    setExpirationTime(expirationTime);
+    this(pathToRepository, pathToRepository, urlFinalReport, expirationTime);
   }
 
   /**
@@ -117,6 +139,7 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
       }
       update(updater);
     }
+    saveStatusFiles();
   }
 
   /**
@@ -131,12 +154,14 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
         update(updater);
       }
     }
+    saveStatusFiles();
   }
 
   private void update(AbstractUrlUpdater updater) {
     try {
       updater.setExpirationTime(getExpirationTime());
       updater.setUrlFinalReport(this.urlFinalReport);
+      updater.setUpdateManager(this);
       String updaterName = updater.getClass().getSimpleName();
       String toolName = updater.getTool();
       logger.debug("Starting {} for tool {}", updaterName, toolName);
@@ -174,5 +199,41 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
     return this.urlRepository;
   }
 
+  /**
+   * @param urlVersion the {@link UrlVersion} to get the {@link UrlStatusFile} for.
+   * @param create {@code true} to create the {@link UrlStatusFile} if the {@code status.json} does not exist yet, {@code false} to return {@code null} instead.
+   * @return the cached {@link UrlStatusFile} for the given {@link UrlVersion} or {@code null}.
+   */
+  public UrlStatusFile getStatusFile(UrlVersion urlVersion, boolean create) {
+
+    UrlStatusFile statusFile = this.statusFiles.get(urlVersion);
+    if (statusFile == null) {
+      Path statusPath = getStatusJsonPath(urlVersion);
+      if (!create && !Files.exists(statusPath)) {
+        return null;
+      }
+      statusFile = new UrlStatusFile(statusPath);
+      this.statusFiles.put(urlVersion, statusFile);
+    }
+    return statusFile;
+  }
+
+  private Path getStatusJsonPath(UrlVersion urlVersion) {
+
+    Path urlRepositoryPath = urlVersion.getParent().getParent().getParent().getPath();
+    Path statusRoot = (this.statusRepositoryPath != null) ? this.statusRepositoryPath : urlRepositoryPath;
+    Path relativeVersionPath = urlRepositoryPath.relativize(urlVersion.getPath());
+    return statusRoot.resolve(relativeVersionPath).resolve(UrlStatusFile.STATUS_JSON);
+  }
+
+  /**
+   * Saves all {@link UrlStatusFile status files} that were touched during this run (only those that were modified are actually written).
+   */
+  public void saveStatusFiles() {
+
+    for (UrlStatusFile statusFile : this.statusFiles.values()) {
+      statusFile.save();
+    }
+  }
 
 }
