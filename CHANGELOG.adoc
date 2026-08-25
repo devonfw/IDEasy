@@ -7,9 +7,12 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/1695[#1695]: Project creation logic extended with health checks and removed `--code` flag.
+* https://github.com/devonfw/IDEasy/issues/1031[#1031]: Added OpenRewrite commandlet
+* https://github.com/devonfw/IDEasy/issues/2361[#2361]: Improve dotnet installation by setting DOTNET_ROOT
 * https://github.com/devonfw/IDEasy/issues/218[#218]: Added possibility to start a command in a new window using the process builder
 * https://github.com/devonfw/IDEasy/issues/788[#788]: Add support for IDE_OPTIONS variable per IDE commandlet
 * https://github.com/devonfw/IDEasy/issues/2313[#2313]: Fix python installation failing with wired behaviour
+* https://github.com/devonfw/IDEasy/issues/2312[#2312]: Fix NPE in Uv.setEnvironment and suppress errors during auto-completion
 * https://github.com/devonfw/IDEasy/issues/2168[#2168]: Add support for git_remote property to configure additional remotes after cloning
 * https://github.com/devonfw/IDEasy/issues/1676[#1676]: Import extra sdks automatically into ide
 * https://github.com/devonfw/IDEasy/issues/2180[#2180]: Add *_EXTRA_PLUGINS variable to install extra IDE plugins per user
