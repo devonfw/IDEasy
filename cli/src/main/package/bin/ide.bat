@@ -69,6 +69,7 @@ goto :eof
 
 :echoUseBash
   echo.
-  echo %_fBYellow%Please use ^(git-^)bash ^(integrated in Windows Terminal^) for full IDEasy support:
+  echo %_fBYellow%Git Bash is still recommended for the full IDEasy shell experience.
+  echo PowerShell supports the core IDEasy workflow, but some shell-specific features may differ.
   echo https://github.com/devonfw/IDEasy/blob/main/documentation/advanced-tooling-windows.adoc#tabs-for-shells %_RESET%
   exit /b

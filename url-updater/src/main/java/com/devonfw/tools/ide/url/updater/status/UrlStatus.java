@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.url.model.file.json;
+package com.devonfw.tools.ide.url.updater.status;
 
 /**
  * Status information for a specific (download) URL.

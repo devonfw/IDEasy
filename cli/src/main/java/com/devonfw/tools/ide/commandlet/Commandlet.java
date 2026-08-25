@@ -160,7 +160,7 @@ public abstract class Commandlet {
   public abstract String getName();
 
   /**
-   * @return the first keyword of this {@link Commandlet}. Typically the same as {@link #getName() name} but may also differ (e.g. "set" vs. "set-version").
+   * @return the first keyword of this {@link Commandlet}. Typically, the same as {@link #getName() name} but may also differ (e.g. "set" vs. "set-version").
    */
   public KeywordProperty getFirstKeyword() {
 
@@ -204,7 +204,7 @@ public abstract class Commandlet {
 
   /**
    * @return {@code true} if the output of this commandlet is (potentially) processed automatically from outside, {@code false} otherwise. For example
-   *     {@link CompleteCommandlet} logs the suggestions for auto-completion to a bash script. Also the {@link EnvironmentCommandlet} logs the environment
+   *     {@link CompleteCommandlet} logs the suggestions for auto-completion to a bash script. Also, the {@link EnvironmentCommandlet} logs the environment
    *     variables for the {@code ide} wrapper script. In such scenarios these logs shall not be spammed with warnings like "IDE_ROOT is not set" that would
    *     break the processing of the output.
    */
