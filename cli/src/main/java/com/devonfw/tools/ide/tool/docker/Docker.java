@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool.docker;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -13,6 +14,8 @@ import com.devonfw.tools.ide.os.SystemArchitecture;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.NativePackage;
 import com.devonfw.tools.ide.tool.NativePackageManager;
+import com.devonfw.tools.ide.tool.PackageManagerCommand;
+import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -72,22 +75,12 @@ public class Docker extends GlobalToolCommandlet {
       return List.of(
           new NativePackage(
               NativePackageManager.APT,
-              List.of("/tmp/docker-desktop-amd64.deb"),
+              List.of("docker-desktop"),
               List.of("--allow-downgrades"),
-              List.of(
-                  "sudo install -m 0755 -d /etc/apt/keyrings",
-                  "sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc",
-                  "sudo chmod a+r /etc/apt/keyrings/docker.asc",
-                  "echo \"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] "
-                      + "https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo \\\"$VERSION_CODENAME\\\") stable\" | "
-                      + "sudo tee /etc/apt/sources.list.d/docker.list > /dev/null",
-                  "sudo apt update",
-                  "curl -fsSL https://desktop.docker.com/linux/main/amd64/docker-desktop-amd64.deb -o /tmp/docker-desktop-amd64.deb"
-              ),
+              List.of(),
               List.of(
                   "sudo rm -f /etc/apt/sources.list.d/docker.list",
-                  "sudo rm -f /etc/apt/keyrings/docker.asc",
-                  "rm -f /tmp/docker-desktop-amd64.deb"
+                  "sudo rm -f /etc/apt/keyrings/docker.asc"
               )
           )
       );
@@ -119,6 +112,33 @@ public class Docker extends GlobalToolCommandlet {
             )
         )
     );
+  }
+
+  @Override
+  protected List<PackageManagerCommand> getInstallPackageManagerCommands(VersionIdentifier resolvedVersion) {
+    if (!EDITION_DOCKER.equals(getConfiguredEdition())) {
+      return super.getInstallPackageManagerCommands(resolvedVersion);
+    }
+
+    ToolRepository toolRepository = this.context.getDefaultToolRepository();
+    Path downloadedDeb = toolRepository.download(this.tool, EDITION_DOCKER, resolvedVersion, this);
+
+    NativePackage dockerDesktopInstallPackage = new NativePackage(
+        NativePackageManager.APT,
+        List.of(downloadedDeb.toString()),
+        List.of("--allow-downgrades"),
+        List.of(
+            "sudo install -m 0755 -d /etc/apt/keyrings",
+            "sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc",
+            "sudo chmod a+r /etc/apt/keyrings/docker.asc",
+            "echo \"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] "
+                + "https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo \\\"$VERSION_CODENAME\\\") stable\" | "
+                + "sudo tee /etc/apt/sources.list.d/docker.list > /dev/null",
+            "sudo apt update"
+        ),
+        List.of()
+    );
+    return List.of(dockerDesktopInstallPackage.install(null));
   }
 
   @Override
