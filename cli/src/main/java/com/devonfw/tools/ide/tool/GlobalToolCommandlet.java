@@ -4,6 +4,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -260,23 +261,31 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     return this.tool;
   }
 
-  @Override
-  public VersionIdentifier getInstalledVersion() {
-    if (this.context.getSystemInfo().isLinux()) {
-      return getNativePackageVersion();
-    }
-    if (this.context.getSystemInfo().isWindows()) {
-      WindowsAppInstallation installation = WindowsHelper.get(this.context).getAppInstallationFromRegistry(getWindowsRegistryAppName());
-      if (installation != null) {
-        return VersionIdentifier.of(installation.version());
-      }
-    }
-    return null;
+  /**
+   * @return a {@link Map} that maps edition names to the app name to look for in the Windows registry. Default
+   *     returns a single entry with {@code tool -> tool}. Override for tools with multiple editions on Windows.
+   */
+  public Map<String, String> getWindowsRegistryAppNames() {
+
+    return Map.of(this.tool, getWindowsRegistryAppName());
   }
 
   @Override
-  public String getInstalledEdition() {
-    //TODO: handle "get-edition <globaltool>"
+  protected EditionAndVersion computeInstalledEditionAndVersion() {
+
+    if (this.context.getSystemInfo().isLinux()) {
+      // on Linux global tools are typically installed via the package manager of the OS
+      VersionIdentifier version = getNativePackageVersion();
+      return (version != null) ? new EditionAndVersion(this.tool, version) : null;
+    }
+    if (this.context.getSystemInfo().isWindows()) {
+      for (Map.Entry<String, String> entry : getWindowsRegistryAppNames().entrySet()) {
+        WindowsAppInstallation installation = WindowsHelper.get(this.context).getAppInstallationFromRegistry(entry.getValue());
+        if (installation != null) {
+          return new EditionAndVersion(entry.getKey(), VersionIdentifier.of(installation.version()));
+        }
+      }
+    }
     return null;
   }
 
