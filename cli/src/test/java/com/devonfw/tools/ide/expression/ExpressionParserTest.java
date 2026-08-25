@@ -428,6 +428,28 @@ class ExpressionParserTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Test that {@code @ask-secret} uses the masked input path and {@code @ask-variable} does not.
+   */
+  @Test
+  void testSecretUsesMaskedInputPath() {
+
+    // arrange
+    IdeTestContext secretContext = newContext(PROJECT_BASIC);
+    secretContext.setAnswers("sk-SUPERSECRET-123");
+    IdeTestContext plainContext = newContext(PROJECT_BASIC);
+    plainContext.setAnswers("http://llama.local");
+
+    // act
+    new TestExpressionContext(secretContext).resolve("@ask-secret('MY_TOKEN')");
+    new TestExpressionContext(plainContext).resolve("@ask-variable('MY_URL')");
+
+    // assert
+    assertThat(secretContext.getSecretLineCount()).isEqualTo(1);
+    assertThat(plainContext.getSecretLineCount()).isZero();
+    assertThat(secretContext).log().hasNoMessageContaining("sk-SUPERSECRET-123");
+  }
+
+  /**
    * Simple {@link ExpressionContext} for testing that also simulates the surrounding variable resolution of
    * {@code AbstractEnvironmentVariables}.
    */

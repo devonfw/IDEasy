@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
@@ -231,6 +232,71 @@ class EnvironmentVariablesTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(resolved).isEqualTo("@media(max-width:600px){a:1}");
+  }
+
+
+  /**
+   * Test that a value entered for {@code @ask-secret} is masked in all log output, in particular in the debug log written when it is persisted.
+   */
+  @Test
+  void testEnteredSecretIsMaskedInLogOutput() {
+
+    // arrange
+    String path = "project/workspaces/foo-test/my-git-repo";
+    IdeTestContext context = newContext(ENVIRONMENT_PROJECT, path, true);
+    context.setAnswers("sk-SUPERSECRET-123");
+    EnvironmentVariables variables = context.getVariables();
+
+    // act
+    String resolved = variables.resolve("token=@ask-secret('MY_TOKEN')", "test", false);
+
+    // assert
+    assertThat(resolved).isEqualTo("token=sk-SUPERSECRET-123");
+    assertThat(context).log().hasNoMessageContaining("sk-SUPERSECRET-123");
+  }
+
+  /**
+   * Test that an already defined secret variable is masked in log output as well, although the user is not asked for it. This is the case on every run after
+   * the value has been persisted once.
+   */
+  @Test
+  void testAlreadyDefinedSecretIsMaskedInLogOutput() {
+
+    // arrange
+    String path = "project/workspaces/foo-test/my-git-repo";
+    // TRACE level so that the "Variable MY_TOKEN=..." log written while reading the variable is captured
+    IdeTestContext context = newContext(ENVIRONMENT_PROJECT, path, true, null, IdeLogLevel.TRACE);
+    EnvironmentVariables variables = context.getVariables();
+    variables.getByType(EnvironmentVariablesType.CONF).set("MY_TOKEN", "sk-ALREADY-STORED-456");
+    context.getTestStartContext().getEntries().clear();
+
+    // act
+    String resolved = variables.resolve("token=@ask-secret('MY_TOKEN')", "test", false);
+
+    // assert
+    assertThat(resolved).isEqualTo("token=sk-ALREADY-STORED-456");
+    assertThat(context.getSecretLineCount()).isZero(); // the user was NOT asked
+    assertThat(context).log().hasNoMessageContaining("sk-ALREADY-STORED-456");
+  }
+
+  /**
+   * Test that a plain variable is still logged normally so that debugging is not impaired.
+   */
+  @Test
+  void testPlainVariableIsNotMasked() {
+
+    // arrange
+    String path = "project/workspaces/foo-test/my-git-repo";
+    IdeTestContext context = newContext(ENVIRONMENT_PROJECT, path, true);
+    context.setAnswers("http://llama.local");
+    EnvironmentVariables variables = context.getVariables();
+
+    // act
+    String resolved = variables.resolve("url=@ask-variable('MY_URL')", "test", false);
+
+    // assert
+    assertThat(resolved).isEqualTo("url=http://llama.local");
+    assertThat(context.getSecretLineCount()).isZero();
   }
 
 }

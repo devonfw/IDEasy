@@ -298,6 +298,22 @@ public interface IdeContext extends IdeStartContext {
   }
 
   /**
+   * Marks the variable with the given name as secret so that its value is masked in all log output, even if the value is not entered by the user but read from
+   * an existing {@code ide.properties}.
+   *
+   * @param name the name of the variable (e.g. "MY_API_TOKEN").
+   */
+  void addSecretVariable(String name);
+
+  /**
+   * Registers the value of a variable as secret if the variable was marked via {@link #addSecretVariable(String)}. Has to be called before the value is logged.
+   *
+   * @param name the name of the variable.
+   * @param value the value of the variable.
+   */
+  void addSecretValue(String name, String value);
+
+  /**
    * @param question the question to ask.
    * @param args arguments for filling the templates
    * @return {@code true} if the user answered with "yes", {@code false} otherwise ("no").

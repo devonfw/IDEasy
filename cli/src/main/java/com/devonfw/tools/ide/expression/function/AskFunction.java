@@ -26,6 +26,10 @@ import com.devonfw.tools.ide.expression.ExpressionFunction;
  * allowed and the user is asked again.</li>
  * </ol>
  * Example: {@code @ask-secret('AI_API_KEY', 'Please enter your API key:', conf)}
+ * <p>
+ * <b>Note:</b> a value entered for {@code @ask-secret} is masked while typing and masked in all log output, but it is
+ * stored <em>unencrypted</em> in the according {@code ide.properties}. That file is user local and not committed to
+ * git. Encryption is out of scope here and tracked separately for the maven {@code settings.xml} case.
  */
 public class AskFunction implements ExpressionFunction {
 
@@ -87,6 +91,10 @@ public class AskFunction implements ExpressionFunction {
       }
       // the user is always asked and nothing is persisted since we have no name to persist under
       return toResult(ask(question, defaultValue, context));
+    }
+    if (this.secret) {
+      // mark before reading so that the value is already masked when the read itself is logged
+      context.getIdeContext().addSecretVariable(variableName);
     }
     String value = context.getVariable(variableName);
     if (value != null) {
