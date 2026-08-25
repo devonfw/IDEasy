@@ -276,7 +276,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     if (this.context.getSystemInfo().isLinux()) {
       // on Linux global tools are typically installed via the package manager of the OS
       VersionIdentifier version = getNativePackageVersion();
-      return (version != null) ? new EditionAndVersion(null, version) : null;
+      return (version != null) ? new EditionAndVersion(this.tool, version) : null;
     }
     if (this.context.getSystemInfo().isWindows()) {
       for (Map.Entry<String, String> entry : getWindowsRegistryAppNames().entrySet()) {
