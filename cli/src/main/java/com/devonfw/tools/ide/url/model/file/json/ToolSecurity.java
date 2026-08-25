@@ -16,10 +16,10 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.json.JsonMapping;
 import com.devonfw.tools.ide.json.JsonObject;
+import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.security.ToolVulnerabilities;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.VersionIdentifier;
-import com.devonfw.tools.ide.version.VersionRange;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -109,22 +109,21 @@ public class ToolSecurity implements JsonObject {
   }
 
   /**
-   * Finds all {@link Cve}s for the given {@link VersionIdentifier} that also match the given {@link Predicate}.
+   * Finds all {@link Cve}s for the given {@link VersionIdentifier} and {@link OperatingSystem} that also match the given {@link Predicate}.
    *
    * @param version the {@link VersionIdentifier} to check.
+   * @param os the current {@link OperatingSystem} (may be {@code null}).
    * @param predicate the {@link Predicate} deciding which matching {@link Cve}s are {@link Predicate#test(Object) accepted}.
    * @return all {@link Cve}s for the given {@link VersionIdentifier}.
    */
-  public ToolVulnerabilities findCves(VersionIdentifier version, Predicate<Cve> predicate) {
+  public ToolVulnerabilities findCves(VersionIdentifier version, OperatingSystem os, Predicate<Cve> predicate) {
     List<Cve> cvesOfVersion = new ArrayList<>();
     for (Cve cve : this.issues) {
-      for (VersionRange range : cve.versions()) {
-        if (range.contains(version)) {
-          if (predicate.test(cve)) {
-            cvesOfVersion.add(cve);
-          } else {
-            LOG.info("Ignoring CVE {} with severity {}", cve.id(), cve.severity());
-          }
+      if (cve.isAffected(version, os)) {
+        if (predicate.test(cve)) {
+          cvesOfVersion.add(cve);
+        } else {
+          LOG.info("Ignoring CVE {} with severity {}", cve.id(), cve.severity());
         }
       }
     }
@@ -132,14 +131,15 @@ public class ToolSecurity implements JsonObject {
   }
 
   /**
-   * Finds all {@link Cve}s for the given {@link VersionIdentifier} and {@code minSeverity}.
+   * Finds all {@link Cve}s for the given {@link VersionIdentifier}, {@link OperatingSystem} and {@code minSeverity}.
    *
    * @param version the {@link VersionIdentifier} to check.
+   * @param os the current {@link OperatingSystem} (may be {@code null}).
    * @param minSeverity the {@link IdeVariables#CVE_MIN_SEVERITY minimum severity}.
    * @return the {@link ToolVulnerabilities} for the given {@link VersionIdentifier}.
    */
-  public ToolVulnerabilities findCves(VersionIdentifier version, double minSeverity) {
-    return findCves(version, cve -> cve.severity() >= minSeverity);
+  public ToolVulnerabilities findCves(VersionIdentifier version, OperatingSystem os, double minSeverity) {
+    return findCves(version, os, cve -> cve.severity() >= minSeverity);
   }
 
   /**
