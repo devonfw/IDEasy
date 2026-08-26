@@ -62,6 +62,9 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
     // health check leaves no project behind. As IDE_HOME/settings does not exist yet the settings will be cloned instead of pulled.
     this.context.setIdeHome(newProjectPath);
     super.doRun();
+    this.context.getFileAccess().writeFileContent(IdeVersion.getVersionString(), newProjectPath.resolve(IdeContext.FILE_SOFTWARE_VERSION));
+    IdeLogLevel.SUCCESS.log(LOG, "Successfully created new project '{}'.", this.newProject.getValue());
+    logWelcomeMessage();
   }
 
   @Override
@@ -74,15 +77,6 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
     fileAccess.mkdirs(newProjectPath.resolve(IdeContext.FOLDER_SOFTWARE));
     fileAccess.mkdirs(newProjectPath.resolve(IdeContext.FOLDER_PLUGINS));
     fileAccess.mkdirs(newProjectPath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN));
-  }
-
-  @Override
-  protected void finalizeProject() {
-
-    Path newProjectPath = getNewProjectPath();
-    this.context.getFileAccess().writeFileContent(IdeVersion.getVersionString(), newProjectPath.resolve(IdeContext.FILE_SOFTWARE_VERSION));
-    IdeLogLevel.SUCCESS.log(LOG, "Successfully created new project '{}'.", this.newProject.getValue());
-    logWelcomeMessage();
   }
 
   private Path getNewProjectPath() {
