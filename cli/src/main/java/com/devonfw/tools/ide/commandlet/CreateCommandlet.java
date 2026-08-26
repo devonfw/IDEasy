@@ -51,42 +51,43 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
   @Override
   protected void doRun() {
 
-    String newProjectName = this.newProject.getValue();
-    Path newProjectPath = this.context.getIdeRoot().resolve(newProjectName);
-
+    Path newProjectPath = getNewProjectPath();
     LOG.info("Creating new IDEasy project in {}", newProjectPath);
-    if (!this.context.getFileAccess().isEmptyDir(newProjectPath)) {
+    FileAccess fileAccess = this.context.getFileAccess();
+    if (!fileAccess.isEmptyDir(newProjectPath)) {
       this.context.askToContinue("Directory {} already exists. Do you want to continue?", newProjectPath);
+      fileAccess.backup(newProjectPath);
     }
-
-    // First run the settings update (super.doRun()) to validate the settings repository
-    // Only if that succeeds, we create the project structure
-    try {
-      super.doRun();
-    } catch (Exception e) {
-      // If settings update fails, clean up any temp directories and rethrow
-      throw e;
-    }
-
-    // Settings update succeeded, now create the project structure
-    if (!this.context.getFileAccess().isEmptyDir(newProjectPath)) {
-      this.context.getFileAccess().backup(newProjectPath);
-    }
-    this.context.getFileAccess().mkdirs(newProjectPath);
-    initializeProject(newProjectPath);
+    // point IDE_HOME to the new project before the settings are checked - this only computes the paths and creates nothing on disk so that a failing
+    // health check leaves no project behind. As IDE_HOME/settings does not exist yet the settings will be cloned instead of pulled.
     this.context.setIdeHome(newProjectPath);
-    this.context.getFileAccess().writeFileContent(IdeVersion.getVersionString(), newProjectPath.resolve(IdeContext.FILE_SOFTWARE_VERSION));
-    IdeLogLevel.SUCCESS.log(LOG, "Successfully created new project '{}'.", newProjectName);
+    super.doRun();
+  }
 
+  @Override
+  protected void prepareProject() {
+
+    // only called after the settings passed the health check
+    Path newProjectPath = getNewProjectPath();
+    FileAccess fileAccess = this.context.getFileAccess();
+    fileAccess.mkdirs(newProjectPath);
+    fileAccess.mkdirs(newProjectPath.resolve(IdeContext.FOLDER_SOFTWARE));
+    fileAccess.mkdirs(newProjectPath.resolve(IdeContext.FOLDER_PLUGINS));
+    fileAccess.mkdirs(newProjectPath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN));
+  }
+
+  @Override
+  protected void finalizeProject() {
+
+    Path newProjectPath = getNewProjectPath();
+    this.context.getFileAccess().writeFileContent(IdeVersion.getVersionString(), newProjectPath.resolve(IdeContext.FILE_SOFTWARE_VERSION));
+    IdeLogLevel.SUCCESS.log(LOG, "Successfully created new project '{}'.", this.newProject.getValue());
     logWelcomeMessage();
   }
 
-  private void initializeProject(Path newInstancePath) {
+  private Path getNewProjectPath() {
 
-    FileAccess fileAccess = this.context.getFileAccess();
-    fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_SOFTWARE));
-    fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_PLUGINS));
-    fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN));
+    return this.context.getIdeRoot().resolve(this.newProject.getValue());
   }
 
   @Override
