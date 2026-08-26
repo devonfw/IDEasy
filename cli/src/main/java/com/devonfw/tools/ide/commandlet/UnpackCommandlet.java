@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.property.FileProperty;
 import com.devonfw.tools.ide.property.PathProperty;
 import com.devonfw.tools.ide.util.FilenameUtil;
 
@@ -36,7 +37,7 @@ public final class UnpackCommandlet extends Commandlet {
     super(context);
     addKeyword(getName());
 
-    this.archive = add(new PathProperty("", true, "archive", true));
+    this.archive = add(new FileProperty("", true, "archive", true));
     this.target = add(new PathProperty("", false, "target", false));
   }
 
@@ -44,12 +45,6 @@ public final class UnpackCommandlet extends Commandlet {
   public String getName() {
 
     return "unpack";
-  }
-
-  @Override
-  public boolean isIdeRootRequired() {
-
-    return false;
   }
 
   @Override
