@@ -12,47 +12,38 @@ import com.devonfw.tools.ide.environment.EnvironmentVariables;
 public class RepositoryUtil {
 
   /**
-   * Checks whether the given git repository is a settings repository, a combined settings and code repository, or a typical code repository. Combined code and
-   * settings repository is detected by checking whether IDE_HOME/workspaces/main/[gitProjectName]/settings exists and is a valid settings repository.
+   * Checks whether the given git repository is a settings repository, a combined settings and code repository, or a typical code repository. A combined code
+   * and settings repository is detected by a top-level {@code settings} folder that itself is a valid settings folder.
    *
-   * @param repositoryPath the path of the repository to be checked.
-   * @param gitProjectName the name of the git project.
-   * @return {@link RepositoryType} of the repository.
+   * @param repositoryPath the {@link Path} to the repository to check.
+   * @return the {@link RepositoryType} of the repository.
    */
-  public static RepositoryType getRepositoryType(Path repositoryPath, String gitProjectName) {
+  public static RepositoryType getRepositoryType(Path repositoryPath) {
 
-    return getRepositoryType(repositoryPath, gitProjectName, 0);
+    if (!Files.isDirectory(repositoryPath)) {
+      return RepositoryType.UNKNOWN;
+    }
+    if (isSettingsFolder(repositoryPath)) {
+      return RepositoryType.SETTINGS;
+    }
+    Path settingsFolder = repositoryPath.resolve(IdeContext.FOLDER_SETTINGS);
+    if (isSettingsFolder(settingsFolder)) {
+      return RepositoryType.CODE_SETTINGS_COMBINED;
+    }
+    if (!Files.exists(settingsFolder)) {
+      return RepositoryType.CODE;
+    }
+    // there is a settings folder but it does not contain the required properties file
+    return RepositoryType.UNKNOWN;
   }
 
   /**
-   * Internal recursive method with depth tracking to prevent infinite recursion.
-   *
-   * @param repositoryPath the path of the repository to be checked.
-   * @param gitProjectName the name of the git project.
-   * @param depth the current recursion depth.
-   * @return {@link RepositoryType} of the repository.
+   * @param folder the {@link Path} to check.
+   * @return {@code true} if the given {@code folder} is the root of a settings repository, {@code false} otherwise.
    */
-  private static RepositoryType getRepositoryType(Path repositoryPath, String gitProjectName, int depth) {
+  private static boolean isSettingsFolder(Path folder) {
 
-    // Prevent infinite recursion by limiting depth (max 2 levels: root -> settings)
-    if (depth > 2) {
-      return RepositoryType.UNKNOWN;
-    }
-
-    if (!Files.exists(repositoryPath)) {
-      return RepositoryType.UNKNOWN;
-    }
-
-    if (Files.exists(repositoryPath.resolve(EnvironmentVariables.DEFAULT_PROPERTIES))
-        || Files.exists(repositoryPath.resolve(EnvironmentVariables.LEGACY_PROPERTIES))) {
-      return RepositoryType.SETTINGS;
-    } else if (gitProjectName != null
-        && Files.exists(repositoryPath.resolve(IdeContext.FOLDER_SETTINGS))
-        && getRepositoryType(repositoryPath.resolve(IdeContext.FOLDER_SETTINGS), gitProjectName, depth + 1) == RepositoryType.SETTINGS) {
-      return RepositoryType.CODE_SETTINGS_COMBINED;
-    } else if (!Files.exists(repositoryPath.resolve(IdeContext.FOLDER_SETTINGS))) {
-      return RepositoryType.CODE;
-    }
-    return RepositoryType.UNKNOWN;
+    return Files.exists(folder.resolve(EnvironmentVariables.DEFAULT_PROPERTIES))
+        || Files.exists(folder.resolve(EnvironmentVariables.LEGACY_PROPERTIES));
   }
 }
