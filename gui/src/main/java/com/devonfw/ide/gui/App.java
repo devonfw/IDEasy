@@ -4,7 +4,6 @@ import java.awt.Taskbar;
 import java.awt.Toolkit;
 import java.io.IOException;
 import java.net.URL;
-
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -47,15 +46,14 @@ public class App extends Application {
   TaskManager taskManager = new TaskManager();
   GuiStateManager guiStateManager = new GuiStateManager(taskManager, null);
 
-  private static final Logger LOG = LoggerFactory.getLogger(App.class);
+  private final Logger LOG = LoggerFactory.getLogger(App.class);
 
   @Override
   public void start(Stage primaryStage) throws IOException {
     Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
-          LOG.error("Uncaught exception in thread {}: {}", thread.getName(), throwable.getMessage(), throwable);
-          Platform.runLater(() -> new IdeDialog(IdeDialog.AlertType.ERROR, throwable.getMessage()).showAndWait());
-        }
-    );
+      LOG.error("Uncaught exception in thread {}: {}", thread.getName(), throwable.getMessage(), throwable);
+      Platform.runLater(() -> new IdeDialog(IdeDialog.AlertType.ERROR, throwable.getMessage()).showAndWait());
+    });
 
     this.primaryStage = primaryStage;
 
@@ -128,10 +126,12 @@ public class App extends Application {
 
     FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
     fxmlLoader.setResources(this.nlsService.getResourceBundle());
-    fxmlLoader.setController(new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()), guiStateManager, this.nlsService));
+    MainController mainController = new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()), guiStateManager, this.nlsService);
     fxmlLoader.setControllerFactory(clazz -> {
       if (clazz == ConsoleController.class) {
         return new ConsoleController(this.nlsService);
+      } else if (clazz == MainController.class) {
+        return mainController;
       }
       return null;
     });

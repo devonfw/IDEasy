@@ -1,17 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
 <AnchorPane
   xmlns:fx="http://javafx.com/fxml"
   xmlns="http://javafx.com/javafx"
+  fx:id="consoleRoot"
   fx:controller="com.devonfw.ide.gui.console.ConsoleController"
   prefWidth="Infinity"
   style="-fx-background-color: #FFFFF; -fx-border-color: #cccccc; -fx-border-width: 1;"
   AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0"
   AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
-  fx:id="consoleRoot"
   minHeight="0"
 >
 
