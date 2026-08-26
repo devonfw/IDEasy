@@ -59,7 +59,7 @@ public class ExpressionParser {
     }
     StringBuilder sb = new StringBuilder(value.length() + EXTRA_CAPACITY);
     int pos = 0;
-    while (matcher.find(pos)) {
+    do {
       int start = matcher.start();
       int open = matcher.end() - 1;
       String functionName = matcher.group(1);
@@ -75,7 +75,7 @@ public class ExpressionParser {
       List<String> args = parseArguments(value, open + 1, close, context);
       sb.append(apply(function, args, value, context));
       pos = close + 1;
-    }
+    } while (matcher.find(pos));
     sb.append(value, pos, value.length());
     return sb.toString();
   }

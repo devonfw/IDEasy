@@ -54,6 +54,77 @@ If the user modifies such settings and reopens his IDE his changes are reverted.
 These such settings are managed and enforced for the project.
 Hence, use `update` for things such as code-formatters, compiler options, paths to tools shipped with `IDEasy`, etc. that should be consistent and homogeneous for every team-member.
 
+== Template expressions
+
+Besides plain variables in the form `$[«variable-name»]`, a template value may contain an expression of the syntax `@«function-name»([«arg»[,«arg»]*])`.
+This allows to apply a little transformation to a value or to ask the user for a value while the workspace is being created.
+
+=== Syntax
+
+* The function name consists of lowercase letters, digits and dashes and is written after a single `@` followed by a pair of parentheses, e.g. `@path(...)`.
+* Arguments are always strings and are separated by a comma.
+Spaces around an argument are ignored/trimmed.
+* To pass a literal value that may contain the argument separator (a comma) or a parenthesis, quote it with single or double quotes, e.g. `@ask-secret('AI_API_KEY', 'Enter your key (from the portal):')`.
+A backslash inside a quoted argument is a literal backslash and is not an escape character, since arguments regularly contain native Windows paths.
+* An argument itself may contain plain variables, so `@path('$[IDE_HOME]/software/node/node')` first resolves `$[IDE_HOME]` and then normalizes the path.
+Functions may also be nested, so an argument can itself contain a call of another function.
+
+=== Functions
+
+* `@path` normalizes a path.
+The first argument is the path.
+The second argument is optional and is the literal value `unix` (the default, which replaces backslashes with slashes) or `native` (which on Windows uses `WindowsPathSyntax.WINDOWS` and therefore backslashes).
+This is the remedy for values that come out with a mixed up path syntax on Windows, e.g.
+`$[IDE_HOME]/software/node/node.exe` resolves to `D:\projects\my-project/software/node/node.exe` where the backslashes of the drive letter and the slashes of the rest clash.
++
+[source]
+----
+@path('$[IDE_HOME]/software/node/node', unix)
+@path('$[IDE_HOME]/software/node/node.exe', native)
+----
+* `@ask-variable` asks the user for the value of a variable in plain text, and `@ask-secret` does the same but reads the input with masked input.
+The first argument is the name of the requested variable.
+If the variable is already defined it is returned without asking.
+If the empty string is given, the user is always asked and nothing is persisted.
+The second argument is an optional explicit question used as the prompt.
+If omitted, it defaults to `Please enter the value for the (secret) variable «NAME»:` and is required if the first argument is empty.
+The third argument is an optional configuration location to persist the entered value to, analogous to the `--cfg` option: `settings`, `workspace`, `conf` or `home` (default: `conf`).
+The fourth argument is an optional default value that is appended to the question in angled brackets so the user can just press return.
+Provide the empty string (`''`) to allow an empty value.
+If omitted or given as `null`, an empty value is not allowed and the user is asked again.
++
+[source]
+----
+@ask-variable('AI_BACKEND_URL')
+@ask-variable('AI_BACKEND_URL', 'Please enter the LLM backend URL:', conf, 'http://localhost:1234')
+@ask-secret('AI_API_KEY', 'Please enter your API key:', conf)
+----
+* `@if-windows`, `@if-mac`, `@if-linux` and `@if-unix` insert their single argument only if the current operating system matches and otherwise resolve to the empty string.
+This allows to select an OS specific value inline.
++
+[source]
+----
+$[IDE_HOME]/software/mvn/bin/mvn@if-windows('.bat')@if-unix('.sh')
+----
+
+A function that is not registered by `IDEasy` is passed through entirely untouched.
+This is essential since foreign configuration formats may use an `@` for their own purposes (e.g. a CSS rule `@media(max-width:600px)` or an Eclipse `@param`) and `IDEasy` must never try to resolve placeholders that are not its own.
+
+=== Where the values of `@ask-*` are stored and how to use the functions
+
+* The value entered for an `@ask-*` call is persisted to the `ide.properties` of the chosen configuration location so that the user is asked only once.
+In particular, the value entered for `@ask-secret` is _not_ encrypted; it is stored as plain text in `conf/ide.properties`.
+That file is user-local and is not committed to git, and the value is masked in all log output, but the file itself is readable on the machine.
+Encryption is a separate follow-up story (it also covers the case of the Maven `settings.xml`).
+* Expressions belong in the workspace templates under `setup` and `update`.
+Do not put an `@ask-*` call into a value of `ide.properties` itself: a value that contains an expression is resolved on _every_ variable resolution, so a `@ask-*` in `ide.properties` would prompt on every `ide` invocation (including `ide env`).
+Expressions are typically used in the `update` templates to build up OS-specific or user-specific settings that would otherwise be hard to express with a plain variable, as in the following example that only resolves to a working value on the matching operating system:
++
+[source]
+----
+<local-interpreter path="@path('$[IDE_HOME]/software/node/node', native)" merge:id="name()"/>
+----
+
 == How to customize
 
 Unless you are already an expert and know where to tweak what, we recommend the following workflow to customize and tailor the IDE configuration to your needs:

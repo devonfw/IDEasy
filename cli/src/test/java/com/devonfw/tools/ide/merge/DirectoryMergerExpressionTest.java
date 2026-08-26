@@ -11,8 +11,8 @@ import org.junit.jupiter.api.io.TempDir;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeLogEntry;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 
 /**
  * Integration test of expressions (see {@link com.devonfw.tools.ide.expression.ExpressionParser}) applied to a workspace template by the
@@ -32,11 +32,10 @@ class DirectoryMergerExpressionTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC, null, true);
-    // NOTE: the answers are consumed in the order the questions are asked. PropertiesMerger iterates the Properties
-    // and therefore does not preserve the order of the lines in the template file.
+    // the answers are consumed in the order the questions are asked, i.e. the order the keys are resolved in the template
     context.setAnswers("sk-TOPSECRET", "http://llama.local");
     DirectoryMerger merger = context.getWorkspaceMerger();
-    Path templates = Path.of("src/test/resources/templates-expression");
+    Path templates = TEST_RESOURCES.resolve("templates-expression");
 
     // act
     merger.merge(templates.resolve(IdeContext.FOLDER_SETUP), templates.resolve(IdeContext.FOLDER_UPDATE), context.getVariables(), workspaceDir);

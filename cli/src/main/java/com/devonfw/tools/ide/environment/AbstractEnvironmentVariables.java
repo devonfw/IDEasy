@@ -211,16 +211,19 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
     }
     recursion++;
 
-    String value2 = EXPRESSION_PARSER.resolve(value, new EnvironmentExpressionContext(source, recursion, resolvedVars, context));
+    // Expressions are evaluated before plain variables so that a function argument may contain variables and so that a variable value can never change
+    // the structure of an enclosing expression (e.g. by containing a quote or a parenthesis). Note that the variable pass below still scans the result
+    // of a function, exactly like it scans the value of a plain variable, so a resolved value containing "$[" is resolved further.
+    String withExpressions = EXPRESSION_PARSER.resolve(value, new EnvironmentExpressionContext(source, recursion, resolvedVars, context));
 
     String resolved;
     if (context.syntax == null) {
-      resolved = resolveWithSyntax(value2, source, recursion, resolvedVars, context, VariableSyntax.SQUARE);
+      resolved = resolveWithSyntax(withExpressions, source, recursion, resolvedVars, context, VariableSyntax.SQUARE);
       if (context.legacySupport) {
         resolved = resolveWithSyntax(resolved, source, recursion, resolvedVars, context, VariableSyntax.CURLY);
       }
     } else {
-      resolved = resolveWithSyntax(value2, source, recursion, resolvedVars, context, context.syntax);
+      resolved = resolveWithSyntax(withExpressions, source, recursion, resolvedVars, context, context.syntax);
     }
     return resolved;
   }

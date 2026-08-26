@@ -1128,31 +1128,27 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   @Override
   public String askForInput(String message, String defaultValue) {
 
-    while (true) {
-      if (!message.isBlank()) {
-        IdeLogLevel.INTERACTION.log(LOG, message);
-      }
-      if (isBatchMode()) {
-        if (isForceMode()) {
-          return defaultValue;
-        } else {
-          throw new CliAbortException();
-        }
-      }
-      String input = readLine().trim();
-      if (!input.isEmpty()) {
-        return input;
-      } else {
-        if (defaultValue != null) {
-          return defaultValue;
-        }
-      }
-    }
+    return ask(message, defaultValue, false);
   }
 
   @Override
   public String askForSecret(String message, String defaultValue) {
 
+    return ask(message, defaultValue, true);
+  }
+
+  /**
+   * Asks the user for a value, re-asking while the input is empty and a default value is given.
+   *
+   * @param message the question to ask.
+   * @param defaultValue the value to return if the user accepts the default (by entering an empty value) or {@code null} to re-ask until a value is
+   *     entered.
+   * @param secret - {@code true} to read the input in a masked way (see {@link #readSecretLine()}) and to mask it in the log output, {@code false} to
+   *     read it as plain text.
+   * @return the entered value or the default value.
+   */
+  private String ask(String message, String defaultValue, boolean secret) {
+
     while (true) {
       if (!message.isBlank()) {
         IdeLogLevel.INTERACTION.log(LOG, message);
@@ -1164,13 +1160,18 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
           throw new CliAbortException();
         }
       }
-      String input = readSecretLine().trim();
+      // for a secret the input is not trimmed so that a leading or trailing whitespace that is part of the password or a pasted token is preserved
+      String input = secret ? readSecretLine() : readLine().trim();
       if (!input.isEmpty()) {
-        addSecret(input);
+        if (secret) {
+          addSecret(input);
+        }
         return input;
       } else {
         if (defaultValue != null) {
-          addSecret(defaultValue);
+          if (secret) {
+            addSecret(defaultValue);
+          }
           return defaultValue;
         }
       }
