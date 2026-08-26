@@ -57,13 +57,24 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
     LOG.info("Creating new IDEasy project in {}", newProjectPath);
     if (!this.context.getFileAccess().isEmptyDir(newProjectPath)) {
       this.context.askToContinue("Directory {} already exists. Do you want to continue?", newProjectPath);
-    } else {
-      this.context.getFileAccess().mkdirs(newProjectPath);
     }
 
+    // First run the settings update (super.doRun()) to validate the settings repository
+    // Only if that succeeds, we create the project structure
+    try {
+      super.doRun();
+    } catch (Exception e) {
+      // If settings update fails, clean up any temp directories and rethrow
+      throw e;
+    }
+
+    // Settings update succeeded, now create the project structure
+    if (!this.context.getFileAccess().isEmptyDir(newProjectPath)) {
+      this.context.getFileAccess().backup(newProjectPath);
+    }
+    this.context.getFileAccess().mkdirs(newProjectPath);
     initializeProject(newProjectPath);
     this.context.setIdeHome(newProjectPath);
-    super.doRun();
     this.context.getFileAccess().writeFileContent(IdeVersion.getVersionString(), newProjectPath.resolve(IdeContext.FILE_SOFTWARE_VERSION));
     IdeLogLevel.SUCCESS.log(LOG, "Successfully created new project '{}'.", newProjectName);
 

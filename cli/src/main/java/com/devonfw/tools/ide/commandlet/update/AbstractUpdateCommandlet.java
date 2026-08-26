@@ -185,14 +185,6 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     }
   }
 
-  private String handleDefaultRepository(String repository) {
-    if ("-".equals(repository)) {
-      LOG.info("'-' was found for the repository, the default settings repository '{}' will be used.", IdeContext.DEFAULT_SETTINGS_REPO_URL);
-      repository = IdeContext.DEFAULT_SETTINGS_REPO_URL;
-    }
-    return repository;
-  }
-
   private void updateSoftware() {
 
     if (this.skipTools.isTrue()) {

@@ -17,8 +17,7 @@ import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.property.StringProperty;
 
 /**
- * Handles updating/cloning of the settings repository.
- * Returns a result indicating the outcome of the settings update operation.
+ * Handles updating/cloning of the settings repository. Returns a result indicating the outcome of the settings update operation.
  */
 public class SettingsUpdater {
 
@@ -49,6 +48,7 @@ public class SettingsUpdater {
    * Result object containing the outcome and repository type.
    */
   public record SettingsUpdateResult(ResultStatus status, RepositoryType repositoryType) {
+
   }
 
   /**
@@ -102,15 +102,20 @@ public class SettingsUpdater {
 
   private SettingsUpdateResult cloneSettings() {
 
+    Path tempProjectPath = null;
     try {
       // Get settings URL
       GitUrl gitUrl = getOrAskSettingsUrl();
 
       // Use unique temp directory to avoid leftovers from previous attempts
-      Path tempProjectPath = createUniqueTempProjectPath();
+      tempProjectPath = createUniqueTempProjectPath();
       this.context.getGitContext().pullOrClone(gitUrl, tempProjectPath);
       return checkIntegrityAndMove(tempProjectPath, gitUrl.getProjectName());
     } catch (Exception e) {
+      // Clean up temp directory on failure
+      if (tempProjectPath != null) {
+        this.context.getFileAccess().backup(tempProjectPath);
+      }
       throw new CliRethrowException("Settings repository integrity check failed: " + e.getMessage(), e);
     }
   }
