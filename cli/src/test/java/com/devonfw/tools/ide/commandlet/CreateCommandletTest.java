@@ -16,6 +16,7 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.git.GitContextImplMock;
+import com.devonfw.tools.ide.io.WindowsSymlinkTestHelper;
 import com.devonfw.tools.ide.version.IdeVersion;
 
 /**
@@ -64,6 +65,8 @@ class CreateCommandletTest extends AbstractIdeContextTest {
     assertThat(newProjectPath.resolve(IdeContext.FOLDER_PLUGINS)).exists();
     assertThat(newProjectPath.resolve(IdeContext.FOLDER_SOFTWARE)).exists();
     assertThat(newProjectPath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN)).exists();
+    // the settings have to be cloned into the new project and not into the project the create command was started from
+    assertThat(newProjectPath.resolve(IdeContext.FOLDER_SETTINGS).resolve("ide.properties")).exists();
     assertThat(context.getIdeRoot().resolve("_ide/tmp/projects").resolve(NEW_PROJECT_NAME)).doesNotExist();
   }
 
@@ -189,8 +192,58 @@ class CreateCommandletTest extends AbstractIdeContextTest {
             "Settings repository integrity check failed: "
                 + "The given git repository URL does not point to a valid settings or code-settings repository. Please verify and try again.");
 
-    // assert
+    // assert - if "ide create" fails then no project shall be created at all
+    assertThat(context.getIdeRoot().resolve(NEW_PROJECT_NAME)).doesNotExist();
     assertThat(context.getTempPath().resolve(IdeContext.FOLDER_PROJECTS).resolve(NEW_PROJECT_NAME)).doesNotExist();
+  }
+
+  @Test
+  void testCreateWithCodeSettingsRepository() {
+
+    // arrange - a combined code and settings repository has the settings in a top-level "settings" folder
+    WindowsSymlinkTestHelper.assumeSymlinksSupported();
+    GitContextImplMock gitContextImplMock = new GitContextImplMock(context, TEST_RESOURCES.resolve("code-settings"));
+    context.setGitContext(gitContextImplMock);
+    CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
+    cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
+    cc.settingsRepo.setValue("https://github.com/devonfw/code-settings-repo.git");
+    cc.skipTools.setValue(true);
+
+    // act
+    cc.run();
+
+    // assert - the repository is placed into the workspace and IDE_HOME/settings is a symlink to its settings folder
+    Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
+    Path codePath = newProjectPath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN).resolve("code-settings-repo");
+    assertThat(codePath.resolve("pom.xml")).exists();
+    assertThat(codePath.resolve(IdeContext.FOLDER_SETTINGS).resolve("ide.properties")).exists();
+    Path settingsLink = newProjectPath.resolve(IdeContext.FOLDER_SETTINGS);
+    assertThat(settingsLink).isSymbolicLink();
+    assertThat(settingsLink.resolve("ide.properties")).exists();
+  }
+
+  @Test
+  void testCreateWithInvalidRepositoryContinuesInForceMode() {
+
+    // arrange - force mode lets the user decide to continue even though the health check failed
+    GitContextImplMock gitContextImplMock = new GitContextImplMock(context, TEST_RESOURCES.resolve("pypi"));
+    context.setGitContext(gitContextImplMock);
+    context.getStartContext().setForceMode(true);
+    context.setAnswers("yes");
+    CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
+    cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
+    cc.settingsRepo.setValue(IdeContext.DEFAULT_SETTINGS_REPO_URL);
+    cc.skipTools.setValue(true);
+    cc.skipRepositories.setValue(true);
+
+    // act
+    cc.run();
+
+    // assert
+    Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
+    assertThat(newProjectPath).exists();
+    assertThat(context).logAtWarning()
+        .hasMessageContaining("does not point to a valid settings or code-settings repository");
   }
 
   @Test
