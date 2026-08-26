@@ -150,13 +150,13 @@ public class SettingsUpdater {
     try {
       GitUrl gitUrl = GitUrl.of(this.context.getGitContext().retrieveGitUrl(settingsPath));
       RepositoryType clonedType = RepositoryUtil.getRepositoryType(cloneToTempDir(gitUrl));
-      deleteTempDir();
+      cleanup();
       if (!isSettingsRepository(clonedType) && !confirmInvalidRepository(clonedType, gitUrl)) {
         return SettingsUpdateResult.failed(repositoryType, MESSAGE_INVALID_REPOSITORY);
       }
       return SettingsUpdateResult.of(ResultStatus.SETTINGS_UPDATED, repositoryType);
     } catch (RuntimeException e) {
-      deleteTempDir();
+      cleanup();
       if (e instanceof CliAbortException) {
         // the user answered "no" so we must not silently carry on
         throw toFatalException(e);
@@ -179,7 +179,7 @@ public class SettingsUpdater {
       }
       return SettingsUpdateResult.of(ResultStatus.SETTINGS_CLONED, repositoryType);
     } catch (RuntimeException e) {
-      deleteTempDir();
+      cleanup();
       throw toFatalException(e);
     }
   }
@@ -276,19 +276,10 @@ public class SettingsUpdater {
   }
 
   /**
-   * Releases the temporary clone if it has not been moved to its final location. The clone is created by {@link #checkSettings()} and consumed by
-   * {@link #applySettings(SettingsUpdateResult)}, so its lifetime spans both phases and has to be ended by the caller once it is done with them.
-   */
-  public void cleanup() {
-
-    deleteTempDir();
-  }
-
-  /**
    * Removes the temporary clone. It is deleted and not backed up since it only contains a fresh clone without any user data and a backup would be created
    * inside {@link IdeContext#getIdeHome() IDE_HOME} that may not even exist yet. Failures are only logged so that the actual error never gets masked.
    */
-  private void deleteTempDir() {
+  public void cleanup() {
 
     if (this.tempDir == null) {
       return;

@@ -174,24 +174,24 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
   protected String getStepMessage() {
 
-    return "update (pull) settings repository";
+    return "Update settings repository";
   }
 
   private void updateSettingsInStep(Step step) {
 
     SettingsUpdater settingsUpdater = new SettingsUpdater(this.context, this.settingsRepo);
     try {
-      SettingsUpdateResult result = this.context.newStep("Performing health check on settings").call(settingsUpdater::checkSettings, () -> null);
+      SettingsUpdateResult result = this.context.newStep("Performing settings health check").call(settingsUpdater::checkSettings, () -> null);
       // fatal problems (e.g. no valid settings at all) were already rethrown, so reaching this point means the settings we have stay usable
       if (result == null) {
-        step.error("Health check on settings failed - the settings have not been updated.");
+        step.error("Health check on settings failed due to unknown error - the settings have not been updated.");
         return;
       } else if (result.status() == ResultStatus.SETTINGS_UPDATE_FAILED) {
         step.error("The settings have not been updated: {}", result.errorMessage());
         return;
       }
       prepareProject();
-      boolean applied = this.context.newStep("Applying update").run(() -> settingsUpdater.applySettings(result));
+      boolean applied = this.context.newStep("Applying settings").run(() -> settingsUpdater.applySettings(result));
       if (!applied) {
         step.error("Failed to apply the settings update.");
       }
