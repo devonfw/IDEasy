@@ -38,7 +38,7 @@ public class CheckCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test that {@code ide check} reports a missing .gitignore and fails (exit code 0) without --fix.
+   * Test that {@code ide check} reports a missing .gitignore and fails (exit code 1) without --fix.
    */
   @Test
   void testCheckMissingGitignoreWithoutFix(@TempDir Path tempDir) throws IOException {

@@ -50,7 +50,7 @@ public class CheckIssue {
   }
 
   /**
-   * @return the line number this warning refers to, or {@code null} if not applicable.
+   * @return the line number this issue refers to, or {@code null} if not applicable.
    */
   public Integer getLineNumber() {
 
@@ -66,14 +66,14 @@ public class CheckIssue {
   }
 
   /**
-   * @return {@code true} if this warning can be automatically fixed via {@link #fix(IdeContext)}, {@code false} otherwise.
+   * @return {@code true} if this issue can be automatically fixed via {@link #fix(IdeContext)}, {@code false} otherwise.
    */
   public boolean isFixable() {
     return false;
   }
 
   /**
-   * Attempts to fix the problem that caused this warning.
+   * Attempts to fix the problem that caused this issue.
    *
    * @param context the {@link IdeContext}.
    * @return {@code true} if the fix was applied successfully, {@code false} otherwise.
