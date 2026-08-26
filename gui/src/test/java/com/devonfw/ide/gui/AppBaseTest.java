@@ -66,10 +66,12 @@ public class AppBaseTest extends HeadlessApplicationTest {
     assertThat(mainViewUrl).as("Cannot resolve main UI FXML resource!").isNotNull();
 
     FXMLLoader fxmlLoader = new FXMLLoader(mainViewUrl);
-    fxmlLoader.setController(new MainController(mockIdeRoot.toString(), guiStateManager, nlsService));
+    MainController mainController = new MainController(mockIdeRoot.toString(), guiStateManager, nlsService);
     fxmlLoader.setControllerFactory(clazz -> {
       if (clazz == ConsoleController.class) {
         return new ConsoleController(nlsService);
+      } else if (clazz == MainController.class) {
+        return mainController;
       }
       return null;
     });
