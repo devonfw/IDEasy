@@ -1,10 +1,9 @@
 package com.devonfw.tools.ide.cli;
 
-
 /**
- * {@link CliException} that is thrown to immediately abort the CLI process when a critical guardrail fails
- * (e.g., settings repository cannot be cloned or validated). This ensures the process stops rather than
- * continuing in an invalid state.
+ * {@link CliException} that aborts the entire CLI process when a critical guardrail fails (e.g. the settings repository could not be cloned or is not a valid
+ * settings repository). Unlike a regular error that only makes the current {@link com.devonfw.tools.ide.step.Step Step} fail while the overall process
+ * continues, this exception {@link #isForceRethrowInStep() is always re-thrown} so no further step is executed in an invalid state.
  */
 public final class CliRethrowException extends CliException {
 
@@ -27,5 +26,11 @@ public final class CliRethrowException extends CliException {
   public CliRethrowException(String message, Throwable cause) {
 
     super(message, cause);
+  }
+
+  @Override
+  public boolean isForceRethrowInStep() {
+
+    return true;
   }
 }
