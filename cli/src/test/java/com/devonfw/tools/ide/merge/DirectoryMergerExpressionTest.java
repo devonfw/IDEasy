@@ -33,7 +33,7 @@ class DirectoryMergerExpressionTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC, null, true);
     // the answers are consumed in the order the questions are asked, i.e. the order the keys are resolved in the template
-    context.setAnswers("sk-TOPSECRET", "http://llama.local");
+    context.setAnswers("dummy-secret-value", "http://llama.local");
     DirectoryMerger merger = context.getWorkspaceMerger();
     Path templates = TEST_RESOURCES.resolve("templates-expression");
 
@@ -42,7 +42,7 @@ class DirectoryMergerExpressionTest extends AbstractIdeContextTest {
 
     // assert
     Properties properties = context.getFileAccess().readProperties(workspaceDir.resolve("config/ai.properties"));
-    assertThat(properties.getProperty("api.key")).isEqualTo("sk-TOPSECRET");
+    assertThat(properties.getProperty("api.key")).isEqualTo("dummy-secret-value");
     assertThat(properties.getProperty("backend.url")).isEqualTo("http://llama.local");
     // foreign syntax must never be resolved by IDEasy
     assertThat(properties.getProperty("css.rule")).isEqualTo("@media(max-width:600px)");
@@ -53,7 +53,7 @@ class DirectoryMergerExpressionTest extends AbstractIdeContextTest {
     Path confProperties = context.getIdeHome().resolve("conf").resolve("ide.properties");
     assertThat(confProperties).exists();
     String conf = Files.readString(confProperties);
-    assertThat(conf).contains("AI_API_KEY=sk-TOPSECRET");
+    assertThat(conf).contains("AI_API_KEY=dummy-secret-value");
     assertThat(conf).contains("AI_BACKEND_URL=http://llama.local");
   }
 

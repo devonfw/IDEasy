@@ -99,8 +99,7 @@ class ExpressionParserTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test that a backslash inside a quoted argument is never interpreted as an escape character, since arguments
-   * regularly contain native windows paths.
+   * Test that a backslash inside a quoted argument is never interpreted as an escape character, since arguments regularly contain native windows paths.
    */
   @Test
   void testBackslashIsNotAnEscapeCharacter() {
@@ -117,8 +116,8 @@ class ExpressionParserTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test that a quoted argument may contain the argument separator and the closing parenthesis. This is the reason why
-   * the argument list cannot be parsed with a regular expression.
+   * Test that a quoted argument may contain the argument separator and the closing parenthesis. This is the reason why the argument list cannot be parsed with
+   * a regular expression.
    */
   @Test
   void testQuotedArgumentMayContainCommaAndParenthesis() {
@@ -156,8 +155,8 @@ class ExpressionParserTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test that an expression of a foreign syntax is passed through entirely untouched. IDEasy must never try to resolve
-   * placeholders that belong to another tool.
+   * Test that an expression of a foreign syntax is passed through entirely untouched. IDEasy must never try to resolve placeholders that belong to another
+   * tool.
    *
    * @param value the value that must not be modified.
    */
@@ -244,8 +243,7 @@ class ExpressionParserTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test that the 3rd argument allows an empty value to be entered. This is the intended way to permit an empty
-   * password in test or development scenarios.
+   * Test that the 3rd argument allows an empty value to be entered. This is the intended way to permit an empty password in test or development scenarios.
    */
   @Test
   void testEmptyDefaultAllowsEmptyInput() {
@@ -435,7 +433,7 @@ class ExpressionParserTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext secretContext = newContext(PROJECT_BASIC);
-    secretContext.setAnswers("sk-SUPERSECRET-123");
+    secretContext.setAnswers("dummy-secret-value");
     IdeTestContext plainContext = newContext(PROJECT_BASIC);
     plainContext.setAnswers("http://llama.local");
 
@@ -446,12 +444,11 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     // assert
     assertThat(secretContext.getSecretLineCount()).isEqualTo(1);
     assertThat(plainContext.getSecretLineCount()).isZero();
-    assertThat(secretContext).log().hasNoMessageContaining("sk-SUPERSECRET-123");
+    assertThat(secretContext).log().hasNoMessageContaining("dummy-secret-value");
   }
 
   /**
-   * Simple {@link ExpressionContext} for testing that also simulates the surrounding variable resolution of
-   * {@code AbstractEnvironmentVariables}.
+   * Simple {@link ExpressionContext} for testing that also simulates the surrounding variable resolution of {@code AbstractEnvironmentVariables}.
    */
   private static class TestExpressionContext implements ExpressionContext {
 

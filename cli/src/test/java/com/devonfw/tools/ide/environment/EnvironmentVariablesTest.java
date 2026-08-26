@@ -246,15 +246,15 @@ class EnvironmentVariablesTest extends AbstractIdeContextTest {
     // arrange
     String path = "project/workspaces/foo-test/my-git-repo";
     IdeTestContext context = newContext(ENVIRONMENT_PROJECT, path, true);
-    context.setAnswers("sk-SUPERSECRET-123");
+    context.setAnswers("dummy-secret-value");
     EnvironmentVariables variables = context.getVariables();
 
     // act
     String resolved = variables.resolve("token=@ask-secret('MY_TOKEN')", "test", false);
 
     // assert
-    assertThat(resolved).isEqualTo("token=sk-SUPERSECRET-123");
-    assertThat(context).log().hasNoMessageContaining("sk-SUPERSECRET-123");
+    assertThat(resolved).isEqualTo("token=dummy-secret-value");
+    assertThat(context).log().hasNoMessageContaining("dummy-secret-value");
   }
 
   /**
@@ -269,16 +269,16 @@ class EnvironmentVariablesTest extends AbstractIdeContextTest {
     // TRACE level so that the "Variable MY_TOKEN=..." log written while reading the variable is captured
     IdeTestContext context = newContext(ENVIRONMENT_PROJECT, path, true, null, IdeLogLevel.TRACE);
     EnvironmentVariables variables = context.getVariables();
-    variables.getByType(EnvironmentVariablesType.CONF).set("MY_TOKEN", "sk-ALREADY-STORED-456");
+    variables.getByType(EnvironmentVariablesType.CONF).set("MY_TOKEN", "dummy-stored-value");
     context.getTestStartContext().getEntries().clear();
 
     // act
     String resolved = variables.resolve("token=@ask-secret('MY_TOKEN')", "test", false);
 
     // assert
-    assertThat(resolved).isEqualTo("token=sk-ALREADY-STORED-456");
+    assertThat(resolved).isEqualTo("token=dummy-stored-value");
     assertThat(context.getSecretLineCount()).isZero(); // the user was NOT asked
-    assertThat(context).log().hasNoMessageContaining("sk-ALREADY-STORED-456");
+    assertThat(context).log().hasNoMessageContaining("dummy-stored-value");
   }
 
   /**
