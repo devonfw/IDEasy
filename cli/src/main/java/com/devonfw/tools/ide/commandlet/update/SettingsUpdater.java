@@ -27,6 +27,12 @@ public class SettingsUpdater {
   private final AbstractIdeContext context;
   private final StringProperty settingsRepoProperty;
 
+  private static final String MESSAGE_SETTINGS_REPO_URL = """
+      No settings found at {} and no SETTINGS_URL is defined.
+      Further details can be found here: https://github.com/devonfw/IDEasy/blob/main/documentation/settings.adoc
+      Please contact the technical lead of your project to get the SETTINGS_URL for your project to enter.
+      In case you just want to test IDEasy you may simply hit return to install the default settings.""";
+
   /**
    * Result of the settings update operation.
    */
@@ -115,7 +121,7 @@ public class SettingsUpdater {
     repository = handleDefaultRepository(repository);
     String userPrompt = "Settings URL [" + IdeContext.DEFAULT_SETTINGS_REPO_URL + "]:";
     String defaultUrl = IdeContext.DEFAULT_SETTINGS_REPO_URL;
-    LOG.info(AbstractUpdateCommandlet.MESSAGE_SETTINGS_REPO_URL, this.context.getSettingsPath());
+    LOG.info(MESSAGE_SETTINGS_REPO_URL, this.context.getSettingsPath());
 
     GitUrl gitUrl = null;
     if (repository != null) {

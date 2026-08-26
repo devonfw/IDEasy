@@ -11,6 +11,7 @@ import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliOfflineException;
 import com.devonfw.tools.ide.commandlet.CommandletManager;
+import com.devonfw.tools.ide.commandlet.update.AbstractUpdateCommandlet;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
@@ -69,7 +70,7 @@ public interface IdeContext extends IdeStartContext {
   /**
    * The default settings URL.
    *
-   * @see com.devonfw.tools.ide.commandlet.AbstractUpdateCommandlet
+   * @see AbstractUpdateCommandlet
    */
   String DEFAULT_SETTINGS_REPO_URL = "https://github.com/devonfw/ide-settings.git";
 
