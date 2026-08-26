@@ -7,6 +7,7 @@ import java.util.function.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.commandlet.update.AbstractUpdateCommandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.log.IdeLogLevel;

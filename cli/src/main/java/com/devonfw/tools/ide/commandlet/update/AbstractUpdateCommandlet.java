@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.commandlet;
+package com.devonfw.tools.ide.commandlet.update;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -12,14 +12,14 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.cli.CliRethrowException;
+import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.CommandletManager;
+import com.devonfw.tools.ide.commandlet.CreateCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
-import com.devonfw.tools.ide.git.GitContext;
-import com.devonfw.tools.ide.git.GitUrl;
 import com.devonfw.tools.ide.git.repository.RepositoryCommandlet;
-import com.devonfw.tools.ide.git.repository.RepositoryUtil;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.StringProperty;
@@ -43,17 +43,6 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 public abstract class AbstractUpdateCommandlet extends Commandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(AbstractUpdateCommandlet.class);
-
-  private static final String MESSAGE_CODE_REPO_URL = """
-      No code repository was given after '--code'.
-      Further details can be found here: https://github.com/devonfw/IDEasy/blob/main/documentation/settings.adoc
-      Please enter the code repository below that includes your settings folder.""";
-
-  private static final String MESSAGE_SETTINGS_REPO_URL = """
-      No settings found at {} and no SETTINGS_URL is defined.
-      Further details can be found here: https://github.com/devonfw/IDEasy/blob/main/documentation/settings.adoc
-      Please contact the technical lead of your project to get the SETTINGS_URL for your project to enter.
-      In case you just want to test IDEasy you may simply hit return to install the default settings.""";
 
   /** {@link StringProperty} for the settings repository URL. */
   public final StringProperty settingsRepo;
@@ -168,7 +157,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       LOG.info("Skipping git pull in settings due to code repository. Use --force-pull to enforce pulling.");
       return;
     }
-    this.context.newStep(getStepMessage()).run(() -> updateSettingsInStep(codeRepository), true);
+    this.context.newStep(getStepMessage()).run(this::updateSettingsInStep, true);
   }
 
   protected String getStepMessage() {
@@ -176,125 +165,24 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     return "update (pull) settings repository";
   }
 
-  private void updateSettingsInStep(boolean codeRepository) {
-    Path settingsPath = this.context.getSettingsPath();
-    if (!codeRepository) {
-      boolean settingsRepository = this.context.getGitContext().isGitRepo(settingsPath);
-      if (!settingsRepository) {
-        if (Files.exists(settingsPath)) {
-          if (!this.context.getFileAccess().isEmptyDir(settingsPath)) {
-            // settings folder seems to be invalid
-            this.context.askToContinue(
-                "Your settings repository seems to be broken ('.git' folder not present). "
-                    + "We can fix this by moving  your settings the backed up. "
-                    + "You will be asked for the settings git URL and your settings will be cloned from scratch. "
-                    + "Do you want to proceed?"
-            );
-          }
-          this.context.getFileAccess().backup(settingsPath);
-        }
-        //settings folder does not exist (yet), lets retrieve the settings url to pull
-        GitUrl gitUrl = getOrAskSettingsUrl();
-        pullAndCheckIntegrity(gitUrl);
-        return;
+  private void updateSettingsInStep() {
+    boolean codeRepository = this.context.isSettingsCodeRepository();
+
+    SettingsUpdater settingsUpdater = new SettingsUpdater((AbstractIdeContext) this.context, this.settingsRepo);
+    SettingsUpdater.SettingsUpdateResult result = settingsUpdater.updateSettings(codeRepository);
+
+    // Handle the result
+    switch (result.status()) {
+      case SETTINGS_UPDATED -> {
+        LOG.info("Settings repository updated successfully (type: {}).", result.repositoryType());
+      }
+      case SETTINGS_CLONED -> {
+        LOG.info("Settings repository cloned successfully (type: {}).", result.repositoryType());
+      }
+      case SETTINGS_UPDATE_FAILED -> {
+        throw new CliRethrowException("Settings repository update failed (type: " + result.repositoryType() + ")");
       }
     }
-    GitContext gitContext = this.context.getGitContext();
-    if (gitContext.hasUntrackedFiles(settingsPath)) {
-      gitContext.pullSafelyWithStash(settingsPath);
-    } else {
-      gitContext.pull(settingsPath);
-    }
-    this.context.getGitContext().saveCurrentCommitId(settingsPath, this.context.getSettingsCommitIdPath());
-  }
-
-  private GitUrl getOrAskSettingsUrl() {
-
-    String repository = this.settingsRepo.getValue();
-    repository = handleDefaultRepository(repository);
-    String userPrompt = "Settings URL [" + IdeContext.DEFAULT_SETTINGS_REPO_URL + "]:";
-    String defaultUrl = IdeContext.DEFAULT_SETTINGS_REPO_URL;
-    LOG.info(MESSAGE_SETTINGS_REPO_URL, this.context.getSettingsPath());
-
-    GitUrl gitUrl = null;
-    if (repository != null) {
-      gitUrl = GitUrl.of(repository);
-    }
-    while ((gitUrl == null) || !gitUrl.isValid()) {
-      repository = this.context.askForInput(userPrompt, defaultUrl);
-      repository = handleDefaultRepository(repository);
-      gitUrl = GitUrl.of(repository);
-      if (!gitUrl.isValid()) {
-        LOG.warn("The input URL is not valid, please try again.");
-      }
-    }
-    return gitUrl;
-  }
-
-  /**
-   * We pull the settings repo from the remote into a temporary folder to perform health checks.
-   */
-  private void pullAndCheckIntegrity(GitUrl gitUrl) {
-    GitContext gitContext = this.context.getGitContext();
-    Path tempProjectPath = this.context.getTempPath().resolve(IdeContext.FOLDER_PROJECTS).resolve(this.context.getProjectName());
-
-    gitContext.pullOrClone(gitUrl, tempProjectPath);
-
-    checkIntegrityAndMove(tempProjectPath, gitUrl.getProjectName());
-  }
-
-  private void checkIntegrityAndMove(Path projectPath, String gitProjectName) {
-
-    FileAccess fileAccess = this.context.getFileAccess();
-
-    if (!Files.exists(projectPath)) {
-      throw new CliException(getIntegrityCheckErrorMessage("Git pull target folder does not exist."));
-    }
-
-    Path targetDirectory;
-    switch (RepositoryUtil.getRepositoryType(projectPath, gitProjectName)) {
-      case SETTINGS -> {
-
-        targetDirectory = this.context.getIdeHome().resolve(IdeContext.FOLDER_SETTINGS);
-        moveProject(projectPath, targetDirectory);
-        this.context.getGitContext().saveCurrentCommitId(targetDirectory, this.context.getSettingsCommitIdPath());
-      }
-      case CODE_SETTINGS_COMBINED -> {
-
-        //this is a special case - here we need to symlink from IDE_HOME/settings to IDE_HOME/workspaces/main/repo_name/settings.
-        //(Formerly managed by the obsolete "--code" flag)
-        targetDirectory = this.context.getWorkspacePath().resolve(gitProjectName);
-        moveProject(projectPath, targetDirectory);
-
-        Path symlinkPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_SETTINGS);
-        Path symlinkTargetPath = this.context.getWorkspacePath().resolve(gitProjectName).resolve(IdeContext.FOLDER_SETTINGS);
-
-        fileAccess.symlink(symlinkTargetPath, symlinkPath);
-        this.context.getGitContext().saveCurrentCommitId(symlinkTargetPath, this.context.getSettingsCommitIdPath());
-      }
-      default -> {
-        fileAccess.backup(projectPath);
-        throw new CliException(getIntegrityCheckErrorMessage(String.format(
-            "The given git repository URL does not point to a valid settings or code-settings repository. "
-                + "Please verify and try again. Before trying again, please delete the folder %s",
-            this.context.getIdeHome())));
-      }
-    }
-  }
-
-  private Path moveProject(Path from, Path to) {
-
-    FileAccess fileAccess = this.context.getFileAccess();
-    try {
-      fileAccess.move(from, to);
-    } catch (Exception e) {
-      throw new CliException(getIntegrityCheckErrorMessage(String.format("Failed to move project from %s to %s", from, to)), e);
-    }
-    return to;
-  }
-
-  private String getIntegrityCheckErrorMessage(String message) {
-    return String.format("Settings repository integrity check failed: %s", message);
   }
 
   private String handleDefaultRepository(String repository) {
