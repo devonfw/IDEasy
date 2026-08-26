@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.commandlet.check;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 
 import com.devonfw.tools.ide.context.IdeContext;
@@ -34,7 +33,12 @@ public class MissingGitignoreRuleIssue extends CheckIssue {
   @Override
   public boolean fix(IdeContext context) {
 
-    List<String> lines = new ArrayList<>(context.getFileAccess().readFileLines(getPath()));
+    List<String> lines = context.getFileAccess().readFileLines(getPath());
+
+    if (lines == null) {
+      return false;
+    }
+
     lines.add(this.rule);
     context.getFileAccess().writeFileLines(lines, getPath());
     return true;

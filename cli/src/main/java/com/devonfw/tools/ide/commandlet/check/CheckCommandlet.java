@@ -1,7 +1,5 @@
 package com.devonfw.tools.ide.commandlet.check;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +11,6 @@ import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
-import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.property.FlagProperty;
 
 /**
@@ -85,18 +82,14 @@ public class CheckCommandlet extends Commandlet {
   private void checkGitIgnore(Path repositoryRoot, List<CheckIssue> issues) {
 
     Path gitignore = repositoryRoot.resolve(MissingGitignoreIssue.GITIGNORE);
-    if (!Files.exists(gitignore)) {
+    if (!context.getFileAccess().isFile(gitignore)) {
       issues.add(new MissingGitignoreIssue(repositoryRoot));
       return;
     }
 
     List<String> lines;
-    try {
-      lines = Files.readAllLines(gitignore);
-    } catch (IOException e) {
-      LOG.warn("Failed to read{}", gitignore, e);
-      return;
-    }
+
+    lines = context.getFileAccess().readFileLines(gitignore);
 
     if (!containsRule(lines, RULE_IGNORE_HIDDEN)) {
       issues.add(new MissingGitignoreRuleIssue(gitignore, RULE_IGNORE_HIDDEN));
@@ -121,7 +114,6 @@ public class CheckCommandlet extends Commandlet {
 
     boolean open = false;
     for (CheckIssue issue : issues) {
-      IdeLogLevel.WARNING.log(LOG, "{}", issue);
       if (this.fix.isTrue() && issue.isFixable()) {
         if (issue.fix(this.context)) {
           LOG.info("Fixed: {}", issue);
