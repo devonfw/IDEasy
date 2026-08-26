@@ -20,7 +20,19 @@ INSTALLATION_LINK="$IDE_ROOT/_ide/installation"
 LOCAL_DEV_REPO="$LOCAL_DEV/.m2"
 LAUNCHER_POM="$TARGET_DIR/package/gui/pom.xml"
 
-echo "Building IDEasy native image..."
+# Determine the version to stamp into the local-dev binary. It is derived from the current revision in .mvn/maven.config
+# (e.g. 2026.08.002-SNAPSHOT): the -SNAPSHOT suffix is replaced with -DEV-BUILD so the running binary self-identifies as a
+# local-dev installation (see IdeVersion#isLocalDevBuild). Passing -Drevision overrides the value from .mvn/maven.config,
+# exactly like the release CI does (see .github/workflows/macos/generate_pkg.sh).
+MAVEN_CONFIG="$SCRIPT_DIR/.mvn/maven.config"
+SNAPSHOT_REVISION="$(sed -n 's/^-Drevision=//p' "$MAVEN_CONFIG")"
+if [ -z "$SNAPSHOT_REVISION" ]; then
+  echo "Error: could not determine the revision from $MAVEN_CONFIG."
+  exit 1
+fi
+DEV_REVISION="${SNAPSHOT_REVISION%-SNAPSHOT}-DEV-BUILD"
+
+echo "Building IDEasy native image with version $DEV_REVISION..."
 
 if [ ! -d "$GRAALVM_DIR" ]; then
   echo "Error: GraalVM is not installed for this IDEasy project:"
@@ -33,7 +45,7 @@ fi
 
 export PATH="$GRAALVM_DIR/bin:$PATH"
 
-mvn -B -ntp -f "$CLI_DIR/pom.xml" -Pnative -DskipTests=true clean install
+mvn -B -ntp -f "$CLI_DIR/pom.xml" -Pnative -DskipTests=true -Drevision="$DEV_REVISION" clean install
 
 echo "Preparing local-dev installation..."
 rm -rf "$LOCAL_DEV"
@@ -49,8 +61,11 @@ fi
 
 cp -R "$TARGET_DIR/package"/. "$LOCAL_DEV"/
 
-echo "Building the GUI into the self-contained maven repository..."
-mvn -B -ntp -f "$SCRIPT_DIR/pom.xml" -pl gui -am -DskipTests=true -Dmaven.repo.local="$LOCAL_DEV_REPO" install
+# Use the same -DEV-BUILD revision as the native build so ide-gui/ide-cli are installed into the self-contained repository with
+# the same version the launcher POM (also stamped with -DEV-BUILD) requests. Without this the launcher would request
+# ide-gui:<base>-DEV-BUILD while the repository only contains ide-gui:<base>-SNAPSHOT, making 'ide gui' fail offline resolution.
+echo "Building the GUI into the self-contained maven repository with version $DEV_REVISION..."
+mvn -B -ntp -f "$SCRIPT_DIR/pom.xml" -pl gui -am -DskipTests=true -Drevision="$DEV_REVISION" -Dmaven.repo.local="$LOCAL_DEV_REPO" install
 
 echo "Seeding the GUI launcher (exec) maven plugin into the self-contained maven repository..."
 mvn -B -ntp -f "$LAUNCHER_POM" org.codehaus.mojo:exec-maven-plugin:3.1.0:exec \
@@ -58,9 +73,6 @@ mvn -B -ntp -f "$LAUNCHER_POM" org.codehaus.mojo:exec-maven-plugin:3.1.0:exec \
   -Dmaven.repo.local="$LOCAL_DEV_REPO"
 
 OS_NAME="$(uname -s)"
-
-echo "Creating local-dev software version marker..."
-echo "local-dev-version" > "$LOCAL_DEV/.ide.software.version"
 
 mkdir -p "$LOCAL_DEV/bin"
 

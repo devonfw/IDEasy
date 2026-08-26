@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.tool.gui;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -28,10 +27,6 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 public class Gui extends Commandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Gui.class);
-
-  /** The value of {@link IdeContext#FILE_SOFTWARE_VERSION} written by the local-dev build script to mark a local-dev installation. */
-  private static final String LOCAL_DEV_VERSION = "local-dev-version";
-
 
   /**
    * @param context the {@link IdeContext}.
@@ -109,9 +104,8 @@ public class Gui extends Commandlet {
   /**
    * Builds the arguments passed to {@code mvn} to launch the GUI via the launcher POM in the IDEasy installation.
    * <p>
-   * A local-dev installation (created by {@code build-local-dev.sh}) is self-contained: its launcher POM resolves {@code ide-gui} from a maven
-   * repository inside the installation and runs offline. This keeps the GUI independent of the context-dependent Maven local repository
-   * (see {@code M2_REPO}), which otherwise could silently resolve a remote snapshot instead of the locally built GUI.
+   * A local-dev installation (created by {@code build-local-dev.sh}) is self-contained: its launcher POM resolves {@code ide-gui} from a maven repository
+   * inside the installation and runs offline.
    * </p>
    *
    * @param installationPath the {@link IdeContext#getIdeInstallationPath() IDEasy installation} directory containing {@code gui/pom.xml}.
@@ -130,7 +124,7 @@ public class Gui extends Commandlet {
         "-Dexec.async=true"
     ));
 
-    if (isLocalDevInstallation(installationPath)) {
+    if (IdeVersion.isLocalDevBuild()) {
       LOG.warn("Launching gui from the self-contained maven repository of the local-dev installation");
       args.add("-Dmaven.repo.local=" + installationPath.resolve(".m2").toString());
       args.add("-o"); // run offline so the local build is used and no remote snapshot is resolved
@@ -139,27 +133,5 @@ public class Gui extends Commandlet {
       args.add("-U"); //Adding this flag forces maven to download the latest SNAPSHOT version
     }
     return args;
-  }
-
-  /**
-   * @param installationPath the IDEasy installation directory.
-   * @return {@code true} if the installation is a local-dev installation (marked via {@link IdeContext#FILE_SOFTWARE_VERSION}), {@code false} otherwise.
-   */
-  private static boolean isLocalDevInstallation(Path installationPath) {
-
-    if (installationPath == null) {
-      return false;
-    }
-    Path versionFile = installationPath.resolve(IdeContext.FILE_SOFTWARE_VERSION);
-    if (!Files.exists(versionFile)) {
-      return false;
-    }
-    try {
-      return LOCAL_DEV_VERSION.equals(Files.readString(versionFile).trim());
-    } catch (IOException e) {
-      // a local-dev marker we cannot read must not break the GUI launch, so fall back to the non-local-dev behavior
-      LOG.warn("Failed to read the local-dev version marker at " + versionFile, e);
-      return false;
-    }
   }
 }

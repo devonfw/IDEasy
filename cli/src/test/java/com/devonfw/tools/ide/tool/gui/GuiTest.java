@@ -10,16 +10,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.version.IdeVersion;
 
 /**
  * Test of {@link Gui}.
  */
 class GuiTest extends Assertions {
-
-  /** Version marker written into a local-dev installation by {@code build-local-dev.sh}. */
-  private static final String LOCAL_DEV_VERSION = "local-dev-version";
 
   /** Version in effect before the tests so it can be restored by {@link #restoreVersion()}. */
   private final String originalVersion = IdeVersion.getVersionString();
@@ -35,17 +31,15 @@ class GuiTest extends Assertions {
   }
 
   /**
-   * Verifies the GUI is launched from the self-contained maven repository inside the installation when a local-dev installation is detected, and that the
-   * snapshot (-U) behavior is not applied in that case.
-   *
-   * @throws IOException if an I/O error occurs.
+   * Verifies the GUI is launched from the self-contained maven repository inside the installation when the running version is a local-dev build (stamped with
+   * {@link IdeVersion#LOCAL_DEV_SUFFIX}), and that the snapshot (-U) behavior is not applied in that case.
    */
   @Test
-  void testBuildMvnArgsWithLocalDevInstallation() throws IOException {
+  void testBuildMvnArgsWithLocalDevBuild() {
 
     // arrange
-    Path installationPath = Files.createDirectory(this.tempDir.resolve("localdev"));
-    Files.writeString(installationPath.resolve(IdeContext.FILE_SOFTWARE_VERSION), LOCAL_DEV_VERSION);
+    IdeVersion.setMockVersionForTesting("2026.08.002" + IdeVersion.LOCAL_DEV_SUFFIX);
+    Path installationPath = this.tempDir;
 
     // act
     List<String> args = Gui.buildMvnArgs(installationPath, installationPath.resolve("gui/pom.xml"));
