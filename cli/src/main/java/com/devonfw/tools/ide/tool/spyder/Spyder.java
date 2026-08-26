@@ -42,10 +42,9 @@ public class Spyder extends PipBasedIdeToolCommandlet {
 
   @Override
   protected void configureToolArgs(ProcessContext pc, ProcessMode processMode, List<String> args) {
-    // Pass the workspace path to Spyder via -w/--workdir so it opens the correct workspace directory.
     Path workspacePath = this.context.getWorkspacePath();
     if (workspacePath != null) {
-      pc.addArg("-w");
+      pc.addArg("--project");
       pc.addArg(workspacePath.toString());
     }
     super.configureToolArgs(pc, processMode, args);
