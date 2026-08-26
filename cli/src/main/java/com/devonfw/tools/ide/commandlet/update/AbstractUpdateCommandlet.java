@@ -12,10 +12,11 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.tools.ide.cli.CliRethrowException;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.commandlet.CreateCommandlet;
+import com.devonfw.tools.ide.commandlet.update.SettingsUpdater.ResultStatus;
+import com.devonfw.tools.ide.commandlet.update.SettingsUpdater.SettingsUpdateResult;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
@@ -97,6 +98,15 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     createStartScripts();
   }
 
+  /**
+   * Hook that is called after the settings passed the health check but before they are moved to their final location. Does nothing by default and is overridden
+   * by {@link CreateCommandlet} to create the project structure so that no project is created at all if the health check failed.
+   */
+  protected void prepareProject() {
+
+    // nothing to do by default
+  }
+
   private void reloadContext() {
 
     ((AbstractIdeContext) this.context).reload();
@@ -148,16 +158,18 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
   /**
    * Updates the settings repository in IDE_HOME/settings by either cloning if no such repository exists or pulling if the repository exists then saves the
-   * latest current commit ID in the file ".commit.id".
+   * latest current commit ID in the file ".commit.id". The settings are always cloned into a temporary directory first where a health check is performed. Only
+   * if that health check succeeded the settings are pulled or the verified clone is moved to its final location.
    */
   protected void updateSettings() {
 
     boolean codeRepository = this.context.isSettingsCodeRepository();
-    if (codeRepository && !(this.context.isForceMode() || forcePull.isTrue())) {
+    if (codeRepository && !(this.context.isForceMode() || this.forcePull.isTrue())) {
       LOG.info("Skipping git pull in settings due to code repository. Use --force-pull to enforce pulling.");
       return;
     }
-    this.context.newStep(getStepMessage()).run(this::updateSettingsInStep, true);
+    Step step = this.context.newStep(getStepMessage());
+    step.run(() -> updateSettingsInStep(step));
   }
 
   protected String getStepMessage() {
@@ -165,23 +177,27 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     return "update (pull) settings repository";
   }
 
-  private void updateSettingsInStep() {
-    boolean codeRepository = this.context.isSettingsCodeRepository();
+  private void updateSettingsInStep(Step step) {
 
-    SettingsUpdater settingsUpdater = new SettingsUpdater((AbstractIdeContext) this.context, this.settingsRepo);
-    SettingsUpdater.SettingsUpdateResult result = settingsUpdater.updateSettings(codeRepository);
-
-    // Handle the result
-    switch (result.status()) {
-      case SETTINGS_UPDATED -> {
-        LOG.info("Settings repository updated successfully (type: {}).", result.repositoryType());
+    SettingsUpdater settingsUpdater = new SettingsUpdater(this.context, this.settingsRepo);
+    try {
+      SettingsUpdateResult result = this.context.newStep("Performing health check on settings").call(settingsUpdater::checkSettings, () -> null);
+      // fatal problems (e.g. no valid settings at all) were already rethrown, so reaching this point means the settings we have stay usable
+      if (result == null) {
+        step.error("Health check on settings failed - the settings have not been updated.");
+        return;
+      } else if (result.status() == ResultStatus.SETTINGS_UPDATE_FAILED) {
+        step.error("The settings have not been updated: {}", result.errorMessage());
+        return;
       }
-      case SETTINGS_CLONED -> {
-        LOG.info("Settings repository cloned successfully (type: {}).", result.repositoryType());
+      prepareProject();
+      boolean applied = this.context.newStep("Applying update").run(() -> settingsUpdater.applySettings(result));
+      if (!applied) {
+        step.error("Failed to apply the settings update.");
       }
-      case SETTINGS_UPDATE_FAILED -> {
-        throw new CliRethrowException("Settings repository update failed (type: " + result.repositoryType() + ")");
-      }
+    } finally {
+      // the verified clone lives across both steps and the prepareProject hook so it is only here that its lifetime ends
+      settingsUpdater.cleanup();
     }
   }
 
