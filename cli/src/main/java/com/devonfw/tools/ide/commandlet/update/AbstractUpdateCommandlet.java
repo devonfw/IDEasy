@@ -182,6 +182,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     SettingsUpdater settingsUpdater = new SettingsUpdater(this.context, this.settingsRepo);
     try {
       SettingsUpdateResult result = this.context.newStep("Performing settings health check").call(settingsUpdater::checkSettings, () -> null);
+
       // fatal problems (e.g. no valid settings at all) were already rethrown, so reaching this point means the settings we have stay usable
       if (result == null) {
         step.error("Health check on settings failed due to unknown error - the settings have not been updated.");
