@@ -51,6 +51,21 @@ But we do not want to forget the following advantage:
 Anyhow you can still create feature branches in standalone settings repositories to manage such scenarios and follow KISS and trunk-based development so you more or less avoid such problems.
 However, if you are in a monolithic project with complex release branches you may consider using the "settings in code repository" approach.
 
+== Health check
+
+Whenever `IDEasy` clones or updates your settings it first clones the git repository into a temporary directory and performs a health check on it:
+
+* the given git URL has to be valid,
+* cloning the repository has to succeed,
+* and the repository has to be a settings repository or a combined code and settings repository (see link:#code-repository[above]).
+
+Only if this health check succeeded the settings are installed: an existing settings repository is updated via `git pull` while a new one is moved from the temporary directory to its final location.
+This way a broken or wrong git URL can never leave you with a damaged project.
+In particular `ide create` will not create the project at all if the health check fails, so you can simply fix the URL and try again.
+
+If you are sure that you know better, you can use the `--force` option.
+`IDEasy` will then still report the problem but ask you whether you want to continue anyway.
+
 == Structure
 
 The settings folder has to follow this file structure:
