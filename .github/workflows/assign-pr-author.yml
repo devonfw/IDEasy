@@ -4,9 +4,6 @@ on:
   pull_request_target:
     types: [opened]
 
-env:
-  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
-
 permissions:
   contents: read
   pull-requests: write
@@ -24,16 +21,26 @@ jobs:
             const pr = context.payload.pull_request;
 
             // Do not overwrite existing assignees
-            if (pr.assignees && pr.assignees.length > 0) {
+            if (pr.assignees?.length > 0) {
               console.log('PR already has assignees. Skipping.');
               return;
             }
+            // Bot accounts cannot be assigned like regular contributors
+            if (pr.user.type === 'Bot') {
+              console.log(`PR author ${pr.user.login} is a bot. Skipping assignment.`);
+              return;
+            }
 
-            await github.rest.issues.addAssignees({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: pr.number,
-              assignees: [pr.user.login]
-            });
+            try {
+              await github.rest.issues.addAssignees({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                assignees: [pr.user.login]
+              });
 
-            console.log(`Assigned ${pr.user.login} to PR #${pr.number}`);
+              console.log(`Assigned ${pr.user.login} to PR #${pr.number}`);
+            } catch (err) {
+              // E.g. fork author is not a collaborator — don't fail the workflow
+              console.log(`Warning: could not assign ${pr.user.login}: ${err.message}`);
+            }
