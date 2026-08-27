@@ -22,7 +22,7 @@ public final class UnpackCommandlet extends Commandlet {
   private static final Logger LOG = LoggerFactory.getLogger(UnpackCommandlet.class);
 
   /** The archive file to extract. */
-  public final PathProperty archive;
+  public final FileProperty archive;
 
   /** The target directory to extract into. If not specified, defaults to {@code <cwd>/<archive_name_without_extension>}. */
   public final PathProperty target;
