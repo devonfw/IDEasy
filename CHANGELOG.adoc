@@ -24,6 +24,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1165[#1165]: Fix automatic project import for Eclipse
 * https://github.com/devonfw/IDEasy/issues/2040[#2040]: Fixed buggy workspace selection in the GUI
 * https://github.com/devonfw/IDEasy/issues/2253[#2253]: Fix structure and log documentation
+* https://github.com/devonfw/IDEasy/issues/2351[#2351]: Fixed GUI not launching with local dev build
 * https://github.com/devonfw/IDEasy/issues/2219[#2219]: Add unpack commandlet
 * https://github.com/devonfw/IDEasy/issues/2251[#2251]: Provide generic uninstall support for globally installed tools (windows)
 * https://github.com/devonfw/IDEasy/issues/1135[#1135]: Fix PowerShell env variable initialization on Windows by sourcing functions from the PowerShell profile
