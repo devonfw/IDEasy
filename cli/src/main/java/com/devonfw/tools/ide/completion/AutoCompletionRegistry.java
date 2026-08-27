@@ -39,7 +39,6 @@ public class AutoCompletionRegistry {
     this.entries.add(entry);
   }
 
-
   /**
    * Adds all candidates matching the given argument to the collector.
    *
@@ -56,5 +55,20 @@ public class AutoCompletionRegistry {
     }
   }
 
+  public void addAlternative(String candidate1, String candidate2) {
 
+    CompletionEntry entry1 = findEntry(candidate1);
+    CompletionEntry entry2 = findEntry(candidate2);
+
+    entry1.addAlternative(entry2);
+  }
+
+  private CompletionEntry findEntry(String candidate) {
+    for (CompletionEntry entry : this.entries) {
+      if (entry.getCandidate().contains(candidate)) {
+        return entry;
+      }
+    }
+    return null;
+  }
 }

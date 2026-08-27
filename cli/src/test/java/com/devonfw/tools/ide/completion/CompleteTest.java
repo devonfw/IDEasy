@@ -407,8 +407,8 @@ class CompleteTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test that completion works for a second tool argument (e.g. "ide mvn clean [tab]"), which is the real-world scenario
-   * that previously failed because the multivalued arguments property consumed the completion marker greedily.
+   * Test that completion works for a second tool argument (e.g. "ide mvn clean [tab]"), which is the real-world scenario that previously failed because the
+   * multivalued arguments property consumed the completion marker greedily.
    */
   @Test
   void testCompleteMavenSecondToolArgument() {
@@ -424,5 +424,39 @@ class CompleteTest extends AbstractIdeContextTest {
     // assert - should complete the second argument after 'clean'
     assertThat(candidates.stream().map(CompletionCandidate::text))
         .contains("dependency:list", "dependency:tree", "deploy");
+  }
+
+  @Test
+  void testAlternativeFilteringWhenOtherAlternativeProvidedJava() {
+
+    // arrange
+    AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
+    String[] argsArray = { "mvn", "exec:java", "" };
+    CliArguments args = CliArguments.ofCompletion(argsArray);
+    CompletionCandidateCollector collector = createCollector(context, argsArray);
+
+    // act
+    List<CompletionCandidate> candidates = context.complete(args, collector, true);
+
+    // assert
+    List<String> texts = candidates.stream().map(CompletionCandidate::text).toList();
+    assertThat(texts).doesNotContain("exec:exec");
+  }
+
+  @Test
+  void testAlternativeFilteringWhenOtherAlternativeProvidedExec() {
+
+    // arrange
+    AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
+    String[] argsArray = { "mvn", "exec:exec", "" };
+    CliArguments args = CliArguments.ofCompletion(argsArray);
+    CompletionCandidateCollector collector = createCollector(context, argsArray);
+
+    // act
+    List<CompletionCandidate> candidates = context.complete(args, collector, true);
+
+    // assert
+    List<String> texts = candidates.stream().map(CompletionCandidate::text).toList();
+    assertThat(texts).doesNotContain("exec:java");
   }
 }

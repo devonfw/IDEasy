@@ -19,6 +19,8 @@ public class CompletionEntry {
   /** List of synonym strings for this candidate. */
   private List<String> synonyms = new ArrayList<>();
 
+  private List<CompletionEntry> alternatives = new ArrayList<>();
+
   /**
    * The constructor.
    *
@@ -26,6 +28,10 @@ public class CompletionEntry {
    */
   public CompletionEntry(String candidate) {
     this.candidate = candidate;
+  }
+
+  public String getCandidate() {
+    return candidate;
   }
 
   /**
@@ -48,8 +54,16 @@ public class CompletionEntry {
   public void complete(String arg, CompletionCandidateCollector collector, Property<?> property, Commandlet commandlet) {
 
     Set<String> alreadyProvided = collector.getAlreadyProvided();
-    if (alreadyProvided != null && (alreadyProvided.contains(this.candidate) || synonyms.stream().anyMatch(alreadyProvided::contains))) {
-      return;
+    if (alreadyProvided != null) {
+      if (isProvided(alreadyProvided)) {
+        return;
+      }
+
+      for (CompletionEntry alternative : this.alternatives) {
+        if (alternative.isProvided(alreadyProvided)) {
+          return;
+        }
+      }
     }
 
     if (candidate.startsWith(arg)) {
@@ -63,4 +77,22 @@ public class CompletionEntry {
     }
   }
 
+  public boolean isProvided(Set<String> alreadyProvided) {
+    return alreadyProvided.contains(this.candidate) || this.synonyms.stream().anyMatch(alreadyProvided::contains);
+  }
+
+  public void addAlternative(CompletionEntry alternative) {
+
+    if ((alternative == null) || (alternative == this)) {
+      return;
+    }
+
+    if (!this.alternatives.contains(alternative)) {
+      this.alternatives.add(alternative);
+    }
+
+    if (!alternative.alternatives.contains(this)) {
+      alternative.alternatives.add(this);
+    }
+  }
 }
