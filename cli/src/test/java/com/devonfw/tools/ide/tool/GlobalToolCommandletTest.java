@@ -7,11 +7,13 @@ import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.CapturingProcessContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.os.WindowsAppInstallation;
 import com.devonfw.tools.ide.os.WindowsHelperMock;
+import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -173,30 +175,37 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     protected String getBinaryName() {
       return TOOL_NAME;
     }
+
+    @Override
+    protected boolean isPackageManagerAvailable(NativePackageManager packageManager) {
+      // Always return true for testing - we mock the process execution anyway
+      return true;
+    }
   }
 
   /**
-   * Verifies that {@link GlobalToolCommandlet#getUninstallPackageManagerCommands()} correctly derives uninstall commands from
-   * {@link GlobalToolCommandlet#getNativePackages()}.
+   * Verifies that calling {@link GlobalToolCommandlet#uninstall()} on Linux executes the uninstall commands via package manager. Uses a mock
+   * {@link ProcessContext} to capture executed commands without actually running them.
    */
   @Test
-  void testGetUninstallPackageManagerCommandsDerivesFromNativePackages() {
+  void testUninstallExecutesPackageManagerCommandsAndLogsThem() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
     context.setSystemInfo(SystemInfoMock.LINUX_X64);
     PackageManagedToolCommandlet commandlet = new PackageManagedToolCommandlet(context);
 
-    // act
-    List<PackageManagerCommand> uninstallCommands = commandlet.getUninstallPackageManagerCommands();
+    // Create a mock ProcessContext that captures commands but doesn't execute them
+    CapturingProcessContextTest mockProcessContext = new CapturingProcessContextTest(context);
+    context.setProcessContext(mockProcessContext);
 
-    // assert: exactly one command for APT
-    assertThat(uninstallCommands).hasSize(1);
-    PackageManagerCommand cmd = uninstallCommands.getFirst();
-    assertThat(cmd.packageManager()).isEqualTo(NativePackageManager.APT);
-    // The uninstall command includes the package removal and the cleanup command
-    assertThat(cmd.commands()).containsExactly(
-        "sudo apt -y autoremove --purge mytool",
-        "sudo rm -f /etc/apt/sources.list.d/mytool.list");
+    // act
+    commandlet.uninstall();
+
+    // assert: verify the commands were captured by our mock (no actual execution)
+    List<String> executedCommands = mockProcessContext.getExecutedCommands();
+    assertThat(executedCommands).hasSize(2);
+    assertThat(executedCommands.get(0)).contains("sudo apt -y autoremove --purge mytool");
+    assertThat(executedCommands.get(1)).contains("sudo rm -f /etc/apt/sources.list.d/mytool.list");
   }
 }
