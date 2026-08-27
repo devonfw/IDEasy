@@ -225,7 +225,7 @@ class GitContextTest extends AbstractIdeContextTest {
   @Test
   void testGitRepoIsRecognizedCorrectly(@TempDir Path tempDir) {
     String gitRepoUrl = "https://github.com/test";
-    
+
     IdeTestContext context = newGitContext(tempDir);
     GitContext gitContext = context.getGitContext();
 
@@ -238,7 +238,7 @@ class GitContextTest extends AbstractIdeContextTest {
   void testNormalDirIsNoRepo(@TempDir Path tempDir) {
     IdeTestContext context = newGitContext(tempDir);
     GitContext gitContext = context.getGitContext();
-    
+
     FileAccess fileAccess = context.getFileAccess();
     fileAccess.mkdirs(tempDir.resolve("new-folder"));
 
