@@ -124,8 +124,8 @@ class GitContextTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Runs a simulated git pull on a repository with multiple remotes configured and checks that the pull is performed instead of asking the user to continue. See
-   * <a href="https://github.com/devonfw/IDEasy/issues/840">issue #840</a>.
+   * Runs a simulated git pull on a repository with multiple remotes configured and checks that the pull is performed instead of asking the user to continue.
+   * See <a href="https://github.com/devonfw/IDEasy/issues/840">issue #840</a>.
    *
    * @param tempDir a {@link TempDir} {@link Path}.
    */
