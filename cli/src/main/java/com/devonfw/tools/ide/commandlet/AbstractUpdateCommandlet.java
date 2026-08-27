@@ -350,6 +350,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
         this.context.newStep("Install extra version(s) of " + tool).run(() -> installExtraToolInstallations(tool, installations));
       }
     }
+
   }
 
   private void installExtraToolInstallations(String tool, List<ExtraToolInstallation> extraInstallations) {

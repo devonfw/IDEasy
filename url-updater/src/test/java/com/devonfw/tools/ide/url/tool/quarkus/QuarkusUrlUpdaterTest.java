@@ -38,7 +38,7 @@ class QuarkusUrlUpdaterTest extends AbstractUrlUpdaterTest {
     UrlRepository urlRepository = UrlRepository.load(tempDir);
     QuarkusUrlUpdater updater = new QuarkusUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     Path quarkusEditionPath = tempDir.resolve("quarkus").resolve("quarkus");
@@ -48,4 +48,3 @@ class QuarkusUrlUpdaterTest extends AbstractUrlUpdaterTest {
     }
   }
 }
-

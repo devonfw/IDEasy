@@ -61,6 +61,7 @@ import com.devonfw.tools.ide.tool.pip.Pip;
 import com.devonfw.tools.ide.tool.pycharm.Pycharm;
 import com.devonfw.tools.ide.tool.python.Python;
 import com.devonfw.tools.ide.tool.quarkus.Quarkus;
+import com.devonfw.tools.ide.tool.ruby.Ruby;
 import com.devonfw.tools.ide.tool.ruff.Ruff;
 import com.devonfw.tools.ide.tool.rust.Rust;
 import com.devonfw.tools.ide.tool.soapui.SoapUi;
@@ -139,6 +140,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Npm(context));
     add(new Mvn(context));
     add(new Msvc(context));
+    add(new RewriteCommandlet(context));
     add(new GcLogAnalyzer(context));
     add(new GcViewer(context));
     add(new Gradle(context));
@@ -146,6 +148,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Terraform(context));
     add(new Oc(context));
     add(new Quarkus(context));
+    add(new Ruby(context));
     add(new Rust(context));
     add(new Kotlinc(context));
     add(new KotlincNative(context));
