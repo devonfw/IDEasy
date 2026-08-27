@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.tool.docker;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -9,7 +10,9 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemArchitecture;
+import com.devonfw.tools.ide.tool.EditionAndVersion;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.NativePackage;
 import com.devonfw.tools.ide.tool.NativePackageManager;
@@ -28,7 +31,7 @@ public class Docker extends GlobalToolCommandlet {
 
   private static final Pattern RDCTL_CLIENT_VERSION_PATTERN = Pattern.compile("client version:\\s*v([\\d.]+)", Pattern.CASE_INSENSITIVE);
 
-  private static final Pattern DOCKER_DESKTOP_LINUX_VERSION_PATTERN = Pattern.compile("^([0-9]+(?:\\.[0-9]+){1,2})");
+  private static final Pattern DOCKER_DESKTOP_VERSION_PATTERN = Pattern.compile("^([0-9]+(?:\\.[0-9]+){1,2})");
 
   /**
    * The constructor.
@@ -111,54 +114,65 @@ public class Docker extends GlobalToolCommandlet {
   }
 
   @Override
-  public VersionIdentifier getInstalledVersion() {
+  protected EditionAndVersion computeInstalledEditionAndVersion() {
 
     if (!isDockerInstalled()) {
       return null;
     }
 
     if (isRancherDesktopInstalled()) {
-      return getRancherDesktopClientVersion();
-    } else {
-      VersionIdentifier parsedVersion = switch (this.context.getSystemInfo().getOs()) {
-        case WINDOWS -> super.getInstalledVersion();
-        case LINUX -> getDockerDesktopVersionLinux();
-        default -> null;
-      };
-
-      if (parsedVersion == null) {
-        LOG.error("Couldn't get installed version of " + this.getName());
-      }
-
-      return parsedVersion;
+      VersionIdentifier version = getRancherDesktopClientVersion();
+      return new EditionAndVersion("rancher", version);
     }
+
+    // Docker Desktop: the edition is always "docker" (matching getWindowsRegistryAppNames()); on Windows it is
+    // resolved from the registry by super. Only the version source differs per OS: Windows reads the registry app
+    // version, Linux the docker-desktop package version, macOS the Docker.app bundle version.
+    VersionIdentifier version = switch (this.context.getSystemInfo().getOs()) {
+      case WINDOWS -> {
+        EditionAndVersion fromRegistry = super.computeInstalledEditionAndVersion();
+        yield (fromRegistry != null) ? fromRegistry.version() : null;
+      }
+      case LINUX -> getDockerDesktopVersionLinux();
+      case MAC -> getDockerDesktopVersionMac();
+      default -> null;
+    };
+
+    if (version == null) {
+      LOG.error("Couldn't get installed version of " + this.getName());
+    }
+
+    return new EditionAndVersion("docker", version);
+  }
+
+  @Override
+  public Map<String, String> getWindowsRegistryAppNames() {
+
+    return Map.of("docker", "Docker Desktop", "rancher", "Rancher Desktop");
   }
 
   private VersionIdentifier getDockerDesktopVersionLinux() {
 
     String dockerDesktopVersionLinuxCommand = "apt list --installed | grep docker-desktop | awk '{print $2}'";
-    String output = this.context.newProcess().runAndGetSingleOutput("bash", "-lc", dockerDesktopVersionLinuxCommand);
-    return super.resolveVersionWithPattern(output, DOCKER_DESKTOP_LINUX_VERSION_PATTERN);
+    // Log a warning and return null (instead of throwing) when the command produces no usable output, e.g. when
+    // Docker Desktop is not installed via apt.
+    String output = this.context.newProcess().runAndGetSingleOutput(IdeLogLevel.WARNING, "bash", "-lc", dockerDesktopVersionLinuxCommand);
+    return (output != null) ? resolveVersionWithPattern(output, DOCKER_DESKTOP_VERSION_PATTERN) : null;
+  }
+
+  private VersionIdentifier getDockerDesktopVersionMac() {
+
+    String dockerDesktopVersionMacCommand = "plutil -extract CFBundleShortVersionString raw /Applications/Docker.app/Contents/Info.plist";
+    // Log a warning and return null (instead of throwing) when the command produces no usable output, e.g. when
+    // Docker Desktop is not installed at /Applications/Docker.app.
+    String output = this.context.newProcess().runAndGetSingleOutput(IdeLogLevel.WARNING, "bash", "-lc", dockerDesktopVersionMacCommand);
+    return (output != null) ? resolveVersionWithPattern(output, DOCKER_DESKTOP_VERSION_PATTERN) : null;
   }
 
   private VersionIdentifier getRancherDesktopClientVersion() {
 
     String output = this.context.newProcess().runAndGetSingleOutput("rdctl", "version");
-    return super.resolveVersionWithPattern(output, RDCTL_CLIENT_VERSION_PATTERN);
-  }
-
-  @Override
-  public String getInstalledEdition() {
-
-    if (!isDockerInstalled()) {
-      return null;
-    }
-
-    if (isRancherDesktopInstalled()) {
-      return "rancher";
-    } else {
-      return "desktop";
-    }
+    return resolveVersionWithPattern(output, RDCTL_CLIENT_VERSION_PATTERN);
   }
 
   @Override

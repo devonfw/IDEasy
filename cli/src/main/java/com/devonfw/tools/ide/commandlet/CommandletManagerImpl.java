@@ -131,6 +131,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new UninstallPluginCommandlet(context));
     add(new UpgradeCommandlet(context));
     add(new TruststoreCommandlet(context));
+    add(new UnpackCommandlet(context));
     add(new Gh(context));
     add(new Helm(context));
     add(new Java(context));
@@ -139,6 +140,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Npm(context));
     add(new Mvn(context));
     add(new Msvc(context));
+    add(new RewriteCommandlet(context));
     add(new GcLogAnalyzer(context));
     add(new GcViewer(context));
     add(new Gradle(context));
