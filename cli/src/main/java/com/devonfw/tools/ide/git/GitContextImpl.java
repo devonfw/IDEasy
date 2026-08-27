@@ -172,8 +172,7 @@ public class GitContextImpl implements GitContext {
     Objects.requireNonNull(gitUrl);
     if (Files.isDirectory(repository.resolve(GIT_FOLDER))) {
       // checks for remotes
-      String remote = determineRemote(repository);
-      if (remote == null) {
+      if (getRemotes(repository).isEmpty()) {
         String message = repository + " is a local git repository with no remote - if you did this for testing, you may continue...\n"
             + "Do you want to ignore the problem and continue anyhow?";
         this.context.askToContinue(message);
@@ -258,14 +257,16 @@ public class GitContextImpl implements GitContext {
     if (branch == null) {
       branch = determineCurrentBranch(repository);
     }
-    if (remote == null) {
-      remote = determineRemote(repository);
+    if ((remote == null) && (branch != null)) {
+      // the remote to fetch from is the one the current branch is tracking (see also "git rev-parse @{u}")
+      remote = getOptionalGitConfigValue(repository, "branch." + branch + ".remote");
     }
+    String effectiveRemote = Objects.requireNonNullElse(remote, "origin");
 
-    ProcessResult result = runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, "fetch", Objects.requireNonNullElse(remote, "origin"), branch);
+    ProcessResult result = runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, "fetch", effectiveRemote, branch);
 
     if (!result.isSuccessful()) {
-      LOG.warn("Git fetch for '{}/{} failed.'.", remote, branch);
+      LOG.warn("Git fetch for '{}/{} failed.'.", effectiveRemote, branch);
     }
   }
 
@@ -276,9 +277,14 @@ public class GitContextImpl implements GitContext {
   }
 
   @Override
-  public String determineRemote(Path repository) {
+  public List<String> getRemotes(Path repository) {
 
-    return runGitCommandAndGetSingleOutput("Failed to determine current origin of git repository.", repository, "remote");
+    ProcessResult result = runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.NONE, "remote");
+    if (!result.isSuccessful()) {
+      LOG.warn("Failed to determine the remotes of git repository {}.", repository);
+      return List.of();
+    }
+    return result.getOut();
   }
 
   @Override
