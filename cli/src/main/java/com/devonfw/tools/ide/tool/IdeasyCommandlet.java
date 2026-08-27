@@ -119,15 +119,9 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   }
 
   @Override
-  public VersionIdentifier getInstalledVersion() {
+  protected EditionAndVersion computeInstalledEditionAndVersion() {
 
-    return IdeVersion.getVersionIdentifier();
-  }
-
-  @Override
-  public String getInstalledEdition() {
-
-    return this.tool;
+    return new EditionAndVersion(this.tool, IdeVersion.getVersionIdentifier());
   }
 
   @Override
