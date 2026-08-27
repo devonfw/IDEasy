@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.commandlet.update;
+package com.devonfw.tools.ide.commandlet.update.settings;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliException;
-import com.devonfw.tools.ide.cli.CliRethrowException;
+import com.devonfw.tools.ide.cli.CliFatalException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.git.GitUrl;
@@ -22,7 +22,7 @@ import com.devonfw.tools.ide.property.StringProperty;
  * <ol>
  * <li>{@link #checkSettings() health check}: the settings are always cloned into a temporary directory first where it is verified that the git URL is valid,
  * that cloning succeeded, and that the repository actually is a settings or a combined code and settings repository.</li>
- * <li>{@link #applySettings(SettingsUpdateResult) apply}: only after the health check succeeded the settings are either pulled in place (if they were already
+ * <li>{@link #applySettings(SettingsHealthCheckResult) apply}: only after the health check succeeded the settings are either pulled in place (if they were already
  * present) or the verified clone is moved to its final location.</li>
  * </ol>
  */
@@ -41,56 +41,15 @@ public class SettingsUpdater {
 
   private final IdeContext context;
 
+  private final FileAccess fileAccess;
+
   private final StringProperty settingsRepoProperty;
 
   /** The temporary directory holding the verified clone or {@code null} if there is nothing to move. */
-  private Path tempDir;
+  private Path tempRepoDir;
 
   /** The name of the git project - required to place a combined code and settings repository into the workspace. */
   private String gitProjectName;
-
-  /**
-   * Status of the settings {@link SettingsUpdater#checkSettings() health check} describing what {@link SettingsUpdater#applySettings(SettingsUpdateResult)} has
-   * to do.
-   */
-  public enum ResultStatus {
-    /** The settings repository was already present and is valid - it only has to be pulled in place. */
-    SETTINGS_UPDATED,
-    /** The settings repository was cloned to a temporary directory and is valid - it has to be moved to its final location. */
-    SETTINGS_CLONED,
-    /** The settings could not be updated but the settings already present are still valid so the process can continue without updating them. */
-    SETTINGS_UPDATE_FAILED
-  }
-
-  /**
-   * Result of the settings {@link SettingsUpdater#checkSettings() health check}.
-   *
-   * @param status the {@link ResultStatus}.
-   * @param repositoryType the {@link RepositoryType} of the settings repository.
-   * @param errorMessage the reason why the settings could not be updated or {@code null} if the health check succeeded.
-   */
-  public record SettingsUpdateResult(ResultStatus status, RepositoryType repositoryType, String errorMessage) {
-
-    /**
-     * @param status the {@link ResultStatus}.
-     * @param repositoryType the {@link RepositoryType}.
-     * @return a {@link SettingsUpdateResult} for a successful health check.
-     */
-    static SettingsUpdateResult of(ResultStatus status, RepositoryType repositoryType) {
-
-      return new SettingsUpdateResult(status, repositoryType, null);
-    }
-
-    /**
-     * @param repositoryType the {@link RepositoryType} of the settings that are already present.
-     * @param errorMessage the reason why the settings could not be updated.
-     * @return a {@link SettingsUpdateResult} for a failed but recoverable health check.
-     */
-    static SettingsUpdateResult failed(RepositoryType repositoryType, String errorMessage) {
-
-      return new SettingsUpdateResult(ResultStatus.SETTINGS_UPDATE_FAILED, repositoryType, errorMessage);
-    }
-  }
 
   /**
    * The constructor.
@@ -103,6 +62,7 @@ public class SettingsUpdater {
     super();
     this.context = context;
     this.settingsRepoProperty = settingsRepoProperty;
+    this.fileAccess = context.getFileAccess();
   }
 
   /**
@@ -110,17 +70,16 @@ public class SettingsUpdater {
    * is backed up. Whether the settings are pulled or cloned is decided solely by the state of {@link IdeContext#getSettingsPath() IDE_HOME/settings} so that
    * {@code ide create} and {@code ide update} share the very same logic.
    *
-   * @return the {@link SettingsUpdateResult}.
+   * @return the {@link SettingsHealthCheckResult}.
    */
-  public SettingsUpdateResult checkSettings() {
+  public SettingsHealthCheckResult checkSettings(Path settingsPath) {
 
-    Path settingsPath = this.context.getSettingsPath();
-    if (settingsPath != null) {
+    if (settingsPath != null && !fileAccess.isEmptyDir(settingsPath)) {
       // for a combined code and settings repository IDE_HOME/settings is a symlink into the code repository whose '.git' folder is one level above,
       // so isGitRepo would report it as broken settings
-      boolean codeRepository = this.context.isSettingsCodeRepository();
-      if (codeRepository || this.context.getGitContext().isGitRepo(settingsPath)) {
-        return checkPresentSettings(settingsPath, codeRepository ? RepositoryType.CODE_SETTINGS_COMBINED : RepositoryType.SETTINGS);
+      RepositoryType settingsRepoType = RepositoryUtil.getRepositoryType(settingsPath);
+      if (isSettingsOrCodeSettingsRepository(settingsRepoType)) {
+        return checkSettingsPresent(settingsPath, settingsRepoType);
       }
     }
     return checkClonedSettings(settingsPath);
@@ -130,75 +89,114 @@ public class SettingsUpdater {
    * Applies the result of the {@link #checkSettings() health check} by either pulling the settings in place or moving the verified clone to its final
    * location.
    *
-   * @param result the {@link SettingsUpdateResult} from {@link #checkSettings()}.
+   * @param sourcePath sourcePath of the settings to apply.
+   * @return a {@link SettingsUpdateResult} representing the state, whether moving/pulling the newest settings was successful.
    */
-  public void applySettings(SettingsUpdateResult result) {
+  public SettingsUpdateResult applySettings(Path sourcePath) {
 
-    switch (result.status()) {
-      case SETTINGS_UPDATED -> pullSettings();
-      case SETTINGS_CLONED -> moveSettings(result.repositoryType());
-      case SETTINGS_UPDATE_FAILED -> LOG.error("Settings repository has not been updated: {}", result.errorMessage());
+    RepositoryType repositoryType = RepositoryUtil.getRepositoryType(sourcePath);
+
+    switch (repositoryType) {
+      case CODE -> {
+        //Technically should be caught during a health check, but we still handle this here.
+
+        return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_UPDATE_FAILED, repositoryType, MESSAGE_INVALID_REPOSITORY);
+      }
+      case SETTINGS -> {
+        //move to IDE_HOME/SETTINGS
+
+        moveProject(sourcePath, context.getSettingsPath());
+        return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_CLONED, repositoryType, null);
+      }
+      case CODE_SETTINGS_COMBINED -> {
+        //this is a special case - here we need to symlink from IDE_HOME/settings to IDE_HOME/workspaces/main/repo_name/settings. (Formerly managed by the obsolete "--code" flag)
+        Path targetDirectory = this.context.getWorkspacePath().resolve(gitProjectName);
+        moveProject(sourcePath, targetDirectory);
+
+        Path symlinkPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_SETTINGS);
+        Path symlinkTargetPath = this.context.getWorkspacePath().resolve(gitProjectName).resolve(IdeContext.FOLDER_SETTINGS);
+
+        context.getFileAccess().symlink(symlinkTargetPath, symlinkPath);
+        this.context.getGitContext().saveCurrentCommitId(symlinkTargetPath, this.context.getSettingsCommitIdPath());
+        return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_CLONED, repositoryType, null);
+      }
+      case UNKNOWN -> {
+
+        return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_UPDATE_FAILED, repositoryType, MESSAGE_INVALID_REPOSITORY);
+      }
     }
+
+    return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_UPDATE_FAILED, repositoryType, "Unknown error during settings");
   }
 
   /**
    * Health check for settings that are already present. As the project keeps working with these settings, a failure is only fatal if the user explicitly
-   * aborted.
+   * aborted. Here, if a new version is available, we clone the new version into a temporary folder and perform health checks. If the cloned, new version is valid,
+   * we call git update in the existing settings folder.
    */
-  private SettingsUpdateResult checkPresentSettings(Path settingsPath, RepositoryType repositoryType) {
+  private SettingsHealthCheckResult checkSettingsPresent(Path settingsPath, RepositoryType repositoryType) {
 
     try {
+      //Get Git url of existing settings, clone newest version of them to temp dir
       GitUrl gitUrl = GitUrl.of(this.context.getGitContext().retrieveGitUrl(settingsPath));
-      RepositoryType clonedType = RepositoryUtil.getRepositoryType(cloneToTempDir(gitUrl));
+      RepositoryType clonedType = RepositoryUtil.getRepositoryType(cloneRepoToTempDir(gitUrl));
       cleanup();
-      if (!isSettingsRepository(clonedType) && !confirmInvalidRepository(clonedType, gitUrl)) {
-        return SettingsUpdateResult.failed(repositoryType, MESSAGE_INVALID_REPOSITORY);
+
+      //If cloned repo is not (code-)settings repo and no force override (e.g. force mode) is applied, return error.
+      if (!isSettingsOrCodeSettingsRepository(clonedType) && !requestUserConfirmInvalidRepository(clonedType, gitUrl)) {
+        return SettingsHealthCheckResult.failed(clonedType, MESSAGE_INVALID_REPOSITORY, settingsPath);
       }
-      return SettingsUpdateResult.of(ResultStatus.SETTINGS_UPDATED, repositoryType);
+
+      //Otherwise, (e.g. user overrides), return valid.
+      return SettingsHealthCheckResult.of(HealthCheckResultStatus.SETTINGS_VALID, repositoryType, settingsPath);
     } catch (RuntimeException e) {
       cleanup();
       if (e instanceof CliAbortException) {
         // the user answered "no" so we must not silently carry on
-        throw toFatalException(e);
+        throw createGuaranteedFatalException(e);
       }
-      return SettingsUpdateResult.failed(repositoryType, e.getMessage());
+      return SettingsHealthCheckResult.failed(repositoryType, e.getMessage(), settingsPath);
     }
   }
 
   /**
    * Health check for missing or broken settings. Without valid settings there is nothing to continue with, so every failure is fatal here.
    */
-  private SettingsUpdateResult checkClonedSettings(Path settingsPath) {
+  private SettingsHealthCheckResult checkClonedSettings(Path settingsPath) {
 
     try {
       backupBrokenSettings(settingsPath);
       GitUrl gitUrl = getOrAskSettingsUrl();
-      RepositoryType repositoryType = RepositoryUtil.getRepositoryType(cloneToTempDir(gitUrl));
-      if (!isSettingsRepository(repositoryType) && !confirmInvalidRepository(repositoryType, gitUrl)) {
-        throw new CliRethrowException(MESSAGE_INVALID_REPOSITORY);
+
+      Path tempCloneDir = cloneRepoToTempDir(gitUrl);
+      RepositoryType repositoryType = RepositoryUtil.getRepositoryType(tempCloneDir);
+      if (!isSettingsOrCodeSettingsRepository(repositoryType) && !requestUserConfirmInvalidRepository(repositoryType, gitUrl)) {
+        //see @javadoc why we throw fatally here.
+        throw new CliFatalException(MESSAGE_INVALID_REPOSITORY);
       }
-      return SettingsUpdateResult.of(ResultStatus.SETTINGS_CLONED, repositoryType);
+      return SettingsHealthCheckResult.of(HealthCheckResultStatus.SETTINGS_VALID, repositoryType, tempCloneDir);
     } catch (RuntimeException e) {
       cleanup();
-      throw toFatalException(e);
+      throw createGuaranteedFatalException(e);
     }
   }
 
   /**
    * @param error the {@link RuntimeException} that made the settings setup fail.
-   * @return a {@link CliRethrowException} that aborts the entire process. An existing {@link CliException} keeps its message and
+   * @return a {@link CliFatalException} that aborts the entire process. An existing {@link CliException} keeps its message and
    *     {@link CliException#getExitCode() exit code} so that e.g. an abort by the user is still reported as such.
    */
-  private static CliRethrowException toFatalException(RuntimeException error) {
+  private static CliFatalException createGuaranteedFatalException(RuntimeException error) {
 
-    if (error instanceof CliRethrowException rethrow) {
+    if (error instanceof CliFatalException rethrow) {
       return rethrow;
     } else if (error instanceof CliException) {
-      return new CliRethrowException(error.getMessage(), error);
+      return new CliFatalException(error.getMessage(), error);
     }
-    return new CliRethrowException("Failed to set up the settings repository: " + error.getMessage(), error);
+    return new CliFatalException("Failed to set up the settings repository: " + error.getMessage(), error);
   }
 
+  //TODO: Reimplement this!
   private void pullSettings() {
 
     Path settingsPath = this.context.getSettingsPath();
@@ -215,12 +213,12 @@ public class SettingsUpdater {
 
     Path settingsPath = this.context.getSettingsPath();
     if ((repositoryType == RepositoryType.SETTINGS) || (repositoryType == RepositoryType.UNKNOWN)) {
-      moveProject(this.tempDir, settingsPath);
+      moveProject(this.tempRepoDir, settingsPath);
       this.context.getGitContext().saveCurrentCommitId(settingsPath, this.context.getSettingsCommitIdPath());
     } else {
       // for a code repository we clone into the workspace and symlink IDE_HOME/settings to its settings folder
       Path codePath = this.context.getWorkspacePath().resolve(this.gitProjectName);
-      moveProject(this.tempDir, codePath);
+      moveProject(this.tempRepoDir, codePath);
       Path settingsFolder = codePath.resolve(IdeContext.FOLDER_SETTINGS);
       if (Files.isDirectory(settingsFolder)) {
         this.context.getFileAccess().symlink(settingsFolder, settingsPath);
@@ -229,16 +227,22 @@ public class SettingsUpdater {
         LOG.warn("The repository has been cloned to {} but it does not contain a settings folder so your project has no settings.", codePath);
       }
     }
-    this.tempDir = null;
+    this.tempRepoDir = null;
   }
 
-  private Path cloneToTempDir(GitUrl gitUrl) {
+  /**
+   * Clone a settings repository into a temporary directory.
+   * @param gitUrl {@link GitUrl} of the (code-)settings repository.
+   * @return {@link Path} of the temporary directory.
+   */
+  private Path cloneRepoToTempDir(GitUrl gitUrl) {
 
     this.gitProjectName = gitUrl.getProjectName();
+
     // createTempDir guarantees a unique and empty directory so no leftovers of a previous attempt can interfere and we can clone directly
-    this.tempDir = this.context.getFileAccess().createTempDir(this.gitProjectName + "-");
-    this.context.getGitContext().clone(gitUrl, this.tempDir);
-    return this.tempDir;
+    this.tempRepoDir = this.context.getFileAccess().createTempDir("project-"+this.gitProjectName);
+    this.context.getGitContext().clone(gitUrl, this.tempRepoDir);
+    return this.tempRepoDir;
   }
 
   private void backupBrokenSettings(Path settingsPath) {
@@ -246,7 +250,7 @@ public class SettingsUpdater {
     if ((settingsPath == null) || !Files.exists(settingsPath)) {
       return;
     }
-    FileAccess fileAccess = this.context.getFileAccess();
+
     if (!fileAccess.isEmptyDir(settingsPath)) {
       this.context.askToContinue("""
           Your settings repository seems to be broken ('.git' folder not present).
@@ -260,7 +264,7 @@ public class SettingsUpdater {
   /**
    * @return {@code true} if the user explicitly wants to continue with an invalid repository, {@code false} otherwise.
    */
-  private boolean confirmInvalidRepository(RepositoryType repositoryType, GitUrl gitUrl) {
+  private boolean requestUserConfirmInvalidRepository(RepositoryType repositoryType, GitUrl gitUrl) {
 
     if (!this.context.isForceMode()) {
       return false;
@@ -270,7 +274,7 @@ public class SettingsUpdater {
     return true;
   }
 
-  private static boolean isSettingsRepository(RepositoryType repositoryType) {
+  private static boolean isSettingsOrCodeSettingsRepository(RepositoryType repositoryType) {
 
     return (repositoryType == RepositoryType.SETTINGS) || (repositoryType == RepositoryType.CODE_SETTINGS_COMBINED);
   }
@@ -281,15 +285,15 @@ public class SettingsUpdater {
    */
   public void cleanup() {
 
-    if (this.tempDir == null) {
+    if (this.tempRepoDir == null) {
       return;
     }
     try {
-      this.context.getFileAccess().delete(this.tempDir);
+      this.context.getFileAccess().delete(this.tempRepoDir);
     } catch (RuntimeException e) {
-      LOG.warn("Failed to delete temporary directory {}", this.tempDir, e);
+      LOG.warn("Failed to delete temporary directory {}", this.tempRepoDir, e);
     }
-    this.tempDir = null;
+    this.tempRepoDir = null;
   }
 
   private GitUrl getOrAskSettingsUrl() {
@@ -328,7 +332,7 @@ public class SettingsUpdater {
       this.context.getFileAccess().move(from, to);
     } catch (RuntimeException e) {
       // FileAccess already reports source, target and the Windows file-lock hint so we only escalate to a fatal error here
-      throw new CliRethrowException(e.getMessage(), e);
+      throw new CliFatalException(e.getMessage(), e);
     }
   }
 }

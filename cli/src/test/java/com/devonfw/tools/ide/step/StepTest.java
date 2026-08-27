@@ -2,7 +2,7 @@ package com.devonfw.tools.ide.step;
 
 import org.junit.jupiter.api.Test;
 
-import com.devonfw.tools.ide.cli.CliRethrowException;
+import com.devonfw.tools.ide.cli.CliFatalException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogEntry;
@@ -154,8 +154,8 @@ class StepTest extends AbstractIdeContextTest {
     Step step = context.newStep("Test-Step");
     // act & assert
     assertThatThrownBy(() -> step.run(() -> {
-      throw new CliRethrowException("fatal error");
-    })).isInstanceOf(CliRethrowException.class).hasMessage("fatal error");
+      throw new CliFatalException("fatal error");
+    })).isInstanceOf(CliFatalException.class).hasMessage("fatal error");
     assertThat(step.isFailure()).isTrue();
   }
 
@@ -182,8 +182,8 @@ class StepTest extends AbstractIdeContextTest {
     Step step = context.newStep("Test-Step");
     // act & assert
     assertThatThrownBy(() -> step.call(() -> {
-      throw new CliRethrowException("fatal error");
-    }, () -> "fallback")).isInstanceOf(CliRethrowException.class).hasMessage("fatal error");
+      throw new CliFatalException("fatal error");
+    }, () -> "fallback")).isInstanceOf(CliFatalException.class).hasMessage("fatal error");
     assertThat(step.isFailure()).isTrue();
   }
 

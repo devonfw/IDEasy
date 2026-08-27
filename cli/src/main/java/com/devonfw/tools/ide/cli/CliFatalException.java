@@ -5,14 +5,14 @@ package com.devonfw.tools.ide.cli;
  * settings repository). Unlike a regular error that only makes the current {@link com.devonfw.tools.ide.step.Step Step} fail while the overall process
  * continues, this exception {@link #isForceRethrowInStep() is always re-thrown} so no further step is executed in an invalid state.
  */
-public final class CliRethrowException extends CliException {
+public final class CliFatalException extends CliException {
 
   /**
    * The constructor.
    *
    * @param message the {@link #getMessage() message}.
    */
-  public CliRethrowException(String message) {
+  public CliFatalException(String message) {
 
     super(message);
   }
@@ -23,7 +23,7 @@ public final class CliRethrowException extends CliException {
    * @param message the {@link #getMessage() message}.
    * @param cause the {@link #getCause() cause}.
    */
-  public CliRethrowException(String message, Throwable cause) {
+  public CliFatalException(String message, Throwable cause) {
 
     super(message, cause);
   }
