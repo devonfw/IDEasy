@@ -13,8 +13,8 @@ public class IdeGuiLogListener extends IdeLogListenerBuffer {
   /// @param consoleController the console controller to output messages to
   public IdeGuiLogListener(ConsoleController consoleController) {
 
-    this.consoleController = consoleController;
     super();
+    this.consoleController = consoleController;
   }
 
   @Override
