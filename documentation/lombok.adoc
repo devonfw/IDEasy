@@ -26,31 +26,47 @@ As a result eclipse reports compile errors for everything that lombok is suppose
 Building the very same project from the command-line via `mvn` or `gradle` works without any error since only the eclipse compiler is affected.
 
 The reason is that lombok has to be loaded as https://docs.oracle.com/en/java/javase/21/docs/api/java.instrument/java/lang/instrument/package-summary.html[Java agent] in order to hook into the eclipse compiler.
-A Java agent can only be activated with the JVM option `-javaagent` when eclipse is started.
-An eclipse plugin however is installed into an already running eclipse and therefore can never do this.
+A Java agent has to be activated with the JVM option `-javaagent` when eclipse is started.
+The lombok plugin used to take care of this automatically, but this stopped working with newer versions of eclipse.
 This is a bug of lombok and not of IDEasy - for details and the current status see https://github.com/projectlombok/lombok/issues/3621[lombok#3621].
 
 === Workaround
 
-Until lombok fixes their eclipse plugin you can activate lombok manually as Java agent:
-
-1. Determine the absolute path to your `lombok.jar`.
+Until lombok fixes their eclipse plugin you can activate lombok manually as Java agent.
+For both options described below you first need the absolute path to your `lombok.jar`.
 In case your project is built with maven you already have it in your link:variables.adoc[`M2_REPO`] (`$IDE_HOME/conf/mvn/repository/org/projectlombok/lombok/«version»/lombok-«version».jar`).
 Otherwise you can download it from https://projectlombok.org/download[projectlombok.org].
 Please use the same version that your project is compiling against to avoid differences between your IDE and your build.
-2. Open the file `$IDE_HOME/software/eclipse/eclipse.ini` in a text editor.
-3. Add the following line at the very end of that file or atleast make sure it is placed after the `-vmargs` line since everything before is passed to the eclipse launcher instead of the JVM:
+
+==== Option 1: lombok installer
+
+The `lombok.jar` itself contains an installer with a graphical user interface that can patch the `eclipse.ini` for you:
+
+1. Launch the installer by double-clicking the `lombok.jar` or by running the following command:
++
+```
+java -jar «absolute-path-to-lombok.jar»
+```
+2. If your eclipse installation is not detected automatically, click on `Specify location...` and select the folder `$IDE_HOME/software/eclipse`.
+3. Select your eclipse installation and click on `Install / Update`.
+
+==== Option 2: manual configuration
+
+If the installer does not work for you, you can also configure the Java agent yourself:
+
+1. Open the file `$IDE_HOME/software/eclipse/eclipse.ini` in a text editor.
+2. Add the following line at the very end of that file or at least make sure it is placed after the `-vmargs` line since everything before is passed to the eclipse launcher instead of the JVM:
 +
 ```
 -javaagent:«absolute-path-to-lombok.jar»
 ```
-+
-4. Restart eclipse via `ide eclipse` and rebuild your project via `Project` > `Clean...`.
+
+After you applied one of these two options, restart eclipse via `ide eclipse` and rebuild your project via `Project` > `Clean...`.
 
 You can verify the result in `About Eclipse IDE` that now shows the installed lombok version.
 
 NOTE: The folder `$IDE_HOME/software/eclipse` is only a symbolic link into the shared link:software.adoc#repository[software repository].
-Therefore this change applies to every IDEasy project on your disc that uses the same eclipse version.
+Therefore this change to `eclipse.ini` applies to every IDEasy project on your disc that uses the same eclipse version.
 Also it is lost whenever eclipse is updated or reinstalled so that you have to repeat it.
 
 === Status
