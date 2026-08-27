@@ -9,14 +9,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import com.devonfw.tools.ide.commandlet.update.settings.HealthCheckResultStatus;
+import com.devonfw.tools.ide.commandlet.update.settings.SettingsHealthCheckResult;
+import com.devonfw.tools.ide.commandlet.update.settings.SettingsUpdateResult;
+import com.devonfw.tools.ide.commandlet.update.settings.SettingsUpdater;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.commandlet.CreateCommandlet;
-import com.devonfw.tools.ide.commandlet.update.SettingsUpdater.ResultStatus;
-import com.devonfw.tools.ide.commandlet.update.SettingsUpdater.SettingsUpdateResult;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
@@ -102,7 +105,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
    * Hook that is called after the settings passed the health check but before they are moved to their final location. Does nothing by default and is overridden
    * by {@link CreateCommandlet} to create the project structure so that no project is created at all if the health check failed.
    */
-  protected void prepareProject() {
+  protected void onSettingHealthCheckSucceeded() {
 
     // nothing to do by default
   }
@@ -163,7 +166,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
    */
   protected void updateSettings() {
 
-    boolean codeRepository = this.context.isSettingsCodeRepository();
+    boolean codeRepository = this.context.isCombinedSettingsCodeRepository();
     if (codeRepository && !(this.context.isForceMode() || this.forcePull.isTrue())) {
       LOG.info("Skipping git pull in settings due to code repository. Use --force-pull to enforce pulling.");
       return;
@@ -181,21 +184,42 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
     SettingsUpdater settingsUpdater = new SettingsUpdater(this.context, this.settingsRepo);
     try {
-      SettingsUpdateResult result = this.context.newStep("Performing settings health check").call(settingsUpdater::checkSettings, () -> null);
+      //Step 1: Perform health check
+      Step healthCheckStep = this.context.newStep("Performing settings health check");
+      Path temporaryRepoDir = healthCheckStep.call(() -> {
+        SettingsHealthCheckResult healthCheckResult = settingsUpdater.checkSettings(this.context.getSettingsPath());
+        HealthCheckResultStatus status = healthCheckResult.status();
 
-      // fatal problems (e.g. no valid settings at all) were already rethrown, so reaching this point means the settings we have stay usable
-      if (result == null) {
-        step.error("Health check on settings failed due to unknown error - the settings have not been updated.");
-        return;
-      } else if (result.status() == ResultStatus.SETTINGS_UPDATE_FAILED) {
-        step.error("The settings have not been updated: {}", result.errorMessage());
-        return;
-      }
-      prepareProject();
-      boolean applied = this.context.newStep("Applying settings").run(() -> settingsUpdater.applySettings(result));
-      if (!applied) {
-        step.error("Failed to apply the settings update.");
-      }
+        if (status == null) {
+          healthCheckStep.error("Health check on settings failed due to unknown error - the settings have not been updated.");
+          return healthCheckResult.temporarySettingsDirectory();
+        } else if (healthCheckResult.status() == HealthCheckResultStatus.SETTINGS_INVALID) {
+          healthCheckStep.error("The settings have not been updated: {}", healthCheckResult.errorMessage());
+          return healthCheckResult.temporarySettingsDirectory();
+        }
+        return healthCheckResult.temporarySettingsDirectory();
+      }, () -> null);
+      if(temporaryRepoDir == null || healthCheckStep.isFailure()) return;
+
+      //Step 2: Let create/update commandlets prepare themselves for the settings update.
+      onSettingHealthCheckSucceeded();
+
+      //Step 3: Apply (move/pull newest version) settings
+      Step applySettingsStep = this.context.newStep("Applying settings");
+      applySettingsStep.run(() -> {
+        SettingsUpdateResult settingsUpdateResult = settingsUpdater.applySettings(temporaryRepoDir);
+
+        if (settingsUpdateResult == null) {
+          applySettingsStep.error("Failed to apply the settings update due to unknown error.");
+          return;
+        }
+        switch (settingsUpdateResult.updateStatus()) {
+          case SETTINGS_UPDATED -> applySettingsStep.success("Settings update successfully applied");
+          case SETTINGS_CLONED -> applySettingsStep.success("Settings successfully applied (cloned)");
+          case SETTINGS_UPDATE_FAILED -> applySettingsStep.error("The settings update could not be applied: {}", settingsUpdateResult.errorMessage());
+          case null, default -> applySettingsStep.error("Unexpected value: {}", settingsUpdateResult.updateStatus());
+        }
+      });
     } finally {
       // the verified clone lives across both steps and the prepareProject hook so it is only here that its lifetime ends
       settingsUpdater.cleanup();
