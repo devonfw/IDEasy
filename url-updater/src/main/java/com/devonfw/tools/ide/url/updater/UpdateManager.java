@@ -49,6 +49,7 @@ import com.devonfw.tools.ide.url.tool.mvnd.MvndUrlUpdater;
 import com.devonfw.tools.ide.url.tool.ng.NgUrlUpdater;
 import com.devonfw.tools.ide.url.tool.node.NodeUrlUpdater;
 import com.devonfw.tools.ide.url.tool.npm.NpmUrlUpdater;
+import com.devonfw.tools.ide.url.tool.obsidian.ObsidianUrlUpdater;
 import com.devonfw.tools.ide.url.tool.oc.OcUrlUpdater;
 import com.devonfw.tools.ide.url.tool.pgadmin.PgAdminUrlUpdater;
 import com.devonfw.tools.ide.url.tool.pip.PipUrlUpdater;
@@ -89,10 +90,11 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
       new GcLogAnalyzerUrlUpdater(), new GCloudUrlUpdater(), new GcViewerUrlUpdater(), new GhUrlUpdater(), new GoUrlUpdater(), new GraalVmCommunityUpdater(),
       new GraalVmOracleUrlUpdater(), new GradleUrlUpdater(), new HelmUrlUpdater(), new InsoUrlUpdater(), new IntellijUrlUpdater(), new JasyptUrlUpdater(),
       new JavaAzulUrlUpdater(), new JavaUrlUpdater(), new JenkinsUrlUpdater(), new JmcUrlUpdater(), new KotlincUrlUpdater(), new KotlincNativeUrlUpdater(),
-      new LazyDockerUrlUpdater(), new MvnUrlUpdater(), new MvndUrlUpdater(), new NgUrlUpdater(), new NodeUrlUpdater(), new NpmUrlUpdater(), new OcUrlUpdater(),
-      new PgAdminUrlUpdater(), new PipUrlUpdater(), new PycharmUrlUpdater(), new QuarkusUrlUpdater(), new RubyUrlUpdater(), new RubyJdxUrlUpdater(),
-      new RustUrlUpdater(), new DockerRancherDesktopUrlUpdater(), new SonarUrlUpdater(), new SquirrelSqlUrlUpdater(), new SoapUiUrlUpdater(),
-      new TerraformUrlUpdater(), new TomcatUrlUpdater(), new UvUrlUpdater(), new VsCodeUrlUpdater(), new VsCodiumUrlUpdater());
+      new LazyDockerUrlUpdater(), new MvnUrlUpdater(), new MvndUrlUpdater(), new NgUrlUpdater(), new NodeUrlUpdater(), new NpmUrlUpdater(),
+      new ObsidianUrlUpdater(), new OcUrlUpdater(), new PgAdminUrlUpdater(), new PipUrlUpdater(), new PycharmUrlUpdater(), new QuarkusUrlUpdater(),
+      new RubyUrlUpdater(), new RubyJdxUrlUpdater(), new RustUrlUpdater(), new DockerRancherDesktopUrlUpdater(), new SonarUrlUpdater(),
+      new SquirrelSqlUrlUpdater(), new SoapUiUrlUpdater(), new TerraformUrlUpdater(), new TomcatUrlUpdater(), new UvUrlUpdater(), new VsCodeUrlUpdater(),
+      new VsCodiumUrlUpdater());
 
   /**
    * The constructor.
