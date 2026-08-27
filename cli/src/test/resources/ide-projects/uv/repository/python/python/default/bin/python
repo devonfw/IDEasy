@@ -1,2 +1,6 @@
 #!/bin/bash
+if [ "$1" = "--version" ]; then
+  echo "Python 3.14.6"
+  exit 0
+fi
 echo "python $*"

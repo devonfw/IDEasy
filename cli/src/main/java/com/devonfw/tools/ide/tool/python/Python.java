@@ -12,6 +12,7 @@ import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
@@ -32,6 +33,10 @@ public class Python extends LocalToolCommandlet {
 
   /** The folder created by {@code uv venv} inside the software folder before it is renamed to the python installation. */
   static final String VENV_FOLDER = ".venv";
+
+  private static final String FILE_PYVENV_CFG = "pyvenv.cfg";
+
+  private static final String PYVENV_CFG_VERSION_INFO = "version_info";
 
   /**
    * The constructor.
@@ -88,6 +93,76 @@ public class Python extends LocalToolCommandlet {
 
     // https://github.com/devonfw/IDEasy/issues/2190
     return true;
+  }
+
+  @Override
+  protected VersionIdentifier detectInstalledVersion(Path installationPath, VersionIdentifier resolvedVersion) {
+
+    VersionIdentifier version = readVersionFromPyvenvCfg(installationPath);
+    if (version == null) {
+      version = readVersionFromInterpreter(installationPath);
+    }
+    if (version == null) {
+      LOG.warn("Could not detect the installed version of python at {} - assuming {}.", installationPath, resolvedVersion);
+      return resolvedVersion;
+    }
+    return version;
+  }
+
+  /**
+   * @param installationPath the {@link Path} to the virtual environment.
+   * @return the {@link VersionIdentifier} from the {@code version_info} entry of {@code pyvenv.cfg} or {@code null} if not available or not precise enough.
+   */
+  private VersionIdentifier readVersionFromPyvenvCfg(Path installationPath) {
+
+    Path pyvenvCfg = installationPath.resolve(FILE_PYVENV_CFG);
+    if (!Files.exists(pyvenvCfg)) {
+      return null;
+    }
+    String content = this.context.getFileAccess().readFileContent(pyvenvCfg);
+    for (String line : content.split("\\R")) {
+      String[] keyAndValue = line.split("=", 2);
+      if ((keyAndValue.length == 2) && keyAndValue[0].trim().equals(PYVENV_CFG_VERSION_INFO)) {
+        String value = keyAndValue[1].trim();
+        // uv only writes the minor version (e.g. "3.13") for its own interpreters what is too imprecise for us
+        if (value.chars().filter(c -> c == '.').count() >= 2) {
+          return VersionIdentifier.of(value);
+        }
+        LOG.debug("Ignoring imprecise version {} from {}.", value, pyvenvCfg);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * @param installationPath the {@link Path} to the virtual environment.
+   * @return the {@link VersionIdentifier} reported by the installed python interpreter or {@code null} if it could not be determined.
+   */
+  private VersionIdentifier readVersionFromInterpreter(Path installationPath) {
+
+    Path binPath = this.context.getFileAccess().getBinPath(installationPath);
+    Path binaryPath = binPath.resolve(getBinaryName());
+    if (!Files.exists(binaryPath)) {
+      binaryPath = binPath.resolve(getBinaryName() + ".exe");
+    }
+    if (!Files.exists(binaryPath)) {
+      LOG.debug("Python binary does not exist in {}.", binPath);
+      return null;
+    }
+    String output = this.context.newProcess().runAndGetSingleOutput(IdeLogLevel.DEBUG, binaryPath.toString(), "--version");
+    if (output == null) {
+      return null;
+    }
+    String version = output.trim();
+    int lastSpace = version.lastIndexOf(' ');
+    if (lastSpace >= 0) {
+      version = version.substring(lastSpace + 1);
+    }
+    if (!version.isEmpty() && Character.isDigit(version.charAt(0))) {
+      return VersionIdentifier.of(version);
+    }
+    LOG.debug("Could not parse version from output '{}' of {}.", output, binaryPath);
+    return null;
   }
 
   @Override
