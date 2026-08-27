@@ -6,7 +6,6 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.AbstractIdeTestContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.io.WindowsSymlinkTestHelper;
 import com.devonfw.tools.ide.os.SystemInfoMock;
@@ -37,7 +36,7 @@ class GuiTest extends AbstractIdeContextTest {
     // arrange
     WindowsSymlinkTestHelper.assumeSymlinksSupported();
     IdeTestContext context = newContext(PROJECT_BASIC, null, true);
-    ((AbstractIdeTestContext) context).setSystemInfo(SystemInfoMock.MAC_ARM64);
+    context.setSystemInfo(SystemInfoMock.MAC_ARM64);
     ToolInstallation javaInstallation = newJavaInstallation(context);
     Gui gui = new Gui(context);
 
@@ -61,7 +60,7 @@ class GuiTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC, null, true);
-    ((AbstractIdeTestContext) context).setSystemInfo(SystemInfoMock.WINDOWS_X64);
+    context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
     ToolInstallation javaInstallation = newJavaInstallation(context);
     Gui gui = new Gui(context);
 
@@ -77,7 +76,7 @@ class GuiTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC, null, true);
-    ((AbstractIdeTestContext) context).setSystemInfo(SystemInfoMock.LINUX_X64);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
     ToolInstallation javaInstallation = newJavaInstallation(context);
     Gui gui = new Gui(context);
 

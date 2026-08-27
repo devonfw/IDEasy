@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.tool.gui;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -113,8 +112,6 @@ public class Gui extends Commandlet {
     }
   }
 
-  private static final String GUI_APP_BUNDLE_ID = "com.devonfw.tools.ideasy.gui";
-
   private static final String GUI_INFO_PLIST = """
       <?xml version="1.0" encoding="UTF-8"?>
       <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -123,7 +120,7 @@ public class Gui extends Commandlet {
         <key>CFBundleExecutable</key>
         <string>IDEasy</string>
         <key>CFBundleIdentifier</key>
-        <string>%s</string>
+        <string>com.devonfw.tools.ideasy.gui</string>
         <key>CFBundleName</key>
         <string>IDEasy</string>
         <key>CFBundlePackageType</key>
@@ -132,7 +129,7 @@ public class Gui extends Commandlet {
         <string>1.0</string>
       </dict>
       </plist>
-      """.formatted(GUI_APP_BUNDLE_ID);
+      """;
 
   /**
    * The GUI is launched as a plain {@code java} process without a native app bundle. On macOS this makes the Dock and menu bar show the executable's
@@ -154,17 +151,8 @@ public class Gui extends Commandlet {
     Path contentsDir = this.context.getTempPath().resolve("IDEasy.app").resolve("Contents");
     Path launcher = contentsDir.resolve("MacOS").resolve("IDEasy");
     this.context.getFileAccess().mkdirs(launcher.getParent());
-    writeFile(contentsDir.resolve("Info.plist"), GUI_INFO_PLIST);
+    this.context.getFileAccess().writeFileContent(GUI_INFO_PLIST, contentsDir.resolve("Info.plist"));
     this.context.getFileAccess().symlink(javaExecutable, launcher, false);
     return launcher.toString();
-  }
-
-  private static void writeFile(Path file, String content) {
-
-    try {
-      Files.writeString(file, content);
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to write file: " + file, e);
-    }
   }
 }
