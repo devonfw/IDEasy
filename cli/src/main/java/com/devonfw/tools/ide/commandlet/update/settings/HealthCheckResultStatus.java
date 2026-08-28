@@ -1,7 +1,9 @@
 package com.devonfw.tools.ide.commandlet.update.settings;
 
+import java.nio.file.Path;
+
 /**
- * Status of the settings {@link SettingsUpdater#checkSettings() health check} describing what {@link SettingsUpdater#applySettings(SettingsHealthCheckResult)} has
+ * Status of the settings {@link SettingsUpdater#checkSettings(Path)}  health check} describing what {@link SettingsUpdater#applySettings(boolean, Path)} has
  * to do.
  */
 public enum HealthCheckResultStatus {

@@ -51,13 +51,14 @@ public class SettingsUpdater {
   /** The name of the git project - required to place a combined code and settings repository into the workspace. */
   private String gitProjectName;
 
-  private boolean isForceMode;
+  private final boolean isForceMode;
 
   /**
    * The constructor.
    *
    * @param context the {@link IdeContext}.
    * @param settingsRepoProperty the {@link StringProperty} with the settings repository URL from the update commandlet.
+   * @param isForceMode if in force mode, the settings health check will always return either {@link HealthCheckResultStatus#SETTINGS_VALID} or {@link HealthCheckResultStatus#SETTINGS_VALID_EXISTING}
    */
   public SettingsUpdater(IdeContext context, StringProperty settingsRepoProperty, boolean isForceMode) {
 
@@ -73,6 +74,7 @@ public class SettingsUpdater {
    * is backed up. Whether the settings are pulled or cloned is decided solely by the state of {@link IdeContext#getSettingsPath() IDE_HOME/settings} so that
    * {@code ide create} and {@code ide update} share the very same logic.
    *
+   * @param settingsPath the path to the (code-)settings directory which the health check should be performed on.
    * @return the {@link SettingsHealthCheckResult}.
    */
   public SettingsHealthCheckResult checkSettings(Path settingsPath) {
@@ -169,7 +171,7 @@ public class SettingsUpdater {
       cleanup();
 
       //If cloned repo is not (code-)settings repo and no force override (e.g. force mode) is applied, return error.
-      if (!clonedType.isSettingsOrCodeSettingsRepository() && !requestUserConfirmInvalidRepository(clonedType, gitUrl)) {
+      if (!clonedType.isSettingsOrCodeSettingsRepository() && !requestUserConfirmInvalidRepository(clonedType, gitUrl, true)) {
         return SettingsHealthCheckResult.failed(clonedType, MESSAGE_INVALID_REPOSITORY, settingsPath);
       }
 
@@ -197,7 +199,7 @@ public class SettingsUpdater {
       Path tempCloneDir = cloneRepoToTempDir(gitUrl);
       RepositoryType repositoryType = RepositoryUtil.getRepositoryType(tempCloneDir);
 
-      if (!repositoryType.isSettingsOrCodeSettingsRepository() && !requestUserConfirmInvalidRepository(repositoryType, gitUrl)) {
+      if (!repositoryType.isSettingsOrCodeSettingsRepository() && !requestUserConfirmInvalidRepository(repositoryType, gitUrl, false)) {
         //see @javadoc why we throw fatally here.
         throw new CliFatalException(MESSAGE_INVALID_REPOSITORY);
       }
@@ -268,17 +270,17 @@ public class SettingsUpdater {
   /**
    * @return {@code true} if the user explicitly wants to continue with an invalid repository, {@code false} otherwise.
    */
-  private boolean requestUserConfirmInvalidRepository(RepositoryType repositoryType, GitUrl gitUrl) {
-    LOG.warn("{}\nURL: {}\nDetected settings repository type: {}", MESSAGE_INVALID_REPOSITORY, gitUrl, repositoryType);
-
+  private boolean requestUserConfirmInvalidRepository(RepositoryType repositoryType, GitUrl gitUrl, boolean updatesExistingRepository) {
     /* If we are in force mode, we give the user the option continue with a potentially invalid repo. If not in FM, we skip asking and act as if he declined.
-       For the case of updating existing repositories, we always want to ask the user regardless of --force-pull
+       For the case of updating existing settings repositories, we always want to ask the user regardless of --force-pull, as this could break the setup.
     */
-    if(!this.isForceMode) {
+    if(!this.isForceMode && !updatesExistingRepository) {
       return false;
     }
 
-    this.context.askToContinue("The (update of the) settings repository you are trying to apply seems to be broken. Do you want to continue anyway?");
+    LOG.warn("{}\nURL: {}\nDetected settings repository type: {}", MESSAGE_INVALID_REPOSITORY, gitUrl, repositoryType);
+
+    this.context.askToContinue("The update to the settings repository you are trying to apply seems to be broken. Do you want to continue anyway?");
     return true;
   }
 
