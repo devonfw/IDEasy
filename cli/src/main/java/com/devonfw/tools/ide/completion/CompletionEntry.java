@@ -21,6 +21,8 @@ public class CompletionEntry {
 
   private List<CompletionEntry> alternatives = new ArrayList<>();
 
+  private List<List<CompletionEntry>> dependencies = new ArrayList<>();
+
   /**
    * The constructor.
    *
@@ -55,6 +57,10 @@ public class CompletionEntry {
 
     Set<String> alreadyProvided = collector.getAlreadyProvided();
     if (alreadyProvided != null) {
+      if (!isDependency(alreadyProvided)) {
+        return;
+      }
+
       if (isProvided(alreadyProvided)) {
         return;
       }
@@ -77,6 +83,23 @@ public class CompletionEntry {
     }
   }
 
+  private boolean isDependency(Set<String> alreadyProvided) {
+
+    for (List<CompletionEntry> group : this.dependencies) {
+      boolean groupSatisfied = false;
+      for (CompletionEntry entry : group) {
+        if (entry.isProvided(alreadyProvided)) {
+          groupSatisfied = true;
+          break;
+        }
+      }
+      if (!groupSatisfied) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   public boolean isProvided(Set<String> alreadyProvided) {
     return alreadyProvided.contains(this.candidate) || this.synonyms.stream().anyMatch(alreadyProvided::contains);
   }
@@ -94,5 +117,12 @@ public class CompletionEntry {
     if (!alternative.alternatives.contains(this)) {
       alternative.alternatives.add(this);
     }
+  }
+
+  public void addDependency(CompletionEntry[] entries) {
+    if ((entries == null) || (entries.length == 0)) {
+      return;
+    }
+    this.dependencies.add(List.of(entries));
   }
 }

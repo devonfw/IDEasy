@@ -459,4 +459,52 @@ class CompleteTest extends AbstractIdeContextTest {
     List<String> texts = candidates.stream().map(CompletionCandidate::text).toList();
     assertThat(texts).doesNotContain("exec:java");
   }
+
+  @Test
+  void testDependencyNotSatisfiedIsNotSuggested() {
+
+    // arrange
+    AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
+    String[] argsArray = { "mvn", "-Dexec.mainClass" };
+    CliArguments args = CliArguments.ofCompletion(argsArray);
+    CompletionCandidateCollector collector = createCollector(context, argsArray);
+
+    // act
+    List<CompletionCandidate> candidates = context.complete(args, collector, true);
+
+    // assert
+    assertThat(candidates.stream().map(CompletionCandidate::text)).doesNotContain("-Dexec:mainClass=");
+  }
+
+  @Test
+  void testDependencyNotSatisfiedIsSuggested() {
+
+    // arrange
+    AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
+    String[] argsArray = { "mvn", "exec:java", "-Dexec.mainClass" };
+    CliArguments args = CliArguments.ofCompletion(argsArray);
+    CompletionCandidateCollector collector = createCollector(context, argsArray);
+
+    // act
+    List<CompletionCandidate> candidates = context.complete(args, collector, true);
+
+    // assert
+    assertThat(candidates.stream().map(CompletionCandidate::text)).contains("-Dexec:mainClass=");
+  }
+
+  @Test
+  void testDependencyOrGroupSatisfiedByEitherAlternative() {
+
+    // arrange
+    AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
+    String[] argsArray = { "mvn", "exec:exec", "-Dexec.args" };
+    CliArguments args = CliArguments.ofCompletion(argsArray);
+    CompletionCandidateCollector collector = createCollector(context, argsArray);
+
+    // act
+    List<CompletionCandidate> candidates = context.complete(args, collector, true);
+
+    // assert
+    assertThat(candidates.stream().map(CompletionCandidate::text)).contains("-Dexec:args=");
+  }
 }

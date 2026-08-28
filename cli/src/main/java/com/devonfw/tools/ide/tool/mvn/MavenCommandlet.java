@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.tool.mvn;
 
 
+import java.util.List;
 import java.util.Set;
 
 
@@ -50,8 +51,6 @@ public abstract class MavenCommandlet extends LocalToolCommandlet {
     registry.add("-Dmaven.test.skip=true");
     registry.add("exec:java");
     registry.add("exec:exec");
-    registry.add("-Dexec.mainClass=");
-    registry.add("-Dexec.args=");
     registry.add("-P");
     registry.add("-pl");
     registry.add("-am");
@@ -77,8 +76,10 @@ public abstract class MavenCommandlet extends LocalToolCommandlet {
     registry.add("-Duser.dir=");
     registry.add("-Duser.home=");
     registry.addAlternative("exec:java", "exec:exec");
-    //registry.addDependency("-Dexec.mainClass=", "exec:java");
-    //registry.addDependency("-Dexec.mainClass=", "exec:exec");
+    registry.add("-Dexec.mainClass=");
+    registry.addDependency("-Dexec.mainClass=", List.of("exec:java"));
+    registry.add("-Dexec.args=");
+    registry.addDependency("-Dexec.args=", List.of("exec:java", "exec:exec"));
   }
 }
 

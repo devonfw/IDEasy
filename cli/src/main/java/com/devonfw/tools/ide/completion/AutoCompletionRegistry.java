@@ -63,6 +63,18 @@ public class AutoCompletionRegistry {
     entry1.addAlternative(entry2);
   }
 
+  public void addDependency(String candidate, List<String> depends) {
+
+    CompletionEntry entry = findEntry(candidate);
+
+    CompletionEntry[] dependencyEntries = new CompletionEntry[depends.size()];
+    for (int i = 0; i < depends.size(); i++) {
+      CompletionEntry dependencyEntry = findEntry(depends.get(i));
+      dependencyEntries[i] = dependencyEntry;
+    }
+    entry.addDependency(dependencyEntries);
+  }
+
   private CompletionEntry findEntry(String candidate) {
     for (CompletionEntry entry : this.entries) {
       if (entry.getCandidate().contains(candidate)) {
