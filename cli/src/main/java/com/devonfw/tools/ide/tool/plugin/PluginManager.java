@@ -60,7 +60,7 @@ public class PluginManager {
 
       // Load user-specific plugins, this is done after loading the project-specific plugins so the user can potentially
       // override plugins (e.g. change active flag).
-      Path userPluginsPath = this.tool.getPluginsConfigPath();
+      Path userPluginsPath = getUserHomePluginConfigPath();
       loadPluginsFromDirectory(toolPlugins, userPluginsPath);
 
       this.plugins = toolPlugins;

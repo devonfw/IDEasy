@@ -4,7 +4,6 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Set;
 
-import org.jline.utils.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,7 +71,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet implemen
   @Override
   public Path getPluginsConfigPath() {
 
-    return this.context.getPluginsPath().resolve(this.tool);
+    return this.context.getSettingsPath().resolve(this.tool).resolve(IdeContext.FOLDER_PLUGINS);
   }
 
   @Override
@@ -140,6 +139,6 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet implemen
   @Override
   public void handleInstallForInactivePlugin(ToolPluginDescriptor plugin) {
 
-    Log.debug("Omitting installation of inactive plugin {} ({}).", plugin.name(), plugin.id());
+    LOG.debug("Omitting installation of inactive plugin {} ({}).", plugin.name(), plugin.id());
   }
 }
