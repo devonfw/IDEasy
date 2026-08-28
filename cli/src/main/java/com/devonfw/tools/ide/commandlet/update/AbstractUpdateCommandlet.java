@@ -185,7 +185,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
   private void updateSettingsInStep(Step step) {
 
     //TODO: Only check for forcePull flag or also context.forceMode?
-    SettingsUpdater settingsUpdater = new SettingsUpdater(this.context, this.settingsRepo, (this.forcePull.isTrue()));
+    SettingsUpdater settingsUpdater = new SettingsUpdater(this.context, this.settingsRepo, (this.forcePull.isTrue() || this.context.isForceMode()));
     try {
       //Step 1: Perform health check
       Step healthCheckStep = this.context.newStep("Performing settings health check");
@@ -226,6 +226,11 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
           case SETTINGS_UPDATE_FAILED -> throw new CliFatalException("The settings update could not be applied: " + settingsUpdateResult.errorMessage());
         }
       });
+
+      //Make sure to always fail the parent step if the "Apply settings" step fails.
+      if(applySettingsStep.isFailure()) {
+        throw new CliException("Settings update failed due to error while applying the settings update");
+      }
     } finally {
       // the verified clone lives across both steps and the prepareProject hook so it is only here that its lifetime ends
       settingsUpdater.cleanup();

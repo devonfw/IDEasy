@@ -5,6 +5,9 @@ import java.nio.file.Path;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
+import com.devonfw.tools.ide.git.GitContext;
+import com.devonfw.tools.ide.git.GitContextImpl;
+import com.devonfw.tools.ide.git.GitUrl;
 
 /**
  * Utility class for IDEasy settings/code repositories.
@@ -33,7 +36,7 @@ public class RepositoryUtil {
     if (!Files.exists(settingsFolder)) {
       return RepositoryType.CODE;
     }
-    // there is a settings folder but it does not contain the required properties file
+    // there is no valid settings folder to be found.
     return RepositoryType.UNKNOWN;
   }
 
@@ -43,7 +46,8 @@ public class RepositoryUtil {
    */
   private static boolean isSettingsFolder(Path folder) {
 
-    return Files.exists(folder.resolve(EnvironmentVariables.DEFAULT_PROPERTIES))
-        || Files.exists(folder.resolve(EnvironmentVariables.LEGACY_PROPERTIES));
+    return Files.exists(folder.resolve(GitContext.GIT_FOLDER)) &&
+        (Files.exists(folder.resolve(EnvironmentVariables.DEFAULT_PROPERTIES))
+        || Files.exists(folder.resolve(EnvironmentVariables.LEGACY_PROPERTIES)));
   }
 }
