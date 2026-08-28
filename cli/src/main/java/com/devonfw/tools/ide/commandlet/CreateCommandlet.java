@@ -68,7 +68,7 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
   }
 
   @Override
-  protected void onSettingHealthCheckSucceeded() {
+  protected void onSettingHealthCheckFinished() {
 
     // only called after the settings passed the health check
     Path newProjectPath = getNewProjectPath();

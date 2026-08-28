@@ -9,13 +9,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliFatalException;
 import com.devonfw.tools.ide.commandlet.update.settings.HealthCheckResultStatus;
 import com.devonfw.tools.ide.commandlet.update.settings.SettingsHealthCheckResult;
 import com.devonfw.tools.ide.commandlet.update.settings.SettingsUpdateResult;
 import com.devonfw.tools.ide.commandlet.update.settings.SettingsUpdater;
 
-import org.jline.utils.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,7 +107,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
    * Hook that is called after the settings passed the health check but before they are moved to their final location. Does nothing by default and is overridden
    * by {@link CreateCommandlet} to create the project structure so that no project is created at all if the health check failed.
    */
-  protected void onSettingHealthCheckSucceeded() {
+  protected void onSettingHealthCheckFinished() {
 
     // nothing to do by default
   }
@@ -195,22 +195,25 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
         HealthCheckResultStatus status = _healthCheckResult.status();
 
         if (status == null) {
-          throw new CliFatalException("Health check on settings failed due to unknown error - the settings have not been updated");
+          throw new CliException("Health check on settings failed due to unknown error - the settings have not been updated");
         } else if (status == HealthCheckResultStatus.SETTINGS_INVALID) {
-          throw new CliFatalException("The settings could not be updated: " + _healthCheckResult.errorMessage());
+          throw new CliException("The settings health check failed: " + _healthCheckResult.errorMessage());
         }
         return _healthCheckResult;
       }, () -> null);
-      if (healthCheckResult == null) {
-        throw new CliFatalException("Health check on settings failed due to unknown error - the settings have not been updated");
+
+      //If health check failed and force mode is disabled, skip application of settings.
+      if(!this.forcePull.isTrue() && (healthCheckResult == null || healthCheckStep.isFailure())) {
+        throw new CliException("Settings update aborted due to error in health check");
       }
 
       //Step 2: Let create/update commandlets prepare themselves for the settings update.
-      onSettingHealthCheckSucceeded();
+      onSettingHealthCheckFinished();
 
       //Step 3: Apply (move/pull newest version) settings
       Step applySettingsStep = this.context.newStep("Applying settings");
       applySettingsStep.run(() -> {
+
         SettingsUpdateResult settingsUpdateResult = settingsUpdater.applySettings(healthCheckResult.status() == HealthCheckResultStatus.SETTINGS_VALID_EXISTING,
             healthCheckResult.temporarySettingsDirectory());
         if (settingsUpdateResult == null) {

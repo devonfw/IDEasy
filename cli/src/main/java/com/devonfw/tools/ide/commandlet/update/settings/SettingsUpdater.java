@@ -104,7 +104,7 @@ public class SettingsUpdater {
     // Case 1: We performed "ide update"; so settings already existed and we just need to perform a git pull in the existing repo.
     if (onlyPull) {
       repositoryType = RepositoryUtil.getRepositoryType(context.getSettingsPath());
-      if(repositoryType != RepositoryType.SETTINGS) {
+      if(repositoryType != RepositoryType.SETTINGS && !this.isForceMode) {
         return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_UPDATE_FAILED, repositoryType, "Expected settings repository for update.");
       }
 
@@ -116,16 +116,17 @@ public class SettingsUpdater {
     switch (repositoryType) {
       case CODE, UNKNOWN -> {
 
-        return moveSettingsOnlyIfForceMode(sourcePath, repositoryType);
+        return moveSettingsOnlyIfForceModeActive(sourcePath, repositoryType);
       }
       case SETTINGS -> {
-        //move to IDE_HOME/SETTINGS
 
+        //move to IDE_HOME/SETTINGS
         moveProject(sourcePath, settingsPath);
         this.context.getGitContext().saveCurrentCommitId(settingsPath, this.context.getSettingsCommitIdPath());
         return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_CLONED, repositoryType, null);
       }
       case CODE_SETTINGS_COMBINED -> {
+
         //this is a special case - here we need to symlink from IDE_HOME/settings to IDE_HOME/workspaces/main/repo_name/settings. (Formerly managed by the obsolete "--code" flag)
         Path repoMoveTargetDirectory = this.context.getWorkspacePath().resolve(gitProjectName);
         Path symlinkPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_SETTINGS);
@@ -143,7 +144,8 @@ public class SettingsUpdater {
     return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_UPDATE_FAILED, repositoryType, "Unknown error during settings");
   }
 
-  private SettingsUpdateResult moveSettingsOnlyIfForceMode(Path sourcePath, RepositoryType repositoryType) {
+  private SettingsUpdateResult moveSettingsOnlyIfForceModeActive(Path sourcePath, RepositoryType repositoryType) {
+    LOG.warn("Force mode is active: Moving potentially invalid settings repository to {}", this.context.getSettingsPath());
     if(this.isForceMode) {
       moveProject(sourcePath, this.context.getSettingsPath());
       return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_CLONED, repositoryType, null);
@@ -177,7 +179,7 @@ public class SettingsUpdater {
       cleanup();
       if (e instanceof CliAbortException) {
         // the user answered "no" so we must not silently carry on
-        throw createGuaranteedFatalException(e);
+        return SettingsHealthCheckResult.failed(repositoryType, "Settings update aborted by end-user", settingsPath);
       }
       return SettingsHealthCheckResult.failed(repositoryType, e.getMessage(), settingsPath);
     }
@@ -194,6 +196,7 @@ public class SettingsUpdater {
 
       Path tempCloneDir = cloneRepoToTempDir(gitUrl);
       RepositoryType repositoryType = RepositoryUtil.getRepositoryType(tempCloneDir);
+
       if (!repositoryType.isSettingsOrCodeSettingsRepository() && !requestUserConfirmInvalidRepository(repositoryType, gitUrl)) {
         //see @javadoc why we throw fatally here.
         throw new CliFatalException(MESSAGE_INVALID_REPOSITORY);
@@ -266,9 +269,11 @@ public class SettingsUpdater {
    * @return {@code true} if the user explicitly wants to continue with an invalid repository, {@code false} otherwise.
    */
   private boolean requestUserConfirmInvalidRepository(RepositoryType repositoryType, GitUrl gitUrl) {
-    LOG.warn("{}\nURL: {}\nDetected repository type: {}", MESSAGE_INVALID_REPOSITORY, gitUrl, repositoryType);
+    LOG.warn("{}\nURL: {}\nDetected settings repository type: {}", MESSAGE_INVALID_REPOSITORY, gitUrl, repositoryType);
 
-    // If we are in force mode, we give the user the option continue with a potentially invalid repo. If not in FM, we skip asking and act as if he declined.
+    /* If we are in force mode, we give the user the option continue with a potentially invalid repo. If not in FM, we skip asking and act as if he declined.
+       For the case of updating existing repositories, we always want to ask the user regardless of --force-pull
+    */
     if(!this.isForceMode) {
       return false;
     }
