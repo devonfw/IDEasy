@@ -135,7 +135,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
 
     UpgradeMode upgradeMode = this.mode;
     if (upgradeMode == null) {
-      if (IdeVersion.isSnapshot()) {
+      if (IdeVersion.isSnapshot() || IdeVersion.isLocalDevBuild()) {
         upgradeMode = UpgradeMode.SNAPSHOT;
       } else {
         if (IdeVersion.getVersionIdentifier().getDevelopmentPhase().isStable()) {
@@ -193,6 +193,10 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     if (IdeVersion.isSnapshot()) {
       LOG.warn("You are using a SNAPSHOT version of IDEasy. For stability consider switching to a stable release via 'ide upgrade --mode=stable'");
     }
+    if (IdeVersion.isLocalDevBuild()) {
+      LOG.warn("You are using a LOCAL-DEV version of IDEasy. For stability consider switching to a stable release via 'ide upgrade --mode=stable'");
+      return false;
+    }
     if (this.context.isOffline()) {
       LOG.warn("Skipping check for newer version of IDEasy because you are offline.");
       return false;
@@ -200,11 +204,11 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     VersionIdentifier latestVersion = getLatestVersion();
     if (IdeVersion.isSnapshot()) {
       if (isSameSnapshotVersion(installedVersion.toString(), latestVersion.toString())) {
-        IdeLogLevel.SUCCESS.log(LOG, "Your are using the latest snapshot version of IDEasy and no update is available.");
+        IdeLogLevel.SUCCESS.log(LOG, "You are using the latest snapshot version of IDEasy and no update is available.");
         return false;
       }
     } else if (installedVersion.equals(latestVersion)) {
-      IdeLogLevel.SUCCESS.log(LOG, "Your are using the latest stable version of IDEasy and no update is available.");
+      IdeLogLevel.SUCCESS.log(LOG, "You are using the latest stable version of IDEasy and no update is available.");
       return false;
     }
     IdeLogLevel.INTERACTION.log(LOG,
@@ -332,6 +336,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       setGitLongpaths();
     }
   }
+
   private void installDesktopShortcut(Path installationPath) {
 
     try {
