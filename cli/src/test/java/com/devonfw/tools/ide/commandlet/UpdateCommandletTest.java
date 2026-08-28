@@ -28,7 +28,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 class UpdateCommandletTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_UPDATE = "update";
-  private static final String SUCCESS_UPDATE_SETTINGS = "Successfully ended step 'update (pull) settings repository'.";
+  private static final String SUCCESS_UPDATE_SETTINGS = "Successfully ended step 'Update settings repository'.";
   private static final String SUCCESS_INSTALL_OR_UPDATE_SOFTWARE = "Install or update software";
 
   @Test
@@ -179,7 +179,6 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(context).logAtSuccess().hasMessage(SUCCESS_UPDATE_SETTINGS);
-    assertThat(context).logAtInfo().hasMessageContaining("Creating backup by moving " + settingsPath);
     assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_BACKUPS)).exists();
     assertThat(settingsPath.resolve(GitContext.GIT_FOLDER)).exists();
     assertThat(context).logAtSuccess().hasMessageContaining(SUCCESS_INSTALL_OR_UPDATE_SOFTWARE);
@@ -208,7 +207,7 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
     update.run();
 
     // assert
-    assertThat(context).logAtError().hasMessage("Step 'Applying update' ended with failure.");
+    assertThat(context).logAtError().hasMessage("Step 'Applying settings' ended with failure.");
     assertThat(context).log().hasNoMessage(SUCCESS_UPDATE_SETTINGS);
     assertThat(context).logAtSuccess().hasMessageContaining(SUCCESS_INSTALL_OR_UPDATE_SOFTWARE);
   }

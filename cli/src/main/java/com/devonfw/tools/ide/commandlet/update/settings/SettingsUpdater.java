@@ -316,7 +316,6 @@ public class SettingsUpdater {
     }
     String userPrompt = "Settings URL [" + IdeContext.DEFAULT_SETTINGS_REPO_URL + "]:";
     while ((gitUrl == null) || !gitUrl.isValid()) {
-      LOG.warn("The provided git url parameter {} was detected to be invalid. Please enter a valid settings url.", gitUrl);
       repository = handleDefaultRepository(this.context.askForInput(userPrompt, IdeContext.DEFAULT_SETTINGS_REPO_URL));
       gitUrl = GitUrl.of(repository);
       if (!gitUrl.isValid()) {
