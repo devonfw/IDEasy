@@ -15,5 +15,12 @@ public enum RepositoryType {
   CODE_SETTINGS_COMBINED,
 
   /** The type of the repository could not be determined. */
-  UNKNOWN
+  UNKNOWN;
+
+  /**
+   * @return true if repository is either of type {@code SETTINGS} or {@code CODE_SETTINGS_COMBINED}
+   */
+  public boolean isSettingsOrCodeSettingsRepository() {
+    return this == SETTINGS || this == CODE_SETTINGS_COMBINED;
+  }
 }
