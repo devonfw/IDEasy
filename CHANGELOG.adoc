@@ -2,7 +2,7 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
-== 2026.08.002
+== 2026.09.001
 
 Release with new features and bugfixes:
 
