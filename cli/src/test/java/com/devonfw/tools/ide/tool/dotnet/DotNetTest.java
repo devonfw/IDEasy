@@ -109,17 +109,21 @@ class DotNetTest extends AbstractIdeContextTest {
         true);
 
     Map<String, VariableLine> variables = new HashMap<>();
+    WindowsPathSyntax pathSyntax = WindowsPathSyntax.MSYS;
     EnvironmentVariableCollectorContext environmentContext =
         new EnvironmentVariableCollectorContext(
             variables,
             new VariableSource(EnvironmentVariablesType.WORKSPACE, null),
-            WindowsPathSyntax.MSYS);
+            pathSyntax);
 
+    // act
     this.commandlet.setEnvironment(environmentContext, installation, false);
 
+    // assert
+    String expectedPath = pathSyntax.normalize(dotnetPath.toString());
     assertThat(variables.get("DOTNET_HOME").getValue())
-        .isEqualTo(dotnetPath.toString());
+        .isEqualTo(expectedPath);
     assertThat(variables.get("DOTNET_ROOT").getValue())
-        .isEqualTo(dotnetPath.toString());
+        .isEqualTo(expectedPath);
   }
 }

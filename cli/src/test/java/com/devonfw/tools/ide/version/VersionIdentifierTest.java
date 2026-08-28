@@ -94,6 +94,26 @@ class VersionIdentifierTest extends Assertions {
   }
 
   /**
+   * Verifies that appending the {@link IdeVersion#LOCAL_DEV_SUFFIX local-dev build suffix} to a revision (e.g. "2026.08.002-DEV-BUILD") parses without throwing
+   * (this runs at {@link IdeVersion} class-load, so a failure would crash the whole CLI) and classifies as an invalid, non-stable, non-snapshot version.
+   */
+  @Test
+  void testLocalDevBuildVersion() {
+
+    // arrange
+    String version = "2026.08.002" + IdeVersion.LOCAL_DEV_SUFFIX;
+
+    // act
+    VersionIdentifier vid = VersionIdentifier.of(version);
+
+    // assert
+    assertThat(vid).hasToString(version);
+    assertThat(vid.isValid()).isFalse();
+    assertThat(vid.isStable()).isFalse();
+    assertThat(vid.getDevelopmentPhase().isSnapshot()).isFalse();
+  }
+
+  /**
    * Test of {@link VersionIdentifier} with canonical version numbers and safe order.
    */
   @Test
