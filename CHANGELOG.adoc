@@ -2,11 +2,12 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
-== 2026.08.002
+== 2026.09.001
 
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/1695[#1695]: Project creation logic extended with health checks and removed `--code` flag.
+* https://github.com/devonfw/IDEasy/issues/1525[#1525]: Document known issue and workaround for lombok plugin in Eclipse
 * https://github.com/devonfw/IDEasy/issues/1031[#1031]: Added OpenRewrite commandlet
 * https://github.com/devonfw/IDEasy/issues/2361[#2361]: Improve dotnet installation by setting DOTNET_ROOT
 * https://github.com/devonfw/IDEasy/issues/218[#218]: Added possibility to start a command in a new window using the process builder
@@ -24,9 +25,12 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1165[#1165]: Fix automatic project import for Eclipse
 * https://github.com/devonfw/IDEasy/issues/2040[#2040]: Fixed buggy workspace selection in the GUI
 * https://github.com/devonfw/IDEasy/issues/2253[#2253]: Fix structure and log documentation
+* https://github.com/devonfw/IDEasy/issues/2351[#2351]: Fixed GUI not launching with local dev build
+* https://github.com/devonfw/IDEasy/issues/2219[#2219]: Add unpack commandlet
 * https://github.com/devonfw/IDEasy/issues/2251[#2251]: Provide generic uninstall support for globally installed tools (windows)
 * https://github.com/devonfw/IDEasy/issues/1135[#1135]: Fix PowerShell env variable initialization on Windows by sourcing functions from the PowerShell profile
 * https://github.com/devonfw/IDEasy/issues/741[#741]: Add a warning message for legacy devonfw-ide settings users
+* https://github.com/devonfw/IDEasy/issues/1933[#1933]: Added a console panel to the GUI
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/49?closed=1[milestone 2026.08.002].
 
