@@ -9,11 +9,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import com.devonfw.tools.ide.cli.CliFatalException;
 import com.devonfw.tools.ide.commandlet.update.settings.HealthCheckResultStatus;
 import com.devonfw.tools.ide.commandlet.update.settings.SettingsHealthCheckResult;
 import com.devonfw.tools.ide.commandlet.update.settings.SettingsUpdateResult;
 import com.devonfw.tools.ide.commandlet.update.settings.SettingsUpdater;
 
+import org.jline.utils.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -186,20 +188,21 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     try {
       //Step 1: Perform health check
       Step healthCheckStep = this.context.newStep("Performing settings health check");
-      Path temporaryRepoDir = healthCheckStep.call(() -> {
-        SettingsHealthCheckResult healthCheckResult = settingsUpdater.checkSettings(this.context.getSettingsPath());
-        HealthCheckResultStatus status = healthCheckResult.status();
+      SettingsHealthCheckResult healthCheckResult;
+      healthCheckResult = healthCheckStep.call(() -> {
+        SettingsHealthCheckResult _healthCheckResult = settingsUpdater.checkSettings(this.context.getSettingsPath());
+        HealthCheckResultStatus status = _healthCheckResult.status();
 
         if (status == null) {
-          healthCheckStep.error("Health check on settings failed due to unknown error - the settings have not been updated.");
-          return healthCheckResult.temporarySettingsDirectory();
-        } else if (healthCheckResult.status() == HealthCheckResultStatus.SETTINGS_INVALID) {
-          healthCheckStep.error("The settings have not been updated: {}", healthCheckResult.errorMessage());
-          return healthCheckResult.temporarySettingsDirectory();
+          throw new CliFatalException("Health check on settings failed due to unknown error - the settings have not been updated");
+        } else if (status == HealthCheckResultStatus.SETTINGS_INVALID) {
+          throw new CliFatalException("The settings could not be updated: " + _healthCheckResult.errorMessage());
         }
-        return healthCheckResult.temporarySettingsDirectory();
+        return _healthCheckResult;
       }, () -> null);
-      if(temporaryRepoDir == null || healthCheckStep.isFailure()) return;
+      if (healthCheckResult == null) {
+        throw new CliFatalException("Health check on settings failed due to unknown error - the settings have not been updated");
+      }
 
       //Step 2: Let create/update commandlets prepare themselves for the settings update.
       onSettingHealthCheckSucceeded();
@@ -207,17 +210,16 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       //Step 3: Apply (move/pull newest version) settings
       Step applySettingsStep = this.context.newStep("Applying settings");
       applySettingsStep.run(() -> {
-        SettingsUpdateResult settingsUpdateResult = settingsUpdater.applySettings(temporaryRepoDir);
+        SettingsUpdateResult settingsUpdateResult = settingsUpdater.applySettings(healthCheckResult.status() == HealthCheckResultStatus.SETTINGS_VALID_EXISTING,
+            healthCheckResult.temporarySettingsDirectory());
 
         if (settingsUpdateResult == null) {
-          applySettingsStep.error("Failed to apply the settings update due to unknown error.");
-          return;
+          throw new CliFatalException("Failed to apply the settings update due to unknown error.");
         }
         switch (settingsUpdateResult.updateStatus()) {
           case SETTINGS_UPDATED -> applySettingsStep.success("Settings update successfully applied");
           case SETTINGS_CLONED -> applySettingsStep.success("Settings successfully applied (cloned)");
-          case SETTINGS_UPDATE_FAILED -> applySettingsStep.error("The settings update could not be applied: {}", settingsUpdateResult.errorMessage());
-          case null, default -> applySettingsStep.error("Unexpected value: {}", settingsUpdateResult.updateStatus());
+          case SETTINGS_UPDATE_FAILED -> throw new CliFatalException("The settings update could not be applied: " + settingsUpdateResult.errorMessage());
         }
       });
     } finally {
