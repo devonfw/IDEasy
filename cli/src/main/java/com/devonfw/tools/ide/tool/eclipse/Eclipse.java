@@ -84,7 +84,7 @@ public class Eclipse extends IdeToolCommandlet {
   }
 
   @Override
-  protected boolean isPluginUrlNeeded() {
+  public boolean isPluginUrlNeeded() {
 
     return true;
   }
