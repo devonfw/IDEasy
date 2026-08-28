@@ -114,12 +114,14 @@ public class App extends Application {
 
   private void reloadMainView() {
 
+    MainController previousController = this.mainController;
     try {
-      Parent reloadedRoot = loadMainView(this.mainController);
+      Parent reloadedRoot = loadMainView(previousController);
       this.root = reloadedRoot;
       if (this.primaryStage != null && this.primaryStage.getScene() != null) {
         this.primaryStage.getScene().setRoot(reloadedRoot);
       }
+      previousController.dispose();
     } catch (IOException e) {
       LOG.error("Failed to reload main view after locale change", e);
     }

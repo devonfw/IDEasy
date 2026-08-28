@@ -56,7 +56,9 @@ public class MainController {
   private IdeGuiLogListener guiLogListener;
   private OutputListener guiOutputListener;
 
-  private final MainController oldMainController;
+  private MainController oldMainController;
+
+  private ListChangeListener<ProgressBarTask> taskListChangeListener;
 
   @FXML
   private ComboBox<String> selectedProject;
@@ -116,6 +118,8 @@ public class MainController {
    * @param ideRootPath the IDE_ROOT path
    * @param guiStateManager the {@link GuiStateManager} to be used in this application instance
    * @param nlsService nlsService instance
+   * @param oldMainController the previous main controller whose GUI state (selections, console) is carried over on a re-load, or {@code null} on the first
+   *     load
    */
   public MainController(String ideRootPath, GuiStateManager guiStateManager, NlsService nlsService, MainController oldMainController) {
 
@@ -133,7 +137,7 @@ public class MainController {
 
   private void setUpTaskListListener() {
 
-    ListChangeListener<ProgressBarTask> taskListChangeListener = change -> {
+    this.taskListChangeListener = change -> {
       List<ProgressBarTask> tasks = taskManager.getTasks();
 
       while (change.next()) {
@@ -172,16 +176,16 @@ public class MainController {
     setProjectsComboBox();
     initLanguageComboBox();
     selectedWorkspace.setOnAction(this::onWorkspaceSelected);
-    loadOldMainController();
     consolePaneToggleButton.setOnAction(_ -> toggleConsole());
 
     centerDivider = centerSplitPane.getDividers().getFirst();
-
     centerDivider.positionProperty().addListener((_, _, newVal) -> {
       //This is a bit of a weird behaviour in JavaFX, but even if you drag the divider fully down,
       // the position value does not become 1, but something like 0.9935345
       consolePaneToggleButton.setSelected(newVal.doubleValue() < 0.99);
     });
+
+    loadOldMainController();
     this.initialized = true;
   }
 
@@ -209,14 +213,42 @@ public class MainController {
         selectedWorkspace.setValue(oldWorkspaceName);
         updateContext(oldProjectName, oldWorkspaceName);
       }
-
-      // Restore the enabled state captured from the previous view so it stays consistent with the restored selection.
       selectedWorkspace.setDisable(this.oldMainController.selectedWorkspace.isDisable());
-      androidStudioOpen.setDisable(this.oldMainController.androidStudioOpen.isDisable());
-      eclipseOpen.setDisable(this.oldMainController.eclipseOpen.isDisable());
-      intellijOpen.setDisable(this.oldMainController.intellijOpen.isDisable());
-      vsCodeOpen.setDisable(this.oldMainController.vsCodeOpen.isDisable());
+      setIdeButtonsDisabled(this.oldMainController.androidStudioOpen.isDisabled());
     }
+    restoreConsoleState();
+
+    this.oldMainController = null;
+  }
+
+  /**
+   * Releases the resources of this controller. Called by the GUI after the view was replaced (e.g. on a language change) so that this controller no longer
+   * observes the shared task list and can be garbage-collected.
+   */
+  public void dispose() {
+
+    if (this.taskListChangeListener != null) {
+      taskManager.getTasks().removeListener(this.taskListChangeListener);
+      this.taskListChangeListener = null;
+    }
+    this.oldMainController = null;
+  }
+
+  /**
+   * Restores the console state of the previous main view: its output, the auto-scroll preference and the pane's visibility.
+   */
+  private void restoreConsoleState() {
+
+    ConsoleController oldConsoleController = this.oldMainController.consoleController;
+    if (oldConsoleController == null) {
+      return;
+    }
+
+    this.consoleController.setAutoScrollEnabled(oldConsoleController.isAutoScrollEnabled());
+
+    this.consoleController.restoreOutput(oldConsoleController.getLogEntries());
+
+    centerSplitPane.setDividerPosition(0, this.oldMainController.centerSplitPane.getDividers().getFirst().getPosition());
   }
 
   private void initLanguageComboBox() {

@@ -120,6 +120,25 @@ public class ConsoleController {
   }
 
   /**
+   * Restores a list of previously shown log entries to the console, preserving their original timestamps and levels.
+   *
+   * @param entries the entries to restore
+   */
+  public void restoreOutput(List<IdeLogEntry> entries) {
+
+    if (entries.isEmpty()) {
+      return;
+    }
+    synchronized (outputBuffer) {
+      outputBuffer.addAll(entries);
+      if (!flushPending) {
+        flushPending = true;
+        FxHelper.runFxSafe(this::flushBuffer);
+      }
+    }
+  }
+
+  /**
    * Flushes all buffered messages to the console.
    */
   private void flushBuffer() {
@@ -202,6 +221,16 @@ public class ConsoleController {
   }
 
   /**
+   * Gets the current log entries that are on the console.
+   *
+   * @return a copy of the current console log entries
+   */
+  public List<IdeLogEntry> getLogEntries() {
+
+    return List.copyOf(logEntries);
+  }
+
+  /**
    * Checks if auto-scroll is enabled.
    *
    * @return true if auto-scroll is enabled
@@ -209,6 +238,16 @@ public class ConsoleController {
   public boolean isAutoScrollEnabled() {
 
     return autoScrollCheckBox.isSelected();
+  }
+
+  /**
+   * Sets whether auto-scroll is enabled.
+   *
+   * @param enabled the desired state of the auto-scroll toggle
+   */
+  public void setAutoScrollEnabled(boolean enabled) {
+
+    FxHelper.runFxSafe(() -> autoScrollCheckBox.setSelected(enabled));
   }
 
 

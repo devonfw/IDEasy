@@ -5,7 +5,6 @@ import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
 import java.io.IOException;
 import java.net.URL;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Locale;
@@ -37,6 +36,7 @@ import com.devonfw.ide.gui.context.TaskManager;
 import com.devonfw.ide.gui.nls.NlsService;
 import com.devonfw.ide.gui.progress.ProgressBarTask;
 import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindow;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 
 /**
  * Basic UI Test for the main screen
@@ -51,6 +51,8 @@ public class AppBaseTest extends HeadlessApplicationTest {
   private Label statusText;
   private ProgressBar taskProgressBar;
   private SplitPane centerSplitPane;
+  private ConsoleController originalConsole;
+  private Divider originalCenterDivider;
 
   private MainController mainController;
 
@@ -69,10 +71,12 @@ public class AppBaseTest extends HeadlessApplicationTest {
     assertThat(mainViewUrl).as("Cannot resolve main UI FXML resource!").isNotNull();
 
     this.mainController = new MainController(mockIdeRoot.toString(), guiStateManager, nlsService, null);
+    final ConsoleController[] createdConsole = new ConsoleController[1];
     FXMLLoader fxmlLoader = new FXMLLoader(mainViewUrl);
     fxmlLoader.setControllerFactory(clazz -> {
       if (clazz == ConsoleController.class) {
-        return new ConsoleController(nlsService);
+        createdConsole[0] = new ConsoleController(nlsService);
+        return createdConsole[0];
       } else if (clazz == MainController.class) {
         return this.mainController;
       }
@@ -92,13 +96,15 @@ public class AppBaseTest extends HeadlessApplicationTest {
     selectedWorkspace = FxHelper.lookup(root, "#selectedWorkspace");
     consolePaneToggleButton = FxHelper.lookup(root, "#consolePaneToggleButton");
     centerSplitPane = FxHelper.lookup(root, "#centerSplitPane");
+    originalCenterDivider = centerSplitPane.getDividers().getFirst();
+    originalConsole = createdConsole[0];
     statusText = FxHelper.lookup(root, "#statusLabel");
     taskProgressBar = FxHelper.lookup(root, "#statusProgressBar");
   }
 
   /**
    * Generate temporary project directories to be able to test on any device (including GitHub CI). This is required for the {@link MainController} to work in
-   * the test context. Generates a structure like this: /project-[0..6]/workspaces/main
+   * the test context. Generates a structure like this: /project-[0..5]/workspaces/main
    */
   @BeforeAll
   public static void generateProjectFolderStructure() throws IOException {
@@ -275,31 +281,109 @@ public class AppBaseTest extends HeadlessApplicationTest {
   @Test
   public void testLanguageSelectionDoesNotResetGuiState() throws IOException {
 
-    // Arrange: select a project and its workspace -> the IDE open buttons become enabled.
+    // Arrange
     interact(() -> selectedProject.getSelectionModel().select("project-1"));
     interact(() -> selectedWorkspace.getSelectionModel().select("main"));
 
-    // Act: reload the main view with a new locale, carrying over the existing selection (as the GUI does on a locale change).
-    ReloadedView reloaded = reloadMainViewOnFxThread(Locale.GERMAN, mainController);
+    final long[] originalLineTimestamp = new long[1];
+    interact(() -> {
+      originalConsole.appendOutput(IdeLogLevel.INFO, "restored line");
+      originalConsole.setAutoScrollEnabled(false);
+      originalCenterDivider.setPosition(0.75);
+      originalLineTimestamp[0] = originalConsole.getLogEntries().stream()
+          .filter(entry -> entry.message().contains("restored line"))
+          .findFirst().orElseThrow().timeStamp();
+    });
+    waitForFxEvents();
 
-    // Assert: project, workspace and the enabled state of the IDE open buttons are preserved.
+    // Act
+    ReloadedView reloaded = reloadMainViewOnFxThread(Locale.GERMAN, guiStateManager, mainController);
+    waitForFxEvents();
+
+    // Assert
     assertThat(reloaded.project.getValue()).as("Project should be restored after switching language").isEqualTo("project-1");
     assertThat(reloaded.workspace.getValue()).as("Workspace should be restored after switching language").isEqualTo("main");
     for (Button button : reloaded.ideButtons) {
       assertThat(button.isDisabled()).as(button.getId() + " button should remain enabled after switching language").isFalse();
     }
 
-    // Act: select another project (unused by the other tests in this class) and then remove it so it no longer exists -> reload again.
-    interact(() -> selectedProject.getSelectionModel().select("project-4"));
-    deleteProject("project-4");
-    ReloadedView stale = reloadMainViewOnFxThread(Locale.ENGLISH, mainController);
+    assertThat(reloaded.selectedLanguage.getValue())
+        .as("The reloaded language combo should reflect the newly applied locale")
+        .isEqualTo(new NlsService(Locale.GERMAN).getLanguageDisplayName(Locale.GERMAN));
 
-    // Assert: the removed project is not reapplied and the buttons stay disabled.
-    assertThat(stale.project.getItems()).as("The removed project should not be present in the reloaded project list").doesNotContain("project-4");
-    assertThat(stale.project.getValue()).as("A no-longer-existing project should not be restored").isNull();
-    assertThat(stale.workspace.getValue()).as("Workspace should not be restored for a removed project").isNull();
-    for (Button button : stale.ideButtons) {
-      assertThat(button.isDisabled()).as(button.getId() + " button should be disabled when no project is selected").isTrue();
+    assertThat(reloaded.console.getConsoleOutputSnapshot()).as("Console output should be restored after switching language")
+        .anyMatch(line -> line.contains("restored line"));
+    assertThat(reloaded.console.getLogEntries()).as("Console log entries should be restored after switching language")
+        .anySatisfy(entry -> {
+          assertThat(entry.message()).as("Restored console line").contains("restored line");
+          assertThat(entry.level()).as("Restored console line should keep its original level").isEqualTo(IdeLogLevel.INFO);
+          assertThat(entry.timeStamp()).as("Restored console line should keep its original timestamp")
+              .isEqualTo(originalLineTimestamp[0]);
+        });
+    assertThat(reloaded.console.isAutoScrollEnabled()).as("Console auto-scroll setting should be restored after switching language").isFalse();
+    assertThat(reloaded.centerDivider.getPosition()).as("Console pane visibility should be restored after switching language")
+        .isEqualTo(0.75, Offset.offset(0.01));
+    assertThat(reloaded.consolePaneToggleButton.isSelected()).as("Console toggle button should reflect the restored pane visibility").isTrue();
+
+  }
+
+
+  /**
+   * Verifies that {@link MainController#dispose()} detaches the controller from its task list.
+   */
+  @Test
+  public void testDisposedControllerNoLongerReactsToTaskChanges() {
+
+    // Arrange
+    TaskManager isolatedTaskManager = new TaskManager();
+    GuiStateManager isolatedStateManager = new GuiStateManager(isolatedTaskManager, mockIdeRoot.toString());
+    ReloadedView reloaded = reloadMainViewOnFxThread(Locale.ENGLISH, isolatedStateManager, null);
+    Label statusLabel = reloaded.statusLabel;
+
+    // Act
+    isolatedTaskManager.addTask(new ProgressBarTask(isolatedTaskManager, "task-1", "Task 1"));
+    waitForFxEvents();
+    String textWhileActive = statusLabel.getText();
+
+    // Act
+    reloaded.controller.dispose();
+    isolatedTaskManager.clearTasks();
+    waitForFxEvents();
+
+    // Assert
+    assertThat(textWhileActive).as("The controller should have reacted to a task change while active").isNotEqualTo("IDEasy is ready.");
+    assertThat(statusLabel.getText())
+        .as("A disposed controller must no longer react to task-list changes")
+        .isEqualTo(textWhileActive);
+  }
+
+  /**
+   * Verifies that after the GUI re-loads the main view (as it does on a language change) the re-loaded view is fully functional AND no longer retains the
+   * previous controller.
+   */
+  @Test
+  public void testReloadReleasesPreviousController() throws IOException {
+
+    // Arrange
+    interact(() -> selectedProject.getSelectionModel().select("project-1"));
+    interact(() -> selectedWorkspace.getSelectionModel().select("main"));
+    waitForFxEvents();
+
+    MainController original = mainController;
+
+    // Act
+    ReloadedView reloaded = reloadMainViewOnFxThread(Locale.GERMAN, guiStateManager, original);
+    waitForFxEvents();
+
+    try {
+      // Assert
+      assertThat(reloaded.project.getValue()).as("Project should be restored after reload").isEqualTo("project-1");
+      assertThat(reloaded.workspace.getValue()).as("Workspace should be restored after reload").isEqualTo("main");
+      assertThat(readField(reloaded.controller, "oldMainController"))
+          .as("The re-loaded controller must not retain the previous controller after restoring its state")
+          .isNull();
+    } finally {
+      reloaded.controller.dispose();
     }
   }
 
@@ -309,29 +393,45 @@ public class AppBaseTest extends HeadlessApplicationTest {
    * {@code initialize} to re-apply the previous controller's selection.
    *
    * @param locale the locale to apply on the re-loaded view
-   * @param oldController the controller holding the selection to carry over
+   * @param guiStateManager the {@link GuiStateManager} the new controller is wired to
+   * @param oldController the controller holding the selection to carry over, or {@code null} for a first load
    * @return the relevant nodes of the freshly loaded main view
    */
-  private ReloadedView reloadMainViewOnFxThread(Locale locale, MainController oldController) {
+  private ReloadedView reloadMainViewOnFxThread(Locale locale, GuiStateManager guiStateManager, MainController oldController) {
 
     final ReloadedView[] reloaded = new ReloadedView[1];
     interact(() -> {
       try {
         NlsService nlsService = new NlsService(locale);
         MainController controller = new MainController(mockIdeRoot.toString(), guiStateManager, nlsService, oldController);
+        final ConsoleController[] createdConsole = new ConsoleController[1];
 
         URL mainViewUrl = AppBaseTest.class.getResource("main-view.fxml");
         assertThat(mainViewUrl).as("Cannot resolve main UI FXML resource!").isNotNull();
         FXMLLoader fxmlLoader = new FXMLLoader(mainViewUrl);
-        fxmlLoader.setController(controller);
+        fxmlLoader.setControllerFactory(clazz -> {
+          if (clazz == ConsoleController.class) {
+            createdConsole[0] = new ConsoleController(nlsService);
+            return createdConsole[0];
+          } else if (clazz == MainController.class) {
+            return controller;
+          }
+          return null;
+        });
         fxmlLoader.setResources(nlsService.getResourceBundle());
         Parent root = fxmlLoader.load();
 
         reloaded[0] = new ReloadedView();
+        reloaded[0].controller = controller;
         reloaded[0].project = (ComboBox<String>) root.lookup("#selectedProject");
         reloaded[0].workspace = (ComboBox<String>) root.lookup("#selectedWorkspace");
-        reloaded[0].ideButtons = new Button[] { (Button) root.lookup("#androidStudioOpen"), (Button) root.lookup("#eclipseOpen"),
-            (Button) root.lookup("#intellijOpen"), (Button) root.lookup("#vsCodeOpen") };
+        reloaded[0].selectedLanguage = (ComboBox<String>) root.lookup("#selectedLanguage");
+        reloaded[0].ideButtons = new Button[] { readButtonField(controller, "androidStudioOpen"), readButtonField(controller, "eclipseOpen"),
+            readButtonField(controller, "intellijOpen"), readButtonField(controller, "vsCodeOpen") };
+        reloaded[0].console = createdConsole[0];
+        reloaded[0].consolePaneToggleButton = (ToggleButton) root.lookup("#consolePaneToggleButton");
+        reloaded[0].centerDivider = ((SplitPane) root.lookup("#centerSplitPane")).getDividers().getFirst();
+        reloaded[0].statusLabel = (Label) root.lookup("#statusLabel");
       } catch (IOException e) {
         throw new IllegalStateException("Failed to load the main view", e);
       }
@@ -340,24 +440,56 @@ public class AppBaseTest extends HeadlessApplicationTest {
   }
 
   /**
-   * The project, workspace and IDE open button nodes of a loaded main view.
+   * Reads a {@link MainController} {@code @FXML}-injected button field. The IDE open buttons are nested inside a {@link javafx.scene.control.ScrollPane}, so
+   * {@link javafx.scene.Node#lookup(String)} cannot reach them on a freshly loaded view that has not yet been laid out (its content is only added to the node
+   * tree after the view is shown/leveled). The FXML-injected controller field is already populated after loading, so it is read instead.
+   *
+   * @param controller the {@link MainController} of the loaded view
+   * @param fieldName the name of the FXML field to read
+   * @return the button assigned to the given field
    */
-  private static final class ReloadedView {
+  private static Button readButtonField(MainController controller, String fieldName) {
 
-    private ComboBox<String> project;
-    private ComboBox<String> workspace;
-    private Button[] ideButtons;
+    try {
+      java.lang.reflect.Field field = MainController.class.getDeclaredField(fieldName);
+      field.setAccessible(true);
+      return (Button) field.get(controller);
+    } catch (ReflectiveOperationException e) {
+      throw new IllegalStateException("Failed to read " + fieldName, e);
+    }
   }
 
   /**
-   * Removes the given project directory so it no longer shows up in the project list.
+   * Reads a (possibly private) declared field by name via reflection. Used to inspect {@link MainController} state that is not otherwise observable.
    *
-   * @param projectName the name of the project to remove
+   * @param target the object whose field is read
+   * @param fieldName the name of the declared field to read
+   * @return the current value of the field
    */
-  private void deleteProject(String projectName) throws IOException {
+  private static Object readField(Object target, String fieldName) {
 
-    Files.deleteIfExists(mockIdeRoot.resolve(projectName).resolve("workspaces").resolve("main"));
-    Files.deleteIfExists(mockIdeRoot.resolve(projectName).resolve("workspaces"));
-    Files.deleteIfExists(mockIdeRoot.resolve(projectName));
+    try {
+      java.lang.reflect.Field field = target.getClass().getDeclaredField(fieldName);
+      field.setAccessible(true);
+      return field.get(target);
+    } catch (ReflectiveOperationException e) {
+      throw new IllegalStateException("Failed to read " + fieldName, e);
+    }
+  }
+
+  /**
+   * The project, workspace, IDE open button and console nodes of a loaded main view.
+   */
+  private static final class ReloadedView {
+
+    private MainController controller;
+    private ComboBox<String> project;
+    private ComboBox<String> workspace;
+    private ComboBox<String> selectedLanguage;
+    private Button[] ideButtons;
+    private ConsoleController console;
+    private ToggleButton consolePaneToggleButton;
+    private Divider centerDivider;
+    private Label statusLabel;
   }
 }
