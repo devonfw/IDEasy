@@ -20,8 +20,9 @@ import com.devonfw.tools.ide.property.StringProperty;
 /**
  * Handles the settings repository of the current project in two phases:
  * <ol>
- * <li>{@link #checkSettings(Path)} health check: the settings are always cloned into a temporary directory first where it is verified that the git URL is valid,
- * that cloning succeeded, and that the repository actually is a settings or a combined code and settings repository.</li>
+ * <li>{@link #checkSettings(Path)} health check: the settings are always cloned into a temporary directory
+ * first where it is verified that the git URL is valid, that cloning succeeded,
+ * and that the repository actually is a settings or a combined code and settings repository.</li>
  * <li>{@link #applySettings(boolean, Path)} apply: only after the health check succeeded the settings are either pulled in place (if they were already
  * present) or the verified clone is moved to its final location.</li>
  * </ol>
@@ -58,7 +59,8 @@ public class SettingsUpdater {
    *
    * @param context the {@link IdeContext}.
    * @param settingsRepoProperty the {@link StringProperty} with the settings repository URL from the update commandlet.
-   * @param isForceMode if in force mode, the settings health check will always return either {@link HealthCheckResultStatus#SETTINGS_VALID} or {@link HealthCheckResultStatus#SETTINGS_VALID_EXISTING}
+   * @param isForceMode if in force mode, the settings health check will always return either {@link HealthCheckResultStatus#SETTINGS_VALID} or
+   * {@link HealthCheckResultStatus#SETTINGS_VALID_EXISTING}
    */
   public SettingsUpdater(IdeContext context, StringProperty settingsRepoProperty, boolean isForceMode) {
 
@@ -129,7 +131,8 @@ public class SettingsUpdater {
       }
       case CODE_SETTINGS_COMBINED -> {
 
-        //this is a special case - here we need to symlink from IDE_HOME/settings to IDE_HOME/workspaces/main/repo_name/settings. (Formerly managed by the obsolete "--code" flag)
+        //this is a special case - here we need to symlink from IDE_HOME/settings to IDE_HOME/workspaces/main/repo_name/settings.
+        // (Formerly managed by the obsolete "--code" flag)
         Path repoMoveTargetDirectory = this.context.getWorkspacePath().resolve(gitProjectName);
         Path symlinkPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_SETTINGS);
         Path repoSettingsDirectory = repoMoveTargetDirectory.resolve(IdeContext.FOLDER_SETTINGS);
@@ -159,8 +162,8 @@ public class SettingsUpdater {
 
   /**
    * Health check for settings that are already present. As the project keeps working with these settings, a failure is only fatal if the user explicitly
-   * aborted. Here, if a new version is available, we clone the new version into a temporary folder and perform health checks. If the cloned, new version is valid,
-   * we call git update in the existing settings folder.
+   * aborted. Here, if a new version is available, we clone the new version into a temporary folder and perform health checks.
+   * If the cloned, new version is valid, we call git update in the existing settings folder.
    */
   private SettingsHealthCheckResult checkSettingsPresent(Path settingsPath, RepositoryType repositoryType) {
 
