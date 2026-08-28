@@ -3,7 +3,6 @@ package com.devonfw.tools.ide.commandlet.update.settings;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.jline.utils.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,9 +20,9 @@ import com.devonfw.tools.ide.property.StringProperty;
 /**
  * Handles the settings repository of the current project in two phases:
  * <ol>
- * <li>{@link #checkSettings() health check}: the settings are always cloned into a temporary directory first where it is verified that the git URL is valid,
+ * <li>{@link #checkSettings(Path)} health check: the settings are always cloned into a temporary directory first where it is verified that the git URL is valid,
  * that cloning succeeded, and that the repository actually is a settings or a combined code and settings repository.</li>
- * <li>{@link #applySettings(SettingsHealthCheckResult) apply}: only after the health check succeeded the settings are either pulled in place (if they were already
+ * <li>{@link #applySettings(boolean, Path)} apply: only after the health check succeeded the settings are either pulled in place (if they were already
  * present) or the verified clone is moved to its final location.</li>
  * </ol>
  */
@@ -52,18 +51,21 @@ public class SettingsUpdater {
   /** The name of the git project - required to place a combined code and settings repository into the workspace. */
   private String gitProjectName;
 
+  private boolean isForceMode;
+
   /**
    * The constructor.
    *
    * @param context the {@link IdeContext}.
    * @param settingsRepoProperty the {@link StringProperty} with the settings repository URL from the update commandlet.
    */
-  public SettingsUpdater(IdeContext context, StringProperty settingsRepoProperty) {
+  public SettingsUpdater(IdeContext context, StringProperty settingsRepoProperty, boolean isForceMode) {
 
     super();
     this.context = context;
     this.settingsRepoProperty = settingsRepoProperty;
     this.fileAccess = context.getFileAccess();
+    this.isForceMode = isForceMode;
   }
 
   /**
@@ -79,7 +81,7 @@ public class SettingsUpdater {
       // for a combined code and settings repository IDE_HOME/settings is a symlink into the code repository whose '.git' folder is one level above,
       // so isGitRepo would report it as broken settings
       RepositoryType settingsRepoType = RepositoryUtil.getRepositoryType(settingsPath);
-      if (isSettingsOrCodeSettingsRepository(settingsRepoType)) {
+      if (settingsRepoType.isSettingsOrCodeSettingsRepository()) {
         return checkSettingsPresent(settingsPath, settingsRepoType);
       }
     }
@@ -87,47 +89,68 @@ public class SettingsUpdater {
   }
 
   /**
-   * Applies the result of the {@link #checkSettings() health check} by either pulling the settings in place or moving the verified clone to its final
+   * Applies the result of the {@link #checkSettings(Path)} health check by either pulling the settings in place or moving the verified clone to its final
    * location.
    *
+   * @param onlyPull if true, we simply perform a git pull on the actual (not the one in the temp directory) settings repository.
    * @param sourcePath sourcePath of the settings to apply.
    * @return a {@link SettingsUpdateResult} representing the state, whether moving/pulling the newest settings was successful.
    */
-  public SettingsUpdateResult applySettings(Path sourcePath) {
+  public SettingsUpdateResult applySettings(boolean onlyPull, Path sourcePath) {
 
     RepositoryType repositoryType = RepositoryUtil.getRepositoryType(sourcePath);
+    Path settingsPath = this.context.getSettingsPath();
 
+    // Case 1: We performed "ide update"; so settings already existed and we just need to perform a git pull in the existing repo.
+    if (onlyPull) {
+      repositoryType = RepositoryUtil.getRepositoryType(context.getSettingsPath());
+      if(repositoryType != RepositoryType.SETTINGS) {
+        return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_UPDATE_FAILED, repositoryType, "Expected settings repository for update.");
+      }
+
+      pullSettingsAndSaveCommitId(settingsPath);
+      return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_UPDATED, repositoryType, null);
+    }
+
+    // Case 2: We freshly cloned the settings repo and need to move it to a target directory.
     switch (repositoryType) {
-      case CODE -> {
-        //Technically should be caught during a health check, but we still handle this here.
+      case CODE, UNKNOWN -> {
 
-        return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_UPDATE_FAILED, repositoryType, MESSAGE_INVALID_REPOSITORY);
+        return moveSettingsOnlyIfForceMode(sourcePath, repositoryType);
       }
       case SETTINGS -> {
         //move to IDE_HOME/SETTINGS
 
-        moveProject(sourcePath, context.getSettingsPath());
+        moveProject(sourcePath, settingsPath);
+        this.context.getGitContext().saveCurrentCommitId(settingsPath, this.context.getSettingsCommitIdPath());
         return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_CLONED, repositoryType, null);
       }
       case CODE_SETTINGS_COMBINED -> {
         //this is a special case - here we need to symlink from IDE_HOME/settings to IDE_HOME/workspaces/main/repo_name/settings. (Formerly managed by the obsolete "--code" flag)
-        Path targetDirectory = this.context.getWorkspacePath().resolve(gitProjectName);
-        moveProject(sourcePath, targetDirectory);
-
+        Path repoMoveTargetDirectory = this.context.getWorkspacePath().resolve(gitProjectName);
         Path symlinkPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_SETTINGS);
-        Path symlinkTargetPath = this.context.getWorkspacePath().resolve(gitProjectName).resolve(IdeContext.FOLDER_SETTINGS);
+        Path repoSettingsDirectory = repoMoveTargetDirectory.resolve(IdeContext.FOLDER_SETTINGS);
 
-        context.getFileAccess().symlink(symlinkTargetPath, symlinkPath);
-        this.context.getGitContext().saveCurrentCommitId(symlinkTargetPath, this.context.getSettingsCommitIdPath());
+        moveProject(sourcePath, repoMoveTargetDirectory);
+
+        context.getFileAccess().symlink(repoSettingsDirectory, symlinkPath);
+
+        this.context.getGitContext().saveCurrentCommitId(repoSettingsDirectory, this.context.getSettingsCommitIdPath());
         return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_CLONED, repositoryType, null);
-      }
-      case UNKNOWN -> {
-
-        return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_UPDATE_FAILED, repositoryType, MESSAGE_INVALID_REPOSITORY);
       }
     }
 
     return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_UPDATE_FAILED, repositoryType, "Unknown error during settings");
+  }
+
+  private SettingsUpdateResult moveSettingsOnlyIfForceMode(Path sourcePath, RepositoryType repositoryType) {
+    if(this.isForceMode) {
+      moveProject(sourcePath, this.context.getSettingsPath());
+      return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_CLONED, repositoryType, null);
+    } else {
+      //Technically should be caught during a health check, but we still handle this here.
+      return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_UPDATE_FAILED, repositoryType, MESSAGE_INVALID_REPOSITORY);
+    }
   }
 
   /**
@@ -144,12 +167,12 @@ public class SettingsUpdater {
       cleanup();
 
       //If cloned repo is not (code-)settings repo and no force override (e.g. force mode) is applied, return error.
-      if (!isSettingsOrCodeSettingsRepository(clonedType) && !requestUserConfirmInvalidRepository(clonedType, gitUrl)) {
+      if (!clonedType.isSettingsOrCodeSettingsRepository() && !requestUserConfirmInvalidRepository(clonedType, gitUrl)) {
         return SettingsHealthCheckResult.failed(clonedType, MESSAGE_INVALID_REPOSITORY, settingsPath);
       }
 
       //Otherwise, (e.g. user overrides), return valid.
-      return SettingsHealthCheckResult.of(HealthCheckResultStatus.SETTINGS_VALID, repositoryType, settingsPath);
+      return SettingsHealthCheckResult.of(HealthCheckResultStatus.SETTINGS_VALID_EXISTING, repositoryType, settingsPath);
     } catch (RuntimeException e) {
       cleanup();
       if (e instanceof CliAbortException) {
@@ -171,7 +194,7 @@ public class SettingsUpdater {
 
       Path tempCloneDir = cloneRepoToTempDir(gitUrl);
       RepositoryType repositoryType = RepositoryUtil.getRepositoryType(tempCloneDir);
-      if (!isSettingsOrCodeSettingsRepository(repositoryType) && !requestUserConfirmInvalidRepository(repositoryType, gitUrl)) {
+      if (!repositoryType.isSettingsOrCodeSettingsRepository() && !requestUserConfirmInvalidRepository(repositoryType, gitUrl)) {
         //see @javadoc why we throw fatally here.
         throw new CliFatalException(MESSAGE_INVALID_REPOSITORY);
       }
@@ -194,13 +217,11 @@ public class SettingsUpdater {
     } else if (error instanceof CliException) {
       return new CliFatalException(error.getMessage(), error);
     }
-    return new CliFatalException("Failed to set up the settings repository: " + error.getMessage(), error);
+    return new CliFatalException("Error occurred during settings update: " + error.getClass() + ": " + error.getMessage(), error);
   }
 
-  //TODO: Reimplement this!
-  private void pullSettings() {
+  private void pullSettingsAndSaveCommitId(Path settingsPath) {
 
-    Path settingsPath = this.context.getSettingsPath();
     GitContext gitContext = this.context.getGitContext();
     if (gitContext.hasUntrackedFiles(settingsPath)) {
       gitContext.pullSafelyWithStash(settingsPath);
@@ -208,27 +229,6 @@ public class SettingsUpdater {
       gitContext.pull(settingsPath);
     }
     gitContext.saveCurrentCommitId(settingsPath, this.context.getSettingsCommitIdPath());
-  }
-
-  private void moveSettings(RepositoryType repositoryType) {
-
-    Path settingsPath = this.context.getSettingsPath();
-    if ((repositoryType == RepositoryType.SETTINGS) || (repositoryType == RepositoryType.UNKNOWN)) {
-      moveProject(this.tempRepoDir, settingsPath);
-      this.context.getGitContext().saveCurrentCommitId(settingsPath, this.context.getSettingsCommitIdPath());
-    } else {
-      // for a code repository we clone into the workspace and symlink IDE_HOME/settings to its settings folder
-      Path codePath = this.context.getWorkspacePath().resolve(this.gitProjectName);
-      moveProject(this.tempRepoDir, codePath);
-      Path settingsFolder = codePath.resolve(IdeContext.FOLDER_SETTINGS);
-      if (Files.isDirectory(settingsFolder)) {
-        this.context.getFileAccess().symlink(settingsFolder, settingsPath);
-        this.context.getGitContext().saveCurrentCommitId(settingsFolder, this.context.getSettingsCommitIdPath());
-      } else {
-        LOG.warn("The repository has been cloned to {} but it does not contain a settings folder so your project has no settings.", codePath);
-      }
-    }
-    this.tempRepoDir = null;
   }
 
   /**
@@ -266,18 +266,15 @@ public class SettingsUpdater {
    * @return {@code true} if the user explicitly wants to continue with an invalid repository, {@code false} otherwise.
    */
   private boolean requestUserConfirmInvalidRepository(RepositoryType repositoryType, GitUrl gitUrl) {
+    LOG.warn("{}\nURL: {}\nDetected repository type: {}", MESSAGE_INVALID_REPOSITORY, gitUrl, repositoryType);
 
-    if (!this.context.isForceMode()) {
+    // If we are in force mode, we give the user the option continue with a potentially invalid repo. If not in FM, we skip asking and act as if he declined.
+    if(!this.isForceMode) {
       return false;
     }
-    LOG.warn("{}\nURL: {}\nDetected repository type: {}", MESSAGE_INVALID_REPOSITORY, gitUrl, repositoryType);
-    this.context.askToContinue("Force mode is active. Do you want to continue anyway?");
+
+    this.context.askToContinue("The (update of the) settings repository you are trying to apply seems to be broken. Do you want to continue anyway?");
     return true;
-  }
-
-  private static boolean isSettingsOrCodeSettingsRepository(RepositoryType repositoryType) {
-
-    return (repositoryType == RepositoryType.SETTINGS) || (repositoryType == RepositoryType.CODE_SETTINGS_COMBINED);
   }
 
   /**

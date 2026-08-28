@@ -184,7 +184,8 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
   private void updateSettingsInStep(Step step) {
 
-    SettingsUpdater settingsUpdater = new SettingsUpdater(this.context, this.settingsRepo);
+    //TODO: Only check for forcePull flag or also context.forceMode?
+    SettingsUpdater settingsUpdater = new SettingsUpdater(this.context, this.settingsRepo, (this.forcePull.isTrue()));
     try {
       //Step 1: Perform health check
       Step healthCheckStep = this.context.newStep("Performing settings health check");
@@ -212,10 +213,10 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       applySettingsStep.run(() -> {
         SettingsUpdateResult settingsUpdateResult = settingsUpdater.applySettings(healthCheckResult.status() == HealthCheckResultStatus.SETTINGS_VALID_EXISTING,
             healthCheckResult.temporarySettingsDirectory());
-
         if (settingsUpdateResult == null) {
           throw new CliFatalException("Failed to apply the settings update due to unknown error.");
         }
+
         switch (settingsUpdateResult.updateStatus()) {
           case SETTINGS_UPDATED -> applySettingsStep.success("Settings update successfully applied");
           case SETTINGS_CLONED -> applySettingsStep.success("Settings successfully applied (cloned)");
