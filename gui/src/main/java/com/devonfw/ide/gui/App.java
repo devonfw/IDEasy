@@ -19,6 +19,7 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.ide.gui.console.ConsoleController;
 import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.context.TaskManager;
 import com.devonfw.ide.gui.modal.IdeDialog;
@@ -43,25 +44,23 @@ public class App extends Application {
 
   private NlsService nlsService;
 
-  private MainController mainController;
-
   TaskManager taskManager = new TaskManager();
   GuiStateManager guiStateManager = new GuiStateManager(taskManager, null);
 
-  private static final Logger LOG = LoggerFactory.getLogger(App.class);
+  private MainController mainController;
+
+  private final Logger LOG = LoggerFactory.getLogger(App.class);
 
   @Override
   public void start(Stage primaryStage) throws IOException {
+    Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+      LOG.error("Uncaught exception in thread {}: {}", thread.getName(), throwable.getMessage(), throwable);
+      Platform.runLater(() -> new IdeDialog(IdeDialog.AlertType.ERROR, throwable.getMessage()).showAndWait());
+    });
 
     this.primaryStage = primaryStage;
 
     this.nlsService = new NlsService(null);
-
-    Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
-          LOG.error("Uncaught exception in thread {}: {}", thread.getName(), throwable.getMessage(), throwable);
-          Platform.runLater(() -> new IdeDialog(IdeDialog.AlertType.ERROR, throwable.getMessage()).showAndWait());
-        }
-    );
 
     root = loadMainView(null);
 
@@ -131,7 +130,14 @@ public class App extends Application {
     FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
     fxmlLoader.setResources(this.nlsService.getResourceBundle());
     this.mainController = new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()), guiStateManager, this.nlsService, oldMainController);
-    fxmlLoader.setController(this.mainController);
+    fxmlLoader.setControllerFactory(clazz -> {
+      if (clazz == ConsoleController.class) {
+        return new ConsoleController(this.nlsService);
+      } else if (clazz == MainController.class) {
+        return this.mainController;
+      }
+      return null;
+    });
     return fxmlLoader.load();
   }
 
