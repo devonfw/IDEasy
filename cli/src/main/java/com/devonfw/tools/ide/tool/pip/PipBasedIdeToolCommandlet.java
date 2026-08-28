@@ -90,11 +90,6 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
     throw new UnsupportedOperationException("Repository import is not yet implemented for IDE " + this.tool);
   }
 
-  @Override
-  public Path getToolPath() {
-    return this.context.getSoftwarePath().resolve(this.tool);
-  }
-
   /**
    * @return the {@link PluginManager} implementing the plugin logic of this {@link PipBasedIdeToolCommandlet}.
    */
@@ -205,7 +200,7 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
    * @param plugin the {@link ToolPluginDescriptor} to install or uninstall. Its {@link ToolPluginDescriptor#id() ID} is used as name of the python
    *     package.
    * @param pc the {@link ProcessContext} to use or {@code null} to create a new one.
-   * @return the {@link Processresult}
+   * @return the {@link ProcessResult}
    */
   private ProcessResult runPluginPackageManager(String type, ToolPluginDescriptor plugin, ProcessContext pc) {
 
