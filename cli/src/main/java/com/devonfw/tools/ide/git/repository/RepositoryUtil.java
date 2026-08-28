@@ -20,7 +20,7 @@ public class RepositoryUtil {
    */
   public static RepositoryType getRepositoryType(Path repositoryPath) {
 
-    if (!Files.isDirectory(repositoryPath)) {
+    if (repositoryPath == null || !Files.isDirectory(repositoryPath)) {
       return RepositoryType.UNKNOWN;
     }
     if (isSettingsFolder(repositoryPath)) {
