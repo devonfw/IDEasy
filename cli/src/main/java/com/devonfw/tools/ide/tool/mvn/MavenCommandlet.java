@@ -4,7 +4,6 @@ package com.devonfw.tools.ide.tool.mvn;
 import java.util.List;
 import java.util.Set;
 
-
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.completion.AutoCompletionRegistry;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -82,5 +81,3 @@ public abstract class MavenCommandlet extends LocalToolCommandlet {
     registry.addDependency("-Dexec.args=", List.of("exec:java", "exec:exec"));
   }
 }
-
-

@@ -56,7 +56,8 @@ public class AutoCompletionRegistry {
   }
 
   /**
-   * Registers two already-added candidates as alternatives to each other, so that once one is provided on the command line, the other is no longer
+   * Registers two already-added candidates as alternatives to each other, so that once one is provided on the command line,
+   * the other is no longer be suggested.
    *
    * @param candidate1 the text of the first candidate (must have been added via {@link #add(String)} before).
    * @param candidate2 the text of the second candidate (must have been added via {@link #add(String)} before).

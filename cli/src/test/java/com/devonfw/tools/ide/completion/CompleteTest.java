@@ -427,7 +427,7 @@ class CompleteTest extends AbstractIdeContextTest {
   }
 
   /**
-   *
+   * Verifies that {@code exec:exec} is not suggested when {@code exec:java} has already been provided as an alternative command.
    */
   @Test
   void testAlternativeFilteringWhenOtherAlternativeProvidedJava() {
@@ -447,7 +447,7 @@ class CompleteTest extends AbstractIdeContextTest {
   }
 
   /**
-   *
+   * Verifies that {@code exec:java} is not suggested when {@code exec:exec} has already been provided as an alternative command.
    */
   @Test
   void testAlternativeFilteringWhenOtherAlternativeProvidedExec() {
