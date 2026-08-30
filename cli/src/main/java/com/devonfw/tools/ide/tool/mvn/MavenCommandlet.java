@@ -49,8 +49,6 @@ public abstract class MavenCommandlet extends LocalToolCommandlet {
     registry.add("help:effective-settings");
     registry.add("-DskipTests");
     registry.add("-Dmaven.test.skip=true");
-    registry.add("exec:java");
-    registry.add("exec:exec");
     registry.add("-P");
     registry.add("-pl");
     registry.add("-am");
@@ -75,6 +73,8 @@ public abstract class MavenCommandlet extends LocalToolCommandlet {
     registry.add("-Dstyle.color=");
     registry.add("-Duser.dir=");
     registry.add("-Duser.home=");
+    registry.add("exec:java");
+    registry.add("exec:exec");
     registry.addAlternative("exec:java", "exec:exec");
     registry.add("-Dexec.mainClass=");
     registry.addDependency("-Dexec.mainClass=", List.of("exec:java"));

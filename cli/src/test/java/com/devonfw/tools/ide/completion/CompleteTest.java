@@ -426,6 +426,9 @@ class CompleteTest extends AbstractIdeContextTest {
         .contains("dependency:list", "dependency:tree", "deploy");
   }
 
+  /**
+   *
+   */
   @Test
   void testAlternativeFilteringWhenOtherAlternativeProvidedJava() {
 
@@ -443,6 +446,9 @@ class CompleteTest extends AbstractIdeContextTest {
     assertThat(texts).doesNotContain("exec:exec");
   }
 
+  /**
+   *
+   */
   @Test
   void testAlternativeFilteringWhenOtherAlternativeProvidedExec() {
 
@@ -460,12 +466,15 @@ class CompleteTest extends AbstractIdeContextTest {
     assertThat(texts).doesNotContain("exec:java");
   }
 
+  /**
+   * Test that an entry with an unsatisfied dependency is not suggested.
+   */
   @Test
   void testDependencyNotSatisfiedIsNotSuggested() {
 
     // arrange
     AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
-    String[] argsArray = { "mvn", "-Dexec.mainClass" };
+    String[] argsArray = { "mvn", "-Dexec.main" };
     CliArguments args = CliArguments.ofCompletion(argsArray);
     CompletionCandidateCollector collector = createCollector(context, argsArray);
 
@@ -473,15 +482,18 @@ class CompleteTest extends AbstractIdeContextTest {
     List<CompletionCandidate> candidates = context.complete(args, collector, true);
 
     // assert
-    assertThat(candidates.stream().map(CompletionCandidate::text)).doesNotContain("-Dexec:mainClass=");
+    assertThat(candidates.stream().map(CompletionCandidate::text)).doesNotContain("-Dexec.mainClass=");
   }
 
+  /**
+   * Test that an entry with a satisfied dependency is suggested.
+   */
   @Test
-  void testDependencyNotSatisfiedIsSuggested() {
+  void testDependencySatisfiedIsSuggested() {
 
     // arrange
     AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
-    String[] argsArray = { "mvn", "exec:java", "-Dexec.mainClass" };
+    String[] argsArray = { "mvn", "exec:java", "-Dexec.mainCla" };
     CliArguments args = CliArguments.ofCompletion(argsArray);
     CompletionCandidateCollector collector = createCollector(context, argsArray);
 
@@ -489,15 +501,18 @@ class CompleteTest extends AbstractIdeContextTest {
     List<CompletionCandidate> candidates = context.complete(args, collector, true);
 
     // assert
-    assertThat(candidates.stream().map(CompletionCandidate::text)).contains("-Dexec:mainClass=");
+    assertThat(candidates.stream().map(CompletionCandidate::text)).contains("-Dexec.mainClass=");
   }
 
+  /**
+   * Test that an entry with an OR-dependency is suggested if any alternative of the group is provided.
+   */
   @Test
   void testDependencyOrGroupSatisfiedByEitherAlternative() {
 
     // arrange
     AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
-    String[] argsArray = { "mvn", "exec:exec", "-Dexec.args" };
+    String[] argsArray = { "mvn", "exec:exec", "-Dexec.arg" };
     CliArguments args = CliArguments.ofCompletion(argsArray);
     CompletionCandidateCollector collector = createCollector(context, argsArray);
 
@@ -505,6 +520,6 @@ class CompleteTest extends AbstractIdeContextTest {
     List<CompletionCandidate> candidates = context.complete(args, collector, true);
 
     // assert
-    assertThat(candidates.stream().map(CompletionCandidate::text)).contains("-Dexec:args=");
+    assertThat(candidates.stream().map(CompletionCandidate::text)).contains("-Dexec.args=");
   }
 }
