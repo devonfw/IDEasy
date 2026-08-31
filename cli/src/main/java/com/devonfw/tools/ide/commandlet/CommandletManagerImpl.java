@@ -54,6 +54,7 @@ import com.devonfw.tools.ide.tool.nest.Nest;
 import com.devonfw.tools.ide.tool.ng.Ng;
 import com.devonfw.tools.ide.tool.node.Node;
 import com.devonfw.tools.ide.tool.npm.Npm;
+import com.devonfw.tools.ide.tool.obsidian.Obsidian;
 import com.devonfw.tools.ide.tool.oc.Oc;
 import com.devonfw.tools.ide.tool.pgadmin.PgAdmin;
 import com.devonfw.tools.ide.tool.pip.Pip;
@@ -188,6 +189,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Just(context));
     add(new SoapUi(context));
     add(new Ruff(context));
+    add(new Obsidian(context));
   }
 
   /**
