@@ -40,7 +40,6 @@ import com.devonfw.tools.ide.commandlet.UpgradeCommandlet;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
-import com.devonfw.tools.ide.completion.CompletionCandidateCollectorDefault;
 import com.devonfw.tools.ide.environment.AbstractEnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
@@ -64,6 +63,7 @@ import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.os.WindowsHelperImpl;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
+import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessContextImpl;
 import com.devonfw.tools.ide.process.ProcessResult;
@@ -71,14 +71,16 @@ import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.step.StepImpl;
+import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.custom.CustomToolRepository;
 import com.devonfw.tools.ide.tool.custom.CustomToolRepositoryImpl;
 import com.devonfw.tools.ide.tool.mvn.MvnRepository;
 import com.devonfw.tools.ide.tool.npm.NpmRepository;
 import com.devonfw.tools.ide.tool.pip.PipRepository;
+import com.devonfw.tools.ide.tool.python.PythonRepository;
 import com.devonfw.tools.ide.tool.repository.DefaultToolRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
-import com.devonfw.tools.ide.tool.python.PythonRepository;
 import com.devonfw.tools.ide.tool.uv.UvRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.util.DateTimeUtil;
@@ -966,6 +968,29 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     return this.system;
   }
 
+  @Override
+  public void setEnvironmentOfInstalledTools(EnvironmentContext environmentContext) {
+
+    if (getSoftwarePath() == null) {
+      return;
+    }
+    for (Commandlet commandlet : getCommandletManager().getCommandlets()) {
+      if (commandlet instanceof LocalToolCommandlet tool) {
+        Path toolPath = tool.getToolPath();
+        // we cannot use isInstalled() here since it may spawn processes (e.g. "npm --version") what would be way too expensive.
+        if ((toolPath != null) && Files.isDirectory(toolPath)) {
+          try {
+            // for performance optimization, we do a hack here and assume that the installedVersion is never used by any setEnvironment method implementation.
+            ToolInstallation toolInstallation = new ToolInstallation(toolPath, toolPath, tool.getToolBinPath(), VersionIdentifier.LATEST, false);
+            tool.setEnvironment(environmentContext, toolInstallation, false);
+          } catch (Exception e) {
+            LOG.warn("Failed to set the environment variables of the installed tool {}.", tool.getName(), e);
+          }
+        }
+      }
+    }
+  }
+
   /**
    * @return a new instance of {@link ProcessContext}.
    * @see #newProcess()
@@ -1084,7 +1109,6 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
     assert (options.length > 0);
     IdeLogLevel.INTERACTION.log(LOG, question, args);
-    LOG.warn(question, args);
     return displayOptionsAndGetAnswer(options);
   }
 
@@ -1250,6 +1274,16 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       IdeLogLevel.INTERACTION.log(LOG, "For additional details run ide help {}", cmd == null ? "" : cmd.getName());
       return 1;
     } catch (Throwable t) {
+      if (cmd != null && cmd.isProcessableOutput()) {
+        // Processable output commandlets (auto-completion, env) write machine-consumed output to stdout. A failure
+        // there must not pollute that output with an error block and "file a bug" screen — so we record the failure
+        // (step.error still logs "Step ... ended with failure" for step tracking) and fail quietly instead of
+        // rethrowing, which would make Ideasy.run() log the error at ERROR level into the captured output.
+        step.error(t, true);
+        return 1;
+      }
+      // Do not activate logging for processable output commandlets (e.g. CompleteCommandlet) — errors would appear
+      // in the terminal as completion suggestions to the user.
       activateLogging(cmd);
       step.error(t, true);
       if (this.logfile != null) {
@@ -1543,9 +1577,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
    * @param includeContextOptions to include the options of {@link ContextCommandlet}.
    * @return the {@link List} of {@link CompletionCandidate}s to suggest.
    */
-  public List<CompletionCandidate> complete(CliArguments arguments, boolean includeContextOptions) {
+  public List<CompletionCandidate> complete(CliArguments arguments, CompletionCandidateCollector collector, boolean includeContextOptions) {
 
-    CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(this);
     if (arguments.current().isStart()) {
       arguments.next();
     }
@@ -1595,6 +1628,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   private void completeCommandlet(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
 
     LOG.trace("Trying to match arguments for auto-completion for commandlet {}", cmd.getName());
+
     Iterator<Property<?>> valueIterator = cmd.getValues().iterator();
     valueIterator.next(); // skip first property since this is the keyword property that already matched to find the commandlet
     Property<?> currentValueProperty = nextValueProperty(valueIterator, arguments);

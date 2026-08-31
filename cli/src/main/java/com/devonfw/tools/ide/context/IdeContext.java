@@ -24,6 +24,7 @@ import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.network.NetworkStatus;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
+import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.corepack.Corepack;
@@ -127,6 +128,9 @@ public interface IdeContext extends IdeStartContext {
   /** The name of the bin folder where executable files are found by default. */
   String FOLDER_BIN = "bin";
 
+  /** The name of the repository folder used to store repository data */
+  String FOLDER_REPOSITORY = "repository";
+
   /** The name of the repositories folder where properties files are stores for each repository */
   String FOLDER_REPOSITORIES = "repositories";
 
@@ -169,8 +173,8 @@ public interface IdeContext extends IdeStartContext {
    * configured every time. This is only for settings that have to be the same for every developer in the project. An example would be the number of spaces used
    * for indentation and other code-formatting settings. If all developers in a project team use the same formatter settings, this will actively prevent
    * diff-wars. However, the entire team needs to agree on these settings.<br> Never configure aspects inside this update folder that may be of personal flavor
-   * such as the color theme. Otherwise developers will hate you as you actively take away their freedom to customize the IDE to their personal needs and
-   * wishes. Therefore do all "biased" or "flavored" configurations in {@link #FOLDER_SETUP setup} so these are only pre-configured but can be changed by the
+   * such as the color theme. Otherwise, developers will hate you as you actively take away their freedom to customize the IDE to their personal needs and
+   * wishes. Therefore, do all "biased" or "flavored" configurations in {@link #FOLDER_SETUP setup} so these are only pre-configured but can be changed by the
    * user as needed.
    */
   String FOLDER_UPDATE = "update";
@@ -658,6 +662,15 @@ public interface IdeContext extends IdeStartContext {
    * @return a new {@link ProcessContext} to {@link ProcessContext#run() run} external commands.
    */
   ProcessContext newProcess();
+
+  /**
+   * Sets the environment variables of all tools installed in the {@link #getSoftwarePath() software path} in the given {@link EnvironmentContext}. This is the
+   * single source of truth for the tool environment: it is used for the environment exported to the user's shell (see
+   * {@link com.devonfw.tools.ide.commandlet.EnvironmentCommandlet}) as well as for the {@link ProcessContext} of a tool that is run via IDEasy.
+   *
+   * @param environmentContext the {@link EnvironmentContext} where to set the environment variables.
+   */
+  void setEnvironmentOfInstalledTools(EnvironmentContext environmentContext);
 
   /**
    * @param title the {@link IdeProgressBar#getTitle() title}.

@@ -7,6 +7,8 @@ import com.devonfw.ide.gui.progress.ProgressBarTask;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.io.IdeProgressBar;
+import com.devonfw.tools.ide.process.OutputListener;
+import com.devonfw.tools.ide.process.ProcessContext;
 
 /**
  * Implementation of {@link AbstractIdeContext} for the IDEasy dashboard (GUI).
@@ -14,6 +16,8 @@ import com.devonfw.tools.ide.io.IdeProgressBar;
 public class IdeGuiContext extends AbstractIdeContext {
 
   private final TaskManager taskManager;
+
+  private OutputListener outputListener;
 
   /**
    * The constructor.
@@ -53,5 +57,30 @@ public class IdeGuiContext extends AbstractIdeContext {
     taskManager.addTask(newTask);
 
     return newTask;
+  }
+
+  /**
+   * Sets the output listener for process output.
+   *
+   * @param outputListener the output listener
+   */
+  public void setOutputListener(OutputListener outputListener) {
+    this.outputListener = outputListener;
+  }
+
+  /**
+   * @return the output listener
+   */
+  public OutputListener getOutputListener() {
+    return this.outputListener;
+  }
+
+  @Override
+  public ProcessContext newProcess() {
+    ProcessContext processContext = super.newProcess();
+    if (this.outputListener != null) {
+      processContext.setOutputListener(this.outputListener);
+    }
+    return processContext;
   }
 }
