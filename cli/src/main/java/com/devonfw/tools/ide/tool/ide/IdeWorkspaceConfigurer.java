@@ -2,13 +2,28 @@ package com.devonfw.tools.ide.tool.ide;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.AbstractEnvironmentVariables;
+import com.devonfw.tools.ide.environment.ExtensibleEnvironmentVariables;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.merge.xml.XmlMergeDocument;
+import com.devonfw.tools.ide.merge.xml.XmlMerger;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.extra.ExtraToolInstallation;
+import com.devonfw.tools.ide.tool.extra.ExtraTools;
+import com.devonfw.tools.ide.tool.extra.ExtraToolsMapper;
 
 /**
  * Configures IDE workspaces by merging templates from settings repositories.
@@ -22,6 +37,7 @@ public class IdeWorkspaceConfigurer {
 
   private final IdeContext context;
   private final String toolName;
+  private final Map<String, Set<Path>> extraSdkMap;
 
   /**
    * Creates a new workspace configurer for the given IDE tool.
@@ -32,6 +48,25 @@ public class IdeWorkspaceConfigurer {
   public IdeWorkspaceConfigurer(IdeContext context, String toolName) {
     this.context = context;
     this.toolName = toolName;
+    this.extraSdkMap = new HashMap<>();
+  }
+
+  /**
+   * Registers support for synchronizing an extra SDK/template for this IDE.
+   *
+   * <p>
+   * The registered template path must be relative to the IDE workspace root. During workspace synchronization, the generic extra-SDK handling in
+   * {@link #synchronizeExtraToolInstallations()} uses this mapping to locate the corresponding template file in the settings repository and merge it into the
+   * current workspace.
+   * </p>
+   *
+   * @param sdk the name of the extra SDK/tool as configured in {@code ide-extra-tools.json}.
+   * @param relativeTemplatePath the workspace-relative path of the IDE-specific template file to merge.
+   */
+  public void registerExtraSdkTemplate(String sdk, Path relativeTemplatePath) {
+
+    Set<Path> templatePaths = this.extraSdkMap.computeIfAbsent(sdk, _ -> new HashSet<>());
+    templatePaths.add(relativeTemplatePath);
   }
 
   /**
@@ -54,6 +89,9 @@ public class IdeWorkspaceConfigurer {
     errors = mergeWorkspace(this.context.getUserHomeIde(), workspaceFolder, errors);
     errors = mergeWorkspace(this.context.getSettingsPath(), workspaceFolder, errors);
     errors = mergeWorkspace(this.context.getConfPath(), workspaceFolder, errors);
+
+    synchronizeExtraToolInstallations();
+
     if (errors == 0) {
       step.success();
     } else {
@@ -83,5 +121,66 @@ public class IdeWorkspaceConfigurer {
     }
     LOG.debug("Merging workspace templates from {}...", templatesFolder);
     return errors + this.context.getWorkspaceMerger().merge(setupFolder, updateFolder, this.context.getVariables(), workspaceFolder);
+  }
+
+  private void synchronizeExtraToolInstallations() {
+
+    ExtraTools extraTools = ExtraToolsMapper.get().loadJsonFromFolder(this.context.getSettingsPath());
+    if (extraTools == null) {
+      return;
+    }
+    for (String sdk : extraTools.getSortedToolNames()) {
+      Set<Path> templatePaths = this.extraSdkMap.get(sdk);
+      if ((templatePaths == null) || templatePaths.isEmpty()) {
+        LOG.debug("Skipping import of extra tool {} into {} because not configured or supported.", sdk, this.toolName);
+        continue;
+      }
+      List<ExtraToolInstallation> extraInstallations = extraTools.getExtraInstallations(sdk);
+      synchronizeExtraToolInstallation(sdk, templatePaths, extraInstallations);
+    }
+  }
+
+  private void synchronizeExtraToolInstallation(String sdk, Set<Path> templatePaths, List<ExtraToolInstallation> extraInstallations) {
+
+    for (Path templatePath : templatePaths) {
+      Path workspaceFile = this.context.getWorkspacePath().resolve(templatePath);
+      Path templateFile = this.context.getSettingsPath().resolve(this.toolName).resolve(IdeContext.FOLDER_WORKSPACE)
+          .resolve(IdeContext.FOLDER_REPOSITORY)
+          .resolve(templatePath);
+      if (Files.exists(templateFile)) {
+        for (ExtraToolInstallation extraInstallation : extraInstallations) {
+          synchronizeExtraToolInstallation(sdk, templateFile, workspaceFile, extraInstallation);
+        }
+      } else {
+        LOG.warn("You are missing a template file at {}.", templatePath);
+        IdeLogLevel.INTERACTION.log(LOG, "Please ask the IDEasy admin in your project to merge your settings with upstream.");
+      }
+    }
+  }
+
+  private void synchronizeExtraToolInstallation(String sdk, Path templateFile, Path workspaceFile, ExtraToolInstallation installation) {
+
+    String name = installation.name();
+    Path extraToolHome = this.context.getSoftwareExtraPath().resolve(sdk).resolve(name);
+    if (!Files.isDirectory(extraToolHome)) {
+      LOG.warn("Skipping extra tool installation import to {} because it is missing at {}", this.toolName, extraToolHome);
+      IdeLogLevel.INTERACTION.log(LOG, "Please run the following command to fix:\nide update");
+      return;
+    }
+    ExtensibleEnvironmentVariables environmentVariables = new ExtensibleEnvironmentVariables(
+        (AbstractEnvironmentVariables) this.context.getVariables().getParent(), this.context);
+    String variablePrefix = "EXTRA_" + sdk.toUpperCase(Locale.ROOT);
+    environmentVariables.setValue(variablePrefix + "_NAME", name);
+    environmentVariables.setValue(variablePrefix + "_HOME", extraToolHome.toString().replace('\\', '/'));
+    environmentVariables.setValue(variablePrefix + "_VERSION", installation.version().toString());
+    if (installation.edition() != null) {
+      environmentVariables.setValue(variablePrefix + "_EDITION", installation.edition());
+    }
+
+    XmlMerger xmlMerger = new XmlMerger(this.context);
+    XmlMergeDocument workspaceDocument = xmlMerger.load(workspaceFile);
+    XmlMergeDocument templateDocument = xmlMerger.loadAndResolve(templateFile, environmentVariables);
+    Document mergedDocument = xmlMerger.merge(templateDocument, workspaceDocument, false);
+    xmlMerger.save(mergedDocument, workspaceFile);
   }
 }
