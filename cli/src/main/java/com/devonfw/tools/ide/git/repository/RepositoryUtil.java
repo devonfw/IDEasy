@@ -6,8 +6,6 @@ import java.nio.file.Path;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.git.GitContext;
-import com.devonfw.tools.ide.git.GitContextImpl;
-import com.devonfw.tools.ide.git.GitUrl;
 
 /**
  * Utility class for IDEasy settings/code repositories.

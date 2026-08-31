@@ -191,7 +191,8 @@ public class SettingsUpdater {
   }
 
   /**
-   * Health check for missing or broken settings. Without valid settings there is nothing to continue with, so every failure is fatal here.
+   * Health check for missing or broken settings (e.g. {@code ide create}).
+   * Without valid settings there is nothing to continue with, so every failure is fatal here.
    */
   private SettingsHealthCheckResult checkClonedSettings(Path settingsPath) {
 

@@ -10,7 +10,6 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import com.devonfw.tools.ide.cli.CliException;
-import com.devonfw.tools.ide.cli.CliFatalException;
 import com.devonfw.tools.ide.commandlet.update.settings.HealthCheckResultStatus;
 import com.devonfw.tools.ide.commandlet.update.settings.SettingsHealthCheckResult;
 import com.devonfw.tools.ide.commandlet.update.settings.SettingsUpdateResult;
