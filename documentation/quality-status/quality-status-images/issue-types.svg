@@ -23,12 +23,12 @@
 <path d="M 170.0 164.0 L 170.0 64.0 A 100.0 100.0 0 0 1 269.8 157.4 Z" fill="#0969da"/>
 <rect x="330" y="66" width="14" height="14" rx="2" fill="#0969da"/>
 <text x="354" y="78" fill="var(--chart-text)" font-family="sans-serif" font-size="13">Bugs: 40 (24.0%)</text>
-<path d="M 170.0 164.0 L 269.8 157.4 A 100.0 100.0 0 0 1 171.9 264.0 Z" fill="#1f883d"/>
+<path d="M 170.0 164.0 L 269.8 157.4 A 100.0 100.0 0 0 1 164.4 263.8 Z" fill="#1f883d"/>
 <rect x="330" y="96" width="14" height="14" rx="2" fill="#1f883d"/>
-<text x="354" y="108" fill="var(--chart-text)" font-family="sans-serif" font-size="13">Tasks: 43 (25.7%)</text>
-<path d="M 170.0 164.0 L 171.9 264.0 A 100.0 100.0 0 0 1 162.5 64.3 Z" fill="#bf8700"/>
+<text x="354" y="108" fill="var(--chart-text)" font-family="sans-serif" font-size="13">Tasks: 45 (26.9%)</text>
+<path d="M 170.0 164.0 L 164.4 263.8 A 100.0 100.0 0 0 1 162.5 64.3 Z" fill="#bf8700"/>
 <rect x="330" y="126" width="14" height="14" rx="2" fill="#bf8700"/>
-<text x="354" y="138" fill="var(--chart-text)" font-family="sans-serif" font-size="13">Features: 82 (49.1%)</text>
+<text x="354" y="138" fill="var(--chart-text)" font-family="sans-serif" font-size="13">Features: 80 (47.9%)</text>
 <path d="M 170.0 164.0 L 162.5 64.3 A 100.0 100.0 0 0 1 170.0 64.0 Z" fill="#8250df"/>
 <rect x="330" y="156" width="14" height="14" rx="2" fill="#8250df"/>
 <text x="354" y="168" fill="var(--chart-text)" font-family="sans-serif" font-size="13">No Type: 2 (1.2%)</text>
