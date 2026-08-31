@@ -58,9 +58,7 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
       this.context.askToContinue("Directory {} already exists. Do you want to continue?", newProjectPath);
       fileAccess.backup(newProjectPath);
     }
-    // point IDE_HOME to the new project before the settings are checked - this only computes the paths and creates nothing on disk so that a failing
-    // health check leaves no project behind. As IDE_HOME/settings does not exist yet the settings will be cloned instead of pulled.
-    this.context.setIdeHome(newProjectPath);
+
     super.doRun();
     this.context.getFileAccess().writeFileContent(IdeVersion.getVersionString(), newProjectPath.resolve(IdeContext.FILE_SOFTWARE_VERSION));
     IdeLogLevel.SUCCESS.log(LOG, "Successfully created new project '{}'.", this.newProject.getValue());
@@ -72,8 +70,10 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
 
     // only called after the settings passed the health check
     Path newProjectPath = getNewProjectPath();
+
     FileAccess fileAccess = this.context.getFileAccess();
     fileAccess.mkdirs(newProjectPath);
+    this.context.setIdeHome(newProjectPath);
     fileAccess.mkdirs(newProjectPath.resolve(IdeContext.FOLDER_SOFTWARE));
     fileAccess.mkdirs(newProjectPath.resolve(IdeContext.FOLDER_PLUGINS));
     fileAccess.mkdirs(newProjectPath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN));
