@@ -174,7 +174,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       return;
     }
     Step step = this.context.newStep(getStepMessage());
-    step.run(() -> updateSettingsInStep(step));
+    step.run(this::updateSettingsInStep);
   }
 
   protected String getStepMessage() {
@@ -182,9 +182,8 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     return "Update settings repository";
   }
 
-  private void updateSettingsInStep(Step step) {
+  private void updateSettingsInStep() {
 
-    //TODO: Only check for forcePull flag or also context.forceMode?
     SettingsUpdater settingsUpdater = new SettingsUpdater(this.context, this.settingsRepo, (this.forcePull.isTrue() || this.context.isForceMode()));
     try {
       //Step 1: Perform health check
@@ -202,8 +201,8 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
         return _healthCheckResult;
       }, () -> null);
 
-      //If health check failed and force mode is disabled, skip application of settings.
-      if(!this.forcePull.isTrue() && (healthCheckResult == null || healthCheckStep.isFailure())) {
+      //If health check failed and force mode is disabled, skip application of settings and fail "Update settings" step.
+      if(!this.forcePull.isTrue() && (healthCheckResult == null || healthCheckResult.status() == null || healthCheckStep.isFailure())) {
         throw new CliException("Settings update aborted due to error in health check");
       }
 
@@ -217,13 +216,14 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
         SettingsUpdateResult settingsUpdateResult = settingsUpdater.applySettings(healthCheckResult.status() == HealthCheckResultStatus.SETTINGS_VALID_EXISTING,
             healthCheckResult.temporarySettingsDirectory());
         if (settingsUpdateResult == null) {
-          throw new CliFatalException("Failed to apply the settings update due to unknown error.");
+
+          throw new CliException("Failed to apply the settings update due to unknown error.");
         }
 
         switch (settingsUpdateResult.updateStatus()) {
           case SETTINGS_UPDATED -> applySettingsStep.success("Settings update successfully applied");
           case SETTINGS_CLONED -> applySettingsStep.success("Settings successfully applied (cloned)");
-          case SETTINGS_UPDATE_FAILED -> throw new CliFatalException("The settings update could not be applied: " + settingsUpdateResult.errorMessage());
+          case SETTINGS_UPDATE_FAILED -> throw new CliException("The settings update could not be applied: " + settingsUpdateResult.errorMessage());
         }
       });
 

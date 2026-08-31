@@ -26,7 +26,7 @@ public class RepositoryUtil {
     if (repositoryPath == null || !Files.isDirectory(repositoryPath)) {
       return RepositoryType.UNKNOWN;
     }
-    if (isSettingsFolder(repositoryPath)) {
+    if (isSettingsFolder(repositoryPath) && Files.exists(repositoryPath.resolve(GitContext.GIT_FOLDER))) {
       return RepositoryType.SETTINGS;
     }
     Path settingsFolder = repositoryPath.resolve(IdeContext.FOLDER_SETTINGS);
@@ -46,8 +46,7 @@ public class RepositoryUtil {
    */
   private static boolean isSettingsFolder(Path folder) {
 
-    return Files.exists(folder.resolve(GitContext.GIT_FOLDER)) &&
-        (Files.exists(folder.resolve(EnvironmentVariables.DEFAULT_PROPERTIES))
+    return (Files.exists(folder.resolve(EnvironmentVariables.DEFAULT_PROPERTIES))
         || Files.exists(folder.resolve(EnvironmentVariables.LEGACY_PROPERTIES)));
   }
 }
