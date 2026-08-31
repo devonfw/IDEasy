@@ -235,6 +235,22 @@ function claude() {
   fi
 }
 
+function node() {
+  if [ -n "${IDE_HOME}" ]; then
+    ide node "$@"
+  else
+    command node "$@"
+  fi
+}
+
+function npm() {
+  if [ -n "${IDE_HOME}" ]; then
+    ide npm "$@"
+  else
+    command npm "$@"
+  fi
+}
+
 _ide_create_project()
 {
   local found_create=false
