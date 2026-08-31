@@ -18,7 +18,7 @@ public class Obsidian extends GlobalToolCommandlet {
    */
   public Obsidian(IdeContext context) {
 
-    super(context, "obsidian", Set.of(Tag.DOCUMENTATION, Tag.MARK_DOWN));
+    super(context, "obsidian", Set.of(Tag.MARK_DOWN));
   }
 
   @Override

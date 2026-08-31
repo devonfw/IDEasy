@@ -27,7 +27,7 @@ class ObsidianTest extends AbstractIdeContextTest {
     // assert
     assertThat(obsidian).isNotNull();
     assertThat(obsidian.getName()).isEqualTo("obsidian");
-    assertThat(obsidian.getTags()).containsExactlyInAnyOrder(Tag.DOCUMENTATION, Tag.MARK_DOWN);
+    assertThat(obsidian.getTags()).containsExactly(Tag.MARK_DOWN);
   }
 
   /**

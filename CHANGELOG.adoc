@@ -6,13 +6,14 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/2103[#2103]: Integrate Obsidian
+
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/50?closed=1[milestone 2026.09.002].
 
 == 2026.09.001
 
 Release with new features and bugfixes:
-* https://github.com/devonfw/IDEasy/issues/2103[#2103]: Integrate Obsidian
 
 * https://github.com/devonfw/IDEasy/issues/1525[#1525]: Document known issue and workaround for lombok plugin in Eclipse
 * https://github.com/devonfw/IDEasy/issues/1031[#1031]: Added OpenRewrite commandlet
