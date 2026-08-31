@@ -18,8 +18,6 @@ import com.devonfw.tools.ide.io.FileAccess;
  */
 class RepositoryCommandletTest extends AbstractIdeContextTest {
 
-  private static final String PROJECT_REPOSITORY = "repository";
-
   private static final String PROPERTIES_FILE = "test.properties";
   private static final String TEST_WORKSPACE = "test-workspace";
   private static final String TEST_BRANCH = "test-branch";
@@ -62,7 +60,7 @@ class RepositoryCommandletTest extends AbstractIdeContextTest {
   void testSetupSpecificRepository() {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_REPOSITORY);
+    IdeTestContext context = newContext(IdeContext.FOLDER_REPOSITORY);
     Properties properties = createDefaultProperties();
     RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
     saveProperties(context, properties);
@@ -78,7 +76,7 @@ class RepositoryCommandletTest extends AbstractIdeContextTest {
   void testSetupAllRepositoriesInactive() {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_REPOSITORY);
+    IdeTestContext context = newContext(IdeContext.FOLDER_REPOSITORY);
     Properties properties = createDefaultProperties();
     RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
     saveProperties(context, properties);
@@ -92,7 +90,7 @@ class RepositoryCommandletTest extends AbstractIdeContextTest {
   void testSetupSpecificRepositoryWithoutPath() {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_REPOSITORY);
+    IdeTestContext context = newContext(IdeContext.FOLDER_REPOSITORY);
     Properties properties = createDefaultProperties();
     properties.setProperty("path", "");
     RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
@@ -108,7 +106,7 @@ class RepositoryCommandletTest extends AbstractIdeContextTest {
   void testSetupSpecificRepositoryFailsWithoutGitUrl() {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_REPOSITORY);
+    IdeTestContext context = newContext(IdeContext.FOLDER_REPOSITORY);
     Properties properties = createDefaultProperties();
     properties.setProperty("git_url", "");
     Path repositoryTestProperties = context.getSettingsPath().resolve(IdeContext.FOLDER_REPOSITORIES).resolve(PROPERTIES_FILE);
@@ -127,7 +125,7 @@ class RepositoryCommandletTest extends AbstractIdeContextTest {
   void testRunNoRepositoriesOrProjectsFolderFound() {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_REPOSITORY);
+    IdeTestContext context = newContext(IdeContext.FOLDER_REPOSITORY);
     RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
     Path repositoriesPath = context.getSettingsPath().resolve(IdeContext.FOLDER_REPOSITORIES);
     context.getFileAccess().delete(repositoriesPath);
@@ -141,7 +139,7 @@ class RepositoryCommandletTest extends AbstractIdeContextTest {
   void testSetupSpecificRepositoryWithForceOption() {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_REPOSITORY);
+    IdeTestContext context = newContext(IdeContext.FOLDER_REPOSITORY);
     Properties properties = createDefaultProperties();
     context.getStartContext().setForceRepositories(true);
     RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
@@ -162,7 +160,7 @@ class RepositoryCommandletTest extends AbstractIdeContextTest {
   void testSetupRepositoryWithMultipleWorkspaces() {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_REPOSITORY);
+    IdeTestContext context = newContext(IdeContext.FOLDER_REPOSITORY);
     Properties properties = createDefaultProperties();
     String workspace1 = "workspace1";
     String workspace2 = "workspace2";
@@ -185,7 +183,7 @@ class RepositoryCommandletTest extends AbstractIdeContextTest {
 
     // arrange
     String expectedSkillContent = "# dummy for testing link feature with AI use-case\n";
-    IdeTestContext context = newContext(PROJECT_REPOSITORY);
+    IdeTestContext context = newContext(IdeContext.FOLDER_REPOSITORY);
     context.setGitContext(new GitContextImplMock(context, context.getIdeHome().getParent().resolve("repository/ai-repo")));
     Properties properties = createDefaultProperties();
     String workspace1 = "workspace1";
@@ -221,7 +219,7 @@ class RepositoryCommandletTest extends AbstractIdeContextTest {
 
     // arrange
     String expectedSkillContent = "# dummy for testing virtual settings repository link feature\n";
-    IdeTestContext context = newContext(PROJECT_REPOSITORY);
+    IdeTestContext context = newContext(IdeContext.FOLDER_REPOSITORY);
     FileAccess fileAccess = context.getFileAccess();
     Path settingsAiPath = context.getSettingsPath().resolve("ai");
     fileAccess.mkdirs(settingsAiPath);
@@ -246,7 +244,7 @@ class RepositoryCommandletTest extends AbstractIdeContextTest {
   void testSetupRepositoryWithMultipleWorkspacesWithSpaces() {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_REPOSITORY);
+    IdeTestContext context = newContext(IdeContext.FOLDER_REPOSITORY);
     Properties properties = createDefaultProperties();
     String workspace1 = "workspace1";
     String workspace2 = "workspace2";
@@ -270,7 +268,7 @@ class RepositoryCommandletTest extends AbstractIdeContextTest {
   void testSetupRepositoryWithEmptyWorkspaceDefaultsToMain() {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_REPOSITORY);
+    IdeTestContext context = newContext(IdeContext.FOLDER_REPOSITORY);
     Properties properties = createDefaultProperties();
     properties.setProperty("workspace", "");
     RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
@@ -289,7 +287,7 @@ class RepositoryCommandletTest extends AbstractIdeContextTest {
   void testSetupRepositoryWithoutActiveProperty() {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_REPOSITORY);
+    IdeTestContext context = newContext(IdeContext.FOLDER_REPOSITORY);
     Properties properties = createDefaultProperties();
     properties.remove("active"); // Remove the active property to test default behavior
     RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);

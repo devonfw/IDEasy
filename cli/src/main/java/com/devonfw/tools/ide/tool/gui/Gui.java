@@ -28,7 +28,6 @@ public class Gui extends Commandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Gui.class);
 
-
   /**
    * @param context the {@link IdeContext}.
    */
@@ -79,25 +78,13 @@ public class Gui extends Commandlet {
 
     LOG.debug("Starting GUI via commandlet");
 
-    Path pomPath = context.getIdeInstallationPath().resolve("gui/pom.xml");
+    Path installationPath = context.getIdeInstallationPath();
+    Path pomPath = installationPath.resolve("gui/pom.xml");
     if (!Files.exists(pomPath)) {
       throw new CliException("Fatal error: The pom.xml file required for launching the IDEasy GUI could not be found in expected location: " + pomPath);
     }
 
-    List<String> args = new ArrayList<>(List.of(
-        "-f", //use specified POM file
-        pomPath.toString(),
-        "org.codehaus.mojo:exec-maven-plugin:3.1.0:exec",
-        "-Dexec.executable=" + getGuiExecutable(javaInstallation),
-        "-Dexec.classpathScope=compile",
-        "-Dexec.args=-classpath %classpath com.devonfw.ide.gui.AppLauncher",
-        "-Dexec.async=true"
-    ));
-
-    if (!IdeVersion.getVersionIdentifier().isStable()) {
-      LOG.warn("Launching gui in snapshot mode");
-      args.add("-U"); //Adding this flag forces maven to download the latest SNAPSHOT version
-    }
+    List<String> args = buildMvnArgs(installationPath, pomPath, getGuiExecutable(javaInstallation));
 
     /*
      * We manually update the PATH entry with our java version, as by default IDEasy includes the SymLink under /projectname/software/java/bin in the PATH
@@ -108,8 +95,45 @@ public class Gui extends Commandlet {
       mvn.runTool(processContext, ProcessMode.DEFAULT, args);
     } catch (RuntimeException e) {
       throw new CliException(
-          "Failed to launch the GUI. If maven reports issues with dependency resolution, check whether the maven M2 repo is enabled in your project.", e);
+          "Failed to launch the GUI. If maven reports issues with dependency resolution, the self-contained maven repository of the IDEasy "
+              + "installation may be incomplete - re-run the local-dev build (build-local-dev.sh) to repopulate it.",
+          e);
     }
+  }
+
+  /**
+   * Builds the arguments passed to {@code mvn} to launch the GUI via the launcher POM in the IDEasy installation.
+   * <p>
+   * A local-dev installation (created by {@code build-local-dev.sh}) is self-contained: its launcher POM resolves {@code ide-gui} from a maven repository
+   * inside the installation and runs offline.
+   * </p>
+   *
+   * @param installationPath the {@link IdeContext#getIdeInstallationPath() IDEasy installation} directory containing {@code gui/pom.xml}.
+   * @param pomPath the launcher POM ({@code gui/pom.xml}) to launch the GUI from. Must be verified to exist before this is called.
+   * @param execExecutable the executable to pass as {@code -Dexec.executable} (see {@link #getGuiExecutable(ToolInstallation)}).
+   * @return the {@code mvn} arguments to launch the GUI.
+   */
+  static List<String> buildMvnArgs(Path installationPath, Path pomPath, String execExecutable) {
+
+    List<String> args = new ArrayList<>(List.of(
+        "-f", //use specified POM file
+        pomPath.toString(),
+        "org.codehaus.mojo:exec-maven-plugin:3.1.0:exec",
+        "-Dexec.executable=" + execExecutable,
+        "-Dexec.classpathScope=compile",
+        "-Dexec.args=-classpath %classpath com.devonfw.ide.gui.AppLauncher",
+        "-Dexec.async=true"
+    ));
+
+    if (IdeVersion.isLocalDevBuild()) {
+      LOG.warn("Launching gui from the self-contained maven repository of the local-dev installation");
+      args.add("-Dmaven.repo.local=" + installationPath.resolve(".m2").toString());
+      args.add("-o"); // run offline so the local build is used and no remote snapshot is resolved
+    } else if (!IdeVersion.getVersionIdentifier().isStable()) {
+      LOG.warn("Launching gui in snapshot mode");
+      args.add("-U"); //Adding this flag forces maven to download the latest SNAPSHOT version
+    }
+    return args;
   }
 
   private static final String GUI_INFO_PLIST = """
