@@ -20,7 +20,7 @@ image::quality-status-images/issue-assignment.svg[Pie chart: assigned vs unassig
 image::quality-status-images/issue-types.svg[Pie chart: issue type distribution,width=100%]
 
 
-_Generated: 2026-08-24 06:50 UTC_
+_Generated: 2026-08-31 12:35 UTC_
 
 
 == Operating System Status Files
@@ -29,7 +29,7 @@ Issues are assigned to operating systems based on their labels:
 `windows`, `linux`, or `macOS`.
 
 Issues without an operating system label are treated as cross-platform.
-*A total of 136 cross-platform issues* are documented centrally in this document and are therefore not repeated in the operating system specific files.
+*A total of 137 cross-platform issues* are documented centrally in this document and are therefore not repeated in the operating system specific files.
 
 The detailed tool status is split into one generated file per operating system.
 
@@ -58,14 +58,46 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | Issue | Summary
 2+^a| [[cross-platform-0-10-days]] *0-10 days*
 
+| link:https://github.com/devonfw/IDEasy/issues/2393[#2393]
+| Open a project folder of my choice (e.g. an external Git repo) instead of alway…
+
+| link:https://github.com/devonfw/IDEasy/issues/2385[#2385]
+| Cleanup of IdeLogEntry and IdeGuiListener
+
+| link:https://github.com/devonfw/IDEasy/issues/2381[#2381]
+| node + npm in pristine software repo with per-project isolation (Bash, launcher…
+
+| link:https://github.com/devonfw/IDEasy/issues/2374[#2374]
+| Hotfix: Auto Assign PR Author workflow fails with 403 Forbidden for bot-created…
+
+| link:https://github.com/devonfw/IDEasy/issues/2373[#2373]
+| GlobalToolCommandlet: determine the edition together with the version for nativ…
+
+| link:https://github.com/devonfw/IDEasy/issues/2372[#2372]
+| Implement --retention-delay option for ide cleanup (stale files in updates, _id…
+
+| link:https://github.com/devonfw/IDEasy/issues/2371[#2371]
+| Determine software version from symlink and recover missing .ide.software.versi…
+
+| link:https://github.com/devonfw/IDEasy/issues/2369[#2369]
+| Rework openrewrite
+
+| link:https://github.com/devonfw/IDEasy/issues/2366[#2366]
+| Support for variables and expressions in repository URL
+
+| link:https://github.com/devonfw/IDEasy/issues/2365[#2365]
+| Reduce plugin reinstallations
+
+| link:https://github.com/devonfw/IDEasy/issues/2364[#2364]
+| Error during installation of soapui
+
 | link:https://github.com/devonfw/IDEasy/issues/2358[#2358]
 | Overhaul IDEasy project board review assigning
 
+2+^a| [[cross-platform-11-30-days]] *11-30 days*
+
 | link:https://github.com/devonfw/IDEasy/issues/2357[#2357]
 | Proposal: Dedicated IDEasy Workflow Testing Repository
-
-| link:https://github.com/devonfw/IDEasy/issues/2351[#2351]
-| GUI not launching with local dev build
 
 | link:https://github.com/devonfw/IDEasy/issues/2347[#2347]
 | GUI test duplicates view-setup code from App instead of reusing it
@@ -82,8 +114,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/2336[#2336]
 | Reconsider treating idea.properties as a user-configurable workspace template
 
-2+^a| [[cross-platform-11-30-days]] *11-30 days*
-
 | link:https://github.com/devonfw/IDEasy/issues/2327[#2327]
 | Gui project setup epic
 
@@ -99,20 +129,11 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/2319[#2319]
 | 'ide status' should report an unsigned license agreement, not error/hang on it
 
-| link:https://github.com/devonfw/IDEasy/issues/2316[#2316]
-| Homebrew formula publish fails: brew audit no longer accepts a path
-
 | link:https://github.com/devonfw/IDEasy/issues/2314[#2314]
 | Implement the handling of Steps in the GUI.
 
-| link:https://github.com/devonfw/IDEasy/issues/2312[#2312]
-| Python broken due to error in UvRepository
-
 | link:https://github.com/devonfw/IDEasy/issues/2311[#2311]
 | SoapUI not working in projects that do not have java installed
-
-| link:https://github.com/devonfw/IDEasy/issues/2296[#2296]
-| Improve support to get installed version and edition
 
 | link:https://github.com/devonfw/IDEasy/issues/2293[#2293]
 | Rework spyder as IdeToolCommandlet
@@ -159,11 +180,10 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/2256[#2256]
 | Integrate SonarCloud analysis into GitHub workflows
 
-| link:https://github.com/devonfw/IDEasy/issues/2255[#2255]
-| Refactor build logic from GitHub Workflows into dedicated shell scripts
-
 | link:https://github.com/devonfw/IDEasy/issues/2248[#2248]
 | Change TaskManager design.
+
+2+^a| [[cross-platform-31-60-days]] *31-60 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2241[#2241]
 | Version selection support
@@ -177,13 +197,8 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/2225[#2225]
 | Define installation ownership for Homebrew: brew and 'ideasy install' produce a…
 
-| link:https://github.com/devonfw/IDEasy/issues/2219[#2219]
-| Add unpack commandlet
-
 | link:https://github.com/devonfw/IDEasy/issues/2214[#2214]
 | Overhaul language selection logic
-
-2+^a| [[cross-platform-31-60-days]] *31-60 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2200[#2200]
 | Add support to check repository for best-practices
@@ -196,9 +211,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 
 | link:https://github.com/devonfw/IDEasy/issues/2190[#2190]
 | IDEasy destroys my python installation
-
-| link:https://github.com/devonfw/IDEasy/issues/2186[#2186]
-| Create ObsidianUrlUpdater
 
 | link:https://github.com/devonfw/IDEasy/issues/2185[#2185]
 | Explore JPackage and evaluate
@@ -245,13 +257,13 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/2103[#2103]
 | Add obsidian software/commandlet
 
+2+^a| [[cross-platform-61-90-days]] *61-90 days*
+
 | link:https://github.com/devonfw/IDEasy/issues/2097[#2097]
 | Configure IDE Plugins in Tool Configuration Tree in the GUI
 
 | link:https://github.com/devonfw/IDEasy/issues/2096[#2096]
 | Add a commandlet execution user interface
-
-2+^a| [[cross-platform-61-90-days]] *61-90 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2058[#2058]
 | VSCode authentication not working with IDEasy
@@ -265,19 +277,16 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/2021[#2021]
 | Remove status.json from ide-urls after migration
 
+2+^a| [[cross-platform-90plus-days]] *90+ days*
+
 | link:https://github.com/devonfw/IDEasy/issues/1996[#1996]
 | Revisit design for tools that do not install to software repository
 
 | link:https://github.com/devonfw/IDEasy/issues/1975[#1975]
 | Improve state management implementation in the GUI
 
-2+^a| [[cross-platform-90plus-days]] *90+ days*
-
 | link:https://github.com/devonfw/IDEasy/issues/1965[#1965]
 | Improve dependent installations
-
-| link:https://github.com/devonfw/IDEasy/issues/1933[#1933]
-| Implement a console window in the GUI
 
 | link:https://github.com/devonfw/IDEasy/issues/1930[#1930]
 | Implemenent a tag-based filtering system into the GUI
@@ -317,9 +326,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 
 | link:https://github.com/devonfw/IDEasy/issues/1580[#1580]
 | Implement cleanup
-
-| link:https://github.com/devonfw/IDEasy/issues/1525[#1525]
-| lombok not correctly installed in eclipse
 
 | link:https://github.com/devonfw/IDEasy/issues/1493[#1493]
 | Analyze Scoop Windows CLI installer
@@ -374,9 +380,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 
 | link:https://github.com/devonfw/IDEasy/issues/1054[#1054]
 | Incorrect interpretation of trailling and leading spaces in version range parsi…
-
-| link:https://github.com/devonfw/IDEasy/issues/1031[#1031]
-| Integration of OpenRewrite
 
 | link:https://github.com/devonfw/IDEasy/issues/992[#992]
 | Support multiple attributes for merge:id
