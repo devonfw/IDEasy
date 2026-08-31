@@ -14,6 +14,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
@@ -125,7 +126,7 @@ class AndroidStudioTest extends AbstractIdeContextTest {
     Files.writeString(this.context.getSettingsPath().resolve("android-studio").resolve("plugins").resolve("MockedPlugin.properties"),
         content);
 
-    Path mockedPlugin = this.context.getIdeRoot().resolve("repository").resolve(MOCKED_PLUGIN_JAR);
+    Path mockedPlugin = this.context.getIdeRoot().resolve(IdeContext.FOLDER_REPOSITORY).resolve(MOCKED_PLUGIN_JAR);
     byte[] contentBytes = Files.readAllBytes(mockedPlugin);
     int contentLength = contentBytes.length;
 
