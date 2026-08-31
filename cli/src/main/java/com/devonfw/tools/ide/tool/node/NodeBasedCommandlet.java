@@ -39,15 +39,6 @@ public abstract class NodeBasedCommandlet<P extends ToolCommandlet> extends Pack
     return this.context.getCommandletManager().getCommandlet(Node.class);
   }
 
-  @Override
-  public String getInstalledEdition() {
-
-    if (getInstalledVersion() != null) {
-      return this.tool;
-    }
-    return null;
-  }
-
   /**
    * Checks if a provided binary can be found within node.
    *
