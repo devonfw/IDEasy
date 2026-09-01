@@ -1,6 +1,7 @@
 package com.devonfw.ide.gui.update;
 
 import java.text.MessageFormat;
+
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;

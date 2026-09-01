@@ -2,6 +2,7 @@ package com.devonfw.ide.gui.update;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+
 import javafx.concurrent.Task;
 
 /**

@@ -79,5 +79,3 @@ public final class TrayNotificationService {
     return image;
   }
 }
-
-

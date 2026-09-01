@@ -3,6 +3,7 @@ package com.devonfw.ide.gui;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.text.MessageFormat;
+
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;

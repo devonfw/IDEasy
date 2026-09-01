@@ -2,6 +2,7 @@ package com.devonfw.ide.gui;
 
 import java.io.IOException;
 import java.net.URL;
+
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -85,4 +86,3 @@ public final class TestGuiSetup {
     throw new AssertionError("Condition not met within timeout");
   }
 }
-
