@@ -16,7 +16,7 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.ide.gui.context.IdeGuiStateManager;
+import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.nls.NlsService;
 import com.devonfw.ide.gui.tray.TrayNotificationService;
 
@@ -68,10 +68,10 @@ public class UpgradeController {
   /**
    * The constructor.
    *
-   * @param manager the {@link IdeGuiStateManager} to use.
+   * @param manager the {@link GuiStateManager} to use.
    * @param nlsService the {@link NlsService} to use.
    */
-  public UpgradeController(IdeGuiStateManager manager, NlsService nlsService) {
+  public UpgradeController(GuiStateManager manager, NlsService nlsService) {
     this(nlsService, new UpgradeService(manager));
   }
 

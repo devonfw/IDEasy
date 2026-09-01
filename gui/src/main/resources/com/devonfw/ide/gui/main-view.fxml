@@ -24,8 +24,7 @@
   maxHeight="-Infinity"
   maxWidth="-Infinity"
   VBox.vgrow="ALWAYS"
-  xmlns="http://javafx.com/javafx/25.0.0"
-  xmlns:fx="http://javafx.com/fxml/1">
+  xmlns="http://javafx.com/javafx/25.0.0">
 
   <left>
     <VBox xmlns:fx="http://javafx.com/fxml/1"

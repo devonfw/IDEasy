@@ -17,8 +17,8 @@ import javafx.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.context.IdeGuiContext;
-import com.devonfw.ide.gui.context.IdeGuiStateManager;
 import com.devonfw.ide.gui.modal.IdeDialog;
 import com.devonfw.ide.gui.nls.NlsService;
 import com.devonfw.ide.gui.tray.TrayNotificationService;
@@ -51,7 +51,7 @@ public class UpdateController {
 
   private static final double POST_UPDATE_RECHECK_DELAY_MILLIS = 500d;
 
-  private final IdeGuiStateManager manager;
+  private final GuiStateManager manager;
   private final NlsService nlsService;
   private final UpdateService updateService;
 
@@ -75,21 +75,21 @@ public class UpdateController {
   /**
    * The constructor.
    *
-   * @param manager the {@link IdeGuiStateManager} to use.
+   * @param manager the {@link GuiStateManager} to use.
    * @param nlsService the {@link NlsService} to use.
    */
-  public UpdateController(IdeGuiStateManager manager, NlsService nlsService) {
+  public UpdateController(GuiStateManager manager, NlsService nlsService) {
     this(manager, nlsService, new UpdateService());
   }
 
   /**
    * The constructor with an injectable {@link UpdateService}.
    *
-   * @param manager the {@link IdeGuiStateManager} to use.
+   * @param manager the {@link GuiStateManager} to use.
    * @param nlsService the {@link NlsService} to use.
    * @param updateService the {@link UpdateService} encapsulating the update business logic.
    */
-  public UpdateController(IdeGuiStateManager manager, NlsService nlsService, UpdateService updateService) {
+  public UpdateController(GuiStateManager manager, NlsService nlsService, UpdateService updateService) {
     this.manager = manager;
     this.nlsService = nlsService;
     this.updateService = updateService;

@@ -7,7 +7,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.concurrent.Task;
@@ -38,11 +37,11 @@ import com.devonfw.ide.gui.modal.IdeDialog;
 import com.devonfw.ide.gui.nls.NlsService;
 import com.devonfw.ide.gui.progress.ProgressBarTask;
 import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindow;
+import com.devonfw.ide.gui.update.UpdateController;
+import com.devonfw.ide.gui.update.UpgradeController;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.OutputListener;
-import com.devonfw.ide.gui.update.UpdateController;
-import com.devonfw.ide.gui.update.UpgradeController;
 
 /**
  * Controller of the main screen of the dashboard GUI.
@@ -120,12 +119,13 @@ public class MainController {
 
   private final NlsService nlsService;
 
-  private final String directoryPath;
-
   private final Map<String, Locale> languageMap;
 
-  private final NlsService nlsService;
 
+  public MainController(String directoryPath, GuiStateManager guiStateManager, NlsService nlsService) {
+    this(directoryPath, guiStateManager, new UpdateController(guiStateManager, nlsService),
+        new UpgradeController(guiStateManager, nlsService), nlsService);
+  }
 
   /**
    * Constructor
@@ -134,7 +134,8 @@ public class MainController {
    * @param guiStateManager the {@link GuiStateManager} to be used in this application instance
    * @param nlsService nlsService instance
    */
-  public MainController(String ideRootPath, GuiStateManager guiStateManager, UpdateController updateController, UpgradeController upgradeController, NlsService nlsService) {
+  public MainController(String ideRootPath, GuiStateManager guiStateManager, UpdateController updateController, UpgradeController upgradeController,
+      NlsService nlsService) {
 
     LOG.debug("IDE_ROOT path={}", ideRootPath);
     this.ideRootPath = ideRootPath;
@@ -347,7 +348,7 @@ public class MainController {
       setIdeButtonsDisabled(true);
     }
     if (this.updateController != null) {
-      this.updateController.onContextChanged(IdeGuiStateManager.getInstance().getCurrentContext());
+      this.updateController.onContextChanged(this.guiStateManager.getCurrentContext());
     }
   }
 
@@ -411,7 +412,6 @@ public class MainController {
       IdeDialog errorDialog = new IdeDialog(AlertType.ERROR, e.getMessage());
       errorDialog.showAndWait();
       // no-op: manual check button removed
-      return false;
     }
   }
 

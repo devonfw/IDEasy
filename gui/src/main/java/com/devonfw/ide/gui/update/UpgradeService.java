@@ -1,24 +1,23 @@
 package com.devonfw.ide.gui.update;
 
-import com.devonfw.tools.ide.version.IdeVersion;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.context.IdeGuiContext;
-import com.devonfw.ide.gui.context.IdeGuiStateManager;
 import com.devonfw.tools.ide.commandlet.UpgradeCommandlet;
 import com.devonfw.tools.ide.tool.IdeasyCommandlet;
+import com.devonfw.tools.ide.version.IdeVersion;
 
 /**
- * Encapsulates the tool-wide IDEasy upgrade business logic (checking for and running upgrades), independent of any UI framework and independent of any
- * selected project/workspace.
+ * Encapsulates the tool-wide IDEasy upgrade business logic (checking for and running upgrades), independent of any UI framework and independent of any selected
+ * project/workspace.
  */
 public class UpgradeService {
 
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeService.class);
 
-  private final IdeGuiStateManager manager;
+  private final GuiStateManager manager;
 
   private String installedVersion = "";
   private String latestVersion = "";
@@ -26,9 +25,9 @@ public class UpgradeService {
   /**
    * The constructor.
    *
-   * @param manager the {@link IdeGuiStateManager} used to obtain the shared start context.
+   * @param manager the {@link GuiStateManager} used to obtain the shared start context.
    */
-  public UpgradeService(IdeGuiStateManager manager) {
+  public UpgradeService(GuiStateManager manager) {
 
     this.manager = manager;
   }
@@ -44,7 +43,7 @@ public class UpgradeService {
       return false;
     }
     try {
-      IdeGuiContext ctx = new IdeGuiContext(this.manager.getStartContext(), null);
+      IdeGuiContext ctx = new IdeGuiContext(this.manager.getStartContext(), null, manager.getTaskManager());
       IdeasyCommandlet cmd = new IdeasyCommandlet(ctx, null);
       try {
         var installed = cmd.getInstalledVersion();
@@ -69,7 +68,7 @@ public class UpgradeService {
    */
   public void runUpgrade() {
 
-    IdeGuiContext ctx = new IdeGuiContext(this.manager.getStartContext(), null);
+    IdeGuiContext ctx = new IdeGuiContext(this.manager.getStartContext(), null, manager.getTaskManager());
     new UpgradeCommandlet(ctx).run();
   }
 

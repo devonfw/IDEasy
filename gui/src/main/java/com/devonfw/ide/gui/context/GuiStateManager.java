@@ -64,23 +64,6 @@ public class GuiStateManager {
   }
 
   /**
-   * @return the singleton instance of the {@link IdeGuiStateManager}.
-   */
-  public static IdeGuiStateManager getInstance() {
-
-    IdeGuiStateManager instance = Holder.INSTANCE;
-    if (instance.ideRootDir == null) {
-      String ideRoot = System.getenv("IDE_ROOT");
-      if (ideRoot == null) {
-        throw new IllegalStateException("IDE_ROOT environment variable is not set!");
-      }
-      instance.ideRootDir = Path.of(ideRoot);
-      instance.projectManager = new ProjectManager(instance.ideRootDir);
-    }
-    return Holder.INSTANCE;
-  }
-
-  /**
    * @param projectName name of the project folder
    * @param workspaceName name of the workspace folder
    * @return the new {@link IdeGuiContext} for the selected project and workspace.

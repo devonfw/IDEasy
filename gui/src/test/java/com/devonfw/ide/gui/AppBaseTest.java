@@ -9,6 +9,8 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Locale;
 
+import com.devonfw.ide.gui.console.ConsoleController;
+
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -31,13 +33,12 @@ import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.ide.gui.console.ConsoleController;
 import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.context.TaskManager;
 import com.devonfw.ide.gui.nls.NlsService;
 import com.devonfw.ide.gui.progress.ProgressBarTask;
 import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindow;
-import com.devonfw.ide.gui.context.IdeGuiStateManager;
+
 /**
  * Basic UI Test for the main screen
  */
@@ -61,10 +62,11 @@ public class AppBaseTest extends HeadlessApplicationTest {
 
   @Override
   public void start(Stage stage) throws IOException {
-    // Create deterministic test controllers used by many tests
-    // Use the shared TestGuiSetup which provides deterministic test doubles by default
-    Parent root = TestGuiSetup.setupStageWithControllers(stage, mockIdeRoot, null, null);
-
+    // The manager is shared (static) across tests; reset to a clean "no project selected" state so a context set by a
+    // previous test (via the UI) does not leak into this one. TestFX runs start() before @BeforeEach, so this is the
+    // reliable place to guarantee a clean slate.
+    guiStateManager.clearCurrentContext();
+    // Use the shared TestGuiSetup, wiring the static (shared) manager created in @BeforeAll and default controllers
     NlsService nlsService = new NlsService(Locale.ENGLISH);
 
     URL mainViewUrl = getClass().getResource("main-view.fxml");
@@ -95,8 +97,8 @@ public class AppBaseTest extends HeadlessApplicationTest {
     consolePaneToggleButton = FxHelper.lookup(root, "#consolePaneToggleButton");
     centerSplitPane = FxHelper.lookup(root, "#centerSplitPane");
     statusText = FxHelper.lookup(root, "#statusLabel");
-    taskProgressBar = FxHelper.lookup(root, "#statusProgressBar")
-    updateIndicator = lookup(root, "#updateIndicator");
+    taskProgressBar = FxHelper.lookup(root, "#statusProgressBar");
+    updateIndicator = FxHelper.lookup(root, "#updateIndicator");
   }
 
   /**
@@ -109,8 +111,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
     LOGGER.debug("tempDir: {}", mockIdeRoot);
     FakeProjectFolderStructureHelper.createFakeProjectFolderStructure(mockIdeRoot);
     LOGGER.debug("project folders: {}", Arrays.toString(mockIdeRoot.toFile().list()));
-// Set the project root directory to the temporary directory before all tests so that the IDE can find the projects in the test.
-    IdeGuiStateManager.getInstanceOverrideRootDir(mockIdeRoot.toString()).clearCurrentContext();
+
     guiStateManager = new GuiStateManager(taskManager, mockIdeRoot.toString());
     //We set the project root directory to the temporary directory before all tests so that the IDE can find the projects in the test.
     guiStateManager.switchContext("project-1", "main");
