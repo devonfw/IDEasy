@@ -66,7 +66,7 @@ public final class ToolInstallRequest {
    * @param parent the parent {@link PackageManagerRequest} (in case of a dependency).
    */
   public ToolInstallRequest(PackageManagerRequest parent) {
-    this(parent, false, false);
+    this(parent, true, false);
   }
 
   /**
