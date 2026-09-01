@@ -3,6 +3,7 @@ name: CI status watch
 # Posts a Teams message listing the README badge workflows that are currently red on the
 # default branch. A workflow stays in the list until it is green again, so the reminder
 # repeats every weekday morning until somebody fixes it. Creates no issues, read-only.
+# If a status cannot be checked, Teams receives a warning to check it manually.
 # Requires the repository secret TEAMS_WEBHOOK_URL.
 
 on:
@@ -22,7 +23,7 @@ jobs:
       REPO: ${{ github.repository }}
       BRANCH: ${{ github.ref_name }}
     steps:
-      - name: Detect newly red badge workflows and notify Teams
+      - name: Check badge workflow status and notify Teams
         run: |
           set -euo pipefail
 
@@ -36,52 +37,87 @@ jobs:
 
           echo "Checking badge workflows on branch $BRANCH"
 
-          # A workflow counts as red if its newest completed run that produced a real result
-          # failed; cancelled/skipped runs say nothing about the code and are ignored. This is
-          # exactly what the README badge shows. There is no look-back window on purpose: as
-          # long as it stays red it is reported every morning, so nobody can miss it.
-          RED=$(for WF_PATH in $WORKFLOWS; do
-              gh run list --repo "$REPO" --workflow "$WF_PATH" --branch "$BRANCH" \
-                --status completed --limit 5 --json conclusion,url,updatedAt,workflowName \
-                --jq '[ .[] | select(.conclusion != "cancelled" and .conclusion != "skipped") ][0]
-                      | select(. != null)
-                      | select(.conclusion == "failure" or .conclusion == "timed_out" or .conclusion == "startup_failure")
-                      | {name: .workflowName, url: .url, since: .updatedAt}' || true
+          # Cancelled/skipped runs say nothing about the code and are ignored. A failed lookup
+          # is kept as an unknown status so Teams can ask the team to check it manually.
+          RESULTS=$(for WF_PATH in $WORKFLOWS; do
+              if RUNS=$(gh run list --repo "$REPO" --workflow "$WF_PATH" --branch "$BRANCH" \
+                --status completed --limit 5 --json conclusion,url,updatedAt,workflowName); then
+                echo "$RUNS" | jq --arg workflow "$WF_PATH" '
+                  ([ .[] | select(.conclusion != "cancelled" and .conclusion != "skipped") ][0]) as $run
+                  | if $run == null then
+                      {state: "unknown", workflow: $workflow}
+                    elif ($run.conclusion == "failure" or $run.conclusion == "timed_out"
+                      or $run.conclusion == "startup_failure") then
+                      {state: "red", name: $run.workflowName, url: $run.url, since: $run.updatedAt}
+                    else
+                      {state: "green", workflow: $workflow}
+                    end'
+              else
+                echo "Status lookup failed for $WF_PATH." >&2
+                jq -n --arg workflow "$WF_PATH" '{state: "unknown", workflow: $workflow}'
+              fi
             done | jq -s '.')
 
-          COUNT=$(echo "$RED" | jq 'length')
-          if [ "$COUNT" -eq 0 ]; then
+          RED=$(echo "$RESULTS" | jq '[.[] | select(.state == "red")]')
+          UNKNOWN=$(echo "$RESULTS" | jq '[.[] | select(.state == "unknown")]')
+          RED_COUNT=$(echo "$RED" | jq 'length')
+          UNKNOWN_COUNT=$(echo "$UNKNOWN" | jq 'length')
+          if [ "$RED_COUNT" -eq 0 ] && [ "$UNKNOWN_COUNT" -eq 0 ]; then
             echo "No badge workflow is red. Skipping Teams notification."
             exit 0
           fi
-          echo "$COUNT badge workflow(s) currently red."
+          echo "$RED_COUNT badge workflow(s) currently red; $UNKNOWN_COUNT status lookup(s) unknown."
 
           if [ -z "${WEBHOOK:-}" ]; then
-            echo "No Teams webhook set, skipping notification."; exit 0
+            echo "No Teams webhook set; notification cannot be delivered."
+            exit 1
           fi
 
-          CARD=$(echo "$RED" | jq --argjson count "$COUNT" '{
-            type: "AdaptiveCard",
-            "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-            version: "1.4",
-            body: (
-              [
-                { type: "TextBlock", size: "Large", weight: "Bolder", wrap: true, color: "attention",
-                  text: "🔴 CI ist rot" },
-                { type: "TextBlock", spacing: "None", isSubtle: true, wrap: true,
-                  text: (if $count == 1 then "1 Workflow ist rot" else "\($count) Workflows sind rot" end) }
-              ]
-              + [ .[] | {
-                    type: "Container",
-                    separator: true,
-                    spacing: "Medium",
-                    items: [
-                      { type: "TextBlock", weight: "Bolder", wrap: true, text: "🔴 \(.name)" },
-                      { type: "TextBlock", spacing: "None", isSubtle: true, size: "Small", wrap: true,
-                        text: "rot seit \(.since) · [Run-Log öffnen](\(.url))" }
+          CARD=$(jq -n \
+            --argjson red "$RED" \
+            --argjson unknown "$UNKNOWN" \
+            --argjson redCount "$RED_COUNT" \
+            --argjson unknownCount "$UNKNOWN_COUNT" \
+            --arg repo "$REPO" '
+            {
+              type: "AdaptiveCard",
+              "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+              version: "1.4",
+              body: (
+                [
+                  { type: "TextBlock", size: "Large", weight: "Bolder", wrap: true,
+                    color: (if $redCount > 0 then "attention" else "warning" end),
+                    text: (if $redCount > 0 then "🔴 CI ist rot" else "⚠️ CI-Status unklar" end) }
+                ]
+                + (if $redCount > 0 then
+                    [ { type: "TextBlock", spacing: "None", isSubtle: true, wrap: true,
+                        text: (if $redCount == 1 then "1 Workflow ist rot" else "\($redCount) Workflows sind rot" end) } ]
+                    + [ $red[] | {
+                          type: "Container", separator: true, spacing: "Medium",
+                          items: [
+                            { type: "TextBlock", weight: "Bolder", wrap: true, text: "🔴 \(.name)" },
+                            { type: "TextBlock", spacing: "None", isSubtle: true, size: "Small", wrap: true,
+                              text: "rot seit \(.since) · [Run-Log öffnen](\(.url))" }
+                          ]
+                        } ]
+                  else [] end)
+                + (if $unknownCount > 0 then
+                    [
+                      { type: "TextBlock", weight: "Bolder", wrap: true, color: "warning",
+                        spacing: "Large", text: "⚠️ Statusprüfung unvollständig" },
+                      { type: "TextBlock", wrap: true,
+                        text: "Bitte den Status der folgenden Workflows manuell in GitHub prüfen." }
                     ]
-                  } ]
-            )
-          }')
+                    + [ $unknown[] | {
+                          type: "TextBlock", wrap: true,
+                          text: "⚠️ [\(.workflow | split("/") | last)](https://github.com/\($repo)/actions/workflows/\(.workflow | split("/") | last))"
+                        } ]
+                  else [] end)
+              )
+            }')
 
           curl -sS --fail -X POST -H "Content-Type: application/json" -d "$CARD" "$WEBHOOK"
+          if [ "$UNKNOWN_COUNT" -gt 0 ]; then
+            echo "At least one workflow status could not be checked."
+            exit 1
+          fi
