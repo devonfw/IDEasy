@@ -25,10 +25,8 @@ public class ExpressionParser {
   private static final Logger LOG = LoggerFactory.getLogger(ExpressionParser.class);
 
   /** Locates the start of a potential function call. The group is the function name. */
-  //                                                       .1
+  //..............................................................1
   private static final Pattern FUNCTION_START = Pattern.compile("@([a-z][a-z0-9-]*)\\(");
-
-  private static final int EXTRA_CAPACITY = 8;
 
   private final ExpressionFunctionManager functionManager;
 
@@ -57,7 +55,7 @@ public class ExpressionParser {
     if (!matcher.find()) {
       return value;
     }
-    StringBuilder sb = new StringBuilder(value.length() + EXTRA_CAPACITY);
+    StringBuilder sb = new StringBuilder();
     int pos = 0;
     do {
       int start = matcher.start();
