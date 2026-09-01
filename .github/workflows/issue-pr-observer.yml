@@ -5,7 +5,8 @@ name: External Issue, PR & Discussion Observer
 # "External" = author is not a member of a GitHub team linked to the IDEasy board
 # (devonfw project 5).
 # Issues/PRs come from the REST search API, discussions from GraphQL (no REST equivalent).
-# Each source falls back to empty on error, so one failing API still posts the rest.
+# A failed API call fails the run. The next run resumes from the last successful run,
+# so activity is retried instead of being silently lost.
 # Requires repository secrets TEAMS_WEBHOOK_URL (Teams "Workflows" incoming webhook)
 # and TEAM_TOKEN (org Projects + Members read token).
 
@@ -15,6 +16,7 @@ on:
     - cron: '0 7 * * 1-5'     # 07:00 UTC, Mon-Fri (= 09:00 CEST summer / 08:00 CET winter)
 
 permissions:
+  actions: read
   issues: read
   pull-requests: read
   discussions: read
@@ -30,15 +32,24 @@ jobs:
           TEAM_TOKEN: ${{ secrets.TEAM_TOKEN }}
           WEBHOOK: ${{ secrets.TEAMS_WEBHOOK_URL }}
           REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
           PROJECT_NUMBER: "5"
+          WORKFLOW: ".github/workflows/issue-pr-observer.yml"
         run: |
-          # so a failing gh api trips the || fallback instead of being hidden by the trailing jq
-          set -o pipefail  # no `set -e`: the per-source `|| { ... ITEMS='[]'; }` fallbacks must keep the script running
+          set -euo pipefail
 
-          # Monday catches up the weekend (Fri–Sun); other weekdays look back 24h.
-          if [ "$(date -u +%u)" -eq 1 ]; then
+          # Resume from the previous successful observer run. If a GitHub API call or the
+          # Teams notification fails, that run stays failed and its activity is retried.
+          LAST_SUCCESS=$(gh run list --repo "$REPO" --workflow "$WORKFLOW" --branch "$BRANCH" \
+            --status success --limit 1 --json createdAt --jq '.[0].createdAt // empty') \
+            || { echo "Previous successful observer run fetch failed."; exit 1; }
+          if [ -n "$LAST_SUCCESS" ]; then
+            SINCE=$LAST_SUCCESS
+          elif [ "$(date -u +%u)" -eq 1 ]; then
+            # The first Monday run catches up the weekend (Fri–Sun).
             SINCE=$(date -u -d '3 days ago' +%Y-%m-%dT%H:%M:%SZ)
           else
+            # Other first runs look back 24 hours.
             SINCE=$(date -u -d '1 day ago' +%Y-%m-%dT%H:%M:%SZ)
           fi
           echo "Scanning $REPO for items created since $SINCE"
@@ -100,7 +111,7 @@ jobs:
           fi
           echo "Excluding $(echo "$TEAM" | jq 'length') linked project-team member(s)."
 
-          # Issues + PRs via REST search; drop team authors, keep the rest. On error use [].
+          # Issues + PRs via REST search; drop team authors, keep the rest.
           ISSUE_ITEMS=$(gh api -X GET search/issues \
             -f q="repo:$REPO created:>=$SINCE" -f per_page=100 --jq '.items' \
             | jq --argjson team "$TEAM" '[.[]
@@ -113,7 +124,7 @@ jobs:
                   url:    .html_url,
                   user:   .user.login
                 }]') \
-            || { echo "WARN: issue/PR fetch failed, continuing without them."; ISSUE_ITEMS='[]'; }
+            || { echo "Issue/PR fetch failed."; exit 1; }
 
           # No REST search for discussions; take newest 50 via GraphQL, filter by window + team.
           NAME=${REPO#*/}
@@ -139,7 +150,7 @@ jobs:
                     url:    .url,
                     user:   (.author.login // "unknown")
                   } ]') \
-            || { echo "WARN: discussion fetch failed, continuing without them."; DISC_ITEMS='[]'; }
+            || { echo "Discussion fetch failed."; exit 1; }
 
           IP_COUNT=$(echo "$ISSUE_ITEMS" | jq 'length')
           D_COUNT=$(echo "$DISC_ITEMS" | jq 'length')
