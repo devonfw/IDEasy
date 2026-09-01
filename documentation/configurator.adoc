@@ -98,7 +98,7 @@ If omitted or given as `null`, an empty value is not allowed and the user is ask
 ----
 @ask-variable('AI_BACKEND_URL')
 @ask-variable('AI_BACKEND_URL', 'Please enter the LLM backend URL:', conf, 'http://localhost:1234')
-@ask-secret('AI_API_KEY', 'Please enter your API key:', conf)
+@ask-secret('AI_API_KEY', 'Please enter your API key:')
 ----
 * `@if-windows`, `@if-mac`, `@if-linux` and `@if-unix` insert their single argument only if the current operating system matches and otherwise resolve to the empty string.
 This allows to select an OS specific value inline.
