@@ -103,6 +103,9 @@ public class MainController {
   private AnchorPane console;
 
   @FXML
+  private Button commandletOpen;
+
+  @FXML
   private Label statusLabel;
 
   @FXML
@@ -485,5 +488,6 @@ public class MainController {
     this.eclipseOpen.setDisable(disabled);
     this.intellijOpen.setDisable(disabled);
     this.vsCodeOpen.setDisable(disabled);
+    this.commandletOpen.setDisable(false);
   }
 }
