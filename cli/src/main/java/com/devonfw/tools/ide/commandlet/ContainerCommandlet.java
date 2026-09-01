@@ -98,10 +98,16 @@ public class ContainerCommandlet extends Commandlet {
         "run",
         "--rm",
         "-it",
-        "-v",
-        "/home/meshehi/.ssh:/root/.ssh:ro",
-        "-v",
-        "ideasy-data:/projects",
+        "-e", "DISPLAY",
+        "-e", "WAYLAND_DISPLAY",
+        "-e", "XDG_RUNTIME_DIR",
+        "-e", "PULSE_SERVER",
+        "-v", "/tmp/.X11-unix:/tmp/.X11-unix",
+        "-v", "/mnt/wslg:/mnt/wslg",
+        "-v", "/home/meshehi/.ssh:/root/.ssh:ro",
+        "-v", "ideasy-data:/projects",
+        "-v", "ideasy-data:/projects",
+        "-v", "ideasy-home:/root",
         IMAGE_NAME)
         .start();
   }
