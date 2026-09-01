@@ -7,19 +7,13 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.BooleanProperty;
 
 /**
- * {@link Commandlet} to run a Docker Container for AI usage.
+ * {@link Commandlet} to print the environment variables.
  */
 public class ContainerCommandlet extends Commandlet {
 
   private static final String IMAGE_NAME = "ideasy-linux";
 
-  private static final String HOME_VOLUME = "ideasy-home";
-
-  private static final String DATA_VOLUME = "ideasy-data";
-
   private final BooleanProperty rebuild;
-
-  private final BooleanProperty reset;
 
   /**
    * The constructor.
@@ -33,7 +27,6 @@ public class ContainerCommandlet extends Commandlet {
     addKeyword("container");
 
     this.rebuild = add(new BooleanProperty("--rebuild", false, "-r"));
-    this.reset = add(new BooleanProperty("--reset", false, null));
   }
 
   @Override
@@ -53,23 +46,15 @@ public class ContainerCommandlet extends Commandlet {
       Path dockerfile = Paths.get("IDEasy", "docker", "Dockerfile").toAbsolutePath();
       Path buildContext = Paths.get("IDEasy").toAbsolutePath();
 
-      if (this.reset.isTrue()) {
-
-        removeImage();
-        removeVolumes();
-
-      } else if (this.rebuild.isTrue()) {
-
+      if (Boolean.TRUE.equals(this.rebuild.getValue())) {
         removeImage();
       }
 
       if (!imageExists()) {
-
         buildImage(
             toWslPath(dockerfile),
             toWslPath(buildContext));
       }
-
       startContainer();
 
     } catch (Exception e) {
@@ -123,25 +108,6 @@ public class ContainerCommandlet extends Commandlet {
         IMAGE_NAME);
   }
 
-  private void removeVolumes() throws Exception {
-
-    runAndWaitSilent(
-        "wsl",
-        "docker",
-        "volume",
-        "rm",
-        "-f",
-        HOME_VOLUME);
-
-    runAndWaitSilent(
-        "wsl",
-        "docker",
-        "volume",
-        "rm",
-        "-f",
-        DATA_VOLUME);
-  }
-
   private void buildImage(String dockerfile, String context) throws Exception {
 
     int exitCode = runAndWait(
@@ -170,8 +136,6 @@ public class ContainerCommandlet extends Commandlet {
         "printf $HOME")
         .start();
 
-    process.waitFor();
-
     return new String(process.getInputStream().readAllBytes()).trim();
   }
 
@@ -197,10 +161,10 @@ public class ContainerCommandlet extends Commandlet {
         "-v", "/tmp/.X11-unix:/tmp/.X11-unix",
         "-v", "/mnt/wslg:/mnt/wslg",
 
-        "-v", wslHome + "/.ssh:/root/.ssh:ro",
+        "-v", wslHome + "/.ssh:/root/.ssh",
 
-        "-v", DATA_VOLUME + ":/projects",
-        "-v", HOME_VOLUME + ":/root",
+        "-v", "ideasy-data:/projects",
+        "-v", "ideasy-home:/root",
 
         IMAGE_NAME)
         .start();
