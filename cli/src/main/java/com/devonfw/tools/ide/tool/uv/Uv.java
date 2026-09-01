@@ -87,7 +87,11 @@ public class Uv extends LocalToolCommandlet {
   public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
 
     super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
-    Path pythonPath = this.context.getSoftwarePath().resolve("python");
+    Path softwarePath = this.context.getSoftwarePath();
+    if (softwarePath == null) {
+      return;
+    }
+    Path pythonPath = softwarePath.resolve("python");
     environmentContext.withEnvVar("UV_TOOL_DIR", pythonPath.resolve("tools").toString());
     environmentContext.withEnvVar("UV_TOOL_BIN_DIR", pythonPath.resolve("bin").toString());
     environmentContext.withPathEntry(pythonPath.resolve("bin"));
