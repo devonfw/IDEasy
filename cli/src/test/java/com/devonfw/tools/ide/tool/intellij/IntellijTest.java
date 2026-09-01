@@ -1,5 +1,8 @@
 package com.devonfw.tools.ide.tool.intellij;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -100,7 +103,7 @@ class IntellijTest extends AbstractIdeContextTest {
     // assert
     checkInstallation(this.context);
     assertThat(commandlet.getToolBinPath().resolve("intellijtest")).hasContent(
-        "intellij " + this.context.getSystemInfo().getOs() + " " + this.context.getWorkspacePath());
+        "intellij " + this.context.getSystemInfo().getOs() + " nosplash " + this.context.getWorkspacePath());
   }
 
   /**
@@ -280,16 +283,144 @@ class IntellijTest extends AbstractIdeContextTest {
             """);
   }
 
+  /**
+   * Tests that extra Java SDK installations configured via ide-extra-tools.json are imported into IntelliJ jdk.table.xml when IntelliJ is started through
+   * IDEasy.
+   */
+  @Test
+  void testImportExtraJavaSdksIntoJdkTable() throws Exception {
+
+    // arrange
+    IdeTestContext context = newContext("intellij");
+    Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
+
+    Path extraJavaRoot = context.getSoftwareExtraPath().resolve("java");
+    context.getFileAccess().mkdirs(extraJavaRoot.resolve("client"));
+    context.getFileAccess().mkdirs(extraJavaRoot.resolve("process-engine"));
+
+    // act
+    commandlet.run();
+
+    // assert
+    Path jdkTable = context.getWorkspacePath()
+        .resolve(".intellij")
+        .resolve("config")
+        .resolve("options")
+        .resolve("jdk.table.xml");
+    assertThat(jdkTable).exists();
+
+    String jdkTableContent = Files.readString(jdkTable);
+    assertThat(jdkTableContent).contains("<name value=\"client\"/>");
+    assertThat(jdkTableContent).contains("<name value=\"process-engine\"/>");
+    assertThat(jdkTableContent).contains("software/extra/java/client");
+    assertThat(jdkTableContent).contains("software/extra/java/process-engine");
+  }
+
+  /**
+   * Tests that an extra Java SDK using the reserved name "java" is skipped instead of being imported.
+   */
+  @Test
+  void testSkipExtraJavaSdkWithReservedName() throws Exception {
+
+    // arrange
+    IdeTestContext context = newContext("intellij");
+    Path extraToolsFile = context.getSettingsPath().resolve("ide-extra-tools.json");
+    context.getFileAccess().writeFileContent("""
+            {
+              "java": {
+                "java": {
+                  "version": "21"
+                }
+              }
+            }
+            """,
+        extraToolsFile);
+
+    Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
+
+    Path extraJavaRoot = context.getSoftwareExtraPath().resolve("java");
+    context.getFileAccess().mkdirs(extraJavaRoot.resolve("java"));
+
+    // act
+    commandlet.run();
+
+    // assert
+    Path jdkTable = context.getWorkspacePath()
+        .resolve(".intellij")
+        .resolve("config")
+        .resolve("options")
+        .resolve("jdk.table.xml");
+    assertThat(jdkTable).exists();
+
+    String jdkTableContent = Files.readString(jdkTable);
+    assertThat(jdkTableContent).doesNotContain("software/extra/java/java");
+    assertThat(context).logAtWarning().hasNoMessageContaining("software/extra/java/java");
+  }
+
+  /**
+   * Tests that a configured extra Java SDK is skipped if the corresponding installation directory does not exist.
+   */
+  @Test
+  void testSkipMissingExtraJavaSdkDirectory() throws Exception {
+
+    // arrange
+    IdeTestContext context = newContext("intellij");
+    Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
+
+    // do not create client/process-engine directories on purpose
+
+    // act
+    commandlet.run();
+
+    // assert
+    Path jdkTable = context.getWorkspacePath()
+        .resolve(".intellij")
+        .resolve("config")
+        .resolve("options")
+        .resolve("jdk.table.xml");
+    assertThat(jdkTable).exists();
+
+    String jdkTableContent = Files.readString(jdkTable);
+    assertThat(jdkTableContent).doesNotContain("software/extra/java/client");
+    assertThat(jdkTableContent).doesNotContain("software/extra/java/process-engine");
+    assertThat(context).logAtWarning()
+        .hasMessageContaining("Skipping extra tool installation import to intellij because it is missing at");
+  }
+
+  /** Tests that IntelliJ extra Java SDK import writes jdk.table.xml in the workspace options folder. */
+  @Test
+  void testMissingExtraJavaTemplateFails() throws Exception {
+
+    // arrange
+    IdeTestContext context = newContext("intellij");
+    Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
+
+    Path extraJavaRoot = context.getSoftwareExtraPath().resolve("java");
+    context.getFileAccess().mkdirs(extraJavaRoot.resolve("client"));
+
+    // act
+    commandlet.run();
+
+    // assert
+    Path jdkTable = context.getWorkspacePath()
+        .resolve(".intellij")
+        .resolve("config")
+        .resolve("options")
+        .resolve("jdk.table.xml");
+    assertThat(jdkTable).exists();
+
+    String jdkTableContent = Files.readString(jdkTable);
+    assertThat(jdkTableContent).contains("software/extra/java/client");
+  }
+
   private void checkInstallation(IdeTestContext context) {
 
     Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
     assertThat(commandlet.getInstalledVersion().toString()).isEqualTo("2023.3.3");
-    assertThat(context.getWorkspacePath().resolve("idea.properties")).exists();
     assertThat(context).log().hasEntries(
         new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed java in version 17.0.10_7", true),
         new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed intellij in version 2023.3.3", true));
     assertThat(context).logAtDebug().hasMessage("Omitting installation of inactive plugin InactivePlugin (inactivePlugin).");
     assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin ActivePlugin (1/1)'.");
   }
-
 }

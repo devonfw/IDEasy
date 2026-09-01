@@ -128,7 +128,7 @@ class AndroidStudioTest extends AbstractIdeContextTest {
     Files.writeString(this.context.getSettingsPath().resolve("android-studio").resolve("plugins").resolve("MockedPlugin.properties"),
         content);
 
-    Path mockedPlugin = this.context.getIdeRoot().resolve("repository").resolve(MOCKED_PLUGIN_JAR);
+    Path mockedPlugin = this.context.getIdeRoot().resolve(IdeContext.FOLDER_REPOSITORY).resolve(MOCKED_PLUGIN_JAR);
     byte[] contentBytes = Files.readAllBytes(mockedPlugin);
     int contentLength = contentBytes.length;
 
