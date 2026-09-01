@@ -52,7 +52,7 @@ public class App extends Application {
   @Override
   public void start(Stage primaryStage) throws IOException {
     // For testing purposes.
-    TestGuiConfiguration.applyConfigOverrides();
+    // TestGuiConfiguration.applyConfigOverrides();
     Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
       LOG.error("Uncaught exception in thread {}: {}", thread.getName(), throwable.getMessage(), throwable);
       Platform.runLater(() -> new IdeDialog(IdeDialog.AlertType.ERROR, throwable.getMessage()).showAndWait());
