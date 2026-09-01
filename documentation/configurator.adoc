@@ -65,7 +65,6 @@ This allows to apply a little transformation to a value or to ask the user for a
 * Arguments are always strings and are separated by a comma.
 Spaces around an argument are ignored/trimmed.
 * To pass a literal value that may contain the argument separator (a comma) or a parenthesis, quote it with single or double quotes, e.g. `@ask-secret('AI_API_KEY', 'Enter your key (from the portal):')`.
-A backslash inside a quoted argument is a literal backslash and is not an escape character, since arguments regularly contain native Windows paths.
 * An argument itself may contain plain variables, so `@path('$[IDE_HOME]/software/node/node')` first resolves `$[IDE_HOME]` and then normalizes the path.
 Functions may also be nested, so an argument can itself contain a call of another function.
 
