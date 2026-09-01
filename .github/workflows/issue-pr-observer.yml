@@ -29,23 +29,21 @@ jobs:
           REPO: ${{ github.repository }}
           # Daily-team logins to exclude; one per line, case-insensitive.
           DAILY_TEAM: |
-            AdemZarrouki
             Ali-Shariati-Najafabadi
-            areinicke
-            Caylipp
+            cap-juan
+            Hiepiscus
             hohwille
             JoelAdbu
-            KarimALotfy
+            krystynaShatkovska
             laert-ll
             laim2003
-            marceltchanga9
+            majesteSil
             maybeec
-            oanding-blrng
-            Paras14
+            MeShehi
             quando632
+            QuangAnhLe
+            samuelkos17
             shodiBoy1
-            tineff96
-            vivu001
         run: |
           # so a failing gh api trips the || fallback instead of being hidden by the trailing jq
           set -o pipefail  # no `set -e`: the per-source `|| { ... ITEMS='[]'; }` fallbacks must keep the script running
