@@ -23,6 +23,9 @@ public class Npm extends LocalToolCommandlet {
 
   private static final String NPM_HOME_FOLDER = "npm";
 
+  /** File name of the {@link #findBuildDescriptor(Path) build descriptor} of an npm project. */
+  private static final String PACKAGE_JSON = "package.json";
+
   /** The folder name for the per-project global npm packages inside {@link IdeContext#getIdeHome() IDE_HOME}. */
   public static final String NPM_GLOBAL_FOLDER = ".npm-global";
 
@@ -40,6 +43,24 @@ public class Npm extends LocalToolCommandlet {
   public String getToolHelpArguments() {
 
     return "help";
+  }
+
+  /**
+   * Detects an npm project by its {@code package.json} build descriptor so that the {@code build} commandlet (and the
+   * {@link com.devonfw.tools.ide.commandlet.BuildCommandlet BuildCommandlet}) can dispatch it to npm. npm is a standalone tool
+   * (not a child of {@link com.devonfw.tools.ide.tool.node.Node node}) now, so it must declare its build descriptor itself.
+   *
+   * @param directory the {@link Path} to the build directory.
+   * @return the {@code package.json} {@link Path} if it exists, or {@code null} otherwise.
+   */
+  @Override
+  public Path findBuildDescriptor(Path directory) {
+
+    Path buildDescriptor = directory.resolve(PACKAGE_JSON);
+    if (Files.exists(buildDescriptor)) {
+      return buildDescriptor;
+    }
+    return super.findBuildDescriptor(directory);
   }
 
   /**
