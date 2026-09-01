@@ -1,19 +1,13 @@
 package com.devonfw.tools.ide.expression;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
@@ -21,6 +15,9 @@ import com.devonfw.tools.ide.os.SystemInfoMock;
 
 /**
  * Test of {@link ExpressionParser}.
+ * <p>
+ * The expressions are resolved through the real {@link EnvironmentVariables#resolve(String, Object, boolean)} of an {@link IdeTestContext} (no mock of the
+ * expression context) so that the behaviour of the surrounding variable resolution is exercised as well.
  */
 class ExpressionParserTest extends AbstractIdeContextTest {
 
@@ -30,13 +27,12 @@ class ExpressionParserTest extends AbstractIdeContextTest {
   @Test
   void testPathUnixIsDefault() {
 
-    // arrange
+    // arrange (a plain variable is used since the built-in IDE_HOME is computed and cannot be overridden)
     IdeTestContext context = newContext(PROJECT_BASIC);
-    TestExpressionContext expressionContext = new TestExpressionContext(context);
-    expressionContext.variables.put("IDE_HOME", "D:\\projects\\my-project");
+    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("MY_BASE", "D:\\projects\\my-project");
 
     // act
-    String result = expressionContext.resolve("@path('$[IDE_HOME]/software/mvn')");
+    String result = context.getVariables().resolve("@path('$[MY_BASE]/software/mvn')", "test", false);
 
     // assert
     assertThat(result).isEqualTo("D:/projects/my-project/software/mvn");
@@ -51,11 +47,10 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
     context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
-    TestExpressionContext expressionContext = new TestExpressionContext(context);
-    expressionContext.variables.put("IDE_HOME", "D:\\projects\\my-project");
+    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("MY_BASE", "D:\\projects\\my-project");
 
     // act
-    String result = expressionContext.resolve("@path('$[IDE_HOME]/software/node/node.exe', native)");
+    String result = context.getVariables().resolve("@path('$[MY_BASE]/software/node/node.exe', native)", "test", false);
 
     // assert
     assertThat(result).isEqualTo("D:\\projects\\my-project\\software\\node\\node.exe");
@@ -71,10 +66,9 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
     context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
-    TestExpressionContext expressionContext = new TestExpressionContext(context);
 
     // act
-    String result = expressionContext.resolve("@path('/d/projects/my-project/software/mvn', native)");
+    String result = context.getVariables().resolve("@path('/d/projects/my-project/software/mvn', native)", "test", false);
 
     // assert
     assertThat(result).isEqualTo("D:\\projects\\my-project\\software\\mvn");
@@ -89,10 +83,9 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
     context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
-    TestExpressionContext expressionContext = new TestExpressionContext(context);
 
     // act
-    String result = expressionContext.resolve("@path('software/node/node.exe', native)");
+    String result = context.getVariables().resolve("@path('software/node/node.exe', native)", "test", false);
 
     // assert
     assertThat(result).isEqualTo("software\\node\\node.exe");
@@ -106,10 +99,9 @@ class ExpressionParserTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
-    TestExpressionContext expressionContext = new TestExpressionContext(context);
 
     // act
-    String result = expressionContext.resolve("@path('C:\\Users\\login\\next')");
+    String result = context.getVariables().resolve("@path('C:\\Users\\login\\next')", "test", false);
 
     // assert
     assertThat(result).isEqualTo("C:/Users/login/next");
@@ -125,10 +117,9 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
     context.setAnswers("token-value");
-    TestExpressionContext expressionContext = new TestExpressionContext(context);
 
     // act
-    String result = expressionContext.resolve("@ask-secret('AI_API_KEY', 'Enter your key (from the portal), please:')");
+    String result = context.getVariables().resolve("@ask-secret('AI_API_KEY', 'Enter your key (from the portal), please:')", "test", false);
 
     // assert
     assertThat(result).isEqualTo("token-value");
@@ -145,10 +136,9 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
     context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
-    TestExpressionContext expressionContext = new TestExpressionContext(context);
 
     // act
-    String result = expressionContext.resolve("@if-windows('@path(C:/a/b, native)')");
+    String result = context.getVariables().resolve("@if-windows('@path(C:/a/b, native)')", "test", false);
 
     // assert
     assertThat(result).isEqualTo("C:\\a\\b");
@@ -174,10 +164,9 @@ class ExpressionParserTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
-    TestExpressionContext expressionContext = new TestExpressionContext(context);
 
     // act
-    String result = expressionContext.resolve(value);
+    String result = context.getVariables().resolve(value, "test", false);
 
     // assert
     assertThat(result).isEqualTo(value);
@@ -191,19 +180,19 @@ class ExpressionParserTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
-    TestExpressionContext expressionContext = new TestExpressionContext(context);
-    expressionContext.variables.put("AI_BACKEND_URL", "http://llama.local");
+    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("AI_BACKEND_URL", "http://llama.local");
 
     // act
-    String result = expressionContext.resolve("@ask-variable('AI_BACKEND_URL')");
+    String result = context.getVariables().resolve("@ask-variable('AI_BACKEND_URL')", "test", false);
 
     // assert
     assertThat(result).isEqualTo("http://llama.local");
-    assertThat(expressionContext.persisted).isEmpty();
+    // no answers were provided, so an attempt to ask would have thrown an "End of answers reached!" error
+    assertThat(context.getSecretLineCount()).isZero();
   }
 
   /**
-   * Test that an undefined variable is asked with the default question and persisted for workspace templates.
+   * Test that an undefined variable is asked with the default question and persisted to {@code conf/ide.properties} so that the user is only asked once.
    */
   @Test
   void testUndefinedVariableIsAskedAndPersisted() {
@@ -211,16 +200,16 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
     context.setAnswers("http://llama.local");
-    TestExpressionContext expressionContext = new TestExpressionContext(context);
+    EnvironmentVariables variables = context.getVariables();
 
     // act
-    String result = expressionContext.resolve("@ask-variable('AI_BACKEND_URL')");
+    String result = variables.resolve("@ask-variable('AI_BACKEND_URL')", "test", false);
 
     // assert
     assertThat(result).isEqualTo("http://llama.local");
     assertThat(context).log().hasEntries(
         new IdeLogEntry(IdeLogLevel.INTERACTION, "Please enter the value for the variable AI_BACKEND_URL:", true));
-    assertThat(expressionContext.persisted).containsExactly(Map.entry("AI_BACKEND_URL", "http://llama.local"));
+    assertThat(variables.getByType(EnvironmentVariablesType.CONF).getFlat("AI_BACKEND_URL")).isEqualTo("http://llama.local");
   }
 
   /**
@@ -232,14 +221,16 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
     context.setAnswers("first", "second");
-    TestExpressionContext expressionContext = new TestExpressionContext(context);
+    EnvironmentVariables variables = context.getVariables();
 
     // act
-    String result = expressionContext.resolve("@ask-variable('', 'Question A:')@ask-variable('', 'Question B:')");
+    String result = variables.resolve("@ask-variable('', 'Question A:')@ask-variable('', 'Question B:')", "test", false);
 
     // assert
     assertThat(result).isEqualTo("firstsecond");
-    assertThat(expressionContext.persisted).isEmpty();
+    // nothing was persisted since there is no variable name to persist under
+    assertThat(variables.getByType(EnvironmentVariablesType.CONF).getFlat("VAR_A")).isNull();
+    assertThat(variables.getByType(EnvironmentVariablesType.CONF).getFlat("VAR_B")).isNull();
   }
 
   /**
@@ -251,10 +242,9 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
     context.setAnswers("");
-    TestExpressionContext expressionContext = new TestExpressionContext(context);
 
     // act
-    String result = expressionContext.resolve("@ask-secret('OPTIONAL_PASSWORD', 'Password (may be empty):', conf, '')");
+    String result = context.getVariables().resolve("@ask-secret('OPTIONAL_PASSWORD', 'Password (may be empty):', conf, '')", "test", false);
 
     // assert
     assertThat(result).isEmpty();
@@ -271,14 +261,15 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext(PROJECT_BASIC);
     context.getStartContext().setBatchMode(true);
     context.getStartContext().setForceMode(true);
-    TestExpressionContext expressionContext = new TestExpressionContext(context);
+    EnvironmentVariables variables = context.getVariables();
 
     // act
-    String result = expressionContext.resolve("@ask-secret('MY_TOKEN')");
+    String result = variables.resolve("@ask-secret('MY_TOKEN')", "test", false);
 
     // assert
     assertThat(result).isEmpty();
-    assertThat(expressionContext.persisted).isEmpty();
+    // a value that could not be asked is not persisted (and @ask-secret is never persisted anyway)
+    assertThat(variables.getByType(EnvironmentVariablesType.CONF).getFlat("MY_TOKEN")).isNull();
   }
 
   /**
@@ -291,14 +282,14 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext(PROJECT_BASIC);
     context.getStartContext().setBatchMode(true);
     context.getStartContext().setForceMode(true);
-    TestExpressionContext expressionContext = new TestExpressionContext(context);
+    EnvironmentVariables variables = context.getVariables();
 
     // act
-    String result = expressionContext.resolve("@ask-variable('MY_VARIABLE', 'Question:', conf, 'the-default')");
+    String result = variables.resolve("@ask-variable('MY_VARIABLE', 'Question:', conf, 'the-default')", "test", false);
 
     // assert
     assertThat(result).isEqualTo("the-default");
-    assertThat(expressionContext.persisted).containsExactly(Map.entry("MY_VARIABLE", "the-default"));
+    assertThat(variables.getByType(EnvironmentVariablesType.CONF).getFlat("MY_VARIABLE")).isEqualTo("the-default");
   }
 
   /**
@@ -310,18 +301,17 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
     context.setAnswers("value-a", "value-b", "value-c");
-    TestExpressionContext expressionContext = new TestExpressionContext(context);
+    EnvironmentVariables variables = context.getVariables();
 
     // act
-    expressionContext.resolve("@ask-variable('VAR_SETTINGS', 'Q:', settings)");
-    expressionContext.resolve("@ask-variable('VAR_HOME', 'Q:', home)");
-    expressionContext.resolve("@ask-variable('VAR_DEFAULT', 'Q:')");
+    variables.resolve("@ask-variable('VAR_SETTINGS', 'Q:', settings)", "test", false);
+    variables.resolve("@ask-variable('VAR_HOME', 'Q:', home)", "test", false);
+    variables.resolve("@ask-variable('VAR_DEFAULT', 'Q:')", "test", false);
 
     // assert
-    assertThat(expressionContext.locations).containsExactly( //
-        Map.entry("VAR_SETTINGS", EnvironmentVariablesType.SETTINGS), //
-        Map.entry("VAR_HOME", EnvironmentVariablesType.USER), //
-        Map.entry("VAR_DEFAULT", EnvironmentVariablesType.CONF));
+    assertThat(variables.getByType(EnvironmentVariablesType.SETTINGS).getFlat("VAR_SETTINGS")).isEqualTo("value-a");
+    assertThat(variables.getByType(EnvironmentVariablesType.USER).getFlat("VAR_HOME")).isEqualTo("value-b");
+    assertThat(variables.getByType(EnvironmentVariablesType.CONF).getFlat("VAR_DEFAULT")).isEqualTo("value-c");
   }
 
   /**
@@ -332,10 +322,9 @@ class ExpressionParserTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
-    TestExpressionContext expressionContext = new TestExpressionContext(context);
 
     // act + assert
-    assertThatThrownBy(() -> expressionContext.resolve("@ask-variable('MY_VARIABLE', 'Q:', somewhere)"))
+    assertThatThrownBy(() -> context.getVariables().resolve("@ask-variable('MY_VARIABLE', 'Q:', somewhere)", "test", false))
         .isInstanceOf(CliException.class).hasMessageContaining("invalid configuration location 'somewhere'");
   }
 
@@ -348,10 +337,9 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
     context.setAnswers("");
-    TestExpressionContext expressionContext = new TestExpressionContext(context);
 
     // act
-    String result = expressionContext.resolve("@ask-variable('MY_VARIABLE', 'Please enter the value:', conf, 'the-default')");
+    String result = context.getVariables().resolve("@ask-variable('MY_VARIABLE', 'Please enter the value:', conf, 'the-default')", "test", false);
 
     // assert
     assertThat(result).isEqualTo("the-default");
@@ -368,10 +356,9 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
     context.setAnswers("typed-value");
-    TestExpressionContext expressionContext = new TestExpressionContext(context);
 
     // act
-    String result = expressionContext.resolve("@ask-variable('MY_VARIABLE', 'Please enter the value:', conf, null)");
+    String result = context.getVariables().resolve("@ask-variable('MY_VARIABLE', 'Please enter the value:', conf, null)", "test", false);
 
     // assert
     assertThat(result).isEqualTo("typed-value");
@@ -387,10 +374,9 @@ class ExpressionParserTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
-    TestExpressionContext expressionContext = new TestExpressionContext(context);
 
     // act + assert
-    assertThatThrownBy(() -> expressionContext.resolve("@ask-variable('')")).isInstanceOf(CliException.class)
+    assertThatThrownBy(() -> context.getVariables().resolve("@ask-variable('')", "test", false)).isInstanceOf(CliException.class)
         .hasMessageContaining("requires an explicit question");
   }
 
@@ -402,11 +388,10 @@ class ExpressionParserTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
-    TestExpressionContext expressionContext = new TestExpressionContext(context);
 
     // act + assert
-    assertThatThrownBy(() -> expressionContext.resolve("@path(a, unix, extra)"))
-        .isInstanceOf(CliException.class).hasMessageContaining("requires 1 to 2 argument(s) but received 3");
+    assertThatThrownBy(() -> context.getVariables().resolve("@path(a, unix, extra)", "test", false)).isInstanceOf(CliException.class)
+        .hasMessageContaining("requires 1 to 2 argument(s) but received 3");
   }
 
   /**
@@ -418,10 +403,9 @@ class ExpressionParserTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
-    TestExpressionContext expressionContext = new TestExpressionContext(context);
 
     // act + assert
-    assertThatThrownBy(() -> expressionContext.resolve("@path('x', dos)")).isInstanceOf(CliException.class)
+    assertThatThrownBy(() -> context.getVariables().resolve("@path('x', dos)", "test", false)).isInstanceOf(CliException.class)
         .hasMessageContaining("invalid mode 'dos'");
   }
 
@@ -438,8 +422,8 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     plainContext.setAnswers("http://llama.local");
 
     // act
-    new TestExpressionContext(secretContext).resolve("@ask-secret('MY_TOKEN')");
-    new TestExpressionContext(plainContext).resolve("@ask-variable('MY_URL')");
+    secretContext.getVariables().resolve("@ask-secret('MY_TOKEN')", "test", false);
+    plainContext.getVariables().resolve("@ask-variable('MY_URL')", "test", false);
 
     // assert
     assertThat(secretContext.getSecretLineCount()).isEqualTo(1);
@@ -447,63 +431,4 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     assertThat(secretContext).log().hasNoMessageContaining("dummy-secret-value");
   }
 
-  /**
-   * Simple {@link ExpressionContext} for testing that also simulates the surrounding variable resolution of {@code AbstractEnvironmentVariables}.
-   */
-  private static class TestExpressionContext implements ExpressionContext {
-
-    private static final Pattern SQUARE = Pattern.compile("\\$\\[([a-zA-Z0-9_-]+)\\]");
-
-    private final ExpressionParser parser = new ExpressionParser(ExpressionFunctionManager.get());
-
-    private final Map<String, String> variables = new HashMap<>();
-
-    private final Map<String, String> persisted = new LinkedHashMap<>();
-
-    private final Map<String, EnvironmentVariablesType> locations = new LinkedHashMap<>();
-
-    private final IdeContext ideContext;
-
-
-    private TestExpressionContext(IdeContext ideContext) {
-
-      super();
-      this.ideContext = ideContext;
-    }
-
-    @Override
-    public String resolve(String value) {
-
-      String result = this.parser.resolve(value, this);
-      Matcher matcher = SQUARE.matcher(result);
-      StringBuilder sb = new StringBuilder();
-      while (matcher.find()) {
-        String variableValue = this.variables.get(matcher.group(1));
-        matcher.appendReplacement(sb, Matcher.quoteReplacement(variableValue == null ? matcher.group() : variableValue));
-      }
-      matcher.appendTail(sb);
-      return sb.toString();
-    }
-
-    @Override
-    public IdeContext getIdeContext() {
-
-      return this.ideContext;
-    }
-
-    @Override
-    public String getVariable(String name) {
-
-      return this.variables.get(name);
-    }
-
-    @Override
-    public void setVariable(String name, String value, EnvironmentVariablesType type) {
-
-      this.persisted.put(name, value);
-      this.locations.put(name, type);
-      this.variables.put(name, value);
-    }
-
-  }
 }
