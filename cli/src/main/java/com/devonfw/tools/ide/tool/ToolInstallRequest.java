@@ -18,7 +18,9 @@ public final class ToolInstallRequest {
 
   private static final Logger LOG = LoggerFactory.getLogger(ToolInstallRequest.class);
 
-  private final ToolInstallRequest parent;
+  private final PackageManagerRequest parentPackageManagerRequest;
+
+  private final ToolInstallRequest parentToolInstallRequest;
 
   private final boolean silent;
 
@@ -46,7 +48,7 @@ public final class ToolInstallRequest {
    * @param silent the {@link #isSilent() silent} flag.
    */
   public ToolInstallRequest(boolean silent) {
-    this(null, silent, false);
+    this((ToolInstallRequest) null, silent, false);
   }
 
   /**
@@ -61,17 +63,42 @@ public final class ToolInstallRequest {
   /**
    * The constructor.
    *
+   * @param parent the parent {@link PackageManagerRequest} (in case of a dependency).
+   */
+  public ToolInstallRequest(PackageManagerRequest parent) {
+    this(parent, true, false);
+  }
+
+  /**
+   * The constructor.
+   *
    * @param silent the {@link #isSilent() silent} flag.
    * @param direct the {@link #isDirect() direct} flag.
    */
   private ToolInstallRequest(ToolInstallRequest parent, boolean silent, boolean direct) {
     super();
-    this.parent = parent;
+    this.parentToolInstallRequest = parent;
+    this.parentPackageManagerRequest = null;
     this.silent = silent;
     this.direct = direct;
     if (parent != null) {
       this.processContext = parent.processContext;
       this.ignoreProject = parent.ignoreProject;
+    }
+  }
+
+  private ToolInstallRequest(PackageManagerRequest parent, boolean silent, boolean direct) {
+    super();
+    this.parentPackageManagerRequest = parent;
+    this.parentToolInstallRequest = null;
+    this.silent = silent;
+    this.direct = direct;
+    if (parent != null) {
+      this.processContext = parent.getProcessContext();
+      ToolInstallRequest parentRequest = parent.getToolInstallRequest();
+      if (parentRequest != null) {
+        this.ignoreProject = parentRequest.ignoreProject;
+      }
     }
   }
 
@@ -106,10 +133,20 @@ public final class ToolInstallRequest {
         }
       }
     }
-    if (this.parent == null) {
+
+    boolean loopFound;
+
+    if (this.parentToolInstallRequest != null) {
+      loopFound = this.parentToolInstallRequest.detectInstallLoopRecursively(toolEditionAndVersion, sb);
+    } else if (this.parentPackageManagerRequest != null) {
+      ToolInstallRequest parentRequest = this.parentPackageManagerRequest.getToolInstallRequest();
+      if (parentRequest == null) {
+        return false;
+      }
+      loopFound = parentRequest.detectInstallLoopRecursively(toolEditionAndVersion, sb);
+    } else {
       return false;
     }
-    boolean loopFound = this.parent.detectInstallLoopRecursively(toolEditionAndVersion, sb);
     if (loopFound && (sb != null)) {
       sb.append("-->");
       sb.append(this.requested);
@@ -316,6 +353,6 @@ public final class ToolInstallRequest {
    */
   public static ToolInstallRequest ofDirect() {
 
-    return new ToolInstallRequest(null, false, true);
+    return new ToolInstallRequest((ToolInstallRequest) null, false, true);
   }
 }
