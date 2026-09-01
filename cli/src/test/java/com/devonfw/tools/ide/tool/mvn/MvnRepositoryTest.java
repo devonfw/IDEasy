@@ -2,6 +2,8 @@ package com.devonfw.tools.ide.tool.mvn;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -292,7 +294,7 @@ class MvnRepositoryTest extends AbstractIdeContextTest {
 
   /** Test of {@link MvnRepository#resolveSnapshotClassifier(Document, String, String, String)}. */
   @Test
-  void testResolveSnapshotClassifierDoesNotFallbackForLinuxArm64() {
+  void testResolveSnapshotClassifierFallsBackForLinuxArm64() {
 
     // arrange
     IdeTestContext context = new IdeTestContext();
@@ -307,7 +309,7 @@ class MvnRepositoryTest extends AbstractIdeContextTest {
         "2025.02.001-beta-20250204.023111-1");
 
     // assert
-    assertThat(classifier).isEqualTo("linux-arm64");
+    assertThat(classifier).isEqualTo("linux-x64");
   }
 
   /** Test of {@link MvnRepository#fetchVersions(Document, String)}. */
@@ -330,35 +332,10 @@ class MvnRepositoryTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests that a Windows ARM64 snapshot falls back to x64 when no ARM64 snapshot artifact is published.
-   */
-  @Test
-  void testGetMetadataFallsBackToWindowsX64ForSnapshotOnWindowsArm64() {
-
-    // arrange
-    IdeTestContext context = newContext(PROJECT_BASIC);
-    context.setSystemInfo(SystemInfoMock.WINDOWS_ARM64);
-    MvnRepository repository = context.getMvnRepository();
-    VersionIdentifier version = VersionIdentifier.of("2025.02.001-beta-20250204.023111-1");
-
-    // act
-    UrlDownloadFileMetadata metadata = repository.getMetadata(
-        "ideasy",
-        "ideasy",
-        version,
-        null);
-
-    // assert
-    assertThat(metadata.getUrls())
-        .anyMatch(url -> url.endsWith("-windows-x64.tar.gz"));
-    assertThat(metadata.getArch()).isSameAs(SystemArchitecture.X64);
-  }
-
-  /**
    * Tests that a Windows ARM64 release falls back directly to x64.
    */
   @Test
-  void testGetMetadataFallsBackToWindowsX64ForReleaseOnWindowsArm64() {
+  void testGetMetadataKeepsWindowsArm64ForReleaseOnWindowsArm64() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
@@ -375,8 +352,102 @@ class MvnRepositoryTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(metadata.getUrls())
-        .anyMatch(url -> url.endsWith("-windows-x64.tar.gz"));
-    assertThat(metadata.getArch()).isSameAs(SystemArchitecture.X64);
+        .anyMatch(url -> url.endsWith("-windows-arm64.tar.gz"));
+    assertThat(metadata.getArch()).isSameAs(SystemArchitecture.ARM64);
+  }
+
+  /**
+   * Tests that an unavailable ARM64 release artifact falls back to the corresponding x64 artifact.
+   */
+  @Test
+  void testDownloadFallsBackFromArm64ToX64OnNotFound() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    List<String> requestedUrls = new ArrayList<>();
+
+    MvnRepository repository = new MvnRepository(context) {
+
+      @Override
+      protected UrlChecksums getChecksums(MvnArtifact artifact) {
+        return null;
+      }
+
+      @Override
+      protected Path download(String url, Path target, Object resolvedVersion, UrlChecksums expectedChecksums) {
+
+        requestedUrls.add(url);
+
+        if (url.contains("windows-arm64")) {
+          throw new IllegalStateException("Download failed with status code 404");
+        }
+
+        return target;
+      }
+    };
+
+    MvnArtifact artifact = new MvnArtifact(
+        "com.devonfw.tools.IDEasy",
+        "ide-cli",
+        "2025.01.001-beta")
+        .withType("tar.gz")
+        .withClassifier("windows-arm64");
+
+    MvnArtifactMetadata metadata =
+        repository.getMetadata(artifact, "ideasy", "ideasy");
+
+    // act
+    Path result = repository.download(metadata);
+
+    // assert
+    assertThat(requestedUrls).hasSize(2);
+    assertThat(requestedUrls.get(0)).endsWith("-windows-arm64.tar.gz");
+    assertThat(requestedUrls.get(1)).endsWith("-windows-x64.tar.gz");
+    assertThat(result.getFileName().toString()).endsWith("-windows-x64.tar.gz");
+  }
+
+  /**
+   * Tests that an ARM64 release artifact does not fall back to x64 for a non-404 download error.
+   */
+  @Test
+  void testDownloadDoesNotFallbackFromArm64ToX64OnOtherError() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    List<String> requestedUrls = new ArrayList<>();
+
+    MvnRepository repository = new MvnRepository(context) {
+
+      @Override
+      protected UrlChecksums getChecksums(MvnArtifact artifact) {
+        return null;
+      }
+
+      @Override
+      protected Path download(String url, Path target, Object resolvedVersion, UrlChecksums expectedChecksums) {
+
+        requestedUrls.add(url);
+        throw new IllegalStateException("Network connection failed");
+      }
+    };
+
+    MvnArtifact artifact = new MvnArtifact(
+        "com.devonfw.tools.IDEasy",
+        "ide-cli",
+        "2025.01.001-beta")
+        .withType("tar.gz")
+        .withClassifier("windows-arm64");
+
+    MvnArtifactMetadata metadata =
+        repository.getMetadata(artifact, "ideasy", "ideasy");
+
+    // act + assert
+    assertThatThrownBy(() -> repository.download(metadata))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessage("Network connection failed");
+
+    assertThat(requestedUrls).hasSize(1);
+    assertThat(requestedUrls.get(0)).endsWith("-windows-arm64.tar.gz");
   }
 
   private static Document parseXml(String xml) {

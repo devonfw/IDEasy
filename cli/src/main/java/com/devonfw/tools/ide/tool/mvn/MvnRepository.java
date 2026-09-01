@@ -67,9 +67,9 @@ public class MvnRepository extends ArtifactToolRepository<MvnArtifact, MvnArtifa
    */
   private static final Duration XML_METADATA_CACHE_DURATION = Duration.ofMinutes(1);
 
-  private static final String CLASSIFIER_WINDOWS_ARM64 = "windows-arm64";
+  private static final String ARCH_ARM64 = "arm64";
 
-  private static final String CLASSIFIER_WINDOWS_X64 = "windows-x64";
+  private static final String ARCH_X64 = "x64";
 
   private final Path localMavenRepository;
 
@@ -146,13 +146,15 @@ public class MvnRepository extends ArtifactToolRepository<MvnArtifact, MvnArtifa
         classifier = resolvedClassifier;
       }
 
-      if (CLASSIFIER_WINDOWS_ARM64.equals(classifier)) {
-        classifier = resolveWindowsArm64Classifier(
+      if (classifier.contains(ARCH_ARM64)) {
+        String originalClassifier = classifier;
+
+        classifier = resolveArm64Classifier(
             artifact,
             classifier,
             artifact.getType());
 
-        if (CLASSIFIER_WINDOWS_X64.equals(classifier)) {
+        if (!classifier.equals(originalClassifier)) {
           arch = SystemArchitecture.X64;
         }
       }
@@ -165,22 +167,21 @@ public class MvnRepository extends ArtifactToolRepository<MvnArtifact, MvnArtifa
   }
 
   /**
-   * Resolves the classifier for a timestamped Maven snapshot.
+   * Resolves the classifier for a Maven snapshot on ARM64.
    * <p>
-   * IDEasy currently does not publish a Windows ARM64 artifact. Windows on ARM
-   * can execute Windows x64 applications, so the x64 artifact is used as a
-   * fallback when the ARM64 artifact is unavailable.
+   * Snapshot metadata is inspected to determine whether the ARM64 artifact exists.
+   * If it is unavailable but a x64 artifact exists, the x64 artifact is used as fallback.
+   * Release artifacts are not changed here and are attempted as ARM64 first.
    *
    * @param artifact the artifact being resolved.
    * @param classifier the originally resolved classifier.
    * @param extension the artifact extension, such as {@code tar.gz}.
-   * @return the original classifier if it exists or no suitable fallback is available; otherwise {@code windows-x64}.
+   * @return the resolved classifier.
    */
-  private String resolveWindowsArm64Classifier(MvnArtifact artifact, String classifier, String extension) {
+  private String resolveArm64Classifier(MvnArtifact artifact, String classifier, String extension) {
 
     if (!artifact.isSnapshot()) {
-      logWindowsArm64Fallback(artifact.getVersion());
-      return CLASSIFIER_WINDOWS_X64;
+      return classifier;
     }
 
     String metadataUrl = getMavenUrl(artifact.withMavenMetadata());
@@ -189,9 +190,8 @@ public class MvnRepository extends ArtifactToolRepository<MvnArtifact, MvnArtifa
       Document metadata = fetchXmlMetadata(metadataUrl);
       return resolveSnapshotClassifier(metadata, classifier, extension, artifact.getVersion());
     } catch (RuntimeException e) {
-      LOG.debug("Failed to inspect snapshot metadata from {} - falling back to {}.",
-          metadataUrl, CLASSIFIER_WINDOWS_X64, e);
-      return CLASSIFIER_WINDOWS_X64;
+      LOG.debug("Failed to inspect snapshot metadata from {}.", metadataUrl, e);
+      return classifier;
     }
   }
 
@@ -206,15 +206,17 @@ public class MvnRepository extends ArtifactToolRepository<MvnArtifact, MvnArtifa
    */
   String resolveSnapshotClassifier(Document metadata, String classifier, String extension, String version) {
 
+    String fallbackClassifier = classifier.replace(ARCH_ARM64, ARCH_X64);
+
     if (hasSnapshotArtifact(metadata, classifier, extension)) {
       return classifier;
     }
 
-    if (CLASSIFIER_WINDOWS_ARM64.equals(classifier)
-        && hasSnapshotArtifact(metadata, CLASSIFIER_WINDOWS_X64, extension)) {
+    if (classifier.contains(ARCH_ARM64)
+        && hasSnapshotArtifact(metadata, fallbackClassifier, extension)) {
 
-      logWindowsArm64Fallback(version);
-      return CLASSIFIER_WINDOWS_X64;
+      logArm64Fallback(classifier, fallbackClassifier, version);
+      return fallbackClassifier;
     }
 
     // Preserve the original classifier so the existing download error is
@@ -314,10 +316,21 @@ public class MvnRepository extends ArtifactToolRepository<MvnArtifact, MvnArtifa
   private Path getDownloadedArtifact(MvnArtifact artifact, UrlChecksums checksums) {
 
     Path file = this.localMavenRepository.resolve(artifact.getPath());
+
     if (isNotUpToDateInLocalRepo(file)) {
       this.context.getFileAccess().mkdirs(file.getParent());
-      download(getMavenUrl(artifact), file, artifact.getVersion(), checksums);
+
+      try {
+        download(getMavenUrl(artifact), file, artifact.getVersion(), checksums);
+      } catch (RuntimeException e) {
+
+        if (shouldFallbackToX64(artifact, e)) {
+          return downloadX64Fallback(artifact);
+        }
+        throw e;
+      }
     }
+
     return file;
   }
 
@@ -420,7 +433,8 @@ public class MvnRepository extends ArtifactToolRepository<MvnArtifact, MvnArtifa
   private Element findFirstChildElement(Element element, String tag) {
 
     NodeList children = element.getChildNodes();
-    for (int i = 0; i < children.getLength(); i++) {
+    int length = children.getLength();
+    for (int i = 0; i < length; i++) {
       Node node = children.item(i);
       if (node instanceof Element child && child.getTagName().equals(tag)) {
         return child;
@@ -514,9 +528,79 @@ public class MvnRepository extends ArtifactToolRepository<MvnArtifact, MvnArtifa
     }
   }
 
-  private void logWindowsArm64Fallback(String version) {
-    LOG.warn("No {} artifact is published for version {} - falling back to {} "
-            + "(see https://github.com/devonfw/IDEasy/issues/599).",
-        CLASSIFIER_WINDOWS_ARM64, version, CLASSIFIER_WINDOWS_X64);
+  private void logArm64Fallback(String classifier, String fallbackClassifier, String version) {
+    LOG.warn("Artifact with classifier {} is unavailable for version {} - falling back to {}.",
+        classifier, version, fallbackClassifier);
+  }
+
+  /**
+   * Checks whether a failed ARM64 download should fall back to the corresponding x64 artifact.
+   *
+   * @param artifact the artifact whose download failed.
+   * @param error the download error.
+   * @return {@code true} if the x64 fallback should be attempted.
+   */
+  private boolean shouldFallbackToX64(MvnArtifact artifact, Throwable error) {
+
+    String classifier = artifact.getClassifier();
+
+    return classifier.contains(ARCH_ARM64)
+        && isNotFound(error);
+  }
+
+  /**
+   * Checks whether the given exception was caused by an HTTP 404 response.
+   *
+   * @param error the exception to inspect.
+   * @return {@code true} if the exception chain contains an HTTP 404 response.
+   */
+  private static boolean isNotFound(Throwable error) {
+
+    Throwable current = error;
+
+    while (current != null) {
+      String message = current.getMessage();
+      if ((message != null) && message.contains("status code 404")) {
+        return true;
+      }
+      current = current.getCause();
+    }
+
+    return false;
+  }
+
+  /**
+   * Downloads the  x64 artifact as fallback for an unavailable ARM64 release artifact.
+   *
+   * @param artifact the original ARM64 artifact.
+   * @return the downloaded x64 artifact.
+   */
+  private Path downloadX64Fallback(MvnArtifact artifact) {
+
+    String fallbackClassifier =
+        artifact.getClassifier().replace(ARCH_ARM64, ARCH_X64);
+
+    MvnArtifact fallbackArtifact =
+        artifact.withClassifier(fallbackClassifier);
+
+    Path fallbackFile =
+        this.localMavenRepository.resolve(fallbackArtifact.getPath());
+
+    logArm64Fallback(
+        artifact.getClassifier(),
+        fallbackClassifier,
+        artifact.getVersion());
+
+    if (isNotUpToDateInLocalRepo(fallbackFile)) {
+      this.context.getFileAccess().mkdirs(fallbackFile.getParent());
+
+      download(
+          getMavenUrl(fallbackArtifact),
+          fallbackFile,
+          fallbackArtifact.getVersion(),
+          getChecksums(fallbackArtifact));
+    }
+
+    return fallbackFile;
   }
 }
