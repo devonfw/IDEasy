@@ -93,6 +93,8 @@ public class PythonTest extends AbstractIdeContextTest {
     Files.writeString(userPackage, "# installed via pip");
     // simulate that uv or python has removed our version file from the virtual environment
     Files.delete(versionFile);
+    // the version is still determined from the installation itself (e.g. for "ide get-version python")
+    assertThat(python.getInstalledVersion(pythonPath)).isEqualTo(VersionIdentifier.of("3.14.6"));
 
     // act
     python.install();

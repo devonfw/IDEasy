@@ -96,15 +96,20 @@ public class Python extends LocalToolCommandlet {
   }
 
   @Override
-  protected VersionIdentifier detectInstalledVersion(Path installationPath, VersionIdentifier resolvedVersion) {
+  protected VersionIdentifier getInstalledVersion(Path toolPath) {
 
-    VersionIdentifier version = readVersionFromPyvenvCfg(installationPath);
+    VersionIdentifier version = super.getInstalledVersion(toolPath);
     if (version == null) {
-      version = readVersionFromInterpreter(installationPath);
-    }
-    if (version == null) {
-      LOG.warn("Could not detect the installed version of python at {} - assuming {}.", installationPath, resolvedVersion);
-      return resolvedVersion;
+      // the virtual environment can be recreated by uv or python and then the version file is lost, so we ask the
+      // installation itself instead of reporting that python is not installed - see
+      // https://github.com/devonfw/IDEasy/issues/2190
+      version = readVersionFromPyvenvCfg(toolPath);
+      if (version == null) {
+        version = readVersionFromInterpreter(toolPath);
+      }
+      if (version != null) {
+        LOG.debug("Determined version {} of python from the installation at {}.", version, toolPath);
+      }
     }
     return version;
   }

@@ -78,20 +78,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     return false;
   }
 
-  /**
-   * Detects the version that is actually installed at the given {@code installationPath} in case the
-   * {@link IdeContext#FILE_SOFTWARE_VERSION software version file} is missing. Tools that can determine their installed version from the installation itself
-   * (e.g. by asking the installed executable) should override this method so that the restored version file reflects reality.
-   *
-   * @param installationPath the {@link Path} to the existing installation without version file.
-   * @param resolvedVersion the {@link VersionIdentifier} that was requested to be installed and that is used as fallback.
-   * @return the detected {@link VersionIdentifier} of the existing installation, never {@code null}.
-   */
-  protected VersionIdentifier detectInstalledVersion(Path installationPath, VersionIdentifier resolvedVersion) {
-
-    return resolvedVersion;
-  }
-
   @Override
   protected ToolInstallation doInstall(ToolInstallRequest request) {
 
@@ -221,14 +207,14 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
           LOG.warn("Deleting corrupted installation at {}", installationPath);
           fileAccess.delete(installationPath);
         } else {
-          // Version file is missing but tool allows this - restore the file and preserve the installation.
-          VersionIdentifier detectedVersion = detectInstalledVersion(installationPath, resolvedVersion);
-          LOG.warn("Version file is missing at {} - restoring it with version {} for tool {}", toolVersionFile, detectedVersion, this.tool);
-          this.context.writeVersionFile(detectedVersion, installationPath);
-          // we changed the installation on disk so a previously cached (empty) result must not survive
-          invalidateInstalledEditionAndVersion();
-          if (detectedVersion.equals(resolvedVersion)) {
-            return createToolInstallation(installationPath, detectedVersion, false, processContext, additionalInstallation);
+          // version file is missing but tool allows this - restore the file and preserve the installation
+          VersionIdentifier installedVersion = getInstalledVersion(installationPath);
+          if (installedVersion == null) {
+            installedVersion = resolvedVersion;
+          }
+          restoreMissingVersionFile(installationPath, installedVersion);
+          if (installedVersion.equals(resolvedVersion)) {
+            return createToolInstallation(installationPath, installedVersion, false, processContext, additionalInstallation);
           }
           // the installation on disk is a different version than requested so we continue with the regular installation
           // that will backup the existing installation before installing the requested version.
@@ -383,6 +369,41 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    */
   protected void postExtract(Path extractedDir) {
 
+  }
+
+  @Override
+  protected ToolInstallation toolAlreadyInstalled(ToolInstallRequest request) {
+
+    if (isIgnoreMissingSoftwareVersionFile()) {
+      // the installed version was determined from the installation itself so we can heal the missing version file
+      ToolEditionAndVersion installed = request.getInstalled();
+      if (installed != null) {
+        restoreMissingVersionFile(getToolPath(), installed.getResolvedVersion());
+      }
+    }
+    return super.toolAlreadyInstalled(request);
+  }
+
+  /**
+   * Restores the {@link IdeContext#FILE_SOFTWARE_VERSION version file} of an existing installation in case it got lost (e.g. because {@code uv} recreated the
+   * python virtual environment). Does nothing if the file is present or the version is unknown.
+   *
+   * @param installationPath the {@link Path} to the installation of this tool.
+   * @param version the {@link VersionIdentifier} that is actually installed at the given {@code installationPath}.
+   */
+  protected void restoreMissingVersionFile(Path installationPath, VersionIdentifier version) {
+
+    if ((version == null) || !Files.isDirectory(installationPath)) {
+      return;
+    }
+    Path toolVersionFile = installationPath.resolve(IdeContext.FILE_SOFTWARE_VERSION);
+    if (Files.exists(toolVersionFile)) {
+      return;
+    }
+    LOG.warn("Version file is missing at {} - restoring it with version {} for tool {}", toolVersionFile, version, this.tool);
+    this.context.writeVersionFile(version, installationPath);
+    // the installation on disk changed so a previously cached result must not survive
+    invalidateInstalledEditionAndVersion();
   }
 
   @Override
