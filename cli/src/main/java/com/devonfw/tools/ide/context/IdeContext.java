@@ -1,7 +1,11 @@
 package com.devonfw.tools.ide.context;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.stream.Stream;
 
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliException;
@@ -20,6 +24,7 @@ import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.network.NetworkStatus;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
+import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.corepack.Corepack;
@@ -30,8 +35,8 @@ import com.devonfw.tools.ide.tool.mvn.MvnRepository;
 import com.devonfw.tools.ide.tool.npm.Npm;
 import com.devonfw.tools.ide.tool.npm.NpmRepository;
 import com.devonfw.tools.ide.tool.pip.PipRepository;
-import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.tool.python.PythonRepository;
+import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.tool.uv.UvRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
@@ -123,6 +128,9 @@ public interface IdeContext extends IdeStartContext {
   /** The name of the bin folder where executable files are found by default. */
   String FOLDER_BIN = "bin";
 
+  /** The name of the repository folder used to store repository data */
+  String FOLDER_REPOSITORY = "repository";
+
   /** The name of the repositories folder where properties files are stores for each repository */
   String FOLDER_REPOSITORIES = "repositories";
 
@@ -165,8 +173,8 @@ public interface IdeContext extends IdeStartContext {
    * configured every time. This is only for settings that have to be the same for every developer in the project. An example would be the number of spaces used
    * for indentation and other code-formatting settings. If all developers in a project team use the same formatter settings, this will actively prevent
    * diff-wars. However, the entire team needs to agree on these settings.<br> Never configure aspects inside this update folder that may be of personal flavor
-   * such as the color theme. Otherwise developers will hate you as you actively take away their freedom to customize the IDE to their personal needs and
-   * wishes. Therefore do all "biased" or "flavored" configurations in {@link #FOLDER_SETUP setup} so these are only pre-configured but can be changed by the
+   * such as the color theme. Otherwise, developers will hate you as you actively take away their freedom to customize the IDE to their personal needs and
+   * wishes. Therefore, do all "biased" or "flavored" configurations in {@link #FOLDER_SETUP setup} so these are only pre-configured but can be changed by the
    * user as needed.
    */
   String FOLDER_UPDATE = "update";
@@ -416,9 +424,41 @@ public interface IdeContext extends IdeStartContext {
   Path getIdeRoot();
 
   /**
-   * @param ideRoot the new value of {@link #getIdeRoot() IDE_ROOT}. Typically detected automatically from the environment and working directory, but may need
-   *     to be set explicitly (e.g. during the initial installation where the {@code IDE_ROOT} environment variable is not yet available but the installation
-   *     target is already known).
+   * Finds all IDEasy projects below the configured IDE root.
+   *
+   * @return the paths of all detected IDEasy projects.
+   */
+  default List<Path> findProjects() {
+
+    return findProjects(getIdeRoot());
+  }
+
+  /**
+   * Finds all IDEasy projects below the given IDE root.
+   *
+   * @param ideRoot the IDE root containing the IDEasy projects.
+   * @return the paths of all detected IDEasy projects.
+   */
+  static List<Path> findProjects(Path ideRoot) {
+
+    if ((ideRoot == null) || !Files.isDirectory(ideRoot)) {
+      return List.of();
+    }
+
+    try (Stream<Path> children = Files.list(ideRoot)) {
+      return children.filter(Files::isDirectory)
+          .filter(project -> !FOLDER_UNDERSCORE_IDE.equals(project.getFileName().toString()))
+          .filter(project -> Files.isDirectory(project.resolve(FOLDER_WORKSPACES)))
+          .toList();
+    } catch (IOException e) {
+      throw new UncheckedIOException("Failed to find IDEasy projects in " + ideRoot, e);
+    }
+  }
+
+  /**
+   * @param ideRoot the new value of {@link #getIdeRoot() IDE_ROOT}. Typically detected automatically from the environment and working directory, but may
+   *     need to be set explicitly (e.g. during the initial installation where the {@code IDE_ROOT} environment variable is not yet available but the
+   *     installation target is already known).
    */
   void setIdeRoot(Path ideRoot);
 
@@ -622,6 +662,15 @@ public interface IdeContext extends IdeStartContext {
    * @return a new {@link ProcessContext} to {@link ProcessContext#run() run} external commands.
    */
   ProcessContext newProcess();
+
+  /**
+   * Sets the environment variables of all tools installed in the {@link #getSoftwarePath() software path} in the given {@link EnvironmentContext}. This is the
+   * single source of truth for the tool environment: it is used for the environment exported to the user's shell (see
+   * {@link com.devonfw.tools.ide.commandlet.EnvironmentCommandlet}) as well as for the {@link ProcessContext} of a tool that is run via IDEasy.
+   *
+   * @param environmentContext the {@link EnvironmentContext} where to set the environment variables.
+   */
+  void setEnvironmentOfInstalledTools(EnvironmentContext environmentContext);
 
   /**
    * @param title the {@link IdeProgressBar#getTitle() title}.

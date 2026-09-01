@@ -30,48 +30,55 @@ public abstract class UvBasedCommandlet extends PackageManagerBasedLocalToolComm
    * The constructor.
    *
    * @param context the {@link IdeContext}.
-   * @param tool the {@link #getName() tool name}.
-   * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of} method.
+   * @param tool    the {@link #getName() tool name}.
+   * @param tags    the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of} method.
    */
   public UvBasedCommandlet(IdeContext context, String tool, Set<Tag> tags) {
+
     super(context, tool, tags);
   }
 
   @Override
   protected Class<Uv> getPackageManagerClass() {
+
     return Uv.class;
   }
 
   @Override
   public ToolRepository getToolRepository() {
+
     return this.context.getUvRepository();
   }
 
   @Override
   protected Uv getParentTool() {
+
     return this.context.getCommandletManager().getCommandlet(Uv.class);
   }
 
   @Override
   protected String appendVersion(String tool, VersionIdentifier version) {
+
     return tool + "@" + version;
   }
 
   @Override
   protected void completeRequestArgs(PackageManagerRequest request) {
+
     request.addArg("tool");
     super.completeRequestArgs(request);
   }
 
   @Override
-  protected VersionIdentifier computeInstalledVersion() {
+  protected VersionIdentifier computeInstalledPackageVersion() {
+
     if (!Files.isDirectory(this.context.getSoftwarePath().resolve("uv"))) {
       LOG.trace("Since uv is not installed, the tool {} cannot be installed either.", this.tool);
       return null;
     }
     String packageName = getPackageName();
     PackageManagerRequest request = new PackageManagerRequest("list", packageName).addArg("tool").addArg("list")
-        .setProcessMode(ProcessMode.DEFAULT_CAPTURE);
+            .setProcessMode(ProcessMode.DEFAULT_CAPTURE);
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.NONE);
     request.setProcessContext(pc);
     ProcessResult result = runPackageManager(request, true);
@@ -87,4 +94,15 @@ public abstract class UvBasedCommandlet extends PackageManagerBasedLocalToolComm
     result.log(IdeLogLevel.DEBUG);
     return null;
   }
+
+  @Override
+  protected String completeRequestOption(PackageManagerRequest request) {
+
+    if (PackageManagerRequest.TYPE_INSTALL.equals(request.getType())) {
+      return "--force";
+    }
+
+    return super.completeRequestOption(request);
+  }
+
 }

@@ -1,15 +1,24 @@
 package com.devonfw.tools.ide.tool.dotnet;
 
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.environment.VariableLine;
+import com.devonfw.tools.ide.environment.VariableSource;
 import com.devonfw.tools.ide.os.SystemInfo;
-import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.devonfw.tools.ide.os.WindowsPathSyntax;
+import com.devonfw.tools.ide.process.EnvironmentVariableCollectorContext;
+import com.devonfw.tools.ide.tool.ToolInstallation;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * Test of {@link DotNet}.
@@ -55,20 +64,17 @@ class DotNetTest extends AbstractIdeContextTest {
   @ValueSource(strings = { "windows", "mac", "linux" })
   void dotnetShouldRunExecutableSuccessful(String os) {
 
-    // TODO: Check: https://github.com/devonfw/IDEasy/issues/701 for reference.
-    if (SystemInfoImpl.INSTANCE.isWindows()) {
-      String expectedOutputLinux = "Dummy dotnet 6.0.419 on linux ";
-      String expectedOutputMacOs = "Dummy dotnet 6.0.419 on mac ";
-      String expectedOutputWindows = "Dummy dotnet 6.0.419 on windows ";
-      runExecutable(os);
+    String expectedOutputLinux = "Dummy dotnet 6.0.419 on linux ";
+    String expectedOutputMacOs = "Dummy dotnet 6.0.419 on mac ";
+    String expectedOutputWindows = "Dummy dotnet 6.0.419 on windows ";
+    runExecutable(os);
 
-      if (this.context.getSystemInfo().isLinux()) {
-        checkExpectedOutput(expectedOutputLinux);
-      } else if (this.context.getSystemInfo().isMac()) {
-        checkExpectedOutput(expectedOutputMacOs);
-      } else if (this.context.getSystemInfo().isWindows()) {
-        checkExpectedOutput(expectedOutputWindows);
-      }
+    if (this.context.getSystemInfo().isLinux()) {
+      checkExpectedOutput(expectedOutputLinux);
+    } else if (this.context.getSystemInfo().isMac()) {
+      checkExpectedOutput(expectedOutputMacOs);
+    } else if (this.context.getSystemInfo().isWindows()) {
+      checkExpectedOutput(expectedOutputWindows);
     }
   }
 
@@ -88,5 +94,36 @@ class DotNetTest extends AbstractIdeContextTest {
 
     Path dummyUserHomePath = PROJECTS_TARGET_PATH.resolve(PROJECT_DOTNET).resolve(pathString);
     context.setUserHome(dummyUserHomePath);
+  }
+
+  @Test
+  void testSetEnvironment() {
+
+    // arrange
+    Path dotnetPath = this.context.getSoftwarePath().resolve("dotnet");
+    ToolInstallation installation = new ToolInstallation(
+        dotnetPath,
+        dotnetPath,
+        dotnetPath,
+        VersionIdentifier.of("6.0.419"),
+        true);
+
+    Map<String, VariableLine> variables = new HashMap<>();
+    WindowsPathSyntax pathSyntax = WindowsPathSyntax.MSYS;
+    EnvironmentVariableCollectorContext environmentContext =
+        new EnvironmentVariableCollectorContext(
+            variables,
+            new VariableSource(EnvironmentVariablesType.WORKSPACE, null),
+            pathSyntax);
+
+    // act
+    this.commandlet.setEnvironment(environmentContext, installation, false);
+
+    // assert
+    String expectedPath = pathSyntax.normalize(dotnetPath.toString());
+    assertThat(variables.get("DOTNET_HOME").getValue())
+        .isEqualTo(expectedPath);
+    assertThat(variables.get("DOTNET_ROOT").getValue())
+        .isEqualTo(expectedPath);
   }
 }

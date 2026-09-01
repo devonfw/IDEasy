@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 
+import com.devonfw.tools.ide.cache.CachedValue;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.common.Tags;
@@ -63,6 +64,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
   private MacOsHelper macOsHelper;
 
+  /** Cached result for {@link #getInstalledEditionAndVersion()}. */
+  private final CachedValue<EditionAndVersion> installedEditionAndVersion;
+
   /**
    * Registry for tool-specific auto-completion candidates.
    */
@@ -80,6 +84,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     super(context);
     this.tool = tool;
     this.tags = tags;
+    this.installedEditionAndVersion = new CachedValue<>(this::computeInstalledEditionAndVersion);
     addKeyword(tool);
     this.arguments = new ToolArgumentsProperty("", false, true, "args");
     initProperties();
@@ -248,7 +253,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    */
   public ProcessResult runTool(ProcessMode processMode, GenericVersionRange toolVersion, ProcessErrorHandling errorHandling, List<String> args) {
 
-    ProcessContext pc = this.context.newProcess().errorHandling(errorHandling);
+    ProcessContext pc = newToolProcess(errorHandling);
     ToolInstallRequest request = new ToolInstallRequest(true);
     if (toolVersion != null) {
       request.setRequested(new ToolEditionAndVersion(toolVersion));
@@ -351,7 +356,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     ToolInstallation installation = doInstall(request);
     if (installation != null && installation.installedAsynchronously()) {
       LOG.warn(
-          "The installation of {} is currently running in the background!\nYou need to complete the installation, potentially reboot and rerun your 'ide' command in a new terminal session after the installation has completed.",
+          "The installation of {} is currently running in the background!\n"
+              + "You need to complete the installation, potentially reboot and rerun your 'ide' command in a new terminal session"
+              + " after the installation has completed.",
           request.getRequested());
     }
     return installation;
@@ -378,9 +385,21 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
   private void completeRequestProcessContext(ToolInstallRequest request) {
     if (request.getProcessContext() == null) {
-      ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI);
-      request.setProcessContext(pc);
+      request.setProcessContext(newToolProcess(ProcessErrorHandling.THROW_CLI));
     }
+  }
+
+  /**
+   * @param errorHandling the {@link ProcessErrorHandling}.
+   * @return a new {@link ProcessContext} initialized with the environment variables of all installed tools of the project. This tool and its
+   *     {@link ToolDependency dependencies} will override those variables later when their
+   *     {@link #setEnvironment(EnvironmentContext, ToolInstallation, boolean) environment} is set.
+   */
+  private ProcessContext newToolProcess(ProcessErrorHandling errorHandling) {
+
+    ProcessContext pc = this.context.newProcess().errorHandling(errorHandling);
+    this.context.setEnvironmentOfInstalledTools(pc);
+    return pc;
   }
 
   private void completeRequestInstalled(ToolInstallRequest request) {
@@ -439,7 +458,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
     GenericVersionRange version = requested.getVersion();
     if (version == null) {
-      version = getConfiguredVersion();
+      version = request.isIgnoreProject() ? VersionIdentifier.LATEST : getConfiguredVersion();
       requested.setVersion(version);
     }
     VersionIdentifier resolvedVersion = requested.getResolvedVersion();
@@ -594,6 +613,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   protected ToolInstallation createToolInstallation(Path rootDir, Path linkDir, Path binDir, VersionIdentifier version, boolean newInstallation,
       EnvironmentContext environmentContext, boolean additionalInstallation) {
 
+    // Invalidate cached edition/version so that subsequent calls reflect the new installation
+    invalidateInstalledEditionAndVersion();
     // do not copy the version file into macOS .app bundles: changing the bundle after codesigning breaks the seal.
     ToolInstallation toolInstallation = new ToolInstallation(rootDir, linkDir, binDir, version, newInstallation);
     setEnvironment(environmentContext, toolInstallation, additionalInstallation);
@@ -740,6 +761,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
         }
       }
     }
+    if ((nearest != null) && !nearest.vulnerabilities().isSafer(currentVulnerabilities)) {
+      nearest = null; // never suggest a version that does not reduce the CVEs
+    }
     if ((latest == null) && (nearest == null)) {
       LOG.warn("Could not find any other version resolving your CVEs.\n"
           + "Please keep attention to this tool and consider updating as soon as security fixes are available.");
@@ -798,9 +822,36 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
+   * Gets the installed edition and version together, resolving both in a single operation. This method is final:
+   * tool-specific logic belongs in the {@link #computeInstalledEditionAndVersion()} hook so that the cache here always
+   * applies.
+   *
+   * @return the {@link EditionAndVersion} or {@code null} if not installed.
+   */
+  public final EditionAndVersion getInstalledEditionAndVersion() {
+
+    return this.installedEditionAndVersion.get();
+  }
+
+  /**
+   * Hook to compute the installed edition and version together. Override this method in subclasses to resolve both
+   * edition and version in a single operation, avoiding redundant expensive lookups.
+   *
+   * @return the {@link EditionAndVersion} or {@code null} if not installed.
+   */
+  protected EditionAndVersion computeInstalledEditionAndVersion() {
+
+    return null;
+  }
+
+  /**
    * @return the currently installed {@link VersionIdentifier version} of this tool or {@code null} if not installed.
    */
-  public abstract VersionIdentifier getInstalledVersion();
+  public final VersionIdentifier getInstalledVersion() {
+
+    EditionAndVersion ev = getInstalledEditionAndVersion();
+    return (ev != null) ? ev.version() : null;
+  }
 
   /**
    * @return {@code true} if this tool is installed, {@code false} otherwise.
@@ -813,7 +864,17 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   /**
    * @return the installed edition of this tool or {@code null} if not installed.
    */
-  public abstract String getInstalledEdition();
+  public final String getInstalledEdition() {
+
+    EditionAndVersion ev = getInstalledEditionAndVersion();
+    return (ev != null) ? ev.edition() : null;
+  }
+
+  /** Invalidates the cached installed edition and version so the next call to {@link #getInstalledEditionAndVersion()} recomputes the result. */
+  protected void invalidateInstalledEditionAndVersion() {
+
+    this.installedEditionAndVersion.invalidate();
+  }
 
   /**
    * Uninstalls the {@link #getName() tool}.
