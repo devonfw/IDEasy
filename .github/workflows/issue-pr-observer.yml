@@ -2,10 +2,12 @@ name: External Issue, PR & Discussion Observer
 
 # Posts a weekday-morning digest of new EXTERNAL issues, PRs and discussions (last 24h)
 # to a Teams channel so incoming activity from outside the team is noticed quickly and
-# "External" = author is not in the DAILY_TEAM list below.
+# "External" = author is not a member of a GitHub team linked to the IDEasy board
+# (devonfw project 5).
 # Issues/PRs come from the REST search API, discussions from GraphQL (no REST equivalent).
 # Each source falls back to empty on error, so one failing API still posts the rest.
-# Requires the repository secret TEAMS_WEBHOOK_URL (a Teams "Workflows" incoming webhook).
+# Requires repository secrets TEAMS_WEBHOOK_URL (Teams "Workflows" incoming webhook)
+# and TEAM_TOKEN (org Projects + Members read token).
 
 on:
   workflow_dispatch:
@@ -25,25 +27,10 @@ jobs:
       - name: Scan for new external issues, PRs & discussions and notify Teams
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TEAM_TOKEN: ${{ secrets.TEAM_TOKEN }}
           WEBHOOK: ${{ secrets.TEAMS_WEBHOOK_URL }}
           REPO: ${{ github.repository }}
-          # Daily-team logins to exclude; one per line, case-insensitive.
-          DAILY_TEAM: |
-            Ali-Shariati-Najafabadi
-            cap-juan
-            Hiepiscus
-            hohwille
-            JoelAdbu
-            krystynaShatkovska
-            laert-ll
-            laim2003
-            majesteSil
-            maybeec
-            MeShehi
-            quando632
-            QuangAnhLe
-            samuelkos17
-            shodiBoy1
+          PROJECT_NUMBER: "5"
         run: |
           # so a failing gh api trips the || fallback instead of being hidden by the trailing jq
           set -o pipefail  # no `set -e`: the per-source `|| { ... ITEMS='[]'; }` fallbacks must keep the script running
@@ -56,10 +43,62 @@ jobs:
           fi
           echo "Scanning $REPO for items created since $SINCE"
 
-          # team logins as a lowercase JSON array
-          TEAM=$(printf '%s\n' "$DAILY_TEAM" | grep -vE '^[[:space:]]*$' \
-            | tr -d ' \t\r' | tr '[:upper:]' '[:lower:]' | jq -R . | jq -s .)
-          echo "Excluding $(echo "$TEAM" | jq 'length') daily-team member(s)."
+          if [ -z "$TEAM_TOKEN" ]; then
+            echo "TEAM_TOKEN is empty."
+            exit 1
+          fi
+
+          OWNER=${REPO%/*}
+
+          # Fetch the GitHub teams explicitly linked to the IDEasy project. Project access is
+          # the source of truth; issue/PR assignments do not determine team membership.
+          PROJECT_TEAMS=$(GH_TOKEN="$TEAM_TOKEN" gh api graphql \
+            -F owner="$OWNER" -F project="$PROJECT_NUMBER" \
+            -f query='query($owner: String!, $project: Int!) {
+              organization(login: $owner) {
+                projectV2(number: $project) {
+                  teams(first: 10) {
+                    totalCount
+                    nodes { slug }
+                  }
+                }
+              }
+            }' \
+            --jq '.data.organization.projectV2.teams') \
+            || { echo "Linked project-team fetch failed."; exit 1; }
+          if ! echo "$PROJECT_TEAMS" | jq -e '
+            type == "object"
+            and (.nodes | type == "array")
+            and (.totalCount | type == "number")' >/dev/null; then
+            echo "Linked project-team response is invalid."
+            exit 1
+          fi
+          if [ "$(echo "$PROJECT_TEAMS" | jq '.nodes | length')" -ne \
+            "$(echo "$PROJECT_TEAMS" | jq '.totalCount')" ]; then
+            echo "More than 10 GitHub teams are linked to project $PROJECT_NUMBER."
+            exit 1
+          fi
+          if [ "$(echo "$PROJECT_TEAMS" | jq '.totalCount')" -eq 0 ]; then
+            echo "No GitHub team is linked to project $PROJECT_NUMBER."
+            exit 1
+          fi
+
+          # Expand all linked teams (including inherited child-team members), normalize their
+          # logins and remove duplicates. Any failed page or team fetch fails the workflow.
+          TEAM=$({
+            for TEAM_SLUG in $(echo "$PROJECT_TEAMS" | jq -r '.nodes[].slug'); do
+              GH_TOKEN="$TEAM_TOKEN" gh api --method GET --paginate \
+                -H "X-GitHub-Api-Version: 2026-03-10" \
+                "/orgs/$OWNER/teams/$TEAM_SLUG/members?per_page=100" \
+                --jq '.[].login' || exit 1
+            done
+          } | jq -Rsc 'split("\n") | map(select(length > 0) | ascii_downcase) | unique') \
+            || { echo "Linked project-team member fetch failed."; exit 1; }
+          if ! echo "$TEAM" | jq -e 'type == "array" and length > 0' >/dev/null; then
+            echo "Linked project-team member list is empty or invalid."
+            exit 1
+          fi
+          echo "Excluding $(echo "$TEAM" | jq 'length') linked project-team member(s)."
 
           # Issues + PRs via REST search; drop team authors, keep the rest. On error use [].
           ISSUE_ITEMS=$(gh api -X GET search/issues \
@@ -77,7 +116,6 @@ jobs:
             || { echo "WARN: issue/PR fetch failed, continuing without them."; ISSUE_ITEMS='[]'; }
 
           # No REST search for discussions; take newest 50 via GraphQL, filter by window + team.
-          OWNER=${REPO%/*}
           NAME=${REPO#*/}
           DISC_ITEMS=$(gh api graphql \
             -f owner="$OWNER" -f name="$NAME" \
