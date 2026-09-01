@@ -64,7 +64,16 @@ public record RepositoryConfig(
    */
   public static RepositoryConfig loadProperties(Path filePath, IdeContext context) {
 
-    RepositoryProperties properties = new RepositoryProperties(filePath, context);
+    return loadProperties(new RepositoryProperties(filePath, context));
+  }
+
+  /**
+   * @param properties the already loaded {@link RepositoryProperties}. Allows the caller to inspect e.g. the
+   *     {@link RepositoryProperties#isActive() active flag} before the remaining properties are read and thereby resolved.
+   * @return the parsed {@link RepositoryConfig}.
+   */
+  static RepositoryConfig loadProperties(RepositoryProperties properties) {
+
     String id = properties.getId();
     RepositoryConfig config = new RepositoryConfig(id, properties.getPath(), properties.getWorkingSets(), properties.getWorkspaces(), properties.getGitUrl(),
         properties.getGitBranch(), properties.getBuildPath(), properties.getBuildCmd(), properties.getImports(), properties.getLinks(), properties.getRemotes(),

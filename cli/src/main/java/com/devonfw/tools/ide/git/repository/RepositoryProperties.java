@@ -47,6 +47,8 @@ final class RepositoryProperties {
 
   private final Properties properties;
 
+  private final IdeContext context;
+
   private boolean invalid;
 
   /**
@@ -56,7 +58,7 @@ final class RepositoryProperties {
    * @param context the {@link IdeContext}.
    */
   public RepositoryProperties(Path file, IdeContext context) {
-    this(file, context.getFileAccess().readProperties(file));
+    this(file, context.getFileAccess().readProperties(file), context);
   }
 
   /**
@@ -64,9 +66,19 @@ final class RepositoryProperties {
    * @param properties the actual {@link Properties} loaded from the file.
    */
   RepositoryProperties(Path file, Properties properties) {
+    this(file, properties, null);
+  }
+
+  /**
+   * @param file the {@link Path} to the properties file.
+   * @param properties the actual {@link Properties} loaded from the file.
+   * @param context the {@link IdeContext} used to resolve variables and expressions or {@code null} to disable resolution.
+   */
+  RepositoryProperties(Path file, Properties properties, IdeContext context) {
     super();
     this.file = file;
     this.properties = properties;
+    this.context = context;
   }
 
   /**
@@ -120,6 +132,11 @@ final class RepositoryProperties {
 
   private String doGetProperty(String name, String legacyName) {
 
+    return resolve(doGetRawProperty(name, legacyName));
+  }
+
+  private String doGetRawProperty(String name, String legacyName) {
+
     String value = this.properties.getProperty(name);
     if (value != null) {
       return value;
@@ -140,6 +157,23 @@ final class RepositoryProperties {
       value = getLegacyProperty(legacyName, name);
     }
     return value;
+  }
+
+  /**
+   * Resolves {@link com.devonfw.tools.ide.variable.VariableSyntax#SQUARE variables} and expressions in the given property value. This is done centrally here so
+   * that it applies to every property and happens before any validation (e.g. of a {@link #getPath() path}) that would otherwise reject the syntax of an
+   * unresolved value.
+   *
+   * @param value the raw property value or {@code null}.
+   * @return the given value with variables and expressions resolved.
+   */
+  private String resolve(String value) {
+
+    if ((value == null) || (this.context == null)) {
+      return value;
+    }
+    // legacy support is disabled on purpose: the ${...} syntax is common in build commands (e.g. maven properties in build_cmd) and must not be touched
+    return this.context.getVariables().resolve(value, this.file, false);
   }
 
   private static boolean isEmpty(String value) {

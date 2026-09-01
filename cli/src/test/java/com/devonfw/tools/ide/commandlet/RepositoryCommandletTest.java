@@ -87,6 +87,23 @@ class RepositoryCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
+  void testInactiveRepositoryIsNotResolved() {
+
+    // arrange
+    IdeTestContext context = newContext(IdeContext.FOLDER_REPOSITORY);
+    Properties properties = createDefaultProperties();
+    properties.setProperty("git_url", "https://github.com/$[UNDEFINED_VARIABLE]/" + TEST_GIT_REPO + ".git");
+    RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
+    saveProperties(context, properties);
+    // act
+    rc.run();
+    // assert
+    assertThat(context).logAtInfo().hasMessage("Skipping repository test because it is not active, use --force-repositories to setup all repositories ...");
+    // an inactive repository must not be resolved at all so that an expression like @ask-variable never asks the user for a repository that is skipped
+    assertThat(context).logAtWarning().hasNoMessageContaining("Undefined variable $[UNDEFINED_VARIABLE]");
+  }
+
+  @Test
   void testSetupSpecificRepositoryWithoutPath() {
 
     // arrange

@@ -90,17 +90,20 @@ public class RepositoryCommandlet extends Commandlet {
 
   private RepositoryConfig prepareActiveRepository(Path repositoryFile, boolean forceMode) {
 
-    RepositoryConfig config = RepositoryConfig.loadProperties(repositoryFile, this.context);
-    if (config == null) {
-      return null;
-    }
-    if (!config.active()) {
+    // the active flag is evaluated before the remaining properties are read: reading a property resolves variables and expressions in its value, so an
+    // expression like @ask-variable would otherwise ask the user for a repository that is skipped anyway
+    RepositoryProperties properties = new RepositoryProperties(repositoryFile, this.context);
+    if (!properties.isActive()) {
       if (forceMode) {
-        LOG.info("Setup of repository {} is forced, hence proceeding ...", config.id());
+        LOG.info("Setup of repository {} is forced, hence proceeding ...", properties.getId());
       } else {
-        LOG.info("Skipping repository {} because it is not active, use --force-repositories to setup all repositories ...", config.id());
+        LOG.info("Skipping repository {} because it is not active, use --force-repositories to setup all repositories ...", properties.getId());
         return null;
       }
+    }
+    RepositoryConfig config = RepositoryConfig.loadProperties(properties);
+    if (config == null) {
+      return null;
     }
     // prepare workspace creation for correct resolution of *
     List<String> workspaces = config.workspaces();
