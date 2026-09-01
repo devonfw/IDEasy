@@ -20,16 +20,17 @@ import com.devonfw.tools.ide.expression.ExpressionFunction;
  * {@code Please enter the value for the (secret) variable «NAME»:}. If the 1st argument is empty, this argument is
  * required.</li>
  * <li>optional: the configuration location to persist the variable to, analogous to the {@code --cfg} option:
- * {@code settings}, {@code workspace}, {@code conf} or {@code home} ({@code user}). Defaults to {@code conf}.</li>
- * <li>optional: a default value. It is appended to the question in angled brackets so the user can just hit return.
+ * {@code settings}, {@code workspace}, {@code conf} or {@code home} ({@code user}). Defaults to {@code conf}.
+ * Only applies to {@code @ask-variable}; a value entered for {@code @ask-secret} is never persisted (see below).</li>
+ * <li>optional: a default value. It is appended to the question in square brackets so the user can just hit return.
  * Provide the empty string ({@code ''}) to allow empty input. If omitted or given as {@code null}, empty input is not
  * allowed and the user is asked again.</li>
  * </ol>
- * Example: {@code @ask-secret('AI_API_KEY', 'Please enter your API key:', conf)}
+ * Example: {@code @ask-secret('AI_API_KEY', 'Please enter your API key:')}
  * <p>
- * <b>Note:</b> a value entered for {@code @ask-secret} is masked while typing and masked in all log output, but it is
- * stored <em>unencrypted</em> in the according {@code ide.properties}. That file is user local and not committed to
- * git. Encryption is out of scope here and tracked separately for the maven {@code settings.xml} case.
+ * <b>Note:</b> a value entered for {@code @ask-secret} is masked while typing and masked in all log output. It is
+ * <em>not persisted</em>, so the user is asked again on every run; persisting the plain text to an {@code ide.properties}
+ * would just cache the secret on disk. Encryption is a separate story and out of scope here.
  */
 public class AskFunction implements ExpressionFunction {
 
@@ -110,7 +111,11 @@ public class AskFunction implements ExpressionFunction {
       // and the user would never be asked again on the next interactive run.
       return "";
     }
-    context.setVariable(variableName, value, location);
+    if (!this.secret) {
+      // @ask-secret values are deliberately NOT persisted so that the secret is not cached on disk (as plain text) in the ide.properties;
+      // the user is asked again on every run. This keeps the story simple (KISS) until encryption is available, see the class Javadoc.
+      context.setVariable(variableName, value, location);
+    }
     return value;
   }
 
@@ -149,7 +154,7 @@ public class AskFunction implements ExpressionFunction {
     String prompt = question;
     if (defaultValue != null) {
       // show the default so the user can just hit return
-      prompt = question + " <" + defaultValue + ">";
+      prompt = question + " [" + defaultValue + "]";
     }
     IdeContext ideContext = context.getIdeContext();
     if (this.secret) {

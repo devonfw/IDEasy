@@ -17,12 +17,15 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 /**
  * Integration test of expressions (see {@link com.devonfw.tools.ide.expression.ExpressionParser}) applied to a workspace template by the
  * {@link DirectoryMerger}.
+ * <p>
+ * The value entered for {@code @ask-variable} is persisted to {@code conf/ide.properties} so the user is only asked once, whereas the value entered for
+ * {@code @ask-secret} is not (it would be cached as plain text on disk).
  */
 class DirectoryMergerExpressionTest extends AbstractIdeContextTest {
 
   /**
-   * Test that expressions in a workspace template are resolved, that the user is asked for undefined variables and that the entered values are persisted to
-   * {@code conf/ide.properties}.
+   * Test that expressions in a workspace template are resolved, that the user is asked for undefined variables and that the value of {@code @ask-variable} is
+   * persisted to {@code conf/ide.properties} while the value of {@code @ask-secret} is not.
    *
    * @param workspaceDir the temporary folder to use as workspace for this test.
    * @throws Exception on error.
@@ -49,11 +52,11 @@ class DirectoryMergerExpressionTest extends AbstractIdeContextTest {
     // @path normalises the backslashes of a windows IDE_HOME
     assertThat(properties.getProperty("node.path")).endsWith("/software/node/node").doesNotContain("\\");
 
-    // the values are persisted so that the user is only asked once
+    // @ask-variable is persisted so that the user is only asked once, but @ask-secret is not (it must not be cached on disk)
     Path confProperties = context.getIdeHome().resolve("conf").resolve("ide.properties");
     assertThat(confProperties).exists();
     String conf = Files.readString(confProperties);
-    assertThat(conf).contains("AI_API_KEY=dummy-secret-value");
+    assertThat(conf).doesNotContain("AI_API_KEY");
     assertThat(conf).contains("AI_BACKEND_URL=http://llama.local");
   }
 

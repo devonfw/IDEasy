@@ -258,8 +258,8 @@ class EnvironmentVariablesTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test that an already defined secret variable is masked in log output as well, although the user is not asked for it. This is the case on every run after
-   * the value has been persisted once.
+   * Test that an already defined secret variable is masked in log output as well, although the user is not asked for it. Since @ask-secret is not persisted,
+   * a stored secret is here defined directly in conf/ide.properties.
    */
   @Test
   void testAlreadyDefinedSecretIsMaskedInLogOutput() {

@@ -340,7 +340,7 @@ class ExpressionParserTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test that the default value is appended to the question in angled brackets.
+   * Test that the default value is appended to the question in square brackets.
    */
   @Test
   void testDefaultValueIsAppendedToQuestion() {
@@ -356,7 +356,7 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     // assert
     assertThat(result).isEqualTo("the-default");
     assertThat(context).log()
-        .hasEntries(new IdeLogEntry(IdeLogLevel.INTERACTION, "Please enter the value: <the-default>", true));
+        .hasEntries(new IdeLogEntry(IdeLogLevel.INTERACTION, "Please enter the value: [the-default]", true));
   }
 
   /**
