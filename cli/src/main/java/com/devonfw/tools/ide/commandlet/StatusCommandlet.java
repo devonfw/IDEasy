@@ -91,7 +91,8 @@ public class StatusCommandlet extends Commandlet {
     }
     if (hasLegacyProperties) {
       LOG.warn(
-          "Your settings are outdated and contain legacy configurations. Please consider upgrading your settings:\nhttps://github.com/devonfw/IDEasy/blob/main/documentation/settings.adoc#upgrade");
+          "Your settings are outdated and contain legacy configurations. "
+              + "Please consider upgrading your settings:\nhttps://github.com/devonfw/IDEasy/blob/main/documentation/settings.adoc#upgrade");
     }
   }
 
