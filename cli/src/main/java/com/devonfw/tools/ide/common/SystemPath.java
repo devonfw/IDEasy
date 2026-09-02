@@ -50,6 +50,8 @@ public class SystemPath {
 
   private final IdeContext context;
 
+  private static final String TOOL_NPM = "npm";
+
   private static final List<String> EXTENSION_PRIORITY = List.of(".exe", ".cmd", ".bat", ".msi", ".ps1", "");
 
   /**
@@ -205,6 +207,29 @@ public class SystemPath {
     }
   }
 
+  /**
+   * @return the tool bin {@link Path}s in the order in which they must be searched and placed on the PATH. The {@code npm} tool is placed first so that its
+   *     {@code npm}/{@code npx} executables deterministically take precedence over the ones bundled with the {@code node} tool (which also ships an
+   *     {@code npm.exe}); the remaining tools are returned in their (stable-enough) map order.
+   */
+  private List<Path> getToolPathsInResolutionOrder() {
+
+    List<Path> orderedPaths = new ArrayList<>(this.tool2pathMap.size());
+
+    Path npmPath = this.tool2pathMap.get(TOOL_NPM);
+    if (npmPath != null) {
+      orderedPaths.add(npmPath);
+    }
+
+    for (Map.Entry<String, Path> entry : this.tool2pathMap.entrySet()) {
+      if (!TOOL_NPM.equals(entry.getKey())) {
+        orderedPaths.add(entry.getValue());
+      }
+    }
+
+    return orderedPaths;
+  }
+
   private static String getTool(Path path, Path ideRoot) {
 
     if (ideRoot == null) {
@@ -290,7 +315,7 @@ public class SystemPath {
           return binaryPath;
         }
       }
-      for (Path path : this.tool2pathMap.values()) {
+      for (Path path : getToolPathsInResolutionOrder()) {
         Path binaryPath = findBinaryInOrder(path, fileName);
         if (binaryPath != null && filter.test(binaryPath)) {
           return binaryPath;
@@ -352,7 +377,7 @@ public class SystemPath {
     for (Path path : this.extraPathEntries) {
       appendPath(path, sb, separator, pathSyntax);
     }
-    for (Path path : this.tool2pathMap.values()) {
+    for (Path path : getToolPathsInResolutionOrder()) {
       appendPath(path, sb, separator, pathSyntax);
     }
     for (Path path : this.paths) {
