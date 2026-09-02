@@ -109,7 +109,7 @@ public class SettingsUpdater {
     if (onlyPull) {
       repositoryType = RepositoryUtil.getRepositoryType(context.getSettingsPath());
       if(repositoryType != RepositoryType.SETTINGS && !this.isForceMode) {
-        return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_UPDATE_FAILED, repositoryType, "Expected settings repository for update.");
+        return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_UPDATE_FAILED, repositoryType, "Expected settings repository for update application, but was of type: " + repositoryType);
       }
 
       pullSettingsAndSaveCommitId(settingsPath);

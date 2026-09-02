@@ -20,8 +20,8 @@ import com.devonfw.tools.ide.io.ini.IniSection;
  */
 public class GitContextMock extends GitContextImpl {
 
-  /** Fallback URL for repositories without a mocked {@code .git/config} - has to be a {@link GitUrl#isValid() valid} git URL. */
-  private static final String MOCKED_URL_VALUE = DEFAULT_SETTINGS_GIT_URL;
+  /** Fallback URL for repositories without a mocked {@code .git/config} - has to be a valid git URL that is not the default settings URL, so both the settings health check and tool settings substitution (e.g. Maven) run. */
+  private static final String MOCKED_URL_VALUE = "https://github.com/devonfw/mocked-settings.git";
 
   /** Filename used to persist mocked remotes inside the {@code .git} folder. */
   private static final String REMOTES_FILE = "remotes.properties";

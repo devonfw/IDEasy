@@ -9,18 +9,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.CommandletManager;
+import com.devonfw.tools.ide.commandlet.CreateCommandlet;
 import com.devonfw.tools.ide.commandlet.update.settings.HealthCheckResultStatus;
 import com.devonfw.tools.ide.commandlet.update.settings.SettingsHealthCheckResult;
 import com.devonfw.tools.ide.commandlet.update.settings.SettingsUpdateResult;
 import com.devonfw.tools.ide.commandlet.update.settings.SettingsUpdater;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.devonfw.tools.ide.commandlet.Commandlet;
-import com.devonfw.tools.ide.commandlet.CommandletManager;
-import com.devonfw.tools.ide.commandlet.CreateCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;

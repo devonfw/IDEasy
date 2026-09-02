@@ -1,8 +1,8 @@
 package com.devonfw.tools.ide.commandlet.update.settings;
 
-import com.devonfw.tools.ide.git.repository.RepositoryType;
-
 import java.nio.file.Path;
+
+import com.devonfw.tools.ide.git.repository.RepositoryType;
 
 /**
  * Result of the settings {@link SettingsUpdater#checkSettings(Path)}  health check}.
