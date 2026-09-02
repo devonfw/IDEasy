@@ -51,7 +51,7 @@ public abstract class NpmBasedCommandlet extends NodeBasedCommandlet<Npm> {
   }
 
   @Override
-  protected VersionIdentifier computeInstalledVersion() {
+  protected VersionIdentifier computeInstalledPackageVersion() {
     return runPackageManagerGetInstalledVersion(getPackageName());
   }
 
