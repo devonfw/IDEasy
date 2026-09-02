@@ -5,20 +5,49 @@ on:
   workflow_dispatch
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
 
 jobs:
+
+  # Resolves the version to be released exactly once, so that every downstream job refers to the
+  # same value. .mvn/maven.config is rewritten twice during this workflow (to the release version
+  # and afterwards to the next snapshot), so re-reading it in a later job would resolve a different
+  # version depending on when it happens.
+  resolve-version:
+    name: Resolve release version
+    runs-on: ubuntu-latest
+    outputs:
+      release_version: ${{ steps.resolve.outputs.release_version }}
+      snapshot_version: ${{ steps.resolve.outputs.snapshot_version }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Resolve version from .mvn/maven.config
+        id: resolve
+        shell: bash
+        run: |
+          maven_config="$(cat .mvn/maven.config)"
+          snapshot_version="${maven_config/#*-Drevision=}"
+          snapshot_version="${snapshot_version/ */}"
+          release_version="${snapshot_version/-SNAPSHOT/}"
+          if [ -z "${release_version}" ]; then
+            echo "ERROR: could not resolve the release version from .mvn/maven.config." >&2
+            exit 1
+          fi
+          echo "Releasing ${release_version} (from ${snapshot_version})"
+          echo "release_version=${release_version}" >> "$GITHUB_OUTPUT"
+          echo "snapshot_version=${snapshot_version}" >> "$GITHUB_OUTPUT"
 
   # Adjusts the revision to the latest version, builds images for each OS type/architecture using matrix:os and uploads each binary as a separate artifact
   build-natives:
     name: Build native images
     runs-on: ${{ matrix.os }}
+    needs: resolve-version
     strategy:
       matrix: # ATTENTION: see also nightly-build.yml, image name are referenced in cli/src/main/assembly/*.xml files, on update do not forget to also update there
         os: [ windows-latest, ubuntu-latest, ubuntu-22.04-arm, macos-latest, macos-15-intel ]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
       - uses: graalvm/setup-graalvm@v1
@@ -30,39 +59,29 @@ jobs:
       - name: Build native image
         shell: bash
         run: |
-          maven_config="$(cat .mvn/maven.config)"
-          current_version="${maven_config/#*-Drevision=}"
-          current_version="${current_version/ */}"
-          next_version="${current_version/-SNAPSHOT/}"
           cd cli
-          mvn -B -ntp -Drevision=${next_version} -Pnative -DskipTests=true package
+          mvn -B -ntp -Drevision=${RELEASE_VERSION} -Pnative -DskipTests=true package
+        env:
+          RELEASE_VERSION: ${{ needs.resolve-version.outputs.release_version }}
+      - name: Ad-hoc sign native image (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          codesign --force --sign - cli/target/ideasy
+          codesign --verify --verbose cli/target/ideasy
       - name: Upload native image
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: natives-${{ matrix.os }}
           path: cli/target/ideasy*
       - name: Build MSI with WixToolSet
         if: runner.os == 'Windows'
         shell: bash
-        run: |
-          cd documentation
-          mvn -B -ntp clean install
-          cd ..
-          mkdir -p windows-installer/msi-files
-          cp documentation/target/generated-docs/IDEasy.pdf windows-installer/msi-files
-          cp -r cli/target/package/* windows-installer/msi-files
-          rm -rf windows-installer/msi-files/system/mac
-          rm -rf windows-installer/msi-files/system/linux
-          cp cli/target/ideasy.exe windows-installer/msi-files/bin
-          cd windows-installer
-          dotnet tool install --global wix --version 5.0.2
-          wix extension add WixToolset.UI.wixext/5.0.2
-          wix extension add WixToolset.Util.wixext/5.0.2
-          wix build Package.wxs WixUI_IDEasySetup.wxs -loc Package.en-us.wxl -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext -o ideasy.msi
+        run: ./windows-installer/build-msi.sh
       - name: Upload unsigned MSI
         if: runner.os == 'Windows'
         id: upload-msi
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: msi-unsigned
           path: windows-installer/ideasy.msi
@@ -80,10 +99,26 @@ jobs:
           output-artifact-directory: 'windows-installer/signed'
       - name: Upload MSI
         if: runner.os == 'Windows'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: msi
           path: windows-installer/signed/ideasy.msi
+      - name: Build MacOS PKG
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          ./.github/workflows/macos/generate_pkg.sh
+        env:
+          RELEASE_VERSION: ${{ needs.resolve-version.outputs.release_version }}
+      - name: Upload unsigned PKG
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pkg-${{ matrix.os == 'macos-latest' && 'arm64' || 'x64' }}
+          path: macos-installer/ideasy.pkg
+          # Default is "warn": a missing PKG would upload an empty artifact and only fail much
+          # later in the release job. Fail right here instead.
+          if-no-files-found: error
 
   # Downloads all native image artifacts to cli/target and builds the project using assemblies for final deployment to Maven Central.
   # The version number for the next build will be incremented automatically.
@@ -91,15 +126,20 @@ jobs:
   release:
     name: Release on Sonatype OSS
     runs-on: ubuntu-latest
-    needs: build-natives
+    needs: [ resolve-version, build-natives ]
+    outputs:
+      sha_mac_arm64: ${{ steps.checksums.outputs.sha_mac_arm64 }}
+      sha_mac_x64: ${{ steps.checksums.outputs.sha_mac_x64 }}
+      sha_linux_arm64: ${{ steps.checksums.outputs.sha_linux_arm64 }}
+      sha_linux_x64: ${{ steps.checksums.outputs.sha_linux_x64 }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         with:
           submodules: recursive
           token: ${{ secrets.ACTION_PUSH_TOKEN }}
       - name: Set up Apache Maven Central
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v5
         with:
           java-version: 25
           distribution: 'temurin'
@@ -107,55 +147,91 @@ jobs:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }} # Value of the GPG private key to import
           gpg-passphrase: GPG_PASSPHRASE # env variable for GPG private key passphrase
       - name: Download natives and build project
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: ./cli/target/
       - name: Create assemblies and publish to Apache Maven Central
         run: |
-          maven_config="$(cat .mvn/maven.config)"
-          current_version="${maven_config/#*-Drevision=}"
-          current_version="${current_version/ */}"
-          next_version="${current_version/-SNAPSHOT/}"
-          sed -i "s/${current_version}/${next_version}/" .mvn/maven.config
+          sed -i "s/${SNAPSHOT_VERSION}/${RELEASE_VERSION}/" .mvn/maven.config
           git config --global user.email ${{ secrets.BUILD_USER_EMAIL }}
           git config --global user.name ${{ secrets.BUILD_USER }}
           git add -f .mvn/maven.config
-          git commit -m "set release version to ${next_version}"
-          git tag -a "release/${next_version}" -m "tagged version ${next_version}"
+          git commit -m "set release version to ${RELEASE_VERSION}"
+          git tag -a "release/${RELEASE_VERSION}" -m "tagged version ${RELEASE_VERSION}"
           export GPG_TTY=$TTY
           mkdir -p ./cli/target/
-          mvn --settings .mvn/settings.xml -B -ntp deploy -Passembly,msi,deploy -Dgpg.pin.entry.mode=loopback -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }}
+          mvn --settings .mvn/settings.xml -B -ntp deploy -Passembly,msi,pkg,deploy -pl -:ide-macos-installer -Dgpg.pin.entry.mode=loopback -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }}
         env:
+          RELEASE_VERSION: ${{ needs.resolve-version.outputs.release_version }}
+          SNAPSHOT_VERSION: ${{ needs.resolve-version.outputs.snapshot_version }}
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      - name: Compute checksums of the released archives
+        id: checksums
+        env:
+          RELEASE_VERSION: ${{ needs.resolve-version.outputs.release_version }}
+        run: |
+          # The archives that were just deployed are the exact bytes Maven Central will serve, so
+          # the Homebrew formula can be built from them without downloading anything.
+          for platform in mac-arm64 mac-x64 linux-arm64 linux-x64; do
+            archive="cli/target/ide-cli-${RELEASE_VERSION}-${platform}.tar.gz"
+            if [ ! -f "${archive}" ]; then
+              echo "ERROR: released archive ${archive} not found." >&2
+              exit 1
+            fi
+            sha="$(shasum -a 256 "${archive}" | awk '{print $1}')"
+            echo "${platform}: ${sha}"
+            echo "sha_${platform//-/_}=${sha}" >> "$GITHUB_OUTPUT"
+          done
       - name: set next version & create gitHub release
         run: |
-          maven_config="$(cat .mvn/maven.config)"
-          current_version="${maven_config/#*-Drevision=}"
-          current_version="${current_version/ */}"
-          current_segment="${current_version/*./}"
+          current_segment="${RELEASE_VERSION/*./}"
           last_digits="${current_segment/[^0-9]*/}"
           suffix="${current_segment/${last_digits}/}"
           (( next_segment=${last_digits}+1 ))
           while [ ${#next_segment} -lt 3 ]; do next_segment="0${next_segment}"; done
-          next_version="${current_version%.*}.${next_segment}${suffix}-SNAPSHOT"
-          sed -i "s/${current_version}/${next_version}/" .mvn/maven.config
+          next_snapshot_version="${RELEASE_VERSION%.*}.${next_segment}${suffix}-SNAPSHOT"
+          sed -i "s/${RELEASE_VERSION}/${next_snapshot_version}/" .mvn/maven.config
           git add -f .mvn/maven.config
-          git commit -m "set next version to ${next_version}"
+          git commit -m "set next version to ${next_snapshot_version}"
           # prevent GH006 error when pushing to protected branch
           git push
           git push --tags
-          noDotVersion="${current_version//.}"
-          gh release create "release/${current_version}" ./cli/target/*.tar.gz --title "${current_version}" --notes "# Download
-          * Windows-MSI: https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-windows-x64.msi
-          * Windows: https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-windows-x64.tar.gz
-          * Mac(arm64): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-mac-arm64.tar.gz
-          * Mac(x64): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-mac-x64.tar.gz
-          * Linux: https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-linux-x64.tar.gz
+          noDotVersion="${RELEASE_VERSION//.}"
+          gh release create "release/${RELEASE_VERSION}" ./cli/target/*.tar.gz --title "${RELEASE_VERSION}" --notes "# Download
+          * Windows-MSI: https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${RELEASE_VERSION}/ide-cli-${RELEASE_VERSION}-windows-x64.msi
+          * Windows: https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${RELEASE_VERSION}/ide-cli-${RELEASE_VERSION}-windows-x64.tar.gz
+          * Mac(arm64): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${RELEASE_VERSION}/ide-cli-${RELEASE_VERSION}-mac-arm64.tar.gz
+          * Mac(x64): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${RELEASE_VERSION}/ide-cli-${RELEASE_VERSION}-mac-x64.tar.gz
+          * Mac-PKG(arm64): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${RELEASE_VERSION}/ide-cli-${RELEASE_VERSION}-mac-arm64.pkg
+          * Mac-PKG(x64): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${RELEASE_VERSION}/ide-cli-${RELEASE_VERSION}-mac-x64.pkg
+          * Linux(arm64): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${RELEASE_VERSION}/ide-cli-${RELEASE_VERSION}-linux-arm64.tar.gz
+          * Linux(x64): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${RELEASE_VERSION}/ide-cli-${RELEASE_VERSION}-linux-x64.tar.gz
           # Changes
           https://github.com/devonfw/IDEasy/blob/main/CHANGELOG.adoc#${noDotVersion/-beta/}"
         env:
+          RELEASE_VERSION: ${{ needs.resolve-version.outputs.release_version }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BUILD_USER: ${{ secrets.BUILD_USER }}
           BUILD_USER_PASSWD: ${{ secrets.BUILD_USER_PASSWD }}
+
+  # Homebrew is a primary distribution channel for IDEasy. The formula is therefore published as
+  # part of this release and not by a decoupled follow-up automation: if it cannot be published,
+  # this release fails and the failure is visible right here.
+  #
+  # The publishing sequence itself lives in the tap, next to the formula and the scripts it renders,
+  # and is called as a reusable workflow so it exists exactly once. Calling it with 'uses' keeps the
+  # failure loud - a failure there fails this job and with it the release - which dispatching a
+  # separate workflow run would not.
+  publish-homebrew:
+    name: Publish Homebrew formula
+    needs: [ resolve-version, release ]
+    uses: devonfw/homebrew-IDEasy/.github/workflows/publish-formula.yml@main
+    with:
+      version: ${{ needs.resolve-version.outputs.release_version }}
+      sha_mac_arm64: ${{ needs.release.outputs.sha_mac_arm64 }}
+      sha_mac_x64: ${{ needs.release.outputs.sha_mac_x64 }}
+      sha_linux_arm64: ${{ needs.release.outputs.sha_linux_arm64 }}
+      sha_linux_x64: ${{ needs.release.outputs.sha_linux_x64 }}
+    secrets: inherit

@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.common;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +14,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 
@@ -140,6 +143,91 @@ class SystemPathTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(result).isEqualTo(test);
+  }
+
+  @Test
+  void testFindBinaryFindsBinaryInExtraPathEntries() throws IOException {
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    Path binDir = context.getIdeHome().resolve("scratch-bin");
+    Files.createDirectories(binDir);
+    // create a plain binary name (no extension) so it works on both Linux and Windows
+    Path fakeToolFile = binDir.resolve("faketool");
+    Files.writeString(fakeToolFile, "@echo hi");
+
+    // empty PATH and no software folder, so tool2pathMap and paths stay empty
+    SystemPath base = new SystemPath(context, "", null, null, ';', List.of());
+    SystemPath merged = base.withPath(null, List.of(binDir));
+
+    // assert
+    assertThat(merged.toString()).contains(binDir.toString());
+    Path resolved = merged.findBinary(Path.of("faketool"));
+    assertThat(resolved).isNotEqualTo(Path.of("faketool"));
+    assertThat(resolved).isEqualTo(fakeToolFile);
+  }
+
+  @Test
+  void testFindBinaryExtraPathEntriesWinsOverTool2pathMap() throws IOException {
+    // arrange - create two directories, both with a binary named "mytool"
+    // tool2pathMap collects subdirectories of softwarePath, so mytool must be a subdirectory
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    Path toolDir = context.getIdeHome().resolve("software-tool");
+    Files.createDirectories(toolDir);
+    Path mytoolInToolDir = toolDir.resolve("mytool");
+    Files.createDirectories(mytoolInToolDir);
+    Files.writeString(mytoolInToolDir.resolve("mytool"), "tool-version");
+
+    Path extraDir = context.getIdeHome().resolve("extra-path");
+    Files.createDirectories(extraDir);
+    Files.writeString(extraDir.resolve("mytool"), "extra-version");
+
+    // tool2pathMap has "software-tool" (mytool is a subdirectory → registered), extraPathEntries has "extraDir"
+    SystemPath base = new SystemPath(context, "", null, toolDir, ';', List.of());
+    SystemPath merged = base.withPath(null, List.of(extraDir));
+
+    // assert - findBinary should return the one from extraPathEntries, NOT from tool2pathMap
+    Path resolved = merged.findBinary(Path.of("mytool"));
+    assertThat(resolved).isEqualTo(extraDir.resolve("mytool"));
+    assertThat(resolved).isNotEqualTo(mytoolInToolDir.resolve("mytool"));
+  }
+
+  @Test
+  void testConstructorNormalizesPathEntryWithControlCharactersAndKeepsIt() {
+    // arrange
+    IdeTestContext context = newContext("find-binary", "project/workspaces", false);
+    String validEntry = "C:\\Tools\\bin";
+    // an entry polluted with control characters (CR, LF, TAB, NUL) that must be stripped instead of dropping the whole entry
+    String cleanedEntry = "C:\\Other\\bin";
+    String pollutedEntry = "C:\\Other" + "\r\n\t" + (char) 0 + "\\bin";
+    String envPath = validEntry + ';' + pollutedEntry;
+
+    // act
+    SystemPath systemPath = new SystemPath(context, envPath, context.getIdeRoot(), context.getSoftwarePath(), ';', new ArrayList<>());
+
+    // assert
+    String result = systemPath.toString();
+    assertThat(result).contains(validEntry).contains(cleanedEntry);
+    assertThat(result).doesNotContain("\r").doesNotContain("\n").doesNotContain("\t").doesNotContain(Character.toString((char) 0));
+    assertThat(context).log(IdeLogLevel.WARNING).hasMessageContaining("Normalized PATH entry");
+  }
+
+  @Test
+  void testConstructorSkipsPathEntryConsistingOnlyOfControlCharactersAndKeepsValidOnes() {
+    // arrange
+    IdeTestContext context = newContext("find-binary", "project/workspaces", false);
+    String validEntryBefore = "C:\\Tools\\bin";
+    // an entry that has nothing usable left after normalization must be skipped without aborting the whole construction
+    String controlOnlyEntry = "\r\n\t" + (char) 0;
+    String validEntryAfter = "C:\\Other\\bin";
+    String envPath = validEntryBefore + ';' + controlOnlyEntry + ';' + validEntryAfter;
+
+    // act
+    SystemPath systemPath = new SystemPath(context, envPath, context.getIdeRoot(), context.getSoftwarePath(), ';', new ArrayList<>());
+
+    // assert
+    String result = systemPath.toString();
+    assertThat(result).contains(validEntryBefore).contains(validEntryAfter);
+    assertThat(context).log(IdeLogLevel.WARNING).hasMessageContaining("Ignoring invalid PATH entry");
   }
 
   private static boolean checkPathToIgnoreLowercase(Path p, String toIgnore) {

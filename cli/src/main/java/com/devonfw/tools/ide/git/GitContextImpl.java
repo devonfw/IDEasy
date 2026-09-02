@@ -320,6 +320,12 @@ public class GitContextImpl implements GitContext {
     return runGitCommandAndGetSingleOutput("Failed to retrieve git URL for repository", repository, "config", "--get", "remote.origin.url");
   }
 
+  @Override
+  public List<String> retrieveGitRemotes(Path repository) {
+
+    return runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, "--no-pager", "remote", "-v").getOut();
+  }
+
   IdeContext getContext() {
 
     return this.context;
@@ -519,6 +525,54 @@ public class GitContextImpl implements GitContext {
     }
   }
 
+  @Override
+  public void addRemote(Path repository, String name, String url) {
+    addRemote(repository, name, url, false);
+  }
+
+  @Override
+  public void addRemoteOrFail(Path repository, String name, String url) {
+    addRemote(repository, name, url, true);
+  }
+
+  /**
+   * @param repository the {@link Path} to the git repository.
+   * @param name the name of the remote.
+   * @param url the URL of the remote.
+   * @param failOnOverride {@code true} to throw an {@link IllegalStateException} if the remote already exists
+   *     with a different URL, {@code false} to silently update it.
+   */
+  protected void addRemote(Path repository, String name, String url, boolean failOnOverride) {
+
+    LOG.debug("Adding remote '{}' with url '{}' to {}", name, url, repository);
+    // Check if the remote already exists and get its current URL
+    String existingUrl = runGitCommandAndGetSingleOutput("Failed to get remote URL for remote '" + name + "' in " + repository,
+        repository, "remote", "get-url", name);
+    if (existingUrl != null) {
+      existingUrl = existingUrl.trim();
+      if (existingUrl.equals(url)) {
+        LOG.debug("Remote '{}' already exists with the expected URL {}", name, url);
+        return;
+      }
+      // Remote exists with a different URL
+      if (failOnOverride) {
+        throw new IllegalStateException("Remote '" + name + "' already exists with URL '" + existingUrl + "', refusing to override with '" + url + "'");
+      }
+      LOG.warn("Remote '{}' already exists with URL '{}', overriding with '{}'", name, existingUrl, url);
+      ProcessResult setResult = runGitCommand(repository, ProcessMode.DEFAULT, "remote", "set-url", name, url);
+      if (!setResult.isSuccessful()) {
+        LOG.warn("Failed to update URL for remote '{}' to {}", name, url);
+      }
+      return;
+    }
+    // Remote does not exist — add it
+    LOG.debug("Remote '{}' does not exist yet in {}, adding it", name, repository);
+    ProcessResult result = runGitCommand(repository, ProcessMode.DEFAULT, "remote", "add", name, url);
+    if (!result.isSuccessful()) {
+      LOG.warn("Failed to add remote '{}' to {}", name, repository);
+    }
+  }
+
   /**
    * @param repository the {@link Path} to the git repository.
    * @return the current commit ID of the given {@link Path repository}.
@@ -526,6 +580,30 @@ public class GitContextImpl implements GitContext {
   protected String determineCurrentCommitId(Path repository) {
     return runGitCommandAndGetSingleOutput("Failed to get current commit id.", repository, "rev-parse", FILE_HEAD);
   }
+
+  @Override
+  public void commit(Path repository, String message, boolean addAll) {
+
+    if (addAll) {
+      runGitCommand(repository, "commit", "-a", "-m", message);
+    } else {
+      runGitCommand(repository, "commit", "-m", message);
+    }
+  }
+
+  @Override
+  public void tag(Path repository, String tagName, String message) {
+
+    runGitCommand(repository, "tag", "-a", tagName, "-m", message);
+  }
+
+  @Override
+  public void push(Path repository, boolean followTags) {
+
+    if (followTags) {
+      runGitCommand(repository, "push", "--follow-tags");
+    } else {
+      runGitCommand(repository, "push");
+    }
+  }
 }
-
-

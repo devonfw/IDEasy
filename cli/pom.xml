@@ -17,10 +17,15 @@
   </properties>
 
   <dependencies>
-    <!-- unpack tar, gzip, bzip2 -->
+    <!-- unpack tar, gzip, bzip2, 7z -->
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-compress</artifactId>
+    </dependency>
+    <!-- required by commons-compress for 7z extraction -->
+    <dependency>
+      <groupId>org.tukaani</groupId>
+      <artifactId>xz</artifactId>
     </dependency>
     <!-- JSON and XML support -->
     <dependency>
@@ -152,6 +157,11 @@
       <plugin>
         <artifactId>maven-resources-plugin</artifactId>
         <version>3.3.1</version>
+        <configuration>
+          <delimiters>
+            <delimiter>$[*]</delimiter>
+          </delimiters>
+        </configuration>
         <executions>
           <execution>
             <id>copy-resources</id>
@@ -161,9 +171,6 @@
             </goals>
             <configuration>
               <outputDirectory>${project.build.directory}/package</outputDirectory>
-              <delimiters>
-                <delimiter>$[*]</delimiter>
-              </delimiters>
               <resources>
                 <!--
                   Maven filtering can resolve ${...} variables in resource files.
@@ -186,6 +193,25 @@
                   <filtering>false</filtering>
                   <includes>
                     <include>system/**/*</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>copy-test-resources</id>
+            <phase>process-test-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.testOutputDirectory}/ide-projects/gui/_ide/installation/gui</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>src/main/package/gui</directory>
+                  <filtering>true</filtering>
+                  <includes>
+                    <include>pom.xml</include>
                   </includes>
                 </resource>
               </resources>
@@ -264,8 +290,12 @@
                 <arg>--enable-url-protocols=http,https</arg>
                 <arg>-march=compatibility</arg>
                 <arg>--initialize-at-build-time=org.apache.commons</arg>
+                <arg>--initialize-at-build-time=org.tukaani.xz</arg>
                 <arg>-H:IncludeResourceBundles=com.sun.org.apache.xml.internal.res.XMLErrorResources,com.sun.org.apache.xerces.internal.impl.msg.XMLMessages
                 </arg>
+                <!-- Disable Windows wildcard expansion so that arguments like "*" (e.g. "ide set-version gradle *")
+                     reach IDEasy verbatim instead of being expanded to file names by the C runtime. -->
+                <buildArg>-H:-EnableWildcardExpansion</buildArg>
               </buildArgs>
             </configuration>
           </plugin>
@@ -310,6 +340,83 @@
                       <file>${project.basedir}/target/${project.artifactId}-${revision}-windows-x64.msi</file>
                       <type>msi</type>
                       <classifier>windows-x64</classifier>
+                    </artifact>
+                  </artifacts>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!-- this is exceptionally included in cli/pom.xml and not macos-installer/pom.xml as we need to attach the artifacts to the cli module for publishing to maven central -->
+    <profile>
+      <id>pkg</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>move-pkg-arm64</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <target>
+                    <move file="${project.basedir}/target/pkg-arm64/ideasy.pkg"
+                      tofile="${project.basedir}/target/${project.artifactId}-${revision}-mac-arm64.pkg"/>
+                  </target>
+                </configuration>
+              </execution>
+              <execution>
+                <id>move-pkg-x64</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <target>
+                    <move file="${project.basedir}/target/pkg-x64/ideasy.pkg"
+                      tofile="${project.basedir}/target/${project.artifactId}-${revision}-mac-x64.pkg"/>
+                  </target>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <version>${build.helper.maven.plugin.version}</version>
+            <executions>
+              <execution>
+                <id>attach-pkg-arm64</id>
+                <goals>
+                  <goal>attach-artifact</goal>
+                </goals>
+                <configuration>
+                  <artifacts>
+                    <artifact>
+                      <file>${project.basedir}/target/${project.artifactId}-${revision}-mac-arm64.pkg</file>
+                      <type>pkg</type>
+                      <classifier>mac-arm64</classifier>
+                    </artifact>
+                  </artifacts>
+                </configuration>
+              </execution>
+              <execution>
+                <id>attach-pkg-x64</id>
+                <goals>
+                  <goal>attach-artifact</goal>
+                </goals>
+                <configuration>
+                  <artifacts>
+                    <artifact>
+                      <file>${project.basedir}/target/${project.artifactId}-${revision}-mac-x64.pkg</file>
+                      <type>pkg</type>
+                      <classifier>mac-x64</classifier>
                     </artifact>
                   </artifacts>
                 </configuration>

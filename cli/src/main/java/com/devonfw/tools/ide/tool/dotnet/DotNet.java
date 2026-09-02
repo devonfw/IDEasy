@@ -4,7 +4,9 @@ import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.ToolInstallation;
 
 /**
  * {@link LocalToolCommandlet} for <a href="https://docs.microsoft.com/en-us/dotnet/core/tools/">dotnet</a>. The .NET CLI (Command Line Interface)
@@ -26,5 +28,15 @@ public class DotNet extends LocalToolCommandlet {
   public String getToolHelpArguments() {
 
     return "help";
+  }
+
+  @Override
+  public void setEnvironment(
+      EnvironmentContext environmentContext,
+      ToolInstallation toolInstallation,
+      boolean additionalInstallation) {
+
+    super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
+    environmentContext.withEnvVar("DOTNET_ROOT", toolInstallation.linkDir().toString());
   }
 }

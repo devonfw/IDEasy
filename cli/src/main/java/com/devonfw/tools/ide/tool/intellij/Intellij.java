@@ -61,6 +61,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   public Intellij(IdeContext context) {
 
     super(context, "intellij", Set.of(Tag.INTELLIJ));
+    registerExtraSdkTemplate("java", Path.of(".intellij/config/options/jdk.table.xml"));
   }
 
   @Override
@@ -97,7 +98,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     ToolEdition edition = requested.getEdition();
     // Check if edition is set as "ultimate"
     if ("ultimate".equals(edition.edition())) {
-      
+
       VersionIdentifier version;
       if (requested.getVersion() != null) {
         version = VersionIdentifier.of(requested.getVersion().toString());
@@ -105,15 +106,18 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
         version = getConfiguredVersion();
       }
       // Check whether set version warrants switching editions
-      if ((version.isGreater(INTELLIJ_LAST_SEPARATE_VERSION)) || // Specified version is > 2025.2.6.1 **OR** no specified version but configured version is > 2025.2.6.1
-        (VersionIdentifier.LATEST.equals(version)) || // No version specified and no configured version
-        (VersionIdentifier.LATEST_UNSTABLE.equals(version))) { // No version specified and no configured version
+      if ((version.isGreater(INTELLIJ_LAST_SEPARATE_VERSION)) ||
+          // Specified version is > 2025.2.6.1 **OR** no specified version but configured version is > 2025.2.6.1
+          (VersionIdentifier.LATEST.equals(version)) || // No version specified and no configured version
+          (VersionIdentifier.LATEST_UNSTABLE.equals(version))) { // No version specified and no configured version
         // Switching to IntelliJ Standard edition
         LOG.warn("""
-                 Notice: You have configured IDEasy to use the IntelliJ Ultimate Edition. Since version 2025.3, the Ultimate and Community editions of IntelliJ have been unified into a single edition.
-                 Since you are attempting to install a version of IntelliJ that is 2025.3 or newer, we are automatically switching your edition to the unified edition to ensure compatibility.
-                 To specifically install the last true ultimate version of IntelliJ, please run "ide install intellij 2025.2.6.1".
-                 Otherwise, we recommend permanently switching to the unified edition by running "ide set-edition intellij intellij".""");
+            Notice: You have configured IDEasy to use the IntelliJ Ultimate Edition.
+            Since version 2025.3, the Ultimate and Community editions of IntelliJ have been unified into a single edition.
+            Since you are attempting to install a version of IntelliJ that is 2025.3 or newer,
+            we are automatically switching your edition to the unified edition to ensure compatibility.
+            To specifically install the last true ultimate version of IntelliJ, please run "ide install intellij 2025.2.6.1".
+            Otherwise, we recommend permanently switching to the unified edition by running "ide set-edition intellij intellij".""");
         edition = new ToolEdition(this.tool, "intellij");
         requested.replaceEdition(edition);
       }

@@ -5,7 +5,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -49,7 +48,7 @@ public class PipRepositoryMock extends PipRepository {
   private void mockPypiPackageResponses(WireMockRuntimeInfo wireMockRuntimeInfo) {
     Path pypiRoot = this.context.getIdeHome()
         .getParent()
-        .resolve("repository")
+        .resolve(IdeContext.FOLDER_REPOSITORY)
         .resolve("pypi");
 
     if (!Files.isDirectory(pypiRoot)) {
@@ -63,7 +62,7 @@ public class PipRepositoryMock extends PipRepository {
             //   <root>/pip.json  -> "/pip/json"
             Path rel = pypiRoot.relativize(jsonFile);
             String packageName = rel.toString()
-                .replace(File.separatorChar, '/')
+                .replace("\\", "/")
                 .replaceAll("\\.json$", "");
             String packagePath = "/" + packageName + "/json";
 

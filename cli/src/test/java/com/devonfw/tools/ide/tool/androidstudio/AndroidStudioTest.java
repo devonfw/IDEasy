@@ -14,6 +14,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
@@ -114,7 +115,7 @@ class AndroidStudioTest extends AbstractIdeContextTest {
     // commandlet - android-studio
     AndroidStudio commandlet = context.getCommandletManager().getCommandlet(AndroidStudio.class);
     assertThat(commandlet.getInstalledVersion().toString()).isEqualTo("2024.1.1.1");
-    assertThat(context).log().hasEntries(new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully ended step 'Install plugin MockedPlugin'.", true), //
+    assertThat(context).log().hasEntries(new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully ended step 'Install plugin MockedPlugin (1/1)'.", true), //
         new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed android-studio in version 2024.1.1.1", true));
     assertThat(context.getPluginsPath().resolve("android-studio").resolve("mockedPlugin").resolve("dev").resolve("MockedClass.class")).exists();
   }
@@ -125,7 +126,7 @@ class AndroidStudioTest extends AbstractIdeContextTest {
     Files.writeString(this.context.getSettingsPath().resolve("android-studio").resolve("plugins").resolve("MockedPlugin.properties"),
         content);
 
-    Path mockedPlugin = this.context.getIdeRoot().resolve("repository").resolve(MOCKED_PLUGIN_JAR);
+    Path mockedPlugin = this.context.getIdeRoot().resolve(IdeContext.FOLDER_REPOSITORY).resolve(MOCKED_PLUGIN_JAR);
     byte[] contentBytes = Files.readAllBytes(mockedPlugin);
     int contentLength = contentBytes.length;
 

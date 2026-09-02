@@ -9,6 +9,7 @@ import java.util.Random;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
@@ -47,7 +48,7 @@ class JavaTest extends AbstractIdeContextTest {
   private static void createFakedSrcJar(IdeTestContext context) {
 
     // create large dummy src.zip file to reproduce bug #1437 condition
-    Path fakedJavaLibDir = context.getIdeRoot().resolve("repository").resolve("java").resolve("java").resolve("default").resolve("lib");
+    Path fakedJavaLibDir = context.getIdeRoot().resolve(IdeContext.FOLDER_REPOSITORY).resolve("java").resolve("java").resolve("default").resolve("lib");
     context.getFileAccess().mkdirs(fakedJavaLibDir);
     Path srcZip = fakedJavaLibDir.resolve("src.zip");
     Random random = new Random(1);

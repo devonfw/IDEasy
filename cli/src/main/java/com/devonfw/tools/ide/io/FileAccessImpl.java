@@ -42,6 +42,8 @@ import java.util.stream.Stream;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveOutputStream;
+import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
+import org.apache.commons.compress.archivers.sevenz.SevenZFile;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
@@ -358,6 +360,11 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   @Override
   public void copy(Path source, Path target, FileCopyMode mode, PathCopyListener listener) {
 
+    copy(source, target, mode, listener, false);
+  }
+
+  private void copy(Path source, Path target, FileCopyMode mode, PathCopyListener listener, boolean preserveSymbolicLinks) {
+
     if (mode.isUseSourceFilename()) {
       // if we want to copy the file or folder "source" to the existing folder "target" in a shell this will copy
       // source into that folder so that we as a result have a copy in "target/source".
@@ -394,30 +401,35 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       delete(target);
     }
     try {
-      copyRecursive(source, target, mode, listener);
+      copyRecursive(source, target, mode, listener, preserveSymbolicLinks);
     } catch (IOException e) {
       throw new IllegalStateException("Failed to " + operation + " " + source + " to " + target, e);
     }
   }
 
-  private void copyRecursive(Path source, Path target, FileCopyMode mode, PathCopyListener listener) throws IOException {
+  private void copyRecursive(Path source, Path target, FileCopyMode mode, PathCopyListener listener, boolean preserveSymbolicLinks) throws IOException {
 
-    if (Files.isDirectory(source)) {
+    boolean symbolicLink = preserveSymbolicLinks && Files.isSymbolicLink(source);
+    if (!symbolicLink && Files.isDirectory(source)) {
       mkdirs(target);
       try (Stream<Path> childStream = Files.list(source)) {
         Iterator<Path> iterator = childStream.iterator();
         while (iterator.hasNext()) {
           Path child = iterator.next();
-          copyRecursive(child, target.resolve(child.getFileName().toString()), mode, listener);
+          copyRecursive(child, target.resolve(child.getFileName().toString()), mode, listener, preserveSymbolicLinks);
         }
       }
       listener.onCopy(source, target, true);
-    } else if (Files.exists(source)) {
+    } else if (symbolicLink || Files.exists(source)) {
       if (mode.isOverride()) {
         delete(target);
       }
       LOG.trace("Starting to {} {} to {}", mode.getOperation(), source, target);
-      Files.copy(source, target);
+      if (symbolicLink) {
+        Files.copy(source, target, LinkOption.NOFOLLOW_LINKS);
+      } else {
+        Files.copy(source, target);
+      }
       listener.onCopy(source, target, false);
     } else {
       throw new IOException("Path " + source + " does not exist.");
@@ -471,15 +483,14 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   }
 
   /**
-   * Creates a Windows link using mklink at {@code link} pointing to {@code target}.
+   * Creates a junction with mklink as fallback at {@code link} pointing to {@code target}
    *
    * @param source the {@link Path} the link will point to.
    * @param link the {@link Path} where to create the link.
-   * @param type the {@link PathLinkType}.
    */
-  private void mklinkOnWindows(Path source, Path absoluteSource, Path link, PathLinkType type, boolean relative) {
+  private void mklinkOnWindows(Path source, Path absoluteSource, Path link, boolean relative) {
 
-    Path finalSource = relative ? source : absoluteSource;
+    Path finalSource = absoluteSource;
     Path finalLink = link;
     Path cwd = null;
     if (relative) {
@@ -493,26 +504,22 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       }
     }
 
-    String option = type.getMklinkOption();
-    if (type == PathLinkType.SYMBOLIC_LINK) {
-      boolean directoryTarget = Files.isDirectory(absoluteSource);
-      option = directoryTarget ? "/j" : "/d";
-    }
-
-    if (!runMklink(finalSource, finalLink, cwd, option)) {
+    if (!runMklink(finalSource, finalLink, cwd)) {
       throw new IllegalStateException("Failed to create Windows link at " + link + " pointing to " + source);
     }
   }
 
-  private boolean runMklink(Path source, Path link, Path cwd, String option) {
+  private boolean runMklink(Path source, Path link, Path cwd) {
 
+    String option = "/j";
     LOG.trace("Creating a Windows link with mklink {} at {} pointing to {}", option, link, source);
     ProcessContext pc = this.context.newProcess().executable("cmd").addArgs("/c", "mklink", option);
     if (cwd != null) {
       pc.directory(cwd);
     }
-    ProcessResult result = pc.addArgs(link.toString(), source.toString()).run(ProcessMode.DEFAULT);
     try {
+      ProcessContext context = pc.addArgs(link.toString(), source.toString());
+      ProcessResult result = context.run(ProcessMode.DEFAULT);
       result.failOnError();
       return true;
     } catch (RuntimeException e) {
@@ -522,8 +529,8 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   }
 
   @Override
-  public void link(Path source, Path link, boolean relative, PathLinkType type) {
-
+  public PathLinkType link(Path source, Path link, boolean relative, PathLinkType type) {
+    PathLinkType resultingPathLinkType = null;
     Path absoluteLink = link.toAbsolutePath().normalize();
     // Keep this lexical only: archive symlinks may point through links that are created later.
     Path finalSource = relative ? relativizeSource(source, absoluteLink) : preserveSelfReference(source.normalize());
@@ -534,23 +541,31 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       // Attention: JavaDoc and position of path arguments can be very confusing - see comment in #1736
       if (type == PathLinkType.SYMBOLIC_LINK) {
         Files.createSymbolicLink(link, finalSource);
+        resultingPathLinkType = PathLinkType.SYMBOLIC_LINK;
       } else if (type == PathLinkType.HARD_LINK) {
-        createHardLink(absoluteSource, link);
+        Files.createLink(link, absoluteSource);
+        resultingPathLinkType = PathLinkType.HARD_LINK;
       } else {
         throw new IllegalStateException("" + type);
       }
     } catch (FileSystemException e) {
+      LOG.debug("Failed to create link of type {} for {} at {}.", type, source, link);
       if (SystemInfoImpl.INSTANCE.isWindows()) {
-        LOG.info(
-            "Due to lack of permissions, Microsoft's mklink with junction had to be used to create a Symlink. See\n"
-                + "https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for further details. Error was: "
-                + e.getMessage());
-
-        try {
-          mklinkOnWindows(finalSource, absoluteSource, absoluteLink, type, relative);
-        } catch (IllegalStateException mkEx) {
-          LOG.info("Creating a hard link as a fallback for the failed mklink attempt.");
+        if (Files.isDirectory(absoluteSource)) {
+          LOG.warn(
+            "Due to lack of permissions, Microsoft's mklink with junction has to be used to create the link. "
+              + "See https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for further details. "
+              + "Error was: " + e.getMessage());
+          mklinkOnWindows(finalSource, absoluteSource, absoluteLink, relative);
+          LOG.debug("Created junction with mklink as fallback for link to directory.");
+        } else {
+          LOG.warn(
+            "Due to lack of permissions, a hard link has to be used instead of a symbolic link. "
+              + "See https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for further details. "
+              + "Error was: " + e.getMessage());
           createHardLink(absoluteSource, link);
+          resultingPathLinkType = PathLinkType.HARD_LINK;
+          LOG.debug("Created hard link as fallback for link to file.");
         }
       } else {
         throw new RuntimeException(e);
@@ -558,6 +573,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     } catch (IOException e) {
       throw new IllegalStateException("Failed to create " + type + " at " + link + " pointing to " + source + " (relative=" + relative + ")", e);
     }
+    return resultingPathLinkType;
   }
 
 
@@ -710,6 +726,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
         case "dmg" -> extractDmg(archiveFile, tmpDir);
         case "msi" -> extractMsi(archiveFile, tmpDir);
         case "pkg" -> extractPkg(archiveFile, tmpDir);
+        case "7z" -> extract7z(archiveFile, tmpDir);
         default -> throw new IllegalStateException("Unknown archive format " + extension + ". Can not extract " + archiveFile);
       }
     }
@@ -1006,11 +1023,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
         throw new IllegalStateException("Failed to unpack DMG as no MacOS *.app was found in file " + file);
       }
 
-      // use ditto to copy the .app: a normal recursive copy breaks on the symlinks inside macOS frameworks (e.g. Python/Tcl)
-      Path targetApp = targetDir.resolve(appPath.getFileName().toString());
-      mkdirs(targetDir);
-      delete(targetApp);
-      this.context.newProcess().executable("ditto").addArgs(appPath, targetApp).run();
+      copy(appPath, targetDir, FileCopyMode.COPY_TREE_OVERRIDE_TREE, PathCopyListener.NONE, true);
     } finally {
       if (mounted) {
         this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable("hdiutil").addArgs("detach", "-force", mountPath)
@@ -1049,6 +1062,81 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     pc.executable("/usr/bin/tar");
     pc.addArgs("-xf", payload, "-C", targetDir);
     pc.run();
+  }
+
+  @Override
+  public void extract7z(Path file, Path targetDir) {
+
+    LOG.info("Extracting 7z file {} to {}", file, targetDir);
+    List<PathLink> links = new ArrayList<>();
+    byte[] buffer = new byte[8192];
+    Path root = targetDir.toAbsolutePath().normalize();
+    try (SevenZFile sevenZFile = SevenZFile.builder().setPath(file).get();
+      IdeProgressBar pb = this.context.newProgressbarForExtracting(getFileSize(file))) {
+      SevenZArchiveEntry entry;
+      while ((entry = sevenZFile.getNextEntry()) != null) {
+        Path entryPath = resolveRelativePathSecure(entry.getName(), root);
+        int unixMode = getUnixMode(entry);
+        if (entry.isDirectory()) {
+          mkdirs(entryPath);
+        } else {
+          mkdirs(entryPath.getParent());
+          if ((unixMode & 0xF000) == 0xA000) { // symbolic link (S_IFLNK)
+            String linkTarget = readSymbolicLinkTarget(sevenZFile, entry);
+            resolveRelativePathSecure(entryPath.getParent().resolve(linkTarget).normalize(), root, linkTarget);
+            links.add(new PathLink(Path.of(linkTarget), entryPath, PathLinkType.SYMBOLIC_LINK));
+          } else {
+            try (OutputStream out = Files.newOutputStream(entryPath)) {
+              int n;
+              while ((n = sevenZFile.read(buffer)) != -1) {
+                out.write(buffer, 0, n);
+              }
+            }
+            if (unixMode != 0) {
+              setFilePermissions(entryPath, PathPermissions.of(unixMode), true);
+            }
+          }
+        }
+        pb.stepBy(Math.max(0L, entry.getSize()));
+      }
+      for (PathLink link : links) {
+        link(link);
+      }
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
+    }
+  }
+
+  /**
+   * Extracts the Unix file mode from a 7z entry.
+   *
+   * @param entry the 7z entry to read.
+   * @return the Unix file mode stored in the entry, or {@code 0} if none (e.g. a Windows-made archive).
+   */
+  private static int getUnixMode(SevenZArchiveEntry entry) {
+
+    // 7z stores a Unix mode only when the 0x8000 bit is set; it then lives in the upper 16 bits.
+    int attributes = entry.getWindowsAttributes();
+    return (attributes & 0x8000) != 0 ? (attributes >> 16) & 0xFFFF : 0;
+  }
+
+  /**
+   * Reads the target path of a symbolic link entry. In 7z (as in tar) the entry content is the raw link target path.
+   *
+   * @param sevenZFile the {@link SevenZFile} positioned at the symlink entry to read.
+   * @param entry the symlink {@link SevenZArchiveEntry}.
+   * @return the link target path.
+   * @throws IOException if reading the target fails.
+   */
+  private static String readSymbolicLinkTarget(SevenZFile sevenZFile, SevenZArchiveEntry entry) throws IOException {
+
+    byte[] target = new byte[(int) entry.getSize()];
+    int read = 0;
+    int n;
+    while (read < target.length && (n = sevenZFile.read(target, read, target.length - read)) != -1) {
+      read += n;
+    }
+    return new String(target, StandardCharsets.UTF_8);
   }
 
   @Override
@@ -1354,7 +1442,6 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       return 0;
     }
   }
-
 
   @Override
   public Path findExistingFile(String fileName, List<Path> searchDirs) {

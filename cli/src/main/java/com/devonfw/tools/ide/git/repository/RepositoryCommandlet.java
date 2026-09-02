@@ -27,6 +27,7 @@ import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 public class RepositoryCommandlet extends Commandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(RepositoryCommandlet.class);
+  private static final String REPOSITORY = "repository";
 
   /** the repository to setup. */
   public final RepositoryProperty repository;
@@ -41,13 +42,13 @@ public class RepositoryCommandlet extends Commandlet {
     super(context);
     addKeyword(getName());
     addKeyword("setup");
-    this.repository = add(new RepositoryProperty("", false, "repository"));
+    this.repository = add(new RepositoryProperty("", false, REPOSITORY));
   }
 
   @Override
   public String getName() {
 
-    return "repository";
+    return REPOSITORY;
   }
 
   @Override
@@ -141,13 +142,19 @@ public class RepositoryCommandlet extends Commandlet {
       workspaces.remove(IdeContext.WORKSPACE_MAIN);
       workspaces.addFirst(IdeContext.WORKSPACE_MAIN);
     }
+
     Path firstRepository = null;
+
+    if (config.isVirtualSettingsRepository()) {
+      firstRepository = this.context.getSettingsPath();
+    }
+
     for (String workspaceName : workspaces) {
       Path workspacePath = this.context.getWorkspacePath(workspaceName);
       Path repositoryPath = workspacePath.resolve(repositoryRelativePath);
       Path repositoryCreatedStatusFile = ideStatusDir.resolve("repository." + config.id() + "." + workspaceName);
       boolean createRepository = true;
-      if (Files.isDirectory(repositoryPath.resolve(GitContext.GIT_FOLDER))) {
+      if (!config.isVirtualSettingsRepository() && Files.isDirectory(repositoryPath.resolve(GitContext.GIT_FOLDER))) {
         if (firstRepository == null) {
           firstRepository = repositoryPath;
         }
@@ -173,17 +180,30 @@ public class RepositoryCommandlet extends Commandlet {
             buildRepository(config, repositoryPath);
             importRepository(config, repositoryPath, config.id());
           }
-        } else {
+        } else if (!config.isVirtualSettingsRepository()) {
           fileAccess.mkdirs(repositoryPath.getParent());
           fileAccess.symlink(firstRepository, repositoryPath);
         }
       }
-      if (Files.exists(repositoryPath)) {
+      Path linkRepositoryPath = config.isVirtualSettingsRepository() ? firstRepository : repositoryPath;
+      if (Files.exists(linkRepositoryPath)) {
+        for (RepositoryRemote remote : config.remotes()) {
+          this.context.getGitContext().addRemote(linkRepositoryPath, remote.name(), remote.url());
+        }
         for (RepositoryLink link : config.links()) {
-          createRepositoryLink(link, repositoryPath, workspacePath);
+          createRepositoryLink(link, linkRepositoryPath, workspacePath);
         }
       }
     }
+  }
+
+  private boolean linkTargetExists(RepositoryLink link, Path linkTargetPath) {
+
+    if (!Files.exists(linkTargetPath)) {
+      LOG.error("Skipping link from '{}' to '{}' because target does not exist: {}", link.link(), link.target(), linkTargetPath);
+      return false;
+    }
+    return true;
   }
 
   private void createRepositoryLink(RepositoryLink link, Path repositoryPath, Path workspacePath) {
@@ -192,8 +212,7 @@ public class RepositoryCommandlet extends Commandlet {
     Path linkTargetPath;
     if ((target != null) && !target.isBlank()) {
       linkTargetPath = repositoryPath.resolve(target);
-      if (!Files.exists(linkTargetPath)) {
-        LOG.error("Skipping link from '{}' to '{}' because target does not exist: {}", link.link(), target, linkTargetPath);
+      if (!linkTargetExists(link, linkTargetPath)) {
         return;
       }
     } else {

@@ -24,10 +24,13 @@ import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.CleanupMode;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.Mockito;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.devonfw.tools.ide.process.ProcessContext;
 
 /**
  * Test of {@link FileAccessImpl}.
@@ -271,6 +274,42 @@ class FileAccessImplTest extends AbstractIdeContextTest {
 
     assertThat(frameworkLink).hasContent("binary");
     assertThat(frameworkLink.toRealPath()).isEqualTo(realPath(versionA.resolve("Electron Framework")));
+  }
+
+  /**
+   * Tests that {@link FileAccessImpl#extractDmg(Path, Path)} preserves application bundle symbolic links.
+   *
+   * @param tempDir the temporary directory.
+   * @throws IOException on test setup failure.
+   */
+  @Test
+  void testExtractDmgPreservesSymbolicLinks(@TempDir Path tempDir) throws IOException {
+
+    // arrange
+    WindowsSymlinkTestHelper.assumeSymlinksSupported();
+    IdeTestContext context = newContext(tempDir);
+    context.setIdeHome(tempDir);
+    context.setSystemInfo(SystemInfoMock.MAC_X64);
+    ProcessContext processContext = Mockito.mock(ProcessContext.class, Mockito.RETURNS_SELF);
+    context.setProcessContext(processContext);
+    Path appPath = tempDir.resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_VOLUME).resolve("MyApp.app");
+    Path versions = appPath.resolve("Contents/Frameworks/My.framework/Versions");
+    Path sourceFile = versions.resolve("A/My");
+    Files.createDirectories(sourceFile.getParent());
+    Files.writeString(sourceFile, "x".repeat(1024));
+    context.getFileAccess().makeExecutable(sourceFile);
+    Files.createSymbolicLink(versions.resolve("Current"), Path.of("A"));
+    Path target = tempDir.resolve("target");
+
+    // act
+    context.getFileAccess().extractDmg(tempDir.resolve("MyApp.dmg"), target);
+
+    // assert
+    Path copiedLink = target.resolve("MyApp.app/Contents/Frameworks/My.framework/Versions/Current");
+    assertThat(copiedLink).isSymbolicLink();
+    assertThat(Files.readSymbolicLink(copiedLink)).isEqualTo(Path.of("A"));
+    assertThat(copiedLink.resolve("My")).hasSameTextualContentAs(sourceFile);
+    assertThat(copiedLink.resolve("My")).isExecutable();
   }
 
   private void createDirs(FileAccess fileAccess, Path dir) {
@@ -879,6 +918,64 @@ class FileAccessImplTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Test of {@link FileAccessImpl#test7zExtraction(Path, Path)}
+   */
+  @Test
+  void test7zExtraction(@TempDir Path tempDir) {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+
+    // act
+    context.getFileAccess()
+        .extract7z(Path.of("src/test/resources/com/devonfw/tools/ide/io/executable_and_non_executable.7z"),
+          tempDir);
+
+    // assert
+    assertThat(tempDir.resolve("executableFile.txt")).exists();
+    assertThat(tempDir.resolve("nonExecutableFile.txt")).exists();
+  }
+
+  /**
+   * Test of {@link FileAccessImpl#extract7z(Path, Path)} and checks if file permissions are preserved on Unix.
+   */
+  @Test
+  void test7zExtractionWithFilePermissions(@TempDir Path tempDir) {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    if (context.getSystemInfo().isWindows()) {
+      return;
+    }
+
+    // act
+    context.getFileAccess()
+        .extract7z(Path.of("src/test/resources/com/devonfw/tools/ide/io/executable_and_non_executable.7z"), tempDir);
+
+    // assert
+    assertPosixFilePermissions(tempDir.resolve("executableFile.txt"), "rwxrwxr-x");
+    assertPosixFilePermissions(tempDir.resolve("nonExecutableFile.txt"), "rw-rw-r--");
+  }
+
+  @Test
+  void test7zExtractionWithSymbolicLink(@TempDir Path tempDir) {
+
+    // arrange
+    WindowsSymlinkTestHelper.assumeSymlinksSupported();
+    IdeTestContext context = new IdeTestContext();
+    Path link7z = Path.of("src/test/resources/com/devonfw/tools/ide/io/link.7z");
+    FileAccess fileAccess = context.getFileAccess();
+
+    // act
+    fileAccess.extract7z(link7z, tempDir);
+
+    // assert
+    Path link = tempDir.resolve("link");
+    assertThat(link).hasContent("hi");
+    assertThat(fileAccess.toRealPath(link)).isEqualTo(realPath(tempDir.resolve("file")));
+  }
+
+  /**
    * Tests if a file can be found within a list of folders.
    *
    * @param tempDir temporary directory to use.
@@ -1041,7 +1138,6 @@ class FileAccessImplTest extends AbstractIdeContextTest {
       fileAccess.symlink(newSource, brokenLink, false);
       assertThat(brokenLink.toRealPath()).isEqualTo(realPath(newSource));
     } else {
-      System.out.println("Test adapted for Windows environment - testing basic junction functionality");
       // On Windows, just test that basic junction functionality works
       Path sourceDir = tempDir.resolve("source");
       Path junctionLink = tempDir.resolve("junction");

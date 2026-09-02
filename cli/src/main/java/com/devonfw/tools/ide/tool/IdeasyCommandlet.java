@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool;
 
+import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
@@ -8,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -63,6 +65,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       //artifactName: String, required: boolean
       "bin", true,
       "functions", true,
+      "functions.ps1", true,
       "internal", true,
       "gui", true,
       "system", true,
@@ -116,15 +119,9 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   }
 
   @Override
-  public VersionIdentifier getInstalledVersion() {
+  protected EditionAndVersion computeInstalledEditionAndVersion() {
 
-    return IdeVersion.getVersionIdentifier();
-  }
-
-  @Override
-  public String getInstalledEdition() {
-
-    return this.tool;
+    return new EditionAndVersion(this.tool, IdeVersion.getVersionIdentifier());
   }
 
   @Override
@@ -138,7 +135,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
 
     UpgradeMode upgradeMode = this.mode;
     if (upgradeMode == null) {
-      if (IdeVersion.isSnapshot()) {
+      if (IdeVersion.isSnapshot() || IdeVersion.isLocalDevBuild()) {
         upgradeMode = UpgradeMode.SNAPSHOT;
       } else {
         if (IdeVersion.getVersionIdentifier().getDevelopmentPhase().isStable()) {
@@ -196,6 +193,10 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     if (IdeVersion.isSnapshot()) {
       LOG.warn("You are using a SNAPSHOT version of IDEasy. For stability consider switching to a stable release via 'ide upgrade --mode=stable'");
     }
+    if (IdeVersion.isLocalDevBuild()) {
+      LOG.warn("You are using a LOCAL-DEV version of IDEasy. For stability consider switching to a stable release via 'ide upgrade --mode=stable'");
+      return false;
+    }
     if (this.context.isOffline()) {
       LOG.warn("Skipping check for newer version of IDEasy because you are offline.");
       return false;
@@ -203,11 +204,11 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     VersionIdentifier latestVersion = getLatestVersion();
     if (IdeVersion.isSnapshot()) {
       if (isSameSnapshotVersion(installedVersion.toString(), latestVersion.toString())) {
-        IdeLogLevel.SUCCESS.log(LOG, "Your are using the latest snapshot version of IDEasy and no update is available.");
+        IdeLogLevel.SUCCESS.log(LOG, "You are using the latest snapshot version of IDEasy and no update is available.");
         return false;
       }
     } else if (installedVersion.equals(latestVersion)) {
-      IdeLogLevel.SUCCESS.log(LOG, "Your are using the latest stable version of IDEasy and no update is available.");
+      IdeLogLevel.SUCCESS.log(LOG, "You are using the latest stable version of IDEasy and no update is available.");
       return false;
     }
     IdeLogLevel.INTERACTION.log(LOG,
@@ -265,6 +266,9 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
    */
   public void installIdeasy(Path cwd) {
     Path ideRoot = determineIdeRoot(cwd);
+    // During a fresh (MSI) installation the IDE_ROOT environment variable is not yet available, so context.getIdeRoot() would return null for the whole run.
+    // The installation target is already known here, so we make the context consistent for any downstream code reading context.getIdeRoot() (see #1517).
+    this.context.setIdeRoot(ideRoot);
     Path idePath = ideRoot.resolve(IdeContext.FOLDER_UNDERSCORE_IDE);
     Path installationPath = idePath.resolve(IdeContext.FOLDER_INSTALLATION);
     Path ideasySoftwarePath = idePath.resolve(IdeContext.FOLDER_SOFTWARE).resolve(MvnRepository.ID).resolve(IdeasyCommandlet.TOOL_NAME)
@@ -294,9 +298,12 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     addToShellRc(BASHRC, ideRoot, null);
     addToShellRc(ZSHRC, ideRoot, "autoload -U +X bashcompinit && bashcompinit");
     installIdeasyWindowsEnv(ideRoot, installationPath);
+    WindowsHelper.get(this.context).configurePowerShellProfiles(true);
+    installDesktopShortcut(installationPath);
     IdeLogLevel.SUCCESS.log(LOG, "IDEasy has been installed successfully on your system.");
     LOG.warn("IDEasy has been setup for new shells but it cannot work in your current shell(s).\n"
-        + "To use it here, run 'source ~/.bashrc' (or your shell config). Otherwise, open a new terminal or reboot.");
+        + "To use it here, reload your shell configuration (e.g. 'source ~/.bashrc' in bash "
+        + "or '. $PROFILE.CurrentUserAllHosts' in PowerShell). Otherwise, open a new terminal or reboot.");
   }
 
   private void installIdeasyWindowsEnv(Path ideRoot, Path installationPath) {
@@ -327,6 +334,114 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       path.getEntries().add(ideasyBinPath.toString());
       helper.setUserEnvironmentValue(IdeVariables.PATH.getName(), path.toString());
       setGitLongpaths();
+    }
+  }
+
+  private void installDesktopShortcut(Path installationPath) {
+
+    try {
+      if (this.context.getSystemInfo().isLinux()) {
+        installLinuxDesktopShortcut(installationPath);
+      } else if (this.context.getSystemInfo().isMac()) {
+        installMacDesktopShortcut(installationPath);
+      } else if (this.context.getSystemInfo().isWindows()) {
+        installWindowsDesktopShortcut(installationPath);
+      }
+    } catch (Exception e) {
+      LOG.warn("Failed to create desktop shortcut.", e);
+    }
+  }
+
+  private void installLinuxDesktopShortcut(Path installationPath) throws IOException {
+
+    Path templateFile = installationPath.resolve("gui/linux/ideasy-gui.desktop");
+    if (!Files.exists(templateFile)) {
+      LOG.warn("Desktop file template not found at {}. Skipping desktop shortcut creation.", templateFile);
+      return;
+    }
+    Path ideasyBin = installationPath.resolve("bin/ideasy");
+    Path logoPath = installationPath.resolve("gui/logo.png");
+    String content = Files.readString(templateFile)
+        .replace("@IDEASY_BIN@", ideasyBin.toString())
+        .replace("@IDEASY_ICON@", logoPath.toString());
+
+    Path applicationsDir = this.context.getUserHome().resolve(".local/share/applications");
+    this.context.getFileAccess().mkdirs(applicationsDir);
+    Path desktopFile = applicationsDir.resolve("ideasy-gui.desktop");
+    this.context.getFileAccess().writeFileContent(content, desktopFile);
+    this.context.getFileAccess().makeExecutable(desktopFile);
+
+    // without this, the new entry is only visible in application menus after the next login
+    try {
+      this.context.newProcess().executable("update-desktop-database").addArg(applicationsDir.toString())
+          .run(ProcessMode.DEFAULT_CAPTURE);
+    } catch (Exception e) {
+      LOG.debug("update-desktop-database failed (optional): {}", e.getMessage());
+    }
+
+    // Mark as trusted for GNOME 3.28+ so the shortcut is executable without prompting
+    try {
+      this.context.newProcess().executable("gio")
+          .addArgs("set", desktopFile.toString(), "metadata::trusted", "true")
+          .run(ProcessMode.DEFAULT_CAPTURE);
+    } catch (Exception e) {
+      LOG.debug("gio set trusted failed (optional): {}", e.getMessage());
+    }
+
+    IdeLogLevel.SUCCESS.log(LOG, "Created desktop shortcut at {}", desktopFile);
+  }
+
+  private void installMacDesktopShortcut(Path installationPath) {
+
+    Path ideasyBin = installationPath.resolve("bin/ideasy");
+    String escapedBin = ideasyBin.toString().replace("\"", "\\\"");
+    String content = "#!/bin/bash\n\"" + escapedBin + "\" gui\n";
+    Path applicationsDir = this.context.getUserHome().resolve("Applications");
+    this.context.getFileAccess().mkdirs(applicationsDir);
+    Path commandFile = applicationsDir.resolve("IDEasy.command");
+    this.context.getFileAccess().writeFileContent(content, commandFile);
+    this.context.getFileAccess().makeExecutable(commandFile);
+    IdeLogLevel.SUCCESS.log(LOG, "Created macOS launcher at {}", commandFile);
+  }
+
+  private void installWindowsDesktopShortcut(Path installationPath) {
+
+    Path ideasyExe = installationPath.resolve("bin\\ideasy.exe");
+    Path icoPath = installationPath.resolve("gui\\logo.ico");
+    // Shell Folders contains the already-expanded Desktop path, including OneDrive-redirected locations
+    WindowsHelper helper = WindowsHelper.get(this.context);
+    String desktopStr = helper.getRegistryValue(
+        "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders", "Desktop");
+    Path desktopPath = (desktopStr != null && !desktopStr.isBlank()) ? Path.of(desktopStr) : this.context.getUserHome().resolve("Desktop");
+    this.context.getFileAccess().mkdirs(desktopPath);
+    createWindowsShortcut(desktopPath.resolve("IDEasy.lnk"), ideasyExe, icoPath);
+    String startMenuStr = helper.getRegistryValue(
+        "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders", "Programs");
+    Path startMenu = (startMenuStr != null && !startMenuStr.isBlank()) ? Path.of(startMenuStr)
+        : this.context.getUserHome().resolve("AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs");
+    if (Files.isDirectory(startMenu)) {
+      createWindowsShortcut(startMenu.resolve("IDEasy.lnk"), ideasyExe, icoPath);
+    }
+  }
+
+  private static String psEscapePath(Path path) {
+    return path.toString().replace("'", "''");
+  }
+
+  private void createWindowsShortcut(Path lnkPath, Path targetExe, Path icoPath) {
+
+    String ps = "$ws = New-Object -ComObject WScript.Shell; "
+        + "$s = $ws.CreateShortcut('" + psEscapePath(lnkPath) + "'); "
+        + "$s.TargetPath = '" + psEscapePath(targetExe) + "'; "
+        + "$s.Arguments = 'gui'; "
+        + "$s.IconLocation = '" + psEscapePath(icoPath) + ",0'; "
+        + "$s.Save()";
+    try {
+      this.context.newProcess().executable("powershell").addArgs("-Command", ps)
+          .run(ProcessMode.DEFAULT_CAPTURE);
+      IdeLogLevel.SUCCESS.log(LOG, "Created shortcut at {}", lnkPath);
+    } catch (Exception e) {
+      LOG.warn("Failed to create shortcut at {}.", lnkPath, e);
     }
   }
 
@@ -490,13 +605,13 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       ObjectNode gitBashProfile = mapper.createObjectNode();
       String newGuid = "{2ece5bfe-50ed-5f3a-ab87-5cd4baafed2b}";
       String iconPath = getGitBashIconPath(bashPath);
-      String startingDirectory = this.context.getIdeRoot().toString();
+      Path startingDirectory = Objects.requireNonNullElse(this.context.getIdeRoot(), this.context.getUserHome());
 
       gitBashProfile.put("guid", newGuid);
       gitBashProfile.put("name", "Git Bash");
       gitBashProfile.put("commandline", bashPath);
       gitBashProfile.put("icon", iconPath);
-      gitBashProfile.put("startingDirectory", startingDirectory);
+      gitBashProfile.put("startingDirectory", startingDirectory.toString());
 
       ((ArrayNode) profilesList).add(gitBashProfile);
 
@@ -581,11 +696,8 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
    */
   private void modifyShellRc(String filename, Path ideRoot, boolean add, String extraLine) {
 
-    if (add) {
-      LOG.info("Configuring IDEasy in {}", filename);
-    } else {
-      LOG.info("Removing IDEasy from {}", filename);
-    }
+    logIdeasyModification(filename, add);
+
     Path rcFile = this.context.getUserHome().resolve(filename);
     FileAccess fileAccess = this.context.getFileAccess();
     List<String> lines = fileAccess.readFileLines(rcFile);
@@ -678,6 +790,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     removeFromShellRc(ZSHRC, ideRoot);
     Path idePath = this.context.getIdePath();
     uninstallIdeasyWindowsEnv(ideRoot);
+    WindowsHelper.get(this.context).configurePowerShellProfiles(false);
     uninstallIdeasyIdePath(idePath);
     deleteDownloadCache();
     IdeLogLevel.SUCCESS.log(LOG, "IDEasy has been uninstalled from your system.");
@@ -703,7 +816,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     try {
       this.context.getFileAccess().delete(path);
     } catch (IllegalStateException e) {
-      // best effort - on macOS ~/Downloads can deny access (EPERM), don't fail the whole uninstall over it
+      // best effort - on macOS ~/Downloads can deny access (EPERM), don't fail the whole uninstallation over it
       String cause = (e.getCause() != null) ? e.getCause().getMessage() : e.getMessage();
       LOG.warn("Could not delete download cache at {} ({}). The folder will be left in place; you can remove it manually via Finder.", path, cause);
     }
@@ -751,5 +864,10 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
         helper.setUserEnvironmentValue(IdeVariables.PATH.getName(), newUserPath);
       }
     }
+  }
+
+  private void logIdeasyModification(String target, boolean configure) {
+    String action = configure ? "Configuring" : "Removing";
+    LOG.info("{} IDEasy in {}", action, target);
   }
 }

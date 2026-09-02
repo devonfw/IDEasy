@@ -33,9 +33,13 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
 
   private final boolean valid;
 
+  private final boolean snapshot;
+
   private VersionIdentifier(VersionSegment start) {
 
     super();
+    boolean hasSnapshot = false;
+
     Objects.requireNonNull(start);
     this.start = start;
     boolean isValid = this.start.getSeparator().isEmpty() && this.start.getLettersString().isEmpty();
@@ -49,6 +53,11 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
         hasPositiveNumber = true;
       }
       VersionLetters segmentLetters = segment.getLetters();
+
+      if (segmentLetters.isSnapshot()) {
+        hasSnapshot = true;
+      }
+
       if (segmentLetters.isDevelopmentPhase()) {
         if (dev.isEmpty()) {
           dev = segmentLetters;
@@ -59,6 +68,7 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
       }
       segment = segment.getNextOrNull();
     }
+    this.snapshot = hasSnapshot;
     this.developmentPhase = dev;
     this.valid = isValid && hasPositiveNumber;
   }
@@ -176,7 +186,7 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
    */
   public boolean isStable() {
 
-    return this.developmentPhase.isStable();
+    return !this.snapshot && this.developmentPhase.isStable();
   }
 
   /**
