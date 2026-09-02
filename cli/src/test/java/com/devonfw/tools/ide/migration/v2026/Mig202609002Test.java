@@ -10,9 +10,9 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.io.FileAccess;
 
 /**
- * Test of {@link Mig202608001}.
+ * Test of {@link Mig202609002}.
  */
-class Mig202608001Test extends AbstractIdeContextTest {
+class Mig202609002Test extends AbstractIdeContextTest {
 
   /**
    * Tests that an existing {@code .vscode/.userdata} folder is moved out of the workspace into {@code $IDE_HOME/.ide/vscode/«workspace»/config}.
@@ -28,7 +28,7 @@ class Mig202608001Test extends AbstractIdeContextTest {
     fileAccess.mkdirs(oldUserData);
     fileAccess.writeFileContent("dummy", oldUserData.resolve("state.json"));
     // act
-    new Mig202608001().run(context);
+    new Mig202609002().run(context);
     // assert
     Path newConfig = context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("vscode").resolve(context.getWorkspaceName()).resolve("config");
     assertThat(newConfig.resolve("state.json")).exists().hasContent("dummy");
@@ -45,7 +45,7 @@ class Mig202608001Test extends AbstractIdeContextTest {
     IdeTestContext context = newContext("vscode");
     Path vscodeMeta = context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("vscode");
     // act
-    new Mig202608001().run(context);
+    new Mig202609002().run(context);
     // assert
     assertThat(vscodeMeta).doesNotExist();
   }
@@ -66,7 +66,7 @@ class Mig202608001Test extends AbstractIdeContextTest {
     fileAccess.mkdirs(target);
     fileAccess.writeFileContent("new", target.resolve("state.json"));
     // act
-    new Mig202608001().run(context);
+    new Mig202609002().run(context);
     // assert
     assertThat(oldUserData).exists();
     assertThat(target.resolve("state.json")).exists().hasContent("new");

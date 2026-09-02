@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool.vscode;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -171,6 +172,9 @@ class VscodeTest extends AbstractIdeContextTest {
     Path expectedUserData = context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("vscode").resolve(context.getWorkspaceName()).resolve("config");
     assertThat(pc.capturedArgs).contains("--user-data-dir=" + expectedUserData);
     assertThat(pc.capturedArgs).noneMatch(arg -> arg.contains(".vscode"));
+  }
+
+  /**
    * Tests that {@code VSCODE_OPTIONS} is honoured by appending its tokens as additional command-line arguments when starting the IDE (analogue to the
    * global {@code IDE_OPTIONS} used for IDEasy itself, see issue #788).
    */

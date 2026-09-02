@@ -12,20 +12,20 @@ import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.migration.IdeVersionMigration;
 
 /**
- * Migration to 2026.08.001. Moves the VSCode user-data folder ({@code .vscode/.userdata}) out of each workspace into the dedicated
+ * Migration to 2026.09.002. Moves the VSCode user-data folder ({@code .vscode/.userdata}) out of each workspace into the dedicated
  * {@code $IDE_HOME/.ide/vscode/«workspace»/config} folder so workspaces stay clean and independent of the IDE being used. See
  * <a href="https://github.com/devonfw/IDEasy/issues/2142">#2142</a>.
  */
-public class Mig202608001 extends IdeVersionMigration {
+public class Mig202609002 extends IdeVersionMigration {
 
-  private static final Logger LOG = LoggerFactory.getLogger(Mig202608001.class);
+  private static final Logger LOG = LoggerFactory.getLogger(Mig202609002.class);
 
   /**
    * The constructor.
    */
-  public Mig202608001() {
+  public Mig202609002() {
 
-    super("2026.08.001");
+    super("2026.09.002");
   }
 
   @Override
