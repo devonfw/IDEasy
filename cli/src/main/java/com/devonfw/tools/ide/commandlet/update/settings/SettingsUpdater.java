@@ -60,7 +60,7 @@ public class SettingsUpdater {
    * @param context the {@link IdeContext}.
    * @param settingsRepoProperty the {@link StringProperty} with the settings repository URL from the update commandlet.
    * @param isForceMode if in force mode, the settings health check will always return either {@link HealthCheckResultStatus#SETTINGS_VALID} or
-   * {@link HealthCheckResultStatus#SETTINGS_VALID_EXISTING}
+   *     {@link HealthCheckResultStatus#SETTINGS_VALID_EXISTING}
    */
   public SettingsUpdater(IdeContext context, StringProperty settingsRepoProperty, boolean isForceMode) {
 
@@ -108,8 +108,10 @@ public class SettingsUpdater {
     // Case 1: We performed "ide update"; so settings already existed and we just need to perform a git pull in the existing repo.
     if (onlyPull) {
       repositoryType = RepositoryUtil.getRepositoryType(context.getSettingsPath());
-      if(repositoryType != RepositoryType.SETTINGS && !this.isForceMode) {
-        return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_UPDATE_FAILED, repositoryType, "Expected settings repository for update application, but was of type: " + repositoryType);
+      if (repositoryType != RepositoryType.SETTINGS && !this.isForceMode) {
+        return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_UPDATE_FAILED,
+            repositoryType,
+            "Expected settings repository for update application, but was of type: " + repositoryType);
       }
 
       pullSettingsAndSaveCommitId(settingsPath);
@@ -151,7 +153,7 @@ public class SettingsUpdater {
 
   private SettingsUpdateResult moveSettingsOnlyIfForceModeActive(Path sourcePath, RepositoryType repositoryType) {
     LOG.warn("Force mode is active: Moving potentially invalid settings repository to {}", this.context.getSettingsPath());
-    if(this.isForceMode) {
+    if (this.isForceMode) {
       moveProject(sourcePath, this.context.getSettingsPath());
       return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_CLONED, repositoryType, null);
     } else {
@@ -162,8 +164,8 @@ public class SettingsUpdater {
 
   /**
    * Health check for settings that are already present. As the project keeps working with these settings, a failure is only fatal if the user explicitly
-   * aborted. Here, if a new version is available, we clone the new version into a temporary folder and perform health checks.
-   * If the cloned, new version is valid, we call git update in the existing settings folder.
+   * aborted. Here, if a new version is available, we clone the new version into a temporary folder and perform health checks. If the cloned, new version is
+   * valid, we call git update in the existing settings folder.
    */
   private SettingsHealthCheckResult checkSettingsPresent(Path settingsPath, RepositoryType repositoryType) {
 
@@ -191,8 +193,8 @@ public class SettingsUpdater {
   }
 
   /**
-   * Health check for missing or broken settings (e.g. {@code ide create}).
-   * Without valid settings there is nothing to continue with, so every failure is fatal here.
+   * Health check for missing or broken settings (e.g. {@code ide create}). Without valid settings there is nothing to continue with, so every failure is fatal
+   * here.
    */
   private SettingsHealthCheckResult checkClonedSettings(Path settingsPath) {
 
@@ -242,6 +244,7 @@ public class SettingsUpdater {
 
   /**
    * Clone a settings repository into a temporary directory.
+   *
    * @param gitUrl {@link GitUrl} of the (code-)settings repository.
    * @return {@link Path} of the temporary directory.
    */
@@ -250,7 +253,7 @@ public class SettingsUpdater {
     this.gitProjectName = gitUrl.getProjectName();
 
     // createTempDir guarantees a unique and empty directory so no leftovers of a previous attempt can interfere and we can clone directly
-    this.tempRepoDir = this.context.getFileAccess().createTempDir("project-"+this.gitProjectName);
+    this.tempRepoDir = this.context.getFileAccess().createTempDir("project-" + this.gitProjectName);
     this.context.getGitContext().clone(gitUrl, this.tempRepoDir);
     return this.tempRepoDir;
   }
@@ -278,7 +281,7 @@ public class SettingsUpdater {
     /* If we are in force mode, we give the user the option continue with a potentially invalid repo. If not in FM, we skip asking and act as if he declined.
        For the case of updating existing settings repositories, we always want to ask the user regardless of --force-pull, as this could break the setup.
     */
-    if(!this.isForceMode && !updatesExistingRepository) {
+    if (!this.isForceMode && !updatesExistingRepository) {
       return false;
     }
 
