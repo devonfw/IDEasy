@@ -9,13 +9,13 @@ Automatically generated open issue overview for Linux.
 
 link:quality-status.adoc[Back to overview]
 
-*Total Issues:* 154
+*Total Issues:* 145
 
 * OS-specific: 8
 
 * Multi-OS: 1
 
-* Cross-platform: 145
+* Cross-platform: 136
 
 == Linux Specific Issues
 
@@ -24,11 +24,13 @@ link:quality-status.adoc[Back to overview]
 | Issue | Summary
 2+^| *0-10 days*
 
+| link:https://github.com/devonfw/IDEasy/issues/2345[#2345]
+| DOCKER_EDITION ignored on Linux
+
+2+^| *11-30 days*
+
 | link:https://github.com/devonfw/IDEasy/issues/2271[#2271]
 | ide install pgadmin fails on Ubuntu Linux
-
-| link:https://github.com/devonfw/IDEasy/issues/2250[#2250]
-| Derive uninstall commands from package manager configuration (Linux)
 
 2+^| *61-90 days*
 
