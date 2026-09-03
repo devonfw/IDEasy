@@ -97,7 +97,8 @@ public class SettingsUpdater {
     try {
       //Get Git url of existing settings, clone newest version of them to temp dir
       GitUrl gitUrl = GitUrl.of(this.context.getGitContext().retrieveGitUrl(settingsPath));
-      RepositoryType clonedType = RepositoryUtil.getRepositoryType(cloneRepoToTempDir(gitUrl), this.context.getGitContext());
+      Path tempDir = cloneRepoToTempDir(gitUrl);
+      RepositoryType clonedType = RepositoryUtil.getRepositoryType(tempDir, this.context.getGitContext());
       cleanup();
 
       //If cloned repo is not (code-)settings repo and no force override (e.g. force mode) is applied, return error.
@@ -106,7 +107,7 @@ public class SettingsUpdater {
       }
 
       //Otherwise, (e.g. user overrides), return valid.
-      return SettingsHealthCheckResult.of(HealthCheckResultStatus.SETTINGS_VALID, repositoryType, settingsPath, true);
+      return SettingsHealthCheckResult.of(SettingsHealthCheckStatus.SETTINGS_VALID, repositoryType, tempDir, true);
     } catch (RuntimeException e) {
       cleanup();
       if (e instanceof CliAbortException) {
@@ -134,7 +135,7 @@ public class SettingsUpdater {
         //see @javadoc why we throw fatally here.
         return SettingsHealthCheckResult.failed(repositoryType, MESSAGE_INVALID_REPOSITORY, tempCloneDir, false);
       }
-      return SettingsHealthCheckResult.of(HealthCheckResultStatus.SETTINGS_VALID, repositoryType, tempCloneDir, false);
+      return SettingsHealthCheckResult.of(SettingsHealthCheckStatus.SETTINGS_VALID, repositoryType, tempCloneDir, false);
     } catch (RuntimeException e) {
       cleanup();
       throw createGuaranteedFatalException(e);
@@ -147,6 +148,7 @@ public class SettingsUpdater {
    *     {@link CliException#getExitCode() exit code} so that e.g. an abort by the user is still reported as such.
    */
   private static CliFatalException createGuaranteedFatalException(RuntimeException error) {
+    //TODO: Dont drop the exit code here
 
     if (error instanceof CliFatalException rethrow) {
       return rethrow;

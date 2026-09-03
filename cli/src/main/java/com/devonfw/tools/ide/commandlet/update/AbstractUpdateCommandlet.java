@@ -16,8 +16,8 @@ import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.commandlet.CreateCommandlet;
-import com.devonfw.tools.ide.commandlet.update.settings.HealthCheckResultStatus;
 import com.devonfw.tools.ide.commandlet.update.settings.SettingsHealthCheckResult;
+import com.devonfw.tools.ide.commandlet.update.settings.SettingsHealthCheckStatus;
 import com.devonfw.tools.ide.commandlet.update.settings.SettingsUpdateResult;
 import com.devonfw.tools.ide.commandlet.update.settings.SettingsUpdater;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
@@ -57,6 +57,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
   /** {@link FlagProperty} for skipping the setup of git repositories. */
   public final FlagProperty skipRepositories;
 
+  //TODO: If this is only used for the case of code-settings repos, why have that property here and not in UpdateCommandlet?
   /** {@link FlagProperty} to force the update of the settings git repository. */
   public final FlagProperty forcePull;
 
@@ -189,11 +190,11 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       SettingsHealthCheckResult healthCheckResult;
       healthCheckResult = healthCheckStep.call(() -> {
         SettingsHealthCheckResult _healthCheckResult = settingsUpdater.checkSettings(this.context.getSettingsPath());
-        HealthCheckResultStatus status = _healthCheckResult.status();
+        SettingsHealthCheckStatus status = _healthCheckResult.status();
 
         if (status == null) {
           throw new CliException("Health check on settings failed due to unknown error - the settings have not been updated");
-        } else if (status == HealthCheckResultStatus.SETTINGS_INVALID) {
+        } else if (status == SettingsHealthCheckStatus.SETTINGS_INVALID) {
           throw new CliException("The settings health check failed: " + _healthCheckResult.errorMessage());
         }
         return _healthCheckResult;
@@ -213,7 +214,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       Step applySettingsStep = this.context.newStep("Applying settings");
       applySettingsStep.run(() -> {
 
-        boolean onlyPull = healthCheckResult.status() == HealthCheckResultStatus.SETTINGS_VALID && healthCheckResult.isExistingProject();
+        boolean onlyPull = healthCheckResult.status() == SettingsHealthCheckStatus.SETTINGS_VALID && healthCheckResult.isExistingProject();
         SettingsUpdateResult settingsUpdateResult = settingsUpdater.applySettings(onlyPull,
             healthCheckResult.temporarySettingsDirectory());
         if (settingsUpdateResult == null) {

@@ -63,9 +63,6 @@ Only if this health check succeeded the settings are installed: an existing sett
 This way a broken or wrong git URL can never leave you with a damaged project.
 In particular `ide create` will not create the project at all if the health check fails, so you can simply fix the URL and try again.
 
-If you are sure that you know better, you can use the `--force` option.
-`IDEasy` will then still report the problem but ask you whether you want to continue anyway.
-
 == Structure
 
 The settings folder has to follow this file structure:
