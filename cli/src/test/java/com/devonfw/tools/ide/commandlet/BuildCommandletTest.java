@@ -140,6 +140,8 @@ class BuildCommandletTest extends AbstractIdeContextTest {
     assertThat(BuildCommandlet.findBuildCommandlet(context, workspace.resolve("npm"))).isInstanceOf(Npm.class);
     // both npm and yarn match package.json, but yarn.lock is present so yarn must take precedence over npm
     assertThat(BuildCommandlet.findBuildCommandlet(context, workspace.resolve("yarn"))).isInstanceOf(Yarn.class);
+    // a polyglot project must be built by the highest-priority tool, not the last one that matches
+    assertThat(BuildCommandlet.findBuildCommandlet(context, workspace.resolve("mvn-and-npm"))).isInstanceOf(Mvn.class);
     assertThat(BuildCommandlet.findBuildCommandlet(context, workspace.resolve("empty"))).isNull();
   }
 }
