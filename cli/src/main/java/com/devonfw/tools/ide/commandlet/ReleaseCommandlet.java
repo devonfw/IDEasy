@@ -104,10 +104,9 @@ public class ReleaseCommandlet extends Commandlet {
 
   private boolean isTopLevelProject(LocalToolCommandlet buildCommandlet, Path projectPath) {
 
-    // top-level if a build descriptor is present here but not in the parent directory
+    // top-level if the build descriptor found here is not also present in the parent directory
     Path parent = projectPath.getParent();
-    return (buildCommandlet.findBuildDescriptor(projectPath) != null)
-        && ((parent == null) || (buildCommandlet.findBuildDescriptor(parent) == null));
+    return (parent == null) || (buildCommandlet.findBuildDescriptor(parent) == null);
   }
 
   private void buildAndDeploy(BuildTool buildTool) {
