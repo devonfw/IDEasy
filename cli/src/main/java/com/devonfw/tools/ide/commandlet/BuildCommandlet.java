@@ -72,6 +72,9 @@ public class BuildCommandlet extends Commandlet {
    */
   static LocalToolCommandlet findBuildCommandlet(IdeContext context, Path buildPath) {
 
+    if (buildPath == null) {
+      return null;
+    }
     for (Class<? extends LocalToolCommandlet> toolClass : BUILD_TOOLS) {
       LocalToolCommandlet toolCommandlet = context.getCommandletManager().getCommandlet(toolClass);
       if (toolCommandlet.findBuildDescriptor(buildPath) != null) {
