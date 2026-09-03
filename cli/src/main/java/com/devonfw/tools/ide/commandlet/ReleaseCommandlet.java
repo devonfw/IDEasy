@@ -42,7 +42,7 @@ public class ReleaseCommandlet extends Commandlet {
     Path projectPath = this.context.getCwd();
     GitContext git = this.context.getGitContext();
 
-    LocalToolCommandlet commandlet = BuildCommandlet.findBuildCommandlet(this.context, projectPath);
+    LocalToolCommandlet commandlet = this.context.getCommandletManager().findBuildTool(projectPath);
     if (commandlet == null) {
       throw new CliException("Could not find a build descriptor in " + projectPath + ". There is nothing to release here.");
     }

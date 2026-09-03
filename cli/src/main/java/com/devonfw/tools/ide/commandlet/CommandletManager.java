@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -105,5 +106,14 @@ public interface CommandletManager {
    *     to simplify this).
    */
   Iterator<Commandlet> findCommandlet(CliArguments arguments, CompletionCandidateCollector collector);
+
+  /**
+   * Detects the applicable build tool for the given {@code buildPath} by {@link LocalToolCommandlet#findBuildDescriptor(Path) querying} the registered build
+   * commandlets (in order of priority) for a matching build descriptor (e.g. {@code pom.xml}, {@code build.gradle} or {@code package.json}).
+   *
+   * @param buildPath the {@link Path} to the directory to build.
+   * @return the applicable build {@link LocalToolCommandlet} or {@code null} if no build descriptor was found or {@code buildPath} was {@code null}.
+   */
+  LocalToolCommandlet findBuildTool(Path buildPath);
 
 }

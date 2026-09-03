@@ -126,22 +126,22 @@ class BuildCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests {@link BuildCommandlet#findBuildCommandlet(com.devonfw.tools.ide.context.IdeContext, Path)} detecting the applicable build tool by its build
+   * Tests {@link CommandletManager#findBuildTool(Path)} detecting the applicable build tool by its build
    * descriptor and preferring {@link Yarn} over {@link Npm} when a {@code yarn.lock} is present.
    */
   @Test
-  void testFindBuildCommandlet() {
+  void testFindBuildTool() {
 
     IdeTestContext context = newContext(PROJECT_BUILD);
     Path workspace = context.getWorkspacePath();
 
-    assertThat(BuildCommandlet.findBuildCommandlet(context, workspace.resolve("mvn"))).isInstanceOf(Mvn.class);
-    assertThat(BuildCommandlet.findBuildCommandlet(context, workspace.resolve("gradle"))).isInstanceOf(Gradle.class);
-    assertThat(BuildCommandlet.findBuildCommandlet(context, workspace.resolve("npm"))).isInstanceOf(Npm.class);
+    assertThat(context.getCommandletManager().findBuildTool(workspace.resolve("mvn"))).isInstanceOf(Mvn.class);
+    assertThat(context.getCommandletManager().findBuildTool(workspace.resolve("gradle"))).isInstanceOf(Gradle.class);
+    assertThat(context.getCommandletManager().findBuildTool(workspace.resolve("npm"))).isInstanceOf(Npm.class);
     // both npm and yarn match package.json, but yarn.lock is present so yarn must take precedence over npm
-    assertThat(BuildCommandlet.findBuildCommandlet(context, workspace.resolve("yarn"))).isInstanceOf(Yarn.class);
+    assertThat(context.getCommandletManager().findBuildTool(workspace.resolve("yarn"))).isInstanceOf(Yarn.class);
     // a polyglot project must be built by the highest-priority tool, not the last one that matches
-    assertThat(BuildCommandlet.findBuildCommandlet(context, workspace.resolve("mvn-and-npm"))).isInstanceOf(Mvn.class);
-    assertThat(BuildCommandlet.findBuildCommandlet(context, workspace.resolve("empty"))).isNull();
+    assertThat(context.getCommandletManager().findBuildTool(workspace.resolve("mvn-and-npm"))).isInstanceOf(Mvn.class);
+    assertThat(context.getCommandletManager().findBuildTool(workspace.resolve("empty"))).isNull();
   }
 }
