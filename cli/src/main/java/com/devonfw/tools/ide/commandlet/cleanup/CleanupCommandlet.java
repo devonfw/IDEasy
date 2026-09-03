@@ -32,7 +32,7 @@ public class CleanupCommandlet extends Commandlet {
   public static final Duration DEFAULT_RETENTION_DELAY = Duration.ofDays(365);
 
   /** The {@link StringProperty} of the {@code --retention-delay} option. */
-  private final StringProperty retentionDelay;
+  private final StringProperty retentionDelayOption;
 
   /**
    * Constructor.
@@ -43,7 +43,7 @@ public class CleanupCommandlet extends Commandlet {
 
     super(context);
     addKeyword(getName());
-    this.retentionDelay = add(new StringProperty("--retention-delay", false, null));
+    this.retentionDelayOption = add(new StringProperty("--retention-delay", false, null));
   }
 
   @Override
@@ -74,14 +74,12 @@ public class CleanupCommandlet extends Commandlet {
 
     List<Path> staleRoots = new ArrayList<>();
     List<Path> staleFiles = new ArrayList<>();
-    if (this.context.getIdeHome() != null) {
-      Step staleStep = this.context.newStep("Identify stale files");
-      staleStep.run(() -> {
-        staleRoots.addAll(getStaleFileRoots());
-        discoverStaleFiles(staleRoots, staleFiles, retentionDelay);
-      }, true);
-      logStaleFilesToBeDeleted(staleFiles, retentionDelay);
-    }
+    Step staleStep = this.context.newStep("Identify stale files");
+    staleStep.run(() -> {
+      staleRoots.addAll(getStaleFileRoots());
+      discoverStaleFiles(staleRoots, staleFiles, retentionDelay);
+    }, true);
+    logStaleFilesToBeDeleted(staleFiles, retentionDelay);
 
     boolean hasStaleFiles = !staleFiles.isEmpty();
     if (hasSoftwareToDelete(installedSoftware.getTools()) || hasStaleFiles) {
@@ -99,21 +97,28 @@ public class CleanupCommandlet extends Commandlet {
    * Determines the retention delay to use.
    *
    * @return the retention delay, {@link #DEFAULT_RETENTION_DELAY} if the {@code --retention-delay} option was not provided.
-   * @throws CliException if the provided value is not a valid ISO-8601 time-based duration.
+   * @throws CliException if the provided value is not a valid, positive ISO-8601 time-based duration.
    */
   private Duration getRetentionDelay() {
 
-    String value = this.retentionDelay.getValueAsString();
+    String value = this.retentionDelayOption.getValueAsString();
     if (value == null) {
       return DEFAULT_RETENTION_DELAY;
     }
+    Duration retentionDelay;
     try {
-      return Duration.parse(value);
+      retentionDelay = Duration.parse(value);
     } catch (DateTimeParseException e) {
       throw new CliException(
           "Invalid value '" + value + "' for --retention-delay. Please provide a time-based ISO-8601 duration such as P30D or PT2H30M.",
           e);
     }
+    // A zero or negative retention delay would mark every file as stale and delete them all, so it is rejected.
+    if (retentionDelay.isZero() || retentionDelay.isNegative()) {
+      throw new CliException(
+          "Invalid value '" + value + "' for --retention-delay. Please provide a positive time-based ISO-8601 duration such as P30D or PT2H30M.");
+    }
+    return retentionDelay;
   }
 
   /**
@@ -437,6 +442,11 @@ public class CleanupCommandlet extends Commandlet {
     }
 
     for (Path child : this.context.getFileAccess().listChildren(folder, child -> true)) {
+      // Skip symbolic links: following them could descend outside the scanned roots (e.g. deleting a link target's stale files) or, in the case of a
+      // self-referencing link, cause unbounded recursion.
+      if (Files.isSymbolicLink(child)) {
+        continue;
+      }
       if (Files.isDirectory(child)) {
         discoverStaleFilesRecursive(child, retentionDelay, staleFiles);
       } else if (isStale(child, retentionDelay)) {
@@ -455,7 +465,12 @@ public class CleanupCommandlet extends Commandlet {
 
     List<Path> roots = new ArrayList<>();
 
-    addStaleFileRoot(roots, this.context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES));
+    // The updates folder lives below IDE_HOME, which may not be present when running outside a project; the remaining roots are IDE_ROOT/user-level
+    // and are available regardless.
+    Path ideHome = this.context.getIdeHome();
+    if (ideHome != null) {
+      addStaleFileRoot(roots, ideHome.resolve(IdeContext.FOLDER_UPDATES));
+    }
     addStaleFileRoot(roots, this.context.getTempPath());
     Path downloadPath = this.context.getDownloadPath();
     addStaleFileRoot(roots, downloadPath);
@@ -503,14 +518,46 @@ public class CleanupCommandlet extends Commandlet {
    */
   private void logStaleFilesToBeDeleted(List<Path> staleFiles, Duration retentionDelay) {
 
+    String retentionDelayHumanReadable = formatDurationHumanReadable(retentionDelay);
     if (staleFiles.isEmpty()) {
-      LOG.info("No stale files older than {} will be deleted.", retentionDelay);
+      LOG.info("No stale files older than {} will be deleted.", retentionDelayHumanReadable);
     } else {
       for (Path staleFile : staleFiles) {
         LOG.info("\t - {} will be deleted", staleFile);
       }
-      LOG.info("Summary: {} stale file(s) older than {} will be deleted.", staleFiles.size(), retentionDelay);
+      LOG.info("Summary: {} stale file(s) older than {} will be deleted.", staleFiles.size(), retentionDelayHumanReadable);
     }
+  }
+
+  /**
+   * Formats the given duration in a human readable form, e.g. {@code 1 day}, {@code 2 hours 30 minutes} or {@code 30 seconds}.
+   *
+   * @param duration the duration to format.
+   * @return the human readable representation.
+   */
+  private String formatDurationHumanReadable(Duration duration) {
+
+    List<String> parts = new ArrayList<>();
+    long days = duration.toDays();
+    if (days > 0) {
+      parts.add(days + " day(s)");
+    }
+    long hours = duration.toHoursPart();
+    if (hours > 0) {
+      parts.add(hours + " hour(s)");
+    }
+    long minutes = duration.toMinutesPart();
+    if (minutes > 0) {
+      parts.add(minutes + " minute(s)");
+    }
+    long seconds = duration.toSecondsPart();
+    if (seconds > 0) {
+      parts.add(seconds + " second(s)");
+    }
+    if (parts.isEmpty()) {
+      return "0 seconds";
+    }
+    return String.join(" ", parts);
   }
 
   /**

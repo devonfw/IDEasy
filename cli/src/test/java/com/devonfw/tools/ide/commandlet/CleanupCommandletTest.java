@@ -281,6 +281,55 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Tests that a zero or negative {@code --retention-delay} value results in a {@link CliException}, since it would otherwise mark every file as
+   * stale and delete them all.
+   */
+  @Test
+  void testCleanupRejectsNonPositiveRetentionDelay() {
+
+    assertThatNonPositiveRetentionDelayRejected("P0D");
+    assertThatNonPositiveRetentionDelayRejected("-P1D");
+  }
+
+  /**
+   * Tests that a symbolic link pointing to a directory outside the scanned roots is not followed, so the stale files of the link target are not
+   * deleted, while a stale file directly below the scanned root is still deleted.
+   *
+   * @throws IOException if the test setup cannot be created.
+   */
+  @Test
+  void testCleanupDoesNotDeleteFilesBehindSymlinkedDirectory() throws IOException {
+
+    WindowsSymlinkTestHelper.assumeSymlinksSupported();
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    Duration retentionDelay = Duration.ofDays(1);
+
+    Path updatesRoot = context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES);
+
+    // a stale file directly below the scanned root - must be deleted
+    Path staleFileInRoot = createStaleFile(updatesRoot.resolve("stale-direct.bin"), retentionDelay);
+
+    // a stale file behind a symlinked directory - must NOT be deleted
+    Path externalTarget = context.getIdeHome().resolve("outside-symlink-target");
+    Path staleFileInTarget = createStaleFile(externalTarget.resolve("stale-behind-link.bin"), retentionDelay);
+    Path link = updatesRoot.resolve("link-to-outside");
+    Files.createSymbolicLink(link, externalTarget);
+
+    context.setAnswers("yes");
+    setRetentionDelay(context, "P1D");
+    CleanupCommandlet cleanup = context.getCommandletManager().getCommandlet(CleanupCommandlet.class);
+
+    // act
+    cleanup.run();
+
+    // assert
+    assertThat(staleFileInRoot).as("A stale file directly below the scanned root should be deleted").doesNotExist();
+    assertThat(staleFileInTarget).as("A stale file behind a symlinked directory must not be deleted").exists();
+  }
+
+  /**
    * Tests that stale files are not deleted when the {@code --retention-delay} option is not provided, i.e. the default retention delay (1 year)
    * applies and the recently created test files are kept.
    *
@@ -301,6 +350,23 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(recentFile).as("Files within the default retention delay must not be deleted").exists();
+  }
+
+  /**
+   * Asserts that a non-positive {@code --retention-delay} value is rejected with a {@link CliException} before any file is touched.
+   *
+   * @param value the non-positive retention delay value to reject.
+   */
+  private void assertThatNonPositiveRetentionDelayRejected(String value) {
+
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setAnswers("yes");
+    setRetentionDelay(context, value);
+    CleanupCommandlet cleanup = context.getCommandletManager().getCommandlet(CleanupCommandlet.class);
+
+    assertThatThrownBy(cleanup::run)
+        .isInstanceOf(CliException.class)
+        .hasMessageContaining("Invalid value '" + value + "' for --retention-delay");
   }
 
   /**
