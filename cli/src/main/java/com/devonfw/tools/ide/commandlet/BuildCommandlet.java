@@ -46,7 +46,7 @@ public class BuildCommandlet extends Commandlet {
 
     LocalToolCommandlet commandlet = this.context.getCommandletManager().findBuildTool(buildPath);
     if (commandlet == null) {
-      throw new CliException("Could not find build descriptor - no pom.xml, build.gradle, or package.json found!");
+      throw new CliException("Could not find a build descriptor in " + buildPath + " - no supported build tool detected.");
     }
     List<String> args = this.arguments.asList();
     if (args.isEmpty()) {
