@@ -128,8 +128,14 @@ public enum NativePackageManager {
       command.append(' ').append(option);
     }
     command.append(' ').append(this.installCommand);
-    for (String pkg : nativePackage.getPackages()) {
-      command.append(' ').append(getPackageSpec(pkg, version));
+    if (nativePackage.getOptionalNativePackageArtifactPath().isEmpty()) {
+      for (String pkg : nativePackage.getPackages()) {
+        command.append(' ').append(getPackageSpec(pkg, version));
+      }
+    } else {
+      for (String nativePackageArtifactPath : nativePackage.getOptionalNativePackageArtifactPath()) {
+        command.append(' ').append(nativePackageArtifactPath);
+      }
     }
     commands.add(command.toString());
     return new PackageManagerCommand(this, commands);

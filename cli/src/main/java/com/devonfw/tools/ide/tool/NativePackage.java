@@ -13,6 +13,7 @@ public class NativePackage {
   private final List<String> extraInstallOptions;
   private final List<String> setupCommands;
   private final List<String> cleanupCommands;
+  private final List<String> optionalNativePackageArtifactPaths;
 
   /**
    * Creates a new {@link NativePackage} with optional fields defaulting to empty lists.
@@ -24,12 +25,13 @@ public class NativePackage {
    * @param cleanupCommands commands to run after uninstall (optional)
    */
   public NativePackage(NativePackageManager pm, List<String> packages,
-      List<String> extraInstallOptions, List<String> setupCommands, List<String> cleanupCommands) {
+      List<String> extraInstallOptions, List<String> setupCommands, List<String> cleanupCommands, List<String> optionalNativePackageArtifactPaths) {
     this.packageManager = Objects.requireNonNull(pm, "package manager must not be null");
     this.packages = List.copyOf(Objects.requireNonNull(packages, "packages must not be null"));
     this.extraInstallOptions = extraInstallOptions != null ? List.copyOf(extraInstallOptions) : List.of();
     this.setupCommands = setupCommands != null ? List.copyOf(setupCommands) : List.of();
     this.cleanupCommands = cleanupCommands != null ? List.copyOf(cleanupCommands) : List.of();
+    this.optionalNativePackageArtifactPaths = optionalNativePackageArtifactPaths != null ? List.copyOf(optionalNativePackageArtifactPaths) : List.of();
   }
 
   /**
@@ -39,7 +41,7 @@ public class NativePackage {
    * @param packages the packages that need to be handled
    */
   public NativePackage(NativePackageManager pm, List<String> packages) {
-    this(pm, packages, null, null, null);
+    this(pm, packages, null, null, null, null);
   }
 
   /**
@@ -86,6 +88,13 @@ public class NativePackage {
    */
   public List<String> getCleanupCommands() {
     return cleanupCommands;
+  }
+
+  /**
+   * @return set {@link optionalNativePackageArtifactPaths}.
+   */
+  public List<String> getOptionalNativePackageArtifactPath() {
+    return optionalNativePackageArtifactPaths;
   }
 
   /**

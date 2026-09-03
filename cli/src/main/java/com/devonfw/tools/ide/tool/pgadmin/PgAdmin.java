@@ -40,7 +40,8 @@ public class PgAdmin extends GlobalToolCommandlet {
             "sudo sh -c 'echo \"deb [signed-by=/usr/share/keyrings/packages-pgadmin-org.gpg] "
                 + "https://ftp.postgresql.org/pub/pgadmin/pgadmin4/apt/$(lsb_release -cs) pgadmin4 main\" "
                 + "> /etc/apt/sources.list.d/pgadmin4.list && apt update'"),
-        List.of("sudo rm -f /etc/apt/sources.list.d/pgadmin4.list", "sudo rm -f /usr/share/keyrings/packages-pgadmin-org.gpg")
+        List.of("sudo rm -f /etc/apt/sources.list.d/pgadmin4.list", "sudo rm -f /usr/share/keyrings/packages-pgadmin-org.gpg"),
+        null
     ));
   }
 
