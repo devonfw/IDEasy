@@ -1,46 +1,121 @@
-name: External Issue & PR Observer
+name: External Issue, PR & Discussion Observer
 
-# Posts a weekday-morning digest of new EXTERNAL issues/PRs (last 24h) to a Teams
-# channel so incoming reports from outside the team are noticed quickly and don't slip.
-# "External" = author_association is not MEMBER, OWNER or COLLABORATOR.
-# Requires the repository secret TEAMS_WEBHOOK_URL (a Teams "Workflows" incoming webhook).
+# Posts a weekday-morning digest of new EXTERNAL issues, PRs and discussions (last 24h)
+# to a Teams channel so incoming activity from outside the team is noticed quickly and
+# "External" = author is not a member of a GitHub team linked to the IDEasy board
+# (devonfw project 5).
+# Issues/PRs come from the REST search API, discussions from GraphQL (no REST equivalent).
+# A failed API call fails the run. The next run resumes from the last successful run,
+# so activity is retried instead of being silently lost.
+# Requires repository secrets TEAMS_WEBHOOK_URL (Teams "Workflows" incoming webhook)
+# and TEAM_TOKEN (org Projects + Members read token).
 
 on:
-  workflow_dispatch:          
+  workflow_dispatch:
   schedule:
     - cron: '0 7 * * 1-5'     # 07:00 UTC, Mon-Fri (= 09:00 CEST summer / 08:00 CET winter)
 
 permissions:
+  actions: read
   issues: read
   pull-requests: read
+  discussions: read
   contents: read
 
 jobs:
   observe:
     runs-on: ubuntu-latest
     steps:
-      - name: Scan for new external issues & PRs and notify Teams
+      - name: Scan for new external issues, PRs & discussions and notify Teams
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TEAM_TOKEN: ${{ secrets.TEAM_TOKEN }}
           WEBHOOK: ${{ secrets.TEAMS_WEBHOOK_URL }}
           REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+          PROJECT_NUMBER: "5"
+          WORKFLOW: ".github/workflows/issue-pr-observer.yml"
         run: |
-          # Monday catches up the weekend (Fri–Sun); other weekdays look back 24h.
-          if [ "$(date -u +%u)" -eq 1 ]; then
+          set -euo pipefail
+
+          # Resume from the previous successful observer run. If a GitHub API call or the
+          # Teams notification fails, that run stays failed and its activity is retried.
+          LAST_SUCCESS=$(gh run list --repo "$REPO" --workflow "$WORKFLOW" --branch "$BRANCH" \
+            --status success --limit 1 --json createdAt --jq '.[0].createdAt // empty') \
+            || { echo "Previous successful observer run fetch failed."; exit 1; }
+          if [ -n "$LAST_SUCCESS" ]; then
+            SINCE=$LAST_SUCCESS
+          elif [ "$(date -u +%u)" -eq 1 ]; then
+            # The first Monday run catches up the weekend (Fri–Sun).
             SINCE=$(date -u -d '3 days ago' +%Y-%m-%dT%H:%M:%SZ)
           else
+            # Other first runs look back 24 hours.
             SINCE=$(date -u -d '1 day ago' +%Y-%m-%dT%H:%M:%SZ)
           fi
           echo "Scanning $REPO for items created since $SINCE"
 
-          # Search returns both issues and PRs; keep only external authors (not on the team)
-          # and emit a structured object per item so the card can lay them out nicely.
-          ITEMS_JSON=$(gh api -X GET search/issues \
-            -f q="repo:$REPO created:>=$SINCE" \
-            --jq '[.items[]
-              | select(.author_association != "MEMBER"
-                   and .author_association != "OWNER"
-                   and .author_association != "COLLABORATOR")
+          if [ -z "$TEAM_TOKEN" ]; then
+            echo "TEAM_TOKEN is empty."
+            exit 1
+          fi
+
+          OWNER=${REPO%/*}
+
+          # Fetch the GitHub teams explicitly linked to the IDEasy project. Project access is
+          # the source of truth; issue/PR assignments do not determine team membership.
+          PROJECT_TEAMS=$(GH_TOKEN="$TEAM_TOKEN" gh api graphql \
+            -F owner="$OWNER" -F project="$PROJECT_NUMBER" \
+            -f query='query($owner: String!, $project: Int!) {
+              organization(login: $owner) {
+                projectV2(number: $project) {
+                  teams(first: 10) {
+                    totalCount
+                    nodes { slug }
+                  }
+                }
+              }
+            }' \
+            --jq '.data.organization.projectV2.teams') \
+            || { echo "Linked project-team fetch failed."; exit 1; }
+          if ! echo "$PROJECT_TEAMS" | jq -e '
+            type == "object"
+            and (.nodes | type == "array")
+            and (.totalCount | type == "number")' >/dev/null; then
+            echo "Linked project-team response is invalid."
+            exit 1
+          fi
+          if [ "$(echo "$PROJECT_TEAMS" | jq '.nodes | length')" -ne \
+            "$(echo "$PROJECT_TEAMS" | jq '.totalCount')" ]; then
+            echo "More than 10 GitHub teams are linked to project $PROJECT_NUMBER."
+            exit 1
+          fi
+          if [ "$(echo "$PROJECT_TEAMS" | jq '.totalCount')" -eq 0 ]; then
+            echo "No GitHub team is linked to project $PROJECT_NUMBER."
+            exit 1
+          fi
+
+          # Expand all linked teams (including inherited child-team members), normalize their
+          # logins and remove duplicates. Any failed page or team fetch fails the workflow.
+          TEAM=$({
+            for TEAM_SLUG in $(echo "$PROJECT_TEAMS" | jq -r '.nodes[].slug'); do
+              GH_TOKEN="$TEAM_TOKEN" gh api --method GET --paginate \
+                -H "X-GitHub-Api-Version: 2026-03-10" \
+                "/orgs/$OWNER/teams/$TEAM_SLUG/members?per_page=100" \
+                --jq '.[].login' || exit 1
+            done
+          } | jq -Rsc 'split("\n") | map(select(length > 0) | ascii_downcase) | unique') \
+            || { echo "Linked project-team member fetch failed."; exit 1; }
+          if ! echo "$TEAM" | jq -e 'type == "array" and length > 0' >/dev/null; then
+            echo "Linked project-team member list is empty or invalid."
+            exit 1
+          fi
+          echo "Excluding $(echo "$TEAM" | jq 'length') linked project-team member(s)."
+
+          # Issues + PRs via REST search; drop team authors, keep the rest.
+          ISSUE_ITEMS=$(gh api -X GET search/issues \
+            -f q="repo:$REPO created:>=$SINCE" -f per_page=100 --jq '.items' \
+            | jq --argjson team "$TEAM" '[.[]
+              | select((.user.login | ascii_downcase) as $u | $team | index($u) | not)
               | {
                   kind:   (if .pull_request then "Pull Request" else "Issue" end),
                   icon:   (if .pull_request then "🔵" else "🟢" end),
@@ -48,40 +123,78 @@ jobs:
                   title:  .title,
                   url:    .html_url,
                   user:   .user.login
-                }]')
+                }]') \
+            || { echo "Issue/PR fetch failed."; exit 1; }
 
-          COUNT=$(echo "$ITEMS_JSON" | jq 'length')
+          # No REST search for discussions; take newest 50 via GraphQL, filter by window + team.
+          NAME=${REPO#*/}
+          DISC_ITEMS=$(gh api graphql \
+            -f owner="$OWNER" -f name="$NAME" \
+            -f query='
+              query($owner:String!, $name:String!) {
+                repository(owner:$owner, name:$name) {
+                  discussions(first:50, orderBy:{field:CREATED_AT, direction:DESC}) {
+                    nodes { number title url createdAt author { login } }
+                  }
+                }
+              }' \
+            --jq '.data.repository.discussions.nodes' \
+            | jq --arg since "$SINCE" --argjson team "$TEAM" '[ .[]
+                | select(.createdAt >= $since)
+                | select(((.author.login // "") | ascii_downcase) as $u | $team | index($u) | not)
+                | {
+                    kind:   "Discussion",
+                    icon:   "💬",
+                    number: .number,
+                    title:  .title,
+                    url:    .url,
+                    user:   (.author.login // "unknown")
+                  } ]') \
+            || { echo "Discussion fetch failed."; exit 1; }
+
+          IP_COUNT=$(echo "$ISSUE_ITEMS" | jq 'length')
+          D_COUNT=$(echo "$DISC_ITEMS" | jq 'length')
+          COUNT=$((IP_COUNT + D_COUNT))
           if [ "$COUNT" -eq 0 ]; then
-            echo "No new external issues or PRs. Skipping Teams-notification."
+            echo "No new external issues, PRs or discussions. Skipping Teams-notification."
             exit 0
           fi
-          echo "$COUNT new external issue(s)/PR(s) found."
+          echo "$COUNT new external item(s): $IP_COUNT issue(s)/PR(s), $D_COUNT discussion(s)."
 
-          # Teams' webhook wants a bare Adaptive Card: top-level type must be
-          # "AdaptiveCard", not wrapped in a message/attachments envelope.
-          CARD=$(echo "$ITEMS_JSON" | jq --argjson count "$COUNT" '{
-            type: "AdaptiveCard",
-            "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-            version: "1.4",
-            body: (
-              [
-                { type: "TextBlock", size: "Large", weight: "Bolder", wrap: true,
-                  text: "🆕 Neue externe Issues & Pull Requests" },
-                { type: "TextBlock", spacing: "None", isSubtle: true, wrap: true,
-                  text: ("Letzter Zeitraum · " + (if $count == 1 then "1 neuer Eintrag" else "\($count) neue Einträge" end)) }
-              ]
-              + [ .[] | {
-                    type: "Container",
-                    separator: true,
-                    spacing: "Medium",
-                    items: [
-                      { type: "TextBlock", weight: "Bolder", wrap: true,
-                        text: "\(.icon) #\(.number) · \(.title)" },
-                      { type: "TextBlock", spacing: "None", isSubtle: true, size: "Small", wrap: true,
-                        text: "\(.kind) · von @\(.user) · [Öffnen](\(.url))" }
-                    ]
-                  } ]
-            )
-          }')
+          # Bare Adaptive Card with one group per source; a group is rendered only if it has
+          # items, so issues/PRs and discussions stay separated and empty sections are hidden.
+          CARD=$(jq -n \
+            --argjson ip "$ISSUE_ITEMS" \
+            --argjson disc "$DISC_ITEMS" \
+            --argjson count "$COUNT" '
+            def section(title; items):
+              if (items | length) > 0 then
+                [ { type: "TextBlock", size: "Medium", weight: "Bolder", wrap: true,
+                    spacing: "Large", text: title } ]
+                + [ items[] | {
+                      type: "Container", separator: true, spacing: "Medium",
+                      items: [
+                        { type: "TextBlock", weight: "Bolder", wrap: true,
+                          text: "\(.icon) #\(.number) · \(.title)" },
+                        { type: "TextBlock", spacing: "None", isSubtle: true, size: "Small", wrap: true,
+                          text: "\(.kind) · von @\(.user) · [Öffnen](\(.url))" }
+                      ]
+                    } ]
+              else [] end;
+            {
+              type: "AdaptiveCard",
+              "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+              version: "1.4",
+              body: (
+                [
+                  { type: "TextBlock", size: "Large", weight: "Bolder", wrap: true,
+                    text: "🆕 Neue externe Aktivität" },
+                  { type: "TextBlock", spacing: "None", isSubtle: true, wrap: true,
+                    text: ("Letzter Zeitraum · " + (if $count == 1 then "1 neuer Eintrag" else "\($count) neue Einträge" end)) }
+                ]
+                + section("📋 Issues & Pull Requests"; $ip)
+                + section("💬 Discussions"; $disc)
+              )
+            }')
 
           curl -sS --fail -X POST -H "Content-Type: application/json" -d "$CARD" "$WEBHOOK"
