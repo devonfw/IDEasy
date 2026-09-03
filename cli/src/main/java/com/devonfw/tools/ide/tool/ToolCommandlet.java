@@ -461,6 +461,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       version = request.isIgnoreProject() ? VersionIdentifier.LATEST : getConfiguredVersion();
       requested.setVersion(version);
     }
+
     VersionIdentifier resolvedVersion = requested.getResolvedVersion();
     if (resolvedVersion == null) {
       if (this.context.isSkipUpdatesMode()) {
@@ -473,17 +474,32 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
         }
       }
       if (resolvedVersion == null) {
-        resolvedVersion = getToolRepository().resolveVersion(this.tool, edition.edition(), version, this);
+        resolvedVersion = resolveVersionForInstall(edition.edition(), version);
       }
-      requested.setResolvedVersion(resolvedVersion);
+
+      if (resolvedVersion != null) {
+        requested.setResolvedVersion(resolvedVersion);
+      }
     }
+  }
+
+  /**
+   * Resolves the requested version for installation.
+   *
+   * @param edition the requested tool edition.
+   * @param version the requested version or version range.
+   * @return the resolved {@link VersionIdentifier} or {@code null} if version resolution is delegated to another installation mechanism.
+   */
+  protected VersionIdentifier resolveVersionForInstall(String edition, GenericVersionRange version) {
+
+    return getToolRepository().resolveVersion(this.tool, edition, version, this);
   }
 
   /**
    * Hook for subclasses to adjust the requested tool edition before the version is finalized.
    *
    * @param requested the requested {@link ToolEditionAndVersion}
-   * @return the given or trgansformed {@link ToolEditionAndVersion}
+   * @return the given or transformed {@link ToolEditionAndVersion}
    */
   protected ToolEditionAndVersion adjustRequestedEdition(ToolEditionAndVersion requested) {
 
