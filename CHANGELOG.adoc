@@ -7,6 +7,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/989[#989]: Allow expressions in template variable definitions
+* https://github.com/devonfw/IDEasy/issues/2252[#2252]: Add uninstall support for globally installed tools on macOS
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/50?closed=1[milestone 2026.09.002].
 

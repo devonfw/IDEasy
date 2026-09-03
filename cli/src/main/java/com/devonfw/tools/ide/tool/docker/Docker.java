@@ -92,8 +92,15 @@ public class Docker extends GlobalToolCommandlet {
                 "sudo rm -f /etc/apt/sources.list.d/isv-rancher-stable.list",
                 "sudo rm -f /usr/share/keyrings/isv-rancher-stable-archive-keyring.gpg"
             )
-        )
+        ),
+        new NativePackage(NativePackageManager.BREW_CASK, List.of("docker"))
     );
+  }
+
+  @Override
+  public String getMacApplicationName() {
+
+    return "Docker";
   }
 
   @Override

@@ -192,4 +192,49 @@ class NativePackageManagerTest {
     assertThat(NativePackageManager.YUM.parseVersionQueryOutput("1.0.0")).isEqualTo("1.0.0");
     assertThat(NativePackageManager.DNF.parseVersionQueryOutput("1.0.0")).isEqualTo("1.0.0");
   }
+
+  @Test
+  void testBrewInstallAndUninstallCommandsDoNotUseSudo() {
+    NativePackage np = NativePackage.of(NativePackageManager.BREW, "pkg1");
+
+    var installCmd = NativePackageManager.BREW.install(np, "1.0.0");
+    var uninstallCmd = NativePackageManager.BREW.uninstall(np);
+
+    assertThat(installCmd.commands()).containsExactly("brew install pkg1@1.0.0");
+    assertThat(uninstallCmd.commands()).containsExactly("brew uninstall pkg1");
+  }
+
+  @Test
+  void testBrewCaskInstallAndUninstallCommandsDoNotUseSudo() {
+    NativePackage np = NativePackage.of(NativePackageManager.BREW_CASK, "docker");
+
+    var installCmd = NativePackageManager.BREW_CASK.install(np, null);
+    var uninstallCmd = NativePackageManager.BREW_CASK.uninstall(np);
+
+    assertThat(installCmd.commands()).containsExactly("brew install --cask docker");
+    assertThat(uninstallCmd.commands()).containsExactly("brew uninstall --cask docker");
+  }
+
+  @Test
+  void testVersionQueryCommandForBrew() {
+    assertThat(NativePackageManager.BREW.getVersionQueryCommand("pkg1")).containsExactly("brew", "list", "--versions", "pkg1");
+    assertThat(NativePackageManager.BREW_CASK.getVersionQueryCommand("pkg1")).containsExactly("brew", "list", "--cask", "--versions", "pkg1");
+  }
+
+  @Test
+  void testParseVersionQueryOutputForBrew() {
+    assertThat(NativePackageManager.BREW.parseVersionQueryOutput("pkg1 1.2.3")).isEqualTo("1.2.3");
+    assertThat(NativePackageManager.BREW_CASK.parseVersionQueryOutput("docker 24.0.0")).isEqualTo("24.0.0");
+    assertThat(NativePackageManager.BREW.parseVersionQueryOutput("")).isNull();
+  }
+
+  @Test
+  void testNeedsSudo() {
+    assertThat(NativePackageManager.APT.needsSudo()).isTrue();
+    assertThat(NativePackageManager.ZYPPER.needsSudo()).isTrue();
+    assertThat(NativePackageManager.YUM.needsSudo()).isTrue();
+    assertThat(NativePackageManager.DNF.needsSudo()).isTrue();
+    assertThat(NativePackageManager.BREW.needsSudo()).isFalse();
+    assertThat(NativePackageManager.BREW_CASK.needsSudo()).isFalse();
+  }
 }
