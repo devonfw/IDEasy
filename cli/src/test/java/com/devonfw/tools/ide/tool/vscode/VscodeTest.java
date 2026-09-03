@@ -1,7 +1,11 @@
 package com.devonfw.tools.ide.tool.vscode;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -245,6 +249,188 @@ class VscodeTest extends AbstractIdeContextTest {
     // assert
     assertThat(excludedEditions).contains("vscode", "vscodium");
   }
+
+  /**
+   * Tests that {@link Vscode#importRepository(Path)} creates a multi-root {@code .code-workspace} file for a Maven project so the project is opened as a
+   * project root on launch.
+   */
+  @Test
+  void testVscodeMvnRepositoryImport() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    Vscode vscodeCommandlet = new Vscode(context);
+    Path repositoryPath = context.getWorkspacePath().resolve("test_mvn");
+
+    // act
+    vscodeCommandlet.importRepository(repositoryPath);
+
+    // assert
+    Path workspaceFile = context.getWorkspacePath().resolve("ide.code-workspace");
+    assertThat(workspaceFile).exists().content().contains("folders").contains("test_mvn");
+  }
+
+  /**
+   * Tests that {@link Vscode#importRepository(Path)} accumulates multiple imported projects as the multiple roots of a single {@code .code-workspace}
+   * file and does not create duplicates when a project is imported twice.
+   */
+  @Test
+  void testVscodeRepositoryImportAccumulatesMultipleProjects() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    Vscode vscodeCommandlet = new Vscode(context);
+    Path workspaceFile = context.getWorkspacePath().resolve("ide.code-workspace");
+
+    // act: import two distinct projects into the same workspace
+    vscodeCommandlet.importRepository(context.getWorkspacePath().resolve("test_mvn"));
+    vscodeCommandlet.importRepository(context.getWorkspacePath().resolve("test_mvn2"));
+
+    // assert: both projects are roots of the single workspace
+    assertThat(context.getFileAccess().readFileContent(workspaceFile)).contains("test_mvn", "test_mvn2");
+    assertThat(countOccurrences(context.getFileAccess().readFileContent(workspaceFile), "\"path\"")).isEqualTo(2);
+
+    // act: re-import an already imported project
+    vscodeCommandlet.importRepository(context.getWorkspacePath().resolve("test_mvn"));
+
+    // assert: no duplicate is added
+    assertThat(countOccurrences(context.getFileAccess().readFileContent(workspaceFile), "\"path\"")).isEqualTo(2);
+  }
+
+  /**
+   * Tests that {@link Vscode#importRepository(Path)} drops a root from the {@code .code-workspace} file when the corresponding project folder no longer
+   * exists on disk (auto-cleanup).
+   */
+  @Test
+  void testVscodeRepositoryImportRemovesDeletedProject() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    Vscode vscodeCommandlet = new Vscode(context);
+    Path workspacePath = context.getWorkspacePath();
+    Path workspaceFile = workspacePath.resolve("ide.code-workspace");
+    Path deletedProject = workspacePath.resolve("test_mvn");
+    Path keptProject = workspacePath.resolve("test_mvn2");
+
+    // act: import two projects, then delete one of them from disk and import it again (or import the other)
+    vscodeCommandlet.importRepository(deletedProject);
+    vscodeCommandlet.importRepository(keptProject);
+    deleteRecursively(deletedProject);
+    vscodeCommandlet.importRepository(keptProject);
+
+    // assert: the deleted project is pruned, the kept project remains
+    String content = context.getFileAccess().readFileContent(workspaceFile);
+    assertThat(content).doesNotContain("test_mvn\"").contains("test_mvn2");
+    assertThat(countOccurrences(content, "\"path\"")).isEqualTo(1);
+  }
+
+  /**
+   * Recursively deletes the given file or directory.
+   */
+  private static void deleteRecursively(Path path) {
+
+    if (!Files.exists(path)) {
+      return;
+    }
+    try (var paths = Files.walk(path)) {
+      paths.sorted(Comparator.reverseOrder()).forEach(p -> {
+        try {
+          Files.delete(p);
+        } catch (IOException e) {
+          throw new IllegalStateException("Failed to delete " + p, e);
+        }
+      });
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to delete " + path, e);
+    }
+  }
+
+  /**
+   * Counts the occurrences of the given needle in the given haystack.
+   */
+  private static int countOccurrences(String haystack, String needle) {
+
+    int count = 0;
+    int index = 0;
+    while ((index = haystack.indexOf(needle, index)) != -1) {
+      count++;
+      index += needle.length();
+    }
+    return count;
+  }
+
+  /**
+   * Tests that {@link Vscode#importRepository(Path)} creates a multi-root {@code .code-workspace} file for a Gradle project in a non-main workspace, with
+   * the project path relative to that workspace.
+   */
+  @Test
+  void testVscodeGradleRepositoryImport() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    Vscode vscodeCommandlet = new Vscode(context);
+    Path repositoryPath = context.getWorkspacePath("test").resolve("subfolder/test_gradle");
+
+    // act
+    vscodeCommandlet.importRepository(repositoryPath);
+
+    // assert
+    Path workspaceFile = context.getWorkspacePath("test").resolve("ide.code-workspace");
+    assertThat(workspaceFile).exists().content().contains("folders").contains("subfolder/test_gradle");
+  }
+
+  /**
+   * Tests that {@link Vscode#importRepository(Path)} logs a warning and creates no {@code .code-workspace} file when the repository contains no supported
+   * build descriptor.
+   */
+  @Test
+  void testVscodeRepositoryImportWithoutSupportedBuildDescriptor() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    Vscode vscodeCommandlet = new Vscode(context);
+    Path repositoryPath = context.getWorkspacePath().resolve("empty_project");
+    context.getFileAccess().mkdirs(repositoryPath);
+
+    // act
+    vscodeCommandlet.importRepository(repositoryPath);
+
+    // assert
+    assertThat(context).logAtWarning().hasMessageContaining("No supported build descriptor was found for project import in");
+    assertThat(context.getWorkspacePath().resolve("ide.code-workspace")).doesNotExist();
+  }
+
+  /**
+   * Tests that {@link Vscode#getWorkspaceTarget()} falls back to the workspace folder when no {@code .code-workspace} file has been created yet.
+   */
+  @Test
+  void testVscodeWorkspaceTargetFallsBackToFolder() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    Vscode vscodeCommandlet = new Vscode(context);
+
+    // act & assert
+    assertThat(vscodeCommandlet.getWorkspaceTarget()).isEqualTo(context.getWorkspacePath());
+  }
+
+  /**
+   * Tests that {@link Vscode#getWorkspaceTarget()} returns the {@code .code-workspace} file so that VSCode opens it (and thus loads the imported projects
+   * as project roots) once the file has been created by a repository import.
+   */
+  @Test
+  void testVscodeWorkspaceTargetUsesWorkspaceFile() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    Vscode vscodeCommandlet = new Vscode(context);
+    Path workspaceFile = context.getWorkspacePath().resolve("ide.code-workspace");
+    context.getFileAccess().writeFileContent("{\"folders\": []}", workspaceFile);
+
+    // act & assert
+    assertThat(vscodeCommandlet.getWorkspaceTarget()).isEqualTo(workspaceFile);
+  }
+
 
   /**
    * Test double for {@link Vscode} that captures CLI arguments passed to {@link #runTool(ProcessContext, ProcessMode, List)} so tests can assert command
