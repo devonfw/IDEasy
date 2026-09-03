@@ -182,7 +182,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
   private void updateSettingsInStep() {
 
-    SettingsUpdater settingsUpdater = new SettingsUpdater(this.context, this.settingsRepo, (this.forcePull.isTrue() || this.context.isForceMode()));
+    SettingsUpdater settingsUpdater = new SettingsUpdater(this.context, this.settingsRepo);
     try {
       //Step 1: Perform health check
       Step healthCheckStep = this.context.newStep("Performing settings health check");
@@ -199,8 +199,10 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
         return _healthCheckResult;
       }, () -> null);
 
-      //If health check failed and force mode is disabled, skip application of settings and fail "Update settings" step.
-      if(!this.forcePull.isTrue() && (healthCheckResult == null || healthCheckResult.status() == null || healthCheckStep.isFailure())) {
+      // If the health check failed (healthCheckResult is null) the settings have not been verified, so skip applying them and fail the "Update settings"
+      // step. A non-null result is only produced when the health check passed or the user explicitly chose to continue anyway (force mode), so this never
+      // aborts in force mode.
+      if (healthCheckResult == null) {
         throw new CliException("Settings update aborted due to error in health check");
       }
 
@@ -226,7 +228,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       });
 
       //Make sure to always fail the parent step if the "Apply settings" step fails.
-      if(applySettingsStep.isFailure()) {
+      if (applySettingsStep.isFailure()) {
         throw new CliException("Settings update failed due to error while applying the settings update");
       }
     } finally {

@@ -6,7 +6,7 @@ package com.devonfw.tools.ide.git.repository;
 public enum RepositoryType {
 
   /** Git Repository is a code repository. */
-  CODE,
+  PLAIN_CODE,
 
   /** Git Repository is a settings repository. */
   SETTINGS,

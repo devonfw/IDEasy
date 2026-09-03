@@ -52,23 +52,18 @@ public class SettingsUpdater {
   /** The name of the git project - required to place a combined code and settings repository into the workspace. */
   private String gitProjectName;
 
-  private final boolean isForceMode;
-
   /**
    * The constructor.
    *
    * @param context the {@link IdeContext}.
    * @param settingsRepoProperty the {@link StringProperty} with the settings repository URL from the update commandlet.
-   * @param isForceMode if in force mode, the settings health check will always return either {@link HealthCheckResultStatus#SETTINGS_VALID} or
-   *     {@link HealthCheckResultStatus#SETTINGS_VALID_EXISTING}
    */
-  public SettingsUpdater(IdeContext context, StringProperty settingsRepoProperty, boolean isForceMode) {
+  public SettingsUpdater(IdeContext context, StringProperty settingsRepoProperty) {
 
     super();
     this.context = context;
     this.settingsRepoProperty = settingsRepoProperty;
     this.fileAccess = context.getFileAccess();
-    this.isForceMode = isForceMode;
   }
 
   /**
@@ -108,7 +103,7 @@ public class SettingsUpdater {
     // Case 1: We performed "ide update"; so settings already existed and we just need to perform a git pull in the existing repo.
     if (onlyPull) {
       repositoryType = RepositoryUtil.getRepositoryType(context.getSettingsPath());
-      if (repositoryType != RepositoryType.SETTINGS && !this.isForceMode) {
+      if (repositoryType != RepositoryType.SETTINGS) {
         return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_UPDATE_FAILED,
             repositoryType,
             "Expected settings repository for update application, but was of type: " + repositoryType);
@@ -120,9 +115,10 @@ public class SettingsUpdater {
 
     // Case 2: We freshly cloned the settings repo and need to move it to a target directory.
     switch (repositoryType) {
-      case CODE, UNKNOWN -> {
+      case PLAIN_CODE, UNKNOWN -> {
 
-        return moveSettingsOnlyIfForceModeActive(sourcePath, repositoryType);
+        return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_UPDATE_FAILED, repositoryType,
+            "Cannot apply settings as type of the settings repo is incorrect");
       }
       case SETTINGS -> {
 
@@ -149,17 +145,6 @@ public class SettingsUpdater {
     }
 
     return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_UPDATE_FAILED, repositoryType, "Unknown error during settings");
-  }
-
-  private SettingsUpdateResult moveSettingsOnlyIfForceModeActive(Path sourcePath, RepositoryType repositoryType) {
-    LOG.warn("Force mode is active: Moving potentially invalid settings repository to {}", this.context.getSettingsPath());
-    if (this.isForceMode) {
-      moveProject(sourcePath, this.context.getSettingsPath());
-      return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_CLONED, repositoryType, null);
-    } else {
-      //Technically should be caught during a health check, but we still handle this here.
-      return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_UPDATE_FAILED, repositoryType, MESSAGE_INVALID_REPOSITORY);
-    }
   }
 
   /**
@@ -278,12 +263,6 @@ public class SettingsUpdater {
    * @return {@code true} if the user explicitly wants to continue with an invalid repository, {@code false} otherwise.
    */
   private boolean requestUserConfirmInvalidRepository(RepositoryType repositoryType, GitUrl gitUrl, boolean updatesExistingRepository) {
-    /* If we are in force mode, we give the user the option continue with a potentially invalid repo. If not in FM, we skip asking and act as if he declined.
-       For the case of updating existing settings repositories, we always want to ask the user regardless of --force-pull, as this could break the setup.
-    */
-    if (!this.isForceMode && !updatesExistingRepository) {
-      return false;
-    }
 
     LOG.warn("{}\nURL: {}\nDetected settings repository type: {}", MESSAGE_INVALID_REPOSITORY, gitUrl, repositoryType);
 

@@ -32,7 +32,7 @@ public class RepositoryUtil {
       return RepositoryType.CODE_SETTINGS_COMBINED;
     }
     if (!Files.exists(settingsFolder)) {
-      return RepositoryType.CODE;
+      return RepositoryType.PLAIN_CODE;
     }
     // there is no valid settings folder to be found.
     return RepositoryType.UNKNOWN;
