@@ -2,14 +2,21 @@ package com.devonfw.tools.ide.commandlet.cleanup;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.mvn.MvnRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
@@ -21,6 +28,12 @@ public class CleanupCommandlet extends Commandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(CleanupCommandlet.class);
 
+  /** The default retention period of stale files. Stale files are considered stale after 1 year (365 days) of inactivity. */
+  public static final Duration DEFAULT_RETENTION_DELAY = Duration.ofDays(365);
+
+  /** The {@link StringProperty} of the {@code --retention-delay} option. */
+  private final StringProperty retentionDelay;
+
   /**
    * Constructor.
    *
@@ -30,6 +43,7 @@ public class CleanupCommandlet extends Commandlet {
 
     super(context);
     addKeyword(getName());
+    this.retentionDelay = add(new StringProperty("--retention-delay", false, null));
   }
 
   @Override
@@ -49,6 +63,8 @@ public class CleanupCommandlet extends Commandlet {
 
     LOG.debug("Start cleanup commandlet");
 
+    Duration retentionDelay = getRetentionDelay();
+
     InstalledSoftware installedSoftware = new InstalledSoftware();
 
     Step step = this.context.newStep("Identify unused software");
@@ -56,12 +72,48 @@ public class CleanupCommandlet extends Commandlet {
 
     logSoftwareToBeDeleted(installedSoftware.getTools());
 
-    if (hasSoftwareToDelete(installedSoftware.getTools())) {
+    List<Path> staleRoots = new ArrayList<>();
+    List<Path> staleFiles = new ArrayList<>();
+    if (this.context.getIdeHome() != null) {
+      Step staleStep = this.context.newStep("Identify stale files");
+      staleStep.run(() -> {
+        staleRoots.addAll(getStaleFileRoots());
+        discoverStaleFiles(staleRoots, staleFiles, retentionDelay);
+      }, true);
+      logStaleFilesToBeDeleted(staleFiles, retentionDelay);
+    }
+
+    boolean hasStaleFiles = !staleFiles.isEmpty();
+    if (hasSoftwareToDelete(installedSoftware.getTools()) || hasStaleFiles) {
       this.context.askToContinue("Do you want to continue?");
       deleteUnusedSoftware(installedSoftware.getTools());
+      if (hasStaleFiles) {
+        deleteStaleFiles(staleFiles, staleRoots);
+      }
     }
 
     LOG.debug("Finished cleanup commandlet");
+  }
+
+  /**
+   * Determines the retention delay to use.
+   *
+   * @return the retention delay, {@link #DEFAULT_RETENTION_DELAY} if the {@code --retention-delay} option was not provided.
+   * @throws CliException if the provided value is not a valid ISO-8601 time-based duration.
+   */
+  private Duration getRetentionDelay() {
+
+    String value = this.retentionDelay.getValueAsString();
+    if (value == null) {
+      return DEFAULT_RETENTION_DELAY;
+    }
+    try {
+      return Duration.parse(value);
+    } catch (DateTimeParseException e) {
+      throw new CliException(
+          "Invalid value '" + value + "' for --retention-delay. Please provide a time-based ISO-8601 duration such as P30D or PT2H30M.",
+          e);
+    }
   }
 
   /**
@@ -355,5 +407,149 @@ public class CleanupCommandlet extends Commandlet {
       return 1;
     }
     return 0;
+  }
+
+  /**
+   * Discovers stale files, i.e. files that have not been modified within the given retention delay, in the given root folders.
+   *
+   * @param roots the folders to scan.
+   * @param staleFiles the list to populate with the stale files.
+   * @param retentionDelay the age after which a file is considered stale.
+   */
+  private void discoverStaleFiles(List<Path> roots, List<Path> staleFiles, Duration retentionDelay) {
+
+    for (Path root : roots) {
+      discoverStaleFilesRecursive(root, retentionDelay, staleFiles);
+    }
+  }
+
+  /**
+   * Recursively collects the stale files below the given folder, i.e. all files that are older than the retention delay.
+   *
+   * @param folder the folder to scan.
+   * @param retentionDelay the age after which a file is considered stale.
+   * @param staleFiles the list to populate with the stale files.
+   */
+  private void discoverStaleFilesRecursive(Path folder, Duration retentionDelay, List<Path> staleFiles) {
+
+    if (!Files.isDirectory(folder)) {
+      return;
+    }
+
+    for (Path child : this.context.getFileAccess().listChildren(folder, child -> true)) {
+      if (Files.isDirectory(child)) {
+        discoverStaleFilesRecursive(child, retentionDelay, staleFiles);
+      } else if (isStale(child, retentionDelay)) {
+        staleFiles.add(child);
+      }
+    }
+  }
+
+  /**
+   * Determines the folders scanned for stale files: the IDEasy updates folder, the temporary folder, the download cache and the legacy download
+   * cache under {@code ~/Downloads/ide}.
+   *
+   * @return the list of root folders to scan, excluding folders that do not exist.
+   */
+  private List<Path> getStaleFileRoots() {
+
+    List<Path> roots = new ArrayList<>();
+
+    addStaleFileRoot(roots, this.context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES));
+    addStaleFileRoot(roots, this.context.getTempPath());
+    Path downloadPath = this.context.getDownloadPath();
+    addStaleFileRoot(roots, downloadPath);
+
+    // older versions kept the download cache under ~/Downloads/ide - scan that location too if it is distinct and still exists
+    Path legacy = this.context.getUserHome().resolve(IdeContext.FOLDER_DOWNLOADS).resolve("ide");
+    if (!legacy.equals(downloadPath)) {
+      addStaleFileRoot(roots, legacy);
+    }
+
+    return roots;
+  }
+
+  /**
+   * Adds the given folder to the list of scanned roots if it exists.
+   *
+   * @param roots the list of root folders to populate.
+   * @param root the candidate root folder.
+   */
+  private void addStaleFileRoot(List<Path> roots, Path root) {
+
+    if (root != null && Files.exists(root)) {
+      roots.add(root);
+    }
+  }
+
+  /**
+   * Determines whether the given file is older than the given retention delay.
+   *
+   * @param file the file to check.
+   * @param retentionDelay the age after which the file is considered stale.
+   * @return {@code true} if the file exists and is older than the retention delay.
+   */
+  private boolean isStale(Path file, Duration retentionDelay) {
+
+    Duration age = this.context.getFileAccess().getFileAge(file);
+    return (age != null) && age.compareTo(retentionDelay) > 0;
+  }
+
+  /**
+   * Logs a summary of the stale files to be deleted.
+   *
+   * @param staleFiles the stale files to report.
+   * @param retentionDelay the age that the stale files exceed.
+   */
+  private void logStaleFilesToBeDeleted(List<Path> staleFiles, Duration retentionDelay) {
+
+    if (staleFiles.isEmpty()) {
+      LOG.info("No stale files older than {} will be deleted.", retentionDelay);
+    } else {
+      for (Path staleFile : staleFiles) {
+        LOG.info("\t - {} will be deleted", staleFile);
+      }
+      LOG.info("Summary: {} stale file(s) older than {} will be deleted.", staleFiles.size(), retentionDelay);
+    }
+  }
+
+  /**
+   * Deletes the given stale files and removes the parent folders that became empty as a result. Folders above the scanned roots are never removed.
+   *
+   * @param staleFiles the stale files to delete.
+   * @param roots the folders that were scanned, which must not be removed themselves.
+   */
+  private void deleteStaleFiles(List<Path> staleFiles, List<Path> roots) {
+
+    int failedDeletion = 0;
+
+    for (Path staleFile : staleFiles) {
+      if (Files.exists(staleFile)) {
+        LOG.debug("Deleting stale file {}", staleFile);
+        failedDeletion += deleteFolder(staleFile);
+      }
+    }
+
+    // Remove the folders that became empty after deleting the stale files, walking up from each deleted file but never removing the scanned roots
+    // themselves.
+    Set<Path> prunedFolders = new HashSet<>();
+    for (Path staleFile : staleFiles) {
+      Path folder = staleFile.getParent();
+      while (folder != null && !prunedFolders.contains(folder) && !roots.contains(folder)) {
+        if (!isEmptyFolder(folder)) {
+          break;
+        }
+        LOG.debug("Deleting empty folder {}", folder);
+        prunedFolders.add(folder);
+        failedDeletion += deleteFolder(folder);
+        folder = folder.getParent();
+      }
+    }
+
+    if (failedDeletion > 0) {
+      LOG.warn("Stale files have been deleted.\nFailed to delete {} file(s) or folder(s). Please check the log for details.", failedDeletion);
+    } else {
+      IdeLogLevel.SUCCESS.log(LOG, "Stale files have been deleted successfully.");
+    }
   }
 }

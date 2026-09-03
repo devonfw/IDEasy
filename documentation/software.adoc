@@ -17,6 +17,8 @@ This has the following benefits:
 However, we keep previous tool version on updates what can also waste disc-space.
 Therefore, you can run `ide cleanup` to find and release old tool versions and free disc-space.
 
+In addition, `ide cleanup` deletes stale files in the `$IDE_HOME/updates`, `$IDE_ROOT/_ide/tmp` and `~/Downloads/ide` folders (recursively). A file is considered stale if it has not been modified for a configurable period. This period can be set via the `--retention-delay` option using a time-based ISO-8601 duration, e.g. `ide cleanup --retention-delay=P30D`. If the option is not provided, the default of 1 year (365 days) is used.
+
 == Extra Tool Installations
 
 Assuming you needs multiple versions of the same tool (SDK), you can make IDEasy install additional versions.
