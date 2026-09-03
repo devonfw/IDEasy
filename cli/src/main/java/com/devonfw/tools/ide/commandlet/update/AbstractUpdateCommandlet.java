@@ -213,7 +213,8 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       Step applySettingsStep = this.context.newStep("Applying settings");
       applySettingsStep.run(() -> {
 
-        SettingsUpdateResult settingsUpdateResult = settingsUpdater.applySettings(healthCheckResult.status() == HealthCheckResultStatus.SETTINGS_VALID_EXISTING,
+        boolean onlyPull = healthCheckResult.status() == HealthCheckResultStatus.SETTINGS_VALID && healthCheckResult.isExistingProject();
+        SettingsUpdateResult settingsUpdateResult = settingsUpdater.applySettings(onlyPull,
             healthCheckResult.temporarySettingsDirectory());
         if (settingsUpdateResult == null) {
 

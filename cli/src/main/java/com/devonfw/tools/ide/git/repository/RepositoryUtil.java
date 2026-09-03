@@ -19,12 +19,12 @@ public class RepositoryUtil {
    * @param repositoryPath the {@link Path} to the repository to check.
    * @return the {@link RepositoryType} of the repository.
    */
-  public static RepositoryType getRepositoryType(Path repositoryPath) {
+  public static RepositoryType getRepositoryType(Path repositoryPath, GitContext gitContext) {
 
     if (repositoryPath == null || !Files.isDirectory(repositoryPath)) {
       return RepositoryType.UNKNOWN;
     }
-    if (isSettingsFolder(repositoryPath) && Files.exists(repositoryPath.resolve(GitContext.GIT_FOLDER))) {
+    if (isSettingsFolder(repositoryPath) && gitContext.isGitRepo(repositoryPath)) {
       return RepositoryType.SETTINGS;
     }
     Path settingsFolder = repositoryPath.resolve(IdeContext.FOLDER_SETTINGS);

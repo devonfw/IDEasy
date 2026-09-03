@@ -79,72 +79,12 @@ public class SettingsUpdater {
     if (settingsPath != null && !fileAccess.isEmptyDir(settingsPath)) {
       // for a combined code and settings repository IDE_HOME/settings is a symlink into the code repository whose '.git' folder is one level above,
       // so isGitRepo would report it as broken settings
-      RepositoryType settingsRepoType = RepositoryUtil.getRepositoryType(settingsPath);
+      RepositoryType settingsRepoType = RepositoryUtil.getRepositoryType(settingsPath, this.context.getGitContext());
       if (settingsRepoType.isSettingsOrCodeSettingsRepository()) {
         return checkSettingsPresent(settingsPath, settingsRepoType);
       }
     }
     return checkClonedSettings(settingsPath);
-  }
-
-  /**
-   * Applies the result of the {@link #checkSettings(Path)} health check by either pulling the settings in place or moving the verified clone to its final
-   * location.
-   *
-   * @param onlyPull if true, we simply perform a git pull on the actual (not the one in the temp directory) settings repository.
-   * @param sourcePath sourcePath of the settings to apply.
-   * @return a {@link SettingsUpdateResult} representing the state, whether moving/pulling the newest settings was successful.
-   */
-  public SettingsUpdateResult applySettings(boolean onlyPull, Path sourcePath) {
-
-    RepositoryType repositoryType = RepositoryUtil.getRepositoryType(sourcePath);
-    Path settingsPath = this.context.getSettingsPath();
-
-    // Case 1: We performed "ide update"; so settings already existed and we just need to perform a git pull in the existing repo.
-    if (onlyPull) {
-      repositoryType = RepositoryUtil.getRepositoryType(context.getSettingsPath());
-      if (repositoryType != RepositoryType.SETTINGS) {
-        return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_UPDATE_FAILED,
-            repositoryType,
-            "Expected settings repository for update application, but was of type: " + repositoryType);
-      }
-
-      pullSettingsAndSaveCommitId(settingsPath);
-      return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_UPDATED, repositoryType, null);
-    }
-
-    // Case 2: We freshly cloned the settings repo and need to move it to a target directory.
-    switch (repositoryType) {
-      case PLAIN_CODE, UNKNOWN -> {
-
-        return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_UPDATE_FAILED, repositoryType,
-            "Cannot apply settings as type of the settings repo is incorrect");
-      }
-      case SETTINGS -> {
-
-        //move to IDE_HOME/SETTINGS
-        moveProject(sourcePath, settingsPath);
-        this.context.getGitContext().saveCurrentCommitId(settingsPath, this.context.getSettingsCommitIdPath());
-        return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_CLONED, repositoryType, null);
-      }
-      case CODE_SETTINGS_COMBINED -> {
-
-        //this is a special case - here we need to symlink from IDE_HOME/settings to IDE_HOME/workspaces/main/repo_name/settings.
-        // (Formerly managed by the obsolete "--code" flag)
-        Path repoMoveTargetDirectory = this.context.getWorkspacePath().resolve(gitProjectName);
-        Path symlinkPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_SETTINGS);
-        Path repoSettingsDirectory = repoMoveTargetDirectory.resolve(IdeContext.FOLDER_SETTINGS);
-
-        moveProject(sourcePath, repoMoveTargetDirectory);
-
-        context.getFileAccess().symlink(repoSettingsDirectory, symlinkPath);
-
-        this.context.getGitContext().saveCurrentCommitId(repoSettingsDirectory, this.context.getSettingsCommitIdPath());
-        return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_CLONED, repositoryType, null);
-      }
-    }
-
-    return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_UPDATE_FAILED, repositoryType, "Unknown error during settings");
   }
 
   /**
@@ -157,23 +97,23 @@ public class SettingsUpdater {
     try {
       //Get Git url of existing settings, clone newest version of them to temp dir
       GitUrl gitUrl = GitUrl.of(this.context.getGitContext().retrieveGitUrl(settingsPath));
-      RepositoryType clonedType = RepositoryUtil.getRepositoryType(cloneRepoToTempDir(gitUrl));
+      RepositoryType clonedType = RepositoryUtil.getRepositoryType(cloneRepoToTempDir(gitUrl), this.context.getGitContext());
       cleanup();
 
       //If cloned repo is not (code-)settings repo and no force override (e.g. force mode) is applied, return error.
-      if (!clonedType.isSettingsOrCodeSettingsRepository() && !requestUserConfirmInvalidRepository(clonedType, gitUrl, true)) {
-        return SettingsHealthCheckResult.failed(clonedType, MESSAGE_INVALID_REPOSITORY, settingsPath);
+      if (!clonedType.isSettingsOrCodeSettingsRepository() && !requestUserConfirmInvalidRepository(clonedType, gitUrl)) {
+        return SettingsHealthCheckResult.failed(clonedType, MESSAGE_INVALID_REPOSITORY, settingsPath, true);
       }
 
       //Otherwise, (e.g. user overrides), return valid.
-      return SettingsHealthCheckResult.of(HealthCheckResultStatus.SETTINGS_VALID_EXISTING, repositoryType, settingsPath);
+      return SettingsHealthCheckResult.of(HealthCheckResultStatus.SETTINGS_VALID, repositoryType, settingsPath, true);
     } catch (RuntimeException e) {
       cleanup();
       if (e instanceof CliAbortException) {
         // the user answered "no" so we must not silently carry on
-        return SettingsHealthCheckResult.failed(repositoryType, "Settings update aborted by end-user", settingsPath);
+        return SettingsHealthCheckResult.failed(repositoryType, "Settings update aborted by end-user", settingsPath, true);
       }
-      return SettingsHealthCheckResult.failed(repositoryType, e.getMessage(), settingsPath);
+      return SettingsHealthCheckResult.failed(repositoryType, e.getMessage(), settingsPath, true);
     }
   }
 
@@ -188,13 +128,13 @@ public class SettingsUpdater {
       GitUrl gitUrl = getOrAskSettingsUrl();
 
       Path tempCloneDir = cloneRepoToTempDir(gitUrl);
-      RepositoryType repositoryType = RepositoryUtil.getRepositoryType(tempCloneDir);
+      RepositoryType repositoryType = RepositoryUtil.getRepositoryType(tempCloneDir, this.context.getGitContext());
 
-      if (!repositoryType.isSettingsOrCodeSettingsRepository() && !requestUserConfirmInvalidRepository(repositoryType, gitUrl, false)) {
+      if (!repositoryType.isSettingsOrCodeSettingsRepository()) {
         //see @javadoc why we throw fatally here.
-        throw new CliFatalException(MESSAGE_INVALID_REPOSITORY);
+        return SettingsHealthCheckResult.failed(repositoryType, MESSAGE_INVALID_REPOSITORY, tempCloneDir, false);
       }
-      return SettingsHealthCheckResult.of(HealthCheckResultStatus.SETTINGS_VALID, repositoryType, tempCloneDir);
+      return SettingsHealthCheckResult.of(HealthCheckResultStatus.SETTINGS_VALID, repositoryType, tempCloneDir, false);
     } catch (RuntimeException e) {
       cleanup();
       throw createGuaranteedFatalException(e);
@@ -262,12 +202,73 @@ public class SettingsUpdater {
   /**
    * @return {@code true} if the user explicitly wants to continue with an invalid repository, {@code false} otherwise.
    */
-  private boolean requestUserConfirmInvalidRepository(RepositoryType repositoryType, GitUrl gitUrl, boolean updatesExistingRepository) {
+  private boolean requestUserConfirmInvalidRepository(RepositoryType repositoryType, GitUrl gitUrl) {
 
     LOG.warn("{}\nURL: {}\nDetected settings repository type: {}", MESSAGE_INVALID_REPOSITORY, gitUrl, repositoryType);
 
     this.context.askToContinue("The update to the settings repository you are trying to apply seems to be broken. Do you want to continue anyway?");
     return true;
+  }
+
+  /**
+   * Applies the result of the {@link #checkSettings(Path)} health check by either pulling the settings in place or moving the verified clone to its final
+   * location.
+   *
+   * @param onlyPull if true, we simply perform a git pull on the actual (not the one in the temp directory) settings repository.
+   * @param sourcePath sourcePath of the settings to apply.
+   * @return a {@link SettingsUpdateResult} representing the state, whether moving/pulling the newest settings was successful.
+   */
+  public SettingsUpdateResult applySettings(boolean onlyPull, Path sourcePath) {
+
+    GitContext gitContext = this.context.getGitContext();
+    RepositoryType repositoryType = RepositoryUtil.getRepositoryType(sourcePath, gitContext);
+    Path settingsPath = this.context.getSettingsPath();
+
+    // Case 1: We performed "ide update"; so settings already existed and we just need to perform a git pull in the existing repo.
+    if (onlyPull) {
+      repositoryType = RepositoryUtil.getRepositoryType(context.getSettingsPath(), gitContext);
+      if (repositoryType != RepositoryType.SETTINGS) {
+        return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_UPDATE_FAILED,
+            repositoryType,
+            "Expected settings repository for update application, but was of type: " + repositoryType);
+      }
+
+      pullSettingsAndSaveCommitId(settingsPath);
+      return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_UPDATED, repositoryType, null);
+    }
+
+    // Case 2: We freshly cloned the settings repo and need to move it to a target directory.
+    switch (repositoryType) {
+      case PLAIN_CODE, UNKNOWN -> {
+
+        return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_UPDATE_FAILED, repositoryType,
+            "Cannot apply settings as type of the settings repo is incorrect");
+      }
+      case SETTINGS -> {
+
+        //move to IDE_HOME/SETTINGS
+        moveProject(sourcePath, settingsPath);
+        this.context.getGitContext().saveCurrentCommitId(settingsPath, this.context.getSettingsCommitIdPath());
+        return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_CLONED, repositoryType, null);
+      }
+      case CODE_SETTINGS_COMBINED -> {
+
+        //this is a special case - here we need to symlink from IDE_HOME/settings to IDE_HOME/workspaces/main/repo_name/settings.
+        // (Formerly managed by the obsolete "--code" flag)
+        Path repoMoveTargetDirectory = this.context.getWorkspacePath().resolve(gitProjectName);
+        Path symlinkPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_SETTINGS);
+        Path repoSettingsDirectory = repoMoveTargetDirectory.resolve(IdeContext.FOLDER_SETTINGS);
+
+        moveProject(sourcePath, repoMoveTargetDirectory);
+
+        context.getFileAccess().symlink(repoSettingsDirectory, symlinkPath);
+
+        this.context.getGitContext().saveCurrentCommitId(repoSettingsDirectory, this.context.getSettingsCommitIdPath());
+        return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_CLONED, repositoryType, null);
+      }
+    }
+
+    return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_UPDATE_FAILED, repositoryType, "Unknown error during settings");
   }
 
   /**

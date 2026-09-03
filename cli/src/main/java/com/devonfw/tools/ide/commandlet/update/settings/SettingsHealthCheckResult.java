@@ -12,7 +12,8 @@ import com.devonfw.tools.ide.git.repository.RepositoryType;
  * @param errorMessage the reason why the settings could not be updated or {@code null} if the health check succeeded.
  * @param temporarySettingsDirectory path to the temporary folder this health check was performed on.
  */
-public record SettingsHealthCheckResult(HealthCheckResultStatus status, RepositoryType repositoryType, Path temporarySettingsDirectory, String errorMessage) {
+public record SettingsHealthCheckResult(HealthCheckResultStatus status, RepositoryType repositoryType, Path temporarySettingsDirectory, String errorMessage,
+                                        boolean isExistingProject) {
 
   /**
    * @param status the {@link HealthCheckResultStatus}.
@@ -20,9 +21,10 @@ public record SettingsHealthCheckResult(HealthCheckResultStatus status, Reposito
    * @param temporarySettingsDirectory path to the temporary folder this health check was performed on.
    * @return a {@link SettingsHealthCheckResult} for a successful health check.
    */
-  public static SettingsHealthCheckResult of(HealthCheckResultStatus status, RepositoryType repositoryType, Path temporarySettingsDirectory) {
+  public static SettingsHealthCheckResult of(HealthCheckResultStatus status, RepositoryType repositoryType, Path temporarySettingsDirectory,
+      boolean isExistingProject) {
 
-    return new SettingsHealthCheckResult(status, repositoryType, temporarySettingsDirectory, null);
+    return new SettingsHealthCheckResult(status, repositoryType, temporarySettingsDirectory, null, isExistingProject);
   }
 
   /**
@@ -31,8 +33,9 @@ public record SettingsHealthCheckResult(HealthCheckResultStatus status, Reposito
    * @param temporarySettingsDirectory path to the temporary folder this health check was performed on.
    * @return a {@link SettingsHealthCheckResult} for a failed but recoverable health check.
    */
-  public static SettingsHealthCheckResult failed(RepositoryType repositoryType, String errorMessage, Path temporarySettingsDirectory) {
+  public static SettingsHealthCheckResult failed(RepositoryType repositoryType, String errorMessage, Path temporarySettingsDirectory,
+      boolean isExistingProject) {
 
-    return new SettingsHealthCheckResult(HealthCheckResultStatus.SETTINGS_INVALID, repositoryType, temporarySettingsDirectory, errorMessage);
+    return new SettingsHealthCheckResult(HealthCheckResultStatus.SETTINGS_INVALID, repositoryType, temporarySettingsDirectory, errorMessage, isExistingProject);
   }
 }
