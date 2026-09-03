@@ -2,7 +2,15 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
-== 2026.08.002
+== 2026.09.002
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/989[#989]: Allow expressions in template variable definitions
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/50?closed=1[milestone 2026.09.002].
+
+== 2026.09.001
 
 Release with new features and bugfixes:
 
@@ -30,8 +38,9 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1135[#1135]: Fix PowerShell env variable initialization on Windows by sourcing functions from the PowerShell profile
 * https://github.com/devonfw/IDEasy/issues/2252[#2252]: Add uninstall support for globally installed tools on macOS
 * https://github.com/devonfw/IDEasy/issues/741[#741]: Add a warning message for legacy devonfw-ide settings users
+* https://github.com/devonfw/IDEasy/issues/1933[#1933]: Added a console panel to the GUI
 
-The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/49?closed=1[milestone 2026.08.002].
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/49?closed=1[milestone 2026.09.001].
 
 == 2026.08.001
 

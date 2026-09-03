@@ -1,6 +1,7 @@
 package com.devonfw.ide.gui;
 
 import javafx.application.Platform;
+import javafx.scene.Parent;
 
 /**
  * Helper class containing tools for interacting with JavaFX
@@ -21,4 +22,13 @@ public class FxHelper {
     }
   }
 
+  /// @param root root node
+  /// @param selector id of node to be selected
+  /// @param <T> inferred type of the node
+  /// @return Node in inferred type
+  @SuppressWarnings("unchecked")
+  public static <T> T lookup(Parent root, String selector) {
+
+    return (T) root.lookup(selector);
+  }
 }
