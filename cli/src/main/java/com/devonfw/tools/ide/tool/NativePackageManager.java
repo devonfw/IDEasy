@@ -183,7 +183,13 @@ public enum NativePackageManager {
     for (String option : nativePackage.getExtraInstallOptions()) {
       command.append(' ').append(option);
     }
-    command.append(' ').append(this.installCommand);
+
+    String installCommand = this.installCommand;
+    if ((this == ZYPPER) && nativePackage.isInteractiveInstall()) {
+      installCommand = "install";
+    }
+    command.append(' ').append(installCommand);
+
     if (nativePackage.getOptionalNativePackageArtifactPaths().isEmpty()) {
       for (String pkg : nativePackage.getPackages()) {
         command.append(' ').append(getPackageSpec(pkg, version));
