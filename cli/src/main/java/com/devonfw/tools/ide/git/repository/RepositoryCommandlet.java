@@ -19,7 +19,7 @@ import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.property.RepositoryProperty;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
-import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
+import com.devonfw.tools.ide.tool.ide.IdeFeatures;
 
 /**
  * {@link Commandlet} to setup one or multiple GIT repositories for development.
@@ -278,8 +278,8 @@ public class RepositoryCommandlet extends Commandlet {
           String displayName = (ide == null || ide.isBlank()) ? "<empty>" : "'" + ide + "'";
           step.error("Cannot import repository '{}'. Required IDE '{}' not found. Please check your repository's imports configuration.", repositoryId,
               displayName);
-        } else if (commandlet instanceof IdeToolCommandlet ideCommandlet) {
-          ideCommandlet.importRepository(repositoryPath);
+        } else if (commandlet instanceof IdeFeatures ideFeatures) {
+          ideFeatures.importRepository(repositoryPath);
         } else {
           step.error("Repository {} has import {} configured that is not an IDE!", repositoryId, ide);
         }

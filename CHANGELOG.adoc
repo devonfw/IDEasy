@@ -12,6 +12,7 @@ The full list of changes for this release can be found in https://github.com/dev
 
 == 2026.09.001
 
+* https://github.com/devonfw/IDEasy/issues/2293[#2293]: Rework spyder to have same features as IdeToolCommandlets
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/1525[#1525]: Document known issue and workaround for lombok plugin in Eclipse
