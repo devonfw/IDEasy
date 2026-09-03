@@ -102,12 +102,12 @@ public class ReleaseCommandlet extends Commandlet {
     return false;
   }
 
-  private boolean isTopLevelProject(LocalToolCommandlet buildTool, Path projectPath) {
+  private boolean isTopLevelProject(LocalToolCommandlet buildCommandlet, Path projectPath) {
 
     // top-level if a build descriptor is present here but not in the parent directory
     Path parent = projectPath.getParent();
-    return (buildTool.findBuildDescriptor(projectPath) != null)
-        && ((parent == null) || (buildTool.findBuildDescriptor(parent) == null));
+    return (buildCommandlet.findBuildDescriptor(projectPath) != null)
+        && ((parent == null) || (buildCommandlet.findBuildDescriptor(parent) == null));
   }
 
   private void buildAndDeploy(BuildTool buildTool) {
