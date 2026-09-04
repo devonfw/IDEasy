@@ -64,6 +64,7 @@ import com.devonfw.tools.ide.io.ini.IniFile;
 import com.devonfw.tools.ide.io.ini.IniSection;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.util.DateTimeUtil;
@@ -359,6 +360,11 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   @Override
   public void copy(Path source, Path target, FileCopyMode mode, PathCopyListener listener) {
 
+    copy(source, target, mode, listener, false);
+  }
+
+  private void copy(Path source, Path target, FileCopyMode mode, PathCopyListener listener, boolean preserveSymbolicLinks) {
+
     if (mode.isUseSourceFilename()) {
       // if we want to copy the file or folder "source" to the existing folder "target" in a shell this will copy
       // source into that folder so that we as a result have a copy in "target/source".
@@ -395,30 +401,35 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       delete(target);
     }
     try {
-      copyRecursive(source, target, mode, listener);
+      copyRecursive(source, target, mode, listener, preserveSymbolicLinks);
     } catch (IOException e) {
       throw new IllegalStateException("Failed to " + operation + " " + source + " to " + target, e);
     }
   }
 
-  private void copyRecursive(Path source, Path target, FileCopyMode mode, PathCopyListener listener) throws IOException {
+  private void copyRecursive(Path source, Path target, FileCopyMode mode, PathCopyListener listener, boolean preserveSymbolicLinks) throws IOException {
 
-    if (Files.isDirectory(source)) {
+    boolean symbolicLink = preserveSymbolicLinks && Files.isSymbolicLink(source);
+    if (!symbolicLink && Files.isDirectory(source)) {
       mkdirs(target);
       try (Stream<Path> childStream = Files.list(source)) {
         Iterator<Path> iterator = childStream.iterator();
         while (iterator.hasNext()) {
           Path child = iterator.next();
-          copyRecursive(child, target.resolve(child.getFileName().toString()), mode, listener);
+          copyRecursive(child, target.resolve(child.getFileName().toString()), mode, listener, preserveSymbolicLinks);
         }
       }
       listener.onCopy(source, target, true);
-    } else if (Files.exists(source)) {
+    } else if (symbolicLink || Files.exists(source)) {
       if (mode.isOverride()) {
         delete(target);
       }
       LOG.trace("Starting to {} {} to {}", mode.getOperation(), source, target);
-      Files.copy(source, target);
+      if (symbolicLink) {
+        Files.copy(source, target, LinkOption.NOFOLLOW_LINKS);
+      } else {
+        Files.copy(source, target);
+      }
       listener.onCopy(source, target, false);
     } else {
       throw new IOException("Path " + source + " does not exist.");
@@ -1000,18 +1011,25 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
 
     Path mountPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_VOLUME);
     mkdirs(mountPath);
-    ProcessContext pc = this.context.newProcess();
-    pc.executable("hdiutil");
-    pc.addArgs("attach", "-quiet", "-nobrowse", "-mountpoint", mountPath, file);
-    pc.run();
-    Path appPath = findFirst(mountPath, p -> p.getFileName().toString().endsWith(".app"), false);
-    if (appPath == null) {
-      throw new IllegalStateException("Failed to unpack DMG as no MacOS *.app was found in file " + file);
-    }
+    boolean mounted = false;
+    try {
+      ProcessContext pc = this.context.newProcess();
+      pc.executable("hdiutil");
+      pc.addArgs("attach", "-quiet", "-nobrowse", "-mountpoint", mountPath, file);
+      pc.run();
+      mounted = true;
+      Path appPath = findFirst(mountPath, p -> p.getFileName().toString().endsWith(".app"), false);
+      if (appPath == null) {
+        throw new IllegalStateException("Failed to unpack DMG as no MacOS *.app was found in file " + file);
+      }
 
-    copy(appPath, targetDir, FileCopyMode.COPY_TREE_OVERRIDE_TREE);
-    pc.addArgs("detach", "-force", mountPath);
-    pc.run();
+      copy(appPath, targetDir, FileCopyMode.COPY_TREE_OVERRIDE_TREE, PathCopyListener.NONE, true);
+    } finally {
+      if (mounted) {
+        this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable("hdiutil").addArgs("detach", "-force", mountPath)
+            .run(ProcessMode.DEFAULT_SILENT);
+      }
+    }
   }
 
   @Override
@@ -1424,7 +1442,6 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       return 0;
     }
   }
-
 
   @Override
   public Path findExistingFile(String fileName, List<Path> searchDirs) {

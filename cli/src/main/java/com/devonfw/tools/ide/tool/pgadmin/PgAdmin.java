@@ -20,6 +20,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class PgAdmin extends GlobalToolCommandlet {
 
+  private static final String PGADMIN_MAC_BINARY = "pgAdmin 4";
+
   /**
    * The constructor.
    *
@@ -47,11 +49,15 @@ public class PgAdmin extends GlobalToolCommandlet {
   @Override
   protected String getBinaryName() {
 
+    if (this.context.getSystemInfo().isMac()) {
+      return PGADMIN_MAC_BINARY;
+    }
     return "pgadmin4";
   }
 
   @Override
   protected Path getInstallationPath(String edition, VersionIdentifier resolvedVersion) {
+
     Path path = super.getInstallationPath(edition, resolvedVersion);
     if (path == null) {
       if (this.context.getSystemInfo().isWindows()) {

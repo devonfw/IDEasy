@@ -1,7 +1,9 @@
 package com.devonfw.tools.ide.tool;
 
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +25,7 @@ import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
+import com.devonfw.tools.ide.util.FilenameUtil;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -82,11 +85,11 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     return false; // None of the package manager commands were successful
   }
 
-  private void logPackageManagerCommands(PackageManagerCommand pmCommand) {
+  private void logPrivilegedCommands(List<String> commands) {
 
     IdeLogLevel level = IdeLogLevel.INTERACTION;
     level.log(LOG, "We need to run the following privileged command(s):");
-    for (String command : pmCommand.commands()) {
+    for (String command : commands) {
       level.log(LOG, command);
     }
     level.log(LOG, "This will require root permissions!");
@@ -103,7 +106,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   private boolean executePackageManagerCommand(PackageManagerCommand pmCommand, boolean silent, NativePackageAction action) {
 
     String bashPath = this.context.findBashRequired().toString();
-    logPackageManagerCommands(pmCommand);
+    logPrivilegedCommands(pmCommand.commands());
     for (String command : pmCommand.commands()) {
       ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(bashPath)
           .addArgs("-c", command);
@@ -155,34 +158,98 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     // download and install the global tool
     FileAccess fileAccess = this.context.getFileAccess();
     Path target = toolRepository.download(this.tool, edition, resolvedVersion, this);
-    Path executable = target;
-    Path tmpDir = null;
-    boolean extract = isExtract();
-    if (extract) {
-      tmpDir = fileAccess.createTempDir(getName());
-      Path downloadBinaryPath = tmpDir.resolve(target.getFileName());
-      fileAccess.extract(target, downloadBinaryPath);
-      executable = fileAccess.findFirst(downloadBinaryPath, Files::isExecutable, false);
-    }
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(executable);
-    int exitCode = pc.run(ProcessMode.BACKGROUND_SILENT).getExitCode();
-    if (tmpDir != null) {
-      fileAccess.delete(tmpDir);
-    }
-    if (exitCode == 0) {
-      IdeLogLevel.SUCCESS.log(LOG, "Installation process for {} in version {} has started", this.tool, resolvedVersion);
-      Step step = request.getStep();
-      if (step != null) {
-        step.success(true);
-      }
+    ProcessContext pc;
+    boolean macDmg = isMacDmg(target);
+    if (macDmg) {
+      installMacDmg(target);
+      pc = request.getProcessContext();
     } else {
-      throw new CliException("Installation process for " + this.tool + " in version " + resolvedVersion + " failed with exit code " + exitCode + "!");
+      Path executable = target;
+      Path tmpDir = null;
+      boolean extract = isExtract();
+      if (extract) {
+        tmpDir = fileAccess.createTempDir(getName());
+        Path downloadBinaryPath = tmpDir.resolve(target.getFileName());
+        fileAccess.extract(target, downloadBinaryPath);
+        executable = fileAccess.findFirst(downloadBinaryPath, Files::isExecutable, false);
+      }
+      pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(executable);
+      int exitCode = pc.run(ProcessMode.BACKGROUND_SILENT).getExitCode();
+      if (tmpDir != null) {
+        fileAccess.delete(tmpDir);
+      }
+      if (exitCode != 0) {
+        throw new CliException("Installation process for " + this.tool + " in version " + resolvedVersion + " failed with exit code " + exitCode + "!");
+      }
+    }
+    IdeLogLevel.SUCCESS.log(LOG, "Installation process for {} in version {} has started", this.tool, resolvedVersion);
+    Step step = request.getStep();
+    if (step != null) {
+      step.success(true);
     }
     installationPath = getInstallationPath(toolEdition.edition(), resolvedVersion);
     if (installationPath == null) {
+      if (macDmg) {
+        throw new CliException("Installation process for " + this.tool + " in version " + resolvedVersion + " failed because the application was not found.");
+      }
       return new ToolInstallation(null, null, null, resolvedVersion, true, true);
     }
     return createToolInstallation(installationPath, resolvedVersion, true, pc, false);
+  }
+
+  void installMacDmg(Path downloadedToolFile) {
+
+    FileAccess fileAccess = this.context.getFileAccess();
+    Path tmpDir = fileAccess.createTempDir(getName());
+    try {
+      fileAccess.extractDmg(downloadedToolFile, tmpDir);
+      Path sourceApp = getMacOsHelper().findAppDir(tmpDir);
+      if (sourceApp == null) {
+        throw new CliException("Failed to install " + this.tool + " from " + downloadedToolFile + " because no MacOS *.app was found.");
+      }
+      Path targetApp = getMacApplicationsPath().resolve(sourceApp.getFileName().toString());
+      List<List<String>> commands = new ArrayList<>();
+      if (Files.exists(targetApp, LinkOption.NOFOLLOW_LINKS)) {
+        commands.add(List.of("/bin/rm", "-rf", targetApp.toString()));
+      }
+      commands.add(List.of("/bin/mv", sourceApp.toString(), targetApp.toString()));
+      runPrivilegedCommands(commands);
+    } finally {
+      fileAccess.delete(tmpDir);
+    }
+  }
+
+  private void runPrivilegedCommands(List<List<String>> commands) {
+
+    logPrivilegedCommands(commands.stream().map(this::toSudoCommandLine).toList());
+    for (List<String> command : commands) {
+      int exitCode = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable("sudo").addArgs(command).run();
+      if (exitCode != 0) {
+        throw new CliException("Privileged command failed with exit code " + exitCode + ": " + toSudoCommandLine(command));
+      }
+    }
+  }
+
+  private String toSudoCommandLine(List<String> command) {
+
+    return "sudo " + String.join(" ", command);
+  }
+
+  private boolean isMacDmg(Path file) {
+
+    if (!this.context.getSystemInfo().isMac()) {
+      return false;
+    }
+    String extension = FilenameUtil.getExtension(file.toString());
+    return "dmg".equals(extension);
+  }
+
+  /**
+   * @return the macOS applications folder where global {@code .dmg} tools are installed.
+   */
+  protected Path getMacApplicationsPath() {
+
+    return Path.of("/Applications");
   }
 
   /**
@@ -295,6 +362,9 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     Path toolBinary = Path.of(getBinaryName());
     Path binaryPath = this.context.getPath().findBinary(toolBinary);
     if ((binaryPath == toolBinary) || !Files.exists(binaryPath)) {
+      if (this.context.getSystemInfo().isMac()) {
+        return getMacApplicationInstallationPath();
+      }
       return null;
     }
     Path binPath = binaryPath.getParent();
@@ -302,6 +372,30 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
       return null;
     }
     return this.context.getFileAccess().getBinParentPath(binPath);
+  }
+
+  private Path getMacApplicationInstallationPath() {
+
+    Path appPath = this.context.getFileAccess().findFirst(getMacApplicationsPath(), this::isMacApplicationForTool, false);
+    if (appPath == null) {
+      return null;
+    }
+    Path binaryPath = getMacApplicationBinaryPath(appPath);
+    this.context.getPath().setPath(getName(), binaryPath.getParent());
+    return appPath;
+  }
+
+  private boolean isMacApplicationForTool(Path appPath) {
+
+    if (!Files.isDirectory(appPath) || !appPath.getFileName().toString().endsWith(".app")) {
+      return false;
+    }
+    return Files.isExecutable(getMacApplicationBinaryPath(appPath));
+  }
+
+  private Path getMacApplicationBinaryPath(Path appPath) {
+
+    return appPath.resolve(IdeContext.FOLDER_CONTENTS).resolve(IdeContext.FOLDER_MAC_OS).resolve(getBinaryName());
   }
 
   @Override

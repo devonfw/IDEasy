@@ -1,9 +1,16 @@
 package com.devonfw.tools.ide.tool;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
+import org.junit.jupiter.api.io.TempDir;
+import org.mockito.Mockito;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
@@ -12,6 +19,7 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.os.WindowsAppInstallation;
 import com.devonfw.tools.ide.os.WindowsHelperMock;
+import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -20,9 +28,129 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 class GlobalToolCommandletTest extends AbstractIdeContextTest {
 
+  private static final String DUMMY_BINARY = "dummy";
+
   private static final String TOOL_NAME = "docker";
 
   private static final String TOOL_VERSION = "1.21.0";
+
+  /**
+   * Tests that on macOS the installation path is resolved from the app bundle in the applications folder and its executable folder is registered.
+   *
+   * @param tempDir the temporary directory.
+   * @throws IOException on test setup failure.
+   */
+  @Test
+  @DisabledOnOs(OS.WINDOWS)
+  void testGetInstallationPathFindsMacApp(@TempDir Path tempDir) throws IOException {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    context.setSystemInfo(SystemInfoMock.MAC_X64);
+    Path applicationsPath = tempDir.resolve("Applications");
+    Path appPath = applicationsPath.resolve("Dummy.app");
+    Path appBinPath = appPath.resolve("Contents").resolve("MacOS");
+    Path binary = appBinPath.resolve(DUMMY_BINARY);
+    Files.createDirectories(appBinPath);
+    Files.writeString(binary, "test");
+    context.getFileAccess().makeExecutable(binary);
+    GlobalToolCommandlet globalTool = new GlobalToolDummyCommandlet(context, applicationsPath);
+
+    // act
+    Path result = globalTool.getInstallationPath("default", VersionIdentifier.of("1.0"));
+
+    // assert
+    assertThat(result).isEqualTo(appPath);
+    assertThat(context.getPath().getPath(DUMMY_BINARY)).isEqualTo(appBinPath);
+  }
+
+  /**
+   * Tests that the applications folder is only searched on macOS and not on other operating systems.
+   *
+   * @param tempDir the temporary directory.
+   * @throws IOException on test setup failure.
+   */
+  @Test
+  @DisabledOnOs(OS.WINDOWS)
+  void testGetInstallationPathDoesNotSearchApplicationsOnLinux(@TempDir Path tempDir) throws IOException {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    Path applicationsPath = tempDir.resolve("Applications");
+    Path appBinPath = applicationsPath.resolve("Dummy.app").resolve("Contents").resolve("MacOS");
+    Path binary = appBinPath.resolve(DUMMY_BINARY);
+    Files.createDirectories(appBinPath);
+    Files.writeString(binary, "test");
+    context.getFileAccess().makeExecutable(binary);
+    GlobalToolCommandlet globalTool = new GlobalToolDummyCommandlet(context, applicationsPath);
+
+    // act & assert
+    assertThat(globalTool.getInstallationPath("default", VersionIdentifier.of("1.0"))).isNull();
+    assertThat(context.getPath().getPath(DUMMY_BINARY)).isNull();
+  }
+
+  /**
+   * Tests that a macOS DMG is extracted and its application bundle is installed with a logged privileged move instead of executing the DMG.
+   *
+   * @param tempDir the temporary directory.
+   * @throws IOException on test setup failure.
+   */
+  @Test
+  @DisabledOnOs(OS.WINDOWS)
+  void testInstallMacDmgExtractsAndMovesApplication(@TempDir Path tempDir) throws IOException {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setIdeHome(tempDir);
+    context.setSystemInfo(SystemInfoMock.MAC_X64);
+    ProcessContext processContext = Mockito.mock(ProcessContext.class, Mockito.RETURNS_SELF);
+    context.setProcessContext(processContext);
+    context.getFileAccess().mkdirs(context.getTempPath());
+    Path mountedApp = tempDir.resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_VOLUME).resolve("Dummy.app");
+    Path mountedBinary = mountedApp.resolve("Contents/MacOS").resolve(DUMMY_BINARY);
+    Files.createDirectories(mountedBinary.getParent());
+    Files.writeString(mountedBinary, "test");
+    context.getFileAccess().makeExecutable(mountedBinary);
+    Path applicationsPath = tempDir.resolve("Applications");
+    Files.createDirectories(applicationsPath);
+    GlobalToolCommandlet globalTool = new GlobalToolDummyCommandlet(context, applicationsPath);
+    Path dmg = tempDir.resolve("Dummy.dmg");
+    Path extractedApp = context.getTempPath().resolve(DUMMY_BINARY).resolve("Dummy.app");
+    Path targetApp = applicationsPath.resolve("Dummy.app");
+
+    // act
+    globalTool.installMacDmg(dmg);
+
+    // assert
+    assertThat(context).logAtInteraction().hasMessageContaining("sudo /bin/mv " + extractedApp + " " + targetApp);
+    Mockito.verify(processContext).executable("sudo");
+    Mockito.verify(processContext, Mockito.never()).executable(dmg);
+    assertThat(extractedApp.getParent()).doesNotExist();
+  }
+
+  private static class GlobalToolDummyCommandlet extends GlobalToolCommandlet {
+
+    private final Path applicationsPath;
+
+    GlobalToolDummyCommandlet(IdeContext context, Path applicationsPath) {
+
+      super(context, DUMMY_BINARY, Set.of(Tag.TEST));
+      this.applicationsPath = applicationsPath;
+    }
+
+    @Override
+    protected String getBinaryName() {
+
+      return DUMMY_BINARY;
+    }
+
+    @Override
+    protected Path getMacApplicationsPath() {
+
+      return this.applicationsPath;
+    }
+  }
 
   /**
    * Dummy {@link GlobalToolCommandlet} that simulates a background GUI installer (e.g. Rancher Desktop on Windows). Only {@code doInstall} is overridden so the
