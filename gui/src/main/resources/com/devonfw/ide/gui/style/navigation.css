@@ -1,18 +1,19 @@
 VBox {
 
   -fx-background-color: #18151e;
+  -fx-padding: 15;
 }
 
 .sideNavigationElement {
 
-    -fx-border-radius: 0;
-    -fx-background-color: #CCCCCC;
-    -fx-padding: 10;
-    -fx-font-size: 16px;
-    -fx-text-fill: #000;
-    -fx-border-radius: 10px;
-    -fx-background-radius: 10px;
-  }
+  -fx-border-radius: 0;
+  -fx-background-color: #CCCCCC;
+  -fx-padding: 10;
+  -fx-font-size: 16px;
+  -fx-text-fill: #000;
+  -fx-border-radius: 10px;
+  -fx-background-radius: 10px;
+}
 
 .chooseProject {
 

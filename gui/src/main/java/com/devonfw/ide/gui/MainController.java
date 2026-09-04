@@ -22,6 +22,7 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.control.SplitPane.Divider;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.StackPane;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +38,8 @@ import com.devonfw.ide.gui.modal.IdeDialog;
 import com.devonfw.ide.gui.nls.NlsService;
 import com.devonfw.ide.gui.progress.ProgressBarTask;
 import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindow;
+import com.devonfw.ide.gui.update.UpdateController;
+import com.devonfw.ide.gui.update.UpgradeController;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.OutputListener;
@@ -58,6 +61,9 @@ public class MainController {
 
   @FXML
   private ComboBox<String> selectedProject;
+
+  @FXML
+  private Label projectHeaderLabel;
 
   @FXML
   private ComboBox<String> selectedWorkspace;
@@ -98,15 +104,29 @@ public class MainController {
   @FXML
   private ProgressBar statusProgressBar;
 
+  @FXML
+  private StackPane updateIndicator;
+
+  @FXML
+  private StackPane upgradeIndicator;
 
   private final double PROGRESSBAR_VISIBLE_WIDTH = 150.0;
 
   private final String ideRootPath;
 
-  private final Map<String, Locale> languageMap;
+  private final UpdateController updateController;
+
+  private final UpgradeController upgradeController;
 
   private final NlsService nlsService;
 
+  private final Map<String, Locale> languageMap;
+
+
+  public MainController(String directoryPath, GuiStateManager guiStateManager, NlsService nlsService) {
+    this(directoryPath, guiStateManager, new UpdateController(guiStateManager, nlsService),
+        new UpgradeController(guiStateManager, nlsService), nlsService);
+  }
 
   /**
    * Constructor
@@ -115,7 +135,8 @@ public class MainController {
    * @param guiStateManager the {@link GuiStateManager} to be used in this application instance
    * @param nlsService nlsService instance
    */
-  public MainController(String ideRootPath, GuiStateManager guiStateManager, NlsService nlsService) {
+  public MainController(String ideRootPath, GuiStateManager guiStateManager, UpdateController updateController, UpgradeController upgradeController,
+      NlsService nlsService) {
 
     LOG.debug("IDE_ROOT path={}", ideRootPath);
     this.ideRootPath = ideRootPath;
@@ -124,6 +145,8 @@ public class MainController {
     this.projectManager = guiStateManager.getProjectManager();
     this.languageMap = new LinkedHashMap<>();
     this.nlsService = nlsService;
+    this.updateController = updateController;
+    this.upgradeController = upgradeController;
 
     setUpTaskListListener();
   }
@@ -168,6 +191,8 @@ public class MainController {
 
     setProjectsComboBox();
     initLanguageComboBox();
+    initUpgradeAndUpdateCheck();
+
     selectedWorkspace.setOnAction(this::onWorkspaceSelected);
     consolePaneToggleButton.setOnAction(_ -> toggleConsole());
 
@@ -189,6 +214,25 @@ public class MainController {
     }
     updateContext(selectedProject.getValue(), workspaceName);
     setIdeButtonsDisabled(false);
+  }
+
+  private void initUpgradeAndUpdateCheck() {
+    try {
+      this.updateController.start(this.updateIndicator);
+      if (this.upgradeController != null) {
+        // Pass the indicator to the upgrade controller which will manage its visibility and dialog.
+        this.upgradeController.start(this.upgradeIndicator);
+      }
+    } catch (Exception e) {
+      LOG.debug("Failed to start update controller", e);
+      if (this.updateIndicator != null) {
+        this.updateIndicator.setVisible(false);
+      }
+      if (this.upgradeController != null && this.upgradeIndicator != null) {
+        // if upgrade controller failed to start, ensure indicator hidden
+        this.upgradeIndicator.setVisible(false);
+      }
+    }
   }
 
   private void initLanguageComboBox() {
@@ -279,6 +323,9 @@ public class MainController {
 
       selectedWorkspace.setDisable(false);
     });
+    selectedProject.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+      projectHeaderLabel.setText(newVal != null ? newVal : "");
+    });
   }
 
   private void setWorkspaceComboBox() {
@@ -300,6 +347,9 @@ public class MainController {
       setIdeButtonsDisabled(false);
     } else {
       setIdeButtonsDisabled(true);
+    }
+    if (this.updateController != null) {
+      this.updateController.onContextChanged(this.guiStateManager.getCurrentContext());
     }
   }
 
@@ -362,6 +412,7 @@ public class MainController {
     } catch (FileNotFoundException e) {
       IdeDialog errorDialog = new IdeDialog(AlertType.ERROR, e.getMessage());
       errorDialog.showAndWait();
+      // no-op: manual check button removed
     }
   }
 
