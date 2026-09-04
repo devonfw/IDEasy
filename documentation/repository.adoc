@@ -54,3 +54,26 @@ If omitted no build is triggered.
 |`link`|CSV of `«link»[=«path»]`|(optional) Comma separated list of symbolic links to link the repository into the workspace top-level folder. For a real-world use-case of this feature see link:ai.adoc[AI usage].
 |`active`|`true`|(optional) If set to `false` the repository is skipped during the link:setup.adoc[setup].
 |===
+
+== Variables and expressions
+
+Every value in a repository `.properties` file may contain link:variables.adoc[variables] using the `$[«VARIABLE»]` syntax as well as link:configurator.adoc[expressions] using the `@«function»(...)` syntax.
+They are resolved before the value is used, so they also work in properties that are validated such as `path`.
+
+A typical use-case is to clone the fork of the current user instead of the upstream repository and to add the upstream as an additional remote:
+
+```
+path=IDEasy
+git_url=https://github.com/@ask-variable("GIT_USER", "Please enter your github login:", "home", "$[USERNAME]")/IDEasy.git
+git_remote=upstream:https://github.com/devonfw/IDEasy.git
+git_branch=main
+import=eclipse
+active=true
+```
+
+On the first setup the user is asked for the github login, the answer is stored as `GIT_USER` in `~/.ide/ide.properties` (`home`) and reused on every following run.
+The default `$[USERNAME]` is the login name of the current user on Windows - on Linux and macOS use `$[USER]` instead.
+
+NOTE: A repository with `active=false` is skipped before its properties are read, so a question from `@ask-variable` is never asked for a repository that is not set up.
+
+NOTE: The legacy `${«VARIABLE»}` syntax is intentionally *not* resolved here so that e.g. maven properties in a `build_cmd` are passed through untouched.
