@@ -124,6 +124,45 @@ class GitContextTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Runs a simulated git pull on a repository with multiple remotes configured and checks that the pull is performed instead of asking the user to continue.
+   * See <a href="https://github.com/devonfw/IDEasy/issues/840">issue #840</a>.
+   *
+   * @param tempDir a {@link TempDir} {@link Path}.
+   */
+  @Test
+  void testRunGitPullWithMultipleRemotes(@TempDir Path tempDir) {
+
+    // arrange
+    String gitRepoUrl = "https://github.com/test";
+    IdeTestContext context = newGitContext(tempDir);
+    this.processContext.addOutputMessage(new OutputMessage(false, "origin"));
+    this.processContext.addOutputMessage(new OutputMessage(false, "upstream"));
+    FileAccess fileAccess = new FileAccessImpl(context);
+    fileAccess.mkdirs(tempDir.resolve(GitContext.GIT_FOLDER));
+    // act
+    context.getGitContext().pullOrClone(GitUrl.of(gitRepoUrl), tempDir);
+    // assert
+    assertThat(tempDir.resolve(GitContext.GIT_FOLDER).resolve("update")).hasContent(this.processContext.getNow().toString());
+  }
+
+  /**
+   * Runs a simulated git pull on a repository without any remote and checks that the user is asked whether to continue.
+   *
+   * @param tempDir a {@link TempDir} {@link Path}.
+   */
+  @Test
+  void testRunGitPullWithoutRemoteAsksToContinue(@TempDir Path tempDir) {
+
+    // arrange
+    String gitRepoUrl = "https://github.com/test";
+    IdeTestContext context = newGitContext(tempDir);
+    FileAccess fileAccess = new FileAccessImpl(context);
+    fileAccess.mkdirs(tempDir.resolve(GitContext.GIT_FOLDER));
+    // act + assert (no answers are configured, so asking a question fails)
+    assertThrows(IllegalStateException.class, () -> context.getGitContext().pullOrClone(GitUrl.of(gitRepoUrl), tempDir));
+  }
+
+  /**
    * Runs a git pull with force mode, creates temporary files to simulate a proper cleanup.
    *
    * @param tempDir a {@link TempDir} {@link Path}.
@@ -186,7 +225,7 @@ class GitContextTest extends AbstractIdeContextTest {
   @Test
   void testGitRepoIsRecognizedCorrectly(@TempDir Path tempDir) {
     String gitRepoUrl = "https://github.com/test";
-    
+
     IdeTestContext context = newGitContext(tempDir);
     GitContext gitContext = context.getGitContext();
 
@@ -199,7 +238,7 @@ class GitContextTest extends AbstractIdeContextTest {
   void testNormalDirIsNoRepo(@TempDir Path tempDir) {
     IdeTestContext context = newGitContext(tempDir);
     GitContext gitContext = context.getGitContext();
-    
+
     FileAccess fileAccess = context.getFileAccess();
     fileAccess.mkdirs(tempDir.resolve("new-folder"));
 
