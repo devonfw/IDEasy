@@ -223,30 +223,6 @@ class CreateCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  void testCreateWithInvalidRepositoryContinuesInForceMode() {
-
-    // arrange - force mode lets the user decide to continue even though the health check failed
-    GitContextImplMock gitContextImplMock = new GitContextImplMock(context, TEST_RESOURCES.resolve("pypi"));
-    context.setGitContext(gitContextImplMock);
-    context.getStartContext().setForceMode(true);
-    context.setAnswers("yes");
-    CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
-    cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
-    cc.settingsRepo.setValue(IdeContext.DEFAULT_SETTINGS_REPO_URL);
-    cc.skipTools.setValue(true);
-    cc.skipRepositories.setValue(true);
-
-    // act
-    cc.run();
-
-    // assert
-    Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
-    assertThat(newProjectPath).exists();
-    assertThat(context).logAtWarning()
-        .hasMessageContaining("does not point to a valid settings or code-settings repository");
-  }
-
-  @Test
   void testCreateWithDashPlaceholderAsCliArgument() {
     // arrange - see https://github.com/devonfw/IDEasy/issues/2106
     GitContextImplMock gitContextImplMock = new GitContextImplMock(context, TEST_RESOURCES.resolve("settings"));

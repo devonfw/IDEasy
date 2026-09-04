@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.cli.CliFatalException;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.commandlet.CreateCommandlet;
@@ -192,8 +193,8 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
         SettingsHealthCheckResult _healthCheckResult = settingsUpdater.checkSettings(this.context.getSettingsPath());
         SettingsHealthCheckStatus status = _healthCheckResult.status();
 
-        if (status == null) {
-          throw new CliException("Health check on settings failed due to unknown error - the settings have not been updated");
+        if ((status == null || status == SettingsHealthCheckStatus.SETTINGS_INVALID) && !_healthCheckResult.isExistingProject()) {
+          throw new CliFatalException("Fatal error while cloning settings: The settings health check failed: " + _healthCheckResult.errorMessage());
         } else if (status == SettingsHealthCheckStatus.SETTINGS_INVALID) {
           throw new CliException("The settings health check failed: " + _healthCheckResult.errorMessage());
         }

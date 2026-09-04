@@ -13,7 +13,6 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.git.GitUrl;
 import com.devonfw.tools.ide.git.repository.RepositoryType;
-import com.devonfw.tools.ide.git.repository.RepositoryUtil;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.property.StringProperty;
 
@@ -79,7 +78,7 @@ public class SettingsUpdater {
     if (settingsPath != null && !fileAccess.isEmptyDir(settingsPath)) {
       // for a combined code and settings repository IDE_HOME/settings is a symlink into the code repository whose '.git' folder is one level above,
       // so isGitRepo would report it as broken settings
-      RepositoryType settingsRepoType = RepositoryUtil.getRepositoryType(settingsPath, this.context.getGitContext());
+      RepositoryType settingsRepoType = RepositoryType.of(settingsPath, this.context.getGitContext());
       if (settingsRepoType.isSettingsOrCodeSettingsRepository()) {
         return checkSettingsPresent(settingsPath, settingsRepoType);
       }
@@ -98,7 +97,7 @@ public class SettingsUpdater {
       //Get Git url of existing settings, clone newest version of them to temp dir
       GitUrl gitUrl = GitUrl.of(this.context.getGitContext().retrieveGitUrl(settingsPath));
       Path tempDir = cloneRepoToTempDir(gitUrl);
-      RepositoryType clonedType = RepositoryUtil.getRepositoryType(tempDir, this.context.getGitContext());
+      RepositoryType clonedType = RepositoryType.of(tempDir, this.context.getGitContext());
       cleanup();
 
       //If cloned repo is not (code-)settings repo and no force override (e.g. force mode) is applied, return error.
@@ -129,7 +128,7 @@ public class SettingsUpdater {
       GitUrl gitUrl = getOrAskSettingsUrl();
 
       Path tempCloneDir = cloneRepoToTempDir(gitUrl);
-      RepositoryType repositoryType = RepositoryUtil.getRepositoryType(tempCloneDir, this.context.getGitContext());
+      RepositoryType repositoryType = RepositoryType.of(tempCloneDir, this.context.getGitContext());
 
       if (!repositoryType.isSettingsOrCodeSettingsRepository()) {
         //see @javadoc why we throw fatally here.
@@ -223,12 +222,12 @@ public class SettingsUpdater {
   public SettingsUpdateResult applySettings(boolean onlyPull, Path sourcePath) {
 
     GitContext gitContext = this.context.getGitContext();
-    RepositoryType repositoryType = RepositoryUtil.getRepositoryType(sourcePath, gitContext);
+    RepositoryType repositoryType = RepositoryType.of(sourcePath, gitContext);
     Path settingsPath = this.context.getSettingsPath();
 
     // Case 1: We performed "ide update"; so settings already existed and we just need to perform a git pull in the existing repo.
     if (onlyPull) {
-      repositoryType = RepositoryUtil.getRepositoryType(context.getSettingsPath(), gitContext);
+      repositoryType = RepositoryType.of(context.getSettingsPath(), gitContext);
       if (repositoryType != RepositoryType.SETTINGS) {
         return new SettingsUpdateResult(SettingsUpdateStatus.SETTINGS_UPDATE_FAILED,
             repositoryType,
