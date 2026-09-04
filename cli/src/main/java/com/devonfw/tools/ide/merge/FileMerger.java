@@ -9,6 +9,7 @@ import java.util.regex.Matcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.variable.IdeVariables;
@@ -53,6 +54,9 @@ public abstract class FileMerger extends AbstractWorkspaceMerger {
   public final int merge(Path setup, Path update, EnvironmentVariables variables, Path workspace) {
     try {
       doMerge(setup, update, variables, workspace);
+    } catch (CliException e) {
+      LOG.error("Failed to merge workspace file {} with update template {} and setup file {}!\n{}", workspace, update, setup, e.getMessage());
+      return 1;
     } catch (Exception e) {
       LOG.error("Failed to merge workspace file {} with update template {} and setup file {}!", workspace, update, setup, e);
       return 1;
