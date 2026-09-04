@@ -28,7 +28,10 @@ public class Python extends LocalToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Python.class);
 
-  private final VersionIdentifier PYTHON_MIN_VERSION = VersionIdentifier.of("3.8.2");
+  private static final VersionIdentifier PYTHON_MIN_VERSION = VersionIdentifier.of("3.8.2");
+
+  /** The folder created by {@code uv venv} inside the software folder before it is renamed to the python installation. */
+  static final String VENV_FOLDER = ".venv";
 
   /**
    * The constructor.
@@ -53,6 +56,10 @@ public class Python extends LocalToolCommandlet {
       fileAccess.backup(installationPath);
     }
     Path softwarePath = installationPath.getParent();
+    Path venvPath = softwarePath.resolve(VENV_FOLDER);
+
+    fileAccess.delete(venvPath);
+
     Uv uv = this.context.getCommandletManager().getCommandlet(Uv.class);
 
     uv.installPython(softwarePath, resolvedVersion, request.getProcessContext());
@@ -67,11 +74,19 @@ public class Python extends LocalToolCommandlet {
 
     super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
     environmentContext.withEnvVar("VIRTUAL_ENV", toolInstallation.rootDir().toString());
+    environmentContext.withEnvVar("UV_PROJECT_ENVIRONMENT", toolInstallation.rootDir().toString());
   }
 
   @Override
   protected boolean isIgnoreSoftwareRepo() {
 
+    return true;
+  }
+
+  @Override
+  protected boolean isIgnoreMissingSoftwareVersionFile() {
+
+    // https://github.com/devonfw/IDEasy/issues/2190
     return true;
   }
 
@@ -107,7 +122,7 @@ public class Python extends LocalToolCommandlet {
    */
   private void renameVenvFolderToPython(FileAccess fileAccess, Path softwarePath, Path installationPath) {
 
-    Path venvPath = softwarePath.resolve(".venv");
+    Path venvPath = softwarePath.resolve(VENV_FOLDER);
     fileAccess.move(venvPath, installationPath, StandardCopyOption.REPLACE_EXISTING);
   }
 

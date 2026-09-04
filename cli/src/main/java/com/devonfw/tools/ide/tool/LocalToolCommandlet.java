@@ -207,6 +207,11 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
         } else if (!isIgnoreMissingSoftwareVersionFile()) {
           LOG.warn("Deleting corrupted installation at {}", installationPath);
           fileAccess.delete(installationPath);
+        } else {
+          // Version file missing but tool allows this - restore it and preserve installation
+          LOG.warn("Version file missing at {} - restoring it for tool {}", toolVersionFile, this.tool);
+          // Restore the missing file
+          return createToolInstallation(installationPath, resolvedVersion, false, processContext, additionalInstallation);
         }
       }
     }
@@ -361,9 +366,19 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   @Override
-  public VersionIdentifier getInstalledVersion() {
+  protected EditionAndVersion computeInstalledEditionAndVersion() {
 
-    return getInstalledVersion(getToolPath());
+    Path toolPath = getToolPath();
+    if (isToolNotInstalled(toolPath)) {
+      return null;
+    }
+    // Resolve edition and version from a single tool-path lookup (one pass) instead of two separate lookups.
+    String edition = getInstalledEdition(toolPath);
+    VersionIdentifier version = getInstalledVersion(toolPath);
+    if (version == null) {
+      return null;
+    }
+    return new EditionAndVersion(edition, version);
   }
 
   /**
@@ -391,12 +406,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     }
     String version = this.context.getFileAccess().readFileContent(toolVersionFile).trim();
     return VersionIdentifier.of(version);
-  }
-
-  @Override
-  public String getInstalledEdition() {
-
-    return getInstalledEdition(getToolPath());
   }
 
   /**

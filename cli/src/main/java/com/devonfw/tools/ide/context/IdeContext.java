@@ -24,6 +24,7 @@ import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.network.NetworkStatus;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
+import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.corepack.Corepack;
@@ -127,6 +128,9 @@ public interface IdeContext extends IdeStartContext {
   /** The name of the bin folder where executable files are found by default. */
   String FOLDER_BIN = "bin";
 
+  /** The name of the repository folder used to store repository data */
+  String FOLDER_REPOSITORY = "repository";
+
   /** The name of the repositories folder where properties files are stores for each repository */
   String FOLDER_REPOSITORIES = "repositories";
 
@@ -169,8 +173,8 @@ public interface IdeContext extends IdeStartContext {
    * configured every time. This is only for settings that have to be the same for every developer in the project. An example would be the number of spaces used
    * for indentation and other code-formatting settings. If all developers in a project team use the same formatter settings, this will actively prevent
    * diff-wars. However, the entire team needs to agree on these settings.<br> Never configure aspects inside this update folder that may be of personal flavor
-   * such as the color theme. Otherwise developers will hate you as you actively take away their freedom to customize the IDE to their personal needs and
-   * wishes. Therefore do all "biased" or "flavored" configurations in {@link #FOLDER_SETUP setup} so these are only pre-configured but can be changed by the
+   * such as the color theme. Otherwise, developers will hate you as you actively take away their freedom to customize the IDE to their personal needs and
+   * wishes. Therefore, do all "biased" or "flavored" configurations in {@link #FOLDER_SETUP setup} so these are only pre-configured but can be changed by the
    * user as needed.
    */
   String FOLDER_UPDATE = "update";
@@ -275,6 +279,42 @@ public interface IdeContext extends IdeStartContext {
   default String askForInput(String message) {
     return askForInput(message, null);
   }
+
+  /**
+   * Asks the user for a single secret input (e.g. a password or API token). Unlike {@link #askForInput(String, String)} the input is not echoed to the console
+   * if a secure console is available.
+   *
+   * @param message The information message to display.
+   * @param defaultValue The default value to return when no input is provided or {@code null} to keep asking until the user entered a non empty value.
+   * @return The secret input from the user, or the default value if no input is provided.
+   */
+  String askForSecret(String message, String defaultValue);
+
+  /**
+   * Asks the user for a single secret input (e.g. a password or API token).
+   *
+   * @param message The information message to display.
+   * @return The secret input from the user.
+   */
+  default String askForSecret(String message) {
+    return askForSecret(message, null);
+  }
+
+  /**
+   * Marks the variable with the given name as secret so that its value is masked in all log output, even if the value is not entered by the user but read from
+   * an existing {@code ide.properties}.
+   *
+   * @param name the name of the variable (e.g. "MY_API_TOKEN").
+   */
+  void addSecretVariable(String name);
+
+  /**
+   * Registers the value of a variable as secret if the variable was marked via {@link #addSecretVariable(String)}. Has to be called before the value is logged.
+   *
+   * @param name the name of the variable.
+   * @param value the value of the variable.
+   */
+  void addSecretValue(String name, String value);
 
   /**
    * @param question the question to ask.
@@ -658,6 +698,15 @@ public interface IdeContext extends IdeStartContext {
    * @return a new {@link ProcessContext} to {@link ProcessContext#run() run} external commands.
    */
   ProcessContext newProcess();
+
+  /**
+   * Sets the environment variables of all tools installed in the {@link #getSoftwarePath() software path} in the given {@link EnvironmentContext}. This is the
+   * single source of truth for the tool environment: it is used for the environment exported to the user's shell (see
+   * {@link com.devonfw.tools.ide.commandlet.EnvironmentCommandlet}) as well as for the {@link ProcessContext} of a tool that is run via IDEasy.
+   *
+   * @param environmentContext the {@link EnvironmentContext} where to set the environment variables.
+   */
+  void setEnvironmentOfInstalledTools(EnvironmentContext environmentContext);
 
   /**
    * @param title the {@link IdeProgressBar#getTitle() title}.

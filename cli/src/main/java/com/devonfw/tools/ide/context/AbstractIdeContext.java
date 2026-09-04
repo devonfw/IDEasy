@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -17,6 +18,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.logging.FileHandler;
 import java.util.logging.LogManager;
@@ -40,7 +42,6 @@ import com.devonfw.tools.ide.commandlet.UpgradeCommandlet;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
-import com.devonfw.tools.ide.completion.CompletionCandidateCollectorDefault;
 import com.devonfw.tools.ide.environment.AbstractEnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
@@ -64,6 +65,7 @@ import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.os.WindowsHelperImpl;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
+import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessContextImpl;
 import com.devonfw.tools.ide.process.ProcessResult;
@@ -71,14 +73,16 @@ import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.step.StepImpl;
+import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.custom.CustomToolRepository;
 import com.devonfw.tools.ide.tool.custom.CustomToolRepositoryImpl;
 import com.devonfw.tools.ide.tool.mvn.MvnRepository;
 import com.devonfw.tools.ide.tool.npm.NpmRepository;
 import com.devonfw.tools.ide.tool.pip.PipRepository;
+import com.devonfw.tools.ide.tool.python.PythonRepository;
 import com.devonfw.tools.ide.tool.repository.DefaultToolRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
-import com.devonfw.tools.ide.tool.python.PythonRepository;
 import com.devonfw.tools.ide.tool.uv.UvRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.util.DateTimeUtil;
@@ -176,7 +180,17 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   private WindowsHelper windowsHelper;
 
+  /** The replacement used to mask a secret in log output. */
+  private static final String SECRET_MASK = "********";
+
+  /** Minimum length of a value to be masked as a secret in log output. Masking a very short value would corrupt unrelated log messages. */
+  private static final int SECRET_MIN_LENGTH = 3;
+
   private final Map<String, String> privacyMap;
+
+  private final Set<String> secrets;
+
+  private final Set<String> secretVariables;
 
   private Path bash;
 
@@ -198,6 +212,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     this.startContext = startContext;
     this.startContext.setArgFormatter(this);
     this.privacyMap = new HashMap<>();
+    this.secrets = new HashSet<>();
+    this.secretVariables = new HashSet<>();
     this.systemInfo = SystemInfoImpl.INSTANCE;
     if (isTest()) {
       configureJavaUtilLogging(null);
@@ -966,6 +982,29 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     return this.system;
   }
 
+  @Override
+  public void setEnvironmentOfInstalledTools(EnvironmentContext environmentContext) {
+
+    if (getSoftwarePath() == null) {
+      return;
+    }
+    for (Commandlet commandlet : getCommandletManager().getCommandlets()) {
+      if (commandlet instanceof LocalToolCommandlet tool) {
+        Path toolPath = tool.getToolPath();
+        // we cannot use isInstalled() here since it may spawn processes (e.g. "npm --version") what would be way too expensive.
+        if ((toolPath != null) && Files.isDirectory(toolPath)) {
+          try {
+            // for performance optimization, we do a hack here and assume that the installedVersion is never used by any setEnvironment method implementation.
+            ToolInstallation toolInstallation = new ToolInstallation(toolPath, toolPath, tool.getToolBinPath(), VersionIdentifier.LATEST, false);
+            tool.setEnvironment(environmentContext, toolInstallation, false);
+          } catch (Exception e) {
+            LOG.warn("Failed to set the environment variables of the installed tool {}.", tool.getName(), e);
+          }
+        }
+      }
+    }
+  }
+
   /**
    * @return a new instance of {@link ProcessContext}.
    * @see #newProcess()
@@ -1025,7 +1064,39 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       }
       result = PrivacyUtil.removeSensitivePathInformation(result);
     }
+    // Secrets are masked independent of the privacy mode: a value the user entered as a secret or that belongs to a
+    // variable marked as secret must never appear in any log output. This is done here since formatArgument is the
+    // single place all log arguments pass through, so no individual log statement can be forgotten.
+    for (String secret : this.secrets) {
+      result = result.replace(secret, SECRET_MASK);
+    }
     return result;
+  }
+
+  @Override
+  public void addSecretVariable(String name) {
+
+    if ((name != null) && !name.isEmpty()) {
+      this.secretVariables.add(name);
+    }
+  }
+
+  @Override
+  public void addSecretValue(String name, String value) {
+
+    if (this.secretVariables.contains(name)) {
+      addSecret(value);
+    }
+  }
+
+  /**
+   * @param secret the secret value to mask in all log output. Ignored if {@code null} or shorter than {@link #SECRET_MIN_LENGTH}.
+   */
+  protected void addSecret(String secret) {
+
+    if ((secret != null) && (secret.length() >= SECRET_MIN_LENGTH)) {
+      this.secrets.add(secret);
+    }
   }
 
   /**
@@ -1057,6 +1128,27 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   @Override
   public String askForInput(String message, String defaultValue) {
 
+    return ask(message, defaultValue, false);
+  }
+
+  @Override
+  public String askForSecret(String message, String defaultValue) {
+
+    return ask(message, defaultValue, true);
+  }
+
+  /**
+   * Asks the user for a value, re-asking while the input is empty and a default value is given.
+   *
+   * @param message the question to ask.
+   * @param defaultValue the value to return if the user accepts the default (by entering an empty value) or {@code null} to re-ask until a value is
+   *     entered.
+   * @param secret - {@code true} to read the input in a masked way (see {@link #readSecretLine()}) and to mask it in the log output, {@code false} to
+   *     read it as plain text.
+   * @return the entered value or the default value.
+   */
+  private String ask(String message, String defaultValue, boolean secret) {
+
     while (true) {
       if (!message.isBlank()) {
         IdeLogLevel.INTERACTION.log(LOG, message);
@@ -1068,11 +1160,18 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
           throw new CliAbortException();
         }
       }
-      String input = readLine().trim();
+      // for a secret the input is not trimmed so that a leading or trailing whitespace that is part of the password or a pasted token is preserved
+      String input = secret ? readSecretLine() : readLine().trim();
       if (!input.isEmpty()) {
+        if (secret) {
+          addSecret(input);
+        }
         return input;
       } else {
         if (defaultValue != null) {
+          if (secret) {
+            addSecret(defaultValue);
+          }
           return defaultValue;
         }
       }
@@ -1084,7 +1183,6 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
     assert (options.length > 0);
     IdeLogLevel.INTERACTION.log(LOG, question, args);
-    LOG.warn(question, args);
     return displayOptionsAndGetAnswer(options);
   }
 
@@ -1146,6 +1244,15 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
    * @return the input from the end-user (e.g. read from the console).
    */
   protected abstract String readLine();
+
+  /**
+   * @return the secret input from the end-user (e.g. read from the console without echoing it). The default implementation simply delegates to
+   *     {@link #readLine()} so that sub-classes without a secure console (e.g. in tests) work out of the box.
+   */
+  protected String readSecretLine() {
+
+    return readLine();
+  }
 
   private static <O> void addMapping(Map<String, O> mapping, String key, O option) {
 
@@ -1250,6 +1357,16 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       IdeLogLevel.INTERACTION.log(LOG, "For additional details run ide help {}", cmd == null ? "" : cmd.getName());
       return 1;
     } catch (Throwable t) {
+      if (cmd != null && cmd.isProcessableOutput()) {
+        // Processable output commandlets (auto-completion, env) write machine-consumed output to stdout. A failure
+        // there must not pollute that output with an error block and "file a bug" screen — so we record the failure
+        // (step.error still logs "Step ... ended with failure" for step tracking) and fail quietly instead of
+        // rethrowing, which would make Ideasy.run() log the error at ERROR level into the captured output.
+        step.error(t, true);
+        return 1;
+      }
+      // Do not activate logging for processable output commandlets (e.g. CompleteCommandlet) — errors would appear
+      // in the terminal as completion suggestions to the user.
       activateLogging(cmd);
       step.error(t, true);
       if (this.logfile != null) {
@@ -1543,9 +1660,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
    * @param includeContextOptions to include the options of {@link ContextCommandlet}.
    * @return the {@link List} of {@link CompletionCandidate}s to suggest.
    */
-  public List<CompletionCandidate> complete(CliArguments arguments, boolean includeContextOptions) {
+  public List<CompletionCandidate> complete(CliArguments arguments, CompletionCandidateCollector collector, boolean includeContextOptions) {
 
-    CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(this);
     if (arguments.current().isStart()) {
       arguments.next();
     }
@@ -1595,6 +1711,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   private void completeCommandlet(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
 
     LOG.trace("Trying to match arguments for auto-completion for commandlet {}", cmd.getName());
+
     Iterator<Property<?>> valueIterator = cmd.getValues().iterator();
     valueIterator.next(); // skip first property since this is the keyword property that already matched to find the commandlet
     Property<?> currentValueProperty = nextValueProperty(valueIterator, arguments);
