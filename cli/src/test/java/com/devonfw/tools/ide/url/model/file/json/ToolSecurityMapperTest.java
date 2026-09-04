@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.url.model.file.json;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,20 @@ class ToolSecurityMapperTest extends Assertions {
     mapper.saveJsonToFolder(toolSecurity, tmpDir);
     // assert
     assertThat(tmpDir.resolve(mapper.getStandardFilename())).hasSameTextualContentAs(testPath.resolve("security-normalized.json"));
+  }
+
+  @Test
+  void testConditionsRoundTrip(@TempDir Path tmpDir) {
+    // arrange
+    ToolSecurityMapper mapper = ToolSecurityMapper.get();
+    Cve cve = new Cve("CVE-2024-99999", 5.0, List.of(VersionRange.of("(,1.0.0)")),
+        Map.of("windows", List.of(VersionRange.of("[2.0.0,2.0.8]")), "linux", List.of(VersionRange.of("[2.0.0,2.0.5]"))));
+    ToolSecurity toolSecurity = new ToolSecurity(List.of(cve));
+    // act
+    mapper.saveJsonToFolder(toolSecurity, tmpDir);
+    ToolSecurity loaded = mapper.loadJsonFromFolder(tmpDir);
+    // assert
+    assertThat(loaded.getIssues()).containsExactly(cve);
   }
 
 }
