@@ -36,8 +36,8 @@ public class SettingsUpdater {
       Please contact the technical lead of your project to get the SETTINGS_URL for your project to enter.
       In case you just want to test IDEasy you may simply hit return to install the default settings.""";
 
-  private static final String MESSAGE_INVALID_REPOSITORY = "Settings repository integrity check failed: "
-      + "The given git repository URL does not point to a valid settings or code-settings repository. Please verify and try again.";
+  private static final String MESSAGE_INVALID_REPOSITORY = "The given git repository URL does not point to a valid settings or code-settings repository. "
+      + "Please verify and try again.";
 
   private final IdeContext context;
 
@@ -152,7 +152,7 @@ public class SettingsUpdater {
     if (error instanceof CliFatalException rethrow) {
       return rethrow;
     } else if (error instanceof CliException) {
-      return new CliFatalException(error.getMessage(), error);
+      return new CliFatalException("Error occurred during settings update: " + error.getMessage(), error);
     }
     return new CliFatalException("Error occurred during settings update: " + error.getClass() + ": " + error.getMessage(), error);
   }

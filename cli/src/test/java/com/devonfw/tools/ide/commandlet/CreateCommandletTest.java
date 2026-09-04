@@ -189,7 +189,7 @@ class CreateCommandletTest extends AbstractIdeContextTest {
     assertThatThrownBy(cc::run)
         .isInstanceOf(CliException.class)
         .hasMessageContaining(
-            "Settings repository integrity check failed: "
+            "Fatal error while cloning settings: The settings health check failed: "
                 + "The given git repository URL does not point to a valid settings or code-settings repository. Please verify and try again.");
 
     // assert - if "ide create" fails then no project shall be created at all
