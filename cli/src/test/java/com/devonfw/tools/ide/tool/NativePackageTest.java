@@ -24,7 +24,7 @@ class NativePackageTest {
 
   @Test
   void testConstructorWithAllFields() {
-    NativePackage np = new NativePackage(NativePackageManager.APT, List.of("pkg1"), List.of("--opt"), List.of("setup"), List.of("cleanup"));
+    NativePackage np = new NativePackage(NativePackageManager.APT, List.of("pkg1"), List.of("--opt"), List.of("setup"), List.of("cleanup"), List.of());
 
     assertThat(np.getExtraInstallOptions()).containsExactly("--opt");
     assertThat(np.getSetupCommands()).containsExactly("setup");
@@ -33,14 +33,14 @@ class NativePackageTest {
 
   @Test
   void testGetPackages() {
-    NativePackage np = new NativePackage(NativePackageManager.APT, List.of("pkg1"), null, null, null);
+    NativePackage np = new NativePackage(NativePackageManager.APT, List.of("pkg1"), null, null, null, null);
 
     assertThat(np.getPackages()).containsExactly("pkg1");
   }
 
   @Test
   void testNullSafeGetters() {
-    NativePackage np = new NativePackage(NativePackageManager.APT, List.of("pkg1"), null, null, null);
+    NativePackage np = new NativePackage(NativePackageManager.APT, List.of("pkg1"), null, null, null, null);
 
     assertThat(np.getExtraInstallOptions()).isEmpty();
     assertThat(np.getSetupCommands()).isEmpty();

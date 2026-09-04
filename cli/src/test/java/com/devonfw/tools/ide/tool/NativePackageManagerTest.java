@@ -23,7 +23,8 @@ class NativePackageManagerTest {
             "sudo apt update"),
         List.of(
             "sudo rm -f /etc/apt/sources.list.d/example.list",
-            "sudo rm -f /usr/share/keyrings/example.gpg"));
+            "sudo rm -f /usr/share/keyrings/example.gpg"),
+        List.of());
 
     var cmd = NativePackageManager.APT.install(np, "1.0.0");
 
@@ -47,7 +48,8 @@ class NativePackageManagerTest {
             "sudo apt update"),
         List.of(
             "sudo rm -f /etc/apt/sources.list.d/example.list",
-            "sudo rm -f /usr/share/keyrings/example.gpg"));
+            "sudo rm -f /usr/share/keyrings/example.gpg"),
+        List.of());
 
     var cmd = NativePackageManager.APT.uninstall(np);
 
@@ -68,7 +70,8 @@ class NativePackageManagerTest {
             "sudo zypper addrepo https://example.com/repo.repo",
             "sudo zypper refresh"),
         List.of(
-            "sudo zypper removerepo example-repo"));
+            "sudo zypper removerepo example-repo"),
+        List.of());
 
     var cmd = NativePackageManager.ZYPPER.install(np, "1.0.0");
 
@@ -89,7 +92,8 @@ class NativePackageManagerTest {
             "sudo zypper addrepo https://example.com/repo.repo",
             "sudo zypper refresh"),
         List.of(
-            "sudo zypper removerepo example-repo"));
+            "sudo zypper removerepo example-repo"),
+        List.of());
 
     var cmd = NativePackageManager.ZYPPER.uninstall(np);
 
@@ -109,7 +113,8 @@ class NativePackageManagerTest {
             "sudo yum-config-manager --add-repo https://example.com/repo.repo",
             "sudo yum makecache"),
         List.of(
-            "sudo rm -f /etc/yum.repos.d/example.repo"));
+            "sudo rm -f /etc/yum.repos.d/example.repo"),
+        List.of());
 
     var cmd = NativePackageManager.YUM.install(np, "1.0.0");
 
@@ -127,7 +132,8 @@ class NativePackageManagerTest {
         List.of("pkg1"),
         List.of("--skip-broken"),
         List.of("sudo yum-config-manager --add-repo https://example.com/repo.repo", "sudo yum makecache"),
-        List.of("sudo rm -f /etc/yum.repos.d/example.repo"));
+        List.of("sudo rm -f /etc/yum.repos.d/example.repo"),
+        List.of());
 
     var cmd = NativePackageManager.YUM.uninstall(np);
 
@@ -143,7 +149,8 @@ class NativePackageManagerTest {
         List.of("pkg1"),
         List.of("--refresh"),
         List.of("sudo dnf config-manager addrepo --from-repofile=https://example.com/repo.repo", "sudo dnf makecache"),
-        List.of("sudo rm -f /etc/yum.repos.d/example.repo"));
+        List.of("sudo rm -f /etc/yum.repos.d/example.repo"),
+        List.of());
 
     var cmd = NativePackageManager.DNF.install(np, "1.0.0");
 
@@ -159,7 +166,8 @@ class NativePackageManagerTest {
         List.of("pkg1"),
         List.of("--refresh"),
         List.of("sudo dnf config-manager addrepo --from-repofile=https://example.com/repo.repo", "sudo dnf makecache"),
-        List.of("sudo rm -f /etc/yum.repos.d/example.repo"));
+        List.of("sudo rm -f /etc/yum.repos.d/example.repo"),
+        List.of());
 
     var cmd = NativePackageManager.DNF.uninstall(np);
 
@@ -191,5 +199,52 @@ class NativePackageManagerTest {
     assertThat(NativePackageManager.ZYPPER.parseVersionQueryOutput("1.0.0")).isEqualTo("1.0.0");
     assertThat(NativePackageManager.YUM.parseVersionQueryOutput("1.0.0")).isEqualTo("1.0.0");
     assertThat(NativePackageManager.DNF.parseVersionQueryOutput("1.0.0")).isEqualTo("1.0.0");
+  }
+
+  @Test
+  void installUsesPackageNameAndVersionWhenNoArtifactPathConfigured() {
+    NativePackage nativePackage = new NativePackage(NativePackageManager.APT, List.of("docker-desktop"));
+    PackageManagerCommand result = NativePackageManager.APT.install(nativePackage, "1.2.3");
+
+    List<String> commands = result.commands();
+    String installCommand = commands.getLast();
+    assertThat(installCommand).contains("apt", "install -y", "docker-desktop=1.2.3*");
+    assertThat(installCommand).doesNotContain(".deb");
+  }
+
+  @Test
+  void installUsesArtifactPathWhenConfiguredInsteadOfPackageName() {
+    String debPath = "/tmp/downloads/docker-desktop-4.34.0-amd64";
+
+    NativePackage nativePackage = new NativePackage(NativePackageManager.APT, List.of("docker-desktop"), null, null, null, List.of(debPath));
+
+    PackageManagerCommand result = NativePackageManager.APT.install(nativePackage, null);
+
+    List<String> commands = result.commands();
+    String installCommand = commands.getLast();
+    assertThat(installCommand).contains(debPath);
+    assertThat(installCommand).doesNotContain("docker-desktop=");
+  }
+
+  @Test
+  void installFallsBackToPackagesWhenArtifactPathListIsEmpty() {
+    NativePackage nativePackage = new NativePackage(NativePackageManager.APT, List.of("docker-desktop"), null, null, null, List.of());
+
+    PackageManagerCommand result = NativePackageManager.APT.install(nativePackage, null);
+
+    List<String> commands = result.commands();
+    String installCommand = commands.getLast();
+    assertThat(installCommand).contains("docker-desktop");
+  }
+
+  @Test
+  void installRejectsMismatchingPackageManager() {
+    NativePackage nativePackage = new NativePackage(NativePackageManager.APT, List.of("docker-desktop"), null, null, null, List.of());
+
+    PackageManagerCommand result = NativePackageManager.APT.install(nativePackage, null);
+
+    List<String> commands = result.commands();
+    String installCommand = commands.getLast();
+    assertThat(installCommand).contains("docker-desktop");
   }
 }
