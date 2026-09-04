@@ -99,16 +99,16 @@ public record Cve(String id, double severity, List<VersionRange> versions, Map<S
 
   private Map<String, List<VersionRange>> mergeConditions(Map<String, List<VersionRange>> other) {
 
-    if (this.conditions.isEmpty() && other.isEmpty()) {
-      return Map.of();
+    if (this.conditions.isEmpty()) {
+      return other;
     }
-    Map<String, List<VersionRange>> newConditions = new TreeMap<>();
-    this.conditions.forEach((os, ranges) -> newConditions.put(os, new ArrayList<>(ranges)));
+    Map<String, List<VersionRange>> newConditions = new TreeMap<>(this.conditions);
     other.forEach((os, ranges) -> {
-      List<VersionRange> newRanges = newConditions.computeIfAbsent(os, key -> new ArrayList<>());
+      List<VersionRange> newRanges = new ArrayList<>(newConditions.getOrDefault(os, List.of()));
       ranges.forEach(range -> mergeVersionRage(newRanges, range));
+      newConditions.put(os, newRanges);
     });
-    return newConditions;
+    return Map.copyOf(newConditions);
   }
 
   /**
