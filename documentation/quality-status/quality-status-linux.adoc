@@ -9,13 +9,13 @@ Automatically generated open issue overview for Linux.
 
 link:quality-status.adoc[Back to overview]
 
-*Total Issues:* 144
+*Total Issues:* 141
 
 * OS-specific: 6
 
 * Multi-OS: 1
 
-* Cross-platform: 137
+* Cross-platform: 134
 
 == Linux Specific Issues
 
@@ -23,14 +23,6 @@ link:quality-status.adoc[Back to overview]
 |===
 | Issue | Summary
 2+^| *11-30 days*
-
-| link:https://github.com/devonfw/IDEasy/issues/2345[#2345]
-| DOCKER_EDITION ignored on Linux
-
-| link:https://github.com/devonfw/IDEasy/issues/2271[#2271]
-| ide install pgadmin fails on Ubuntu Linux
-
-2+^| *61-90 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2007[#2007]
 | IDEasy can not install docker on arch linux
@@ -40,11 +32,17 @@ link:quality-status.adoc[Back to overview]
 | link:https://github.com/devonfw/IDEasy/issues/1352[#1352]
 | VSCode WSL warning prompt blocking VSCode plugin installation
 
+| link:https://github.com/devonfw/IDEasy/issues/1046[#1046]
+| Add Support for Python on Linux
+
 | link:https://github.com/devonfw/IDEasy/issues/950[#950]
 | avoid --no-gpg-checks for docker installation on SUSE Linux
 
 | link:https://github.com/devonfw/IDEasy/issues/854[#854]
 | Kubectl not working on linux
+
+| link:https://github.com/devonfw/IDEasy/issues/694[#694]
+| Add linux support to dotnet tool
 
 |===
 

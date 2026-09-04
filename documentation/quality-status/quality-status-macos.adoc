@@ -9,35 +9,19 @@ Automatically generated open issue overview for macOS.
 
 link:quality-status.adoc[Back to overview]
 
-*Total Issues:* 151
+*Total Issues:* 146
 
-* OS-specific: 13
+* OS-specific: 11
 
 * Multi-OS: 1
 
-* Cross-platform: 137
+* Cross-platform: 134
 
 == macOS Specific Issues
 
 [%header, cols="^1,7"]
 |===
 | Issue | Summary
-2+^| *11-30 days*
-
-| link:https://github.com/devonfw/IDEasy/issues/2344[#2344]
-| Small cleanup: align macos pkg build script with windows msi build script
-
-| link:https://github.com/devonfw/IDEasy/issues/2316[#2316]
-| Homebrew formula publish fails: brew audit no longer accepts a path
-
-| link:https://github.com/devonfw/IDEasy/issues/2252[#2252]
-| Provide uninstall support for globally installed tools (macOS)
-
-2+^| *31-60 days*
-
-| link:https://github.com/devonfw/IDEasy/issues/2206[#2206]
-| IDEasy title not properly shown on macOS
-
 2+^| *90+ days*
 
 | link:https://github.com/devonfw/IDEasy/issues/1512[#1512]
@@ -58,11 +42,17 @@ link:quality-status.adoc[Back to overview]
 | link:https://github.com/devonfw/IDEasy/issues/868[#868]
 | Eclipse does not work on Mac x64
 
+| link:https://github.com/devonfw/IDEasy/issues/865[#865]
+| Az is not working on Mac x64
+
 | link:https://github.com/devonfw/IDEasy/issues/864[#864]
 | AWS is not working on Mac x64
 
 | link:https://github.com/devonfw/IDEasy/issues/798[#798]
 | pgadmin not working on Mac
+
+| link:https://github.com/devonfw/IDEasy/issues/423[#423]
+| Create installer for MacOS
 
 | link:https://github.com/devonfw/IDEasy/issues/377[#377]
 | Support Homebrew for installation on macOS
