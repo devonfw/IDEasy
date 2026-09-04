@@ -1,0 +1,64 @@
+== Retesting Pull Requests
+:toc:
+toc::[]
+
+After a pull request (PR) has been merged into `main`, it should be retested against the latest upstream snapshot to ensure that it continues to work
+correctly after integration.
+
+Missing or delayed retests can introduce regressions, destabilize upcoming releases and delay the delivery of a new IDEasy version.
+Therefore, retesting should be performed continuously as part of the regular QA process.
+
+=== When to retest
+
+* Any PR you created.
+* Any PR you reviewed if the original author is unavailable.
+
+=== Prerequisites
+
+Before starting the retest process, update your local IDEasy installation to the latest snapshot version so its contains the merged changes:
+
+[source,bash]
+----
+ide upgrade --mode=snapshot
+----
+
+=== Retest Workflow
+
+. https://github.com/orgs/devonfw/projects/5/views/12=[Open the Retests IDEasy board].
+. Select your GitHub username in the *Author* filter.
+. Open all listed pull requests in separate browser tabs.
+. Review and retest each pull request individually.
+
+=== Retesting a Pull Request
+
+For every pull request:
+
+. Understand the original change and determine how it can be verified.
+. Perform the retest using the IDEasy command line.
+. Document the result by adding a comment to the pull request.
++
+Example:
++
+----
+Successfully tested on Windows 11
+
+ide foo bar
+
+<relevant log output>
+----
+. If you discover an issue during retesting:
+.. immediately create a new bug issue.
+.. Reference the bug issue in your pull request comment.
+. Add the `QA approved` label to the pull request once the retest has passed.
+
+=== Retest Result Expectations
+
+A successful retest comment should contain:
+
+* The operating system used for testing.
+* The executed command(s).
+* Relevant output or observations.
+* A clear statement whether the retest passed or failed.
+
+If the retest fails, always create and link a dedicated bug issue before continuing.
+This ensures that regressions are tracked and can be addressed before the next IDEasy release.
