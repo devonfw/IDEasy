@@ -95,7 +95,8 @@ public class Docker extends GlobalToolCommandlet {
               ),
               List.of(
                   "sudo rm -f /etc/apt/sources.list.d/docker.list",
-                  "sudo rm -f /etc/apt/keyrings/docker.asc"
+                  "sudo rm -f /etc/apt/keyrings/docker.asc",
+                  "sudo dpkg --purge docker-desktop"
               ),
               artifactPaths
           )
