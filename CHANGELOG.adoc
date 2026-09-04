@@ -7,6 +7,8 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/871[#871]: Add a progress bar when copying applications from DMG files
+* https://github.com/devonfw/IDEasy/issues/2178[#2178]: Make ReleaseCommandlet independent of specific build commandlet and fix `ide build` using npm instead of yarn
+* https://github.com/devonfw/IDEasy/issues/2142[#2142]: Move IDE-specific metadata (.idea, .vscode) out of workspace
 * https://github.com/devonfw/IDEasy/issues/989[#989]: Allow expressions in template variable definitions
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/50?closed=1[milestone 2026.09.002].
@@ -39,6 +41,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1135[#1135]: Fix PowerShell env variable initialization on Windows by sourcing functions from the PowerShell profile
 * https://github.com/devonfw/IDEasy/issues/741[#741]: Add a warning message for legacy devonfw-ide settings users
 * https://github.com/devonfw/IDEasy/issues/1933[#1933]: Added a console panel to the GUI
+* https://github.com/devonfw/IDEasy/issues/1981[#1981]: Fall back to windows-x64 when no windows-arm64 artifact is published
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/49?closed=1[milestone 2026.09.001].
 

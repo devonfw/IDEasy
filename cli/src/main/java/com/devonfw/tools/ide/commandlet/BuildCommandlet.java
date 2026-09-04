@@ -8,17 +8,11 @@ import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
-import com.devonfw.tools.ide.tool.gradle.Gradle;
-import com.devonfw.tools.ide.tool.mvn.Mvn;
-import com.devonfw.tools.ide.tool.npm.Npm;
-import com.devonfw.tools.ide.tool.yarn.Yarn;
 
 /**
  * Build tool {@link Commandlet} for automatically detecting build configuration files and running the respective tool.
  */
 public class BuildCommandlet extends Commandlet {
-
-  private static final List<Class<? extends LocalToolCommandlet>> BUILD_TOOLS = List.of(Mvn.class, Gradle.class, Yarn.class, Npm.class);
 
   /** The explicit build options to use (if empty use defaults). */
   public final StringProperty arguments;
@@ -50,21 +44,14 @@ public class BuildCommandlet extends Commandlet {
       throw new CliException("Missing current working directory!");
     }
 
-    List<String> args = this.arguments.asList();
-    LocalToolCommandlet commandlet = null;
-    for (Class<? extends LocalToolCommandlet> toolClass : BUILD_TOOLS) {
-      LocalToolCommandlet toolCommandlet = this.context.getCommandletManager().getCommandlet(toolClass);
-      Path buildDescriptor = toolCommandlet.findBuildDescriptor(buildPath);
-      if (buildDescriptor != null) {
-        commandlet = toolCommandlet;
-        if (args.isEmpty()) {
-          String variableName = commandlet.getName().toUpperCase(Locale.ROOT) + "_BUILD_OPTS";
-          args = getDefaultToolOptions(variableName);
-        }
-      }
-    }
+    LocalToolCommandlet commandlet = this.context.getCommandletManager().findBuildTool(buildPath);
     if (commandlet == null) {
-      throw new CliException("Could not find build descriptor - no pom.xml, build.gradle, or package.json found!");
+      throw new CliException("Could not find a build descriptor in " + buildPath + " - no supported build tool detected.");
+    }
+    List<String> args = this.arguments.asList();
+    if (args.isEmpty()) {
+      String variableName = commandlet.getName().toUpperCase(Locale.ROOT) + "_BUILD_OPTS";
+      args = getDefaultToolOptions(variableName);
     }
     commandlet.runTool(args);
   }
