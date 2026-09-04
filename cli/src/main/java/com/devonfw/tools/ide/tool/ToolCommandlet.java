@@ -472,10 +472,14 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
           }
         }
       }
-      if (resolvedVersion == null) {
+
+      if ((resolvedVersion == null) && requiresVersionResolution()) {
         resolvedVersion = getToolRepository().resolveVersion(this.tool, edition.edition(), version, this);
       }
-      requested.setResolvedVersion(resolvedVersion);
+
+      if (resolvedVersion != null) {
+        requested.setResolvedVersion(resolvedVersion);
+      }
     }
   }
 
@@ -1139,6 +1143,13 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     } else {
       return null;
     }
+  }
+
+  /**
+   * @return {@code true} if the requested tool version has to be resolved from the tool repository.
+   */
+  protected boolean requiresVersionResolution() {
+    return true;
   }
 
   /**

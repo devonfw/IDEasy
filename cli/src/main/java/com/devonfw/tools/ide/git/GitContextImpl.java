@@ -336,9 +336,12 @@ public class GitContextImpl implements GitContext {
 
     Path gitPath = findGit();
     if (gitPath == null) {
-      String message = "Git " + IdeContext.IS_NOT_INSTALLED_BUT_REQUIRED;
+      String message = "Git " + IdeContext.IS_NOT_INSTALLED_BUT_REQUIRED
+          + ". Try running `ide install git` to install it.";
+
       if (SystemInfoImpl.INSTANCE.isWindows()) {
-        message += IdeContext.PLEASE_DOWNLOAD_AND_INSTALL_GIT + ":\n " + IdeContext.WINDOWS_GIT_DOWNLOAD_URL;
+        message += "\nAlternatively, " + IdeContext.PLEASE_DOWNLOAD_AND_INSTALL_GIT + ":\n "
+            + IdeContext.WINDOWS_GIT_DOWNLOAD_URL;
       }
       throw new CliException(message);
     }

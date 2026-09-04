@@ -119,6 +119,7 @@ class WindowsHelperImplTest extends AbstractIdeContextTest {
         if (args.length >= 2 && args[0].equalsIgnoreCase("query") && args[1].endsWith("\\Uninstall\\TestApp")) {
           return List.of(
               "HKEY_LOCAL_MACHINE\\SOFTWARE\\...\\Uninstall\\TestApp",
+              "    DisplayName    REG_SZ    TestApp",
               "    DisplayVersion    REG_SZ    2.0.0",
               "    InstallLocation    REG_SZ    C:\\Program Files\\TestApp"
           );
@@ -194,6 +195,7 @@ class WindowsHelperImplTest extends AbstractIdeContextTest {
         if (args.length >= 2 && args[0].equalsIgnoreCase("query")) {
           return List.of(
               "HKEY_LOCAL_MACHINE\\...\\Uninstall\\TestApp",
+              "    DisplayName    REG_SZ    TestApp",
               "    DisplayVersion    REG_SZ    ",
               "    DisplayIcon    REG_SZ    "
           );
@@ -307,5 +309,112 @@ class WindowsHelperImplTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(helper.getExecutedUninstallCommand()).isNull();
+  }
+
+  /**
+   * Tests that a registry search result with a different DisplayName is ignored.
+   */
+  @Test
+  void testGetAppInstallationFromRegistryIgnoresNonMatchingDisplayName() {
+    AbstractIdeTestContext context = new IdeTestContext();
+    WindowsHelperImpl helper = new WindowsHelperImpl(context) {
+      @Override
+      protected List<String> runReg(String... args) {
+        if (args.length >= 5 && "/f".equalsIgnoreCase(args[3])) {
+          return List.of(
+              "HKEY_LOCAL_MACHINE\\SOFTWARE\\...\\Uninstall\\GitLFS");
+        }
+
+        if (args.length >= 2
+            && args[0].equalsIgnoreCase("query")
+            && args[1].endsWith("\\Uninstall\\GitLFS")) {
+          return List.of(
+              "HKEY_LOCAL_MACHINE\\SOFTWARE\\...\\Uninstall\\GitLFS",
+              "    DisplayName    REG_SZ    GitHub Desktop");
+        }
+
+        return List.of();
+      }
+    };
+
+    WindowsAppInstallation installation =
+        helper.getAppInstallationFromRegistry("Git");
+
+    assertThat(installation).isNull();
+  }
+
+  /**
+   * Tests that a DisplayName containing the application name followed by a suffix is accepted.
+   */
+  @Test
+  void testGetAppInstallationFromRegistryMatchesDisplayNameWithSuffix() {
+    AbstractIdeTestContext context = new IdeTestContext();
+    WindowsHelperImpl helper = new WindowsHelperImpl(context) {
+      @Override
+      protected List<String> runReg(String... args) {
+        if (args.length >= 5 && "/f".equalsIgnoreCase(args[3])) {
+          return List.of(
+              "HKEY_LOCAL_MACHINE\\SOFTWARE\\...\\Uninstall\\Git");
+        }
+
+        if (args.length >= 2
+            && args[0].equalsIgnoreCase("query")
+            && args[1].endsWith("\\Uninstall\\Git")) {
+          return List.of(
+              "HKEY_LOCAL_MACHINE\\SOFTWARE\\...\\Uninstall\\Git",
+              "    DisplayName    REG_SZ    Git version 2.55.0",
+              "    DisplayVersion    REG_SZ    2.55.0");
+        }
+
+        return List.of();
+      }
+    };
+
+    WindowsAppInstallation installation =
+        helper.getAppInstallationFromRegistry("Git");
+
+    assertThat(installation).isNotNull();
+    assertThat(installation.version()).isEqualTo("2.55.0");
+  }
+
+  /**
+   * Tests that registry lookup continues with the next registry base path if a query fails.
+   */
+  @Test
+  void testGetAppInstallationFromRegistryContinuesAfterRegistryQueryFailure() {
+    AbstractIdeTestContext context = new IdeTestContext();
+
+    WindowsHelperImpl helper = new WindowsHelperImpl(context) {
+      private int searchCount;
+
+      @Override
+      protected List<String> runReg(String... args) {
+        if (args.length >= 5 && "/f".equalsIgnoreCase(args[3])) {
+          this.searchCount++;
+
+          if (this.searchCount == 1) {
+            return null;
+          }
+
+          return List.of(
+              "HKEY_LOCAL_MACHINE\\SOFTWARE\\...\\Uninstall\\TestApp");
+        }
+
+        if (args.length >= 2 && args[0].equalsIgnoreCase("query")) {
+          return List.of(
+              "HKEY_LOCAL_MACHINE\\SOFTWARE\\...\\Uninstall\\TestApp",
+              "    DisplayName    REG_SZ    TestApp",
+              "    DisplayVersion    REG_SZ    1.0");
+        }
+
+        return List.of();
+      }
+    };
+
+    WindowsAppInstallation installation =
+        helper.getAppInstallationFromRegistry("TestApp");
+
+    assertThat(installation).isNotNull();
+    assertThat(installation.version()).isEqualTo("1.0");
   }
 }

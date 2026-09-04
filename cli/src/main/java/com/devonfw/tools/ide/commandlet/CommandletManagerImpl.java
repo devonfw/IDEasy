@@ -32,6 +32,7 @@ import com.devonfw.tools.ide.tool.eclipse.Eclipse;
 import com.devonfw.tools.ide.tool.gcloganalyzer.GcLogAnalyzer;
 import com.devonfw.tools.ide.tool.gcviewer.GcViewer;
 import com.devonfw.tools.ide.tool.gh.Gh;
+import com.devonfw.tools.ide.tool.git.Git;
 import com.devonfw.tools.ide.tool.go.Go;
 import com.devonfw.tools.ide.tool.graalvm.GraalVm;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
@@ -188,6 +189,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Just(context));
     add(new SoapUi(context));
     add(new Ruff(context));
+    add(new Git(context));
   }
 
   /**

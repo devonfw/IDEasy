@@ -134,7 +134,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     VersionIdentifier resolvedVersion = request.getRequested().getResolvedVersion();
     if (this.context.getSystemInfo().isLinux()) {
       // on Linux global tools are typically installed via the package manager of the OS
-      // if a global tool implements getNativePackages() to returns at least one NativePackage, then we will install this way.
+      // if a global tool implements getNativePackages() to return at least one NativePackage, then we will install this way.
       List<PackageManagerCommand> commands = getInstallPackageManagerCommands(resolvedVersion);
       if (!commands.isEmpty()) {
         boolean newInstallation = runWithPackageManager(request.isSilent(), commands, NativePackageAction.INSTALL);
@@ -164,7 +164,10 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
       fileAccess.extract(target, downloadBinaryPath);
       executable = fileAccess.findFirst(downloadBinaryPath, Files::isExecutable, false);
     }
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(executable);
+    ProcessContext pc = this.context.newProcess()
+        .errorHandling(ProcessErrorHandling.LOG_WARNING)
+        .executable(executable)
+        .addArgs(getInstallerArguments());
     int exitCode = pc.run(ProcessMode.BACKGROUND_SILENT).getExitCode();
     if (tmpDir != null) {
       fileAccess.delete(tmpDir);
@@ -313,5 +316,14 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     } else {
       LOG.error("Couldn't uninstall {} on this OS. Please uninstall manually.", this.getName());
     }
+  }
+
+  @Override
+  protected boolean requiresVersionResolution() {
+    return !this.context.getSystemInfo().isLinux() || getNativePackages().isEmpty();
+  }
+
+  protected List<String> getInstallerArguments() {
+    return List.of();
   }
 }
