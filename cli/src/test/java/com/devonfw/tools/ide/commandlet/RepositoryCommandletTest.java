@@ -104,6 +104,46 @@ class RepositoryCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
+  void testActiveExpressionIsEvaluatedOnlyOnce() {
+
+    // arrange
+    IdeTestContext context = newContext(IdeContext.FOLDER_REPOSITORY);
+    Properties properties = createDefaultProperties();
+    // an expression with an empty variable name always asks and is never persisted, so a second evaluation would ask again
+    properties.setProperty("active", "@ask-variable('', 'Setup this repository?')");
+    // exactly one answer is available: if the property is evaluated twice, readLine fails with "End of answers reached!"
+    context.setAnswers("true");
+    RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
+    saveProperties(context, properties);
+    // act
+    rc.run();
+    // assert
+    assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(TEST_WORKSPACE).resolve(TEST_REPO)).isDirectory();
+  }
+
+  @Test
+  void testInvalidExpressionDoesNotPreventOtherRepositories() {
+
+    // arrange
+    IdeTestContext context = newContext(IdeContext.FOLDER_REPOSITORY);
+    Properties broken = createDefaultProperties();
+    broken.setProperty("active", "true");
+    broken.setProperty("path", "broken-repo");
+    // @ask-variable requires at least one argument, so resolving this git_url throws a CliException
+    broken.setProperty("git_url", "https://github.com/@ask-variable()/broken.git");
+    saveProperties(context, broken, "broken.properties");
+    Properties good = createDefaultProperties();
+    good.setProperty("active", "true");
+    saveProperties(context, good);
+    RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
+    // act
+    rc.run();
+    // assert
+    assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(TEST_WORKSPACE).resolve(TEST_REPO)).isDirectory();
+    assertThat(context).logAtError().hasMessageContaining("Invalid template expression");
+  }
+
+  @Test
   void testSetupSpecificRepositoryWithoutPath() {
 
     // arrange

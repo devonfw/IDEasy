@@ -4,8 +4,10 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -49,6 +51,9 @@ final class RepositoryProperties {
 
   private final IdeContext context;
 
+  /** Cache of already resolved property values so that resolving never happens twice - see {@link #doGetProperty(String, String)}. */
+  private final Map<String, String> resolvedProperties;
+
   private boolean invalid;
 
   /**
@@ -79,6 +84,7 @@ final class RepositoryProperties {
     this.file = file;
     this.properties = properties;
     this.context = context;
+    this.resolvedProperties = new HashMap<>();
   }
 
   /**
@@ -132,7 +138,14 @@ final class RepositoryProperties {
 
   private String doGetProperty(String name, String legacyName) {
 
-    return resolve(doGetRawProperty(name, legacyName));
+    // the result is cached since resolving may have side-effects: an expression like @ask-variable asks the user, so reading the same property twice
+    // (e.g. the active flag, that is read by RepositoryCommandlet and again by RepositoryConfig) must not ask twice.
+    if (this.resolvedProperties.containsKey(name)) {
+      return this.resolvedProperties.get(name);
+    }
+    String value = resolve(doGetRawProperty(name, legacyName));
+    this.resolvedProperties.put(name, value);
+    return value;
   }
 
   private String doGetRawProperty(String name, String legacyName) {

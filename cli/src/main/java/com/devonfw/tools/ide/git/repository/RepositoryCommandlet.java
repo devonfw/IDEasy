@@ -11,6 +11,8 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.cli.CliAbortException;
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
@@ -74,7 +76,7 @@ public class RepositoryCommandlet extends Commandlet {
       boolean forceMode = this.context.isForceMode() || this.context.isForceRepositories();
       Map<Path, RepositoryConfig> repositoryConfigMap = new HashMap<>(propertiesFiles.size());
       for (Path propertiesFile : propertiesFiles) {
-        RepositoryConfig config = prepareActiveRepository(propertiesFile, forceMode);
+        RepositoryConfig config = prepareActiveRepositoryIgnoringInvalid(propertiesFile, forceMode);
         if (config != null) {
           repositoryConfigMap.put(propertiesFile, config);
         }
@@ -85,6 +87,27 @@ public class RepositoryCommandlet extends Commandlet {
           importRepository(config);
         }
       }
+    }
+  }
+
+  /**
+   * Like {@link #prepareActiveRepository(Path, boolean)} but ignores a single invalid repository instead of aborting the setup of all others. Resolving a
+   * property value may fail for a malformed expression, and one broken file in the repositories folder must not prevent every other repository from being
+   * set up. Only used when iterating all repositories - if the user explicitly requested a single repository, the failure is reported instead.
+   *
+   * @param repositoryFile the {@link Path} to the repository properties file.
+   * @param forceMode - {@code true} to setup the repository even if it is not active, {@code false} otherwise.
+   * @return the {@link RepositoryConfig} or {@code null} if the repository shall be skipped.
+   */
+  private RepositoryConfig prepareActiveRepositoryIgnoringInvalid(Path repositoryFile, boolean forceMode) {
+
+    try {
+      return prepareActiveRepository(repositoryFile, forceMode);
+    } catch (CliAbortException e) {
+      throw e; // the user deliberately aborted - never swallow this
+    } catch (CliException e) {
+      LOG.error("Ignoring repository {} because its configuration is invalid: {}", repositoryFile, e.getMessage());
+      return null;
     }
   }
 
