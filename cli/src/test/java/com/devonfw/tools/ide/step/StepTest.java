@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.step;
 
 import org.junit.jupiter.api.Test;
 
+import com.devonfw.tools.ide.cli.CliFatalException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogEntry;
@@ -128,6 +129,62 @@ class StepTest extends AbstractIdeContextTest {
         IdeLogEntry.ofWarning("Step 'Test-Step' already ended with false and now ended again with true."),
         IdeLogEntry.ofSuccess("The Test-Step succeeded as expected"),
         IdeLogEntry.ofDebug("Step 'Test-Step' ended successfully."));
+  }
+
+  @Test
+  void testRunSwallowsRegularError() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC, "project", false);
+    Step step = context.newStep("Test-Step");
+    // act
+    boolean success = step.run(() -> {
+      throw new IllegalStateException("regular error");
+    });
+    // assert
+    assertThat(success).isFalse();
+    assertThat(step.isFailure()).isTrue();
+  }
+
+  @Test
+  void testRunRethrowsForcedError() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC, "project", false);
+    Step step = context.newStep("Test-Step");
+    // act & assert
+    assertThatThrownBy(() -> step.run(() -> {
+      throw new CliFatalException("fatal error");
+    })).isInstanceOf(CliFatalException.class).hasMessage("fatal error");
+    assertThat(step.isFailure()).isTrue();
+  }
+
+  @Test
+  void testCallReturnsFallbackOnRegularError() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC, "project", false);
+    Step step = context.newStep("Test-Step");
+    // act
+    String result = step.call(() -> {
+      throw new IllegalStateException("regular error");
+    }, () -> "fallback");
+    // assert
+    assertThat(result).isEqualTo("fallback");
+    assertThat(step.isFailure()).isTrue();
+  }
+
+  @Test
+  void testCallRethrowsForcedError() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC, "project", false);
+    Step step = context.newStep("Test-Step");
+    // act & assert
+    assertThatThrownBy(() -> step.call(() -> {
+      throw new CliFatalException("fatal error");
+    }, () -> "fallback")).isInstanceOf(CliFatalException.class).hasMessage("fatal error");
+    assertThat(step.isFailure()).isTrue();
   }
 
 }

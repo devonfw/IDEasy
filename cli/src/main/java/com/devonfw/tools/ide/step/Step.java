@@ -3,6 +3,8 @@ package com.devonfw.tools.ide.step;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
+import com.devonfw.tools.ide.cli.CliException;
+
 /**
  * Interface for a {@link Step} of the process. Allows to split larger processes into smaller steps that are traced and measured. Also prevents that if one step
  * fails, the overall process can still continue so a sub-step (e.g. "plugin installation" or "git update") does not automatically block the entire process. At
@@ -219,7 +221,8 @@ public interface Step {
 
   /**
    * @param stepCode the {@link Runnable} to {@link Runnable#run() execute} for this {@link Step}.
-   * @param rethrow - {@code true} to rethrow a potential {@link Throwable error}.
+   * @param rethrow - {@code true} to rethrow a potential {@link Throwable error}. Independent of this flag an error is always rethrown if it
+   *     {@link CliException#isForceRethrowInStep() forces} it.
    * @return {@code true} on success, {@code false} on error (if {@code rethrow} is {@code false}).
    */
   default boolean run(Runnable stepCode, boolean rethrow) {
@@ -231,8 +234,10 @@ public interface Step {
       }
       return true;
     } catch (RuntimeException | Error e) {
-      error(e);
-      if (rethrow) {
+      boolean forceRethrow = isForceRethrow(e);
+      // if the error is rethrown it gets logged by the caller so we suppress duplicated error messages here
+      error(e, forceRethrow);
+      if (rethrow || forceRethrow) {
         throw e;
       }
       return false;
@@ -264,7 +269,8 @@ public interface Step {
 
   /**
    * @param stepCode the {@link Callable} to {@link Callable#call() execute} for this {@link Step}.
-   * @param rethrow - {@code true} to rethrow a potential {@link Throwable error}.
+   * @param rethrow - {@code true} to rethrow a potential {@link Throwable error}. Independent of this flag an error is always rethrown if it
+   *     {@link CliException#isForceRethrowInStep() forces} it.
    * @param resultOnErrorSupplier the {@link Supplier} {@link Supplier#get() providing} the result to be returned in case of a {@link Throwable error}.
    * @param <R> type of the return value.
    * @return the value returned from {@link Callable#call()}.
@@ -278,8 +284,10 @@ public interface Step {
       }
       return result;
     } catch (Throwable e) {
-      error(e);
-      if (rethrow) {
+      boolean forceRethrow = isForceRethrow(e);
+      // if the error is rethrown it gets logged by the caller so we suppress duplicated error messages here
+      error(e, forceRethrow);
+      if (rethrow || forceRethrow) {
         if (e instanceof RuntimeException re) {
           throw re;
         } else if (e instanceof Error error) {
@@ -292,6 +300,15 @@ public interface Step {
     } finally {
       close();
     }
+  }
+
+  /**
+   * @param error the {@link Throwable} that occurred inside a {@link Step}.
+   * @return {@code true} if the given {@code error} has to be rethrown even if the {@link Step} was not asked to rethrow errors, {@code false} otherwise.
+   */
+  private static boolean isForceRethrow(Throwable error) {
+
+    return (error instanceof CliException cliException) && cliException.isForceRethrowInStep();
   }
 
 }

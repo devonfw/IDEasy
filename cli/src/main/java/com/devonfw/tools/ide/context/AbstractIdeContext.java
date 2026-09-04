@@ -37,8 +37,8 @@ import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.commandlet.CommandletManagerImpl;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
 import com.devonfw.tools.ide.commandlet.EnvironmentCommandlet;
-import com.devonfw.tools.ide.commandlet.UpdateCommandlet;
 import com.devonfw.tools.ide.commandlet.UpgradeCommandlet;
+import com.devonfw.tools.ide.commandlet.update.UpdateCommandlet;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
@@ -700,7 +700,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
     Path settingsPath = getSettingsPath();
     // check whether the settings path has a .git folder only if its not a symbolic link or junction
-    if ((settingsPath != null) && !Files.exists(settingsPath.resolve(".git")) && !isSettingsCodeRepository()) {
+    if ((settingsPath != null) && !Files.exists(settingsPath.resolve(".git")) && !isCombinedSettingsCodeRepository()) {
       LOG.error("Settings repository exists but is not a git repository.");
       return null;
     }
@@ -708,7 +708,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   @Override
-  public boolean isSettingsCodeRepository() {
+  public boolean isCombinedSettingsCodeRepository() {
 
     Path settingsPath = getSettingsPath();
     if (settingsPath != null) {
@@ -1564,7 +1564,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
    */
   private String determineSettingsUpdateMessage(Commandlet cmd) {
     boolean update = cmd instanceof UpdateCommandlet;
-    if (isSettingsCodeRepository()) {
+    if (isCombinedSettingsCodeRepository()) {
       if (update && (isForceMode() || isForcePull())) {
         return null;
       }

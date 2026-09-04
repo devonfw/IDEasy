@@ -91,7 +91,8 @@ public class StatusCommandlet extends Commandlet {
     }
     if (hasLegacyProperties) {
       LOG.warn(
-          "Your settings are outdated and contain legacy configurations. Please consider upgrading your settings:\nhttps://github.com/devonfw/IDEasy/blob/main/documentation/settings.adoc#upgrade");
+          "Your settings are outdated and contain legacy configurations. "
+              + "Please consider upgrading your settings:\nhttps://github.com/devonfw/IDEasy/blob/main/documentation/settings.adoc#upgrade");
     }
   }
 
@@ -104,7 +105,7 @@ public class StatusCommandlet extends Commandlet {
     } else {
       GitContext gitContext = this.context.getGitContext();
       if (gitContext.isRepositoryUpdateAvailable(settingsPath, this.context.getSettingsCommitIdPath())) {
-        if (!this.context.isSettingsCodeRepository()) {
+        if (!this.context.isCombinedSettingsCodeRepository()) {
           LOG.warn("Your settings are not up-to-date, please run 'ide update'.");
         }
       } else {

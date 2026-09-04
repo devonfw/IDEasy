@@ -1,5 +1,6 @@
-package com.devonfw.tools.ide.commandlet;
+package com.devonfw.tools.ide.commandlet.update;
 
+import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.migration.IdeMigrator;
 

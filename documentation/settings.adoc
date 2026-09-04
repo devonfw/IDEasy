@@ -18,17 +18,18 @@ This gives you the freedom to control and manage the tools with their versions a
 To setup and customize these settings simply follow the link:usage.adoc#admin[admin usage guide].
 Then tell your team to create the project using your project sepcific settings git URL:
 ```
-ide create «project-name» --code «settings-url»
+ide create «project-name» «settings-url»
 ```
 
 == Code-repository
 
 It is even possible to include your settings into your code repository by having the `settings` folder directly on top-level of your code git repository.
 This allows you to keep settings changes in sync with code changes and manage them in the same pull/merge requests.
-To use this approach simply copy the content of https://github.com/devonfw/ide-settings[ide-settings] to a top-level `settings` folder in your code repository root and tell your developers to create the project usining the `--code` option:
+To use this approach simply copy the content of https://github.com/devonfw/ide-settings[ide-settings] to a top-level `settings` folder in your code repository root.
+IDEasy will automatically recognize that you are using a code repository, therefore just use the same command as above:
 
 ```
-ide create «project-name» --code «code-repo-url»
+ide create «project-name» «code-repo-url»
 ```
 
 IDEasy will clone your repository and create a symlink to the settings folder.
@@ -49,6 +50,18 @@ But we do not want to forget the following advantage:
 * With settings in code repository you can easily create consistent feature branches where you change code and IDEasy settings together (e.g. java major upgrade in `pom.xml`, `ide.properties`, etc.).
 Anyhow you can still create feature branches in standalone settings repositories to manage such scenarios and follow KISS and trunk-based development so you more or less avoid such problems.
 However, if you are in a monolithic project with complex release branches you may consider using the "settings in code repository" approach.
+
+== Health check
+
+Whenever `IDEasy` clones or updates your settings it first clones the git repository into a temporary directory and performs a health check on it:
+
+* the given git URL has to be valid,
+* cloning the repository has to succeed,
+* and the repository has to be a settings repository or a combined code and settings repository (see link:#code-repository[above]).
+
+Only if this health check succeeded the settings are installed: an existing settings repository is updated via `git pull` while a new one is moved from the temporary directory to its final location.
+This way a broken or wrong git URL can never leave you with a damaged project.
+In particular `ide create` will not create the project at all if the health check fails, so you can simply fix the URL and try again.
 
 == Structure
 

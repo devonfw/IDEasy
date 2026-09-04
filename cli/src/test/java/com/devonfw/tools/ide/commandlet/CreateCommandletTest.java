@@ -7,18 +7,16 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.context.ProcessContextGitMock;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.git.GitContextImplMock;
+import com.devonfw.tools.ide.io.WindowsSymlinkTestHelper;
 import com.devonfw.tools.ide.version.IdeVersion;
 
 /**
@@ -67,54 +65,9 @@ class CreateCommandletTest extends AbstractIdeContextTest {
     assertThat(newProjectPath.resolve(IdeContext.FOLDER_PLUGINS)).exists();
     assertThat(newProjectPath.resolve(IdeContext.FOLDER_SOFTWARE)).exists();
     assertThat(newProjectPath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN)).exists();
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = { "https://some-code-repository", "ssh://some-settings-repository" })
-  void testWarningWhenRepoDoesNotMeetNamingConvention(String invalidRepo, @TempDir Path tempDir) {
-    // arrange
-    ProcessContextGitMock gitMock = new ProcessContextGitMock(context, tempDir);
-    context.setProcessContext(gitMock);
-    CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
-    cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
-    cc.codeRepositoryFlag.setValue(!invalidRepo.contains("code")); // raise conflict
-    cc.settingsRepo.setValue(invalidRepo);
-    cc.skipTools.setValue(true);
-    context.setAnswers("yes");
-    // act
-    cc.run();
-    // assert
-    assertThat(context).logAtInteraction().hasMessageContaining("Do you really want to create the project?");
-    Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
-    assertThat(newProjectPath).exists();
-    assertThat(context.getIdeHome()).isEqualTo(newProjectPath);
-    assertThat(newProjectPath.resolve(IdeContext.FOLDER_PLUGINS)).exists();
-    assertThat(newProjectPath.resolve(IdeContext.FOLDER_SOFTWARE)).exists();
-    assertThat(newProjectPath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN)).exists();
-  }
-
-  @Test
-  void testWarningWhenCodeRepoUsingDefaultMark(@TempDir Path tempDir) {
-    String invalidCodeRepo = "-";
-    // arrange
-    ProcessContextGitMock gitMock = new ProcessContextGitMock(context, tempDir);
-    context.setProcessContext(gitMock);
-    CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
-    cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
-    cc.settingsRepo.setValue(invalidCodeRepo);
-    cc.codeRepositoryFlag.setValue(true);
-    cc.skipTools.setValue(true);
-    context.setAnswers("https://some-code-repository");
-    // act
-    cc.run();
-    // assert
-    assertThat(context).logAtWarning().hasMessageContaining("'-' is found after '--code'. This is invalid.");
-    Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
-    assertThat(newProjectPath).exists();
-    assertThat(context.getIdeHome()).isEqualTo(newProjectPath);
-    assertThat(newProjectPath.resolve(IdeContext.FOLDER_PLUGINS)).exists();
-    assertThat(newProjectPath.resolve(IdeContext.FOLDER_SOFTWARE)).exists();
-    assertThat(newProjectPath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN)).exists();
+    // the settings have to be cloned into the new project and not into the project the create command was started from
+    assertThat(newProjectPath.resolve(IdeContext.FOLDER_SETTINGS).resolve("ide.properties")).exists();
+    assertThat(context.getIdeRoot().resolve("_ide/tmp/projects").resolve(NEW_PROJECT_NAME)).doesNotExist();
   }
 
   @Test
@@ -221,6 +174,55 @@ class CreateCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
+  void testProjectWithInvalidRepositoryNotCreated() {
+
+    // arrange - create a new project that is invalid (does not contain ide.properties file)
+    GitContextImplMock gitContextImplMock = new GitContextImplMock(context, TEST_RESOURCES.resolve("pypi"));
+
+    context.setGitContext(gitContextImplMock);
+    CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
+    cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
+    cc.settingsRepo.setValue(IdeContext.DEFAULT_SETTINGS_REPO_URL);
+    cc.skipTools.setValue(true);
+
+    // act - run the create command
+    assertThatThrownBy(cc::run)
+        .isInstanceOf(CliException.class)
+        .hasMessageContaining(
+            "Fatal error while cloning settings: The settings health check failed: "
+                + "The given git repository URL does not point to a valid settings or code-settings repository. Please verify and try again.");
+
+    // assert - if "ide create" fails then no project shall be created at all
+    assertThat(context.getIdeRoot().resolve(NEW_PROJECT_NAME)).doesNotExist();
+    assertThat(context.getTempPath().resolve(IdeContext.FOLDER_PROJECTS).resolve(NEW_PROJECT_NAME)).doesNotExist();
+  }
+
+  @Test
+  void testCreateWithCodeSettingsRepository() {
+
+    // arrange - a combined code and settings repository has the settings in a top-level "settings" folder
+    WindowsSymlinkTestHelper.assumeSymlinksSupported();
+    GitContextImplMock gitContextImplMock = new GitContextImplMock(context, TEST_RESOURCES.resolve("code-settings"));
+    context.setGitContext(gitContextImplMock);
+    CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
+    cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
+    cc.settingsRepo.setValue("https://github.com/devonfw/code-settings-repo.git");
+    cc.skipTools.setValue(true);
+
+    // act
+    cc.run();
+
+    // assert - the repository is placed into the workspace and IDE_HOME/settings is a symlink to its settings folder
+    Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
+    Path codePath = newProjectPath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN).resolve("code-settings-repo");
+    assertThat(codePath.resolve("pom.xml")).exists();
+    assertThat(codePath.resolve(IdeContext.FOLDER_SETTINGS).resolve("ide.properties")).exists();
+    Path settingsLink = newProjectPath.resolve(IdeContext.FOLDER_SETTINGS);
+    assertThat(settingsLink).isSymbolicLink();
+    assertThat(settingsLink.resolve("ide.properties")).exists();
+  }
+
+  @Test
   void testCreateWithDashPlaceholderAsCliArgument() {
     // arrange - see https://github.com/devonfw/IDEasy/issues/2106
     GitContextImplMock gitContextImplMock = new GitContextImplMock(context, TEST_RESOURCES.resolve("settings"));
@@ -234,7 +236,7 @@ class CreateCommandletTest extends AbstractIdeContextTest {
     assertThat(result).isEqualTo(0);
     assertThat(context).logAtError().hasNoMessageContaining("not found for commandlet");
     assertThat(context).logAtInfo()
-        .hasMessageContaining("'-' was found for settings repository, the default settings repository");
+        .hasMessageContaining("'-' was found for the repository, the default settings repository");
     Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
     assertThat(newProjectPath).exists();
   }
