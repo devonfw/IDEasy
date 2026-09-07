@@ -254,6 +254,32 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   }
 
   /**
+   * @return the names of the editions this {@link #getName() tool} is known to have, in the order in which they are probed to resolve the installed
+   *     edition and version. The default returns a single entry with the tool name. Override for tools with multiple editions (e.g. Docker with
+   *     {@code docker} and {@code rancher}). The returned editions should match the keys of {@link #getWindowsRegistryAppNames()} so that the same
+   *     editions are used on all operating systems.
+   */
+  protected List<String> getEditionNames() {
+
+    return List.of(this.tool);
+  }
+
+  /**
+   * Resolves the installed version of the given {@link #getEditionNames() edition} on the current operating system. On Linux and macOS this is the
+   * hook that {@link #computeInstalledEditionAndVersion()} uses to determine the edition and version (Windows reads the version from the registry via
+   * {@link #getWindowsRegistryAppNames()} instead).
+   *
+   * @param edition the edition to resolve the installed version of.
+   * @return the {@link VersionIdentifier} of the installed {@code edition} as reported by the OS-specific source (native package manager on Linux, app
+   *     bundle on macOS) or {@code null} if that edition is not installed. The default resolves the version of this tool's single edition via its
+   *     {@link #getNativePackages() native packages}. Override for tools with multiple editions that resolve each edition differently.
+   */
+  protected VersionIdentifier getInstalledVersionForEdition(String edition) {
+
+    return getNativePackageVersion();
+  }
+
+  /**
    * @return the app name to look for in the Windows registry
    */
   public String getWindowsRegistryAppName() {
@@ -273,17 +299,26 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   @Override
   protected EditionAndVersion computeInstalledEditionAndVersion() {
 
-    if (this.context.getSystemInfo().isLinux()) {
-      // on Linux global tools are typically installed via the package manager of the OS
-      VersionIdentifier version = getNativePackageVersion();
-      return (version != null) ? new EditionAndVersion(this.tool, version) : null;
-    }
-    if (this.context.getSystemInfo().isWindows()) {
-      for (Map.Entry<String, String> entry : getWindowsRegistryAppNames().entrySet()) {
-        WindowsAppInstallation installation = WindowsHelper.get(this.context).getAppInstallationFromRegistry(entry.getValue());
-        if (installation != null) {
-          return new EditionAndVersion(entry.getKey(), VersionIdentifier.of(installation.version()));
-        }
+    // resolve edition and version together: probe each known edition in order and report the first one that is actually
+    // installed. The edition comes from the editions list (not a placeholder) and only the version source differs per OS:
+    // Windows reads the version from the registry (keyed by edition in getWindowsRegistryAppNames()), Linux and macOS
+    // resolve it via getInstalledVersionForEdition(edition).
+    boolean isWindows = this.context.getSystemInfo().isWindows();
+    for (String edition : getEditionNames()) {
+      VersionIdentifier version;
+      if (isWindows) {
+        String appName = getWindowsRegistryAppNames().get(edition);
+        WindowsAppInstallation installation = (appName != null)
+            ? WindowsHelper.get(this.context).getAppInstallationFromRegistry(appName)
+            : null;
+        version = (installation != null) ? VersionIdentifier.of(installation.version()) : null;
+      } else {
+        // on Linux global tools are typically installed via the package manager of the OS; on macOS the edition is
+        // resolved from the app bundle. In both cases getInstalledVersionForEdition() provides the version.
+        version = getInstalledVersionForEdition(edition);
+      }
+      if (version != null) {
+        return new EditionAndVersion(edition, version);
       }
     }
     return null;

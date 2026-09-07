@@ -15,6 +15,8 @@ import com.devonfw.tools.ide.os.WindowsAppInstallation;
 import com.devonfw.tools.ide.os.WindowsHelperMock;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.tool.EditionAndVersion;
+import com.devonfw.tools.ide.tool.NativePackage;
+import com.devonfw.tools.ide.tool.NativePackageManager;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -111,7 +113,7 @@ class DockerTest extends AbstractIdeContextTest {
 
   /**
    * Verifies that on macOS the lookup degrades gracefully (no exception) when the Docker Desktop app is not present: the
-   * {@code plutil} call yields no usable output, so the version is {@code null} while the edition stays {@code "docker"}.
+   * {@code plutil} call yields no usable output, so no edition resolves a version and the whole lookup returns {@code null}.
    */
   @Test
   void testDockerDesktopOnMacIsGracefulWhenAppMissing() {
@@ -126,35 +128,42 @@ class DockerTest extends AbstractIdeContextTest {
     // act
     EditionAndVersion editionAndVersion = docker.getInstalledEditionAndVersion();
 
-    // assert
-    assertThat(editionAndVersion).isNotNull();
-    assertThat(editionAndVersion.edition()).isEqualTo("docker");
-    assertThat(editionAndVersion.version()).isNull();
+    // assert: no edition resolves a version -> the lookup returns null (gracefully, no exception)
+    assertThat(editionAndVersion).isNull();
     Mockito.verify(processContext).runAndGetSingleOutput(IdeLogLevel.WARNING, "bash", "-lc", PLUTIL_MAC_COMMAND);
   }
 
   /**
-   * Verifies that when the installed runtime is Rancher Desktop, the edition is reported as {@code "rancher"} and the version
-   * comes from {@code rdctl version} (not from {@code apt list}).
+   * Verifies that on Linux a Rancher Desktop installation is resolved to the {@code "rancher"} edition and its version is
+   * read from the native package manager (the {@code rancher-desktop} package), not from the Docker Desktop
+   * {@code apt list} source used for the {@code docker} edition. The Docker Desktop source is not consulted at all.
    */
   @Test
-  void testRancherDesktopEditionAndVersion() {
+  void testRancherDesktopEditionAndVersionOnLinux() {
 
-    // arrange
+    // arrange: mock the protected native-package-manager helpers so no real package manager or filesystem access happens
     ProcessContext processContext = Mockito.mock(ProcessContext.class);
     IdeTestContext context = newContext(processContext);
     context.setSystemInfo(SystemInfoMock.LINUX_X64);
-    Docker docker = docker(context, "docker", "rdctl");
-    Mockito.when(processContext.runAndGetSingleOutput("rdctl", "version")).thenReturn("client version: v1.13.0");
+    Docker docker = new Docker(context) {
+      @Override
+      protected boolean isPackageManagerAvailable(NativePackageManager packageManager) {
+        return packageManager == NativePackageManager.APT;
+      }
+
+      @Override
+      protected String queryNativePackageVersion(NativePackage nativePackage) {
+        return "1.13.0";
+      }
+    };
 
     // act
     EditionAndVersion editionAndVersion = docker.getInstalledEditionAndVersion();
 
-    // assert
+    // assert: edition is the real "rancher" edition (not a placeholder) and the version comes from the native package manager
     assertThat(editionAndVersion).isNotNull();
     assertThat(editionAndVersion.edition()).isEqualTo("rancher");
     assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.of("1.13.0"));
-    Mockito.verify(processContext).runAndGetSingleOutput("rdctl", "version");
   }
 
   /**
