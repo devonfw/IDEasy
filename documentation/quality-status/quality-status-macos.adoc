@@ -9,13 +9,13 @@ Automatically generated open issue overview for macOS.
 
 link:quality-status.adoc[Back to overview]
 
-*Total Issues:* 157
+*Total Issues:* 155
 
 * OS-specific: 13
 
 * Multi-OS: 1
 
-* Cross-platform: 143
+* Cross-platform: 141
 
 == macOS Specific Issues
 

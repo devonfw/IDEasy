@@ -9,13 +9,13 @@ Automatically generated open issue overview for Windows.
 
 link:quality-status.adoc[Back to overview]
 
-*Total Issues:* 153
+*Total Issues:* 151
 
 * OS-specific: 10
 
 * Multi-OS: 0
 
-* Cross-platform: 143
+* Cross-platform: 141
 
 == Windows Specific Issues
 
