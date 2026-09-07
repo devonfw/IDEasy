@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.merge.xml.matcher;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
@@ -116,11 +117,13 @@ public class IdComputer {
     if (this.id.startsWith("@@")) {
       xpathBuilder.append('[');
       NamedNodeMap attributesMap = element.getAttributes();
+      boolean first = true;
       for (int i = 0; i < attributesMap.getLength(); i++) {
         String attribute = attributesMap.item(i).getNodeName();
         String attributeValue = attributesMap.item(i).getNodeValue();
         if (!attribute.equals("id")) {
-          appendAttributePredicate(xpathBuilder, attribute, attributeValue, i > 0);
+          appendAttributePredicate(xpathBuilder, attribute, attributeValue, !first);
+          first = false;
         }
       }
       xpathBuilder.append(']');
