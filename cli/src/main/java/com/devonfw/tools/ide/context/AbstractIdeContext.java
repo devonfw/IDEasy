@@ -440,7 +440,11 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     if (isPrivacyMode() && !WORKSPACE_MAIN.equals(wks)) {
       wks = "*".repeat(wks.length());
     }
-    return "IDE environment variables have been set for " + formatArgument(this.ideHome) + " in workspace " + wks;
+    String workspaceMessage = " with workspace set to " + wks;
+    if (!this.cwd.startsWith(this.workspacePath)) {
+      workspaceMessage += " (fallback to default)";
+    }
+    return "IDE environment variables have been set for " + formatArgument(this.ideHome) + workspaceMessage;
   }
 
   private String getMessageNotInsideIdeProject() {
