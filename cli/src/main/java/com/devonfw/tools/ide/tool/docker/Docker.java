@@ -105,9 +105,9 @@ public class Docker extends GlobalToolCommandlet {
 
   /**
    * Resolves the installed version of the given edition on Linux and macOS (on Windows the base class reads the version from the registry via
-   * {@link #getWindowsRegistryAppNames()} instead, so this method is not called there). The {@code docker} edition reads the Docker Desktop version
-   * ({@code docker-desktop} package on Linux, {@code Docker.app} bundle on macOS); the {@code rancher} edition is only installed via the native package
-   * manager on Linux.
+   * {@link #getWindowsRegistryAppNames()} instead, so this method is not called there). Both editions resolve the same way on each OS: the {@code docker}
+   * edition reads the Docker Desktop version ({@code docker-desktop} package on Linux, {@code Docker.app} bundle on macOS) and the {@code rancher} edition
+   * reads Rancher Desktop (the {@code rancher-desktop} package on Linux, the {@code Rancher Desktop.app} bundle on macOS).
    */
   @Override
   protected VersionIdentifier getInstalledVersionForEdition(String edition) {
@@ -119,8 +119,12 @@ public class Docker extends GlobalToolCommandlet {
         default -> null;
       };
     }
-    // the rancher edition is only installed via the native package manager on Linux; it is not present on macOS.
-    return this.context.getSystemInfo().isLinux() ? getNativePackageVersion() : null;
+    // the rancher edition is installed via the native package manager on Linux or from the app bundle on macOS
+    return switch (this.context.getSystemInfo().getOs()) {
+      case LINUX -> getNativePackageVersion();
+      case MAC -> getRancherDesktopVersionMac();
+      default -> null;
+    };
   }
 
   @Override
@@ -144,6 +148,15 @@ public class Docker extends GlobalToolCommandlet {
     // Log a warning and return null (instead of throwing) when the command produces no usable output, e.g. when
     // Docker Desktop is not installed at /Applications/Docker.app.
     String output = this.context.newProcess().runAndGetSingleOutput(IdeLogLevel.WARNING, "bash", "-lc", dockerDesktopVersionMacCommand);
+    return (output != null) ? resolveVersionWithPattern(output, DOCKER_DESKTOP_VERSION_PATTERN) : null;
+  }
+
+  private VersionIdentifier getRancherDesktopVersionMac() {
+
+    String rancherDesktopVersionMacCommand = "plutil -extract CFBundleShortVersionString raw /Applications/Rancher Desktop.app/Contents/Info.plist";
+    // Log a warning and return null (instead of throwing) when the command produces no usable output, e.g. when
+    // Rancher Desktop is not installed at /Applications/Rancher Desktop.app.
+    String output = this.context.newProcess().runAndGetSingleOutput(IdeLogLevel.WARNING, "bash", "-lc", rancherDesktopVersionMacCommand);
     return (output != null) ? resolveVersionWithPattern(output, DOCKER_DESKTOP_VERSION_PATTERN) : null;
   }
 

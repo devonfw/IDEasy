@@ -28,6 +28,8 @@ class DockerTest extends AbstractIdeContextTest {
 
   private static final String PLUTIL_MAC_COMMAND = "plutil -extract CFBundleShortVersionString raw /Applications/Docker.app/Contents/Info.plist";
 
+  private static final String RANCHER_PLUTIL_MAC_COMMAND = "plutil -extract CFBundleShortVersionString raw /Applications/Rancher Desktop.app/Contents/Info.plist";
+
   /**
    * Creates a minimal {@link IdeTestContext} that returns a mocked {@link ProcessContext} from {@code createProcessContext()}
    * (which is what {@code newProcess()} delegates to), so no real process is started.
@@ -164,6 +166,33 @@ class DockerTest extends AbstractIdeContextTest {
     assertThat(editionAndVersion).isNotNull();
     assertThat(editionAndVersion.edition()).isEqualTo("rancher");
     assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.of("1.13.0"));
+  }
+
+  /**
+   * Verifies that on macOS a Rancher Desktop installation is resolved to the {@code "rancher"} edition and its version is read from the
+   * {@code Rancher Desktop.app} bundle (via {@code plutil}) — the same app-bundle concept the {@code docker} edition uses on macOS. Docker Desktop
+   * is absent (no {@code docker} command, empty {@code Docker.app} output), so the probe order ({@code docker} first) must fall through to
+   * {@code rancher}. This closes the gap where macOS previously returned nothing for Rancher.
+   */
+  @Test
+  void testRancherDesktopEditionAndVersionOnMac() {
+
+    // arrange: Docker Desktop is not installed (no docker command, no Docker.app), Rancher Desktop is
+    ProcessContext processContext = Mockito.mock(ProcessContext.class);
+    IdeTestContext context = newContext(processContext);
+    context.setSystemInfo(SystemInfoMock.MAC_X64);
+    Docker docker = docker(context);
+    Mockito.when(processContext.runAndGetSingleOutput(IdeLogLevel.WARNING, "bash", "-lc", PLUTIL_MAC_COMMAND)).thenReturn(null);
+    Mockito.when(processContext.runAndGetSingleOutput(IdeLogLevel.WARNING, "bash", "-lc", RANCHER_PLUTIL_MAC_COMMAND)).thenReturn("1.13.0");
+
+    // act
+    EditionAndVersion editionAndVersion = docker.getInstalledEditionAndVersion();
+
+    // assert: edition is the real "rancher" edition and the version comes from the Rancher Desktop.app bundle
+    assertThat(editionAndVersion).isNotNull();
+    assertThat(editionAndVersion.edition()).isEqualTo("rancher");
+    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.of("1.13.0"));
+    Mockito.verify(processContext).runAndGetSingleOutput(IdeLogLevel.WARNING, "bash", "-lc", RANCHER_PLUTIL_MAC_COMMAND);
   }
 
   /**
