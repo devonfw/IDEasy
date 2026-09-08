@@ -70,43 +70,15 @@ Functions may also be nested, so an argument can itself contain a call of anothe
 
 === Functions
 
-* `@path` normalizes a path.
-The first argument is the path.
-The second argument is optional and is the literal value `unix` (the default, which replaces backslashes with slashes) or `native` (which on Windows uses `WindowsPathSyntax.WINDOWS` and therefore backslashes).
-Use `unix` (the default) for portability since templates are expected to be platform independent; only use `native` when the consuming tool requires the native separators of the current operating system.
-This is the remedy for values that come out with a mixed up path syntax on Windows, e.g.
-`$[IDE_HOME]/software/node/node.exe` resolves to `D:\projects\my-project/software/node/node.exe` where the backslashes of the drive letter and the slashes of the rest clash.
-+
-[source]
-----
-@path('$[IDE_HOME]/software/node/node', unix)
-@path('$[IDE_HOME]/software/node/node.exe', native)
-----
-* `@ask-variable` asks the user for the value of a variable in plain text, and `@ask-secret` does the same but reads the input with masked input.
-The first argument is the name of the requested variable.
-If the variable is already defined it is returned without asking.
-If the empty string is given, the user is always asked and nothing is persisted.
-The second argument is an optional explicit question used as the prompt.
-If omitted, it defaults to `Please enter the value for the (secret) variable «NAME»:` and is required if the first argument is empty.
-The third argument is an optional configuration location to persist the entered value to, analogous to the `--cfg` option: `settings`, `workspace`, `conf` or `home` (default: `conf`).
-Only `@ask-variable` persists its value; a value entered for `@ask-secret` is never persisted (see below), so this argument is ignored for it.
-The fourth argument is an optional default value that is appended to the question in square brackets so the user can just press return.
-Provide the empty string (`''`) to allow an empty value.
-If omitted or given as `null`, an empty value is not allowed and the user is asked again.
-+
-[source]
-----
-@ask-variable('AI_BACKEND_URL')
-@ask-variable('AI_BACKEND_URL', 'Please enter the LLM backend URL:', conf, 'http://localhost:1234')
-@ask-secret('AI_API_KEY', 'Please enter your API key:')
-----
-* `@if-windows`, `@if-mac`, `@if-linux` and `@if-unix` insert their single argument only if the current operating system matches and otherwise resolve to the empty string.
-This allows to select an OS specific value inline.
-+
-[source]
-----
-$[IDE_HOME]/software/mvn/bin/mvn@if-windows('.bat')@if-unix('.sh')
-----
+Each function is a small class implementing `ExpressionFunction` and registered by name in `ExpressionFunctionManager`.
+For the up-to-date list of available functions and their arguments, defaults and examples, see the JavaDoc of the
+link:https://github.com/devonfw/IDEasy/tree/main/cli/src/main/java/com/devonfw/tools/ide/expression/function[function package] instead of a second copy of
+that information here, so the documentation cannot drift out of sync with the code:
+
+* `@path` normalizes a path (e.g. to convert `$[IDE_HOME]/software/node/node.exe` to a form usable on the current operating system).
+* `@ask-variable` and `@ask-secret` ask the user for the value of a variable (in plain text, respectively with masked input) unless it is already defined.
+* `@if-windows`, `@if-mac`, `@if-linux` and `@if-unix` insert their single argument only if the current operating system matches and otherwise resolve to the
+empty string, e.g. to select an OS specific value inline: `$[IDE_HOME]/software/mvn/bin/mvn@if-windows('.bat')@if-unix('.sh')`.
 
 A function that is not registered by `IDEasy` is passed through entirely untouched.
 This is essential since foreign configuration formats may use an `@` for their own purposes (e.g. a CSS rule `@media(max-width:600px)` or an Eclipse `@param`) and `IDEasy` must never try to resolve placeholders that are not its own.
@@ -118,6 +90,10 @@ This is essential since foreign configuration formats may use an `@` for their o
 Persisting it would cache the secret on disk as plain text in `conf/ide.properties`; instead the value is masked in all log output.
 If you need the value to survive between runs, define it as a plain variable in `ide.properties` yourself.
 Encryption of stored secrets is a separate follow-up story (it also covers the case of the Maven `settings.xml`).
+* Masking of `@ask-secret` values relies purely on the naming convention that a secret variable name ends with `SECRET`, `PASSWORD`, or `API_KEY`
+(case-insensitive), so `@ask-secret` rejects a variable name that does not follow this convention.
+This way a secret is reliably masked even when its value is read directly (e.g. because it was already defined in `ide.properties`) without going through
+`@ask-secret` again.
 * Expressions belong in the workspace templates under `setup` and `update`.
 Do not put an `@ask-*` call into a value of `ide.properties` itself: a value that contains an expression is resolved on _every_ variable resolution, so a `@ask-*` in `ide.properties` would prompt on every `ide` invocation (including `ide env`).
 Expressions are typically used in the `update` templates to build up OS-specific or user-specific settings that would otherwise be hard to express with a plain variable, as in the following example that only resolves to a working value on the matching operating system:

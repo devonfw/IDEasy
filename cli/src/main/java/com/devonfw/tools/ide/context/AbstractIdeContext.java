@@ -190,8 +190,6 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   private final Set<String> secrets;
 
-  private final Set<String> secretVariables;
-
   private Path bash;
 
   private boolean julConfigured;
@@ -213,7 +211,6 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     this.startContext.setArgFormatter(this);
     this.privacyMap = new HashMap<>();
     this.secrets = new HashSet<>();
-    this.secretVariables = new HashSet<>();
     this.systemInfo = SystemInfoImpl.INSTANCE;
     if (isTest()) {
       configureJavaUtilLogging(null);
@@ -1074,25 +1071,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   @Override
-  public void addSecretVariable(String name) {
-
-    if ((name != null) && !name.isEmpty()) {
-      this.secretVariables.add(name);
-    }
-  }
-
-  @Override
-  public void addSecretValue(String name, String value) {
-
-    if (this.secretVariables.contains(name)) {
-      addSecret(value);
-    }
-  }
-
-  /**
-   * @param secret the secret value to mask in all log output. Ignored if {@code null} or shorter than {@link #SECRET_MIN_LENGTH}.
-   */
-  protected void addSecret(String secret) {
+  public void addSecret(String secret) {
 
     if ((secret != null) && (secret.length() >= SECRET_MIN_LENGTH)) {
       this.secrets.add(secret);

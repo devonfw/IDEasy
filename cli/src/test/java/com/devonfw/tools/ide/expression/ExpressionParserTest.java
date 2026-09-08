@@ -264,12 +264,12 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     EnvironmentVariables variables = context.getVariables();
 
     // act
-    String result = variables.resolve("@ask-secret('MY_TOKEN')", "test", false);
+    String result = variables.resolve("@ask-secret('MY_SECRET')", "test", false);
 
     // assert
     assertThat(result).isEmpty();
     // a value that could not be asked is not persisted (and @ask-secret is never persisted anyway)
-    assertThat(variables.getByType(EnvironmentVariablesType.CONF).getFlat("MY_TOKEN")).isNull();
+    assertThat(variables.getByType(EnvironmentVariablesType.CONF).getFlat("MY_SECRET")).isNull();
   }
 
   /**
@@ -422,13 +422,29 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     plainContext.setAnswers("http://llama.local");
 
     // act
-    secretContext.getVariables().resolve("@ask-secret('MY_TOKEN')", "test", false);
+    secretContext.getVariables().resolve("@ask-secret('MY_SECRET')", "test", false);
     plainContext.getVariables().resolve("@ask-variable('MY_URL')", "test", false);
 
     // assert
     assertThat(secretContext.getSecretLineCount()).isEqualTo(1);
     assertThat(plainContext.getSecretLineCount()).isZero();
     assertThat(secretContext).log().hasNoMessageContaining("dummy-secret-value");
+  }
+
+  /**
+   * Test that {@code @ask-secret} rejects a variable name that does not follow the naming convention for secret variables (see
+   * {@link com.devonfw.tools.ide.context.IdeContext#isSecretVariableName(String)}), since masking of already defined values relies entirely on that
+   * convention.
+   */
+  @Test
+  void testAskSecretRequiresCompliantVariableName() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+
+    // act + assert
+    assertThatThrownBy(() -> context.getVariables().resolve("@ask-secret('MY_TOKEN')", "test", false)).isInstanceOf(CliException.class)
+        .hasMessageContaining("naming convention for secret variables");
   }
 
 }

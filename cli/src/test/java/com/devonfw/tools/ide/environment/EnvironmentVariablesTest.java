@@ -250,7 +250,7 @@ class EnvironmentVariablesTest extends AbstractIdeContextTest {
     EnvironmentVariables variables = context.getVariables();
 
     // act
-    String resolved = variables.resolve("token=@ask-secret('MY_TOKEN')", "test", false);
+    String resolved = variables.resolve("token=@ask-secret('MY_SECRET')", "test", false);
 
     // assert
     assertThat(resolved).isEqualTo("token=dummy-secret-value");
@@ -266,14 +266,14 @@ class EnvironmentVariablesTest extends AbstractIdeContextTest {
 
     // arrange
     String path = "project/workspaces/foo-test/my-git-repo";
-    // TRACE level so that the "Variable MY_TOKEN=..." log written while reading the variable is captured
+    // TRACE level so that the "Variable MY_SECRET=..." log written while reading the variable is captured
     IdeTestContext context = newContext(ENVIRONMENT_PROJECT, path, true, null, IdeLogLevel.TRACE);
     EnvironmentVariables variables = context.getVariables();
-    variables.getByType(EnvironmentVariablesType.CONF).set("MY_TOKEN", "dummy-stored-value");
+    variables.getByType(EnvironmentVariablesType.CONF).set("MY_SECRET", "dummy-stored-value");
     context.getTestStartContext().getEntries().clear();
 
     // act
-    String resolved = variables.resolve("token=@ask-secret('MY_TOKEN')", "test", false);
+    String resolved = variables.resolve("token=@ask-secret('MY_SECRET')", "test", false);
 
     // assert
     assertThat(resolved).isEqualTo("token=dummy-stored-value");
