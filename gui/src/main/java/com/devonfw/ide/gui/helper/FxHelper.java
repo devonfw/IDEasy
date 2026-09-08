@@ -1,4 +1,4 @@
-package com.devonfw.ide.gui;
+package com.devonfw.ide.gui.helper;
 
 import javafx.application.Platform;
 import javafx.scene.Parent;

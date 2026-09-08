@@ -1,4 +1,4 @@
-package com.devonfw.ide.gui.nls;
+package com.devonfw.ide.gui.service;
 
 import java.io.IOException;
 import java.net.URI;

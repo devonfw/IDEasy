@@ -1,4 +1,4 @@
-package com.devonfw.ide.gui.modal;
+package com.devonfw.ide.gui.ui.modal;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;

@@ -1,4 +1,4 @@
-package com.devonfw.ide.gui.progress.taskwindow;
+package com.devonfw.ide.gui.ui.progress.taskwindow;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -16,7 +16,7 @@ import javafx.util.Callback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.ide.gui.progress.ProgressBarTask;
+import com.devonfw.ide.gui.ui.progress.ProgressBarTask;
 
 /**
  * Cell factory for displaying a list of tasks in the {@link TaskOverviewWindow}

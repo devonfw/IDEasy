@@ -1,7 +1,7 @@
 package com.devonfw.ide.gui.context;
 
 
-import com.devonfw.ide.gui.console.ConsoleController;
+import com.devonfw.ide.gui.ui.controls.console.ConsoleController;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeLogListenerBuffer;
 

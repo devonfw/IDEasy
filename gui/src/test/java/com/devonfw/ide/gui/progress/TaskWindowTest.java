@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
 import java.net.URL;
-
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
@@ -18,11 +17,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.ide.gui.App;
-import com.devonfw.ide.gui.FxHelper;
 import com.devonfw.ide.gui.HeadlessApplicationTest;
 import com.devonfw.ide.gui.context.TaskManager;
-import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindow;
-import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindowController;
+import com.devonfw.ide.gui.helper.FxHelper;
+import com.devonfw.ide.gui.ui.progress.ProgressBarTask;
+import com.devonfw.ide.gui.ui.progress.taskwindow.TaskOverviewWindow;
+import com.devonfw.ide.gui.ui.progress.taskwindow.TaskOverviewWindowController;
 
 /**
  * Tests for the TaskOverviewWindow. We check whether the window is displayed correctly and whether it properly reacts to changes in the TaskManager.

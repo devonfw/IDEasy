@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.Locale;
-
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -17,7 +16,8 @@ import javafx.stage.Stage;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.ide.gui.HeadlessApplicationTest;
-import com.devonfw.ide.gui.nls.NlsService;
+import com.devonfw.ide.gui.service.NlsService;
+import com.devonfw.ide.gui.ui.controls.console.ConsoleController;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 
 class ConsolePanelTest extends HeadlessApplicationTest {

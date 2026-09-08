@@ -1,7 +1,6 @@
-package com.devonfw.ide.gui.progress.taskwindow;
+package com.devonfw.ide.gui.ui.progress.taskwindow;
 
 import java.io.IOException;
-
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
@@ -12,7 +11,6 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
-import com.devonfw.ide.gui.App;
 import com.devonfw.ide.gui.context.TaskManager;
 
 /**
@@ -41,7 +39,7 @@ public class TaskOverviewWindow {
    */
   private TaskOverviewWindow(TaskManager taskManager) {
 
-    FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("task_overview_window.fxml"));
+    FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("task_overview_window.fxml"));
     fxmlLoader.setController(new TaskOverviewWindowController(taskManager));
 
     Parent root;

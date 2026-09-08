@@ -1,4 +1,4 @@
-package com.devonfw.ide.gui.progress;
+package com.devonfw.ide.gui.ui.progress;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.LongProperty;
@@ -10,8 +10,8 @@ import javafx.beans.property.StringProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.ide.gui.FxHelper;
 import com.devonfw.ide.gui.context.TaskManager;
+import com.devonfw.ide.gui.helper.FxHelper;
 import com.devonfw.tools.ide.io.AbstractIdeProgressBar;
 
 /**

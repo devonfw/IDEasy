@@ -1,4 +1,4 @@
-package com.devonfw.ide.gui.console;
+package com.devonfw.ide.gui.ui.controls.console;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -14,8 +14,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 
-import com.devonfw.ide.gui.FxHelper;
-import com.devonfw.ide.gui.nls.NlsService;
+import com.devonfw.ide.gui.helper.FxHelper;
+import com.devonfw.ide.gui.service.NlsService;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 
