@@ -17,8 +17,12 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.context.TaskManager;
+import com.devonfw.ide.gui.factory.TabFactory;
+import com.devonfw.ide.gui.service.CommandletService;
 import com.devonfw.ide.gui.service.NlsService;
-import com.devonfw.ide.gui.ui.mainwindow.MainWindow;
+import com.devonfw.ide.gui.ui.controls.console.ConsoleController;
+import com.devonfw.ide.gui.ui.mainwindow.MainWindowView;
+import com.devonfw.ide.gui.ui.mainwindow.MainWindowViewModel;
 import com.devonfw.ide.gui.ui.modal.IdeDialog;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.version.IdeVersion;
@@ -35,7 +39,12 @@ public class App extends Application {
 
   private Stage primaryStage;
 
+  //Factorys
+  private TabFactory tabFactory;
+
+  //Services
   private NlsService nlsService;
+  private CommandletService commandletService;
 
   TaskManager taskManager = new TaskManager();
   GuiStateManager guiStateManager = new GuiStateManager(taskManager, null);
@@ -53,7 +62,13 @@ public class App extends Application {
 
     this.nlsService = new NlsService(null);
 
-    final MainWindow mainWindow = new MainWindow(guiStateManager, guiStateManager.getProjectManager(), this.nlsService);
+    final ConsoleController consoleController = new ConsoleController(nlsService);
+    this.commandletService = new CommandletService(guiStateManager, consoleController);
+
+    this.tabFactory = new TabFactory(guiStateManager, nlsService, commandletService, consoleController);
+
+    final MainWindowViewModel mainWindowViewModel = new MainWindowViewModel(guiStateManager, guiStateManager.getProjectManager(), this.nlsService);
+    final MainWindowView mainWindow = new MainWindowView(mainWindowViewModel, guiStateManager, this.nlsService, consoleController, tabFactory);
 
     //this.nlsService.addLocaleChangeListener(this::reloadMainView);
 

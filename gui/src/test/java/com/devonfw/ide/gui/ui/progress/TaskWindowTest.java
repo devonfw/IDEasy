@@ -1,9 +1,10 @@
-package com.devonfw.ide.gui.progress;
+package com.devonfw.ide.gui.ui.progress;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
 import java.net.URL;
+
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
@@ -16,11 +17,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.devonfw.ide.gui.App;
 import com.devonfw.ide.gui.HeadlessApplicationTest;
 import com.devonfw.ide.gui.context.TaskManager;
 import com.devonfw.ide.gui.helper.FxHelper;
-import com.devonfw.ide.gui.ui.progress.ProgressBarTask;
 import com.devonfw.ide.gui.ui.progress.taskwindow.TaskOverviewWindow;
 import com.devonfw.ide.gui.ui.progress.taskwindow.TaskOverviewWindowController;
 
@@ -35,7 +34,7 @@ public class TaskWindowTest extends HeadlessApplicationTest {
   @Override
   public void start(Stage stage) throws Exception {
 
-    URL taskOverviewWindowUrl = App.class.getResource("task_overview_window.fxml");
+    URL taskOverviewWindowUrl = TaskOverviewWindowController.class.getResource("task_overview_window.fxml");
     assertThat(taskOverviewWindowUrl).as("Cannot resolve task overview window FXML resource!").isNotNull();
 
     FXMLLoader fxmlLoader = new FXMLLoader(taskOverviewWindowUrl);

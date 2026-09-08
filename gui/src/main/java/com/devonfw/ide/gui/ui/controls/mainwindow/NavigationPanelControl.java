@@ -3,18 +3,16 @@ package com.devonfw.ide.gui.ui.controls.mainwindow;
 import java.io.IOException;
 import java.util.Locale;
 import java.util.ResourceBundle;
+
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.VBox;
 
-import com.devonfw.ide.gui.context.GuiStateManager;
-import com.devonfw.ide.gui.ui.mainwindow.MainWindow;
+import com.devonfw.ide.gui.ui.mainwindow.MainWindowViewModel;
 
 /**
- * Controller for the main-window navigation panel (the left project/workspace/language sidebar). It is wired in from {@code MainWindow.fxml} via
- * {@code fx:controller} and {@link FXMLLoader#setControllerFactory javafx.fxml.FXMLLoader#setControllerFactory}; the shared selection is kept in sync with the
- * {@link GuiStateManager}.
+ * Controller for the main-window navigation panel (the left project/workspace/language sidebar).
  */
 public class NavigationPanelControl extends VBox {
 
@@ -34,8 +32,8 @@ public class NavigationPanelControl extends VBox {
     loader.setRoot(this);
     loader.setController(this);
     // This control self-loads its FXML in a no-arg constructor, so it has no NlsService reference here. The FXML uses %key text, so it needs a
-    // ResourceBundle to resolve them. Resolve the same default-locale bundle the app loads at startup (see NlsService). To be replaced by the shared
-    // NlsService once it is reworked into a singleton (follow-up issue).
+    // ResourceBundle to resolve them. Resolve the same default-locale bundle the app loads at startup (see NlsService). This is to be removed when
+    // language selection is reworked.
     loader.setResources(ResourceBundle.getBundle("nls.messages", Locale.getDefault()));
 
     try {
@@ -50,28 +48,22 @@ public class NavigationPanelControl extends VBox {
 
   }
 
-  public void bind(MainWindow mainWindow) {
-    projects.setItems(mainWindow.getProjectsViewModel().getItems());
-    projects.valueProperty().bindBidirectional(mainWindow.getProjectsViewModel().selectedItemProperty());
+  /**
+   * Binds the three combo boxes to the selections held by the main window's view model.
+   *
+   * @param viewModel the MainWindowViewModel
+   */
+  public void bind(MainWindowViewModel viewModel) {
 
-    workspaces.setItems(mainWindow.getWorkspacesViewModel().getItems());
-    workspaces.valueProperty().bindBidirectional(mainWindow.getWorkspacesViewModel().selectedItemProperty());
-    workspaces.disableProperty().bind(mainWindow.getWorkspacesViewModel().isDisabledProperty());
-    workspaces.getSelectionModel()
-        .selectedItemProperty()
-        .addListener(((observable, oldValue, newValue) -> {
-          if (newValue == null) {
-            mainWindow.setIsWorkspaceSelected(false);
-          } else {
-            mainWindow.setIsWorkspaceSelected(true);
-            mainWindow.updateContext();
-          }
-        }));
+    this.projects.setItems(viewModel.getProjectsViewModel().getItems());
+    this.projects.valueProperty().bindBidirectional(viewModel.getProjectsViewModel().selectedItemProperty());
 
-    languages.setItems(mainWindow.getLanguagesViewModel().getItems());
-    languages.valueProperty().bindBidirectional(mainWindow.getLanguagesViewModel().selectedItemProperty());
+    this.workspaces.setItems(viewModel.getWorkspacesViewModel().getItems());
+    this.workspaces.valueProperty().bindBidirectional(viewModel.getWorkspacesViewModel().selectedItemProperty());
+    this.workspaces.disableProperty().bind(viewModel.getWorkspacesViewModel().isDisabledProperty());
 
-    this.projects.setOnAction(_ -> mainWindow.populateWorkspaceComboBox());
+    this.languages.setItems(viewModel.getLanguagesViewModel().getItems());
+    this.languages.valueProperty().bindBidirectional(viewModel.getLanguagesViewModel().selectedItemProperty());
   }
 
 }

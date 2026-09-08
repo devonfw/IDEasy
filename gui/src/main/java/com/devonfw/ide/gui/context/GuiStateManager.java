@@ -30,20 +30,10 @@ public class GuiStateManager {
 
   private final CopyOnWriteArrayList<GuiContextChangeListener> listeners = new CopyOnWriteArrayList<>();
 
-  /**
-   * The project currently selected in the GUI. This is the single app-wide selection, shared by all views and dialogs.
-   */
   private final StringProperty selectedProject = new SimpleStringProperty();
 
-  /**
-   * The workspace currently selected in the GUI. This is the single app-wide selection, shared by all views and dialogs.
-   */
   private final StringProperty selectedWorkspace = new SimpleStringProperty();
 
-  /**
-   * Whether a valid project/workspace selection is active. Views (such as the IDE launch buttons) bind to this so that they are enabled exactly when the user
-   * has selected a usable context.
-   */
   private final BooleanProperty isWorkspaceSelected = new SimpleBooleanProperty(false);
 
   /**

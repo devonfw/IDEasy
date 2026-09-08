@@ -1,6 +1,7 @@
 package com.devonfw.ide.gui.helper.combobox;
 
 import java.util.Optional;
+
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -22,10 +23,6 @@ public class ComboBoxViewModel<T> {
     return false;
   }
 
-  /**
-   * Clears the selected item. Unlike {@link #select(Object)}, this is not gated on the item being present in the list, so it always resets the selection (e.g.
-   * when repopulating the items).
-   */
   public void clearSelection() {
     this.selectedItem.set(null);
   }

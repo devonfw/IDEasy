@@ -3,13 +3,11 @@ package com.devonfw.ide.gui.ui.tab.launcher;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 
-import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.service.NlsService;
 import com.devonfw.ide.gui.ui.tab.TabView;
 
 /**
- * View for the IDE launcher tab. The launch buttons are enabled exactly when a valid project/workspace selection is active, i.e. when the shared
- * {@code ideButtonsEnabled} flag on the {@link GuiStateManager} is set.
+ * View for the IDE launcher tab.
  */
 public class IdeLauncherView extends TabView {
 

@@ -1,6 +1,7 @@
 package com.devonfw.ide.gui.factory;
 
 import java.util.Objects;
+
 import javafx.scene.Node;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -15,9 +16,6 @@ import com.devonfw.ide.gui.ui.tab.launcher.IdeLauncherViewModel;
 
 public class TabFactory {
 
-  /** Localization key for the IDE launcher tab title. */
-  public static final String TAB_KEY_IDE_LAUNCHER = "tab.ide_launcher";
-
   private final GuiStateManager guiStateManager;
   private final NlsService nlsService;
   private final ConsoleController consoleController;
@@ -26,11 +24,11 @@ public class TabFactory {
   private TabPane tabPane;
 
 
-  public TabFactory(GuiStateManager guiStateManager, NlsService nlsService, ConsoleController consoleController) {
+  public TabFactory(GuiStateManager guiStateManager, NlsService nlsService, CommandletService commandletService, ConsoleController consoleController) {
     this.guiStateManager = Objects.requireNonNull(guiStateManager);
     this.nlsService = Objects.requireNonNull(nlsService);
     this.consoleController = Objects.requireNonNull(consoleController);
-    this.commandletService = new CommandletService(guiStateManager, consoleController);
+    this.commandletService = commandletService;
   }
 
 
@@ -39,7 +37,8 @@ public class TabFactory {
   }
 
   /**
-   * Registers an action that runs before any commandlet launched from a tab (e.g. to show the console).
+   * Registers an action that runs before any commandlet launched from a tab (e.g. to show the console). This is a hack for the console auto-showing when
+   * starting an IDE and should be removed when the console is reworked.
    *
    * @param preLaunchAction the action to run before a commandlet launches.
    */
@@ -49,8 +48,8 @@ public class TabFactory {
 
 
   public void openLauncherTab() {
-    open(TAB_KEY_IDE_LAUNCHER,
-        new IdeLauncherView(new IdeLauncherViewModel(this.guiStateManager, this.commandletService), this.nlsService));
+    IdeLauncherViewModel viewModel = new IdeLauncherViewModel(this.guiStateManager, this.commandletService);
+    open(viewModel.getTabTitleKey(), new IdeLauncherView(viewModel, this.nlsService));
   }
 
 
@@ -63,6 +62,7 @@ public class TabFactory {
     }
 
     Tab tab = new Tab(this.nlsService.get(titleKey), content);
+    tab.setUserData(titleKey);
     tab.setClosable(true);
     this.tabPane.getTabs().add(tab);
     return tab;
@@ -91,7 +91,6 @@ public class TabFactory {
   }
 
   private Tab findByTitleKey(String titleKey) {
-    String title = this.nlsService.get(titleKey);
-    return this.tabPane.getTabs().stream().filter(tab -> title.equals(tab.getText())).findFirst().orElse(null);
+    return this.tabPane.getTabs().stream().filter(tab -> titleKey.equals(tab.getUserData())).findFirst().orElse(null);
   }
 }

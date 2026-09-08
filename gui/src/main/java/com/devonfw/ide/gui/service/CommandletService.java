@@ -21,9 +21,7 @@ import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 
 /**
- * Service to run a commandlet in the currently selected project/workspace context. It runs the commandlet on a background thread within the current
- * {@link GuiStateManager} context, tracks progress via a progress bar, routes the commandlet's output to the shared {@link ConsoleController}, and surfaces
- * failures. Reusable by any tab that needs to start a commandlet.
+ * Service to run a commandlet in the currently selected project/workspace context.
  */
 public class CommandletService {
 
@@ -36,7 +34,8 @@ public class CommandletService {
   private final GuiOutputListener guiOutputListener;
 
   /**
-   * Optional action invoked before a commandlet is launched, e.g. to make the console pane visible. Defaults to a no-op.
+   * Optional action invoked before a commandlet is launched, e.g. to make the console pane visible. Defaults to a no-op. Part of the hack to make the Console
+   * auto-show when an IDE is launched, should be removed when Console is reworked.
    */
   private Runnable preLaunchAction = () -> {
   };
@@ -49,7 +48,8 @@ public class CommandletService {
   }
 
   /**
-   * Sets the action that is run before each commandlet launch.
+   * Sets the action that is run before each commandlet launch. Part of the hack to make the Console auto-show when an IDE is launched, should be removed when
+   * Console is reworked.
    *
    * @param preLaunchAction the action to run before launching a commandlet (must not be <code>null</code>).
    */

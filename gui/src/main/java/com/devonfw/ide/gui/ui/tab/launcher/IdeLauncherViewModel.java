@@ -20,6 +20,11 @@ public class IdeLauncherViewModel extends TabViewModel {
     this.isIdeButtonsDisabledProperty.bind(this.guiStateManager.isWorkspaceSelectedProperty().not());
   }
 
+  @Override
+  public String getTabTitleKey() {
+    return "tab.ide_launcher";
+  }
+
   /**
    * Runs the given IDE commandlet in the currently selected project/workspace context.
    *
