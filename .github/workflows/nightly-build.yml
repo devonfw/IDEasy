@@ -60,6 +60,9 @@ jobs:
         shell: bash
         run: |
           cd cli
+          # The JUnits are skipped on purpose: they already run in the CI build on main and in every
+          # PR build. Repeating them for each of the five native image legs would only cost build
+          # time without adding QA value (see #1215).
           mvn -B -ntp -Pnative -DskipTests=true -Drevision=${RELEASE_VERSION} package
         env:
           RELEASE_VERSION: ${{ needs.resolve-version.outputs.build_version }}
@@ -136,13 +139,14 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '25'
-      - name: Download natives and build project
+      - name: Download natives
         uses: actions/download-artifact@v8
         with:
           path: ./cli/target/
-      - name: Deploy to OSSRH nexus
+      - name: Build project and deploy to OSSRH nexus
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           RELEASE_VERSION: ${{ needs.resolve-version.outputs.snapshot_version }}
+        # The JUnits are skipped on purpose, see the "Build native image" step above.
         run: mvn --settings .mvn/settings.xml -DskipTests=true -Darchetype.test.skip=true -Dgpg.skip=true -Dstyle.color=always -B -ntp -pl -:ide-macos-installer -Passembly,msi,pkg,deploy deploy
