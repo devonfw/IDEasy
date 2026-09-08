@@ -20,7 +20,7 @@ image::quality-status-images/issue-assignment.svg[Pie chart: assigned vs unassig
 image::quality-status-images/issue-types.svg[Pie chart: issue type distribution,width=100%]
 
 
-_Generated: 2026-09-07 08:55 UTC_
+_Generated: 2026-09-07 11:19 UTC_
 
 
 == Operating System Status Files
@@ -29,7 +29,7 @@ Issues are assigned to operating systems based on their labels:
 `windows`, `linux`, or `macOS`.
 
 Issues without an operating system label are treated as cross-platform.
-*A total of 143 cross-platform issues* are documented centrally in this document and are therefore not repeated in the operating system specific files.
+*A total of 141 cross-platform issues* are documented centrally in this document and are therefore not repeated in the operating system specific files.
 
 The detailed tool status is split into one generated file per operating system.
 
@@ -57,6 +57,9 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 |===
 | Issue | Summary
 2+^a| [[cross-platform-0-10-days]] *0-10 days*
+
+| link:https://github.com/devonfw/IDEasy/issues/2422[#2422]
+| Cleanup how to determine installed edition and version and potentially restore…
 
 | link:https://github.com/devonfw/IDEasy/issues/2420[#2420]
 | Improve BuildTool support further
@@ -123,9 +126,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/2372[#2372]
 | Implement --retention-delay option for ide cleanup (stale files in updates, _id…
 
-| link:https://github.com/devonfw/IDEasy/issues/2371[#2371]
-| Determine software version from symlink and recover missing .ide.software.versi…
-
 | link:https://github.com/devonfw/IDEasy/issues/2369[#2369]
 | Rework openrewrite
 
@@ -181,9 +181,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | SoapUI not working in projects that do not have java installed
 
 2+^a| [[cross-platform-31-60-days]] *31-60 days*
-
-| link:https://github.com/devonfw/IDEasy/issues/2284[#2284]
-| Restore .ide.software.version from actual installed Python version
 
 | link:https://github.com/devonfw/IDEasy/issues/2283[#2283]
 | GUI blocks commandlets when license agreement is missing
@@ -250,9 +247,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 
 | link:https://github.com/devonfw/IDEasy/issues/2191[#2191]
 | Improve auto-completion
-
-| link:https://github.com/devonfw/IDEasy/issues/2190[#2190]
-| IDEasy destroys my python installation
 
 | link:https://github.com/devonfw/IDEasy/issues/2185[#2185]
 | Explore JPackage and evaluate
