@@ -9,6 +9,9 @@ jobs:
   # Checks if new commits since 24 hours of the last call of this workflow were found and adjusts the GITHUB_OUTPUT accordingly
   verify_commit:
     runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      vars.ENABLE_AUTOMATIC_WORKFLOWS == 'true'
     outputs:
       RUN_BUILD: ${{ steps.verify_commit.outputs.RUN_BUILD }}
     steps:
