@@ -13,6 +13,7 @@ public class NativePackage {
   private final List<String> extraInstallOptions;
   private final List<String> setupCommands;
   private final List<String> cleanupCommands;
+  private final boolean interactiveInstall;
 
   /**
    * Creates a new {@link NativePackage} with optional fields defaulting to empty lists.
@@ -25,11 +26,29 @@ public class NativePackage {
    */
   public NativePackage(NativePackageManager pm, List<String> packages,
       List<String> extraInstallOptions, List<String> setupCommands, List<String> cleanupCommands) {
+    this(pm, packages, extraInstallOptions, setupCommands, cleanupCommands, false);
+  }
+
+  /**
+   * Creates a new {@link NativePackage}.
+   *
+   * @param pm the specific {@link NativePackageManager}
+   * @param packages the packages that need to be handled.
+   * @param extraInstallOptions extra install options (optional)
+   * @param setupCommands commands to run before install (optional)
+   * @param cleanupCommands commands to run after uninstall (optional)
+   * @param interactiveInstall {@code true} to allow interactive user input during installation, {@code false} otherwise.
+   */
+  public NativePackage(NativePackageManager pm, List<String> packages,
+      List<String> extraInstallOptions, List<String> setupCommands, List<String> cleanupCommands,
+      boolean interactiveInstall) {
+
     this.packageManager = Objects.requireNonNull(pm, "package manager must not be null");
     this.packages = List.copyOf(Objects.requireNonNull(packages, "packages must not be null"));
     this.extraInstallOptions = extraInstallOptions != null ? List.copyOf(extraInstallOptions) : List.of();
     this.setupCommands = setupCommands != null ? List.copyOf(setupCommands) : List.of();
     this.cleanupCommands = cleanupCommands != null ? List.copyOf(cleanupCommands) : List.of();
+    this.interactiveInstall = interactiveInstall;
   }
 
   /**
@@ -108,5 +127,12 @@ public class NativePackage {
    */
   public List<String> getVersionQueryCommand() {
     return this.packageManager.getVersionQueryCommand(this.packages.getFirst());
+  }
+
+  /**
+   * @return {@code true} if this package should be installed interactively, {@code false} otherwise.
+   */
+  public boolean isInteractiveInstall() {
+    return this.interactiveInstall;
   }
 }

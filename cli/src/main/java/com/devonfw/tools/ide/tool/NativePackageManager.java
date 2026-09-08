@@ -8,27 +8,29 @@ import java.util.List;
  */
 public enum NativePackageManager {
   /** Advanced Package Tool (APT) is the package manager of Debian based Linux distributions. */
-  APT("install -y", "-y autoremove --purge", "=", "*"),
+  APT("install -y", null, "-y autoremove --purge", "=", "*"),
 
   /** Zypper is the package manager of SUSE based Linux distributions. */
-  ZYPPER("--non-interactive install", "remove", "=", ""),
+  ZYPPER("--non-interactive install", "install", "remove", "=", ""),
 
   /** Yellowdog Updater Modified (YUM) is the package manager of RPM package based Linux distributions like Fedora, Red Hat, or CentOS. */
-  YUM("install -y", "remove -y", "-", "*"),
+  YUM("install -y", null, "remove -y", "-", "*"),
 
   /** DaNdiFied yum (DNF) is the package manager of RPM package based Linux distributions like Fedora. It is the successor of {@link #YUM}. */
-  DNF("install -y", "remove -y", "-", "*");
+  DNF("install -y", null, "remove -y", "-", "*");
 
   private static final String DPKG_STATUS_INSTALLED = "installed";
   private static final String SUDO = "sudo";
 
   private final String installCommand;
+  private final String interactiveInstallCommand;
   private final String uninstallCommand;
   private final String versionSeparator;
   private final String versionWildCard;
 
-  NativePackageManager(String installCommand, String uninstallCommand, String versionSeparator, String versionWildCard) {
+  NativePackageManager(String installCommand, String interactiveInstallCommand, String uninstallCommand, String versionSeparator, String versionWildCard) {
     this.installCommand = installCommand;
+    this.interactiveInstallCommand = interactiveInstallCommand;
     this.uninstallCommand = uninstallCommand;
     this.versionSeparator = versionSeparator;
     this.versionWildCard = versionWildCard;
@@ -127,7 +129,13 @@ public enum NativePackageManager {
     for (String option : nativePackage.getExtraInstallOptions()) {
       command.append(' ').append(option);
     }
-    command.append(' ').append(this.installCommand);
+
+    String installCommand = this.installCommand;
+    if (nativePackage.isInteractiveInstall() && this.interactiveInstallCommand != null) {
+      installCommand = this.interactiveInstallCommand;
+    }
+    command.append(' ').append(installCommand);
+
     for (String pkg : nativePackage.getPackages()) {
       command.append(' ').append(getPackageSpec(pkg, version));
     }
