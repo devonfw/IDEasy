@@ -17,7 +17,6 @@ import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
-import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
 import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -394,13 +393,11 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       return null;
     }
     // Resolve edition and version from a single tool-path lookup (one pass) instead of two separate lookups.
-    Path repoPath = getInstalledSoftwareRepoPath(toolPath);
+    Path repoPath = getInstalledSoftwareRepoPath(toolPath, true);
 
     if (repoPath != null) {
-      String edition = repoPath.getParent().getFileName().toString();
       VersionIdentifier version = VersionIdentifier.of(repoPath.getFileName().toString());
-      validateInstalledEdition(edition);
-      return new EditionAndVersion(edition, version);
+      return new EditionAndVersion(getEditionFromSoftwareRepoPath(repoPath), version);
     }
     return computeInstalledEditionAndVersionFromLocalSoftwareFolder();
   }
@@ -479,47 +476,24 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * @return the installed edition of this tool or {@code null} if not installed.
    */
   protected String getInstalledEdition(Path toolPath) {
+
     if (isToolNotInstalled(toolPath)) {
       return null;
     }
-    Path realPath = this.context.getFileAccess().toRealPath(toolPath);
-    // if the realPath changed, a link has been resolved
-    if (realPath.equals(toolPath)) {
-      if (!isIgnoreSoftwareRepo()) {
-        LOG.warn("Tool {} is not installed via software repository (maybe from devonfw-ide). Please consider reinstalling it.", this.tool);
-      }
-      // I do not see any reliable way how we could determine the edition of a tool that does not use software repo or that was installed by devonfw-ide
-      return getConfiguredEdition();
+    Path repoPath = getInstalledSoftwareRepoPath(toolPath, true);
+    if (repoPath == null) {
+      return computeInstalledEditionFromLocalSoftwareFolder();
     }
-    Path toolRepoFolder = context.getSoftwareRepositoryPath().resolve(ToolRepository.ID_DEFAULT).resolve(this.tool);
-    String edition = getEdition(toolRepoFolder, realPath);
-    if (edition == null) {
-      edition = this.tool;
-    }
+    return getEditionFromSoftwareRepoPath(repoPath);
+  }
+
+  private String getEditionFromSoftwareRepoPath(Path repoPath) {
+
+    String edition = repoPath.getParent().getFileName().toString();
     if (!getToolRepository().getSortedEditions(this.tool).contains(edition)) {
       LOG.warn("Undefined edition {} of tool {}", edition, this.tool);
     }
     return edition;
-  }
-
-  private String getEdition(Path toolRepoFolder, Path toolInstallFolder) {
-
-    int toolRepoNameCount = toolRepoFolder.getNameCount();
-    int toolInstallNameCount = toolInstallFolder.getNameCount();
-    if (toolRepoNameCount < toolInstallNameCount) {
-      // ensure toolInstallFolder starts with $IDE_ROOT/_ide/software/default/«tool»
-      for (int i = 0; i < toolRepoNameCount; i++) {
-        if (!toolRepoFolder.getName(i).toString().equals(toolInstallFolder.getName(i).toString())) {
-          return null;
-        }
-      }
-      return toolInstallFolder.getName(toolRepoNameCount).toString();
-    }
-    return null;
-  }
-
-  private Path getInstalledSoftwareRepoPath(Path toolPath) {
-    return getInstalledSoftwareRepoPath(toolPath, false);
   }
 
   private Path getInstalledSoftwareRepoPath(Path toolPath, boolean logIfNotSoftwareRepo) {
@@ -568,18 +542,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     } else {
       LOG.warn("The installation path is faulty {}.", installPath);
       return null;
-    }
-  }
-
-  private void validateInstalledEdition(String edition) {
-
-    if (!getToolRepository()
-        .getSortedEditions(this.tool)
-        .contains(edition)) {
-
-      LOG.warn(
-          "Undefined edition {} of tool {}",
-          edition, this.tool);
     }
   }
 

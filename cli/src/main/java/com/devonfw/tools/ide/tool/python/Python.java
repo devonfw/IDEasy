@@ -103,6 +103,7 @@ public class Python extends LocalToolCommandlet {
 
   @Override
   protected VersionIdentifier computeInstalledVersionFromLocalSoftwareFolder() {
+
     Path toolPath = getToolPath();
     VersionIdentifier version = readVersionFromPyvenvCfg(toolPath);
     if (version == null) {
