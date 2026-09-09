@@ -19,6 +19,7 @@ import org.junit.jupiter.api.io.TempDir;
 import com.devonfw.ide.gui.HeadlessApplicationTest;
 import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.context.TaskManager;
+import com.devonfw.ide.gui.service.CommandletService;
 import com.devonfw.ide.gui.service.NlsService;
 import com.devonfw.ide.gui.ui.controls.console.ConsoleController;
 
@@ -48,13 +49,15 @@ class TabFactoryTest extends HeadlessApplicationTest {
   }
 
   /**
-   * Builds a {@link TabFactory} with the given NLS service and opens two tabs with the given keys, capturing the resulting tab count, the first tab's
-   * stored user data, and whether both opens returned the same {@link Tab} instance.
+   * Builds a {@link TabFactory} with the given NLS service and opens two tabs with the given keys, capturing the resulting tab count, the first tab's stored
+   * user data, and whether both opens returned the same {@link Tab} instance.
    */
   private void openTwoTabs(NlsService nlsService, String key1, String key2) {
     interact(() -> {
       GuiStateManager guiStateManager = new GuiStateManager(new TaskManager(), this.ideRoot.toString());
-      TabFactory factory = new TabFactory(guiStateManager, nlsService, new ConsoleController(nlsService));
+      ConsoleController consoleController = new ConsoleController(nlsService);
+      CommandletService commandletService = new CommandletService(guiStateManager, consoleController);
+      TabFactory factory = new TabFactory(guiStateManager, nlsService, commandletService, consoleController);
       TabPane tabPane = new TabPane();
       factory.attach(tabPane);
 
@@ -104,8 +107,8 @@ class TabFactoryTest extends HeadlessApplicationTest {
   }
 
   /**
-   * An {@link NlsService} that answers a fixed set of keys with caller-controlled text, so a test can force two distinct keys to translate to the same
-   * string (the collision the title-based de-duplication cannot disambiguate).
+   * An {@link NlsService} that answers a fixed set of keys with caller-controlled text, so a test can force two distinct keys to translate to the same string
+   * (the collision the title-based de-duplication cannot disambiguate).
    */
   private static final class FixedNlsService extends NlsService {
 

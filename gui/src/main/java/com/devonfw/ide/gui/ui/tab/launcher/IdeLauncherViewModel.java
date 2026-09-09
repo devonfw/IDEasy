@@ -17,7 +17,7 @@ public class IdeLauncherViewModel extends TabViewModel {
     super(guiStateManager);
     this.commandletService = commandletService;
 
-    this.isIdeButtonsDisabledProperty.bind(this.guiStateManager.isWorkspaceSelectedProperty().not());
+    this.isIdeButtonsDisabledProperty.bind(this.guiStateManager.workspaceSelectedProperty().not());
   }
 
   @Override

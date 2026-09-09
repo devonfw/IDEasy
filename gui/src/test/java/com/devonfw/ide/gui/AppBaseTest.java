@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Locale;
+
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -30,6 +31,7 @@ import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.context.TaskManager;
 import com.devonfw.ide.gui.factory.TabFactory;
 import com.devonfw.ide.gui.helper.FxHelper;
+import com.devonfw.ide.gui.service.CommandletService;
 import com.devonfw.ide.gui.service.NlsService;
 import com.devonfw.ide.gui.ui.controls.console.ConsoleController;
 import com.devonfw.ide.gui.ui.mainwindow.MainWindowView;
@@ -76,7 +78,8 @@ public class AppBaseTest extends HeadlessApplicationTest {
     this.taskManager = new TaskManager();
     this.guiStateManager = new GuiStateManager(this.taskManager, mockIdeRoot.toString());
     ConsoleController consoleController = new ConsoleController(nlsService);
-    TabFactory tabFactory = new TabFactory(guiStateManager, nlsService, consoleController);
+    CommandletService commandletService = new CommandletService(guiStateManager, consoleController);
+    TabFactory tabFactory = new TabFactory(guiStateManager, nlsService, commandletService, consoleController);
 
     this.viewModel = new MainWindowViewModel(guiStateManager, guiStateManager.getProjectManager(), nlsService);
     MainWindowView mainWindow = new MainWindowView(this.viewModel, guiStateManager, nlsService, consoleController, tabFactory);

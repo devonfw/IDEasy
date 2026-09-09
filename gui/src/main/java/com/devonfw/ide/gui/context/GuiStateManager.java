@@ -34,7 +34,7 @@ public class GuiStateManager {
 
   private final StringProperty selectedWorkspace = new SimpleStringProperty();
 
-  private final BooleanProperty isWorkspaceSelected = new SimpleBooleanProperty(false);
+  private final BooleanProperty workspaceSelected = new SimpleBooleanProperty(false);
 
   /**
    * Project context based on which project the user works in.
@@ -84,6 +84,7 @@ public class GuiStateManager {
 
     this.selectedProject.set(projectName);
     this.selectedWorkspace.set(workspaceName);
+    this.workspaceSelected.set(true);
 
     this.currentContext = new IdeGuiContext(startContext, workspacePath, taskManager);
     listeners.forEach(listener -> listener.onContextChange(this.currentContext));
@@ -144,15 +145,15 @@ public class GuiStateManager {
    */
   public boolean isWorkspaceSelected() {
 
-    return this.isWorkspaceSelected.get();
+    return this.workspaceSelected.get();
   }
 
   /**
    * @return the observable {@link BooleanProperty} flagging whether a valid project/workspace selection is active.
    */
-  public BooleanProperty isWorkspaceSelectedProperty() {
+  public BooleanProperty workspaceSelectedProperty() {
 
-    return this.isWorkspaceSelected;
+    return this.workspaceSelected;
   }
 
   /**

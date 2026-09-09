@@ -17,6 +17,7 @@ import com.devonfw.ide.gui.context.IdeGuiLogListener;
 import com.devonfw.ide.gui.ui.controls.console.ConsoleController;
 import com.devonfw.ide.gui.ui.modal.IdeDialog;
 import com.devonfw.ide.gui.ui.progress.ProgressBarTask;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 
@@ -30,8 +31,8 @@ public class CommandletService {
   private final GuiStateManager guiStateManager;
   private final ConsoleController consoleController;
 
-  private final IdeGuiLogListener guiLogListener;
-  private final GuiOutputListener guiOutputListener;
+  private IdeGuiLogListener guiLogListener;
+  private GuiOutputListener guiOutputListener;
 
   /**
    * Optional action invoked before a commandlet is launched, e.g. to make the console pane visible. Defaults to a no-op. Part of the hack to make the Console
@@ -68,6 +69,9 @@ public class CommandletService {
 
     Task<Void> commandletTask = runCommandletTask(commandlet);
 
+    this.guiLogListener = new IdeGuiLogListener(consoleController);
+    this.guiOutputListener = new GuiOutputListener(consoleController);
+
     Thread commandletThread = new Thread(commandletTask);
     commandletThread.setDaemon(true);
     commandletThread.start();
@@ -85,7 +89,7 @@ public class CommandletService {
             IdeStartContextImpl startContext = new IdeStartContextImpl(IdeLogLevel.INFO, guiLogListener);
             Path workspacePath = CommandletService.this.guiStateManager.getIdeRootDir()
                 .resolve(CommandletService.this.guiStateManager.getSelectedProject())
-                .resolve("workspaces")
+                .resolve(IdeContext.FOLDER_WORKSPACES)
                 .resolve(CommandletService.this.guiStateManager.getSelectedWorkspace());
             IdeGuiContext context = new IdeGuiContext(startContext, workspacePath, CommandletService.this.guiStateManager.getTaskManager());
 

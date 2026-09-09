@@ -78,7 +78,7 @@ public class MainWindowViewModel {
       }
     });
     this.workspaces.selectedItemProperty().addListener((_, _, workspace) -> {
-      this.guiStateManager.isWorkspaceSelectedProperty().set(workspace != null);
+      this.guiStateManager.workspaceSelectedProperty().set(workspace != null);
       if (workspace != null) {
         updateContext();
       }
@@ -89,9 +89,7 @@ public class MainWindowViewModel {
 
     this.projects.getItems().clear();
     this.projects.getItems().addAll(this.projectManager.getProjectNames());
-    this.projects.selectedItemProperty().bindBidirectional(this.guiStateManager.selectedProjectProperty());
 
-    this.workspaces.selectedItemProperty().bindBidirectional(this.guiStateManager.selectedWorkspaceProperty());
     this.workspaces.isDisabledProperty().bind(this.projects.selectedItemProperty().isNull());
   }
 
@@ -165,7 +163,7 @@ public class MainWindowViewModel {
     String workspace = this.workspaces.getSelectedItem().orElse(null);
 
     if (project == null || workspace == null) {
-      this.guiStateManager.isWorkspaceSelectedProperty().set(false);
+      this.guiStateManager.workspaceSelectedProperty().set(false);
       return;
     }
 

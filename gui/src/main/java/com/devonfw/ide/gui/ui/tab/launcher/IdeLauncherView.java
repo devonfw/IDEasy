@@ -33,13 +33,13 @@ public class IdeLauncherView extends TabView {
   @FXML
   private void initialize() {
 
-    this.androidStudioOpen.disableProperty().bindBidirectional(this.viewModel.isIdeButtonsDisabledProperty());
+    this.androidStudioOpen.disableProperty().bind(this.viewModel.isIdeButtonsDisabledProperty());
     this.androidStudioOpen.setOnAction(_ -> this.viewModel.runCommandlet("android-studio"));
-    this.eclipseOpen.disableProperty().bindBidirectional(this.viewModel.isIdeButtonsDisabledProperty());
+    this.eclipseOpen.disableProperty().bind(this.viewModel.isIdeButtonsDisabledProperty());
     this.eclipseOpen.setOnAction(_ -> this.viewModel.runCommandlet("eclipse"));
-    this.intellijOpen.disableProperty().bindBidirectional(this.viewModel.isIdeButtonsDisabledProperty());
+    this.intellijOpen.disableProperty().bind(this.viewModel.isIdeButtonsDisabledProperty());
     this.intellijOpen.setOnAction(_ -> this.viewModel.runCommandlet("intellij"));
-    this.vsCodeOpen.disableProperty().bindBidirectional(this.viewModel.isIdeButtonsDisabledProperty());
+    this.vsCodeOpen.disableProperty().bind(this.viewModel.isIdeButtonsDisabledProperty());
     this.vsCodeOpen.setOnAction(_ -> this.viewModel.runCommandlet("vscode"));
   }
 
