@@ -38,7 +38,7 @@ public class UvUrlUpdaterTest extends AbstractUrlUpdaterTest {
     UrlRepository urlRepository = UrlRepository.load(tempDir);
     UvUrlUpdater updater = new UvUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     Path uvEditionPath = tempDir.resolve("uv").resolve("uv");

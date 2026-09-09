@@ -1,11 +1,9 @@
-package com.devonfw.tools.ide.url.model.file.json;
+package com.devonfw.tools.ide.url.updater.status;
 
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import com.devonfw.tools.ide.url.model.file.UrlStatusFile;
 
 /**
  * Java model class representing a "status.json" file.

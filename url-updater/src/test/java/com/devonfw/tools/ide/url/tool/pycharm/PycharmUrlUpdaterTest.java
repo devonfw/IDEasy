@@ -65,7 +65,7 @@ class PycharmUrlUpdaterTest extends AbstractUrlUpdaterTest {
     PycharmUrlUpdater updater = new PycharmUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     Path pycharmToolDir = tempDir.resolve("pycharm");
@@ -99,7 +99,7 @@ class PycharmUrlUpdaterTest extends AbstractUrlUpdaterTest {
     PycharmUrlUpdater updater = new PycharmUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // when
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     Path pycharmVersionsPath = tempDir.resolve("pycharm").resolve("pycharm").resolve(VERSION_2024_3_5);
 
@@ -127,7 +127,7 @@ class PycharmUrlUpdaterTest extends AbstractUrlUpdaterTest {
     PycharmUrlUpdater updater = new PycharmUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     Path pycharmVersionsPath = tempDir.resolve("pycharm").resolve("pycharm").resolve(VERSION_2024_3_5);
 

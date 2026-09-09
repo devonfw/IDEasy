@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.context.ProcessContextTestImpl;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -154,24 +155,39 @@ class VscodeTest extends AbstractIdeContextTest {
   /**
    * Tests that VS Code is launched with a named {@code --profile} and without a custom {@code --user-data-dir}.
    * <p>
-   * Using {@code --profile} keeps auth and extension state isolated per workspace while keeping the VS Code IPC lock
-   * at the default user-data-dir location, so the OS-level {@code vscode://} protocol handler (e.g. GitHub/Copilot
-   * OAuth callbacks) can find and reuse the already-running instance.
+   * Using {@code --profile} keeps auth and extension state isolated per workspace while keeping the VS Code IPC lock at the default user-data-dir location, so
+   * the OS-level {@code vscode://} protocol handler (e.g. GitHub/Copilot OAuth callbacks) can find and reuse the already-running instance.
    */
   @Test
   void testConfigureToolArgsUsesProfileInsteadOfUserDataDir() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_VSCODE);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
     Vscode commandlet = new Vscode(context);
-    ArgsCapturingProcessContext pc = new ArgsCapturingProcessContext(context);
-
+    ArgCapturingProcessContext pc = new ArgCapturingProcessContext(context);
     // act
     commandlet.configureToolArgs(pc, ProcessMode.DEFAULT, List.of());
-
     // assert
-    assertThat(pc.getArgs()).noneMatch(arg -> arg.startsWith("--user-data-dir="));
-    assertThat(pc.getArgs()).anyMatch(arg -> arg.startsWith("--profile=ideasy-"));
+    assertThat(pc.capturedArgs).noneMatch(arg -> arg.startsWith("--user-data-dir="));
+    assertThat(pc.capturedArgs).anyMatch(arg -> arg.startsWith("--profile=ideasy-"));
+  }
+
+  /**
+   * Tests that {@code VSCODE_OPTIONS} is honoured by appending its tokens as additional command-line arguments when starting the IDE (analogue to the
+   * global {@code IDE_OPTIONS} used for IDEasy itself, see issue #788).
+   */
+  @Test
+  void testRunAddsVscodeOptions() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("VSCODE_OPTIONS", "--wait --new-window");
+    CapturingVscode commandlet = new CapturingVscode(context);
+    // act
+    commandlet.run();
+    // assert
+    assertThat(commandlet.lastArgs).contains("--wait", "--new-window");
   }
 
   @Test
@@ -280,30 +296,6 @@ class VscodeTest extends AbstractIdeContextTest {
     }
   }
 
-  /**
-   * {@link ProcessContextTestImpl} subclass that captures calls to {@link #addArg(String)} for test assertions.
-   */
-  private static class ArgsCapturingProcessContext extends ProcessContextTestImpl {
-
-    private final List<String> args = new ArrayList<>();
-
-    private ArgsCapturingProcessContext(IdeTestContext context) {
-
-      super(context);
-    }
-
-    @Override
-    public ProcessContext addArg(String arg) {
-
-      this.args.add(arg);
-      return super.addArg(arg);
-    }
-
-    List<String> getArgs() {
-
-      return this.args;
-    }
-  }
 
   /**
    * {@link ProcessContextTestImpl} subclass that captures calls to {@link #withEnvVar(String, String)} for test assertions.
@@ -327,6 +319,26 @@ class VscodeTest extends AbstractIdeContextTest {
     String getEnvVar(String key) {
 
       return this.capturedEnvVars.get(key);
+    }
+  }
+
+  /**
+   * {@link ProcessContextTestImpl} subclass that captures the CLI arguments added via {@link #addArg(String)} for test assertions.
+   */
+  private static class ArgCapturingProcessContext extends ProcessContextTestImpl {
+
+    private final List<String> capturedArgs = new ArrayList<>();
+
+    private ArgCapturingProcessContext(IdeTestContext context) {
+
+      super(context);
+    }
+
+    @Override
+    public ProcessContext addArg(String arg) {
+
+      this.capturedArgs.add(arg);
+      return super.addArg(arg);
     }
   }
 

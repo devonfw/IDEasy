@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.common;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -141,6 +143,52 @@ class SystemPathTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(result).isEqualTo(test);
+  }
+
+  @Test
+  void testFindBinaryFindsBinaryInExtraPathEntries() throws IOException {
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    Path binDir = context.getIdeHome().resolve("scratch-bin");
+    Files.createDirectories(binDir);
+    // create a plain binary name (no extension) so it works on both Linux and Windows
+    Path fakeToolFile = binDir.resolve("faketool");
+    Files.writeString(fakeToolFile, "@echo hi");
+
+    // empty PATH and no software folder, so tool2pathMap and paths stay empty
+    SystemPath base = new SystemPath(context, "", null, null, ';', List.of());
+    SystemPath merged = base.withPath(null, List.of(binDir));
+
+    // assert
+    assertThat(merged.toString()).contains(binDir.toString());
+    Path resolved = merged.findBinary(Path.of("faketool"));
+    assertThat(resolved).isNotEqualTo(Path.of("faketool"));
+    assertThat(resolved).isEqualTo(fakeToolFile);
+  }
+
+  @Test
+  void testFindBinaryExtraPathEntriesWinsOverTool2pathMap() throws IOException {
+    // arrange - create two directories, both with a binary named "mytool"
+    // tool2pathMap collects subdirectories of softwarePath, so mytool must be a subdirectory
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    Path toolDir = context.getIdeHome().resolve("software-tool");
+    Files.createDirectories(toolDir);
+    Path mytoolInToolDir = toolDir.resolve("mytool");
+    Files.createDirectories(mytoolInToolDir);
+    Files.writeString(mytoolInToolDir.resolve("mytool"), "tool-version");
+
+    Path extraDir = context.getIdeHome().resolve("extra-path");
+    Files.createDirectories(extraDir);
+    Files.writeString(extraDir.resolve("mytool"), "extra-version");
+
+    // tool2pathMap has "software-tool" (mytool is a subdirectory → registered), extraPathEntries has "extraDir"
+    SystemPath base = new SystemPath(context, "", null, toolDir, ';', List.of());
+    SystemPath merged = base.withPath(null, List.of(extraDir));
+
+    // assert - findBinary should return the one from extraPathEntries, NOT from tool2pathMap
+    Path resolved = merged.findBinary(Path.of("mytool"));
+    assertThat(resolved).isEqualTo(extraDir.resolve("mytool"));
+    assertThat(resolved).isNotEqualTo(mytoolInToolDir.resolve("mytool"));
   }
 
   @Test

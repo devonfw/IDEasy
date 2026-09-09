@@ -8,6 +8,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.json.JsonObject;
 
 /**
@@ -19,6 +22,8 @@ public class ExtraTools implements JsonObject {
   public static final ExtraTools EMPTY = new ExtraTools().asImmutable();
 
   private final Map<String, List<ExtraToolInstallation>> tool2installationsMap;
+
+  private static final Logger LOG = LoggerFactory.getLogger(ExtraTools.class);
 
   /**
    * The constructor.
@@ -50,6 +55,12 @@ public class ExtraTools implements JsonObject {
    * @param extraInstallation the {@link ExtraToolInstallation} to add.
    */
   public void addExtraInstallations(String tool, ExtraToolInstallation extraInstallation) {
+
+    if ((tool != null) && (extraInstallation != null) && tool.equalsIgnoreCase(extraInstallation.name())) {
+      LOG.warn("Invalid extra installation name '{}' for tool '{}': the extra installation name must not be the same as the tool name.",
+          extraInstallation.name(), tool);
+      return;
+    }
 
     List<ExtraToolInstallation> list = this.tool2installationsMap.computeIfAbsent(tool, k -> new ArrayList<>());
     list.add(extraInstallation);

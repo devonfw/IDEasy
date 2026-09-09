@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<root>
+  <element name="elem1">oldhead<child name="c1">oldinner</child>oldtail</element>
+</root>

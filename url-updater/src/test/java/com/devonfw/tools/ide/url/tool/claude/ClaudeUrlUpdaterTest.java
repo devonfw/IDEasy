@@ -42,7 +42,7 @@ class ClaudeUrlUpdaterTest extends AbstractUrlUpdaterTest {
     ClaudeUrlUpdater updater = new ClaudeUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     Path claudeDir = tempDir.resolve("claude").resolve("claude");

@@ -26,6 +26,8 @@ import com.devonfw.tools.ide.tool.npm.NpmJsVersionJsonSerializer;
 import com.devonfw.tools.ide.tool.npm.NpmJsVersions;
 import com.devonfw.tools.ide.tool.npm.NpmJsVersionsJsonDeserializer;
 import com.devonfw.tools.ide.tool.npm.NpmJsVersionsJsonSerializer;
+import com.devonfw.tools.ide.tool.openrewrite.RecipeWrapper;
+import com.devonfw.tools.ide.tool.openrewrite.RecipeWrapperJsonDeserializer;
 import com.devonfw.tools.ide.tool.pip.PypiObject;
 import com.devonfw.tools.ide.tool.pip.PypiObjectJsonDeserializer;
 import com.devonfw.tools.ide.tool.pip.PypiObjectJsonSerializer;
@@ -102,6 +104,8 @@ public class JsonMapping {
     customModule.addDeserializer(ToolSecurity.class, new ToolSecurityJsonDeserializer());
     customModule.addSerializer(Cve.class, new CveJsonSerializer());
     customModule.addDeserializer(Cve.class, new CveJsonDeserializer());
+    // openrewrite mapping
+    customModule.addDeserializer(RecipeWrapper.class, new RecipeWrapperJsonDeserializer());
     // pypi mapping
     customModule.addDeserializer(PypiObject.class, new PypiObjectJsonDeserializer());
     customModule.addSerializer(PypiObject.class, new PypiObjectJsonSerializer());
