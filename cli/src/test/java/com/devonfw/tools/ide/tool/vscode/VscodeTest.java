@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool.vscode;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -10,6 +11,7 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.context.ProcessContextTestImpl;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
@@ -153,13 +155,12 @@ class VscodeTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests that VS Code is launched with a named {@code --profile} and without a custom {@code --user-data-dir}.
-   * <p>
-   * Using {@code --profile} keeps auth and extension state isolated per workspace while keeping the VS Code IPC lock at the default user-data-dir location, so
-   * the OS-level {@code vscode://} protocol handler (e.g. GitHub/Copilot OAuth callbacks) can find and reuse the already-running instance.
+   * Tests that by default (feature toggle {@code VSCODE_PROFILE_ENABLED} disabled) {@link Vscode#configureToolArgs(ProcessContext, ProcessMode, List)} points
+   * {@code --user-data-dir} to the IDE metadata folder ({@code $IDE_HOME/.ide/vscode/«workspace»/config}) instead of a {@code .vscode} folder inside the
+   * workspace.
    */
   @Test
-  void testConfigureToolArgsUsesProfileInsteadOfUserDataDir() {
+  void testConfigureToolArgsUsesIdeMetadataPathForUserData() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_VSCODE);
@@ -169,8 +170,34 @@ class VscodeTest extends AbstractIdeContextTest {
     // act
     commandlet.configureToolArgs(pc, ProcessMode.DEFAULT, List.of());
     // assert
+    Path expectedUserData = context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("vscode").resolve(context.getWorkspaceName()).resolve("config");
+    assertThat(pc.capturedArgs).contains("--user-data-dir=" + expectedUserData);
+    assertThat(pc.capturedArgs).noneMatch(arg -> arg.contains(".vscode"));
+    assertThat(pc.capturedArgs).noneMatch(arg -> arg.startsWith("--profile="));
+  }
+
+  /**
+   * Tests that with the feature toggle {@code VSCODE_PROFILE_ENABLED} enabled VS Code is launched with a named {@code --profile} and without a custom
+   * {@code --user-data-dir}.
+   * <p>
+   * Using {@code --profile} keeps auth and extension state isolated per project and workspace while keeping the VS Code IPC lock at the default user-data-dir
+   * location, so the OS-level {@code vscode://} protocol handler (e.g. GitHub/Copilot OAuth callbacks) can find and reuse the already-running instance.
+   */
+  @Test
+  void testConfigureToolArgsUsesProfileIfFeatureToggleEnabled() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("VSCODE_PROFILE_ENABLED", "true");
+    Vscode commandlet = new Vscode(context);
+    ArgCapturingProcessContext pc = new ArgCapturingProcessContext(context);
+    // act
+    commandlet.configureToolArgs(pc, ProcessMode.DEFAULT, List.of());
+    // assert
     assertThat(pc.capturedArgs).noneMatch(arg -> arg.startsWith("--user-data-dir="));
-    assertThat(pc.capturedArgs).anyMatch(arg -> arg.startsWith("--profile=ideasy-"));
+    // the profile has to contain the project name so that different projects with the same workspace name do not share a single profile (see #2058)
+    assertThat(pc.capturedArgs).contains("--profile=ideasy-" + context.getProjectName() + "-" + context.getWorkspaceName());
   }
 
   /**

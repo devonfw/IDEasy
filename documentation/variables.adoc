@@ -46,4 +46,5 @@ See also link:https://github.com/devonfw/IDEasy/blob/main/cli/src/main/java/com/
 |`INTELLIJ_VM_ARGS`|e.g. `-Xms128m -Xmx2048m`|Support for extension or overwrite of default IntelliJ JVM options.
 |`PYCHARM_VM_ARGS`|e.g. `-Xms128m -Xmx2048m`|Support for extension or overwrite of default Pycharm JVM options.
 |`ANDROID_STUDIO_VM_ARGS`|e.g. `-Xms128m -Xmx2048m`|Support for extension or overwrite of default Android Studio JVM options.
+|`VSCODE_PROFILE_ENABLED`|e.g. `true`|Feature toggle (disabled by default) to isolate VSCode via a named `--profile` (`ideasy-«project»-«workspace»`) instead of `--user-data-dir`. This keeps the VSCode IPC lock at its default location so that OAuth callbacks via the `vscode://` protocol handler (e.g. GitHub/Copilot login) reach the already running window instead of opening a second one - see issue https://github.com/devonfw/IDEasy/issues/2058[#2058]. Note that enabling this starts with a fresh VSCode profile: settings, extension state and logins from the previous `--user-data-dir` are not migrated.
 |=======================
