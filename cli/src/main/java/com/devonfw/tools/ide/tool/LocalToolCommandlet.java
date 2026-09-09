@@ -193,9 +193,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     if (Files.isDirectory(installationPath)) {
       if (Files.exists(toolVersionFile)) {
         if (!ignoreSoftwareRepo) {
-          VersionIdentifier version = computeInstalledEditionAndVersion().version();
-          assert resolvedVersion.equals(version) :
-              "Found version " + version + " in " + toolVersionFile + " but expected " + resolvedVersion;
+          assert resolvedVersion.equals(getInstalledVersion(installationPath)) :
+              "Found version " + getInstalledVersion(installationPath) + " in " + toolVersionFile + " but expected " + resolvedVersion;
           LOG.debug("Version {} of tool {} is already installed at {}", resolvedVersion, toolEdition, installationPath);
           return createToolInstallation(installationPath, resolvedVersion, false, processContext, additionalInstallation);
         }
@@ -414,22 +413,15 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   protected EditionAndVersion computeInstalledEditionAndVersionFromLocalSoftwareFolder() {
 
     Path toolPath = getToolPath();
-
     VersionIdentifier version = getInstalledVersion(toolPath);
-
     if (version == null) {
-      version = computeInstalledVersionFromLocalSoftwareFolder(toolPath);
-
+      version = computeInstalledVersionFromLocalSoftwareFolder();
       if (version == null) {
         return null;
       }
-
       restoreMissingVersionFile(toolPath, version);
     }
-
-    String edition = computeInstalledEditionFromLocalSoftwareFolder();
-
-    return new EditionAndVersion(edition, version);
+    return new EditionAndVersion(computeInstalledEditionFromLocalSoftwareFolder(), version);
   }
 
   /**
@@ -448,10 +440,9 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * By default {@code null} is returned since there is no tool-specific way to determine the version without the version file. Subclasses may override this to
    * determine the version from the installation itself.
    *
-   * @param toolPath the installation {@link Path} to determine the version from.
    * @return the installed {@link VersionIdentifier version} or {@code null} if it cannot be determined.
    */
-  protected VersionIdentifier computeInstalledVersionFromLocalSoftwareFolder(Path toolPath) {
+  protected VersionIdentifier computeInstalledVersionFromLocalSoftwareFolder() {
     return null;
   }
 
@@ -614,7 +605,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
             "You triggered an uninstall of {} in version {} with force mode!\n"
                 + "This will physically delete the currently installed version including its plugins from the machine.\n"
                 + "This may cause issues with other projects, that use the same version of that tool."
-            , this.tool, computeInstalledEditionAndVersion().version());
+            , this.tool, getInstalledVersion());
         uninstallPluginsOfTool();
         uninstallFromSoftwareRepository(toolPath);
       }

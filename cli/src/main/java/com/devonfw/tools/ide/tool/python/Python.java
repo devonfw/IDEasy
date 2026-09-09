@@ -6,6 +6,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Set;
 
+import org.jline.utils.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -101,10 +102,14 @@ public class Python extends LocalToolCommandlet {
   }
 
   @Override
-  protected VersionIdentifier computeInstalledVersionFromLocalSoftwareFolder(Path toolPath) {
+  protected VersionIdentifier computeInstalledVersionFromLocalSoftwareFolder() {
+    Path toolPath = getToolPath();
     VersionIdentifier version = readVersionFromPyvenvCfg(toolPath);
     if (version == null) {
       version = readVersionFromInterpreter(toolPath);
+    }
+    if (version != null) {
+      Log.debug("Determined version {} of python from the installation of {}. ", version, toolPath);
     }
     return version;
   }
