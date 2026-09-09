@@ -65,11 +65,10 @@ public class Vscode extends IdeToolCommandlet {
     ProcessResult result = runTool(pc, ProcessMode.DEFAULT_CAPTURE, extensionsCommands);
     if (result.isSuccessful()) {
       if (versionSpecified) {
-        IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {} with version: {}", plugin.name(), plugin.version());
+        step.success("Successfully installed plugin: {} with version: {}", plugin.name(), plugin.version());
       } else {
-        IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {}", plugin.name());
+        step.success();
       }
-      step.success();
       return true;
     }
     if (versionSpecified) {

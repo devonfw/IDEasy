@@ -50,6 +50,7 @@ public class EclipseTest extends AbstractIdeContextTest {
         new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed java in version 17.0.10_7", true),
         new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed eclipse in version 2024-09", true));
     assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin anyedit (1/1)'.");
+    assertThat(context).logAtSuccess().hasNoMessageContaining("Successfully installed plugin:");
     assertThat(context.getPluginsPath().resolve("eclipse")).isDirectory();
     assertThat(eclipse.getToolBinPath().resolve("eclipsetest")).hasContent(
         "eclipse " + os + " -data " + context.getWorkspacePath() + " -keyring " + context.getUserHome().resolve(".eclipse").resolve(".keyring")
