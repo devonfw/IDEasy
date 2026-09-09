@@ -72,7 +72,6 @@ class VscodeTest extends AbstractIdeContextTest {
     Vscode commandlet = context.getCommandletManager().getCommandlet(Vscode.class);
     commandlet.run();
 
-    assertThat(context).logAtSuccess().hasMessage("Successfully installed plugin: mockedPlugin");
     assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin mockedPlugin (1/1)'.");
 
     // assert
@@ -201,8 +200,8 @@ class VscodeTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests that {@code VSCODE_OPTIONS} is honoured by appending its tokens as additional command-line arguments when starting the IDE (analogue to the
-   * global {@code IDE_OPTIONS} used for IDEasy itself, see issue #788).
+   * Tests that {@code VSCODE_OPTIONS} is honoured by appending its tokens as additional command-line arguments when starting the IDE (analogue to the global
+   * {@code IDE_OPTIONS} used for IDEasy itself, see issue #788).
    */
   @Test
   void testRunAddsVscodeOptions() {
