@@ -5,7 +5,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 == 2026.09.002
 
 Release with new features and bugfixes:
-
+* https://github.com/devonfw/IDEasy/issues/2422[#2422]: Cleanup how to determine installed edition and version and restore software version file
 * https://github.com/devonfw/IDEasy/issues/2190[#2190]: IDEasy destroys my python installation
 * https://github.com/devonfw/IDEasy/issues/2178[#2178]: Make ReleaseCommandlet independent of specific build commandlet and fix `ide build` using npm instead of yarn
 * https://github.com/devonfw/IDEasy/issues/2142[#2142]: Move IDE-specific metadata (.idea, .vscode) out of workspace
