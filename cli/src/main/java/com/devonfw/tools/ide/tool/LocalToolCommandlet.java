@@ -193,8 +193,9 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     if (Files.isDirectory(installationPath)) {
       if (Files.exists(toolVersionFile)) {
         if (!ignoreSoftwareRepo) {
-          assert resolvedVersion.equals(getInstalledVersion(installationPath)) :
-              "Found version " + getInstalledVersion(installationPath) + " in " + toolVersionFile + " but expected " + resolvedVersion;
+          VersionIdentifier version = computeInstalledEditionAndVersion().version();
+          assert resolvedVersion.equals(version) :
+              "Found version " + version + " in " + toolVersionFile + " but expected " + resolvedVersion;
           LOG.debug("Version {} of tool {} is already installed at {}", resolvedVersion, toolEdition, installationPath);
           return createToolInstallation(installationPath, resolvedVersion, false, processContext, additionalInstallation);
         }
@@ -207,17 +208,10 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
           LOG.warn("Deleting corrupted installation at {}", installationPath);
           fileAccess.delete(installationPath);
         } else {
-          // version file is missing but tool allows this - restore the file and preserve the installation
-          VersionIdentifier installedVersion = getInstalledVersion(installationPath);
-          if (installedVersion == null) {
-            installedVersion = resolvedVersion;
-          }
-          restoreMissingVersionFile(installationPath, installedVersion);
-          if (installedVersion.equals(resolvedVersion)) {
-            return createToolInstallation(installationPath, installedVersion, false, processContext, additionalInstallation);
-          }
-          // the installation on disk is a different version than requested so we continue with the regular installation
-          // that will backup the existing installation before installing the requested version.
+          // Version file missing but tool allows this - restore it and preserve installation
+          LOG.warn("Version file missing at {} - restoring it for tool {}", toolVersionFile, this.tool);
+          // Restore the missing file
+          return createToolInstallation(installationPath, resolvedVersion, false, processContext, additionalInstallation);
         }
       }
     }
@@ -371,19 +365,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
   }
 
-  @Override
-  protected ToolInstallation toolAlreadyInstalled(ToolInstallRequest request) {
-
-    if (isIgnoreMissingSoftwareVersionFile()) {
-      // the installed version was determined from the installation itself so we can heal the missing version file
-      ToolEditionAndVersion installed = request.getInstalled();
-      if (installed != null) {
-        restoreMissingVersionFile(getToolPath(), installed.getResolvedVersion());
-      }
-    }
-    return super.toolAlreadyInstalled(request);
-  }
-
   /**
    * Restores the {@link IdeContext#FILE_SOFTWARE_VERSION version file} of an existing installation in case it got lost (e.g. because {@code uv} recreated the
    * python virtual environment). Does nothing if the file is present or the version is unknown.
@@ -414,12 +395,64 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       return null;
     }
     // Resolve edition and version from a single tool-path lookup (one pass) instead of two separate lookups.
-    String edition = getInstalledEdition(toolPath);
-    VersionIdentifier version = getInstalledVersion(toolPath);
-    if (version == null) {
-      return null;
+    Path repoPath = getInstalledSoftwareRepoPath(toolPath);
+
+    if (repoPath != null) {
+      String edition = repoPath.getParent().getFileName().toString();
+      VersionIdentifier version = VersionIdentifier.of(repoPath.getFileName().toString());
+      validateInstalledEdition(edition);
+      return new EditionAndVersion(edition, version);
     }
+    return computeInstalledEditionAndVersionFromLocalSoftwareFolder();
+  }
+
+  /**
+   * Determines the installed edition and version of a tool that is not installed via the software repository.
+   *
+   * @return the installed {@link EditionAndVersion} or {@code null} if the version cannot be determined.
+   */
+  protected EditionAndVersion computeInstalledEditionAndVersionFromLocalSoftwareFolder() {
+
+    Path toolPath = getToolPath();
+
+    VersionIdentifier version = getInstalledVersion(toolPath);
+
+    if (version == null) {
+      version = computeInstalledVersionFromLocalSoftwareFolder(toolPath);
+
+      if (version == null) {
+        return null;
+      }
+
+      restoreMissingVersionFile(toolPath, version);
+    }
+
+    String edition = computeInstalledEditionFromLocalSoftwareFolder();
+
     return new EditionAndVersion(edition, version);
+  }
+
+  /**
+   * Determines the installed edition of a tool that is not installed via the software repository.
+   *
+   * @return the installed edition of this tool.
+   */
+  protected String computeInstalledEditionFromLocalSoftwareFolder() {
+    return this.tool;
+  }
+
+  /**
+   * Determines the installed version of a tool that is not installed via the software repository, in case the
+   * {@link IdeContext#FILE_SOFTWARE_VERSION version file} is missing.
+   * <p>
+   * By default {@code null} is returned since there is no tool-specific way to determine the version without the version file. Subclasses may override this to
+   * determine the version from the installation itself.
+   *
+   * @param toolPath the installation {@link Path} to determine the version from.
+   * @return the installed {@link VersionIdentifier version} or {@code null} if it cannot be determined.
+   */
+  protected VersionIdentifier computeInstalledVersionFromLocalSoftwareFolder(Path toolPath) {
+    return null;
   }
 
   /**
@@ -547,6 +580,18 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     }
   }
 
+  private void validateInstalledEdition(String edition) {
+
+    if (!getToolRepository()
+        .getSortedEditions(this.tool)
+        .contains(edition)) {
+
+      LOG.warn(
+          "Undefined edition {} of tool {}",
+          edition, this.tool);
+    }
+  }
+
   private boolean isToolNotInstalled(Path toolPath) {
 
     if ((toolPath == null) || !Files.isDirectory(toolPath)) {
@@ -569,7 +614,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
             "You triggered an uninstall of {} in version {} with force mode!\n"
                 + "This will physically delete the currently installed version including its plugins from the machine.\n"
                 + "This may cause issues with other projects, that use the same version of that tool."
-            , this.tool, getInstalledVersion());
+            , this.tool, computeInstalledEditionAndVersion().version());
         uninstallPluginsOfTool();
         uninstallFromSoftwareRepository(toolPath);
       }
