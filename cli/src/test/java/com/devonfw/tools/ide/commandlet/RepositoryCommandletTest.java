@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.git.GitContextImplMock;
 import com.devonfw.tools.ide.git.repository.RepositoryCommandlet;
 import com.devonfw.tools.ide.io.FileAccess;
@@ -141,6 +142,30 @@ class RepositoryCommandletTest extends AbstractIdeContextTest {
     // assert
     assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(TEST_WORKSPACE).resolve(TEST_REPO)).isDirectory();
     assertThat(context).logAtError().hasMessageContaining("Invalid template expression");
+  }
+
+  @Test
+  void testCircularVariableDoesNotPreventOtherRepositories() {
+
+    // arrange
+    IdeTestContext context = newContext(IdeContext.FOLDER_REPOSITORY);
+    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("REPO_A", "$[REPO_B]");
+    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("REPO_B", "$[REPO_A]");
+    Properties broken = createDefaultProperties();
+    broken.setProperty("active", "true");
+    broken.setProperty("path", "broken-repo");
+    // the two variables reference each other, so resolving this git_url exceeds the maximum recursion
+    broken.setProperty("git_url", "https://github.com/$[REPO_A]/broken.git");
+    saveProperties(context, broken, "broken.properties");
+    Properties good = createDefaultProperties();
+    good.setProperty("active", "true");
+    saveProperties(context, good);
+    RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
+    // act
+    rc.run();
+    // assert
+    assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(TEST_WORKSPACE).resolve(TEST_REPO)).isDirectory();
+    assertThat(context).logAtError().hasMessageContaining("Reached maximum recursion");
   }
 
   @Test
