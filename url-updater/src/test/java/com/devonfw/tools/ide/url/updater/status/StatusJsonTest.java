@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.url.model.file.json;
+package com.devonfw.tools.ide.url.updater.status;
 
 import java.util.HashSet;
 import java.util.Set;

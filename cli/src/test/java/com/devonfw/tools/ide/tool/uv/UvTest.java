@@ -42,6 +42,31 @@ public class UvTest extends AbstractIdeContextTest {
   }
 
   @Test
+  public void testSetEnvironmentWithNullSoftwarePath() {
+
+    // arrange — force getSoftwarePath() to return null to reproduce the condition of #2312
+    IdeTestContext context = new IdeTestContext() {
+      @Override
+      public Path getSoftwarePath() {
+        return null;
+      }
+    };
+    Uv uv = new Uv(context);
+    Path toolDir = Path.of("/software/uv");
+    ToolInstallation toolInstallation = new ToolInstallation(toolDir, toolDir, toolDir, VersionIdentifier.of("0.1.0"), true);
+    Map<String, VariableLine> variables = new HashMap<>();
+    EnvironmentVariableCollectorContext environmentContext = new EnvironmentVariableCollectorContext(variables,
+        new VariableSource(EnvironmentVariablesType.WORKSPACE, null), WindowsPathSyntax.MSYS);
+
+    // act — must not throw a NullPointerException when the software path is null
+    assertThatCode(() -> uv.setEnvironment(environmentContext, toolInstallation, false)).doesNotThrowAnyException();
+
+    // assert — the uv tool directories are not registered when the software path is null
+    assertThat(variables).doesNotContainKey("UV_TOOL_DIR");
+    assertThat(variables).doesNotContainKey("UV_TOOL_BIN_DIR");
+  }
+
+  @Test
   public void testParsePythonListJson() {
 
     // arrange

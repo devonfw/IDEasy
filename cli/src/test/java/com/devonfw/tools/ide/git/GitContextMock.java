@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
@@ -20,6 +21,9 @@ import com.devonfw.tools.ide.io.ini.IniSection;
 public class GitContextMock extends GitContextImpl {
 
   private static final String MOCKED_URL_VALUE = "mocked url value";
+
+  /** Filename used to persist mocked remotes inside the {@code .git} folder. */
+  private static final String REMOTES_FILE = "remotes.properties";
 
   private final Map<Path, List<GitCommit>> pending = new HashMap<>();
 
@@ -256,7 +260,7 @@ public class GitContextMock extends GitContextImpl {
     return DEFAULT_REMOTE;
   }
 
-  /**
+/**
    * Adds pending commits to simulate remote changes. Commits are stored per repository and applied on pull.
    *
    * @param repository the repository the commits belong to
@@ -349,5 +353,44 @@ public class GitContextMock extends GitContextImpl {
   @Override
   public void push(Path repository, boolean followTags) {
 
+  }
+
+  @Override
+  public void addRemote(Path repository, String name, String url) {
+
+    addRemote(repository, name, url, false);
+  }
+
+  @Override
+  public void addRemoteOrFail(Path repository, String name, String url) {
+
+    addRemote(repository, name, url, true);
+  }
+
+  /**
+   * @param repository the repository.
+   * @param name the remote name.
+   * @param url the remote URL.
+   * @param failOnOverride {@code true} to throw if the remote already exists with a different URL.
+   */
+  protected void addRemote(Path repository, String name, String url, boolean failOnOverride) {
+
+    Path gitFolder = repository.resolve(GIT_FOLDER);
+    FileAccess fileAccess = this.context.getFileAccess();
+    Path remotesFile = gitFolder.resolve(REMOTES_FILE);
+
+    Properties properties = new Properties();
+    if (fileAccess.isFile(remotesFile)) {
+      fileAccess.readProperties(remotesFile, properties);
+    }
+
+    String existingUrl = (String) properties.getProperty(name);
+    if (existingUrl != null && !existingUrl.equals(url)) {
+      if (failOnOverride) {
+        throw new IllegalStateException("Remote '" + name + "' already exists with URL '" + existingUrl + "', refusing to override with '" + url + "'");
+      }
+    }
+    properties.setProperty(name, url);
+    fileAccess.writeProperties(properties, remotesFile, true);
   }
 }

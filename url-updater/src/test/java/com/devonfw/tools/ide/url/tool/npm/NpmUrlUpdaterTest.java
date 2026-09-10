@@ -44,7 +44,7 @@ class NpmUrlUpdaterTest extends AbstractUrlUpdaterTest {
     NpmUrlUpdater updater = new NpmUrlUpdater(wmRuntimeInfo.getHttpBaseUrl() + "/");
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     assertUrlVersionAgnostic(tempDir.resolve("npm").resolve("npm").resolve("1.2.32"));
@@ -75,7 +75,7 @@ class NpmUrlUpdaterTest extends AbstractUrlUpdaterTest {
     NpmUrlUpdater updater = new NpmUrlUpdater(wmRuntimeInfo.getHttpBaseUrl() + "/");
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     assertThat(tempDir.resolve("npm").resolve("npm").resolve("99.99.99")).doesNotExist();
@@ -101,7 +101,7 @@ class NpmUrlUpdaterTest extends AbstractUrlUpdaterTest {
     NpmUrlUpdater updater = new NpmUrlUpdater(wmRuntimeInfo.getHttpBaseUrl() + "/");
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     Path npmVersionsPath = tempDir.resolve("npm").resolve("npm").resolve("2.0.0-beta.0");
@@ -129,7 +129,7 @@ class NpmUrlUpdaterTest extends AbstractUrlUpdaterTest {
     NpmUrlUpdater updater = new NpmUrlUpdater(wmRuntimeInfo.getHttpBaseUrl() + "/");
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     assertUrlVersionAgnostic(tempDir.resolve("npm").resolve("npm").resolve("1.1.25"));

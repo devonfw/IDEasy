@@ -69,7 +69,7 @@ class IdeToolDummyCommandletTest extends AbstractIdeContextTest {
     }
 
     @Override
-    protected void configureWorkspace() {
+    public void configureWorkspace() {
 
       // disable workspace configuration since we have no IDE_HOME and therefore no settings
     }

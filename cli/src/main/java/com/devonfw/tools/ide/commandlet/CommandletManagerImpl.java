@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -19,6 +20,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.repository.RepositoryCommandlet;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
+import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.androidstudio.AndroidStudio;
 import com.devonfw.tools.ide.tool.aws.Aws;
 import com.devonfw.tools.ide.tool.az.Azure;
@@ -60,6 +62,7 @@ import com.devonfw.tools.ide.tool.pip.Pip;
 import com.devonfw.tools.ide.tool.pycharm.Pycharm;
 import com.devonfw.tools.ide.tool.python.Python;
 import com.devonfw.tools.ide.tool.quarkus.Quarkus;
+import com.devonfw.tools.ide.tool.ruby.Ruby;
 import com.devonfw.tools.ide.tool.ruff.Ruff;
 import com.devonfw.tools.ide.tool.rust.Rust;
 import com.devonfw.tools.ide.tool.soapui.SoapUi;
@@ -80,6 +83,9 @@ import com.devonfw.tools.ide.tool.yarn.Yarn;
 public class CommandletManagerImpl implements CommandletManager {
 
   private static final Logger LOG = LoggerFactory.getLogger(CommandletManagerImpl.class);
+
+  /** The build commandlets in order of priority - the first one with a matching build descriptor wins. */
+  private static final List<Class<? extends LocalToolCommandlet>> BUILD_TOOLS = List.of(Mvn.class, Gradle.class, Yarn.class, Npm.class);
 
   private final IdeContext context;
 
@@ -130,6 +136,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new UninstallPluginCommandlet(context));
     add(new UpgradeCommandlet(context));
     add(new TruststoreCommandlet(context));
+    add(new UnpackCommandlet(context));
     add(new Gh(context));
     add(new Helm(context));
     add(new Java(context));
@@ -138,6 +145,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Npm(context));
     add(new Mvn(context));
     add(new Msvc(context));
+    add(new RewriteCommandlet(context));
     add(new GcLogAnalyzer(context));
     add(new GcViewer(context));
     add(new Gradle(context));
@@ -145,6 +153,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Terraform(context));
     add(new Oc(context));
     add(new Quarkus(context));
+    add(new Ruby(context));
     add(new Rust(context));
     add(new Kotlinc(context));
     add(new KotlincNative(context));
@@ -273,6 +282,21 @@ public class CommandletManagerImpl implements CommandletManager {
       return Collections.emptyIterator();
     }
     return new CommandletFinder(commandlet, arguments.copy(), collector);
+  }
+
+  @Override
+  public LocalToolCommandlet findBuildTool(Path buildPath) {
+
+    if (buildPath == null) {
+      return null;
+    }
+    for (Class<? extends LocalToolCommandlet> toolClass : BUILD_TOOLS) {
+      LocalToolCommandlet toolCommandlet = getCommandlet(toolClass);
+      if (toolCommandlet.findBuildDescriptor(buildPath) != null) {
+        return toolCommandlet;
+      }
+    }
+    return null;
   }
 
   private final class CommandletFinder implements Iterator<Commandlet> {

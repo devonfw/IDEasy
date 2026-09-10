@@ -72,4 +72,5 @@ public class ToolPlugins {
       LOG.info("Plugin with key {} was {} but got overridden by {}", key, duplicate, descriptor);
     }
   }
+
 }

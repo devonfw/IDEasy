@@ -83,7 +83,7 @@
       <dependency>
         <groupId>org.assertj</groupId>
         <artifactId>assertj-core</artifactId>
-        <version>3.27.3</version>
+        <version>3.27.7</version>
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>
@@ -93,7 +93,7 @@
       <dependency>
         <groupId>ch.qos.logback</groupId>
         <artifactId>logback-classic</artifactId>
-        <version>1.5.18</version>
+        <version>1.6.3</version>
       </dependency>
       <dependency>
         <groupId>me.tongfei</groupId>
@@ -290,32 +290,6 @@
       </plugin>
     </plugins>
   </build>
-
-  <profiles>
-    <profile>
-      <id>deploy</id>
-      <build>
-        <plugins>
-          <plugin>
-            <!--
-              The plugin itself, its extension and publishingServerId/autoPublish are inherited from
-              the deploy profile of com.devonfw:maven-parent. Only the waiting behaviour is added
-              here: block until the deployment is actually published instead of returning as soon as
-              it is validated. Everything that follows the deployment - the GitHub release notes
-              linking to Maven Central and the Homebrew formula referencing the same artifacts -
-              would otherwise race the publication.
-            -->
-            <groupId>org.sonatype.central</groupId>
-            <artifactId>central-publishing-maven-plugin</artifactId>
-            <configuration>
-              <waitUntil>published</waitUntil>
-              <waitMaxTime>3600</waitMaxTime>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
 
   <developers>
     <developer>

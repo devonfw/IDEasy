@@ -33,6 +33,29 @@ For `VisualStudio Code`,  this is the extension ID you can directly get from the
 |`excluded-editions`|e.g. `vscodium` |(optional) Comma-separated list of edition names for which this plugin should NOT be installed. Useful for plugins that are not available on certain IDE editions
 |===
 
+
+== Additional plugins per user
+
+The plugins configured in the project link:settings.adoc[settings] are a shared baseline for the entire team.
+If you want additional plugins only for yourself, you do not need to modify the shared settings.
+Instead set the variable `«TOOL»_EXTRA_PLUGINS` in your user-specific link:conf.adoc[configuration] (`$IDE_HOME/conf/ide.properties` or `~/.ide/ide.properties`):
+
+```
+VSCODE_EXTRA_PLUGINS=copilot,cpp-tools,docker
+```
+
+Each entry refers to the filename of the plugin properties file without the `.properties` extension.
+Therefore `copilot` refers to `copilot.properties` and not to the `id` configured inside that file.
+The according plugin still has to be configured as properties file (either in the project settings or in `~/.ide/settings/«ide»/plugins`).
+Entries that cannot be resolved are skipped with a warning so a single stale entry will never break the installation of your other plugins.
+
+This works for every IDE, e.g. `ECLIPSE_EXTRA_PLUGINS`, `INTELLIJ_EXTRA_PLUGINS` or `ANDROID_STUDIO_EXTRA_PLUGINS`.
+
+The benefit over installing a plugin manually inside your IDE is that plugins configured this way are reinstalled automatically whenever IDEasy purges and reinstalls the plugins (e.g. when the IDE is upgraded), whereas manually installed plugins would be lost.
+
+Please note that removing an entry from `«TOOL»_EXTRA_PLUGINS` will not uninstall the according plugin.
+See the next section for how to reset your plugins.
+
 == Resetting installed plugins
 
 When first installing an IDE using `ide install «ide»`, IDEasy will automatically install all plugins that are configured in the project settings.

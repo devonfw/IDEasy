@@ -45,10 +45,28 @@ class EnvironmentVariablesPropertiesFileTest extends AbstractIdeContextTest {
     assertThat(variables.getToolVersion("java")).isEqualTo(VersionIdentifier.LATEST);
     assertThat(variables.getVariables()).hasSize(7);
     assertThat(context).log(IdeLogLevel.WARNING)
-        .hasEntries("Duplicate variable definition MVN_VERSION with old value 'undefined' and new value '3.9.0' in " + propertiesFilePath,
+        .hasEntries(
+            "You are using the legacy configuration file " + propertiesFilePath
+                + " from devonfw-ide, which is no longer supported. Please migrate to IDEasy as described in "
+                + "https://github.com/devonfw/IDEasy/blob/main/documentation/migration-from-devonfw.adoc",
+            "Duplicate variable definition MVN_VERSION with old value 'undefined' and new value '3.9.0' in " + propertiesFilePath,
             "Both legacy variable MAVEN_VERSION and official variable MVN_VERSION are configured in " + propertiesFilePath
                 + " - ignoring legacy variable declaration!",
             "Variable JAVA_VERSION is configured with empty value, please fix your configuration.");
+  }
+
+  @Test
+  void testLoadWithCurrentPropertiesDoesNotWarnAboutLegacyMigration() {
+
+    // arrange
+    Path propertiesFilePath = ENV_VAR_PATH.resolve("ide.properties");
+    IdeTestContext context = new IdeTestContext();
+    // act
+    EnvironmentVariablesPropertiesFile variables = new EnvironmentVariablesPropertiesFile(null, TYPE,
+        propertiesFilePath, context);
+    // assert
+    assertThat(variables.get("KEY")).isEqualTo("value");
+    assertThat(context).log(IdeLogLevel.WARNING).hasNoMessageContaining("devonfw-ide");
   }
 
   @Test
