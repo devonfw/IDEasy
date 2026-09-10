@@ -28,7 +28,7 @@ public class TabFactory {
     this.guiStateManager = Objects.requireNonNull(guiStateManager);
     this.nlsService = Objects.requireNonNull(nlsService);
     this.consoleController = Objects.requireNonNull(consoleController);
-    this.commandletService = commandletService;
+    this.commandletService = Objects.requireNonNull(commandletService);
   }
 
 
