@@ -11,6 +11,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2142[#2142]: Move IDE-specific metadata (.idea, .vscode) out of workspace
 * https://github.com/devonfw/IDEasy/issues/989[#989]: Allow expressions in template variable definitions
 * https://github.com/devonfw/IDEasy/issues/1628[#1628]: Support for OS-specific CVEs
+* https://github.com/devonfw/IDEasy/issues/2236[#2236]: Preserve the current working directory when launching VS Code via `ide vscode`
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/50?closed=1[milestone 2026.09.002].
 

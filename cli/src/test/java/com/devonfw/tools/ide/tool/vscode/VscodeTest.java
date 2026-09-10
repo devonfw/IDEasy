@@ -269,6 +269,46 @@ class VscodeTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Tests that VS Code is launched with the current working directory when it is located inside the workspace.
+   */
+  @Test
+  void testConfigureToolArgsUsesCwdInsideWorkspace() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    Path cwd = context.getWorkspacePath().resolve("IDEasy").resolve("cli");
+    context.setCwd(cwd, context.getWorkspaceName(), context.getIdeHome());
+    Vscode commandlet = new Vscode(context);
+    ArgCapturingProcessContext pc = new ArgCapturingProcessContext(context);
+
+    // act
+    commandlet.configureToolArgs(pc, ProcessMode.DEFAULT, List.of());
+
+    // assert
+    assertThat(pc.capturedArgs).contains(cwd.toString());
+  }
+
+  /**
+   * Tests that VS Code falls back to the workspace path when launched from outside the workspace.
+   */
+  @Test
+  void testConfigureToolArgsFallsBackToWorkspaceOutsideWorkspace() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    Path cwd = context.getIdeHome().getParent().resolve("outside-workspace");
+    context.setCwd(cwd, context.getWorkspaceName(), context.getIdeHome());
+    Vscode commandlet = new Vscode(context);
+    ArgCapturingProcessContext pc = new ArgCapturingProcessContext(context);
+
+    // act
+    commandlet.configureToolArgs(pc, ProcessMode.DEFAULT, List.of());
+
+    // assert
+    assertThat(pc.capturedArgs).contains(context.getWorkspacePath().toString());
+  }
+
+  /**
    * Test double for {@link Vscode} that captures CLI arguments passed to {@link #runTool(ProcessContext, ProcessMode, List)} so tests can assert command
    * construction without spawning an external process.
    */
