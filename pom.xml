@@ -182,6 +182,7 @@
     <module>url-updater</module>
     <module>security</module>
     <module>macos-installer</module>
+    <module>windows-installer</module>
   </modules>
 
   <build>
