@@ -5,9 +5,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 
+import com.devonfw.tools.ide.git.GitContextImpl;
 import com.devonfw.tools.ide.process.OutputMessage;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessContextImpl;
@@ -26,6 +29,8 @@ public class ProcessContextGitMock extends ProcessContextImpl {
 
   private final List<OutputMessage> outputMessages;
 
+  private final Deque<OutputMessage> commandOutputs;
+
   private final List<ProcessResult> results;
 
   /**
@@ -37,6 +42,7 @@ public class ProcessContextGitMock extends ProcessContextImpl {
     this.directory = directory;
     this.now = LocalDateTime.now();
     this.outputMessages = new ArrayList<>();
+    this.commandOutputs = new ArrayDeque<>();
     this.results = new ArrayList<>();
   }
 
@@ -45,6 +51,17 @@ public class ProcessContextGitMock extends ProcessContextImpl {
    */
   public void addOutputMessage(OutputMessage message) {
     this.outputMessages.add(message);
+  }
+
+  /**
+   * Queues a single-line {@link OutputMessage} to be returned as the out of the next {@code git} command that is run. This allows a sequence of git invocations
+   * to each produce a distinct result, which is useful when a single flow issues multiple commands (for example
+   * {@link GitContextImpl#isRepositoryUpdateAvailable(Path)}).
+   *
+   * @param message the single-line {@link OutputMessage} to return for the next git command.
+   */
+  public void addCommandOutput(OutputMessage message) {
+    this.commandOutputs.addLast(message);
   }
 
   /**
@@ -71,6 +88,11 @@ public class ProcessContextGitMock extends ProcessContextImpl {
 
     if (!this.executable.getFileName().toString().equals("git")) {
       return super.run(processMode);
+    }
+    // allow the test to feed a distinct single-line output to each git invocation in sequence
+    OutputMessage queuedOutput = this.commandOutputs.pollFirst();
+    if (queuedOutput != null) {
+      this.outputMessages.add(queuedOutput);
     }
     int exitCode = ProcessResult.SUCCESS;
     StringBuilder command = new StringBuilder("git");
