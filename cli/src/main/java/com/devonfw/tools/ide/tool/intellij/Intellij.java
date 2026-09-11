@@ -3,7 +3,6 @@ package com.devonfw.tools.ide.tool.intellij;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -11,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
 import com.devonfw.tools.ide.cli.CliException;
-import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.AbstractEnvironmentVariables;
@@ -20,7 +18,7 @@ import com.devonfw.tools.ide.environment.ExtensibleEnvironmentVariables;
 import com.devonfw.tools.ide.merge.xml.XmlMergeDocument;
 import com.devonfw.tools.ide.merge.xml.XmlMerger;
 import com.devonfw.tools.ide.process.EnvironmentContext;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.BuildTool;
 import com.devonfw.tools.ide.tool.ToolEdition;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallation;
@@ -51,7 +49,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   private static final String MISC_XML = "misc.xml";
   private static final String IDEA_PROPERTIES = "idea.properties";
 
-  private static final Map<Class<? extends LocalToolCommandlet>, String> BUILD_TOOL_TO_IJ_TEMPLATE = Map.of(Mvn.class, MISC_XML, Gradle.class, GRADLE_XML);
+  private static final Map<Class<?>, String> BUILD_TOOL_TO_IJ_TEMPLATE = Map.of(Mvn.class, MISC_XML, Gradle.class, GRADLE_XML);
 
   /**
    * The constructor.
@@ -161,17 +159,13 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
 
   @Override
   public void importRepository(Path repositoryPath) {
-    CommandletManager commandletManager = this.context.getCommandletManager();
-    for (Entry<Class<? extends LocalToolCommandlet>, String> entry : BUILD_TOOL_TO_IJ_TEMPLATE.entrySet()) {
-      LocalToolCommandlet buildTool = commandletManager.getCommandlet(entry.getKey());
-      Path buildDescriptor = buildTool.findBuildDescriptor(repositoryPath);
-      if (buildDescriptor != null) {
-        String templateFilename = entry.getValue();
-        LOG.debug("Found build descriptor {} so merging template {}", buildDescriptor, templateFilename);
-        mergeConfig(repositoryPath, templateFilename);
-        return;
-      }
+    BuildTool buildTool = this.context.getCommandletManager().findBuildTool(repositoryPath);
+    String templateFilename = (buildTool == null) ? null : BUILD_TOOL_TO_IJ_TEMPLATE.get(buildTool.getClass());
+    if (templateFilename == null) {
+      LOG.warn("No supported build descriptor was found for project import in {}", repositoryPath);
+      return;
     }
-    LOG.warn("No supported build descriptor was found for project import in {}", repositoryPath);
+    LOG.debug("Found build tool {} so merging template {}", buildTool.getName(), templateFilename);
+    mergeConfig(repositoryPath, templateFilename);
   }
 }
