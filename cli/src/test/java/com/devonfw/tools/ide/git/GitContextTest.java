@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -186,7 +184,7 @@ class GitContextTest extends AbstractIdeContextTest {
   @Test
   void testGitRepoIsRecognizedCorrectly(@TempDir Path tempDir) {
     String gitRepoUrl = "https://github.com/test";
-    
+
     IdeTestContext context = newGitContext(tempDir);
     GitContext gitContext = context.getGitContext();
 
@@ -199,7 +197,7 @@ class GitContextTest extends AbstractIdeContextTest {
   void testNormalDirIsNoRepo(@TempDir Path tempDir) {
     IdeTestContext context = newGitContext(tempDir);
     GitContext gitContext = context.getGitContext();
-    
+
     FileAccess fileAccess = context.getFileAccess();
     fileAccess.mkdirs(tempDir.resolve("new-folder"));
 
@@ -275,24 +273,117 @@ class GitContextTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test for isRepositoryUpdateAvailable when local and remote commits are the same.
+   * Sets up the mock so that the current branch is configured with an upstream, which lets {@link GitContextImpl#isRepositoryUpdateAvailable(Path)} pass the
+   * {@code hasUpstream} guard and reach the commit id comparison.
+   *
+   * @param localCommitId the commit id returned for {@code rev-parse HEAD}.
+   * @param remoteCommitId the commit id returned for {@code rev-parse @{u}}.
+   */
+  private void simulateUpstreamAndCommitIds(String localCommitId, String remoteCommitId) {
+    this.processContext.addCommandOutput(new OutputMessage(false, "master"));
+    this.processContext.addCommandOutput(new OutputMessage(false, "origin"));
+    this.processContext.addCommandOutput(new OutputMessage(false, "refs/heads/master"));
+    this.processContext.addCommandOutput(new OutputMessage(false, localCommitId));
+    this.processContext.addCommandOutput(new OutputMessage(false, remoteCommitId));
+  }
+
+  /**
+   * Test for isRepositoryUpdateAvailable when local and remote commit ids are identical, so no update is available. This reaches the actual comparison of
+   * {@code rev-parse HEAD} against {@code rev-parse @{u}}.
    *
    * @param tempDir a {@link TempDir} {@link Path}.
    */
   @Test
   void testIsRepositoryUpdateAvailableNoUpdates(@TempDir Path tempDir) {
     // arrange
-    List<String> errors = new ArrayList<>();
-    List<String> outs = new ArrayList<>();
-    outs.add("local_commit_hash");
-    outs.add("local_commit_hash"); // same as remote to simulate no updates
     IdeContext context = newGitContext(tempDir);
+    simulateUpstreamAndCommitIds("local_commit_hash", "local_commit_hash");
 
     // act
     boolean result = context.getGitContext().isRepositoryUpdateAvailable(tempDir);
 
     // assert
     assertThat(result).isFalse(); // No updates should be available
+  }
+
+  /**
+   * Test for isRepositoryUpdateAvailable when local and remote commit ids differ, so an update is available.
+   *
+   * @param tempDir a {@link TempDir} {@link Path}.
+   */
+  @Test
+  void testIsRepositoryUpdateAvailableUpdates(@TempDir Path tempDir) {
+    // arrange
+    IdeContext context = newGitContext(tempDir);
+    simulateUpstreamAndCommitIds("local_commit_hash", "remote_commit_hash");
+
+    // act
+    boolean result = context.getGitContext().isRepositoryUpdateAvailable(tempDir);
+
+    // assert
+    assertThat(result).isTrue(); // Updates should be available
+  }
+
+  /**
+   * Simulates a repository without an upstream: the current branch is known, but no {@code branch.<name>.remote} is configured. The {@code rev-parse} commands
+   * are never reached.
+   */
+  private void simulateNoUpstream() {
+    this.processContext.addCommandOutput(new OutputMessage(false, "master"));
+  }
+
+  /**
+   * Test for isRepositoryUpdateAvailable when the current branch has no upstream remote configured.
+   *
+   * @param tempDir a {@link TempDir} {@link Path}.
+   */
+  @Test
+  void testIsRepositoryUpdateAvailableNoUpstream(@TempDir Path tempDir) {
+    // arrange
+    IdeContext context = newGitContext(tempDir);
+    simulateNoUpstream();
+
+    // act
+    boolean result = context.getGitContext().isRepositoryUpdateAvailable(tempDir);
+
+    // assert
+    assertThat(result).isFalse(); // No upstream means no update is available
+  }
+
+  /**
+   * Test for isRepositoryUpdateAvailable when the local commit id (rev-parse HEAD) is not available.
+   *
+   * @param tempDir a {@link TempDir} {@link Path}.
+   */
+  @Test
+  void testIsRepositoryUpdateAvailableLocalCommitIdMissing(@TempDir Path tempDir) {
+    // arrange
+    IdeContext context = newGitContext(tempDir);
+    simulateUpstreamAndCommitIds(null, "remote_commit_hash");
+
+    // act
+    boolean result = context.getGitContext().isRepositoryUpdateAvailable(tempDir);
+
+    // assert
+    assertThat(result).isFalse();
+  }
+
+  /**
+   * Test for isRepositoryUpdateAvailable when the remote commit id (rev-parse @{u}) is not available.
+   *
+   * @param tempDir a {@link TempDir} {@link Path}.
+   */
+  @Test
+  void testIsRepositoryUpdateAvailableRemoteCommitIdMissing(@TempDir Path tempDir) {
+    // arrange
+    IdeContext context = newGitContext(tempDir);
+    simulateUpstreamAndCommitIds("local_commit_hash", null);
+
+    // act
+    boolean result = context.getGitContext().isRepositoryUpdateAvailable(tempDir);
+
+    // assert
+    assertThat(result).isFalse(); // A missing remote commit id means no update can be reported
   }
 
 
