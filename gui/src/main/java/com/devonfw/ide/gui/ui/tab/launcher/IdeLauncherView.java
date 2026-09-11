@@ -25,6 +25,12 @@ public class IdeLauncherView extends TabView {
 
   private final IdeLauncherViewModel viewModel;
 
+  /**
+   * Creates the launcher view and loads its FXML.
+   *
+   * @param viewModel the view model of the launcher tab.
+   * @param nlsService the localization service.
+   */
   public IdeLauncherView(IdeLauncherViewModel viewModel, NlsService nlsService) {
     this.viewModel = viewModel;
     loadFxml("IdeLauncher.fxml", nlsService);

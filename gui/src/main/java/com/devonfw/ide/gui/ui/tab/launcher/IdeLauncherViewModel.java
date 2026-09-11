@@ -7,12 +7,21 @@ import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.service.CommandletService;
 import com.devonfw.ide.gui.ui.tab.TabViewModel;
 
+/**
+ * View model of the IDE launcher tab. It exposes the state that drives the launcher buttons, which stay disabled until a project/workspace is selected.
+ */
 public class IdeLauncherViewModel extends TabViewModel {
 
   private final CommandletService commandletService;
 
   private final BooleanProperty isIdeButtonsDisabledProperty = new SimpleBooleanProperty();
 
+  /**
+   * Creates the view model.
+   *
+   * @param guiStateManager the app-wide selection and context holder.
+   * @param commandletService the service that launches the IDEs.
+   */
   public IdeLauncherViewModel(GuiStateManager guiStateManager, CommandletService commandletService) {
     super(guiStateManager);
     this.commandletService = commandletService;

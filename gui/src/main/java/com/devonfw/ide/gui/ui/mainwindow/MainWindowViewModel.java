@@ -17,6 +17,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ListChangeListener;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ComboBox;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,10 @@ import com.devonfw.ide.gui.service.NlsService;
 import com.devonfw.ide.gui.ui.modal.IdeDialog;
 import com.devonfw.ide.gui.ui.progress.ProgressBarTask;
 
+/**
+ * View model of the main window. It holds the observable state behind the navigation panel (project, workspace and language selection) and the status bar,
+ * and triggers a context switch in the {@link GuiStateManager} whenever a project/workspace pair is selected.
+ */
 public class MainWindowViewModel {
 
   private static final Logger LOG = LoggerFactory.getLogger(MainWindowViewModel.class);
@@ -59,6 +64,13 @@ public class MainWindowViewModel {
   private final BooleanProperty consoleVisible = new SimpleBooleanProperty(false);
 
 
+  /**
+   * Initializes the view model, populates the project, workspace and language combo boxes, and wires the selection listeners that drive context switching.
+   *
+   * @param guiStateManager the app-wide selection and context holder.
+   * @param projectManager resolves available project and workspace names.
+   * @param nlsService the localization service.
+   */
   public MainWindowViewModel(GuiStateManager guiStateManager, ProjectManager projectManager, NlsService nlsService) {
 
     this.guiStateManager = Objects.requireNonNull(guiStateManager);
@@ -229,46 +241,75 @@ public class MainWindowViewModel {
     });
   }
 
+  /**
+   * @return the view model backing the project {@link ComboBox}.
+   */
   public ComboBoxViewModel<String> getProjectsViewModel() {
 
     return this.projects;
   }
 
+  /**
+   * @return the view model backing the workspace {@link ComboBox}.
+   */
   public ComboBoxViewModel<String> getWorkspacesViewModel() {
 
     return this.workspaces;
   }
 
+  /**
+   * @return the view model backing the language {@link ComboBox}.
+   */
   public ComboBoxViewModel<String> getLanguagesViewModel() {
 
     return this.languages;
   }
 
+  /**
+   * @return the property holding the status bar text.
+   */
   public StringProperty statusTextProperty() {
 
     return this.statusText;
   }
 
+  /**
+   * @return the property flagging whether the status bar progress indicator is visible.
+   */
   public BooleanProperty statusProgressVisibleProperty() {
 
     return this.statusProgressVisible;
   }
 
+  /**
+   * @return the property holding the progress of the currently running task (0 to 1).
+   */
   public DoubleProperty statusProgressProperty() {
 
     return this.statusProgress;
   }
 
+  /**
+   * @return the property flagging whether the status bar is clickable to open the task overview.
+   */
   public BooleanProperty statusClickableProperty() {
 
     return this.statusClickable;
   }
 
+  /**
+   * @return the property flagging whether the console pane is visible.
+   */
   public BooleanProperty consoleVisibleProperty() {
 
     return this.consoleVisible;
   }
 
+  /**
+   * Sets whether the console pane is visible.
+   *
+   * @param visible the new visibility of the console pane.
+   */
   public void setConsoleVisible(boolean visible) {
 
     this.consoleVisible.set(visible);

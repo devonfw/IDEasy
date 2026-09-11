@@ -27,8 +27,7 @@ import com.devonfw.ide.gui.ui.progress.taskwindow.TaskOverviewWindow;
 
 /**
  * View of the main window. It renders what the {@link MainWindowViewModel} exposes and translates user gestures back onto it; all selection state, status
- * computation and context switching live in the view model. The split-pane geometry backing the console stays here, because divider positions are a purely
- * visual concern.
+ * computation and context switching live in the view model.
  */
 public class MainWindowView extends BorderPane {
 
@@ -86,6 +85,15 @@ public class MainWindowView extends BorderPane {
 
   private boolean propagatingDividerPosition;
 
+  /**
+   * Builds the main window, loads its FXML, and binds the navigation panel, console and status bar to the given {@link MainWindowViewModel}.
+   *
+   * @param viewModel the view model holding the selection and status state.
+   * @param guiStateManager the app-wide selection and context holder.
+   * @param nlsService the localization service.
+   * @param consoleController the controller of the console pane.
+   * @param tabFactory the {@link TabFactory} that owns the tab pane.
+   */
   public MainWindowView(MainWindowViewModel viewModel, GuiStateManager guiStateManager, NlsService nlsService,
       ConsoleController consoleController, TabFactory tabFactory) {
 

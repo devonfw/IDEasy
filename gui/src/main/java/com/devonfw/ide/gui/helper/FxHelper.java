@@ -38,6 +38,13 @@ public class FxHelper {
     return (T) root.lookup(selector);
   }
 
+  /**
+   * Loads the given FXML file into the given root node, using the {@link NlsService}'s resource bundle to resolve the {@code %key} text.
+   *
+   * @param fxmlName the FXML file name, resolved relative to the root node's class.
+   * @param nlsService the localization service whose resource bundle resolves the text keys.
+   * @param root the node that is both the FXML root and its controller.
+   */
   public static void loadFxml(String fxmlName, NlsService nlsService, Node root) {
     final FXMLLoader loader = new FXMLLoader(root.getClass().getResource(fxmlName));
     loader.setRoot(root);

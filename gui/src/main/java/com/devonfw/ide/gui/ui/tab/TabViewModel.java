@@ -13,6 +13,9 @@ public abstract class TabViewModel {
     this.guiStateManager = guiStateManager;
   }
 
+  /**
+   * @return the localization key used as the title of this tab.
+   */
   public abstract String getTabTitleKey();
 
 }

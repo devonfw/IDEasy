@@ -40,6 +40,12 @@ public class CommandletService {
   private Runnable preLaunchAction = () -> {
   };
 
+  /**
+   * Creates the service.
+   *
+   * @param guiStateManager the app-wide selection and context holder.
+   * @param consoleController the console that commandlet output is forwarded to.
+   */
   public CommandletService(GuiStateManager guiStateManager, ConsoleController consoleController) {
     this.guiStateManager = Objects.requireNonNull(guiStateManager);
     this.consoleController = Objects.requireNonNull(consoleController);

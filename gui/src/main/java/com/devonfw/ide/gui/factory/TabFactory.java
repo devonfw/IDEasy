@@ -14,6 +14,10 @@ import com.devonfw.ide.gui.ui.tab.launcher.IdeLauncherView;
 import com.devonfw.ide.gui.ui.tab.launcher.IdeLauncherViewModel;
 
 
+/**
+ * Creates the tabs of the main window's {@link TabPane}. It keeps at most one tab open per title key, so re-activating a tab focuses the existing one instead
+ * of creating a duplicate. The managing part is to be removed in the future.
+ */
 public class TabFactory {
 
   private final GuiStateManager guiStateManager;
@@ -24,6 +28,14 @@ public class TabFactory {
   private TabPane tabPane;
 
 
+  /**
+   * Creates the factory.
+   *
+   * @param guiStateManager the app-wide selection and context holder.
+   * @param nlsService the localization service.
+   * @param commandletService runs commandlets on tab actions.
+   * @param consoleController the controller of the console pane.
+   */
   public TabFactory(GuiStateManager guiStateManager, NlsService nlsService, CommandletService commandletService, ConsoleController consoleController) {
     this.guiStateManager = Objects.requireNonNull(guiStateManager);
     this.nlsService = Objects.requireNonNull(nlsService);
@@ -32,26 +44,42 @@ public class TabFactory {
   }
 
 
+  /**
+   * Assigns the {@link TabPane} this factory creates and manages tabs in.
+   *
+   * @param tabPane the tab pane to attach to.
+   */
   public void attach(TabPane tabPane) {
     this.tabPane = Objects.requireNonNull(tabPane);
   }
 
   /**
-   * This is a hack for the console auto-showing when starting an IDE and should be removed when the console is reworked.
+   * Sets the action run before a commandlet is launched from a tab. This is a hack for the console auto-showing when starting an IDE and should be removed when
+   * the console is reworked.
    *
-   * @param preLaunchAction
+   * @param preLaunchAction the action to run before launching a commandlet.
    */
   public void setPreLaunchAction(Runnable preLaunchAction) {
     this.commandletService.setPreLaunchAction(preLaunchAction);
   }
 
 
+  /**
+   * Opens (or focuses) the IDE launcher tab.
+   */
   public void openLauncherTab() {
     IdeLauncherViewModel viewModel = new IdeLauncherViewModel(this.guiStateManager, this.commandletService);
     open(viewModel.getTabTitleKey(), new IdeLauncherView(viewModel, this.nlsService));
   }
 
 
+  /**
+   * Opens a tab with the given title key, or focuses the existing one if it is already open.
+   *
+   * @param nlsTitleKey the localization key used for the tab title and to identify the tab.
+   * @param content the content node shown inside the tab.
+   * @return the open tab.
+   */
   public Tab open(String nlsTitleKey, Node content) {
 
     Tab existing = findByTitleKey(nlsTitleKey);
@@ -65,28 +93,6 @@ public class TabFactory {
     tab.setClosable(true);
     this.tabPane.getTabs().add(tab);
     return tab;
-  }
-
-  public void close(Tab tab) {
-    this.tabPane.getTabs().remove(tab);
-  }
-
-
-  public void focus(Tab tab) {
-    this.tabPane.getSelectionModel().select(tab);
-  }
-
-
-  public boolean isOpen(String titleKey) {
-    return findByTitleKey(titleKey) != null;
-  }
-
-  public TabPane getTabPane() {
-    return this.tabPane;
-  }
-
-  public ConsoleController getConsoleController() {
-    return this.consoleController;
   }
 
   private Tab findByTitleKey(String titleKey) {

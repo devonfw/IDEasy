@@ -25,6 +25,9 @@ public class NavigationPanelControl extends VBox {
   @FXML
   private ComboBox<String> languages;
 
+  /**
+   * Creates the navigation panel and loads its FXML, resolving the default-locale bundle for the {@code %key} text.
+   */
   public NavigationPanelControl() {
     super();
 
