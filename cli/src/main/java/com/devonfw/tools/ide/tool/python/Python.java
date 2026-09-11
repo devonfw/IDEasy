@@ -110,7 +110,7 @@ public class Python extends LocalToolCommandlet {
       version = readVersionFromInterpreter(toolPath);
     }
     if (version != null) {
-      Log.debug("Determined version {} of python from the installation of {}. ", version, toolPath);
+      LOG.debug("Determined version {} of python from the installation at {}.", version, toolPath);
     }
     return version;
   }
