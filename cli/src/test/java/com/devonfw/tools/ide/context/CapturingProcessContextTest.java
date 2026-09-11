@@ -12,7 +12,7 @@ import com.devonfw.tools.ide.process.ProcessResultImpl;
 /**
  * Mock {@link ProcessContext} that captures executed commands for testing without actually running them.
  */
-public class CapturingProcessContextTest extends ProcessContextImpl {
+public class CapturingProcessContextMock extends ProcessContextImpl {
 
   private final List<String> executedCommands = new ArrayList<>();
 
