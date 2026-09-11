@@ -242,6 +242,16 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
     assertThat(commandlet.isPluginPurgeRequired(request)).isTrue();
   }
 
+  @Test
+  void testPluginPurgeNotRequiredOnRequestedNull() {
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    ExamplePluginBasedCommandlet commandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags);
+    ToolEditionAndVersion edition1AndVersion = newEditionAndVersion(new ToolEdition(TOOL, TOOL), VersionIdentifier.of("1.90.0"));
+    ToolInstallRequest request = newPurgeRequest(edition1AndVersion, null);
+
+    assertThat(commandlet.isPluginPurgeRequired(request)).isFalse();
+  }
+
   private static ToolInstallRequest newPurgeRequest(ToolEditionAndVersion installed, ToolEditionAndVersion requested) {
 
     ToolInstallRequest request = new ToolInstallRequest(true);
