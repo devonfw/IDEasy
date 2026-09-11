@@ -7,13 +7,14 @@ import java.util.Set;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.EnvironmentContext;
+import com.devonfw.tools.ide.tool.BuildTool;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * {@link NpmBasedCommandlet} for <a href="https://www.npmjs.com/">npm</a>.
  */
-public class Npm extends NpmBasedCommandlet {
+public class Npm extends NpmBasedCommandlet implements BuildTool {
 
   private static final String NPM_HOME_FOLDER = "npm";
 
