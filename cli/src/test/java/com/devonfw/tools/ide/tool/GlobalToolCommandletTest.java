@@ -14,7 +14,7 @@ import org.junit.jupiter.api.condition.OS;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.CapturingProcessContextTest;
+import com.devonfw.tools.ide.context.CapturingProcessContextMock;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogEntry;
@@ -204,7 +204,7 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     PackageManagedToolCommandlet commandlet = new PackageManagedToolCommandlet(context);
 
     // Create a mock ProcessContext that captures commands but doesn't execute them
-    CapturingProcessContextTest mockProcessContext = new CapturingProcessContextTest(context);
+    CapturingProcessContextMock mockProcessContext = new CapturingProcessContextMock(context);
     context.setProcessContext(mockProcessContext);
 
     // act

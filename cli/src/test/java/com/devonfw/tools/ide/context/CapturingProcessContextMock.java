@@ -21,16 +21,16 @@ public class CapturingProcessContextMock extends ProcessContextImpl {
    *
    * @param context the {@link IdeContext}.
    */
-  public CapturingProcessContextTest(IdeContext context) {
+  public CapturingProcessContextMock(IdeContext context) {
     super(context);
   }
 
   @Override
   public ProcessContext createChild() {
-    return new CapturingProcessContextTest(this.context) {
+    return new CapturingProcessContextMock(this.context) {
       @Override
       public ProcessResult run(ProcessMode processMode) {
-        return CapturingProcessContextTest.this.run(processMode);
+        return CapturingProcessContextMock.this.run(processMode);
       }
     };
   }
