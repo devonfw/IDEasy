@@ -16,7 +16,7 @@
       <center>
         <!-- CONTENT AREA -->
         <SplitPane fx:id="centerSplitPane" dividerPositions="1.0" BorderPane.alignment="CENTER" orientation="VERTICAL">
-          <TabPane fx:id="tabContainer" tabClosingPolicy="ALL_TABS">
+          <TabPane fx:id="tabPane" tabClosingPolicy="ALL_TABS">
             <tabs/>
           </TabPane>
           <fx:include source="../controls/console/console.fxml" fx:id="console"/>

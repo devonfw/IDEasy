@@ -37,10 +37,9 @@ public class TabFactory {
   }
 
   /**
-   * Registers an action that runs before any commandlet launched from a tab (e.g. to show the console). This is a hack for the console auto-showing when
-   * starting an IDE and should be removed when the console is reworked.
+   * This is a hack for the console auto-showing when starting an IDE and should be removed when the console is reworked.
    *
-   * @param preLaunchAction the action to run before a commandlet launches.
+   * @param preLaunchAction
    */
   public void setPreLaunchAction(Runnable preLaunchAction) {
     this.commandletService.setPreLaunchAction(preLaunchAction);
@@ -53,16 +52,16 @@ public class TabFactory {
   }
 
 
-  public Tab open(String titleKey, Node content) {
+  public Tab open(String nlsTitleKey, Node content) {
 
-    Tab existing = findByTitleKey(titleKey);
+    Tab existing = findByTitleKey(nlsTitleKey);
     if (existing != null) {
       this.tabPane.getSelectionModel().select(existing);
       return existing;
     }
 
-    Tab tab = new Tab(this.nlsService.get(titleKey), content);
-    tab.setUserData(titleKey);
+    Tab tab = new Tab(this.nlsService.get(nlsTitleKey), content);
+    tab.setUserData(nlsTitleKey);
     tab.setClosable(true);
     this.tabPane.getTabs().add(tab);
     return tab;

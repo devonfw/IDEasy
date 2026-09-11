@@ -55,7 +55,7 @@ public class MainWindowView extends BorderPane {
   private NavigationPanelControl navigationPanelControl;
 
   @FXML
-  private TabPane tabContainer;
+  private TabPane tabPane;
 
   @FXML
   private SplitPane centerSplitPane;
@@ -109,7 +109,7 @@ public class MainWindowView extends BorderPane {
       throw new RuntimeException(e);
     }
 
-    this.tabFactory.attach(this.tabContainer);
+    this.tabFactory.attach(this.tabPane);
     this.tabFactory.openLauncherTab();
     // Show the console before launching an IDE (restores the previous behavior).
     this.tabFactory.setPreLaunchAction(() -> this.viewModel.setConsoleVisible(true));

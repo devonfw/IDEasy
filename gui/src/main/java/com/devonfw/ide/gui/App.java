@@ -109,6 +109,22 @@ public class App extends Application {
     });
   }
 
+  private void configureMainWindow(Scene mainWindowScene) {
+    if (SystemInfoImpl.INSTANCE.isMac()) {
+      setIconInMacOsDock();
+    }
+
+    Image icon = new Image(ICON_PATH);
+    primaryStage.getIcons().add(icon);
+    primaryStage.setTitle("IDEasy - version " + IdeVersion.getVersionString());
+    primaryStage.setScene(mainWindowScene);
+    primaryStage.setWidth(mainWindowScene.getWidth());
+    primaryStage.setHeight(mainWindowScene.getHeight());
+    primaryStage.setMinWidth(mainWindowScene.getWidth());
+    primaryStage.setMinHeight(mainWindowScene.getHeight());
+    primaryStage.show();
+  }
+
   private void exitApplication() {
 
     Platform.exit();

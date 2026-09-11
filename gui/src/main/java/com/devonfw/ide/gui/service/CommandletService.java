@@ -17,7 +17,6 @@ import com.devonfw.ide.gui.context.IdeGuiLogListener;
 import com.devonfw.ide.gui.ui.controls.console.ConsoleController;
 import com.devonfw.ide.gui.ui.modal.IdeDialog;
 import com.devonfw.ide.gui.ui.progress.ProgressBarTask;
-import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 
@@ -87,10 +86,7 @@ public class CommandletService {
 
           try {
             IdeStartContextImpl startContext = new IdeStartContextImpl(IdeLogLevel.INFO, guiLogListener);
-            Path workspacePath = CommandletService.this.guiStateManager.getIdeRootDir()
-                .resolve(CommandletService.this.guiStateManager.getSelectedProject())
-                .resolve(IdeContext.FOLDER_WORKSPACES)
-                .resolve(CommandletService.this.guiStateManager.getSelectedWorkspace());
+            Path workspacePath = guiStateManager.getCurrentContext().getWorkspacePath();
             IdeGuiContext context = new IdeGuiContext(startContext, workspacePath, CommandletService.this.guiStateManager.getTaskManager());
 
             context.setOutputListener(guiOutputListener);

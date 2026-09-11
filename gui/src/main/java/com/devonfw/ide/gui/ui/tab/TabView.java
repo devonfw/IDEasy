@@ -1,10 +1,8 @@
 package com.devonfw.ide.gui.ui.tab;
 
-import java.io.IOException;
-
-import javafx.fxml.FXMLLoader;
 import javafx.scene.control.ScrollPane;
 
+import com.devonfw.ide.gui.helper.FxHelper;
 import com.devonfw.ide.gui.service.NlsService;
 
 /**
@@ -19,15 +17,7 @@ public abstract class TabView extends ScrollPane {
    * @param nlsService the localization service; its resource bundle resolves the {@code %key} text keys in the FXML.
    */
   protected void loadFxml(String fxmlName, NlsService nlsService) {
-    final FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlName));
-    loader.setRoot(this);
-    loader.setController(this);
-    loader.setResources(nlsService.getResourceBundle());
-    try {
-      loader.load();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    FxHelper.loadFxml(fxmlName, nlsService, this);
   }
 
 }

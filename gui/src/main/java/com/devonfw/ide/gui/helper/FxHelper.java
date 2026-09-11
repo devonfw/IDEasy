@@ -1,7 +1,13 @@
 package com.devonfw.ide.gui.helper;
 
+import java.io.IOException;
+
 import javafx.application.Platform;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
+
+import com.devonfw.ide.gui.service.NlsService;
 
 /**
  * Helper class containing tools for interacting with JavaFX
@@ -30,5 +36,17 @@ public class FxHelper {
   public static <T> T lookup(Parent root, String selector) {
 
     return (T) root.lookup(selector);
+  }
+
+  public static void loadFxml(String fxmlName, NlsService nlsService, Node root) {
+    final FXMLLoader loader = new FXMLLoader(root.getClass().getResource(fxmlName));
+    loader.setRoot(root);
+    loader.setController(root);
+    loader.setResources(nlsService.getResourceBundle());
+    try {
+      loader.load();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }
