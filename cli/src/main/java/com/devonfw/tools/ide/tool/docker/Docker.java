@@ -179,4 +179,10 @@ public class Docker extends GlobalToolCommandlet {
 
     return "Docker Desktop";
   }
+
+  @Override
+  protected String getMacApplicationName() {
+
+    return isRancherDesktopInstalled() ? "Rancher Desktop" : "Docker";
+  }
 }

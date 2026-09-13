@@ -72,4 +72,30 @@ class MacOsHelperTest extends AbstractIdeContextTest {
     assertThat(linkDir).isEqualTo(rootDir.resolve("Contents/MacOS"));
   }
 
+  /** Test that {@link MacOsHelper#findApplicationBundle(Path, String)} finds an existing application bundle. */
+  @Test
+  void testFindApplicationBundleFound() {
+
+    // arrange
+    Path appsDir = APPS_DIR.resolve("special");
+    MacOsHelper helper = new MacOsHelper(CONTEXT.getFileAccess(), SystemInfoMock.MAC_X64);
+    // act
+    Path appDir = helper.findApplicationBundle(appsDir, "Special");
+    // assert
+    assertThat(appDir).isEqualTo(appsDir.resolve("Special.app"));
+  }
+
+  /** Test that {@link MacOsHelper#findApplicationBundle(Path, String)} returns {@code null} when no such application bundle exists. */
+  @Test
+  void testFindApplicationBundleNotFound() {
+
+    // arrange
+    Path appsDir = APPS_DIR.resolve("special");
+    MacOsHelper helper = new MacOsHelper(CONTEXT.getFileAccess(), SystemInfoMock.MAC_X64);
+    // act
+    Path appDir = helper.findApplicationBundle(appsDir, "DoesNotExist");
+    // assert
+    assertThat(appDir).isNull();
+  }
+
 }

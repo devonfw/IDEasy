@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.tool;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
@@ -9,6 +11,7 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.os.WindowsAppInstallation;
 import com.devonfw.tools.ide.os.WindowsHelperMock;
@@ -198,5 +201,75 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     assertThat(cmd.commands()).containsExactly(
         "sudo apt -y autoremove --purge mytool",
         "sudo rm -f /etc/apt/sources.list.d/mytool.list");
+  }
+
+  /**
+   * Dummy {@link GlobalToolCommandlet} that points {@link #getMacApplicationsDirectory()} to a fixture directory so tests do not depend on the real
+   * {@code /Applications} folder of the machine running the test.
+   */
+  static class MacAppToolCommandlet extends GlobalToolCommandlet {
+
+    private static final String TOOL_NAME = "mytool";
+
+    private final Path macApplicationsDirectory;
+
+    MacAppToolCommandlet(IdeContext context, Path macApplicationsDirectory) {
+
+      super(context, TOOL_NAME, Set.of(Tag.MISC));
+      this.macApplicationsDirectory = macApplicationsDirectory;
+    }
+
+    @Override
+    protected String getBinaryName() {
+      return TOOL_NAME;
+    }
+
+    @Override
+    protected Path getMacApplicationsDirectory() {
+      return this.macApplicationsDirectory;
+    }
+  }
+
+  /**
+   * Verifies that on macOS {@link GlobalToolCommandlet#uninstall()} removes the application bundle when it is found in the applications directory.
+   */
+  @Test
+  void testUninstallOnMacDeletesFoundApplicationBundle() throws Exception {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setSystemInfo(SystemInfoMock.MAC_X64);
+    Path appsDir = context.getFileAccess().createTempDir("mac-apps-test");
+    Path appDir = appsDir.resolve("mytool.app");
+    Files.createDirectories(appDir.resolve("Contents/MacOS"));
+    Files.writeString(appDir.resolve("Contents/MacOS/mytool"), "binary");
+    MacAppToolCommandlet commandlet = new MacAppToolCommandlet(context, appsDir);
+
+    // act
+    commandlet.uninstall();
+
+    // assert
+    assertThat(appDir).doesNotExist();
+    assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("Successfully uninstalled mytool"));
+  }
+
+  /**
+   * Verifies that on macOS {@link GlobalToolCommandlet#uninstall()} logs a helpful warning instead of a generic error when the application bundle cannot be
+   * found in the applications directory.
+   */
+  @Test
+  void testUninstallOnMacLogsWarningWhenApplicationBundleNotFound() throws Exception {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setSystemInfo(SystemInfoMock.MAC_X64);
+    Path appsDir = context.getFileAccess().createTempDir("mac-apps-test");
+    MacAppToolCommandlet commandlet = new MacAppToolCommandlet(context, appsDir);
+
+    // act
+    commandlet.uninstall();
+
+    // assert
+    assertThat(context).logAtWarning().hasMessageContaining("Could not find application 'mytool.app'");
   }
 }

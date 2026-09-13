@@ -85,4 +85,10 @@ public class PgAdmin extends GlobalToolCommandlet {
 
     return "pgAdmin";
   }
+
+  @Override
+  protected String getMacApplicationName() {
+
+    return "pgAdmin 4";
+  }
 }

@@ -198,4 +198,35 @@ class DockerTest extends AbstractIdeContextTest {
     assertThat(appNames).containsEntry("docker", "Docker Desktop").containsEntry("rancher", "Rancher Desktop");
   }
 
+  /**
+   * Verifies that the macOS application bundle name reported for uninstalling is {@code "Docker"} when Docker Desktop (and not Rancher Desktop) is
+   * installed.
+   */
+  @Test
+  void testGetMacApplicationNameForDockerDesktop() {
+
+    // arrange
+    IdeTestContext context = newContext(Mockito.mock(ProcessContext.class));
+    context.setSystemInfo(SystemInfoMock.MAC_X64);
+    Docker docker = docker(context, "docker");
+
+    // act + assert
+    assertThat(docker.getMacApplicationName()).isEqualTo("Docker");
+  }
+
+  /**
+   * Verifies that the macOS application bundle name reported for uninstalling is {@code "Rancher Desktop"} when Rancher Desktop is installed.
+   */
+  @Test
+  void testGetMacApplicationNameForRancherDesktop() {
+
+    // arrange
+    IdeTestContext context = newContext(Mockito.mock(ProcessContext.class));
+    context.setSystemInfo(SystemInfoMock.MAC_X64);
+    Docker docker = docker(context, "docker", "rdctl");
+
+    // act + assert
+    assertThat(docker.getMacApplicationName()).isEqualTo("Rancher Desktop");
+  }
+
 }

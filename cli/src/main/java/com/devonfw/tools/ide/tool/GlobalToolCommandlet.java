@@ -310,8 +310,45 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
       WindowsHelper.get(this.context).uninstallApplication(getWindowsRegistryAppName());
     } else if (this.context.getSystemInfo().isLinux()) {
       runWithPackageManager(false, getUninstallPackageManagerCommands(), NativePackageAction.UNINSTALL);
+    } else if (this.context.getSystemInfo().isMac()) {
+      uninstallMacApplication();
     } else {
       LOG.error("Couldn't uninstall {} on this OS. Please uninstall manually.", this.getName());
     }
+  }
+
+  /**
+   * Removes the {@link #getMacApplicationName() application bundle} of this tool from the {@link #getMacApplicationsDirectory() applications directory}.
+   * macOS has no built-in uninstall mechanism for such bundles (unlike a Linux package manager or the Windows registry), so this is the closest we can get
+   * to a generic solution: if the bundle can be found it is simply removed, otherwise the user is given manual instructions.
+   */
+  private void uninstallMacApplication() {
+    String appName = getMacApplicationName();
+    Path appsDir = getMacApplicationsDirectory();
+    Path appDir = getMacOsHelper().findApplicationBundle(appsDir, appName);
+    if (appDir == null) {
+      LOG.warn("Could not find application '{}.app' in {}. If {} was installed manually, please remove it yourself, e.g. by moving it to the Trash.",
+          appName, appsDir, getName());
+      return;
+    }
+    this.context.getFileAccess().delete(appDir);
+    IdeLogLevel.SUCCESS.log(LOG, "Successfully uninstalled {}", getName());
+  }
+
+  /**
+   * @return the name of the macOS application bundle (without the {@code .app} suffix) that represents this tool. Used by {@link #uninstall()} to locate
+   *     and remove the application from the {@link #getMacApplicationsDirectory() applications directory}. Defaults to {@link #getName() the tool name}.
+   *     Override for tools whose macOS application bundle is named differently.
+   */
+  protected String getMacApplicationName() {
+    return getName();
+  }
+
+  /**
+   * @return the {@link Path} to the directory where macOS applications are installed. Defaults to {@code /Applications}. Exposed so tests can point to a
+   *     fixture directory instead of the real filesystem location.
+   */
+  protected Path getMacApplicationsDirectory() {
+    return Path.of("/Applications");
   }
 }

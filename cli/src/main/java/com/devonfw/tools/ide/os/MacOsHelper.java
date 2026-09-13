@@ -121,6 +121,16 @@ public final class MacOsHelper {
   }
 
   /**
+   * @param appsDir the directory to search in (typically {@code /Applications}).
+   * @param appName the name of the application, without the {@code .app} suffix.
+   * @return the {@link Path} to the {@code <appName>.app} bundle directly inside {@code appsDir}, or {@code null} if no such bundle exists.
+   */
+  public Path findApplicationBundle(Path appsDir, String appName) {
+    String bundleName = appName + ".app";
+    return this.fileAccess.findFirst(appsDir, p -> p.getFileName().toString().equals(bundleName) && Files.isDirectory(p), false);
+  }
+
+  /**
    * @param rootDir the {@link Path} to the root directory.
    * @param tool the name of the tool to find the link directory for.
    * @return the {@link com.devonfw.tools.ide.tool.ToolInstallation#linkDir() link directory}.
