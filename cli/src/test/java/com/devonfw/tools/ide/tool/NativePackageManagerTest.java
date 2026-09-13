@@ -229,12 +229,12 @@ class NativePackageManagerTest {
   }
 
   @Test
-  void testNeedsSudo() {
-    assertThat(NativePackageManager.APT.needsSudo()).isTrue();
-    assertThat(NativePackageManager.ZYPPER.needsSudo()).isTrue();
-    assertThat(NativePackageManager.YUM.needsSudo()).isTrue();
-    assertThat(NativePackageManager.DNF.needsSudo()).isTrue();
-    assertThat(NativePackageManager.BREW.needsSudo()).isFalse();
-    assertThat(NativePackageManager.BREW_CASK.needsSudo()).isFalse();
+  void testIsNeedSudo() {
+    assertThat(NativePackageManager.APT.isNeedSudo()).isTrue();
+    assertThat(NativePackageManager.ZYPPER.isNeedSudo()).isTrue();
+    assertThat(NativePackageManager.YUM.isNeedSudo()).isTrue();
+    assertThat(NativePackageManager.DNF.isNeedSudo()).isTrue();
+    assertThat(NativePackageManager.BREW.isNeedSudo()).isFalse();
+    assertThat(NativePackageManager.BREW_CASK.isNeedSudo()).isFalse();
   }
 }

@@ -33,16 +33,16 @@ public enum NativePackageManager {
   private final String uninstallCommand;
   private final String versionSeparator;
   private final String versionWildCard;
-  private final boolean sudo;
+  private final boolean needSudo;
 
   NativePackageManager(String binaryName, String installCommand, String uninstallCommand, String versionSeparator, String versionWildCard,
-      boolean sudo) {
+      boolean needSudo) {
     this.binaryName = binaryName;
     this.installCommand = installCommand;
     this.uninstallCommand = uninstallCommand;
     this.versionSeparator = versionSeparator;
     this.versionWildCard = versionWildCard;
-    this.sudo = sudo;
+    this.needSudo = needSudo;
   }
 
   /**
@@ -79,9 +79,9 @@ public enum NativePackageManager {
    * @return {@code true} if commands of this {@link NativePackageManager} need to be run with {@code sudo} (root permissions), {@code false} otherwise (e.g.
    *     for {@link #BREW}/{@link #BREW_CASK} that must never be run as root).
    */
-  public boolean needsSudo() {
+  public boolean isNeedSudo() {
 
-    return this.sudo;
+    return this.needSudo;
   }
 
   /**
@@ -152,7 +152,7 @@ public enum NativePackageManager {
     verifyPackageManager(nativePackage);
     List<String> commands = new ArrayList<>(nativePackage.getSetupCommands());
     StringBuilder command = new StringBuilder();
-    if (this.sudo) {
+    if (this.needSudo) {
       command.append(SUDO).append(' ');
     }
     command.append(getBinaryName());
@@ -175,7 +175,7 @@ public enum NativePackageManager {
   public PackageManagerCommand uninstall(NativePackage nativePackage) {
     verifyPackageManager(nativePackage);
     StringBuilder command = new StringBuilder();
-    if (this.sudo) {
+    if (this.needSudo) {
       command.append(SUDO).append(' ');
     }
     command.append(getBinaryName()).append(' ').append(this.uninstallCommand);

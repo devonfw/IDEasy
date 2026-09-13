@@ -93,7 +93,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     for (String command : pmCommand.commands()) {
       level.log(LOG, command);
     }
-    if (pmCommand.packageManager().needsSudo()) {
+    if (pmCommand.packageManager().isNeedSudo()) {
       level.log(LOG, "This will require root permissions!");
     }
   }
@@ -332,8 +332,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
       return;
     }
     Path appBundle = findMacApplicationBundle();
-    if (appBundle != null) {
-      this.context.getFileAccess().delete(appBundle);
+    if ((appBundle != null) && deleteMacApplicationBundle(appBundle)) {
       IdeLogLevel.SUCCESS.log(LOG, "Successfully uninstalled {} by removing {}", this.tool, appBundle);
       return;
     }
@@ -343,6 +342,22 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     }
     LOG.error("Couldn't automatically uninstall {} on macOS. Please uninstall it manually, e.g. by moving it from the Applications folder to the Trash{}.",
         this.getName(), brewHint);
+  }
+
+  /**
+   * @param appBundle the *.app bundle to delete.
+   * @return {@code true} if {@code appBundle} was successfully deleted, {@code false} if deletion failed - e.g. because since macOS Monterey the
+   *     Applications folder is protected and a regular process may not be allowed to delete from it. Callers must not assume this always succeeds and
+   *     should fall back to manual-uninstall guidance if it returns {@code false} rather than letting the exception propagate.
+   */
+  private boolean deleteMacApplicationBundle(Path appBundle) {
+    try {
+      this.context.getFileAccess().delete(appBundle);
+      return true;
+    } catch (IllegalStateException e) {
+      LOG.warn("Could not automatically remove {}: {}", appBundle, e.getMessage(), e);
+      return false;
+    }
   }
 
   /**

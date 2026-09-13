@@ -1,10 +1,16 @@
 package com.devonfw.tools.ide.tool;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
@@ -292,6 +298,40 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     // assert
     assertThat(appBundle).doesNotExist();
     assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("Successfully uninstalled mytool by removing " + appBundle));
+  }
+
+  /**
+   * Verifies that on macOS, when the known *.app bundle exists but cannot be deleted (e.g. because - since macOS Monterey - the Applications folder is
+   * protected and denies the operation), {@link GlobalToolCommandlet#uninstall()} does not let the resulting exception propagate but falls back to logging
+   * manual-uninstall guidance instead.
+   */
+  @Test
+  @DisabledOnOs(OS.WINDOWS)
+  void testUninstallOnMacFallsBackToGuidanceWhenApplicationBundleCannotBeDeleted() throws IOException {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setSystemInfo(SystemInfoMock.MAC_X64);
+    MacAppBundleToolCommandlet commandlet = new MacAppBundleToolCommandlet(context);
+    Path applicationsDir = context.getUserHome().resolve("Applications");
+    Path appBundle = applicationsDir.resolve("MyTool.app");
+    context.getFileAccess().mkdirs(appBundle);
+    // deleting an entry requires write permission on its *parent* directory - remove it to simulate macOS denying the deletion
+    Files.setPosixFilePermissions(applicationsDir, EnumSet.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_EXECUTE));
+
+    try {
+      // act
+      commandlet.uninstall();
+
+      // assert: deletion failed so the bundle is still there and we fell back to manual guidance instead of crashing
+      assertThat(appBundle).exists();
+      assertThat(context).logAtWarning().hasMessageContaining("Could not automatically remove " + appBundle);
+      assertThat(context).logAtError().hasMessageContaining("Couldn't automatically uninstall mytool on macOS");
+    } finally {
+      // restore write permission so the temp directory can be cleaned up afterwards
+      Files.setPosixFilePermissions(applicationsDir,
+          EnumSet.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE, PosixFilePermission.OWNER_EXECUTE));
+    }
   }
 
   /**
