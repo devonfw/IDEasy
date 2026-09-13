@@ -71,7 +71,7 @@ Functions may also be nested, so an argument can itself contain a call of anothe
 === Functions
 
 Each function is a small class implementing `ExpressionFunction` and registered by name in `ExpressionFunctionManager`.
-For the up-to-date list of available functions and their arguments, defaults and examples, see the JavaDoc of the
+For the up-to-date list of available functions and their arguments, defaults and examples, see the sources of the
 link:https://github.com/devonfw/IDEasy/tree/main/cli/src/main/java/com/devonfw/tools/ide/expression/function[function package] instead of a second copy of
 that information here, so the documentation cannot drift out of sync with the code:
 
