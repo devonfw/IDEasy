@@ -10,6 +10,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2178[#2178]: Make ReleaseCommandlet independent of specific build commandlet and fix `ide build` using npm instead of yarn
 * https://github.com/devonfw/IDEasy/issues/2142[#2142]: Move IDE-specific metadata (.idea, .vscode) out of workspace
 * https://github.com/devonfw/IDEasy/issues/989[#989]: Allow expressions in template variable definitions
+* https://github.com/devonfw/IDEasy/issues/1628[#1628]: Support for OS-specific CVEs
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/50?closed=1[milestone 2026.09.002].
 
@@ -17,7 +18,6 @@ The full list of changes for this release can be found in https://github.com/dev
 
 Release with new features and bugfixes:
 
-* https://github.com/devonfw/IDEasy/issues/1628[#1628]: Support for OS-specific CVEs
 * https://github.com/devonfw/IDEasy/issues/1525[#1525]: Document known issue and workaround for lombok plugin in Eclipse
 * https://github.com/devonfw/IDEasy/issues/1031[#1031]: Added OpenRewrite commandlet
 * https://github.com/devonfw/IDEasy/issues/2361[#2361]: Improve dotnet installation by setting DOTNET_ROOT

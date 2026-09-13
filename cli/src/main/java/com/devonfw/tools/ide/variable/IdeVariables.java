@@ -126,6 +126,13 @@ public interface IdeVariables {
   /** {@link VariableDefinition} for support of overriding the default pycharm jvm options. */
   VariableDefinitionString PYCHARM_VM_ARGS = new VariableDefinitionString("PYCHARM_VM_ARGS", null);
 
+  /**
+   * {@link VariableDefinition} to enable the isolation of VSCode via {@code --profile} instead of {@code --user-data-dir}. This is a feature toggle: while
+   * disabled (default) the legacy behaviour with {@code --user-data-dir} is used. See issue #2058 for details.
+   */
+  VariableDefinitionBoolean VSCODE_PROFILE_ENABLED = new VariableDefinitionBoolean("VSCODE_PROFILE_ENABLED", null,
+      c -> Boolean.FALSE);
+
   /** A {@link Collection} with all pre-defined {@link VariableDefinition}s. */
   Collection<VariableDefinition<?>> VARIABLES = List.of(PATH, HOME, WORKSPACE_PATH, IDE_HOME, IDE_ROOT, WORKSPACE, IDE_TOOLS, HTTP_VERSIONS,
       CREATE_START_SCRIPTS,
