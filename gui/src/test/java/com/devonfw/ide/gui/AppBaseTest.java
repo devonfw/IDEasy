@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.context.TaskManager;
+import com.devonfw.ide.gui.event.GuiEventBus;
 import com.devonfw.ide.gui.factory.TabFactory;
 import com.devonfw.ide.gui.helper.FxHelper;
 import com.devonfw.ide.gui.service.CommandletService;
@@ -78,11 +79,10 @@ public class AppBaseTest extends HeadlessApplicationTest {
     this.taskManager = new TaskManager();
     this.guiStateManager = new GuiStateManager(this.taskManager, mockIdeRoot.toString());
     ConsoleController consoleController = new ConsoleController(nlsService);
-    CommandletService commandletService = new CommandletService(guiStateManager, consoleController);
-    TabFactory tabFactory = new TabFactory(guiStateManager, nlsService, commandletService, consoleController);
+    GuiEventBus eventBus = new GuiEventBus();
 
     this.viewModel = new MainWindowViewModel(guiStateManager, nlsService);
-    MainWindowView mainWindow = new MainWindowView(this.viewModel, guiStateManager, nlsService, consoleController, tabFactory);
+    MainWindowView mainWindow = new MainWindowView(this.viewModel, guiStateManager, nlsService, consoleController, eventBus);
     stage.setScene(new Scene(mainWindow, SCENE_WIDTH, SCENE_HEIGHT));
     stage.requestFocus(); //sometimes needed for headless setup to work
     stage.show();

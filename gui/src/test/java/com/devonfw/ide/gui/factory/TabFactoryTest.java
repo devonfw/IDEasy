@@ -3,12 +3,13 @@ package com.devonfw.ide.gui.factory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
 import javafx.stage.Stage;
 
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,8 @@ import org.junit.jupiter.api.io.TempDir;
 import com.devonfw.ide.gui.HeadlessApplicationTest;
 import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.context.TaskManager;
+import com.devonfw.ide.gui.event.GuiEventBus;
+import com.devonfw.ide.gui.event.TabOpenEvent;
 import com.devonfw.ide.gui.service.CommandletService;
 import com.devonfw.ide.gui.service.NlsService;
 import com.devonfw.ide.gui.ui.controls.console.ConsoleController;
@@ -24,6 +27,9 @@ import com.devonfw.ide.gui.ui.controls.console.ConsoleController;
 /**
  * Tests for {@link TabFactory} focusing on how a tab is identified for de-duplication. A tab must be identified by its stable NLS key, not by its
  * (locale-dependent, translated) title text.
+ *
+ * <p>The factory no longer owns a {@link javafx.scene.control.TabPane}; each {@link TabFactory#open(String, javafx.scene.Node) open} publishes a
+ * {@link TabOpenEvent} on the {@link GuiEventBus}. These tests subscribe to the bus and assert on the emitted tabs.
  */
 class TabFactoryTest extends HeadlessApplicationTest {
 
@@ -34,7 +40,7 @@ class TabFactoryTest extends HeadlessApplicationTest {
 
   private TabPane tabPane;
 
-  private int tabCount;
+  private int distinctTabCount;
 
   private Object userData;
 
@@ -51,8 +57,7 @@ class TabFactoryTest extends HeadlessApplicationTest {
   }
 
   /**
-   * Builds a {@link TabFactory} and opens the IDE launcher tab twice, capturing the resulting tab count, the tab's stored user data and title, whether both
-   * opens produced the same {@link Tab} instance, and whether the selection is restored to the existing tab on the second open.
+   * Builds a {@link TabFactory} wired to a bus with a capturing listener, opens two tabs with the given keys, and captures the emitted tabs.
    */
   private void openLauncherTabTwice() {
     interact(() -> {
@@ -60,10 +65,10 @@ class TabFactoryTest extends HeadlessApplicationTest {
       NlsService nlsService = new NlsService(Locale.ENGLISH);
       ConsoleController consoleController = new ConsoleController(nlsService);
       CommandletService commandletService = new CommandletService(guiStateManager, consoleController);
-      TabFactory factory = new TabFactory(guiStateManager, nlsService, commandletService, consoleController);
-      TabPane tabPane = new TabPane();
-      factory.attach(tabPane);
-      this.tabPane = tabPane;
+      GuiEventBus eventBus = new GuiEventBus();
+      List<Tab> emitted = new ArrayList<>();
+      eventBus.addListener(TabOpenEvent.class, event -> emitted.add(event.tab()));
+      TabFactory factory = new TabFactory(guiStateManager, nlsService, commandletService, consoleController, eventBus);
 
       factory.openLauncherTab();
       Tab first = tabPane.getTabs().get(0);

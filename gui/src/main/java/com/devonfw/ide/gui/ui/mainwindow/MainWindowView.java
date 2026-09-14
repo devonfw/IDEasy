@@ -10,6 +10,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.SplitPane.Divider;
+import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.AnchorPane;
@@ -19,12 +20,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.context.GuiStateManager;
-import com.devonfw.ide.gui.factory.TabFactory;
+import com.devonfw.ide.gui.event.TabOpenEvent;
 import com.devonfw.ide.gui.service.NlsService;
 import com.devonfw.ide.gui.ui.controls.console.ConsoleController;
 import com.devonfw.ide.gui.ui.controls.mainwindow.NavigationPanelView;
 import com.devonfw.ide.gui.ui.controls.mainwindow.NavigationPanelViewModel;
 import com.devonfw.ide.gui.ui.progress.taskwindow.TaskOverviewWindow;
+
+import io.github.mmm.event.EventBus;
 
 /**
  * View of the main window. It renders what the {@link MainWindowViewModel} exposes and translates user gestures back onto it; all selection state, status
@@ -75,7 +78,7 @@ public class MainWindowView extends BorderPane {
 
   private final ConsoleController consoleController;
 
-  private final TabFactory tabFactory;
+  private final EventBus eventBus;
 
   private final Divider centerDivider;
 
@@ -93,7 +96,7 @@ public class MainWindowView extends BorderPane {
    * @param tabFactory the {@link TabFactory} that owns the tab pane.
    */
   public MainWindowView(MainWindowViewModel viewModel, GuiStateManager guiStateManager, NlsService nlsService,
-      ConsoleController consoleController, TabFactory tabFactory) {
+      ConsoleController consoleController, EventBus eventBus) {
 
     super();
 
@@ -101,7 +104,7 @@ public class MainWindowView extends BorderPane {
     this.guiStateManager = Objects.requireNonNull(guiStateManager);
     this.nlsService = Objects.requireNonNull(nlsService);
     this.consoleController = Objects.requireNonNull(consoleController);
-    this.tabFactory = Objects.requireNonNull(tabFactory);
+    this.eventBus = Objects.requireNonNull(eventBus);
 
     final FXMLLoader loader = new FXMLLoader(getClass().getResource("MainWindowView.fxml"));
     loader.setRoot(this);
@@ -118,15 +121,23 @@ public class MainWindowView extends BorderPane {
     final NavigationPanelViewModel navigationPanelViewModel = new NavigationPanelViewModel(this.guiStateManager, this.nlsService);
     setLeft(new NavigationPanelView(navigationPanelViewModel, this.nlsService));
 
-    this.tabFactory.attach(this.tabPane);
-    this.tabFactory.openLauncherTab();
-    // Show the console before launching an IDE (restores the previous behavior). This needs to be removed once the EventBus is implemented
-    this.tabFactory.setPreLaunchAction(() -> this.viewModel.setConsoleVisible(true));
+
+    this.eventBus.addListener(TabOpenEvent.class, e -> mountTab(e.tab()));
 
     this.centerDivider = this.centerSplitPane.getDividers().getFirst();
 
     bindConsole();
     bindStatusBar();
+
+    this.viewModel.openLauncherTab();
+  }
+
+  private void mountTab(Tab tab) {
+
+    if (!this.tabContainer.getTabs().contains(tab)) {
+      this.tabContainer.getTabs().add(tab);
+    }
+    this.tabContainer.getSelectionModel().select(tab);
   }
 
   private void bindConsole() {
