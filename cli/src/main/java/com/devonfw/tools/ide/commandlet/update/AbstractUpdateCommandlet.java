@@ -169,7 +169,6 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
    */
   protected void updateSettings() {
 
-    //TODO: replace getSettingsPath in CreateCommandlet
     RepositoryType repositoryType = RepositoryType.ofSettingsPath(getSettingsPathForSettingsUpdate(), context);
     if (repositoryType == RepositoryType.CODE_SETTINGS_COMBINED && !(this.context.isForceMode() || this.forcePull.isTrue())) {
       LOG.info("Skipping git pull in settings due to code repository. Use --force-pull to enforce pulling.");
