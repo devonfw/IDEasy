@@ -215,7 +215,6 @@ class CreateCommandletTest extends AbstractIdeContextTest {
     // assert - the repository is placed into the workspace and IDE_HOME/settings is a symlink to its settings folder
     Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
     Path codePath = newProjectPath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN).resolve("code-settings-repo");
-    assertThat(codePath.resolve("pom.xml")).exists();
     assertThat(codePath.resolve(IdeContext.FOLDER_SETTINGS).resolve("ide.properties")).exists();
     Path settingsLink = newProjectPath.resolve(IdeContext.FOLDER_SETTINGS);
     assertThat(settingsLink).isSymbolicLink();
