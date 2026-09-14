@@ -129,7 +129,7 @@ IDEasy also ships with the `icd` command that can be used as fancy improved vers
 
 ```bash
 [/tmp]$ icd -p myproject -w myworkspace
-IDE environment variables have been set for /~/projects/myproject in workspace myworkspace
+IDE environment variables have been set for /~/projects/myproject with workspace set to myworkspace 
 [~/projects/myproject/workspaces/myworkspace]$ cd myrepo/mymodule/src/main/java/com/foo/bar/some/path
 [.../some/path]$ echo "do something here but now I want to go back to my project root dir"
 [.../some/path]$ icd
