@@ -147,6 +147,11 @@ public class Python extends LocalToolCommandlet {
   private VersionIdentifier readVersionFromInterpreter(Path installationPath) {
 
     Path binPath = this.context.getFileAccess().getBinPath(installationPath);
+    Path binaryPath = this.context.getPath().findBinary(binPath.resolve(getBinaryName()));
+    if (!Files.exists(binaryPath)) {
+      LOG.debug("Python binary does not exist in {}.", binPath);
+      return null;
+    }
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.NONE).withPathEntry(binPath);
     ProcessResult result = runTool(pc, ProcessMode.DEFAULT_CAPTURE, List.of("--version"));
     String output = result.getSingleOutput(IdeLogLevel.DEBUG);
