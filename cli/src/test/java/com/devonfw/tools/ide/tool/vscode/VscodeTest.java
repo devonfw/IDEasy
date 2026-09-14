@@ -295,6 +295,49 @@ class VscodeTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Tests that with the feature toggle {@code VSCODE_PROFILE_ENABLED} enabled the plugins are installed <em>after</em> VS Code has been launched.
+   * <p>
+   * VS Code only creates a named profile when it opens a window. CLI calls such as {@code --install-extension} merely look the profile up and abort with
+   * {@code Profile '...' not found.} Installing the plugins before the first launch can therefore never succeed (see issue #2471).
+   */
+  @Test
+  void testPluginsAreInstalledAfterLaunchIfProfileEnabled() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("VSCODE_PROFILE_ENABLED", "true");
+    RecordingVscode commandlet = new RecordingVscode(context);
+
+    // act
+    commandlet.run();
+
+    // assert
+    int launchIndex = commandlet.indexOfLaunch();
+    int installIndex = commandlet.indexOfFirstPluginInstall();
+    assertThat(launchIndex).as("VS Code has to be launched").isNotNegative();
+    assertThat(installIndex).as("a plugin has to be installed").isNotNegative();
+    assertThat(installIndex).as("plugins must be installed after the launch that creates the profile").isGreaterThan(launchIndex);
+  }
+
+  /**
+   * Tests that without the feature toggle the established order is kept: the plugins are installed <em>before</em> VS Code is launched, so they are active in
+   * the very first session.
+   */
+  @Test
+  void testPluginsAreInstalledBeforeLaunchByDefault() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    RecordingVscode commandlet = new RecordingVscode(context);
+
+    // act
+    commandlet.run();
+
+    // assert
+    assertThat(commandlet.indexOfFirstPluginInstall()).as("plugins must be installed before the launch").isLessThan(commandlet.indexOfLaunch());
+  }
+
+  /**
    * Test double for {@link Vscode} that captures CLI arguments passed to {@link #runTool(ProcessContext, ProcessMode, List)} so tests can assert command
    * construction without spawning an external process.
    */
@@ -323,6 +366,85 @@ class VscodeTest extends AbstractIdeContextTest {
     }
   }
 
+
+  /**
+   * Tests that an already existing profile keeps the established order: the plugins are installed <em>before</em> VS Code is launched so that they are active
+   * right away. Only the very first start has to defer them (see issue #2471).
+   */
+  @Test
+  void testPluginsAreInstalledBeforeLaunchIfProfileAlreadyExists() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("VSCODE_PROFILE_ENABLED", "true");
+    RecordingVscode commandlet = new RecordingVscode(context, true);
+
+    // act
+    commandlet.run();
+
+    // assert
+    assertThat(commandlet.indexOfFirstPluginInstall()).as("plugins must be installed before the launch").isLessThan(commandlet.indexOfLaunch());
+  }
+
+  /**
+   * Test double for {@link Vscode} that records the order of all tool invocations so tests can assert whether the plugins are installed before or after the
+   * IDE has been launched.
+   */
+  private static class RecordingVscode extends Vscode {
+
+    private final List<List<String>> invocations = new ArrayList<>();
+
+    private boolean profileExists;
+
+    private RecordingVscode(IdeTestContext context) {
+
+      this(context, false);
+    }
+
+    private RecordingVscode(IdeTestContext context, boolean profileExists) {
+
+      super(context);
+      this.profileExists = profileExists;
+    }
+
+    @Override
+    public ProcessResult runTool(ProcessContext pc, ProcessMode processMode, List<String> args) {
+
+      this.invocations.add(new ArrayList<>(args));
+      if (args.contains("--list-extensions")) {
+        // VS Code only knows a profile once it has been created by opening a window
+        return new ProcessResultImpl("code", "code", this.profileExists ? 0 : 1, List.of());
+      }
+      if (!args.contains("--install-extension")) {
+        // launching VS Code with --profile creates the profile
+        this.profileExists = true;
+      }
+      return new ProcessResultImpl("code", "code", 0, List.of());
+    }
+
+    /** @return the index of the invocation that launches the IDE, or {@code -1} if VS Code was never launched. */
+    int indexOfLaunch() {
+
+      for (int i = 0; i < this.invocations.size(); i++) {
+        List<String> args = this.invocations.get(i);
+        if (!args.contains("--install-extension") && !args.contains("--list-extensions")) {
+          return i;
+        }
+      }
+      return -1;
+    }
+
+    /** @return the index of the first invocation that installs a plugin, or {@code -1} if no plugin was installed. */
+    int indexOfFirstPluginInstall() {
+
+      for (int i = 0; i < this.invocations.size(); i++) {
+        if (this.invocations.get(i).contains("--install-extension")) {
+          return i;
+        }
+      }
+      return -1;
+    }
+  }
 
   /**
    * {@link ProcessContextTestImpl} subclass that captures calls to {@link #withEnvVar(String, String)} for test assertions.
