@@ -82,6 +82,10 @@
         <Control Id="VolumeSelector" Type="VolumeSelectCombo" X="51" Y="130" Width="52" Height="40" Fixed="yes" Remote="yes"
                  HideCondition="INSTALLTYPE=&quot;USERHOME&quot;" ShowCondition="INSTALLTYPE=&quot;CUSTOM&quot;" Property="ROOTDIRECTORY"
                  Text="!(loc.SelectCustomDrive)"/>
+        <Control Id="CreateDesktopShortcut" Type="CheckBox" X="20" Y="155" Width="260" Height="17" Property="CREATE_DESKTOP_SHORTCUT"
+                 CheckBoxValue="1" Text="Create desktop shortcut"/>
+        <Control Id="CreateStartMenuShortcut" Type="CheckBox" X="20" Y="175" Width="260" Height="17" Property="CREATE_STARTMENU_SHORTCUT"
+                 CheckBoxValue="1" Text="Create Start Menu shortcut"/>
         <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="!(loc.WixUINext)">
           <Publish Event="DoAction" Value="SetIDE_ROOT" Condition="INSTALLTYPE=&quot;CUSTOM&quot;" Order="1"/>
           <Publish Event="DoAction" Value="SetTEMP_FOLDER" Order="2"/>
@@ -91,7 +95,7 @@
           <Publish Event="SpawnDialog" Value="CancelDlg"/>
         </Control>
 
-        <Control Id="InstallLogInfoText" Type="Text" X="20" Y="170" Width="320" Height="30" Transparent="no" NoPrefix="yes"
+        <Control Id="InstallLogInfoText" Type="Text" X="20" Y="200" Width="320" Height="30" Transparent="no" NoPrefix="yes"
                  Text="We will write an install log to: [USERFOLDER].ide\logs"/>
 
       </Dialog>

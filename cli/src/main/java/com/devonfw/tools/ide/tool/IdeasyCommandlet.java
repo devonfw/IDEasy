@@ -408,19 +408,27 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
 
     Path ideasyExe = installationPath.resolve("bin\\ideasy.exe");
     Path icoPath = installationPath.resolve("gui\\logo.ico");
-    // Shell Folders contains the already-expanded Desktop path, including OneDrive-redirected locations
-    WindowsHelper helper = WindowsHelper.get(this.context);
-    String desktopStr = helper.getRegistryValue(
-        "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders", "Desktop");
-    Path desktopPath = (desktopStr != null && !desktopStr.isBlank()) ? Path.of(desktopStr) : this.context.getUserHome().resolve("Desktop");
-    this.context.getFileAccess().mkdirs(desktopPath);
-    createWindowsShortcut(desktopPath.resolve("IDEasy.lnk"), ideasyExe, icoPath);
-    String startMenuStr = helper.getRegistryValue(
-        "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders", "Programs");
-    Path startMenu = (startMenuStr != null && !startMenuStr.isBlank()) ? Path.of(startMenuStr)
-        : this.context.getUserHome().resolve("AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs");
-    if (Files.isDirectory(startMenu)) {
-      createWindowsShortcut(startMenu.resolve("IDEasy.lnk"), ideasyExe, icoPath);
+
+    if (isShortcutEnabled("IDEASY_CREATE_DESKTOP_SHORTCUT")) {
+      // Shell Folders contains the already-expanded Desktop path, including OneDrive-redirected locations
+      WindowsHelper helper = WindowsHelper.get(this.context);
+      String desktopStr = helper.getRegistryValue(
+          "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders", "Desktop");
+      Path desktopPath = (desktopStr != null && !desktopStr.isBlank()) ? Path.of(desktopStr)
+          : this.context.getUserHome().resolve("Desktop");
+      this.context.getFileAccess().mkdirs(desktopPath);
+      createWindowsShortcut(desktopPath.resolve("IDEasy.lnk"), ideasyExe, icoPath);
+    }
+
+    if (isShortcutEnabled("IDEASY_CREATE_STARTMENU_SHORTCUT")) {
+      WindowsHelper helper = WindowsHelper.get(this.context);
+      String startMenuStr = helper.getRegistryValue(
+          "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders", "Programs");
+      Path startMenu = (startMenuStr != null && !startMenuStr.isBlank()) ? Path.of(startMenuStr)
+          : this.context.getUserHome().resolve("AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs");
+      if (Files.isDirectory(startMenu)) {
+        createWindowsShortcut(startMenu.resolve("IDEasy.lnk"), ideasyExe, icoPath);
+      }
     }
   }
 
@@ -869,5 +877,15 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   private void logIdeasyModification(String target, boolean configure) {
     String action = configure ? "Configuring" : "Removing";
     LOG.info("{} IDEasy in {}", action, target);
+  }
+
+  /**
+   * @param variable the environment variable controlling shortcut creation.
+   * @return {@code true} if the shortcut should be created, {@code false} otherwise.
+   */
+  private boolean isShortcutEnabled(String variable) {
+
+    String value = this.context.getVariables().get(variable);
+    return !"0".equals(value);
   }
 }

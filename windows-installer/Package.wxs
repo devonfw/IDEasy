@@ -21,6 +21,8 @@
     <WixVariable Id="WixUIBannerBmp" Value=".\assets\banner.bmp"/>
 
     <Property Id="INSTALLTYPE" Value="USERHOME"/>
+    <Property Id="CREATE_DESKTOP_SHORTCUT" Value="1"/>
+    <Property Id="CREATE_STARTMENU_SHORTCUT" Value="1"/>
     <Property Id="USERFOLDER">
       <DirectorySearch Id="userProfileSearch" Depth="0" Path="[%USERPROFILE]"/>
     </Property>
@@ -43,7 +45,7 @@
     <!-- Execution of install command-->
     <SetProperty
         Id="RunInstallAction"
-        Value='"[%SystemFolder]cmd.exe" /v:on /c "cd /d [INSTALLFOLDER] &amp;&amp; (if not exist "[%USERPROFILE]\.ide\logs" mkdir "[%USERPROFILE]\.ide\logs") &amp;&amp; set ts=%date:/=-%_%time::=-% &amp;&amp; set ts=!ts:,=-! &amp;&amp; bin\ideasy.exe -ftb --no-colors install &gt; "[%USERPROFILE]\.ide\logs\install-!ts!.log" 2&gt;&amp;1"'
+        Value='"[%SystemFolder]cmd.exe" /v:on /c "cd /d [INSTALLFOLDER] &amp;&amp; (if not exist "[%USERPROFILE]\.ide\logs" mkdir "[%USERPROFILE]\.ide\logs") &amp;&amp; set IDEASY_CREATE_DESKTOP_SHORTCUT=0 &amp;&amp; if "[CREATE_DESKTOP_SHORTCUT]"=="1" set IDEASY_CREATE_DESKTOP_SHORTCUT=1 &amp;&amp; set IDEASY_CREATE_STARTMENU_SHORTCUT=0 &amp;&amp; if "[CREATE_STARTMENU_SHORTCUT]"=="1" set IDEASY_CREATE_STARTMENU_SHORTCUT=1 &amp;&amp; set ts=%date:/=-%_%time::=-% &amp;&amp; set ts=!ts:,=-! &amp;&amp; bin\ideasy.exe -ftb --no-colors install &gt; "[%USERPROFILE]\.ide\logs\install-!ts!.log" 2&gt;&amp;1"'
         Before="RunInstallAction"
         Sequence="execute"
     />
