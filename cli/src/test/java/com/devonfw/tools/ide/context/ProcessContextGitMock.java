@@ -29,9 +29,20 @@ public class ProcessContextGitMock extends ProcessContextImpl {
 
   private final List<OutputMessage> outputMessages;
 
-  private final Deque<OutputMessage> commandOutputs;
+  private final Deque<QueuedCommand> queuedCommands;
 
   private final List<ProcessResult> results;
+
+  /**
+   * A single git command that is queued to be returned for the next {@code git} invocation, either a successful command producing a {@link OutputMessage} or a
+   * failed command with a non-zero exit code.
+   *
+   * @param exitCode the exit code to return for this command.
+   * @param message the {@link OutputMessage} to return for this command.
+   */
+  private record QueuedCommand(int exitCode, OutputMessage message) {
+
+  }
 
   /**
    * @param directory the {@link Path} to the git repository.
@@ -42,7 +53,7 @@ public class ProcessContextGitMock extends ProcessContextImpl {
     this.directory = directory;
     this.now = LocalDateTime.now();
     this.outputMessages = new ArrayList<>();
-    this.commandOutputs = new ArrayDeque<>();
+    this.queuedCommands = new ArrayDeque<>();
     this.results = new ArrayList<>();
   }
 
@@ -61,7 +72,18 @@ public class ProcessContextGitMock extends ProcessContextImpl {
    * @param message the single-line {@link OutputMessage} to return for the next git command.
    */
   public void addCommandOutput(OutputMessage message) {
-    this.commandOutputs.addLast(message);
+    this.queuedCommands.addLast(new QueuedCommand(ProcessResult.SUCCESS, message));
+  }
+
+  /**
+   * Queues a failed {@code git} command that is run next: it returns the given non-zero {@code exitCode} and an error {@link OutputMessage} (standard error),
+   * so that the caller observes {@code isSuccessful() == false}.
+   *
+   * @param exitCode the non-zero exit code to return for the next git command.
+   * @param errorMessage the standard error {@link OutputMessage} to return for the next git command.
+   */
+  public void addCommandFailure(int exitCode, OutputMessage errorMessage) {
+    this.queuedCommands.addLast(new QueuedCommand(exitCode, errorMessage));
   }
 
   /**
@@ -89,12 +111,15 @@ public class ProcessContextGitMock extends ProcessContextImpl {
     if (!this.executable.getFileName().toString().equals("git")) {
       return super.run(processMode);
     }
-    // allow the test to feed a distinct single-line output to each git invocation in sequence
-    OutputMessage queuedOutput = this.commandOutputs.pollFirst();
-    if (queuedOutput != null) {
-      this.outputMessages.add(queuedOutput);
-    }
+    // consume the next queued git result so consecutive git invocations can return different outputs or failures
+    QueuedCommand queuedCommand = this.queuedCommands.pollFirst();
     int exitCode = ProcessResult.SUCCESS;
+    if (queuedCommand != null) {
+      exitCode = queuedCommand.exitCode();
+      if (queuedCommand.message() != null) {
+        this.outputMessages.add(queuedCommand.message());
+      }
+    }
     StringBuilder command = new StringBuilder("git");
     for (String arg : this.arguments) {
       command.append(' ');

@@ -27,6 +27,12 @@ class GitContextTest extends AbstractIdeContextTest {
   private static final String CONTENT_ORIGINAL = "original";
   private static final String CONTENT_CHANGED = "changed";
 
+  /**
+   * Exit code with which a real {@code git rev-parse} invocation fails on a repository without the requested revision (e.g. {@code HEAD} on a commit-less
+   * repository), used to simulate a failing command in the tests.
+   */
+  private static final int REV_PARSE_FAILURE_EXIT_CODE = 128;
+
   private ProcessContextGitMock processContext;
 
   /**
@@ -274,17 +280,26 @@ class GitContextTest extends AbstractIdeContextTest {
 
   /**
    * Sets up the mock so that the current branch is configured with an upstream, which lets {@link GitContextImpl#isRepositoryUpdateAvailable(Path)} pass the
-   * {@code hasUpstream} guard and reach the commit id comparison.
+   * {@code hasUpstream} guard and reach the commit id comparison. A {@code null} commit id simulates a failing {@code rev-parse} (non-zero exit code), so the
+   * failure handling of the command is exercised rather than the single-output success path.
    *
-   * @param localCommitId the commit id returned for {@code rev-parse HEAD}.
-   * @param remoteCommitId the commit id returned for {@code rev-parse @{u}}.
+   * @param localCommitId the commit id returned for {@code rev-parse HEAD}; {@code null} simulates the command failing.
+   * @param remoteCommitId the commit id returned for {@code rev-parse @{u}}; {@code null} simulates the command failing.
    */
   private void simulateUpstreamAndCommitIds(String localCommitId, String remoteCommitId) {
     this.processContext.addCommandOutput(new OutputMessage(false, "master"));
     this.processContext.addCommandOutput(new OutputMessage(false, "origin"));
     this.processContext.addCommandOutput(new OutputMessage(false, "refs/heads/master"));
-    this.processContext.addCommandOutput(new OutputMessage(false, localCommitId));
-    this.processContext.addCommandOutput(new OutputMessage(false, remoteCommitId));
+    if (localCommitId == null) {
+      this.processContext.addCommandFailure(REV_PARSE_FAILURE_EXIT_CODE, new OutputMessage(true, "fatal: ambiguous argument 'HEAD': unknown revision"));
+    } else {
+      this.processContext.addCommandOutput(new OutputMessage(false, localCommitId));
+    }
+    if (remoteCommitId == null) {
+      this.processContext.addCommandFailure(REV_PARSE_FAILURE_EXIT_CODE, new OutputMessage(true, "fatal: no upstream configured for branch 'master'"));
+    } else {
+      this.processContext.addCommandOutput(new OutputMessage(false, remoteCommitId));
+    }
   }
 
   /**
