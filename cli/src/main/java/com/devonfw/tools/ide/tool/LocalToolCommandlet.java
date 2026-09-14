@@ -206,9 +206,12 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
           LOG.warn("Deleting corrupted installation at {}", installationPath);
           fileAccess.delete(installationPath);
         } else {
-          // version file is missing but tool allows this, so restore it and preserve the installation
-          restoreMissingVersionFile(installationPath, resolvedVersion);
-          return createToolInstallation(installationPath, resolvedVersion, false, processContext, additionalInstallation);
+          // the version file is missing but the tool allows this (e.g. because the version is determined from the installation itself). If
+          // the installed version could be determined, it was already restored to the version file during the determination of the installed
+          // edition and version (see computeInstalledEditionAndVersionFromLocalSoftwareFolder) and the installation above is kept. Reaching
+          // this point means the installed version could not be determined, so the installation is treated as broken and reinstalled.
+          LOG.warn("Could not determine the installed version of {} at {}, the installation is considered broken and will be reinstalled.", this.tool,
+              installationPath);
         }
       }
     }
@@ -629,14 +632,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       installationPath = softwareRepoPath.resolve(resolvedVersion.toString());
     }
     return installationPath;
-  }
-
-  /**
-   * @return {@link VersionIdentifier} with latest version of the tool}.
-   */
-  public VersionIdentifier getLatestToolVersion() {
-
-    return this.context.getDefaultToolRepository().resolveVersion(this.tool, getConfiguredEdition(), VersionIdentifier.LATEST, this);
   }
 
 
