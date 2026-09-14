@@ -38,9 +38,11 @@ abstract class EnvironmentVariablesMap extends AbstractEnvironmentVariables {
     if (value == null) {
       LOG.trace("{}: Variable {} is undefined.", getSource(), name);
     } else {
-      // register the value before it is logged so that a secret variable read from an existing ide.properties is
-      // masked as well, not only a value that was just entered by the user
-      this.context.addSecretValue(name, value);
+      // mask the value before it is logged if its variable name follows the naming convention for secrets, so a
+      // secret variable read from an existing ide.properties is masked as well, not only a value just entered by the user
+      if (IdeContext.isSecretVariableName(name)) {
+        this.context.addSecret(value);
+      }
       LOG.trace("{}: Variable {}={}", getSource(), name, value);
       WindowsPathSyntax pathSyntax = this.context.getPathSyntax();
       if (pathSyntax != null) {

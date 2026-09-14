@@ -250,7 +250,7 @@ class EnvironmentVariablesTest extends AbstractIdeContextTest {
     EnvironmentVariables variables = context.getVariables();
 
     // act
-    String resolved = variables.resolve("token=@ask-secret('MY_TOKEN')", "test", false);
+    String resolved = variables.resolve("token=@ask-secret('MY_SECRET')", "test", false);
 
     // assert
     assertThat(resolved).isEqualTo("token=dummy-secret-value");
@@ -266,19 +266,45 @@ class EnvironmentVariablesTest extends AbstractIdeContextTest {
 
     // arrange
     String path = "project/workspaces/foo-test/my-git-repo";
-    // TRACE level so that the "Variable MY_TOKEN=..." log written while reading the variable is captured
+    // TRACE level so that the "Variable MY_SECRET=..." log written while reading the variable is captured
     IdeTestContext context = newContext(ENVIRONMENT_PROJECT, path, true, null, IdeLogLevel.TRACE);
     EnvironmentVariables variables = context.getVariables();
-    variables.getByType(EnvironmentVariablesType.CONF).set("MY_TOKEN", "dummy-stored-value");
+    variables.getByType(EnvironmentVariablesType.CONF).set("MY_SECRET", "dummy-stored-value");
     context.getTestStartContext().getEntries().clear();
 
     // act
-    String resolved = variables.resolve("token=@ask-secret('MY_TOKEN')", "test", false);
+    String resolved = variables.resolve("token=@ask-secret('MY_SECRET')", "test", false);
 
     // assert
     assertThat(resolved).isEqualTo("token=dummy-stored-value");
     assertThat(context.getSecretLineCount()).isZero(); // the user was NOT asked
     assertThat(context).log().hasNoMessageContaining("dummy-stored-value");
+  }
+
+  /**
+   * Test that a short value of a variable following the secret naming convention (e.g. ending in {@code PASSWORD}) stays below {@code SECRET_MIN_LENGTH} and
+   * is therefore not masked, so it cannot corrupt unrelated log output that happens to contain the same short substring. Regression test for a PR review
+   * comment on #2409: since the naming convention now applies to every variable (not only ones read via {@code @ask-secret}), a short value such as "dev" in
+   * any {@code *_PASSWORD} variable would otherwise blank out that substring wherever it appears, e.g. turning "devonfw" into "********onfw".
+   */
+  @Test
+  void testShortSecretValueIsNotMaskedToAvoidCorruptingUnrelatedLogOutput() {
+
+    // arrange
+    String path = "project/workspaces/foo-test/my-git-repo";
+    IdeTestContext context = newContext(ENVIRONMENT_PROJECT, path, true, null, IdeLogLevel.TRACE);
+    EnvironmentVariables conf = context.getVariables().getByType(EnvironmentVariablesType.CONF);
+    conf.set("MY_PASSWORD", "dev");
+    conf.set("OTHER_URL", "https://devonfw.com");
+    context.getTestStartContext().getEntries().clear();
+
+    // act
+    conf.getFlat("MY_PASSWORD");
+    String other = conf.getFlat("OTHER_URL");
+
+    // assert
+    assertThat(other).isEqualTo("https://devonfw.com");
+    assertThat(context).log().hasNoMessageContaining("********onfw.com");
   }
 
   /**

@@ -5,6 +5,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Stream;
 
 import com.devonfw.tools.ide.cli.CliAbortException;
@@ -301,20 +302,29 @@ public interface IdeContext extends IdeStartContext {
   }
 
   /**
-   * Marks the variable with the given name as secret so that its value is masked in all log output, even if the value is not entered by the user but read from
-   * an existing {@code ide.properties}.
+   * Registers the given value as secret so that it is masked in all log output. Has to be called before the value is logged.
    *
-   * @param name the name of the variable (e.g. "MY_API_TOKEN").
+   * @param secret the secret value to mask.
    */
-  void addSecretVariable(String name);
+  void addSecret(String secret);
 
   /**
-   * Registers the value of a variable as secret if the variable was marked via {@link #addSecretVariable(String)}. Has to be called before the value is logged.
+   * Determines whether a variable has to be treated as secret (its value masked in all log output) purely by its name, following the naming convention that
+   * secret variables end with {@code SECRET}, {@code PASSWORD}, or {@code API_KEY} (case-insensitive). This convention avoids having to track at runtime which
+   * variables are secret: a variable is secret if and only if its name says so, regardless of whether its value was entered via {@code @ask-secret} or already
+   * defined beforehand (e.g. directly in {@code ide.properties}).
    *
-   * @param name the name of the variable.
-   * @param value the value of the variable.
+   * @param name the name of the variable (e.g. "MY_API_KEY").
+   * @return {@code true} if the given variable name follows the naming convention for secret variables, {@code false} otherwise.
    */
-  void addSecretValue(String name, String value);
+  static boolean isSecretVariableName(String name) {
+
+    if (name == null) {
+      return false;
+    }
+    String upperName = name.toUpperCase(Locale.ROOT);
+    return upperName.endsWith("SECRET") || upperName.endsWith("PASSWORD") || upperName.endsWith("API_KEY");
+  }
 
   /**
    * @param question the question to ask.
