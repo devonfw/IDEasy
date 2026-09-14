@@ -1,15 +1,13 @@
 package com.devonfw.ide.gui;
 
+import static com.devonfw.ide.gui.App.loadMainView;
 import static org.testfx.assertions.api.Assertions.assertThat;
 import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Locale;
-
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -30,7 +28,6 @@ import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.ide.gui.console.ConsoleController;
 import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.context.TaskManager;
 import com.devonfw.ide.gui.nls.NlsService;
@@ -56,10 +53,12 @@ public class AppBaseTest extends HeadlessApplicationTest {
 
   private static final TaskManager taskManager = new TaskManager();
   private static GuiStateManager guiStateManager;
+  private static NlsService nlsService = new NlsService(Locale.ENGLISH);
+
 
   @Override
   public void start(Stage stage) throws IOException {
-
+    /*
     NlsService nlsService = new NlsService(Locale.ENGLISH);
 
     URL mainViewUrl = getClass().getResource("main-view.fxml");
@@ -80,17 +79,23 @@ public class AppBaseTest extends HeadlessApplicationTest {
     stage.setScene(new Scene(root));
     stage.requestFocus(); //sometimes needed for headless setup to work
     stage.show();
+    */
 
-    androidStudioOpen = FxHelper.lookup(root, "#androidStudioOpen");
-    eclipseOpen = FxHelper.lookup(root, "#eclipseOpen");
-    intellijOpen = FxHelper.lookup(root, "#intellijOpen");
-    vsCodeOpen = FxHelper.lookup(root, "#vsCodeOpen");
-    selectedProject = FxHelper.lookup(root, "#selectedProject");
-    selectedWorkspace = FxHelper.lookup(root, "#selectedWorkspace");
-    consolePaneToggleButton = FxHelper.lookup(root, "#consolePaneToggleButton");
-    centerSplitPane = FxHelper.lookup(root, "#centerSplitPane");
-    statusText = FxHelper.lookup(root, "#statusLabel");
-    taskProgressBar = FxHelper.lookup(root, "#statusProgressBar");
+    Parent mainViewLoader = loadMainView(mockIdeRoot.toString(), guiStateManager, nlsService);
+    stage.setScene(new Scene(mainViewLoader));
+    stage.requestFocus(); //sometimes needed for headless setup to work
+    stage.show();
+
+    androidStudioOpen = FxHelper.lookup(mainViewLoader, "#androidStudioOpen");
+    eclipseOpen = FxHelper.lookup(mainViewLoader, "#eclipseOpen");
+    intellijOpen = FxHelper.lookup(mainViewLoader, "#intellijOpen");
+    vsCodeOpen = FxHelper.lookup(mainViewLoader, "#vsCodeOpen");
+    selectedProject = FxHelper.lookup(mainViewLoader, "#selectedProject");
+    selectedWorkspace = FxHelper.lookup(mainViewLoader, "#selectedWorkspace");
+    consolePaneToggleButton = FxHelper.lookup(mainViewLoader, "#consolePaneToggleButton");
+    centerSplitPane = FxHelper.lookup(mainViewLoader, "#centerSplitPane");
+    statusText = FxHelper.lookup(mainViewLoader, "#statusLabel");
+    taskProgressBar = FxHelper.lookup(mainViewLoader, "#statusProgressBar");
   }
 
   /**

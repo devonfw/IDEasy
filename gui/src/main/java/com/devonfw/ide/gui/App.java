@@ -48,6 +48,7 @@ public class App extends Application {
   GuiStateManager guiStateManager = new GuiStateManager(taskManager, null);
 
   private final Logger LOG = LoggerFactory.getLogger(App.class);
+  private String ideRoot = IdeVariables.IDE_ROOT.getName();
 
   @Override
   public void start(Stage primaryStage) throws IOException {
@@ -60,7 +61,7 @@ public class App extends Application {
 
     this.nlsService = new NlsService(null);
 
-    root = loadMainView();
+    root = loadMainView(ideRoot, guiStateManager, nlsService);
 
     this.nlsService.addLocaleChangeListener(this::reloadMainView);
 
@@ -113,7 +114,7 @@ public class App extends Application {
   private void reloadMainView() {
 
     try {
-      Parent reloadedRoot = loadMainView();
+      Parent reloadedRoot = loadMainView(ideRoot, guiStateManager, nlsService);
       this.root = reloadedRoot;
       if (this.primaryStage != null && this.primaryStage.getScene() != null) {
         this.primaryStage.getScene().setRoot(reloadedRoot);
@@ -123,6 +124,7 @@ public class App extends Application {
     }
   }
 
+  /*
   private Parent loadMainView() throws IOException {
 
     FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
@@ -137,6 +139,22 @@ public class App extends Application {
       return null;
     });
     return fxmlLoader.load();
+  }
+  */
+  public static Parent loadMainView(String ideRoot, GuiStateManager guiStateManager, NlsService nlsService) throws IOException {
+    FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
+    fxmlLoader.setResources(nlsService.getResourceBundle());
+    MainController mainController = new MainController(System.getenv(ideRoot), guiStateManager, nlsService);
+    fxmlLoader.setControllerFactory(clazz -> {
+      if (clazz == ConsoleController.class) {
+        return new ConsoleController(nlsService);
+      } else if (clazz == MainController.class) {
+        return mainController;
+      }
+      return null;
+    });
+    return fxmlLoader.load();
+
   }
 
   private void setIconInMacOsDock() {
