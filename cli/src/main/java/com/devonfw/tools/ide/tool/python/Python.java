@@ -6,7 +6,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Set;
 
-import org.jline.utils.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
