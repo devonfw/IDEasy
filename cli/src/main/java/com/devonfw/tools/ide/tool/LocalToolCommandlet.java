@@ -644,34 +644,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
 
   /**
-   * Searches for a wrapper file in valid projects (containing a build file f.e. build.gradle or pom.xml) and returns its path.
-   *
-   * @param wrapperFileName the name of the wrapper file
-   * @return Path of the wrapper file or {@code null} if none was found.
-   */
-  protected Path findWrapper(String wrapperFileName) {
-    Path dir = this.context.getCwd();
-    // traverse the cwd directory containing a build descriptor up till a wrapper file was found
-    while ((dir != null) && (findBuildDescriptor(dir) != null)) {
-      Path wrapper = dir.resolve(wrapperFileName);
-      if (Files.exists(wrapper)) {
-        LOG.debug("Using wrapper: {}", wrapper);
-        return wrapper;
-      }
-      dir = dir.getParent();
-    }
-    return null;
-  }
-
-  /**
-   * @param directory the {@link Path} to the build directory.
-   * @return the build configuration file for this tool or {@code null} if not found (or this is not a build tool).
-   */
-  public Path findBuildDescriptor(Path directory) {
-    return null;
-  }
-
-  /**
    * @return Bash completion command for this tool or {@code null} if this tool does not provide Bash completion.
    */
   public String getBashCompletion() {

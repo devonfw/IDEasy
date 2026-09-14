@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -20,7 +21,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.repository.RepositoryCommandlet;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.BuildTool;
 import com.devonfw.tools.ide.tool.androidstudio.AndroidStudio;
 import com.devonfw.tools.ide.tool.aws.Aws;
 import com.devonfw.tools.ide.tool.az.Azure;
@@ -84,9 +85,6 @@ public class CommandletManagerImpl implements CommandletManager {
 
   private static final Logger LOG = LoggerFactory.getLogger(CommandletManagerImpl.class);
 
-  /** The build commandlets in order of priority - the first one with a matching build descriptor wins. */
-  private static final List<Class<? extends LocalToolCommandlet>> BUILD_TOOLS = List.of(Mvn.class, Gradle.class, Yarn.class, Npm.class);
-
   private final IdeContext context;
 
   private final Map<Class<? extends Commandlet>, Commandlet> commandletTypeMap;
@@ -106,7 +104,7 @@ public class CommandletManagerImpl implements CommandletManager {
 
     super();
     this.context = context;
-    this.commandletTypeMap = new HashMap<>();
+    this.commandletTypeMap = new LinkedHashMap<>();
     this.commandletNameMap = new HashMap<>();
     this.firstKeywordMap = new HashMap<>();
     this.commandlets = Collections.unmodifiableCollection(this.commandletTypeMap.values());
@@ -142,7 +140,6 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Java(context));
     add(new Ng(context));
     add(new Node(context));
-    add(new Npm(context));
     add(new Mvn(context));
     add(new Msvc(context));
     add(new RewriteCommandlet(context));
@@ -179,6 +176,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Spring(context));
     add(new Uv(context));
     add(new Yarn(context));
+    add(new Npm(context));
     add(new Copilot(context));
     add(new Corepack(context));
     add(new Pip(context));
@@ -285,15 +283,14 @@ public class CommandletManagerImpl implements CommandletManager {
   }
 
   @Override
-  public LocalToolCommandlet findBuildTool(Path buildPath) {
+  public BuildTool findBuildTool(Path buildPath) {
 
     if (buildPath == null) {
       return null;
     }
-    for (Class<? extends LocalToolCommandlet> toolClass : BUILD_TOOLS) {
-      LocalToolCommandlet toolCommandlet = getCommandlet(toolClass);
-      if (toolCommandlet.findBuildDescriptor(buildPath) != null) {
-        return toolCommandlet;
+    for (Commandlet commandlet : getCommandlets()) {
+      if ((commandlet instanceof BuildTool buildTool) && (buildTool.findBuildDescriptor(buildPath) != null)) {
+        return buildTool;
       }
     }
     return null;
