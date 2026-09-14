@@ -40,6 +40,45 @@ class LocalToolCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Dummy commandlet extending {@link LocalToolCommandlet} that tolerates a missing software version file (see
+   * {@link LocalToolCommandlet#isIgnoreMissingSoftwareVersionFile()}). The repository lookups performed by
+   * {@link LocalToolCommandlet#installTool(ToolInstallRequest)} before the restore branch are short-circuited so the branch can be tested in isolation without
+   * requiring the tool to be registered in the tool repository.
+   */
+  public static class LocalToolRestoreVersionDummyCommandlet extends LocalToolDummyCommandlet {
+
+    LocalToolRestoreVersionDummyCommandlet(IdeContext context) {
+
+      super(context);
+    }
+
+    @Override
+    protected boolean isIgnoreSoftwareRepo() {
+
+      // like package-manager based tools (e.g. python) the installation lives directly in the software folder
+      return true;
+    }
+
+    @Override
+    protected boolean isIgnoreMissingSoftwareVersionFile() {
+
+      return true;
+    }
+
+    @Override
+    protected VersionIdentifier cveCheck(ToolInstallRequest request) {
+
+      return request.getRequested().getResolvedVersion();
+    }
+
+    @Override
+    protected void installToolDependencies(ToolInstallRequest request) {
+
+      // the dummy tool has no dependencies
+    }
+  }
+
+  /**
    * Test {@link LocalToolCommandlet#getValidInstalledSoftwareRepoPath(Path, Path)} with a long installation path, as commonly encountered on macOS systems.
    */
   @Test
@@ -163,6 +202,39 @@ class LocalToolCommandletTest extends AbstractIdeContextTest {
     assertThat(context.getSoftwarePath().resolve("java")).doesNotExist();
     // assert - the debug log must confirm that the project was ignored
     assertThat(context).logAtDebug().hasMessageContaining("Ignoring project for dependency");
+  }
+
+  /**
+   * Test that {@link LocalToolCommandlet#installTool(ToolInstallRequest)} restores the missing software version file and preserves the existing installation
+   * when {@link LocalToolCommandlet#isIgnoreMissingSoftwareVersionFile()} is {@code true}.
+   */
+  @Test
+  void testInstallToolRestoresMissingVersionFile() {
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    LocalToolRestoreVersionDummyCommandlet commandlet = new LocalToolRestoreVersionDummyCommandlet(context);
+    // an existing installation without a software version file triggers the restore branch of installTool
+    Path installationPath = context.getSoftwarePath().resolve("dummy");
+    context.getFileAccess().mkdirs(installationPath);
+    context.getFileAccess().writeFileContent("tool content", installationPath.resolve("somefile.txt"));
+    Path versionFile = installationPath.resolve(IdeContext.FILE_SOFTWARE_VERSION);
+    assertThat(versionFile).doesNotExist();
+    VersionIdentifier resolvedVersion = VersionIdentifier.of("1.2.3");
+    ToolInstallRequest request = new ToolInstallRequest(false);
+    request.setRequested(new ToolEditionAndVersion(new ToolEdition("dummy", "dummy"), resolvedVersion));
+
+    // act
+    ToolInstallation installation = commandlet.installTool(request);
+
+    // assert - the installation was preserved and the version file was restored
+    assertThat(installation.rootDir()).isEqualTo(installationPath);
+    assertThat(installation.newInstallation()).isFalse();
+    assertThat(installation.resolvedVersion()).isEqualTo(resolvedVersion);
+    assertThat(versionFile).exists().hasContent("1.2.3");
+    assertThat(installationPath.resolve("somefile.txt")).exists();
+    // assert - the tool was not treated as corrupted and reinstalled
+    assertThat(context).logAtWarning().hasMessageContaining("restoring it with version");
+    assertThat(context).logAtWarning().hasNoMessageContaining("Deleting corrupted installation");
   }
 
   private static void runIntellijAndCheckInstallationWithJavaDependency(IdeTestContext context) {
