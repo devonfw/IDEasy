@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.step;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.cli.CliFatalException;
@@ -180,11 +182,17 @@ class StepTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC, "project", false);
     Step step = context.newStep("Test-Step");
+    AtomicBoolean fallbackUsed = new AtomicBoolean(false);
     // act & assert
     assertThatThrownBy(() -> step.call(() -> {
       throw new CliFatalException("fatal error");
-    }, () -> "fallback")).isInstanceOf(CliFatalException.class).hasMessage("fatal error");
+    }, () -> {
+      fallbackUsed.set(true);
+      return "fallback";
+    })).isInstanceOf(CliFatalException.class).hasMessage("fatal error");
     assertThat(step.isFailure()).isTrue();
+    // the error is rethrown, so the fallback must not be returned
+    assertThat(fallbackUsed).isFalse();
   }
 
 }

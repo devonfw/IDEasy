@@ -60,7 +60,6 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
   /** {@link FlagProperty} for skipping the setup of git repositories. */
   public final FlagProperty skipRepositories;
 
-  //TODO: If this is only used for the case of code-settings repos, why have that property here and not in UpdateCommandlet?
   /** {@link FlagProperty} to force the update of the settings git repository. */
   public final FlagProperty forcePull;
 

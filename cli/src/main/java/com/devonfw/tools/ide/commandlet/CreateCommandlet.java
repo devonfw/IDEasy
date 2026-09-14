@@ -55,7 +55,7 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
     LOG.info("Creating new IDEasy project in {}", newProjectPath);
     FileAccess fileAccess = this.context.getFileAccess();
     if (!fileAccess.isEmptyDir(newProjectPath)) {
-      this.context.askToContinue("Directory {} already exists. Do you want to continue?", newProjectPath);
+      this.context.askToContinue("Directory {} already exists. Do you want to move the project to the backup and create it from scratch?", newProjectPath);
       fileAccess.backup(newProjectPath);
     }
 
