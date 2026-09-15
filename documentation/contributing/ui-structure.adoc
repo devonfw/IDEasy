@@ -64,32 +64,52 @@ public class PackageController implements Observer {
 The codebase follows a **feature-based package organization** rather than layer-based.
 Each feature owns its MVC triad and related components.
 
-```
-gui/
-├── src/
-│   └── main/
-│       └── java/
-│           └── com/ideasy/gui/
-│               ├── feature/
-│               │   ├── dashboard/
-│               │   │   ├── DashboardController.java
-│               │   │   ├── DashboardModel.java
-│               │   │   ├── DashboardView.java
-│               │   │   └── component/
-│               │   ├── settings/
-│               │   │   ├── SettingsController.java
-│               │   │   ├── SettingsModel.java
-│               │   │   ├── SettingsView.java
-│               │   │   └── component/
-│               │   └── package-manager/
-│               │       ├── PackageManagerController.java
-│               │       ├── PackageManagerModel.java
-│               │       ├── PackageManagerView.java
-│               │       and component/
-│               ├── component/          # Shared generic components (Button, Table, Dialog, etc.)
-│               ├── util/               # UI utilities (bindings, converters, CSS helpers)
-│               └── event/              # Event bus and custom events
-```
+[source]
+----
+gui
+└── src
+    └── main
+        ├── java
+        │   └── com
+        │       └── devonfw
+        │           └── ide
+        │               └── gui
+        │                   ├── context
+        │                   │   ├── GuiContextChangeListener.java
+        │                   │   ├── GuiOutputListener.java
+        │                   │   ├── GuiStateManager.java
+        │                   │   ├── IdeGuiContext.java
+        │                   │   ├── IdeGuiLogListener.java
+        │                   │   ├── ProjectManager.java
+        │                   │   └── TaskManager.java
+        │                   ├── factory
+        │                   │   └── TabFactory.java
+        │                   ├── helper
+        │                   │   ├── combobox
+        │                   │   │   └── ComboBoxViewModel.java
+        │                   │   └── FxHelper.java
+        │                   ├── service
+        │                   │   ├── CommandletService.java
+        │                   │   └── NlsService.java
+        │                   ├── ui
+        │                   │   ├── controls
+        │                   │   │   ├── console/
+        │                   │   │   ├── mainwindow/
+        │                   │   │   └── someothercontrol/
+        │                   │   ├── mainwindow
+        │                   │   ├── modal
+        │                   │   ├── progress
+        │                   │   │   ├── taskwindow/
+        │                   │   │   ├── steps/
+        │                   │   │   └── ProgressBarTask.java
+        │                   │   └── tab
+        │                   │       ├── tabNameXYZ/
+        │                   │       ├── TabView.java
+        │                   │       └── TabViewModel.java
+        │                   ├── App.java
+        │                   └── AppLauncher.java
+        └── resources
+----
 
 === Benefits
 
