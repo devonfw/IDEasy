@@ -94,6 +94,32 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Tests that a known macOS app bundle is detected even if {@code Contents/MacOS} does not contain the expected binary.
+   *
+   * @param tempDir the temporary directory.
+   * @throws IOException on test setup failure.
+   */
+  @Test
+  @DisabledOnOs(OS.WINDOWS)
+  void testGetInstallationPathFindsMacAppWithoutBinary(@TempDir Path tempDir) throws IOException {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    context.setSystemInfo(SystemInfoMock.MAC_X64);
+    Path applicationsPath = tempDir.resolve("Applications");
+    Path appPath = applicationsPath.resolve("Dummy.app");
+    Files.createDirectories(appPath);
+    GlobalToolCommandlet globalTool = new GlobalToolDummyCommandlet(context, applicationsPath);
+
+    // act
+    Path result = globalTool.getInstallationPath("default", VersionIdentifier.of("1.0"));
+
+    // assert
+    assertThat(result).isEqualTo(appPath);
+    assertThat(context.getPath().getPath(DUMMY_BINARY)).isNull();
+  }
+
+  /**
    * Tests that a macOS DMG is extracted and its application bundle is installed with a logged privileged move instead of executing the DMG.
    *
    * @param tempDir the temporary directory.
@@ -152,6 +178,12 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     protected Path getMacApplicationsPath() {
 
       return this.applicationsPath;
+    }
+
+    @Override
+    public String getMacApplicationName() {
+
+      return "Dummy";
     }
   }
 

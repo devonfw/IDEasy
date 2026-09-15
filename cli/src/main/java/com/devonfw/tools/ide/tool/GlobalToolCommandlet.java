@@ -195,9 +195,6 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     }
     installationPath = getInstallationPath(toolEdition.edition(), resolvedVersion);
     if (installationPath == null) {
-      if (macDmg) {
-        throw new CliException("Installation process for " + this.tool + " in version " + resolvedVersion + " failed because the application was not found.");
-      }
       return new ToolInstallation(null, null, null, resolvedVersion, true, true);
     }
     return createToolInstallation(installationPath, resolvedVersion, true, pc, false);
@@ -382,21 +379,15 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
 
   private Path getMacApplicationInstallationPath() {
 
-    Path appPath = this.context.getFileAccess().findFirst(getMacApplicationsPath(), this::isMacApplicationForTool, false);
+    Path appPath = findMacApplicationBundle();
     if (appPath == null) {
       return null;
     }
     Path binaryPath = getMacApplicationBinaryPath(appPath);
-    this.context.getPath().setPath(getName(), binaryPath.getParent());
-    return appPath;
-  }
-
-  private boolean isMacApplicationForTool(Path appPath) {
-
-    if (!Files.isDirectory(appPath) || !appPath.getFileName().toString().endsWith(".app")) {
-      return false;
+    if (Files.isExecutable(binaryPath)) {
+      this.context.getPath().setPath(getName(), binaryPath.getParent());
     }
-    return Files.isExecutable(getMacApplicationBinaryPath(appPath));
+    return appPath;
   }
 
   private Path getMacApplicationBinaryPath(Path appPath) {
@@ -464,7 +455,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
       return null;
     }
     String bundleFileName = appName + ".app";
-    List<Path> applicationsDirs = List.of(MAC_SYSTEM_APPLICATIONS_DIR, this.context.getUserHome().resolve(MAC_APPLICATIONS_FOLDER_NAME));
+    List<Path> applicationsDirs = List.of(getMacApplicationsPath(), this.context.getUserHome().resolve(MAC_APPLICATIONS_FOLDER_NAME));
     for (Path applicationsDir : applicationsDirs) {
       Path candidate = applicationsDir.resolve(bundleFileName);
       if (Files.isDirectory(candidate)) {
