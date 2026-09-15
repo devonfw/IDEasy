@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.git.GitContextImplMock;
 import com.devonfw.tools.ide.git.repository.RepositoryCommandlet;
 import com.devonfw.tools.ide.io.FileAccess;
@@ -84,6 +85,87 @@ class RepositoryCommandletTest extends AbstractIdeContextTest {
     rc.run();
     // assert
     assertThat(context).logAtInfo().hasMessage("Skipping repository test because it is not active, use --force-repositories to setup all repositories ...");
+  }
+
+  @Test
+  void testInactiveRepositoryIsNotResolved() {
+
+    // arrange
+    IdeTestContext context = newContext(IdeContext.FOLDER_REPOSITORY);
+    Properties properties = createDefaultProperties();
+    properties.setProperty("git_url", "https://github.com/$[UNDEFINED_VARIABLE]/" + TEST_GIT_REPO + ".git");
+    RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
+    saveProperties(context, properties);
+    // act
+    rc.run();
+    // assert
+    assertThat(context).logAtInfo().hasMessage("Skipping repository test because it is not active, use --force-repositories to setup all repositories ...");
+    // an inactive repository must not be resolved at all so that an expression like @ask-variable never asks the user for a repository that is skipped
+    assertThat(context).logAtWarning().hasNoMessageContaining("Undefined variable $[UNDEFINED_VARIABLE]");
+  }
+
+  @Test
+  void testActiveExpressionIsEvaluatedOnlyOnce() {
+
+    // arrange
+    IdeTestContext context = newContext(IdeContext.FOLDER_REPOSITORY);
+    Properties properties = createDefaultProperties();
+    // an expression with an empty variable name always asks and is never persisted, so a second evaluation would ask again
+    properties.setProperty("active", "@ask-variable('', 'Setup this repository?')");
+    // exactly one answer is available: if the property is evaluated twice, readLine fails with "End of answers reached!"
+    context.setAnswers("true");
+    RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
+    saveProperties(context, properties);
+    // act
+    rc.run();
+    // assert
+    assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(TEST_WORKSPACE).resolve(TEST_REPO)).isDirectory();
+  }
+
+  @Test
+  void testInvalidExpressionDoesNotPreventOtherRepositories() {
+
+    // arrange
+    IdeTestContext context = newContext(IdeContext.FOLDER_REPOSITORY);
+    Properties broken = createDefaultProperties();
+    broken.setProperty("active", "true");
+    broken.setProperty("path", "broken-repo");
+    // @ask-variable requires at least one argument, so resolving this git_url throws a CliException
+    broken.setProperty("git_url", "https://github.com/@ask-variable()/broken.git");
+    saveProperties(context, broken, "broken.properties");
+    Properties good = createDefaultProperties();
+    good.setProperty("active", "true");
+    saveProperties(context, good);
+    RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
+    // act
+    rc.run();
+    // assert
+    assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(TEST_WORKSPACE).resolve(TEST_REPO)).isDirectory();
+    assertThat(context).logAtError().hasMessageContaining("Invalid template expression");
+  }
+
+  @Test
+  void testCircularVariableDoesNotPreventOtherRepositories() {
+
+    // arrange
+    IdeTestContext context = newContext(IdeContext.FOLDER_REPOSITORY);
+    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("REPO_A", "$[REPO_B]");
+    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("REPO_B", "$[REPO_A]");
+    Properties broken = createDefaultProperties();
+    broken.setProperty("active", "true");
+    broken.setProperty("path", "broken-repo");
+    // the two variables reference each other, so resolving this git_url exceeds the maximum recursion
+    broken.setProperty("git_url", "https://github.com/$[REPO_A]/broken.git");
+    saveProperties(context, broken, "broken.properties");
+    Properties good = createDefaultProperties();
+    good.setProperty("active", "true");
+    saveProperties(context, good);
+    RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
+    // act
+    rc.run();
+    // assert
+    assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(TEST_WORKSPACE).resolve(TEST_REPO)).isDirectory();
+    assertThat(context).logAtError().hasMessageContaining("Reached maximum recursion");
   }
 
   @Test
