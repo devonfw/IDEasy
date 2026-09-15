@@ -1,0 +1,187 @@
+:toc:
+toc::[]
+
+= Docker Sandbox for AI Coding Agents
+
+[WARNING]
+====
+*This solution is experimental and targets technically skilled users only.
+Use at your own risk. No warranty or support is implied.*
+====
+
+== What it is
+
+The link:sandbox.adoc[IDEasy sandbox principle] isolates projects as folders on
+your hard drive - a container is *not* involved. This page describes an
+*optional, containerized variant* for AI-assisted development: it starts an
+isolated Docker container containing an **automatically provisioned IDEasy
+workspace** (IDEasy + an AI coding agent already installed) and runs the agent
+against your git repository.
+
+The goal is to let AI coding agents such as *Claude Code*, *GitHub Copilot CLI*
+or *OpenAI Codex* safely perform development tasks, execute tests and prepare
+commits/pull requests **without affecting the host environment**. The model is
+based on the `pi.dev` sandbox (`capgemini/pi.dev`), a devonfw/Capgemini sibling of
+IDEasy.
+
+The implementation lives in the `docker-sandbox/` folder of this repository:
+
+* `Dockerfile` - provisions the IDEasy workspace (IDEasy + agent) into an image.
+* `docker-sandbox.sh` - the host launcher that builds the image, passes your Git
+  identity, mounts your repository and starts the agent.
+* `entrypoint.sh` - activates the IDEasy environment and runs the agent.
+
+== How it works
+
+The launcher mounts *only* your git repository, and it mounts it **into** the
+container's IDEasy workspace as a *subfolder* - not as the workspace root. This
+keeps the container's workspace a complete, IDEasy-managed workspace:
+
+.Mount points
+[cols="asciidoc,asciidoc,asciidoc",options="header",grid="cols"]
+|======================
+| *Host path* | *Container path* | *Purpose*
+| Your git repository (e.g. `~/…/workspaces/main/IDEasy`) | `/projects/sandbox/workspaces/main/<repo>` |
+The working directory for coding tasks (read-write, so commits/PRs operate on your
+real repository).
+| (nothing - built into the image) | `/projects` (`$IDE_ROOT`) |
+The provisioned IDEasy project. Its `conf/`, `software/` and `_ide/` are
+**container-local** and discarded on exit - the host IDEasy installation is
+never touched.
+| Optional `--ca-cert <file>` | `/ca/certs/ca-bundle.crt` |
+Corporate CA bundle, exported as `NODE_EXTRA_CA_CERTS` for trust.
+|======================
+
+The agent is started with its working directory set to the mounted repository,
+inside the activated IDEasy environment.
+
+Because only the repository is bind-mounted and the IDEasy runtime is
+container-local, running an `ide install` or other tooling inside the sandbox
+**does not affect the host** IDEasy installation.
+
+== Prerequisites
+
+* A running container engine. IDEasy recommends https://rancherdesktop.io/[Rancher
+  Desktop] (see link:docker-desktop-alternative.adoc[Docker Desktop
+  alternative]); https://podman.io/[Podman] is also supported.
+* https://git-scm.com/[Git] with a configured `user.name` and `user.email`
+  (used to pass your identity into the container).
+* A checkout of the repository you want to work on.
+
+== Quick start
+
+Run the launcher from inside the repository you want to work on:
+
+[source,bash]
+----
+bash docker-sandbox/docker-sandbox.sh
+----
+
+This starts *Claude Code* (the default agent) inside the container, with its
+working directory set to your repository. On first run the image is built (this
+provisions IDEasy + Claude Code and takes a few minutes); subsequent runs are
+fast.
+
+[TIP]
+====
+You can verify the setup without a running container engine. `--check` validates
+the host and `--dry-run` prints the exact `docker run` command. Neither builds
+the image nor starts a container:
+
+[source,bash]
+----
+bash docker-sandbox/docker-sandbox.sh --check
+bash docker-sandbox/docker-sandbox.sh --dry-run -- -p "fix the failing test"
+----
+====
+
+== Options
+
+The launcher supports the following options (see
+`bash docker-sandbox/docker-sandbox.sh --help`):
+
+[cols="30%,70%",options="header",grid="cols"]
+|======================
+| *Option* | *Description*
+| `--repo <path>` | The git repository to mount (default: auto-detected from the
+current directory via `git rev-parse --show-toplevel`).
+| `--image <name>` | Image name (default: `ideasy-sandbox`).
+| `--agent <name>` | The agent commandlet to run (default: `claude`).
+| `--pull` | Rebuild the image before running.
+| `--check` | Validate the host and exit (no build, no run).
+| `--dry-run` | Print the exact `docker run` command and exit (no run).
+| `--ca-cert <file>` | CA bundle to trust inside the container (`NODE_EXTRA_CA_CERTS`).
+| `--` | Forward everything after `--` to the agent.
+|======================
+
+Example - run a single prompt non-interactively:
+
+[source,bash]
+----
+bash docker-sandbox/docker-sandbox.sh -- -p "run the failing test and fix it"
+----
+
+== Provisioning more tools
+
+By default the image provisions `node` and `claude`. For projects that need
+additional IDEasy tools (e.g. a JVM stack), build the image with the tools you
+need (comma-separated, passed as `EXTRA_TOOLS`):
+
+[source,bash]
+----
+docker build -t ideasy-sandbox --build-arg EXTRA_TOOLS="java,mvn" docker-sandbox/
+----
+
+You can also point the sandbox at your own settings fork to layer in
+project-specific tools and variables (passed as `IDE_SETTINGS_REPO`):
+
+[source,bash]
+----
+docker build -t ideasy-sandbox \
+  --build-arg IDE_SETTINGS_REPO="https://github.com/you/ide-settings.git" \
+  docker-sandbox/
+----
+
+For reproducible builds pin the IDEasy release with `IDEASY_VERSION` (see the
+`ARG` declarations at the top of the `Dockerfile`).
+
+== Git identity and security
+
+* **Your Git identity is passed into the container** via
+  `GIT_AUTHOR_NAME`, `GIT_AUTHOR_EMAIL`, `GIT_COMMITTER_NAME` and
+  `GIT_COMMITTER_EMAIL` (read from your host `git config`), so commits created
+  inside the sandbox use your local Git author and committer information.
+* **The host SSH keys and SSH agent are NOT mounted into the container.**
+  Mounting SSH keys would expose broad SSH access rights to the sandbox.
+
+.Pushing and opening PRs
+****
+Because no credentials are mounted, **pushing branches or opening pull requests
+from inside the container is an explicit, opt-in concern** you control. Typical
+options, all of which keep secrets out of the shared host environment:
+
+* Pass a scoped *GitHub personal access token* into the container (e.g. as an
+  `ANTHROPIC`-unrelated environment variable or via the agent's own config) and
+  have the agent push over `https` with that token.
+* Use a CI/agent-provided token (e.g. `gh` authentication) scoped to the single
+  repository.
+
+Choose whichever fits your project. The default behavior is *no* network
+credential is available - the agent can edit and commit locally, but not push,
+until you explicitly provide a scoped credential.
+****
+
+== Troubleshooting and limitations
+
+* **No container engine / engine stopped:** start your container engine (e.g.
+  Rancher Desktop). `--check` and `--dry-run` still work without a running daemon.
+* **Windows:** run from WSL (a Docker-compatible Linux container environment);
+  see the *Testing Linux on Windows* section of the contributing documentation.
+* **First run is slow:** the initial build provisions IDEasy + the agent. Use
+  `--pull` only when you intentionally want to rebuild.
+* **`claude` cannot authenticate:** provide the agent's credentials inside the
+  container (see the Pi.dev model or your provider's documentation); do not rely
+  on ambient host secrets, which are not present in the container.
+* **Cleanup:** the container is started with `--rm`, so the container-local
+  IDEasy runtime is discarded on exit. Only your bind-mounted repository (and any
+  commits/pushes you performed) remain on the host.
