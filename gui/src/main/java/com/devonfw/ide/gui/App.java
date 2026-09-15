@@ -68,7 +68,7 @@ public class App extends Application {
 
     this.tabFactory = new TabFactory(guiStateManager, nlsService, commandletService, consoleController);
 
-    final MainWindowViewModel mainWindowViewModel = new MainWindowViewModel(guiStateManager, guiStateManager.getProjectManager(), this.nlsService);
+    final MainWindowViewModel mainWindowViewModel = new MainWindowViewModel(guiStateManager, this.nlsService);
     final MainWindowView mainWindow = new MainWindowView(mainWindowViewModel, guiStateManager, this.nlsService, consoleController, tabFactory);
 
     //this.nlsService.addLocaleChangeListener(this::reloadMainView);

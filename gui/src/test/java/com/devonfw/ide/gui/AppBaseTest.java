@@ -81,7 +81,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
     CommandletService commandletService = new CommandletService(guiStateManager, consoleController);
     TabFactory tabFactory = new TabFactory(guiStateManager, nlsService, commandletService, consoleController);
 
-    this.viewModel = new MainWindowViewModel(guiStateManager, guiStateManager.getProjectManager(), nlsService);
+    this.viewModel = new MainWindowViewModel(guiStateManager, nlsService);
     MainWindowView mainWindow = new MainWindowView(this.viewModel, guiStateManager, nlsService, consoleController, tabFactory);
     stage.setScene(new Scene(mainWindow, SCENE_WIDTH, SCENE_HEIGHT));
     stage.requestFocus(); //sometimes needed for headless setup to work

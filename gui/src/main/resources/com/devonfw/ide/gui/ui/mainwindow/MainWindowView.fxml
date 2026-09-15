@@ -1,16 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.devonfw.ide.gui.ui.controls.mainwindow.NavigationPanelControl?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
 <fx:root prefHeight="-Infinity" prefWidth="-Infinity" type="BorderPane" xmlns="http://javafx.com/javafx/25.0.0" xmlns:fx="http://javafx.com/fxml/1">
-  <left>
-    <NavigationPanelControl fx:id="navigationPanelControl"/>
-  </left>
-
   <center>
     <BorderPane>
       <center>

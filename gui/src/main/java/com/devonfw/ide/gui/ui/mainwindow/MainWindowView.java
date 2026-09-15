@@ -22,7 +22,8 @@ import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.factory.TabFactory;
 import com.devonfw.ide.gui.service.NlsService;
 import com.devonfw.ide.gui.ui.controls.console.ConsoleController;
-import com.devonfw.ide.gui.ui.controls.mainwindow.NavigationPanelControl;
+import com.devonfw.ide.gui.ui.controls.mainwindow.NavigationPanelView;
+import com.devonfw.ide.gui.ui.controls.mainwindow.NavigationPanelViewModel;
 import com.devonfw.ide.gui.ui.progress.taskwindow.TaskOverviewWindow;
 
 /**
@@ -49,9 +50,6 @@ public class MainWindowView extends BorderPane {
   private static final double CONSOLE_COLLAPSED_THRESHOLD = 0.9;
 
   private static final double PROGRESSBAR_VISIBLE_WIDTH = 150.0;
-
-  @FXML
-  private NavigationPanelControl navigationPanelControl;
 
   @FXML
   private TabPane tabPane;
@@ -86,7 +84,7 @@ public class MainWindowView extends BorderPane {
   private boolean propagatingDividerPosition;
 
   /**
-   * Builds the main window, loads its FXML, and binds the navigation panel, console and status bar to the given {@link MainWindowViewModel}.
+   * Builds the main window, loads its FXML, constructs the navigation panel, and binds the console and status bar to the given {@link MainWindowViewModel}.
    *
    * @param viewModel the view model holding the selection and status state.
    * @param guiStateManager the app-wide selection and context holder.
@@ -117,6 +115,9 @@ public class MainWindowView extends BorderPane {
       throw new RuntimeException(e);
     }
 
+    final NavigationPanelViewModel navigationPanelViewModel = new NavigationPanelViewModel(this.guiStateManager, this.nlsService);
+    setLeft(new NavigationPanelView(navigationPanelViewModel, this.nlsService));
+
     this.tabFactory.attach(this.tabPane);
     this.tabFactory.openLauncherTab();
     // Show the console before launching an IDE (restores the previous behavior).
@@ -126,7 +127,6 @@ public class MainWindowView extends BorderPane {
 
     bindConsole();
     bindStatusBar();
-    this.navigationPanelControl.bind(this.viewModel);
   }
 
   private void bindConsole() {

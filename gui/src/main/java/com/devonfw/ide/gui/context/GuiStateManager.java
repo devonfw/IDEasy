@@ -25,6 +25,8 @@ public class GuiStateManager {
 
   private static final Logger LOG = LoggerFactory.getLogger(GuiStateManager.class);
 
+  public static final String DEFAULT_WORKSPACE = "main";
+
   private final Path ideRootDir;
   private final ProjectManager projectManager;
 
