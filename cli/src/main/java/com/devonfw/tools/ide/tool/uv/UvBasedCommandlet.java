@@ -70,7 +70,7 @@ public abstract class UvBasedCommandlet extends PackageManagerBasedLocalToolComm
   }
 
   @Override
-  protected VersionIdentifier computeInstalledVersion() {
+  protected VersionIdentifier computeInstalledPackageVersion() {
 
     if (!Files.isDirectory(this.context.getSoftwarePath().resolve("uv"))) {
       LOG.trace("Since uv is not installed, the tool {} cannot be installed either.", this.tool);

@@ -33,7 +33,7 @@ public class Npm extends NpmBasedCommandlet {
   }
 
   @Override
-  protected VersionIdentifier computeInstalledVersion() {
+  protected VersionIdentifier computeInstalledPackageVersion() {
     if (hasNodeBinary("npm")) {
       return VersionIdentifier.of(this.context.newProcess().runAndGetSingleOutput("npm", "--version"));
     }

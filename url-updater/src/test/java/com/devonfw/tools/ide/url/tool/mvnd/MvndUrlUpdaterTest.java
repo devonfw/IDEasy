@@ -45,7 +45,7 @@ class MvndUrlUpdaterTest extends AbstractUrlUpdaterTest {
     MvndUrlUpdater updater = new MvndUrlUpdater(wmRuntimeInfo.getHttpBaseUrl() + "/maven/mvnd/", wmRuntimeInfo.getHttpBaseUrl());
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     assertUrlVersionOsX64MacArm(tempDir.resolve("mvnd").resolve("mvnd").resolve("1.0.5"));
@@ -71,7 +71,7 @@ class MvndUrlUpdaterTest extends AbstractUrlUpdaterTest {
     MvndUrlUpdater updater = new MvndUrlUpdater(wmRuntimeInfo.getHttpBaseUrl() + "/maven/mvnd/", wmRuntimeInfo.getHttpBaseUrl());
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     Path mvndOldVersionPath = tempDir.resolve("mvnd").resolve("mvnd").resolve("1.0.0");
@@ -98,7 +98,7 @@ class MvndUrlUpdaterTest extends AbstractUrlUpdaterTest {
     MvndUrlUpdater updater = new MvndUrlUpdater(wmRuntimeInfo.getHttpBaseUrl() + "/maven/mvnd/", wmRuntimeInfo.getHttpBaseUrl());
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     Path mvndRcVersionPath = tempDir.resolve("mvnd").resolve("mvnd").resolve("2.0.0-rc-3");

@@ -92,7 +92,7 @@ public abstract class PipBasedCommandlet extends PackageManagerBasedLocalToolCom
   }
 
   @Override
-  protected VersionIdentifier computeInstalledVersion() {
+  protected VersionIdentifier computeInstalledPackageVersion() {
 
     Path toolBinPath = getToolBinPath();
     if ((toolBinPath == null) || !Files.isDirectory(toolBinPath)) {

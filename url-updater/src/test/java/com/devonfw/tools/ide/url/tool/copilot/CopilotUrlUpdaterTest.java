@@ -42,7 +42,7 @@ class CopilotUrlUpdaterTest extends AbstractUrlUpdaterTest {
     CopilotUrlUpdater updater = new CopilotUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     Path copilotDir = tempDir.resolve("copilot").resolve("copilot");

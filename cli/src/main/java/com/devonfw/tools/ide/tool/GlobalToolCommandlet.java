@@ -4,6 +4,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -19,6 +20,7 @@ import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -29,6 +31,10 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 public abstract class GlobalToolCommandlet extends ToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(GlobalToolCommandlet.class);
+
+  private static final String MAC_APPLICATIONS_FOLDER_NAME = "Applications";
+
+  private static final Path MAC_SYSTEM_APPLICATIONS_DIR = Path.of("/" + MAC_APPLICATIONS_FOLDER_NAME);
 
   /**
    * The constructor.
@@ -47,12 +53,13 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
    *
    * @param silent {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
    * @param commandStrings commandStrings The package manager command strings to execute.
+   * @param action the {@link NativePackageAction} that is performed - only used for logging.
    * @return {@code true} if installation or uninstallation succeeds with any of the package manager commands, {@code false} otherwise.
    */
-  protected boolean runWithPackageManager(boolean silent, String... commandStrings) {
+  protected boolean runWithPackageManager(boolean silent, NativePackageAction action, String... commandStrings) {
 
     List<PackageManagerCommand> pmCommands = Arrays.stream(commandStrings).map(PackageManagerCommand::of).toList();
-    return runWithPackageManager(silent, pmCommands);
+    return runWithPackageManager(silent, pmCommands, action);
   }
 
   /**
@@ -60,19 +67,19 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
    *
    * @param silent {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
    * @param pmCommands A list of {@link PackageManagerCommand} to be used for installation or uninstallation.
+   * @param action the {@link NativePackageAction} that is performed - only used for logging.
    * @return {@code true} if installation or uninstallation succeeds with any of the package manager commands, {@code false} otherwise.
    */
-  protected boolean runWithPackageManager(boolean silent, List<PackageManagerCommand> pmCommands) {
+  protected boolean runWithPackageManager(boolean silent, List<PackageManagerCommand> pmCommands, NativePackageAction action) {
 
     for (PackageManagerCommand pmCommand : pmCommands) {
       NativePackageManager packageManager = pmCommand.packageManager();
-      Path packageManagerPath = this.context.getPath().findBinary(Path.of(packageManager.getBinaryName()));
-      if (packageManagerPath == null || !Files.exists(packageManagerPath)) {
-        LOG.debug("{} is not installed", packageManager.toString());
+      if (!isPackageManagerAvailable(packageManager)) {
+        LOG.debug("{} is not installed", packageManager);
         continue; // Skip to the next package manager command
       }
 
-      if (executePackageManagerCommand(pmCommand, silent)) {
+      if (executePackageManagerCommand(pmCommand, silent, action)) {
         return true; // Success
       }
     }
@@ -82,11 +89,13 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   private void logPackageManagerCommands(PackageManagerCommand pmCommand) {
 
     IdeLogLevel level = IdeLogLevel.INTERACTION;
-    level.log(LOG, "We need to run the following privileged command(s):");
+    level.log(LOG, "We need to run the following command(s):");
     for (String command : pmCommand.commands()) {
       level.log(LOG, command);
     }
-    level.log(LOG, "This will require root permissions!");
+    if (pmCommand.packageManager().isNeedSudo()) {
+      level.log(LOG, "This will require root permissions!");
+    }
   }
 
   /**
@@ -94,9 +103,10 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
    *
    * @param pmCommand The {@link PackageManagerCommand} containing the commands to execute.
    * @param silent {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
+   * @param action the {@link NativePackageAction} tht is performed - only used for logging.
    * @return {@code true} if the package manager commands execute successfully, {@code false} otherwise.
    */
-  private boolean executePackageManagerCommand(PackageManagerCommand pmCommand, boolean silent) {
+  private boolean executePackageManagerCommand(PackageManagerCommand pmCommand, boolean silent, NativePackageAction action) {
 
     String bashPath = this.context.findBashRequired().toString();
     logPackageManagerCommands(pmCommand);
@@ -111,7 +121,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     }
 
     if (!silent) {
-      IdeLogLevel.SUCCESS.log(LOG, "Successfully installed {}", this.tool);
+      IdeLogLevel.SUCCESS.log(LOG, "Successfully {} {}", action.getAction(), this.tool);
     }
     return true;
   }
@@ -130,10 +140,10 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     VersionIdentifier resolvedVersion = request.getRequested().getResolvedVersion();
     if (this.context.getSystemInfo().isLinux()) {
       // on Linux global tools are typically installed via the package manager of the OS
-      // if a global tool implements this method to return at least one PackageManagerCommand, then we install this way.
-      List<PackageManagerCommand> commands = getInstallPackageManagerCommands();
+      // if a global tool implements getNativePackages() to returns at least one NativePackage, then we will install this way.
+      List<PackageManagerCommand> commands = getInstallPackageManagerCommands(resolvedVersion);
       if (!commands.isEmpty()) {
-        boolean newInstallation = runWithPackageManager(request.isSilent(), commands);
+        boolean newInstallation = runWithPackageManager(request.isSilent(), commands, NativePackageAction.INSTALL);
         Path rootDir = getInstallationPath(getConfiguredEdition(), resolvedVersion);
         return createToolInstallation(rootDir, resolvedVersion, newInstallation, request.getProcessContext(), request.isAdditionalInstallation());
       }
@@ -182,11 +192,71 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   }
 
   /**
+   * @return the {@link List} of {@link NativePackage}s this tool consists of on Linux - one per supported {@link NativePackageManager}. Override this method
+   *     instead of {@link #getInstallPackageManagerCommands} so that the commands for installation and uninstallation can both be derived from this
+   *     declaration. If empty, no package manager installation will be triggered on Linux.
+   */
+  protected List<NativePackage> getNativePackages() {
+    return List.of();
+  }
+
+  /**
    * @return the {@link List} of {@link PackageManagerCommand}s to use on Linux to install this tool. If empty, no package manager installation will be
    *     triggered on Linux.
    */
-  protected List<PackageManagerCommand> getInstallPackageManagerCommands() {
-    return List.of();
+  protected List<PackageManagerCommand> getInstallPackageManagerCommands(VersionIdentifier resolvedVersion) {
+    String version = (resolvedVersion == null) ? null : resolvedVersion.toString();
+    return getNativePackages().stream().map(nativePackage -> nativePackage.install(version)).toList();
+  }
+
+  /**
+   * @return the {@link List} of {@link PackageManagerCommand}s to use on Linux to uninstall this tool. If empty, no package manager uninstallation will be
+   *     triggered on Linux.
+   */
+  protected List<PackageManagerCommand> getUninstallPackageManagerCommands() {
+    return getNativePackages().stream().map(NativePackage::uninstall).toList();
+  }
+
+  /**
+   * @param packageManager the {@link NativePackageManager} to check.
+   * @return {@code true} if the given {@link NativePackageManager} is available on the current system, {@code false} otherwise.
+   */
+  protected boolean isPackageManagerAvailable(NativePackageManager packageManager) {
+    Path binary = Path.of(packageManager.getBinaryName());
+    Path binaryPath = this.context.getPath().findBinary(binary);
+    return (binaryPath != binary) && Files.exists(binaryPath);
+  }
+
+  /**
+   * @param nativePackage the {@link NativePackage} to query.
+   * @return the raw version reported by the {@link NativePackageManager} or {@code null} if the package is not installed.
+   */
+  protected String queryNativePackageVersion(NativePackage nativePackage) {
+    List<String> command = nativePackage.getVersionQueryCommand();
+    String[] args = command.subList(1, command.size()).toArray(String[]::new);
+    ProcessResult result = this.context.newProcess().errorHandling(ProcessErrorHandling.NONE).executable(command.getFirst()).addArgs(args)
+        .run(ProcessMode.DEFAULT_CAPTURE);
+    if (!result.isSuccessful()) {
+      return null;
+    }
+    return nativePackage.getPackageManager().parseVersionQueryOutput(result.getSingleOutput(IdeLogLevel.DEBUG));
+  }
+
+  /**
+   * @return the {@link VersionIdentifier} of this tool as reported by the OS native package manager it was installed with or {@code null} if this tool is not
+   *     installed via any of its {@link #getNativePackages() native packages}.
+   */
+  protected VersionIdentifier getNativePackageVersion() {
+    for (NativePackage nativePackage : getNativePackages()) {
+      if (!isPackageManagerAvailable(nativePackage.getPackageManager())) {
+        continue;
+      }
+      String version = queryNativePackageVersion(nativePackage);
+      if ((version != null) && !version.isBlank()) {
+        return VersionIdentifier.of(version.trim());
+      }
+    }
+    return null;
   }
 
   /**
@@ -197,21 +267,31 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     return this.tool;
   }
 
-  @Override
-  public VersionIdentifier getInstalledVersion() {
+  /**
+   * @return a {@link Map} that maps edition names to the app name to look for in the Windows registry. Default
+   *     returns a single entry with {@code tool -> tool}. Override for tools with multiple editions on Windows.
+   */
+  public Map<String, String> getWindowsRegistryAppNames() {
 
-    if (this.context.getSystemInfo().isWindows()) {
-      WindowsAppInstallation installation = WindowsHelper.get(this.context).getAppInstallationFromRegistry(getWindowsRegistryAppName());
-      if (installation != null) {
-        return VersionIdentifier.of(installation.version());
-      }
-    }
-    return null;
+    return Map.of(this.tool, getWindowsRegistryAppName());
   }
 
   @Override
-  public String getInstalledEdition() {
-    //TODO: handle "get-edition <globaltool>"
+  protected EditionAndVersion computeInstalledEditionAndVersion() {
+
+    if (this.context.getSystemInfo().isLinux()) {
+      // on Linux global tools are typically installed via the package manager of the OS
+      VersionIdentifier version = getNativePackageVersion();
+      return (version != null) ? new EditionAndVersion(this.tool, version) : null;
+    }
+    if (this.context.getSystemInfo().isWindows()) {
+      for (Map.Entry<String, String> entry : getWindowsRegistryAppNames().entrySet()) {
+        WindowsAppInstallation installation = WindowsHelper.get(this.context).getAppInstallationFromRegistry(entry.getValue());
+        if (installation != null) {
+          return new EditionAndVersion(entry.getKey(), VersionIdentifier.of(installation.version()));
+        }
+      }
+    }
     return null;
   }
 
@@ -232,7 +312,80 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
 
   @Override
   public void uninstall() {
-    //TODO: handle "uninstall <globaltool>"
-    LOG.error("Couldn't uninstall " + this.getName());
+    if (this.context.getSystemInfo().isWindows()) {
+      WindowsHelper.get(this.context).uninstallApplication(getWindowsRegistryAppName());
+    } else if (this.context.getSystemInfo().isLinux()) {
+      runWithPackageManager(false, getUninstallPackageManagerCommands(), NativePackageAction.UNINSTALL);
+    } else if (this.context.getSystemInfo().isMac()) {
+      uninstallMac();
+    } else {
+      LOG.error("Couldn't uninstall {} on this OS. Please uninstall manually.", this.getName());
+    }
+  }
+
+  /**
+   * Uninstalls this tool on macOS. Unlike Linux, macOS has no single standardized package manager, so we try the best-effort options in order and finally
+   * fall back to giving the user actionable guidance if nothing could be done automatically.
+   */
+  private void uninstallMac() {
+    if (runWithPackageManager(false, getUninstallPackageManagerCommands(), NativePackageAction.UNINSTALL)) {
+      return;
+    }
+    Path appBundle = findMacApplicationBundle();
+    if ((appBundle != null) && deleteMacApplicationBundle(appBundle)) {
+      IdeLogLevel.SUCCESS.log(LOG, "Successfully uninstalled {} by removing {}", this.tool, appBundle);
+      return;
+    }
+    String brewHint = "";
+    if (isPackageManagerAvailable(NativePackageManager.BREW_CASK)) {
+      brewHint = " or via Homebrew (e.g. 'brew uninstall " + this.tool + "' or 'brew uninstall --cask " + this.tool + "')";
+    }
+    LOG.error("Couldn't automatically uninstall {} on macOS. Please uninstall it manually, e.g. by moving it from the Applications folder to the Trash{}.",
+        this.getName(), brewHint);
+  }
+
+  /**
+   * @param appBundle the *.app bundle to delete.
+   * @return {@code true} if {@code appBundle} was successfully deleted, {@code false} if deletion failed - e.g. because since macOS Monterey the
+   *     Applications folder is protected and a regular process may not be allowed to delete from it. Callers must not assume this always succeeds and
+   *     should fall back to manual-uninstall guidance if it returns {@code false} rather than letting the exception propagate.
+   */
+  private boolean deleteMacApplicationBundle(Path appBundle) {
+    try {
+      this.context.getFileAccess().delete(appBundle);
+      return true;
+    } catch (IllegalStateException e) {
+      LOG.warn("Could not automatically remove {}: {}", appBundle, e.getMessage(), e);
+      return false;
+    }
+  }
+
+  /**
+   * @return the {@link Path} to the *.app bundle of this tool as found in one of the well-known macOS application folders, or {@code null} if
+   *     {@link #getMacApplicationName() unknown} or not found there.
+   */
+  private Path findMacApplicationBundle() {
+    String appName = getMacApplicationName();
+    if (appName == null) {
+      return null;
+    }
+    String bundleFileName = appName + ".app";
+    List<Path> applicationsDirs = List.of(MAC_SYSTEM_APPLICATIONS_DIR, this.context.getUserHome().resolve(MAC_APPLICATIONS_FOLDER_NAME));
+    for (Path applicationsDir : applicationsDirs) {
+      Path candidate = applicationsDir.resolve(bundleFileName);
+      if (Files.isDirectory(candidate)) {
+        return candidate;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * @return the name (without the ".app" suffix) of this tool's application bundle as it appears in the macOS Applications folder, or {@code null} if
+   *     unknown so that {@link #uninstall() uninstall} cannot try to automatically remove it and instead gives the user manual guidance. Override this in
+   *     subclasses that know their application bundle name (which may differ from {@link #getName() the tool name}, e.g. "Docker" for the tool "docker").
+   */
+  public String getMacApplicationName() {
+    return null;
   }
 }

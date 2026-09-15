@@ -1,0 +1,22 @@
+:toc:
+toc::[]
+
+= urls
+
+The `urls` directory is located in:
+
+----
+$IDE_ROOT/_ide/urls
+----
+
+It contains URL metadata used by IDEasy to resolve download locations for supported tools.
+IDEasy uses this data to find versions, editions, platform-specific archives, and download URLs for tools such as Java, Maven, Node.js, IntelliJ, VS Code, and others.
+
+Technically this is just a clone of the git repository https://github.com/devonfw/ide-urls.git[ide-urls].
+We maintain that repository by nightly workflows that automatically add new tool releases.
+The content of this directory is managed by IDEasy and when accessing the data, IDEasy will automatically update this repository (`git pull`).
+Do not make manual changes to this directory.
+IDEasy will revert your changes automatically and your change gets lost.
+
+In case you really want to test a local change here, you would need to create a local feature branch first and commit your changes before calling `ide` commands.
+However, this is for development and not indented for end-user scenarios.

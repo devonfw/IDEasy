@@ -33,8 +33,7 @@ public class MvnRepositoryMock extends MvnRepository {
   private final WireMockRuntimeInfo wmRuntimeInfo;
 
   /**
-   * Maps artifact download path to its pre-computed SHA-256 checksum.
-   * Populated when the mock archive is compressed, queried during verification.
+   * Maps artifact download path to its pre-computed SHA-256 checksum. Populated when the mock archive is compressed, queried during verification.
    */
   private final Map<String, String> checksumByPath = new HashMap<>();
 
@@ -66,7 +65,8 @@ public class MvnRepositoryMock extends MvnRepository {
     String path = artifact.getDownloadUrl();
     path = path.replace(MvnRepositoryMock.MAVEN_CENTRAL, "");
     String url = this.wmRuntimeInfo.getHttpBaseUrl() + path;
-    Path archiveFolder = this.context.getIdeRoot().resolve("repository").resolve("mvn").resolve(artifact.getGroupId() + "/" + artifact.getArtifactId());
+    Path archiveFolder = this.context.getIdeRoot().resolve(IdeContext.FOLDER_REPOSITORY).resolve("mvn")
+        .resolve(artifact.getGroupId() + "/" + artifact.getArtifactId());
     try (ByteArrayOutputStream baos = new ByteArrayOutputStream(1024)) {
       this.context.getFileAccess().compress(archiveFolder, baos, artifact.getFilename());
       byte[] body = baos.toByteArray();
@@ -107,8 +107,15 @@ public class MvnRepositoryMock extends MvnRepository {
     @Override
     public Iterator<UrlGenericChecksum> iterator() {
       UrlGenericChecksum entry = new UrlGenericChecksum() {
-        @Override public String getChecksum() { return sha256; }
-        @Override public String getHashAlgorithm() { return "SHA-256"; }
+        @Override
+        public String getChecksum() {
+          return sha256;
+        }
+
+        @Override
+        public String getHashAlgorithm() {
+          return "SHA-256";
+        }
       };
       return Collections.singletonList(entry).iterator();
     }
@@ -128,7 +135,7 @@ public class MvnRepositoryMock extends MvnRepository {
     if (parent == null) {
       return;
     }
-    Path mvnRoot = parent.resolve("repository").resolve("mvn");
+    Path mvnRoot = parent.resolve(IdeContext.FOLDER_REPOSITORY).resolve("mvn");
     if (!Files.exists(mvnRoot)) {
       return;
     }

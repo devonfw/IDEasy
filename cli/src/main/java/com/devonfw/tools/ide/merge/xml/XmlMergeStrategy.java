@@ -5,6 +5,7 @@ import java.util.function.BiFunction;
 
 import org.w3c.dom.Attr;
 import org.w3c.dom.DOMException;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -99,6 +100,7 @@ public enum XmlMergeStrategy {
   protected void combineChildNodes(Element templateElement, Element resultElement, ElementMatcher elementMatcher) {
 
     NodeList templateChildNodes = templateElement.getChildNodes();
+    int resultChildIndex = 0;
     for (int i = 0; i < templateChildNodes.getLength(); i++) {
       Node templateChild = templateChildNodes.item(i);
       if (templateChild.getNodeType() == Node.ELEMENT_NODE) {
@@ -116,36 +118,69 @@ public enum XmlMergeStrategy {
         }
       } else if (XmlMergeSupport.isTextual(templateChild)) {
         if (!templateChild.getTextContent().isBlank()) {
-          replaceTextNode(resultElement, templateChild);
+          resultChildIndex = replaceTextNode(resultElement, templateChild, resultChildIndex);
         }
       }
     }
   }
 
   /**
-   * Replaces the text node in the target element with the text from the update element, otherwise appends it.
+   * Replaces the next textual node of the result element with the text from the given template node, otherwise appends it. The search starts at the given
+   * {@code resultChildIndex} so that an element with multiple textual children (mixed content) is merged node by node instead of collapsing all template
+   * texts into the very first textual node of the result.
    *
    * @param resultElement the element to be updated
-   * @param templateChild the new text node
+   * @param templateChild the new textual node ({@link Node#TEXT_NODE text} or {@link Node#CDATA_SECTION_NODE CDATA section})
+   * @param resultChildIndex the index of the {@link Element#getChildNodes() child node} of {@code resultElement} to start searching at
+   * @return the index of the {@link Element#getChildNodes() child node} of {@code resultElement} to continue searching at for the next textual node
    */
-  protected void replaceTextNode(Element resultElement, Node templateChild) {
+  protected int replaceTextNode(Element resultElement, Node templateChild, int resultChildIndex) {
 
     try {
-      NodeList targetChildNodes = resultElement.getChildNodes();
-      for (int i = 0; i < targetChildNodes.getLength(); i++) {
-        Node targetChild = targetChildNodes.item(i);
-        if (XmlMergeSupport.isTextual(targetChild)) {
-          if (!targetChild.getTextContent().isBlank()) {
-            targetChild.setTextContent(templateChild.getTextContent().trim());
-            return;
+      NodeList resultChildNodes = resultElement.getChildNodes();
+      for (int i = resultChildIndex; i < resultChildNodes.getLength(); i++) {
+        Node resultChild = resultChildNodes.item(i);
+        if (XmlMergeSupport.isTextual(resultChild)) {
+          if (!resultChild.getTextContent().isBlank()) {
+            if (resultChild.getNodeType() == templateChild.getNodeType()) {
+              resultChild.setTextContent(getText(templateChild));
+            } else {
+              // the template determines whether the text is a plain text node or a CDATA section
+              resultElement.replaceChild(createTextualNode(resultElement, templateChild), resultChild);
+            }
+            return i + 1;
           }
         }
       }
-      Node importedNode = resultElement.getOwnerDocument().importNode(templateChild, true);
-      resultElement.appendChild(importedNode);
+      resultElement.appendChild(createTextualNode(resultElement, templateChild));
+      return resultElement.getChildNodes().getLength();
     } catch (DOMException e) {
       throw new IllegalStateException("Failed to replace text node for element " + XmlMergeSupport.getXPath(resultElement), e);
     }
+  }
+
+  /**
+   * @param templateChild the textual {@link Node} from the template.
+   * @return the {@link Node#getTextContent() text content} to merge into the result document.
+   */
+  private static String getText(Node templateChild) {
+
+    return templateChild.getTextContent().trim();
+  }
+
+  /**
+   * @param resultElement the result {@link Element} owning the {@link Document} to create the {@link Node} for.
+   * @param templateChild the textual {@link Node} from the template determining the {@link Node#getNodeType() node type} and text.
+   * @return a new textual {@link Node} of the same {@link Node#getNodeType() type} as the given {@code templateChild}.
+   */
+  private static Node createTextualNode(Element resultElement, Node templateChild) {
+
+    Document document = resultElement.getOwnerDocument();
+    String text = getText(templateChild);
+    if (templateChild.getNodeType() == Node.CDATA_SECTION_NODE) {
+      return document.createCDATASection(text);
+    }
+    return document.createTextNode(text);
   }
 
   @Override

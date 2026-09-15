@@ -6,7 +6,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -24,16 +23,11 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
   private final String TOOL = "eclipse";
 
   private final Set<Tag> tags = null;
-  private static IdeTestContext context;
-
-  @BeforeAll
-  static void setUp() {
-
-    context = newContext(PROJECT_BASIC, null, false);
-  }
 
   @Test
   void testGetPluginsMap() {
+
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
 
     final ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags);
 
@@ -61,6 +55,7 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
   void testInstallPluginsWithForce() {
 
     //arrange
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
     context.getStartContext().setForcePlugins(true);
     final ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags);
 
@@ -77,6 +72,7 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
   @Test
   void testParseVersionAndLegacyVersion(@TempDir Path tempDir) throws IOException {
 
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
     Path versionProperties = tempDir.resolve("version.properties");
     Files.writeString(versionProperties, "id=plugin-id\nactive=true\nversion=1.2.3\n");
     ToolPluginDescriptor plugin = ToolPluginDescriptor.of(versionProperties, context, false);
@@ -91,6 +87,7 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
   @Test
   void testMarkerFileContainsVersionSegment() {
 
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
     ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags);
     ToolPluginDescriptor plugin = new ToolPluginDescriptor("plugin-id", "plugin-name", null, "1.2.3+build/4", true, Set.of(), Set.of());
 
@@ -103,8 +100,8 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
   @Test
   void testCreatePluginMarkerFileDeletesOtherVersionMarkers() {
 
-    IdeTestContext localContext = newContext(PROJECT_BASIC, null, false);
-    ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(localContext, TOOL, tags);
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags);
     ToolPluginDescriptor versionA = new ToolPluginDescriptor("plugin-id", "plugin-name", null, "1.0.0", true, Set.of(), Set.of());
     ToolPluginDescriptor versionB = new ToolPluginDescriptor("plugin-id", "plugin-name", null, "2.0.0", true, Set.of(), Set.of());
 
@@ -117,5 +114,48 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
 
     assertThat(markerBPath).exists();
     assertThat(markerAPath).doesNotExist();
+  }
+
+  @Test
+  void testExtraPluginsAreInstalled() {
+
+    IdeTestContext context = newContext(PROJECT_EXTRA_PLUGINS, null, true);
+    context.getStartContext().setForcePlugins(true);
+    ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags);
+
+    pluginBasedCommandlet.installPlugins(pluginBasedCommandlet.getPlugins().getPlugins(), new ProcessContextTestImpl(context));
+
+    // anyedit is configured as inactive but listed in ECLIPSE_EXTRA_PLUGINS - has to be installed
+    assertThat(context).logAtSuccess().hasMessageContaining("Install plugin anyedit (");
+    // spotbugs is configured as active and not listed - has to be installed as before
+    assertThat(context).logAtSuccess().hasMessageContaining("Install plugin spotbugs (");
+    // checkstyle is configured as inactive and not listed - has to stay omitted
+    assertThat(context).log().hasMessageContaining("Omitting installation of inactive plugin checkstyle");
+    assertThat(context).log().hasNoMessageContaining("Install plugin checkstyle");
+  }
+
+  @Test
+  void testExtraPluginsDoNotModifyConfiguredState() {
+
+    IdeTestContext context = newContext(PROJECT_EXTRA_PLUGINS, null, false);
+    ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags);
+
+    ToolPlugins toolPlugins = pluginBasedCommandlet.getPlugins();
+
+    // the loaded configuration must stay untouched - activation happens only while installing
+    assertThat(toolPlugins.getByName("anyedit").active()).isFalse();
+    assertThat(toolPlugins.getByName("checkstyle").active()).isFalse();
+    assertThat(toolPlugins.getByName("spotbugs").active()).isTrue();
+  }
+
+  @Test
+  void testUndefinedExtraPluginIsIgnored() {
+
+    IdeTestContext context = newContext(PROJECT_EXTRA_PLUGINS, null, false);
+    ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags);
+
+    pluginBasedCommandlet.getExtraPlugins(pluginBasedCommandlet.getPlugins().getPlugins());
+
+    assertThat(context).logAtInfo().hasMessageContaining("doesnotexist");
   }
 }

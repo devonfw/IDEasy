@@ -1,0 +1,39 @@
+name: Auto Assign PR Author
+
+on:
+  pull_request_target:
+    types: [opened]
+
+env:
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  assign-author:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Assign PR author if no assignee exists
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+
+            // Do not overwrite existing assignees
+            if (pr.assignees && pr.assignees.length > 0) {
+              console.log('PR already has assignees. Skipping.');
+              return;
+            }
+
+            await github.rest.issues.addAssignees({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              assignees: [pr.user.login]
+            });
+
+            console.log(`Assigned ${pr.user.login} to PR #${pr.number}`);

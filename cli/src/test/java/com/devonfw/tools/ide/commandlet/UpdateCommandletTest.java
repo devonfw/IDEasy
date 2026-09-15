@@ -118,7 +118,7 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext(PROJECT_UPDATE);
     Path javaRepository = context.getToolRepositoryPath().resolve("default").resolve("java");
     context.getFileAccess().delete(javaRepository);
-    Path javaDownload = context.getIdeRoot().resolve("repository").resolve("java");
+    Path javaDownload = context.getIdeRoot().resolve(IdeContext.FOLDER_REPOSITORY).resolve("java");
     context.getFileAccess().delete(javaDownload);
     UpdateCommandlet update = context.getCommandletManager().getCommandlet(UpdateCommandlet.class);
 

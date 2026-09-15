@@ -17,6 +17,7 @@ workingsets=Set1,Set2
 workspace=example
 git_url=http://github.com/someorg/someproject
 git_branch=develop
+git_remote=upstream:http://github.com/someorg/someproject
 build_path=.
 build_cmd=mvn -DskipTests=true -Darchetype.test.skip=true clean install
 link=symlink,folder/link=subfolder-in-repo
@@ -42,6 +43,7 @@ Default is `main`.
 |`git_url`|e.g. `http://github.com/someorg/someproject`|(required) Git URL to use for cloning the project.
 |`git_branch`|e.g. `develop`|(optional) Git branch to checkout.
 Git default branch is default.
+|`git_remote`|e.g. `upstream:http://github.com/someorg/someproject`|(optional) Comma separated list of `name:url` entries to add as additional git remotes after cloning. This allows you to configure multiple remotes (e.g., upstream and fork) for easier collaboration.
 |`build_path`|e.g. `.` (default)|(optional) The directory inside `path` where to trigger an initial build after clone or pull (if `build_cmd` is set).
 For a regular project use `.` to build top-level project.
 |`build_cmd`

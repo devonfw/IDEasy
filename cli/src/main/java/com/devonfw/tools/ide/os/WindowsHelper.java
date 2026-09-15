@@ -39,6 +39,11 @@ public interface WindowsHelper {
   WindowsAppInstallation getAppInstallationFromRegistry(String appName);
 
   /**
+   * @param appName the application name to search for in the Windows registry.
+   */
+  void uninstallApplication(String appName);
+
+  /**
    * @param context the {@link IdeContext}.
    * @return the instance of {@link WindowsHelper}.
    */
@@ -46,4 +51,11 @@ public interface WindowsHelper {
     // IdeContext API is already too large
     return ((AbstractIdeContext) context).getWindowsHelper();
   }
+
+  /**
+   * Configures or removes IDEasy integration in the PowerShell profiles.
+   *
+   * @param install {@code true} to install the integration, {@code false} to remove it.
+   */
+  void configurePowerShellProfiles(boolean install);
 }
