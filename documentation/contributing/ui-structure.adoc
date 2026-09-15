@@ -5,10 +5,10 @@ It serves as a reference for contributors working on the UI layer.
 
 == Architecture Overview
 
-The IDEasy GUI follows the **Model-View-Controller (MVC)** pattern with a feature-based package organization.
+The IDEasy GUI follows the **Model-View-ViewModel (MVVM)** pattern with a feature-based package organization.
 The architecture emphasizes:
 
-* *Model-View-Controller pattern (MVC)*: separation of concerns into Models, Views, and Controllers
+* *Model-View-ViewModel pattern (MVVM)*: separation of concerns into Models, Views, and ViewModels
 * *Component Reusability*: Reusable components through a shared component library (e.g.: Console component)
 * *UI Reactivity*: via Observer patterns and property bindings
 * *Maintainability*: through localization, programmatic wiring, and comprehensive testing + Scalability via feature-based organization allowing independent development
