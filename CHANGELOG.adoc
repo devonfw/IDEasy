@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/2347[#2347]: GUI test duplicates view-setup code from App instead of reusing it
 * https://github.com/devonfw/IDEasy/issues/2103[#2103]: Integrate Obsidian
 * https://github.com/devonfw/IDEasy/issues/1695[#1695]: Project creation logic extended with health checks and removed `--code` flag.
 * https://github.com/devonfw/IDEasy/issues/2190[#2190]: IDEasy destroys my python installation
