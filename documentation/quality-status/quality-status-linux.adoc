@@ -9,13 +9,13 @@ Automatically generated open issue overview for Linux.
 
 link:quality-status.adoc[Back to overview]
 
-*Total Issues:* 148
+*Total Issues:* 170
 
 * OS-specific: 6
 
-* Multi-OS: 1
+* Multi-OS: 3
 
-* Cross-platform: 141
+* Cross-platform: 161
 
 == Linux Specific Issues
 
@@ -50,11 +50,28 @@ link:quality-status.adoc[Back to overview]
 
 == Multi-OS Issues
 
-=== Linux + macOS (1)
+=== Linux + Windows + macOS (1)
 
 [%header, cols="^1,7"]
 |===
 | Issue | Summary
+2+^| *0-10 days*
+
+| link:https://github.com/devonfw/IDEasy/issues/2464[#2464]
+| Add unit tests for `OperatingSystem`
+
+|===
+
+=== Linux + macOS (2)
+
+[%header, cols="^1,7"]
+|===
+| Issue | Summary
+2+^| *0-10 days*
+
+| link:https://github.com/devonfw/IDEasy/issues/2467[#2467]
+| Obsidian: fix installation on macOS/Linux and duplicate LINUX/X64 artifact in O…
+
 2+^| *90+ days*
 
 | link:https://github.com/devonfw/IDEasy/issues/802[#802]
