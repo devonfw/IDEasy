@@ -136,6 +136,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '25'
+          cache: 'maven'
       - name: Download natives and build project
         uses: actions/download-artifact@v8
         with:
