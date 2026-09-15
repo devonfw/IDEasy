@@ -64,4 +64,15 @@ public class CliException extends RuntimeException {
     return this.exitCode;
   }
 
+  /**
+   * @return {@code true} if this exception has to be re-thrown from a {@link com.devonfw.tools.ide.step.Step Step} even if that {@code Step} was not asked to
+   *     re-throw errors, {@code false} otherwise (default). A regular error only makes the according {@code Step} fail while the overall process continues with
+   *     the next step. However, if a critical guardrail was violated (e.g. no valid settings could be established) continuing makes no sense and the entire
+   *     process has to be aborted.
+   */
+  public boolean isForceRethrowInStep() {
+
+    return false;
+  }
+
 }
