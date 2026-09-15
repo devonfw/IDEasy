@@ -6,7 +6,8 @@ import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.event.TabChangeEvent;
 import com.devonfw.ide.gui.service.CommandletService;
 import com.devonfw.ide.gui.service.NlsService;
-import com.devonfw.ide.gui.ui.controls.console.ConsoleController;
+import com.devonfw.ide.gui.ui.controls.console.ConsoleView;
+import com.devonfw.ide.gui.ui.controls.console.ConsoleViewModel;
 
 /**
  * Base class for the tabs of the main window. Each tab combines a {@link TabViewModel} with a {@link TabView} that renders it.
@@ -16,7 +17,7 @@ public abstract class TabComponent<T extends TabViewModel> {
   protected final GuiStateManager guiStateManager;
   protected final CommandletService commandletService;
   protected final NlsService nlsService;
-  protected ConsoleController consoleController;
+  protected ConsoleViewModel consoleViewModel;
 
   protected Tab tab;
   protected TabView view;
@@ -28,10 +29,10 @@ public abstract class TabComponent<T extends TabViewModel> {
    * @param guiStateManager the app-wide selection and context holder.
    * @param commandletService the service that runs commandlets.
    * @param nlsService the localization service.
-   * @param consoleController the controller of the console pane.
+   * @param consoleViewModel the view model of the console pane.
    */
-  public TabComponent(GuiStateManager guiStateManager, CommandletService commandletService, NlsService nlsService, ConsoleController consoleController) {
-    this.consoleController = consoleController;
+  public TabComponent(GuiStateManager guiStateManager, CommandletService commandletService, NlsService nlsService, ConsoleViewModel consoleViewModel) {
+    this.consoleViewModel = consoleViewModel;
     this.commandletService = commandletService;
     this.nlsService = nlsService;
     this.guiStateManager = guiStateManager;

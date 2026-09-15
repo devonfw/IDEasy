@@ -22,7 +22,8 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 
 class ConsolePanelTest extends HeadlessApplicationTest {
 
-  private ConsoleController consoleController;
+  private ConsoleViewModel consoleViewModel;
+  private ConsoleView consoleView;
 
   @Override
   public void start(Stage stage) throws IOException {
@@ -35,8 +36,9 @@ class ConsolePanelTest extends HeadlessApplicationTest {
     FXMLLoader fxmlLoader = new FXMLLoader(consoleViewUrl);
     fxmlLoader.setResources(nlsService.getResourceBundle());
     fxmlLoader.setControllerFactory(clazz -> {
-      if (clazz == ConsoleController.class) {
-        return new ConsoleController(nlsService);
+      if (clazz == ConsoleView.class) {
+        consoleViewModel = new ConsoleViewModel();
+        return new ConsoleView(consoleViewModel, nlsService);
       }
       return null;
     });
@@ -45,7 +47,7 @@ class ConsolePanelTest extends HeadlessApplicationTest {
     stage.requestFocus(); // sometimes needed for headless setup to work
     stage.show();
 
-    consoleController = fxmlLoader.getController();
+    consoleView = fxmlLoader.getController();
   }
 
   /**
@@ -56,13 +58,13 @@ class ConsolePanelTest extends HeadlessApplicationTest {
 
     // Simulate output to the console
     Platform.runLater(() -> {
-      consoleController.appendOutput("Hello World!");
-      consoleController.appendOutput("Test");
+      consoleViewModel.appendOutput("Hello World!");
+      consoleViewModel.appendOutput("Test");
     });
     waitForFxEvents();
 
     // Verify that the output is displayed in the ListView
-    List<String> snapshot = consoleController.getConsoleOutputSnapshot();
+    List<String> snapshot = consoleViewModel.getConsoleOutputSnapshot();
     assertThat(snapshot).anyMatch(s -> s.contains("Hello World!"));
     assertThat(snapshot).anyMatch(s -> s.contains("Test"));
   }
@@ -74,14 +76,14 @@ class ConsolePanelTest extends HeadlessApplicationTest {
   void testConsoleOutputWithLogLevels() {
 
     Platform.runLater(() -> {
-      consoleController.appendOutput(IdeLogLevel.INFO, "Info message");
-      consoleController.appendOutput(IdeLogLevel.ERROR, "Error message");
-      consoleController.appendOutput(IdeLogLevel.WARNING, "Warning message");
-      consoleController.appendOutput(IdeLogLevel.DEBUG, "Debug message");
+      consoleViewModel.appendOutput(IdeLogLevel.INFO, "Info message");
+      consoleViewModel.appendOutput(IdeLogLevel.ERROR, "Error message");
+      consoleViewModel.appendOutput(IdeLogLevel.WARNING, "Warning message");
+      consoleViewModel.appendOutput(IdeLogLevel.DEBUG, "Debug message");
     });
     waitForFxEvents();
 
-    List<String> snapshot = consoleController.getConsoleOutputSnapshot();
+    List<String> snapshot = consoleViewModel.getConsoleOutputSnapshot();
     assertThat(snapshot).hasSize(4);
     // Check that all log levels appear in the output (format is "HH:mm:ss | [LEVEL]  message")
     // INFO has 3 spaces after bracket, ERROR has 2, WARN has 2, DEBUG has 2
@@ -96,35 +98,35 @@ class ConsolePanelTest extends HeadlessApplicationTest {
 
     // Simulate output to the console
     Platform.runLater(() -> {
-      consoleController.appendOutput("Hello World!");
-      consoleController.appendOutput("Test");
+      consoleViewModel.appendOutput("Hello World!");
+      consoleViewModel.appendOutput("Test");
     });
     waitForFxEvents();
 
     // Clear the console
-    Platform.runLater(() -> consoleController.clearConsole());
+    Platform.runLater(() -> consoleViewModel.clearConsole());
     waitForFxEvents();
 
     // Verify that the console is empty
-    assertThat(consoleController.getConsoleOutputSnapshot()).isEmpty();
+    assertThat(consoleViewModel.getConsoleOutputSnapshot()).isEmpty();
   }
 
   @Test
   void testLineCountUpdates() {
     Platform.runLater(() -> {
-      consoleController.appendOutput("Line 1");
-      consoleController.appendOutput("Line 2");
-      consoleController.appendOutput("Line 3");
+      consoleViewModel.appendOutput("Line 1");
+      consoleViewModel.appendOutput("Line 2");
+      consoleViewModel.appendOutput("Line 3");
     });
     waitForFxEvents();
 
     // Line count should be 3
-    assertThat(consoleController.getConsoleOutputSnapshot()).hasSize(3);
+    assertThat(consoleViewModel.getConsoleOutputSnapshot()).hasSize(3);
   }
 
   @Test
   void testAutoScrollCheckboxEnabledByDefault() {
     // Just verify auto-scroll is enabled by default
-    assertThat(consoleController.isAutoScrollEnabled()).isTrue();
+    assertThat(consoleViewModel.autoScrollEnabledProperty().get()).isTrue();
   }
 }

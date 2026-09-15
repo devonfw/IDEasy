@@ -24,7 +24,7 @@ import com.devonfw.ide.gui.event.TabChangeEvent;
 import com.devonfw.ide.gui.factory.TabFactory;
 import com.devonfw.ide.gui.helper.FxHelper;
 import com.devonfw.ide.gui.service.NlsService;
-import com.devonfw.ide.gui.ui.controls.console.ConsoleController;
+import com.devonfw.ide.gui.ui.controls.console.ConsoleView;
 import com.devonfw.ide.gui.ui.controls.mainwindow.NavigationPanelView;
 import com.devonfw.ide.gui.ui.controls.mainwindow.NavigationPanelViewModel;
 import com.devonfw.ide.gui.ui.progress.taskwindow.TaskOverviewWindow;
@@ -78,7 +78,7 @@ public class MainWindowView extends BorderPane {
 
   private final NlsService nlsService;
 
-  private final ConsoleController consoleController;
+  private final ConsoleView consoleView;
 
   private final EventBus eventBus;
 
@@ -94,25 +94,25 @@ public class MainWindowView extends BorderPane {
    * @param viewModel the view model holding the selection and status state.
    * @param guiStateManager the app-wide selection and context holder.
    * @param nlsService the localization service.
-   * @param consoleController the controller of the console pane.
+   * @param consoleView the controller of the console pane.
    * @param tabFactory the {@link TabFactory} that owns the tab pane.
    */
   public MainWindowView(MainWindowViewModel viewModel, GuiStateManager guiStateManager, NlsService nlsService,
-      ConsoleController consoleController, EventBus eventBus) {
+      ConsoleView consoleView, EventBus eventBus) {
 
     super();
 
     this.viewModel = Objects.requireNonNull(viewModel);
     this.guiStateManager = Objects.requireNonNull(guiStateManager);
     this.nlsService = Objects.requireNonNull(nlsService);
-    this.consoleController = Objects.requireNonNull(consoleController);
+    this.consoleView = Objects.requireNonNull(consoleView);
     this.eventBus = Objects.requireNonNull(eventBus);
 
     final FXMLLoader loader = new FXMLLoader(getClass().getResource("MainWindowView.fxml"));
     loader.setRoot(this);
     loader.setController(this);
     loader.setResources(this.nlsService.getResourceBundle());
-    loader.setControllerFactory(clazz -> clazz == ConsoleController.class ? this.consoleController : null);
+    loader.setControllerFactory(clazz -> clazz == ConsoleView.class ? this.consoleView : null);
 
     try {
       loader.load();
