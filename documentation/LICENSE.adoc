@@ -108,6 +108,7 @@ The column `inclusion` indicates the way the component is included:
 |https://tomcat.apache.org/[tomcat]|Optional|https://www.apache.org/licenses/LICENSE-2.0[Apache 2.0]
 |https://www.oracle.com/java/technologies/jdk-mission-control.html[Java Mission Control]|Optional|https://github.com/openjdk/jmc/blob/master/license/LICENSE.txt[UPL 1.0] and https://github.com/openjdk/jmc/blob/master/license/THIRDPARTYREADME.txt[EPL 2.0]
 |https://www.pgadmin.org/[pgAdmin]|Optional|https://www.pgadmin.org/licence/#postgresql[The PostgreSQL Licence]
+|https://obsidian.md/[Obsidian]|Optional|https://obsidian.md/license[Obsidian Terms of Service (proprietary, free for commercial use)]
 |https://docs.astral.sh/uv/[uv] |Optional|https://docs.astral.sh/uv/reference/policies/license/[Apache 2.0]
 |https://squirrel-sql.sourceforge.io/[SQuirreL SQL Client]|Optional|https://github.com/squirrel-sql-client/squirrel-sql-stable-releases/blob/main/LICENSE[LGPL 2.1]
 |https://www.soapui.org/[SoapUI]|Optional|https://github.com/SmartBear/soapui/blob/next/LICENSE.txt[EUPL 1.1]
