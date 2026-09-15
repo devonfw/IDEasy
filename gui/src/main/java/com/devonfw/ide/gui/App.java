@@ -123,7 +123,7 @@ public class App extends Application {
       LOG.error("Failed to reload main view after locale change", e);
     }
   }
-  
+
   public static Parent loadMainView(String ideRoot, GuiStateManager guiStateManager, NlsService nlsService) throws IOException {
     FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
     fxmlLoader.setResources(nlsService.getResourceBundle());
