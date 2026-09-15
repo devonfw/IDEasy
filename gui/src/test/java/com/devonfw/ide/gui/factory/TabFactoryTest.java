@@ -7,10 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import com.devonfw.ide.gui.ui.controls.console.ConsoleViewModel;
-
-import com.devonfw.ide.gui.event.GuiEventBus;
-import com.devonfw.ide.gui.event.TabChangeEvent;
+import com.devonfw.ide.gui.ui.tab.TabComponent;
 
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -25,14 +22,17 @@ import org.junit.jupiter.api.io.TempDir;
 import com.devonfw.ide.gui.HeadlessApplicationTest;
 import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.context.TaskManager;
+import com.devonfw.ide.gui.event.GuiEventBus;
+import com.devonfw.ide.gui.event.TabChangeEvent;
 import com.devonfw.ide.gui.service.CommandletService;
 import com.devonfw.ide.gui.service.NlsService;
+import com.devonfw.ide.gui.ui.controls.console.ConsoleViewModel;
 
 /**
  * Tests for {@link TabFactory} focusing on how a tab is identified for de-duplication. A tab must be identified by its stable NLS key, not by its
  * (locale-dependent, translated) title text.
  *
- * <p>The factory no longer owns a {@link javafx.scene.control.TabPane}; each {@link TabFactory#open(String, javafx.scene.Node) open} publishes a
+ * <p>The factory no longer owns a {@link javafx.scene.control.TabPane}; each {@link TabFactory#open(TabComponent)} publishes a
  * {@link TabChangeEvent} on the {@link GuiEventBus}. These tests subscribe to the bus and assert on the emitted tabs.
  */
 class TabFactoryTest extends HeadlessApplicationTest {

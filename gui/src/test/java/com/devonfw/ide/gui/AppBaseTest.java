@@ -8,8 +8,6 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Locale;
 
-import com.devonfw.ide.gui.ui.controls.console.ConsoleViewModel;
-
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -37,6 +35,7 @@ import com.devonfw.ide.gui.helper.FxHelper;
 import com.devonfw.ide.gui.service.CommandletService;
 import com.devonfw.ide.gui.service.NlsService;
 import com.devonfw.ide.gui.ui.controls.console.ConsoleView;
+import com.devonfw.ide.gui.ui.controls.console.ConsoleViewModel;
 import com.devonfw.ide.gui.ui.mainwindow.MainWindowView;
 import com.devonfw.ide.gui.ui.mainwindow.MainWindowViewModel;
 import com.devonfw.ide.gui.ui.progress.ProgressBarTask;

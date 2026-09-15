@@ -6,8 +6,6 @@ import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.event.TabChangeEvent;
 import com.devonfw.ide.gui.service.CommandletService;
 import com.devonfw.ide.gui.service.NlsService;
-import com.devonfw.ide.gui.ui.controls.console.ConsoleView;
-import com.devonfw.ide.gui.ui.controls.console.ConsoleViewModel;
 
 /**
  * Base class for the tabs of the main window. Each tab combines a {@link TabViewModel} with a {@link TabView} that renders it.
@@ -17,7 +15,6 @@ public abstract class TabComponent<T extends TabViewModel> {
   protected final GuiStateManager guiStateManager;
   protected final CommandletService commandletService;
   protected final NlsService nlsService;
-  protected ConsoleViewModel consoleViewModel;
 
   protected Tab tab;
   protected TabView view;
@@ -29,10 +26,8 @@ public abstract class TabComponent<T extends TabViewModel> {
    * @param guiStateManager the app-wide selection and context holder.
    * @param commandletService the service that runs commandlets.
    * @param nlsService the localization service.
-   * @param consoleViewModel the view model of the console pane.
    */
-  public TabComponent(GuiStateManager guiStateManager, CommandletService commandletService, NlsService nlsService, ConsoleViewModel consoleViewModel) {
-    this.consoleViewModel = consoleViewModel;
+  public TabComponent(GuiStateManager guiStateManager, CommandletService commandletService, NlsService nlsService) {
     this.commandletService = commandletService;
     this.nlsService = nlsService;
     this.guiStateManager = guiStateManager;
@@ -53,12 +48,12 @@ public abstract class TabComponent<T extends TabViewModel> {
   public abstract String getTabTitleKey();
 
   /**
-   * @return the view created by {@link #createView()}.
+   * @return the view created by {@link #createTab()} ()}.
    */
   public abstract TabView getView();
 
   /**
-   * @return the view model created by {@link #createView()}.
+   * @return the view model created by {@link #createTab()} ()}.
    */
   public abstract T getViewModel();
 }
