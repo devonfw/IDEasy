@@ -22,8 +22,12 @@ import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.ToolEdition;
+import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
+import com.devonfw.tools.ide.version.VersionIdentifier;
+import com.devonfw.tools.ide.version.VersionSegment;
 
 /**
  * Base class for {@link LocalToolCommandlet}s that support plugins. It can automatically install configured plugins for the tool managed by this commandlet.
@@ -31,6 +35,15 @@ import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(PluginBasedCommandlet.class);
+
+  /** The zero-based index of the major version segment (e.g. {@code 1} in {@code 1.90.0}). */
+  public static final int MAJOR_SEGMENT = 0;
+
+  /** The zero-based index of the minor version segment (e.g. {@code 90} in {@code 1.90.0}). */
+  public static final int MINOR_SEGMENT = 1;
+
+  /** The zero-based index of the fix version segment (e.g. {@code 0} in {@code 1.90.0}). */
+  public static final int FIX_SEGMENT = 2;
 
   private ToolPlugins plugins;
 
@@ -123,8 +136,8 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     super.postInstall(request);
     Path pluginsInstallationPath = getPluginsInstallationPath();
 
-    if (!request.isAlreadyInstalled() || this.forcePluginReinstall.isTrue()) {
-      LOG.info("Resetting all installed plugins...");
+    if (this.forcePluginReinstall.isTrue() || isPluginPurgeRequired(request)) {
+      LOG.info("Resetting all installed plugins of {} ({}).", getName(), describePurgeReason(request));
       deleteAllPlugins(pluginsInstallationPath);
     }
     this.context.getFileAccess().mkdirs(pluginsInstallationPath);
@@ -147,6 +160,74 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
         LOG.debug("Plugin marker file {} got deleted.", path);
       }
     }
+  }
+
+  /**
+   * Determines whether all installed plugins of this tool have to be purged (reset and reinstalled) as part of the installation. A purge is required if any of
+   * the {@link #getIncompatibleVersionSegments() incompatible version segments} between the installed and the requested version differs, if the tool
+   * {@link ToolEdition#edition() edition} changed, or if the tool is installed for the first time. Concrete IDEs may override this method to apply their own
+   * compatibility strategy.
+   *
+   * @param request the {@link ToolInstallRequest} carrying the {@link ToolInstallRequest#getInstalled() installed} and
+   *     {@link ToolInstallRequest#getRequested() requested} edition and version.
+   * @return {@code true} if the installed plugins are considered incompatible with the requested version and have to be purged, {@code false} otherwise.
+   */
+  protected boolean isPluginPurgeRequired(ToolInstallRequest request) {
+
+    ToolEditionAndVersion installed = request.getInstalled();
+    ToolEditionAndVersion requested = request.getRequested();
+    if ((installed == null) || (installed.getResolvedVersion() == null)) {
+      return true;
+    }
+    if ((requested == null) || (requested.getResolvedVersion() == null)) {
+      return false;
+    }
+    if (!installed.getEdition().equals(requested.getEdition())) {
+      return true;
+    }
+    return isVersionIncompatible(installed.getResolvedVersion(), requested.getResolvedVersion(), getIncompatibleVersionSegments());
+  }
+
+  /**
+   * @return the set of version segment indices (see {@link #MAJOR_SEGMENT}, {@link #MINOR_SEGMENT}, and {@link #FIX_SEGMENT}) at which a change is considered
+   *     incompatible and hence requires a plugin purge. By default only a change of the {@link #MAJOR_SEGMENT major} segment triggers a purge, so a minor or
+   *     fix update keeps the installed plugins. Concrete IDEs may override this to reflect their own versioning scheme.
+   */
+  protected Set<Integer> getIncompatibleVersionSegments() {
+
+    return Set.of(MAJOR_SEGMENT);
+  }
+
+  private boolean isVersionIncompatible(VersionIdentifier oldVersion, VersionIdentifier newVersion, Set<Integer> incompatibleSegments) {
+
+    VersionSegment oldSegment = oldVersion.getStart();
+    VersionSegment newSegment = newVersion.getStart();
+    int currentSegmentIndex = 0;
+    while (oldSegment != null && newSegment != null) {
+      if (oldSegment.getNumber() != newSegment.getNumber()) {
+        return incompatibleSegments.contains(currentSegmentIndex);
+      }
+      oldSegment = oldSegment.getNextOrNull();
+      newSegment = newSegment.getNextOrNull();
+      currentSegmentIndex++;
+    }
+    return false;
+  }
+
+  private String describePurgeReason(ToolInstallRequest request) {
+
+    if (this.forcePluginReinstall.isTrue()) {
+      return "forced via --force-plugin-reinstall";
+    }
+    ToolEditionAndVersion installed = request.getInstalled();
+    ToolEditionAndVersion requested = request.getRequested();
+    if ((installed == null) || (installed.getResolvedVersion() == null)) {
+      return "new installation";
+    }
+    if (!installed.getEdition().equals(requested.getEdition())) {
+      return "edition changed from " + installed.getEdition() + " to " + requested.getEdition();
+    }
+    return "version changed from " + installed.getResolvedVersion() + " to " + requested.getResolvedVersion();
   }
 
   private void installPlugins(ProcessContext pc) {
@@ -198,11 +279,11 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
   /**
    * @param plugins the configured {@link ToolPluginDescriptor plugins} used to detect undefined entries.
    * @return the {@link Set} of {@link ToolPluginDescriptor#name() plugin names} configured in the tool-specific {@code «TOOL»_EXTRA_PLUGINS} variable (e.g.
-   *     {@code VSCODE_EXTRA_PLUGINS=copilot,docker}). This allows a user to permanently opt-in to plugins that are not {@link ToolPluginDescriptor#active()
-   *     active} in the project settings, without modifying the shared settings and without losing them when plugins are purged and reinstalled on IDE upgrade.
-   *     Values refer to the {@link ToolPluginDescriptor#name() name} of the plugin (the filename of its {@code .properties} file) and not to the
-   *     {@link ToolPluginDescriptor#id() id}. Names that do not resolve to a configured plugin are logged as a warning and skipped so that a single stale entry
-   *     cannot break the entire installation.
+   *     {@code VSCODE_EXTRA_PLUGINS=copilot,docker}). This allows a user to permanently opt-in to plugins that are not
+   *     {@link ToolPluginDescriptor#active() active} in the project settings, without modifying the shared settings and without losing them when plugins are
+   *     purged and reinstalled on IDE upgrade. Values refer to the {@link ToolPluginDescriptor#name() name} of the plugin (the filename of its
+   *     {@code .properties} file) and not to the {@link ToolPluginDescriptor#id() id}. Names that do not resolve to a configured plugin are logged as a warning
+   *     and skipped so that a single stale entry cannot break the entire installation.
    */
   protected Set<String> getExtraPlugins(Collection<ToolPluginDescriptor> plugins) {
 
