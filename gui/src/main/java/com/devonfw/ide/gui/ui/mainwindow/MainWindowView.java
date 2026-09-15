@@ -120,7 +120,7 @@ public class MainWindowView extends BorderPane {
 
     this.tabFactory.attach(this.tabPane);
     this.tabFactory.openLauncherTab();
-    // Show the console before launching an IDE (restores the previous behavior).
+    // Show the console before launching an IDE (restores the previous behavior). This needs to be removed once the EventBus is implemented
     this.tabFactory.setPreLaunchAction(() -> this.viewModel.setConsoleVisible(true));
 
     this.centerDivider = this.centerSplitPane.getDividers().getFirst();

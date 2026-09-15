@@ -2,7 +2,6 @@ package com.devonfw.ide.gui.factory;
 
 import java.util.Objects;
 
-import javafx.scene.Node;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 
@@ -10,8 +9,8 @@ import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.service.CommandletService;
 import com.devonfw.ide.gui.service.NlsService;
 import com.devonfw.ide.gui.ui.controls.console.ConsoleController;
-import com.devonfw.ide.gui.ui.tab.launcher.IdeLauncherView;
-import com.devonfw.ide.gui.ui.tab.launcher.IdeLauncherViewModel;
+import com.devonfw.ide.gui.ui.tab.TabComponent;
+import com.devonfw.ide.gui.ui.tab.launcher.IdeLauncherTab;
 
 
 /**
@@ -68,31 +67,23 @@ public class TabFactory {
    * Opens (or focuses) the IDE launcher tab.
    */
   public void openLauncherTab() {
-    IdeLauncherViewModel viewModel = new IdeLauncherViewModel(this.guiStateManager, this.commandletService);
-    open(viewModel.getTabTitleKey(), new IdeLauncherView(viewModel, this.nlsService));
+    open(new IdeLauncherTab(guiStateManager, commandletService, nlsService, consoleController));
   }
 
+  private void open(TabComponent tabComponent) {
 
-  /**
-   * Opens a tab with the given title key, or focuses the existing one if it is already open.
-   *
-   * @param nlsTitleKey the localization key used for the tab title and to identify the tab.
-   * @param content the content node shown inside the tab.
-   * @return the open tab.
-   */
-  public Tab open(String nlsTitleKey, Node content) {
+    String nlsTitleKey = tabComponent.getTabTitleKey();
 
     Tab existing = findByTitleKey(nlsTitleKey);
     if (existing != null) {
       this.tabPane.getSelectionModel().select(existing);
-      return existing;
+      return;
     }
 
-    Tab tab = new Tab(this.nlsService.get(nlsTitleKey), content);
+    Tab tab = new Tab(this.nlsService.get(nlsTitleKey), tabComponent.createView());
     tab.setUserData(nlsTitleKey);
     tab.setClosable(true);
     this.tabPane.getTabs().add(tab);
-    return tab;
   }
 
   private Tab findByTitleKey(String titleKey) {
