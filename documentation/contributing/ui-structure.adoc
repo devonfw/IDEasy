@@ -36,7 +36,8 @@ IDEasy uses the **Observer/Observable pattern** (and JavaFX `Property` bindings)
 
 === Example
 
-```java
+[source,java]
+----
 // Model
 public class PackageModel extends Observable {
     private final ListProperty<Package> packages = new SimpleListProperty<>();
@@ -55,7 +56,7 @@ public class PackageController implements Observer {
         view.updatePackageList(model.getPackages());
     }
 }
-```
+----
 
 == Package Structure per Feature
 
@@ -149,27 +150,30 @@ See this thread: https://stackoverflow.com/a/78535631
 
 === Example: setController
 
-```java
+[source,java]
+----
     FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
     fxmlLoader.setResources(this.nlsService.getResourceBundle());
     fxmlLoader.setController(new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()), guiStateManager, this.nlsService));
     return fxmlLoader.load();
-```
+----
 
 === Example: ControllerFactroy
 
 In the (potenitally nested) fxml file:
 
-```xml
+[source,xml]
+----
 <AnchorPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.ideasy.gui.feature.main.MainController">
     <children>
         <Label text="%main.title" />
     </children>
-```
+----
 
 Then in the code:
 
-```java
+[source,java]
+----
     FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
     fxmlLoader.setResources(this.nlsService.getResourceBundle());
     fxmlLoader.setController(new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()), guiStateManager, this.nlsService));
@@ -180,7 +184,7 @@ Then in the code:
       return null;
     });
     return fxmlLoader.load();
-```
+----
 
 == Testing Documentation
 
@@ -197,7 +201,8 @@ Otherwise tests will fail on the GitHub CI pipeline.**
 
 ==== Example
 
-```java
+[source,java]
+----
   /**
    * Tests that the workspace {@link ComboBox} is enabled when a project is selected.
    */
@@ -212,4 +217,4 @@ Otherwise tests will fail on the GitHub CI pipeline.**
         .as("selectedWorkspace ComboBox should be enabled when a project is selected")
         .isFalse();
   }
-```
+----
