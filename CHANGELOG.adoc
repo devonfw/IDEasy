@@ -6,6 +6,8 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/2103[#2103]: Integrate Obsidian
+* https://github.com/devonfw/IDEasy/issues/1695[#1695]: Project creation logic extended with health checks and removed `--code` flag.
 * https://github.com/devonfw/IDEasy/issues/2190[#2190]: IDEasy destroys my python installation
 * https://github.com/devonfw/IDEasy/issues/2178[#2178]: Make ReleaseCommandlet independent of specific build commandlet and fix `ide build` using npm instead of yarn
 * https://github.com/devonfw/IDEasy/issues/2142[#2142]: Move IDE-specific metadata (.idea, .vscode) out of workspace
