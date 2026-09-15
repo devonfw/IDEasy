@@ -167,30 +167,26 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     for (ToolPluginDescriptor plugin : plugins) {
       if (plugin.excludedEditions().contains(edition)) {
         LOG.debug("Skipping plugin '{}' (excluded for edition '{}').", plugin.name(), edition);
-      } else if (plugin.active() || extraPlugins.contains(plugin.name())) {
-        pluginsToInstall.add(plugin);
-      } else {
-        Path pluginMarkerFile = retrievePluginMarkerFilePath(plugin);
-        if ((pluginMarkerFile == null) || !Files.exists(pluginMarkerFile)) {
-          handleInstallForInactivePlugin(plugin);
+        continue;
+      }
+      Path pluginMarkerFile = retrievePluginMarkerFilePath(plugin);
+      boolean pluginMarkerFileExists = (pluginMarkerFile != null) && Files.exists(pluginMarkerFile);
+      if (plugin.active() || extraPlugins.contains(plugin.name())) {
+        if (this.context.isForcePlugins() || !pluginMarkerFileExists) {
+          pluginsToInstall.add(plugin);
+        } else {
+          LOG.debug("Skipping installation of plugin '{}' due to existing marker file: {}", plugin.name(), pluginMarkerFile);
         }
+      } else if (!pluginMarkerFileExists) {
+        handleInstallForInactivePlugin(plugin);
       }
     }
     int currentPluginIndex = 1;
     int totalPlugins = pluginsToInstall.size();
     for (ToolPluginDescriptor plugin : pluginsToInstall) {
-      Path pluginMarkerFile = retrievePluginMarkerFilePath(plugin);
-      boolean pluginMarkerFileExists = (pluginMarkerFile != null) && Files.exists(pluginMarkerFile);
-      if (pluginMarkerFileExists) {
-        LOG.debug("Markerfile for IDE {} and plugin '{}' already exists.", getName(), plugin.name());
-      }
-      if (this.context.isForcePlugins() || !pluginMarkerFileExists) {
-        String progressMarker = " (" + currentPluginIndex + "/" + totalPlugins + ")";
-        Step step = this.context.newStep("Install plugin " + plugin.name() + progressMarker);
-        step.run(() -> doInstallPluginStep(plugin, step, pc));
-      } else {
-        LOG.debug("Skipping installation of plugin '{}' due to existing marker file: {}", plugin.name(), pluginMarkerFile);
-      }
+      String progressMarker = " (" + currentPluginIndex + "/" + totalPlugins + ")";
+      Step step = this.context.newStep("Install plugin " + plugin.name() + progressMarker);
+      step.run(() -> doInstallPluginStep(plugin, step, pc));
       currentPluginIndex++;
     }
   }
