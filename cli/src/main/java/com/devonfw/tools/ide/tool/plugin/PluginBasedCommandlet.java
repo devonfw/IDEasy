@@ -165,11 +165,13 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     String edition = getConfiguredEdition();
     List<ToolPluginDescriptor> pluginsToInstall = new ArrayList<>(plugins.size());
     for (ToolPluginDescriptor plugin : plugins) {
-      Path pluginMarkerFile = retrievePluginMarkerFilePath(plugin);
-      boolean pluginMarkerFileExists = (pluginMarkerFile != null) && Files.exists(pluginMarkerFile);
       if (plugin.excludedEditions().contains(edition)) {
         LOG.debug("Skipping plugin '{}' (excluded for edition '{}').", plugin.name(), edition);
-      } else if (plugin.active() || extraPlugins.contains(plugin.name())) {
+        continue;
+      }
+      Path pluginMarkerFile = retrievePluginMarkerFilePath(plugin);
+      boolean pluginMarkerFileExists = (pluginMarkerFile != null) && Files.exists(pluginMarkerFile);
+      if (plugin.active() || extraPlugins.contains(plugin.name())) {
         if (this.context.isForcePlugins() || !pluginMarkerFileExists) {
           pluginsToInstall.add(plugin);
         } else {
