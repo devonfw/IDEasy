@@ -22,5 +22,14 @@ jobs:
           java-version: '25'
       - name: Build project with Maven
         run: mvn -B -ntp -Dstyle.color=always install
+      - name: Sonarcloud analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          mvn -B -ntp sonar:sonar \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.organization=devonfw \
+            -Dsonar.projectKey=devonfw_IDEasy \
+            -Dsonar.token=${SONAR_TOKEN}
       - name: Coveralls GitHub Action
         uses: coverallsapp/github-action@v2.2.3
