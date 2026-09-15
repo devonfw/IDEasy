@@ -1,6 +1,14 @@
 #!/bin/bash
+
 if [ "$1" == "--version" ]; then
   echo "9.9.2"
   exit
 fi
+
+if [ "$1" == "list" ]; then
+  echo "/lib"
+  echo "|-- $3@18.0.1"
+  exit
+fi
+
 echo "npm $*"

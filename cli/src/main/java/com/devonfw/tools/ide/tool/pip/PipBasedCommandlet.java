@@ -110,7 +110,7 @@ public abstract class PipBasedCommandlet extends PackageManagerBasedLocalToolCom
     }
     PackageManagerRequest request = new PackageManagerRequest("show", getPackageName()).setProcessMode(ProcessMode.DEFAULT_CAPTURE)
         .setProcessContext(this.context.newProcess().errorHandling(ProcessErrorHandling.NONE));
-    ProcessResult processResult = runPackageManager(request);
+    ProcessResult processResult = runPackageManager(request, true);
     if (processResult.isSuccessful()) {
       for (String line : processResult.getOut()) {
         // we are looking for something like "Version: 25.3"
