@@ -43,6 +43,8 @@ public class Vscode extends IdeToolCommandlet {
 
   private ProcessContext deferredPluginProcessContext;
 
+  private boolean installingIntoNewProfile;
+
   /**
    * The constructor.
    *
@@ -111,7 +113,15 @@ public class Vscode extends IdeToolCommandlet {
   }
 
   @Override
-  protected void installPlugins(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
+  protected boolean isForcePluginInstallation() {
+
+    // A profile that VSCode has just created is empty. Our plugin marker files live per project while the plugins of VSCode belong to a profile, so the marker
+    // files cannot tell whether a plugin is present in the new profile. Without this the user ends up with an empty IDE. See issue #2471.
+    return this.installingIntoNewProfile || super.isForcePluginInstallation();
+  }
+
+  @Override
+  protected int installPlugins(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
 
     if (isProfileEnabled() && !isProfileAvailable(pc)) {
       // VS Code only creates a profile when it opens a window. CLI calls such as --install-extension merely look the profile up and abort with
@@ -119,9 +129,9 @@ public class Vscode extends IdeToolCommandlet {
       LOG.info("The VS Code profile {} does not exist yet so the plugins are installed after VS Code has been started.", getProfileName());
       this.deferredPlugins = plugins;
       this.deferredPluginProcessContext = pc;
-      return;
+      return 0;
     }
-    super.installPlugins(plugins, pc);
+    return super.installPlugins(plugins, pc);
   }
 
   @Override
@@ -146,8 +156,16 @@ public class Vscode extends IdeToolCommandlet {
       return;
     }
     if (waitForProfile(pc)) {
-      super.installPlugins(plugins, pc);
-      IdeLogLevel.INTERACTION.log(LOG, "The plugins have been installed after VS Code was started. Please reload the window to activate them.");
+      this.installingIntoNewProfile = true;
+      int installedPlugins;
+      try {
+        installedPlugins = super.installPlugins(plugins, pc);
+      } finally {
+        this.installingIntoNewProfile = false;
+      }
+      if (installedPlugins > 0) {
+        IdeLogLevel.INTERACTION.log(LOG, "The plugins have been installed after VS Code was started. Please reload the window to activate them.");
+      }
     } else {
       IdeLogLevel.WARNING.log(LOG, "VS Code did not create the profile {} in time so the plugins could not be installed. They will be installed the next "
           + "time you run 'ide vscode'.", getProfileName());

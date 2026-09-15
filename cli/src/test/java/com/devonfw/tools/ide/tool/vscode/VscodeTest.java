@@ -387,6 +387,32 @@ class VscodeTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Tests that the plugins are installed into a freshly created profile even though their marker files already exist.
+   * <p>
+   * The marker files live per IDEasy project while the plugins of VSCode belong to a profile. A profile that VSCode has just created is empty, so honouring the
+   * marker files would leave the user with an IDE without any plugin (see issue #2471).
+   */
+  @Test
+  void testPluginsAreInstalledIntoNewProfileDespiteExistingMarkerFiles() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("VSCODE_PROFILE_ENABLED", "true");
+    RecordingVscode commandlet = new RecordingVscode(context);
+    // first run creates the profile and the marker files
+    commandlet.run();
+    assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("mockedPlugin"))).exists();
+
+    // act - the profile is gone again (e.g. the user enabled the toggle), the marker files remain
+    RecordingVscode second = new RecordingVscode(context);
+    second.run();
+
+    // assert
+    assertThat(second.indexOfFirstPluginInstall()).as("the plugin must be installed into the new profile despite its marker file").isNotNegative();
+    assertThat(second.indexOfFirstPluginInstall()).as("and it must happen after the launch").isGreaterThan(second.indexOfLaunch());
+  }
+
+  /**
    * Test double for {@link Vscode} that records the order of all tool invocations so tests can assert whether the plugins are installed before or after the
    * IDE has been launched.
    */
