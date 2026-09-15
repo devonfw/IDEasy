@@ -76,7 +76,11 @@ public class Vscode extends IdeToolCommandlet {
       IdeLogLevel.ERROR.log(LOG, "Failed to install plugin: {} with version: {}", plugin.name(), plugin.version());
     } else {
       IdeLogLevel.ERROR.log(LOG, "Failed to install plugin: {}", plugin.name());
-    }
+if (versionSpecified) {
+step.error("Failed to install plugin: {} with version: {}", plugin.name(), plugin.version());
+} else {
+step.error("Failed to install plugin: {}", plugin.name());
+}
     return false;
   }
 
