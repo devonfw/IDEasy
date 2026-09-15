@@ -1,22 +1,21 @@
 package com.devonfw.ide.gui.ui.controls.console;
 
-import com.devonfw.ide.gui.helper.FxHelper;
-import com.devonfw.tools.ide.log.IdeLogEntry;
-
-import com.devonfw.tools.ide.log.IdeLogLevel;
-
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleListProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
+
+import com.devonfw.ide.gui.event.GuiEventBus;
+import com.devonfw.ide.gui.event.console.LogEvent;
+import com.devonfw.ide.gui.helper.FxHelper;
+import com.devonfw.tools.ide.log.IdeLogEntry;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 
 /**
  * View-model for the console control.
@@ -41,13 +40,19 @@ public class ConsoleViewModel {
   private final Deque<IdeLogEntry> outputBuffer = new ArrayDeque<>();
 
 
-  public ConsoleViewModel() {
+  /// @param eventBus event bus to listen for log events
+  public ConsoleViewModel(GuiEventBus eventBus) {
     logEntries.addListener((ListChangeListener<IdeLogEntry>) change -> {
       while (change.next()) {
         if (change.wasAdded() || change.wasRemoved()) {
           lineCount.set(logEntries.size());
         }
       }
+    });
+
+    eventBus.addListener(LogEvent.class, event -> {
+      IdeLogEntry entry = event.logeEntry();
+      appendOutput(entry);
     });
   }
 

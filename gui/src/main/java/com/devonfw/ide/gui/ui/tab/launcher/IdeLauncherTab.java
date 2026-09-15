@@ -6,8 +6,6 @@ import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.event.TabChangeEvent;
 import com.devonfw.ide.gui.service.CommandletService;
 import com.devonfw.ide.gui.service.NlsService;
-import com.devonfw.ide.gui.ui.controls.console.ConsoleView;
-import com.devonfw.ide.gui.ui.controls.console.ConsoleViewModel;
 import com.devonfw.ide.gui.ui.tab.TabComponent;
 import com.devonfw.ide.gui.ui.tab.TabView;
 
@@ -24,10 +22,9 @@ public class IdeLauncherTab extends TabComponent<IdeLauncherViewModel> {
    * @param guiStateManager the app-wide selection and context holder.
    * @param commandletService the service that runs commandlets.
    * @param nlsService the localization service.
-   * @param consoleView the controller of the console pane.
    */
-  public IdeLauncherTab(GuiStateManager guiStateManager, CommandletService commandletService, NlsService nlsService, ConsoleViewModel consoleView) {
-    super(guiStateManager, commandletService, nlsService, consoleView);
+  public IdeLauncherTab(GuiStateManager guiStateManager, CommandletService commandletService, NlsService nlsService) {
+    super(guiStateManager, commandletService, nlsService);
   }
 
   @Override

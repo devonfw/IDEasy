@@ -2,8 +2,6 @@ package com.devonfw.ide.gui.factory;
 
 import java.util.Objects;
 
-import com.devonfw.ide.gui.ui.controls.console.ConsoleViewModel;
-
 import javafx.scene.control.TabPane;
 
 import com.devonfw.ide.gui.context.GuiStateManager;
@@ -22,7 +20,6 @@ public class TabFactory {
 
   private final GuiStateManager guiStateManager;
   private final NlsService nlsService;
-  private final ConsoleViewModel consoleViewModel;
   private final CommandletService commandletService;
   private final EventBus eventBus;
 
@@ -32,12 +29,10 @@ public class TabFactory {
    * @param guiStateManager the app-wide selection and context holder.
    * @param nlsService the localization service.
    * @param commandletService runs commandlets on tab actions.
-   * @param consoleViewModel the controller of the console pane.
    */
-  public TabFactory(GuiStateManager guiStateManager, NlsService nlsService, CommandletService commandletService, ConsoleViewModel consoleViewModel, EventBus eventBus) {
+  public TabFactory(GuiStateManager guiStateManager, NlsService nlsService, CommandletService commandletService, EventBus eventBus) {
     this.guiStateManager = Objects.requireNonNull(guiStateManager);
     this.nlsService = Objects.requireNonNull(nlsService);
-    this.consoleViewModel = Objects.requireNonNull(consoleViewModel);
     this.commandletService = Objects.requireNonNull(commandletService);
     this.eventBus = Objects.requireNonNull(eventBus);
   }
@@ -58,7 +53,7 @@ public class TabFactory {
    * Opens (or focuses) the IDE launcher tab.
    */
   public void openLauncherTab() {
-    open(new IdeLauncherTab(guiStateManager, commandletService, nlsService, consoleViewModel));
+    open(new IdeLauncherTab(guiStateManager, commandletService, nlsService));
   }
 
   private void open(TabComponent tabComponent) {

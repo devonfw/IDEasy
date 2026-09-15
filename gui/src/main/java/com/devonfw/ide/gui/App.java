@@ -4,9 +4,6 @@ import java.awt.Taskbar;
 import java.awt.Toolkit;
 import java.net.URL;
 
-import com.devonfw.ide.gui.ui.controls.console.ConsoleView;
-import com.devonfw.ide.gui.ui.controls.console.ConsoleViewModel;
-
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Rectangle2D;
@@ -66,16 +63,12 @@ public class App extends Application {
 
     this.nlsService = new NlsService(null);
 
-
-    final ConsoleViewModel consoleViewModel = new ConsoleViewModel();
-    ConsoleView consoleView = new ConsoleView(consoleViewModel, nlsService);
-    this.commandletService = new CommandletService(guiStateManager, consoleViewModel);
     final GuiEventBus eventBus = new GuiEventBus();
 
-    this.tabFactory = new TabFactory(guiStateManager, nlsService, commandletService, consoleViewModel, eventBus);
-
-    final MainWindowViewModel mainWindowViewModel = new MainWindowViewModel(guiStateManager, this.nlsService, tabFactory);
-    final MainWindowView mainWindow = new MainWindowView(mainWindowViewModel, guiStateManager, this.nlsService, consoleView, eventBus);
+    this.commandletService = new CommandletService(guiStateManager, eventBus);
+    this.tabFactory = new TabFactory(guiStateManager, nlsService, commandletService, eventBus);
+    MainWindowViewModel mainWindowViewModel = new MainWindowViewModel(guiStateManager, this.nlsService, tabFactory);
+    final MainWindowView mainWindow = new MainWindowView(mainWindowViewModel, guiStateManager, this.nlsService, eventBus);
 
     //this.nlsService.addLocaleChangeListener(this::reloadMainView);
 

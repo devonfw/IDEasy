@@ -1,6 +1,5 @@
 package com.devonfw.ide.gui.ui.controls.console;
 
-import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -9,7 +8,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 
-import com.devonfw.ide.gui.helper.FxHelper;
 import com.devonfw.ide.gui.service.NlsService;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 

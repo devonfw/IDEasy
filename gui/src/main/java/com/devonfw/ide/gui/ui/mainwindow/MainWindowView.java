@@ -20,16 +20,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.context.GuiStateManager;
+import com.devonfw.ide.gui.event.GuiEventBus;
 import com.devonfw.ide.gui.event.TabChangeEvent;
 import com.devonfw.ide.gui.factory.TabFactory;
 import com.devonfw.ide.gui.helper.FxHelper;
 import com.devonfw.ide.gui.service.NlsService;
 import com.devonfw.ide.gui.ui.controls.console.ConsoleView;
+import com.devonfw.ide.gui.ui.controls.console.ConsoleViewModel;
 import com.devonfw.ide.gui.ui.controls.mainwindow.NavigationPanelView;
 import com.devonfw.ide.gui.ui.controls.mainwindow.NavigationPanelViewModel;
 import com.devonfw.ide.gui.ui.progress.taskwindow.TaskOverviewWindow;
 
-import io.github.mmm.event.EventBus;
 
 /**
  * View of the main window. It renders what the {@link MainWindowViewModel} exposes and translates user gestures back onto it; all selection state, status
@@ -78,9 +79,7 @@ public class MainWindowView extends BorderPane {
 
   private final NlsService nlsService;
 
-  private final ConsoleView consoleView;
-
-  private final EventBus eventBus;
+  private final GuiEventBus eventBus;
 
   private final Divider centerDivider;
 
@@ -94,25 +93,25 @@ public class MainWindowView extends BorderPane {
    * @param viewModel the view model holding the selection and status state.
    * @param guiStateManager the app-wide selection and context holder.
    * @param nlsService the localization service.
-   * @param consoleView the controller of the console pane.
-   * @param tabFactory the {@link TabFactory} that owns the tab pane.
+   * @param eventBus the {@link GuiEventBus} that owns the tab pane.
    */
-  public MainWindowView(MainWindowViewModel viewModel, GuiStateManager guiStateManager, NlsService nlsService,
-      ConsoleView consoleView, EventBus eventBus) {
+  public MainWindowView(MainWindowViewModel viewModel, GuiStateManager guiStateManager, NlsService nlsService, GuiEventBus eventBus) {
 
     super();
 
     this.viewModel = Objects.requireNonNull(viewModel);
     this.guiStateManager = Objects.requireNonNull(guiStateManager);
     this.nlsService = Objects.requireNonNull(nlsService);
-    this.consoleView = Objects.requireNonNull(consoleView);
     this.eventBus = Objects.requireNonNull(eventBus);
+
+    final ConsoleViewModel consoleViewModel = new ConsoleViewModel(this.eventBus);
+    final ConsoleView consoleView = new ConsoleView(consoleViewModel, nlsService);
 
     final FXMLLoader loader = new FXMLLoader(getClass().getResource("MainWindowView.fxml"));
     loader.setRoot(this);
     loader.setController(this);
     loader.setResources(this.nlsService.getResourceBundle());
-    loader.setControllerFactory(clazz -> clazz == ConsoleView.class ? this.consoleView : null);
+    loader.setControllerFactory(clazz -> clazz == ConsoleView.class ? consoleView : null);
 
     try {
       loader.load();
