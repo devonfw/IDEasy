@@ -14,7 +14,10 @@ The build runs on a macOS host (macOS GitHub runners). It needs:
 === Steps to Build the PKG Package
 
 See the `Build MacOS PKG` step in `.github/workflows/release.yml` (and `nightly-build.yml`);
-it runs `./build-pkg.sh` with `RELEASE_VERSION` provided via `env`.
+it runs `./macos-installer/build-pkg.sh` **from the repository root** with `RELEASE_VERSION`
+provided via `env`. The script assumes the repository root as working directory (it builds
+`documentation/` and `cli/` and copies their outputs into `macos-installer/`), so do not run
+it from inside `macos-installer/` — that fails with `cd: documentation: No such file or directory`.
 
 The script assembles `pkg-root/` (generated PDF, `LICENSE.rtf`, the CLI package and the
 `ideasy` binary, with the Windows/Linux `system` folders pruned), lets Maven filter
@@ -28,7 +31,7 @@ copied to the fixed name `ideasy.pkg` that the `Upload unsigned PKG` step expect
 link:build-pkg.sh[build-pkg.sh]
 
 The build script. Fails fast on any error (a PKG built from an incomplete `pkg-root/` would install
-a broken IDEasy) and requires `RELEASE_VERSION` to be set.
+a broken IDEasy), requires `RELEASE_VERSION` to be set, and must be run from the repository root.
 
 link:src/Distribution.xml[src/Distribution.xml]
 
