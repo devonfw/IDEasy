@@ -26,6 +26,7 @@ import com.devonfw.tools.ide.environment.EnvironmentVariablesFiles;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.os.MacOsHelper;
+import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
@@ -714,7 +715,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     }
     ToolSecurity toolSecurity = this.context.getDefaultToolRepository().findSecurity(this.tool, toolEdition.edition());
     double minSeverity = IdeVariables.CVE_MIN_SEVERITY.get(context);
-    ToolVulnerabilities currentVulnerabilities = toolSecurity.findCves(resolvedVersion, minSeverity);
+    OperatingSystem os = this.context.getSystemInfo().getOs();
+    ToolVulnerabilities currentVulnerabilities = toolSecurity.findCves(resolvedVersion, os, minSeverity);
     ToolVersionChoice currentChoice = ToolVersionChoice.ofCurrent(requested, currentVulnerabilities);
     request.setCveCheckDone();
     if (currentChoice.logAndCheckIfEmpty()) {
@@ -741,7 +743,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       }
 
       if (acceptVersion(version, allowedVersions, requireStableVersion)) {
-        ToolVulnerabilities newVulnerabilities = toolSecurity.findCves(version, minSeverity);
+        ToolVulnerabilities newVulnerabilities = toolSecurity.findCves(version, os, minSeverity);
         if (newVulnerabilities.isSafer(latestVulnerabilities)) {
           // we found a better/safer version
           ToolEditionAndVersion toolEditionAndVersion = new ToolEditionAndVersion(toolEdition, version);
