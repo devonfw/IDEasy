@@ -123,28 +123,11 @@ public class App extends Application {
       LOG.error("Failed to reload main view after locale change", e);
     }
   }
-
-  /*
-  private Parent loadMainView() throws IOException {
-
-    FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
-    fxmlLoader.setResources(this.nlsService.getResourceBundle());
-    MainController mainController = new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()), guiStateManager, this.nlsService);
-    fxmlLoader.setControllerFactory(clazz -> {
-      if (clazz == ConsoleController.class) {
-        return new ConsoleController(this.nlsService);
-      } else if (clazz == MainController.class) {
-        return mainController;
-      }
-      return null;
-    });
-    return fxmlLoader.load();
-  }
-  */
+  
   public static Parent loadMainView(String ideRoot, GuiStateManager guiStateManager, NlsService nlsService) throws IOException {
     FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
     fxmlLoader.setResources(nlsService.getResourceBundle());
-    MainController mainController = new MainController(System.getenv(ideRoot), guiStateManager, nlsService);
+    MainController mainController = new MainController(ideRoot, guiStateManager, nlsService);
     fxmlLoader.setControllerFactory(clazz -> {
       if (clazz == ConsoleController.class) {
         return new ConsoleController(nlsService);

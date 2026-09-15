@@ -58,44 +58,22 @@ public class AppBaseTest extends HeadlessApplicationTest {
 
   @Override
   public void start(Stage stage) throws IOException {
-    /*
-    NlsService nlsService = new NlsService(Locale.ENGLISH);
 
-    URL mainViewUrl = getClass().getResource("main-view.fxml");
-    assertThat(mainViewUrl).as("Cannot resolve main UI FXML resource!").isNotNull();
-
-    FXMLLoader fxmlLoader = new FXMLLoader(mainViewUrl);
-    MainController mainController = new MainController(mockIdeRoot.toString(), guiStateManager, nlsService);
-    fxmlLoader.setControllerFactory(clazz -> {
-      if (clazz == ConsoleController.class) {
-        return new ConsoleController(nlsService);
-      } else if (clazz == MainController.class) {
-        return mainController;
-      }
-      return null;
-    });
-    fxmlLoader.setResources(nlsService.getResourceBundle());
-    Parent root = fxmlLoader.load();
+    Parent root = loadMainView(mockIdeRoot.toString(), guiStateManager, nlsService);
     stage.setScene(new Scene(root));
     stage.requestFocus(); //sometimes needed for headless setup to work
     stage.show();
-    */
 
-    Parent mainViewLoader = loadMainView(mockIdeRoot.toString(), guiStateManager, nlsService);
-    stage.setScene(new Scene(mainViewLoader));
-    stage.requestFocus(); //sometimes needed for headless setup to work
-    stage.show();
-
-    androidStudioOpen = FxHelper.lookup(mainViewLoader, "#androidStudioOpen");
-    eclipseOpen = FxHelper.lookup(mainViewLoader, "#eclipseOpen");
-    intellijOpen = FxHelper.lookup(mainViewLoader, "#intellijOpen");
-    vsCodeOpen = FxHelper.lookup(mainViewLoader, "#vsCodeOpen");
-    selectedProject = FxHelper.lookup(mainViewLoader, "#selectedProject");
-    selectedWorkspace = FxHelper.lookup(mainViewLoader, "#selectedWorkspace");
-    consolePaneToggleButton = FxHelper.lookup(mainViewLoader, "#consolePaneToggleButton");
-    centerSplitPane = FxHelper.lookup(mainViewLoader, "#centerSplitPane");
-    statusText = FxHelper.lookup(mainViewLoader, "#statusLabel");
-    taskProgressBar = FxHelper.lookup(mainViewLoader, "#statusProgressBar");
+    androidStudioOpen = FxHelper.lookup(root, "#androidStudioOpen");
+    eclipseOpen = FxHelper.lookup(root, "#eclipseOpen");
+    intellijOpen = FxHelper.lookup(root, "#intellijOpen");
+    vsCodeOpen = FxHelper.lookup(root, "#vsCodeOpen");
+    selectedProject = FxHelper.lookup(root, "#selectedProject");
+    selectedWorkspace = FxHelper.lookup(root, "#selectedWorkspace");
+    consolePaneToggleButton = FxHelper.lookup(root, "#consolePaneToggleButton");
+    centerSplitPane = FxHelper.lookup(root, "#centerSplitPane");
+    statusText = FxHelper.lookup(root, "#statusLabel");
+    taskProgressBar = FxHelper.lookup(root, "#statusProgressBar");
   }
 
   /**
