@@ -4,6 +4,8 @@ import java.awt.Taskbar;
 import java.awt.Toolkit;
 import java.net.URL;
 
+import com.devonfw.ide.gui.ui.controls.console.ConsoleViewModel;
+
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Rectangle2D;
@@ -22,7 +24,6 @@ import com.devonfw.ide.gui.event.GuiEventBus;
 import com.devonfw.ide.gui.factory.TabFactory;
 import com.devonfw.ide.gui.service.CommandletService;
 import com.devonfw.ide.gui.service.NlsService;
-import com.devonfw.ide.gui.ui.controls.console.ConsoleController;
 import com.devonfw.ide.gui.ui.mainwindow.MainWindowView;
 import com.devonfw.ide.gui.ui.mainwindow.MainWindowViewModel;
 import com.devonfw.ide.gui.ui.modal.IdeDialog;
@@ -64,15 +65,15 @@ public class App extends Application {
 
     this.nlsService = new NlsService(null);
 
-    final ConsoleController consoleController = new ConsoleController(nlsService);
-    this.commandletService = new CommandletService(guiStateManager, consoleController);
 
+    final ConsoleViewModel consoleViewModel = new ConsoleViewModel();
+    this.commandletService = new CommandletService(guiStateManager, consoleViewModel);
     final GuiEventBus eventBus = new GuiEventBus();
 
-    this.tabFactory = new TabFactory(guiStateManager, nlsService, commandletService, consoleController, eventBus);
+    this.tabFactory = new TabFactory(guiStateManager, nlsService, commandletService, consoleViewModel, eventBus);
 
     final MainWindowViewModel mainWindowViewModel = new MainWindowViewModel(guiStateManager, this.nlsService, tabFactory);
-    final MainWindowView mainWindow = new MainWindowView(mainWindowViewModel, guiStateManager, this.nlsService, consoleController, eventBus);
+    final MainWindowView mainWindow = new MainWindowView(mainWindowViewModel, guiStateManager, this.nlsService, consoleViewModel, eventBus);
 
     //this.nlsService.addLocaleChangeListener(this::reloadMainView);
 

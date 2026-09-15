@@ -7,22 +7,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import com.devonfw.ide.gui.ui.controls.console.ConsoleViewModel;
+
+import com.devonfw.ide.gui.event.GuiEventBus;
+import com.devonfw.ide.gui.event.TabChangeEvent;
+
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.stage.Stage;
 
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.ide.gui.HeadlessApplicationTest;
 import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.context.TaskManager;
-import com.devonfw.ide.gui.event.GuiEventBus;
-import com.devonfw.ide.gui.event.TabChangeEvent;
 import com.devonfw.ide.gui.service.CommandletService;
 import com.devonfw.ide.gui.service.NlsService;
-import com.devonfw.ide.gui.ui.controls.console.ConsoleController;
 
 /**
  * Tests for {@link TabFactory} focusing on how a tab is identified for de-duplication. A tab must be identified by its stable NLS key, not by its
@@ -61,14 +65,9 @@ class TabFactoryTest extends HeadlessApplicationTest {
    */
   private void openLauncherTabTwice() {
     interact(() -> {
-      GuiStateManager guiStateManager = new GuiStateManager(new TaskManager(), this.ideRoot.toString());
-      NlsService nlsService = new NlsService(Locale.ENGLISH);
-      ConsoleController consoleController = new ConsoleController(nlsService);
-      CommandletService commandletService = new CommandletService(guiStateManager, consoleController);
-      GuiEventBus eventBus = new GuiEventBus();
-      List<Tab> emitted = new ArrayList<>();
-      eventBus.addListener(TabChangeEvent.class, event -> emitted.add(event.tab()));
-      TabFactory factory = new TabFactory(guiStateManager, nlsService, commandletService, consoleController, eventBus);
+      TabFactory factory = getFactory();
+      TabPane tabPane = new TabPane();
+      this.tabPane = tabPane;
 
       factory.openLauncherTab();
       Tab first = tabPane.getTabs().get(0);
@@ -78,12 +77,24 @@ class TabFactoryTest extends HeadlessApplicationTest {
       factory.openLauncherTab();
 
       Tab second = tabPane.getTabs().get(0);
-      this.tabCount = tabPane.getTabs().size();
+      this.distinctTabCount = tabPane.getTabs().size();
       this.userData = second.getUserData();
       this.titleText = second.getText();
       this.sameInstance = (first == second);
       this.selectionRestoredToExisting = tabPane.getSelectionModel().getSelectedItem() == second;
     });
+  }
+
+  private @NonNull TabFactory getFactory() {
+    GuiStateManager guiStateManager = new GuiStateManager(new TaskManager(), this.ideRoot.toString());
+    NlsService nlsService = new NlsService(Locale.ENGLISH);
+    ConsoleViewModel consoleViewModel = new ConsoleViewModel();
+    CommandletService commandletService = new CommandletService(guiStateManager, consoleViewModel);
+    GuiEventBus eventBus = new GuiEventBus();
+    List<Tab> emitted = new ArrayList<>();
+    eventBus.addListener(TabChangeEvent.class, event -> emitted.add(event.tab()));
+    TabFactory factory = new TabFactory(guiStateManager, nlsService, commandletService, consoleViewModel, eventBus);
+    return factory;
   }
 
   /**
@@ -105,7 +116,7 @@ class TabFactoryTest extends HeadlessApplicationTest {
   void testOpenTwiceDoesNotCreateADuplicateTab() {
     openLauncherTabTwice();
 
-    assertThat(this.tabCount).as("Opening the same tab twice must not create a second tab").isEqualTo(1);
+    assertThat(this.distinctTabCount).as("Opening the same tab twice must not create a second tab").isEqualTo(1);
     assertThat(this.sameInstance).as("Opening the tab again must return to the existing tab").isTrue();
     assertThat(this.selectionRestoredToExisting).as("Opening an already-open tab must select it").isTrue();
   }

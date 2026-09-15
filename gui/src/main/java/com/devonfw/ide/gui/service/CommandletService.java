@@ -3,6 +3,8 @@ package com.devonfw.ide.gui.service;
 import java.nio.file.Path;
 import java.util.Objects;
 
+import com.devonfw.ide.gui.ui.controls.console.ConsoleViewModel;
+
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.control.Alert.AlertType;
@@ -14,7 +16,6 @@ import com.devonfw.ide.gui.context.GuiOutputListener;
 import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.context.IdeGuiContext;
 import com.devonfw.ide.gui.context.IdeGuiLogListener;
-import com.devonfw.ide.gui.ui.controls.console.ConsoleController;
 import com.devonfw.ide.gui.ui.modal.IdeDialog;
 import com.devonfw.ide.gui.ui.progress.ProgressBarTask;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
@@ -28,7 +29,7 @@ public class CommandletService {
   private static final Logger LOG = LoggerFactory.getLogger(CommandletService.class);
 
   private final GuiStateManager guiStateManager;
-  private final ConsoleController consoleController;
+  private final ConsoleViewModel consoleViewModel;
 
   private IdeGuiLogListener guiLogListener;
   private GuiOutputListener guiOutputListener;
@@ -44,13 +45,13 @@ public class CommandletService {
    * Creates the service.
    *
    * @param guiStateManager the app-wide selection and context holder.
-   * @param consoleController the console that commandlet output is forwarded to.
+   * @param consoleViewModel the console that commandlet output is forwarded to.
    */
-  public CommandletService(GuiStateManager guiStateManager, ConsoleController consoleController) {
+  public CommandletService(GuiStateManager guiStateManager, ConsoleViewModel consoleViewModel) {
     this.guiStateManager = Objects.requireNonNull(guiStateManager);
-    this.consoleController = Objects.requireNonNull(consoleController);
-    this.guiLogListener = new IdeGuiLogListener(consoleController);
-    this.guiOutputListener = new GuiOutputListener(consoleController);
+    this.consoleViewModel = Objects.requireNonNull(consoleViewModel);
+    this.guiLogListener = new IdeGuiLogListener(consoleViewModel);
+    this.guiOutputListener = new GuiOutputListener(consoleViewModel);
   }
 
   /**
@@ -74,8 +75,8 @@ public class CommandletService {
 
     Task<Void> commandletTask = runCommandletTask(commandlet);
 
-    this.guiLogListener = new IdeGuiLogListener(consoleController);
-    this.guiOutputListener = new GuiOutputListener(consoleController);
+    this.guiLogListener = new IdeGuiLogListener(consoleViewModel);
+    this.guiOutputListener = new GuiOutputListener(consoleViewModel);
 
     Thread commandletThread = new Thread(commandletTask);
     commandletThread.setDaemon(true);
@@ -104,7 +105,7 @@ public class CommandletService {
             LOG.info("Commandlet {} completed successfully.", commandlet);
           } catch (Exception e) {
             LOG.error("Failed to run commandlet {}: {}", commandlet, e.getMessage(), e);
-            consoleController.appendOutput("[ERROR] Failed to launch " + commandlet + ": " + e.getMessage());
+            consoleViewModel.appendOutput("[ERROR] Failed to launch " + commandlet + ": " + e.getMessage());
           }
           return null;
         }

@@ -2,12 +2,13 @@ package com.devonfw.ide.gui.factory;
 
 import java.util.Objects;
 
+import com.devonfw.ide.gui.ui.controls.console.ConsoleViewModel;
+
 import javafx.scene.control.TabPane;
 
 import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.service.CommandletService;
 import com.devonfw.ide.gui.service.NlsService;
-import com.devonfw.ide.gui.ui.controls.console.ConsoleController;
 import com.devonfw.ide.gui.ui.tab.TabComponent;
 import com.devonfw.ide.gui.ui.tab.launcher.IdeLauncherTab;
 
@@ -21,7 +22,7 @@ public class TabFactory {
 
   private final GuiStateManager guiStateManager;
   private final NlsService nlsService;
-  private final ConsoleController consoleController;
+  private final ConsoleViewModel consoleViewModel;
   private final CommandletService commandletService;
   private final EventBus eventBus;
 
@@ -31,13 +32,12 @@ public class TabFactory {
    * @param guiStateManager the app-wide selection and context holder.
    * @param nlsService the localization service.
    * @param commandletService runs commandlets on tab actions.
-   * @param consoleController the controller of the console pane.
+   * @param consoleViewModel the controller of the console pane.
    */
-  public TabFactory(GuiStateManager guiStateManager, NlsService nlsService, CommandletService commandletService, ConsoleController consoleController,
-      EventBus eventBus) {
+  public TabFactory(GuiStateManager guiStateManager, NlsService nlsService, CommandletService commandletService, ConsoleViewModel consoleViewModel, EventBus eventBus) {
     this.guiStateManager = Objects.requireNonNull(guiStateManager);
     this.nlsService = Objects.requireNonNull(nlsService);
-    this.consoleController = Objects.requireNonNull(consoleController);
+    this.consoleViewModel = Objects.requireNonNull(consoleViewModel);
     this.commandletService = Objects.requireNonNull(commandletService);
     this.eventBus = Objects.requireNonNull(eventBus);
   }
@@ -58,11 +58,10 @@ public class TabFactory {
    * Opens (or focuses) the IDE launcher tab.
    */
   public void openLauncherTab() {
-    open(new IdeLauncherTab(guiStateManager, commandletService, nlsService, consoleController));
+    open(new IdeLauncherTab(guiStateManager, commandletService, nlsService, consoleViewModel));
   }
 
   private void open(TabComponent tabComponent) {
     this.eventBus.sendEvent(tabComponent.createTabChangeEvent());
   }
-
 }

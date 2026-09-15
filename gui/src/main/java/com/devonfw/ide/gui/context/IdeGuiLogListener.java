@@ -1,20 +1,20 @@
 package com.devonfw.ide.gui.context;
 
 
-import com.devonfw.ide.gui.ui.controls.console.ConsoleController;
+import com.devonfw.ide.gui.ui.controls.console.ConsoleViewModel;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeLogListenerBuffer;
 
 /// Listener class that listens to internal ideasy output, e.g. output from commandlets that are run.
 public class IdeGuiLogListener extends IdeLogListenerBuffer {
 
-  private final ConsoleController consoleController;
+  private final ConsoleViewModel consoleView;
 
-  /// @param consoleController the console controller to output messages to
-  public IdeGuiLogListener(ConsoleController consoleController) {
+  /// @param consoleView the console controller to output messages to
+  public IdeGuiLogListener(ConsoleViewModel consoleView) {
 
     super();
-    this.consoleController = consoleController;
+    this.consoleView = consoleView;
   }
 
   @Override
@@ -25,10 +25,10 @@ public class IdeGuiLogListener extends IdeLogListenerBuffer {
       super.onLog(level, message, rawMessage, args, error);
     }
 
-    if (this.consoleController != null && message != null) {
-      this.consoleController.appendOutput(level, message);
+    if (this.consoleView != null && message != null) {
+      this.consoleView.appendOutput(level, message);
       if (error != null) {
-        this.consoleController.appendOutput(IdeLogLevel.ERROR, "  Error: " + error.getMessage());
+        this.consoleView.appendOutput(IdeLogLevel.ERROR, "  Error: " + error.getMessage());
       }
     }
     return true; // continue processing (also log to standard output if needed)
