@@ -49,7 +49,7 @@ public class ConsoleView {
     setupEventHandlers();
 
     autoScrollCheckBox.selectedProperty().bindBidirectional(viewModel.autoScrollEnabledProperty());
-    lineCountLabel.textProperty().bind(viewModel.lineCountProperty().asString());
+    lineCountLabel.textProperty().bind(viewModel.lineCountProperty().asString().concat(" lines"));
   }
 
   /**

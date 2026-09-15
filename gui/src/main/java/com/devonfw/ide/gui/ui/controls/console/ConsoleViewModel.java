@@ -22,8 +22,7 @@ import java.util.stream.Collectors;
  * View-model for the console control.
  *
  * <p>Collects log entries produced by the application and exposes them as an observable, read-only list
- * suitable for binding to UI controls. Messages are buffered to avoid flooding the JavaFX application
- * thread and flushed in batches via FxHelper.</p>
+ * suitable for binding to UI controls. Messages are buffered to avoid flooding the JavaFX application thread and flushed in batches via FxHelper.</p>
  */
 public class ConsoleViewModel {
 
@@ -40,6 +39,17 @@ public class ConsoleViewModel {
    * {@link javafx.application.Platform#runLater(Runnable)} submissions.
    */
   private final Deque<IdeLogEntry> outputBuffer = new ArrayDeque<>();
+
+
+  public ConsoleViewModel() {
+    logEntries.addListener((ListChangeListener<IdeLogEntry>) change -> {
+      while (change.next()) {
+        if (change.wasAdded() || change.wasRemoved()) {
+          lineCount.set(logEntries.size());
+        }
+      }
+    });
+  }
 
   /**
    * Prints a log entry to the console.
@@ -98,13 +108,13 @@ public class ConsoleViewModel {
   }
 
   /**
-     * Gets an unmodifiable observable list of log entries currently shown in the console.
-     *
-     * @return read-only observable list of IdeLogEntry instances suitable for UI binding
-     */
-    public ObservableList<IdeLogEntry> logEntries() {
-      return logEntries;
-    }
+   * Gets an unmodifiable observable list of log entries currently shown in the console.
+   *
+   * @return read-only observable list of IdeLogEntry instances suitable for UI binding
+   */
+  public ObservableList<IdeLogEntry> logEntries() {
+    return readOnlyLogEntries;
+  }
 
   /**
    * Clears the console.
@@ -130,22 +140,22 @@ public class ConsoleViewModel {
   }
 
   /**
-     * Property that controls whether the console should automatically scroll to the end when new
-     * entries are appended. Bind this to the UI toggle controlling auto-scroll behaviour.
-     *
-     * @return the auto-scroll enabled boolean property
-     */
-    public SimpleBooleanProperty autoScrollEnabledProperty() {
-      return autoScrollEnabled;
-    }
+   * Property that controls whether the console should automatically scroll to the end when new entries are appended. Bind this to the UI toggle controlling
+   * auto-scroll behaviour.
+   *
+   * @return the auto-scroll enabled boolean property
+   */
+  public SimpleBooleanProperty autoScrollEnabledProperty() {
+    return autoScrollEnabled;
+  }
 
   /**
-     * Property exposing the current number of displayed log entries. Updated automatically when
-     * entries are added or removed; suitable for binding to UI labels or status indicators.
-     *
-     * @return integer property containing the current line count
-     */
-    public SimpleIntegerProperty lineCountProperty() {
-      return lineCount;
-    }
+   * Property exposing the current number of displayed log entries. Updated automatically when entries are added or removed; suitable for binding to UI labels
+   * or status indicators.
+   *
+   * @return integer property containing the current line count
+   */
+  public SimpleIntegerProperty lineCountProperty() {
+    return lineCount;
+  }
 }
