@@ -13,9 +13,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.ListChangeListener;
 
 import com.devonfw.ide.gui.context.GuiStateManager;
-import com.devonfw.ide.gui.context.ProjectManager;
 import com.devonfw.ide.gui.factory.TabFactory;
-import com.devonfw.ide.gui.helper.combobox.ComboBoxViewModel;
 import com.devonfw.ide.gui.service.NlsService;
 import com.devonfw.ide.gui.ui.progress.ProgressBarTask;
 
@@ -30,14 +28,6 @@ public class MainWindowViewModel {
   private final NlsService nlsService;
 
   private final TabFactory tabFactory;
-
-  private final ComboBoxViewModel<String> projects = new ComboBoxViewModel<>();
-
-  private final ComboBoxViewModel<String> workspaces = new ComboBoxViewModel<>();
-
-  private final ComboBoxViewModel<String> languages = new ComboBoxViewModel<>();
-
-  private final Map<String, Locale> languageMap = new LinkedHashMap<>();
 
   private final StringProperty statusText = new SimpleStringProperty();
 
@@ -60,6 +50,7 @@ public class MainWindowViewModel {
     this.guiStateManager = Objects.requireNonNull(guiStateManager);
     this.nlsService = Objects.requireNonNull(nlsService);
     this.tabFactory = Objects.requireNonNull(tabFactory);
+    this.tabFactory.setPreLaunchAction(() -> this.setConsoleVisible(true));
 
     this.statusText.set(this.nlsService.get("ideasy_ready_msg"));
 

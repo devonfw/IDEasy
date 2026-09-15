@@ -20,7 +20,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.context.GuiStateManager;
-import com.devonfw.ide.gui.event.TabOpenEvent;
+import com.devonfw.ide.gui.event.TabChangeEvent;
+import com.devonfw.ide.gui.factory.TabFactory;
 import com.devonfw.ide.gui.service.NlsService;
 import com.devonfw.ide.gui.ui.controls.console.ConsoleController;
 import com.devonfw.ide.gui.ui.controls.mainwindow.NavigationPanelView;
@@ -121,8 +122,7 @@ public class MainWindowView extends BorderPane {
     final NavigationPanelViewModel navigationPanelViewModel = new NavigationPanelViewModel(this.guiStateManager, this.nlsService);
     setLeft(new NavigationPanelView(navigationPanelViewModel, this.nlsService));
 
-
-    this.eventBus.addListener(TabOpenEvent.class, e -> mountTab(e.tab()));
+    this.eventBus.addListener(TabChangeEvent.class, e -> handleTab(e.tab()));
 
     this.centerDivider = this.centerSplitPane.getDividers().getFirst();
 
@@ -132,12 +132,12 @@ public class MainWindowView extends BorderPane {
     this.viewModel.openLauncherTab();
   }
 
-  private void mountTab(Tab tab) {
+  private void handleTab(Tab tab) {
 
-    if (!this.tabContainer.getTabs().contains(tab)) {
-      this.tabContainer.getTabs().add(tab);
+    if (!this.tabPane.getTabs().contains(tab)) {
+      this.tabPane.getTabs().add(tab);
     }
-    this.tabContainer.getSelectionModel().select(tab);
+    this.tabPane.getSelectionModel().select(tab);
   }
 
   private void bindConsole() {

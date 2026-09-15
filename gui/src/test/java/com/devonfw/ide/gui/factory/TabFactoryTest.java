@@ -19,7 +19,7 @@ import com.devonfw.ide.gui.HeadlessApplicationTest;
 import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.context.TaskManager;
 import com.devonfw.ide.gui.event.GuiEventBus;
-import com.devonfw.ide.gui.event.TabOpenEvent;
+import com.devonfw.ide.gui.event.TabChangeEvent;
 import com.devonfw.ide.gui.service.CommandletService;
 import com.devonfw.ide.gui.service.NlsService;
 import com.devonfw.ide.gui.ui.controls.console.ConsoleController;
@@ -29,7 +29,7 @@ import com.devonfw.ide.gui.ui.controls.console.ConsoleController;
  * (locale-dependent, translated) title text.
  *
  * <p>The factory no longer owns a {@link javafx.scene.control.TabPane}; each {@link TabFactory#open(String, javafx.scene.Node) open} publishes a
- * {@link TabOpenEvent} on the {@link GuiEventBus}. These tests subscribe to the bus and assert on the emitted tabs.
+ * {@link TabChangeEvent} on the {@link GuiEventBus}. These tests subscribe to the bus and assert on the emitted tabs.
  */
 class TabFactoryTest extends HeadlessApplicationTest {
 
@@ -67,7 +67,7 @@ class TabFactoryTest extends HeadlessApplicationTest {
       CommandletService commandletService = new CommandletService(guiStateManager, consoleController);
       GuiEventBus eventBus = new GuiEventBus();
       List<Tab> emitted = new ArrayList<>();
-      eventBus.addListener(TabOpenEvent.class, event -> emitted.add(event.tab()));
+      eventBus.addListener(TabChangeEvent.class, event -> emitted.add(event.tab()));
       TabFactory factory = new TabFactory(guiStateManager, nlsService, commandletService, consoleController, eventBus);
 
       factory.openLauncherTab();

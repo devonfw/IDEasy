@@ -1,20 +1,15 @@
 package com.devonfw.ide.gui.factory;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Objects;
 
-import javafx.scene.Node;
-import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 
 import com.devonfw.ide.gui.context.GuiStateManager;
-import com.devonfw.ide.gui.event.TabOpenEvent;
 import com.devonfw.ide.gui.service.CommandletService;
 import com.devonfw.ide.gui.service.NlsService;
 import com.devonfw.ide.gui.ui.controls.console.ConsoleController;
-import com.devonfw.ide.gui.ui.tab.launcher.IdeLauncherView;
-import com.devonfw.ide.gui.ui.tab.launcher.IdeLauncherViewModel;
+import com.devonfw.ide.gui.ui.tab.TabComponent;
+import com.devonfw.ide.gui.ui.tab.launcher.IdeLauncherTab;
 
 import io.github.mmm.event.EventBus;
 
@@ -30,8 +25,6 @@ public class TabFactory {
   private final CommandletService commandletService;
   private final EventBus eventBus;
 
-  private final Map<String, Tab> openTabs = new LinkedHashMap<>();
-
   /**
    * Creates the factory.
    *
@@ -40,8 +33,8 @@ public class TabFactory {
    * @param commandletService runs commandlets on tab actions.
    * @param consoleController the controller of the console pane.
    */
-  public TabFactory(GuiStateManager guiStateManager, NlsService nlsService, CommandletService commandletService,
-      ConsoleController consoleController, EventBus eventBus) {
+  public TabFactory(GuiStateManager guiStateManager, NlsService nlsService, CommandletService commandletService, ConsoleController consoleController,
+      EventBus eventBus) {
     this.guiStateManager = Objects.requireNonNull(guiStateManager);
     this.nlsService = Objects.requireNonNull(nlsService);
     this.consoleController = Objects.requireNonNull(consoleController);
@@ -69,22 +62,7 @@ public class TabFactory {
   }
 
   private void open(TabComponent tabComponent) {
-
-    String nlsTitleKey = tabComponent.getTabTitleKey();
-
-    Tab existing = this.openTabs.get(nlsTitleKey);
-    if (existing != null) {
-      this.eventBus.sendEvent(new TabOpenEvent(existing));
-      return;
-    }
-
-    Tab tab = new Tab(this.nlsService.get(nlsTitleKey), tabComponent.createView());
-    tab.setUserData(nlsTitleKey);
-    tab.setClosable(true);
-    this.openTabs.put(nlsTitleKey, tab);
-    this.eventBus.sendEvent(new TabOpenEvent(tab));
+    this.eventBus.sendEvent(tabComponent.createTabChangeEvent());
   }
-
-
 
 }
