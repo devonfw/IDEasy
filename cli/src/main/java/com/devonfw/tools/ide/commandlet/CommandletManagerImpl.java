@@ -23,6 +23,7 @@ import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.androidstudio.AndroidStudio;
+import com.devonfw.tools.ide.tool.agy.Agy;
 import com.devonfw.tools.ide.tool.aws.Aws;
 import com.devonfw.tools.ide.tool.az.Azure;
 import com.devonfw.tools.ide.tool.cdk.Cdk;
@@ -190,6 +191,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Spyder(context));
     add(new Nest(context));
     add(new Cdk(context));
+    add(new Agy(context));
     add(new Claude(context));
     add(new Mvnd(context));
     add(new Just(context));
