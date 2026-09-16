@@ -1,14 +1,22 @@
 package com.devonfw.tools.ide.tool;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.os.WindowsAppInstallation;
 import com.devonfw.tools.ide.os.WindowsHelperMock;
@@ -198,5 +206,152 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     assertThat(cmd.commands()).containsExactly(
         "sudo apt -y autoremove --purge mytool",
         "sudo rm -f /etc/apt/sources.list.d/mytool.list");
+  }
+
+  /**
+   * Dummy {@link GlobalToolCommandlet} that declares a Homebrew cask for testing macOS uninstall via {@link NativePackageManager#BREW_CASK}.
+   */
+  static class BrewCaskToolCommandlet extends GlobalToolCommandlet {
+
+    private static final String TOOL_NAME = "mytool";
+
+    BrewCaskToolCommandlet(IdeContext context) {
+
+      super(context, TOOL_NAME, Set.of(Tag.MISC));
+    }
+
+    @Override
+    protected List<NativePackage> getNativePackages() {
+
+      return List.of(new NativePackage(NativePackageManager.BREW_CASK, List.of(TOOL_NAME)));
+    }
+
+    @Override
+    protected String getBinaryName() {
+      return TOOL_NAME;
+    }
+  }
+
+  /**
+   * Verifies that {@link GlobalToolCommandlet#getUninstallPackageManagerCommands()} derives a Homebrew cask uninstall command without a {@code sudo} prefix
+   * (Homebrew must never be run as root).
+   */
+  @Test
+  void testGetUninstallPackageManagerCommandsDerivesBrewCaskWithoutSudo() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setSystemInfo(SystemInfoMock.MAC_X64);
+    BrewCaskToolCommandlet commandlet = new BrewCaskToolCommandlet(context);
+
+    // act
+    List<PackageManagerCommand> uninstallCommands = commandlet.getUninstallPackageManagerCommands();
+
+    // assert
+    assertThat(uninstallCommands).hasSize(1);
+    PackageManagerCommand cmd = uninstallCommands.getFirst();
+    assertThat(cmd.packageManager()).isEqualTo(NativePackageManager.BREW_CASK);
+    assertThat(cmd.commands()).containsExactly("brew uninstall --cask mytool");
+  }
+
+  /**
+   * Dummy {@link GlobalToolCommandlet} that declares a known macOS application bundle name but no package manager, for testing the *.app removal fallback of
+   * {@link GlobalToolCommandlet#uninstall()}.
+   */
+  static class MacAppBundleToolCommandlet extends GlobalToolCommandlet {
+
+    private static final String TOOL_NAME = "mytool";
+
+    MacAppBundleToolCommandlet(IdeContext context) {
+
+      super(context, TOOL_NAME, Set.of(Tag.MISC));
+    }
+
+    @Override
+    protected String getBinaryName() {
+      return TOOL_NAME;
+    }
+
+    @Override
+    public String getMacApplicationName() {
+      return "MyTool";
+    }
+  }
+
+  /**
+   * Verifies that on macOS, when no package manager can uninstall the tool, {@link GlobalToolCommandlet#uninstall()} removes the known *.app bundle from the
+   * user's Applications folder.
+   */
+  @Test
+  void testUninstallOnMacRemovesKnownApplicationBundle() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setSystemInfo(SystemInfoMock.MAC_X64);
+    MacAppBundleToolCommandlet commandlet = new MacAppBundleToolCommandlet(context);
+    Path appBundle = context.getUserHome().resolve("Applications").resolve("MyTool.app");
+    context.getFileAccess().mkdirs(appBundle);
+
+    // act
+    commandlet.uninstall();
+
+    // assert
+    assertThat(appBundle).doesNotExist();
+    assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("Successfully uninstalled mytool by removing " + appBundle));
+  }
+
+  /**
+   * Verifies that on macOS, when the known *.app bundle exists but cannot be deleted (e.g. because - since macOS Monterey - the Applications folder is
+   * protected and denies the operation), {@link GlobalToolCommandlet#uninstall()} does not let the resulting exception propagate but falls back to logging
+   * manual-uninstall guidance instead.
+   */
+  @Test
+  @DisabledOnOs(OS.WINDOWS)
+  void testUninstallOnMacFallsBackToGuidanceWhenApplicationBundleCannotBeDeleted() throws IOException {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setSystemInfo(SystemInfoMock.MAC_X64);
+    MacAppBundleToolCommandlet commandlet = new MacAppBundleToolCommandlet(context);
+    Path applicationsDir = context.getUserHome().resolve("Applications");
+    Path appBundle = applicationsDir.resolve("MyTool.app");
+    context.getFileAccess().mkdirs(appBundle);
+    // deleting an entry requires write permission on its *parent* directory - remove it to simulate macOS denying the deletion
+    Files.setPosixFilePermissions(applicationsDir, EnumSet.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_EXECUTE));
+
+    try {
+      // act
+      commandlet.uninstall();
+
+      // assert: deletion failed so the bundle is still there and we fell back to manual guidance instead of crashing
+      assertThat(appBundle).exists();
+      assertThat(context).logAtWarning().hasMessageContaining("Could not automatically remove " + appBundle);
+      assertThat(context).logAtError().hasMessageContaining("Couldn't automatically uninstall mytool on macOS");
+    } finally {
+      // restore write permission so the temp directory can be cleaned up afterwards
+      Files.setPosixFilePermissions(applicationsDir,
+          EnumSet.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE, PosixFilePermission.OWNER_EXECUTE));
+    }
+  }
+
+  /**
+   * Verifies that on macOS, when neither a package manager nor a known *.app bundle can be found, {@link GlobalToolCommandlet#uninstall()} logs actionable
+   * manual-uninstall guidance instead of the previous generic "uninstall manually" error.
+   */
+  @Test
+  void testUninstallOnMacLogsManualGuidanceWhenNothingFound() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setSystemInfo(SystemInfoMock.MAC_X64);
+    AsyncInstallerToolCommandlet commandlet = new AsyncInstallerToolCommandlet(context);
+
+    // act
+    commandlet.uninstall();
+
+    // assert
+    assertThat(context).logAtError().hasMessageContaining(
+        "Couldn't automatically uninstall " + TOOL_NAME + " on macOS. Please uninstall it manually, e.g. by moving it from the Applications folder to the "
+            + "Trash");
   }
 }
