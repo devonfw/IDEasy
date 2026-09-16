@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
@@ -19,6 +21,7 @@ import com.devonfw.tools.ide.tool.dotnet.DotNet;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.node.Node;
+import com.devonfw.tools.ide.tool.pip.Pip;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
@@ -84,6 +87,64 @@ class UninstallCommandletTest extends AbstractIdeContextTest {
     // assert
     assertThat(context).logAtWarning().hasMessage("Couldn't uninstall " + eclipse + " because we could not find an installation");
     assertThat(context.getSoftwarePath().resolve(eclipse)).doesNotExist();
+  }
+
+  /**
+   * Tests that {@code ide uninstall} removes a broken software symlink when the tool is no longer considered installed.
+   */
+  @Test
+  void testUninstallRemovesBrokenSoftwareLink() {
+
+    // arrange
+    String tool = "az";
+    IdeTestContext context = newContext(PROJECT);
+    mockInstallTool(context, tool);
+    Path softwareToolPath = context.getSoftwarePath().resolve(tool);
+    Path installationPath = context.getSoftwareRepositoryPath()
+        .resolve(context.getDefaultToolRepository().getId()).resolve(tool).resolve(tool).resolve("testVersion");
+    // remove the installation target so the project software entry becomes a broken link
+    context.getFileAccess().delete(installationPath);
+    assertThat(Files.exists(softwareToolPath, LinkOption.NOFOLLOW_LINKS)).isTrue();
+    assertThat(Files.exists(softwareToolPath)).isFalse();
+
+    CommandletManager commandletManager = context.getCommandletManager();
+    UninstallCommandlet uninstallCommandlet = commandletManager.getCommandlet(UninstallCommandlet.class);
+    Azure azureCommandlet = commandletManager.getCommandlet(Azure.class);
+    uninstallCommandlet.tools.addValue(azureCommandlet);
+
+    // act
+    uninstallCommandlet.run();
+
+    // assert
+    assertThat(context).logAtSuccess().hasMessage("Successfully uninstalled " + tool);
+    assertThat(Files.exists(softwareToolPath, LinkOption.NOFOLLOW_LINKS)).isFalse();
+  }
+
+  /**
+   * Tests that {@code ide uninstall} removes a leftover software folder under the tool name even when the commandlet is
+   * not considered installed (e.g. package-manager tools whose {@code getToolPath()} points to the parent tool).
+   */
+  @Test
+  void testUninstallRemovesLeftoverSoftwareFolder() throws Exception {
+
+    // arrange
+    String tool = "pip";
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    Path leftoverPath = context.getSoftwarePath().resolve(tool);
+    Files.createDirectories(leftoverPath);
+    Files.writeString(leftoverPath.resolve(IdeContext.FILE_SOFTWARE_VERSION), "4");
+    Pip pipCommandlet = context.getCommandletManager().getCommandlet(Pip.class);
+    assertThat(pipCommandlet.isInstalled()).isFalse();
+
+    UninstallCommandlet uninstallCommandlet = context.getCommandletManager().getCommandlet(UninstallCommandlet.class);
+    uninstallCommandlet.tools.addValue(pipCommandlet);
+
+    // act
+    uninstallCommandlet.run();
+
+    // assert
+    assertThat(context).logAtSuccess().hasMessage("Successfully uninstalled " + tool);
+    assertThat(leftoverPath).doesNotExist();
   }
 
   @Test

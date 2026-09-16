@@ -560,7 +560,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   public void uninstall() {
     try {
       Path toolPath = getToolPath();
-      if (!Files.exists(toolPath)) {
+      // Use NOFOLLOW_LINKS so a broken symlink/junction is still detected and deleted.
+      if (!Files.exists(toolPath, LinkOption.NOFOLLOW_LINKS)) {
         LOG.warn("An installed version of {} does not exist.", this.tool);
         return;
       }
