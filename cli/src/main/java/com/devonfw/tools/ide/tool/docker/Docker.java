@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.tool.docker;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -8,6 +10,7 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
@@ -18,6 +21,8 @@ import com.devonfw.tools.ide.tool.NativePackage;
 import com.devonfw.tools.ide.tool.NativePackageManager;
 import com.devonfw.tools.ide.tool.ToolEdition;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
+import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -51,21 +56,44 @@ public class Docker extends GlobalToolCommandlet {
   }
 
   private boolean isDockerInstalled() {
-    return isCommandAvailable("docker");
+    return resolveRancherDesktopCommand("docker") != null;
   }
 
   private boolean isRancherDesktopInstalled() {
-    return isCommandAvailable("rdctl");
+    return resolveRancherDesktopCommand("rdctl") != null;
   }
 
   private String detectContainerRuntime() {
-    if (isCommandAvailable(this.tool)) {
-      return this.tool;
+    String docker = resolveRancherDesktopCommand(this.tool);
+    if (docker != null) {
+      return docker;
     } else if (isCommandAvailable(PODMAN)) {
       return PODMAN;
     } else {
       return this.tool;
     }
+  }
+
+  /**
+   * Rancher Desktop links its CLI tools (docker, kubectl, rdctl) into the fixed {@code ~/.rd/bin} directory, which it creates on its first launch.
+   * Depending on the user's path management strategy this directory may not be on the PATH, so we look it up there explicitly as a fallback.
+   *
+   * @param command the name of the Rancher Desktop CLI to resolve.
+   * @return the {@code command} unchanged if available on PATH, otherwise its absolute path inside {@code ~/.rd/bin} or {@code null} if not found.
+   */
+  private String resolveRancherDesktopCommand(String command) {
+    if (isCommandAvailable(command)) {
+      return command;
+    }
+    Path rancherDesktopBinary = getRancherDesktopBinDir().resolve(command);
+    if (Files.exists(rancherDesktopBinary)) {
+      return rancherDesktopBinary.toString();
+    }
+    return null;
+  }
+
+  private Path getRancherDesktopBinDir() {
+    return this.context.getUserHome().resolve(".rd").resolve("bin");
   }
 
   @Override
@@ -130,6 +158,17 @@ public class Docker extends GlobalToolCommandlet {
   }
 
   @Override
+  protected ToolInstallation doInstall(ToolInstallRequest request) {
+
+    ToolInstallation installation = super.doInstall(request);
+    if (this.context.getSystemInfo().isLinux() && !Files.isDirectory(getRancherDesktopBinDir())) {
+      throw new CliException("Rancher Desktop has been installed but not launched yet. Please start Rancher Desktop once so that it sets up its "
+          + "command-line tools (docker, kubectl, ...) in ~/.rd/bin, then re-run your command.", 2);
+    }
+    return installation;
+  }
+
+  @Override
   protected EditionAndVersion computeInstalledEditionAndVersion() {
 
     if (!isDockerInstalled()) {
@@ -191,8 +230,9 @@ public class Docker extends GlobalToolCommandlet {
   private VersionIdentifier getRancherDesktopClientVersion() {
 
     // rdctl may be on the PATH as a dangling symlink (e.g. Rancher Desktop was removed but ~/.rd/bin remained) so executing it can fail to start the process
+    String rdctl = resolveRancherDesktopCommand("rdctl");
     try {
-      String output = this.context.newProcess().runAndGetSingleOutput("rdctl", "version");
+      String output = this.context.newProcess().runAndGetSingleOutput(rdctl, "version");
       return resolveVersionWithPattern(output, RDCTL_CLIENT_VERSION_PATTERN);
     } catch (IllegalStateException e) {
       LOG.warn("Could not determine the installed Rancher Desktop version - rdctl could not be executed: {}", e.getMessage());
