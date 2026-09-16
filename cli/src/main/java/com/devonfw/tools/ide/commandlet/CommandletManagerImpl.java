@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.commandlet.cleanup.CleanupCommandlet;
+import com.devonfw.tools.ide.commandlet.update.UpdateCommandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.repository.RepositoryCommandlet;
@@ -56,6 +57,7 @@ import com.devonfw.tools.ide.tool.nest.Nest;
 import com.devonfw.tools.ide.tool.ng.Ng;
 import com.devonfw.tools.ide.tool.node.Node;
 import com.devonfw.tools.ide.tool.npm.Npm;
+import com.devonfw.tools.ide.tool.obsidian.Obsidian;
 import com.devonfw.tools.ide.tool.oc.Oc;
 import com.devonfw.tools.ide.tool.pgadmin.PgAdmin;
 import com.devonfw.tools.ide.tool.pip.Pip;
@@ -193,6 +195,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Just(context));
     add(new SoapUi(context));
     add(new Ruff(context));
+    add(new Obsidian(context));
   }
 
   /**
