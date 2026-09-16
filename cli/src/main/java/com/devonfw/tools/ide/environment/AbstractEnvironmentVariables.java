@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.expression.ExpressionContext;
 import com.devonfw.tools.ide.expression.ExpressionFunctionManager;
@@ -206,7 +207,9 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
       return null;
     }
     if (recursion > MAX_RECURSION) {
-      throw new IllegalStateException(
+      // a circular variable reference is a configuration error of the user and therefore reported as CliException and not as IllegalStateException that
+      // would indicate a programming error and reach the end-user as a stacktrace
+      throw new CliException(
           "Reached maximum recursion resolving " + value + " for root variable " + context.rootSrc + " with value '" + context.rootValue + "'.");
     }
     recursion++;
