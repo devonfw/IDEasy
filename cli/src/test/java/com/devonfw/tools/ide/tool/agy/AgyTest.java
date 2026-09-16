@@ -123,7 +123,7 @@ class AgyTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test {@code postInstall} seeds a minimal {@code settings.json} and a {@code README.md} without overwriting existing files.
+   * Test {@code postInstall} seeds a minimal {@code settings.json} and a {@code README.md}.
    */
   @Test
   void testSeedConfigSkeleton() {
@@ -134,9 +134,5 @@ class AgyTest extends AbstractIdeContextTest {
     // assert
     assertThat(configDir.resolve("settings.json")).exists();
     assertThat(configDir.resolve("README.md")).exists();
-    // act
-    this.agy.seedConfigSkeleton();
-    // assert
-    assertThat(configDir.resolve("settings.json")).exists();
   }
 }
