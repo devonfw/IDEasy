@@ -10,7 +10,6 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
@@ -145,9 +144,9 @@ public class Docker extends GlobalToolCommandlet {
   protected ToolInstallation doInstall(ToolInstallRequest request) {
 
     ToolInstallation installation = super.doInstall(request);
-    if (this.context.getSystemInfo().isLinux() && !Files.isDirectory(getRancherDesktopBinDir())) {
-      throw new CliException("Rancher Desktop has been installed but not launched yet. Please start Rancher Desktop once so that it sets up its "
-          + "command-line tools (docker, kubectl, ...) in ~/.rd/bin, then re-run your command.", 2);
+    if (this.context.getSystemInfo().isLinux() && isRancherDesktopInstalled() && !Files.isDirectory(getRancherDesktopBinDir())) {
+      LOG.warn("Rancher Desktop has been installed but not launched yet. Please start Rancher Desktop once so that it sets up its "
+          + "command-line tools (docker, kubectl, ...) in {}, then re-run your command.", getRancherDesktopBinDir());
     }
     return installation;
   }
