@@ -80,10 +80,10 @@ public class Docker extends GlobalToolCommandlet {
    * Rancher Desktop links its CLI tools (docker, kubectl, rdctl) into the fixed {@code ~/.rd/bin} directory, which it creates on its first launch.
    * Depending on the user's path management strategy this directory may not be on the PATH, so we look it up there explicitly as a fallback.
    *
-   * @param command the name of a CLI shipped with the docker installation (e.g. docker, rdctl).
+   * @param command the name of a CLI shipped with the docker installation (e.g. docker, rdctl, kubectl).
    * @return the {@code command} unchanged if available on PATH, otherwise its absolute path inside {@code ~/.rd/bin} or {@code null} if not found.
    */
-  private String resolveDockerCommand(String command) {
+  public String resolveDockerCommand(String command) {
     if (isCommandAvailable(command)) {
       return command;
     }
