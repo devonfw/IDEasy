@@ -84,8 +84,9 @@ public class Docker extends GlobalToolCommandlet {
     if (isCommandAvailable(command)) {
       return command;
     }
-    Path rancherDesktopBinary = getRancherDesktopBinDir().resolve(command);
-    if (Files.exists(rancherDesktopBinary)) {
+    Path candidate = getRancherDesktopBinDir().resolve(command);
+    Path rancherDesktopBinary = this.context.getPath().findBinary(candidate);
+    if (rancherDesktopBinary != candidate) {
       return rancherDesktopBinary.toString();
     }
     return null;
