@@ -162,8 +162,9 @@ public class Docker extends GlobalToolCommandlet {
       return null;
     }
 
-    if (isRancherDesktopInstalled()) {
-      VersionIdentifier version = getRancherDesktopClientVersion();
+    String rdctl = resolveDockerCommand("rdctl");
+    if (rdctl != null) {
+      VersionIdentifier version = getRancherDesktopClientVersion(rdctl);
       return new EditionAndVersion("rancher", version);
     }
 
@@ -211,9 +212,8 @@ public class Docker extends GlobalToolCommandlet {
     return (output != null) ? resolveVersionWithPattern(output, DOCKER_DESKTOP_VERSION_PATTERN) : null;
   }
 
-  private VersionIdentifier getRancherDesktopClientVersion() {
+  private VersionIdentifier getRancherDesktopClientVersion(String rdctl) {
 
-    String rdctl = resolveDockerCommand("rdctl");
     String output = this.context.newProcess().runAndGetSingleOutput(rdctl, "version");
     return resolveVersionWithPattern(output, RDCTL_CLIENT_VERSION_PATTERN);
   }
