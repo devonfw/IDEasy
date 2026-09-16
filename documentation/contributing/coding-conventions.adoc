@@ -7,6 +7,22 @@ The code should follow general conventions for Java (see http://www.oracle.com/t
 We consider this as common sense instead of repeating this here.
 The following sections give us additional conventions that we consider additional.
 
+== Consistency
+
+We value homogeneity: when in doubt, follow what is already there rather than introducing a
+different way of doing the same thing. Concretely:
+
+* Follow the existing layout. Place a build, script or artifact next to what it belongs to (locality),
+not in a detached central location. E.g. the macOS PKG build script lives at
+`macos-installer/build-pkg.sh` and the Windows MSI build script at `windows-installer/build-msi.sh`
+— each next to the installer it builds, not under `.github/workflows/`. (#2344)
+* A later change follows the established pattern. If the repo already does something one way, a
+later PR should follow that way instead of adding a second one.
+* Prefer reusing existing infrastructure over reinventing the wheel — if Maven (or another build
+tool) can do the job, use it.
+* Mirror the counterpart for symmetry. When a peer module has something (a `README.adoc`, a
+`pom.xml`), a newly added peer should carry the same so the layout stays homogeneous.
+
 == Naming
 
 We follow these additional naming rules:
