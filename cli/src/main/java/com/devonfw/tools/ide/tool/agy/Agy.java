@@ -48,20 +48,20 @@ public class Agy extends LocalToolCommandlet {
    */
   private static final String README_CONTENT = """
       # Isolated Agy (Antigravity CLI) configuration
-
+      
       Agy has no environment variable to relocate its configuration, so IDEasy keeps it project-isolated by pointing
       Agy's standard home locations at this project:
         - ~/.gemini/antigravity-cli -> $IDE_HOME/conf/gemini/antigravity-cli   (theme, conversations, history)
         - ~/.gemini/config          -> $IDE_HOME/conf/gemini/config            (MCP servers, project definitions)
       The links are (re)created automatically every time you start Agy through IDEasy. The content is owned by you -
       IDEasy only creates the directories and this file, it never modifies your data.
-
+      
       ## Using Agy
       Each IDEasy project has its own Agy binary and its own configuration. Launch Agy through IDEasy (`ide agy`) in
       the project you want to use; the links are re-pointed first, so the right configuration is always picked.
       Note: if you run Agy WITHOUT IDEasy, the links are not re-pointed and Agy uses the configuration of the project
       that most recently set them up.
-
+      
       ## API key
       Put your credentials in settings.json -> env:
         { "env": { "ANTIGRAVITY_API_KEY": "..." } }
@@ -153,8 +153,8 @@ public class Agy extends LocalToolCommandlet {
 
   /**
    * Ensures that the given Agy home location resolves to the given project-local target directory by creating or replacing a symbolic link (Windows: a
-   * junction). This is a no-op when the home location already resolves to the target. If it is a regular directory that does not resolve to the target,
-   * it is left untouched and a warning is logged, so user data is never overwritten.
+   * junction). This is a no-op when the home location already resolves to the target. If it is a regular directory that does not resolve to the target, it is
+   * left untouched and a warning is logged, so user data is never overwritten.
    *
    * @param homeLocation the Agy home location that Agy reads its configuration from (e.g. {@code .gemini/antigravity-cli}).
    * @param targetDir the project-local configuration directory to link to, or {@code null} to skip.
