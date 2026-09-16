@@ -29,7 +29,7 @@ The GUI is organized around a small set of roles. Each has a single responsibili
 |Encapsulates business logic and access to data/functionality, independently of the UI. E.g. `CommandletService` runs commandlets in the selected context; `NlsService` handles localization. Initialized in `App`.
 
 |*Control*
-|A self-contained UI component of the `MainWindow` extracted from the main view to improve maintainability and separation of concerns, where a dedicated View/ViewModel split would not be worth it. E.g. the console pane (`ConsoleController`) and the navigation panel (`NavigationPanelView` + `NavigationPanelViewModel`).
+|A self-contained UI component of the `MainWindow`-shell, extracted from the main view to improve maintainability and separation of concerns. E.g. the console pane (`ConsoleController`) and the navigation panel (`NavigationPanelView` + `NavigationPanelViewModel`).
 
 |*View*
 |The UI representation without business logic. It displays data from the ViewModel through bindings and translates user gestures back onto it. E.g. `MainWindowView`, `IdeLauncherView`.
@@ -122,42 +122,18 @@ gui
         │                   │   ├── GuiOutputListener.java
         │                   │   ├── GuiStateManager.java
         │                   │   ├── IdeGuiContext.java
-        │                   │   ├── IdeGuiLogListener.java
-        │                   │   ├── ProjectManager.java
-        │                   │   └── TaskManager.java
+        │                   │   └── [Other mostly basic classes etc.]
         │                   ├── factory
-        │                   │   └── TabFactory.java
         │                   ├── helper
-        │                   │   ├── combobox
-        │                   │   │   └── ComboBoxViewModel.java
-        │                   │   └── FxHelper.java
         │                   ├── service
-        │                   │   ├── CommandletService.java
-        │                   │   └── NlsService.java
         │                   ├── ui
         │                   │   ├── controls
-        │                   │   │   ├── console/
-        │                   │   │   │   └── ConsoleController.java
-        │                   │   │   └── mainwindow/
-        │                   │   │       ├── NavigationPanelView.java
-        │                   │   │       └── NavigationPanelViewModel.java
         │                   │   ├── mainwindow
-        │                   │   │   ├── MainWindowView.java
-        │                   │   │   └── MainWindowViewModel.java
         │                   │   ├── modal
-        │                   │   │   └── IdeDialog.java
         │                   │   ├── progress
-        │                   │   │   ├── taskwindow/
-        │                   │   │   │   ├── TaskOverviewWindow.java
-        │                   │   │   │   ├── TaskOverviewWindowController.java
-        │                   │   │   │   └── TaskWindowCellFactory.java
-        │                   │   │   └── ProgressBarTask.java
         │                   │   └── tab
         │                   │       ├── launcher/
-        │                   │       │   ├── IdeLauncherView.java
-        │                   │       │   └── IdeLauncherViewModel.java
-        │                   │       ├── TabView.java
-        │                   │       └── TabViewModel.java
+        │                   │       ├── someOtherTabComponent/
         │                   ├── App.java
         │                   └── AppLauncher.java
         └── resources
@@ -213,7 +189,7 @@ This is implemented in code via resource bundles; handled by the `NlsService` cl
 
 == View / Controller Wiring via Code
 
-Views and their Controllers are **primarily wired in Java code** to allow dependency injection.
+Views and their ViewModels are **primarily wired in Java code** to allow dependency injection.
 Generally, we want to refrain from wiring a controller only via FXML:
 
 * **Programmatic Wiring**: The view instance is created, its FXML loaded, and its controller/view-model wired in Java code.
