@@ -48,20 +48,20 @@ public class Agy extends LocalToolCommandlet {
    */
   private static final String README_CONTENT = """
       # Isolated Agy (Antigravity CLI) configuration
-
+      
       Agy has no environment variable to relocate its configuration, so IDEasy keeps it project-isolated by pointing
       Agy's standard home locations at this project:
         - ~/.gemini/antigravity-cli -> $IDE_HOME/conf/gemini/antigravity-cli   (theme, conversations, history)
         - ~/.gemini/config          -> $IDE_HOME/conf/gemini/config            (MCP servers, project definitions)
       The links are (re)created automatically every time you start Agy through IDEasy. The content is owned by you -
       IDEasy only creates the directories and this file, it never modifies your data.
-
+      
       ## Using Agy
       Each IDEasy project has its own Agy binary and its own configuration. Launch Agy through IDEasy (`ide agy`) in
       the project you want to use; the links are re-pointed first, so the right configuration is always picked.
       Note: if you run Agy WITHOUT IDEasy, the links are not re-pointed and Agy uses the configuration of the project
       that most recently set them up.
-
+      
       ## API key
       Put your credentials in settings.json -> env:
         { "env": { "ANTIGRAVITY_API_KEY": "..." } }
@@ -179,7 +179,8 @@ public class Agy extends LocalToolCommandlet {
     } else if (Files.exists(homeConfigPath)) {
       // a regular directory/file that is not a link - do not clobber user data
       LOG.warn(
-          "Agy: {} already exists and is not a symbolic link/junction, skipping isolation - please move or rename it to use the project-local Agy configuration.",
+          "Agy: {} already exists and is not a symbolic link/junction, skipping isolation - "
+              + "please move or rename it to use the project-local Agy configuration.",
           homeConfigPath);
     } else {
       // ensure the parent directory exists (link() does not create parents), then create the link
