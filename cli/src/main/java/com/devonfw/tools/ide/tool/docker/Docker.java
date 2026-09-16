@@ -178,11 +178,17 @@ public class Docker extends GlobalToolCommandlet {
       return null;
     }
 
+<<<<<<< HEAD
     if (isRancherDesktopInstalled()) {
       VersionIdentifier version = getRancherDesktopClientVersion();
       if (version == null) {
         version = getNativePackageVersion();
       }
+=======
+    String rdctl = resolveDockerCommand("rdctl");
+    if (rdctl != null) {
+      VersionIdentifier version = getRancherDesktopClientVersion(rdctl);
+>>>>>>> 1f41996c (#854: Pass resolved rdctl into getRancherDesktopClientVersion)
       return new EditionAndVersion("rancher", version);
     }
 
@@ -230,7 +236,7 @@ public class Docker extends GlobalToolCommandlet {
     return (output != null) ? resolveVersionWithPattern(output, DOCKER_DESKTOP_VERSION_PATTERN) : null;
   }
 
-  private VersionIdentifier getRancherDesktopClientVersion() {
+  private VersionIdentifier getRancherDesktopClientVersion(String rdctl) {
 
     // rdctl may be on the PATH as a dangling symlink (e.g. Rancher Desktop was removed but ~/.rd/bin remained) so executing it can fail to start the process
     String rdctl = resolveRancherDesktopCommand("rdctl");
