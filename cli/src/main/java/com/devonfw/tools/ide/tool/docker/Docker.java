@@ -56,15 +56,15 @@ public class Docker extends GlobalToolCommandlet {
   }
 
   private boolean isDockerInstalled() {
-    return resolveRancherDesktopCommand("docker") != null;
+    return resolveDockerCommand("docker") != null;
   }
 
   private boolean isRancherDesktopInstalled() {
-    return resolveRancherDesktopCommand("rdctl") != null;
+    return resolveDockerCommand("rdctl") != null;
   }
 
   private String detectContainerRuntime() {
-    String docker = resolveRancherDesktopCommand(this.tool);
+    String docker = resolveDockerCommand(this.tool);
     if (docker != null) {
       return docker;
     } else if (isCommandAvailable(PODMAN)) {
@@ -78,10 +78,10 @@ public class Docker extends GlobalToolCommandlet {
    * Rancher Desktop links its CLI tools (docker, kubectl, rdctl) into the fixed {@code ~/.rd/bin} directory, which it creates on its first launch.
    * Depending on the user's path management strategy this directory may not be on the PATH, so we look it up there explicitly as a fallback.
    *
-   * @param command the name of the Rancher Desktop CLI to resolve.
+   * @param command the name of a CLI shipped with the docker installation (e.g. docker, rdctl).
    * @return the {@code command} unchanged if available on PATH, otherwise its absolute path inside {@code ~/.rd/bin} or {@code null} if not found.
    */
-  private String resolveRancherDesktopCommand(String command) {
+  private String resolveDockerCommand(String command) {
     if (isCommandAvailable(command)) {
       return command;
     }
@@ -213,7 +213,7 @@ public class Docker extends GlobalToolCommandlet {
 
   private VersionIdentifier getRancherDesktopClientVersion() {
 
-    String rdctl = resolveRancherDesktopCommand("rdctl");
+    String rdctl = resolveDockerCommand("rdctl");
     String output = this.context.newProcess().runAndGetSingleOutput(rdctl, "version");
     return resolveVersionWithPattern(output, RDCTL_CLIENT_VERSION_PATTERN);
   }
