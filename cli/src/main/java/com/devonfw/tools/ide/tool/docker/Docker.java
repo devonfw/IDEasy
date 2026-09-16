@@ -35,7 +35,6 @@ public class Docker extends GlobalToolCommandlet {
 
   private static final String PODMAN = "podman";
 
-  /** The hidden folder Rancher Desktop creates in the user's home directory on its first launch, containing its CLI tools. */
   private static final String FOLDER_RANCHER_DESKTOP = ".rd";
 
   private static final Pattern RDCTL_CLIENT_VERSION_PATTERN = Pattern.compile("client version:\\s*v?([\\d.]+)", Pattern.CASE_INSENSITIVE);
