@@ -241,9 +241,9 @@ public interface GitContext {
 
   /**
    * @param repository the {@link Path} to the folder where the git repository is located.
-   * @return the name of the default origin.
+   * @return the {@link List} with the names of all configured remotes (e.g. "origin"), or an empty {@link List} if the repository has no remote configured.
    */
-  String determineRemote(Path repository);
+  List<String> getRemotes(Path repository);
 
   /**
    * Saves the current git commit ID of a repository to a file given as an argument.
