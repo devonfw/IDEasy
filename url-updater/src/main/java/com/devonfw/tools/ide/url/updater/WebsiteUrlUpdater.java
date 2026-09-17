@@ -20,7 +20,7 @@ public abstract class WebsiteUrlUpdater extends AbstractUrlUpdater {
    * @param downloadBaseUrl download base url
    * @param versionBaseUrl version base url
    */
-  public WebsiteUrlUpdater(String downloadBaseUrl, String versionBaseUrl) {
+  protected WebsiteUrlUpdater(String downloadBaseUrl, String versionBaseUrl) {
     super(downloadBaseUrl, versionBaseUrl);
   }
 
