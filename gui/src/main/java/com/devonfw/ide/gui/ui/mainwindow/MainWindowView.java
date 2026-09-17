@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.event.GuiEventBus;
 import com.devonfw.ide.gui.event.TabChangeEvent;
+import com.devonfw.ide.gui.helper.FxHelper;
 import com.devonfw.ide.gui.service.NlsService;
 import com.devonfw.ide.gui.ui.controls.console.ConsoleView;
 import com.devonfw.ide.gui.ui.controls.console.ConsoleViewModel;
@@ -120,7 +121,7 @@ public class MainWindowView extends BorderPane {
     final NavigationPanelViewModel navigationPanelViewModel = new NavigationPanelViewModel(this.guiStateManager, this.nlsService);
     setLeft(new NavigationPanelView(navigationPanelViewModel, this.nlsService));
 
-    this.eventBus.addListener(TabChangeEvent.class, e -> handleTab(e.tab()));
+    this.eventBus.addListener(TabChangeEvent.class, e -> FxHelper.runFxSafe(() -> handleTab(e.tab())));
 
     this.centerDivider = this.centerSplitPane.getDividers().getFirst();
 
