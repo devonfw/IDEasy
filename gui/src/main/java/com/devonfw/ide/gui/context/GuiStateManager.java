@@ -5,6 +5,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,10 +25,18 @@ public class GuiStateManager {
 
   private static final Logger LOG = LoggerFactory.getLogger(GuiStateManager.class);
 
+  public static final String DEFAULT_WORKSPACE = "main";
+
   private final Path ideRootDir;
   private final ProjectManager projectManager;
 
   private final CopyOnWriteArrayList<GuiContextChangeListener> listeners = new CopyOnWriteArrayList<>();
+
+  private final StringProperty selectedProject = new SimpleStringProperty();
+
+  private final StringProperty selectedWorkspace = new SimpleStringProperty();
+
+  private final BooleanProperty workspaceSelected = new SimpleBooleanProperty(false);
 
   /**
    * Project context based on which project the user works in.
@@ -71,6 +84,10 @@ public class GuiStateManager {
       throw new FileNotFoundException("Workspace " + workspacePath + " does not exist!");
     }
 
+    this.selectedProject.set(projectName);
+    this.selectedWorkspace.set(workspaceName);
+    this.workspaceSelected.set(true);
+
     this.currentContext = new IdeGuiContext(startContext, workspacePath, taskManager);
     listeners.forEach(listener -> listener.onContextChange(this.currentContext));
 
@@ -91,6 +108,62 @@ public class GuiStateManager {
   public ProjectManager getProjectManager() {
 
     return projectManager;
+  }
+
+  /**
+   * @return the currently selected project name (app-wide, single selection).
+   */
+  public String getSelectedProject() {
+
+    return this.selectedProject.get();
+  }
+
+  /**
+   * @return the currently selected workspace name (app-wide, single selection).
+   */
+  public String getSelectedWorkspace() {
+
+    return this.selectedWorkspace.get();
+  }
+
+  /**
+   * @return the observable {@link StringProperty} holding the selected project (app-wide, single selection).
+   */
+  public StringProperty selectedProjectProperty() {
+
+    return this.selectedProject;
+  }
+
+  /**
+   * @return the observable {@link StringProperty} holding the selected workspace (app-wide, single selection).
+   */
+  public StringProperty selectedWorkspaceProperty() {
+
+    return this.selectedWorkspace;
+  }
+
+  /**
+   * @return whether a valid project/workspace selection is active.
+   */
+  public boolean isWorkspaceSelected() {
+
+    return this.workspaceSelected.get();
+  }
+
+  /**
+   * @return the observable {@link BooleanProperty} flagging whether a valid project/workspace selection is active.
+   */
+  public BooleanProperty workspaceSelectedProperty() {
+
+    return this.workspaceSelected;
+  }
+
+  /**
+   * @return the root directory of IDEasy used by the GUI.
+   */
+  public Path getIdeRootDir() {
+
+    return this.ideRootDir;
   }
 
   /**

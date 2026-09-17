@@ -4,13 +4,10 @@ import static org.testfx.assertions.api.Assertions.assertThat;
 import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Locale;
 
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -30,12 +27,18 @@ import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.ide.gui.console.ConsoleController;
 import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.context.TaskManager;
-import com.devonfw.ide.gui.nls.NlsService;
-import com.devonfw.ide.gui.progress.ProgressBarTask;
-import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindow;
+import com.devonfw.ide.gui.event.GuiEventBus;
+import com.devonfw.ide.gui.factory.TabFactory;
+import com.devonfw.ide.gui.helper.FxHelper;
+import com.devonfw.ide.gui.service.CommandletService;
+import com.devonfw.ide.gui.service.NlsService;
+import com.devonfw.ide.gui.ui.controls.console.ConsoleController;
+import com.devonfw.ide.gui.ui.mainwindow.MainWindowView;
+import com.devonfw.ide.gui.ui.mainwindow.MainWindowViewModel;
+import com.devonfw.ide.gui.ui.progress.ProgressBarTask;
+import com.devonfw.ide.gui.ui.progress.taskwindow.TaskOverviewWindow;
 
 /**
  * Basic UI Test for the main screen
@@ -43,6 +46,11 @@ import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindow;
 public class AppBaseTest extends HeadlessApplicationTest {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AppBaseTest.class);
+
+  /** Scene size for the test window. The console SplitPane needs real space, or its divider stays pinned near 1.0. */
+  private static final double SCENE_WIDTH = 1280;
+
+  private static final double SCENE_HEIGHT = 800;
 
   private Button androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen;
   private ToggleButton consolePaneToggleButton;
@@ -54,47 +62,46 @@ public class AppBaseTest extends HeadlessApplicationTest {
   @TempDir
   private static Path mockIdeRoot;
 
-  private static final TaskManager taskManager = new TaskManager();
-  private static GuiStateManager guiStateManager;
+  /**
+   * Both are recreated for every test in {@link #start(Stage)}: a shared GuiStateManager leaks the project selection into the next test, and a shared
+   * TaskManager accumulates a status-bar listener per view model, so discarded windows keep reacting to task changes.
+   */
+  private TaskManager taskManager;
+
+  private GuiStateManager guiStateManager;
+
+  private MainWindowViewModel viewModel;
 
   @Override
-  public void start(Stage stage) throws IOException {
+  public void start(Stage stage) {
 
     NlsService nlsService = new NlsService(Locale.ENGLISH);
-
-    URL mainViewUrl = getClass().getResource("main-view.fxml");
-    assertThat(mainViewUrl).as("Cannot resolve main UI FXML resource!").isNotNull();
-
-    FXMLLoader fxmlLoader = new FXMLLoader(mainViewUrl);
-    MainController mainController = new MainController(mockIdeRoot.toString(), guiStateManager, nlsService);
-    fxmlLoader.setControllerFactory(clazz -> {
-      if (clazz == ConsoleController.class) {
-        return new ConsoleController(nlsService);
-      } else if (clazz == MainController.class) {
-        return mainController;
-      }
-      return null;
-    });
-    fxmlLoader.setResources(nlsService.getResourceBundle());
-    Parent root = fxmlLoader.load();
-    stage.setScene(new Scene(root));
+    this.taskManager = new TaskManager();
+    this.guiStateManager = new GuiStateManager(this.taskManager, mockIdeRoot.toString());
+    ConsoleController consoleController = new ConsoleController(nlsService);
+    GuiEventBus eventBus = new GuiEventBus();
+    CommandletService commandletService = new CommandletService(guiStateManager, consoleController);
+    TabFactory tabFactory = new TabFactory(guiStateManager, nlsService, commandletService, consoleController, eventBus);
+    this.viewModel = new MainWindowViewModel(guiStateManager, nlsService, tabFactory);
+    MainWindowView mainWindow = new MainWindowView(this.viewModel, guiStateManager, nlsService, consoleController, eventBus);
+    stage.setScene(new Scene(mainWindow, SCENE_WIDTH, SCENE_HEIGHT));
     stage.requestFocus(); //sometimes needed for headless setup to work
     stage.show();
 
-    androidStudioOpen = FxHelper.lookup(root, "#androidStudioOpen");
-    eclipseOpen = FxHelper.lookup(root, "#eclipseOpen");
-    intellijOpen = FxHelper.lookup(root, "#intellijOpen");
-    vsCodeOpen = FxHelper.lookup(root, "#vsCodeOpen");
-    selectedProject = FxHelper.lookup(root, "#selectedProject");
-    selectedWorkspace = FxHelper.lookup(root, "#selectedWorkspace");
-    consolePaneToggleButton = FxHelper.lookup(root, "#consolePaneToggleButton");
-    centerSplitPane = FxHelper.lookup(root, "#centerSplitPane");
-    statusText = FxHelper.lookup(root, "#statusLabel");
-    taskProgressBar = FxHelper.lookup(root, "#statusProgressBar");
+    androidStudioOpen = FxHelper.lookup(mainWindow, "#androidStudioOpen");
+    eclipseOpen = FxHelper.lookup(mainWindow, "#eclipseOpen");
+    intellijOpen = FxHelper.lookup(mainWindow, "#intellijOpen");
+    vsCodeOpen = FxHelper.lookup(mainWindow, "#vsCodeOpen");
+    selectedProject = FxHelper.lookup(mainWindow, "#projects");
+    selectedWorkspace = FxHelper.lookup(mainWindow, "#workspaces");
+    consolePaneToggleButton = FxHelper.lookup(mainWindow, "#consolePaneToggleButton");
+    centerSplitPane = FxHelper.lookup(mainWindow, "#centerSplitPane");
+    statusText = FxHelper.lookup(mainWindow, "#statusLabel");
+    taskProgressBar = FxHelper.lookup(mainWindow, "#statusProgressBar");
   }
 
   /**
-   * Generate temporary project directories to be able to test on any device (including GitHub CI). This is required for the {@link MainController} to work in
+   * Generate temporary project directories to be able to test on any device (including GitHub CI). This is required for the {@link MainWindowView} to work in
    * the test context. Generates a structure like this: /project-[0..6]/workspaces/main
    */
   @BeforeAll
@@ -104,9 +111,6 @@ public class AppBaseTest extends HeadlessApplicationTest {
     FakeProjectFolderStructureHelper.createFakeProjectFolderStructure(mockIdeRoot);
     LOGGER.debug("project folders: {}", Arrays.toString(mockIdeRoot.toFile().list()));
 
-    guiStateManager = new GuiStateManager(taskManager, mockIdeRoot.toString());
-    //We set the project root directory to the temporary directory before all tests so that the IDE can find the projects in the test.
-    guiStateManager.switchContext("project-1", "main");
   }
 
   @BeforeEach
@@ -244,7 +248,60 @@ public class AppBaseTest extends HeadlessApplicationTest {
         .isTrue();
   }
 
+  /**
+   * The status label now carries a permanently installed click handler that is gated on the view model's clickable state, where it previously had the handler
+   * attached only while more than one task was running. This pins that gate.
+   */
+  @Test
+  protected void testStatusTextDoesNotOpenTaskOverviewWindowForSingleTask() {
+
+    // The window is a JVM-wide singleton, so an earlier test may have left it showing. getInstance builds the Stage, so it has to run on the FX thread.
+    interact(() -> TaskOverviewWindow.getInstance(this.taskManager).getStage().hide());
+
+    this.taskManager.addTask(new ProgressBarTask(this.taskManager, "task-1", "Test Task"));
+    waitForFxEvents();
+
+    interact(() -> statusText.fireEvent(
+        new MouseEvent(MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0, null, 1, false, false, false, false, false, false, false, false, false, false, null)));
+
+    assertThat(TaskOverviewWindow.getInstance(this.taskManager).getStage().isShowing())
+        .as("Task overview window should not open while only a single task is running").isFalse();
+  }
+
   //===Console panel tests===
+
+  /**
+   * The pre-launch action registered on the TabFactory opens the console by calling {@code setConsoleVisible(true)} on the view model. Launching a commandlet
+   * for real would install an IDE, so this covers the mechanism that action drives rather than the launch itself.
+   */
+  @Test
+  void testConsoleOpensWhenRequestedThroughTheViewModel() {
+
+    Divider mainPanelDivider = centerSplitPane.getDividers().getFirst();
+    assertThat(mainPanelDivider.getPosition()).as("The console should start collapsed").isGreaterThan(0.99);
+
+    interact(() -> this.viewModel.setConsoleVisible(true));
+    waitForFxEvents();
+
+    assertThat(mainPanelDivider.getPosition()).as("Console panel should be extended when the view model requests it").isEqualTo(0.75, Offset.offset(0.01));
+    assertThat(consolePaneToggleButton.isSelected()).as("The toggle button should follow the view model").isTrue();
+  }
+
+  /**
+   * Dragging the divider must not be fought by the view writing the position back. Crossing the visible threshold used to snap the divider straight to 0.75.
+   */
+  @Test
+  void testDraggingDividerDoesNotSnapTheConsoleOpen() {
+
+    Divider mainPanelDivider = centerSplitPane.getDividers().getFirst();
+
+    // Just past the point where the console counts as visible, as if the user were dragging it open.
+    interact(() -> mainPanelDivider.setPosition(0.985));
+    waitForFxEvents();
+
+    assertThat(mainPanelDivider.getPosition()).as("The divider must stay where the drag put it").isEqualTo(0.985, Offset.offset(0.001));
+    assertThat(consolePaneToggleButton.isSelected()).as("The console counts as visible past the threshold").isTrue();
+  }
 
   @Test
   void testConsoleToggleButton() {

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import com.devonfw.ide.gui.HeadlessApplicationTest;
 import com.devonfw.ide.gui.context.TaskManager;
+import com.devonfw.ide.gui.ui.progress.ProgressBarTask;
 
 /**
  * Tests for the {@link TaskManager} class. We extend HeadlessApplicationTest because all TaskManager mutations run on the JavaFX Application Thread via
