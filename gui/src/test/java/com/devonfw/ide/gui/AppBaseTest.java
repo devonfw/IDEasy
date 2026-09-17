@@ -1,15 +1,14 @@
 package com.devonfw.ide.gui;
 
+import static com.devonfw.ide.gui.App.loadMainView;
 import static org.testfx.assertions.api.Assertions.assertThat;
 import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Locale;
 
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -30,7 +29,6 @@ import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.ide.gui.console.ConsoleController;
 import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.context.TaskManager;
 import com.devonfw.ide.gui.nls.NlsService;
@@ -56,27 +54,13 @@ public class AppBaseTest extends HeadlessApplicationTest {
 
   private static final TaskManager taskManager = new TaskManager();
   private static GuiStateManager guiStateManager;
+  private static NlsService nlsService = new NlsService(Locale.ENGLISH);
+
 
   @Override
   public void start(Stage stage) throws IOException {
 
-    NlsService nlsService = new NlsService(Locale.ENGLISH);
-
-    URL mainViewUrl = getClass().getResource("main-view.fxml");
-    assertThat(mainViewUrl).as("Cannot resolve main UI FXML resource!").isNotNull();
-
-    FXMLLoader fxmlLoader = new FXMLLoader(mainViewUrl);
-    MainController mainController = new MainController(mockIdeRoot.toString(), guiStateManager, nlsService);
-    fxmlLoader.setControllerFactory(clazz -> {
-      if (clazz == ConsoleController.class) {
-        return new ConsoleController(nlsService);
-      } else if (clazz == MainController.class) {
-        return mainController;
-      }
-      return null;
-    });
-    fxmlLoader.setResources(nlsService.getResourceBundle());
-    Parent root = fxmlLoader.load();
+    Parent root = loadMainView(mockIdeRoot.toString(), guiStateManager, nlsService);
     stage.setScene(new Scene(root));
     stage.requestFocus(); //sometimes needed for headless setup to work
     stage.show();
