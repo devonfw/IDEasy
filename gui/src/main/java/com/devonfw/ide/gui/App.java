@@ -36,7 +36,7 @@ public class App extends Application {
   /**
    * Path to icon file used for GUI of IDEasy starting from {@code gui/src/main/resources}
    */
-  public static final String ICON_PATH = "com/devonfw/ide/gui/assets/devonfw.png";
+  public static final String ICON_PATH = "com/devonfw/ide/gui/assets/ideasy.png";
 
   Parent root;
 
