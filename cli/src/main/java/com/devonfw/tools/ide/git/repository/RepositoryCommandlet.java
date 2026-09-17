@@ -11,6 +11,8 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.cli.CliAbortException;
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
@@ -74,7 +76,7 @@ public class RepositoryCommandlet extends Commandlet {
       boolean forceMode = this.context.isForceMode() || this.context.isForceRepositories();
       Map<Path, RepositoryConfig> repositoryConfigMap = new HashMap<>(propertiesFiles.size());
       for (Path propertiesFile : propertiesFiles) {
-        RepositoryConfig config = prepareActiveRepository(propertiesFile, forceMode);
+        RepositoryConfig config = prepareActiveRepositoryIgnoringInvalid(propertiesFile, forceMode);
         if (config != null) {
           repositoryConfigMap.put(propertiesFile, config);
         }
@@ -88,19 +90,43 @@ public class RepositoryCommandlet extends Commandlet {
     }
   }
 
-  private RepositoryConfig prepareActiveRepository(Path repositoryFile, boolean forceMode) {
+  /**
+   * Like {@link #prepareActiveRepository(Path, boolean)} but ignores a single invalid repository instead of aborting the setup of all others. Resolving a
+   * property value may fail for a malformed expression, and one broken file in the repositories folder must not prevent every other repository from being
+   * set up. Only used when iterating all repositories - if the user explicitly requested a single repository, the failure is reported instead.
+   *
+   * @param repositoryFile the {@link Path} to the repository properties file.
+   * @param forceMode - {@code true} to setup the repository even if it is not active, {@code false} otherwise.
+   * @return the {@link RepositoryConfig} or {@code null} if the repository shall be skipped.
+   */
+  private RepositoryConfig prepareActiveRepositoryIgnoringInvalid(Path repositoryFile, boolean forceMode) {
 
-    RepositoryConfig config = RepositoryConfig.loadProperties(repositoryFile, this.context);
-    if (config == null) {
+    try {
+      return prepareActiveRepository(repositoryFile, forceMode);
+    } catch (CliAbortException e) {
+      throw e; // the user deliberately aborted - never swallow this
+    } catch (CliException e) {
+      LOG.error("Ignoring repository {} because its configuration is invalid: {}", repositoryFile, e.getMessage());
       return null;
     }
-    if (!config.active()) {
+  }
+
+  private RepositoryConfig prepareActiveRepository(Path repositoryFile, boolean forceMode) {
+
+    // the active flag is evaluated before the remaining properties are read: reading a property resolves variables and expressions in its value, so an
+    // expression like @ask-variable would otherwise ask the user for a repository that is skipped anyway
+    RepositoryProperties properties = new RepositoryProperties(repositoryFile, this.context);
+    if (!properties.isActive()) {
       if (forceMode) {
-        LOG.info("Setup of repository {} is forced, hence proceeding ...", config.id());
+        LOG.info("Setup of repository {} is forced, hence proceeding ...", properties.getId());
       } else {
-        LOG.info("Skipping repository {} because it is not active, use --force-repositories to setup all repositories ...", config.id());
+        LOG.info("Skipping repository {} because it is not active, use --force-repositories to setup all repositories ...", properties.getId());
         return null;
       }
+    }
+    RepositoryConfig config = RepositoryConfig.loadProperties(properties);
+    if (config == null) {
+      return null;
     }
     // prepare workspace creation for correct resolution of *
     List<String> workspaces = config.workspaces();
