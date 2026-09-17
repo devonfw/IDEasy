@@ -19,6 +19,12 @@ public enum NativePackageManager {
   /** DaNdiFied yum (DNF) is the package manager of RPM package based Linux distributions like Fedora. It is the successor of {@link #YUM}. */
   DNF("dnf", "install -y", "remove -y", "-", "*", true),
 
+  /** Pacman is the package manager of Arch Linux based distributions. */
+  PACMAN("pacman", "-S --needed --noconfirm", "-Rs --noconfirm", null, "", true),
+
+  /** Yay is an AUR helper for packages that are not in the official Arch Linux repositories. */
+  YAY("yay", "-S --needed --noconfirm", "-Rs --noconfirm", null, "", false),
+
   /** <a href="https://brew.sh/">Homebrew</a> formula installation, the closest thing macOS has to a standard package manager. */
   BREW("brew", "install", "uninstall", "@", "", false),
 
@@ -66,6 +72,12 @@ public enum NativePackageManager {
     if (command.contains("dnf")) {
       return DNF;
     }
+    if (command.contains("yay")) {
+      return YAY;
+    }
+    if (command.contains("pacman")) {
+      return PACMAN;
+    }
 
     throw new IllegalArgumentException("Unknown package manager in command: " + command);
   }
@@ -76,8 +88,8 @@ public enum NativePackageManager {
   }
 
   /**
-   * @return {@code true} if commands of this {@link NativePackageManager} need to be run with {@code sudo} (root permissions), {@code false} otherwise (e.g.
-   *     for {@link #BREW}/{@link #BREW_CASK} that must never be run as root).
+   * @return {@code true} if commands of this {@link NativePackageManager} need to be run with {@code sudo} (root permissions),
+   * {@code false} otherwise (e.g. for {@link #YAY} and {@link #BREW}/{@link #BREW_CASK} that must never be run as root).
    */
   public boolean isNeedSudo() {
 
@@ -93,7 +105,7 @@ public enum NativePackageManager {
    */
 
   public String getPackageSpec(String pkg, String version) {
-    if ((version == null) || version.isBlank()) {
+    if ((version == null) || version.isBlank() || (this.versionSeparator == null)) {
       return pkg;
     }
     String spec = pkg + this.versionSeparator + version + this.versionWildCard;
@@ -111,6 +123,7 @@ public enum NativePackageManager {
     List<String> command = new ArrayList<>(switch (this) {
       case APT -> List.of("dpkg-query", "-W", "-f=${db:Status-Status}|${Version}");
       case ZYPPER, YUM, DNF -> List.of("rpm", "-q", "--queryformat", "%{VERSION}");
+      case PACMAN, YAY -> List.of("pacman", "-Q");
       case BREW -> List.of(getBinaryName(), "list", "--versions");
       case BREW_CASK -> List.of(getBinaryName(), "list", "--cask", "--versions");
     });
@@ -133,6 +146,16 @@ public enum NativePackageManager {
         return null;
       }
       version = parts[1].trim();
+    } else if ((this == PACMAN) || (this == YAY)) {
+      String[] parts = version.split("\\s+");
+      if (parts.length != 2) {
+        return null;
+      }
+      version = parts[1];
+      int pkgRelIndex = version.lastIndexOf('-');
+      if (pkgRelIndex > 0) {
+        version = version.substring(0, pkgRelIndex);
+      }
     } else if ((this == BREW) || (this == BREW_CASK)) {
       // output of "brew list --versions <pkg>" is "<pkg> <version>" (possibly multiple space-separated versions, we take the last/newest one)
       int lastSpace = version.lastIndexOf(' ');
