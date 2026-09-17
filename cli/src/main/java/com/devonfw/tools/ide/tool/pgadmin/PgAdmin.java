@@ -10,6 +10,8 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.WindowsAppInstallation;
 import com.devonfw.tools.ide.os.WindowsHelper;
+import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.NativePackage;
 import com.devonfw.tools.ide.tool.NativePackageManager;
@@ -48,6 +50,12 @@ public class PgAdmin extends GlobalToolCommandlet {
         ),
         new NativePackage(NativePackageManager.BREW_CASK, List.of("pgadmin4"))
     );
+  }
+
+  @Override
+  public ProcessResult runTool(List<String> args) {
+
+    return runTool(ProcessMode.BACKGROUND_SILENT, null, args);
   }
 
   @Override
