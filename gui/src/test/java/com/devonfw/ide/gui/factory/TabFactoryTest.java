@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Locale;
 
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Tab;
 import javafx.stage.Stage;
@@ -25,11 +26,7 @@ import com.devonfw.ide.gui.service.NlsService;
 import com.devonfw.ide.gui.ui.controls.console.ConsoleController;
 
 /**
- * Tests for {@link TabFactory} focusing on how a tab is identified for de-duplication. A tab must be identified by its stable NLS key, not by its
- * (locale-dependent, translated) title text.
- *
- * <p>The factory no longer owns a {@link javafx.scene.control.TabPane}; each {@link TabFactory#open(String, javafx.scene.Node) open} publishes a
- * {@link TabChangeEvent} on the {@link GuiEventBus}. These tests subscribe to the bus and assert on the emitted tabs.
+ * Tests for {@link TabFactory}.      <
  */
 class TabFactoryTest extends HeadlessApplicationTest {
 
@@ -38,17 +35,7 @@ class TabFactoryTest extends HeadlessApplicationTest {
 
   private static final String LAUNCHER_TITLE_KEY = "tab.ide_launcher";
 
-  private TabPane tabPane;
-
-  private int distinctTabCount;
-
-  private Object userData;
-
-  private String titleText;
-
-  private boolean sameInstance;
-
-  private boolean selectionRestoredToExisting;
+  private List<Tab> emittedTabs;
 
   @Override
   public void start(Stage stage) {
@@ -57,32 +44,22 @@ class TabFactoryTest extends HeadlessApplicationTest {
   }
 
   /**
-   * Builds a {@link TabFactory} wired to a bus with a capturing listener, opens two tabs with the given keys, and captures the emitted tabs.
+   * Builds a {@link TabFactory} wired to a bus with a capturing listener, opens the IDE launcher tab {@code times} times and captures the emitted tabs.
    */
-  private void openLauncherTabTwice() {
+  private void openLauncherTab(int times) {
     interact(() -> {
       GuiStateManager guiStateManager = new GuiStateManager(new TaskManager(), this.ideRoot.toString());
       NlsService nlsService = new NlsService(Locale.ENGLISH);
       ConsoleController consoleController = new ConsoleController(nlsService);
       CommandletService commandletService = new CommandletService(guiStateManager, consoleController);
       GuiEventBus eventBus = new GuiEventBus();
-      List<Tab> emitted = new ArrayList<>();
-      eventBus.addListener(TabChangeEvent.class, event -> emitted.add(event.tab()));
+      this.emittedTabs = new ArrayList<>();
+      eventBus.addListener(TabChangeEvent.class, event -> this.emittedTabs.add(event.tab()));
       TabFactory factory = new TabFactory(guiStateManager, nlsService, commandletService, consoleController, eventBus);
 
-      factory.openLauncherTab();
-      Tab first = tabPane.getTabs().get(0);
-
-      // Deselect so the second open has to actively re-select the existing tab
-      tabPane.getSelectionModel().clearSelection();
-      factory.openLauncherTab();
-
-      Tab second = tabPane.getTabs().get(0);
-      this.tabCount = tabPane.getTabs().size();
-      this.userData = second.getUserData();
-      this.titleText = second.getText();
-      this.sameInstance = (first == second);
-      this.selectionRestoredToExisting = tabPane.getSelectionModel().getSelectedItem() == second;
+      for (int i = 0; i < times; i++) {
+        factory.openLauncherTab();
+      }
     });
   }
 
@@ -92,22 +69,25 @@ class TabFactoryTest extends HeadlessApplicationTest {
    */
   @Test
   void testOpenStoresTheTitleKeyAsTheTabIdentity() {
-    openLauncherTabTwice();
+    openLauncherTab(1);
 
-    assertThat(this.userData).as("The tab must be identifiable by its NLS key, not its translated title").isEqualTo(LAUNCHER_TITLE_KEY);
-    assertThat(this.titleText).as("The visible title must be the localized text, not the raw key").isNotEqualTo(LAUNCHER_TITLE_KEY);
+    Tab tab = this.emittedTabs.get(0);
+    assertThat(tab.getUserData()).as("The tab must be identifiable by its NLS key, not its translated title").isEqualTo(LAUNCHER_TITLE_KEY);
+    assertThat(tab.getText()).as("The visible title must be the localized text, not the raw key").isNotEqualTo(LAUNCHER_TITLE_KEY);
   }
 
   /**
-   * Opening the launcher tab twice must not create a duplicate tab; the second open must focus the existing one.
+   * Each open must publish a {@link TabChangeEvent} carrying a fully built tab (with its view as content and closable enabled).
    */
   @Test
-  void testOpenTwiceDoesNotCreateADuplicateTab() {
-    openLauncherTabTwice();
+  void testOpenPublishesAKeyEventPerOpenWithABuiltTab() {
+    openLauncherTab(2);
 
-    assertThat(this.tabCount).as("Opening the same tab twice must not create a second tab").isEqualTo(1);
-    assertThat(this.sameInstance).as("Opening the tab again must return to the existing tab").isTrue();
-    assertThat(this.selectionRestoredToExisting).as("Opening an already-open tab must select it").isTrue();
+    assertThat(this.emittedTabs).as("The factory must publish a tab for each open").hasSize(2);
+    for (Tab tab : this.emittedTabs) {
+      assertThat(tab.getContent()).as("The published tab must carry its view as content").isInstanceOf(Node.class);
+      assertThat(tab.isClosable()).as("The published launcher tab must be closable").isTrue();
+    }
   }
 
 }
