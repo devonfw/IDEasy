@@ -7,7 +7,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.PluginProperty;
 import com.devonfw.tools.ide.property.ToolProperty;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
-import com.devonfw.tools.ide.tool.plugin.PluginBasedCommandlet;
+import com.devonfw.tools.ide.tool.plugin.PluginFeatures;
 
 /**
  * {@link Commandlet} to install a tool.
@@ -48,7 +48,7 @@ public class UninstallPluginCommandlet extends Commandlet {
     ToolCommandlet commandlet = this.tool.getValue();
     String plugin = this.plugin.getValue();
 
-    if (commandlet instanceof PluginBasedCommandlet cmd) {
+    if (commandlet instanceof PluginFeatures cmd) {
       cmd.uninstallPlugin(cmd.getPlugin(plugin));
     } else {
       LOG.warn("Tool {} does not support plugins.", tool.getName());

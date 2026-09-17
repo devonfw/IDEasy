@@ -4,13 +4,13 @@ import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
-import com.devonfw.tools.ide.tool.plugin.PluginBasedCommandlet;
+import com.devonfw.tools.ide.tool.plugin.PluginFeatures;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 import com.devonfw.tools.ide.tool.plugin.ToolPlugins;
 import com.devonfw.tools.ide.validation.PropertyValidator;
 
 /**
- * {@link Property} representing the plugin of a {@link PluginBasedCommandlet}.
+ * {@link Property} representing the plugin of a {@link PluginFeatures tool that supports plugins}.
  */
 public class PluginProperty extends Property<String> {
 
@@ -56,7 +56,7 @@ public class PluginProperty extends Property<String> {
   protected void completeValue(String arg, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
 
     ToolCommandlet cmd = commandlet.getToolForCompletion();
-    if (cmd instanceof PluginBasedCommandlet pbc) {
+    if (cmd instanceof PluginFeatures pbc) {
       ToolPlugins plugins = pbc.getPlugins();
       for (ToolPluginDescriptor pluginDescriptor : plugins.getPlugins()) {
         if (pluginDescriptor.name().toLowerCase().startsWith(arg.toLowerCase())) {
