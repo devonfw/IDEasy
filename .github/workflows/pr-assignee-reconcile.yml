@@ -1,0 +1,105 @@
+name: Reconcile PR assignees
+
+# Enforces the "single-owner board" invariant on the IDEasy board (Projects v2):
+#   - In "Team Review" a PR has exactly one assignee: the team reviewer, taken
+#     from the board's "Team Reviewer" text field. The field is the source of
+#     truth and is auto-filled by this workflow (never typed by hand): when it
+#     is empty and exactly one non-author assignee exists (the team's
+#     self-assign habit), the reviewer is assigned and their login is recorded
+#     in the field. Because the field persists, moving a card back to
+#     "Team Review" re-assigns the same reviewer without a re-self-assign.
+#   - In "🏗 In progress" and "👀 In review" a PR has exactly one assignee: the author.
+#   - Every other column (New / Research / Refinement / Done) is left untouched.
+#   - A PR with the TAKEOVER label (default "takeover") is exempted entirely:
+#     this is how the team marks a PR taken over after its author left, so the
+#     bot does not revert it.
+#
+# GitHub emits no event when a card is moved between columns, so this runs on a
+# schedule and self-heals assignees to match the board. It changes PR assignees
+# (Issues/PRs REST API) and writes the Team Reviewer field (GraphQL); it never
+# moves cards — humans do that. Requires a TEXT field named "Team Reviewer"
+# on the board (see REVIEWER_FIELD). If it is missing, the run degrades to
+# inference-only and reports it.
+#
+# Safety: the default (and cron) behaviour is DRY RUN = report only. Enable
+# writes by setting the repo VARIABLE RECONCILE_APPLY to "true", or trigger
+# manually with dry_run=false. Merged / closed / dependabot PRs are ignored.
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'   # every 10 minutes
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Report only (true) or apply assignee changes (false)'
+        type: choice
+        default: 'true'
+        options: [ 'true', 'false' ]
+
+permissions:
+  contents: read
+  # The Projects permission is named "repository-projects" (there is no
+  # "projects" key); its values are read/write/none ("write-all" only exists
+  # for the "contents" scope). "write" grants the write:project scope that
+  # the Team Reviewer field write (updateProjectV2ItemFieldValue) needs.
+  repository-projects: write
+  issues: write
+  pull-requests: write
+
+env:
+  # Token used for the API calls. The script reads GH_TOKEN first. If a
+  # RECONCILE_PAT secret is present (a PAT with the "project" scope) it is used;
+  # otherwise it falls back to the built-in GITHUB_TOKEN.
+  # WHY a PAT is needed for fork / personal-board testing: the GITHUB_TOKEN is
+  # scoped to THIS repository and cannot see a user account's project board
+  # (boards under /users/<name>/projects/...), nor write to it. A personal PAT
+  # with the "project" scope can read AND write your own boards. In production
+  # the RECONCILE_PAT secret is absent, so this resolves to the GITHUB_TOKEN.
+  GH_TOKEN: ${{ secrets.RECONCILE_PAT || secrets.GITHUB_TOKEN }}
+  # Account that owns the board. This is an org (devonfw); the script also
+  # supports a USER account, which is how you can dry-run it against a
+  # personal / fork board before it touches the real one.
+  GH_ACCOUNT: devonfw
+  BOARD_TITLE: 'IDEasy board'
+  TEAM_REVIEW_COLUMN: 'Team Review'
+  # Matches the board's Status option names EXACTLY (matched literally), so if
+  # a column is renamed on the board these must be updated too.
+  AUTHOR_ONLY_COLUMNS: '🏗 In progress,👀 In review'
+  TAKEOVER_LABEL: 'takeover'
+  # Repo VARIABLE RECONCILE_APPLY (set to "true") turns on writes. Default false.
+  RECONCILE_APPLY: ${{ vars.RECONCILE_APPLY }}
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Decide dry-run vs apply
+        id: mode
+        env:
+          DISPATCH: ${{ github.event_name }}
+          INPUT_DRY_RUN: ${{ github.event.inputs.dry_run }}
+          APPLY_VAR: ${{ env.RECONCILE_APPLY }}
+        run: |
+          # Manual dispatch with dry_run=false forces a real run. Otherwise the
+          # RECONCILE_APPLY variable (default empty) decides. Anything other than
+          # the literal "true" keeps it in the safe dry-run mode.
+          if [ "$DISPATCH" = "workflow_dispatch" ] && [ "$INPUT_DRY_RUN" = "false" ]; then
+            APPLY=true
+          elif [ "$APPLY_VAR" = "true" ]; then
+            APPLY=true
+          else
+            APPLY=false
+          fi
+          if [ "$APPLY" = "true" ]; then
+            echo "dry_run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "dry_run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Reconcile assignees
+        env:
+          DRY_RUN: ${{ steps.mode.outputs.dry_run }}
+        run: node .github/scripts/pr-assignee-reconcile.mjs
