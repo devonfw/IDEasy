@@ -2,29 +2,31 @@ package com.devonfw.ide.gui.context;
 
 import javafx.application.Platform;
 
-import com.devonfw.ide.gui.console.ConsoleController;
+import com.devonfw.ide.gui.event.GuiEventBus;
+import com.devonfw.ide.gui.event.console.LogEvent;
+import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.OutputListener;
 
 /// Listener class that listens to general output from processes and outputs it to the console.
 public class GuiOutputListener implements OutputListener {
 
-  private final ConsoleController consoleController;
+  private final GuiEventBus eventBus;
 
   /**
    * Constructor.
    *
-   * @param consoleController the console controller to output messages to
+   * @param eventBus the event bus to send log events to
    */
-  public GuiOutputListener(ConsoleController consoleController) {
-    this.consoleController = consoleController;
+  public GuiOutputListener(GuiEventBus eventBus) {
+    this.eventBus = eventBus;
   }
 
   @Override
   public void onOutput(String message, boolean error) {
-    if (this.consoleController != null && message != null) {
+    if (this.eventBus != null && message != null) {
       String prefix = error ? "[STDERR] " : "";
-      Platform.runLater(() -> this.consoleController.appendOutput(error ? IdeLogLevel.ERROR : IdeLogLevel.INFO, prefix + message));
+      Platform.runLater(() -> this.eventBus.sendEvent(new LogEvent(new IdeLogEntry(error ? IdeLogLevel.ERROR : IdeLogLevel.INFO, prefix + message))));
     }
   }
 }

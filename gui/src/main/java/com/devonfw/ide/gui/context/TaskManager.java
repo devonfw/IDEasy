@@ -8,8 +8,8 @@ import javafx.collections.ObservableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.ide.gui.FxHelper;
-import com.devonfw.ide.gui.progress.ProgressBarTask;
+import com.devonfw.ide.gui.helper.FxHelper;
+import com.devonfw.ide.gui.ui.progress.ProgressBarTask;
 
 /**
  * Singleton class that manages all currently running tasks and their progress bars. It provides an {@link ObservableList} of tasks, which can be observed by
