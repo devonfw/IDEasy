@@ -28,7 +28,8 @@ class DockerTest extends AbstractIdeContextTest {
 
   private static final String PLUTIL_MAC_COMMAND = "plutil -extract CFBundleShortVersionString raw /Applications/Docker.app/Contents/Info.plist";
 
-  private static final String RANCHER_PLUTIL_MAC_COMMAND = "plutil -extract CFBundleShortVersionString raw /Applications/Rancher Desktop.app/Contents/Info.plist";
+  private static final String RANCHER_PLUTIL_MAC_COMMAND =
+      "plutil -extract CFBundleShortVersionString raw /Applications/Rancher Desktop.app/Contents/Info.plist";
 
   /**
    * Creates a minimal {@link IdeTestContext} that returns a mocked {@link ProcessContext} from {@code createProcessContext()}
@@ -216,6 +217,53 @@ class DockerTest extends AbstractIdeContextTest {
     assertThat(editionAndVersion).isNotNull();
     assertThat(editionAndVersion.edition()).isEqualTo("docker");
     assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.of("4.44.0"));
+  }
+
+  /**
+   * Verifies that when both Docker Desktop and Rancher Desktop are installed on Windows (both registry entries present) the
+   * {@code docker} edition is resolved, because it is probed first (see {@link Docker#getEditionNames()}).
+   */
+  @Test
+  void testBothDockerDesktopAndRancherDesktopInstalledOnWindowsResolvesDocker() {
+
+    // arrange: both apps present in the (mocked) registry
+    IdeTestContext context = newContext(Mockito.mock(ProcessContext.class));
+    context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
+    WindowsHelperMock helper = (WindowsHelperMock) context.getWindowsHelper();
+    helper.setAppInstallationFromRegistry("Docker Desktop", new WindowsAppInstallation("4.44.0", null, null, null));
+    helper.setAppInstallationFromRegistry("Rancher Desktop", new WindowsAppInstallation("1.24.0", null, null, null));
+    Docker docker = docker(context, "docker");
+
+    // act
+    EditionAndVersion editionAndVersion = docker.getInstalledEditionAndVersion();
+
+    // assert: the docker edition wins because it is probed before rancher
+    assertThat(editionAndVersion).isNotNull();
+    assertThat(editionAndVersion.edition()).isEqualTo("docker");
+    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.of("4.44.0"));
+  }
+
+  /**
+   * Verifies that on Windows with only Rancher Desktop installed (no Docker Desktop registry entry) the resolution falls through to
+   * the {@code rancher} edition, with the version read from the {@code Rancher Desktop} registry entry.
+   */
+  @Test
+  void testRancherDesktopOnlyOnWindowsResolvesRancher() {
+
+    // arrange: only Rancher Desktop present in the (mocked) registry
+    IdeTestContext context = newContext(Mockito.mock(ProcessContext.class));
+    context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
+    WindowsHelperMock helper = (WindowsHelperMock) context.getWindowsHelper();
+    helper.setAppInstallationFromRegistry("Rancher Desktop", new WindowsAppInstallation("1.24.0", null, null, null));
+    Docker docker = docker(context);
+
+    // act
+    EditionAndVersion editionAndVersion = docker.getInstalledEditionAndVersion();
+
+    // assert: the rancher edition with the version of the Rancher Desktop registry entry
+    assertThat(editionAndVersion).isNotNull();
+    assertThat(editionAndVersion.edition()).isEqualTo("rancher");
+    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.of("1.24.0"));
   }
 
   /**

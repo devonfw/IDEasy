@@ -308,9 +308,13 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
       VersionIdentifier version;
       if (isWindows) {
         String appName = getWindowsRegistryAppNames().get(edition);
-        WindowsAppInstallation installation = (appName != null)
-            ? WindowsHelper.get(this.context).getAppInstallationFromRegistry(appName)
-            : null;
+        assert appName != null : "getEditionNames() and getWindowsRegistryAppNames() must stay consistent: edition "
+            + edition + " has no Windows registry app name";
+        if (appName == null) {
+          LOG.warn("Skipping edition {} on Windows: no Windows registry app name declared in getWindowsRegistryAppNames().", edition);
+          continue;
+        }
+        WindowsAppInstallation installation = WindowsHelper.get(this.context).getAppInstallationFromRegistry(appName);
         version = (installation != null) ? VersionIdentifier.of(installation.version()) : null;
       } else {
         // on Linux global tools are typically installed via the package manager of the OS; on macOS the edition is
