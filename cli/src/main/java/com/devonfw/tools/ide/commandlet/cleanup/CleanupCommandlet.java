@@ -268,21 +268,61 @@ public class CleanupCommandlet extends Commandlet {
   }
 
   /**
-   * Sets the delete flag for all unused software versions to {@code true}.
+   * Sets the delete flag for all unused software versions to {@code true}, except for the currently running IDEasy installation which must never be deleted.
    *
    * @param installedSoftwareTools the list of installed tools containing the versions to mark.
    */
   private void markUnusedSoftwareForDeletion(List<InstalledSoftwareTool> installedSoftwareTools) {
 
+    Path runningInstallation = getRunningIdeInstallationPath();
+
     for (InstalledSoftwareTool tool : installedSoftwareTools) {
       for (InstalledSoftwareEdition edition : tool.getEditions()) {
         for (InstalledSoftwareVersion version : edition.getVersions()) {
-          if (version.isUnused()) {
+          if (version.isUnused() && !isRunningInstallation(version.getPath(), runningInstallation)) {
             version.setDelete(true);
           }
         }
       }
     }
+  }
+
+  /**
+   * Resolves the physical {@link Path} of the currently running IDEasy installation, i.e. the version the {@link IdeContext#getIdeInstallationPath()
+   * {@code _ide/installation}} link points to.
+   * <p>
+   * Global tools (such as IDEasy itself) are not linked by any project, so they are not marked "used" by the project-based detection and would be deleted
+   * as "unused". The running installation is the one in use by the user right now and must never be deleted.
+   *
+   * @return the physical path of the running installation, or {@code null} if it cannot be determined (e.g. no installation folder present).
+   */
+  private Path getRunningIdeInstallationPath() {
+
+    Path installation = this.context.getIdeInstallationPath();
+    if (installation == null) {
+      return null;
+    }
+    try {
+      return this.context.getFileAccess().toRealPath(installation);
+    } catch (Exception e) {
+      LOG.debug("Could not resolve the running IDEasy installation at {}.", installation, e);
+      return null;
+    }
+  }
+
+  /**
+   * Checks whether the given installed software version is the currently running IDEasy installation and must therefore not be deleted.
+   *
+   * @param versionPath the physical path of the installed software version.
+   * @param runningInstallation the physical path of the running IDEasy installation, or {@code null} if unknown.
+   * @return {@code true} if the version is the running installation and must be kept.
+   */
+  private boolean isRunningInstallation(Path versionPath, Path runningInstallation) {
+
+    if (runningInstallation == null) {
+      return false;
+    }
+    return versionPath != null && versionPath.equals(runningInstallation);
   }
 
   /**

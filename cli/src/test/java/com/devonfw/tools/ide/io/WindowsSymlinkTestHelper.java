@@ -85,6 +85,43 @@ public class WindowsSymlinkTestHelper {
   }
 
   /**
+   * Creates a directory link from {@code link} to {@code target}. On systems that allow symbolic links a symbolic link is created, otherwise (e.g. Windows
+   * without administrator privileges or Developer Mode) a directory junction is used instead, which requires no special privileges and, like a symlink,
+   * is resolved by {@link java.nio.file.Path#toRealPath()}.
+   *
+   * @param link the path of the link to create.
+   * @param target the existing directory the link points to.
+   * @throws IOException if the link cannot be created.
+   */
+  public static void createDirectoryLink(Path link, Path target) throws IOException {
+
+    Files.createDirectories(link.getParent());
+    Files.deleteIfExists(link);
+    if (canCreateSymlinks()) {
+      Files.createSymbolicLink(link, target);
+    } else {
+      Process process = new ProcessBuilder("cmd.exe", "/c", "mklink", "/J", link.toString(), target.toString())
+          .redirectErrorStream(true).start();
+      String output;
+      try {
+        output = new String(process.getInputStream().readAllBytes());
+      } catch (IOException e) {
+        throw new IOException("Failed to read output of mklink /J", e);
+      }
+      int exitCode;
+      try {
+        exitCode = process.waitFor();
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw new IOException("Interrupted while creating directory junction " + link + " -> " + target, e);
+      }
+      if (exitCode != 0) {
+        throw new IOException("Failed to create directory junction " + link + " -> " + target + ": " + output.trim());
+      }
+    }
+  }
+
+  /**
    * Resets the cached symlink capability check. This is primarily useful for testing purposes.
    */
   static void resetCache() {

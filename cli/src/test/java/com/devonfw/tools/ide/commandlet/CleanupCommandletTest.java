@@ -160,6 +160,42 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Tests that the currently running IDEasy installation (the version the {@code _ide/installation} link points to) is never deleted, while other unused
+   * installations are still cleaned up. This guards against {@code ide cleanup} deleting the very installation the user is running.
+   *
+   * @throws IOException if the test setup cannot be created.
+   */
+  @Test
+  void testCleanupKeepsRunningIdeInstallation() throws IOException {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+
+    // the running installation, i.e. the version the _ide/installation link points to (must be kept)
+    Path runningVersion = createInstalledVersion(context, "maven", "ideasy", "default", "2026.08.002");
+
+    // a genuinely unused installation of the same tool that is not the running one (must be deleted)
+    Path unusedVersion = createInstalledVersion(context, "maven", "ideasy", "default", "1.0");
+
+    // create the _ide/installation link (a symlink, or a junction where symlinks are not allowed) pointing at the running version
+    WindowsSymlinkTestHelper.createDirectoryLink(context.getIdeInstallationPath(), runningVersion);
+
+    CleanupCommandlet cleanup = getCleanupWithConfirmation(context);
+
+    // act
+    cleanup.run();
+
+    // assert
+    assertThat(runningVersion)
+        .as("The currently running IDEasy installation must never be deleted")
+        .exists();
+
+    assertThat(unusedVersion)
+        .as("An unused IDEasy installation that is not the running one should still be deleted")
+        .doesNotExist();
+  }
+
+  /**
    * Tests that batch mode combined with force mode skips the confirmation prompt.
    *
    * @throws IOException if the test setup cannot be created.
