@@ -1,0 +1,216 @@
+= Contributing to the IDEasy GUI
+:toc:
+:toclevels: 4
+:sectnums:
+
+== Introduction
+
+When contributing to the UI, a few special guidelines are relevant in order to ensure a high quality and consistency.
+This guide acts as an overview.
+
+== Contribution workflow
+
+GUI contributions should follow a short design-first workflow before implementation of the actual task starts.
+This prevents ensures consistency of parallel work on UI contributions and makes reviews easier.
+
+. Pick an issue
+. Create a design (see details)
+. Review the design with the team
+. Start with the actual implementation
+. -> From here continue with the normal IDEasy contribution workflow (Open PR, Team review, review, merge, retest)
+
+=== Pick an issue
+
+Before implementing anything:
+
+. Find an existing GUI-labeled issue.
+. Assign the issue to yourself.
+. If the work is not tracked yet, create a new issue first and don't forget to add the "GUI" label.
+
+=== Create a design proposal
+
+For visible GUI changes, do *not* start directly with JavaFX implementation.
+First create a design proposal.
+
+Recommended flow:
+
+. Create a design sub-issue for the parent GUI issue (e.g.: Parent GUI issue: "Add project config screen", design sub-issue: "Design: Add project config screen").
+. Mark the parent issue as blocked by the design sub-task in GitHub.
+. Plan the screen or interaction in the Figma template.
+. Move the design sub-task into team review when ready (same process as with other tasks, however, we move the issue into review, as we do the design on Figma, we do *not* need Pull Requests!).
+. Move the design sub-task into review when passed the team review.
+. When passed the review, close the design sub-issue.
+
+=== Final implementation
+
+. Implement the actual GUI change in JavaFX just like any other contribution.
+
+== Create a new Tab
+
+The main window is organized into tabs (e.g. the IDE launcher).
+Every tab is a self-contained *`TabComponent`*: it knows its own title and owns the construction of its ViewModel, View and JavaFX Tab, plus any lifecycle hooks.
+The `TabFactory` does *not* need to know about a specific tab's ViewModel or View — it only bundles the construction of tabs by creating their TabComponents and using these TabComponents to create the Tabs and send them via events to the MainWindowView.
+
+The basic idea is: **to add a tab, create a new class that extends `TabComponent`.**
+
+=== The `TabComponent` abstraction
+
+A `TabComponent` bundles everything that belongs to one tab in a single, reusable unit:
+
+* its **title key** (an NLS key, not a hardcoded string),
+* its **ViewModel** and **View** (built lazily on first use and wired together by the component),
+* **lifecycle hooks** around opening/closing/focusing the tab.
+
+The tab's *identity* (its NLS title key) is owned by the `TabComponent`. This replaces the `getTabTitleKey()` that the ViewModel previously provided (in the current `TabViewModel`), so there is a single source of truth for the title instead of passing it around as a separate parameter.
+
+
+This applies the *Tell, Don't Ask* principle: instead of the caller *asking* the ViewModel for its title key and then separately constructing the ViewModel and View, the caller *tells* the factory to open a `TabComponent` and lets the component compose itself.
+It mirrors how Android handles reusable UI components (Fragments), where a fragment owns creating its layout and view model (see `Fragment.onCreateView`).
+
+=== Anatomy of a tab
+
+A `TabComponent` is composed of the existing View/ViewModel pair plus the JavaFX Tab and the component that ties them together:
+
+* **ViewModel** — extends `TabViewModel`. Holds the observable state and logic of the tab.
+* **View** — extends `TabView`. Pure UI (loads its FXML and binds to the ViewModel). No business logic.
+* **`Tab`** — The JavaFX Tab
+
+=== Step-by-step
+
+. **Add the localization key(s).** Add the tab's title key (and any user-facing labels) to `gui/src/main/resources/nls/messages.properties` and provide the translations.
++
+[source,properties]
+----
+tab.my_feature=My Feature
+----
+. **Create the ViewModel** (extends `TabViewModel`): keep the tab's state and logic here.
++
+[source,java]
+----
+public class MyFeatureViewModel extends TabViewModel {
+
+  public MyFeatureViewModel(GuiStateManager guiStateManager) {
+    super(guiStateManager);
+  }
+}
+----
+. **Create the View** (extends `TabView`) and its FXML. Load the FXML with `loadFxml` and bind the controls to the ViewModel (see link:ui-structure.adoc[UI Architecture and Structure] for the binding conventions).
+. **Create the `TabComponent`** (extends `TabComponent`). Here it builds and wires the ViewModel and View and returns them.
++
+[source,java]
+----
+public class MyFeatureTab extends TabComponent {
+
+  private final SimpleStringProperty tabTitleKey = new SimpleStringProperty("tab.my_feature");
+
+  public MyFeatureTab(GuiStateManager guiStateManager, CommandletService commandletService,
+      ConsoleController consoleController) {
+
+    super(guiStateManager, commandletService, consoleController);
+  }
+
+  @Override
+  public TabView createTab() {
+  
+    this.viewModel = new MyFeatureViewModel(this.guiStateManager, this.commandletService);
+    this.view = new MyFeatureView(this.viewModel, this.nlsService);
+    this.tab = new Tab(this.nlsService.get(tabTitleKey), this.view);
+    this.tab.setUserData(tabTitleKey);
+    this.tab.setClosable(true);
+
+    return this.view;
+  }
+  
+  @Override
+  public TabChangeEvent createTabChangeEvent() {
+    createTab();
+    return new TabChangeEvent(this.tab);
+  }
+
+  @Override
+  public SimpleStringProperty getTabTitleKey() {
+    return this.tabTitleKey;
+  }
+}
+----
+. **Open it.** Call `tabFactory.open(...)` with the component. If the tab is opened from a fixed place, add a small convenience method (e.g. `openLauncherTab()`).
++
+[source,java]
+----
+public void openMyFeatureTab() {
+  open(new MyFeatureTab(this.guiStateManager, this.commandletService, this.consoleController));
+}
+----
+. **Test it.** Unit-test the ViewModel in isolation, and add a UI test (extending `HeadlessApplicationTest`) for the view behavior and binding correctness.
+
+=== Example: the launcher tab
+
+The IDE launcher tab follows this pattern. `IdeLauncherTab` owns the `IdeLauncherViewModel`, `IdeLauncherView`  and the JavaFX Tab, `TabFactory` only creates the IdeLauncherTab object and then calls its private open() method which calls the createTabChangeEvent()-method of the IdeLauncherTab:
+
+[source,java]
+----
+public class LauncherTab extends TabComponent {
+
+  private final SimpleStringProperty tabTitleKey = new SimpleStringProperty("tab.ide_launcher");
+
+  public LauncherTab(GuiStateManager guiStateManager, CommandletService commandletService,
+      ConsoleController consoleController) {
+
+    super(guiStateManager, commandletService, consoleController);
+  }
+
+  @Override
+  public TabView createTab() {
+    this.viewModel = new IdeLauncherViewModel(this.guiStateManager, this.commandletService);
+    this.view = new IdeLauncherView(this.viewModel, this.nlsService);
+    this.tab = new Tab(this.nlsService.get(tabTitleKey), this.view);
+    this.tab.setUserData(tabTitleKey);
+    this.tab.setClosable(true);
+
+    return this.view;
+  }
+
+  @Override
+  public TabChangeEvent createTabChangeEvent() {
+    createTab();
+    return new TabChangeEvent(this.tab);
+  }
+
+  @Override
+  public SimpleStringProperty getTabTitleKey() {
+    return this.tabTitleKey;
+  }
+}
+----
+
+The `TabFactory` becomes completely decoupled from the concrete tab:
+
+[source,java]
+----
+public void openLauncherTab() {
+  open(new LauncherTab(this.guiStateManager, this.commandletService, this.consoleController));
+}
+
+private void open(TabComponent tabComponent) {
+    this.eventBus.sendEvent(tabComponent.createTabChangeEvent());
+}
+----
+
+=== Lifecycle hooks
+
+`TabComponent` is the place to express a small, explicit UI lifecycle around a tab:
+
+* `onBeforeOpenTab()` — run right before `getView()` is called (e.g. to refresh data or auto-show the console).
+* `onFocus()` — when the tab becomes the selected tab.
+* `onClose()` — when the tab is closed.
++
+
+=== Why this design
+
+* **Co-located composition:** the caller no longer has to know the individual `[Tab]ViewModel`/`[Tab]View` or thread services through the call site — the tab wires itself.
+* **Launch from anywhere:** opening a tab is a one-line `tabFactory.open(component)`, so it can be triggered from multiple sources (UI, an event bus, …) without duplicating composition logic.
+* **Consistency:** every tab goes through the same `TabFactory.open(...)` path, which keeps the `TabPane` management (dedup by title key, closeable behavior, …) in one place.
+
+== Figma link
+
+You can access the Figma board here: https://www.figma.com/design/cEcWlvnNOS5xVE2kQFZe0R/IDEasy?t=K358vlISaq7t2Nfp-1y?t=K358vlISaq7t2Nfp-1

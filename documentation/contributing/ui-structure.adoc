@@ -1,0 +1,304 @@
+= IDEasy UI Architecture and Structure
+
+This document describes the architecture, structure, and best practices for the IDEasy GUI module.
+It serves as a reference for contributors working on the UI layer.
+
+== Architecture Overview
+
+The IDEasy GUI follows the **Model-View-ViewModel (MVVM)** pattern with a feature-based package organization.
+The architecture emphasizes:
+
+* *Model-View-ViewModel pattern (MVVM)*: separation of concerns into Models, Views, and ViewModels
+* *Component Reusability*: Reusable components through a shared component library (e.g.: Console component)
+* *UI Reactivity*: via Observer patterns and property bindings
+* *Maintainability*: through localization, programmatic wiring, and comprehensive testing + Scalability via feature-based organization allowing independent development
+* **Scalability** via feature-based organization allowing independent development
+
+=== Roles
+
+The GUI is organized around a small set of roles. Each has a single responsibility:
+
+[cols="1,4",options="header"]
+|====
+|Role|Responsibility
+
+|*Factory*
+|Creates ViewModels and Views while holding the services needed to build them. E.g. `TabFactory` creates and manages the tabs of the main window. Initialized in `App`.
+
+|*Service*
+|Encapsulates business logic and access to data/functionality, independently of the UI. E.g. `CommandletService` runs commandlets in the selected context; `NlsService` handles localization. Initialized in `App`.
+
+|*Control*
+|A self-contained UI component of the `MainWindow`-shell, extracted from the main view to improve maintainability and separation of concerns. E.g. the console pane (`ConsoleController`) and the navigation panel (`NavigationPanelView` + `NavigationPanelViewModel`).
+
+|*View*
+|The UI representation without business logic. It displays data from the ViewModel through bindings and translates user gestures back onto it. E.g. `MainWindowView`, `IdeLauncherView`.
+
+|*ViewModel*
+|Acts as a bridge between the View and the Services/Factory/Data layer. It maintains the current (observable) state and contains the UI-related logic. E.g. `MainWindowViewModel`, `IdeLauncherViewModel`.
+|====
+
+Note: the term *Model* in MVVM refers to the observable application state. In practice this lives in the `context` package (e.g. `GuiStateManager`, `TaskManager`) and is exposed to the UI as JavaFX `Property`s.
+
+== Observer / Observable Pattern
+
+_**Editor's Note:**_ Currently, the GUI mostly does not use the Observer/Observable pattern via extension of `Observable` or `PropertyChangeSupport`.
+Instead, it relies on JavaFX `Property` bindings for reactivity.
+We should rethink this in future contributions.
+
+IDEasy uses the **Observer/Observable pattern** (and JavaFX `Property` bindings) to propagate changes between the observable state (the Model), the ViewModels, and the Views.
+
+* **State** (the Model) acts as the *Observable*: it holds the current state as JavaFX `Property`s and notifies observers when the state changes. In practice this is the `context` layer (e.g. `GuiStateManager`, `TaskManager`).
+* **ViewModels and Views** act as *Observers*: they read state through properties and register listeners, and react to changes by updating the UI or the surrounding state accordingly.
+* JavaFX `Property` and `Binding` APIs are used for fine-grained reactivity within the UI layer.
+
+=== Implementation Guidelines
+
+* Expose state as JavaFX `Property`s (`SimpleStringProperty`, `SimpleBooleanProperty`, `SimpleObjectProperty`, `ObservableList`, …) and expose them through `...Property()` accessors.
+* Views bind to view-model properties (bidirectionally where appropriate, e.g. a `ComboBox` value) and register listeners where imperative reaction is required.
+* Prefer JavaFX `Property` bindings for View-Model synchronization over manual polling or ad-hoc callbacks.
+* Remove listeners when a component is discarded to avoid memory leaks.
+
+=== Example
+
+A view-model exposes observable state that a view binds to directly:
+
+[source,java]
+----
+// View model: exposes the "a workspace is selected" state as an observable property
+public class IdeLauncherViewModel extends TabViewModel {
+
+  private final BooleanProperty isIdeButtonsDisabled =
+      new SimpleBooleanProperty();
+
+  public IdeLauncherViewModel(GuiStateManager guiStateManager, CommandletService commandletService) {
+    super(guiStateManager);
+    this.commandletService = commandletService;
+
+    // The launcher buttons stay disabled until a project/workspace is selected.
+    this.isIdeButtonsDisabled.bind(this.guiStateManager.workspaceSelectedProperty().not());
+  }
+
+  public BooleanProperty isIdeButtonsDisabledProperty() {
+    return this.isIdeButtonsDisabled;
+  }
+}
+
+// View: binds each button's disabled state to the view model — no imperative code needed
+@FXML
+private void initialize() {
+  this.eclipseOpen.disableProperty().bind(this.viewModel.isIdeButtonsDisabledProperty());
+  this.eclipseOpen.setOnAction(_ -> this.viewModel.runCommandlet("eclipse"));
+  // ...same for the other IDE buttons
+}
+----
+
+== Package Structure per Feature
+
+The codebase follows a **layer- and feature-based package organization** rather than a purely layer-based one.
+Each feature owns its View/ViewModel pair and related components, while cross-cutting concerns live in dedicated top-level packages.
+
+=== Packages
+
+* `context` — the observable application state (the Model): project/workspace selection, task management, and the `IdeGuiContext`.
+* `factory` — factories that create Views/ViewModels and manage shared UI containers (e.g. `TabFactory` for the tab pane).
+* `helper` — framework-agnostic helpers, e.g. `FxHelper` (FXML loading, FX-thread-safe execution) and `ComboBoxViewModel`.
+* `service` — business logic and data access independent of the UI (e.g. `CommandletService`, `NlsService`).
+* `ui` — the UI layer, organized per feature: `mainwindow`, `tab`, `controls`, `modal`, `progress`.
+* `App` / `AppLauncher` — application entry point.
+
+[source]
+----
+gui
+└── src
+    └── main
+        ├── java
+        │   └── com
+        │       └── devonfw
+        │           └── ide
+        │               └── gui
+        │                   ├── context
+        │                   │   ├── GuiContextChangeListener.java
+        │                   │   ├── GuiOutputListener.java
+        │                   │   ├── GuiStateManager.java
+        │                   │   ├── IdeGuiContext.java
+        │                   │   └── [Other mostly basic classes etc.]
+        │                   ├── factory
+        │                   ├── helper
+        │                   ├── service
+        │                   ├── ui
+        │                   │   ├── controls
+        │                   │   ├── mainwindow
+        │                   │   ├── modal
+        │                   │   ├── progress
+        │                   │   └── tab
+        │                   │       ├── launcher/
+        │                   │       ├── someOtherTabComponent/
+        │                   ├── App.java
+        │                   └── AppLauncher.java
+        └── resources
+----
+
+=== FXML Resources
+
+FXML files live alongside their View/Controller classes under `gui/src/main/resources/com/devonfw/ide/gui/ui/`, mirroring the Java package layout.
+The `%key` placeholders are resolved against the resource bundle provided by `NlsService`.
+
+[source]
+----
+resources
+└── com
+    └── devonfw
+        └── ide
+            └── gui
+                ├── ui
+                │   ├── controls
+                │   │   ├── console/console.fxml
+                │   │   └── mainwindow/NavigationPanel.fxml
+                │   ├── mainwindow/MainWindowView.fxml
+                │   ├── progress/taskwindow/task_overview_window.fxml
+                │   └── tab/launcher/IdeLauncher.fxml
+                ├── assets/          (icons and logos)
+                ├── style/          (CSS)
+                └── nls/            (messages.properties, messages_de.properties, …)
+----
+
+=== Benefits
+
+* **High cohesion**: All code for a feature is co-located
+* **Low coupling**: Features communicate via well-defined interfaces/events
+* **Scalability**: New features can be added without touching existing ones
+* **Team autonomy**: Teams can own features end-to-end
+
+== Localization as a Best Practice
+
+All user-facing strings **must** be externalized for localization (i18n).
+This is implemented in code via resource bundles; handled by the `NlsService` class.
+
+* **Resource Bundles**: Each language has its own `messages.properties` (like `messages_de.properties`)
+* **Key Naming**: Use hierarchical keys: `feature.component.action` (e.g., `dashboard.toolbar.refresh`, `settings.dialog.save`)
+* **No Hardcoded Strings**: Never embed user-visible text in Java code or FXML
+* **Interpolation**: Use `MessageFormat` for dynamic values: `{0} packages updated`
+
+=== Implementation
+
+* In FXML layout files, we use the `%key` pattern for localized strings. (example: `<Label text="%ideasy_ready_msg" />`)
+* The FXML loader resolves those keys against the bundle exposed by the `NlsService` (see the `setResources` and `loadFxml` examples below).
+* In Java, look up strings via `nlsService.get(key)`.
+* Locale support: bundles are discovered from `nls/messages[_<lang>].properties` (e.g. `messages.properties` for English, `messages_de.properties` for German). To add a locale, add a bundle file with the same key set and a matching suffix.
+
+== View / Controller Wiring via Code
+
+Views and their ViewModels are **primarily wired in Java code** to allow dependency injection.
+Generally, we want to refrain from wiring a controller only via FXML:
+
+* **Programmatic Wiring**: The view instance is created, its FXML loaded, and its controller/view-model wired in Java code.
+* We use either:
+. **The View-as-Controller pattern**: The view class is itself the FXML controller (loaded via `FxHelper.loadFxml`, which calls `setRoot(this)` and `setController(this)`). This is the common case.
+. **The Factory pattern** (nested layouts): When a layout includes a child layout that has its own controller, the parent's `FXLoader` can provide the dependencies to the child controller via a `setControllerFactory`. In this case, declaring `fx:controller` in the FXML is fine. See this thread: https://stackoverflow.com/a/78535631
+
+=== Example: View as its own controller
+
+`MainWindowView` is a `BorderPane` that loads `MainWindowView.fxml`, using itself as the controller:
+
+[source,java]
+----
+public MainWindowView(MainWindowViewModel viewModel, GuiStateManager guiStateManager, NlsService nlsService,
+    ConsoleController consoleController, TabFactory tabFactory) {
+
+  this.viewModel = viewModel;
+  this.nlsService = nlsService;
+  this.consoleController = consoleController;
+  this.tabFactory = tabFactory;
+
+  final FXMLLoader loader = new FXMLLoader(getClass().getResource("MainWindowView.fxml"));
+  loader.setRoot(this);
+  loader.setController(this);
+  loader.setResources(this.nlsService.getResourceBundle());
+  // Inject the console controller for the nested console.fxml (see below).
+  loader.setControllerFactory(clazz -> clazz == ConsoleController.class ? this.consoleController : null);
+  loader.load();
+
+  // Build the navigation panel and attach the tab pane programmatically.
+  final NavigationPanelViewModel navigationViewModel =
+      new NavigationPanelViewModel(this.guiStateManager, this.nlsService);
+  setLeft(new NavigationPanelView(navigationViewModel, this.nlsService));
+
+  this.tabFactory.attach(this.tabPane);
+  this.tabFactory.openLauncherTab();
+  // ...
+}
+----
+
+Simple components use the `FxHelper.loadFxml` shortcut, which does the `setRoot(this)` / `setController(this)` / `setResources(...)` wiring for you:
+
+[source,java]
+----
+public NavigationPanelView(NavigationPanelViewModel viewModel, NlsService nlsService) {
+  this.nlsService = nlsService;
+  this.viewModel = viewModel;
+  FxHelper.loadFxml("NavigationPanel.fxml", nlsService, this);
+}
+----
+
+=== Example: injecting a nested controller
+
+In the (potentially nested) FXML file the child controller is declared:
+
+[source,xml]
+----
+<AnchorPane xmlns:fx="http://javafx.com/fxml"
+  fx:controller="com.devonfw.ide.gui.ui.controls.console.ConsoleController">
+  <!-- ... -->
+</AnchorPane>
+----
+
+The parent (`MainWindowView`) includes `console.fxml` inside a `SplitPane` and supplies the shared `ConsoleController` through a `setControllerFactory`, so the nested console is wired to the same instance the services use:
+
+[source,java]
+----
+loader.setControllerFactory(clazz -> {
+  if (clazz == ConsoleController.class) {
+    return this.consoleController;
+  }
+  return null;
+});
+----
+
+== Testing Documentation
+
+Testing follows a clear separation between **logic tests** (unit tests) and **interaction tests** (UI tests).
+In this documentation, we focus on the UI testing strategy.
+
+=== Interaction Testing (UI Tests)
+
+* **Scope**: Test view behavior and user interactions
+* **Framework**: TestFX
+* **Focus**: Event handling, binding correctness, UI state changes
+* **Headless Testing: All tests should extend the `HeadlessApplicationTest` class to enable headless testing.
+Otherwise tests will fail on the GitHub CI pipeline.**
+
+==== Example
+
+[source,java]
+----
+  /**
+   * Tests that the workspace {@link ComboBox} is enabled when a project is selected.
+   */
+  @Test
+  public void testWorkspaceComboboxEnabledEnabledWhenProjectSelected() {
+
+    // assert that a project is selected
+    interact(() -> selectedProject.getSelectionModel().select("project-1"));
+
+    // assert all IDE open buttons are disabled
+    assertThat(selectedWorkspace.isDisabled())
+        .as("selectedWorkspace ComboBox should be enabled when a project is selected")
+        .isFalse();
+  }
+----
+
+=== View Model Tests
+
+Because the logic lives in the ViewModels, they are easy to unit-test in isolation from the View.
+E.g. `NavigationPanelViewModelTest` verifies the project/workspace/language selection and context switching without instantiating any JavaFX nodes.
