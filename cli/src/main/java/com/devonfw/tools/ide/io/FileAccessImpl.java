@@ -213,6 +213,18 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     }
   }
 
+  private void copyTreeWithProgressBar(Path source, Path target, FileCopyMode mode) {
+
+    long size = getPathSize(source);
+    try (IdeProgressBar progressBar = this.context.newProgressbarForCopying(size)) {
+      copy(source, target, mode, (copiedSource, copiedTarget, directory) -> {
+        if (!directory) {
+          progressBar.stepBy(getFileSize(copiedSource));
+        }
+      });
+    }
+  }
+
   @Override
   public String download(String url) {
 
@@ -1009,7 +1021,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       throw new IllegalStateException("Failed to unpack DMG as no MacOS *.app was found in file " + file);
     }
 
-    copy(appPath, targetDir, FileCopyMode.COPY_TREE_OVERRIDE_TREE);
+    copyTreeWithProgressBar(appPath, targetDir, FileCopyMode.COPY_TREE_OVERRIDE_TREE);
     pc.addArgs("detach", "-force", mountPath);
     pc.run();
   }
@@ -1423,6 +1435,18 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       LOG.warn("Failed to determine size of file {}: {}", file, e.toString(), e);
       return 0;
     }
+  }
+
+  private long getPathSize(Path path) {
+
+    if (!Files.isDirectory(path)) {
+      return getFileSize(path);
+    }
+    long size = 0;
+    for (Path child : listChildren(path, file -> true)) {
+      size += getPathSize(child);
+    }
+    return size;
   }
 
 

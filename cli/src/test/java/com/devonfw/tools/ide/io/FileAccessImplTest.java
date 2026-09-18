@@ -24,10 +24,13 @@ import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.CleanupMode;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.Mockito;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.devonfw.tools.ide.process.ProcessContext;
 
 /**
  * Test of {@link FileAccessImpl}.
@@ -797,6 +800,36 @@ class FileAccessImplTest extends AbstractIdeContextTest {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * Test of {@link FileAccessImpl#extractDmg(Path, Path)} with a progress bar for copying the mounted app.
+   */
+  @Test
+  void testExtractDmgWithProgressBar(@TempDir Path tempDir) throws IOException {
+
+    // arrange
+    IdeTestContext context = newContext(tempDir);
+    context.setIdeHome(tempDir);
+    context.setSystemInfo(SystemInfoMock.MAC_X64);
+    ProcessContext processContext = Mockito.mock(ProcessContext.class);
+    context.setProcessContext(processContext);
+    Path appPath = context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_VOLUME).resolve("MyApp.app");
+    Path sourceFile = appPath.resolve("Contents/Resources/resource.txt");
+    Files.createDirectories(sourceFile.getParent());
+    Files.writeString(sourceFile, "x".repeat(1024));
+    long appSize = Files.size(sourceFile);
+    Path target = tempDir.resolve("target");
+
+    // act
+    context.getFileAccess().extractDmg(tempDir.resolve("MyApp.dmg"), target);
+
+    // assert
+    assertThat(target.resolve(appPath.getFileName()).resolve(appPath.relativize(sourceFile))).hasSameTextualContentAs(sourceFile);
+    IdeProgressBarTestImpl progressBar = context.getProgressBarMap().get(IdeProgressBar.TITLE_COPYING);
+    assertThat(progressBar).isNotNull();
+    assertThat(progressBar.getMaxSize()).isEqualTo(appSize);
+    assertThat(progressBar.getEventList()).extracting(IdeProgressBarTestImpl.ProgressEvent::getStepSize).containsExactly(appSize);
   }
 
   /**
