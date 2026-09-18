@@ -18,6 +18,9 @@ permissions:
 jobs:
   observe:
     runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      vars.ENABLE_AUTOMATIC_WORKFLOWS == 'true'
     steps:
       - name: Scan for new external issues & PRs and notify Teams
         env:
