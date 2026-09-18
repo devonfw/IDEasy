@@ -7,13 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import com.devonfw.ide.gui.ui.tab.TabComponent;
-
-import javafx.scene.Group;
-import javafx.scene.Scene;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.stage.Stage;
 
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
@@ -26,14 +21,15 @@ import com.devonfw.ide.gui.event.GuiEventBus;
 import com.devonfw.ide.gui.event.TabChangeEvent;
 import com.devonfw.ide.gui.service.CommandletService;
 import com.devonfw.ide.gui.service.NlsService;
-import com.devonfw.ide.gui.ui.controls.console.ConsoleViewModel;
+import com.devonfw.ide.gui.ui.mainwindow.MainWindowView;
 
 /**
  * Tests for {@link TabFactory} focusing on how a tab is identified for de-duplication. A tab must be identified by its stable NLS key, not by its
  * (locale-dependent, translated) title text.
  *
- * <p>The factory no longer owns a {@link javafx.scene.control.TabPane}; each {@link TabFactory#open(TabComponent)} publishes a
- * {@link TabChangeEvent} on the {@link GuiEventBus}. These tests subscribe to the bus and assert on the emitted tabs.
+ * <p>The factory no longer owns a {@link javafx.scene.control.TabPane}; each open publishes a {@link TabChangeEvent} on the {@link GuiEventBus}. These tests
+ * subscribe to the bus and assert on the emitted tabs. De-duplication now happens in the main window's tab handling (see
+ * {@link MainWindowView#selectOrAdd(TabPane, Tab)}), which the duplicate-tab test drives directly.
  */
 class TabFactoryTest extends HeadlessApplicationTest {
 
@@ -46,55 +42,19 @@ class TabFactoryTest extends HeadlessApplicationTest {
 
   private int distinctTabCount;
 
-  private Object userData;
-
-  private String titleText;
-
   private boolean sameInstance;
 
   private boolean selectionRestoredToExisting;
 
-  @Override
-  public void start(Stage stage) {
-    stage.setScene(new Scene(new Group()));
-    stage.show();
-  }
-
   /**
-   * Builds a {@link TabFactory} wired to a bus with a capturing listener, opens two tabs with the given keys, and captures the emitted tabs.
+   * Builds a {@link TabFactory} wired to the given bus with a capturing listener that appends every emitted tab to {@code emitted}.
    */
-  private void openLauncherTabTwice() {
-    interact(() -> {
-      TabFactory factory = getFactory();
-      TabPane tabPane = new TabPane();
-      this.tabPane = tabPane;
-
-      factory.openLauncherTab();
-      Tab first = tabPane.getTabs().get(0);
-
-      // Deselect so the second open has to actively re-select the existing tab
-      tabPane.getSelectionModel().clearSelection();
-      factory.openLauncherTab();
-
-      Tab second = tabPane.getTabs().get(0);
-      this.distinctTabCount = tabPane.getTabs().size();
-      this.userData = second.getUserData();
-      this.titleText = second.getText();
-      this.sameInstance = (first == second);
-      this.selectionRestoredToExisting = tabPane.getSelectionModel().getSelectedItem() == second;
-    });
-  }
-
-  private @NonNull TabFactory getFactory() {
+  private @NonNull TabFactory getFactory(GuiEventBus eventBus, List<Tab> emitted) {
     GuiStateManager guiStateManager = new GuiStateManager(new TaskManager(), this.ideRoot.toString());
     NlsService nlsService = new NlsService(Locale.ENGLISH);
-    ConsoleViewModel consoleViewModel = new ConsoleViewModel();
-    CommandletService commandletService = new CommandletService(guiStateManager, consoleViewModel);
-    GuiEventBus eventBus = new GuiEventBus();
-    List<Tab> emitted = new ArrayList<>();
+    CommandletService commandletService = new CommandletService(guiStateManager, eventBus);
     eventBus.addListener(TabChangeEvent.class, event -> emitted.add(event.tab()));
-    TabFactory factory = new TabFactory(guiStateManager, nlsService, commandletService, consoleViewModel, eventBus);
-    return factory;
+    return new TabFactory(guiStateManager, nlsService, commandletService, eventBus);
   }
 
   /**
@@ -103,10 +63,18 @@ class TabFactoryTest extends HeadlessApplicationTest {
    */
   @Test
   void testOpenStoresTheTitleKeyAsTheTabIdentity() {
-    openLauncherTabTwice();
+    GuiEventBus eventBus = new GuiEventBus();
+    List<Tab> emitted = new ArrayList<>();
 
-    assertThat(this.userData).as("The tab must be identifiable by its NLS key, not its translated title").isEqualTo(LAUNCHER_TITLE_KEY);
-    assertThat(this.titleText).as("The visible title must be the localized text, not the raw key").isNotEqualTo(LAUNCHER_TITLE_KEY);
+    interact(() -> {
+      TabFactory factory = getFactory(eventBus, emitted);
+      factory.openLauncherTab();
+    });
+
+    assertThat(emitted).hasSize(1);
+    Tab tab = emitted.get(0);
+    assertThat(tab.getUserData()).as("The tab must be identifiable by its NLS key, not its translated title").isEqualTo(LAUNCHER_TITLE_KEY);
+    assertThat(tab.getText()).as("The visible title must be the localized text, not the raw key").isNotEqualTo(LAUNCHER_TITLE_KEY);
   }
 
   /**
@@ -114,8 +82,34 @@ class TabFactoryTest extends HeadlessApplicationTest {
    */
   @Test
   void testOpenTwiceDoesNotCreateADuplicateTab() {
-    openLauncherTabTwice();
+    GuiEventBus eventBus = new GuiEventBus();
+    List<Tab> emitted = new ArrayList<>();
 
+    interact(() -> {
+      TabFactory factory = getFactory(eventBus, emitted);
+      this.tabPane = new TabPane();
+
+      factory.openLauncherTab();
+      factory.openLauncherTab();
+
+      // First open adds the launcher tab.
+      MainWindowView.selectOrAdd(this.tabPane, emitted.get(0));
+      Tab first = this.tabPane.getTabs().get(0);
+
+      // Deselect so the second open has to actively re-select the existing tab.
+      this.tabPane.getSelectionModel().clearSelection();
+      // Second open is a fresh Tab with the same identity and must focus the existing tab, not add a duplicate.
+      MainWindowView.selectOrAdd(this.tabPane, emitted.get(1));
+
+      this.distinctTabCount = this.tabPane.getTabs().size();
+      this.sameInstance = first == this.tabPane.getTabs().get(0);
+      this.selectionRestoredToExisting = this.tabPane.getSelectionModel().getSelectedItem() == first;
+    });
+
+    assertThat(emitted).hasSize(2);
+    // Both opens emit the same logical tab (same identity) even though each is a freshly created Tab instance.
+    assertThat(emitted.get(0).getUserData()).isEqualTo(LAUNCHER_TITLE_KEY);
+    assertThat(emitted.get(1).getUserData()).isEqualTo(LAUNCHER_TITLE_KEY);
     assertThat(this.distinctTabCount).as("Opening the same tab twice must not create a second tab").isEqualTo(1);
     assertThat(this.sameInstance).as("Opening the tab again must return to the existing tab").isTrue();
     assertThat(this.selectionRestoredToExisting).as("Opening an already-open tab must select it").isTrue();

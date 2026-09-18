@@ -133,10 +133,30 @@ public class MainWindowView extends BorderPane {
 
   private void handleTab(Tab tab) {
 
-    if (!this.tabPane.getTabs().contains(tab)) {
-      this.tabPane.getTabs().add(tab);
+    selectOrAdd(this.tabPane, tab);
+  }
+
+  /**
+   * Adds the given tab to the tab pane and selects it. If a tab with the same identity is already present it is focused instead, so re-opening a tab does not create a
+   * duplicate.
+   *
+   * <p>Identity is the tab's {@link Tab#getUserData() userData}, which tabs set to their stable NLS title key. De-duplicating by key (rather than by tab instance) is
+   * what keeps a single tab open for a given key even though each open is handed a freshly created {@link Tab}.
+   *
+   * @param tabPane the tab pane to manage.
+   * @param tab the tab to add (or, if a tab of the same identity is already open, to select).
+   */
+  public static void selectOrAdd(TabPane tabPane, Tab tab) {
+    final Object identity = tab.getUserData();
+    final Tab existing = tabPane.getTabs().stream().filter(t -> sameIdentity(t.getUserData(), identity)).findFirst().orElse(null);
+    if (existing == null) {
+      tabPane.getTabs().add(tab);
     }
-    this.tabPane.getSelectionModel().select(tab);
+    tabPane.getSelectionModel().select(existing != null ? existing : tab);
+  }
+
+  private static boolean sameIdentity(Object a, Object b) {
+    return a == null ? b == null : a.equals(b);
   }
 
   private void bindConsole() {
