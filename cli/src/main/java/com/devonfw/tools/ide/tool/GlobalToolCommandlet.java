@@ -32,6 +32,10 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(GlobalToolCommandlet.class);
 
+  private static final String MAC_APPLICATIONS_FOLDER_NAME = "Applications";
+
+  private static final Path MAC_SYSTEM_APPLICATIONS_DIR = Path.of("/" + MAC_APPLICATIONS_FOLDER_NAME);
+
   /**
    * The constructor.
    *
@@ -85,11 +89,13 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   private void logPackageManagerCommands(PackageManagerCommand pmCommand) {
 
     IdeLogLevel level = IdeLogLevel.INTERACTION;
-    level.log(LOG, "We need to run the following privileged command(s):");
+    level.log(LOG, "We need to run the following command(s):");
     for (String command : pmCommand.commands()) {
       level.log(LOG, command);
     }
-    level.log(LOG, "This will require root permissions!");
+    if (pmCommand.packageManager().isNeedSudo()) {
+      level.log(LOG, "This will require root permissions!");
+    }
   }
 
   /**
@@ -349,8 +355,76 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
       WindowsHelper.get(this.context).uninstallApplication(getWindowsRegistryAppName());
     } else if (this.context.getSystemInfo().isLinux()) {
       runWithPackageManager(false, getUninstallPackageManagerCommands(), NativePackageAction.UNINSTALL);
+    } else if (this.context.getSystemInfo().isMac()) {
+      uninstallMac();
     } else {
       LOG.error("Couldn't uninstall {} on this OS. Please uninstall manually.", this.getName());
     }
+  }
+
+  /**
+   * Uninstalls this tool on macOS. Unlike Linux, macOS has no single standardized package manager, so we try the best-effort options in order and finally
+   * fall back to giving the user actionable guidance if nothing could be done automatically.
+   */
+  private void uninstallMac() {
+    if (runWithPackageManager(false, getUninstallPackageManagerCommands(), NativePackageAction.UNINSTALL)) {
+      return;
+    }
+    Path appBundle = findMacApplicationBundle();
+    if ((appBundle != null) && deleteMacApplicationBundle(appBundle)) {
+      IdeLogLevel.SUCCESS.log(LOG, "Successfully uninstalled {} by removing {}", this.tool, appBundle);
+      return;
+    }
+    String brewHint = "";
+    if (isPackageManagerAvailable(NativePackageManager.BREW_CASK)) {
+      brewHint = " or via Homebrew (e.g. 'brew uninstall " + this.tool + "' or 'brew uninstall --cask " + this.tool + "')";
+    }
+    LOG.error("Couldn't automatically uninstall {} on macOS. Please uninstall it manually, e.g. by moving it from the Applications folder to the Trash{}.",
+        this.getName(), brewHint);
+  }
+
+  /**
+   * @param appBundle the *.app bundle to delete.
+   * @return {@code true} if {@code appBundle} was successfully deleted, {@code false} if deletion failed - e.g. because since macOS Monterey the
+   *     Applications folder is protected and a regular process may not be allowed to delete from it. Callers must not assume this always succeeds and
+   *     should fall back to manual-uninstall guidance if it returns {@code false} rather than letting the exception propagate.
+   */
+  private boolean deleteMacApplicationBundle(Path appBundle) {
+    try {
+      this.context.getFileAccess().delete(appBundle);
+      return true;
+    } catch (IllegalStateException e) {
+      LOG.warn("Could not automatically remove {}: {}", appBundle, e.getMessage(), e);
+      return false;
+    }
+  }
+
+  /**
+   * @return the {@link Path} to the *.app bundle of this tool as found in one of the well-known macOS application folders, or {@code null} if
+   *     {@link #getMacApplicationName() unknown} or not found there.
+   */
+  private Path findMacApplicationBundle() {
+    String appName = getMacApplicationName();
+    if (appName == null) {
+      return null;
+    }
+    String bundleFileName = appName + ".app";
+    List<Path> applicationsDirs = List.of(MAC_SYSTEM_APPLICATIONS_DIR, this.context.getUserHome().resolve(MAC_APPLICATIONS_FOLDER_NAME));
+    for (Path applicationsDir : applicationsDirs) {
+      Path candidate = applicationsDir.resolve(bundleFileName);
+      if (Files.isDirectory(candidate)) {
+        return candidate;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * @return the name (without the ".app" suffix) of this tool's application bundle as it appears in the macOS Applications folder, or {@code null} if
+   *     unknown so that {@link #uninstall() uninstall} cannot try to automatically remove it and instead gives the user manual guidance. Override this in
+   *     subclasses that know their application bundle name (which may differ from {@link #getName() the tool name}, e.g. "Docker" for the tool "docker").
+   */
+  public String getMacApplicationName() {
+    return null;
   }
 }
