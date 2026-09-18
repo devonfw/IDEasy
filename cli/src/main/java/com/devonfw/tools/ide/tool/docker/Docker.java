@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.tool.docker;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -8,6 +10,7 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
@@ -16,6 +19,8 @@ import com.devonfw.tools.ide.tool.EditionAndVersion;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.NativePackage;
 import com.devonfw.tools.ide.tool.NativePackageManager;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
+import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -29,7 +34,9 @@ public class Docker extends GlobalToolCommandlet {
 
   private static final String PODMAN = "podman";
 
-  private static final Pattern RDCTL_CLIENT_VERSION_PATTERN = Pattern.compile("client version:\\s*v([\\d.]+)", Pattern.CASE_INSENSITIVE);
+  private static final String FOLDER_RANCHER_DESKTOP = ".rd";
+
+  private static final Pattern RDCTL_CLIENT_VERSION_PATTERN = Pattern.compile("client version:\\s*v?([\\d.]+)", Pattern.CASE_INSENSITIVE);
 
   private static final Pattern DOCKER_DESKTOP_VERSION_PATTERN = Pattern.compile("^([0-9]+(?:\\.[0-9]+){1,2})");
 
@@ -49,21 +56,45 @@ public class Docker extends GlobalToolCommandlet {
   }
 
   private boolean isDockerInstalled() {
-    return isCommandAvailable("docker");
+    return resolveDockerCommand("docker") != null;
   }
 
   private boolean isRancherDesktopInstalled() {
-    return isCommandAvailable("rdctl");
+    return resolveDockerCommand("rdctl") != null;
   }
 
   private String detectContainerRuntime() {
-    if (isCommandAvailable(this.tool)) {
-      return this.tool;
+    String docker = resolveDockerCommand(this.tool);
+    if (docker != null) {
+      return docker;
     } else if (isCommandAvailable(PODMAN)) {
       return PODMAN;
     } else {
       return this.tool;
     }
+  }
+
+  /**
+   * Rancher Desktop links its CLI tools (docker, kubectl, rdctl) into the fixed {@code ~/.rd/bin} directory, which it creates on its first launch.
+   * Depending on the user's path management strategy this directory may not be on the PATH, so we look it up there explicitly as a fallback.
+   *
+   * @param command the name of a CLI shipped with the docker installation (e.g. docker, rdctl, kubectl).
+   * @return the {@code command} unchanged if available on PATH, otherwise its absolute path inside {@code ~/.rd/bin} or {@code null} if not found.
+   */
+  public String resolveDockerCommand(String command) {
+    if (isCommandAvailable(command)) {
+      return command;
+    }
+    Path candidate = getRancherDesktopBinDir().resolve(command);
+    Path rancherDesktopBinary = this.context.getPath().findBinary(candidate);
+    if (rancherDesktopBinary != candidate) {
+      return rancherDesktopBinary.toString();
+    }
+    return null;
+  }
+
+  private Path getRancherDesktopBinDir() {
+    return this.context.getUserHome().resolve(FOLDER_RANCHER_DESKTOP).resolve(IdeContext.FOLDER_BIN);
   }
 
   @Override
@@ -114,14 +145,26 @@ public class Docker extends GlobalToolCommandlet {
   }
 
   @Override
+  protected ToolInstallation doInstall(ToolInstallRequest request) {
+
+    ToolInstallation installation = super.doInstall(request);
+    if (this.context.getSystemInfo().isLinux() && !Files.isDirectory(getRancherDesktopBinDir())) {
+      throw new CliException("Rancher Desktop has been installed but not launched yet. Please start Rancher Desktop once so that it sets up its "
+          + "command-line tools (docker, kubectl, ...) in " + getRancherDesktopBinDir() + ", then re-run your command.", 2);
+    }
+    return installation;
+  }
+
+  @Override
   protected EditionAndVersion computeInstalledEditionAndVersion() {
 
     if (!isDockerInstalled()) {
       return null;
     }
 
-    if (isRancherDesktopInstalled()) {
-      VersionIdentifier version = getRancherDesktopClientVersion();
+    String rdctl = resolveDockerCommand("rdctl");
+    if (rdctl != null) {
+      VersionIdentifier version = getRancherDesktopClientVersion(rdctl);
       return new EditionAndVersion("rancher", version);
     }
 
@@ -169,9 +212,9 @@ public class Docker extends GlobalToolCommandlet {
     return (output != null) ? resolveVersionWithPattern(output, DOCKER_DESKTOP_VERSION_PATTERN) : null;
   }
 
-  private VersionIdentifier getRancherDesktopClientVersion() {
+  private VersionIdentifier getRancherDesktopClientVersion(String rdctl) {
 
-    String output = this.context.newProcess().runAndGetSingleOutput("rdctl", "version");
+    String output = this.context.newProcess().runAndGetSingleOutput(rdctl, "version");
     return resolveVersionWithPattern(output, RDCTL_CLIENT_VERSION_PATTERN);
   }
 
