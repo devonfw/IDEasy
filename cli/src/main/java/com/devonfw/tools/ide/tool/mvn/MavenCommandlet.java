@@ -72,7 +72,7 @@ public abstract class MavenCommandlet extends LocalToolCommandlet {
     registry.add("-Duser.dir=");
     registry.add("-Duser.home=");
     registry.add("exec:java", "exec:exec");
-    registry.add("-Dexec.mainClass=").addDependency("-Dexec.mainClass=", "exec:java");
-    registry.add("-Dexec.args=").addDependency("-Dexec.args=", "exec:java", "exec:exec");
+    registry.add("-Dexec.mainClass=").addDependency("exec:java");
+    registry.add("-Dexec.args=").addDependency("exec:java", "exec:exec");
   }
 }
