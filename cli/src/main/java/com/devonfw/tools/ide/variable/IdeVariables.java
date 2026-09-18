@@ -141,7 +141,7 @@ public interface IdeVariables {
 
   /** {@link VariableDefinition} for the uv redirected cache directory */
   VariableDefinitionPath UV_CACHE_DIR = new VariableDefinitionPath("UV_CACHE_DIR", null,
-      c -> c.getIdeRoot() == null ? null : c.getIdeRoot().resolve("_ide/software/uv"), true, true);
+      c -> c.getIdePath() == null ? null : c.getIdePath().resolve(IdeContext.FOLDER_SOFTWARE).resolve("uv"), true, true);
 
   /** A {@link Collection} with all pre-defined {@link VariableDefinition}s. */
   Collection<VariableDefinition<?>> VARIABLES = List.of(PATH, HOME, USER, WORKSPACE_PATH, IDE_HOME, IDE_ROOT, WORKSPACE, IDE_TOOLS, HTTP_VERSIONS,
