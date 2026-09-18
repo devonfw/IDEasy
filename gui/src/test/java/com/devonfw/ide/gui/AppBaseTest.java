@@ -34,7 +34,6 @@ import com.devonfw.ide.gui.factory.TabFactory;
 import com.devonfw.ide.gui.helper.FxHelper;
 import com.devonfw.ide.gui.service.CommandletService;
 import com.devonfw.ide.gui.service.NlsService;
-import com.devonfw.ide.gui.ui.controls.console.ConsoleView;
 import com.devonfw.ide.gui.ui.controls.console.ConsoleViewModel;
 import com.devonfw.ide.gui.ui.mainwindow.MainWindowView;
 import com.devonfw.ide.gui.ui.mainwindow.MainWindowViewModel;
@@ -79,15 +78,15 @@ public class AppBaseTest extends HeadlessApplicationTest {
     NlsService nlsService = new NlsService(Locale.ENGLISH);
     this.taskManager = new TaskManager();
     this.guiStateManager = new GuiStateManager(this.taskManager, mockIdeRoot.toString());
-    ConsoleViewModel consoleViewModel = new ConsoleViewModel();
-    ConsoleView consoleView = new ConsoleView(consoleViewModel, nlsService);
-    GuiEventBus eventBus = new GuiEventBus();
 
-    CommandletService commandletService = new CommandletService(guiStateManager, consoleViewModel);
-    TabFactory tabFactory = new TabFactory(guiStateManager, nlsService, commandletService, consoleViewModel, eventBus);
+    GuiEventBus eventBus = new GuiEventBus();
+    ConsoleViewModel consoleViewModel = new ConsoleViewModel(eventBus);
+
+    CommandletService commandletService = new CommandletService(guiStateManager, eventBus);
+    TabFactory tabFactory = new TabFactory(guiStateManager, nlsService, commandletService, eventBus);
 
     this.viewModel = new MainWindowViewModel(guiStateManager, nlsService, tabFactory);
-    MainWindowView mainWindow = new MainWindowView(this.viewModel, guiStateManager, nlsService, tabFactory, eventBus);
+    MainWindowView mainWindow = new MainWindowView(this.viewModel, guiStateManager, nlsService, eventBus);
     stage.setScene(new Scene(mainWindow, SCENE_WIDTH, SCENE_HEIGHT));
     stage.requestFocus(); //sometimes needed for headless setup to work
     stage.show();
