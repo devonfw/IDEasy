@@ -120,6 +120,6 @@ public class CheckCommandletTest extends AbstractIdeContextTest {
 
     check.run();
 
-    assertThat(context).log().hasEntries(IdeLogEntry.ofInfo("No issues found."));
+    assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("No issues found."));
   }
 }

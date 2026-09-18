@@ -11,6 +11,7 @@ import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.property.FlagProperty;
 
 /**
@@ -108,18 +109,21 @@ public class CheckCommandlet extends Commandlet {
   private void report(List<CheckIssue> issues) {
 
     if (issues.isEmpty()) {
-      LOG.info("No issues found.");
+      IdeLogLevel.SUCCESS.log(LOG, "No issues found.");
       return;
     }
+
+    LOG.warn("Found {} issue(s)", issues.size());
 
     boolean open = false;
     for (CheckIssue issue : issues) {
       if (this.fix.isTrue() && issue.isFixable()) {
         if (issue.fix(this.context)) {
-          LOG.info("Fixed: {}", issue);
+          IdeLogLevel.SUCCESS.log(LOG, "Fixed: {}", issue);
           continue;
         }
         LOG.warn("Failed to fix {}", issue);
+        open = true;
       } else {
         LOG.warn("{}", issue);
         open = true;
