@@ -7,8 +7,9 @@ name: External Issue, PR & Discussion Observer
 # Issues/PRs come from the REST search API, discussions from GraphQL (no REST equivalent).
 # A failed API call fails the run. The next run resumes from the last successful run,
 # so activity is retried instead of being silently lost.
-# Requires repository secrets TEAMS_WEBHOOK_URL (Teams "Workflows" incoming webhook)
-# and TEAM_TOKEN (org Projects + Members read token).
+# Requires repository secret TEAMS_WEBHOOK_URL (Teams "Workflows" incoming webhook)
+# and org secret ACTION_PUSH_TOKEN (Projects + Members read; see
+# documentation/contributing/update-access-token.adoc).
 
 on:
   workflow_dispatch:
@@ -29,7 +30,7 @@ jobs:
       - name: Scan for new external issues, PRs & discussions and notify Teams
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TEAM_TOKEN: ${{ secrets.TEAM_TOKEN }}
+          ACTION_PUSH_TOKEN: ${{ secrets.ACTION_PUSH_TOKEN }}
           WEBHOOK: ${{ secrets.TEAMS_WEBHOOK_URL }}
           REPO: ${{ github.repository }}
           BRANCH: ${{ github.ref_name }}
@@ -54,8 +55,8 @@ jobs:
           fi
           echo "Scanning $REPO for items created since $SINCE"
 
-          if [ -z "$TEAM_TOKEN" ]; then
-            echo "TEAM_TOKEN is empty."
+          if [ -z "$ACTION_PUSH_TOKEN" ]; then
+            echo "ACTION_PUSH_TOKEN is empty."
             exit 1
           fi
 
@@ -63,7 +64,7 @@ jobs:
 
           # Fetch the GitHub teams explicitly linked to the IDEasy project. Project access is
           # the source of truth; issue/PR assignments do not determine team membership.
-          PROJECT_TEAMS=$(GH_TOKEN="$TEAM_TOKEN" gh api graphql \
+          PROJECT_TEAMS=$(GH_TOKEN="$ACTION_PUSH_TOKEN" gh api graphql \
             -F owner="$OWNER" -F project="$PROJECT_NUMBER" \
             -f query='query($owner: String!, $project: Int!) {
               organization(login: $owner) {
@@ -98,7 +99,7 @@ jobs:
           # logins and remove duplicates. Any failed page or team fetch fails the workflow.
           TEAM=$({
             for TEAM_SLUG in $(echo "$PROJECT_TEAMS" | jq -r '.nodes[].slug'); do
-              GH_TOKEN="$TEAM_TOKEN" gh api --method GET --paginate \
+              GH_TOKEN="$ACTION_PUSH_TOKEN" gh api --method GET --paginate \
                 -H "X-GitHub-Api-Version: 2026-03-10" \
                 "/orgs/$OWNER/teams/$TEAM_SLUG/members?per_page=100" \
                 --jq '.[].login' || exit 1
