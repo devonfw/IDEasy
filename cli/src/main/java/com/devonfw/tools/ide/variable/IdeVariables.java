@@ -22,6 +22,12 @@ public interface IdeVariables {
   /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getUserHome() HOME}. */
   VariableDefinitionPath HOME = new VariableDefinitionPath("HOME", null, IdeContext::getUserHome, true);
 
+  /**
+   * {@link VariableDefinition} for the login name of the current user. Linux and macOS provide this as environment variable while Windows provides USERNAME
+   * instead, which is therefore used as fallback so that {@code $[USER]} works cross-platform.
+   */
+  VariableDefinitionString USER = new VariableDefinitionString("USER", null, c -> c.getSystem().getEnv("USERNAME"));
+
   /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getWorkspaceName() WORKSPACE}. */
   VariableDefinitionString WORKSPACE = new VariableDefinitionString("WORKSPACE", null, IdeContext::getWorkspaceName, true);
 
@@ -126,8 +132,15 @@ public interface IdeVariables {
   /** {@link VariableDefinition} for support of overriding the default pycharm jvm options. */
   VariableDefinitionString PYCHARM_VM_ARGS = new VariableDefinitionString("PYCHARM_VM_ARGS", null);
 
+  /**
+   * {@link VariableDefinition} to enable the isolation of VSCode via {@code --profile} instead of {@code --user-data-dir}. This is a feature toggle: while
+   * disabled (default) the legacy behaviour with {@code --user-data-dir} is used. See issue #2058 for details.
+   */
+  VariableDefinitionBoolean VSCODE_PROFILE_ENABLED = new VariableDefinitionBoolean("VSCODE_PROFILE_ENABLED", null,
+      c -> Boolean.FALSE);
+
   /** A {@link Collection} with all pre-defined {@link VariableDefinition}s. */
-  Collection<VariableDefinition<?>> VARIABLES = List.of(PATH, HOME, WORKSPACE_PATH, IDE_HOME, IDE_ROOT, WORKSPACE, IDE_TOOLS, HTTP_VERSIONS,
+  Collection<VariableDefinition<?>> VARIABLES = List.of(PATH, HOME, USER, WORKSPACE_PATH, IDE_HOME, IDE_ROOT, WORKSPACE, IDE_TOOLS, HTTP_VERSIONS,
       CREATE_START_SCRIPTS,
       IDE_MIN_VERSION, MVN_VERSION, M2_REPO, DOCKER_EDITION, MVN_BUILD_OPTS, NPM_BUILD_OPTS, NPM_CONFIG_USERCONFIG, GRADLE_BUILD_OPTS,
       GRADLE_USER_HOME,
@@ -163,6 +176,6 @@ public interface IdeVariables {
     if (mvnConf == null) {
       return null;
     }
-    return mvnConf.resolve("repository");
+    return mvnConf.resolve(IdeContext.FOLDER_REPOSITORY);
   }
 }

@@ -18,13 +18,17 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.SplitPane.Divider;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 
+import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,6 +36,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.ide.gui.console.ConsoleController;
 import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.context.TaskManager;
 import com.devonfw.ide.gui.nls.NlsService;
@@ -40,7 +45,7 @@ import com.devonfw.ide.gui.progress.taskwindow.TaskOverviewWindow;
 import com.devonfw.ide.gui.settings.ToolConfiguration;
 
 /**
- * Basic UI Test
+ * Basic UI Test for the main screen
  * <p>
  * Note: TestFX calls {@link #start(Stage)} fresh before every {@code @Test} method (JUnit5's default per-method test instance lifecycle), so no state (combo
  * box selections, loaded tab content, ...) carries over between tests. Every test sets up whatever it needs from scratch, the same way the pre-existing tests
@@ -51,11 +56,13 @@ public class AppBaseTest extends HeadlessApplicationTest {
   private static final Logger LOGGER = LoggerFactory.getLogger(AppBaseTest.class);
 
   private Button androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen;
+  private ToggleButton consolePaneToggleButton;
   private ComboBox<String> selectedProject, selectedWorkspace;
   private Label statusText;
   private ProgressBar taskProgressBar;
   private TabPane tabPane;
   private Tab mainTab, toolConfigTab;
+  private SplitPane centerSplitPane;
 
   @TempDir
   private static Path mockIdeRoot;
@@ -72,21 +79,31 @@ public class AppBaseTest extends HeadlessApplicationTest {
     assertThat(mainViewUrl).as("Cannot resolve main UI FXML resource!").isNotNull();
 
     FXMLLoader fxmlLoader = new FXMLLoader(mainViewUrl);
-    fxmlLoader.setController(new MainController(mockIdeRoot.toString(), guiStateManager, nlsService));
+    MainController mainController = new MainController(mockIdeRoot.toString(), guiStateManager, nlsService);
+    fxmlLoader.setControllerFactory(clazz -> {
+      if (clazz == ConsoleController.class) {
+        return new ConsoleController(nlsService);
+      } else if (clazz == MainController.class) {
+        return mainController;
+      }
+      return null;
+    });
     fxmlLoader.setResources(nlsService.getResourceBundle());
     Parent root = fxmlLoader.load();
     stage.setScene(new Scene(root));
     stage.requestFocus(); //sometimes needed for headless setup to work
     stage.show();
 
-    androidStudioOpen = (Button) root.lookup("#androidStudioOpen");
-    eclipseOpen = (Button) root.lookup("#eclipseOpen");
-    intellijOpen = (Button) root.lookup("#intellijOpen");
-    vsCodeOpen = (Button) root.lookup("#vsCodeOpen");
-    selectedProject = (ComboBox<String>) root.lookup("#selectedProject");
-    selectedWorkspace = (ComboBox<String>) root.lookup("#selectedWorkspace");
-    statusText = (Label) root.lookup("#statusLabel");
-    taskProgressBar = (ProgressBar) root.lookup("#statusProgressBar");
+    androidStudioOpen = FxHelper.lookup(root, "#androidStudioOpen");
+    eclipseOpen = FxHelper.lookup(root, "#eclipseOpen");
+    intellijOpen = FxHelper.lookup(root, "#intellijOpen");
+    vsCodeOpen = FxHelper.lookup(root, "#vsCodeOpen");
+    selectedProject = FxHelper.lookup(root, "#selectedProject");
+    selectedWorkspace = FxHelper.lookup(root, "#selectedWorkspace");
+    consolePaneToggleButton = FxHelper.lookup(root, "#consolePaneToggleButton");
+    centerSplitPane = FxHelper.lookup(root, "#centerSplitPane");
+    statusText = FxHelper.lookup(root, "#statusLabel");
+    taskProgressBar = FxHelper.lookup(root, "#statusProgressBar");
 
     tabPane = (TabPane) fxmlLoader.getNamespace().get("tabPane");
     mainTab = (Tab) fxmlLoader.getNamespace().get("mainTab");
@@ -187,14 +204,10 @@ public class AppBaseTest extends HeadlessApplicationTest {
   }
 
   /**
-   * Regression test for #2040: switching between projects must reset the workspace selection and keep the IDE open buttons and the context consistent.
-   * <p>
-   * Previously the workspace selection and IDE open buttons were not kept in sync when a different project was selected. This ensures that selecting a
-   * new project clears the workspace selection and disables the IDE open buttons again, and that (re-)selecting the workspace of the new project
-   * re-enables the buttons and points the context to the correct project.
+   * This test ensures that switching to a project will auto-select the main workspace
    */
   @Test
-  public void testSwitchingProjectResetsWorkspaceSelection() {
+  public void testSwitchingProjectResetsWorkspaceSelectionToMain() {
 
     // select a project and its workspace -> all IDE open buttons become enabled
     interact(() -> selectedProject.getSelectionModel().select("project-1"));
@@ -207,19 +220,11 @@ public class AppBaseTest extends HeadlessApplicationTest {
     // switch to another project -> the workspace selection must be reset and the IDE open buttons disabled again
     interact(() -> selectedProject.getSelectionModel().select("project-2"));
 
-    assertThat(selectedWorkspace.getValue()).as("Workspace selection should be reset when switching to a different project").isNull();
+    assertThat(selectedWorkspace.getValue()).as("Workspace selection should be reset when switching to a different project").isEqualTo("main");
 
     for (Button button : new Button[] { androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen }) {
       assertThat(button.isDisabled())
-          .as(button.getId() + " button should be disabled after switching to a new project without a selected workspace").isTrue();
-    }
-
-    // re-select the workspace of the new project -> buttons enabled again and the context points to the correct project
-    interact(() -> selectedWorkspace.getSelectionModel().select("main"));
-
-    for (Button button : new Button[] { androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen }) {
-      assertThat(button.isDisabled())
-          .as(button.getId() + " button should be enabled again after selecting the workspace of the new project").isFalse();
+          .as(button.getId() + " button should be disabled after switching to a new project without a selected workspace").isFalse();
     }
 
     assertThat(guiStateManager.getCurrentContext().getCwd().endsWith(Path.of("project-2", "workspaces", "main")))
@@ -355,5 +360,27 @@ public class AppBaseTest extends HeadlessApplicationTest {
     interact(cancelButton::fire);
 
     assertThat(tabPane.getSelectionModel().getSelectedItem()).as("cancel should navigate back to the main tab").isEqualTo(mainTab);
+  }
+
+  //===Console panel tests===
+
+  @Test
+  void testConsoleToggleButton() {
+
+    Divider mainPanelDivider = centerSplitPane.getDividers().getFirst();
+
+    //open the console (for some reason, clickOn(toggleButton) does not work properly here.
+    consolePaneToggleButton.fire();
+    waitForFxEvents();
+
+    assertThat(consolePaneToggleButton.isSelected()).isTrue();
+    assertThat(mainPanelDivider.getPosition()).as("Console panel should be extended when opening the console").isEqualTo(0.75, Offset.offset(0.01));
+
+    //close the console
+    consolePaneToggleButton.fire();
+    waitForFxEvents();
+
+    assertThat(consolePaneToggleButton.isSelected()).isFalse();
+    assertThat(mainPanelDivider.getPosition()).isGreaterThan(0.99);
   }
 }

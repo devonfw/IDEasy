@@ -54,7 +54,7 @@ class RubyJdxUrlUpdaterTest extends AbstractUrlUpdaterTest {
         new RubyJdxUrlUpdater(wmRuntimeInfo.getHttpBaseUrl(), wmRuntimeInfo.getHttpBaseUrl());
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     Path rubyVersionDir = tempDir.resolve("ruby").resolve("ruby").resolve("4.0.6-1");

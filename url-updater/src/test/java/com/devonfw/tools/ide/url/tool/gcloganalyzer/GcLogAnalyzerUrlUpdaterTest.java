@@ -46,7 +46,7 @@ public class GcLogAnalyzerUrlUpdaterTest extends AbstractUrlUpdaterTest {
     GcLogAnalyzerUrlUpdater updater = new GcLogAnalyzerUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     Path gclaEditionDir = tempDir.resolve("gcloganalyzer").resolve("gcloganalyzer");
@@ -60,4 +60,3 @@ public class GcLogAnalyzerUrlUpdaterTest extends AbstractUrlUpdaterTest {
         .contains(wmRuntimeInfo.getHttpBaseUrl() + "/gcla/24.10.0/GCLogAnalyzer-24.10.0-ca.zip");
   }
 }
-

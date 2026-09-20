@@ -38,7 +38,7 @@ class TomcatUrlUpdaterTest extends AbstractUrlUpdaterTest {
     UrlRepository urlRepository = UrlRepository.load(tempDir);
     TomcatUrlUpdater updater = new TomcatUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
     // when
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     Path tomcat100 = tempDir.resolve("tomcat").resolve("tomcat").resolve("10.0.0");
     Path tomcat101 = tempDir.resolve("tomcat").resolve("tomcat").resolve("10.0.1");
@@ -48,4 +48,3 @@ class TomcatUrlUpdaterTest extends AbstractUrlUpdaterTest {
     assertUrlVersionAgnostic(tomcat101);
   }
 }
-
