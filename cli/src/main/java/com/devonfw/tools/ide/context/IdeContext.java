@@ -11,6 +11,7 @@ import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliOfflineException;
 import com.devonfw.tools.ide.commandlet.CommandletManager;
+import com.devonfw.tools.ide.commandlet.update.AbstractUpdateCommandlet;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
@@ -69,7 +70,7 @@ public interface IdeContext extends IdeStartContext {
   /**
    * The default settings URL.
    *
-   * @see com.devonfw.tools.ide.commandlet.AbstractUpdateCommandlet
+   * @see AbstractUpdateCommandlet
    */
   String DEFAULT_SETTINGS_REPO_URL = "https://github.com/devonfw/ide-settings.git";
 
@@ -279,6 +280,43 @@ public interface IdeContext extends IdeStartContext {
   default String askForInput(String message) {
     return askForInput(message, null);
   }
+
+  /**
+   * Asks the user for a single secret input (e.g. a password or API token). Unlike {@link #askForInput(String, String)} the input is not echoed to the console
+   * if a secure console is available.
+   *
+   * @param message The information message to display.
+   * @param defaultValue The default value to return when no input is provided or {@code null} to keep asking until the user entered a non empty value.
+   * @return The secret input from the user, or the default value if no input is provided.
+   */
+  String askForSecret(String message, String defaultValue);
+
+  /**
+   * Asks the user for a single secret input (e.g. a password or API token).
+   *
+   * @param message The information message to display.
+   * @return The secret input from the user.
+   */
+  default String askForSecret(String message) {
+    return askForSecret(message, null);
+  }
+
+  /**
+   * Marks the variable with the given name as secret so that its value is masked in all log output, even if the value is not entered by the user but read from
+   * an existing {@code ide.properties}.
+   *
+   * @param name the name of the variable (e.g. "MY_API_TOKEN").
+   */
+  void addSecretVariable(String name);
+
+  /**
+   * Registers the value of a variable as secret if the variable was marked via {@link #addSecretVariable(String)}. Has to be called before the value is
+   * logged.
+   *
+   * @param name the name of the variable.
+   * @param value the value of the variable.
+   */
+  void addSecretValue(String name, String value);
 
   /**
    * @param question the question to ask.
@@ -592,11 +630,6 @@ public interface IdeContext extends IdeStartContext {
    *     is in fact a git repository.
    */
   Path getSettingsGitRepository();
-
-  /**
-   * @return {@code true} if the settings repository is a symlink or a junction to a code-repository.
-   */
-  boolean isSettingsCodeRepository();
 
   /**
    * @return the {@link Path} to the file containing the last tracked commit Id of the settings repository.
