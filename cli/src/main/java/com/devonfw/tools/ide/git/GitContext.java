@@ -246,6 +246,15 @@ public interface GitContext {
   List<String> getRemotes(Path repository);
 
   /**
+   * Determines the remote that the branch of the given repository tracks (as configured via {@code branch.<branch>.remote}). This is the same remote that
+   * {@link #isRepositoryUpdateAvailable(Path)} reads via {@code git rev-parse @{u}}.
+   *
+   * @param repository the {@link Path} to the folder where the git repository is located.
+   * @return the name of the tracked remote (e.g. "origin") or {@code null} if the current branch has no upstream configured or no branch is checked out.
+   */
+  String determineTrackedRemote(Path repository);
+
+  /**
    * Saves the current git commit ID of a repository to a file given as an argument.
    *
    * @param repository the path to the git repository
