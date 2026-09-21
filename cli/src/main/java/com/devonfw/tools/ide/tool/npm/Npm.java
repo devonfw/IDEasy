@@ -135,11 +135,14 @@ public class Npm extends LocalToolCommandlet {
     }
     FileAccess fileAccess = this.context.getFileAccess();
     boolean windows = this.context.getSystemInfo().isWindows();
-    repairShim(fileAccess, bin.resolve("npm.cmd"), cmdShim(NPM_CLI_JS));
-    repairShim(fileAccess, bin.resolve("npx.cmd"), cmdShim(NPX_CLI_JS));
-    repairShim(fileAccess, bin.resolve("npm.ps1"), psShim(NPM_CLI_JS));
-    repairShim(fileAccess, bin.resolve("npx.ps1"), psShim(NPX_CLI_JS));
-    if (!windows) {
+    if (windows) {
+      // The .cmd/.ps1 shims are only ever executed on Windows; on other platforms they are not run and thus left untouched.
+      repairShim(fileAccess, bin.resolve("npm.cmd"), cmdShim(NPM_CLI_JS));
+      repairShim(fileAccess, bin.resolve("npx.cmd"), cmdShim(NPX_CLI_JS));
+      repairShim(fileAccess, bin.resolve("npm.ps1"), psShim(NPM_CLI_JS));
+      repairShim(fileAccess, bin.resolve("npx.ps1"), psShim(NPX_CLI_JS));
+    } else {
+      // The POSIX shims are only ever executed on non-Windows systems; the .cmd/.ps1 shims are not run there and are left untouched.
       repairShim(fileAccess, bin.resolve("npm"), posixShim(NPM_CLI_JS));
       repairShim(fileAccess, bin.resolve("npx"), posixShim(NPX_CLI_JS));
     }
