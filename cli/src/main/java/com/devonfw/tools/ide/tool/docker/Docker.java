@@ -5,6 +5,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
@@ -20,6 +23,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * <a href="https://www.docker.com/products/docker-desktop/">Docker Desktop</a>.
  */
 public class Docker extends GlobalToolCommandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(Docker.class);
 
   private static final String PODMAN = "podman";
 
@@ -151,20 +156,33 @@ public class Docker extends GlobalToolCommandlet {
 
   private VersionIdentifier getDockerDesktopVersionMac() {
 
-    String dockerDesktopVersionMacCommand = "plutil -extract CFBundleShortVersionString raw /Applications/Docker.app/Contents/Info.plist";
-    // Log a warning and return null (instead of throwing) when the command produces no usable output, e.g. when
-    // Docker Desktop is not installed at /Applications/Docker.app.
-    String output = this.context.newProcess().runAndGetSingleOutput(IdeLogLevel.WARNING, "bash", "-lc", dockerDesktopVersionMacCommand);
-    return (output != null) ? resolveVersionWithPattern(output, DOCKER_DESKTOP_VERSION_PATTERN) : null;
+    return getMacAppVersion("/Applications/Docker.app");
   }
 
   private VersionIdentifier getRancherDesktopVersionMac() {
 
-    String rancherDesktopVersionMacCommand = "plutil -extract CFBundleShortVersionString raw /Applications/Rancher Desktop.app/Contents/Info.plist";
-    // Log a warning and return null (instead of throwing) when the command produces no usable output, e.g. when
-    // Rancher Desktop is not installed at /Applications/Rancher Desktop.app.
-    String output = this.context.newProcess().runAndGetSingleOutput(IdeLogLevel.WARNING, "bash", "-lc", rancherDesktopVersionMacCommand);
-    return (output != null) ? resolveVersionWithPattern(output, DOCKER_DESKTOP_VERSION_PATTERN) : null;
+    return getMacAppVersion("/Applications/Rancher Desktop.app");
+  }
+
+  /**
+   * Reads the installed version of a macOS application bundle (e.g. {@code Docker.app} or {@code Rancher Desktop.app}) from its
+   * {@code CFBundleShortVersionString}.
+   *
+   * @param appBundlePath the absolute path to the {@code .app} bundle, e.g. {@code /Applications/Docker.app}.
+   * @return the version read from the bundle or {@code null} if the bundle is not installed or its version cannot be determined.
+   */
+  private VersionIdentifier getMacAppVersion(String appBundlePath) {
+
+    String plutilCommand = "plutil -extract CFBundleShortVersionString raw " + appBundlePath + "/Contents/Info.plist";
+    try {
+      String output = this.context.newProcess().runAndGetSingleOutput(IdeLogLevel.WARNING, "bash", "-lc", plutilCommand);
+      return (output != null) ? resolveVersionWithPattern(output, DOCKER_DESKTOP_VERSION_PATTERN) : null;
+    } catch (IllegalStateException e) {
+      // plutil exits non-zero when the .app bundle (or its Info.plist) is missing - this is a legitimate "not installed"
+      // case, not an error. Swallow it and report the edition as not installed so the other editions are still probed.
+      LOG.warn("Unable to determine the version of {} (is it installed?): {}", appBundlePath, e.getMessage());
+      return null;
+    }
   }
 
   @Override

@@ -115,23 +115,25 @@ class DockerTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Verifies that on macOS the lookup degrades gracefully (no exception) when the Docker Desktop app is not present: the
-   * {@code plutil} call yields no usable output, so no edition resolves a version and the whole lookup returns {@code null}.
+   * Verifies that on macOS the lookup degrades gracefully (no exception) when the Docker Desktop app is not present: {@code plutil} exits
+   * non-zero when the {@code .app} bundle is missing, so no edition resolves a version and the whole lookup returns {@code null} instead of
+   * propagating the failure.
    */
   @Test
   void testDockerDesktopOnMacIsGracefulWhenAppMissing() {
 
-    // arrange
+    // arrange: plutil fails (non-zero exit) because /Applications/Docker.app is missing -> simulate the failed exit code
     ProcessContext processContext = Mockito.mock(ProcessContext.class);
     IdeTestContext context = newContext(processContext);
     context.setSystemInfo(SystemInfoMock.MAC_X64);
     Docker docker = docker(context, "docker");
-    Mockito.when(processContext.runAndGetSingleOutput(IdeLogLevel.WARNING, "bash", "-lc", PLUTIL_MAC_COMMAND)).thenReturn(null);
+    Mockito.when(processContext.runAndGetSingleOutput(IdeLogLevel.WARNING, "bash", "-lc", PLUTIL_MAC_COMMAND))
+        .thenThrow(new IllegalStateException("bash -lc plutil ... failed with exit code 1!"));
 
     // act
     EditionAndVersion editionAndVersion = docker.getInstalledEditionAndVersion();
 
-    // assert: no edition resolves a version -> the lookup returns null (gracefully, no exception)
+    // assert: the failed plutil is swallowed -> no edition resolves a version, so the lookup returns null (gracefully, no exception)
     assertThat(editionAndVersion).isNull();
     Mockito.verify(processContext).runAndGetSingleOutput(IdeLogLevel.WARNING, "bash", "-lc", PLUTIL_MAC_COMMAND);
   }
@@ -178,12 +180,14 @@ class DockerTest extends AbstractIdeContextTest {
   @Test
   void testRancherDesktopEditionAndVersionOnMac() {
 
-    // arrange: Docker Desktop is not installed (no docker command, no Docker.app), Rancher Desktop is
+    // arrange: Docker Desktop is not installed (no docker command, Docker.app missing so plutil fails with a non-zero exit code);
+    // Rancher Desktop is installed
     ProcessContext processContext = Mockito.mock(ProcessContext.class);
     IdeTestContext context = newContext(processContext);
     context.setSystemInfo(SystemInfoMock.MAC_X64);
     Docker docker = docker(context);
-    Mockito.when(processContext.runAndGetSingleOutput(IdeLogLevel.WARNING, "bash", "-lc", PLUTIL_MAC_COMMAND)).thenReturn(null);
+    Mockito.when(processContext.runAndGetSingleOutput(IdeLogLevel.WARNING, "bash", "-lc", PLUTIL_MAC_COMMAND))
+        .thenThrow(new IllegalStateException("bash -lc plutil ... failed with exit code 1!"));
     Mockito.when(processContext.runAndGetSingleOutput(IdeLogLevel.WARNING, "bash", "-lc", RANCHER_PLUTIL_MAC_COMMAND)).thenReturn("1.13.0");
 
     // act
