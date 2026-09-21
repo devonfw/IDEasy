@@ -79,10 +79,7 @@ public class PythonRepository extends AbstractToolRepository {
   }
 
   /**
-   * Runs {@code uv python list} and parses the result.
-   * <p>
-   * This method never triggers an installation of {@code uv}: if {@code uv} is not installed (e.g. when listing versions for auto-completion), a warning is logged
-   * and an empty list is returned. The installation path ensures that {@code uv} is present before the Python version is resolved (see {@link Python#completeRequest}).
+   * Runs {@code uv python list} and parses the result. Extracted as a protected method so tests can stub the {@code uv} is not installed.
    *
    * @return the parsed {@link PythonUvListEntry entries}, or an empty list if {@code uv} is not installed.
    */

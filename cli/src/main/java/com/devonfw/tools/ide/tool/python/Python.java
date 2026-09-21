@@ -49,11 +49,9 @@ public class Python extends LocalToolCommandlet {
   }
 
   /**
-   * Ensures that <a href="https://docs.astral.sh/uv/">uv</a> is available before the Python version is resolved.
+   * /** Ensures {@code uv} is available before resolving Python versions.
    * <p>
-   * The available Python versions are determined via {@code uv python list} (see {@link PythonRepository#fetchUvPythonList()}). On the install path the version
-   * must be resolved up-front — before the {@code uv} dependency would normally be installed — so {@code uv} is installed here if it is missing. This only runs
-   * on the install path.
+   * The install path uses {@code uv python list} to resolve available versions, so {@code uv} is installed first if missing.
    *
    * @param request the {@link ToolInstallRequest} to complete.
    */
