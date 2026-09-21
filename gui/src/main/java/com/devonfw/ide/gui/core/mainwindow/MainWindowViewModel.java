@@ -2,6 +2,7 @@ package com.devonfw.ide.gui.core.mainwindow;
 
 import java.util.List;
 import java.util.Objects;
+
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
@@ -42,13 +43,12 @@ public class MainWindowViewModel {
    * Initializes the view model and wires the task-list listener that drives the status bar.
    *
    * @param guiStateManager the app-wide selection and context holder.
-   * @param nlsService the localization service.
    */
-  public MainWindowViewModel(GuiStateManager guiStateManager, NlsService nlsService, TabFactory tabFactory) {
+  public MainWindowViewModel(GuiStateManager guiStateManager) {
 
     this.guiStateManager = Objects.requireNonNull(guiStateManager);
-    this.nlsService = Objects.requireNonNull(nlsService);
-    this.tabFactory = Objects.requireNonNull(tabFactory);
+    this.nlsService = Objects.requireNonNull(guiStateManager.getNlsService());
+    this.tabFactory = Objects.requireNonNull(guiStateManager.getTabFactory());
     this.tabFactory.setPreLaunchAction(() -> this.setConsoleVisible(true));
 
     this.statusText.set(this.nlsService.get("ideasy_ready_msg"));

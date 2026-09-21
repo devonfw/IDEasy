@@ -11,7 +11,6 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.ide.gui.FakeProjectFolderStructureHelper;
 import com.devonfw.ide.gui.core.context.GuiStateManager;
-import com.devonfw.ide.gui.core.context.TaskManager;
 import com.devonfw.ide.gui.core.service.NlsService;
 
 /**
@@ -40,7 +39,7 @@ public class NavigationPanelViewModelTest extends Assertions {
 
     FakeProjectFolderStructureHelper.createFakeProjectFolderStructure(this.mockIdeRoot);
 
-    this.guiStateManager = new GuiStateManager(new TaskManager(), this.mockIdeRoot.toString());
+    this.guiStateManager = new GuiStateManager(this.mockIdeRoot.toString());
     this.viewModel = new NavigationPanelViewModel(this.guiStateManager, new NlsService(Locale.ENGLISH));
   }
 

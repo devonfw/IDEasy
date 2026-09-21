@@ -2,6 +2,7 @@ package com.devonfw.ide.gui.core.mainwindow;
 
 import java.io.IOException;
 import java.util.Objects;
+
 import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -20,7 +21,6 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.core.context.GuiStateManager;
 import com.devonfw.ide.gui.core.event.TabChangeEvent;
-import com.devonfw.ide.gui.core.factory.TabFactory;
 import com.devonfw.ide.gui.core.helper.FxHelper;
 import com.devonfw.ide.gui.core.mainwindow.console.ConsoleController;
 import com.devonfw.ide.gui.core.mainwindow.navigation.NavigationPanelView;
@@ -92,20 +92,16 @@ public class MainWindowView extends BorderPane {
    *
    * @param viewModel the view model holding the selection and status state.
    * @param guiStateManager the app-wide selection and context holder.
-   * @param nlsService the localization service.
-   * @param consoleController the controller of the console pane.
-   * @param tabFactory the {@link TabFactory} that owns the tab pane.
    */
-  public MainWindowView(MainWindowViewModel viewModel, GuiStateManager guiStateManager, NlsService nlsService,
-      ConsoleController consoleController, EventBus eventBus) {
+  public MainWindowView(MainWindowViewModel viewModel, GuiStateManager guiStateManager) {
 
     super();
 
     this.viewModel = Objects.requireNonNull(viewModel);
     this.guiStateManager = Objects.requireNonNull(guiStateManager);
-    this.nlsService = Objects.requireNonNull(nlsService);
-    this.consoleController = Objects.requireNonNull(consoleController);
-    this.eventBus = Objects.requireNonNull(eventBus);
+    this.nlsService = Objects.requireNonNull(guiStateManager.getNlsService());
+    this.consoleController = Objects.requireNonNull(guiStateManager.getConsoleController());
+    this.eventBus = Objects.requireNonNull(guiStateManager.getEventBus());
 
     final FXMLLoader loader = new FXMLLoader(getClass().getResource("MainWindowView.fxml"));
     loader.setRoot(this);

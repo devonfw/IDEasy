@@ -26,7 +26,6 @@ public class GuiStateManagerTest extends AbstractIdeContextTest {
 
   private static GuiStateManager guiStateManager;
   private static ProjectManager projectManager;
-  private TaskManager taskManager;
 
   @BeforeAll
   static void setup() {
@@ -38,8 +37,7 @@ public class GuiStateManagerTest extends AbstractIdeContextTest {
   @BeforeEach
   void reset() {
 
-    TaskManager taskManager = new TaskManager();
-    guiStateManager = new GuiStateManager(taskManager, context.getIdeRoot().toString());
+    guiStateManager = new GuiStateManager(context.getIdeRoot().toString());
     projectManager = guiStateManager.getProjectManager();
   }
 
@@ -47,7 +45,7 @@ public class GuiStateManagerTest extends AbstractIdeContextTest {
   void testThrowsIfIdeRootDoesNotExist() {
 
     try {
-      new GuiStateManager(taskManager, "nonExistingIdeRoot");
+      new GuiStateManager("nonExistingIdeRoot");
       fail("IllegalArgumentException expected");
     } catch (IllegalArgumentException e) {
       assertThat(e.getMessage()).contains("Root directory does not exist");

@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
+
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -17,12 +17,8 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.ide.gui.HeadlessApplicationTest;
 import com.devonfw.ide.gui.core.context.GuiStateManager;
-import com.devonfw.ide.gui.core.context.TaskManager;
 import com.devonfw.ide.gui.core.event.GuiEventBus;
 import com.devonfw.ide.gui.core.event.TabChangeEvent;
-import com.devonfw.ide.gui.core.mainwindow.console.ConsoleController;
-import com.devonfw.ide.gui.core.service.CommandletService;
-import com.devonfw.ide.gui.core.service.NlsService;
 
 /**
  * Tests for {@link TabFactory}.      <
@@ -47,14 +43,11 @@ class TabFactoryTest extends HeadlessApplicationTest {
    */
   private void openLauncherTab(int times) {
     interact(() -> {
-      GuiStateManager guiStateManager = new GuiStateManager(new TaskManager(), this.ideRoot.toString());
-      NlsService nlsService = new NlsService(Locale.ENGLISH);
-      ConsoleController consoleController = new ConsoleController(nlsService);
-      CommandletService commandletService = new CommandletService(guiStateManager, consoleController);
-      GuiEventBus eventBus = new GuiEventBus();
+      GuiStateManager guiStateManager = new GuiStateManager(this.ideRoot.toString());
+      GuiEventBus eventBus = guiStateManager.getEventBus();
       this.emittedTabs = new ArrayList<>();
       eventBus.addListener(TabChangeEvent.class, event -> this.emittedTabs.add(event.tab()));
-      TabFactory factory = new TabFactory(guiStateManager, nlsService, commandletService, consoleController, eventBus);
+      TabFactory factory = guiStateManager.getTabFactory();
 
       for (int i = 0; i < times; i++) {
         factory.openLauncherTab();

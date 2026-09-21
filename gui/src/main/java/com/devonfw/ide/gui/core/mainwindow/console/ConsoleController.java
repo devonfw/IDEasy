@@ -14,6 +14,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 
+import com.devonfw.ide.gui.core.context.GuiStateManager;
 import com.devonfw.ide.gui.core.helper.FxHelper;
 import com.devonfw.ide.gui.core.service.NlsService;
 import com.devonfw.tools.ide.log.IdeLogEntry;
@@ -59,10 +60,10 @@ public class ConsoleController {
     setupEventHandlers();
   }
 
-  /// @param nlsService nlsService injection
-  public ConsoleController(NlsService nlsService) {
 
-    this.nlsService = nlsService;
+  public ConsoleController(GuiStateManager guiStateManager) {
+
+    this.nlsService = guiStateManager.getNlsService();
   }
 
   /**

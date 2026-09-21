@@ -13,6 +13,11 @@ import javafx.beans.property.StringProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.ide.gui.core.event.GuiEventBus;
+import com.devonfw.ide.gui.core.factory.TabFactory;
+import com.devonfw.ide.gui.core.mainwindow.console.ConsoleController;
+import com.devonfw.ide.gui.core.service.CommandletService;
+import com.devonfw.ide.gui.core.service.NlsService;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeLogListenerBuffer;
@@ -28,7 +33,6 @@ public class GuiStateManager {
   public static final String DEFAULT_WORKSPACE = "main";
 
   private final Path ideRootDir;
-  private final ProjectManager projectManager;
 
   private final CopyOnWriteArrayList<GuiContextChangeListener> listeners = new CopyOnWriteArrayList<>();
 
@@ -38,25 +42,30 @@ public class GuiStateManager {
 
   private final BooleanProperty workspaceSelected = new SimpleBooleanProperty(false);
 
-  /**
-   * Project context based on which project the user works in.
-   */
   private volatile IdeGuiContext currentContext;
 
-  /**
-   * The {@link IdeStartContextImpl} for the GUI, this stays the same for the whole GUI session, only the {@link IdeGuiContext} changes.
-   */
   private final IdeStartContextImpl startContext;
 
-  private final TaskManager taskManager;
+  private final ProjectManager projectManager;
+
+  private final TaskManager taskManager = new TaskManager();
+
+  private final GuiEventBus eventBus = new GuiEventBus();
+
+  private final NlsService nlsService = new NlsService(null);
+
+  private final ConsoleController consoleController = new ConsoleController(this);
+
+  private final CommandletService commandletService = new CommandletService(this);
+
+  private final TabFactory tabFactory = new TabFactory(this);
+
 
   /**
-   * @param taskManager the {@link TaskManager} that manages any running tasks in the GUI.
    * @param ideRoot the root directory of IDEasy. If <code>null</code>, the IDE_ROOT environment variable is used.
    */
-  public GuiStateManager(TaskManager taskManager, String ideRoot) {
+  public GuiStateManager(String ideRoot) {
 
-    this.taskManager = taskManager;
     this.ideRootDir = Path.of(ideRoot != null ? ideRoot : System.getenv(IdeVariables.IDE_ROOT.getName()));
     this.projectManager = new ProjectManager(ideRootDir);
 
@@ -190,5 +199,25 @@ public class GuiStateManager {
    */
   public void removeGuiContextChangeListener(GuiContextChangeListener listener) {
     listeners.remove(listener);
+  }
+
+  public GuiEventBus getEventBus() {
+    return eventBus;
+  }
+
+  public NlsService getNlsService() {
+    return nlsService;
+  }
+
+  public ConsoleController getConsoleController() {
+    return consoleController;
+  }
+
+  public CommandletService getCommandletService() {
+    return commandletService;
+  }
+
+  public TabFactory getTabFactory() {
+    return tabFactory;
   }
 }

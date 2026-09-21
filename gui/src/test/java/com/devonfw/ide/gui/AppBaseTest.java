@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Locale;
+
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -28,16 +29,11 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.core.context.GuiStateManager;
 import com.devonfw.ide.gui.core.context.TaskManager;
-import com.devonfw.ide.gui.core.event.GuiEventBus;
-import com.devonfw.ide.gui.core.factory.TabFactory;
 import com.devonfw.ide.gui.core.helper.FxHelper;
 import com.devonfw.ide.gui.core.mainwindow.MainWindowView;
 import com.devonfw.ide.gui.core.mainwindow.MainWindowViewModel;
-import com.devonfw.ide.gui.core.mainwindow.console.ConsoleController;
 import com.devonfw.ide.gui.core.progress.ProgressBarTask;
 import com.devonfw.ide.gui.core.progress.taskwindow.TaskOverviewWindow;
-import com.devonfw.ide.gui.core.service.CommandletService;
-import com.devonfw.ide.gui.core.service.NlsService;
 
 /**
  * Basic UI Test for the main screen
@@ -74,15 +70,11 @@ public class AppBaseTest extends HeadlessApplicationTest {
   @Override
   public void start(Stage stage) {
 
-    NlsService nlsService = new NlsService(Locale.ENGLISH);
-    this.taskManager = new TaskManager();
-    this.guiStateManager = new GuiStateManager(this.taskManager, mockIdeRoot.toString());
-    ConsoleController consoleController = new ConsoleController(nlsService);
-    GuiEventBus eventBus = new GuiEventBus();
-    CommandletService commandletService = new CommandletService(guiStateManager, consoleController);
-    TabFactory tabFactory = new TabFactory(guiStateManager, nlsService, commandletService, consoleController, eventBus);
-    this.viewModel = new MainWindowViewModel(guiStateManager, nlsService, tabFactory);
-    MainWindowView mainWindow = new MainWindowView(this.viewModel, guiStateManager, nlsService, consoleController, eventBus);
+    this.guiStateManager = new GuiStateManager(mockIdeRoot.toString());
+    this.guiStateManager.getNlsService().setLocale(Locale.ENGLISH);
+    this.taskManager = guiStateManager.getTaskManager();
+    this.viewModel = new MainWindowViewModel(guiStateManager);
+    MainWindowView mainWindow = new MainWindowView(this.viewModel, guiStateManager);
     stage.setScene(new Scene(mainWindow, SCENE_WIDTH, SCENE_HEIGHT));
     stage.requestFocus(); //sometimes needed for headless setup to work
     stage.show();

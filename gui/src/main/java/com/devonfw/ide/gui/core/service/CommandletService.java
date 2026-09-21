@@ -44,11 +44,10 @@ public class CommandletService {
    * Creates the service.
    *
    * @param guiStateManager the app-wide selection and context holder.
-   * @param consoleController the console that commandlet output is forwarded to.
    */
-  public CommandletService(GuiStateManager guiStateManager, ConsoleController consoleController) {
+  public CommandletService(GuiStateManager guiStateManager) {
     this.guiStateManager = Objects.requireNonNull(guiStateManager);
-    this.consoleController = Objects.requireNonNull(consoleController);
+    this.consoleController = Objects.requireNonNull(guiStateManager.getConsoleController());
     this.guiLogListener = new IdeGuiLogListener(consoleController);
     this.guiOutputListener = new GuiOutputListener(consoleController);
   }

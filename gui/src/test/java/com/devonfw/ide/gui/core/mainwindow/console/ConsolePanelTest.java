@@ -6,7 +6,7 @@ import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
-import java.util.Locale;
+
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -16,6 +16,7 @@ import javafx.stage.Stage;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.ide.gui.HeadlessApplicationTest;
+import com.devonfw.ide.gui.core.context.GuiStateManager;
 import com.devonfw.ide.gui.core.service.NlsService;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 
@@ -29,22 +30,18 @@ class ConsolePanelTest extends HeadlessApplicationTest {
     URL consoleViewUrl = getClass().getResource("console.fxml");
     assertThat(consoleViewUrl).as("Cannot resolve console UI FXML resource!").isNotNull();
 
-    NlsService nlsService = new NlsService(Locale.ENGLISH);
+    GuiStateManager guiStateManager = new GuiStateManager(null);
+    this.consoleController = guiStateManager.getConsoleController();
+
+    NlsService nlsService = guiStateManager.getNlsService();
 
     FXMLLoader fxmlLoader = new FXMLLoader(consoleViewUrl);
     fxmlLoader.setResources(nlsService.getResourceBundle());
-    fxmlLoader.setControllerFactory(clazz -> {
-      if (clazz == ConsoleController.class) {
-        return new ConsoleController(nlsService);
-      }
-      return null;
-    });
+    fxmlLoader.setControllerFactory(clazz -> clazz == ConsoleController.class ? this.consoleController : null);
     Parent root = fxmlLoader.load();
     stage.setScene(new Scene(root));
     stage.requestFocus(); // sometimes needed for headless setup to work
     stage.show();
-
-    consoleController = fxmlLoader.getController();
   }
 
   /**

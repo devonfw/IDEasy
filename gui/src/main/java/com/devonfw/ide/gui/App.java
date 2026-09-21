@@ -3,6 +3,7 @@ package com.devonfw.ide.gui;
 import java.awt.Taskbar;
 import java.awt.Toolkit;
 import java.net.URL;
+
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Rectangle2D;
@@ -16,15 +17,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.core.context.GuiStateManager;
-import com.devonfw.ide.gui.core.context.TaskManager;
-import com.devonfw.ide.gui.core.event.GuiEventBus;
-import com.devonfw.ide.gui.core.factory.TabFactory;
 import com.devonfw.ide.gui.core.mainwindow.MainWindowView;
 import com.devonfw.ide.gui.core.mainwindow.MainWindowViewModel;
-import com.devonfw.ide.gui.core.mainwindow.console.ConsoleController;
 import com.devonfw.ide.gui.core.modal.IdeDialog;
-import com.devonfw.ide.gui.core.service.CommandletService;
-import com.devonfw.ide.gui.core.service.NlsService;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.version.IdeVersion;
 
@@ -40,15 +35,7 @@ public class App extends Application {
 
   private Stage primaryStage;
 
-  //Factorys
-  private TabFactory tabFactory;
-
-  //Services
-  private NlsService nlsService;
-  private CommandletService commandletService;
-
-  TaskManager taskManager = new TaskManager();
-  GuiStateManager guiStateManager = new GuiStateManager(taskManager, null);
+  GuiStateManager guiStateManager = new GuiStateManager(null);
 
   private final Logger LOG = LoggerFactory.getLogger(App.class);
 
@@ -61,17 +48,8 @@ public class App extends Application {
 
     this.primaryStage = primaryStage;
 
-    this.nlsService = new NlsService(null);
-
-    final ConsoleController consoleController = new ConsoleController(nlsService);
-    this.commandletService = new CommandletService(guiStateManager, consoleController);
-
-    final GuiEventBus eventBus = new GuiEventBus();
-
-    this.tabFactory = new TabFactory(guiStateManager, nlsService, commandletService, consoleController, eventBus);
-
-    final MainWindowViewModel mainWindowViewModel = new MainWindowViewModel(guiStateManager, this.nlsService, tabFactory);
-    final MainWindowView mainWindow = new MainWindowView(mainWindowViewModel, guiStateManager, this.nlsService, consoleController, eventBus);
+    final MainWindowViewModel mainWindowViewModel = new MainWindowViewModel(guiStateManager);
+    final MainWindowView mainWindow = new MainWindowView(mainWindowViewModel, guiStateManager);
 
     //this.nlsService.addLocaleChangeListener(this::reloadMainView);
 
@@ -83,7 +61,7 @@ public class App extends Application {
     primaryStage.setOnCloseRequest(event -> {
 
       LOG.info("Closing application");
-      if (!taskManager.getTasks().isEmpty()) {
+      if (!guiStateManager.getTaskManager().getTasks().isEmpty()) {
         IdeDialog closeConfirm = new IdeDialog(IdeDialog.AlertType.CONFIRMATION, "There are still running tasks. Are you sure you want to exit?",
             ButtonType.CLOSE, ButtonType.CANCEL);
         closeConfirm.showAndWait().ifPresent(response -> {

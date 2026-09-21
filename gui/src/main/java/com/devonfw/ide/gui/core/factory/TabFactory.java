@@ -1,6 +1,7 @@
 package com.devonfw.ide.gui.core.factory;
 
 import java.util.Objects;
+
 import javafx.scene.control.TabPane;
 
 import com.devonfw.ide.gui.core.context.GuiStateManager;
@@ -28,17 +29,13 @@ public class TabFactory {
    * Creates the factory.
    *
    * @param guiStateManager the app-wide selection and context holder.
-   * @param nlsService the localization service.
-   * @param commandletService runs commandlets on tab actions.
-   * @param consoleController the controller of the console pane.
    */
-  public TabFactory(GuiStateManager guiStateManager, NlsService nlsService, CommandletService commandletService, ConsoleController consoleController,
-      EventBus eventBus) {
+  public TabFactory(GuiStateManager guiStateManager) {
     this.guiStateManager = Objects.requireNonNull(guiStateManager);
-    this.nlsService = Objects.requireNonNull(nlsService);
-    this.consoleController = Objects.requireNonNull(consoleController);
-    this.commandletService = Objects.requireNonNull(commandletService);
-    this.eventBus = Objects.requireNonNull(eventBus);
+    this.nlsService = Objects.requireNonNull(guiStateManager.getNlsService());
+    this.consoleController = Objects.requireNonNull(guiStateManager.getConsoleController());
+    this.commandletService = Objects.requireNonNull(guiStateManager.getCommandletService());
+    this.eventBus = Objects.requireNonNull(guiStateManager.getEventBus());
   }
 
 
