@@ -3,7 +3,7 @@ package com.devonfw.tools.ide.merge;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Properties;
-import java.util.Set;
+import java.util.TreeSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,10 +57,10 @@ public class PropertiesMerger extends FileMerger {
 
   private void resolve(Properties properties, EnvironmentVariables variables, Object src) {
 
-    Set<Object> keys = properties.keySet();
-    for (Object key : keys) {
-      String value = properties.getProperty(key.toString());
-      properties.setProperty(key.toString(), variables.resolve(value, src, this.legacySupport));
+    // resolve the keys in a deterministic order (rather than the unspecified Properties/Hashtable order) so that
+    // interactive questions are asked in a stable order and the merged file comes out consistently
+    for (String key : new TreeSet<>(properties.stringPropertyNames())) {
+      properties.setProperty(key, variables.resolve(properties.getProperty(key), src, this.legacySupport));
     }
   }
 

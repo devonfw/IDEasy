@@ -272,7 +272,7 @@ class IntellijTest extends AbstractIdeContextTest {
     intellij.run();
 
     // assert
-    assertThat(context.getWorkspacePath().resolve(".idea.vmoptions"))
+    assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("intellij").resolve(context.getWorkspaceName()).resolve(".idea.vmoptions"))
         .exists()
         .hasContent("""
             -Xms256m
