@@ -7,6 +7,8 @@
 <?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.image.Image?>
@@ -112,9 +114,16 @@
   <center>
     <BorderPane>
       <center>
-        <!-- CONTENT AREA -->
-        <SplitPane fx:id="centerSplitPane" dividerPositions="1.0" BorderPane.alignment="CENTER" orientation="VERTICAL">
-          <ScrollPane fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER">
+        <TabPane fx:id="tabPane"
+          tabClosingPolicy="UNAVAILABLE"
+          stylesheets="@style/tabs.css"
+          BorderPane.alignment="CENTER">
+          <tabs>
+            <Tab fx:id="mainTab" text="%main">
+              <content>
+                <!-- CONTENT AREA -->
+                <SplitPane fx:id="centerSplitPane" dividerPositions="1.0" orientation="VERTICAL">
+                  <ScrollPane fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER">
             <StackPane prefHeight="150.0">
               <fx:define>
                 <Double fx:id="buttonContainerHeight" fx:value="80.0"/>
@@ -293,10 +302,18 @@
                 </HBox>
               </VBox>
             </StackPane>
-          </ScrollPane>
+                  </ScrollPane>
 
-          <fx:include source="console/console.fxml" fx:id="console"/>
-        </SplitPane>
+                  <fx:include source="console/console.fxml" fx:id="console"/>
+                </SplitPane>
+              </content>
+            </Tab>
+            <Tab fx:id="toolConfigTab" text="%toolsConfig">
+              <content>
+              </content>
+            </Tab>
+          </tabs>
+        </TabPane>
       </center>
 
       <bottom>
