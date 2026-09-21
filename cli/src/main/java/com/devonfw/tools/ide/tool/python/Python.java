@@ -48,6 +48,26 @@ public class Python extends LocalToolCommandlet {
     super(context, "python", Set.of(Tag.PYTHON));
   }
 
+  /**
+   * Ensures that <a href="https://docs.astral.sh/uv/">uv</a> is available before the Python version is resolved.
+   * <p>
+   * The available Python versions are determined via {@code uv python list} (see {@link PythonRepository#fetchUvPythonList()}). On the install path the version
+   * must be resolved up-front — before the {@code uv} dependency would normally be installed — so {@code uv} is installed here if it is missing. This only runs
+   * on the install path.
+   *
+   * @param request the {@link ToolInstallRequest} to complete.
+   */
+  @Override
+  protected void completeRequest(ToolInstallRequest request) {
+
+    Uv uv = this.context.getCommandletManager().getCommandlet(Uv.class);
+    if (!uv.isInstalled()) {
+      LOG.info("Installing uv to resolve the Python version.");
+      uv.install();
+    }
+    super.completeRequest(request);
+  }
+
   @Override
   protected void performToolInstallation(ToolInstallRequest request, Path installationPath) {
 
