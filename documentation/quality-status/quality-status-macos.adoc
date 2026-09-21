@@ -9,13 +9,13 @@ Automatically generated open issue overview for macOS.
 
 link:quality-status.adoc[Back to overview]
 
-*Total Issues:* 178
+*Total Issues:* 195
 
-* OS-specific: 14
+* OS-specific: 12
 
 * Multi-OS: 3
 
-* Cross-platform: 161
+* Cross-platform: 180
 
 == macOS Specific Issues
 
@@ -25,20 +25,12 @@ link:quality-status.adoc[Back to overview]
 2+^| *0-10 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2468[#2468]
-| Global tool commandlets ignore configured edition for name/version detection (W…
-
-2+^| *11-30 days*
-
-| link:https://github.com/devonfw/IDEasy/issues/2344[#2344]
-| Small cleanup: align macos pkg build script with windows msi build script
+| Global tool commandlets ignore edition for name/version detection (Windows regi…
 
 2+^| *31-60 days*
 
-| link:https://github.com/devonfw/IDEasy/issues/2316[#2316]
-| Homebrew formula publish fails: brew audit no longer accepts a path
-
-| link:https://github.com/devonfw/IDEasy/issues/2252[#2252]
-| Provide uninstall support for globally installed tools (macOS)
+| link:https://github.com/devonfw/IDEasy/issues/2344[#2344]
+| Small cleanup: align macos pkg build script with windows msi build script
 
 | link:https://github.com/devonfw/IDEasy/issues/2206[#2206]
 | IDEasy title not properly shown on macOS
