@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
@@ -78,15 +79,20 @@ public class PythonRepository extends AbstractToolRepository {
   }
 
   /**
-   * Runs {@code uv python list} and parses the result. Extracted as a protected method so tests can stub the {@code uv} interaction.
+   * Runs {@code uv python list} and parses the result. Extracted as a protected method so tests can stub the {@code uv} is not installed.
    *
-   * @return the parsed {@link PythonUvListEntry entries}.
+   * @return the parsed {@link PythonUvListEntry entries}, or an empty list if {@code uv} is not installed.
    */
   protected List<PythonUvListEntry> fetchUvPythonList() {
 
     Uv uv = this.context.getCommandletManager().getCommandlet(Uv.class);
-    // We use the runTool variant that ensures uv is installed before running the command.
-    ProcessResult result = uv.runTool(ProcessMode.DEFAULT_CAPTURE, null, ProcessErrorHandling.THROW_CLI,
+    if (!uv.isInstalled()) {
+      LOG.warn("uv is not installed, run 'ide install uv'");
+      return List.of();
+    }
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI);
+    this.context.setEnvironmentOfInstalledTools(pc);
+    ProcessResult result = uv.runTool(pc, ProcessMode.DEFAULT_CAPTURE,
         List.of("python", "list", "--all-versions", "--only-downloads", "--output-format", "json", "--no-config"));
     return uv.parsePythonListJson(result.getOut());
   }

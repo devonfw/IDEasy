@@ -48,6 +48,24 @@ public class Python extends LocalToolCommandlet {
     super(context, "python", Set.of(Tag.PYTHON));
   }
 
+  /**
+   * /** Ensures {@code uv} is available before resolving Python versions.
+   * <p>
+   * The install path uses {@code uv python list} to resolve available versions, so {@code uv} is installed first if missing.
+   *
+   * @param request the {@link ToolInstallRequest} to complete.
+   */
+  @Override
+  protected void completeRequest(ToolInstallRequest request) {
+
+    Uv uv = this.context.getCommandletManager().getCommandlet(Uv.class);
+    if (!uv.isInstalled()) {
+      LOG.info("Installing uv to resolve the Python version.");
+      uv.install();
+    }
+    super.completeRequest(request);
+  }
+
   @Override
   protected void performToolInstallation(ToolInstallRequest request, Path installationPath) {
 
