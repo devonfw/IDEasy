@@ -47,6 +47,22 @@ For any other existing terminal sessions, you must run the `source` command manu
 Once installed, you want to link:project.adoc[create a project].
 As next step read the link:usage.adoc[usage].
 
+=== Homebrew (MacOS)
+
+If you have https://brew.sh/[Homebrew] installed, you can install IDEasy from the https://github.com/devonfw/homebrew-IDEasy[IDEasy tap]:
+
+```bash
+brew install devonfw/ideasy/ideasy
+```
+
+To configure `IDE_ROOT` and register the `ide` and `icd` shell functions in `~/.bashrc` and `~/.zshrc`, run:
+
+```bash
+ideasy install
+```
+
+After setup, open a new terminal to use `ide` and `icd`.
+
 === Installation Logs
 
 The IDEasy installer writes installation logs to:

@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.commandlet;
+package com.devonfw.tools.ide.commandlet.update;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -13,12 +14,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.cli.CliFatalException;
+import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.CommandletManager;
+import com.devonfw.tools.ide.commandlet.CreateCommandlet;
+import com.devonfw.tools.ide.commandlet.update.settings.SettingsHealthCheckResult;
+import com.devonfw.tools.ide.commandlet.update.settings.SettingsUpdateResult;
+import com.devonfw.tools.ide.commandlet.update.settings.SettingsUpdateStatus;
+import com.devonfw.tools.ide.commandlet.update.settings.SettingsUpdater;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
-import com.devonfw.tools.ide.git.GitContext;
-import com.devonfw.tools.ide.git.GitUrl;
 import com.devonfw.tools.ide.git.repository.RepositoryCommandlet;
+import com.devonfw.tools.ide.git.repository.RepositoryType;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.StringProperty;
@@ -42,17 +50,6 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 public abstract class AbstractUpdateCommandlet extends Commandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(AbstractUpdateCommandlet.class);
-
-  private static final String MESSAGE_CODE_REPO_URL = """
-      No code repository was given after '--code'.
-      Further details can be found here: https://github.com/devonfw/IDEasy/blob/main/documentation/settings.adoc
-      Please enter the code repository below that includes your settings folder.""";
-
-  private static final String MESSAGE_SETTINGS_REPO_URL = """
-      No settings found at {} and no SETTINGS_URL is defined.
-      Further details can be found here: https://github.com/devonfw/IDEasy/blob/main/documentation/settings.adoc
-      Please contact the technical lead of your project to get the SETTINGS_URL for your project to enter.
-      In case you just want to test IDEasy you may simply hit return to install the default settings.""";
 
   /** {@link StringProperty} for the settings repository URL. */
   public final StringProperty settingsRepo;
@@ -107,6 +104,15 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     createStartScripts();
   }
 
+  /**
+   * Hook that is called after the settings passed the health check but before they are moved to their final location. Does nothing by default and is overridden
+   * by {@link CreateCommandlet} to create the project structure so that no project is created at all if the health check failed.
+   */
+  protected void onSettingHealthCheckFinished() {
+
+    // nothing to do by default
+  }
+
   private void reloadContext() {
 
     ((AbstractIdeContext) this.context).reload();
@@ -158,138 +164,83 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
   /**
    * Updates the settings repository in IDE_HOME/settings by either cloning if no such repository exists or pulling if the repository exists then saves the
-   * latest current commit ID in the file ".commit.id".
+   * latest current commit ID in the file ".commit.id". The settings are always cloned into a temporary directory first where a health check is performed. Only
+   * if that health check succeeded the settings are pulled or the verified clone is moved to its final location.
    */
   protected void updateSettings() {
 
-    boolean codeRepository = this.context.isSettingsCodeRepository();
-    if (codeRepository && !(this.context.isForceMode() || forcePull.isTrue())) {
+    RepositoryType repositoryType = RepositoryType.ofSettingsPath(getSettingsPathForSettingsUpdate(), context);
+    if (repositoryType == RepositoryType.CODE_SETTINGS_COMBINED && !(this.context.isForceMode() || this.forcePull.isTrue())) {
       LOG.info("Skipping git pull in settings due to code repository. Use --force-pull to enforce pulling.");
       return;
     }
-    this.context.newStep(getStepMessage()).run(() -> updateSettingsInStep(codeRepository));
+    Step step = this.context.newStep(getStepMessage());
+    step.run(this::updateSettingsInStep);
   }
 
   protected String getStepMessage() {
 
-    return "update (pull) settings repository";
+    return "Update settings repository";
   }
 
-  private void updateSettingsInStep(boolean codeRepository) {
-    Path settingsPath = this.context.getSettingsPath();
-    if (!codeRepository) {
-      boolean settingsRepository = this.context.getGitContext().isGitRepo(settingsPath);
-      if (!settingsRepository) {
-        if (Files.exists(settingsPath)) {
-          if (!this.context.getFileAccess().isEmptyDir(settingsPath)) {
-            this.context.askToContinue(
-                "Your settings repository seems to be broken ('.git' folder not present). "
-                    + "We can fix this by moving  your settings the backed up. "
-                    + "You will be asked for the settings git URL and your settings will be cloned from scratch. "
-                    + "Do you want to proceed?"
-            );
-          }
-          this.context.getFileAccess().backup(settingsPath);
-        }
-        GitUrl gitUrl = getOrAskSettingsUrl();
-        checkProjectNameConvention(gitUrl.getProjectName());
-        initializeRepository(gitUrl);
-        return;
-      }
-    }
-    GitContext gitContext = this.context.getGitContext();
-    if (gitContext.hasUntrackedFiles(settingsPath)) {
-      gitContext.pullSafelyWithStash(settingsPath);
-    } else {
-      gitContext.pull(settingsPath);
-    }
-    this.context.getGitContext().saveCurrentCommitId(settingsPath, this.context.getSettingsCommitIdPath());
-  }
+  private void updateSettingsInStep() {
 
-  private GitUrl getOrAskSettingsUrl() {
+    SettingsUpdater settingsUpdater = new SettingsUpdater(this.context, this.settingsRepo);
+    try {
+      //Step 1: Perform health check
+      Step healthCheckStep = this.context.newStep("Performing settings health check");
+      SettingsHealthCheckResult healthCheckResult = healthCheckStep.call(() -> checkSettingsInStep(settingsUpdater), () -> null);
 
-    String repository = this.settingsRepo.getValue();
-    repository = handleDefaultRepository(repository);
-    String userPromt;
-    String defaultUrl;
-    if (isCodeRepository()) {
-      userPromt = "Code repository URL:";
-      defaultUrl = null;
-      LOG.info(MESSAGE_CODE_REPO_URL);
-    } else {
-      userPromt = "Settings URL [" + IdeContext.DEFAULT_SETTINGS_REPO_URL + "]:";
-      defaultUrl = IdeContext.DEFAULT_SETTINGS_REPO_URL;
-      LOG.info(MESSAGE_SETTINGS_REPO_URL, this.context.getSettingsPath());
-    }
-    GitUrl gitUrl = null;
-    if (repository != null) {
-      gitUrl = GitUrl.of(repository);
-    }
-    while ((gitUrl == null) || !gitUrl.isValid()) {
-      repository = this.context.askForInput(userPromt, defaultUrl);
-      repository = handleDefaultRepository(repository);
-      gitUrl = GitUrl.of(repository);
-      if (!gitUrl.isValid()) {
-        LOG.warn("The input URL is not valid, please try again.");
+      // If the health check failed (healthCheckResult is null) the settings have not been verified, so skip applying them and fail the "Update settings"
+      // step. A non-null result is only produced when the health check passed or the user explicitly chose to continue anyway (force mode), so this never
+      // aborts in force mode.
+      if (healthCheckResult == null) {
+        throw new CliException("Settings update aborted due to error in health check");
       }
-    }
-    return gitUrl;
-  }
 
-  private String handleDefaultRepository(String repository) {
-    if ("-".equals(repository)) {
-      if (isCodeRepository()) {
-        LOG.warn("'-' is found after '--code'. This is invalid.");
-        repository = null;
-      } else {
-        LOG.info("'-' was found for settings repository, the default settings repository '{}' will be used.", IdeContext.DEFAULT_SETTINGS_REPO_URL);
-        repository = IdeContext.DEFAULT_SETTINGS_REPO_URL;
-      }
-    }
-    return repository;
-  }
+      //Step 2: Let create/update commandlets prepare themselves for the settings update.
+      onSettingHealthCheckFinished();
 
-  private void checkProjectNameConvention(String projectName) {
-    boolean isSettingsRepo = projectName.contains(IdeContext.SETTINGS_REPOSITORY_KEYWORD);
-    boolean codeRepository = isCodeRepository();
-    if (isSettingsRepo == codeRepository) {
-      String warningTemplate;
-      if (codeRepository) {
-        warningTemplate = """
-            Your git URL is pointing to the project name {} that contains the keyword '{}'.
-            Therefore we assume that you did a mistake by adding the '--code' option to the ide project creation.
-            Do you really want to create the project?""";
-      } else {
-        warningTemplate = """
-            Your git URL is pointing to the project name {} that does not contain the keyword ''{}''.
-            Therefore we assume that you forgot to add the '--code' option to the ide project creation.
-            Do you really want to create the project?""";
+      //Step 3: Apply (move/pull newest version) settings
+      Step applySettingsStep = this.context.newStep("Applying settings");
+      applySettingsStep.run(() -> applySettingsUpdateInStep(settingsUpdater, healthCheckResult));
+
+      //Make sure to always fail the parent step if the "Apply settings" step fails.
+      if (applySettingsStep.isFailure()) {
+        throw new CliException("Settings update failed due to error while applying the settings update");
       }
-      this.context.askToContinue(warningTemplate, projectName, IdeContext.SETTINGS_REPOSITORY_KEYWORD);
+    } finally {
+      // the verified clone lives across both steps and the prepareProject hook so it is only here that its lifetime ends
+      settingsUpdater.cleanup();
     }
   }
 
-  private void initializeRepository(GitUrl gitUrl) {
+  private SettingsHealthCheckResult checkSettingsInStep(SettingsUpdater settingsUpdater) {
+    SettingsHealthCheckResult healthCheckResult = settingsUpdater.checkSettings(getSettingsPathForSettingsUpdate());
+    RepositoryType repositoryType = healthCheckResult.repositoryType();
 
-    GitContext gitContext = this.context.getGitContext();
-    Path settingsPath = this.context.getSettingsPath();
-    Path repoPath = settingsPath;
-    boolean codeRepository = isCodeRepository();
-    if (codeRepository) {
-      // clone the given code repository into IDE_HOME/workspaces/main
-      repoPath = context.getWorkspacePath().resolve(gitUrl.getProjectName());
+    if ((repositoryType == null || !repositoryType.isValid()) && !healthCheckResult.isExistingProject()) {
+      throw new CliFatalException("Fatal error while cloning settings: The settings health check failed: " + healthCheckResult.errorMessage());
+    } else if ((repositoryType == null || !repositoryType.isValid())) {
+      throw new CliException("The settings health check failed: " + healthCheckResult.errorMessage());
     }
-    gitContext.pullOrClone(gitUrl, repoPath);
-    if (codeRepository) {
-      // check for settings folder and create symlink to IDE_HOME/settings
-      Path settingsFolder = repoPath.resolve(IdeContext.FOLDER_SETTINGS);
-      if (Files.exists(settingsFolder)) {
-        context.getFileAccess().symlink(settingsFolder, settingsPath);
-      } else {
-        throw new CliException("Invalid code repository " + gitUrl + ": missing a settings folder at " + settingsFolder);
+    return healthCheckResult;
+  }
+
+  private void applySettingsUpdateInStep(SettingsUpdater settingsUpdater, SettingsHealthCheckResult healthCheckResult) {
+    SettingsUpdateResult settingsUpdateResult = settingsUpdater.applySettings(healthCheckResult);
+    if (settingsUpdateResult == null) {
+
+      throw new CliException("Failed to apply the settings update due to unknown error.");
+    }
+
+    if (Objects.requireNonNull(settingsUpdateResult.updateStatus()) == SettingsUpdateStatus.SETTINGS_UPDATE_FAILED) {
+      String errorMessage = "The settings update could not be applied: " + settingsUpdateResult.errorMessage();
+      if (!healthCheckResult.isExistingProject()) {
+        throw new CliFatalException(errorMessage);
       }
+      throw new CliException(errorMessage);
     }
-    this.context.getGitContext().saveCurrentCommitId(settingsPath, this.context.getSettingsCommitIdPath());
   }
 
   private void updateSoftware() {
@@ -449,12 +400,12 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
   }
 
   /**
-   * Judge if the repository is a code repository.
+   * This method returns the path to the settings for the case of a settings update.
    *
-   * @return true when the repository is a code repository, otherwise false.
+   * @return The {@link Path} to the settings folder; if not overridden we will get the path from the context
    */
-  protected boolean isCodeRepository() {
-    return false;
-  }
+  protected Path getSettingsPathForSettingsUpdate() {
 
+    return this.context.getSettingsPath();
+  }
 }

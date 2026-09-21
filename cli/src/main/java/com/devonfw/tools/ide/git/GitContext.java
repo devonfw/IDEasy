@@ -329,4 +329,12 @@ public interface GitContext {
    * @throws IllegalStateException if the remote already exists with a different URL.
    */
   void addRemoteOrFail(Path repository, String name, String url);
+
+  /**
+   * Find the root of the git repository
+   *
+   * @param repository the {@link Path} to the git repository.
+   * @return the {@link Path} to the repository root
+   */
+  Path findRepositoryRoot(Path repository);
 }
