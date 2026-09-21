@@ -110,7 +110,7 @@ class LocalToolCommandletTest extends AbstractIdeContextTest {
     // arrange
     Path installPath = Path.of("/projects/_ide/software/default/java/java/21.0.7_6/Contents/Resources/app/");
     Path softwareRepoPath = Path.of("/projects/_ide/software/");
-    Path expectedResultPath = Path.of("/projects/_ide/software/default/java/java/21.0.7_6/");
+    Path expectedResultPath = Path.of("/projects/_ide/software/default/java/java/21.0.7_6/").toAbsolutePath().normalize();
     IdeTestContext context = newContext(PROJECT_BASIC);
     LocalToolDummyCommandlet localToolCommandlet = new LocalToolDummyCommandlet(context);
 
@@ -136,7 +136,7 @@ class LocalToolCommandletTest extends AbstractIdeContextTest {
     Path resultPath = localToolCommandlet.getValidInstalledSoftwareRepoPath(installPath, softwareRepoPath);
 
     // assert
-    assertThat(resultPath).isEqualTo(installPath);
+    assertThat(resultPath).isEqualTo(installPath.toAbsolutePath().normalize());
   }
 
   /**
@@ -155,7 +155,7 @@ class LocalToolCommandletTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(resultPath).isNull();
-    assertThat(context).log().hasEntries(IdeLogEntry.ofWarning("The installation path is faulty " + installPath + "."));
+    assertThat(context).log().hasEntries(IdeLogEntry.ofWarning("The installation path is not located within the software repository " + installPath + "."));
   }
 
   /**

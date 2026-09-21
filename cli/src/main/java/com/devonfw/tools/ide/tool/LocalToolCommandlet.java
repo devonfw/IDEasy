@@ -516,35 +516,12 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   Path getValidInstalledSoftwareRepoPath(Path installPath, Path softwareRepoPath) {
-    int softwareRepoNameCount = softwareRepoPath.getNameCount();
-    int toolInstallNameCount = installPath.getNameCount();
-    int targetToolInstallNameCount = softwareRepoNameCount + 4;
 
-    // installPath can't be shorter than softwareRepoPath
-    if (toolInstallNameCount < softwareRepoNameCount) {
+    Path result = this.context.getFileAccess().findAncestor(installPath, softwareRepoPath, 4);
+    if (result == null) {
       LOG.warn("The installation path is not located within the software repository {}.", installPath);
-      return null;
     }
-    // ensure installPath starts with $IDE_ROOT/_ide/software/
-    for (int i = 0; i < softwareRepoNameCount; i++) {
-      if (!softwareRepoPath.getName(i).toString().equals(installPath.getName(i).toString())) {
-        LOG.warn("The installation path is not located within the software repository {}.", installPath);
-        return null;
-      }
-    }
-    // return $IDE_ROOT/_ide/software/«id»/«tool»/«edition»/«version»
-    if (toolInstallNameCount == targetToolInstallNameCount) {
-      return installPath;
-    } else if (toolInstallNameCount > targetToolInstallNameCount) {
-      Path validInstallPath = installPath;
-      for (int i = 0; i < toolInstallNameCount - targetToolInstallNameCount; i++) {
-        validInstallPath = validInstallPath.getParent();
-      }
-      return validInstallPath;
-    } else {
-      LOG.warn("The installation path is faulty {}.", installPath);
-      return null;
-    }
+    return result;
   }
 
   private boolean isToolNotInstalled(Path toolPath) {
