@@ -150,7 +150,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           path: ./cli/target/
-      - name: Create assemblies and publish to Apache Maven Central
+      - name: Prepare release version
         run: |
           sed -i "s/${SNAPSHOT_VERSION}/${RELEASE_VERSION}/" .mvn/maven.config
           git config --global user.email ${{ secrets.BUILD_USER_EMAIL }}
@@ -158,12 +158,23 @@ jobs:
           git add -f .mvn/maven.config
           git commit -m "set release version to ${RELEASE_VERSION}"
           git tag -a "release/${RELEASE_VERSION}" -m "tagged version ${RELEASE_VERSION}"
-          export GPG_TTY=$TTY
-          mkdir -p ./cli/target/
-          mvn --settings .mvn/settings.xml -B -ntp deploy -Passembly,msi,pkg,deploy -pl -:ide-macos-installer -Dgpg.pin.entry.mode=loopback -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }}
         env:
           RELEASE_VERSION: ${{ needs.resolve-version.outputs.release_version }}
           SNAPSHOT_VERSION: ${{ needs.resolve-version.outputs.snapshot_version }}
+      - name: Build and test release
+        run: |
+          mvn --settings .mvn/settings.xml -B -ntp install \
+            -pl -:ide-macos-installer
+      - name: Publish to Apache Maven Central
+        run: |
+          export GPG_TTY=$TTY
+          mvn --settings .mvn/settings.xml -B -ntp deploy \
+            -Passembly,msi,pkg,deploy \
+            -pl -:ide-macos-installer \
+            -DskipTests \
+            -Dgpg.pin.entry.mode=loopback \
+            -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }}
+        env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
