@@ -20,6 +20,8 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.repository.RepositoryCommandlet;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
+import com.devonfw.tools.ide.service.ServiceGetVersionCommandlet;
+import com.devonfw.tools.ide.service.ServiceServerCommandlet;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.androidstudio.AndroidStudio;
 import com.devonfw.tools.ide.tool.aws.Aws;
@@ -193,6 +195,8 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Just(context));
     add(new SoapUi(context));
     add(new Ruff(context));
+    add(new ServiceServerCommandlet(context));
+    add(new ServiceGetVersionCommandlet(context));
   }
 
   /**

@@ -58,5 +58,21 @@
     "allPublicConstructors": true,
     "allDeclaredFields": false,
     "allDeclaredMethods": false
+  },
+  {
+    "name": "com.devonfw.tools.ide.service.ServiceRequest",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredFields": true,
+    "allPublicMethods": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.devonfw.tools.ide.service.ServiceResponse",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredFields": true,
+    "allPublicMethods": true,
+    "allDeclaredMethods": true
   }
 ]
