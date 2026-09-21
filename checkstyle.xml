@@ -47,6 +47,12 @@
       <property name="influenceFormat" value="0"/>
     </module>
 
+    <module name="SuppressWithNearbyCommentFilter">
+      <property name="commentFormat" value="checkstyle:ignore\s+PrintStackTrace\b"/>
+      <property name="idFormat" value="PrintStackTrace"/>
+      <property name="influenceFormat" value="0"/>
+    </module>
+
     <!-- No star imports (coding-conventions: "no star imports are used") -->
     <module name="AvoidStarImport"/>
     <module name="RedundantImport"/>
@@ -88,6 +94,7 @@
 
     <!-- Never call printStackTrace() (coding-conventions: "Catching and handling Exceptions") -->
     <module name="RegexpSinglelineJava">
+      <property name="id" value="PrintStackTrace"/>
       <property name="format" value="\.printStackTrace\s*\("/>
       <property name="message"
         value="Do not call printStackTrace(); log or wrap-and-rethrow the exception with its cause."/>
