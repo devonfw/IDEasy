@@ -57,11 +57,10 @@ The basic idea is: **to add a tab, create a new class that extends `TabComponent
 
 A `TabComponent` bundles everything that belongs to one tab in a single, reusable unit:
 
-* its **title key** (an NLS key, not a hardcoded string),
-* its **ViewModel** and **View** (built lazily on first use and wired together by the component),
+* its **title key**,
+* its **ViewModel**, **View** and JavaFX **Tab** (built lazily on first use and wired together by the component),
 * **lifecycle hooks** around opening/closing/focusing the tab.
 
-The tab's *identity* (its NLS title key) is owned by the `TabComponent`. This replaces the `getTabTitleKey()` that the ViewModel previously provided (in the current `TabViewModel`), so there is a single source of truth for the title instead of passing it around as a separate parameter.
 
 
 This applies the *Tell, Don't Ask* principle: instead of the caller *asking* the ViewModel for its title key and then separately constructing the ViewModel and View, the caller *tells* the factory to open a `TabComponent` and lets the component compose itself.
