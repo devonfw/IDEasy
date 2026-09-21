@@ -143,18 +143,21 @@ class NpmTest extends AbstractIdeContextTest {
       // act
       commandlet.postExtract(extractedDir);
 
-      // assert - the shims now launch this installation's own CLI entry points and no longer reference the node-bundled layout
+      // assert - only the shims of the current platform were repaired and now launch this installation's own CLI entry
+      // points instead of the broken node-bundled layout (node_modules\npm\bin\npm-cli.js)
       boolean windows = context.getSystemInfo().isWindows();
-      String npmCmd = fileAccess.readFileContent(bin.resolve("npm.cmd"));
-      org.assertj.core.api.Assertions.assertThat(npmCmd).contains("npm-cli.js").doesNotContain("node_modules");
-      String npxCmd = fileAccess.readFileContent(bin.resolve("npx.cmd"));
-      org.assertj.core.api.Assertions.assertThat(npxCmd).contains("npx-cli.js").doesNotContain("node_modules");
-      String npmPs1 = fileAccess.readFileContent(bin.resolve("npm.ps1"));
-      org.assertj.core.api.Assertions.assertThat(npmPs1).contains("npm-cli.js").doesNotContain("node_modules");
-      // the POSIX shims are only rewritten on non-Windows systems
-      if (!windows) {
+      if (windows) {
+        String npmCmd = fileAccess.readFileContent(bin.resolve("npm.cmd"));
+        org.assertj.core.api.Assertions.assertThat(npmCmd).contains("npm-cli.js").doesNotContain("node_modules");
+        String npxCmd = fileAccess.readFileContent(bin.resolve("npx.cmd"));
+        org.assertj.core.api.Assertions.assertThat(npxCmd).contains("npx-cli.js").doesNotContain("node_modules");
+        String npmPs1 = fileAccess.readFileContent(bin.resolve("npm.ps1"));
+        org.assertj.core.api.Assertions.assertThat(npmPs1).contains("npm-cli.js").doesNotContain("node_modules");
+      } else {
         String npmPosix = fileAccess.readFileContent(bin.resolve("npm"));
         org.assertj.core.api.Assertions.assertThat(npmPosix).contains("npm-cli.js").doesNotContain("node_modules");
+        String npxPosix = fileAccess.readFileContent(bin.resolve("npx"));
+        org.assertj.core.api.Assertions.assertThat(npxPosix).contains("npx-cli.js").doesNotContain("node_modules");
       }
       // the CLI entry points themselves are left untouched
       org.assertj.core.api.Assertions.assertThat(Files.isRegularFile(bin.resolve("npm-cli.js"))).isTrue();

@@ -148,7 +148,8 @@ class SystemPathTest extends AbstractIdeContextTest {
   @Test
   void testPrecedenceToolBinPrecedesBundlingRuntimeBinForBothLookupAndPathString() throws IOException {
     // arrange - node is a flat install (no bin/), so node's own bundled npm shadows the pristine npm unless npm is ordered first
-    IdeTestContext context = newContext("find-binary", "project/workspaces", false);
+    // copyForMutation=true: this test creates files, so it must work on a scratch copy (in target/), never the committed fixtures
+    IdeTestContext context = newContext("find-binary", "project/workspaces", true);
     Path npmTool = context.getSoftwarePath().resolve("npm");
     Files.createDirectories(npmTool.resolve("bin"));
     Files.writeString(npmTool.resolve("bin/npm"), "pristine-npm");
