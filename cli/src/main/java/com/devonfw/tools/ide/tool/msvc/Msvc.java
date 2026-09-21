@@ -46,6 +46,8 @@ public class Msvc extends LocalToolCommandlet {
         .withExitCodeAcceptor(code -> (code == 0) || (code == 3010))
         .addArgs("--installPath", installationPath.toString(),
             "--add", "Microsoft.VisualStudio.Workload.VCTools",
+            "--add", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
+            "--add", "Microsoft.VisualStudio.Component.Windows11SDK.26100",
             "--quiet", "--wait", "--norestart", "--nocache")
         .run();
   }
