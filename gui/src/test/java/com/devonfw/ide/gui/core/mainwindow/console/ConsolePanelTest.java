@@ -5,6 +5,7 @@ import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.List;
 
 import javafx.application.Platform;
@@ -14,6 +15,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.ide.gui.HeadlessApplicationTest;
 import com.devonfw.ide.gui.core.context.GuiStateManager;
@@ -24,13 +26,16 @@ class ConsolePanelTest extends HeadlessApplicationTest {
 
   private ConsoleController consoleController;
 
+  @TempDir
+  private Path mockIdeRoot;
+
   @Override
   public void start(Stage stage) throws IOException {
 
     URL consoleViewUrl = getClass().getResource("console.fxml");
     assertThat(consoleViewUrl).as("Cannot resolve console UI FXML resource!").isNotNull();
 
-    GuiStateManager guiStateManager = new GuiStateManager(null);
+    GuiStateManager guiStateManager = new GuiStateManager(this.mockIdeRoot.toString());
     this.consoleController = guiStateManager.getConsoleController();
 
     NlsService nlsService = guiStateManager.getNlsService();
