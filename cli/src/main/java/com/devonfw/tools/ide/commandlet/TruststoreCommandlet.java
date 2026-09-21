@@ -99,7 +99,8 @@ public class TruststoreCommandlet extends Commandlet {
       LOG.info("No truststore update is required for the given address.");
       if (defaultUrlUsed) {
         LOG.info(
-            "If the issue still occurs try to call the command again and add the url that is causing the problem to the command: \n ide fix-vpn-tls-problem <url>");
+            "If the issue still occurs try to call the command again and add the url that is causing the problem to the command: \n"
+                + " ide fix-vpn-tls-problem <url>");
       }
 
       return;
@@ -116,7 +117,8 @@ public class TruststoreCommandlet extends Commandlet {
     } catch (Exception e) {
       LOG.error("Failed to capture certificate from {}:{}.", effectiveEndpoint.host(), effectiveEndpoint.port(), e);
       IdeLogLevel.INTERACTION.log(LOG,
-          "Please check proxy/VPN and retry. You can also follow: https://github.com/devonfw/IDEasy/blob/main/documentation/proxy-support.adoc#tls-certificate-issues");
+          "Please check proxy/VPN and retry. You can also follow: "
+              + "https://github.com/devonfw/IDEasy/blob/main/documentation/proxy-support.adoc#tls-certificate-issues");
       return;
     }
 

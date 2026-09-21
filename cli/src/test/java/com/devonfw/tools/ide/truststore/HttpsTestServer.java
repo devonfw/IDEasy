@@ -21,7 +21,8 @@ public final class HttpsTestServer {
   }
 
   /**
-   * @return a freshly started {@link WireMockServer} listening on a dynamic HTTPS port. The caller is responsible for {@link WireMockServer#stop() stopping} it.
+   * @return a freshly started {@link WireMockServer} listening on a dynamic HTTPS port. The caller is responsible for
+   * {@link WireMockServer#stop() stopping} it.
    */
   public static WireMockServer start() {
     WireMockServer server = new WireMockServer(WireMockConfiguration.options()

@@ -125,9 +125,9 @@ public class Claude extends LocalToolCommandlet {
   /**
    * @param variables the {@link EnvironmentVariables} of the current {@link IdeContext}.
    * @param name the name of the environment variable to check.
-   * @return {@code true} if the variable is undefined or only inherited from the {@link EnvironmentVariablesType#SYSTEM system environment} and should therefore
-   *     be scrubbed; {@code false} if it is defined in an IDEasy {@code ide.properties} layer and must be preserved so it can be shared intentionally (e.g. via
-   *     {@code settings/ide.properties}).
+   * @return {@code true} if the variable is undefined or only inherited from the {@link EnvironmentVariablesType#SYSTEM system environment} and should
+   *    therefore be scrubbed; {@code false} if it is defined in an IDEasy {@code ide.properties} layer and must be preserved so it can be shared intentionally
+   *    (e.g. via {@code settings/ide.properties}).
    */
   private static boolean isInheritedFromSystem(EnvironmentVariables variables, String name) {
 

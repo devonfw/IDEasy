@@ -151,7 +151,8 @@ public class XmlMerger extends FileMerger implements XmlMergeSupport {
           }
         } else {
           LOG.warn(
-              "XML merge namespace not found in file {}. If you are working in a legacy devonfw-ide project, please set IDE_XML_MERGE_LEGACY_SUPPORT_ENABLED=true to "
+              "XML merge namespace not found in file {}. If you are working in a legacy devonfw-ide project, please set "
+                  + "IDE_XML_MERGE_LEGACY_SUPPORT_ENABLED=true to "
                   + "proceed correctly.", source);
         }
       }
