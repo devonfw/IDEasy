@@ -9,13 +9,13 @@ Automatically generated open issue overview for Windows.
 
 link:quality-status.adoc[Back to overview]
 
-*Total Issues:* 151
+*Total Issues:* 195
 
-* OS-specific: 10
+* OS-specific: 14
 
-* Multi-OS: 0
+* Multi-OS: 1
 
-* Cross-platform: 141
+* Cross-platform: 180
 
 == Windows Specific Issues
 
@@ -24,18 +24,30 @@ link:quality-status.adoc[Back to overview]
 | Issue | Summary
 2+^| *0-10 days*
 
+| link:https://github.com/devonfw/IDEasy/issues/2473[#2473]
+| Uninstalling IDEasy from "Programs & features"/"Apps" screen does not work on w…
+
+| link:https://github.com/devonfw/IDEasy/issues/2472[#2472]
+| Multiple IDEasy entries in Windows Control Center
+
+2+^| *11-30 days*
+
+| link:https://github.com/devonfw/IDEasy/issues/2442[#2442]
+| Add pom.xml to windows-installer and align its build with the maven-driven macO…
+
+| link:https://github.com/devonfw/IDEasy/issues/2431[#2431]
+| Improve uv support to make it usable for IDE_ROOT on non-default drive
+
 | link:https://github.com/devonfw/IDEasy/issues/2406[#2406]
 | Prepare IDEasy for Microsoft Store App Submission
 
 | link:https://github.com/devonfw/IDEasy/issues/2405[#2405]
 | Set Up Microsoft Store Developer Account for IDEasy
 
-2+^| *11-30 days*
+2+^| *31-60 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2342[#2342]
 | Display ProgressBar progress in windows taskbar
-
-2+^| *31-60 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2226[#2226]
 | Show IDEasy project, workspace and repository in the Git Bash / Windows Termina…
@@ -64,7 +76,17 @@ link:quality-status.adoc[Back to overview]
 
 == Multi-OS Issues
 
-No multi-OS issues.
+=== Linux + Windows + macOS (1)
+
+[%header, cols="^1,7"]
+|===
+| Issue | Summary
+2+^| *0-10 days*
+
+| link:https://github.com/devonfw/IDEasy/issues/2464[#2464]
+| Add unit tests for `OperatingSystem`
+
+|===
 
 == Cross-platform Issues
 

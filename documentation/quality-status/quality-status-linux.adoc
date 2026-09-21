@@ -9,25 +9,23 @@ Automatically generated open issue overview for Linux.
 
 link:quality-status.adoc[Back to overview]
 
-*Total Issues:* 148
+*Total Issues:* 189
 
 * OS-specific: 6
 
-* Multi-OS: 1
+* Multi-OS: 3
 
-* Cross-platform: 141
+* Cross-platform: 180
 
 == Linux Specific Issues
 
 [%header, cols="^1,7"]
 |===
 | Issue | Summary
-2+^| *11-30 days*
+2+^| *31-60 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2345[#2345]
 | DOCKER_EDITION ignored on Linux
-
-2+^| *31-60 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2271[#2271]
 | ide install pgadmin fails on Ubuntu Linux
@@ -50,11 +48,28 @@ link:quality-status.adoc[Back to overview]
 
 == Multi-OS Issues
 
-=== Linux + macOS (1)
+=== Linux + Windows + macOS (1)
 
 [%header, cols="^1,7"]
 |===
 | Issue | Summary
+2+^| *0-10 days*
+
+| link:https://github.com/devonfw/IDEasy/issues/2464[#2464]
+| Add unit tests for `OperatingSystem`
+
+|===
+
+=== Linux + macOS (2)
+
+[%header, cols="^1,7"]
+|===
+| Issue | Summary
+2+^| *0-10 days*
+
+| link:https://github.com/devonfw/IDEasy/issues/2467[#2467]
+| Obsidian: fix installation on macOS/Linux and duplicate LINUX/X64 artifact in O…
+
 2+^| *90+ days*
 
 | link:https://github.com/devonfw/IDEasy/issues/802[#802]
