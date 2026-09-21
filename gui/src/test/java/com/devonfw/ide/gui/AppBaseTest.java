@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Locale;
-
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -27,18 +26,18 @@ import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.ide.gui.context.GuiStateManager;
-import com.devonfw.ide.gui.context.TaskManager;
-import com.devonfw.ide.gui.event.GuiEventBus;
-import com.devonfw.ide.gui.factory.TabFactory;
-import com.devonfw.ide.gui.helper.FxHelper;
-import com.devonfw.ide.gui.service.CommandletService;
-import com.devonfw.ide.gui.service.NlsService;
-import com.devonfw.ide.gui.ui.controls.console.ConsoleController;
-import com.devonfw.ide.gui.ui.mainwindow.MainWindowView;
-import com.devonfw.ide.gui.ui.mainwindow.MainWindowViewModel;
-import com.devonfw.ide.gui.ui.progress.ProgressBarTask;
-import com.devonfw.ide.gui.ui.progress.taskwindow.TaskOverviewWindow;
+import com.devonfw.ide.gui.core.context.GuiStateManager;
+import com.devonfw.ide.gui.core.context.TaskManager;
+import com.devonfw.ide.gui.core.event.GuiEventBus;
+import com.devonfw.ide.gui.core.factory.TabFactory;
+import com.devonfw.ide.gui.core.helper.FxHelper;
+import com.devonfw.ide.gui.core.mainwindow.MainWindowView;
+import com.devonfw.ide.gui.core.mainwindow.MainWindowViewModel;
+import com.devonfw.ide.gui.core.mainwindow.console.ConsoleController;
+import com.devonfw.ide.gui.core.progress.ProgressBarTask;
+import com.devonfw.ide.gui.core.progress.taskwindow.TaskOverviewWindow;
+import com.devonfw.ide.gui.core.service.CommandletService;
+import com.devonfw.ide.gui.core.service.NlsService;
 
 /**
  * Basic UI Test for the main screen

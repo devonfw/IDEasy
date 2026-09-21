@@ -3,7 +3,6 @@ package com.devonfw.ide.gui;
 import java.awt.Taskbar;
 import java.awt.Toolkit;
 import java.net.URL;
-
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Rectangle2D;
@@ -16,16 +15,16 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.ide.gui.context.GuiStateManager;
-import com.devonfw.ide.gui.context.TaskManager;
-import com.devonfw.ide.gui.event.GuiEventBus;
-import com.devonfw.ide.gui.factory.TabFactory;
-import com.devonfw.ide.gui.service.CommandletService;
-import com.devonfw.ide.gui.service.NlsService;
-import com.devonfw.ide.gui.ui.controls.console.ConsoleController;
-import com.devonfw.ide.gui.ui.mainwindow.MainWindowView;
-import com.devonfw.ide.gui.ui.mainwindow.MainWindowViewModel;
-import com.devonfw.ide.gui.ui.modal.IdeDialog;
+import com.devonfw.ide.gui.core.context.GuiStateManager;
+import com.devonfw.ide.gui.core.context.TaskManager;
+import com.devonfw.ide.gui.core.event.GuiEventBus;
+import com.devonfw.ide.gui.core.factory.TabFactory;
+import com.devonfw.ide.gui.core.mainwindow.MainWindowView;
+import com.devonfw.ide.gui.core.mainwindow.MainWindowViewModel;
+import com.devonfw.ide.gui.core.mainwindow.console.ConsoleController;
+import com.devonfw.ide.gui.core.modal.IdeDialog;
+import com.devonfw.ide.gui.core.service.CommandletService;
+import com.devonfw.ide.gui.core.service.NlsService;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.version.IdeVersion;
 
