@@ -407,8 +407,8 @@ class CompleteTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test that completion works for a second tool argument (e.g. "ide mvn clean [tab]"), which is the real-world scenario
-   * that previously failed because the multivalued arguments property consumed the completion marker greedily.
+   * Test that completion works for a second tool argument (e.g. "ide mvn clean [tab]"), which is the real-world scenario that previously failed because the
+   * multivalued arguments property consumed the completion marker greedily.
    */
   @Test
   void testCompleteMavenSecondToolArgument() {
@@ -424,5 +424,102 @@ class CompleteTest extends AbstractIdeContextTest {
     // assert - should complete the second argument after 'clean'
     assertThat(candidates.stream().map(CompletionCandidate::text))
         .contains("dependency:list", "dependency:tree", "deploy");
+  }
+
+  /**
+   * Verifies that {@code exec:exec} is not suggested when {@code exec:java} has already been provided as an alternative command.
+   */
+  @Test
+  void testAlternativeFilteringWhenOtherAlternativeProvidedJava() {
+
+    // arrange
+    AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
+    String[] argsArray = { "mvn", "exec:java", "" };
+    CliArguments args = CliArguments.ofCompletion(argsArray);
+    CompletionCandidateCollector collector = createCollector(context, argsArray);
+
+    // act
+    List<CompletionCandidate> candidates = context.complete(args, collector, true);
+
+    // assert
+    List<String> texts = candidates.stream().map(CompletionCandidate::text).toList();
+    assertThat(texts).doesNotContain("exec:exec");
+  }
+
+  /**
+   * Verifies that {@code exec:java} is not suggested when {@code exec:exec} has already been provided as an alternative command.
+   */
+  @Test
+  void testAlternativeFilteringWhenOtherAlternativeProvidedExec() {
+
+    // arrange
+    AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
+    String[] argsArray = { "mvn", "exec:exec", "" };
+    CliArguments args = CliArguments.ofCompletion(argsArray);
+    CompletionCandidateCollector collector = createCollector(context, argsArray);
+
+    // act
+    List<CompletionCandidate> candidates = context.complete(args, collector, true);
+
+    // assert
+    List<String> texts = candidates.stream().map(CompletionCandidate::text).toList();
+    assertThat(texts).doesNotContain("exec:java");
+  }
+
+  /**
+   * Test that an entry with an unsatisfied dependency is not suggested.
+   */
+  @Test
+  void testDependencyNotSatisfiedIsNotSuggested() {
+
+    // arrange
+    AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
+    String[] argsArray = { "mvn", "-Dexec.main" };
+    CliArguments args = CliArguments.ofCompletion(argsArray);
+    CompletionCandidateCollector collector = createCollector(context, argsArray);
+
+    // act
+    List<CompletionCandidate> candidates = context.complete(args, collector, true);
+
+    // assert
+    assertThat(candidates.stream().map(CompletionCandidate::text)).doesNotContain("-Dexec.mainClass=");
+  }
+
+  /**
+   * Test that an entry with a satisfied dependency is suggested.
+   */
+  @Test
+  void testDependencySatisfiedIsSuggested() {
+
+    // arrange
+    AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
+    String[] argsArray = { "mvn", "exec:java", "-Dexec.mainCla" };
+    CliArguments args = CliArguments.ofCompletion(argsArray);
+    CompletionCandidateCollector collector = createCollector(context, argsArray);
+
+    // act
+    List<CompletionCandidate> candidates = context.complete(args, collector, true);
+
+    // assert
+    assertThat(candidates.stream().map(CompletionCandidate::text)).contains("-Dexec.mainClass=");
+  }
+
+  /**
+   * Test that an entry with an OR-dependency is suggested if any alternative of the group is provided.
+   */
+  @Test
+  void testDependencyOrGroupSatisfiedByEitherAlternative() {
+
+    // arrange
+    AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
+    String[] argsArray = { "mvn", "exec:exec", "-Dexec.arg" };
+    CliArguments args = CliArguments.ofCompletion(argsArray);
+    CompletionCandidateCollector collector = createCollector(context, argsArray);
+
+    // act
+    List<CompletionCandidate> candidates = context.complete(args, collector, true);
+
+    // assert
+    assertThat(candidates.stream().map(CompletionCandidate::text)).contains("-Dexec.args=");
   }
 }
