@@ -79,19 +79,7 @@ public class App extends Application {
     Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
     Scene scene = new Scene(mainWindow, bounds.getWidth() / 2, bounds.getHeight() / 2);
 
-    if (SystemInfoImpl.INSTANCE.isMac()) {
-      setIconInMacOsDock();
-    }
-
-    Image icon = new Image(ICON_PATH);
-    primaryStage.getIcons().add(icon);
-    primaryStage.setTitle("IDEasy - version " + IdeVersion.getVersionString());
-    primaryStage.setScene(scene);
-    primaryStage.setWidth(scene.getWidth());
-    primaryStage.setHeight(scene.getHeight());
-    primaryStage.setMinWidth(scene.getWidth());
-    primaryStage.setMinHeight(scene.getHeight());
-    primaryStage.show();
+    configureMainWindow(scene);
 
     primaryStage.setOnCloseRequest(event -> {
 
