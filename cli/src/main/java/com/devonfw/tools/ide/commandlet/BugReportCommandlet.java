@@ -1,7 +1,5 @@
 package com.devonfw.tools.ide.commandlet;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -181,13 +179,24 @@ public class BugReportCommandlet extends Commandlet {
     LOG.info("Prepared issue body:\n{}", body);
   }
 
+  /**
+   * @param error the unexpected error; may be {@code null}.
+   * @return a short exception summary (type, message, causes) without a full stacktrace — the full stacktrace is already written to the log.
+   */
   private static String toStackTrace(Throwable error) {
 
     if (error == null) {
       return null;
     }
-    StringWriter writer = new StringWriter();
-    error.printStackTrace(new PrintWriter(writer));
-    return writer.toString();
+    StringBuilder summary = new StringBuilder();
+    Throwable current = error;
+    String prefix = "";
+    while (current != null) {
+      summary.append(prefix).append(current);
+      prefix = "\nCaused by: ";
+      current = current.getCause();
+    }
+    summary.append("\n(Full stacktrace is available in the IDEasy log.)");
+    return summary.toString();
   }
 }
