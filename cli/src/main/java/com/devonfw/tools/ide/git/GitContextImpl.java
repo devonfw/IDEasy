@@ -170,17 +170,19 @@ public class GitContextImpl implements GitContext {
 
     Objects.requireNonNull(repository);
     Objects.requireNonNull(gitUrl);
-    if (Files.isDirectory(repository.resolve(GIT_FOLDER))) {
-      // checks for remotes
-      if (getRemotes(repository).isEmpty()) {
-        String message = repository + " is a local git repository with no remote - if you did this for testing, you may continue...\n"
-            + "Do you want to ignore the problem and continue anyhow?";
-        this.context.askToContinue(message);
-      } else {
-        pull(repository);
-      }
-    } else {
+    if (!Files.isDirectory(repository.resolve(GIT_FOLDER))) {
       clone(gitUrl, repository);
+      return;
+    }
+    // the remote to pull from is the one the current branch is tracking (see also "git rev-parse @{u}")
+    String effectiveRemote = determineTrackedRemote(repository);
+    if (effectiveRemote == null) {
+      String message = repository
+          + " is a local git repository whose current branch does not track a remote - if you did this for testing, you may continue...\n"
+          + "Do you want to ignore the problem and continue anyhow?";
+      this.context.askToContinue(message);
+    } else {
+      pull(repository);
     }
   }
 
