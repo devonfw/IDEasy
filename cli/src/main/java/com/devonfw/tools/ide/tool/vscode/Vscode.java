@@ -123,7 +123,7 @@ public class Vscode extends IdeToolCommandlet {
     FileAccess fileAccess = this.context.getFileAccess();
     Path userData = getUserDataPath();
     if (Files.exists(userData)) {
-      LOG.info("Removing obsolete VSCode user-data folder {} from workspace since VSCode uses {}", legacyUserData, userData);
+      LOG.warn("Removing obsolete VSCode user-data folder {} from workspace since VSCode uses {}", legacyUserData, userData);
       fileAccess.backup(legacyUserData);
     } else {
       LOG.info("Moving VSCode user-data folder {} out of workspace to {}", legacyUserData, userData);
