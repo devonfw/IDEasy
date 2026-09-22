@@ -5,12 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
@@ -24,8 +20,6 @@ import com.devonfw.tools.ide.variable.IdeVariables;
  * {@link ToolCommandlet} for <a href="https://code.visualstudio.com/">vscode</a>.
  */
 public class Vscode extends IdeToolCommandlet {
-
-  private static final Logger LOG = LoggerFactory.getLogger(Vscode.class);
 
   /** The {@link #getConfiguredEdition() edition} for VSCodium. */
   private static final String EDITION_VSCODIUM = "vscodium";
@@ -49,7 +43,6 @@ public class Vscode extends IdeToolCommandlet {
     return "code";
   }
 
-
   @Override
   public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
 
@@ -66,17 +59,16 @@ public class Vscode extends IdeToolCommandlet {
     ProcessResult result = runTool(pc, ProcessMode.DEFAULT_CAPTURE, extensionsCommands);
     if (result.isSuccessful()) {
       if (versionSpecified) {
-        IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {} with version: {}", plugin.name(), plugin.version());
+        step.success("Successfully installed plugin: {} with version: {}", plugin.name(), plugin.version());
       } else {
-        IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {}", plugin.name());
+        step.success();
       }
-      step.success();
       return true;
     }
     if (versionSpecified) {
-      IdeLogLevel.ERROR.log(LOG, "Failed to install plugin: {} with version: {}", plugin.name(), plugin.version());
+      step.error("Failed to install plugin: {} with version: {}", plugin.name(), plugin.version());
     } else {
-      IdeLogLevel.ERROR.log(LOG, "Failed to install plugin: {}", plugin.name());
+      step.error("Failed to install plugin: {}", plugin.name());
     }
     return false;
   }
