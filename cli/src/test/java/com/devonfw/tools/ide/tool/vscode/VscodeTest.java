@@ -16,6 +16,7 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.context.ProcessContextTestImpl;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.devonfw.tools.ide.process.OutputMessage;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
@@ -413,6 +414,46 @@ class VscodeTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Tests that a VS Code failure that is not caused by a missing profile does not defer the plugins. The regular installation then reports the real cause
+   * instead of IDEasy silently waiting for a profile that will never be created.
+   */
+  @Test
+  void testPluginsAreNotDeferredIfVscodeFailsForAnotherReason() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("VSCODE_PROFILE_ENABLED", "true");
+    RecordingVscode commandlet = new RecordingVscode(context).crashing(false);
+
+    // act
+    commandlet.run();
+
+    // assert
+    assertThat(commandlet.indexOfFirstPluginInstall()).as("plugins must not be deferred").isLessThan(commandlet.indexOfLaunch());
+    assertThat(context).logAtWarning().hasMessageContaining("Could not determine if the VS Code profile");
+  }
+
+  /**
+   * Tests that IDEasy stops waiting for the profile as soon as VS Code fails for a reason other than a missing profile after it has been launched.
+   */
+  @Test
+  void testDeferredPluginsAreSkippedIfVscodeFailsAfterLaunch() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("VSCODE_PROFILE_ENABLED", "true");
+    RecordingVscode commandlet = new RecordingVscode(context).crashing(true);
+
+    // act
+    commandlet.run();
+
+    // assert
+    assertThat(commandlet.indexOfFirstPluginInstall()).as("no plugin can be installed into a broken VS Code").isNegative();
+    assertThat(commandlet.countProfileChecks()).as("waiting must stop on the first unexpected failure").isEqualTo(2);
+    assertThat(context).logAtWarning().hasMessageContaining("since VS Code failed");
+  }
+
+  /**
    * Test double for {@link Vscode} that records the order of all tool invocations so tests can assert whether the plugins are installed before or after the
    * IDE has been launched.
    */
@@ -420,7 +461,13 @@ class VscodeTest extends AbstractIdeContextTest {
 
     private final List<List<String>> invocations = new ArrayList<>();
 
+    private final String profileName;
+
     private boolean profileExists;
+
+    private boolean crashing;
+
+    private boolean crashAfterLaunch;
 
     private RecordingVscode(IdeTestContext context) {
 
@@ -430,7 +477,20 @@ class VscodeTest extends AbstractIdeContextTest {
     private RecordingVscode(IdeTestContext context, boolean profileExists) {
 
       super(context);
+      this.profileName = "ideasy-" + context.getProjectName() + "-" + context.getWorkspaceName();
       this.profileExists = profileExists;
+    }
+
+    /**
+     * @param crashAfterLaunch {@code true} if VS Code should only fail for a reason other than a missing profile once it has been launched, {@code false} if it
+     *     should fail right away.
+     * @return this test double failing on every profile check for a reason other than a missing profile (e.g. a broken installation).
+     */
+    RecordingVscode crashing(boolean crashAfterLaunch) {
+
+      this.crashAfterLaunch = crashAfterLaunch;
+      this.crashing = !crashAfterLaunch;
+      return this;
     }
 
     @Override
@@ -438,12 +498,19 @@ class VscodeTest extends AbstractIdeContextTest {
 
       this.invocations.add(new ArrayList<>(args));
       if (args.contains("--list-extensions")) {
-        // VS Code only knows a profile once it has been created by opening a window
-        return new ProcessResultImpl("code", "code", this.profileExists ? 0 : 1, List.of());
+        if (this.crashing) {
+          return new ProcessResultImpl("code", "code", 1, List.of(new OutputMessage(true, "Unexpected error: VS Code crashed")));
+        }
+        // VS Code only knows a profile once it has been created by opening a window, until then it reports the missing profile on stderr
+        if (this.profileExists) {
+          return new ProcessResultImpl("code", "code", 0, List.of());
+        }
+        return new ProcessResultImpl("code", "code", 1, List.of(new OutputMessage(true, "Profile '" + this.profileName + "' not found.")));
       }
       if (!args.contains("--install-extension")) {
         // launching VS Code with --profile creates the profile
         this.profileExists = true;
+        this.crashing = this.crashAfterLaunch;
       }
       return new ProcessResultImpl("code", "code", 0, List.of());
     }
@@ -458,6 +525,12 @@ class VscodeTest extends AbstractIdeContextTest {
         }
       }
       return -1;
+    }
+
+    /** @return the number of invocations that check whether the profile exists. */
+    int countProfileChecks() {
+
+      return (int) this.invocations.stream().filter(args -> args.contains("--list-extensions")).count();
     }
 
     /** @return the index of the first invocation that installs a plugin, or {@code -1} if no plugin was installed. */

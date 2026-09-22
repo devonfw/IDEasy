@@ -9,11 +9,11 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.tools.ide.cli.CliProcessException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
@@ -33,11 +33,14 @@ public class Vscode extends IdeToolCommandlet {
   /** The {@link #getConfiguredEdition() edition} for VSCodium. */
   private static final String EDITION_VSCODIUM = "vscodium";
 
-  /** The maximum number of attempts to detect the {@link #getProfileName() profile} after VS Code has been launched. */
-  private static final int PROFILE_DETECTION_ATTEMPTS = 30;
+  /**
+   * The maximum time in milliseconds to wait for VS Code to create the {@link #getProfileName() profile} after it has been launched. In practice the profile
+   * shows up within a few seconds, this is only a safety net for slow machines (e.g. a first start that is delayed by a virus scanner).
+   */
+  private static final long PROFILE_CREATION_TIMEOUT = 20_000L;
 
-  /** The delay in milliseconds between two attempts to detect the {@link #getProfileName() profile}. */
-  private static final long PROFILE_DETECTION_DELAY = 1000L;
+  /** The delay in milliseconds between two checks whether the {@link #getProfileName() profile} has been created. */
+  private static final long PROFILE_CREATION_POLL_DELAY = 1000L;
 
   private Collection<ToolPluginDescriptor> deferredPlugins;
 
@@ -123,7 +126,7 @@ public class Vscode extends IdeToolCommandlet {
   @Override
   protected int installPlugins(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
 
-    if (isProfileEnabled() && !isProfileAvailable(pc)) {
+    if (isProfileEnabled() && (getProfileState() == ProfileState.MISSING)) {
       // VS Code only creates a profile when it opens a window. CLI calls such as --install-extension merely look the profile up and abort with
       // "Profile '«name»' not found". Therefore the plugins can only be installed after VS Code has been launched. See issue #2471.
       LOG.info("The VS Code profile {} does not exist yet so the plugins are installed after VS Code has been started.", getProfileName());
@@ -155,7 +158,8 @@ public class Vscode extends IdeToolCommandlet {
     if ((plugins == null) || plugins.isEmpty()) {
       return;
     }
-    if (waitForProfile(pc)) {
+    ProfileState profileState = waitForProfile();
+    if (profileState == ProfileState.AVAILABLE) {
       this.installingIntoNewProfile = true;
       int installedPlugins;
       try {
@@ -166,46 +170,67 @@ public class Vscode extends IdeToolCommandlet {
       if (installedPlugins > 0) {
         IdeLogLevel.INTERACTION.log(LOG, "The plugins have been installed after VS Code was started. Please reload the window to activate them.");
       }
+    } else if (profileState == ProfileState.MISSING) {
+      IdeLogLevel.WARNING.log(LOG, "VS Code did not create the profile {} within {} seconds so the plugins could not be installed. They will be installed the "
+          + "next time you run 'ide vscode'.", getProfileName(), PROFILE_CREATION_TIMEOUT / 1000);
     } else {
-      IdeLogLevel.WARNING.log(LOG, "VS Code did not create the profile {} in time so the plugins could not be installed. They will be installed the next "
-          + "time you run 'ide vscode'.", getProfileName());
+      IdeLogLevel.WARNING.log(LOG, "The plugins could not be installed into the VS Code profile {} since VS Code failed (see above).", getProfileName());
     }
   }
 
   /**
-   * @param pc the {@link ProcessContext} to use.
-   * @return {@code true} if the {@link #getProfileName() profile} exists (eventually), {@code false} if it did not show up in time.
+   * Waits until VS Code has created the {@link #getProfileName() profile} after it has been launched, at most {@link #PROFILE_CREATION_TIMEOUT}.
+   *
+   * @return the final {@link ProfileState}. {@link ProfileState#MISSING} if the profile did not show up in time, {@link ProfileState#UNKNOWN} if VS Code
+   *     failed for another reason what makes waiting pointless.
    */
-  private boolean waitForProfile(ProcessContext pc) {
+  private ProfileState waitForProfile() {
 
-    for (int attempt = 1; attempt <= PROFILE_DETECTION_ATTEMPTS; attempt++) {
-      if (isProfileAvailable(pc)) {
-        return true;
+    long deadline = System.currentTimeMillis() + PROFILE_CREATION_TIMEOUT;
+    boolean waitingLogged = false;
+    while (true) {
+      ProfileState profileState = getProfileState();
+      if ((profileState != ProfileState.MISSING) || (System.currentTimeMillis() >= deadline)) {
+        return profileState;
       }
-      LOG.debug("Waiting for VS Code to create the profile {} ({}/{}).", getProfileName(), attempt, PROFILE_DETECTION_ATTEMPTS);
+      if (!waitingLogged) {
+        LOG.info("Waiting up to {} seconds for VS Code to create the profile {}...", PROFILE_CREATION_TIMEOUT / 1000, getProfileName());
+        waitingLogged = true;
+      }
       try {
-        Thread.sleep(PROFILE_DETECTION_DELAY);
+        Thread.sleep(PROFILE_CREATION_POLL_DELAY);
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
-        return false;
+        return ProfileState.MISSING;
       }
     }
-    return false;
   }
 
   /**
-   * @param pc the {@link ProcessContext} to use.
-   * @return {@code true} if the {@link #getProfileName() profile} already exists in VS Code, {@code false} otherwise.
+   * @return the {@link ProfileState} of the {@link #getProfileName() profile} as reported by VS Code.
    */
-  private boolean isProfileAvailable(ProcessContext pc) {
+  private ProfileState getProfileState() {
 
-    // there is no CLI command to create or query a profile, but every profile bound call fails while the profile does not exist
-    try {
-      return runTool(pc, ProcessMode.DEFAULT_CAPTURE, List.of("--list-extensions")).isSuccessful();
-    } catch (CliProcessException e) {
-      LOG.debug("The VS Code profile {} does not exist yet.", getProfileName(), e);
-      return false;
+    // There is no CLI command to create or query a profile, but every profile bound call fails while the profile does not exist.
+    // A missing profile is an expected state here, so we use our own process context that does not log or throw on a non-zero exit code.
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.NONE);
+    this.context.setEnvironmentOfInstalledTools(pc);
+    ProcessResult result = runTool(pc, ProcessMode.DEFAULT_CAPTURE, List.of("--list-extensions"));
+    if (result.isSuccessful()) {
+      return ProfileState.AVAILABLE;
     }
+    // VS Code reports "Profile '«name»' not found." on stderr. We only match the quoted profile name since the message itself may be localized.
+    String quotedProfileName = "'" + getProfileName() + "'";
+    for (String line : result.getErr()) {
+      if (line.contains(quotedProfileName)) {
+        LOG.debug("The VS Code profile {} does not exist yet.", getProfileName());
+        return ProfileState.MISSING;
+      }
+    }
+    IdeLogLevel.WARNING.log(LOG, "Could not determine if the VS Code profile {} exists since VS Code failed with exit code {}.", getProfileName(),
+        result.getExitCode());
+    result.log(IdeLogLevel.WARNING);
+    return ProfileState.UNKNOWN;
   }
 
   @Override
@@ -228,6 +253,21 @@ public class Vscode extends IdeToolCommandlet {
     pc.addArg("--extensions-dir=" + vsCodeExtensionFolder);
     pc.addArg(this.context.getWorkspacePath());
     super.configureToolArgs(pc, processMode, args);
+  }
+
+  /**
+   * The state of the {@link #getProfileName() VS Code profile}.
+   */
+  private enum ProfileState {
+
+    /** The profile exists. */
+    AVAILABLE,
+
+    /** The profile does not exist (yet). */
+    MISSING,
+
+    /** VS Code failed for another reason (e.g. a crash or a broken installation), so the state of the profile is unknown. */
+    UNKNOWN
   }
 
 }
