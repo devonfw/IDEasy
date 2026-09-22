@@ -68,9 +68,9 @@ public class CleanupCommandlet extends Commandlet {
     InstalledSoftware installedSoftware = new InstalledSoftware();
 
     Step step = this.context.newStep("Identify unused software");
-    step.run(() -> discoverUnusedSoftware(installedSoftware), true);
+    step.run(() -> discoverUnusedSoftware(installedSoftware, retentionDelay), true);
 
-    logSoftwareToBeDeleted(installedSoftware.getTools());
+    logSoftwareToBeDeleted(installedSoftware.getTools(), retentionDelay);
 
     List<Path> staleRoots = new ArrayList<>();
     List<Path> staleFiles = new ArrayList<>();
@@ -125,8 +125,9 @@ public class CleanupCommandlet extends Commandlet {
    * Discovers installed and unused software.
    *
    * @param installedSoftware the data structure to populate with installed software.
+   * @param retentionDelay the age after which an unused software version is also considered stale and may be deleted.
    */
-  private void discoverUnusedSoftware(InstalledSoftware installedSoftware) {
+  private void discoverUnusedSoftware(InstalledSoftware installedSoftware, Duration retentionDelay) {
 
     discoverInstalledSoftware(installedSoftware);
 
@@ -138,7 +139,7 @@ public class CleanupCommandlet extends Commandlet {
       discoverUsedSoftware(installedSoftware, ideasyProjectSoftware.resolve(IdeContext.FOLDER_EXTRA), projectName);
     }
 
-    markUnusedSoftwareForDeletion(installedSoftware.getTools());
+    markUnusedSoftwareForDeletion(installedSoftware.getTools(), retentionDelay);
   }
 
   /**
@@ -268,18 +269,23 @@ public class CleanupCommandlet extends Commandlet {
   }
 
   /**
-   * Sets the delete flag for all unused software versions to {@code true}, except for the currently running IDEasy installation which must never be deleted.
+   * Sets the delete flag for all software versions that are both unused and older than the given retention delay to {@code true}, except for the currently
+   * running IDEasy installation which must never be deleted.
+   * <p>
+   * An unused version within the retention delay is considered recent and is kept, so a short {@code --retention-delay} does not delete every unused
+   * installation (e.g. a freshly installed tool version).
    *
    * @param installedSoftwareTools the list of installed tools containing the versions to mark.
+   * @param retentionDelay the age after which an unused software version is also considered stale and may be deleted.
    */
-  private void markUnusedSoftwareForDeletion(List<InstalledSoftwareTool> installedSoftwareTools) {
+  private void markUnusedSoftwareForDeletion(List<InstalledSoftwareTool> installedSoftwareTools, Duration retentionDelay) {
 
     Path runningInstallation = getRunningIdeInstallationPath();
 
     for (InstalledSoftwareTool tool : installedSoftwareTools) {
       for (InstalledSoftwareEdition edition : tool.getEditions()) {
         for (InstalledSoftwareVersion version : edition.getVersions()) {
-          if (version.isUnused() && !isRunningInstallation(version.getPath(), runningInstallation)) {
+          if (version.isUnused() && isStale(version.getPath(), retentionDelay) && !isRunningInstallation(version.getPath(), runningInstallation)) {
             version.setDelete(true);
           }
         }
@@ -343,8 +349,9 @@ public class CleanupCommandlet extends Commandlet {
    * Logs a summary of the software versions marked for deletion.
    *
    * @param installedSoftwareTools the list of installed tools containing versions with deletion flags.
+   * @param retentionDelay the age after which an unused software version is considered stale and may be deleted.
    */
-  private void logSoftwareToBeDeleted(List<InstalledSoftwareTool> installedSoftwareTools) {
+  private void logSoftwareToBeDeleted(List<InstalledSoftwareTool> installedSoftwareTools, Duration retentionDelay) {
 
     String logOutput = "";
     int totalAffectedTools = 0;
@@ -382,9 +389,12 @@ public class CleanupCommandlet extends Commandlet {
     }
 
     if (logOutput.isBlank()) {
-      LOG.info("No installed tools will be deleted. All installed software is used by at least one project.");
+      LOG.info(
+          "No installed tool versions will be deleted. Each installed version is either used by at least one project or not older than {}.",
+          formatDurationHumanReadable(retentionDelay));
     } else {
-      LOG.info("The following installed tool versions will be deleted: \n" + logOutput);
+      LOG.info("The following installed tool versions (unused and older than {}) will be deleted: \n" + logOutput,
+          formatDurationHumanReadable(retentionDelay));
       LOG.info("Summary: {} installed tool versions across {} affected editions of {} affected tools will be deleted.", totalVersionsDeleted,
           totalAffectedEditions, totalAffectedTools);
     }

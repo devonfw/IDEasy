@@ -42,6 +42,9 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
 
     Path unusedVersion = createInstalledVersion(context, "default", "cleanup-test-java", "default", "17");
 
+    // backdate the unused version beyond the default retention delay so it is considered stale
+    ageFolder(unusedVersion, Duration.ofDays(366));
+
     Path projectSoftware = context.getIdeHome().resolve(IdeContext.FOLDER_SOFTWARE);
 
     createSoftwareLink(projectSoftware.resolve("cleanup-test-java"), usedVersion);
@@ -79,6 +82,9 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
 
     Path unusedVersion = createInstalledVersion(context, "default", "cleanup-test-macos", "default", "2.0");
 
+    // backdate the unused version beyond the default retention delay so it is considered stale
+    ageFolder(unusedVersion, Duration.ofDays(366));
+
     Path projectSoftware = context.getIdeHome().resolve(IdeContext.FOLDER_SOFTWARE);
 
     createSoftwareLink(projectSoftware.resolve("cleanup-test-macos"), macOsFolder);
@@ -112,6 +118,9 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
     Path usedVersion = createInstalledVersion(context, "default", "cleanup-test-extra", "default", "1.0");
 
     Path unusedVersion = createInstalledVersion(context, "default", "cleanup-test-extra", "default", "2.0");
+
+    // backdate the unused version beyond the default retention delay so it is considered stale
+    ageFolder(unusedVersion, Duration.ofDays(366));
 
     Path nestedExtraToolLink = context.getIdeHome()
         .resolve(IdeContext.FOLDER_SOFTWARE)
@@ -148,6 +157,9 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
 
     Path unusedVersion = createInstalledVersion(context, customRepositoryId, "cleanup-test-tool", "default", "1.0");
 
+    // backdate the unused version beyond the default retention delay so it is considered stale
+    ageFolder(unusedVersion, Duration.ofDays(366));
+
     CleanupCommandlet cleanup = getCleanupWithConfirmation(context);
 
     // act
@@ -177,6 +189,9 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
     // a genuinely unused installation of the same tool that is not the running one (must be deleted)
     Path unusedVersion = createInstalledVersion(context, "maven", "ideasy", "default", "1.0");
 
+    // backdate the unused version beyond the default retention delay so it is considered stale
+    ageFolder(unusedVersion, Duration.ofDays(366));
+
     // create the _ide/installation link (a symlink, or a junction where symlinks are not allowed) pointing at the running version
     WindowsSymlinkTestHelper.createDirectoryLink(context.getIdeInstallationPath(), runningVersion);
 
@@ -196,6 +211,46 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Tests that the running IDEasy installation is kept even when a short {@code --retention-delay} would make the currently running installation
+   * "stale" by age. The running installation must never be deleted, regardless of its age.
+   *
+   * @throws IOException if the test setup cannot be created.
+   */
+  @Test
+  void testCleanupKeepsRunningIdeInstallationRegardlessOfRetentionDelay() throws IOException {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+
+    // the running installation, backdated so it is older than the configured retention delay (would otherwise be considered stale)
+    Path runningVersion = createInstalledVersion(context, "maven", "ideasy", "default", "2026.08.002");
+    ageFolder(runningVersion, Duration.ofDays(10));
+
+    // a genuinely unused installation, older than the configured retention delay (must be deleted)
+    Path unusedVersion = createInstalledVersion(context, "maven", "ideasy", "default", "1.0");
+    ageFolder(unusedVersion, Duration.ofDays(10));
+
+    // create the _ide/installation link pointing at the running version
+    WindowsSymlinkTestHelper.createDirectoryLink(context.getIdeInstallationPath(), runningVersion);
+
+    context.setAnswers("yes");
+    setRetentionDelay(context, "P1D");
+    CleanupCommandlet cleanup = context.getCommandletManager().getCommandlet(CleanupCommandlet.class);
+
+    // act
+    cleanup.run();
+
+    // assert
+    assertThat(runningVersion)
+        .as("The currently running IDEasy installation must never be deleted, even if it is older than the retention delay")
+        .exists();
+
+    assertThat(unusedVersion)
+        .as("An unused IDEasy installation older than the retention delay should still be deleted")
+        .doesNotExist();
+  }
+
+  /**
    * Tests that batch mode combined with force mode skips the confirmation prompt.
    *
    * @throws IOException if the test setup cannot be created.
@@ -208,6 +263,9 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
 
     Path unusedVersion = createInstalledVersion(
         context, "default", "cleanup-test-force", "default", "1.0");
+
+    // backdate the unused version beyond the default retention delay so it is considered stale
+    ageFolder(unusedVersion, Duration.ofDays(366));
 
     context.getStartContext().setBatchMode(true);
     context.getStartContext().setForceMode(true);
@@ -223,6 +281,67 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
         .doesNotExist();
 
     assertThat(context).logAtSuccess().hasMessage("Unused tools have been deleted successfully.");
+  }
+
+  /**
+   * Tests that the retention delay also protects installed tool versions: an unused version that is not older than the retention delay is kept, while an
+   * unused version older than the retention delay is deleted. This is the age-based part of the feature for installed tools (see issue #1580).
+   *
+   * @throws IOException if the test setup cannot be created.
+   */
+  @Test
+  void testCleanupKeepsUnusedVersionWithinDefaultRetentionDelay() throws IOException {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+
+    // unused but fresh (just installed) - must be kept
+    Path recentUnusedVersion = createInstalledVersion(context, "default", "cleanup-test-retention", "default", "2.0");
+
+    // unused and old (beyond the default retention delay of 1 year) - must be deleted
+    Path staleUnusedVersion = createInstalledVersion(context, "default", "cleanup-test-retention", "default", "1.0");
+    ageFolder(staleUnusedVersion, Duration.ofDays(366));
+
+    // act: no --retention-delay option, so the default of 1 year applies
+    CleanupCommandlet cleanup = getCleanupWithConfirmation(context);
+    cleanup.run();
+
+    // assert
+    assertThat(recentUnusedVersion)
+        .as("An unused version within the default retention delay must be kept")
+        .exists();
+    assertThat(staleUnusedVersion)
+        .as("An unused version older than the default retention delay should be deleted")
+        .doesNotExist();
+  }
+
+  /**
+   * Tests that an unused installed tool version older than the explicitly configured {@code --retention-delay} is deleted, confirming that the configured
+   * delay (not only the default) is honoured for versions.
+   *
+   * @throws IOException if the test setup cannot be created.
+   */
+  @Test
+  void testCleanupDeletesUnusedVersionOlderThanConfiguredRetentionDelay() throws IOException {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+
+    Path unusedVersion = createInstalledVersion(context, "default", "cleanup-test-retention-explicit", "default", "1.0");
+    // 10 days old, older than the configured 7 day retention delay
+    ageFolder(unusedVersion, Duration.ofDays(10));
+
+    context.setAnswers("yes");
+    setRetentionDelay(context, "P7D");
+    CleanupCommandlet cleanup = context.getCommandletManager().getCommandlet(CleanupCommandlet.class);
+
+    // act
+    cleanup.run();
+
+    // assert
+    assertThat(unusedVersion)
+        .as("An unused version older than the configured retention delay should be deleted")
+        .doesNotExist();
   }
 
   /**
@@ -435,6 +554,19 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
     Files.writeString(file, "fresh content");
     Files.setLastModifiedTime(file, FileTime.fromMillis(System.currentTimeMillis() - retentionDelay.toMillis() / 2));
     return file;
+  }
+
+  /**
+   * Backdates the given folder by the given age so that {@link com.devonfw.tools.ide.io.FileAccess#getFileAge(java.nio.file.Path)} reports it as older than a
+   * retention delay. The cleanup commandlet reads the modification time of the version folder itself, so only that time needs to be adjusted.
+   *
+   * @param folder the folder to backdate.
+   * @param age the age to set.
+   * @throws IOException if the modification time cannot be set.
+   */
+  private void ageFolder(Path folder, Duration age) throws IOException {
+
+    Files.setLastModifiedTime(folder, FileTime.fromMillis(System.currentTimeMillis() - age.toMillis()));
   }
 
   /**
