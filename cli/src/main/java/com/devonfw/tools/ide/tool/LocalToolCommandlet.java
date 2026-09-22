@@ -17,7 +17,6 @@ import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
-import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
 import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -207,17 +206,12 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
           LOG.warn("Deleting corrupted installation at {}", installationPath);
           fileAccess.delete(installationPath);
         } else {
-          // version file is missing but tool allows this - restore the file and preserve the installation
-          VersionIdentifier installedVersion = getInstalledVersion(installationPath);
-          if (installedVersion == null) {
-            installedVersion = resolvedVersion;
-          }
-          restoreMissingVersionFile(installationPath, installedVersion);
-          if (installedVersion.equals(resolvedVersion)) {
-            return createToolInstallation(installationPath, installedVersion, false, processContext, additionalInstallation);
-          }
-          // the installation on disk is a different version than requested so we continue with the regular installation
-          // that will backup the existing installation before installing the requested version.
+          // the version file is missing but the tool allows this (e.g. because the version is determined from the installation itself). If
+          // the installed version could be determined, it was already restored to the version file during the determination of the installed
+          // edition and version (see computeInstalledEditionAndVersionFromLocalSoftwareFolder) and the installation above is kept. Reaching
+          // this point means the installed version could not be determined, so the installation is treated as broken and reinstalled.
+          LOG.warn("Could not determine the installed version of {} at {}, the installation is considered broken and will be reinstalled.", this.tool,
+              installationPath);
         }
       }
     }
@@ -371,19 +365,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
   }
 
-  @Override
-  protected ToolInstallation toolAlreadyInstalled(ToolInstallRequest request) {
-
-    if (isIgnoreMissingSoftwareVersionFile()) {
-      // the installed version was determined from the installation itself so we can heal the missing version file
-      ToolEditionAndVersion installed = request.getInstalled();
-      if (installed != null) {
-        restoreMissingVersionFile(getToolPath(), installed.getResolvedVersion());
-      }
-    }
-    return super.toolAlreadyInstalled(request);
-  }
-
   /**
    * Restores the {@link IdeContext#FILE_SOFTWARE_VERSION version file} of an existing installation in case it got lost (e.g. because {@code uv} recreated the
    * python virtual environment). Does nothing if the file is present or the version is unknown.
@@ -414,12 +395,54 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       return null;
     }
     // Resolve edition and version from a single tool-path lookup (one pass) instead of two separate lookups.
-    String edition = getInstalledEdition(toolPath);
+    Path repoPath = getInstalledSoftwareRepoPath(toolPath, true);
+
+    if (repoPath != null) {
+      VersionIdentifier version = VersionIdentifier.of(repoPath.getFileName().toString());
+      return new EditionAndVersion(getEditionFromSoftwareRepoPath(repoPath), version);
+    }
+    return computeInstalledEditionAndVersionFromLocalSoftwareFolder();
+  }
+
+  /**
+   * Determines the installed edition and version of a tool that is not installed via the software repository.
+   *
+   * @return the installed {@link EditionAndVersion} or {@code null} if the version cannot be determined.
+   */
+  protected EditionAndVersion computeInstalledEditionAndVersionFromLocalSoftwareFolder() {
+
+    Path toolPath = getToolPath();
     VersionIdentifier version = getInstalledVersion(toolPath);
     if (version == null) {
-      return null;
+      version = computeInstalledVersionFromLocalSoftwareFolder();
+      if (version == null) {
+        return null;
+      }
+      restoreMissingVersionFile(toolPath, version);
     }
-    return new EditionAndVersion(edition, version);
+    return new EditionAndVersion(computeInstalledEditionFromLocalSoftwareFolder(), version);
+  }
+
+  /**
+   * Determines the installed edition of a tool that is not installed via the software repository.
+   *
+   * @return the installed edition of this tool.
+   */
+  protected String computeInstalledEditionFromLocalSoftwareFolder() {
+    return this.tool;
+  }
+
+  /**
+   * Determines the installed version of a tool that is not installed via the software repository, in case the
+   * {@link IdeContext#FILE_SOFTWARE_VERSION version file} is missing.
+   * <p>
+   * By default {@code null} is returned since there is no tool-specific way to determine the version without the version file. Subclasses may override this to
+   * determine the version from the installation itself.
+   *
+   * @return the installed {@link VersionIdentifier version} or {@code null} if it cannot be determined.
+   */
+  protected VersionIdentifier computeInstalledVersionFromLocalSoftwareFolder() {
+    return null;
   }
 
   /**
@@ -455,47 +478,24 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * @return the installed edition of this tool or {@code null} if not installed.
    */
   protected String getInstalledEdition(Path toolPath) {
+
     if (isToolNotInstalled(toolPath)) {
       return null;
     }
-    Path realPath = this.context.getFileAccess().toRealPath(toolPath);
-    // if the realPath changed, a link has been resolved
-    if (realPath.equals(toolPath)) {
-      if (!isIgnoreSoftwareRepo()) {
-        LOG.warn("Tool {} is not installed via software repository (maybe from devonfw-ide). Please consider reinstalling it.", this.tool);
-      }
-      // I do not see any reliable way how we could determine the edition of a tool that does not use software repo or that was installed by devonfw-ide
-      return getConfiguredEdition();
+    Path repoPath = getInstalledSoftwareRepoPath(toolPath, true);
+    if (repoPath == null) {
+      return computeInstalledEditionFromLocalSoftwareFolder();
     }
-    Path toolRepoFolder = context.getSoftwareRepositoryPath().resolve(ToolRepository.ID_DEFAULT).resolve(this.tool);
-    String edition = getEdition(toolRepoFolder, realPath);
-    if (edition == null) {
-      edition = this.tool;
-    }
+    return getEditionFromSoftwareRepoPath(repoPath);
+  }
+
+  private String getEditionFromSoftwareRepoPath(Path repoPath) {
+
+    String edition = repoPath.getParent().getFileName().toString();
     if (!getToolRepository().getSortedEditions(this.tool).contains(edition)) {
       LOG.warn("Undefined edition {} of tool {}", edition, this.tool);
     }
     return edition;
-  }
-
-  private String getEdition(Path toolRepoFolder, Path toolInstallFolder) {
-
-    int toolRepoNameCount = toolRepoFolder.getNameCount();
-    int toolInstallNameCount = toolInstallFolder.getNameCount();
-    if (toolRepoNameCount < toolInstallNameCount) {
-      // ensure toolInstallFolder starts with $IDE_ROOT/_ide/software/default/«tool»
-      for (int i = 0; i < toolRepoNameCount; i++) {
-        if (!toolRepoFolder.getName(i).toString().equals(toolInstallFolder.getName(i).toString())) {
-          return null;
-        }
-      }
-      return toolInstallFolder.getName(toolRepoNameCount).toString();
-    }
-    return null;
-  }
-
-  private Path getInstalledSoftwareRepoPath(Path toolPath) {
-    return getInstalledSoftwareRepoPath(toolPath, false);
   }
 
   private Path getInstalledSoftwareRepoPath(Path toolPath, boolean logIfNotSoftwareRepo) {
@@ -516,35 +516,12 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   Path getValidInstalledSoftwareRepoPath(Path installPath, Path softwareRepoPath) {
-    int softwareRepoNameCount = softwareRepoPath.getNameCount();
-    int toolInstallNameCount = installPath.getNameCount();
-    int targetToolInstallNameCount = softwareRepoNameCount + 4;
 
-    // installPath can't be shorter than softwareRepoPath
-    if (toolInstallNameCount < softwareRepoNameCount) {
+    Path result = this.context.getFileAccess().findAncestor(installPath, softwareRepoPath, 4);
+    if (result == null) {
       LOG.warn("The installation path is not located within the software repository {}.", installPath);
-      return null;
     }
-    // ensure installPath starts with $IDE_ROOT/_ide/software/
-    for (int i = 0; i < softwareRepoNameCount; i++) {
-      if (!softwareRepoPath.getName(i).toString().equals(installPath.getName(i).toString())) {
-        LOG.warn("The installation path is not located within the software repository {}.", installPath);
-        return null;
-      }
-    }
-    // return $IDE_ROOT/_ide/software/«id»/«tool»/«edition»/«version»
-    if (toolInstallNameCount == targetToolInstallNameCount) {
-      return installPath;
-    } else if (toolInstallNameCount > targetToolInstallNameCount) {
-      Path validInstallPath = installPath;
-      for (int i = 0; i < toolInstallNameCount - targetToolInstallNameCount; i++) {
-        validInstallPath = validInstallPath.getParent();
-      }
-      return validInstallPath;
-    } else {
-      LOG.warn("The installation path is faulty {}.", installPath);
-      return null;
-    }
+    return result;
   }
 
   private boolean isToolNotInstalled(Path toolPath) {
@@ -632,14 +609,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       installationPath = softwareRepoPath.resolve(resolvedVersion.toString());
     }
     return installationPath;
-  }
-
-  /**
-   * @return {@link VersionIdentifier} with latest version of the tool}.
-   */
-  public VersionIdentifier getLatestToolVersion() {
-
-    return this.context.getDefaultToolRepository().resolveVersion(this.tool, getConfiguredEdition(), VersionIdentifier.LATEST, this);
   }
 
 
