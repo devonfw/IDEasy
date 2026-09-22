@@ -54,7 +54,7 @@ public final class BugReportHelper {
    *
    * @param context the {@link IdeContext}.
    * @param actualBehavior description of the actual behavior / bug.
-   * @param stackTrace optional stack-trace text to append as a hint; may be {@code null}.
+   * @param stackTrace optional exception summary to append as a hint; may be {@code null}. The full stacktrace belongs in the IDEasy log, not here.
    * @return the issue body.
    */
   public static String createIssueBody(IdeContext context, String actualBehavior, String stackTrace) {
@@ -72,7 +72,7 @@ public final class BugReportHelper {
     body.append("```\n");
     if (stackTrace != null && !stackTrace.isBlank()) {
       body.append("\n### Comments/Hints\n");
-      body.append("<details>\n<summary>Stacktrace</summary>\n\n```\n");
+      body.append("<details>\n<summary>Exception</summary>\n\n```\n");
       body.append(stackTrace);
       body.append("\n```\n</details>\n");
     }
