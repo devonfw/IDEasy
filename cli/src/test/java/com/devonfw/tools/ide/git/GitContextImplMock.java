@@ -65,9 +65,8 @@ public class GitContextImplMock extends GitContextImpl {
   }
 
   @Override
-  public List<String> getRemotes(Path repository) {
-
-    return List.of(DEFAULT_REMOTE);
+  public String determineTrackedRemote(Path repository) {
+    return DEFAULT_REMOTE;
   }
 
   @Override

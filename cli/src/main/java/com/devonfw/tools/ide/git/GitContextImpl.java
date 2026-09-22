@@ -293,17 +293,6 @@ public class GitContextImpl implements GitContext {
   }
 
   @Override
-  public List<String> getRemotes(Path repository) {
-
-    ProcessResult result = runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.NONE, "remote");
-    if (!result.isSuccessful()) {
-      LOG.warn("Failed to determine the remotes of git repository {}.", repository);
-      return List.of();
-    }
-    return result.getOut();
-  }
-
-  @Override
   public void reset(Path repository, String branchName, String remoteName) {
 
     if ((remoteName == null) || remoteName.isEmpty()) {
@@ -561,8 +550,8 @@ public class GitContextImpl implements GitContext {
    * @param repository the {@link Path} to the git repository.
    * @param name the name of the remote.
    * @param url the URL of the remote.
-   * @param failOnOverride {@code true} to throw an {@link IllegalStateException} if the remote already exists
-   *     with a different URL, {@code false} to silently update it.
+   * @param failOnOverride {@code true} to throw an {@link IllegalStateException} if the remote already exists with a different URL, {@code false} to
+   *     silently update it.
    */
   protected void addRemote(Path repository, String name, String url, boolean failOnOverride) {
 

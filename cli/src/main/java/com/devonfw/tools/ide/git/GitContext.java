@@ -240,12 +240,6 @@ public interface GitContext {
   String determineCurrentBranch(Path repository);
 
   /**
-   * @param repository the {@link Path} to the folder where the git repository is located.
-   * @return the {@link List} with the names of all configured remotes (e.g. "origin"), or an empty {@link List} if the repository has no remote configured.
-   */
-  List<String> getRemotes(Path repository);
-
-  /**
    * Determines the remote that the branch of the given repository tracks (as configured via {@code branch.<branch>.remote}). This is the same remote that
    * {@link #isRepositoryUpdateAvailable(Path)} reads via {@code git rev-parse @{u}}.
    *
@@ -305,7 +299,8 @@ public interface GitContext {
    * Pushes the local commits of the given repository to the remote repository.
    *
    * @param repository the {@link Path} to the git repository.
-   * @param followTags {@code true} to also push annotated tags reachable from the pushed commits (git push --follow-tags), {@code false} to push commits only.
+   * @param followTags {@code true} to also push annotated tags reachable from the pushed commits (git push --follow-tags), {@code false} to push commits
+   *     only.
    */
   void push(Path repository, boolean followTags);
 
@@ -319,9 +314,8 @@ public interface GitContext {
   void addRemote(Path repository, String name, String url);
 
   /**
-   * Adds a new git remote to the given repository using {@code git remote add}.
-   * If the remote already exists with a different URL, an {@link IllegalStateException} is thrown
-   * instead of silently overriding it.
+   * Adds a new git remote to the given repository using {@code git remote add}. If the remote already exists with a different URL, an
+   * {@link IllegalStateException} is thrown instead of silently overriding it.
    *
    * @param repository the {@link Path} to the git repository.
    * @param name the name of the remote to add (e.g. "upstream").
