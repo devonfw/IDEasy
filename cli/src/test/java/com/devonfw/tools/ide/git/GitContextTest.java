@@ -18,9 +18,6 @@ import com.devonfw.tools.ide.context.ProcessContextGitMock;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.process.OutputMessage;
-import com.devonfw.tools.ide.process.ProcessMode;
-import com.devonfw.tools.ide.process.ProcessResult;
-import com.devonfw.tools.ide.process.ProcessResultImpl;
 
 /**
  * Test of {@link GitContext}.
@@ -141,9 +138,8 @@ class GitContextTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Runs a simulated git pull on a repository whose current branch tracks a non-default remote (as it would in a repository with multiple remotes) and
-   * checks that the pull is performed instead of asking the user to continue.
-   * See <a href="https://github.com/devonfw/IDEasy/issues/840">issue #840</a>.
+   * Runs a simulated git pull on a repository whose current branch tracks a non-default remote (as it would in a repository with multiple remotes) and checks
+   * that the pull is performed instead of asking the user to continue. See <a href="https://github.com/devonfw/IDEasy/issues/840">issue #840</a>.
    *
    * @param tempDir a {@link TempDir} {@link Path}.
    */
