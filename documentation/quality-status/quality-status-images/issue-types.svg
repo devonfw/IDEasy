@@ -20,19 +20,19 @@
 <rect width="640" height="300" rx="12" fill="var(--chart-background)"/>
 <title>Issue type distribution</title>
 <text x="24" y="34" fill="var(--chart-text)" font-family="sans-serif" font-size="20" font-weight="600">Issue type distribution</text>
-<path d="M 170.0 164.0 L 170.0 64.0 A 100.0 100.0 0 0 1 263.8 129.5 Z" fill="#0969da"/>
+<path d="M 170.0 164.0 L 170.0 64.0 A 100.0 100.0 0 0 1 262.0 124.9 Z" fill="#0969da"/>
 <rect x="330" y="66" width="14" height="14" rx="2" fill="#0969da"/>
-<text x="354" y="78" fill="var(--chart-text)" font-family="sans-serif" font-size="13">Bugs: 38 (19.4%)</text>
-<path d="M 170.0 164.0 L 263.8 129.5 A 100.0 100.0 0 0 1 138.5 258.9 Z" fill="#1f883d"/>
+<text x="354" y="78" fill="var(--chart-text)" font-family="sans-serif" font-size="13">Bugs: 40 (18.6%)</text>
+<path d="M 170.0 164.0 L 262.0 124.9 A 100.0 100.0 0 0 1 137.0 258.4 Z" fill="#1f883d"/>
 <rect x="330" y="96" width="14" height="14" rx="2" fill="#1f883d"/>
-<text x="354" y="108" fill="var(--chart-text)" font-family="sans-serif" font-size="13">Tasks: 70 (35.7%)</text>
-<path d="M 170.0 164.0 L 138.5 258.9 A 100.0 100.0 0 0 1 150.9 65.8 Z" fill="#bf8700"/>
+<text x="354" y="108" fill="var(--chart-text)" font-family="sans-serif" font-size="13">Tasks: 79 (36.7%)</text>
+<path d="M 170.0 164.0 L 137.0 258.4 A 100.0 100.0 0 0 1 135.6 70.1 Z" fill="#bf8700"/>
 <rect x="330" y="126" width="14" height="14" rx="2" fill="#bf8700"/>
-<text x="354" y="138" fill="var(--chart-text)" font-family="sans-serif" font-size="13">Features: 82 (41.8%)</text>
-<path d="M 170.0 164.0 L 150.9 65.8 A 100.0 100.0 0 0 1 170.0 64.0 Z" fill="#8250df"/>
+<text x="354" y="138" fill="var(--chart-text)" font-family="sans-serif" font-size="13">Features: 84 (39.1%)</text>
+<path d="M 170.0 164.0 L 135.6 70.1 A 100.0 100.0 0 0 1 170.0 64.0 Z" fill="#8250df"/>
 <rect x="330" y="156" width="14" height="14" rx="2" fill="#8250df"/>
-<text x="354" y="168" fill="var(--chart-text)" font-family="sans-serif" font-size="13">No Type: 6 (3.1%)</text>
+<text x="354" y="168" fill="var(--chart-text)" font-family="sans-serif" font-size="13">No Type: 12 (5.6%)</text>
 <circle cx="170.0" cy="164.0" r="50" fill="var(--chart-background)"/>
-<text x="170.0" y="162.0" text-anchor="middle" fill="var(--chart-text)" font-family="sans-serif" font-size="24" font-weight="600">196</text>
+<text x="170.0" y="162.0" text-anchor="middle" fill="var(--chart-text)" font-family="sans-serif" font-size="24" font-weight="600">215</text>
 <text x="170.0" y="184.0" text-anchor="middle" fill="var(--chart-muted-text)" font-family="sans-serif" font-size="12">total</text>
 </svg>
