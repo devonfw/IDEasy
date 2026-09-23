@@ -1,0 +1,10 @@
+{
+  "versions": {
+    "0.61.0": {
+      "version": "0.61.0",
+      "dist": {
+        "tarball": "${testbaseurl}/@google/gemini-cli-0.61.0.tgz"
+      }
+    }
+  }
+}

@@ -35,6 +35,7 @@ import com.devonfw.tools.ide.tool.dotnet.DotNet;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
 import com.devonfw.tools.ide.tool.gcloganalyzer.GcLogAnalyzer;
 import com.devonfw.tools.ide.tool.gcviewer.GcViewer;
+import com.devonfw.tools.ide.tool.gemini.Gemini;
 import com.devonfw.tools.ide.tool.gh.Gh;
 import com.devonfw.tools.ide.tool.go.Go;
 import com.devonfw.tools.ide.tool.graalvm.GraalVm;
@@ -198,6 +199,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Ruff(context));
     add(new CheckCommandlet(context));
     add(new Obsidian(context));
+    add(new Gemini(context));
   }
 
   /**
