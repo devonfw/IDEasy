@@ -328,6 +328,26 @@ class GitContextTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Test for fetch when no remote is specified and the current branch has no upstream, which should fetch all remotes.
+   *
+   * @param tempDir a {@link TempDir} {@link Path}.
+   */
+  @Test
+  void testFetchAllRemotesWhenNoRemoteAndNoUpstream(@TempDir Path tempDir) {
+    // arrange
+    IdeTestContext context = newGitContext(tempDir);
+    this.gitContextMock.setTrackedRemote(null);
+    GitContext gitContext = context.getGitContext();
+
+    // act
+    gitContext.fetch(tempDir, null, null);
+
+    // assert
+    assertThat(this.processContext.getResults()).hasSize(2);
+    assertThat(this.processContext.getResults().getLast().getCommand()).isEqualTo("git fetch --all");
+  }
+
+  /**
    * Test for isRepositoryUpdateAvailable when local and remote commits are the same.
    *
    * @param tempDir a {@link TempDir} {@link Path}.

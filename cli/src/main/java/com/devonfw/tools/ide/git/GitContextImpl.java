@@ -264,8 +264,11 @@ public class GitContextImpl implements GitContext {
       remote = determineTrackedRemote(repository);
     }
     if (remote == null) {
-      // we are on a local branch without a configured upstream, there is no remote to fetch from
-      LOG.info("Skipping git fetch on {} because no remote is configured for branch {}.", repository, branch);
+      // we are on a local branch without a configured upstream, so we fetch all remotes
+      ProcessResult result = runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, "fetch", "--all");
+      if (!result.isSuccessful()) {
+        LOG.warn("Git fetch on all remotes failed for repository {}.", repository);
+      }
       return;
     }
 
