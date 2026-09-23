@@ -16,9 +16,16 @@ import com.devonfw.tools.ide.io.ini.IniFileImpl;
 import com.devonfw.tools.ide.io.ini.IniSection;
 
 /**
- * Mock implementation of {@link GitContext}.
+ * Mock of {@link GitContext} that simulates the remote {@code fetch}/{@code pull} lifecycle against the repository state kept in the {@code .git} files (HEAD,
+ * FETCH_HEAD, refs, config). Use this fixture when a test needs to model pending remote changes and observe how state queries. It is self-contained - no real
+ * git executable and no fixture repository are required.
+ * <p>
+ * Stage pending remote changes with {@link #addChanges(Path, GitCommit...)}; a subsequent {@link #fetch(Path, String, String)} advances {@code FETCH_HEAD} so
+ * the update becomes visible, and {@link #pull(Path)} applies the staged changes to the working tree.
+ *
+ * @see GitContextImplMock
  */
-public class GitContextMock extends GitContextImpl {
+public class GitContextMock extends AbstractGitContextMock {
 
   /**
    * Fallback URL for repositories without a mocked {@code .git/config} - has to be a valid git URL that is not the default settings URL, so both the settings
@@ -186,17 +193,6 @@ public class GitContextMock extends GitContextImpl {
   }
 
   @Override
-  public List<String> retrieveGitRemotes(Path repository) {
-
-    return Collections.emptyList();
-  }
-
-  @Override
-  public Path findGitRequired() {
-    return Path.of("git");
-  }
-
-  @Override
   public Path findGit() {
     return null;
   }
@@ -260,11 +256,6 @@ public class GitContextMock extends GitContextImpl {
     }
 
     return content;
-  }
-
-  @Override
-  public String determineTrackedRemote(Path repository) {
-    return DEFAULT_REMOTE;
   }
 
   /**
@@ -345,21 +336,6 @@ public class GitContextMock extends GitContextImpl {
 
       this(List.of(changes));
     }
-  }
-
-  @Override
-  public void commit(Path repository, String message, boolean addAll) {
-
-  }
-
-  @Override
-  public void tag(Path repository, String tagName, String message) {
-
-  }
-
-  @Override
-  public void push(Path repository, boolean followTags) {
-
   }
 
   @Override

@@ -14,9 +14,13 @@ import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileCopyMode;
 
 /**
- * Mock implementation of {@link GitContextImpl}.
+ * Mock of {@link GitContext} that simulates cloning from a real repository fixture and the {@code stash} interaction used to pull while untracked files are
+ * present. Use this fixture when a commandlet test needs a settings or code repository whose content originates from a directory on disk (see
+ * {@link #clone(GitUrl, Path)}), and/or when it needs to drive failure and untracked-file scenarios of {@link #pullSafelyWithStash(Path)} through the
+ * configuration setters (e.g. {@link #setSimulateUntrackedFiles(boolean)}, {@link #setStashCreationFailed(boolean)}).
+ *
  */
-public class GitContextImplMock extends GitContextImpl {
+public class GitContextImplMock extends AbstractGitContextMock {
 
   private static final Logger LOG = LoggerFactory.getLogger(GitContextImplMock.class);
   private static final String COMMIT_ID = "commit-id";
@@ -65,11 +69,6 @@ public class GitContextImplMock extends GitContextImpl {
   }
 
   @Override
-  public String determineTrackedRemote(Path repository) {
-    return DEFAULT_REMOTE;
-  }
-
-  @Override
   public String determineCurrentBranch(Path repository) {
 
     return GitUrl.BRANCH_MAIN;
@@ -88,11 +87,6 @@ public class GitContextImplMock extends GitContextImpl {
     FileAccess fileAccess = this.context.getFileAccess();
     fileAccess.listChildren(repository, f -> Files.isRegularFile(f) && f.getFileName().toString().contains("modified"))
         .forEach(fileAccess::delete);
-  }
-
-  @Override
-  public Path findGitRequired() {
-    return Path.of("git");
   }
 
   /**
@@ -214,25 +208,5 @@ public class GitContextImplMock extends GitContextImpl {
       }
     }
     return null;
-  }
-
-  @Override
-  public void commit(Path repository, String message, boolean addAll) {
-    LOG.debug("Mock commit with message: {}", message);
-  }
-
-  @Override
-  public void tag(Path repository, String tagName, String message) {
-    LOG.debug("Mock tag: {}", tagName);
-  }
-
-  @Override
-  public void push(Path repository, boolean followTags) {
-    LOG.debug("Mock push");
-  }
-
-  @Override
-  public List<String> retrieveGitRemotes(Path repository) {
-    return List.of();
   }
 }
