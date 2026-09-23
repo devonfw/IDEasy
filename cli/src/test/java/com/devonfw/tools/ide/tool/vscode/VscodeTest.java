@@ -16,6 +16,7 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.context.ProcessContextTestImpl;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.devonfw.tools.ide.process.OutputMessage;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
@@ -295,6 +296,49 @@ class VscodeTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Tests that with the feature toggle {@code VSCODE_PROFILE_ENABLED} enabled the plugins are installed <em>after</em> VS Code has been launched.
+   * <p>
+   * VS Code only creates a named profile when it opens a window. CLI calls such as {@code --install-extension} merely look the profile up and abort with
+   * {@code Profile '...' not found.} Installing the plugins before the first launch can therefore never succeed (see issue #2471).
+   */
+  @Test
+  void testPluginsAreInstalledAfterLaunchIfProfileEnabled() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("VSCODE_PROFILE_ENABLED", "true");
+    RecordingVscode commandlet = new RecordingVscode(context);
+
+    // act
+    commandlet.run();
+
+    // assert
+    int launchIndex = commandlet.indexOfLaunch();
+    int installIndex = commandlet.indexOfFirstPluginInstall();
+    assertThat(launchIndex).as("VS Code has to be launched").isNotNegative();
+    assertThat(installIndex).as("a plugin has to be installed").isNotNegative();
+    assertThat(installIndex).as("plugins must be installed after the launch that creates the profile").isGreaterThan(launchIndex);
+  }
+
+  /**
+   * Tests that without the feature toggle the established order is kept: the plugins are installed <em>before</em> VS Code is launched, so they are active in
+   * the very first session.
+   */
+  @Test
+  void testPluginsAreInstalledBeforeLaunchByDefault() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    RecordingVscode commandlet = new RecordingVscode(context);
+
+    // act
+    commandlet.run();
+
+    // assert
+    assertThat(commandlet.indexOfFirstPluginInstall()).as("plugins must be installed before the launch").isLessThan(commandlet.indexOfLaunch());
+  }
+
+  /**
    * Test double for {@link Vscode} that captures CLI arguments passed to {@link #runTool(ProcessContext, ProcessMode, List)} so tests can assert command
    * construction without spawning an external process.
    */
@@ -323,6 +367,183 @@ class VscodeTest extends AbstractIdeContextTest {
     }
   }
 
+
+  /**
+   * Tests that an already existing profile keeps the established order: the plugins are installed <em>before</em> VS Code is launched so that they are active
+   * right away. Only the very first start has to defer them (see issue #2471).
+   */
+  @Test
+  void testPluginsAreInstalledBeforeLaunchIfProfileAlreadyExists() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("VSCODE_PROFILE_ENABLED", "true");
+    RecordingVscode commandlet = new RecordingVscode(context, true);
+
+    // act
+    commandlet.run();
+
+    // assert
+    assertThat(commandlet.indexOfFirstPluginInstall()).as("plugins must be installed before the launch").isLessThan(commandlet.indexOfLaunch());
+  }
+
+  /**
+   * Tests that the plugins are installed into a freshly created profile even though their marker files already exist.
+   * <p>
+   * The marker files live per IDEasy project while the plugins of VSCode belong to a profile. A profile that VSCode has just created is empty, so honouring the
+   * marker files would leave the user with an IDE without any plugin (see issue #2471).
+   */
+  @Test
+  void testPluginsAreInstalledIntoNewProfileDespiteExistingMarkerFiles() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("VSCODE_PROFILE_ENABLED", "true");
+    RecordingVscode commandlet = new RecordingVscode(context);
+    // first run creates the profile and the marker files
+    commandlet.run();
+    assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("mockedPlugin"))).exists();
+
+    // act - the profile is gone again (e.g. the user enabled the toggle), the marker files remain
+    RecordingVscode second = new RecordingVscode(context);
+    second.run();
+
+    // assert
+    assertThat(second.indexOfFirstPluginInstall()).as("the plugin must be installed into the new profile despite its marker file").isNotNegative();
+    assertThat(second.indexOfFirstPluginInstall()).as("and it must happen after the launch").isGreaterThan(second.indexOfLaunch());
+  }
+
+  /**
+   * Tests that a VS Code failure that is not caused by a missing profile does not defer the plugins. The regular installation then reports the real cause
+   * instead of IDEasy silently waiting for a profile that will never be created.
+   */
+  @Test
+  void testPluginsAreNotDeferredIfVscodeFailsForAnotherReason() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("VSCODE_PROFILE_ENABLED", "true");
+    RecordingVscode commandlet = new RecordingVscode(context).crashing(false);
+
+    // act
+    commandlet.run();
+
+    // assert
+    assertThat(commandlet.indexOfFirstPluginInstall()).as("plugins must not be deferred").isLessThan(commandlet.indexOfLaunch());
+    assertThat(context).logAtWarning().hasMessageContaining("Could not determine if the VS Code profile");
+  }
+
+  /**
+   * Tests that IDEasy stops waiting for the profile as soon as VS Code fails for a reason other than a missing profile after it has been launched.
+   */
+  @Test
+  void testDeferredPluginsAreSkippedIfVscodeFailsAfterLaunch() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("VSCODE_PROFILE_ENABLED", "true");
+    RecordingVscode commandlet = new RecordingVscode(context).crashing(true);
+
+    // act
+    commandlet.run();
+
+    // assert
+    assertThat(commandlet.indexOfFirstPluginInstall()).as("no plugin can be installed into a broken VS Code").isNegative();
+    assertThat(commandlet.countProfileChecks()).as("waiting must stop on the first unexpected failure").isEqualTo(2);
+    assertThat(context).logAtWarning().hasMessageContaining("since VS Code failed");
+  }
+
+  /**
+   * Test double for {@link Vscode} that records the order of all tool invocations so tests can assert whether the plugins are installed before or after the
+   * IDE has been launched.
+   */
+  private static class RecordingVscode extends Vscode {
+
+    private final List<List<String>> invocations = new ArrayList<>();
+
+    private final String profileName;
+
+    private boolean profileExists;
+
+    private boolean crashing;
+
+    private boolean crashAfterLaunch;
+
+    private RecordingVscode(IdeTestContext context) {
+
+      this(context, false);
+    }
+
+    private RecordingVscode(IdeTestContext context, boolean profileExists) {
+
+      super(context);
+      this.profileName = "ideasy-" + context.getProjectName() + "-" + context.getWorkspaceName();
+      this.profileExists = profileExists;
+    }
+
+    /**
+     * @param crashAfterLaunch {@code true} if VS Code should only fail for a reason other than a missing profile once it has been launched, {@code false} if it
+     *     should fail right away.
+     * @return this test double failing on every profile check for a reason other than a missing profile (e.g. a broken installation).
+     */
+    RecordingVscode crashing(boolean crashAfterLaunch) {
+
+      this.crashAfterLaunch = crashAfterLaunch;
+      this.crashing = !crashAfterLaunch;
+      return this;
+    }
+
+    @Override
+    public ProcessResult runTool(ProcessContext pc, ProcessMode processMode, List<String> args) {
+
+      this.invocations.add(new ArrayList<>(args));
+      if (args.contains("--list-extensions")) {
+        if (this.crashing) {
+          return new ProcessResultImpl("code", "code", 1, List.of(new OutputMessage(true, "Unexpected error: VS Code crashed")));
+        }
+        // VS Code only knows a profile once it has been created by opening a window, until then it reports the missing profile on stderr
+        if (this.profileExists) {
+          return new ProcessResultImpl("code", "code", 0, List.of());
+        }
+        return new ProcessResultImpl("code", "code", 1, List.of(new OutputMessage(true, "Profile '" + this.profileName + "' not found.")));
+      }
+      if (!args.contains("--install-extension")) {
+        // launching VS Code with --profile creates the profile
+        this.profileExists = true;
+        this.crashing = this.crashAfterLaunch;
+      }
+      return new ProcessResultImpl("code", "code", 0, List.of());
+    }
+
+    /** @return the index of the invocation that launches the IDE, or {@code -1} if VS Code was never launched. */
+    int indexOfLaunch() {
+
+      for (int i = 0; i < this.invocations.size(); i++) {
+        List<String> args = this.invocations.get(i);
+        if (!args.contains("--install-extension") && !args.contains("--list-extensions")) {
+          return i;
+        }
+      }
+      return -1;
+    }
+
+    /** @return the number of invocations that check whether the profile exists. */
+    int countProfileChecks() {
+
+      return (int) this.invocations.stream().filter(args -> args.contains("--list-extensions")).count();
+    }
+
+    /** @return the index of the first invocation that installs a plugin, or {@code -1} if no plugin was installed. */
+    int indexOfFirstPluginInstall() {
+
+      for (int i = 0; i < this.invocations.size(); i++) {
+        if (this.invocations.get(i).contains("--install-extension")) {
+          return i;
+        }
+      }
+      return -1;
+    }
+  }
 
   /**
    * {@link ProcessContextTestImpl} subclass that captures calls to {@link #withEnvVar(String, String)} for test assertions.
