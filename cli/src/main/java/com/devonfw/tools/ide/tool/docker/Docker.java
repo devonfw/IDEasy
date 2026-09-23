@@ -12,9 +12,12 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemArchitecture;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.NativePackage;
 import com.devonfw.tools.ide.tool.NativePackageManager;
+import com.devonfw.tools.ide.tool.ToolEdition;
+import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -88,6 +91,7 @@ public class Docker extends GlobalToolCommandlet {
                 "sudo rm -f /usr/share/keyrings/isv-rancher-stable-archive-keyring.gpg"
             )
         ),
+        new NativePackage(NativePackageManager.YAY, List.of("rancher-desktop")),
         new NativePackage(NativePackageManager.BREW_CASK, List.of("docker"))
     );
   }
@@ -96,6 +100,19 @@ public class Docker extends GlobalToolCommandlet {
   public String getMacApplicationName() {
 
     return "Docker";
+  }
+
+  @Override
+  protected ToolEditionAndVersion adjustRequestedEdition(ToolEditionAndVersion requested) {
+
+    if (this.context.getSystemInfo().isLinux()) {
+      ToolEdition edition = requested.getEdition();
+      if (!"rancher".equals(edition.edition())) {
+        LOG.warn("Docker Desktop is not yet supported by IDEasy on Linux, installing Rancher Desktop instead.");
+        requested.replaceEdition(new ToolEdition(this.tool, "rancher"));
+      }
+    }
+    return requested;
   }
 
   @Override
@@ -173,16 +190,14 @@ public class Docker extends GlobalToolCommandlet {
    */
   private VersionIdentifier getMacAppVersion(String appBundlePath) {
 
-    String plutilCommand = "plutil -extract CFBundleShortVersionString raw " + appBundlePath + "/Contents/Info.plist";
-    try {
-      String output = this.context.newProcess().runAndGetSingleOutput(IdeLogLevel.WARNING, "bash", "-lc", plutilCommand);
-      return (output != null) ? resolveVersionWithPattern(output, DOCKER_DESKTOP_VERSION_PATTERN) : null;
-    } catch (IllegalStateException e) {
-      // plutil exits non-zero when the .app bundle (or its Info.plist) is missing - this is a legitimate "not installed"
-      // case, not an error. Swallow it and report the edition as not installed so the other editions are still probed.
-      LOG.warn("Unable to determine the version of {} (is it installed?): {}", appBundlePath, e.getMessage());
-      return null;
-    }
+    // Call plutil directly rather than through `bash -lc` so the app bundle path (which contains a space for
+    // "Rancher Desktop.app") is passed as a single, correctly quoted argument. A missing bundle makes plutil exit
+    // non-zero - that is a legitimate "not installed" case, so swallow the failure and report the edition as not
+    // installed so the other editions are still probed.
+    String output = this.context.newProcess().errorHandling(ProcessErrorHandling.NONE)
+        .runAndGetSingleOutput(IdeLogLevel.WARNING, "plutil", "-extract", "CFBundleShortVersionString", "raw",
+            appBundlePath + "/Contents/Info.plist");
+    return (output != null) ? resolveVersionWithPattern(output, DOCKER_DESKTOP_VERSION_PATTERN) : null;
   }
 
   @Override

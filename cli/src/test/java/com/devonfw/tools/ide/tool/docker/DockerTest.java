@@ -14,6 +14,7 @@ import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.os.WindowsAppInstallation;
 import com.devonfw.tools.ide.os.WindowsHelperMock;
 import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.tool.EditionAndVersion;
 import com.devonfw.tools.ide.tool.NativePackage;
 import com.devonfw.tools.ide.tool.NativePackageManager;
@@ -26,10 +27,19 @@ class DockerTest extends AbstractIdeContextTest {
 
   private static final String APT_LIST_COMMAND = "apt list --installed | grep docker-desktop | awk '{print $2}'";
 
-  private static final String PLUTIL_MAC_COMMAND = "plutil -extract CFBundleShortVersionString raw /Applications/Docker.app/Contents/Info.plist";
+  private static final String PLUTIL_EXECUTABLE = "plutil";
 
-  private static final String RANCHER_PLUTIL_MAC_COMMAND =
-      "plutil -extract CFBundleShortVersionString raw /Applications/Rancher Desktop.app/Contents/Info.plist";
+  private static final String PLUTIL_ARGUMENT_1 = "-extract";
+
+  private static final String PLUTIL_ARGUMENT_2 = "CFBundleShortVersionString";
+
+  private static final String PLUTIL_ARGUMENT_3 = "raw";
+
+  /** The full Docker Desktop {@code Info.plist} path passed to {@code plutil} as a single argument. */
+  private static final String DOCKER_PLIST_PATH = "/Applications/Docker.app/Contents/Info.plist";
+
+  /** The full Rancher Desktop {@code Info.plist} path (it contains a space) passed to {@code plutil} as a single argument. */
+  private static final String RANCHER_PLIST_PATH = "/Applications/Rancher Desktop.app/Contents/Info.plist";
 
   /**
    * Creates a minimal {@link IdeTestContext} that returns a mocked {@link ProcessContext} from {@code createProcessContext()}
@@ -63,6 +73,22 @@ class DockerTest extends AbstractIdeContextTest {
         return List.of(availableCommands).contains(command);
       }
     };
+  }
+
+  /**
+   * Stubs the {@code plutil} lookup that {@link Docker#getMacAppVersion(String)} performs: it is invoked as a single
+   * {@link ProcessContext#runAndGetSingleOutput} call with the executable and the four plutil arguments (the {@code Info.plist} path is one
+   * argument), so the mock's {@code errorHandling(NONE)} must return the mock itself for the chained call to work.
+   *
+   * @param processContext the mocked {@link ProcessContext}.
+   * @param plistPath the full {@code Info.plist} path to stub.
+   * @param output the version string {@code plutil} should print, or {@code null} to simulate a failed/absent lookup.
+   */
+  private void stubPlutil(ProcessContext processContext, String plistPath, String output) {
+
+    Mockito.when(processContext.errorHandling(ProcessErrorHandling.NONE)).thenReturn(processContext);
+    Mockito.when(processContext.runAndGetSingleOutput(IdeLogLevel.WARNING, PLUTIL_EXECUTABLE, PLUTIL_ARGUMENT_1, PLUTIL_ARGUMENT_2,
+        PLUTIL_ARGUMENT_3, plistPath)).thenReturn(output);
   }
 
   /**
@@ -102,16 +128,17 @@ class DockerTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext(processContext);
     context.setSystemInfo(SystemInfoMock.MAC_X64);
     Docker docker = docker(context, "docker");
-    Mockito.when(processContext.runAndGetSingleOutput(IdeLogLevel.WARNING, "bash", "-lc", PLUTIL_MAC_COMMAND)).thenReturn("4.44.0");
+    stubPlutil(processContext, DOCKER_PLIST_PATH, "4.44.0");
 
     // act
     EditionAndVersion editionAndVersion = docker.getInstalledEditionAndVersion();
 
-    // assert
+    // assert: plutil is called directly (not via `bash -lc`) and the full Docker.app plist path is passed as one argument
     assertThat(editionAndVersion).isNotNull();
     assertThat(editionAndVersion.edition()).isEqualTo("docker");
     assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.of("4.44.0"));
-    Mockito.verify(processContext).runAndGetSingleOutput(IdeLogLevel.WARNING, "bash", "-lc", PLUTIL_MAC_COMMAND);
+    Mockito.verify(processContext).runAndGetSingleOutput(IdeLogLevel.WARNING, PLUTIL_EXECUTABLE, PLUTIL_ARGUMENT_1, PLUTIL_ARGUMENT_2,
+        PLUTIL_ARGUMENT_3, DOCKER_PLIST_PATH);
   }
 
   /**
@@ -122,20 +149,21 @@ class DockerTest extends AbstractIdeContextTest {
   @Test
   void testDockerDesktopOnMacIsGracefulWhenAppMissing() {
 
-    // arrange: plutil fails (non-zero exit) because /Applications/Docker.app is missing -> simulate the failed exit code
+    // arrange: plutil fails (non-zero exit) because /Applications/Docker.app is missing. With errorHandling(NONE) run() no longer throws, so
+    // the failed plutil surfaces as a null single output instead of an exception.
     ProcessContext processContext = Mockito.mock(ProcessContext.class);
     IdeTestContext context = newContext(processContext);
     context.setSystemInfo(SystemInfoMock.MAC_X64);
     Docker docker = docker(context, "docker");
-    Mockito.when(processContext.runAndGetSingleOutput(IdeLogLevel.WARNING, "bash", "-lc", PLUTIL_MAC_COMMAND))
-        .thenThrow(new IllegalStateException("bash -lc plutil ... failed with exit code 1!"));
+    stubPlutil(processContext, DOCKER_PLIST_PATH, null);
 
     // act
     EditionAndVersion editionAndVersion = docker.getInstalledEditionAndVersion();
 
     // assert: the failed plutil is swallowed -> no edition resolves a version, so the lookup returns null (gracefully, no exception)
     assertThat(editionAndVersion).isNull();
-    Mockito.verify(processContext).runAndGetSingleOutput(IdeLogLevel.WARNING, "bash", "-lc", PLUTIL_MAC_COMMAND);
+    Mockito.verify(processContext).runAndGetSingleOutput(IdeLogLevel.WARNING, PLUTIL_EXECUTABLE, PLUTIL_ARGUMENT_1, PLUTIL_ARGUMENT_2,
+        PLUTIL_ARGUMENT_3, DOCKER_PLIST_PATH);
   }
 
   /**
@@ -180,24 +208,25 @@ class DockerTest extends AbstractIdeContextTest {
   @Test
   void testRancherDesktopEditionAndVersionOnMac() {
 
-    // arrange: Docker Desktop is not installed (no docker command, Docker.app missing so plutil fails with a non-zero exit code);
-    // Rancher Desktop is installed
+    // arrange: Docker Desktop is not installed (no docker command, Docker.app missing so the plutil lookup fails with a non-zero exit
+    // code -> null output); Rancher Desktop is installed. The failed docker lookup must not stop the probe: it must still fall through to
+    // rancher.
     ProcessContext processContext = Mockito.mock(ProcessContext.class);
     IdeTestContext context = newContext(processContext);
     context.setSystemInfo(SystemInfoMock.MAC_X64);
     Docker docker = docker(context);
-    Mockito.when(processContext.runAndGetSingleOutput(IdeLogLevel.WARNING, "bash", "-lc", PLUTIL_MAC_COMMAND))
-        .thenThrow(new IllegalStateException("bash -lc plutil ... failed with exit code 1!"));
-    Mockito.when(processContext.runAndGetSingleOutput(IdeLogLevel.WARNING, "bash", "-lc", RANCHER_PLUTIL_MAC_COMMAND)).thenReturn("1.13.0");
+    stubPlutil(processContext, DOCKER_PLIST_PATH, null);
+    stubPlutil(processContext, RANCHER_PLIST_PATH, "1.13.0");
 
     // act
     EditionAndVersion editionAndVersion = docker.getInstalledEditionAndVersion();
 
-    // assert: edition is the real "rancher" edition and the version comes from the Rancher Desktop.app bundle
+    // assert: edition is the real "rancher" edition and the version comes from the Rancher Desktop.app bundle (single-arg plist path)
     assertThat(editionAndVersion).isNotNull();
     assertThat(editionAndVersion.edition()).isEqualTo("rancher");
     assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.of("1.13.0"));
-    Mockito.verify(processContext).runAndGetSingleOutput(IdeLogLevel.WARNING, "bash", "-lc", RANCHER_PLUTIL_MAC_COMMAND);
+    Mockito.verify(processContext).runAndGetSingleOutput(IdeLogLevel.WARNING, PLUTIL_EXECUTABLE, PLUTIL_ARGUMENT_1, PLUTIL_ARGUMENT_2,
+        PLUTIL_ARGUMENT_3, RANCHER_PLIST_PATH);
   }
 
   /**
