@@ -28,9 +28,6 @@ public class Agy extends LocalToolCommandlet {
   /** Sub-directory of {@code conf} holding the isolated Agy main configuration. */
   static final String CONFIG_FOLDER = "gemini/antigravity-cli";
 
-  /** Sub-directory of {@code conf} holding the isolated Agy MCP/project configuration. */
-  static final String MCP_CONFIG_FOLDER = "gemini/config";
-
   /**
    * Relative location of the Agy main configuration directory within the user home that Agy reads (settings, theme, conversations). This path is symlinked onto
    * {@link #getAgyConfigDir() the project-local main configuration directory}.
@@ -38,30 +35,24 @@ public class Agy extends LocalToolCommandlet {
   static final Path HOME_ANTIGRAVITY_CLI_LOCATION = Path.of(".gemini", "antigravity-cli");
 
   /**
-   * Relative location of the Agy MCP/project configuration directory within the user home (MCP servers, project definitions). This path is symlinked onto
-   * {@link #getAgyMcpConfigDir() the project-local MCP configuration directory}.
-   */
-  static final Path HOME_MCP_CONFIG_LOCATION = Path.of(".gemini", "config");
-
-  /**
    * Content of the seeded {@code README.md} explaining how the project-local configuration is isolated and how to declare an API key.
    */
   private static final String README_CONTENT = """
       # Isolated Agy (Antigravity CLI) configuration
-
+      
       Agy has no environment variable to relocate its configuration, so IDEasy keeps it project-isolated by pointing
       Agy's standard home locations at this project:
         - ~/.gemini/antigravity-cli -> $IDE_HOME/conf/gemini/antigravity-cli   (theme, conversations, history)
         - ~/.gemini/config          -> $IDE_HOME/conf/gemini/config            (MCP servers, project definitions)
       The links are (re)created automatically every time you start Agy through IDEasy. The content is owned by you -
       IDEasy only creates the directories and this file, it never modifies your data.
-
+      
       ## Using Agy
       Each IDEasy project has its own Agy binary and its own configuration. Launch Agy through IDEasy (`ide agy`) in
       the project you want to use; the links are re-pointed first, so the right configuration is always picked.
       Note: if you run Agy WITHOUT IDEasy, the links are not re-pointed and Agy uses the configuration of the project
       that most recently set them up.
-
+      
       ## API key
       Put your credentials in settings.json -> env:
         { "env": { "ANTIGRAVITY_API_KEY": "..." } }
@@ -113,18 +104,6 @@ public class Agy extends LocalToolCommandlet {
     return confPath.resolve(CONFIG_FOLDER);
   }
 
-  /**
-   * @return the {@link Path} to the isolated Agy MCP/project configuration directory ({@code $IDE_HOME/conf/gemini/config}) or {@code null} if no
-   *     {@code IDE_HOME} is present.
-   */
-  Path getAgyMcpConfigDir() {
-    Path confPath = this.context.getConfPath();
-    if (confPath == null) {
-      return null;
-    }
-    return confPath.resolve(MCP_CONFIG_FOLDER);
-  }
-
   @Override
   public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
     super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
@@ -141,14 +120,13 @@ public class Agy extends LocalToolCommandlet {
 
   /**
    * Ensures that both Agy home locations resolve to their project-local configuration directories: {@code ~/.gemini/antigravity-cli} onto
-   * {@code $IDE_HOME/conf/gemini/antigravity-cli} and {@code ~/.gemini/config} onto {@code $IDE_HOME/conf/gemini/config}.
+   * {@code $IDE_HOME/conf/gemini/antigravity-cli}.
    */
   void linkHomeConfigDir() {
     if (this.context.getUserHome() == null) {
       return;
     }
     ensureHomeLink(HOME_ANTIGRAVITY_CLI_LOCATION, getAgyConfigDir());
-    ensureHomeLink(HOME_MCP_CONFIG_LOCATION, getAgyMcpConfigDir());
   }
 
   /**
