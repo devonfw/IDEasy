@@ -1,11 +1,10 @@
 package com.devonfw.tools.ide.url.tool.java;
 
-import org.assertj.core.api.Assertions;
-
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
