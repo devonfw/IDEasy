@@ -1,16 +1,22 @@
 package com.devonfw.tools.ide.commandlet;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
+import java.time.Duration;
 
 import org.junit.jupiter.api.Test;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.commandlet.cleanup.CleanupCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.io.WindowsSymlinkTestHelper;
+import com.devonfw.tools.ide.property.StringProperty;
 
 /**
  * Test of {@link CleanupCommandlet}.
@@ -35,6 +41,9 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
     Path usedVersion = createInstalledVersion(context, "default", "cleanup-test-java", "default", "21");
 
     Path unusedVersion = createInstalledVersion(context, "default", "cleanup-test-java", "default", "17");
+
+    // backdate the unused version beyond the default retention delay so it is considered stale
+    ageFolder(unusedVersion, Duration.ofDays(366));
 
     Path projectSoftware = context.getIdeHome().resolve(IdeContext.FOLDER_SOFTWARE);
 
@@ -73,6 +82,9 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
 
     Path unusedVersion = createInstalledVersion(context, "default", "cleanup-test-macos", "default", "2.0");
 
+    // backdate the unused version beyond the default retention delay so it is considered stale
+    ageFolder(unusedVersion, Duration.ofDays(366));
+
     Path projectSoftware = context.getIdeHome().resolve(IdeContext.FOLDER_SOFTWARE);
 
     createSoftwareLink(projectSoftware.resolve("cleanup-test-macos"), macOsFolder);
@@ -106,6 +118,9 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
     Path usedVersion = createInstalledVersion(context, "default", "cleanup-test-extra", "default", "1.0");
 
     Path unusedVersion = createInstalledVersion(context, "default", "cleanup-test-extra", "default", "2.0");
+
+    // backdate the unused version beyond the default retention delay so it is considered stale
+    ageFolder(unusedVersion, Duration.ofDays(366));
 
     Path nestedExtraToolLink = context.getIdeHome()
         .resolve(IdeContext.FOLDER_SOFTWARE)
@@ -142,6 +157,9 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
 
     Path unusedVersion = createInstalledVersion(context, customRepositoryId, "cleanup-test-tool", "default", "1.0");
 
+    // backdate the unused version beyond the default retention delay so it is considered stale
+    ageFolder(unusedVersion, Duration.ofDays(366));
+
     CleanupCommandlet cleanup = getCleanupWithConfirmation(context);
 
     // act
@@ -150,6 +168,85 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
     // assert
     assertThat(unusedVersion)
         .as("Unused software from the configured custom repository should be discovered and deleted")
+        .doesNotExist();
+  }
+
+  /**
+   * Tests that the currently running IDEasy installation (the version the {@code _ide/installation} link points to) is never deleted, while other unused
+   * installations are still cleaned up. This guards against {@code ide cleanup} deleting the very installation the user is running.
+   *
+   * @throws IOException if the test setup cannot be created.
+   */
+  @Test
+  void testCleanupKeepsRunningIdeInstallation() throws IOException {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+
+    // the running installation, i.e. the version the _ide/installation link points to (must be kept)
+    Path runningVersion = createInstalledVersion(context, "maven", "ideasy", "default", "2026.08.002");
+
+    // a genuinely unused installation of the same tool that is not the running one (must be deleted)
+    Path unusedVersion = createInstalledVersion(context, "maven", "ideasy", "default", "1.0");
+
+    // backdate the unused version beyond the default retention delay so it is considered stale
+    ageFolder(unusedVersion, Duration.ofDays(366));
+
+    // create the _ide/installation link (a symlink, or a junction where symlinks are not allowed) pointing at the running version
+    WindowsSymlinkTestHelper.createDirectoryLink(context.getIdeInstallationPath(), runningVersion);
+
+    CleanupCommandlet cleanup = getCleanupWithConfirmation(context);
+
+    // act
+    cleanup.run();
+
+    // assert
+    assertThat(runningVersion)
+        .as("The currently running IDEasy installation must never be deleted")
+        .exists();
+
+    assertThat(unusedVersion)
+        .as("An unused IDEasy installation that is not the running one should still be deleted")
+        .doesNotExist();
+  }
+
+  /**
+   * Tests that the running IDEasy installation is kept even when a short {@code --retention-delay} would make the currently running installation
+   * "stale" by age. The running installation must never be deleted, regardless of its age.
+   *
+   * @throws IOException if the test setup cannot be created.
+   */
+  @Test
+  void testCleanupKeepsRunningIdeInstallationRegardlessOfRetentionDelay() throws IOException {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+
+    // the running installation, backdated so it is older than the configured retention delay (would otherwise be considered stale)
+    Path runningVersion = createInstalledVersion(context, "maven", "ideasy", "default", "2026.08.002");
+    ageFolder(runningVersion, Duration.ofDays(10));
+
+    // a genuinely unused installation, older than the configured retention delay (must be deleted)
+    Path unusedVersion = createInstalledVersion(context, "maven", "ideasy", "default", "1.0");
+    ageFolder(unusedVersion, Duration.ofDays(10));
+
+    // create the _ide/installation link pointing at the running version
+    WindowsSymlinkTestHelper.createDirectoryLink(context.getIdeInstallationPath(), runningVersion);
+
+    context.setAnswers("yes");
+    setRetentionDelay(context, "P1D");
+    CleanupCommandlet cleanup = context.getCommandletManager().getCommandlet(CleanupCommandlet.class);
+
+    // act
+    cleanup.run();
+
+    // assert
+    assertThat(runningVersion)
+        .as("The currently running IDEasy installation must never be deleted, even if it is older than the retention delay")
+        .exists();
+
+    assertThat(unusedVersion)
+        .as("An unused IDEasy installation older than the retention delay should still be deleted")
         .doesNotExist();
   }
 
@@ -167,6 +264,9 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
     Path unusedVersion = createInstalledVersion(
         context, "default", "cleanup-test-force", "default", "1.0");
 
+    // backdate the unused version beyond the default retention delay so it is considered stale
+    ageFolder(unusedVersion, Duration.ofDays(366));
+
     context.getStartContext().setBatchMode(true);
     context.getStartContext().setForceMode(true);
 
@@ -181,6 +281,303 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
         .doesNotExist();
 
     assertThat(context).logAtSuccess().hasMessage("Unused tools have been deleted successfully.");
+  }
+
+  /**
+   * Tests that the retention delay also protects installed tool versions: an unused version that is not older than the retention delay is kept, while an
+   * unused version older than the retention delay is deleted. This is the age-based part of the feature for installed tools (see issue #1580).
+   *
+   * @throws IOException if the test setup cannot be created.
+   */
+  @Test
+  void testCleanupKeepsUnusedVersionWithinDefaultRetentionDelay() throws IOException {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+
+    // unused but fresh (just installed) - must be kept
+    Path recentUnusedVersion = createInstalledVersion(context, "default", "cleanup-test-retention", "default", "2.0");
+
+    // unused and old (beyond the default retention delay of 1 year) - must be deleted
+    Path staleUnusedVersion = createInstalledVersion(context, "default", "cleanup-test-retention", "default", "1.0");
+    ageFolder(staleUnusedVersion, Duration.ofDays(366));
+
+    // act: no --retention-delay option, so the default of 1 year applies
+    CleanupCommandlet cleanup = getCleanupWithConfirmation(context);
+    cleanup.run();
+
+    // assert
+    assertThat(recentUnusedVersion)
+        .as("An unused version within the default retention delay must be kept")
+        .exists();
+    assertThat(staleUnusedVersion)
+        .as("An unused version older than the default retention delay should be deleted")
+        .doesNotExist();
+  }
+
+  /**
+   * Tests that an unused installed tool version older than the explicitly configured {@code --retention-delay} is deleted, confirming that the configured
+   * delay (not only the default) is honoured for versions.
+   *
+   * @throws IOException if the test setup cannot be created.
+   */
+  @Test
+  void testCleanupDeletesUnusedVersionOlderThanConfiguredRetentionDelay() throws IOException {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+
+    Path unusedVersion = createInstalledVersion(context, "default", "cleanup-test-retention-explicit", "default", "1.0");
+    // 10 days old, older than the configured 7 day retention delay
+    ageFolder(unusedVersion, Duration.ofDays(10));
+
+    context.setAnswers("yes");
+    setRetentionDelay(context, "P7D");
+    CleanupCommandlet cleanup = context.getCommandletManager().getCommandlet(CleanupCommandlet.class);
+
+    // act
+    cleanup.run();
+
+    // assert
+    assertThat(unusedVersion)
+        .as("An unused version older than the configured retention delay should be deleted")
+        .doesNotExist();
+  }
+
+  /**
+   * Tests that files older than the {@code --retention-delay} are deleted from the updates, {@code _ide/tmp} and {@code ~/Downloads/ide} folders
+   * while newer files are kept.
+   *
+   * @throws IOException if the test setup cannot be created.
+   */
+  @Test
+  void testCleanupDeletesStaleFilesOlderThanRetentionDelay() throws IOException {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    Duration retentionDelay = Duration.ofDays(1);
+
+    Path staleUpdatesFile = createStaleFile(context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES).resolve("stale-updates.bin"),
+        retentionDelay);
+    Path staleTmpFile = createStaleFile(context.getTempPath().resolve("stale-tmp.bin"), retentionDelay);
+    Path staleDownloadsFile = createStaleFile(
+        context.getUserHome().resolve(IdeContext.FOLDER_DOWNLOADS).resolve("ide").resolve("stale-download.bin"), retentionDelay);
+
+    Path freshUpdatesFile = createFreshFile(context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES).resolve("fresh-updates.bin"),
+        retentionDelay);
+    Path freshTmpFile = createFreshFile(context.getTempPath().resolve("fresh-tmp.bin"), retentionDelay);
+    Path freshDownloadsFile = createFreshFile(
+        context.getUserHome().resolve(IdeContext.FOLDER_DOWNLOADS).resolve("ide").resolve("fresh-download.bin"), retentionDelay);
+
+    context.setAnswers("yes");
+    setRetentionDelay(context, "P1D");
+    CleanupCommandlet cleanup = context.getCommandletManager().getCommandlet(CleanupCommandlet.class);
+
+    // act
+    cleanup.run();
+
+    // assert
+    assertThat(staleUpdatesFile).as("Stale file in updates should be deleted").doesNotExist();
+    assertThat(staleTmpFile).as("Stale file in _ide/tmp should be deleted").doesNotExist();
+    assertThat(staleDownloadsFile).as("Stale file in ~/Downloads/ide should be deleted").doesNotExist();
+
+    assertThat(freshUpdatesFile).as("Fresh file in updates must not be deleted").exists();
+    assertThat(freshTmpFile).as("Fresh file in _ide/tmp must not be deleted").exists();
+    assertThat(freshDownloadsFile).as("Fresh file in ~/Downloads/ide must not be deleted").exists();
+
+    assertThat(context).logAtSuccess().hasMessage("Stale files have been deleted successfully.");
+  }
+
+  /**
+   * Tests that empty sub-folders below the scanned folders are removed after their stale contents have been deleted, while the scanned folders
+   * themselves are kept.
+   *
+   * @throws IOException if the test setup cannot be created.
+   */
+  @Test
+  void testCleanupRemovesEmptyFoldersAfterDeletingStaleFiles() throws IOException {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    Duration retentionDelay = Duration.ofDays(1);
+
+    Path subFolder = context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES).resolve("nested").resolve("deep");
+    Files.createDirectories(subFolder);
+    Path staleFile = createStaleFile(subFolder.resolve("stale.bin"), retentionDelay);
+
+    context.setAnswers("yes");
+    setRetentionDelay(context, "P1D");
+    CleanupCommandlet cleanup = context.getCommandletManager().getCommandlet(CleanupCommandlet.class);
+
+    // act
+    cleanup.run();
+
+    // assert
+    assertThat(staleFile).as("The stale file should be deleted").doesNotExist();
+    assertThat(subFolder).as("The now-empty sub-folder should be removed").doesNotExist();
+    Path updatesRoot = context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES);
+    assertThat(updatesRoot).as("The scanned root folder itself must not be removed").exists();
+  }
+
+  /**
+   * Tests that an invalid {@code --retention-delay} value results in a {@link CliException}.
+   */
+  @Test
+  void testCleanupRejectsInvalidRetentionDelay() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setAnswers("yes");
+    setRetentionDelay(context, "PT6M10D");
+    CleanupCommandlet cleanup = context.getCommandletManager().getCommandlet(CleanupCommandlet.class);
+
+    // act
+    assertThatThrownBy(cleanup::run).isInstanceOf(CliException.class).hasMessageContaining("Invalid value 'PT6M10D' for --retention-delay");
+  }
+
+  /**
+   * Tests that a zero or negative {@code --retention-delay} value results in a {@link CliException}, since it would otherwise mark every file as
+   * stale and delete them all.
+   */
+  @Test
+  void testCleanupRejectsNonPositiveRetentionDelay() {
+
+    assertThatNonPositiveRetentionDelayRejected("P0D");
+    assertThatNonPositiveRetentionDelayRejected("-P1D");
+  }
+
+  /**
+   * Tests that a symbolic link pointing to a directory outside the scanned roots is not followed, so the stale files of the link target are not
+   * deleted, while a stale file directly below the scanned root is still deleted.
+   *
+   * @throws IOException if the test setup cannot be created.
+   */
+  @Test
+  void testCleanupDoesNotDeleteFilesBehindSymlinkedDirectory() throws IOException {
+
+    WindowsSymlinkTestHelper.assumeSymlinksSupported();
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    Duration retentionDelay = Duration.ofDays(1);
+
+    Path updatesRoot = context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES);
+
+    // a stale file directly below the scanned root - must be deleted
+    Path staleFileInRoot = createStaleFile(updatesRoot.resolve("stale-direct.bin"), retentionDelay);
+
+    // a stale file behind a symlinked directory - must NOT be deleted
+    Path externalTarget = context.getIdeHome().resolve("outside-symlink-target");
+    Path staleFileInTarget = createStaleFile(externalTarget.resolve("stale-behind-link.bin"), retentionDelay);
+    Path link = updatesRoot.resolve("link-to-outside");
+    Files.createSymbolicLink(link, externalTarget);
+
+    context.setAnswers("yes");
+    setRetentionDelay(context, "P1D");
+    CleanupCommandlet cleanup = context.getCommandletManager().getCommandlet(CleanupCommandlet.class);
+
+    // act
+    cleanup.run();
+
+    // assert
+    assertThat(staleFileInRoot).as("A stale file directly below the scanned root should be deleted").doesNotExist();
+    assertThat(staleFileInTarget).as("A stale file behind a symlinked directory must not be deleted").exists();
+  }
+
+  /**
+   * Tests that stale files are not deleted when the {@code --retention-delay} option is not provided, i.e. the default retention delay (1 year)
+   * applies and the recently created test files are kept.
+   *
+   * @throws IOException if the test setup cannot be created.
+   */
+  @Test
+  void testCleanupKeepsFilesWithinDefaultRetentionDelay() throws IOException {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    Path recentFile = createFreshFile(context.getTempPath().resolve("recent.bin"), CleanupCommandlet.DEFAULT_RETENTION_DELAY);
+
+    context.setAnswers("yes");
+    CleanupCommandlet cleanup = context.getCommandletManager().getCommandlet(CleanupCommandlet.class);
+
+    // act
+    cleanup.run();
+
+    // assert
+    assertThat(recentFile).as("Files within the default retention delay must not be deleted").exists();
+  }
+
+  /**
+   * Asserts that a non-positive {@code --retention-delay} value is rejected with a {@link CliException} before any file is touched.
+   *
+   * @param value the non-positive retention delay value to reject.
+   */
+  private void assertThatNonPositiveRetentionDelayRejected(String value) {
+
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setAnswers("yes");
+    setRetentionDelay(context, value);
+    CleanupCommandlet cleanup = context.getCommandletManager().getCommandlet(CleanupCommandlet.class);
+
+    assertThatThrownBy(cleanup::run)
+        .isInstanceOf(CliException.class)
+        .hasMessageContaining("Invalid value '" + value + "' for --retention-delay");
+  }
+
+  /**
+   * Creates a file with a modification time older than the given retention delay.
+   *
+   * @param file the file to create.
+   * @param retentionDelay the age the file must exceed.
+   * @return the created file.
+   * @throws IOException if the file cannot be created.
+   */
+  private Path createStaleFile(Path file, Duration retentionDelay) throws IOException {
+
+    Files.createDirectories(file.getParent());
+    Files.writeString(file, "stale content");
+    Files.setLastModifiedTime(file, FileTime.fromMillis(System.currentTimeMillis() - retentionDelay.toMillis() - 1_000_000L));
+    return file;
+  }
+
+  /**
+   * Creates a file with a modification time newer than the given retention delay.
+   *
+   * @param file the file to create.
+   * @param retentionDelay the age the file must not exceed.
+   * @return the created file.
+   * @throws IOException if the file cannot be created.
+   */
+  private Path createFreshFile(Path file, Duration retentionDelay) throws IOException {
+
+    Files.createDirectories(file.getParent());
+    Files.writeString(file, "fresh content");
+    Files.setLastModifiedTime(file, FileTime.fromMillis(System.currentTimeMillis() - retentionDelay.toMillis() / 2));
+    return file;
+  }
+
+  /**
+   * Backdates the given folder by the given age so that {@link com.devonfw.tools.ide.io.FileAccess#getFileAge(java.nio.file.Path)} reports it as older than a
+   * retention delay. The cleanup commandlet reads the modification time of the version folder itself, so only that time needs to be adjusted.
+   *
+   * @param folder the folder to backdate.
+   * @param age the age to set.
+   * @throws IOException if the modification time cannot be set.
+   */
+  private void ageFolder(Path folder, Duration age) throws IOException {
+
+    Files.setLastModifiedTime(folder, FileTime.fromMillis(System.currentTimeMillis() - age.toMillis()));
+  }
+
+  /**
+   * Sets the value of the {@code --retention-delay} option of the cleanup commandlet.
+   *
+   * @param context the test context.
+   * @param value the value to set.
+   */
+  private void setRetentionDelay(IdeTestContext context, String value) {
+
+    ((StringProperty) context.getCommandletManager().getCommandlet(CleanupCommandlet.class).getOption("--retention-delay")).setValue(value);
   }
 
   /**
