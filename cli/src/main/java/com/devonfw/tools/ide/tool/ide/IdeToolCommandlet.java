@@ -145,9 +145,10 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
   private void doMergeWorkspaceStep(Step step, Path workspaceFolder) {
 
     int errors = 0;
-    errors = mergeWorkspace(this.context.getUserHomeIde(), workspaceFolder, errors);
-    errors = mergeWorkspace(this.context.getSettingsPath(), workspaceFolder, errors);
-    errors = mergeWorkspace(this.context.getConfPath(), workspaceFolder, errors);
+    Map<Path, Path> redirects = getWorkspaceRedirects(workspaceFolder);
+    errors = mergeWorkspace(this.context.getUserHomeIde(), workspaceFolder, redirects, errors);
+    errors = mergeWorkspace(this.context.getSettingsPath(), workspaceFolder, redirects, errors);
+    errors = mergeWorkspace(this.context.getConfPath(), workspaceFolder, redirects, errors);
 
     synchronizeExtraToolInstallations();
 
@@ -162,15 +163,26 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
     }
   }
 
-  private int mergeWorkspace(Path configFolder, Path workspaceFolder, int errors) {
+  /**
+   * @param workspaceFolder the {@link IdeContext#getWorkspacePath() workspace folder}.
+   * @return the {@link Map} with the {@link Path}s inside the given {@code workspaceFolder} as keys and the {@link Path}s where the according workspace
+   *     templates shall be merged to instead as values. Allows to keep IDE-specific data out of the workspace (e.g. in {@link #getIdeMetadataPath()}) without
+   *     changing the structure of the workspace templates in the settings. By default, nothing is redirected.
+   */
+  protected Map<Path, Path> getWorkspaceRedirects(Path workspaceFolder) {
+
+    return Map.of();
+  }
+
+  private int mergeWorkspace(Path configFolder, Path workspaceFolder, Map<Path, Path> redirects, int errors) {
 
     int result = errors;
-    result = mergeWorkspaceSingle(configFolder.resolve(IdeContext.FOLDER_WORKSPACE), workspaceFolder, result);
-    result = mergeWorkspaceSingle(configFolder.resolve(this.tool).resolve(IdeContext.FOLDER_WORKSPACE), workspaceFolder, result);
+    result = mergeWorkspaceSingle(configFolder.resolve(IdeContext.FOLDER_WORKSPACE), workspaceFolder, redirects, result);
+    result = mergeWorkspaceSingle(configFolder.resolve(this.tool).resolve(IdeContext.FOLDER_WORKSPACE), workspaceFolder, redirects, result);
     return result;
   }
 
-  private int mergeWorkspaceSingle(Path templatesFolder, Path workspaceFolder, int errors) {
+  private int mergeWorkspaceSingle(Path templatesFolder, Path workspaceFolder, Map<Path, Path> redirects, int errors) {
 
     Path setupFolder = templatesFolder.resolve(IdeContext.FOLDER_SETUP);
     Path updateFolder = templatesFolder.resolve(IdeContext.FOLDER_UPDATE);
@@ -179,7 +191,7 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
       return errors;
     }
     LOG.debug("Merging workspace templates from {}...", templatesFolder);
-    return errors + this.context.getWorkspaceMerger().merge(setupFolder, updateFolder, this.context.getVariables(), workspaceFolder);
+    return errors + this.context.getWorkspaceMerger().merge(setupFolder, updateFolder, this.context.getVariables(), workspaceFolder, redirects);
   }
 
   /**
