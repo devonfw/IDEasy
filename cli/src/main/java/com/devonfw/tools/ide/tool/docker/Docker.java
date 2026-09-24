@@ -234,7 +234,6 @@ public class Docker extends GlobalToolCommandlet {
   private VersionIdentifier getRancherDesktopClientVersion(String rdctl) {
 
     // rdctl may be on the PATH as a dangling symlink (e.g. Rancher Desktop was removed but ~/.rd/bin remained) so executing it can fail to start the process
-    String rdctl = resolveRancherDesktopCommand("rdctl");
     try {
       String output = this.context.newProcess().runAndGetSingleOutput(rdctl, "version");
       return resolveVersionWithPattern(output, RDCTL_CLIENT_VERSION_PATTERN);
