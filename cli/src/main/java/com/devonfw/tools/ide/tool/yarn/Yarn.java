@@ -2,16 +2,20 @@ package com.devonfw.tools.ide.tool.yarn;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.process.ProcessResult;
+import com.devonfw.tools.ide.tool.BuildTool;
 import com.devonfw.tools.ide.tool.npm.NpmBasedCommandlet;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * {@link NpmBasedCommandlet} for <a href="https://yarnpkg.com">yarn</a>.
  */
-public class Yarn extends NpmBasedCommandlet {
+public class Yarn extends NpmBasedCommandlet implements BuildTool {
 
   private static final String YARN_LOCK = "yarn.lock";
 
@@ -33,5 +37,25 @@ public class Yarn extends NpmBasedCommandlet {
       return null; // if we do not find a yarn.lock file, we let npm take over the package.json
     }
     return super.findBuildDescriptor(directory);
+  }
+
+  @Override
+  public VersionIdentifier getProjectVersion(Path projectPath) {
+
+    // TODO: release not yet implemented for yarn, see #2553
+    return null;
+  }
+
+  @Override
+  public void setProjectVersion(Path projectPath, VersionIdentifier version) {
+
+    // TODO: release not yet implemented for yarn, see #2553
+  }
+
+  @Override
+  public ProcessResult buildAndDeploy(List<String> additionalArgs) {
+
+    // TODO: release not yet implemented for yarn, see #2553
+    return null;
   }
 }
