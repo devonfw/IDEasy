@@ -30,12 +30,9 @@ public interface BuildTool {
 
   /**
    * @param projectPath the {@link Path} to the top-level directory of the project.
-   * @return the current {@link VersionIdentifier version} of the project.
+   * @return the current {@link VersionIdentifier version} of the project or {@code null} if this build-tool does not support releasing.
    */
-  default VersionIdentifier getProjectVersion(Path projectPath) {
-
-    throw new UnsupportedOperationException();
-  }
+  VersionIdentifier getProjectVersion(Path projectPath);
 
   /**
    * Sets the {@link #getProjectVersion(Path) version} of the project.
@@ -43,10 +40,7 @@ public interface BuildTool {
    * @param projectPath the {@link Path} to the top-level directory of the project.
    * @param version the new {@link VersionIdentifier version} to set.
    */
-  default void setProjectVersion(Path projectPath, VersionIdentifier version) {
-
-    throw new UnsupportedOperationException();
-  }
+  void setProjectVersion(Path projectPath, VersionIdentifier version);
 
   /**
    * Performs a single build-and-deploy (release) build of the project in the current working directory.
@@ -54,8 +48,5 @@ public interface BuildTool {
    * @param additionalArgs the additional arguments to append to the build command (may be {@link List#isEmpty() empty}).
    * @return the {@link ProcessResult} of the build (allowing the caller to react on {@link ProcessResult#isSuccessful() failures}, e.g. by retrying).
    */
-  default ProcessResult buildAndDeploy(List<String> additionalArgs) {
-
-    throw new UnsupportedOperationException();
-  }
+  ProcessResult buildAndDeploy(List<String> additionalArgs);
 }

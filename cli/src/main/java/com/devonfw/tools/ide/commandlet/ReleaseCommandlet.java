@@ -57,10 +57,8 @@ public class ReleaseCommandlet extends Commandlet {
       throw new CliException("Release has to be performed from the top-level project or using force option.");
     }
 
-    VersionIdentifier currentVersion;
-    try {
-      currentVersion = buildTool.getProjectVersion(projectPath);
-    } catch (UnsupportedOperationException e) {
+    VersionIdentifier currentVersion = buildTool.getProjectVersion(projectPath);
+    if (currentVersion == null) {
       throw new CliException("The build tool " + buildTool.getName() + " detected in " + projectPath + " does not support releasing.");
     }
     VersionIdentifier releaseVersion = VersionIdentifier.of(currentVersion.toString().replace("-SNAPSHOT", ""));

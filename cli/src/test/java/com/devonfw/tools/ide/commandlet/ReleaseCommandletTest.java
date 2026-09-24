@@ -97,7 +97,8 @@ class ReleaseCommandletTest extends AbstractIdeContextTest {
 
   /**
    * Tests that the release fails gracefully if a build descriptor is found but its {@link com.devonfw.tools.ide.tool.BuildTool} does not support releasing
-   * (throws {@link UnsupportedOperationException}), e.g. a gradle project (only maven currently supports releasing).
+   * (its {@link com.devonfw.tools.ide.tool.BuildTool#getProjectVersion(java.nio.file.Path) getProjectVersion} returns {@code null}), e.g. a gradle project
+   * (only maven currently supports releasing).
    */
   @Test
   void testReleaseWithUnsupportedBuildToolThrowsException() {
