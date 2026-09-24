@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool.gradle;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -9,10 +10,12 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.BuildTool;
 import com.devonfw.tools.ide.tool.BuildToolHelper;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * {@link ToolCommandlet} for <a href="https://gradle.org/">gradle</a>.
@@ -79,6 +82,26 @@ public class Gradle extends LocalToolCommandlet implements BuildTool {
     if (Files.exists(buildDescriptor)) {
       return buildDescriptor;
     }
+    return null;
+  }
+
+  @Override
+  public VersionIdentifier getProjectVersion(Path projectPath) {
+
+    // TODO: release not yet implemented for gradle, see #2551
+    return null;
+  }
+
+  @Override
+  public void setProjectVersion(Path projectPath, VersionIdentifier version) {
+
+    // TODO: release not yet implemented for gradle, see #2551
+  }
+
+  @Override
+  public ProcessResult buildAndDeploy(List<String> additionalArgs) {
+
+    // TODO: release not yet implemented for gradle, see #2551
     return null;
   }
 }

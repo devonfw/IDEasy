@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool.npm;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -11,6 +12,7 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.EnvironmentContext;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.BuildTool;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallation;
@@ -198,5 +200,25 @@ public class Npm extends LocalToolCommandlet implements BuildTool {
     return "#!/usr/bin/env bash\r\n" //
         + "basedir=\"$(dirname \"$0\")\"\r\n" //
         + "exec node \"$basedir/" + cliJs + "\" \"$@\"\r\n";
+  }
+
+  @Override
+  public VersionIdentifier getProjectVersion(Path projectPath) {
+
+    // TODO: release not yet implemented for npm, see #2552
+    return null;
+  }
+
+  @Override
+  public void setProjectVersion(Path projectPath, VersionIdentifier version) {
+
+    // TODO: release not yet implemented for npm, see #2552
+  }
+
+  @Override
+  public ProcessResult buildAndDeploy(List<String> additionalArgs) {
+
+    // TODO: release not yet implemented for npm, see #2552
+    return null;
   }
 }
