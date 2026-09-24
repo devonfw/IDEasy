@@ -10,6 +10,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.BuildTool;
+import com.devonfw.tools.ide.tool.BuildToolHelper;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 
@@ -50,7 +51,7 @@ public class Gradle extends LocalToolCommandlet implements BuildTool {
   @Override
   protected void configureToolBinary(ProcessContext pc, ProcessMode processMode) {
     Path gradle = Path.of(getBinaryName());
-    Path wrapper = findWrapper(this.context.getCwd(), GRADLE_WRAPPER_FILENAME);
+    Path wrapper = BuildToolHelper.findWrapper(this, this.context.getCwd(), GRADLE_WRAPPER_FILENAME);
     pc.executable(Objects.requireNonNullElse(wrapper, gradle));
   }
 
