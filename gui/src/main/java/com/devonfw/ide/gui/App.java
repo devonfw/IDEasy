@@ -2,14 +2,11 @@ package com.devonfw.ide.gui;
 
 import java.awt.Taskbar;
 import java.awt.Toolkit;
-import java.io.IOException;
 import java.net.URL;
 
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.ButtonType;
 import javafx.scene.image.Image;
@@ -19,13 +16,16 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.ide.gui.console.ConsoleController;
 import com.devonfw.ide.gui.context.GuiStateManager;
 import com.devonfw.ide.gui.context.TaskManager;
-import com.devonfw.ide.gui.modal.IdeDialog;
-import com.devonfw.ide.gui.nls.NlsService;
+import com.devonfw.ide.gui.event.GuiEventBus;
+import com.devonfw.ide.gui.factory.TabFactory;
+import com.devonfw.ide.gui.service.CommandletService;
+import com.devonfw.ide.gui.service.NlsService;
+import com.devonfw.ide.gui.ui.mainwindow.MainWindowView;
+import com.devonfw.ide.gui.ui.mainwindow.MainWindowViewModel;
+import com.devonfw.ide.gui.ui.modal.IdeDialog;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
-import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.IdeVersion;
 
 /**
@@ -38,11 +38,14 @@ public class App extends Application {
    */
   public static final String ICON_PATH = "com/devonfw/ide/gui/assets/devonfw.png";
 
-  Parent root;
-
   private Stage primaryStage;
 
+  //Factorys
+  private TabFactory tabFactory;
+
+  //Services
   private NlsService nlsService;
+  private CommandletService commandletService;
 
   TaskManager taskManager = new TaskManager();
   GuiStateManager guiStateManager = new GuiStateManager(taskManager, null);
@@ -50,7 +53,7 @@ public class App extends Application {
   private final Logger LOG = LoggerFactory.getLogger(App.class);
 
   @Override
-  public void start(Stage primaryStage) throws IOException {
+  public void start(Stage primaryStage) {
     Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
       LOG.error("Uncaught exception in thread {}: {}", thread.getName(), throwable.getMessage(), throwable);
       Platform.runLater(() -> new IdeDialog(IdeDialog.AlertType.ERROR, throwable.getMessage()).showAndWait());
@@ -60,12 +63,17 @@ public class App extends Application {
 
     this.nlsService = new NlsService(null);
 
-    root = loadMainView();
+    final GuiEventBus eventBus = new GuiEventBus();
 
-    this.nlsService.addLocaleChangeListener(this::reloadMainView);
+    this.commandletService = new CommandletService(guiStateManager, eventBus);
+    this.tabFactory = new TabFactory(guiStateManager, nlsService, commandletService, eventBus);
+    MainWindowViewModel mainWindowViewModel = new MainWindowViewModel(guiStateManager, this.nlsService, tabFactory);
+    final MainWindowView mainWindow = new MainWindowView(mainWindowViewModel, guiStateManager, this.nlsService, eventBus);
+
+    //this.nlsService.addLocaleChangeListener(this::reloadMainView);
 
     Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
-    Scene scene = new Scene(root, bounds.getWidth() / 2, bounds.getHeight() / 2);
+    Scene scene = new Scene(mainWindow, bounds.getWidth() / 2, bounds.getHeight() / 2);
 
     if (SystemInfoImpl.INSTANCE.isMac()) {
       setIconInMacOsDock();
@@ -75,6 +83,8 @@ public class App extends Application {
     primaryStage.getIcons().add(icon);
     primaryStage.setTitle("IDEasy - version " + IdeVersion.getVersionString());
     primaryStage.setScene(scene);
+    primaryStage.setWidth(scene.getWidth());
+    primaryStage.setHeight(scene.getHeight());
     primaryStage.setMinWidth(scene.getWidth());
     primaryStage.setMinHeight(scene.getHeight());
     primaryStage.show();
@@ -98,6 +108,22 @@ public class App extends Application {
     });
   }
 
+  private void configureMainWindow(Scene mainWindowScene) {
+    if (SystemInfoImpl.INSTANCE.isMac()) {
+      setIconInMacOsDock();
+    }
+
+    Image icon = new Image(ICON_PATH);
+    primaryStage.getIcons().add(icon);
+    primaryStage.setTitle("IDEasy - version " + IdeVersion.getVersionString());
+    primaryStage.setScene(mainWindowScene);
+    primaryStage.setWidth(mainWindowScene.getWidth());
+    primaryStage.setHeight(mainWindowScene.getHeight());
+    primaryStage.setMinWidth(mainWindowScene.getWidth());
+    primaryStage.setMinHeight(mainWindowScene.getHeight());
+    primaryStage.show();
+  }
+
   private void exitApplication() {
 
     Platform.exit();
@@ -107,36 +133,7 @@ public class App extends Application {
   @Override
   public void stop() {
 
-    this.nlsService.removeLocaleChangeListener(this::reloadMainView);
-  }
-
-  private void reloadMainView() {
-
-    try {
-      Parent reloadedRoot = loadMainView();
-      this.root = reloadedRoot;
-      if (this.primaryStage != null && this.primaryStage.getScene() != null) {
-        this.primaryStage.getScene().setRoot(reloadedRoot);
-      }
-    } catch (IOException e) {
-      LOG.error("Failed to reload main view after locale change", e);
-    }
-  }
-
-  private Parent loadMainView() throws IOException {
-
-    FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("main-view.fxml"));
-    fxmlLoader.setResources(this.nlsService.getResourceBundle());
-    MainController mainController = new MainController(System.getenv(IdeVariables.IDE_ROOT.getName()), guiStateManager, this.nlsService);
-    fxmlLoader.setControllerFactory(clazz -> {
-      if (clazz == ConsoleController.class) {
-        return new ConsoleController(this.nlsService);
-      } else if (clazz == MainController.class) {
-        return mainController;
-      }
-      return null;
-    });
-    return fxmlLoader.load();
+    //this.nlsService.removeLocaleChangeListener(this::reloadMainView);
   }
 
   private void setIconInMacOsDock() {

@@ -3,7 +3,7 @@ package com.devonfw.ide.gui.context;
 import java.nio.file.Path;
 import java.util.UUID;
 
-import com.devonfw.ide.gui.progress.ProgressBarTask;
+import com.devonfw.ide.gui.ui.progress.ProgressBarTask;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.io.IdeProgressBar;
