@@ -264,6 +264,48 @@ class VscodeTest extends AbstractIdeContextTest {
     assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_BACKUPS)).exists();
   }
 
+  /**
+   * Tests that the workspace is still configured if the obsolete {@code .vscode/.userdata} folder cannot be removed, e.g. because files inside it are locked
+   * on Windows. Such housekeeping must never prevent the IDE from starting.
+   */
+  @Test
+  void testConfigureWorkspaceContinuesIfLegacyUserDataCannotBeRemoved() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    FileAccess fileAccess = context.getFileAccess();
+    Path legacyUserData = context.getWorkspacePath().resolve(".vscode/.userdata");
+    fileAccess.writeFileContent("legacy", legacyUserData.resolve("state.json"), true);
+    Path userData = getUserDataPath(context);
+    fileAccess.writeFileContent("current", userData.resolve("state.json"), true);
+    // a regular file instead of the backup folder makes the backup of the legacy folder fail
+    fileAccess.writeFileContent("blocked", context.getIdeHome().resolve(IdeContext.FOLDER_BACKUPS), true);
+    Vscode commandlet = new Vscode(context);
+    // act
+    commandlet.configureWorkspace();
+    // assert
+    assertThat(context).logAtWarning().hasMessageContaining("Failed to remove obsolete VSCode user-data folder");
+    assertThat(userData.resolve("User/settings.json")).exists().content().contains("\"telemetry.telemetryLevel\": \"off\"");
+  }
+
+  /**
+   * Tests that the user settings template is merged out of the workspace also with the feature toggle {@code VSCODE_PROFILE_ENABLED} enabled. VSCode then
+   * reads its user settings from the named profile instead (see #2058), but the workspace has to stay clean in both cases.
+   */
+  @Test
+  void testConfigureWorkspaceKeepsWorkspaceCleanIfProfileIsEnabled() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("VSCODE_PROFILE_ENABLED", "true");
+    Vscode commandlet = new Vscode(context);
+    // act
+    commandlet.configureWorkspace();
+    // assert
+    assertThat(context.getWorkspacePath().resolve(".vscode/.userdata")).doesNotExist();
+    assertThat(getUserDataPath(context).resolve("User/settings.json")).exists();
+  }
+
   private static Path getUserDataPath(IdeTestContext context) {
 
     return context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("vscode").resolve(context.getWorkspaceName()).resolve("config");

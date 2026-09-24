@@ -10,6 +10,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
@@ -122,13 +123,20 @@ public class Vscode extends IdeToolCommandlet {
     }
     FileAccess fileAccess = this.context.getFileAccess();
     Path userData = getUserDataPath();
-    if (Files.exists(userData)) {
-      LOG.warn("Removing obsolete VSCode user-data folder {} from workspace since VSCode uses {}", legacyUserData, userData);
-      fileAccess.backup(legacyUserData);
-    } else {
-      LOG.info("Moving VSCode user-data folder {} out of workspace to {}", legacyUserData, userData);
-      fileAccess.mkdirs(userData.getParent());
-      fileAccess.move(legacyUserData, userData);
+    try {
+      if (Files.exists(userData)) {
+        LOG.warn("Removing obsolete VSCode user-data folder {} from workspace since VSCode uses {}", legacyUserData, userData);
+        fileAccess.backup(legacyUserData);
+      } else {
+        LOG.info("Moving VSCode user-data folder {} out of workspace to {}", legacyUserData, userData);
+        fileAccess.mkdirs(userData.getParent());
+        fileAccess.move(legacyUserData, userData);
+      }
+    } catch (CliException e) {
+      throw e;
+    } catch (RuntimeException e) {
+      // this is only house-keeping (e.g. files may be locked on Windows) and must never prevent the IDE from starting
+      LOG.warn("Failed to remove obsolete VSCode user-data folder {} from workspace. You can delete it manually.", legacyUserData, e);
     }
   }
 
