@@ -80,6 +80,7 @@ class EnvironmentCommandletTest extends AbstractIdeContextTest {
         new IdeLogEntry(IdeLogLevel.PROCESSABLE, "export MAVEN_ARGS=\"-s ", true), //
         IdeLogEntry.ofProcessable("export NPM_CONFIG_USERCONFIG=\"" + normalize(context.getNpmConfigUserConfig()) + "\""), //
         new IdeLogEntry(IdeLogLevel.PROCESSABLE, "export PATH=", true), //
+        IdeLogEntry.ofProcessable("export UV_CACHE_DIR=\"" + normalize(context.getIdeRoot().resolve("_ide/software/uv")) + "\""), //
         IdeLogEntry.ofProcessable("WORKSPACE=\"foo-test\""), //
         IdeLogEntry.ofProcessable("WORKSPACE_PATH=\"" + normalize(context.getWorkspacePath()) + "\""), //
 
@@ -141,6 +142,7 @@ class EnvironmentCommandletTest extends AbstractIdeContextTest {
         IdeLogEntry.ofProcessable("TEST_ARGSb=\"user10 workspace10 settingsb  user1 settings1 workspace1 conf1  user3 workspace3 confa userb\""), //
         IdeLogEntry.ofProcessable("TEST_ARGSc=\" user1 settings1 workspace1 conf1 userc settingsc confc\""), //
         IdeLogEntry.ofProcessable("TEST_ARGSd=\" user1 settings1 workspace1 conf1 userd workspaced\""), //
+        IdeLogEntry.ofProcessable("export UV_CACHE_DIR=\"" + normalize(context.getIdeRoot().resolve("_ide/software/uv")) + "\""), //
         IdeLogEntry.ofProcessable("WORKSPACE=\"foo-test\""), //
         IdeLogEntry.ofProcessable("WORKSPACE_PATH=\"" + normalize(context.getWorkspacePath()) + "\"") //
     );
