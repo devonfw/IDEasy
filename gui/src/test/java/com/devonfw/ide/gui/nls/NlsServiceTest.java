@@ -35,7 +35,7 @@ import com.devonfw.tools.ide.environment.IdeSystemTestImpl;
  *
  * <p>
  * This test is isolated from the machine it runs on (see {@code documentation/contributing/junit-testing.adoc}): the {@link NlsService} is created with an
- * isolated {@link IdeTestContext} whose system environment and user home are stubbed. The user home is a fresh {@link TempDir @TempDir} that is created anew for
+ * isolated {@link IdeTestContext} whose system environment and user home are stubbed. The user home is a per-test {@link TempDir @TempDir} created for
  * every test (and cleaned up afterwards), so the persisted GUI locale is written to a throw-away {@code ~/.ide/ide.properties} and can never leak between
  * tests or be influenced by the developer's real user home, the {@code IDE_OPTIONS} environment variable or any other global configuration.
  */
