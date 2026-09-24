@@ -178,17 +178,12 @@ public class Docker extends GlobalToolCommandlet {
       return null;
     }
 
-<<<<<<< HEAD
-    if (isRancherDesktopInstalled()) {
-      VersionIdentifier version = getRancherDesktopClientVersion();
-      if (version == null) {
-        version = getNativePackageVersion();
-      }
-=======
     String rdctl = resolveDockerCommand("rdctl");
     if (rdctl != null) {
       VersionIdentifier version = getRancherDesktopClientVersion(rdctl);
->>>>>>> 1f41996c (#854: Pass resolved rdctl into getRancherDesktopClientVersion)
+      if (version == null) {
+        version = getNativePackageVersion();
+      }
       return new EditionAndVersion("rancher", version);
     }
 
