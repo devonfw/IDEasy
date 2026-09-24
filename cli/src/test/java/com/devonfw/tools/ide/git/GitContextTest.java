@@ -18,6 +18,7 @@ import com.devonfw.tools.ide.context.ProcessContextGitMock;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.process.OutputMessage;
+import com.devonfw.tools.ide.process.ProcessResult;
 
 /**
  * Test of {@link GitContext}.
@@ -343,8 +344,7 @@ class GitContextTest extends AbstractIdeContextTest {
     gitContext.fetch(tempDir, null, null);
 
     // assert
-    assertThat(this.processContext.getResults()).hasSize(2);
-    assertThat(this.processContext.getResults().getLast().getCommand()).isEqualTo("git fetch --all");
+    assertThat(this.processContext.getResults()).extracting(ProcessResult::getCommand).containsExactly("git fetch --all");
   }
 
   /**

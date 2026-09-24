@@ -256,9 +256,6 @@ public class GitContextImpl implements GitContext {
   @Override
   public void fetch(Path repository, String remote, String branch) {
 
-    if (branch == null) {
-      branch = determineCurrentBranch(repository);
-    }
     if (remote == null) {
       // the remote to fetch from is the one the current branch is tracking (see also "git rev-parse @{u}")
       remote = determineTrackedRemote(repository);
@@ -270,6 +267,9 @@ public class GitContextImpl implements GitContext {
         LOG.warn("Git fetch on all remotes failed for repository {}.", repository);
       }
       return;
+    }
+    if (branch == null) {
+      branch = determineCurrentBranch(repository);
     }
 
     ProcessResult result = runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, "fetch", remote, branch);
