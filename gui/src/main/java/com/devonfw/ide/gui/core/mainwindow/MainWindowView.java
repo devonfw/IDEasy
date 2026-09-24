@@ -115,7 +115,7 @@ public class MainWindowView extends BorderPane {
       throw new RuntimeException(e);
     }
 
-    final NavigationPanelViewModel navigationPanelViewModel = new NavigationPanelViewModel(this.guiStateManager, this.nlsService);
+    final NavigationPanelViewModel navigationPanelViewModel = new NavigationPanelViewModel(this.guiStateManager);
     setLeft(new NavigationPanelView(navigationPanelViewModel, this.nlsService));
 
     this.eventBus.addListener(TabChangeEvent.class, e -> FxHelper.runFxSafe(() -> handleTab(e.tab())));

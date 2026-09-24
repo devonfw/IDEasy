@@ -5,9 +5,7 @@ import java.util.Objects;
 import javafx.scene.control.TabPane;
 
 import com.devonfw.ide.gui.core.context.GuiStateManager;
-import com.devonfw.ide.gui.core.mainwindow.console.ConsoleController;
 import com.devonfw.ide.gui.core.service.CommandletService;
-import com.devonfw.ide.gui.core.service.NlsService;
 import com.devonfw.ide.gui.core.tab.TabComponent;
 import com.devonfw.ide.gui.feature.ide.launcher.IdeLauncherTab;
 
@@ -20,8 +18,6 @@ import io.github.mmm.event.EventBus;
 public class TabFactory {
 
   private final GuiStateManager guiStateManager;
-  private final NlsService nlsService;
-  private final ConsoleController consoleController;
   private final CommandletService commandletService;
   private final EventBus eventBus;
 
@@ -32,8 +28,6 @@ public class TabFactory {
    */
   public TabFactory(GuiStateManager guiStateManager) {
     this.guiStateManager = Objects.requireNonNull(guiStateManager);
-    this.nlsService = Objects.requireNonNull(guiStateManager.getNlsService());
-    this.consoleController = Objects.requireNonNull(guiStateManager.getConsoleController());
     this.commandletService = Objects.requireNonNull(guiStateManager.getCommandletService());
     this.eventBus = Objects.requireNonNull(guiStateManager.getEventBus());
   }
@@ -54,7 +48,7 @@ public class TabFactory {
    * Opens (or focuses) the IDE launcher tab.
    */
   public void openLauncherTab() {
-    open(new IdeLauncherTab(guiStateManager, commandletService, nlsService, consoleController));
+    open(new IdeLauncherTab(guiStateManager));
   }
 
   private void open(TabComponent tabComponent) {

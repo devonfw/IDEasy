@@ -2,7 +2,6 @@ package com.devonfw.ide.gui.core.mainwindow.navigation;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Locale;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,7 +10,6 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.ide.gui.FakeProjectFolderStructureHelper;
 import com.devonfw.ide.gui.core.context.GuiStateManager;
-import com.devonfw.ide.gui.core.service.NlsService;
 
 /**
  * Tests for {@link NavigationPanelViewModel}.
@@ -40,7 +38,7 @@ public class NavigationPanelViewModelTest extends Assertions {
     FakeProjectFolderStructureHelper.createFakeProjectFolderStructure(this.mockIdeRoot);
 
     this.guiStateManager = new GuiStateManager(this.mockIdeRoot.toString());
-    this.viewModel = new NavigationPanelViewModel(this.guiStateManager, new NlsService(Locale.ENGLISH));
+    this.viewModel = new NavigationPanelViewModel(this.guiStateManager);
   }
 
   /**

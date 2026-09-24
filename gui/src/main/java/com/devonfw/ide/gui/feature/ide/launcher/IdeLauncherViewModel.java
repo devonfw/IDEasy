@@ -20,11 +20,10 @@ public class IdeLauncherViewModel extends TabViewModel {
    * Creates the view model.
    *
    * @param guiStateManager the app-wide selection and context holder.
-   * @param commandletService the service that launches the IDEs.
    */
-  public IdeLauncherViewModel(GuiStateManager guiStateManager, CommandletService commandletService) {
+  public IdeLauncherViewModel(GuiStateManager guiStateManager) {
     super(guiStateManager);
-    this.commandletService = commandletService;
+    this.commandletService = guiStateManager.getCommandletService();
 
     this.isIdeButtonsDisabledProperty.bind(this.guiStateManager.workspaceSelectedProperty().not());
   }

@@ -48,17 +48,17 @@ public class GuiStateManager {
 
   private final ProjectManager projectManager;
 
-  private final TaskManager taskManager = new TaskManager();
+  private final TaskManager taskManager;
 
-  private final GuiEventBus eventBus = new GuiEventBus();
+  private final GuiEventBus eventBus;
 
-  private final NlsService nlsService = new NlsService(null);
+  private final NlsService nlsService;
 
-  private final ConsoleController consoleController = new ConsoleController(this);
+  private final ConsoleController consoleController;
 
-  private final CommandletService commandletService = new CommandletService(this);
+  private final CommandletService commandletService;
 
-  private final TabFactory tabFactory = new TabFactory(this);
+  private final TabFactory tabFactory;
 
 
   /**
@@ -67,7 +67,15 @@ public class GuiStateManager {
   public GuiStateManager(String ideRoot) {
 
     this.ideRootDir = Path.of(ideRoot != null ? ideRoot : System.getenv(IdeVariables.IDE_ROOT.getName()));
+
+    //This specific ordering needs to be kept
     this.projectManager = new ProjectManager(ideRootDir);
+    this.taskManager = new TaskManager();
+    this.eventBus = new GuiEventBus();
+    this.nlsService = new NlsService(null);
+    this.consoleController = new ConsoleController(this);
+    this.commandletService = new CommandletService(this);
+    this.tabFactory = new TabFactory(this);
 
     final IdeLogListenerBuffer buffer = new IdeLogListenerBuffer();
     IdeLogLevel logLevel = IdeLogLevel.DEBUG;

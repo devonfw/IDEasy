@@ -31,10 +31,10 @@ public class NavigationPanelViewModel {
 
   private final NlsService nlsService;
 
-  public NavigationPanelViewModel(GuiStateManager guiStateManager, NlsService nlsService) {
+  public NavigationPanelViewModel(GuiStateManager guiStateManager) {
     this.guiStateManager = guiStateManager;
     this.projectManager = guiStateManager.getProjectManager();
-    this.nlsService = nlsService;
+    this.nlsService = guiStateManager.getNlsService();
 
     initProjectsComboBox();
     initLanguageComboBox();

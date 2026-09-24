@@ -26,14 +26,11 @@ public abstract class TabComponent<T extends TabViewModel> {
    * Creates the tab.
    *
    * @param guiStateManager the app-wide selection and context holder.
-   * @param commandletService the service that runs commandlets.
-   * @param nlsService the localization service.
-   * @param consoleController the controller of the console pane.
    */
-  public TabComponent(GuiStateManager guiStateManager, CommandletService commandletService, NlsService nlsService, ConsoleController consoleController) {
-    this.consoleController = consoleController;
-    this.commandletService = commandletService;
-    this.nlsService = nlsService;
+  public TabComponent(GuiStateManager guiStateManager) {
+    this.consoleController = guiStateManager.getConsoleController();
+    this.commandletService = guiStateManager.getCommandletService();
+    this.nlsService = guiStateManager.getNlsService();
     this.guiStateManager = guiStateManager;
   }
 
@@ -52,12 +49,12 @@ public abstract class TabComponent<T extends TabViewModel> {
   public abstract String getTabTitleKey();
 
   /**
-   * @return the view created by {@link #createView()}.
+   * @return the view
    */
   public abstract TabView getView();
 
   /**
-   * @return the view model created by {@link #createView()}.
+   * @return the view model
    */
   public abstract T getViewModel();
 }
