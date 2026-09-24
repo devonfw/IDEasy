@@ -51,15 +51,7 @@ class AgyTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test {@link Agy#getAgyMcpConfigDir()} resolves to the project-local MCP configuration directory.
-   */
-  @Test
-  void testGetAgyMcpConfigDir() {
-    assertThat(this.agy.getAgyMcpConfigDir()).isEqualTo(this.context.getConfPath().resolve("gemini/config"));
-  }
-
-  /**
-   * Test {@link Agy#linkHomeConfigDir()} creates a link for both Agy home locations pointing to their project-local configuration directories.
+   * /** Test {@link Agy#linkHomeConfigDir()} creates a link for Agy home location pointing to its project-local configuration directory.
    */
   @Test
   void testLinkHomeConfigDirCreatesLinks() {
@@ -67,11 +59,8 @@ class AgyTest extends AbstractIdeContextTest {
     this.agy.linkHomeConfigDir();
     // assert
     Path antigravityHome = this.home.resolve(Agy.HOME_ANTIGRAVITY_CLI_LOCATION);
-    Path mcpHome = this.home.resolve(Agy.HOME_MCP_CONFIG_LOCATION);
     assertThat(this.isLink(antigravityHome)).as(antigravityHome.toString()).isTrue();
-    assertThat(this.isLink(mcpHome)).as(mcpHome.toString()).isTrue();
     assertThat(this.getFileAccess().toRealPath(antigravityHome)).isEqualTo(this.getFileAccess().toRealPath(this.agy.getAgyConfigDir()));
-    assertThat(this.getFileAccess().toRealPath(mcpHome)).isEqualTo(this.getFileAccess().toRealPath(this.agy.getAgyMcpConfigDir()));
   }
 
   /**

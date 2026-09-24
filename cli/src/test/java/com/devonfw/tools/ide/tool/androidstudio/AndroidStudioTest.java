@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -20,6 +21,9 @@ import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.devonfw.tools.ide.tool.ToolInstallation;
+import com.devonfw.tools.ide.tool.claude.RecordingEnvironmentContext;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
@@ -111,6 +115,25 @@ class AndroidStudioTest extends AbstractIdeContextTest {
             -ea
             -Dsun.io.useCanonCaches=true
             """);
+  }
+
+  /**
+   * Tests if the environment variable {@code STUDIO_PROPERTIES} is set to the path of the {@code studio.properties} file in the workspace.
+   */
+  @Test
+  void testSetEnvironmentSetsStudioProperties() {
+
+    // arrange
+    AndroidStudio commandlet = new AndroidStudio(this.context);
+    Path dummy = this.context.getSoftwarePath().resolve("android-studio");
+    ToolInstallation installation = new ToolInstallation(dummy, dummy, dummy, VersionIdentifier.of("2024.1.1.1"), false);
+    RecordingEnvironmentContext environmentContext = new RecordingEnvironmentContext();
+
+    // act
+    commandlet.setEnvironment(environmentContext, installation, false);
+
+    // assert
+    assertThat(environmentContext.set).containsEntry("STUDIO_PROPERTIES", this.context.getWorkspacePath().resolve("studio.properties").toString());
   }
 
   private void checkInstallation(IdeTestContext context) {

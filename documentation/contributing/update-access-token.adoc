@@ -2,7 +2,7 @@
 :toc:
 toc::[]
 
-To allow GitHub actions writing to our project (e.g. pushing changes) we need a fine-grained access token.
+To allow GitHub actions writing to our project (e.g. pushing changes) and reading organization team membership (external issue observer) we need a fine-grained access token.
 Such token needs the according permissions and due to a GitHub policy it must expire after some time.
 When the expiry date is reached, out actions will fail.
 Therefore, shortly before this expiry date the token has to be replaced by a new one (refreshment).
@@ -29,6 +29,8 @@ image::../images/AccessToken2.png["New fine-grained personal access token"]
 . In `Repository permissions` select `Read and write` for `Contents` (and `Metadata`).
 +
 image::../images/AccessToken3.png["Repository permissions"]
+. In `Organization permissions` select `Read` for `Members` and `Read` for `Projects`.
+These are required by `.github/workflows/issue-pr-observer.yml` to resolve GitHub teams linked to the IDEasy board and their members.
 . Click on `Generate token` to proceed.
 . On the confirmation page click again on `Generate token` to proceed.
 +

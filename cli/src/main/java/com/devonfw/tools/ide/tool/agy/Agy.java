@@ -28,20 +28,11 @@ public class Agy extends LocalToolCommandlet {
   /** Sub-directory of {@code conf} holding the isolated Agy main configuration. */
   static final String CONFIG_FOLDER = "gemini/antigravity-cli";
 
-  /** Sub-directory of {@code conf} holding the isolated Agy MCP/project configuration. */
-  static final String MCP_CONFIG_FOLDER = "gemini/config";
-
   /**
    * Relative location of the Agy main configuration directory within the user home that Agy reads (settings, theme, conversations). This path is symlinked onto
    * {@link #getAgyConfigDir() the project-local main configuration directory}.
    */
   static final Path HOME_ANTIGRAVITY_CLI_LOCATION = Path.of(".gemini", "antigravity-cli");
-
-  /**
-   * Relative location of the Agy MCP/project configuration directory within the user home (MCP servers, project definitions). This path is symlinked onto
-   * {@link #getAgyMcpConfigDir() the project-local MCP configuration directory}.
-   */
-  static final Path HOME_MCP_CONFIG_LOCATION = Path.of(".gemini", "config");
 
   /**
    * Content of the seeded {@code README.md} explaining how the project-local configuration is isolated and how to declare an API key.
@@ -113,18 +104,6 @@ public class Agy extends LocalToolCommandlet {
     return confPath.resolve(CONFIG_FOLDER);
   }
 
-  /**
-   * @return the {@link Path} to the isolated Agy MCP/project configuration directory ({@code $IDE_HOME/conf/gemini/config}) or {@code null} if no
-   *     {@code IDE_HOME} is present.
-   */
-  Path getAgyMcpConfigDir() {
-    Path confPath = this.context.getConfPath();
-    if (confPath == null) {
-      return null;
-    }
-    return confPath.resolve(MCP_CONFIG_FOLDER);
-  }
-
   @Override
   public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
     super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
@@ -141,14 +120,13 @@ public class Agy extends LocalToolCommandlet {
 
   /**
    * Ensures that both Agy home locations resolve to their project-local configuration directories: {@code ~/.gemini/antigravity-cli} onto
-   * {@code $IDE_HOME/conf/gemini/antigravity-cli} and {@code ~/.gemini/config} onto {@code $IDE_HOME/conf/gemini/config}.
+   * {@code $IDE_HOME/conf/gemini/antigravity-cli}.
    */
   void linkHomeConfigDir() {
     if (this.context.getUserHome() == null) {
       return;
     }
     ensureHomeLink(HOME_ANTIGRAVITY_CLI_LOCATION, getAgyConfigDir());
-    ensureHomeLink(HOME_MCP_CONFIG_LOCATION, getAgyMcpConfigDir());
   }
 
   /**
