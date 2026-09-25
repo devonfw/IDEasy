@@ -49,6 +49,8 @@ public class ProcessContextImpl implements ProcessContext {
 
   protected Path executable;
 
+  private Path workingDirectory;
+
   private String overriddenPath;
 
   private final List<Path> extraPathEntries;
@@ -104,6 +106,7 @@ public class ProcessContextImpl implements ProcessContext {
   public ProcessContext directory(Path directory) {
 
     if (directory != null) {
+      this.workingDirectory = directory;
       this.processBuilder.directory(directory.toFile());
     } else {
       LOG.debug(
@@ -315,6 +318,11 @@ public class ProcessContextImpl implements ProcessContext {
     sb.append("Running command '");
     sb.append(this.executable);
     sb.append("'");
+    if (workingDirectory != null) {
+      sb.append(" in '");
+      sb.append(workingDirectory);
+      sb.append("'");
+    }
     if (interpreter != null) {
       sb.append(" using ");
       sb.append(interpreter);

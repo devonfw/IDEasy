@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.file.Path;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -293,8 +294,8 @@ class ProcessContextImplTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Verify that {@code windowsQuote} escapes the special {@code cmd.exe} metacharacters ({@code ^ & | > < %}) and surrounds the value with double quotes,
-   * so the argument is passed through as a single literal token.
+   * Verify that {@code windowsQuote} escapes the special {@code cmd.exe} metacharacters ({@code ^ & | > < %}) and surrounds the value with double quotes, so
+   * the argument is passed through as a single literal token.
    */
   @Test
   void windowsQuoteShouldEscapeCommandInjectionCharactersAndWrapInDoubleQuotes() throws Exception {
@@ -329,4 +330,17 @@ class ProcessContextImplTest extends AbstractIdeContextTest {
     }
   }
 
+  @Test
+  void failingProcessShouldIncludeWorkingDirectoryInLogMessage() throws InterruptedException {
+    Path workingDirectory = Path.of("/opt/my-repo");
+    when(this.processMock.waitFor()).thenReturn(ProcessResult.TOOL_NOT_INSTALLED);
+    this.processContextUnderTest.errorHandling(ProcessErrorHandling.LOG_WARNING);
+    when(this.mockProcessBuilder.directory()).thenReturn(workingDirectory.toFile());
+    this.processContextUnderTest.directory(workingDirectory);
+
+    this.processContextUnderTest.run(ProcessMode.DEFAULT);
+
+    assertThat(this.context).log(IdeLogLevel.WARNING).hasMessageContaining("Running command");
+    assertThat(this.context).log(IdeLogLevel.WARNING).hasMessageContaining("in '" + workingDirectory + "'");
+  }
 }
