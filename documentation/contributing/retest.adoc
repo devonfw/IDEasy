@@ -1,0 +1,71 @@
+:toc:
+toc::[]
+
+== Retesting Pull Requests
+
+After a pull request (PR) has been merged into `main`, it should be retested against the latest upstream snapshot to ensure that it continues to work
+correctly after integration.
+
+Missing or delayed retests can introduce regressions, destabilize upcoming releases and delay the delivery of a new IDEasy version.
+Therefore, retesting should be performed continuously as part of the regular QA process.
+
+=== When to retest
+
+* After PR was merged
+* and you are the PR author
+* or you are the reviewer and the original author is unavailable.
+
+=== Prerequisites
+
+Before starting the retest process, update your local IDEasy installation to the latest snapshot version so its contains the merged changes:
+
+[source,bash]
+----
+ide upgrade --mode=snapshot
+----
+
+=== Retest Workflow
+
+. Ensure the milestone is pointing to the current release (it was correctly updated after the last release).
+. https://github.com/orgs/devonfw/projects/5/views/12=[Open the Retests IDEasy board].
+. Select your GitHub username in the *Author* filter.
+. Open all listed pull requests in separate browser tabs.
+. Review and retest each pull request individually.
+
+=== Retesting a Pull Request
+
+For every pull request:
+
+. Understand the original change and determine how it can be verified.
+. Perform the retest using the IDEasy command line.
+. Document the result by adding a comment to the pull request.
++
+Example:
++
+----
+Successfully tested on Windows 11
+
+ide foo bar
+
+<relevant log output>
+----
+. If you discover an issue during retesting:
+.. immediately create a new bug issue.
+.. Reference the bug issue in your pull request comment.
+. Add the `QA approved` label to the pull request once the retest is completed (even if you created and linked a bug)
+
+NOTE: Sometimes a PR only includes a documentation change, a code cleanup, a test improvement, a workflow or URL-updater change,
+or something else that cannot be tested end-to-end on the commandline. In such case comment your observation e.g. `test changes merged and
+CI is still green` or `URL-Updater passed and result can be found here` (deep-link to ide-urls pointing to the new tool/edition added).
+
+=== Retest Result Expectations
+
+A successful retest comment should contain:
+
+* The operating system used for testing.
+* The executed command(s).
+* Relevant output or observations.
+* A clear statement whether the retest passed or failed.
+
+If the retest fails, always create and link a dedicated bug issue before continuing.
+This ensures that regressions are tracked and can be addressed before the next IDEasy release.
