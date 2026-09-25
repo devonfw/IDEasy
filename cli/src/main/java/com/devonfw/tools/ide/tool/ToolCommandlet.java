@@ -26,6 +26,7 @@ import com.devonfw.tools.ide.environment.EnvironmentVariablesFiles;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.os.MacOsHelper;
+import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
@@ -461,6 +462,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       version = request.isIgnoreProject() ? VersionIdentifier.LATEST : getConfiguredVersion();
       requested.setVersion(version);
     }
+
     VersionIdentifier resolvedVersion = requested.getResolvedVersion();
     if (resolvedVersion == null) {
       if (this.context.isSkipUpdatesMode()) {
@@ -473,17 +475,32 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
         }
       }
       if (resolvedVersion == null) {
-        resolvedVersion = getToolRepository().resolveVersion(this.tool, edition.edition(), version, this);
+        resolvedVersion = resolveVersionForInstall(edition.edition(), version);
       }
-      requested.setResolvedVersion(resolvedVersion);
+
+      if (resolvedVersion != null) {
+        requested.setResolvedVersion(resolvedVersion);
+      }
     }
+  }
+
+  /**
+   * Resolves the requested version for installation.
+   *
+   * @param edition the requested tool edition.
+   * @param version the requested version or version range.
+   * @return the resolved {@link VersionIdentifier} or {@code null} if version resolution is delegated to another installation mechanism.
+   */
+  protected VersionIdentifier resolveVersionForInstall(String edition, GenericVersionRange version) {
+
+    return getToolRepository().resolveVersion(this.tool, edition, version, this);
   }
 
   /**
    * Hook for subclasses to adjust the requested tool edition before the version is finalized.
    *
    * @param requested the requested {@link ToolEditionAndVersion}
-   * @return the given or trgansformed {@link ToolEditionAndVersion}
+   * @return the given or transformed {@link ToolEditionAndVersion}
    */
   protected ToolEditionAndVersion adjustRequestedEdition(ToolEditionAndVersion requested) {
 
@@ -714,7 +731,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     }
     ToolSecurity toolSecurity = this.context.getDefaultToolRepository().findSecurity(this.tool, toolEdition.edition());
     double minSeverity = IdeVariables.CVE_MIN_SEVERITY.get(context);
-    ToolVulnerabilities currentVulnerabilities = toolSecurity.findCves(resolvedVersion, minSeverity);
+    OperatingSystem os = this.context.getSystemInfo().getOs();
+    ToolVulnerabilities currentVulnerabilities = toolSecurity.findCves(resolvedVersion, os, minSeverity);
     ToolVersionChoice currentChoice = ToolVersionChoice.ofCurrent(requested, currentVulnerabilities);
     request.setCveCheckDone();
     if (currentChoice.logAndCheckIfEmpty()) {
@@ -741,7 +759,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       }
 
       if (acceptVersion(version, allowedVersions, requireStableVersion)) {
-        ToolVulnerabilities newVulnerabilities = toolSecurity.findCves(version, minSeverity);
+        ToolVulnerabilities newVulnerabilities = toolSecurity.findCves(version, os, minSeverity);
         if (newVulnerabilities.isSafer(latestVulnerabilities)) {
           // we found a better/safer version
           ToolEditionAndVersion toolEditionAndVersion = new ToolEditionAndVersion(toolEdition, version);

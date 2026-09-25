@@ -53,6 +53,21 @@ public class IdeContextConsole extends AbstractIdeContext {
   }
 
   @Override
+  protected String readSecretLine() {
+
+    if (this.scanner == null) {
+      char[] password = System.console().readPassword();
+      if (password == null) {
+        return "";
+      }
+      return new String(password);
+    } else {
+      LOG.warn("System console not available - secret input will be visible while typing.");
+      return this.scanner.nextLine();
+    }
+  }
+
+  @Override
   public IdeProgressBar newProgressBar(String title, long size, String unitName, long unitSize) {
 
     return new IdeProgressBarConsole(getSystemInfo(), title, size, unitName, unitSize);

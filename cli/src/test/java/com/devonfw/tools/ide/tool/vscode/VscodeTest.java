@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool.vscode;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -10,9 +11,11 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.context.ProcessContextTestImpl;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -153,6 +156,120 @@ class VscodeTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Tests that by default (feature toggle {@code VSCODE_PROFILE_ENABLED} disabled) {@link Vscode#configureToolArgs(ProcessContext, ProcessMode, List)} points
+   * {@code --user-data-dir} to the IDE metadata folder ({@code $IDE_HOME/.ide/vscode/«workspace»/config}) instead of a {@code .vscode} folder inside the
+   * workspace.
+   */
+  @Test
+  void testConfigureToolArgsUsesIdeMetadataPathForUserData() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    Vscode commandlet = new Vscode(context);
+    ArgCapturingProcessContext pc = new ArgCapturingProcessContext(context);
+    // act
+    commandlet.configureToolArgs(pc, ProcessMode.DEFAULT, List.of());
+    // assert
+    Path expectedUserData = context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("vscode").resolve(context.getWorkspaceName()).resolve("config");
+    assertThat(pc.capturedArgs).contains("--user-data-dir=" + expectedUserData);
+    assertThat(pc.capturedArgs).noneMatch(arg -> arg.contains(".vscode"));
+    assertThat(pc.capturedArgs).noneMatch(arg -> arg.startsWith("--profile="));
+  }
+
+  /**
+   * Tests that with the feature toggle {@code VSCODE_PROFILE_ENABLED} enabled VS Code is launched with a named {@code --profile} and without a custom
+   * {@code --user-data-dir}.
+   * <p>
+   * Using {@code --profile} keeps auth and extension state isolated per project and workspace while keeping the VS Code IPC lock at the default user-data-dir
+   * location, so the OS-level {@code vscode://} protocol handler (e.g. GitHub/Copilot OAuth callbacks) can find and reuse the already-running instance.
+   */
+  @Test
+  void testConfigureToolArgsUsesProfileIfFeatureToggleEnabled() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("VSCODE_PROFILE_ENABLED", "true");
+    Vscode commandlet = new Vscode(context);
+    ArgCapturingProcessContext pc = new ArgCapturingProcessContext(context);
+    // act
+    commandlet.configureToolArgs(pc, ProcessMode.DEFAULT, List.of());
+    // assert
+    assertThat(pc.capturedArgs).noneMatch(arg -> arg.startsWith("--user-data-dir="));
+    // the profile has to contain the project name so that different projects with the same workspace name do not share a single profile (see #2058)
+    assertThat(pc.capturedArgs).contains("--profile=ideasy-" + context.getProjectName() + "-" + context.getWorkspaceName());
+  }
+
+  /**
+   * Tests that the user settings template {@code .vscode/.userdata} from the settings repository is merged into the VS Code user-data folder
+   * ({@code $IDE_HOME/.ide/vscode/«workspace»/config}) passed via {@code --user-data-dir} instead of the workspace, while the other templates are still merged
+   * into the workspace (see #2509).
+   */
+  @Test
+  void testConfigureWorkspaceMergesUserDataTemplateIntoUserDataFolder() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    Vscode commandlet = new Vscode(context);
+    Path workspace = context.getWorkspacePath();
+    // act
+    commandlet.configureWorkspace();
+    // assert
+    assertThat(getUserDataPath(context).resolve("User/settings.json")).exists().content().contains("\"telemetry.telemetryLevel\": \"off\"")
+        .contains("\"update.mode\": \"none\"");
+    assertThat(workspace.resolve(".vscode/.userdata")).doesNotExist();
+    assertThat(workspace.resolve(".vscode/settings.json")).exists().content().contains("\"editor.formatOnSave\": true");
+  }
+
+  /**
+   * Tests that a {@code .vscode/.userdata} folder left in the workspace is moved to the VS Code user-data folder if that does not exist yet.
+   */
+  @Test
+  void testConfigureWorkspaceMovesLegacyUserDataIfUserDataFolderIsMissing() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    FileAccess fileAccess = context.getFileAccess();
+    Path legacyUserData = context.getWorkspacePath().resolve(".vscode/.userdata");
+    fileAccess.writeFileContent("legacy", legacyUserData.resolve("state.json"), true);
+    Vscode commandlet = new Vscode(context);
+    // act
+    commandlet.configureWorkspace();
+    // assert
+    assertThat(getUserDataPath(context).resolve("state.json")).exists().hasContent("legacy");
+    assertThat(legacyUserData).doesNotExist();
+  }
+
+  /**
+   * Tests that a {@code .vscode/.userdata} folder left in the workspace is removed from the workspace (via backup) without touching the VS Code user-data
+   * folder if that already exists.
+   */
+  @Test
+  void testConfigureWorkspaceRemovesLegacyUserDataIfUserDataFolderExists() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    FileAccess fileAccess = context.getFileAccess();
+    Path legacyUserData = context.getWorkspacePath().resolve(".vscode/.userdata");
+    fileAccess.writeFileContent("legacy", legacyUserData.resolve("state.json"), true);
+    Path userData = getUserDataPath(context);
+    fileAccess.writeFileContent("current", userData.resolve("state.json"), true);
+    Vscode commandlet = new Vscode(context);
+    // act
+    commandlet.configureWorkspace();
+    // assert
+    assertThat(userData.resolve("state.json")).exists().hasContent("current");
+    assertThat(legacyUserData).doesNotExist();
+    assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_BACKUPS)).exists();
+  }
+
+  private static Path getUserDataPath(IdeTestContext context) {
+
+    return context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("vscode").resolve(context.getWorkspaceName()).resolve("config");
+  }
+
+  /**
    * Tests that {@code VSCODE_OPTIONS} is honoured by appending its tokens as additional command-line arguments when starting the IDE (analogue to the
    * global {@code IDE_OPTIONS} used for IDEasy itself, see issue #788).
    */
@@ -275,6 +392,7 @@ class VscodeTest extends AbstractIdeContextTest {
     }
   }
 
+
   /**
    * {@link ProcessContextTestImpl} subclass that captures calls to {@link #withEnvVar(String, String)} for test assertions.
    */
@@ -297,6 +415,26 @@ class VscodeTest extends AbstractIdeContextTest {
     String getEnvVar(String key) {
 
       return this.capturedEnvVars.get(key);
+    }
+  }
+
+  /**
+   * {@link ProcessContextTestImpl} subclass that captures the CLI arguments added via {@link #addArg(String)} for test assertions.
+   */
+  private static class ArgCapturingProcessContext extends ProcessContextTestImpl {
+
+    private final List<String> capturedArgs = new ArrayList<>();
+
+    private ArgCapturingProcessContext(IdeTestContext context) {
+
+      super(context);
+    }
+
+    @Override
+    public ProcessContext addArg(String arg) {
+
+      this.capturedArgs.add(arg);
+      return super.addArg(arg);
     }
   }
 

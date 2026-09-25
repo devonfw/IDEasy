@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -17,6 +18,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.logging.FileHandler;
 import java.util.logging.LogManager;
@@ -35,8 +37,8 @@ import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.commandlet.CommandletManagerImpl;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
 import com.devonfw.tools.ide.commandlet.EnvironmentCommandlet;
-import com.devonfw.tools.ide.commandlet.UpdateCommandlet;
 import com.devonfw.tools.ide.commandlet.UpgradeCommandlet;
+import com.devonfw.tools.ide.commandlet.update.UpdateCommandlet;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
@@ -48,6 +50,7 @@ import com.devonfw.tools.ide.environment.IdeSystemImpl;
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.git.GitContextImpl;
 import com.devonfw.tools.ide.git.GitUrl;
+import com.devonfw.tools.ide.git.repository.RepositoryType;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.log.IdeLogArgFormatter;
@@ -178,7 +181,17 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   private WindowsHelper windowsHelper;
 
+  /** The replacement used to mask a secret in log output. */
+  private static final String SECRET_MASK = "********";
+
+  /** Minimum length of a value to be masked as a secret in log output. Masking a very short value would corrupt unrelated log messages. */
+  private static final int SECRET_MIN_LENGTH = 3;
+
   private final Map<String, String> privacyMap;
+
+  private final Set<String> secrets;
+
+  private final Set<String> secretVariables;
 
   private Path bash;
 
@@ -200,6 +213,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     this.startContext = startContext;
     this.startContext.setArgFormatter(this);
     this.privacyMap = new HashMap<>();
+    this.secrets = new HashSet<>();
+    this.secretVariables = new HashSet<>();
     this.systemInfo = SystemInfoImpl.INSTANCE;
     if (isTest()) {
       configureJavaUtilLogging(null);
@@ -426,7 +441,11 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     if (isPrivacyMode() && !WORKSPACE_MAIN.equals(wks)) {
       wks = "*".repeat(wks.length());
     }
-    return "IDE environment variables have been set for " + formatArgument(this.ideHome) + " in workspace " + wks;
+    String workspaceMessage = " with workspace set to " + wks;
+    if (!this.cwd.startsWith(this.workspacePath)) {
+      workspaceMessage += " (fallback to default)";
+    }
+    return "IDE environment variables have been set for " + formatArgument(this.ideHome) + workspaceMessage;
   }
 
   private String getMessageNotInsideIdeProject() {
@@ -685,29 +704,13 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   public Path getSettingsGitRepository() {
 
     Path settingsPath = getSettingsPath();
+    RepositoryType settingsRepositoryType = RepositoryType.ofSettingsPath(settingsPath, this);
     // check whether the settings path has a .git folder only if its not a symbolic link or junction
-    if ((settingsPath != null) && !Files.exists(settingsPath.resolve(".git")) && !isSettingsCodeRepository()) {
+    if ((settingsPath != null) && !Files.exists(settingsPath.resolve(".git")) && !(settingsRepositoryType == RepositoryType.CODE_SETTINGS_COMBINED)) {
       LOG.error("Settings repository exists but is not a git repository.");
       return null;
     }
     return settingsPath;
-  }
-
-  @Override
-  public boolean isSettingsCodeRepository() {
-
-    Path settingsPath = getSettingsPath();
-    if (settingsPath != null) {
-      boolean settingsIsLink = Files.isSymbolicLink(settingsPath) || getFileAccess().isJunction(settingsPath);
-      if (settingsIsLink) {
-        Path realPath = getFileAccess().toRealPath(this.settingsPath);
-        if (realPath != null) {
-          return getGitContext().isGitRepo(realPath.getParent());
-        }
-        return true;
-      }
-    }
-    return false;
   }
 
   @Override
@@ -1050,7 +1053,39 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       }
       result = PrivacyUtil.removeSensitivePathInformation(result);
     }
+    // Secrets are masked independent of the privacy mode: a value the user entered as a secret or that belongs to a
+    // variable marked as secret must never appear in any log output. This is done here since formatArgument is the
+    // single place all log arguments pass through, so no individual log statement can be forgotten.
+    for (String secret : this.secrets) {
+      result = result.replace(secret, SECRET_MASK);
+    }
     return result;
+  }
+
+  @Override
+  public void addSecretVariable(String name) {
+
+    if ((name != null) && !name.isEmpty()) {
+      this.secretVariables.add(name);
+    }
+  }
+
+  @Override
+  public void addSecretValue(String name, String value) {
+
+    if (this.secretVariables.contains(name)) {
+      addSecret(value);
+    }
+  }
+
+  /**
+   * @param secret the secret value to mask in all log output. Ignored if {@code null} or shorter than {@link #SECRET_MIN_LENGTH}.
+   */
+  protected void addSecret(String secret) {
+
+    if ((secret != null) && (secret.length() >= SECRET_MIN_LENGTH)) {
+      this.secrets.add(secret);
+    }
   }
 
   /**
@@ -1082,6 +1117,27 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   @Override
   public String askForInput(String message, String defaultValue) {
 
+    return ask(message, defaultValue, false);
+  }
+
+  @Override
+  public String askForSecret(String message, String defaultValue) {
+
+    return ask(message, defaultValue, true);
+  }
+
+  /**
+   * Asks the user for a value, re-asking while the input is empty and a default value is given.
+   *
+   * @param message the question to ask.
+   * @param defaultValue the value to return if the user accepts the default (by entering an empty value) or {@code null} to re-ask until a value is
+   *     entered.
+   * @param secret - {@code true} to read the input in a masked way (see {@link #readSecretLine()}) and to mask it in the log output, {@code false} to read
+   *     it as plain text.
+   * @return the entered value or the default value.
+   */
+  private String ask(String message, String defaultValue, boolean secret) {
+
     while (true) {
       if (!message.isBlank()) {
         IdeLogLevel.INTERACTION.log(LOG, message);
@@ -1093,11 +1149,18 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
           throw new CliAbortException();
         }
       }
-      String input = readLine().trim();
+      // for a secret the input is not trimmed so that a leading or trailing whitespace that is part of the password or a pasted token is preserved
+      String input = secret ? readSecretLine() : readLine().trim();
       if (!input.isEmpty()) {
+        if (secret) {
+          addSecret(input);
+        }
         return input;
       } else {
         if (defaultValue != null) {
+          if (secret) {
+            addSecret(defaultValue);
+          }
           return defaultValue;
         }
       }
@@ -1170,6 +1233,15 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
    * @return the input from the end-user (e.g. read from the console).
    */
   protected abstract String readLine();
+
+  /**
+   * @return the secret input from the end-user (e.g. read from the console without echoing it). The default implementation simply delegates to
+   *     {@link #readLine()} so that sub-classes without a secure console (e.g. in tests) work out of the box.
+   */
+  protected String readSecretLine() {
+
+    return readLine();
+  }
 
   private static <O> void addMapping(Map<String, O> mapping, String key, O option) {
 
@@ -1481,7 +1553,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
    */
   private String determineSettingsUpdateMessage(Commandlet cmd) {
     boolean update = cmd instanceof UpdateCommandlet;
-    if (isSettingsCodeRepository()) {
+    RepositoryType settingsRepositoryType = RepositoryType.ofSettingsPath(getSettingsPath(), this);
+    if (settingsRepositoryType == RepositoryType.CODE_SETTINGS_COMBINED) {
       if (update && (isForceMode() || isForcePull())) {
         return null;
       }
