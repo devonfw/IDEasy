@@ -2,19 +2,36 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2026.10.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/2381[#2381]: Make node and npm pristine versioned tools with per-project npm global prefix
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/51?closed=1[milestone 2026.10.001].
+
 == 2026.09.002
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/2206[#2206]: IDEasy title not properly shown on macOS
+* https://github.com/devonfw/IDEasy/issues/377[#377]: Document Homebrew installation on MacOS
+* https://github.com/devonfw/IDEasy/issues/2338[#2338]: Create first basic version of check commandlet
+* https://github.com/devonfw/IDEasy/issues/2193[#2193]: Added support for conditional auto-completion
+* https://github.com/devonfw/IDEasy/issues/2488[#2488]: Add compiler and SDK to MSVC installation
 * https://github.com/devonfw/IDEasy/issues/2103[#2103]: Integrate Obsidian
 * https://github.com/devonfw/IDEasy/issues/1695[#1695]: Project creation logic extended with health checks and removed `--code` flag.
+* https://github.com/devonfw/IDEasy/issues/2007[#2007]: Support Docker on Arch Linux with pacman and yay
 * https://github.com/devonfw/IDEasy/issues/2190[#2190]: IDEasy destroys my python installation
 * https://github.com/devonfw/IDEasy/issues/2178[#2178]: Make ReleaseCommandlet independent of specific build commandlet and fix `ide build` using npm instead of yarn
 * https://github.com/devonfw/IDEasy/issues/2142[#2142]: Move IDE-specific metadata (.idea, .vscode) out of workspace
 * https://github.com/devonfw/IDEasy/issues/2366[#2366]: Support for variables and expressions in repository properties
 * https://github.com/devonfw/IDEasy/issues/989[#989]: Allow expressions in template variable definitions
+* https://github.com/devonfw/IDEasy/issues/1808[#1808]: Clarify the selected workspace in `ide` and `icd` messages
 * https://github.com/devonfw/IDEasy/issues/2252[#2252]: Add uninstall support for globally installed tools on macOS
 * https://github.com/devonfw/IDEasy/issues/1628[#1628]: Support for OS-specific CVEs
+* https://github.com/devonfw/IDEasy/issues/2271[#2271]: Fix `ide install pgadmin` on Linux
+* https://github.com/devonfw/IDEasy/issues/2431[#2431]: Improve uv support to make it usable for IDE_ROOT on non-default drive
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/50?closed=1[milestone 2026.09.002].
 
