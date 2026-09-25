@@ -16,7 +16,7 @@ import com.devonfw.tools.ide.io.FileAccess;
  */
 class PullSafelyWithStashTest extends AbstractIdeContextTest {
 
-  private GitContextImplMock gitContextMock;
+  private GitContextMock gitContextMock;
   private IdeTestContext context;
   private Path testRepository;
 
@@ -32,7 +32,7 @@ class PullSafelyWithStashTest extends AbstractIdeContextTest {
     this.context.getNetworkStatus().simulateOnline();
     ProcessContextGitMock processContext = new ProcessContextGitMock(context, tempDir);
     this.context.setProcessContext(processContext);
-    this.gitContextMock = new GitContextImplMock(context, tempDir);
+    this.gitContextMock = new GitContextMock(context);
     this.context.setGitContext(gitContextMock);
 
     // Create a simple git repository structure
@@ -417,4 +417,3 @@ class PullSafelyWithStashTest extends AbstractIdeContextTest {
     assertThat(hasUntracked).isFalse();
   }
 }
-
