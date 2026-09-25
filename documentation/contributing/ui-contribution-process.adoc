@@ -61,16 +61,17 @@ A `TabComponent` bundles everything that belongs to one tab in a single, reusabl
 * its **ViewModel**, **View** and JavaFX **Tab** (built lazily on first use and wired together by the component),
 * **lifecycle hooks** around opening/closing/focusing the tab.
 
-
-
 This applies the *Tell, Don't Ask* principle: instead of the caller *asking* the ViewModel for its title key and then separately constructing the ViewModel and View, the caller *tells* the factory to open a `TabComponent` and lets the component compose itself.
 
 === Anatomy of a tab
 
 A `TabComponent` is composed of the existing View/ViewModel pair plus the JavaFX Tab and the component that ties them together:
 
-* **ViewModel** — extends `TabViewModel`. Holds the observable state and logic of the tab.
-* **View** — extends `TabView`. Pure UI (loads its FXML and binds to the ViewModel). No business logic.
+* **ViewModel** — extends `TabViewModel`.
+Holds the observable state and logic of the tab.
+* **View** — extends `TabView`.
+Pure UI (loads its FXML and binds to the ViewModel).
+No business logic.
 * **`Tab`** — The JavaFX Tab
 
 === Step-by-step
@@ -92,8 +93,10 @@ public class MyFeatureViewModel extends TabViewModel {
   }
 }
 ----
-. **Create the View** (extends `TabView`) and its FXML. Load the FXML with `loadFxml` and bind the controls to the ViewModel (see link:ui-structure.adoc[UI Architecture and Structure] for the binding conventions).
-. **Create the `TabComponent`** (extends `TabComponent`). Here it builds and wires the ViewModel and View and returns them.
+. **Create the View** (extends `TabView`) and its FXML.
+Load the FXML with `loadFxml` and bind the controls to the ViewModel (see link:ui-structure.adoc[UI Architecture and Structure] for the binding conventions).
+. **Create the `TabComponent`** (extends `TabComponent`).
+Here it builds and wires the ViewModel and View and returns them.
 +
 [source,java]
 ----
@@ -130,7 +133,8 @@ public class MyFeatureTab extends TabComponent {
   }
 }
 ----
-. **Open it.** Call `tabFactory.open(...)` with the component. If the tab is opened from a fixed place, add a small convenience method (e.g. `openLauncherTab()`).
+. **Open it.** Call `tabFactory.open(...)` with the component.
+If the tab is opened from a fixed place, add a small convenience method (e.g. `openLauncherTab()`).
 +
 [source,java]
 ----
@@ -191,21 +195,6 @@ private void open(TabComponent tabComponent) {
     this.eventBus.sendEvent(tabComponent.createTabChangeEvent());
 }
 ----
-
-=== Lifecycle hooks
-
-`TabComponent` is the place to express a small, explicit UI lifecycle around a tab:
-
-* `onBeforeOpenTab()` — run right before `getView()` is called (e.g. to refresh data or auto-show the console).
-* `onFocus()` — when the tab becomes the selected tab.
-* `onClose()` — when the tab is closed.
-+
-
-=== Why this design
-
-* **Co-located composition:** the caller no longer has to know the individual `[Tab]ViewModel`/`[Tab]View` or thread services through the call site — the tab wires itself.
-* **Launch from anywhere:** opening a tab is a one-line `tabFactory.open(component)`, so it can be triggered from multiple sources (UI, an event bus, …) without duplicating composition logic.
-* **Consistency:** every tab goes through the same `TabFactory.open(...)` path, which keeps the `TabPane` management (dedup by title key, closeable behavior, …) in one place.
 
 == Figma link
 
