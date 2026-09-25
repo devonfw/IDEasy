@@ -1,6 +1,5 @@
 package com.devonfw.ide.gui.nls;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.io.IOException;
@@ -20,7 +19,6 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.stream.Stream;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -28,31 +26,61 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.environment.IdeSystemTestImpl;
+
 /**
  * Tests for {@link NlsService} - verifies locale switching, bundle loading, and fallback behavior.
+ *
+ * <p>
+ * This test is isolated from the machine it runs on (see {@code documentation/contributing/junit-testing.adoc}): the {@link NlsService} is created with an
+ * isolated {@link IdeTestContext} whose system environment and user home are stubbed. The user home is a per-test {@link TempDir @TempDir} created for
+ * every test (and cleaned up afterwards), so the persisted GUI locale is written to a throw-away {@code ~/.ide/ide.properties} and can never leak between
+ * tests or be influenced by the developer's real user home, the {@code IDE_OPTIONS} environment variable or any other global configuration.
  */
-public class NlsServiceTest {
+public class NlsServiceTest extends AbstractIdeContextTest {
 
+  /** The name of the {@code ide.properties} file in the user home. */
+  private static final String IDE_PROPERTIES_FILE = "ide.properties";
+
+  /**
+   * The throw-away user home of the isolated {@link IdeTestContext}. A fresh directory is created for every test so the persisted
+   * {@code ~/.ide/ide.properties} never leaks between tests and the test works on any operating system.
+   */
   @TempDir
-  Path tempUserHome;
+  Path userHome;
 
-  private String originalUserHome;
+  /** The isolated {@link IdeTestContext} that the {@link NlsService} under test persists into. */
+  private IdeTestContext context;
 
+  /**
+   * Prepares an isolated {@link IdeTestContext} for every test so the test is not influenced by global configuration.
+   */
   @BeforeEach
   public void setUp() {
 
-    this.originalUserHome = System.getProperty("user.home");
-    System.setProperty("user.home", this.tempUserHome.toString());
+    this.context = new IdeTestContext();
+    // isolate from the real System: a decoupled, empty environment (no IDE_OPTIONS) so the persisted selection is not influenced by the machine environment
+    this.context.setSystem(new IdeSystemTestImpl());
+    // point the isolated context at a fresh, throw-away user home (created anew per test) instead of the developer's real home
+    this.context.setUserHome(this.userHome);
   }
 
-  @AfterEach
-  public void tearDown() {
+  /**
+   * @return the {@code ~/.ide/ide.properties} file of the isolated {@link #context}.
+   */
+  private Path getUserIdeProperties() {
 
-    if (this.originalUserHome == null) {
-      System.clearProperty("user.home");
-    } else {
-      System.setProperty("user.home", this.originalUserHome);
-    }
+    return this.userHome.resolve(".ide").resolve(IDE_PROPERTIES_FILE);
+  }
+
+  /**
+   * Creates a {@link NlsService} that persists the locale into the isolated {@link #context} instead of the real user home.
+   */
+  private NlsService newService(Locale locale) {
+
+    return new NlsService(this.context, locale);
   }
 
   @ParameterizedTest
@@ -82,7 +110,7 @@ public class NlsServiceTest {
   @Test
   public void testSetLocale() {
 
-    NlsService service = new NlsService(Locale.ENGLISH);
+    NlsService service = newService(Locale.ENGLISH);
     service.setLocale(Locale.GERMAN);
 
     assertThat(service.getLocale().getLanguage()).isEqualTo("de");
@@ -93,7 +121,7 @@ public class NlsServiceTest {
   @Test
   public void testAllLocalizationBundlesContainExactlyTheEnglishKeys() throws IOException {
 
-    NlsService service = new NlsService(Locale.ENGLISH);
+    NlsService service = newService(Locale.ENGLISH);
     Set<String> englishKeys = loadBundleProperties(Locale.ENGLISH).stringPropertyNames();
 
     for (Locale locale : service.getAvailableLocales()) {
@@ -119,7 +147,7 @@ public class NlsServiceTest {
   @ParameterizedTest
   @MethodSource("testLanguageDisplayShowsLocaleNameProvider")
   public void testLanguageDisplayShowsLocaleName(Locale serviceLocale, Locale displayLocale, String expectedString) {
-    NlsService service = new NlsService(serviceLocale);
+    NlsService service = newService(serviceLocale);
 
     assertThat(service.getLanguageDisplayName(displayLocale)).isEqualTo(expectedString);
   }
@@ -138,7 +166,7 @@ public class NlsServiceTest {
   @Test
   public void testLocaleChangeListenerIsInvokedAndCanBeRemoved() {
 
-    NlsService service = new NlsService(Locale.ENGLISH);
+    NlsService service = newService(Locale.ENGLISH);
     AtomicInteger counter = new AtomicInteger();
     Runnable listener = counter::incrementAndGet;
 
@@ -154,74 +182,77 @@ public class NlsServiceTest {
   @Test
   public void testSetLocalePersistsSelectionInUserHomeIdeProperties() throws IOException {
 
-    NlsService service = new NlsService(Locale.ENGLISH);
+    NlsService service = newService(Locale.ENGLISH);
     service.setLocale(Locale.GERMAN);
 
-    Path propertiesFile = this.tempUserHome.resolve(".ide").resolve("ide.properties");
+    Path propertiesFile = getUserIdeProperties();
     assertThat(Files.exists(propertiesFile)).isTrue();
 
-    Properties properties = new Properties();
-    try (InputStream inputStream = Files.newInputStream(propertiesFile)) {
-      properties.load(inputStream);
-    }
-    assertThat(properties.getProperty("IDE_OPTIONS")).isEqualTo("-Duser.language=de");
+    Properties properties = loadUserIdeProperties(propertiesFile);
+    assertThat(properties.getProperty(NlsService.IDE_OPTIONS)).isEqualTo("-Duser.language=de");
+  }
+
+  @Test
+  public void testSetLocaleIsNotInfluencedByIdeOptionsEnvironmentVariable() throws IOException {
+
+    // simulate a machine where IDE_OPTIONS is set globally (e.g. SSL trust store flags): the persisted selection must not be polluted by it
+    this.context.getSystem().setEnv(NlsService.IDE_OPTIONS,
+        "-Djavax.net.ssl.trustStore=C:Usershohwille.ide       ruststore       ruststore.p12 -Djavax.net.ssl.trustStorePassword=changeit");
+
+    NlsService service = newService(Locale.ENGLISH);
+    service.setLocale(Locale.GERMAN);
+
+    Path propertiesFile = getUserIdeProperties();
+    assertThat(Files.exists(propertiesFile)).isTrue();
+
+    Properties properties = loadUserIdeProperties(propertiesFile);
+    // only the language selection is persisted - the global IDE_OPTIONS environment variable must not leak into the user configuration
+    assertThat(properties.getProperty(NlsService.IDE_OPTIONS)).isEqualTo("-Duser.language=de");
   }
 
   @Test
   public void testPersistLocaleUpdatesExistingUserLangInIdeOptions() throws IOException {
 
-    Path userIdeFolder = this.tempUserHome.resolve(".ide");
-    Files.createDirectories(userIdeFolder);
-    Path userProperties = userIdeFolder.resolve("ide.properties");
+    Path userProperties = getUserIdeProperties();
+    this.context.getFileAccess().mkdirs(userProperties.getParent());
     Files.writeString(userProperties, "IDE_OPTIONS=-Duser.language=de\n");
 
-    NlsService service = new NlsService(null);
+    NlsService service = newService(null);
     service.setLocale(Locale.ENGLISH);
 
-    Properties properties = new Properties();
-    try (InputStream inputStream = Files.newInputStream(userProperties)) {
-      properties.load(inputStream);
-    }
+    Properties properties = loadUserIdeProperties(userProperties);
 
-    assertThat(properties.getProperty("IDE_OPTIONS")).isEqualTo("-Duser.language=en");
+    assertThat(properties.getProperty(NlsService.IDE_OPTIONS)).isEqualTo("-Duser.language=en");
   }
 
   @Test
   public void testPersistLocaleAppendsWhenIdeOptionsHasOtherOptions() throws IOException {
 
-    Path userIdeFolder = this.tempUserHome.resolve(".ide");
-    Files.createDirectories(userIdeFolder);
-    Path userProperties = userIdeFolder.resolve("ide.properties");
+    Path userProperties = getUserIdeProperties();
+    this.context.getFileAccess().mkdirs(userProperties.getParent());
     Files.writeString(userProperties, "IDE_OPTIONS=-Dfoo=bar\n");
 
-    NlsService service = new NlsService(Locale.ENGLISH);
+    NlsService service = newService(Locale.ENGLISH);
     service.setLocale(Locale.GERMAN);
 
-    Properties properties = new Properties();
-    try (InputStream inputStream = Files.newInputStream(userProperties)) {
-      properties.load(inputStream);
-    }
+    Properties properties = loadUserIdeProperties(userProperties);
 
-    assertThat(properties.getProperty("IDE_OPTIONS")).isEqualTo("-Dfoo=bar -Duser.language=de");
+    assertThat(properties.getProperty(NlsService.IDE_OPTIONS)).isEqualTo("-Dfoo=bar -Duser.language=de");
   }
 
   @Test
   public void testPersistLocalePreservesUnrelatedIdeOptions() throws IOException {
 
-    Path userIdeFolder = this.tempUserHome.resolve(".ide");
-    Files.createDirectories(userIdeFolder);
-    Path userProperties = userIdeFolder.resolve("ide.properties");
+    Path userProperties = getUserIdeProperties();
+    this.context.getFileAccess().mkdirs(userProperties.getParent());
     Files.writeString(userProperties, "IDE_OPTIONS=-Dfoo=bar -Duser.language=de\n");
 
-    NlsService service = new NlsService(null);
+    NlsService service = newService(null);
     service.setLocale(Locale.ENGLISH);
 
-    Properties properties = new Properties();
-    try (InputStream inputStream = Files.newInputStream(userProperties)) {
-      properties.load(inputStream);
-    }
+    Properties properties = loadUserIdeProperties(userProperties);
 
-    String ideOptions = properties.getProperty("IDE_OPTIONS");
+    String ideOptions = properties.getProperty(NlsService.IDE_OPTIONS);
     assertThat(ideOptions).contains("-Dfoo=bar");
     assertThat(ideOptions).contains("-Duser.language=en");
     assertThat(ideOptions).doesNotContain("-Duser.language=de");
@@ -230,7 +261,7 @@ public class NlsServiceTest {
   @Test
   public void testNoEmptyTranslations() throws IOException {
 
-    NlsService service = new NlsService(Locale.ENGLISH);
+    NlsService service = newService(Locale.ENGLISH);
 
     for (Locale locale : service.getAvailableLocales()) {
       Properties props = loadBundleProperties(locale);
@@ -245,7 +276,7 @@ public class NlsServiceTest {
   @Test
   public void testGetAvailableLocalesAlwaysContainsEnglish() {
 
-    NlsService service = new NlsService(Locale.ENGLISH);
+    NlsService service = newService(Locale.ENGLISH);
 
     assertThat(service.getAvailableLocales()).contains(Locale.ENGLISH);
   }
@@ -253,7 +284,7 @@ public class NlsServiceTest {
   @Test
   public void testGetAvailableLocalesDetectsExistingBundleFiles() {
 
-    NlsService service = new NlsService(Locale.ENGLISH);
+    NlsService service = newService(Locale.ENGLISH);
     //confirmed languages till now
     assertThat(service.getAvailableLocales())
         .contains(Locale.GERMAN, Locale.ENGLISH);
@@ -262,7 +293,7 @@ public class NlsServiceTest {
   @Test
   public void testGetAvailableLocalesDoesNotContainAbsentLocales() {
 
-    NlsService service = new NlsService(Locale.ENGLISH);
+    NlsService service = newService(Locale.ENGLISH);
 
     assertThat(service.getAvailableLocales())
         .doesNotContain(Locale.FRENCH, Locale.JAPANESE, Locale.forLanguageTag("zh"));
@@ -279,7 +310,7 @@ public class NlsServiceTest {
     ClassLoader original = Thread.currentThread().getContextClassLoader();
     try (URLClassLoader loader = new URLClassLoader(new URL[] { bundleRoot.toUri().toURL() }, ClassLoader.getPlatformClassLoader())) {
       Thread.currentThread().setContextClassLoader(loader);
-      NlsService service = new NlsService(Locale.ENGLISH);
+      NlsService service = newService(Locale.ENGLISH);
       assertThat(service.getAvailableLocales())
           .containsExactlyInAnyOrder(Locale.ENGLISH, Locale.FRENCH);
     } finally {
@@ -299,12 +330,21 @@ public class NlsServiceTest {
     ClassLoader original = Thread.currentThread().getContextClassLoader();
     try (URLClassLoader loader = new URLClassLoader(new URL[] { jarFile.toUri().toURL() }, ClassLoader.getPlatformClassLoader())) {
       Thread.currentThread().setContextClassLoader(loader);
-      NlsService service = new NlsService(Locale.ENGLISH);
+      NlsService service = newService(Locale.ENGLISH);
       assertThat(service.getAvailableLocales())
           .containsExactlyInAnyOrder(Locale.ENGLISH, Locale.FRENCH);
     } finally {
       Thread.currentThread().setContextClassLoader(original);
     }
+  }
+
+  private static Properties loadUserIdeProperties(Path userProperties) throws IOException {
+
+    Properties properties = new Properties();
+    try (InputStream inputStream = Files.newInputStream(userProperties)) {
+      properties.load(inputStream);
+    }
+    return properties;
   }
 
   private Properties loadBundleProperties(Locale locale) throws IOException {
