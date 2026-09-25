@@ -57,7 +57,7 @@ class PypiObjectJsonTest extends Assertions {
               "size": 1307639,
               "upload_time": "2018-04-19T18:56:05",
               "upload_time_iso_8601": "2018-04-19T18:56:05.963596Z",
-              "url": "https://files.pythonhosted.org/packages/0f/74/ecd13431bcc456ed390b44c8a6e917c1820365cbebcb6a8974d1cd045ab4/pip-10.0.1-py2.py3-none-any.whl",
+              "url": "https://files.pythonhosted.org/packages/0f/74/test/pip-10.0.1-py2.py3-none-any.whl",
               "yanked": false,
               "yanked_reason": null
             },
@@ -155,7 +155,11 @@ class PypiObjectJsonTest extends Assertions {
     PypiObject pypiObject = mapper.readValue(JSON, PypiObject.class);
 
     // assert
-    assertThat(pypiObject.releases()).containsExactly(VersionIdentifier.of("0.2"), VersionIdentifier.of("10.0.1"), VersionIdentifier.of("25.3"));
+    assertThat(pypiObject.releases()).containsExactly(
+        VersionIdentifier.of("0.2"),
+        VersionIdentifier.of("10.0.1"),
+        VersionIdentifier.of("25.3")
+    );
 
     // act
     String json = mapper.writeValueAsString(pypiObject);

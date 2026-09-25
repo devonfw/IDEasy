@@ -20,6 +20,7 @@ import java.util.Enumeration;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
+
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSocket;
@@ -318,9 +319,9 @@ public final class TruststoreUtil {
 
   /**
    * Sends the {@link #buildProbeRequest(String) probe request} and returns the response once its headers have been received. The body is streamed via
-   * {@link HttpResponse.BodyHandlers#ofInputStream()} and immediately {@link InputStream#close() closed} to abort the remaining transfer. This ensures the probe
-   * never downloads a large body even if a server ignored the {@code Range} header, while still completing the TLS handshake and exposing the response metadata
-   * (e.g. the effective {@link HttpResponse#uri() URI} after redirects).
+   * {@link HttpResponse.BodyHandlers#ofInputStream()} and immediately {@link InputStream#close() closed} to abort the remaining transfer. This ensures the
+   * probe never downloads a large body even if a server ignored the {@code Range} header, while still completing the TLS handshake and exposing the response
+   * metadata (e.g. the effective {@link HttpResponse#uri() URI} after redirects).
    */
   private static HttpResponse<InputStream> sendProbe(HttpClient client, String url) throws Exception {
     HttpResponse<InputStream> response = client.send(buildProbeRequest(url), HttpResponse.BodyHandlers.ofInputStream());
@@ -478,8 +479,8 @@ public final class TruststoreUtil {
   }
 
   /**
-   * {@link X509TrustManager} that trusts any certificate. It is only used to follow HTTP redirects in {@link #resolveEffectiveEndpoint(TlsEndpoint)} in order to
-   * discover the effective endpoint - it is never used to actually establish trust for downloads.
+   * {@link X509TrustManager} that trusts any certificate. It is only used to follow HTTP redirects in {@link #resolveEffectiveEndpoint(TlsEndpoint)} in order
+   * to discover the effective endpoint - it is never used to actually establish trust for downloads.
    */
   private static final class TrustAllManager implements X509TrustManager {
 

@@ -48,7 +48,8 @@ public final class PrivacyUtil {
     StringBuilder result = new StringBuilder(length);
     int start = 0;
     while (index >= 0) {
-      // index is pointing to the first slash of an absolute or relative path, we first search backwards from start to index to find a potential starting folder-name
+      // index is pointing to the first slash of an absolute or relative path, we first search backwards from start to index to find a potential starting
+      // folder-name
       int i = start;
       int folderStart = start;
       while (i < index) {

@@ -118,7 +118,8 @@ public class NetworkStatusImpl implements NetworkStatus {
     if (isTlsTrustIssue(error)) {
       logTruststoreFixHint(this.onlineCheckUrl);
     } else {
-      IdeLogLevel.INTERACTION.log(LOG, "Please check potential proxy settings, ensure you are properly connected to the internet and retry this operation.");
+      IdeLogLevel.INTERACTION.log(LOG, "Please check potential proxy settings, ensure you are properly connected to the internet and retry this"
+          + " operation.");
     }
   }
 
@@ -154,7 +155,8 @@ public class NetworkStatusImpl implements NetworkStatus {
         + "This commonly happens behind a corporate VPN or proxy that intercepts TLS traffic.", uri);
     LOG.warn("Please first verify that the URL above is a legitimate endpoint that you trust and that you are reaching it securely. "
         + "If it is trustworthy, you can register its certificate in a custom truststore by running:\nide fix-vpn-tls-problem {}", uri);
-    IdeLogLevel.INTERACTION.log(LOG, "For more details see: https://github.com/devonfw/IDEasy/blob/main/documentation/proxy-support.adoc#tls-certificate-issues");
+    IdeLogLevel.INTERACTION.log(LOG, "For more details see: "
+        + "https://github.com/devonfw/IDEasy/blob/main/documentation/proxy-support.adoc#tls-certificate-issues");
   }
 
   boolean isTlsTrustIssue(Throwable throwable) {
