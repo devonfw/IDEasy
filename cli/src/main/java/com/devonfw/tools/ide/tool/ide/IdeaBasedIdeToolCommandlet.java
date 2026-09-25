@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -12,11 +14,14 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 
 /**
@@ -32,6 +37,13 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
   private static final String VM_ARGS_ENV_SUFFIX = "_VM_ARGS";
 
   private static final String VM_OPTIONS_ENV_SUFFIX = "_VM_OPTIONS";
+
+  private static final String IDEA_CONFIG_PATH_KEY = "idea.config.path";
+  private static final String IDEA_LOG_CONSOLE_KEY = "idea.log.console";
+  private static final String IDEA_LOG_PATH_KEY = "idea.log.path";
+  private static final String IDEA_PLUGINS_PATH_KEY = "idea.plugins.path";
+  private static final String IDEA_SYSTEM_PATH_KEY = "idea.system.path";
+  private static final String IDEA_NO_SPLASH_KEY = "nosplash";
 
   /**
    * The constructor.
@@ -64,6 +76,12 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
       step.error("Failed to install plugin {} ({}): exit code was {}", plugin.name(), plugin.id(), result.getExitCode());
       return false;
     }
+  }
+
+  @Override
+  public void configureWorkspace() {
+    super.configureWorkspace();
+    createIdeConfigurationFile();
   }
 
   /**
@@ -192,5 +210,50 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
   private boolean isSameJvmKey(String a, String b) {
 
     return extractJvmOptionsKey(a).equals(extractJvmOptionsKey(b));
+  }
+
+  @Override
+  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
+    super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
+
+    String pathVariableKey = getIdeProductPrefix().toUpperCase() + "_PROPERTIES";
+    environmentContext.withEnvVar(pathVariableKey, getConfigurationFilePath().toString());
+  }
+
+  private String getConfigurationFileName() {
+
+    return getIdeProductPrefix() + ".properties";
+  }
+
+  protected Path getConfigurationFilePath() {
+
+    return this.context.getWorkspacePath().resolve(getConfigurationFileName());
+  }
+
+
+  private String getFormattedPath(Path path) {
+
+    return path.toString().replace("\\", "/");
+  }
+
+  private void createIdeConfigurationFile() {
+
+    Path configurationFilePath = getConfigurationFilePath();
+    Path configFolderPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve(tool).resolve(this.context.getWorkspaceName())
+        .resolve(IdeContext.FOLDER_CONF);
+    FileAccess fileAccess = context.getFileAccess();
+
+    final Map<String, String> standardConfiguration = Map.of(
+        IDEA_LOG_CONSOLE_KEY, "false",
+        IDEA_LOG_PATH_KEY, getFormattedPath(context.getIdeHome().resolve("." + tool).resolve("system").resolve("log")),
+        IDEA_PLUGINS_PATH_KEY, getFormattedPath(context.getPluginsPath()),
+        IDEA_SYSTEM_PATH_KEY, getFormattedPath(context.getIdeHome().resolve("." + tool).resolve("system")),
+        IDEA_NO_SPLASH_KEY, "true",
+        IDEA_CONFIG_PATH_KEY, getFormattedPath(configFolderPath)
+    );
+
+    Properties properties = new Properties();
+    properties.putAll(standardConfiguration);
+    fileAccess.writeProperties(properties, configurationFilePath, true);
   }
 }
