@@ -16,6 +16,7 @@ permissions:
 
 jobs:
   watch:
+    if: github.repository == 'devonfw/IDEasy'
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

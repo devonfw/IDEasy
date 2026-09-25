@@ -15,6 +15,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.context.ProcessContextTestImpl;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -198,6 +199,74 @@ class VscodeTest extends AbstractIdeContextTest {
     assertThat(pc.capturedArgs).noneMatch(arg -> arg.startsWith("--user-data-dir="));
     // the profile has to contain the project name so that different projects with the same workspace name do not share a single profile (see #2058)
     assertThat(pc.capturedArgs).contains("--profile=ideasy-" + context.getProjectName() + "-" + context.getWorkspaceName());
+  }
+
+  /**
+   * Tests that the user settings template {@code .vscode/.userdata} from the settings repository is merged into the VS Code user-data folder
+   * ({@code $IDE_HOME/.ide/vscode/«workspace»/config}) passed via {@code --user-data-dir} instead of the workspace, while the other templates are still merged
+   * into the workspace (see #2509).
+   */
+  @Test
+  void testConfigureWorkspaceMergesUserDataTemplateIntoUserDataFolder() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    Vscode commandlet = new Vscode(context);
+    Path workspace = context.getWorkspacePath();
+    // act
+    commandlet.configureWorkspace();
+    // assert
+    assertThat(getUserDataPath(context).resolve("User/settings.json")).exists().content().contains("\"telemetry.telemetryLevel\": \"off\"")
+        .contains("\"update.mode\": \"none\"");
+    assertThat(workspace.resolve(".vscode/.userdata")).doesNotExist();
+    assertThat(workspace.resolve(".vscode/settings.json")).exists().content().contains("\"editor.formatOnSave\": true");
+  }
+
+  /**
+   * Tests that a {@code .vscode/.userdata} folder left in the workspace is moved to the VS Code user-data folder if that does not exist yet.
+   */
+  @Test
+  void testConfigureWorkspaceMovesLegacyUserDataIfUserDataFolderIsMissing() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    FileAccess fileAccess = context.getFileAccess();
+    Path legacyUserData = context.getWorkspacePath().resolve(".vscode/.userdata");
+    fileAccess.writeFileContent("legacy", legacyUserData.resolve("state.json"), true);
+    Vscode commandlet = new Vscode(context);
+    // act
+    commandlet.configureWorkspace();
+    // assert
+    assertThat(getUserDataPath(context).resolve("state.json")).exists().hasContent("legacy");
+    assertThat(legacyUserData).doesNotExist();
+  }
+
+  /**
+   * Tests that a {@code .vscode/.userdata} folder left in the workspace is removed from the workspace (via backup) without touching the VS Code user-data
+   * folder if that already exists.
+   */
+  @Test
+  void testConfigureWorkspaceRemovesLegacyUserDataIfUserDataFolderExists() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    FileAccess fileAccess = context.getFileAccess();
+    Path legacyUserData = context.getWorkspacePath().resolve(".vscode/.userdata");
+    fileAccess.writeFileContent("legacy", legacyUserData.resolve("state.json"), true);
+    Path userData = getUserDataPath(context);
+    fileAccess.writeFileContent("current", userData.resolve("state.json"), true);
+    Vscode commandlet = new Vscode(context);
+    // act
+    commandlet.configureWorkspace();
+    // assert
+    assertThat(userData.resolve("state.json")).exists().hasContent("current");
+    assertThat(legacyUserData).doesNotExist();
+    assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_BACKUPS)).exists();
+  }
+
+  private static Path getUserDataPath(IdeTestContext context) {
+
+    return context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("vscode").resolve(context.getWorkspaceName()).resolve("config");
   }
 
   /**
