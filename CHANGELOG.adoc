@@ -5,7 +5,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 == 2026.09.002
 
 Release with new features and bugfixes:
-
+* https://github.com/devonfw/IDEasy/issues/2530[2530]: GitContext.fetch should fetch all remotes if none is specified
 * https://github.com/devonfw/IDEasy/issues/2206[#2206]: IDEasy title not properly shown on macOS
 * https://github.com/devonfw/IDEasy/issues/377[#377]: Document Homebrew installation on MacOS
 * https://github.com/devonfw/IDEasy/issues/2338[#2338]: Create first basic version of check commandlet

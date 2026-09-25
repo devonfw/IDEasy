@@ -18,6 +18,7 @@ import com.devonfw.tools.ide.context.ProcessContextGitMock;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.process.OutputMessage;
+import com.devonfw.tools.ide.process.ProcessResult;
 
 /**
  * Test of {@link GitContext}.
@@ -325,6 +326,25 @@ class GitContextTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(this.processContext.getResults()).isEmpty();
+  }
+
+  /**
+   * Test for fetch when no remote is specified and the current branch has no upstream, which should fetch all remotes.
+   *
+   * @param tempDir a {@link TempDir} {@link Path}.
+   */
+  @Test
+  void testFetchAllRemotesWhenNoRemoteAndNoUpstream(@TempDir Path tempDir) {
+    // arrange
+    IdeTestContext context = newGitContext(tempDir);
+    this.gitContextMock.setTrackedRemote(null);
+    GitContext gitContext = context.getGitContext();
+
+    // act
+    gitContext.fetch(tempDir, null, null);
+
+    // assert
+    assertThat(this.processContext.getResults()).extracting(ProcessResult::getCommand).containsExactly("git fetch --all");
   }
 
   /**
