@@ -15,7 +15,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
-import com.devonfw.tools.ide.git.GitContextImplMock;
+import com.devonfw.tools.ide.git.FixtureGitContextMock;
 import com.devonfw.tools.ide.io.WindowsSymlinkTestHelper;
 import com.devonfw.tools.ide.version.IdeVersion;
 
@@ -87,8 +87,8 @@ class CreateCommandletTest extends AbstractIdeContextTest {
     Files.createDirectories(settingsRepo);
     Files.writeString(settingsRepo.resolve("ide.properties"), "IDE_MIN_VERSION=" + ideMinVersion + System.lineSeparator());
 
-    GitContextImplMock gitContextImplMock = new GitContextImplMock(context, settingsRepo);
-    context.setGitContext(gitContextImplMock);
+    FixtureGitContextMock gitContextMock = new FixtureGitContextMock(context, settingsRepo);
+    context.setGitContext(gitContextMock);
 
     CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
     cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
@@ -156,9 +156,9 @@ class CreateCommandletTest extends AbstractIdeContextTest {
   void testWelcomeMessageDisplayed() {
 
     // arrange - create a new project
-    GitContextImplMock gitContextImplMock = new GitContextImplMock(context, TEST_RESOURCES.resolve("settings"));
+    FixtureGitContextMock gitContextMock = new FixtureGitContextMock(context, TEST_RESOURCES.resolve("settings"));
 
-    context.setGitContext(gitContextImplMock);
+    context.setGitContext(gitContextMock);
     CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
     cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
     cc.settingsRepo.setValue(IdeContext.DEFAULT_SETTINGS_REPO_URL);
@@ -177,9 +177,9 @@ class CreateCommandletTest extends AbstractIdeContextTest {
   void testProjectWithInvalidRepositoryNotCreated() {
 
     // arrange - create a new project that is invalid (does not contain ide.properties file)
-    GitContextImplMock gitContextImplMock = new GitContextImplMock(context, TEST_RESOURCES.resolve("pypi"));
+    FixtureGitContextMock gitContextMock = new FixtureGitContextMock(context, TEST_RESOURCES.resolve("pypi"));
 
-    context.setGitContext(gitContextImplMock);
+    context.setGitContext(gitContextMock);
     CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
     cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
     cc.settingsRepo.setValue(IdeContext.DEFAULT_SETTINGS_REPO_URL);
@@ -202,8 +202,8 @@ class CreateCommandletTest extends AbstractIdeContextTest {
 
     // arrange - a combined code and settings repository has the settings in a top-level "settings" folder
     WindowsSymlinkTestHelper.assumeSymlinksSupported();
-    GitContextImplMock gitContextImplMock = new GitContextImplMock(context, TEST_RESOURCES.resolve("code-settings"));
-    context.setGitContext(gitContextImplMock);
+    FixtureGitContextMock gitContextMock = new FixtureGitContextMock(context, TEST_RESOURCES.resolve("code-settings"));
+    context.setGitContext(gitContextMock);
     CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
     cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
     cc.settingsRepo.setValue("https://github.com/devonfw/code-settings-repo.git");
@@ -224,8 +224,8 @@ class CreateCommandletTest extends AbstractIdeContextTest {
   @Test
   void testCreateWithDashPlaceholderAsCliArgument() {
     // arrange - see https://github.com/devonfw/IDEasy/issues/2106
-    GitContextImplMock gitContextImplMock = new GitContextImplMock(context, TEST_RESOURCES.resolve("settings"));
-    context.setGitContext(gitContextImplMock);
+    FixtureGitContextMock gitContextMock = new FixtureGitContextMock(context, TEST_RESOURCES.resolve("settings"));
+    context.setGitContext(gitContextMock);
     CliArguments args = new CliArguments("create", NEW_PROJECT_NAME, "-", "--skip-tools");
 
     // act

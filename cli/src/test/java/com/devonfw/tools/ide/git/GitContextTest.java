@@ -29,10 +29,23 @@ class GitContextTest extends AbstractIdeContextTest {
 
   private ProcessContextGitMock processContext;
 
+  private TrackedRemoteGitContextMock gitContextMock;
+
+  private IdeTestContext newGitContext(Path dir) {
+
+    IdeTestContext context = newContext(dir);
+    context.getNetworkStatus().simulateOnline();
+    this.processContext = new ProcessContextGitMock(context, dir);
+    context.setProcessContext(processContext);
+    this.gitContextMock = new TrackedRemoteGitContextMock(context);
+    context.setGitContext(this.gitContextMock);
+    return context;
+  }
+
   /**
-   * Extra GitContextImpl class with disabled verifyGitInstalled method.
+   * A {@link GitContextImpl} double for exercising the real pull/fetch/reset logic with a configurable tracked remote, without requiring a git installation.
    */
-  private class GitContextMock extends GitContextImpl {
+  private class TrackedRemoteGitContextMock extends GitContextImpl {
 
     /** Simulates the remote the current branch tracks via {@code branch.<branch>.remote}; {@code null} simulates a branch without upstream. */
     private String trackedRemote = DEFAULT_REMOTE;
@@ -40,7 +53,7 @@ class GitContextTest extends AbstractIdeContextTest {
     /**
      * @param context the {@link IdeContext context}.
      */
-    public GitContextMock(IdeContext context) {
+    TrackedRemoteGitContextMock(IdeContext context) {
       super(context);
     }
 
@@ -57,22 +70,9 @@ class GitContextTest extends AbstractIdeContextTest {
     /**
      * @param trackedRemote the remote the current branch tracks, or {@code null} to simulate a branch without upstream.
      */
-    public void setTrackedRemote(String trackedRemote) {
+    void setTrackedRemote(String trackedRemote) {
       this.trackedRemote = trackedRemote;
     }
-  }
-
-  private GitContextMock gitContextMock;
-
-  private IdeTestContext newGitContext(Path dir) {
-
-    IdeTestContext context = newContext(dir);
-    context.getNetworkStatus().simulateOnline();
-    this.processContext = new ProcessContextGitMock(context, dir);
-    context.setProcessContext(processContext);
-    this.gitContextMock = new GitContextMock(context);
-    context.setGitContext(this.gitContextMock);
-    return context;
   }
 
   /**
