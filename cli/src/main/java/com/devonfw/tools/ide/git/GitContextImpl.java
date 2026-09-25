@@ -272,7 +272,7 @@ public class GitContextImpl implements GitContext {
     ProcessResult result = runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, "fetch", remote, branch);
 
     if (!result.isSuccessful()) {
-      LOG.warn("Git fetch for '{}/{} failed.'.", remote, branch);
+      LOG.warn("Git fetch for '{}/{} in repository {} failed.'.", remote, branch, repository);
     }
   }
 
