@@ -98,7 +98,13 @@ function ide {
         if ($ideArguments.Count -eq 0 -and
             -not [string]::IsNullOrEmpty($env:IDE_HOME)) {
 
-            Write-Host "IDE environment variables have been set for $env:IDE_HOME in workspace $env:WORKSPACE"
+            $workspaceMessage = " with workspace set to $env:WORKSPACE"
+            $currentPath = (Get-Location).Path.TrimEnd('\', '/')
+            $workspacePath = $env:WORKSPACE_PATH.TrimEnd('\', '/')
+            if (-not $currentPath.StartsWith($workspacePath, [System.StringComparison]::OrdinalIgnoreCase)) {
+                $workspaceMessage += " (fallback to default)"
+            }
+            Write-Host "IDE environment variables have been set for $env:IDE_HOME$workspaceMessage"
         }
     }
 }

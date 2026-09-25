@@ -84,7 +84,7 @@ public class Gui extends Commandlet {
       throw new CliException("Fatal error: The pom.xml file required for launching the IDEasy GUI could not be found in expected location: " + pomPath);
     }
 
-    List<String> args = buildMvnArgs(installationPath, pomPath);
+    List<String> args = buildMvnArgs(installationPath, pomPath, getGuiExecutable(javaInstallation));
 
     /*
      * We manually update the PATH entry with our java version, as by default IDEasy includes the SymLink under /projectname/software/java/bin in the PATH
@@ -110,15 +110,16 @@ public class Gui extends Commandlet {
    *
    * @param installationPath the {@link IdeContext#getIdeInstallationPath() IDEasy installation} directory containing {@code gui/pom.xml}.
    * @param pomPath the launcher POM ({@code gui/pom.xml}) to launch the GUI from. Must be verified to exist before this is called.
+   * @param execExecutable the executable to pass as {@code -Dexec.executable} (see {@link #getGuiExecutable(ToolInstallation)}).
    * @return the {@code mvn} arguments to launch the GUI.
    */
-  static List<String> buildMvnArgs(Path installationPath, Path pomPath) {
+  static List<String> buildMvnArgs(Path installationPath, Path pomPath, String execExecutable) {
 
     List<String> args = new ArrayList<>(List.of(
         "-f", //use specified POM file
         pomPath.toString(),
         "org.codehaus.mojo:exec-maven-plugin:3.1.0:exec",
-        "-Dexec.executable=java",
+        "-Dexec.executable=" + execExecutable,
         "-Dexec.classpathScope=compile",
         "-Dexec.args=-classpath %classpath com.devonfw.ide.gui.AppLauncher",
         "-Dexec.async=true"
@@ -133,5 +134,49 @@ public class Gui extends Commandlet {
       args.add("-U"); //Adding this flag forces maven to download the latest SNAPSHOT version
     }
     return args;
+  }
+
+  private static final String GUI_INFO_PLIST = """
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+      <plist version="1.0">
+      <dict>
+        <key>CFBundleExecutable</key>
+        <string>IDEasy</string>
+        <key>CFBundleIdentifier</key>
+        <string>com.devonfw.tools.ideasy.gui</string>
+        <key>CFBundleName</key>
+        <string>IDEasy</string>
+        <key>CFBundlePackageType</key>
+        <string>APPL</string>
+        <key>CFBundleShortVersionString</key>
+        <string>1.0</string>
+      </dict>
+      </plist>
+      """;
+
+  /**
+   * The GUI is launched as a plain {@code java} process without a native app bundle. On macOS this makes the Dock and menu bar show the executable's
+   * filename "java" instead of "IDEasy" (see issue #2206). Merely renaming/symlinking the bare executable is not reliable: without a real bundle,
+   * LaunchServices may still fall back to the underlying JDK's own identity. Instead, we wrap the launch in a minimal {@code .app} bundle: a proper
+   * {@code Info.plist} declaring our own {@code CFBundleName}/{@code CFBundleIdentifier}, with {@code Contents/MacOS/IDEasy} as a symlink pointing
+   * directly at the real java executable (not a wrapper script - an intermediate {@code exec} would replace the process image and lose the bundle
+   * identity again).
+   *
+   * @param javaInstallation the {@link ToolInstallation} of the java tool used to launch the GUI.
+   * @return the executable to pass to Maven's {@code exec:exec} goal in order to launch the GUI.
+   */
+  String getGuiExecutable(ToolInstallation javaInstallation) {
+
+    if (!this.context.getSystemInfo().isMac()) {
+      return "java";
+    }
+    Path javaExecutable = javaInstallation.binDir().resolve("java");
+    Path contentsDir = this.context.getTempPath().resolve("IDEasy.app").resolve("Contents");
+    Path launcher = contentsDir.resolve("MacOS").resolve("IDEasy");
+    this.context.getFileAccess().mkdirs(launcher.getParent());
+    this.context.getFileAccess().writeFileContent(GUI_INFO_PLIST, contentsDir.resolve("Info.plist"));
+    this.context.getFileAccess().symlink(javaExecutable, launcher, false);
+    return launcher.toString();
   }
 }
