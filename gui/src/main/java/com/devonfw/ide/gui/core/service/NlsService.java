@@ -10,6 +10,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
+import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -58,15 +59,39 @@ public class NlsService {
 
   private volatile EnvironmentVariables userEnvironmentVariables;
 
+  /**
+   * The {@link IdeContext} used to resolve the user environment variables. If {@code null}, an {@link IdeContextConsole} is created lazily on first
+   * persistence, so that merely constructing the service has no side effects.
+   */
+  private final IdeContext context;
+
   private static final Pattern USER_LANG_PATTERN = Pattern.compile("-Duser\\.language=(\\S*)");
 
   /**
-   * Creates the service and initializes it with the given locale.
+   * Creates the service and initializes it with the given locale. The user environment variables are resolved from an {@link IdeContextConsole} that is
+   * created lazily on first persistence, so that merely constructing the service has no side effects.
    *
    * @param locale the preferred locale, or {@code null} to use persisted or default locale.
    */
   public NlsService(Locale locale) {
 
+    this.context = null;
+    initialize(locale);
+  }
+
+  /**
+   * Creates the service using the given {@link IdeContext} to resolve the user configuration and initializes it with the given locale.
+   * <p>
+   * This constructor enables "design for testability" (see {@code documentation/contributing/junit-testing.adoc}): by injecting an {@link IdeContext} (for
+   * example an {@link com.devonfw.tools.ide.context.IdeTestContext}) the service can be isolated from the real user home and the environment of the
+   * machine running the test.
+   *
+   * @param context the {@link IdeContext} to use for resolving the user environment variables.
+   * @param locale the preferred locale, or {@code null} to use persisted or default locale.
+   */
+  public NlsService(IdeContext context, Locale locale) {
+
+    this.context = Objects.requireNonNull(context, "context must not be null");
     initialize(locale);
   }
 
@@ -325,7 +350,9 @@ public class NlsService {
 
     EnvironmentVariables environmentVariables = getUserEnvironmentVariables();
     try {
-      String ideOptions = environmentVariables.get(IDE_OPTIONS);
+      // read only from the user configuration file, not from the machine-wide environment (see getFlat): the persisted GUI locale must not
+      // be influenced by a global IDE_OPTIONS environment variable
+      String ideOptions = environmentVariables.getFlat(IDE_OPTIONS);
       String userLangFlag = "-Duser.language=" + localeToPersist.toLanguageTag();
       String updated = updateLocale(ideOptions, userLangFlag);
       environmentVariables.set(IDE_OPTIONS, updated);
@@ -361,7 +388,8 @@ public class NlsService {
 
   private EnvironmentVariables createUserEnvironmentVariables() {
 
-    IdeContext context = new IdeContextConsole();
+    // if no context was injected (see NlsService(Locale)) we create a console context lazily here, so constructing the service has no side effects
+    IdeContext context = (this.context != null) ? this.context : new IdeContextConsole();
     EnvironmentVariables userVariables = context.getVariables().getByType(EnvironmentVariablesType.USER);
     if (userVariables == null) {
       throw new IllegalStateException("Failed to resolve USER environment variables from IDE context");
