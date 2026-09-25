@@ -108,7 +108,7 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          ./.github/workflows/macos/generate_pkg.sh
+          ./macos-installer/build-pkg.sh
         env:
           RELEASE_VERSION: ${{ needs.resolve-version.outputs.snapshot_version }}
       - name: Upload unsigned PKG
