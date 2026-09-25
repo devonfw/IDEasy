@@ -24,6 +24,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1628[#1628]: Support for OS-specific CVEs
 * https://github.com/devonfw/IDEasy/issues/2271[#2271]: Fix `ide install pgadmin` on Linux
 * https://github.com/devonfw/IDEasy/issues/2431[#2431]: Improve uv support to make it usable for IDE_ROOT on non-default drive
+* https://github.com/devonfw/IDEasy/issues/2513[#2513]: Add commandlet for Ansible (ansible / ansible-playbook)
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/50?closed=1[milestone 2026.09.002].
 
