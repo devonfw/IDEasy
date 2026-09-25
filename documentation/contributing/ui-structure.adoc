@@ -13,7 +13,13 @@ The architecture emphasizes:
 * *UI Reactivity*: via Observer patterns and property bindings
 * *Maintainability*: through localization, programmatic wiring, and comprehensive testing + Scalability via feature-based organization allowing independent development
 * **Scalability** via feature-based organization allowing independent development
-
+* **State management**: The state of the UI is stored using the god-object style GuiStateManager. This object takes care of storing the GUI state as in: 
+** Providing all **service classes** to the apllication
+** Providing all **factory classes** to the pplication
+** Which project is selected? 
+** Which workspace? 
+** Which tabs are opened? 
+** What language did the user select? etc
 === Roles
 
 The GUI is organized around a small set of roles. Each has a single responsibility:
@@ -27,10 +33,6 @@ The GUI is organized around a small set of roles. Each has a single responsibili
 
 |*Service*
 |Encapsulates business logic and access to data/functionality, independently of the UI. E.g. `CommandletService` runs commandlets in the selected context; `NlsService` handles localization. Initialized in `App`.
-
-|*Control*
-|A self-contained UI component of the `MainWindow`-shell, extracted from the main view to improve maintainability and separation of concerns. E.g. the console pane (`ConsoleController`) and the navigation panel (`NavigationPanelView` + `NavigationPanelViewModel`).
-
 |*View*
 |The UI representation without business logic. It displays data from the ViewModel through bindings and translates user gestures back onto it. E.g. `MainWindowView`, `IdeLauncherView`.
 
@@ -42,14 +44,10 @@ Note: the term *Model* in MVVM refers to the observable application state. In pr
 
 == Observer / Observable Pattern
 
-_**Editor's Note:**_ Currently, the GUI mostly does not use the Observer/Observable pattern via extension of `Observable` or `PropertyChangeSupport`.
-Instead, it relies on JavaFX `Property` bindings for reactivity.
-We should rethink this in future contributions.
+IDEasy uses the **Observer/Observable pattern** (and JavaFX `Property` bindings) to propagate changes between the observable state (the Model), the ViewModels, and the Views (not to be confused with EventBus!).
 
-IDEasy uses the **Observer/Observable pattern** (and JavaFX `Property` bindings) to propagate changes between the observable state (the Model), the ViewModels, and the Views.
-
-* **State** (the Model) acts as the *Observable*: it holds the current state as JavaFX `Property`s and notifies observers when the state changes. In practice this is the `context` layer (e.g. `GuiStateManager`, `TaskManager`).
-* **ViewModels and Views** act as *Observers*: they read state through properties and register listeners, and react to changes by updating the UI or the surrounding state accordingly.
+* **ViewModel** acts as the *Observable*: it holds the current state as JavaFX `Property`s and notifies observers when the state changes. In practice this is the `context` layer (e.g. `GuiStateManager`, `TaskManager`).
+* **Views** act as *Observers*: they read state through properties and register listeners, and react to changes by updating the UI or the surrounding state accordingly.
 * JavaFX `Property` and `Binding` APIs are used for fine-grained reactivity within the UI layer.
 
 === Implementation Guidelines
@@ -216,38 +214,6 @@ Generally, we want to refrain from wiring a controller only via FXML:
 . **The View-as-Controller pattern**: The view class is itself the FXML controller (loaded via `FxHelper.loadFxml`, which calls `setRoot(this)` and `setController(this)`). This is the common case.
 . **The Factory pattern** (nested layouts): When a layout includes a child layout that has its own controller, the parent's `FXLoader` can provide the dependencies to the child controller via a `setControllerFactory`. In this case, declaring `fx:controller` in the FXML is fine. See this thread: https://stackoverflow.com/a/78535631
 
-=== Example: View as its own controller
-
-`MainWindowView` is a `BorderPane` that loads `MainWindowView.fxml`, using itself as the controller:
-
-[source,java]
-----
-public MainWindowView(MainWindowViewModel viewModel, GuiStateManager guiStateManager, NlsService nlsService,
-    ConsoleController consoleController, TabFactory tabFactory) {
-
-  this.viewModel = viewModel;
-  this.nlsService = nlsService;
-  this.consoleController = consoleController;
-  this.tabFactory = tabFactory;
-
-  final FXMLLoader loader = new FXMLLoader(getClass().getResource("MainWindowView.fxml"));
-  loader.setRoot(this);
-  loader.setController(this);
-  loader.setResources(this.nlsService.getResourceBundle());
-  // Inject the console controller for the nested console.fxml (see below).
-  loader.setControllerFactory(clazz -> clazz == ConsoleController.class ? this.consoleController : null);
-  loader.load();
-
-  // Build the navigation panel and attach the tab pane programmatically.
-  final NavigationPanelViewModel navigationViewModel =
-      new NavigationPanelViewModel(this.guiStateManager, this.nlsService);
-  setLeft(new NavigationPanelView(navigationViewModel, this.nlsService));
-
-  this.tabFactory.attach(this.tabPane);
-  this.tabFactory.openLauncherTab();
-  // ...
-}
-----
 
 Simple components use the `FxHelper.loadFxml` shortcut, which does the `setRoot(this)` / `setController(this)` / `setResources(...)` wiring for you:
 
