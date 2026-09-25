@@ -15,6 +15,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesPropertiesFile;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.environment.VariableLine;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
@@ -30,6 +31,11 @@ import com.devonfw.tools.ide.variable.VariableDefinition;
 public class UpgradeSettingsCommandlet extends Commandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeSettingsCommandlet.class);
+
+  /**
+   * A property name with this prefix is migrated by stripping the prefix (e.g. {@code plugin_url} becomes {@code url}).
+   */
+  private static final String LEGACY_PLUGIN_PREFIX = "plugin_";
 
   /**
    * The constructor.
@@ -53,6 +59,39 @@ public class UpgradeSettingsCommandlet extends Commandlet {
     updateLegacyFolders();
     updateProperties();
     updateWorkspaceTemplates();
+    updateLegacyKeys();
+  }
+
+  private void updateLegacyKeys() {
+    LOG.info("Updating legacy keys if present...");
+
+    Path settingsPath = context.getSettingsPath();
+    context.getFileAccess().listChildrenMapped(settingsPath, toolDir -> {
+      Path pluginsDir = toolDir.resolve(IdeContext.FOLDER_PLUGINS);
+      if (context.getFileAccess().isExpectedFolder(pluginsDir)) {
+        context.getFileAccess().listChildrenMapped(pluginsDir, pluginFile -> {
+          if (Files.isRegularFile(pluginFile) && pluginFile.getFileName().toString().endsWith(IdeContext.EXT_PROPERTIES)) {
+            updatePluginPropertiesFile(pluginFile);
+          }
+          return null;
+        });
+      }
+      return null;
+    });
+  }
+
+  private void updatePluginPropertiesFile(Path propertiesFilePath) {
+    EnvironmentVariablesPropertiesFile environmentVariables = new EnvironmentVariablesPropertiesFile(null, EnvironmentVariablesType.CONF,
+        propertiesFilePath, this.context);
+    List<String> legacyNames = environmentVariables.collectVariables().stream().map(VariableLine::getName).filter(name -> name != null
+        && name.startsWith(LEGACY_PLUGIN_PREFIX)).toList();
+    for (String legacyName : legacyNames) {
+      String name = legacyName.substring(LEGACY_PLUGIN_PREFIX.length());
+      if (environmentVariables.getFlat(name) == null) {
+        environmentVariables.rename(legacyName, name);
+      }
+    }
+    environmentVariables.save();
   }
 
   private void updateLegacyFolders() {
