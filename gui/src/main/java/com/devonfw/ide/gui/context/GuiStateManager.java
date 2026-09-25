@@ -53,6 +53,17 @@ public class GuiStateManager {
   }
 
   /**
+   * Expose the internal start context used to create {@link com.devonfw.ide.gui.context.IdeGuiContext}s. This is needed by the GUI to perform global checks
+   * (like checking for IDEasy upgrades) without a selected project context.
+   *
+   * @return the {@link com.devonfw.tools.ide.context.IdeStartContextImpl} used by the GUI.
+   */
+  public IdeStartContextImpl getStartContext() {
+
+    return this.startContext;
+  }
+
+  /**
    * @param projectName name of the project folder
    * @param workspaceName name of the workspace folder
    * @return the new {@link IdeGuiContext} for the selected project and workspace.
@@ -75,6 +86,14 @@ public class GuiStateManager {
     listeners.forEach(listener -> listener.onContextChange(this.currentContext));
 
     return this.currentContext;
+  }
+
+  /**
+   * Clears the currently selected project context.
+   */
+  public synchronized void clearCurrentContext() {
+
+    this.currentContext = null;
   }
 
   /**

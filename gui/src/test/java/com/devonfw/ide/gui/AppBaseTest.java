@@ -20,6 +20,7 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.control.SplitPane.Divider;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 import org.assertj.core.data.Offset;
@@ -50,6 +51,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
   private Label statusText;
   private ProgressBar taskProgressBar;
   private SplitPane centerSplitPane;
+  private StackPane updateIndicator;
 
   @TempDir
   private static Path mockIdeRoot;
@@ -59,7 +61,11 @@ public class AppBaseTest extends HeadlessApplicationTest {
 
   @Override
   public void start(Stage stage) throws IOException {
-
+    // The manager is shared (static) across tests; reset to a clean "no project selected" state so a context set by a
+    // previous test (via the UI) does not leak into this one. TestFX runs start() before @BeforeEach, so this is the
+    // reliable place to guarantee a clean slate.
+    guiStateManager.clearCurrentContext();
+    // Use the shared TestGuiSetup, wiring the static (shared) manager created in @BeforeAll and default controllers
     NlsService nlsService = new NlsService(Locale.ENGLISH);
 
     URL mainViewUrl = getClass().getResource("main-view.fxml");
@@ -91,6 +97,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
     centerSplitPane = FxHelper.lookup(root, "#centerSplitPane");
     statusText = FxHelper.lookup(root, "#statusLabel");
     taskProgressBar = FxHelper.lookup(root, "#statusProgressBar");
+    updateIndicator = FxHelper.lookup(root, "#updateIndicator");
   }
 
   /**
@@ -144,6 +151,17 @@ public class AppBaseTest extends HeadlessApplicationTest {
     for (Button button : new Button[] { androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen }) {
       assertThat(button.isDisabled()).as(button.getId() + " button should be disabled when no project has been selected").isTrue();
     }
+  }
+
+  /**
+   * This test ensures that the update indicator is hidden when no project/workspace is selected.
+   */
+  @Test
+  public void testUpdateIndicatorHiddenWhenNoWorkspaceSelected() {
+
+    assertThat(updateIndicator.isVisible())
+        .as("update indicator should be hidden when no workspace has been selected")
+        .isFalse();
   }
 
   /**
