@@ -71,9 +71,8 @@ public class IdeLauncherViewModel extends TabViewModel {
   private final BooleanProperty isIdeButtonsDisabled =
       new SimpleBooleanProperty();
 
-  public IdeLauncherViewModel(GuiStateManager guiStateManager, CommandletService commandletService) {
+  public IdeLauncherViewModel(GuiStateManager guiStateManager) {
     super(guiStateManager);
-    this.commandletService = commandletService;
 
     // The launcher buttons stay disabled until a project/workspace is selected.
     this.isIdeButtonsDisabled.bind(this.guiStateManager.workspaceSelectedProperty().not());
@@ -112,38 +111,34 @@ Each feature owns its View/ViewModel pair and related components, while cross-cu
 gui
 └── src
     └── main
-        ├── java
-        │   └── com
-        │       └── devonfw
-        │           └── ide
-        │               └── gui
-        │                   ├── context
-        │                   │   ├── GuiContextChangeListener.java
-        │                   │   ├── GuiOutputListener.java
-        │                   │   ├── GuiStateManager.java
-        │                   │   ├── IdeGuiContext.java
-        │                   │   └── [Other mostly basic classes etc.]
-        │                   ├── factory
-        │                   ├── helper
-        │                   ├── service
-        │                   ├── ui
-        │                   │   ├── controls
-        │                   │   ├── mainwindow
-        │                   │   ├── modal
-        │                   │   ├── progress
-        │                   │   └── tab
-        │                   │       ├── launcher/
-        │                   │       ├── someOtherTabComponent/
-        │                   ├── App.java
-        │                   └── AppLauncher.java
-        └── resources
+        └── java
+            └── com
+                └── devonfw
+                    └── ide
+                        └── gui
+                            ├── App.java
+                            ├── core
+                            │   ├── context
+                            │   ├── event
+                            │   ├── factory
+                            │   ├── helper
+                            │   ├── mainwindow
+                            │   │   ├── console
+                            │   │   └── navigation
+                            │   ├── modal
+                            │   ├── progress
+                            │   │   └── taskwindow
+                            │   ├── service
+                            │   └── tab
+                            └── feature
+                                └── ide
+                                    └── launcher
 ----
 
 === FXML Resources
 
 FXML files live alongside their View/Controller classes under `gui/src/main/resources/com/devonfw/ide/gui/ui/`, mirroring the Java package layout.
 The `%key` placeholders are resolved against the resource bundle provided by `NlsService`.
-
 [source]
 ----
 resources
@@ -151,16 +146,40 @@ resources
     └── devonfw
         └── ide
             └── gui
-                ├── ui
-                │   ├── controls
-                │   │   ├── console/console.fxml
-                │   │   └── mainwindow/NavigationPanel.fxml
-                │   ├── mainwindow/MainWindowView.fxml
-                │   ├── progress/taskwindow/task_overview_window.fxml
-                │   └── tab/launcher/IdeLauncher.fxml
-                ├── assets/          (icons and logos)
-                ├── style/          (CSS)
-                └── nls/            (messages.properties, messages_de.properties, …)
+                ├── core
+                │   ├── mainwindow
+                │   │   ├── MainWindowView.fxml
+                │   │   ├── console
+                │   │   │   └── console.fxml
+                │   │   └── navigation
+                │   │       └── NavigationPanel.fxml
+                │   └── progress
+                │       └── taskwindow
+                │           └── task_overview_window.fxml
+                │
+                ├── feature
+                │   └── ide
+                │       └── launcher
+                │           └── IdeLauncher.fxml
+                │
+                ├── assets
+                │   ├── icons
+                │   │   └── ...
+                │   ├── as.png
+                │   ├── eclipse.png
+                │   ├── intellij.png
+                │   ├── logo.png
+                │   ├── vscode.png
+                │   └── devonfw.png
+                │
+                ├── style
+                │   ├── center.css
+                │   └── navigation.css
+                │
+                └── nls
+                    ├── messages.properties
+                    ├── messages_de.properties
+                    └── ...
 ----
 
 === Benefits

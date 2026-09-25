@@ -11,7 +11,7 @@ This guide acts as an overview.
 == Contribution workflow
 
 GUI contributions should follow a short design-first workflow before implementation of the actual task starts.
-This prevents ensures consistency of parallel work on UI contributions and makes reviews easier.
+This ensures consistency of parallel work on UI contributions and makes reviews easier.
 
 . Pick an issue
 . Create a design (see details)
@@ -64,7 +64,6 @@ A `TabComponent` bundles everything that belongs to one tab in a single, reusabl
 
 
 This applies the *Tell, Don't Ask* principle: instead of the caller *asking* the ViewModel for its title key and then separately constructing the ViewModel and View, the caller *tells* the factory to open a `TabComponent` and lets the component compose itself.
-It mirrors how Android handles reusable UI components (Fragments), where a fragment owns creating its layout and view model (see `Fragment.onCreateView`).
 
 === Anatomy of a tab
 
@@ -100,18 +99,17 @@ public class MyFeatureViewModel extends TabViewModel {
 ----
 public class MyFeatureTab extends TabComponent {
 
-  private final SimpleStringProperty tabTitleKey = new SimpleStringProperty("tab.my_feature");
+  private final String tabTitleKey = "tab.my_feature";
 
-  public MyFeatureTab(GuiStateManager guiStateManager, CommandletService commandletService,
-      ConsoleController consoleController) {
+  public MyFeatureTab(GuiStateManager guiStateManager) {
 
-    super(guiStateManager, commandletService, consoleController);
+    super(guiStateManager);
   }
 
   @Override
   public TabView createTab() {
   
-    this.viewModel = new MyFeatureViewModel(this.guiStateManager, this.commandletService);
+    this.viewModel = new MyFeatureViewModel(this.guiStateManager);
     this.view = new MyFeatureView(this.viewModel, this.nlsService);
     this.tab = new Tab(this.nlsService.get(tabTitleKey), this.view);
     this.tab.setUserData(tabTitleKey);
@@ -127,7 +125,7 @@ public class MyFeatureTab extends TabComponent {
   }
 
   @Override
-  public SimpleStringProperty getTabTitleKey() {
+  public String getTabTitleKey() {
     return this.tabTitleKey;
   }
 }
@@ -137,7 +135,7 @@ public class MyFeatureTab extends TabComponent {
 [source,java]
 ----
 public void openMyFeatureTab() {
-  open(new MyFeatureTab(this.guiStateManager, this.commandletService, this.consoleController));
+  open(new MyFeatureTab(this.guiStateManager));
 }
 ----
 . **Test it.** Unit-test the ViewModel in isolation, and add a UI test (extending `HeadlessApplicationTest`) for the view behavior and binding correctness.
@@ -148,19 +146,18 @@ The IDE launcher tab follows this pattern. `IdeLauncherTab` owns the `IdeLaunche
 
 [source,java]
 ----
-public class LauncherTab extends TabComponent {
+public class IdeLauncherTab extends TabComponent {
 
-  private final SimpleStringProperty tabTitleKey = new SimpleStringProperty("tab.ide_launcher");
+  private final String tabTitleKey = "tab.ide_launcher";
 
-  public LauncherTab(GuiStateManager guiStateManager, CommandletService commandletService,
-      ConsoleController consoleController) {
+  public LauncherTab(GuiStateManager guiStateManager) {
 
-    super(guiStateManager, commandletService, consoleController);
+    super(guiStateManager);
   }
 
   @Override
   public TabView createTab() {
-    this.viewModel = new IdeLauncherViewModel(this.guiStateManager, this.commandletService);
+    this.viewModel = new IdeLauncherViewModel(this.guiStateManager);
     this.view = new IdeLauncherView(this.viewModel, this.nlsService);
     this.tab = new Tab(this.nlsService.get(tabTitleKey), this.view);
     this.tab.setUserData(tabTitleKey);
@@ -176,7 +173,7 @@ public class LauncherTab extends TabComponent {
   }
 
   @Override
-  public SimpleStringProperty getTabTitleKey() {
+  public String getTabTitleKey() {
     return this.tabTitleKey;
   }
 }
@@ -187,7 +184,7 @@ The `TabFactory` becomes completely decoupled from the concrete tab:
 [source,java]
 ----
 public void openLauncherTab() {
-  open(new LauncherTab(this.guiStateManager, this.commandletService, this.consoleController));
+  open(new IdeLauncherTab(this.guiStateManager));
 }
 
 private void open(TabComponent tabComponent) {
