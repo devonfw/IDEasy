@@ -1,11 +1,10 @@
 package com.devonfw.tools.ide.url.tool.java;
 
-import org.assertj.core.api.Assertions;
-
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -97,8 +96,9 @@ class JavaAzulUrlUpdaterJsonParsingTest extends Assertions {
   void shouldBuildUrlMatrixFromDownloadUrl(@TempDir Path tempDir) throws Exception {
 
     // given
-    String response =
-        "[{\"java_version\":[17,0,14],\"openjdk_build_number\":7,\"download_url\":\"https://cdn.azul.com/zulu/bin/zulu17.56.15-ca-crac-jdk17.0.14-linux_x64.tar.gz\",\"os\":\"linux\",\"arch\":\"x86\",\"sha256_hash\":\"abc123\"}]";
+    String response = "[{\"java_version\":[17,0,14],\"openjdk_build_number\":7,"
+        + "\"download_url\":\"https://cdn.azul.com/zulu/bin/zulu17.56.15-ca-crac-jdk17.0.14-linux_x64.tar.gz\","
+        + "\"os\":\"linux\",\"arch\":\"x86\",\"sha256_hash\":\"abc123\"}]";
     TestableJavaAzulUrlUpdater updater = new TestableJavaAzulUrlUpdater();
     JavaAzulJsonVersion jsonVersion = updater.parse(response).versions().getFirst();
     UrlVersion urlVersion = UrlRepository.load(tempDir).getOrCreateChild("java").getOrCreateChild("azul").getOrCreateChild("17.0.14_7");
