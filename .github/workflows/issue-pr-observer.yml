@@ -25,6 +25,7 @@ permissions:
 
 jobs:
   observe:
+    if: github.repository == 'devonfw/IDEasy'
     runs-on: ubuntu-latest
     steps:
       - name: Scan for new external issues, PRs & discussions and notify Teams
