@@ -23,7 +23,6 @@ import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.merge.xml.XmlMergeDocument;
 import com.devonfw.tools.ide.merge.xml.XmlMerger;
-import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
@@ -99,15 +98,6 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
         args.add(option);
       }
     }
-  }
-
-  @Override
-  public ProcessResult runTool(ProcessContext pc, ProcessMode processMode, List<String> args) {
-
-    if ((processMode != null) && processMode.isBackground()) {
-      configureWorkspace();
-    }
-    return super.runTool(pc, processMode, args);
   }
 
   @Override
