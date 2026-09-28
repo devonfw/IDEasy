@@ -182,7 +182,7 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
     return result;
   }
 
-  private int mergeWorkspaceSingle(Path templatesFolder, Path workspaceFolder, Map<Path, Path> redirects, int errors) {
+  protected int mergeWorkspaceSingle(Path templatesFolder, Path workspaceFolder, Map<Path, Path> redirects, int errors) {
 
     Path setupFolder = templatesFolder.resolve(IdeContext.FOLDER_SETUP);
     Path updateFolder = templatesFolder.resolve(IdeContext.FOLDER_UPDATE);
@@ -246,10 +246,20 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
     }
   }
 
+  /**
+   * @param relativeTemplatePath the workspace-relative {@link Path} of an extra SDK template (see {@link #registerExtraSdkTemplate(String, Path)}).
+   * @return the {@link Path} to merge the extra SDK template into. By default this resolves it within the workspace; IDEs that keep their config out of the
+   *     workspace can override this to redirect the target.
+   */
+  protected Path getExtraSdkTargetPath(Path relativeTemplatePath) {
+
+    return this.context.getWorkspacePath().resolve(relativeTemplatePath);
+  }
+
   private void synchronizeExtraToolInstallation(String sdk, Set<Path> templatePaths, List<ExtraToolInstallation> extraInstallations) {
 
     for (Path templatePath : templatePaths) {
-      Path workspaceFile = this.context.getWorkspacePath().resolve(templatePath);
+      Path workspaceFile = getExtraSdkTargetPath(templatePath);
       Path templateFile = this.context.getSettingsPath().resolve(this.tool).resolve(IdeContext.FOLDER_WORKSPACE)
           .resolve(IdeContext.FOLDER_REPOSITORY)
           .resolve(templatePath);

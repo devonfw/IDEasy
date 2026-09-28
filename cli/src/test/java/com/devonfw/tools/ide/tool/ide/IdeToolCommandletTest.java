@@ -25,7 +25,9 @@ class IdeToolCommandletTest extends AbstractIdeContextTest {
     context.getCommandletManager().getCommandlet(Intellij.class).run();
     // assert
     assertThat(workspace.resolve(".editorconfig")).exists();
-    assertThat(workspace.resolve(".intellij/config/idea.key")).exists();
+    // the JetBrains config is kept out of the workspace (see #2531)
+    assertThat(context.getIdeHome().resolve(".ide").resolve("intellij").resolve(context.getWorkspaceName()).resolve("config/idea.key")).exists();
+    assertThat(workspace.resolve(".intellij/config/idea.key")).doesNotExist();
     assertThat(workspace.resolve("user.properties")).exists().content().contains("ijversion=2023.3.3");
   }
 

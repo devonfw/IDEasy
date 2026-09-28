@@ -304,8 +304,10 @@ class IntellijTest extends AbstractIdeContextTest {
     commandlet.run();
 
     // assert
-    Path jdkTable = context.getWorkspacePath()
-        .resolve(".intellij")
+    Path jdkTable = context.getIdeHome()
+        .resolve(IdeContext.FOLDER_DOT_IDE)
+        .resolve("intellij")
+        .resolve(context.getWorkspaceName())
         .resolve("config")
         .resolve("options")
         .resolve("jdk.table.xml");
@@ -316,6 +318,10 @@ class IntellijTest extends AbstractIdeContextTest {
     assertThat(jdkTableContent).contains("<name value=\"process-engine\"/>");
     assertThat(jdkTableContent).contains("software/extra/java/client");
     assertThat(jdkTableContent).contains("software/extra/java/process-engine");
+
+    // regression guard (#1676/#2531): the extra SDKs must be imported into the out-of-workspace metadata config folder used for
+    // idea.config.path, and must NOT silently end up in the (now obsolete) in-workspace .intellij/config location
+    assertThat(context.getWorkspacePath().resolve(".intellij/config/options/jdk.table.xml")).doesNotExist();
   }
 
   /**
@@ -347,8 +353,10 @@ class IntellijTest extends AbstractIdeContextTest {
     commandlet.run();
 
     // assert
-    Path jdkTable = context.getWorkspacePath()
-        .resolve(".intellij")
+    Path jdkTable = context.getIdeHome()
+        .resolve(IdeContext.FOLDER_DOT_IDE)
+        .resolve("intellij")
+        .resolve(context.getWorkspaceName())
         .resolve("config")
         .resolve("options")
         .resolve("jdk.table.xml");
@@ -375,8 +383,10 @@ class IntellijTest extends AbstractIdeContextTest {
     commandlet.run();
 
     // assert
-    Path jdkTable = context.getWorkspacePath()
-        .resolve(".intellij")
+    Path jdkTable = context.getIdeHome()
+        .resolve(IdeContext.FOLDER_DOT_IDE)
+        .resolve("intellij")
+        .resolve(context.getWorkspaceName())
         .resolve("config")
         .resolve("options")
         .resolve("jdk.table.xml");
@@ -404,8 +414,10 @@ class IntellijTest extends AbstractIdeContextTest {
     commandlet.run();
 
     // assert
-    Path jdkTable = context.getWorkspacePath()
-        .resolve(".intellij")
+    Path jdkTable = context.getIdeHome()
+        .resolve(IdeContext.FOLDER_DOT_IDE)
+        .resolve("intellij")
+        .resolve(context.getWorkspaceName())
         .resolve("config")
         .resolve("options")
         .resolve("jdk.table.xml");
@@ -432,6 +444,38 @@ class IntellijTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(environmentContext.set).containsEntry("IDEA_PROPERTIES", this.context.getWorkspacePath().resolve("idea.properties").toString());
+  }
+
+  /**
+   * Tests that the JetBrains config template ({@code .intellij/config}) is merged into the out-of-workspace metadata folder
+   * ({@code $IDE_HOME/.ide/intellij/«workspace»/config}) instead of the workspace, and that the generated {@code idea.properties}
+   * {@code idea.config.path} points to the same location (see #2531).
+   */
+  @Test
+  void testConfigureWorkspaceMergesConfigTemplateOutOfWorkspace() throws Exception {
+
+    // arrange
+    IdeTestContext context = newContext("intellij");
+    Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
+    Path workspace = context.getWorkspacePath();
+    Path metadataConfig = context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("intellij").resolve(context.getWorkspaceName()).resolve("config");
+
+    // act
+    commandlet.configureWorkspace();
+
+    // assert
+    // the config template is merged into the out-of-workspace metadata config folder (both the user-home artifact and the settings template)...
+    assertThat(metadataConfig.resolve("idea.key")).exists();
+    assertThat(metadataConfig.resolve("options").resolve("code.style.schemes.xml")).exists()
+        .content().contains("ideasyTestOption");
+    // ...and is no longer merged into the workspace
+    assertThat(workspace.resolve(".intellij/config")).doesNotExist();
+    // the settings config template carries the merge namespace, so it must merge cleanly without a warning (see the merger's namespace check)
+    assertThat(context).logAtWarning().hasNoMessageContaining("XML merge namespace not found");
+    // and the generated idea.properties points at the same out-of-workspace location
+    // (properties escaping escapes the drive-letter ':' as '\:' and getFormattedPath already converted separators to '/')
+    String ideaProperties = context.getFileAccess().readFileContent(workspace.resolve("idea.properties")).replace("\\", "");
+    assertThat(ideaProperties).contains("idea.config.path=" + metadataConfig.toString().replace("\\", "/"));
   }
 
   private void checkInstallation(IdeTestContext context) {
