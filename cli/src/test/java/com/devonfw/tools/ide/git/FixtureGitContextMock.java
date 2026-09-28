@@ -11,8 +11,8 @@ import com.devonfw.tools.ide.io.FileCopyMode;
 /**
  * A {@link GitContextMock} whose {@link #clone(GitUrl, Path)} copies the content of a real on-disk repository (fixture) into the target location, instead of
  * building the synthetic {@code .git} skeleton. Use this when a test needs to clone a repository and then assert on <em>real</em> file content (e.g. settings
- * or tool configuration files), while still relying on the {@link GitContextMock} behavior for {@code fetch}/{@code pull}, stash simulation, and the other
- * {@code .git} state queries.
+ * or tool configuration files), while still relying on the {@link GitContextMock} behavior for {@code fetch}/{@code pull} and the other {@code .git} state
+ * queries.
  */
 public class FixtureGitContextMock extends GitContextMock {
 
