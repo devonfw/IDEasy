@@ -38,87 +38,15 @@ jobs:
           echo "release_version=${release_version}" >> "$GITHUB_OUTPUT"
           echo "snapshot_version=${snapshot_version}" >> "$GITHUB_OUTPUT"
 
-  # Adjusts the revision to the latest version, builds images for each OS type/architecture using matrix:os and uploads each binary as a separate artifact
+  # Builds all native images, the Windows MSI, and the macOS PKG via the shared reusable workflow,
+  # uploading each binary as a separate artifact that the release job below downloads and deploys.
   build-natives:
     name: Build native images
-    runs-on: ${{ matrix.os }}
     needs: resolve-version
-    strategy:
-      matrix: # ATTENTION: see also nightly-build.yml, image name are referenced in cli/src/main/assembly/*.xml files, on update do not forget to also update there
-        os: [ windows-latest, ubuntu-latest, ubuntu-22.04-arm, macos-latest, macos-15-intel ]
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          submodules: recursive
-      - uses: graalvm/setup-graalvm@v1
-        with:
-          java-version: '25'
-          distribution: 'graalvm-community'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          native-image-job-reports: 'true'
-      - name: Build native image
-        shell: bash
-        run: |
-          cd cli
-          mvn -B -ntp -Drevision=${RELEASE_VERSION} -Pnative -DskipTests=true package
-        env:
-          RELEASE_VERSION: ${{ needs.resolve-version.outputs.release_version }}
-      - name: Ad-hoc sign native image (macOS)
-        if: runner.os == 'macOS'
-        shell: bash
-        run: |
-          codesign --force --sign - cli/target/ideasy
-          codesign --verify --verbose cli/target/ideasy
-      - name: Upload native image
-        uses: actions/upload-artifact@v7
-        with:
-          name: natives-${{ matrix.os }}
-          path: cli/target/ideasy*
-      - name: Build MSI with WixToolSet
-        if: runner.os == 'Windows'
-        shell: bash
-        run: ./windows-installer/build-msi.sh
-      - name: Upload unsigned MSI
-        if: runner.os == 'Windows'
-        id: upload-msi
-        uses: actions/upload-artifact@v7
-        with:
-          name: msi-unsigned
-          path: windows-installer/ideasy.msi
-      - name: Sign MSI
-        if: runner.os == 'Windows'
-        uses: signpath/github-action-submit-signing-request@v2
-        with:
-          api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
-          organization-id: '428e13ed-ca0c-47ca-8a73-63b76cabb59b'
-          project-slug: 'IDEasy'
-          signing-policy-slug: 'test-signing'
-          artifact-configuration-slug: 'IDEasy'
-          github-artifact-id: '${{ steps.upload-msi.outputs.artifact-id }}'
-          wait-for-completion: true
-          output-artifact-directory: 'windows-installer/signed'
-      - name: Upload MSI
-        if: runner.os == 'Windows'
-        uses: actions/upload-artifact@v7
-        with:
-          name: msi
-          path: windows-installer/signed/ideasy.msi
-      - name: Build MacOS PKG
-        if: runner.os == 'macOS'
-        shell: bash
-        run: |
-          ./macos-installer/build-pkg.sh
-        env:
-          RELEASE_VERSION: ${{ needs.resolve-version.outputs.release_version }}
-      - name: Upload unsigned PKG
-        if: runner.os == 'macOS'
-        uses: actions/upload-artifact@v4
-        with:
-          name: pkg-${{ matrix.os == 'macos-latest' && 'arm64' || 'x64' }}
-          path: macos-installer/ideasy.pkg
-          # Default is "warn": a missing PKG would upload an empty artifact and only fail much
-          # later in the release job. Fail right here instead.
-          if-no-files-found: error
+    uses: ./.github/workflows/build-natives.yml
+    with:
+      native_version: ${{ needs.resolve-version.outputs.release_version }}
+      pkg_version: ${{ needs.resolve-version.outputs.release_version }}
 
   # Downloads all native image artifacts to cli/target and builds the project using assemblies for final deployment to Maven Central.
   # The version number for the next build will be incremented automatically.
