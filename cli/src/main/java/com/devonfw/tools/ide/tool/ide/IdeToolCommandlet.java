@@ -146,7 +146,7 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
   public ProcessResult runTool(ProcessContext pc, ProcessMode processMode, List<String> args) {
 
     validateOpenPath();
-    if ((processMode != null) && processMode.isBackground()) {
+    if ((processMode != null) && processMode.isBackground() && !hasExplicitProject()) {
       configureWorkspace();
     }
     return super.runTool(pc, processMode, args);
@@ -190,8 +190,23 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
 
   @Override
   protected void postInstall(ToolInstallRequest request) {
-    configureWorkspace();
+    if (!hasExplicitProject()) {
+      // an explicit --project launch opens an external folder that must not be written into, so skip the workspace configuration
+      // (template merge and extra-SDK sync); a plain `ide install` keeps merging into the managed workspace as today
+      configureWorkspace();
+    }
     super.postInstall(request);
+  }
+
+  /**
+   * @return {@code true} if an explicit {@code --project} folder was given for this run, i.e. the launch opens an external folder that IDEasy must not
+   *     write into. Such launches skip the workspace configuration ({@link #configureWorkspace() template merge and extra-SDK sync}) on every call site of
+   *     the launch path (the {@link #runTool} seam and the {@link #postInstall postInstall} of the launch's ensure-install step); a plain
+   *     {@code ide install} (no flag) still merges into the managed workspace.
+   */
+  private boolean hasExplicitProject() {
+
+    return this.project.getValue() != null;
   }
 
   /**
