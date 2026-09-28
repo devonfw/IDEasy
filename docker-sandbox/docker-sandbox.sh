@@ -43,6 +43,13 @@
 #                         run` command, then exit - do not start the container.
 #   --ca-cert <file>      Bundle of CA certificates to trust inside the container
 #                         (exported as NODE_EXTRA_CA_CERTS=/ca/certs/ca-bundle.crt).
+#   --api-key <value>     Anthropic API key (shorthand for
+#                         --env ANTHROPIC_API_KEY=<value>; also read from the
+#                         host IDEASY_SANDBOX_API_KEY env var).
+#   --env NAME=VALUE      Extra env var for the agent (repeatable), written into
+#                         Claude's isolated config at container start - e.g. a
+#                         custom ANTHROPIC_BASE_URL / ANTHROPIC_AUTH_TOKEN for a
+#                         proxy. Never baked into the image.
 #   -h | --help           Show this help.
 #
 # Everything after `--` is forwarded to the agent (e.g. `-- -p "fix the test"`).
@@ -56,6 +63,13 @@ IMAGE="ideasy-sandbox"
 AGENT="claude"
 REPO=""
 CA_CERT_FILE=""
+# Agent credentials / endpoint config, written into Claude's isolated config at
+# container start (never baked into the image). API_KEY is a shorthand for the
+# env var ANTHROPIC_API_KEY (also read from the host IDEASY_SANDBOX_API_KEY env
+# var, convenient for CI or a login script); AGENT_ENV holds repeatable
+# NAME=VALUE pairs from --env (e.g. a custom ANTHROPIC_BASE_URL + token).
+API_KEY="${IDEASY_SANDBOX_API_KEY:-}"
+AGENT_ENV=()
 DO_PULL=0
 DO_CHECK=0
 DO_DRY_RUN=0
@@ -79,7 +93,7 @@ green() { printf '%s%s%s\n' "$GREEN" "$1" "$OFF"; }
 blue()  { printf '%s%s%s\n' "$BLUE" "$1" "$OFF"; }
 
 usage() {
-  sed -n '2,48p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '2,54p' "$0" | sed 's/^# \{0,1\}//'
 }
 
 # --- Argument parsing --------------------------------------------------------
@@ -89,6 +103,8 @@ while [ $# -gt 0 ]; do
     --image) IMAGE="${2:?--image requires a value}"; shift 2 ;;
     --agent) AGENT="${2:?--agent requires a value}"; shift 2 ;;
     --ca-cert) CA_CERT_FILE="${2:?--ca-cert requires a value}"; shift 2 ;;
+    --api-key) API_KEY="${2:?--api-key requires a value}"; shift 2 ;;
+    --env) AGENT_ENV+=("${2:?--env requires NAME=VALUE}"); shift 2 ;;
     --pull) DO_PULL=1; shift ;;
     --check) DO_CHECK=1; shift ;;
     --dry-run) DO_DRY_RUN=1; shift ;;
@@ -184,6 +200,22 @@ build_env_flags() {
   if [ -n "$CA_CERT_FILE" ]; then
     ENV_FLAGS+=("-e" "NODE_EXTRA_CA_CERTS=/ca/certs/ca-bundle.crt")
   fi
+  # Agent credentials. IDEasy scrubs ANTHROPIC_* (and friends) out of the agent's
+  # ambient environment, so passing them with -e directly would drop them. We
+  # instead forward them under IDEASY_SANDBOX_* names (which IDEasy does not
+  # scrub) and let the entrypoint move them into Claude's settings.json env block
+  # - the place Claude actually honours.
+  if [ -n "$API_KEY" ]; then
+    ENV_FLAGS+=("-e" "IDEASY_SANDBOX_API_KEY=$API_KEY")
+  fi
+  if [ ${#AGENT_ENV[@]} -gt 0 ]; then
+    local kv
+    for kv in "${AGENT_ENV[@]}"; do
+      local name="${kv%%=*}"
+      local value="${kv#*=}"
+      ENV_FLAGS+=("-e" "IDEASY_SANDBOX_E_${name}=$value")
+    done
+  fi
 }
 
 print_plan() {
@@ -197,6 +229,11 @@ print_plan() {
   echo "  Container root  : ${IDE_ROOT} (container-local, discarded on exit)"
   echo "  Git identity    : ${GIT_AUTHOR_NAME:-<unset>} <${GIT_AUTHOR_EMAIL:-<unset>}>"
   echo "  CA cert         : ${CA_CERT_FILE:-<none>}"
+  echo "  API key         : $([ -n "$API_KEY" ] && echo 'present (value hidden)' || echo '<none>')"
+  local envnames=()
+  local kv
+  for kv in "${AGENT_ENV[@]}"; do envnames+=("${kv%%=*}"); done
+  echo "  Agent env vars  : $([ ${#envnames[@]} -gt 0 ] && printf '%s\n' "${envnames[*]}" || echo '<none>')"
   echo "  Agent args      : ${AGENT_ARGS[*]:-<none>}"
   echo ""
   echo "  Command:"
@@ -213,6 +250,11 @@ print_plan() {
 main() {
   local engine
   engine="$(detect_container_engine)"
+
+  # MSYS2/Git Bash rewrites arguments that look like Unix paths (e.g. the -w
+  # working directory /projects/...) into Windows paths (C:/...), which Docker
+  # rejects. Disable that conversion for this process; harmless outside MSYS2.
+  export MSYS_NO_PATHCONV=1
 
   blue "IDEasy Docker Sandbox (experimental)"
   resolve_repo
