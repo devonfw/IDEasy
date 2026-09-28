@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.tool.ide;
 
 import java.nio.file.Path;
+import java.util.Map;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -37,7 +38,7 @@ public interface IdeFeatures {
    */
   default void configureWorkspace() {
 
-    getWorkspaceConfigurer().configureWorkspace();
+    getWorkspaceConfigurer().configureWorkspace(this::getWorkspaceRedirects);
   }
 
   /**
@@ -63,5 +64,16 @@ public interface IdeFeatures {
   default void importRepository(Path repositoryPath) {
 
     throw new CliException("Repository import is not yet supported for IDE " + getName());
+  }
+
+  /**
+   * @param workspaceFolder the {@link IdeContext#getWorkspacePath() workspace folder}.
+   * @return the {@link Map} with the {@link Path}s inside the given {@code workspaceFolder} as keys and the {@link Path}s where the according workspace
+   *     templates shall be merged to instead as values. Allows to keep IDE-specific data out of the workspace (e.g. in {@link #getIdeMetadataPath()}) without
+   *     changing the structure of the workspace templates in the settings. By default, nothing is redirected.
+   */
+  default Map<Path, Path> getWorkspaceRedirects(Path workspaceFolder) {
+
+    return Map.of();
   }
 }

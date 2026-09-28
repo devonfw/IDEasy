@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,8 +72,11 @@ public class IdeWorkspaceConfigurer {
 
   /**
    * Configure (initialize or update) the workspace for this IDE using the templates from the settings.
+   *
+   * @param workspaceRedirects the supplier of the {@link Map} with the workspace-internal {@link Path}s to redirect the workspace templates to instead, as provided by the owning tool
+   *     ({@link IdeFeatures#getWorkspaceRedirects(Path)}).
    */
-  public void configureWorkspace() {
+  public void configureWorkspace(Function<Path, Map<Path, Path>> workspaceRedirects) {
     FileAccess fileAccess = this.context.getFileAccess();
     Path workspaceFolder = this.context.getWorkspacePath();
     if (!fileAccess.isExpectedFolder(workspaceFolder)) {
@@ -80,15 +84,16 @@ public class IdeWorkspaceConfigurer {
       return; // should actually never happen...
     }
     Step step = this.context.newStep("Configuring workspace " + workspaceFolder.getFileName() + " for IDE " + this.toolName);
-    step.run(() -> doMergeWorkspaceStep(step, workspaceFolder));
+    step.run(() -> doMergeWorkspaceStep(step, workspaceFolder, workspaceRedirects));
   }
 
-  private void doMergeWorkspaceStep(Step step, Path workspaceFolder) {
+  private void doMergeWorkspaceStep(Step step, Path workspaceFolder, Function<Path, Map<Path, Path>> workspaceRedirects) {
 
     int errors = 0;
-    errors = mergeWorkspace(this.context.getUserHomeIde(), workspaceFolder, errors);
-    errors = mergeWorkspace(this.context.getSettingsPath(), workspaceFolder, errors);
-    errors = mergeWorkspace(this.context.getConfPath(), workspaceFolder, errors);
+    Map<Path, Path> redirects = workspaceRedirects.apply(workspaceFolder);
+    errors = mergeWorkspace(this.context.getUserHomeIde(), workspaceFolder, redirects, errors);
+    errors = mergeWorkspace(this.context.getSettingsPath(), workspaceFolder, redirects, errors);
+    errors = mergeWorkspace(this.context.getConfPath(), workspaceFolder, redirects, errors);
 
     synchronizeExtraToolInstallations();
 
@@ -103,15 +108,15 @@ public class IdeWorkspaceConfigurer {
     }
   }
 
-  private int mergeWorkspace(Path configFolder, Path workspaceFolder, int errors) {
+  private int mergeWorkspace(Path configFolder, Path workspaceFolder, Map<Path, Path> redirects, int errors) {
 
     int result = errors;
-    result = mergeWorkspaceSingle(configFolder.resolve(IdeContext.FOLDER_WORKSPACE), workspaceFolder, result);
-    result = mergeWorkspaceSingle(configFolder.resolve(this.toolName).resolve(IdeContext.FOLDER_WORKSPACE), workspaceFolder, result);
+    result = mergeWorkspaceSingle(configFolder.resolve(IdeContext.FOLDER_WORKSPACE), workspaceFolder, redirects, result);
+    result = mergeWorkspaceSingle(configFolder.resolve(this.toolName).resolve(IdeContext.FOLDER_WORKSPACE), workspaceFolder, redirects, result);
     return result;
   }
 
-  private int mergeWorkspaceSingle(Path templatesFolder, Path workspaceFolder, int errors) {
+  private int mergeWorkspaceSingle(Path templatesFolder, Path workspaceFolder, Map<Path, Path> redirects, int errors) {
 
     Path setupFolder = templatesFolder.resolve(IdeContext.FOLDER_SETUP);
     Path updateFolder = templatesFolder.resolve(IdeContext.FOLDER_UPDATE);
@@ -120,7 +125,7 @@ public class IdeWorkspaceConfigurer {
       return errors;
     }
     LOG.debug("Merging workspace templates from {}...", templatesFolder);
-    return errors + this.context.getWorkspaceMerger().merge(setupFolder, updateFolder, this.context.getVariables(), workspaceFolder);
+    return errors + this.context.getWorkspaceMerger().merge(setupFolder, updateFolder, this.context.getVariables(), workspaceFolder, redirects);
   }
 
   private void synchronizeExtraToolInstallations() {

@@ -133,7 +133,7 @@ public class Vscode extends IdeToolCommandlet {
   }
 
   @Override
-  protected Map<Path, Path> getWorkspaceRedirects(Path workspaceFolder) {
+  public Map<Path, Path> getWorkspaceRedirects(Path workspaceFolder) {
 
     // the settings still provide the user settings template in the legacy location inside the workspace
     return Map.of(workspaceFolder.resolve(LEGACY_USER_DATA), getUserDataPath());
