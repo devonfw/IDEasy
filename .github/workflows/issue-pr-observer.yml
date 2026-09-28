@@ -24,7 +24,9 @@ permissions:
 
 jobs:
   observe:
-    if: github.repository == 'devonfw/IDEasy'
+    if: >
+      github.repository == 'devonfw/IDEasy' &&
+      (github.event_name == 'workflow_dispatch' || vars.ENABLE_AUTOMATIC_WORKFLOWS == 'true')
     runs-on: ubuntu-latest
     steps:
       - name: Scan for new external issues, PRs & discussions and notify Teams
