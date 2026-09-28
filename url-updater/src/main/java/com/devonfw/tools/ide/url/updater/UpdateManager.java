@@ -18,6 +18,7 @@ import com.devonfw.tools.ide.url.tool.androidstudio.AndroidStudioUrlUpdater;
 import com.devonfw.tools.ide.url.tool.aws.AwsUrlUpdater;
 import com.devonfw.tools.ide.url.tool.az.AzureUrlUpdater;
 import com.devonfw.tools.ide.url.tool.claude.ClaudeUrlUpdater;
+import com.devonfw.tools.ide.url.tool.codex.CodexUrlUpdater;
 import com.devonfw.tools.ide.url.tool.copilot.CopilotUrlUpdater;
 import com.devonfw.tools.ide.url.tool.corepack.CorepackUrlUpdater;
 import com.devonfw.tools.ide.url.tool.docker.DockerDesktopUrlUpdater;
@@ -87,7 +88,7 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
 
   private final List<AbstractUrlUpdater> updaters = List.of(
       new AgyUrlUpdater(), new AndroidStudioUrlUpdater(), new AwsUrlUpdater(), new AzureUrlUpdater(),
-      new ClaudeUrlUpdater(), new CopilotUrlUpdater(), new CorepackUrlUpdater(), new DockerDesktopUrlUpdater(), new DotNetUrlUpdater(),
+      new ClaudeUrlUpdater(), new CodexUrlUpdater(), new CopilotUrlUpdater(), new CorepackUrlUpdater(), new DockerDesktopUrlUpdater(), new DotNetUrlUpdater(),
       new EclipseCppUrlUpdater(), new EclipseJeeUrlUpdater(), new EclipseJavaUrlUpdater(), new GcLogAnalyzerUrlUpdater(), new GCloudUrlUpdater(),
       new GcViewerUrlUpdater(), new GhUrlUpdater(), new GoUrlUpdater(), new GraalVmCommunityUpdater(), new GraalVmOracleUrlUpdater(), new GradleUrlUpdater(),
       new HelmUrlUpdater(), new InsoUrlUpdater(), new IntellijUrlUpdater(), new JasyptUrlUpdater(), new JavaAzulUrlUpdater(), new JavaUrlUpdater(),
