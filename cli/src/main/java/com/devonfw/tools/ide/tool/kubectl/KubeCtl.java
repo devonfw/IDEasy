@@ -29,13 +29,21 @@ public class KubeCtl extends DelegatingToolCommandlet {
   }
 
   @Override
+  protected String getBinaryName() {
+
+    String binary = getCommandlet(Docker.class).resolveDockerCommand(this.tool);
+    return (binary == null) ? this.tool : binary;
+  }
+
+  @Override
   protected EditionAndVersion computeInstalledEditionAndVersion() {
 
-    if (!isCommandAvailable(this.tool)) {
+    String kubectl = getBinaryName();
+    if (!isCommandAvailable(kubectl)) {
       return super.computeInstalledEditionAndVersion();
     }
 
-    List<String> outputs = this.context.newProcess().runAndGetOutput(this.tool, "version", "--client");
+    List<String> outputs = this.context.newProcess().runAndGetOutput(kubectl, "version", "--client");
     String singleLineOutput = String.join("\n", outputs);
     VersionIdentifier version = resolveVersionWithPattern(singleLineOutput, KUBECTL_VERSION_PATTERN);
     return new EditionAndVersion(this.tool, version);

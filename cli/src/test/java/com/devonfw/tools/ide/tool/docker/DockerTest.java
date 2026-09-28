@@ -158,6 +158,28 @@ class DockerTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Verifies that the Rancher Desktop version is also resolved when {@code rdctl version} prints the client version without a {@code v} prefix.
+   */
+  @Test
+  void testRancherDesktopVersionWithoutVPrefix() {
+
+    // arrange
+    ProcessContext processContext = Mockito.mock(ProcessContext.class);
+    IdeTestContext context = newContext(processContext);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    Docker docker = docker(context, "docker", "rdctl");
+    Mockito.when(processContext.runAndGetSingleOutput("rdctl", "version")).thenReturn("Client version: 1.16.0");
+
+    // act
+    EditionAndVersion editionAndVersion = docker.getInstalledEditionAndVersion();
+
+    // assert
+    assertThat(editionAndVersion).isNotNull();
+    assertThat(editionAndVersion.edition()).isEqualTo("rancher");
+    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.of("1.16.0"));
+  }
+
+  /**
    * Verifies that on Windows the version of a Docker Desktop installation is read from the Windows registry (via
    * {@code super}), and the edition is the consistent {@code "docker"} (not the previously hard-coded {@code "desktop"}).
    */
