@@ -11,6 +11,7 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.EnvironmentContext;
+import com.devonfw.tools.ide.tool.BuildTool;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 
@@ -23,7 +24,7 @@ import com.devonfw.tools.ide.tool.ToolInstallation;
  * "https://github.com/devonfw/IDEasy/issues/352">issue #352</a> and <a href=
  * "https://github.com/devonfw/IDEasy/issues/2381">issue #2381</a>).
  */
-public class Npm extends LocalToolCommandlet {
+public class Npm extends LocalToolCommandlet implements BuildTool {
 
   private static final Logger LOG = LoggerFactory.getLogger(Npm.class);
 

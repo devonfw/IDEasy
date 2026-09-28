@@ -6,12 +6,13 @@ import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.tool.BuildTool;
 import com.devonfw.tools.ide.tool.npm.NpmBasedCommandlet;
 
 /**
  * {@link NpmBasedCommandlet} for <a href="https://yarnpkg.com">yarn</a>.
  */
-public class Yarn extends NpmBasedCommandlet {
+public class Yarn extends NpmBasedCommandlet implements BuildTool {
 
   private static final String YARN_LOCK = "yarn.lock";
 

@@ -11,7 +11,6 @@ import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.tool.BuildTool;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -42,12 +41,9 @@ public class ReleaseCommandlet extends Commandlet {
     Path projectPath = this.context.getCwd();
     GitContext git = this.context.getGitContext();
 
-    LocalToolCommandlet commandlet = this.context.getCommandletManager().findBuildTool(projectPath);
-    if (commandlet == null) {
+    BuildTool buildTool = this.context.getCommandletManager().findBuildTool(projectPath);
+    if (buildTool == null) {
       throw new CliException("Could not find a build descriptor in " + projectPath + ". There is nothing to release here.");
-    }
-    if (!(commandlet instanceof BuildTool buildTool)) {
-      throw new CliException("The build tool " + commandlet.getName() + " detected in " + projectPath + " does not support releasing.");
     }
 
     if (git.hasUntrackedFiles(projectPath)) {
@@ -57,11 +53,16 @@ public class ReleaseCommandlet extends Commandlet {
       confirmWarning("You seem to work on a fork. Releases should be done on the original repository!\n"
           + "We strongly recommend to abort and rerun on original repository.");
     }
-    if (!this.context.isForceMode() && !isTopLevelProject(commandlet, projectPath)) {
+    if (!this.context.isForceMode() && !isTopLevelProject(buildTool, projectPath)) {
       throw new CliException("Release has to be performed from the top-level project or using force option.");
     }
 
-    VersionIdentifier currentVersion = buildTool.getProjectVersion(projectPath);
+    VersionIdentifier currentVersion;
+    try {
+      currentVersion = buildTool.getProjectVersion(projectPath);
+    } catch (UnsupportedOperationException e) {
+      throw new CliException("The build tool " + buildTool.getName() + " detected in " + projectPath + " does not support releasing.");
+    }
     VersionIdentifier releaseVersion = VersionIdentifier.of(currentVersion.toString().replace("-SNAPSHOT", ""));
     VersionIdentifier nextVersion = VersionIdentifier.of(releaseVersion.incrementLastDigit(false) + "-SNAPSHOT");
 
@@ -102,11 +103,11 @@ public class ReleaseCommandlet extends Commandlet {
     return false;
   }
 
-  private boolean isTopLevelProject(LocalToolCommandlet buildCommandlet, Path projectPath) {
+  private boolean isTopLevelProject(BuildTool buildTool, Path projectPath) {
 
     // top-level if the build descriptor found here is not also present in the parent directory
     Path parent = projectPath.getParent();
-    return (parent == null) || (buildCommandlet.findBuildDescriptor(parent) == null);
+    return (parent == null) || (buildTool.findBuildDescriptor(parent) == null);
   }
 
   private void buildAndDeploy(BuildTool buildTool) {
