@@ -83,7 +83,7 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
   @Override
   public ProcessResult runTool(ProcessContext pc, ProcessMode processMode, List<String> args) {
     if (!args.contains("installPlugins")) {
-      args.add(this.context.getWorkspacePath().toString());
+      args.add(getOpenPath().toString());
     }
 
     String variableName = getName().toUpperCase(Locale.ROOT).replace("-", "_") + VM_ARGS_ENV_SUFFIX;

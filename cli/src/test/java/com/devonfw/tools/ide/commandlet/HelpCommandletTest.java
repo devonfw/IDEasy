@@ -100,6 +100,30 @@ class HelpCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Test of {@link HelpCommandlet} renders the {@code --project} flag for IDE commandlets.
+   *
+   * @param tool the IDE tool commandlet to inspect.
+   */
+  @ParameterizedTest
+  @ValueSource(strings = { "intellij", "vscode" })
+  void testProjectFlagIsDocumentedForIdeToolCommandlets(String tool) {
+
+    // arrange
+    IdeTestContext context = newContext(tool);
+    context.getStartContext().setLocale(Locale.ROOT);
+    HelpCommandlet help = context.getCommandletManager().getCommandlet(HelpCommandlet.class);
+    help.commandlet.setValueAsString(tool, context);
+
+    // act
+    help.run();
+
+    // assert - the flag shows up in the usage line and its option is documented
+    assertThat(context).logAtInfo().hasMessageContaining("[--project]");
+    assertThat(context).logAtInfo()
+        .hasMessageContaining("the folder to open in the IDE instead of the default workspace");
+  }
+
+  /**
    * Ensure that for every {@link Commandlet} and each of their {@link Property} a help text is defined.
    *
    * @param locale the {@link String} representation of the {@link Locale} to test. The empty {@link String} will be used for {@link Locale#ROOT}.
