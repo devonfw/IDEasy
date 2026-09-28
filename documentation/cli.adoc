@@ -90,6 +90,37 @@ ide set-edition intellij ultimate
 ide set-version intellij 2025*
 ```
 
+=== Launching an IDE: opening a project folder
+
+When you launch an IDE (e.g. `ide intellij` or `ide vscode`), IDEasy opens the folder of your current link:workspaces.adoc[workspace] (by default `workspaces/main`).
+If you want to open a different folder instead, provide the `--project` option:
+
+```
+ide «ide» --project «path»
+```
+
+`«path»` is the folder the IDE will open.
+It is resolved the same way as any `ide` option value: an absolute path is used as-is, while a relative path is resolved against your current working directory.
+If the given path does not exist or is not a folder, the launch aborts with an error and the IDE does not start.
+
+This is meant to open a project that uses the same toolchain with your managed IDE without it being part of your workspace.
+For example, you can open another Java repository with your IntelliJ setup:
+
+```
+[~/repos/test-project]$ ide intellij --project .
+```
+
+An important consequence of `--project` is that the given folder is treated as _external_:
+IDEasy will not run its link:configurator.adoc[configurator] (the workspace merge and the sync of extra SDKs) into that folder.
+In other words, the managed workspace settings are not merged into the folder you open.
+Note that this also holds when you point `--project` at your own workspace, e.g. `--project workspaces/main` or `--project workspaces/main/IDEasy` from inside the checkout:
+the launch opens that folder but skips the merge as well.
+If you want the merge to happen, launch the IDE without the `--project` option.
+
+NOTE: For `vscode` the `--project` option only changes the folder that is opened.
+VS Code keeps using the `main` profile (`--user-data-dir` / `--profile`), so all launched instances share the same VS Code profile.
+Per-project profile isolation is not implemented yet and would be a future follow-up.
+
 === Local vs. global tool commandlets
 
 When we integrate tools in IDEasy we always try to follow the link:sandbox.adoc[sandbox principle].
