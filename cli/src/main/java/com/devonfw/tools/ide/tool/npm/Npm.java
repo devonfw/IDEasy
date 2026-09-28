@@ -16,6 +16,7 @@ import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.BuildTool;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallation;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * {@link LocalToolCommandlet} for <a href="https://www.npmjs.org/">npm</a>.
@@ -78,7 +79,7 @@ public class Npm extends LocalToolCommandlet implements BuildTool {
     if (Files.exists(buildDescriptor)) {
       return buildDescriptor;
     }
-    return super.findBuildDescriptor(directory);
+    return null;
   }
 
   /**
