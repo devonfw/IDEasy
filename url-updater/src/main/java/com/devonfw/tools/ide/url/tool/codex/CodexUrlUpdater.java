@@ -5,17 +5,13 @@ import com.devonfw.tools.ide.url.updater.GithubUrlReleaseUpdater;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link GithubUrlReleaseUpdater} for OpenAI Codex CLI.
- * <p>
- * The {@code openai/codex} repository publishes releases for several components (the Rust CLI, the Python SDK and voice builds). Only the Rust CLI releases are
- * relevant here. Their {@link com.devonfw.tools.ide.github.GithubRelease#name() release name} is a bare version such as {@code 0.154.0}, while the
- * corresponding git tag is prefixed with {@code rust-v} (e.g. {@code rust-v0.154.0}).
- * <p>
- * Download URL pattern: https://github.com/openai/codex/releases/download/rust-v${version}/codex-${arch}-${os}.${ext}
+ * {@link GithubUrlReleaseUpdater} for the OpenAI Codex CLI. The openai/codex repo also releases a Python SDK and voice builds, so we only take releases
+ * named as a bare version (the Rust CLI), whose git tag is prefixed with {@code rust-v} (e.g. {@code rust-v0.154.0}).
  */
 public class CodexUrlUpdater extends GithubUrlReleaseUpdater {
 
-  private static final VersionIdentifier MIN_CODEX_VID = VersionIdentifier.of("0.112.0");
+  // first release with all six OS/arch assets (Windows arm64 added in rust-v0.28.0)
+  private static final VersionIdentifier MIN_CODEX_VID = VersionIdentifier.of("0.28.0");
 
   /**
    * The Constructor.
@@ -49,9 +45,14 @@ public class CodexUrlUpdater extends GithubUrlReleaseUpdater {
   }
 
   @Override
+  protected String doGetVersionUrl() {
+    // openai/codex publishes many releases per day, so request a full page to keep recent stable versions in view.
+    return super.doGetVersionUrl() + "?per_page=100";
+  }
+
+  @Override
   public String mapVersion(String version) {
-    // Codex publishes releases for several components; only the Rust CLI releases are named as a bare version like "0.154.0".
-    // This filters out foreign releases such as the Python SDK ("Python SDK 0.154.0") or voice builds.
+    // keep only the Rust CLI releases, which are named as a bare version like "0.154.0"
     if (!version.matches("\\d+\\.\\d+\\.\\d+.*")) {
       return null;
     }
