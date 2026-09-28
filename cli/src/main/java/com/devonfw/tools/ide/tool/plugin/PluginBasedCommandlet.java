@@ -159,7 +159,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
    * @param plugins as {@link Collection} of plugins to install.
    * @param pc the {@link ProcessContext} to use.
    */
-  protected void installPlugins(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
+  protected int installPlugins(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
 
     Set<String> extraPlugins = getExtraPlugins(plugins);
     String edition = getConfiguredEdition();
@@ -177,6 +177,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
       }
     }
     int currentPluginIndex = 1;
+    int installedPlugins = 0;
     int totalPlugins = pluginsToInstall.size();
     for (ToolPluginDescriptor plugin : pluginsToInstall) {
       Path pluginMarkerFile = retrievePluginMarkerFilePath(plugin);
@@ -184,15 +185,26 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
       if (pluginMarkerFileExists) {
         LOG.debug("Markerfile for IDE {} and plugin '{}' already exists.", getName(), plugin.name());
       }
-      if (this.context.isForcePlugins() || !pluginMarkerFileExists) {
+      if (isForcePluginInstallation() || !pluginMarkerFileExists) {
         String progressMarker = " (" + currentPluginIndex + "/" + totalPlugins + ")";
         Step step = this.context.newStep("Install plugin " + plugin.name() + progressMarker);
         step.run(() -> doInstallPluginStep(plugin, step, pc));
+        installedPlugins++;
       } else {
         LOG.debug("Skipping installation of plugin '{}' due to existing marker file: {}", plugin.name(), pluginMarkerFile);
       }
       currentPluginIndex++;
     }
+    return installedPlugins;
+  }
+
+  /**
+   * @return {@code true} to install every plugin even if its marker file already exists, {@code false} to skip plugins that are already marked as installed.
+   *     Override this if the marker files cannot reflect the actual state of the IDE (e.g. VSCode profiles, see issue #2471).
+   */
+  protected boolean isForcePluginInstallation() {
+
+    return this.context.isForcePlugins();
   }
 
   /**
