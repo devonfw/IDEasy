@@ -139,6 +139,10 @@ public interface IdeVariables {
   VariableDefinitionBoolean VSCODE_PROFILE_ENABLED = new VariableDefinitionBoolean("VSCODE_PROFILE_ENABLED", null,
       c -> Boolean.FALSE);
 
+  /** {@link VariableDefinition} for the uv redirected cache directory */
+  VariableDefinitionPath UV_CACHE_DIR = new VariableDefinitionPath("UV_CACHE_DIR", null,
+      c -> c.getIdePath() == null ? null : c.getIdePath().resolve(IdeContext.FOLDER_SOFTWARE).resolve("uv"), true, true);
+
   /** A {@link Collection} with all pre-defined {@link VariableDefinition}s. */
   Collection<VariableDefinition<?>> VARIABLES = List.of(PATH, HOME, USER, WORKSPACE_PATH, IDE_HOME, IDE_ROOT, WORKSPACE, IDE_TOOLS, HTTP_VERSIONS,
       CREATE_START_SCRIPTS,
@@ -146,6 +150,7 @@ public interface IdeVariables {
       GRADLE_USER_HOME,
       YARN_BUILD_OPTS, JASYPT_OPTS,
       MAVEN_ARGS, INTELLIJ_VM_ARGS, ANDROID_STUDIO_VM_ARGS, PYCHARM_VM_ARGS,
+      UV_CACHE_DIR,
       PROJECT_NAME, IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED, PREFERRED_GIT_PROTOCOL);
 
   /**
