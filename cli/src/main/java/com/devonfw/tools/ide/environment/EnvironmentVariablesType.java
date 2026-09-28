@@ -44,7 +44,7 @@ public enum EnvironmentVariablesType {
 
   /**
    * Type of {@link EnvironmentVariables} from the virtual
-   * {@link AbstractLocalToolCommandlet#setEnvironment(EnvironmentContext, ToolInstallation, boolean) tool environment.
+   * {@link AbstractLocalToolCommandlet#setEnvironment(EnvironmentContext, ToolInstallation, boolean) tool environment}.
    */
   TOOL
 
