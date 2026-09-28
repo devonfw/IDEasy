@@ -1,7 +1,10 @@
 package com.devonfw.tools.ide.completion;
 
-import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.property.Property;
@@ -11,34 +14,36 @@ import com.devonfw.tools.ide.property.Property;
  */
 public class AutoCompletionRegistry {
 
-
   /**
-   * The registered completion candidates.
+   * The registered completion entries mapped by their candidate names.
    */
-  private final List<CompletionEntry> entries = new ArrayList<>();
-
+  private final Map<String, CompletionEntry> entryMap = new LinkedHashMap<>();
 
   /**
-   * Adds a new completion candidate.
+   * Adds a completion candidate together with its alternatives.
    *
    * @param candidate the candidate to add.
+   * @param alternatives to add a long with the candidate
+   * @return the {@link CompletionEntry} created for {@code candidate} for configuration.
    */
-  public void add(String candidate) {
-    this.entries.add(new CompletionEntry(candidate));
-  }
+  public CompletionEntry add(String candidate, String... alternatives) {
 
-  /**
-   * Adds a new completion candidate together with a synonym. For now this adds both values.
-   *
-   * @param candidate the candidate to add.
-   * @param synonym to add a long with the candidate
-   */
-  public void add(String candidate, String synonym) {
-    CompletionEntry entry = new CompletionEntry(candidate);
-    entry.addSynonym(synonym);
-    this.entries.add(entry);
-  }
+    Set<String> names = new LinkedHashSet<>();
+    names.add(candidate);
+    names.addAll(List.of(alternatives));
 
+    Set<String> immutableNames = Set.copyOf(names);
+
+    CompletionEntry entry = new CompletionEntry(candidate, names);
+    this.entryMap.put(candidate, entry);
+
+    for (String alternative : immutableNames) {
+      if (!alternative.equals(candidate)) {
+        this.entryMap.put(alternative, new CompletionEntry(alternative, immutableNames));
+      }
+    }
+    return entry;
+  }
 
   /**
    * Adds all candidates matching the given argument to the collector.
@@ -51,10 +56,8 @@ public class AutoCompletionRegistry {
   public void complete(String arg, CompletionCandidateCollector collector,
       Property<?> property, Commandlet commandlet) {
 
-    for (CompletionEntry entry : this.entries) {
+    for (CompletionEntry entry : this.entryMap.values()) {
       entry.complete(arg, collector, property, commandlet);
     }
   }
-
-
 }

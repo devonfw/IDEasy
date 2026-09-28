@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.cli.CliAbortException;
-import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
@@ -93,7 +92,8 @@ public class RepositoryCommandlet extends Commandlet {
   /**
    * Like {@link #prepareActiveRepository(Path, boolean)} but ignores a single invalid repository instead of aborting the setup of all others. Resolving a
    * property value may fail for a malformed expression, and one broken file in the repositories folder must not prevent every other repository from being
-   * set up. Only used when iterating all repositories - if the user explicitly requested a single repository, the failure is reported instead.
+   * set up. Only used when iterating all repositories - if the user explicitly requested a single repository, the failure is reported instead. A
+   * {@link CliAbortException} is still propagated as the {@link Step} always re-throws it.
    *
    * @param repositoryFile the {@link Path} to the repository properties file.
    * @param forceMode - {@code true} to setup the repository even if it is not active, {@code false} otherwise.
@@ -101,14 +101,8 @@ public class RepositoryCommandlet extends Commandlet {
    */
   private RepositoryConfig prepareActiveRepositoryIgnoringInvalid(Path repositoryFile, boolean forceMode) {
 
-    try {
-      return prepareActiveRepository(repositoryFile, forceMode);
-    } catch (CliAbortException e) {
-      throw e; // the user deliberately aborted - never swallow this
-    } catch (CliException e) {
-      LOG.error("Ignoring repository {} because its configuration is invalid: {}", repositoryFile, e.getMessage());
-      return null;
-    }
+    Step step = this.context.newStep("Prepare repository", repositoryFile);
+    return step.call(() -> prepareActiveRepository(repositoryFile, forceMode), () -> null);
   }
 
   private RepositoryConfig prepareActiveRepository(Path repositoryFile, boolean forceMode) {
