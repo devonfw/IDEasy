@@ -31,6 +31,13 @@ public class DirectoryMerger extends AbstractWorkspaceMerger {
 
   private static final Logger LOG = LoggerFactory.getLogger(DirectoryMerger.class);
 
+  /**
+   * Sentinel value for the {@code redirects} {@link Map} of {@link #merge(Path, Path, EnvironmentVariables, Path, Map)} to indicate that the workspace entry
+   * with the corresponding key shall <strong>not</strong> be merged at all (e.g. because the tool generates that file instead). It is a dummy path that is
+   * never used as an actual merge target.
+   */
+  public static final Path REDIRECT_SKIP = Path.of("@ideasy-redirect-skip@");
+
   private final Map<String, FileMerger> extension2mergerMap;
 
   private final FallbackMerger fallbackMerger;
@@ -93,6 +100,9 @@ public class DirectoryMerger extends AbstractWorkspaceMerger {
       for (String filename : children) {
         Path target = workspace.resolve(filename);
         target = redirects.getOrDefault(target, target);
+        if (target == REDIRECT_SKIP) {
+          continue; // this workspace entry is not to be merged (see REDIRECT_SKIP)
+        }
         errors += merge(setup.resolve(filename), update.resolve(filename), variables, target, redirects);
       }
     }

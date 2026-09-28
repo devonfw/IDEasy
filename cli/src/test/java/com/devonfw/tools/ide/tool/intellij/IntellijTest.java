@@ -448,11 +448,11 @@ class IntellijTest extends AbstractIdeContextTest {
 
   /**
    * Tests that the JetBrains config template ({@code .intellij/config}) is merged into the out-of-workspace metadata folder
-   * ({@code $IDE_HOME/.ide/intellij/«workspace»/config}) instead of the workspace, and that the generated {@code idea.properties}
-   * {@code idea.config.path} points to the same location (see #2531).
+   * ({@code $IDE_HOME/.ide/intellij/«workspace»/config}) instead of the workspace, and that the generated {@code idea.properties} {@code idea.config.path}
+   * points to the same location (see #2531).
    */
   @Test
-  void testConfigureWorkspaceMergesConfigTemplateOutOfWorkspace() throws Exception {
+  void testConfigureWorkspaceMergesConfigTemplateOutOfWorkspace() {
 
     // arrange
     IdeTestContext context = newContext("intellij");
