@@ -8,6 +8,7 @@ import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
+import com.devonfw.tools.ide.tool.BuildTool;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 
@@ -108,12 +109,13 @@ public interface CommandletManager {
   Iterator<Commandlet> findCommandlet(CliArguments arguments, CompletionCandidateCollector collector);
 
   /**
-   * Detects the applicable build tool for the given {@code buildPath} by {@link LocalToolCommandlet#findBuildDescriptor(Path) querying} the registered build
-   * commandlets (in order of priority) for a matching build descriptor (e.g. {@code pom.xml}, {@code build.gradle} or {@code package.json}).
+   * Detects the applicable build tool for the given {@code buildPath} by {@link BuildTool#findBuildDescriptor(Path) querying} the registered build
+   * commandlets for a matching build descriptor (e.g. {@code pom.xml}, {@code build.gradle} or {@code package.json}). The registration order defines the
+   * priority (first match wins), so Yarn is registered before Npm to prefer Yarn when a {@code yarn.lock} is present.
    *
    * @param buildPath the {@link Path} to the directory to build.
-   * @return the applicable build {@link LocalToolCommandlet} or {@code null} if no build descriptor was found or {@code buildPath} was {@code null}.
+   * @return the applicable build {@link BuildTool} or {@code null} if no build descriptor was found or {@code buildPath} was {@code null}.
    */
-  LocalToolCommandlet findBuildTool(Path buildPath);
+  BuildTool findBuildTool(Path buildPath);
 
 }

@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool.npm;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -11,8 +12,11 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.EnvironmentContext;
+import com.devonfw.tools.ide.process.ProcessResult;
+import com.devonfw.tools.ide.tool.BuildTool;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallation;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * {@link LocalToolCommandlet} for <a href="https://www.npmjs.org/">npm</a>.
@@ -23,7 +27,7 @@ import com.devonfw.tools.ide.tool.ToolInstallation;
  * "https://github.com/devonfw/IDEasy/issues/352">issue #352</a> and <a href=
  * "https://github.com/devonfw/IDEasy/issues/2381">issue #2381</a>).
  */
-public class Npm extends LocalToolCommandlet {
+public class Npm extends LocalToolCommandlet implements BuildTool {
 
   private static final Logger LOG = LoggerFactory.getLogger(Npm.class);
 
@@ -75,7 +79,7 @@ public class Npm extends LocalToolCommandlet {
     if (Files.exists(buildDescriptor)) {
       return buildDescriptor;
     }
-    return super.findBuildDescriptor(directory);
+    return null;
   }
 
   /**
@@ -197,5 +201,25 @@ public class Npm extends LocalToolCommandlet {
     return "#!/usr/bin/env bash\r\n" //
         + "basedir=\"$(dirname \"$0\")\"\r\n" //
         + "exec node \"$basedir/" + cliJs + "\" \"$@\"\r\n";
+  }
+
+  @Override
+  public VersionIdentifier getProjectVersion(Path projectPath) {
+
+    // TODO: release not yet implemented for npm, see #2552
+    return null;
+  }
+
+  @Override
+  public void setProjectVersion(Path projectPath, VersionIdentifier version) {
+
+    // TODO: release not yet implemented for npm, see #2552
+  }
+
+  @Override
+  public ProcessResult buildAndDeploy(List<String> additionalArgs) {
+
+    // TODO: release not yet implemented for npm, see #2552
+    return null;
   }
 }

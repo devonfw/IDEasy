@@ -7,7 +7,7 @@ import java.util.Locale;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.StringProperty;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.BuildTool;
 
 /**
  * Build tool {@link Commandlet} for automatically detecting build configuration files and running the respective tool.
@@ -44,16 +44,16 @@ public class BuildCommandlet extends Commandlet {
       throw new CliException("Missing current working directory!");
     }
 
-    LocalToolCommandlet commandlet = this.context.getCommandletManager().findBuildTool(buildPath);
-    if (commandlet == null) {
+    BuildTool buildTool = this.context.getCommandletManager().findBuildTool(buildPath);
+    if (buildTool == null) {
       throw new CliException("Could not find a build descriptor in " + buildPath + " - no supported build tool detected.");
     }
     List<String> args = this.arguments.asList();
     if (args.isEmpty()) {
-      String variableName = commandlet.getName().toUpperCase(Locale.ROOT) + "_BUILD_OPTS";
+      String variableName = buildTool.getName().toUpperCase(Locale.ROOT) + "_BUILD_OPTS";
       args = getDefaultToolOptions(variableName);
     }
-    commandlet.runTool(args);
+    buildTool.runTool(args);
   }
 
   private List<String> getDefaultToolOptions(String buildOptionName) {
