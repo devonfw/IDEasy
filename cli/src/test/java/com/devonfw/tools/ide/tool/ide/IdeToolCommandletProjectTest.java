@@ -91,9 +91,9 @@ class IdeToolCommandletProjectTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests that the {@code --project} flag is consumed by IDEasy and not passed through to the IDE binary (the foundation behavior). Pointing the actual launch
-   * arguments at the folder is covered separately. The flag arrives in the multi-valued passthrough {@code args} of the tool commandlet, so IDEasy extracts and
-   * remembers it instead of forwarding it to the IDE.
+   * Tests that the {@code --project} flag is consumed by IDEasy and not passed through to the IDE binary. The flag arrives in the multi-valued passthrough
+   * {@code args} of the tool commandlet, so IDEasy extracts and remembers it instead of forwarding it to the IDE. As of {@code #2492} the IntelliJ launch
+   * arguments also point at the selected folder ({@link IdeToolCommandlet#getOpenPath()}) instead of the managed workspace.
    */
   @Test
   void testIntellijRunWithProjectFlagConsumedByIdeasy() {
@@ -113,9 +113,11 @@ class IdeToolCommandletProjectTest extends AbstractIdeContextTest {
     // IDEasy consumed the flag and remembered the folder
     assertThat(intellij.project.getValue()).isEqualTo(external);
     assertThat(intellij.getOpenPath()).isEqualTo(external);
-    // the flag and its value were stripped from the arguments passed to the IDE binary
+    // the --project flag token was stripped from the arguments passed to the IDE binary, and the IDE launch now targets the selected folder (not the managed
+    // workspace)
     String launchedArgs = context.getFileAccess().readFileContent(intellij.getToolBinPath().resolve("intellijtest")).trim();
     assertThat(launchedArgs).doesNotContain("--project");
-    assertThat(launchedArgs).doesNotContain(external.toString());
+    assertThat(launchedArgs).contains(external.toString());
+    assertThat(launchedArgs).doesNotContain(context.getWorkspacePath().toString());
   }
 }
