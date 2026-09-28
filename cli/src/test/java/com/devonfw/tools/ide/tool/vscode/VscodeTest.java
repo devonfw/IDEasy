@@ -117,6 +117,65 @@ class VscodeTest extends AbstractIdeContextTest {
     assertThat(vscodeCommandlet.lastArgs).doesNotContain("publisher.extension@null");
   }
 
+  /**
+   * Tests that with the feature toggle {@code VSCODE_PROFILE_ENABLED} enabled a plugin is uninstalled before it is installed. The profile keeps its own list of
+   * plugins outside of {@code IDE_HOME} that survives a reset of the plugins folder, so without the uninstall VS Code answers "already installed" and
+   * installs nothing (see issue #2504).
+   */
+  @Test
+  void testInstallPluginUninstallsFirstIfProfileEnabled() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("VSCODE_PROFILE_ENABLED", "true");
+    CapturingVscode vscodeCommandlet = new CapturingVscode(context);
+    ToolPluginDescriptor plugin = new ToolPluginDescriptor("publisher.extension", "mockedPlugin", null, "1.2.3", true, null, null);
+    Step step = context.newStep("Install plugin mockedPlugin");
+    // act
+    step.run(() -> vscodeCommandlet.installPlugin(plugin, step, new ProcessContextTestImpl(context)));
+    // assert
+    assertThat(vscodeCommandlet.calls).containsExactly(List.of("--uninstall-extension", "publisher.extension"),
+        List.of("--force", "--install-extension", "publisher.extension@1.2.3"));
+  }
+
+  /**
+   * Tests that with the feature toggle {@code VSCODE_PROFILE_ENABLED} enabled a failing uninstall (e.g. because the plugin is not installed at all) does not
+   * prevent the installation of the plugin (see issue #2504).
+   */
+  @Test
+  void testInstallPluginIgnoresFailedUninstallIfProfileEnabled() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("VSCODE_PROFILE_ENABLED", "true");
+    CapturingVscode vscodeCommandlet = new CapturingVscode(context);
+    vscodeCommandlet.uninstallExitCode = 1;
+    ToolPluginDescriptor plugin = new ToolPluginDescriptor("publisher.extension", "mockedPlugin", null, null, true, null, null);
+    Step step = context.newStep("Install plugin mockedPlugin");
+    // act
+    step.run(() -> vscodeCommandlet.installPlugin(plugin, step, new ProcessContextTestImpl(context)));
+    // assert
+    assertThat(vscodeCommandlet.lastArgs).contains("--install-extension", "publisher.extension");
+    assertThat(context).logAtSuccess().hasMessage("Successfully installed plugin: mockedPlugin");
+  }
+
+  /**
+   * Tests that by default (feature toggle {@code VSCODE_PROFILE_ENABLED} disabled) a plugin is installed without a preceding uninstall.
+   */
+  @Test
+  void testInstallPluginDoesNotUninstallByDefault() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    CapturingVscode vscodeCommandlet = new CapturingVscode(context);
+    ToolPluginDescriptor plugin = new ToolPluginDescriptor("publisher.extension", "mockedPlugin", null, null, true, null, null);
+    Step step = context.newStep("Install plugin mockedPlugin");
+    // act
+    step.run(() -> vscodeCommandlet.installPlugin(plugin, step, new ProcessContextTestImpl(context)));
+    // assert
+    assertThat(vscodeCommandlet.calls).containsExactly(List.of("--force", "--install-extension", "publisher.extension"));
+  }
+
   private void checkInstallation(IdeTestContext context) {
 
     assertThat(context.getSoftwarePath().resolve("vscode/bin/code.cmd")).exists().hasContent("@echo test for windows");
@@ -371,10 +430,15 @@ class VscodeTest extends AbstractIdeContextTest {
 
     private List<String> lastArgs;
 
+    private final List<List<String>> calls;
+
+    private int uninstallExitCode;
+
     private CapturingVscode(IdeTestContext context) {
 
       super(context);
       this.lastArgs = List.of();
+      this.calls = new ArrayList<>();
     }
 
     @Override
@@ -382,8 +446,10 @@ class VscodeTest extends AbstractIdeContextTest {
 
       // Capture effective CLI args for assertions in unit tests.
       this.lastArgs = new ArrayList<>(args);
-      // Return a successful dummy result to keep tests isolated from real VS Code execution.
-      return new ProcessResultImpl("code", "code", 0, List.of());
+      this.calls.add(this.lastArgs);
+      // Return a dummy result to keep tests isolated from real VS Code execution.
+      int exitCode = args.contains("--uninstall-extension") ? this.uninstallExitCode : 0;
+      return new ProcessResultImpl("code", "code", exitCode, List.of());
     }
 
     /** Exposes the protected {@link com.devonfw.tools.ide.tool.plugin.PluginBasedCommandlet#installPlugins(Collection, ProcessContext)} for testing. */
