@@ -41,9 +41,6 @@ public abstract class AbstractLocalToolCommandlet extends AbstractToolCommandlet
     super(context, tool, tags);
   }
 
-  /**
-   * @return the {@link Path} where the tool is located (installed).
-   */
   @Override
   public Path getToolPath() {
     if (this.context.getSoftwarePath() == null) {

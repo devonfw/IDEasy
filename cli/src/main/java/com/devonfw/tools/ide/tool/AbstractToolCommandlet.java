@@ -17,7 +17,6 @@ import org.slf4j.event.Level;
 import com.devonfw.tools.ide.cache.CachedValue;
 import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.common.Tag;
-import com.devonfw.tools.ide.common.Tags;
 import com.devonfw.tools.ide.completion.AutoCompletionRegistry;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -49,7 +48,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 /**
  * {@link AbstractCommandlet} for a tool integrated into the IDE.
  */
-public abstract class AbstractToolCommandlet extends AbstractCommandlet implements ToolCommandlet, Tags {
+public abstract class AbstractToolCommandlet extends AbstractCommandlet implements ToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(AbstractToolCommandlet.class);
 
