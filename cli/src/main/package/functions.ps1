@@ -98,7 +98,13 @@ function ide {
         if ($ideArguments.Count -eq 0 -and
             -not [string]::IsNullOrEmpty($env:IDE_HOME)) {
 
-            Write-Host "IDE environment variables have been set for $env:IDE_HOME in workspace $env:WORKSPACE"
+            $workspaceMessage = " with workspace set to $env:WORKSPACE"
+            $currentPath = (Get-Location).Path.TrimEnd('\', '/')
+            $workspacePath = $env:WORKSPACE_PATH.TrimEnd('\', '/')
+            if (-not $currentPath.StartsWith($workspacePath, [System.StringComparison]::OrdinalIgnoreCase)) {
+                $workspaceMessage += " (fallback to default)"
+            }
+            Write-Host "IDE environment variables have been set for $env:IDE_HOME$workspaceMessage"
         }
     }
 }
@@ -304,6 +310,48 @@ function claude {
     }
 
     & $claudeCommand.Source @args
+}
+
+function node {
+    if (-not [string]::IsNullOrEmpty($env:IDE_HOME)) {
+        ide node @args
+        return
+    }
+
+    # "node" is now a PowerShell function, so explicitly search for
+    # the external command to avoid recursively calling this function.
+    $nodeCommand = Get-Command node `
+        -CommandType Application, ExternalScript `
+        -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+
+    if ($null -eq $nodeCommand) {
+        Write-Error "The command 'node' could not be found."
+        return
+    }
+
+    & $nodeCommand.Source @args
+}
+
+function npm {
+    if (-not [string]::IsNullOrEmpty($env:IDE_HOME)) {
+        ide npm @args
+        return
+    }
+
+    # "npm" is now a PowerShell function, so explicitly search for
+    # the external command to avoid recursively calling this function.
+    $npmCommand = Get-Command npm `
+        -CommandType Application, ExternalScript `
+        -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+
+    if ($null -eq $npmCommand) {
+        Write-Error "The command 'npm' could not be found."
+        return
+    }
+
+    & $npmCommand.Source @args
 }
 
 function _ide_completion {

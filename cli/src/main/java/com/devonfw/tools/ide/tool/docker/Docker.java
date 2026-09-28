@@ -16,6 +16,8 @@ import com.devonfw.tools.ide.tool.EditionAndVersion;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.NativePackage;
 import com.devonfw.tools.ide.tool.NativePackageManager;
+import com.devonfw.tools.ide.tool.ToolEdition;
+import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -92,8 +94,29 @@ public class Docker extends GlobalToolCommandlet {
                 "sudo rm -f /etc/apt/sources.list.d/isv-rancher-stable.list",
                 "sudo rm -f /usr/share/keyrings/isv-rancher-stable-archive-keyring.gpg"
             )
-        )
+        ),
+        new NativePackage(NativePackageManager.YAY, List.of("rancher-desktop")),
+        new NativePackage(NativePackageManager.BREW_CASK, List.of("docker"))
     );
+  }
+
+  @Override
+  public String getMacApplicationName() {
+
+    return "Docker";
+  }
+
+  @Override
+  protected ToolEditionAndVersion adjustRequestedEdition(ToolEditionAndVersion requested) {
+
+    if (this.context.getSystemInfo().isLinux()) {
+      ToolEdition edition = requested.getEdition();
+      if (!"rancher".equals(edition.edition())) {
+        LOG.warn("Docker Desktop is not yet supported by IDEasy on Linux, installing Rancher Desktop instead.");
+        requested.replaceEdition(new ToolEdition(this.tool, "rancher"));
+      }
+    }
+    return requested;
   }
 
   @Override
@@ -115,6 +138,9 @@ public class Docker extends GlobalToolCommandlet {
 
     if (isRancherDesktopInstalled()) {
       VersionIdentifier version = getRancherDesktopClientVersion();
+      if (version == null) {
+        version = getNativePackageVersion();
+      }
       return new EditionAndVersion("rancher", version);
     }
 
@@ -164,8 +190,14 @@ public class Docker extends GlobalToolCommandlet {
 
   private VersionIdentifier getRancherDesktopClientVersion() {
 
-    String output = this.context.newProcess().runAndGetSingleOutput("rdctl", "version");
-    return resolveVersionWithPattern(output, RDCTL_CLIENT_VERSION_PATTERN);
+    // rdctl may be on the PATH as a dangling symlink (e.g. Rancher Desktop was removed but ~/.rd/bin remained) so executing it can fail to start the process
+    try {
+      String output = this.context.newProcess().runAndGetSingleOutput("rdctl", "version");
+      return resolveVersionWithPattern(output, RDCTL_CLIENT_VERSION_PATTERN);
+    } catch (IllegalStateException e) {
+      LOG.warn("Could not determine the installed Rancher Desktop version - rdctl could not be executed: {}", e.getMessage());
+      return null;
+    }
   }
 
   @Override
