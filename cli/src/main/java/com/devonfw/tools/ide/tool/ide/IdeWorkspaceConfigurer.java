@@ -22,6 +22,7 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.merge.xml.XmlMergeDocument;
 import com.devonfw.tools.ide.merge.xml.XmlMerger;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.extra.ExtraToolInstallation;
 import com.devonfw.tools.ide.tool.extra.ExtraTools;
 import com.devonfw.tools.ide.tool.extra.ExtraToolsMapper;
@@ -30,7 +31,7 @@ import com.devonfw.tools.ide.tool.extra.ExtraToolsMapper;
  * Configures IDE workspaces by merging templates from settings repositories.
  * <p>
  * This class encapsulates the workspace configuration logic that is shared between all IDEs, regardless of their installation mechanism (binary, pip, npm,
- * etc.). It can be used via composition by any {@link com.devonfw.tools.ide.tool.ToolCommandlet} that needs IDE workspace configuration capabilities.
+ * etc.). It can be used via composition by any {@link AbstractToolCommandlet} that needs IDE workspace configuration capabilities.
  */
 public class IdeWorkspaceConfigurer {
 
@@ -73,8 +74,8 @@ public class IdeWorkspaceConfigurer {
   /**
    * Configure (initialize or update) the workspace for this IDE using the templates from the settings.
    *
-   * @param workspaceRedirects the supplier of the {@link Map} with the workspace-internal {@link Path}s to redirect the workspace templates to instead, as provided by the owning tool
-   *     ({@link IdeFeatures#getWorkspaceRedirects(Path)}).
+   * @param workspaceRedirects the supplier of the {@link Map} with the workspace-internal {@link Path}s to redirect the workspace templates to instead,
+   *     as provided by the owning tool ({@link IdeToolCommandlet#getWorkspaceRedirects(Path)}).
    */
   public void configureWorkspace(Function<Path, Map<Path, Path>> workspaceRedirects) {
     FileAccess fileAccess = this.context.getFileAccess();

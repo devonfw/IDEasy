@@ -34,7 +34,7 @@ public class PluginManager {
 
   private final IdeContext context;
 
-  private final PluginFeatures tool;
+  private final PluginBasedCommandlet tool;
 
   private ToolPlugins plugins;
 
@@ -42,9 +42,9 @@ public class PluginManager {
    * The constructor.
    *
    * @param context the {@link IdeContext}.
-   * @param tool the {@link PluginFeatures tool} owning the plugins managed by this {@link PluginManager}.
+   * @param tool the {@link PluginBasedCommandlet tool} owning the plugins managed by this {@link PluginManager}.
    */
-  public PluginManager(IdeContext context, PluginFeatures tool) {
+  public PluginManager(IdeContext context, PluginBasedCommandlet tool) {
     super();
     this.context = context;
     this.tool = tool;
@@ -52,7 +52,7 @@ public class PluginManager {
 
 
   /**
-   * @return the {@link ToolPlugins} of this {@link PluginBasedCommandlet}.
+   * @return the {@link ToolPlugins} of this {@link AbstractPluginBasedCommandlet}.
    */
   public ToolPlugins getPlugins() {
 
@@ -112,7 +112,8 @@ public class PluginManager {
   }
 
   /**
-   * Reset all installed plugins by deleting the {@link PluginFeatures#getPluginsInstallationPath() plugins installation folder} and all plugin marker files.
+   * Reset all installed plugins by deleting the {@link PluginBasedCommandlet#getPluginsInstallationPath() plugins installation folder} and all plugin marker
+   * files.
    */
   public void resetPlugins() {
     LOG.info("Resetting all installed plugins...");
@@ -121,7 +122,7 @@ public class PluginManager {
   }
 
   /**
-   * Deletes all plugin marker files the {@link PluginFeatures tool} so that its plugins will be installed again.
+   * Deletes all plugin marker files the {@link PluginBasedCommandlet tool} so that its plugins will be installed again.
    */
   public void deleteAllPluginMarkerFiles() {
     FileAccess fileAccess = this.context.getFileAccess();

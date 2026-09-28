@@ -19,24 +19,19 @@ import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.PackageManagerRequest;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
-import com.devonfw.tools.ide.tool.ide.IdeFeatures;
+import com.devonfw.tools.ide.tool.ide.AbstractIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeWorkspaceConfigurer;
-import com.devonfw.tools.ide.tool.plugin.PluginFeatures;
+import com.devonfw.tools.ide.tool.plugin.PluginBasedCommandlet;
 import com.devonfw.tools.ide.tool.plugin.PluginManager;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * Base class for pip-based IDE tools that should launch in the background instead of blocking the terminal. Implements {@link IdeFeatures} to provide IDE
- * workspace configuration capabilities and {@link PluginFeatures} for plugin management.
+ * Base class for pip-based IDE tools that should launch in the background instead of blocking the terminal. Implements {@link IdeToolCommandlet} to provide IDE
+ * workspace configuration capabilities and {@link PluginBasedCommandlet} for plugin management.
  */
-public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet implements IdeFeatures, PluginFeatures {
-
-  @Override
-  public IdeContext getContext() {
-    return this.context;
-  }
+public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet implements IdeToolCommandlet, PluginBasedCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(PipBasedIdeToolCommandlet.class);
 
@@ -91,9 +86,9 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
   }
 
   /**
-   * @return the {@link Path} to the python environment the plugins are installed into. Unlike for an {@link IdeToolCommandlet} this is not a folder owned by
-   *     this tool but the shared python environment (containing {@code site-packages}) that also holds th IDE itself. It must therefore never be delted -
-   *     plugins are removed via {@link #uninstallPlugin(ToolPluginDescriptor)} instead.
+   * @return the {@link Path} to the python environment the plugins are installed into. Unlike for an {@link AbstractIdeToolCommandlet} this is not a folder
+   *     owned by this tool but the shared python environment (containing {@code site-packages}) that also holds th IDE itself. It must therefore never be
+   *     delted - plugins are removed via {@link #uninstallPlugin(ToolPluginDescriptor)} instead.
    */
   @Override
   public Path getPluginsInstallationPath() {

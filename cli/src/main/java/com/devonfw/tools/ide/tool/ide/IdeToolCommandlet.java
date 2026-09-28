@@ -1,124 +1,70 @@
 package com.devonfw.tools.ide.tool.ide;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
-import com.devonfw.tools.ide.common.Tag;
+import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.environment.EnvironmentVariables;
-import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.process.ProcessMode;
-import com.devonfw.tools.ide.process.ProcessResult;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
-import com.devonfw.tools.ide.tool.ToolInstallRequest;
-import com.devonfw.tools.ide.tool.eclipse.Eclipse;
-import com.devonfw.tools.ide.tool.intellij.Intellij;
-import com.devonfw.tools.ide.tool.plugin.PluginBasedCommandlet;
-import com.devonfw.tools.ide.tool.vscode.Vscode;
+import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 
 /**
- * {@link ToolCommandlet} for an IDE (integrated development environment) such as {@link Eclipse}, {@link Vscode}, or {@link Intellij}.
+ * {@link Commandlet} interface for IDE-specific features that are independent of the installation mechanism (binary vs. package manager).
+ * <p>
+ * This allows tools installed via package managers (like pip for Spyder) to still benefit from IDEasy's IDE features such as workspace configuration, metadata
+ * management, and repository import.
  */
-public abstract class IdeToolCommandlet extends PluginBasedCommandlet implements IdeFeatures {
-
-  private static final String OPTIONS_ENV_SUFFIX = "_OPTIONS";
-
-  private final IdeWorkspaceConfigurer workspaceConfigurer;
+public interface IdeToolCommandlet extends LocalToolCommandlet {
 
   /**
-   * The constructor.
-   *
-   * @param context the {@link IdeContext}.
-   * @param tool the {@link #getName() tool name}.
-   * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of} method.
+   * @return the {@link IdeWorkspaceConfigurer} that configures the workspace of this IDE. Needed so that the default {@link #configureWorkspace()} of this
+   *     interface can delegate the shared workspace configuration logic to a single implementation.
    */
-  public IdeToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
+  IdeWorkspaceConfigurer getWorkspaceConfigurer();
 
-    super(context, tool, tags);
-    assert (hasIde(tags));
-    this.workspaceConfigurer = new IdeWorkspaceConfigurer(context, tool);
-  }
+  /**
+   * Configures (initializes or updates) the workspace for this IDE using the templates from the settings. The default implementation is shared by all IDEs,
+   * whether installed as binary (see {@link AbstractIdeToolCommandlet}) or via a package manager (see
+   * {@link com.devonfw.tools.ide.tool.pip.PipBasedIdeToolCommandlet}).
+   */
+  default void configureWorkspace() {
 
-  private boolean hasIde(Set<Tag> tags) {
-
-    for (Tag tag : tags) {
-      if (tag.isAncestorOf(Tag.IDE) || (tag == Tag.IDE)) {
-        return true;
-      }
-    }
-    throw new IllegalStateException("Tags of IdeTool has to be connected with tag IDE: " + tags);
-  }
-
-  @Override
-  protected final void doRun() {
-    super.doRun();
-  }
-
-  @Override
-  public ProcessResult runTool(List<String> args) {
-
-    List<String> effectiveArgs = new ArrayList<>(args);
-    addIdeOptions(effectiveArgs);
-    return runTool(ProcessMode.BACKGROUND, null, effectiveArgs);
+    getWorkspaceConfigurer().configureWorkspace(this::getWorkspaceRedirects);
   }
 
   /**
-   * Appends the tokens of {@code «IDE»_OPTIONS} (e.g. {@code INTELLIJ_OPTIONS}) to the given {@code args}. This is the per-tool analogue of the global
-   * {@code IDE_OPTIONS} and only applies when actually starting the IDE (not for internal calls like plugin installation or repository import).
-   *
-   * @param args the command-line arguments to launch this IDE, extended in place.
+   * @param workspaceFolder the {@link IdeContext#getWorkspacePath() workspace folder}.
+   * @return the {@link Map} with the {@link Path}s inside the given {@code workspaceFolder} as keys and the {@link Path}s where the according workspace
+   *     templates shall be merged to instead as values. Allows to keep IDE-specific data out of the workspace (e.g. in {@link #getIdeMetadataPath()}) without
+   *     changing the structure of the workspace templates in the settings. By default, nothing is redirected.
    */
-  private void addIdeOptions(List<String> args) {
+  default Map<Path, Path> getWorkspaceRedirects(Path workspaceFolder) {
 
-    String variableName = EnvironmentVariables.getToolVariablePrefix(this.tool) + OPTIONS_ENV_SUFFIX;
-    String options = this.context.getVariables().get(variableName);
-    if ((options != null) && !options.isBlank()) {
-      for (String option : options.trim().split("\\s+")) {
-        args.add(option);
-      }
-    }
-  }
-
-  @Override
-  public ProcessResult runTool(ProcessContext pc, ProcessMode processMode, List<String> args) {
-
-    if ((processMode != null) && processMode.isBackground()) {
-      configureWorkspace();
-    }
-    return super.runTool(pc, processMode, args);
-  }
-
-  @Override
-  protected void postInstall(ToolInstallRequest request) {
-    configureWorkspace();
-    super.postInstall(request);
+    return Map.of();
   }
 
   /**
-   * @return the {@link IdeWorkspaceConfigurer} for this IDE.
+   * @return the {@link Path} to the IDE-specific metadata folder for the current workspace, located at {@code $IDE_HOME/.ide/«toolName»/«workspace»}. Unlike
+   *     {@link IdeContext#getWorkspacePath() the workspace path} (which holds the projects to open), this folder keeps IDE-specific metadata (e.g.
+   *     {@code .vmoptions} or {@code *.properties} files) out of the workspace so it stays clean and independent of the IDE being used.
+   *
+   *     <p>
+   *     The default implementation is shared by all IDEs, whether installed as binary (see {@link AbstractIdeToolCommandlet}) or via a package manager (see
+   *     {@link com.devonfw.tools.ide.tool.pip.PipBasedIdeToolCommandlet}).
    */
-  @Override
-  public IdeWorkspaceConfigurer getWorkspaceConfigurer() {
+  default Path getIdeMetadataPath() {
 
-    return this.workspaceConfigurer;
+    IdeContext context = getContext();
+    return context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve(getName()).resolve(context.getWorkspaceName());
   }
 
   /**
-   * Registers support for synchronizing an extra SDK/template for this IDE.
+   * Imports the repository specified by the given {@link Path} into the IDE managed by this {@link IdeToolCommandlet}.
    *
-   * <p>
-   * The registered template path must be relative to the IDE workspace root. During workspace synchronization, the generic extra-SDK handling performed by the
-   * {@link IdeWorkspaceConfigurer} uses this mapping to locate the corresponding template file in the settings repository and merge it into the current
-   * workspace.
-   * </p>
-   *
-   * @param sdk the name of the extra SDK/tool as configured in {@code ide-extra-tools.json}.
-   * @param relativeTemplatePath the workspace-relative path of the IDE-specific template file to merge.
+   * @param repositoryPath the {@link Path} to the repository directory to import.
    */
-  protected void registerExtraSdkTemplate(String sdk, Path relativeTemplatePath) {
+  default void importRepository(Path repositoryPath) {
 
-    this.workspaceConfigurer.registerExtraSdkTemplate(sdk, relativeTemplatePath);
+    throw new CliException("Repository import is not yet supported for IDE " + getName());
   }
 }

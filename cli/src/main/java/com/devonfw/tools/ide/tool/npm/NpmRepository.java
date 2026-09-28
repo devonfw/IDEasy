@@ -6,7 +6,7 @@ import java.util.Set;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.json.JsonMapping;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.node.NodeBasedCommandlet;
 import com.devonfw.tools.ide.tool.repository.AbstractToolRepository;
 import com.devonfw.tools.ide.tool.repository.ArtifactToolRepository;
@@ -45,7 +45,7 @@ public class NpmRepository extends ArtifactToolRepository<NpmArtifact, NpmArtifa
   }
 
   @Override
-  protected NpmArtifact resolveArtifact(String tool, String edition, VersionIdentifier version, ToolCommandlet toolCommandlet) {
+  protected NpmArtifact resolveArtifact(String tool, String edition, VersionIdentifier version, AbstractToolCommandlet toolCommandlet) {
 
     if (toolCommandlet instanceof NodeBasedCommandlet nodeBasedCommandlet) {
       String name = nodeBasedCommandlet.getPackageName();

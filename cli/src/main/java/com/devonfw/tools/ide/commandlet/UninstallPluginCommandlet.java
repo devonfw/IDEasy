@@ -6,15 +6,15 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.PluginProperty;
 import com.devonfw.tools.ide.property.ToolProperty;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
-import com.devonfw.tools.ide.tool.plugin.PluginFeatures;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
+import com.devonfw.tools.ide.tool.plugin.PluginBasedCommandlet;
 
 /**
- * {@link Commandlet} to install a tool.
+ * {@link AbstractCommandlet} to install a tool.
  *
- * @see ToolCommandlet#install()
+ * @see AbstractToolCommandlet#install()
  */
-public class UninstallPluginCommandlet extends Commandlet {
+public class UninstallPluginCommandlet extends AbstractCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(UninstallPluginCommandlet.class);
 
@@ -45,10 +45,10 @@ public class UninstallPluginCommandlet extends Commandlet {
 
   @Override
   protected void doRun() {
-    ToolCommandlet commandlet = this.tool.getValue();
+    AbstractToolCommandlet commandlet = this.tool.getValue();
     String plugin = this.plugin.getValue();
 
-    if (commandlet instanceof PluginFeatures cmd) {
+    if (commandlet instanceof PluginBasedCommandlet cmd) {
       cmd.uninstallPlugin(cmd.getPlugin(plugin));
     } else {
       LOG.warn("Tool {} does not support plugins.", tool.getName());
@@ -56,7 +56,7 @@ public class UninstallPluginCommandlet extends Commandlet {
   }
 
   @Override
-  public ToolCommandlet getToolForCompletion() {
+  public AbstractToolCommandlet getToolForCompletion() {
     return this.tool.getValue();
   }
 }

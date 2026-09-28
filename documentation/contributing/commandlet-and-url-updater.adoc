@@ -2,8 +2,8 @@
 
 == Overview
 
-This document explains how to implement a new `Commandlet` and `UrlUpdater` for IDEasy.
-A `Commandlet` is a CLI sub-command and in case of a `ToolCommandlet` manages a tool (install, uninstall, run), while an `UrlUpdater` is responsible for discovering and maintaining available versions of a tool to sync the download-metadata in [ide-urls](http://github.com/ide-urls).
+This document explains how to implement a new `AbstractCommandlet` and `UrlUpdater` for IDEasy.
+A `AbstractCommandlet` is a CLI sub-command and in case of a `AbstractToolCommandlet` manages a tool (install, uninstall, run), while an `UrlUpdater` is responsible for discovering and maintaining available versions of a tool to sync the download-metadata in [ide-urls](http://github.com/ide-urls).
 
 Not all tools require a UrlUpdater, as tools using certain package manager ecosystems (npm, Maven, pip) don't need one because their package managers provide version discovery automatically.
 
@@ -12,10 +12,10 @@ Not all tools require a UrlUpdater, as tools using certain package manager ecosy
 === What is a Commandlet?
 
 A commandlet is a subcommand of the IDEasy CLI that manages a tool's lifecycle.
-The base class is `Commandlet`, and for tools, the relevant base classes are:
+The base class is `AbstractCommandlet`, and for tools, the relevant base classes are:
 
-* `ToolCommandlet`: Base class for all tools
-* `LocalToolCommandlet`: For tools installed locally into IDEasy
+* `AbstractToolCommandlet`: Base class for all tools
+* `AbstractLocalToolCommandlet`: For tools installed locally into IDEasy
 * `GlobalToolCommandlet`: For tools installed globally on the system
 
 Each commandlet implements:
@@ -211,7 +211,7 @@ After merging the changes for the created UrlUpdater (if needed), you can check 
 Then you can proceed to create the Commandlet for the new tool:
 
 * Commandlet class: `MyTool.java` located in: `cli/src/main/java/com/devonfw/tools/ide/cli/tool/mytool/`
-* Extend the appropriate base class (`ToolCommandlet`, `LocalToolCommandlet`, or `GlobalToolCommandlet`)
+* Extend the appropriate base class (`AbstractToolCommandlet`, `AbstractLocalToolCommandlet`, or `GlobalToolCommandlet`)
 * Use the tags defined in `Tag.java` to classify your tool
 * Add the new tool to `cli/src/main/java/com/devonfw/tools/ide/commandlet/CommandletManagerImpl.java` by adding it to the `commandlets` list in the constructor.
 * Add a test for the created Commandlet in `src/test/java/com/devonfw/tools/ide/cli/tool/mytool/` with name `MyToolTest.java`
