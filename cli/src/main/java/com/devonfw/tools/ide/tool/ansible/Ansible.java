@@ -21,7 +21,7 @@ public class Ansible extends PipBasedCommandlet {
    */
   public Ansible(IdeContext context) {
 
-    super(context, "ansible", Set.of(Tag.CONFIG_MANAGEMENT, Tag.PYTHON));
+    super(context, "ansible", Set.of(Tag.IAC, Tag.PYTHON));
   }
 
 }
