@@ -6,14 +6,13 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.java.Java;
 
 /**
- * {@link ToolCommandlet} for GcViewer.
+ * {@link AbstractToolCommandlet} for GcViewer.
  */
-public class GcViewer extends LocalToolCommandlet {
+public class GcViewer extends AbstractLocalToolCommandlet {
 
   /**
    * The constructor.

@@ -15,7 +15,7 @@ import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 
 /**
@@ -147,11 +147,11 @@ public final class MacOsHelper {
   /**
    * Finds the root tool path of a tool in MacOS
    *
-   * @param commandlet the {@link ToolCommandlet}
+   * @param commandlet the {@link AbstractToolCommandlet}
    * @param context the {@link IdeContext}
    * @return a {@link String}
    */
-  public Path findRootToolPath(ToolCommandlet commandlet, IdeContext context) {
+  public Path findRootToolPath(AbstractToolCommandlet commandlet, IdeContext context) {
     return context.getSoftwareRepositoryPath().resolve(ToolRepository.ID_DEFAULT).resolve(commandlet.getName())
         .resolve(commandlet.getInstalledEdition())
         .resolve(commandlet.getInstalledVersion().toString());
