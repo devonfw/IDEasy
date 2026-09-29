@@ -11,11 +11,11 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.EnvironmentContext;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 
 /**
- * {@link LocalToolCommandlet} for <a href="https://www.npmjs.org/">npm</a>.
+ * {@link AbstractLocalToolCommandlet} for <a href="https://www.npmjs.org/">npm</a>.
  * <p>
  * npm is installed as a pristine, versioned installation in the software repository (same model as the other tools) and is
  * linked into each project's {@code software} folder. Global npm packages are installed into a per-project directory
@@ -23,7 +23,7 @@ import com.devonfw.tools.ide.tool.ToolInstallation;
  * "https://github.com/devonfw/IDEasy/issues/352">issue #352</a> and <a href=
  * "https://github.com/devonfw/IDEasy/issues/2381">issue #2381</a>).
  */
-public class Npm extends LocalToolCommandlet {
+public class Npm extends AbstractLocalToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Npm.class);
 

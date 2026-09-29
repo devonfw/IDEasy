@@ -19,8 +19,7 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
@@ -28,9 +27,9 @@ import com.devonfw.tools.ide.tool.uv.Uv;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link ToolCommandlet} for <a href="https://www.python.org/">python</a>.
+ * {@link AbstractToolCommandlet} for <a href="https://www.python.org/">python</a>.
  */
-public class Python extends LocalToolCommandlet {
+public class Python extends AbstractLocalToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Python.class);
 
