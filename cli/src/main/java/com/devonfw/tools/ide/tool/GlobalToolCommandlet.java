@@ -114,6 +114,7 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
     for (String command : pmCommand.commands()) {
       ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(bashPath)
           .addArgs("-c", command);
+      pc.removeEnvVar("npm_config_prefix");
       int exitCode = pc.run();
       if (exitCode != 0) {
         LOG.warn("{} command did not execute successfully", command);

@@ -16,6 +16,7 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.os.WindowsAppInstallation;
@@ -392,5 +393,24 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     assertThat(context).logAtError().hasMessageContaining(
         "Couldn't automatically uninstall " + TOOL_NAME + " on macOS. Please uninstall it manually, e.g. by moving it from the Applications folder to the "
             + "Trash");
+  }
+
+  /** Verifies that native package manager commands do not inherit {@code npm_config_prefix}. */
+  @Test
+  void testRunWithPackageManagerRemovesNpmConfigPrefix() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("npm_config_prefix", "/npm/prefix", true);
+    GlobalToolCommandlet commandlet = new GlobalToolCommandlet(context, TOOL_NAME, Set.of(Tag.DOCKER)) {
+      @Override
+      protected boolean isPackageManagerAvailable(NativePackageManager packageManager) {
+        return true;
+      }
+    };
+    PackageManagerCommand command = new PackageManagerCommand(NativePackageManager.APT, List.of("test -z \"$npm_config_prefix\""));
+
+    // act & assert (the command only succeeds if npm_config_prefix is not set)
+    assertThat(commandlet.runWithPackageManager(true, List.of(command), NativePackageAction.INSTALL)).isTrue();
   }
 }
