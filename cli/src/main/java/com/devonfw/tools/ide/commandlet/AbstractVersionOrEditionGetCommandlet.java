@@ -10,14 +10,14 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.ToolProperty;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 
 /**
- * An internal {@link Commandlet} to get the installed version for a tool.
+ * An internal {@link AbstractCommandlet} to get the installed version for a tool.
  *
- * @see ToolCommandlet#getInstalledVersion()
+ * @see AbstractToolCommandlet#getInstalledVersion()
  */
-public abstract class AbstractVersionOrEditionGetCommandlet extends Commandlet {
+public abstract class AbstractVersionOrEditionGetCommandlet extends AbstractCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(AbstractVersionOrEditionGetCommandlet.class);
 
@@ -56,25 +56,25 @@ public abstract class AbstractVersionOrEditionGetCommandlet extends Commandlet {
   protected abstract String getPropertyToGet();
 
   /**
-   * @param commandlet the {@link ToolCommandlet} to get the value from.
+   * @param commandlet the {@link AbstractToolCommandlet} to get the value from.
    * @return the configured value.
-   * @see ToolCommandlet#getConfiguredVersion()
-   * @see ToolCommandlet#getConfiguredEdition()
+   * @see AbstractToolCommandlet#getConfiguredVersion()
+   * @see AbstractToolCommandlet#getConfiguredEdition()
    */
-  protected abstract Object getConfiguredValue(ToolCommandlet commandlet);
+  protected abstract Object getConfiguredValue(AbstractToolCommandlet commandlet);
 
   /**
-   * @param commandlet the {@link ToolCommandlet} to get the value from.
+   * @param commandlet the {@link AbstractToolCommandlet} to get the value from.
    * @return the installed value or {@code null} if the tool is not installed.
-   * @see ToolCommandlet#getInstalledVersion()
-   * @see ToolCommandlet#getInstalledEdition()
+   * @see AbstractToolCommandlet#getInstalledVersion()
+   * @see AbstractToolCommandlet#getInstalledEdition()
    */
-  protected abstract Object getInstalledValue(ToolCommandlet commandlet);
+  protected abstract Object getInstalledValue(AbstractToolCommandlet commandlet);
 
   @Override
   protected void doRun() {
 
-    ToolCommandlet commandlet = this.tool.getValue();
+    AbstractToolCommandlet commandlet = this.tool.getValue();
     IdeLogLevel level = IdeLogLevel.PROCESSABLE;
     Object configuredValue = getConfiguredValue(commandlet);
     Object installedValue = getInstalledValue(commandlet);
@@ -108,7 +108,7 @@ public abstract class AbstractVersionOrEditionGetCommandlet extends Commandlet {
     }
   }
 
-  private void logToolInfo(ToolCommandlet commandlet, Object configuredValue, Object installedValue) {
+  private void logToolInfo(AbstractToolCommandlet commandlet, Object configuredValue, Object installedValue) {
 
     String property = getPropertyToGet();
     String toolName = commandlet.getName();

@@ -5,12 +5,12 @@ import com.devonfw.tools.ide.environment.EnvironmentVariablesFiles;
 import com.devonfw.tools.ide.property.EditionProperty;
 import com.devonfw.tools.ide.property.EnumProperty;
 import com.devonfw.tools.ide.property.ToolProperty;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 
 /**
- * An internal {@link Commandlet} to set a tool edition.
+ * An internal {@link AbstractCommandlet} to set a tool edition.
  */
-public class EditionSetCommandlet extends Commandlet {
+public class EditionSetCommandlet extends AbstractCommandlet {
 
   /** The tool to set the edition of. */
   public final ToolProperty tool;
@@ -43,7 +43,7 @@ public class EditionSetCommandlet extends Commandlet {
   @Override
   protected void doRun() {
 
-    ToolCommandlet commandlet = this.tool.getValue();
+    AbstractToolCommandlet commandlet = this.tool.getValue();
     String edition = this.edition.getValue();
 
     EnvironmentVariablesFiles env = this.cfg.getValue();
