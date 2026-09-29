@@ -135,10 +135,9 @@ The `%key` placeholders are resolved against the resource bundle provided by `Nl
 [source]
 ----
 resources
-└── com
-    └── devonfw
-        └── ide
-            └── gui
+gui
+└── src/main/resources
+    └── com/devonfw/ide/gui
                 ├── core
                 │   ├── mainwindow
                 │   │   ├── MainWindowView.fxml
