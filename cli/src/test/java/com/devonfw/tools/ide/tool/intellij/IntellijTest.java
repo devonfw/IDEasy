@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool.intellij;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Properties;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -11,6 +12,7 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.git.repository.RepositoryCommandlet;
+import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfo;
@@ -428,7 +430,8 @@ class IntellijTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests if the environment variable {@code IDEA_PROPERTIES} is set to the path of the {@code idea.properties} file in the workspace.
+   * Tests if the environment variable {@code IDEA_PROPERTIES} is set to the path of the {@code idea.properties} file that IDEasy generates outside of the
+   * workspace (see #2531).
    */
   @Test
   void testSetEnvironmentSetsIdeaProperties() {
@@ -443,7 +446,9 @@ class IntellijTest extends AbstractIdeContextTest {
     commandlet.setEnvironment(environmentContext, installation, false);
 
     // assert
-    assertThat(environmentContext.set).containsEntry("IDEA_PROPERTIES", this.context.getWorkspacePath().resolve("idea.properties").toString());
+    Path ideaProperties = this.context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("intellij").resolve(this.context.getWorkspaceName())
+        .resolve("idea.properties");
+    assertThat(environmentContext.set).containsEntry("IDEA_PROPERTIES", ideaProperties.toString());
   }
 
   /**
@@ -455,10 +460,10 @@ class IntellijTest extends AbstractIdeContextTest {
   void testConfigureWorkspaceMergesConfigTemplateOutOfWorkspace() {
 
     // arrange
-    IdeTestContext context = newContext("intellij");
-    Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
-    Path workspace = context.getWorkspacePath();
-    Path metadataConfig = context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("intellij").resolve(context.getWorkspaceName()).resolve("config");
+    Intellij commandlet = this.context.getCommandletManager().getCommandlet(Intellij.class);
+    Path workspace = this.context.getWorkspacePath();
+    Path metadata = ideMetadata(this.context);
+    Path metadataConfig = metadata.resolve("config");
 
     // act
     commandlet.configureWorkspace();
@@ -471,11 +476,67 @@ class IntellijTest extends AbstractIdeContextTest {
     // ...and is no longer merged into the workspace
     assertThat(workspace.resolve(".intellij/config")).doesNotExist();
     // the settings config template carries the merge namespace, so it must merge cleanly without a warning (see the merger's namespace check)
-    assertThat(context).logAtWarning().hasNoMessageContaining("XML merge namespace not found");
-    // and the generated idea.properties points at the same out-of-workspace location
-    // (properties escaping escapes the drive-letter ':' as '\:' and getFormattedPath already converted separators to '/')
-    String ideaProperties = context.getFileAccess().readFileContent(workspace.resolve("idea.properties")).replace("\\", "");
-    assertThat(ideaProperties).contains("idea.config.path=" + metadataConfig.toString().replace("\\", "/"));
+    assertThat(this.context).logAtWarning().hasNoMessageContaining("XML merge namespace not found");
+    // the generated idea.properties is kept out of the workspace as well and points at the out-of-workspace config folder
+    assertThat(workspace.resolve("idea.properties")).doesNotExist();
+    Properties ideaProperties = this.context.getFileAccess().readProperties(metadata.resolve("idea.properties"));
+    assertThat(ideaProperties).containsEntry("idea.config.path", metadataConfig.toString().replace('\\', '/'));
+    // IDEasy takes over the control of idea.properties, so nothing from the settings template must survive (see #2531 and #2336)
+    assertThat(ideaProperties).doesNotContainKey("ideasyTestProperty");
+  }
+
+  /**
+   * Tests that a legacy {@code .intellij/config} folder left in the workspace is moved to the out-of-workspace metadata config folder if that does not exist
+   * yet, so that its content is preserved (see #2531).
+   */
+  @Test
+  void testConfigureWorkspaceMovesLegacyMetadataIfConfigFolderIsMissing() {
+
+    // arrange
+    Intellij commandlet = this.context.getCommandletManager().getCommandlet(Intellij.class);
+    FileAccess fileAccess = this.context.getFileAccess();
+    Path legacyMetadata = this.context.getWorkspacePath().resolve(".intellij");
+    fileAccess.writeFileContent("legacy", legacyMetadata.resolve("config").resolve("options").resolve("legacy.xml"), true);
+    // the intellij test project ships a metadata config folder - remove it so the "move" branch is exercised
+    fileAccess.delete(ideMetadata(this.context).resolve("config"));
+
+    // act
+    commandlet.configureWorkspace();
+
+    // assert
+    assertThat(ideMetadata(this.context).resolve("config").resolve("options").resolve("legacy.xml")).exists().hasContent("legacy");
+    assertThat(legacyMetadata).doesNotExist();
+  }
+
+  /**
+   * Tests that a legacy {@code .intellij} folder and the obsolete generated {@code idea.properties} are removed from the workspace (via backup, so nothing is
+   * lost) when the out-of-workspace metadata config folder already exists (see #2531).
+   */
+  @Test
+  void testConfigureWorkspaceRemovesLegacyMetadataIfConfigFolderExists() {
+
+    // arrange: the intellij test project already ships $IDE_HOME/.ide/intellij/main/config
+    Intellij commandlet = this.context.getCommandletManager().getCommandlet(Intellij.class);
+    FileAccess fileAccess = this.context.getFileAccess();
+    Path workspace = this.context.getWorkspacePath();
+    Path legacyMetadata = workspace.resolve(".intellij");
+    fileAccess.writeFileContent("legacy", legacyMetadata.resolve("config").resolve("options").resolve("legacy.xml"), true);
+    fileAccess.writeFileContent("obsolete", workspace.resolve("idea.properties"));
+
+    // act
+    commandlet.configureWorkspace();
+
+    // assert
+    assertThat(legacyMetadata).doesNotExist();
+    assertThat(workspace.resolve("idea.properties")).doesNotExist();
+    // the legacy content is not deleted but backed up, and the properties file is regenerated out of the workspace
+    assertThat(this.context.getIdeHome().resolve(IdeContext.FOLDER_BACKUPS)).exists();
+    assertThat(ideMetadata(this.context).resolve("idea.properties")).exists();
+  }
+
+  private static Path ideMetadata(IdeContext context) {
+
+    return context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("intellij").resolve(context.getWorkspaceName());
   }
 
   private void checkInstallation(IdeTestContext context) {

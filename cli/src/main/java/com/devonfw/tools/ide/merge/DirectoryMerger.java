@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -30,13 +31,6 @@ import com.devonfw.tools.ide.util.FilenameUtil;
 public class DirectoryMerger extends AbstractWorkspaceMerger {
 
   private static final Logger LOG = LoggerFactory.getLogger(DirectoryMerger.class);
-
-  /**
-   * Sentinel value for the {@code redirects} {@link Map} of {@link #merge(Path, Path, EnvironmentVariables, Path, Map)} to indicate that the workspace entry
-   * with the corresponding key shall <strong>not</strong> be merged at all (e.g. because the tool generates that file instead). It is a dummy path that is
-   * never used as an actual merge target.
-   */
-  public static final Path REDIRECT_SKIP = Path.of("@ideasy-redirect-skip@");
 
   private final Map<String, FileMerger> extension2mergerMap;
 
@@ -72,12 +66,11 @@ public class DirectoryMerger extends AbstractWorkspaceMerger {
   @Override
   public int merge(Path setup, Path update, EnvironmentVariables variables, Path workspace) {
 
-    return merge(setup, update, variables, workspace, Map.of());
+    return merge(setup, update, variables, workspace, Map.of(), Set.of());
   }
 
   /**
-   * Same as {@link #merge(Path, Path, EnvironmentVariables, Path)} but allows to merge templates of specific sub-folders to a different location outside the
-   * {@code workspace}.
+   * Same as {@link #merge(Path, Path, EnvironmentVariables, Path, Map, Set)} without any {@code excludes}.
    *
    * @param setup the setup {@link Path} for creation.
    * @param update the update {@link Path} for creation and update.
@@ -88,6 +81,28 @@ public class DirectoryMerger extends AbstractWorkspaceMerger {
    * @return the number of errors that occurred. Should be {@code 0} for success.
    */
   public int merge(Path setup, Path update, EnvironmentVariables variables, Path workspace, Map<Path, Path> redirects) {
+
+    return merge(setup, update, variables, workspace, redirects, Set.of());
+  }
+
+  /**
+   * Same as {@link #merge(Path, Path, EnvironmentVariables, Path)} but allows to merge templates of specific sub-folders to a different location outside the
+   * {@code workspace} ({@code redirects}) or to not merge them at all ({@code excludes}).
+   * <p>
+   * Both are matched per path segment while descending into the template structure, so an entry for a folder also applies to everything inside it. Use
+   * {@link #resolveMergeTarget(Path, Path, Map, Set)} to compute the same result outside of this recursion.
+   *
+   * @param setup the setup {@link Path} for creation.
+   * @param update the update {@link Path} for creation and update.
+   * @param variables the {@link EnvironmentVariables} to {@link EnvironmentVariables#resolve(String, Object) resolve variables}.
+   * @param workspace the workspace {@link Path} to create or update.
+   * @param redirects the {@link Map} with the {@link Path}s inside the {@code workspace} as keys and the {@link Path}s where to merge them instead as
+   *     values.
+   * @param excludes the {@link Set} of {@link Path}s inside the {@code workspace} that shall not be merged at all (e.g. because the according tool
+   *     generates that file itself).
+   * @return the number of errors that occurred. Should be {@code 0} for success.
+   */
+  public int merge(Path setup, Path update, EnvironmentVariables variables, Path workspace, Map<Path, Path> redirects, Set<Path> excludes) {
 
     int errors = 0;
     Set<String> children = null;
@@ -100,15 +115,58 @@ public class DirectoryMerger extends AbstractWorkspaceMerger {
     } else {
       // directory scan
       for (String filename : children) {
-        Path target = workspace.resolve(filename);
-        target = redirects.getOrDefault(target, target);
-        if (target == REDIRECT_SKIP) {
-          continue; // this workspace entry is not to be merged (see REDIRECT_SKIP)
+        Path target = mergeTarget(workspace, filename, redirects, excludes);
+        if (target == null) {
+          continue; // this workspace entry is excluded from merging
         }
-        errors += merge(setup.resolve(filename), update.resolve(filename), variables, target, redirects);
+        errors += merge(setup.resolve(filename), update.resolve(filename), variables, target, redirects, excludes);
       }
     }
     return errors;
+  }
+
+  /**
+   * Resolves the given workspace-relative {@link Path} applying the given {@code redirects} and {@code excludes} exactly like
+   * {@link #merge(Path, Path, EnvironmentVariables, Path, Map, Set)} does while descending into the template structure: every path segment is resolved
+   * individually so that an entry for a folder also applies to all its descendants.
+   *
+   * @param workspaceFolder the {@link IdeContext#getWorkspacePath() workspace folder} the given {@code redirects} and {@code excludes} have been created
+   *     for.
+   * @param relativePath the {@link Path} relative to the {@code workspaceFolder} (e.g. {@code .intellij/config/options/jdk.table.xml}).
+   * @param redirects the {@link Map} with the {@link Path}s inside the {@code workspaceFolder} as keys and the {@link Path}s to use instead as values.
+   * @param excludes the {@link Set} of {@link Path}s inside the {@code workspaceFolder} that shall not be merged at all.
+   * @return the {@link Path} where the according template is merged to or {@link Optional#empty()} if the given {@code relativePath} or one of its ancestors is
+   *     excluded from merging.
+   */
+  public static Optional<Path> resolveMergeTarget(Path workspaceFolder, Path relativePath, Map<Path, Path> redirects, Set<Path> excludes) {
+
+    if (relativePath.isAbsolute()) {
+      throw new IllegalArgumentException("Expected path relative to workspace folder " + workspaceFolder + " but got " + relativePath);
+    }
+    Path target = workspaceFolder;
+    for (Path segment : relativePath) {
+      target = mergeTarget(target, segment.toString(), redirects, excludes);
+      if (target == null) {
+        return Optional.empty();
+      }
+    }
+    return Optional.of(target);
+  }
+
+  /**
+   * @param parent the {@link Path} the given {@code filename} is resolved against.
+   * @param filename the name of the child to resolve.
+   * @param redirects the {@link Map} with the {@link Path}s inside the workspace as keys and the {@link Path}s to use instead as values.
+   * @param excludes the {@link Set} of {@link Path}s inside the workspace that shall not be merged at all.
+   * @return the {@link Path} to merge to or {@code null} if the resolved child is excluded from merging.
+   */
+  private static Path mergeTarget(Path parent, String filename, Map<Path, Path> redirects, Set<Path> excludes) {
+
+    Path child = parent.resolve(filename);
+    if (excludes.contains(child)) {
+      return null;
+    }
+    return redirects.getOrDefault(child, child);
   }
 
   private FileMerger getMerger(Path file) {

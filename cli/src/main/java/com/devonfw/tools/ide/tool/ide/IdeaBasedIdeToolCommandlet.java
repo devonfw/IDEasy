@@ -1,9 +1,9 @@
 package com.devonfw.tools.ide.tool.ide;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -17,7 +17,6 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -39,6 +38,8 @@ public class IdeaBasedIdeToolCommandlet extends AbstractIdeToolCommandlet {
   private static final String VM_ARGS_ENV_SUFFIX = "_VM_ARGS";
 
   private static final String VM_OPTIONS_ENV_SUFFIX = "_VM_OPTIONS";
+
+  private static final String PROPERTIES_ENV_SUFFIX = "_PROPERTIES";
 
   private static final String IDEA_CONFIG_PATH_KEY = "idea.config.path";
   private static final String IDEA_LOG_CONSOLE_KEY = "idea.log.console";
@@ -85,17 +86,37 @@ public class IdeaBasedIdeToolCommandlet extends AbstractIdeToolCommandlet {
 
   @Override
   public void configureWorkspace() {
+    cleanupLegacyMetadata();
     super.configureWorkspace();
     createIdeConfigurationFile();
   }
 
   /**
-   * @return the workspace-relative {@link Path} of the out-of-workspace config folder as still declared by the workspace templates in the settings repository
-   *     (e.g. {@code .intellij/config}).
+   * Removes the JetBrains metadata that the IDE does not read anymore from the workspace (see #2531). The legacy config folder (e.g.
+   * {@code .intellij/config}) is moved to {@link #getIdeMetadataConfigPath()} if that does not exist yet, so its content is preserved. Everything else is
+   * backed up (soft-deleted) since it is either obsolete or regenerated.
    */
-  private Path getIdeMetadataConfigRelativePath() {
+  private void cleanupLegacyMetadata() {
 
-    return Path.of("." + tool, CONFIG_FOLDER);
+    FileAccess fileAccess = this.context.getFileAccess();
+    Path workspaceFolder = this.context.getWorkspacePath();
+    Path legacyMetadata = workspaceFolder.resolve("." + this.tool);
+    if (Files.isDirectory(legacyMetadata)) {
+      Path legacyConfig = legacyMetadata.resolve(CONFIG_FOLDER);
+      Path config = getIdeMetadataConfigPath();
+      if (Files.isDirectory(legacyConfig) && !Files.exists(config)) {
+        LOG.info("Moving {} config folder {} out of workspace to {}", getName(), legacyConfig, config);
+        fileAccess.mkdirs(config.getParent());
+        fileAccess.move(legacyConfig, config);
+      }
+      LOG.warn("Removing obsolete {} metadata folder {} from workspace since {} is used instead.", getName(), legacyMetadata, getIdeMetadataPath());
+      fileAccess.backup(legacyMetadata);
+    }
+    Path legacyConfigurationFile = workspaceFolder.resolve(getConfigurationFileName());
+    if (Files.exists(legacyConfigurationFile)) {
+      LOG.warn("Removing obsolete file {} from workspace since it is now generated at {}.", legacyConfigurationFile, getConfigurationFilePath());
+      fileAccess.backup(legacyConfigurationFile);
+    }
   }
 
   /**
@@ -107,29 +128,32 @@ public class IdeaBasedIdeToolCommandlet extends AbstractIdeToolCommandlet {
   }
 
   /**
-   * Keeps the JetBrains out-of-workspace metadata and the generated IDE configuration file out of the {@code workspaceFolder} (see #2531) by redirecting the
-   * corresponding workspace template paths:
-   * <ul>
-   * <li>The IDE metadata template (e.g. {@code .intellij}) is redirected into the out-of-workspace metadata folder
-   * ({@link IdeToolCommandlet#getIdeMetadataPath()}), so that, e.g., {@code .intellij/config} lands in the
-   * {@link #getIdeMetadataConfigPath() config folder} and the IDE metadata is kept out of the workspace.</li>
-   * <li>The IDE {@code .properties} template (e.g. {@code idea.properties}) is skipped ({@link DirectoryMerger#REDIRECT_SKIP}), since that file is generated
-   * by {@link #createIdeConfigurationFile()}.</li>
-   * <li>All other templates (e.g. {@code .idea} and {@code .editorconfig}) are merged into the workspace as usual.</li>
-   * </ul>
+   * Keeps the JetBrains metadata out of the {@code workspaceFolder} (see #2531): the IDE metadata template (e.g. {@code .intellij}) is redirected into the
+   * out-of-workspace metadata folder ({@link IdeToolCommandlet#getIdeMetadataPath()}), so that, e.g., {@code .intellij/config} lands in the
+   * {@link #getIdeMetadataConfigPath() config folder}. All other templates (e.g. {@code .idea} and {@code .editorconfig}) are merged into the workspace as
+   * usual.
    *
    * @param workspaceFolder the {@link Path} of the workspace the templates are to be merged into.
    * @return the {@link Map} with the {@link Path}s inside the {@code workspaceFolder} as keys and the {@link Path}s where to merge them instead as values.
    */
   @Override
-  protected Map<Path, Path> getWorkspaceRedirects(Path workspaceFolder) {
+  public Map<Path, Path> getWorkspaceRedirects(Path workspaceFolder) {
 
-    Map<Path, Path> redirects = new HashMap<>();
-    // the IDE metadata (e.g. .intellij/config) is kept out of the workspace ...
-    redirects.put(workspaceFolder.resolve("." + tool), getIdeMetadataPath());
-    // ... and the IDE .properties template is generated by createIdeConfigurationFile, so it must not be merged
-    redirects.put(getConfigurationFilePath(), DirectoryMerger.REDIRECT_SKIP);
-    return redirects;
+    return Map.of(workspaceFolder.resolve("." + this.tool), getIdeMetadataPath());
+  }
+
+  /**
+   * Excludes the IDE configuration file template (e.g. {@code idea.properties}) from the workspace merge, since IDEasy takes over the control of that file
+   * and generates it in {@link #createIdeConfigurationFile()} (see #2531). The {@link Path} is the one declared by the workspace templates in the settings
+   * repository and therefore inside the {@code workspaceFolder} - not {@link #getConfigurationFilePath()} where the file is actually generated.
+   *
+   * @param workspaceFolder the {@link Path} of the workspace the templates are to be merged into.
+   * @return the {@link Set} with the {@link Path}s inside the {@code workspaceFolder} that shall not be merged.
+   */
+  @Override
+  public Set<Path> getWorkspaceExcludes(Path workspaceFolder) {
+
+    return Set.of(workspaceFolder.resolve(getConfigurationFileName()));
   }
 
   /**
@@ -264,7 +288,7 @@ public class IdeaBasedIdeToolCommandlet extends AbstractIdeToolCommandlet {
   public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
     super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
 
-    String pathVariableKey = getIdeProductPrefix().toUpperCase() + "_PROPERTIES";
+    String pathVariableKey = getIdeProductPrefix().toUpperCase(Locale.ROOT) + PROPERTIES_ENV_SUFFIX;
     environmentContext.withEnvVar(pathVariableKey, getConfigurationFilePath().toString());
   }
 
@@ -273,24 +297,20 @@ public class IdeaBasedIdeToolCommandlet extends AbstractIdeToolCommandlet {
     return getIdeProductPrefix() + ".properties";
   }
 
+  /**
+   * @return the {@link Path} to the generated IDE configuration file (e.g. {@code idea.properties}). It is kept out of the workspace in
+   *     {@link #getIdeMetadataPath()} (see #2531), consistent with the generated {@code .vmoptions} file, and is passed to the IDE via the
+   *     {@code «PREFIX»_PROPERTIES} environment variable.
+   */
   protected Path getConfigurationFilePath() {
 
-    return this.context.getWorkspacePath().resolve(getConfigurationFileName());
+    return getIdeMetadataPath().resolve(getConfigurationFileName());
   }
 
 
   private String getFormattedPath(Path path) {
 
     return path.toString().replace("\\", "/");
-  }
-
-  @Override
-  protected Path getExtraSdkTargetPath(Path relativeTemplatePath) {
-
-    // The extra SDK templates (e.g. jdk.table.xml) are declared relative to the legacy in-workspace config folder (e.g. .intellij/config);
-    // keep them out of the workspace by merging into the out-of-workspace config folder instead.
-    int configDepth = getIdeMetadataConfigRelativePath().getNameCount();
-    return getIdeMetadataConfigPath().resolve(relativeTemplatePath.subpath(configDepth, relativeTemplatePath.getNameCount()));
   }
 
   private void createIdeConfigurationFile() {
