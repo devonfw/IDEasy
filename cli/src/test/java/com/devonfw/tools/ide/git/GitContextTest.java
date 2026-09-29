@@ -1,7 +1,5 @@
 package com.devonfw.tools.ide.git;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -40,6 +38,9 @@ class GitContextTest extends AbstractIdeContextTest {
    */
   private class GitContextMock extends GitContextImpl {
 
+    /** Simulates the remote the current branch tracks via {@code branch.<branch>.remote}; {@code null} simulates a branch without upstream. */
+    private String trackedRemote = DEFAULT_REMOTE;
+
     /**
      * @param context the {@link IdeContext context}.
      */
@@ -51,7 +52,21 @@ class GitContextTest extends AbstractIdeContextTest {
     public Path findGitRequired() {
       return Path.of("git");
     }
+
+    @Override
+    public String determineTrackedRemote(Path repository) {
+      return this.trackedRemote;
+    }
+
+    /**
+     * @param trackedRemote the remote the current branch tracks, or {@code null} to simulate a branch without upstream.
+     */
+    public void setTrackedRemote(String trackedRemote) {
+      this.trackedRemote = trackedRemote;
+    }
   }
+
+  private GitContextMock gitContextMock;
 
   private IdeTestContext newGitContext(Path dir) {
 
@@ -59,7 +74,8 @@ class GitContextTest extends AbstractIdeContextTest {
     context.getNetworkStatus().simulateOnline();
     this.processContext = new ProcessContextGitMock(context, dir);
     context.setProcessContext(processContext);
-    context.setGitContext(new GitContextMock(context));
+    this.gitContextMock = new GitContextMock(context);
+    context.setGitContext(this.gitContextMock);
     return context;
   }
 
@@ -78,7 +94,7 @@ class GitContextTest extends AbstractIdeContextTest {
     context.getStartContext().setOfflineMode(true);
 
     // act
-    CliException e1 = assertThrows(CliException.class, () -> {
+    CliException e1 = catchThrowableOfType(CliException.class, () -> {
       context.getGitContext().pullOrClone(gitUrl, tempDir);
     });
     // assert
@@ -116,8 +132,6 @@ class GitContextTest extends AbstractIdeContextTest {
     // arrange
     String gitRepoUrl = "https://github.com/test";
     IdeTestContext context = newGitContext(tempDir);
-    OutputMessage outputMessage = new OutputMessage(false, "test-remote");
-    this.processContext.addOutputMessage(outputMessage);
     FileAccess fileAccess = new FileAccessImpl(context);
     Path gitFolderPath = tempDir.resolve(GitContext.GIT_FOLDER);
     fileAccess.mkdirs(gitFolderPath);
@@ -125,6 +139,45 @@ class GitContextTest extends AbstractIdeContextTest {
     context.getGitContext().pullOrClone(GitUrl.of(gitRepoUrl), tempDir);
     // assert
     assertThat(tempDir.resolve(GitContext.GIT_FOLDER).resolve("update")).hasContent(this.processContext.getNow().toString());
+  }
+
+  /**
+   * Runs a simulated git pull on a repository whose current branch tracks a non-default remote (as it would in a repository with multiple remotes) and checks
+   * that the pull is performed instead of asking the user to continue. See <a href="https://github.com/devonfw/IDEasy/issues/840">issue #840</a>.
+   *
+   * @param tempDir a {@link TempDir} {@link Path}.
+   */
+  @Test
+  void testRunGitPullWithTrackedRemote(@TempDir Path tempDir) {
+
+    // arrange - a non-default tracked remote, as in a repository with multiple remotes
+    String gitRepoUrl = "https://github.com/test";
+    IdeTestContext context = newGitContext(tempDir);
+    this.gitContextMock.setTrackedRemote("upstream");
+    FileAccess fileAccess = new FileAccessImpl(context);
+    fileAccess.mkdirs(tempDir.resolve(GitContext.GIT_FOLDER));
+    // act
+    context.getGitContext().pullOrClone(GitUrl.of(gitRepoUrl), tempDir);
+    // assert
+    assertThat(tempDir.resolve(GitContext.GIT_FOLDER).resolve("update")).hasContent(this.processContext.getNow().toString());
+  }
+
+  /**
+   * Runs a simulated git pull on a repository without any remote and checks that the user is asked whether to continue.
+   *
+   * @param tempDir a {@link TempDir} {@link Path}.
+   */
+  @Test
+  void testRunGitPullWithoutRemoteAsksToContinue(@TempDir Path tempDir) {
+
+    // arrange
+    String gitRepoUrl = "https://github.com/test";
+    IdeTestContext context = newGitContext(tempDir);
+    this.gitContextMock.setTrackedRemote(null);
+    FileAccess fileAccess = new FileAccessImpl(context);
+    fileAccess.mkdirs(tempDir.resolve(GitContext.GIT_FOLDER));
+    // act + assert (no answers are configured, so asking a question fails)
+    assertThatThrownBy(() -> context.getGitContext().pullOrClone(GitUrl.of(gitRepoUrl), tempDir)).isInstanceOf(IllegalStateException.class);
   }
 
   /**
