@@ -24,7 +24,6 @@ import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.BuildTool;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.variable.VariableSyntax;
@@ -32,7 +31,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 
 
 /**
- * {@link ToolCommandlet} for <a href="https://maven.apache.org/">maven</a>.
+ * {@link AbstractToolCommandlet} for <a href="https://maven.apache.org/">maven</a>.
  */
 public class Mvn extends MavenCommandlet implements BuildTool {
 

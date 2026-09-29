@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.cli.CliException;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -78,8 +78,8 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
    *
    * @param version the version pattern to resolve
    * @param versions the
-   *     {@link com.devonfw.tools.ide.tool.repository.ToolRepository#getSortedVersions(String, String, ToolCommandlet) available versions, sorted in descending
-   *     order}.
+   *     {@link com.devonfw.tools.ide.tool.repository.ToolRepository#getSortedVersions(String, String, AbstractToolCommandlet) available versions, sorted in
+   *     descending order}.
    * @return the resolved version
    */
   public static VersionIdentifier resolveVersionPattern(GenericVersionRange version, List<VersionIdentifier> versions) {
