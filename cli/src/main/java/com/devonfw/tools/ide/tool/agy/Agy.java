@@ -13,14 +13,14 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.process.EnvironmentContext;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 
 /**
- * {@link LocalToolCommandlet} for <a href="https://github.com/google-antigravity/antigravity-cli">Antigravity CLI (Agy)</a>.
+ * {@link AbstractLocalToolCommandlet} for <a href="https://github.com/google-antigravity/antigravity-cli">Antigravity CLI (Agy)</a>.
  */
-public class Agy extends LocalToolCommandlet {
+public class Agy extends AbstractLocalToolCommandlet {
 
   /** Logger. */
   private static final Logger LOG = LoggerFactory.getLogger(Agy.class);
@@ -39,20 +39,20 @@ public class Agy extends LocalToolCommandlet {
    */
   private static final String README_CONTENT = """
       # Isolated Agy (Antigravity CLI) configuration
-
+      
       Agy has no environment variable to relocate its configuration, so IDEasy keeps it project-isolated by pointing
       Agy's standard home locations at this project:
         - ~/.gemini/antigravity-cli -> $IDE_HOME/conf/gemini/antigravity-cli   (theme, conversations, history)
         - ~/.gemini/config          -> $IDE_HOME/conf/gemini/config            (MCP servers, project definitions)
       The links are (re)created automatically every time you start Agy through IDEasy. The content is owned by you -
       IDEasy only creates the directories and this file, it never modifies your data.
-
+      
       ## Using Agy
       Each IDEasy project has its own Agy binary and its own configuration. Launch Agy through IDEasy (`ide agy`) in
       the project you want to use; the links are re-pointed first, so the right configuration is always picked.
       Note: if you run Agy WITHOUT IDEasy, the links are not re-pointed and Agy uses the configuration of the project
       that most recently set them up.
-
+      
       ## API key
       Put your credentials in settings.json -> env:
         { "env": { "ANTIGRAVITY_API_KEY": "..." } }
