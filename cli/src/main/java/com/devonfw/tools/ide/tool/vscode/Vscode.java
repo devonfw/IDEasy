@@ -35,6 +35,12 @@ public class Vscode extends AbstractIdeToolCommandlet {
   /** The {@link Path} of the legacy VSCode user-data folder relative to the workspace, still used by the workspace templates in the settings. */
   private static final Path LEGACY_USER_DATA = Path.of(".vscode", ".userdata");
 
+  /** The name of the VSCode user-data folder passed via {@code --user-data-dir}. */
+  private static final String USER_DATA = "config";
+
+  /** The name of the VSCode shared-data folder passed via {@code --shared-data-dir}. */
+  private static final String SHARED_DATA = "shared-data";
+
   /**
    * The constructor.
    *
@@ -95,11 +101,20 @@ public class Vscode extends AbstractIdeToolCommandlet {
   }
 
   /**
-   * @return the {@link Path} to the VSCode user-data folder passed via {@code --user-data-dir}.
+   * @return the {@link Path} to the VSCode metadata folder of the project ({@code $IDE_HOME/.ide/vscode}) shared by all its workspaces.
+   */
+  private Path getProjectMetadataPath() {
+
+    return getIdeMetadataPath().getParent();
+  }
+
+  /**
+   * @return the {@link Path} to the VSCode user-data folder passed via {@code --user-data-dir}. It is shared by all workspaces of the project so that the
+   *     user settings and logins (e.g. for GitHub Copilot) only need to be configured once per project (see #2582).
    */
   private Path getUserDataPath() {
 
-    return getIdeMetadataPath().resolve("config");
+    return getProjectMetadataPath().resolve(USER_DATA);
   }
 
   /**
@@ -109,14 +124,51 @@ public class Vscode extends AbstractIdeToolCommandlet {
    */
   private Path getSharedDataPath() {
 
-    return getIdeMetadataPath().resolve("shared-data");
+    return getProjectMetadataPath().resolve(SHARED_DATA);
   }
 
   @Override
   public void configureWorkspace() {
 
+    migrateWorkspaceData(USER_DATA, getUserDataPath());
+    migrateWorkspaceData(SHARED_DATA, getSharedDataPath());
+    removeEmptyWorkspaceMetadata();
     cleanupLegacyUserData();
     super.configureWorkspace();
+  }
+
+  /**
+   * Migrates a VSCode data folder of the current workspace ({@code $IDE_HOME/.ide/vscode/«workspace»/«folderName»}) used before #2582 to the according folder
+   * of the project. The first workspace started after the update moves its folder so its settings and logins are kept, every other workspace backs up its
+   * folder since VSCode does not read it anymore.
+   *
+   * @param folderName the name of the data folder inside the {@link #getIdeMetadataPath() workspace metadata folder}.
+   * @param target the {@link Path} of the according data folder of the project.
+   */
+  private void migrateWorkspaceData(String folderName, Path target) {
+
+    Path source = getIdeMetadataPath().resolve(folderName);
+    if (!Files.isDirectory(source) || source.equals(target)) {
+      return;
+    }
+    FileAccess fileAccess = this.context.getFileAccess();
+    if (Files.exists(target)) {
+      LOG.warn("Removing obsolete VSCode data folder {} of workspace {} since all workspaces of the project now use {}", source,
+          this.context.getWorkspaceName(), target);
+      fileAccess.backup(source);
+    } else {
+      LOG.info("Moving VSCode data folder {} of workspace {} to {} so all workspaces of the project use it", source, this.context.getWorkspaceName(), target);
+      fileAccess.move(source, target);
+    }
+  }
+
+  private void removeEmptyWorkspaceMetadata() {
+
+    Path workspaceMetadata = getIdeMetadataPath();
+    FileAccess fileAccess = this.context.getFileAccess();
+    if (Files.isDirectory(workspaceMetadata) && fileAccess.isEmptyDir(workspaceMetadata)) {
+      fileAccess.delete(workspaceMetadata);
+    }
   }
 
   /**
