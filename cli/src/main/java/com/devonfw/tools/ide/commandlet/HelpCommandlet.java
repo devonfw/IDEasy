@@ -18,9 +18,9 @@ import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.version.IdeVersion;
 
 /**
- * {@link Commandlet} to print the environment variables.
+ * {@link AbstractCommandlet} to print the environment variables.
  */
-public final class HelpCommandlet extends Commandlet {
+public final class HelpCommandlet extends AbstractCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(HelpCommandlet.class);
 
@@ -63,7 +63,7 @@ public final class HelpCommandlet extends Commandlet {
     this.context.printLogo();
     NlsBundle bundle = NlsBundle.of(this.context);
     IdeLogLevel.SUCCESS.log(LOG, bundle.get("version-banner"), IdeVersion.getVersionString());
-    Commandlet cmd = this.commandlet.getValue();
+    AbstractCommandlet cmd = this.commandlet.getValue();
     printCommandletHelp(bundle, cmd);
     if (cmd == null) {
       LOG.info("");
@@ -74,7 +74,7 @@ public final class HelpCommandlet extends Commandlet {
     LOG.info(bundle.get("icd-hint"));
   }
 
-  private void printCommandletHelp(NlsBundle bundle, Commandlet cmd) {
+  private void printCommandletHelp(NlsBundle bundle, AbstractCommandlet cmd) {
 
     Args values = null;
     Args options = null;
@@ -154,7 +154,7 @@ public final class HelpCommandlet extends Commandlet {
 
     Args commandlets = new Args();
     Args toolcommandlets = new Args();
-    for (Commandlet cmd : this.context.getCommandletManager().getCommandlets()) {
+    for (AbstractCommandlet cmd : this.context.getCommandletManager().getCommandlets()) {
       String key = cmd.getName();
       KeywordProperty keyword = cmd.getFirstKeyword();
       if (keyword != null) {
@@ -177,7 +177,7 @@ public final class HelpCommandlet extends Commandlet {
     toolcommandlets.print(IdeLogLevel.INTERACTION);
   }
 
-  private void collectOptions(Args options, Commandlet cmd, NlsBundle bundle) {
+  private void collectOptions(Args options, AbstractCommandlet cmd, NlsBundle bundle) {
 
     for (Property<?> property : cmd.getProperties()) {
       if (property.isOption() && !property.isRequired()) {
