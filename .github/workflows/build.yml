@@ -20,6 +20,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '25'
+          cache: 'maven'
       - name: Build project with Maven
         run: mvn -B -ntp -Dstyle.color=always install
       - name: Coveralls GitHub Action
