@@ -95,4 +95,16 @@ For an example of the required files, you can check the tests of other commandle
 * Proper help texts for all supported languages are added in `cli/src/main/resources/nls/` (`Help.properties`, `Help_de.properties`).
 * The new tool is added to the table of tools in LICENSE.asciidoc with the correct license information and tags.
 
+=== Test a Commandlet locally (before the UrlUpdater is merged)
+You can test a new Commandlet locally even if the corresponding UrlUpdater has not yet been merged.
 
+Create a branch containing both your Commandlet changes and the UrlUpdater changes. Then follow the steps described in `url-updater.adoc` to run the `UpdateInitiator`.
+
+1. Ensure that `ide-urls-status` is cloned under `projects/_ide`.
+2. Create and checkout a dedicated branch in `urls`.
+3. Run the `UpdateInitiator` as described in `url-updater.adoc`.
+4. Commit the generated changes in `urls`.
+5. Run `ide install <tool>` or `ide new <tool>` to test the Commandlet.
+
+>[!Important]
+Commit the generated changes before running ide install <tool> or ide new <tool>. Otherwise, the generated content may be discarded, and the Commandlet cannot be tested locally.

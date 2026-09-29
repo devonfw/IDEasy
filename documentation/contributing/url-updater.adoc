@@ -127,4 +127,11 @@ The arguments to pass are:
 * Time to wait for the updater to finish (e.g., PT1H)
 * Name of the updater to run (e.g., mytool)
 
+To test the UrlUpdater, you can run in addition to the unit test the `UpdateInitiator` class located in `url-updater/src/main/java/com/devonfw/tools/ide/url/updater/UpdateInitiator.java` which allows you to run the updater and see the discovered versions and URLs in the console.
+Before running the updater, make sure the `ide-urls-status` repository is available under `project/_ide`. If it does not exist yet, clone it first.
+The arguments to pass are:
+* Path to ide-urls project (where the url-updater module is located)
+* Path to ide-urls-status project
+@@ -203,21 +128,3 @@
+* Name of the updater to run (e.g., mytool)
 Once a day, the `UpdateInitiator` will run the updaters through GitHub Actions and fill the https://github.com/devonfw/ide-urls[ide-URL] repository with new version/tools that are identified by the Updaters.
