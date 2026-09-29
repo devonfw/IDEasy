@@ -9,31 +9,23 @@ Automatically generated open issue overview for macOS.
 
 link:quality-status.adoc[Back to overview]
 
-*Total Issues:* 195
+*Total Issues:* 212
 
-* OS-specific: 12
+* OS-specific: 9
 
 * Multi-OS: 3
 
-* Cross-platform: 180
+* Cross-platform: 200
 
 == macOS Specific Issues
 
 [%header, cols="^1,7"]
 |===
 | Issue | Summary
-2+^| *0-10 days*
+2+^| *11-30 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2468[#2468]
 | Global tool commandlets ignore edition for name/version detection (Windows regi…
-
-2+^| *31-60 days*
-
-| link:https://github.com/devonfw/IDEasy/issues/2344[#2344]
-| Small cleanup: align macos pkg build script with windows msi build script
-
-| link:https://github.com/devonfw/IDEasy/issues/2206[#2206]
-| IDEasy title not properly shown on macOS
 
 2+^| *90+ days*
 
@@ -61,9 +53,6 @@ link:quality-status.adoc[Back to overview]
 | link:https://github.com/devonfw/IDEasy/issues/798[#798]
 | pgadmin not working on Mac
 
-| link:https://github.com/devonfw/IDEasy/issues/377[#377]
-| Support Homebrew for installation on macOS
-
 |===
 
 == Multi-OS Issues
@@ -73,7 +62,7 @@ link:quality-status.adoc[Back to overview]
 [%header, cols="^1,7"]
 |===
 | Issue | Summary
-2+^| *0-10 days*
+2+^| *11-30 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2464[#2464]
 | Add unit tests for `OperatingSystem`
@@ -85,7 +74,7 @@ link:quality-status.adoc[Back to overview]
 [%header, cols="^1,7"]
 |===
 | Issue | Summary
-2+^| *0-10 days*
+2+^| *11-30 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2467[#2467]
 | Obsidian: fix installation on macOS/Linux and duplicate LINUX/X64 artifact in O…

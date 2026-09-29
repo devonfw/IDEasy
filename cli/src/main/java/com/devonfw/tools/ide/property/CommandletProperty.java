@@ -1,14 +1,14 @@
 package com.devonfw.tools.ide.property;
 
-import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.validation.PropertyValidator;
 
 /**
- * {@link Property} with {@link #getValueType() value type} {@link Commandlet}.
+ * {@link Property} with {@link #getValueType() value type} {@link AbstractCommandlet}.
  */
-public class CommandletProperty extends Property<Commandlet> {
+public class CommandletProperty extends Property<AbstractCommandlet> {
 
   /**
    * The constructor.
@@ -30,27 +30,27 @@ public class CommandletProperty extends Property<Commandlet> {
    * @param alias the {@link #getAlias() property alias}.
    * @param validator the {@link PropertyValidator} used to {@link #validate() validate} the {@link #getValue() value}.
    */
-  public CommandletProperty(String name, boolean required, String alias, PropertyValidator<Commandlet> validator) {
+  public CommandletProperty(String name, boolean required, String alias, PropertyValidator<AbstractCommandlet> validator) {
 
     super(name, required, alias, false, validator);
   }
 
   @Override
-  public Class<Commandlet> getValueType() {
+  public Class<AbstractCommandlet> getValueType() {
 
-    return Commandlet.class;
+    return AbstractCommandlet.class;
   }
 
   @Override
-  protected String format(Commandlet valueToFormat) {
+  protected String format(AbstractCommandlet valueToFormat) {
 
     return valueToFormat.getName();
   }
 
   @Override
-  protected void completeValue(String arg, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
+  protected void completeValue(String arg, IdeContext context, AbstractCommandlet commandlet, CompletionCandidateCollector collector) {
 
-    for (Commandlet cmd : context.getCommandletManager().getCommandlets()) {
+    for (AbstractCommandlet cmd : context.getCommandletManager().getCommandlets()) {
       String cmdName = cmd.getName();
       if (cmdName.startsWith(arg)) {
         collector.add(cmdName, null, null, cmd);
@@ -59,9 +59,9 @@ public class CommandletProperty extends Property<Commandlet> {
   }
 
   @Override
-  public Commandlet parse(String valueAsString, IdeContext context) {
+  public AbstractCommandlet parse(String valueAsString, IdeContext context) {
 
-    Commandlet commandlet = context.getCommandletManager().getCommandlet(valueAsString);
+    AbstractCommandlet commandlet = context.getCommandletManager().getCommandlet(valueAsString);
     if (commandlet == null) {
       throw new IllegalArgumentException(valueAsString);
     }
