@@ -19,17 +19,17 @@ import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.ExtensibleEnvironmentVariables;
 import com.devonfw.tools.ide.merge.xml.XmlMergeDocument;
 import com.devonfw.tools.ide.merge.xml.XmlMerger;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.process.EnvironmentContext;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolEdition;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
-import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeaBasedIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link IdeToolCommandlet} for <a href="https://www.jetbrains.com/idea/">IntelliJ</a>.
+ * {@link AbstractIdeToolCommandlet} for <a href="https://www.jetbrains.com/idea/">IntelliJ</a>.
  */
 public class Intellij extends IdeaBasedIdeToolCommandlet {
 
@@ -49,7 +49,8 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   private static final String MISC_XML = "misc.xml";
   private static final String IDEA_PROPERTIES = "idea.properties";
 
-  private static final Map<Class<? extends LocalToolCommandlet>, String> BUILD_TOOL_TO_IJ_TEMPLATE = Map.of(Mvn.class, MISC_XML, Gradle.class, GRADLE_XML);
+  private static final Map<Class<? extends AbstractLocalToolCommandlet>, String> BUILD_TOOL_TO_IJ_TEMPLATE = Map.of(Mvn.class, MISC_XML, Gradle.class,
+      GRADLE_XML);
 
   /**
    * The constructor.
@@ -82,6 +83,13 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   protected String getIdeProductPrefix() {
 
     return IDEA;
+  }
+
+  //TODO: rework this after merge
+  @Override
+  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
+    super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
+    environmentContext.withEnvVar("IDEA_PROPERTIES", this.context.getWorkspacePath().resolve(IDEA_PROPERTIES).toString());
   }
 
   @Override
@@ -154,8 +162,8 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   @Override
   public void importRepository(Path repositoryPath) {
     CommandletManager commandletManager = this.context.getCommandletManager();
-    for (Entry<Class<? extends LocalToolCommandlet>, String> entry : BUILD_TOOL_TO_IJ_TEMPLATE.entrySet()) {
-      LocalToolCommandlet buildTool = commandletManager.getCommandlet(entry.getKey());
+    for (Entry<Class<? extends AbstractLocalToolCommandlet>, String> entry : BUILD_TOOL_TO_IJ_TEMPLATE.entrySet()) {
+      AbstractLocalToolCommandlet buildTool = commandletManager.getCommandlet(entry.getKey());
       Path buildDescriptor = buildTool.findBuildDescriptor(repositoryPath);
       if (buildDescriptor != null) {
         String templateFilename = entry.getValue();

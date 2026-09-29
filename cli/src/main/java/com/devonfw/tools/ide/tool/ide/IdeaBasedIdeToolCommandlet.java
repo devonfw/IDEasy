@@ -27,10 +27,10 @@ import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 
 /**
- * {@link IdeToolCommandlet} for IDEA based commandlets like: {@link com.devonfw.tools.ide.tool.intellij.Intellij IntelliJ} and
+ * {@link AbstractIdeToolCommandlet} for IDEA based commandlets like: {@link com.devonfw.tools.ide.tool.intellij.Intellij IntelliJ} and
  * {@link com.devonfw.tools.ide.tool.androidstudio.AndroidStudio Android Studio}.
  */
-public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
+public class IdeaBasedIdeToolCommandlet extends AbstractIdeToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(IdeaBasedIdeToolCommandlet.class);
 

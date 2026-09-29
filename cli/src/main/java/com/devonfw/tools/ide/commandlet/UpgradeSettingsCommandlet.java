@@ -25,9 +25,9 @@ import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.variable.VariableDefinition;
 
 /**
- * {@link Commandlet} to upgrade settings after a migration from devonfw-ide to IDEasy.
+ * {@link AbstractCommandlet} to upgrade settings after a migration from devonfw-ide to IDEasy.
  */
-public class UpgradeSettingsCommandlet extends Commandlet {
+public class UpgradeSettingsCommandlet extends AbstractCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeSettingsCommandlet.class);
 
