@@ -170,18 +170,19 @@ public class GitContextImpl implements GitContext {
 
     Objects.requireNonNull(repository);
     Objects.requireNonNull(gitUrl);
-    if (Files.isDirectory(repository.resolve(GIT_FOLDER))) {
-      // checks for remotes
-      String remote = determineRemote(repository);
-      if (remote == null) {
-        String message = repository + " is a local git repository with no remote - if you did this for testing, you may continue...\n"
-            + "Do you want to ignore the problem and continue anyhow?";
-        this.context.askToContinue(message);
-      } else {
-        pull(repository);
-      }
-    } else {
+    if (!Files.isDirectory(repository.resolve(GIT_FOLDER))) {
       clone(gitUrl, repository);
+      return;
+    }
+    // the remote to pull from is the one the current branch is tracking (see also "git rev-parse @{u}")
+    String effectiveRemote = determineTrackedRemote(repository);
+    if (effectiveRemote == null) {
+      String message = repository
+          + " is a local git repository whose current branch does not track a remote - if you did this for testing, you may continue...\n"
+          + "Do you want to ignore the problem and continue anyhow?";
+      this.context.askToContinue(message);
+    } else {
+      pull(repository);
     }
   }
 
@@ -259,10 +260,16 @@ public class GitContextImpl implements GitContext {
       branch = determineCurrentBranch(repository);
     }
     if (remote == null) {
-      remote = determineRemote(repository);
+      // the remote to fetch from is the one the current branch is tracking (see also "git rev-parse @{u}")
+      remote = determineTrackedRemote(repository);
+    }
+    if (remote == null) {
+      // we are on a local branch without a configured upstream, there is no remote to fetch from
+      LOG.info("Skipping git fetch on {} because no remote is configured for branch {}.", repository, branch);
+      return;
     }
 
-    ProcessResult result = runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, "fetch", Objects.requireNonNullElse(remote, "origin"), branch);
+    ProcessResult result = runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, "fetch", remote, branch);
 
     if (!result.isSuccessful()) {
       LOG.warn("Git fetch for '{}/{} failed.'.", remote, branch);
@@ -276,9 +283,13 @@ public class GitContextImpl implements GitContext {
   }
 
   @Override
-  public String determineRemote(Path repository) {
+  public String determineTrackedRemote(Path repository) {
 
-    return runGitCommandAndGetSingleOutput("Failed to determine current origin of git repository.", repository, "remote");
+    String branch = determineCurrentBranch(repository);
+    if ((branch == null) || branch.isBlank()) {
+      return null;
+    }
+    return getOptionalGitConfigValue(repository, "branch." + branch + ".remote");
   }
 
   @Override
@@ -539,8 +550,8 @@ public class GitContextImpl implements GitContext {
    * @param repository the {@link Path} to the git repository.
    * @param name the name of the remote.
    * @param url the URL of the remote.
-   * @param failOnOverride {@code true} to throw an {@link IllegalStateException} if the remote already exists
-   *     with a different URL, {@code false} to silently update it.
+   * @param failOnOverride {@code true} to throw an {@link IllegalStateException} if the remote already exists with a different URL, {@code false} to
+   *     silently update it.
    */
   protected void addRemote(Path repository, String name, String url, boolean failOnOverride) {
 

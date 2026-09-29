@@ -12,7 +12,7 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.repository.AbstractToolRepository;
 import com.devonfw.tools.ide.tool.uv.Uv;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
@@ -53,7 +53,7 @@ public class PythonRepository extends AbstractToolRepository {
   }
 
   @Override
-  public List<VersionIdentifier> getSortedVersions(String tool, String edition, ToolCommandlet toolCommandlet) {
+  public List<VersionIdentifier> getSortedVersions(String tool, String edition, AbstractToolCommandlet toolCommandlet) {
 
     if (this.cachedVersions == null) {
       this.cachedVersions = computeSortedVersions();
@@ -98,7 +98,7 @@ public class PythonRepository extends AbstractToolRepository {
   }
 
   @Override
-  protected UrlDownloadFileMetadata getMetadata(String tool, String edition, VersionIdentifier version, ToolCommandlet toolCommandlet) {
+  protected UrlDownloadFileMetadata getMetadata(String tool, String edition, VersionIdentifier version, AbstractToolCommandlet toolCommandlet) {
 
     throw new UnsupportedOperationException(
         "Python is installed via uv and is never downloaded from a URL. This repository only resolves versions.");
