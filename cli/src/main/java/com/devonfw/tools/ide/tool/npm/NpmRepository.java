@@ -74,7 +74,7 @@ public class NpmRepository extends ArtifactToolRepository<NpmArtifact, NpmArtifa
       for (String version : versionSet) {
         try {
           versions.add(VersionIdentifier.of(version));
-        } catch (NumberFormatException e) {
+        }catch (NumberFormatException e){
           LOG.warn("Skipping invalid npm version '{}' for package '{}': {}", version, artifact.getName(), e.getMessage());
         }
 
