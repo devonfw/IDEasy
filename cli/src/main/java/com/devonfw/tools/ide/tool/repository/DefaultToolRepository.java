@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.SystemInfo;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
@@ -32,7 +32,7 @@ public class DefaultToolRepository extends AbstractToolRepository {
   }
 
   @Override
-  protected UrlDownloadFileMetadata getMetadata(String tool, String edition, VersionIdentifier version, ToolCommandlet toolCommandlet) {
+  protected UrlDownloadFileMetadata getMetadata(String tool, String edition, VersionIdentifier version, AbstractToolCommandlet toolCommandlet) {
 
     UrlMetadata metadata = this.context.getUrls();
     UrlVersion urlVersion = metadata.getVersionFolder(tool, edition, version, toolCommandlet);
@@ -47,7 +47,7 @@ public class DefaultToolRepository extends AbstractToolRepository {
   }
 
   @Override
-  public List<VersionIdentifier> getSortedVersions(String tool, String edition, ToolCommandlet toolCommandlet) {
+  public List<VersionIdentifier> getSortedVersions(String tool, String edition, AbstractToolCommandlet toolCommandlet) {
 
     return this.context.getUrls().getSortedVersions(tool, edition, toolCommandlet);
   }
