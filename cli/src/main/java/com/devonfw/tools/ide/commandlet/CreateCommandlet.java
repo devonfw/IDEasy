@@ -7,10 +7,10 @@ import java.util.function.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.commandlet.update.AbstractUpdateCommandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.version.IdeVersion;
 
@@ -24,9 +24,6 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
   /** {@link StringProperty} for the name of the new project */
   public final StringProperty newProject;
 
-  /** {@link FlagProperty} for creating a project with settings inside a code repository */
-  public final FlagProperty codeRepositoryFlag;
-
   /**
    * The constructor.
    *
@@ -36,7 +33,6 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
 
     super(context);
     this.newProject = add(new StringProperty("", true, "project"));
-    this.codeRepositoryFlag = add(new FlagProperty("--code"));
     add(this.settingsRepo);
   }
 
@@ -55,42 +51,51 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
   @Override
   protected void doRun() {
 
-    String newProjectName = this.newProject.getValue();
-    Path newProjectPath = this.context.getIdeRoot().resolve(newProjectName);
-
+    Path newProjectPath = getNewProjectPath();
     LOG.info("Creating new IDEasy project in {}", newProjectPath);
-    if (!this.context.getFileAccess().isEmptyDir(newProjectPath)) {
-      this.context.askToContinue("Directory {} already exists. Do you want to continue?", newProjectPath);
-    } else {
-      this.context.getFileAccess().mkdirs(newProjectPath);
+    FileAccess fileAccess = this.context.getFileAccess();
+    if (!fileAccess.isEmptyDir(newProjectPath)) {
+      this.context.askToContinue("Directory {} already exists. Do you want to move the project to the backup and create it from scratch?", newProjectPath);
+      fileAccess.backup(newProjectPath);
     }
 
-    initializeProject(newProjectPath);
-    this.context.setIdeHome(newProjectPath);
     super.doRun();
     this.context.getFileAccess().writeFileContent(IdeVersion.getVersionString(), newProjectPath.resolve(IdeContext.FILE_SOFTWARE_VERSION));
-    IdeLogLevel.SUCCESS.log(LOG, "Successfully created new project '{}'.", newProjectName);
-
+    IdeLogLevel.SUCCESS.log(LOG, "Successfully created new project '{}'.", this.newProject.getValue());
     logWelcomeMessage();
   }
 
-  private void initializeProject(Path newInstancePath) {
+  @Override
+  protected void onSettingHealthCheckFinished() {
 
+    // only called after the settings passed the health check
+    Path newProjectPath = getNewProjectPath();
+    this.context.setIdeHome(newProjectPath);
     FileAccess fileAccess = this.context.getFileAccess();
-    fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_SOFTWARE));
-    fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_PLUGINS));
-    fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN));
+    fileAccess.mkdirs(newProjectPath);
+    fileAccess.mkdirs(newProjectPath.resolve(IdeContext.FOLDER_SOFTWARE));
+    fileAccess.mkdirs(newProjectPath.resolve(IdeContext.FOLDER_PLUGINS));
+    fileAccess.mkdirs(newProjectPath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN));
   }
 
+  /**
+   * @return The path to the settings folder in the new project.
+   */
   @Override
-  protected boolean isCodeRepository() {
-    return this.codeRepositoryFlag.isTrue();
+  protected Path getSettingsPathForSettingsUpdate() {
+
+    return getNewProjectPath().resolve(IdeContext.FOLDER_SETTINGS);
+  }
+
+  private Path getNewProjectPath() {
+
+    return this.context.getIdeRoot().resolve(this.newProject.getValue());
   }
 
   @Override
   protected String getStepMessage() {
 
-    return "Create (clone) " + (isCodeRepository() ? "code" : "settings") + " repository";
+    return "Create (clone) repository";
   }
 
   private void logWelcomeMessage() {

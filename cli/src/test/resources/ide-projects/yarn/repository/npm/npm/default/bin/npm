@@ -1,0 +1,21 @@
+#!/bin/bash
+if [ "$1" = "--version" ]; then
+  echo "9.9.2"
+  exit
+fi
+if [ "$1" = "list" ] && [ "$2" = "-g" ]; then
+  # Report a version only if the package binary is actually present in the per-project
+  # global prefix (pristine npm reports nothing for a package that is not installed yet).
+  if [ -n "$npm_config_prefix" ] && [ -e "$npm_config_prefix/bin/$3" ]; then
+    echo "-- $3@9.9.2"
+  fi
+  exit 1
+fi
+if [ "$1" = "install" ]; then
+  # Pristine: global packages are installed into the per-project global prefix.
+  if [ -n "$npm_config_prefix" ]; then
+    mkdir -p "$npm_config_prefix/bin"
+    cp target/ide-projects/yarn/repository/yarn/yarn/default/yarn "$npm_config_prefix/bin/yarn"
+  fi
+fi
+echo "npm $*"

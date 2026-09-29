@@ -37,8 +37,8 @@ import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.commandlet.CommandletManagerImpl;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
 import com.devonfw.tools.ide.commandlet.EnvironmentCommandlet;
-import com.devonfw.tools.ide.commandlet.UpdateCommandlet;
 import com.devonfw.tools.ide.commandlet.UpgradeCommandlet;
+import com.devonfw.tools.ide.commandlet.update.UpdateCommandlet;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
@@ -50,6 +50,7 @@ import com.devonfw.tools.ide.environment.IdeSystemImpl;
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.git.GitContextImpl;
 import com.devonfw.tools.ide.git.GitUrl;
+import com.devonfw.tools.ide.git.repository.RepositoryType;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.log.IdeLogArgFormatter;
@@ -440,7 +441,11 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     if (isPrivacyMode() && !WORKSPACE_MAIN.equals(wks)) {
       wks = "*".repeat(wks.length());
     }
-    return "IDE environment variables have been set for " + formatArgument(this.ideHome) + " in workspace " + wks;
+    String workspaceMessage = " with workspace set to " + wks;
+    if (!this.cwd.startsWith(this.workspacePath)) {
+      workspaceMessage += " (fallback to default)";
+    }
+    return "IDE environment variables have been set for " + formatArgument(this.ideHome) + workspaceMessage;
   }
 
   private String getMessageNotInsideIdeProject() {
@@ -699,29 +704,13 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   public Path getSettingsGitRepository() {
 
     Path settingsPath = getSettingsPath();
+    RepositoryType settingsRepositoryType = RepositoryType.ofSettingsPath(settingsPath, this);
     // check whether the settings path has a .git folder only if its not a symbolic link or junction
-    if ((settingsPath != null) && !Files.exists(settingsPath.resolve(".git")) && !isSettingsCodeRepository()) {
+    if ((settingsPath != null) && !Files.exists(settingsPath.resolve(".git")) && !(settingsRepositoryType == RepositoryType.CODE_SETTINGS_COMBINED)) {
       LOG.error("Settings repository exists but is not a git repository.");
       return null;
     }
     return settingsPath;
-  }
-
-  @Override
-  public boolean isSettingsCodeRepository() {
-
-    Path settingsPath = getSettingsPath();
-    if (settingsPath != null) {
-      boolean settingsIsLink = Files.isSymbolicLink(settingsPath) || getFileAccess().isJunction(settingsPath);
-      if (settingsIsLink) {
-        Path realPath = getFileAccess().toRealPath(this.settingsPath);
-        if (realPath != null) {
-          return getGitContext().isGitRepo(realPath.getParent());
-        }
-        return true;
-      }
-    }
-    return false;
   }
 
   @Override
@@ -1143,8 +1132,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
    * @param message the question to ask.
    * @param defaultValue the value to return if the user accepts the default (by entering an empty value) or {@code null} to re-ask until a value is
    *     entered.
-   * @param secret - {@code true} to read the input in a masked way (see {@link #readSecretLine()}) and to mask it in the log output, {@code false} to
-   *     read it as plain text.
+   * @param secret - {@code true} to read the input in a masked way (see {@link #readSecretLine()}) and to mask it in the log output, {@code false} to read
+   *     it as plain text.
    * @return the entered value or the default value.
    */
   private String ask(String message, String defaultValue, boolean secret) {
@@ -1564,7 +1553,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
    */
   private String determineSettingsUpdateMessage(Commandlet cmd) {
     boolean update = cmd instanceof UpdateCommandlet;
-    if (isSettingsCodeRepository()) {
+    RepositoryType settingsRepositoryType = RepositoryType.ofSettingsPath(getSettingsPath(), this);
+    if (settingsRepositoryType == RepositoryType.CODE_SETTINGS_COMBINED) {
       if (update && (isForceMode() || isForcePull())) {
         return null;
       }
