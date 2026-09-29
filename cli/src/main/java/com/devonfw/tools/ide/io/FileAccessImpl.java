@@ -53,6 +53,7 @@ import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipParameters;
+import org.apache.commons.compress.compressors.xz.XZCompressorOutputStream;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1143,6 +1144,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       case NONE -> compressTar(dir, out);
       case GZ -> compressTarGz(dir, out);
       case BZIP2 -> compressTarBzip2(dir, out);
+      case XZ -> compressTarXz(dir, out);
       default -> throw new IllegalArgumentException("Unsupported tar compression: " + tarCompression);
     }
   }
@@ -1166,6 +1168,16 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       compressTarOrThrow(dir, bzip2Out);
     } catch (IOException e) {
       throw new IllegalStateException("Failed to compress directory " + dir + " to tar.bz2 file.", e);
+    }
+  }
+
+  @Override
+  public void compressTarXz(Path dir, OutputStream out) {
+
+    try (XZCompressorOutputStream xzOut = new XZCompressorOutputStream(out)) {
+      compressTarOrThrow(dir, xzOut);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to compress directory " + dir + " to tar.xz file.", e);
     }
   }
 
