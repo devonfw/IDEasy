@@ -13,7 +13,7 @@ The architecture emphasizes:
 * *UI Reactivity*: via Observer patterns and property bindings
 * *Maintainability*: through localization, programmatic wiring, and comprehensive testing + Scalability via feature-based organization allowing independent development
 * **Scalability** via feature-based organization allowing independent development
-* **State management**: The state of the UI is stored using the god-object style GuiStateManager. This object takes care of storing the GUI state as in: 
+* [[gui-state-manager]]**State management**: The state of the UI is stored using the god-object style GuiStateManager. This object takes care of storing the GUI state as in: 
 ** Providing all **service classes** to the apllication
 ** Providing all **factory classes** to the pplication
 ** Which project is selected? 
@@ -41,6 +41,17 @@ The GUI is organized around a small set of roles. Each has a single responsibili
 |====
 
 Note: the term *Model* in MVVM refers to the observable application state. In practice this lives in the `context` package (e.g. `GuiStateManager`, `TaskManager`) and is exposed to the UI as JavaFX `Property`s.
+
+[#tabs]
+=== Tabs
+
+The main window is organized into tabs (e.g. the IDE launcher).
+Each tab is a self-contained `TabComponent` that bundles everything belonging to that tab: its title key, its ViewModel (extends `TabViewModel`), its View (extends `TabView`), the JavaFX `Tab` tying them together, and the lifecycle hooks around opening, closing and focusing.
+
+Therefore the `TabFactory` does *not* need to know any concrete ViewModel or View — it only opens `TabComponent`s and sends the resulting `Tab`s as events to the `MainWindowView`.
+This follows the *Tell, Don't Ask* principle: the caller tells the factory to open a component instead of asking it for its title key and assembling the parts itself.
+
+Consequently, to add a tab you create a new class extending `TabComponent` (see link:ui-contribution-process.adoc[Contributing to the IDEasy GUI] for the steps).
 
 == Observer / Observable Pattern
 
