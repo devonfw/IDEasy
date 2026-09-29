@@ -19,7 +19,7 @@ import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * Test of {@link PluginBasedCommandlet}.
+ * Test of {@link AbstractPluginBasedCommandlet}.
  */
 class PluginBasedCommandletTest extends AbstractIdeContextTest {
 
