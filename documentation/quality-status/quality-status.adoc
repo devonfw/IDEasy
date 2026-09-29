@@ -20,7 +20,7 @@ image::quality-status-images/issue-assignment.svg[Pie chart: assigned vs unassig
 image::quality-status-images/issue-types.svg[Pie chart: issue type distribution,width=100%]
 
 
-_Generated: 2026-09-21 11:43 UTC_
+_Generated: 2026-09-28 12:38 UTC_
 
 
 == Operating System Status Files
@@ -29,7 +29,7 @@ Issues are assigned to operating systems based on their labels:
 `windows`, `linux`, or `macOS`.
 
 Issues without an operating system label are treated as cross-platform.
-*A total of 180 cross-platform issues* are documented centrally in this document and are therefore not repeated in the operating system specific files.
+*A total of 200 cross-platform issues* are documented centrally in this document and are therefore not repeated in the operating system specific files.
 
 The detailed tool status is split into one generated file per operating system.
 
@@ -58,6 +58,108 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | Issue | Summary
 2+^a| [[cross-platform-0-10-days]] *0-10 days*
 
+| link:https://github.com/devonfw/IDEasy/issues/2572[#2572]
+| Make VSCODE_PROFILE_ENABLED ready to be enabled by default
+
+| link:https://github.com/devonfw/IDEasy/issues/2571[#2571]
+| ide vscode fails and leaves plugins that are never reinstalled when VSCode is u…
+
+| link:https://github.com/devonfw/IDEasy/issues/2570[#2570]
+| VSCode login callbacks (vscode://) do not reach the IDEasy window when another…
+
+| link:https://github.com/devonfw/IDEasy/issues/2569[#2569]
+| VSCode plugins installed with VSCODE_PROFILE_ENABLED are missing after the togg…
+
+| link:https://github.com/devonfw/IDEasy/issues/2568[#2568]
+| VSCode user settings from the settings repository are ignored when VSCODE_PROFI…
+
+| link:https://github.com/devonfw/IDEasy/issues/2567[#2567]
+| Deduplicate logo assets copied to gui and cli
+
+| link:https://github.com/devonfw/IDEasy/issues/2562[#2562]
+| Link a current IDEasy dev team to project 5
+
+| link:https://github.com/devonfw/IDEasy/issues/2561[#2561]
+| python in pristine software repo with per-project isolation
+
+| link:https://github.com/devonfw/IDEasy/issues/2559[#2559]
+| Homebrew formula publish fails:  Error: No available formula with the name "ide…
+
+| link:https://github.com/devonfw/IDEasy/issues/2553[#2553]
+| Add release support for yarn
+
+| link:https://github.com/devonfw/IDEasy/issues/2552[#2552]
+| Add release support for npm
+
+| link:https://github.com/devonfw/IDEasy/issues/2551[#2551]
+| Add release support for Gradle
+
+| link:https://github.com/devonfw/IDEasy/issues/2550[#2550]
+| Add release support for remaining build tools
+
+| link:https://github.com/devonfw/IDEasy/issues/2549[#2549]
+| Improvement of testing instructions in `contribution.adoc`
+
+| link:https://github.com/devonfw/IDEasy/issues/2547[#2547]
+| Figma design for pro-active notifications of updates in the GUI
+
+| link:https://github.com/devonfw/IDEasy/issues/2546[#2546]
+| Include repository into git warning/errors
+
+| link:https://github.com/devonfw/IDEasy/issues/2545[#2545]
+| Workspace configured twice
+
+| link:https://github.com/devonfw/IDEasy/issues/2544[#2544]
+| Native package manager commands inherit IDEasy tool environment
+
+| link:https://github.com/devonfw/IDEasy/issues/2541[#2541]
+| Testing inverseMerge fails
+
+| link:https://github.com/devonfw/IDEasy/issues/2538[#2538]
+| Test the bugreport commandlet
+
+| link:https://github.com/devonfw/IDEasy/issues/2537[#2537]
+| Enhace ide upgrade-settings to remove plugin_ legacy prefix
+
+| link:https://github.com/devonfw/IDEasy/issues/2536[#2536]
+| Remove plugin_ prefixes from plugin properties
+
+| link:https://github.com/devonfw/IDEasy/issues/2535[#2535]
+| Cleanup ide-settings
+
+| link:https://github.com/devonfw/IDEasy/issues/2531[#2531]
+| JetBreains: store metadata (.intellij) out of workspace
+
+| link:https://github.com/devonfw/IDEasy/issues/2530[#2530]
+| GitContext.fetch should fetch all remotes if none is specified
+
+| link:https://github.com/devonfw/IDEasy/issues/2528[#2528]
+| Simplify GitContext test infrastructure by consolidating mocks
+
+| link:https://github.com/devonfw/IDEasy/issues/2527[#2527]
+| Cleanup of IDEasy title not properly shown on macOS
+
+| link:https://github.com/devonfw/IDEasy/issues/2521[#2521]
+| Add commandlet for Scala CLI (`scala-cli`)
+
+| link:https://github.com/devonfw/IDEasy/issues/2520[#2520]
+| Add commandlet for Dart SDK (`dart`)
+
+| link:https://github.com/devonfw/IDEasy/issues/2519[#2519]
+| Add commandlet for Flutter (`flutter`)
+
+| link:https://github.com/devonfw/IDEasy/issues/2518[#2518]
+| Add commandlet for Snyk CLI (`snyk`)
+
+| link:https://github.com/devonfw/IDEasy/issues/2517[#2517]
+| Add commandlet for jq (`jq`)
+
+| link:https://github.com/devonfw/IDEasy/issues/2516[#2516]
+| Add commandlet for pnpm (`pnpm`)
+
+| link:https://github.com/devonfw/IDEasy/issues/2515[#2515]
+| Add commandlet for KubeLinter (`kube-linter`)
+
 | link:https://github.com/devonfw/IDEasy/issues/2514[#2514]
 | Add commandlet for Ollama CLI (`ollama`)
 
@@ -73,17 +175,13 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/2510[#2510]
 | Add commandlet for Micronaut CLI (`mn`)
 
-| link:https://github.com/devonfw/IDEasy/issues/2509[#2509]
-| VSCode user settings from the settings repository are ignored since user-data m…
-
-| link:https://github.com/devonfw/IDEasy/issues/2506[#2506]
-| test title
-
 | link:https://github.com/devonfw/IDEasy/issues/2504[#2504]
 | VSCode plugins cannot be reinstalled after the plugins folder was reset when VS…
 
 | link:https://github.com/devonfw/IDEasy/issues/2502[#2502]
 | Replace global IdeStartContext lookup with ScopedValue
+
+2+^a| [[cross-platform-11-30-days]] *11-30 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2495[#2495]
 | Help text and documentation for the --project flag
@@ -121,9 +219,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/2478[#2478]
 | Move variable resolution out of RepositoryProperties into the transformation to…
 
-| link:https://github.com/devonfw/IDEasy/issues/2477[#2477]
-| CliAbortException should always be rethrown in a Step
-
 | link:https://github.com/devonfw/IDEasy/issues/2471[#2471]
 | VSCode plugin installation fails with "Profile '<name>' not found" when VSCODE_…
 
@@ -147,9 +242,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 
 | link:https://github.com/devonfw/IDEasy/issues/2459[#2459]
 | Consider integration of gemini
-
-| link:https://github.com/devonfw/IDEasy/issues/2458[#2458]
-| Create UrlUpdater for antigravity
 
 | link:https://github.com/devonfw/IDEasy/issues/2457[#2457]
 | Consider integration of antigravity
@@ -181,13 +273,11 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/2448[#2448]
 | Add Native AI Integration Support for IDEasy
 
-2+^a| [[cross-platform-11-30-days]] *11-30 days*
-
 | link:https://github.com/devonfw/IDEasy/issues/2440[#2440]
 | Add a possibility to open the IdeLauncher Tab when it's closed
 
 | link:https://github.com/devonfw/IDEasy/issues/2439[#2439]
-| Implement AlertFactory for the GUI
+| Implement PopUps, PopUp base classes, PopUpFactory for the GUI
 
 | link:https://github.com/devonfw/IDEasy/issues/2436[#2436]
 | Plugin step progress index broken
@@ -204,9 +294,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/2423[#2423]
 | isRepositoryUpdateAvailable is not covered by any test that reaches the compari…
 
-| link:https://github.com/devonfw/IDEasy/issues/2422[#2422]
-| Cleanup how to determine installed edition and version and potentially restore…
-
 | link:https://github.com/devonfw/IDEasy/issues/2420[#2420]
 | Improve BuildTool support further
 
@@ -215,9 +302,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 
 | link:https://github.com/devonfw/IDEasy/issues/2417[#2417]
 | Analysis of OpenShell Nvidia for AI Agent
-
-| link:https://github.com/devonfw/IDEasy/issues/2411[#2411]
-| Improve overview of projects which use IDEasy
 
 | link:https://github.com/devonfw/IDEasy/issues/2410[#2410]
 | Improve support for bug report
@@ -237,9 +321,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/2402[#2402]
 | Add base-classes for GUI tabs
 
-| link:https://github.com/devonfw/IDEasy/issues/2401[#2401]
-| Rework MainWindow
-
 | link:https://github.com/devonfw/IDEasy/issues/2400[#2400]
 | Rework Console to MVVM
 
@@ -249,17 +330,13 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/2397[#2397]
 | GUI infrastructure epic
 
-| link:https://github.com/devonfw/IDEasy/issues/2394[#2394]
-| Add documentation for PR Retest and QA approval
-
 | link:https://github.com/devonfw/IDEasy/issues/2393[#2393]
 | Open a project folder of my choice (e.g. an external Git repo) instead of alway…
 
+2+^a| [[cross-platform-31-60-days]] *31-60 days*
+
 | link:https://github.com/devonfw/IDEasy/issues/2385[#2385]
 | Cleanup of IdeLogEntry and IdeGuiListener
-
-| link:https://github.com/devonfw/IDEasy/issues/2381[#2381]
-| node + npm in pristine software repo with per-project isolation (Bash, launcher…
 
 | link:https://github.com/devonfw/IDEasy/issues/2374[#2374]
 | Hotfix: Auto Assign PR Author workflow fails with 403 Forbidden for bot-created…
@@ -278,8 +355,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 
 | link:https://github.com/devonfw/IDEasy/issues/2364[#2364]
 | Error during installation of soapui
-
-2+^a| [[cross-platform-31-60-days]] *31-60 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2358[#2358]
 | Overhaul IDEasy project board review assigning
@@ -326,9 +401,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/2280[#2280]
 | Maven commandlet runs from workspace root instead of project directory
 
-| link:https://github.com/devonfw/IDEasy/issues/2279[#2279]
-| Desktop shortcut for the GUI does not work: gui commandlet requires IDE_HOME
-
 | link:https://github.com/devonfw/IDEasy/issues/2275[#2275]
 | Auto-install git if not already installed
 
@@ -365,16 +437,13 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/2240[#2240]
 | Support file and folder selection
 
-| link:https://github.com/devonfw/IDEasy/issues/2236[#2236]
-| Preserve Git Bash Working Directory When Launching VS Code via ide vscode
+2+^a| [[cross-platform-61-90-days]] *61-90 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2225[#2225]
 | Define installation ownership for Homebrew: brew and 'ideasy install' produce a…
 
 | link:https://github.com/devonfw/IDEasy/issues/2214[#2214]
 | Overhaul language selection logic
-
-2+^a| [[cross-platform-61-90-days]] *61-90 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2200[#2200]
 | Add support to check repository for best-practices
@@ -392,7 +461,7 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | Basic structure for Commandlet view
 
 | link:https://github.com/devonfw/IDEasy/issues/2142[#2142]
-| Move IDE-specific metada (.idea, .vscode) out of workspace
+| Move IDE-specific metada (.intellij, .vscode) out of workspace
 
 | link:https://github.com/devonfw/IDEasy/issues/2111[#2111]
 | Add user documentation for GUI
@@ -449,9 +518,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 
 | link:https://github.com/devonfw/IDEasy/issues/1814[#1814]
 | IDEasy still reports updates for settings are available after any number of inv…
-
-| link:https://github.com/devonfw/IDEasy/issues/1808[#1808]
-| icd is not navigating into single available workspace on icd -p project
 
 | link:https://github.com/devonfw/IDEasy/issues/1787[#1787]
 | tracking yarn versions broken
@@ -537,9 +603,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/882[#882]
 | Skip step if no installation was required
 
-| link:https://github.com/devonfw/IDEasy/issues/840[#840]
-| git fetch does not work with multiple remotes
-
 | link:https://github.com/devonfw/IDEasy/issues/785[#785]
 | Re-introduce workspace reverse options from devonfw-ide
 
@@ -560,9 +623,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 
 | link:https://github.com/devonfw/IDEasy/issues/629[#629]
 | Recycle devonfw-ide documentation
-
-| link:https://github.com/devonfw/IDEasy/issues/607[#607]
-| Test for environment variables of process contexts  
 
 | link:https://github.com/devonfw/IDEasy/issues/492[#492]
 | Use Maven dependency cache to optimize workflow running times
