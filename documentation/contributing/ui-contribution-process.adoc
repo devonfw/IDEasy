@@ -23,9 +23,8 @@ This ensures consistency of parallel work on UI contributions and makes reviews 
 
 Before implementing anything:
 
-. Find an existing GUI-labeled issue.
-. Assign the issue to yourself.
-. If the work is not tracked yet, create a new issue first and don't forget to add the "GUI" label.
+. We use the `GUI` label to mark issues related to the graphical user interface.
+. Follow our usual link:issue.adoc#working-on-an-issue[process to pick an issue].
 
 === Create a design proposal
 

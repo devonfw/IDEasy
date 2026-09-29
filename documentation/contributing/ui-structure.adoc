@@ -107,30 +107,25 @@ Each feature owns its View/ViewModel pair and related components, while cross-cu
 [source]
 ----
 gui
-└── src
-    └── main
-        └── java
-            └── com
-                └── devonfw
-                    └── ide
-                        └── gui
-                            ├── App.java
-                            ├── core
-                            │   ├── context
-                            │   ├── event
-                            │   ├── factory
-                            │   ├── helper
-                            │   ├── mainwindow
-                            │   │   ├── console
-                            │   │   └── navigation
-                            │   ├── modal
-                            │   ├── progress
-                            │   │   └── taskwindow
-                            │   ├── service
-                            │   └── tab
-                            └── feature
-                                └── ide
-                                    └── launcher
+└── src/main/java
+    └── com/devonfw/ide/gui
+        ├── App.java
+        ├── core
+        │   ├── context
+        │   ├── event
+        │   ├── factory
+        │   ├── helper
+        │   ├── mainwindow
+        │   │   ├── console
+        │   │   └── navigation
+        │   ├── modal
+        │   ├── progress
+        │   │   └── taskwindow
+        │   ├── service
+        │   └── tab
+        └── feature
+            └── ide
+                └── launcher
 ----
 
 === FXML Resources
