@@ -111,8 +111,31 @@ current directory via `git rev-parse --show-toplevel`).
 | `--check` | Validate the host and exit (no build, no run).
 | `--dry-run` | Print the exact `docker run` command and exit (no run).
 | `--ca-cert <file>` | CA bundle to trust inside the container (`NODE_EXTRA_CA_CERTS`).
+| `--api-key <value>` | Anthropic/Claude API key so the agent can authenticate inside the container
+(shorthand for `--env ANTHROPIC_API_KEY=<value>`).
+Also read from the host `IDEASY_SANDBOX_API_KEY` environment variable.
+| `--env NAME=VALUE` | Extra environment variable for the agent, written into Claude's isolated config
+at container start (repeatable). Use for a custom/proxy endpoint, e.g.
+`ANTHROPIC_BASE_URL` and `ANTHROPIC_AUTH_TOKEN`.
 | `--` | Forward everything after `--` to the agent.
 |======================
+
+Example - run a single prompt non-interactively, authenticated with an API key:
+
+[source,bash]
+----
+bash docker-sandbox/docker-sandbox.sh --api-key "..." -- -p "run the failing test and fix it"
+----
+
+Example - point the agent at a custom/proxy Anthropic-compatible endpoint:
+
+[source,bash]
+----
+bash docker-sandbox/docker-sandbox.sh \
+  --env ANTHROPIC_BASE_URL="https://your-proxy.example" \
+  --env ANTHROPIC_AUTH_TOKEN="Token_example" \
+  -- -p "run the failing test and fix it"
+----
 
 Example - run a single prompt non-interactively:
 
@@ -154,6 +177,23 @@ For reproducible builds pin the IDEasy release with `IDEASY_VERSION` (see the
 * **The host SSH keys and SSH agent are NOT mounted into the container.**
   Mounting SSH keys would expose broad SSH access rights to the sandbox.
 
+.Agent authentication (API key)
+****
+By default the agent has *no* credentials. To let it authenticate, pass an
+Anthropic/Claude API key with `--api-key <value>` (or the host
+`IDEASY_SANDBOX_API_KEY` environment variable). The launcher forwards it into
+the container under a neutral name and the container entrypoint writes it into
+Claude's isolated config (`$IDE_ROOT/sandbox/conf/claude/settings.json` →
+`env.ANTHROPIC_API_KEY`). That location is deliberate: IDEasy scrubs ambient
+`ANTHROPIC_*` environment variables out of the agent's environment, so the key
+must be provided through Claude's own `settings.json`, which it applies itself.
+
+The key is **never baked into the image** (a secret in image layers would be a
+leak) and lives only in the container-local config, so it is discarded on exit
+(`--rm`). It is also kept out of the process argument list (`ps`) - the
+entrypoint reads it from the environment, not argv.
+****
+
 .Pushing and opening PRs
 ****
 Because no credentials are mounted, **pushing branches or opening pull requests
@@ -179,9 +219,10 @@ until you explicitly provide a scoped credential.
   see the *Testing Linux on Windows* section of the contributing documentation.
 * **First run is slow:** the initial build provisions IDEasy + the agent. Use
   `--pull` only when you intentionally want to rebuild.
-* **`claude` cannot authenticate:** provide the agent's credentials inside the
-  container (see the Pi.dev model or your provider's documentation); do not rely
-  on ambient host secrets, which are not present in the container.
+* **`claude` cannot authenticate:** pass an API key with `--api-key <value>` (or
+  the host `IDEASY_SANDBOX_API_KEY` env var). Do not rely on ambient host
+  secrets, which are not present in the container - IDEasy deliberately scrubs
+  them (see the *Agent authentication* note).
 * **Cleanup:** the container is started with `--rm`, so the container-local
   IDEasy runtime is discarded on exit. Only your bind-mounted repository (and any
   commits/pushes you performed) remain on the host.
