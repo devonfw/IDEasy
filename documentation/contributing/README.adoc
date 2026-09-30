@@ -21,3 +21,9 @@ Further, we documented link:junit-testing.adoc[JUnit-testing] and link:integrati
 
 For security mapping in URL updater development, see link:cpe-url-updater.adoc[CPE integration for URL updaters].
 
+== Releases
+
+If you are a maintainer who helps to create and publish IDEasy releases (official or nightly `SNAPSHOT`),
+see link:github-release.adoc[Building IDEasy Releases] for the end-to-end release process, the signing
+setup (GPG / SignPath), the required GitHub secrets, and the workflow architecture.
+

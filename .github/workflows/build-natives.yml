@@ -100,7 +100,7 @@ jobs:
           RELEASE_VERSION: ${{ inputs.pkg_version }}
       - name: Upload unsigned PKG
         if: runner.os == 'macOS'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pkg-${{ matrix.os == 'macos-latest' && 'arm64' || 'x64' }}
           path: macos-installer/ideasy.pkg

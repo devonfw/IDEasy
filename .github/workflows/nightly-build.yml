@@ -17,27 +17,9 @@ jobs:
   #   computing its own (which could differ across an hour boundary).
   resolve-version:
     name: Resolve release version
-    runs-on: ubuntu-latest
-    outputs:
-      snapshot_version: ${{ steps.resolve.outputs.snapshot_version }}
-      build_version: ${{ steps.resolve.outputs.build_version }}
-    steps:
-      - uses: actions/checkout@v3
-      - name: Resolve version from .mvn/maven.config
-        id: resolve
-        shell: bash
-        run: |
-          maven_config="$(cat .mvn/maven.config)"
-          snapshot_version="${maven_config/#*-Drevision=}"
-          snapshot_version="${snapshot_version/ */}"
-          if [ -z "${snapshot_version}" ]; then
-            echo "ERROR: could not resolve the snapshot version from .mvn/maven.config." >&2
-            exit 1
-          fi
-          build_version="${snapshot_version/-SNAPSHOT/-$(date +%m_%d_%H)-SNAPSHOT}"
-          echo "Releasing snapshot ${snapshot_version} (native build version ${build_version})"
-          echo "snapshot_version=${snapshot_version}" >> "$GITHUB_OUTPUT"
-          echo "build_version=${build_version}" >> "$GITHUB_OUTPUT"
+    uses: ./.github/workflows/resolve-version.yml
+    with:
+      mode: snapshot
   # Builds all native images, the Windows MSI, and the macOS PKG via the shared reusable workflow,
   # uploading each binary as a separate artifact that the deploy job below downloads and deploys.
   # The native images carry the date-suffixed build_version so "ide -v" identifies the nightly; the
@@ -56,22 +38,12 @@ jobs:
     needs: [ resolve-version, build-natives ]
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v7
+      # Shared "download artifacts + mvn deploy" pipeline (see the composite action). SNAPSHOT mode
+      # deploys unsigned and without rewriting .mvn/maven.config.
+      - name: Deploy to Apache Maven Central
+        uses: ./.github/actions/deploy-to-maven-central
         with:
-          submodules: recursive
-      - name: Set up JDK
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: '25'
-      - name: Download natives and build project
-        uses: actions/download-artifact@v8
-        with:
-          path: ./cli/target/
-      - name: Deploy to OSSRH nexus
-        env:
-          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-          RELEASE_VERSION: ${{ needs.resolve-version.outputs.snapshot_version }}
-        run: mvn --settings .mvn/settings.xml -DskipTests=true -Darchetype.test.skip=true -Dgpg.skip=true -Dstyle.color=always -B -ntp -pl -:ide-macos-installer -pl -:ide-windows-installer -Passembly,msi,pkg,deploy deploy
+          mode: snapshot
+          snapshot_version: ${{ needs.resolve-version.outputs.snapshot_version }}
+          sonatype_username: ${{ secrets.SONATYPE_USERNAME }}
+          sonatype_password: ${{ secrets.SONATYPE_PASSWORD }}

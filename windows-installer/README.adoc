@@ -13,7 +13,10 @@ Ensure you have the following installed:
 
 === Steps to Build the MSI Package
 
-See `.github/workflows/release.yml` for the `wix` commands to run.
+The `wix` build is run by link:build-msi.sh[build-msi.sh] (which the `Build MSI with WixToolSet` step
+in `.github/workflows/build-natives.yml` invokes). The script stages the content into
+`windows-installer/msi-files/`, installs the `wix` 5.0.2 dotnet tool (and the `WixToolset.UI` and
+`WixToolset.Util` extensions) if missing, then runs `wix build` producing `ideasy.msi`.
 
 == Debugging Installation Issues
 

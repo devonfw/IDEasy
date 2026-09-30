@@ -1,0 +1,261 @@
+= Building IDEasy Releases
+:toc:
+toc::[]
+
+We have spent quite some effort to fully automate our release processes with GitHub Actions.
+This documentation explains end-to-end how IDEasy releases are built, signed, and published - both
+the nightly `SNAPSHOT` releases and the official releases - and what the maintainers must prepare
+around them.
+
+== Version model
+
+* The single source of truth for the version is https://github.com/devonfw/IDEasy/blob/main/.mvn/maven.config[maven.config],
+which holds a single line `-Drevision=<version>-SNAPSHOT`. The format is `YYYY.MM.###-SNAPSHOT`
+(e.g. `2026.10.001-SNAPSHOT`): year, month, and a zero-padded three-digit micro segment.
+* The root https://github.com/devonfw/IDEasy/blob/main/pom.xml[pom.xml] uses the CI-friendly `${revision}` property
+(backed by https://github.com/devonfw/IDEasy/blob/main/.mvn/maven.config[maven.config] and the `flatten-maven-plugin`).
+There is deliberately *no* `maven-release-plugin`: versioning is driven entirely by the release
+workflow, which rewrites `maven.config`, commits it, and tags the release.
+* The root artifact is published as `dev-SNAPSHOT` only to avoid that the parent POM itself gets
+released to Maven Central.
+
+== Usage
+
+Usage is very simple:
+
+* Every night a `SNAPSHOT` release is built and deployed for internal developers and retesting of
+bugfixes. This process is fully automated - see the next sections and
+https://github.com/devonfw/IDEasy/blob/main/documentation/setup.adoc#testing-snapshot-releases[testing SNAPSHOT releases].
+* When all is prepared for the next release, we run the
+https://github.com/devonfw/IDEasy/actions/workflows/release.yml[release] workflow.
+With the required permissions, you will see a gray `Run workflow` button that opens an overlay with a
+green `Run workflow` button that you need to press (the correct branch `main` is preselected).
+That is all you need to create a new release.
+It will automatically appear on https://github.com/devonfw/IDEasy/releases[GitHub releases].
+Please note that the staging process of the release to Maven Central has some delay, so the download
+links may only work ~1h after the release job completed.
+
+=== Manual post-release steps
+
+After an official release has been published, the following manual steps need to be performed:
+
+* Close the release milestone that has just been released on GitHub (see
+https://github.com/devonfw/IDEasy/milestones[milestones], paying attention to the `Edit`, `Close`,
+and `Delete` links).
+* Verify and potentially edit/update the new `SNAPSHOT` version in
+https://github.com/devonfw/IDEasy/blob/main/.mvn/maven.config[maven.config].
+The release workflow always increases the last digit (micro-version), but often we instead want to
+increase the month segment.
+Example: the version was `2025.01.001-SNAPSHOT` and therefore the release `2025.01.001` was built and
+deployed. The new version was then set to `2025.01.002-SNAPSHOT`.
+In case that January is almost over and the next release is planned for February, you instead want to
+change the version to `2025.02.001-SNAPSHOT`.
+* Finally, edit our https://github.com/devonfw/IDEasy/blob/main/CHANGELOG.adoc[CHANGELOG] and add the next
+planned version at the top. Include the header and footer lines but leave the content in between as a
+blank line (where the issues will be added as a bullet-list).
+
+== How it works
+
+To make all this work a lot of different technical aspects work together.
+Here we consider fundamental things such as Java, Maven, and GitHub Actions as given.
+
+=== OSSRH / Maven Central
+
+* As a preparation we have requested https://central.sonatype.org/publish/publish-guide/[OSSRH] (Open Source Repository Hosting) for our project.
+* We have created an account and registered a PGP (GPG) key for it.
+* We have added the PGP key and the account credentials to our GitHub secrets (see the
+https://github.com/devonfw/IDEasy/blob/main/documentation/contributing/github-release.adoc#_secrets[secrets] list below),
+referenced from Maven via https://github.com/devonfw/IDEasy/blob/main/.mvn/settings.xml[settings.xml]
+(which reads `${env.SONATYPE_USERNAME}` / `${env.SONATYPE_PASSWORD}`).
+* In our parent POM we have configured a deploy profile with the additional steps for deploying via OSSRH.
+
+=== Native images
+
+* To make our CLI tool work fast and without Java installed as a prerequisite, we use
+https://www.graalvm.org/latest/reference-manual/native-image/[GraalVM native image] technology to
+compile the Java code to a platform-specific binary.
+* This uses the `native` profile (GraalVM `native-maven-plugin`) configured in
+https://github.com/devonfw/IDEasy/blob/main/cli/pom.xml[cli/pom.xml].
+* Since GraalVM does not support cross-platform compilation, each binary must be built on a (virtual)
+machine running the target OS/architecture. GitHub Actions supports a matrix of OS/architecture
+images for this.
+* All of this lives in the *reusable* workflow
+https://github.com/devonfw/IDEasy/blob/main/.github/workflows/build-natives.yml[build-natives.yml],
+shared by both `release.yml` and `nightly-build.yml` so the OS matrix and per-platform packaging are
+defined exactly once. It runs a `strategy` matrix over the supported OS/architecture images:
++
+[source,yaml]
+----
+os: [ windows-latest, ubuntu-latest, ubuntu-22.04-arm, macos-latest, macos-15-intel ]
+----
+IMPORTANT: the matrix image names are hard-referenced by the assembly descriptors in
+https://github.com/devonfw/IDEasy/tree/main/cli/src/main/assembly[cli/src/main/assembly]
+(e.g. `natives-windows-latest`). If you change a matrix value, update the assembly descriptors too.
++
+Each matrix leg builds the native image (`cd cli && mvn -Pnative`), signs the Windows MSI (see
+https://github.com/devonfw/IDEasy/blob/main/documentation/contributing/github-release.adoc#_signing[signing]),
+and builds the macOS PKG, then uploads the binaries as artifacts.
+* The native images carry the version baked in via `-Drevision` (the release version for a real
+release, or a date-suffixed snapshot for a nightly - see
+https://github.com/devonfw/IDEasy/blob/main/.github/workflows/resolve-version.yml[resolve-version.yml]).
+* Only after all matrix legs complete successfully does the deploy job run. It downloads the
+artifacts (`download-artifact`) into `cli/target/` and packages them (see
+https://github.com/devonfw/IDEasy/blob/main/documentation/contributing/github-release.adoc#_assembly[assembly]).
+
+=== Main build (deploy)
+
+* The deploy job - the `release` job in `release.yml` and the `deploy` job in `nightly-build.yml` -
+downloads the native artifacts and runs the `deploy` goal to compile, test, package, and deploy the
+project.
+* The shared steps (checkout, JDK setup, artifact download, `mvn deploy`) are encapsulated in the
+composite action
+https://github.com/devonfw/IDEasy/tree/main/.github/actions/deploy-to-maven-central[.github/actions/deploy-to-maven-central]
+so both workflows behave identically. It runs
+`mvn --settings .mvn/settings.xml -Passembly,msi,pkg,deploy deploy` (excluding the installer
+modules `-pl -:ide-macos-installer -pl -:ide-windows-installer`).
+* For an official release it additionally signs the artifacts with GPG and writes the release version
+into `maven.config` (committed and tagged). For a nightly it deploys the unsigned `SNAPSHOT` as-is
+(`-Dgpg.skip=true`).
+* In the `cli` module the build recompiles the Java and runs the automated tests (skipped for the
+nightly). The actual native-image compilation already happened in the matrix above.
+* For an official release the deploy job then (1) computes the `sha256` of the released archives
+(for the Homebrew formula), (2) bumps `maven.config` to the next `SNAPSHOT`, (3) commits, pushes the
+commit and the annotated `release/<version>` tag, and (4) creates the GitHub release via
+`gh release create` with download URLs pointing at the Maven Central archives.
+* Only after all steps succeed is anything pushed - if the build fails, nothing is pushed.
+
+=== Assembly
+
+* To build a `.tar.gz` archive with all the content needed in a release, the `assembly` profile in
+https://github.com/devonfw/IDEasy/blob/main/cli/pom.xml[cli/pom.xml] uses the
+https://maven.apache.org/plugins/maven-assembly-plugin/[maven-assembly-plugin].
+* For each platform (OS and architecture) there is a configuration file in
+https://github.com/devonfw/IDEasy/tree/main/cli/src/main/assembly[cli/src/main/assembly]
+(`release-linux-x64.xml`, `release-mac-arm64.xml`, `release-win-x64.xml`, ...). The
+`release-win-arm64.xml` is currently disabled.
+* Each descriptor includes the matching native image, so it must reference the proper matrix image
+name from `build-natives.yml` (see the note above about keeping these in sync).
+* Each descriptor also references the package content and configures exclusions so that only
+platform-relevant content is included (e.g. `*.bat` files only in Windows releases), and includes
+the documentation PDF.
+
+=== Signing
+
+Signing is handled per artifact type and is one of the parts most often asked about:
+
+[cols="30,70", options="header"]
+|===
+|Artifact | How it is signed
+
+|== Maven artifacts ==
+|For official releases the Maven artifacts are signed with a GPG key registered with Sonatype.
+`release.yml` passes the base64-encoded private key (`GPG_PRIVATE_KEY`) and passphrase
+(`GPG_PASSPHRASE`) into the deploy step, which imports the key and runs
+`mvn deploy ... -Dgpg.pin.entry.mode=loopback -Dgpg.passphrase=...`.
+Nightly builds skip GPG entirely (`-Dgpg.skip=true`); `SNAPSHOT` artifacts are not signed.
+The actual `gpg` plugin configuration comes from the `deploy` profile in our parent POM
+(`devonfw/maven-parent`), which is inherited rather than defined in this repo.
+
+|== Windows MSI ==
+|The Windows MSI is signed by https://www.signpath.io/[SignPath], a code-signing service, inside the
+`build-natives.yml` matrix leg that runs on Windows. It uploads the unsigned MSI as an artifact and
+calls the `signpath/github-action-submit-signing-request` action with the `SIGNPATH_API_TOKEN`
+secret. The OIDC exchange for the token requires the workflow `id-token: write` permission. The
+signed MSI is re-uploaded as the `msi` artifact and attached by the `msi` profile in `cli/pom.xml`.
+See https://github.com/devonfw/IDEasy/blob/main/documentation/contributing/github-release.adoc#_open-questions-and-known-gaps[open questions]
+about the signing policy currently used.
+
+|== macOS ==
+|On macOS only the native `ideasy` binary is *ad-hoc* signed with `codesign --sign -` (a local,
+unsigned identity) so it can run on Apple Silicon. The macOS PKG installer is deployed
+**unsigned and not notarized** - see
+https://github.com/devonfw/IDEasy/blob/main/documentation/contributing/github-release.adoc#_open-questions-and-known-gaps[open questions]
+for the gap this leaves.
+|===
+
+=== Secrets
+
+The release and nightly workflows rely on the following GitHub repository secrets:
+
+[cols="25,20,55", options="header"]
+|===
+|Secret | Used by | Purpose
+
+|`SONATYPE_USERNAME` / `SONATYPE_PASSWORD`
+|release + nightly
+|Credentials for publishing to Maven Central (OSSRH). Read by Maven through `.mvn/settings.xml`.
+
+|`GPG_PRIVATE_KEY` / `GPG_PASSPHRASE`
+|release
+|GPG key used to sign the Maven artifacts for an official release.
+
+|`SIGNPATH_API_TOKEN`
+|build-natives
+|API token for the SignPath code-signing service (Windows MSI). OIDC requires `id-token: write`.
+
+|`BUILD_USER` / `BUILD_USER_EMAIL`
+|release
+|Git author identity for the version-bump and tag commits made by the release workflow.
+
+|`ACTION_PUSH_TOKEN`
+|release
+|Token used to check out (with `submodules`) and to push the version-bump commit and the release tag
+to the protected `main` branch.
+
+|`BUILD_USER_PASSWD`
+|_(declared, currently unused)_
+|Historically declared for the release job; the push and `gh release create` currently use
+`ACTION_PUSH_TOKEN` and `GITHUB_TOKEN` respectively. See open questions.
+
+|`GITHUB_TOKEN`
+|release (Homebrew)
+|Default token passed to the external Homebrew formula publishing workflow.
+|===
+
+== Workflow architecture
+
+The release and nightly pipelines were consolidated so the shared logic is defined exactly once:
+
+* https://github.com/devonfw/IDEasy/blob/main/.github/workflows/resolve-version.yml[resolve-version.yml] -
+*reusable workflow* (`workflow_call`). Reads `.mvn/maven.config` and, based on the `mode` input
+(`release` or `snapshot`), emits `release_version`, `snapshot_version`, and (for snapshot) a
+date-suffixed `build_version`. The nightly `build_version` uses the `YYYY.MM.###-MM_DD_HH-SNAPSHOT`
+format that the CLI upgrade logic (`IdeasyCommandlet.PATTERN_IDEASY_SNAPSHOT_VERSION`) relies on.
+* https://github.com/devonfw/IDEasy/blob/main/.github/workflows/build-natives.yml[build-natives.yml] -
+*reusable workflow*. Builds all native images, the Windows MSI (SignPath-signed), and the macOS PKG
+over the OS matrix, uploading each binary as an artifact.
+* https://github.com/devonfw/IDEasy/tree/main/.github/actions/deploy-to-maven-central[.github/actions/deploy-to-maven-central] -
+*composite action*. The shared "checkout → JDK → download artifacts → `mvn deploy`" pipeline used by
+both workflows. It is a composite action (not a reusable workflow) so that the release job can still
+run its release-only steps (checksums, version bump, `git push`, `gh release create`) in the same
+job after the deploy.
+* https://github.com/devonfw/IDEasy/blob/main/.github/workflows/release.yml[release.yml] - the official
+release: `resolve-version` → `build-natives` → `release` (deploy + tag + GitHub release) →
+`publish-homebrew`.
+* https://github.com/devonfw/IDEasy/blob/main/.github/workflows/nightly-build.yml[nightly-build.yml] - the
+`SNAPSHOT` release: `resolve-version` → `build-natives` → `deploy`.
+* https://github.com/devonfw/IDEasy/blob/main/.github/workflows/check-for-updates.yml[check-for-updates.yml] -
+runs every night and triggers `nightly-build` (and the integration tests) only if `main` received
+commits in the last 24h, to avoid wasted builds.
+
+Both `release` and `nightly-build` use the `workflow_dispatch` trigger so they can be run manually as
+described above. `nightly-build` is typically only triggered automatically by `check-for-updates`,
+but we sometimes run it manually to test GraalVM-specific behaviour during the day.
+
+== Open questions and known gaps
+
+The following were identified during the investigation of the release process and are not yet fully
+resolved or documented - they are recorded here so future maintainers are aware of them:
+
+* **Windows MSI signing policy.** `build-natives.yml` signs the Windows MSI with SignPath using the
+signing policy `test-signing`. Whether a production signing policy is intended (and should replace
+this one) is not documented - verify with the maintainers before relying on the current value.
+* **macOS PKG is unsigned / not notarized.** The macOS PKG installer is shipped unsigned and is not
+notarized with Apple; only the CLI binary gets an ad-hoc signature. Whether Apple notarization of the
+PKG is desired is an open question.
+* **`BUILD_USER_PASSWD` appears unused.** It is declared as an env for the release job but the push
+uses `ACTION_PUSH_TOKEN` and `gh release create` uses `GITHUB_TOKEN`. Confirm whether it is needed or
+can be removed.
+* **Version bump is fixed to the micro segment.** The release workflow always increments the last
+(three-digit) segment. Bumping the month segment is a manual post-release step - see
+https://github.com/devonfw/IDEasy/blob/main/documentation/contributing/github-release.adoc#_manual-post-release-steps[manual post-release steps].
