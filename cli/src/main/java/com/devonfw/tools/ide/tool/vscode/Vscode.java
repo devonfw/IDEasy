@@ -7,10 +7,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
@@ -23,6 +25,8 @@ import com.devonfw.tools.ide.variable.IdeVariables;
  * {@link AbstractToolCommandlet} for <a href="https://code.visualstudio.com/">vscode</a>.
  */
 public class Vscode extends AbstractIdeToolCommandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(Vscode.class);
 
   /** The {@link #getConfiguredEdition() edition} for VSCodium. */
   private static final String EDITION_VSCODIUM = "vscodium";
