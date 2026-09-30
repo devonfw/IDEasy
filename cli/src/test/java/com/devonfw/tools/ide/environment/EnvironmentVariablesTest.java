@@ -319,16 +319,14 @@ class EnvironmentVariablesTest extends AbstractIdeContextTest {
     assertThat(ideTools).isNotEmpty();
     assertThat(variables.get(IdeVariables.HTTP_VERSIONS.getName())).isEmpty();
 
-    // act
     // the editor value is similar to the one of a main.prefs produced by PropertiesMerger.inverseMerge
     String editor = "notepad --wait " + ideTools;
 
-    // assert
+    // act
     String inverseResolved = variables.inverseResolve(editor, "test");
+
+    // assert
     assertThat(inverseResolved).isEqualTo("notepad --wait $[IDE_TOOLS]");
-    // before the fix this produced: "notepad --wait $[HTTP_VERSIONS]n$[HTTP_VERSIONS]o$[HTTP_VERSIONS]t$[HTTP_VERSIONS]p$[HTTP_VERSIONS]a$[HTTP_VERSIONS]d..."
-    assertThat(inverseResolved).doesNotContain("$[HTTP_VERSIONS]");
-    assertThat(inverseResolved).containsOnlyOnce("$[IDE_TOOLS]");
   }
 
 }
