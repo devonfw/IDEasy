@@ -7,7 +7,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/2381[#2381]: Make node and npm pristine versioned tools with per-project npm global prefix
-* https://github.com/devonfw/IDEasy/issues/2373[#2373]: Detect the edition (e.g. Desktop vs Engine) of globally installed tools for native package manager installs on Linux and macOS
+* https://github.com/devonfw/IDEasy/issues/2373[#2373]: GlobalToolCommandlet: determine the edition together with the version for native package manager installs (Linux/macOS)
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/51?closed=1[milestone 2026.10.001].
 
