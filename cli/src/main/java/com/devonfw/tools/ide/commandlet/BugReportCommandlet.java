@@ -17,7 +17,7 @@ import com.devonfw.tools.ide.tool.gh.Gh;
 /**
  * {@link Commandlet} to help users create a GitHub bug report for IDEasy.
  */
-public class BugReportCommandlet extends Commandlet {
+public class BugReportCommandlet extends AbstractCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(BugReportCommandlet.class);
 
