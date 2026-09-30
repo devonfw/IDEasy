@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -183,12 +184,12 @@ public enum NativePackageManager {
       command.append(' ').append(option);
     }
     command.append(' ').append(this.installCommand);
-    if (nativePackage.getOptionalNativePackageArtifactPath().isEmpty()) {
+    if (nativePackage.getOptionalNativePackageArtifactPaths().isEmpty()) {
       for (String pkg : nativePackage.getPackages()) {
         command.append(' ').append(getPackageSpec(pkg, version));
       }
     } else {
-      for (String nativePackageArtifactPath : nativePackage.getOptionalNativePackageArtifactPath()) {
+      for (Path nativePackageArtifactPath : nativePackage.getOptionalNativePackageArtifactPaths()) {
         command.append(' ').append(nativePackageArtifactPath);
       }
     }

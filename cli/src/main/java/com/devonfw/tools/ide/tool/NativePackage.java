@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 
@@ -13,7 +14,21 @@ public class NativePackage {
   private final List<String> extraInstallOptions;
   private final List<String> setupCommands;
   private final List<String> cleanupCommands;
-  private final List<String> optionalNativePackageArtifactPaths;
+  private final List<Path> optionalNativePackageArtifactPaths;
+
+  /**
+   * Creates a new {@link NativePackage} with optional fields defaulting to empty lists.
+   *
+   * @param pm the specific {@link NativePackageManager}
+   * @param packages the packages that need to be handled.
+   * @param extraInstallOptions extra install options (optional)
+   * @param setupCommands commands to run before install (optional)
+   * @param cleanupCommands commands to run after uninstall (optional)
+   */
+  public NativePackage(NativePackageManager pm, List<String> packages,
+      List<String> extraInstallOptions, List<String> setupCommands, List<String> cleanupCommands) {
+    this(pm, packages, extraInstallOptions, setupCommands, cleanupCommands, null);
+  }
 
   /**
    * Creates a new {@link NativePackage} with optional fields defaulting to empty lists.
@@ -26,7 +41,7 @@ public class NativePackage {
    * @param optionalNativePackageArtifactPaths paths to local package artifacts (optional)
    */
   public NativePackage(NativePackageManager pm, List<String> packages,
-      List<String> extraInstallOptions, List<String> setupCommands, List<String> cleanupCommands, List<String> optionalNativePackageArtifactPaths) {
+      List<String> extraInstallOptions, List<String> setupCommands, List<String> cleanupCommands, List<Path> optionalNativePackageArtifactPaths) {
     this.packageManager = Objects.requireNonNull(pm, "package manager must not be null");
     this.packages = List.copyOf(Objects.requireNonNull(packages, "packages must not be null"));
     this.extraInstallOptions = extraInstallOptions != null ? List.copyOf(extraInstallOptions) : List.of();
@@ -94,7 +109,7 @@ public class NativePackage {
   /**
    * @return set {@link optionalNativePackageArtifactPaths}.
    */
-  public List<String> getOptionalNativePackageArtifactPath() {
+  public List<Path> getOptionalNativePackageArtifactPaths() {
     return optionalNativePackageArtifactPaths;
   }
 

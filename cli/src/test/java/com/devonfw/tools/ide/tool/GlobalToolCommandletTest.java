@@ -173,8 +173,7 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
               List.of("mytool"),
               List.of(),
               List.of(),
-              List.of("sudo rm -f /etc/apt/sources.list.d/mytool.list"),
-              List.of())
+              List.of("sudo rm -f /etc/apt/sources.list.d/mytool.list"))
       );
     }
 

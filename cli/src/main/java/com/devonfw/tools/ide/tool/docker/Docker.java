@@ -18,11 +18,11 @@ import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.NativePackage;
 import com.devonfw.tools.ide.tool.NativePackageManager;
 import com.devonfw.tools.ide.tool.PackageManagerCommand;
+import com.devonfw.tools.ide.tool.ToolEdition;
+import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
-import com.devonfw.tools.ide.tool.ToolEdition;
-import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -80,9 +80,9 @@ public class Docker extends GlobalToolCommandlet {
   @Override
   protected List<NativePackage> getNativePackages() {
 
-    if (EDITION_DOCKER.equals(getConfiguredEdition())) {
+    if (isDockerDesktopEditionConfigured()) {
 
-      List<String> artifactPaths = (this.downloadedDebPackageForDocker == null) ? List.of() : List.of(this.downloadedDebPackageForDocker.toString());
+      List<Path> artifactPaths = (this.downloadedDebPackageForDocker == null) ? List.of() : List.of(this.downloadedDebPackageForDocker);
 
       return List.of(
           new NativePackage(
@@ -113,7 +113,6 @@ public class Docker extends GlobalToolCommandlet {
             List.of("rancher-desktop"),
             List.of("--no-gpg-checks"),
             List.of("sudo zypper addrepo https://download.opensuse.org/repositories/isv:/Rancher:/stable/rpm/isv:Rancher:stable.repo"),
-            null,
             null
         ),
         new NativePackage(
@@ -131,8 +130,7 @@ public class Docker extends GlobalToolCommandlet {
             List.of(
                 "sudo rm -f /etc/apt/sources.list.d/isv-rancher-stable.list",
                 "sudo rm -f /usr/share/keyrings/isv-rancher-stable-archive-keyring.gpg"
-            ),
-            null
+            )
         ),
         new NativePackage(NativePackageManager.YAY, List.of("rancher-desktop")),
         new NativePackage(NativePackageManager.BREW_CASK, List.of("docker"))
@@ -160,7 +158,7 @@ public class Docker extends GlobalToolCommandlet {
 
   @Override
   protected ToolInstallation doInstall(ToolInstallRequest request) {
-    if (EDITION_DOCKER.equals(getConfiguredEdition())) {
+    if (isDockerDesktopEditionConfigured()) {
       downloadDebPackageStepAndSetPackagePath(request.getRequested().getResolvedVersion());
     }
     return super.doInstall(request);
@@ -173,7 +171,7 @@ public class Docker extends GlobalToolCommandlet {
 
   @Override
   protected List<PackageManagerCommand> getInstallPackageManagerCommands(VersionIdentifier resolvedVersion) {
-    if (!EDITION_DOCKER.equals(getConfiguredEdition())) {
+    if (!isDockerDesktopEditionConfigured()) {
       return super.getInstallPackageManagerCommands(resolvedVersion);
     }
 
@@ -259,6 +257,10 @@ public class Docker extends GlobalToolCommandlet {
       LOG.warn("Could not determine the installed Rancher Desktop version - rdctl could not be executed: {}", e.getMessage());
       return null;
     }
+  }
+
+  private boolean isDockerDesktopEditionConfigured() {
+    return EDITION_DOCKER.equals(getConfiguredEdition());
   }
 
   @Override
