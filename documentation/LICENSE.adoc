@@ -122,6 +122,7 @@ The column `inclusion` indicates the way the component is included:
 |https://visualstudio.microsoft.com/visual-cpp-build-tools/[MSVC Build Tools] |Optional|https://visualstudio.microsoft.com/license-terms/vs2022-ga-community/[Microsoft Software License Terms]
 |https://docs.astral.sh/ruff[ruff] |Optional|https://github.com/astral-sh/ruff/blob/main/LICENSE[MIT License]
 |https://flutter.dev/[Flutter]|Optional|https://github.com/flutter/flutter/blob/master/LICENSE[BSD 3-Clause License]
+|https://dart.dev/[Dart]|Optional|https://github.com/dart-lang/sdk/blob/main/LICENSE[BSD 3-Clause License]
 |===
 
 == Apache Software License - Version 2.0

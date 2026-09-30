@@ -108,6 +108,11 @@ public class AbstractUrlUpdaterTest extends Assertions {
     assertUrlVersion(urlVersionFolder, OsAndArchitecture.OS_ARCH.getFilenames());
   }
 
+  protected void assertUrlVersionDart(Path urlVersionFolder) {
+
+    assertUrlVersion(urlVersionFolder, OsAndArchitecture.OS_DART.getFilenames());
+  }
+
   protected void assertUrlVersion(Path urlVersionFolder, List<String> platforms) {
 
     assertThat(urlVersionFolder.resolve("status.json")).exists();
