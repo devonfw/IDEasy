@@ -1,4 +1,4 @@
-package com.devonfw.ide.gui.ui.controls.console;
+package com.devonfw.ide.gui.core.mainwindow.console;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -11,9 +11,9 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 
-import com.devonfw.ide.gui.event.GuiEventBus;
-import com.devonfw.ide.gui.event.console.LogEvent;
-import com.devonfw.ide.gui.helper.FxHelper;
+import com.devonfw.ide.gui.core.event.GuiEventBus;
+import com.devonfw.ide.gui.core.event.console.LogEvent;
+import com.devonfw.ide.gui.core.helper.FxHelper;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 
@@ -124,7 +124,7 @@ public class ConsoleViewModel {
   /**
    * Clears the console.
    */
-  void clearConsole() {
+  protected void clearConsole() {
 
     synchronized (outputBuffer) {
       outputBuffer.clear();

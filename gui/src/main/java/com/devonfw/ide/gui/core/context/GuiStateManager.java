@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.core.event.GuiEventBus;
 import com.devonfw.ide.gui.core.factory.TabFactory;
-import com.devonfw.ide.gui.core.mainwindow.console.ConsoleController;
 import com.devonfw.ide.gui.core.service.CommandletService;
 import com.devonfw.ide.gui.core.service.NlsService;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
@@ -57,8 +56,6 @@ public class GuiStateManager {
 
   private final NlsService nlsService;
 
-  private final ConsoleController consoleController;
-
   private final CommandletService commandletService;
 
   private final TabFactory tabFactory;
@@ -76,7 +73,6 @@ public class GuiStateManager {
     this.taskManager = new TaskManager();
     this.eventBus = new GuiEventBus();
     this.nlsService = new NlsService(null);
-    this.consoleController = new ConsoleController(this);
     this.commandletService = new CommandletService(this);
     this.tabFactory = new TabFactory(this);
 
@@ -218,10 +214,6 @@ public class GuiStateManager {
 
   public NlsService getNlsService() {
     return nlsService;
-  }
-
-  public ConsoleController getConsoleController() {
-    return consoleController;
   }
 
   public CommandletService getCommandletService() {

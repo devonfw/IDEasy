@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:gui/src/main/java/com/devonfw/ide/gui/helper/FxHelper.java
-package com.devonfw.ide.gui.helper;
-========
 package com.devonfw.ide.gui.core.helper;
->>>>>>>> main:gui/src/main/java/com/devonfw/ide/gui/core/helper/FxHelper.java
 
 import java.io.IOException;
 
@@ -11,11 +7,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 
-<<<<<<<< HEAD:gui/src/main/java/com/devonfw/ide/gui/helper/FxHelper.java
-import com.devonfw.ide.gui.service.NlsService;
-========
 import com.devonfw.ide.gui.core.service.NlsService;
->>>>>>>> main:gui/src/main/java/com/devonfw/ide/gui/core/helper/FxHelper.java
 
 /**
  * Helper class containing tools for interacting with JavaFX

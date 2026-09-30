@@ -10,14 +10,16 @@ import javafx.scene.control.Alert.AlertType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.ide.gui.context.IdeGuiLogListener;
 import com.devonfw.ide.gui.core.context.GuiOutputListener;
 import com.devonfw.ide.gui.core.context.GuiStateManager;
 import com.devonfw.ide.gui.core.context.IdeGuiContext;
-import com.devonfw.ide.gui.core.context.IdeGuiLogListener;
-import com.devonfw.ide.gui.core.mainwindow.console.ConsoleController;
+import com.devonfw.ide.gui.core.event.GuiEventBus;
+import com.devonfw.ide.gui.core.event.console.LogEvent;
 import com.devonfw.ide.gui.core.modal.IdeDialog;
 import com.devonfw.ide.gui.core.progress.ProgressBarTask;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
+import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 
 /**
@@ -28,10 +30,10 @@ public class CommandletService {
   private static final Logger LOG = LoggerFactory.getLogger(CommandletService.class);
 
   private final GuiStateManager guiStateManager;
-  private final ConsoleController consoleController;
 
   private IdeGuiLogListener guiLogListener;
   private GuiOutputListener guiOutputListener;
+  private GuiEventBus eventBus;
 
   /**
    * Optional action invoked before a commandlet is launched, e.g. to make the console pane visible. Defaults to a no-op. Part of the hack to make the Console
@@ -47,9 +49,9 @@ public class CommandletService {
    */
   public CommandletService(GuiStateManager guiStateManager) {
     this.guiStateManager = Objects.requireNonNull(guiStateManager);
-    this.consoleController = Objects.requireNonNull(guiStateManager.getConsoleController());
-    this.guiLogListener = new IdeGuiLogListener(consoleController);
-    this.guiOutputListener = new GuiOutputListener(consoleController);
+    this.eventBus = guiStateManager.getEventBus();
+    this.guiLogListener = new com.devonfw.ide.gui.context.IdeGuiLogListener(eventBus);
+    this.guiOutputListener = new GuiOutputListener(eventBus);
   }
 
   /**
@@ -73,8 +75,8 @@ public class CommandletService {
 
     Task<Void> commandletTask = runCommandletTask(commandlet);
 
-    this.guiLogListener = new IdeGuiLogListener(consoleController);
-    this.guiOutputListener = new GuiOutputListener(consoleController);
+    this.guiLogListener = new IdeGuiLogListener(guiStateManager.getEventBus());
+    this.guiOutputListener = new GuiOutputListener(guiStateManager.getEventBus());
 
     Thread commandletThread = new Thread(commandletTask);
     commandletThread.setDaemon(true);
@@ -103,7 +105,10 @@ public class CommandletService {
             LOG.info("Commandlet {} completed successfully.", commandlet);
           } catch (Exception e) {
             LOG.error("Failed to run commandlet {}: {}", commandlet, e.getMessage(), e);
-            consoleController.appendOutput("[ERROR] Failed to launch " + commandlet + ": " + e.getMessage());
+
+            eventBus.sendEvent(new LogEvent(
+                new IdeLogEntry(IdeLogLevel.ERROR, "[ERROR] Failed to launch " + commandlet + ": " + e.getMessage())
+            ));
           }
           return null;
         }

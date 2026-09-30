@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:gui/src/main/java/com/devonfw/ide/gui/ui/progress/ProgressBarTask.java
-package com.devonfw.ide.gui.ui.progress;
-========
 package com.devonfw.ide.gui.core.progress;
->>>>>>>> main:gui/src/main/java/com/devonfw/ide/gui/core/progress/ProgressBarTask.java
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.LongProperty;
@@ -14,13 +10,8 @@ import javafx.beans.property.StringProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-<<<<<<<< HEAD:gui/src/main/java/com/devonfw/ide/gui/ui/progress/ProgressBarTask.java
-import com.devonfw.ide.gui.context.TaskManager;
-import com.devonfw.ide.gui.helper.FxHelper;
-========
 import com.devonfw.ide.gui.core.context.TaskManager;
 import com.devonfw.ide.gui.core.helper.FxHelper;
->>>>>>>> main:gui/src/main/java/com/devonfw/ide/gui/core/progress/ProgressBarTask.java
 import com.devonfw.tools.ide.io.AbstractIdeProgressBar;
 
 /**

@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:gui/src/test/java/com/devonfw/ide/gui/ui/progress/TaskWindowTest.java
-package com.devonfw.ide.gui.ui.progress;
-========
 package com.devonfw.ide.gui.core.progress.taskwindow;
->>>>>>>> main:gui/src/test/java/com/devonfw/ide/gui/core/progress/taskwindow/TaskWindowTest.java
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
@@ -22,16 +18,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.ide.gui.HeadlessApplicationTest;
-<<<<<<<< HEAD:gui/src/test/java/com/devonfw/ide/gui/ui/progress/TaskWindowTest.java
-import com.devonfw.ide.gui.context.TaskManager;
-import com.devonfw.ide.gui.helper.FxHelper;
-import com.devonfw.ide.gui.ui.progress.taskwindow.TaskOverviewWindow;
-import com.devonfw.ide.gui.ui.progress.taskwindow.TaskOverviewWindowController;
-========
 import com.devonfw.ide.gui.core.context.TaskManager;
 import com.devonfw.ide.gui.core.helper.FxHelper;
 import com.devonfw.ide.gui.core.progress.ProgressBarTask;
->>>>>>>> main:gui/src/test/java/com/devonfw/ide/gui/core/progress/taskwindow/TaskWindowTest.java
 
 /**
  * Tests for the TaskOverviewWindow. We check whether the window is displayed correctly and whether it properly reacts to changes in the TaskManager.

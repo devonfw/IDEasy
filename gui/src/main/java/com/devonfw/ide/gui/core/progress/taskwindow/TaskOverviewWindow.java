@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:gui/src/main/java/com/devonfw/ide/gui/ui/progress/taskwindow/TaskOverviewWindow.java
-package com.devonfw.ide.gui.ui.progress.taskwindow;
-========
 package com.devonfw.ide.gui.core.progress.taskwindow;
->>>>>>>> main:gui/src/main/java/com/devonfw/ide/gui/core/progress/taskwindow/TaskOverviewWindow.java
 
 import java.io.IOException;
 
@@ -16,11 +12,7 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
-<<<<<<<< HEAD:gui/src/main/java/com/devonfw/ide/gui/ui/progress/taskwindow/TaskOverviewWindow.java
-import com.devonfw.ide.gui.context.TaskManager;
-========
 import com.devonfw.ide.gui.core.context.TaskManager;
->>>>>>>> main:gui/src/main/java/com/devonfw/ide/gui/core/progress/taskwindow/TaskOverviewWindow.java
 
 /**
  * This window is displayed when the user clicks on the task label in main-view.fxml.

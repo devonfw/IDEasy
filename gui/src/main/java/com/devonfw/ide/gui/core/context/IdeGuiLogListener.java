@@ -1,8 +1,8 @@
 package com.devonfw.ide.gui.context;
 
 
-import com.devonfw.ide.gui.event.GuiEventBus;
-import com.devonfw.ide.gui.event.console.LogEvent;
+import com.devonfw.ide.gui.core.event.GuiEventBus;
+import com.devonfw.ide.gui.core.event.console.LogEvent;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeLogListenerBuffer;

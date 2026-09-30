@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:gui/src/main/java/com/devonfw/ide/gui/ui/modal/IdeDialog.java
-package com.devonfw.ide.gui.ui.modal;
-========
 package com.devonfw.ide.gui.core.modal;
->>>>>>>> main:gui/src/main/java/com/devonfw/ide/gui/core/modal/IdeDialog.java
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
