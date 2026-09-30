@@ -3,11 +3,10 @@ package com.devonfw.tools.ide.tool.mvnd;
 
 import com.devonfw.tools.ide.completion.AutoCompletionRegistry;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.mvn.MavenCommandlet;
 
 /**
- * {@link ToolCommandlet} for <a href="https://maven.apache.org/tools/mvnd.html/">maven daemon</a>.
+ * {@link AbstractToolCommandlet} for <a href="https://maven.apache.org/tools/mvnd.html/">maven daemon</a>.
  */
 public class Mvnd extends MavenCommandlet {
 
