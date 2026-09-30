@@ -15,9 +15,9 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 class JetBrainsWorkspaceConfigurerTest extends AbstractIdeContextTest {
 
   /**
-   * Tests that the JetBrains tool-specific templates are split into targeted merges: the {@code .intellij/config} subtree is merged into the
-   * out-of-workspace metadata config folder, the top-level {@code idea.properties} is never merged, and the generic templates (editorconfig,
-   * user.properties) are still merged into the workspace (see #2531).
+   * Tests that the JetBrains tool-specific templates are split into targeted merges: the {@code .idea} subtree is merged into the {@code .idea} folder of
+   * the workspace, the {@code .intellij/config} subtree is merged into the out-of-workspace metadata config folder, the top-level {@code idea.properties}
+   * is never merged, and the generic templates (editorconfig, user.properties) are still merged into the workspace (see #2531).
    */
   @Test
   void testConfigureWorkspaceSplitsIntoTargetedMerges() {
@@ -32,7 +32,9 @@ class JetBrainsWorkspaceConfigurerTest extends AbstractIdeContextTest {
     // act
     configurer.configureWorkspace(w -> Map.of());
 
-    // assert: the .intellij/config subtree is merged into the out-of-workspace metadata config folder (user-home setup + settings update)...
+    // assert: the .idea subtree is merged into the .idea folder of the workspace...
+    assertThat(workspace.resolve(".idea/foo.xml")).exists().content().contains("ideasy-fixture");
+    // ...and the .intellij/config subtree is merged into the out-of-workspace metadata config folder (user-home setup + settings update)...
     assertThat(metadataConfig.resolve("idea.key")).exists();
     assertThat(metadataConfig.resolve("options/code.style.schemes.xml")).exists().content().contains("ideasyTestOption");
     // ...and the JetBrains metadata is NOT in the workspace
