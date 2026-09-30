@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.tool.ide;
 
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
@@ -31,7 +30,7 @@ class JetBrainsWorkspaceConfigurerTest extends AbstractIdeContextTest {
     JetBrainsWorkspaceConfigurer configurer = new JetBrainsWorkspaceConfigurer(context, "intellij");
 
     // act
-    configurer.configureWorkspace(w -> Map.of(), w -> Set.of());
+    configurer.configureWorkspace(w -> Map.of());
 
     // assert: the .intellij/config subtree is merged into the out-of-workspace metadata config folder (user-home setup + settings update)...
     assertThat(metadataConfig.resolve("idea.key")).exists();
@@ -73,7 +72,7 @@ class JetBrainsWorkspaceConfigurerTest extends AbstractIdeContextTest {
     JetBrainsWorkspaceConfigurer configurer = new JetBrainsWorkspaceConfigurer(context, "intellij");
 
     // act
-    Path target = configurer.resolveExtraSdkTarget(Path.of(".intellij/config/options/jdk.table.xml"), Map.of(), Set.of());
+    Path target = configurer.resolveExtraSdkTarget(Path.of(".intellij/config/options/jdk.table.xml"), Map.of());
 
     // assert
     Path expected = context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("intellij").resolve(context.getWorkspaceName())

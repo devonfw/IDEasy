@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.tool.ide;
 
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.Set;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.commandlet.Commandlet;
@@ -30,7 +29,7 @@ public interface IdeToolCommandlet extends LocalToolCommandlet {
    */
   default void configureWorkspace() {
 
-    getWorkspaceConfigurer().configureWorkspace(this::getWorkspaceRedirects, this::getWorkspaceExcludes);
+    getWorkspaceConfigurer().configureWorkspace(this::getWorkspaceRedirects);
   }
 
   /**
@@ -42,17 +41,6 @@ public interface IdeToolCommandlet extends LocalToolCommandlet {
   default Map<Path, Path> getWorkspaceRedirects(Path workspaceFolder) {
 
     return Map.of();
-  }
-
-  /**
-   * @param workspaceFolder the {@link IdeContext#getWorkspacePath() workspace folder}.
-   * @return the {@link Set} with the {@link Path}s inside the given {@code workspaceFolder} that shall not be merged from the workspace templates at all.
-   *     Allows to take over the control of a configuration file that this IDE generates itself, without changing the structure of the workspace templates in
-   *     the settings. By default, nothing is excluded.
-   */
-  default Set<Path> getWorkspaceExcludes(Path workspaceFolder) {
-
-    return Set.of();
   }
 
   /**

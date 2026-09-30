@@ -3,7 +3,6 @@ package com.devonfw.tools.ide.tool.ide;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +52,7 @@ public class JetBrainsWorkspaceConfigurer extends IdeWorkspaceConfigurer {
    * Splits the tool-specific template folder into two targeted merges (see class javadoc) instead of merging it wholesale.
    */
   @Override
-  protected int mergeToolWorkspace(Path templatesFolder, Path workspaceFolder, Map<Path, Path> redirects, Set<Path> excludes, int errors) {
+  protected int mergeToolWorkspace(Path templatesFolder, Path workspaceFolder, Map<Path, Path> redirects, int errors) {
 
     Path setup = templatesFolder.resolve(IdeContext.FOLDER_SETUP);
     Path update = templatesFolder.resolve(IdeContext.FOLDER_UPDATE);
@@ -97,7 +96,7 @@ public class JetBrainsWorkspaceConfigurer extends IdeWorkspaceConfigurer {
    * out-of-workspace metadata folder (not the workspace), so the import lands in {@code $IDE_HOME/.ide/«ide»/«workspace»/config} (see #2531).
    */
   @Override
-  protected Path resolveExtraSdkTarget(Path templatePath, Map<Path, Path> redirects, Set<Path> excludes) {
+  protected Path resolveExtraSdkTarget(Path templatePath, Map<Path, Path> redirects) {
 
     // the template is declared relative to the workspace under the tool metadata folder (e.g. .intellij/...); that folder is now out-of-workspace at
     // $IDE_HOME/.ide/«ide»/«workspace», so strip the leading ".«ide»" segment and resolve there
