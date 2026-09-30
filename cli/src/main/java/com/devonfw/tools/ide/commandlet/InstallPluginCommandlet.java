@@ -7,15 +7,15 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.PluginProperty;
 import com.devonfw.tools.ide.property.ToolProperty;
 import com.devonfw.tools.ide.step.Step;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.plugin.PluginBasedCommandlet;
 
 /**
- * {@link Commandlet} to install a tool.
+ * {@link AbstractCommandlet} to install a tool.
  *
- * @see ToolCommandlet#install()
+ * @see AbstractToolCommandlet#install()
  */
-public class InstallPluginCommandlet extends Commandlet {
+public class InstallPluginCommandlet extends AbstractCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(InstallPluginCommandlet.class);
 
@@ -46,7 +46,7 @@ public class InstallPluginCommandlet extends Commandlet {
 
   @Override
   protected void doRun() {
-    ToolCommandlet commandlet = this.tool.getValue();
+    AbstractToolCommandlet commandlet = this.tool.getValue();
     String plugin = this.plugin.getValue();
 
     if (commandlet instanceof PluginBasedCommandlet cmd) {
@@ -59,7 +59,7 @@ public class InstallPluginCommandlet extends Commandlet {
   }
 
   @Override
-  public ToolCommandlet getToolForCompletion() {
+  public AbstractToolCommandlet getToolForCompletion() {
 
     return this.tool.getValue();
   }

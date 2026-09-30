@@ -5,7 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
-import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.validation.PropertyValidator;
@@ -105,7 +105,7 @@ public class PathProperty extends Property<Path> {
   }
 
   @Override
-  protected void completeValue(String arg, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
+  protected void completeValue(String arg, IdeContext context, AbstractCommandlet commandlet, CompletionCandidateCollector collector) {
 
     Path path = Path.of(arg);
     Path parent = path.getParent();
@@ -121,10 +121,11 @@ public class PathProperty extends Property<Path> {
    * @param folder the {@link Path} to the directory where to search for the file.
    * @param filename the filename (prefix) to complete.
    * @param context the {@link IdeContext}.
-   * @param commandlet the owning {@link Commandlet}.
+   * @param commandlet the owning {@link AbstractCommandlet}.
    * @param collector the {@link CompletionCandidateCollector}.
    */
-  protected void completeValuesFromFolder(Path folder, String filename, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
+  protected void completeValuesFromFolder(Path folder, String filename, IdeContext context, AbstractCommandlet commandlet,
+      CompletionCandidateCollector collector) {
 
     if (Files.isDirectory(folder)) {
       try (Stream<Path> children = Files.list(folder)) {
@@ -139,10 +140,10 @@ public class PathProperty extends Property<Path> {
   /**
    * @param path the {@link Path} that has been found via completion.
    * @param context the {@link IdeContext}.
-   * @param commandlet the owning {@link Commandlet}.
-   * @return the {@link String} to {@link CompletionCandidateCollector#add(String, String, Property, Commandlet) add} as completion candidate.
+   * @param commandlet the owning {@link AbstractCommandlet}.
+   * @return the {@link String} to {@link CompletionCandidateCollector#add(String, String, Property, AbstractCommandlet) add} as completion candidate.
    */
-  protected String getPathForCompletion(Path path, IdeContext context, Commandlet commandlet) {
+  protected String getPathForCompletion(Path path, IdeContext context, AbstractCommandlet commandlet) {
 
     return path.toString();
   }
