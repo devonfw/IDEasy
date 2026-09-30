@@ -58,8 +58,10 @@ public class BugReportCommandlet extends Commandlet {
       return;
     }
     String title = this.context.askForInput("Please enter a short title for the bug report:");
-    String description = this.context.askForInput("Please briefly describe the actual behavior / bug:");
-    createBugReport(title, description, null);
+    String actualBehavior = this.context.askForInput("Please describe the actual behavior / bug:");
+    String reproduce = this.context.askForInput("Please provide steps to reproduce the bug:");
+    String expectedBehavior = this.context.askForInput("Please describe the expected behavior:");
+    createBugReport(title, actualBehavior, reproduce, expectedBehavior, null);
   }
 
   /**
@@ -89,12 +91,12 @@ public class BugReportCommandlet extends Commandlet {
       return;
     }
     String description = this.context.askForInput("Please briefly describe what you were doing when the error occurred:", title);
-    createBugReport(title, description, error);
+    createBugReport(title, description, null, null, error);
   }
 
-  private void createBugReport(String title, String description, Throwable error) {
+  private void createBugReport(String title, String actualBehavior, String reproduce, String expectedBehavior, Throwable error) {
 
-    String body = BugReportHelper.createIssueBody(this.context, description, toStackTrace(error));
+    String body = BugReportHelper.createIssueBody(this.context, actualBehavior, reproduce, expectedBehavior, toStackTrace(error));
     Path ghBinary = resolveGhBinary();
     if (ghBinary == null) {
       offerGhInstall();

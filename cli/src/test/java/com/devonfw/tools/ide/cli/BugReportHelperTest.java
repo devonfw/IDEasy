@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.util.PrivacyUtil;
 import com.devonfw.tools.ide.version.IdeVersion;
 
 /**
@@ -65,7 +66,7 @@ class BugReportHelperTest extends AbstractIdeContextTest {
     assertThat(message).contains("ide bugreport");
   }
 
-  /** Test of {@link BugReportHelper#createIssueBody(com.devonfw.tools.ide.context.IdeContext, String, String)}. */
+  /** Test of {@link BugReportHelper#createIssueBody(com.devonfw.tools.ide.context.IdeContext, String, String, String, String)}. */
   @Test
   void testCreateIssueBody() {
 
@@ -73,13 +74,55 @@ class BugReportHelperTest extends AbstractIdeContextTest {
     IdeTestContext context = IdeTestContext.of();
 
     // act
-    String body = BugReportHelper.createIssueBody(context, "It crashed", "stacktrace-line");
+    String body = BugReportHelper.createIssueBody(context, "It crashed", "step 1", "It should not crash", "stacktrace-line");
 
     // assert
     assertThat(body).contains("### Actual behavior");
     assertThat(body).contains("It crashed");
+    assertThat(body).contains("### Reproduce");
+    assertThat(body).contains("step 1");
+    assertThat(body).contains("### Expected behavior");
+    assertThat(body).contains("It should not crash");
     assertThat(body).contains("### IDEasy status");
     assertThat(body).contains("Your version of IDEasy is " + IdeVersion.getVersionString());
     assertThat(body).contains("stacktrace-line");
+  }
+
+  /** Test that {@link BugReportHelper#createIssueBody} falls back to placeholders for missing fields. */
+  @Test
+  void testCreateIssueBodyWithEmptyFields() {
+
+    // arrange
+    IdeTestContext context = IdeTestContext.of();
+
+    // act
+    String body = BugReportHelper.createIssueBody(context, "It crashed", " ", "  ", null);
+
+    // assert
+    assertThat(body).contains("_Please add steps to reproduce._");
+    assertThat(body).contains("_Please describe the expected behavior._");
+    assertThat(body).doesNotContain("### Comments/Hints");
+  }
+
+  /**
+   * Test of {@link BugReportHelper#createStatusSnippet}. The IDE paths must be masked with {@link PrivacyUtil} so that the generated report is safe to
+   * share publicly, mirroring the output of {@code ide -p status}.
+   */
+  @Test
+  void testCreateStatusSnippetMasksPaths() {
+
+    // arrange
+    IdeTestContext context = newContext("basic", null, false);
+    String rawIdeRoot = context.getIdeRoot().toString();
+    String rawIdeHome = context.getIdeHome().toString();
+
+    // act
+    String snippet = BugReportHelper.createStatusSnippet(context);
+
+    // assert
+    assertThat(snippet).contains("IDE_ROOT is set to " + PrivacyUtil.removeSensitivePathInformation(rawIdeRoot) + "\n");
+    assertThat(snippet).contains("IDE_HOME is set to " + PrivacyUtil.removeSensitivePathInformation(rawIdeHome) + "\n");
+    assertThat(snippet).doesNotContain(rawIdeRoot);
+    assertThat(snippet).doesNotContain(rawIdeHome);
   }
 }

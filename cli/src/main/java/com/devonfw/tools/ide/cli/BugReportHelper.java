@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.SystemInfo;
+import com.devonfw.tools.ide.util.PrivacyUtil;
 import com.devonfw.tools.ide.version.IdeVersion;
 
 /**
@@ -54,18 +55,20 @@ public final class BugReportHelper {
    *
    * @param context the {@link IdeContext}.
    * @param actualBehavior description of the actual behavior / bug.
+   * @param reproduce steps to reproduce the bug.
+   * @param expectedBehavior description of the expected behavior.
    * @param stackTrace optional exception summary to append as a hint; may be {@code null}. The full stacktrace belongs in the IDEasy log, not here.
    * @return the issue body.
    */
-  public static String createIssueBody(IdeContext context, String actualBehavior, String stackTrace) {
+  public static String createIssueBody(IdeContext context, String actualBehavior, String reproduce, String expectedBehavior, String stackTrace) {
 
     StringBuilder body = new StringBuilder();
     body.append("### Actual behavior\n");
-    body.append(actualBehavior == null || actualBehavior.isBlank() ? "_Please describe the bug._" : actualBehavior);
+    body.append(placeholderOr(actualBehavior, "_Please describe the bug._"));
     body.append("\n\n### Reproduce\n");
-    body.append("_Please add steps to reproduce._");
+    body.append(placeholderOr(reproduce, "_Please add steps to reproduce._"));
     body.append("\n\n### Expected behavior\n");
-    body.append("_Please describe the expected behavior._");
+    body.append(placeholderOr(expectedBehavior, "_Please describe the expected behavior._"));
     body.append("\n\n### IDEasy status\n");
     body.append("```\n");
     body.append(createStatusSnippet(context));
@@ -79,18 +82,25 @@ public final class BugReportHelper {
     return body.toString();
   }
 
+  private static String placeholderOr(String value, String placeholder) {
+
+    return value == null || value.isBlank() ? placeholder : value;
+  }
+
   /**
    * @param context the {@link IdeContext}.
-   * @return a short status snippet for the bug report (version, OS, IDE paths).
+   * @return a short status snippet for the bug report (version, OS, IDE paths). Paths are masked with
+   *     {@link PrivacyUtil} so that the generated report is safe to share publicly, mirroring the output of
+   *     {@code ide -p status}.
    */
   public static String createStatusSnippet(IdeContext context) {
 
     StringBuilder status = new StringBuilder();
     if (context.getIdeRoot() != null) {
-      status.append("IDE_ROOT is set to ").append(context.getIdeRoot()).append('\n');
+      status.append("IDE_ROOT is set to ").append(mask(context.getIdeRoot().toString())).append('\n');
     }
     if (context.getIdeHome() != null) {
-      status.append("IDE_HOME is set to ").append(context.getIdeHome()).append('\n');
+      status.append("IDE_HOME is set to ").append(mask(context.getIdeHome().toString())).append('\n');
     }
     status.append("Your version of IDEasy is ").append(IdeVersion.getVersionString()).append('\n');
     SystemInfo systemInfo = context.getSystemInfo();
@@ -98,6 +108,16 @@ public final class BugReportHelper {
         .append(")@").append(systemInfo.getArchitecture()).append(" [").append(systemInfo.getOsName()).append('@')
         .append(systemInfo.getArchitectureName()).append(']').append('\n');
     return status.toString();
+  }
+
+  /**
+   * @param path the path to mask.
+   * @return the path with sensitive path information (e.g. user names and project names) removed, matching the
+   *     behavior of {@code ide -p status}.
+   */
+  private static String mask(String path) {
+
+    return PrivacyUtil.removeSensitivePathInformation(path);
   }
 
   /**

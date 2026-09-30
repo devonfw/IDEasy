@@ -35,7 +35,7 @@ class BugReportCommandletTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = IdeTestContext.of();
-    context.setAnswers("yes", "title from test", "actual behavior from test");
+    context.setAnswers("yes", "title from test", "actual behavior from test", "step 1 from test", "expected from test");
     BugReportCommandlet bugreport = new BugReportCommandlet(context) {
       @Override
       protected Path resolveGhBinary() {
@@ -52,6 +52,10 @@ class BugReportCommandletTest extends AbstractIdeContextTest {
         .hasMessageContaining(BugReportHelper.createIssueUrl("title from test"));
     assertThat(context).logAtInfo().hasMessageContaining("### Actual behavior");
     assertThat(context).logAtInfo().hasMessageContaining("actual behavior from test");
+    assertThat(context).logAtInfo().hasMessageContaining("### Reproduce");
+    assertThat(context).logAtInfo().hasMessageContaining("step 1 from test");
+    assertThat(context).logAtInfo().hasMessageContaining("### Expected behavior");
+    assertThat(context).logAtInfo().hasMessageContaining("expected from test");
   }
 
   /** Test registration of the commandlet. */
