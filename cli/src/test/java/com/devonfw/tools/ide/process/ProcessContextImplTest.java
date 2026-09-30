@@ -330,12 +330,14 @@ class ProcessContextImplTest extends AbstractIdeContextTest {
     }
   }
 
+  /**
+   * Verify that the log message of a failing process contains the explicitly set working directory.
+   */
   @Test
   void failingProcessShouldIncludeWorkingDirectoryInLogMessage() throws InterruptedException {
     Path workingDirectory = Path.of("/opt/my-repo");
     when(this.processMock.waitFor()).thenReturn(ProcessResult.TOOL_NOT_INSTALLED);
     this.processContextUnderTest.errorHandling(ProcessErrorHandling.LOG_WARNING);
-    when(this.mockProcessBuilder.directory()).thenReturn(workingDirectory.toFile());
     this.processContextUnderTest.directory(workingDirectory);
 
     this.processContextUnderTest.run(ProcessMode.DEFAULT);

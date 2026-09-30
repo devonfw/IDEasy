@@ -318,9 +318,9 @@ public class ProcessContextImpl implements ProcessContext {
     sb.append("Running command '");
     sb.append(this.executable);
     sb.append("'");
-    if (workingDirectory != null) {
+    if (this.workingDirectory != null) {
       sb.append(" in '");
-      sb.append(workingDirectory);
+      sb.append(this.workingDirectory);
       sb.append("'");
     }
     if (interpreter != null) {
