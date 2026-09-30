@@ -1,4 +1,4 @@
-package com.devonfw.ide.gui.ui.controls.console;
+package com.devonfw.ide.gui.core.mainwindow.console;
 
 import javafx.collections.ListChangeListener.Change;
 import javafx.fxml.FXML;
@@ -8,7 +8,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 
-import com.devonfw.ide.gui.service.NlsService;
+import com.devonfw.ide.gui.core.service.NlsService;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 
 /**
@@ -73,7 +73,7 @@ public class ConsoleView {
    */
   private void handleScroll(Change<? extends IdeLogEntry> change) {
 
-    if(viewModel.autoScrollEnabledProperty().get()) {
+    if (viewModel.autoScrollEnabledProperty().get()) {
       if (change.next() && change.wasAdded()) {
         consoleListView.scrollTo(change.getTo() - 1);
       }

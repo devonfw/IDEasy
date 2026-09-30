@@ -1,17 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
 <AnchorPane
   xmlns:fx="http://javafx.com/fxml"
   xmlns="http://javafx.com/javafx"
   fx:id="consoleRoot"
-<<<<<<<< HEAD:gui/src/main/resources/com/devonfw/ide/gui/ui/controls/console/console.fxml
-  fx:controller="com.devonfw.ide.gui.ui.controls.console.ConsoleView"
-========
-  fx:controller="com.devonfw.ide.gui.core.mainwindow.console.ConsoleController"
->>>>>>>> main:gui/src/main/resources/com/devonfw/ide/gui/core/mainwindow/console/console.fxml
+  fx:controller="com.devonfw.ide.gui.core.mainwindow.console.ConsoleView"
   prefWidth="Infinity"
   style="-fx-background-color: #FFFFFF; -fx-border-color: #cccccc; -fx-border-width: 1;"
   AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0"

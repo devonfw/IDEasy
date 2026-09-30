@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:gui/src/main/java/com/devonfw/ide/gui/ui/progress/taskwindow/TaskOverviewWindowController.java
-package com.devonfw.ide.gui.ui.progress.taskwindow;
-========
 package com.devonfw.ide.gui.core.progress.taskwindow;
->>>>>>>> main:gui/src/main/java/com/devonfw/ide/gui/core/progress/taskwindow/TaskOverviewWindowController.java
 
 import javafx.beans.Observable;
 import javafx.collections.FXCollections;
@@ -10,13 +6,8 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
 
-<<<<<<<< HEAD:gui/src/main/java/com/devonfw/ide/gui/ui/progress/taskwindow/TaskOverviewWindowController.java
-import com.devonfw.ide.gui.context.TaskManager;
-import com.devonfw.ide.gui.ui.progress.ProgressBarTask;
-========
 import com.devonfw.ide.gui.core.context.TaskManager;
 import com.devonfw.ide.gui.core.progress.ProgressBarTask;
->>>>>>>> main:gui/src/main/java/com/devonfw/ide/gui/core/progress/taskwindow/TaskOverviewWindowController.java
 
 /**
  * Controller for the task overview window, which shows all currently running tasks and their progressbar.
