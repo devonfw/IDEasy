@@ -19,15 +19,15 @@ import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
-import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
+import com.devonfw.tools.ide.tool.ide.AbstractIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.mvn.MvnArtifact;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 
 /**
- * {@link IdeToolCommandlet} for <a href="https://www.eclipse.org/">Eclipse</a>.
+ * {@link AbstractIdeToolCommandlet} for <a href="https://www.eclipse.org/">Eclipse</a>.
  */
-public class Eclipse extends IdeToolCommandlet {
+public class Eclipse extends AbstractIdeToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Eclipse.class);
 
@@ -84,7 +84,7 @@ public class Eclipse extends IdeToolCommandlet {
   }
 
   @Override
-  protected boolean isPluginUrlNeeded() {
+  public boolean isPluginUrlNeeded() {
 
     return true;
   }

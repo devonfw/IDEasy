@@ -15,7 +15,7 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.context.ProcessContextTestImpl;
 
 /**
- * Test of {@link PluginBasedCommandlet}.
+ * Test of {@link AbstractPluginBasedCommandlet}.
  */
 class PluginBasedCommandletTest extends AbstractIdeContextTest {
 

@@ -4,7 +4,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.property.Property;
 
 /**
@@ -44,11 +44,11 @@ public class CompletionEntry {
    * Performs auto-completion for this entry, skipping it entirely if the candidate or any of its alternatives has already been provided on the command line.
    *
    * @param arg the current argument being completed.
-   * @param collector the {@link CompletionCandidateCollector} to add the candidates to.
-   * @param property the {@link Property} that triggered the completion.
-   * @param commandlet the {@link Commandlet} owning the property.
+   * @param collector the {@link CompletionCandidateCollector} to add matching candidates to.
+   * @param property the {@link Property} that triggered completion.
+   * @param commandlet the {@link AbstractCommandlet} owning the property.
    */
-  public void complete(String arg, CompletionCandidateCollector collector, Property<?> property, Commandlet commandlet) {
+  public void complete(String arg, CompletionCandidateCollector collector, Property<?> property, AbstractCommandlet commandlet) {
 
     Set<String> alreadyProvided = collector.getAlreadyProvided();
     if (!isDependencySatisfied(alreadyProvided)) {
