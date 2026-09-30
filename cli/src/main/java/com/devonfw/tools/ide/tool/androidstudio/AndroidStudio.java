@@ -9,13 +9,12 @@ import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.ToolInstallation;
-import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeaBasedIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeaPluginDownloader;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 
 /**
- * {@link IdeToolCommandlet} for <a href="https://developer.android.com/studio">AndroidStudio</a>.
+ * {@link AbstractIdeToolCommandlet} for <a href="https://developer.android.com/studio">AndroidStudio</a>.
  */
 public class AndroidStudio extends IdeaBasedIdeToolCommandlet {
 
