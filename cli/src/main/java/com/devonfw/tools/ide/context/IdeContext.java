@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliOfflineException;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.commandlet.update.AbstractUpdateCommandlet;
 import com.devonfw.tools.ide.common.SystemPath;
@@ -31,6 +32,7 @@ import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.corepack.Corepack;
 import com.devonfw.tools.ide.tool.custom.CustomToolRepository;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
+import com.devonfw.tools.ide.tool.ide.AbstractIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.mvn.MvnRepository;
 import com.devonfw.tools.ide.tool.npm.Npm;
@@ -49,7 +51,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * referenced instead of duplicating such string literals across the code-base. All central components can be accessed from here such as:
  * <ul>
  * <li>{@link #getPath() system path} (abstraction of PATH environment variable)</li>
- * <li>{@link #getCommandletManager() commandlet manager} (access {@link com.devonfw.tools.ide.commandlet.Commandlet}s)</li>
+ * <li>{@link #getCommandletManager() commandlet manager} (access {@link AbstractCommandlet}s)</li>
  * <li>{@link #getFileAccess() file access} (file and I/O operations on a higher level of abstraction)</li>
  * <li>{@link #getNetworkStatus() network status} (determine if we are online or offline)</li>
  * <li>{@link #newProcess() process context} (start external programs as process including logging, error handling, background and output processing)</li>
@@ -763,7 +765,7 @@ public interface IdeContext extends IdeStartContext {
   }
 
   /**
-   * @return the {@link DirectoryMerger} used to configure and merge the workspace for an {@link com.devonfw.tools.ide.tool.ide.IdeToolCommandlet IDE}.
+   * @return the {@link DirectoryMerger} used to configure and merge the workspace for an {@link AbstractIdeToolCommandlet IDE}.
    */
   DirectoryMerger getWorkspaceMerger();
 

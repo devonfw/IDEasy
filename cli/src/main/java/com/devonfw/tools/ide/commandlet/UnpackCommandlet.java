@@ -12,12 +12,12 @@ import com.devonfw.tools.ide.property.PathProperty;
 import com.devonfw.tools.ide.util.FilenameUtil;
 
 /**
- * {@link Commandlet} to extract an archive file to a target directory.
+ * {@link AbstractCommandlet} to extract an archive file to a target directory.
  * <p>
  * Supports ZIP, TAR, TAR.GZ, TAR.BZ2, 7Z, JAR archives (cross-platform), as well as MSI (Windows) and DMG/PKG (Mac).
  * </p>
  */
-public final class UnpackCommandlet extends Commandlet {
+public final class UnpackCommandlet extends AbstractCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(UnpackCommandlet.class);
 

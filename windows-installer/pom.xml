@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>ide-windows-installer</artifactId>
+  <version>${revision}</version>
+  <name>${project.artifactId}</name>
+  <packaging>pom</packaging>
+
+  <parent>
+    <groupId>com.devonfw.tools.IDEasy.dev</groupId>
+    <artifactId>ide</artifactId>
+    <version>dev-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+  <groupId>com.devonfw.tools.IDEasy</groupId>
+
+  <build>
+    <plugins>
+      <!--
+        Clean up the Windows installer build artifacts, the mirror of the macos-installer module.
+        The MSI itself is still built by windows-installer/build-msi.sh because it requires the
+        Windows-only WixToolset and stages the payload from the cli and documentation modules,
+        which is not part of this module's Maven build. Cleaning here is helpful when working on
+        the MSI installer locally.
+      -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>3.5.0</version>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>./</directory>
+              <includes>
+                <include>msi-files/</include>
+                <include>signed/</include>
+                <include>*.msi</include>
+              </includes>
+              <followSymlinks>false</followSymlinks>
+            </fileset>
+          </filesets>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

@@ -18,9 +18,9 @@ import com.devonfw.tools.ide.tool.IdeasyCommandlet;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link Commandlet} to print a status report about IDEasy.
+ * {@link AbstractCommandlet} to print a status report about IDEasy.
  */
-public class StatusCommandlet extends Commandlet {
+public class StatusCommandlet extends AbstractCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(StatusCommandlet.class);
 
