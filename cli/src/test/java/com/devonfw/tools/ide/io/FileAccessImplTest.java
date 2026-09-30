@@ -29,6 +29,7 @@ import org.mockito.Mockito;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.process.ProcessContext;
 
@@ -815,21 +816,34 @@ class FileAccessImplTest extends AbstractIdeContextTest {
     ProcessContext processContext = Mockito.mock(ProcessContext.class);
     context.setProcessContext(processContext);
     Path appPath = context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_VOLUME).resolve("MyApp.app");
-    Path sourceFile = appPath.resolve("Contents/Resources/resource.txt");
-    Files.createDirectories(sourceFile.getParent());
-    Files.writeString(sourceFile, "x".repeat(1024));
-    long appSize = Files.size(sourceFile);
+    Path resourceFile = appPath.resolve("Contents/Resources/resource.txt");
+    Path executableFile = appPath.resolve("Contents/MacOS/myapp");
+    Files.createDirectories(resourceFile.getParent());
+    Files.createDirectories(executableFile.getParent());
+    Files.writeString(resourceFile, "x".repeat(150_000));
+    Files.writeString(executableFile, "#!/bin/sh\necho myapp\n");
+    boolean posix = !SystemInfoImpl.INSTANCE.isWindows();
+    if (posix) {
+      Files.setPosixFilePermissions(executableFile, PosixFilePermissions.fromString("rwxr-xr-x"));
+    }
+    long appSize = Files.size(resourceFile) + Files.size(executableFile);
     Path target = tempDir.resolve("target");
+    Path targetApp = target.resolve(appPath.getFileName());
 
     // act
     context.getFileAccess().extractDmg(tempDir.resolve("MyApp.dmg"), target);
 
     // assert
-    assertThat(target.resolve(appPath.getFileName()).resolve(appPath.relativize(sourceFile))).hasSameTextualContentAs(sourceFile);
+    assertThat(targetApp.resolve(appPath.relativize(resourceFile))).hasSameBinaryContentAs(resourceFile);
+    assertThat(targetApp.resolve(appPath.relativize(executableFile))).hasSameBinaryContentAs(executableFile);
+    if (posix) {
+      assertPosixFilePermissions(targetApp.resolve(appPath.relativize(executableFile)), "rwxr-xr-x");
+    }
     IdeProgressBarTestImpl progressBar = context.getProgressBarMap().get(IdeProgressBar.TITLE_COPYING);
     assertThat(progressBar).isNotNull();
     assertThat(progressBar.getMaxSize()).isEqualTo(appSize);
-    assertThat(progressBar.getEventList()).extracting(IdeProgressBarTestImpl.ProgressEvent::getStepSize).containsExactly(appSize);
+    assertThat(progressBar.getCurrentProgress()).isEqualTo(appSize);
+    assertThat(progressBar.getEventList()).hasSizeGreaterThan(2);
   }
 
   /**
