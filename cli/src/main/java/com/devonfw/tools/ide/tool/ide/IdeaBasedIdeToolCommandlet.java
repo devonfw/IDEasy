@@ -63,6 +63,12 @@ public class IdeaBasedIdeToolCommandlet extends AbstractIdeToolCommandlet {
   }
 
   @Override
+  protected IdeWorkspaceConfigurer createWorkspaceConfigurer(IdeContext context, String tool) {
+
+    return new JetBrainsWorkspaceConfigurer(context, tool);
+  }
+
+  @Override
   public boolean installPlugin(ToolPluginDescriptor plugin, final Step step, ProcessContext pc) {
 
     // In case of plugins with a custom repo url
@@ -125,35 +131,6 @@ public class IdeaBasedIdeToolCommandlet extends AbstractIdeToolCommandlet {
   private Path getIdeMetadataConfigPath() {
 
     return getIdeMetadataPath().resolve(CONFIG_FOLDER);
-  }
-
-  /**
-   * Keeps the JetBrains metadata out of the {@code workspaceFolder} (see #2531): the IDE metadata template (e.g. {@code .intellij}) is redirected into the
-   * out-of-workspace metadata folder ({@link IdeToolCommandlet#getIdeMetadataPath()}), so that, e.g., {@code .intellij/config} lands in the
-   * {@link #getIdeMetadataConfigPath() config folder}. All other templates (e.g. {@code .idea} and {@code .editorconfig}) are merged into the workspace as
-   * usual.
-   *
-   * @param workspaceFolder the {@link Path} of the workspace the templates are to be merged into.
-   * @return the {@link Map} with the {@link Path}s inside the {@code workspaceFolder} as keys and the {@link Path}s where to merge them instead as values.
-   */
-  @Override
-  public Map<Path, Path> getWorkspaceRedirects(Path workspaceFolder) {
-
-    return Map.of(workspaceFolder.resolve("." + this.tool), getIdeMetadataPath());
-  }
-
-  /**
-   * Excludes the IDE configuration file template (e.g. {@code idea.properties}) from the workspace merge, since IDEasy takes over the control of that file
-   * and generates it in {@link #createIdeConfigurationFile()} (see #2531). The {@link Path} is the one declared by the workspace templates in the settings
-   * repository and therefore inside the {@code workspaceFolder} - not {@link #getConfigurationFilePath()} where the file is actually generated.
-   *
-   * @param workspaceFolder the {@link Path} of the workspace the templates are to be merged into.
-   * @return the {@link Set} with the {@link Path}s inside the {@code workspaceFolder} that shall not be merged.
-   */
-  @Override
-  public Set<Path> getWorkspaceExcludes(Path workspaceFolder) {
-
-    return Set.of(workspaceFolder.resolve(getConfigurationFileName()));
   }
 
   /**

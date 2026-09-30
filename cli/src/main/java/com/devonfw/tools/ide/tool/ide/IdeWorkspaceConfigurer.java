@@ -7,7 +7,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -39,8 +38,8 @@ public class IdeWorkspaceConfigurer {
 
   private static final Logger LOG = LoggerFactory.getLogger(IdeWorkspaceConfigurer.class);
 
-  private final IdeContext context;
-  private final String toolName;
+  protected final IdeContext context;
+  protected final String toolName;
   private final Map<String, Set<Path>> extraSdkMap;
 
   /**
@@ -119,7 +118,9 @@ public class IdeWorkspaceConfigurer {
 
     int result = errors;
     result = mergeWorkspaceSingle(configFolder.resolve(IdeContext.FOLDER_WORKSPACE), workspaceFolder, redirects, excludes, result);
-    result = mergeWorkspaceSingle(configFolder.resolve(this.toolName).resolve(IdeContext.FOLDER_WORKSPACE), workspaceFolder, redirects, excludes, result);
+    // the tool-specific template folder is merged via the mergeToolWorkspace hook so a subclass (e.g. JetBrainsWorkspaceConfigurer, see #2531)
+    // can split it into targeted merges instead of merging it wholesale
+    result = mergeToolWorkspace(configFolder.resolve(this.toolName).resolve(IdeContext.FOLDER_WORKSPACE), workspaceFolder, redirects, excludes, result);
     return result;
   }
 
@@ -133,6 +134,23 @@ public class IdeWorkspaceConfigurer {
     }
     LOG.debug("Merging workspace templates from {}...", templatesFolder);
     return errors + this.context.getWorkspaceMerger().merge(setupFolder, updateFolder, this.context.getVariables(), workspaceFolder, redirects, excludes);
+  }
+
+  /**
+   * Merges the tool-specific workspace template folder into the workspace. The default merges it wholesale (as
+   * {@link #mergeWorkspaceSingle(Path, Path, Map, Set, int)} does). A subclass (e.g. {@link JetBrainsWorkspaceConfigurer}) may override this to
+   * split the tool-specific templates into targeted merges (see #2531).
+   *
+   * @param templatesFolder the tool-specific template folder ({@code «configFolder»/«toolName»/workspace}).
+   * @param workspaceFolder the {@link IdeContext#getWorkspacePath() workspace folder}.
+   * @param redirects the workspace-internal redirects (see {@link IdeToolCommandlet#getWorkspaceRedirects(Path)}).
+   * @param excludes the workspace-internal excludes (see {@link IdeToolCommandlet#getWorkspaceExcludes(Path)}).
+   * @param errors the running error count.
+   * @return the updated error count.
+   */
+  protected int mergeToolWorkspace(Path templatesFolder, Path workspaceFolder, Map<Path, Path> redirects, Set<Path> excludes, int errors) {
+
+    return mergeWorkspaceSingle(templatesFolder, workspaceFolder, redirects, excludes, errors);
   }
 
   private void synchronizeExtraToolInstallations(Path workspaceFolder, Map<Path, Path> redirects, Set<Path> excludes) {
@@ -152,17 +170,27 @@ public class IdeWorkspaceConfigurer {
     }
   }
 
+  /**
+   * Resolves the workspace-relative extra-SDK template path (e.g. {@code .intellij/config/options/jdk.table.xml}) to the path the template is merged
+   * into. The default follows the same redirects/excludes as the workspace merge (see {@link DirectoryMerger#resolveMergeTarget}). A subclass (e.g.
+   * {@link JetBrainsWorkspaceConfigurer}) may override this to target an out-of-workspace location (see #2531).
+   *
+   * @param templatePath the workspace-relative extra-SDK template path.
+   * @param redirects the workspace-internal redirects.
+   * @param excludes the workspace-internal excludes.
+   * @return the target path the template is merged into.
+   */
+  protected Path resolveExtraSdkTarget(Path templatePath, Map<Path, Path> redirects, Set<Path> excludes) {
+
+    return DirectoryMerger.resolveMergeTarget(this.context.getWorkspacePath(), templatePath, redirects, excludes).get();
+  }
+
   private void synchronizeExtraToolInstallation(String sdk, Set<Path> templatePaths, List<ExtraToolInstallation> extraInstallations, Path workspaceFolder,
       Map<Path, Path> redirects, Set<Path> excludes) {
 
     for (Path templatePath : templatePaths) {
       // the extra SDK templates are declared relative to the workspace, so they have to follow the very same redirects as the workspace templates (see #2531)
-      Optional<Path> mergeTarget = DirectoryMerger.resolveMergeTarget(workspaceFolder, templatePath, redirects, excludes);
-      if (mergeTarget.isEmpty()) {
-        LOG.debug("Skipping import of extra tool {} into {} because its template {} is excluded from workspace merging.", sdk, this.toolName, templatePath);
-        continue;
-      }
-      Path workspaceFile = mergeTarget.get();
+      Path workspaceFile = resolveExtraSdkTarget(templatePath, redirects, excludes);
       Path templateFile = this.context.getSettingsPath().resolve(this.toolName).resolve(IdeContext.FOLDER_WORKSPACE)
           .resolve(IdeContext.FOLDER_REPOSITORY)
           .resolve(templatePath);
