@@ -2,7 +2,7 @@ package com.devonfw.tools.ide.completion;
 
 import org.junit.jupiter.api.Test;
 
-import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.commandlet.VersionCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -16,7 +16,7 @@ import com.devonfw.tools.ide.property.VersionProperty;
 class CompletionCandidateCollectorDefaultTest extends AbstractIdeContextTest {
 
   /**
-   * Test of {@link CompletionCandidateCollectorDefault#addAllMatches(String, String[], Property, Commandlet)}
+   * Test of {@link CompletionCandidateCollectorDefault#addAllMatches(String, String[], Property, AbstractCommandlet)}
    */
   @Test
   void testAddAllMatches() {

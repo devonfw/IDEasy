@@ -14,7 +14,7 @@ import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.tool.intellij.Intellij;
 
 /**
- * Test of {@link IdeToolCommandlet}.
+ * Test of {@link AbstractIdeToolCommandlet}.
  */
 class IdeToolCommandletTest extends AbstractIdeContextTest {
 
@@ -48,13 +48,13 @@ class IdeToolCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests that {@link IdeToolCommandlet#getIdeMetadataPath()} resolves to {@code $IDE_HOME/.ide/«ide»/«workspace»} instead of the workspace itself.
+   * Tests that {@link AbstractIdeToolCommandlet#getIdeMetadataPath()} resolves to {@code $IDE_HOME/.ide/«ide»/«workspace»} instead of the workspace itself.
    */
   @Test
   void testGetIdeMetadataPath() {
     // arrange
     IdeContext context = newContext("intellij");
-    IdeToolCommandlet ide = context.getCommandletManager().getCommandlet(Intellij.class);
+    AbstractIdeToolCommandlet ide = context.getCommandletManager().getCommandlet(Intellij.class);
     // act
     Path metadataPath = ide.getIdeMetadataPath();
     // assert
