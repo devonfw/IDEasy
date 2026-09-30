@@ -1,12 +1,16 @@
+<<<<<<<< HEAD:gui/src/test/java/com/devonfw/ide/gui/ui/controls/console/ConsolePanelTest.java
 package com.devonfw.ide.gui.ui.controls.console;
+========
+package com.devonfw.ide.gui.core.mainwindow.console;
+>>>>>>>> main:gui/src/test/java/com/devonfw/ide/gui/core/mainwindow/console/ConsolePanelTest.java
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.List;
-import java.util.Locale;
 
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -15,10 +19,16 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.ide.gui.HeadlessApplicationTest;
+<<<<<<<< HEAD:gui/src/test/java/com/devonfw/ide/gui/ui/controls/console/ConsolePanelTest.java
 import com.devonfw.ide.gui.event.GuiEventBus;
 import com.devonfw.ide.gui.service.NlsService;
+========
+import com.devonfw.ide.gui.core.context.GuiStateManager;
+import com.devonfw.ide.gui.core.service.NlsService;
+>>>>>>>> main:gui/src/test/java/com/devonfw/ide/gui/core/mainwindow/console/ConsolePanelTest.java
 import com.devonfw.tools.ide.log.IdeLogLevel;
 
 class ConsolePanelTest extends HeadlessApplicationTest {
@@ -26,12 +36,16 @@ class ConsolePanelTest extends HeadlessApplicationTest {
   private ConsoleViewModel consoleViewModel;
   private ConsoleView consoleView;
 
+  @TempDir
+  private Path mockIdeRoot;
+
   @Override
   public void start(Stage stage) throws IOException {
 
     URL consoleViewUrl = getClass().getResource("console.fxml");
     assertThat(consoleViewUrl).as("Cannot resolve console UI FXML resource!").isNotNull();
 
+<<<<<<<< HEAD:gui/src/test/java/com/devonfw/ide/gui/ui/controls/console/ConsolePanelTest.java
     NlsService nlsService = new NlsService(Locale.ENGLISH);
     GuiEventBus eventBus = new GuiEventBus();
 
@@ -44,12 +58,25 @@ class ConsolePanelTest extends HeadlessApplicationTest {
       }
       return null;
     });
+========
+    GuiStateManager guiStateManager = new GuiStateManager(this.mockIdeRoot.toString());
+    this.consoleController = guiStateManager.getConsoleController();
+
+    NlsService nlsService = guiStateManager.getNlsService();
+
+    FXMLLoader fxmlLoader = new FXMLLoader(consoleViewUrl);
+    fxmlLoader.setResources(nlsService.getResourceBundle());
+    fxmlLoader.setControllerFactory(clazz -> clazz == ConsoleController.class ? this.consoleController : null);
+>>>>>>>> main:gui/src/test/java/com/devonfw/ide/gui/core/mainwindow/console/ConsolePanelTest.java
     Parent root = fxmlLoader.load();
     stage.setScene(new Scene(root));
     stage.requestFocus(); // sometimes needed for headless setup to work
     stage.show();
+<<<<<<<< HEAD:gui/src/test/java/com/devonfw/ide/gui/ui/controls/console/ConsolePanelTest.java
 
     consoleView = fxmlLoader.getController();
+========
+>>>>>>>> main:gui/src/test/java/com/devonfw/ide/gui/core/mainwindow/console/ConsolePanelTest.java
   }
 
   /**

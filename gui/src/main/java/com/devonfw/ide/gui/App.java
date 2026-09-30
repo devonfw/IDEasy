@@ -16,15 +16,10 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.ide.gui.context.GuiStateManager;
-import com.devonfw.ide.gui.context.TaskManager;
-import com.devonfw.ide.gui.event.GuiEventBus;
-import com.devonfw.ide.gui.factory.TabFactory;
-import com.devonfw.ide.gui.service.CommandletService;
-import com.devonfw.ide.gui.service.NlsService;
-import com.devonfw.ide.gui.ui.mainwindow.MainWindowView;
-import com.devonfw.ide.gui.ui.mainwindow.MainWindowViewModel;
-import com.devonfw.ide.gui.ui.modal.IdeDialog;
+import com.devonfw.ide.gui.core.context.GuiStateManager;
+import com.devonfw.ide.gui.core.mainwindow.MainWindowView;
+import com.devonfw.ide.gui.core.mainwindow.MainWindowViewModel;
+import com.devonfw.ide.gui.core.modal.IdeDialog;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.version.IdeVersion;
 
@@ -40,15 +35,7 @@ public class App extends Application {
 
   private Stage primaryStage;
 
-  //Factorys
-  private TabFactory tabFactory;
-
-  //Services
-  private NlsService nlsService;
-  private CommandletService commandletService;
-
-  TaskManager taskManager = new TaskManager();
-  GuiStateManager guiStateManager = new GuiStateManager(taskManager, null);
+  GuiStateManager guiStateManager = new GuiStateManager(null);
 
   private final Logger LOG = LoggerFactory.getLogger(App.class);
 
@@ -61,38 +48,20 @@ public class App extends Application {
 
     this.primaryStage = primaryStage;
 
-    this.nlsService = new NlsService(null);
-
-    final GuiEventBus eventBus = new GuiEventBus();
-
-    this.commandletService = new CommandletService(guiStateManager, eventBus);
-    this.tabFactory = new TabFactory(guiStateManager, nlsService, commandletService, eventBus);
-    MainWindowViewModel mainWindowViewModel = new MainWindowViewModel(guiStateManager, this.nlsService, tabFactory);
-    final MainWindowView mainWindow = new MainWindowView(mainWindowViewModel, guiStateManager, this.nlsService, eventBus);
+    final MainWindowViewModel mainWindowViewModel = new MainWindowViewModel(guiStateManager);
+    final MainWindowView mainWindow = new MainWindowView(mainWindowViewModel, guiStateManager);
 
     //this.nlsService.addLocaleChangeListener(this::reloadMainView);
 
     Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
     Scene scene = new Scene(mainWindow, bounds.getWidth() / 2, bounds.getHeight() / 2);
 
-    if (SystemInfoImpl.INSTANCE.isMac()) {
-      setIconInMacOsDock();
-    }
-
-    Image icon = new Image(ICON_PATH);
-    primaryStage.getIcons().add(icon);
-    primaryStage.setTitle("IDEasy - version " + IdeVersion.getVersionString());
-    primaryStage.setScene(scene);
-    primaryStage.setWidth(scene.getWidth());
-    primaryStage.setHeight(scene.getHeight());
-    primaryStage.setMinWidth(scene.getWidth());
-    primaryStage.setMinHeight(scene.getHeight());
-    primaryStage.show();
+    configureMainWindow(scene);
 
     primaryStage.setOnCloseRequest(event -> {
 
       LOG.info("Closing application");
-      if (!taskManager.getTasks().isEmpty()) {
+      if (!guiStateManager.getTaskManager().getTasks().isEmpty()) {
         IdeDialog closeConfirm = new IdeDialog(IdeDialog.AlertType.CONFIRMATION, "There are still running tasks. Are you sure you want to exit?",
             ButtonType.CLOSE, ButtonType.CANCEL);
         closeConfirm.showAndWait().ifPresent(response -> {

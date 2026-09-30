@@ -26,7 +26,7 @@ public final class PackageManagerRequest {
 
   private VersionIdentifier version;
 
-  private ToolCommandlet packageManager;
+  private AbstractToolCommandlet packageManager;
 
   private ProcessContext processContext;
 
@@ -56,7 +56,7 @@ public final class PackageManagerRequest {
   }
 
   /**
-   * @return the CLI args used to {@link ToolCommandlet#runTool(List) run} the {@link #getPackageManager() package manager}. E.g.
+   * @return the CLI args used to {@link AbstractToolCommandlet#runTool(List) run} the {@link #getPackageManager() package manager}. E.g.
    *     <code>List.of("install", "-gf", "@angular/cli")</code>.
    */
   public List<String> getArgs() {
@@ -75,7 +75,7 @@ public final class PackageManagerRequest {
 
   /**
    * @return the tool to manage (e.g. install) via this request. Will be in the syntax and terminology of the package-manager that can differ from
-   *     {@link ToolCommandlet#getName() tool names} in IDEasy.
+   *     {@link AbstractToolCommandlet#getName() tool names} in IDEasy.
    * @see PackageManagerBasedLocalToolCommandlet#getPackageName()
    */
   public String getTool() {
@@ -104,9 +104,9 @@ public final class PackageManagerRequest {
   }
 
   /**
-   * @return the {@link ToolCommandlet} acting as package manager.
+   * @return the {@link AbstractToolCommandlet} acting as package manager.
    */
-  public ToolCommandlet getPackageManager() {
+  public AbstractToolCommandlet getPackageManager() {
 
     return packageManager;
   }
@@ -115,7 +115,7 @@ public final class PackageManagerRequest {
    * @param packageManager new value of {@link #getPackageManager()}.
    * @return this {@link PackageManagerRequest} for fluent API calls.
    */
-  public PackageManagerRequest setPackageManager(ToolCommandlet packageManager) {
+  public PackageManagerRequest setPackageManager(AbstractToolCommandlet packageManager) {
 
     if (this.packageManager != null) {
       throw new IllegalStateException();

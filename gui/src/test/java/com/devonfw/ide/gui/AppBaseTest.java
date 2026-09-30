@@ -27,18 +27,13 @@ import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.ide.gui.context.GuiStateManager;
-import com.devonfw.ide.gui.context.TaskManager;
-import com.devonfw.ide.gui.event.GuiEventBus;
-import com.devonfw.ide.gui.factory.TabFactory;
-import com.devonfw.ide.gui.helper.FxHelper;
-import com.devonfw.ide.gui.service.CommandletService;
-import com.devonfw.ide.gui.service.NlsService;
-import com.devonfw.ide.gui.ui.controls.console.ConsoleViewModel;
-import com.devonfw.ide.gui.ui.mainwindow.MainWindowView;
-import com.devonfw.ide.gui.ui.mainwindow.MainWindowViewModel;
-import com.devonfw.ide.gui.ui.progress.ProgressBarTask;
-import com.devonfw.ide.gui.ui.progress.taskwindow.TaskOverviewWindow;
+import com.devonfw.ide.gui.core.context.GuiStateManager;
+import com.devonfw.ide.gui.core.context.TaskManager;
+import com.devonfw.ide.gui.core.helper.FxHelper;
+import com.devonfw.ide.gui.core.mainwindow.MainWindowView;
+import com.devonfw.ide.gui.core.mainwindow.MainWindowViewModel;
+import com.devonfw.ide.gui.core.progress.ProgressBarTask;
+import com.devonfw.ide.gui.core.progress.taskwindow.TaskOverviewWindow;
 
 /**
  * Basic UI Test for the main screen
@@ -75,18 +70,11 @@ public class AppBaseTest extends HeadlessApplicationTest {
   @Override
   public void start(Stage stage) {
 
-    NlsService nlsService = new NlsService(Locale.ENGLISH);
-    this.taskManager = new TaskManager();
-    this.guiStateManager = new GuiStateManager(this.taskManager, mockIdeRoot.toString());
-
-    GuiEventBus eventBus = new GuiEventBus();
-    ConsoleViewModel consoleViewModel = new ConsoleViewModel(eventBus);
-
-    CommandletService commandletService = new CommandletService(guiStateManager, eventBus);
-    TabFactory tabFactory = new TabFactory(guiStateManager, nlsService, commandletService, eventBus);
-
-    this.viewModel = new MainWindowViewModel(guiStateManager, nlsService, tabFactory);
-    MainWindowView mainWindow = new MainWindowView(this.viewModel, guiStateManager, nlsService, eventBus);
+    this.guiStateManager = new GuiStateManager(mockIdeRoot.toString());
+    this.guiStateManager.getNlsService().setLocale(Locale.ENGLISH);
+    this.taskManager = guiStateManager.getTaskManager();
+    this.viewModel = new MainWindowViewModel(guiStateManager);
+    MainWindowView mainWindow = new MainWindowView(this.viewModel, guiStateManager);
     stage.setScene(new Scene(mainWindow, SCENE_WIDTH, SCENE_HEIGHT));
     stage.requestFocus(); //sometimes needed for headless setup to work
     stage.show();

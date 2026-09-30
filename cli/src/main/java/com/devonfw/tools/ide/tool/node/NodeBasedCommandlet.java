@@ -6,17 +6,16 @@ import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.PackageManagerBasedLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.PackageManagerRequest;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
 
 /**
- * {@link LocalToolCommandlet} for tools based on <a href="https://www.npmjs.com/">npm</a>.
+ * {@link AbstractLocalToolCommandlet} for tools based on <a href="https://www.npmjs.com/">npm</a>.
  *
- * @param <P> type of the {@link ToolCommandlet} acting as {@link #getPackageManagerClass() package manager}.
+ * @param <P> type of the {@link AbstractToolCommandlet} acting as {@link #getPackageManagerClass() package manager}.
  */
-public abstract class NodeBasedCommandlet<P extends ToolCommandlet> extends PackageManagerBasedLocalToolCommandlet<P> {
+public abstract class NodeBasedCommandlet<P extends AbstractToolCommandlet> extends PackageManagerBasedLocalToolCommandlet<P> {
 
   /** File name of the {@link #findBuildDescriptor(Path) build descriptor} . */
   public static final String PACKAGE_JSON = "package.json";
