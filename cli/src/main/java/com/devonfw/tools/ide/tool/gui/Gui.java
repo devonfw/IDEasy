@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.cli.CliException;
-import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -22,9 +22,9 @@ import com.devonfw.tools.ide.version.IdeVersion;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link Commandlet} to launch the IDEasy GUI.
+ * {@link AbstractCommandlet} to launch the IDEasy GUI.
  */
-public class Gui extends Commandlet {
+public class Gui extends AbstractCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Gui.class);
 
