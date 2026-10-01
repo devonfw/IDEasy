@@ -10,6 +10,7 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
@@ -338,6 +339,28 @@ class VscodeTest extends AbstractIdeContextTest {
     assertThat(sharedData.resolve("state.json")).exists().hasContent("project-shared");
     assertThat(workspaceMetadata).doesNotExist();
     assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_BACKUPS)).exists();
+  }
+
+  /**
+   * Tests that a VS Code data folder of the workspace that cannot be migrated (e.g. on Windows because a VS Code from before #2582 still uses it) stops the
+   * start with a {@link CliException} asking to close VS Code instead of an unexpected error, and keeps the folder for the next attempt.
+   */
+  @Test
+  void testConfigureWorkspaceFailsWithHintIfWorkspaceUserDataCannotBeMigrated() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    FileAccess fileAccess = context.getFileAccess();
+    Path workspaceUserData = getWorkspaceMetadataPath(context).resolve("config");
+    fileAccess.writeFileContent("workspace", workspaceUserData.resolve("state.json"), true);
+    fileAccess.writeFileContent("project", getUserDataPath(context).resolve("state.json"), true);
+    // a file instead of the backup folder lets the backup fail just like a folder locked by a running VS Code
+    fileAccess.writeFileContent("blocked", context.getIdeHome().resolve(IdeContext.FOLDER_BACKUPS), true);
+    Vscode commandlet = new Vscode(context);
+    // act + assert
+    assertThatThrownBy(commandlet::configureWorkspace).isInstanceOf(CliException.class).hasMessageContaining(workspaceUserData.toString())
+        .hasMessageContaining("close all VSCode windows");
+    assertThat(workspaceUserData.resolve("state.json")).exists().hasContent("workspace");
   }
 
   private static Path getUserDataPath(IdeTestContext context) {

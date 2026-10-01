@@ -10,6 +10,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
@@ -152,13 +153,20 @@ public class Vscode extends AbstractIdeToolCommandlet {
       return;
     }
     FileAccess fileAccess = this.context.getFileAccess();
-    if (Files.exists(target)) {
-      LOG.warn("Removing obsolete VSCode data folder {} of workspace {} since all workspaces of the project now use {}", source,
-          this.context.getWorkspaceName(), target);
-      fileAccess.backup(source);
-    } else {
-      LOG.info("Moving VSCode data folder {} of workspace {} to {} so all workspaces of the project use it", source, this.context.getWorkspaceName(), target);
-      fileAccess.move(source, target);
+    String workspaceName = this.context.getWorkspaceName();
+    try {
+      if (Files.exists(target)) {
+        LOG.warn("Removing obsolete VSCode data folder {} of workspace {} since all workspaces of the project now use {}", source, workspaceName, target);
+        fileAccess.backup(source);
+      } else {
+        LOG.info("Moving VSCode data folder {} of workspace {} to {} so all workspaces of the project use it", source, workspaceName, target);
+        fileAccess.move(source, target);
+      }
+    } catch (RuntimeException e) {
+      // e.g. on Windows a VSCode from before #2582 still running for this workspace locks the folder
+      throw new CliException("Failed to migrate the VSCode data folder " + source + " of workspace " + workspaceName + " to " + target
+          + ". Probably VSCode is still running for this workspace: please close all VSCode windows of workspace " + workspaceName
+          + " and start again.", e);
     }
   }
 
