@@ -52,7 +52,14 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends AbstractT
       return false;
     }
 
-    // Check if the tool binary is found
+    // Check if the tool is installed (see #isPackageInstalled)
+    return isPackageInstalled();
+  }
+
+  /**
+   * @return {@code true} if the package managed by this tool's package manager is installed.
+   */
+  protected boolean isPackageInstalled() {
     return getBinaryExecutable() != null;
   }
 
