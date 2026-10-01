@@ -6,7 +6,9 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.owasp.dependencycheck.Engine;
 import org.owasp.dependencycheck.data.nvdcve.CveDB;
@@ -17,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.context.IdeContextConsole;
+import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.url.model.file.UrlSecurityFile;
 import com.devonfw.tools.ide.url.model.file.json.Cve;
@@ -116,7 +119,7 @@ public class BuildSecurityJsonFiles implements Runnable {
    */
   public static void main(String[] args) {
     if (args.length == 0) {
-      System.err.println("Usage: " + BuildSecurityJsonFiles.class.getSimpleName() + " <path-to-ide-urls>");
+      LOG.error("Usage: {} <path-to-ide-urls>", BuildSecurityJsonFiles.class.getSimpleName());
       System.exit(1);
     }
     Path urlsPath = Path.of(args[0]);
@@ -140,27 +143,43 @@ public class BuildSecurityJsonFiles implements Runnable {
       return null;
     }
 
-    List<VersionRange> versions = toVersions(vulnerability, edition, urlUpdater);
-    if (versions.isEmpty()) {
+    Map<String, List<VersionRange>> conditions = new TreeMap<>();
+    List<VersionRange> versions = toVersions(vulnerability, edition, urlUpdater, conditions);
+    if (versions.isEmpty() && conditions.isEmpty()) {
       return null;
     }
-    return new Cve(cveName, severity.doubleValue(), versions);
+    return new Cve(cveName, severity.doubleValue(), versions, conditions);
   }
 
-  private static List<VersionRange> toVersions(Vulnerability vulnerability, String edition, AbstractUrlUpdater urlUpdater) {
+  static List<VersionRange> toVersions(Vulnerability vulnerability, String edition, AbstractUrlUpdater urlUpdater,
+      Map<String, List<VersionRange>> conditions) {
 
     String id = vulnerability.getName();
     List<VersionRange> versions = new ArrayList<>();
     for (VulnerableSoftware range : vulnerability.getVulnerableSoftware()) {
-      VersionRange versionRange = toVersionRange(range, edition, urlUpdater, id);
-      if (versionRange != null) {
-        Cve.mergeVersionRage(versions, versionRange);
+      OsVersionRange match = toVersionRange(range, edition, urlUpdater, id);
+      if (match != null) {
+        if (match.os() == null) {
+          Cve.mergeVersionRage(versions, match.range());
+        } else {
+          List<VersionRange> osVersions = conditions.computeIfAbsent(match.os().toString(), key -> new ArrayList<>());
+          Cve.mergeVersionRage(osVersions, match.range());
+        }
       }
     }
     return versions;
   }
 
-  private static VersionRange toVersionRange(VulnerableSoftware range, String edition, AbstractUrlUpdater urlUpdater, String id) {
+  /**
+   * A {@link VersionRange} of a {@link VulnerableSoftware} entry together with the {@link OperatingSystem} it is restricted to.
+   *
+   * @param range the affected {@link VersionRange}.
+   * @param os the {@link OperatingSystem} the {@link #range()} is restricted to, or {@code null} if it applies to all operating systems.
+   */
+  record OsVersionRange(VersionRange range, OperatingSystem os) {
+  }
+
+  static OsVersionRange toVersionRange(VulnerableSoftware range, String edition, AbstractUrlUpdater urlUpdater, String id) {
 
     if (!urlUpdater.matchesCpe(range.getVendor(), range.getProduct())) {
       return null;
@@ -173,6 +192,7 @@ public class BuildSecurityJsonFiles implements Runnable {
         return null;
       }
     }
+    OperatingSystem os = findOperatingSystem(range);
     String startIncluding = mapVersion(range.getVersionStartIncluding(), urlUpdater);
     String startExcluding = mapVersion(range.getVersionStartExcluding(), urlUpdater);
     String endIncluding = mapVersion(range.getVersionEndIncluding(), urlUpdater);
@@ -184,7 +204,7 @@ public class BuildSecurityJsonFiles implements Runnable {
         return null;
       }
       VersionIdentifier singleAffectedVersion = VersionIdentifier.of(singleVersion);
-      return VersionRange.of(singleAffectedVersion, singleAffectedVersion, BoundaryType.CLOSED);
+      return new OsVersionRange(VersionRange.of(singleAffectedVersion, singleAffectedVersion, BoundaryType.CLOSED), os);
     } else {
       VersionIdentifier min;
       boolean leftExclusive;
@@ -212,8 +232,25 @@ public class BuildSecurityJsonFiles implements Runnable {
         max = null;
         rightExclusive = true;
       }
-      return VersionRange.of(min, max, BoundaryType.of(leftExclusive, rightExclusive));
+      return new OsVersionRange(VersionRange.of(min, max, BoundaryType.of(leftExclusive, rightExclusive)), os);
     }
+  }
+
+  /**
+   * @param cpe the {@link Cpe} to check.
+   * @return the {@link OperatingSystem} the given {@link Cpe} is restricted to (as found in its edition, swEdition, or targetSw component), or
+   *     {@code null} if the {@link Cpe} is not restricted to a specific operating system.
+   */
+  static OperatingSystem findOperatingSystem(Cpe cpe) {
+
+    OperatingSystem os = OperatingSystem.of(cpe.getEdition());
+    if (os == null) {
+      os = OperatingSystem.of(cpe.getSwEdition());
+    }
+    if (os == null) {
+      os = OperatingSystem.of(cpe.getTargetSw());
+    }
+    return os;
   }
 
   private static boolean isEditionMatching(String cpeEdition, String urlEdition, AbstractUrlUpdater urlUpdater) {

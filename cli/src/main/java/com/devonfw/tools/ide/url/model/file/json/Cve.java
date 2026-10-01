@@ -19,7 +19,8 @@ import com.devonfw.tools.ide.version.VersionRangeRelation;
  * @param id the unique identifier (e.g. "CVE-2021-44228").
  * @param severity the severity in the range from (0,10.0] where 10.0 is most critical.
  * @param versions the {@link VersionRange}s of the affected versions. Typically one entry but might also affect multiple ranges. E.g. "[1.0,1.2)" and
- *     "[2.0,2.2)". Should never be {@code null} or {@link List#isEmpty() empty}.
+ *     "[2.0,2.2)". Never {@code null} but may be {@link List#isEmpty() empty} if the CVE is only affecting specific operating systems (see
+ *     {@link #conditions()}).
  * @param conditions the additional {@link VersionRange}s of affected versions per {@link OperatingSystem#toString() operating system}. Only relevant when the
  *     end-user runs IDEasy on the matching operating system. Never {@code null} but may be {@link Map#isEmpty() empty}.
  * @see ToolSecurity
@@ -37,10 +38,10 @@ public record Cve(String id, double severity, List<VersionRange> versions, Map<S
   public Cve {
     Objects.requireNonNull(id);
     Objects.requireNonNull(versions);
-    assert !versions.isEmpty();
     if (conditions == null) {
       conditions = Map.of();
     }
+    assert !versions.isEmpty() || !conditions.isEmpty();
   }
 
   /**
