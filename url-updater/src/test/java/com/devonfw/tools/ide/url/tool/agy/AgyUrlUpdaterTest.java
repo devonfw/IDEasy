@@ -6,7 +6,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -31,12 +30,13 @@ public class AgyUrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @param wmRuntimeInfo the {@link WireMockRuntimeInfo}.
    */
   @Test
-  void testAgyUrlUpdater(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  void testAgyUrlUpdater(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
+    //arrange
     stubFor(get(urlMatching("/repos/google-antigravity/antigravity-cli/releases"))
         .willReturn(aResponse()
             .withStatus(200)
             .withBody(readAndResolve(PATH_INTEGRATION_TEST.resolve("AgyUrlUpdater")
-                .resolve("agy-release.json"), wmRuntimeInfo))));
+                .resolve("agy-releases.json"), wmRuntimeInfo))));
 
     stubFor(any(urlMatching(
         "/google-antigravity/antigravity-cli/releases/download/\\d+\\.\\d+\\.\\d+/agy_cli_(windows|mac|linux)_(x64|arm64)\\.(zip|tar\\.gz)"))

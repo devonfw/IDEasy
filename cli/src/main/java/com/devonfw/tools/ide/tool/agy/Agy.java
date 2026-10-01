@@ -13,14 +13,14 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.process.EnvironmentContext;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 
 /**
- * {@link LocalToolCommandlet} for <a href="https://github.com/google-antigravity/antigravity-cli">Antigravity CLI (Agy)</a>.
+ * {@link AbstractLocalToolCommandlet} for <a href="https://github.com/google-antigravity/antigravity-cli">Antigravity CLI (Agy)</a>.
  */
-public class Agy extends LocalToolCommandlet {
+public class Agy extends AbstractLocalToolCommandlet {
 
   /** Logger. */
   private static final Logger LOG = LoggerFactory.getLogger(Agy.class);
