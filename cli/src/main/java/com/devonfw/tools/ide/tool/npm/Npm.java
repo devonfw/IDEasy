@@ -17,10 +17,9 @@ import com.devonfw.tools.ide.tool.ToolInstallation;
 /**
  * {@link AbstractLocalToolCommandlet} for <a href="https://www.npmjs.org/">npm</a>.
  * <p>
- * npm is installed as a pristine, versioned installation in the software repository (same model as the other tools) and is
- * linked into each project's {@code software} folder. Global npm packages are installed into a per-project directory
- * (see {@link #NPM_GLOBAL_FOLDER}) so that projects do not interfere with each other (see <a href=
- * "https://github.com/devonfw/IDEasy/issues/352">issue #352</a> and <a href=
+ * npm is installed as a pristine, versioned installation in the software repository (same model as the other tools) and is linked into each project's
+ * {@code software} folder. Global npm packages are installed into a per-project directory (see {@link #NPM_GLOBAL_FOLDER}) so that projects do not interfere
+ * with each other (see <a href= "https://github.com/devonfw/IDEasy/issues/352">issue #352</a> and <a href=
  * "https://github.com/devonfw/IDEasy/issues/2381">issue #2381</a>).
  */
 public class Npm extends AbstractLocalToolCommandlet {
@@ -62,8 +61,8 @@ public class Npm extends AbstractLocalToolCommandlet {
 
   /**
    * Detects an npm project by its {@code package.json} build descriptor so that the {@code build} commandlet (and the
-   * {@link com.devonfw.tools.ide.commandlet.BuildCommandlet BuildCommandlet}) can dispatch it to npm. npm is a standalone tool
-   * (not a child of {@link com.devonfw.tools.ide.tool.node.Node node}) now, so it must declare its build descriptor itself.
+   * {@link com.devonfw.tools.ide.commandlet.BuildCommandlet BuildCommandlet}) can dispatch it to npm. npm is a standalone tool (not a child of
+   * {@link com.devonfw.tools.ide.tool.node.Node node}) now, so it must declare its build descriptor itself.
    *
    * @param directory the {@link Path} to the build directory.
    * @return the {@code package.json} {@link Path} if it exists, or {@code null} otherwise.
@@ -111,16 +110,14 @@ public class Npm extends AbstractLocalToolCommandlet {
   }
 
   /**
-   * Repairs the npm launcher shims ({@code npm}/{@code npx}) so that they resolve to this pristine installation instead of the npm that is bundled with
-   * node.
+   * Repairs the npm launcher shims ({@code npm}/{@code npx}) so that they resolve to this pristine installation instead of the npm that is bundled with node.
    * <p>
-   * The npm registry tarball extracts a flat layout ({@code bin/npm-cli.js}) but ships the launcher shims in the layout npm uses when it is bundled inside
-   * a node distribution: {@code bin/npm.cmd}, {@code bin/npx.cmd}, {@code bin/npm.ps1}, {@code bin/npx.ps1}, {@code bin/npm} and {@code bin/npx} all point
-   * at a non-existent {@code node_modules/npm/bin/npm-cli.js} (or a sibling {@code node.exe}). Consequently, on Windows the {@code npm}/{@code npx} shims
-   * fail with {@code MODULE_NOT_FOUND}, and on Linux they silently run the npm that is bundled with the node distribution rather than this pristine npm.
-   * Since the npm bin folder is first on the PATH (see
-   * {@link com.devonfw.tools.ide.common.SystemPath#getToolPathsInResolutionOrder()}), the broken shims would otherwise shadow the correct tool for every
-   * invocation of {@code npm}/{@code npx}.
+   * The npm registry tarball extracts a flat layout ({@code bin/npm-cli.js}) but ships the launcher shims in the layout npm uses when it is bundled inside a
+   * node distribution: {@code bin/npm.cmd}, {@code bin/npx.cmd}, {@code bin/npm.ps1}, {@code bin/npx.ps1}, {@code bin/npm} and {@code bin/npx} all point at a
+   * non-existent {@code node_modules/npm/bin/npm-cli.js} (or a sibling {@code node.exe}). Consequently, on Windows the {@code npm}/{@code npx} shims fail with
+   * {@code MODULE_NOT_FOUND}, and on Linux they silently run the npm that is bundled with the node distribution rather than this pristine npm. Since the npm
+   * bin folder is first on the PATH (see {@link com.devonfw.tools.ide.common.SystemPath#getToolPathsInResolutionOrder()}), the broken shims would otherwise
+   * shadow the correct tool for every invocation of {@code npm}/{@code npx}.
    * <p>
    * This hook rewrites the shims to launch this installation's own CLI entry points ({@code bin/npm-cli.js}/{@code bin/npx-cli.js}) with the {@code node}
    * runtime that is already on the PATH. This is a no-op for installations that do not contain a flat {@code bin/npm-cli.js} (e.g. a node-bundled npm or the
@@ -197,8 +194,8 @@ public class Npm extends AbstractLocalToolCommandlet {
    */
   private static String posixShim(String cliJs) {
 
-    return "#!/usr/bin/env bash\r\n" //
-        + "basedir=\"$(dirname \"$0\")\"\r\n" //
-        + "exec node \"$basedir/" + cliJs + "\" \"$@\"\r\n";
+    return "#!/usr/bin/env bash\n" //
+        + "basedir=\"$(dirname \"$0\")\"\n" //
+        + "exec node \"$basedir/" + cliJs + "\" \"$@\"\n";
   }
 }

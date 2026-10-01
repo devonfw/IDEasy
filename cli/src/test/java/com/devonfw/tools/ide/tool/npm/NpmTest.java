@@ -92,8 +92,8 @@ class NpmTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests that {@link Npm#setEnvironment(EnvironmentContext, ToolInstallation, boolean)} points the npm global prefix at a per-project
-   * {@code .npm-global} folder inside the IDE home so that projects do not interfere with each other (see
+   * Tests that {@link Npm#setEnvironment(EnvironmentContext, ToolInstallation, boolean)} points the npm global prefix at a per-project {@code .npm-global}
+   * folder inside the IDE home so that projects do not interfere with each other (see
    * <a href="https://github.com/devonfw/IDEasy/issues/352">issue #352</a> and <a href=
    * "https://github.com/devonfw/IDEasy/issues/2381">issue #2381</a>).
    */
@@ -180,9 +180,9 @@ class NpmTest extends AbstractIdeContextTest {
         org.assertj.core.api.Assertions.assertThat(npmPs1).contains("npm-cli.js").doesNotContain("node_modules");
       } else {
         String npmPosix = fileAccess.readFileContent(bin.resolve("npm"));
-        org.assertj.core.api.Assertions.assertThat(npmPosix).contains("npm-cli.js").doesNotContain("node_modules");
+        org.assertj.core.api.Assertions.assertThat(npmPosix).contains("npm-cli.js").doesNotContain("node_modules").doesNotContain("\r");
         String npxPosix = fileAccess.readFileContent(bin.resolve("npx"));
-        org.assertj.core.api.Assertions.assertThat(npxPosix).contains("npx-cli.js").doesNotContain("node_modules");
+        org.assertj.core.api.Assertions.assertThat(npxPosix).contains("npx-cli.js").doesNotContain("node_modules").doesNotContain("\r");
       }
       // the CLI entry points themselves are left untouched
       org.assertj.core.api.Assertions.assertThat(Files.isRegularFile(bin.resolve("npm-cli.js"))).isTrue();
