@@ -57,6 +57,14 @@ public class TaskWindowTest extends HeadlessApplicationTest {
   }
 
   /**
+   * Adds a task to the manager and waits for the FX thread to process it.
+   */
+  private void addTask(ProgressBarTask task) {
+    taskManager.addTask(task);
+    waitForFxEvents();
+  }
+
+  /**
    * We check, whether our implementation of {@link TaskOverviewWindow#show()} actually displays the window.
    */
   @Test
@@ -73,8 +81,7 @@ public class TaskWindowTest extends HeadlessApplicationTest {
   void shouldShowTaskWhenTaskAdded() {
 
     ProgressBarTask task = new ProgressBarTask(taskManager, "task-1", "Test Task");
-    taskManager.addTask(task);
-    waitForFxEvents();
+    addTask(task);
 
     assertThat(taskList.getItems()).contains(task);
   }
@@ -83,8 +90,7 @@ public class TaskWindowTest extends HeadlessApplicationTest {
   void shouldNotShowTaskWhenTaskRemoved() {
 
     ProgressBarTask task = new ProgressBarTask(taskManager, "task-1", "Test Task");
-    taskManager.addTask(task);
-    waitForFxEvents();
+    addTask(task);
 
     assertThat(taskList.getItems()).contains(task);
 
@@ -104,12 +110,9 @@ public class TaskWindowTest extends HeadlessApplicationTest {
     ProgressBarTask task2 = new ProgressBarTask(taskManager, "task-2", "Test Task 2");
     ProgressBarTask task3 = new ProgressBarTask(taskManager, "task-3", "Test Task 3");
 
-    taskManager.addTask(task1);
-    waitForFxEvents();
-    taskManager.addTask(task2);
-    waitForFxEvents();
-    taskManager.addTask(task3);
-    waitForFxEvents();
+    addTask(task1);
+    addTask(task2);
+    addTask(task3);
 
     assertThat(taskList.getItems()).containsExactly(task1, task2, task3);
   }
@@ -151,8 +154,7 @@ public class TaskWindowTest extends HeadlessApplicationTest {
   void testTaskProgressUpdatesProperly() {
 
     ProgressBarTask task = new ProgressBarTask(taskManager, "task-1", "Test Task", 100, "Units", 1);
-    taskManager.addTask(task);
-    waitForFxEvents();
+    addTask(task);
 
     assertThat(taskList.getItems()).as("Task should be in the list").contains(task);
 
