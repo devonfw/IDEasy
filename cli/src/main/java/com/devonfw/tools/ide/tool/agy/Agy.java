@@ -43,9 +43,8 @@ public class Agy extends LocalToolCommandlet {
       Agy has no environment variable to relocate its configuration, so IDEasy keeps it project-isolated by pointing
       Agy's standard home locations at this project:
         - ~/.gemini/antigravity-cli -> $IDE_HOME/conf/gemini/antigravity-cli   (theme, conversations, history)
-        - ~/.gemini/config          -> $IDE_HOME/conf/gemini/config            (MCP servers, project definitions)
       The links are (re)created automatically every time you start Agy through IDEasy. The content is owned by you -
-      IDEasy only creates the directories and this file, it never modifies your data.
+      IDEasy only creates the directory and this file, it never modifies your data.
       
       ## Using Agy
       Each IDEasy project has its own Agy binary and its own configuration. Launch Agy through IDEasy (`ide agy`) in
@@ -134,7 +133,7 @@ public class Agy extends LocalToolCommandlet {
    * junction). This is a no-op when the home location already resolves to the target. If it is a regular directory that does not resolve to the target, it is
    * left untouched and a warning is logged, so user data is never overwritten.
    *
-   * @param homeLocation the Agy home location that Agy reads its configuration from (e.g. {@code .gemini/antigravity-cli}).
+   * @param homeLocation the Agy home location that Agy reads its configuration from {@code .gemini/antigravity-cli}.
    * @param targetDir the project-local configuration directory to link to, or {@code null} to skip.
    */
   private void ensureHomeLink(Path homeLocation, Path targetDir) {
