@@ -146,6 +146,29 @@ class SystemPathTest extends AbstractIdeContextTest {
   }
 
   @Test
+  void testPrecedenceToolBinPrecedesBundlingRuntimeBinForBothLookupAndPathString() throws IOException {
+    // arrange - node is a flat install (no bin/), so node's own bundled npm shadows the pristine npm unless npm is ordered first
+    // copyForMutation=true: this test creates files, so it must work on a scratch copy (in target/), never the committed fixtures
+    IdeTestContext context = newContext("find-binary", "project/workspaces", true);
+    Path npmTool = context.getSoftwarePath().resolve("npm");
+    Files.createDirectories(npmTool.resolve("bin"));
+    Files.writeString(npmTool.resolve("bin/npm"), "pristine-npm");
+    Path nodeTool = context.getSoftwarePath().resolve("node");
+    Files.createDirectories(nodeTool);
+    Files.writeString(nodeTool.resolve("npm"), "node-bundled-npm");
+    SystemPath systemPath = new SystemPath(context, "", context.getIdeRoot(), context.getSoftwarePath(), ';', new ArrayList<>());
+    Path pristine = npmTool.resolve("bin").resolve("npm");
+    Path bundled = nodeTool.resolve("npm");
+
+    // act & assert - findBinary resolves the pristine npm, not the node-bundled one
+    assertThat(systemPath.findBinary(Path.of("npm"))).isEqualTo(pristine).isNotEqualTo(bundled);
+    // act & assert - the pristine npm bin is also placed before the node dir in the PATH string
+    String pathString = systemPath.toString();
+    assertThat(pathString.indexOf(npmTool.resolve("bin").toString()))
+        .isNotNegative().isLessThan(pathString.indexOf(nodeTool.toString()));
+  }
+
+  @Test
   void testFindBinaryFindsBinaryInExtraPathEntries() throws IOException {
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
