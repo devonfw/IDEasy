@@ -7,6 +7,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      vars.ENABLE_AUTOMATIC_WORKFLOWS == 'true'
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
