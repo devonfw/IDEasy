@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.json.JsonMapping;
 import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
@@ -20,6 +23,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * Since the registry is <a href="https://www.npmjs.com/">npmjs.com</a> it is not called node-repository but npm-repository.
  */
 public class NpmRepository extends ArtifactToolRepository<NpmArtifact, NpmArtifactMetadata> {
+
+  private static final Logger LOG = LoggerFactory.getLogger(NpmRepository.class);
 
   /** The base URL of the npm registry. */
   public static final String REGISTRY_URL = "https://registry.npmjs.org/";
@@ -67,7 +72,12 @@ public class NpmRepository extends ArtifactToolRepository<NpmArtifact, NpmArtifa
       Set<String> versionSet = npmJs.versions().getVersionMap().keySet();
       List<VersionIdentifier> versions = new ArrayList<>(versionSet.size());
       for (String version : versionSet) {
-        versions.add(VersionIdentifier.of(version));
+        try {
+          versions.add(VersionIdentifier.of(version));
+        }catch (NumberFormatException e){
+          LOG.warn("Skipping invalid npm version '{}' for package '{}': {}", version, artifact.getName(), e.getMessage());
+        }
+
       }
       return versions;
     } catch (JsonProcessingException e) {
