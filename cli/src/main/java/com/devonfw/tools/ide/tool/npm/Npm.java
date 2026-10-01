@@ -103,7 +103,10 @@ public class Npm extends AbstractLocalToolCommandlet {
     if (ideHome != null) {
       Path npmGlobalPath = ideHome.resolve(NPM_GLOBAL_FOLDER);
       environmentContext.withEnvVar("npm_config_prefix", npmGlobalPath.toString());
-      environmentContext.withPathEntry(npmGlobalPath.resolve(IdeContext.FOLDER_BIN));
+      // npm places the global shims in the prefix root on Windows but in <prefix>/bin on POSIX, so the PATH entry must
+      // differ per platform - otherwise the globally installed packages (e.g. task, cdk) are not resolvable.
+      Path npmGlobalBin = this.context.getSystemInfo().isWindows() ? npmGlobalPath : npmGlobalPath.resolve(IdeContext.FOLDER_BIN);
+      environmentContext.withPathEntry(npmGlobalBin);
     }
   }
 

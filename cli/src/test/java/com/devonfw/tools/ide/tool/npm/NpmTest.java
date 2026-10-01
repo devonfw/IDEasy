@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.EnvironmentContext;
@@ -112,6 +113,30 @@ class NpmTest extends AbstractIdeContextTest {
     // assert
     Path npmGlobalPath = context.getIdeHome().resolve(Npm.NPM_GLOBAL_FOLDER);
     assertThat(environmentContext.set).containsEntry("npm_config_prefix", npmGlobalPath.toString());
+  }
+
+  /**
+   * Tests that {@link Npm#setEnvironment(EnvironmentContext, ToolInstallation, boolean)} puts the npm <em>global bin</em> folder on the PATH so that
+   * globally installed packages (e.g. {@code task}, {@code cdk}) are actually resolvable. npm's global bin is the prefix <em>root</em> on Windows but
+   * {@code <prefix>/bin} on POSIX (see <a href="https://github.com/devonfw/IDEasy/issues/2381">issue #2381</a>).
+   */
+  @Test
+  void testSetEnvironmentAddsCorrectGlobalBinToPath() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_NPM, (String) null, false);
+    Npm commandlet = new Npm(context);
+    Path dummy = context.getSoftwarePath().resolve("npm");
+    ToolInstallation installation = new ToolInstallation(dummy, dummy, dummy, VersionIdentifier.of("9.9.2"), false);
+    RecordingEnvironmentContext environmentContext = new RecordingEnvironmentContext();
+
+    // act
+    commandlet.setEnvironment(environmentContext, installation, false);
+
+    // assert - the PATH must point at the folder where npm actually places the global shims (the prefix root on Windows, not <prefix>/bin)
+    Path npmGlobalPath = context.getIdeHome().resolve(Npm.NPM_GLOBAL_FOLDER);
+    Path expectedBin = context.getSystemInfo().isWindows() ? npmGlobalPath : npmGlobalPath.resolve(IdeContext.FOLDER_BIN);
+    assertThat(environmentContext.pathEntries).contains(expectedBin);
   }
 
   /**
