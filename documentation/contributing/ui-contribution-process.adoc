@@ -1,0 +1,59 @@
+= Contributing to the IDEasy GUI
+:toc:
+:toclevels: 4
+:sectnums:
+
+== Introduction
+
+When contributing to the UI, a few special guidelines are relevant in order to ensure a high quality and consistency.
+This guide acts as an overview.
+
+== Contribution workflow
+
+GUI contributions should follow a short design-first workflow before implementation of the actual task starts.
+This ensures consistency of parallel work on UI contributions and makes reviews easier.
+
+. Pick an issue
+. Create a design (see details)
+. Review the design with the team
+. Start with the actual implementation
+. -> From here continue with the normal IDEasy contribution workflow (Open PR, Team review, review, merge, retest)
+
+=== Pick an issue
+
+Before implementing anything:
+
+. We use the `GUI` label to mark issues related to the graphical user interface.
+. Follow our usual link:issue.adoc#working-on-an-issue[process to pick an issue].
+
+=== Create a design proposal
+
+For visible GUI changes, do *not* start directly with JavaFX implementation.
+First create a design proposal.
+
+Recommended flow:
+
+. Create a design sub-issue for the parent GUI issue (e.g.: Parent GUI issue: "Add project config screen", design sub-issue: "Design: Add project config screen").
+. Mark the parent issue as blocked by the design sub-task in GitHub.
+. Plan the screen or interaction in the Figma template.
+. Move the design sub-task into team review when ready (same process as with other tasks, however, we move the issue into review, as we do the design on Figma, we do *not* need Pull Requests!).
+. Move the design sub-task into review when passed the team review.
+. When passed the review, close the design sub-issue.
+
+=== Final implementation
+
+. Implement the actual GUI change in JavaFX just like any other contribution.
+. Follow the conventions described in link:ui-structure.adoc[UI Architecture and Structure] (MVVM, localization, wiring).
+
+==== Create a new tab
+
+If your contribution adds a new tab to the main window:
+
+. Add the tab's title key and all other user-facing labels to `gui/src/main/resources/nls/messages.properties` and provide the translations.
+. Create the ViewModel, the View with its FXML, and a class extending `TabComponent` that wires them together (see link:ui-structure.adoc#tabs[Tabs]).
+. Open the tab: get the `TabFactory` from the link:ui-structure.adoc#gui-state-manager[GuiStateManager] and pass your component to it, e.g. `guiStateManager.getTabFactory().open(new MyFeatureTab(guiStateManager))`.
+No dedicated factory method per tab is needed.
+
+== Figma link
+
+You can access the Figma board here: https://www.figma.com/design/cEcWlvnNOS5xVE2kQFZe0R/IDEasy?t=K358vlISaq7t2Nfp-1y?t=K358vlISaq7t2Nfp-1
