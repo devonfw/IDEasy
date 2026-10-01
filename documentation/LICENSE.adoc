@@ -121,6 +121,7 @@ The column `inclusion` indicates the way the component is included:
 |https://www.rust-lang.org/[Rust] |Optional|https://www.rust-lang.org/policies/licenses[MIT and Apache 2.0]
 |https://visualstudio.microsoft.com/visual-cpp-build-tools/[MSVC Build Tools] |Optional|https://visualstudio.microsoft.com/license-terms/vs2022-ga-community/[Microsoft Software License Terms]
 |https://docs.astral.sh/ruff[ruff] |Optional|https://github.com/astral-sh/ruff/blob/main/LICENSE[MIT License]
+|https://docs.ansible.com/[Ansible] |Optional|https://github.com/ansible/ansible/blob/main/COPYING[GPL v3]
 |===
 
 == Apache Software License - Version 2.0
