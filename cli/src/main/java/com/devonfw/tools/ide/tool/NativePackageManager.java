@@ -8,30 +8,47 @@ import java.util.List;
  */
 public enum NativePackageManager {
   /** Advanced Package Tool (APT) is the package manager of Debian based Linux distributions. */
-  APT("install -y", "-y autoremove --purge", "=", "*"),
+  APT("apt", "install -y", "-y autoremove --purge", "=", "*", true),
 
   /** Zypper is the package manager of SUSE based Linux distributions. */
-  ZYPPER("--non-interactive install", "remove", "=", ""),
+  ZYPPER("zypper", "--non-interactive install", "remove", "=", "", true),
 
   /** Yellowdog Updater Modified (YUM) is the package manager of RPM package based Linux distributions like Fedora, Red Hat, or CentOS. */
-  YUM("install -y", "remove -y", "-", "*"),
+  YUM("yum", "install -y", "remove -y", "-", "*", true),
 
   /** DaNdiFied yum (DNF) is the package manager of RPM package based Linux distributions like Fedora. It is the successor of {@link #YUM}. */
-  DNF("install -y", "remove -y", "-", "*");
+  DNF("dnf", "install -y", "remove -y", "-", "*", true),
+
+  /** Pacman is the package manager of Arch Linux based distributions. */
+  PACMAN("pacman", "-S --needed --noconfirm", "-Rs --noconfirm", null, "", true),
+
+  /** Yay is an AUR helper for packages that are not in the official Arch Linux repositories. */
+  YAY("yay", "-S --needed --noconfirm", "-Rs --noconfirm", null, "", false),
+
+  /** <a href="https://brew.sh/">Homebrew</a> formula installation, the closest thing macOS has to a standard package manager. */
+  BREW("brew", "install", "uninstall", "@", "", false),
+
+  /** <a href="https://brew.sh/">Homebrew</a> cask installation, used for macOS GUI applications distributed as *.app bundles. */
+  BREW_CASK("brew", "install --cask", "uninstall --cask", "@", "", false);
 
   private static final String DPKG_STATUS_INSTALLED = "installed";
   private static final String SUDO = "sudo";
 
+  private final String binaryName;
   private final String installCommand;
   private final String uninstallCommand;
   private final String versionSeparator;
   private final String versionWildCard;
+  private final boolean needSudo;
 
-  NativePackageManager(String installCommand, String uninstallCommand, String versionSeparator, String versionWildCard) {
+  NativePackageManager(String binaryName, String installCommand, String uninstallCommand, String versionSeparator, String versionWildCard,
+      boolean needSudo) {
+    this.binaryName = binaryName;
     this.installCommand = installCommand;
     this.uninstallCommand = uninstallCommand;
     this.versionSeparator = versionSeparator;
     this.versionWildCard = versionWildCard;
+    this.needSudo = needSudo;
   }
 
   /**
@@ -55,13 +72,28 @@ public enum NativePackageManager {
     if (command.contains("dnf")) {
       return DNF;
     }
+    if (command.contains("yay")) {
+      return YAY;
+    }
+    if (command.contains("pacman")) {
+      return PACMAN;
+    }
 
     throw new IllegalArgumentException("Unknown package manager in command: " + command);
   }
 
   public String getBinaryName() {
 
-    return name().toLowerCase();
+    return this.binaryName;
+  }
+
+  /**
+   * @return {@code true} if commands of this {@link NativePackageManager} need to be run with {@code sudo} (root permissions),
+   * {@code false} otherwise (e.g. for {@link #YAY} and {@link #BREW}/{@link #BREW_CASK} that must never be run as root).
+   */
+  public boolean isNeedSudo() {
+
+    return this.needSudo;
   }
 
   /**
@@ -73,7 +105,7 @@ public enum NativePackageManager {
    */
 
   public String getPackageSpec(String pkg, String version) {
-    if ((version == null) || version.isBlank()) {
+    if ((version == null) || version.isBlank() || (this.versionSeparator == null)) {
       return pkg;
     }
     String spec = pkg + this.versionSeparator + version + this.versionWildCard;
@@ -91,6 +123,9 @@ public enum NativePackageManager {
     List<String> command = new ArrayList<>(switch (this) {
       case APT -> List.of("dpkg-query", "-W", "-f=${db:Status-Status}|${Version}");
       case ZYPPER, YUM, DNF -> List.of("rpm", "-q", "--queryformat", "%{VERSION}");
+      case PACMAN, YAY -> List.of("pacman", "-Q");
+      case BREW -> List.of(getBinaryName(), "list", "--versions");
+      case BREW_CASK -> List.of(getBinaryName(), "list", "--cask", "--versions");
     });
     command.add(pkg);
     return command;
@@ -111,6 +146,22 @@ public enum NativePackageManager {
         return null;
       }
       version = parts[1].trim();
+    } else if ((this == PACMAN) || (this == YAY)) {
+      String[] parts = version.split("\\s+");
+      if (parts.length != 2) {
+        return null;
+      }
+      version = parts[1];
+      int pkgRelIndex = version.lastIndexOf('-');
+      if (pkgRelIndex > 0) {
+        version = version.substring(0, pkgRelIndex);
+      }
+    } else if ((this == BREW) || (this == BREW_CASK)) {
+      // output of "brew list --versions <pkg>" is "<pkg> <version>" (possibly multiple space-separated versions, we take the last/newest one)
+      int lastSpace = version.lastIndexOf(' ');
+      if (lastSpace >= 0) {
+        version = version.substring(lastSpace + 1).trim();
+      }
     }
     return version.isEmpty() ? null : version;
   }
@@ -123,7 +174,11 @@ public enum NativePackageManager {
   public PackageManagerCommand install(NativePackage nativePackage, String version) {
     verifyPackageManager(nativePackage);
     List<String> commands = new ArrayList<>(nativePackage.getSetupCommands());
-    StringBuilder command = new StringBuilder(SUDO).append(' ').append(getBinaryName());
+    StringBuilder command = new StringBuilder();
+    if (this.needSudo) {
+      command.append(SUDO).append(' ');
+    }
+    command.append(getBinaryName());
     for (String option : nativePackage.getExtraInstallOptions()) {
       command.append(' ').append(option);
     }
@@ -142,7 +197,11 @@ public enum NativePackageManager {
    */
   public PackageManagerCommand uninstall(NativePackage nativePackage) {
     verifyPackageManager(nativePackage);
-    StringBuilder command = new StringBuilder(SUDO).append(' ').append(getBinaryName()).append(' ').append(this.uninstallCommand);
+    StringBuilder command = new StringBuilder();
+    if (this.needSudo) {
+      command.append(SUDO).append(' ');
+    }
+    command.append(getBinaryName()).append(' ').append(this.uninstallCommand);
     for (String pkg : nativePackage.getPackages()) {
       command.append(' ').append(pkg);
     }

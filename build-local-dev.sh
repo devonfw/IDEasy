@@ -11,15 +11,28 @@ PROJECT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 
 CLI_DIR="$SCRIPT_DIR/cli"
 TARGET_DIR="$CLI_DIR/target"
-PACKAGE_DIR="$CLI_DIR/src/main/package"
 
 PROJECT_SOFTWARE_DIR="$PROJECT_DIR/software"
 GRAALVM_DIR="$PROJECT_SOFTWARE_DIR/extra/graalvm"
 
 LOCAL_DEV="$IDE_ROOT/_ide/software/maven/ideasy/ideasy/local-dev"
 INSTALLATION_LINK="$IDE_ROOT/_ide/installation"
+LOCAL_DEV_REPO="$LOCAL_DEV/.m2"
+LAUNCHER_POM="$TARGET_DIR/package/gui/pom.xml"
 
-echo "Building IDEasy native image..."
+# Determine the version to stamp into the local-dev binary. It is derived from the current revision in .mvn/maven.config
+# (e.g. 2026.08.002-SNAPSHOT): the -SNAPSHOT suffix is replaced with -DEV-BUILD so the running binary self-identifies as a
+# local-dev installation (see IdeVersion#isLocalDevBuild). Passing -Drevision overrides the value from .mvn/maven.config,
+# exactly like the release CI does (see .github/workflows/macos/generate_pkg.sh).
+MAVEN_CONFIG="$SCRIPT_DIR/.mvn/maven.config"
+SNAPSHOT_REVISION="$(sed -n 's/^-Drevision=//p' "$MAVEN_CONFIG")"
+if [ -z "$SNAPSHOT_REVISION" ]; then
+  echo "Error: could not determine the revision from $MAVEN_CONFIG."
+  exit 1
+fi
+DEV_REVISION="${SNAPSHOT_REVISION%-SNAPSHOT}-DEV-BUILD"
+
+echo "Building IDEasy native image with version $DEV_REVISION..."
 
 if [ ! -d "$GRAALVM_DIR" ]; then
   echo "Error: GraalVM is not installed for this IDEasy project:"
@@ -32,8 +45,7 @@ fi
 
 export PATH="$GRAALVM_DIR/bin:$PATH"
 
-cd "$CLI_DIR"
-mvn -B -ntp -Pnative -DskipTests=true package
+mvn -B -ntp -f "$CLI_DIR/pom.xml" -Pnative -DskipTests=true -Drevision="$DEV_REVISION" clean install
 
 echo "Preparing local-dev installation..."
 rm -rf "$LOCAL_DEV"
@@ -41,17 +53,26 @@ mkdir -p "$LOCAL_DEV"
 
 echo "Copying package contents..."
 
-if [ ! -d "$PACKAGE_DIR" ]; then
-  echo "Error: Package directory not found: $PACKAGE_DIR"
+if [ ! -d "$TARGET_DIR/package" ]; then
+  echo "Error: Filtered package output not found: $TARGET_DIR/package"
+  echo "This should be produced by the maven package phase above."
   exit 1
 fi
 
-cp -R "$PACKAGE_DIR"/. "$LOCAL_DEV"/
+cp -R "$TARGET_DIR/package"/. "$LOCAL_DEV"/
+
+# Use the same -DEV-BUILD revision as the native build so ide-gui/ide-cli are installed into the self-contained repository with
+# the same version the launcher POM (also stamped with -DEV-BUILD) requests. Without this the launcher would request
+# ide-gui:<base>-DEV-BUILD while the repository only contains ide-gui:<base>-SNAPSHOT, making 'ide gui' fail offline resolution.
+echo "Building the GUI into the self-contained maven repository with version $DEV_REVISION..."
+mvn -B -ntp -f "$SCRIPT_DIR/pom.xml" -pl gui -am -DskipTests=true -Drevision="$DEV_REVISION" -Dmaven.repo.local="$LOCAL_DEV_REPO" install
+
+echo "Seeding the GUI launcher (exec) maven plugin into the self-contained maven repository..."
+mvn -B -ntp -f "$LAUNCHER_POM" org.codehaus.mojo:exec-maven-plugin:3.1.0:exec \
+  -Dexec.executable=echo -Dexec.args=seeded \
+  -Dmaven.repo.local="$LOCAL_DEV_REPO"
 
 OS_NAME="$(uname -s)"
-
-echo "Creating local-dev software version marker..."
-echo "local-dev-version" > "$LOCAL_DEV/.ide.software.version"
 
 mkdir -p "$LOCAL_DEV/bin"
 

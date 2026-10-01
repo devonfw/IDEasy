@@ -12,8 +12,7 @@ import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.python.PythonUvListEntry;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -21,9 +20,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * {@link ToolCommandlet} for <a href="https://docs.astral.sh/uv/">uv</a>.
+ * {@link AbstractToolCommandlet} for <a href="https://docs.astral.sh/uv/">uv</a>.
  */
-public class Uv extends LocalToolCommandlet {
+public class Uv extends AbstractLocalToolCommandlet {
 
 
   /**
@@ -87,7 +86,11 @@ public class Uv extends LocalToolCommandlet {
   public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
 
     super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
-    Path pythonPath = this.context.getSoftwarePath().resolve("python");
+    Path softwarePath = this.context.getSoftwarePath();
+    if (softwarePath == null) {
+      return;
+    }
+    Path pythonPath = softwarePath.resolve("python");
     environmentContext.withEnvVar("UV_TOOL_DIR", pythonPath.resolve("tools").toString());
     environmentContext.withEnvVar("UV_TOOL_BIN_DIR", pythonPath.resolve("bin").toString());
     environmentContext.withPathEntry(pythonPath.resolve("bin"));

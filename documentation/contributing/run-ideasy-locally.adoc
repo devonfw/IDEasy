@@ -126,8 +126,11 @@ The script will:
 
 * build the IDEasy native image using GraalVM
 * create a local-dev IDEasy installation
+* install the GUI and its dependencies into a self-contained Maven repository inside the local-dev installation
 * copy the IDEasy executable into the local-dev installation
 * update the IDEasy installation link to point to the locally built version
+
+Because the GUI is resolved from that self-contained repository, `ide gui` works the same in every shell (IDEasy shell, Git Bash, cmd, ...) and does not depend on the context-dependent Maven local repository (`M2_REPO`), which could otherwise resolve a remote snapshot instead of your locally built GUI.
 
 After the script completed successfully, you can test your local IDEasy version with regular IDEasy commands, for example:
 

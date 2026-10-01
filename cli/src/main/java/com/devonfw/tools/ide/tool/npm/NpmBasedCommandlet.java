@@ -13,14 +13,13 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.PackageManagerRequest;
 import com.devonfw.tools.ide.tool.node.NodeBasedCommandlet;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link LocalToolCommandlet} for tools based on <a href="https://www.npmjs.com/">npm</a>.
+ * {@link AbstractLocalToolCommandlet} for tools based on <a href="https://www.npmjs.com/">npm</a>.
  */
 public abstract class NpmBasedCommandlet extends NodeBasedCommandlet<Npm> {
 
@@ -51,7 +50,7 @@ public abstract class NpmBasedCommandlet extends NodeBasedCommandlet<Npm> {
   }
 
   @Override
-  protected VersionIdentifier computeInstalledVersion() {
+  protected VersionIdentifier computeInstalledPackageVersion() {
     return runPackageManagerGetInstalledVersion(getPackageName());
   }
 

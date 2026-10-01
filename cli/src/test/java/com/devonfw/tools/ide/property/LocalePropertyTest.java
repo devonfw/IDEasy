@@ -5,6 +5,7 @@ import java.util.Locale;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
@@ -32,8 +33,7 @@ class LocalePropertyTest extends Assertions {
   }
 
   /**
-   * Test of
-   * {@link LocaleProperty#completeValue(String, IdeContext, com.devonfw.tools.ide.commandlet.Commandlet, CompletionCandidateCollector) auto-completion}.
+   * Test of {@link LocaleProperty#completeValue(String, IdeContext, AbstractCommandlet, CompletionCandidateCollector) auto-completion}.
    */
   @Test
   void testCompletion() {
