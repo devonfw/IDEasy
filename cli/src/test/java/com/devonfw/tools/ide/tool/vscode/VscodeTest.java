@@ -174,8 +174,29 @@ class VscodeTest extends AbstractIdeContextTest {
     // assert
     Path expectedUserData = context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("vscode").resolve(context.getWorkspaceName()).resolve("config");
     assertThat(pc.capturedArgs).contains("--user-data-dir=" + expectedUserData);
+    assertThat(pc.capturedArgs).contains("--shared-data-dir=" + expectedUserData.resolveSibling("shared-data"));
     assertThat(pc.capturedArgs).noneMatch(arg -> arg.contains(".vscode"));
     assertThat(pc.capturedArgs).noneMatch(arg -> arg.startsWith("--profile="));
+  }
+
+  /**
+   * Tests that by default {@link Vscode#configureToolArgs(ProcessContext, ProcessMode, List)} also passes {@code --shared-data-dir} with the same scope as
+   * {@code --user-data-dir} ({@code $IDE_HOME/.ide/vscode/«workspace»/shared-data}). Otherwise all VS Code instances share {@code ~/.vscode-shared} that holds
+   * the GitHub login encrypted with a key of the user-data-dir so every other instance deletes it (see #2581).
+   */
+  @Test
+  void testConfigureToolArgsUsesSharedDataDirNextToUserData() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
+    Vscode commandlet = new Vscode(context);
+    ArgCapturingProcessContext pc = new ArgCapturingProcessContext(context);
+    // act
+    commandlet.configureToolArgs(pc, ProcessMode.DEFAULT, List.of());
+    // assert
+    Path metadataPath = context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("vscode").resolve(context.getWorkspaceName());
+    assertThat(pc.capturedArgs).contains("--user-data-dir=" + metadataPath.resolve("config"), "--shared-data-dir=" + metadataPath.resolve("shared-data"));
   }
 
   /**
@@ -198,6 +219,8 @@ class VscodeTest extends AbstractIdeContextTest {
     commandlet.configureToolArgs(pc, ProcessMode.DEFAULT, List.of());
     // assert
     assertThat(pc.capturedArgs).noneMatch(arg -> arg.startsWith("--user-data-dir="));
+    // the default user-data-dir needs the default shared-data-dir, otherwise the GitHub login cannot be decrypted (see #2581)
+    assertThat(pc.capturedArgs).noneMatch(arg -> arg.startsWith("--shared-data-dir="));
     // the profile has to contain the project name so that different projects with the same workspace name do not share a single profile (see #2058)
     assertThat(pc.capturedArgs).contains("--profile=ideasy-" + context.getProjectName() + "-" + context.getWorkspaceName());
   }
