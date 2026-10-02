@@ -8,6 +8,7 @@ Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/2345[#2345]: DOCKER_EDITION ignored on Linux
 * https://github.com/devonfw/IDEasy/issues/2381[#2381]: Make node and npm pristine versioned tools with per-project npm global prefix
+* https://github.com/devonfw/IDEasy/issues/2504[#2504]: VSCode plugins cannot be reinstalled after the plugins folder was reset when VSCODE_PROFILE_ENABLED is enabled
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/51?closed=1[milestone 2026.10.001].
 
