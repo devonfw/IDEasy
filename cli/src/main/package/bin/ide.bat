@@ -45,7 +45,12 @@ ideasy %IDE_OPTIONS% env >nul
 
 if %ERRORLEVEL% EQU 0 (
   if "%~1" == "" (
-    echo IDE environment variables have been set for %IDE_HOME% in workspace %WORKSPACE%
+    setlocal EnableDelayedExpansion
+    set "_workspaceMessage= with workspace set to !WORKSPACE!"
+    if not defined WORKSPACE_PATH set "_workspaceMessage=!_workspaceMessage! (fallback to default)"
+    if defined WORKSPACE_PATH if "!CD:%WORKSPACE_PATH%=!" == "!CD!" set "_workspaceMessage=!_workspaceMessage! (fallback to default)"
+    echo IDE environment variables have been set for !IDE_HOME!!_workspaceMessage!
+    endlocal
   )
 )
 

@@ -2,7 +2,7 @@ package com.devonfw.tools.ide.property;
 
 import java.util.Locale;
 
-import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
 
@@ -49,7 +49,7 @@ public class EnumProperty<V extends Enum<V>> extends Property<V> {
   }
 
   @Override
-  protected void completeValue(String arg, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
+  protected void completeValue(String arg, IdeContext context, AbstractCommandlet commandlet, CompletionCandidateCollector collector) {
 
     for (V enumConstant : this.valueType.getEnumConstants()) {
       String name = enumConstant.name().toLowerCase(Locale.ROOT);

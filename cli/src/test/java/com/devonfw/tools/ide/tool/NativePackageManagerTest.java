@@ -168,6 +168,26 @@ class NativePackageManagerTest {
   }
 
   @Test
+  void testYayInstallCommand() {
+    NativePackage np = new NativePackage(NativePackageManager.YAY, List.of("rancher-desktop"));
+
+    var cmd = NativePackageManager.YAY.install(np, "1.24.0");
+
+    assertThat(cmd.packageManager()).isEqualTo(NativePackageManager.YAY);
+    assertThat(cmd.commands()).containsExactly("yay -S --needed --noconfirm rancher-desktop");
+  }
+
+  @Test
+  void testYayUninstallCommand() {
+    NativePackage np = new NativePackage(NativePackageManager.YAY, List.of("rancher-desktop"));
+
+    var cmd = NativePackageManager.YAY.uninstall(np);
+
+    assertThat(cmd.packageManager()).isEqualTo(NativePackageManager.YAY);
+    assertThat(cmd.commands()).containsExactly("yay -Rs --noconfirm rancher-desktop");
+  }
+
+  @Test
   void testVersionQueryCommandForDebianBasedPackageManager() {
     assertThat(NativePackageManager.APT.getVersionQueryCommand("pkg1")).containsExactly("dpkg-query", "-W", "-f=${db:Status-Status}|${Version}",
         "pkg1");
