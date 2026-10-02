@@ -1236,6 +1236,11 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
           zipEntry.setLastAccessTime(none);
           zipEntry.setLastModifiedTime(none);
           zipEntry.setTime(none);
+          // Preserve the Unix mode (incl. the executable bit) like the tar branch above: otherwise the
+          // round-trip through a runtime-built zip silently drops the exec bit on Linux/Mac, and the
+          // extracted launcher (e.g. bin/dart) would no longer be executable.
+          PathPermissions filePermissions = getFilePermissions(child);
+          zipEntry.setUnixMode(filePermissions.toMode());
         }
         out.putArchiveEntry(archiveEntry);
         if (!isDirectory) {
