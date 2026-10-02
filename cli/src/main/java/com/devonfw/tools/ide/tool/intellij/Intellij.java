@@ -15,18 +15,17 @@ import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.merge.xml.XmlMergeDocument;
 import com.devonfw.tools.ide.merge.xml.XmlMerger;
 import com.devonfw.tools.ide.process.EnvironmentContext;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolEdition;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
-import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeaBasedIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link IdeToolCommandlet} for <a href="https://www.jetbrains.com/idea/">IntelliJ</a>.
+ * {@link AbstractIdeToolCommandlet} for <a href="https://www.jetbrains.com/idea/">IntelliJ</a>.
  */
 public class Intellij extends IdeaBasedIdeToolCommandlet {
 
@@ -45,7 +44,8 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   private static final String MISC_XML = "misc.xml";
   private static final String IDEA_PROPERTIES = "idea.properties";
 
-  private static final Map<Class<? extends LocalToolCommandlet>, String> BUILD_TOOL_TO_IJ_TEMPLATE = Map.of(Mvn.class, MISC_XML, Gradle.class, GRADLE_XML);
+  private static final Map<Class<? extends AbstractLocalToolCommandlet>, String> BUILD_TOOL_TO_IJ_TEMPLATE = Map.of(Mvn.class, MISC_XML, Gradle.class,
+      GRADLE_XML);
 
   /**
    * The constructor.
@@ -120,7 +120,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   }
 
   @Override
-  protected String getTemplateFolder() {
+  public String getTemplateFolder() {
 
     return FOLDER_IDEA_CONFIG;
   }
@@ -133,7 +133,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
    * @param environmentVariables the {@link EnvironmentVariables} to resolve variables (e.g. {@code PROJECT_PATH}) in the template.
    */
   @Override
-  protected void doMergeTemplate(Path templateFile, Path workspaceFile, EnvironmentVariables environmentVariables) {
+  public void doMergeTemplate(Path templateFile, Path workspaceFile, EnvironmentVariables environmentVariables) {
 
     XmlMerger xmlMerger = new XmlMerger(this.context);
     XmlMergeDocument workspaceDocument = xmlMerger.load(workspaceFile);
@@ -145,7 +145,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   }
 
   @Override
-  protected Map<Class<? extends LocalToolCommandlet>, String> getBuildTool2TemplateMap() {
+  public Map<Class<? extends AbstractLocalToolCommandlet>, String> getBuildTool2TemplateMap() {
 
     return BUILD_TOOL_TO_IJ_TEMPLATE;
   }

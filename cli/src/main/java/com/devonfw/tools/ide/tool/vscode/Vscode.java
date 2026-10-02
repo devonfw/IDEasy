@@ -14,17 +14,18 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
+import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
-import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
+import com.devonfw.tools.ide.tool.ide.AbstractIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
+import com.devonfw.tools.ide.variable.IdeVariables;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -32,17 +33,17 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 
 /**
- * {@link ToolCommandlet} for <a href="https://code.visualstudio.com/">vscode</a>.
+ * {@link AbstractToolCommandlet} for <a href="https://code.visualstudio.com/">vscode</a>.
  */
-public class Vscode extends IdeToolCommandlet {
+public class Vscode extends AbstractIdeToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Vscode.class);
 
   /** The {@link #getConfiguredEdition() edition} for VSCodium. */
   private static final String EDITION_VSCODIUM = "vscodium";
 
-  /** Folder name for VSCode per-project configuration. */
-  private static final String FOLDER_VSCODE = ".vscode";
+  /** The {@link Path} of the legacy VSCode user-data folder relative to the workspace, still used by the workspace templates in the settings. */
+  private static final Path LEGACY_USER_DATA = Path.of(".vscode", ".userdata");
 
   /**
    * Name of the VSCode multi-root workspace file that is generated in the workspace root and opened on launch so that the imported projects are loaded as
@@ -51,8 +52,8 @@ public class Vscode extends IdeToolCommandlet {
   private static final String WORKSPACE_FILE = "ide.code-workspace";
 
   /** Map of build tool classes to their corresponding VSCode workspace template. */
-  private static final Map<Class<? extends LocalToolCommandlet>, String> BUILD_TOOL_TO_TEMPLATE =
-      Map.of(Mvn.class, WORKSPACE_FILE, Gradle.class, WORKSPACE_FILE);
+  private static final Map<Class<? extends AbstractLocalToolCommandlet>, String> BUILD_TOOL_TO_TEMPLATE = Map.of(Mvn.class, WORKSPACE_FILE, Gradle.class,
+      WORKSPACE_FILE);
 
   /** The {@code folders} key of a VSCode multi-root {@code .code-workspace} file. */
   private static final String FOLDERS_KEY = "folders";
@@ -114,15 +115,73 @@ public class Vscode extends IdeToolCommandlet {
     return false;
   }
 
+  /**
+   * @return the name of the VSCode profile used to isolate settings, extension state and authentication per IDEasy project and workspace.
+   */
+  private String getProfileName() {
+
+    return "ideasy-" + this.context.getProjectName() + "-" + this.context.getWorkspaceName();
+  }
+
+  /**
+   * @return the {@link Path} to the VSCode user-data folder passed via {@code --user-data-dir}.
+   */
+  private Path getUserDataPath() {
+
+    return getIdeMetadataPath().resolve("config");
+  }
+
+  @Override
+  public void configureWorkspace() {
+
+    cleanupLegacyUserData();
+    super.configureWorkspace();
+  }
+
+  /**
+   * Removes the legacy user-data folder from the workspace that VSCode does not read anymore (see #2142 and #2509). If the actual user-data folder does not
+   * yet exist, the legacy folder is moved there to preserve its content, otherwise it is backed up.
+   */
+  private void cleanupLegacyUserData() {
+
+    Path legacyUserData = this.context.getWorkspacePath().resolve(LEGACY_USER_DATA);
+    if (!Files.isDirectory(legacyUserData)) {
+      return;
+    }
+    FileAccess fileAccess = this.context.getFileAccess();
+    Path userData = getUserDataPath();
+    if (Files.exists(userData)) {
+      LOG.warn("Removing obsolete VSCode user-data folder {} from workspace since VSCode uses {}", legacyUserData, userData);
+      fileAccess.backup(legacyUserData);
+    } else {
+      LOG.info("Moving VSCode user-data folder {} out of workspace to {}", legacyUserData, userData);
+      fileAccess.mkdirs(userData.getParent());
+      fileAccess.move(legacyUserData, userData);
+    }
+  }
+
+  @Override
+  public Map<Path, Path> getWorkspaceRedirects(Path workspaceFolder) {
+
+    // the settings still provide the user settings template in the legacy location inside the workspace
+    return Map.of(workspaceFolder.resolve(LEGACY_USER_DATA), getUserDataPath());
+  }
+
   @Override
   protected void configureToolArgs(ProcessContext pc, ProcessMode processMode, List<String> args) {
 
     if (this.context.getSystemInfo().isWsl()) {
       pc.withEnvVar("DONT_PROMPT_WSL_INSTALL", "1");
     }
-    Path vsCodeConf = this.context.getWorkspacePath().resolve(".vscode/.userdata");
     pc.addArg("--new-window");
-    pc.addArg("--user-data-dir=" + vsCodeConf);
+    if (Boolean.TRUE.equals(IdeVariables.VSCODE_PROFILE_ENABLED.get(this.context))) {
+      // Use a named profile (not --user-data-dir) so VS Code keeps its IPC lock at the default location.
+      // This lets the OS-level vscode:// protocol handler (OAuth callbacks e.g. GitHub/Copilot) find the
+      // already-running IDEasy window. Each project and workspace gets its own profile for isolated auth and settings.
+      pc.addArg("--profile=" + getProfileName());
+    } else {
+      pc.addArg("--user-data-dir=" + getUserDataPath());
+    }
     Path vsCodeExtensionFolder = this.context.getIdeHome().resolve("plugins/vscode");
     pc.addArg("--extensions-dir=" + vsCodeExtensionFolder);
     // Open the multi-root workspace file (if present) so the imported projects are loaded as project roots; fall back to the workspace folder.
@@ -145,7 +204,7 @@ public class Vscode extends IdeToolCommandlet {
   }
 
   @Override
-  protected Map<Class<? extends LocalToolCommandlet>, String> getBuildTool2TemplateMap() {
+  public Map<Class<? extends AbstractLocalToolCommandlet>, String> getBuildTool2TemplateMap() {
 
     return BUILD_TOOL_TO_TEMPLATE;
   }
@@ -154,10 +213,10 @@ public class Vscode extends IdeToolCommandlet {
    * The VSCode multi-root workspace template lives directly in the workspace root (no configuration sub-folder such as {@code .vscode}), so the template
    * folder is empty and the template file is placed in the root of both the settings repository and the workspace.
    *
-   * @return an empty {@link String}, see {@link IdeToolCommandlet#getTemplateFolder()}.
+   * @return an empty {@link String}, see {@code IdeToolCommandlet#getTemplateFolder()}.
    */
   @Override
-  protected String getTemplateFolder() {
+  public String getTemplateFolder() {
 
     return "";
   }
@@ -173,7 +232,7 @@ public class Vscode extends IdeToolCommandlet {
    * @param environmentVariables the {@link EnvironmentVariables} to resolve variables (e.g. {@code PROJECT_PATH}) in the template.
    */
   @Override
-  protected void doMergeTemplate(Path templateFile, Path workspaceFile, EnvironmentVariables environmentVariables) {
+  public void doMergeTemplate(Path templateFile, Path workspaceFile, EnvironmentVariables environmentVariables) {
 
     List<String> newFolders = readResolvedFolders(templateFile, environmentVariables);
     ObjectNode workspace = readWorkspaceFile(workspaceFile);

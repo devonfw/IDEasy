@@ -168,6 +168,26 @@ class NativePackageManagerTest {
   }
 
   @Test
+  void testYayInstallCommand() {
+    NativePackage np = new NativePackage(NativePackageManager.YAY, List.of("rancher-desktop"));
+
+    var cmd = NativePackageManager.YAY.install(np, "1.24.0");
+
+    assertThat(cmd.packageManager()).isEqualTo(NativePackageManager.YAY);
+    assertThat(cmd.commands()).containsExactly("yay -S --needed --noconfirm rancher-desktop");
+  }
+
+  @Test
+  void testYayUninstallCommand() {
+    NativePackage np = new NativePackage(NativePackageManager.YAY, List.of("rancher-desktop"));
+
+    var cmd = NativePackageManager.YAY.uninstall(np);
+
+    assertThat(cmd.packageManager()).isEqualTo(NativePackageManager.YAY);
+    assertThat(cmd.commands()).containsExactly("yay -Rs --noconfirm rancher-desktop");
+  }
+
+  @Test
   void testVersionQueryCommandForDebianBasedPackageManager() {
     assertThat(NativePackageManager.APT.getVersionQueryCommand("pkg1")).containsExactly("dpkg-query", "-W", "-f=${db:Status-Status}|${Version}",
         "pkg1");
@@ -191,5 +211,50 @@ class NativePackageManagerTest {
     assertThat(NativePackageManager.ZYPPER.parseVersionQueryOutput("1.0.0")).isEqualTo("1.0.0");
     assertThat(NativePackageManager.YUM.parseVersionQueryOutput("1.0.0")).isEqualTo("1.0.0");
     assertThat(NativePackageManager.DNF.parseVersionQueryOutput("1.0.0")).isEqualTo("1.0.0");
+  }
+
+  @Test
+  void testBrewInstallAndUninstallCommandsDoNotUseSudo() {
+    NativePackage np = NativePackage.of(NativePackageManager.BREW, "pkg1");
+
+    var installCmd = NativePackageManager.BREW.install(np, "1.0.0");
+    var uninstallCmd = NativePackageManager.BREW.uninstall(np);
+
+    assertThat(installCmd.commands()).containsExactly("brew install pkg1@1.0.0");
+    assertThat(uninstallCmd.commands()).containsExactly("brew uninstall pkg1");
+  }
+
+  @Test
+  void testBrewCaskInstallAndUninstallCommandsDoNotUseSudo() {
+    NativePackage np = NativePackage.of(NativePackageManager.BREW_CASK, "docker");
+
+    var installCmd = NativePackageManager.BREW_CASK.install(np, null);
+    var uninstallCmd = NativePackageManager.BREW_CASK.uninstall(np);
+
+    assertThat(installCmd.commands()).containsExactly("brew install --cask docker");
+    assertThat(uninstallCmd.commands()).containsExactly("brew uninstall --cask docker");
+  }
+
+  @Test
+  void testVersionQueryCommandForBrew() {
+    assertThat(NativePackageManager.BREW.getVersionQueryCommand("pkg1")).containsExactly("brew", "list", "--versions", "pkg1");
+    assertThat(NativePackageManager.BREW_CASK.getVersionQueryCommand("pkg1")).containsExactly("brew", "list", "--cask", "--versions", "pkg1");
+  }
+
+  @Test
+  void testParseVersionQueryOutputForBrew() {
+    assertThat(NativePackageManager.BREW.parseVersionQueryOutput("pkg1 1.2.3")).isEqualTo("1.2.3");
+    assertThat(NativePackageManager.BREW_CASK.parseVersionQueryOutput("docker 24.0.0")).isEqualTo("24.0.0");
+    assertThat(NativePackageManager.BREW.parseVersionQueryOutput("")).isNull();
+  }
+
+  @Test
+  void testIsNeedSudo() {
+    assertThat(NativePackageManager.APT.isNeedSudo()).isTrue();
+    assertThat(NativePackageManager.ZYPPER.isNeedSudo()).isTrue();
+    assertThat(NativePackageManager.YUM.isNeedSudo()).isTrue();
+    assertThat(NativePackageManager.DNF.isNeedSudo()).isTrue();
+    assertThat(NativePackageManager.BREW.isNeedSudo()).isFalse();
+    assertThat(NativePackageManager.BREW_CASK.isNeedSudo()).isFalse();
   }
 }
