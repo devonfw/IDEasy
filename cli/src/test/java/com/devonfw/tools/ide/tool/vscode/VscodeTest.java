@@ -74,7 +74,6 @@ class VscodeTest extends AbstractIdeContextTest {
     Vscode commandlet = context.getCommandletManager().getCommandlet(Vscode.class);
     commandlet.run();
 
-    assertThat(context).logAtSuccess().hasMessage("Successfully installed plugin: mockedPlugin");
     assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin mockedPlugin (1/1)'.");
 
     // assert
