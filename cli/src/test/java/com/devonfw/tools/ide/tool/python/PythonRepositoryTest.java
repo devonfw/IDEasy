@@ -5,8 +5,8 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.tool.uv.Uv;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -14,22 +14,26 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class PythonRepositoryTest extends AbstractIdeContextTest {
 
-  /** JSON same structure as produced by {@code uv python list --all-versions --output-format json}. */
-  private static final String UV_PYTHON_LIST_JSON = """
-      [
-        {"version": "3.14.6", "implementation": "cpython", "os": "macos", "arch": "x86_64"},
-        {"version": "3.13.14", "implementation": "cpython", "os": "macos", "arch": "x86_64"},
-        {"version": "3.11.4",  "implementation": "cpython", "os": "macos", "arch": "x86_64"},
-        {"version": "7.3.17",  "implementation": "pypy",    "os": "macos", "arch": "x86_64"}
-      ]
-      """;
+  /** Canned {@code uv python list} entries (cpython plus a pypy that must be filtered out). */
+  private static final List<PythonUvListEntry> ENTRIES = List.of(
+      new PythonUvListEntry("3.14.6", "cpython"),
+      new PythonUvListEntry("3.13.14", "cpython"),
+      new PythonUvListEntry("3.11.4", "cpython"),
+      new PythonUvListEntry("7.3.17", "pypy"));
 
-  private PythonRepository newRepository(IdeTestContext context) {
+  /**
+   * Creates a {@link PythonRepository} whose {@code uv python list} interaction is stubbed via the {@link PythonRepository#fetchUvPythonList()} seam.
+   *
+   * @param context the test {@link IdeContext}.
+   * @return the {@link PythonRepository}.
+   */
+  private PythonRepository repositoryWithVersions(IdeTestContext context) {
 
     return new PythonRepository(context) {
       @Override
       protected List<PythonUvListEntry> fetchUvPythonList() {
-        return context.getCommandletManager().getCommandlet(Uv.class).parsePythonListJson(List.of(UV_PYTHON_LIST_JSON));
+
+        return ENTRIES;
       }
     };
   }
@@ -39,10 +43,9 @@ public class PythonRepositoryTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
-    PythonRepository repository = newRepository(context);
 
     // act
-    List<VersionIdentifier> versions = repository.getSortedVersions("python", "python", null);
+    List<VersionIdentifier> versions = repositoryWithVersions(context).getSortedVersions("python", "python", null);
 
     // assert
     assertThat(versions).containsExactly(
@@ -58,13 +61,26 @@ public class PythonRepositoryTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
-    PythonRepository repository = newRepository(context);
 
     // act
-    VersionIdentifier resolved = repository.resolveVersion("python", "python", VersionIdentifier.of("3.14*"), null);
+    VersionIdentifier resolved = repositoryWithVersions(context).resolveVersion("python", "python", VersionIdentifier.of("3.14*"), null);
 
     // assert
     assertThat(resolved).isEqualTo(VersionIdentifier.of("3.14.6"));
+  }
+
+  @Test
+  public void testGetSortedVersionsIsEmptyWhenUvNotInstalled() {
+
+    // arrange: a plain context where uv is not installed. The real fetchUvPythonList() hits the isInstalled() guard and yields nothing.
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    PythonRepository repository = new PythonRepository(context);
+
+    // act
+    List<VersionIdentifier> versions = repository.getSortedVersions("python", "python", null);
+
+    // assert: no candidates (a warning is logged instead) and no (auto-)install was triggered
+    assertThat(versions).isEmpty();
   }
 
   @Test
@@ -72,7 +88,7 @@ public class PythonRepositoryTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
-    PythonRepository repository = newRepository(context);
+    PythonRepository repository = new PythonRepository(context);
 
     // act & assert
     assertThat(repository.getSortedEditions("python")).containsExactly("python");
