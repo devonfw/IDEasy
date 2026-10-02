@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.file.json.ToolSecurity;
 import com.devonfw.tools.ide.version.GenericVersionRange;
@@ -196,8 +196,8 @@ class CustomToolRepositoryTest extends Assertions {
   // --- Repository metadata ----------------------------------------------------
 
   /**
-   * Tests that {@link com.devonfw.tools.ide.url.model.AbstractUrlMetadata#getSortedVersions(String, String, ToolCommandlet)} returns the single configured
-   * custom tool version.
+   * Tests that {@link com.devonfw.tools.ide.url.model.AbstractUrlMetadata#getSortedVersions(String, String, AbstractToolCommandlet)} returns the single
+   * configured custom tool version.
    *
    * @param tempDir temporary test directory used as working directory and settings base.
    * @param wmRuntimeInfo wireMock server on a random port.

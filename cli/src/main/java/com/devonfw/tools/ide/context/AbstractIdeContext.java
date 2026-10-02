@@ -32,7 +32,7 @@ import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliSuggester;
-import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.commandlet.CommandletManagerImpl;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
@@ -74,7 +74,7 @@ import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.step.StepImpl;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.custom.CustomToolRepository;
 import com.devonfw.tools.ide.tool.custom.CustomToolRepositoryImpl;
@@ -974,8 +974,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     if (getSoftwarePath() == null) {
       return;
     }
-    for (Commandlet commandlet : getCommandletManager().getCommandlets()) {
-      if (commandlet instanceof LocalToolCommandlet tool) {
+    for (AbstractCommandlet commandlet : getCommandletManager().getCommandlets()) {
+      if (commandlet instanceof AbstractLocalToolCommandlet tool) {
         Path toolPath = tool.getToolPath();
         // we cannot use isInstalled() here since it may spawn processes (e.g. "npm --version") what would be way too expensive.
         if ((toolPath != null) && Files.isDirectory(toolPath)) {
@@ -1262,7 +1262,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   /**
-   * Finds the matching {@link Commandlet} to run, applies {@link CliArguments} to its {@link Commandlet#getProperties() properties} and will execute it.
+   * Finds the matching {@link AbstractCommandlet} to run, applies {@link CliArguments} to its {@link AbstractCommandlet#getProperties() properties} and will
+   * execute it.
    *
    * @param arguments the {@link CliArgument}.
    * @return the return code of the execution.
@@ -1277,8 +1278,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     assert (this.currentStep == null);
     boolean supressStepSuccess = false;
     StepImpl step = newStep(true, "ide", (Object[]) current.asArray());
-    Iterator<Commandlet> commandletIterator = this.commandletManager.findCommandlet(arguments, null);
-    Commandlet cmd = null;
+    Iterator<AbstractCommandlet> commandletIterator = this.commandletManager.findCommandlet(arguments, null);
+    AbstractCommandlet cmd = null;
     ValidationResult result = null;
     try {
       while (commandletIterator.hasNext()) {
@@ -1296,7 +1297,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       if (commandKey == null || commandKey.isBlank()) {
         return 0;
       }
-      Commandlet commandletByName = this.commandletManager.getCommandlet(commandKey);
+      AbstractCommandlet commandletByName = this.commandletManager.getCommandlet(commandKey);
       // Missing commandlet
       if (commandletByName == null) {
         if (getCliSuggester().isMissingCommandletHandled(commandKey, step)) {
@@ -1363,7 +1364,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   /**
    * Ensure the logging system is initialized.
    */
-  private void activateLogging(Commandlet cmd) {
+  private void activateLogging(AbstractCommandlet cmd) {
 
     configureJavaUtilLogging(cmd);
     this.startContext.activateLogging();
@@ -1372,9 +1373,9 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   /**
    * Configures the logging system (JUL).
    *
-   * @param cmd the {@link Commandlet} to be called. May be {@code null}.
+   * @param cmd the {@link AbstractCommandlet} to be called. May be {@code null}.
    */
-  public void configureJavaUtilLogging(Commandlet cmd) {
+  public void configureJavaUtilLogging(AbstractCommandlet cmd) {
 
     if (this.julConfigured) {
       return;
@@ -1395,7 +1396,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     }
   }
 
-  protected boolean isWriteLogfile(Commandlet cmd) {
+  protected boolean isWriteLogfile(AbstractCommandlet cmd) {
     if ((cmd == null) || !cmd.isWriteLogFile()) {
       return false;
     }
@@ -1403,7 +1404,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     return Boolean.TRUE.equals(writeLogfile);
   }
 
-  private Properties createJavaUtilLoggingProperties(boolean writeLogfile, Commandlet cmd) {
+  private Properties createJavaUtilLoggingProperties(boolean writeLogfile, AbstractCommandlet cmd) {
 
     Path idePath = getIdePath();
     if (writeLogfile && (idePath == null)) {
@@ -1430,7 +1431,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     return properties;
   }
 
-  private Path createLogfilePath(Path idePath, Commandlet cmd) {
+  private Path createLogfilePath(Path idePath, AbstractCommandlet cmd) {
     LocalDateTime now = LocalDateTime.now();
     Path logsPath = idePath.resolve(FOLDER_LOGS).resolve(DateTimeUtil.formatDate(now, true));
     StringBuilder sb = new StringBuilder(32);
@@ -1459,11 +1460,12 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   /**
-   * @param cmd the potential {@link Commandlet} to {@link #apply(CliArguments, Commandlet) apply} and {@link Commandlet#run() run}.
-   * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully, {@code false} otherwise (the
-   *     {@link Commandlet} did not match and we have to try a different candidate).
+   * @param cmd the potential {@link AbstractCommandlet} to {@link #apply(CliArguments, AbstractCommandlet) apply} and
+   *     {@link AbstractCommandlet#run() run}.
+   * @return {@code true} if the given {@link AbstractCommandlet} matched and did {@link AbstractCommandlet#run() run} successfully, {@code false} otherwise
+   *     (the {@link AbstractCommandlet} did not match and we have to try a different candidate).
    */
-  private ValidationResult applyAndRun(CliArguments arguments, Commandlet cmd) {
+  private ValidationResult applyAndRun(CliArguments arguments, AbstractCommandlet cmd) {
 
     IdeLogLevel previousLogLevel = null;
     cmd.reset();
@@ -1527,10 +1529,10 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
    * determines the correct message to log, depending on whether the settings repository is a symlink/junction, or not. Should the user already be running the
    * appropriate {@code ide update} command, the message is suppressed to avoid confusion.
    *
-   * @param cmd the {@link Commandlet}.
+   * @param cmd the {@link AbstractCommandlet}.
    * @return {@code msg} to log to the console. {@code null} if the message is suppressed.
    */
-  private String determineSettingsUpdateMessage(Commandlet cmd) {
+  private String determineSettingsUpdateMessage(AbstractCommandlet cmd) {
     boolean update = cmd instanceof UpdateCommandlet;
     RepositoryType settingsRepositoryType = RepositoryType.ofSettingsPath(getSettingsPath(), this);
     if (settingsRepositoryType == RepositoryType.CODE_SETTINGS_COMBINED) {
@@ -1546,7 +1548,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     }
   }
 
-  private boolean ensureLicenseAgreement(Commandlet cmd) {
+  private boolean ensureLicenseAgreement(AbstractCommandlet cmd) {
 
     if (isTest()) {
       return true; // ignore for tests
@@ -1641,14 +1643,14 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
         property.apply(arguments, this, cc, collector);
       }
     }
-    Iterator<Commandlet> commandletIterator = this.commandletManager.findCommandlet(arguments, collector);
+    Iterator<AbstractCommandlet> commandletIterator = this.commandletManager.findCommandlet(arguments, collector);
     CliArgument current = arguments.current();
     if (current.isCompletion() && current.isCombinedShortOption()) {
       collector.add(current.get(), null, null, null);
     }
     arguments.next();
     while (commandletIterator.hasNext()) {
-      Commandlet cmd = commandletIterator.next();
+      AbstractCommandlet cmd = commandletIterator.next();
       if (!arguments.current().isEnd()) {
         completeCommandlet(arguments.copy(), cmd, collector);
       }
@@ -1677,7 +1679,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     return valueProperty;
   }
 
-  private void completeCommandlet(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
+  private void completeCommandlet(CliArguments arguments, AbstractCommandlet cmd, CompletionCandidateCollector collector) {
 
     LOG.trace("Trying to match arguments for auto-completion for commandlet {}", cmd.getName());
 
@@ -1742,10 +1744,10 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   /**
    * @param arguments the {@link CliArguments} to apply. Will be {@link CliArguments#next() consumed} as they are matched. Consider passing a
    *     {@link CliArguments#copy() copy} as needed.
-   * @param cmd the potential {@link Commandlet} to match.
+   * @param cmd the potential {@link AbstractCommandlet} to match.
    * @return the {@link ValidationResult} telling if the {@link CliArguments} can be applied successfully or if validation errors ocurred.
    */
-  public ValidationResult apply(CliArguments arguments, Commandlet cmd) {
+  public ValidationResult apply(CliArguments arguments, AbstractCommandlet cmd) {
 
     LOG.trace("Trying to match arguments to commandlet {}", cmd.getName());
     CliArgument currentArgument = arguments.current();
