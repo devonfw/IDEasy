@@ -26,7 +26,7 @@ class DartTest extends AbstractIdeContextTest {
   private static final String DART_VERSION = "3.13.5";
 
   /**
-   * Provides every platform the Dart SDK is published for (see {@link DartUpdateRepository} which generates the corresponding {@code «os»_«arch».urls}
+   * Provides every platform the Dart SDK is published for (see {@code DartUrlUpdater} which generates the corresponding {@code «os»_«arch».urls}
    * files), so we can verify that the platform-specific download URL is selected and the tool installs on each of them.
    *
    * @return a {@link Stream} of {@link Arguments}, one per supported platform (a display label and the matching {@link SystemInfo}).
