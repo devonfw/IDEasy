@@ -185,8 +185,8 @@ public class TaskWindowTest extends UIBasedApplicationTest {
 
       Rectangle2D screenMeasures = Screen.getPrimary().getVisualBounds();
 
-      double expectedPositionX = screenMeasures.getWidth() / 2 - nullRefWindow.getStage().getScene().getWidth() / 2;
-      double expectedPositionY = screenMeasures.getHeight() / 2 - nullRefWindow.getStage().getScene().getHeight() / 2;
+      double expectedPositionX = screenMeasures.getWidth() / 2 - nullRefWindow.getStage().getWidth() / 2;
+      double expectedPositionY = screenMeasures.getHeight() / 2 - nullRefWindow.getStage().getHeight() / 2;
 
       assertThat(nullRefWindow.getStage().getX()).as("Window should be in the expected X position").isEqualTo(expectedPositionX);
       assertThat(nullRefWindow.getStage().getY()).as("Window should be in the expected Y position").isEqualTo(expectedPositionY);
