@@ -17,7 +17,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.devonfw.ide.gui.HeadlessApplicationTest;
+import com.devonfw.ide.gui.UIBasedApplicationTest;
 import com.devonfw.ide.gui.core.context.TaskManager;
 import com.devonfw.ide.gui.core.helper.FxHelper;
 import com.devonfw.ide.gui.core.progress.ProgressBarTask;
@@ -25,7 +25,7 @@ import com.devonfw.ide.gui.core.progress.ProgressBarTask;
 /**
  * Tests for the TaskOverviewWindow. We check whether the window is displayed correctly and whether it properly reacts to changes in the TaskManager.
  */
-public class TaskWindowTest extends HeadlessApplicationTest {
+public class TaskWindowTest extends UIBasedApplicationTest {
 
   private ListView<ProgressBarTask> taskList;
   private static TaskManager taskManager;

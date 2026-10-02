@@ -1,14 +1,13 @@
 package com.devonfw.ide.gui.core.mainwindow.navigation;
 
-import java.io.IOException;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.nio.file.Path;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
-import com.devonfw.ide.gui.FakeProjectFolderStructureHelper;
+import com.devonfw.ide.gui.UIBasedApplicationTest;
 import com.devonfw.ide.gui.core.context.GuiStateManager;
 
 /**
@@ -17,7 +16,7 @@ import com.devonfw.ide.gui.core.context.GuiStateManager;
  * These run without starting the JavaFX toolkit. The project→workspace→context orchestration is driven by the view (see {@link NavigationPanelView}), so these
  * tests exercise the view model's own public methods the way the view calls them.
  */
-public class NavigationPanelViewModelTest extends Assertions {
+public class NavigationPanelViewModelTest extends UIBasedApplicationTest {
 
   private static final String PROJECT = "project-1";
 
@@ -25,19 +24,16 @@ public class NavigationPanelViewModelTest extends Assertions {
 
   private static final String DEFAULT_WORKSPACE = "main";
 
-  @TempDir
-  private Path mockIdeRoot;
-
   private GuiStateManager guiStateManager;
 
   private NavigationPanelViewModel viewModel;
 
   @BeforeEach
-  void setUp() throws IOException {
+  void setUp() {
 
-    FakeProjectFolderStructureHelper.createFakeProjectFolderStructure(this.mockIdeRoot);
+    setTestContext("testProject", PROJECT);
 
-    this.guiStateManager = new GuiStateManager(this.mockIdeRoot.toString());
+    this.guiStateManager = new GuiStateManager(getTestContext().getIdeRoot().toString());
     this.viewModel = new NavigationPanelViewModel(this.guiStateManager);
   }
 

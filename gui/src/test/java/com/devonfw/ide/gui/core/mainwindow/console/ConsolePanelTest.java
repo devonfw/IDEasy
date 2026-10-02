@@ -18,12 +18,12 @@ import javafx.stage.Stage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.devonfw.ide.gui.HeadlessApplicationTest;
+import com.devonfw.ide.gui.UIBasedApplicationTest;
 import com.devonfw.ide.gui.core.event.GuiEventBus;
 import com.devonfw.ide.gui.core.service.NlsService;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 
-class ConsolePanelTest extends HeadlessApplicationTest {
+class ConsolePanelTest extends UIBasedApplicationTest {
 
   private ConsoleViewModel consoleViewModel;
   private ConsoleView consoleView;

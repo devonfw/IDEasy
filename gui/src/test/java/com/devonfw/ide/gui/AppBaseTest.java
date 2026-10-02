@@ -3,11 +3,8 @@ package com.devonfw.ide.gui;
 import static org.testfx.assertions.api.Assertions.assertThat;
 import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
-import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Locale;
-
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -20,12 +17,8 @@ import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 
 import org.assertj.core.data.Offset;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.core.context.GuiStateManager;
 import com.devonfw.ide.gui.core.context.TaskManager;
@@ -38,9 +31,7 @@ import com.devonfw.ide.gui.core.progress.taskwindow.TaskOverviewWindow;
 /**
  * Basic UI Test for the main screen
  */
-public class AppBaseTest extends HeadlessApplicationTest {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(AppBaseTest.class);
+public class AppBaseTest extends UIBasedApplicationTest {
 
   /** Scene size for the test window. The console SplitPane needs real space, or its divider stays pinned near 1.0. */
   private static final double SCENE_WIDTH = 1280;
@@ -56,9 +47,6 @@ public class AppBaseTest extends HeadlessApplicationTest {
   private ProgressBar taskProgressBar;
   private SplitPane centerSplitPane;
 
-  @TempDir
-  private static Path mockIdeRoot;
-
   /**
    * Both are recreated for every test in {@link #start(Stage)}: a shared GuiStateManager leaks the project selection into the next test, and a shared
    * TaskManager accumulates a status-bar listener per view model, so discarded windows keep reacting to task changes.
@@ -72,7 +60,10 @@ public class AppBaseTest extends HeadlessApplicationTest {
   @Override
   public void start(Stage stage) {
 
-    this.guiStateManager = new GuiStateManager(mockIdeRoot.toString());
+    //We simply use project-0 here, as we only use the ide root for this test
+    setTestContext("testProject", "project-0");
+    
+    this.guiStateManager = new GuiStateManager(getTestContext().getIdeRoot().toString());
     this.guiStateManager.getNlsService().setLocale(Locale.ENGLISH);
     this.taskManager = guiStateManager.getTaskManager();
     this.viewModel = new MainWindowViewModel(guiStateManager);
@@ -92,19 +83,6 @@ public class AppBaseTest extends HeadlessApplicationTest {
     statusText = FxHelper.lookup(mainWindow, "#statusLabel");
     taskProgressBar = FxHelper.lookup(mainWindow, "#statusProgressBar");
     this.ideOpenButtons = new Button[] { androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen };
-  }
-
-  /**
-   * Generate temporary project directories to be able to test on any device (including GitHub CI). This is required for the {@link MainWindowView} to work in
-   * the test context. Generates a structure like this: /project-[0..6]/workspaces/main
-   */
-  @BeforeAll
-  public static void generateProjectFolderStructure() throws IOException {
-
-    LOGGER.debug("tempDir: {}", mockIdeRoot);
-    FakeProjectFolderStructureHelper.createFakeProjectFolderStructure(mockIdeRoot);
-    LOGGER.debug("project folders: {}", Arrays.toString(mockIdeRoot.toFile().list()));
-
   }
 
   @BeforeEach
