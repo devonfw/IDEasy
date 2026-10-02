@@ -47,5 +47,7 @@ class FlutterUrlUpdaterTest extends AbstractUrlUpdaterTest {
     assertUrlVersionOsX64MacArm(flutterEditionPath.resolve("3.47.5"));
     // the feeds also contain a beta release (3.49.0-0.1.pre) which must be filtered out, leaving only the stable version
     assertThat(flutterEditionPath.resolve("3.49.0-0.1.pre")).doesNotExist();
+    // the feeds also contain a legacy v1.x release (v1.12.13+hotfix.9) which is below the minimum version and must be filtered out
+    assertThat(flutterEditionPath.resolve("1.12.13+hotfix.9")).doesNotExist();
   }
 }

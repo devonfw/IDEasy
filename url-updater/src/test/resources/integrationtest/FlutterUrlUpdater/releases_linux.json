@@ -15,6 +15,16 @@
       "sha256": "de08da1685e537e887fbbe1eb3278fed38aff9da5d112d96115150e8771a0f30"
     },
     {
+      "hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "channel": "stable",
+      "version": "v1.12.13+hotfix.9",
+      "dart_sdk_version": "2.3.0",
+      "dart_sdk_arch": "x64",
+      "release_date": "2019-09-19T21:44:10.563953Z",
+      "archive": "stable/linux/flutter_linux_v1.12.13+hotfix.9-stable.tar.xz",
+      "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    {
       "hash": "e1dc10cc0416d4d879191a375b165ab2288b2888",
       "channel": "beta",
       "version": "3.49.0-0.1.pre",

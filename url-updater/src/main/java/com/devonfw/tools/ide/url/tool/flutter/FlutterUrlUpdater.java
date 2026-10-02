@@ -14,6 +14,7 @@ import com.devonfw.tools.ide.url.model.folder.UrlTool;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.model.report.UrlUpdaterReport;
 import com.devonfw.tools.ide.url.updater.AbstractUrlUpdater;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -44,6 +45,14 @@ public class FlutterUrlUpdater extends AbstractUrlUpdater {
 
   /** The release channel that is the only one handled by this updater. */
   private static final String CHANNEL_STABLE = "stable";
+
+  /**
+   * The minimum Flutter version handled by this updater: {@code 3.0.0} is the first stable release that ships a macOS arm64 archive, and older releases
+   * either lack the architectures we support or (in the case of the legacy {@code v1.x} releases) would sort <i>above</i> any modern version in
+   * {@link VersionIdentifier} because of their leading {@code v} (a letter sorts above any digit). Skipping everything below {@code 3.0.0} therefore both
+   * drops the ancient releases and stops a plain {@code ide install flutter} from resolving to a 2018 release via {@code resolveVersionPattern}.
+   */
+  private static final VersionIdentifier MIN_VERSION = VersionIdentifier.of("3.0.0");
 
   /**
    * The constructor.
@@ -96,15 +105,26 @@ public class FlutterUrlUpdater extends AbstractUrlUpdater {
 
     String feedUrl = getVersionBaseUrl() + "/" + feedName;
     String response = doGetResponseBodyAsString(feedUrl);
+    FlutterJsonObject feed;
     try {
-      FlutterJsonObject feed = MAPPER.readValue(response, FlutterJsonObject.class);
-      for (FlutterJsonItem item : feed.releases()) {
-        if (!CHANNEL_STABLE.equals(item.channel()) || isTimeoutExpired()) {
-          continue;
-        }
-        String version = item.version();
-        UrlVersion urlVersion = urlEdition.getChild(version);
-        if (urlVersion == null || isMissingOs(urlVersion)) {
+      feed = MAPPER.readValue(response, FlutterJsonObject.class);
+    } catch (JsonProcessingException e) {
+      throw new IllegalStateException("Error while reading releases from " + feedUrl, e);
+    }
+    for (FlutterJsonItem item : feed.releases()) {
+      if (isTimeoutExpired()) {
+        break;
+      }
+      if (!CHANNEL_STABLE.equals(item.channel())) {
+        continue;
+      }
+      String version = mapVersion(item.version());
+      if (version == null) {
+        continue;
+      }
+      UrlVersion urlVersion = urlEdition.getChild(version);
+      if (urlVersion == null || isMissingOs(urlVersion)) {
+        try {
           boolean newVersion = (urlVersion == null);
           urlVersion = urlEdition.getOrCreateChild(version);
           boolean added = doAddVersionFromFeed(urlVersion, feed, item, os);
@@ -112,12 +132,51 @@ public class FlutterUrlUpdater extends AbstractUrlUpdater {
             getUrlUpdaterReport().incrementAddVersionSuccess();
           }
           urlVersion.save();
-          logger.info("For tool {} we added version {}.", getToolWithEdition(), version);
+          if (added) {
+            logger.info("For tool {} we added version {}.", getToolWithEdition(), version);
+          }
+        } catch (Exception e) {
+          logger.error("For tool {} we failed to add version {}.", getToolWithEdition(), version, e);
+          getUrlUpdaterReport().incrementAddVersionFailure();
         }
       }
-    } catch (JsonProcessingException e) {
-      throw new IllegalStateException("Error while reading releases from " + feedUrl, e);
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   * <p>
+   * In addition to stripping the {@code v} prefix (see {@link #getVersionPrefixToRemove()}) we skip every stable release below {@link #MIN_VERSION}
+   * {@code 3.0.0}. This is required because the legacy {@code v1.x} releases are <i>not</i> simply "old versions": their leading {@code v} is a letter, and
+   * {@link VersionIdentifier} sorts a letter <i>above</i> any digit, so {@code v1.12.13} would otherwise resolve <i>above</i> {@code 3.47.5} and a plain
+   * {@code ide install flutter} would pick a 2018 release.
+   *
+   * @param version the raw {@code version} field of a feed release (e.g. {@code v1.12.13+hotfix.9} or {@code 3.47.5}).
+   * @return the normalized version to store (e.g. {@code 3.47.5}) or {@code null} if the release should be skipped (below {@link #MIN_VERSION}).
+   */
+  @Override
+  public String mapVersion(String version) {
+
+    String normalized = super.mapVersion(version);
+    if (normalized == null) {
+      return null;
+    }
+    VersionIdentifier versionIdentifier = VersionIdentifier.of(normalized);
+    return ((versionIdentifier == null) || versionIdentifier.compareVersion(MIN_VERSION).isLess()) ? null : normalized;
+  }
+
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Legacy stable releases (all {@code v1.x}) carry a leading {@code v} that every release since {@code 2.0} lacks; it must be stripped so that the version
+   * is stored and compared in a normalized form.
+   *
+   * @return {@code "v"}.
+   */
+  @Override
+  protected String getVersionPrefixToRemove() {
+
+    return "v";
   }
 
   /**
