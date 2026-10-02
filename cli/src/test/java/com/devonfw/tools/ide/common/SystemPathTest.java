@@ -169,6 +169,73 @@ class SystemPathTest extends AbstractIdeContextTest {
   }
 
   @Test
+  void testDartPrecedesFlutterBundledDartForBothLookupAndPathString() throws IOException {
+    // arrange - flutter bundles its own dart inside software/flutter/bin, so without an explicit order it would shadow the pristine dart
+    // copyForMutation=true: this test creates files, so it must work on a scratch copy (in target/), never the committed fixtures
+    IdeTestContext context = newContext("find-binary", "project/workspaces", true);
+    Path dartTool = context.getSoftwarePath().resolve("dart");
+    Files.createDirectories(dartTool.resolve("bin"));
+    Files.writeString(dartTool.resolve("bin/dart"), "pristine-dart");
+    Path flutterTool = context.getSoftwarePath().resolve("flutter");
+    Files.createDirectories(flutterTool.resolve("bin"));
+    Files.writeString(flutterTool.resolve("bin/dart"), "flutter-bundled-dart");
+    SystemPath systemPath = new SystemPath(context, "", context.getIdeRoot(), context.getSoftwarePath(), ';', new ArrayList<>());
+    Path pristine = dartTool.resolve("bin").resolve("dart");
+    Path bundled = flutterTool.resolve("bin").resolve("dart");
+
+    // act & assert - findBinary resolves the pristine dart, not the flutter-bundled one
+    assertThat(systemPath.findBinary(Path.of("dart"))).isEqualTo(pristine).isNotEqualTo(bundled);
+    // act & assert - the pristine dart bin is also placed before the flutter dir in the PATH string
+    String pathString = systemPath.toString();
+    assertThat(pathString.indexOf(dartTool.resolve("bin").toString()))
+        .isNotNegative().isLessThan(pathString.indexOf(flutterTool.toString()));
+  }
+
+  @Test
+  void testWarnsOnBinaryNameCollisionBetweenTwoNonPrecedenceTools() throws IOException {
+    // arrange - two distinct, non-precedence tools both expose the same binary name, so the PATH winner is arbitrary and must be surfaced
+    // the file is named *.exe AND marked executable so it counts as a binary on both Windows (extension-based) and Unix (execute-bit based);
+    // the logical binary name strips to "sharedbin" on either platform
+    // copyForMutation=true: this test creates files, so it must work on a scratch copy (in target/), never the committed fixtures
+    IdeTestContext context = newContext(PROJECT_BASIC, "project", true);
+    Path toolFoo = context.getSoftwarePath().resolve("foo");
+    Files.createDirectories(toolFoo.resolve("bin"));
+    Path fooBin = toolFoo.resolve("bin/sharedbin.exe");
+    Files.writeString(fooBin, "foo");
+    fooBin.toFile().setExecutable(true);
+    Path toolBar = context.getSoftwarePath().resolve("bar");
+    Files.createDirectories(toolBar.resolve("bin"));
+    Path barBin = toolBar.resolve("bin/sharedbin.exe");
+    Files.writeString(barBin, "bar");
+    barBin.toFile().setExecutable(true);
+
+    // act - building the SystemPath scans the software tools and detects the collision
+    new SystemPath(context, "", context.getIdeRoot(), context.getSoftwarePath(), ';', new ArrayList<>());
+
+    // assert - the collision between the two non-precedence tools is reported
+    assertThat(context).log(IdeLogLevel.WARNING).hasMessageContaining("Binary name 'sharedbin' is provided by multiple tools");
+  }
+
+  @Test
+  void testDoesNotWarnOnPrecedenceToolCollision() throws IOException {
+    // arrange - dart is a PATH_PRECEDENCE_TOOL, so its deterministic ordering already resolves the collision with the flutter-bundled dart
+    // copyForMutation=true: this test creates files, so it must work on a scratch copy (in target/), never the committed fixtures
+    IdeTestContext context = newContext(PROJECT_BASIC, "project", true);
+    Path dartTool = context.getSoftwarePath().resolve("dart");
+    Files.createDirectories(dartTool.resolve("bin"));
+    Files.writeString(dartTool.resolve("bin/dart"), "pristine-dart");
+    Path flutterTool = context.getSoftwarePath().resolve("flutter");
+    Files.createDirectories(flutterTool.resolve("bin"));
+    Files.writeString(flutterTool.resolve("bin/dart"), "flutter-bundled-dart");
+
+    // act - dart is resolved deterministically, so the collision is expected and must not be reported
+    new SystemPath(context, "", context.getIdeRoot(), context.getSoftwarePath(), ';', new ArrayList<>());
+
+    // assert - no generic collision warning for the handled dart/flutter case (the basic fixture itself has no other collision)
+    assertThat(context).log(IdeLogLevel.WARNING).hasNoMessageContaining("is provided by multiple tools");
+  }
+
+  @Test
   void testFindBinaryFindsBinaryInExtraPathEntries() throws IOException {
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
