@@ -10,6 +10,7 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
@@ -158,8 +159,8 @@ class VscodeTest extends AbstractIdeContextTest {
 
   /**
    * Tests that by default (feature toggle {@code VSCODE_PROFILE_ENABLED} disabled) {@link Vscode#configureToolArgs(ProcessContext, ProcessMode, List)} points
-   * {@code --user-data-dir} to the IDE metadata folder ({@code $IDE_HOME/.ide/vscode/«workspace»/config}) instead of a {@code .vscode} folder inside the
-   * workspace.
+   * {@code --user-data-dir} to the IDE metadata folder of the project ({@code $IDE_HOME/.ide/vscode/config}) instead of a {@code .vscode} folder inside the
+   * workspace, so that all workspaces of a project share their user settings and logins (see #2582).
    */
   @Test
   void testConfigureToolArgsUsesIdeMetadataPathForUserData() {
@@ -172,10 +173,32 @@ class VscodeTest extends AbstractIdeContextTest {
     // act
     commandlet.configureToolArgs(pc, ProcessMode.DEFAULT, List.of());
     // assert
-    Path expectedUserData = context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("vscode").resolve(context.getWorkspaceName()).resolve("config");
+    Path expectedUserData = getUserDataPath(context);
+    assertThat(expectedUserData).isEqualTo(context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("vscode").resolve("config"));
     assertThat(pc.capturedArgs).contains("--user-data-dir=" + expectedUserData);
+    assertThat(pc.capturedArgs).contains("--shared-data-dir=" + expectedUserData.resolveSibling("shared-data"));
     assertThat(pc.capturedArgs).noneMatch(arg -> arg.contains(".vscode"));
     assertThat(pc.capturedArgs).noneMatch(arg -> arg.startsWith("--profile="));
+  }
+
+  /**
+   * Tests that by default {@link Vscode#configureToolArgs(ProcessContext, ProcessMode, List)} also passes {@code --shared-data-dir} with the same scope as
+   * {@code --user-data-dir} ({@code $IDE_HOME/.ide/vscode/shared-data}). Otherwise all VS Code instances share {@code ~/.vscode-shared} that holds
+   * the GitHub login encrypted with a key of the user-data-dir so every other instance deletes it (see #2581).
+   */
+  @Test
+  void testConfigureToolArgsUsesSharedDataDirNextToUserData() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
+    Vscode commandlet = new Vscode(context);
+    ArgCapturingProcessContext pc = new ArgCapturingProcessContext(context);
+    // act
+    commandlet.configureToolArgs(pc, ProcessMode.DEFAULT, List.of());
+    // assert
+    Path metadataPath = context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("vscode");
+    assertThat(pc.capturedArgs).contains("--user-data-dir=" + metadataPath.resolve("config"), "--shared-data-dir=" + metadataPath.resolve("shared-data"));
   }
 
   /**
@@ -198,13 +221,15 @@ class VscodeTest extends AbstractIdeContextTest {
     commandlet.configureToolArgs(pc, ProcessMode.DEFAULT, List.of());
     // assert
     assertThat(pc.capturedArgs).noneMatch(arg -> arg.startsWith("--user-data-dir="));
+    // the default user-data-dir needs the default shared-data-dir, otherwise the GitHub login cannot be decrypted (see #2581)
+    assertThat(pc.capturedArgs).noneMatch(arg -> arg.startsWith("--shared-data-dir="));
     // the profile has to contain the project name so that different projects with the same workspace name do not share a single profile (see #2058)
     assertThat(pc.capturedArgs).contains("--profile=ideasy-" + context.getProjectName() + "-" + context.getWorkspaceName());
   }
 
   /**
    * Tests that the user settings template {@code .vscode/.userdata} from the settings repository is merged into the VS Code user-data folder
-   * ({@code $IDE_HOME/.ide/vscode/«workspace»/config}) passed via {@code --user-data-dir} instead of the workspace, while the other templates are still merged
+   * ({@code $IDE_HOME/.ide/vscode/config}) passed via {@code --user-data-dir} instead of the workspace, while the other templates are still merged
    * into the workspace (see #2509).
    */
   @Test
@@ -265,9 +290,87 @@ class VscodeTest extends AbstractIdeContextTest {
     assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_BACKUPS)).exists();
   }
 
+  /**
+   * Tests that the VS Code user-data and shared-data folders of the workspace from before #2582 ({@code $IDE_HOME/.ide/vscode/«workspace»}) are moved to the
+   * folders of the project if those do not exist yet, so that the first workspace started after the update keeps its settings and logins.
+   */
+  @Test
+  void testConfigureWorkspaceMovesWorkspaceUserDataIfProjectUserDataIsMissing() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    FileAccess fileAccess = context.getFileAccess();
+    Path workspaceMetadata = getWorkspaceMetadataPath(context);
+    fileAccess.writeFileContent("workspace", workspaceMetadata.resolve("config/state.json"), true);
+    fileAccess.writeFileContent("workspace-shared", workspaceMetadata.resolve("shared-data/state.json"), true);
+    Vscode commandlet = new Vscode(context);
+    // act
+    commandlet.configureWorkspace();
+    // assert
+    Path userData = getUserDataPath(context);
+    assertThat(userData.resolve("state.json")).exists().hasContent("workspace");
+    assertThat(userData.resolveSibling("shared-data").resolve("state.json")).exists().hasContent("workspace-shared");
+    assertThat(workspaceMetadata).doesNotExist();
+    assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_BACKUPS)).doesNotExist();
+  }
+
+  /**
+   * Tests that the VS Code user-data and shared-data folders of the workspace from before #2582 are removed (via backup) without touching the folders of the
+   * project if another workspace has already been migrated.
+   */
+  @Test
+  void testConfigureWorkspaceBacksUpWorkspaceUserDataIfProjectUserDataExists() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    FileAccess fileAccess = context.getFileAccess();
+    Path workspaceMetadata = getWorkspaceMetadataPath(context);
+    fileAccess.writeFileContent("workspace", workspaceMetadata.resolve("config/state.json"), true);
+    fileAccess.writeFileContent("workspace-shared", workspaceMetadata.resolve("shared-data/state.json"), true);
+    Path userData = getUserDataPath(context);
+    Path sharedData = userData.resolveSibling("shared-data");
+    fileAccess.writeFileContent("project", userData.resolve("state.json"), true);
+    fileAccess.writeFileContent("project-shared", sharedData.resolve("state.json"), true);
+    Vscode commandlet = new Vscode(context);
+    // act
+    commandlet.configureWorkspace();
+    // assert
+    assertThat(userData.resolve("state.json")).exists().hasContent("project");
+    assertThat(sharedData.resolve("state.json")).exists().hasContent("project-shared");
+    assertThat(workspaceMetadata).doesNotExist();
+    assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_BACKUPS)).exists();
+  }
+
+  /**
+   * Tests that a VS Code data folder of the workspace that cannot be migrated (e.g. on Windows because a VS Code from before #2582 still uses it) stops the
+   * start with a {@link CliException} asking to close VS Code instead of an unexpected error, and keeps the folder for the next attempt.
+   */
+  @Test
+  void testConfigureWorkspaceFailsWithHintIfWorkspaceUserDataCannotBeMigrated() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    FileAccess fileAccess = context.getFileAccess();
+    Path workspaceUserData = getWorkspaceMetadataPath(context).resolve("config");
+    fileAccess.writeFileContent("workspace", workspaceUserData.resolve("state.json"), true);
+    fileAccess.writeFileContent("project", getUserDataPath(context).resolve("state.json"), true);
+    // a file instead of the backup folder lets the backup fail just like a folder locked by a running VS Code
+    fileAccess.writeFileContent("blocked", context.getIdeHome().resolve(IdeContext.FOLDER_BACKUPS), true);
+    Vscode commandlet = new Vscode(context);
+    // act + assert
+    assertThatThrownBy(commandlet::configureWorkspace).isInstanceOf(CliException.class).hasMessageContaining(workspaceUserData.toString())
+        .hasMessageContaining("close all VSCode windows");
+    assertThat(workspaceUserData.resolve("state.json")).exists().hasContent("workspace");
+  }
+
   private static Path getUserDataPath(IdeTestContext context) {
 
-    return context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("vscode").resolve(context.getWorkspaceName()).resolve("config");
+    return context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("vscode").resolve("config");
+  }
+
+  private static Path getWorkspaceMetadataPath(IdeTestContext context) {
+
+    return context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("vscode").resolve(context.getWorkspaceName());
   }
 
   /**
