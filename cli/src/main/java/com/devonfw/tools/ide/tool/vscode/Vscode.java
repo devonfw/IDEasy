@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
@@ -54,7 +53,6 @@ public class Vscode extends AbstractIdeToolCommandlet {
     return "code";
   }
 
-
   @Override
   public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
 
@@ -71,17 +69,16 @@ public class Vscode extends AbstractIdeToolCommandlet {
     ProcessResult result = runTool(pc, ProcessMode.DEFAULT_CAPTURE, extensionsCommands);
     if (result.isSuccessful()) {
       if (versionSpecified) {
-        IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {} with version: {}", plugin.name(), plugin.version());
+        step.success("Successfully installed plugin: {} with version: {}", plugin.name(), plugin.version());
       } else {
-        IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {}", plugin.name());
+        step.success();
       }
-      step.success();
       return true;
     }
     if (versionSpecified) {
-      IdeLogLevel.ERROR.log(LOG, "Failed to install plugin: {} with version: {}", plugin.name(), plugin.version());
+      step.error("Failed to install plugin: {} with version: {}", plugin.name(), plugin.version());
     } else {
-      IdeLogLevel.ERROR.log(LOG, "Failed to install plugin: {}", plugin.name());
+      step.error("Failed to install plugin: {}", plugin.name());
     }
     return false;
   }
