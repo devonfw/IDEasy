@@ -5,6 +5,7 @@ import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
 import java.nio.file.Path;
 import java.util.Locale;
+
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -62,7 +63,7 @@ public class AppBaseTest extends UIBasedApplicationTest {
 
     //We simply use project-0 here, as we only use the ide root for this test
     setTestContext("testProject", "project-0");
-    
+
     this.guiStateManager = new GuiStateManager(getTestContext().getIdeRoot().toString());
     this.guiStateManager.getNlsService().setLocale(Locale.ENGLISH);
     this.taskManager = guiStateManager.getTaskManager();

@@ -33,15 +33,18 @@ public class UIBasedApplicationTest extends ApplicationTest {
   /**
    * Set the test context for this UI-based test.
    *
-   * @param projectName name of the project under /ide-projects
+   * @param projectFolderName name of the project-folder under /ide-projects
+   * @param projectName name of the project to set the context up in, as a subfolder of the projectFolderName.
+   * @see IdeTestContext
    */
-  public void setTestContext(String projectName, String projectPath) {
+  public void setTestContext(String projectFolderName, String projectName) {
 
-    testContext = AbstractIdeContextTest.newContext(projectName, projectPath);
+    testContext = AbstractIdeContextTest.newContext(projectFolderName, projectName);
   }
 
   /**
    * @return the currently used {@link AbstractIdeTestContext test context}
+   * @see IdeTestContext
    */
   public AbstractIdeTestContext getTestContext() {
 

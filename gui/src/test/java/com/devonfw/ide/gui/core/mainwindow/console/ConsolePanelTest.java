@@ -5,7 +5,6 @@ import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
 import java.io.IOException;
 import java.net.URL;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 
@@ -16,7 +15,6 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.ide.gui.UIBasedApplicationTest;
 import com.devonfw.ide.gui.core.event.GuiEventBus;
@@ -26,10 +24,6 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 class ConsolePanelTest extends UIBasedApplicationTest {
 
   private ConsoleViewModel consoleViewModel;
-  private ConsoleView consoleView;
-
-  @TempDir
-  private Path mockIdeRoot;
 
   @Override
   public void start(Stage stage) throws IOException {
@@ -53,8 +47,6 @@ class ConsolePanelTest extends UIBasedApplicationTest {
     stage.setScene(new Scene(root));
     stage.requestFocus(); // sometimes needed for headless setup to work
     stage.show();
-
-    consoleView = fxmlLoader.getController();
   }
 
   /**
