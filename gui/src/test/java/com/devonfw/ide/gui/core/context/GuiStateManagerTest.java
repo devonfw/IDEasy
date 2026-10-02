@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 
 /**
@@ -65,6 +66,9 @@ public class GuiStateManagerTest extends AbstractIdeContextTest {
     projectManager.getProjectNames().forEach((projectName) -> {
       try {
         guiStateManager.switchContext(projectName, "main");
+        assertThat(guiStateManager.getCurrentContext().getCwd()).isNotNull();
+        assertThat(guiStateManager.getCurrentContext().getCwd())
+            .isEqualTo(guiStateManager.getCurrentContext().getIdeRoot().resolve(projectName).resolve(IdeContext.FOLDER_WORKSPACES).resolve("main"));
       } catch (FileNotFoundException e) {
         throw new RuntimeException(e);
       }
@@ -80,8 +84,8 @@ public class GuiStateManagerTest extends AbstractIdeContextTest {
       guiStateManager.switchContext(fakeProject.getFileName().toString(), "main");
       fail("FileNotFoundException expected");
     } catch (FileNotFoundException e) {
-      assertThat(e.getMessage()).contains("Project " + fakeProject + " does not exist!")
-          .as("GuiStateManager.switchContext should throw an exception, if a non-existent project is selected");
+      assertThat(e.getMessage()).as("GuiStateManager.switchContext should throw an exception, if a non-existent project is selected")
+          .contains("Project " + fakeProject + " does not exist!");
     }
   }
 
@@ -92,12 +96,10 @@ public class GuiStateManagerTest extends AbstractIdeContextTest {
       stream.forEach((projectPath) -> {
         Path fakeWorkspacePath = projectPath.resolve("workspaces").resolve("nonExistingWorkspace");
 
-        try {
-          guiStateManager.switchContext(projectPath.getFileName().toString(), fakeWorkspacePath.getFileName().toString());
-        } catch (FileNotFoundException e) {
-          assertThat(e.getMessage()).contains("Workspace " + fakeWorkspacePath + " does not exist!")
-              .as("GuiStateManager.switchContext should throw an exception, if a non-existent workspace is selected");
-        }
+        assertThatExceptionOfType(FileNotFoundException.class)
+            .as("switchContext should throw if a non-existent workspace is selected")
+            .isThrownBy(() -> guiStateManager.switchContext(projectPath.getFileName().toString(), fakeWorkspacePath.getFileName().toString()))
+            .withMessageContaining("Workspace " + fakeWorkspacePath + " does not exist!");
       });
     }
   }

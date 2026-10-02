@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Test;
 
 import com.devonfw.ide.gui.UIBasedApplicationTest;
 import com.devonfw.ide.gui.core.context.TaskManager;
-import com.devonfw.ide.gui.core.helper.FxHelper;
 import com.devonfw.ide.gui.core.progress.ProgressBarTask;
 
 /**
@@ -69,7 +68,10 @@ public class TaskWindowTest extends UIBasedApplicationTest {
    */
   @Test
   void isWindowShown() {
-    FxHelper.runFxSafe(() -> {
+
+    //Why use interact here instead of e.g. FxHelper.runFxSafe? -> runFxSafe executes the code asynchronously on the UI thread without waiting for the result,
+    //therefore swallowing any errors. This assertion never fails if we use runFxSafe
+    interact(() -> {
       TaskOverviewWindow testWindow = TaskOverviewWindow.getInstance(taskManager);
       testWindow.show();
 
@@ -123,7 +125,7 @@ public class TaskWindowTest extends UIBasedApplicationTest {
   @Test
   void reusesExistingWindow() {
 
-    FxHelper.runFxSafe(() -> {
+    interact(() -> {
 
       TaskOverviewWindow testWindow1 = TaskOverviewWindow.getInstance(taskManager);
       testWindow1.show();
@@ -131,9 +133,9 @@ public class TaskWindowTest extends UIBasedApplicationTest {
       TaskOverviewWindow testWindow2 = TaskOverviewWindow.getInstance(taskManager);
       testWindow2.show();
 
-      assertThat(testWindow1.equals(testWindow2)).isTrue().as("Window instances differentiate");
-      assertThat(testWindow1.getStage().isShowing()).isTrue().as("Window is not showing");
-      assertThat(testWindow1.getStage().isFocused()).isTrue().as("Window is not focused");
+      assertThat(testWindow1.equals(testWindow2)).as("Window instances differentiate").isTrue();
+      assertThat(testWindow1.getStage().isShowing()).as("Window is not showing").isTrue();
+      assertThat(testWindow1.getStage().isFocused()).as("Window is not focused").isTrue();
     });
   }
 
@@ -177,7 +179,7 @@ public class TaskWindowTest extends UIBasedApplicationTest {
   @Test
   void testNullReferenceNode() {
 
-    FxHelper.runFxSafe(() -> {
+    interact(() -> {
       TaskOverviewWindow nullRefWindow = TaskOverviewWindow.getInstance(taskManager);
       nullRefWindow.showRelativeToReferenceNode(null);
 
