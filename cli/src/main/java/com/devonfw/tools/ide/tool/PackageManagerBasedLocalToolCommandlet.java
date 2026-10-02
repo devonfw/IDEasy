@@ -87,9 +87,18 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends AbstractT
     ProcessContext pc = request.getProcessContext();
     AbstractToolCommandlet pm = request.getPackageManager();
     if (!skipInstallation) { // See Node.postInstallOnNewInstallation
-      ToolInstallRequest installRequest = new ToolInstallRequest(true);
-      installRequest.setProcessContext(pc.createChild());
-      pm.install(installRequest);
+      ToolInstallRequest parentRequest = request.getToolInstallRequest();
+      if (parentRequest != null) {
+        // this package-manager installation is triggered by a tool installation
+        // (e.g. "ide install ng" triggers the npm install), so the package-manager's
+        // install request gets the triggering tool's request as its parent
+        pm.install(new ToolInstallRequest(parentRequest));
+      } else {
+        // no triggering tool installation (e.g. the uninstall path), install standalone
+        ToolInstallRequest installRequest = new ToolInstallRequest(true);
+        installRequest.setProcessContext(pc.createChild());
+        pm.install(installRequest);
+      }
     }
     return pm.runTool(pc, request.getProcessMode(), request.getArgs());
   }
@@ -189,8 +198,13 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends AbstractT
   @Override
   protected final void performToolInstallation(ToolInstallRequest request, Path installationPath) {
 
-    PackageManagerRequest packageManagerRequest = new PackageManagerRequest(PackageManagerRequest.TYPE_INSTALL, getPackageName())
-        .setProcessContext(request.getProcessContext()).setVersion(request.getRequested().getResolvedVersion());
+    PackageManagerRequest packageManagerRequest =
+        new PackageManagerRequest(
+            PackageManagerRequest.TYPE_INSTALL,
+            getPackageName())
+            .setToolInstallRequest(request)
+            .setProcessContext(request.getProcessContext())
+            .setVersion(request.getRequested().getResolvedVersion());
     runPackageManager(packageManagerRequest, isSkipInstallation()).failOnError();
     invalidateInstalledEditionAndVersion();
   }

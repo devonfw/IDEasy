@@ -35,6 +35,33 @@ class NgTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Tests that installing {@link Ng} a second time does not trigger a duplicate npm installation cycle (regression test for
+   * <a href="https://github.com/devonfw/IDEasy/issues/1965">#1965</a>).
+   *
+   * @param wireMockRuntimeInfo wireMock server on a random port
+   */
+  @Test
+  void testNgRepeatInstallation(WireMockRuntimeInfo wireMockRuntimeInfo) {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_NG, wireMockRuntimeInfo);
+    Ng commandlet = new Ng(context);
+
+    // act I
+    commandlet.install();
+
+    // clear the log so we only assert on the messages of the second installation
+    context.getTestStartContext().getEntries().clear();
+
+    // act II
+    commandlet.install();
+
+    // assert
+    // since npm is already installed, the second installation must skip the npm installation cycle and not re-check npm for CVEs
+    assertThat(context).log().hasNoMessageContaining("No CVEs found for version 9.9.2 of tool npm");
+  }
+
+  /**
    * Tests if the {@link Ng} uninstall works correctly on linux.
    *
    * @param wireMockRuntimeInfo wireMock server on a random port
