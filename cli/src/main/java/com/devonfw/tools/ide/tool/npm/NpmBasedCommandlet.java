@@ -13,6 +13,7 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.PackageManagerRequest;
 import com.devonfw.tools.ide.tool.node.NodeBasedCommandlet;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
@@ -52,6 +53,19 @@ public abstract class NpmBasedCommandlet extends NodeBasedCommandlet<Npm> {
   @Override
   protected VersionIdentifier computeInstalledPackageVersion() {
     return runPackageManagerGetInstalledVersion(getPackageName());
+  }
+
+  /**
+   * @return {@code true} if the npm package is installed.
+   * @implNote npm installs global packages into the per-project prefix (see <a href="https://github.com/devonfw/IDEasy/issues/2381">issue #2381</a>), which
+   *     is not part of the software-repo PATH, so the binary-on-PATH check alone does not see them. The package manager (npm) is the authoritative source for
+   *     the installed state, so it is checked in addition - otherwise tools are reported as not installed and {@code ide uninstall} bails with "could not find
+   *     an installation".
+   */
+  @Override
+  protected boolean isPackageInstalled() {
+
+    return getBinaryExecutable() != null || computeInstalledPackageVersion() != null;
   }
 
   private VersionIdentifier runPackageManagerGetInstalledVersion(String npmPackage) {
