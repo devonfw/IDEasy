@@ -52,14 +52,24 @@ For further steps and details see link:pull-request.adoc[pull-request documentat
 
 == Create a new commandlet
 
-For detailed information on implementing new commandlets and UrlUpdaters, see the comprehensive guide link:commandlet-and-url-updater.adoc[Creating New Commandlets and UrlUpdaters].
+For detailed information on implementing new commandlets and UrlUpdaters, see the comprehensive guide link:commandlet.adoc[Creating New Commandlets].
 
 That guide covers:
 
-* Understanding the architecture of commandlets and UrlUpdaters
-* When to use package manager ecosystems (npm, Maven, pip) vs. creating a custom UrlUpdater
+* Understanding the architecture of commandlets
+* When to use package manager ecosystems (npm, Maven, pip)
+* Steps to implement and register new commandlets
+
+== URL Updaters
+
+For detailed information on implementing UrlUpdaters, see the comprehensive guide link:url-updater.adoc[Creating New UrlUpdaters].
+
+That guide covers:
+
+* Creating a custom UrlUpdater
 * Choosing the right UrlUpdater base class (JsonUrlUpdater, GithubUrlReleaseUpdater, etc.)
-* Steps to implement and register new commandlets and UrlUpdaters
+* Steps to implement and register new UrlUpdaters
+
 
 === LICENSE
 

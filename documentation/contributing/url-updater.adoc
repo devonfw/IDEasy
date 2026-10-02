@@ -1,0 +1,133 @@
+= Creating New UrlUpdaters
+
+== Overview
+
+This document explains how to implement a new `UrlUpdater` for IDEasy.
+An `UrlUpdater` is responsible for discovering and maintaining available versions of a tool to sync the download-metadata in [ide-urls](http://github.com/ide-urls).
+
+Not all tools require a UrlUpdater, as tools using certain package manager ecosystems (npm, Maven, pip) don't need one because their package managers provide version discovery automatically.
+
+== UrlUpdaters
+
+For tools that don't use package manager ecosystems, you need to implement an UrlUpdater, which is responsible to:
+
+1. Discover available versions of a tool
+2. Find download URLs for each version
+3. Validate that downloads are accessible
+4. Handle multiple editions (if applicable)
+5. Support multiple OS/architecture combinations
+
+=== Architecture Overview
+
+The main UrlUpdater types are:
+
+* `JsonUrlUpdater`: For REST APIs returning JSON
+** `AbstractGithubUrlUpdater`: Base for GitHub-based updaters
+*** `GithubUrlReleaseUpdater`: Preferred for GitHub releases
+*** `GithubUrlTagUpdater`: Fallback if no releases available
+* `MavenBasedUrlUpdater`: For Maven repository tools
+* `NpmBasedUrlUpdater`: For npm registry tools
+* `WebsiteUrlUpdater`: Last resort, web scraping only (avoid if possible!)
+
+=== JsonUrlUpdater (Recommended for REST APIs)
+
+Use `JsonUrlUpdater` when you have access to a REST API that returns JSON with version information.
+
+**Examples of tools using JsonUrlUpdater:**
+
+* JavaUrlUpdater
+* AndroidStudioUrlUpdater
+* IdeaBasedUrlUpdater: which is used for IntelliJ, Pycharm
+
+**What you need to implement:**
+
+* `getTool()` - Return the tool name
+* `doGetVersionUrl()` - Return the API endpoint URL
+* `getJsonObjectType()` - Return the root JSON class (create with Jackson annotations)
+* `getVersionItems(T)` - Extract version items from the JSON object
+* `addVersion(UrlVersion, V)` - Process each version and call `doAddVersion()` with the download URL
+
+=== GitHub Release Updater (Preferred for GitHub-hosted Tools)
+
+Use `GithubUrlReleaseUpdater` when:
+
+* The tool is hosted on GitHub
+* Releases are published using GitHub's Release feature
+
+**Examples of tools using GithubUrlReleaseUpdater:**
+
+* Gradle
+* Maven
+* Mvnd
+* Claude
+* SquirrelSQL
+* Inso
+
+**How to identify if a tool uses GitHub Releases:**
+
+* Check if the GitHub repository has a "Releases" section
+* Example: https://api.github.com/repos/anthropics/claude-code/releases
+
+=== GitHub Tag Updater (When No Releases Available)
+
+Use `GithubUrlTagUpdater` only as a fallback when:
+
+* The tool doesn't use GitHub Releases
+* Version discovery from git tags is the only option
+
+As git tags are less structured than releases and download URLs must be reconstructed manually.
+
+**Examples of tools using GithubUrlTagUpdater:**
+
+* Go
+* Sonar
+* Helm
+* VsCode
+* Uv
+
+=== WebsiteUrlUpdater (To Avoid!)
+
+Use `WebsiteUrlUpdater` only when previous options are not available.
+This UrlUpdater relies on HTML and Minor HTML changes break the updater and require maintenance.
+
+**Examples of tools using WebsiteUrlUpdater (last resort):**
+
+* Docker Desktop
+* Eclipse
+* Jenkins
+* Kotlinc
+* OC (OpenShift Client)
+* PgAdmin
+
+== Create an UrlUpdater for the new tool (when needed)
+
+**1. Choose the right base class:**
+
+* If the tool is part of a package manager ecosystem, you don't need a UrlUpdater.
+* If the tool has a REST API with JSON responses, use `JsonUrlUpdater`.
+* If the tool is hosted on GitHub with proper releases, use `GithubUrlReleaseUpdater`.
+* If the tool is hosted on GitHub but only has tags, use `GithubUrlTagUpdater`.
+* Only if none of the above options are available, use `WebsiteUrlUpdater`.
+
+**2. Implement the UrlUpdater:**
+
+* UrlUpdater class: `MyToolUrlUpdater` located in: `url-updater/src/main/java/com/devonfw/tools/ide/url/tool/mytool/`
+* Implement required methods based on the chosen base class (e.g., `getTool()`, `doGetVersionUrl()`, etc.)
+* Register your updater by adding it to `UpdateManager.updaters` list in: `url-updater/src/main/java/com/devonfw/tools/ide/url/updater/UpdateManager.java`
+* Add a test for the created UrlUpdater with a mock class in `src/test/java/com/devonfw/tools/ide/url/tool/mytool/`
+** MyToolUrlUpdaterTest
+** MyToolUrlUpdaterMock: this file test requires a JSON file in `src/test/resources/com/devonfw/tools/ide/url/tool/mytool/` containing a sample response from the API.
+The file format and name depend on the base class used.
+
+Once a day, the UpdateInitiator runs all URL updaters via GitHub Actions and updates the link:++https://github.com/devonfw/ide-urls[ide-URL] repository with new version/tools that are identified by the Updaters.
+To test a UrlUpdater locally, run UpdateInitiator (url-updater/src/main/java/com/devonfw/tools/ide/url/updater/UpdateInitiator.java).
+It executes the updater and shows all discovered versions and URLs in the console.
+
+Before running the updater, make sure the `ide-urls-status` repository is available under `project/_ide`. If it does not exist yet, clone it first.
+
+The arguments to pass are:
+
+* Path to ide-urls project (where the url-updater module is located)
+* Path to ide-urls-status project
+* Time to wait for the updater to finish (e.g., PT1H)
+* Name of the updater to run (e.g., mytool) Once a day, the `UpdateInitiator` will run the updaters through GitHub Actions and fill the https://github.com/devonfw/ide-urls[ide-URL] repository with new version/tools that are identified by the Updaters.
