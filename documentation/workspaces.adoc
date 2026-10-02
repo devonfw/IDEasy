@@ -19,7 +19,6 @@ The following structure shows an example layout:
 / workspaces/
 ├──/ main/
 │  ├──/ link:configurator.adoc[.idea/]
-│  ├──/ link:configurator.adoc[.intellij/]
 │  ├──/ link:configurator.adoc[.metadata/]
 │  ├──/ link:configurator.adoc[.vscode/]
 │  ├──/ IDEasy/
