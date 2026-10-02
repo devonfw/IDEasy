@@ -9,11 +9,11 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 
-public class Msvc extends LocalToolCommandlet {
+public class Msvc extends AbstractLocalToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Msvc.class);
 
@@ -46,6 +46,8 @@ public class Msvc extends LocalToolCommandlet {
         .withExitCodeAcceptor(code -> (code == 0) || (code == 3010))
         .addArgs("--installPath", installationPath.toString(),
             "--add", "Microsoft.VisualStudio.Workload.VCTools",
+            "--add", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
+            "--add", "Microsoft.VisualStudio.Component.Windows11SDK.26100",
             "--quiet", "--wait", "--norestart", "--nocache")
         .run();
   }

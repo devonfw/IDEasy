@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.git.GitContext;
+import com.devonfw.tools.ide.git.repository.RepositoryType;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.migration.IdeMigrator;
 import com.devonfw.tools.ide.os.SystemInfo;
@@ -17,9 +18,9 @@ import com.devonfw.tools.ide.tool.IdeasyCommandlet;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link Commandlet} to print a status report about IDEasy.
+ * {@link AbstractCommandlet} to print a status report about IDEasy.
  */
-public class StatusCommandlet extends Commandlet {
+public class StatusCommandlet extends AbstractCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(StatusCommandlet.class);
 
@@ -91,7 +92,8 @@ public class StatusCommandlet extends Commandlet {
     }
     if (hasLegacyProperties) {
       LOG.warn(
-          "Your settings are outdated and contain legacy configurations. Please consider upgrading your settings:\nhttps://github.com/devonfw/IDEasy/blob/main/documentation/settings.adoc#upgrade");
+          "Your settings are outdated and contain legacy configurations. "
+              + "Please consider upgrading your settings:\nhttps://github.com/devonfw/IDEasy/blob/main/documentation/settings.adoc#upgrade");
     }
   }
 
@@ -104,7 +106,7 @@ public class StatusCommandlet extends Commandlet {
     } else {
       GitContext gitContext = this.context.getGitContext();
       if (gitContext.isRepositoryUpdateAvailable(settingsPath, this.context.getSettingsCommitIdPath())) {
-        if (!this.context.isSettingsCodeRepository()) {
+        if (RepositoryType.ofSettingsPath(this.context.getSettingsPath(), context) != RepositoryType.CODE_SETTINGS_COMBINED) {
           LOG.warn("Your settings are not up-to-date, please run 'ide update'.");
         }
       } else {
