@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.property.Property;
 
 /**
@@ -51,10 +51,10 @@ public class AutoCompletionRegistry {
    * @param arg the current argument to complete.
    * @param collector the {@link CompletionCandidateCollector}.
    * @param property the {@link Property} that triggered completion.
-   * @param commandlet the {@link Commandlet} owning the property.
+   * @param commandlet the {@link AbstractCommandlet} owning the property.
    */
   public void complete(String arg, CompletionCandidateCollector collector,
-      Property<?> property, Commandlet commandlet) {
+      Property<?> property, AbstractCommandlet commandlet) {
 
     for (CompletionEntry entry : this.entryMap.values()) {
       entry.complete(arg, collector, property, commandlet);
