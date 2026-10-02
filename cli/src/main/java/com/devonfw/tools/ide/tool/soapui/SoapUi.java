@@ -7,12 +7,12 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 
 /**
- * {@link LocalToolCommandlet} for <a href="https://www.soapui.org/">SoapUI</a>, an open source API testing tool for SOAP and REST services.
+ * {@link AbstractLocalToolCommandlet} for <a href="https://www.soapui.org/">SoapUI</a>, an open source API testing tool for SOAP and REST services.
  */
-public class SoapUi extends LocalToolCommandlet {
+public class SoapUi extends AbstractLocalToolCommandlet {
 
   private static final String SOAPUI = "soapui";
 
