@@ -24,10 +24,13 @@ import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.CleanupMode;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.Mockito;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.devonfw.tools.ide.process.ProcessContext;
 
 /**
  * Test of {@link FileAccessImpl}.
@@ -271,6 +274,42 @@ class FileAccessImplTest extends AbstractIdeContextTest {
 
     assertThat(frameworkLink).hasContent("binary");
     assertThat(frameworkLink.toRealPath()).isEqualTo(realPath(versionA.resolve("Electron Framework")));
+  }
+
+  /**
+   * Tests that {@link FileAccessImpl#extractDmg(Path, Path)} preserves application bundle symbolic links.
+   *
+   * @param tempDir the temporary directory.
+   * @throws IOException on test setup failure.
+   */
+  @Test
+  void testExtractDmgPreservesSymbolicLinks(@TempDir Path tempDir) throws IOException {
+
+    // arrange
+    WindowsSymlinkTestHelper.assumeSymlinksSupported();
+    IdeTestContext context = newContext(tempDir);
+    context.setIdeHome(tempDir);
+    context.setSystemInfo(SystemInfoMock.MAC_X64);
+    ProcessContext processContext = Mockito.mock(ProcessContext.class, Mockito.RETURNS_SELF);
+    context.setProcessContext(processContext);
+    Path appPath = tempDir.resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_VOLUME).resolve("MyApp.app");
+    Path versions = appPath.resolve("Contents/Frameworks/My.framework/Versions");
+    Path sourceFile = versions.resolve("A/My");
+    Files.createDirectories(sourceFile.getParent());
+    Files.writeString(sourceFile, "x".repeat(1024));
+    context.getFileAccess().makeExecutable(sourceFile);
+    Files.createSymbolicLink(versions.resolve("Current"), Path.of("A"));
+    Path target = tempDir.resolve("target");
+
+    // act
+    context.getFileAccess().extractDmg(tempDir.resolve("MyApp.dmg"), target);
+
+    // assert
+    Path copiedLink = target.resolve("MyApp.app/Contents/Frameworks/My.framework/Versions/Current");
+    assertThat(copiedLink).isSymbolicLink();
+    assertThat(Files.readSymbolicLink(copiedLink)).isEqualTo(Path.of("A"));
+    assertThat(copiedLink.resolve("My")).hasSameTextualContentAs(sourceFile);
+    assertThat(copiedLink.resolve("My")).isExecutable();
   }
 
   private void createDirs(FileAccess fileAccess, Path dir) {

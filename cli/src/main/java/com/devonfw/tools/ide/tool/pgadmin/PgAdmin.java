@@ -10,6 +10,8 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.WindowsAppInstallation;
 import com.devonfw.tools.ide.os.WindowsHelper;
+import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.NativePackage;
 import com.devonfw.tools.ide.tool.NativePackageManager;
@@ -19,6 +21,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * {@link GlobalToolCommandlet} for <a href="https://www.pgadmin.org/">pgadmin</a>
  */
 public class PgAdmin extends GlobalToolCommandlet {
+
+  private static final String PGADMIN_MAC_BINARY = "pgAdmin 4";
 
   /**
    * The constructor.
@@ -49,6 +53,12 @@ public class PgAdmin extends GlobalToolCommandlet {
   }
 
   @Override
+  public ProcessResult runTool(List<String> args) {
+
+    return runTool(ProcessMode.BACKGROUND_SILENT, null, args);
+  }
+
+  @Override
   public String getMacApplicationName() {
 
     return "pgAdmin 4";
@@ -57,11 +67,15 @@ public class PgAdmin extends GlobalToolCommandlet {
   @Override
   protected String getBinaryName() {
 
+    if (this.context.getSystemInfo().isMac()) {
+      return PGADMIN_MAC_BINARY;
+    }
     return "pgadmin4";
   }
 
   @Override
   protected Path getInstallationPath(String edition, VersionIdentifier resolvedVersion) {
+
     Path path = super.getInstallationPath(edition, resolvedVersion);
     if (path == null) {
       if (this.context.getSystemInfo().isWindows()) {
