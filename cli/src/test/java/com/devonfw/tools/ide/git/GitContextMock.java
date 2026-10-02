@@ -8,7 +8,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.context.ProcessContextGitMock;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileCopyMode;
 import com.devonfw.tools.ide.io.ini.IniFile;
@@ -16,13 +20,21 @@ import com.devonfw.tools.ide.io.ini.IniFileImpl;
 import com.devonfw.tools.ide.io.ini.IniSection;
 
 /**
- * Mock implementation of {@link GitContext}.
+ * Mock of {@link GitContext} that simulates the remote {@code fetch}/{@code pull} lifecycle against the repository state kept in the {@code .git} files (HEAD,
+ * FETCH_HEAD, refs, config). It is self-contained - no real git executable is required.
+ * <p>
+ * Stage pending remote changes with {@link #addChanges(Path, GitCommit...)}; a subsequent {@code fetch} advances {@code FETCH_HEAD} so the update becomes
+ * visible and {@link #pull(Path)} applies the staged changes to the working tree.
+ *
+ * @see FixtureGitContextMock
  */
 public class GitContextMock extends GitContextImpl {
 
+  private static final Logger LOG = LoggerFactory.getLogger(GitContextMock.class);
+
   /**
    * Fallback URL for repositories without a mocked {@code .git/config} - has to be a valid git URL that is not the default settings URL, so both the settings
-   * health check and tool settings substitution (e.g. Maven) run succesfully (they check URL validity).
+   * health check and tool settings substitution (e.g. Maven) run successfully (they check URL validity).
    */
   private static final String MOCKED_URL_VALUE = "https://github.com/devonfw/mocked-settings.git";
 
@@ -30,6 +42,9 @@ public class GitContextMock extends GitContextImpl {
   private static final String REMOTES_FILE = "remotes.properties";
 
   private final Map<Path, List<GitCommit>> pending = new HashMap<>();
+
+  /** Whether {@link #hasUntrackedFiles(Path)} should report untracked files (used to drive the release commandlet tests). */
+  private boolean simulateUntrackedFiles = false;
 
   /**
    * @param context the {@link IdeContext context}.
@@ -39,18 +54,67 @@ public class GitContextMock extends GitContextImpl {
     super(context);
   }
 
+  /**
+   * Disables the real git executable lookup so the mock never requires a git installation.
+   *
+   * @return a dummy {@link Path} to git
+   */
   @Override
-  public void pullSafelyWithStash(Path repository) {
-    pull(repository);
+  public Path findGitRequired() {
+
+    return Path.of("git");
+  }
+
+  /**
+   * @return an empty list - no git remotes are mocked in this context
+   */
+  @Override
+  public List<String> retrieveGitRemotes(Path repository) {
+
+    return List.of();
+  }
+
+  /**
+   * @return the name of the default remote
+   */
+  @Override
+  public String determineTrackedRemote(Path repository) {
+
+    return DEFAULT_REMOTE;
+  }
+
+  @Override
+  public void commit(Path repository, String message, boolean addAll) {
+
+  }
+
+  @Override
+  public void tag(Path repository, String tagName, String message) {
+
+  }
+
+  @Override
+  public void push(Path repository, boolean followTags) {
+
+  }
+
+  /**
+   * Configures whether the repository should simulate untracked files.
+   *
+   * @param hasUntrackedFiles true if untracked files should be simulated, false otherwise
+   */
+  public void setSimulateUntrackedFiles(boolean hasUntrackedFiles) {
+    this.simulateUntrackedFiles = hasUntrackedFiles;
   }
 
   @Override
   public boolean hasUntrackedFiles(Path repository) {
-    return false;
+
+    return this.simulateUntrackedFiles;
   }
 
   /**
-   * Simulates cloning a remote repository into the provided local path for tests.
+   * Simulates cloning a remote repository into the provided local path by building a minimal {@code .git} skeleton (HEAD, FETCH_HEAD, branch ref, config).
    *
    * @param gitUrl the {@link GitUrl} describing remote and branch
    * @param repository the target repository path
@@ -85,6 +149,20 @@ public class GitContextMock extends GitContextImpl {
     IniSection originSection = config.getOrCreateSection("remote \"origin\"");
     originSection.setProperty("url", gitUrl.url());
     fileAccess.writeIniFile(config, gitFolder.resolve("config"));
+  }
+
+  /**
+   * Delegates to {@link #pull(Path)} without executing real git stash commands, so this mock stays self-contained and never requires a git installation. The
+   * actual stash logic of {@link GitContextImpl#pullSafelyWithStash(Path)} is tested in {@link PullSafelyWithStashTest} against the
+   * {@link ProcessContextGitMock}.
+   *
+   * @param repository the {@link Path} to the repository
+   */
+  @Override
+  public void pullSafelyWithStash(Path repository) {
+
+    LOG.debug("Simulating pull with stash on {} (the stash logic itself is tested in PullSafelyWithStashTest)", repository);
+    pull(repository);
   }
 
   /**
@@ -186,17 +264,6 @@ public class GitContextMock extends GitContextImpl {
   }
 
   @Override
-  public List<String> retrieveGitRemotes(Path repository) {
-
-    return Collections.emptyList();
-  }
-
-  @Override
-  public Path findGitRequired() {
-    return Path.of("git");
-  }
-
-  @Override
   public Path findGit() {
     return null;
   }
@@ -260,11 +327,6 @@ public class GitContextMock extends GitContextImpl {
     }
 
     return content;
-  }
-
-  @Override
-  public String determineTrackedRemote(Path repository) {
-    return DEFAULT_REMOTE;
   }
 
   /**
@@ -345,21 +407,6 @@ public class GitContextMock extends GitContextImpl {
 
       this(List.of(changes));
     }
-  }
-
-  @Override
-  public void commit(Path repository, String message, boolean addAll) {
-
-  }
-
-  @Override
-  public void tag(Path repository, String tagName, String message) {
-
-  }
-
-  @Override
-  public void push(Path repository, boolean followTags) {
-
   }
 
   @Override

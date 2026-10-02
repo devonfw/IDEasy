@@ -1,27 +1,56 @@
 package com.devonfw.tools.ide.git;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.context.ProcessContextGitMock;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.process.ProcessResult;
 
 /**
- * Test of {@link GitContextImpl#pullSafelyWithStash(Path)} method and related functionality.
+ * Test of {@link GitContextImpl#pullSafelyWithStash(Path)} and the related {@link GitContextImpl#hasUntrackedFiles(Path)} method. The real git commands are
+ * executed through a {@link ProcessContextGitMock}, which simulates them via file operations so no git installation is required.
  */
 class PullSafelyWithStashTest extends AbstractIdeContextTest {
 
-  private GitContextImplMock gitContextMock;
+  private static final String UNTRACKED_FILE = "untracked-file.txt";
+
+  private ProcessContextGitMock processContext;
+  private TestGitContext gitContext;
   private IdeTestContext context;
   private Path testRepository;
 
   /**
-   * Set up test context and mock objects.
+   * A {@link GitContextImpl} double only overriding the git executable lookup so that the git commands run against the {@link ProcessContextGitMock} without
+   * requiring a git installation.
+   */
+  private class TestGitContext extends GitContextImpl {
+
+    /**
+     * @param context the {@link com.devonfw.tools.ide.context.IdeContext context}.
+     */
+    TestGitContext(IdeContext context) {
+
+      super(context);
+    }
+
+    @Override
+    public Path findGitRequired() {
+
+      return Path.of("git");
+    }
+  }
+
+  /**
+   * Sets up the test context with a simulated git repository.
    *
    * @param tempDir a {@link TempDir} {@link Path}
    */
@@ -30,48 +59,37 @@ class PullSafelyWithStashTest extends AbstractIdeContextTest {
     this.testRepository = tempDir.resolve("test-repo");
     this.context = newContext(tempDir);
     this.context.getNetworkStatus().simulateOnline();
-    ProcessContextGitMock processContext = new ProcessContextGitMock(context, tempDir);
-    this.context.setProcessContext(processContext);
-    this.gitContextMock = new GitContextImplMock(context, tempDir);
-    this.context.setGitContext(gitContextMock);
+    this.processContext = new ProcessContextGitMock(this.context, this.testRepository);
+    this.context.setProcessContext(this.processContext);
+    this.gitContext = new TestGitContext(this.context);
+    this.context.setGitContext(this.gitContext);
 
-    // Create a simple git repository structure
-    createTestRepository(this.testRepository);
+    // create a simple git repository structure
+    FileAccess fileAccess = this.context.getFileAccess();
+    fileAccess.mkdirs(this.testRepository);
+    Path gitFolder = this.testRepository.resolve(GitContext.GIT_FOLDER);
+    fileAccess.mkdirs(gitFolder);
+    fileAccess.writeFileContent("ref: refs/heads/main", gitFolder.resolve(GitContext.FILE_HEAD));
   }
 
   /**
-   * Create a simple test git repository structure.
-   *
-   * @param repository the path to the repository
-   */
-  private void createTestRepository(Path repository) {
-    try {
-      FileAccess fileAccess = this.context.getFileAccess();
-      fileAccess.mkdirs(repository);
-      Path gitFolder = repository.resolve(GitContext.GIT_FOLDER);
-      fileAccess.mkdirs(gitFolder);
-      fileAccess.touch(gitFolder.resolve(GitContext.FILE_HEAD));
-      fileAccess.writeFileContent("ref: refs/heads/main", gitFolder.resolve("HEAD"));
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to create test repository", e);
-    }
-  }
-
-  /**
-   * Test successful stash creation, pull, and pop when untracked files are present. This tests the main happy path of pullSafelyWithStash.
+   * Tests the main happy path: untracked files are stashed, the pull is applied and the stash is popped again.
    */
   @Test
   void testPullSafelyWithStashSuccessful() {
     // arrange
-    this.gitContextMock.setSimulateUntrackedFiles(true);
-    this.gitContextMock.addStashEntry("stash@{0}", "autostash:pull:test-token");
+    this.processContext.addUntrackedFile(UNTRACKED_FILE);
 
     // act
     this.context.getGitContext().pullSafelyWithStash(this.testRepository);
 
-    // assert - pull should have been called (HEAD file should be touched)
-    Path headFile = this.testRepository.resolve(GitContext.GIT_FOLDER).resolve(GitContext.FILE_HEAD);
-    assertThat(headFile).exists();
+    // assert
+    assertThat(usedGitCommands()).containsExactly("git --no-pager stash push --include-untracked -m " + lastStashToken() + " --quiet",
+        "git --no-pager stash list", "git --no-pager pull --quiet", "git --no-pager stash pop stash@{0} --quiet");
+    assertThat(exitCodes()).containsExactly(0, 0, 0, 0);
+    assertThat(this.context.getGitContext().hasUntrackedFiles(this.testRepository)).isTrue();
+    assertThat(stashListLines()).isEmpty();
+    assertThat(this.testRepository.resolve(GitContext.GIT_FOLDER).resolve("update")).exists();
   }
 
   /**
@@ -80,76 +98,94 @@ class PullSafelyWithStashTest extends AbstractIdeContextTest {
   @Test
   void testPullSafelyWithStashCreationFails() {
     // arrange
-    this.gitContextMock.setSimulateUntrackedFiles(true);
-    this.gitContextMock.setStashCreationFailed(true);
+    this.processContext.addUntrackedFile(UNTRACKED_FILE);
+    this.processContext.setStashPushFailed(true);
+    this.context.setAnswers("yes", "yes");
 
     // act
     this.context.getGitContext().pullSafelyWithStash(this.testRepository);
 
-    // assert - pull should still be called
-    Path headFile = this.testRepository.resolve(GitContext.GIT_FOLDER).resolve(GitContext.FILE_HEAD);
-    assertThat(headFile).exists();
+    // assert
+    assertThat(usedGitCommands()).containsExactly("git --no-pager stash push --include-untracked -m " + lastStashToken() + " --quiet",
+        "git --no-pager stash list", "git --no-pager pull --quiet");
+    assertThat(exitCodes()).containsExactly(1, 0, 0);
+    // assert
+    assertThat(this.context.getGitContext().hasUntrackedFiles(this.testRepository)).isTrue();
+    assertThat(stashListLines()).isEmpty();
+    assertThat(this.testRepository.resolve(GitContext.GIT_FOLDER).resolve("update")).exists();
   }
 
   /**
-   * Test pullSafelyWithStash when stash list operation fails. Should handle gracefully and skip stash pop.
+   * Tests that a failing stash list is handled gracefully: the pull is still executed and the stash pop is skipped.
    */
   @Test
   void testPullSafelyWithStashListFails() {
     // arrange
-    this.gitContextMock.setSimulateUntrackedFiles(true);
-    this.gitContextMock.setStashListFailed(true);
+    this.processContext.addUntrackedFile(UNTRACKED_FILE);
+    this.processContext.setStashListFailed(true);
+    this.context.setAnswers("yes", "yes");
 
     // act
     this.context.getGitContext().pullSafelyWithStash(this.testRepository);
 
-    // assert - pull should still have been called
-    Path headFile = this.testRepository.resolve(GitContext.GIT_FOLDER).resolve(GitContext.FILE_HEAD);
-    assertThat(headFile).exists();
+    // assert
+    assertThat(usedGitCommands()).containsExactly("git --no-pager stash push --include-untracked -m " + lastStashToken() + " --quiet",
+        "git --no-pager stash list", "git --no-pager pull --quiet");
+    assertThat(exitCodes()).containsExactly(0, 1, 0);
+    assertThat(stashListLines()).containsOnly("stash@{0}: " + lastStashToken());
+    assertThat(this.testRepository.resolve(GitContext.GIT_FOLDER).resolve("update")).exists();
   }
 
   /**
-   * Test pullSafelyWithStash when stash pop operation fails after pull. Should still complete the pull successfully.
+   * Tests that a failing stash pop after the pull is handled gracefully: the pull is completed and the stash remains on the stack.
    */
   @Test
   void testPullSafelyWithStashPopFails() {
     // arrange
-    this.gitContextMock.setSimulateUntrackedFiles(true);
-    this.gitContextMock.setStashPopFailed(true);
-    this.gitContextMock.addStashEntry("stash@{0}", "autostash:pull:test-token");
+    this.processContext.addUntrackedFile(UNTRACKED_FILE);
+    this.processContext.setStashPopFailed(true);
+    this.context.setAnswers("yes");
 
     // act
     this.context.getGitContext().pullSafelyWithStash(this.testRepository);
 
-    // assert - pull should have succeeded despite stash pop failure
-    Path headFile = this.testRepository.resolve(GitContext.GIT_FOLDER).resolve(GitContext.FILE_HEAD);
-    assertThat(headFile).exists();
+    // assert
+    assertThat(usedGitCommands()).containsExactly("git --no-pager stash push --include-untracked -m " + lastStashToken() + " --quiet",
+        "git --no-pager stash list", "git --no-pager pull --quiet", "git --no-pager stash pop stash@{0} --quiet");
+    assertThat(exitCodes()).containsExactly(0, 0, 0, 1);
+    assertThat(stashListLines()).containsOnly("stash@{0}: " + lastStashToken());
+    assertThat(this.testRepository.resolve(GitContext.GIT_FOLDER).resolve("update")).exists();
   }
 
   /**
-   * Test pullSafelyWithStash when stash reference cannot be found. Should skip stash pop gracefully.
+   * Tests that a failing pull is handled gracefully: the pull fails but the created stash is popped again so the untracked files are restored.
    */
   @Test
-  void testPullSafelyWithStashRefNotFound() {
+  void testPullSafelyWithStashPullFails() {
     // arrange
-    this.gitContextMock.setSimulateUntrackedFiles(true);
-    // Don't add any stash entries - simulating that the stash was not found
+    this.processContext.addUntrackedFile(UNTRACKED_FILE);
+    this.processContext.setPullFailed(true);
+    this.context.setAnswers("yes");
 
     // act
     this.context.getGitContext().pullSafelyWithStash(this.testRepository);
 
-    // assert - pull should still have been called
-    Path headFile = this.testRepository.resolve(GitContext.GIT_FOLDER).resolve(GitContext.FILE_HEAD);
-    assertThat(headFile).exists();
+    // assert
+    assertThat(usedGitCommands()).containsExactly("git --no-pager stash push --include-untracked -m " + lastStashToken() + " --quiet",
+        "git --no-pager stash list", "git --no-pager pull --quiet", "git branch --show-current", "git --no-pager stash pop stash@{0} --quiet");
+    assertThat(exitCodes()).containsExactly(0, 0, 1, 0, 0);
+    assertThat(this.context.getGitContext().hasUntrackedFiles(this.testRepository)).isTrue();
+    assertThat(stashListLines()).isEmpty();
+    assertThat(this.testRepository.resolve(GitContext.GIT_FOLDER).resolve("update")).doesNotExist();
   }
 
   /**
-   * Test repoHasUntrackedFiles method returns true when untracked files exist.
+   * Tests that {@link GitContextImpl#hasUntrackedFiles(Path)} returns {@code true} when untracked files exist.
    */
   @Test
   void testRepoHasUntrackedFilesTrue() {
     // arrange
-    this.gitContextMock.setSimulateUntrackedFiles(true);
+    this.processContext.addUntrackedFile(UNTRACKED_FILE);
 
     // act
     boolean hasUntrackedFiles = this.context.getGitContext().hasUntrackedFiles(this.testRepository);
@@ -159,13 +195,10 @@ class PullSafelyWithStashTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test repoHasUntrackedFiles method returns false when no untracked files exist.
+   * Tests that {@link GitContextImpl#hasUntrackedFiles(Path)} returns {@code false} when no untracked files exist.
    */
   @Test
   void testRepoHasUntrackedFilesFalse() {
-    // arrange
-    this.gitContextMock.setSimulateUntrackedFiles(false);
-
     // act
     boolean hasUntrackedFiles = this.context.getGitContext().hasUntrackedFiles(this.testRepository);
 
@@ -174,145 +207,101 @@ class PullSafelyWithStashTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test successful stash pop with correct stash reference. Verifies that when a stash is found by token, the pop operation is attempted.
+   * Tests that the created stash is popped using the correct stash reference, even when other stashes already exist. The new stash becomes {@code stash@{0}}
+   * and the pre-existing stashes are shifted down by one index.
    */
   @Test
   void testSuccessfulStashPopWithCorrectReference() {
     // arrange
-    this.gitContextMock.setSimulateUntrackedFiles(true);
-    String stashRef = "stash@{0}";
-    String stashMessage = "autostash:pull:12345-unique-token";
-    this.gitContextMock.addStashEntry(stashRef, stashMessage);
+    this.processContext.addUntrackedFile(UNTRACKED_FILE);
+    this.processContext.addStashEntry("stash@{1}", "some-other-stash");
 
     // act
     this.context.getGitContext().pullSafelyWithStash(this.testRepository);
 
-    // assert - pull should have completed
-    Path headFile = this.testRepository.resolve(GitContext.GIT_FOLDER).resolve(GitContext.FILE_HEAD);
-    assertThat(headFile).exists();
+    // assert -
+    assertThat(usedGitCommands())
+        .contains("git --no-pager stash pop stash@{0} --quiet");
+    assertThat(stashListLines()).containsOnly("stash@{2}: some-other-stash");
   }
 
   /**
-   * Test finding the correct stash reference from multiple entries in the stash list. Verifies that the correct stash is identified even when multiple stashes
-   * exist.
+   * Tests that the correct stash reference is found from multiple stash list entries: the created stash is always the new top entry {@code stash@{0}} and all
+   * pre-existing stashes keep their content but shift down by one index.
    */
   @Test
   void testFindCorrectStashRefFromMultipleEntries() {
     // arrange
-    this.gitContextMock.setSimulateUntrackedFiles(true);
-    String targetToken = "autostash:pull:target-token";
-    this.gitContextMock.addStashEntry("stash@{0}", "some-other-stash");
-    this.gitContextMock.addStashEntry("stash@{1}", targetToken);
-    this.gitContextMock.addStashEntry("stash@{2}", "another-stash");
+    this.processContext.addUntrackedFile(UNTRACKED_FILE);
+    for (int i = 0; i < 10; i++) {
+      this.processContext.addStashEntry("stash@{" + i + "}", "old-stash-" + i);
+    }
 
     // act
     this.context.getGitContext().pullSafelyWithStash(this.testRepository);
 
-    // assert - pull should have been executed with correct stash identified
-    Path headFile = this.testRepository.resolve(GitContext.GIT_FOLDER).resolve(GitContext.FILE_HEAD);
-    assertThat(headFile).exists();
+    // assert -
+    assertThat(usedGitCommands()).contains("git --no-pager stash pop stash@{0} --quiet");
+    List<String> lines = stashListLines();
+    assertThat(lines).hasSize(10);
+    assertThat(lines.get(0)).isEqualTo("stash@{1}: old-stash-0");
+    assertThat(lines.get(9)).isEqualTo("stash@{10}: old-stash-9");
   }
 
   /**
-   * Test that stash pop is skipped when stash reference is null. Verifies graceful handling when stash cannot be found.
-   */
-  @Test
-  void testStashPopSkippedWhenRefIsNull() {
-    // arrange
-    this.gitContextMock.setSimulateUntrackedFiles(true);
-    this.gitContextMock.clearStashList();
-
-    // act
-    this.context.getGitContext().pullSafelyWithStash(this.testRepository);
-
-    // assert - pull should still complete
-    Path headFile = this.testRepository.resolve(GitContext.GIT_FOLDER).resolve(GitContext.FILE_HEAD);
-    assertThat(headFile).exists();
-  }
-
-  /**
-   * Test that pull is always called even if stash operations fail. This is critical to ensure the pull operation happens regardless of stash issues.
+   * Tests that the pull is always called even if the stash creation fails.
    */
   @Test
   void testPullIsAlwaysCalled() {
     // arrange
-    this.gitContextMock.setSimulateUntrackedFiles(true);
-    this.gitContextMock.setStashCreationFailed(true);
+    this.processContext.addUntrackedFile(UNTRACKED_FILE);
+    this.processContext.setStashPushFailed(true);
+    this.context.setAnswers("yes", "yes");
 
     // act
     this.context.getGitContext().pullSafelyWithStash(this.testRepository);
 
-    // assert - pull should have been called despite stash creation failure
-    Path headFile = this.testRepository.resolve(GitContext.GIT_FOLDER).resolve(GitContext.FILE_HEAD);
-    assertThat(headFile).exists();
+    // assert
+    assertThat(usedGitCommands()).contains("git --no-pager pull --quiet");
+    assertThat(this.testRepository.resolve(GitContext.GIT_FOLDER).resolve("update")).exists();
   }
 
   /**
-   * Test with empty stash list - no stash entry found. Verifies that empty stash list is handled correctly.
+   * Tests that an empty stash list is handled gracefully: the stash pop is skipped and the pull is still executed.
    */
   @Test
   void testEmptyStashList() {
     // arrange
-    this.gitContextMock.setSimulateUntrackedFiles(true);
-    // Empty stash list - no entries added
+    this.processContext.addUntrackedFile(UNTRACKED_FILE);
+    this.processContext.setStashPushFailed(true);
+    this.context.setAnswers("yes", "yes");
 
     // act
     this.context.getGitContext().pullSafelyWithStash(this.testRepository);
 
-    // assert - should handle empty stash gracefully, pull should complete
-    Path headFile = this.testRepository.resolve(GitContext.GIT_FOLDER).resolve(GitContext.FILE_HEAD);
-    assertThat(headFile).exists();
-  }
-
-  /**
-   * Test that repoHasUntrackedFiles properly checks for untracked files. Verifies the integration point used by pullSafelyWithStash.
-   */
-  @Test
-  void testRepoHasUntrackedFilesIntegration() {
-    // arrange
-    boolean untrackedFilesExist = true;
-    this.gitContextMock.setSimulateUntrackedFiles(untrackedFilesExist);
-
-    // act
-    boolean result = this.context.getGitContext().hasUntrackedFiles(this.testRepository);
-
     // assert
-    assertThat(result).isEqualTo(untrackedFilesExist);
+    assertThat(usedGitCommands()).hasSize(3).last().isEqualTo("git --no-pager pull --quiet");
+    assertThat(this.testRepository.resolve(GitContext.GIT_FOLDER).resolve("update")).exists();
   }
 
   /**
-   * Test configuration of stash failure modes for testing different error scenarios.
-   */
-  @Test
-  void testMockConfigurationMethods() {
-    // arrange & act
-    this.gitContextMock.setStashCreationFailed(true);
-    this.gitContextMock.setStashListFailed(true);
-    this.gitContextMock.setStashPopFailed(true);
-    this.gitContextMock.setSimulateUntrackedFiles(true);
-    this.gitContextMock.addStashEntry("stash@{0}", "test");
-    this.gitContextMock.clearStashList();
-
-    // assert - mock should be properly configured
-    assertThat(this.gitContextMock).isNotNull();
-  }
-
-  /**
-   * Test combination of stash creation and list failures. Both operations failing should still allow pull to execute.
+   * Tests the combination of failing stash creation and failing stash list: the pull is still executed.
    */
   @Test
   void testCombinedStashCreationAndListFailures() {
     // arrange
-    this.gitContextMock.setSimulateUntrackedFiles(true);
-    this.gitContextMock.setStashCreationFailed(true);
-    this.gitContextMock.setStashListFailed(true);
+    this.processContext.addUntrackedFile(UNTRACKED_FILE);
+    this.processContext.setStashPushFailed(true);
+    this.processContext.setStashListFailed(true);
+    this.context.setAnswers("yes", "yes");
 
     // act
     this.context.getGitContext().pullSafelyWithStash(this.testRepository);
 
-    // assert - pull should still execute
-    Path headFile = this.testRepository.resolve(GitContext.GIT_FOLDER).resolve(GitContext.FILE_HEAD);
-    assertThat(headFile).exists();
+    // assert
+    assertThat(usedGitCommands()).hasSize(3).last().isEqualTo("git --no-pager pull --quiet");
+    assertThat(exitCodes()).containsExactly(1, 1, 0);
+    assertThat(this.testRepository.resolve(GitContext.GIT_FOLDER).resolve("update")).exists();
   }
 
   /**
@@ -321,100 +310,71 @@ class PullSafelyWithStashTest extends AbstractIdeContextTest {
   @Test
   void testAllStashOperationsFail() {
     // arrange
-    this.gitContextMock.setSimulateUntrackedFiles(true);
-    this.gitContextMock.setStashCreationFailed(true);
-    this.gitContextMock.setStashListFailed(true);
-    this.gitContextMock.setStashPopFailed(true);
+    this.processContext.addUntrackedFile(UNTRACKED_FILE);
+    this.processContext.setStashPushFailed(true);
+    this.processContext.setStashListFailed(true);
+    this.processContext.setStashPopFailed(true);
+    this.context.setAnswers("yes", "yes");
 
     // act
     this.context.getGitContext().pullSafelyWithStash(this.testRepository);
-
-    // assert - pull should complete successfully
-    Path headFile = this.testRepository.resolve(GitContext.GIT_FOLDER).resolve(GitContext.FILE_HEAD);
-    assertThat(headFile).exists();
-  }
-
-  /**
-   * Test stash operations with multiple attempts at finding stash ref. Verifies that the correct stash is identified in complex scenarios.
-   */
-  @Test
-  void testStashRefIdentificationWithManyEntries() {
-    // arrange
-    this.gitContextMock.setSimulateUntrackedFiles(true);
-    // Add many stash entries
-    for (int i = 0; i < 10; i++) {
-      this.gitContextMock.addStashEntry("stash@{" + i + "}", "old-stash-" + i);
-    }
-    // Add target stash in the middle
-    this.gitContextMock.addStashEntry("stash@{10}", "autostash:pull:critical-token");
-    // Add more stashes after
-    for (int i = 11; i < 15; i++) {
-      this.gitContextMock.addStashEntry("stash@{" + i + "}", "newer-stash-" + i);
-    }
-
-    // act
-    this.context.getGitContext().pullSafelyWithStash(this.testRepository);
-
-    // assert - pull should have completed with correct stash identified
-    Path headFile = this.testRepository.resolve(GitContext.GIT_FOLDER).resolve(GitContext.FILE_HEAD);
-    assertThat(headFile).exists();
-  }
-
-  /**
-   * Test repoHasUntrackedFiles when set to false. Verifies that the mock properly simulates no untracked files.
-   */
-  @Test
-  void testNoUntrackedFilesScenario() {
-    // arrange
-    this.gitContextMock.setSimulateUntrackedFiles(false);
-
-    // act
-    boolean hasUntracked = this.context.getGitContext().hasUntrackedFiles(this.testRepository);
 
     // assert
-    assertThat(hasUntracked).isFalse();
+    assertThat(usedGitCommands()).hasSize(3).last().isEqualTo("git --no-pager pull --quiet");
+    assertThat(exitCodes()).containsExactly(1, 1, 0);
+    assertThat(this.testRepository.resolve(GitContext.GIT_FOLDER).resolve("update")).exists();
   }
 
   /**
-   * Test stash operations order: create -> list -> pop. Verifies that operations are executed in the correct sequence.
+   * @return the stash token used by the last executed {@code stash push} command.
    */
-  @Test
-  void testStashOperationsSequence() {
-    // arrange
-    this.gitContextMock.setSimulateUntrackedFiles(true);
-    // Simulate all operations succeeding
-    this.gitContextMock.setStashCreationFailed(false);
-    this.gitContextMock.setStashListFailed(false);
-    this.gitContextMock.setStashPopFailed(false);
-    this.gitContextMock.addStashEntry("stash@{0}", "autostash:pull:sequence-test");
+  private String lastStashToken() {
 
-    // act
-    this.context.getGitContext().pullSafelyWithStash(this.testRepository);
-
-    // assert - pull should have been called
-    Path headFile = this.testRepository.resolve(GitContext.GIT_FOLDER).resolve(GitContext.FILE_HEAD);
-    assertThat(headFile).exists();
+    for (ProcessResult result : this.processContext.getResults()) {
+      if (result.getCommand().contains("stash push")) {
+        String[] args = result.getCommand().split(" ");
+        int idx = 0;
+        for (idx = 0; idx < args.length - 1; idx++) {
+          if (args[idx].equals("-m")) {
+            break;
+          }
+        }
+        return args[idx + 1];
+      }
+    }
+    throw new IllegalStateException("No stash push command was executed");
   }
 
   /**
-   * Test clearing and resetting mock state. Verifies that the mock can be reconfigured between operations.
+   * @return the {@link List} of git commands that were executed.
    */
-  @Test
-  void testMockStateManagement() {
-    // arrange - first configuration
-    this.gitContextMock.setSimulateUntrackedFiles(true);
-    this.gitContextMock.addStashEntry("stash@{0}", "test1");
+  private List<String> usedGitCommands() {
 
-    // act - execute with first config
-    this.context.getGitContext().pullSafelyWithStash(this.testRepository);
-
-    // Clear for second use
-    this.gitContextMock.clearStashList();
-    this.gitContextMock.setSimulateUntrackedFiles(false);
-
-    // assert - second state should be applied
-    boolean hasUntracked = this.context.getGitContext().hasUntrackedFiles(this.testRepository);
-    assertThat(hasUntracked).isFalse();
+    return this.processContext.getResults().stream().map(ProcessResult::getCommand).toList();
   }
+
+  /**
+   * @return the exit codes of the executed git commands.
+   */
+  private List<Integer> exitCodes() {
+
+    return this.processContext.getResults().stream().map(ProcessResult::getExitCode).toList();
+  }
+
+  /**
+   * @return the lines of the simulated stash list.
+   */
+  private List<String> stashListLines() {
+
+    Path stashList = this.testRepository.resolve(GitContext.GIT_FOLDER).resolve("stash-list");
+    if (Files.exists(stashList)) {
+      try {
+        return List.copyOf(Files.readAllLines(stashList));
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+    return List.of();
+  }
+
 }
-
