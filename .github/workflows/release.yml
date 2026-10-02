@@ -10,115 +10,25 @@ permissions:
 
 jobs:
 
-  # Resolves the version to be released exactly once, so that every downstream job refers to the
-  # same value. .mvn/maven.config is rewritten twice during this workflow (to the release version
-  # and afterwards to the next snapshot), so re-reading it in a later job would resolve a different
-  # version depending on when it happens.
+  # Resolves the release version exactly once (via the shared reusable workflow) so that every
+  # downstream job refers to the same value. .mvn/maven.config is rewritten twice during this
+  # workflow (to the release version and afterwards to the next snapshot), so re-reading it in a
+  # later job would resolve a different version depending on when it happens.
   resolve-version:
     name: Resolve release version
-    runs-on: ubuntu-latest
-    outputs:
-      release_version: ${{ steps.resolve.outputs.release_version }}
-      snapshot_version: ${{ steps.resolve.outputs.snapshot_version }}
-    steps:
-      - uses: actions/checkout@v7
-      - name: Resolve version from .mvn/maven.config
-        id: resolve
-        shell: bash
-        run: |
-          maven_config="$(cat .mvn/maven.config)"
-          snapshot_version="${maven_config/#*-Drevision=}"
-          snapshot_version="${snapshot_version/ */}"
-          release_version="${snapshot_version/-SNAPSHOT/}"
-          if [ -z "${release_version}" ]; then
-            echo "ERROR: could not resolve the release version from .mvn/maven.config." >&2
-            exit 1
-          fi
-          echo "Releasing ${release_version} (from ${snapshot_version})"
-          echo "release_version=${release_version}" >> "$GITHUB_OUTPUT"
-          echo "snapshot_version=${snapshot_version}" >> "$GITHUB_OUTPUT"
+    uses: ./.github/workflows/resolve-version.yml
+    with:
+      mode: release
 
-  # Adjusts the revision to the latest version, builds images for each OS type/architecture using matrix:os and uploads each binary as a separate artifact
+  # Builds all native images, the Windows MSI, and the macOS PKG via the shared reusable workflow,
+  # uploading each binary as a separate artifact that the release job below downloads and deploys.
   build-natives:
     name: Build native images
-    runs-on: ${{ matrix.os }}
     needs: resolve-version
-    strategy:
-      matrix: # ATTENTION: see also nightly-build.yml, image name are referenced in cli/src/main/assembly/*.xml files, on update do not forget to also update there
-        os: [ windows-latest, ubuntu-latest, ubuntu-22.04-arm, macos-latest, macos-15-intel ]
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          submodules: recursive
-      - uses: graalvm/setup-graalvm@v1
-        with:
-          java-version: '25'
-          distribution: 'graalvm-community'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          native-image-job-reports: 'true'
-      - name: Build native image
-        shell: bash
-        run: |
-          cd cli
-          mvn -B -ntp -Drevision=${RELEASE_VERSION} -Pnative -DskipTests=true package
-        env:
-          RELEASE_VERSION: ${{ needs.resolve-version.outputs.release_version }}
-      - name: Ad-hoc sign native image (macOS)
-        if: runner.os == 'macOS'
-        shell: bash
-        run: |
-          codesign --force --sign - cli/target/ideasy
-          codesign --verify --verbose cli/target/ideasy
-      - name: Upload native image
-        uses: actions/upload-artifact@v7
-        with:
-          name: natives-${{ matrix.os }}
-          path: cli/target/ideasy*
-      - name: Build MSI with WixToolSet
-        if: runner.os == 'Windows'
-        shell: bash
-        run: ./windows-installer/build-msi.sh
-      - name: Upload unsigned MSI
-        if: runner.os == 'Windows'
-        id: upload-msi
-        uses: actions/upload-artifact@v7
-        with:
-          name: msi-unsigned
-          path: windows-installer/ideasy.msi
-      - name: Sign MSI
-        if: runner.os == 'Windows'
-        uses: signpath/github-action-submit-signing-request@v2
-        with:
-          api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
-          organization-id: '428e13ed-ca0c-47ca-8a73-63b76cabb59b'
-          project-slug: 'IDEasy'
-          signing-policy-slug: 'test-signing'
-          artifact-configuration-slug: 'IDEasy'
-          github-artifact-id: '${{ steps.upload-msi.outputs.artifact-id }}'
-          wait-for-completion: true
-          output-artifact-directory: 'windows-installer/signed'
-      - name: Upload MSI
-        if: runner.os == 'Windows'
-        uses: actions/upload-artifact@v7
-        with:
-          name: msi
-          path: windows-installer/signed/ideasy.msi
-      - name: Build MacOS PKG
-        if: runner.os == 'macOS'
-        shell: bash
-        run: |
-          ./macos-installer/build-pkg.sh
-        env:
-          RELEASE_VERSION: ${{ needs.resolve-version.outputs.release_version }}
-      - name: Upload unsigned PKG
-        if: runner.os == 'macOS'
-        uses: actions/upload-artifact@v4
-        with:
-          name: pkg-${{ matrix.os == 'macos-latest' && 'arm64' || 'x64' }}
-          path: macos-installer/ideasy.pkg
-          # Default is "warn": a missing PKG would upload an empty artifact and only fail much
-          # later in the release job. Fail right here instead.
-          if-no-files-found: error
+    uses: ./.github/workflows/build-natives.yml
+    with:
+      native_version: ${{ needs.resolve-version.outputs.release_version }}
+      pkg_version: ${{ needs.resolve-version.outputs.release_version }}
 
   # Downloads all native image artifacts to cli/target and builds the project using assemblies for final deployment to Maven Central.
   # The version number for the next build will be incremented automatically.
@@ -133,40 +43,23 @@ jobs:
       sha_linux_arm64: ${{ steps.checksums.outputs.sha_linux_arm64 }}
       sha_linux_x64: ${{ steps.checksums.outputs.sha_linux_x64 }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v7
+      # Shared "download artifacts + GPG sign + mvn deploy" pipeline (see the composite action). It
+      # also rewrites .mvn/maven.config to the release version and creates the release tag; the
+      # release-only steps below rely on those side effects (and on the populated cli/target/) and
+      # therefore must run in this same job.
+      - name: Deploy to Apache Maven Central
+        uses: ./.github/actions/deploy-to-maven-central
         with:
-          submodules: recursive
-          token: ${{ secrets.ACTION_PUSH_TOKEN }}
-      - name: Set up Apache Maven Central
-        uses: actions/setup-java@v5
-        with:
-          java-version: 25
-          distribution: 'temurin'
-          cache: 'maven'
-          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: GPG_PASSPHRASE # env variable for GPG private key passphrase
-      - name: Download natives and build project
-        uses: actions/download-artifact@v8
-        with:
-          path: ./cli/target/
-      - name: Create assemblies and publish to Apache Maven Central
-        run: |
-          sed -i "s/${SNAPSHOT_VERSION}/${RELEASE_VERSION}/" .mvn/maven.config
-          git config --global user.email ${{ secrets.BUILD_USER_EMAIL }}
-          git config --global user.name ${{ secrets.BUILD_USER }}
-          git add -f .mvn/maven.config
-          git commit -m "set release version to ${RELEASE_VERSION}"
-          git tag -a "release/${RELEASE_VERSION}" -m "tagged version ${RELEASE_VERSION}"
-          export GPG_TTY=$TTY
-          mkdir -p ./cli/target/
-          mvn --settings .mvn/settings.xml -B -ntp deploy -Passembly,msi,pkg,deploy -pl -:ide-macos-installer -pl -:ide-windows-installer -Dgpg.pin.entry.mode=loopback -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }}
-        env:
-          RELEASE_VERSION: ${{ needs.resolve-version.outputs.release_version }}
-          SNAPSHOT_VERSION: ${{ needs.resolve-version.outputs.snapshot_version }}
-          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          mode: release
+          release_version: ${{ needs.resolve-version.outputs.release_version }}
+          snapshot_version: ${{ needs.resolve-version.outputs.snapshot_version }}
+          checkout_token: ${{ secrets.ACTION_PUSH_TOKEN }}
+          build_user: ${{ secrets.BUILD_USER }}
+          build_user_email: ${{ secrets.BUILD_USER_EMAIL }}
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg_passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          sonatype_username: ${{ secrets.SONATYPE_USERNAME }}
+          sonatype_password: ${{ secrets.SONATYPE_PASSWORD }}
       - name: Compute checksums of the released archives
         id: checksums
         env:
@@ -213,8 +106,6 @@ jobs:
         env:
           RELEASE_VERSION: ${{ needs.resolve-version.outputs.release_version }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BUILD_USER: ${{ secrets.BUILD_USER }}
-          BUILD_USER_PASSWD: ${{ secrets.BUILD_USER_PASSWD }}
 
   # Homebrew is a primary distribution channel for IDEasy. The formula is therefore published as
   # part of this release and not by a decoupled follow-up automation: if it cannot be published,
