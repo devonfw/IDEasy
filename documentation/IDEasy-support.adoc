@@ -4,5 +4,15 @@ TODO: community, bug-reporting, etc.
 
 <<<<
 
+include::mac-gatekeeper.adoc[leveloffset=2]
+
+include::cygwin.adoc[leveloffset=2]
+
+include::symlink.adoc[leveloffset=2]
+
+include::windows-file-lock.adoc[leveloffset=2]
+
+<<<<
+
 include::LICENSE.adoc[leveloffset=2]
 

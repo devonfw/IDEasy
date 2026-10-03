@@ -4,6 +4,12 @@ include::usage.adoc[leveloffset=2]
 
 <<<<
 
+include::project.adoc[leveloffset=2]
+
+include::sandbox.adoc[leveloffset=2]
+
+<<<<
+
 include::configuration.adoc[leveloffset=2]
 
 <<<<
@@ -30,10 +36,22 @@ include::software.adoc[leveloffset=3]
 
 include::system.adoc[leveloffset=3]
 
+include::tmp.adoc[leveloffset=3]
+
+include::urls.adoc[leveloffset=3]
+
 include::workspaces.adoc[leveloffset=3]
 
 include::repository.adoc[leveloffset=3]
 
 include::plugin.adoc[leveloffset=3]
 
+include::configurator.adoc[leveloffset=3]
+
+include::proxy-support.adoc[leveloffset=3]
+
+include::security.adoc[leveloffset=3]
+
 include::ai.adoc[leveloffset=3]
+
+include::coding-assistant.adoc[leveloffset=3]
