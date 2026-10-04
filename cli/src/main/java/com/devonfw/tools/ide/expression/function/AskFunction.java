@@ -28,13 +28,9 @@ import com.devonfw.tools.ide.expression.QuaternaryExpressionFunction;
  * </ol>
  * Example: {@code @ask-secret('AI_API_KEY', 'Please enter your API key:')}
  * <p>
- * <b>Note:</b> a value entered for {@code @ask-secret} is masked while typing and masked in all log output. It is
+ * <b>Note:</b> a value entered for {@code @ask-secret} is masked while typing. It is
  * <em>not persisted</em>, so the user is asked again on every run; persisting the plain text to an {@code ide.properties}
  * would just cache the secret on disk. Encryption is a separate story and out of scope here.
- * <p>
- * <b>Note:</b> the variable name given to {@code @ask-secret} has to follow the naming convention for secret variables (see
- * {@link IdeContext#isSecretVariableName(String)}) so that its value is reliably masked in all log output, even when it is read directly (e.g. from an
- * already existing {@code ide.properties}) without going through this function.
  */
 public class AskFunction extends QuaternaryExpressionFunction {
 
@@ -82,11 +78,6 @@ public class AskFunction extends QuaternaryExpressionFunction {
       }
       // the user is always asked and nothing is persisted since we have no name to persist under
       return toResult(ask(question, defaultValue, context));
-    }
-    if (this.secret && !IdeContext.isSecretVariableName(variableName)) {
-      throw new CliException("Invalid template expression: variable name '" + variableName + "' for function @" + this.name
-          + " has to follow the naming convention for secret variables and end with SECRET, PASSWORD, or API_KEY (case-insensitive) so that its value is"
-          + " reliably masked in log output.");
     }
     String value = context.getVariable(variableName);
     if (value != null) {

@@ -89,13 +89,9 @@ This is essential since foreign configuration formats may use an `@` for their o
 
 * The value entered for `@ask-variable` is persisted to the `ide.properties` of the chosen configuration location so that the user is asked only once.
 * The value entered for `@ask-secret` is _not_ persisted, so the user is asked again on every run.
-Persisting it would cache the secret on disk as plain text in `conf/ide.properties`; instead the value is masked in all log output.
+Persisting it would cache the secret on disk as plain text in `conf/ide.properties`.
 If you need the value to survive between runs, define it as a plain variable in `ide.properties` yourself.
 Encryption of stored secrets is a separate follow-up story (it also covers the case of the Maven `settings.xml`).
-* Masking of `@ask-secret` values relies purely on the naming convention that a secret variable name ends with `SECRET`, `PASSWORD`, or `API_KEY`
-(case-insensitive), so `@ask-secret` rejects a variable name that does not follow this convention.
-This way a secret is reliably masked even when its value is read directly (e.g. because it was already defined in `ide.properties`) without going through
-`@ask-secret` again.
 * Expressions belong in the workspace templates under `setup` and `update`.
 Do not put an `@ask-*` call into a value of `ide.properties` itself: a value that contains an expression is resolved on _every_ variable resolution, so a `@ask-*` in `ide.properties` would prompt on every `ide` invocation (including `ide env`).
 Expressions are typically used in the `update` templates to build up OS-specific or user-specific settings that would otherwise be hard to express with a plain variable, as in the following example that only resolves to a working value on the matching operating system:
