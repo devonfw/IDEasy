@@ -30,9 +30,9 @@ import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link ToolCommandlet} that is installed globally.
+ * {@link AbstractToolCommandlet} that is installed globally.
  */
-public abstract class GlobalToolCommandlet extends ToolCommandlet {
+public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(GlobalToolCommandlet.class);
 
@@ -350,8 +350,8 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   }
 
   /**
-   * @return a {@link Map} that maps edition names to the app name to look for in the Windows registry. Default
-   *     returns a single entry with {@code tool -> tool}. Override for tools with multiple editions on Windows.
+   * @return a {@link Map} that maps edition names to the app name to look for in the Windows registry. Default returns a single entry with
+   *     {@code tool -> tool}. Override for tools with multiple editions on Windows.
    */
   public Map<String, String> getWindowsRegistryAppNames() {
 
@@ -427,8 +427,8 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   }
 
   /**
-   * Uninstalls this tool on macOS. Unlike Linux, macOS has no single standardized package manager, so we try the best-effort options in order and finally
-   * fall back to giving the user actionable guidance if nothing could be done automatically.
+   * Uninstalls this tool on macOS. Unlike Linux, macOS has no single standardized package manager, so we try the best-effort options in order and finally fall
+   * back to giving the user actionable guidance if nothing could be done automatically.
    */
   private void uninstallMac() {
     if (runWithPackageManager(false, getUninstallPackageManagerCommands(), NativePackageAction.UNINSTALL)) {
@@ -449,9 +449,9 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
 
   /**
    * @param appBundle the *.app bundle to delete.
-   * @return {@code true} if {@code appBundle} was successfully deleted, {@code false} if deletion failed - e.g. because since macOS Monterey the
-   *     Applications folder is protected and a regular process may not be allowed to delete from it. Callers must not assume this always succeeds and
-   *     should fall back to manual-uninstall guidance if it returns {@code false} rather than letting the exception propagate.
+   * @return {@code true} if {@code appBundle} was successfully deleted, {@code false} if deletion failed - e.g. because since macOS Monterey the Applications
+   *     folder is protected and a regular process may not be allowed to delete from it. Callers must not assume this always succeeds and should fall back to
+   *     manual-uninstall guidance if it returns {@code false} rather than letting the exception propagate.
    */
   private boolean deleteMacApplicationBundle(Path appBundle) {
     try {
@@ -484,9 +484,9 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   }
 
   /**
-   * @return the name (without the ".app" suffix) of this tool's application bundle as it appears in the macOS Applications folder, or {@code null} if
-   *     unknown so that {@link #uninstall() uninstall} cannot try to automatically remove it and instead gives the user manual guidance. Override this in
-   *     subclasses that know their application bundle name (which may differ from {@link #getName() the tool name}, e.g. "Docker" for the tool "docker").
+   * @return the name (without the ".app" suffix) of this tool's application bundle as it appears in the macOS Applications folder, or {@code null} if unknown
+   *     so that {@link #uninstall() uninstall} cannot try to automatically remove it and instead gives the user manual guidance. Override this in subclasses
+   *     that know their application bundle name (which may differ from {@link #getName() the tool name}, e.g. "Docker" for the tool "docker").
    */
   public String getMacApplicationName() {
     return null;
