@@ -125,7 +125,7 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
       assertThat(desktopFile).exists();
       assertThat(desktopFile).content()
           .contains("Exec=" + installationPath.resolve("bin/ideasy") + " gui")
-          .contains("Icon=" + installationPath.resolve("gui/logo.png"));
+          .contains("Icon=" + installationPath.resolve("gui/ideasy.png"));
     } else if (systemInfo.isMac()) {
       Path commandFile = context.getUserHome().resolve("Applications/IDEasy.command");
       assertThat(commandFile).exists();
