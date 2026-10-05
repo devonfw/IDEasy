@@ -60,6 +60,7 @@ import com.devonfw.tools.ide.tool.node.Node;
 import com.devonfw.tools.ide.tool.npm.Npm;
 import com.devonfw.tools.ide.tool.obsidian.Obsidian;
 import com.devonfw.tools.ide.tool.oc.Oc;
+import com.devonfw.tools.ide.tool.pandoc.Pandoc;
 import com.devonfw.tools.ide.tool.pgadmin.PgAdmin;
 import com.devonfw.tools.ide.tool.pip.Pip;
 import com.devonfw.tools.ide.tool.pycharm.Pycharm;
@@ -198,6 +199,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Ruff(context));
     add(new CheckCommandlet(context));
     add(new Obsidian(context));
+    add(new Pandoc(context));
   }
 
   /**
