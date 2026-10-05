@@ -1,0 +1,40 @@
+[
+  {
+    "url": "https://api.github.com/repos/ollama/ollama/releases/111111111",
+    "assets_url": "https://api.github.com/repos/ollama/ollama/releases/111111111/assets",
+    "upload_url": "https://uploads.github.com/repos/ollama/ollama/releases/111111111/assets{?name,label}",
+    "html_url": "https://github.com/ollama/ollama/releases/tag/v0.35.0",
+    "id": 111111111,
+    "node_id": "RE_kwDON11111111111111111111",
+    "tag_name": "v0.35.0",
+    "target_commitish": "main",
+    "name": "v0.35.0",
+    "draft": false,
+    "prerelease": false,
+    "created_at": "2026-09-01T00:00:00Z",
+    "updated_at": "2026-09-01T00:00:00Z",
+    "published_at": "2026-09-01T00:00:00Z",
+    "assets": [
+      {
+        "name": "ollama-darwin.tgz",
+        "browser_download_url": "${testbaseurl}/ollama/ollama/releases/download/v0.35.0/ollama-darwin.tgz"
+      },
+      {
+        "name": "ollama-windows-amd64.zip",
+        "browser_download_url": "${testbaseurl}/ollama/ollama/releases/download/v0.35.0/ollama-windows-amd64.zip"
+      },
+      {
+        "name": "ollama-windows-arm64.zip",
+        "browser_download_url": "${testbaseurl}/ollama/ollama/releases/download/v0.35.0/ollama-windows-arm64.zip"
+      },
+      {
+        "name": "ollama-linux-amd64.tar.zst",
+        "browser_download_url": "${testbaseurl}/ollama/ollama/releases/download/v0.35.0/ollama-linux-amd64.tar.zst"
+      },
+      {
+        "name": "ollama-linux-arm64.tar.zst",
+        "browser_download_url": "${testbaseurl}/ollama/ollama/releases/download/v0.35.0/ollama-linux-arm64.tar.zst"
+      }
+    ]
+  }
+]
