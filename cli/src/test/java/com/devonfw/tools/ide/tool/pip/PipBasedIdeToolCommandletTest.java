@@ -63,7 +63,8 @@ class PipBasedIdeToolCommandletTest extends AbstractIdeContextTest {
     step.run(() -> commandlet.installPlugin(plugin, step, new ProcessContextTestImpl(context)));
 
     // assert
-    assertThat(context).logAtSuccess().hasMessage("Successfully installed plugin: TestPlugin");
+    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin TestPlugin'.");
+    assertThat(context).logAtSuccess().hasNoMessageContaining("Successfully installed plugin:");
   }
 
   /**
