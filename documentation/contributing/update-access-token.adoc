@@ -29,8 +29,8 @@ image::../images/AccessToken2.png["New fine-grained personal access token"]
 . In `Repository permissions` select `Read and write` for `Contents` (and `Metadata`).
 +
 image::../images/AccessToken3.png["Repository permissions"]
-. In `Organization permissions` select `Read` for `Members` and `Read` for `Projects`.
-These are required by `.github/workflows/issue-pr-observer.yml` to resolve GitHub teams linked to the IDEasy board and their members.
+. In `Organization permissions` select `Read` for `Members`.
+This is required by `.github/workflows/issue-pr-observer.yml` to read members of the `ide` team.
 . Click on `Generate token` to proceed.
 . On the confirmation page click again on `Generate token` to proceed.
 +
