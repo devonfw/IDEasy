@@ -118,27 +118,29 @@ public class FlutterUrlUpdater extends AbstractUrlUpdater {
       if (!CHANNEL_STABLE.equals(item.channel())) {
         continue;
       }
-      String version = mapVersion(item.version());
-      if (version == null) {
-        continue;
-      }
-      UrlVersion urlVersion = urlEdition.getChild(version);
-      if (urlVersion == null || isMissingOs(urlVersion)) {
-        try {
+      try {
+        String version = mapVersion(item.version());
+        if (version == null) {
+          continue;
+        }
+        UrlVersion urlVersion = urlEdition.getChild(version);
+        if ((urlVersion == null) || isMissingOs(urlVersion)) {
           boolean newVersion = (urlVersion == null);
           urlVersion = urlEdition.getOrCreateChild(version);
           boolean added = doAddVersionFromFeed(urlVersion, feed, item, os);
-          if (newVersion && added) {
-            getUrlUpdaterReport().incrementAddVersionSuccess();
+          if (added) {
+            if (newVersion) {
+              getUrlUpdaterReport().incrementAddVersionSuccess();
+            }
+            logger.info("For tool {} we added version {}.", getToolWithEdition(), version);
+          } else if (newVersion) {
+            getUrlUpdaterReport().incrementAddVersionFailure();
           }
           urlVersion.save();
-          if (added) {
-            logger.info("For tool {} we added version {}.", getToolWithEdition(), version);
-          }
-        } catch (Exception e) {
-          logger.error("For tool {} we failed to add version {}.", getToolWithEdition(), version, e);
-          getUrlUpdaterReport().incrementAddVersionFailure();
         }
+      } catch (Exception e) {
+        logger.error("For tool {} we failed to add version {}.", getToolWithEdition(), item.version(), e);
+        getUrlUpdaterReport().incrementAddVersionFailure();
       }
     }
   }
@@ -191,7 +193,14 @@ public class FlutterUrlUpdater extends AbstractUrlUpdater {
    */
   private boolean doAddVersionFromFeed(UrlVersion urlVersion, FlutterJsonObject feed, FlutterJsonItem item, OperatingSystem os) {
 
-    String url = feed.baseUrl() + "/" + item.archive();
+    // A feed entry missing these would otherwise cause a cryptic NPE inside the base class; fail with a clear message instead.
+    String baseUrl = feed.baseUrl();
+    String archive = item.archive();
+    if ((baseUrl == null) || (archive == null)) {
+      logger.error("For tool {} the release {} has a missing base_url or archive in the feed.", getToolWithEdition(), item.version());
+      return false;
+    }
+    String url = baseUrl + "/" + archive;
     return doAddVersion(urlVersion, url, os, getArchitecture(item), item.sha256());
   }
 
