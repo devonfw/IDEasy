@@ -9,6 +9,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2345[#2345]: DOCKER_EDITION ignored on Linux
 * https://github.com/devonfw/IDEasy/issues/2381[#2381]: Make node and npm pristine versioned tools with per-project npm global prefix
 * https://github.com/devonfw/IDEasy/issues/2519[#2519]: Add Flutter SDK commandlet
+* https://github.com/devonfw/IDEasy/issues/2607[#2607]: Align tool help for corepack
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/51?closed=1[milestone 2026.10.001].
 
