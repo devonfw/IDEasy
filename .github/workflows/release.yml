@@ -158,22 +158,22 @@ jobs:
           git add -f .mvn/maven.config
           git commit -m "set release version to ${RELEASE_VERSION}"
           git tag -a "release/${RELEASE_VERSION}" -m "tagged version ${RELEASE_VERSION}"
-          export GPG_TTY=$TTY
           mkdir -p ./cli/target/
-          mvn --settings .mvn/settings.xml -B -ntp deploy -Passembly,msi,pkg,deploy -pl -:ide-macos-installer -pl -:ide-windows-installer -Dgpg.pin.entry.mode=loopback -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }}
         env:
           RELEASE_VERSION: ${{ needs.resolve-version.outputs.release_version }}
           SNAPSHOT_VERSION: ${{ needs.resolve-version.outputs.snapshot_version }}
       - name: Build and test release
         run: |
           mvn --settings .mvn/settings.xml -B -ntp install \
-            -pl -:ide-macos-installer
-      - name: Publish to Apache Maven Central
+            -pl -:ide-macos-installer \
+            -pl -:ide-windows-installer
+      - name: Deploy release
         run: |
           export GPG_TTY=$TTY
           mvn --settings .mvn/settings.xml -B -ntp deploy \
             -Passembly,msi,pkg,deploy \
             -pl -:ide-macos-installer \
+            -pl -:ide-windows-installer \
             -DskipTests \
             -Dgpg.pin.entry.mode=loopback \
             -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }}
