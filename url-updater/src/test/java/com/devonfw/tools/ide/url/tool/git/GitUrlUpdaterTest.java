@@ -3,10 +3,12 @@ package com.devonfw.tools.ide.url.tool.git;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -25,46 +27,65 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 class GitUrlUpdaterTest extends AbstractUrlUpdaterTest {
 
   /**
-   * Integration test for GitUrlUpdater: verifies that update creates expected files for Git versions.
+   * Tests {@link GitUrlUpdater} for the creation of download URLs and checksums.
+   *
+   * @param tempDir path to temporary directory.
+   * @param wmRuntimeInfo the {@link WireMockRuntimeInfo}.
    */
   @Test
-  void testGitUrlUpdaterCreatesDownloadUrlsAndChecksums(
-      @TempDir Path tempDir,
-      WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  void testGitUrlUpdater(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange
-    stubFor(get(urlMatching("/install/windows"))
+    stubFor(get(urlMatching("/repos/git-for-windows/git/releases"))
         .willReturn(aResponse()
             .withStatus(200)
             .withBody(readAndResolve(
-                PATH_INTEGRATION_TEST.resolve("GitUrlUpdater").resolve("index.html"),
+                PATH_INTEGRATION_TEST.resolve("GitUrlUpdater").resolve("git-releases.json"),
                 wmRuntimeInfo))));
 
     stubFor(any(urlMatching(
-        "/releases/download/v[0-9.]+\\.windows\\.[0-9]+/Git-[0-9.]+-(64-bit|arm64)\\.exe"))
+        "/git-for-windows/git/releases/download/v[0-9.]+\\.windows\\.[0-9]+/Git-[0-9.]+-(64-bit|arm64)\\.exe"))
         .willReturn(aResponse()
             .withStatus(200)
             .withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    GitUrlUpdater updater = new GitUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
+    GitUrlUpdater updater = new GitUrlUpdater(
+        wmRuntimeInfo.getHttpBaseUrl(),
+        wmRuntimeInfo.getHttpBaseUrl());
 
     // act
     update(updater, urlRepository);
 
     // assert
-    Path gitEditionPath = tempDir.resolve("git").resolve("git");
+    List<String> expectedPlatforms = List.of(
+        "windows_x64",
+        "windows_arm64");
+
+    Path gitDir = tempDir.resolve("git").resolve("git");
 
     assertUrlVersion(
-        gitEditionPath.resolve("2.55.0.3"),
-        List.of("windows_x64", "windows_arm64"));
+        gitDir.resolve("2.56.0.2"),
+        expectedPlatforms);
 
     assertUrlVersion(
-        gitEditionPath.resolve("2.54.0.1"),
-        List.of("windows_x64", "windows_arm64"));
+        gitDir.resolve("2.56.0.1"),
+        expectedPlatforms);
 
     assertUrlVersion(
-        gitEditionPath.resolve("2.53.0.2"),
-        List.of("windows_x64", "windows_arm64"));
+        gitDir.resolve("2.55.0.4"),
+        expectedPlatforms);
+
+    verify(getRequestedFor(urlEqualTo(
+        "/git-for-windows/git/releases/download/v2.56.0.windows.1/Git-2.56.0-64-bit.exe")));
+
+    verify(getRequestedFor(urlEqualTo(
+        "/git-for-windows/git/releases/download/v2.56.0.windows.1/Git-2.56.0-arm64.exe")));
+
+    verify(getRequestedFor(urlEqualTo(
+        "/git-for-windows/git/releases/download/v2.56.0.windows.2/Git-2.56.0.2-64-bit.exe")));
+
+    verify(getRequestedFor(urlEqualTo(
+        "/git-for-windows/git/releases/download/v2.56.0.windows.2/Git-2.56.0.2-arm64.exe")));
   }
 }
