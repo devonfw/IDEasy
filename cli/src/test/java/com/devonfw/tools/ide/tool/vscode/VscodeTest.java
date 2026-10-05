@@ -10,6 +10,7 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
@@ -314,6 +315,29 @@ class VscodeTest extends AbstractIdeContextTest {
         .anyMatch(arg -> arg.startsWith("--user-data-dir=")
             && arg.equals("--user-data-dir=" + context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("vscode")
                 .resolve(context.getWorkspaceName()).resolve("config")));
+  }
+
+  /**
+   * Tests that an invalid explicit {@code --project} folder (a non-existing folder or a regular file) aborts the VS Code launch with a
+   * {@link CliException} via {@link com.devonfw.tools.ide.tool.ide.IdeToolCommandlet#validateOpenPath()}. Mirrors the IntelliJ-specific
+   * {@code testGetOpenPathInvalidPathThrows}, since both share the same validation path.
+   */
+  @Test
+  void testValidateOpenPathForVscodeThrowsOnInvalidProject() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    ProjectVscode commandlet = new ProjectVscode(context);
+    ProcessContextTestImpl pc = new ProcessContextTestImpl(context);
+    // act & assert - a non-existing folder
+    commandlet.setProject(Path.of("does-not-exist-folder-12345"));
+    assertThatThrownBy(() -> commandlet.runTool(pc, ProcessMode.BACKGROUND, List.of())).isInstanceOf(CliException.class);
+    // act & assert - a file is not a folder
+    Path file = context.getWorkspacePath().resolve("a-file.txt");
+    context.getFileAccess().writeFileContent("content", file);
+    commandlet.setProject(file);
+    assertThatThrownBy(() -> commandlet.runTool(pc, ProcessMode.BACKGROUND, List.of())).isInstanceOf(CliException.class);
   }
 
   /**
