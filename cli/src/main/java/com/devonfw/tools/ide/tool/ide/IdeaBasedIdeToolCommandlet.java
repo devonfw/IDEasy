@@ -45,17 +45,20 @@ public class IdeaBasedIdeToolCommandlet extends AbstractIdeToolCommandlet {
   }
 
   @Override
-  public boolean installPlugin(ToolPluginDescriptor plugin, final Step step, ProcessContext pc) {
+  public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
 
-    boolean customRepo = plugin.url() != null;
+    // Marketplace plugin -> install directly without starting the IDE.
+    if (plugin.url() == null) {
+      IdeaPluginDownloader pluginDownloader =
+          new IdeaPluginDownloader(this.context, this);
+      return pluginDownloader.installPlugin(plugin, step, pc);
+    }
 
+    // Custom repository plugin -> keep using the IDE CLI.
     List<String> args = new ArrayList<>();
     args.add("installPlugins");
     args.add(plugin.id().replace("+", " "));
-
-    if (customRepo) {
-      args.add(plugin.url());
-    }
+    args.add(plugin.url());
 
     ProcessResult result = runTool(pc, ProcessMode.DEFAULT, args);
 
@@ -63,10 +66,9 @@ public class IdeaBasedIdeToolCommandlet extends AbstractIdeToolCommandlet {
       IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {}", plugin.name());
       step.success();
       return true;
-    } else {
-      step.error("Failed to install plugin {} ({}): exit code was {}", plugin.name(), plugin.id(), result.getExitCode());
-      return false;
     }
+
+    return false;
   }
 
   /**
@@ -118,7 +120,7 @@ public class IdeaBasedIdeToolCommandlet extends AbstractIdeToolCommandlet {
 
     String userOptionsFileName = "." + prefix + VM_OPTIONS_FILE_EXTENSION;
     Path confPath = getIdeMetadataPath().resolve(userOptionsFileName);
-    this.context.getFileAccess().writeFileContent(mergeVmArgs(defaultVmArgs, userVmArgs), confPath, true);
+    this.context.getFileAccess().writeFileContent(mergeVmArgs(defaultVmArgs, additionalVmArgs), confPath, true);
 
     pc.withEnvVar(prefix.toUpperCase() + VM_OPTIONS_ENV_SUFFIX, confPath.toAbsolutePath().toString());
     return super.runTool(pc, processMode, args);

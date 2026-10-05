@@ -18,6 +18,7 @@ import com.devonfw.tools.ide.environment.VariableLine;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * Manages plugin configuration and common plugin operations for tools that support plugins.
@@ -125,14 +126,8 @@ public class PluginManager {
    * Deletes all plugin marker files the {@link PluginBasedCommandlet tool} so that its plugins will be installed again.
    */
   public void deleteAllPluginMarkerFiles() {
-    FileAccess fileAccess = this.context.getFileAccess();
-    List<Path> markerFiles = fileAccess.listChildren(this.context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE), Files::isRegularFile);
-    for (Path path : markerFiles) {
-      if (path.getFileName().toString().startsWith(MARKER_FILE_PREFIX + this.tool.getName())) {
-        fileAccess.delete(path);
-        LOG.debug("Plugin marker file {} got deleted.", path);
-      }
-    }
+
+    deletePluginMarkerFiles(null);
   }
 
   /**
@@ -237,7 +232,17 @@ public class PluginManager {
   }
 
   private String getMarkerFilePrefix(ToolPluginDescriptor plugin) {
-    return MARKER_FILE_PREFIX + this.tool.getName() + "." + this.tool.getInstalledEdition() + "." + plugin.name();
+
+    String markerFilePrefix =
+        MARKER_FILE_PREFIX + this.tool.getName() + "." + this.tool.getInstalledEdition();
+
+    VersionIdentifier version = this.tool.getPluginMarkerVersion();
+    if (version != null) {
+      markerFilePrefix =
+          markerFilePrefix + "." + normalizeMarkerFileSegment(version.toString());
+    }
+
+    return markerFilePrefix + "." + plugin.name();
   }
 
   private String normalizeMarkerFileSegment(String value) {
@@ -304,6 +309,43 @@ public class PluginManager {
 
   private void handleInstallForInactivePlugin(ToolPluginDescriptor plugin) {
     LOG.debug("Omitting installation of inactive plugin {} ({}).", plugin.name(), plugin.id());
+  }
+
+  /**
+   * Deletes plugin marker files belonging to the specified tool version.
+   *
+   * @param version the version whose marker files shall be deleted, or {@code null}
+   *     to delete all plugin marker files for this tool.
+   */
+  public void deletePluginMarkerFiles(String version) {
+
+    FileAccess fileAccess = this.context.getFileAccess();
+
+    List<Path> markerFiles = fileAccess.listChildren(
+        this.context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE),
+        Files::isRegularFile);
+
+    String markerPrefix = MARKER_FILE_PREFIX + this.tool.getName() + ".";
+    String versionSegment = null;
+
+    if (version != null) {
+      versionSegment = "." + normalizeMarkerFileSegment(version) + ".";
+    }
+
+    for (Path markerFile : markerFiles) {
+      String fileName = markerFile.getFileName().toString();
+
+      boolean matches = fileName.startsWith(markerPrefix);
+
+      if (versionSegment != null) {
+        matches = matches && fileName.contains(versionSegment);
+      }
+
+      if (matches) {
+        fileAccess.delete(markerFile);
+        LOG.debug("Plugin marker file {} got deleted.", markerFile);
+      }
+    }
   }
 
 }

@@ -106,6 +106,11 @@ class AndroidStudioTest extends AbstractIdeContextTest {
     // assert
     Path studioVmOptions = context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("android-studio").resolve(context.getWorkspaceName())
         .resolve(".studio.vmoptions");
+
+    String expectedPluginsPath = androidStudio.getPluginsInstallationPath()
+        .toAbsolutePath()
+        .toString();
+
     assertThat(studioVmOptions)
         .exists()
         .hasContent("""

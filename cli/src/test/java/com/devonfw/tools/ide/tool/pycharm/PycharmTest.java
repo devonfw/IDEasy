@@ -171,6 +171,10 @@ class PycharmTest extends AbstractIdeContextTest {
     pycharm.run();
 
     // assert
+    String expectedPluginsPath = pycharm.getPluginsInstallationPath()
+        .toAbsolutePath()
+        .toString();
+
     assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("pycharm").resolve(context.getWorkspaceName()).resolve(".pycharm.vmoptions"))
         .exists()
         .hasContent("""

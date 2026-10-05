@@ -144,7 +144,9 @@ public class Vscode extends AbstractIdeToolCommandlet {
     if (this.context.getSystemInfo().isWsl()) {
       pc.withEnvVar("DONT_PROMPT_WSL_INSTALL", "1");
     }
+
     pc.addArg("--new-window");
+
     if (Boolean.TRUE.equals(IdeVariables.VSCODE_PROFILE_ENABLED.get(this.context))) {
       // Use a named profile (not --user-data-dir) so VS Code keeps its IPC lock at the default location.
       // This lets the OS-level vscode:// protocol handler (OAuth callbacks e.g. GitHub/Copilot) find the
@@ -153,7 +155,6 @@ public class Vscode extends AbstractIdeToolCommandlet {
     } else {
       pc.addArg("--user-data-dir=" + getUserDataPath());
     }
-    pc.addArg("--user-data-dir=" + vsCodeConf);
 
     Path vsCodeExtensionFolder = getPluginsInstallationPath();
     pc.addArg("--extensions-dir=" + vsCodeExtensionFolder);
