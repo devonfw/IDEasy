@@ -144,14 +144,60 @@ public class WindowsHelperImpl implements WindowsHelper {
       if (out == null) {
         continue;
       }
+
       for (String line : out) {
-        line = line.trim();
-        if (line.startsWith("HKEY_")) {
-          return line; // exact registry path (key) for tool
+        String key = getMatchingUninstallKey(line, appName);
+        if (key != null) {
+          return key;
         }
       }
     }
+
     return null;
+  }
+
+  /**
+   * Checks whether the given registry search result represents an uninstallation key whose display name matches the requested application.
+   *
+   * @param line the registry search result line to check.
+   * @param appName the application name to match.
+   * @return the matching uninstall registry key, or {@code null} if the line does not represent a matching application.
+   */
+  private String getMatchingUninstallKey(String line, String appName) {
+
+    String key = line.trim();
+    if (!key.startsWith("HKEY_")) {
+      return null;
+    }
+
+    List<String> values = runReg("query", key);
+    if (values == null) {
+      return null;
+    }
+
+    String displayName = retrieveRegString("DisplayName", values);
+    if (matchesAppName(displayName, appName)) {
+      return key;
+    }
+
+    return null;
+  }
+
+  /**
+   * Checks whether a Windows application display name matches the requested application name.
+   *
+   * @param displayName the application's display name from the Windows registry.
+   * @param appName the application name to match.
+   * @return {@code true} if the names match, {@code false} otherwise.
+   */
+  private boolean matchesAppName(String displayName, String appName) {
+
+    if ((displayName == null) || (appName == null)) {
+      return false;
+    }
+
+    return displayName.equalsIgnoreCase(appName)
+        || displayName.toLowerCase().startsWith(appName.toLowerCase() + " ");
   }
 
   /**

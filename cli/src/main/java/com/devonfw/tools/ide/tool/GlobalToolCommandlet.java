@@ -175,7 +175,10 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
       fileAccess.extract(target, downloadBinaryPath);
       executable = fileAccess.findFirst(downloadBinaryPath, Files::isExecutable, false);
     }
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(executable);
+    ProcessContext pc = this.context.newProcess()
+        .errorHandling(ProcessErrorHandling.LOG_WARNING)
+        .executable(executable)
+        .addArgs(getInstallerArguments());
     int exitCode = pc.run(ProcessMode.BACKGROUND_SILENT).getExitCode();
     if (tmpDir != null) {
       fileAccess.delete(tmpDir);
@@ -406,5 +409,9 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
    */
   public String getMacApplicationName() {
     return null;
+  }
+
+  protected List<String> getInstallerArguments() {
+    return List.of();
   }
 }
