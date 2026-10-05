@@ -17,7 +17,8 @@ This ensures consistency of parallel work on UI contributions and makes reviews 
 . Create a design (see details)
 . Review the design with the team
 . Start with the actual implementation
-. -> From here continue with the normal IDEasy contribution workflow (Open PR, Team review, review, merge, retest)
+
+From here on, continue with the normal IDEasy contribution workflow (open PR, team review, review, merge, retest).
 
 === Pick an issue
 
@@ -51,9 +52,16 @@ If your contribution adds a new tab to the main window:
 
 . Add the tab's title key and all other user-facing labels to `gui/src/main/resources/nls/messages.properties` and provide the translations.
 . Create the ViewModel, the View with its FXML, and a class extending `TabComponent` that wires them together (see link:ui-structure.adoc#tabs[Tabs]).
-. Open the tab: get the `TabFactory` from the link:ui-structure.adoc#gui-state-manager[GuiStateManager] and pass your component to it, e.g. `guiStateManager.getTabFactory().open(new MyFeatureTab(guiStateManager))`.
-No dedicated factory method per tab is needed.
+. Add a public method to `TabFactory` that opens your tab by passing a new instance of your component to the factory's internal `open` method, analogous to `openLauncherTab()`:
++
+[source,java]
+----
+public void openMyFeatureTab() {
+  open(new MyFeatureTab(this.guiStateManager));
+}
+----
+. Trigger the tab from the UI via the `TabFactory` provided by the link:ui-structure.adoc#gui-state-manager[GuiStateManager], e.g. `guiStateManager.getTabFactory().openMyFeatureTab()`.
 
 == Figma link
 
-You can access the Figma board here: https://www.figma.com/design/cEcWlvnNOS5xVE2kQFZe0R/IDEasy?t=K358vlISaq7t2Nfp-1y?t=K358vlISaq7t2Nfp-1
+You can access the Figma board here: https://www.figma.com/design/cEcWlvnNOS5xVE2kQFZe0R/IDEasy?t=K358vlISaq7t2Nfp-1

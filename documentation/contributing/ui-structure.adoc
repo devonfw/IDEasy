@@ -11,15 +11,17 @@ The architecture emphasizes:
 * *Model-View-ViewModel pattern (MVVM)*: separation of concerns into Models, Views, and ViewModels
 * *Component Reusability*: Reusable components through a shared component library (e.g.: Console component)
 * *UI Reactivity*: via Observer patterns and property bindings
-* *Maintainability*: through localization, programmatic wiring, and comprehensive testing + Scalability via feature-based organization allowing independent development
-* **Scalability** via feature-based organization allowing independent development
-* [[gui-state-manager]]**State management**: The state of the UI is stored using the god-object style GuiStateManager. This object takes care of storing the GUI state as in: 
-** Providing all **service classes** to the apllication
-** Providing all **factory classes** to the pplication
-** Which project is selected? 
-** Which workspace? 
-** Which tabs are opened? 
-** What language did the user select? etc
+* *Maintainability*: through localization, programmatic wiring, and comprehensive testing
+* *Scalability*: via feature-based organization allowing independent development
+* [[gui-state-manager]]*State management*: The state of the UI is stored in the central `GuiStateManager`.
+It creates and provides the shared objects and holds the GUI state, such as:
+** all *service classes* of the application (e.g. `CommandletService`, `NlsService`)
+** all *factory classes* of the application (e.g. `TabFactory`)
+** the selected project and workspace
+** the language selected by the user (via the `NlsService`)
+
+For a visual overview of the main classes and how the GUI is launched, see the PlantUML diagrams link:diagrams/gui/gui-structure-overview.puml[GUI structure overview] and link:diagrams/gui/gui-launch-sequence.puml[GUI launch sequence] (viewing them requires PlantUML support, e.g. via the IntelliJ plugin).
+
 === Roles
 
 The GUI is organized around a small set of roles. Each has a single responsibility:
@@ -29,10 +31,11 @@ The GUI is organized around a small set of roles. Each has a single responsibili
 |Role|Responsibility
 
 |*Factory*
-|Creates ViewModels and Views while holding the services needed to build them. E.g. `TabFactory` creates and manages the tabs of the main window. Initialized in `App`.
+|Creates ViewModels and Views while holding the services needed to build them. E.g. `TabFactory` creates the tabs of the main window. Created by the `GuiStateManager`.
 
 |*Service*
-|Encapsulates business logic and access to data/functionality, independently of the UI. E.g. `CommandletService` runs commandlets in the selected context; `NlsService` handles localization. Initialized in `App`.
+|Encapsulates business logic and access to data/functionality, independently of the UI. E.g. `CommandletService` runs commandlets in the selected context; `NlsService` handles localization. Created by the `GuiStateManager`.
+
 |*View*
 |The UI representation without business logic. It displays data from the ViewModel through bindings and translates user gestures back onto it. E.g. `MainWindowView`, `IdeLauncherView`.
 
@@ -57,8 +60,9 @@ Consequently, to add a tab you create a new class extending `TabComponent` (see 
 
 IDEasy uses the **Observer/Observable pattern** (and JavaFX `Property` bindings) to propagate changes between the observable state (the Model), the ViewModels, and the Views (not to be confused with EventBus!).
 
-* **ViewModel** acts as the *Observable*: it holds the current state as JavaFX `Property`s and notifies observers when the state changes. In practice this is the `context` layer (e.g. `GuiStateManager`, `TaskManager`).
-* **Views** act as *Observers*: they read state through properties and register listeners, and react to changes by updating the UI or the surrounding state accordingly.
+* The **Model** (the `context` layer, e.g. `GuiStateManager`, `TaskManager`) and the **ViewModels** act as *Observables*: they hold the current state as JavaFX `Property`s and notify observers when the state changes.
+ViewModels typically derive their state from the Model by binding to its properties.
+* **Views** act as *Observers*: they bind to the ViewModel's properties or register listeners, and react to changes by updating the UI.
 * JavaFX `Property` and `Binding` APIs are used for fine-grained reactivity within the UI layer.
 
 === Implementation Guidelines
@@ -108,12 +112,20 @@ Each feature owns its View/ViewModel pair and related components, while cross-cu
 
 === Packages
 
-* `context` — the observable application state (the Model): project/workspace selection, task management, and the `IdeGuiContext`.
-* `factory` — factories that create Views/ViewModels and manage shared UI containers (e.g. `TabFactory` for the tab pane).
-* `helper` — framework-agnostic helpers, e.g. `FxHelper` (FXML loading, FX-thread-safe execution) and `ComboBoxViewModel`.
-* `service` — business logic and data access independent of the UI (e.g. `CommandletService`, `NlsService`).
-* `ui` — the UI layer, organized per feature: `mainwindow`, `tab`, `controls`, `modal`, `progress`.
+All packages live below `com.devonfw.ide.gui`:
+
 * `App` / `AppLauncher` — application entry point.
+* `core` — cross-cutting code shared by all features:
+** `context` — the observable application state (the Model): project/workspace selection, task management, and the `IdeGuiContext`.
+** `event` — the `GuiEventBus` and its events (e.g. `TabChangeEvent`).
+** `factory` — factories that create Views/ViewModels (e.g. `TabFactory` for the tabs of the main window).
+** `helper` — reusable JavaFX helpers, e.g. `FxHelper` (FXML loading, FX-thread-safe execution) and `ComboBoxViewModel`.
+** `mainwindow` — the main window including the `console` and `navigation` panels.
+** `modal` — dialogs (e.g. `IdeDialog`).
+** `progress` — progress tracking of running tasks and the task overview window.
+** `service` — business logic and data access independent of the UI (e.g. `CommandletService`, `NlsService`).
+** `tab` — the base classes for tabs (`TabComponent`, `TabView`, `TabViewModel`).
+* `feature` — one package per feature containing its `TabComponent`, View and ViewModel (e.g. `feature.ide.launcher`).
 
 [source]
 ----
@@ -141,48 +153,40 @@ gui
 
 === FXML Resources
 
-FXML files live alongside their View/Controller classes under `gui/src/main/resources/com/devonfw/ide/gui/ui/`, mirroring the Java package layout.
+FXML files live under `gui/src/main/resources/com/devonfw/ide/gui/`, mirroring the Java package of their View/Controller class (e.g. `core/mainwindow/MainWindowView.fxml` for `core.mainwindow.MainWindowView`).
 The `%key` placeholders are resolved against the resource bundle provided by `NlsService`.
+Note that the localization bundles in `nls` are located directly below `src/main/resources`.
+
 [source]
 ----
-resources
 gui
 └── src/main/resources
-    └── com/devonfw/ide/gui
-                ├── core
-                │   ├── mainwindow
-                │   │   ├── MainWindowView.fxml
-                │   │   ├── console
-                │   │   │   └── console.fxml
-                │   │   └── navigation
-                │   │       └── NavigationPanel.fxml
-                │   └── progress
-                │       └── taskwindow
-                │           └── task_overview_window.fxml
-                │
-                ├── feature
-                │   └── ide
-                │       └── launcher
-                │           └── IdeLauncher.fxml
-                │
-                ├── assets
-                │   ├── icons
-                │   │   └── ...
-                │   ├── as.png
-                │   ├── eclipse.png
-                │   ├── intellij.png
-                │   ├── logo.png
-                │   ├── vscode.png
-                │   └── devonfw.png
-                │
-                ├── style
-                │   ├── center.css
-                │   └── navigation.css
-                │
-                └── nls
-                    ├── messages.properties
-                    ├── messages_de.properties
-                    └── ...
+    ├── com/devonfw/ide/gui
+    │   ├── assets
+    │   │   ├── icons
+    │   │   │   └── ...
+    │   │   └── ... (logos, e.g. eclipse.png, intellij.png)
+    │   ├── core
+    │   │   ├── mainwindow
+    │   │   │   ├── MainWindowView.fxml
+    │   │   │   ├── console
+    │   │   │   │   └── console.fxml
+    │   │   │   └── navigation
+    │   │   │       └── NavigationPanel.fxml
+    │   │   └── progress
+    │   │       └── taskwindow
+    │   │           └── task_overview_window.fxml
+    │   ├── feature
+    │   │   └── ide
+    │   │       └── launcher
+    │   │           └── IdeLauncher.fxml
+    │   └── style
+    │       ├── center.css
+    │       └── navigation.css
+    └── nls
+        ├── messages.properties
+        ├── messages_de.properties
+        └── messages_en.properties
 ----
 
 === Benefits
@@ -198,7 +202,7 @@ All user-facing strings **must** be externalized for localization (i18n).
 This is implemented in code via resource bundles; handled by the `NlsService` class.
 
 * **Resource Bundles**: Each language has its own `messages.properties` (like `messages_de.properties`)
-* **Key Naming**: Use hierarchical keys: `feature.component.action` (e.g., `dashboard.toolbar.refresh`, `settings.dialog.save`)
+* **Key Naming**: For new keys, use hierarchical names: `feature.component.action` (e.g., `tab.ide_launcher`, `settings.dialog.save`). Some older keys (e.g. `project`, `ideasy_ready_msg`) do not follow this scheme yet.
 * **No Hardcoded Strings**: Never embed user-visible text in Java code or FXML
 * **Interpolation**: Use `MessageFormat` for dynamic values: `{0} packages updated`
 
@@ -215,7 +219,9 @@ Views and their ViewModels are **primarily wired in Java code** to allow depende
 Generally, we want to refrain from wiring a controller only via FXML:
 
 * **Programmatic Wiring**: The view instance is created, its FXML loaded, and its controller/view-model wired in Java code.
-* We use either:
+
+We use one of the following patterns:
+
 . **The View-as-Controller pattern**: The view class is itself the FXML controller (loaded via `FxHelper.loadFxml`, which calls `setRoot(this)` and `setController(this)`). This is the common case.
 . **The Factory pattern** (nested layouts): When a layout includes a child layout that has its own controller, the parent's `FXLoader` can provide the dependencies to the child controller via a `setControllerFactory`. In this case, declaring `fx:controller` in the FXML is fine. See this thread: https://stackoverflow.com/a/78535631
 
@@ -238,7 +244,7 @@ In the (potentially nested) FXML file the child controller is declared:
 [source,xml]
 ----
 <AnchorPane xmlns:fx="http://javafx.com/fxml"
-  fx:controller="com.devonfw.ide.gui.ui.controls.console.ConsoleController">
+  fx:controller="com.devonfw.ide.gui.core.mainwindow.console.ConsoleController">
   <!-- ... -->
 </AnchorPane>
 ----
@@ -258,15 +264,30 @@ loader.setControllerFactory(clazz -> {
 == Testing Documentation
 
 Testing follows a clear separation between **logic tests** (unit tests) and **interaction tests** (UI tests).
-In this documentation, we focus on the UI testing strategy.
+Also follow the general link:junit-testing.adoc[JUnit testing] guidelines (e.g. AssertJ assertions).
+
+=== Separation between components
+
+Each component is tested on its own in a dedicated test class.
+Test classes mirror the package of the class under test (e.g. `core/mainwindow/navigation/NavigationPanelViewModelTest` for `NavigationPanelViewModel`), so the tests of a component are easy to find.
+A test should only verify the behavior of its own component and not implicitly re-test other components.
+Only `AppBaseTest` covers the interplay of the components in the fully started application.
+
+=== Logic Testing (Unit Tests)
+
+Because the logic lives in the ViewModels, the Model (`context`) and the services, they can be unit-tested in isolation from the View.
+
+* **Scope**: ViewModels, `context` classes, services and other non-visual classes
+* **Framework**: JUnit with AssertJ - no JavaFX nodes are instantiated
+* **Examples**: `NavigationPanelViewModelTest` verifies the project/workspace/language selection and context switching; `GuiEventBusTest` verifies the event bus.
 
 === Interaction Testing (UI Tests)
 
 * **Scope**: Test view behavior and user interactions
 * **Framework**: TestFX
 * **Focus**: Event handling, binding correctness, UI state changes
-* **Headless Testing: All tests should extend the `HeadlessApplicationTest` class to enable headless testing.
-Otherwise tests will fail on the GitHub CI pipeline.**
+* **Headless Testing**: All UI tests must extend the `HeadlessApplicationTest` class to enable headless testing.
+Otherwise, they will fail in the GitHub CI pipeline.
 
 ==== Example
 
@@ -278,17 +299,12 @@ Otherwise tests will fail on the GitHub CI pipeline.**
   @Test
   public void testWorkspaceComboboxEnabledEnabledWhenProjectSelected() {
 
-    // assert that a project is selected
+    // select a project
     interact(() -> selectedProject.getSelectionModel().select("project-1"));
 
-    // assert all IDE open buttons are disabled
+    // assert that the workspace ComboBox is enabled
     assertThat(selectedWorkspace.isDisabled())
         .as("selectedWorkspace ComboBox should be enabled when a project is selected")
         .isFalse();
   }
 ----
-
-=== View Model Tests
-
-Because the logic lives in the ViewModels, they are easy to unit-test in isolation from the View.
-E.g. `NavigationPanelViewModelTest` verifies the project/workspace/language selection and context switching without instantiating any JavaFX nodes.

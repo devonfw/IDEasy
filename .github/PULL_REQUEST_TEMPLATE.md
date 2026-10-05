@@ -49,5 +49,6 @@ Have you added a new `«tool»` as commandlet? There are the following additiona
 
 Did you make user-facing changes to the GUI? There are the following additional checks:
 
-- [ ] You followed the [ui-contribution-process.adoc](https://github.com/devonfw/IDEasy/tree/main/documentation/contributing/ui-contribution-process.adoc) and [ui-structure.adoc](https://github.com/devonfw/IDEasy/tree/main/documentation/contributing/ui-structure.adoc)
+- [ ] You followed the [ui-contribution-process.adoc](https://github.com/devonfw/IDEasy/blob/main/documentation/contributing/ui-contribution-process.adoc) and [ui-structure.adoc](https://github.com/devonfw/IDEasy/blob/main/documentation/contributing/ui-structure.adoc)
+- [ ] The UI changes are designed in the Figma project and the design was approved in the team review
 - [ ] You have added screenshots of the UI changes to the PR description
