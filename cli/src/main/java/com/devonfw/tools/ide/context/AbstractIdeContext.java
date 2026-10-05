@@ -38,7 +38,6 @@ import com.devonfw.tools.ide.commandlet.CommandletManagerImpl;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
 import com.devonfw.tools.ide.commandlet.EnvironmentCommandlet;
 import com.devonfw.tools.ide.commandlet.InstallCommandlet;
-import com.devonfw.tools.ide.commandlet.UpdateCommandlet;
 import com.devonfw.tools.ide.commandlet.UpgradeCommandlet;
 import com.devonfw.tools.ide.commandlet.update.UpdateCommandlet;
 import com.devonfw.tools.ide.common.SystemPath;
@@ -2053,7 +2052,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     return DEFAULT_WINDOWS_GIT_PATH;
   }
 
-  private boolean isInstallingGit(Commandlet cmd) {
+  private boolean isInstallingGit(AbstractCommandlet cmd) {
 
     if (cmd instanceof InstallCommandlet installCommandlet) {
       return installCommandlet.tool.getValue() instanceof Git;

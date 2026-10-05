@@ -250,10 +250,10 @@ class GitOperationTest extends AbstractIdeContextTest {
   void testUpdateUrlsRepositoryRequiresGitWithoutExistingUrls() {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    IdeTestContext context = newContext(PROJECT_BASIC, null, true);
+
     GitContext mock = Mockito.mock(GitContext.class);
     context.setGitContext(mock);
-
     Mockito.when(mock.findGit()).thenReturn(null);
 
     Path urlsPath = context.getUrlsPath();

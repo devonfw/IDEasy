@@ -411,11 +411,6 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
     return null;
   }
 
-  @Override
-  protected boolean requiresVersionResolution() {
-    return !this.context.getSystemInfo().isLinux() || getNativePackages().isEmpty();
-  }
-
   protected List<String> getInstallerArguments() {
     return List.of();
   }
