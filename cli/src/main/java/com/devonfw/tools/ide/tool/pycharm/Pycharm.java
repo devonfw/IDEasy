@@ -35,8 +35,7 @@ public class Pycharm extends IdeaBasedIdeToolCommandlet {
   public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
 
     super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
-    // point at the folder being opened (getOpenPath()) so the shell env and the launch agree: the opened project's own pycharm.properties when a
-    // --project folder was given, the managed workspace's otherwise (default behavior unchanged)
+    // point at the opened folder's own pycharm.properties (see getOpenPath() for the single source of truth)
     environmentContext.withEnvVar("PYCHARM_PROPERTIES", getOpenPath().resolve("pycharm.properties").toString());
   }
 

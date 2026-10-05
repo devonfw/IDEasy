@@ -73,7 +73,9 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
   @Override
   protected void initProperties() {
 
-    this.project = add(new FolderProperty("--project", false, null, true));
+    // mustExist=false on purpose: the value is only set in extractProjectOption() (after CLI validation), so the property's own
+    // exists/is-directory check would never fire anyway; validateOpenPath() is the real guard for the opened folder
+    this.project = add(new FolderProperty("--project", false, null, false));
     super.initProperties();
   }
 
@@ -155,19 +157,21 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
   /**
    * @return the {@link Path} that this IDE launch will open. This is the single source of truth for "which folder does this launch open?": it returns the
    *     {@link #project explicit {@code --project} folder} (relative paths resolved against the current working directory) if the flag was given, or the
-   *     {@link IdeContext#getWorkspacePath() workspace path} otherwise (today's default behavior).
+   *     {@link IdeContext#getWorkspacePath() workspace path} otherwise (today's default behavior). The IDE-specific property environment variables
+   *     (e.g. {@code IDEA_PROPERTIES}) point at this same folder so the shell env and the launch agree: the opened project's own properties file when a
+   *     {@code --project} folder was given, the managed workspace's otherwise.
    */
   public Path getOpenPath() {
 
-    Path project = this.project.getValue();
-    if (project == null) {
+    Path resolved = this.project.getValue();
+    if (resolved == null) {
       return this.context.getWorkspacePath();
     }
-    if (!project.isAbsolute()) {
+    if (!resolved.isAbsolute()) {
       Path cwd = this.context.getCwd();
-      project = (cwd != null) ? cwd.resolve(project) : project;
+      resolved = (cwd != null) ? cwd.resolve(resolved) : resolved;
     }
-    return project.normalize();
+    return resolved.normalize();
   }
 
   /**
