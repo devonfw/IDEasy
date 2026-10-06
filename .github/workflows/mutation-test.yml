@@ -18,6 +18,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '25'
+          cache: 'maven'
       - name: Run pitest coverage
         run: |
           cd cli
