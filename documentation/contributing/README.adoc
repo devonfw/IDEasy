@@ -21,3 +21,7 @@ Further, we documented link:junit-testing.adoc[JUnit-testing] and link:integrati
 
 For security mapping in URL updater development, see link:cpe-url-updater.adoc[CPE integration for URL updaters].
 
+== GUI
+
+If you want to contribute to the GUI, please follow the link:ui-contribution-process.adoc[GUI contribution process] and read about the link:ui-structure.adoc[GUI architecture and structure].
+
