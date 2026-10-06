@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFile;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
 import com.devonfw.tools.ide.version.GenericVersionRange;
@@ -55,14 +55,14 @@ public class ToolRepositoryMock extends DefaultToolRepository {
   }
 
   @Override
-  public VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version, ToolCommandlet toolCommandlet) {
+  public VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version, AbstractToolCommandlet toolCommandlet) {
 
     return super.resolveVersion(tool, edition, version, toolCommandlet);
 
   }
 
   @Override
-  public Path download(String tool, String edition, VersionIdentifier version, ToolCommandlet toolCommandlet) {
+  public Path download(String tool, String edition, VersionIdentifier version, AbstractToolCommandlet toolCommandlet) {
 
     Path editionFolder = this.repositoryFolder.resolve(tool).resolve(edition);
     String versionString = version.toString();
