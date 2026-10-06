@@ -3,11 +3,11 @@ package com.devonfw.tools.ide.tool.plugin;
 import java.nio.file.Path;
 import java.util.Collection;
 
-import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * {@link Commandlet} for tools that support plugin management.
@@ -35,6 +35,12 @@ public interface PluginBasedCommandlet extends LocalToolCommandlet {
    */
   String getInstalledEdition();
 
+  /**
+   * @return the version to include in plugin marker files, or {@code null} if plugin markers are not version-specific.
+   */
+  default VersionIdentifier getPluginMarkerVersion() {
+    return null;
+  }
   /**
    * @return the {@link Path} to the folder with the plugin configuration files inside the settings. The default implementation is shared by all plugin-capable
    *     tools (see {@link AbstractPluginBasedCommandlet} and {@link com.devonfw.tools.ide.tool.pip.PipBasedIdeToolCommandlet}).
@@ -87,8 +93,6 @@ public interface PluginBasedCommandlet extends LocalToolCommandlet {
   }
 
   /**
-   * Performs the tool-specific installation of a single plugin.
-   *
    * @param plugin the {@link ToolPluginDescriptor} to install.
    * @param step the {@link Step} for the plugin installation.
    * @param pc the {@link ProcessContext} to use.

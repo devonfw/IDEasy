@@ -106,15 +106,20 @@ class AndroidStudioTest extends AbstractIdeContextTest {
     // assert
     Path studioVmOptions = context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("android-studio").resolve(context.getWorkspaceName())
         .resolve(".studio.vmoptions");
+
+    String expectedPluginsPath = androidStudio.getPluginsInstallationPath()
+        .toAbsolutePath()
+        .toString();
+
     assertThat(studioVmOptions)
         .exists()
         .hasContent("""
-            -Xms256m
-            -Xmx4096m
-            -XX:ReservedCodeCacheSize=256m
-            -ea
-            -Dsun.io.useCanonCaches=true
-            """);
+          -Xms256m
+          -Xmx4096m
+          -XX:ReservedCodeCacheSize=256m
+          -ea
+          -Dsun.io.useCanonCaches=true
+          """ + "-Didea.plugins.path=" + expectedPluginsPath + System.lineSeparator());
   }
 
   /**
@@ -140,9 +145,20 @@ class AndroidStudioTest extends AbstractIdeContextTest {
     // commandlet - android-studio
     AndroidStudio commandlet = context.getCommandletManager().getCommandlet(AndroidStudio.class);
     assertThat(commandlet.getInstalledVersion().toString()).isEqualTo("2024.1.1.1");
-    assertThat(context).log().hasEntries(new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully ended step 'Install plugin MockedPlugin (1/1)'.", true), //
-        new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed android-studio in version 2024.1.1.1", true));
-    assertThat(context.getPluginsPath().resolve("android-studio").resolve("mockedPlugin").resolve("dev").resolve("MockedClass.class")).exists();
+    assertThat(context).log().hasEntries(
+        new IdeLogEntry(
+            IdeLogLevel.SUCCESS,
+            "Successfully ended step 'Install plugin MockedPlugin (1/1)'.",
+            true),
+        new IdeLogEntry(
+            IdeLogLevel.SUCCESS,
+            "Successfully installed android-studio in version 2024.1.1.1",
+            true));
+    assertThat(commandlet.getPluginsInstallationPath()
+        .resolve("mockedPlugin")
+        .resolve("dev")
+        .resolve("MockedClass.class"))
+        .exists();
   }
 
   private void setupMockedPlugin(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {

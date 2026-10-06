@@ -45,6 +45,9 @@ public class EclipseTest extends AbstractIdeContextTest {
     eclipse.run();
 
     // assert
+    Path configurationPath = eclipse.getPluginsInstallationPath()
+        .resolve("configuration");
+
     assertThat(eclipse.getInstalledVersion().toString()).isEqualTo("2024-09");
     assertThat(context).log().hasEntries(
         new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed java in version 17.0.10_7", true),
@@ -52,8 +55,10 @@ public class EclipseTest extends AbstractIdeContextTest {
     assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin anyedit (1/1)'.");
     assertThat(context.getPluginsPath().resolve("eclipse")).isDirectory();
     assertThat(eclipse.getToolBinPath().resolve("eclipsetest")).hasContent(
-        "eclipse " + os + " -data " + context.getWorkspacePath() + " -keyring " + context.getUserHome().resolve(".eclipse").resolve(".keyring")
-            + " -configuration " + context.getPluginsPath().resolve("eclipse").resolve("configuration")
+        "eclipse " + os
+            + " -data " + context.getWorkspacePath()
+            + " -keyring " + context.getUserHome().resolve(".eclipse").resolve(".keyring")
+            + " -configuration " + configurationPath
             + " gui -showlocation eclipseproject -nosplash");
 
     //if tool already installed
@@ -87,7 +92,7 @@ public class EclipseTest extends AbstractIdeContextTest {
     Path buildFile = context.getIdeInstallationPath().resolve(IdeContext.FOLDER_INTERNAL).resolve("eclipse-import.xml");
     assertThat(eclipse.getToolBinPath().resolve("eclipsetest")).hasContent(
         "eclipse linux -data " + context.getWorkspacePath() + " -keyring " + context.getUserHome().resolve(".eclipse").resolve(".keyring")
-            + " -configuration " + context.getPluginsPath().resolve("eclipse").resolve("configuration")
+            + " -configuration " + eclipse.getPluginsInstallationPath().resolve("configuration")
             + " -consoleLog -nosplash -application org.eclipse.ant.core.antRunner -buildfile " + buildFile + " -DrepositoryImportPath=" + repositoryPath
             + " -DrepositoryImportWorkingSet=");
   }
