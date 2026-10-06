@@ -19,11 +19,15 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * <li><a
  * href="https://github.com/stackrox/kube-linter/releases/download/v0.8.3/kube-linter-windows.tar.gz">github.com/stackrox/kube-linter/releases/download/v0.8.3/kube-linter-windows.tar.gz</a></li>
  * </ul>
+ * <p>
+ * Note: the upstream {@code v0.6.5} release tag contains a trailing space, which makes the version
+ * folder uncreatable; the updater therefore logs an {@code InvalidPathException} for that version.
+ * This is an upstream data issue (not a fault of this updater) and does not break the overall URL update.
  */
 public class KubeLinterUrlUpdater extends GithubUrlReleaseUpdater {
 
   /** The minimum version for which all six platform/architecture release assets are available. */
-  private static final VersionIdentifier MIN_KUBE_LINTER_VID = VersionIdentifier.of("0.7.0");
+  private static final VersionIdentifier MIN_KUBE_LINTER_VERSION_IDENTIFIER = VersionIdentifier.of("0.7.0");
 
   /**
    * The constructor.
@@ -68,9 +72,9 @@ public class KubeLinterUrlUpdater extends GithubUrlReleaseUpdater {
   @Override
   protected void addVersion(UrlVersion urlVersion) {
 
-    VersionIdentifier vid = urlVersion.getVersionIdentifier();
+    VersionIdentifier versionIdentifier = urlVersion.getVersionIdentifier();
 
-    if (vid.isGreaterOrEqual(MIN_KUBE_LINTER_VID)) {
+    if (versionIdentifier.isGreaterOrEqual(MIN_KUBE_LINTER_VERSION_IDENTIFIER)) {
 
       String baseUrl = createGithubReleaseDownloadUrl("v${version}", "kube-linter-");
 
