@@ -159,4 +159,43 @@ class EnvironmentVariablesPropertiesFileTest extends AbstractIdeContextTest {
     assertThat(lines).containsExactlyElementsOf(linesAfterSave);
   }
 
+  /**
+   * Test that {@link EnvironmentVariablesPropertiesFile#rename(String, String)} renames a property in place so that the position of the line is preserved
+   * (comments and the order of the remaining properties are not changed).
+   */
+  @Test
+  void testRenameKeepsOrderAndComments(@TempDir Path tempDir) throws Exception {
+
+    // arrange
+    List<String> linesToWrite = new ArrayList<>();
+    linesToWrite.add("# first comment");
+    linesToWrite.add("plugin_url=https://example.org");
+    linesToWrite.add("plugin_id=net.example.feature.group");
+    linesToWrite.add("plugin_active=true");
+    linesToWrite.add("tags=mocking");
+
+    Path propertiesFilePath = tempDir.resolve("plugin.properties");
+    Files.write(propertiesFilePath, linesToWrite, StandardOpenOption.CREATE_NEW);
+
+    EnvironmentVariablesPropertiesFile variables = new EnvironmentVariablesPropertiesFile(null, TYPE, propertiesFilePath, new IdeTestContext());
+
+    // act
+    variables.rename("plugin_url", "url");
+    variables.rename("plugin_id", "id");
+    variables.rename("plugin_active", "active");
+
+    variables.save();
+
+    // assert
+    List<String> linesAfterSave = new ArrayList<>();
+    linesAfterSave.add("# first comment");
+    linesAfterSave.add("url=https://example.org");
+    linesAfterSave.add("id=net.example.feature.group");
+    linesAfterSave.add("active=true");
+    linesAfterSave.add("tags=mocking");
+
+    List<String> lines = Files.readAllLines(propertiesFilePath);
+    assertThat(lines).containsExactlyElementsOf(linesAfterSave);
+  }
+
 }
