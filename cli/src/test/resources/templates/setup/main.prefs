@@ -1,5 +1,2 @@
-editor=vi
-java.home=${IDE_HOME}/software/java
-java.version=1.11
-theme=light
+theme=dark
 ui=classic

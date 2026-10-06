@@ -1,6 +1,2 @@
-#Wed Sep 23 13:35:33 CEST 2026
-editor=vi
-java.home=${IDE_HOME}/software/java
 java.version=1.11
-theme=dark
-ui=classic
+java.home= ${IDE_HOME}/software/java
