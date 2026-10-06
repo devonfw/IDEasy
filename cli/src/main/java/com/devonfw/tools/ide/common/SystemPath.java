@@ -9,9 +9,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -55,10 +58,12 @@ public class SystemPath {
    * <p>
    * {@code node} ships its own {@code npm}/{@code npx}/{@code corepack} inside its (flat, no {@code bin/}) install folder, so without an explicit order the
    * pristine, independently versioned {@code npm} install and the node-bundled one would compete for the same binary names in an arbitrary order
-   * ({@code tool2pathMap} is a {@link HashMap}). Ordering these tools first guarantees the pristine installation deterministically wins. If another tool ever
-   * becomes independently versioned the same way, it is added here.
+   * ({@code tool2pathMap} is a {@link HashMap}). The {@code flutter} framework likewise bundles its own {@code dart} inside its {@code bin/} folder, so the
+   * pristine, independently versioned {@code dart} install and the flutter-bundled one would compete for the {@code dart} binary the same way. Ordering these
+   * tools first guarantees the pristine installation deterministically wins. If another tool ever becomes independently versioned the same way, it is
+   * added here.
    */
-  private static final List<String> PATH_PRECEDENCE_TOOLS = List.of("npm");
+  private static final List<String> PATH_PRECEDENCE_TOOLS = List.of("npm", "dart");
 
   private static final List<String> EXTENSION_PRIORITY = List.of(".exe", ".cmd", ".bat", ".msi", ".ps1", "");
 
@@ -213,6 +218,91 @@ public class SystemPath {
         throw new IllegalStateException("Failed to list children of " + softwarePath, e);
       }
     }
+    warnOnBinaryNameCollisions();
+  }
+
+  /**
+   * Extensions (lower-cased) that mark a file as a binary on the PATH. The logical binary name is the file name without this trailing extension
+   * (e.g. {@code dart.exe} and {@code dart} both represent the {@code dart} binary).
+   */
+  private static final Set<String> BINARY_EXTENSIONS = Set.of(".exe", ".cmd", ".bat", ".ps1");
+
+  /**
+   * Warns about binary-name collisions between tools that are not handled by {@link #PATH_PRECEDENCE_TOOLS}: if two distinct tools expose a file with the same
+   * logical binary name (e.g. two tools both providing a {@code java} executable) then which one actually wins on the PATH is determined by the arbitrary
+   * iteration order of {@code tool2pathMap} and cannot be guaranteed. The {@code PATH_PRECEDENCE_TOOLS} are exempt because they are ordered first and therefore
+   * win deterministically over the copies bundled with the runtime that also ships them.
+   */
+  private void warnOnBinaryNameCollisions() {
+
+    // Note: use the static SystemInfoImpl.INSTANCE because the context's own SystemInfo is not yet available at the point this runs (during construction).
+    boolean windows = SystemInfoImpl.INSTANCE.isWindows();
+    Map<String, Set<String>> toolsByBinaryName = new TreeMap<>();
+    for (Map.Entry<String, Path> entry : this.tool2pathMap.entrySet()) {
+      String tool = entry.getKey();
+      if (PATH_PRECEDENCE_TOOLS.contains(tool) || !Files.isDirectory(entry.getValue())) {
+        continue;
+      }
+      try (Stream<Path> files = Files.list(entry.getValue())) {
+        files.filter(Files::isRegularFile).forEach(file -> {
+          if (isBinaryCandidate(file, windows)) {
+            String binaryName = getBinaryName(file);
+            if (binaryName != null) {
+              toolsByBinaryName.computeIfAbsent(binaryName, k -> new LinkedHashSet<>()).add(tool);
+            }
+          }
+        });
+      } catch (IOException e) {
+        LOG.warn("Failed to list binaries of tool '{}' for binary-name collision detection - {}", tool, e.getMessage());
+      }
+    }
+    toolsByBinaryName.forEach((binaryName, tools) -> {
+      if (tools.size() > 1) {
+        List<String> orderedTools = new ArrayList<>(tools);
+        Collections.sort(orderedTools);
+        LOG.warn("Binary name '{}' is provided by multiple tools {} and the winner on the PATH is not guaranteed. Add it to "
+            + "SystemPath.PATH_PRECEDENCE_TOOLS to force a deterministic order.", binaryName, String.join(", ", orderedTools));
+      }
+    });
+  }
+
+  /**
+   * A file counts as a binary that could be exposed on the PATH if, on Windows, it carries a launcher extension ({@code .exe}, {@code .cmd}, {@code .bat},
+   * {@code .ps1}), or on other platforms it has the executable bit set. Non-executable files (e.g. a {@code readme}) and on Windows extensionless files are
+   * ignored so that only genuinely launchable commands are considered.
+   *
+   * @param file the {@link Path} of a regular file.
+   * @param windows {@code true} if running on Windows.
+   * @return {@code true} if the file is a binary candidate for PATH collision detection.
+   */
+  private static boolean isBinaryCandidate(Path file, boolean windows) {
+
+    if (windows) {
+      String name = file.getFileName().toString().toLowerCase();
+      for (String extension : BINARY_EXTENSIONS) {
+        if (name.endsWith(extension)) {
+          return true;
+        }
+      }
+      return false;
+    }
+    return Files.isExecutable(file);
+  }
+
+  /**
+   * @param file the {@link Path} of a file.
+   * @return the logical binary name of the file (the file name without a trailing executable extension, lower-cased) or {@code null} if the name is empty.
+   */
+  private static String getBinaryName(Path file) {
+
+    String name = file.getFileName().toString().toLowerCase();
+    for (String extension : BINARY_EXTENSIONS) {
+      if (name.endsWith(extension)) {
+        name = name.substring(0, name.length() - extension.length());
+        break;
+      }
+    }
+    return name.isEmpty() ? null : name;
   }
 
   /**
