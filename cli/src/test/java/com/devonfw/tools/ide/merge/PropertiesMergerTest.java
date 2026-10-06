@@ -148,7 +148,7 @@ public class PropertiesMergerTest extends AbstractIdeContextTest {
     propertiesMerger.inverseMerge(workspaceMain, environmentVariables, false, updateMain);
     Properties result= fileAccess.readProperties(updateMain);
     //assert
-    System.out.println(result);
+
     assertThat(result).containsEntry("java.version", "1.11").containsEntry("java.home", "${IDE_HOME}/software/java");
   }
   @Test
