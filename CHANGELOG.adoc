@@ -6,8 +6,10 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/2345[#2345]: DOCKER_EDITION ignored on Linux
 * https://github.com/devonfw/IDEasy/issues/2381[#2381]: Make node and npm pristine versioned tools with per-project npm global prefix
-* https://github.com/devonfw/IDEasy/issues/2504[#2504]: VSCode plugins cannot be reinstalled after the plugins folder was reset when VSCODE_PROFILE_ENABLED is enabled
+* https://github.com/devonfw/IDEasy/issues/2607[#2607]: Align tool help for corepack
+* https://github.com/devonfw/IDEasy/issues/2322[#2322]: Use a consistent IDEasy icon across all operating systems
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/51?closed=1[milestone 2026.10.001].
 
@@ -38,6 +40,7 @@ The full list of changes for this release can be found in https://github.com/dev
 
 == 2026.09.001
 
+* https://github.com/devonfw/IDEasy/issues/2293[#2293]: Rework spyder to have same features as IdeToolCommandlets
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/1525[#1525]: Document known issue and workaround for lombok plugin in Eclipse
