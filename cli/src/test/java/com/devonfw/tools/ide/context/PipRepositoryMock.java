@@ -48,7 +48,7 @@ public class PipRepositoryMock extends PipRepository {
   private void mockPypiPackageResponses(WireMockRuntimeInfo wireMockRuntimeInfo) {
     Path pypiRoot = this.context.getIdeHome()
         .getParent()
-        .resolve("repository")
+        .resolve(IdeContext.FOLDER_REPOSITORY)
         .resolve("pypi");
 
     if (!Files.isDirectory(pypiRoot)) {

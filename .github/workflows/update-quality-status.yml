@@ -11,10 +11,15 @@ permissions:
 jobs:
   update-quality-status:
     runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      vars.ENABLE_AUTOMATIC_WORKFLOWS == 'true'
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.ACTION_PUSH_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -44,4 +49,4 @@ jobs:
           fi
 
           git commit -m "Update quality status documents"
-          git push
+          git push --force

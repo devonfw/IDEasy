@@ -1,5 +1,9 @@
 package com.devonfw.tools.ide.log;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+
 /**
  * Single entry that was logged.
  *
@@ -11,7 +15,7 @@ package com.devonfw.tools.ide.log;
  * @param contains - {@code true} if the {@link IdeLogEntry} to create is used as sub-string pattern for {@link #matches(IdeLogEntry) matching},
  *     {@code false} otherwise.
  */
-public record IdeLogEntry(IdeLogLevel level, String message, String rawMessage, Object[] args, Throwable error, boolean contains) {
+public record IdeLogEntry(IdeLogLevel level, String message, String rawMessage, Object[] args, Throwable error, boolean contains, Long timeStamp) {
 
   /**
    * The constructor.
@@ -37,7 +41,7 @@ public record IdeLogEntry(IdeLogLevel level, String message, String rawMessage, 
    */
   public IdeLogEntry(IdeLogLevel level, String message) {
 
-    this(level, message, null, null, null, false);
+    this(level, message, null, null, null, false, System.currentTimeMillis());
   }
 
   /**
@@ -47,7 +51,7 @@ public record IdeLogEntry(IdeLogLevel level, String message, String rawMessage, 
    */
   public IdeLogEntry(IdeLogLevel level, String message, boolean contains) {
 
-    this(level, message, null, null, null, contains);
+    this(level, message, null, null, null, contains, System.currentTimeMillis());
   }
 
   /**
@@ -58,7 +62,7 @@ public record IdeLogEntry(IdeLogLevel level, String message, String rawMessage, 
    */
   public IdeLogEntry(IdeLogLevel level, String message, String rawMessage, Object[] args) {
 
-    this(level, message, rawMessage, args, null, false);
+    this(level, message, rawMessage, args, null, false, System.currentTimeMillis());
   }
 
   /**
@@ -70,7 +74,19 @@ public record IdeLogEntry(IdeLogLevel level, String message, String rawMessage, 
    */
   public IdeLogEntry(IdeLogLevel level, String message, String rawMessage, Object[] args, Throwable error) {
 
-    this(level, message, rawMessage, args, error, false);
+    this(level, message, rawMessage, args, error, false, System.currentTimeMillis());
+  }
+
+  /**
+   * @param level the {@link IdeLogLevel}.
+   * @param message the {@link IdeSubLogger#log(String) logged message}.
+   * @param rawMessage the {@link IdeSubLogger#log(String, Object...) raw message template}.
+   * @param args the {@link IdeSubLogger#log(String, Object...) optional message arguments}.
+   * @param error the {@link IdeSubLogger#log(Throwable, String) optional error that was logged}.
+   */
+  public IdeLogEntry(IdeLogLevel level, String message, String rawMessage, Object[] args, Throwable error, boolean contains) {
+
+    this(level, message, rawMessage, args, error, contains, System.currentTimeMillis());
   }
 
   /**
@@ -177,4 +193,11 @@ public record IdeLogEntry(IdeLogLevel level, String message, String rawMessage, 
     return new IdeLogEntry(IdeLogLevel.PROCESSABLE, message);
   }
 
+  /// @return A human-readable, formatted string of the log entry following the structure: `timestamp | [LogLevel] message`
+  public String displayValue() {
+
+    DateTimeFormatter DATETIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss.SSS").withZone(ZoneId.systemDefault());
+    String timeStampReadable = DATETIME_FORMAT.format(Instant.ofEpochMilli(this.timeStamp));
+    return String.format("%s | [%s] %s", timeStampReadable, this.level(), this.message());
+  }
 }

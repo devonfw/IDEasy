@@ -11,22 +11,24 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.cli.CliAbortException;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.git.GitUrl;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.property.RepositoryProperty;
 import com.devonfw.tools.ide.step.Step;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 
 /**
- * {@link Commandlet} to setup one or multiple GIT repositories for development.
+ * {@link AbstractCommandlet} to setup one or multiple GIT repositories for development.
  */
-public class RepositoryCommandlet extends Commandlet {
+public class RepositoryCommandlet extends AbstractCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(RepositoryCommandlet.class);
+  private static final String REPOSITORY = "repository";
 
   /** the repository to setup. */
   public final RepositoryProperty repository;
@@ -41,13 +43,13 @@ public class RepositoryCommandlet extends Commandlet {
     super(context);
     addKeyword(getName());
     addKeyword("setup");
-    this.repository = add(new RepositoryProperty("", false, "repository"));
+    this.repository = add(new RepositoryProperty("", false, REPOSITORY));
   }
 
   @Override
   public String getName() {
 
-    return "repository";
+    return REPOSITORY;
   }
 
   @Override
@@ -73,7 +75,7 @@ public class RepositoryCommandlet extends Commandlet {
       boolean forceMode = this.context.isForceMode() || this.context.isForceRepositories();
       Map<Path, RepositoryConfig> repositoryConfigMap = new HashMap<>(propertiesFiles.size());
       for (Path propertiesFile : propertiesFiles) {
-        RepositoryConfig config = prepareActiveRepository(propertiesFile, forceMode);
+        RepositoryConfig config = prepareActiveRepositoryIgnoringInvalid(propertiesFile, forceMode);
         if (config != null) {
           repositoryConfigMap.put(propertiesFile, config);
         }
@@ -87,19 +89,38 @@ public class RepositoryCommandlet extends Commandlet {
     }
   }
 
+  /**
+   * Like {@link #prepareActiveRepository(Path, boolean)} but ignores a single invalid repository instead of aborting the setup of all others. Resolving a
+   * property value may fail for a malformed expression, and one broken file in the repositories folder must not prevent every other repository from being
+   * set up. Only used when iterating all repositories - if the user explicitly requested a single repository, the failure is reported instead. A
+   * {@link CliAbortException} is still propagated as the {@link Step} always re-throws it.
+   *
+   * @param repositoryFile the {@link Path} to the repository properties file.
+   * @param forceMode - {@code true} to setup the repository even if it is not active, {@code false} otherwise.
+   * @return the {@link RepositoryConfig} or {@code null} if the repository shall be skipped.
+   */
+  private RepositoryConfig prepareActiveRepositoryIgnoringInvalid(Path repositoryFile, boolean forceMode) {
+
+    Step step = this.context.newStep("Prepare repository", repositoryFile);
+    return step.call(() -> prepareActiveRepository(repositoryFile, forceMode), () -> null);
+  }
+
   private RepositoryConfig prepareActiveRepository(Path repositoryFile, boolean forceMode) {
 
-    RepositoryConfig config = RepositoryConfig.loadProperties(repositoryFile, this.context);
-    if (config == null) {
-      return null;
-    }
-    if (!config.active()) {
+    // the active flag is evaluated before the remaining properties are read: reading a property resolves variables and expressions in its value, so an
+    // expression like @ask-variable would otherwise ask the user for a repository that is skipped anyway
+    RepositoryProperties properties = new RepositoryProperties(repositoryFile, this.context);
+    if (!properties.isActive()) {
       if (forceMode) {
-        LOG.info("Setup of repository {} is forced, hence proceeding ...", config.id());
+        LOG.info("Setup of repository {} is forced, hence proceeding ...", properties.getId());
       } else {
-        LOG.info("Skipping repository {} because it is not active, use --force-repositories to setup all repositories ...", config.id());
+        LOG.info("Skipping repository {} because it is not active, use --force-repositories to setup all repositories ...", properties.getId());
         return null;
       }
+    }
+    RepositoryConfig config = RepositoryConfig.loadProperties(properties);
+    if (config == null) {
+      return null;
     }
     // prepare workspace creation for correct resolution of *
     List<String> workspaces = config.workspaces();
@@ -186,6 +207,9 @@ public class RepositoryCommandlet extends Commandlet {
       }
       Path linkRepositoryPath = config.isVirtualSettingsRepository() ? firstRepository : repositoryPath;
       if (Files.exists(linkRepositoryPath)) {
+        for (RepositoryRemote remote : config.remotes()) {
+          this.context.getGitContext().addRemote(linkRepositoryPath, remote.name(), remote.url());
+        }
         for (RepositoryLink link : config.links()) {
           createRepositoryLink(link, linkRepositoryPath, workspacePath);
         }
@@ -234,7 +258,7 @@ public class RepositoryCommandlet extends Commandlet {
     if (buildCmd != null && !buildCmd.isEmpty()) {
       return this.context.newStep("Build repository via: " + buildCmd).run(() -> {
         String[] command = buildCmd.split("\\s+");
-        ToolCommandlet commandlet = this.context.getCommandletManager().getToolCommandlet(command[0]);
+        AbstractToolCommandlet commandlet = this.context.getCommandletManager().getToolCommandlet(command[0]);
         if (commandlet == null) {
           String displayName = (command[0] == null || command[0].isBlank()) ? "<empty>" : "'" + command[0] + "'";
           LOG.error("Cannot build repository. Required tool '{}' not found. Please check your repository's build_cmd configuration value.",
@@ -269,13 +293,13 @@ public class RepositoryCommandlet extends Commandlet {
     for (String ide : imports) {
       Step step = this.context.newStep("Importing repository " + repositoryId + " into " + ide);
       step.run(() -> {
-        ToolCommandlet commandlet = this.context.getCommandletManager().getToolCommandlet(ide);
+        AbstractToolCommandlet commandlet = this.context.getCommandletManager().getToolCommandlet(ide);
         if (commandlet == null) {
           String displayName = (ide == null || ide.isBlank()) ? "<empty>" : "'" + ide + "'";
           step.error("Cannot import repository '{}'. Required IDE '{}' not found. Please check your repository's imports configuration.", repositoryId,
               displayName);
-        } else if (commandlet instanceof IdeToolCommandlet ideCommandlet) {
-          ideCommandlet.importRepository(repositoryPath);
+        } else if (commandlet instanceof IdeToolCommandlet ideToolCommandlet) {
+          ideToolCommandlet.importRepository(repositoryPath);
         } else {
           step.error("Repository {} has import {} configured that is not an IDE!", repositoryId, ide);
         }

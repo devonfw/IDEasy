@@ -63,7 +63,7 @@ class IntellijUrlUpdaterTest extends AbstractUrlUpdaterTest {
     IntellijUrlUpdater updater = new IntellijUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     Path intellijToolPath = tempDir.resolve("intellij");
@@ -97,7 +97,7 @@ class IntellijUrlUpdaterTest extends AbstractUrlUpdaterTest {
     IntellijUrlUpdater updater = new IntellijUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     Path intellijVersionsPath = tempDir.resolve("intellij").resolve("intellij").resolve("2023.1.3");
 
@@ -124,7 +124,7 @@ class IntellijUrlUpdaterTest extends AbstractUrlUpdaterTest {
     IntellijUrlUpdater updater = new IntellijUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     Path intellijVersionsPath = tempDir.resolve("intellij").resolve("intellij").resolve("2023.1.2");

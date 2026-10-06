@@ -43,7 +43,11 @@ function ide() {
   if [ $? = 0 ]; then
     eval "${ide_env}"
     if [ $# = 0 ] && [ -n "${IDE_HOME}" ]; then
-      echo "IDE environment variables have been set for ${IDE_HOME} in workspace ${WORKSPACE}"
+      local workspace_message=" with workspace set to ${WORKSPACE}"
+      if [ -z "${WORKSPACE_PATH}" ] || [ "${PWD#"${WORKSPACE_PATH}"}" = "${PWD}" ]; then
+        workspace_message="${workspace_message} (fallback to default)"
+      fi
+      echo "IDE environment variables have been set for ${IDE_HOME}${workspace_message}"
     fi
   fi
   if _ide_is_cygwin && [ "$#" != 0 ]; then
@@ -105,7 +109,7 @@ function icd() {
         echo "Change directory and initialize IDEasy environment."
         echo "The icd command can be used as an alternative to the regular cd command."
         echo "As additional effect, it will automatically update your environment variables."
-        echo "Futher, it allows shortcuts to quickly navigate to common directories of IDEasy."
+        echo "Further, it allows shortcuts to quickly navigate to common directories of IDEasy."
         echo "Without any arguments icd will navigate to your top-level project directory (IDE_HOME)."
         echo
         echo "OPTIONS:"
@@ -232,6 +236,22 @@ function claude() {
     ide claude "$@"
   else
     command claude "$@"
+  fi
+}
+
+function node() {
+  if [ -n "${IDE_HOME}" ]; then
+    ide node "$@"
+  else
+    command node "$@"
+  fi
+}
+
+function npm() {
+  if [ -n "${IDE_HOME}" ]; then
+    ide npm "$@"
+  else
+    command npm "$@"
   fi
 }
 

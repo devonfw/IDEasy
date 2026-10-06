@@ -44,7 +44,7 @@ class AwsGithubUrlTagUpdaterTest extends AbstractUrlUpdaterTest {
     AwsUrlUpdater updater = new AwsUrlUpdater(wmRuntimeInfo.getHttpBaseUrl() + "/download/", wmRuntimeInfo.getHttpBaseUrl());
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     Path awsEditionDir = tempDir.resolve("aws").resolve("aws");

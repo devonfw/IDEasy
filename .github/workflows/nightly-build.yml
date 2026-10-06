@@ -77,21 +77,7 @@ jobs:
       - name: Build MSI with WixToolSet
         if: runner.os == 'Windows'
         shell: bash
-        run: |
-          cd documentation
-          mvn -B -ntp clean install
-          cd ..
-          mkdir -p windows-installer/msi-files
-          cp documentation/target/generated-docs/IDEasy.pdf windows-installer/msi-files
-          cp -r cli/target/package/* windows-installer/msi-files
-          rm -rf windows-installer/msi-files/system/mac
-          rm -rf windows-installer/msi-files/system/linux
-          cp cli/target/ideasy.exe windows-installer/msi-files/bin
-          cd windows-installer
-          dotnet tool install --global wix --version 5.0.2
-          wix extension add WixToolset.UI.wixext/5.0.2
-          wix extension add WixToolset.Util.wixext/5.0.2
-          wix build Package.wxs WixUI_IDEasySetup.wxs WixUI_FirstStepsDlg.wxs -loc Package.en-us.wxl -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext -o ideasy.msi
+        run: ./windows-installer/build-msi.sh
       - name: Upload unsigned MSI
         if: runner.os == 'Windows'
         id: upload-msi
@@ -122,7 +108,7 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          ./.github/workflows/macos/generate_pkg.sh
+          ./macos-installer/build-pkg.sh
         env:
           RELEASE_VERSION: ${{ needs.resolve-version.outputs.snapshot_version }}
       - name: Upload unsigned PKG
@@ -159,4 +145,4 @@ jobs:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           RELEASE_VERSION: ${{ needs.resolve-version.outputs.snapshot_version }}
-        run: mvn --settings .mvn/settings.xml -DskipTests=true -Darchetype.test.skip=true -Dgpg.skip=true -Dstyle.color=always -B -ntp -pl -:ide-macos-installer -Passembly,msi,pkg,deploy deploy
+        run: mvn --settings .mvn/settings.xml -DskipTests=true -Darchetype.test.skip=true -Dgpg.skip=true -Dstyle.color=always -B -ntp -pl -:ide-macos-installer -pl -:ide-windows-installer -Passembly,msi,pkg,deploy deploy

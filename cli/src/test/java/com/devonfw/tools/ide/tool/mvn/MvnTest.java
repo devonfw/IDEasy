@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.variable.IdeVariables;
@@ -107,7 +108,7 @@ class MvnTest extends AbstractIdeContextTest {
 
     Path settingsFile = context.getConfPath().resolve(Mvn.MVN_CONFIG_FOLDER).resolve(Mvn.SETTINGS_FILE);
     assertThat(settingsFile).exists();
-    assertFileContent(settingsFile, List.of("${env.M2_REPO}", "repository", "testLogin", "testPassword"));
+    assertFileContent(settingsFile, List.of("${env.M2_REPO}", IdeContext.FOLDER_REPOSITORY, "testLogin", "testPassword"));
 
     Path settingsSecurityFile = context.getConfPath().resolve(Mvn.MVN_CONFIG_FOLDER).resolve(Mvn.SETTINGS_SECURITY_FILE);
     assertThat(settingsSecurityFile).exists();
@@ -125,7 +126,7 @@ class MvnTest extends AbstractIdeContextTest {
     String path = "project/workspaces";
     // act
     IdeTestContext context = newContext(PROJECT_MVN, path, false);
-    Path mavenRepository = context.getUserHome().resolve(".m2").resolve("repository");
+    Path mavenRepository = context.getUserHome().resolve(".m2").resolve(IdeContext.FOLDER_REPOSITORY);
     // assert
     assertThat(IdeVariables.M2_REPO.get(context)).isEqualTo(mavenRepository);
   }

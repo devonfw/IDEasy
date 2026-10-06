@@ -9,7 +9,7 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.commandlet.TestCommandletManager;
 import com.devonfw.tools.ide.common.SystemPath;
@@ -44,6 +44,8 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   public static final Path PATH_MOCK = Path.of("/");
 
   private String[] answers;
+
+  private int secretLineCount;
 
   private int answerIndex;
 
@@ -154,12 +156,34 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   @Override
   protected String readLine() {
 
+    String answer = nextAnswer();
+    IdeLogLevel.INTERACTION.log(LOG, answer);
+    return answer;
+  }
+
+  @Override
+  protected String readSecretLine() {
+
+    this.secretLineCount++;
+    // unlike readLine() the answer is deliberately NOT logged, just like a real console does not echo a secret
+    return nextAnswer();
+  }
+
+  private String nextAnswer() {
+
     if (this.answerIndex >= this.answers.length) {
       throw new IllegalStateException("End of answers reached!");
     }
-    String answer = this.answers[this.answerIndex++];
-    IdeLogLevel.INTERACTION.log(LOG, answer);
-    return answer;
+    return this.answers[this.answerIndex++];
+  }
+
+  /**
+   * @return the number of times {@link #readSecretLine()} was called, so tests can verify that masked input was actually used instead of plain
+   *     {@link #readLine()}.
+   */
+  public int getSecretLineCount() {
+
+    return this.secretLineCount;
   }
 
   /**
@@ -350,9 +374,9 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   }
 
   /**
-   * @param commandlet the {@link Commandlet} to add to {@link #getCommandletManager()} for testing.
+   * @param commandlet the {@link AbstractCommandlet} to add to {@link #getCommandletManager()} for testing.
    */
-  public void addCommandlet(Commandlet commandlet) {
+  public void addCommandlet(AbstractCommandlet commandlet) {
 
     if (this.testCommandletManager == null) {
       setCommandletManager(new TestCommandletManager(this));
@@ -392,7 +416,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   }
 
   @Override
-  protected boolean isWriteLogfile(Commandlet cmd) {
+  protected boolean isWriteLogfile(AbstractCommandlet cmd) {
 
     return false;
   }

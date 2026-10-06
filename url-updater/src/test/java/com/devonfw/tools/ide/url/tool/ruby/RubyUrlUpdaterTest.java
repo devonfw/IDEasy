@@ -51,7 +51,7 @@ class RubyUrlUpdaterTest extends AbstractUrlUpdaterTest {
     RubyUrlUpdater updater = new RubyUrlUpdater(wmRuntimeInfo.getHttpBaseUrl(), wmRuntimeInfo.getHttpBaseUrl());
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     Path rubyVersionDir = tempDir.resolve("ruby").resolve("ruby").resolve("2.5.3-1");

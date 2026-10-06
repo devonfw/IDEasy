@@ -8,7 +8,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.json.JsonObject;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 
 /**
  * {@link ExtraTools} represents the {@code ide-extra-tools.json} file.
@@ -19,6 +23,8 @@ public class ExtraTools implements JsonObject {
   public static final ExtraTools EMPTY = new ExtraTools().asImmutable();
 
   private final Map<String, List<ExtraToolInstallation>> tool2installationsMap;
+
+  private static final Logger LOG = LoggerFactory.getLogger(ExtraTools.class);
 
   /**
    * The constructor.
@@ -33,7 +39,7 @@ public class ExtraTools implements JsonObject {
   }
 
   /**
-   * @param tool the {@link com.devonfw.tools.ide.tool.LocalToolCommandlet#getName() name} of the {@link com.devonfw.tools.ide.tool.LocalToolCommandlet}.
+   * @param tool the {@link AbstractLocalToolCommandlet#getName() name} of the {@link AbstractLocalToolCommandlet}.
    * @return the {@link List} of {@link ExtraToolInstallation extra installations}. Will be empty if no extra installation is defined.
    */
   public List<ExtraToolInstallation> getExtraInstallations(String tool) {
@@ -46,10 +52,16 @@ public class ExtraTools implements JsonObject {
   }
 
   /**
-   * @param tool the {@link com.devonfw.tools.ide.tool.LocalToolCommandlet#getName() name} of the {@link com.devonfw.tools.ide.tool.LocalToolCommandlet}.
+   * @param tool the {@link AbstractLocalToolCommandlet#getName() name} of the {@link AbstractLocalToolCommandlet}.
    * @param extraInstallation the {@link ExtraToolInstallation} to add.
    */
   public void addExtraInstallations(String tool, ExtraToolInstallation extraInstallation) {
+
+    if ((tool != null) && (extraInstallation != null) && tool.equalsIgnoreCase(extraInstallation.name())) {
+      LOG.warn("Invalid extra installation name '{}' for tool '{}': the extra installation name must not be the same as the tool name.",
+          extraInstallation.name(), tool);
+      return;
+    }
 
     List<ExtraToolInstallation> list = this.tool2installationsMap.computeIfAbsent(tool, k -> new ArrayList<>());
     list.add(extraInstallation);

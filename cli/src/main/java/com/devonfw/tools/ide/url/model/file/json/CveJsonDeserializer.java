@@ -2,11 +2,14 @@ package com.devonfw.tools.ide.url.model.file.json;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import com.devonfw.tools.ide.json.JsonBuilder;
 import com.devonfw.tools.ide.json.JsonObjectDeserializer;
 import com.devonfw.tools.ide.version.VersionRange;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
 
 /**
@@ -25,6 +28,7 @@ public class CveJsonDeserializer extends JsonObjectDeserializer<Cve> {
     private String id;
     private Double severity;
     private List<VersionRange> versions;
+    private Map<String, List<VersionRange>> conditions;
 
     @Override
     public void setProperty(String property, JsonParser p, DeserializationContext ctxt) throws IOException {
@@ -39,16 +43,35 @@ public class CveJsonDeserializer extends JsonObjectDeserializer<Cve> {
         case Cve.PROPERTY_VERSIONS -> {
           this.versions = readArray(p, VersionRange.class, property, this.versions);
         }
+        case Cve.PROPERTY_CONDITIONS -> {
+          this.conditions = readConditions(p);
+        }
         default -> {
           super.setProperty(property, p, ctxt);
         }
       }
     }
 
+    private Map<String, List<VersionRange>> readConditions(JsonParser p) throws IOException {
+
+      if (p.getCurrentToken() != JsonToken.START_OBJECT) {
+        return null;
+      }
+      Map<String, List<VersionRange>> result = new TreeMap<>();
+      JsonToken token = p.nextToken();
+      while (token == JsonToken.FIELD_NAME) {
+        String os = p.currentName();
+        p.nextToken();
+        result.put(os, readArray(p, VersionRange.class, os, null));
+        token = p.nextToken();
+      }
+      return result;
+    }
+
     @Override
     public Cve build() {
 
-      return new Cve(this.id, this.severity, this.versions);
+      return new Cve(this.id, this.severity, this.versions, this.conditions);
     }
   }
 }

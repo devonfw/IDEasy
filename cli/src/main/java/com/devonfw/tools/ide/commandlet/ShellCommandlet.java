@@ -30,9 +30,9 @@ import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 
 /**
- * {@link Commandlet} for internal interactive shell with build-in auto-completion and help.
+ * {@link AbstractCommandlet} for internal interactive shell with build-in auto-completion and help.
  */
-public final class ShellCommandlet extends Commandlet {
+public final class ShellCommandlet extends AbstractCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(ShellCommandlet.class);
 
@@ -41,6 +41,8 @@ public final class ShellCommandlet extends Commandlet {
   private static final int RC_EXIT = 987654321;
 
   private static final String EXIT_COMMAND = "exit";
+
+  private static final String IDE_PREFIX = "ide ";
 
   /**
    * The constructor.
@@ -90,9 +92,9 @@ public final class ShellCommandlet extends Commandlet {
         while (true) {
           try {
             String cwdPath = String.valueOf(context.getCwd());
-            String prompt = cwdPath + (cwdPath.length() <= 80 ? "" : System.lineSeparator()) + "$ ide ";
-            line = reader.readLine(prompt, rightPrompt, (MaskingCallback) null, null);
-            line = line.trim();
+            String prompt = cwdPath + (cwdPath.length() <= 80 ? "" : System.lineSeparator()) + "$ ";
+            line = reader.readLine(prompt, rightPrompt, (MaskingCallback) null, IDE_PREFIX);
+            line = normalizeLine(line);
             if (EXIT_COMMAND.equals(line)) {
               return;
             }
@@ -120,6 +122,25 @@ public final class ShellCommandlet extends Commandlet {
     } catch (Exception e) {
       throw new RuntimeException("Unexpected error during interactive auto-completion", e);
     }
+  }
+
+  /**
+   * Strips the pre-filled {@link #IDE_PREFIX} from the given raw input line, so that a command entered after leaving the prefix untouched (e.g.
+   * {@code ide status}) behaves the same as if only {@code status} was entered. This allows the user to remove the prefix via backspace to enter a non-IDEasy
+   * command (e.g. {@code cd}) without the misleading {@code ide} prefix.
+   *
+   * @param rawLine the raw line as read from the {@link LineReader}.
+   * @return the normalized line ready to be passed to {@link #runCommand(String)}.
+   */
+  static String normalizeLine(String rawLine) {
+
+    String line = rawLine.trim();
+    if (line.equals(IDE_PREFIX.trim())) {
+      return "";
+    } else if (line.startsWith(IDE_PREFIX)) {
+      return line.substring(IDE_PREFIX.length()).trim();
+    }
+    return line;
   }
 
   /**
@@ -169,11 +190,12 @@ public final class ShellCommandlet extends Commandlet {
 
   /**
    * @param argument the current {@link CliArgument} (position) to match.
-   * @param commandlet the potential {@link Commandlet} to match.
-   * @return {@code true} if the given {@link Commandlet} matches to the given {@link CliArgument}(s) and those have been applied (set in the {@link Commandlet}
-   *     and {@link Commandlet#validate() validated}), {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
+   * @param commandlet the potential {@link AbstractCommandlet} to match.
+   * @return {@code true} if the given {@link AbstractCommandlet} matches to the given {@link CliArgument}(s) and those have been applied (set in the
+   *     {@link AbstractCommandlet} and {@link AbstractCommandlet#validate() validated}), {@code false} otherwise (the {@link AbstractCommandlet} did not match
+   *     and we have to try a different candidate).
    */
-  private boolean apply(CliArgument argument, Commandlet commandlet) {
+  private boolean apply(CliArgument argument, AbstractCommandlet commandlet) {
 
     LOG.trace("Trying to match arguments to commandlet {}", commandlet.getName());
     CliArgument currentArgument = argument;

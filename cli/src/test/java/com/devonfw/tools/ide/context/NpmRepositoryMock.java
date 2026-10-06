@@ -48,7 +48,7 @@ public class NpmRepositoryMock extends NpmRepository {
   private void mockNpmPackageResponses(WireMockRuntimeInfo wireMockRuntimeInfo) {
     Path npmRoot = this.context.getIdeHome()
         .getParent()
-        .resolve("repository")
+        .resolve(IdeContext.FOLDER_REPOSITORY)
         .resolve("npmjs");
 
     if (Files.isDirectory(npmRoot)) {

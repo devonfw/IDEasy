@@ -251,4 +251,61 @@ class WindowsHelperImplTest extends AbstractIdeContextTest {
     assertThat(path).isEqualTo("C:\\some\\path;");
     assertThat(captured[0]).isEqualTo("query HKCU\\Environment /v PATH");
   }
+
+  @Test
+  void testUninstallApplicationExecutesRegistryCommand() {
+    AbstractIdeTestContext context = new IdeTestContext();
+    WindowsHelperMock helper = (WindowsHelperMock) context.getWindowsHelper();
+
+    String appName = "Test Application";
+    String uninstallString = "\"C:\\Program Files\\Test\\uninstall.exe\" /S";
+
+    helper.setAppInstallationFromRegistry(
+        appName,
+        new WindowsAppInstallation(
+            "1.0",
+            null,
+            uninstallString,
+            "C:\\Program Files\\Test"));
+
+    // act
+    helper.uninstallApplication(appName);
+
+    // assert
+    assertThat(helper.getExecutedUninstallCommand()).isEqualTo(uninstallString);
+  }
+
+  @Test
+  void testUninstallApplicationDoesNothingWhenApplicationIsMissing() {
+    // arrange
+    AbstractIdeTestContext context = new IdeTestContext();
+    WindowsHelperMock helper = (WindowsHelperMock) context.getWindowsHelper();
+
+    // act
+    helper.uninstallApplication("MissingApp");
+
+    // assert
+    assertThat(helper.getExecutedUninstallCommand()).isNull();
+  }
+
+  @Test
+  void testUninstallApplicationDoesNothingWithoutUninstallString() {
+    // arrange
+    AbstractIdeTestContext context = new IdeTestContext();
+    WindowsHelperMock helper = (WindowsHelperMock) context.getWindowsHelper();
+
+    WindowsAppInstallation installation = new WindowsAppInstallation(
+        "1.0",
+        null,
+        null,
+        "C:\\Program Files\\Test");
+
+    helper.setAppInstallationFromRegistry(TEST_APP_NAME, installation);
+
+    // act
+    helper.uninstallApplication(TEST_APP_NAME);
+
+    // assert
+    assertThat(helper.getExecutedUninstallCommand()).isNull();
+  }
 }

@@ -41,7 +41,7 @@ class GradleUrlUpdaterTest extends AbstractUrlUpdaterTest {
     GradleUrlUpdater updater = new GradleUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     Path gradleDir = tempDir.resolve("gradle").resolve("gradle");

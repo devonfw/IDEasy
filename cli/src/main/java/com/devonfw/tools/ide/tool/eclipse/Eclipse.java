@@ -19,15 +19,15 @@ import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
-import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
+import com.devonfw.tools.ide.tool.ide.AbstractIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.mvn.MvnArtifact;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 
 /**
- * {@link IdeToolCommandlet} for <a href="https://www.eclipse.org/">Eclipse</a>.
+ * {@link AbstractIdeToolCommandlet} for <a href="https://www.eclipse.org/">Eclipse</a>.
  */
-public class Eclipse extends IdeToolCommandlet {
+public class Eclipse extends AbstractIdeToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Eclipse.class);
 
@@ -84,7 +84,7 @@ public class Eclipse extends IdeToolCommandlet {
   }
 
   @Override
-  protected boolean isPluginUrlNeeded() {
+  public boolean isPluginUrlNeeded() {
 
     return true;
   }
@@ -109,7 +109,7 @@ public class Eclipse extends IdeToolCommandlet {
   }
 
   @Override
-  protected void configureWorkspace() {
+  public void configureWorkspace() {
 
     Path lockfile = this.context.getWorkspacePath().resolve(".metadata/.lock");
     if (isLocked(lockfile)) {
@@ -145,9 +145,11 @@ public class Eclipse extends IdeToolCommandlet {
       maven.getOrDownloadArtifact(groovyAnt);
       this.groovyInstalled = true;
     }
-    // -DdevonImportPath=\"${import_path}\" -DdevonImportWorkingSet=\"${importWorkingSets}\""
-    runTool(ProcessMode.DEFAULT, null, ProcessErrorHandling.THROW_CLI, List.of(VMARGS,
-        "-DrepositoryImportPath=\"" + repositoryPath + "\" -DrepositoryImportWorkingSet=\"" + "" + "\"", "-application", "org.eclipse.ant.core.antRunner",
-        "-buildfile", this.context.getIdeInstallationPath().resolve(IdeContext.FOLDER_INTERNAL).resolve("eclipse-import.xml").toString()));
+    Path buildFile = this.context.getIdeInstallationPath().resolve(IdeContext.FOLDER_INTERNAL).resolve("eclipse-import.xml");
+    // "-application" and "-buildfile" must come before "-vmargs" (added by super.configureToolArgs if ECLIPSE_VMARGS is set),
+    // as "-vmargs" and everything after it is passed to the JVM instead of being processed by eclipse itself.
+    runTool(ProcessMode.DEFAULT, null, ProcessErrorHandling.THROW_CLI,
+        List.of("-application", "org.eclipse.ant.core.antRunner", "-buildfile", buildFile.toString(), "-DrepositoryImportPath=" + repositoryPath,
+            "-DrepositoryImportWorkingSet="));
   }
 }

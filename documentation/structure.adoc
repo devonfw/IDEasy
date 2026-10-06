@@ -19,11 +19,11 @@ The directory layout of your `IDEasy` will look like this:
 |  |  ├── IDEasy-doc.pdf
 |  |  └── setup[.bat]
 |  ├──/ link:software.adoc[software]/
-|  ├──/ tmp/
-|  └──/ urls/
+|  ├──/ link:log.adoc[logs]/
+|  ├──/ link:tmp.adoc[tmp]/
+|  └──/ link:urls.adoc[urls]/
 └──/ link:project.adoc[my-project] (link:variables.adoc[$IDE_HOME])
    ├──/ link:conf.adoc[conf]/
-   ├──/ link:log.adoc[log]/
    ├──/ link:settings.adoc[settings]/
    ├──/ link:software.adoc[software]/
    └──/ link:workspaces.adoc[workspaces]/

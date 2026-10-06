@@ -8,7 +8,7 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.AbstractIdeTestContext;
@@ -25,7 +25,7 @@ import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 import com.devonfw.tools.ide.version.GenericVersionRange;
 
 /**
- * Test of {@link IdeToolCommandlet} using {@link IdeToolDummyCommandlet}.
+ * Test of {@link AbstractIdeToolCommandlet} using {@link IdeToolDummyCommandlet}.
  */
 class IdeToolDummyCommandletTest extends AbstractIdeContextTest {
 
@@ -45,7 +45,7 @@ class IdeToolDummyCommandletTest extends AbstractIdeContextTest {
 
     context.addCommandlet(dummyCommandlet);
 
-    Commandlet dummy = context.getCommandletManager().getCommandlet("dummy");
+    AbstractCommandlet dummy = context.getCommandletManager().getCommandlet("dummy");
     assertThat(dummy).isSameAs(dummyCommandlet);
     dummy.run();
     assertThat(dummyCommandlet.installedPlugins).hasSize(1);
@@ -56,9 +56,9 @@ class IdeToolDummyCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Dummy commandlet extending {@link IdeToolCommandlet} for testing.
+   * Dummy commandlet extending {@link AbstractIdeToolCommandlet} for testing.
    */
-  public static class IdeToolDummyCommandlet extends IdeToolCommandlet {
+  public static class IdeToolDummyCommandlet extends AbstractIdeToolCommandlet {
 
     final List<ToolPluginDescriptor> installedPlugins;
 
@@ -69,7 +69,7 @@ class IdeToolDummyCommandletTest extends AbstractIdeContextTest {
     }
 
     @Override
-    protected void configureWorkspace() {
+    public void configureWorkspace() {
 
       // disable workspace configuration since we have no IDE_HOME and therefore no settings
     }

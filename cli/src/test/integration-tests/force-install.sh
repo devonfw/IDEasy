@@ -28,6 +28,24 @@ fi
 echo "=== Running force install ==="
 $IDE -f install
 
+# Test that PowerShell profile gets modified on disk
+echo "=== Testing PowerShell profile configuration ==="
+if doIsWindows; then
+  powershell_profile=$(powershell.exe -NoProfile -Command '$PROFILE.CurrentUserAllHosts' | tr -d '\r')
+  assertThat "$powershell_profile" exists
+
+  powershell_source='. "$env:IDE_ROOT\_ide\installation\functions.ps1"'
+
+  if ! grep -Fq "$powershell_source" "$powershell_profile"; then
+    doError "PowerShell profile does not contain IDEasy source entry"
+    integration_test_result=1
+  else
+    echo "PowerShell profile contains IDEasy source entry"
+  fi
+else
+  echo "Skipping PowerShell profile test - only applicable on Windows"
+fi
+
 # Capture environment variables after force install  
 echo "=== Environment after force install ==="
 env | sort > /tmp/env_after_force.txt

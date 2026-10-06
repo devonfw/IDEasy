@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.common;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -141,6 +143,75 @@ class SystemPathTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(result).isEqualTo(test);
+  }
+
+  @Test
+  void testPrecedenceToolBinPrecedesBundlingRuntimeBinForBothLookupAndPathString() throws IOException {
+    // arrange - node is a flat install (no bin/), so node's own bundled npm shadows the pristine npm unless npm is ordered first
+    // copyForMutation=true: this test creates files, so it must work on a scratch copy (in target/), never the committed fixtures
+    IdeTestContext context = newContext("find-binary", "project/workspaces", true);
+    Path npmTool = context.getSoftwarePath().resolve("npm");
+    Files.createDirectories(npmTool.resolve("bin"));
+    Files.writeString(npmTool.resolve("bin/npm"), "pristine-npm");
+    Path nodeTool = context.getSoftwarePath().resolve("node");
+    Files.createDirectories(nodeTool);
+    Files.writeString(nodeTool.resolve("npm"), "node-bundled-npm");
+    SystemPath systemPath = new SystemPath(context, "", context.getIdeRoot(), context.getSoftwarePath(), ';', new ArrayList<>());
+    Path pristine = npmTool.resolve("bin").resolve("npm");
+    Path bundled = nodeTool.resolve("npm");
+
+    // act & assert - findBinary resolves the pristine npm, not the node-bundled one
+    assertThat(systemPath.findBinary(Path.of("npm"))).isEqualTo(pristine).isNotEqualTo(bundled);
+    // act & assert - the pristine npm bin is also placed before the node dir in the PATH string
+    String pathString = systemPath.toString();
+    assertThat(pathString.indexOf(npmTool.resolve("bin").toString()))
+        .isNotNegative().isLessThan(pathString.indexOf(nodeTool.toString()));
+  }
+
+  @Test
+  void testFindBinaryFindsBinaryInExtraPathEntries() throws IOException {
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    Path binDir = context.getIdeHome().resolve("scratch-bin");
+    Files.createDirectories(binDir);
+    // create a plain binary name (no extension) so it works on both Linux and Windows
+    Path fakeToolFile = binDir.resolve("faketool");
+    Files.writeString(fakeToolFile, "@echo hi");
+
+    // empty PATH and no software folder, so tool2pathMap and paths stay empty
+    SystemPath base = new SystemPath(context, "", null, null, ';', List.of());
+    SystemPath merged = base.withPath(null, List.of(binDir));
+
+    // assert
+    assertThat(merged.toString()).contains(binDir.toString());
+    Path resolved = merged.findBinary(Path.of("faketool"));
+    assertThat(resolved).isNotEqualTo(Path.of("faketool"));
+    assertThat(resolved).isEqualTo(fakeToolFile);
+  }
+
+  @Test
+  void testFindBinaryExtraPathEntriesWinsOverTool2pathMap() throws IOException {
+    // arrange - create two directories, both with a binary named "mytool"
+    // tool2pathMap collects subdirectories of softwarePath, so mytool must be a subdirectory
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    Path toolDir = context.getIdeHome().resolve("software-tool");
+    Files.createDirectories(toolDir);
+    Path mytoolInToolDir = toolDir.resolve("mytool");
+    Files.createDirectories(mytoolInToolDir);
+    Files.writeString(mytoolInToolDir.resolve("mytool"), "tool-version");
+
+    Path extraDir = context.getIdeHome().resolve("extra-path");
+    Files.createDirectories(extraDir);
+    Files.writeString(extraDir.resolve("mytool"), "extra-version");
+
+    // tool2pathMap has "software-tool" (mytool is a subdirectory → registered), extraPathEntries has "extraDir"
+    SystemPath base = new SystemPath(context, "", null, toolDir, ';', List.of());
+    SystemPath merged = base.withPath(null, List.of(extraDir));
+
+    // assert - findBinary should return the one from extraPathEntries, NOT from tool2pathMap
+    Path resolved = merged.findBinary(Path.of("mytool"));
+    assertThat(resolved).isEqualTo(extraDir.resolve("mytool"));
+    assertThat(resolved).isNotEqualTo(mytoolInToolDir.resolve("mytool"));
   }
 
   @Test

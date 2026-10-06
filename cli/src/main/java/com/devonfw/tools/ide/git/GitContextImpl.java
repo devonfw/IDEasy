@@ -170,18 +170,19 @@ public class GitContextImpl implements GitContext {
 
     Objects.requireNonNull(repository);
     Objects.requireNonNull(gitUrl);
-    if (Files.isDirectory(repository.resolve(GIT_FOLDER))) {
-      // checks for remotes
-      String remote = determineRemote(repository);
-      if (remote == null) {
-        String message = repository + " is a local git repository with no remote - if you did this for testing, you may continue...\n"
-            + "Do you want to ignore the problem and continue anyhow?";
-        this.context.askToContinue(message);
-      } else {
-        pull(repository);
-      }
-    } else {
+    if (!Files.isDirectory(repository.resolve(GIT_FOLDER))) {
       clone(gitUrl, repository);
+      return;
+    }
+    // the remote to pull from is the one the current branch is tracking (see also "git rev-parse @{u}")
+    String effectiveRemote = determineTrackedRemote(repository);
+    if (effectiveRemote == null) {
+      String message = repository
+          + " is a local git repository whose current branch does not track a remote - if you did this for testing, you may continue...\n"
+          + "Do you want to ignore the problem and continue anyhow?";
+      this.context.askToContinue(message);
+    } else {
+      pull(repository);
     }
   }
 
@@ -259,10 +260,16 @@ public class GitContextImpl implements GitContext {
       branch = determineCurrentBranch(repository);
     }
     if (remote == null) {
-      remote = determineRemote(repository);
+      // the remote to fetch from is the one the current branch is tracking (see also "git rev-parse @{u}")
+      remote = determineTrackedRemote(repository);
+    }
+    if (remote == null) {
+      // we are on a local branch without a configured upstream, there is no remote to fetch from
+      LOG.info("Skipping git fetch on {} because no remote is configured for branch {}.", repository, branch);
+      return;
     }
 
-    ProcessResult result = runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, "fetch", Objects.requireNonNullElse(remote, "origin"), branch);
+    ProcessResult result = runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, "fetch", remote, branch);
 
     if (!result.isSuccessful()) {
       LOG.warn("Git fetch for '{}/{} failed.'.", remote, branch);
@@ -276,9 +283,13 @@ public class GitContextImpl implements GitContext {
   }
 
   @Override
-  public String determineRemote(Path repository) {
+  public String determineTrackedRemote(Path repository) {
 
-    return runGitCommandAndGetSingleOutput("Failed to determine current origin of git repository.", repository, "remote");
+    String branch = determineCurrentBranch(repository);
+    if ((branch == null) || branch.isBlank()) {
+      return null;
+    }
+    return getOptionalGitConfigValue(repository, "branch." + branch + ".remote");
   }
 
   @Override
@@ -525,6 +536,54 @@ public class GitContextImpl implements GitContext {
     }
   }
 
+  @Override
+  public void addRemote(Path repository, String name, String url) {
+    addRemote(repository, name, url, false);
+  }
+
+  @Override
+  public void addRemoteOrFail(Path repository, String name, String url) {
+    addRemote(repository, name, url, true);
+  }
+
+  /**
+   * @param repository the {@link Path} to the git repository.
+   * @param name the name of the remote.
+   * @param url the URL of the remote.
+   * @param failOnOverride {@code true} to throw an {@link IllegalStateException} if the remote already exists with a different URL, {@code false} to
+   *     silently update it.
+   */
+  protected void addRemote(Path repository, String name, String url, boolean failOnOverride) {
+
+    LOG.debug("Adding remote '{}' with url '{}' to {}", name, url, repository);
+    // Check if the remote already exists and get its current URL
+    String existingUrl = runGitCommandAndGetSingleOutput("Failed to get remote URL for remote '" + name + "' in " + repository,
+        repository, "remote", "get-url", name);
+    if (existingUrl != null) {
+      existingUrl = existingUrl.trim();
+      if (existingUrl.equals(url)) {
+        LOG.debug("Remote '{}' already exists with the expected URL {}", name, url);
+        return;
+      }
+      // Remote exists with a different URL
+      if (failOnOverride) {
+        throw new IllegalStateException("Remote '" + name + "' already exists with URL '" + existingUrl + "', refusing to override with '" + url + "'");
+      }
+      LOG.warn("Remote '{}' already exists with URL '{}', overriding with '{}'", name, existingUrl, url);
+      ProcessResult setResult = runGitCommand(repository, ProcessMode.DEFAULT, "remote", "set-url", name, url);
+      if (!setResult.isSuccessful()) {
+        LOG.warn("Failed to update URL for remote '{}' to {}", name, url);
+      }
+      return;
+    }
+    // Remote does not exist — add it
+    LOG.debug("Remote '{}' does not exist yet in {}, adding it", name, repository);
+    ProcessResult result = runGitCommand(repository, ProcessMode.DEFAULT, "remote", "add", name, url);
+    if (!result.isSuccessful()) {
+      LOG.warn("Failed to add remote '{}' to {}", name, repository);
+    }
+  }
+
   /**
    * @param repository the {@link Path} to the git repository.
    * @return the current commit ID of the given {@link Path repository}.
@@ -558,6 +617,20 @@ public class GitContextImpl implements GitContext {
       runGitCommand(repository, "push");
     }
   }
+
+  @Override
+  public Path findRepositoryRoot(Path directory) {
+    if (directory == null) {
+      return null;
+    }
+
+    Path dir = this.context.getFileAccess().toRealPath(directory);
+    while (dir != null) {
+      if (isGitRepo(dir)) {
+        return dir;
+      }
+      dir = dir.getParent();
+    }
+    return null;
+  }
 }
-
-

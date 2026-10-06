@@ -60,7 +60,7 @@ class AndroidStudioUrlUpdaterTest extends AbstractUrlUpdaterTest {
     UrlRepository urlRepository = UrlRepository.load(tempDir);
     AndroidStudioUrlUpdater updater = new AndroidStudioUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     Path androidStudioVersionsPath = tempDir.resolve("android-studio").resolve("android-studio").resolve("2023.1.1.2");
@@ -84,7 +84,7 @@ class AndroidStudioUrlUpdaterTest extends AbstractUrlUpdaterTest {
     AndroidStudioUrlUpdater updater = new AndroidStudioUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // when
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     Path androidStudioVersionsPath = tempDir.resolve("android-studio").resolve("android-studio").resolve("2023.1.1.2");
 
@@ -111,7 +111,7 @@ class AndroidStudioUrlUpdaterTest extends AbstractUrlUpdaterTest {
     AndroidStudioUrlUpdater updater = new AndroidStudioUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     Path androidStudioVersionsPath = tempDir.resolve("android-studio").resolve("android-studio").resolve("2023.1.1.2");

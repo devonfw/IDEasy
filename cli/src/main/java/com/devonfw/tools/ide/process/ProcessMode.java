@@ -4,7 +4,7 @@ import java.lang.ProcessBuilder.Redirect;
 
 /**
  * The ProcessMode defines how to start the command process and how output streams are handled using {@link ProcessBuilder}. Modes that can be used:
- * {@link #BACKGROUND} {@link #BACKGROUND_SILENT} {@link #DEFAULT} {@link #DEFAULT_CAPTURE}
+ * {@link #BACKGROUND} {@link #BACKGROUND_SILENT} {@link #BACKGROUND_NEW_WINDOW} {@link #DEFAULT} {@link #DEFAULT_CAPTURE}
  */
 public enum ProcessMode {
   /**
@@ -35,6 +35,27 @@ public enum ProcessMode {
    * {@link ProcessBuilder.Redirect#DISCARD}.
    */
   BACKGROUND_SILENT {
+    @Override
+    public Redirect getRedirectOutput() {
+      return Redirect.DISCARD;
+    }
+
+    @Override
+    public Redirect getRedirectError() {
+      return Redirect.DISCARD;
+    }
+
+    @Override
+    public Redirect getRedirectInput() {
+      return null;
+    }
+  },
+  /**
+   * Like {@link #BACKGROUND_SILENT} but opens a new terminal window for the process. The new window captures the subprocess output and error streams, so they
+   * are discarded from the parent process perspective using {@link ProcessBuilder.Redirect#DISCARD}. The parent process does not wait for the child and the
+   * child survives if the parent terminates.
+   */
+  BACKGROUND_NEW_WINDOW {
     @Override
     public Redirect getRedirectOutput() {
       return Redirect.DISCARD;
@@ -142,17 +163,25 @@ public enum ProcessMode {
    */
   public abstract Redirect getRedirectInput();
 
-
   /**
    * Method to check if the ProcessMode is a background process.
    *
-   * @return {@code true} if the {@link ProcessMode} is {@link ProcessMode#BACKGROUND} or {@link ProcessMode#BACKGROUND_SILENT}, {@code false} if not.
+   * @return {@code true} if the {@link ProcessMode} is {@link ProcessMode#BACKGROUND}, {@link ProcessMode#BACKGROUND_SILENT}, or
+   *     {@link ProcessMode#BACKGROUND_NEW_WINDOW}, {@code false} if not.
    */
   public boolean isBackground() {
 
-    return this == BACKGROUND || this == BACKGROUND_SILENT;
+    return this == BACKGROUND || this == BACKGROUND_SILENT || this == BACKGROUND_NEW_WINDOW;
   }
 
-  // TODO ADD EXTERNAL_WINDOW_MODE IN FUTURE Issue: https://github.com/devonfw/IDEasy/issues/218
+  /**
+   * Method to check if the ProcessMode should launch the process in a new terminal window.
+   *
+   * @return {@code true} if this mode should launch the process in a new terminal window, {@code false} otherwise.
+   */
+  public boolean launchesNewWindow() {
+
+    return this == BACKGROUND_NEW_WINDOW;
+  }
 
 }

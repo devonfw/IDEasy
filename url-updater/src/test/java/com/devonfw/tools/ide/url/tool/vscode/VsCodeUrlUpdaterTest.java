@@ -38,7 +38,7 @@ class VsCodeUrlUpdaterTest extends AbstractUrlUpdaterTest {
     UrlRepository urlRepository = UrlRepository.load(tempDir);
     VsCodeUrlUpdater updater = new VsCodeUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
     // when
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     Path vscode120 = tempDir.resolve("vscode").resolve("vscode").resolve("1.20.0");
     Path vscode121 = tempDir.resolve("vscode").resolve("vscode").resolve("1.21.0");
@@ -48,4 +48,3 @@ class VsCodeUrlUpdaterTest extends AbstractUrlUpdaterTest {
     assertUrlVersionOsX64(vscode121);
   }
 }
-

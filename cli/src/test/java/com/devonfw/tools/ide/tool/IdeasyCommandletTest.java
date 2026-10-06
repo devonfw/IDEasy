@@ -142,9 +142,9 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test that {@link IdeasyCommandlet#installIdeasy(Path)} updates {@link IdeContext#getIdeRoot()} to the derived installation target when {@code IDE_ROOT}
-   * is not set in the environment (as is the case during a fresh MSI installation). This ensures downstream code reading {@link IdeContext#getIdeRoot()}
-   * during the same install run gets a consistent value. See <a href="https://github.com/devonfw/IDEasy/issues/1517">#1517</a> for reference.
+   * Test that {@link IdeasyCommandlet#installIdeasy(Path)} updates {@link IdeContext#getIdeRoot()} to the derived installation target when {@code IDE_ROOT} is
+   * not set in the environment (as is the case during a fresh MSI installation). This ensures downstream code reading {@link IdeContext#getIdeRoot()} during
+   * the same install run gets a consistent value. See <a href="https://github.com/devonfw/IDEasy/issues/1517">#1517</a> for reference.
    */
   @Test
   void testInstallIdeasyUpdatesIdeRoot() {
@@ -231,8 +231,8 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
     context.getStartContext().setOfflineMode(false);
     IdeasyCommandlet ideasy = new IdeasyCommandlet(context) {
       @Override
-      public VersionIdentifier getInstalledVersion() {
-        return VersionIdentifier.of("2025.04.002-04_17_02-SNAPSHOT");
+      protected EditionAndVersion computeInstalledEditionAndVersion() {
+        return new EditionAndVersion("ideasy", VersionIdentifier.of("2025.04.002-04_17_02-SNAPSHOT"));
       }
 
       @Override
@@ -246,7 +246,7 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(updateAvailable).isFalse();
-    assertThat(context).logAtSuccess().hasMessage("Your are using the latest snapshot version of IDEasy and no update is available.");
+    assertThat(context).logAtSuccess().hasMessage("You are using the latest snapshot version of IDEasy and no update is available.");
   }
 
   /**
@@ -260,8 +260,8 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
     context.getStartContext().setOfflineMode(false);
     IdeasyCommandlet ideasy = new IdeasyCommandlet(context) {
       @Override
-      public VersionIdentifier getInstalledVersion() {
-        return VersionIdentifier.of("2025.04.002-04_17_02-SNAPSHOT");
+      protected EditionAndVersion computeInstalledEditionAndVersion() {
+        return new EditionAndVersion("ideasy", VersionIdentifier.of("2025.04.002-04_17_02-SNAPSHOT"));
       }
 
       @Override

@@ -32,7 +32,7 @@ class GoUrlUpdaterTest extends AbstractUrlUpdaterTest {
     UrlRepository urlRepository = UrlRepository.load(tempDir);
     GoUrlUpdater updater = new GoUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
     // when
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // then
     Path goEditionPath = tempDir.resolve("go").resolve("go");

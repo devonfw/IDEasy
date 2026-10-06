@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -7,47 +8,47 @@ import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 
 /**
- * Interface to {@link #getCommandlet(Class) get} a {@link Commandlet} instance that is properly initialized.
+ * Interface to {@link #getCommandlet(Class) get} a {@link AbstractCommandlet} instance that is properly initialized.
  */
 public interface CommandletManager {
 
   /**
-   * @param <C> type of the {@link Commandlet}.
-   * @param commandletType the {@link Class} reflecting the requested {@link Commandlet}.
-   * @return the requested {@link Commandlet}.
+   * @param <C> type of the {@link AbstractCommandlet}.
+   * @param commandletType the {@link Class} reflecting the requested {@link AbstractCommandlet}.
+   * @return the requested {@link AbstractCommandlet}.
    */
-  <C extends Commandlet> C getCommandlet(Class<C> commandletType);
+  <C extends AbstractCommandlet> C getCommandlet(Class<C> commandletType);
 
   /**
-   * @param name the {@link Commandlet#getName() name} of the requested {@link Commandlet}.
-   * @return the requested {@link Commandlet} or {@code null} if not found.
+   * @param name the {@link AbstractCommandlet#getName() name} of the requested {@link AbstractCommandlet}.
+   * @return the requested {@link AbstractCommandlet} or {@code null} if not found.
    */
-  Commandlet getCommandlet(String name);
+  AbstractCommandlet getCommandlet(String name);
 
   /**
    * @param keyword the first keyword argument.
-   * @return a {@link Commandlet} having the first {@link Property} {@link Property#isRequired() required} and a {@link KeywordProperty} with the given
-   *     {@link Property#getName() name} or {@code null} if no such {@link Commandlet} is registered.
+   * @return a {@link AbstractCommandlet} having the first {@link Property} {@link Property#isRequired() required} and a {@link KeywordProperty} with the given
+   *     {@link Property#getName() name} or {@code null} if no such {@link AbstractCommandlet} is registered.
    */
-  Commandlet getCommandletByFirstKeyword(String keyword);
+  AbstractCommandlet getCommandletByFirstKeyword(String keyword);
 
   /**
-   * @return the {@link Collection} of all registered {@link Commandlet}s.
+   * @return the {@link Collection} of all registered {@link AbstractCommandlet}s.
    */
-  Collection<Commandlet> getCommandlets();
+  Collection<AbstractCommandlet> getCommandlets();
 
   /**
-   * @param name the {@link Commandlet#getName() name} of the requested {@link Commandlet}.
-   * @return the requested {@link Commandlet}.
+   * @param name the {@link AbstractCommandlet#getName() name} of the requested {@link AbstractCommandlet}.
+   * @return the requested {@link AbstractCommandlet}.
    * @throws IllegalArgumentException if not found.
    */
-  default Commandlet getRequiredCommandlet(String name) {
+  default AbstractCommandlet getRequiredCommandlet(String name) {
 
-    Commandlet commandlet = getCommandlet(name);
+    AbstractCommandlet commandlet = getCommandlet(name);
     if (commandlet == null) {
       throw new IllegalArgumentException("The commandlet " + name + " could not be found!");
     }
@@ -55,41 +56,41 @@ public interface CommandletManager {
   }
 
   /**
-   * @param name the {@link Commandlet#getName() name} of the requested {@link ToolCommandlet}.
-   * @return the requested {@link ToolCommandlet} or {@code null} if not found.
+   * @param name the {@link AbstractCommandlet#getName() name} of the requested {@link AbstractToolCommandlet}.
+   * @return the requested {@link AbstractToolCommandlet} or {@code null} if not found.
    */
-  default ToolCommandlet getToolCommandlet(String name) {
+  default AbstractToolCommandlet getToolCommandlet(String name) {
 
-    Commandlet commandlet = getCommandlet(name);
-    if (commandlet instanceof ToolCommandlet tc) {
+    AbstractCommandlet commandlet = getCommandlet(name);
+    if (commandlet instanceof AbstractToolCommandlet tc) {
       return tc;
     }
     return null;
   }
 
   /**
-   * @param name the {@link Commandlet#getName() name} of the requested {@link ToolCommandlet}.
-   * @return the requested {@link ToolCommandlet}.
-   * @throws IllegalArgumentException if no {@link ToolCommandlet} exists with the given {@code name}.
+   * @param name the {@link AbstractCommandlet#getName() name} of the requested {@link AbstractToolCommandlet}.
+   * @return the requested {@link AbstractToolCommandlet}.
+   * @throws IllegalArgumentException if no {@link AbstractToolCommandlet} exists with the given {@code name}.
    */
-  default ToolCommandlet getRequiredToolCommandlet(String name) {
+  default AbstractToolCommandlet getRequiredToolCommandlet(String name) {
 
-    Commandlet commandlet = getRequiredCommandlet(name);
-    if (commandlet instanceof ToolCommandlet tc) {
+    AbstractCommandlet commandlet = getRequiredCommandlet(name);
+    if (commandlet instanceof AbstractToolCommandlet tc) {
       return tc;
     }
     throw new IllegalArgumentException("The commandlet " + name + " is not a ToolCommandlet!");
   }
 
   /**
-   * @param name the {@link Commandlet#getName() name} of the requested {@link LocalToolCommandlet}.
-   * @return the requested {@link LocalToolCommandlet}.
-   * @throws IllegalArgumentException if no {@link LocalToolCommandlet} exists with the given {@code name}.
+   * @param name the {@link AbstractCommandlet#getName() name} of the requested {@link AbstractLocalToolCommandlet}.
+   * @return the requested {@link AbstractLocalToolCommandlet}.
+   * @throws IllegalArgumentException if no {@link AbstractLocalToolCommandlet} exists with the given {@code name}.
    */
-  default LocalToolCommandlet getRequiredLocalToolCommandlet(String name) {
+  default AbstractLocalToolCommandlet getRequiredLocalToolCommandlet(String name) {
 
-    Commandlet commandlet = getRequiredCommandlet(name);
-    if (commandlet instanceof LocalToolCommandlet ltc) {
+    AbstractCommandlet commandlet = getRequiredCommandlet(name);
+    if (commandlet instanceof AbstractLocalToolCommandlet ltc) {
       return ltc;
     }
     throw new IllegalArgumentException("The commandlet " + name + " is not a LocalToolCommandlet!");
@@ -99,11 +100,20 @@ public interface CommandletManager {
    * @param arguments the {@link CliArguments}.
    * @param collector the optional {@link CompletionCandidateCollector}. Will be {@code null} if no argument {@link CliArguments#isCompletion() completion}
    *     shall be performed.
-   * @return an {@link Iterator} of the matching {@link Commandlet}(s). Typically empty or containing a single {@link Commandlet}. Only in edge-cases multiple
-   *     {@link Commandlet}s could be found (e.g. if two {@link Commandlet}s exist with the same keyword but with different mandatory properties such as in our
-   *     legacy devonfw-ide "ide get version ..." and "ide get edition ..." - however, we redesigned our CLI to "ide get-version ..." and "ide get-edition ..."
-   *     to simplify this).
+   * @return an {@link Iterator} of the matching {@link AbstractCommandlet}(s). Typically empty or containing a single {@link AbstractCommandlet}. Only in
+   *     edge-cases multiple {@link AbstractCommandlet}s could be found (e.g. if two {@link AbstractCommandlet}s exist with the same keyword but with different
+   *     mandatory properties such as in our legacy devonfw-ide "ide get version ..." and "ide get edition ..." - however, we redesigned our CLI to "ide
+   *     get-version ..." and "ide get-edition ..." to simplify this).
    */
-  Iterator<Commandlet> findCommandlet(CliArguments arguments, CompletionCandidateCollector collector);
+  Iterator<AbstractCommandlet> findCommandlet(CliArguments arguments, CompletionCandidateCollector collector);
+
+  /**
+   * Detects the applicable build tool for the given {@code buildPath} by {@link AbstractLocalToolCommandlet#findBuildDescriptor(Path) querying} the registered
+   * build commandlets (in order of priority) for a matching build descriptor (e.g. {@code pom.xml}, {@code build.gradle} or {@code package.json}).
+   *
+   * @param buildPath the {@link Path} to the directory to build.
+   * @return the applicable build {@link AbstractLocalToolCommandlet} or {@code null} if no build descriptor was found or {@code buildPath} was {@code null}.
+   */
+  AbstractLocalToolCommandlet findBuildTool(Path buildPath);
 
 }

@@ -21,6 +21,23 @@ trap 'rm -rf "${STUB_DIR}"' EXIT
 # minimal fake "ideasy" binary so sourcing the functions file has no side effects
 cat > "${STUB_DIR}/ideasy" <<'EOS'
 #!/usr/bin/env bash
+if [[ " $* " == *" env "* ]]; then
+  if [ -n "${STUB_IDE_HOME:-}" ]; then
+    workspace="main"
+    workspace_path="${STUB_IDE_HOME}/workspaces/main"
+    case "${PWD}" in
+      "${STUB_IDE_HOME}"/workspaces/*)
+        workspace_prefix="${STUB_IDE_HOME}/workspaces/"
+        workspace="${PWD#${workspace_prefix}}"
+        workspace="${workspace%%/*}"
+        workspace_path="${STUB_IDE_HOME}/workspaces/${workspace}"
+        ;;
+    esac
+    echo "IDE_HOME=${STUB_IDE_HOME}"
+    echo "WORKSPACE=${workspace}"
+    echo "WORKSPACE_PATH=${workspace_path}"
+  fi
+fi
 exit 0
 EOS
 chmod +x "${STUB_DIR}/ideasy"
@@ -73,6 +90,44 @@ check "modern Git Bash (OSTYPE=cygwin, uname=MINGW) shows no warning" hidden cyg
 check "legacy Git Bash (OSTYPE=msys, uname=MINGW) shows no warning" hidden msys "MINGW64_NT-10.0-26200"
 # MSYS environment -> no warning
 check "MSYS environment shows no warning" hidden cygwin "MSYS_NT-10.0-26200"
+
+echo
+echo "Testing workspace fallback messages in ${FUNCTIONS_FILE}"
+
+MESSAGE_HOME="${STUB_DIR}/message-project"
+mkdir -p "${MESSAGE_HOME}/workspaces/main" "${MESSAGE_HOME}/workspaces/foo" "${MESSAGE_HOME}/settings"
+
+runIdeMessage() {
+  local directory="$1"
+  STUB_IDE_HOME="${MESSAGE_HOME}" MESSAGE_DIRECTORY="${directory}" \
+    FUNCTIONS_FILE="${FUNCTIONS_FILE}" STUB_DIR="${STUB_DIR}" \
+    bash --noprofile --norc -c '
+      export PATH="${STUB_DIR}:${PATH}"
+      source "${FUNCTIONS_FILE}" >/dev/null 2>&1
+      cd "${MESSAGE_DIRECTORY}" || exit 99
+      ide
+    '
+}
+
+checkMessage() {
+  local description="$1" directory="$2" expected="$3"
+  total=$((total + 1))
+  local output
+  output="$(runIdeMessage "${directory}")"
+  if [[ "${output}" == *"${expected}"* ]]; then
+    doSuccess "PASSED: ${description}"
+  else
+    doError "FAILED: ${description} - expected '${expected}' but was '${output}'"
+    failed=$((failed + 1))
+  fi
+}
+
+checkMessage "project root marks the default workspace as fallback" "${MESSAGE_HOME}" \
+  "with workspace set to main (fallback to default)"
+checkMessage "main workspace does not mark a fallback" "${MESSAGE_HOME}/workspaces/main" \
+  "with workspace set to main"
+checkMessage "named workspace does not mark a fallback" "${MESSAGE_HOME}/workspaces/foo" \
+  "with workspace set to foo"
 
 echo
 echo "Testing icd -r repository navigation in ${FUNCTIONS_FILE}"

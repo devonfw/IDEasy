@@ -11,10 +11,10 @@ import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.devonfw.tools.ide.url.model.file.json.StatusJson;
-import com.devonfw.tools.ide.url.model.file.json.UrlStatus;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
 import com.devonfw.tools.ide.url.updater.AbstractUrlUpdaterTest;
+import com.devonfw.tools.ide.url.updater.status.StatusJson;
+import com.devonfw.tools.ide.url.updater.status.UrlStatus;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
@@ -48,7 +48,7 @@ class PipUrlUpdaterTest extends AbstractUrlUpdaterTest {
     String versionName = "1.0";
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     Path versionsPath = tempDir.resolve(toolName).resolve(editionName).resolve(versionName);
 

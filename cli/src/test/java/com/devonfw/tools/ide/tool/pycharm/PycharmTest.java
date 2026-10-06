@@ -5,6 +5,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
@@ -167,7 +168,7 @@ class PycharmTest extends AbstractIdeContextTest {
     pycharm.run();
 
     // assert
-    assertThat(context.getWorkspacePath().resolve(".pycharm.vmoptions"))
+    assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("pycharm").resolve(context.getWorkspaceName()).resolve(".pycharm.vmoptions"))
         .exists()
         .hasContent("""
             -Xms256m
