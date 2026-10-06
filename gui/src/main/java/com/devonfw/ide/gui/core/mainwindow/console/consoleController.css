@@ -1,0 +1,28 @@
+.base-style{
+  -fx-font-family: 'Consolas', monospace;
+  -fx-font-size: 11;
+}
+.error-style{
+  -fx-text-fill: #cc0000;
+}
+.warning-style{
+  -fx-text-fill: #cc8800;
+}
+.info-style{
+  -fx-text-fill: #000000;
+}
+.debug-style{
+  -fx-text-fill: #666666;
+}
+.trace-style{
+  -fx-text-fill: #888888;
+}
+.plain-style{
+  -fx-text-fill: #333333;
+}
+.error-bg{
+  -fx-background-color: #fff0f0;
+}
+.warning-bg{
+  -fx-background-color: #fff8e0;
+}
