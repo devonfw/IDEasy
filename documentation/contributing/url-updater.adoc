@@ -120,10 +120,11 @@ This UrlUpdater relies on HTML and Minor HTML changes break the updater and requ
 The file format and name depend on the base class used.
 
 Once a day, the UpdateInitiator runs all URL updaters via GitHub Actions and updates the link:++https://github.com/devonfw/ide-urls[ide-URL] repository with new version/tools that are identified by the Updaters.
-To test a UrlUpdater locally, run UpdateInitiator (url-updater/src/main/java/com/devonfw/tools/ide/url/updater/UpdateInitiator.java).
+To test a UrlUpdater locally, run UpdateInitiator (url-updater/src/main/java/com/devonfw/tools/ide/url/UpdateInitiator.java).
 It executes the updater and shows all discovered versions and URLs in the console.
 
-Before running the updater, make sure the `ide-urls-status` repository is available under `project/_ide`. If it does not exist yet, clone it first.
+Before running the updater, make sure the `ide-urls-status` repository is available under `project/_ide`.
+If it does not exist yet, clone it first.
 
 The arguments to pass are:
 
