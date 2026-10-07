@@ -1,10 +1,13 @@
 package com.devonfw.tools.ide.tool.ide;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -12,11 +15,14 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 
 /**
@@ -33,6 +39,18 @@ public class IdeaBasedIdeToolCommandlet extends AbstractIdeToolCommandlet {
 
   private static final String VM_OPTIONS_ENV_SUFFIX = "_VM_OPTIONS";
 
+  private static final String PROPERTIES_ENV_SUFFIX = "_PROPERTIES";
+
+  private static final String IDEA_CONFIG_PATH_KEY = "idea.config.path";
+  private static final String IDEA_LOG_CONSOLE_KEY = "idea.log.console";
+  private static final String IDEA_LOG_PATH_KEY = "idea.log.path";
+  private static final String IDEA_PLUGINS_PATH_KEY = "idea.plugins.path";
+  private static final String IDEA_SYSTEM_PATH_KEY = "idea.system.path";
+  private static final String IDEA_NO_SPLASH_KEY = "nosplash";
+
+  /** The name of the out-of-workspace config folder, kept in line with VSCode's {@code $IDE_HOME/.ide/«ide»/«workspace»/config}. */
+  private static final String CONFIG_FOLDER = "config";
+
   /**
    * The constructor.
    *
@@ -42,6 +60,12 @@ public class IdeaBasedIdeToolCommandlet extends AbstractIdeToolCommandlet {
    */
   public IdeaBasedIdeToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
     super(context, tool, tags);
+  }
+
+  @Override
+  protected IdeWorkspaceConfigurer createWorkspaceConfigurer(IdeContext context, String tool) {
+
+    return new JetBrainsWorkspaceConfigurer(context, tool);
   }
 
   @Override
@@ -64,6 +88,49 @@ public class IdeaBasedIdeToolCommandlet extends AbstractIdeToolCommandlet {
       step.error("Failed to install plugin {} ({}): exit code was {}", plugin.name(), plugin.id(), result.getExitCode());
       return false;
     }
+  }
+
+  @Override
+  public void configureWorkspace() {
+    cleanupLegacyMetadata();
+    super.configureWorkspace();
+    createIdeConfigurationFile();
+  }
+
+  /**
+   * Removes the JetBrains metadata that the IDE does not read anymore from the workspace (see #2531). The legacy config folder (e.g.
+   * {@code .intellij/config}) is moved to {@link #getIdeMetadataConfigPath()} if that does not exist yet, so its content is preserved. Everything else is
+   * backed up (soft-deleted) since it is either obsolete or regenerated.
+   */
+  private void cleanupLegacyMetadata() {
+
+    FileAccess fileAccess = this.context.getFileAccess();
+    Path workspaceFolder = this.context.getWorkspacePath();
+    Path legacyMetadata = workspaceFolder.resolve("." + this.tool);
+    if (Files.isDirectory(legacyMetadata)) {
+      Path legacyConfig = legacyMetadata.resolve(CONFIG_FOLDER);
+      Path config = getIdeMetadataConfigPath();
+      if (Files.isDirectory(legacyConfig) && !Files.exists(config)) {
+        LOG.info("Moving {} config folder {} out of workspace to {}", getName(), legacyConfig, config);
+        fileAccess.mkdirs(config.getParent());
+        fileAccess.move(legacyConfig, config);
+      }
+      LOG.warn("Removing obsolete {} metadata folder {} from workspace since {} is used instead.", getName(), legacyMetadata, getIdeMetadataPath());
+      fileAccess.backup(legacyMetadata);
+    }
+    Path legacyConfigurationFile = workspaceFolder.resolve(getConfigurationFileName());
+    if (Files.exists(legacyConfigurationFile)) {
+      LOG.warn("Removing obsolete file {} from workspace since it is now generated at {}.", legacyConfigurationFile, getConfigurationFilePath());
+      fileAccess.backup(legacyConfigurationFile);
+    }
+  }
+
+  /**
+   * @return the {@link Path} to the out-of-workspace config folder at {@code $IDE_HOME/.ide/«ide»/«workspace»/config} used for {@code idea.config.path}.
+   */
+  private Path getIdeMetadataConfigPath() {
+
+    return getIdeMetadataPath().resolve(CONFIG_FOLDER);
   }
 
   /**
@@ -192,5 +259,54 @@ public class IdeaBasedIdeToolCommandlet extends AbstractIdeToolCommandlet {
   private boolean isSameJvmKey(String a, String b) {
 
     return extractJvmOptionsKey(a).equals(extractJvmOptionsKey(b));
+  }
+
+  @Override
+  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
+    super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
+
+    String pathVariableKey = getIdeProductPrefix().toUpperCase(Locale.ROOT) + PROPERTIES_ENV_SUFFIX;
+    environmentContext.withEnvVar(pathVariableKey, getConfigurationFilePath().toString());
+  }
+
+  private String getConfigurationFileName() {
+
+    return getIdeProductPrefix() + ".properties";
+  }
+
+  /**
+   * @return the {@link Path} to the generated IDE configuration file (e.g. {@code idea.properties}). It is kept out of the workspace in
+   *     {@link #getIdeMetadataPath()} (see #2531), consistent with the generated {@code .vmoptions} file, and is passed to the IDE via the
+   *     {@code «PREFIX»_PROPERTIES} environment variable.
+   */
+  protected Path getConfigurationFilePath() {
+
+    return getIdeMetadataPath().resolve(getConfigurationFileName());
+  }
+
+
+  private String getFormattedPath(Path path) {
+
+    return path.toString().replace("\\", "/");
+  }
+
+  private void createIdeConfigurationFile() {
+
+    Path configurationFilePath = getConfigurationFilePath();
+    Path configFolderPath = getIdeMetadataConfigPath();
+    FileAccess fileAccess = context.getFileAccess();
+
+    final Map<String, String> standardConfiguration = Map.of(
+        IDEA_LOG_CONSOLE_KEY, "false",
+        IDEA_LOG_PATH_KEY, getFormattedPath(context.getIdeHome().resolve("." + tool).resolve("system").resolve("log")),
+        IDEA_PLUGINS_PATH_KEY, getFormattedPath(context.getPluginsPath()),
+        IDEA_SYSTEM_PATH_KEY, getFormattedPath(context.getIdeHome().resolve("." + tool).resolve("system")),
+        IDEA_NO_SPLASH_KEY, "true",
+        IDEA_CONFIG_PATH_KEY, getFormattedPath(configFolderPath)
+    );
+
+    Properties properties = new Properties();
+    properties.putAll(standardConfiguration);
+    fileAccess.writeProperties(properties, configurationFilePath, true);
   }
 }

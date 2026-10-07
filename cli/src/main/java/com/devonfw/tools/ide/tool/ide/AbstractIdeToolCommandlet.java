@@ -38,7 +38,20 @@ public abstract class AbstractIdeToolCommandlet extends AbstractPluginBasedComma
 
     super(context, tool, tags);
     assert (hasIde(tags));
-    this.workspaceConfigurer = new IdeWorkspaceConfigurer(context, tool);
+    this.workspaceConfigurer = createWorkspaceConfigurer(context, tool);
+  }
+
+  /**
+   * Creates the {@link IdeWorkspaceConfigurer} for this IDE. A subclass (e.g. {@link IdeaBasedIdeToolCommandlet}) may override this to return a
+   * specialized configurer (e.g. {@link JetBrainsWorkspaceConfigurer}) without {@link AbstractIdeToolCommandlet} importing the specialized class.
+   *
+   * @param context the {@link IdeContext}.
+   * @param tool the {@link #getName() tool name}.
+   * @return the {@link IdeWorkspaceConfigurer} to use for this IDE.
+   */
+  protected IdeWorkspaceConfigurer createWorkspaceConfigurer(IdeContext context, String tool) {
+
+    return new IdeWorkspaceConfigurer(context, tool);
   }
 
   private boolean hasIde(Set<Tag> tags) {

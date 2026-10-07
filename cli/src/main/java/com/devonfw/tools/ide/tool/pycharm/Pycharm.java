@@ -5,12 +5,11 @@ import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.process.EnvironmentContext;
-import com.devonfw.tools.ide.tool.ToolInstallation;
+import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeaBasedIdeToolCommandlet;
 
 /**
- * {@link AbstractIdeToolCommandlet} for <a href="https://www.jetbrains.com/pycharm/">Pycharm</a>.
+ * {@link IdeToolCommandlet} for <a href="https://www.jetbrains.com/pycharm/">Pycharm</a>.
  */
 public class Pycharm extends IdeaBasedIdeToolCommandlet {
 
@@ -28,13 +27,6 @@ public class Pycharm extends IdeaBasedIdeToolCommandlet {
   public Pycharm(IdeContext context) {
 
     super(context, "pycharm", Set.of(Tag.PYCHARM, Tag.PYTHON));
-  }
-
-  @Override
-  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
-
-    super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
-    environmentContext.withEnvVar("PYCHARM_PROPERTIES", this.context.getWorkspacePath().resolve("pycharm.properties").toString());
   }
 
   @Override
