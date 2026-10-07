@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.tool.npm;
 
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
@@ -56,16 +57,30 @@ public abstract class NpmBasedCommandlet extends NodeBasedCommandlet<Npm> {
   }
 
   /**
-   * @return {@code true} if the npm package is installed.
-   * @implNote npm installs global packages into the per-project prefix (see <a href="https://github.com/devonfw/IDEasy/issues/2381">issue #2381</a>), which
-   *     is not part of the software-repo PATH, so the binary-on-PATH check alone does not see them. The package manager (npm) is the authoritative source for
-   *     the installed state, so it is checked in addition - otherwise tools are reported as not installed and {@code ide uninstall} bails with "could not find
-   *     an installation".
+   * @return the {@link Path} where the npm package of this tool is actually installed - the per-project global npm prefix (see
+   *     {@link Npm#NPM_GLOBAL_FOLDER}) - and not the {@code software/node} runtime path that {@link #getToolPath() getToolPath()} reports (see
+   *     <a href="https://github.com/devonfw/IDEasy/issues/352">issue #352</a>).
    */
   @Override
-  protected boolean isPackageInstalled() {
+  protected Path getInstalledLocation() {
 
-    return getBinaryExecutable() != null || computeInstalledPackageVersion() != null;
+    Path npmGlobalPath = Npm.getGlobalNpmPrefix(this.context);
+    if (npmGlobalPath == null) {
+      return super.getInstalledLocation();
+    }
+    return npmGlobalPath;
+  }
+
+  /**
+   * Uninstalls the npm package and, since npm-based tools install their package into the shared per-project global npm prefix (see
+   * {@link Npm#NPM_GLOBAL_FOLDER}), prunes that folder again if the uninstallation no longer leaves a package behind (see
+   * <a href="https://github.com/devonfw/IDEasy/issues/352">issue #352</a>).
+   */
+  @Override
+  public void uninstall() {
+
+    super.uninstall();
+    this.context.getCommandletManager().getCommandlet(Npm.class).cleanupGlobalPackagesFolder();
   }
 
   private VersionIdentifier runPackageManagerGetInstalledVersion(String npmPackage) {
