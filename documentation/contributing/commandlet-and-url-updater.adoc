@@ -195,7 +195,7 @@ This UrlUpdater relies on HTML and Minor HTML changes break the updater and requ
 The file format and name depend on the base class used.
 
 
-To test the UrlUpdater, you can run in addition to the unit test the `UpdateInitiator` class located in `url-updater/src/main/java/com/devonfw/tools/ide/url/updater/UpdateInitiator.java` which allows you to run the updater and see the discovered versions and URLs in the console.
+To test the UrlUpdater, you can run in addition to the unit test the `UpdateInitiator` class located in `url-updater/src/main/java/com/devonfw/tools/ide/url/UpdateInitiator.java` which allows you to run the updater and see the discovered versions and URLs in the console.
 The arguments to pass are:
 
 * Path to ide-urls project (where the url-updater module is located)
