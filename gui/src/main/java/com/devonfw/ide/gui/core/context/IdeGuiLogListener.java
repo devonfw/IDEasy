@@ -1,4 +1,4 @@
-package com.devonfw.ide.gui.context;
+package com.devonfw.ide.gui.core.context;
 
 
 import com.devonfw.ide.gui.core.event.GuiEventBus;

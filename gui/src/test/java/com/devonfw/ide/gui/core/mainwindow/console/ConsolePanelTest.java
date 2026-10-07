@@ -26,10 +26,6 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 class ConsolePanelTest extends HeadlessApplicationTest {
 
   private ConsoleViewModel consoleViewModel;
-  private ConsoleView consoleView;
-
-  @TempDir
-  private Path mockIdeRoot;
 
   @Override
   public void start(Stage stage) throws IOException {
@@ -53,8 +49,6 @@ class ConsolePanelTest extends HeadlessApplicationTest {
     stage.setScene(new Scene(root));
     stage.requestFocus(); // sometimes needed for headless setup to work
     stage.show();
-
-    consoleView = fxmlLoader.getController();
   }
 
   /**
@@ -120,6 +114,7 @@ class ConsolePanelTest extends HeadlessApplicationTest {
 
   @Test
   void testLineCountUpdates() {
+
     Platform.runLater(() -> {
       consoleViewModel.appendOutput("Line 1");
       consoleViewModel.appendOutput("Line 2");
@@ -133,6 +128,7 @@ class ConsolePanelTest extends HeadlessApplicationTest {
 
   @Test
   void testAutoScrollCheckboxEnabledByDefault() {
+
     // Just verify auto-scroll is enabled by default
     assertThat(consoleViewModel.autoScrollEnabledProperty().get()).isTrue();
   }
