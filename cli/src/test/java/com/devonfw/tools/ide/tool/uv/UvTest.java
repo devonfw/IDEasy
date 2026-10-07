@@ -36,9 +36,9 @@ public class UvTest extends AbstractIdeContextTest {
     // act
     uv.setEnvironment(environmentContext, toolInstallation, false);
 
-    // assert
-    assertThat(variables.get("UV_TOOL_DIR").getValue().replace('\\', '/')).endsWith("software/python/tools");
-    assertThat(variables.get("UV_TOOL_BIN_DIR").getValue().replace('\\', '/')).endsWith("software/python/bin");
+    // assert - the uv tool store is per-project (inside IDE_HOME) so that two projects don't collide (see #352)
+    assertThat(variables.get("UV_TOOL_DIR").getValue().replace('\\', '/')).endsWith("/.uv-tools");
+    assertThat(variables.get("UV_TOOL_BIN_DIR").getValue().replace('\\', '/')).endsWith("/.uv-tools/bin");
   }
 
   @Test
