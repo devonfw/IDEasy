@@ -141,8 +141,8 @@ public class PropertiesMergerTest extends AbstractIdeContextTest {
     Path updateMain= workspaceDir.resolve("update-main.prefs");
     Files.copy(update.resolve("main.prefs"), updateMain);
     Properties workspaceProperties= fileAccess.readProperties(workspaceMain);
-    workspaceProperties.setProperty("theme", "light");
-    workspaceProperties.setProperty("ui", "linux");
+    workspaceProperties.setProperty("theme", "dark");
+    workspaceProperties.setProperty("ui", "classic");
     fileAccess.writeProperties(workspaceProperties, workspaceMain);
 //act
     propertiesMerger.inverseMerge(workspaceMain, environmentVariables, false, updateMain);
