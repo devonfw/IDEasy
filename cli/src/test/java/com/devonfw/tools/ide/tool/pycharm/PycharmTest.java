@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.tool.pycharm;
 
+import java.nio.file.Path;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -9,7 +11,10 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.devonfw.tools.ide.tool.ToolInstallation;
+import com.devonfw.tools.ide.tool.claude.RecordingEnvironmentContext;
 import com.devonfw.tools.ide.tool.intellij.Intellij;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
@@ -177,6 +182,28 @@ class PycharmTest extends AbstractIdeContextTest {
             -ea
             -Dsun.io.useCanonCaches=true
             """);
+  }
+
+  /**
+   * Tests if the environment variable {@code PYCHARM_PROPERTIES} is set to the path of the {@code pycharm.properties} file that IDEasy generates outside of
+   * the workspace (see #2531).
+   */
+  @Test
+  void testSetEnvironmentSetsPycharmProperties() {
+
+    // arrange
+    Pycharm commandlet = new Pycharm(this.context);
+    Path dummy = this.context.getSoftwarePath().resolve("pycharm");
+    ToolInstallation installation = new ToolInstallation(dummy, dummy, dummy, VersionIdentifier.of("2024.3.5"), false);
+    RecordingEnvironmentContext environmentContext = new RecordingEnvironmentContext();
+
+    // act
+    commandlet.setEnvironment(environmentContext, installation, false);
+
+    // assert
+    Path pycharmProperties = this.context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("pycharm").resolve(this.context.getWorkspaceName())
+        .resolve("pycharm.properties");
+    assertThat(environmentContext.set).containsEntry("PYCHARM_PROPERTIES", pycharmProperties.toString());
   }
 
   private void checkInstallation(IdeTestContext context) {
