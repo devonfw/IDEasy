@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Assumptions;
@@ -218,6 +219,36 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
     assertThat(gitconfigPath).content().contains("[core]");
     assertThat(gitconfigPath).content().containsOnlyOnce("longpaths = true");
     assertThat(gitconfigPath).content().doesNotContain("longpaths = false");
+  }
+
+  /**
+   * Test that {@link IdeasyCommandlet#postInstallOnNewInstallation(ToolInstallRequest)} regenerates the desktop shortcut on upgrade, so existing installations
+   * keep a valid icon path (see #2567).
+   */
+  @Test
+  void testPostInstallOnNewInstallationRefreshesDesktopShortcut() throws Exception {
+    // arrange
+    SystemInfo systemInfo = SystemInfoMock.of("linux");
+    IdeTestContext context = newContext("install");
+    context.setSystemInfo(systemInfo);
+    context.setIdeRoot(context.getUserHome().resolve("projects"));
+    Path installationPath = context.getIdeInstallationPath();
+    // simulate a stale shortcut (or none) from a previous version
+    Path desktopFile = context.getUserHome().resolve(".local/share/applications/ideasy-gui.desktop");
+    context.getFileAccess().mkdirs(desktopFile.getParent());
+    context.getFileAccess().writeFileContent("stale icon path", desktopFile);
+    // provide the template the refresh step reads from the (new) installation
+    Path template = Path.of("src/main/package/gui/linux/ideasy-gui.desktop");
+    Path templateTarget = installationPath.resolve("gui/linux/ideasy-gui.desktop");
+    context.getFileAccess().mkdirs(templateTarget.getParent());
+    context.getFileAccess().writeFileContent(Files.readString(template), templateTarget);
+    IdeasyCommandlet ideasy = new IdeasyCommandlet(context);
+    // act
+    ideasy.postInstallOnNewInstallation(new ToolInstallRequest(false));
+    // assert
+    assertThat(desktopFile).content()
+        .contains("Exec=" + installationPath.resolve("bin/ideasy") + " gui")
+        .contains("Icon=" + installationPath.resolve("gui/ideasy.png"));
   }
 
   /**
