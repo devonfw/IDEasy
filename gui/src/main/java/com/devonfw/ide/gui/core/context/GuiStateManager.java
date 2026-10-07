@@ -3,6 +3,7 @@ package com.devonfw.ide.gui.core.context;
 import java.io.FileNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Locale;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import javafx.beans.property.BooleanProperty;
@@ -15,7 +16,6 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.core.event.GuiEventBus;
 import com.devonfw.ide.gui.core.factory.TabFactory;
-import com.devonfw.ide.gui.core.mainwindow.console.ConsoleController;
 import com.devonfw.ide.gui.core.service.CommandletService;
 import com.devonfw.ide.gui.core.service.NlsService;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
@@ -42,6 +42,9 @@ public class GuiStateManager {
 
   private final BooleanProperty workspaceSelected = new SimpleBooleanProperty(false);
 
+  /**
+   * Project context based on which project the user works in.
+   */
   private volatile IdeGuiContext currentContext;
 
   private final IdeStartContextImpl startContext;
@@ -53,8 +56,6 @@ public class GuiStateManager {
   private final GuiEventBus eventBus;
 
   private final NlsService nlsService;
-
-  private final ConsoleController consoleController;
 
   private final CommandletService commandletService;
 
@@ -72,8 +73,7 @@ public class GuiStateManager {
     this.projectManager = new ProjectManager(ideRootDir);
     this.taskManager = new TaskManager();
     this.eventBus = new GuiEventBus();
-    this.nlsService = new NlsService(null);
-    this.consoleController = new ConsoleController(this);
+    this.nlsService = new NlsService(Locale.getDefault());
     this.commandletService = new CommandletService(this);
     this.tabFactory = new TabFactory(this);
 
@@ -215,10 +215,6 @@ public class GuiStateManager {
 
   public NlsService getNlsService() {
     return nlsService;
-  }
-
-  public ConsoleController getConsoleController() {
-    return consoleController;
   }
 
   public CommandletService getCommandletService() {
