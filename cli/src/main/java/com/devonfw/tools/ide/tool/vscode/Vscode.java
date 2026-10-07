@@ -15,6 +15,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
@@ -58,6 +59,11 @@ public class Vscode extends AbstractIdeToolCommandlet {
   @Override
   public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
 
+    if (isProfileEnabled()) {
+      // A named profile keeps its own list of plugins outside of IDE_HOME that survives a reset of the plugins folder. VS Code trusts that list, answers
+      // "already installed" with exit code 0 and installs nothing, even with --force. Uninstalling first cleans up the list (see #2504).
+      uninstallPluginFromProfile(plugin, pc);
+    }
     List<String> extensionsCommands = new ArrayList<>();
     extensionsCommands.add("--force");
     extensionsCommands.add("--install-extension");
@@ -84,6 +90,30 @@ public class Vscode extends AbstractIdeToolCommandlet {
       IdeLogLevel.ERROR.log(LOG, "Failed to install plugin: {}", plugin.name());
     }
     return false;
+  }
+
+  /**
+   * Uninstalls the given plugin from the {@link #getProfileName() profile}. Fails harmlessly if the plugin is not installed.
+   *
+   * @param plugin the {@link ToolPluginDescriptor} to uninstall.
+   * @param pc the {@link ProcessContext} to use.
+   */
+  private void uninstallPluginFromProfile(ToolPluginDescriptor plugin, ProcessContext pc) {
+
+    ProcessContext uninstallPc = pc.createChild().errorHandling(ProcessErrorHandling.NONE);
+    ProcessResult result = runTool(uninstallPc, ProcessMode.DEFAULT_CAPTURE, List.of("--uninstall-extension", plugin.id()));
+    if (!result.isSuccessful()) {
+      LOG.debug("Plugin {} was not installed in VSCode profile {} before its installation.", plugin.id(), getProfileName());
+    }
+  }
+
+  /**
+   * @return {@code true} if the feature toggle {@link IdeVariables#VSCODE_PROFILE_ENABLED} is enabled and VSCode uses a named {@link #getProfileName()
+   *     profile}, {@code false} otherwise.
+   */
+  private boolean isProfileEnabled() {
+
+    return Boolean.TRUE.equals(IdeVariables.VSCODE_PROFILE_ENABLED.get(this.context));
   }
 
   /**
@@ -145,7 +175,7 @@ public class Vscode extends AbstractIdeToolCommandlet {
       pc.withEnvVar("DONT_PROMPT_WSL_INSTALL", "1");
     }
     pc.addArg("--new-window");
-    if (Boolean.TRUE.equals(IdeVariables.VSCODE_PROFILE_ENABLED.get(this.context))) {
+    if (isProfileEnabled()) {
       // Use a named profile (not --user-data-dir) so VS Code keeps its IPC lock at the default location.
       // This lets the OS-level vscode:// protocol handler (OAuth callbacks e.g. GitHub/Copilot) find the
       // already-running IDEasy window. Each project and workspace gets its own profile for isolated auth and settings.
