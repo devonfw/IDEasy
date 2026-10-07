@@ -102,6 +102,7 @@ The column `inclusion` indicates the way the component is included:
 |https://github.com/openshift/oc[OpenShiftCLI]|Optional|https://github.com/openshift/oc/blob/master/LICENSE[Apache 2.0]
 |https://github.com/cli/cli/[GitHubCLI]|Optional|https://github.com/cli/cli/blob/trunk/LICENSE[MIT]
 |https://quarkus.io/guides/cli-tooling[QuarkusCLI]|Optional|https://github.com/quarkusio/quarkus/blob/main/LICENSE.txt[Apache 2.0]
+|https://micronaut.io/[Micronaut CLI]|Optional|https://github.com/micronaut-projects/micronaut-starter/blob/master/LICENSE[Apache 2.0]
 |https://cloud.google.com/sdk/gcloud[GCloudCLI]|Optional|https://github.com/twistedpair/google-cloud-sdk/blob/master/google-cloud-sdk/LICENSE[Apache 2.0]
 |https://github.com/openrewrite/rewrite-maven-plugin[Openrewrite]|Optional|https://github.com/openrewrite/rewrite-maven-plugin/blob/main/LICENSE[Apache 2.0]
 |https://kotlinlang.org//[kotlin]|Optional|https://github.com/JetBrains/kotlin-web-site/blob/master/LICENSE[Apache 2.0]
