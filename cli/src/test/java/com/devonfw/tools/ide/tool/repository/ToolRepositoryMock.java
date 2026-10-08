@@ -145,12 +145,12 @@ public class ToolRepositoryMock extends DefaultToolRepository {
       return url;
     }
     String tgzExtension = "." + TarCompression.GZ.getCombinedExtension();
-    int lastDot = url.lastIndexOf('.');
-    int lastSlash = Math.max(url.lastIndexOf('/'), url.lastIndexOf('\\'));
-    if (lastDot <= lastSlash) {
+    int lastDotIndex = url.lastIndexOf('.');
+    int lastSlashIndex = Math.max(url.lastIndexOf('/'), url.lastIndexOf('\\'));
+    if (lastDotIndex <= lastSlashIndex) {
       return url + tgzExtension;
     }
-    return url.substring(0, lastDot) + tgzExtension;
+    return url.substring(0, lastDotIndex) + tgzExtension;
   }
 
 }
