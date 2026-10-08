@@ -4,13 +4,5 @@ TODO: community, bug-reporting, etc.
 
 <<<<
 
-include::symlink.adoc[leveloffset=2]
-
-include::security.adoc[leveloffset=2]
-
-include::github-release.adoc[leveloffse=2]
-
-include::alternatives.adoc[leveloffset=2]
-
 include::LICENSE.adoc[leveloffset=2]
 
