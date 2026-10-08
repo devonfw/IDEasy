@@ -1,5 +1,7 @@
 = Advanced Features
 
+include::advanced-tooling.adoc[leveloffset=2]
+
 include::advanced-tooling-generic.adoc[leveloffset=2]
 
 include::advanced-tooling-windows.adoc[leveloffset=2]
