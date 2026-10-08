@@ -8,6 +8,7 @@ Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/871[#871]: Add progressbar to *.dmg extract process
 * https://github.com/devonfw/IDEasy/issues/2345[#2345]: DOCKER_EDITION ignored on Linux
+* https://github.com/devonfw/IDEasy/issues/1965[#1965]: Improve dependent installation, fixed npm and pip-based installation duplication
 * https://github.com/devonfw/IDEasy/issues/2381[#2381]: Make node and npm pristine versioned tools with per-project npm global prefix
 * https://github.com/devonfw/IDEasy/issues/2607[#2607]: Align tool help for corepack
 * https://github.com/devonfw/IDEasy/issues/2322[#2322]: Use a consistent IDEasy icon across all operating systems
@@ -18,7 +19,6 @@ The full list of changes for this release can be found in https://github.com/dev
 
 Release with new features and bugfixes:
 
-* https://github.com/devonfw/IDEasy/issues/1965[#1965]: Improve dependent installation, fixed npm and pip-based installation duplication
 * https://github.com/devonfw/IDEasy/issues/2206[#2206]: IDEasy title not properly shown on macOS
 * https://github.com/devonfw/IDEasy/issues/377[#377]: Document Homebrew installation on MacOS
 * https://github.com/devonfw/IDEasy/issues/2338[#2338]: Create first basic version of check commandlet
