@@ -198,13 +198,8 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends AbstractT
   @Override
   protected final void performToolInstallation(ToolInstallRequest request, Path installationPath) {
 
-    PackageManagerRequest packageManagerRequest =
-        new PackageManagerRequest(
-            PackageManagerRequest.TYPE_INSTALL,
-            getPackageName())
-            .setToolInstallRequest(request)
-            .setProcessContext(request.getProcessContext())
-            .setVersion(request.getRequested().getResolvedVersion());
+    PackageManagerRequest packageManagerRequest = new PackageManagerRequest(PackageManagerRequest.TYPE_INSTALL, getPackageName())
+        .setToolInstallRequest(request).setProcessContext(request.getProcessContext()).setVersion(request.getRequested().getResolvedVersion());
     runPackageManager(packageManagerRequest, isSkipInstallation()).failOnError();
     invalidateInstalledEditionAndVersion();
   }
