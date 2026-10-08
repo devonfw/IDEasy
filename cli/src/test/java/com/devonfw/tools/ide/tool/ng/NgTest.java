@@ -62,6 +62,25 @@ class NgTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Tests that a direct (non-silent) installation of {@link Ng} keeps the triggered package-manager installation silent.
+   *
+   * @param wireMockRuntimeInfo wireMock server on a random port
+   */
+  @Test
+  void testDirectInstallKeepsPackageManagerInstallationSilent(WireMockRuntimeInfo wireMockRuntimeInfo) {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_NG, wireMockRuntimeInfo);
+    Ng commandlet = new Ng(context);
+
+    // act - simulate a direct installation (like "ide install ng") which is non-silent
+    commandlet.install(false);
+
+    // assert - the already-installed node should only be reported on debug level
+    assertThat(context).logAtDebug().hasMessageContaining("of tool node is already installed");
+  }
+
+  /**
    * Tests if the {@link Ng} uninstall works correctly on linux.
    *
    * @param wireMockRuntimeInfo wireMock server on a random port
