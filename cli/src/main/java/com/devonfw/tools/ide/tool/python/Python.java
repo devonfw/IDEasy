@@ -173,6 +173,8 @@ public class Python extends AbstractLocalToolCommandlet {
     Path interpreterDir = getInstallationPath(getConfiguredEdition(), resolvedVersion);
     if (interpreterDir != null) {
       uv.createVirtualEnvironment(venvPath, interpreterDir, request.getProcessContext());
+      // uv lays the executables out in a "Scripts" folder on Windows - expose them as "bin" so the PATH entry set in setEnvironment resolves on all platforms
+      createWindowsSymlinkBinFolder(this.context.getFileAccess(), venvPath);
     }
 
     // prime ruff into the per-project uv tool store (best effort - a failure must not fail the python installation)
@@ -203,7 +205,7 @@ public class Python extends AbstractLocalToolCommandlet {
   }
 
   /**
-   * @param installationPath the {@link Path} to the virtual environment.
+   * @param installationPath the {@link Path} to the Python installation.
    * @return the {@link VersionIdentifier} from the {@code version_info} entry of {@code pyvenv.cfg} or {@code null} if not available or not precise enough.
    */
   private VersionIdentifier readVersionFromPyvenvCfg(Path installationPath) {
@@ -228,7 +230,7 @@ public class Python extends AbstractLocalToolCommandlet {
   }
 
   /**
-   * @param installationPath the {@link Path} to the virtual environment.
+   * @param installationPath the {@link Path} to the Python installation.
    * @return the {@link VersionIdentifier} reported by the installed python interpreter or {@code null} if it could not be determined.
    */
   private VersionIdentifier readVersionFromInterpreter(Path installationPath) {
@@ -264,11 +266,12 @@ public class Python extends AbstractLocalToolCommandlet {
   }
 
   /**
-   * Creates a symlink from the "Scripts" folder to the "bin" folder on Windows systems. This is necessary for compatibility with tools that expect a "bin"
-   * directory.
+   * On Windows systems {@code uv} lays out a Python installation (a pristine interpreter or a virtual environment) with its executables in a {@code Scripts}
+   * folder. This creates a symlink from that {@code Scripts} folder to a {@code bin} folder so that the {@code bin} path used to resolve the executable (see
+   * {@link #setEnvironment}) exists on all platforms. Does nothing on non-Windows systems, where {@code uv} already uses a {@code bin} folder.
    *
    * @param fileAccess the {@link FileAccess} utility for file operations.
-   * @param installationPath the path where Python is installed.
+   * @param installationPath the root of the Python installation or virtual environment.
    */
   private void createWindowsSymlinkBinFolder(FileAccess fileAccess, Path installationPath) {
 
