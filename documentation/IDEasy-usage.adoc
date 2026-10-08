@@ -14,11 +14,11 @@ include::variables.adoc[leveloffset=2]
 
 include::cli.adoc[leveloffset=2]
 
-include::docker-desktop-alternative.adoc[leveloffset=3]
-
 <<<<
 
 include::structure.adoc[leveloffset=2]
+
+<<<<
 
 include::conf.adoc[leveloffset=3]
 
@@ -32,10 +32,24 @@ include::system.adoc[leveloffset=3]
 
 include::updates.adoc[leveloffset=3]
 
+include::project.adoc[leveloffset=3]
+
 include::workspaces.adoc[leveloffset=3]
+
+include::tmp.adoc[leveloffset=3]
+
+include::urls.adoc[leveloffset=3]
 
 include::repository.adoc[leveloffset=3]
 
 include::plugin.adoc[leveloffset=3]
 
 include::ai.adoc[leveloffset=3]
+
+include::coding-assistant.adoc[leveloffset=3]
+
+include::configurator.adoc[leveloffset=3]
+
+include::cygwin.adoc[leveloffset=3]
+
+include::sandbox.adoc[leveloffset=3]
