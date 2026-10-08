@@ -30,8 +30,6 @@ include::software.adoc[leveloffset=3]
 
 include::system.adoc[leveloffset=3]
 
-include::updates.adoc[leveloffset=3]
-
 include::project.adoc[leveloffset=3]
 
 include::workspaces.adoc[leveloffset=3]
