@@ -52,7 +52,7 @@ For further steps and details see link:pull-request.adoc[pull-request documentat
 
 == Create a new commandlet
 
-For detailed information on implementing new commandlets and UrlUpdaters, see the comprehensive guide link:commandlet.adoc[Creating New Commandlets].
+For detailed information on implementing new commandlets, see the comprehensive guide link:commandlet.adoc[Creating New Commandlets].
 
 That guide covers:
 
