@@ -67,6 +67,7 @@ import com.devonfw.tools.ide.tool.quarkus.Quarkus;
 import com.devonfw.tools.ide.tool.ruby.Ruby;
 import com.devonfw.tools.ide.tool.ruff.Ruff;
 import com.devonfw.tools.ide.tool.rust.Rust;
+import com.devonfw.tools.ide.tool.snyk.Snyk;
 import com.devonfw.tools.ide.tool.soapui.SoapUi;
 import com.devonfw.tools.ide.tool.sonar.Sonar;
 import com.devonfw.tools.ide.tool.spring.Spring;
@@ -186,6 +187,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Pip(context));
     add(new Go(context));
     add(new Gui(context));
+    add(new Snyk(context));
     add(new SquirrelSql(context));
     add(new Spyder(context));
     add(new Nest(context));

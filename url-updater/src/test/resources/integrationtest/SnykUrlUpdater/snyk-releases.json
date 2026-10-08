@@ -1,0 +1,54 @@
+[
+  {
+    "url": "https://api.github.com/repos/snyk/cli/releases/1",
+    "assets_url": "https://api.github.com/repos/snyk/cli/releases/1/assets",
+    "upload_url": "https://uploads.github.com/repos/snyk/cli/releases/1/assets{?name,label}",
+    "html_url": "https://github.com/snyk/cli/releases/tag/v1.1307.4",
+    "id": 1,
+    "node_id": "RE_kwDO_snyk_cli",
+    "tag_name": "v1.1307.4",
+    "target_commitish": "main",
+    "name": "v1.1307.4",
+    "draft": false,
+    "prerelease": false,
+    "created_at": "2026-09-21T00:00:00Z",
+    "published_at": "2026-09-21T00:00:00Z",
+    "assets": [
+      {
+        "name": "snyk-linux",
+        "browser_download_url": "https://github.com/snyk/cli/releases/download/v1.1307.4/snyk-linux",
+        "content_type": "application/octet-stream",
+        "size": 1000,
+        "download_count": 0
+      },
+      {
+        "name": "snyk-linux-arm64",
+        "browser_download_url": "https://github.com/snyk/cli/releases/download/v1.1307.4/snyk-linux-arm64",
+        "content_type": "application/octet-stream",
+        "size": 1000,
+        "download_count": 0
+      },
+      {
+        "name": "snyk-macos",
+        "browser_download_url": "https://github.com/snyk/cli/releases/download/v1.1307.4/snyk-macos",
+        "content_type": "application/octet-stream",
+        "size": 1000,
+        "download_count": 0
+      },
+      {
+        "name": "snyk-macos-arm64",
+        "browser_download_url": "https://github.com/snyk/cli/releases/download/v1.1307.4/snyk-macos-arm64",
+        "content_type": "application/octet-stream",
+        "size": 1000,
+        "download_count": 0
+      },
+      {
+        "name": "snyk-win.exe",
+        "browser_download_url": "https://github.com/snyk/cli/releases/download/v1.1307.4/snyk-win.exe",
+        "content_type": "application/octet-stream",
+        "size": 1000,
+        "download_count": 0
+      }
+    ]
+  }
+]
