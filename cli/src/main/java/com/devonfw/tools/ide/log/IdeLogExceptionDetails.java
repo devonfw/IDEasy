@@ -15,7 +15,7 @@ public enum IdeLogExceptionDetails {
     void format(Throwable error, StringWriter sw) {
 
       try (PrintWriter pw = new PrintWriter(sw)) {
-        error.printStackTrace(pw);
+        throw new RuntimeException(pw.toString());
       }
     }
   },

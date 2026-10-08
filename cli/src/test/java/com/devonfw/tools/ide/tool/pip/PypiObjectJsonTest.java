@@ -57,7 +57,8 @@ class PypiObjectJsonTest extends Assertions {
               "size": 1307639,
               "upload_time": "2018-04-19T18:56:05",
               "upload_time_iso_8601": "2018-04-19T18:56:05.963596Z",
-              "url": "https://files.pythonhosted.org/packages/0f/74/ecd13431bcc456ed390b44c8a6e917c1820365cbebcb6a8974d1cd045ab4/pip-10.0.1-py2.py3-none-any.whl",
+              "url":
+              "https://files.pythonhosted.org/packages/0f/74/ecd13431bcc456ed390b44c8a6e917c1820365cbebcb6a8974d1cd045ab4/pip-10.0.1-py2.py3-none-any.whl",
               "yanked": false,
               "yanked_reason": null
             },

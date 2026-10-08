@@ -165,7 +165,8 @@ class UninstallCommandletTest extends AbstractIdeContextTest {
     if (systemInfo.isWindows()) {
       assertThat(helper.getUserEnvironmentValue("IDE_ROOT")).isNull();
       assertThat(helper.getUserEnvironmentValue("PATH")).isEqualTo(
-          "C:\\Users\\testuser\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\testuser\\scoop\\apps\\python\\current\\Scripts;C:\\Users\\testuser\\scoop\\apps\\python\\current;C:\\Users\\testuser\\scoop\\shims");
+          "C:\\Users\\testuser\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\testuser"
+              + "\\scoop\\apps\\python\\current\\Scripts;C:\\Users\\testuser\\scoop\\apps\\python\\current;C:\\Users\\testuser\\scoop\\shims");
     }
   }
 }
