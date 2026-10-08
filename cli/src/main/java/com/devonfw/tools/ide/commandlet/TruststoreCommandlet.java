@@ -15,9 +15,9 @@ import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.util.TruststoreUtil;
 
 /**
- * {@link Commandlet} to fix the TLS problem for VPN users.
+ * {@link AbstractCommandlet} to fix the TLS problem for VPN users.
  */
-public class TruststoreCommandlet extends Commandlet {
+public class TruststoreCommandlet extends AbstractCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(TruststoreCommandlet.class);
 

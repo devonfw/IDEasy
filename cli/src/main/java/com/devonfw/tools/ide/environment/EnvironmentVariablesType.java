@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.environment;
 //CHECKSTYLE:OFF
 
 import com.devonfw.tools.ide.process.EnvironmentContext;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 //CHECKSTYLE:ON
 
@@ -46,7 +47,7 @@ public enum EnvironmentVariablesType {
 
   /**
    * Type of {@link EnvironmentVariables} from the virtual
-   * {@link com.devonfw.tools.ide.tool.LocalToolCommandlet#setEnvironment(EnvironmentContext, ToolInstallation, boolean)} tool environment.
+   * {@link AbstractLocalToolCommandlet#setEnvironment(EnvironmentContext, ToolInstallation, boolean) tool environment}.
    */
   TOOL
 

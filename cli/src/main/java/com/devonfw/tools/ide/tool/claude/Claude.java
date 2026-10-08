@@ -10,15 +10,14 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.process.EnvironmentContext;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 
 /**
- * {@link ToolCommandlet} for <a href="https://github.com/anthropics/claude-code">Claude Code CLI</a>.
+ * {@link AbstractToolCommandlet} for <a href="https://github.com/anthropics/claude-code">Claude Code CLI</a>.
  */
-public class Claude extends LocalToolCommandlet {
+public class Claude extends AbstractLocalToolCommandlet {
 
   /** Name of the environment variable that relocates the entire Claude configuration directory. */
   static final String CLAUDE_CONFIG_DIR = "CLAUDE_CONFIG_DIR";
@@ -62,9 +61,9 @@ public class Claude extends LocalToolCommandlet {
 
   /**
    * Provider/auth environment variables that must not leak from the ambient system environment into the launched Claude process, so an inherited value cannot
-   * override the per-project configuration. Each variable is only removed when it is inherited from the {@link EnvironmentVariablesType#SYSTEM system
-   * environment} (or undefined); a value declared in an IDEasy {@code ide.properties} layer (e.g. {@code settings/ide.properties} to share
-   * {@code ANTHROPIC_MODEL} across a team) is intentional and therefore preserved.
+   * override the per-project configuration. Each variable is only removed when it is inherited from the
+   * {@link EnvironmentVariablesType#SYSTEM system environment} (or undefined); a value declared in an IDEasy {@code ide.properties} layer (e.g.
+   * {@code settings/ide.properties} to share {@code ANTHROPIC_MODEL} across a team) is intentional and therefore preserved.
    */
   static final List<String> SCRUB_VARS = List.of(
       "ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_BASE_URL",
@@ -126,8 +125,8 @@ public class Claude extends LocalToolCommandlet {
    * @param variables the {@link EnvironmentVariables} of the current {@link IdeContext}.
    * @param name the name of the environment variable to check.
    * @return {@code true} if the variable is undefined or only inherited from the {@link EnvironmentVariablesType#SYSTEM system environment} and should
-   *    therefore be scrubbed; {@code false} if it is defined in an IDEasy {@code ide.properties} layer and must be preserved so it can be shared intentionally
-   *    (e.g. via {@code settings/ide.properties}).
+   *     therefore be scrubbed; {@code false} if it is defined in an IDEasy {@code ide.properties} layer and must be preserved so it can be shared intentionally
+   *     (e.g. via {@code settings/ide.properties}).
    */
   private static boolean isInheritedFromSystem(EnvironmentVariables variables, String name) {
 

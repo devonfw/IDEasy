@@ -12,10 +12,10 @@ Not all tools require a UrlUpdater, as tools using certain package manager ecosy
 === What is a Commandlet?
 
 A commandlet is a subcommand of the IDEasy CLI that manages a tool's lifecycle.
-The base class is `Commandlet`, and for tools, the relevant base classes are:
+The base class is `AbstractCommandlet`, and for tools, the relevant base classes are:
 
-* `ToolCommandlet`: Base class for all tools
-* `LocalToolCommandlet`: For tools installed locally into IDEasy
+* `AbstractToolCommandlet`: Base class for all tools
+* `AbstractLocalToolCommandlet`: For tools installed locally into IDEasy
 * `GlobalToolCommandlet`: For tools installed globally on the system
 
 Each commandlet implements:
@@ -195,7 +195,7 @@ This UrlUpdater relies on HTML and Minor HTML changes break the updater and requ
 The file format and name depend on the base class used.
 
 
-To test the UrlUpdater, you can run in addition to the unit test the `UpdateInitiator` class located in `url-updater/src/main/java/com/devonfw/tools/ide/url/updater/UpdateInitiator.java` which allows you to run the updater and see the discovered versions and URLs in the console.
+To test the UrlUpdater, you can run in addition to the unit test the `UpdateInitiator` class located in `url-updater/src/main/java/com/devonfw/tools/ide/url/UpdateInitiator.java` which allows you to run the updater and see the discovered versions and URLs in the console.
 The arguments to pass are:
 
 * Path to ide-urls project (where the url-updater module is located)
@@ -211,7 +211,7 @@ After merging the changes for the created UrlUpdater (if needed), you can check 
 Then you can proceed to create the Commandlet for the new tool:
 
 * Commandlet class: `MyTool.java` located in: `cli/src/main/java/com/devonfw/tools/ide/cli/tool/mytool/`
-* Extend the appropriate base class (`ToolCommandlet`, `LocalToolCommandlet`, or `GlobalToolCommandlet`)
+* Extend the appropriate base class (`AbstractToolCommandlet`, `AbstractLocalToolCommandlet`, or `GlobalToolCommandlet`)
 * Use the tags defined in `Tag.java` to classify your tool
 * Add the new tool to `cli/src/main/java/com/devonfw/tools/ide/commandlet/CommandletManagerImpl.java` by adding it to the `commandlets` list in the constructor.
 * Add a test for the created Commandlet in `src/test/java/com/devonfw/tools/ide/cli/tool/mytool/` with name `MyToolTest.java`
