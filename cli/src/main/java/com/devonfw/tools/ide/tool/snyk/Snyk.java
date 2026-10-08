@@ -5,12 +5,11 @@ import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 
 /**
- * {@link ToolCommandlet} for the <a href="https://github.com/snyk/cli">Snyk CLI</a>.
+ * {@link AbstractLocalToolCommandlet} for the <a href="https://github.com/snyk/cli">Snyk CLI</a>.
  * <p>
  * Note: the Snyk CLI keeps its configuration in the user's config directory, honoring {@code $XDG_CONFIG_HOME} when
  * set (otherwise the XDG default under the user home). Unlike tools that expose a dedicated config-dir variable, Snyk
@@ -19,7 +18,7 @@ import com.devonfw.tools.ide.tool.ToolInstallRequest;
  * Authentication is likewise not managed by IDEasy: it is provided via the standard {@code SNYK_TOKEN} environment
  * variable, which the user or a CI environment sets independently of IDEasy.
  */
-public class Snyk extends LocalToolCommandlet {
+public class Snyk extends AbstractLocalToolCommandlet {
 
   /**
    * The constructor.

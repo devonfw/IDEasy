@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool.docker;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -16,6 +17,12 @@ import com.devonfw.tools.ide.tool.EditionAndVersion;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.NativePackage;
 import com.devonfw.tools.ide.tool.NativePackageManager;
+import com.devonfw.tools.ide.tool.PackageManagerCommand;
+import com.devonfw.tools.ide.tool.ToolEdition;
+import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
+import com.devonfw.tools.ide.tool.ToolInstallation;
+import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -32,6 +39,10 @@ public class Docker extends GlobalToolCommandlet {
   private static final Pattern RDCTL_CLIENT_VERSION_PATTERN = Pattern.compile("client version:\\s*v([\\d.]+)", Pattern.CASE_INSENSITIVE);
 
   private static final Pattern DOCKER_DESKTOP_VERSION_PATTERN = Pattern.compile("^([0-9]+(?:\\.[0-9]+){1,2})");
+
+  private static final String EDITION_DOCKER = "docker";
+
+  private Path downloadedDebPackageForDocker;
 
   /**
    * The constructor.
@@ -68,6 +79,34 @@ public class Docker extends GlobalToolCommandlet {
 
   @Override
   protected List<NativePackage> getNativePackages() {
+
+    if (isDockerDesktopEditionConfigured()) {
+
+      List<Path> artifactPaths = (this.downloadedDebPackageForDocker == null) ? List.of() : List.of(this.downloadedDebPackageForDocker);
+
+      return List.of(
+          new NativePackage(
+              NativePackageManager.APT,
+              List.of("docker-desktop"),
+              List.of("--allow-downgrades"),
+              List.of(
+                  "sudo install -m 0755 -d /etc/apt/keyrings",
+                  "sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc",
+                  "sudo chmod a+r /etc/apt/keyrings/docker.asc",
+                  "echo \"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] "
+                      + "https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo \\\"$VERSION_CODENAME\\\") stable\" | "
+                      + "sudo tee /etc/apt/sources.list.d/docker.list > /dev/null",
+                  "sudo apt update"
+              ),
+              List.of(
+                  "sudo rm -f /etc/apt/sources.list.d/docker.list",
+                  "sudo rm -f /etc/apt/keyrings/docker.asc"
+              ),
+              artifactPaths
+          )
+      );
+    }
+
     return List.of(
         new NativePackage(
             NativePackageManager.ZYPPER,
@@ -93,6 +132,7 @@ public class Docker extends GlobalToolCommandlet {
                 "sudo rm -f /usr/share/keyrings/isv-rancher-stable-archive-keyring.gpg"
             )
         ),
+        new NativePackage(NativePackageManager.YAY, List.of("rancher-desktop")),
         new NativePackage(NativePackageManager.BREW_CASK, List.of("docker"))
     );
   }
@@ -101,6 +141,41 @@ public class Docker extends GlobalToolCommandlet {
   public String getMacApplicationName() {
 
     return "Docker";
+  }
+
+  @Override
+  protected ToolEditionAndVersion adjustRequestedEdition(ToolEditionAndVersion requested) {
+
+    if (this.context.getSystemInfo().isLinux()) {
+      ToolEdition edition = requested.getEdition();
+      if (!"rancher".equals(edition.edition())) {
+        LOG.warn("Docker Desktop is not yet supported by IDEasy on Linux, installing Rancher Desktop instead.");
+        requested.replaceEdition(new ToolEdition(this.tool, "rancher"));
+      }
+    }
+    return requested;
+  }
+
+  @Override
+  protected ToolInstallation doInstall(ToolInstallRequest request) {
+    if (isDockerDesktopEditionConfigured()) {
+      downloadDebPackageStepAndSetPackagePath(request.getRequested().getResolvedVersion());
+    }
+    return super.doInstall(request);
+  }
+
+  private void downloadDebPackageStepAndSetPackagePath(VersionIdentifier resolvedVersion) {
+    ToolRepository toolRepository = this.context.getDefaultToolRepository();
+    this.downloadedDebPackageForDocker = toolRepository.download(this.tool, EDITION_DOCKER, resolvedVersion, this);
+  }
+
+  @Override
+  protected List<PackageManagerCommand> getInstallPackageManagerCommands(VersionIdentifier resolvedVersion) {
+    if (!isDockerDesktopEditionConfigured()) {
+      return super.getInstallPackageManagerCommands(resolvedVersion);
+    }
+
+    return getNativePackages().stream().map(nativePackage -> nativePackage.install(null)).toList();
   }
 
   @Override
@@ -122,6 +197,9 @@ public class Docker extends GlobalToolCommandlet {
 
     if (isRancherDesktopInstalled()) {
       VersionIdentifier version = getRancherDesktopClientVersion();
+      if (version == null) {
+        version = getNativePackageVersion();
+      }
       return new EditionAndVersion("rancher", version);
     }
 
@@ -171,8 +249,18 @@ public class Docker extends GlobalToolCommandlet {
 
   private VersionIdentifier getRancherDesktopClientVersion() {
 
-    String output = this.context.newProcess().runAndGetSingleOutput("rdctl", "version");
-    return resolveVersionWithPattern(output, RDCTL_CLIENT_VERSION_PATTERN);
+    // rdctl may be on the PATH as a dangling symlink (e.g. Rancher Desktop was removed but ~/.rd/bin remained) so executing it can fail to start the process
+    try {
+      String output = this.context.newProcess().runAndGetSingleOutput("rdctl", "version");
+      return resolveVersionWithPattern(output, RDCTL_CLIENT_VERSION_PATTERN);
+    } catch (IllegalStateException e) {
+      LOG.warn("Could not determine the installed Rancher Desktop version - rdctl could not be executed: {}", e.getMessage());
+      return null;
+    }
+  }
+
+  private boolean isDockerDesktopEditionConfigured() {
+    return EDITION_DOCKER.equals(getConfiguredEdition());
   }
 
   @Override

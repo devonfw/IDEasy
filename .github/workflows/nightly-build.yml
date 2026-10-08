@@ -108,7 +108,7 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          ./.github/workflows/macos/generate_pkg.sh
+          ./macos-installer/build-pkg.sh
         env:
           RELEASE_VERSION: ${{ needs.resolve-version.outputs.snapshot_version }}
       - name: Upload unsigned PKG
@@ -145,4 +145,4 @@ jobs:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           RELEASE_VERSION: ${{ needs.resolve-version.outputs.snapshot_version }}
-        run: mvn --settings .mvn/settings.xml -DskipTests=true -Darchetype.test.skip=true -Dgpg.skip=true -Dstyle.color=always -B -ntp -pl -:ide-macos-installer -Passembly,msi,pkg,deploy deploy
+        run: mvn --settings .mvn/settings.xml -DskipTests=true -Darchetype.test.skip=true -Dgpg.skip=true -Dstyle.color=always -B -ntp -pl -:ide-macos-installer -pl -:ide-windows-installer -Passembly,msi,pkg,deploy deploy

@@ -1,16 +1,16 @@
 package com.devonfw.tools.ide.property;
 
-import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.plugin.PluginBasedCommandlet;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 import com.devonfw.tools.ide.tool.plugin.ToolPlugins;
 import com.devonfw.tools.ide.validation.PropertyValidator;
 
 /**
- * {@link Property} representing the plugin of a {@link PluginBasedCommandlet}.
+ * {@link Property} representing the plugin of a {@link PluginBasedCommandlet tool that supports plugins}.
  */
 public class PluginProperty extends Property<String> {
 
@@ -53,9 +53,9 @@ public class PluginProperty extends Property<String> {
   }
 
   @Override
-  protected void completeValue(String arg, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
+  protected void completeValue(String arg, IdeContext context, AbstractCommandlet commandlet, CompletionCandidateCollector collector) {
 
-    ToolCommandlet cmd = commandlet.getToolForCompletion();
+    AbstractToolCommandlet cmd = commandlet.getToolForCompletion();
     if (cmd instanceof PluginBasedCommandlet pbc) {
       ToolPlugins plugins = pbc.getPlugins();
       for (ToolPluginDescriptor pluginDescriptor : plugins.getPlugins()) {

@@ -13,10 +13,12 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.devonfw.tools.ide.tool.npm.Npm;
 
 /**
  * Tests of {@link SystemPath}.
@@ -143,6 +145,49 @@ class SystemPathTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(result).isEqualTo(test);
+  }
+
+  @Test
+  void testPrecedenceToolBinPrecedesBundlingRuntimeBinForBothLookupAndPathString() throws IOException {
+    // arrange - node is a flat install (no bin/), so node's own bundled npm shadows the pristine npm unless npm is ordered first
+    // copyForMutation=true: this test creates files, so it must work on a scratch copy (in target/), never the committed fixtures
+    IdeTestContext context = newContext("find-binary", "project/workspaces", true);
+    Path npmTool = context.getSoftwarePath().resolve("npm");
+    Files.createDirectories(npmTool.resolve("bin"));
+    Files.writeString(npmTool.resolve("bin/npm"), "pristine-npm");
+    Path nodeTool = context.getSoftwarePath().resolve("node");
+    Files.createDirectories(nodeTool);
+    Files.writeString(nodeTool.resolve("npm"), "node-bundled-npm");
+    SystemPath systemPath = new SystemPath(context, "", context.getIdeRoot(), context.getSoftwarePath(), ';', new ArrayList<>());
+    Path pristine = npmTool.resolve("bin").resolve("npm");
+    Path bundled = nodeTool.resolve("npm");
+
+    // act & assert - findBinary resolves the pristine npm, not the node-bundled one
+    assertThat(systemPath.findBinary(Path.of("npm"))).isEqualTo(pristine).isNotEqualTo(bundled);
+    // act & assert - the pristine npm bin is also placed before the node dir in the PATH string
+    String pathString = systemPath.toString();
+    assertThat(pathString.indexOf(npmTool.resolve("bin").toString()))
+        .isNotNegative().isLessThan(pathString.indexOf(nodeTool.toString()));
+  }
+
+  @Test
+  void testGlobalNpmPackagesInSoftwareNpmGlobalAreOnPath() throws IOException {
+    // arrange - npm's per-project global prefix is software/node_modules. npm places its global shims in <prefix>/bin on POSIX but in the prefix root
+    // on Windows, so the generic software scan (bin/ subdir if present, else the tool dir) picks the right entry on both platforms without special-casing.
+    IdeTestContext context = newContext(PROJECT_BASIC, "project/workspaces", true);
+    Path globalBin = context.getSystemInfo().isWindows() ? context.getSoftwarePath().resolve(Npm.NPM_GLOBAL_FOLDER)
+        : context.getSoftwarePath().resolve(Npm.NPM_GLOBAL_FOLDER).resolve(IdeContext.FOLDER_BIN);
+    Path globalPackage = globalBin.resolve("fakeglobal");
+    Files.createDirectories(globalBin);
+    Files.writeString(globalPackage, "fake");
+    SystemPath systemPath = new SystemPath(context, "", context.getIdeRoot(), context.getSoftwarePath(), ';', new ArrayList<>());
+
+    // act
+    Path resolved = systemPath.findBinary(Path.of("fakeglobal"));
+
+    // assert - the globally installed npm package is resolvable through the generic software PATH scan
+    assertThat(resolved).isEqualTo(globalPackage);
+    assertThat(systemPath.toString()).contains(globalBin.toString());
   }
 
   @Test
