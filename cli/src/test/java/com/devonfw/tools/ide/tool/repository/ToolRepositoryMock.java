@@ -17,9 +17,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.io.TarCompression;
 import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFile;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
+import com.devonfw.tools.ide.util.FilenameUtil;
 import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
@@ -107,24 +109,48 @@ public class ToolRepositoryMock extends DefaultToolRepository {
       UrlDownloadFileMetadata metadata = getMetadata(tool, edition, version, toolCommandlet);
       String url = metadata.getUrls().iterator().next();
       if (url.startsWith(VARIABLE_TESTBASEURL)) {
+        // FileAccess.compress builds tar and zip only. Fixtures named .dmg or .pkg are served as tgz.
+        String archiveUrl = toCompressibleArchiveUrl(url);
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream(1024)) {
-          this.context.getFileAccess().compress(archiveFolder, baos, url);
+          this.context.getFileAccess().compress(archiveFolder, baos, archiveUrl);
           byte[] body = baos.toByteArray();
-          String path = url.substring(VARIABLE_TESTBASEURL.length());
+          String path = archiveUrl.substring(VARIABLE_TESTBASEURL.length());
           stubFor(get(urlMatching(path)).willReturn(
               aResponse().withStatus(200).withBody(body)));
-          String resolvedUrl = url.replace(VARIABLE_TESTBASEURL, this.wmRuntimeInfo.getHttpBaseUrl());
+          String resolvedUrl = archiveUrl.replace(VARIABLE_TESTBASEURL, this.wmRuntimeInfo.getHttpBaseUrl());
           UrlDownloadFile urlDownloadFile = (UrlDownloadFile) metadata;
           metadata = new UrlDownloadFile(urlDownloadFile.getParent(), urlDownloadFile.getName(), Set.of(resolvedUrl));
           return super.download(metadata);
         } catch (IOException e) {
-          throw new IllegalStateException("Failed to create mock archive for " + url, e);
+          throw new IllegalStateException("Failed to create mock archive for " + archiveUrl, e);
         }
       } else {
         throw new IllegalStateException("Invalid URL: " + url);
       }
     }
     return archiveFolder;
+  }
+
+  /**
+   * Returns a URL whose extension {@code FileAccess.compress} can build. Extensions other than tar and zip (for example {@code dmg}) are rewritten to
+   * {@code tgz}, which is the archive format of the test infrastructure.
+   *
+   * @param url the download URL from the test fixture.
+   * @return {@code url} when its extension is compressible, otherwise the same URL with a {@code tgz} extension.
+   */
+  private static String toCompressibleArchiveUrl(String url) {
+
+    String extension = FilenameUtil.getExtension(url);
+    if ((extension != null) && (("zip".equals(extension)) || (TarCompression.of(extension) != null))) {
+      return url;
+    }
+    String tgzExtension = "." + TarCompression.GZ.getCombinedExtension();
+    int lastDotIndex = url.lastIndexOf('.');
+    int lastSlashIndex = Math.max(url.lastIndexOf('/'), url.lastIndexOf('\\'));
+    if (lastDotIndex <= lastSlashIndex) {
+      return url + tgzExtension;
+    }
+    return url.substring(0, lastDotIndex) + tgzExtension;
   }
 
 }
