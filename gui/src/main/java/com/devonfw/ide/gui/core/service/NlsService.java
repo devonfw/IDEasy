@@ -68,8 +68,8 @@ public class NlsService {
   private static final Pattern USER_LANG_PATTERN = Pattern.compile("-Duser\\.language=(\\S*)");
 
   /**
-   * Creates the service and initializes it with the given locale. The user environment variables are resolved from an {@link IdeContextConsole} that is
-   * created lazily on first persistence, so that merely constructing the service has no side effects.
+   * Creates the service and initializes it with the given locale. The user environment variables are resolved from an {@link IdeContextConsole} that is created
+   * lazily on first persistence, so that merely constructing the service has no side effects.
    *
    * @param locale the preferred locale, or {@code null} to use persisted or default locale.
    */
@@ -83,8 +83,8 @@ public class NlsService {
    * Creates the service using the given {@link IdeContext} to resolve the user configuration and initializes it with the given locale.
    * <p>
    * This constructor enables "design for testability" (see {@code documentation/contributing/junit-testing.adoc}): by injecting an {@link IdeContext} (for
-   * example an {@link com.devonfw.tools.ide.context.IdeTestContext}) the service can be isolated from the real user home and the environment of the
-   * machine running the test.
+   * example an {@link com.devonfw.tools.ide.context.IdeTestContext}) the service can be isolated from the real user home and the environment of the machine
+   * running the test.
    *
    * @param context the {@link IdeContext} to use for resolving the user environment variables.
    * @param locale the preferred locale, or {@code null} to use persisted or default locale.
