@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.tool.node.Node;
+import com.devonfw.tools.ide.tool.npm.Npm;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
@@ -106,5 +107,8 @@ class YarnTest extends AbstractIdeContextTest {
 
     assertThat(context).logAtInfo().hasMessage("npm install -gf yarn@2.4.3");
     assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed yarn in version 2.4.3");
+    // the success message must report the actual location (npm's per-project global prefix) and not the parent tool path (software/node)
+    assertThat(context).logAtSuccess()
+        .hasMessageContaining("at " + context.getSoftwarePath().resolve(Npm.NPM_GLOBAL_FOLDER));
   }
 }
