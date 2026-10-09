@@ -50,6 +50,16 @@ public abstract class AbstractLocalToolCommandlet extends AbstractToolCommandlet
   }
 
   /**
+   * @return the {@link Path} where the installed artifact of this tool actually lives, as reported in the install success message. Defaults to
+   *     {@link #getToolPath() tool path}, which for package-manager based tools is the runtime tool's path and not the location where the managed package
+   *     is actually installed (e.g. a global npm package lives in the per-project npm prefix, not in {@code software/node}).
+   */
+  protected Path getInstalledLocation() {
+
+    return getToolPath();
+  }
+
+  /**
    * @return the {@link Path} where the executables of the tool can be found. Typically, a "bin" folder inside {@link #getToolPath() tool path}.
    */
   public Path getToolBinPath() {
@@ -130,11 +140,12 @@ public abstract class AbstractLocalToolCommandlet extends AbstractToolCommandlet
     ToolEditionAndVersion requested = request.getRequested();
     ToolEdition toolEdition = requested.getEdition();
     Step step = request.getStep();
+    Path installedLocation = getInstalledLocation();
     if (installedVersion == null) {
-      IdeLogLevel.SUCCESS.log(LOG, "Successfully installed {} in version {} at {}", toolEdition, resolvedVersion, toolPath);
+      IdeLogLevel.SUCCESS.log(LOG, "Successfully installed {} in version {} at {}", toolEdition, resolvedVersion, installedLocation);
     } else {
       IdeLogLevel.SUCCESS.log(LOG, "Successfully installed {} in version {} replacing previous version {} of {} at {}", toolEdition,
-          resolvedVersion, installedVersion, installed.getEdition(), toolPath);
+          resolvedVersion, installedVersion, installed.getEdition(), installedLocation);
     }
     if (step != null) {
       step.success(true);
