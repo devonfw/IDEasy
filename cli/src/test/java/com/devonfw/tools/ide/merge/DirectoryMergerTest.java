@@ -124,6 +124,7 @@ class DirectoryMergerTest extends AbstractIdeContextTest {
     assertThat(namePath).hasContent("project - main\ntest");
   }
 
+
   private static class Prop implements Entry<String, String> {
 
     private final String key;
