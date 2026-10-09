@@ -140,6 +140,9 @@ public final class Tag {
   /** {@link Tag} for Ionic. */
   public static final Tag IONIC = create("ionic", CORDOVA, false);
 
+  /** {@link Tag} for Flutter (and its bundled Dart SDK). */
+  public static final Tag FLUTTER = create("flutter", FRAMEWORK, false);
+
   /** {@link #getParent() Parent} for quality-assurance. */
   public static final Tag QA = create("quality-assurance", ROOT, false, "qa", "quality");
 
