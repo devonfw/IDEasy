@@ -65,6 +65,7 @@ import com.devonfw.tools.ide.io.ini.IniFile;
 import com.devonfw.tools.ide.io.ini.IniSection;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.util.DateTimeUtil;
@@ -198,13 +199,18 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
 
   private void copyWithProgressBar(Path source, Path target, FileCopyMode mode) {
 
+    copyWithProgressBar(source, target, mode, false);
+  }
+
+  private void copyWithProgressBar(Path source, Path target, FileCopyMode mode, boolean preserveSymbolicLinks) {
+
     long size = getFileSize(source);
     if (size < 100_000) {
-      copy(source, target, mode);
+      copy(source, target, mode, PathCopyListener.NONE, null, preserveSymbolicLinks);
       return;
     }
     try (IdeProgressBar pb = this.context.newProgressbarForCopying(size)) {
-      copy(source, target, mode, PathCopyListener.NONE, pb);
+      copy(source, target, mode, PathCopyListener.NONE, pb, preserveSymbolicLinks);
     }
   }
 
@@ -354,10 +360,11 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   @Override
   public void copy(Path source, Path target, FileCopyMode mode, PathCopyListener listener) {
 
-    copy(source, target, mode, listener, null);
+    copy(source, target, mode, listener, null, false);
   }
 
-  private void copy(Path source, Path target, FileCopyMode mode, PathCopyListener listener, IdeProgressBar progressBar) {
+  private void copy(Path source, Path target, FileCopyMode mode, PathCopyListener listener, IdeProgressBar progressBar,
+      boolean preserveSymbolicLinks) {
 
     if (mode.isUseSourceFilename()) {
       // if we want to copy the file or folder "source" to the existing folder "target" in a shell this will copy
@@ -395,30 +402,34 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       delete(target);
     }
     try {
-      copyRecursive(source, target, mode, listener, progressBar);
+      copyRecursive(source, target, mode, listener, progressBar, preserveSymbolicLinks);
     } catch (IOException e) {
       throw new IllegalStateException("Failed to " + operation + " " + source + " to " + target, e);
     }
   }
 
-  private void copyRecursive(Path source, Path target, FileCopyMode mode, PathCopyListener listener, IdeProgressBar progressBar) throws IOException {
+  private void copyRecursive(Path source, Path target, FileCopyMode mode, PathCopyListener listener, IdeProgressBar progressBar,
+      boolean preserveSymbolicLinks) throws IOException {
 
-    if (Files.isDirectory(source)) {
+    boolean symbolicLink = preserveSymbolicLinks && Files.isSymbolicLink(source);
+    if (!symbolicLink && Files.isDirectory(source)) {
       mkdirs(target);
       try (Stream<Path> childStream = Files.list(source)) {
         Iterator<Path> iterator = childStream.iterator();
         while (iterator.hasNext()) {
           Path child = iterator.next();
-          copyRecursive(child, target.resolve(child.getFileName().toString()), mode, listener, progressBar);
+          copyRecursive(child, target.resolve(child.getFileName().toString()), mode, listener, progressBar, preserveSymbolicLinks);
         }
       }
       listener.onCopy(source, target, true);
-    } else if (Files.exists(source)) {
+    } else if (symbolicLink || Files.exists(source)) {
       if (mode.isOverride()) {
         delete(target);
       }
       LOG.trace("Starting to {} {} to {}", mode.getOperation(), source, target);
-      if (progressBar == null) {
+      if (symbolicLink) {
+        Files.copy(source, target, LinkOption.NOFOLLOW_LINKS);
+      } else if (progressBar == null) {
         Files.copy(source, target);
       } else {
         copyFileBytes(source, target, progressBar);
@@ -1020,18 +1031,28 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
 
     Path mountPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_VOLUME);
     mkdirs(mountPath);
-    ProcessContext pc = this.context.newProcess();
-    pc.executable("hdiutil");
-    pc.addArgs("attach", "-quiet", "-nobrowse", "-mountpoint", mountPath, file);
-    pc.run();
-    Path appPath = findFirst(mountPath, p -> p.getFileName().toString().endsWith(".app"), false);
-    if (appPath == null) {
-      throw new IllegalStateException("Failed to unpack DMG as no MacOS *.app was found in file " + file);
-    }
+    boolean mounted = false;
+    try {
+      ProcessContext pc = this.context.newProcess();
+      pc.executable("hdiutil");
+      pc.addArgs("attach", "-quiet", "-nobrowse", "-mountpoint", mountPath, file);
+      pc.run();
+      mounted = true;
+      Path appPath = findFirst(mountPath, p -> p.getFileName().toString().endsWith(".app"), false);
+      if (appPath == null) {
+        throw new IllegalStateException("Failed to unpack DMG as no MacOS *.app was found in file " + file);
+      }
 
-    copyWithProgressBar(appPath, targetDir, FileCopyMode.COPY_TREE_OVERRIDE_TREE);
-    pc.addArgs("detach", "-force", mountPath);
-    pc.run();
+      copyWithProgressBar(appPath, targetDir, FileCopyMode.COPY_TREE_OVERRIDE_TREE, true);
+    } finally {
+      if (mounted) {
+        ProcessContext detach = this.context.newProcess();
+        detach.errorHandling(ProcessErrorHandling.LOG_WARNING);
+        detach.executable("hdiutil");
+        detach.addArgs("detach", "-force", mountPath);
+        detach.run(ProcessMode.DEFAULT_SILENT);
+      }
+    }
   }
 
   @Override
@@ -1451,7 +1472,6 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       return 0;
     }
   }
-
 
   @Override
   public Path findExistingFile(String fileName, List<Path> searchDirs) {
