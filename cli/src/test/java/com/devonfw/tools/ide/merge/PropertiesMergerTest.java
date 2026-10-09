@@ -12,10 +12,13 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.io.FileAccess;
 
-public class PropertiesMergerTest extends AbstractIdeContextTest {
+/**
+ * Test of {@link PropertiesMerger}.
+ */
+class PropertiesMergerTest extends AbstractIdeContextTest {
 
   /**
-   * Test of {@link PropertiesMerger}.
+   * Test of {@link PropertiesMerger#doMerge(Path, Path, EnvironmentVariables, Path)} with existing workspace and update file.
    *
    * @param workspaceDir the temporary folder to use as workspace for this test.
    * @throws Exception on error.
