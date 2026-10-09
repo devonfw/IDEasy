@@ -14,28 +14,40 @@ include::variables.adoc[leveloffset=2]
 
 include::cli.adoc[leveloffset=2]
 
-include::docker-desktop-alternative.adoc[leveloffset=3]
-
 <<<<
 
 include::structure.adoc[leveloffset=2]
 
-include::conf.adoc[leveloffset=3]
+<<<<
 
-include::log.adoc[leveloffset=3]
+include::conf.adoc[leveloffset=2]
 
-include::settings.adoc[leveloffset=3]
+include::log.adoc[leveloffset=2]
 
-include::software.adoc[leveloffset=3]
+include::settings.adoc[leveloffset=2]
 
-include::system.adoc[leveloffset=3]
+include::software.adoc[leveloffset=2]
 
-include::updates.adoc[leveloffset=3]
+include::system.adoc[leveloffset=2]
 
-include::workspaces.adoc[leveloffset=3]
+include::project.adoc[leveloffset=2]
 
-include::repository.adoc[leveloffset=3]
+include::workspaces.adoc[leveloffset=2]
 
-include::plugin.adoc[leveloffset=3]
+include::tmp.adoc[leveloffset=2]
 
-include::ai.adoc[leveloffset=3]
+include::urls.adoc[leveloffset=2]
+
+include::repository.adoc[leveloffset=2]
+
+include::plugin.adoc[leveloffset=2]
+
+include::ai.adoc[leveloffset=2]
+
+include::coding-assistant.adoc[leveloffset=2]
+
+include::configurator.adoc[leveloffset=2]
+
+include::cygwin.adoc[leveloffset=2]
+
+include::sandbox.adoc[leveloffset=2]
