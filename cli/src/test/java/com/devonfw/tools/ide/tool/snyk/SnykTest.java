@@ -19,14 +19,11 @@ class SnykTest extends AbstractIdeContextTest {
   @Test
   void testSnykInstallSucceedsViaLocalRepository() {
 
-    // arrange
     IdeTestContext context = newContext(SNYK_PROJECT);
     Snyk snyk = new Snyk(context);
 
-    // act
     snyk.install();
 
-    // assert
     assertInstalled(context);
   }
 
