@@ -145,15 +145,14 @@ class PropertiesMergerTest extends AbstractIdeContextTest {
     Path updateMain= workspaceDir.resolve("update-main.prefs");
     Files.copy(update.resolve("main.prefs"), updateMain);
     Properties workspaceProperties= fileAccess.readProperties(workspaceMain);
-    workspaceProperties.setProperty("theme", "dark");
-    workspaceProperties.setProperty("ui", "classic");
+    workspaceProperties.setProperty("java.version", "1.99");
+    workspaceProperties.setProperty("theme", "light");
     fileAccess.writeProperties(workspaceProperties, workspaceMain);
-//act
+    //act
     propertiesMerger.inverseMerge(workspaceMain, environmentVariables, false, updateMain);
-    Properties result= fileAccess.readProperties(updateMain);
     //assert
-
-    assertThat(result).containsEntry("java.version", "1.11").containsEntry("java.home", "${IDE_HOME}/software/java");
+    Properties result = fileAccess.readProperties(updateMain);
+    assertThat(result).containsEntry("java.version", "1.99").containsEntry("java.home", "${IDE_HOME}/software/java").doesNotContainKey("theme");
   }
   @Test
   void nonexistentWorkspace(@TempDir Path workspaceDir)throws Exception{
