@@ -74,5 +74,8 @@ public class ObsidianUrlUpdaterTest extends AbstractUrlUpdaterTest {
     assertUrlVersion(obsidianDir.resolve("1.10.6"), expectedPlatforms);
     assertUrlVersion(obsidianDir.resolve("1.11.7"), expectedPlatforms);
     assertUrlVersion(obsidianDir.resolve("1.12.7"), expectedPlatforms);
+    // only the tar.gz archive shall be registered for linux_x64 (the *.deb would require a package manager instead of extraction)
+    assertThat(obsidianDir.resolve("1.12.7").resolve("linux_x64.urls")).content().contains("obsidian-1.12.7.tar.gz")
+        .doesNotContain(".deb");
   }
 }

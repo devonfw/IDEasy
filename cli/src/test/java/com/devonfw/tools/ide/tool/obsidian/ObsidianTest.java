@@ -1,16 +1,24 @@
 package com.devonfw.tools.ide.tool.obsidian;
 
+import java.nio.file.Path;
+
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * Test of {@link Obsidian}.
  */
 class ObsidianTest extends AbstractIdeContextTest {
+
+  private static final String PROJECT_OBSIDIAN = "obsidian";
+
+  private static final String OBSIDIAN_VERSION = "1.12.7";
 
   /**
    * Test that the {@link Obsidian} commandlet is registered and properly classified.
@@ -87,5 +95,95 @@ class ObsidianTest extends AbstractIdeContextTest {
 
     // act + assert
     assertThat(obsidian.getWindowsRegistryAppName()).isEqualTo("Obsidian");
+  }
+
+  /**
+   * Test that the installation on Linux persists the extracted archive in the user home and records the installed version.
+   */
+  @Test
+  void testInstallOnLinuxPersistsInstallation() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_OBSIDIAN);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    Obsidian obsidian = new Obsidian(context);
+
+    // act
+    obsidian.install();
+
+    // assert
+    Path installationDir = getLinuxInstallationDir(context);
+    assertThat(installationDir.resolve("obsidian")).exists();
+    assertThat(installationDir.resolve(IdeContext.FILE_SOFTWARE_VERSION)).hasContent(OBSIDIAN_VERSION);
+    assertThat(obsidian.getInstalledVersion()).isEqualTo(VersionIdentifier.of(OBSIDIAN_VERSION));
+  }
+
+  /**
+   * Test that the installation on macOS persists the *.app bundle in the Applications folder of the user and detects its version from the bundle.
+   */
+  @Test
+  void testInstallOnMacPersistsAppBundle() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_OBSIDIAN);
+    context.setSystemInfo(SystemInfoMock.MAC_X64);
+    Obsidian obsidian = new Obsidian(context);
+
+    // act
+    obsidian.install();
+
+    // assert
+    Path appBundle = getMacAppBundle(context);
+    assertThat(appBundle.resolve("Contents").resolve("MacOS").resolve("Obsidian")).exists();
+    assertThat(obsidian.getInstalledVersion()).isEqualTo(VersionIdentifier.of(OBSIDIAN_VERSION));
+  }
+
+  /**
+   * Test that a persisted installation is detected so that a second installation is skipped.
+   */
+  @Test
+  void testInstallIsSkippedIfAlreadyInstalled() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_OBSIDIAN);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    new Obsidian(context).install();
+    Obsidian obsidian = new Obsidian(context);
+
+    // act
+    obsidian.install(false);
+
+    // assert
+    assertThat(context).logAtInfo().hasMessage("Version " + OBSIDIAN_VERSION + " of tool obsidian is already installed");
+  }
+
+  /**
+   * Test that the uninstallation on Linux removes the persisted installation.
+   */
+  @Test
+  void testUninstallOnLinuxRemovesInstallation() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_OBSIDIAN);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    new Obsidian(context).install();
+    Obsidian obsidian = new Obsidian(context);
+
+    // act
+    obsidian.uninstall();
+
+    // assert
+    assertThat(getLinuxInstallationDir(context)).doesNotExist();
+    assertThat(obsidian.getInstalledVersion()).isNull();
+  }
+
+  private static Path getLinuxInstallationDir(IdeTestContext context) {
+
+    return context.getUserHome().resolve(".local").resolve("share").resolve("obsidian");
+  }
+
+  private static Path getMacAppBundle(IdeTestContext context) {
+
+    return context.getUserHome().resolve("Applications").resolve("Obsidian.app");
   }
 }
