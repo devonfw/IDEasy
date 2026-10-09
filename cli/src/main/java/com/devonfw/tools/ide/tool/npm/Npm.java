@@ -17,11 +17,13 @@ import com.devonfw.tools.ide.tool.ToolInstallation;
 /**
  * {@link AbstractLocalToolCommandlet} for <a href="https://www.npmjs.org/">npm</a>.
  * <p>
- * npm is installed as a pristine, versioned installation in the software repository (same model as the other tools) and is
- * linked into each project's {@code software} folder. Global npm packages are installed into a per-project directory
- * (see {@link #NPM_GLOBAL_FOLDER}) so that projects do not interfere with each other (see <a href=
- * "https://github.com/devonfw/IDEasy/issues/352">issue #352</a> and <a href=
- * "https://github.com/devonfw/IDEasy/issues/2381">issue #2381</a>).
+ * npm is installed as a pristine, versioned installation in the software repository (same model as the other tools) and is linked into each project's
+ * {@code software} folder. Global npm packages are installed into a per-project directory (see {@link #NPM_GLOBAL_FOLDER}) so that projects do not interfere
+ * with each other (see <a href= "https://github.com/devonfw/IDEasy/issues/352">issue #352</a> and <a href=
+ * "https://github.com/devonfw/IDEasy/issues/2381">issue #2381</a>). The prefix lives inside the {@code software} folder as a regular sub-folder, so the
+ * executables of the globally installed packages are also picked up by the generic {@code software} PATH scan (the {@code bin} folder on POSIX, the folder
+ * itself on Windows); in addition {@link #setEnvironment} adds that folder to the PATH explicitly so that packages installed within the same IDEasy run are
+ * already resolvable.
  */
 public class Npm extends AbstractLocalToolCommandlet {
 
@@ -41,8 +43,10 @@ public class Npm extends AbstractLocalToolCommandlet {
   /** File name of the {@link #findBuildDescriptor(Path) build descriptor} of an npm project. */
   private static final String PACKAGE_JSON = "package.json";
 
-  /** The folder name for the per-project global npm packages inside {@link IdeContext#getIdeHome() IDE_HOME}. */
-  public static final String NPM_GLOBAL_FOLDER = ".npm-global";
+  /**
+   * The folder name for the per-project global npm packages, located inside the {@link IdeContext#getSoftwarePath() software} folder.
+   */
+  public static final String NPM_GLOBAL_FOLDER = "node_modules";
 
   /**
    * The constructor.
@@ -62,8 +66,8 @@ public class Npm extends AbstractLocalToolCommandlet {
 
   /**
    * Detects an npm project by its {@code package.json} build descriptor so that the {@code build} commandlet (and the
-   * {@link com.devonfw.tools.ide.commandlet.BuildCommandlet BuildCommandlet}) can dispatch it to npm. npm is a standalone tool
-   * (not a child of {@link com.devonfw.tools.ide.tool.node.Node node}) now, so it must declare its build descriptor itself.
+   * {@link com.devonfw.tools.ide.commandlet.BuildCommandlet BuildCommandlet}) can dispatch it to npm. npm is a standalone tool (not a child of
+   * {@link com.devonfw.tools.ide.tool.node.Node node}) now, so it must declare its build descriptor itself.
    *
    * @param directory the {@link Path} to the build directory.
    * @return the {@code package.json} {@link Path} if it exists, or {@code null} otherwise.
@@ -92,32 +96,77 @@ public class Npm extends AbstractLocalToolCommandlet {
     return npmConfigFile;
   }
 
+  /**
+   * @param context the {@link IdeContext}.
+   * @return the {@link Path} to the per-project global npm prefix (see {@link #NPM_GLOBAL_FOLDER}), or {@code null} if not running inside a project.
+   */
+  static Path getGlobalNpmPrefix(IdeContext context) {
+
+    Path softwarePath = context.getSoftwarePath();
+    return softwarePath == null ? null : softwarePath.resolve(NPM_GLOBAL_FOLDER);
+  }
+
   @Override
   public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
 
     super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
     // Global npm packages must not be installed into the shared node installation (issue #352) - they go into a per-project
     // directory instead so that projects do not interfere with each other. Outside of a project we do not pin the prefix so
-    // that the system npm (if the tool is not installed by IDEasy) keeps its own behavior.
-    Path ideHome = this.context.getIdeHome();
-    if (ideHome != null) {
-      Path npmGlobalPath = ideHome.resolve(NPM_GLOBAL_FOLDER);
-      environmentContext.withEnvVar("npm_config_prefix", npmGlobalPath.toString());
-      environmentContext.withPathEntry(npmGlobalPath.resolve(IdeContext.FOLDER_BIN));
+    // that the system npm (if the tool is not installed by IDEasy) keeps its own behavior. The folder is not created here on purpose:
+    // npm creates it when the first global package is installed and IDEasy removes it again via cleanupGlobalPackagesFolder()
+    // once the last package has been uninstalled.
+    Path npmGlobalPath = getGlobalNpmPrefix(this.context);
+    if (npmGlobalPath == null) {
+      return;
+    }
+    environmentContext.withEnvVar("npm_config_prefix", npmGlobalPath.toString());
+
+    // npm places the global shims in the prefix root on Windows but in <prefix>/bin on POSIX, so the PATH entry must
+    // differ per platform - otherwise the globally installed packages (e.g. task, cdk) are not resolvable.
+    Path npmGlobalBin = this.context.getSystemInfo().isWindows() ? npmGlobalPath : npmGlobalPath.resolve(IdeContext.FOLDER_BIN);
+    environmentContext.withPathEntry(npmGlobalBin);
+  }
+
+  /**
+   * Removes the per-project global npm packages folder (see {@link #NPM_GLOBAL_FOLDER}) if no global package is installed there anymore.
+   * <p>
+   * {@code npm uninstall -g} removes the package but leaves an empty folder behind (and possibly a {@code .package-lock.json}), so the prefix folder would
+   * otherwise linger in the {@code software} folder after the last global package of a project is uninstalled. A global package is considered installed if a
+   * {@code package.json} remains anywhere in the prefix - every installed package has one. This is independent of npm's platform-specific package layout
+   * (Windows: {@code node_modules}, POSIX: {@code lib/node_modules}), so the whole prefix is searched. No-op if the prefix does not exist or other packages are
+   * still installed.
+   */
+  public void cleanupGlobalPackagesFolder() {
+
+    Path npmGlobalPath = getGlobalNpmPrefix(this.context);
+    if (npmGlobalPath == null || !Files.isDirectory(npmGlobalPath)) {
+      return;
+    }
+    boolean noPackageInstalled = this.context.getFileAccess().findFirst(npmGlobalPath, this::isPackageJson, true) == null;
+    if (noPackageInstalled) {
+      this.context.getFileAccess().delete(npmGlobalPath);
+      LOG.info("Removed the now empty global npm packages folder {}.", npmGlobalPath);
     }
   }
 
   /**
-   * Repairs the npm launcher shims ({@code npm}/{@code npx}) so that they resolve to this pristine installation instead of the npm that is bundled with
-   * node.
+   * @param path the {@link Path} to check.
+   * @return {@code true} if the given path is a {@code package.json} file, i.e. the marker of an installed npm package.
+   */
+  private boolean isPackageJson(Path path) {
+
+    return Files.isRegularFile(path) && path.getFileName().toString().equals(PACKAGE_JSON);
+  }
+
+  /**
+   * Repairs the npm launcher shims ({@code npm}/{@code npx}) so that they resolve to this pristine installation instead of the npm that is bundled with node.
    * <p>
-   * The npm registry tarball extracts a flat layout ({@code bin/npm-cli.js}) but ships the launcher shims in the layout npm uses when it is bundled inside
-   * a node distribution: {@code bin/npm.cmd}, {@code bin/npx.cmd}, {@code bin/npm.ps1}, {@code bin/npx.ps1}, {@code bin/npm} and {@code bin/npx} all point
-   * at a non-existent {@code node_modules/npm/bin/npm-cli.js} (or a sibling {@code node.exe}). Consequently, on Windows the {@code npm}/{@code npx} shims
-   * fail with {@code MODULE_NOT_FOUND}, and on Linux they silently run the npm that is bundled with the node distribution rather than this pristine npm.
-   * Since the npm bin folder is first on the PATH (see
-   * {@link com.devonfw.tools.ide.common.SystemPath#getToolPathsInResolutionOrder()}), the broken shims would otherwise shadow the correct tool for every
-   * invocation of {@code npm}/{@code npx}.
+   * The npm registry tarball extracts a flat layout ({@code bin/npm-cli.js}) but ships the launcher shims in the layout npm uses when it is bundled inside a
+   * node distribution: {@code bin/npm.cmd}, {@code bin/npx.cmd}, {@code bin/npm.ps1}, {@code bin/npx.ps1}, {@code bin/npm} and {@code bin/npx} all point at a
+   * non-existent {@code node_modules/npm/bin/npm-cli.js} (or a sibling {@code node.exe}). Consequently, on Windows the {@code npm}/{@code npx} shims fail with
+   * {@code MODULE_NOT_FOUND}, and on Linux they silently run the npm that is bundled with the node distribution rather than this pristine npm. Since the npm
+   * bin folder is first on the PATH (see {@link com.devonfw.tools.ide.common.SystemPath#getToolPathsInResolutionOrder()}), the broken shims would otherwise
+   * shadow the correct tool for every invocation of {@code npm}/{@code npx}.
    * <p>
    * This hook rewrites the shims to launch this installation's own CLI entry points ({@code bin/npm-cli.js}/{@code bin/npx-cli.js}) with the {@code node}
    * runtime that is already on the PATH. This is a no-op for installations that do not contain a flat {@code bin/npm-cli.js} (e.g. a node-bundled npm or the
@@ -194,8 +243,8 @@ public class Npm extends AbstractLocalToolCommandlet {
    */
   private static String posixShim(String cliJs) {
 
-    return "#!/usr/bin/env bash\r\n" //
-        + "basedir=\"$(dirname \"$0\")\"\r\n" //
-        + "exec node \"$basedir/" + cliJs + "\" \"$@\"\r\n";
+    return "#!/usr/bin/env bash\n" //
+        + "basedir=\"$(dirname \"$0\")\"\n" //
+        + "exec node \"$basedir/" + cliJs + "\" \"$@\"\n";
   }
 }
