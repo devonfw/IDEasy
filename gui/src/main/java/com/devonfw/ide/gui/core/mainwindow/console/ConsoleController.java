@@ -29,7 +29,7 @@ public class ConsoleController {
 
   /**
    * Thread-safe buffer collecting messages that arrive while a batched UI update is already pending. Keeps the FX thread from being overwhelmed by individual
-   * {@link javafx.application.Platform#runLater()} submissions.
+   *  submissions.
    */
   private final Deque<IdeLogEntry> outputBuffer = new ArrayDeque<>();
 
@@ -218,15 +218,15 @@ public class ConsoleController {
    */
   private static class LogEntryCell extends ListCell<IdeLogEntry> {
 
-    private static final String BASE_STYLE = "-fx-font-family: 'Consolas', monospace; -fx-font-size: 11;";
-    private static final String ERROR_STYLE = BASE_STYLE + " -fx-text-fill: #cc0000;";
-    private static final String WARNING_STYLE = BASE_STYLE + " -fx-text-fill: #cc8800;";
-    private static final String INFO_STYLE = BASE_STYLE + " -fx-text-fill: #000000;";
-    private static final String DEBUG_STYLE = BASE_STYLE + " -fx-text-fill: #666666;";
-    private static final String TRACE_STYLE = BASE_STYLE + " -fx-text-fill: #888888;";
-    private static final String PLAIN_STYLE = BASE_STYLE + " -fx-text-fill: #333333;";
-    private static final String ERROR_BG = "-fx-background-color: #fff0f0;";
-    private static final String WARNING_BG = "-fx-background-color: #fff8e0;";
+    private static final String BASE_STYLE = "base-style";
+    private static final String ERROR_STYLE = BASE_STYLE + "error-style";
+    private static final String WARNING_STYLE = BASE_STYLE + " warning-style";
+    private static final String INFO_STYLE = BASE_STYLE + " base-style";
+    private static final String DEBUG_STYLE = BASE_STYLE + " debug-style";
+    private static final String TRACE_STYLE = BASE_STYLE + " trace-style";
+    private static final String PLAIN_STYLE = BASE_STYLE + " plain-style";
+    private static final String ERROR_BG = "error-bg";
+    private static final String WARNING_BG = "warning-bg";
 
     @Override
     protected void updateItem(IdeLogEntry entry, boolean empty) {
