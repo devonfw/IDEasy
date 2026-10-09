@@ -85,17 +85,10 @@ class PropertiesMergerTest extends AbstractIdeContextTest {
 
     FileAccess fileAccess = context.getFileAccess();
     Path workspaceMain = workspaceDir.resolve("main.prefs");
-    Path updateMain= workspaceDir.resolve("main.prefs");
-    Properties workspaceProperties= fileAccess.readProperties(workspaceMain);
-
-    //act
-    workspaceProperties.setProperty("theme", "dark");
-    workspaceProperties.setProperty("ui", "linux");
-    fileAccess.writeProperties(workspaceProperties, workspaceMain);
 
     //assert
-    Properties result= fileAccess.readProperties(updateMain);
-    assertThat(result).containsEntry("theme", "dark").containsEntry("ui", "linux");
+    Properties result = fileAccess.readProperties(workspaceMain);
+    assertThat(result).containsEntry("theme", "dark").containsEntry("ui", "classic").containsEntry("java.version", "1.11");
   }
 
   @Test
