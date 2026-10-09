@@ -36,18 +36,18 @@ public class UvTest extends AbstractIdeContextTest {
     // act
     uv.setEnvironment(environmentContext, toolInstallation, false);
 
-    // assert
-    assertThat(variables.get("UV_TOOL_DIR").getValue().replace('\\', '/')).endsWith("software/python/tools");
-    assertThat(variables.get("UV_TOOL_BIN_DIR").getValue().replace('\\', '/')).endsWith("software/python/bin");
+    // assert - the uv tool store is per-project (inside IDE_HOME) so that two projects don't collide (see #352)
+    assertThat(variables.get("UV_TOOL_DIR").getValue().replace('\\', '/')).endsWith("/.uv-tools");
+    assertThat(variables.get("UV_TOOL_BIN_DIR").getValue().replace('\\', '/')).endsWith("/.uv-tools/bin");
   }
 
   @Test
-  public void testSetEnvironmentWithNullSoftwarePath() {
+  public void testSetEnvironmentWithNullIdeHome() {
 
-    // arrange — force getSoftwarePath() to return null to reproduce the condition of #2312
+    // arrange — force getIdeHome() to return null (global mode, no project)
     IdeTestContext context = new IdeTestContext() {
       @Override
-      public Path getSoftwarePath() {
+      public Path getIdeHome() {
         return null;
       }
     };
@@ -58,10 +58,10 @@ public class UvTest extends AbstractIdeContextTest {
     EnvironmentVariableCollectorContext environmentContext = new EnvironmentVariableCollectorContext(variables,
         new VariableSource(EnvironmentVariablesType.WORKSPACE, null), WindowsPathSyntax.MSYS);
 
-    // act — must not throw a NullPointerException when the software path is null
+    // act — must not throw a NullPointerException when there is no project
     assertThatCode(() -> uv.setEnvironment(environmentContext, toolInstallation, false)).doesNotThrowAnyException();
 
-    // assert — the uv tool directories are not registered when the software path is null
+    // assert — the per-project uv tool directories are not registered when there is no project
     assertThat(variables).doesNotContainKey("UV_TOOL_DIR");
     assertThat(variables).doesNotContainKey("UV_TOOL_BIN_DIR");
   }

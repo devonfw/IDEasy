@@ -35,8 +35,14 @@ public class Python extends AbstractLocalToolCommandlet {
 
   private static final VersionIdentifier PYTHON_MIN_VERSION = VersionIdentifier.of("3.8.2");
 
-  /** The folder created by {@code uv venv} inside the software folder before it is renamed to the python installation. */
+  /** The per-project folder (inside {@code IDE_HOME}) that holds the {@code uv} tool store (e.g. {@code ruff}). */
+  static final String UV_TOOLS_FOLDER = ".uv-tools";
+
+  /** The per-project folder (inside {@code IDE_HOME}) that holds the virtual environment for the project's python packages. */
   static final String VENV_FOLDER = ".venv";
+
+  /** The tool primed into the per-project {@code uv} tool store on installation so that it is available immediately. */
+  private static final String RUFF_TOOL = "ruff";
 
   private static final String FILE_PYVENV_CFG = "pyvenv.cfg";
 
@@ -60,36 +66,121 @@ public class Python extends AbstractLocalToolCommandlet {
       throw new CliException("Python version must be at least " + this.PYTHON_MIN_VERSION);
     }
 
+    // Python is installed as a pristine, versioned interpreter into the shared software repository (see getInstallationPath). uv lays the interpreter out in a
+    // nested "cpython-«version»-«platform»" folder plus management files, so we install into a scratch directory and move the interpreter folder into place.
     FileAccess fileAccess = this.context.getFileAccess();
     if (Files.exists(installationPath)) {
       fileAccess.backup(installationPath);
     }
-    Path softwarePath = installationPath.getParent();
-    Path venvPath = softwarePath.resolve(VENV_FOLDER);
 
-    fileAccess.delete(venvPath);
+    Path scratchDir = fileAccess.createTempDir("python-install");
+    try {
+      Uv uv = this.context.getCommandletManager().getCommandlet(Uv.class);
+      uv.installInterpreter(scratchDir, resolvedVersion, request.getProcessContext());
 
-    Uv uv = this.context.getCommandletManager().getCommandlet(Uv.class);
+      Path interpreterDir = findInterpreterDir(scratchDir, resolvedVersion);
+      fileAccess.mkdirs(installationPath.getParent());
+      fileAccess.move(interpreterDir, installationPath, StandardCopyOption.REPLACE_EXISTING);
+      this.context.writeVersionFile(resolvedVersion, installationPath);
+      createWindowsSymlinkBinFolder(fileAccess, installationPath);
+      LOG.debug("Installed pristine {} in version {} at {}", this.tool, resolvedVersion, installationPath);
+    } finally {
+      fileAccess.delete(scratchDir);
+    }
+  }
 
-    uv.installPython(softwarePath, resolvedVersion, request.getProcessContext());
-    renameVenvFolderToPython(fileAccess, softwarePath, installationPath);
-    this.context.writeVersionFile(resolvedVersion, installationPath);
-    createWindowsSymlinkBinFolder(fileAccess, installationPath);
-    LOG.debug("Installed {} in version {} at {}", this.tool, resolvedVersion, installationPath);
+  /**
+   * Locates the {@code cpython-«version»} interpreter folder created by {@code uv python install} inside the given scratch directory.
+   *
+   * @param scratchDir the directory passed to {@code uv python install --install-dir}
+   * @param version the {@link VersionIdentifier} that was installed
+   * @return the {@link Path} of the interpreter folder.
+   */
+  private Path findInterpreterDir(Path scratchDir, VersionIdentifier version) {
+
+    Path result = this.context.getFileAccess().findFirst(scratchDir, p -> {
+      String name = p.getFileName().toString();
+      return name.startsWith("cpython-" + version) && !name.equals(version.toString());
+    }, false);
+    if (result == null) {
+      throw new CliException("Could not find the python interpreter installed by uv in " + scratchDir);
+    }
+    return result;
+  }
+
+  /**
+   * Places the pristine interpreter in the shared software repository under the {@link ToolRepository#ID_DEFAULT default} namespace
+   * ({@code $IDE_ROOT/software/default/python/python/«version»}) - the same layout the default repository produces for other pristine, versioned tools (e.g.
+   * node). Version resolution itself still uses {@link PythonRepository} (see {@link #getToolRepository()}), which is only consulted to list available
+   * versions via {@code uv}; it is not a download source, so the pristine interpreter must not be stored under its {@link PythonRepository#ID ID}.
+   *
+   * @param edition the {@link #getConfiguredEdition() tool edition}.
+   * @param resolvedVersion the resolved {@link VersionIdentifier version}.
+   * @return the {@link Path} where the pristine interpreter is (to be) installed.
+   */
+  @Override
+  protected Path getInstallationPath(String edition, VersionIdentifier resolvedVersion) {
+
+    Path softwareRepositoryPath = this.context.getSoftwareRepositoryPath();
+    if (softwareRepositoryPath == null) {
+      return null;
+    }
+    return softwareRepositoryPath.resolve(ToolRepository.ID_DEFAULT).resolve(this.tool).resolve(edition).resolve(resolvedVersion.toString());
   }
 
   @Override
   public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
 
     super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
-    environmentContext.withEnvVar("VIRTUAL_ENV", toolInstallation.rootDir().toString());
-    environmentContext.withEnvVar("UV_PROJECT_ENVIRONMENT", toolInstallation.rootDir().toString());
+    Path ideHome = this.context.getIdeHome();
+    if (ideHome == null) {
+      // running in global mode (no project) - there is no per-project virtual environment to point to
+      return;
+    }
+    // The python packages of the project (pip / ruff / ...) live in a per-project virtual environment so that two projects on the same python interpreter
+    // don't collide (see #352). The pristine interpreter itself stays shared in the software repository.
+    Path venvPath = ideHome.resolve(VENV_FOLDER);
+    environmentContext.withEnvVar("VIRTUAL_ENV", venvPath.toString());
+    environmentContext.withEnvVar("UV_PROJECT_ENVIRONMENT", venvPath.toString());
+    environmentContext.withPathEntry(venvPath.resolve("bin"));
   }
 
   @Override
-  protected boolean isIgnoreSoftwareRepo() {
+  protected void postInstall(ToolInstallRequest request) {
 
-    return true;
+    super.postInstall(request);
+    setupProjectEnvironment(request);
+  }
+
+  /**
+   * Creates the per-project virtual environment (backed by the pristine interpreter) and primes {@code ruff} into the per-project {@code uv} tool store. Only
+   * done inside a project (a pristine interpreter is shared and must not be modified).
+   *
+   * @param request the {@link ToolInstallRequest}.
+   */
+  private void setupProjectEnvironment(ToolInstallRequest request) {
+
+    Path ideHome = this.context.getIdeHome();
+    if (ideHome == null) {
+      return;
+    }
+    VersionIdentifier resolvedVersion = request.getRequested().getResolvedVersion();
+    Uv uv = this.context.getCommandletManager().getCommandlet(Uv.class);
+    Path uvToolDir = ideHome.resolve(UV_TOOLS_FOLDER);
+
+    // create the per-project virtual environment backed by the pristine interpreter
+    Path venvPath = ideHome.resolve(VENV_FOLDER);
+    Path interpreterDir = getInstallationPath(getConfiguredEdition(), resolvedVersion);
+    if (interpreterDir != null) {
+      uv.createVirtualEnvironment(venvPath, interpreterDir, request.getProcessContext());
+      // uv lays the executables out in a "Scripts" folder on Windows - expose them as "bin" so the PATH entry set in setEnvironment resolves on all platforms
+      createWindowsSymlinkBinFolder(this.context.getFileAccess(), venvPath);
+    }
+
+    // prime ruff into the per-project uv tool store (best effort - a failure must not fail the python installation)
+    ProcessContext processContext = request.getProcessContext().withEnvVar("UV_TOOL_DIR", uvToolDir.toString())
+        .withEnvVar("UV_TOOL_BIN_DIR", uvToolDir.resolve("bin").toString());
+    uv.installTool(RUFF_TOOL, processContext);
   }
 
   @Override
@@ -114,7 +205,7 @@ public class Python extends AbstractLocalToolCommandlet {
   }
 
   /**
-   * @param installationPath the {@link Path} to the virtual environment.
+   * @param installationPath the {@link Path} to the Python installation.
    * @return the {@link VersionIdentifier} from the {@code version_info} entry of {@code pyvenv.cfg} or {@code null} if not available or not precise enough.
    */
   private VersionIdentifier readVersionFromPyvenvCfg(Path installationPath) {
@@ -139,7 +230,7 @@ public class Python extends AbstractLocalToolCommandlet {
   }
 
   /**
-   * @param installationPath the {@link Path} to the virtual environment.
+   * @param installationPath the {@link Path} to the Python installation.
    * @return the {@link VersionIdentifier} reported by the installed python interpreter or {@code null} if it could not be determined.
    */
   private VersionIdentifier readVersionFromInterpreter(Path installationPath) {
@@ -175,11 +266,12 @@ public class Python extends AbstractLocalToolCommandlet {
   }
 
   /**
-   * Creates a symlink from the "Scripts" folder to the "bin" folder on Windows systems. This is necessary for compatibility with tools that expect a "bin"
-   * directory.
+   * On Windows systems {@code uv} lays out a Python installation (a pristine interpreter or a virtual environment) with its executables in a {@code Scripts}
+   * folder. This creates a symlink from that {@code Scripts} folder to a {@code bin} folder so that the {@code bin} path used to resolve the executable (see
+   * {@link #setEnvironment}) exists on all platforms. Does nothing on non-Windows systems, where {@code uv} already uses a {@code bin} folder.
    *
    * @param fileAccess the {@link FileAccess} utility for file operations.
-   * @param installationPath the path where Python is installed.
+   * @param installationPath the root of the Python installation or virtual environment.
    */
   private void createWindowsSymlinkBinFolder(FileAccess fileAccess, Path installationPath) {
 
@@ -189,19 +281,6 @@ public class Python extends AbstractLocalToolCommandlet {
     Path scriptsPath = installationPath.resolve("Scripts");
     Path binPath = installationPath.resolve("bin");
     fileAccess.symlink(scriptsPath, binPath);
-  }
-
-  /**
-   * Renames the ".venv" folder into the installation path (Python).
-   *
-   * @param fileAccess the {@link FileAccess} utility for file operations.
-   * @param softwarePath the path where the software is installed.
-   * @param installationPath the target path where the ".venv" folder should be moved.
-   */
-  private void renameVenvFolderToPython(FileAccess fileAccess, Path softwarePath, Path installationPath) {
-
-    Path venvPath = softwarePath.resolve(VENV_FOLDER);
-    fileAccess.move(venvPath, installationPath, StandardCopyOption.REPLACE_EXISTING);
   }
 
 }
