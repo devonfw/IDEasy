@@ -5,6 +5,7 @@ import java.util.function.Predicate;
 
 import com.devonfw.tools.ide.expression.ExpressionContext;
 import com.devonfw.tools.ide.expression.ExpressionFunction;
+import com.devonfw.tools.ide.expression.UnaryExpressionFunction;
 import com.devonfw.tools.ide.os.SystemInfo;
 
 /**
@@ -13,7 +14,7 @@ import com.devonfw.tools.ide.os.SystemInfo;
  * <li>the text to insert if the operating system matches. Otherwise the expression resolves to the empty string.</li>
  * </ol>
  */
-public class IfOsFunction implements ExpressionFunction {
+public class IfOsFunction extends UnaryExpressionFunction {
 
   private final String name;
 
@@ -33,22 +34,10 @@ public class IfOsFunction implements ExpressionFunction {
   }
 
   @Override
-  public int getMinArgs() {
-
-    return 1;
-  }
-
-  @Override
-  public int getMaxArgs() {
-
-    return 1;
-  }
-
-  @Override
-  public String apply(List<String> args, ExpressionContext context) {
+  protected String apply(String arg, ExpressionContext context) {
 
     if (this.condition.test(context.getIdeContext().getSystemInfo())) {
-      return args.get(0);
+      return arg;
     }
     return "";
   }
