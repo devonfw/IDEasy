@@ -168,6 +168,20 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   }
 
   /**
+   * Refreshes the desktop shortcut when a new IDEasy version is installed (e.g. via {@code ide upgrade}). The shortcut references the icon by an absolute path,
+   * so a new version must regenerate it to point at the current {@code gui/ideasy.png} / {@code gui/ideasy.ico} (see #2567).
+   */
+  @Override
+  protected void postInstallOnNewInstallation(ToolInstallRequest request) {
+
+    super.postInstallOnNewInstallation(request);
+    Path installationPath = this.context.getIdeInstallationPath();
+    if (installationPath != null) {
+      installDesktopShortcut(installationPath);
+    }
+  }
+
+  /**
    * @return the latest released {@link VersionIdentifier version} of IDEasy.
    */
   public VersionIdentifier getLatestVersion() {
@@ -360,7 +374,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       return;
     }
     Path ideasyBin = installationPath.resolve("bin/ideasy");
-    Path logoPath = installationPath.resolve("gui/logo.png");
+    Path logoPath = installationPath.resolve("gui/ideasy.png");
     String content = Files.readString(templateFile)
         .replace("@IDEASY_BIN@", ideasyBin.toString())
         .replace("@IDEASY_ICON@", logoPath.toString());
@@ -407,7 +421,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   private void installWindowsDesktopShortcut(Path installationPath) {
 
     Path ideasyExe = installationPath.resolve("bin\\ideasy.exe");
-    Path icoPath = installationPath.resolve("gui\\logo.ico");
+    Path icoPath = installationPath.resolve("gui\\ideasy.ico");
     // Shell Folders contains the already-expanded Desktop path, including OneDrive-redirected locations
     WindowsHelper helper = WindowsHelper.get(this.context);
     String desktopStr = helper.getRegistryValue(

@@ -199,6 +199,31 @@
             </configuration>
           </execution>
           <execution>
+            <id>copy-ideasy-icons</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/package/gui</outputDirectory>
+              <resources>
+                <resource>
+                  <!--
+                    The app icon (.png for the Linux desktop shortcut) and the Windows .ico are each stored once
+                    in the documentation and copied into the package here at build time (#2567). Kept unfiltered
+                    as these are binary files. No longer committed to src/main/package/gui.
+                  -->
+                  <directory>../documentation/images</directory>
+                  <filtering>false</filtering>
+                  <includes>
+                    <include>ideasy.png</include>
+                    <include>ideasy.ico</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+          <execution>
             <id>copy-test-resources</id>
             <phase>process-test-resources</phase>
             <goals>
