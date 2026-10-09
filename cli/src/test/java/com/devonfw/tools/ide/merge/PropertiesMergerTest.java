@@ -162,7 +162,8 @@ class PropertiesMergerTest extends AbstractIdeContextTest {
     Path workspaceMain = workspaceDir.resolve("missing.prefs");
     Path updateMain= workspaceDir.resolve("update.prefs");
     Files.createFile(updateMain);
-    assertThatCode(()->propertiesMerger.inverseMerge(workspaceMain, context.getVariables(), false, updateMain));
+    assertThatCode(() -> propertiesMerger.inverseMerge(workspaceMain, context.getVariables(), false, updateMain)).doesNotThrowAnyException();
+    assertThat(updateMain).isEmptyFile();
   }
   @Test
   void missingFilesTest(@TempDir Path workspaceDir)throws Exception{
