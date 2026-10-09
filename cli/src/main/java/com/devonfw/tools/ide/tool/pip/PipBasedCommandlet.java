@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
@@ -108,8 +109,10 @@ public abstract class PipBasedCommandlet extends PackageManagerBasedLocalToolCom
         return null;
       }
     }
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.NONE);
+    this.context.setEnvironmentOfInstalledTools(pc);
     PackageManagerRequest request = new PackageManagerRequest("show", getPackageName()).setProcessMode(ProcessMode.DEFAULT_CAPTURE)
-        .setProcessContext(this.context.newProcess().errorHandling(ProcessErrorHandling.NONE));
+        .setProcessContext(pc);
     ProcessResult processResult = runPackageManager(request, true);
     if (processResult.isSuccessful()) {
       for (String line : processResult.getOut()) {
