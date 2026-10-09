@@ -102,6 +102,16 @@ public class Vscode extends AbstractIdeToolCommandlet {
     return getIdeMetadataPath().resolve("config");
   }
 
+  /**
+   * @return the {@link Path} to the VSCode shared-data folder passed via {@code --shared-data-dir}. It must have the same scope as the
+   *     {@link #getUserDataPath() user-data folder}: VSCode stores the GitHub login there but encrypts it with a key of the user-data folder, so any other
+   *     user-data folder using the same shared-data folder deletes the login (see #2581).
+   */
+  private Path getSharedDataPath() {
+
+    return getIdeMetadataPath().resolve("shared-data");
+  }
+
   @Override
   public void configureWorkspace() {
 
@@ -152,6 +162,7 @@ public class Vscode extends AbstractIdeToolCommandlet {
       pc.addArg("--profile=" + getProfileName());
     } else {
       pc.addArg("--user-data-dir=" + getUserDataPath());
+      pc.addArg("--shared-data-dir=" + getSharedDataPath());
     }
     Path vsCodeExtensionFolder = this.context.getIdeHome().resolve("plugins/vscode");
     pc.addArg("--extensions-dir=" + vsCodeExtensionFolder);
