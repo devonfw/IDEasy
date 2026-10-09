@@ -15,6 +15,7 @@ import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.git.GitContextMock;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.variable.IdeVariables;
@@ -67,6 +68,30 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
     assertThat(javaClient).exists();
     assertThat(javaProcessEngine).exists();
     assertThat(mvnM4).exists();
+  }
+
+  /**
+   * The project has <code>IDE_TOOLS=java, mvn</code> and <code>mvn</code> depends on <code>java</code>, so <code>java</code> is both a top-level tool and a
+   * dependency (of both the regular and the extra <code>mvn</code>). Before <a href="https://github.com/devonfw/IDEasy/issues/945">#945</a> the CVE check for
+   * <code>java</code> ran once per reference, i.e. several times. Now it must run only once per unique tool/version per process.
+   */
+  @Test
+  void testRunPullSettingsDoesNotRunCveCheckTwiceForSharedDependency() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_UPDATE);
+    UpdateCommandlet uc = context.getCommandletManager().getCommandlet(UpdateCommandlet.class);
+
+    // act
+    uc.run();
+
+    // assert
+    assertThat(context).logAtSuccess().hasMessageContaining(SUCCESS_INSTALL_OR_UPDATE_SOFTWARE);
+    long cveCheckCount = context.getTestStartContext().getEntries().stream()
+        .filter(e -> e.level() == IdeLogLevel.SUCCESS)
+        .filter(e -> e.message().contains("No CVEs found for version 17.0.6 of tool java"))
+        .count();
+    assertThat(cveCheckCount).as("CVE check for shared dependency 'java' must run exactly once per process").isEqualTo(1);
   }
 
   @ParameterizedTest

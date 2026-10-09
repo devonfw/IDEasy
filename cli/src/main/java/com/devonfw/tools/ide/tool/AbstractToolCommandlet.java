@@ -339,6 +339,20 @@ public abstract class AbstractToolCommandlet extends AbstractCommandlet implemen
   }
 
   /**
+   * Performs the installation of the {@link #getName() tool} managed by this {@link AbstractToolCommandlet} while recording the result in the given
+   * {@link ToolInstallTracker} so that a redundant (re)install of the same tool+version within the same process can be skipped.
+   *
+   * @param tracker the {@link ToolInstallTracker} of the current process.
+   * @return the {@link ToolInstallation}.
+   */
+  public ToolInstallation install(ToolInstallTracker tracker) {
+
+    ToolInstallRequest request = new ToolInstallRequest(false);
+    request.setTracker(tracker);
+    return install(request);
+  }
+
+  /**
    * Performs the installation (install, update, downgrade) of the {@link #getName() tool} managed by this {@link AbstractToolCommandlet}.
    *
    * @param request the {@link ToolInstallRequest}.
@@ -350,6 +364,14 @@ public abstract class AbstractToolCommandlet extends AbstractCommandlet implemen
     if (request.isInstallLoop()) {
       return toolAlreadyInstalled(request);
     }
+    ToolInstallTracker tracker = request.getTracker();
+    // Skip a standard project tool that has already been installed (including its CVE check) earlier in this process, e.g. because it was already handled
+    // as a dependency of another tool. Additional and extra installations are never skipped since they must be installed at their specific location/version.
+    if ((tracker != null) && !request.isAdditionalInstallation() && !request.isExtraInstallation()
+        && tracker.isInstalled(request.getRequested())) {
+      LOG.debug("Skipping installation of {} (already installed during this process).", request.getRequested());
+      return createExistingToolInstallation(request);
+    }
     ToolInstallation installation = doInstall(request);
     if (installation != null && installation.installedAsynchronously()) {
       LOG.warn(
@@ -357,8 +379,25 @@ public abstract class AbstractToolCommandlet extends AbstractCommandlet implemen
               + "You need to complete the installation, potentially reboot and rerun your 'ide' command in a new terminal session"
               + " after the installation has completed.",
           request.getRequested());
+    } else if (installation != null) {
+      recordInstallation(request, tracker);
     }
     return installation;
+  }
+
+  /**
+   * Records a successfully installed tool in the process-wide {@link ToolInstallTracker} so that a subsequent (redundant) install request for the same
+   * tool+version can be skipped.
+   *
+   * @param request the {@link ToolInstallRequest} that has just been installed.
+   * @param tracker the {@link ToolInstallTracker} of the current process or {@code null} if not tracking.
+   */
+  private void recordInstallation(ToolInstallRequest request, ToolInstallTracker tracker) {
+
+    if ((tracker == null) || request.isAdditionalInstallation() || request.isExtraInstallation()) {
+      return;
+    }
+    tracker.recordInstalled(request.getRequested());
   }
 
   /**

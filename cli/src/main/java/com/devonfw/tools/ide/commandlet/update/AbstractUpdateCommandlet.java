@@ -36,6 +36,7 @@ import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolEdition;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
+import com.devonfw.tools.ide.tool.ToolInstallTracker;
 import com.devonfw.tools.ide.tool.custom.CustomToolCommandlet;
 import com.devonfw.tools.ide.tool.custom.CustomToolMetadata;
 import com.devonfw.tools.ide.tool.extra.ExtraToolInstallation;
@@ -287,9 +288,13 @@ public abstract class AbstractUpdateCommandlet extends AbstractCommandlet {
       toolCommandlets.add(customToolCommandlet);
     }
 
+    // Track tools installed during this process so a shared dependency (e.g. java required by both mvn and itself) is not installed and CVE-checked
+    // redundantly - see https://github.com/devonfw/IDEasy/issues/945
+    ToolInstallTracker tracker = new ToolInstallTracker();
+
     // update/install the toolCommandlets
     for (AbstractToolCommandlet toolCommandlet : toolCommandlets) {
-      this.context.newStep("Install " + toolCommandlet.getName()).run(() -> toolCommandlet.install(false));
+      this.context.newStep("Install " + toolCommandlet.getName()).run(() -> toolCommandlet.install(tracker));
     }
 
     ExtraTools extraTools = ExtraToolsMapper.get().loadJsonFromFolder(this.context.getSettingsPath());
@@ -298,13 +303,13 @@ public abstract class AbstractUpdateCommandlet extends AbstractCommandlet {
       LOG.info("Found extra installation of the following tools: {}", toolNames);
       for (String tool : toolNames) {
         List<ExtraToolInstallation> installations = extraTools.getExtraInstallations(tool);
-        this.context.newStep("Install extra version(s) of " + tool).run(() -> installExtraToolInstallations(tool, installations));
+        this.context.newStep("Install extra version(s) of " + tool).run(() -> installExtraToolInstallations(tool, installations, tracker));
       }
     }
 
   }
 
-  private void installExtraToolInstallations(String tool, List<ExtraToolInstallation> extraInstallations) {
+  private void installExtraToolInstallations(String tool, List<ExtraToolInstallation> extraInstallations, ToolInstallTracker tracker) {
 
     CommandletManager commandletManager = this.context.getCommandletManager();
     FileAccess fileAccess = this.context.getFileAccess();
@@ -322,6 +327,7 @@ public abstract class AbstractUpdateCommandlet extends AbstractCommandlet {
       Path extraToolPath = extraPath.resolve(tool);
       Path toolPath = extraToolPath.resolve(extraInstallation.name());
       request.setToolPathForExtraInstallation(toolPath);
+      request.setTracker(tracker);
       toolCommandlet.install(request);
     }
   }
