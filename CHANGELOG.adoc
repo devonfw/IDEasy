@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/2512[#2512]: Add commandlet for Pandoc
 * https://github.com/devonfw/IDEasy/issues/2546[#2546]: Include repository into git warning/errors
 * https://github.com/devonfw/IDEasy/issues/2293[#2293]: Rework spyder to have same features as IdeToolCommandlets
 * https://github.com/devonfw/IDEasy/issues/871[#871]: Add progressbar to *.dmg extract process
