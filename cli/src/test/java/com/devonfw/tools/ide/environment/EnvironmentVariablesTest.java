@@ -301,4 +301,32 @@ class EnvironmentVariablesTest extends AbstractIdeContextTest {
     assertThat(context.getSecretLineCount()).isZero();
   }
 
+  /**
+   * Test of {@link EnvironmentVariables#inverseResolve(String, Object)} that variables which resolve to an empty value (e.g.
+   * {@link IdeVariables#HTTP_VERSIONS} when not configured) are skipped instead of being substituted. Replacing an empty
+   * value with a variable expression used to corrupt the value by inserting the expression between every character.
+   */
+  @Test
+  void testInverseResolveSkipsVariablesResolvedToEmptyValue() {
+
+    // arrange
+    IdeTestContext context = newContext(ENVIRONMENT_PROJECT, null, false);
+    EnvironmentVariables variables = context.getVariables();
+
+    // IDE_TOOLS must resolve to a non-empty value, while HTTP_VERSIONS must resolve to the empty string (its
+    // default when not configured) - the input that used to corrupt the result when inverseResolve ran
+    String ideTools = variables.get(IdeVariables.IDE_TOOLS.getName());
+    assertThat(ideTools).isNotEmpty();
+    assertThat(variables.get(IdeVariables.HTTP_VERSIONS.getName())).isEmpty();
+
+    // the editor value is similar to the one of a main.prefs produced by PropertiesMerger.inverseMerge
+    String editor = "notepad --wait " + ideTools;
+
+    // act
+    String inverseResolved = variables.inverseResolve(editor, "test");
+
+    // assert
+    assertThat(inverseResolved).isEqualTo("notepad --wait $[IDE_TOOLS]");
+  }
+
 }
