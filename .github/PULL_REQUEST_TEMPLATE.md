@@ -25,7 +25,7 @@ our [DoD](https://github.com/devonfw/IDEasy/blob/main/documentation/contributing
 - [ ] PR top-level comment summarizes what has been done and contains link to addressed issue(s)
 - [ ] PR and issue(s) have suitable labels
 - [ ] Issue is set to `In Progress` and assigned to you *or* there is no issue (might happen for very small PRs)
-- [ ] You followed all [coding conventions](https://github.com/devonfw/IDEasy/blob/main/documentation/coding-conventions.adoc)
+- [ ] You followed all [coding conventions](https://github.com/devonfw/IDEasy/blob/main/documentation/contributing/coding-conventions.adoc)
 - [ ] You have added the issue implemented by your PR in [CHANGELOG.adoc](https://github.com/devonfw/IDEasy/blob/main/CHANGELOG.adoc) unless issue is labelled
   with `internal`
 - [ ] You have not changed any dependency in `pom.xml` files or otherwise if runtime dependencies changed,
