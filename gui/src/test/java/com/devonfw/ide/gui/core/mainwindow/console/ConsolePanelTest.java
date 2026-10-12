@@ -57,7 +57,7 @@ class ConsolePanelTest extends HeadlessApplicationTest {
 
     // Simulate output to the console
     Platform.runLater(() -> {
-      consoleController.appendOutput(new IdeLogEntry(IdeLogLevel.INFO, "Hello World"));
+      consoleController.appendOutput(new IdeLogEntry(IdeLogLevel.INFO, "Hello World!"));
       consoleController.appendOutput(new IdeLogEntry(IdeLogLevel.INFO, "Test"));
     });
     waitForFxEvents();
@@ -97,7 +97,7 @@ class ConsolePanelTest extends HeadlessApplicationTest {
 
     // Simulate output to the console
     Platform.runLater(() -> {
-      consoleController.appendOutput(new IdeLogEntry(IdeLogLevel.INFO, "Hello World"));
+      consoleController.appendOutput(new IdeLogEntry(IdeLogLevel.INFO, "Hello World!"));
       consoleController.appendOutput(new IdeLogEntry(IdeLogLevel.INFO, "Test"));
     });
     waitForFxEvents();
