@@ -148,7 +148,7 @@ class PropertiesMergerTest extends AbstractIdeContextTest {
     assertThat(result).containsEntry("java.version", "1.99").containsEntry("java.home", "${IDE_HOME}/software/java").doesNotContainKey("theme");
   }
   @Test
-  void nonexistentWorkspace(@TempDir Path workspaceDir)throws Exception{
+  void testInverseMergeWithNonexistentWorkspace(@TempDir Path workspaceDir)throws Exception{
     IdeContext  context = newContext(PROJECT_BASIC, null, false);
     PropertiesMerger propertiesMerger= new PropertiesMerger(context);
     Path workspaceMain = workspaceDir.resolve("missing.prefs");
