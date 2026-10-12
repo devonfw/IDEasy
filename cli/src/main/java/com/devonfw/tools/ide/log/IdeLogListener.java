@@ -14,6 +14,6 @@ public interface IdeLogListener {
    * @param error the optional error.
    * @return {@code true} to accept this log event (default), {@code false} otherwise to reject further processing and suppress the log message.
    */
-  boolean onLog(IdeLogLevel level, String message, String rawMessage, Object[] args, Throwable error);
+  boolean onLog(IdeLogEntry entry);
 
 }

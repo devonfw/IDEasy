@@ -4,7 +4,6 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -18,7 +17,6 @@ import com.devonfw.ide.gui.core.context.GuiStateManager;
 import com.devonfw.ide.gui.core.helper.FxHelper;
 import com.devonfw.ide.gui.core.service.NlsService;
 import com.devonfw.tools.ide.log.IdeLogEntry;
-import com.devonfw.tools.ide.log.IdeLogLevel;
 
 /**
  * Controller that manages an instance of a console using ListView for better performance with large outputs.
@@ -84,16 +82,6 @@ public class ConsoleController {
   }
 
   /**
-   * Prints a simple message to the console.
-   *
-   * @param message message to be printed
-   */
-  public void appendOutput(String message) {
-
-    appendOutput(new IdeLogEntry(IdeLogLevel.INFO, message));
-  }
-
-  /**
    * Prints a log entry to the console.
    *
    * @param entry the log entry to append
@@ -107,17 +95,6 @@ public class ConsoleController {
         FxHelper.runFxSafe(this::flushBuffer);
       }
     }
-  }
-
-  /**
-   * Prints a message with a log level to the console.
-   *
-   * @param level the log level
-   * @param message the message
-   */
-  public void appendOutput(IdeLogLevel level, String message) {
-
-    appendOutput(new IdeLogEntry(level, message));
   }
 
   /**

@@ -3,6 +3,7 @@ package com.devonfw.ide.gui.core.context;
 import javafx.application.Platform;
 
 import com.devonfw.ide.gui.core.mainwindow.console.ConsoleController;
+import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.OutputListener;
 
@@ -24,7 +25,7 @@ public class GuiOutputListener implements OutputListener {
   public void onOutput(String message, boolean error) {
     if (this.consoleController != null && message != null) {
       String prefix = error ? "[STDERR] " : "";
-      Platform.runLater(() -> this.consoleController.appendOutput(error ? IdeLogLevel.ERROR : IdeLogLevel.INFO, prefix + message));
+      Platform.runLater(() -> this.consoleController.appendOutput(new IdeLogEntry(error ? IdeLogLevel.ERROR : IdeLogLevel.INFO, prefix + message)));
     }
   }
 }
