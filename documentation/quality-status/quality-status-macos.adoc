@@ -9,19 +9,24 @@ Automatically generated open issue overview for macOS.
 
 link:quality-status.adoc[Back to overview]
 
-*Total Issues:* 212
+*Total Issues:* 215
 
-* OS-specific: 9
+* OS-specific: 10
 
 * Multi-OS: 3
 
-* Cross-platform: 200
+* Cross-platform: 202
 
 == macOS Specific Issues
 
 [%header, cols="^1,7"]
 |===
 | Issue | Summary
+2+^| *0-10 days*
+
+| link:https://github.com/devonfw/IDEasy/issues/2576[#2576]
+| mvn test fails on macOS: CheckCommandletTest, InstallCommandletTest, CveCheckIn…
+
 2+^| *11-30 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2468[#2468]
