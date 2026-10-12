@@ -101,10 +101,10 @@ public class GitContextMock extends GitContextImpl {
   /**
    * Configures whether the repository should simulate untracked files.
    *
-   * @param hasUntrackedFiles true if untracked files should be simulated, false otherwise
+   * @param simulateUntrackedFiles true if untracked files should be simulated, false otherwise
    */
-  public void setSimulateUntrackedFiles(boolean hasUntrackedFiles) {
-    this.simulateUntrackedFiles = hasUntrackedFiles;
+  public void setSimulateUntrackedFiles(boolean simulateUntrackedFiles) {
+    this.simulateUntrackedFiles = simulateUntrackedFiles;
   }
 
   @Override

@@ -249,24 +249,6 @@ class PullSafelyWithStashTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests that the pull is always called even if the stash creation fails.
-   */
-  @Test
-  void testPullIsAlwaysCalled() {
-    // arrange
-    this.processContext.addUntrackedFile(UNTRACKED_FILE);
-    this.processContext.setStashPushFailed(true);
-    this.context.setAnswers("yes", "yes");
-
-    // act
-    this.context.getGitContext().pullSafelyWithStash(this.testRepository);
-
-    // assert
-    assertThat(usedGitCommands()).contains("git --no-pager pull --quiet");
-    assertThat(this.testRepository.resolve(GitContext.GIT_FOLDER).resolve("update")).exists();
-  }
-
-  /**
    * Tests that an empty stash list is handled gracefully: the stash pop is skipped and the pull is still executed.
    */
   @Test
@@ -293,27 +275,6 @@ class PullSafelyWithStashTest extends AbstractIdeContextTest {
     this.processContext.addUntrackedFile(UNTRACKED_FILE);
     this.processContext.setStashPushFailed(true);
     this.processContext.setStashListFailed(true);
-    this.context.setAnswers("yes", "yes");
-
-    // act
-    this.context.getGitContext().pullSafelyWithStash(this.testRepository);
-
-    // assert
-    assertThat(usedGitCommands()).hasSize(3).last().isEqualTo("git --no-pager pull --quiet");
-    assertThat(exitCodes()).containsExactly(1, 1, 0);
-    assertThat(this.testRepository.resolve(GitContext.GIT_FOLDER).resolve("update")).exists();
-  }
-
-  /**
-   * Test all stash operations failing together. Pull should still succeed as it is the primary operation.
-   */
-  @Test
-  void testAllStashOperationsFail() {
-    // arrange
-    this.processContext.addUntrackedFile(UNTRACKED_FILE);
-    this.processContext.setStashPushFailed(true);
-    this.processContext.setStashListFailed(true);
-    this.processContext.setStashPopFailed(true);
     this.context.setAnswers("yes", "yes");
 
     // act

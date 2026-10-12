@@ -16,8 +16,6 @@ import com.devonfw.tools.ide.io.FileCopyMode;
  */
 public class FixtureGitContextMock extends GitContextMock {
 
-  private static final String COMMIT_ID = "commit-id";
-
   /** The on-disk repository to copy into the cloned repository. */
   private final Path fixtureSource;
 
@@ -42,7 +40,6 @@ public class FixtureGitContextMock extends GitContextMock {
       Files.createDirectory(gitFolder);
       fileAccess.touch(gitFolder.resolve(FILE_FETCH_HEAD));
       fileAccess.writeFileContent(gitUrl.toString(), gitFolder.resolve(FILE_HEAD));
-      fileAccess.writeFileContent("70b100e95a5f6c48ae70e8eea302c48ad4874bd4", gitFolder.resolve(COMMIT_ID));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
