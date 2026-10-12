@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
-
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -20,6 +19,7 @@ import org.junit.jupiter.api.io.TempDir;
 import com.devonfw.ide.gui.HeadlessApplicationTest;
 import com.devonfw.ide.gui.core.context.GuiStateManager;
 import com.devonfw.ide.gui.core.service.NlsService;
+import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 
 class ConsolePanelTest extends HeadlessApplicationTest {
@@ -57,8 +57,8 @@ class ConsolePanelTest extends HeadlessApplicationTest {
 
     // Simulate output to the console
     Platform.runLater(() -> {
-      consoleController.appendOutput("Hello World!");
-      consoleController.appendOutput("Test");
+      consoleController.appendOutput(new IdeLogEntry(IdeLogLevel.INFO, "Hello World"));
+      consoleController.appendOutput(new IdeLogEntry(IdeLogLevel.INFO, "Test"));
     });
     waitForFxEvents();
 
@@ -75,10 +75,10 @@ class ConsolePanelTest extends HeadlessApplicationTest {
   void testConsoleOutputWithLogLevels() {
 
     Platform.runLater(() -> {
-      consoleController.appendOutput(IdeLogLevel.INFO, "Info message");
-      consoleController.appendOutput(IdeLogLevel.ERROR, "Error message");
-      consoleController.appendOutput(IdeLogLevel.WARNING, "Warning message");
-      consoleController.appendOutput(IdeLogLevel.DEBUG, "Debug message");
+      consoleController.appendOutput(new IdeLogEntry(IdeLogLevel.INFO, "Info message"));
+      consoleController.appendOutput(new IdeLogEntry(IdeLogLevel.ERROR, "Error message"));
+      consoleController.appendOutput(new IdeLogEntry(IdeLogLevel.WARNING, "Warning message"));
+      consoleController.appendOutput(new IdeLogEntry(IdeLogLevel.DEBUG, "Debug message"));
     });
     waitForFxEvents();
 
@@ -97,8 +97,8 @@ class ConsolePanelTest extends HeadlessApplicationTest {
 
     // Simulate output to the console
     Platform.runLater(() -> {
-      consoleController.appendOutput("Hello World!");
-      consoleController.appendOutput("Test");
+      consoleController.appendOutput(new IdeLogEntry(IdeLogLevel.INFO, "Hello World"));
+      consoleController.appendOutput(new IdeLogEntry(IdeLogLevel.INFO, "Test"));
     });
     waitForFxEvents();
 
@@ -113,9 +113,9 @@ class ConsolePanelTest extends HeadlessApplicationTest {
   @Test
   void testLineCountUpdates() {
     Platform.runLater(() -> {
-      consoleController.appendOutput("Line 1");
-      consoleController.appendOutput("Line 2");
-      consoleController.appendOutput("Line 3");
+      consoleController.appendOutput(new IdeLogEntry(IdeLogLevel.INFO, "Line 1"));
+      consoleController.appendOutput(new IdeLogEntry(IdeLogLevel.INFO, "Line 2"));
+      consoleController.appendOutput(new IdeLogEntry(IdeLogLevel.INFO, "Line 3"));
     });
     waitForFxEvents();
 

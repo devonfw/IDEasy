@@ -2,7 +2,6 @@ package com.devonfw.ide.gui.core.service;
 
 import java.nio.file.Path;
 import java.util.Objects;
-
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.control.Alert.AlertType;
@@ -18,6 +17,7 @@ import com.devonfw.ide.gui.core.mainwindow.console.ConsoleController;
 import com.devonfw.ide.gui.core.modal.IdeDialog;
 import com.devonfw.ide.gui.core.progress.ProgressBarTask;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
+import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 
 /**
@@ -103,7 +103,7 @@ public class CommandletService {
             LOG.info("Commandlet {} completed successfully.", commandlet);
           } catch (Exception e) {
             LOG.error("Failed to run commandlet {}: {}", commandlet, e.getMessage(), e);
-            consoleController.appendOutput("[ERROR] Failed to launch " + commandlet + ": " + e.getMessage());
+            consoleController.appendOutput(new IdeLogEntry(IdeLogLevel.INFO, "[ERROR] Failed to launch " + commandlet + ": " + e.getMessage()));
           }
           return null;
         }

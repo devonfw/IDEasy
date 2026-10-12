@@ -2,7 +2,7 @@ package com.devonfw.ide.gui.core.context;
 
 
 import com.devonfw.ide.gui.core.mainwindow.console.ConsoleController;
-import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogListenerBuffer;
 
 /// Listener class that listens to internal ideasy output, e.g. output from commandlets that are run.
@@ -18,20 +18,13 @@ public class IdeGuiLogListener extends IdeLogListenerBuffer {
   }
 
   @Override
-  public boolean onLog(IdeLogLevel level, String message, String rawMessage, Object[] args, Throwable error) {
+  public boolean onLog(IdeLogEntry entry) {
 
-    //If we are in buffer mode, pass responsibility to superclass
-    if (this.isBuffering()) {
-      super.onLog(level, message, rawMessage, args, error);
+    boolean accept = super.onLog(entry);
+    if (accept && (this.consoleController != null)) {
+      this.consoleController.appendOutput(entry);
     }
-
-    if (this.consoleController != null && message != null) {
-      this.consoleController.appendOutput(level, message);
-      if (error != null) {
-        this.consoleController.appendOutput(IdeLogLevel.ERROR, "  Error: " + error.getMessage());
-      }
-    }
-    return true; // continue processing (also log to standard output if needed)
+    return accept;
   }
 
 }
