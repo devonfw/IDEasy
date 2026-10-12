@@ -2,7 +2,6 @@ package com.devonfw.ide.gui.core.service;
 
 import java.nio.file.Path;
 import java.util.Objects;
-
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.control.Alert.AlertType;
