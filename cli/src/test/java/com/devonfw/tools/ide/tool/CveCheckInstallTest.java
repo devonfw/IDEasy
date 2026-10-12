@@ -1,13 +1,18 @@
 package com.devonfw.tools.ide.tool;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileCopyMode;
+import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.devonfw.tools.ide.tool.GlobalToolCommandletTest.AsyncInstallerToolCommandlet;
 import com.devonfw.tools.ide.tool.intellij.Intellij;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 
@@ -41,6 +46,9 @@ class CveCheckInstallTest extends AbstractIdeContextTest {
       """;
 
   private final IdeTestContext context = newContext(PROJECT_INTELLIJ);
+
+  CveCheckInstallTest() throws IOException {
+  }
 
 
   /**
@@ -141,4 +149,54 @@ class CveCheckInstallTest extends AbstractIdeContextTest {
         .resolve(IdeTestContext.FILE_SOFTWARE_VERSION)).exists().hasContent("21.0.6_7");
   }
 
+  @TempDir
+  Path tempDir;
+
+  @Test
+  void testCreateStartScriptCreatesScriptInBinDirectory() throws IOException {
+
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+
+    AsyncInstallerToolCommandlet commandlet =
+        new AsyncInstallerToolCommandlet(context);
+
+    Path binDir = Files.createDirectory(tempDir.resolve("bin"));
+
+    commandlet.createStartScript(tempDir, "dockerBinary", false);
+
+    Path script = binDir.resolve("docker");
+
+    assertThat(script).exists();
+
+    String content = Files.readString(script);
+
+    assertThat(content)
+        .isEqualTo("#!/usr/bin/env bash\n\"$(dirname \"$0\")/dockerBinary\" $@");
+
+    assertThat(Files.isExecutable(script)).isTrue();
+  }
+
+  @Test
+  void testCreateStartScriptBackground() throws IOException {
+
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+
+    AsyncInstallerToolCommandlet commandlet =
+        new AsyncInstallerToolCommandlet(context);
+
+    commandlet.createStartScript(tempDir, "dockerBinary", true);
+
+    Path script = tempDir.resolve("docker");
+
+    assertThat(script).exists();
+
+    String content = Files.readString(script);
+
+    assertThat(content)
+        .isEqualTo("#!/usr/bin/env bash\n\"$(dirname \"$0\")/dockerBinary\" $@ &");
+
+    assertThat(Files.isExecutable(script)).isTrue();
+  }
 }
