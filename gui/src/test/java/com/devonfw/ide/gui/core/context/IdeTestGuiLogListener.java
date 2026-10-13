@@ -16,7 +16,7 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 /**
  * Tests for {@link IdeGuiLogListener}.
  */
-public class IdeTestGuiLogListener {
+public class IdeGuiLogListenerTest extends Assertions {
 
   @TempDir
   private Path mockIdeRoot;

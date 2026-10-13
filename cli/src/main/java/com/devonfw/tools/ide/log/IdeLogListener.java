@@ -11,7 +11,7 @@ public interface IdeLogListener {
    * @param message the actual message to be logged.
    * @param rawMessage the raw message logged (without args filled in)
    * @param args the optional message arguments.
-   * @param error the optional error.
+   * @param entry the {@link IdeLogEntry} to log.
    * @return {@code true} to accept this log event (default), {@code false} otherwise to reject further processing and suppress the log message.
    */
   boolean onLog(IdeLogEntry entry);
