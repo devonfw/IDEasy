@@ -31,6 +31,22 @@ class OllamaTest extends AbstractIdeContextTest {
     assertInstalled(context);
   }
 
+  @Test
+  void testOllamaRunInstallsAndPassesArguments(WireMockRuntimeInfo wireMockRuntimeInfo) {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_OLLAMA, wireMockRuntimeInfo);
+    Ollama ollama = new Ollama(context);
+    ollama.arguments.addValue("list");
+
+    // act
+    ollama.run();
+
+    // assert
+    assertInstalled(context);
+    assertThat(context).logAtInfo().hasMessage("ollama list");
+  }
+
   private void assertInstalled(IdeTestContext context) {
 
     assertThat(context.getSoftwarePath().resolve("ollama/.ide.software.version")).exists().hasContent(OLLAMA_VERSION);
