@@ -12,6 +12,10 @@
 //     the same reviewer even if they were unassigned in between.
 //   - In every configured "author-only" column the PR has exactly ONE assignee:
 //     the author (the Team Reviewer field is kept as a record, not cleared).
+//   - In the configured "final review" column the PR has exactly ONE assignee:
+//     the fixed final reviewer (cfg.finalReviewer) — the PO/PL who does the
+//     final reviews. Unlike Team Review, this person is a constant, not read
+//     from a board field (the field is left untouched here, as a record).
 //   - Columns that are neither (e.g. New / Research / Refinement / Done) are
 //     left untouched so the bot never fights the team's other conventions.
 //
@@ -20,6 +24,7 @@
 export const COLUMNS = Object.freeze({
   TEAM_REVIEW: 'team-review',
   AUTHOR_ONLY: 'author-only',
+  FINAL_REVIEW: 'final-review',
   UNMANAGED: 'unmanaged',
   TAKEOVER: 'takeover',
 });
@@ -27,12 +32,16 @@ export const COLUMNS = Object.freeze({
 /**
  * Classify a Status option name against the configuration.
  * @param {string} statusName The Status value of a card (e.g. "Team Review").
- * @param {{ teamReviewColumn: string, authorOnlyColumns: string[] }} cfg
+ * @param {{ teamReviewColumn: string, authorOnlyColumns: string[],
+ *          finalReviewColumn: string, finalReviewer: string }} cfg
  * @returns {typeof COLUMNS[keyof typeof COLUMNS]}
  */
 export function classifyStatus(statusName, cfg) {
   if (statusName === cfg.teamReviewColumn) {
     return COLUMNS.TEAM_REVIEW;
+  }
+  if (statusName === cfg.finalReviewColumn) {
+    return COLUMNS.FINAL_REVIEW;
   }
   if (cfg.authorOnlyColumns.includes(statusName)) {
     return COLUMNS.AUTHOR_ONLY;
@@ -53,12 +62,18 @@ export function classifyStatus(statusName, cfg) {
  *     person exists, they are assigned AND the field is auto-filled so the
  *     review is recorded.
  *
+ * In the "final review" column the PR has exactly ONE assignee: the fixed
+ * final reviewer (cfg.finalReviewer, the PO/PL who does the final reviews).
+ * Unlike Team Review, this person is a constant, not read from a board field —
+ * the field is left untouched here (it is a record of the Team Reviewer).
+ *
  * @param {{ author: string, assignees: string[], statusName: string,
  *           reviewer: string, takeover?: boolean }} pr  `reviewer` is the current
  *           Team Reviewer field value (a login, or '' when unset). `takeover` is
  *           set when the card carries an explicit takeover marker (a configured
  *           PR label), exempting it from reconciliation.
- * @param {{ teamReviewColumn: string, authorOnlyColumns: string[] }} cfg
+ * @param {{ teamReviewColumn: string, authorOnlyColumns: string[],
+ *           finalReviewColumn: string, finalReviewer: string }} cfg
  * @returns {{ kind: string, target: string | null, setField: string | null,
  *             anomaly: string | null }}
  *   `target` is the single desired assignee, or `null` when the card is in an
@@ -96,6 +111,15 @@ export function computeTarget(pr, cfg) {
       return { kind, target: pr.author, setField: null, anomaly };
     }
     return { kind, target: pr.author, setField: null, anomaly: null };
+  }
+
+  if (kind === COLUMNS.FINAL_REVIEW) {
+    // Final review column: the single assignee is the fixed final reviewer
+    // (cfg.finalReviewer, the PO/PL who does the final reviews) — not the
+    // author, and not read from the board's Team Reviewer field. The field is
+    // a record of the Team Review and is left untouched here (setField: null).
+    // This is what hands the card from its author to the final reviewer.
+    return { kind, target: cfg.finalReviewer, setField: null, anomaly: null };
   }
 
   // TEAM_REVIEW: the Team Reviewer field is the source of truth.

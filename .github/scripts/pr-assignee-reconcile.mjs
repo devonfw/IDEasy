@@ -46,7 +46,13 @@
 //   TEAM_REVIEW_COLUMN       Status option that means "under team review"
 //                            (default: "Team Review")
 //   AUTHOR_ONLY_COLUMNS      comma-separated Status options forced to
-//                            "author only" (default: "🏗 In progress,👀 In review")
+//                            "author only" (default: "🏗 In progress")
+//   FINAL_REVIEW_COLUMN      Status option whose PRs are handed to the fixed
+//                            final reviewer instead of the author
+//                            (default: "👀 In review")
+//   FINAL_REVIEWER           the login of the PO/PL who does the final reviews;
+//                            the sole assignee of FINAL_REVIEW_COLUMN PRs
+//                            (default: "hohwille")
 //   TAKEOVER_LABEL           PR label that exempts a PR from reconciliation
 //                            (default: "takeover"). (A board field cannot be
 //                            used here: Projects v2 exposes no checkbox value
@@ -421,16 +427,25 @@ async function main() {
   // Takeover exemption: PRs with the configured label are left alone (see
   // readPrItems / computeTarget).
   const takeoverLabel = process.env.TAKEOVER_LABEL || 'takeover';
-  const authorOnlyColumns = (process.env.AUTHOR_ONLY_COLUMNS || '🏗 In progress,👀 In review')
+  // Columns forced to "author only". The final review column is handled
+  // separately (see FINAL_REVIEW) and is intentionally NOT part of this list.
+  const authorOnlyColumns = (process.env.AUTHOR_ONLY_COLUMNS || '🏗 In progress')
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean);
+  // The "final review" column hands the card to the fixed final reviewer (the
+  // PO/PL who does the final reviews) instead of keeping the author.
+  const finalReviewColumn = process.env.FINAL_REVIEW_COLUMN || '👀 In review';
+  const finalReviewer = process.env.FINAL_REVIEWER || 'hohwille';
   const dryRun = (process.env.DRY_RUN ?? 'true').toLowerCase() !== 'false';
 
-  const cfg = { teamReviewColumn, authorOnlyColumns };
+  const cfg = { teamReviewColumn, authorOnlyColumns, finalReviewColumn, finalReviewer };
 
   console.log(`[reconcile] account=${login} board="${title}" dryRun=${dryRun}`);
-  console.log(`[reconcile] teamReview="${teamReviewColumn}" authorOnly=[${authorOnlyColumns.join(', ')}] reviewerField="${reviewerFieldName}" takeoverLabel="${takeoverLabel}"`);
+  console.log(
+    `[reconcile] teamReview="${teamReviewColumn}" authorOnly=[${authorOnlyColumns.join(', ')}] ` +
+      `finalReview="${finalReviewColumn}" -> ${finalReviewer} reviewerField="${reviewerFieldName}" takeoverLabel="${takeoverLabel}"`,
+  );
 
   const board = await findBoard(login, title);
   console.log(`[reconcile] board id=${board.id}`);

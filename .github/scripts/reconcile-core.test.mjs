@@ -11,7 +11,9 @@ import {
 // The board's real column names (matched against the Status field option names).
 const CFG = {
   teamReviewColumn: 'Team Review',
-  authorOnlyColumns: ['🏗 In progress', '👀 In review'],
+  authorOnlyColumns: ['🏗 In progress'],
+  finalReviewColumn: '👀 In review',
+  finalReviewer: 'hohwille',
 };
 
 // pr helper: `reviewer` is the current "Team Reviewer" field value (a login or '').
@@ -23,7 +25,10 @@ test('classifyStatus: Team Review is the reviewer column', () => {
 
 test('classifyStatus: configured columns are author-only', () => {
   assert.equal(classifyStatus('🏗 In progress', CFG), COLUMNS.AUTHOR_ONLY);
-  assert.equal(classifyStatus('👀 In review', CFG), COLUMNS.AUTHOR_ONLY);
+});
+
+test('classifyStatus: the final review column is classified as FINAL_REVIEW', () => {
+  assert.equal(classifyStatus('👀 In review', CFG), COLUMNS.FINAL_REVIEW);
 });
 
 test('classifyStatus: unconfigured columns are unmanaged (left alone)', () => {
@@ -87,10 +92,28 @@ test('Team Review, field empty + multiple self-assigners -> ambiguous, keep auth
 // --- Author-only / unmanaged: field is ignored for assignment, never clobbered ---
 
 test('Author-only columns -> author sole assignee, reviewer field left alone', () => {
-  const r = computeTarget(pr({ author: 'A', assignees: ['A', 'krystynaShatkovska'], reviewer: 'R', statusName: '👀 In review' }), CFG);
+  const r = computeTarget(pr({ author: 'A', assignees: ['A', 'krystynaShatkovska'], reviewer: 'R', statusName: '🏗 In progress' }), CFG);
   assert.equal(r.kind, COLUMNS.AUTHOR_ONLY);
   assert.equal(r.target, 'A');
   assert.equal(r.setField, null);
+});
+
+// --- Final review: the card is handed to the fixed final reviewer (PO/PL) ---
+
+test('Final review column -> final reviewer is sole assignee (handed from author), field untouched', () => {
+  const r = computeTarget(pr({ author: 'A', assignees: ['A', 'krystynaShatkovska'], reviewer: 'R', statusName: '👀 In review' }), CFG);
+  assert.equal(r.kind, COLUMNS.FINAL_REVIEW);
+  assert.equal(r.target, 'hohwille');
+  assert.equal(r.setField, null);
+});
+
+test('Final review column -> final reviewer assigned even when already the author', () => {
+  // hohwille authored the PR and put it in final review: the card stays with
+  // the single assignee (hohwille), no-op diff.
+  const r = computeTarget(pr({ author: 'hohwille', assignees: ['hohwille'], reviewer: 'R', statusName: '👀 In review' }), CFG);
+  assert.equal(r.target, 'hohwille');
+  assert.equal(r.setField, null);
+  assert.equal(r.anomaly, null);
 });
 
 test('Unmanaged columns -> no target (skip), reviewer field left alone', () => {
