@@ -1,0 +1,79 @@
+= AI Coding Agents
+:toc:
+toc::[]
+
+IDEasy ships a shared setup for AI coding agents such as Claude Code and GitHub Copilot.
+Using it is optional, but if you use an agent, it should work with these files instead of your own copies.
+
+== Files
+
+[cols="1,3"]
+|===
+|File |Purpose
+
+|`AGENTS.md`
+|Single source of truth for agent instructions: project structure, test execution, conventions, commit and PR rules.
+Read natively by GitHub Copilot and imported by `CLAUDE.md` for Claude Code.
+
+|`CLAUDE.md`
+|Imports `AGENTS.md` for Claude Code. Do not add instructions here, add them to `AGENTS.md`.
+
+|`.claude/skills/<name>/SKILL.md`
+|Shared workflows (skills). Read by Claude Code and by GitHub Copilot in VS Code.
+
+|`.claude/settings.json`
+|Shared Claude Code settings: disables the AI attribution in commits and PRs (see `AGENTS.md`) and allows read-only commands without a permission prompt.
+Your personal settings belong in `.claude/settings.local.json`, which is ignored by git.
+|===
+
+== Available skills
+
+Start a skill with `/<name>` in the chat of your agent, followed by its argument.
+Skills without the note "manual only" may also be loaded by the agent on its own when your request matches.
+
+[cols="1,1,3"]
+|===
+|Skill |Argument |Purpose
+
+|`contribute`
+|issue number
+|Work on an issue end to end: assign, verify the premise, implement test first in a worktree, test end to end, finalize the PR.
+
+|`create-pr`
+|issue number
+|Finalize local changes into a feature branch and open a pull request with testing instructions a reviewer can follow.
+
+|`review-pr`
+|PR number
+|Review a PR against its issue and the conventions. Shows the draft and posts the review only after you confirmed it.
+
+|`retest-pr`
+|PR number
+|Retest a merged PR against the nightly SNAPSHOT as described in link:retest.adoc[retest].
+
+|`report-pr-overview`
+|none
+|Read-only overview of all open PRs, ordered by what you need to act on.
+
+|`sync-prs`
+|none
+|Manual only. Update all open PR branches and resolve changelog-only conflicts.
+
+|`takeover-pr`
+|PR number, issue number
+|Manual only. Re-create a coding-agent PR under human authorship to satisfy the CLA.
+|===
+
+== Adding a skill
+
+. Create `.claude/skills/<name>/SKILL.md` with a frontmatter that contains at least `name` and `description`.
+The description says what the skill does and when to use it, because agents decide on that basis whether to load it.
+. Use `argument-hint` to document arguments and `$ARGUMENTS`, `$0`, `$1`, ... to refer to them (0-based).
+. Set `disable-model-invocation: true` for workflows with public side effects, so that only a human can start them.
+. Keep project facts in `AGENTS.md` and refer to them from the skill instead of copying them.
+. Helper files (scripts, templates) can be placed next to `SKILL.md`.
+
+Personal preferences such as language, writing style or local paths do not belong into the shared skills.
+Put them into your personal agent configuration (e.g. `~/.claude/CLAUDE.md` or `~/.claude/skills/`).
+
+For details see the documentation of https://code.claude.com/docs/en/skills[Claude Code skills] and https://code.visualstudio.com/docs/copilot/customization/agent-skills[VS Code agent skills].
