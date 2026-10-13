@@ -1,14 +1,15 @@
 name: Check PR Labels
 
 # Fails (red check) while a pull request has no labels and turns green as soon as at
-# least one label is assigned. It runs on the events that can change a PR's labels so
-# the check re-evaluates immediately when a label is added or removed. No write access:
-# this only reads the PR and reports a failure, so pull_request (not pull_request_target)
+# least one label is assigned. It runs on the events that can change a PR's labels or
+# its head commit (synchronize = author pushed new commits), so the check re-evaluates
+# immediately and is never missing on a freshly pushed commit. No write access: this
+# only reads the PR and reports a failure, so pull_request (not pull_request_target)
 # is the correct trigger.
 
 on:
   pull_request:
-    types: [opened, reopened, labeled, unlabeled]
+    types: [opened, reopened, synchronize, labeled, unlabeled]
 
 permissions:
   pull-requests: read
