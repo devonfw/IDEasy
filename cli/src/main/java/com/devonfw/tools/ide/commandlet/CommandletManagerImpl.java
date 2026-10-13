@@ -34,6 +34,7 @@ import com.devonfw.tools.ide.tool.docker.Docker;
 import com.devonfw.tools.ide.tool.dotnet.DotNet;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
 import com.devonfw.tools.ide.tool.gcloganalyzer.GcLogAnalyzer;
+import com.devonfw.tools.ide.tool.gcloud.Gcloud;
 import com.devonfw.tools.ide.tool.gcviewer.GcViewer;
 import com.devonfw.tools.ide.tool.gh.Gh;
 import com.devonfw.tools.ide.tool.go.Go;
@@ -166,6 +167,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Vscode(context));
     add(new Azure(context));
     add(new Aws(context));
+    add(new Gcloud(context));
     add(new Jmc(context));
     add(new DotNet(context));
     add(new Inso(context));
