@@ -9,13 +9,13 @@ Automatically generated open issue overview for Windows.
 
 link:quality-status.adoc[Back to overview]
 
-*Total Issues:* 215
+*Total Issues:* 216
 
 * OS-specific: 12
 
 * Multi-OS: 1
 
-* Cross-platform: 202
+* Cross-platform: 203
 
 == Windows Specific Issues
 
@@ -75,7 +75,7 @@ link:quality-status.adoc[Back to overview]
 [%header, cols="^1,7"]
 |===
 | Issue | Summary
-2+^| *11-30 days*
+2+^| *31-60 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2464[#2464]
 | Add unit tests for `OperatingSystem`
