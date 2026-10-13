@@ -141,7 +141,7 @@ public class ToolRepositoryMock extends DefaultToolRepository {
   private static String toCompressibleArchiveUrl(String url) {
 
     String extension = FilenameUtil.getExtension(url);
-    if ((extension != null) && (("zip".equals(extension)) || (TarCompression.of(extension) != null))) {
+    if (!"dmg".equals(extension) && !"pkg".equals(extension)) {
       return url;
     }
     String tgzExtension = "." + TarCompression.GZ.getCombinedExtension();
