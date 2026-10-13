@@ -18,7 +18,7 @@ public class MvnArtifact extends SoftwareArtifact {
   public static final String ARTIFACT_ID_IDEASY_CLI = "ide-cli";
 
   /** {@link #getClassifier() Classifier} of source code. */
-  public static final String CLASSIFER_SOURCES = "sources";
+  public static final String CLASSIFIER_SOURCES = "sources";
 
   /** {@link #getType() Type} of JAR file. */
   public static final String TYPE_JAR = "jar";
@@ -28,6 +28,16 @@ public class MvnArtifact extends SoftwareArtifact {
 
   /** {@link #getFilename() Filename} for artifact metadata with version information. */
   public static final String MAVEN_METADATA_XML = "maven-metadata.xml";
+
+  public static final String XML_TAG_VERSIONING = "versioning";
+
+  public static final String XML_TAG_SNAPSHOT_VERSIONS = "snapshotVersions";
+
+  public static final String XML_TAG_SNAPSHOT_VERSION = "snapshotVersion";
+
+  public static final String XML_TAG_CLASSIFIER = "classifier";
+
+  public static final String XML_TAG_EXTENSION = "extension";
 
   private static final Pattern SNAPSHOT_VERSION_PATTERN = Pattern.compile("-\\d{8}\\.\\d{6}-\\d+");
 

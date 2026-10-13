@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
@@ -156,4 +157,176 @@ class EnvironmentVariablesTest extends AbstractIdeContextTest {
     assertThat(AbstractEnvironmentVariables.mergeWithDefault("-Xmx8000m -s invalid/settings.xml", null))
         .isEqualTo("-Xmx8000m -s invalid/settings.xml");
   }
+
+  /**
+   * Test of {@link EnvironmentVariables#resolve(String, Object)} with an {@code @ask-variable} expression for an undefined variable. The user is asked and the
+   * entered value is persisted to {@code conf/ide.properties} so that the question is only asked once.
+   */
+  @Test
+  void testResolveAskVariableExpressionPromptsAndPersists() {
+
+    // arrange
+    String path = "project/workspaces/foo-test/my-git-repo";
+    IdeTestContext context = newContext(ENVIRONMENT_PROJECT, path, true);
+    context.setAnswers("http://llama.local");
+    EnvironmentVariables variables = context.getVariables();
+
+    // act
+    String resolved = variables.resolve("url=@ask-variable('AI_BACKEND_URL')", "test", false);
+
+    // assert
+    assertThat(resolved).isEqualTo("url=http://llama.local");
+    assertThat(context.getVariables().get("AI_BACKEND_URL")).isEqualTo("http://llama.local");
+  }
+
+  /**
+   * Test that an {@code @ask-variable} expression for an already defined variable behaves exactly like a plain variable and does not interact with the user.
+   */
+  @Test
+  void testResolveAskVariableExpressionUsesDefinedVariableWithoutInteraction() {
+
+    // arrange
+    String path = "project/workspaces/foo-test/my-git-repo";
+    IdeTestContext context = newContext(ENVIRONMENT_PROJECT, path, false);
+    EnvironmentVariables variables = context.getVariables();
+
+    // act
+    String askExpression = variables.resolve("@ask-variable('TEST_ARGS4')", "test", false);
+    String plainVariable = variables.resolve("$[TEST_ARGS4]", "test", false);
+
+    // assert
+    assertThat(askExpression).isEqualTo(plainVariable);
+    assertThat(askExpression).endsWith(" settings4");
+  }
+
+  /**
+   * Test of {@link EnvironmentVariables#resolve(String, Object)} with a {@code @path} expression whose argument contains a variable.
+   */
+  @Test
+  void testResolvePathExpressionWithVariableArgument() {
+
+    // arrange
+    String path = "project/workspaces/foo-test/my-git-repo";
+    IdeTestContext context = newContext(ENVIRONMENT_PROJECT, path, false);
+    EnvironmentVariables variables = context.getVariables();
+
+    // act
+    String resolved = variables.resolve("@path('$[IDE_HOME]/software/mvn')", "test", false);
+
+    // assert
+    assertThat(resolved).doesNotContain("\\\\");
+    assertThat(resolved).endsWith("/software/mvn");
+  }
+
+  /**
+   * Test that text which does not call a registered expression function is passed through untouched.
+   */
+  @Test
+  void testResolveLeavesForeignExpressionUntouched() {
+
+    // arrange
+    String path = "project/workspaces/foo-test/my-git-repo";
+    IdeTestContext context = newContext(ENVIRONMENT_PROJECT, path, false);
+    EnvironmentVariables variables = context.getVariables();
+
+    // act
+    String resolved = variables.resolve("@media(max-width:600px){a:1}", "test", false);
+
+    // assert
+    assertThat(resolved).isEqualTo("@media(max-width:600px){a:1}");
+  }
+
+
+  /**
+   * Test that a value entered for {@code @ask-secret} is masked in all log output, in particular in the debug log written when it is persisted.
+   */
+  @Test
+  void testEnteredSecretIsMaskedInLogOutput() {
+
+    // arrange
+    String path = "project/workspaces/foo-test/my-git-repo";
+    IdeTestContext context = newContext(ENVIRONMENT_PROJECT, path, true);
+    context.setAnswers("dummy-secret-value");
+    EnvironmentVariables variables = context.getVariables();
+
+    // act
+    String resolved = variables.resolve("token=@ask-secret('MY_TOKEN')", "test", false);
+
+    // assert
+    assertThat(resolved).isEqualTo("token=dummy-secret-value");
+    assertThat(context).log().hasNoMessageContaining("dummy-secret-value");
+  }
+
+  /**
+   * Test that an already defined secret variable is masked in log output as well, although the user is not asked for it. Since @ask-secret is not persisted,
+   * a stored secret is here defined directly in conf/ide.properties.
+   */
+  @Test
+  void testAlreadyDefinedSecretIsMaskedInLogOutput() {
+
+    // arrange
+    String path = "project/workspaces/foo-test/my-git-repo";
+    // TRACE level so that the "Variable MY_TOKEN=..." log written while reading the variable is captured
+    IdeTestContext context = newContext(ENVIRONMENT_PROJECT, path, true, null, IdeLogLevel.TRACE);
+    EnvironmentVariables variables = context.getVariables();
+    variables.getByType(EnvironmentVariablesType.CONF).set("MY_TOKEN", "dummy-stored-value");
+    context.getTestStartContext().getEntries().clear();
+
+    // act
+    String resolved = variables.resolve("token=@ask-secret('MY_TOKEN')", "test", false);
+
+    // assert
+    assertThat(resolved).isEqualTo("token=dummy-stored-value");
+    assertThat(context.getSecretLineCount()).isZero(); // the user was NOT asked
+    assertThat(context).log().hasNoMessageContaining("dummy-stored-value");
+  }
+
+  /**
+   * Test that a plain variable is still logged normally so that debugging is not impaired.
+   */
+  @Test
+  void testPlainVariableIsNotMasked() {
+
+    // arrange
+    String path = "project/workspaces/foo-test/my-git-repo";
+    IdeTestContext context = newContext(ENVIRONMENT_PROJECT, path, true);
+    context.setAnswers("http://llama.local");
+    EnvironmentVariables variables = context.getVariables();
+
+    // act
+    String resolved = variables.resolve("url=@ask-variable('MY_URL')", "test", false);
+
+    // assert
+    assertThat(resolved).isEqualTo("url=http://llama.local");
+    assertThat(context.getSecretLineCount()).isZero();
+  }
+
+  /**
+   * Test of {@link EnvironmentVariables#inverseResolve(String, Object)} that variables which resolve to an empty value (e.g.
+   * {@link IdeVariables#HTTP_VERSIONS} when not configured) are skipped instead of being substituted. Replacing an empty
+   * value with a variable expression used to corrupt the value by inserting the expression between every character.
+   */
+  @Test
+  void testInverseResolveSkipsVariablesResolvedToEmptyValue() {
+
+    // arrange
+    IdeTestContext context = newContext(ENVIRONMENT_PROJECT, null, false);
+    EnvironmentVariables variables = context.getVariables();
+
+    // IDE_TOOLS must resolve to a non-empty value, while HTTP_VERSIONS must resolve to the empty string (its
+    // default when not configured) - the input that used to corrupt the result when inverseResolve ran
+    String ideTools = variables.get(IdeVariables.IDE_TOOLS.getName());
+    assertThat(ideTools).isNotEmpty();
+    assertThat(variables.get(IdeVariables.HTTP_VERSIONS.getName())).isEmpty();
+
+    // the editor value is similar to the one of a main.prefs produced by PropertiesMerger.inverseMerge
+    String editor = "notepad --wait " + ideTools;
+
+    // act
+    String inverseResolved = variables.inverseResolve(editor, "test");
+
+    // assert
+    assertThat(inverseResolved).isEqualTo("notepad --wait $[IDE_TOOLS]");
+  }
+
 }

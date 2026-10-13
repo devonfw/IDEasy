@@ -13,9 +13,9 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.PackageManagerBasedLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.PackageManagerRequest;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.python.Python;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.tool.uv.Uv;
@@ -25,7 +25,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * {@link PackageManagerBasedLocalToolCommandlet} for python tools based on <a href="https://pip.pypa.io/">pip</a>.
  * <p>
  */
-public abstract class PipBasedCommandlet extends PackageManagerBasedLocalToolCommandlet<ToolCommandlet> {
+public abstract class PipBasedCommandlet extends PackageManagerBasedLocalToolCommandlet<AbstractToolCommandlet> {
 
   private static final Logger LOG = LoggerFactory.getLogger(PipBasedCommandlet.class);
 
@@ -51,10 +51,10 @@ public abstract class PipBasedCommandlet extends PackageManagerBasedLocalToolCom
 
   @Override
   @SuppressWarnings({ "unchecked", "rawtypes" })
-  protected Class<ToolCommandlet> getPackageManagerClass() {
+  protected Class<AbstractToolCommandlet> getPackageManagerClass() {
 
     String edition = this.context.getVariables().getToolEdition("pip");
-    Class<? extends ToolCommandlet> result =
+    Class<? extends AbstractToolCommandlet> result =
         switch (edition) {
           case "pip" -> Pip.class;
           case "uv" -> Uv.class;

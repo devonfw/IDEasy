@@ -39,6 +39,33 @@ class IdeVariablesTest extends Assertions {
     assertThat(httpVersions2_11).containsExactly(Version.HTTP_2, Version.HTTP_1_1);
   }
 
+  /** Test of {@link IdeVariables#USER} on Linux and macOS where the USER environment variable is defined. */
+  @Test
+  void testUserFromEnvironmentVariable() {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    context.getSystem().setEnv("USER", "unix-login");
+    context.getSystem().setEnv("USERNAME", "windows-login");
+    // act
+    String user = IdeVariables.USER.get(context);
+    // assert
+    assertThat(user).isEqualTo("unix-login");
+  }
+
+  /** Test of {@link IdeVariables#USER} on Windows where only the USERNAME environment variable is defined. */
+  @Test
+  void testUserFallsBackToUsername() {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    context.getSystem().setEnv("USERNAME", "windows-login");
+    // act
+    String user = IdeVariables.USER.get(context);
+    // assert
+    assertThat(user).isEqualTo("windows-login");
+  }
+
   /** Test of {@link IdeVariables#IDE_TOOLS} with bash array syntax using commas. */
   @Test
   void testIdeToolsWithCommasInBashArray() {

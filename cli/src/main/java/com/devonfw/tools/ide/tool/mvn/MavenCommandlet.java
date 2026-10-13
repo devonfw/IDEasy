@@ -3,17 +3,16 @@ package com.devonfw.tools.ide.tool.mvn;
 
 import java.util.Set;
 
-
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.completion.AutoCompletionRegistry;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 
 
 /**
  * Abstract base class for Maven-compatible tool commandlets.
  */
-public abstract class MavenCommandlet extends LocalToolCommandlet {
+public abstract class MavenCommandlet extends AbstractLocalToolCommandlet {
 
 
   /**
@@ -48,9 +47,6 @@ public abstract class MavenCommandlet extends LocalToolCommandlet {
     registry.add("help:effective-settings");
     registry.add("-DskipTests");
     registry.add("-Dmaven.test.skip=true");
-    registry.add("exec:java");
-    registry.add("-Dexec.mainClass=");
-    registry.add("-Dexec.args=");
     registry.add("-P");
     registry.add("-pl");
     registry.add("-am");
@@ -75,7 +71,8 @@ public abstract class MavenCommandlet extends LocalToolCommandlet {
     registry.add("-Dstyle.color=");
     registry.add("-Duser.dir=");
     registry.add("-Duser.home=");
+    registry.add("exec:java", "exec:exec");
+    registry.add("-Dexec.mainClass=").addDependency("exec:java");
+    registry.add("-Dexec.args=").addDependency("exec:java", "exec:exec");
   }
 }
-
-

@@ -12,7 +12,7 @@ import com.devonfw.tools.ide.tool.intellij.Intellij;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 
 /**
- * Test of {@link com.devonfw.tools.ide.url.model.file.json.Cve} checks in {@link LocalToolCommandlet}.
+ * Test of {@link com.devonfw.tools.ide.url.model.file.json.Cve} checks in {@link AbstractLocalToolCommandlet}.
  */
 class CveCheckInstallTest extends AbstractIdeContextTest {
 

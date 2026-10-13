@@ -32,16 +32,26 @@ public class PgAdmin extends GlobalToolCommandlet {
 
   @Override
   protected List<NativePackage> getNativePackages() {
-    return List.of(new NativePackage(
-        NativePackageManager.APT,
-        List.of("pgadmin4", "pgadmin4-server", "pgadmin4-desktop", "pgadmin4-web"),
-        List.of("--allow-downgrades"),
-        List.of("curl -fsS https://www.pgadmin.org/static/packages_pgadmin_org.pub | sudo gpg --yes --dearmor -o /usr/share/keyrings/packages-pgadmin-org.gpg",
-            "sudo sh -c 'echo \"deb [signed-by=/usr/share/keyrings/packages-pgadmin-org.gpg] "
-                + "https://ftp.postgresql.org/pub/pgadmin/pgadmin4/apt/$(lsb_release -cs) pgadmin4 main\" "
-                + "> /etc/apt/sources.list.d/pgadmin4.list && apt update'"),
-        List.of("sudo rm -f /etc/apt/sources.list.d/pgadmin4.list", "sudo rm -f /usr/share/keyrings/packages-pgadmin-org.gpg")
-    ));
+    return List.of(
+        new NativePackage(
+            NativePackageManager.APT,
+            List.of("pgadmin4", "pgadmin4-server", "pgadmin4-desktop", "pgadmin4-web"),
+            List.of("--allow-downgrades"),
+            List.of(
+                "curl -fsS https://www.pgadmin.org/static/packages_pgadmin_org.pub | sudo gpg --yes --dearmor -o /usr/share/keyrings/packages-pgadmin-org.gpg",
+                "sudo sh -c 'echo \"deb [signed-by=/usr/share/keyrings/packages-pgadmin-org.gpg] "
+                    + "https://ftp.postgresql.org/pub/pgadmin/pgadmin4/apt/$(lsb_release -cs) pgadmin4 main\" "
+                    + "> /etc/apt/sources.list.d/pgadmin4.list && apt update'"),
+            List.of("sudo rm -f /etc/apt/sources.list.d/pgadmin4.list", "sudo rm -f /usr/share/keyrings/packages-pgadmin-org.gpg")
+        ),
+        new NativePackage(NativePackageManager.BREW_CASK, List.of("pgadmin4"))
+    );
+  }
+
+  @Override
+  public String getMacApplicationName() {
+
+    return "pgAdmin 4";
   }
 
   @Override

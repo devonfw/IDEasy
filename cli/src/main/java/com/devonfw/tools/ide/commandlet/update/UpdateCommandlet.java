@@ -1,0 +1,32 @@
+package com.devonfw.tools.ide.commandlet.update;
+
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.migration.IdeMigrator;
+
+/**
+ * {@link AbstractCommandlet} to update settings, software and repositories
+ */
+public class UpdateCommandlet extends AbstractUpdateCommandlet {
+
+  /**
+   * The constructor.
+   *
+   * @param context the {@link IdeContext}.
+   */
+  public UpdateCommandlet(IdeContext context) {
+
+    super(context);
+  }
+
+  @Override
+  public String getName() {
+
+    return "update";
+  }
+
+  @Override
+  protected void doRun() {
+    new IdeMigrator().run(this.context);
+    super.doRun();
+  }
+}

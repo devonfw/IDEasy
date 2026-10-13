@@ -22,6 +22,7 @@ See also link:https://github.com/devonfw/IDEasy/blob/main/cli/src/main/java/com/
 |`BASH_PATH`|e.g. `C:\Program Files\Git\usr\bin\bash.exe`|Absolute path to your bash. Only used as fallback on Windows if bash could not be found from registry.
 |`IDE_TOOLS`|`(java mvn node npm)`|List of tools that should be installed by default on project creation.
 |`CREATE_START_SCRIPTS`|e.g. `eclipse, intellij, vscode`|List of IDEs that shall be used by developers in the project and therefore start-scripts are created on setup. E.g. `(eclipse intellij vscode)`
+|`USER`|e.g. `jdoe`|The login name of the current user. Provided as environment variable by Linux and macOS while Windows provides `USERNAME` instead, which is used as fallback so that `$[USER]` works on all platforms.
 |`WORKSPACE`|`main`|The link:workspaces.adoc[workspace] you are currently in. Defaults to `main` if you are not inside a link:workspaces.adoc[workspace]. Never set this variable in any `ide.properties` file.
 |`WORKSPACE_PATH`|`$IDE_HOME/workspaces/$WORKSPACE`|Absolute path to current link:workspaces.adoc[workspace]. Never set this variable in any `ide.properties` file.
 |`«TOOL»_VERSION`|`*`|The version of the tool `«TOOL»` to install and use (e.g. `ECLIPSE_VERSION` or `MVN_VERSION`).

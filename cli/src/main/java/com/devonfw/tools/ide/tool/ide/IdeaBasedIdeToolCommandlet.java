@@ -20,10 +20,10 @@ import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 
 /**
- * {@link IdeToolCommandlet} for IDEA based commandlets like: {@link com.devonfw.tools.ide.tool.intellij.Intellij IntelliJ} and
+ * {@link AbstractIdeToolCommandlet} for IDEA based commandlets like: {@link com.devonfw.tools.ide.tool.intellij.Intellij IntelliJ} and
  * {@link com.devonfw.tools.ide.tool.androidstudio.AndroidStudio Android Studio}.
  */
-public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
+public class IdeaBasedIdeToolCommandlet extends AbstractIdeToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(IdeaBasedIdeToolCommandlet.class);
 
@@ -103,7 +103,7 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
     String[] defaultVmArgs = defaultVmArgsContent.trim().split("\\s+");
 
     String userOptionsFileName = "." + prefix + VM_OPTIONS_FILE_EXTENSION;
-    Path confPath = this.context.getWorkspacePath().resolve(userOptionsFileName);
+    Path confPath = getIdeMetadataPath().resolve(userOptionsFileName);
     this.context.getFileAccess().writeFileContent(mergeVmArgs(defaultVmArgs, userVmArgs), confPath, true);
 
     pc.withEnvVar(prefix.toUpperCase() + VM_OPTIONS_ENV_SUFFIX, confPath.toAbsolutePath().toString());

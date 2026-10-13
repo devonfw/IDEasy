@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.tool.npm;
 
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
@@ -13,14 +14,14 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.PackageManagerRequest;
 import com.devonfw.tools.ide.tool.node.NodeBasedCommandlet;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link LocalToolCommandlet} for tools based on <a href="https://www.npmjs.com/">npm</a>.
+ * {@link AbstractLocalToolCommandlet} for tools based on <a href="https://www.npmjs.com/">npm</a>.
  */
 public abstract class NpmBasedCommandlet extends NodeBasedCommandlet<Npm> {
 
@@ -53,6 +54,33 @@ public abstract class NpmBasedCommandlet extends NodeBasedCommandlet<Npm> {
   @Override
   protected VersionIdentifier computeInstalledPackageVersion() {
     return runPackageManagerGetInstalledVersion(getPackageName());
+  }
+
+  /**
+   * @return the {@link Path} where the npm package of this tool is actually installed - the per-project global npm prefix (see
+   *     {@link Npm#NPM_GLOBAL_FOLDER}) - and not the {@code software/node} runtime path that {@link #getToolPath() getToolPath()} reports (see
+   *     <a href="https://github.com/devonfw/IDEasy/issues/352">issue #352</a>).
+   */
+  @Override
+  protected Path getInstalledLocation() {
+
+    Path npmGlobalPath = Npm.getGlobalNpmPrefix(this.context);
+    if (npmGlobalPath == null) {
+      return super.getInstalledLocation();
+    }
+    return npmGlobalPath;
+  }
+
+  /**
+   * Uninstalls the npm package and, since npm-based tools install their package into the shared per-project global npm prefix (see
+   * {@link Npm#NPM_GLOBAL_FOLDER}), prunes that folder again if the uninstallation no longer leaves a package behind (see
+   * <a href="https://github.com/devonfw/IDEasy/issues/352">issue #352</a>).
+   */
+  @Override
+  public void uninstall() {
+
+    super.uninstall();
+    this.context.getCommandletManager().getCommandlet(Npm.class).cleanupGlobalPackagesFolder();
   }
 
   private VersionIdentifier runPackageManagerGetInstalledVersion(String npmPackage) {

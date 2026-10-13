@@ -13,14 +13,14 @@ import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 
 /**
- * {@link LocalToolCommandlet} for <a href="https://docs.aws.amazon.com/cli/">AWS CLI</a> (Amazon Web Services Command Line Interface).
+ * {@link AbstractLocalToolCommandlet} for <a href="https://docs.aws.amazon.com/cli/">AWS CLI</a> (Amazon Web Services Command Line Interface).
  */
-public class Aws extends LocalToolCommandlet {
+public class Aws extends AbstractLocalToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Aws.class);
 

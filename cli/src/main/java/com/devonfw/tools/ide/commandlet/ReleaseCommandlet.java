@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.commandlet;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.slf4j.Logger;
@@ -11,13 +10,14 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.property.StringProperty;
-import com.devonfw.tools.ide.tool.mvn.Mvn;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
+import com.devonfw.tools.ide.tool.BuildTool;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link Commandlet} to build and deploy a release of the current project.
+ * {@link AbstractCommandlet} to build and deploy a release of the current project.
  */
-public class ReleaseCommandlet extends Commandlet {
+public class ReleaseCommandlet extends AbstractCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(ReleaseCommandlet.class);
 
@@ -41,15 +41,23 @@ public class ReleaseCommandlet extends Commandlet {
 
     Path projectPath = this.context.getCwd();
     GitContext git = this.context.getGitContext();
-    Mvn buildTool = this.context.getCommandletManager().getCommandlet(Mvn.class);
+
+    AbstractLocalToolCommandlet commandlet = this.context.getCommandletManager().findBuildTool(projectPath);
+    if (commandlet == null) {
+      throw new CliException("Could not find a build descriptor in " + projectPath + ". There is nothing to release here.");
+    }
+    if (!(commandlet instanceof BuildTool buildTool)) {
+      throw new CliException("The build tool " + commandlet.getName() + " detected in " + projectPath + " does not support releasing.");
+    }
 
     if (git.hasUntrackedFiles(projectPath)) {
       throw new CliException("Your local git repository has uncommitted changes. Please use 'git stash' and rerun on clean repo.");
     }
     if (warnIfFork(git, projectPath)) {
-      confirmWarning("You seem to work on a fork. Releases should be done on the original repository!\nWe strongly recommend to abort and rerun on original repository.");
+      confirmWarning("You seem to work on a fork. Releases should be done on the original repository!\n"
+          + "We strongly recommend to abort and rerun on original repository.");
     }
-    if (!this.context.isForceMode() && !isTopLevelProject(projectPath)) {
+    if (!this.context.isForceMode() && !isTopLevelProject(commandlet, projectPath)) {
       throw new CliException("Release has to be performed from the top-level project or using force option.");
     }
 
@@ -94,14 +102,14 @@ public class ReleaseCommandlet extends Commandlet {
     return false;
   }
 
-  private boolean isTopLevelProject(Path projectPath) {
+  private boolean isTopLevelProject(AbstractLocalToolCommandlet buildCommandlet, Path projectPath) {
 
-    // returns false in case there's no pom.xml present or if parent directory has a pom.xml
-    return Files.exists(projectPath.resolve("pom.xml"))
-        && !Files.exists(projectPath.getParent().resolve("pom.xml"));
+    // top-level if the build descriptor found here is not also present in the parent directory
+    Path parent = projectPath.getParent();
+    return (parent == null) || (buildCommandlet.findBuildDescriptor(parent) == null);
   }
 
-  private void buildAndDeploy(Mvn buildTool) {
+  private void buildAndDeploy(BuildTool buildTool) {
 
     while (true) {
       ProcessResult result = buildTool.buildAndDeploy(this.arguments.asList());
