@@ -96,7 +96,6 @@ query ($id: ID!, $after: String) {
                 number
                 state
                 mergedAt
-                isDraft
                 author { login }
                 repository { nameWithOwner }
                 assignees(first: 30) { nodes { login } }
