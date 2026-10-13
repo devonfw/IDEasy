@@ -47,7 +47,8 @@ public class ConsoleView {
     setupEventHandlers();
 
     autoScrollCheckBox.selectedProperty().bindBidirectional(viewModel.autoScrollEnabledProperty());
-    lineCountLabel.textProperty().bind(viewModel.lineCountProperty().asString().concat(nlsService.get("console_line_count")));
+
+lineCountLabel.textProperty().bind(viewModel.lineCountProperty().asString().map(s -> MessageFormat.format(nlsService.get("console_line_count"), s)));
   }
 
   /**

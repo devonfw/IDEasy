@@ -51,7 +51,7 @@ public class ConsoleViewModel {
     });
 
     eventBus.addListener(LogEvent.class, event -> {
-      IdeLogEntry entry = event.logeEntry();
+      IdeLogEntry entry = event.logEntry();
       appendOutput(entry);
     });
   }
