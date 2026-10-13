@@ -1,11 +1,16 @@
-name: Check PR Labels
+name: Check PR Labels & Changelog
 
 # Fails (red check) while a pull request has no labels and turns green as soon as at
-# least one label is assigned. It runs on the events that can change a PR's labels or
-# its head commit (synchronize = author pushed new commits), so the check re-evaluates
-# immediately and is never missing on a freshly pushed commit. No write access: this
-# only reads the PR and reports a failure, so pull_request (not pull_request_target)
-# is the correct trigger.
+# least one label is assigned. It then applies the changelog policy: a PR is exempt
+# when it is labelled "internal" (no user-facing change), otherwise it must add at
+# least one line to CHANGELOG.adoc. The changelog step is skipped while the label
+# check fails, so an unlabeled PR first just has to add a label. It runs on the events
+# that can change a PR's labels or its head commit (synchronize = author pushed new
+# commits), so the check re-evaluates immediately and is never missing on a freshly
+# pushed commit. No write access: this only reads the PR and reports a failure, so
+# pull_request (not pull_request_target) is the correct trigger. The changelog policy
+# comes from documentation/contributing/DoD.adoc: the CHANGELOG shall only reflect
+# public changes relevant for end-users.
 
 on:
   pull_request:
@@ -15,7 +20,7 @@ permissions:
   pull-requests: read
 
 jobs:
-  check-labels:
+  check-labels-and-changelog:
     runs-on: ubuntu-latest
     steps:
       - name: Verify the PR has at least one label
@@ -36,5 +41,49 @@ jobs:
               core.setFailed(
                 'This pull request has no labels assigned. Add at least one label to the PR '
                 + '(e.g. "bug", "enhancement", "documentation") to make this check pass.'
+              );
+            }
+
+      - name: Verify internal label or a new CHANGELOG.adoc line
+        # Only meaningful once the PR has labels; an unlabeled PR already failed the
+        # step above and has to add a label first.
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const INTERNAL_LABEL = 'internal';
+            const CHANGELOG = 'CHANGELOG.adoc';
+            const prNumber = context.payload.pull_request.number;
+
+            // Fetch the PR fresh so the label state is authoritative for this run.
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber
+            });
+
+            const labels = pr.data.labels.map(label => label.name);
+            if (labels.includes(INTERNAL_LABEL)) {
+              console.log(`PR is labelled "${INTERNAL_LABEL}" - no ${CHANGELOG} entry required.`);
+              return;
+            }
+
+            // Not internal: the PR must add a line to CHANGELOG.adoc. Paginate in case a
+            // PR changes more than 100 files. "additions" counts new lines in that file.
+            const files = await github.paginate(
+              github.rest.pulls.listFiles,
+              { owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber, per_page: 100 }
+            );
+            const changelog = files.find(file => file.filename === CHANGELOG);
+            const addedLines = changelog ? changelog.additions : 0;
+
+            if (addedLines > 0) {
+              console.log(`${CHANGELOG} has ${addedLines} added line(s).`);
+            } else {
+              core.setFailed(
+                `This PR is not labelled "${INTERNAL_LABEL}" but adds no line to ${CHANGELOG}. `
+                + `Please document this user-facing change by adding a line to ${CHANGELOG} under the next `
+                + `open release, or add the "${INTERNAL_LABEL}" label if the change has no user-facing `
+                + `impact. See documentation/contributing/DoD.adoc.`
               );
             }
