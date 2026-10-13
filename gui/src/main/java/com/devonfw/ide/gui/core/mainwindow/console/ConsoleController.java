@@ -29,7 +29,7 @@ public class ConsoleController {
 
   /**
    * Thread-safe buffer collecting messages that arrive while a batched UI update is already pending. Keeps the FX thread from being overwhelmed by individual
-   * {@link javafx.application.Platform#runLater()} submissions.
+
    */
   private final Deque<IdeLogEntry> outputBuffer = new ArrayDeque<>();
 
