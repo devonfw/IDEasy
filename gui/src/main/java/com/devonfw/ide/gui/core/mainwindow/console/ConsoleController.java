@@ -20,6 +20,8 @@ import com.devonfw.ide.gui.core.service.NlsService;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 
+import javafx.scene.control.TextField;
+
 /**
  * Controller that manages an instance of a console using ListView for better performance with large outputs.
  */
@@ -38,7 +40,8 @@ public class ConsoleController {
 
   /** Observable list backing the ListView for efficient updates. */
   private final ObservableList<IdeLogEntry> logEntries = FXCollections.observableArrayList();
-
+@FXML
+private TextField textField;
   @FXML
   private Button clearButton;
 
@@ -228,15 +231,18 @@ public class ConsoleController {
     private static final String ERROR_BG = "-fx-background-color: #fff0f0;";
     private static final String WARNING_BG = "-fx-background-color: #fff8e0;";
 
+    private final TextField textField= new TextField();
     @Override
     protected void updateItem(IdeLogEntry entry, boolean empty) {
 
       super.updateItem(entry, empty);
       if (empty || entry == null) {
-        setText(null);
+        setGraphic(null);
         setStyle(BASE_STYLE);
       } else {
-        setText(entry.displayValue());
+        textField.setText(entry.displayValue());
+        textField.setEditable(true);
+        setGraphic(textField);
         setStyle(getStyleForEntry(entry));
       }
     }
