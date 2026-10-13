@@ -25,15 +25,19 @@
 // does not exist yet, it degrades to inference-only behaviour and says so.
 //
 // Configuration (environment variables):
-//   GH_TOKEN / GITHUB_TOKEN  OAuth or GITHUB_TOKEN with read:project +
-//                            write:repo (needs "Administration" > "Assign
-//                            issues" or the repo's issues:write + pull-requests:write).
-//                            NOTE: a GITHUB_TOKEN issued by one repo manages
-//                            assignees on that repo's PRs. PRs from OTHER repos
-//                            that share the board are best-effort: a 403/404
-//                            there is logged and skipped (not fatal), so the
-//                            invariant only holds for in-repo PRs. For
-//                            cross-repo writes, use an org-scoped PAT as GH_TOKEN.
+//   GH_TOKEN / GITHUB_TOKEN  Token with the org "Projects: Read and write"
+//                            permission AND the repo's issues/PRs write (for the
+//                            REST assignee changes). Production sets GH_TOKEN to
+//                            the org's ACTION_PUSH_TOKEN (see
+//                            documentation/contributing/update-access-token.adoc).
+//                            A GITHUB_TOKEN is NOT sufficient for the board
+//                            lookup: it is scoped to the triggering repository
+//                            and cannot enumerate an org's Projects v2 boards.
+//                            A personal PAT with the "project" scope can be
+//                            used to dry-run against a user's OWN board. PRs from
+//                            OTHER repos that share the board are best-effort: a
+//                            403/404 there is logged and skipped (not fatal), so
+//                            the invariant only holds for in-repo PRs.
 //   GH_ACCOUNT               GitHub account (user OR organization) that owns
 //                            the board (default: devonfw). Personal / fork
 //                            boards live under a user account, so both are
@@ -268,7 +272,15 @@ async function findBoard(login, title) {
       after = proj.pageInfo.endCursor;
     }
   }
-  fail(`Could not find a project titled "${title}" in account "${login}".`);
+  // The board is expected to exist, so a miss here is almost always an
+  // insufficient token: a GITHUB_TOKEN (scoped to the triggering repository)
+  // or a PAT without the "Projects: Read and write" scope cannot read an
+  // org's boards, and GraphQL reports that as "no project found".
+  fail(
+    `Could not find a project titled "${title}" in account "${login}". ` +
+      `This usually means the token lacks org "Projects: Read and write" access ` +
+      `(e.g. it is the built-in GITHUB_TOKEN, which cannot enumerate org boards).`,
+  );
 }
 
 /**

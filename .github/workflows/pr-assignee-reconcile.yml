@@ -47,15 +47,19 @@ permissions:
   pull-requests: write
 
 env:
-  # Token used for the API calls. The script reads GH_TOKEN first. If a
-  # RECONCILE_PAT secret is present (a PAT with the "project" scope) it is used;
-  # otherwise it falls back to the built-in GITHUB_TOKEN.
-  # WHY a PAT is needed for fork / personal-board testing: the GITHUB_TOKEN is
-  # scoped to THIS repository and cannot see a user account's project board
-  # (boards under /users/<name>/projects/...), nor write to it. A personal PAT
-  # with the "project" scope can read AND write your own boards. In production
-  # the RECONCILE_PAT secret is absent, so this resolves to the GITHUB_TOKEN.
-  GH_TOKEN: ${{ secrets.RECONCILE_PAT || secrets.GITHUB_TOKEN }}
+  # Token used for the API calls. The script reads GH_TOKEN first. The board
+  # lookup (organization { projectsV2 }) is an ORG-level call, so the token
+  # must carry the org "Projects: Read and write" permission:
+  #   - RECONCILE_PAT (when set): a personal PAT with the "project" scope,
+  #     used to dry-run against a user's OWN board by pointing GH_ACCOUNT at a
+  #     user account. It wins, so local / fork testing never needs the org token.
+  #   - ACTION_PUSH_TOKEN (default, production): the org's fine-grained PAT,
+  #     which MUST include the org "Projects: Read and write" permission —
+  #     see documentation/contributing/update-access-token.adoc.
+  # NOTE: do NOT fall back to the built-in GITHUB_TOKEN here. It is scoped to
+  # THIS repository and cannot enumerate an org's Projects v2 boards, so the
+  # board lookup would fail on every scheduled run.
+  GH_TOKEN: ${{ secrets.RECONCILE_PAT || secrets.ACTION_PUSH_TOKEN }}
   # Account that owns the board. This is an org (devonfw); the script also
   # supports a USER account, which is how you can dry-run it against a
   # personal / fork board before it touches the real one.
