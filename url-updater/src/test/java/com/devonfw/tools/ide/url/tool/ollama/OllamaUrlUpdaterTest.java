@@ -54,5 +54,7 @@ class OllamaUrlUpdaterTest extends AbstractUrlUpdaterTest {
     List<String> expectedPlatforms = List.of("mac_x64", "mac_arm64", "windows_x64", "windows_arm64");
     Path ollamaDir = tempDir.resolve("ollama").resolve("ollama");
     assertUrlVersion(ollamaDir.resolve("0.35.0"), expectedPlatforms);
+    // the pre-release v0.40.0 (prerelease=true, but tag without suffix) must not be published as a stable version
+    assertThat(ollamaDir.resolve("0.40.0")).doesNotExist();
   }
 }
