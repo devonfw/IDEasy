@@ -18,6 +18,7 @@ import com.devonfw.ide.gui.core.factory.TabFactory;
 import com.devonfw.ide.gui.core.mainwindow.console.ConsoleController;
 import com.devonfw.ide.gui.core.service.CommandletService;
 import com.devonfw.ide.gui.core.service.NlsService;
+import com.devonfw.tools.ide.context.IdeContextConsole;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeLogListenerBuffer;
@@ -69,17 +70,18 @@ public class GuiStateManager {
     this.ideRootDir = Path.of(ideRoot != null ? ideRoot : System.getenv(IdeVariables.IDE_ROOT.getName()));
 
     //This specific ordering needs to be kept
-    this.projectManager = new ProjectManager(ideRootDir);
-    this.taskManager = new TaskManager();
-    this.eventBus = new GuiEventBus();
-    this.nlsService = new NlsService(null);
-    this.consoleController = new ConsoleController(this);
-    this.commandletService = new CommandletService(this);
-    this.tabFactory = new TabFactory(this);
-
     final IdeLogListenerBuffer buffer = new IdeLogListenerBuffer();
     IdeLogLevel logLevel = IdeLogLevel.DEBUG;
     startContext = new IdeStartContextImpl(logLevel, buffer);
+
+    this.projectManager = new ProjectManager(ideRootDir);
+    this.taskManager = new TaskManager();
+    this.eventBus = new GuiEventBus();
+    // inject an application-level context so NlsService never has to create one itself; binding it to startContext keeps the GUI logging context
+    this.nlsService = new NlsService(new IdeContextConsole(startContext), null);
+    this.consoleController = new ConsoleController(this);
+    this.commandletService = new CommandletService(this);
+    this.tabFactory = new TabFactory(this);
   }
 
   /**
