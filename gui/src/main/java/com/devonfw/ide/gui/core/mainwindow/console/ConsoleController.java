@@ -40,8 +40,7 @@ public class ConsoleController {
 
   /** Observable list backing the ListView for efficient updates. */
   private final ObservableList<IdeLogEntry> logEntries = FXCollections.observableArrayList();
-@FXML
-private TextField textField;
+
   @FXML
   private Button clearButton;
 
