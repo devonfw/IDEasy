@@ -241,7 +241,7 @@ private TextField textField;
         setStyle(BASE_STYLE);
       } else {
         textField.setText(entry.displayValue());
-        textField.setEditable(true);
+        textField.setEditable(false);
         setGraphic(textField);
         setStyle(getStyleForEntry(entry));
       }
