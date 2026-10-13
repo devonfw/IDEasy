@@ -5,7 +5,6 @@ import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
 import java.io.IOException;
 import java.net.URL;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 
@@ -16,7 +15,6 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.ide.gui.HeadlessApplicationTest;
 import com.devonfw.ide.gui.core.event.GuiEventBus;
