@@ -1,0 +1,41 @@
+name: Check PR Labels
+
+# Fails (red check) while a pull request has no labels and turns green as soon as at
+# least one label is assigned. It runs on the events that can change a PR's labels so
+# the check re-evaluates immediately when a label is added or removed. No write access:
+# this only reads the PR and reports a failure, so pull_request (not pull_request_target)
+# is the correct trigger.
+
+on:
+  pull_request:
+    types: [opened, reopened, labeled, unlabeled]
+
+permissions:
+  pull-requests: read
+
+jobs:
+  check-labels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify the PR has at least one label
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const core = require('@actions/core');
+
+            // Fetch the PR fresh so the label state is authoritative for this run.
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number
+            });
+
+            const labels = pr.data.labels.map(label => label.name);
+            if (labels.length > 0) {
+              console.log(`PR has ${labels.length} label(s): ${labels.join(', ')}.`);
+            } else {
+              core.setFailed(
+                'This pull request has no labels assigned. Add at least one label to the PR '
+                + '(e.g. "bug", "enhancement", "documentation") to make this check pass.'
+              );
+            }
