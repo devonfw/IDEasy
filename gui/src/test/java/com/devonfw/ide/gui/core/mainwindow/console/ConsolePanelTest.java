@@ -46,7 +46,7 @@ class ConsolePanelTest extends HeadlessApplicationTest {
     fxmlLoader.setControllerFactory(clazz -> clazz == ConsoleController.class ? this.consoleController : null);
     Parent root = fxmlLoader.load();
     stage.setScene(new Scene(root));
-    stage.requestFocus();
+    stage.requestFocus(); // sometimes needed for headless setup to work
     stage.show();
   }
 
