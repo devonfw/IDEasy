@@ -1,15 +1,17 @@
 package com.devonfw.ide.gui.core.context;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.core.mainwindow.console.ConsoleController;
+import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 
@@ -59,5 +61,22 @@ public class IdeGuiLogListenerTest extends Assertions {
     assertThat(accepted).as("onLog() should accept the entry").isTrue();
     assertThat(console.getEntries()).as("the entry must be forwarded to the console exactly once").hasSize(1);
     assertThat(console.getEntries().get(0).message()).isEqualTo(message);
+  }
+
+
+  @Test
+  void testBufferedMessageShownOnceAfterFlush() {
+
+    Logger log = LoggerFactory.getLogger(IdeGuiLogListenerTest.class);
+    GuiStateManager guiStateManager = new GuiStateManager(this.mockIdeRoot.toString());
+    IdeGuiLogListenerTest.RecordingConsoleController console = new RecordingConsoleController(guiStateManager);
+    IdeGuiLogListener listener = new IdeGuiLogListener(console);
+    new IdeStartContextImpl(IdeLogLevel.INFO, listener);
+
+    log.warn("TestMessage");
+    assertThat(console.getEntries()).as("nothing is shown while buffering").isEmpty();
+
+    listener.flushAndEndBuffering();
+    assertThat(console.getEntries()).extracting(IdeLogEntry::message).containsExactly("TestMessage");
   }
 }

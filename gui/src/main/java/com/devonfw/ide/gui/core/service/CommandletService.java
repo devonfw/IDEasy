@@ -18,7 +18,6 @@ import com.devonfw.ide.gui.core.mainwindow.console.ConsoleController;
 import com.devonfw.ide.gui.core.modal.IdeDialog;
 import com.devonfw.ide.gui.core.progress.ProgressBarTask;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
-import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 
 /**
@@ -103,8 +102,8 @@ public class CommandletService {
 
             LOG.info("Commandlet {} completed successfully.", commandlet);
           } catch (Exception e) {
+            guiLogListener.flushAndEndBuffering();
             LOG.error("Failed to run commandlet {}: {}", commandlet, e.getMessage(), e);
-            consoleController.appendOutput(new IdeLogEntry(IdeLogLevel.INFO, "[ERROR] Failed to launch " + commandlet + ": " + e.getMessage()));
           }
           return null;
         }
