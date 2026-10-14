@@ -27,12 +27,8 @@ public class CapturingProcessContextMock extends ProcessContextImpl {
 
   @Override
   public ProcessContext createChild() {
-    return new CapturingProcessContextMock(this.context) {
-      @Override
-      public ProcessResult run(ProcessMode processMode) {
-        return CapturingProcessContextMock.this.run(processMode);
-      }
-    };
+
+    return this;
   }
 
   @Override
@@ -52,6 +48,13 @@ public class CapturingProcessContextMock extends ProcessContextImpl {
    * @return the list of captured commands that would have been executed.
    */
   public List<String> getExecutedCommands() {
-    return executedCommands;
+    return this.executedCommands;
+  }
+
+  /**
+   * @return the arguments added since the last {@link #run(ProcessMode) run}.
+   */
+  public List<String> getArgs() {
+    return this.arguments;
   }
 }
