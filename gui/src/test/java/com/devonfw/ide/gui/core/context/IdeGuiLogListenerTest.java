@@ -69,7 +69,7 @@ public class IdeGuiLogListenerTest extends Assertions {
 
     Logger log = LoggerFactory.getLogger(IdeGuiLogListenerTest.class);
     GuiStateManager guiStateManager = new GuiStateManager(this.mockIdeRoot.toString());
-    IdeGuiLogListenerTest.RecordingConsoleController console = new RecordingConsoleController(guiStateManager);
+    RecordingConsoleController console = new RecordingConsoleController(guiStateManager);
     IdeGuiLogListener listener = new IdeGuiLogListener(console);
     new IdeStartContextImpl(IdeLogLevel.INFO, listener);
 
