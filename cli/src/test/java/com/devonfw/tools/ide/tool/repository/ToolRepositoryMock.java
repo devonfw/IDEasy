@@ -132,11 +132,11 @@ public class ToolRepositoryMock extends DefaultToolRepository {
   }
 
   /**
-   * Returns a URL whose extension {@code FileAccess.compress} can build. Extensions other than tar and zip (for example {@code dmg}) are rewritten to
-   * {@code tgz}, which is the archive format of the test infrastructure.
+   * Returns a URL that {@code FileAccess.compress} can build. Fixtures for {@code dmg} and {@code pkg} cannot be created by the test infrastructure, so
+   * their extension is rewritten to {@code tgz}.
    *
    * @param url the download URL from the test fixture.
-   * @return {@code url} when its extension is compressible, otherwise the same URL with a {@code tgz} extension.
+   * @return {@code url} unchanged, or the same URL with a {@code tgz} extension for {@code dmg} and {@code pkg}.
    */
   private static String toCompressibleArchiveUrl(String url) {
 
@@ -144,13 +144,7 @@ public class ToolRepositoryMock extends DefaultToolRepository {
     if (!"dmg".equals(extension) && !"pkg".equals(extension)) {
       return url;
     }
-    String tgzExtension = "." + TarCompression.GZ.getCombinedExtension();
-    int lastDotIndex = url.lastIndexOf('.');
-    int lastSlashIndex = Math.max(url.lastIndexOf('/'), url.lastIndexOf('\\'));
-    if (lastDotIndex <= lastSlashIndex) {
-      return url + tgzExtension;
-    }
-    return url.substring(0, lastDotIndex) + tgzExtension;
+    return url.substring(0, url.lastIndexOf('.')) + "." + TarCompression.GZ.getCombinedExtension();
   }
 
 }
