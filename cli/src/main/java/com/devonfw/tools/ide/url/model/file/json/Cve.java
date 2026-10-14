@@ -143,6 +143,10 @@ public record Cve(String id, double severity, List<VersionRange> versions, Map<S
   @Override
   public String toString() {
 
-    return this.id + " with severity " + this.severity + " and affected versions: " + this.versions + "\nhttps://nvd.nist.gov/vuln/detail/" + this.id;
+    StringBuilder result = new StringBuilder(this.id + " with severity " + this.severity + " and affected versions: " + this.versions);
+    if (!this.conditions.isEmpty()) {
+      result.append(" (per OS: ").append(this.conditions).append(")");
+    }
+    return result.append("\nhttps://nvd.nist.gov/vuln/detail/").append(this.id).toString();
   }
 }
