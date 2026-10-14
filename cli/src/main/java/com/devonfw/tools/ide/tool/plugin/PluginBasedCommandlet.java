@@ -26,11 +26,6 @@ public interface PluginBasedCommandlet extends LocalToolCommandlet {
   PluginManager getPluginManager();
 
   /**
-   * @return the configured edition of the tool owning the plugins (see {@code AbstractToolCommandlet#getConfiguredEdition()}).
-   */
-  String getConfiguredEdition();
-
-  /**
    * @return the installed edition of the tool owning the plugins or {@code null} if not installed (see {@code AbstractToolCommandlet#getInstalledEdition()}).
    */
   String getInstalledEdition();
