@@ -11,7 +11,7 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.cli.CliArguments;
-import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
@@ -189,7 +189,7 @@ class CompleteTest extends AbstractIdeContextTest {
       }
     }
     if (commandlets) {
-      for (Commandlet cmd : context.getCommandletManager().getCommandlets()) {
+      for (AbstractCommandlet cmd : context.getCommandletManager().getCommandlets()) {
         expectedCandidates.add(cmd.getName());
         if (addAlias) {
           Property<?> firstProperty = cmd.getValues().get(0);

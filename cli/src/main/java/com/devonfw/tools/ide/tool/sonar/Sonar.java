@@ -13,15 +13,15 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.property.EnumProperty;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 
 /**
- * {@link LocalToolCommandlet} for <a href="https://sonarqube.org/">SonarQube</a>.
+ * {@link AbstractLocalToolCommandlet} for <a href="https://sonarqube.org/">SonarQube</a>.
  */
-public class Sonar extends LocalToolCommandlet {
+public class Sonar extends AbstractLocalToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Sonar.class);
 

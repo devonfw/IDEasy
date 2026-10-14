@@ -8,12 +8,12 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.nls.NlsBundle;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 
 /**
- * {@link ToolCommandlet} for <a href="https://nodejs.org/">node</a>.
+ * {@link AbstractToolCommandlet} for <a href="https://nodejs.org/">node</a>.
  */
-public class Node extends LocalToolCommandlet {
+public class Node extends AbstractLocalToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Node.class);
 
