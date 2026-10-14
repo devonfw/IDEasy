@@ -32,12 +32,12 @@ class GcloudTest extends AbstractIdeContextTest {
   private final IdeTestContext context = newContext(PROJECT_GCLOUD);
 
   /**
-   * Tests if the {@link Gcloud} can be installed properly.
+   * Tests if the {@link Gcloud} can be installed properly on platforms that ship a bundled Python.
    *
    * @param os String of the OS to use.
    */
   @ParameterizedTest
-  @ValueSource(strings = { "windows", "mac", "linux" })
+  @ValueSource(strings = { "windows", "linux" })
   void testGcloudInstall(String os) {
 
     // arrange
@@ -60,12 +60,37 @@ class GcloudTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Tests that installing {@link Gcloud} on macOS also installs the required Python dependency automatically and
+   * exports {@code CLOUDSDK_PYTHON}.
+   */
+  @Test
+  void testGcloudInstallOnMacInstallsPythonDependency() {
+
+    // arrange
+    this.context.setSystemInfo(SystemInfoMock.MAC_X64);
+    Gcloud gcloud = new Gcloud(this.context);
+    EnvironmentCommandlet envCommandlet = new EnvironmentCommandlet(this.context);
+
+    // act
+    gcloud.install();
+    envCommandlet.run();
+
+    // assert
+    checkInstallation(this.context);
+    assertThat(this.context.getSoftwarePath().resolve("python")).exists();
+    assertThat(this.context).logAtSuccess().hasMessageContaining("Successfully installed python");
+    Path python3 = this.context.getSoftwarePath().resolve("python").resolve("bin").resolve("python3");
+    assertThat(this.context).log()
+        .hasEntries(IdeLogEntry.ofProcessable("export CLOUDSDK_PYTHON=\"" + python3 + "\""));
+  }
+
+  /**
    * Tests if the environment variables are correctly set after {@link Gcloud} is installed.
    *
    * @param os String of the OS to use.
    */
   @ParameterizedTest
-  @ValueSource(strings = { "windows", "mac", "linux" })
+  @ValueSource(strings = { "windows", "linux" })
   void testGcloudSetEnvironmentCloudSdkConfig(String os) {
 
     // arrange

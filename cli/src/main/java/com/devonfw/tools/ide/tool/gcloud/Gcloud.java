@@ -10,11 +10,14 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.nls.NlsBundle;
+import com.devonfw.tools.ide.os.SystemArchitecture;
+import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.python.Python;
+import com.devonfw.tools.ide.version.VersionRange;
 
 /**
  * {@link AbstractLocalToolCommandlet} for <a href="https://cloud.google.com/sdk/gcloud">Google Cloud CLI</a>.
@@ -29,6 +32,9 @@ public class Gcloud extends AbstractLocalToolCommandlet {
 
   private static final String ENV_CLOUDSDK_PYTHON = "CLOUDSDK_PYTHON";
 
+  /** Python versions supported by current Google Cloud CLI archives. */
+  private static final VersionRange PYTHON_VERSION_RANGE = VersionRange.of("[3.10,3.15)");
+
   /**
    * The constructor.
    *
@@ -40,11 +46,34 @@ public class Gcloud extends AbstractLocalToolCommandlet {
   }
 
   @Override
+  protected void installToolDependencies(ToolInstallRequest request) {
+
+    super.installToolDependencies(request);
+    if (requiresExternalPython()) {
+      Python python = this.context.getCommandletManager().getCommandlet(Python.class);
+      python.installAsDependency(PYTHON_VERSION_RANGE, request);
+    }
+  }
+
+  @Override
   protected void postInstallOnNewInstallation(ToolInstallRequest request) {
 
     super.postInstallOnNewInstallation(request);
     Path gcloudConfigDir = this.context.getConfPath().resolve(CONFIG_FOLDER);
     this.context.getFileAccess().mkdirs(gcloudConfigDir);
+  }
+
+  /**
+   * @return {@code true} if the Google Cloud CLI archive for this OS/arch does not ship a bundled Python and therefore
+   *     needs the IDEasy {@link Python} tool, {@code false} otherwise.
+   */
+  private boolean requiresExternalPython() {
+
+    SystemInfo systemInfo = this.context.getSystemInfo();
+    if (systemInfo.isMac()) {
+      return true;
+    }
+    return systemInfo.isLinux() && (systemInfo.getArchitecture() == SystemArchitecture.ARM64);
   }
 
   @Override
