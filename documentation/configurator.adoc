@@ -90,7 +90,7 @@ This is essential since foreign configuration formats may use an `@` for their o
 * The value entered for `@ask-variable` is persisted to the `ide.properties` of the chosen configuration location so that the user is asked only once.
 * The value entered for `@ask-secret` is _not_ persisted, so the user is asked again on every run.
 Persisting it would cache the secret on disk as plain text in `conf/ide.properties`.
-If you need the value to survive between runs, define it as a plain variable in `ide.properties` yourself.
+If you need the value to survive between runs, define it as a plain variable in `ide.properties` yourself, keeping in mind that its value then appears in trace log output like any other variable.
 Encryption of stored secrets is a separate follow-up story (it also covers the case of the Maven `settings.xml`).
 * Expressions belong in the workspace templates under `setup` and `update`.
 Do not put an `@ask-*` call into a value of `ide.properties` itself: a value that contains an expression is resolved on _every_ variable resolution, so a `@ask-*` in `ide.properties` would prompt on every `ide` invocation (including `ide env`).
