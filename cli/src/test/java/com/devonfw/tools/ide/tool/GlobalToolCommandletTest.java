@@ -186,7 +186,7 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
 
     @Override
     protected boolean isPackageManagerAvailable(NativePackageManager packageManager) {
-      // Always return true for testing - we mock the process execution anyway
+      // apt is not on the PATH on Windows/macOS build machines, so pretend it is available to make the test OS-independent
       return true;
     }
   }
