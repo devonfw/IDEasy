@@ -103,7 +103,7 @@ The following links cover additional, more targeted ways to verify your changes 
 
 * Running and debugging from IntelliJ or VS Code (including the native binary via `build-local-dev.sh`): link:run-ideasy-locally.adoc[Run IDEasy locally]
 * Writing and running JUnit tests (unit and component tests with a simulated `IdeContext`): link:junit-testing.adoc[JUnit tests]
-* Testing a new or changed UrlUpdater locally (e.g. via `UpdateInitiator` to see discovered versions and URLs): link:commandlet-and-url-updater.adoc[Creating new commandlets and UrlUpdaters]
+* Testing a new or changed UrlUpdater locally (e.g. via `UpdateInitiator` to see discovered versions and URLs): link:url-updater.adoc[Creating new UrlUpdaters]
 * Testing Linux-specific behavior while developing on Windows (WSL2): link:testing-linux-on-windows.adoc[Testing Linux on Windows]
 * Testing macOS-specific behavior (macOS VM via Docker): link:testing-mac-in-vm.adoc[Testing macOS in a VM]
 * Running the automated integration tests: link:integration-testing.adoc[Integration tests]
