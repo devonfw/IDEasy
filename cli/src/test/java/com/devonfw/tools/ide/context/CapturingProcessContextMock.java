@@ -40,7 +40,7 @@ public class CapturingProcessContextMock extends ProcessContextImpl {
     String executable = this.executable.toString();
     List<String> args = this.arguments;
     String command = executable + " " + String.join(" ", args);
-    executedCommands.add(command);
+    this.executedCommands.add(command);
 
     this.arguments.clear();
     this.executable = null;
