@@ -42,7 +42,7 @@ You need to:
    developer's current checkout stays untouched:
    `git worktree add ../IDEasy-$0 -b feature/$0-<slug> upstream/main`
    Spotless cannot read a worktree: run `mvn spotless:apply` in a regular clone on the same branch,
-   or use a separate clone instead of a worktree.
+   or use a separate clone instead of a worktree (until #2665 is done).
 2. Work test first (see `AGENTS.md`). Try to reuse available test classes instead of creating new
    ones, and make sure you didn't create duplicates.
 3. Add the `CHANGELOG.adoc` entry unless the issue is labelled `internal` (see `AGENTS.md`).

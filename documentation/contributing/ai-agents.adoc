@@ -26,6 +26,10 @@ Read natively by GitHub Copilot and imported by `CLAUDE.md` for Claude Code.
 Your personal settings belong in `.claude/settings.local.json`, which is ignored by git.
 |===
 
+NOTE: `.claude/settings.json` only configures Claude Code.
+Other agents such as GitHub Copilot do not read it, so for them the no AI attribution rule in `AGENTS.md` is not enforced by configuration.
+Before you commit with another agent or IDE integration, check its settings for an automatic co-author trailer and disable it.
+
 == Available skills
 
 Start a skill with `/<name>` in the chat of your agent, followed by its argument.

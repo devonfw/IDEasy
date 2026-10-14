@@ -67,7 +67,8 @@ and review — and fix what they report.
 3. Tests: `mvn -Dtest=ClassName test` or `mvn -q test` in the module folder (never repo root).
 4. Format: `mvn spotless:apply` (auto-fix; ratcheted to `origin/main`, so only files you changed).
    If your `origin` is a stale fork, pass `-Dspotless.ratchetFrom=upstream/main`. Spotless cannot
-   read a `git worktree` checkout ("Cannot find git repository"): run it in a regular clone.
+   read a `git worktree` checkout ("Cannot find git repository"): run it in a regular clone (until
+   #2665 is done).
 5. Lint: `mvn checkstyle:check` in the module folder — must pass for every file you change.
 6. Build + tests: `mvn -q verify -pl '!documentation'` from repo root.
 

@@ -16,22 +16,23 @@ set-up feature branch.
   - Whether uncommitted changes exist. If so: STOP, ASK THE USER whether these are intended to be
     included in the pull request, AND RESUME.
   - Which remotes are configured.
-  - Which branch is currently checked out. If it is not the main branch, STOP, ASK THE USER whether
-    this branch is intended to be used for the pull request, AND RESUME.
+  - Which branch is currently checked out, and whether the directory is a git worktree
+    (`git rev-parse --git-common-dir` differs from `--git-dir`).
 
 **Verify preconditions and prepare PR**
 
-1. Stash all local changes if existing.
-2. Checkout main branch.
-3. IF the repository `origin` is a fork of devonfw/IDEasy, THEN pull from `upstream` main and push
-   the new fast-forwarded commits to `origin` main. The commits on `origin` main should be exactly
-   the same as on `upstream` main.
-4. IF the repository `origin` is NOT a fork of devonfw/IDEasy, THEN make sure the local main branch
-   is up to date with `origin` main by pulling the latest changes.
-5. IF no feature branch for the issue exists yet, create a new branch starting from main to prepare
-   a new pull request, under `feature/` with a name starting with the issue number to be fixed.
-6. Apply stashed changes if existing. ASK for support if conflicts occur and cannot be resolved
-   automatically.
+- IF a feature branch for the issue is already checked out (e.g. the worktree created by the
+  `contribute` skill), stay on it. Do not stash, do not switch to `main`.
+- OTHERWISE, if the changes sit on `main` or an unrelated branch:
+  1. Fetch `upstream`.
+  2. Create the feature branch `feature/«issue-id»-«brief-description»` from `upstream/main`, taking
+     the uncommitted changes along (`git switch -c <branch> upstream/main` keeps them; if git
+     refuses because of conflicts, use `git stash push -u -m "<issue-id>"`, switch, then
+     `git stash apply`). ASK for support if conflicts cannot be resolved automatically.
+- Do not push to or sync the fork's `main`: the PR is created from the feature branch, and the
+  base is `upstream/main` (see the remote convention in `AGENTS.md`).
+- If the feature branch is behind `upstream/main`, merge `upstream/main` into it before opening the
+  PR.
 
 **Tasks**
 
