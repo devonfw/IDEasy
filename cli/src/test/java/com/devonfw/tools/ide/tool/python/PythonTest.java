@@ -102,6 +102,33 @@ public class PythonTest extends AbstractIdeContextTest {
   }
 
 
+  /**
+   * Test that on Windows the pristine interpreter keeps its executable resolvable at the installation root (not shadowed by a symlinked {@code bin} folder)
+   * while the per-project virtual environment is exposed via {@code bin} (symlinked to the Windows {@code Scripts} folder), see
+   * <a href="https://github.com/devonfw/IDEasy/issues/2561">#2561</a>.
+   */
+  @Test
+  public void testInstallOnWindowsKeepsInterpreterAndVenvBinResolvable(WireMockRuntimeInfo wireMockRuntimeInfo) {
+
+    // arrange - simulate the Windows layout of uv (interpreter executable at the installation root, empty "Scripts" folder) so the shared uv mock emits it
+    IdeTestContext context = newContext(PROJECT_UV, wireMockRuntimeInfo);
+    context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
+    context.setProcessEnv(Map.of("UV_LAYOUT", "windows"));
+    Python python = context.getCommandletManager().getCommandlet(Python.class);
+
+    // act
+    python.install();
+
+    // assert - the pristine interpreter keeps its executable at the installation root and gets no "bin" folder that would shadow it
+    Path pristineInterpreter = context.getFileAccess().toRealPath(context.getSoftwarePath().resolve("python"));
+    assertThat(pristineInterpreter.resolve("python")).exists();
+    assertThat(pristineInterpreter.resolve("bin")).doesNotExist();
+    // assert - the per-project virtual environment exposes its executable via "bin" (symlinked to the Windows "Scripts" folder)
+    Path venvPath = context.getIdeHome().resolve(Python.VENV_FOLDER);
+    assertThat(venvPath.resolve("Scripts").resolve("python")).exists();
+    assertThat(venvPath.resolve("bin").resolve("python")).exists();
+  }
+
   @Test
   public void testSetEnvironment() {
 

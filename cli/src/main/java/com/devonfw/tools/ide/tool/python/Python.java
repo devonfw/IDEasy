@@ -24,6 +24,7 @@ import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.tool.uv.Uv;
+import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -68,6 +69,8 @@ public class Python extends AbstractLocalToolCommandlet {
 
     // Python is installed as a pristine, versioned interpreter into the shared software repository (see getInstallationPath). uv lays the interpreter out in a
     // nested "cpython-«version»-«platform»" folder plus management files, so we install into a scratch directory and move the interpreter folder into place.
+    // Unlike a virtual environment, a pristine interpreter keeps its executable in the installation root (not in a "Scripts" folder on Windows), so no "bin"
+    // symlink is created here (see createWindowsSymlinkBinFolder, which is only applied to the per-project virtual environment in setupProjectEnvironment).
     FileAccess fileAccess = this.context.getFileAccess();
     if (Files.exists(installationPath)) {
       fileAccess.backup(installationPath);
@@ -82,7 +85,6 @@ public class Python extends AbstractLocalToolCommandlet {
       fileAccess.mkdirs(installationPath.getParent());
       fileAccess.move(interpreterDir, installationPath, StandardCopyOption.REPLACE_EXISTING);
       this.context.writeVersionFile(resolvedVersion, installationPath);
-      createWindowsSymlinkBinFolder(fileAccess, installationPath);
       LOG.debug("Installed pristine {} in version {} at {}", this.tool, resolvedVersion, installationPath);
     } finally {
       fileAccess.delete(scratchDir);
@@ -100,7 +102,7 @@ public class Python extends AbstractLocalToolCommandlet {
 
     Path result = this.context.getFileAccess().findFirst(scratchDir, p -> {
       String name = p.getFileName().toString();
-      return name.startsWith("cpython-" + version) && !name.equals(version.toString());
+      return name.startsWith("cpython-" + version + "-");
     }, false);
     if (result == null) {
       throw new CliException("Could not find the python interpreter installed by uv in " + scratchDir);
@@ -177,10 +179,13 @@ public class Python extends AbstractLocalToolCommandlet {
       createWindowsSymlinkBinFolder(this.context.getFileAccess(), venvPath);
     }
 
-    // prime ruff into the per-project uv tool store (best effort - a failure must not fail the python installation)
-    ProcessContext processContext = request.getProcessContext().withEnvVar("UV_TOOL_DIR", uvToolDir.toString())
-        .withEnvVar("UV_TOOL_BIN_DIR", uvToolDir.resolve("bin").toString());
-    uv.installTool(RUFF_TOOL, processContext);
+    // prime ruff into the per-project uv tool store (best effort - a failure must not fail the python installation); only when the project explicitly
+    // opted in, so we do not push a linter onto every project
+    if (Boolean.TRUE.equals(IdeVariables.PYTHON_INSTALL_RUFF.get(this.context))) {
+      ProcessContext processContext = request.getProcessContext().withEnvVar("UV_TOOL_DIR", uvToolDir.toString())
+          .withEnvVar("UV_TOOL_BIN_DIR", uvToolDir.resolve("bin").toString());
+      uv.installTool(RUFF_TOOL, processContext);
+    }
   }
 
   @Override
@@ -266,12 +271,12 @@ public class Python extends AbstractLocalToolCommandlet {
   }
 
   /**
-   * On Windows systems {@code uv} lays out a Python installation (a pristine interpreter or a virtual environment) with its executables in a {@code Scripts}
-   * folder. This creates a symlink from that {@code Scripts} folder to a {@code bin} folder so that the {@code bin} path used to resolve the executable (see
-   * {@link #setEnvironment}) exists on all platforms. Does nothing on non-Windows systems, where {@code uv} already uses a {@code bin} folder.
+   * On Windows systems {@code uv} lays out a virtual environment with its executables in a {@code Scripts} folder. This creates a symlink from that
+   * {@code Scripts} folder to a {@code bin} folder so that the {@code bin} path used to resolve the executable (see {@link #setEnvironment}) exists on all
+   * platforms. Does nothing on non-Windows systems, where {@code uv} already uses a {@code bin} folder.
    *
    * @param fileAccess the {@link FileAccess} utility for file operations.
-   * @param installationPath the root of the Python installation or virtual environment.
+   * @param installationPath the root of the Python virtual environment.
    */
   private void createWindowsSymlinkBinFolder(FileAccess fileAccess, Path installationPath) {
 

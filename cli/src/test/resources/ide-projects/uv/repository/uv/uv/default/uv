@@ -15,9 +15,16 @@ normalize() { printf '%s' "$1" | tr '\\' '/'; }
 if [ "$1" = "python" ] && [ "$2" = "install" ]; then
   install_dir="$(normalize "$4")"
   version="$5"
-  interp_dir="${install_dir}/cpython-${version}-x86_64-unknown-linux-gnu"
-  mkdir -p "${interp_dir}/bin"
-  cp -a repository/python/python/default/bin/python "${interp_dir}/bin/python"
+  if [ "$UV_LAYOUT" = "windows" ]; then
+    # Windows layout as created by real uv: the interpreter executable sits in the installation root and the "Scripts" folder is empty.
+    interp_dir="${install_dir}/cpython-${version}-windows-x86_64-none"
+    mkdir -p "${interp_dir}/Scripts"
+    cp -a repository/python/python/default/bin/python "${interp_dir}/python"
+  else
+    interp_dir="${install_dir}/cpython-${version}-x86_64-unknown-linux-gnu"
+    mkdir -p "${interp_dir}/bin"
+    cp -a repository/python/python/default/bin/python "${interp_dir}/bin/python"
+  fi
   exit 0
 elif [ "$1" = "pip" ] && [ "$2" = "install" ]; then
   cp repository/pip/pip/default/bin/pip project/software/python/bin
@@ -27,8 +34,14 @@ elif [ "$1" = "venv" ]; then
     cp -a repository/python/python/default project/software/.venv
   else
     target="$(normalize "$2")"
-    mkdir -p "${target}/bin"
-    cp -a repository/python/python/default/bin/python "${target}/bin/python"
+    if [ "$UV_LAYOUT" = "windows" ]; then
+      # Windows layout: the venv executable sits in the "Scripts" folder.
+      mkdir -p "${target}/Scripts"
+      cp -a repository/python/python/default/bin/python "${target}/Scripts/python"
+    else
+      mkdir -p "${target}/bin"
+      cp -a repository/python/python/default/bin/python "${target}/bin/python"
+    fi
   fi
 elif [ "$1" = "tool" ] && [ "$2" = "install" ]; then
   echo "${!#}" >> "$TOOLS_DB"

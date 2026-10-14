@@ -375,6 +375,27 @@ function python {
     & $pythonCommand.Source @args
 }
 
+function python3 {
+    if (-not [string]::IsNullOrEmpty($env:IDE_HOME)) {
+        ide python @args
+        return
+    }
+
+    # "python3" is now a PowerShell function, so explicitly search for
+    # the external command to avoid recursively calling this function.
+    $python3Command = Get-Command python3 `
+        -CommandType Application, ExternalScript `
+        -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+
+    if ($null -eq $python3Command) {
+        Write-Error "The command 'python3' could not be found."
+        return
+    }
+
+    & $python3Command.Source @args
+}
+
 function _ide_completion {
     $registerCommand = Get-Command Register-ArgumentCompleter -ErrorAction SilentlyContinue
 
