@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -22,15 +23,14 @@ import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.version.GenericVersionRange;
 
 /**
- * {@link ToolCommandlet} for <a href="https://tomcat.apache.org/">tomcat</a>.
+ * {@link AbstractToolCommandlet} for <a href="https://tomcat.apache.org/">tomcat</a>.
  */
-public class Tomcat extends LocalToolCommandlet {
+public class Tomcat extends AbstractLocalToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Tomcat.class);
 

@@ -10,14 +10,14 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.property.StringProperty;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.BuildTool;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link Commandlet} to build and deploy a release of the current project.
+ * {@link AbstractCommandlet} to build and deploy a release of the current project.
  */
-public class ReleaseCommandlet extends Commandlet {
+public class ReleaseCommandlet extends AbstractCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(ReleaseCommandlet.class);
 
@@ -42,7 +42,7 @@ public class ReleaseCommandlet extends Commandlet {
     Path projectPath = this.context.getCwd();
     GitContext git = this.context.getGitContext();
 
-    LocalToolCommandlet commandlet = this.context.getCommandletManager().findBuildTool(projectPath);
+    AbstractLocalToolCommandlet commandlet = this.context.getCommandletManager().findBuildTool(projectPath);
     if (commandlet == null) {
       throw new CliException("Could not find a build descriptor in " + projectPath + ". There is nothing to release here.");
     }
@@ -102,7 +102,7 @@ public class ReleaseCommandlet extends Commandlet {
     return false;
   }
 
-  private boolean isTopLevelProject(LocalToolCommandlet buildCommandlet, Path projectPath) {
+  private boolean isTopLevelProject(AbstractLocalToolCommandlet buildCommandlet, Path projectPath) {
 
     // top-level if the build descriptor found here is not also present in the parent directory
     Path parent = projectPath.getParent();

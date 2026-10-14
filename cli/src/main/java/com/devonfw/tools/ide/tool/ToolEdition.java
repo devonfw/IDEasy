@@ -3,8 +3,8 @@ package com.devonfw.tools.ide.tool;
 /**
  * Record for the combination of {@link #tool() tool name} and {@link #edition() tool edition}.
  *
- * @param tool the {@link ToolCommandlet#getName() tool name}.
- * @param edition the {@link ToolCommandlet#getConfiguredEdition() configured edition}.
+ * @param tool the {@link AbstractToolCommandlet#getName() tool name}.
+ * @param edition the {@link AbstractToolCommandlet#getConfiguredEdition() configured edition}.
  */
 public record ToolEdition(String tool, String edition) {
 

@@ -7,12 +7,12 @@ import java.util.Locale;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.StringProperty;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 
 /**
- * Build tool {@link Commandlet} for automatically detecting build configuration files and running the respective tool.
+ * Build tool {@link AbstractCommandlet} for automatically detecting build configuration files and running the respective tool.
  */
-public class BuildCommandlet extends Commandlet {
+public class BuildCommandlet extends AbstractCommandlet {
 
   /** The explicit build options to use (if empty use defaults). */
   public final StringProperty arguments;
@@ -44,7 +44,7 @@ public class BuildCommandlet extends Commandlet {
       throw new CliException("Missing current working directory!");
     }
 
-    LocalToolCommandlet commandlet = this.context.getCommandletManager().findBuildTool(buildPath);
+    AbstractLocalToolCommandlet commandlet = this.context.getCommandletManager().findBuildTool(buildPath);
     if (commandlet == null) {
       throw new CliException("Could not find a build descriptor in " + buildPath + " - no supported build tool detected.");
     }

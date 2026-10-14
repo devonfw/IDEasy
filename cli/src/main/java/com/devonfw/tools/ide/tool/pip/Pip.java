@@ -7,12 +7,11 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.uv.Uv;
 
 /**
- * {@link ToolCommandlet} for <a href="https://pip.pypa.io/">pip</a>.
+ * {@link AbstractToolCommandlet} for <a href="https://pip.pypa.io/">pip</a>.
  * <p>
  * Pip is installed via uv using the command {@code uv pip install pip==<version>}.
  */

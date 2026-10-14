@@ -11,13 +11,12 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 
 /**
- * {@link ToolCommandlet} for GC Log Analyzer by Azul Systems.
+ * {@link AbstractToolCommandlet} for GC Log Analyzer by Azul Systems.
  */
-public class GcLogAnalyzer extends LocalToolCommandlet {
+public class GcLogAnalyzer extends AbstractLocalToolCommandlet {
 
   /**
    * The constructor.

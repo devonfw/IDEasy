@@ -1,7 +1,7 @@
 package com.devonfw.tools.ide.property;
 
 import com.devonfw.tools.ide.cli.CliArguments;
-import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
 
@@ -82,7 +82,7 @@ public class BooleanProperty extends Property<Boolean> {
   }
 
   @Override
-  protected boolean applyValue(String argValue, boolean lookahead, CliArguments args, IdeContext context, Commandlet commandlet,
+  protected boolean applyValue(String argValue, boolean lookahead, CliArguments args, IdeContext context, AbstractCommandlet commandlet,
       CompletionCandidateCollector collector) {
 
     if (lookahead) {

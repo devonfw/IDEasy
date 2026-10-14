@@ -9,13 +9,12 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 
 /**
- * {@link ToolCommandlet} for <a href="https://gradle.org/">gradle</a>.
+ * {@link AbstractToolCommandlet} for <a href="https://gradle.org/">gradle</a>.
  */
-public class Gradle extends LocalToolCommandlet {
+public class Gradle extends AbstractLocalToolCommandlet {
 
   /** build.gradle file name */
   public static final String BUILD_GRADLE = "build.gradle";

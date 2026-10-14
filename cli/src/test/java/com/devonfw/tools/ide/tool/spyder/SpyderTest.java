@@ -1,12 +1,15 @@
 package com.devonfw.tools.ide.tool.spyder;
 
 import java.nio.file.Path;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.CapturingProcessContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.claude.RecordingEnvironmentContext;
 import com.devonfw.tools.ide.tool.pip.PipBasedCommandlet;
@@ -62,8 +65,11 @@ class SpyderTest extends AbstractIdeContextTest {
     assertThat(commandlet).isInstanceOf(PipBasedIdeToolCommandlet.class);
   }
 
+  /**
+   * Tests that {@link Spyder#setEnvironment} points SPYDER_CONFDIR to the workspace-specific config directory.
+   */
   @Test
-  void testSpyderSetEnvironmentUsesIsolatedConfigDir() {
+  void testSpyderSetEnvironmentUsesWorkspaceConfigDir() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_PIP);
@@ -75,7 +81,25 @@ class SpyderTest extends AbstractIdeContextTest {
     // act
     commandlet.setEnvironment(environmentContext, installation, false);
 
-    // assert
-    assertThat(environmentContext.set).containsEntry("SPYDER_CONFIG_DIR", context.getConfPath().resolve("spyder").toString());
+    // assert — SPYDER_CONFDIR points to workspace/.spyder-py3
+    assertThat(environmentContext.set).containsEntry("SPYDER_CONFDIR", context.getWorkspacePath().resolve(".spyder-py3").toString());
+  }
+
+  /**
+   * Tests that {@link Spyder#configureToolArgs} points the IDE at the current workspace by adding the {@code --project} argument.
+   */
+  @Test
+  void testSpyderConfigureToolArgsAddsProjectArg() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_PIP);
+    Spyder commandlet = new Spyder(context);
+    CapturingProcessContextTest pc = new CapturingProcessContextTest(context);
+
+    // act
+    commandlet.configureToolArgs(pc, ProcessMode.DEFAULT, List.of());
+
+    // assert — spyder is started with --project pointing to the workspace
+    assertThat(pc.getArgs()).containsExactly("--project", context.getWorkspacePath().toString());
   }
 }

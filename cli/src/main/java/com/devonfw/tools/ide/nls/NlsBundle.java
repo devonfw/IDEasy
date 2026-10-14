@@ -6,7 +6,7 @@ import java.util.ResourceBundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.Property;
 
@@ -86,29 +86,29 @@ public class NlsBundle {
   }
 
   /**
-   * @param commandlet the {@link com.devonfw.tools.ide.commandlet.Commandlet} to get the help summary for.
+   * @param commandlet the {@link AbstractCommandlet} to get the help summary for.
    * @return the localized message (translated to the users language).
    */
-  public String get(Commandlet commandlet) {
+  public String get(AbstractCommandlet commandlet) {
 
     return get("cmd." + commandlet.getName());
   }
 
   /**
-   * @param commandlet the {@link com.devonfw.tools.ide.commandlet.Commandlet} to get the help detail for.
+   * @param commandlet the {@link AbstractCommandlet} to get the help detail for.
    * @return the localized message (translated to the users language).
    */
-  public String getDetail(Commandlet commandlet) {
+  public String getDetail(AbstractCommandlet commandlet) {
 
     return get("cmd." + commandlet.getName() + ".detail");
   }
 
   /**
-   * @param commandlet the {@link Commandlet} {@link Commandlet#getProperties() owning} the given {@link Property}.
+   * @param commandlet the {@link AbstractCommandlet} {@link AbstractCommandlet#getProperties() owning} the given {@link Property}.
    * @param property the {@link Property} to the the description of.
    * @return the localized message describing the property.
    */
-  public String get(Commandlet commandlet, Property<?> property) {
+  public String get(AbstractCommandlet commandlet, Property<?> property) {
 
     String prefix = "opt.";
     if (property.isValue()) {

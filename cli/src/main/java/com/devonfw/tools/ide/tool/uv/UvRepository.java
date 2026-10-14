@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.json.JsonMapping;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.pip.PypiObject;
 import com.devonfw.tools.ide.tool.repository.ArtifactToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -39,7 +39,7 @@ public class UvRepository extends ArtifactToolRepository<UvArtifact, UvArtifactM
   }
 
   @Override
-  protected UvArtifact resolveArtifact(String tool, String edition, VersionIdentifier version, ToolCommandlet toolCommandlet) {
+  protected UvArtifact resolveArtifact(String tool, String edition, VersionIdentifier version, AbstractToolCommandlet toolCommandlet) {
     if (toolCommandlet instanceof UvBasedCommandlet uv) {
       String name = uv.getPackageName();
       if (version == null) {

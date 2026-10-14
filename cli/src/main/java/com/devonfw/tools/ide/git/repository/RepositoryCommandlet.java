@@ -12,20 +12,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.cli.CliAbortException;
-import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.git.GitUrl;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.property.RepositoryProperty;
 import com.devonfw.tools.ide.step.Step;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 
 /**
- * {@link Commandlet} to setup one or multiple GIT repositories for development.
+ * {@link AbstractCommandlet} to setup one or multiple GIT repositories for development.
  */
-public class RepositoryCommandlet extends Commandlet {
+public class RepositoryCommandlet extends AbstractCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(RepositoryCommandlet.class);
   private static final String REPOSITORY = "repository";
@@ -258,7 +258,7 @@ public class RepositoryCommandlet extends Commandlet {
     if (buildCmd != null && !buildCmd.isEmpty()) {
       return this.context.newStep("Build repository via: " + buildCmd).run(() -> {
         String[] command = buildCmd.split("\\s+");
-        ToolCommandlet commandlet = this.context.getCommandletManager().getToolCommandlet(command[0]);
+        AbstractToolCommandlet commandlet = this.context.getCommandletManager().getToolCommandlet(command[0]);
         if (commandlet == null) {
           String displayName = (command[0] == null || command[0].isBlank()) ? "<empty>" : "'" + command[0] + "'";
           LOG.error("Cannot build repository. Required tool '{}' not found. Please check your repository's build_cmd configuration value.",
@@ -293,13 +293,13 @@ public class RepositoryCommandlet extends Commandlet {
     for (String ide : imports) {
       Step step = this.context.newStep("Importing repository " + repositoryId + " into " + ide);
       step.run(() -> {
-        ToolCommandlet commandlet = this.context.getCommandletManager().getToolCommandlet(ide);
+        AbstractToolCommandlet commandlet = this.context.getCommandletManager().getToolCommandlet(ide);
         if (commandlet == null) {
           String displayName = (ide == null || ide.isBlank()) ? "<empty>" : "'" + ide + "'";
           step.error("Cannot import repository '{}'. Required IDE '{}' not found. Please check your repository's imports configuration.", repositoryId,
               displayName);
-        } else if (commandlet instanceof IdeToolCommandlet ideCommandlet) {
-          ideCommandlet.importRepository(repositoryPath);
+        } else if (commandlet instanceof IdeToolCommandlet ideToolCommandlet) {
+          ideToolCommandlet.importRepository(repositoryPath);
         } else {
           step.error("Repository {} has import {} configured that is not an IDE!", repositoryId, ide);
         }
