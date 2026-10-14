@@ -29,7 +29,7 @@ public class IdeLauncherTab extends TabComponent<IdeLauncherViewModel> {
     this.view = new IdeLauncherView(this.viewModel, this.nlsService);
     this.tab = new Tab(this.nlsService.get(tabTitleKey), this.view);
     this.tab.setUserData(tabTitleKey);
-    this.tab.setClosable(true);
+    this.tab.setClosable(false);
 
     return this.view;
   }
