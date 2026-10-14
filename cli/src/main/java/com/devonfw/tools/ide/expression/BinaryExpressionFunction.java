@@ -11,14 +11,6 @@ public abstract class BinaryExpressionFunction implements ExpressionFunction {
   private final int minArgs;
 
   /**
-   * The constructor for a function where both arguments are required.
-   */
-  protected BinaryExpressionFunction() {
-
-    this(2);
-  }
-
-  /**
    * The constructor.
    *
    * @param minArgs the {@link #getMinArgs() minimum number of arguments} (1 if the 2nd argument is optional, 2 if it is required).
