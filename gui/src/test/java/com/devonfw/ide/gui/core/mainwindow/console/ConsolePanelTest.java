@@ -17,6 +17,7 @@ import javafx.stage.Stage;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.ide.gui.HeadlessApplicationTest;
+import com.devonfw.ide.gui.core.context.IdeGuiLogListener;
 import com.devonfw.ide.gui.core.event.GuiEventBus;
 import com.devonfw.ide.gui.core.service.NlsService;
 import com.devonfw.tools.ide.log.IdeLogLevel;
@@ -25,6 +26,8 @@ class ConsolePanelTest extends HeadlessApplicationTest {
 
   private ConsoleViewModel consoleViewModel;
 
+  private GuiEventBus eventBus;
+
   @Override
   public void start(Stage stage) throws IOException {
 
@@ -32,7 +35,7 @@ class ConsolePanelTest extends HeadlessApplicationTest {
     assertThat(consoleViewUrl).as("Cannot resolve console UI FXML resource!").isNotNull();
 
     NlsService nlsService = new NlsService(Locale.ENGLISH);
-    GuiEventBus eventBus = new GuiEventBus();
+    eventBus = new GuiEventBus();
 
     FXMLLoader fxmlLoader = new FXMLLoader(consoleViewUrl);
     fxmlLoader.setResources(nlsService.getResourceBundle());
@@ -129,5 +132,44 @@ class ConsolePanelTest extends HeadlessApplicationTest {
 
     // Just verify auto-scroll is enabled by default
     assertThat(consoleViewModel.autoScrollEnabledProperty().get()).isTrue();
+  }
+
+  /**
+   * Tests the event-bus path of the rework: a log forwarded by {@link IdeGuiLogListener} over the {@link GuiEventBus} ends up in the console, and a non-null
+   * {@code Throwable} yields an additional error line.
+   */
+  @Test
+  void testLogEventArrivingOverTheEventBusIsShown() {
+
+    // Forward logs over the event bus - the path used since the rework instead of a direct appendOutput call
+    IdeGuiLogListener listener = new IdeGuiLogListener(eventBus);
+    Platform.runLater(() -> {
+      listener.onLog(IdeLogLevel.INFO, "Info via EventBus", null, null, null);
+      listener.onLog(IdeLogLevel.ERROR, "Error via EventBus", null, null, new RuntimeException("boom"));
+    });
+    waitForFxEvents();
+
+    List<String> snapshot = consoleViewModel.getConsoleOutputSnapshot();
+    assertThat(snapshot).anyMatch(s -> s.contains("[INFO] Info via EventBus"));
+    assertThat(snapshot).anyMatch(s -> s.contains("[ERROR] Error via EventBus"));
+    assertThat(snapshot).anyMatch(s -> s.contains("[ERROR]   Error: boom"));
+  }
+
+  /**
+   * Tests the off-FX-thread path of the rework: a log emitted from a non-FX worker thread (as commandlet logs are) must not be lost. It is buffered by the
+   * view-model and flushed to the console on the FX application thread (see {@link javafx.application.Platform#runLater(Runnable)}).
+   */
+  @Test
+  void testLogEventArrivingOnOffFxThreadIsShown() throws InterruptedException {
+
+    Thread worker = new Thread(() -> {
+      new IdeGuiLogListener(eventBus).onLog(IdeLogLevel.INFO, "Off FX", null, null, null);
+    });
+    worker.start();
+    worker.join(); // ensure the log was emitted before asserting
+    waitForFxEvents();
+
+    List<String> snapshot = consoleViewModel.getConsoleOutputSnapshot();
+    assertThat(snapshot).anyMatch(s -> s.contains("[INFO] Off FX"));
   }
 }
