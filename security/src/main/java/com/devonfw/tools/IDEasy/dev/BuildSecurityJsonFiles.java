@@ -151,8 +151,7 @@ public class BuildSecurityJsonFiles implements Runnable {
     return new Cve(cveName, severity.doubleValue(), versions, conditions);
   }
 
-    static List<VersionRange> toVersions(Vulnerability vulnerability, AbstractUrlUpdater urlUpdater,
-        Map<String, List<VersionRange>> conditions) {
+  static List<VersionRange> toVersions(Vulnerability vulnerability, String edition, AbstractUrlUpdater urlUpdater,
       Map<String, List<VersionRange>> conditions) {
 
     String id = vulnerability.getName();
