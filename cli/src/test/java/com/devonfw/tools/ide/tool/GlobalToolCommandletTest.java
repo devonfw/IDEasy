@@ -215,6 +215,10 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     assertThat(executedCommands).hasSize(2);
     assertThat(executedCommands.get(0)).contains("sudo apt -y autoremove --purge mytool");
     assertThat(executedCommands.get(1)).contains("sudo rm -f /etc/apt/sources.list.d/mytool.list");
+    assertThat(context).log().hasEntries(
+        IdeLogEntry.ofInteraction("sudo apt -y autoremove --purge mytool"),
+        IdeLogEntry.ofInteraction("sudo rm -f /etc/apt/sources.list.d/mytool.list"),
+        IdeLogEntry.ofSuccess("Successfully uninstalled mytool"));
   }
 
   /**
