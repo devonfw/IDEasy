@@ -18,15 +18,14 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
-import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
+import com.devonfw.tools.ide.tool.ide.AbstractIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
- * {@link ToolCommandlet} for <a href="https://code.visualstudio.com/">vscode</a>.
+ * {@link AbstractToolCommandlet} for <a href="https://code.visualstudio.com/">vscode</a>.
  */
-public class Vscode extends IdeToolCommandlet {
+public class Vscode extends AbstractIdeToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Vscode.class);
 
@@ -133,7 +132,7 @@ public class Vscode extends IdeToolCommandlet {
   }
 
   @Override
-  protected Map<Path, Path> getWorkspaceRedirects(Path workspaceFolder) {
+  public Map<Path, Path> getWorkspaceRedirects(Path workspaceFolder) {
 
     // the settings still provide the user settings template in the legacy location inside the workspace
     return Map.of(workspaceFolder.resolve(LEGACY_USER_DATA), getUserDataPath());

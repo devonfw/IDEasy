@@ -14,9 +14,9 @@ import com.devonfw.tools.ide.tool.BuildTool;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link Commandlet} to build and deploy a release of the current project.
+ * {@link AbstractCommandlet} to build and deploy a release of the current project.
  */
-public class ReleaseCommandlet extends Commandlet {
+public class ReleaseCommandlet extends AbstractCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(ReleaseCommandlet.class);
 

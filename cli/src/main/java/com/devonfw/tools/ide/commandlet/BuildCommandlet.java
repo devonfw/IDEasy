@@ -10,9 +10,9 @@ import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.tool.BuildTool;
 
 /**
- * Build tool {@link Commandlet} for automatically detecting build configuration files and running the respective tool.
+ * Build tool {@link AbstractCommandlet} for automatically detecting build configuration files and running the respective tool.
  */
-public class BuildCommandlet extends Commandlet {
+public class BuildCommandlet extends AbstractCommandlet {
 
   /** The explicit build options to use (if empty use defaults). */
   public final StringProperty arguments;

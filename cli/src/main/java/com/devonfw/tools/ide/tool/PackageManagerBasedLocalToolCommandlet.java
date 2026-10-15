@@ -16,11 +16,11 @@ import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link LocalToolCommandlet} for tools that have their own {@link #getToolRepository() repository} and do not follow standard installation mechanism.
+ * {@link AbstractLocalToolCommandlet} for tools that have their own {@link #getToolRepository() repository} and do not follow standard installation mechanism.
  *
- * @param <P> type of the {@link ToolCommandlet} acting as {@link #getPackageManagerClass() package manager}.
+ * @param <P> type of the {@link AbstractToolCommandlet} acting as {@link #getPackageManagerClass() package manager}.
  */
-public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolCommandlet> extends LocalToolCommandlet {
+public abstract class PackageManagerBasedLocalToolCommandlet<P extends AbstractToolCommandlet> extends AbstractLocalToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(PackageManagerBasedLocalToolCommandlet.class);
 
@@ -47,7 +47,7 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
   public boolean isInstalled() {
 
     // Check if parent tool is installed first - if not, this tool cannot be installed
-    LocalToolCommandlet parentTool = getParentTool();
+    AbstractLocalToolCommandlet parentTool = getParentTool();
     if (!parentTool.isInstalled()) {
       return false;
     }
@@ -85,7 +85,7 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
 
     completeRequest(request);
     ProcessContext pc = request.getProcessContext();
-    ToolCommandlet pm = request.getPackageManager();
+    AbstractToolCommandlet pm = request.getPackageManager();
     if (!skipInstallation) { // See Node.postInstallOnNewInstallation
       ToolInstallRequest installRequest = new ToolInstallRequest(true);
       installRequest.setProcessContext(pc.createChild());
@@ -223,7 +223,7 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
     }
   }
 
-  protected abstract LocalToolCommandlet getParentTool();
+  protected abstract AbstractLocalToolCommandlet getParentTool();
 
   @Override
   public Path getToolPath() {

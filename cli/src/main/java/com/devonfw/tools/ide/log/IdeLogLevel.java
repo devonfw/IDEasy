@@ -6,6 +6,7 @@ import org.slf4j.MarkerFactory;
 import org.slf4j.event.Level;
 import org.slf4j.spi.LoggingEventBuilder;
 
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
 
 /**
@@ -42,7 +43,7 @@ public enum IdeLogLevel {
    */
   ERROR("\033[91m", Level.ERROR, null, JulLogLevel.ERROR),
 
-  /** {@link IdeLogLevel} for {@link com.devonfw.tools.ide.commandlet.Commandlet#isProcessableOutput() processable output} */
+  /** {@link IdeLogLevel} for {@link AbstractCommandlet#isProcessableOutput() processable output} */
   PROCESSABLE(null, Level.INFO, MarkerFactory.getMarker("PROCESSABLE"), JulLogLevel.PROCESSABLE);
 
   private final String color;
