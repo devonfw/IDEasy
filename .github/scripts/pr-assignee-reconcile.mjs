@@ -33,15 +33,12 @@
 //                            A GITHUB_TOKEN is NOT sufficient for the board
 //                            lookup: it is scoped to the triggering repository
 //                            and cannot enumerate an org's Projects v2 boards.
-//                            A personal PAT with the "project" scope can be
-//                            used to dry-run against a user's OWN board. PRs from
-//                            OTHER repos that share the board are best-effort: a
-//                            403/404 there is logged and skipped (not fatal), so
-//                            the invariant only holds for in-repo PRs.
-//   GH_ACCOUNT               GitHub account (user OR organization) that owns
-//                            the board (default: devonfw). Personal / fork
-//                            boards live under a user account, so both are
-//                            searched (user first, then org).
+//                            PRs from OTHER repos that share the board are
+//                            best-effort: a 403/404 there is logged and skipped
+//                            (not fatal), so the invariant only holds for
+//                            in-repo PRs.
+//   GH_ACCOUNT               the organization that owns the board
+//                            (default: devonfw).
 //   BOARD_TITLE              board title to manage                    (default: "IDEasy board")
 //   TEAM_REVIEW_COLUMN       Status option that means "under team review"
 //                            (default: "Team Review")
@@ -65,21 +62,6 @@
 import { COLUMNS, computeTarget, computeDiff } from './reconcile-core.mjs';
 
 const API = 'https://api.github.com';
-
-// Boards are looked up separately for the user and the org account of the
-// same login, because a combined `user + organization` query in one request
-// makes GitHub return a NOT_FOUND error for whichever account type does not
-// exist — and the graphql() helper treats any error as fatal.
-const USER_BOARDS_QUERY = `
-query ($login: String!, $after: String) {
-  user(login: $login) {
-    projectsV2(first: 100, after: $after) {
-      nodes { id title }
-      pageInfo { hasNextPage endCursor }
-    }
-  }
-}
-`;
 
 const ORG_BOARDS_QUERY = `
 query ($login: String!, $after: String) {
@@ -106,6 +88,7 @@ query ($id: ID!, $after: String) {
                 number
                 state
                 mergedAt
+                isDraft
                 author { login }
                 repository { nameWithOwner }
                 assignees(first: 30) { nodes { login } }
@@ -183,9 +166,8 @@ async function graphql(query, variables) {
 /**
  * Like {@link graphql}, but treats a GraphQL NOT_FOUND as "the thing was not
  * found here" (returns `null`) instead of aborting the run. Used by the board
- * lookup: the account may be a USER (fork/personal board) or an ORGANIZATION,
- * so the query for whichever account type does not exist is expected to come
- * back NOT_FOUND and must not be fatal. Any other error is still fatal.
+ * lookup, which may legitimately find no boards for the account; any other
+ * error is still fatal.
  */
 async function graphqlTolerantNotFound(query, variables) {
   const res = await fetch(`${API}/graphql`, {
@@ -250,33 +232,26 @@ async function findField(boardId, fieldName) {
 }
 
 async function findBoard(login, title) {
-  // The board owner is a GitHub account of unknown type: try the user
-  // account first (personal / fork boards live there), then the organization
-  // (the production case, e.g. devonfw). Each lookup runs its own query, and
-  // a NOT_FOUND — "this account type does not exist" (the fork is a user, so
-  // no org by that login) — is tolerated and the next account type is tried.
-  const lookups = [
-    { query: USER_BOARDS_QUERY, field: 'user' },
-    { query: ORG_BOARDS_QUERY, field: 'organization' },
-  ];
-  for (const { query, field } of lookups) {
-    let after = null;
-    for (let page = 0; page < 50; page++) {
-      const data = await graphqlTolerantNotFound(query, { login, after });
-      const proj = data?.[field]?.projectsV2;
-      if (!proj) {
-        break; // account does not exist or has no boards; try the next one
-      }
-      for (const node of proj.nodes) {
-        if (node.title === title) {
-          return { id: node.id, title: node.title };
-        }
-      }
-      if (!proj.pageInfo.hasNextPage) {
-        break;
-      }
-      after = proj.pageInfo.endCursor;
+  // The board lives on the org account (GH_ACCOUNT, e.g. devonfw). Paginate
+  // the org's projectsV2 boards and match by title. A NOT_FOUND / empty result
+  // (the account has no boards) returns null from the lookup and we report it
+  // below; any other GraphQL error is fatal.
+  let after = null;
+  for (let page = 0; page < 50; page++) {
+    const data = await graphqlTolerantNotFound(ORG_BOARDS_QUERY, { login, after });
+    const proj = data?.organization?.projectsV2;
+    if (!proj) {
+      break; // account has no boards (or does not exist)
     }
+    for (const node of proj.nodes) {
+      if (node.title === title) {
+        return { id: node.id, title: node.title };
+      }
+    }
+    if (!proj.pageInfo.hasNextPage) {
+      break;
+    }
+    after = proj.pageInfo.endCursor;
   }
   // The board is expected to exist, so a miss here is almost always an
   // insufficient token: a GITHUB_TOKEN (scoped to the triggering repository)
@@ -334,14 +309,22 @@ async function readPrItems(boardId, reviewerFieldName, takeoverLabel) {
       // "dependabot" via GraphQL (the board query) but as "dependabot[bot]"
       // via the REST API, so match both; any other "[bot]" login is a bot too.
       const isBot = (login) => login === 'dependabot' || login.endsWith('[bot]');
-      const manageable = pr.state === 'OPEN' && pr.mergedAt === null && !isBot(pr.author.login);
+      // A PR whose author account was deleted has a null GraphQL author. We
+      // can't read its login here (it would throw) and have nothing to
+      // reconcile against, so skip it instead of letting it abort the whole run.
+      const authorLogin = pr.author?.login;
+      if (!authorLogin) {
+        console.warn(`[reconcile]   ! #${pr.number} has no readable author (deleted account?); skipping`);
+        continue;
+      }
+      const manageable = pr.state === 'OPEN' && pr.mergedAt === null && !pr.isDraft && !isBot(authorLogin);
       if (!manageable) {
         continue;
       }
       items.push({
         itemId: node.id,
         number: pr.number,
-        author: pr.author.login,
+        author: authorLogin,
         repo: pr.repository.nameWithOwner,
         assignees: pr.assignees.nodes.map((a) => a.login),
         statusName: statusValue?.name ?? '',
@@ -499,6 +482,11 @@ async function main() {
     if (target.anomaly) {
       console.warn(`[reconcile]   ! ${pr.number}: ${target.anomaly}`);
     }
+    // Count the field writes the same way as the assignee changes: in dry-run
+    // this is how many the run WOULD have written, in apply how many it does.
+    if (willFillField) {
+      fieldWrites++;
+    }
     if (!dryRun) {
       // Apply the assignee change first and only then record the reviewer in
       // the field, so the field never points at a reviewer who was not actually
@@ -508,7 +496,6 @@ async function main() {
         await applyAssignees(pr.repo, pr.number, diff.toAdd, diff.toRemove);
       }
       if (willFillField) {
-        fieldWrites++;
         await setReviewerField(board.id, pr.itemId, reviewerField.id, target.setField);
       }
     }
