@@ -2,12 +2,14 @@ package com.devonfw.tools.ide.tool.plugin;
 
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.Set;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
 
 /**
  * {@link Commandlet} for tools that support plugin management.
@@ -19,11 +21,44 @@ import com.devonfw.tools.ide.tool.LocalToolCommandlet;
  */
 public interface PluginBasedCommandlet extends LocalToolCommandlet {
 
+  /** The zero-based index of the major version segment (e.g. {@code 1} in {@code 1.90.0}). */
+  int MAJOR_SEGMENT = 0;
+
+  /** The zero-based index of the minor version segment (e.g. {@code 90} in {@code 1.90.0}). */
+  int MINOR_SEGMENT = 1;
+
+  /** The zero-based index of the fix version segment (e.g. {@code 0} in {@code 1.90.0}). */
+  int FIX_SEGMENT = 2;
+
   /**
    * @return the {@link PluginManager} implementing the plugin logic of the tool. Needed so that the default methods of this interface can delegate the shared
    *     plugin behaviour to a single implementation.
    */
   PluginManager getPluginManager();
+
+  /**
+   * Determines whether all installed plugins of this tool have to be purged (reset and reinstalled) as part of the installation. A purge is required if any
+   * of the {@link #getIncompatibleVersionSegments() incompatible version segments} between the installed and the requested version differs, if the tool edition
+   * changed, or if the tool is installed for the first time. Concrete IDEs may override this to apply their own compatibility strategy.
+   *
+   * @param request the {@link ToolInstallRequest} carrying the {@link ToolInstallRequest#getInstalled() installed} and
+   *     {@link ToolInstallRequest#getRequested() requested} edition and version.
+   * @return {@code true} if the installed plugins are considered incompatible with the requested version and have to be purged, {@code false} otherwise.
+   */
+  default boolean isPluginPurgeRequired(ToolInstallRequest request) {
+
+    return getPluginManager().isPluginPurgeRequired(request);
+  }
+
+  /**
+   * @return the set of version segment indices (see {@link #MAJOR_SEGMENT}, {@link #MINOR_SEGMENT}, and {@link #FIX_SEGMENT}) at which a change is considered
+   *     incompatible and hence requires a plugin purge. By default only a change of the {@link #MAJOR_SEGMENT major} segment triggers a purge, so a minor or
+   *     fix update keeps the installed plugins. Concrete IDEs may override this to reflect their own versioning scheme.
+   */
+  default Set<Integer> getIncompatibleVersionSegments() {
+
+    return Set.of(MAJOR_SEGMENT);
+  }
 
   /**
    * @return the configured edition of the tool owning the plugins (see {@code AbstractToolCommandlet#getConfiguredEdition()}).

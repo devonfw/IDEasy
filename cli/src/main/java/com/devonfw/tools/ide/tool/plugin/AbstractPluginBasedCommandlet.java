@@ -14,6 +14,7 @@ import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
+import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 
 /**
@@ -62,11 +63,28 @@ public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCom
   protected void postInstall(ToolInstallRequest request) {
 
     super.postInstall(request);
-    if (!request.isAlreadyInstalled() || this.forcePluginReinstall.isTrue()) {
+    if (this.forcePluginReinstall.isTrue() || isPluginPurgeRequired(request)) {
+      LOG.info("Resetting all installed plugins of {} ({}).", getName(), describePurgeReason(request));
       this.pluginManager.resetPlugins();
     }
     this.context.getFileAccess().mkdirs(getPluginsInstallationPath());
     installPlugins(getPlugins().getPlugins(), request.getProcessContext());
+  }
+
+  private String describePurgeReason(ToolInstallRequest request) {
+
+    if (this.forcePluginReinstall.isTrue()) {
+      return "forced via --force-plugin-reinstall";
+    }
+    ToolEditionAndVersion installed = request.getInstalled();
+    ToolEditionAndVersion requested = request.getRequested();
+    if ((installed == null) || (installed.getResolvedVersion() == null)) {
+      return "new installation";
+    }
+    if (!installed.getEdition().equals(requested.getEdition())) {
+      return "edition changed from " + installed.getEdition() + " to " + requested.getEdition();
+    }
+    return "version changed from " + installed.getResolvedVersion() + " to " + requested.getResolvedVersion();
   }
 
   /**

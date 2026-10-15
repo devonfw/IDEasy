@@ -18,6 +18,10 @@ import com.devonfw.tools.ide.environment.VariableLine;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
+import com.devonfw.tools.ide.version.VersionIdentifier;
+import com.devonfw.tools.ide.version.VersionSegment;
 
 /**
  * Manages plugin configuration and common plugin operations for tools that support plugins.
@@ -74,6 +78,55 @@ public class PluginManager {
     return this.plugins;
   }
 
+  /**
+   * Determines whether all installed plugins of the tool have to be purged (reset and reinstalled) as part of the installation. A purge is required if any of
+   * the {@link PluginBasedCommandlet#getIncompatibleVersionSegments() incompatible version segments} between the installed and requested version differs, if
+   * the tool edition changed, or if the tool is installed for the first time.
+   *
+   * @param request the {@link ToolInstallRequest} carrying the {@link ToolInstallRequest#getInstalled() installed} and
+   *     {@link ToolInstallRequest#getRequested() requested} edition and version.
+   * @return {@code true} if the installed plugins are considered incompatible with the requested version and have to be purged, {@code false} otherwise.
+   */
+  public boolean isPluginPurgeRequired(ToolInstallRequest request) {
+
+    ToolEditionAndVersion installed = request.getInstalled();
+    ToolEditionAndVersion requested = request.getRequested();
+    if ((installed == null) || (installed.getResolvedVersion() == null)) {
+      return true;
+    }
+    if ((requested == null) || (requested.getResolvedVersion() == null)) {
+      return false;
+    }
+    if (!installed.getEdition().equals(requested.getEdition())) {
+      return true;
+    }
+    return isVersionIncompatible(installed.getResolvedVersion(), requested.getResolvedVersion(), this.tool.getIncompatibleVersionSegments());
+  }
+
+  /**
+   * Determines whether a change of the version segments of the given versions at one of the incompatible segments invalidates the installed plugins.
+   *
+   * @param oldVersion the {@link VersionIdentifier} of the installed version.
+   * @param newVersion the {@link VersionIdentifier} of the requested version.
+   * @param incompatibleSegments the set of version segment indices at which a change is considered incompatible (see
+   *     {@link PluginBasedCommandlet#getIncompatibleVersionSegments()}).
+   * @return {@code true} if a changed segment is one of the {@code incompatibleSegments}, {@code false} otherwise.
+   */
+  private boolean isVersionIncompatible(VersionIdentifier oldVersion, VersionIdentifier newVersion, Set<Integer> incompatibleSegments) {
+
+    VersionSegment oldSegment = oldVersion.getStart();
+    VersionSegment newSegment = newVersion.getStart();
+    int currentSegmentIndex = 0;
+    while (oldSegment != null && newSegment != null) {
+      if (oldSegment.getNumber() != newSegment.getNumber()) {
+        return incompatibleSegments.contains(currentSegmentIndex);
+      }
+      oldSegment = oldSegment.getNextOrNull();
+      newSegment = newSegment.getNextOrNull();
+      currentSegmentIndex++;
+    }
+    return false;
+  }
 
   private void loadPluginsFromDirectory(ToolPlugins map, Path pluginsPath) {
 

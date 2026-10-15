@@ -111,7 +111,7 @@ class PycharmTest extends AbstractIdeContextTest {
     Pycharm commandlet = context.getCommandletManager().getCommandlet(Pycharm.class);
     commandlet.run();
 
-    assertThat(context).logAtSuccess().hasMessage("Successfully installed plugin: ActivePlugin");
+    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin ActivePlugin (1/1)'.");
 
     // assert
     assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"))).exists();
