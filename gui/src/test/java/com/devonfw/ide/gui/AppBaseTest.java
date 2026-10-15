@@ -34,6 +34,8 @@ import com.devonfw.ide.gui.core.mainwindow.MainWindowView;
 import com.devonfw.ide.gui.core.mainwindow.MainWindowViewModel;
 import com.devonfw.ide.gui.core.progress.ProgressBarTask;
 import com.devonfw.ide.gui.core.progress.taskwindow.TaskOverviewWindow;
+import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.environment.IdeSystemTestImpl;
 
 /**
  * Basic UI Test for the main screen
@@ -70,7 +72,12 @@ public class AppBaseTest extends HeadlessApplicationTest {
   @Override
   public void start(Stage stage) {
 
-    this.guiStateManager = new GuiStateManager(mockIdeRoot.toString());
+    // isolate the NlsService from the developer's real user home and the IDE_OPTIONS environment variable: persisting the locale must not rewrite the
+    // real ~/.ide/ide.properties, so point an isolated IdeTestContext at a throw-away home under the mock root
+    final IdeTestContext nlsContext = new IdeTestContext();
+    nlsContext.setSystem(new IdeSystemTestImpl());
+    nlsContext.setUserHome(mockIdeRoot.resolve("home"));
+    this.guiStateManager = new GuiStateManager(mockIdeRoot.toString(), nlsContext);
     this.guiStateManager.getNlsService().setLocale(Locale.ENGLISH);
     this.taskManager = guiStateManager.getTaskManager();
     this.viewModel = new MainWindowViewModel(guiStateManager);
