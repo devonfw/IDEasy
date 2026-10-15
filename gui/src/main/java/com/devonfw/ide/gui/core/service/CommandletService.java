@@ -10,10 +10,10 @@ import javafx.scene.control.Alert.AlertType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.ide.gui.context.IdeGuiLogListener;
 import com.devonfw.ide.gui.core.context.GuiOutputListener;
 import com.devonfw.ide.gui.core.context.GuiStateManager;
 import com.devonfw.ide.gui.core.context.IdeGuiContext;
+import com.devonfw.ide.gui.core.context.IdeGuiLogListener;
 import com.devonfw.ide.gui.core.event.GuiEventBus;
 import com.devonfw.ide.gui.core.event.console.LogEvent;
 import com.devonfw.ide.gui.core.modal.IdeDialog;
@@ -50,7 +50,7 @@ public class CommandletService {
   public CommandletService(GuiStateManager guiStateManager) {
     this.guiStateManager = Objects.requireNonNull(guiStateManager);
     this.eventBus = guiStateManager.getEventBus();
-    this.guiLogListener = new com.devonfw.ide.gui.context.IdeGuiLogListener(eventBus);
+    this.guiLogListener = new IdeGuiLogListener(eventBus);
     this.guiOutputListener = new GuiOutputListener(eventBus);
   }
 

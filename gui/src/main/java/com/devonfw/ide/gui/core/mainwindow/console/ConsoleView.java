@@ -1,5 +1,7 @@
 package com.devonfw.ide.gui.core.mainwindow.console;
 
+import java.text.MessageFormat;
+
 import javafx.collections.ListChangeListener.Change;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -12,7 +14,7 @@ import com.devonfw.ide.gui.core.service.NlsService;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 
 /**
- * Controller that manages an instance of a console using ListView for better performance with large outputs.
+ * View of the console
  */
 public class ConsoleView {
 
@@ -47,7 +49,8 @@ public class ConsoleView {
     setupEventHandlers();
 
     autoScrollCheckBox.selectedProperty().bindBidirectional(viewModel.autoScrollEnabledProperty());
-    lineCountLabel.textProperty().bind(viewModel.lineCountProperty().asString().concat(" lines"));
+
+    lineCountLabel.textProperty().bind(viewModel.lineCountProperty().asString().map(s -> MessageFormat.format(nlsService.get("console_line_count"), s)));
   }
 
   /**

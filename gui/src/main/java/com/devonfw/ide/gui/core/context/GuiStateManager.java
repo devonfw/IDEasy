@@ -3,7 +3,6 @@ package com.devonfw.ide.gui.core.context;
 import java.io.FileNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Locale;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import javafx.beans.property.BooleanProperty;
@@ -73,7 +72,7 @@ public class GuiStateManager {
     this.projectManager = new ProjectManager(ideRootDir);
     this.taskManager = new TaskManager();
     this.eventBus = new GuiEventBus();
-    this.nlsService = new NlsService(Locale.getDefault());
+    this.nlsService = new NlsService(null);
     this.commandletService = new CommandletService(this);
     this.tabFactory = new TabFactory(this);
 
