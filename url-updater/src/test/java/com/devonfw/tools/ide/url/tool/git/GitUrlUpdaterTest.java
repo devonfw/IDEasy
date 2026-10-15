@@ -36,7 +36,7 @@ class GitUrlUpdaterTest extends AbstractUrlUpdaterTest {
   void testGitUrlUpdater(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange
-    stubFor(get(urlMatching("/repos/git-for-windows/git/releases"))
+    stubFor(get(urlEqualTo("/repos/git-for-windows/git/releases?per_page=100"))
         .willReturn(aResponse()
             .withStatus(200)
             .withBody(readAndResolve(
