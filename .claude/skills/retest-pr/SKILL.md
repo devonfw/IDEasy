@@ -4,7 +4,7 @@ description: Retest merged IDEasy pull requests against the nightly SNAPSHOT (QA
 argument-hint: [pr-number]
 ---
 
-The user asked to retest merged pull requests. (Provided: $0)
+The user asked to retest merged pull requests. (Provided after the command: $0)
 
 The process is defined in `documentation/contributing/retest.adoc`. Read it first, it is the source
 of truth and wins over this skill if they differ.

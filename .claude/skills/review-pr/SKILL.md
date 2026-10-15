@@ -5,7 +5,7 @@ argument-hint: [pr-number]
 model: opus
 ---
 
-The user asked to review a pull request. (Provided: $0)
+The user asked to review a pull request. (Provided after the command: $0)
 
 **Clarify scope**
 

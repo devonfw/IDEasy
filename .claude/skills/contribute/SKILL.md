@@ -5,8 +5,9 @@ argument-hint: <issue-number>
 model: sonnet
 ---
 
-Let's start working on issue #$0. Remotes follow the convention in `AGENTS.md`: `origin` is the
-contributor's fork, `upstream` is `devonfw/IDEasy`.
+Let's start working on issue #$0 (the issue number given after the command; `$0` below stands
+for it). Remotes follow the convention in `AGENTS.md`: `origin` is the contributor's fork,
+`upstream` is `devonfw/IDEasy`.
 
 You need to:
 

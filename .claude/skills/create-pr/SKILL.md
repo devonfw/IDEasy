@@ -11,7 +11,7 @@ set-up feature branch.
 **Clarify state of work**
 
 - Clarify which issue is intended to be worked on. If unclear: STOP, ASK THE USER to specify the
-  issue number, AND RESUME. (Provided: $0)
+  issue number, AND RESUME. (Provided after the command: $0)
 - Check the state of the local repository:
   - Whether uncommitted changes exist. If so: STOP, ASK THE USER whether these are intended to be
     included in the pull request, AND RESUME.
