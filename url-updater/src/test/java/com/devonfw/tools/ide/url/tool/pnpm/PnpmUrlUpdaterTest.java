@@ -59,8 +59,8 @@ public class PnpmUrlUpdaterTest extends AbstractUrlUpdaterTest {
     assertUrlVersion(pnpmDir.resolve("11.0.0"), expectedPlatforms);
 
     // versions below the minimum (pre-v11, which used a different asset naming) and pre-release versions are not registered
-    Assertions.assertThat(pnpmDir.resolve("10.34.7")).doesNotExist();
-    Assertions.assertThat(pnpmDir.resolve("8.6.0")).doesNotExist();
-    Assertions.assertThat(pnpmDir.resolve("12.13.0-alpha.1")).doesNotExist();
+    assertThat(pnpmDir.resolve("10.34.7")).doesNotExist();
+    assertThat(pnpmDir.resolve("8.6.0")).doesNotExist();
+    assertThat(pnpmDir.resolve("12.13.0-alpha.1")).doesNotExist();
   }
 }
