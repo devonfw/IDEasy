@@ -16,6 +16,7 @@ import org.mockito.Mockito;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.CapturingProcessContextMock;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogEntry;
@@ -336,31 +337,42 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     protected String getBinaryName() {
       return TOOL_NAME;
     }
+
+    @Override
+    protected boolean isPackageManagerAvailable(NativePackageManager packageManager) {
+      // apt is not on the PATH on Windows/macOS build machines, so pretend it is available to make the test OS-independent
+      return true;
+    }
   }
 
   /**
-   * Verifies that {@link GlobalToolCommandlet#getUninstallPackageManagerCommands()} correctly derives uninstall commands from
-   * {@link GlobalToolCommandlet#getNativePackages()}.
+   * Verifies that calling {@link GlobalToolCommandlet#uninstall()} on Linux executes the uninstall commands via package manager. Uses a mock
+   * {@link ProcessContext} to capture executed commands without actually running them.
    */
   @Test
-  void testGetUninstallPackageManagerCommandsDerivesFromNativePackages() {
+  void testUninstallExecutesPackageManagerCommandsAndLogsThem() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
     context.setSystemInfo(SystemInfoMock.LINUX_X64);
     PackageManagedToolCommandlet commandlet = new PackageManagedToolCommandlet(context);
 
-    // act
-    List<PackageManagerCommand> uninstallCommands = commandlet.getUninstallPackageManagerCommands();
+    // Create a mock ProcessContext that captures commands but doesn't execute them
+    CapturingProcessContextMock mockProcessContext = new CapturingProcessContextMock(context);
+    context.setProcessContext(mockProcessContext);
 
-    // assert: exactly one command for APT
-    assertThat(uninstallCommands).hasSize(1);
-    PackageManagerCommand cmd = uninstallCommands.getFirst();
-    assertThat(cmd.packageManager()).isEqualTo(NativePackageManager.APT);
-    // The uninstall command includes the package removal and the cleanup command
-    assertThat(cmd.commands()).containsExactly(
-        "sudo apt -y autoremove --purge mytool",
-        "sudo rm -f /etc/apt/sources.list.d/mytool.list");
+    // act
+    commandlet.uninstall();
+
+    // assert: verify the commands were captured by our mock (no actual execution)
+    List<String> executedCommands = mockProcessContext.getExecutedCommands();
+    assertThat(executedCommands).hasSize(2);
+    assertThat(executedCommands.get(0)).contains("sudo apt -y autoremove --purge mytool");
+    assertThat(executedCommands.get(1)).contains("sudo rm -f /etc/apt/sources.list.d/mytool.list");
+    assertThat(context).log().hasEntries(
+        IdeLogEntry.ofInteraction("sudo apt -y autoremove --purge mytool"),
+        IdeLogEntry.ofInteraction("sudo rm -f /etc/apt/sources.list.d/mytool.list"),
+        IdeLogEntry.ofSuccess("Successfully uninstalled mytool"));
   }
 
   /**
