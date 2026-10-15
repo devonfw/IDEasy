@@ -34,7 +34,7 @@ public record IdeLogEntry(IdeLogLevel level, String message, String rawMessage, 
   public IdeLogEntry {
 
     // validation to be used by all constructors...
-    if ((message == null) && (rawMessage == null)) {
+    if ((message == null) && (rawMessage == null) && (error == null)) {
       throw new IllegalStateException();
     }
   }
