@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.util.Objects;
 
 import javafx.beans.binding.Bindings;
+import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SplitPane;
@@ -15,6 +17,7 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +60,12 @@ public class MainWindowView extends BorderPane {
 
   @FXML
   private TabPane tabPane;
+
+  @FXML
+  private VBox welcomePane;
+
+  @FXML
+  private Button openLauncherButton;
 
   @FXML
   private SplitPane centerSplitPane;
@@ -122,10 +131,10 @@ public class MainWindowView extends BorderPane {
 
     this.centerDivider = this.centerSplitPane.getDividers().getFirst();
 
+    bindWelcomePane();
     bindConsole();
     bindStatusBar();
 
-    this.viewModel.openLauncherTab();
   }
 
   private void handleTab(Tab tab) {
@@ -134,6 +143,20 @@ public class MainWindowView extends BorderPane {
       this.tabPane.getTabs().add(tab);
     }
     this.tabPane.getSelectionModel().select(tab);
+  }
+
+  private void bindWelcomePane() {
+
+    this.welcomePane.visibleProperty().bind(this.viewModel.welcomeVisibleProperty());
+    this.welcomePane.managedProperty().bind(this.viewModel.welcomeVisibleProperty());
+    // An empty TabPane still paints its header, so it is hidden to keep it from covering the welcome pane.
+    this.tabPane.visibleProperty().bind(this.viewModel.welcomeVisibleProperty().not());
+    this.tabPane.managedProperty().bind(this.viewModel.welcomeVisibleProperty().not());
+
+    this.tabPane.getTabs().addListener((ListChangeListener<Tab>) _ -> this.viewModel.setOpenTabCount(this.tabPane.getTabs().size()));
+    this.viewModel.setOpenTabCount(this.tabPane.getTabs().size());
+
+    this.openLauncherButton.setOnAction(_ -> this.viewModel.openLauncherTab());
   }
 
   private void bindConsole() {

@@ -40,3 +40,16 @@
   -fx-border-radius: 10;
   -fx-background-radius: 10;
 }
+
+.welcomePane {
+
+  -fx-background-color: #F5F5F5;
+  -fx-padding: 20;
+}
+
+.welcomeTitle {
+
+  -fx-font-size: 28px;
+  -fx-font-family: Arial;
+  -fx-font-weight: bold;
+}

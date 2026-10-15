@@ -11,9 +11,22 @@
       <center>
         <!-- CONTENT AREA -->
         <SplitPane fx:id="centerSplitPane" dividerPositions="1.0" BorderPane.alignment="CENTER" orientation="VERTICAL">
-          <TabPane fx:id="tabPane" tabClosingPolicy="ALL_TABS">
-            <tabs/>
-          </TabPane>
+          <StackPane fx:id="contentStack">
+            <!-- WELCOME PANE: only visible while no tab is open -->
+            <VBox fx:id="welcomePane"
+              alignment="CENTER"
+              spacing="16.0"
+              stylesheets="@../../style/center.css"
+              styleClass="welcomePane">
+              <Label fx:id="welcomeLabel" text="%welcome_title" styleClass="welcomeTitle"/>
+              <Button fx:id="openLauncherButton"
+                text="%welcome_open_launcher"
+                styleClass="launchButton"/>
+            </VBox>
+            <TabPane fx:id="tabPane" tabClosingPolicy="ALL_TABS">
+              <tabs/>
+            </TabPane>
+          </StackPane>
           <fx:include source="console/console.fxml" fx:id="console"/>
         </SplitPane>
       </center>

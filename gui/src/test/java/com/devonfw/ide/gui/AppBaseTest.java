@@ -15,8 +15,10 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.SplitPane.Divider;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import org.assertj.core.data.Offset;
@@ -53,6 +55,10 @@ public class AppBaseTest extends HeadlessApplicationTest {
   private Label statusText;
   private ProgressBar taskProgressBar;
   private SplitPane centerSplitPane;
+  private TabPane tabPane;
+  private VBox welcomePane;
+  private Label welcomeLabel;
+  private Button openLauncherButton;
 
   @TempDir
   private static Path mockIdeRoot;
@@ -89,6 +95,10 @@ public class AppBaseTest extends HeadlessApplicationTest {
     centerSplitPane = FxHelper.lookup(mainWindow, "#centerSplitPane");
     statusText = FxHelper.lookup(mainWindow, "#statusLabel");
     taskProgressBar = FxHelper.lookup(mainWindow, "#statusProgressBar");
+    tabPane = FxHelper.lookup(mainWindow, "#tabPane");
+    welcomePane = FxHelper.lookup(mainWindow, "#welcomePane");
+    welcomeLabel = FxHelper.lookup(mainWindow, "#welcomeLabel");
+    openLauncherButton = FxHelper.lookup(mainWindow, "#openLauncherButton");
   }
 
   /**
@@ -312,5 +322,49 @@ public class AppBaseTest extends HeadlessApplicationTest {
 
     assertThat(consolePaneToggleButton.isSelected()).isFalse();
     assertThat(mainPanelDivider.getPosition()).isGreaterThan(0.99);
+  }
+
+  //===Welcome pane tests===
+
+  /**
+   * The launcher tab is opened on startup, so the welcome pane must stay hidden behind the visible tab pane.
+   */
+  @Test
+  void testWelcomePaneHiddenWhileTabIsOpen() {
+
+    assertThat(tabPane.getTabs()).as("The launcher tab should be open on startup").hasSize(1);
+    assertThat(welcomePane.isVisible()).as("The welcome pane should be hidden while a tab is open").isFalse();
+    assertThat(tabPane.isVisible()).as("The tab pane should be visible while a tab is open").isTrue();
+  }
+
+  /**
+   * Closing all tabs must reveal the welcome pane and hide the empty tab pane, so its header cannot cover the welcome pane.
+   */
+  @Test
+  void testWelcomePaneShownWhenAllTabsClosed() {
+
+    interact(() -> tabPane.getTabs().clear());
+    waitForFxEvents();
+
+    assertThat(welcomePane.isVisible()).as("The welcome pane should be visible when no tab is open").isTrue();
+    assertThat(tabPane.isVisible()).as("The empty tab pane should be hidden").isFalse();
+    assertThat(welcomeLabel.getText()).isEqualTo("Welcome to IDEasy");
+  }
+
+  /**
+   * The button on the welcome pane must open the IDE launcher tab and hide the welcome pane again.
+   */
+  @Test
+  void testWelcomeButtonOpensLauncherTab() {
+
+    interact(() -> tabPane.getTabs().clear());
+    waitForFxEvents();
+
+    interact(() -> openLauncherButton.fire());
+    waitForFxEvents();
+
+    assertThat(tabPane.getTabs()).as("The welcome button should open exactly one tab").hasSize(1);
+    assertThat(tabPane.getTabs().getFirst().getUserData()).as("The opened tab should be the IDE launcher").isEqualTo("tab.ide_launcher");
+    assertThat(welcomePane.isVisible()).as("The welcome pane should be hidden again once a tab is open").isFalse();
   }
 }
