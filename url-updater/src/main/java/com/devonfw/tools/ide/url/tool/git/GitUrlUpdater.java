@@ -41,6 +41,12 @@ public class GitUrlUpdater extends GithubUrlReleaseUpdater {
   }
 
   @Override
+  protected String doGetVersionUrl() {
+
+    return super.doGetVersionUrl() + "?per_page=100";
+  }
+
+  @Override
   public String mapVersion(String version) {
 
     // The git-for-windows repository publishes several products (e.g. MinGit and PortableGit) alongside the full installer.
