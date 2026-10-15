@@ -59,7 +59,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
 
   /**
    * Both are recreated for every test in {@link #start(Stage)}: a shared GuiStateManager leaks the project selection into the next test, and a shared
-   * TaskManager accumulates a status-bar listener per view model, so discarded windows keep reacting to task changes.
+   * task list view model accumulates a status-bar listener per main window view model, so discarded windows keep reacting to task changes.
    */
   private TaskManager taskManager;
 
@@ -194,18 +194,13 @@ public class AppBaseTest extends HeadlessApplicationTest {
     //Case 1: No tasks added yet, check correct message
     assertThat(statusText.getText()).isEqualTo("IDEasy is ready.");
 
-    //Case 2: Only single task exists, should display the task title and a progress bar next to the label
+    //Case 2: Only single (indeterminate) task exists, should display the task title and an indeterminate progress bar next to the label
     taskManager.addTask(task1);
     waitForFxEvents();
 
-    assertThat(statusText.getText()).isEqualTo(
-        String.format(ProgressBarTask.TASK_DESCRIPTION_STRING_FORMAT,
-            task1.getTitle(),
-            task1.getCurrentProgress(),
-            task1.getMaxSize(),
-            task1.getUnitName())
-    );
+    assertThat(statusText.getText()).isEqualTo(task1.getTitle());
     assertThat(taskProgressBar.isVisible()).as("Task progress bar should be visible").isTrue();
+    assertThat(taskProgressBar.getProgress()).isEqualTo(ProgressBar.INDETERMINATE_PROGRESS);
 
     //Case 3: Multiple tasks exist, should display the number of tasks and a progress bar next to the label
     taskManager.addTask(task2);
@@ -219,6 +214,22 @@ public class AppBaseTest extends HeadlessApplicationTest {
     waitForFxEvents();
 
     assertThat(statusText.getText()).isEqualTo("IDEasy is ready.");
+  }
+
+  /**
+   * The status bar has to follow the progress of a single running task.
+   */
+  @Test
+  protected void testStatusBarFollowsProgressOfSingleTask() {
+
+    ProgressBarTask task = new ProgressBarTask(taskManager, "task-1", "Test Task", 100, "Units", 1);
+    taskManager.addTask(task);
+
+    task.stepBy(30);
+    waitForFxEvents();
+
+    assertThat(statusText.getText()).isEqualTo("Test Task [30/100 Units]");
+    assertThat(taskProgressBar.getProgress()).isEqualTo(0.3);
   }
 
   @Test
@@ -235,8 +246,8 @@ public class AppBaseTest extends HeadlessApplicationTest {
     interact(() -> statusText.fireEvent(
         new MouseEvent(MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0, null, 1, false, false, false, false, false, false, false, false, false, false, null)));
 
-    assertThat(TaskOverviewWindow.getInstance(taskManager).getStage().isShowing()).as("Task overview window should be opened when clicking on status text")
-        .isTrue();
+    assertThat(TaskOverviewWindow.getInstance(guiStateManager.getTaskListViewModel()).getStage().isShowing())
+        .as("Task overview window should be opened when clicking on status text").isTrue();
   }
 
   /**
@@ -247,7 +258,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
   protected void testStatusTextDoesNotOpenTaskOverviewWindowForSingleTask() {
 
     // The window is a JVM-wide singleton, so an earlier test may have left it showing. getInstance builds the Stage, so it has to run on the FX thread.
-    interact(() -> TaskOverviewWindow.getInstance(this.taskManager).getStage().hide());
+    interact(() -> TaskOverviewWindow.getInstance(this.guiStateManager.getTaskListViewModel()).getStage().hide());
 
     this.taskManager.addTask(new ProgressBarTask(this.taskManager, "task-1", "Test Task"));
     waitForFxEvents();
@@ -255,7 +266,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
     interact(() -> statusText.fireEvent(
         new MouseEvent(MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0, null, 1, false, false, false, false, false, false, false, false, false, false, null)));
 
-    assertThat(TaskOverviewWindow.getInstance(this.taskManager).getStage().isShowing())
+    assertThat(TaskOverviewWindow.getInstance(this.guiStateManager.getTaskListViewModel()).getStage().isShowing())
         .as("Task overview window should not open while only a single task is running").isFalse();
   }
 

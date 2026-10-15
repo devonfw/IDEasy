@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.ide.gui.core.event.GuiEventBus;
 import com.devonfw.ide.gui.core.factory.TabFactory;
 import com.devonfw.ide.gui.core.mainwindow.console.ConsoleController;
+import com.devonfw.ide.gui.core.progress.TaskListViewModel;
 import com.devonfw.ide.gui.core.service.CommandletService;
 import com.devonfw.ide.gui.core.service.NlsService;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
@@ -50,6 +51,8 @@ public class GuiStateManager {
 
   private final TaskManager taskManager;
 
+  private final TaskListViewModel taskListViewModel;
+
   private final GuiEventBus eventBus;
 
   private final NlsService nlsService;
@@ -70,8 +73,9 @@ public class GuiStateManager {
 
     //This specific ordering needs to be kept
     this.projectManager = new ProjectManager(ideRootDir);
-    this.taskManager = new TaskManager();
     this.eventBus = new GuiEventBus();
+    this.taskManager = new TaskManager(eventBus);
+    this.taskListViewModel = new TaskListViewModel(taskManager, eventBus);
     this.nlsService = new NlsService(null);
     this.consoleController = new ConsoleController(this);
     this.commandletService = new CommandletService(this);
@@ -189,6 +193,14 @@ public class GuiStateManager {
   public TaskManager getTaskManager() {
 
     return taskManager;
+  }
+
+  /**
+   * @return the {@link TaskListViewModel} mirroring the {@link #getTaskManager() task manager} onto the JavaFX thread for all UI components displaying tasks.
+   */
+  public TaskListViewModel getTaskListViewModel() {
+
+    return taskListViewModel;
   }
 
   /**
