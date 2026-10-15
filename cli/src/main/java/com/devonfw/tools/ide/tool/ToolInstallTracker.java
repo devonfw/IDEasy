@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.devonfw.tools.ide.version.VersionIdentifier;
+
 /**
  * Tracks which tools have already been installed (including their CVE check) during a single <code>ide update</code> / <code>ide create</code> process so the
  * same tool+version is not processed again when it is referenced both as a top-level tool and as a dependency.
@@ -25,12 +27,24 @@ public final class ToolInstallTracker {
    */
   public void recordInstalled(ToolEditionAndVersion toolEditionAndVersion) {
 
-    if ((toolEditionAndVersion == null) || (toolEditionAndVersion.getEdition() == null)
-        || (toolEditionAndVersion.getResolvedVersion() == null)) {
+    if (toolEditionAndVersion == null) {
       return;
     }
-    installed.computeIfAbsent(toolEditionAndVersion.getEdition(), edition -> new HashSet<>())
-        .add(toolEditionAndVersion.getResolvedVersion().toString());
+    recordInstalled(toolEditionAndVersion.getEdition(), toolEditionAndVersion.getResolvedVersion());
+  }
+
+  /**
+   * Records that the given tool edition has been installed in the given version during this process.
+   *
+   * @param edition the {@link ToolEdition} that has been installed.
+   * @param resolvedVersion the {@link VersionIdentifier} that has been installed.
+   */
+  public void recordInstalled(ToolEdition edition, VersionIdentifier resolvedVersion) {
+
+    if ((edition == null) || (resolvedVersion == null)) {
+      return;
+    }
+    installed.computeIfAbsent(edition, e -> new HashSet<>()).add(resolvedVersion.toString());
   }
 
   /**

@@ -18,6 +18,7 @@ import com.devonfw.tools.ide.git.GitContextMock;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
+import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
@@ -104,6 +105,49 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
     assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install extra version(s) of java'.");
     assertThat(context).logAtSuccess().hasMessageContaining(SUCCESS_INSTALL_OR_UPDATE_SOFTWARE);
     assertThat(context.getSoftwareExtraPath().resolve("java/pinned")).exists();
+  }
+
+  /**
+   * <code>java</code> 17.0.6 has a CVE and the only safe version available for the <code>java</code> edition is 21.0.9_10, so the CVE check bumps
+   * <code>java</code> to 21.0.9_10 when it is installed. Because <code>java</code> is both a top-level tool and a dependency of <code>mvn</code>, the CVE check
+   * must be offered only once per process: the skipped (dependency) install must be matched on the originally requested (pre-CVE) version, not on the version
+   * the CVE check resolved to. See <a href="https://github.com/devonfw/IDEasy/issues/945">#945</a>.
+   */
+  @Test
+  void testRunPullSettingsDoesNotReAskCveChoiceForSharedDependencyWhenVersionIsBumped() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_UPDATE);
+    // give the shared 'java' tool a CVE for 17.0.6; the only safe version available for the 'java' edition is 21.0.9_10, so the CVE check suggests 'latest'
+    String securityJson = """
+        {
+          "issues": [
+            {
+              "id": "CVE-TEST",
+              "severity": 9.0,
+              "versions": [
+                "[17.0.6]"
+              ]
+            }
+          ]
+        }
+        """;
+    context.getFileAccess().writeFileContent(securityJson, context.getUrlsPath().resolve("java").resolve("security.json"));
+    // answer 'latest' to the single CVE question for 'java' (current + nearest + latest are all 21.0.9_10)
+    context.setAnswers("latest");
+    UpdateCommandlet uc = context.getCommandletManager().getCommandlet(UpdateCommandlet.class);
+
+    // act
+    uc.run();
+
+    // assert
+    long cveQuestionCount = context.getTestStartContext().getEntries().stream()
+        .filter(e -> e.message().contains("Which version do you want to install?"))
+        .count();
+    assertThat(cveQuestionCount)
+        .as("the CVE choice must be asked exactly once per process, not once per reference to 'java'").isEqualTo(1);
+    assertThat(context.getSoftwareRepositoryPath().resolve(ToolRepository.ID_DEFAULT).resolve("java").resolve("java").resolve("21.0.9_10"))
+        .as("the CVE check must have bumped 'java' to the safe version 21.0.9_10").exists();
   }
 
   @Test
