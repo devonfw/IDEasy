@@ -55,14 +55,16 @@ public class GitUrlUpdater extends GithubUrlReleaseUpdater {
       return null;
     }
 
-    // Git for Windows release names are inconsistent, e.g.
-    // "Git for Windows v2.56.0.windows.2", "Git for Windows 2.55.0(4)"
-    // and "Git for Windows 2.49.1".
+    // Git for Windows release names are inconsistent, e.g. "Git for Windows v2.56.0.windows.2", "Git for Windows 2.55.0(4)"
+    // and "Git for Windows 2.40.1" (implicit revision 1, tag v2.40.1.windows.1).
     version = version
-        .replaceFirst(".*?(?=\\d)", "")
-        .replaceFirst("\\.windows\\.", ".")
+        .replaceFirst(".*?(?=\d)", "")
+        .replaceFirst("\.windows\.", ".")
         .replace("(", ".")
         .replace(")", "");
+    if (version.matches("\d+\.\d+\.\d+")) {
+      version = version + ".1";
+    }
 
     return super.mapVersion(version);
   }
