@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool.npm;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -11,8 +12,11 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.EnvironmentContext;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
+import com.devonfw.tools.ide.tool.BuildTool;
 import com.devonfw.tools.ide.tool.ToolInstallation;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * {@link AbstractLocalToolCommandlet} for <a href="https://www.npmjs.org/">npm</a>.
@@ -25,7 +29,7 @@ import com.devonfw.tools.ide.tool.ToolInstallation;
  * itself on Windows); in addition {@link #setEnvironment} adds that folder to the PATH explicitly so that packages installed within the same IDEasy run are
  * already resolvable.
  */
-public class Npm extends AbstractLocalToolCommandlet {
+public class Npm extends AbstractLocalToolCommandlet implements BuildTool {
 
   private static final Logger LOG = LoggerFactory.getLogger(Npm.class);
 
@@ -79,7 +83,7 @@ public class Npm extends AbstractLocalToolCommandlet {
     if (Files.exists(buildDescriptor)) {
       return buildDescriptor;
     }
-    return super.findBuildDescriptor(directory);
+    return null;
   }
 
   /**
@@ -246,5 +250,25 @@ public class Npm extends AbstractLocalToolCommandlet {
     return "#!/usr/bin/env bash\n" //
         + "basedir=\"$(dirname \"$0\")\"\n" //
         + "exec node \"$basedir/" + cliJs + "\" \"$@\"\n";
+  }
+
+  @Override
+  public VersionIdentifier getProjectVersion(Path projectPath) {
+
+    // TODO: release not yet implemented for npm, see #2552
+    return null;
+  }
+
+  @Override
+  public void setProjectVersion(Path projectPath, VersionIdentifier version) {
+
+    // TODO: release not yet implemented for npm, see #2552
+  }
+
+  @Override
+  public ProcessResult buildAndDeploy(List<String> additionalArgs) {
+
+    // TODO: release not yet implemented for npm, see #2552
+    return null;
   }
 }

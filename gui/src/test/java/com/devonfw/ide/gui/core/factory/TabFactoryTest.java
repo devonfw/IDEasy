@@ -78,7 +78,7 @@ class TabFactoryTest extends HeadlessApplicationTest {
     assertThat(this.emittedTabs).as("The factory must publish a tab for each open").hasSize(2);
     for (Tab tab : this.emittedTabs) {
       assertThat(tab.getContent()).as("The published tab must carry its view as content").isInstanceOf(Node.class);
-      assertThat(tab.isClosable()).as("The published launcher tab must be closable").isTrue();
+      assertThat(tab.isClosable()).as("The published launcher tab must be non-closable").isFalse();
     }
   }
 
