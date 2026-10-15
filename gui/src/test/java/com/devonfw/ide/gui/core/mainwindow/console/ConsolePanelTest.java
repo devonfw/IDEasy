@@ -16,13 +16,13 @@ import javafx.stage.Stage;
 
 import org.junit.jupiter.api.Test;
 
-import com.devonfw.ide.gui.HeadlessApplicationTest;
+import com.devonfw.ide.gui.UIBasedApplicationTest;
 import com.devonfw.ide.gui.core.context.IdeGuiLogListener;
 import com.devonfw.ide.gui.core.event.GuiEventBus;
 import com.devonfw.ide.gui.core.service.NlsService;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 
-class ConsolePanelTest extends HeadlessApplicationTest {
+class ConsolePanelTest extends UIBasedApplicationTest {
 
   private ConsoleViewModel consoleViewModel;
 
@@ -35,7 +35,7 @@ class ConsolePanelTest extends HeadlessApplicationTest {
     assertThat(consoleViewUrl).as("Cannot resolve console UI FXML resource!").isNotNull();
 
     NlsService nlsService = new NlsService(Locale.ENGLISH);
-    eventBus = new GuiEventBus();
+    this.eventBus = new GuiEventBus();
 
     FXMLLoader fxmlLoader = new FXMLLoader(consoleViewUrl);
     fxmlLoader.setResources(nlsService.getResourceBundle());
