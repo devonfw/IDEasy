@@ -59,7 +59,8 @@ class MvnArtifactTest extends Assertions {
         "com/devonfw/tools/IDEasy/ide-cli/2025.01.003-beta-SNAPSHOT/ide-cli-2025.01.003-beta-20250130.023001-3-windows-x64.tar.gz");
     assertThat(artifact).hasToString("com.devonfw.tools.IDEasy:ide-cli:2025.01.003-beta-20250130.023001-3:tar.gz:windows-x64");
     assertThat(artifact.getDownloadUrl()).isEqualTo(
-        "https://central.sonatype.com/repository/maven-snapshots/com/devonfw/tools/IDEasy/ide-cli/2025.01.003-beta-SNAPSHOT/ide-cli-2025.01.003-beta-20250130.023001-3-windows-x64.tar.gz");
+        "https://central.sonatype.com/repository/maven-snapshots/com/devonfw/tools/IDEasy/ide-cli/2025.01.003-beta-SNAPSHOT/"
+            + "ide-cli-2025.01.003-beta-20250130.023001-3-windows-x64.tar.gz");
     assertThat(artifact.getKey()).isEqualTo(artifact.toString());
     assertThat(artifact).isEqualTo(equal);
     assertThat(artifact.hashCode()).isEqualTo(equal.hashCode());
