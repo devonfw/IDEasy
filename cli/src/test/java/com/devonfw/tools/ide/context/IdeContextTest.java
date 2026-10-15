@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
@@ -311,6 +312,23 @@ public class IdeContextTest extends AbstractIdeContextTest {
     context.setAnswers(""); // Empty answer (Enter)
     ToolVersionChoice result = context.question(options, "Which version?");
     assertThat(result).isSameAs(choice);
+  }
+
+  /**
+   * A question with multiple options cannot be answered interactively, so in batch mode without force mode the process must be aborted with a
+   * {@link CliAbortException} instead of silently returning {@code null}. This is a regression test for
+   * <a href="https://github.com/devonfw/IDEasy/issues/2635">#2635</a>, where the {@code null} answer caused a {@code NullPointerException} in the CVE check
+   * of {@code ide -b install <tool>}.
+   */
+  @Test
+  void testQuestionWithMultipleOptionsAbortsInBatchModeWithoutForce() {
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    context.getStartContext().setBatchMode(true);
+    String[] options = { "option1", "option2" };
+
+    // act & assert
+    assertThatThrownBy(() -> context.question(options, "Which option?")).isInstanceOf(CliAbortException.class);
   }
 
 }
