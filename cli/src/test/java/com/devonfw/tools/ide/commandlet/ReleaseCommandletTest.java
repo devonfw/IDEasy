@@ -10,6 +10,7 @@ import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.git.GitContextImplMock;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 
@@ -96,17 +97,72 @@ class ReleaseCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Tests the release of a gradle project. The {@code gradle.properties} declares {@code version=1.0.0-SNAPSHOT}.
+   */
+  @Test
+  void testReleaseGradle() {
+
+    IdeTestContext context = newReleaseContext(false);
+    context.setAnswers("yes", "yes");
+    context.setCwd(context.getWorkspacePath().resolve("gradle"), context.getWorkspacePath().toString(), context.getIdeHome());
+    ReleaseCommandlet releaseCommandlet = context.getCommandletManager().getCommandlet(ReleaseCommandlet.class);
+
+    releaseCommandlet.run();
+
+    assertThat(context).log().hasEntries(
+        IdeLogEntry.ofInfo("gradle clean publish"),
+        IdeLogEntry.ofInfo("Successfully released version 1.0.0."));
+    Path gradleProperties = context.getWorkspacePath().resolve("gradle").resolve("gradle.properties");
+    assertThat(context.getFileAccess().readFileContent(gradleProperties)).isEqualTo("version=1.0.1-SNAPSHOT\n\ngroup=com.devonfw\n");
+  }
+
+  /**
+   * Tests that {@code GRADLE_RELEASE_OPTS} overrides the default options of the gradle release build.
+   */
+  @Test
+  void testReleaseGradleWithReleaseOpts() {
+
+    IdeTestContext context = newReleaseContext(false);
+    context.setAnswers("yes", "yes");
+    context.setCwd(context.getWorkspacePath().resolve("gradle"), context.getWorkspacePath().toString(), context.getIdeHome());
+    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("GRADLE_RELEASE_OPTS", "clean build");
+    ReleaseCommandlet releaseCommandlet = context.getCommandletManager().getCommandlet(ReleaseCommandlet.class);
+
+    releaseCommandlet.run();
+
+    assertThat(context).log().hasEntries(
+        IdeLogEntry.ofInfo("gradle clean build"),
+        IdeLogEntry.ofInfo("Successfully released version 1.0.0."));
+  }
+
+  /**
+   * Tests that the release of a gradle project fails with a clear message if the {@code gradle.properties} has no {@code version}.
+   */
+  @Test
+  void testReleaseGradleWithoutVersionThrowsException() {
+
+    IdeTestContext context = newReleaseContext(false);
+    Path gradleProject = context.getWorkspacePath().resolve("gradle");
+    context.setCwd(gradleProject, context.getWorkspacePath().toString(), context.getIdeHome());
+    context.getFileAccess().writeFileContent("group=com.devonfw\n", gradleProject.resolve("gradle.properties"));
+    ReleaseCommandlet releaseCommandlet = context.getCommandletManager().getCommandlet(ReleaseCommandlet.class);
+
+    CliException exception = assertThrows(CliException.class, releaseCommandlet::run);
+    assertThat(exception).hasMessageContaining("Could not find 'version' in");
+  }
+
+  /**
    * Tests that the release fails gracefully if a build descriptor is found but its build tool does not support releasing (does not implement
-   * {@link com.devonfw.tools.ide.tool.BuildTool}), e.g. a gradle project (only maven currently supports releasing).
+   * {@link com.devonfw.tools.ide.tool.BuildTool}), e.g. an npm project.
    */
   @Test
   void testReleaseWithUnsupportedBuildToolThrowsException() {
 
     IdeTestContext context = newReleaseContext(false);
-    context.setCwd(context.getWorkspacePath().resolve("gradle"), context.getWorkspacePath().toString(), context.getIdeHome());
+    context.setCwd(context.getWorkspacePath().resolve("npm"), context.getWorkspacePath().toString(), context.getIdeHome());
     ReleaseCommandlet releaseCommandlet = context.getCommandletManager().getCommandlet(ReleaseCommandlet.class);
 
     CliException exception = assertThrows(CliException.class, releaseCommandlet::run);
-    assertThat(exception).hasMessageContaining("gradle").hasMessageContaining("does not support releasing");
+    assertThat(exception).hasMessageContaining("npm").hasMessageContaining("does not support releasing");
   }
 }
