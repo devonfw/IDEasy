@@ -150,6 +150,47 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
         .as("the CVE check must have bumped 'java' to the safe version 21.0.9_10").exists();
   }
 
+  /**
+   * When two tools both depend on <code>java</code> in a range that excludes the project's java version, <code>java</code> is installed as an additional
+   * (out-of-range) version and the CVE check runs for each dependent. That path bypasses
+   * {@link com.devonfw.tools.ide.tool.AbstractToolCommandlet#install(ToolInstallRequest)} (it goes straight to <code>installTool</code>), so the CVE check must
+   * still be deduplicated per process. See <a href="https://github.com/devonfw/IDEasy/issues/945">#945</a>.
+   */
+  @Test
+  void testRunPullSettingsDoesNotRunCveCheckTwiceForSharedOutOfRangeDependency() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_UPDATE);
+    // project java is 17.0.6; make 'mvn' and 'node' both depend on java in [18,) so 17.0.6 is out of range and java resolves to 21.0.9_10 for both.
+    // The extra installations are removed so that only the two out-of-range 'java' dependencies are exercised.
+    context.getFileAccess().writeFileContent("JAVA_VERSION=17.0.6\nMVN_VERSION=3.2.1\nIDE_TOOLS=mvn, node\n",
+        context.getSettingsPath().resolve("ide.properties"));
+    context.getFileAccess().writeFileContent("{}", context.getSettingsPath().resolve("ide-extra-tools.json"));
+    String javaDep = """
+        {
+          "[3.0,4.0)": [
+            { "tool": "java", "versionRange": "[18,)" }
+          ],
+          "[4.0,)": [
+            { "tool": "java", "versionRange": "[18,)" }
+          ]
+        }
+        """;
+    context.getFileAccess().writeFileContent(javaDep, context.getUrlsPath().resolve("mvn").resolve("mvn").resolve("dependencies.json"));
+    context.getFileAccess().writeFileContent(javaDep, context.getUrlsPath().resolve("node").resolve("node").resolve("dependencies.json"));
+    UpdateCommandlet uc = context.getCommandletManager().getCommandlet(UpdateCommandlet.class);
+
+    // act
+    uc.run();
+
+    // assert
+    long cveCheckCount = context.getTestStartContext().getEntries().stream()
+        .filter(e -> e.level() == IdeLogLevel.SUCCESS)
+        .filter(e -> e.message().contains("No CVEs found for version 21.0.9_10 of tool java"))
+        .count();
+    assertThat(cveCheckCount).as("the CVE check of the shared out-of-range 'java' must run once per process, not once per dependent").isEqualTo(1);
+  }
+
   @Test
   void testRunPullSettingsDoesNotRunCveCheckTwiceForSharedDependency() {
 

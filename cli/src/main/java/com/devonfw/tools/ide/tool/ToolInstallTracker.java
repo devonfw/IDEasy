@@ -21,6 +21,12 @@ public final class ToolInstallTracker {
   private final Map<ToolEdition, Set<String>> installed = new HashMap<>();
 
   /**
+   * Like {@link #installed} but for tool editions whose CVE check has already been run during this process. A redundant reference (e.g. the same tool resolved
+   * as a dependency of two tools) must still run the CVE check only once, even when the individual installations are not deduplicated.
+   */
+  private final Map<ToolEdition, Set<String>> cveChecked = new HashMap<>();
+
+  /**
    * Records that the given tool edition+version has been installed during this process.
    *
    * @param toolEditionAndVersion the {@link ToolEditionAndVersion} to record.
@@ -41,10 +47,9 @@ public final class ToolInstallTracker {
    */
   public void recordInstalled(ToolEdition edition, VersionIdentifier resolvedVersion) {
 
-    if ((edition == null) || (resolvedVersion == null)) {
-      return;
+    if ((edition != null) && (resolvedVersion != null)) {
+      installed.computeIfAbsent(edition, e -> new HashSet<>()).add(resolvedVersion.toString());
     }
-    installed.computeIfAbsent(edition, e -> new HashSet<>()).add(resolvedVersion.toString());
   }
 
   /**
@@ -53,12 +58,40 @@ public final class ToolInstallTracker {
    */
   public boolean isInstalled(ToolEditionAndVersion toolEditionAndVersion) {
 
-    if ((toolEditionAndVersion == null) || (toolEditionAndVersion.getEdition() == null)
-        || (toolEditionAndVersion.getResolvedVersion() == null)) {
+    return (toolEditionAndVersion != null)
+        && contains(installed, toolEditionAndVersion.getEdition(), toolEditionAndVersion.getResolvedVersion());
+  }
+
+  /**
+   * Records that the CVE check for the given tool edition+version has already been run during this process.
+   *
+   * @param edition the {@link ToolEdition} that has been checked.
+   * @param resolvedVersion the {@link VersionIdentifier} that has been checked.
+   */
+  public void recordCveChecked(ToolEdition edition, VersionIdentifier resolvedVersion) {
+
+    if ((edition != null) && (resolvedVersion != null)) {
+      cveChecked.computeIfAbsent(edition, e -> new HashSet<>()).add(resolvedVersion.toString());
+    }
+  }
+
+  /**
+   * @param edition the {@link ToolEdition} to check.
+   * @param resolvedVersion the {@link VersionIdentifier} to check.
+   * @return {@code true} if the CVE check for the tool edition+version was already run during this process, {@code false} otherwise.
+   */
+  public boolean isCveChecked(ToolEdition edition, VersionIdentifier resolvedVersion) {
+
+    return contains(cveChecked, edition, resolvedVersion);
+  }
+
+  private static boolean contains(Map<ToolEdition, Set<String>> map, ToolEdition edition, VersionIdentifier resolvedVersion) {
+
+    if ((edition == null) || (resolvedVersion == null)) {
       return false;
     }
-    Set<String> versions = installed.get(toolEditionAndVersion.getEdition());
-    return (versions != null) && versions.contains(toolEditionAndVersion.getResolvedVersion().toString());
+    Set<String> versions = map.get(edition);
+    return (versions != null) && versions.contains(resolvedVersion.toString());
   }
 
 }
