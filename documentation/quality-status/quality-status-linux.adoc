@@ -13,9 +13,9 @@ link:quality-status.adoc[Back to overview]
 
 * OS-specific: 3
 
-* Multi-OS: 3
+* Multi-OS: 2
 
-* Cross-platform: 202
+* Cross-platform: 203
 
 == Linux Specific Issues
 
@@ -42,14 +42,14 @@ link:quality-status.adoc[Back to overview]
 [%header, cols="^1,7"]
 |===
 | Issue | Summary
-2+^| *11-30 days*
+2+^| *31-60 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2464[#2464]
 | Add unit tests for `OperatingSystem`
 
 |===
 
-=== Linux + macOS (2)
+=== Linux + macOS (1)
 
 [%header, cols="^1,7"]
 |===
@@ -58,11 +58,6 @@ link:quality-status.adoc[Back to overview]
 
 | link:https://github.com/devonfw/IDEasy/issues/2467[#2467]
 | Obsidian: fix installation on macOS/Linux and duplicate LINUX/X64 artifact in O…
-
-2+^| *90+ days*
-
-| link:https://github.com/devonfw/IDEasy/issues/802[#802]
-| az not working on Mac
 
 |===
 
