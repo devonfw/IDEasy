@@ -35,7 +35,7 @@ class ConsolePanelTest extends UIBasedApplicationTest {
     assertThat(consoleViewUrl).as("Cannot resolve console UI FXML resource!").isNotNull();
 
     NlsService nlsService = new NlsService(Locale.ENGLISH);
-    GuiEventBus eventBus = new GuiEventBus();
+    this.eventBus = new GuiEventBus();
 
     FXMLLoader fxmlLoader = new FXMLLoader(consoleViewUrl);
     fxmlLoader.setResources(nlsService.getResourceBundle());
