@@ -1,21 +1,20 @@
 name: Check PR Labels & Changelog
 
-# Fails (red check) while a pull request has no labels and turns green as soon as at
-# least one label is assigned. It then applies the changelog policy, which makes the
-# "internal" label and a new CHANGELOG.adoc line mutually exclusive: an internal
-# (no user-facing impact) PR must not carry a changelog entry, and a non-internal PR
-# must add one. The changelog step is skipped while the label check fails, so an
-# unlabeled PR first just has to add a label. It runs on the events that can change
-# a PR's labels or its head commit (synchronize = author pushed new commits), so the
-# check re-evaluates immediately and is never missing on a freshly pushed commit. No
-# write access: this only reads the PR and reports a failure, so pull_request (not
-# pull_request_target) is the correct trigger. The changelog policy comes from
-# documentation/contributing/DoD.adoc: the CHANGELOG shall only reflect public
-# changes relevant for end-users.
+# - Fails while a pull request has no labels.
+# - Passes as soon as at least one label is assigned.
+# - Enforces the changelog policy:
+#   - "internal" PR: must not add a CHANGELOG.adoc entry.
+#   - Non-"internal" PR: must add a CHANGELOG.adoc entry.
+# - Skips the changelog check until the PR has at least one label.
+# - Re-runs when:
+#   - PR labels change.
+#   - New commits are pushed (synchronize).
+# - Based on documentation/contributing/DoD.adoc: the changelog should contain only
+#   public, end-user-relevant changes.
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, labeled, unlabeled]
+    types: [ opened, reopened, synchronize, labeled, unlabeled ]
 
 permissions:
   pull-requests: read
