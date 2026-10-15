@@ -20,7 +20,7 @@ image::quality-status-images/issue-assignment.svg[Pie chart: assigned vs unassig
 image::quality-status-images/issue-types.svg[Pie chart: issue type distribution,width=100%]
 
 
-_Generated: 2026-10-05 13:19 UTC_
+_Generated: 2026-10-12 14:08 UTC_
 
 
 == Operating System Status Files
@@ -29,7 +29,7 @@ Issues are assigned to operating systems based on their labels:
 `windows`, `linux`, or `macOS`.
 
 Issues without an operating system label are treated as cross-platform.
-*A total of 202 cross-platform issues* are documented centrally in this document and are therefore not repeated in the operating system specific files.
+*A total of 203 cross-platform issues* are documented centrally in this document and are therefore not repeated in the operating system specific files.
 
 The detailed tool status is split into one generated file per operating system.
 
@@ -58,26 +58,37 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | Issue | Summary
 2+^a| [[cross-platform-0-10-days]] *0-10 days*
 
+| link:https://github.com/devonfw/IDEasy/issues/2640[#2640]
+| Add PnpmUrlUpdater for pnpm
+
+| link:https://github.com/devonfw/IDEasy/issues/2638[#2638]
+| Open-buttons in IDE-selection are not working properly
+
+| link:https://github.com/devonfw/IDEasy/issues/2635[#2635]
+| NullPointerException in cveCheck when installing a tool with CVEs in batch mode
+
+| link:https://github.com/devonfw/IDEasy/issues/2633[#2633]
+| Add HelidonUrlUpdater for Helidon CLI
+
+| link:https://github.com/devonfw/IDEasy/issues/2631[#2631]
+| Allow uninstalling Corepack in the per-project npm layout
+
+| link:https://github.com/devonfw/IDEasy/issues/2627[#2627]
+| Installing corepack replaces the yarn launcher installed by IDEasy
+
 | link:https://github.com/devonfw/IDEasy/issues/2614[#2614]
 | Add ScalaCliUrlUpdater for scala-cli
 
 | link:https://github.com/devonfw/IDEasy/issues/2606[#2606]
 | Cleanup documentation (remove updates, include missing guides)
 
-| link:https://github.com/devonfw/IDEasy/issues/2603[#2603]
-| Split commandlet-and-url-updater.adoc in 2 separate documentations
-
-| link:https://github.com/devonfw/IDEasy/issues/2600[#2600]
-| Use the device code flow for the GitHub login in VSCode to avoid vscode:// call…
+2+^a| [[cross-platform-11-30-days]] *11-30 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2599[#2599]
 | Nightly integration tests run in parallel with the nightly build and test the p…
 
 | link:https://github.com/devonfw/IDEasy/issues/2598[#2598]
 | CI build workflow is skipped
-
-| link:https://github.com/devonfw/IDEasy/issues/2596[#2596]
-| NPM-based tools execution and uninstalling broke on Windows
 
 | link:https://github.com/devonfw/IDEasy/issues/2591[#2591]
 | Share agent skills in the repository and close gaps in AGENTS.md
@@ -130,8 +141,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/2559[#2559]
 | Homebrew formula publish fails:  Error: No available formula with the name "ide…
 
-2+^a| [[cross-platform-11-30-days]] *11-30 days*
-
 | link:https://github.com/devonfw/IDEasy/issues/2553[#2553]
 | Add release support for yarn
 
@@ -150,17 +159,11 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/2547[#2547]
 | Figma design for pro-active notifications of updates in the GUI
 
-| link:https://github.com/devonfw/IDEasy/issues/2546[#2546]
-| Include repository into git warning/errors
-
 | link:https://github.com/devonfw/IDEasy/issues/2545[#2545]
 | Workspace configured twice
 
 | link:https://github.com/devonfw/IDEasy/issues/2544[#2544]
 | Native package manager commands inherit IDEasy tool environment
-
-| link:https://github.com/devonfw/IDEasy/issues/2541[#2541]
-| Testing inverseMerge fails
 
 | link:https://github.com/devonfw/IDEasy/issues/2538[#2538]
 | Test the bugreport commandlet
@@ -270,6 +273,8 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/2470[#2470]
 | Create a client service PoC for reading URL metadata
 
+2+^a| [[cross-platform-31-60-days]] *31-60 days*
+
 | link:https://github.com/devonfw/IDEasy/issues/2466[#2466]
 | ide uninstall should also remove broken link
 
@@ -327,8 +332,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/2423[#2423]
 | isRepositoryUpdateAvailable is not covered by any test that reaches the compari…
 
-2+^a| [[cross-platform-31-60-days]] *31-60 days*
-
 | link:https://github.com/devonfw/IDEasy/issues/2420[#2420]
 | Improve BuildTool support further
 
@@ -363,7 +366,7 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | Open a project folder of my choice (e.g. an external Git repo) instead of alway…
 
 | link:https://github.com/devonfw/IDEasy/issues/2385[#2385]
-| Cleanup of IdeLogEntry and IdeGuiListener
+| Cleanup of IdeLogEntry, IdeLogListener and IdeGuiLogListener
 
 | link:https://github.com/devonfw/IDEasy/issues/2373[#2373]
 | GlobalToolCommandlet: determine the edition together with the version for nativ…
@@ -386,6 +389,9 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/2357[#2357]
 | Proposal: Dedicated IDEasy Workflow Testing Repository
 
+| link:https://github.com/devonfw/IDEasy/issues/2347[#2347]
+| GUI test duplicates view-setup code from App instead of reusing it
+
 | link:https://github.com/devonfw/IDEasy/issues/2343[#2343]
 | Design: Progress bars & steps
 
@@ -403,6 +409,8 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 
 | link:https://github.com/devonfw/IDEasy/issues/2325[#2325]
 | Add checkboxes for "Add to start desktop/taskbar" to MSI installer
+
+2+^a| [[cross-platform-61-90-days]] *61-90 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2314[#2314]
 | Implement the handling of Steps in the GUI.
@@ -424,8 +432,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 
 | link:https://github.com/devonfw/IDEasy/issues/2273[#2273]
 | Integrate git as global tool
-
-2+^a| [[cross-platform-61-90-days]] *61-90 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2269[#2269]
 | Allow choice of installation location in macOS PKG Installer
@@ -475,10 +481,10 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/2182[#2182]
 | Basic structure for Commandlet view
 
+2+^a| [[cross-platform-90plus-days]] *90+ days*
+
 | link:https://github.com/devonfw/IDEasy/issues/2142[#2142]
 | Move IDE-specific metada (.intellij, .vscode) out of workspace
-
-2+^a| [[cross-platform-90plus-days]] *90+ days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2111[#2111]
 | Add user documentation for GUI
@@ -554,9 +560,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 
 | link:https://github.com/devonfw/IDEasy/issues/1225[#1225]
 | Create new IDEasy introduction videos
-
-| link:https://github.com/devonfw/IDEasy/issues/1216[#1216]
-| Release workflow should only deploy artifacts after all tests passed
 
 | link:https://github.com/devonfw/IDEasy/issues/1215[#1215]
 | nightly build not executing tests anymore
