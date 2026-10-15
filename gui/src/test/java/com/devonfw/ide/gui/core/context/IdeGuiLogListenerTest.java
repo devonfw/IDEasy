@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
@@ -14,6 +15,7 @@ import com.devonfw.ide.gui.core.mainwindow.console.ConsoleController;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.log.IdeLogListenerNone;
 
 /**
  * Tests for {@link IdeGuiLogListener}.
@@ -45,7 +47,8 @@ public class IdeGuiLogListenerTest extends Assertions {
       return this.appended;
     }
   }
-/**
+
+  /**
    * {@link IdeStartContextImpl} holds its state in a process-wide static field that is (re)assigned by every construction and offers no reset hook. This test
    * installs a buffering {@link IdeGuiLogListener} into that static; without cleanup it would leak into every other gui test running in the same surefire JVM,
    * routing their SLF4J log events into the leftover buffering listener. Restore a neutral, non-buffering no-op context afterwards.
@@ -55,6 +58,7 @@ public class IdeGuiLogListenerTest extends Assertions {
 
     new IdeStartContextImpl(IdeLogLevel.INFO, IdeLogListenerNone.INSTANCE);
   }
+
   @Test
   void testMessageOnlySendOnce() {
 
