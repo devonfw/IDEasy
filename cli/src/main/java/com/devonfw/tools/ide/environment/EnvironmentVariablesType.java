@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.environment;
 
+//We let checkstyle ignore this, because we need these imports for the javadoc. Checkstyle however will recognize this as unused imports.
 //CHECKSTYLE:OFF
 
 import com.devonfw.tools.ide.process.EnvironmentContext;
