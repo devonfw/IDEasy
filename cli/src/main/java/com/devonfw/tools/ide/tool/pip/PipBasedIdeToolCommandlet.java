@@ -112,7 +112,6 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
   public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
     ProcessResult result = runPluginPackageManager(PackageManagerRequest.TYPE_INSTALL, plugin, pc);
     if (result.isSuccessful()) {
-      IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {}", plugin.name());
       step.success();
       return true;
     }
