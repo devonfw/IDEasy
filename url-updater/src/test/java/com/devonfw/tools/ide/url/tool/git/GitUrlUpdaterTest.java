@@ -87,5 +87,8 @@ class GitUrlUpdaterTest extends AbstractUrlUpdaterTest {
 
     verify(getRequestedFor(urlEqualTo(
         "/git-for-windows/git/releases/download/v2.56.0.windows.2/Git-2.56.0.2-arm64.exe")));
+
+    assertThat(gitDir.resolve("2.54.0.3")).doesNotExist(); // only released as MinGit
+    assertThat(gitDir.resolve("2.56.0-rc2.1")).doesNotExist();
   }
 }
