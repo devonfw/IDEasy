@@ -17,6 +17,7 @@ import javafx.stage.Stage;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.ide.gui.UIBasedApplicationTest;
+import com.devonfw.ide.gui.core.context.IdeGuiLogListener;
 import com.devonfw.ide.gui.core.event.GuiEventBus;
 import com.devonfw.ide.gui.core.service.NlsService;
 import com.devonfw.tools.ide.log.IdeLogLevel;
