@@ -42,6 +42,35 @@ public class UvTest extends AbstractIdeContextTest {
   }
 
   @Test
+  public void testSetEnvironmentMigratesLegacyToolStore() {
+
+    // arrange - seed a legacy uv tool store inside the per-project software folder (the location used before #2561 made the store per-project, see #1518)
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    Path ideHome = context.getIdeHome();
+    Path legacyStore = ideHome.resolve("software").resolve("python").resolve("tools");
+    context.getFileAccess().mkdirs(legacyStore);
+    Path marker = legacyStore.resolve("ruff");
+    context.getFileAccess().mkdirs(marker);
+    context.getFileAccess().touch(marker.resolve("tool"));
+    Uv uv = new Uv(context);
+    Path rootDir = context.getSoftwarePath().resolve("uv");
+    ToolInstallation toolInstallation = new ToolInstallation(rootDir, rootDir, rootDir, VersionIdentifier.of("0.1.0"), true);
+    Map<String, VariableLine> variables = new HashMap<>();
+    EnvironmentVariableCollectorContext environmentContext = new EnvironmentVariableCollectorContext(variables,
+        new VariableSource(EnvironmentVariablesType.WORKSPACE, null), WindowsPathSyntax.MSYS);
+
+    // act
+    uv.setEnvironment(environmentContext, toolInstallation, false);
+
+    // assert - the legacy store was moved into the per-project store and is gone from its old location (see #2561)
+    Path uvToolDir = ideHome.resolve(".uv-tools");
+    assertThat(uvToolDir.resolve("ruff").resolve("tool")).exists();
+    assertThat(legacyStore).doesNotExist();
+    // assert - UV_TOOL_DIR still points at the per-project store
+    assertThat(variables.get("UV_TOOL_DIR").getValue().replace('\\', '/')).endsWith("/.uv-tools");
+  }
+
+  @Test
   public void testSetEnvironmentWithNullIdeHome() {
 
     // arrange — force getIdeHome() to return null (global mode, no project)
