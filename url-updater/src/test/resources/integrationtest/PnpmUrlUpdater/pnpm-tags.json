@@ -1,0 +1,20 @@
+[
+  {
+    "ref": "refs/tags/v12.12.1"
+  },
+  {
+    "ref": "refs/tags/v12.11.0"
+  },
+  {
+    "ref": "refs/tags/v11.0.0"
+  },
+  {
+    "ref": "refs/tags/v10.34.7"
+  },
+  {
+    "ref": "refs/tags/v8.6.0"
+  },
+  {
+    "ref": "refs/tags/v12.13.0-alpha.1"
+  }
+]
