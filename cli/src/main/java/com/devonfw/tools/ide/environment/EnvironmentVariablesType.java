@@ -1,8 +1,11 @@
 package com.devonfw.tools.ide.environment;
 
+//CHECKSTYLE:OFF
+
 import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallation;
+//CHECKSTYLE:ON
 
 /**
  * The type of an instance of {@link EnvironmentVariables}.
