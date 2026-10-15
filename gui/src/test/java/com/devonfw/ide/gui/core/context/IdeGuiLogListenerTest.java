@@ -45,7 +45,16 @@ public class IdeGuiLogListenerTest extends Assertions {
       return this.appended;
     }
   }
+/**
+   * {@link IdeStartContextImpl} holds its state in a process-wide static field that is (re)assigned by every construction and offers no reset hook. This test
+   * installs a buffering {@link IdeGuiLogListener} into that static; without cleanup it would leak into every other gui test running in the same surefire JVM,
+   * routing their SLF4J log events into the leftover buffering listener. Restore a neutral, non-buffering no-op context afterwards.
+   */
+  @AfterEach
+  void resetStartContext() {
 
+    new IdeStartContextImpl(IdeLogLevel.INFO, IdeLogListenerNone.INSTANCE);
+  }
   @Test
   void testMessageOnlySendOnce() {
 
