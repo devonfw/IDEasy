@@ -75,6 +75,37 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
    * dependency (of both the regular and the extra <code>mvn</code>). Before <a href="https://github.com/devonfw/IDEasy/issues/945">#945</a> the CVE check for
    * <code>java</code> ran once per reference, i.e. several times. Now it must run only once per unique tool/version per process.
    */
+  /**
+   * An extra installation of a tool that has already been installed (and is thus tracked) during the same process must NOT be skipped: it is linked at its
+   * own extra tool path even though the tracked version is already present in the software repository.
+   */
+  @Test
+  void testRunPullSettingsDoesNotSkipExtraInstallationOfTrackedTool() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_UPDATE);
+    // the project version of java is 17.0.6 (JAVA_VERSION in ide.properties); the extra installation uses the very same version and edition
+    String extraTools = """
+        {
+          "java": {
+            "pinned": {
+              "version": "17.0.6"
+            }
+          }
+        }
+        """;
+    context.getFileAccess().writeFileContent(extraTools, context.getSettingsPath().resolve("ide-extra-tools.json"));
+    UpdateCommandlet uc = context.getCommandletManager().getCommandlet(UpdateCommandlet.class);
+
+    // act
+    uc.run();
+
+    // assert
+    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install extra version(s) of java'.");
+    assertThat(context).logAtSuccess().hasMessageContaining(SUCCESS_INSTALL_OR_UPDATE_SOFTWARE);
+    assertThat(context.getSoftwareExtraPath().resolve("java/pinned")).exists();
+  }
+
   @Test
   void testRunPullSettingsDoesNotRunCveCheckTwiceForSharedDependency() {
 

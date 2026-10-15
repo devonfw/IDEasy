@@ -340,6 +340,8 @@ public abstract class AbstractLocalToolCommandlet extends AbstractToolCommandlet
             parentRequest.getRequested().getEdition(), this.tool, versionRange, configuredVersion);
       }
       requested.setVersion(versionRange);
+      // Intentionally call installTool instead of install: an additional installation is installed into the software repository
+      // at a version resolved from the range and must never be skipped by the ToolInstallTracker, which tracks the project version.
       return installTool(request);
     }
   }
