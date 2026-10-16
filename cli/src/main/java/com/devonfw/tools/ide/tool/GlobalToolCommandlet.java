@@ -23,12 +23,13 @@ import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
+import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link ToolCommandlet} that is installed globally.
+ * {@link AbstractToolCommandlet} that is installed globally.
  */
-public abstract class GlobalToolCommandlet extends ToolCommandlet {
+public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(GlobalToolCommandlet.class);
 
@@ -140,12 +141,16 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     VersionIdentifier resolvedVersion = request.getRequested().getResolvedVersion();
     if (this.context.getSystemInfo().isLinux()) {
       // on Linux global tools are typically installed via the package manager of the OS
-      // if a global tool implements getNativePackages() to returns at least one NativePackage, then we will install this way.
+      // if a global tool implements getNativePackages() to return at least one NativePackage, then we will install this way.
       List<PackageManagerCommand> commands = getInstallPackageManagerCommands(resolvedVersion);
       if (!commands.isEmpty()) {
         boolean newInstallation = runWithPackageManager(request.isSilent(), commands, NativePackageAction.INSTALL);
-        Path rootDir = getInstallationPath(getConfiguredEdition(), resolvedVersion);
-        return createToolInstallation(rootDir, resolvedVersion, newInstallation, request.getProcessContext(), request.isAdditionalInstallation());
+
+        VersionIdentifier installedVersion = getInstalledVersion();
+        Path rootDir = getInstallationPath(getConfiguredEdition(), installedVersion);
+
+        return createToolInstallation(rootDir, installedVersion, newInstallation, request.getProcessContext(),
+            request.isAdditionalInstallation());
       }
     }
 
@@ -189,6 +194,20 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
       return new ToolInstallation(null, null, null, resolvedVersion, true, true);
     }
     return createToolInstallation(installationPath, resolvedVersion, true, pc, false);
+  }
+
+  @Override
+  protected VersionIdentifier resolveVersionForInstall(String edition, GenericVersionRange version) {
+
+    if (this.context.getSystemInfo().isLinux() && !getNativePackages().isEmpty()) {
+      if (version instanceof VersionIdentifier versionIdentifier && !versionIdentifier.isPattern()) {
+        return versionIdentifier;
+      }
+
+      return null;
+    }
+
+    return super.resolveVersionForInstall(edition, version);
   }
 
   /**
@@ -268,8 +287,8 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   }
 
   /**
-   * @return a {@link Map} that maps edition names to the app name to look for in the Windows registry. Default
-   *     returns a single entry with {@code tool -> tool}. Override for tools with multiple editions on Windows.
+   * @return a {@link Map} that maps edition names to the app name to look for in the Windows registry. Default returns a single entry with
+   *     {@code tool -> tool}. Override for tools with multiple editions on Windows.
    */
   public Map<String, String> getWindowsRegistryAppNames() {
 
@@ -314,7 +333,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   public void uninstall() {
     if (this.context.getSystemInfo().isWindows()) {
       WindowsHelper.get(this.context).uninstallApplication(getWindowsRegistryAppName());
-    } else if (this.context.getSystemInfo().isLinux()) {
+    } else if (this.context.getSystemInfo().isLinux() && !getNativePackages().isEmpty()) {
       runWithPackageManager(false, getUninstallPackageManagerCommands(), NativePackageAction.UNINSTALL);
     } else if (this.context.getSystemInfo().isMac()) {
       uninstallMac();
@@ -324,8 +343,8 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   }
 
   /**
-   * Uninstalls this tool on macOS. Unlike Linux, macOS has no single standardized package manager, so we try the best-effort options in order and finally
-   * fall back to giving the user actionable guidance if nothing could be done automatically.
+   * Uninstalls this tool on macOS. Unlike Linux, macOS has no single standardized package manager, so we try the best-effort options in order and finally fall
+   * back to giving the user actionable guidance if nothing could be done automatically.
    */
   private void uninstallMac() {
     if (runWithPackageManager(false, getUninstallPackageManagerCommands(), NativePackageAction.UNINSTALL)) {
@@ -346,9 +365,9 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
 
   /**
    * @param appBundle the *.app bundle to delete.
-   * @return {@code true} if {@code appBundle} was successfully deleted, {@code false} if deletion failed - e.g. because since macOS Monterey the
-   *     Applications folder is protected and a regular process may not be allowed to delete from it. Callers must not assume this always succeeds and
-   *     should fall back to manual-uninstall guidance if it returns {@code false} rather than letting the exception propagate.
+   * @return {@code true} if {@code appBundle} was successfully deleted, {@code false} if deletion failed - e.g. because since macOS Monterey the Applications
+   *     folder is protected and a regular process may not be allowed to delete from it. Callers must not assume this always succeeds and should fall back to
+   *     manual-uninstall guidance if it returns {@code false} rather than letting the exception propagate.
    */
   private boolean deleteMacApplicationBundle(Path appBundle) {
     try {
@@ -381,9 +400,9 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   }
 
   /**
-   * @return the name (without the ".app" suffix) of this tool's application bundle as it appears in the macOS Applications folder, or {@code null} if
-   *     unknown so that {@link #uninstall() uninstall} cannot try to automatically remove it and instead gives the user manual guidance. Override this in
-   *     subclasses that know their application bundle name (which may differ from {@link #getName() the tool name}, e.g. "Docker" for the tool "docker").
+   * @return the name (without the ".app" suffix) of this tool's application bundle as it appears in the macOS Applications folder, or {@code null} if unknown
+   *     so that {@link #uninstall() uninstall} cannot try to automatically remove it and instead gives the user manual guidance. Override this in subclasses
+   *     that know their application bundle name (which may differ from {@link #getName() the tool name}, e.g. "Docker" for the tool "docker").
    */
   public String getMacApplicationName() {
     return null;

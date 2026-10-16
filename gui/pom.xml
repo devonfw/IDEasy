@@ -53,6 +53,10 @@
       <artifactId>javafx-fxml</artifactId>
     </dependency>
     <dependency>
+      <groupId>io.github.m-m-m</groupId>
+      <artifactId>mmm-event</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.testfx</groupId>
       <artifactId>testfx-core</artifactId>
       <scope>test</scope>

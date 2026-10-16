@@ -24,7 +24,7 @@ import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.BuildTool;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.BuildToolHelper;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.variable.VariableSyntax;
@@ -32,7 +32,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 
 
 /**
- * {@link ToolCommandlet} for <a href="https://maven.apache.org/">maven</a>.
+ * {@link AbstractToolCommandlet} for <a href="https://maven.apache.org/">maven</a>.
  */
 public class Mvn extends MavenCommandlet implements BuildTool {
 
@@ -86,7 +86,7 @@ public class Mvn extends MavenCommandlet implements BuildTool {
   @Override
   protected void configureToolBinary(ProcessContext pc, ProcessMode processMode) {
     Path mvn = Path.of(getBinaryName());
-    Path wrapper = findWrapper(MVN_WRAPPER_FILENAME);
+    Path wrapper = BuildToolHelper.findWrapper(this, this.context.getCwd(), MVN_WRAPPER_FILENAME);
     pc.executable(Objects.requireNonNullElse(wrapper, mvn));
   }
 
@@ -351,7 +351,7 @@ public class Mvn extends MavenCommandlet implements BuildTool {
     if (Files.exists(buildDescriptor)) {
       return buildDescriptor;
     }
-    return super.findBuildDescriptor(directory);
+    return null;
   }
 
   @Override

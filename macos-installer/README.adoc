@@ -1,0 +1,56 @@
+:toc: macro
+toc::[]
+
+== Building IDEasy PKG Package with pkgbuild/productbuild
+
+=== Prerequisites
+
+The build runs on a macOS host (macOS GitHub runners). It needs:
+
+- macOS with `pkgbuild` and `productbuild` (both ship with the system)
+- Maven (supported by IDEasy itself)
+- `RELEASE_VERSION` set as an environment variable — provided by the workflow, not set by hand
+
+=== Steps to Build the PKG Package
+
+See the `Build MacOS PKG` step in `.github/workflows/release.yml` (and `nightly-build.yml`);
+it runs `./macos-installer/build-pkg.sh` **from the repository root** with `RELEASE_VERSION`
+provided via `env`. The script assumes the repository root as working directory (it builds
+`documentation/` and `cli/` and copies their outputs into `macos-installer/`), so do not run
+it from inside `macos-installer/` — that fails with `cd: documentation: No such file or directory`.
+
+The script assembles `pkg-root/` (generated PDF, `LICENSE.rtf`, the CLI package and the
+`ideasy` binary, with the Windows/Linux `system` folders pruned), lets Maven filter
+`src/Distribution.xml` into the module (replacing `$[project.version]` with the release version),
+then runs `pkgbuild` to build `IDEasyComponent.pkg` from `pkg-root/` and `productbuild` to wrap it
+into the distributable `ideasy-<arch>.pkg` (arm64 or x64, detected from the runner). The result is
+copied to the fixed name `ideasy.pkg` that the `Upload unsigned PKG` step expects.
+
+=== Files
+
+link:build-pkg.sh[build-pkg.sh]
+
+The build script. Fails fast on any error (a PKG built from an incomplete `pkg-root/` would install
+a broken IDEasy), requires `RELEASE_VERSION` to be set, and must be run from the repository root.
+
+link:src/Distribution.xml[src/Distribution.xml]
+
+The installer GUI configuration (title, license, conclusion, background, `pkg-ref`). Maven filters
+this at build time, replacing the `$[project.version]` placeholder with the actual version so the
+installer title and the `pkgbuild --version` stay in sync.
+
+link:Resources[Resources/]
+
+Installer UI resources: `background.png` and `CONCLUSION.rtf`. `LICENSE.rtf` is copied here at build
+time from the generated documentation.
+
+link:scripts/postinstall[scripts/postinstall]
+
+Run by the PKG during installation (via `pkgbuild --scripts`); performs the actual IDEasy setup in
+the logged-in user's session and shows a modal dialog if it fails.
+
+link:pom.xml[pom.xml]
+
+The `ide-macos-installer` module. It filters `src/Distribution.xml` into the module directory and
+cleans up the build artifacts (`Distribution.xml`, `*.pkg`, `pkg-root/`, `Resources/LICENSE.rtf`)
+for local work.

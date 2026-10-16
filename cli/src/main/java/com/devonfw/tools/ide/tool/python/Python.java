@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.tool.python;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -14,8 +15,11 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.EnvironmentContext;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
+import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
@@ -23,9 +27,9 @@ import com.devonfw.tools.ide.tool.uv.Uv;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link ToolCommandlet} for <a href="https://www.python.org/">python</a>.
+ * {@link AbstractToolCommandlet} for <a href="https://www.python.org/">python</a>.
  */
-public class Python extends LocalToolCommandlet {
+public class Python extends AbstractLocalToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Python.class);
 
@@ -96,20 +100,15 @@ public class Python extends LocalToolCommandlet {
   }
 
   @Override
-  protected VersionIdentifier getInstalledVersion(Path toolPath) {
+  protected VersionIdentifier computeInstalledVersionFromLocalSoftwareFolder() {
 
-    VersionIdentifier version = super.getInstalledVersion(toolPath);
+    Path toolPath = getToolPath();
+    VersionIdentifier version = readVersionFromPyvenvCfg(toolPath);
     if (version == null) {
-      // the virtual environment can be recreated by uv or python and then the version file is lost, so we ask the
-      // installation itself instead of reporting that python is not installed - see
-      // https://github.com/devonfw/IDEasy/issues/2190
-      version = readVersionFromPyvenvCfg(toolPath);
-      if (version == null) {
-        version = readVersionFromInterpreter(toolPath);
-      }
-      if (version != null) {
-        LOG.debug("Determined version {} of python from the installation at {}.", version, toolPath);
-      }
+      version = readVersionFromInterpreter(toolPath);
+    }
+    if (version != null) {
+      LOG.debug("Determined version {} of python from the installation at {}.", version, toolPath);
     }
     return version;
   }
@@ -146,15 +145,14 @@ public class Python extends LocalToolCommandlet {
   private VersionIdentifier readVersionFromInterpreter(Path installationPath) {
 
     Path binPath = this.context.getFileAccess().getBinPath(installationPath);
-    Path binaryPath = binPath.resolve(getBinaryName());
-    if (!Files.exists(binaryPath)) {
-      binaryPath = binPath.resolve(getBinaryName() + ".exe");
-    }
+    Path binaryPath = this.context.getPath().findBinary(binPath.resolve(getBinaryName()));
     if (!Files.exists(binaryPath)) {
       LOG.debug("Python binary does not exist in {}.", binPath);
       return null;
     }
-    String output = this.context.newProcess().runAndGetSingleOutput(IdeLogLevel.DEBUG, binaryPath.toString(), "--version");
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.NONE).withPathEntry(binPath);
+    ProcessResult result = runTool(pc, ProcessMode.DEFAULT_CAPTURE, List.of("--version"));
+    String output = result.getSingleOutput(IdeLogLevel.DEBUG);
     if (output == null) {
       return null;
     }
@@ -166,7 +164,7 @@ public class Python extends LocalToolCommandlet {
     if (!version.isEmpty() && Character.isDigit(version.charAt(0))) {
       return VersionIdentifier.of(version);
     }
-    LOG.debug("Could not parse version from output '{}' of {}.", output, binaryPath);
+    LOG.debug("Could not parse version from output '{}' of {}.", output, binPath);
     return null;
   }
 

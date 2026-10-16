@@ -53,6 +53,8 @@ public class DirectoryMerger extends AbstractWorkspaceMerger {
     this.extension2mergerMap.put("launch", xmlMerger); // Eclipse specific
     JsonMerger jsonMerger = new JsonMerger(context);
     this.extension2mergerMap.put("json", jsonMerger);
+    IniMerger iniMerger = new IniMerger(context);
+    this.extension2mergerMap.put("ini", iniMerger);
     TextMerger textMerger = new TextMerger(context);
     this.extension2mergerMap.put("name", textMerger); // intellij specific
     this.extension2mergerMap.put("editorconfig", textMerger);
@@ -62,6 +64,23 @@ public class DirectoryMerger extends AbstractWorkspaceMerger {
 
   @Override
   public int merge(Path setup, Path update, EnvironmentVariables variables, Path workspace) {
+
+    return merge(setup, update, variables, workspace, Map.of());
+  }
+
+  /**
+   * Same as {@link #merge(Path, Path, EnvironmentVariables, Path)} but allows to merge templates of specific sub-folders to a different location outside the
+   * {@code workspace}.
+   *
+   * @param setup the setup {@link Path} for creation.
+   * @param update the update {@link Path} for creation and update.
+   * @param variables the {@link EnvironmentVariables} to {@link EnvironmentVariables#resolve(String, Object) resolve variables}.
+   * @param workspace the workspace {@link Path} to create or update.
+   * @param redirects the {@link Map} with the {@link Path}s inside the {@code workspace} as keys and the {@link Path}s where to merge them instead as
+   *     values.
+   * @return the number of errors that occurred. Should be {@code 0} for success.
+   */
+  public int merge(Path setup, Path update, EnvironmentVariables variables, Path workspace, Map<Path, Path> redirects) {
 
     int errors = 0;
     Set<String> children = null;
@@ -74,7 +93,9 @@ public class DirectoryMerger extends AbstractWorkspaceMerger {
     } else {
       // directory scan
       for (String filename : children) {
-        errors += merge(setup.resolve(filename), update.resolve(filename), variables, workspace.resolve(filename));
+        Path target = workspace.resolve(filename);
+        target = redirects.getOrDefault(target, target);
+        errors += merge(setup.resolve(filename), update.resolve(filename), variables, target, redirects);
       }
     }
     return errors;
