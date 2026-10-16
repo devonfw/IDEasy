@@ -12,10 +12,13 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.io.FileAccess;
 
-public class PropertiesMergerTest extends AbstractIdeContextTest {
+/**
+ * Test of {@link PropertiesMerger}.
+ */
+class PropertiesMergerTest extends AbstractIdeContextTest {
 
   /**
-   * Test of {@link PropertiesMerger}.
+   * Test of {@link PropertiesMerger#doMerge(Path, Path, EnvironmentVariables, Path)} with existing workspace and update file.
    *
    * @param workspaceDir the temporary folder to use as workspace for this test.
    * @throws Exception on error.
@@ -82,17 +85,10 @@ public class PropertiesMergerTest extends AbstractIdeContextTest {
 
     FileAccess fileAccess = context.getFileAccess();
     Path workspaceMain = workspaceDir.resolve("main.prefs");
-    Path updateMain= workspaceDir.resolve("main.prefs");
-    Properties workspaceProperties= fileAccess.readProperties(workspaceMain);
-
-    //act
-    workspaceProperties.setProperty("theme", "dark");
-    workspaceProperties.setProperty("ui", "linux");
-    fileAccess.writeProperties(workspaceProperties, workspaceMain);
 
     //assert
-    Properties result= fileAccess.readProperties(updateMain);
-    assertThat(result).containsEntry("theme", "dark").containsEntry("ui", "linux");
+    Properties result = fileAccess.readProperties(workspaceMain);
+    assertThat(result).containsEntry("theme", "dark").containsEntry("ui", "classic").containsEntry("java.version", "1.11");
   }
 
   @Test
@@ -121,7 +117,8 @@ public class PropertiesMergerTest extends AbstractIdeContextTest {
     propertiesMerger.inverseMerge(workspaceMain, environmentVariables, true, updateMain);
     //assert
     Properties result= fileAccess.readProperties(updateMain);
-    assertThat(result).containsKey("theme").containsKey("ui").containsKey("editor");
+    assertThat(result).containsEntry("theme", "light").containsEntry("ui", "linux").containsEntry("editor", "vi")
+        .containsEntry("java.home", "${IDE_HOME}/software/java");
   }
   @Test
   void testConflictResolution(@TempDir Path workspaceDir)throws Exception{
@@ -141,24 +138,24 @@ public class PropertiesMergerTest extends AbstractIdeContextTest {
     Path updateMain= workspaceDir.resolve("update-main.prefs");
     Files.copy(update.resolve("main.prefs"), updateMain);
     Properties workspaceProperties= fileAccess.readProperties(workspaceMain);
-    workspaceProperties.setProperty("theme", "dark");
-    workspaceProperties.setProperty("ui", "classic");
+    workspaceProperties.setProperty("java.version", "1.99");
+    workspaceProperties.setProperty("theme", "light");
     fileAccess.writeProperties(workspaceProperties, workspaceMain);
-//act
+    //act
     propertiesMerger.inverseMerge(workspaceMain, environmentVariables, false, updateMain);
-    Properties result= fileAccess.readProperties(updateMain);
     //assert
-
-    assertThat(result).containsEntry("java.version", "1.11").containsEntry("java.home", "${IDE_HOME}/software/java");
+    Properties result = fileAccess.readProperties(updateMain);
+    assertThat(result).containsEntry("java.version", "1.99").containsEntry("java.home", "${IDE_HOME}/software/java").doesNotContainKey("theme");
   }
   @Test
-  void nonexistentWorkspace(@TempDir Path workspaceDir)throws Exception{
+  void testInverseMergeWithNonexistentWorkspace(@TempDir Path workspaceDir)throws Exception{
     IdeContext  context = newContext(PROJECT_BASIC, null, false);
     PropertiesMerger propertiesMerger= new PropertiesMerger(context);
     Path workspaceMain = workspaceDir.resolve("missing.prefs");
     Path updateMain= workspaceDir.resolve("update.prefs");
     Files.createFile(updateMain);
-    assertThatCode(()->propertiesMerger.inverseMerge(workspaceMain, context.getVariables(), false, updateMain));
+    assertThatCode(() -> propertiesMerger.inverseMerge(workspaceMain, context.getVariables(), false, updateMain)).doesNotThrowAnyException();
+    assertThat(updateMain).isEmptyFile();
   }
   @Test
   void missingFilesTest(@TempDir Path workspaceDir)throws Exception{
