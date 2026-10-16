@@ -22,20 +22,16 @@ public class IdeGuiLogListener extends IdeLogListenerBuffer {
   }
 
   @Override
-  public boolean onLog(IdeLogLevel level, String message, String rawMessage, Object[] args, Throwable error) {
+  public boolean onLog(IdeLogEntry entry) {
 
-    //If we are in buffer mode, pass responsibility to superclass
-    if (this.isBuffering()) {
-      super.onLog(level, message, rawMessage, args, error);
-    }
-
-    if (this.eventBus != null && message != null) {
-      this.eventBus.sendEvent(new LogEvent(new IdeLogEntry(level, message)));
-      if (error != null) {
-        this.eventBus.sendEvent(new LogEvent(new IdeLogEntry(IdeLogLevel.ERROR, "  Error: " + error.getMessage())));
+    boolean accept = super.onLog(entry);
+    if (accept && this.eventBus != null && entry.message() != null) {
+      this.eventBus.sendEvent(new LogEvent(new IdeLogEntry(entry.level(), entry.message())));
+      if (entry.error() != null) {
+        this.eventBus.sendEvent(new LogEvent(new IdeLogEntry(IdeLogLevel.ERROR, "  Error: " + entry.error().getMessage())));
       }
     }
-    return true; // continue processing (also log to standard output if needed)
+    return accept;
   }
 
 }
