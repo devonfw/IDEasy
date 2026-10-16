@@ -13,6 +13,9 @@ import javafx.scene.control.ListView;
 import com.devonfw.ide.gui.core.service.NlsService;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+
 /**
  * View of the console
  */
@@ -97,16 +100,18 @@ public class ConsoleView {
     private static final String PLAIN_STYLE = BASE_STYLE + " -fx-text-fill: #333333;";
     private static final String ERROR_BG = "-fx-background-color: #fff0f0;";
     private static final String WARNING_BG = "-fx-background-color: #fff8e0;";
-
+private final TextField textArea= new TextField();
     @Override
     protected void updateItem(IdeLogEntry entry, boolean empty) {
 
       super.updateItem(entry, empty);
       if (empty || entry == null) {
-        setText(null);
+        textArea.setText(null);
         setStyle(BASE_STYLE);
       } else {
-        setText(entry.displayValue());
+        textArea.setText(entry.displayValue());
+        textArea.setEditable(false);
+        setGraphic(textArea);
         setStyle(getStyleForEntry(entry));
       }
     }
