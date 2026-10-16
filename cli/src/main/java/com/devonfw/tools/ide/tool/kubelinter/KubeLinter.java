@@ -22,5 +22,9 @@ public class KubeLinter extends AbstractLocalToolCommandlet {
 
     super(context, "kube-linter", Set.of(Tag.KUBERNETES, Tag.LINTING));
   }
+  @Override
+  public String getToolHelpArguments() {
 
+    return "--help";
+  }
 }
