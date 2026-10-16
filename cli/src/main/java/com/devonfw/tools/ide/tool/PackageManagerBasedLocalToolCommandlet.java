@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.tool;
 
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
@@ -9,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -54,6 +57,24 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
 
     // Check if the tool binary is found
     return getBinaryExecutable() != null;
+  }
+
+  @Override
+  public void uninstall() {
+    // Since the tool path points to the parent tool, a tool that is not installed would be uninstalled via the package
+    // manager which is not wanted (e.g. it may even install the package manager). So only the software/«tool» entry is
+    // cleaned up here, never the parent tool or the package manager.
+    if (!isInstalled()) {
+      Path leftover = this.context.getSoftwarePath() == null ? null : this.context.getSoftwarePath().resolve(this.tool);
+      if (leftover != null && !leftover.equals(getToolPath()) && Files.exists(leftover, LinkOption.NOFOLLOW_LINKS)) {
+        this.context.getFileAccess().delete(leftover);
+        IdeLogLevel.SUCCESS.log(LOG, "Successfully uninstalled {}", this.tool);
+      } else {
+        LOG.warn("An installed version of {} does not exist.", this.tool);
+      }
+      return;
+    }
+    super.uninstall();
   }
 
   protected abstract Class<P> getPackageManagerClass();

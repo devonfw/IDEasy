@@ -68,7 +68,7 @@ class UninstallCommandletTest extends AbstractIdeContextTest {
     uninstallCommandlet.run();
     // assert
     assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("Successfully uninstalled " + mvn),
-        IdeLogEntry.ofWarning("Couldn't uninstall " + dotnet + " because we could not find an installation"));
+        IdeLogEntry.ofWarning("An installed version of " + dotnet + " does not exist."));
     assertThat(context.getSoftwarePath().resolve("mvn")).doesNotExist();
   }
 
@@ -85,7 +85,7 @@ class UninstallCommandletTest extends AbstractIdeContextTest {
     // act
     uninstallCommandlet.run();
     // assert
-    assertThat(context).logAtWarning().hasMessage("Couldn't uninstall " + eclipse + " because we could not find an installation");
+    assertThat(context).logAtWarning().hasMessage("An installed version of " + eclipse + " does not exist.");
     assertThat(context.getSoftwarePath().resolve(eclipse)).doesNotExist();
   }
 
@@ -121,11 +121,38 @@ class UninstallCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests that {@code ide uninstall} removes a leftover software folder under the tool name even when the commandlet is
-   * not considered installed (e.g. package-manager tools whose {@code getToolPath()} points to the parent tool).
+   * Tests that uninstalling a package-manager tool whose parent tool is present but the tool itself is not installed does not
+   * trigger the package manager (which would e.g. install {@code uv}), but just raises a warning.
    */
   @Test
-  void testUninstallRemovesLeftoverSoftwareFolder() throws Exception {
+  void testUninstallPipNotInstalledDoesNotTriggerPackageManager() throws Exception {
+
+    // arrange
+    String tool = "pip";
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    // make the parent tool (python) appear present so the uninstall routine proceeds to the package-manager logic
+    Files.createDirectories(context.getSoftwarePath().resolve("python"));
+    Pip pipCommandlet = context.getCommandletManager().getCommandlet(Pip.class);
+    assertThat(pipCommandlet.isInstalled()).isFalse();
+
+    UninstallCommandlet uninstallCommandlet = context.getCommandletManager().getCommandlet(UninstallCommandlet.class);
+    uninstallCommandlet.tools.addValue(pipCommandlet);
+
+    // act
+    uninstallCommandlet.run();
+
+    // assert
+    assertThat(context).logAtWarning().hasMessage("An installed version of " + tool + " does not exist.");
+    assertThat(context).logAtSuccess().hasNoMessage("Successfully uninstalled " + tool);
+    assertThat(context.getSoftwarePath().resolve("uv")).doesNotExist();
+  }
+
+  /**
+   * Tests that uninstalling a not-installed package-manager tool still removes its leftover software folder (e.g. a folder that only
+   * contains a version file) without triggering the package manager.
+   */
+  @Test
+  void testUninstallRemovesLeftoverSoftwareFolderOfPackageManagerTool() throws Exception {
 
     // arrange
     String tool = "pip";
@@ -145,6 +172,7 @@ class UninstallCommandletTest extends AbstractIdeContextTest {
     // assert
     assertThat(context).logAtSuccess().hasMessage("Successfully uninstalled " + tool);
     assertThat(leftoverPath).doesNotExist();
+    assertThat(context.getSoftwarePath().resolve("uv")).doesNotExist();
   }
 
   @Test
