@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.core.event.GuiEventBus;
 import com.devonfw.ide.gui.core.factory.TabFactory;
-import com.devonfw.ide.gui.core.mainwindow.console.ConsoleController;
 import com.devonfw.ide.gui.core.service.CommandletService;
 import com.devonfw.ide.gui.core.service.NlsService;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -44,6 +43,9 @@ public class GuiStateManager {
 
   private final BooleanProperty workspaceSelected = new SimpleBooleanProperty(false);
 
+  /**
+   * Project context based on which project the user works in.
+   */
   private volatile IdeGuiContext currentContext;
 
   private final IdeStartContextImpl startContext;
@@ -55,8 +57,6 @@ public class GuiStateManager {
   private final GuiEventBus eventBus;
 
   private final NlsService nlsService;
-
-  private final ConsoleController consoleController;
 
   private final CommandletService commandletService;
 
@@ -97,7 +97,6 @@ public class GuiStateManager {
     // inject an application-level context so NlsService never has to create one itself; binding the default to startContext keeps the GUI logging context
     IdeContext resolvedNlsContext = (nlsContext != null) ? nlsContext : new IdeContextConsole(startContext);
     this.nlsService = new NlsService(resolvedNlsContext, null);
-    this.consoleController = new ConsoleController(this);
     this.commandletService = new CommandletService(this);
     this.tabFactory = new TabFactory(this);
   }
@@ -235,10 +234,6 @@ public class GuiStateManager {
 
   public NlsService getNlsService() {
     return nlsService;
-  }
-
-  public ConsoleController getConsoleController() {
-    return consoleController;
   }
 
   public CommandletService getCommandletService() {
