@@ -35,6 +35,52 @@ class NgTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Tests that installing {@link Ng} a second time does not trigger a duplicate npm installation cycle (regression test for
+   * <a href="https://github.com/devonfw/IDEasy/issues/1965">#1965</a>).
+   *
+   * @param wireMockRuntimeInfo wireMock server on a random port
+   */
+  @Test
+  void testNgRepeatInstallation(WireMockRuntimeInfo wireMockRuntimeInfo) {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_NG, wireMockRuntimeInfo);
+    Ng commandlet = new Ng(context);
+
+    // act I
+    commandlet.install();
+
+    // clear the log so we only assert on the messages of the second installation
+    context.getTestStartContext().getEntries().clear();
+
+    // act II
+    commandlet.install();
+
+    // assert
+    // since npm is already installed, the second installation must skip the npm installation cycle and not re-check npm for CVEs
+    assertThat(context).log().hasNoMessageContaining("No CVEs found for version 9.9.2 of tool npm");
+  }
+
+  /**
+   * Tests that a direct (non-silent) installation of {@link Ng} keeps the triggered package-manager installation silent.
+   *
+   * @param wireMockRuntimeInfo wireMock server on a random port
+   */
+  @Test
+  void testDirectInstallKeepsPackageManagerInstallationSilent(WireMockRuntimeInfo wireMockRuntimeInfo) {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_NG, wireMockRuntimeInfo);
+    Ng commandlet = new Ng(context);
+
+    // act - simulate a direct installation (like "ide install ng") which is non-silent
+    commandlet.install(false);
+
+    // assert - the already-installed node should only be reported on debug level
+    assertThat(context).logAtDebug().hasMessageContaining("of tool node is already installed");
+  }
+
+  /**
    * Tests if the {@link Ng} uninstall works correctly on linux.
    *
    * @param wireMockRuntimeInfo wireMock server on a random port
