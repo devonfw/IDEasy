@@ -2,7 +2,7 @@
 :toc:
 toc::[]
 
-To allow GitHub actions writing to our project (e.g. pushing changes) and reading organization team membership (external issue observer) we need a fine-grained access token.
+To allow GitHub actions writing to our project (e.g. pushing changes), reading organization team membership (external issue observer) and reading/writing the organization's GitHub project board (PR assignee reconciler) we need a fine-grained access token.
 Such token needs the according permissions and due to a GitHub policy it must expire after some time.
 When the expiry date is reached, out actions will fail.
 Therefore, shortly before this expiry date the token has to be replaced by a new one (refreshment).
@@ -31,6 +31,9 @@ image::../images/AccessToken2.png["New fine-grained personal access token"]
 image::../images/AccessToken3.png["Repository permissions"]
 . In `Organization permissions` select `Read` for `Members`.
 This is required by `.github/workflows/issue-pr-observer.yml` to read members of the `ide` team.
+. In `Organization permissions` select `Read and write` for `Projects`.
+This is required by `.github/workflows/pr-assignee-reconcile.yml`: it reads the org's project boards and writes the board's `Team Reviewer` field.
+Without it the built-in `GITHUB_TOKEN` (which is scoped to the repository and cannot see org boards) would be needed and the board lookup would fail on every scheduled run.
 . Click on `Generate token` to proceed.
 . On the confirmation page click again on `Generate token` to proceed.
 +
