@@ -5,8 +5,8 @@ import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
 import java.io.IOException;
 import java.net.URL;
-import java.nio.file.Path;
 import java.util.List;
+import java.util.Locale;
 
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -15,20 +15,19 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
-import com.devonfw.ide.gui.HeadlessApplicationTest;
-import com.devonfw.ide.gui.core.context.GuiStateManager;
+import com.devonfw.ide.gui.UIBasedApplicationTest;
+import com.devonfw.ide.gui.core.context.IdeGuiLogListener;
+import com.devonfw.ide.gui.core.event.GuiEventBus;
 import com.devonfw.ide.gui.core.service.NlsService;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 
-class ConsolePanelTest extends HeadlessApplicationTest {
+class ConsolePanelTest extends UIBasedApplicationTest {
 
-  private ConsoleController consoleController;
+  private ConsoleViewModel consoleViewModel;
 
-  @TempDir
-  private Path mockIdeRoot;
+  private GuiEventBus eventBus;
 
   @Override
   public void start(Stage stage) throws IOException {
@@ -36,14 +35,18 @@ class ConsolePanelTest extends HeadlessApplicationTest {
     URL consoleViewUrl = getClass().getResource("console.fxml");
     assertThat(consoleViewUrl).as("Cannot resolve console UI FXML resource!").isNotNull();
 
-    GuiStateManager guiStateManager = new GuiStateManager(this.mockIdeRoot.toString());
-    this.consoleController = guiStateManager.getConsoleController();
-
-    NlsService nlsService = guiStateManager.getNlsService();
+    NlsService nlsService = new NlsService(Locale.ENGLISH);
+    this.eventBus = new GuiEventBus();
 
     FXMLLoader fxmlLoader = new FXMLLoader(consoleViewUrl);
     fxmlLoader.setResources(nlsService.getResourceBundle());
-    fxmlLoader.setControllerFactory(clazz -> clazz == ConsoleController.class ? this.consoleController : null);
+    fxmlLoader.setControllerFactory(clazz -> {
+      if (clazz == ConsoleView.class) {
+        consoleViewModel = new ConsoleViewModel(eventBus);
+        return new ConsoleView(consoleViewModel, nlsService);
+      }
+      return null;
+    });
     Parent root = fxmlLoader.load();
     stage.setScene(new Scene(root));
     stage.requestFocus(); // sometimes needed for headless setup to work
@@ -56,13 +59,15 @@ class ConsolePanelTest extends HeadlessApplicationTest {
   @Test
   void testConsoleOutputPrintsCorrectly() {
 
+    // Simulate output to the console
     Platform.runLater(() -> {
-      consoleController.appendOutput(new IdeLogEntry(IdeLogLevel.INFO, "Hello World!"));
-      consoleController.appendOutput(new IdeLogEntry(IdeLogLevel.INFO, "Test"));
+      consoleViewModel.appendOutput("Hello World!");
+      consoleViewModel.appendOutput("Test");
     });
     waitForFxEvents();
 
-    List<String> snapshot = consoleController.getConsoleOutputSnapshot();
+    // Verify that the output is displayed in the ListView
+    List<String> snapshot = consoleViewModel.getConsoleOutputSnapshot();
     assertThat(snapshot).anyMatch(s -> s.contains("Hello World!"));
     assertThat(snapshot).anyMatch(s -> s.contains("Test"));
   }
@@ -74,15 +79,17 @@ class ConsolePanelTest extends HeadlessApplicationTest {
   void testConsoleOutputWithLogLevels() {
 
     Platform.runLater(() -> {
-      consoleController.appendOutput(new IdeLogEntry(IdeLogLevel.INFO, "Info message"));
-      consoleController.appendOutput(new IdeLogEntry(IdeLogLevel.ERROR, "Error message"));
-      consoleController.appendOutput(new IdeLogEntry(IdeLogLevel.WARNING, "Warning message"));
-      consoleController.appendOutput(new IdeLogEntry(IdeLogLevel.DEBUG, "Debug message"));
+      consoleViewModel.appendOutput(IdeLogLevel.INFO, "Info message");
+      consoleViewModel.appendOutput(IdeLogLevel.ERROR, "Error message");
+      consoleViewModel.appendOutput(IdeLogLevel.WARNING, "Warning message");
+      consoleViewModel.appendOutput(IdeLogLevel.DEBUG, "Debug message");
     });
     waitForFxEvents();
 
-    List<String> snapshot = consoleController.getConsoleOutputSnapshot();
+    List<String> snapshot = consoleViewModel.getConsoleOutputSnapshot();
     assertThat(snapshot).hasSize(4);
+    // Check that all log levels appear in the output (format is "HH:mm:ss | [LEVEL]  message")
+    // INFO has 3 spaces after bracket, ERROR has 2, WARN has 2, DEBUG has 2
     assertThat(snapshot).anyMatch(s -> s.contains("[INFO] Info message"));
     assertThat(snapshot).anyMatch(s -> s.contains("[ERROR] Error message"));
     assertThat(snapshot).anyMatch(s -> s.contains("[WARNING] Warning message"));
@@ -92,32 +99,83 @@ class ConsolePanelTest extends HeadlessApplicationTest {
   @Test
   void testConsoleClear() {
 
+    // Simulate output to the console
     Platform.runLater(() -> {
-      consoleController.appendOutput(new IdeLogEntry(IdeLogLevel.INFO, "Hello World!"));
-      consoleController.appendOutput(new IdeLogEntry(IdeLogLevel.INFO, "Test"));
+      consoleViewModel.appendOutput("Hello World!");
+      consoleViewModel.appendOutput("Test");
     });
     waitForFxEvents();
 
-    Platform.runLater(() -> consoleController.clearConsole());
+    // Clear the console
+    Platform.runLater(() -> consoleViewModel.clearConsole());
     waitForFxEvents();
 
-    assertThat(consoleController.getConsoleOutputSnapshot()).isEmpty();
+    // Verify that the console is empty
+    assertThat(consoleViewModel.getConsoleOutputSnapshot()).isEmpty();
   }
 
   @Test
   void testLineCountUpdates() {
+
     Platform.runLater(() -> {
-      consoleController.appendOutput(new IdeLogEntry(IdeLogLevel.INFO, "Line 1"));
-      consoleController.appendOutput(new IdeLogEntry(IdeLogLevel.INFO, "Line 2"));
-      consoleController.appendOutput(new IdeLogEntry(IdeLogLevel.INFO, "Line 3"));
+      consoleViewModel.appendOutput("Line 1");
+      consoleViewModel.appendOutput("Line 2");
+      consoleViewModel.appendOutput("Line 3");
     });
     waitForFxEvents();
 
-    assertThat(consoleController.getConsoleOutputSnapshot()).hasSize(3);
+    // Line count should be 3
+    assertThat(consoleViewModel.getConsoleOutputSnapshot()).hasSize(3);
   }
 
   @Test
   void testAutoScrollCheckboxEnabledByDefault() {
-    assertThat(consoleController.isAutoScrollEnabled()).isTrue();
+
+    // Just verify auto-scroll is enabled by default
+    assertThat(consoleViewModel.autoScrollEnabledProperty().get()).isTrue();
+  }
+
+  /**
+   * Tests the event-bus path of the rework: a log forwarded by {@link IdeGuiLogListener} over the {@link GuiEventBus} ends up in the console, and a non-null
+   * {@code Throwable} yields an additional error line.
+   */
+  @Test
+  void testLogEventArrivingOverTheEventBusIsShown() {
+
+    // Forward logs over the event bus - the path used since the rework instead of a direct appendOutput call
+    IdeGuiLogListener listener = new IdeGuiLogListener(eventBus);
+    // The listener buffers by default; end buffering first so the following onLog() calls forward their entries over the event bus.
+    listener.flushAndEndBuffering();
+    Platform.runLater(() -> {
+      listener.onLog(new IdeLogEntry(IdeLogLevel.INFO, "Info via EventBus", null, null, null));
+      listener.onLog(new IdeLogEntry(IdeLogLevel.ERROR, "Error via EventBus", null, null, new RuntimeException("boom")));
+    });
+    waitForFxEvents();
+
+    List<String> snapshot = consoleViewModel.getConsoleOutputSnapshot();
+    assertThat(snapshot).anyMatch(s -> s.contains("[INFO] Info via EventBus"));
+    assertThat(snapshot).anyMatch(s -> s.contains("[ERROR] Error via EventBus"));
+    assertThat(snapshot).anyMatch(s -> s.contains("[ERROR]   Error: boom"));
+  }
+
+  /**
+   * Tests the off-FX-thread path of the rework: a log emitted from a non-FX worker thread (as commandlet logs are) must not be lost. It is buffered by the
+   * view-model and flushed to the console on the FX application thread (see {@link javafx.application.Platform#runLater(Runnable)}).
+   */
+  @Test
+  void testLogEventArrivingOnOffFxThreadIsShown() throws InterruptedException {
+
+    IdeGuiLogListener listener = new IdeGuiLogListener(eventBus);
+    // The listener buffers by default; end buffering first so the onLog() call below forwards its entry over the event bus.
+    listener.flushAndEndBuffering();
+    Thread worker = new Thread(() -> {
+      listener.onLog(new IdeLogEntry(IdeLogLevel.INFO, "Off FX", null, null, null));
+    });
+    worker.start();
+    worker.join(); // ensure the log was emitted before asserting
+    waitForFxEvents();
+
+    List<String> snapshot = consoleViewModel.getConsoleOutputSnapshot();
+    assertThat(snapshot).anyMatch(s -> s.contains("[INFO] Off FX"));
   }
 }

@@ -11,11 +11,14 @@ import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.ide.gui.core.mainwindow.console.ConsoleController;
+import com.devonfw.ide.gui.core.event.GuiEventBus;
+import com.devonfw.ide.gui.core.event.console.LogEvent;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeLogListenerNone;
+
+import io.github.mmm.event.EventListener;
 
 /**
  * Tests for {@link IdeGuiLogListener}.
@@ -26,25 +29,21 @@ public class IdeGuiLogListenerTest extends Assertions {
   private Path mockIdeRoot;
 
   /**
-   * A {@link ConsoleController} that records every entry forwarded to it instead of touching the JavaFX toolkit, so the number of times
-   * {@link IdeGuiLogListener#onLog(IdeLogEntry)} sends a message can be counted.
+   * An {@link EventListener} for {@link LogEvent} that records every event published on the {@link GuiEventBus} instead of touching the JavaFX toolkit, so the
+   * number of times {@link IdeGuiLogListener#onLog(IdeLogEntry)} sends a message can be counted.
    */
-  private static class RecordingConsoleController extends ConsoleController {
+  private static final class RecordingLogListener implements EventListener<LogEvent> {
 
-    private final List<IdeLogEntry> appended = new ArrayList<>();
-
-    RecordingConsoleController(GuiStateManager guiStateManager) {
-      super(guiStateManager);
-    }
+    private final List<IdeLogEntry> entries = new ArrayList<>();
 
     @Override
-    public void appendOutput(IdeLogEntry entry) {
+    public void onEvent(LogEvent event) {
 
-      this.appended.add(entry);
+      this.entries.add(event.logEntry());
     }
 
     List<IdeLogEntry> getEntries() {
-      return this.appended;
+      return this.entries;
     }
   }
 
@@ -62,9 +61,10 @@ public class IdeGuiLogListenerTest extends Assertions {
   @Test
   void testMessageOnlySendOnce() {
 
-    GuiStateManager guiStateManager = new GuiStateManager(this.mockIdeRoot.toString());
-    RecordingConsoleController console = new RecordingConsoleController(guiStateManager);
-    IdeGuiLogListener listener = new IdeGuiLogListener(console);
+    GuiEventBus eventBus = new GuiEventBus();
+    RecordingLogListener recorder = new RecordingLogListener();
+    eventBus.addListener(LogEvent.class, recorder);
+    IdeGuiLogListener listener = new IdeGuiLogListener(eventBus);
     listener.flushAndEndBuffering();
 
     String message = "TestMessage";
@@ -72,8 +72,8 @@ public class IdeGuiLogListenerTest extends Assertions {
     boolean accepted = listener.onLog(entry);
 
     assertThat(accepted).as("onLog() should accept the entry").isTrue();
-    assertThat(console.getEntries()).as("the entry must be forwarded to the console exactly once").hasSize(1);
-    assertThat(console.getEntries().get(0).message()).isEqualTo(message);
+    assertThat(recorder.getEntries()).as("the entry must be forwarded to the console exactly once").hasSize(1);
+    assertThat(recorder.getEntries().get(0).message()).isEqualTo(message);
   }
 
 
@@ -81,15 +81,16 @@ public class IdeGuiLogListenerTest extends Assertions {
   void testBufferedMessageShownOnceAfterFlush() {
 
     Logger log = LoggerFactory.getLogger(IdeGuiLogListenerTest.class);
-    GuiStateManager guiStateManager = new GuiStateManager(this.mockIdeRoot.toString());
-    RecordingConsoleController console = new RecordingConsoleController(guiStateManager);
-    IdeGuiLogListener listener = new IdeGuiLogListener(console);
+    GuiEventBus eventBus = new GuiEventBus();
+    RecordingLogListener recorder = new RecordingLogListener();
+    eventBus.addListener(LogEvent.class, recorder);
+    IdeGuiLogListener listener = new IdeGuiLogListener(eventBus);
     new IdeStartContextImpl(IdeLogLevel.INFO, listener);
 
     log.warn("TestMessage");
-    assertThat(console.getEntries()).as("nothing is shown while buffering").isEmpty();
+    assertThat(recorder.getEntries()).as("nothing is shown while buffering").isEmpty();
 
     listener.flushAndEndBuffering();
-    assertThat(console.getEntries()).extracting(IdeLogEntry::message).containsExactly("TestMessage");
+    assertThat(recorder.getEntries()).extracting(IdeLogEntry::message).containsExactly("TestMessage");
   }
 }
