@@ -1,11 +1,15 @@
 name: Integration Tests
 on:
-  workflow_dispatch
+  workflow_dispatch:
+  workflow_run:
+    workflows: [ "Nightly Build (SNAPSHOT release)" ]
+    types: [ completed ]
 
 jobs:
   # Runs integration tests for each os
   run-integration-tests:
     name: Run integration test
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -13,6 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
           submodules: recursive
       - name: Run integration tests
         shell: bash
