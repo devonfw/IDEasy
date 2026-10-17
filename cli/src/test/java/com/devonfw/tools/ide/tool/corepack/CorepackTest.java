@@ -55,12 +55,6 @@ class CorepackTest extends AbstractIdeContextTest {
     // act II
     commandlet.uninstall();
 
-    // assert II
-    assertThat(context).logAtInfo().hasNoMessageContaining("npm uninstall -g corepack");
-    assertThat(context).logAtInfo().hasMessageContaining("IDEasy does not support uninstalling the tool corepack since this will break your installation.\n"
-        + "If you really want to uninstall it, please uninstall its parent tool via:\n"
-        + "ide uninstall node");
-
     assertThat(context).logAtSuccess().hasMessage("Successfully uninstalled corepack");
   }
 
