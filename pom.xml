@@ -18,6 +18,8 @@
 
   <properties>
     <github.repository>IDEasy</github.repository>
+    <!-- Spotless ratchet base, override with -Dspotless.ratchetFrom=upstream/main if origin is a stale fork. -->
+    <spotless.ratchetFrom>origin/main</spotless.ratchetFrom>
     <ide_version>${revision}</ide_version>
     <java.version>25</java.version>
     <jline.version>4.3.1</jline.version>
@@ -249,7 +251,7 @@
         <version>2.44.5</version>
         <configuration>
           <!-- Ratchet: only files changed vs origin/main are checked / formatted. -->
-          <ratchetFrom>origin/main</ratchetFrom>
+          <ratchetFrom>${spotless.ratchetFrom}</ratchetFrom>
           <java>
             <includes>
               <include>src/main/java/**/*.java</include>
