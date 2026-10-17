@@ -381,15 +381,16 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
 
   /**
    * @return the {@link Path} to the *.app bundle of this tool as found in one of the well-known macOS application folders, or {@code null} if
-   *     {@link #getMacApplicationName() unknown} or not found there.
+   *     {@link #getMacApplicationName() unknown} or not found there. The {@link #getMacUserApplicationsPath() Applications folder of the user} is preferred
+   *     since IDEasy installs there.
    */
-  private Path findMacApplicationBundle() {
+  protected Path findMacApplicationBundle() {
     String appName = getMacApplicationName();
     if (appName == null) {
       return null;
     }
     String bundleFileName = appName + ".app";
-    List<Path> applicationsDirs = List.of(MAC_SYSTEM_APPLICATIONS_DIR, this.context.getUserHome().resolve(MAC_APPLICATIONS_FOLDER_NAME));
+    List<Path> applicationsDirs = List.of(getMacUserApplicationsPath(), MAC_SYSTEM_APPLICATIONS_DIR);
     for (Path applicationsDir : applicationsDirs) {
       Path candidate = applicationsDir.resolve(bundleFileName);
       if (Files.isDirectory(candidate)) {
@@ -397,6 +398,13 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
       }
     }
     return null;
+  }
+
+  /**
+   * @return the {@link Path} to the Applications folder in the home directory of the user (writable without admin permissions).
+   */
+  protected Path getMacUserApplicationsPath() {
+    return this.context.getUserHome().resolve(MAC_APPLICATIONS_FOLDER_NAME);
   }
 
   /**
