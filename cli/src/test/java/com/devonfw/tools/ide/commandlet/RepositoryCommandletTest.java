@@ -11,7 +11,7 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
-import com.devonfw.tools.ide.git.GitContextImplMock;
+import com.devonfw.tools.ide.git.FixtureGitContextMock;
 import com.devonfw.tools.ide.git.repository.RepositoryCommandlet;
 import com.devonfw.tools.ide.io.FileAccess;
 
@@ -283,7 +283,7 @@ class RepositoryCommandletTest extends AbstractIdeContextTest {
     // arrange
     String expectedSkillContent = "# dummy for testing link feature with AI use-case\n";
     IdeTestContext context = newContext(IdeContext.FOLDER_REPOSITORY);
-    context.setGitContext(new GitContextImplMock(context, context.getIdeHome().getParent().resolve("repository/ai-repo")));
+    context.setGitContext(new FixtureGitContextMock(context, context.getIdeHome().getParent().resolve("repository/ai-repo")));
     Properties properties = createDefaultProperties();
     String workspace1 = "workspace1";
     String workspace2 = "workspace2";
