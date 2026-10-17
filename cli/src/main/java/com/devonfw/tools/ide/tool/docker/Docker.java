@@ -42,6 +42,8 @@ public class Docker extends GlobalToolCommandlet {
 
   private static final String EDITION_DOCKER = "docker";
 
+  private static final String EDITION_RANCHER = "rancher";
+
   private Path downloadedDebPackageForDocker;
 
   /**
@@ -138,9 +140,26 @@ public class Docker extends GlobalToolCommandlet {
   }
 
   @Override
+  protected List<PackageManagerCommand> getUninstallPackageManagerCommands() {
+
+    if (this.context.getSystemInfo().isMac()) {
+      // the cask of the installed edition has to be removed, regardless of which edition is configured
+      String cask = EDITION_RANCHER.equals(getInstalledEdition()) ? "rancher" : "docker";
+      return List.of(new NativePackage(NativePackageManager.BREW_CASK, List.of(cask)).uninstall());
+    }
+    return super.getUninstallPackageManagerCommands();
+  }
+
+  @Override
   public String getMacApplicationName() {
 
     return "Docker";
+  }
+
+  @Override
+  public String getMacApplicationName(String edition) {
+
+    return EDITION_RANCHER.equals(edition) ? "Rancher Desktop" : getMacApplicationName();
   }
 
   @Override

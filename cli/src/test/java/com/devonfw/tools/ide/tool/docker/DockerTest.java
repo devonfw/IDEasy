@@ -15,6 +15,8 @@ import com.devonfw.tools.ide.os.WindowsAppInstallation;
 import com.devonfw.tools.ide.os.WindowsHelperMock;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.tool.EditionAndVersion;
+import com.devonfw.tools.ide.tool.NativePackageManager;
+import com.devonfw.tools.ide.tool.PackageManagerCommand;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -196,6 +198,89 @@ class DockerTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(appNames).containsEntry("docker", "Docker Desktop").containsEntry("rancher", "Rancher Desktop");
+  }
+
+  /**
+   * A {@link Docker} that reports the given edition as installed without querying the system.
+   *
+   * @param context the {@link IdeTestContext}.
+   * @param installedEdition the edition to report as installed.
+   * @return the {@link Docker}.
+   */
+  private Docker dockerWithInstalledEdition(IdeTestContext context, String installedEdition) {
+
+    return new Docker(context) {
+      @Override
+      protected EditionAndVersion computeInstalledEditionAndVersion() {
+        return new EditionAndVersion(installedEdition, VersionIdentifier.of("1.0.0"));
+      }
+    };
+  }
+
+  /**
+   * Verifies that on Windows the uninstall uses the registry name of the installed edition and not the one of Docker Desktop.
+   */
+  @Test
+  void testUninstallOnWindowsUsesRegistryNameOfInstalledEdition() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
+    WindowsHelperMock helper = (WindowsHelperMock) context.getWindowsHelper();
+    helper.setAppInstallationFromRegistry("Docker Desktop", new WindowsAppInstallation("4.44.0", null, "uninstall-docker.exe", null));
+    helper.setAppInstallationFromRegistry("Rancher Desktop", new WindowsAppInstallation("1.13.0", null, "uninstall-rancher.exe", null));
+    Docker docker = dockerWithInstalledEdition(context, "rancher");
+
+    // act
+    docker.uninstall();
+
+    // assert
+    assertThat(helper.getExecutedUninstallCommand()).isEqualTo("uninstall-rancher.exe");
+  }
+
+  /**
+   * Verifies that on macOS the application bundle of the installed edition is removed and not the one of Docker Desktop.
+   */
+  @Test
+  void testUninstallOnMacRemovesRancherDesktopBundle() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setSystemInfo(SystemInfoMock.MAC_X64);
+    Path applications = context.getUserHome().resolve("Applications");
+    Path rancherBundle = applications.resolve("Rancher Desktop.app");
+    Path dockerBundle = applications.resolve("Docker.app");
+    context.getFileAccess().mkdirs(rancherBundle);
+    context.getFileAccess().mkdirs(dockerBundle);
+    Docker docker = dockerWithInstalledEdition(context, "rancher");
+
+    // act
+    docker.uninstall();
+
+    // assert
+    assertThat(rancherBundle).doesNotExist();
+    assertThat(dockerBundle).exists();
+  }
+
+  /**
+   * Verifies that the Homebrew cask to uninstall on macOS depends on the installed edition.
+   */
+  @Test
+  void testUninstallCommandsOnMacUseCaskOfInstalledEdition() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setSystemInfo(SystemInfoMock.MAC_X64);
+
+    // act
+    List<PackageManagerCommand> rancherCommands = dockerWithInstalledEdition(context, "rancher").getUninstallPackageManagerCommands();
+    List<PackageManagerCommand> dockerCommands = dockerWithInstalledEdition(context, "docker").getUninstallPackageManagerCommands();
+
+    // assert
+    assertThat(rancherCommands).filteredOn(c -> c.packageManager() == NativePackageManager.BREW_CASK)
+        .extracting(PackageManagerCommand::commands).containsExactly(List.of("brew uninstall --cask rancher"));
+    assertThat(dockerCommands).filteredOn(c -> c.packageManager() == NativePackageManager.BREW_CASK)
+        .extracting(PackageManagerCommand::commands).containsExactly(List.of("brew uninstall --cask docker"));
   }
 
 }
