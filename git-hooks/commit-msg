@@ -1,4 +1,5 @@
 #!/bin/sh
+echo "HOOK CALLED"
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 
 "$SCRIPT_DIR/check-ai-attribution.sh" "$1"
