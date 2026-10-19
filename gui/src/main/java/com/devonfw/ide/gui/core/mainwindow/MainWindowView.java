@@ -189,11 +189,9 @@ public class MainWindowView extends BorderPane {
   }
 
   private void applyStatusLabelStyle(boolean clickable) {
-
+    this.statusLabel.getStyleClass().remove("status-label");
     if (clickable) {
       this.statusLabel.getStyleClass().add("status-label");
-    } else {
-      this.statusLabel.getStyleClass().add("empty");
     }
   }
 
