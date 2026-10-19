@@ -40,6 +40,8 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
 
   private static final Path MAC_SYSTEM_APPLICATIONS_DIR = Path.of("/" + MAC_APPLICATIONS_FOLDER_NAME);
 
+  private static final String SUDO = "sudo";
+
   /**
    * The constructor.
    *
@@ -174,6 +176,7 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
     if (macDmg) {
       installMacDmg(target);
       pc = request.getProcessContext();
+      IdeLogLevel.SUCCESS.log(LOG, "Successfully installed {} in version {}", this.tool, resolvedVersion);
     } else {
       Path executable = target;
       Path tmpDir = null;
@@ -192,8 +195,8 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
       if (exitCode != 0) {
         throw new CliException("Installation process for " + this.tool + " in version " + resolvedVersion + " failed with exit code " + exitCode + "!");
       }
+      IdeLogLevel.SUCCESS.log(LOG, "Installation process for {} in version {} has started", this.tool, resolvedVersion);
     }
-    IdeLogLevel.SUCCESS.log(LOG, "Installation process for {} in version {} has started", this.tool, resolvedVersion);
     Step step = request.getStep();
     if (step != null) {
       step.success(true);
@@ -231,7 +234,7 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
 
     logCommands(commands.stream().map(this::toSudoCommandLine).toList(), true);
     for (List<String> command : commands) {
-      int exitCode = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable("sudo").addArgs(command).run();
+      int exitCode = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(SUDO).addArgs(command).run();
       if (exitCode != 0) {
         throw new CliException("Privileged command failed with exit code " + exitCode + ": " + toSudoCommandLine(command));
       }
@@ -240,7 +243,7 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
 
   private String toSudoCommandLine(List<String> command) {
 
-    return "sudo " + String.join(" ", command);
+    return SUDO + " " + String.join(" ", command);
   }
 
   private boolean isMacDmg(Path file) {
@@ -259,6 +262,7 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
 
     return MAC_SYSTEM_APPLICATIONS_DIR;
   }
+
   @Override
   protected VersionIdentifier resolveVersionForInstall(String edition, GenericVersionRange version) {
 
@@ -401,16 +405,12 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
     if (appPath == null) {
       return null;
     }
-    Path binaryPath = getMacApplicationBinaryPath(appPath);
-    if (Files.isExecutable(binaryPath)) {
-      this.context.getPath().setPath(getName(), binaryPath.getParent());
+    String binaryName = getBinaryName();
+    Path linkDir = getMacOsHelper().findLinkDir(appPath, binaryName);
+    if (Files.isExecutable(linkDir.resolve(binaryName))) {
+      this.context.getPath().setPath(getName(), linkDir);
     }
     return appPath;
-  }
-
-  private Path getMacApplicationBinaryPath(Path appPath) {
-
-    return appPath.resolve(IdeContext.FOLDER_CONTENTS).resolve(IdeContext.FOLDER_MAC_OS).resolve(getBinaryName());
   }
 
   @Override

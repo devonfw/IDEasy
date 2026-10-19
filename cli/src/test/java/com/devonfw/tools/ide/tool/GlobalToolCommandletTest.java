@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.InOrder;
 import org.mockito.Mockito;
 
 import com.devonfw.tools.ide.common.Tag;
@@ -53,11 +54,7 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     context.setSystemInfo(SystemInfoMock.MAC_X64);
     Path applicationsPath = tempDir.resolve("Applications");
     Path appPath = applicationsPath.resolve("Dummy.app");
-    Path appBinPath = appPath.resolve("Contents").resolve("MacOS");
-    Path binary = appBinPath.resolve(DUMMY_BINARY);
-    Files.createDirectories(appBinPath);
-    Files.writeString(binary, "test");
-    context.getFileAccess().makeExecutable(binary);
+    Path appBinPath = createMacApp(context, appPath);
     GlobalToolCommandlet globalTool = new GlobalToolDummyCommandlet(context, applicationsPath);
 
     // act
@@ -82,11 +79,7 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     IdeTestContext context = new IdeTestContext();
     context.setSystemInfo(SystemInfoMock.LINUX_X64);
     Path applicationsPath = tempDir.resolve("Applications");
-    Path appBinPath = applicationsPath.resolve("Dummy.app").resolve("Contents").resolve("MacOS");
-    Path binary = appBinPath.resolve(DUMMY_BINARY);
-    Files.createDirectories(appBinPath);
-    Files.writeString(binary, "test");
-    context.getFileAccess().makeExecutable(binary);
+    createMacApp(context, applicationsPath.resolve("Dummy.app"));
     GlobalToolCommandlet globalTool = new GlobalToolDummyCommandlet(context, applicationsPath);
 
     // act & assert
@@ -131,17 +124,9 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
   void testInstallMacDmgExtractsAndMovesApplication(@TempDir Path tempDir) throws IOException {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_BASIC);
-    context.setIdeHome(tempDir);
-    context.setSystemInfo(SystemInfoMock.MAC_X64);
     ProcessContext processContext = Mockito.mock(ProcessContext.class, Mockito.RETURNS_SELF);
-    context.setProcessContext(processContext);
-    context.getFileAccess().mkdirs(context.getTempPath());
-    Path mountedApp = tempDir.resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_VOLUME).resolve("Dummy.app");
-    Path mountedBinary = mountedApp.resolve("Contents/MacOS").resolve(DUMMY_BINARY);
-    Files.createDirectories(mountedBinary.getParent());
-    Files.writeString(mountedBinary, "test");
-    context.getFileAccess().makeExecutable(mountedBinary);
+    IdeTestContext context = newMacDmgContext(tempDir, processContext);
+    createMacApp(context, getMountedAppPath(tempDir, "Dummy.app"));
     Path applicationsPath = tempDir.resolve("Applications");
     Files.createDirectories(applicationsPath);
     GlobalToolCommandlet globalTool = new GlobalToolDummyCommandlet(context, applicationsPath);
@@ -157,6 +142,65 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     Mockito.verify(processContext).executable("sudo");
     Mockito.verify(processContext, Mockito.never()).executable(dmg);
     assertThat(extractedApp.getParent()).doesNotExist();
+  }
+
+  /**
+   * Tests that an already installed application bundle is removed before the new one is moved into the applications folder and that both privileged
+   * commands are logged before they are executed.
+   *
+   * @param tempDir the temporary directory.
+   * @throws IOException on test setup failure.
+   */
+  @Test
+  @DisabledOnOs(OS.WINDOWS)
+  void testInstallMacDmgReplacesExistingApplication(@TempDir Path tempDir) throws IOException {
+
+    // arrange
+    ProcessContext processContext = Mockito.mock(ProcessContext.class, Mockito.RETURNS_SELF);
+    IdeTestContext context = newMacDmgContext(tempDir, processContext);
+    createMacApp(context, getMountedAppPath(tempDir, "Dummy App.app"));
+    Path applicationsPath = tempDir.resolve("Applications");
+    Path targetApp = applicationsPath.resolve("Dummy App.app");
+    Files.createDirectories(targetApp);
+    GlobalToolCommandlet globalTool = new GlobalToolDummyCommandlet(context, applicationsPath);
+    Path extractedApp = context.getTempPath().resolve(DUMMY_BINARY).resolve("Dummy App.app");
+    String rmCommand = "sudo /bin/rm -rf " + targetApp;
+    String mvCommand = "sudo /bin/mv " + extractedApp + " " + targetApp;
+
+    // act
+    globalTool.installMacDmg(tempDir.resolve("Dummy.dmg"));
+
+    // assert
+    assertThat(context).logAtInteraction().hasEntries("We need to run the following command(s):", rmCommand, mvCommand,
+        "This will require root permissions!");
+    InOrder inOrder = Mockito.inOrder(processContext);
+    inOrder.verify(processContext).addArgs(List.of("/bin/rm", "-rf", targetApp.toString()));
+    inOrder.verify(processContext).addArgs(List.of("/bin/mv", extractedApp.toString(), targetApp.toString()));
+  }
+
+  private IdeTestContext newMacDmgContext(Path tempDir, ProcessContext processContext) {
+
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setIdeHome(tempDir);
+    context.setSystemInfo(SystemInfoMock.MAC_X64);
+    context.setProcessContext(processContext);
+    context.getFileAccess().mkdirs(context.getTempPath());
+    return context;
+  }
+
+  private Path getMountedAppPath(Path tempDir, String appName) {
+
+    return tempDir.resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_VOLUME).resolve(appName);
+  }
+
+  private Path createMacApp(IdeTestContext context, Path appPath) throws IOException {
+
+    Path appBinPath = appPath.resolve("Contents").resolve("MacOS");
+    Path binary = appBinPath.resolve(DUMMY_BINARY);
+    Files.createDirectories(appBinPath);
+    Files.writeString(binary, "test");
+    context.getFileAccess().makeExecutable(binary);
+    return appBinPath;
   }
 
   private static class GlobalToolDummyCommandlet extends GlobalToolCommandlet {
