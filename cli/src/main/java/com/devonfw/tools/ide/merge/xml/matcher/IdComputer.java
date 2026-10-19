@@ -119,10 +119,9 @@ public class IdComputer {
       NamedNodeMap attributesMap = element.getAttributes();
       boolean first = true;
       for (int i = 0; i < attributesMap.getLength(); i++) {
-        String attribute = attributesMap.item(i).getNodeName();
-        String attributeValue = attributesMap.item(i).getNodeValue();
-        if (!attribute.equals("id")) {
-          appendAttributePredicate(xpathBuilder, attribute, attributeValue, !first);
+        Attr attribute = (Attr) attributesMap.item(i);
+        if (!XmlMergeSupport.hasMergeNamespace(attribute) && !XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(attribute.getNamespaceURI())) {
+          appendAttributePredicate(xpathBuilder, attribute.getName(), attribute.getValue(), !first);
           first = false;
         }
       }
