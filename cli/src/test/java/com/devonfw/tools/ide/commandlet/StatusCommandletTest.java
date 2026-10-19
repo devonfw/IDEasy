@@ -14,8 +14,10 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.migration.IdeMigrator;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * Test of {@link StatusCommandlet}.
@@ -121,6 +123,46 @@ class StatusCommandletTest extends AbstractIdeContextTest {
     // assert
     assertThat(context).logAtWarning().hasMessageContaining("ide fix-vpn-tls-problem https://www.github.com");
     assertThat(context).logAtInteraction().hasMessageContaining("proxy-support.adoc#tls-certificate-issues");
+  }
+
+  /**
+   * Tests that {@link StatusCommandlet} reports an outdated project with a message that is understandable for end-users and does not expose the internal
+   * migration target version.
+   */
+  @Test
+  void testStatusWhenProjectNeedsMigration() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setProjectVersion(VersionIdentifier.of("2025.01.001-beta"));
+    VersionIdentifier targetVersion = new IdeMigrator().getTargetVersion();
+    StatusCommandlet status = context.getCommandletManager().getCommandlet(StatusCommandlet.class);
+
+    // act
+    status.run();
+
+    // assert
+    assertThat(context).logAtInteraction().hasMessage("Your project '" + context.getProjectName()
+        + "' was created or last updated with IDEasy version 2025.01.001-beta and needs an update.\nPlease run 'ide update' to migrate your project.");
+    assertThat(context).log().hasNoMessageContaining(targetVersion.toString());
+  }
+
+  /**
+   * Tests that {@link StatusCommandlet} does not report a required project update if the project is already up-to-date.
+   */
+  @Test
+  void testStatusWhenProjectIsUpToDate() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setProjectVersion(new IdeMigrator().getTargetVersion());
+    StatusCommandlet status = context.getCommandletManager().getCommandlet(StatusCommandlet.class);
+
+    // act
+    status.run();
+
+    // assert
+    assertThat(context).log().hasNoMessageContaining("needs an update");
   }
 
   /**
