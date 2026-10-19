@@ -18,7 +18,7 @@ import org.w3c.dom.Element;
 /**
  * Test of {@link IdComputer}.
  */
-class IdComputerTest {
+class IdComputerTest extends Assertions {
 
   @ParameterizedTest
   @MethodSource("buildXPathExpressionTestCases")
