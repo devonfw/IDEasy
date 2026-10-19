@@ -88,42 +88,42 @@ public class ConsoleView {
    */
   private static class LogEntryCell extends ListCell<IdeLogEntry> {
 
-    private static final String BASE_STYLE = "base-style";
-    private static final String ERROR_STYLE = BASE_STYLE + " error-style";
-    private static final String WARNING_STYLE = BASE_STYLE + "warning-style";
-    private static final String INFO_STYLE = BASE_STYLE + " info-style";
-    private static final String DEBUG_STYLE = BASE_STYLE + " debug-style";
-    private static final String TRACE_STYLE = BASE_STYLE + " trace-style";
-    private static final String PLAIN_STYLE = BASE_STYLE + " plain-style";
-    private static final String ERROR_BG = "error-bg";
-    private static final String WARNING_BG = "warning-bg";
-
     @Override
     protected void updateItem(IdeLogEntry entry, boolean empty) {
 
       super.updateItem(entry, empty);
+
+      getStyleClass().removeAll(
+          "base-style",
+          "error-style",
+          "warning-style",
+          "info-style",
+          "debug-style",
+          "trace-style",
+          "plain-style",
+          "error-bg",
+          "warning-bg");
+
       if (empty || entry == null) {
         setText(null);
-        setStyle(BASE_STYLE);
-      } else {
-        setText(entry.displayValue());
-        setStyle(getStyleForEntry(entry));
+        return;
+      }
+
+      setText(entry.displayValue());
+
+      getStyleClass().add("base-style");
+
+      switch (entry.level()) {
+        case ERROR -> getStyleClass().addAll("error-style", "error-bg");
+        case WARNING -> getStyleClass().addAll("warning-style", "warning-bg");
+        case INFO -> getStyleClass().add("info-style");
+        case DEBUG -> getStyleClass().add("debug-style");
+        case TRACE -> getStyleClass().add("trace-style");
+        default -> getStyleClass().add("plain-style");
       }
     }
 
-    private String getStyleForEntry(IdeLogEntry entry) {
 
-      if (entry.level() == null) {
-        return PLAIN_STYLE;
-      }
-      return switch (entry.level()) {
-        case ERROR -> ERROR_STYLE + " " + ERROR_BG;
-        case WARNING -> WARNING_STYLE + " " + WARNING_BG;
-        case INFO -> INFO_STYLE;
-        case DEBUG -> DEBUG_STYLE;
-        case TRACE -> TRACE_STYLE;
-        default -> PLAIN_STYLE;
-      };
-    }
+
   }
 }
