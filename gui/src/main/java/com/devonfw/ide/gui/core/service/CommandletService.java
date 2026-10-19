@@ -14,6 +14,7 @@ import com.devonfw.ide.gui.core.context.GuiOutputListener;
 import com.devonfw.ide.gui.core.context.GuiStateManager;
 import com.devonfw.ide.gui.core.context.IdeGuiContext;
 import com.devonfw.ide.gui.core.context.IdeGuiLogListener;
+import com.devonfw.ide.gui.core.event.CommandletLaunchEvent;
 import com.devonfw.ide.gui.core.event.GuiEventBus;
 import com.devonfw.ide.gui.core.event.console.LogEvent;
 import com.devonfw.ide.gui.core.modal.IdeDialog;
@@ -33,14 +34,8 @@ public class CommandletService {
 
   private IdeGuiLogListener guiLogListener;
   private GuiOutputListener guiOutputListener;
-  private GuiEventBus eventBus;
+  private final GuiEventBus eventBus;
 
-  /**
-   * Optional action invoked before a commandlet is launched, e.g. to make the console pane visible. Defaults to a no-op. Part of the hack to make the Console
-   * auto-show when an IDE is launched, should be removed when Console is reworked.
-   */
-  private Runnable preLaunchAction = () -> {
-  };
 
   /**
    * Creates the service.
@@ -54,15 +49,6 @@ public class CommandletService {
     this.guiOutputListener = new GuiOutputListener(eventBus);
   }
 
-  /**
-   * Sets the action that is run before each commandlet launch. Part of the hack to make the Console auto-show when an IDE is launched, should be removed when
-   * Console is reworked.
-   *
-   * @param preLaunchAction the action to run before launching a commandlet (must not be <code>null</code>).
-   */
-  public void setPreLaunchAction(Runnable preLaunchAction) {
-    this.preLaunchAction = Objects.requireNonNull(preLaunchAction);
-  }
 
   /**
    * Runs the given commandlet in the currently selected project/workspace context.
@@ -71,12 +57,12 @@ public class CommandletService {
    */
   public void runCommandlet(String commandlet) {
 
-    this.preLaunchAction.run();
+    this.eventBus.sendEvent(new CommandletLaunchEvent());
 
     Task<Void> commandletTask = runCommandletTask(commandlet);
 
-    this.guiLogListener = new IdeGuiLogListener(guiStateManager.getEventBus());
-    this.guiOutputListener = new GuiOutputListener(guiStateManager.getEventBus());
+    this.guiLogListener = new IdeGuiLogListener(this.eventBus);
+    this.guiOutputListener = new GuiOutputListener(this.eventBus);
 
     Thread commandletThread = new Thread(commandletTask);
     commandletThread.setDaemon(true);

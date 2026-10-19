@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 
 import com.devonfw.ide.gui.core.context.GuiStateManager;
 import com.devonfw.ide.gui.core.context.TaskManager;
+import com.devonfw.ide.gui.core.event.CommandletLaunchEvent;
 import com.devonfw.ide.gui.core.helper.FxHelper;
 import com.devonfw.ide.gui.core.mainwindow.MainWindowView;
 import com.devonfw.ide.gui.core.mainwindow.MainWindowViewModel;
@@ -39,7 +40,8 @@ public class AppBaseTest extends UIBasedApplicationTest {
 
   private static final double SCENE_HEIGHT = 800;
 
-  private Button androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen;
+  Button intellijOpen;
+  Button vsCodeOpen;
   /** The four IDE open buttons, for asserting their enabled/disabled state in bulk. */
   private Button[] ideOpenButtons;
   private ToggleButton consolePaneToggleButton;
@@ -56,8 +58,6 @@ public class AppBaseTest extends UIBasedApplicationTest {
 
   private GuiStateManager guiStateManager;
 
-  private MainWindowViewModel viewModel;
-
   @Override
   public void start(Stage stage) {
 
@@ -67,14 +67,14 @@ public class AppBaseTest extends UIBasedApplicationTest {
     this.guiStateManager = new GuiStateManager(getTestContext().getIdeRoot().toString());
     this.guiStateManager.getNlsService().setLocale(Locale.ENGLISH);
     this.taskManager = guiStateManager.getTaskManager();
-    this.viewModel = new MainWindowViewModel(guiStateManager);
-    MainWindowView mainWindow = new MainWindowView(this.viewModel, guiStateManager);
+    MainWindowViewModel viewModel = new MainWindowViewModel(guiStateManager);
+    MainWindowView mainWindow = new MainWindowView(viewModel, guiStateManager);
     stage.setScene(new Scene(mainWindow, SCENE_WIDTH, SCENE_HEIGHT));
     stage.requestFocus(); //sometimes needed for headless setup to work
     stage.show();
 
-    androidStudioOpen = FxHelper.lookup(mainWindow, "#androidStudioOpen");
-    eclipseOpen = FxHelper.lookup(mainWindow, "#eclipseOpen");
+    Button androidStudioOpen = FxHelper.lookup(mainWindow, "#androidStudioOpen");
+    Button eclipseOpen = FxHelper.lookup(mainWindow, "#eclipseOpen");
     intellijOpen = FxHelper.lookup(mainWindow, "#intellijOpen");
     vsCodeOpen = FxHelper.lookup(mainWindow, "#vsCodeOpen");
     selectedProject = FxHelper.lookup(mainWindow, "#projects");
@@ -242,20 +242,23 @@ public class AppBaseTest extends UIBasedApplicationTest {
   //===Console panel tests===
 
   /**
-   * The pre-launch action registered on the TabFactory opens the console by calling {@code setConsoleVisible(true)} on the view model. Launching a commandlet
-   * for real would install an IDE, so this covers the mechanism that action drives rather than the launch itself.
+   * A commandlet launch event opens the console through the GUI event bus.
    */
   @Test
-  void testConsoleOpensWhenRequestedThroughTheViewModel() {
+  void testConsoleOpensOnCommandletLaunchEvent() {
 
     Divider mainPanelDivider = centerSplitPane.getDividers().getFirst();
     assertThat(mainPanelDivider.getPosition()).as("The console should start collapsed").isGreaterThan(0.99);
 
-    interact(() -> this.viewModel.setConsoleVisible(true));
+    this.guiStateManager.getEventBus().sendEvent(new CommandletLaunchEvent());
     waitForFxEvents();
 
-    assertThat(mainPanelDivider.getPosition()).as("Console panel should be extended when the view model requests it").isEqualTo(0.75, Offset.offset(0.01));
-    assertThat(consolePaneToggleButton.isSelected()).as("The toggle button should follow the view model").isTrue();
+    assertThat(mainPanelDivider.getPosition())
+        .as("Console panel should be extended when a commandlet launch event is sent")
+        .isEqualTo(0.75, Offset.offset(0.01));
+    assertThat(consolePaneToggleButton.isSelected())
+        .as("The toggle button should follow the view model")
+        .isTrue();
   }
 
   /**

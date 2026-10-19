@@ -1,5 +1,7 @@
 package com.devonfw.ide.gui.core.mainwindow;
 
+import static com.devonfw.ide.gui.core.helper.FxHelper.runFxSafe;
+
 import java.util.List;
 import java.util.Objects;
 
@@ -13,6 +15,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.ListChangeListener;
 
 import com.devonfw.ide.gui.core.context.GuiStateManager;
+import com.devonfw.ide.gui.core.event.CommandletLaunchEvent;
 import com.devonfw.ide.gui.core.factory.TabFactory;
 import com.devonfw.ide.gui.core.progress.ProgressBarTask;
 import com.devonfw.ide.gui.core.service.NlsService;
@@ -49,7 +52,10 @@ public class MainWindowViewModel {
     this.guiStateManager = Objects.requireNonNull(guiStateManager);
     this.nlsService = Objects.requireNonNull(guiStateManager.getNlsService());
     this.tabFactory = Objects.requireNonNull(guiStateManager.getTabFactory());
-    this.tabFactory.setPreLaunchAction(() -> this.setConsoleVisible(true));
+
+    this.guiStateManager.getEventBus().addListener(
+        CommandletLaunchEvent.class,
+        _ -> runFxSafe(() -> setConsoleVisible(true)));
 
     this.statusText.set(this.nlsService.get("ideasy_ready_msg"));
 
@@ -160,6 +166,7 @@ public class MainWindowViewModel {
     this.consoleVisible.set(visible);
   }
 
+  ///
   public void openLauncherTab() {
 
     this.tabFactory.openLauncherTab();
