@@ -25,12 +25,17 @@ Uninstall with `git config --unset core.hooksPath`.
   3. static analysis — `mvn checkstyle:check` scoped to the Java files staged in the commit.
 
   Any violation or test failure blocks the commit.
+- **commit-msg** — prevents AI attribution in commit messages. 
+The hook rejects commit messages containing AI-generated co-author trailers 
+(for example Co-authored-by: Copilot) or AI attribution notices (for example Generated with Claude Code). 
+Human co-authors remain allowed
+
 
 ### Escape hatches (use sparingly)
 
-| Goal | Command |
-| --- | --- |
-| Skip all hooks for one commit | `git commit --no-verify` |
+| Goal                           | Command                         |
+|--------------------------------|---------------------------------|
+| Skip all hooks for one commit  | `git commit --no-verify`        |
 | Skip only the pre-commit build | `HARNESS_SKIP=1 git commit ...` |
 
 The hooks are plain POSIX shell scripts and run via the bash bundled with Git for Windows, so the
