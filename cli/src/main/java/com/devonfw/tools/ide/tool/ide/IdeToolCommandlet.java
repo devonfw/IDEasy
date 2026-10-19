@@ -3,19 +3,18 @@ package com.devonfw.tools.ide.tool.ide;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.commandlet.Commandlet;
-import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.AbstractEnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.ExtensibleEnvironmentVariables;
 import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
+import com.devonfw.tools.ide.tool.BuildTool;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 
 /**
@@ -83,18 +82,14 @@ public interface IdeToolCommandlet extends LocalToolCommandlet {
    */
   default void importRepository(Path repositoryPath) {
 
-    CommandletManager commandletManager = getContext().getCommandletManager();
-    for (Entry<Class<? extends AbstractLocalToolCommandlet>, String> entry : getBuildTool2TemplateMap().entrySet()) {
-      AbstractLocalToolCommandlet buildTool = commandletManager.getCommandlet(entry.getKey());
-      Path buildDescriptor = buildTool.findBuildDescriptor(repositoryPath);
-      if (buildDescriptor != null) {
-        String templateFilename = entry.getValue();
-        LOG.debug("Found build descriptor {} so merging template {}", buildDescriptor, templateFilename);
-        mergeTemplate(repositoryPath, templateFilename);
-        return;
-      }
+    BuildTool buildTool = getContext().getCommandletManager().findBuildTool(repositoryPath);
+    String templateFilename = (buildTool == null) ? null : getBuildTool2TemplateMap().get(buildTool.getClass());
+    if (templateFilename == null) {
+      LOG.warn("No supported build descriptor was found for project import in {}", repositoryPath);
+      return;
     }
-    LOG.warn("No supported build descriptor was found for project import in {}", repositoryPath);
+    LOG.debug("Found build tool {} so merging template {}", buildTool.getName(), templateFilename);
+    mergeTemplate(repositoryPath, templateFilename);
   }
 
   /**
