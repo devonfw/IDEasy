@@ -128,6 +128,7 @@ public class IdComputer {
       xpathBuilder.append(']');
     } else if (this.id.startsWith("@") && this.id.contains(",")) {
       List<String> attributeNames = Arrays.stream(this.id.split(","))
+          .map(String::trim)
           .map(attribute -> attribute.substring(1))
           .toList();
       xpathBuilder.append('[');
