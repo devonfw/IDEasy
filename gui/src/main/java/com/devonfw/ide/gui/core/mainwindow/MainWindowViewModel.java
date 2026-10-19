@@ -4,6 +4,7 @@ import static com.devonfw.ide.gui.core.helper.FxHelper.runFxSafe;
 
 import java.util.List;
 import java.util.Objects;
+
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
