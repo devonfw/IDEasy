@@ -1,6 +1,8 @@
 package com.devonfw.ide.gui.core.context;
 
 
+import java.util.Objects;
+
 import com.devonfw.ide.gui.core.event.GuiEventBus;
 import com.devonfw.ide.gui.core.event.console.LogEvent;
 import com.devonfw.tools.ide.log.IdeLogEntry;
@@ -16,7 +18,7 @@ public class IdeGuiLogListener extends IdeLogListenerBuffer {
   public IdeGuiLogListener(GuiEventBus eventBus) {
 
     super();
-    this.eventBus = eventBus;
+    this.eventBus = Objects.requireNonNull(eventBus);
   }
 
   @Override
