@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.merge.xml.matcher;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.io.ByteArrayInputStream;
@@ -9,6 +8,7 @@ import java.util.stream.Stream;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -39,9 +39,14 @@ class IdComputerTest extends Assertions {
         arguments("<component name=\"RunManager\" selected=\"Application.IDEasy\"/>", "@name", "component[@name='RunManager']"),
         arguments("<configuration default=\"true\" type=\"JUnit\" name=\"foo\"/>", "@default,@type",
             "configuration[@default='true' and @type='JUnit']"),
+        arguments("<configuration default=\"true\" type=\"JUnit\" name=\"foo\"/>", "@default, @type, @name",
+            "configuration[@default='true' and @type='JUnit' and @name='foo']"),
+        arguments("<configuration xmlns:merge=\"https://github.com/devonfw/IDEasy/merge\" merge:id=\"@@\"/>", "@@", "configuration"),
         arguments("<configuration id=\"cfg1\" name=\"foo\" type=\"JUnit\"/>", "@@",
-            "configuration[@name='foo' and @type='JUnit']"),
+            "configuration[@id='cfg1' and @name='foo' and @type='JUnit']"),
         arguments("<configuration default=\"true\" type=\"JUnit\" name=\"foo\"/>", "@@",
+            "configuration[@default='true' and @name='foo' and @type='JUnit']"),
+        arguments("<configuration xmlns:merge=\"https://github.com/devonfw/IDEasy/merge\" merge:id=\"@@\" default=\"true\" name=\"foo\" type=\"JUnit\"/>", "@@",
             "configuration[@default='true' and @name='foo' and @type='JUnit']"),
         arguments("<component name=\"RunManager\"/>", "name()", "component[local-name()='component']"),
         arguments("<value>myValue</value>", "text()", "value[text()='myValue']"));
@@ -56,6 +61,7 @@ class IdComputerTest extends Assertions {
    */
   private static Element parse(String xml) throws Exception {
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    factory.setNamespaceAware(true);
     DocumentBuilder builder = factory.newDocumentBuilder();
     Document document = builder.parse(new ByteArrayInputStream(xml.getBytes()));
     return document.getDocumentElement();

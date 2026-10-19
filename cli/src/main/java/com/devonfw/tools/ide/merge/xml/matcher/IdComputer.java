@@ -4,6 +4,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.xml.XMLConstants;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
@@ -12,6 +13,7 @@ import javax.xml.xpath.XPathFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
@@ -115,20 +117,27 @@ public class IdComputer {
     }
     xpathBuilder.append(localName);
     if (this.id.startsWith("@@")) {
-      xpathBuilder.append('[');
       NamedNodeMap attributesMap = element.getAttributes();
-      boolean first = true;
+      boolean appended = false;
       for (int i = 0; i < attributesMap.getLength(); i++) {
         Attr attribute = (Attr) attributesMap.item(i);
         if (!XmlMergeSupport.hasMergeNamespace(attribute) && !XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(attribute.getNamespaceURI())) {
-          appendAttributePredicate(xpathBuilder, attribute.getName(), attribute.getValue(), !first);
-          first = false;
+          if (appended) {
+            appendAttributePredicate(xpathBuilder, attribute.getName(), attribute.getValue(), true);
+          } else {
+            xpathBuilder.append('[');
+            appendAttributePredicate(xpathBuilder, attribute.getName(), attribute.getValue(), false);
+            appended = true;
+          }
         }
       }
-      xpathBuilder.append(']');
+      if (appended) {
+        xpathBuilder.append(']');
+      }
     } else if (this.id.startsWith("@") && this.id.contains(",")) {
       List<String> attributeNames = Arrays.stream(this.id.split(","))
           .map(String::trim)
+          .filter(attribute -> !attribute.isEmpty())
           .map(attribute -> attribute.substring(1))
           .toList();
       xpathBuilder.append('[');
