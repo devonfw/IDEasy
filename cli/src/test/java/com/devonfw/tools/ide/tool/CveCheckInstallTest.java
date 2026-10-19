@@ -44,8 +44,8 @@ class CveCheckInstallTest extends AbstractIdeContextTest {
 
 
   /**
-   * +   * Install Intellij with a configured version for which a version above it is the nearest safe upgrade. Ensures the documented "nearest" suggestion (see
-   * +   * {@code documentation/security.adoc}) also offers versions greater than the configured one. +
+   * Install Intellij with a configured version for which a version above it is the nearest safe upgrade. Ensures the documented "nearest" suggestion (see
+   * {@code documentation/security.adoc}) also offers versions greater than the configured one.
    */
   @Test
   void testInstallToolNearestSuggestsMinimalSafeUpgrade() {
@@ -58,10 +58,10 @@ class CveCheckInstallTest extends AbstractIdeContextTest {
     context.setAnswers("nearest");
 
     //act
-    commandlet.install();
+    ToolInstallation installation = commandlet.install();
 
     //assert
-    assertThat(context.getSoftwarePath().resolve("intellij").resolve(IdeTestContext.FILE_SOFTWARE_VERSION)).exists().hasContent("2022.3.2");
+    assertInstalledVersion(installation, "2022.3.2");
   }
 
   /**
@@ -100,10 +100,10 @@ class CveCheckInstallTest extends AbstractIdeContextTest {
     context.setAnswers("current");
 
     //act
-    commandlet.install();
+    ToolInstallation installation = commandlet.install();
 
     //assert
-    assertThat(context.getSoftwarePath().resolve("intellij").resolve(IdeTestContext.FILE_SOFTWARE_VERSION)).exists().hasContent("2023.3.3");
+    assertInstalledVersion(installation, "2023.3.3");
     assertThat(context.getSoftwarePath().resolve("java").resolve(IdeTestContext.FILE_SOFTWARE_VERSION)).exists().hasContent("17.0.10_7");
   }
 
@@ -115,10 +115,10 @@ class CveCheckInstallTest extends AbstractIdeContextTest {
     context.setAnswers("nearest");
 
     //act
-    commandlet.install();
+    ToolInstallation installation = commandlet.install();
 
     //assert
-    assertThat(context.getSoftwarePath().resolve("intellij").resolve(IdeTestContext.FILE_SOFTWARE_VERSION)).exists().hasContent("2022.3.2");
+    assertInstalledVersion(installation, "2022.3.2");
     assertThat(context.getSoftwarePath().resolve("java").resolve(IdeTestContext.FILE_SOFTWARE_VERSION)).exists().hasContent("17.0.10_7");
   }
 
@@ -133,12 +133,24 @@ class CveCheckInstallTest extends AbstractIdeContextTest {
     context.setAnswers("latest");
 
     //act
-    commandlet.install();
+    ToolInstallation installation = commandlet.install();
 
     //assert
-    assertThat(context.getSoftwarePath().resolve("intellij").resolve(IdeTestContext.FILE_SOFTWARE_VERSION)).exists().hasContent("2025.1.1.1");
+    assertInstalledVersion(installation, "2025.1.1.1");
     assertThat(context.getSoftwareRepositoryPath().resolve(ToolRepository.ID_DEFAULT).resolve("java").resolve("java").resolve("21.0.6_7")
         .resolve(IdeTestContext.FILE_SOFTWARE_VERSION)).exists().hasContent("21.0.6_7");
+  }
+
+  /**
+   * Asserts {@link IdeTestContext#FILE_SOFTWARE_VERSION} on the installation root. On macOS {@code software/intellij} links into the {@code .app} bundle, and
+   * the version file is not written there because changing a bundle after codesign breaks the seal.
+   *
+   * @param installation the installation returned by {@link Intellij#install()}.
+   * @param version the expected version file content.
+   */
+  private static void assertInstalledVersion(ToolInstallation installation, String version) {
+
+    assertThat(installation.rootDir().resolve(IdeTestContext.FILE_SOFTWARE_VERSION)).exists().hasContent(version);
   }
 
 }
