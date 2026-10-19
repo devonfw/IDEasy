@@ -28,9 +28,9 @@ Uninstall with `git config --unset core.hooksPath`.
 
 ### Escape hatches (use sparingly)
 
-| Goal | Command |
-| --- | --- |
-| Skip all hooks for one commit | `git commit --no-verify` |
+| Goal                           | Command                         |
+|--------------------------------|---------------------------------|
+| Skip all hooks for one commit  | `git commit --no-verify`        |
 | Skip only the pre-commit build | `HARNESS_SKIP=1 git commit ...` |
 
 The hooks are plain POSIX shell scripts and run via the bash bundled with Git for Windows, so the
