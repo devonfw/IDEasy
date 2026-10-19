@@ -2,3 +2,6 @@
 "-fx-text-fill: blue;"
 + "-fx-cursor: hand"
 }
+.empty{
+  ""
+}

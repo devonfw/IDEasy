@@ -193,7 +193,7 @@ public class MainWindowView extends BorderPane {
     if (clickable) {
       this.statusLabel.getStyleClass().add("status-label");
     } else {
-      this.statusLabel.getStyleClass().add("");
+      this.statusLabel.getStyleClass().add("empty");
     }
   }
 
