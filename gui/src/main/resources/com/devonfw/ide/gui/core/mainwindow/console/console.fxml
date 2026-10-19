@@ -22,7 +22,7 @@
   minHeight="0"
 >
 
-  <VBox spacing="5" minWidth="-Infinity" styleClass="VBox-style" AnchorPane.topAnchor="0"
+  <VBox spacing="5" minWidth="-Infinity" styleClass="vBox-style" AnchorPane.topAnchor="0"
     AnchorPane.bottomAnchor="0"
     AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0">
     <padding>
@@ -47,7 +47,7 @@
 
     <HBox spacing="10" styleClass="status-hbox">
       <Region HBox.hgrow="ALWAYS"/>
-      <Label fx:id="lineCountLabel" text="%console_line_count" styleClass="console-status-label"/>
+      <Label fx:id="lineCountLabel" text="%console_line_count" styleClass="line-count-label"/>
     </HBox>
   </VBox>
 </AnchorPane>
