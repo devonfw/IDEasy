@@ -50,6 +50,16 @@ public abstract class AbstractLocalToolCommandlet extends AbstractToolCommandlet
   }
 
   /**
+   * @return the {@link Path} where the installed artifact of this tool actually lives, as reported in the install success message. Defaults to
+   *     {@link #getToolPath() tool path}, which for package-manager based tools is the runtime tool's path and not the location where the managed package
+   *     is actually installed (e.g. a global npm package lives in the per-project npm prefix, not in {@code software/node}).
+   */
+  protected Path getInstalledLocation() {
+
+    return getToolPath();
+  }
+
+  /**
    * @return the {@link Path} where the executables of the tool can be found. Typically, a "bin" folder inside {@link #getToolPath() tool path}.
    */
   public Path getToolBinPath() {
@@ -130,11 +140,12 @@ public abstract class AbstractLocalToolCommandlet extends AbstractToolCommandlet
     ToolEditionAndVersion requested = request.getRequested();
     ToolEdition toolEdition = requested.getEdition();
     Step step = request.getStep();
+    Path installedLocation = getInstalledLocation();
     if (installedVersion == null) {
-      IdeLogLevel.SUCCESS.log(LOG, "Successfully installed {} in version {} at {}", toolEdition, resolvedVersion, toolPath);
+      IdeLogLevel.SUCCESS.log(LOG, "Successfully installed {} in version {} at {}", toolEdition, resolvedVersion, installedLocation);
     } else {
       IdeLogLevel.SUCCESS.log(LOG, "Successfully installed {} in version {} replacing previous version {} of {} at {}", toolEdition,
-          resolvedVersion, installedVersion, installed.getEdition(), toolPath);
+          resolvedVersion, installedVersion, installed.getEdition(), installedLocation);
     }
     if (step != null) {
       step.success(true);
@@ -608,34 +619,6 @@ public abstract class AbstractLocalToolCommandlet extends AbstractToolCommandlet
     return installationPath;
   }
 
-
-  /**
-   * Searches for a wrapper file in valid projects (containing a build file f.e. build.gradle or pom.xml) and returns its path.
-   *
-   * @param wrapperFileName the name of the wrapper file
-   * @return Path of the wrapper file or {@code null} if none was found.
-   */
-  protected Path findWrapper(String wrapperFileName) {
-    Path dir = this.context.getCwd();
-    // traverse the cwd directory containing a build descriptor up till a wrapper file was found
-    while ((dir != null) && (findBuildDescriptor(dir) != null)) {
-      Path wrapper = dir.resolve(wrapperFileName);
-      if (Files.exists(wrapper)) {
-        LOG.debug("Using wrapper: {}", wrapper);
-        return wrapper;
-      }
-      dir = dir.getParent();
-    }
-    return null;
-  }
-
-  /**
-   * @param directory the {@link Path} to the build directory.
-   * @return the build configuration file for this tool or {@code null} if not found (or this is not a build tool).
-   */
-  public Path findBuildDescriptor(Path directory) {
-    return null;
-  }
 
   /**
    * @return Bash completion command for this tool or {@code null} if this tool does not provide Bash completion.
