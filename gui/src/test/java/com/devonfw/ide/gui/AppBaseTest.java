@@ -20,6 +20,7 @@ import javafx.stage.Stage;
 import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.ide.gui.core.context.GuiStateManager;
 import com.devonfw.ide.gui.core.context.TaskManager;
@@ -28,6 +29,8 @@ import com.devonfw.ide.gui.core.mainwindow.MainWindowView;
 import com.devonfw.ide.gui.core.mainwindow.MainWindowViewModel;
 import com.devonfw.ide.gui.core.progress.ProgressBarTask;
 import com.devonfw.ide.gui.core.progress.taskwindow.TaskOverviewWindow;
+import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.environment.IdeSystemTestImpl;
 
 /**
  * Basic UI Test for the main screen
@@ -58,13 +61,22 @@ public class AppBaseTest extends UIBasedApplicationTest {
 
   private MainWindowViewModel viewModel;
 
+  /** Throw-away user home for the isolated NlsService context so the persisted locale never rewrites the real {@code ~/.ide/ide.properties}. */
+  @TempDir
+  private static Path nlsUserHome;
+
   @Override
   public void start(Stage stage) {
 
-    //We simply use project-0 here, as we only use the ide root for this test
+    // We simply use project-0 here, as we only use the ide root for this test
     setTestContext("testProject", "project-0");
 
-    this.guiStateManager = new GuiStateManager(getTestContext().getIdeRoot().toString());
+    // isolate the NlsService from the developer's real user home and the IDE_OPTIONS environment variable: persisting the locale must not rewrite the
+    // real ~/.ide/ide.properties, so point an isolated IdeTestContext at a throw-away home and hand it to the NlsService via the state manager
+    final IdeTestContext nlsContext = new IdeTestContext();
+    nlsContext.setSystem(new IdeSystemTestImpl());
+    nlsContext.setUserHome(nlsUserHome);
+    this.guiStateManager = new GuiStateManager(getTestContext().getIdeRoot().toString(), nlsContext);
     this.guiStateManager.getNlsService().setLocale(Locale.ENGLISH);
     this.taskManager = guiStateManager.getTaskManager();
     this.viewModel = new MainWindowViewModel(guiStateManager);
