@@ -84,6 +84,20 @@ class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
     //assert
     assertThat(UPGRADE_SETTINGS_PATH.resolve("settings/workspace/testVariableSyntax.txt")).exists().content().contains("$[IDE_HOME]").contains("$[MVN_VERSION]")
         .contains("$[IDE_HOME]/conf/mvn/settings.xml").doesNotContain("${IDE_HOME}").doesNotContain("${MVN_VERSION}");
+
+    Path jsonWorkspaceTemplate = UPGRADE_SETTINGS_PATH.resolve(
+        "settings/vscode/workspace/update/.vscode/settings.json");
+
+    assertThat(jsonWorkspaceTemplate).exists().content()
+        .contains("/*")
+        .contains("* Keep the configured JDK in sync")
+        .contains("* with the IDEasy Java installation.")
+        .contains("*/")
+        .contains("$[IDE_HOME]/software/java")
+        .contains("// enable automatic formatting")
+        .contains("\"editor.formatOnSave\"")
+        .doesNotContain("${IDE_HOME}");
+
     verifyLoggingOfXmlFiles();
   }
 
