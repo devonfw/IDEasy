@@ -54,4 +54,5 @@ jobs:
             echo "AI attribution found in commit $commit"
             exit 1
           }
+          done
     
