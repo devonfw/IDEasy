@@ -22,20 +22,6 @@ public record IdeLogEntry(IdeLogLevel level, String message, String rawMessage, 
   private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss.SSS").withZone(ZoneId.systemDefault());
 
   /**
-   * The constructor.
-   *
-   * @param level - {@link #level()}.
-   * @param message - {@link #message()}.
-   * @param rawMessage - {@link #rawMessage()}.
-   * @param args - {@link #args()}.
-   * @param error - {@link #error()}.
-   * @param contains - {@link #contains()}.
-   */
-  public IdeLogEntry {
-
-  }
-
-  /**
    * @param level the {@link IdeLogLevel}.
    * @param message the {@link IdeSubLogger#log(String) logged message}.
    */

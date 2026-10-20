@@ -1,13 +1,11 @@
 package com.devonfw.ide.gui.core.context;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,9 +22,6 @@ import io.github.mmm.event.EventListener;
  * Tests for {@link IdeGuiLogListener}.
  */
 public class IdeGuiLogListenerTest extends Assertions {
-
-  @TempDir
-  private Path mockIdeRoot;
 
   /**
    * An {@link EventListener} for {@link LogEvent} that records every event published on the {@link GuiEventBus} instead of touching the JavaFX toolkit, so the
@@ -93,4 +88,30 @@ public class IdeGuiLogListenerTest extends Assertions {
     listener.flushAndEndBuffering();
     assertThat(recorder.getEntries()).extracting(IdeLogEntry::message).containsExactly("TestMessage");
   }
+
+  @Test
+  void testNullMessage() {
+
+    Logger log = LoggerFactory.getLogger(IdeGuiLogListenerTest.class);
+    log.warn((String) null);
+
+  }
+
+  @Test
+  void testEntryWithErrorAndNullMessageIsForwardedUnchanged() {
+
+    GuiEventBus eventBus = new GuiEventBus();
+    RecordingLogListener recorder = new RecordingLogListener();
+    eventBus.addListener(LogEvent.class, recorder);
+    IdeGuiLogListener listener = new IdeGuiLogListener(eventBus);
+    listener.flushAndEndBuffering();
+
+    RuntimeException error = new NullPointerException();
+    IdeLogEntry entry = new IdeLogEntry(IdeLogLevel.ERROR, null, null, null, error);
+    listener.onLog(entry);
+
+    assertThat(recorder.getEntries()).first().isSameAs(entry);
+    assertThat(recorder.getEntries().get(0).error()).isSameAs(error);
+  }
+
 }
