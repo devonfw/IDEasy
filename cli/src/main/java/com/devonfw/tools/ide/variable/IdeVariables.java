@@ -143,6 +143,12 @@ public interface IdeVariables {
   VariableDefinitionPath UV_CACHE_DIR = new VariableDefinitionPath("UV_CACHE_DIR", null,
       c -> c.getIdePath() == null ? null : c.getIdePath().resolve(IdeContext.FOLDER_SOFTWARE).resolve("uv"), true, true);
 
+  /**
+   * {@link VariableDefinition} to prime {@code ruff} into the per-project uv tool store when python is installed. This is a feature toggle: while
+   * disabled (default) no linter is installed as a side effect of installing python.
+   */
+  VariableDefinitionBoolean PYTHON_INSTALL_RUFF = new VariableDefinitionBoolean("PYTHON_INSTALL_RUFF", null, c -> Boolean.FALSE);
+
   /** A {@link Collection} with all pre-defined {@link VariableDefinition}s. */
   Collection<VariableDefinition<?>> VARIABLES = List.of(PATH, HOME, USER, WORKSPACE_PATH, IDE_HOME, IDE_ROOT, WORKSPACE, IDE_TOOLS, HTTP_VERSIONS,
       CREATE_START_SCRIPTS,
@@ -150,7 +156,7 @@ public interface IdeVariables {
       GRADLE_USER_HOME,
       YARN_BUILD_OPTS, JASYPT_OPTS,
       MAVEN_ARGS, INTELLIJ_VM_ARGS, ANDROID_STUDIO_VM_ARGS, PYCHARM_VM_ARGS,
-      UV_CACHE_DIR,
+      UV_CACHE_DIR, PYTHON_INSTALL_RUFF,
       PROJECT_NAME, IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED, PREFERRED_GIT_PROTOCOL);
 
   /**
