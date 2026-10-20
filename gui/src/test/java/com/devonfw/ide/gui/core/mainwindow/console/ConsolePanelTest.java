@@ -5,9 +5,9 @@ import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
-
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -15,15 +15,22 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.ide.gui.UIBasedApplicationTest;
 import com.devonfw.ide.gui.core.context.IdeGuiLogListener;
 import com.devonfw.ide.gui.core.event.GuiEventBus;
 import com.devonfw.ide.gui.core.service.NlsService;
+import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.environment.IdeSystemTestImpl;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 
 class ConsolePanelTest extends UIBasedApplicationTest {
+
+  /** Throw-away user home for the isolated NlsService context so a persisted locale never rewrites the real {@code ~/.ide/ide.properties}. */
+  @TempDir
+  private static Path nlsUserHome;
 
   private ConsoleViewModel consoleViewModel;
 
@@ -35,7 +42,11 @@ class ConsolePanelTest extends UIBasedApplicationTest {
     URL consoleViewUrl = getClass().getResource("console.fxml");
     assertThat(consoleViewUrl).as("Cannot resolve console UI FXML resource!").isNotNull();
 
-    NlsService nlsService = new NlsService(Locale.ENGLISH);
+    // isolate the NlsService from the developer's real user home and the IDE_OPTIONS environment variable so constructing it has no side effects
+    final IdeTestContext nlsContext = new IdeTestContext();
+    nlsContext.setSystem(new IdeSystemTestImpl());
+    nlsContext.setUserHome(nlsUserHome);
+    NlsService nlsService = new NlsService(nlsContext, Locale.ENGLISH);
     this.eventBus = new GuiEventBus();
 
     FXMLLoader fxmlLoader = new FXMLLoader(consoleViewUrl);
