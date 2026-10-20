@@ -107,7 +107,6 @@ public class CommandletService {
             guiLogListener.flushAndEndBuffering();
             LOG.error("Failed to run commandlet {}: {}", commandlet, e.getMessage(), e);
 
-            eventBus.sendEvent(new LogEvent(new IdeLogEntry(IdeLogLevel.ERROR, "[ERROR] Failed to launch " + commandlet + ": " + e.getMessage())));
           }
           return null;
         }
