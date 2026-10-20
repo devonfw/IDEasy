@@ -244,21 +244,18 @@ In the (potentially nested) FXML file the child controller is declared:
 [source,xml]
 ----
 <AnchorPane xmlns:fx="http://javafx.com/fxml"
-  fx:controller="com.devonfw.ide.gui.core.mainwindow.console.ConsoleController">
+  fx:controller="com.devonfw.ide.gui.core.mainwindow.console.ConsoleView">
   <!-- ... -->
 </AnchorPane>
 ----
 
-The parent (`MainWindowView`) includes `console.fxml` inside a `SplitPane` and supplies the shared `ConsoleController` through a `setControllerFactory`, so the nested console is wired to the same instance the services use:
+The parent (`MainWindowView`) includes `console.fxml` inside a `SplitPane` and supplies the shared `ConsoleView` (backed by its own `ConsoleViewModel`) through a `setControllerFactory`, so the nested console is wired to the same instance the main window uses:
 
 [source,java]
 ----
-loader.setControllerFactory(clazz -> {
-  if (clazz == ConsoleController.class) {
-    return this.consoleController;
-  }
-  return null;
-});
+final ConsoleViewModel consoleViewModel = new ConsoleViewModel(this.eventBus);
+final ConsoleView consoleView = new ConsoleView(consoleViewModel, this.nlsService);
+loader.setControllerFactory(clazz -> clazz == ConsoleView.class ? consoleView : null);
 ----
 
 == Testing Documentation
