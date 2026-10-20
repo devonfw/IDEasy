@@ -15,11 +15,9 @@ import com.devonfw.ide.gui.core.context.GuiStateManager;
 import com.devonfw.ide.gui.core.context.IdeGuiContext;
 import com.devonfw.ide.gui.core.context.IdeGuiLogListener;
 import com.devonfw.ide.gui.core.event.GuiEventBus;
-import com.devonfw.ide.gui.core.event.console.LogEvent;
 import com.devonfw.ide.gui.core.modal.IdeDialog;
 import com.devonfw.ide.gui.core.progress.ProgressBarTask;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
-import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 
 /**
