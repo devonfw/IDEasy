@@ -74,7 +74,7 @@ class VscodeTest extends AbstractIdeContextTest {
     Vscode commandlet = context.getCommandletManager().getCommandlet(Vscode.class);
     commandlet.run();
 
-    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin mockedPlugin (1/1)'.");
+    assertThat(context).logAtSuccess().hasMessage("Successfully installed plugin: mockedPlugin");
 
     // assert
     assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("mockedPlugin"))).exists();
@@ -124,7 +124,7 @@ class VscodeTest extends AbstractIdeContextTest {
 
     assertThat(context.getSoftwarePath().resolve("vscode/.ide.software.version")).exists().hasContent("1.92.1");
     assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed vscode in version 1.92.1");
-    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin mockedPlugin (1/1)'.");
+    assertThat(context).logAtSuccess().hasMessage("Successfully installed plugin: mockedPlugin");
   }
 
   @Test

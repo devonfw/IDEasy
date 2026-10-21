@@ -56,7 +56,7 @@ public class IdeaBasedIdeToolCommandlet extends AbstractIdeToolCommandlet {
     }
     ProcessResult result = runTool(pc, ProcessMode.DEFAULT, args);
     if (result.isSuccessful()) {
-      step.success();
+      step.success("Successfully installed plugin: {}", plugin.name());
       return true;
     } else {
       step.error("Failed to install plugin {} ({}): exit code was {}", plugin.name(), plugin.id(), result.getExitCode());

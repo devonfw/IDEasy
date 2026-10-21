@@ -120,7 +120,7 @@ class IntellijTest extends AbstractIdeContextTest {
     Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
     commandlet.run();
 
-    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin ActivePlugin (1/1)'.");
+    assertThat(context).logAtSuccess().hasMessage("Successfully installed plugin: ActivePlugin");
 
     // assert
     assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"))).exists();
@@ -442,6 +442,6 @@ class IntellijTest extends AbstractIdeContextTest {
         new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed java in version 17.0.10_7", true),
         new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed intellij in version 2023.3.3", true));
     assertThat(context).logAtDebug().hasMessage("Omitting installation of inactive plugin InactivePlugin (inactivePlugin).");
-    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin ActivePlugin (1/1)'.");
+    assertThat(context).logAtSuccess().hasMessage("Successfully installed plugin: ActivePlugin");
   }
 }
