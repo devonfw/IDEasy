@@ -93,7 +93,7 @@ public class IdeGuiLogListenerTest extends Assertions {
   void testNullMessage() {
 
     Logger log = LoggerFactory.getLogger(IdeGuiLogListenerTest.class);
-    log.warn((String) null);
+    assertThatCode(() -> log.warn((String) null)).doesNotThrowAnyException();
 
   }
 

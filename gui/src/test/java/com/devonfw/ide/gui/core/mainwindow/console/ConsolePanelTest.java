@@ -167,6 +167,7 @@ class ConsolePanelTest extends UIBasedApplicationTest {
     List<String> snapshot = consoleViewModel.getConsoleOutputSnapshot();
     assertThat(snapshot).anyMatch(s -> s.contains("[INFO] Info via EventBus"));
     assertThat(snapshot).anyMatch(s -> s.contains("[ERROR] Error via EventBus"));
+    assertThat(snapshot).as("the error is kept on the entry, not printed as an extra line").hasSize(2);
 
   }
 
