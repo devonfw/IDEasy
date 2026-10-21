@@ -116,7 +116,7 @@ public class BuildSecurityJsonFiles implements Runnable {
    */
   public static void main(String[] args) {
     if (args.length == 0) {
-      System.err.println("Usage: " + BuildSecurityJsonFiles.class.getSimpleName() + " <path-to-ide-urls>");
+      System.err.println("Usage: " + BuildSecurityJsonFiles.class.getSimpleName() + " <path-to-ide-urls>"); // checkstyle:ignore SystemOut - CLI before logger
       System.exit(1);
     }
     Path urlsPath = Path.of(args[0]);
