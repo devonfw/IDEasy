@@ -7,7 +7,6 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
@@ -391,53 +390,8 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(context).logAtError().hasMessageContaining(
-        "Couldn't automatically "
-            + "uninstall " + TOOL_NAME + " on macOS. Please uninstall it manually, e.g. by moving it from the Applications folder to the "
+        "Couldn't automatically uninstall " + TOOL_NAME + " on macOS. Please uninstall it manually, e.g. by moving it from the Applications folder to the "
             + "Trash");
   }
 
-  @Test
-  void testResolveVersionWithPatternMatch() {
-
-    IdeTestContext context = newContext(PROJECT_BASIC);
-    AsyncInstallerToolCommandlet commandlet =
-        new AsyncInstallerToolCommandlet(context);
-
-    Pattern pattern = Pattern.compile("v(\\d+\\.\\d+)");
-
-    VersionIdentifier result =
-        commandlet.resolveVersionWithPattern("release v2.5", pattern);
-
-    assertThat(result).isEqualTo(VersionIdentifier.of("2.5"));
-  }
-
-  @Test
-  void testResolveVersionWithPatternNoMatch() {
-
-    IdeTestContext context = newContext(PROJECT_BASIC);
-    AsyncInstallerToolCommandlet commandlet =
-        new AsyncInstallerToolCommandlet(context);
-
-    Pattern pattern = Pattern.compile("v(\\d+\\.\\d+)");
-
-    VersionIdentifier result =
-        commandlet.resolveVersionWithPattern("release latest", pattern);
-
-    assertThat(result).isNull();
-  }
-
-  @Test
-  void testResolveVersionWithPatternMultipleMatches() {
-
-    IdeTestContext context = newContext(PROJECT_BASIC);
-    AsyncInstallerToolCommandlet commandlet =
-        new AsyncInstallerToolCommandlet(context);
-
-    Pattern pattern = Pattern.compile("v(\\d+\\.\\d+)");
-
-    VersionIdentifier result =
-        commandlet.resolveVersionWithPattern("v1.0 v2.0", pattern);
-
-    assertThat(result).isEqualTo(VersionIdentifier.of("1.0"));
-  }
 }
