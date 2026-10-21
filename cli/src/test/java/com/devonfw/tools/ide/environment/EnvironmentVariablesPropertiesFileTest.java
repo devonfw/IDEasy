@@ -136,6 +136,30 @@ class EnvironmentVariablesPropertiesFileTest extends AbstractIdeContextTest {
     assertThat(lines).containsExactlyElementsOf(linesAfterSave);
   }
 
+  /**
+   * Test of {@link EnvironmentVariablesPropertiesFile#save()} with a variable declared by its legacy name, that is
+   * migrated in place and not appended a second time.
+   */
+  @Test
+  void testSaveMigratesLegacyVariableOnce(@TempDir Path tempDir) throws Exception {
+
+    // arrange
+    Path propertiesFilePath = tempDir.resolve("ide.properties");
+    Files.write(propertiesFilePath, List.of("MAVEN_VERSION=3.8.8"), StandardOpenOption.CREATE_NEW);
+    EnvironmentVariablesPropertiesFile variables = new EnvironmentVariablesPropertiesFile(null, TYPE,
+        propertiesFilePath, new IdeTestContext());
+
+    // act
+    variables.set("MVN_VERSION", "3.9.6", false);
+    variables.save();
+
+    // assert
+    assertThat(Files.readAllLines(propertiesFilePath)).containsExactly("MVN_VERSION=3.9.6");
+    IdeTestContext context = new IdeTestContext();
+    new EnvironmentVariablesPropertiesFile(null, TYPE, propertiesFilePath, context);
+    assertThat(context).log(IdeLogLevel.WARNING).hasNoMessageContaining("Duplicate variable definition");
+  }
+
   @Test
   void testSaveWithMissingParentFilePath(@TempDir Path tempDir) throws Exception {
     // arrange
