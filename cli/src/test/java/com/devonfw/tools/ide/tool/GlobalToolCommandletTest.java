@@ -35,6 +35,23 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
   private static final String TOOL_VERSION = "1.21.0";
 
   /**
+   * Verifies that global tools can be invoked without an IDEasy project.
+   */
+  @Test
+  void testIdeHomeIsNotRequired() {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    AsyncInstallerToolCommandlet commandlet = new AsyncInstallerToolCommandlet(context);
+
+    // act
+    boolean ideHomeRequired = commandlet.isIdeHomeRequired();
+
+    // assert
+    assertThat(ideHomeRequired).isFalse();
+  }
+
+  /**
    * Dummy {@link GlobalToolCommandlet} that simulates a background GUI installer (e.g. Rancher Desktop on Windows). Only {@code doInstall} is overridden so the
    * warning-check inside the real {@code install()} is exercised.
    */
