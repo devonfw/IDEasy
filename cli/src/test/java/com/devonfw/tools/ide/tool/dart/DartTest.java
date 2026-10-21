@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool.dart;
 
+import java.nio.file.Path;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
@@ -12,6 +13,9 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.devonfw.tools.ide.tool.ToolInstallation;
+import com.devonfw.tools.ide.tool.claude.RecordingEnvironmentContext;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
@@ -74,6 +78,30 @@ class DartTest extends AbstractIdeContextTest {
     // assert
     assertInstalled(context);
     assertThat(context).logAtInfo().hasMessage("dart hello world");
+  }
+
+  /**
+   * Tests that {@link Dart#setEnvironment} pins {@code PUB_CACHE} into the per-project {@code IDE_HOME} so that pub dependencies are not shared across
+   * projects (see the <a href="https://github.com/devonfw/IDEasy/blob/main/documentation/sandbox.adoc">sandbox principle</a>).
+   */
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("platforms")
+  void testSetEnvironmentPointsPubCacheToPerProjectFolder(String platform, SystemInfo systemInfo) {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_DART, (String) null, false);
+    context.setSystemInfo(systemInfo);
+    Dart dart = new Dart(context);
+    Path dummy = context.getSoftwarePath().resolve("dart");
+    ToolInstallation installation = new ToolInstallation(dummy, dummy, dummy, VersionIdentifier.of(DART_VERSION), false);
+    RecordingEnvironmentContext environmentContext = new RecordingEnvironmentContext();
+
+    // act
+    dart.setEnvironment(environmentContext, installation, false);
+
+    // assert
+    Path pubCachePath = context.getIdeHome().resolve(Dart.PUB_CACHE_FOLDER);
+    assertThat(environmentContext.set).containsEntry("PUB_CACHE", pubCachePath.toString());
   }
 
   private void assertInstalled(IdeTestContext context) {
