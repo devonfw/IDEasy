@@ -4,9 +4,6 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
@@ -14,7 +11,6 @@ import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
-import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 
 /**
@@ -22,8 +18,6 @@ import com.devonfw.tools.ide.tool.ToolInstallRequest;
  * commandlet.
  */
 public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCommandlet implements PluginBasedCommandlet {
-
-  private static final Logger LOG = LoggerFactory.getLogger(AbstractPluginBasedCommandlet.class);
 
   private final PluginManager pluginManager;
 
@@ -59,32 +53,24 @@ public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCom
     return this.pluginManager;
   }
 
+  /**
+   * @return {@code true} if the reset and reinstallation of the plugins is forced for the current run via the {@code --force-plugin-reinstall} flag.
+   */
+  @Override
+  public boolean isForcePluginReinstall() {
+
+    return this.forcePluginReinstall.isTrue();
+  }
+
   @Override
   protected void postInstall(ToolInstallRequest request) {
 
     super.postInstall(request);
-    if (this.forcePluginReinstall.isTrue() || isPluginPurgeRequired(request)) {
-      LOG.info("Resetting all installed plugins of {} ({}).", getName(), describePurgeReason(request));
-      this.pluginManager.resetPlugins();
+    if (isForcePluginReinstall() || isPluginPurgeRequired(request)) {
+      this.pluginManager.resetPlugins(request);
     }
     this.context.getFileAccess().mkdirs(getPluginsInstallationPath());
     installPlugins(getPlugins().getPlugins(), request.getProcessContext());
-  }
-
-  private String describePurgeReason(ToolInstallRequest request) {
-
-    if (this.forcePluginReinstall.isTrue()) {
-      return "forced via --force-plugin-reinstall";
-    }
-    ToolEditionAndVersion installed = request.getInstalled();
-    ToolEditionAndVersion requested = request.getRequested();
-    if ((installed == null) || (installed.getResolvedVersion() == null)) {
-      return "new installation";
-    }
-    if (!installed.getEdition().equals(requested.getEdition())) {
-      return "edition changed from " + installed.getEdition() + " to " + requested.getEdition();
-    }
-    return "version changed from " + installed.getResolvedVersion() + " to " + requested.getResolvedVersion();
   }
 
   /**

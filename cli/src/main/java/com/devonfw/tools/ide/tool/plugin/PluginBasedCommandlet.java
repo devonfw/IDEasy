@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.tool.plugin;
 
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.Set;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -37,8 +36,13 @@ public interface PluginBasedCommandlet extends LocalToolCommandlet {
   PluginManager getPluginManager();
 
   /**
-   * Determines whether all installed plugins of this tool have to be purged (reset and reinstalled) as part of the installation. A purge is required if any
-   * of the {@link #getIncompatibleVersionSegments() incompatible version segments} between the installed and the requested version differs, if the tool edition
+   * @return {@code true} if the reset and reinstallation of the plugins is forced for the current run via the {@code --force-plugin-reinstall} flag.
+   */
+  boolean isForcePluginReinstall();
+
+  /**
+   * Determines whether all installed plugins of this tool have to be purged (reset and reinstalled) as part of the installation. A purge is required if the
+   * version changed at the {@link #getIncompatibleVersionSegmentIndex() incompatible version segment} or at a more significant segment, if the tool edition
    * changed, or if the tool is installed for the first time. Concrete IDEs may override this to apply their own compatibility strategy.
    *
    * @param request the {@link ToolInstallRequest} carrying the {@link ToolInstallRequest#getInstalled() installed} and
@@ -51,13 +55,14 @@ public interface PluginBasedCommandlet extends LocalToolCommandlet {
   }
 
   /**
-   * @return the set of version segment indices (see {@link #MAJOR_SEGMENT}, {@link #MINOR_SEGMENT}, and {@link #FIX_SEGMENT}) at which a change is considered
-   *     incompatible and hence requires a plugin purge. By default only a change of the {@link #MAJOR_SEGMENT major} segment triggers a purge, so a minor or
-   *     fix update keeps the installed plugins. Concrete IDEs may override this to reflect their own versioning scheme.
+   * @return the zero-based index of the version segment at which a change is considered incompatible with the installed plugins and hence requires a purge,
+   *     e.g. {@link #MAJOR_SEGMENT}, {@link #MINOR_SEGMENT}, or {@link #FIX_SEGMENT}. A change at this segment or at a more significant one (towards the
+   *     major segment) triggers a purge. By default only a change of the {@link #MAJOR_SEGMENT major} segment triggers a purge, so a minor or fix update
+   *     keeps the installed plugins. Concrete IDEs may override this to reflect their own versioning scheme.
    */
-  default Set<Integer> getIncompatibleVersionSegments() {
+  default int getIncompatibleVersionSegmentIndex() {
 
-    return Set.of(MAJOR_SEGMENT);
+    return MAJOR_SEGMENT;
   }
 
   /**

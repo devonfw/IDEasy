@@ -61,6 +61,15 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
     super.initProperties();
   }
 
+  /**
+   * @return {@code true} if the reset and reinstallation of the plugins is forced for the current run via the {@code --force-plugin-reinstall} flag.
+   */
+  @Override
+  public boolean isForcePluginReinstall() {
+
+    return this.forcePluginReinstall.isTrue();
+  }
+
   @Override
   public ProcessResult runTool(List<String> args) {
     configureWorkspace();
@@ -102,8 +111,8 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
     super.postInstall(request);
 
     configureWorkspace();
-    if (this.forcePluginReinstall.isTrue() || isPluginPurgeRequired(request)) {
-      this.pluginManager.resetPlugins();
+    if (isForcePluginReinstall() || isPluginPurgeRequired(request)) {
+      this.pluginManager.resetPlugins(request);
     }
     installPlugins(getPlugins().getPlugins(), request.getProcessContext());
   }

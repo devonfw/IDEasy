@@ -252,6 +252,55 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
     assertThat(commandlet.isPluginPurgeRequired(request)).isFalse();
   }
 
+  @Test
+  void testPluginPurgeOnMinorChangeWhenMinorSegmentIsIncompatible() {
+
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    ExamplePluginBasedCommandlet commandlet = newThresholdCommandlet(context, PluginBasedCommandlet.MINOR_SEGMENT);
+    ToolEdition edition = new ToolEdition(TOOL, TOOL);
+
+    ToolInstallRequest minorChange = newPurgeRequest(newEditionAndVersion(edition, VersionIdentifier.of("1.90.0")),
+        newEditionAndVersion(edition, VersionIdentifier.of("1.91.0")));
+    ToolInstallRequest majorChange = newPurgeRequest(newEditionAndVersion(edition, VersionIdentifier.of("1.90.0")),
+        newEditionAndVersion(edition, VersionIdentifier.of("2.0.0")));
+    ToolInstallRequest fixChange = newPurgeRequest(newEditionAndVersion(edition, VersionIdentifier.of("1.90.0")),
+        newEditionAndVersion(edition, VersionIdentifier.of("1.90.1")));
+
+    assertThat(commandlet.isPluginPurgeRequired(minorChange)).isTrue();
+    assertThat(commandlet.isPluginPurgeRequired(majorChange)).isTrue();
+    assertThat(commandlet.isPluginPurgeRequired(fixChange)).isFalse();
+  }
+
+  @Test
+  void testPluginPurgeOnAnyChangeWhenFixSegmentIsIncompatible() {
+
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    ExamplePluginBasedCommandlet commandlet = newThresholdCommandlet(context, PluginBasedCommandlet.FIX_SEGMENT);
+    ToolEdition edition = new ToolEdition(TOOL, TOOL);
+
+    ToolInstallRequest fixChange = newPurgeRequest(newEditionAndVersion(edition, VersionIdentifier.of("1.90.0")),
+        newEditionAndVersion(edition, VersionIdentifier.of("1.90.1")));
+    ToolInstallRequest minorChange = newPurgeRequest(newEditionAndVersion(edition, VersionIdentifier.of("1.90.0")),
+        newEditionAndVersion(edition, VersionIdentifier.of("1.91.0")));
+    ToolInstallRequest majorChange = newPurgeRequest(newEditionAndVersion(edition, VersionIdentifier.of("1.90.0")),
+        newEditionAndVersion(edition, VersionIdentifier.of("2.0.0")));
+
+    assertThat(commandlet.isPluginPurgeRequired(fixChange)).isTrue();
+    assertThat(commandlet.isPluginPurgeRequired(minorChange)).isTrue();
+    assertThat(commandlet.isPluginPurgeRequired(majorChange)).isTrue();
+  }
+
+  private ExamplePluginBasedCommandlet newThresholdCommandlet(IdeTestContext context, int incompatibleSegmentIndex) {
+
+    return new ExamplePluginBasedCommandlet(context, TOOL, tags) {
+      @Override
+      public int getIncompatibleVersionSegmentIndex() {
+
+        return incompatibleSegmentIndex;
+      }
+    };
+  }
+
   private static ToolInstallRequest newPurgeRequest(ToolEditionAndVersion installed, ToolEditionAndVersion requested) {
 
     ToolInstallRequest request = new ToolInstallRequest(true);
