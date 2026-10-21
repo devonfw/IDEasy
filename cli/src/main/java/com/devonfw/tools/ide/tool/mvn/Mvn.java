@@ -271,16 +271,15 @@ public class Mvn extends MavenCommandlet implements BuildTool {
    *     the same behavior as the original IdeContext.getMavenConfigurationFolder() method.
    */
   public Path getMavenConfigurationFolder() {
+
     Path confPath = this.context.getConfPath();
-    if (confPath != null) {
-      Path mvnConfigFolder = resolveMavenConfFolder(true);
-      // Only return the path if the directory actually exists
-      if (Files.isDirectory(mvnConfigFolder)) {
-        return mvnConfigFolder;
-      }
+    // fallback to USER_HOME/.m2 folder if called outside an IDEasy project (i.e. without an IDE_HOME)
+    if (confPath == null) {
+      return this.context.getUserHome().resolve(MVN_CONFIG_LEGACY_FOLDER);
     }
-    // fallback to USER_HOME/.m2 folder
-    return this.context.getUserHome().resolve(MVN_CONFIG_LEGACY_FOLDER);
+    // resolve by layout (independent of whether the folder already exists, "legacy" = false prefers the new "conf/mvn" folder) so that M2_REPO is consistent
+    // from the very start of an "ide create" / "ide update" run, before the maven tool installation populates the configuration folder
+    return resolveMavenConfFolder(false);
   }
 
   /**
