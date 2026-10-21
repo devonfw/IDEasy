@@ -9,13 +9,13 @@ Automatically generated open issue overview for Linux.
 
 link:quality-status.adoc[Back to overview]
 
-*Total Issues:* 208
+*Total Issues:* 230
 
 * OS-specific: 3
 
 * Multi-OS: 2
 
-* Cross-platform: 203
+* Cross-platform: 225
 
 == Linux Specific Issues
 
@@ -54,7 +54,7 @@ link:quality-status.adoc[Back to overview]
 [%header, cols="^1,7"]
 |===
 | Issue | Summary
-2+^| *11-30 days*
+2+^| *31-60 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2467[#2467]
 | Obsidian: fix installation on macOS/Linux and duplicate LINUX/X64 artifact in O…
