@@ -78,10 +78,6 @@ public class Gui extends AbstractCommandlet {
     ToolInstallation javaInstallation = java.installTool(javaToolInstallRequest);
 
     /*
-     * Register the freshly installed mvn on the IDEasy-managed PATH so the IDEasy-controlled maven (from the software
-     * repository) launches the GUI instead of any maven on the system PATH. installTool only installs into the software
-     * repository, so we register the bin directory here (install() would normally do this).
-    /*
      * Add the software-repository Maven bin directory only to this process, so this Maven launches the GUI instead of
      * any Maven on the system PATH. installTool only installs into the software repository and does not register the
      * tool. context.getPath().setPath(...) would change Maven for every later lookup in this IDEasy process.
