@@ -3,9 +3,6 @@ package com.devonfw.tools.ide.tool.plugin;
 import java.util.Collection;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
@@ -21,12 +18,7 @@ import com.devonfw.tools.ide.tool.ToolInstallRequest;
  */
 public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCommandlet implements PluginBasedCommandlet {
 
-  private static final Logger LOG = LoggerFactory.getLogger(AbstractPluginBasedCommandlet.class);
-
   private final PluginManager pluginManager;
-
-  /** {@link FlagProperty} to force the reset and reinstallation of plugins as configured in the project settings. */
-  private FlagProperty forcePluginReinstall;
 
   /**
    * The constructor.
@@ -44,7 +36,7 @@ public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCom
   @Override
   protected void initProperties() {
 
-    this.forcePluginReinstall = add(new FlagProperty("--force-plugin-reinstall"));
+    add(new FlagProperty("--force-plugin-reinstall"));
     super.initProperties();
   }
 
@@ -55,15 +47,6 @@ public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCom
   public PluginManager getPluginManager() {
 
     return this.pluginManager;
-  }
-
-  /**
-   * @return {@code true} if the reset and reinstallation of the plugins is forced for the current run via the {@code --force-plugin-reinstall} flag.
-   */
-  @Override
-  public boolean isForcePluginReinstall() {
-
-    return this.forcePluginReinstall.isTrue();
   }
 
   @Override

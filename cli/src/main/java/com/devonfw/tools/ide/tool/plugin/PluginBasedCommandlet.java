@@ -6,6 +6,7 @@ import java.util.Collection;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
@@ -58,11 +59,13 @@ public interface PluginBasedCommandlet extends LocalToolCommandlet {
   }
 
   /**
-   * @return {@code true} if the reset and reinstallation of the plugins configured in the project settings is forced for the current run (via the
-   *     {@code --force-plugin-reinstall} flag), {@code false} otherwise. Exposes the state of that flag at the interface level so that the shared plugin
-   *     behaviour can consult it without depending on a concrete commandlet implementation.
+   * @return the {@link FlagProperty} backing the {@code --force-plugin-reinstall} flag. The default implementation resolves the flag from the
+   *     {@link #getOption(String) commandlet properties}.
    */
-  boolean isForcePluginReinstall();
+  default FlagProperty getForcePluginReinstall() {
+
+    return (FlagProperty) getOption("--force-plugin-reinstall");
+  }
 
   /**
    * @return the {@link ToolPlugins} configured for this tool. The default implementation is shared by all plugin-capable tools.
@@ -135,7 +138,7 @@ public interface PluginBasedCommandlet extends LocalToolCommandlet {
    */
   default void resetPluginsIfNeeded(ToolInstallRequest request) {
 
-    if (!request.isAlreadyInstalled() || isForcePluginReinstall()) {
+    if (!request.isAlreadyInstalled() || getForcePluginReinstall().isTrue()) {
       getPluginManager().resetPlugins();
     }
   }
