@@ -40,7 +40,7 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
   private final PluginManager pluginManager;
 
   /** {@link FlagProperty} to force the reset and reinstallation of plugins as configured in the project settings. */
-  public FlagProperty forcePluginReinstall;
+  private FlagProperty forcePluginReinstall;
 
   /**
    * The constructor.
@@ -86,6 +86,15 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
   }
 
   /**
+   * @return {@code true} if the reset and reinstallation of the plugins is forced for the current run via the {@code --force-plugin-reinstall} flag.
+   */
+  @Override
+  public boolean isForcePluginReinstall() {
+
+    return this.forcePluginReinstall.isTrue();
+  }
+
+  /**
    * @return the {@link Path} to the python environment the plugins are installed into. Unlike for an {@link AbstractIdeToolCommandlet} this is not a folder
    *     owned by this tool but the shared python environment (containing {@code site-packages}) that also holds th IDE itself. It must therefore never be
    *     delted - plugins are removed via {@link #uninstallPlugin(ToolPluginDescriptor)} instead.
@@ -100,11 +109,8 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
   protected void postInstall(ToolInstallRequest request) {
 
     super.postInstall(request);
-
     configureWorkspace();
-    if (!request.isAlreadyInstalled() || this.forcePluginReinstall.isTrue()) {
-      this.pluginManager.resetPlugins();
-    }
+    resetPluginsIfNeeded(request);
     installPlugins(getPlugins().getPlugins(), request.getProcessContext());
   }
 
