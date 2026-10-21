@@ -175,6 +175,7 @@ public abstract class AbstractCommandlet implements Commandlet {
   /**
    * Runs this {@link AbstractCommandlet}.
    */
+  @Override
   public final void run() {
 
     if (this.context != null) { // for ContextCommandlet we do not have a context yet
