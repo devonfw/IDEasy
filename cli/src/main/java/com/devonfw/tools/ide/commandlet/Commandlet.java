@@ -22,6 +22,13 @@ public interface Commandlet {
   String getName();
 
   /**
+   * Runs this {@link Commandlet}. The {@link AbstractCommandlet} implements this as a final template method that configures logging and delegates to the
+   * tool-specific {@code doRun()} hook; a {@link Commandlet} that is <b>not</b> backed by {@link AbstractCommandlet} (e.g. a composed or
+   * package-manager based commandlet) provides its own implementation.
+   */
+  void run();
+
+  /**
    * @return the {@link IdeContext} of this {@link Commandlet} or {@code null} for commandlets that are executed before the {@link IdeContext} has been
    *     initialized (e.g. {@code ContextCommandlet}).
    */
