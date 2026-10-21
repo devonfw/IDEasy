@@ -17,8 +17,13 @@ class FlutterTest extends AbstractIdeContextTest {
 
   private static final String FLUTTER_VERSION = "3.47.5";
 
+  /**
+   * Tests that {@link Flutter} can be installed via an HTTP download on the host operating system.
+   *
+   * @param wireMockRuntimeInfo wireMock server on a random port
+   */
   @Test
-  void testFlutterInstallSucceedsOnAllPlatformsViaHttpDownload(WireMockRuntimeInfo wireMockRuntimeInfo) {
+  void testFlutterInstallViaHttpDownload(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_FLUTTER, wireMockRuntimeInfo);
@@ -31,6 +36,11 @@ class FlutterTest extends AbstractIdeContextTest {
     assertInstalled(context);
   }
 
+  /**
+   * Tests that running {@link Flutter#run()} installs the tool on demand and forwards the given arguments to the {@code flutter} command.
+   *
+   * @param wireMockRuntimeInfo wireMock server on a random port
+   */
   @Test
   void testFlutterRunInstallsAndPassesArguments(WireMockRuntimeInfo wireMockRuntimeInfo) {
 

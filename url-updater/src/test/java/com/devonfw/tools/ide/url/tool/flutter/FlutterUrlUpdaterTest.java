@@ -47,5 +47,22 @@ class FlutterUrlUpdaterTest extends AbstractUrlUpdaterTest {
     assertUrlVersionOsX64MacArm(flutterEditionPath.resolve("3.47.5"));
     // the feeds also contain a beta release (3.49.0-0.1.pre) which must be filtered out, leaving only the stable version
     assertThat(flutterEditionPath.resolve("3.49.0-0.1.pre")).doesNotExist();
+    // the feeds also contain a legacy v1.x release (v1.12.13+hotfix.9) which is below the minimum version and must be filtered out
+    assertThat(flutterEditionPath.resolve("1.12.13+hotfix.9")).doesNotExist();
+  }
+
+  /**
+   * Test of {@link FlutterUrlUpdater#mapVersion(String)}: the legacy {@code v1.x} releases are skipped (returning {@code null}) while a supported stable
+   * version is returned normalized.
+   */
+  @Test
+  void testFlutterUrlUpdaterMapVersion() {
+
+    FlutterUrlUpdater updater = new FlutterUrlUpdater();
+
+    // the legacy v1.x release is below the minimum version (3.0.0) and must be skipped
+    assertThat(updater.mapVersion("v1.12.13+hotfix.9")).isNull();
+    // a supported stable release is returned unchanged
+    assertThat(updater.mapVersion("3.47.5")).isEqualTo("3.47.5");
   }
 }

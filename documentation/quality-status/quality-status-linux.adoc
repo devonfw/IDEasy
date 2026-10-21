@@ -9,24 +9,19 @@ Automatically generated open issue overview for Linux.
 
 link:quality-status.adoc[Back to overview]
 
-*Total Issues:* 207
+*Total Issues:* 208
 
-* OS-specific: 4
+* OS-specific: 3
 
 * Multi-OS: 3
 
-* Cross-platform: 200
+* Cross-platform: 202
 
 == Linux Specific Issues
 
 [%header, cols="^1,7"]
 |===
 | Issue | Summary
-2+^| *31-60 days*
-
-| link:https://github.com/devonfw/IDEasy/issues/2345[#2345]
-| DOCKER_EDITION ignored on Linux
-
 2+^| *90+ days*
 
 | link:https://github.com/devonfw/IDEasy/issues/1352[#1352]
