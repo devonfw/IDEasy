@@ -54,6 +54,7 @@ import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipParameters;
+import org.apache.commons.compress.compressors.xz.XZCompressorOutputStream;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1163,6 +1164,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       case NONE -> compressTar(dir, out);
       case GZ -> compressTarGz(dir, out);
       case BZIP2 -> compressTarBzip2(dir, out);
+      case XZ -> compressTarXz(dir, out);
       default -> throw new IllegalArgumentException("Unsupported tar compression: " + tarCompression);
     }
   }
@@ -1186,6 +1188,16 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       compressTarOrThrow(dir, bzip2Out);
     } catch (IOException e) {
       throw new IllegalStateException("Failed to compress directory " + dir + " to tar.bz2 file.", e);
+    }
+  }
+
+  @Override
+  public void compressTarXz(Path dir, OutputStream out) {
+
+    try (XZCompressorOutputStream xzOut = new XZCompressorOutputStream(out)) {
+      compressTarOrThrow(dir, xzOut);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to compress directory " + dir + " to tar.xz file.", e);
     }
   }
 
@@ -1244,6 +1256,11 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
           zipEntry.setLastAccessTime(none);
           zipEntry.setLastModifiedTime(none);
           zipEntry.setTime(none);
+          // Preserve the Unix mode (incl. the executable bit) like the tar branch above: otherwise the
+          // round-trip through a runtime-built zip silently drops the exec bit on Linux/Mac, and the
+          // extracted launcher (e.g. bin/dart) would no longer be executable.
+          PathPermissions filePermissions = getFilePermissions(child);
+          zipEntry.setUnixMode(filePermissions.toMode());
         }
         out.putArchiveEntry(archiveEntry);
         if (!isDirectory) {

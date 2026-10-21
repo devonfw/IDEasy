@@ -31,9 +31,11 @@ import com.devonfw.tools.ide.tool.cdk.Cdk;
 import com.devonfw.tools.ide.tool.claude.Claude;
 import com.devonfw.tools.ide.tool.copilot.Copilot;
 import com.devonfw.tools.ide.tool.corepack.Corepack;
+import com.devonfw.tools.ide.tool.dart.Dart;
 import com.devonfw.tools.ide.tool.docker.Docker;
 import com.devonfw.tools.ide.tool.dotnet.DotNet;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
+import com.devonfw.tools.ide.tool.flutter.Flutter;
 import com.devonfw.tools.ide.tool.gcloganalyzer.GcLogAnalyzer;
 import com.devonfw.tools.ide.tool.gcviewer.GcViewer;
 import com.devonfw.tools.ide.tool.gh.Gh;
@@ -196,6 +198,8 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Ruff(context));
     add(new CheckCommandlet(context));
     add(new Obsidian(context));
+    add(new Flutter(context));
+    add(new Dart(context));
   }
 
   /**

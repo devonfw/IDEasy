@@ -26,7 +26,10 @@ public enum OsAndArchitecture {
   OS_DEF_ARCH("windows_x64", "mac_arm64", "linux_x64"),
 
   /** all OS and architecture combinations. */
-  OS_ARCH("windows_x64", "windows_arm64", "mac_x64", "mac_arm64", "linux_x64", "linux_arm64");
+  OS_ARCH("windows_x64", "windows_arm64", "mac_x64", "mac_arm64", "linux_x64", "linux_arm64"),
+
+  /** the OS and architecture combinations published by the Dart SDK (there is no Windows arm64 build). */
+  OS_DART("windows_x64", "mac_x64", "mac_arm64", "linux_x64", "linux_arm64");
 
   private final List<String> filenames;
 
