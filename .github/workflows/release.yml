@@ -146,7 +146,7 @@ jobs:
           cache: 'maven'
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }} # Value of the GPG private key to import
           gpg-passphrase: GPG_PASSPHRASE # env variable for GPG private key passphrase
-      - name: Download natives and build project
+      - name: Download natives
         uses: actions/download-artifact@v8
         with:
           path: ./cli/target/
