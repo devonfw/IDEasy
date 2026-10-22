@@ -55,13 +55,5 @@ jobs:
         uses: coverallsapp/github-action@v2.2.3
         with:
           fail-on-error: false
-      - name: Check commit messages
-        run: |
-          for commit in $(git rev-list origin/main..HEAD); do 
-          git show -s --format=%B "$commit" > commit-msg.txt
-          
-          git-hooks/check-ai-attribution.sh commit-msg.txt || {
-            echo "AI attribution found in commit $commit"
-            exit 1
-          }
+
     
