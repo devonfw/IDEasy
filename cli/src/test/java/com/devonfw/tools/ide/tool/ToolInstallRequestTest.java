@@ -30,4 +30,37 @@ class ToolInstallRequestTest extends AbstractIdeContextTest {
     assertThat(dependencyRequest.isIgnoreProject()).isTrue();
     assertThat(dependencyRequest.getProcessContext()).isEqualTo(processContext);
   }
+
+  /**
+   * Verify that a dependency request inherits the {@link ToolInstallTracker} from its parent request so that a shared tool installed earlier in the process
+   * (as a dependency of another tool) can be recognized and skipped.
+   */
+  @Test
+  void testTrackerIsInherited() {
+    // arrange
+    ToolInstallTracker tracker = new ToolInstallTracker();
+    ToolInstallRequest parent = new ToolInstallRequest(false);
+    parent.setTracker(tracker);
+
+    // act
+    ToolInstallRequest dependencyRequest = new ToolInstallRequest(parent);
+
+    // assert
+    assertThat(dependencyRequest.getTracker()).isSameAs(tracker);
+  }
+
+  /**
+   * A top-level request (no parent) starts without a tracker; a second {@link ToolInstallRequest#setTracker(ToolInstallTracker) setTracker} call must fail.
+   */
+  @Test
+  void testTrackerSetOnlyOnce() {
+    // arrange
+    ToolInstallRequest request = new ToolInstallRequest(false);
+    assertThat(request.getTracker()).isNull();
+
+    // act + assert
+    request.setTracker(new ToolInstallTracker());
+    assertThat(request.getTracker()).isNotNull();
+    assertThatIllegalStateException().isThrownBy(() -> request.setTracker(new ToolInstallTracker()));
+  }
 }
