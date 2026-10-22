@@ -1,9 +1,13 @@
 package com.devonfw.ide.gui.core.context;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Stream;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -50,8 +54,6 @@ public class GuiStateManager {
 
   private final IdeStartContextImpl startContext;
 
-  private final ProjectManager projectManager;
-
   private final TaskManager taskManager;
 
   private final GuiEventBus eventBus;
@@ -85,13 +87,18 @@ public class GuiStateManager {
   public GuiStateManager(String ideRoot, IdeContext nlsContext) {
 
     this.ideRootDir = Path.of(ideRoot != null ? ideRoot : System.getenv(IdeVariables.IDE_ROOT.getName()));
+    if (!Files.exists(ideRootDir)) {
+      throw new IllegalArgumentException("Root directory does not exist");
+    }
+    if (!Files.isDirectory(ideRootDir)) {
+      LOG.warn("Root directory '{}' is not a directory", ideRootDir);
+    }
 
     //This specific ordering needs to be kept
     final IdeLogListenerBuffer buffer = new IdeLogListenerBuffer();
     IdeLogLevel logLevel = IdeLogLevel.DEBUG;
     startContext = new IdeStartContextImpl(logLevel, buffer);
 
-    this.projectManager = new ProjectManager(ideRootDir);
     this.taskManager = new TaskManager();
     this.eventBus = new GuiEventBus();
     // inject an application-level context so NlsService never has to create one itself; binding the default to startContext keeps the GUI logging context
@@ -139,11 +146,35 @@ public class GuiStateManager {
   }
 
   /**
-   * @return instance of {@link ProjectManager}
+   * @return the names of all IDEasy projects in the {@link #getIdeRootDir() IDE_ROOT}, using the core {@link IdeContext#findProjects(Path)} discovery logic.
    */
-  public ProjectManager getProjectManager() {
+  public List<String> getProjectNames() {
 
-    return projectManager;
+    return IdeContext.findProjects(ideRootDir).stream()
+        .map(Path::getFileName)
+        .map(Path::toString)
+        .toList();
+  }
+
+  /**
+   * @param projectName the name of the project whose workspaces to list.
+   * @return the workspace names of the given project.
+   * @throws NotDirectoryException if the given project does not contain a {@code workspaces} directory.
+   */
+  public List<String> getWorkspaceNames(String projectName) throws NotDirectoryException {
+
+    Path workspacesDir = ideRootDir.resolve(projectName).resolve(IdeContext.FOLDER_WORKSPACES);
+    if (!Files.isDirectory(workspacesDir)) {
+      throw new NotDirectoryException("invalid workspaces directory for project: " + projectName);
+    }
+    try (Stream<Path> subPaths = Files.list(workspacesDir)) {
+      return subPaths.filter(Files::isDirectory)
+          .map(Path::getFileName)
+          .map(Path::toString)
+          .toList();
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to read workspaces for " + projectName, e);
+    }
   }
 
   /**
