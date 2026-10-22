@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.commandlet;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +62,8 @@ public class BugReportCommandlet extends AbstractCommandlet {
     String actualBehavior = this.context.askForInput("Please describe the actual behavior / bug:");
     String reproduce = this.context.askForInput("Please provide steps to reproduce the bug:");
     String expectedBehavior = this.context.askForInput("Please describe the expected behavior:");
-    createBugReport(title, actualBehavior, reproduce, expectedBehavior, null);
+    String comments = this.context.askForInput("Please add any additional comments or hints (optional):", "");
+    createBugReport(title, actualBehavior, reproduce, expectedBehavior, comments, null);
   }
 
   /**
@@ -91,12 +93,12 @@ public class BugReportCommandlet extends AbstractCommandlet {
       return;
     }
     String description = this.context.askForInput("Please briefly describe what you were doing when the error occurred:", title);
-    createBugReport(title, description, null, null, error);
+    createBugReport(title, description, null, null, null, error);
   }
 
-  private void createBugReport(String title, String actualBehavior, String reproduce, String expectedBehavior, Throwable error) {
+  private void createBugReport(String title, String actualBehavior, String reproduce, String expectedBehavior, String comments, Throwable error) {
 
-    String body = BugReportHelper.createIssueBody(this.context, actualBehavior, reproduce, expectedBehavior, toStackTrace(error));
+    String body = BugReportHelper.createIssueBody(this.context, actualBehavior, reproduce, expectedBehavior, comments, toStackTrace(error));
     Path ghBinary = resolveGhBinary();
     if (ghBinary == null) {
       offerGhInstall();
@@ -159,8 +161,7 @@ public class BugReportCommandlet extends AbstractCommandlet {
   private boolean createIssueWithGh(Path ghBinary, String title, String body) {
 
     ProcessResult result = this.context.newProcess().errorHandling(ProcessErrorHandling.NONE).executable(ghBinary)
-        .addArgs("issue", "create", "--repo", BugReportHelper.REPOSITORY, "--title", title, "--body", body)
-        .run(ProcessMode.DEFAULT_CAPTURE);
+        .addArgs(createIssueArgs(title, body)).run(ProcessMode.DEFAULT_CAPTURE);
     if (!result.isSuccessful()) {
       return false;
     }
@@ -171,6 +172,16 @@ public class BugReportCommandlet extends AbstractCommandlet {
       IdeLogLevel.SUCCESS.log(LOG, "Created bug report via GitHub CLI.");
     }
     return true;
+  }
+
+  /**
+   * @param title the issue title.
+   * @param body the issue body.
+   * @return the {@code gh issue create} arguments including the {@code --type Bug} so the created issue is marked as a bug.
+   */
+  protected List<String> createIssueArgs(String title, String body) {
+
+    return List.of("issue", "create", "--repo", BugReportHelper.REPOSITORY, "--title", title, "--body", body, "--type", "Bug");
   }
 
   private void openViaUrl(String title, String body) {

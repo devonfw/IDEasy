@@ -18,6 +18,7 @@ import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.environment.IdeSystem;
 import com.devonfw.tools.ide.git.GitContext;
+import com.devonfw.tools.ide.git.repository.RepositoryType;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarNone;
@@ -639,6 +640,55 @@ public interface IdeContext extends IdeStartContext {
   Path getSettingsCommitIdPath();
 
   /**
+   * Evaluates the state of the settings repository with a single update check.
+   *
+   * @return {@code OUTDATED} if an update should be fetched with {@code ide update}, {@code UP_TO_DATE} if it is current, and {@code UNKNOWN} if there is
+   *     no settings repository (e.g. outside an IDE project) or the repository is combined and an update is available.
+   */
+  default SettingsUpdateState evaluateSettingsUpdateStatus() {
+
+    Path settingsPath = getSettingsGitRepository();
+    if (settingsPath == null) {
+      return SettingsUpdateState.UNKNOWN;
+    }
+    if (getGitContext().isRepositoryUpdateAvailable(settingsPath, getSettingsCommitIdPath())) {
+      return isCombinedCodeSettingsRepository() ? SettingsUpdateState.UNKNOWN : SettingsUpdateState.OUTDATED;
+    }
+    return SettingsUpdateState.UP_TO_DATE;
+  }
+
+  /**
+   * @return {@code true} if the settings repository is a combined code and settings repository (a single repository that contains both the code and the
+   *     settings folder), in which case an available update does not produce an outdated warning.
+   */
+  default boolean isCombinedCodeSettingsRepository() {
+
+    return (RepositoryType.ofSettingsPath(getSettingsPath(), this) == RepositoryType.CODE_SETTINGS_COMBINED);
+  }
+
+  /**
+   * @param status the evaluated settings update status from {@link #evaluateSettingsUpdateStatus()}.
+   * @return the matching settings status line, or an empty string when no status is reported.
+   */
+  default String settingsStatusLine(SettingsUpdateState status) {
+
+    return switch (status) {
+      case OUTDATED -> "Your settings are not up-to-date, please run 'ide update'.";
+      case UP_TO_DATE -> "Your settings are up-to-date.";
+      default -> "";
+    };
+  }
+
+  /**
+   * @return the settings status line as shown by {@code ide status} ("Your settings are up-to-date." or "Your settings are not up-to-date, please run
+   *     'ide update'."), or an empty string when no status is reported.
+   */
+  default String getSettingsStatusLine() {
+
+    return settingsStatusLine(evaluateSettingsUpdateStatus());
+  }
+
+  /**
    * @return the {@link Path} to the templates folder inside the {@link #getSettingsPath() settings}. The relative directory structure in this templates folder
    *     is to be applied to {@link #getIdeHome() IDE_HOME} when the project is set up.
    */
@@ -966,4 +1016,18 @@ public interface IdeContext extends IdeStartContext {
     return npm.getOrCreateNpmConfigUserConfig();
   }
 
+  /**
+   * The evaluated state of the settings repository, as determined by {@link #evaluateSettingsUpdateStatus()}.
+   */
+  enum SettingsUpdateState {
+
+    /** A newer version of the settings is available and should be fetched with {@code ide update}. */
+    OUTDATED,
+
+    /** The settings repository is current. */
+    UP_TO_DATE,
+
+    /** No status is reported (no settings repository, or a combined code and settings repository). */
+    UNKNOWN
+  }
 }

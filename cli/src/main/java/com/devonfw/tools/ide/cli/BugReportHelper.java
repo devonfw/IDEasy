@@ -57,10 +57,12 @@ public final class BugReportHelper {
    * @param actualBehavior description of the actual behavior / bug.
    * @param reproduce steps to reproduce the bug.
    * @param expectedBehavior description of the expected behavior.
+   * @param comments optional additional comments and hints; may be {@code null} or blank.
    * @param stackTrace optional exception summary to append as a hint; may be {@code null}. The full stacktrace belongs in the IDEasy log, not here.
    * @return the issue body.
    */
-  public static String createIssueBody(IdeContext context, String actualBehavior, String reproduce, String expectedBehavior, String stackTrace) {
+  public static String createIssueBody(IdeContext context, String actualBehavior, String reproduce, String expectedBehavior, String comments,
+      String stackTrace) {
 
     StringBuilder body = new StringBuilder();
     body.append("### Actual behavior\n");
@@ -73,11 +75,21 @@ public final class BugReportHelper {
     body.append("```\n");
     body.append(createStatusSnippet(context));
     body.append("```\n");
-    if (stackTrace != null && !stackTrace.isBlank()) {
+    boolean hasComments = (comments != null) && !comments.isBlank();
+    boolean hasStackTrace = (stackTrace != null) && !stackTrace.isBlank();
+    if (hasComments || hasStackTrace) {
       body.append("\n### Comments/Hints\n");
-      body.append("<details>\n<summary>Exception</summary>\n\n```\n");
-      body.append(stackTrace);
-      body.append("\n```\n</details>\n");
+      if (hasComments) {
+        body.append(comments).append('\n');
+      }
+      if (hasStackTrace) {
+        if (hasComments) {
+          body.append('\n');
+        }
+        body.append("<details>\n<summary>Exception</summary>\n\n```\n");
+        body.append(stackTrace);
+        body.append("\n```\n</details>\n");
+      }
     }
     return body.toString();
   }
@@ -89,9 +101,8 @@ public final class BugReportHelper {
 
   /**
    * @param context the {@link IdeContext}.
-   * @return a short status snippet for the bug report (version, OS, IDE paths). Paths are masked with
-   *     {@link PrivacyUtil} so that the generated report is safe to share publicly, mirroring the output of
-   *     {@code ide -p status}.
+   * @return a short status snippet for the bug report (version, OS, IDE paths, online and settings status). Paths are masked with
+   *     {@link PrivacyUtil} so that the generated report is safe to share publicly, mirroring the output of {@code ide status}.
    */
   public static String createStatusSnippet(IdeContext context) {
 
@@ -101,6 +112,15 @@ public final class BugReportHelper {
     }
     if (context.getIdeHome() != null) {
       status.append("IDE_HOME is set to ").append(mask(context.getIdeHome().toString())).append('\n');
+    }
+    if (context.getNetworkStatus().isOnline()) {
+      status.append("You are online.\n");
+    } else {
+      status.append("You are offline.\n");
+    }
+    String settingsStatus = context.getSettingsStatusLine();
+    if (!settingsStatus.isEmpty()) {
+      status.append(settingsStatus).append('\n');
     }
     status.append("Your version of IDEasy is ").append(IdeVersion.getVersionString()).append('\n');
     SystemInfo systemInfo = context.getSystemInfo();

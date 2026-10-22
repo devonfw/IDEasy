@@ -1,9 +1,13 @@
 package com.devonfw.tools.ide.cli;
 
+import java.nio.file.Path;
+
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.git.GitContextMock;
 import com.devonfw.tools.ide.util.PrivacyUtil;
 import com.devonfw.tools.ide.version.IdeVersion;
 
@@ -60,23 +64,22 @@ class BugReportHelperTest extends AbstractIdeContextTest {
     // act
     String message = BugReportHelper.createUnexpectedErrorMessage("test-title");
 
-    // assert
     assertThat(message).contains("An unexpected error occurred!");
     assertThat(message).contains(BugReportHelper.createIssueUrl("test-title"));
     assertThat(message).contains("ide bugreport");
   }
 
-  /** Test of {@link BugReportHelper#createIssueBody(com.devonfw.tools.ide.context.IdeContext, String, String, String, String)}. */
+  /** Test of {@link BugReportHelper#createIssueBody(com.devonfw.tools.ide.context.IdeContext, String, String, String, String, String)}. */
   @Test
   void testCreateIssueBody() {
 
     // arrange
     IdeTestContext context = IdeTestContext.of();
+    context.getNetworkStatus().simulateOnline();
 
     // act
-    String body = BugReportHelper.createIssueBody(context, "It crashed", "step 1", "It should not crash", "stacktrace-line");
+    String body = BugReportHelper.createIssueBody(context, "It crashed", "step 1", "It should not crash", "my hint", "stacktrace-line");
 
-    // assert
     assertThat(body).contains("### Actual behavior");
     assertThat(body).contains("It crashed");
     assertThat(body).contains("### Reproduce");
@@ -84,7 +87,10 @@ class BugReportHelperTest extends AbstractIdeContextTest {
     assertThat(body).contains("### Expected behavior");
     assertThat(body).contains("It should not crash");
     assertThat(body).contains("### IDEasy status");
+    assertThat(body).contains("You are online.");
     assertThat(body).contains("Your version of IDEasy is " + IdeVersion.getVersionString());
+    assertThat(body).contains("### Comments/Hints");
+    assertThat(body).contains("my hint");
     assertThat(body).contains("stacktrace-line");
   }
 
@@ -94,14 +100,32 @@ class BugReportHelperTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = IdeTestContext.of();
+    context.getNetworkStatus().simulateOnline();
 
     // act
-    String body = BugReportHelper.createIssueBody(context, "It crashed", " ", "  ", null);
+    String body = BugReportHelper.createIssueBody(context, "It crashed", " ", "  ", null, null);
 
     // assert
     assertThat(body).contains("_Please add steps to reproduce._");
     assertThat(body).contains("_Please describe the expected behavior._");
     assertThat(body).doesNotContain("### Comments/Hints");
+  }
+
+  /** Test that the {@code Comments/Hints} section is only rendered when there is content (comments and/or an exception hint). */
+  @Test
+  void testCreateIssueBodyWithCommentsOnly() {
+
+    // arrange
+    IdeTestContext context = IdeTestContext.of();
+    context.getNetworkStatus().simulateOnline();
+
+    // act
+    String body = BugReportHelper.createIssueBody(context, "It crashed", "step 1", "It should not crash", "user hint about network", null);
+
+    // assert
+    assertThat(body).contains("### Comments/Hints");
+    assertThat(body).contains("user hint about network");
+    assertThat(body).doesNotContain("<details>");
   }
 
   /**
@@ -115,14 +139,117 @@ class BugReportHelperTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext("basic", null, false);
     String rawIdeRoot = context.getIdeRoot().toString();
     String rawIdeHome = context.getIdeHome().toString();
+    context.getNetworkStatus().simulateOnline();
+
+    // act
+    String snippet = BugReportHelper.createStatusSnippet(context);
+
+    assertThat(snippet).contains("IDE_ROOT is set to " + PrivacyUtil.removeSensitivePathInformation(rawIdeRoot) + "\n");
+    assertThat(snippet).contains("IDE_HOME is set to " + PrivacyUtil.removeSensitivePathInformation(rawIdeHome) + "\n");
+    assertThat(snippet).doesNotContain(rawIdeRoot);
+    assertThat(snippet).doesNotContain(rawIdeHome);
+    // the snippet mirrors the online and settings status of `ide status`
+    assertThat(snippet).contains("You are online.\n");
+    assertThat(snippet).contains("Your settings are up-to-date.\n");
+  }
+
+  /**
+   * Test that {@link BugReportHelper#createStatusSnippet} reflects an outdated settings repository, mirroring the output of {@code ide status}.
+   */
+  @Test
+  void testCreateStatusSnippetWithOutdatedSettings() {
+
+    // arrange
+    IdeTestContext context = newContext("basic", null, false);
+    context.getNetworkStatus().simulateOnline();
+    context.setGitContext(new GitContextMock(context) {
+      @Override
+      public boolean isRepositoryUpdateAvailable(Path repository, Path trackedCommitIdPath) {
+
+        return true;
+      }
+    });
 
     // act
     String snippet = BugReportHelper.createStatusSnippet(context);
 
     // assert
-    assertThat(snippet).contains("IDE_ROOT is set to " + PrivacyUtil.removeSensitivePathInformation(rawIdeRoot) + "\n");
-    assertThat(snippet).contains("IDE_HOME is set to " + PrivacyUtil.removeSensitivePathInformation(rawIdeHome) + "\n");
-    assertThat(snippet).doesNotContain(rawIdeRoot);
-    assertThat(snippet).doesNotContain(rawIdeHome);
+    assertThat(snippet).contains("You are online.\n");
+    assertThat(snippet).contains("Your settings are not up-to-date, please run 'ide update'.\n");
+  }
+
+  /** Test that a combined code and settings repository reports up-to-date when no settings update is available, mirroring {@code ide status}. */
+  @Test
+  void testUpToDateSettingsStatusForCombinedCodeSettingsRepository() {
+
+    // arrange, a settings repository that is a combined code and settings repository
+    IdeTestContext context = new IdeTestContext(Path.of("/"), null) {
+      @Override
+      public Path getSettingsGitRepository() {
+
+        return Path.of("settings");
+      }
+
+      @Override
+      public boolean isCombinedCodeSettingsRepository() {
+
+        return true;
+      }
+    };
+    context.setGitContext(new GitContextMock(context) {
+      @Override
+      public boolean isRepositoryUpdateAvailable(Path repository, Path trackedCommitIdPath) {
+
+        return false;
+      }
+    });
+    context.getNetworkStatus().simulateOnline();
+
+    // act
+    IdeContext.SettingsUpdateState status = context.evaluateSettingsUpdateStatus();
+    String snippet = BugReportHelper.createStatusSnippet(context);
+
+    // assert
+    assertThat(status).isEqualTo(IdeContext.SettingsUpdateState.UP_TO_DATE);
+    assertThat(context.getSettingsStatusLine()).isEqualTo("Your settings are up-to-date.");
+    assertThat(snippet).contains("Your settings are up-to-date.\n");
+    assertThat(snippet).doesNotContain("ide update");
+  }
+
+  /** Test that a combined code and settings repository suppresses the outdated warning, mirroring {@code ide status}. */
+  @Test
+  void testNoOutdatedSettingsWarningForCombinedCodeSettingsRepository() {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext(Path.of("/"), null) {
+      @Override
+      public Path getSettingsGitRepository() {
+
+        return Path.of("settings");
+      }
+
+      @Override
+      public boolean isCombinedCodeSettingsRepository() {
+
+        return true;
+      }
+    };
+    context.setGitContext(new GitContextMock(context) {
+      @Override
+      public boolean isRepositoryUpdateAvailable(Path repository, Path trackedCommitIdPath) {
+
+        return true;
+      }
+    });
+    context.getNetworkStatus().simulateOnline();
+
+    // act
+    IdeContext.SettingsUpdateState status = context.evaluateSettingsUpdateStatus();
+    String snippet = BugReportHelper.createStatusSnippet(context);
+
+    // assert
+    assertThat(status).isEqualTo(IdeContext.SettingsUpdateState.UNKNOWN);
+    assertThat(context.getSettingsStatusLine()).isEmpty();
+    assertThat(snippet).doesNotContain("Your settings are not up-to-date");
   }
 }
