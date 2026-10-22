@@ -22,8 +22,13 @@ import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.process.ProcessResultImpl;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.ToolEdition;
+import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.plugin.AbstractPluginBasedCommandlet;
+import com.devonfw.tools.ide.tool.plugin.ExamplePluginBasedCommandlet;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * Test of {@link Vscode} class.
@@ -361,6 +366,40 @@ class VscodeTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(excludedEditions).contains("vscode", "vscodium");
+  }
+
+  @Test
+  void testPluginPurgeRequiredOnMajorVersionChangeOnly() {
+    //arrange
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    ExamplePluginBasedCommandlet commandlet = new ExamplePluginBasedCommandlet(context, PROJECT_VSCODE, null);
+    ToolEdition edition = new ToolEdition(PROJECT_VSCODE, PROJECT_VSCODE);
+
+    ToolEditionAndVersion majorVersion1 = new ToolEditionAndVersion(edition);
+    majorVersion1.setResolvedVersion(VersionIdentifier.of("1.90.0"));
+    ToolEditionAndVersion majorVersion2 = new ToolEditionAndVersion(edition);
+    majorVersion2.setResolvedVersion(VersionIdentifier.of("2.90.0"));
+
+    ToolEditionAndVersion minorVersion1 = new ToolEditionAndVersion(edition);
+    minorVersion1.setResolvedVersion(VersionIdentifier.of("1.90.0"));
+    ToolEditionAndVersion minorVersion2 = new ToolEditionAndVersion(edition);
+    majorVersion2.setResolvedVersion(VersionIdentifier.of("1.91.0"));
+
+    ToolInstallRequest requestMajor = new ToolInstallRequest(true);
+    requestMajor.setInstalled(majorVersion1);
+    requestMajor.setRequested(majorVersion2);
+
+    ToolInstallRequest requestMinor = new ToolInstallRequest(true);
+    requestMinor.setInstalled(minorVersion1);
+    requestMinor.setRequested(minorVersion2);
+
+    //act
+    boolean purgeOnMajor = commandlet.isPluginPurgeRequired(requestMajor);
+    boolean purgeOnMinor = commandlet.isPluginPurgeRequired(requestMinor);
+
+    //assert
+    assertThat(purgeOnMajor).isTrue();
+    assertThat(purgeOnMinor).isFalse();
   }
 
   /**

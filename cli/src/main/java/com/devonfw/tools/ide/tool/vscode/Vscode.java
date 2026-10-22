@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.tool.vscode;
 
+import static com.devonfw.tools.ide.version.VersionIdentifier.MAJOR_SEGMENT;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -107,6 +109,12 @@ public class Vscode extends AbstractIdeToolCommandlet {
 
     cleanupLegacyUserData();
     super.configureWorkspace();
+  }
+
+  @Override
+  public int getIncompatibleVersionSegmentIndex() {
+
+    return MAJOR_SEGMENT;
   }
 
   /**
