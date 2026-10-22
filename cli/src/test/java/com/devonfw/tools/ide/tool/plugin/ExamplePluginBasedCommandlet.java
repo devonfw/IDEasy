@@ -8,9 +8,9 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
 
 /**
- * Example implementation of {@link PluginBasedCommandlet} for testing.
+ * Example implementation of {@link AbstractPluginBasedCommandlet} for testing.
  */
-public class ExamplePluginBasedCommandlet extends PluginBasedCommandlet {
+public class ExamplePluginBasedCommandlet extends AbstractPluginBasedCommandlet {
 
   /**
    * The constructor.

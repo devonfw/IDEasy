@@ -31,6 +31,11 @@ macos-installer/Resources/LICENSE.rtf
 macos-installer/pkg-root
 macos-installer/Distribution.xml
 
+#windows installer files
+*.msi
+windows-installer/msi-files
+windows-installer/signed
+
 # Package Files #
 *.jar
 *.war

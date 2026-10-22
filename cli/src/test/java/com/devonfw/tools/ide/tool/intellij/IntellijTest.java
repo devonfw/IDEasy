@@ -17,6 +17,8 @@ import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.tool.ToolEdition;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
+import com.devonfw.tools.ide.tool.ToolInstallation;
+import com.devonfw.tools.ide.tool.claude.RecordingEnvironmentContext;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
@@ -411,6 +413,25 @@ class IntellijTest extends AbstractIdeContextTest {
 
     String jdkTableContent = Files.readString(jdkTable);
     assertThat(jdkTableContent).contains("software/extra/java/client");
+  }
+
+  /**
+   * Tests if the environment variable {@code IDEA_PROPERTIES} is set to the path of the {@code idea.properties} file in the workspace.
+   */
+  @Test
+  void testSetEnvironmentSetsIdeaProperties() {
+
+    // arrange
+    Intellij commandlet = new Intellij(this.context);
+    Path dummy = context.getSoftwarePath().resolve("intellij");
+    ToolInstallation installation = new ToolInstallation(dummy, dummy, dummy, VersionIdentifier.of("2023.3.3"), false);
+    RecordingEnvironmentContext environmentContext = new RecordingEnvironmentContext();
+
+    // act
+    commandlet.setEnvironment(environmentContext, installation, false);
+
+    // assert
+    assertThat(environmentContext.set).containsEntry("IDEA_PROPERTIES", this.context.getWorkspacePath().resolve("idea.properties").toString());
   }
 
   private void checkInstallation(IdeTestContext context) {
