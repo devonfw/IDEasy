@@ -1,7 +1,9 @@
 package com.devonfw.tools.ide.tool.plugin;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -9,12 +11,14 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * Base class for {@link AbstractLocalToolCommandlet}s that support plugins. It can automatically install configured plugins for the tool managed by this
@@ -62,11 +66,29 @@ public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCom
   protected void postInstall(ToolInstallRequest request) {
 
     super.postInstall(request);
-    if (!request.isAlreadyInstalled() || this.forcePluginReinstall.isTrue()) {
-      this.pluginManager.resetPlugins();
+
+    VersionIdentifier version = null;
+    if (request.getRequested() != null) {
+      version = request.getRequested().getResolvedVersion();
     }
-    this.context.getFileAccess().mkdirs(getPluginsInstallationPath());
+    if (version == null) {
+      version = getInstalledVersion();
+    }
+
+    Path pluginsInstallationPath = getPluginsInstallationPath(version);
+
+    if (!request.isAlreadyInstalled() || this.forcePluginReinstall.isTrue()) {
+      LOG.info("Resetting installed plugins for the current IDE version...");
+      this.context.getFileAccess().delete(pluginsInstallationPath);
+      this.pluginManager.deletePluginMarkerFiles(version == null ? null : version.toString());
+    }
+
+    this.context.getFileAccess().mkdirs(pluginsInstallationPath);
     installPlugins(getPlugins().getPlugins(), request.getProcessContext());
+
+    if (version != null) {
+      cleanupOldPluginVersions(version);
+    }
   }
 
   /**
@@ -86,7 +108,21 @@ public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCom
   @Override
   public Path getPluginsInstallationPath() {
 
-    return this.context.getPluginsPath().resolve(this.tool);
+    VersionIdentifier version = getInstalledVersion();
+    return getPluginsInstallationPath(version);
+  }
+
+  /**
+   * @param version the tool version.
+   * @return the plugin installation path for the given tool version.
+   */
+  public Path getPluginsInstallationPath(VersionIdentifier version) {
+
+    Path pluginsPath = this.context.getPluginsPath().resolve(this.tool);
+    if (version == null) {
+      return pluginsPath;
+    }
+    return pluginsPath.resolve(version.toString());
   }
 
   @Override
@@ -109,5 +145,42 @@ public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCom
   public void deleteAllPlugins() {
 
     this.context.getFileAccess().delete(getPluginsInstallationPath());
+  }
+
+  @Override
+  public VersionIdentifier getPluginMarkerVersion() {
+
+    return getInstalledVersion();
+  }
+
+  private void cleanupOldPluginVersions(VersionIdentifier currentVersion) {
+
+    Path toolPluginsPath = this.context.getPluginsPath().resolve(this.tool);
+    FileAccess fileAccess = this.context.getFileAccess();
+
+    if (!Files.isDirectory(toolPluginsPath)) {
+      return;
+    }
+
+    List<Path> versionDirectories =
+        fileAccess.listChildren(toolPluginsPath, Files::isDirectory);
+
+    for (Path versionDirectory : versionDirectories) {
+      String version = versionDirectory.getFileName().toString();
+
+      if (version.equals(currentVersion.toString())) {
+        continue;
+      }
+
+      try {
+        fileAccess.delete(versionDirectory);
+        this.pluginManager.deletePluginMarkerFiles(version);
+        LOG.debug("Deleted obsolete plugin directory {}.", versionDirectory);
+      } catch (RuntimeException _) {
+        LOG.warn(
+            "Could not delete obsolete plugin directory {}. It may still be in use and will be cleaned up later.",
+            versionDirectory);
+      }
+    }
   }
 }
