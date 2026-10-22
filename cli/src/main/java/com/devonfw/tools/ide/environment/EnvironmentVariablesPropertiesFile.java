@@ -41,6 +41,8 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
 
   private final Set<String> modifiedVariables;
 
+  private final Map<String, String> renamedVariables;
+
   private Boolean legacyConfiguration;
 
   /**
@@ -93,6 +95,7 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
     this.variables = new HashMap<>();
     this.exportedVariables = new HashSet<>();
     this.modifiedVariables = new HashSet<>();
+    this.renamedVariables = new HashMap<>();
     load();
   }
 
@@ -182,7 +185,7 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
   public void save() {
 
     boolean isLegacy = Boolean.TRUE.equals(this.legacyConfiguration);
-    if (this.modifiedVariables.isEmpty() && !isLegacy) {
+    if (this.modifiedVariables.isEmpty() && this.renamedVariables.isEmpty() && !isLegacy) {
       LOG.trace("No changes to save in properties file {}", this.propertiesFilePath);
       return;
     }
@@ -227,6 +230,7 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
         }
       }
       this.modifiedVariables.clear();
+      this.renamedVariables.clear();
     } catch (IOException e) {
       throw new IllegalStateException("Failed to save properties to " + this.propertiesFilePath, e);
     }
@@ -259,6 +263,12 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
 
     String name = line.getName();
     if (name != null) {
+      if (saveNotLoad) {
+        String newName = this.renamedVariables.get(name);
+        if (newName != null) {
+          line = line.withName(newName);
+        }
+      }
       VariableDefinition<?> variableDefinition = IdeVariables.get(name);
       if (variableDefinition != null) {
         line = variableDefinition.migrateLine(line);
@@ -370,6 +380,26 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
       this.exportedVariables.remove(name);
       LOG.debug("Removed variable name of '{}' in {}", name, this.propertiesFilePath);
     }
+  }
+
+  /**
+   * Renames a property.
+   *
+   * @param oldName the current name of the property.
+   * @param newName the new name of the property.
+   */
+  public void rename(String oldName, String newName) {
+    String value = this.variables.get(oldName);
+    if (value == null) {
+      return;
+    }
+    this.variables.remove(oldName);
+    this.variables.put(newName, value);
+    if (this.exportedVariables.remove(oldName)) {
+      this.exportedVariables.add(newName);
+    }
+    this.renamedVariables.put(oldName, newName);
+    LOG.debug("Renamed variable '{}' to '{}' in {}", oldName, newName, this.propertiesFilePath);
   }
 
 }
