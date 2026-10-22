@@ -109,6 +109,7 @@ private final TextField textField= new TextField();
         setStyle(BASE_STYLE);
       } else {
         textField.setText(entry.displayValue());
+        textField.setStyle(getStyleForEntry(entry));
         textField.setEditable(false);
         setGraphic(textField);
         setStyle(getStyleForEntry(entry));
