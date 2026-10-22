@@ -17,7 +17,7 @@ import com.devonfw.tools.ide.url.model.folder.UrlFolder;
 public abstract class AbstractUrlFile<P extends AbstractUrlFolder<?>> extends AbstractUrlArtifactWithParent<P>
     implements UrlFile<P> {
 
-  private static final Logger LOG = LoggerFactory.getLogger(DirectoryMerger.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractUrlFile.class);
 
   /**
    * {@code true} if modified and changes are unsaved, {@code false} otherwise.
