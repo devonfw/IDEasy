@@ -2,11 +2,13 @@ package com.devonfw.tools.ide.environment;
 
 import java.nio.file.Path;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
@@ -235,6 +237,71 @@ class EnvironmentVariablesTest extends AbstractIdeContextTest {
     assertThat(resolved).isEqualTo("@media(max-width:600px){a:1}");
   }
 
+
+  /**
+   * Test that a value entered for {@code @ask-secret} does not show up in any log output, in particular not in the debug log written when it is persisted.
+   */
+  @Test
+  void testEnteredSecretIsNotLoggedInLogOutput() {
+
+    // arrange
+    String path = "project/workspaces/foo-test/my-git-repo";
+    IdeTestContext context = newContext(ENVIRONMENT_PROJECT, path, true);
+    context.setAnswers("dummy-secret-value");
+    EnvironmentVariables variables = context.getVariables();
+
+    // act
+    String resolved = variables.resolve("token=@ask-secret('MY_TOKEN')", "test", false);
+
+    // assert
+    assertThat(resolved).isEqualTo("token=dummy-secret-value");
+    assertThat(context).log().hasNoMessageContaining("dummy-secret-value");
+  }
+
+  /**
+   * Test that an already defined secret variable does not show up in log output either, although the user is not asked for it. Since @ask-secret is not
+   * persisted, a stored secret is here defined directly in conf/ide.properties.
+   */
+  @Disabled("Fails until #2718 is fixed: EnvironmentVariablesMap logs the value of every variable it reads at trace level.")
+  @Test
+  void testAlreadyDefinedSecretIsNotLoggedInLogOutput() {
+
+    // arrange
+    String path = "project/workspaces/foo-test/my-git-repo";
+    // TRACE level so that the "Variable MY_TOKEN=..." log written while reading the variable is captured
+    IdeTestContext context = newContext(ENVIRONMENT_PROJECT, path, true, null, IdeLogLevel.TRACE);
+    EnvironmentVariables variables = context.getVariables();
+    variables.getByType(EnvironmentVariablesType.CONF).set("MY_TOKEN", "dummy-stored-value");
+    context.getTestStartContext().getEntries().clear();
+
+    // act
+    String resolved = variables.resolve("token=@ask-secret('MY_TOKEN')", "test", false);
+
+    // assert
+    assertThat(resolved).isEqualTo("token=dummy-stored-value");
+    assertThat(context.getSecretLineCount()).isZero(); // the user was NOT asked
+    assertThat(context).log().hasNoMessageContaining("dummy-stored-value");
+  }
+
+  /**
+   * Test that a value for {@code @ask-variable} is not asked as a secret.
+   */
+  @Test
+  void testAskVariableIsNotAskedAsSecret() {
+
+    // arrange
+    String path = "project/workspaces/foo-test/my-git-repo";
+    IdeTestContext context = newContext(ENVIRONMENT_PROJECT, path, true);
+    context.setAnswers("http://llama.local");
+    EnvironmentVariables variables = context.getVariables();
+
+    // act
+    String resolved = variables.resolve("url=@ask-variable('MY_URL')", "test", false);
+
+    // assert
+    assertThat(resolved).isEqualTo("url=http://llama.local");
+    assertThat(context.getSecretLineCount()).isZero();
+  }
 
   /**
    * Test of {@link EnvironmentVariables#inverseResolve(String, Object)} that variables which resolve to an empty value (e.g.
