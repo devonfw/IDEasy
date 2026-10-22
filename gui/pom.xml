@@ -106,7 +106,7 @@
                   <filtering>false</filtering>
                   <includes>
                     <include>logo.png</include>
-                    <include>ideasy.png</include>
+                    <include>icon.png</include>
                   </includes>
                 </resource>
               </resources>

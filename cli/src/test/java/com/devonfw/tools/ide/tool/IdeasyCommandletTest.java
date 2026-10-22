@@ -13,11 +13,13 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
+import com.devonfw.tools.ide.migration.v2026.Mig202610001;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.version.VersionIdentifier;
+
 
 /**
  * Test of {@link IdeasyCommandlet}.
@@ -126,7 +128,7 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
       assertThat(desktopFile).exists();
       assertThat(desktopFile).content()
           .contains("Exec=" + installationPath.resolve("bin/ideasy") + " gui")
-          .contains("Icon=" + installationPath.resolve("gui/ideasy.png"));
+          .contains("Icon=" + installationPath.resolve("gui/icon.png"));
     } else if (systemInfo.isMac()) {
       Path commandFile = context.getUserHome().resolve("Applications/IDEasy.command");
       assertThat(commandFile).exists();
@@ -222,33 +224,38 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test that {@link IdeasyCommandlet#postInstallOnNewInstallation(ToolInstallRequest)} regenerates the desktop shortcut on upgrade, so existing installations
-   * keep a valid icon path (see #2567).
+   * Test that the icon migration regenerates the desktop shortcut on upgrade, so existing installations keep a valid icon path (see #2567).
    */
   @Test
-  void testPostInstallOnNewInstallationRefreshesDesktopShortcut() throws Exception {
+  void testIconMigrationRefreshesDesktopShortcut() throws Exception {
+
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of("linux");
     IdeTestContext context = newContext("install");
     context.setSystemInfo(systemInfo);
     context.setIdeRoot(context.getUserHome().resolve("projects"));
     Path installationPath = context.getIdeInstallationPath();
+
     // simulate a stale shortcut (or none) from a previous version
     Path desktopFile = context.getUserHome().resolve(".local/share/applications/ideasy-gui.desktop");
     context.getFileAccess().mkdirs(desktopFile.getParent());
     context.getFileAccess().writeFileContent("stale icon path", desktopFile);
+
     // provide the template the refresh step reads from the (new) installation
     Path template = Path.of("src/main/package/gui/linux/ideasy-gui.desktop");
     Path templateTarget = installationPath.resolve("gui/linux/ideasy-gui.desktop");
     context.getFileAccess().mkdirs(templateTarget.getParent());
     context.getFileAccess().writeFileContent(Files.readString(template), templateTarget);
-    IdeasyCommandlet ideasy = new IdeasyCommandlet(context);
+
+    Mig202610001 migration = new Mig202610001();
+
     // act
-    ideasy.postInstallOnNewInstallation(new ToolInstallRequest(false));
+    migration.run(context);
+
     // assert
     assertThat(desktopFile).content()
         .contains("Exec=" + installationPath.resolve("bin/ideasy") + " gui")
-        .contains("Icon=" + installationPath.resolve("gui/ideasy.png"));
+        .contains("Icon=" + installationPath.resolve("gui/icon.png"));
   }
 
   /**

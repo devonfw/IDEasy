@@ -10,10 +10,9 @@ import org.junit.jupiter.api.Test;
 /**
  * Verifies that the GUI logo assets are available on the classpath at the locations the GUI references.
  * <p>
- * The banner logo ({@code com/devonfw/ide/gui/assets/logo.png}) and the app icon
- * ({@code com/devonfw/ide/gui/assets/ideasy.png}) are not stored in this module; they are copied at build time
- * from the canonical assets in {@code documentation/images/} (see #2567). These tests guard that the derived
- * copies are present and that resource filtering has not corrupted the binaries.
+ * The banner logo ({@code com/devonfw/ide/gui/assets/logo.png}) and the app icon ({@code com/devonfw/ide/gui/assets/icon.png}) are not stored in this module;
+ * they are copied at build time from the canonical assets in {@code documentation/images/} (see #2567). These tests guard that the derived copies are present
+ * and that resource filtering has not corrupted the binaries.
  */
 public class LogoAssetResourceTest extends Assertions {
 
@@ -21,7 +20,7 @@ public class LogoAssetResourceTest extends Assertions {
   private static final String BANNER_CLASSPATH = "/com/devonfw/ide/gui/assets/logo.png";
 
   /** Absolute classpath location referenced by {@code App.ICON_PATH}. */
-  private static final String ICON_CLASSPATH = "/com/devonfw/ide/gui/assets/ideasy.png";
+  private static final String ICON_CLASSPATH = "/com/devonfw/ide/gui/assets/icon.png";
 
   /** The banner logo is a 680x156 wordmark. */
   private static final int BANNER_WIDTH = 680;
