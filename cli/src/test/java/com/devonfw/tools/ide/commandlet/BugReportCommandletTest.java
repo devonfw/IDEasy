@@ -1,13 +1,14 @@
 package com.devonfw.tools.ide.commandlet;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.cli.BugReportHelper;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.CapturingProcessContextTest;
+import com.devonfw.tools.ide.context.CapturingProcessContextMock;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.process.OutputMessage;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -101,10 +102,14 @@ class BugReportCommandletTest extends AbstractIdeContextTest {
     context.getNetworkStatus().simulateOnline();
     context.setAnswers("yes", "title from test", "actual behavior from test", "step 1 from test", "expected from test", "extra comments from test");
     Path ghBinary = Path.of("gh");
-    CapturingProcessContextTest processContext = new CapturingProcessContextTest(context) {
+    List<List<String>> runs = new ArrayList<>();
+    CapturingProcessContextMock processContext = new CapturingProcessContextMock(context) {
       @Override
       public ProcessResult run(ProcessMode processMode) {
 
+        runs.add(new ArrayList<>(this.arguments));
+        this.arguments.clear();
+        this.executable = null;
         return new ProcessResultImpl("gh", "gh", ProcessResult.SUCCESS, List.of(new OutputMessage(false, "https://github.com/devonfw/IDEasy/issues/123")));
       }
     };
@@ -121,7 +126,7 @@ class BugReportCommandletTest extends AbstractIdeContextTest {
     bugreport.run();
 
     // assert
-    List<String> args = processContext.getArgs();
+    List<String> args = runs.stream().filter(run -> run.contains("create")).findFirst().orElseThrow();
     assertThat(args).contains("issue", "create", "--repo", BugReportHelper.REPOSITORY);
     assertThat(args).endsWith("--type", "Bug");
   }
