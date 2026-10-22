@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.os;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -197,7 +198,7 @@ public class WindowsHelperImpl implements WindowsHelper {
     }
 
     return displayName.equalsIgnoreCase(appName)
-        || displayName.toLowerCase().startsWith(appName.toLowerCase() + " ");
+        || displayName.toLowerCase(Locale.ROOT).startsWith(appName.toLowerCase(Locale.ROOT) + " ");
   }
 
   /**

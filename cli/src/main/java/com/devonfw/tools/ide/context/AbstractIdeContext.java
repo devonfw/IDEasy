@@ -2060,20 +2060,20 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     return false;
   }
 
+  /**
+   * Updates the local {@code ide-urls} repository or, if Git is not available, falls back to the existing local metadata.
+   */
   public void updateUrlsRepository() {
 
     GitContext gitContext = getGitContext();
 
+    Path urlsPath = getUrlsPath();
     if (gitContext.findGit() != null) {
-      gitContext.pullOrCloneAndResetIfNeeded(IDE_URLS_GIT, getUrlsPath(), null);
+      gitContext.pullOrCloneAndResetIfNeeded(IDE_URLS_GIT, urlsPath, null);
+    } else if ((urlsPath != null) && Files.isDirectory(urlsPath)) {
+      LOG.debug("Git is not available. Using existing URL metadata without updating it.");
     } else {
-      Path urlsPath = getUrlsPath();
-
-      if ((urlsPath != null) && Files.isDirectory(urlsPath)) {
-        LOG.debug("Git is not available. Using existing URL metadata without updating it.");
-      } else {
-        gitContext.findGitRequired();
-      }
+      gitContext.findGitRequired();
     }
   }
 }
