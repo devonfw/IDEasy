@@ -5,6 +5,7 @@ import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
 import java.nio.file.Path;
 import java.util.Locale;
+
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
