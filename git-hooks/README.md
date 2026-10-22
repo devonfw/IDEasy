@@ -25,7 +25,7 @@ Uninstall with `git config --unset core.hooksPath`.
   3. static analysis — `mvn checkstyle:check` scoped to the Java files staged in the commit.
 
   Any violation or test failure blocks the commit.
-
+**commit-msg** — prevents AI attribution in commit messages.
 ### Escape hatches (use sparingly)
 
 | Goal                           | Command                         |
