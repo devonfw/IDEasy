@@ -80,15 +80,20 @@ public class PluginManager {
 
   /**
    * Determines whether all installed plugins of the tool have to be purged (reset and reinstalled) as part of the installation. A purge is required if the
-   * version changed at the {@link PluginBasedCommandlet#getIncompatibleVersionSegmentIndex() incompatible version segment} or at a more significant segment,
-   * if the tool edition changed, or if the tool is installed for the first time.
+   * reset and reinstallation is forced via the {@code --force-plugin-reinstall} flag, if the version changed at the
+   * {@link PluginBasedCommandlet#getIncompatibleVersionSegmentIndex() incompatible version segment} or at a more significant segment, if the tool edition
+   * changed, or if the tool is installed for the first time.
    *
    * @param request the {@link ToolInstallRequest} carrying the {@link ToolInstallRequest#getInstalled() installed} and
    *     {@link ToolInstallRequest#getRequested() requested} edition and version.
-   * @return {@code true} if the installed plugins are considered incompatible with the requested version and have to be purged, {@code false} otherwise.
+   * @return {@code true} if the installed plugins have to be purged (either because they are considered incompatible with the requested version or because
+   *     the purge is forced via the {@code --force-plugin-reinstall} flag), {@code false} otherwise.
    */
   public boolean isPluginPurgeRequired(ToolInstallRequest request) {
 
+    if (this.tool.isForcePluginReinstall()) {
+      return true;
+    }
     ToolEditionAndVersion installed = request.getInstalled();
     ToolEditionAndVersion requested = request.getRequested();
     if ((installed == null) || (installed.getResolvedVersion() == null)) {

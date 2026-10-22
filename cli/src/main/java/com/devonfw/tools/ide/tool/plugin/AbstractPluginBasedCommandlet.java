@@ -66,7 +66,7 @@ public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCom
   protected void postInstall(ToolInstallRequest request) {
 
     super.postInstall(request);
-    if (isForcePluginReinstall() || isPluginPurgeRequired(request)) {
+    if (isPluginPurgeRequired(request)) {
       this.pluginManager.resetPlugins(request);
     }
     this.context.getFileAccess().mkdirs(getPluginsInstallationPath());

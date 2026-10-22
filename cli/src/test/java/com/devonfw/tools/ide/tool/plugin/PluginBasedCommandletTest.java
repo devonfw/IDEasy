@@ -202,7 +202,7 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  void testNoPluginPurgeOnMinorVersionChange() {
+  void testPluginPurgeOnMinorVersionChange() {
 
     IdeTestContext context = newContext(PROJECT_BASIC, null, false);
     ExamplePluginBasedCommandlet commandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags);
@@ -212,7 +212,7 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
     ToolEditionAndVersion minorToolEditionAndVersion2 = newEditionAndVersion(edition, VersionIdentifier.of("1.91.0"));
     ToolInstallRequest request = newPurgeRequest(minorToolEditionAndVersion1, minorToolEditionAndVersion2);
 
-    assertThat(commandlet.isPluginPurgeRequired(request)).isFalse();
+    assertThat(commandlet.isPluginPurgeRequired(request)).isTrue();
   }
 
   @Test
@@ -243,6 +243,19 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
+  void testPluginPurgeRequiredOnForcePluginReinstall() {
+
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    ExamplePluginBasedCommandlet commandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags);
+    commandlet.forcePluginReinstall.setValue(true);
+
+    ToolEditionAndVersion sameEditionAndVersion = newEditionAndVersion(new ToolEdition(TOOL, TOOL), VersionIdentifier.of("1.90.0"));
+    ToolInstallRequest request = newPurgeRequest(sameEditionAndVersion, sameEditionAndVersion);
+
+    assertThat(commandlet.isPluginPurgeRequired(request)).isTrue();
+  }
+
+  @Test
   void testPluginPurgeNotRequiredOnRequestedNull() {
     IdeTestContext context = newContext(PROJECT_BASIC, null, false);
     ExamplePluginBasedCommandlet commandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags);
@@ -256,7 +269,7 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
   void testPluginPurgeOnMinorChangeWhenMinorSegmentIsIncompatible() {
 
     IdeTestContext context = newContext(PROJECT_BASIC, null, false);
-    ExamplePluginBasedCommandlet commandlet = newThresholdCommandlet(context, PluginBasedCommandlet.MINOR_SEGMENT);
+    ExamplePluginBasedCommandlet commandlet = newThresholdCommandlet(context, VersionIdentifier.MINOR_SEGMENT);
     ToolEdition edition = new ToolEdition(TOOL, TOOL);
 
     ToolInstallRequest minorChange = newPurgeRequest(newEditionAndVersion(edition, VersionIdentifier.of("1.90.0")),
@@ -275,7 +288,7 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
   void testPluginPurgeOnAnyChangeWhenFixSegmentIsIncompatible() {
 
     IdeTestContext context = newContext(PROJECT_BASIC, null, false);
-    ExamplePluginBasedCommandlet commandlet = newThresholdCommandlet(context, PluginBasedCommandlet.FIX_SEGMENT);
+    ExamplePluginBasedCommandlet commandlet = newThresholdCommandlet(context, VersionIdentifier.FIX_SEGMENT);
     ToolEdition edition = new ToolEdition(TOOL, TOOL);
 
     ToolInstallRequest fixChange = newPurgeRequest(newEditionAndVersion(edition, VersionIdentifier.of("1.90.0")),

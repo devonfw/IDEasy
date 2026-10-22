@@ -111,7 +111,7 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
     super.postInstall(request);
 
     configureWorkspace();
-    if (isForcePluginReinstall() || isPluginPurgeRequired(request)) {
+    if (isPluginPurgeRequired(request)) {
       this.pluginManager.resetPlugins(request);
     }
     installPlugins(getPlugins().getPlugins(), request.getProcessContext());
