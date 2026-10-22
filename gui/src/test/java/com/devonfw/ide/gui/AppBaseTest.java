@@ -18,7 +18,7 @@ import javafx.scene.control.SplitPane.Divider;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 import org.assertj.core.data.Offset;
@@ -56,8 +56,9 @@ public class AppBaseTest extends HeadlessApplicationTest {
   private ProgressBar taskProgressBar;
   private SplitPane centerSplitPane;
   private TabPane tabPane;
-  private VBox welcomePane;
+  private StackPane welcomePane;
   private Label welcomeLabel;
+  private Label welcomeSubtitle;
   private Button openLauncherButton;
 
   @TempDir
@@ -73,6 +74,8 @@ public class AppBaseTest extends HeadlessApplicationTest {
 
   private MainWindowViewModel viewModel;
 
+  private MainWindowView mainWindow;
+
   @Override
   public void start(Stage stage) {
 
@@ -80,15 +83,11 @@ public class AppBaseTest extends HeadlessApplicationTest {
     this.guiStateManager.getNlsService().setLocale(Locale.ENGLISH);
     this.taskManager = guiStateManager.getTaskManager();
     this.viewModel = new MainWindowViewModel(guiStateManager);
-    MainWindowView mainWindow = new MainWindowView(this.viewModel, guiStateManager);
+    this.mainWindow = new MainWindowView(this.viewModel, guiStateManager);
     stage.setScene(new Scene(mainWindow, SCENE_WIDTH, SCENE_HEIGHT));
     stage.requestFocus(); //sometimes needed for headless setup to work
     stage.show();
 
-    androidStudioOpen = FxHelper.lookup(mainWindow, "#androidStudioOpen");
-    eclipseOpen = FxHelper.lookup(mainWindow, "#eclipseOpen");
-    intellijOpen = FxHelper.lookup(mainWindow, "#intellijOpen");
-    vsCodeOpen = FxHelper.lookup(mainWindow, "#vsCodeOpen");
     selectedProject = FxHelper.lookup(mainWindow, "#projects");
     selectedWorkspace = FxHelper.lookup(mainWindow, "#workspaces");
     consolePaneToggleButton = FxHelper.lookup(mainWindow, "#consolePaneToggleButton");
@@ -98,6 +97,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
     tabPane = FxHelper.lookup(mainWindow, "#tabPane");
     welcomePane = FxHelper.lookup(mainWindow, "#welcomePane");
     welcomeLabel = FxHelper.lookup(mainWindow, "#welcomeLabel");
+    welcomeSubtitle = FxHelper.lookup(mainWindow, "#welcomeSubtitle");
     openLauncherButton = FxHelper.lookup(mainWindow, "#openLauncherButton");
   }
 
@@ -122,6 +122,21 @@ public class AppBaseTest extends HeadlessApplicationTest {
   }
 
   /**
+   * The application starts on the welcome pane without any open tab. The IDE open buttons live in the launcher tab, so it has to be opened before they can be
+   * looked up.
+   */
+  private void openLauncherTab() {
+
+    interact(() -> this.viewModel.openLauncherTab());
+    waitForFxEvents();
+
+    androidStudioOpen = FxHelper.lookup(this.mainWindow, "#androidStudioOpen");
+    eclipseOpen = FxHelper.lookup(this.mainWindow, "#eclipseOpen");
+    intellijOpen = FxHelper.lookup(this.mainWindow, "#intellijOpen");
+    vsCodeOpen = FxHelper.lookup(this.mainWindow, "#vsCodeOpen");
+  }
+
+  /**
    * Tests that the workspace {@link ComboBox} is enabled when a project is selected.
    */
   @Test
@@ -142,6 +157,8 @@ public class AppBaseTest extends HeadlessApplicationTest {
   @Test
   public void testIdeOpenButtonsDisabledWhenNoProjectSelected() {
 
+    openLauncherTab();
+
     // assert that no project is selected
     assertThat(selectedProject.getValue()).isNull();
 
@@ -156,6 +173,8 @@ public class AppBaseTest extends HeadlessApplicationTest {
    */
   @Test
   public void testIdeOpenButtonsEnabledWhenWorkspaceSelected() {
+
+    openLauncherTab();
 
     // assert that a project and workspace is selected
     interact(() -> selectedProject.getSelectionModel().select("project-1"));
@@ -172,6 +191,8 @@ public class AppBaseTest extends HeadlessApplicationTest {
    */
   @Test
   public void testSwitchingProjectResetsWorkspaceSelectionToMain() {
+
+    openLauncherTab();
 
     // select a project and its workspace -> all IDE open buttons become enabled
     interact(() -> selectedProject.getSelectionModel().select("project-1"));
@@ -327,12 +348,27 @@ public class AppBaseTest extends HeadlessApplicationTest {
   //===Welcome pane tests===
 
   /**
-   * The launcher tab is opened on startup, so the welcome pane must stay hidden behind the visible tab pane.
+   * The application starts without any open tab, so the welcome pane must be visible and the empty tab pane hidden.
+   */
+  @Test
+  void testWelcomePaneShownOnStartup() {
+
+    assertThat(tabPane.getTabs()).as("No tab should be open on startup").isEmpty();
+    assertThat(welcomePane.isVisible()).as("The welcome pane should be visible on startup").isTrue();
+    assertThat(tabPane.isVisible()).as("The empty tab pane should be hidden on startup").isFalse();
+    assertThat(welcomeLabel.getText()).isEqualTo("Welcome to IDEasy");
+    assertThat(welcomeSubtitle.getText()).isEqualTo("Select where you want to start:");
+  }
+
+  /**
+   * Opening a tab must hide the welcome pane and show the tab pane.
    */
   @Test
   void testWelcomePaneHiddenWhileTabIsOpen() {
 
-    assertThat(tabPane.getTabs()).as("The launcher tab should be open on startup").hasSize(1);
+    openLauncherTab();
+
+    assertThat(tabPane.getTabs()).as("The launcher tab should be open").hasSize(1);
     assertThat(welcomePane.isVisible()).as("The welcome pane should be hidden while a tab is open").isFalse();
     assertThat(tabPane.isVisible()).as("The tab pane should be visible while a tab is open").isTrue();
   }
@@ -343,6 +379,7 @@ public class AppBaseTest extends HeadlessApplicationTest {
   @Test
   void testWelcomePaneShownWhenAllTabsClosed() {
 
+    openLauncherTab();
     interact(() -> tabPane.getTabs().clear());
     waitForFxEvents();
 
@@ -356,9 +393,6 @@ public class AppBaseTest extends HeadlessApplicationTest {
    */
   @Test
   void testWelcomeButtonOpensLauncherTab() {
-
-    interact(() -> tabPane.getTabs().clear());
-    waitForFxEvents();
 
     interact(() -> openLauncherButton.fire());
     waitForFxEvents();

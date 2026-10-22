@@ -17,7 +17,7 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.StackPane;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +62,7 @@ public class MainWindowView extends BorderPane {
   private TabPane tabPane;
 
   @FXML
-  private VBox welcomePane;
+  private StackPane welcomePane;
 
   @FXML
   private Button openLauncherButton;

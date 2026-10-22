@@ -13,16 +13,37 @@
         <SplitPane fx:id="centerSplitPane" dividerPositions="1.0" BorderPane.alignment="CENTER" orientation="VERTICAL">
           <StackPane fx:id="contentStack">
             <!-- WELCOME PANE: only visible while no tab is open -->
-            <VBox fx:id="welcomePane"
-              alignment="CENTER"
-              spacing="16.0"
+            <StackPane fx:id="welcomePane"
               stylesheets="@../../style/center.css"
               styleClass="welcomePane">
-              <Label fx:id="welcomeLabel" text="%welcome_title" styleClass="welcomeTitle"/>
-              <Button fx:id="openLauncherButton"
-                text="%welcome_open_launcher"
-                styleClass="launchButton"/>
-            </VBox>
+              <!-- Logo watermark in the bottom right corner -->
+              <ImageView fitWidth="460.0"
+                preserveRatio="true"
+                mouseTransparent="true"
+                StackPane.alignment="BOTTOM_RIGHT">
+                <Image url="@../../assets/logo.png"/>
+                <StackPane.margin>
+                  <Insets right="16.0" bottom="16.0"/>
+                </StackPane.margin>
+              </ImageView>
+              <VBox alignment="TOP_LEFT"
+                spacing="8.0"
+                styleClass="welcomeContent">
+                <Label fx:id="welcomeLabel" text="%welcome_title" styleClass="welcomeTitle"/>
+                <Label fx:id="welcomeSubtitle" text="%welcome_subtitle" styleClass="welcomeSubtitle">
+                  <VBox.margin>
+                    <Insets bottom="8.0"/>
+                  </VBox.margin>
+                </Label>
+                <Button fx:id="openLauncherButton"
+                  text="%welcome_open_launcher"
+                  styleClass="welcomeButton">
+                  <graphic>
+                    <Region styleClass="welcomeButtonIcon"/>
+                  </graphic>
+                </Button>
+              </VBox>
+            </StackPane>
             <TabPane fx:id="tabPane" tabClosingPolicy="ALL_TABS">
               <tabs/>
             </TabPane>
