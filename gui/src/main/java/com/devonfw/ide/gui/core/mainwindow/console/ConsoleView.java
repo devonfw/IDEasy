@@ -98,18 +98,19 @@ public class ConsoleView {
     private static final String PLAIN_STYLE = BASE_STYLE + " -fx-text-fill: #333333;";
     private static final String ERROR_BG = "-fx-background-color: #fff0f0;";
     private static final String WARNING_BG = "-fx-background-color: #fff8e0;";
-private final TextField textArea= new TextField();
+
+private final TextField textField= new TextField();
     @Override
     protected void updateItem(IdeLogEntry entry, boolean empty) {
 
       super.updateItem(entry, empty);
       if (empty || entry == null) {
-        textArea.setText(null);
+        textField.setText(null);
         setStyle(BASE_STYLE);
       } else {
-        textArea.setText(entry.displayValue());
-        textArea.setEditable(false);
-        setGraphic(textArea);
+        textField.setText(entry.displayValue());
+        textField.setEditable(false);
+        setGraphic(textField);
         setStyle(getStyleForEntry(entry));
       }
     }
