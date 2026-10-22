@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
@@ -33,6 +35,25 @@ class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
     verifyUpdateLegacyFolders();
     verifyUpdateProperties();
     verifyUpdateWorkspaceTemplates();
+  }
+
+  /**
+   * Test of {@link UpgradeSettingsCommandlet} preserving the line endings of updated repository properties files.
+   */
+  @Test
+  void testUpdateRepositoryPropertiesPreservesLineEndings() throws IOException {
+    // arrange
+    Path legacyRepositoriesPath = UPGRADE_SETTINGS_PATH.resolve("settings/projects");
+    Files.writeString(legacyRepositoriesPath.resolve("crlf.properties"), "path=crlf\r\ngit.url=https://host.tld/crlf.git\r\neclipse=import\r\n");
+    Files.writeString(legacyRepositoriesPath.resolve("lf.properties"), "path=lf\ngit.url=https://host.tld/lf.git\neclipse=import");
+    UpgradeSettingsCommandlet upgradeSettingsCommandlet = new UpgradeSettingsCommandlet(context);
+    // act
+    upgradeSettingsCommandlet.run();
+    // assert
+    Path repositoriesPath = UPGRADE_SETTINGS_PATH.resolve("settings/repositories");
+    assertThat(Files.readString(repositoriesPath.resolve("crlf.properties"))).isEqualTo(
+        "path=crlf\r\ngit_url=https://host.tld/crlf.git\r\nimport=eclipse\r\n");
+    assertThat(Files.readString(repositoriesPath.resolve("lf.properties"))).isEqualTo("path=lf\ngit_url=https://host.tld/lf.git\nimport=eclipse");
   }
 
   private void verifyUpdateProperties() {

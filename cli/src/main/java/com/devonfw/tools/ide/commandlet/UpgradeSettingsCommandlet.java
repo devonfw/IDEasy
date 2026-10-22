@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
@@ -214,7 +215,10 @@ public class UpgradeSettingsCommandlet extends AbstractCommandlet {
   }
 
   private void updateRepositoryPropertiesFile(Path filePath) throws IOException {
-    List<String> lines = Files.readAllLines(filePath);
+    String content = Files.readString(filePath);
+    // preserve the line endings of the file to avoid unwanted diffs in the settings git repository
+    String newline = content.contains("\r\n") ? "\r\n" : "\n";
+    List<String> lines = new ArrayList<>(content.lines().toList());
     boolean updated = false;
 
     for (int i = 0; i < lines.size(); i++) {
@@ -232,7 +236,11 @@ public class UpgradeSettingsCommandlet extends AbstractCommandlet {
     }
     if (updated) {
       try {
-        Files.write(filePath, lines, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+        String updatedContent = String.join(newline, lines);
+        if (content.endsWith("\n") || content.endsWith("\r")) {
+          updatedContent += newline;
+        }
+        Files.writeString(filePath, updatedContent, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
         IdeLogLevel.SUCCESS.log(LOG, "Successfully updated repository configuration file {}", filePath);
       } catch (IOException e) {
         LOG.error("Failed to write updated repository configuration file {}", filePath);
