@@ -278,12 +278,14 @@ class FileAccessImplTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests that {@link FileAccessImpl#extractDmg(Path, Path)} preserves application bundle symbolic links.
+   * Tests that {@link FileAccessImpl#extractDmg(Path, Path)} preserves application bundle symbolic links. Disabled on Windows, where DMG extraction is not
+   * supported.
    *
    * @param tempDir the temporary directory.
    * @throws IOException on test setup failure.
    */
   @Test
+  @DisabledOnOs(OS.WINDOWS)
   void testExtractDmgPreservesSymbolicLinks(@TempDir Path tempDir) throws IOException {
 
     // arrange
