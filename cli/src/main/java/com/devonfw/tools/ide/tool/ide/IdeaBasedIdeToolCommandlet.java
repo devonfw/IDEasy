@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
@@ -57,8 +56,7 @@ public class IdeaBasedIdeToolCommandlet extends AbstractIdeToolCommandlet {
     }
     ProcessResult result = runTool(pc, ProcessMode.DEFAULT, args);
     if (result.isSuccessful()) {
-      IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {}", plugin.name());
-      step.success();
+      step.success("Successfully installed plugin: {}", plugin.name());
       return true;
     } else {
       step.error("Failed to install plugin {} ({}): exit code was {}", plugin.name(), plugin.id(), result.getExitCode());
