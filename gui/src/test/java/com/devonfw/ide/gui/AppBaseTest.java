@@ -99,8 +99,7 @@ public class AppBaseTest extends UIBasedApplicationTest {
     centerSplitPane = FxHelper.lookup(mainWindow, "#centerSplitPane");
     statusText = FxHelper.lookup(mainWindow, "#statusLabel");
     taskProgressBar = FxHelper.lookup(mainWindow, "#statusProgressBar");
-    this.ideOpenButtons = new Button[] { androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen };
-    tabPane = FxHelper.lookup(mainWindow, "#tabPane");
+    tabPane =FxHelper.lookup(mainWindow, "#tabPane");
     welcomePane = FxHelper.lookup(mainWindow, "#welcomePane");
     welcomeLabel = FxHelper.lookup(mainWindow, "#welcomeLabel");
     welcomeSubtitle = FxHelper.lookup(mainWindow, "#welcomeSubtitle");
@@ -127,6 +126,7 @@ public class AppBaseTest extends UIBasedApplicationTest {
     eclipseOpen = FxHelper.lookup(this.mainWindow, "#eclipseOpen");
     intellijOpen = FxHelper.lookup(this.mainWindow, "#intellijOpen");
     vsCodeOpen = FxHelper.lookup(this.mainWindow, "#vsCodeOpen");
+    this.ideOpenButtons = new Button[] { androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen };
   }
 
   /**
