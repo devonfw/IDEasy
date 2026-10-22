@@ -3,7 +3,9 @@ package com.devonfw.ide.gui;
 import static org.testfx.assertions.api.Assertions.assertThat;
 import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
+import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Locale;
 
 import javafx.scene.Scene;
@@ -20,6 +22,7 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 import org.assertj.core.data.Offset;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -348,7 +351,7 @@ public class AppBaseTest extends UIBasedApplicationTest {
     assertThat(consolePaneToggleButton.isSelected()).isFalse();
     assertThat(mainPanelDivider.getPosition()).isGreaterThan(0.99);
   }
-  
+
   /**
    * Fires a mouse click on the status label. The status label's click handler opens the task overview window when more than one task is running.
    */
@@ -412,5 +415,6 @@ public class AppBaseTest extends UIBasedApplicationTest {
     assertThat(tabPane.getTabs()).as("The welcome button should open exactly one tab").hasSize(1);
     assertThat(tabPane.getTabs().getFirst().getUserData()).as("The opened tab should be the IDE launcher").isEqualTo("tab.ide_launcher");
     assertThat(welcomePane.isVisible()).as("The welcome pane should be hidden again once a tab is open").isFalse();
-  
+
+  }
 }
