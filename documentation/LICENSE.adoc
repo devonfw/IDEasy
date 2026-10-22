@@ -100,6 +100,7 @@ The column `inclusion` indicates the way the component is included:
 |https://dotnet.microsoft.com/[Dotnet]|Optional|https://github.com/dotnet/core/blob/master/LICENSE.TXT[MIT] (https://www.microsoft.com/en-us/legal/intellectualproperty/copyright/default.aspx[Terms])
 |https://github.com/pypa/pip/[Pip] |Optional|https://github.com/pypa/pip/blob/main/LICENSE.txt[MIT]
 |https://github.com/openshift/oc[OpenShiftCLI]|Optional|https://github.com/openshift/oc/blob/master/LICENSE[Apache 2.0]
+|https://git-scm.com/[Git]|Optional|https://github.com/git/git/blob/master/COPYING[GPL 2.0]
 |https://github.com/cli/cli/[GitHubCLI]|Optional|https://github.com/cli/cli/blob/trunk/LICENSE[MIT]
 |https://quarkus.io/guides/cli-tooling[QuarkusCLI]|Optional|https://github.com/quarkusio/quarkus/blob/main/LICENSE.txt[Apache 2.0]
 |https://cloud.google.com/sdk/gcloud[GCloudCLI]|Optional|https://github.com/twistedpair/google-cloud-sdk/blob/master/google-cloud-sdk/LICENSE[Apache 2.0]
