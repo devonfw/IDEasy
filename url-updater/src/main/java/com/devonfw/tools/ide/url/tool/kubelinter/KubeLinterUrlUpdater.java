@@ -70,6 +70,11 @@ public class KubeLinterUrlUpdater extends GithubUrlReleaseUpdater {
   }
 
   @Override
+  public String mapVersion(String version) {
+    return super.mapVersion(version).trim();
+  }
+
+  @Override
   protected void addVersion(UrlVersion urlVersion) {
 
     VersionIdentifier versionIdentifier = urlVersion.getVersionIdentifier();

@@ -44,5 +44,6 @@ class KubeLinterUrlUpdaterTest extends AbstractUrlUpdaterTest {
     // assert
     Path kubeLinterDir = tempDir.resolve("kube-linter").resolve("kube-linter");
     assertUrlVersionOsArch(kubeLinterDir.resolve("0.8.3"));
+    assertThat(kubeLinterDir.resolve("0.6.8")).doesNotExist();
   }
 }
