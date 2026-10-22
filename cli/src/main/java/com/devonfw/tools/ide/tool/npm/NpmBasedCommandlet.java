@@ -92,8 +92,9 @@ public abstract class NpmBasedCommandlet extends NodeBasedCommandlet<Npm> {
         .setProcessMode(ProcessMode.DEFAULT_CAPTURE);
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI)
         .withExitCodeAcceptor(rc -> true); // if the tool is not installed npm list will end with exit code 1
+    this.context.setEnvironmentOfInstalledTools(pc);
     request.setProcessContext(pc);
-    ProcessResult result = runPackageManager(request);
+    ProcessResult result = runPackageManager(request, true);
     if (result.isSuccessful()) {
       List<String> versions = result.getOut();
       String parsedVersion = null;
