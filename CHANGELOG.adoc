@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/2462[#2462]: Add Codex url-updater
 * https://github.com/devonfw/IDEasy/issues/2701[#2701]: Stop exporting UV_PROJECT_ENVIRONMENT which broke uv projects
 * https://github.com/devonfw/IDEasy/issues/1965[#1965]: Improve dependent installation, fixed npm and pip-based installation duplication
 * https://github.com/devonfw/IDEasy/issues/2546[#2546]: Include repository into git warning/errors
@@ -28,6 +29,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2338[#2338]: Create first basic version of check commandlet
 * https://github.com/devonfw/IDEasy/issues/2193[#2193]: Added support for conditional auto-completion
 * https://github.com/devonfw/IDEasy/issues/2488[#2488]: Add compiler and SDK to MSVC installation
+
 * https://github.com/devonfw/IDEasy/issues/2103[#2103]: Integrate Obsidian
 * https://github.com/devonfw/IDEasy/issues/1695[#1695]: Project creation logic extended with health checks and removed `--code` flag.
 * https://github.com/devonfw/IDEasy/issues/2007[#2007]: Support Docker on Arch Linux with pacman and yay
