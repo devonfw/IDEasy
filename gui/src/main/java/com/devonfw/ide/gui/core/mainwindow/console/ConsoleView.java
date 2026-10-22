@@ -9,7 +9,8 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.TextArea;
+
 
 import com.devonfw.ide.gui.core.service.NlsService;
 import com.devonfw.tools.ide.log.IdeLogEntry;
@@ -99,19 +100,21 @@ public class ConsoleView {
     private static final String ERROR_BG = "-fx-background-color: #fff0f0;";
     private static final String WARNING_BG = "-fx-background-color: #fff8e0;";
 
-private final TextField textField= new TextField();
+private final TextArea textArea= new TextArea();
     @Override
     protected void updateItem(IdeLogEntry entry, boolean empty) {
-
+      textArea.setEditable(false);
       super.updateItem(entry, empty);
       if (empty || entry == null) {
-        textField.setText(null);
+        textArea.setText(null);
+        setGraphic(null);
         setStyle(BASE_STYLE);
+        textArea.setStyle(BASE_STYLE);
       } else {
-        textField.setText(entry.displayValue());
-        textField.setStyle(getStyleForEntry(entry));
-        textField.setEditable(false);
-        setGraphic(textField);
+        textArea.setText(entry.displayValue());
+        textArea.setStyle(getStyleForEntry(entry));
+
+        setGraphic(textArea);
         setStyle(getStyleForEntry(entry));
       }
     }
