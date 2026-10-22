@@ -3,11 +3,8 @@ package com.devonfw.ide.gui;
 import static org.testfx.assertions.api.Assertions.assertThat;
 import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
-import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Locale;
-
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -22,7 +19,6 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 import org.assertj.core.data.Offset;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -108,19 +104,6 @@ public class AppBaseTest extends UIBasedApplicationTest {
     welcomeLabel = FxHelper.lookup(mainWindow, "#welcomeLabel");
     welcomeSubtitle = FxHelper.lookup(mainWindow, "#welcomeSubtitle");
     openLauncherButton = FxHelper.lookup(mainWindow, "#openLauncherButton");
-  }
-
-  /**
-   * Generate temporary project directories to be able to test on any device (including GitHub CI). This is required for the {@link MainWindowView} to work in
-   * the test context. Generates a structure like this: /project-[0..6]/workspaces/main
-   */
-  @BeforeAll
-  public static void generateProjectFolderStructure() throws IOException {
-
-    LOGGER.debug("tempDir: {}", mockIdeRoot);
-    FakeProjectFolderStructureHelper.createFakeProjectFolderStructure(mockIdeRoot);
-    LOGGER.debug("project folders: {}", Arrays.toString(mockIdeRoot.toFile().list()));
-
   }
 
   @BeforeEach
