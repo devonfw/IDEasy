@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/2257[#2701]  Refactor CI/CD Workflows and Improve Release Documentation
 * https://github.com/devonfw/IDEasy/issues/2701[#2701]: Stop exporting UV_PROJECT_ENVIRONMENT which broke uv projects
 * https://github.com/devonfw/IDEasy/issues/1965[#1965]: Improve dependent installation, fixed npm and pip-based installation duplication
 * https://github.com/devonfw/IDEasy/issues/2546[#2546]: Include repository into git warning/errors
